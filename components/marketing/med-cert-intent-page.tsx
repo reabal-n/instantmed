@@ -75,6 +75,8 @@ const recognitionIcons: Record<string, typeof Briefcase> = {
   'Employer policies vary': Building2,
 }
 
+const detailSectionIcons = [FileCheck, Shield, Clock, Building2]
+
 function getRecognitionIcon(label: string) {
   return recognitionIcons[label] ?? Briefcase
 }
@@ -263,7 +265,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
           {/* Trust Badges */}
           <section className="py-12 lg:py-16">
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
                 {trustBadges.map((badge) => (
                   <div
                     key={badge.name}
@@ -273,8 +275,8 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                       <badge.icon className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate">{badge.name}</p>
-                      <p className="text-xs text-muted-foreground truncate">{badge.description}</p>
+                      <p className="text-sm font-semibold leading-tight text-foreground">{badge.name}</p>
+                      <p className="mt-0.5 text-xs leading-tight text-muted-foreground">{badge.description}</p>
                     </div>
                   </div>
                 ))}
@@ -315,6 +317,49 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                   </p>
                 ))}
               </motion.div>
+              {config.detailSections && config.detailSections.length > 0 && (
+                <motion.div
+                  className="mt-10 grid gap-4 md:grid-cols-2"
+                  initial={prefersReducedMotion ? {} : { y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.3, delay: 0.15 }}
+                >
+                  {config.detailSections.map((section, index) => {
+                    const Icon = detailSectionIcons[index % detailSectionIcons.length]
+                    return (
+                      <article
+                        key={section.title}
+                        className="rounded-xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                            <Icon className="h-5 w-5" aria-hidden="true" />
+                          </div>
+                          <div>
+                            <h3 className="text-base font-semibold text-foreground">
+                              {section.title}
+                            </h3>
+                            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                              {section.body}
+                            </p>
+                          </div>
+                        </div>
+                        {section.items && section.items.length > 0 && (
+                          <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                            {section.items.map((item) => (
+                              <li key={item} className="flex gap-2 leading-relaxed">
+                                <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden="true" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </article>
+                    )
+                  })}
+                </motion.div>
+              )}
               <motion.div
                 className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-10"
                 initial={prefersReducedMotion ? {} : { y: 10 }}

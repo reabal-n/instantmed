@@ -61,6 +61,11 @@ export interface MedCertIntentConfig {
   explainerTitle: string
   explainerSubtitle: string
   explainerParagraphs: string[]
+  detailSections?: Array<{
+    title: string
+    body: string
+    items?: string[]
+  }>
   /** Recognition/validity section - who accepts this */
   recognitionTitle: string
   recognitionSubtitle: string
@@ -255,51 +260,116 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "sick-leave",
     h1: "Sick leave certificate online.",
     heroSubheadline:
-      `Too sick to visit a GP? Request a certificate from bed. A doctor reviews your request. From ${PRICING_DISPLAY.MED_CERT}.`,
+      `Too sick to visit a GP? Request routine sick leave evidence from bed. An AHPRA-registered doctor reviews your answers and decides whether a certificate is clinically appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
     explainerTitle: "Sick leave without the waiting room",
-    explainerSubtitle: "When you need documentation for time off, but leaving the house isn't an option.",
+    explainerSubtitle: "For short absences where online doctor review is clinically suitable.",
     explainerParagraphs: [
-      "Sometimes the last thing you want to do when you're unwell is drag yourself to a clinic. Our certificates are issued by AHPRA-registered doctors after you complete a quick form. No appointments, no waiting rooms.",
-      "You describe your symptoms and how long you need off. A doctor reviews it and makes a clinical decision. If approved, your certificate lands in your inbox as a PDF.",
+      "Sometimes the last thing you want to do when you are unwell is travel to a clinic and sit in a waiting room. This page is for routine sick leave evidence: short-term illness or injury where a doctor can make a safe decision from your history without a physical examination.",
+      "You answer a structured health form covering your symptoms, when they started, the dates you need covered, whether work duties are affected, and any red flags that would make online care unsuitable. A doctor reviews those answers before deciding whether a certificate can be issued.",
+      "If approved, your certificate is emailed as a PDF with the usual workplace evidence details. If the doctor needs more context, they can message you through the secure platform. If online review is not suitable, the request is declined and you are directed toward the right care pathway.",
+    ],
+    detailSections: [
+      {
+        title: "When online review fits",
+        body:
+          "Online review is best suited to short, low-risk absences where the clinical story is clear and a physical examination is not needed.",
+        items: [
+          "Common acute illness such as cold, flu, gastro, migraine, period pain, or a short mental health day",
+          "A 1-3 day absence where your symptoms and requested dates match",
+          "No workplace injury, compensation claim, or fitness-for-duty wording required",
+        ],
+      },
+      {
+        title: "What the doctor checks",
+        body:
+          "The certificate decision is not automatic. The doctor checks whether the symptoms, timing, requested dates, and safety answers support routine sick leave evidence.",
+        items: [
+          "When symptoms started and whether they are improving, stable, or getting worse",
+          "Whether the absence period is clinically reasonable for the condition described",
+          "Whether red-flag symptoms mean you should seek urgent or in-person care",
+        ],
+      },
+      {
+        title: "What the certificate includes",
+        body:
+          "A standard sick leave certificate focuses on work capacity, not private medical detail. Diagnosis is usually not needed for routine absence evidence.",
+        items: [
+          "Your name, review date, recommended absence dates, and doctor details",
+          "A statement that you were unfit for usual work duties for the relevant period",
+          "Verification details so the document can be checked if required",
+        ],
+      },
+      {
+        title: "When it may not be enough",
+        body:
+          "Some situations need a different document or an in-person assessment. We keep those boundaries clear before a certificate is issued.",
+        items: [
+          "Workplace injury, WorkCover, insurance, or compensation paperwork",
+          "Return-to-work clearance, capacity, restrictions, or safety-critical duties",
+          "Severe symptoms, extended absence, or a condition that needs examination",
+        ],
+      },
     ],
     recognitionTitle: "Workplace evidence",
     recognitionSubtitle:
-      "Certificates include standard workplace evidence details. Some employers may have their own documentation requirements.",
+      "Certificates include standard workplace evidence details. Employers assess evidence under their own leave policy, so check any specific wording requirements before applying.",
     recognitionBadges: [
       { label: "Workplace evidence", sub: "Doctor-issued" },
-      { label: "1–3 days", sub: "Acute illness" },
+      { label: "1-3 days", sub: "Acute illness" },
       { label: "Backdating", sub: "If clinically appropriate" },
     ],
     ctaTitle: "From your couch to your inbox",
     ctaSubtitle:
-      "Two minutes on your phone. A doctor reviews it. Certificate delivered. No clinic visit required.",
+      "Two minutes on your phone. A doctor reviews your answers and sends the certificate if it is clinically appropriate.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: `Sick Leave Certificate Online | ${PRICING_DISPLAY.MED_CERT} Under 1 Hour`,
+      title: `Sick Leave Certificate Online | Doctor Review ${PRICING_DISPLAY.MED_CERT}`,
       description:
-        `Get a sick leave certificate online. AHPRA-registered doctors review your request. From ${PRICING_DISPLAY.MED_CERT}. No appointments, no waiting rooms.`,
+        `Request a sick leave certificate online for short illness. AHPRA-registered doctors review your answers. From ${PRICING_DISPLAY.MED_CERT}. Employer policies may vary.`,
       keywords: [
         "sick leave certificate online",
         "sick note online australia",
         "online sick certificate",
         "sick leave medical certificate",
+        "doctor certificate for sick leave",
+        "sick certificate online australia",
       ],
     },
     faqs: [
       {
         question: "How quickly can I get a sick leave certificate?",
         answer:
-          "Medical certificate requests are available 24/7. You'll get an email when the doctor starts reviewing.",
+          "Medical certificate requests are available 24/7. You will get an email when the doctor starts reviewing. Timing depends on clinical review and whether the doctor needs more information.",
       },
       {
         question: "Do I need to see a doctor in person?",
         answer:
-          "Telehealth medical certificates are reviewed by AHPRA-registered doctors. Employer and institution policies may vary.",
+          "Not always. Online review can be appropriate for short, low-risk illness where the doctor can make a safe decision from your history. If symptoms suggest you need an examination, urgent care, or a different document, the doctor can decline or redirect you.",
       },
       {
         question: "What if I was sick yesterday?",
         answer:
-          "We can often issue certificates for absences up to 48 hours ago if clinically appropriate. Be upfront about when your symptoms started.",
+          "The doctor can consider recent past dates if they are clinically supported by your answers. Be upfront about when symptoms started, what changed, and which days you could not work.",
+      },
+      {
+        question: "Can a sick leave certificate cover more than one day?",
+        answer:
+          "Yes, where clinically appropriate. Most routine online sick leave certificates cover short absences of 1-3 days. Longer or repeated absences may need an in-person GP, a treating practitioner, or a different document.",
+      },
+      {
+        question: "Will my diagnosis be shown to my employer?",
+        answer:
+          "Usually no. Routine sick leave evidence normally focuses on whether you were unfit for work for a period of time. It does not usually need to disclose private diagnosis or symptom details.",
+      },
+      {
+        question: "Will my employer accept an online sick leave certificate?",
+        answer:
+          "InstantMed certificates are issued by AHPRA-registered Australian doctors and include standard workplace evidence details. Employers may still apply their own leave policy, so check any specific requirements before applying.",
+      },
+      {
+        question: "When should I not use this pathway?",
+        answer:
+          "Do not use a routine sick leave certificate for medical emergencies, workplace injuries, WorkCover or insurance claims, return-to-work clearance, capacity restrictions, or severe symptoms that need urgent or in-person care.",
       },
     ],
   },
