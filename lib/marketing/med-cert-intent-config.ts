@@ -1065,29 +1065,72 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "gastro",
     h1: "Medical certificate for gastro.",
     heroSubheadline:
-      `Gastro is one of the most common reasons Australians need a sick note. Get yours from home, no waiting rooms. From ${PRICING_DISPLAY.MED_CERT}.`,
+      `Gastro symptoms can make work unsafe or impractical. An AHPRA-registered doctor reviews your answers and decides whether a certificate is clinically appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
     explainerTitle: "Gastro and stomach illness",
-    explainerSubtitle: "Gastroenteritis (gastro) is highly contagious. Staying away from work is the responsible call.",
+    explainerSubtitle: "For short gastro illness where online doctor review is clinically suitable.",
     explainerParagraphs: [
-      "Gastroenteritis causes vomiting, diarrhoea, cramps, and fatigue. You can't safely go to work, and you shouldn't. It spreads easily. Our AHPRA-registered doctors assess gastro requests and can issue a certificate from the information you provide.",
-      "You describe your symptoms in a quick form. The doctor determines the appropriate certificate duration based on your symptoms and how long you've been unwell.",
+      "Gastroenteritis can cause vomiting, diarrhoea, cramps, nausea, fever, and fatigue. For many people it is short-lived, but it can affect travel, food handling, care work, concentration, and basic work capacity while symptoms are active.",
+      "You answer a structured health form covering when symptoms started, how often you have vomited or had diarrhoea, whether you can keep fluids down, the dates you need covered, and any red flags that would make online review unsafe.",
+      "If approved, your certificate is emailed as a PDF with standard workplace evidence details. A routine gastro certificate documents absence. It is not a return-to-food-handling clearance or a substitute for urgent care if dehydration, blood, severe pain, pregnancy concerns, or worsening symptoms are present.",
+    ],
+    detailSections: [
+      {
+        title: "When online review fits",
+        body:
+          "Online review is best suited to short, uncomplicated gastro symptoms where the clinical story is clear and no physical examination is needed.",
+        items: [
+          "Vomiting, diarrhoea, nausea, cramps, or fatigue affecting work capacity",
+          "A short absence where symptoms are mild, improving, and hydration is manageable",
+          "No blood, severe abdominal pain, fainting, pregnancy concern, or severe dehydration",
+        ],
+      },
+      {
+        title: "What the doctor checks",
+        body:
+          "The doctor checks whether your symptoms, timing, hydration, work duties, and requested dates support routine absence evidence.",
+        items: [
+          "When symptoms started, how frequent they are, and whether they are improving",
+          "Whether you can keep fluids down and are passing urine normally",
+          "Whether food handling, healthcare, childcare, driving, or safety-critical work changes the advice",
+        ],
+      },
+      {
+        title: "What the certificate includes",
+        body:
+          "A routine gastro certificate focuses on work capacity and absence dates. It usually does not need to disclose the exact diagnosis or symptom details.",
+        items: [
+          "Your name, review date, recommended absence dates, and doctor details",
+          "A statement that you were unfit for usual work duties for the relevant period",
+          "Verification details so the document can be checked if required",
+        ],
+      },
+      {
+        title: "When it may not be enough",
+        body:
+          "Gastro can create infection-control or safety questions beyond a standard absence certificate.",
+        items: [
+          "Food-handler return rules, workplace infection-control clearance, or childcare exclusion requirements",
+          "Blood in vomit or stool, severe abdominal pain, fainting, confusion, or signs of dehydration",
+          "Pregnancy, very young children, older adults, immunocompromise, or symptoms that are worsening",
+        ],
+      },
     ],
     recognitionTitle: "Workplace evidence",
     recognitionSubtitle:
       "Gastro certificates include standard doctor and absence details. Employer policies may vary.",
     recognitionBadges: [
       { label: "Workplace evidence", sub: "Policy dependent" },
-      { label: "Highly contagious", sub: "Medical reason to stay home" },
-      { label: "1–3 days typical", sub: "Doctor determines duration" },
+      { label: "Clinical assessment", sub: "Doctor-reviewed" },
+      { label: "1-3 days", sub: "If clinically appropriate" },
     ],
     ctaTitle: "Stay home. Get the paperwork sorted.",
     ctaSubtitle:
-      "Two-minute form. A doctor reviews it. Certificate to your inbox.",
+      "Short form. A doctor reviews your answers. Certificate to your inbox if approved.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: `Medical Certificate for Gastro | Sick Note Online ${PRICING_DISPLAY.MED_CERT}`,
       description:
-        `Get a medical certificate for gastro or gastroenteritis. AHPRA-registered doctors review your request online. Stay home, no clinic visit needed. From ${PRICING_DISPLAY.MED_CERT}.`,
+        `Request a medical certificate for gastro or gastroenteritis. AHPRA-registered doctors review your answers online. From ${PRICING_DISPLAY.MED_CERT}. Employer policies vary.`,
       keywords: [
         "medical certificate for gastro",
         "gastroenteritis sick certificate",
@@ -1100,17 +1143,32 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Can I get a medical certificate for gastro without going to a clinic?",
         answer:
-          "Yes. Gastro symptoms are well-defined: vomiting, diarrhoea, cramps, nausea. Our doctors assess your self-reported symptoms and issue a certificate if clinically appropriate. No need to visit a clinic while infectious.",
+          "Yes, where online review is clinically appropriate. You describe your symptoms, timing, hydration, work duties, and requested dates. The doctor decides whether a certificate can be issued safely from that information.",
       },
       {
         question: "How many days will a gastro certificate cover?",
         answer:
-          "Most gastro certificates cover 1–3 days. Gastroenteritis typically resolves within 2–3 days. If you're still unwell after that period, you may need to submit a new request.",
+          "The doctor decides what absence period is clinically appropriate. Many routine gastro certificates cover short absences of 1-3 days, but persistent, worsening, or severe symptoms may need in-person care.",
       },
       {
         question: "Do I need to get tested for the specific bug?",
         answer:
-          "No. Testing isn't required for a standard medical certificate. You describe your symptoms and how long you've been unwell. The doctor makes the clinical determination.",
+          "Usually no for a routine absence certificate. Testing may be needed if symptoms are severe, prolonged, outbreak-related, work-related, or linked to food-safety rules. The doctor will redirect you if testing or in-person care is needed.",
+      },
+      {
+        question: "Will the certificate say I had gastro?",
+        answer:
+          "Usually no. Routine workplace evidence normally focuses on whether you were unfit for usual duties for the relevant period. Diagnosis and symptom details are usually not needed.",
+      },
+      {
+        question: "What if I handle food, work in healthcare, or work with children?",
+        answer:
+          "Tell the doctor in the form. Food handling, healthcare, aged care, and childcare can have stricter infection-control rules. A routine absence certificate is not the same as a return-to-work or food-handling clearance.",
+      },
+      {
+        question: "When should I not use this pathway?",
+        answer:
+          "Do not use online review for blood in vomit or stool, severe abdominal pain, fainting, confusion, pregnancy concerns, severe dehydration, inability to keep fluids down, or symptoms that are worsening. Seek urgent or in-person care.",
       },
     ],
   },
