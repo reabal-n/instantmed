@@ -11,6 +11,10 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 const logger = createLogger("cron-google-ads-diagnostics-watch")
 
 const DEFAULT_PROCESSING_WINDOW_HOURS = 24
+const PASSING_WATCH_STATUSES = new Set([
+  "diagnostics_accepted",
+  "diagnostics_stale_audit_success",
+])
 
 function parseProcessingWindowHours(value: string | null): number {
   const parsed = Number(value)
@@ -91,7 +95,7 @@ export async function GET(request: NextRequest) {
       watchUploadedAt: uploadedAt,
     })
     const diagnosticsWatch = report.diagnosticsWatch
-    const failingStatus = diagnosticsWatch?.status !== "diagnostics_accepted"
+    const failingStatus = !diagnosticsWatch || !PASSING_WATCH_STATUSES.has(diagnosticsWatch.status)
 
     if (failingStatus) {
       Sentry.captureMessage("Google Ads diagnostics watch failed", {

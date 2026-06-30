@@ -450,6 +450,73 @@ describe("google ads spend report", () => {
     })
   })
 
+  it("classifies invisible Google diagnostics as stale when the watched production audit succeeded", () => {
+    const diagnostics = summarizeGoogleAdsOfflineUploadDiagnostics([
+      {
+        offlineConversionUploadConversionActionSummary: {
+          alerts: [{ error: { conversionUploadError: "EXPIRED_EVENT" }, errorPercentage: 0.33 }],
+          lastUploadDateTime: "2026-06-27 23:08:21.04666",
+          status: "NEEDS_ATTENTION",
+          jobSummaries: [
+            { jobId: "2265599116648626375", successfulCount: "111", failedCount: "76" },
+          ],
+        },
+      },
+    ])
+
+    const report = {
+      ads: {
+        summary: {
+          totalPurchaseConversions: 0,
+        },
+      },
+      customerConversionTrackingSettings: [
+        {
+          customer: {
+            conversionTrackingSetting: {
+              acceptedCustomerDataTerms: true,
+              enhancedConversionsForLeadsEnabled: true,
+            },
+          },
+        },
+      ],
+      diagnostics,
+      preflight: {
+        ok: true,
+      },
+      uploadAuditReconciliation: {
+        watchedJob: {
+          expiredClickThroughWindow: 0,
+          failed: 0,
+          skipped: 0,
+          success: 1,
+          totalRows: 1,
+        },
+      },
+    } as unknown as Omit<GoogleAdsSpendAuditReport, "diagnosticsWatch">
+
+    const watch = buildGoogleAdsDiagnosticsWatchResult({
+      now: new Date("2026-06-30T05:11:06.101Z"),
+      processingWindowHours: 1,
+      report,
+      uploadedAt: "2026-06-30T03:51:48.645Z",
+      watchJobId: "7983935816279565573",
+    })
+
+    expect(watch).toMatchObject({
+      acceptedCount: null,
+      diagnosticsJobSummary: null,
+      jobId: "7983935816279565573",
+      rejectedCount: null,
+      status: "diagnostics_stale_audit_success",
+      classification: {
+        expiredClickThroughWindow: "not_indicated",
+        googleProcessingLag: "confirmed",
+        payloadShape: "not_indicated",
+      },
+    })
+  })
+
   it("summarizes campaign spend and joins local paid order truth by campaign id", () => {
     const local = summarizeLocalGoogleAdsPurchases([
       {

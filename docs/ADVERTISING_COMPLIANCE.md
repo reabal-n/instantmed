@@ -21,6 +21,8 @@
 
 Certification is not blanket approval for all wording. Every ad, asset, keyword, landing page, destination URL, schema field, and audience setting still needs to comply with Google, AHPRA/Medical Board, TGA, privacy, and consumer-law rules.
 
+`Eligible (Limited)` can still appear after certification. The certification label allows certified healthcare/pharmacy promotion in approved markets; it does not remove Google's healthcare inventory restrictions, prescription-drug-service classification, or the need to resubmit/edit ads and assets so Google reruns policy review after the account label changes.
+
 ## 2. Measurement Requirements
 
 Paid Google traffic must keep Google Ads auto-tagging on and use an account-level or campaign-level final URL suffix with non-clinical diagnostics:

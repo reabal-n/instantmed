@@ -229,6 +229,7 @@ export type GoogleAdsDiagnosticsWatchResult = {
   status:
     | "processing_window_pending"
     | "diagnostics_invisible"
+    | "diagnostics_stale_audit_success"
     | "diagnostics_pending"
     | "diagnostics_rejected"
     | "diagnostics_accepted_primary_zero"
@@ -1219,6 +1220,15 @@ export function buildGoogleAdsDiagnosticsWatchResult({
   const hasNonExpiredFailedAudit = Boolean(
     watchedAudit && watchedAudit.failed > watchedAudit.expiredClickThroughWindow,
   )
+  const watchedAuditSucceededWithoutErrors = Boolean(
+    report.preflight.ok &&
+      watchedAudit &&
+      watchedAudit.totalRows > 0 &&
+      watchedAudit.success > 0 &&
+      watchedAudit.failed === 0 &&
+      watchedAudit.skipped === 0 &&
+      watchedAudit.expiredClickThroughWindow === 0,
+  )
   const accountSetupIncomplete =
     customerSettings.acceptedCustomerDataTerms !== true ||
     customerSettings.enhancedConversionsForLeadsEnabled !== true
@@ -1255,12 +1265,17 @@ export function buildGoogleAdsDiagnosticsWatchResult({
   }
 
   if (!diagnosticsJobSummary) {
+    const status = watchedAuditSucceededWithoutErrors
+      ? "diagnostics_stale_audit_success"
+      : "diagnostics_invisible"
+
     return {
       acceptedCount: null,
       classification: {
         ...baseClassification,
-        attributionDateLag: "possible",
-        googleProcessingLag: "possible",
+        attributionDateLag: watchedAuditSucceededWithoutErrors ? "not_indicated" : "possible",
+        googleProcessingLag: watchedAuditSucceededWithoutErrors ? "confirmed" : "possible",
+        payloadShape: watchedAuditSucceededWithoutErrors ? "not_indicated" : baseClassification.payloadShape,
       },
       diagnosticsJobSummary: null,
       eligibleAt,
@@ -1270,7 +1285,7 @@ export function buildGoogleAdsDiagnosticsWatchResult({
       pendingCount: null,
       processingWindowElapsed: true,
       rejectedCount: null,
-      status: "diagnostics_invisible",
+      status,
       uploadedAt: normalizedUploadedAt,
     }
   }
