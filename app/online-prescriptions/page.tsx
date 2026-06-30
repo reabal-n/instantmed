@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     title: "Online Prescriptions Australia | Doctor Review | InstantMed",
     description:
       "A practical Australian guide to online repeat prescription review, eScripts, PBS, safety boundaries, and when in-person care is safer.",
-    url: "https://instantmed.com.au/online-prescriptions",
+    url: "https://instantmed.com.au/prescriptions",
     type: "website",
     locale: "en_AU",
     siteName: "InstantMed",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     description: "Repeat prescription review online. Doctor-reviewed, medicine-neutral, and safety-led.",
   },
   alternates: {
-    canonical: "https://instantmed.com.au/online-prescriptions",
+    canonical: "https://instantmed.com.au/prescriptions",
   },
   robots: {
     index: true,
@@ -59,26 +59,26 @@ export default function Page() {
       <SpeakableSchema
         name="Online Prescriptions Australia"
         description={`Online prescriptions in Australia for existing regular medicines. A repeat prescription review costs ${PRICING_DISPLAY.REPEAT_SCRIPT}. An AHPRA-registered Australian doctor reviews the request and decides whether prescribing is clinically appropriate.`}
-        url="/online-prescriptions"
+        url="/prescriptions"
         speakableSelectors={["h1", "[data-speakable]"]}
       />
       <FAQSchema faqs={[...ONLINE_PRESCRIPTIONS_FAQ]} />
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },
-          { name: "Online Prescriptions", url: "https://instantmed.com.au/online-prescriptions" },
+          { name: "Online Prescriptions", url: "https://instantmed.com.au/prescriptions" },
         ]}
       />
       <ServiceSchema
         name="Online Repeat Prescription Review"
         description="Repeat prescription review for existing regular medicines, reviewed by an AHPRA-registered Australian doctor. Prescription only if clinically appropriate."
         price={reviewPrice}
-        url="/online-prescriptions"
+        url="/prescriptions"
       />
       <HealthArticleSchema
         title="Online Prescriptions Australia"
         description={`How online prescription requests work in Australia, including repeat prescription suitability, doctor review, eScripts, PBS, Medicare, safety boundaries, and in-person care limits. From ${PRICING_DISPLAY.REPEAT_SCRIPT}.`}
-        url="/online-prescriptions"
+        url="/prescriptions"
         lastReviewed="2026-06"
       />
       <OnlinePrescriptionsLanding visuals={visuals} />

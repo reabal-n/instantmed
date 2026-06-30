@@ -71,6 +71,7 @@ describe("SEO indexing contracts", () => {
       "components/marketing/med-cert-landing.tsx": [
         "/resources/medical-certificate-employer-policy",
         "/resources/online-medical-certificate-verification",
+        "/prescriptions",
       ],
       "app/prescriptions/page.tsx": [
         "/resources/secure-online-prescription-requests",
@@ -97,6 +98,9 @@ describe("SEO indexing contracts", () => {
       "app/online-doctor-australia/page.tsx": [
         "/resources/medicare-bulk-billing-private-telehealth",
         "/resources/when-telehealth-is-not-appropriate",
+      ],
+      "components/seo/content-hub-links.tsx": [
+        "/prescriptions",
       ],
     }
 
@@ -172,6 +176,30 @@ describe("SEO indexing contracts", () => {
     }
   })
 
+  it("keeps /request crawlable noindex without a homepage canonical", () => {
+    const requestPage = read("app/request/page.tsx")
+
+    expect(requestPage).toContain("robots: { index: false, follow: true }")
+    expect(requestPage).toContain("canonical: null")
+    expect(requestPage).not.toContain('canonical: "/"')
+    expect(requestPage).not.toContain('"https://instantmed.com.au/"')
+  })
+
+  it("consolidates prescription indexing on /prescriptions", () => {
+    const prescriptionsPage = read("app/prescriptions/page.tsx")
+    const onlinePrescriptionsPage = read("app/online-prescriptions/page.tsx")
+
+    expect(prescriptionsPage).toContain("canonical: 'https://instantmed.com.au/prescriptions'")
+    expect(prescriptionsPage).toContain("robots: {")
+    expect(prescriptionsPage).toContain("index: true")
+    expect(prescriptionsPage).toContain("follow: true")
+
+    expect(onlinePrescriptionsPage).toContain('canonical: "https://instantmed.com.au/prescriptions"')
+    expect(onlinePrescriptionsPage).toContain('url: "https://instantmed.com.au/prescriptions"')
+    expect(onlinePrescriptionsPage).toContain('url="/prescriptions"')
+    expect(onlinePrescriptionsPage).not.toContain('canonical: "https://instantmed.com.au/online-prescriptions"')
+  })
+
   it("keeps GSC indexing audits as read-only diagnostics", () => {
     const packageJson = JSON.parse(read("package.json")) as {
       scripts?: Record<string, string>
@@ -185,6 +213,30 @@ describe("SEO indexing contracts", () => {
     expect(auditScript).toContain("searchconsole.urlInspection.index.inspect")
     expect(auditScript).toContain("searchconsole.searchanalytics.query")
     expect(auditScript).not.toContain("indexing.urlNotifications.publish")
+  })
+
+  it("inspects current money pages by default in GSC indexing audits", () => {
+    const auditScript = read("tools/gsc-mcp-server/gsc-index-audit.mjs")
+
+    expect(auditScript).toContain("DEFAULT_PRIORITY_INSPECTION_PATHS")
+    expect(auditScript).toContain("DEFAULT_INSPECT_LIMIT")
+
+    for (const route of [
+      "/medical-certificate",
+      "/medical-certificate-online",
+      "/prescriptions",
+      "/online-prescriptions",
+      "/erectile-dysfunction",
+      "/hair-loss",
+      "/womens-health",
+      "/uti-assessment-online",
+      "/contraceptive-pill-assessment-online",
+      "/pricing",
+      "/telehealth-australia",
+      "/online-doctor-australia",
+    ]) {
+      expect(auditScript, route).toContain(`"${route}"`)
+    }
   })
 
   it("uses permanent redirects for retired public acquisition aliases", () => {

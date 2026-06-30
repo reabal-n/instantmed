@@ -338,6 +338,35 @@ function MedCertFinalCta() {
   )
 }
 
+function RelatedPrescriptionServiceLink() {
+  return (
+    <section aria-label="Related online service" className="border-y border-border/40 bg-white/70 dark:border-white/10 dark:bg-white/[0.02]">
+      <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <RotateCcw className="h-4 w-4" aria-hidden="true" />
+          </span>
+          <div>
+            <Heading level="h2" as="h2" className="text-base font-semibold tracking-normal text-foreground">
+              Need a repeat medication review?
+            </Heading>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+              For existing regular medicines, the repeat prescription page explains doctor review, safety checks, and eScript delivery.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/prescriptions"
+          className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        >
+          Repeat prescriptions
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
+      </div>
+    </section>
+  )
+}
+
 // =============================================================================
 // MAIN PAGE COMPONENT
 // =============================================================================
@@ -377,6 +406,8 @@ export function MedCertLanding() {
             compactStyle="inline"
             className="bg-muted/30 dark:bg-white/[0.02]"
           />
+
+          <RelatedPrescriptionServiceLink />
 
           <div data-track-section="how_it_works">
             <HowItWorksInline
