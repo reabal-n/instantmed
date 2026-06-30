@@ -950,31 +950,74 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
 
   "work-from-home": {
     slug: "work-from-home",
-    h1: "Medical certificate for working from home.",
+    h1: "Medical certificate for work-from-home related absence.",
     heroSubheadline:
-      `Your employer wants documentation before approving remote work. A doctor reviews your request. From ${PRICING_DISPLAY.MED_CERT}.`,
-    explainerTitle: "When employers need medical justification for WFH",
-    explainerSubtitle: "Some employers require a medical certificate before approving temporary work from home arrangements due to illness.",
+      `If illness affects attendance at your usual workplace, an AHPRA-registered doctor can assess whether routine sick-leave evidence is clinically appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
+    explainerTitle: "Work-from-home requests and medical evidence",
+    explainerSubtitle: "For short illness-related absences where your employer asks for medical evidence. It does not approve remote work.",
     explainerParagraphs: [
-      "If you're unwell and your employer needs a record for a short absence or temporary arrangement, a routine sick certificate may help. Employer WFH policies still apply.",
-      "InstantMed does not certify fitness for remote work, workplace restrictions, or capacity. The doctor can only issue routine sick-leave evidence when the online assessment is clinically appropriate.",
+      "Some employers ask for medical evidence when illness affects attending the workplace, commuting, or performing usual onsite duties. A routine certificate can document a period of medical unfitness when clinically appropriate, but your employer decides how that evidence applies to sick leave, remote work, or flexible-work policies.",
+      "You answer a structured health form covering your symptoms, when they started, the dates you need covered, and how the illness affects attendance or usual duties. The doctor reviews whether routine sick-leave evidence is appropriate, or whether the request needs an in-person, occupational-health, or employer-specific assessment instead.",
+      "If approved, your certificate is emailed as a PDF with standard workplace evidence details. It does not direct your employer to approve work from home, certify fitness for remote work, set workplace restrictions, or complete an ergonomic, WorkCover, disability-support, or flexible-work report.",
     ],
     recognitionTitle: "Workplace documentation",
     recognitionSubtitle:
-      "Certificates document a routine absence period. Employer WFH policies vary. Check yours before applying.",
+      "Certificates document a routine absence period. Employer WFH policies vary and may require different evidence.",
     recognitionBadges: [
-      { label: "Contagious illness", sub: "Fit for WFH, not office" },
-      { label: "Recovery periods", sub: "Post-illness or procedure" },
-      { label: "AHPRA doctors", sub: "Doctor-issued" },
+      { label: "Routine evidence", sub: "Absence period" },
+      { label: "Employer policy", sub: "Varies by workplace" },
+      { label: "No capacity report", sub: "Standard certificate only" },
     ],
-    ctaTitle: "Documentation for working remotely",
+    detailSections: [
+      {
+        title: "When online review fits",
+        body:
+          "Online review is best suited to short illness-related absences where your employer needs routine evidence, not a detailed capacity or workplace-adjustment report.",
+        items: [
+          "A short illness affecting your ability to attend the workplace, commute, or perform usual duties",
+          "Symptoms that can be assessed safely online without a physical examination",
+          "No employer-specific WFH form, fitness-for-duty assessment, workplace injury claim, or long-term restrictions required",
+        ],
+      },
+      {
+        title: "What the doctor checks",
+        body:
+          "The doctor checks whether your symptoms, timing, work impact, and requested dates support routine absence evidence.",
+        items: [
+          "When symptoms started, whether they are improving, and whether any red flags require in-person care",
+          "Whether the issue is routine sick leave evidence rather than a request to certify remote-work capacity",
+          "Whether the requested date range is proportionate to the clinical information provided",
+        ],
+      },
+      {
+        title: "What the certificate includes",
+        body:
+          "If approved, the certificate includes the standard details employers usually need for sick-leave evidence.",
+        items: [
+          "Your name, the doctor's details, the review date, and the medically appropriate absence period",
+          "A statement about medical unfitness for work or usual duties for the stated period",
+          "Verification details your employer can use to confirm the certificate came from InstantMed",
+        ],
+      },
+      {
+        title: "When a standard certificate is not enough",
+        body:
+          "Some work-from-home requests need a different document or an in-person assessment.",
+        items: [
+          "Formal flexible-work, disability accommodation, ergonomic, occupational-health, or employer-specific WFH forms",
+          "Fitness-for-duty, return-to-work, safety-critical, driving, or workplace-restriction certificates",
+          "WorkCover, workers compensation, insurance, legal, or long-term capacity documentation",
+        ],
+      },
+    ],
+    ctaTitle: "Request routine absence evidence",
     ctaSubtitle:
-      "Quick form, doctor assessment. Certificate to your inbox if approved.",
+      "Complete the health form so a doctor can assess whether a standard certificate is appropriate.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: `Medical Certificate Work From Home | WFH Documentation ${PRICING_DISPLAY.MED_CERT}`,
+      title: `Medical Certificate Work From Home | WFH Evidence ${PRICING_DISPLAY.MED_CERT}`,
       description:
-        `Get a routine sick certificate for work-from-home situations. AHPRA-registered doctors review your request. From ${PRICING_DISPLAY.MED_CERT}. Employer WFH policies vary.`,
+        `Request routine medical evidence for a work-from-home related absence. AHPRA-registered doctors review your answers. From ${PRICING_DISPLAY.MED_CERT}. Employer policies vary.`,
       keywords: [
         "medical certificate work from home",
         "wfh medical certificate australia",
@@ -987,22 +1030,32 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Can I get a certificate saying I should work from home?",
         answer:
-          "Not as a fitness or capacity certificate. If you are unwell, the doctor may issue routine sick-leave evidence for the relevant absence period if clinically appropriate.",
+          "Not as a direction to your employer. InstantMed can only provide routine sick-leave evidence if the doctor decides it is clinically appropriate. Your employer decides whether that evidence supports sick leave, work from home, or another workplace arrangement.",
       },
       {
         question: "Will my employer accept this?",
         answer:
-          "Our certificates are issued by AHPRA-registered doctors. Employer WFH policies vary; some assess telehealth documentation under their own policies, others may have specific requirements. Check your employer's policy before submitting.",
+          "Our certificates are issued by AHPRA-registered doctors, but employer WFH policies vary. Some workplaces assess telehealth certificates under their ordinary evidence policy; others require their own forms, occupational-health review, or manager approval.",
       },
       {
         question: "What conditions qualify for a WFH certificate?",
         answer:
-          "Common scenarios include contagious illness (e.g. flu, gastro, COVID), recovery from a minor procedure, mobility issues, or other conditions where attending the workplace isn't medically appropriate. The doctor assesses your situation individually.",
+          "The doctor assesses the clinical situation rather than a fixed list. Short illnesses such as respiratory infection, gastro, migraine, pain flare, or recovery symptoms may support routine absence evidence if the online assessment is clinically appropriate.",
       },
       {
-        question: "Is this different from a sick leave certificate?",
+        question: "Can it say I am fit to work remotely?",
         answer:
-          "InstantMed issues routine sick-leave certificates only. It does not certify fitness for remote work, workplace restrictions, or capacity.",
+          "No. A routine medical certificate documents unfitness for work or usual duties for a period. It does not certify fitness for remote work, modified duties, workplace restrictions, or capacity.",
+      },
+      {
+        question: "What if my employer needs a special WFH or accommodation form?",
+        answer:
+          "Use your regular GP, treating specialist, occupational-health provider, or the pathway specified by your employer. Those forms often need functional capacity detail, workplace context, or an examination that is outside a short online certificate pathway.",
+      },
+      {
+        question: "When should I not use this pathway?",
+        answer:
+          "Do not use this pathway for a workplace injury, WorkCover claim, return-to-work clearance, long-term restrictions, safety-critical duties, legal or insurance reports, or symptoms that need urgent or in-person care.",
       },
     ],
   },
