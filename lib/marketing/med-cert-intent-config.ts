@@ -1515,29 +1515,80 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "covid",
     h1: "Medical certificate for COVID-19.",
     heroSubheadline:
-      `Tested positive? Get your isolation certificate without leaving home. A doctor reviews your request. From ${PRICING_DISPLAY.MED_CERT}.`,
-    explainerTitle: "COVID certificates and isolation documentation",
-    explainerSubtitle: "Many employers still require documentation for COVID-related absences.",
+      `COVID-19 can mean fever, cough, sore throat, fatigue, body aches, and a need to stay away from work or study. Complete a secure form so a doctor can assess whether routine sick-leave evidence is appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
+    explainerTitle: "COVID-19 and absence evidence",
+    explainerSubtitle: "For short COVID-related absences where online review is clinically suitable.",
     explainerParagraphs: [
-      "While mandatory isolation periods are no longer legally required in most of Australia, many employers still ask for documentation when staff test positive for COVID-19. Our AHPRA-registered doctors can issue a medical certificate documenting your illness and the period of unfitness.",
-      "You describe your test result, symptoms, and how long you've been unwell. The doctor reviews and issues a certificate if appropriate. No need to visit a clinic while infectious.",
+      "COVID-19 can still disrupt work, study, commuting, and usual duties. A routine online certificate may document a short absence where the clinical history is clear, symptoms are manageable at home, and no in-person assessment is needed.",
+      "You answer a structured health form covering when symptoms started, any RAT or PCR result, which symptoms you have, the dates you need reviewed, how the illness affects attendance, and safety answers that help the doctor decide whether online review is appropriate.",
+      "An approved certificate includes standard absence evidence. It is not a public-health isolation order, proof of infection, negative-test certificate, return-to-work clearance, travel clearance, or advice about your employer's COVID policy.",
     ],
-    recognitionTitle: "Employer policies vary",
+    detailSections: [
+      {
+        title: "When online review fits",
+        body:
+          "Online review is best suited to short COVID-related absences where the request is for routine evidence and symptoms are not severe.",
+        items: [
+          "A positive RAT or PCR result, or COVID-like symptoms affecting work, study, commuting, or usual duties",
+          "Fever, cough, sore throat, fatigue, headache, body aches, congestion, or loss of taste or smell that can be managed at home",
+          "No employer clearance, travel document, public-health form, or formal test-result proof required",
+        ],
+      },
+      {
+        title: "What the doctor checks",
+        body:
+          "The doctor checks whether your symptom pattern, timing, test information, requested dates, and safety answers support routine certificate evidence.",
+        items: [
+          "When symptoms started, when you tested if relevant, and whether symptoms are improving, unchanged, or worsening",
+          "How the illness affects attendance, concentration, physical duties, study, commuting, or caring responsibilities",
+          "Whether breathlessness, chest pain, confusion, fainting, dehydration, pregnancy, immune suppression, or severe worsening symptoms point to in-person care",
+        ],
+      },
+      {
+        title: "What the certificate includes",
+        body:
+          "A routine COVID certificate focuses on the absence period. It does not need to include private symptom or test detail unless the doctor decides that detail is clinically relevant.",
+        items: [
+          "Your name, the doctor's details, the review date, and the medically appropriate absence period",
+          "A statement that you were unfit for work, study, or usual duties for the stated period",
+          "Verification details your employer or institution can use to confirm the certificate came from InstantMed",
+        ],
+      },
+      {
+        title: "When a standard certificate is not enough",
+        body:
+          "Some COVID-related requests need a test provider, public-health source, in-person assessment, or employer-specific pathway.",
+        items: [
+          "Severe breathlessness, chest pain, confusion, fainting, dehydration, pregnancy concerns, immune suppression, or worsening illness",
+          "Return-to-work clearance, fitness-for-duty, travel clearance, isolation-release letters, vaccination records, negative-test certificates, or test-result proof",
+          "Workers compensation, insurance, legal, court, or employer forms that require specific capacity, diagnosis, or exposure detail",
+        ],
+      },
+    ],
+    recognitionTitle: "Workplace evidence",
     recognitionSubtitle:
-      "COVID certificates are issued by AHPRA-registered doctors and used for workplace documentation. Mandatory isolation rules vary by state. Check your state health authority for current requirements.",
+      "COVID certificates include standard doctor and absence details. Employer, school, university, and public-health requirements may vary.",
     recognitionBadges: [
-      { label: "Workplace evidence", sub: "Policy dependent" },
-      { label: "Stay isolated", sub: "No clinic visit needed" },
-      { label: "RAT or PCR positive", sub: "Accepted" },
+      { label: "Routine evidence", sub: "Absence period" },
+      { label: "Red flags", sub: "In-person boundary" },
+      { label: "Employer policy", sub: "May vary" },
     ],
-    ctaTitle: "Isolate safely. Get your paperwork sorted.",
+    relatedLinks: [
+      {
+        href: "/medical-certificate/carer",
+        label: "Need evidence because you are caring for someone?",
+        description:
+          "Use the carer's certificate pathway when your absence is because you are caring for a child, dependant, or family member with COVID-19.",
+      },
+    ],
+    ctaTitle: "Request COVID absence evidence",
     ctaSubtitle:
-      "Two-minute form. Doctor review. Certificate to your inbox.",
-    ctaButtonText: "Get your certificate",
+      "For short COVID-related absences where routine certificate evidence is clinically appropriate.",
+    ctaButtonText: "Start certificate request",
     metadata: {
-      title: `Medical Certificate for COVID-19 | Isolation Certificate ${PRICING_DISPLAY.MED_CERT}`,
+      title: `Medical Certificate for COVID-19 | Sick Note Online ${PRICING_DISPLAY.MED_CERT}`,
       description:
-        `Get a medical certificate for COVID-19. AHPRA-registered doctors review your request. Stay isolated, no clinic visit needed. From ${PRICING_DISPLAY.MED_CERT}.`,
+        `Request a medical certificate for COVID-19 absence. AHPRA-registered doctors review symptoms, test information, requested dates, and safety answers. From ${PRICING_DISPLAY.MED_CERT}. Employer policies vary.`,
       keywords: [
         "medical certificate for covid",
         "covid sick certificate australia",
@@ -1550,22 +1601,32 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Can I get a medical certificate for COVID without seeing a doctor?",
         answer:
-          "Our AHPRA-registered doctors review your self-reported test result and symptoms and issue a certificate if clinically appropriate. Employer policies may vary.",
+          "Online review may be suitable for a short COVID-related absence if your symptoms, test information, requested dates, and safety answers support routine certificate evidence. The doctor decides whether a certificate is clinically appropriate.",
       },
       {
-        question: "Does Australia still require COVID isolation?",
+        question: "Do I need a positive RAT or PCR result?",
         answer:
-          "Mandatory isolation rules vary by state and have changed significantly. As of 2026, most states no longer mandate isolation. However, employers may still require documentation. Check your state health authority for current guidance.",
+          "Not always. Routine sick-leave evidence can often be based on symptoms, timing, and the doctor's review. If your employer, school, university, travel provider, or public-health direction requires formal test-result proof, check that requirement separately.",
       },
       {
-        question: "What do I need to provide?",
+        question: "Can it confirm I am safe to return to work or travel?",
         answer:
-          "Your positive RAT or PCR result, when you tested positive, your current symptoms, and how long you expect to be unwell. The doctor makes the clinical determination.",
+          "No. A routine medical certificate documents an absence period when clinically appropriate. It does not provide return-to-work clearance, travel clearance, isolation-release advice, a negative-test certificate, or fitness-for-duty assessment.",
       },
       {
-        question: "Can I get a certificate for a family member with COVID?",
+        question: "Can the doctor review an absence that started before today?",
         answer:
-          "Yes. If you're caring for a family member with COVID, a carer's leave certificate may be appropriate. Select 'carer' when completing the form.",
+          "Enter the exact symptom start date, test date if relevant, and the dates you need reviewed. Retrospective certificates depend on the clinical information available and may not be appropriate.",
+      },
+      {
+        question: "What symptoms need urgent or in-person care?",
+        answer:
+          "Seek urgent or in-person care for difficulty breathing, chest pain, confusion, fainting, severe dehydration, inability to keep fluids down, pregnancy concerns, immune suppression, severe worsening symptoms, or symptoms that feel unsafe to manage at home.",
+      },
+      {
+        question: "Can I get a certificate for caring for someone with COVID?",
+        answer:
+          "If your absence is because you are caring for a child, dependant, or family member with COVID-19, a carer's leave certificate may be the better pathway.",
       },
     ],
   },
