@@ -153,16 +153,59 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "study",
     h1: "Medical certificate for study.",
     heroSubheadline:
-      `Study absence documentation. A doctor reviews your request. From ${PRICING_DISPLAY.MED_CERT}.`,
+      `Study absence documentation for short illness. An AHPRA-registered doctor reviews your answers and decides whether a certificate is clinically appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
     explainerTitle: "When students need documentation",
-    explainerSubtitle: "Universities and TAFEs often require medical evidence for study absences.",
+    explainerSubtitle: "For short study absences where online doctor review is clinically suitable.",
     explainerParagraphs: [
-      "If illness or caring responsibilities have affected your studies, you may need a medical certificate as supporting evidence for your education provider. Our certificates are issued by AHPRA-registered doctors and include the details most institutions review.",
-      "Policies vary by institution; some specify exactly what they require. Check yours before applying. You fill in a quick form, a doctor reviews it, and if appropriate, your certificate lands in your inbox.",
+      "If illness has stopped you attending class, placement, tutorials, labs, or ordinary study duties, your education provider may ask for medical evidence. This page is for routine study absence documentation where a doctor can make a safe decision from your history without examining you in person.",
+      "You answer a structured health form covering your symptoms, when they started, the study dates affected, and whether anything about your course or placement changes the risk. A doctor reviews those answers before deciding whether a certificate can be issued.",
+      "If approved, your certificate is emailed as a PDF with standard doctor-issued details. It is not an automatic document and it is not a substitute for provider-specific forms. Check your institution's policy before applying, especially if deadlines or assessment rules are involved.",
+    ],
+    detailSections: [
+      {
+        title: "When online review fits",
+        body:
+          "Online review is best suited to short, low-risk study absences where the clinical story is clear and the requested dates match the illness described.",
+        items: [
+          "Short absence from class, tutorials, labs, online attendance, or ordinary study duties",
+          "Common acute illness such as cold, flu, gastro, migraine, period pain, or a mental health day",
+          "No placement clearance, fitness-to-attend decision, or provider-specific form required",
+        ],
+      },
+      {
+        title: "What the doctor checks",
+        body:
+          "The doctor checks whether the symptoms, timing, affected study dates, and safety answers support routine study absence evidence.",
+        items: [
+          "When symptoms started and whether they affected attendance or study capacity",
+          "Whether the requested dates are clinically reasonable for the condition described",
+          "Whether red-flag symptoms, placement duties, or course requirements point to in-person care",
+        ],
+      },
+      {
+        title: "What the certificate includes",
+        body:
+          "A routine study certificate focuses on whether you were medically unfit for study or usual duties for a period. It usually does not need diagnosis details.",
+        items: [
+          "Your name, review date, recommended absence dates, and doctor details",
+          "A statement about unfitness for study, attendance, or usual duties for the relevant period",
+          "Verification details so the document can be checked if required",
+        ],
+      },
+      {
+        title: "When it may not be enough",
+        body:
+          "Some education processes need more than a standard medical certificate. We keep those boundaries clear before a certificate is issued.",
+        items: [
+          "Provider forms, detailed academic reports, placement clearance, or fitness-to-attend wording",
+          "Long absences, repeated absences, disability support, or ongoing course adjustments",
+          "Severe symptoms, injury, or any situation where the doctor needs to examine you",
+        ],
+      },
     ],
     recognitionTitle: "Evidence for education providers",
     recognitionSubtitle:
-      "Institutional policies vary. Check your provider's evidence requirements before applying.",
+      "Education providers set their own evidence rules. Check your course, campus, or provider policy before applying.",
     recognitionBadges: [
       { label: "Universities", sub: "Go8, ATN, IRU & more" },
       { label: "TAFE & RTOs", sub: "Vocational education" },
@@ -170,35 +213,52 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "Get the documentation you need",
     ctaSubtitle:
-      "Quick form, real doctor review. Certificate to your inbox if approved.",
+      "Quick form. Real doctor review. Certificate to your inbox if approved.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: `Medical Certificate for Study | Uni & TAFE ${PRICING_DISPLAY.MED_CERT}`,
       description:
-        `Medical certificate for study absences. AHPRA-registered doctors review your request. From ${PRICING_DISPLAY.MED_CERT}. Education provider policies vary.`,
+        `Request a medical certificate for study absence. AHPRA-registered doctors review your answers. From ${PRICING_DISPLAY.MED_CERT}. Education provider policies vary.`,
       keywords: [
         "medical certificate for study",
         "uni medical certificate",
         "study medical certificate",
         "student absence medical certificate",
         "tafe medical certificate",
+        "medical certificate for class absence",
+        "medical certificate for study absence",
       ],
     },
     faqs: [
       {
-        question: "Will my university or TAFE accept this?",
+        question: "Can I submit this to my university, TAFE, or college?",
         answer:
-          "Our certificates are issued by AHPRA-registered doctors and include standard doctor, date, and absence details. Policies vary. Check your institution's requirements before applying.",
+          "You can submit it where your provider allows routine medical certificates as evidence. InstantMed certificates are issued by AHPRA-registered doctors and include standard doctor, date, and absence details. Provider policies and deadlines vary.",
       },
       {
         question: "Can I use this as study documentation?",
         answer:
-          "You can submit it as supporting documentation where your institution allows medical certificates. Your institution's policy will specify what they need and any deadlines.",
+          "Yes, where your provider accepts a standard medical certificate for study absence documentation. It can support short illness-related absence from usual study duties, but it does not replace provider-specific forms or detailed reports.",
       },
       {
         question: "What if my institution has extra requirements?",
         answer:
-          "Check the policy before submitting. Some institutions require extra forms or an in-person assessment, and those requests may be outside InstantMed's online scope.",
+          "Check the policy before submitting. Some providers require their own form, extra wording, a treating practitioner report, or an in-person assessment. Those requests may be outside InstantMed's online certificate scope.",
+      },
+      {
+        question: "What study dates can the certificate cover?",
+        answer:
+          "The doctor decides what dates are clinically appropriate based on your symptoms and history. Most routine online study certificates cover short absences. Longer or repeated absences may need your regular GP or another care pathway.",
+      },
+      {
+        question: "Will the certificate include my diagnosis?",
+        answer:
+          "Usually no. Routine study absence evidence normally focuses on whether you were medically unfit for study or usual duties for the relevant period. Private clinical details are usually not needed.",
+      },
+      {
+        question: "When should I not use this pathway?",
+        answer:
+          "Do not use a standard study certificate for emergencies, placement clearance, fitness-to-attend decisions, disability support reports, insurance claims, legal processes, or symptoms that need urgent or in-person care.",
       },
     ],
   },
