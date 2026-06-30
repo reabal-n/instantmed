@@ -1101,7 +1101,20 @@ export async function getGoogleAdsUploadAuditReconciliation({
 
   if (error) throw new Error(`Google Ads upload audit reconciliation failed: ${error.message}`)
 
-  const rows = (data || []) as GoogleAdsRawUploadAuditRow[]
+  // Exclude local-dev / CI runs from the reconciliation the same way the
+  // /admin/ops card already does (google-ads-health.ts). A local `pnpm dev`
+  // (or CI) runner pointed at the prod service-role key writes
+  // `runtime_source: "node"` rows whose intake id belongs to a DIFFERENT
+  // database, so they land in prod audit_logs with a NULL `intake_id` column —
+  // which getGoogleAdsUploadAuditReconciliation would otherwise count as an
+  // `orphanRow`, tripping the critical `google_ads_upload_audit_source_anomaly`
+  // business alert (it paged every ~4h for 10+ days off ~822 dev rows before
+  // this filter). Real prod uploads run on Vercel (`runtime_source: "vercel"`);
+  // legacy rows without the fingerprint are treated as prod. The reconciliation
+  // is a PRODUCTION-truth surface — dev noise must never enter it.
+  const rows = ((data || []) as GoogleAdsRawUploadAuditRow[]).filter(
+    (row) => getAuditMetadataString(asRecord(row.metadata), "runtime_source") !== "node",
+  )
   const intakeIds = Array.from(new Set(rows.map((row) => row.intake_id).filter((id): id is string => Boolean(id))))
   const validIntakeIds = new Set<string>()
   if (intakeIds.length > 0) {

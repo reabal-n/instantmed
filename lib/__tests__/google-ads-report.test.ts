@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import { describe, expect, it } from "vitest"
 
 import {
@@ -153,7 +156,14 @@ describe("google ads spend report", () => {
     })
   })
 
-  it("reconciles production upload audit rows and separates orphan source anomalies", async () => {
+  it("excludes local-dev (node) rows but still detects genuine production orphans", async () => {
+    // A local `pnpm dev` / CI runner pointed at the prod service-role key writes
+    // `runtime_source: "node"` rows with a NULL intake_id (their intake lives in
+    // a DIFFERENT database). Reconciliation MUST drop these — counting them as
+    // orphans is what tripped the false-critical google_ads_upload_audit_source_anomaly
+    // alert (it paged every ~4h for 10+ days off ~822 dev rows). The genuine
+    // production orphan (a vercel row with no valid intake join) MUST still be
+    // detected so a real audit-source anomaly is never masked.
     const auditRows = [
       {
         created_at: "2026-06-24T05:45:03.814Z",
@@ -164,11 +174,12 @@ describe("google ads spend report", () => {
           runtime_source: "vercel",
           source: "cron_backfill",
           status: "success",
-          upload_job_id: "2265599116648626375",
+          upload_job_id: "job_a",
           vercel_env: "production",
         },
       },
       {
+        // Local-dev noise — MUST be filtered out entirely.
         created_at: "2026-06-24T06:07:00.582Z",
         intake_id: null,
         metadata: {
@@ -179,6 +190,20 @@ describe("google ads spend report", () => {
           runtime_source: "node",
           source: "checkout_session_completed",
           status: "skipped_missing_env",
+        },
+      },
+      {
+        // Genuine PRODUCTION orphan — vercel row with no valid intake join.
+        created_at: "2026-06-24T05:50:00.000Z",
+        intake_id: null,
+        metadata: {
+          deployment_id: "dpl_live",
+          error_code: "http_500",
+          request_path: "/api/cron/google-ads-conversions",
+          runtime_source: "vercel",
+          source: "cron_backfill",
+          status: "failed",
+          vercel_env: "production",
         },
       },
     ]
@@ -210,36 +235,35 @@ describe("google ads spend report", () => {
       generatedAt: "2026-06-24T06:16:08.336Z",
       since: "2026-06-24T05:40:00.000Z",
       supabase: supabase as never,
-      watchJobId: "2265599116648626375",
+      watchJobId: "job_a",
     })
 
     expect(reconciliation).toMatchObject({
-      byJobId: {
-        "2265599116648626375": 1,
-        missing: 1,
-      },
-      byRequestPath: {
-        "/api/cron/google-ads-conversions": 1,
-        missing: 1,
-      },
-      bySource: {
-        checkout_session_completed: 1,
-        cron_backfill: 1,
-      },
+      byRuntimeSource: { vercel: 2 },
+      bySource: { cron_backfill: 2 },
+      byStatus: { success: 1, failed: 1 },
       orphanRows: {
+        invalidIntakeJoin: 0,
         missingIntakeId: 1,
         total: 1,
       },
+      totalRows: 2,
       watchedJob: {
-        jobId: "2265599116648626375",
+        jobId: "job_a",
         success: 1,
         totalRows: 1,
       },
     })
+    // The dev row is gone from every bucket — not just the orphan counter.
+    expect(reconciliation.byRuntimeSource).not.toHaveProperty("node")
+    expect(reconciliation.bySource).not.toHaveProperty("checkout_session_completed")
+    expect(reconciliation.byStatus).not.toHaveProperty("skipped_missing_env")
+    // The single detected orphan is the genuine PRODUCTION row, not the dev one.
+    expect(reconciliation.orphanRows.samples).toHaveLength(1)
     expect(reconciliation.orphanRows.samples[0]).toMatchObject({
-      runtimeSource: "node",
-      source: "checkout_session_completed",
-      status: "skipped_missing_env",
+      runtimeSource: "vercel",
+      source: "cron_backfill",
+      status: "failed",
     })
   })
 
@@ -695,6 +719,93 @@ describe("google ads spend report", () => {
       diagnosticsJobSummary: null,
       status: "diagnostics_rejected",
     })
+  })
+
+  it("classifies a PARTIAL_SUCCESS Data Manager request status as rejected (not a pass)", () => {
+    // PARTIAL_SUCCESS means some events were rejected — it must be a hard fail,
+    // never silently accepted. This mapping had no direct test before.
+    const report = {
+      ads: { summary: { totalPurchaseConversions: 0 } },
+      customerConversionTrackingSettings: [],
+      dataManagerRequestStatus: { attempted: true, ok: true, status: "PARTIAL_SUCCESS" },
+      diagnostics: { jobSummaries: [], lastUploadDateTime: null, status: null },
+      preflight: { ok: true },
+      uploadAuditReconciliation: {
+        watchedJob: { expiredClickThroughWindow: 0, failed: 0, skipped: 0, success: 1, totalRows: 1 },
+      },
+    } as unknown as Omit<GoogleAdsSpendAuditReport, "diagnosticsWatch">
+
+    const watch = buildGoogleAdsDiagnosticsWatchResult({
+      now: new Date("2026-06-30T05:11:06.101Z"),
+      processingWindowHours: 1,
+      report,
+      uploadedAt: "2026-06-30T03:51:48.645Z",
+      watchJobId: "126365e1-16d0-4c81-9de9-f362711e250a",
+    })
+
+    expect(watch).toMatchObject({
+      dataManagerRequestStatus: "PARTIAL_SUCCESS",
+      status: "diagnostics_rejected",
+    })
+  })
+
+  it("treats a live Data Manager SUCCESS as canonical over stale EXPIRED_EVENT legacy audit history", () => {
+    // The load-bearing isolation guard: a fresh Data Manager SUCCESS must win
+    // even when the legacy production audit reconciliation still carries old
+    // failed / expired-click-through rows (the EXPIRED_EVENT history tied to the
+    // retired OfflineUserDataJob). DM status is evaluated FIRST and early-returns,
+    // so legacy failure history can never flip a real SUCCESS to rejected.
+    const report = {
+      ads: { summary: { totalPurchaseConversions: 1 } },
+      customerConversionTrackingSettings: [
+        {
+          customer: {
+            conversionTrackingSetting: {
+              acceptedCustomerDataTerms: true,
+              enhancedConversionsForLeadsEnabled: true,
+            },
+          },
+        },
+      ],
+      dataManagerRequestStatus: { attempted: true, ok: true, status: "SUCCESS" },
+      diagnostics: { jobSummaries: [], lastUploadDateTime: null, status: null },
+      preflight: { ok: true },
+      uploadAuditReconciliation: {
+        // Stale legacy failure history — must NOT override the live DM SUCCESS.
+        watchedJob: { expiredClickThroughWindow: 3, failed: 3, skipped: 0, success: 0, totalRows: 3 },
+      },
+    } as unknown as Omit<GoogleAdsSpendAuditReport, "diagnosticsWatch">
+
+    const watch = buildGoogleAdsDiagnosticsWatchResult({
+      now: new Date("2026-06-30T05:11:06.101Z"),
+      processingWindowHours: 1,
+      report,
+      uploadedAt: "2026-06-30T03:51:48.645Z",
+      watchJobId: "126365e1-16d0-4c81-9de9-f362711e250a",
+    })
+
+    expect(watch).toMatchObject({
+      dataManagerRequestStatus: "SUCCESS",
+      diagnosticsJobSummary: null,
+      status: "diagnostics_accepted",
+    })
+  })
+
+  it("keeps SUCCESS the only Data Manager status the diagnostics-watch cron treats as passing", () => {
+    // End-to-end lock: rejected/pending must never be in the cron's passing set,
+    // so a future refactor of statusFromDataManagerRequestStatus can't silently
+    // let a FAILED/PARTIAL_SUCCESS upload report green.
+    const route = readFileSync(
+      join(process.cwd(), "app/api/cron/google-ads-diagnostics-watch/route.ts"),
+      "utf8",
+    )
+    const passingBlock = route.slice(
+      route.indexOf("PASSING_WATCH_STATUSES"),
+      route.indexOf("PASSING_WATCH_STATUSES") + 200,
+    )
+    expect(passingBlock).toContain("diagnostics_accepted")
+    expect(passingBlock).not.toContain("diagnostics_rejected")
+    expect(passingBlock).not.toContain("diagnostics_pending")
   })
 
   it("summarizes campaign spend and joins local paid order truth by campaign id", () => {

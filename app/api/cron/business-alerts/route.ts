@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 
 import { buildOperationalInvariantAlerts, getOperationalInvariants } from "@/lib/admin/ops-invariants"
+import { getGoogleAdsUploadStreamHealth } from "@/lib/analytics/google-ads-health"
 import { getGoogleAdsPurchaseImportHealth } from "@/lib/analytics/google-ads-report"
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
@@ -11,6 +12,7 @@ import { toError } from "@/lib/errors"
 import {
   buildGoogleAdsPurchaseImportAlert,
   buildGoogleAdsUploadAuditSourceAnomalyAlert,
+  buildGoogleAdsUploadStreamStalledAlert,
 } from "@/lib/monitoring/google-ads-purchase-import-health"
 import {
   buildNoPurchaseRevenueAlert,
@@ -200,6 +202,35 @@ export async function GET(request: NextRequest) {
         metric: alert.metric,
         severity: alert.severity,
         metadata: { error: err.message },
+      })
+    }
+
+    // 3b. Upload-stream stall: paid orders exist but ZERO successful server-side
+    // uploads reached Google in the window. Complements section 3, which reads
+    // the Google Ads *reporting* return side and is gated on click-id orders —
+    // so it is structurally blind to a Data-Manager enhanced-conversions-only
+    // stall (those match on hashed email/phone with no click id). The reader is
+    // fail-soft (queryFailed → builder returns null), so a DB blip cannot page.
+    let googleAdsUploadStreamHealth:
+      | Awaited<ReturnType<typeof getGoogleAdsUploadStreamHealth>>
+      | null = null
+    try {
+      googleAdsUploadStreamHealth = await getGoogleAdsUploadStreamHealth(supabase, { now })
+      const uploadStreamStalledAlert = buildGoogleAdsUploadStreamStalledAlert(googleAdsUploadStreamHealth)
+      if (uploadStreamStalledAlert) {
+        alerts.push(uploadStreamStalledAlert)
+        trackBusinessMetric({
+          metric: uploadStreamStalledAlert.metric,
+          severity: uploadStreamStalledAlert.severity,
+          metadata: uploadStreamStalledAlert.metadata,
+        })
+      }
+    } catch (error) {
+      // Non-fatal: a stall detector that itself fails must not break the cron or
+      // suppress other alerts. Section 3 already pages on a hard Google Ads
+      // health failure.
+      logger.warn("Google Ads upload-stream health check failed", {
+        error: toError(error).message,
       })
     }
 
@@ -470,6 +501,7 @@ export async function GET(request: NextRequest) {
           partial_drafts: noPurchaseWindow.partialDrafts,
         },
         google_ads_purchase_import_health: googleAdsPurchaseImportHealth,
+        google_ads_upload_stream: googleAdsUploadStreamHealth,
         rx_consult_queue_stalled: staleHumanCount ?? 0,
         ops_sla_breach_backlog: operationalInvariants.slaBreachBacklog,
         ops_cert_refund_orphans: operationalInvariants.certRefundOrphans,

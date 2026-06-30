@@ -177,3 +177,89 @@ export function buildGoogleAdsPurchaseImportAlert(
 
   return null
 }
+
+/**
+ * Default window for the upload-stream stall detector. 3 days, not 24h: the
+ * backfill cron is hourly and the per-order webhook is immediate, so a 3-day
+ * run of zero successful uploads while paid orders exist is unambiguous, not
+ * weekend-volume jitter.
+ */
+export const GOOGLE_ADS_UPLOAD_STREAM_STALL_DAYS = 3
+
+/**
+ * Our-side upload-stream health: did paid orders actually produce successful
+ * server-side conversion uploads? This is the COMPLEMENT of
+ * buildGoogleAdsPurchaseImportAlert (which reads the Google Ads *reporting* API
+ * return side). The reporting-side alert is denominated on click-id-attributed
+ * `localOrders`, so it is structurally blind to a Data-Manager enhanced-
+ * conversions stall (those orders match on hashed email/phone, no click id, and
+ * never enter that denominator). This snapshot denominates on ALL reportable
+ * paid orders and counts our own successful upload audit rows.
+ */
+export type GoogleAdsUploadStreamHealth = {
+  dataManagerSuccesses: number
+  generatedAt: string
+  lastSuccessfulUploadAt: string | null
+  legacySuccesses: number
+  lookbackDays: number
+  /** Reportable paid orders in the window (NOT click-id gated). */
+  paidOrders: number
+  /** True when the DB read failed — alert fail-soft, never page on our own blip. */
+  queryFailed: boolean
+  /** Successful PROD (Vercel) uploads in the window, best-per-intake. */
+  successfulUploads: number
+}
+
+export type GoogleAdsUploadStreamStalledAlert = {
+  count: number
+  detail: string
+  metadata: {
+    data_manager_successes: number
+    generated_at: string
+    last_successful_upload_at: string | null
+    legacy_successes: number
+    paid_orders: number
+    successful_uploads: number
+    window: string
+    window_days: number
+  }
+  metric: "google_ads_conversion_uploads_stalled"
+  severity: "critical"
+}
+
+/**
+ * Page when paid orders exist but ZERO successful server-side uploads reached
+ * Google in the window — i.e. the upload stream silently stopped (cron died,
+ * every attempt errors a status the failure counter misses, or a Data-Manager-
+ * only stall the reporting-side `purchase_imports_zero` alert cannot see). This
+ * is the "absence of success" detector that complements the existing "presence
+ * of failure" counter on /admin/ops. Fail-soft on query error; no alert when
+ * there are no paid orders to upload.
+ */
+export function buildGoogleAdsUploadStreamStalledAlert(
+  health: GoogleAdsUploadStreamHealth,
+): GoogleAdsUploadStreamStalledAlert | null {
+  if (health.queryFailed) return null
+  if (health.paidOrders <= 0) return null
+  if (health.successfulUploads > 0) return null
+
+  return {
+    count: health.paidOrders,
+    detail:
+      `Google Ads conversion uploads stalled: ${health.paidOrders} paid order` +
+      `${health.paidOrders === 1 ? "" : "s"} in ${health.lookbackDays}d but zero successful ` +
+      `server-side uploads reached Google (Data Manager + legacy). Smart Bidding is optimising blind.`,
+    metadata: {
+      data_manager_successes: health.dataManagerSuccesses,
+      generated_at: health.generatedAt,
+      last_successful_upload_at: health.lastSuccessfulUploadAt,
+      legacy_successes: health.legacySuccesses,
+      paid_orders: health.paidOrders,
+      successful_uploads: health.successfulUploads,
+      window: `${health.lookbackDays}d`,
+      window_days: health.lookbackDays,
+    },
+    metric: "google_ads_conversion_uploads_stalled",
+    severity: "critical",
+  }
+}

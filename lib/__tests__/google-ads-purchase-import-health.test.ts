@@ -6,7 +6,9 @@ import { describe, expect, it } from "vitest"
 import {
   buildGoogleAdsPurchaseImportAlert,
   buildGoogleAdsUploadAuditSourceAnomalyAlert,
+  buildGoogleAdsUploadStreamStalledAlert,
   type GoogleAdsPurchaseImportHealthSnapshot,
+  type GoogleAdsUploadStreamHealth,
 } from "@/lib/monitoring/google-ads-purchase-import-health"
 
 function snapshot(
@@ -169,10 +171,87 @@ describe("Google Ads purchase import health", () => {
     expect(cron).toContain("getGoogleAdsPurchaseImportHealth")
     expect(cron).toContain("buildGoogleAdsPurchaseImportAlert")
     expect(cron).toContain("buildGoogleAdsUploadAuditSourceAnomalyAlert")
+    expect(cron).toContain("buildGoogleAdsUploadStreamStalledAlert")
+    expect(cron).toContain("getGoogleAdsUploadStreamHealth")
     expect(cron).toContain("google_ads_purchase_import_health")
     expect(posthog).toContain("'google_ads_purchase_enhanced_conversions_setup_incomplete'")
     expect(posthog).toContain("'google_ads_purchase_imports_zero'")
     expect(posthog).toContain("'google_ads_purchase_primary_conversions_zero'")
     expect(posthog).toContain("'google_ads_upload_audit_source_anomaly'")
+    expect(posthog).toContain("'google_ads_conversion_uploads_stalled'")
+  })
+})
+
+describe("Google Ads upload stream stall detector", () => {
+  function streamHealth(
+    overrides: Partial<GoogleAdsUploadStreamHealth> = {},
+  ): GoogleAdsUploadStreamHealth {
+    return {
+      dataManagerSuccesses: 5,
+      generatedAt: "2026-06-30T09:00:00.000Z",
+      lastSuccessfulUploadAt: "2026-06-30T08:59:05.006Z",
+      legacySuccesses: 0,
+      lookbackDays: 3,
+      paidOrders: 6,
+      queryFailed: false,
+      successfulUploads: 5,
+      ...overrides,
+    }
+  }
+
+  it("does not page when the stream is healthy (successful uploads exist)", () => {
+    expect(buildGoogleAdsUploadStreamStalledAlert(streamHealth())).toBeNull()
+  })
+
+  it("does not page when there are no paid orders to upload", () => {
+    expect(
+      buildGoogleAdsUploadStreamStalledAlert(
+        streamHealth({ paidOrders: 0, successfulUploads: 0, dataManagerSuccesses: 0 }),
+      ),
+    ).toBeNull()
+  })
+
+  it("fails soft — never pages on its own DB read failure", () => {
+    expect(
+      buildGoogleAdsUploadStreamStalledAlert(
+        streamHealth({ queryFailed: true, paidOrders: 9, successfulUploads: 0, dataManagerSuccesses: 0 }),
+      ),
+    ).toBeNull()
+  })
+
+  it("pages critical when paid orders exist but zero successful uploads reached Google", () => {
+    const alert = buildGoogleAdsUploadStreamStalledAlert(
+      streamHealth({
+        paidOrders: 9,
+        successfulUploads: 0,
+        dataManagerSuccesses: 0,
+        legacySuccesses: 0,
+        lastSuccessfulUploadAt: null,
+      }),
+    )
+
+    expect(alert).toMatchObject({
+      metric: "google_ads_conversion_uploads_stalled",
+      severity: "critical",
+      count: 9,
+      metadata: {
+        paid_orders: 9,
+        successful_uploads: 0,
+        data_manager_successes: 0,
+        window: "3d",
+        window_days: 3,
+      },
+    })
+    expect(alert?.detail).toContain("stalled")
+  })
+
+  it("catches a Data-Manager-only stall the click-id reporting alert cannot see", () => {
+    // The reporting-side purchase_imports_zero alert is gated on click-id
+    // orders; an enhanced-conversions-only stream (no click ids) has paid orders
+    // but zero successful uploads and would be invisible to it.
+    const alert = buildGoogleAdsUploadStreamStalledAlert(
+      streamHealth({ paidOrders: 4, successfulUploads: 0, dataManagerSuccesses: 0 }),
+    )
+    expect(alert?.metric).toBe("google_ads_conversion_uploads_stalled")
   })
 })

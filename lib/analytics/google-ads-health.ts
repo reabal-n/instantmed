@@ -21,6 +21,10 @@ import {
   summarizeGoogleAdsUploadFailures,
 } from "@/lib/analytics/google-ads-upload-audit"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
+import {
+  GOOGLE_ADS_UPLOAD_STREAM_STALL_DAYS,
+  type GoogleAdsUploadStreamHealth,
+} from "@/lib/monitoring/google-ads-purchase-import-health"
 
 const DEFAULT_LOOKBACK_DAYS = 90
 const GOOGLE_ADS_HEALTH_PAYMENT_STATUSES = ["paid", "partially_refunded", "refunded"] as const
@@ -330,6 +334,96 @@ export async function getGoogleAdsConversionUploadHealth(
 
   const summary = summarizeGoogleAdsUploadFailures(reportableRows)
   return { ...summary, queryFailed: false, lookbackDays }
+}
+
+/**
+ * Upload-stream health for the stall detector (business-alerts cron). Counts
+ * successful PROD server-side conversion uploads against ALL reportable paid
+ * orders in the window — the denominator the reporting-side
+ * `purchase_imports_zero` alert cannot use (it is gated on click-id orders, so a
+ * Data-Manager enhanced-conversions-only stream is invisible to it). Fail-soft:
+ * a query error returns queryFailed=true so the alert builder never pages on a
+ * transient DB blip. Mirrors getGoogleAdsConversionUploadHealth's prod-row
+ * filter (runtime_source !== "node" drops local-dev / CI noise).
+ */
+export async function getGoogleAdsUploadStreamHealth(
+  supabase: SupabaseClient,
+  options: { lookbackDays?: number; now?: Date } = {},
+): Promise<GoogleAdsUploadStreamHealth> {
+  const lookbackDays = options.lookbackDays ?? GOOGLE_ADS_UPLOAD_STREAM_STALL_DAYS
+  const now = options.now ?? new Date()
+  const since = new Date(now.getTime() - lookbackDays * 24 * 60 * 60 * 1000).toISOString()
+  const generatedAt = now.toISOString()
+
+  const empty: GoogleAdsUploadStreamHealth = {
+    dataManagerSuccesses: 0,
+    generatedAt,
+    lastSuccessfulUploadAt: null,
+    legacySuccesses: 0,
+    lookbackDays,
+    paidOrders: 0,
+    queryFailed: false,
+    successfulUploads: 0,
+  }
+
+  const { count: paidCount, error: paidError } = await filterReportableIntakes(
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .in("payment_status", [...GOOGLE_ADS_HEALTH_PAYMENT_STATUSES])
+      .not("paid_at", "is", null)
+      .gte("paid_at", since),
+  )
+  if (paidError) return { ...empty, queryFailed: true }
+
+  const paidOrders = paidCount ?? 0
+
+  const { data, error } = await supabase
+    .from("audit_logs")
+    .select("intake_id, created_at, metadata")
+    .eq("action", GOOGLE_ADS_CONVERSION_UPLOAD_AUDIT_ACTION)
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(2000)
+  if (error) return { ...empty, paidOrders, queryFailed: true }
+
+  // Prod-only rows (drop local-dev / CI `node` noise) — same boundary as
+  // getGoogleAdsConversionUploadHealth so a stalled-stream check is never
+  // satisfied by a dev success row, nor falsely tripped by dev noise.
+  const prodRows = ((data || []) as GoogleAdsUploadAuditRow[]).filter(
+    (r) => (r.metadata as { runtime_source?: string } | null)?.runtime_source !== "node",
+  )
+
+  const best = bestGoogleAdsUploadAuditByIntake(prodRows)
+  let successfulUploads = 0
+  let dataManagerSuccesses = 0
+  let legacySuccesses = 0
+  let lastSuccessfulUploadAt: string | null = null
+  let lastSuccessMs = -1
+
+  for (const audit of best.values()) {
+    if (audit.metadata?.status !== "success") continue
+    successfulUploads += 1
+    const uploadApi = (audit.metadata as { upload_api?: string | null } | null)?.upload_api
+    if (uploadApi === "data_manager_api") dataManagerSuccesses += 1
+    else legacySuccesses += 1
+    const at = auditTimestampMs(audit)
+    if (at > lastSuccessMs) {
+      lastSuccessMs = at
+      lastSuccessfulUploadAt = audit.created_at ?? null
+    }
+  }
+
+  return {
+    dataManagerSuccesses,
+    generatedAt,
+    lastSuccessfulUploadAt,
+    legacySuccesses,
+    lookbackDays,
+    paidOrders,
+    queryFailed: false,
+    successfulUploads,
+  }
 }
 
 export async function getGoogleAdsHealth(

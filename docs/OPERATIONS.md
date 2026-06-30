@@ -394,7 +394,7 @@ Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `verce
 | Email Dispatcher | `/api/cron/email-dispatcher` | Every 5 min | Process pending/failed emails from `email_outbox` with atomic claiming; recovers stale `sending` claims and applies `DAILY_EMAIL_LIMIT` only to marketing/engagement sends |
 | Release Stale Claims | `/api/cron/release-stale-claims` | Every 5 min | Release doctor intake claims that have gone stale to prevent queue stalls |
 | Retry Drafts | `/api/cron/retry-drafts` | Every 5 min | Retry failed AI draft generation with exponential backoff |
-| Business Alerts | `/api/cron/business-alerts` | Every 30 min | Aggregates business metrics: failed payments, no-purchase revenue safety, Google Ads purchase-import health, email failures, SLA breaches |
+| Business Alerts | `/api/cron/business-alerts` | Every 30 min | Aggregates business metrics: failed payments, no-purchase revenue safety, Google Ads purchase-import health, **Google Ads upload-stream stall** (`google_ads_conversion_uploads_stalled`: paid orders exist but zero successful server-side uploads reached Google in 3d — the "absence of success" detector that complements the failure counter and catches a Data-Manager-only stall the click-id-gated `purchase_imports_zero` alert cannot see), email failures, SLA breaches. The Google Ads upload-audit reconciliation that feeds the `google_ads_upload_audit_source_anomaly` alert is **production-scoped** (`runtime_source !== "node"`) — local-dev / CI rows are never counted as orphans (see runbook below). |
 | Stale Queue | `/api/cron/stale-queue` | Hourly | Alerts on paid intakes waiting > 4h (warning) or > 8h (critical) |
 | Abandoned Checkouts | `/api/cron/abandoned-checkouts` | Every 20 min (:00/:20/:40) | Payment-stage recovery for submitted intakes stuck at checkout; first nudge eligible after 20 min, follow-up 24h after first nudge |
 | Partial Intake Recovery | `/api/cron/recover-partial-intakes` | Hourly (:15) | Pre-checkout draft recovery only; excludes review/checkout drafts so it does not overlap abandoned-checkout recovery |
@@ -421,6 +421,25 @@ Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `verce
 **Priority review analytics rename:** From 2026-06-25, patient checkout UI emits `priority_review_opted_in` / `priority_review_opted_out`. To protect existing saved PostHog insights, it also dual-emits the legacy `express_review_opted_in` / `express_review_opted_out` aliases with `legacy_alias_for` through 2026-08-31. New dashboards should use the `priority_review_*` events; delete the aliases only after saved insights are migrated.
 
 **Timezone note:** All cron schedules in `vercel.json` are UTC. "AEST" times above are UTC+10 (standard time). During AEDT (daylight saving, Oct–Apr), these shift 1 hour later in local time (e.g., "6 AM AEST" runs at 7 AM AEDT).
+
+---
+
+## Google Ads Data Manager Rollout — Proof Chain + Hardening (2026-06-30)
+
+The Google Data Manager API purchase-upload path ([apps#234](https://github.com/reabal-n/instantmed/pull/234), merged `bac7865f26e48ae5612de07d1fb8ee45d6626400`) is **proven live in production**. Canonical proof for the rollout gate (see Production Launch Checklist §4):
+
+- **Fresh Data Manager upload (the only valid watch identifier):** `request_id = d1572bd3-d565-42ff-bfe0-d9a1462dad6a`, `upload_api = data_manager_api`, `status = success`, `vercel_env = production`, deployment `dpl_HiNRaskhS7CuoWBG9bJmFYWvspdb`, audit `created_at = 2026-06-30T08:58:35Z`. Backfill that run: 25 processed, 0 failed.
+- **Diagnostics watch passed** after the processing window: Data Manager `requestStatus = SUCCESS`, watch status `diagnostics_accepted`, HTTP 200.
+- **Truth agrees** for the watched order: Supabase `paid` / Stripe PI `succeeded` / PostHog `google_ads_server_conversion` (`data_manager_api`, success, same request id).
+- **The stale rejected job `2265599116648626375` is the retired legacy `OfflineUserDataJob`** (EXPIRED_EVENT history). It is **historical only** — it must never be set as `GOOGLE_ADS_DIAGNOSTICS_WATCH_REQUEST_ID`/`_JOB_ID`. The watch keys off the Data Manager `request_id`; legacy job history can never flip a live DM `SUCCESS` (pinned by `lib/__tests__/google-ads-report.test.ts`).
+
+### Dev-noise false-alarm (fixed 2026-06-30)
+
+A local `pnpm dev` server pointed at the **prod Supabase service-role key** (receiving prod Stripe webhooks) writes `google_ads_conversion_upload` audit rows into prod `audit_logs` tagged `runtime_source: "node"`, `node_env: "development"`, `status: skipped_missing_env`, with a **NULL `intake_id` column** (their intake lives in a different DB). `getGoogleAdsUploadAuditReconciliation` had **no `runtime_source` filter**, so all ~822 dev rows counted as `orphanRows`, which fired the **critical `google_ads_upload_audit_source_anomaly` Telegram + Sentry alert every ~4h for 10+ days** (06-26 → 06-30) — a pure false alarm.
+
+- **Fix:** reconciliation now drops `runtime_source === "node"` rows (mirrors the `/admin/ops` card filter at `google-ads-health.ts`). Genuine production orphans (`vercel` rows with no valid intake join) are still detected. Pinned by `lib/__tests__/google-ads-report.test.ts`.
+- **Root cause is environmental, not just code:** local dev should not run against the prod service-role key. If the page noise recurs, point local dev at a local/staging Supabase. Optionally add the write-layer guard in `recordGoogleAdsConversionAudit` (skip the insert when `runtime_source === "node" && node_env ∉ {production, test}`) to stop the accumulation at source.
+- The ~822 historical dev rows are now **inert at every read** (ops card + reconciliation both filter them). They can be left to age out, or purged with operator approval; do not delete prod `audit_logs` rows without sign-off.
 
 ---
 

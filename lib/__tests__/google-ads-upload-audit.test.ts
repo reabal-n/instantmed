@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import {
   type GoogleAdsUploadAuditRow,
+  type GoogleAdsUploadRetryCandidate,
+  shouldRetryGoogleAdsUploadCandidate,
   summarizeGoogleAdsUploadFailures,
 } from "@/lib/analytics/google-ads-upload-audit"
 
@@ -89,5 +91,77 @@ describe("summarizeGoogleAdsUploadFailures", () => {
     // latest failed across best audits is intake d at 2026-06-03
     expect(summary.latestFailedAt).toBe("2026-06-03T09:00:00Z")
     expect(summary.latestErrorCode).toBe("http_500")
+  })
+})
+
+describe("shouldRetryGoogleAdsUploadCandidate", () => {
+  const noClickId: GoogleAdsUploadRetryCandidate = {}
+  const withClickId: GoogleAdsUploadRetryCandidate = { gclid: "Cj0Kabc123" }
+
+  function audit(
+    status: string,
+    opts: { errorCode?: string | null; matchingModel?: string } = {},
+  ): GoogleAdsUploadAuditRow {
+    return {
+      intake_id: "i1",
+      created_at: "2026-06-30T00:00:00Z",
+      metadata: {
+        status,
+        error_code: opts.errorCode ?? null,
+        matching_model: opts.matchingModel,
+      },
+    }
+  }
+
+  it("NEVER re-fires an already-successful upload (the load-bearing no-double-count guard)", () => {
+    // The single most important safety property of the backfill cron: an intake
+    // that already uploaded successfully must not be re-uploaded (Google's
+    // orderId dedup is the only other backstop).
+    expect(shouldRetryGoogleAdsUploadCandidate(withClickId, audit("success"), { force: false })).toBe(false)
+    expect(shouldRetryGoogleAdsUploadCandidate(noClickId, audit("success"), { force: false })).toBe(false)
+  })
+
+  it("only force (?force=1) overrides the success guard", () => {
+    expect(shouldRetryGoogleAdsUploadCandidate(withClickId, audit("success"), { force: true })).toBe(true)
+  })
+
+  it("skips a structurally-unfixable expired click identifier", () => {
+    expect(
+      shouldRetryGoogleAdsUploadCandidate(withClickId, audit("skipped_expired_click_identifier"), { force: false }),
+    ).toBe(false)
+  })
+
+  it("skips missing-click-id only when no click id exists and user-data matching was possible", () => {
+    expect(
+      shouldRetryGoogleAdsUploadCandidate(
+        noClickId,
+        audit("skipped_missing_click_id", { matchingModel: "click_or_user_data" }),
+        { force: false },
+      ),
+    ).toBe(false)
+    // …but retries the moment a click id is present on the candidate.
+    expect(
+      shouldRetryGoogleAdsUploadCandidate(
+        withClickId,
+        audit("skipped_missing_click_id", { matchingModel: "click_or_user_data" }),
+        { force: false },
+      ),
+    ).toBe(true)
+  })
+
+  it("does not retry non-retryable error codes (config/expired)", () => {
+    expect(
+      shouldRetryGoogleAdsUploadCandidate(withClickId, audit("failed", { errorCode: "INVALID_CONVERSION_ACTION_TYPE" }), { force: false }),
+    ).toBe(false)
+    expect(
+      shouldRetryGoogleAdsUploadCandidate(withClickId, audit("failed", { errorCode: "EXPIRED_EVENT" }), { force: false }),
+    ).toBe(false)
+  })
+
+  it("retries a transient failure and a never-uploaded intake", () => {
+    expect(
+      shouldRetryGoogleAdsUploadCandidate(withClickId, audit("failed", { errorCode: "http_500" }), { force: false }),
+    ).toBe(true)
+    expect(shouldRetryGoogleAdsUploadCandidate(withClickId, undefined, { force: false })).toBe(true)
   })
 })
