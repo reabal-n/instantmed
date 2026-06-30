@@ -18,4 +18,20 @@ describe("request conversion performance contract", () => {
     expect(stepLoadersSource).toContain("stepComponentCache")
     expect(stepLoadersSource).toContain("preloadStepComponent")
   })
+
+  it("defers optional recovery capture out of the first med-cert step bundle", () => {
+    const certificateStepSource = readFileSync(
+      join(root, "components/request/steps/certificate-step.tsx"),
+      "utf8",
+    )
+
+    expect(certificateStepSource).toContain("DeferredEarlyRecoveryEmailCard")
+    expect(certificateStepSource).toContain(
+      'import("@/components/request/shared/early-recovery-email-card")',
+    )
+    expect(certificateStepSource).toContain("requestIdleCallback")
+    expect(certificateStepSource).not.toContain(
+      'import { EarlyRecoveryEmailCard } from "@/components/request/shared/early-recovery-email-card"',
+    )
+  })
 })
