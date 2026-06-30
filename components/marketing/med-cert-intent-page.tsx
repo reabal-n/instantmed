@@ -48,9 +48,9 @@ const trustBadges = [
 ]
 
 const steps = [
-  { number: 1, title: 'Answer a few questions', description: "Tell us what's going on. Takes about 2 minutes." },
-  { number: 2, title: 'Doctor reviews your request', description: 'An AHPRA-registered doctor reviews your request and makes a clinical decision.' },
-  { number: 3, title: 'Certificate in your inbox', description: 'Done. Forward it to your employer or uni.' },
+  { number: 1, title: 'Complete the health form', description: 'Tell us what happened, when it started, and the dates you need reviewed.' },
+  { number: 2, title: 'Doctor reviews your request', description: 'An AHPRA-registered doctor checks whether routine certificate evidence is clinically appropriate.' },
+  { number: 3, title: "Receive the doctor's outcome", description: 'If approved, your certificate is emailed as a PDF. If not, the decline refund applies.' },
 ]
 
 const recognitionIcons: Record<string, typeof Briefcase> = {
