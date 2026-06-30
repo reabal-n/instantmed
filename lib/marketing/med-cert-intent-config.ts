@@ -935,7 +935,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     explainerParagraphs: [
       "Anxiety and panic symptoms can affect concentration, sleep, commuting, customer-facing work, physical duties, study, and ordinary daily functioning. A routine online certificate may document a short absence where the history is clear and no urgent or ongoing care document is needed.",
       "You answer a structured health form covering what symptoms you are experiencing, when they started, how they affect attendance or duties, which dates you need reviewed, and safety answers that help the doctor decide whether online review is appropriate.",
-      "An approved certificate includes standard absence evidence. It is not a mental health care plan, treatment plan, medication review, fitness-for-duty assessment, return-to-work clearance, workplace adjustment letter, or policy advice for an employer or institution.",
+      "An approved certificate includes standard absence evidence. It is not a mental health care plan, treatment plan, medication review, workplace safety assessment, return-to-work clearance, workplace adjustment letter, or policy advice for an employer or institution.",
     ],
     detailSections: [
       {
@@ -945,7 +945,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
         items: [
           "Anxiety, panic symptoms, acute stress, poor sleep, or overwhelm affecting work, study, commuting, concentration, or usual duties",
           "Symptoms that are understandable from the history you provide and do not need urgent same-day mental health assessment",
-          "No request for workplace adjustments, capacity wording, return-to-work clearance, special consideration forms, or long-term care planning",
+          "No request for workplace adjustments, capacity wording, return-to-work clearance, institution-specific forms, or long-term care planning",
         ],
       },
       {
@@ -975,7 +975,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
         items: [
           "Self-harm thoughts, feeling unsafe, crisis symptoms, severe deterioration, psychosis, mania, confusion, fainting, chest pain, or symptoms that feel medically unsafe",
           "Mental health care plans, therapy referrals, medication changes, Centrelink forms, insurance reports, workers compensation, capacity assessments, or legal documents",
-          "Return-to-work clearance, workplace adjustment letters, special consideration, exam deferral, or long-term absence documents with detailed functional capacity wording",
+          "Return-to-work clearance, workplace adjustment letters, education-provider forms, assessment deadline documents, or long-term absence documents with detailed functional capacity wording",
         ],
       },
     ],
