@@ -267,16 +267,59 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "carer",
     h1: "Carer medical certificate.",
     heroSubheadline:
-      `Time off to look after a sick family member. A doctor reviews your request. No appointments. From ${PRICING_DISPLAY.MED_CERT}.`,
+      `Time off to look after a sick family member or dependant. An AHPRA-registered doctor reviews your answers and decides whether a certificate is clinically appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
     explainerTitle: "When carers need documentation",
-    explainerSubtitle: "Carer's leave certificates support absences when you're looking after someone who needs you.",
+    explainerSubtitle: "For short carer's leave absences where online doctor review is clinically suitable.",
     explainerParagraphs: [
-      "If you've needed time off to care for a sick family member or dependant, your employer may require documentation. Carer's leave certificates are issued by AHPRA-registered doctors and include standard workplace evidence details.",
-      "You describe the situation in a quick form. A doctor reviews it and decides whether a certificate is appropriate. Same process as sick leave, just select carer's leave when you start.",
+      "If you need time away from work to care for a sick family member or household member, your employer may ask for evidence. A carer's leave certificate is different from a personal sick certificate: it documents the caring need, not your own illness.",
+      "You answer a structured form explaining who needs care, what happened, the dates you need covered, and why your support is needed. A doctor reviews those answers before deciding whether a carer's leave certificate can be issued.",
+      "If approved, your certificate is emailed as a PDF with standard workplace evidence details. It should say enough to support the leave reason without disclosing more private information about the person you are caring for than is needed.",
     ],
-    recognitionTitle: "Valid for carer's leave",
+    detailSections: [
+      {
+        title: "When online review fits",
+        body:
+          "Online review is best suited to short carer's leave absences where the caring need is clear and the doctor does not need to examine the person you are caring for.",
+        items: [
+          "Caring for a sick child, partner, parent, grandparent, sibling, or household member",
+          "Short absence because the person needed care, support, supervision, transport, or recovery help",
+          "No legal, Centrelink, insurance, custody, NDIS, or long-term carer report required",
+        ],
+      },
+      {
+        title: "What the doctor checks",
+        body:
+          "The doctor checks whether the relationship, symptoms or event, timing, care need, and requested dates support routine carer's leave evidence.",
+        items: [
+          "Who needed care and your relationship to them",
+          "What symptoms, illness, injury, or unexpected event created the caring need",
+          "Whether the situation suggests urgent care, in-person review, or a different document",
+        ],
+      },
+      {
+        title: "What the certificate includes",
+        body:
+          "A routine carer's leave certificate focuses on the caring need and absence period. It usually does not need detailed diagnosis information.",
+        items: [
+          "Your name, review date, recommended absence dates, and doctor details",
+          "A statement that you needed to provide care or support for the relevant period",
+          "Verification details so the document can be checked if required",
+        ],
+      },
+      {
+        title: "When it may not be enough",
+        body:
+          "Some carer-related requests need a treating practitioner, agency form, legal document, or in-person assessment rather than a routine certificate.",
+        items: [
+          "Centrelink, NDIS, custody, court, insurance, school clearance, or formal carer-status reports",
+          "Long-term caring arrangements, repeated absences, or complex family circumstances",
+          "Severe symptoms, injury, or a child or dependant who needs urgent or in-person care",
+        ],
+      },
+    ],
+    recognitionTitle: "Carer's leave evidence",
     recognitionSubtitle:
-      "Certificates include standard workplace evidence details for carer's leave. Some workplaces may have their own documentation requirements.",
+      "Certificates include standard workplace evidence details for carer's leave. Workplaces assess evidence under their own leave policy.",
     recognitionBadges: [
       { label: "Workplace evidence", sub: "Carer's leave" },
       { label: "Family & dependants", sub: "Sick child, elderly parent" },
@@ -284,34 +327,51 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "Documentation when you need it",
     ctaSubtitle:
-      "Two minutes to complete the form. Doctor review. Certificate to your inbox.",
+      "Short form. Doctor review. Certificate to your inbox if approved.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: `Carer Medical Certificate | Carer's Leave ${PRICING_DISPLAY.MED_CERT}`,
       description:
-        `Medical certificate for carer's leave. Document absences when caring for a sick family member. AHPRA-registered doctors review your request. From ${PRICING_DISPLAY.MED_CERT}.`,
+        `Request a carer's leave medical certificate online. AHPRA-registered doctors review your answers. From ${PRICING_DISPLAY.MED_CERT}. Employer policies vary.`,
       keywords: [
         "carer medical certificate",
         "carers leave certificate",
         "medical certificate for caring",
         "carer leave sick note",
+        "carer's leave medical certificate",
+        "medical certificate for sick family member",
       ],
     },
     faqs: [
       {
         question: "What is a carer's leave certificate?",
         answer:
-          "A medical certificate that documents your need to care for a sick family member or dependant. Employers may require this to approve carer's leave under the Fair Work Act.",
+          "A medical certificate that documents your need to care for or support a sick family member, household member, or dependant for a period of time. It is different from a certificate for your own sick leave.",
       },
       {
         question: "Who can I get a certificate for?",
         answer:
-          "Typically for caring for a sick child, spouse, parent, or other dependant. You'll describe the situation when completing the form. The doctor assesses whether a certificate is appropriate.",
+          "Typically for caring for a sick child, partner, parent, grandparent, sibling, other immediate family member, or household member. You describe the situation in the form and the doctor assesses whether a certificate is appropriate.",
       },
       {
-        question: "Will my employer accept it?",
+        question: "Can I submit this to my employer?",
         answer:
-          "Our carer's leave certificates are issued by AHPRA-registered doctors and include standard workplace evidence details. Some workplaces may have their own requirements. Check with yours.",
+          "You can submit it where your workplace allows routine medical certificates as carer's leave evidence. InstantMed certificates are issued by AHPRA-registered doctors and include standard workplace evidence details. Employer policies vary.",
+      },
+      {
+        question: "Will it include the other person's diagnosis?",
+        answer:
+          "Usually no. A routine carer's leave certificate should document the caring need and absence dates without over-disclosing private clinical details about the person you are caring for.",
+      },
+      {
+        question: "Can this cover both school absence and carer's leave?",
+        answer:
+          "Sometimes one certificate can support both, but schools and employers apply their own policies. If you need both purposes covered, explain that in the form so the doctor can decide what wording is clinically appropriate.",
+      },
+      {
+        question: "When should I not use this pathway?",
+        answer:
+          "Do not use a routine carer's leave certificate for Centrelink, NDIS, custody, court, insurance, school clearance, formal carer-status reports, or a situation where the person needs urgent or in-person care.",
       },
     ],
   },
