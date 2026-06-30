@@ -867,29 +867,86 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "anxiety",
     h1: "Medical certificate for anxiety.",
     heroSubheadline:
-      `Anxiety is a legitimate medical condition. A doctor reviews your request. No judgement, no waiting rooms. From ${PRICING_DISPLAY.MED_CERT}.`,
-    explainerTitle: "Anxiety is a valid reason to take time off",
-    explainerSubtitle: "Mental health conditions, including anxiety, are covered under sick leave laws in Australia.",
+      `Anxiety, panic symptoms, stress, or overwhelm can make work or study unsafe or unrealistic for a short period. Complete a secure form so a doctor can assess whether routine absence evidence is appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
+    explainerTitle: "Anxiety-related absence and routine evidence",
+    explainerSubtitle: "For short absences where symptoms are clear and online review is clinically suitable.",
     explainerParagraphs: [
-      "Anxiety, panic disorder, and stress-related conditions are legitimate medical reasons to take time off work or study. Our AHPRA-registered doctors assess your situation the same way they would any other health condition, with clinical judgement, not assumptions.",
-      "You describe your symptoms in a quick form. A doctor reviews it and makes a clinical decision. If approved, your certificate lands in your inbox as a PDF. No phone call required in most cases.",
+      "Anxiety and panic symptoms can affect concentration, sleep, commuting, customer-facing work, physical duties, study, and ordinary daily functioning. A routine online certificate may document a short absence where the history is clear and no urgent or ongoing care document is needed.",
+      "You answer a structured health form covering what symptoms you are experiencing, when they started, how they affect attendance or duties, which dates you need reviewed, and safety answers that help the doctor decide whether online review is appropriate.",
+      "An approved certificate includes standard absence evidence. It is not a mental health care plan, treatment plan, medication review, fitness-for-duty assessment, return-to-work clearance, workplace adjustment letter, or policy advice for an employer or institution.",
+    ],
+    detailSections: [
+      {
+        title: "When online review fits",
+        body:
+          "Online review is best suited to short anxiety-related absences where the request is for routine evidence and there are no immediate safety concerns.",
+        items: [
+          "Anxiety, panic symptoms, acute stress, poor sleep, or overwhelm affecting work, study, commuting, concentration, or usual duties",
+          "Symptoms that are understandable from the history you provide and do not need urgent same-day mental health assessment",
+          "No request for workplace adjustments, capacity wording, return-to-work clearance, special consideration forms, or long-term care planning",
+        ],
+      },
+      {
+        title: "What the doctor checks",
+        body:
+          "The doctor checks whether your symptoms, timing, requested dates, functional impact, and safety answers support routine certificate evidence.",
+        items: [
+          "What symptoms are present, when they started, whether they are improving, unchanged, or escalating, and what triggered the absence",
+          "How symptoms affect attendance, concentration, decision-making, commuting, customer-facing duties, physical duties, or study participation",
+          "Whether self-harm thoughts, feeling unsafe, severe panic symptoms, confusion, substance-related risk, or chest pain point to urgent or in-person care",
+        ],
+      },
+      {
+        title: "What the certificate includes",
+        body:
+          "A routine anxiety certificate focuses on the absence period. It does not usually need to list a diagnosis or private symptom detail.",
+        items: [
+          "Your name, the doctor's details, the review date, and the medically appropriate absence period",
+          "A standard statement that you were unable to attend work, study, or usual duties for the stated period",
+          "Verification details your employer or institution can use to confirm the certificate came from InstantMed",
+        ],
+      },
+      {
+        title: "When a standard certificate is not enough",
+        body:
+          "Some anxiety-related requests need your regular GP, psychologist, psychiatrist, employer pathway, university form, or urgent support service.",
+        items: [
+          "Self-harm thoughts, feeling unsafe, crisis symptoms, severe deterioration, psychosis, mania, confusion, fainting, chest pain, or symptoms that feel medically unsafe",
+          "Mental health care plans, therapy referrals, medication changes, Centrelink forms, insurance reports, workers compensation, capacity assessments, or legal documents",
+          "Return-to-work clearance, workplace adjustment letters, special consideration, exam deferral, or long-term absence documents with detailed functional capacity wording",
+        ],
+      },
     ],
     recognitionTitle: "Workplace evidence",
     recognitionSubtitle:
-      "Medical certificates for anxiety and mental health conditions include standard workplace evidence details. Employer policies may vary.",
+      "Anxiety certificates include standard doctor and absence details. Employer, school, and university policies may vary.",
     recognitionBadges: [
-      { label: "Mental health recognised", sub: "Same as physical illness" },
-      { label: "Workplace evidence", sub: "Policy dependent" },
-      { label: "No judgement", sub: "Confidential assessment" },
+      { label: "Routine evidence", sub: "Absence period" },
+      { label: "Safety first", sub: "Care boundaries" },
+      { label: "Policy caveats", sub: "May vary" },
     ],
-    ctaTitle: "Your mental health matters",
+    relatedLinks: [
+      {
+        href: "/mental-health-online",
+        label: "Need broader mental health guidance?",
+        description:
+          "Read the mental health online guide for crisis boundaries, GP pathways, privacy, and when a short certificate is not the right document.",
+      },
+      {
+        href: "/medical-certificate/sick-leave",
+        label: "Need a general sick-leave certificate?",
+        description:
+          "Use the sick-leave pathway when you need routine evidence for a short absence and the specific symptom is less important than the absence period.",
+      },
+    ],
+    ctaTitle: "Request anxiety absence evidence",
     ctaSubtitle:
-      "A two-minute form, real doctor review. Certificate to your inbox. No appointment needed.",
-    ctaButtonText: "Get your certificate",
+      "For short anxiety-related absences where routine certificate evidence is clinically appropriate.",
+    ctaButtonText: "Start certificate request",
     metadata: {
-      title: `Medical Certificate for Anxiety | Mental Health Days ${PRICING_DISPLAY.MED_CERT}`,
+      title: `Medical Certificate for Anxiety | Mental Health Sick Note ${PRICING_DISPLAY.MED_CERT}`,
       description:
-        `Get a medical certificate for anxiety or mental health days. AHPRA-registered doctors review your request. From ${PRICING_DISPLAY.MED_CERT}. No waiting rooms.`,
+        `Request a medical certificate for anxiety-related absence. AHPRA-registered doctors review symptoms, requested dates, and safety answers. From ${PRICING_DISPLAY.MED_CERT}. Employer policies vary.`,
       keywords: [
         "medical certificate for anxiety",
         "anxiety medical certificate",
@@ -902,22 +959,27 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Can you get a medical certificate for anxiety?",
         answer:
-          "Yes. Anxiety and other mental health conditions are recognised medical conditions under Australian law. Our AHPRA-registered doctors assess requests for anxiety the same as any other illness. If clinically appropriate, they'll issue a certificate.",
+          "A doctor can review a request for short anxiety-related absence. If your symptoms, timing, requested dates, and safety answers support routine absence evidence, a certificate may be issued.",
       },
       {
-        question: "Will my employer accept a mental health certificate?",
+        question: "Will my employer accept a certificate for anxiety?",
         answer:
-          "Medical certificates for mental health conditions, including anxiety, can support workplace evidence requirements. Employer policies and circumstances may vary.",
+          "A doctor-issued certificate can support workplace evidence requirements, but employer policies and individual circumstances may vary. Check your workplace policy if you need a specific form or extra wording.",
       },
       {
-        question: "Do I need to disclose my mental health condition?",
+        question: "Does the certificate list anxiety as the diagnosis?",
         answer:
-          "Employers can ask for a medical certificate, but they can't require you to disclose your specific diagnosis. Our certificates state that you were assessed by a doctor and were unfit for work, without specifying the condition.",
+          "A routine certificate focuses on the absence period and does not usually need to list private symptom or diagnosis detail. The doctor decides what detail is clinically appropriate for the certificate.",
       },
       {
         question: "Can I get a certificate for stress or burnout?",
         answer:
-          "Yes. Stress, burnout, and anxiety-related conditions are all assessed by our doctors. You describe your symptoms in the form. The doctor makes the clinical determination.",
+          "Stress, burnout, and anxiety-related symptoms can be reviewed for short absence evidence. Describe the symptoms, timing, and effect on work or study in the form so the doctor can decide whether a routine certificate is appropriate.",
+      },
+      {
+        question: "When is online review not enough for anxiety?",
+        answer:
+          "Seek urgent or in-person support if you feel unsafe, have thoughts of self-harm, severe deterioration, confusion, psychosis, mania, fainting, chest pain, or symptoms that feel medically unsafe. A short certificate is also not a mental health care plan, medication review, workplace adjustment letter, or long-term capacity report.",
       },
     ],
   },
