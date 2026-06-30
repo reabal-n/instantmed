@@ -59,8 +59,6 @@ const recognitionIcons: Record<string, typeof Briefcase> = {
   'Large & small businesses': Briefcase,
   'Full-time & casual': Users,
   'Universities': School,
-  'Go8 universities': School,
-  'ATN & IRU': GraduationCap,
   'TAFE & RTOs': GraduationCap,
   'Private providers': Building2,
   'Private unis': Building2,
@@ -73,6 +71,23 @@ const recognitionIcons: Record<string, typeof Briefcase> = {
   'Office & general work': Briefcase,
   'Clinical assessment': Shield,
   'Employer policies vary': Building2,
+  'Study absence': GraduationCap,
+  'Standard certificate': FileCheck,
+  'Caring need': Heart,
+  'Privacy aware': Shield,
+  'Employer policy': Building2,
+  'University policy': School,
+  'Assessment dates': Clock,
+  'School absence': School,
+  'Parent or guardian': Users,
+  'No clearance': Shield,
+  'Routine evidence': FileCheck,
+  'No capacity report': Shield,
+  'Pattern checked': FileCheck,
+  'Red flags': AlertCircle,
+  'No fitness report': Shield,
+  'Hydration checked': Heart,
+  'Duties matter': Briefcase,
 }
 
 const detailSectionIcons = [FileCheck, Shield, Clock, Building2]
@@ -474,6 +489,33 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
             subtitle="Everything you need to know about getting your certificate."
             groups={[{ items: config.faqs }]}
           />
+
+          {config.relatedLinks && config.relatedLinks.length > 0 && (
+            <section className="py-6 px-4">
+              <div className="mx-auto max-w-3xl">
+                <h2 className="text-base font-semibold text-foreground">
+                  Related certificate guidance
+                </h2>
+                <div className="mt-3 divide-y divide-border/50 border-y border-border/50 dark:divide-white/15 dark:border-white/15">
+                  {config.relatedLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="group block py-4 transition-colors hover:text-primary"
+                    >
+                      <span className="flex items-center justify-between gap-3 text-sm font-semibold text-foreground">
+                        {link.label}
+                        <ArrowRight className="h-4 w-4 shrink-0 text-primary transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                      </span>
+                      <span className="mt-2 block text-sm leading-relaxed text-muted-foreground">
+                        {link.description}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Internal link to main medical certificate page */}
           <section className="py-6 px-4">

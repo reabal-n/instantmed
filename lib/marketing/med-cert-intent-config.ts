@@ -66,6 +66,11 @@ export interface MedCertIntentConfig {
     body: string
     items?: string[]
   }>
+  relatedLinks?: Array<{
+    href: string
+    label: string
+    description: string
+  }>
   /** Recognition/validity section - who accepts this */
   recognitionTitle: string
   recognitionSubtitle: string
@@ -153,13 +158,13 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "study",
     h1: "Medical certificate for study.",
     heroSubheadline:
-      `Study absence documentation for short illness. An AHPRA-registered doctor reviews your answers and decides whether a certificate is clinically appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
-    explainerTitle: "When students need documentation",
+      `Missed class, labs, online attendance, or ordinary study duties because you were unwell? Complete a secure form so a doctor can assess whether routine study evidence is appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
+    explainerTitle: "Study absence evidence",
     explainerSubtitle: "For short study absences where online doctor review is clinically suitable.",
     explainerParagraphs: [
       "If illness has stopped you attending class, placement, tutorials, labs, or ordinary study duties, your education provider may ask for medical evidence. This page is for routine study absence documentation where a doctor can make a safe decision from your history without examining you in person.",
       "You answer a structured health form covering your symptoms, when they started, the study dates affected, and whether anything about your course or placement changes the risk. A doctor reviews those answers before deciding whether a certificate can be issued.",
-      "If approved, your certificate is emailed as a PDF with standard doctor-issued details. It is not an automatic document and it is not a substitute for provider-specific forms. Check your institution's policy before applying, especially if deadlines or assessment rules are involved.",
+      "An approved certificate includes the standard doctor-issued details used for routine absence evidence. It is not an automatic document and it is not a substitute for provider-specific forms. Check your institution's policy before applying, especially if deadlines or assessment rules are involved.",
     ],
     detailSections: [
       {
@@ -168,7 +173,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
           "Online review is best suited to short, low-risk study absences where the clinical story is clear and the requested dates match the illness described.",
         items: [
           "Short absence from class, tutorials, labs, online attendance, or ordinary study duties",
-          "Common acute illness such as cold, flu, gastro, migraine, period pain, or a mental health day",
+          "Common acute illness such as cold, flu, gastro, migraine, period pain, anxiety, or stress-related symptoms",
           "No placement clearance, fitness-to-attend decision, or provider-specific form required",
         ],
       },
@@ -193,7 +198,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
         ],
       },
       {
-        title: "When it may not be enough",
+        title: "When a standard certificate is not enough",
         body:
           "Some education processes need more than a standard medical certificate. We keep those boundaries clear before a certificate is issued.",
         items: [
@@ -207,13 +212,20 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     recognitionSubtitle:
       "Education providers set their own evidence rules. Check your course, campus, or provider policy before applying.",
     recognitionBadges: [
-      { label: "Universities", sub: "Go8, ATN, IRU & more" },
-      { label: "TAFE & RTOs", sub: "Vocational education" },
-      { label: "Private providers", sub: "Check policy first" },
+      { label: "Study absence", sub: "Policy dependent" },
+      { label: "TAFE & RTOs", sub: "Check provider rules" },
+      { label: "Standard certificate", sub: "No provider forms" },
     ],
-    ctaTitle: "Get the documentation you need",
+    relatedLinks: [
+      {
+        href: "/medical-certificate/university",
+        label: "University certificate guidance",
+        description: "Use this if your absence is tied to university lectures, tutorials, labs, or campus policy.",
+      },
+    ],
+    ctaTitle: "Request study absence evidence",
     ctaSubtitle:
-      "Quick form. Real doctor review. Certificate to your inbox if approved.",
+      "For short illness-related absences where your provider accepts a standard medical certificate.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: `Medical Certificate for Study | Uni & TAFE ${PRICING_DISPLAY.MED_CERT}`,
@@ -267,13 +279,13 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "carer",
     h1: "Carer medical certificate.",
     heroSubheadline:
-      `Time off to look after a sick family member or dependant. An AHPRA-registered doctor reviews your answers and decides whether a certificate is clinically appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
-    explainerTitle: "When carers need documentation",
+      `Need leave to care for a sick child, family member, or household member? A doctor reviews the care need and dates before deciding whether a carer's leave certificate is appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
+    explainerTitle: "Carer's leave evidence",
     explainerSubtitle: "For short carer's leave absences where online doctor review is clinically suitable.",
     explainerParagraphs: [
       "If you need time away from work to care for a sick family member or household member, your employer may ask for evidence. A carer's leave certificate is different from a personal sick certificate: it documents the caring need, not your own illness.",
       "You answer a structured form explaining who needs care, what happened, the dates you need covered, and why your support is needed. A doctor reviews those answers before deciding whether a carer's leave certificate can be issued.",
-      "If approved, your certificate is emailed as a PDF with standard workplace evidence details. It should say enough to support the leave reason without disclosing more private information about the person you are caring for than is needed.",
+      "An approved certificate should say enough to support the leave reason without disclosing more private information about the person you are caring for than is needed. Employer policies still decide how the document is assessed.",
     ],
     detailSections: [
       {
@@ -307,7 +319,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
         ],
       },
       {
-        title: "When it may not be enough",
+        title: "When a standard certificate is not enough",
         body:
           "Some carer-related requests need a treating practitioner, agency form, legal document, or in-person assessment rather than a routine certificate.",
         items: [
@@ -321,13 +333,20 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     recognitionSubtitle:
       "Certificates include standard workplace evidence details for carer's leave. Workplaces assess evidence under their own leave policy.",
     recognitionBadges: [
-      { label: "Workplace evidence", sub: "Carer's leave" },
-      { label: "Family & dependants", sub: "Sick child, elderly parent" },
-      { label: "Full-time & casual", sub: "All employment types" },
+      { label: "Caring need", sub: "Short absence" },
+      { label: "Privacy aware", sub: "Minimal clinical detail" },
+      { label: "Employer policy", sub: "May require more" },
     ],
-    ctaTitle: "Documentation when you need it",
+    relatedLinks: [
+      {
+        href: "/medical-certificate/school",
+        label: "School absence certificate",
+        description: "Use this if the school needs evidence for the child's own illness-related absence.",
+      },
+    ],
+    ctaTitle: "Request carer's leave evidence",
     ctaSubtitle:
-      "Short form. Doctor review. Certificate to your inbox if approved.",
+      "For short caring-related absences where routine evidence is clinically appropriate.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: `Carer Medical Certificate | Carer's Leave ${PRICING_DISPLAY.MED_CERT}`,
@@ -498,13 +517,13 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "university",
     h1: "Medical certificate for university.",
     heroSubheadline:
-      `University absence documentation for short illness. An AHPRA-registered doctor reviews your answers and decides whether a certificate is clinically appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
-    explainerTitle: "When uni requires medical evidence",
+      `For short illness-related absences from lectures, tutorials, labs, or ordinary study duties. A doctor checks the illness details against your university dates and course context. From ${PRICING_DISPLAY.MED_CERT}.`,
+    explainerTitle: "University absence evidence",
     explainerSubtitle: "For routine university absence evidence where online doctor review is clinically suitable.",
     explainerParagraphs: [
       "If illness has affected your attendance, tutorials, labs, placement preparation, or ordinary study duties, your university may ask for medical evidence. This page is for routine university absence documentation, not provider-specific forms or detailed academic reports.",
       "You answer a structured health form covering your symptoms, when they started, the university dates affected, and whether your course or placement creates extra safety requirements. A doctor reviews those answers before deciding whether a certificate can be issued.",
-      "If approved, your certificate is emailed as a PDF with standard doctor-issued details. University policies vary by faculty, campus, course, and deadline. Check the policy before applying, especially if the request relates to an assessment process or placement.",
+      "An approved certificate includes standard doctor-issued details for routine absence evidence. University policies vary by faculty, campus, course, and deadline. Check the policy before applying, especially if the request relates to an assessment process or placement.",
     ],
     detailSections: [
       {
@@ -513,7 +532,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
           "Online review is best suited to short, low-risk university absences where the clinical story is clear and the requested dates match the illness described.",
         items: [
           "Short absence from lectures, tutorials, labs, online attendance, or ordinary study duties",
-          "Common acute illness such as cold, flu, gastro, migraine, period pain, or a mental health day",
+          "Common acute illness such as cold, flu, gastro, migraine, period pain, anxiety, or stress-related symptoms",
           "No placement clearance, fitness-to-attend wording, or university-specific form required",
         ],
       },
@@ -538,7 +557,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
         ],
       },
       {
-        title: "When it may not be enough",
+        title: "When a standard certificate is not enough",
         body:
           "Some university processes need more than a standard certificate. We keep those boundaries clear before a certificate is issued.",
         items: [
@@ -552,13 +571,20 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     recognitionSubtitle:
       "University policies vary by institution, faculty, and course. Check your evidence requirements before applying.",
     recognitionBadges: [
-      { label: "Universities", sub: "Check policy" },
-      { label: "TAFE & RTOs", sub: "Use study page" },
-      { label: "Private providers", sub: "Policy dependent" },
+      { label: "University policy", sub: "Faculty dependent" },
+      { label: "Assessment dates", sub: "Check deadlines" },
+      { label: "Standard certificate", sub: "No placement clearance" },
     ],
-    ctaTitle: "Get the documentation your uni needs",
+    relatedLinks: [
+      {
+        href: "/medical-certificate/study",
+        label: "General study certificate",
+        description: "Use this for TAFE, RTO, college, or other non-university study absence evidence.",
+      },
+    ],
+    ctaTitle: "Request university absence evidence",
     ctaSubtitle:
-      "Quick form. Real doctor review. Certificate to your inbox if approved.",
+      "For routine illness-related absence evidence where your university accepts a standard certificate.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: `Medical Certificate for University | Student Absence ${PRICING_DISPLAY.MED_CERT}`,
@@ -611,13 +637,13 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "school",
     h1: "Medical certificate for school.",
     heroSubheadline:
-      `Documentation for your child's school absence. An AHPRA-registered doctor reviews your answers and decides whether a certificate is clinically appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
-    explainerTitle: "When schools require medical evidence",
+      `When a child misses school because of illness, a parent or guardian can request routine absence evidence online. The doctor reviews the history and may ask follow-up questions. From ${PRICING_DISPLAY.MED_CERT}.`,
+    explainerTitle: "School absence evidence",
     explainerSubtitle: "For school-aged children with short illness-related absences.",
     explainerParagraphs: [
       "If your child has been unwell and missed school, the school may ask for medical evidence. This page is for routine school absence documentation where a doctor can make a safe decision from the history you provide as the parent or guardian.",
       "You complete a structured form describing your child's symptoms, when they started, the school dates missed, and any safety concerns. For children, the doctor may ask follow-up questions or request a brief call before deciding whether a certificate can be issued.",
-      "If approved, the certificate is emailed as a PDF with standard doctor-issued details. School attendance policies vary. Some schools, childcare services, or programs may need different wording, an in-person assessment, or a return-to-school clearance rather than a routine absence certificate.",
+      "An approved certificate includes standard doctor-issued details for the school absence period. School attendance policies vary. Some schools, childcare services, or programs may need different wording, an in-person assessment, or a return-to-school clearance rather than a routine absence certificate.",
     ],
     detailSections: [
       {
@@ -651,7 +677,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
         ],
       },
       {
-        title: "When it may not be enough",
+        title: "When a standard certificate is not enough",
         body:
           "Some child health and school situations need a different pathway. The doctor will not issue a routine certificate if online review is not safe.",
         items: [
@@ -665,13 +691,20 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     recognitionSubtitle:
       "School attendance policies vary. Check whether your school needs a routine absence certificate, a clearance document, or its own form.",
     recognitionBadges: [
-      { label: "Primary & secondary", sub: "Public & private" },
-      { label: "AHPRA doctors", sub: "Doctor-issued" },
-      { label: "Parent completes form", sub: "On behalf of child" },
+      { label: "School absence", sub: "Policy dependent" },
+      { label: "Parent or guardian", sub: "Completes form" },
+      { label: "No clearance", sub: "Absence evidence only" },
     ],
-    ctaTitle: "Documentation for school absences",
+    relatedLinks: [
+      {
+        href: "/medical-certificate/carer",
+        label: "Carer's leave certificate",
+        description: "Use this if your employer needs evidence because you took leave to care for the child.",
+      },
+    ],
+    ctaTitle: "Request school absence evidence",
     ctaSubtitle:
-      "Parent-completed form. Doctor review. Certificate to your inbox if approved.",
+      "For short child illness absences where online review is clinically suitable.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: `Medical Certificate for School | Child Absence ${PRICING_DISPLAY.MED_CERT}`,
@@ -952,7 +985,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "work-from-home",
     h1: "Medical certificate for work-from-home related absence.",
     heroSubheadline:
-      `If illness affects attendance at your usual workplace, an AHPRA-registered doctor can assess whether routine sick-leave evidence is clinically appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
+      `This is for routine sick-leave evidence when illness affects attending your usual workplace. It does not direct your employer to approve remote work. From ${PRICING_DISPLAY.MED_CERT}.`,
     explainerTitle: "Work-from-home requests and medical evidence",
     explainerSubtitle: "For short illness-related absences where your employer asks for medical evidence. It does not approve remote work.",
     explainerParagraphs: [
@@ -1010,6 +1043,13 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
         ],
       },
     ],
+    relatedLinks: [
+      {
+        href: "/medical-certificate/sick-leave",
+        label: "Sick leave certificate",
+        description: "Use this if you need ordinary absence evidence rather than work-from-home context.",
+      },
+    ],
     ctaTitle: "Request routine absence evidence",
     ctaSubtitle:
       "Complete the health form so a doctor can assess whether a standard certificate is appropriate.",
@@ -1064,7 +1104,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "migraine",
     h1: "Medical certificate for migraine.",
     heroSubheadline:
-      `Migraine symptoms can make work unsafe or impractical. An AHPRA-registered doctor reviews your answers and decides whether a certificate is clinically appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
+      `Migraine can affect screens, driving, concentration, and safety-critical work. A doctor checks your usual pattern, red flags, and absence dates. From ${PRICING_DISPLAY.MED_CERT}.`,
     explainerTitle: "Migraine and work absence",
     explainerSubtitle: "For short migraine-related absences where online doctor review is clinically suitable.",
     explainerParagraphs: [
@@ -1076,9 +1116,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     recognitionSubtitle:
       "Medical certificates for migraines include standard workplace evidence details. Employer policies may vary.",
     recognitionBadges: [
-      { label: "Clinical review", sub: "Pattern and red flags" },
-      { label: "Workplace evidence", sub: "Policy dependent" },
-      { label: "Short absences", sub: "Doctor assessed" },
+      { label: "Pattern checked", sub: "Usual vs unusual" },
+      { label: "Red flags", sub: "Urgent care boundary" },
+      { label: "No fitness report", sub: "Absence evidence only" },
     ],
     detailSections: [
       {
@@ -1120,6 +1160,13 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
           "Weakness, numbness, confusion, fainting, speech trouble, vision loss, fever, neck stiffness, head injury, or persistent vomiting",
           "Fitness-for-duty, driving, safety-critical work, workplace restriction, insurance, workers compensation, or long-term migraine management documentation",
         ],
+      },
+    ],
+    relatedLinks: [
+      {
+        href: "/medical-certificate/sick-leave",
+        label: "Sick leave certificate",
+        description: "Use this if you need general workplace absence evidence for a short illness.",
       },
     ],
     ctaTitle: "Request migraine absence evidence",
@@ -1176,7 +1223,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "gastro",
     h1: "Medical certificate for gastro.",
     heroSubheadline:
-      `Gastro symptoms can make work unsafe or impractical. An AHPRA-registered doctor reviews your answers and decides whether a certificate is clinically appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
+      `Vomiting or diarrhoea can make commuting, food handling, care work, and office work unsafe. A doctor checks hydration, red flags, work duties, and dates. From ${PRICING_DISPLAY.MED_CERT}.`,
     explainerTitle: "Gastro and stomach illness",
     explainerSubtitle: "For short gastro illness where online doctor review is clinically suitable.",
     explainerParagraphs: [
@@ -1216,7 +1263,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
         ],
       },
       {
-        title: "When it may not be enough",
+        title: "When a standard certificate is not enough",
         body:
           "Gastro can create infection-control or safety questions beyond a standard absence certificate.",
         items: [
@@ -1230,13 +1277,20 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     recognitionSubtitle:
       "Gastro certificates include standard doctor and absence details. Employer policies may vary.",
     recognitionBadges: [
-      { label: "Workplace evidence", sub: "Policy dependent" },
-      { label: "Clinical assessment", sub: "Doctor-reviewed" },
-      { label: "1-3 days", sub: "If clinically appropriate" },
+      { label: "Hydration checked", sub: "Fluids and red flags" },
+      { label: "Duties matter", sub: "Food, care, driving" },
+      { label: "No clearance", sub: "Absence evidence only" },
     ],
-    ctaTitle: "Stay home. Get the paperwork sorted.",
+    relatedLinks: [
+      {
+        href: "/medical-certificate/sick-leave",
+        label: "Sick leave certificate",
+        description: "Use this if you need general workplace absence evidence rather than gastro-specific guidance.",
+      },
+    ],
+    ctaTitle: "Request gastro absence evidence",
     ctaSubtitle:
-      "Short form. A doctor reviews your answers. Certificate to your inbox if approved.",
+      "For short gastro illness where routine certificate evidence is clinically appropriate.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: `Medical Certificate for Gastro | Sick Note Online ${PRICING_DISPLAY.MED_CERT}`,
