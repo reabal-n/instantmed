@@ -8,7 +8,6 @@ import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("google-ads-conversion-api")
 const DEFAULT_GOOGLE_ADS_API_VERSION = "v24"
-export const GOOGLE_ADS_PURCHASE_UPLOAD_JOB_ID = 20260624
 
 /**
  * Server-side Google Ads Conversion API client.
@@ -100,7 +99,7 @@ interface GoogleAdsClickConversionRequest {
     consent?: GoogleAdsClickConversionConsent
     userIdentifiers?: GoogleAdsUserIdentifier[]
   } & ClickIdentifier>
-  jobId: number
+  jobId?: number
   partialFailure: true
 }
 
@@ -485,7 +484,8 @@ export function buildGoogleAdsClickConversionRequest(
         ...(userIdentifiers.length > 0 ? { userIdentifiers } : {}),
       },
     ],
-    jobId: GOOGLE_ADS_PURCHASE_UPLOAD_JOB_ID,
+    // Do not pin jobId. Google assigns a unique diagnostics job id per request
+    // when omitted, which gives operations a fresh watch target after each upload.
     partialFailure: true,
   }
 }
@@ -673,7 +673,7 @@ export async function searchGoogleAds<T extends GoogleAdsSearchRow = GoogleAdsSe
   return Array.isArray(payload.results) ? payload.results : []
 }
 
-function extractGoogleAdsUploadJobId(payload: unknown, fallback: number): number | string {
+function extractGoogleAdsUploadJobId(payload: unknown, fallback?: number): number | string | undefined {
   if (payload && typeof payload === "object") {
     const fields = payload as Record<string, unknown>
     const jobId = fields.jobId ?? fields.job_id
