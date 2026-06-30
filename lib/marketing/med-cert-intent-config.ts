@@ -1342,29 +1342,72 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "back-pain",
     h1: "Medical certificate for back pain.",
     heroSubheadline:
-      `Back pain can make it impossible to sit, stand, or drive. Get your certificate without the commute. From ${PRICING_DISPLAY.MED_CERT}.`,
-    explainerTitle: "When back pain stops you working",
-    explainerSubtitle: "Acute and chronic back pain are among the leading causes of workplace absence in Australia.",
+      `Back pain can affect sitting, standing, lifting, driving, commuting, and desk work. Complete a secure form so a doctor can assess whether routine sick-leave evidence is appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
+    explainerTitle: "Back pain and work absence",
+    explainerSubtitle: "For short back-pain absences where online doctor review is clinically suitable.",
     explainerParagraphs: [
-      "Back pain can range from acute muscle strain to severe disc issues that make movement, sitting, or standing unbearable. Our AHPRA-registered doctors assess your situation and can issue a certificate if you're genuinely unable to perform your work duties.",
-      "Describe your symptoms, how they started, and how they're affecting your ability to work. The doctor makes the clinical determination. For ongoing back conditions, you may need periodic certificates. Each request is assessed individually.",
+      "Back pain can come from a muscle strain, a flare of an existing condition, spasm, sciatica-like symptoms, or a minor non-work injury. A routine online certificate may document a short absence where the clinical history is clear and no physical examination is needed.",
+      "You answer a structured health form covering when the pain started, where it is, how it affects walking, sitting, standing, lifting or driving, the dates you need covered, and any warning signs that would make online review unsafe.",
+      "An approved certificate includes standard workplace evidence details. It is not a WorkCover certificate, return-to-work clearance, capacity assessment, ergonomic report, work-from-home approval, lifting restriction, fitness-to-drive document, or long-term back-pain management plan.",
+    ],
+    detailSections: [
+      {
+        title: "When online review fits",
+        body:
+          "Online review is best suited to short back-pain absences where the story is clear, the symptoms are stable or improving, and no physical examination is needed.",
+        items: [
+          "A short absence because back pain affects usual work duties, commuting, sitting, standing, lifting, or driving",
+          "Muscle strain, spasm, or a flare of a known back-pain pattern without neurological warning signs",
+          "No workplace injury claim, compensation paperwork, capacity report, or modified-duty wording required",
+        ],
+      },
+      {
+        title: "What the doctor checks",
+        body:
+          "The doctor checks whether the pain pattern, work impact, requested dates, and safety answers support routine absence evidence.",
+        items: [
+          "When the pain started, where it is, whether it travels down the leg, and whether it is improving or worsening",
+          "How pain affects walking, sitting, standing, lifting, driving, sleeping, and usual work duties",
+          "Whether weakness, numbness, bladder or bowel changes, fever, trauma, or severe pain points to urgent or in-person care",
+        ],
+      },
+      {
+        title: "What the certificate includes",
+        body:
+          "A routine back-pain certificate focuses on absence from usual duties, not private diagnosis detail or workplace restrictions.",
+        items: [
+          "Your name, the doctor's details, the review date, and the medically appropriate absence period",
+          "A statement that you were medically unfit for work or usual duties for the stated period",
+          "Verification details your employer can use to confirm the certificate came from InstantMed",
+        ],
+      },
+      {
+        title: "When a standard certificate is not enough",
+        body:
+          "Some back-pain situations need a different document, physical examination, or employer-directed pathway.",
+        items: [
+          "Workplace injury, WorkCover, workers compensation, insurance, legal, or long-term capacity documentation",
+          "Return-to-work clearance, fitness-for-duty, lifting restrictions, modified duties, ergonomic reports, or work-from-home approval",
+          "New weakness, numbness, saddle numbness, bladder or bowel change, fever, major trauma, cancer history, infection risk, or severe worsening pain",
+        ],
+      },
     ],
     recognitionTitle: "Workplace evidence",
     recognitionSubtitle:
-      "Certificates for back pain include standard workplace evidence details. Employer policies may vary.",
+      "Back-pain certificates include standard doctor and absence details. Employer policies may vary, especially for injury, capacity, or modified-duty requests.",
     recognitionBadges: [
-      { label: "Acute & chronic", sub: "All back conditions" },
-      { label: "Workplace evidence", sub: "Policy dependent" },
-      { label: "No commute required", sub: "Stay home to rest" },
+      { label: "Routine evidence", sub: "Absence period" },
+      { label: "Red flags", sub: "Urgent care boundary" },
+      { label: "No capacity report", sub: "Sick-leave only" },
     ],
-    ctaTitle: "Documentation while you rest",
+    ctaTitle: "Request back-pain absence evidence",
     ctaSubtitle:
-      "Quick form. Doctor review. Certificate to your inbox. No driving required.",
-    ctaButtonText: "Get your certificate",
+      "For short back-pain absences where routine certificate evidence is clinically appropriate.",
+    ctaButtonText: "Start certificate request",
     metadata: {
       title: `Medical Certificate for Back Pain | Sick Note Online ${PRICING_DISPLAY.MED_CERT}`,
       description:
-        `Get a medical certificate for back pain. AHPRA-registered doctors review your request online. No commute required. From ${PRICING_DISPLAY.MED_CERT}.`,
+        `Request a medical certificate for back pain absence. AHPRA-registered doctors review symptoms, work impact, and red flags. From ${PRICING_DISPLAY.MED_CERT}. Employer policies vary.`,
       keywords: [
         "medical certificate for back pain",
         "back pain sick certificate",
@@ -1377,22 +1420,32 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Can I get a medical certificate for back pain online?",
         answer:
-          "Yes. Our AHPRA-registered doctors assess back pain based on your self-reported symptoms and limitations. If your pain prevents you from performing your work duties, a certificate may be issued.",
+          "Online review may be suitable for a short back-pain absence if your symptoms, work impact, requested dates, and safety answers support routine certificate evidence. The doctor decides whether a certificate is clinically appropriate.",
       },
       {
         question: "What if my back pain is from a workplace injury?",
         answer:
-          "If your back pain is related to a workplace injury, you may need to pursue a WorkCover claim, which typically requires an in-person assessment. Our certificates are suitable for general sick leave, not WorkCover documentation.",
+          "Do not use this pathway for workplace injury, WorkCover, workers compensation, or insurance paperwork. Those requests often need a physical examination, employer forms, or an occupational-health pathway.",
       },
       {
         question: "How many days will the certificate cover?",
         answer:
-          "Typically 1–3 days for acute back pain. For ongoing or chronic conditions, the doctor will assess an appropriate duration. You may need to submit additional requests for extended absences.",
+          "The doctor decides the period after reviewing your answers. Routine online certificates are best suited to short absences; ongoing, recurrent, or worsening back pain may need your regular GP, physiotherapist, or specialist.",
       },
       {
-        question: "Can I get a WFH certificate instead of sick leave for back pain?",
+        question: "Can it say I should work from home or avoid lifting?",
         answer:
-          "Yes. If you're able to work from a computer but can't sit in an office chair or commute, we can issue documentation supporting a temporary work from home arrangement. Select 'work from home' when completing the form.",
+          "No. A routine medical certificate documents absence or unfitness for usual duties for a period. It does not approve work from home, modified duties, lifting restrictions, ergonomic changes, or capacity limits.",
+      },
+      {
+        question: "What symptoms need urgent or in-person care?",
+        answer:
+          "Seek urgent or in-person care for new leg weakness, numbness around the groin or saddle area, loss of bladder or bowel control, fever, major trauma, severe worsening pain, cancer history, infection risk, or pain with significant unwellness.",
+      },
+      {
+        question: "Will the certificate include my diagnosis?",
+        answer:
+          "Usually no. Routine workplace evidence normally focuses on whether you were medically unfit for usual duties for the relevant period. Diagnosis and detailed symptom information are usually not needed.",
       },
     ],
   },
