@@ -10,8 +10,6 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("cron-google-ads-diagnostics-watch")
 
-const DEFAULT_WATCH_JOB_ID = "2265599116648626375"
-const DEFAULT_WATCH_UPLOADED_AT = "2026-06-24T05:45:00.000Z"
 const DEFAULT_PROCESSING_WINDOW_HOURS = 24
 
 function parseProcessingWindowHours(value: string | null): number {
@@ -20,19 +18,19 @@ function parseProcessingWindowHours(value: string | null): number {
   return Math.min(Math.max(Math.floor(parsed), 1), 168)
 }
 
-function resolveWatchJobId(request: NextRequest): string {
+function resolveWatchJobId(request: NextRequest): string | null {
   return (
     request.nextUrl.searchParams.get("jobId")?.trim() ||
     process.env.GOOGLE_ADS_DIAGNOSTICS_WATCH_JOB_ID?.trim() ||
-    DEFAULT_WATCH_JOB_ID
+    null
   )
 }
 
-function resolveUploadedAt(request: NextRequest): string {
+function resolveUploadedAt(request: NextRequest): string | null {
   return (
     request.nextUrl.searchParams.get("uploadedAt")?.trim() ||
     process.env.GOOGLE_ADS_DIAGNOSTICS_WATCH_UPLOADED_AT?.trim() ||
-    DEFAULT_WATCH_UPLOADED_AT
+    null
   )
 }
 
@@ -56,6 +54,17 @@ export async function GET(request: NextRequest) {
       process.env.GOOGLE_ADS_DIAGNOSTICS_PROCESSING_WINDOW_HOURS ||
       null,
   )
+
+  if (!jobId || !uploadedAt) {
+    return NextResponse.json({
+      success: true,
+      skipped: true,
+      reason: "watch_job_not_configured",
+      detail: "Set GOOGLE_ADS_DIAGNOSTICS_WATCH_JOB_ID and GOOGLE_ADS_DIAGNOSTICS_WATCH_UPLOADED_AT after a fresh upload job is emitted.",
+      checked_at: now.toISOString(),
+    })
+  }
+
   const eligibleAt = resolveEligibleAt(uploadedAt, processingWindowHours)
 
   if (now < eligibleAt) {

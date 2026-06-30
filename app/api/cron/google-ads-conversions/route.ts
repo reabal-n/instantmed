@@ -34,6 +34,12 @@ type GoogleAdsCandidate = GoogleAdsAttributionRow & {
   paid_at?: string | null
 }
 
+function parsePaidAtConversionDateTime(value?: string | null): Date | null {
+  if (!value) return null
+  const date = new Date(value)
+  return Number.isFinite(date.getTime()) ? date : null
+}
+
 function shouldSkipBackfillForPreflight(
   preflight: GoogleAdsConversionActionPreflightResult,
 ): boolean {
@@ -175,6 +181,7 @@ export async function GET(request: NextRequest) {
     for (const row of retryable) {
       const result = await runGoogleAdsPostPaymentAttribution({
         amountCents: row.amount_cents,
+        conversionDateTime: parsePaidAtConversionDateTime(row.paid_at),
         intakeId: row.id,
         posthogDistinctId: row.patient_id || row.id,
         requestPath: request.nextUrl.pathname,

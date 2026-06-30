@@ -23,6 +23,9 @@ import { sanitizeAuditMetadata } from "@/lib/security/sanitize-audit"
 const log = createLogger("google-ads-post-payment")
 
 export const GOOGLE_ADS_CONVERSION_UPLOAD_AUDIT_ACTION = "google_ads_conversion_upload"
+export const GOOGLE_ADS_CLICK_IDENTIFIER_MAX_AGE_DAYS = 90
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000
 
 export const GOOGLE_ADS_ATTRIBUTION_SELECT =
   "utm_source, utm_medium, utm_id, utm_campaign, utm_content, utm_term, referrer, landing_page, attribution_captured_at, category, subtype, gclid, gbraid, wbraid, campaignid, adgroupid, keyword, creative, matchtype, device, network, amount_cents"
@@ -61,6 +64,7 @@ type GoogleAdsConversionStatus =
   | "success"
   | "failed"
   | "skipped_disabled"
+  | "skipped_expired_click_identifier"
   | "skipped_missing_click_id"
   | "skipped_missing_env"
   | "skipped_no_access_token"
@@ -179,6 +183,44 @@ export function hasGoogleClickId(row: GoogleAdsAttributionRow): boolean {
   return hasGoogleAdsUploadClickId(row)
 }
 
+function parseDateMs(value?: Date | string | null): number | null {
+  if (!value) return null
+  const ms = value instanceof Date ? value.getTime() : Date.parse(value)
+  return Number.isFinite(ms) ? ms : null
+}
+
+function googleAdsClickIdentifierMaxAgeDays(): number {
+  const configured = Number(process.env.GOOGLE_ADS_CLICK_IDENTIFIER_MAX_AGE_DAYS)
+  if (Number.isFinite(configured) && configured > 0) return configured
+  return GOOGLE_ADS_CLICK_IDENTIFIER_MAX_AGE_DAYS
+}
+
+function googleAdsClickIdentifierAgeDays(
+  row: GoogleAdsAttributionRow,
+  conversionDateTime?: Date | null,
+): number | null {
+  const capturedAtMs = parseDateMs(row.attribution_captured_at)
+  if (capturedAtMs === null) return null
+
+  const conversionMs = parseDateMs(conversionDateTime) ?? Date.now()
+  const ageMs = conversionMs - capturedAtMs
+  if (ageMs < 0) return null
+
+  return ageMs / MS_PER_DAY
+}
+
+export function isGoogleAdsClickIdentifierExpired(
+  row: GoogleAdsAttributionRow,
+  conversionDateTime?: Date | null,
+): boolean {
+  if (!hasGoogleClickId(row)) return false
+
+  const ageDays = googleAdsClickIdentifierAgeDays(row, conversionDateTime)
+  if (ageDays === null) return false
+
+  return ageDays > googleAdsClickIdentifierMaxAgeDays()
+}
+
 export function isLikelyGoogleAttributed(row: GoogleAdsAttributionRow): boolean {
   const tokens = [
     row.utm_source,
@@ -226,11 +268,15 @@ function statusFromResult(result: {
   if (result.error === "missing_env") return "skipped_missing_env"
   if (result.error === "no_access_token") return "skipped_no_access_token"
   if (result.error === "missing_click_id") return "skipped_missing_click_id"
+  if (result.error === "expired_click_identifier") return "skipped_expired_click_identifier"
   return result.attempted ? "failed" : "failed"
 }
 
 async function recordGoogleAdsConversionAudit({
   amountCents,
+  clickIdentifierAgeDays,
+  clickIdentifierExpired,
+  droppedExpiredClickIdentifier,
   error,
   hasUserData,
   intakeId,
@@ -242,6 +288,9 @@ async function recordGoogleAdsConversionAudit({
   supabase,
 }: {
   amountCents: number | null
+  clickIdentifierAgeDays?: number | null
+  clickIdentifierExpired?: boolean
+  droppedExpiredClickIdentifier?: boolean
   error?: string | null
   hasUserData: boolean
   intakeId: string
@@ -263,14 +312,20 @@ async function recordGoogleAdsConversionAudit({
     action_type: GOOGLE_ADS_CONVERSION_UPLOAD_AUDIT_ACTION,
     amount_cents: amountCents,
     attempted: result.attempted,
+    attribution_captured_at: row.attribution_captured_at || null,
     audit_source_anomaly: auditSourceAnomaly,
     audit_source_anomaly_reason: auditSourceAnomaly ? intakeJoin.intakeJoinCheck : null,
     campaignid: row.campaignid || null,
     adgroupid: row.adgroupid || null,
+    click_identifier_age_days:
+      typeof clickIdentifierAgeDays === "number" ? Math.round(clickIdentifierAgeDays * 10) / 10 : null,
+    click_identifier_expired: Boolean(clickIdentifierExpired),
+    click_identifier_max_age_days: googleAdsClickIdentifierMaxAgeDays(),
     creative: row.creative || null,
     currency: "AUD",
     deployment_id: runtimeFingerprint.deploymentId,
     device: row.device || null,
+    dropped_expired_click_identifier: Boolean(droppedExpiredClickIdentifier),
     env_preflight: {
       google_ads_client_id: envPreflight.hasClientId,
       google_ads_client_secret: envPreflight.hasClientSecret,
@@ -327,6 +382,9 @@ async function recordGoogleAdsConversionAudit({
 
 function trackGoogleAdsPostHogEvent({
   amountCents,
+  clickIdentifierAgeDays,
+  clickIdentifierExpired,
+  droppedExpiredClickIdentifier,
   error,
   hasUserData,
   intakeId,
@@ -337,6 +395,9 @@ function trackGoogleAdsPostHogEvent({
   status,
 }: {
   amountCents: number | null
+  clickIdentifierAgeDays?: number | null
+  clickIdentifierExpired?: boolean
+  droppedExpiredClickIdentifier?: boolean
   error?: string | null
   hasUserData: boolean
   intakeId: string
@@ -363,8 +424,13 @@ function trackGoogleAdsPostHogEvent({
       amount_cents: amountCents,
       attempted: result.attempted,
       campaignid: row.campaignid || null,
+      click_identifier_age_days:
+        typeof clickIdentifierAgeDays === "number" ? Math.round(clickIdentifierAgeDays * 10) / 10 : null,
+      click_identifier_expired: Boolean(clickIdentifierExpired),
+      click_identifier_max_age_days: googleAdsClickIdentifierMaxAgeDays(),
       creative: row.creative || null,
       device: row.device || null,
+      dropped_expired_click_identifier: Boolean(droppedExpiredClickIdentifier),
       error: error || null,
       has_gbraid: Boolean(row.gbraid),
       has_gclid: Boolean(row.gclid),
@@ -451,6 +517,7 @@ async function resolveEnhancedUserData(
 
 export async function runGoogleAdsPostPaymentAttribution({
   amountCents,
+  conversionDateTime,
   intakeId,
   posthogDistinctId,
   requestPath,
@@ -460,6 +527,7 @@ export async function runGoogleAdsPostPaymentAttribution({
   userData,
 }: {
   amountCents?: number | null
+  conversionDateTime?: Date | null
   intakeId: string
   posthogDistinctId: string
   requestPath?: string | null
@@ -517,6 +585,9 @@ export async function runGoogleAdsPostPaymentAttribution({
 
     await recordGoogleAdsConversionAudit({
       amountCents: resolvedAmountCents,
+      clickIdentifierAgeDays: null,
+      clickIdentifierExpired: false,
+      droppedExpiredClickIdentifier: false,
       error: result.error,
       hasUserData: false,
       intakeId,
@@ -530,6 +601,9 @@ export async function runGoogleAdsPostPaymentAttribution({
 
     trackGoogleAdsPostHogEvent({
       amountCents: resolvedAmountCents,
+      clickIdentifierAgeDays: null,
+      clickIdentifierExpired: false,
+      droppedExpiredClickIdentifier: false,
       error: result.error,
       hasUserData: false,
       intakeId,
@@ -556,20 +630,27 @@ export async function runGoogleAdsPostPaymentAttribution({
       hashPhoneForGoogleAds(enhancedUserData?.phone),
   )
   const hasClickId = hasGoogleClickId(row)
+  const clickIdentifierAgeDays = googleAdsClickIdentifierAgeDays(row, conversionDateTime)
+  const clickIdentifierExpired = isGoogleAdsClickIdentifierExpired(row, conversionDateTime)
+  const useClickIdentifier = hasClickId && !clickIdentifierExpired
+  const droppedExpiredClickIdentifier = hasClickId && clickIdentifierExpired
   const likelyGoogleAttributed = isLikelyGoogleAttributed(row)
 
   if (!likelyGoogleAttributed && !hasUserData) return { attempted: false }
 
   let result: GoogleAdsConversionUploadResult
-  if (hasClickId || hasUserData) {
+  if (useClickIdentifier || hasUserData) {
     result = await fireGoogleAdsPurchaseConversion({
       orderId: intakeId,
-      gclid: row.gclid,
-      gbraid: row.gbraid,
-      wbraid: row.wbraid,
+      gclid: useClickIdentifier ? row.gclid : undefined,
+      gbraid: useClickIdentifier ? row.gbraid : undefined,
+      wbraid: useClickIdentifier ? row.wbraid : undefined,
       value: resolvedAmountCents != null ? resolvedAmountCents / 100 : 0,
+      ...(conversionDateTime ? { conversionDateTime } : {}),
       ...(hasUserData ? { userData: enhancedUserData } : {}),
     })
+  } else if (clickIdentifierExpired) {
+    result = { attempted: false, ok: false, error: "expired_click_identifier" }
   } else {
     result = { attempted: false, ok: false, error: "missing_click_id" }
   }
@@ -579,6 +660,9 @@ export async function runGoogleAdsPostPaymentAttribution({
 
   await recordGoogleAdsConversionAudit({
     amountCents: resolvedAmountCents,
+    clickIdentifierAgeDays,
+    clickIdentifierExpired,
+    droppedExpiredClickIdentifier,
     error,
     hasUserData,
     intakeId,
@@ -592,6 +676,9 @@ export async function runGoogleAdsPostPaymentAttribution({
 
   trackGoogleAdsPostHogEvent({
     amountCents: resolvedAmountCents,
+    clickIdentifierAgeDays,
+    clickIdentifierExpired,
+    droppedExpiredClickIdentifier,
     error,
     hasUserData,
     intakeId,
@@ -604,7 +691,11 @@ export async function runGoogleAdsPostPaymentAttribution({
 
   if (status !== "success") {
     Sentry.captureMessage("Google Ads conversion upload did not succeed", {
-      level: status === "skipped_missing_click_id" ? "warning" : "error",
+      level:
+        status === "skipped_missing_click_id" ||
+        status === "skipped_expired_click_identifier"
+          ? "warning"
+          : "error",
       tags: {
         google_ads_conversion_status: status,
         source,
@@ -613,6 +704,7 @@ export async function runGoogleAdsPostPaymentAttribution({
         intakeId,
         attempted: result.attempted,
         error,
+        click_identifier_expired: clickIdentifierExpired,
         has_gclid: Boolean(row.gclid),
         has_gbraid: Boolean(row.gbraid),
         has_wbraid: Boolean(row.wbraid),

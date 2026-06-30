@@ -22,7 +22,10 @@ function uploadStatusRank(status: string | null | undefined): number {
 }
 
 export function isNonRetryableGoogleAdsUploadError(errorCode?: string | null): boolean {
-  return Boolean(errorCode?.includes("INVALID_CONVERSION_ACTION_TYPE"))
+  return Boolean(
+    errorCode?.includes("INVALID_CONVERSION_ACTION_TYPE") ||
+      errorCode?.includes("EXPIRED_EVENT"),
+  )
 }
 
 export function hasGoogleAdsUploadClickId(row: GoogleAdsUploadRetryCandidate): boolean {
@@ -40,6 +43,7 @@ export function shouldRetryGoogleAdsUploadCandidate(
 
   if (options.force) return true
   if (latestStatus === "success") return false
+  if (latestStatus === "skipped_expired_click_identifier") return false
   if (
     latestStatus === "skipped_missing_click_id" &&
     latestMatchingModel === "click_or_user_data" &&

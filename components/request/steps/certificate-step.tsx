@@ -351,7 +351,7 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
   // ── Render ────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-[360px]:space-y-3">
       {!hideIntro && (
         <IntakeStepIntro
           title="What do you need covered?"
@@ -362,7 +362,7 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
       <StepBlockedSummary reasons={blockedReasons} />
 
       {/* Certificate type */}
-      <QuestionCard compact>
+      <QuestionCard compact className="max-[360px]:space-y-2 max-[360px]:p-2.5">
         <FormField
           id="certificate-type"
           label="Certificate type"
@@ -388,10 +388,10 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
           reverted 2026-06-28 (operator): hiding dates behind a dropdown on a
           date-centric product read as friction. Clinical defaults (1 day, today),
           the 3-day cap, forward-date chips, and in-range rendering are unchanged. */}
-      <div id="certificate-dates-detail" className="space-y-4">
+      <div id="certificate-dates-detail" className="space-y-4 max-[360px]:space-y-3">
           {/* How many days? */}
           <div ref={durationRef}>
-            <QuestionCard compact>
+            <QuestionCard compact className="max-[360px]:space-y-2 max-[360px]:p-2.5">
               <FormField
                 id="certificate-duration"
                 label="How many days?"
@@ -418,7 +418,7 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
 
           {/* Starting from? */}
           <div ref={startDateRef}>
-            <QuestionCard compact>
+            <QuestionCard compact className="max-[360px]:space-y-2 max-[360px]:p-2.5">
               <FormField
                 id="certificate-start-date"
                 label="Starting from?"
@@ -426,7 +426,7 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
                 error={touched.startDate ? errors.startDate : undefined}
               >
                 <div
-                  className="mt-2 grid grid-cols-4 gap-1.5 sm:gap-2"
+                  className="mt-2 grid grid-cols-4 gap-1.5 max-[360px]:mt-1.5 sm:gap-2"
                   role="radiogroup"
                   aria-label="Certificate start date"
                 >
