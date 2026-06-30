@@ -3,7 +3,7 @@
 > Canonical advertising rules for InstantMed marketing, Google Ads, landing pages, metadata, schema, and reusable copy.
 > Read this before changing any public acquisition surface.
 
-**Last updated:** 2026-05-10
+**Last updated:** 2026-06-30
 
 > **In an active complaint?** Stop and load the runbook before doing anything else: [`docs/runbooks/comparative-tagline-complaint.md`](runbooks/comparative-tagline-complaint.md). It covers AHPRA notifications, TGA notices, Medical Board letters, Google Ads disapprovals, competitor cease-and-desists, patient complaints about ad copy, and media inquiries.
 
@@ -31,7 +31,7 @@ Paid Google traffic must keep Google Ads auto-tagging on and use an account-leve
 
 Do not put prescription medicine names, diagnoses, or patient-specific terms into manual URL parameters. If a tracking template is required later, it must preserve the landing URL with `{lpurl}`.
 
-Paid conversions are uploaded from the Stripe webhook through `lib/analytics/google-ads-post-payment.ts`. Every Google-looking paid intake must produce a PHI-safe `audit_logs.action = google_ads_conversion_upload` row. `/api/cron/google-ads-conversions` runs hourly to retry failed or missing uploads from Supabase payment truth. Server uploads must use the stored payment time, drop expired click identifiers when enhanced-conversion user data is available, and treat click-window expiry as terminal rather than re-uploading the same stale identifier.
+Paid conversions are uploaded from the Stripe webhook through `lib/analytics/google-ads-post-payment.ts`. Data Manager API is the rollout path when `GOOGLE_DATA_MANAGER_CONVERSIONS_ENABLED=true`; the legacy Google Ads API upload path remains an explicit fallback while reporting/preflight still use Google Ads API where useful. Every Google-looking paid intake must produce a PHI-safe `audit_logs.action = google_ads_conversion_upload` row. Data Manager rows store the returned `request_id` and `upload_identifier`; legacy rows may also store `upload_job_id`. `/api/cron/google-ads-conversions` runs hourly to retry failed or missing uploads from Supabase payment truth. Server uploads must use the stored payment time, drop expired click identifiers when enhanced-conversion user data is available, and treat click-window expiry as terminal rather than re-uploading the same stale identifier.
 
 `GOOGLE_ADS_CONVERSION_ACTION_PURCHASE` must be an offline click-import conversion action with Google Ads type `UPLOAD_CLICKS`. Do not use the browser website purchase/tag conversion action ID here. Keep the offline import action secondary until the bidding and deduplication plan is changed, otherwise browser tag purchases and offline imported purchases can double count.
 

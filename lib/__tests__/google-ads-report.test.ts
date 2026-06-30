@@ -243,6 +243,76 @@ describe("google ads spend report", () => {
     })
   })
 
+  it("reconciles Data Manager upload audit rows by request id without pretending they are Google Ads jobs", async () => {
+    const requestId = "126365e1-16d0-4c81-9de9-f362711e250a"
+    const auditRows = [
+      {
+        created_at: "2026-06-30T03:51:48.645Z",
+        intake_id: "real_intake",
+        metadata: {
+          deployment_id: "dpl_live",
+          request_id: requestId,
+          request_path: "/api/cron/google-ads-conversions",
+          runtime_source: "vercel",
+          source: "cron_backfill",
+          status: "success",
+          upload_api: "data_manager_api",
+          upload_identifier: requestId,
+          upload_job_id: null,
+          vercel_env: "production",
+        },
+      },
+    ]
+    const supabase = {
+      from: (table: string) => {
+        if (table === "audit_logs") {
+          return {
+            select: () => ({
+              eq: () => ({
+                gte: () => ({
+                  order: () => ({
+                    limit: async () => ({ data: auditRows, error: null }),
+                  }),
+                }),
+              }),
+            }),
+          }
+        }
+
+        return {
+          select: () => ({
+            in: async () => ({ data: [{ id: "real_intake" }], error: null }),
+          }),
+        }
+      },
+    }
+
+    const reconciliation = await getGoogleAdsUploadAuditReconciliation({
+      generatedAt: "2026-06-30T04:00:00.000Z",
+      since: "2026-06-30T03:40:00.000Z",
+      supabase: supabase as never,
+      watchJobId: requestId,
+    })
+
+    expect(reconciliation).toMatchObject({
+      byJobId: {
+        missing: 1,
+      },
+      byRequestId: {
+        [requestId]: 1,
+      },
+      byUploadIdentifier: {
+        [requestId]: 1,
+      },
+      watchedJob: {
+        jobId: requestId,
+        success: 1,
+        totalRows: 1,
+        uploadIdentifier: requestId,
+      },
+    })
+  })
+
   it("compares watched diagnostics against production audit reconciliation", () => {
     const diagnostics = summarizeGoogleAdsOfflineUploadDiagnostics([
       {
@@ -262,9 +332,11 @@ describe("google ads spend report", () => {
         byIntakeJoinCheck: {},
         byJobId: { "2265599116648626375": 50 },
         byRequestPath: {},
+        byRequestId: { missing: 50 },
         byRuntimeSource: {},
         bySource: {},
         byStatus: {},
+        byUploadIdentifier: { "2265599116648626375": 50 },
         byVercelEnv: {},
         generatedAt: "2026-06-24T06:16:08.336Z",
         orphanRows: { invalidIntakeJoin: 0, missingIntakeId: 0, samples: [], total: 0 },
@@ -282,6 +354,7 @@ describe("google ads spend report", () => {
           sources: ["cron_backfill"],
           success: 49,
           totalRows: 50,
+          uploadIdentifier: "2265599116648626375",
         },
       },
     })
@@ -350,6 +423,7 @@ describe("google ads spend report", () => {
           },
         },
       ],
+      dataManagerRequestStatus: null,
       diagnostics,
       evidenceComparison: {
         externalSurfaces: {
@@ -403,9 +477,11 @@ describe("google ads spend report", () => {
         byIntakeJoinCheck: {},
         byJobId: { "2265599116648626375": 50 },
         byRequestPath: {},
+        byRequestId: { missing: 50 },
         byRuntimeSource: {},
         bySource: {},
         byStatus: {},
+        byUploadIdentifier: { "2265599116648626375": 50 },
         byVercelEnv: {},
         generatedAt: "2026-06-25T06:00:00.000Z",
         orphanRows: { invalidIntakeJoin: 0, missingIntakeId: 0, samples: [], total: 0 },
@@ -423,6 +499,7 @@ describe("google ads spend report", () => {
           sources: [],
           success: 49,
           totalRows: 50,
+          uploadIdentifier: "2265599116648626375",
         },
       },
     }
@@ -514,6 +591,109 @@ describe("google ads spend report", () => {
         googleProcessingLag: "confirmed",
         payloadShape: "not_indicated",
       },
+    })
+  })
+
+  it("classifies a successful Data Manager request status when Google Ads job diagnostics are absent", () => {
+    const report = {
+      ads: {
+        summary: {
+          totalPurchaseConversions: 1,
+        },
+      },
+      customerConversionTrackingSettings: [
+        {
+          customer: {
+            conversionTrackingSetting: {
+              acceptedCustomerDataTerms: true,
+              enhancedConversionsForLeadsEnabled: true,
+            },
+          },
+        },
+      ],
+      dataManagerRequestStatus: {
+        attempted: true,
+        ok: true,
+        status: "SUCCESS",
+      },
+      diagnostics: {
+        jobSummaries: [],
+        lastUploadDateTime: null,
+        status: null,
+      },
+      preflight: {
+        ok: true,
+      },
+      uploadAuditReconciliation: {
+        watchedJob: {
+          expiredClickThroughWindow: 0,
+          failed: 0,
+          skipped: 0,
+          success: 1,
+          totalRows: 1,
+        },
+      },
+    } as unknown as Omit<GoogleAdsSpendAuditReport, "diagnosticsWatch">
+
+    const watch = buildGoogleAdsDiagnosticsWatchResult({
+      now: new Date("2026-06-30T05:11:06.101Z"),
+      processingWindowHours: 1,
+      report,
+      uploadedAt: "2026-06-30T03:51:48.645Z",
+      watchJobId: "126365e1-16d0-4c81-9de9-f362711e250a",
+    })
+
+    expect(watch).toMatchObject({
+      dataManagerRequestStatus: "SUCCESS",
+      diagnosticsJobSummary: null,
+      status: "diagnostics_accepted",
+    })
+  })
+
+  it("classifies failed Data Manager request status as rejected", () => {
+    const report = {
+      ads: {
+        summary: {
+          totalPurchaseConversions: 0,
+        },
+      },
+      customerConversionTrackingSettings: [],
+      dataManagerRequestStatus: {
+        attempted: true,
+        ok: true,
+        status: "FAILED",
+      },
+      diagnostics: {
+        jobSummaries: [],
+        lastUploadDateTime: null,
+        status: null,
+      },
+      preflight: {
+        ok: true,
+      },
+      uploadAuditReconciliation: {
+        watchedJob: {
+          expiredClickThroughWindow: 0,
+          failed: 0,
+          skipped: 0,
+          success: 1,
+          totalRows: 1,
+        },
+      },
+    } as unknown as Omit<GoogleAdsSpendAuditReport, "diagnosticsWatch">
+
+    const watch = buildGoogleAdsDiagnosticsWatchResult({
+      now: new Date("2026-06-30T05:11:06.101Z"),
+      processingWindowHours: 1,
+      report,
+      uploadedAt: "2026-06-30T03:51:48.645Z",
+      watchJobId: "126365e1-16d0-4c81-9de9-f362711e250a",
+    })
+
+    expect(watch).toMatchObject({
+      dataManagerRequestStatus: "FAILED",
+      diagnosticsJobSummary: null,
+      status: "diagnostics_rejected",
     })
   })
 

@@ -12,6 +12,10 @@ import {
   hashPhoneForGoogleAds,
 } from "@/lib/analytics/google-ads-conversion-api"
 import {
+  fireGoogleAdsDataManagerPurchaseConversion,
+  isGoogleDataManagerConversionsEnabled,
+} from "@/lib/analytics/google-ads-data-manager-api"
+import {
   hasGoogleAdsUploadClickId,
   isNonRetryableGoogleAdsUploadError,
 } from "@/lib/analytics/google-ads-upload-audit"
@@ -81,11 +85,16 @@ type GoogleAdsAuditRuntimeFingerprint = {
 }
 
 type GoogleAdsEnvPreflightBooleans = {
+  dataManagerConversionsEnabled: boolean
   enhancedConversionsDisabled: boolean
   hasClientId: boolean
   hasClientSecret: boolean
   hasConversionActionPurchase: boolean
   hasCustomerId: boolean
+  hasDataManagerClientId: boolean
+  hasDataManagerClientSecret: boolean
+  hasDataManagerQuotaProjectId: boolean
+  hasDataManagerRefreshToken: boolean
   hasDeveloperToken: boolean
   hasRefreshToken: boolean
   serverConversionDisabled: boolean
@@ -126,11 +135,16 @@ function getGoogleAdsAuditRuntimeFingerprint(requestPath?: string | null): Googl
 
 function getGoogleAdsEnvPreflightBooleans(): GoogleAdsEnvPreflightBooleans {
   return {
+    dataManagerConversionsEnabled: isGoogleDataManagerConversionsEnabled(),
     enhancedConversionsDisabled: process.env.GOOGLE_ADS_ENHANCED_CONVERSIONS_DISABLED === "true",
     hasClientId: Boolean(cleanRuntimeValue(process.env.GOOGLE_ADS_CLIENT_ID)),
     hasClientSecret: Boolean(cleanRuntimeValue(process.env.GOOGLE_ADS_CLIENT_SECRET)),
     hasConversionActionPurchase: Boolean(cleanRuntimeValue(process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE)),
     hasCustomerId: Boolean(cleanRuntimeValue(process.env.GOOGLE_ADS_CUSTOMER_ID)),
+    hasDataManagerClientId: Boolean(cleanRuntimeValue(process.env.GOOGLE_DATA_MANAGER_CLIENT_ID)),
+    hasDataManagerClientSecret: Boolean(cleanRuntimeValue(process.env.GOOGLE_DATA_MANAGER_CLIENT_SECRET)),
+    hasDataManagerQuotaProjectId: Boolean(cleanRuntimeValue(process.env.GOOGLE_DATA_MANAGER_QUOTA_PROJECT_ID)),
+    hasDataManagerRefreshToken: Boolean(cleanRuntimeValue(process.env.GOOGLE_DATA_MANAGER_REFRESH_TOKEN)),
     hasDeveloperToken: Boolean(cleanRuntimeValue(process.env.GOOGLE_ADS_DEVELOPER_TOKEN)),
     hasRefreshToken: Boolean(cleanRuntimeValue(process.env.GOOGLE_ADS_REFRESH_TOKEN)),
     serverConversionDisabled: process.env.GOOGLE_ADS_SERVER_CONVERSION_DISABLED === "true",
@@ -304,6 +318,11 @@ async function recordGoogleAdsConversionAudit({
   const runtimeFingerprint = getGoogleAdsAuditRuntimeFingerprint(requestPath)
   const envPreflight = getGoogleAdsEnvPreflightBooleans()
   const intakeJoin = await checkGoogleAdsAuditIntakeJoin(supabase, intakeId)
+  const uploadApi = result.uploadApi || (isGoogleDataManagerConversionsEnabled() ? "data_manager_api" : "google_ads_api")
+  const uploadIdentifier =
+    result.uploadIdentifier ||
+    result.requestId ||
+    (result.jobId != null ? String(result.jobId) : null)
   const auditSourceAnomaly =
     intakeJoin.hasValidIntakeId === false ||
     intakeJoin.hasValidIntakeJoin === false
@@ -327,6 +346,11 @@ async function recordGoogleAdsConversionAudit({
     device: row.device || null,
     dropped_expired_click_identifier: Boolean(droppedExpiredClickIdentifier),
     env_preflight: {
+      google_data_manager_client_id: envPreflight.hasDataManagerClientId,
+      google_data_manager_client_secret: envPreflight.hasDataManagerClientSecret,
+      google_data_manager_conversions_enabled: envPreflight.dataManagerConversionsEnabled,
+      google_data_manager_quota_project_id: envPreflight.hasDataManagerQuotaProjectId,
+      google_data_manager_refresh_token: envPreflight.hasDataManagerRefreshToken,
       google_ads_client_id: envPreflight.hasClientId,
       google_ads_client_secret: envPreflight.hasClientSecret,
       google_ads_conversion_action_purchase: envPreflight.hasConversionActionPurchase,
@@ -351,9 +375,12 @@ async function recordGoogleAdsConversionAudit({
     node_env: runtimeFingerprint.nodeEnv,
     ok: result.ok ?? false,
     order_id: intakeId,
+    request_id: result.requestId ?? null,
     request_path: runtimeFingerprint.requestPath,
     runtime: runtimeFingerprint.runtime,
     runtime_source: runtimeFingerprint.runtimeSource,
+    upload_api: uploadApi,
+    upload_identifier: uploadIdentifier,
     upload_job_id: result.jobId ?? null,
     service_type: row.category || null,
     service_slug: row.subtype || row.category || null,
@@ -442,9 +469,12 @@ function trackGoogleAdsPostHogEvent({
       matchtype: row.matchtype || null,
       network: row.network || null,
       ok: result.ok ?? false,
+      request_id: result.requestId ?? null,
       service_category: row.category || null,
       source,
       status,
+      upload_api: result.uploadApi || (isGoogleDataManagerConversionsEnabled() ? "data_manager_api" : "google_ads_api"),
+      upload_identifier: result.uploadIdentifier || result.requestId || (result.jobId != null ? String(result.jobId) : null),
       upload_job_id: result.jobId ?? null,
     }
 
@@ -546,6 +576,9 @@ export async function runGoogleAdsPostPaymentAttribution({
   status?: GoogleAdsConversionStatus
   error?: string
   jobId?: number | string
+  requestId?: string
+  uploadApi?: GoogleAdsConversionUploadResult["uploadApi"]
+  uploadIdentifier?: string
 }> {
   const resolvedAmountCents =
     typeof amountCents === "number"
@@ -640,7 +673,7 @@ export async function runGoogleAdsPostPaymentAttribution({
 
   let result: GoogleAdsConversionUploadResult
   if (useClickIdentifier || hasUserData) {
-    result = await fireGoogleAdsPurchaseConversion({
+    const uploadInput = {
       orderId: intakeId,
       gclid: useClickIdentifier ? row.gclid : undefined,
       gbraid: useClickIdentifier ? row.gbraid : undefined,
@@ -648,7 +681,10 @@ export async function runGoogleAdsPostPaymentAttribution({
       value: resolvedAmountCents != null ? resolvedAmountCents / 100 : 0,
       ...(conversionDateTime ? { conversionDateTime } : {}),
       ...(hasUserData ? { userData: enhancedUserData } : {}),
-    })
+    }
+    result = isGoogleDataManagerConversionsEnabled()
+      ? await fireGoogleAdsDataManagerPurchaseConversion(uploadInput)
+      : await fireGoogleAdsPurchaseConversion(uploadInput)
   } else if (clickIdentifierExpired) {
     result = { attempted: false, ok: false, error: "expired_click_identifier" }
   } else {
@@ -704,6 +740,8 @@ export async function runGoogleAdsPostPaymentAttribution({
         intakeId,
         attempted: result.attempted,
         error,
+        requestId: result.requestId,
+        uploadApi: result.uploadApi,
         click_identifier_expired: clickIdentifierExpired,
         has_gclid: Boolean(row.gclid),
         has_gbraid: Boolean(row.gbraid),
@@ -729,5 +767,8 @@ export async function runGoogleAdsPostPaymentAttribution({
     status,
     error: result.error,
     jobId: result.jobId,
+    requestId: result.requestId,
+    uploadApi: result.uploadApi,
+    uploadIdentifier: result.uploadIdentifier,
   }
 }

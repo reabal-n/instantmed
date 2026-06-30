@@ -108,6 +108,9 @@ export type GoogleAdsConversionUploadResult = {
   ok?: boolean
   error?: string
   jobId?: number | string
+  requestId?: string
+  uploadApi?: "data_manager_api" | "google_ads_api"
+  uploadIdentifier?: string
 }
 
 export type GoogleAdsConversionActionPreflightIssueCode =
