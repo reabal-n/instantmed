@@ -4,7 +4,6 @@ import {
   Building2,
   Check,
   FileCheck,
-  Scale,
   Shield,
 } from 'lucide-react'
 import type { Metadata } from 'next'
@@ -22,10 +21,10 @@ const baseUrl = 'https://instantmed.com.au'
 
 export const metadata: Metadata = {
   title: "Online Medical Certificate Evidence | InstantMed",
-  description: "Learn how Australian employers assess online medical certificates from AHPRA-registered doctors, and what makes a certificate useful as workplace evidence.",
+  description: "Understand how workplaces review doctor-issued online medical certificates, what details are included, and when a standard certificate may not be enough.",
   openGraph: {
     title: "Online Medical Certificate Evidence | InstantMed",
-    description: "How AHPRA-registered telehealth certificates can support workplace evidence requirements.",
+    description: "How doctor-issued online certificates can support workplace evidence processes.",
     type: 'website',
     url: `${baseUrl}/medical-certificate/employer-acceptance`,
   },
@@ -36,24 +35,24 @@ export const metadata: Metadata = {
 
 const faqs = [
   {
-    question: "Can online medical certificates be used as workplace evidence?",
-    answer: "Yes. Medical certificates issued by AHPRA-registered doctors via telehealth can support workplace evidence requirements. Employer policies may vary.",
+    question: "How do workplaces usually review online certificate evidence?",
+    answer: "Workplaces commonly check who issued the document, the dates covered, whether it identifies the employee, and whether it fits the workplace evidence policy. Policies and circumstances can vary.",
   },
   {
     question: "What should workplace certificate evidence include?",
-    answer: "Routine workplace evidence is usually strongest when it includes the doctor's name, AHPRA registration or provider number, stated absence dates, and the doctor's signature. InstantMed certificates include those standard details.",
+    answer: "Routine evidence is strongest when it includes the patient's name, dates covered, issue date, doctor's name and signature, AHPRA registration or provider number, and practice verification details. InstantMed certificates include those standard document details.",
   },
   {
-    question: "Can my employer refuse an online medical certificate?",
-    answer: "Under Fair Work guidance, employers can ask for evidence that would satisfy a reasonable person. A certificate from an AHPRA-registered doctor is commonly used for this purpose, but specific workplace policies may vary.",
+    question: "Does an online certificate decide whether I can work from home?",
+    answer: "No. A standard certificate records an absence assessment. It does not set remote-work duties, modified duties, or workplace arrangements. Those decisions sit with your workplace policy and manager or HR process.",
   },
   {
-    question: "What if my employer questions the certificate?",
-    answer: "You can point out that the certificate includes the doctor's AHPRA registration and provider number, which can be verified. Every clinician on our platform is registered with the Australian Health Practitioner Regulation Agency.",
+    question: "What if my workplace asks for more information?",
+    answer: "Ask what specific document or detail is required. Some situations need a separate form, in-person review, return-to-work clearance, capacity assessment, insurer paperwork, or formal evidence rather than a routine absence certificate.",
   },
   {
-    question: "Is the doctor's provider number on the certificate?",
-    answer: "Yes. Every certificate includes the doctor's name, signature, AHPRA registration, and Medicare provider number. This allows employers to verify the certificate if needed.",
+    question: "How can a workplace verify an InstantMed certificate?",
+    answer: "The certificate includes doctor and practice details. Workplaces can use InstantMed's verification page or contact details to check the document without seeing diagnosis information.",
   },
 ]
 
@@ -90,8 +89,8 @@ export default function EmployerAcceptancePage() {
                 How workplace certificate evidence works
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-                Online medical certificates from AHPRA-registered doctors can be used as
-                evidence for sick or carer&apos;s leave. Employer policies may vary.
+                Online medical certificates from AHPRA-registered doctors can support
+                sick or carer&apos;s leave evidence processes. Workplace policies may vary.
               </p>
             </div>
           </section>
@@ -103,19 +102,21 @@ export default function EmployerAcceptancePage() {
                 Evidence, not promises
               </p>
               <p className="text-sm text-muted-foreground">
-                Employers can ask for evidence that would satisfy a reasonable person.
-                InstantMed certificates include the doctor details, dates, signature, and
-                verification information an employer can review.
+                A certificate is one part of a workplace evidence process. InstantMed
+                certificates include doctor details, dates, signature, and verification
+                information a workplace can review, but they do not override workplace
+                policy or replace specialist forms.
               </p>
             </div>
           </section>
 
-          {/* What Makes It Valid */}
+          {/* What Makes It Useful */}
           <section className="px-4 py-16 bg-muted/30 dark:bg-card/40">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-semibold text-center mb-4">What makes certificate evidence useful</h2>
               <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
-                InstantMed certificates include the details workplaces commonly review.
+                Strong workplace evidence is clear about who issued it, who it relates to,
+                the dates covered, and how the document can be checked.
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -125,7 +126,7 @@ export default function EmployerAcceptancePage() {
                     <div>
                       <h3 className="font-semibold mb-1">AHPRA-registered doctor</h3>
                       <p className="text-sm text-muted-foreground">
-                        Every certificate is issued by a doctor registered with the Australian Health Practitioner Regulation Agency. Their registration number is included on the certificate.
+                        The reviewing doctor is registered with the Australian Health Practitioner Regulation Agency, and the certificate includes doctor-identifying details.
                       </p>
                     </div>
                   </div>
@@ -135,9 +136,9 @@ export default function EmployerAcceptancePage() {
                   <div className="flex items-start gap-3">
                     <FileCheck className={iconClass} />
                     <div>
-                      <h3 className="font-semibold mb-1">Medicare provider number</h3>
+                      <h3 className="font-semibold mb-1">Dates and issue details</h3>
                       <p className="text-sm text-muted-foreground">
-                        The doctor&apos;s Medicare provider number is printed on every certificate. This is a unique identifier that can be verified.
+                        The document states the patient&apos;s name, the certificate dates, and the date the certificate was issued.
                       </p>
                     </div>
                   </div>
@@ -147,9 +148,9 @@ export default function EmployerAcceptancePage() {
                   <div className="flex items-start gap-3">
                     <Building2 className={iconClass} />
                     <div>
-                      <h3 className="font-semibold mb-1">Australian-based practice</h3>
+                      <h3 className="font-semibold mb-1">Practice verification</h3>
                       <p className="text-sm text-muted-foreground">
-                        Our operations are based in Australia, with certificate verification handled through InstantMed records.
+                        Workplace teams can use the certificate reference, practice contact details, and InstantMed verification page to check a document.
                       </p>
                     </div>
                   </div>
@@ -159,9 +160,9 @@ export default function EmployerAcceptancePage() {
                   <div className="flex items-start gap-3">
                     <Shield className={iconClass} />
                     <div>
-                      <h3 className="font-semibold mb-1">Doctor&apos;s Signature</h3>
+                      <h3 className="font-semibold mb-1">Diagnosis privacy</h3>
                       <p className="text-sm text-muted-foreground">
-                        Each certificate includes the doctor&apos;s digital signature, name, and the date of issue.
+                        Routine absence certificates do not need to disclose a diagnosis for a workplace to review the document.
                       </p>
                     </div>
                   </div>
@@ -170,32 +171,154 @@ export default function EmployerAcceptancePage() {
             </div>
           </section>
 
-          {/* Fair Work Context */}
+          {/* Doctor Review */}
           <section className="px-4 py-16">
-            <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-semibold text-center mb-4">What the Fair Work Act says</h2>
-              <p className="text-center text-muted-foreground mb-10">
-                Fair Work guidance focuses on evidence that would satisfy a reasonable person.
+            <div className="mx-auto max-w-4xl">
+              <h2 className="text-2xl font-semibold text-center mb-4">What the doctor reviews first</h2>
+              <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
+                The certificate is only created after a doctor reviews whether the request
+                is clinically suitable for a short absence document.
               </p>
 
-              <div className="rounded-xl border border-border/50 bg-white p-6 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none">
-                <div className="flex items-start gap-4">
-                  <Scale className="h-6 w-6 text-primary shrink-0 mt-1" />
-                  <div className="space-y-4">
-                    <p className="text-sm">
-                      Under the <strong>Fair Work Act 2009</strong>, employees are entitled to paid personal/carer&apos;s leave.
-                      Employers may request evidence of illness. Fair Work guidance refers to evidence that would
-                      satisfy a reasonable person, such as a medical certificate from a registered health practitioner.
-                    </p>
-                    <p className="text-sm">
-                      A certificate from an AHPRA-registered doctor can be used as evidence for this purpose.
-                      The <strong>Medical Board of Australia</strong> recognises telehealth as a mode of healthcare delivery
-                      when clinically appropriate, while also making clear that not every request is suitable online.
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Note: This is general information, not legal advice. Specific workplace policies may vary.
-                    </p>
-                  </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className={cardClass}>
+                  <FileCheck className={iconClass} />
+                  <h3 className="mt-3 font-semibold">Reason for absence</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    The doctor reviews the reported illness, injury, or caring need, when it started, and which dates need evidence.
+                  </p>
+                </div>
+
+                <div className={cardClass}>
+                  <Shield className={iconClass} />
+                  <h3 className="mt-3 font-semibold">Online suitability</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    The request is checked for red flags, urgent symptoms, or circumstances that need in-person care instead.
+                  </p>
+                </div>
+
+                <div className={cardClass}>
+                  <BadgeCheck className={iconClass} />
+                  <h3 className="mt-3 font-semibold">Document scope</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    The doctor keeps the certificate to ordinary absence evidence, not modified duties, workplace safety clearance, or administrative paperwork.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Workplace Review */}
+          <section className="px-4 py-16">
+            <div className="mx-auto max-w-4xl">
+              <h2 className="text-2xl font-semibold text-center mb-4">How a workplace may review it</h2>
+              <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
+                HR, payroll, or a manager may check the document against the relevant
+                absence process. This page is general information, not legal advice.
+              </p>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className={cardClass}>
+                  <h3 className="font-semibold mb-2">Policy fit</h3>
+                  <p className="text-sm text-muted-foreground">
+                    The workplace may check the notice period, leave type, employee name, and certificate dates against its policy.
+                  </p>
+                </div>
+
+                <div className={cardClass}>
+                  <h3 className="font-semibold mb-2">Document checks</h3>
+                  <p className="text-sm text-muted-foreground">
+                    The workplace can look for doctor-identifying details, practice contact details, issue date, and a certificate reference.
+                  </p>
+                </div>
+
+                <div className={cardClass}>
+                  <h3 className="font-semibold mb-2">Context matters</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Longer absences, repeated absences, workplace injury processes, or safety-sensitive duties may need a different document.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Limits */}
+          <section className="px-4 py-16 bg-muted/30 dark:bg-card/40">
+            <div className="mx-auto max-w-4xl">
+              <h2 className="text-2xl font-semibold text-center mb-4">When a standard certificate is not enough</h2>
+              <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
+                Some workplace situations need a separate process because the question is
+                broader than short sick or carer&apos;s leave evidence.
+              </p>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className={cardClass}>
+                  <h3 className="font-semibold mb-2">Return-to-work or capacity questions</h3>
+                  <p className="text-sm text-muted-foreground">
+                    A short absence certificate does not assess whether someone can safely resume duties, perform manual tasks, or work with restrictions.
+                  </p>
+                </div>
+
+                <div className={cardClass}>
+                  <h3 className="font-semibold mb-2">Workplace-specific forms</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Some employers, education providers, insurers, or administrative processes use their own form with fields a routine certificate does not cover.
+                  </p>
+                </div>
+
+                <div className={cardClass}>
+                  <h3 className="font-semibold mb-2">Work-from-home arrangements</h3>
+                  <p className="text-sm text-muted-foreground">
+                    A certificate does not decide whether remote work is available, expected, or suitable for your role. See the{' '}
+                    <Link href="/medical-certificate/work-from-home" className={linkClass}>
+                      work-from-home certificate guide
+                    </Link>
+                    {' '}for that narrower scenario.
+                  </p>
+                </div>
+
+                <div className={cardClass}>
+                  <h3 className="font-semibold mb-2">More detailed clinical assessment</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Severe symptoms, injury after an accident, ongoing symptoms, or a request for detailed restrictions may need in-person review.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* If Questions Arise */}
+          <section className="px-4 py-16">
+            <div className="mx-auto max-w-3xl">
+              <h2 className="text-2xl font-semibold text-center mb-4">If your workplace asks questions</h2>
+              <p className="text-center text-muted-foreground mb-10">
+                Keep the response factual and use the document details already provided.
+              </p>
+
+              <div className="space-y-4">
+                <div className={cardClass}>
+                  <h3 className="font-semibold mb-2">Use the verification path</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Direct the workplace to the certificate reference, doctor details, and{' '}
+                    <Link href="/verify" className={linkClass}>
+                      InstantMed verification page
+                    </Link>
+                    {' '}rather than sharing extra health information.
+                  </p>
+                </div>
+
+                <div className={cardClass}>
+                  <h3 className="font-semibold mb-2">Ask what is missing</h3>
+                  <p className="text-sm text-muted-foreground">
+                    If a workplace needs something else, ask for the specific policy, form, or detail so you know whether a standard certificate is the right document.
+                  </p>
+                </div>
+
+                <div className={cardClass}>
+                  <h3 className="font-semibold mb-2">Do not alter the certificate</h3>
+                  <p className="text-sm text-muted-foreground">
+                    The doctor-issued document should remain unchanged. If details appear incorrect, contact support so the record can be reviewed properly.
+                  </p>
                 </div>
               </div>
             </div>
@@ -216,7 +339,7 @@ export default function EmployerAcceptancePage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <Check className={checkClass} />
-                  <span className="text-sm">Dates the patient was unfit for work</span>
+                  <span className="text-sm">Dates covered by the certificate</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Check className={checkClass} />
@@ -224,11 +347,11 @@ export default function EmployerAcceptancePage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <Check className={checkClass} />
-                  <span className="text-sm">AHPRA registration number</span>
+                  <span className="text-sm">Doctor-identifying details</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Check className={checkClass} />
-                  <span className="text-sm">Medicare provider number</span>
+                  <span className="text-sm">Certificate reference and verification details</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Check className={checkClass} />
@@ -237,42 +360,6 @@ export default function EmployerAcceptancePage() {
                 <div className="flex items-center gap-3">
                   <Check className={checkClass} />
                   <span className="text-sm">Practice contact details</span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* What To Say */}
-          <section className="px-4 py-16">
-            <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-semibold text-center mb-4">If your employer questions it</h2>
-              <p className="text-center text-muted-foreground mb-10">
-                If questions arise, the certificate gives your workplace clear information to review.
-              </p>
-
-              <div className="space-y-4">
-                <div className={cardClass}>
-                  <h3 className="font-semibold mb-2">Point to the doctor&apos;s credentials</h3>
-                  <p className="text-sm text-muted-foreground">
-                    The certificate includes the doctor&apos;s AHPRA registration number. Anyone can verify this is a real,
-                    registered doctor by searching the AHPRA register at ahpra.gov.au.
-                  </p>
-                </div>
-
-                <div className={cardClass}>
-                  <h3 className="font-semibold mb-2">Telehealth is recognised healthcare</h3>
-                  <p className="text-sm text-muted-foreground">
-                    The Medical Board of Australia and Medicare both recognise telehealth consultations.
-                    The important point for workplaces is that the certificate is issued by an AHPRA-registered doctor.
-                  </p>
-                </div>
-
-                <div className={cardClass}>
-                  <h3 className="font-semibold mb-2">Check workplace policy timing</h3>
-                  <p className="text-sm text-muted-foreground">
-                    If your workplace has specific evidence requirements, check the relevant policy,
-                    award, enterprise agreement, or HR guidance.
-                  </p>
                 </div>
               </div>
             </div>
@@ -299,7 +386,7 @@ export default function EmployerAcceptancePage() {
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-semibold mb-4">Ready to get your certificate?</h2>
               <p className="text-muted-foreground mb-8">
-                Complete the questionnaire in about 2 minutes. A doctor reviews your request.
+                Complete the secure questionnaire. A doctor reviews your request.
               </p>
               <Button
                 asChild
@@ -323,12 +410,8 @@ export default function EmployerAcceptancePage() {
                   Certificates for work
                 </Link>
                 {' • '}
-                <Link href="/medical-certificate/study" className={linkClass}>
-                  Certificates for study
-                </Link>
-                {' • '}
-                <Link href="/medical-certificate" className={linkClass}>
-                  All certificate types
+                <Link href="/verify" className={linkClass}>
+                  Verify a certificate
                 </Link>
                 {' • '}
                 <Link href="/resources/medical-certificate-employer-policy" className={linkClass}>
