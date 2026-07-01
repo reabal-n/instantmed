@@ -27,6 +27,7 @@ import {
   type RenewalMatch,
 } from "@/lib/doctor/renewal-format"
 import { computeLedgerDailyAggregate } from "@/lib/operator/cases/daily-aggregate"
+import { getPaymentRecoveryIndicator } from "@/lib/operator/cases/payment-recovery-indicator"
 import {
   type CaseRowData,
   DEFAULT_SORT,
@@ -142,6 +143,7 @@ function getRefundIndicator(intake: LedgerRow): RefundIndicator | null {
 function mapToCaseRow(intake: LedgerRow): CaseRowData {
   const patient = getPatient(intake)
   const service = getServiceDisplay(intake)
+  const paymentStatus = (intake as { payment_status?: string | null }).payment_status ?? null
   const location = [patient?.suburb, patient?.state]
     .filter(Boolean)
     .join(", ")
@@ -161,10 +163,14 @@ function mapToCaseRow(intake: LedgerRow): CaseRowData {
     isPriority: Boolean((intake as { is_priority?: boolean }).is_priority),
     isStale: isStale(intake),
     refundIndicator: getRefundIndicator(intake),
+    paymentRecoveryIndicator: getPaymentRecoveryIndicator({
+      status: intake.status,
+      paymentStatus,
+    }),
     isRenewal: Boolean((intake as { is_renewal?: boolean }).is_renewal),
     renewalMatchTitle: renewalMatch ? formatRenewalMatchTitle(renewalMatch) : null,
     intakeFlags: parseIntakeFlags((intake as { risk_flags?: unknown }).risk_flags),
-    paymentStatus: (intake as { payment_status?: string | null }).payment_status ?? null,
+    paymentStatus,
     amountCents: (intake as { amount_cents?: number | null }).amount_cents ?? null,
     refundAmountCents: (intake as { refund_amount_cents?: number | null }).refund_amount_cents ?? null,
   }

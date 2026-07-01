@@ -300,7 +300,7 @@ export function FinanceDashboardClient({ revenue }: FinanceDashboardClientProps)
               />
               <MetricTile
                 icon={<AlertCircle className="h-4 w-4" />}
-                label="Failed"
+                label="Failed checkout"
                 value={revenue.paymentFriction.checkoutFailedCount}
               />
               <MetricTile

@@ -16,6 +16,8 @@ export const ADMIN_INTAKE_STATUS_FILTER_OPTIONS = [
   { value: "paid" },
   { value: "in_review" },
   { value: "pending_info" },
+  { value: "pending_payment" },
+  { value: "checkout_failed" },
   { value: "awaiting_script" },
   { value: "approved" },
   { value: "declined" },

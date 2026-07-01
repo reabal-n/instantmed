@@ -512,6 +512,18 @@ describe("admin navigation contract", () => {
     expect(financeClientSource).not.toContain("?tab=revenue")
   })
 
+  it("keeps payment pressure labels explicit about checkout recovery", () => {
+    const paymentPressureBlock = navSourceBlock(
+      financeClientSource,
+      "Payment pressure",
+      "Service mix",
+    )
+
+    expect(paymentPressureBlock).toContain('label="Failed checkout"')
+    expect(paymentPressureBlock).toContain("Failed checkout</Link>")
+    expect(paymentPressureBlock).not.toContain('label="Failed"')
+  })
+
   it("keeps audit history as an ops-owned evidence surface, not a dashboard mode", () => {
     expect(auditClientSource).toContain("OperatorPageHeader")
     expect(auditClientSource).toContain("title=\"Audit history\"")

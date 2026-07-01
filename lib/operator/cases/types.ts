@@ -1,5 +1,6 @@
 import type { IntakeFlag } from "@/lib/clinical/intake-flags"
 import type { IntakeStatus } from "@/lib/data/status"
+import type { PaymentRecoveryIndicator } from "@/lib/operator/cases/payment-recovery-indicator"
 
 /**
  * Compact refund indicator shown alongside the status dot when an intake has
@@ -32,6 +33,7 @@ export type CaseRowData = {
   isPriority?: boolean
   isStale?: boolean
   refundIndicator?: RefundIndicator | null
+  paymentRecoveryIndicator?: PaymentRecoveryIndicator | null
   /**
    * True when the intake is a prescription request for a medicine the patient
    * already has on file (status active or completed). Informational chip only;

@@ -1,8 +1,9 @@
-import { AlertTriangle, Bolt, RotateCcw, RotateCw } from "lucide-react"
+import { AlertTriangle, Bolt, CreditCard, RotateCcw, RotateCw } from "lucide-react"
 import Link from "next/link"
 
 import { IntakeFlagsBadge } from "@/components/doctor/intake-flags-panel"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import type { PaymentRecoveryIndicator } from "@/lib/operator/cases/payment-recovery-indicator"
 import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import {
   type CaseRowData,
@@ -37,6 +38,27 @@ const REFUND_PRESENTATION: Record<
     label: "Refunding",
     className: "bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300",
     title: "Refund in flight",
+  },
+}
+
+const PAYMENT_RECOVERY_PRESENTATION: Record<
+  PaymentRecoveryIndicator,
+  { label: string; className: string; title: string }
+> = {
+  payment_pending: {
+    label: "Awaiting pay",
+    className: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300",
+    title: "Unpaid request: doctor review starts only after checkout completes",
+  },
+  payment_retry: {
+    label: "Retry payment",
+    className: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300",
+    title: "Unpaid checkout failed: patient can retry secure checkout",
+  },
+  paid_cancelled: {
+    label: "Paid + cancelled",
+    className: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300",
+    title: "Charged but cancelled: verify refund or delivery before closing",
   },
 }
 
@@ -174,6 +196,26 @@ export function CaseRow({
             <Bolt className="h-3 w-3" aria-hidden="true" />
             Priority
           </span>
+        ) : null}
+        {row.paymentRecoveryIndicator ? (
+          (() => {
+            const presentation = PAYMENT_RECOVERY_PRESENTATION[row.paymentRecoveryIndicator]
+            const Icon = row.paymentRecoveryIndicator === "paid_cancelled" ? AlertTriangle : CreditCard
+
+            return (
+              <span
+                className={cn(
+                  "inline-flex h-5 items-center gap-1 rounded-full px-1.5 text-[10px] font-medium",
+                  presentation.className,
+                )}
+                aria-label={presentation.title}
+                title={presentation.title}
+              >
+                <Icon className="h-3 w-3" aria-hidden="true" />
+                {presentation.label}
+              </span>
+            )
+          })()
         ) : null}
         {row.refundIndicator ? (
           <span

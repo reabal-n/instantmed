@@ -79,6 +79,40 @@ describe("CaseRow", () => {
     expect(html).not.toContain("Renewal")
   })
 
+  it("shows retryable failed checkout as payment recovery work", () => {
+    const html = render(
+      <CaseRow
+        row={{
+          ...baseRow,
+          status: "checkout_failed",
+          paymentRecoveryIndicator: "payment_retry",
+        }}
+        density="comfortable"
+      />,
+    )
+
+    expect(html).toContain("Retry payment")
+    expect(html).toContain("Unpaid checkout failed")
+  })
+
+  it("shows paid cancelled rows as reconciliation work instead of retry work", () => {
+    const html = render(
+      <CaseRow
+        row={{
+          ...baseRow,
+          status: "cancelled",
+          paymentStatus: "paid",
+          paymentRecoveryIndicator: "paid_cancelled",
+        }}
+        density="comfortable"
+      />,
+    )
+
+    expect(html).toContain("Paid + cancelled")
+    expect(html).toContain("Charged but cancelled")
+    expect(html).not.toContain("Retry payment")
+  })
+
   it("applies compact row height", () => {
     const html = render(<CaseRow row={baseRow} density="compact" />)
     expect(html).toContain("h-10")

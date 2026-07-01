@@ -45,13 +45,18 @@ describe("admin work lanes", () => {
       "paid",
       "in_review",
       "pending_info",
+      "pending_payment",
+      "checkout_failed",
       "awaiting_script",
       "approved",
       "declined",
       "completed",
+      "cancelled",
     ])
 
     expect(matchesAdminStatusFilter("pending_info", "pending_info")).toBe(true)
+    expect(matchesAdminStatusFilter("checkout_failed", "checkout_failed")).toBe(true)
+    expect(matchesAdminStatusFilter("pending_payment", "pending_payment")).toBe(true)
     expect(matchesAdminStatusFilter("paid", "all")).toBe(true)
     expect(matchesAdminStatusFilter("paid", "completed")).toBe(false)
   })
