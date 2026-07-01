@@ -12,6 +12,7 @@ import { toError } from "@/lib/errors"
 import {
   buildGoogleAdsPurchaseImportAlert,
   buildGoogleAdsUploadAuditSourceAnomalyAlert,
+  buildGoogleAdsUploadPartialFailureAlert,
   buildGoogleAdsUploadStreamStalledAlert,
 } from "@/lib/monitoring/google-ads-purchase-import-health"
 import {
@@ -223,6 +224,15 @@ export async function GET(request: NextRequest) {
           metric: uploadStreamStalledAlert.metric,
           severity: uploadStreamStalledAlert.severity,
           metadata: uploadStreamStalledAlert.metadata,
+        })
+      }
+      const uploadPartialFailureAlert = buildGoogleAdsUploadPartialFailureAlert(googleAdsUploadStreamHealth)
+      if (uploadPartialFailureAlert) {
+        alerts.push(uploadPartialFailureAlert)
+        trackBusinessMetric({
+          metric: uploadPartialFailureAlert.metric,
+          severity: uploadPartialFailureAlert.severity,
+          metadata: uploadPartialFailureAlert.metadata,
         })
       }
     } catch (error) {

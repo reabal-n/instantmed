@@ -133,6 +133,15 @@ function getGoogleAdsAuditRuntimeFingerprint(requestPath?: string | null): Googl
   }
 }
 
+function shouldWriteGoogleAdsConversionAudit(
+  runtimeFingerprint: GoogleAdsAuditRuntimeFingerprint,
+): boolean {
+  return !(
+    runtimeFingerprint.runtimeSource === "node" &&
+    runtimeFingerprint.nodeEnv === "development"
+  )
+}
+
 function getGoogleAdsEnvPreflightBooleans(): GoogleAdsEnvPreflightBooleans {
   return {
     dataManagerConversionsEnabled: isGoogleDataManagerConversionsEnabled(),
@@ -316,6 +325,17 @@ async function recordGoogleAdsConversionAudit({
   supabase: SupabaseClient
 }) {
   const runtimeFingerprint = getGoogleAdsAuditRuntimeFingerprint(requestPath)
+  if (!shouldWriteGoogleAdsConversionAudit(runtimeFingerprint)) {
+    log.info("Skipping Google Ads conversion audit row from local development runtime", {
+      intakeId,
+      nodeEnv: runtimeFingerprint.nodeEnv,
+      requestPath: runtimeFingerprint.requestPath,
+      runtimeSource: runtimeFingerprint.runtimeSource,
+      status,
+    })
+    return
+  }
+
   const envPreflight = getGoogleAdsEnvPreflightBooleans()
   const intakeJoin = await checkGoogleAdsAuditIntakeJoin(supabase, intakeId)
   const uploadApi = result.uploadApi || (isGoogleDataManagerConversionsEnabled() ? "data_manager_api" : "google_ads_api")

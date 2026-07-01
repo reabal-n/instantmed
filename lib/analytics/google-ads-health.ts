@@ -357,7 +357,10 @@ export async function getGoogleAdsUploadStreamHealth(
 
   const empty: GoogleAdsUploadStreamHealth = {
     dataManagerSuccesses: 0,
+    failedUploads: 0,
     generatedAt,
+    latestFailedAt: null,
+    latestFailureCode: null,
     lastSuccessfulUploadAt: null,
     legacySuccesses: 0,
     lookbackDays,
@@ -398,25 +401,43 @@ export async function getGoogleAdsUploadStreamHealth(
   let successfulUploads = 0
   let dataManagerSuccesses = 0
   let legacySuccesses = 0
+  let failedUploads = 0
+  let latestFailedAt: string | null = null
+  let latestFailureCode: string | null = null
+  let latestFailureMs = -1
   let lastSuccessfulUploadAt: string | null = null
   let lastSuccessMs = -1
 
   for (const audit of best.values()) {
-    if (audit.metadata?.status !== "success") continue
-    successfulUploads += 1
-    const uploadApi = (audit.metadata as { upload_api?: string | null } | null)?.upload_api
-    if (uploadApi === "data_manager_api") dataManagerSuccesses += 1
-    else legacySuccesses += 1
+    if (audit.metadata?.status === "success") {
+      successfulUploads += 1
+      const uploadApi = (audit.metadata as { upload_api?: string | null } | null)?.upload_api
+      if (uploadApi === "data_manager_api") dataManagerSuccesses += 1
+      else legacySuccesses += 1
+      const at = auditTimestampMs(audit)
+      if (at > lastSuccessMs) {
+        lastSuccessMs = at
+        lastSuccessfulUploadAt = audit.created_at ?? null
+      }
+      continue
+    }
+
+    if (audit.metadata?.status !== "failed") continue
+    failedUploads += 1
     const at = auditTimestampMs(audit)
-    if (at > lastSuccessMs) {
-      lastSuccessMs = at
-      lastSuccessfulUploadAt = audit.created_at ?? null
+    if (at > latestFailureMs) {
+      latestFailureMs = at
+      latestFailedAt = audit.created_at ?? null
+      latestFailureCode = audit.metadata?.error_code || null
     }
   }
 
   return {
     dataManagerSuccesses,
+    failedUploads,
     generatedAt,
+    latestFailedAt,
+    latestFailureCode,
     lastSuccessfulUploadAt,
     legacySuccesses,
     lookbackDays,

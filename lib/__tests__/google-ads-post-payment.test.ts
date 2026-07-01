@@ -131,6 +131,51 @@ describe("Google Ads post-payment attribution", () => {
     })
   })
 
+  it("does not insert Google Ads upload audit rows from local development runs", async () => {
+    const originalVercel = process.env.VERCEL
+    vi.stubEnv("NODE_ENV", "development")
+    delete process.env.VERCEL
+    mocks.fireGoogleAdsPurchaseConversion.mockResolvedValue({
+      attempted: true,
+      ok: true,
+      jobId: "local-dev-job",
+    })
+
+    try {
+      const { inserted, supabase } = googleAdsSupabaseMock()
+
+      const result = await runGoogleAdsPostPaymentAttribution({
+        amountCents: 2495,
+        intakeId: "intake_local_dev",
+        posthogDistinctId: "patient_local_dev",
+        row: {
+          amount_cents: 2495,
+          category: "medical_certificate",
+          campaignid: "123",
+          gclid: "gclid-value",
+        },
+        source: "checkout_session_completed",
+        supabase: supabase as never,
+      })
+
+      expect(result).toMatchObject({ attempted: true, ok: true, status: "success" })
+      expect(inserted).toHaveLength(0)
+      expect(mocks.capture).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: "google_ads_server_conversion_attempt",
+          properties: expect.objectContaining({
+            intake_id: "intake_local_dev",
+            status: "success",
+          }),
+        }),
+      )
+    } finally {
+      vi.unstubAllEnvs()
+      if (originalVercel === undefined) delete process.env.VERCEL
+      else process.env.VERCEL = originalVercel
+    }
+  })
+
   it("does not count failed upload attempts as server conversions in PostHog", async () => {
     mocks.fireGoogleAdsPurchaseConversion.mockResolvedValue({
       attempted: true,
