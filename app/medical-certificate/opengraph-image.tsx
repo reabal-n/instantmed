@@ -117,7 +117,6 @@ export default async function Image() {
             gap: '8px',
             fontSize: '24px',
             color: '#64748B',
-            display: 'flex',
           }}
         >
           From <span style={{ fontWeight: 'bold', color: '#1E293B', fontSize: '28px' }}>{PRICING_DISPLAY.MED_CERT}</span>
