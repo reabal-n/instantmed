@@ -18,4 +18,16 @@ describe("E2E env loader contract", () => {
     expect(read("e2e/global-teardown.ts")).toContain("loadE2EEnv(path.join(__dirname, \"..\"))")
     expect(read("e2e/helpers/db.ts")).toContain("loadE2EEnv(path.join(__dirname, \"..\", \"..\"))")
   })
+
+  it("starts Playwright web servers through the local Next binary, not pnpm", () => {
+    const config = read("playwright.config.ts")
+    const intakeConfig = read("playwright.intake.config.ts")
+
+    for (const source of [config, intakeConfig]) {
+      expect(source).toContain("process.execPath")
+      expect(source).toContain("node_modules/next/dist/bin/next")
+      expect(source).toContain("${NODE_EXECUTABLE} ${NEXT_DEV_BIN} dev --port ${E2E_PORT}")
+      expect(source).not.toContain("pnpm dev --port")
+    }
+  })
 })

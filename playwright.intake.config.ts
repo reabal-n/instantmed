@@ -7,6 +7,8 @@ import { defineConfig, devices } from "@playwright/test"
 
 const E2E_PORT = 3001
 const E2E_BASE_URL = `http://localhost:${E2E_PORT}`
+const NODE_EXECUTABLE = JSON.stringify(process.execPath)
+const NEXT_DEV_BIN = "node_modules/next/dist/bin/next"
 
 export default defineConfig({
   testDir: "./e2e",
@@ -36,7 +38,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: `pnpm dev --port ${E2E_PORT}`,
+    command: `env -u NO_COLOR ${NODE_EXECUTABLE} ${NEXT_DEV_BIN} dev --port ${E2E_PORT}`,
     url: E2E_BASE_URL,
     reuseExistingServer: true, // Reuse if already running
     timeout: 180 * 1000,

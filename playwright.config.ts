@@ -32,6 +32,8 @@ const requestedLocalWorkers = Number(process.env.PLAYWRIGHT_WORKERS || 2)
 const LOCAL_WORKERS = Number.isInteger(requestedLocalWorkers) && requestedLocalWorkers > 0
   ? requestedLocalWorkers
   : 2
+const NODE_EXECUTABLE = JSON.stringify(process.execPath)
+const NEXT_DEV_BIN = "node_modules/next/dist/bin/next"
 process.env.PLAYWRIGHT_BASE_URL = E2E_BASE_URL
 
 export default defineConfig({
@@ -109,7 +111,7 @@ export default defineConfig({
   // Run local dev server before starting the tests
   // Fixed port 3001 ensures no conflict with existing dev server on 3000
   webServer: {
-    command: `env -u NO_COLOR pnpm dev --port ${E2E_PORT}`,
+    command: `env -u NO_COLOR ${NODE_EXECUTABLE} ${NEXT_DEV_BIN} dev --port ${E2E_PORT}`,
     url: E2E_BASE_URL,
     reuseExistingServer: false, // CRITICAL: Always start fresh for deterministic runs
     timeout: 180 * 1000, // 3 minutes for Next.js cold start
