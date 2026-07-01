@@ -25,6 +25,14 @@ describe("email quiet-failure classification", () => {
 
     expect(
       isQuietCronOwnedEmailFailure({
+        email_type: "abandoned_checkout",
+        status: "failed",
+        error_message: "Cannot reconstruct email type 'abandoned_checkout' - unsupported type",
+      }),
+    ).toBe(true)
+
+    expect(
+      isQuietCronOwnedEmailFailure({
         email_type: "partial_intake_recovery",
         status: "failed",
         error_message: "Resend rejected recipient",

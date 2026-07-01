@@ -36,9 +36,12 @@ import {
   STAFF_EMAILS_HREF,
   STAFF_OPS_HREF,
 } from "@/lib/dashboard/routes"
+import { isQuietCronOwnedEmailFailure } from "@/lib/email/quiet-failures"
 import { EMAIL_SEQUENCES } from "@/lib/email/sequence-registry"
 import { formatTimeAgo } from "@/lib/format"
 import { cn } from "@/lib/utils"
+
+const MAX_OUTBOX_RETRY_COUNT = 10
 
 // Email type display names
 const emailTypeLabels: Record<string, string> = {
@@ -138,6 +141,58 @@ function EmailStatusPill({
       <span className="text-xs capitalize text-foreground">{label}</span>
     </span>
   )
+}
+
+function hasRetryableEmailStatus(status: string): boolean {
+  return ["failed", "pending"].includes(status)
+}
+
+function getQuietFailureActivityRow(item: RecentEmailActivity) {
+  return {
+    email_type: item.emailType,
+    status: item.status,
+    error_message: item.errorMessage,
+  }
+}
+
+function canRetryEmailActivity(item: RecentEmailActivity): boolean {
+  return (
+    hasRetryableEmailStatus(item.status) &&
+    item.retryCount < MAX_OUTBOX_RETRY_COUNT &&
+    !isQuietCronOwnedEmailFailure(getQuietFailureActivityRow(item))
+  )
+}
+
+function getNonRetryableEmailActivityLabel(item: RecentEmailActivity): string | null {
+  if (isQuietCronOwnedEmailFailure(getQuietFailureActivityRow(item))) {
+    return "Cron-owned"
+  }
+
+  if (hasRetryableEmailStatus(item.status) && item.retryCount >= MAX_OUTBOX_RETRY_COUNT) {
+    return "Max retries"
+  }
+
+  return null
+}
+
+function canRetryOutboxLedgerRow(row: EmailOutboxLedgerRow): boolean {
+  return (
+    hasRetryableEmailStatus(row.status) &&
+    row.retry_count < MAX_OUTBOX_RETRY_COUNT &&
+    !isQuietCronOwnedEmailFailure(row)
+  )
+}
+
+function getNonRetryableOutboxLedgerLabel(row: EmailOutboxLedgerRow): string | null {
+  if (isQuietCronOwnedEmailFailure(row)) {
+    return "Cron-owned"
+  }
+
+  if (hasRetryableEmailStatus(row.status) && row.retry_count >= MAX_OUTBOX_RETRY_COUNT) {
+    return "Max retries"
+  }
+
+  return null
 }
 
 export function EmailHubClient({
@@ -453,71 +508,80 @@ export function EmailHubClient({
                 {activity.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">No recent email activity</p>
                 ) : (
-                  activity.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-full ${
-                          item.status === 'sent' ? 'bg-success-light' :
-                          item.status === 'failed' ? 'bg-destructive-light' :
-                          'bg-yellow-100'
-                        }`}>
-                          {item.status === 'sent' || item.status === 'skipped_e2e' ? (
-                            <MailCheck className="h-4 w-4 text-success" />
-                          ) : item.status === 'failed' ? (
-                            <AlertTriangle className="h-4 w-4 text-destructive" />
-                          ) : (
-                            <Clock className="h-4 w-4 text-yellow-600" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">{emailTypeLabels[item.emailType] || item.emailType}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {sanitizeEmail(item.toEmail)} - {formatTimeAgo(item.createdAt)}
-                          </p>
-                          {item.deliveryStatus && (
-                            <p className="text-xs text-muted-foreground mt-1 capitalize">
-                              Delivery: {item.deliveryStatus}
-                            </p>
-                          )}
-                          {item.errorMessage && (
-                            <p className="text-xs text-destructive mt-1">{item.errorMessage}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {item.intakeId && (
-                          <Badge variant="outline" className="text-xs">
-                            {item.intakeId.slice(0, 8)}...
-                          </Badge>
-                        )}
-                        <Badge 
-                          variant={
-                            item.status === 'sent' || item.status === 'skipped_e2e' ? 'default' :
-                            item.status === 'failed' ? 'destructive' :
-                            'secondary'
-                          }
-                          className="text-xs"
-                        >
-                          {item.status === 'skipped_e2e' ? 'sent (test)' : item.status}
-                        </Badge>
-                        {["failed", "pending"].includes(item.status) && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleRetry(item.id)}
-                            disabled={retryingId === item.id}
-                          >
-                            {retryingId === item.id ? (
-                              <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                  activity.map((item) => {
+                    const canRetry = canRetryEmailActivity(item)
+                    const nonRetryableLabel = getNonRetryableEmailActivityLabel(item)
+
+                    return (
+                      <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-full ${
+                            item.status === 'sent' ? 'bg-success-light' :
+                            item.status === 'failed' ? 'bg-destructive-light' :
+                            'bg-yellow-100'
+                          }`}>
+                            {item.status === 'sent' || item.status === 'skipped_e2e' ? (
+                              <MailCheck className="h-4 w-4 text-success" />
+                            ) : item.status === 'failed' ? (
+                              <AlertTriangle className="h-4 w-4 text-destructive" />
                             ) : (
-                              <RefreshCw className="h-3.5 w-3.5 mr-1" />
+                              <Clock className="h-4 w-4 text-yellow-600" />
                             )}
-                            Retry
-                          </Button>
-                        )}
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{emailTypeLabels[item.emailType] || item.emailType}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {sanitizeEmail(item.toEmail)} - {formatTimeAgo(item.createdAt)}
+                            </p>
+                            {item.deliveryStatus && (
+                              <p className="text-xs text-muted-foreground mt-1 capitalize">
+                                Delivery: {item.deliveryStatus}
+                              </p>
+                            )}
+                            {item.errorMessage && (
+                              <p className="text-xs text-destructive mt-1">{item.errorMessage}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {item.intakeId && (
+                            <Badge variant="outline" className="text-xs">
+                              {item.intakeId.slice(0, 8)}...
+                            </Badge>
+                          )}
+                          <Badge
+                            variant={
+                              item.status === 'sent' || item.status === 'skipped_e2e' ? 'default' :
+                              item.status === 'failed' ? 'destructive' :
+                              'secondary'
+                            }
+                            className="text-xs"
+                          >
+                            {item.status === 'skipped_e2e' ? 'sent (test)' : item.status}
+                          </Badge>
+                          {canRetry ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleRetry(item.id)}
+                              disabled={retryingId === item.id}
+                            >
+                              {retryingId === item.id ? (
+                                <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-3.5 w-3.5 mr-1" />
+                              )}
+                              Retry
+                            </Button>
+                          ) : nonRetryableLabel ? (
+                            <Badge variant="outline" className="text-xs">
+                              {nonRetryableLabel}
+                            </Badge>
+                          ) : null}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    )
+                  })
                 )}
               </div>
               <div className="mt-4 border-t pt-4">
@@ -624,7 +688,8 @@ export function EmailHubClient({
               ) : (
                 <div className="divide-y divide-border/50 rounded-lg border border-border/50">
                   {filteredOutboxRows.slice(0, 50).map((row) => {
-                    const canRetry = ["failed", "pending"].includes(row.status)
+                    const canRetry = canRetryOutboxLedgerRow(row)
+                    const nonRetryableLabel = getNonRetryableOutboxLedgerLabel(row)
                     return (
                       <div
                         key={row.id}
@@ -668,6 +733,10 @@ export function EmailHubClient({
                               )}
                               Retry
                             </Button>
+                          ) : nonRetryableLabel ? (
+                            <Badge variant="outline" className="h-8 gap-1.5 px-2.5 text-xs">
+                              {nonRetryableLabel}
+                            </Badge>
                           ) : row.intake_id ? (
                             <Button size="sm" variant="ghost" className="h-8 gap-1.5 px-2.5 text-xs" asChild>
                               <Link href={buildAdminIntakeHref(row.intake_id)}>
@@ -707,37 +776,48 @@ export function EmailHubClient({
                 }
                 return (
                   <div className="space-y-3">
-                    {emailIssues.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border border-destructive/20 bg-destructive/5">
-                        <div>
-                          <p className="font-medium text-sm">{emailTypeLabels[item.emailType] || item.emailType}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {sanitizeEmail(item.toEmail)} -- {formatTimeAgo(item.createdAt)}
-                          </p>
-                          {item.errorMessage && (
-                            <p className="text-xs text-destructive mt-1 truncate max-w-md">{item.errorMessage}</p>
+                    {emailIssues.map((item) => {
+                      const canRetry = canRetryEmailActivity(item)
+                      const nonRetryableLabel = getNonRetryableEmailActivityLabel(item)
+
+                      return (
+                        <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border border-destructive/20 bg-destructive/5">
+                          <div>
+                            <p className="font-medium text-sm">{emailTypeLabels[item.emailType] || item.emailType}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {sanitizeEmail(item.toEmail)} -- {formatTimeAgo(item.createdAt)}
+                            </p>
+                            {item.errorMessage && (
+                              <p className="text-xs text-destructive mt-1 truncate max-w-md">{item.errorMessage}</p>
+                            )}
+                          </div>
+                          {item.intakeId && (
+                            <Badge variant="outline" className="text-xs">
+                              {item.intakeId.slice(0, 8)}
+                            </Badge>
                           )}
+                          {canRetry ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleRetry(item.id)}
+                              disabled={retryingId === item.id}
+                            >
+                              {retryingId === item.id ? (
+                                <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-3.5 w-3.5 mr-1" />
+                              )}
+                              Retry
+                            </Button>
+                          ) : nonRetryableLabel ? (
+                            <Badge variant="outline" className="text-xs">
+                              {nonRetryableLabel}
+                            </Badge>
+                          ) : null}
                         </div>
-                        {item.intakeId && (
-                          <Badge variant="outline" className="text-xs">
-                            {item.intakeId.slice(0, 8)}
-                          </Badge>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRetry(item.id)}
-                          disabled={retryingId === item.id}
-                        >
-                          {retryingId === item.id ? (
-                            <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
-                          ) : (
-                            <RefreshCw className="h-3.5 w-3.5 mr-1" />
-                          )}
-                          Retry
-                        </Button>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )
               })()}

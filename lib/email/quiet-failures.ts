@@ -21,10 +21,16 @@ export function isQuietCronOwnedEmailFailure(row: {
   status?: string | null
   error_message?: string | null
 }): boolean {
+  const emailType = row.email_type
+  const errorMessage = row.error_message
+
   return (
     row.status === "failed" &&
-    isCronOwnedNonReconstructableEmailType(row.email_type) &&
-    row.error_message === `Unsupported email_type: ${row.email_type}`
+    isCronOwnedNonReconstructableEmailType(emailType) &&
+    (
+      errorMessage === `Unsupported email_type: ${emailType}` ||
+      errorMessage === `Cannot reconstruct email type '${emailType}' - unsupported type`
+    )
   )
 }
 

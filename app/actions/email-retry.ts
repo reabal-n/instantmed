@@ -10,9 +10,10 @@ import {
   updateEmailStatus,
 } from "@/lib/data/issued-certificates"
 import { MedCertPatientEmail } from "@/lib/email/components/templates"
+import { isQuietCronOwnedEmailFailure } from "@/lib/email/quiet-failures"
 import { claimOutboxRow } from "@/lib/email/send/outbox"
 import { sendEmail } from "@/lib/email/send-email"
-import { type OutboxRow,sendFromOutboxRow } from "@/lib/email/send-email"
+import { type OutboxRow, sendFromOutboxRow } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
 import { getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -200,12 +201,19 @@ export async function retryOutboxEmail(
     // Fetch the outbox row to validate before claiming
     const { data: row, error: fetchError } = await supabase
       .from("email_outbox")
-      .select("id, email_type, status, retry_count, certificate_id")
+      .select("id, email_type, status, retry_count, certificate_id, error_message")
       .eq("id", outboxId)
       .single()
 
     if (fetchError || !row) {
       return { success: false, error: "Email not found in outbox" }
+    }
+
+    if (isQuietCronOwnedEmailFailure(row)) {
+      return {
+        success: false,
+        error: "This email is owned by its recovery cron and is not retryable from the delivery ledger",
+      }
     }
 
     // Must be in failed or pending status to retry
