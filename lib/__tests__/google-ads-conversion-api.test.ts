@@ -3,12 +3,15 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   buildGoogleAdsClickConversionRequest,
   buildGoogleAdsConversionActionPreflightQuery,
+  buildGoogleAdsConversionAdjustmentRequest,
   buildGoogleAdsUserIdentifiers,
   classifyGoogleAdsConversionActionPreflight,
   extractGoogleAdsErrorCode,
+  fireGoogleAdsConversionAdjustment,
   fireGoogleAdsPurchaseConversion,
   getGoogleAdsSearchUrl,
   getGoogleAdsUploadClickConversionsUrl,
+  getGoogleAdsUploadConversionAdjustmentsUrl,
   hashEmailForGoogleAds,
   hashPhoneForGoogleAds,
   normalizeEmailForGoogleAds,
@@ -26,6 +29,12 @@ describe("google ads conversion api", () => {
   it("uses the current Google Ads uploadClickConversions endpoint", () => {
     expect(getGoogleAdsUploadClickConversionsUrl("1234567890")).toBe(
       "https://googleads.googleapis.com/v24/customers/1234567890:uploadClickConversions",
+    )
+  })
+
+  it("uses the current Google Ads uploadConversionAdjustments endpoint", () => {
+    expect(getGoogleAdsUploadConversionAdjustmentsUrl("1234567890")).toBe(
+      "https://googleads.googleapis.com/v24/customers/1234567890:uploadConversionAdjustments",
     )
   })
 
@@ -136,6 +145,81 @@ describe("google ads conversion api", () => {
   it("skips request construction when no click id or usable enhanced-conversion data is present", () => {
     expect(buildGoogleAdsClickConversionRequest(
       { orderId: "intake_123", value: 49.95 },
+      { customerId: "1234567890", conversionActionId: "9876543210" },
+    )).toBeNull()
+  })
+
+  it("builds a full-refund retraction using the original order id without restatement value", () => {
+    const request = buildGoogleAdsConversionAdjustmentRequest(
+      {
+        adjustmentDateTime: new Date("2026-07-01T01:30:00.000Z"),
+        adjustmentType: "RETRACTION",
+        orderId: "intake_123",
+      },
+      {
+        customerId: "1234567890",
+        conversionActionId: "9876543210",
+      },
+    )
+
+    expect(request).toMatchObject({
+      partialFailure: true,
+      conversionAdjustments: [
+        {
+          adjustmentType: "RETRACTION",
+          conversionAction: "customers/1234567890/conversionActions/9876543210",
+          orderId: "intake_123",
+        },
+      ],
+    })
+    expect(request?.conversionAdjustments[0]).not.toHaveProperty("restatementValue")
+    expect(request?.conversionAdjustments[0].adjustmentDateTime).toMatch(
+      /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/,
+    )
+  })
+
+  it("builds a partial-refund restatement to the retained purchase value", () => {
+    const request = buildGoogleAdsConversionAdjustmentRequest(
+      {
+        adjustedValue: 19.95,
+        adjustmentDateTime: new Date("2026-07-01T01:30:00.000Z"),
+        adjustmentType: "RESTATEMENT",
+        orderId: "intake_123",
+      },
+      {
+        customerId: "1234567890",
+        conversionActionId: "9876543210",
+      },
+    )
+
+    expect(request).toMatchObject({
+      partialFailure: true,
+      conversionAdjustments: [
+        {
+          adjustmentType: "RESTATEMENT",
+          conversionAction: "customers/1234567890/conversionActions/9876543210",
+          orderId: "intake_123",
+          restatementValue: {
+            adjustedValue: 19.95,
+          },
+        },
+      ],
+    })
+  })
+
+  it("refuses invalid conversion adjustment bodies", () => {
+    expect(buildGoogleAdsConversionAdjustmentRequest(
+      { adjustmentType: "RESTATEMENT", orderId: "intake_123" },
+      { customerId: "1234567890", conversionActionId: "9876543210" },
+    )).toBeNull()
+
+    expect(buildGoogleAdsConversionAdjustmentRequest(
+      { adjustedValue: -1, adjustmentType: "RESTATEMENT", orderId: "intake_123" },
+      { customerId: "1234567890", conversionActionId: "9876543210" },
+    )).toBeNull()
+
+    expect(buildGoogleAdsConversionAdjustmentRequest(
+      { adjustmentType: "RETRACTION", orderId: " " },
       { customerId: "1234567890", conversionActionId: "9876543210" },
     )).toBeNull()
   })
@@ -521,6 +605,63 @@ describe("google ads conversion api", () => {
       attempted: true,
       ok: true,
       jobId: "20260624",
+    })
+
+    global.fetch = originalFetch
+    process.env = originalEnv
+  })
+
+  it("uploads conversion adjustments with the same Ads auth headers as click imports", async () => {
+    const originalFetch = global.fetch
+    const originalEnv = { ...process.env }
+
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ access_token: "access-token", expires_in: 3600 }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        text: async () => JSON.stringify({
+          results: [{ conversionAction: "customers/1234567890/conversionActions/9876543210", orderId: "intake_123" }],
+        }),
+      }) as typeof fetch
+
+    process.env.GOOGLE_ADS_CUSTOMER_ID = "1234567890"
+    process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
+    process.env.GOOGLE_ADS_CLIENT_ID = "client-id"
+    process.env.GOOGLE_ADS_CLIENT_SECRET = "client-secret"
+    process.env.GOOGLE_ADS_REFRESH_TOKEN = "refresh-token"
+    process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID = "9998887777"
+    process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE = "9876543210"
+
+    await expect(fireGoogleAdsConversionAdjustment({
+      adjustmentType: "RETRACTION",
+      orderId: "intake_123",
+    })).resolves.toMatchObject({
+      attempted: true,
+      ok: true,
+    })
+
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      "https://googleads.googleapis.com/v24/customers/1234567890:uploadConversionAdjustments",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: "Bearer access-token",
+          "developer-token": "developer-token",
+          "login-customer-id": "9998887777",
+        }),
+        method: "POST",
+      }),
+    )
+    expect(JSON.parse((global.fetch as ReturnType<typeof vi.fn>).mock.calls[1][1].body)).toMatchObject({
+      partialFailure: true,
+      conversionAdjustments: [
+        {
+          adjustmentType: "RETRACTION",
+          orderId: "intake_123",
+        },
+      ],
     })
 
     global.fetch = originalFetch

@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 
+import {
+  GOOGLE_ADS_CONVERSION_ADJUSTMENT_AUDIT_ACTION,
+  runGoogleAdsConversionAdjustment,
+} from "@/lib/analytics/google-ads-conversion-adjustments"
 import { reportGoogleAdsConversionFailure } from "@/lib/analytics/google-ads-conversion-alarm"
 import {
   type GoogleAdsConversionActionPreflightResult,
@@ -27,6 +31,7 @@ const logger = createLogger("cron-google-ads-conversions")
 const LOOKBACK_DAYS = 90
 const BATCH_LIMIT = 25
 const GOOGLE_ADS_BACKFILL_PAYMENT_STATUSES = ["paid", "partially_refunded", "refunded"] as const
+const GOOGLE_ADS_ADJUSTMENT_PAYMENT_STATUSES = ["partially_refunded", "refunded", "disputed"] as const
 
 type GoogleAdsCandidate = GoogleAdsAttributionRow & {
   id: string
@@ -34,10 +39,26 @@ type GoogleAdsCandidate = GoogleAdsAttributionRow & {
   paid_at?: string | null
 }
 
+type GoogleAdsAdjustmentCandidate = {
+  amount_cents?: number | null
+  id: string
+  payment_status: string
+  refund_amount_cents?: number | null
+  refunded_at?: string | null
+  updated_at?: string | null
+}
+
 function parsePaidAtConversionDateTime(value?: string | null): Date | null {
   if (!value) return null
   const date = new Date(value)
   return Number.isFinite(date.getTime()) ? date : null
+}
+
+function parseAdjustmentDateTime(row: GoogleAdsAdjustmentCandidate): Date | undefined {
+  const value = row.refunded_at || row.updated_at
+  if (!value) return undefined
+  const date = new Date(value)
+  return Number.isFinite(date.getTime()) ? date : undefined
 }
 
 function shouldSkipBackfillForPreflight(
@@ -205,11 +226,51 @@ export async function GET(request: NextRequest) {
       new Set(results.map((result) => result.jobId).filter((jobId): jobId is number | string => jobId != null)),
     ).sort((a, b) => String(a).localeCompare(String(b)))
 
+    const adjustmentQuery = supabase
+      .from("intakes")
+      .select("id, amount_cents, refund_amount_cents, payment_status, refunded_at, updated_at")
+      .in("payment_status", [...GOOGLE_ADS_ADJUSTMENT_PAYMENT_STATUSES])
+      .not("paid_at", "is", null)
+      .gte("paid_at", since)
+      .order("updated_at", { ascending: true })
+      .limit(500)
+
+    const { data: adjustmentData, error: adjustmentError } = await filterReportableIntakes(adjustmentQuery)
+    if (adjustmentError) throw new Error(`Google Ads adjustment candidate query failed: ${adjustmentError.message}`)
+
+    const adjustmentCandidates = ((adjustmentData || []) as GoogleAdsAdjustmentCandidate[]).slice(0, BATCH_LIMIT)
+    const adjustmentResults: Array<{ id: string; status: string; ok?: boolean; error?: string }> = []
+
+    for (const row of adjustmentCandidates) {
+      const result = await runGoogleAdsConversionAdjustment({
+        adjustmentDateTime: parseAdjustmentDateTime(row),
+        amountCents: row.amount_cents ?? null,
+        intakeId: row.id,
+        paymentStatus: row.payment_status,
+        refundAmountCents: row.refund_amount_cents ?? null,
+        requestPath: request.nextUrl.pathname,
+        source: "cron_backfill",
+        supabase,
+      })
+
+      adjustmentResults.push({
+        id: row.id,
+        status: result.status,
+        ok: result.ok,
+        error: result.error,
+      })
+    }
+
+    const adjustmentSkipped = adjustmentResults.filter((result) => result.status.startsWith("skipped"))
+    const adjustmentFailed = adjustmentResults.filter((result) => result.status === "failed")
+
     logger.info("Google Ads conversion backfill complete", {
       candidates: candidates.length,
       processed: results.length,
       skipped: skipped.length,
       failed: failed.length,
+      adjustmentCandidates: adjustmentCandidates.length,
+      adjustmentFailed: adjustmentFailed.length,
     })
 
     return NextResponse.json({
@@ -222,6 +283,11 @@ export async function GET(request: NextRequest) {
       skipped_already_resolved: candidates.length - retryable.length,
       skipped: skipped.length,
       failed: failed.length,
+      adjustment_action: GOOGLE_ADS_CONVERSION_ADJUSTMENT_AUDIT_ACTION,
+      adjustment_candidates: adjustmentCandidates.length,
+      adjustment_processed: adjustmentResults.length,
+      adjustment_skipped: adjustmentSkipped.length,
+      adjustment_failed: adjustmentFailed.length,
       upload_job_ids: uploadJobIds,
       batch_limit: BATCH_LIMIT,
     })

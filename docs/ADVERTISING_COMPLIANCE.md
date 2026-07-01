@@ -35,6 +35,8 @@ Paid conversions are uploaded from the Stripe webhook through `lib/analytics/goo
 
 `GOOGLE_ADS_CONVERSION_ACTION_PURCHASE` must be an offline click-import conversion action with Google Ads type `UPLOAD_CLICKS`. Do not use the browser website purchase/tag conversion action ID here. This server-side offline import is the canonical Primary purchase conversion for paid bidding because it is fed from Stripe/Supabase payment truth and deduped by intake/payment identifiers. Browser website purchase tags may remain enabled only as Secondary diagnostics; they must send the intake id as `transaction_id` and must not be a separate primary bidding action for the same purchase.
 
+Google Ads value bidding optimizes **Net Retained Purchase Value**, not gross checkout value. Stripe refunds and disputes adjust the original server purchase import by the same intake/order id: full refunds and disputes send a `RETRACTION`, partial refunds send a `RESTATEMENT` with the retained AUD value, and every attempt writes a PHI-safe `audit_logs.action = google_ads_conversion_adjustment` row. The purchase import remains Primary; browser purchase tags, GA4 purchase mirrors, and other duplicate purchase diagnostics stay Secondary/non-bidding.
+
 Funnel milestones and page/intake/checkout actions must stay Secondary, non-bidding signals. Do not attach invented dollar values to page views, intake completion, checkout starts, or other micro-conversions. Use PostHog/internal funnel analytics for product diagnostics and reserve Google Ads purchase value optimization for real paid orders.
 
 ## 3. Core Rule

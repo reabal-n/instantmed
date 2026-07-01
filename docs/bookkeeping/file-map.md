@@ -1,20 +1,21 @@
 # Doc File Map
 
-> **Last updated:** 2026-06-26.
+> **Last updated:** 2026-07-01.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
 >
-> **Doc-surface count:** 110 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans.
+> **Doc-surface count:** 112 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans; 110 -> 112 on 2026-07-01 after adding the root context glossary and first ADR for Google Ads retained-value bidding.
 >
 > **Owner:** Operator. Update on every doc add, move, or delete. Bump the timestamp.
 
 ---
 
-## Root laws (4)
+## Root laws (5)
 
 | File | Owner | Pinned by |
 |------|-------|-----------|
 | [CLAUDE.md](../../CLAUDE.md) | Operator | `lib/__tests__/project-docs-drift-contract.test.ts`; `scripts/sync-agent-doc.sh` |
 | [AGENTS.md](../../AGENTS.md) | Generated from CLAUDE.md | Same. Never hand-edit. Run `scripts/sync-agent-doc.sh` after CLAUDE.md changes. |
+| [CONTEXT.md](../../CONTEXT.md) | Operator | `google-ads-attribution-contract` |
 | [PRODUCT.md](../../PRODUCT.md) | Operator | `project-docs-drift-contract` |
 | [DESIGN.md](../../DESIGN.md) | Operator | `project-docs-drift-contract`; `marketing-copy-contract` |
 
@@ -76,6 +77,12 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 | [docs/runbooks/comparative-tagline-complaint.md](../runbooks/comparative-tagline-complaint.md) | AHPRA/TGA/Medical Board/Google complaint runbook for the "Faster than your GP." tagline |
 | [docs/runbooks/BREAK_GLASS.md](../runbooks/BREAK_GLASS.md) | Solo-operator continuity: account inventory + sealed-secret location register (pointers, never values) + recovery procedure |
 | [docs/runbooks/NHSD_REGISTRATION.md](../runbooks/NHSD_REGISTRATION.md) | Paste-ready field-values sheet for the National Health Services Directory listing (GEO citation surface) |
+
+## docs/adr/ — 1 decision record
+
+| File | Purpose | Pinned by |
+|------|---------|-----------|
+| [docs/adr/0001-google-ads-net-retained-purchase-value.md](../adr/0001-google-ads-net-retained-purchase-value.md) | Decision record for Google Ads optimizing against retained purchase value, not gross value or micro-conversions | `google-ads-attribution-contract` |
 
 ## docs/audits/ — 21 (historical + growth records)
 

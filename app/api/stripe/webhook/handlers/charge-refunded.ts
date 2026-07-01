@@ -1,11 +1,12 @@
-import { after,NextResponse } from "next/server"
+import { after, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
+import { runGoogleAdsConversionAdjustment } from "@/lib/analytics/google-ads-conversion-adjustments"
 import { sendRefundEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import { stripe } from "@/lib/stripe/client"
 
-import type { HandlerResult,WebhookContext } from "./types"
+import type { HandlerResult, WebhookContext } from "./types"
 import { tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:charge-refunded")
@@ -142,6 +143,22 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
       const refundIntakeId = intakeId
       const refundAmountCents = charge.amount_refunded
       const refundIsFullRefund = isFullRefund
+      const refundPaymentStatus = isFullRefund ? "refunded" : "partially_refunded"
+      const paidAmountCents = charge.amount
+
+      after(async () => {
+        await runGoogleAdsConversionAdjustment({
+          adjustmentDateTime: new Date(refundedAt),
+          amountCents: paidAmountCents,
+          intakeId: refundIntakeId,
+          paymentStatus: refundPaymentStatus,
+          refundAmountCents,
+          requestPath: "/api/stripe/webhook",
+          source: "stripe_charge_refunded",
+          supabase,
+        })
+      })
+
       after(async () => {
         try {
           const { data: intake } = await supabase

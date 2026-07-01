@@ -1,12 +1,13 @@
 import * as Sentry from "@sentry/nextjs"
-import { NextResponse } from "next/server"
+import { after, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
+import { runGoogleAdsConversionAdjustment } from "@/lib/analytics/google-ads-conversion-adjustments"
 import { sendDisputeAlertEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import { stripe } from "@/lib/stripe/client"
 
-import type { HandlerResult,WebhookContext } from "./types"
+import type { HandlerResult, WebhookContext } from "./types"
 import { tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:dispute-created")
@@ -31,6 +32,8 @@ export async function handleChargeDisputeCreated(ctx: WebhookContext): Promise<H
   }
 
   // Find the intake associated with this charge
+  let adjustmentAmountCents: number | null = null
+  let adjustmentRefundAmountCents: number | null = null
   let intakeId: string | undefined
   try {
     if (chargeId) {
@@ -42,11 +45,14 @@ export async function handleChargeDisputeCreated(ctx: WebhookContext): Promise<H
       if (paymentIntentId) {
         const { data: intake } = await supabase
           .from("intakes")
-          .select("id")
+          .select("id, amount_cents, refund_amount_cents")
           .eq("stripe_payment_intent_id", paymentIntentId)
           .single()
 
         intakeId = intake?.id
+        adjustmentAmountCents = (intake as { amount_cents?: number | null } | null)?.amount_cents ?? dispute.amount
+        adjustmentRefundAmountCents =
+          (intake as { refund_amount_cents?: number | null } | null)?.refund_amount_cents ?? 0
       }
     }
   } catch {
@@ -75,6 +81,20 @@ export async function handleChargeDisputeCreated(ctx: WebhookContext): Promise<H
         updated_at: new Date().toISOString(),
       })
       .eq("id", intakeId)
+
+    const disputedIntakeId = intakeId
+    after(async () => {
+      await runGoogleAdsConversionAdjustment({
+        adjustmentDateTime: new Date(dispute.created * 1000),
+        amountCents: adjustmentAmountCents ?? dispute.amount,
+        intakeId: disputedIntakeId,
+        paymentStatus: "disputed",
+        refundAmountCents: adjustmentRefundAmountCents,
+        requestPath: "/api/stripe/webhook",
+        source: "stripe_charge_dispute_created",
+        supabase,
+      })
+    })
   }
 
   // Alert admin team via Sentry and email
