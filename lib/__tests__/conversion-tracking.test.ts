@@ -13,6 +13,15 @@ type GtagCall = [string, string, Record<string, unknown>]
 let gtagMock: ReturnType<typeof vi.fn>
 let storage: Record<string, string>
 
+function commandToArray(command: unknown): unknown[] {
+  return Array.from(command as ArrayLike<unknown>)
+}
+
+function expectArgumentsCommand(command: unknown) {
+  expect(Array.isArray(command)).toBe(false)
+  expect(Object.prototype.toString.call(command)).toBe("[object Arguments]")
+}
+
 beforeEach(() => {
   gtagMock = vi.fn()
   storage = {}
@@ -42,11 +51,14 @@ beforeEach(() => {
 describe("conversion tracking", () => {
   it("defaults consent mode to granted until visitors opt out", () => {
     const dataLayer: unknown[] = []
-    Object.assign(window, { dataLayer })
+    Object.assign(window, { dataLayer, gtag: undefined })
 
     initConsentMode()
 
-    expect(dataLayer).toContainEqual(["consent", "default", {
+    expect(window.gtag).toEqual(expect.any(Function))
+    expect(dataLayer).toHaveLength(1)
+    expectArgumentsCommand(dataLayer[0])
+    expect(commandToArray(dataLayer[0])).toEqual(["consent", "default", {
       ad_storage: "granted",
       ad_user_data: "granted",
       ad_personalization: "granted",
@@ -69,6 +81,29 @@ describe("conversion tracking", () => {
     expect(conversionCall?.[2].send_to).toBe("AW-17795889471/SqypCNva94YcEL_y3qVC")
   })
 
+  it("queues fallback gtag calls in the same arguments shape as the Google tag shim", () => {
+    const dataLayer: unknown[] = []
+    Object.assign(window, { dataLayer, gtag: undefined })
+
+    trackConversion("PURCHASE", {
+      transaction_id: "intake_123",
+      value: 49.95,
+      currency: "AUD",
+    })
+
+    expect(window.gtag).toEqual(expect.any(Function))
+    expect(dataLayer).toHaveLength(2)
+    expectArgumentsCommand(dataLayer[0])
+    expect(commandToArray(dataLayer[0])).toEqual([
+      "event",
+      "conversion",
+      expect.objectContaining({
+        send_to: "AW-17795889471/SqypCNva94YcEL_y3qVC",
+        value: 49.95,
+      }),
+    ])
+  })
+
   it("updates consent mode correctly for marketing permissions", () => {
     updateConsent({
       adStorage: true,
@@ -85,12 +120,21 @@ describe("conversion tracking", () => {
     })
   })
 
-  it("tracks checkout funnel step conversion with send_to", () => {
-    trackFunnelStep("checkout", "prescription")
+  it("tracks checkout funnel progress without firing a Google Ads conversion action", async () => {
+    await trackFunnelStep("checkout", "prescription")
 
     const calls = gtagMock.mock.calls as GtagCall[]
     const conversionCall = calls.find(([kind, event]) => kind === "event" && event === "conversion")
-    expect(conversionCall?.[2].send_to).toBe("AW-17795889471/4MCMCMrGhYccEL_y3qVC")
+    expect(conversionCall).toBeUndefined()
+    expect(calls).toContainEqual([
+      "event",
+      "funnel_milestone",
+      {
+        event_category: "funnel",
+        funnel_step: "checkout",
+        service_type: "prescription",
+      },
+    ])
   })
 
   it("builds the enhanced-conversion user data payload with explicit hashed fields", async () => {

@@ -1,37 +1,22 @@
 /**
  * Google Ads Conversion Tracking
- * Fires conversion events for checkout completion and funnel steps
+ * Fires purchase conversion events and non-conversion funnel analytics events.
  *
  * Includes:
  * - Enhanced Conversions (hashed email for better attribution)
- * - Conversion value optimization (actual $ values for micro-conversions)
+ * - Conversion value optimization (actual $ values for purchases)
  * - Google Consent Mode v2 support
  */
 
 // Conversion action IDs — Google Ads account AW-17795889471 (account 920-501-0513)
 // Get conversion labels from: Google Ads → Goals → Conversions → click each action → Tag setup
-// Micro-conversion IDs need to be created in Google Ads UI:
-//   Goals → Conversions → + New conversion action → Website
-//   Create: Landing Page View, Start Intake, Intake Complete, Checkout Start
-//   Then replace the placeholder IDs below with the real ones.
 const CONVERSION_IDS = {
   // Main conversion: Payment completed
   PURCHASE: 'AW-17795889471/SqypCNva94YcEL_y3qVC',
-  // Micro-conversions
-  LANDING_VIEW: 'AW-17795889471/0nc1CO2Q8IYcEL_y3qVC',
-  // START_INTAKE: no conversion action in Google Ads — tracked via trackStepEvent instead
-  INTAKE_COMPLETE: 'AW-17795889471/sndHCPjy-IYcEL_y3qVC',
-  CHECKOUT_START: 'AW-17795889471/4MCMCMrGhYccEL_y3qVC',
 } as const
 
 type ConversionEvent = keyof typeof CONVERSION_IDS
-
-// Estimated conversion values for micro-conversions (used for Smart Bidding optimization)
-const MICRO_CONVERSION_VALUES: Record<string, number> = {
-  LANDING_VIEW: 0.50,
-  INTAKE_COMPLETE: 5.00,
-  CHECKOUT_START: 10.00,
-}
+type GtagFunction = (...args: unknown[]) => void
 
 interface ConversionData {
   value?: number
@@ -68,9 +53,21 @@ export interface EnhancedConversionsInput {
 
 declare global {
   interface Window {
-    gtag?: (...args: unknown[]) => void
+    gtag?: GtagFunction
     dataLayer?: unknown[]
   }
+}
+
+function getOrCreateGtag(): GtagFunction {
+  window.dataLayer = window.dataLayer || []
+  if (!window.gtag) {
+    window.gtag = function queuedGtag() {
+      // eslint-disable-next-line prefer-rest-params -- Google tag's bootstrap shim pushes the Arguments object.
+      window.dataLayer!.push(arguments)
+    } as GtagFunction
+  }
+
+  return window.gtag
 }
 
 /**
@@ -132,12 +129,7 @@ export async function setEnhancedConversionsData(params: EnhancedConversionsInpu
   const userData = await buildEnhancedConversionsUserData(params)
   if (!userData) return
 
-  if (window.gtag) {
-    window.gtag('set', 'user_data', userData)
-  } else {
-    window.dataLayer = window.dataLayer || []
-    window.dataLayer.push(['set', 'user_data', userData])
-  }
+  getOrCreateGtag()('set', 'user_data', userData)
 }
 
 /**
@@ -148,10 +140,7 @@ export async function setEnhancedConversionsData(params: EnhancedConversionsInpu
 export function initConsentMode() {
   if (typeof window === 'undefined') return
 
-  window.dataLayer = window.dataLayer || []
-  function gtag(...args: unknown[]) {
-    window.dataLayer!.push(args)
-  }
+  const gtag = getOrCreateGtag()
 
   // Australian Privacy Act 1988 - implied consent model.
   // Defaults to granted; cookie banner provides opt-out.
@@ -184,26 +173,19 @@ export function updateConsent(granted: {
     analytics_storage: granted.analyticsStorage !== false ? 'granted' : 'denied',
   }
 
-  if (window.gtag) {
-    window.gtag('consent', 'update', update)
-  } else {
-    // Queue via dataLayer if gtag hasn't loaded yet (mirrors setEnhancedConversionsData)
-    window.dataLayer = window.dataLayer || []
-    window.dataLayer.push(['consent', 'update', update])
-  }
+  getOrCreateGtag()('consent', 'update', update)
 }
 
 /**
  * Fire a Google Ads conversion event
- * Uses dataLayer.push when gtag not yet loaded (e.g. lazyOnload) so events are queued
+ * Queues through the same arguments-shaped dataLayer shim as Google tag when
+ * gtag has not loaded yet.
  */
 export function trackConversion(event: ConversionEvent, data?: ConversionData) {
   if (typeof window === 'undefined') return
 
   const conversionId = CONVERSION_IDS[event]
-
-  // Use micro-conversion value if no explicit value provided
-  const value = data?.value ?? MICRO_CONVERSION_VALUES[event] ?? undefined
+  const value = data?.value
 
   const conversionPayload: Record<string, unknown> = {
     send_to: conversionId,
@@ -227,21 +209,7 @@ export function trackConversion(event: ConversionEvent, data?: ConversionData) {
     })
   }
 
-  if (window.gtag) {
-    fireEvent(window.gtag)
-  } else {
-    // Queue for when gtag loads (dataLayer processes in order)
-    window.dataLayer = window.dataLayer || []
-    window.dataLayer.push(['event', 'conversion', conversionPayload])
-    window.dataLayer.push(['event', event.toLowerCase(), {
-      event_category: 'conversion',
-      event_label: data?.service,
-      value,
-      currency: data?.currency || 'AUD',
-      transaction_id: data?.transaction_id,
-      items: data?.items,
-    }])
-  }
+  fireEvent(getOrCreateGtag())
 }
 
 /**
@@ -288,31 +256,23 @@ export async function trackPurchase(params: {
 }
 
 /**
- * Track funnel step progression with conversion values.
- * Optionally accepts email to set Enhanced Conversions user data
- * before firing the conversion event (improves cross-device attribution).
+ * Track funnel step progression as analytics only.
+ *
+ * These milestones deliberately do not fire Google Ads conversion actions or
+ * invented values. Purchase imports are the bidding source; funnel state stays
+ * available for internal diagnostics and aggregate analytics.
  */
 export async function trackFunnelStep(
   step: 'landing' | 'start' | 'intake_complete' | 'checkout',
   service?: string,
-  email?: string,
+  _email?: string,
 ) {
-  const eventMap: Record<string, ConversionEvent | null> = {
-    landing: 'LANDING_VIEW',
-    start: null,  // No Google Ads conversion action — tracked via trackStepEvent instead
-    intake_complete: 'INTAKE_COMPLETE',
-    checkout: 'CHECKOUT_START',
-  }
-
-  // Set Enhanced Conversions user data when email is available.
-  // This links the conversion event to the user across devices.
-  if (email) {
-    await setEnhancedConversionsData({ email })
-  }
-
-  const event = eventMap[step]
-  if (event) {
-    trackConversion(event, { service })
+  if (typeof window !== 'undefined') {
+    getOrCreateGtag()('event', 'funnel_milestone', {
+      event_category: 'funnel',
+      funnel_step: step,
+      service_type: service,
+    })
   }
 
   // Store funnel progression
@@ -320,9 +280,9 @@ export async function trackFunnelStep(
 }
 
 /**
- * Track each intake step as a gtag event for remarketing audience building.
- * Fires a generic `funnel_step` event (not a conversion action) so Google Ads
- * can build audiences like "users who reached step 3 but didn't check out".
+ * Track each intake step as a generic gtag event for aggregate funnel analysis.
+ * This is not a Google Ads conversion action and must not be used to build
+ * sensitive-health remarketing audiences.
  */
 export function trackStepEvent(params: {
   stepName: string
@@ -340,12 +300,7 @@ export function trackStepEvent(params: {
     total_steps: params.totalSteps,
   }
 
-  if (window.gtag) {
-    window.gtag('event', 'funnel_step', eventParams)
-  } else {
-    window.dataLayer = window.dataLayer || []
-    window.dataLayer.push(['event', 'funnel_step', eventParams])
-  }
+  getOrCreateGtag()('event', 'funnel_step', eventParams)
 }
 
 // Local storage helpers for attribution
