@@ -7,12 +7,17 @@ import { Reveal } from "@/components/ui/reveal"
 // COMPONENT
 // =============================================================================
 
+interface DoctorProfileSectionProps {
+  /** Render immediately instead of waiting for scroll reveal. */
+  instant?: boolean
+}
+
 /** Doctor profile - shared marketing trust signal */
-export function DoctorProfileSection() {
+export function DoctorProfileSection({ instant = false }: DoctorProfileSectionProps) {
   return (
     <section aria-label="Reviewed by a real doctor" className="py-16 lg:py-20 bg-muted/20 dark:bg-muted/10">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <Reveal>
+        <Reveal instant={instant}>
           <div className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] dark:shadow-none p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
             {/* Icon */}
             <div className="shrink-0">

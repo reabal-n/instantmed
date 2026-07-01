@@ -228,7 +228,7 @@ function UtiAssessmentSection({ isDisabled }: { isDisabled?: boolean }) {
   return (
     <section id="uti-assessment" aria-label="UTI symptom assessment" className="bg-muted/30 py-16 dark:bg-white/[0.02] lg:py-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="mb-8 text-center">
+        <Reveal instant className="mb-8 text-center">
           <SectionPill>UTI symptoms</SectionPill>
           <Heading level="h2" className="mb-2 mt-4">
             UTI symptom assessment, with clear safety boundaries
@@ -258,6 +258,7 @@ function UtiAssessmentSection({ isDisabled }: { isDisabled?: boolean }) {
           ].map((card, i) => (
             <Reveal
               key={card.title}
+              instant
               delay={i * 0.1}
               className="rounded-2xl border border-border/50 bg-white p-5 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none"
             >
@@ -268,7 +269,7 @@ function UtiAssessmentSection({ isDisabled }: { isDisabled?: boolean }) {
           ))}
         </div>
 
-        <Reveal className="mt-8 text-center">
+        <Reveal instant className="mt-8 text-center">
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button
               asChild
@@ -308,7 +309,7 @@ function ContraceptivePillSection({
   return (
     <section id="contraceptive-pill" aria-label="Contraceptive pill assessment" className="py-16 lg:py-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="text-center mb-8">
+        <Reveal instant className="text-center mb-8">
           <SectionPill>{isPrimary ? "What doctors check" : "Also available"}</SectionPill>
           <Heading level="h2" className="mt-4 mb-2">
             Starting or switching the contraceptive pill
@@ -338,6 +339,7 @@ function ContraceptivePillSection({
           ].map((card, i) => (
             <Reveal
               key={card.title}
+              instant
               delay={i * 0.1}
               className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-5"
             >
@@ -348,7 +350,7 @@ function ContraceptivePillSection({
           ))}
         </div>
 
-        <Reveal className="mt-8 text-center">
+        <Reveal instant className="mt-8 text-center">
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button
               asChild
@@ -387,7 +389,7 @@ function WomensHealthPricingSection({
   return (
     <section id="pricing" aria-label="Pricing" className="py-16 lg:py-20">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="text-center mb-10">
+        <Reveal instant className="text-center mb-10">
           <SectionPill>Pricing</SectionPill>
           <Heading level="h2" className="mt-4 mb-3">
             One flat fee. No hidden costs.
@@ -397,7 +399,7 @@ function WomensHealthPricingSection({
           </p>
         </Reveal>
 
-        <Reveal className="max-w-sm mx-auto">
+        <Reveal instant className="max-w-sm mx-auto">
           <div className="relative rounded-2xl border flex flex-col overflow-hidden bg-white dark:bg-card border-primary/30 shadow-xl shadow-primary/[0.12]">
             <div className="p-6 flex flex-col flex-1">
               <div className="flex items-start justify-between mb-4">
@@ -503,7 +505,7 @@ export function WomensHealthLanding({ intent = "overview" }: { intent?: WomensHe
           {/* Red-flag honesty strip: when online care is not suitable. */}
           <section aria-label="When to be seen in person" className="py-8 sm:py-12">
             <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-              <Reveal className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-6">
+              <Reveal instant className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-6">
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" aria-hidden="true" />
                   <div>
@@ -524,6 +526,7 @@ export function WomensHealthLanding({ intent = "overview" }: { intent?: WomensHe
             onCTAClick={handleHowItWorksCTA}
             isDisabled={isDisabled}
             subheading={copy.howItWorksSubheading}
+            revealInstant
           />
 
           {/* 3. Time comparison */}
@@ -536,7 +539,7 @@ export function WomensHealthLanding({ intent = "overview" }: { intent?: WomensHe
           <ContraceptivePillSection isDisabled={isDisabled} mode={copy.pillSectionMode} />
 
           {/* 6. Doctor profile */}
-          <DoctorProfileSection />
+          <DoctorProfileSection instant />
 
           {/* 7. Pricing */}
           <WomensHealthPricingSection isDisabled={isDisabled} description={copy.pricingDescription} />
@@ -569,6 +572,7 @@ export function WomensHealthLanding({ intent = "overview" }: { intent?: WomensHe
             isDisabled={isDisabled}
             price={PRICING.WOMENS_HEALTH}
             microcopy="Takes about 2 minutes."
+            revealInstant
           />
         </>
       )}

@@ -34,6 +34,8 @@ interface CTABannerProps extends SectionProps {
    * — service-specific reassurance used by service-page final CTAs.
    */
   microcopy?: string;
+  /** Render the card immediately instead of waiting for scroll reveal. */
+  revealInstant?: boolean;
 }
 
 export function CTABanner({
@@ -49,6 +51,7 @@ export function CTABanner({
   isDisabled,
   price,
   microcopy,
+  revealInstant = false,
   className,
   id,
 }: CTABannerProps) {
@@ -56,7 +59,7 @@ export function CTABanner({
   const resolvedCtaText = isDisabled ? "Contact us" : ctaText;
   return (
     <section id={id} className={cn("py-8 sm:py-10 lg:py-16 px-4", className)}>
-      <Reveal className="mx-auto max-w-4xl rounded-3xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] p-6 sm:p-8 lg:p-16 text-center relative overflow-hidden">
+      <Reveal instant={revealInstant} className="mx-auto max-w-4xl rounded-3xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] p-6 sm:p-8 lg:p-16 text-center relative overflow-hidden">
         <Heading level="h1" as="h2">
           {title}
         </Heading>

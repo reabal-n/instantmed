@@ -24,6 +24,8 @@ interface HowItWorksInlineProps {
   subheading?: string
   ctaText?: string
   ctaDataAttributes?: Record<`data-${string}`, string>
+  /** Render section content immediately instead of waiting for scroll reveal. */
+  revealInstant?: boolean
 }
 
 export function HowItWorksInline({
@@ -35,6 +37,7 @@ export function HowItWorksInline({
   subheading = "No booked appointment or waiting room. A doctor reviews your form and may call briefly before deciding.",
   ctaText,
   ctaDataAttributes,
+  revealInstant = false,
 }: HowItWorksInlineProps) {
   return (
     <section id="how-it-works" aria-label="How it works" className="py-16 lg:py-20">
@@ -52,7 +55,7 @@ export function HowItWorksInline({
           {steps.map((step, i) => (
             <Reveal
               key={step.step}
-              instant={i < 2}
+              instant={revealInstant || i < 2}
               delay={i * 0.1}
               className="relative bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none rounded-2xl p-6 text-center transition-[transform,box-shadow] duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/[0.08]"
             >
@@ -74,7 +77,7 @@ export function HowItWorksInline({
           ))}
         </div>
 
-        <Reveal className="flex justify-center mt-10" delay={0.3}>
+        <Reveal instant={revealInstant} className="flex justify-center mt-10" delay={0.3}>
           <Button
             asChild
             size="lg"
