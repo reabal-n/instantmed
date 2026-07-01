@@ -2,6 +2,7 @@
 
 import { requireRole } from "@/lib/auth/helpers"
 import { buildEmailAnalytics, type EmailAnalyticsRow } from "@/lib/email/analytics"
+import { filterQuietCronOwnedEmailFailures } from "@/lib/email/quiet-failures"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -103,7 +104,8 @@ export async function getEmailStats(): Promise<{ stats: EmailStats; error?: stri
       log.error("Failed to get pending email count", { error: pendingError })
     }
 
-    const analytics = buildEmailAnalytics(((weekRows || []) as EmailAnalyticsRow[]))
+    const analyticsRows = filterQuietCronOwnedEmailFailures((weekRows || []) as EmailAnalyticsRow[])
+    const analytics = buildEmailAnalytics(analyticsRows)
 
     return {
       stats: {
@@ -152,18 +154,23 @@ export async function getRecentEmailActivity(limit = 10): Promise<{
     await requireRole(["admin"])
     const supabase = createServiceRoleClient()
 
+    const fetchLimit = Math.min(Math.max(limit * 3, limit), 100)
     const { data, error } = await supabase
       .from("email_outbox")
       .select("id, email_type, to_email, status, delivery_status, created_at, intake_id, error_message, retry_count")
       .order("created_at", { ascending: false })
-      .limit(limit)
+      .limit(fetchLimit)
 
     if (error) {
       log.error("Failed to fetch recent email activity", { error })
       return { activity: [], error: error.message }
     }
 
-    return { activity: mapEmailActivity((data || []) as EmailActivityRow[]) }
+    return {
+      activity: mapEmailActivity(
+        filterQuietCronOwnedEmailFailures((data || []) as EmailActivityRow[]).slice(0, limit),
+      ),
+    }
   } catch (error) {
     log.error("Failed to fetch recent email activity", { error })
     return { activity: [], error: "Failed to fetch recent activity" }
@@ -183,19 +190,24 @@ export async function getRecentEmailIssues(limit = 25): Promise<{
     await requireRole(["admin"])
     const supabase = createServiceRoleClient()
 
+    const fetchLimit = Math.min(Math.max(limit * 3, limit), 100)
     const { data, error } = await supabase
       .from("email_outbox")
       .select("id, email_type, to_email, status, delivery_status, created_at, intake_id, error_message, retry_count")
       .in("status", ["failed", "pending"])
       .order("created_at", { ascending: false })
-      .limit(limit)
+      .limit(fetchLimit)
 
     if (error) {
       log.error("Failed to fetch email issue activity", { error })
       return { activity: [], error: error.message }
     }
 
-    return { activity: mapEmailActivity((data || []) as EmailActivityRow[]) }
+    return {
+      activity: mapEmailActivity(
+        filterQuietCronOwnedEmailFailures((data || []) as EmailActivityRow[]).slice(0, limit),
+      ),
+    }
   } catch (error) {
     log.error("Failed to fetch email issue activity", { error })
     return { activity: [], error: "Failed to fetch email issues" }

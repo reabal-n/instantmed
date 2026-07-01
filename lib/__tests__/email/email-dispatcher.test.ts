@@ -116,16 +116,22 @@ function mockOutboxSelect(
 }
 
 /**
- * Wire up Supabase mock for stats queries (3x parallel select with count).
+ * Wire up Supabase mock for stats queries (parallel select with count).
  */
-function mockStatsQueries(pending: number, failed: number, exhausted: number) {
+function mockStatsQueries(
+  pending: number,
+  failed: number,
+  exhausted: number,
+  quietFailed = 0,
+  quietExhausted = 0,
+) {
   let callCount = 0
-  const counts = [pending, failed, exhausted]
+  const counts = [pending, failed, exhausted, quietFailed, quietExhausted]
 
   mockSupabaseFrom.mockImplementation(() => {
     const idx = callCount++
     const chain: Record<string, unknown> = {}
-    const methods = ["eq", "lt", "gte", "in", "order", "limit"]
+    const methods = ["eq", "lt", "gte", "in", "like", "order", "limit"]
     for (const m of methods) {
       chain[m] = vi.fn(() => chain)
     }
@@ -649,6 +655,17 @@ describe("email-dispatcher", () => {
       expect(stats.failed).toBe(3)
       expect(stats.exhausted).toBe(2)
       expect(stats.total).toBe(10)
+    })
+
+    it("subtracts quiet cron-owned unsupported failures from operator stats", async () => {
+      mockStatsQueries(2, 5, 4, 1, 3)
+
+      const stats = await getEmailDispatcherStats()
+
+      expect(stats.pending).toBe(2)
+      expect(stats.failed).toBe(4)
+      expect(stats.exhausted).toBe(1)
+      expect(stats.total).toBe(7)
     })
 
     it("returns zeros when counts are null", async () => {

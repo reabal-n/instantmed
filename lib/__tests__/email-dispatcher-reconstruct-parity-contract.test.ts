@@ -10,8 +10,8 @@ import { describe, expect, it } from "vitest"
  * If a type is listed there but reconstruct.ts has no branch for it, an
  * interrupted inline send → the dispatcher claims the outbox row → reconstruct
  * fails on every retry → the email is dropped after MAX_RETRIES + Sentry-warned.
- * Cron-owned types dodge this only if they are OUT of SUPPORTED and IN
- * CRON_OWNED_NON_RECONSTRUCTABLE (so they quiet-fail; their cron owns the resend).
+ * Cron-owned types dodge this only if they are OUT of SUPPORTED and IN the
+ * shared cron-owned quiet-failure list (so they quiet-fail; their cron owns the resend).
  *
  * This pins the relationship so the bug class cannot silently grow. Mirrors
  * stripe-webhook-handler-parity-contract.test.ts. Source-parsed (no heavy server
@@ -32,13 +32,14 @@ function quotedTokensInBlock(src: string, startMarker: string, endMarker: string
 }
 
 const dispatcherSrc = read("lib/email/email-dispatcher.ts")
+const quietFailureSrc = read("lib/email/quiet-failures.ts")
 const reconstructSrc = read("lib/email/send/reconstruct.ts")
 
 const SUPPORTED = quotedTokensInBlock(dispatcherSrc, "SUPPORTED_EMAIL_TYPES = [", "] as const")
 const CRON_OWNED = quotedTokensInBlock(
-  dispatcherSrc,
-  "CRON_OWNED_NON_RECONSTRUCTABLE = new Set<string>([",
-  "])",
+  quietFailureSrc,
+  "CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES = [",
+  "] as const",
 )
 // Types reconstruct.ts can actually rebuild = the email_type values it branches on.
 const RECONSTRUCTABLE = new Set(

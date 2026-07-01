@@ -19,6 +19,7 @@ const emailStatsSource = readFileSync(
 describe("email delivery ops contract", () => {
   it("fetches a dedicated email issue feed instead of deriving failures from sampled activity", () => {
     expect(emailStatsSource).toContain("getRecentEmailIssues")
+    expect(emailStatsSource).toContain("filterQuietCronOwnedEmailFailures")
     expect(emailStatsSource).toContain('.in("status", ["failed", "pending"])')
     expect(emailHubPageSource).toContain("getRecentEmailIssues(25)")
     expect(emailHubPageSource).toContain("issueActivity={issueResult.activity}")

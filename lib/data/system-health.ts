@@ -1,6 +1,7 @@
 import "server-only"
 
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
+import { CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES } from "@/lib/email/quiet-failures"
 import { createLogger } from "@/lib/observability/logger"
 import { countStripePriceConfigIssues } from "@/lib/stripe/price-config-health"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -41,7 +42,7 @@ export async function getSystemHealth(): Promise<SystemHealth> {
   const now = Date.now()
   const dayAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString()
 
-  const [stuckResult, webhookResult, parchmentResult, emailResult] = await Promise.allSettled([
+  const [stuckResult, webhookResult, parchmentResult, emailResult, quietEmailResult] = await Promise.allSettled([
     // Stuck intakes via the operational view.
     filterSeededE2EIntakes(
       supabase
@@ -68,6 +69,13 @@ export async function getSystemHealth(): Promise<SystemHealth> {
       .select("id", { count: "exact", head: true })
       .eq("status", "failed")
       .gte("created_at", dayAgo),
+    supabase
+      .from("email_outbox")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "failed")
+      .gte("created_at", dayAgo)
+      .in("email_type", [...CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES])
+      .like("error_message", "Unsupported email_type:%"),
   ])
 
   function countOf(
@@ -88,7 +96,10 @@ export async function getSystemHealth(): Promise<SystemHealth> {
   const stuckIntakes = countOf(stuckResult, "stuck-intakes")
   const webhookFailures = countOf(webhookResult, "webhook-failures")
   const parchmentFailures = countOf(parchmentResult, "parchment-failures")
-  const emailFailures = countOf(emailResult, "email-failures")
+  const emailFailures = Math.max(
+    countOf(emailResult, "email-failures") - countOf(quietEmailResult, "quiet-email-failures"),
+    0,
+  )
   const stripePriceIssues = countStripePriceConfigIssues()
 
   return {

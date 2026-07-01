@@ -2,6 +2,10 @@ import "server-only"
 
 import * as Sentry from "@sentry/nextjs"
 
+import {
+  CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES,
+  isCronOwnedNonReconstructableEmailType,
+} from "@/lib/email/quiet-failures"
 import { claimOutboxRow } from "@/lib/email/send/outbox"
 import { MARKETING_EMAIL_TYPES } from "@/lib/email/send/types"
 import { sendFromOutboxRow } from "@/lib/email/send-email"
@@ -69,28 +73,11 @@ function isSupportedEmailType(emailType: string): boolean {
   return SUPPORTED_EMAIL_TYPES.includes(emailType as typeof SUPPORTED_EMAIL_TYPES[number])
 }
 
-// One-off marketing emails owned by their own cron/route (refill-reminder cron,
-// heard-about-us backfill route). They are NOT reconstructable by the generic
-// dispatcher and must NOT be retried here — the cron self-heals on its next
-// eligible run. We still permanently-fail the outbox row, but at info level so
-// it is not treated (and Sentry-alerted) as a reconstruct anomaly.
-export const CRON_OWNED_NON_RECONSTRUCTABLE = new Set<string>([
-  "refill_reminder",
-  "cert_reactivation",
-  "heard_about_us_backfill",
-  // Abandoned-intake recovery is sent directly by its own cron; a deferred/retry
-  // outbox copy is not reconstructable here. Was permanently-failing + Sentry-
-  // warning as "Unsupported email_type" while the cron delivered it fine.
-  "partial_intake_recovery",
-  // Abandoned-checkout + day-2 review-request are also cron-owned: their crons
-  // own the (re)send and reconstruct.ts has no branch for them, so a stray outbox
-  // copy must quiet-fail here instead of burning retries + Sentry-warning. Moved
-  // out of SUPPORTED_EMAIL_TYPES (2026-06-24, R1) where they had silently failed
-  // STEP 4 reconstruction on every retry.
-  "abandoned_checkout",
-  "abandoned_checkout_followup",
-  "review_request",
-])
+// One-off marketing/recovery emails owned by their own cron/route. They are NOT
+// reconstructable by the generic dispatcher and must NOT be retried here — the
+// owning cron self-heals on its next eligible run. The shared type list lives in
+// quiet-failures.ts because operator-facing stats also need to suppress this
+// expected dispatcher bookkeeping row without hiding real provider failures.
 
 /**
  * Permanently fail an outbox row so it won't be retried.
@@ -306,7 +293,7 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
 
     // STEP 3: Check for unsupported email types
     if (!isSupportedEmailType(claimedRow.email_type)) {
-      const cronOwned = CRON_OWNED_NON_RECONSTRUCTABLE.has(claimedRow.email_type)
+      const cronOwned = isCronOwnedNonReconstructableEmailType(claimedRow.email_type)
       // Cron-owned one-off marketing emails are expected-unsupported: their cron
       // owns the resend, so fail the row quietly (info, no Sentry). Everything
       // else is a genuine reconstruct anomaly that keeps the Sentry-warning path.
@@ -373,7 +360,7 @@ export async function getEmailDispatcherStats(): Promise<{
 }> {
   const supabase = createServiceRoleClient()
 
-  const [pendingRes, failedRes, exhaustedRes] = await Promise.all([
+  const [pendingRes, failedRes, exhaustedRes, quietFailedRes, quietExhaustedRes] = await Promise.all([
     supabase
       .from("email_outbox")
       .select("id", { count: "exact", head: true })
@@ -388,11 +375,25 @@ export async function getEmailDispatcherStats(): Promise<{
       .select("id", { count: "exact", head: true })
       .eq("status", "failed")
       .gte("retry_count", MAX_RETRIES),
+    supabase
+      .from("email_outbox")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "failed")
+      .lt("retry_count", MAX_RETRIES)
+      .in("email_type", [...CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES])
+      .like("error_message", "Unsupported email_type:%"),
+    supabase
+      .from("email_outbox")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "failed")
+      .gte("retry_count", MAX_RETRIES)
+      .in("email_type", [...CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES])
+      .like("error_message", "Unsupported email_type:%"),
   ])
 
   const pending = pendingRes.count || 0
-  const failed = failedRes.count || 0
-  const exhausted = exhaustedRes.count || 0
+  const failed = Math.max((failedRes.count || 0) - (quietFailedRes.count || 0), 0)
+  const exhausted = Math.max((exhaustedRes.count || 0) - (quietExhaustedRes.count || 0), 0)
 
   return {
     pending,

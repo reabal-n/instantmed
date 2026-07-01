@@ -26,6 +26,7 @@ import {
 } from "@/lib/dashboard/routes"
 import { PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES } from "@/lib/doctor/parchment-claim"
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
+import { filterQuietCronOwnedEmailFailures } from "@/lib/email/quiet-failures"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { OpsDashboardClient, type OpsDashboardClientProps } from "./ops-client"
@@ -140,7 +141,7 @@ export default async function OpsDashboardPage() {
       .or("status.eq.failed,delivery_status.eq.bounced,delivery_status.eq.complained")
       .gte("created_at", weekAgo.toISOString())
       .order("created_at", { ascending: false })
-      .limit(20)
+      .limit(50)
       .then((r) => (r.error ? { data: [] } : r)),
     supabase
       .from("intakes")
@@ -234,7 +235,7 @@ export default async function OpsDashboardPage() {
 
   const failureOverview = buildOperationalFailureOverview({
     stripeDlq: webhookDlqResult.data || [],
-    emailFailures: emailFailuresResult.data || [],
+    emailFailures: filterQuietCronOwnedEmailFailures(emailFailuresResult.data || []).slice(0, 20),
     checkoutFailures: checkoutFailuresResult.data || [],
     certificateFailures: certificateFailuresResult.data || [],
     prescriptionWebhookFailures,
