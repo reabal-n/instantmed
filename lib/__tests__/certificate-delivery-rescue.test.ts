@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   buildCertificateDeliveryRescueCase,
   type CertificateDeliveryEvidence,
+  getCertificateDeliveryRescueCases,
   interpretEmailDelivery,
   selectCertificateDeliverySupportAction,
 } from "@/lib/admin/certificate-delivery-rescue"
@@ -11,6 +12,26 @@ const baseEvidence: CertificateDeliveryEvidence = {
   intakeId: "12345678-1234-4000-8000-000000000001",
   referenceNumber: "IM-TEST",
   intakeStatus: "approved",
+}
+
+function createRescueSupabaseStub(results: Record<string, unknown[]>) {
+  return {
+    from(table: string) {
+      const result = { data: results[table] ?? [], error: null }
+      const query = {
+        select: () => query,
+        eq: () => query,
+        gte: () => query,
+        in: () => query,
+        order: () => query,
+        limit: () => Promise.resolve(result),
+        then: (resolve: (value: typeof result) => unknown, reject?: (reason: unknown) => unknown) =>
+          Promise.resolve(result).then(resolve, reject),
+      }
+
+      return query
+    },
+  }
 }
 
 describe("certificate delivery rescue", () => {
@@ -56,6 +77,109 @@ describe("certificate delivery rescue", () => {
     expect(row.recommendation.reason).toContain("downloaded")
     expect(row.accessEvidence).toBe("downloaded")
     expect(row.warnings).toContain("document_sent_at missing")
+  })
+
+  it("does not count safe downloaded timestamp drift as a rescue warning", async () => {
+    const supabase = createRescueSupabaseStub({
+      intakes: [
+        {
+          id: baseEvidence.intakeId,
+          reference_number: baseEvidence.referenceNumber,
+          status: "approved",
+          document_sent_at: null,
+          created_at: "2026-06-29T00:00:00Z",
+          updated_at: "2026-06-29T00:06:00Z",
+          approved_at: "2026-06-29T00:01:00Z",
+          completed_at: null,
+        },
+      ],
+      issued_certificates: [
+        {
+          id: "cert-downloaded",
+          intake_id: baseEvidence.intakeId,
+          status: "valid",
+          created_at: "2026-06-29T00:02:00Z",
+          email_sent_at: "2026-06-29T00:03:00Z",
+          email_failed_at: null,
+          email_failure_reason: null,
+          resend_count: 0,
+        },
+      ],
+      email_outbox: [
+        {
+          intake_id: baseEvidence.intakeId,
+          email_type: "med_cert_patient",
+          status: "sent",
+          delivery_status: "delivered",
+          sent_at: "2026-06-29T00:03:00Z",
+          created_at: "2026-06-29T00:03:00Z",
+        },
+      ],
+      certificate_audit_log: [
+        {
+          certificate_id: "cert-downloaded",
+          created_at: "2026-06-29T00:05:00Z",
+        },
+      ],
+    })
+
+    const overview = await getCertificateDeliveryRescueCases(supabase as never)
+
+    expect(overview.cases).toHaveLength(1)
+    expect(overview.cases[0]?.recommendation.action).toBe("none")
+    expect(overview.cases[0]?.warnings).toContain("document_sent_at missing")
+    expect(overview.actionCount).toBe(0)
+    expect(overview.warningCount).toBe(0)
+  })
+
+  it("counts queued certificate email delivery as a watch-only warning", async () => {
+    const supabase = createRescueSupabaseStub({
+      intakes: [
+        {
+          id: baseEvidence.intakeId,
+          reference_number: baseEvidence.referenceNumber,
+          status: "approved",
+          document_sent_at: null,
+          created_at: "2026-06-29T00:00:00Z",
+          updated_at: "2026-06-29T00:04:00Z",
+          approved_at: "2026-06-29T00:01:00Z",
+          completed_at: null,
+        },
+      ],
+      issued_certificates: [
+        {
+          id: "cert-queued",
+          intake_id: baseEvidence.intakeId,
+          status: "valid",
+          created_at: "2026-06-29T00:02:00Z",
+          email_sent_at: null,
+          email_failed_at: null,
+          email_failure_reason: null,
+          resend_count: 0,
+        },
+      ],
+      email_outbox: [
+        {
+          intake_id: baseEvidence.intakeId,
+          email_type: "med_cert_patient",
+          status: "pending",
+          delivery_status: null,
+          sent_at: null,
+          created_at: "2026-06-29T00:03:00Z",
+        },
+      ],
+      certificate_audit_log: [],
+    })
+
+    const overview = await getCertificateDeliveryRescueCases(supabase as never)
+
+    expect(overview.cases).toHaveLength(1)
+    expect(overview.cases[0]?.recommendation).toMatchObject({
+      action: "none",
+      severity: "warning",
+    })
+    expect(overview.actionCount).toBe(0)
+    expect(overview.warningCount).toBe(1)
   })
 
   it("recommends resending the secure link when a generated certificate email failed", () => {

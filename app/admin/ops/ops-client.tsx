@@ -171,6 +171,25 @@ function RecommendationBadge({ row }: { row: CertificateDeliveryRescueCase }) {
   )
 }
 
+function CertificateWarningNote({ row }: { row: CertificateDeliveryRescueCase }) {
+  if (row.warnings.length === 0) return null
+
+  const isRescueWarning = row.recommendation.severity !== "neutral"
+  const Icon = isRescueWarning ? AlertTriangle : Clock
+
+  return (
+    <p
+      className={cn(
+        "flex items-center gap-1.5 text-xs",
+        isRescueWarning ? "text-warning" : "text-muted-foreground",
+      )}
+    >
+      <Icon className="h-3.5 w-3.5" aria-hidden />
+      {isRescueWarning ? row.warnings.join(", ") : `Timestamp note: ${row.warnings.join(", ")}`}
+    </p>
+  )
+}
+
 export function OpsDashboardClient({
   counters,
   invariants,
@@ -404,12 +423,7 @@ export function OpsDashboardClient({
                     <div className="space-y-1">
                       <AccessSignal row={row} />
                       <p className="text-xs text-muted-foreground">{formatDateTime(row.accessedAt)}</p>
-                      {row.warnings.length > 0 ? (
-                        <p className="flex items-center gap-1.5 text-xs text-warning">
-                          <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
-                          {row.warnings.join(", ")}
-                        </p>
-                      ) : null}
+                      <CertificateWarningNote row={row} />
                     </div>
 
                     <div className="flex flex-col gap-2 xl:items-end">

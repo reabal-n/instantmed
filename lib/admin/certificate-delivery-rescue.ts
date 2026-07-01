@@ -331,6 +331,15 @@ function latestBy<T>(rows: T[], key: (row: T) => string | null | undefined, date
   return map
 }
 
+function summarizeCertificateDeliveryRescueCases(cases: CertificateDeliveryRescueCase[]) {
+  return {
+    actionCount: cases.filter((row) => row.recommendation.action !== "none").length,
+    warningCount: cases.filter(
+      (row) => row.recommendation.action === "none" && row.recommendation.severity === "warning",
+    ).length,
+  }
+}
+
 export async function getCertificateDeliveryRescueCases(
   supabase: SupabaseClient,
   options: { days?: number; limit?: number } = {},
@@ -496,11 +505,12 @@ export async function getCertificateDeliveryRescueCases(
         return new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime()
       })
       .slice(0, limit)
+    const summary = summarizeCertificateDeliveryRescueCases(cases)
 
     return {
       cases,
-      actionCount: cases.filter((row) => row.recommendation.action !== "none").length,
-      warningCount: cases.filter((row) => row.warnings.length > 0).length,
+      actionCount: summary.actionCount,
+      warningCount: summary.warningCount,
       queryFailed: false,
     }
   } catch (error) {
