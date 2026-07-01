@@ -68,18 +68,6 @@ export interface OpsDashboardClientProps {
   }>
   certificateDelivery: CertificateDeliveryRescueOverview
   canOpenEmailHub: boolean
-  heardAboutUs: {
-    answered: number
-    paidTotal: number
-    rows: Array<{ value: string; label: string; count: number }>
-  }
-  aiAttribution: {
-    weeks: number
-    totalAiOrders: number
-    paidTotal: number
-    bySource: Array<{ label: string; count: number }>
-    weekly: Array<{ weekStart: string; chatgpt: number; ai: number }>
-  }
 }
 
 function formatDateTime(value: string | null): string {
@@ -196,8 +184,6 @@ export function OpsDashboardClient({
   recoveries,
   certificateDelivery,
   canOpenEmailHub,
-  heardAboutUs,
-  aiAttribution,
 }: OpsDashboardClientProps) {
   const router = useRouter()
   const [resendingIntakeId, setResendingIntakeId] = useState<string | null>(null)
@@ -206,17 +192,6 @@ export function OpsDashboardClient({
   const [isPending, startTransition] = useTransition()
   const canRepairCertificateTimestamps =
     canOpenEmailHub && invariants.certificateSentMissingTimestamp.count > 0
-  const answerRate =
-    heardAboutUs.paidTotal > 0
-      ? Math.round((heardAboutUs.answered / heardAboutUs.paidTotal) * 100)
-      : 0
-  const heardRows = heardAboutUs.rows.filter((r) => r.count > 0)
-  const aiShare =
-    aiAttribution.paidTotal > 0
-      ? Math.round((aiAttribution.totalAiOrders / aiAttribution.paidTotal) * 100)
-      : 0
-  const maxWeeklyChatgpt = Math.max(1, ...aiAttribution.weekly.map((w) => w.chatgpt))
-
   const handleResendSecureLink = (intakeId: string) => {
     setResendingIntakeId(intakeId)
     startTransition(async () => {
@@ -520,93 +495,21 @@ export function OpsDashboardClient({
           </div>
         </section>
 
-        <section aria-label="Acquisition source">
-          <h2 className="mb-3 text-sm font-semibold tracking-tight text-foreground">
-            How did you hear about us? (30 days)
-          </h2>
-          <div className="rounded-xl border border-border/50 bg-card px-4 py-3 shadow-sm shadow-primary/[0.04]">
-            {heardAboutUs.answered === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No self-reported answers yet. The survey is forward-only (live since 9 Jun 2026);
-                answers appear here as new paid orders come in.
-              </p>
-            ) : (
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-                {heardRows.map((r) => (
-                  <span key={r.value} className="inline-flex items-baseline gap-1.5">
-                    <span className="font-semibold tabular-nums text-foreground">{r.count}</span>
-                    <span className="text-muted-foreground">{r.label}</span>
-                  </span>
-                ))}
-                <span className="ml-auto text-xs text-muted-foreground">
-                  {heardAboutUs.answered}/{heardAboutUs.paidTotal} answered ({answerRate}%)
-                </span>
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section aria-label="AI assistant acquisition">
-          <h2 className="mb-3 text-sm font-semibold tracking-tight text-foreground">
-            AI assistants ({aiAttribution.weeks} weeks)
-          </h2>
-          <div className="rounded-xl border border-border/50 bg-card px-4 py-3 shadow-sm shadow-primary/[0.04]">
-            {aiAttribution.totalAiOrders === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No AI-attributed paid orders yet. Counts orders arriving with an AI assistant
-                utm_source (ChatGPT appends one) — the cleanest measure of GEO / AI-citation
-                progress, and the metric to watch instead of the unused self-report survey.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-                  {aiAttribution.bySource.map((s) => (
-                    <span key={s.label} className="inline-flex items-baseline gap-1.5">
-                      <span className="font-semibold tabular-nums text-foreground">{s.count}</span>
-                      <span className="text-muted-foreground">{s.label}</span>
-                    </span>
-                  ))}
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {aiAttribution.totalAiOrders}/{aiAttribution.paidTotal} of paid orders ({aiShare}%)
-                  </span>
-                </div>
-                <div>
-                  <div className="flex items-end gap-1.5">
-                    {aiAttribution.weekly.map((w) => (
-                      <div
-                        key={w.weekStart}
-                        className="flex flex-1 flex-col items-center gap-1"
-                        title={`Week of ${w.weekStart}: ${w.chatgpt} ChatGPT order${w.chatgpt === 1 ? "" : "s"}`}
-                      >
-                        <div
-                          className="w-full rounded-sm bg-primary/70"
-                          style={{ height: `${Math.max(3, Math.round((w.chatgpt / maxWeeklyChatgpt) * 28))}px` }}
-                        />
-                        <span className="text-[10px] tabular-nums text-muted-foreground">{w.chatgpt}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="mt-1.5 text-[11px] text-muted-foreground">
-                    ChatGPT paid orders per week (oldest to newest)
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-
         <section
-          aria-label="Recent recoveries"
+          aria-label="Open exception feed"
           className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04]"
         >
           <header className="border-b border-border/40 px-4 py-3">
             <h2 className="text-sm font-semibold tracking-tight text-foreground">
-              Recent (7 days)
+              Open exception feed
             </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Payment, delivery, Parchment, and refund recovery rows. Stale script rows stay here until reconciled.
+            </p>
           </header>
           {recoveries.length === 0 ? (
             <div className="px-4 py-6 text-sm text-muted-foreground">
-              Nothing to recover. All systems clear.
+              No open exception rows from recovery sources.
             </div>
           ) : (
             <ul className="divide-y divide-border/40">

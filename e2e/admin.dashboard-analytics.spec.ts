@@ -50,11 +50,12 @@ test.describe("Admin - Analytics Dashboard", () => {
     expect(hasMetrics).toBe(true)
   })
 
-  test("analytics page stays focused on the three operator sections", async ({ page }) => {
+  test("analytics page keeps operator reporting source-of-truth sections", async ({ page }) => {
     await page.goto(STAFF_TEST_ROUTES.adminAnalytics)
     await waitForPageLoad(page)
 
     await expect(page.getByRole("heading", { name: "Revenue" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Acquisition attribution" })).toBeVisible()
     await expect(page.getByRole("heading", { name: "Conversion" })).toBeVisible()
     await expect(page.getByRole("heading", { name: "Queue health" })).toBeVisible()
     await expect(page.locator(".recharts-responsive-container, .recharts-wrapper")).toHaveCount(0)

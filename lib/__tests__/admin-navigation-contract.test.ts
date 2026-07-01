@@ -494,6 +494,7 @@ describe("admin navigation contract", () => {
 
   it("keeps analytics as a compact operator summary instead of a chart workspace", () => {
     expect(analyticsClientSource).toContain("Revenue")
+    expect(analyticsClientSource).toContain("Acquisition attribution")
     expect(analyticsClientSource).toContain("Conversion")
     expect(analyticsClientSource).toContain("Queue health")
     expect(analyticsClientSource).toContain("Deeper product analysis stays in PostHog")

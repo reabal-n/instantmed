@@ -170,12 +170,22 @@ export function AnalyticsDashboardClient({
   analytics,
   geographic,
 }: AnalyticsDashboardClientProps) {
-  const { businessScorecard, funnel, googleAds, googleAdsProfit, intakeFunnel, recoveryScorecard, prescriptionFulfilment, revenue, queueHealth } = analytics
+  const { aiAttribution, businessScorecard, funnel, googleAds, googleAdsProfit, heardAboutUs, intakeFunnel, recoveryScorecard, prescriptionFulfilment, revenue, queueHealth } = analytics
   const payRate = funnel.started > 0 ? Math.round((funnel.paid / funnel.started) * 100) : 0
   const completeRate = funnel.paid > 0 ? Math.round((funnel.completed / funnel.paid) * 100) : 0
   const googleAdsStatus = uploadHealthStatus(googleAds)
   const intakeFunnelSummary = intakeFunnel.summary
   const intakeFunnelBadge = intakeFunnelStatus(intakeFunnel)
+  const answerRate =
+    heardAboutUs.paidTotal > 0
+      ? Math.round((heardAboutUs.answered / heardAboutUs.paidTotal) * 100)
+      : 0
+  const heardRows = heardAboutUs.rows.filter((r) => r.count > 0)
+  const aiShare =
+    aiAttribution.paidTotal > 0
+      ? Math.round((aiAttribution.totalAiOrders / aiAttribution.paidTotal) * 100)
+      : 0
+  const maxWeeklyChatgpt = Math.max(1, ...aiAttribution.weekly.map((w) => w.chatgpt))
   const notificationIssueHref = prescriptionFulfilment.firstNotificationIssueIntakeId
     ? buildStaffEmailHubHref({
         tab: "queue",
@@ -448,6 +458,119 @@ export function AnalyticsDashboardClient({
             </DashboardCard>
           </section>
         ) : null}
+
+        <section aria-labelledby="acquisition-attribution-heading" className="space-y-3">
+          <div>
+            <h2 id="acquisition-attribution-heading" className="text-sm font-semibold text-foreground">
+              Acquisition attribution
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Self-reported source and persisted AI UTM signals. Ops stays reserved for recovery exceptions.
+            </p>
+          </div>
+
+          <div className="grid gap-3 xl:grid-cols-2">
+            <DashboardCard padding="md">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Megaphone className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="text-sm font-semibold text-foreground">
+                      How did you hear about us? (30 days)
+                    </h3>
+                  </div>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    Forward-only self-report survey, live since 9 Jun 2026.
+                  </p>
+                </div>
+                <StatusBadge status={heardAboutUs.answered > 0 ? "info" : "neutral"} size="sm">
+                  {heardAboutUs.answered}/{heardAboutUs.paidTotal} answered
+                </StatusBadge>
+              </div>
+
+              {heardAboutUs.answered === 0 ? (
+                <p className="mt-4 rounded-lg border border-border/60 bg-muted/30 px-3 py-3 text-sm text-muted-foreground">
+                  No self-reported answers yet.
+                </p>
+              ) : (
+                <div className="mt-4 space-y-2">
+                  {heardRows.map((row) => (
+                    <div
+                      key={row.value}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-sm"
+                    >
+                      <span className="text-muted-foreground">{row.label}</span>
+                      <span className="font-semibold tabular-nums text-foreground">{row.count}</span>
+                    </div>
+                  ))}
+                  <p className="pt-1 text-xs text-muted-foreground">
+                    Answer rate: {answerRate}%
+                  </p>
+                </div>
+              )}
+            </DashboardCard>
+
+            <DashboardCard padding="md">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="text-sm font-semibold text-foreground">
+                      AI assistants ({aiAttribution.weeks} weeks)
+                    </h3>
+                  </div>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    Paid orders with persisted AI assistant UTM source.
+                  </p>
+                </div>
+                <StatusBadge status={aiAttribution.totalAiOrders > 0 ? "info" : "neutral"} size="sm">
+                  {aiShare}% of paid
+                </StatusBadge>
+              </div>
+
+              {aiAttribution.totalAiOrders === 0 ? (
+                <p className="mt-4 rounded-lg border border-border/60 bg-muted/30 px-3 py-3 text-sm text-muted-foreground">
+                  No AI-attributed paid orders yet.
+                </p>
+              ) : (
+                <div className="mt-4 space-y-3">
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+                    {aiAttribution.bySource.map((source) => (
+                      <span key={source.label} className="inline-flex items-baseline gap-1.5">
+                        <span className="font-semibold tabular-nums text-foreground">{source.count}</span>
+                        <span className="text-muted-foreground">{source.label}</span>
+                      </span>
+                    ))}
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      {aiAttribution.totalAiOrders}/{aiAttribution.paidTotal} paid orders
+                    </span>
+                  </div>
+
+                  <div>
+                    <div className="flex items-end gap-1.5">
+                      {aiAttribution.weekly.map((week) => (
+                        <div
+                          key={week.weekStart}
+                          className="flex flex-1 flex-col items-center gap-1"
+                          title={`Week of ${week.weekStart}: ${week.chatgpt} ChatGPT order${week.chatgpt === 1 ? "" : "s"}`}
+                        >
+                          <div
+                            className="w-full rounded-sm bg-primary/70"
+                            style={{ height: `${Math.max(3, Math.round((week.chatgpt / maxWeeklyChatgpt) * 28))}px` }}
+                          />
+                          <span className="text-[10px] tabular-nums text-muted-foreground">{week.chatgpt}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="mt-1.5 text-[11px] text-muted-foreground">
+                      ChatGPT paid orders per week (oldest to newest)
+                    </p>
+                  </div>
+                </div>
+              )}
+            </DashboardCard>
+          </div>
+        </section>
 
         <section aria-labelledby="conversion-heading" className="space-y-3">
           <h2 id="conversion-heading" className="text-sm font-semibold text-foreground">Conversion</h2>

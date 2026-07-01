@@ -1,3 +1,5 @@
+import { type AiAttributionBreakdown } from "@/lib/admin/ai-attribution-breakdown"
+import { type HeardAboutUsBreakdown } from "@/lib/admin/heard-about-us-breakdown"
 import { type GoogleAdsHealth } from "@/lib/analytics/google-ads-health"
 import { type GoogleAdsProfitSnapshot } from "@/lib/analytics/google-ads-profit-summary"
 import { type PostHogIntakeFunnelSnapshot } from "@/lib/analytics/posthog-intake-funnel"
@@ -24,6 +26,8 @@ export interface AnalyticsData {
   googleAds: GoogleAdsHealth
   googleAdsProfit: GoogleAdsProfitSnapshot | null
   intakeFunnel: PostHogIntakeFunnelSnapshot
+  heardAboutUs: HeardAboutUsBreakdown
+  aiAttribution: AiAttributionBreakdown
   recoveryScorecard: RecoveryScorecard | null
   prescriptionFulfilment: PrescriptionFulfilmentDashboard
   businessScorecard: BusinessOperatingScorecard | null

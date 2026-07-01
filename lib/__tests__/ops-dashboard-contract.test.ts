@@ -15,6 +15,14 @@ const opsClientSource = readFileSync(
   join(process.cwd(), "app/admin/ops/ops-client.tsx"),
   "utf8",
 )
+const analyticsPageSource = readFileSync(
+  join(process.cwd(), "app/admin/analytics/page.tsx"),
+  "utf8",
+)
+const analyticsClientSource = readFileSync(
+  join(process.cwd(), "app/admin/analytics/analytics-client.tsx"),
+  "utf8",
+)
 const operatorPageSource = readFileSync(
   join(process.cwd(), "components/operator/operator-page.tsx"),
   "utf8",
@@ -145,9 +153,9 @@ describe("ops dashboard data contract", () => {
     expect(opsPageSource).toContain('if (error === "patient_not_found") return true')
   })
 
-  it("uses honest counter + feed labels (Stripe-scoped DLQ, 7-day recent window)", () => {
+  it("uses honest counter + feed labels (Stripe-scoped DLQ, open exception feed)", () => {
     expect(opsClientSource).toContain('label="Stripe webhook DLQ"')
-    expect(opsClientSource).toContain("Recent (7 days)")
+    expect(opsClientSource).toContain("Open exception feed")
     expect(opsClientSource).not.toContain('label="Webhook DLQ"')
     expect(opsClientSource).not.toContain("Recent (last 24h)")
   })
@@ -162,6 +170,25 @@ describe("ops dashboard data contract", () => {
     expect(opsPageSource).toContain("script handoff")
     expect(opsPageSource).toContain("webhook")
     expect(opsPageSource).toContain("blocked request")
+  })
+
+  it("keeps growth attribution owned by analytics instead of ops recovery", () => {
+    expect(opsPageSource).not.toContain("getHeardAboutUsBreakdown")
+    expect(opsPageSource).not.toContain("getAiAttributionBreakdown")
+    expect(opsClientSource).not.toContain("How did you hear about us?")
+    expect(opsClientSource).not.toContain("AI assistants")
+
+    expect(analyticsPageSource).toContain("getHeardAboutUsBreakdown")
+    expect(analyticsPageSource).toContain("getAiAttributionBreakdown")
+    expect(analyticsClientSource).toContain("Acquisition attribution")
+    expect(analyticsClientSource).toContain("How did you hear about us? (30 days)")
+    expect(analyticsClientSource).toContain("AI assistants")
+  })
+
+  it("labels the ops feed as open exceptions, not a strict recent window", () => {
+    expect(opsClientSource).toContain("Open exception feed")
+    expect(opsClientSource).toContain("Stale script rows stay here until reconciled")
+    expect(opsClientSource).not.toContain("Recent (7 days)")
   })
 
   it("does not render a second navigation menu at the bottom of ops", () => {

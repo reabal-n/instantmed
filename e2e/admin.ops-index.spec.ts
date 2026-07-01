@@ -36,8 +36,8 @@ test.describe("Ops Index Page", () => {
     await expect(page.getByText("Google Ads conversions")).toBeVisible()
     await expect(page.getByText("Paid + cancelled")).toBeVisible()
 
-    // Recent (7 days) block heading visible regardless of content
-    await expect(page.getByRole("heading", { name: /Recent \(7 days\)/ })).toBeVisible()
+    // Open exception feed visible regardless of content
+    await expect(page.getByRole("heading", { name: "Open exception feed" })).toBeVisible()
 
     // Retired headings must not appear
     await expect(page.getByRole("heading", { name: "Needs attention" })).toHaveCount(0)

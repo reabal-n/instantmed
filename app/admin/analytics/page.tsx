@@ -1,3 +1,5 @@
+import { getAiAttributionBreakdown } from "@/lib/admin/ai-attribution-breakdown"
+import { getHeardAboutUsBreakdown } from "@/lib/admin/heard-about-us-breakdown"
 import { EMPTY_GOOGLE_ADS_HEALTH, getGoogleAdsHealth } from "@/lib/analytics/google-ads-health"
 import { buildGoogleAdsProfitSnapshot } from "@/lib/analytics/google-ads-profit-summary"
 import { getGoogleAdsSpendAuditReport } from "@/lib/analytics/google-ads-report"
@@ -102,6 +104,12 @@ export default async function AnalyticsDashboardPage() {
 
     // [13] PostHog product funnel: aggregate-only step friction and drop-off
     getPostHogIntakeFunnelSnapshot({ days: 30, now }),
+
+    // [14] Self-reported acquisition source, kept here so ops stays recovery-only
+    getHeardAboutUsBreakdown(supabase, { days: 30 }),
+
+    // [15] Persisted AI-assistant UTM source attribution
+    getAiAttributionBreakdown(supabase, { weeks: 8 }),
   ])
 
   // Extract results with safe fallbacks
@@ -139,6 +147,12 @@ export default async function AnalyticsDashboardPage() {
       now,
       reason: "PostHog funnel query failed before returning a snapshot.",
     })
+  const heardAboutUs = results[14].status === "fulfilled"
+    ? results[14].value
+    : { answered: 0, paidTotal: 0, rows: [] }
+  const aiAttribution = results[15].status === "fulfilled"
+    ? results[15].value
+    : { weeks: 8, totalAiOrders: 0, paidTotal: 0, bySource: [], weekly: [] }
 
   // Calculate revenue totals
   const monthRevenue = (revenueResult.data || []).reduce(
@@ -170,6 +184,8 @@ export default async function AnalyticsDashboardPage() {
     googleAds,
     googleAdsProfit,
     intakeFunnel,
+    heardAboutUs,
+    aiAttribution,
     recoveryScorecard,
     prescriptionFulfilment,
     businessScorecard,

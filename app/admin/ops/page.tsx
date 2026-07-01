@@ -1,6 +1,4 @@
-import { getAiAttributionBreakdown } from "@/lib/admin/ai-attribution-breakdown"
 import { getCertificateDeliveryRescueCases } from "@/lib/admin/certificate-delivery-rescue"
-import { getHeardAboutUsBreakdown } from "@/lib/admin/heard-about-us-breakdown"
 import { buildOperationalFailureOverview } from "@/lib/admin/ops-failures"
 import {
   approvedCertificateMissingRecordHelper,
@@ -137,8 +135,6 @@ export default async function OpsDashboardPage() {
     operationalInvariants,
     googleAdsConversionHealth,
     certificateDeliveryRescue,
-    heardAboutUsBreakdown,
-    aiAttributionBreakdown,
   ] = await Promise.all([
     supabase
       .from("stripe_webhook_dead_letter")
@@ -227,8 +223,6 @@ export default async function OpsDashboardPage() {
     getOperationalInvariants(supabase),
     getGoogleAdsConversionUploadHealth(supabase, { lookbackDays: 7 }),
     getCertificateDeliveryRescueCases(supabase, { days: 14, limit: 12 }),
-    getHeardAboutUsBreakdown(supabase, { days: 30 }),
-    getAiAttributionBreakdown(supabase, { weeks: 8 }),
   ])
 
   const prescriptionWebhookFailures = (
@@ -375,8 +369,6 @@ export default async function OpsDashboardPage() {
       recoveries={recoveries}
       certificateDelivery={certificateDeliveryRescue}
       canOpenEmailHub={isAdmin}
-      heardAboutUs={heardAboutUsBreakdown}
-      aiAttribution={aiAttributionBreakdown}
     />
   )
 }

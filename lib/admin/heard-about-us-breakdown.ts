@@ -18,7 +18,7 @@ const EMPTY_ROWS = () =>
   HEARD_ABOUT_US_OPTIONS.map((o) => ({ value: o.value, label: o.label, count: 0 }))
 
 /**
- * Self-reported "How did you hear about us?" breakdown for /admin/ops.
+ * Self-reported "How did you hear about us?" breakdown for /admin/analytics.
  *
  * Counts paid orders in the trailing window by their `heard_about_us` token,
  * filtering out seeded E2E + excluded-from-reporting rows (same boundary the

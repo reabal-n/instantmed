@@ -59,7 +59,7 @@ function mondayUTC(d: Date): Date {
 }
 
 /**
- * AI-assistant acquisition breakdown for /admin/ops.
+ * AI-assistant acquisition breakdown for /admin/analytics.
  *
  * Counts paid orders by AI-engine `utm_source`, plus a per-week ChatGPT/total-AI
  * trend so the operator can see whether GEO / off-page work is moving the only
