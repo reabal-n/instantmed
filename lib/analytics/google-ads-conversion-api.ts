@@ -73,6 +73,8 @@ type ClickIdentifier = {
   wbraid?: string
 }
 
+export type GoogleAdsConversionAdjustmentType = "RETRACTION" | "RESTATEMENT"
+
 type GoogleAdsConsentStatus = "GRANTED" | "DENIED" | "UNSPECIFIED"
 
 type GoogleAdsClickConversionConsent = {
@@ -100,6 +102,30 @@ interface GoogleAdsClickConversionRequest {
     userIdentifiers?: GoogleAdsUserIdentifier[]
   } & ClickIdentifier>
   jobId?: number
+  partialFailure: true
+}
+
+interface FireConversionAdjustmentInput {
+  /** Stable per-purchase order id from the original Google Ads import. */
+  orderId: string
+  /** RETRACTION for full value removal; RESTATEMENT for partial retained value. */
+  adjustmentType: GoogleAdsConversionAdjustmentType
+  /** Required for RESTATEMENT, omitted for RETRACTION. Dollars in AUD. */
+  adjustedValue?: number | null
+  /** When the refund/dispute adjustment happened. Defaults to now. */
+  adjustmentDateTime?: Date
+}
+
+interface GoogleAdsConversionAdjustmentRequest {
+  conversionAdjustments: Array<{
+    adjustmentDateTime: string
+    adjustmentType: GoogleAdsConversionAdjustmentType
+    conversionAction: string
+    orderId: string
+    restatementValue?: {
+      adjustedValue: number
+    }
+  }>
   partialFailure: true
 }
 
@@ -436,6 +462,13 @@ export function getGoogleAdsUploadClickConversionsUrl(
   return `https://googleads.googleapis.com/${apiVersion}/customers/${customerId}:uploadClickConversions`
 }
 
+export function getGoogleAdsUploadConversionAdjustmentsUrl(
+  customerId: string,
+  apiVersion = process.env.GOOGLE_ADS_API_VERSION || DEFAULT_GOOGLE_ADS_API_VERSION,
+): string {
+  return `https://googleads.googleapis.com/${apiVersion}/customers/${customerId}:uploadConversionAdjustments`
+}
+
 export function getGoogleAdsSearchUrl(
   customerId: string,
   apiVersion = process.env.GOOGLE_ADS_API_VERSION || DEFAULT_GOOGLE_ADS_API_VERSION,
@@ -489,6 +522,38 @@ export function buildGoogleAdsClickConversionRequest(
     ],
     // Do not pin jobId. Google assigns a unique diagnostics job id per request
     // when omitted, which gives operations a fresh watch target after each upload.
+    partialFailure: true,
+  }
+}
+
+export function buildGoogleAdsConversionAdjustmentRequest(
+  input: FireConversionAdjustmentInput,
+  config: { customerId: string; conversionActionId: string },
+): GoogleAdsConversionAdjustmentRequest | null {
+  const conversionActionId = normalizeGoogleAdsNumericId(config.conversionActionId)
+  const orderId = input.orderId.trim()
+  if (!conversionActionId || !orderId) return null
+
+  if (input.adjustmentType === "RESTATEMENT") {
+    if (typeof input.adjustedValue !== "number") return null
+    if (!Number.isFinite(input.adjustedValue) || input.adjustedValue < 0) return null
+  }
+
+  const conversionAdjustment: GoogleAdsConversionAdjustmentRequest["conversionAdjustments"][number] = {
+    adjustmentDateTime: formatGoogleAdsDateTime(input.adjustmentDateTime ?? new Date()),
+    adjustmentType: input.adjustmentType,
+    conversionAction: `customers/${config.customerId}/conversionActions/${conversionActionId}`,
+    orderId,
+  }
+
+  if (input.adjustmentType === "RESTATEMENT") {
+    conversionAdjustment.restatementValue = {
+      adjustedValue: input.adjustedValue!,
+    }
+  }
+
+  return {
+    conversionAdjustments: [conversionAdjustment],
     partialFailure: true,
   }
 }
@@ -787,6 +852,105 @@ export async function fireGoogleAdsPurchaseConversion(
     const message = err instanceof Error ? err.message : String(err)
     logger.error("Google Ads Conversion API threw", { orderId: input.orderId, error: message })
     Sentry.captureException(err, { tags: { route: "google-ads-conversion-api" } })
+    return { attempted: true, ok: false, error: message }
+  }
+}
+
+export async function fireGoogleAdsConversionAdjustment(
+  input: FireConversionAdjustmentInput,
+): Promise<GoogleAdsConversionUploadResult> {
+  const config = getGoogleAdsPurchaseConversionConfig()
+
+  if (!config) {
+    logger.warn("Google Ads conversion adjustment skipped - missing env vars", {
+      hasCustomerId: !!process.env.GOOGLE_ADS_CUSTOMER_ID,
+      hasDeveloperToken: !!process.env.GOOGLE_ADS_DEVELOPER_TOKEN,
+      hasConversionActionId: !!process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE,
+    })
+    return { attempted: false, error: "missing_env" }
+  }
+
+  const body = buildGoogleAdsConversionAdjustmentRequest(input, config)
+  if (!body) {
+    return { attempted: false, error: "invalid_adjustment" }
+  }
+
+  const accessToken = await fetchAccessToken()
+  if (!accessToken) {
+    logger.warn("Google Ads conversion adjustment skipped - failed to get access token")
+    return { attempted: false, error: "no_access_token" }
+  }
+
+  try {
+    const url = getGoogleAdsUploadConversionAdjustmentsUrl(config.customerId, config.apiVersion)
+    const res = await fetch(url, {
+      method: "POST",
+      headers: buildGoogleAdsAuthHeaders(config, accessToken),
+      body: JSON.stringify(body),
+    })
+
+    const responseBody = await res.text()
+    if (!res.ok) {
+      const errorCode = extractGoogleAdsErrorCode(responseBody, res.status)
+      logger.error("Google Ads conversion adjustment failed", {
+        adjustmentType: input.adjustmentType,
+        orderId: input.orderId,
+        status: res.status,
+      })
+      Sentry.captureMessage("Google Ads conversion adjustment non-200", {
+        level: "warning",
+        extra: {
+          adjustmentType: input.adjustmentType,
+          error: errorCode,
+          orderId: input.orderId,
+          status: res.status,
+        },
+      })
+      return { attempted: true, ok: false, error: errorCode }
+    }
+
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(responseBody)
+    } catch {
+      parsed = null
+    }
+    const partialFailure =
+      typeof parsed === "object" && parsed !== null && "partialFailureError" in parsed
+        ? (parsed as { partialFailureError?: { message?: string } }).partialFailureError
+        : undefined
+    if (partialFailure?.message) {
+      const errorCode = extractGoogleAdsErrorCode(responseBody, 200)
+      logger.warn("Google Ads conversion adjustment partial failure", {
+        adjustmentType: input.adjustmentType,
+        orderId: input.orderId,
+        message: partialFailure.message,
+      })
+      Sentry.captureMessage("Google Ads conversion adjustment partial failure", {
+        level: "warning",
+        extra: {
+          adjustmentType: input.adjustmentType,
+          error: errorCode,
+          orderId: input.orderId,
+          message: partialFailure.message,
+        },
+      })
+      return { attempted: true, ok: false, error: errorCode }
+    }
+
+    logger.info("Google Ads conversion adjustment success", {
+      adjustmentType: input.adjustmentType,
+      orderId: input.orderId,
+    })
+    return { attempted: true, ok: true }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    logger.error("Google Ads conversion adjustment threw", {
+      adjustmentType: input.adjustmentType,
+      orderId: input.orderId,
+      error: message,
+    })
+    Sentry.captureException(err, { tags: { route: "google-ads-conversion-adjustment-api" } })
     return { attempted: true, ok: false, error: message }
   }
 }

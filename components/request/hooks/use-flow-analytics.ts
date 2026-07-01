@@ -94,7 +94,7 @@ export function useFlowAnalytics({
     startedFiredRef.current = false
   }, [serviceType])
 
-  // Track step views in PostHog + fire gtag funnel_step for remarketing audiences
+  // Track step views in PostHog + generic gtag funnel_step analytics.
   useEffect(() => {
     if (currentStep && serviceType) {
       // Reset timer whenever the visible step changes
@@ -126,8 +126,8 @@ export function useFlowAnalytics({
         }),
       )
 
-      // Fire gtag funnel_step event for every step transition.
-      // Enables Google Ads remarketing audiences (e.g. "reached step 3 but didn't check out").
+      // Fire a generic gtag funnel_step event for aggregate diagnostics only.
+      // Do not use these health-flow events for Google Ads remarketing audiences.
       trackStepEventDeferred({
         stepName: currentStep.id,
         stepIndex: currentStepIndex,

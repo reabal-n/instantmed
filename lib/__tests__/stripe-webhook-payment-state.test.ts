@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   },
   listCheckoutSessions: vi.fn(),
   notifyPaymentReceived: vi.fn(),
+  runGoogleAdsConversionAdjustment: vi.fn(),
   sendPaymentFailedEmail: vi.fn(),
   sendPaidRequestTelegramNotification: vi.fn(),
   sendSessionExpiredEmail: vi.fn(),
@@ -37,6 +38,10 @@ vi.mock("@/lib/analytics/posthog-server", () => ({
   getPostHogClient: mocks.getPostHogClient,
   trackBusinessMetric: mocks.trackBusinessMetric,
   trackIntakeFunnelStep: mocks.trackIntakeFunnelStep,
+}))
+
+vi.mock("@/lib/analytics/google-ads-conversion-adjustments", () => ({
+  runGoogleAdsConversionAdjustment: mocks.runGoogleAdsConversionAdjustment,
 }))
 
 vi.mock("@/app/actions/generate-drafts", () => ({
@@ -438,6 +443,49 @@ describe("Stripe webhook payment state transitions", () => {
       refunded_at: refundedAt,
       status: "refunded",
       stripe_refund_id: "re_partial",
+    })
+  })
+
+  it("schedules a Google Ads retained-value adjustment after a Stripe refund", async () => {
+    const { supabase } = createWebhookSupabaseMock({
+      data: [{ id: "intake-1" }],
+      error: null,
+    })
+
+    await handleChargeRefunded({
+      event: makeEvent("charge.refunded", {
+        amount: 4995,
+        amount_refunded: 1995,
+        id: "ch_refunded",
+        payment_intent: "pi_refunded",
+        refunds: {
+          data: [
+            {
+              amount: 1995,
+              created: Math.floor(Date.parse("2026-04-14T12:37:28.000Z") / 1000),
+              id: "re_partial",
+              status: "succeeded",
+            },
+          ],
+        },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    for (const [callback] of mocks.after.mock.calls) {
+      await callback()
+    }
+
+    expect(mocks.runGoogleAdsConversionAdjustment).toHaveBeenCalledWith({
+      adjustmentDateTime: new Date("2026-04-14T12:37:28.000Z"),
+      amountCents: 4995,
+      intakeId: "intake-1",
+      paymentStatus: "partially_refunded",
+      refundAmountCents: 1995,
+      requestPath: "/api/stripe/webhook",
+      source: "stripe_charge_refunded",
+      supabase,
     })
   })
 

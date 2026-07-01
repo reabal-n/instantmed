@@ -198,7 +198,10 @@ export const GOOGLE_ADS_UPLOAD_STREAM_STALL_DAYS = 3
  */
 export type GoogleAdsUploadStreamHealth = {
   dataManagerSuccesses: number
+  failedUploads: number
   generatedAt: string
+  latestFailedAt: string | null
+  latestFailureCode: string | null
   lastSuccessfulUploadAt: string | null
   legacySuccesses: number
   lookbackDays: number
@@ -224,6 +227,27 @@ export type GoogleAdsUploadStreamStalledAlert = {
     window_days: number
   }
   metric: "google_ads_conversion_uploads_stalled"
+  severity: "critical"
+}
+
+export type GoogleAdsUploadPartialFailureAlert = {
+  count: number
+  detail: string
+  metadata: {
+    data_manager_successes: number
+    failed_uploads: number
+    failure_rate: number
+    generated_at: string
+    latest_failed_at: string | null
+    latest_failure_code: string | null
+    legacy_successes: number
+    paid_orders: number
+    successful_uploads: number
+    upload_attempts: number
+    window: string
+    window_days: number
+  }
+  metric: "google_ads_conversion_upload_partial_failures"
   severity: "critical"
 }
 
@@ -260,6 +284,53 @@ export function buildGoogleAdsUploadStreamStalledAlert(
       window_days: health.lookbackDays,
     },
     metric: "google_ads_conversion_uploads_stalled",
+    severity: "critical",
+  }
+}
+
+export const GOOGLE_ADS_UPLOAD_PARTIAL_FAILURE_MIN_FAILED = 3
+export const GOOGLE_ADS_UPLOAD_PARTIAL_FAILURE_RATE_THRESHOLD = 0.25
+
+function roundRate(value: number): number {
+  return Math.round(value * 1000) / 1000
+}
+
+export function buildGoogleAdsUploadPartialFailureAlert(
+  health: GoogleAdsUploadStreamHealth,
+): GoogleAdsUploadPartialFailureAlert | null {
+  if (health.queryFailed) return null
+  if (health.paidOrders <= 0) return null
+  if (health.successfulUploads <= 0) return null
+  if (health.failedUploads < GOOGLE_ADS_UPLOAD_PARTIAL_FAILURE_MIN_FAILED) return null
+
+  const uploadAttempts = health.successfulUploads + health.failedUploads
+  if (uploadAttempts <= 0) return null
+
+  const failureRate = roundRate(health.failedUploads / uploadAttempts)
+  if (failureRate < GOOGLE_ADS_UPLOAD_PARTIAL_FAILURE_RATE_THRESHOLD) return null
+
+  return {
+    count: health.failedUploads,
+    detail:
+      `Partial Google Ads conversion upload failures: ${health.failedUploads} failed ` +
+      `of ${uploadAttempts} completed upload attempt${uploadAttempts === 1 ? "" : "s"} ` +
+      `(${Math.round(failureRate * 100)}%) in ${health.lookbackDays}d while ` +
+      `${health.successfulUploads} still succeeded. Smart Bidding may be partially blind.`,
+    metadata: {
+      data_manager_successes: health.dataManagerSuccesses,
+      failed_uploads: health.failedUploads,
+      failure_rate: failureRate,
+      generated_at: health.generatedAt,
+      latest_failed_at: health.latestFailedAt,
+      latest_failure_code: health.latestFailureCode,
+      legacy_successes: health.legacySuccesses,
+      paid_orders: health.paidOrders,
+      successful_uploads: health.successfulUploads,
+      upload_attempts: uploadAttempts,
+      window: `${health.lookbackDays}d`,
+      window_days: health.lookbackDays,
+    },
+    metric: "google_ads_conversion_upload_partial_failures",
     severity: "critical",
   }
 }

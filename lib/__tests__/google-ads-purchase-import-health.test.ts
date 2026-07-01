@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest"
 import {
   buildGoogleAdsPurchaseImportAlert,
   buildGoogleAdsUploadAuditSourceAnomalyAlert,
+  buildGoogleAdsUploadPartialFailureAlert,
   buildGoogleAdsUploadStreamStalledAlert,
   type GoogleAdsPurchaseImportHealthSnapshot,
   type GoogleAdsUploadStreamHealth,
@@ -172,6 +173,7 @@ describe("Google Ads purchase import health", () => {
     expect(cron).toContain("buildGoogleAdsPurchaseImportAlert")
     expect(cron).toContain("buildGoogleAdsUploadAuditSourceAnomalyAlert")
     expect(cron).toContain("buildGoogleAdsUploadStreamStalledAlert")
+    expect(cron).toContain("buildGoogleAdsUploadPartialFailureAlert")
     expect(cron).toContain("getGoogleAdsUploadStreamHealth")
     expect(cron).toContain("google_ads_purchase_import_health")
     expect(posthog).toContain("'google_ads_purchase_enhanced_conversions_setup_incomplete'")
@@ -179,6 +181,7 @@ describe("Google Ads purchase import health", () => {
     expect(posthog).toContain("'google_ads_purchase_primary_conversions_zero'")
     expect(posthog).toContain("'google_ads_upload_audit_source_anomaly'")
     expect(posthog).toContain("'google_ads_conversion_uploads_stalled'")
+    expect(posthog).toContain("'google_ads_conversion_upload_partial_failures'")
   })
 })
 
@@ -188,7 +191,10 @@ describe("Google Ads upload stream stall detector", () => {
   ): GoogleAdsUploadStreamHealth {
     return {
       dataManagerSuccesses: 5,
+      failedUploads: 0,
       generatedAt: "2026-06-30T09:00:00.000Z",
+      latestFailedAt: null,
+      latestFailureCode: null,
       lastSuccessfulUploadAt: "2026-06-30T08:59:05.006Z",
       legacySuccesses: 0,
       lookbackDays: 3,
@@ -253,5 +259,56 @@ describe("Google Ads upload stream stall detector", () => {
       streamHealth({ paidOrders: 4, successfulUploads: 0, dataManagerSuccesses: 0 }),
     )
     expect(alert?.metric).toBe("google_ads_conversion_uploads_stalled")
+  })
+
+  it("does not page partial failures when all uploads are failing", () => {
+    expect(
+      buildGoogleAdsUploadPartialFailureAlert(
+        streamHealth({
+          dataManagerSuccesses: 0,
+          failedUploads: 9,
+          lastSuccessfulUploadAt: null,
+          successfulUploads: 0,
+        }),
+      ),
+    ).toBeNull()
+  })
+
+  it("does not page partial failures below the minimum count threshold", () => {
+    expect(
+      buildGoogleAdsUploadPartialFailureAlert(
+        streamHealth({
+          failedUploads: 2,
+          successfulUploads: 10,
+        }),
+      ),
+    ).toBeNull()
+  })
+
+  it("pages critical when successful uploads continue but the failure rate is elevated", () => {
+    const alert = buildGoogleAdsUploadPartialFailureAlert(
+      streamHealth({
+        dataManagerSuccesses: 9,
+        failedUploads: 3,
+        latestFailedAt: "2026-06-30T08:55:05.006Z",
+        latestFailureCode: "http_500",
+        successfulUploads: 9,
+      }),
+    )
+
+    expect(alert).toMatchObject({
+      metric: "google_ads_conversion_upload_partial_failures",
+      severity: "critical",
+      count: 3,
+      metadata: {
+        failed_uploads: 3,
+        failure_rate: 0.25,
+        latest_failed_at: "2026-06-30T08:55:05.006Z",
+        latest_failure_code: "http_500",
+        successful_uploads: 9,
+        window: "3d",
+      },
+    })
+    expect(alert?.detail.toLowerCase()).toContain("partial google ads conversion upload failures")
   })
 })

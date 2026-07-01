@@ -56,4 +56,22 @@ describe("Google Ads conversion-value accuracy contract", () => {
     // Conversion gated on a real amount_cents being present.
     expect(source).toContain("if (amountCents == null) return")
   })
+
+  it("browser PostHog purchase events are deduped by intake across success surfaces", () => {
+    const successSource = read("app/patient/intakes/success/success-client.tsx")
+    const completeAccountSource = read("app/auth/complete-account/complete-account-form.tsx")
+
+    for (const source of [successSource, completeAccountSource]) {
+      expect(source).toContain("claimBrowserPurchaseCompleted")
+      expect(source).toContain("$insert_id: getBrowserPurchaseCompletedInsertId(intakeId)")
+    }
+  })
+
+  it("advertising docs make the offline purchase import primary and funnel actions secondary", () => {
+    const source = read("docs/ADVERTISING_COMPLIANCE.md")
+
+    expect(source).toContain("canonical Primary purchase conversion")
+    expect(source).toContain("Funnel milestones and page/intake/checkout actions must stay Secondary")
+    expect(source).not.toContain("Keep the offline import action secondary")
+  })
 })

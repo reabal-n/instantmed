@@ -11,6 +11,10 @@ import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { PulseSpinner } from "@/components/ui/spinner"
 import { getAttribution } from "@/lib/analytics/attribution"
+import {
+  claimBrowserPurchaseCompleted,
+  getBrowserPurchaseCompletedInsertId,
+} from "@/lib/analytics/browser-purchase-dedup"
 import { trackPurchase } from "@/lib/analytics/conversion-tracking"
 import type { WaitState } from "@/lib/brand/wait-counter"
 import { PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
@@ -254,40 +258,43 @@ export function SuccessClient({
     // was cleared by the Stripe redirect or by privacy-restricted browsers.
     if (!posthogPurchaseFiredRef.current && posthog) {
       posthogPurchaseFiredRef.current = true
-      const attribution = getAttribution()
-      const cameFromRecoveryEmail = attribution.utm_source === 'recovery_email'
+      if (claimBrowserPurchaseCompleted(intakeId)) {
+        const attribution = getAttribution()
+        const cameFromRecoveryEmail = attribution.utm_source === 'recovery_email'
 
-      posthog.capture('purchase_completed', {
-        intake_id: intakeId,
-        service: serviceName || "unknown",
-        value: valueDollars,
-        currency: 'AUD',
-        came_from_recovery_email: cameFromRecoveryEmail,
-        utm_source: attribution.utm_source,
-        utm_medium: attribution.utm_medium,
-        utm_campaign: attribution.utm_campaign,
-        utm_content: attribution.utm_content,
-        gclid: attribution.gclid,
-        gbraid: attribution.gbraid,
-        wbraid: attribution.wbraid,
-        campaignid: attribution.campaignid,
-        keyword: attribution.keyword,
-        landing_page: attribution.landing_page,
-        has_gclid: Boolean(attribution.gclid),
-        has_utm_source: Boolean(attribution.utm_source),
-        has_campaignid: Boolean(attribution.campaignid),
-      })
-
-      // Dedicated event for the recovery-email funnel measurement. Keeps the
-      // PostHog "purchases by hero variant" insight clean while enabling a
-      // separate "purchases that came from recovery emails" insight.
-      if (cameFromRecoveryEmail) {
-        posthog.capture('purchase_came_from_recovery_email', {
+        posthog.capture('purchase_completed', {
+          $insert_id: getBrowserPurchaseCompletedInsertId(intakeId),
           intake_id: intakeId,
           service: serviceName || "unknown",
           value: valueDollars,
           currency: 'AUD',
+          came_from_recovery_email: cameFromRecoveryEmail,
+          utm_source: attribution.utm_source,
+          utm_medium: attribution.utm_medium,
+          utm_campaign: attribution.utm_campaign,
+          utm_content: attribution.utm_content,
+          gclid: attribution.gclid,
+          gbraid: attribution.gbraid,
+          wbraid: attribution.wbraid,
+          campaignid: attribution.campaignid,
+          keyword: attribution.keyword,
+          landing_page: attribution.landing_page,
+          has_gclid: Boolean(attribution.gclid),
+          has_utm_source: Boolean(attribution.utm_source),
+          has_campaignid: Boolean(attribution.campaignid),
         })
+
+        // Dedicated event for the recovery-email funnel measurement. Keeps the
+        // PostHog "purchases by hero variant" insight clean while enabling a
+        // separate "purchases that came from recovery emails" insight.
+        if (cameFromRecoveryEmail) {
+          posthog.capture('purchase_came_from_recovery_email', {
+            intake_id: intakeId,
+            service: serviceName || "unknown",
+            value: valueDollars,
+            currency: 'AUD',
+          })
+        }
       }
     }
   }, [intakeId, serviceName, resolvedAmountCents, patientEmail, posthog, isNewCustomer])

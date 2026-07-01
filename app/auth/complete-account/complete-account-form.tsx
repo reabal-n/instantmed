@@ -11,6 +11,10 @@ import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
 import { Confetti } from "@/components/ui/confetti"
 import { getAttribution } from "@/lib/analytics/attribution"
+import {
+  claimBrowserPurchaseCompleted,
+  getBrowserPurchaseCompletedInsertId,
+} from "@/lib/analytics/browser-purchase-dedup"
 import { trackPurchase } from "@/lib/analytics/conversion-tracking"
 import { buildPostSignInHref } from "@/lib/navigation/auth-handoff"
 import { useAuth } from "@/lib/supabase/auth-provider"
@@ -87,27 +91,30 @@ export function CompleteAccountForm({
     // dropped sessionStorage on mobile Safari.
     if (!posthogPurchaseFiredRef.current && posthog) {
       posthogPurchaseFiredRef.current = true
-      const attribution = getAttribution()
-      posthog.capture('purchase_completed', {
-        intake_id: intakeId,
-        service: serviceSlug || "unknown",
-        value: valueDollars,
-        currency: 'AUD',
-        guest_checkout: true,
-        utm_source: attribution.utm_source,
-        utm_medium: attribution.utm_medium,
-        utm_campaign: attribution.utm_campaign,
-        utm_content: attribution.utm_content,
-        gclid: attribution.gclid,
-        gbraid: attribution.gbraid,
-        wbraid: attribution.wbraid,
-        campaignid: attribution.campaignid,
-        keyword: attribution.keyword,
-        landing_page: attribution.landing_page,
-        has_gclid: Boolean(attribution.gclid),
-        has_utm_source: Boolean(attribution.utm_source),
-        has_campaignid: Boolean(attribution.campaignid),
-      })
+      if (claimBrowserPurchaseCompleted(intakeId)) {
+        const attribution = getAttribution()
+        posthog.capture('purchase_completed', {
+          $insert_id: getBrowserPurchaseCompletedInsertId(intakeId),
+          intake_id: intakeId,
+          service: serviceSlug || "unknown",
+          value: valueDollars,
+          currency: 'AUD',
+          guest_checkout: true,
+          utm_source: attribution.utm_source,
+          utm_medium: attribution.utm_medium,
+          utm_campaign: attribution.utm_campaign,
+          utm_content: attribution.utm_content,
+          gclid: attribution.gclid,
+          gbraid: attribution.gbraid,
+          wbraid: attribution.wbraid,
+          campaignid: attribution.campaignid,
+          keyword: attribution.keyword,
+          landing_page: attribution.landing_page,
+          has_gclid: Boolean(attribution.gclid),
+          has_utm_source: Boolean(attribution.utm_source),
+          has_campaignid: Boolean(attribution.campaignid),
+        })
+      }
     }
   }, [intakeId, amountCents, serviceSlug, serviceName, email, isNewCustomer, posthog])
 

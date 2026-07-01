@@ -45,6 +45,8 @@ describe("Google Ads attribution contract", () => {
     expect(runner).not.toContain("metadata: { gclid")
 
     expect(cron).toContain("runGoogleAdsPostPaymentAttribution")
+    expect(cron).toContain("runGoogleAdsConversionAdjustment")
+    expect(cron).toContain("GOOGLE_ADS_CONVERSION_ADJUSTMENT_AUDIT_ACTION")
     expect(cron).toContain("preflightGoogleAdsPurchaseConversionAction")
     expect(cron).toContain("Enhanced conversions can match with hashed first-party data")
     expect(cron).not.toContain(".filter(isLikelyGoogleAttributed)")
@@ -60,6 +62,39 @@ describe("Google Ads attribution contract", () => {
     expect(vercel).toContain("/api/cron/google-ads-diagnostics-watch")
     expect(heartbeat).toContain('"google-ads-conversions"')
     expect(heartbeat).toContain('"google-ads-diagnostics-watch"')
+  })
+
+  it("keeps refund and dispute adjustments wired to Stripe truth", () => {
+    const refunded = read("app/api/stripe/webhook/handlers/charge-refunded.ts")
+    const disputed = read("app/api/stripe/webhook/handlers/charge-dispute-created.ts")
+
+    expect(refunded).toContain("runGoogleAdsConversionAdjustment")
+    expect(refunded).toContain('source: "stripe_charge_refunded"')
+    expect(refunded).toContain('requestPath: "/api/stripe/webhook"')
+
+    expect(disputed).toContain("runGoogleAdsConversionAdjustment")
+    expect(disputed).toContain('source: "stripe_charge_dispute_created"')
+    expect(disputed).toContain('requestPath: "/api/stripe/webhook"')
+  })
+
+  it("documents net retained purchase value as the Google Ads bidding truth", () => {
+    const context = read("CONTEXT.md")
+    const adr = read("docs/adr/0001-google-ads-net-retained-purchase-value.md")
+    const advertising = read("docs/ADVERTISING_COMPLIANCE.md")
+    const architecture = read("docs/ARCHITECTURE.md")
+    const operations = read("docs/OPERATIONS.md")
+
+    for (const source of [context, adr, advertising, architecture, operations]) {
+      expect(source).toContain("Net Retained Purchase Value")
+      expect(source).toContain("google_ads_conversion_adjustment")
+    }
+
+    expect(adr).toContain("RETRACTION")
+    expect(adr).toContain("RESTATEMENT")
+    expect(advertising).toContain("Primary")
+    expect(advertising).toContain("Secondary")
+    expect(architecture).toContain("refunds and disputes adjust that same Google Ads order")
+    expect(operations).toContain("partial refunds restate the retained AUD value")
   })
 
   it("does not expose Google Ads account mutation from the scheduled backfill route", () => {
