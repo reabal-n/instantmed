@@ -70,6 +70,7 @@ export default async function Image() {
             color: '#1E293B',
             marginBottom: '24px',
             textAlign: 'center',
+            display: 'flex',
           }}
         >
           Medical Certificates & Prescriptions
@@ -82,6 +83,7 @@ export default async function Image() {
             color: '#64748B',
             textAlign: 'center',
             maxWidth: '800px',
+            display: 'flex',
           }}
         >
           Reviewed by AHPRA-registered Australian doctors

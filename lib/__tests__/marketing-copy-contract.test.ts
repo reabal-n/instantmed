@@ -3,7 +3,8 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
-import { faqItems } from "@/lib/marketing/homepage"
+import { faqItems, footerLinks } from "@/lib/marketing/homepage"
+import { getActiveServices, getServiceMarketingHref } from "@/lib/services/service-catalog"
 
 const root = process.cwd()
 const voiceSource = readFileSync(join(root, "lib/marketing/voice.ts"), "utf8")
@@ -18,6 +19,7 @@ const whatHappensNextSource = readFileSync(join(root, "components/patient/what-h
 const designSource = readFileSync(join(root, "DESIGN.md"), "utf8")
 const brandSource = readFileSync(join(root, "docs/BRAND.md"), "utf8")
 const medCertLandingSource = readFileSync(join(root, "components/marketing/med-cert-landing.tsx"), "utf8")
+const doctorProfileSource = readFileSync(join(root, "components/marketing/sections/doctor-profile-section.tsx"), "utf8")
 const requestPageSource = readFileSync(join(root, "app/request/page.tsx"), "utf8")
 const requestFlowSource = readFileSync(join(root, "components/request/request-flow.tsx"), "utf8")
 const requestStepRouterSource = readFileSync(join(root, "components/request/step-router.tsx"), "utf8")
@@ -34,6 +36,8 @@ const doctorProfileSectionSource = readFileSync(
   join(root, "components/marketing/sections/doctor-profile-section.tsx"),
   "utf8",
 )
+const rootOgImageSource = readFileSync(join(root, "app/opengraph-image.tsx"), "utf8")
+const medCertOgImageSource = readFileSync(join(root, "app/medical-certificate/opengraph-image.tsx"), "utf8")
 const workplaceClaimSources = [
   readFileSync(join(root, "app/employers/page.tsx"), "utf8"),
   readFileSync(join(root, "components/employers/bulk-verification-panel.tsx"), "utf8"),
@@ -99,6 +103,33 @@ describe("marketing copy contracts", () => {
     expect(marketingIndexSource).not.toContain("waitlist-form")
     expect(existsSync(join(root, "components/marketing/waitlist-form.tsx"))).toBe(false)
     expect(existsSync(join(root, "app/actions/waitlist.ts"))).toBe(false)
+  })
+
+  it("keeps the footer service links aligned with live public services", () => {
+    const footerServiceHrefs = footerLinks.services.map((link) => link.href)
+    const activeServiceHrefs = getActiveServices().map(getServiceMarketingHref)
+
+    expect(activeServiceHrefs).toContain("/womens-health")
+    expect(footerServiceHrefs).toContain("/womens-health")
+    expect(footerServiceHrefs).not.toContain("/weight-loss")
+  })
+
+  it("does not imply prescribing requests are guaranteed to be approved", () => {
+    expect(doctorProfileSource).toContain("Every request is reviewed by an experienced")
+    expect(doctorProfileSource).not.toContain("reviewed and approved")
+    expect(doctorProfileSource).not.toContain("med-cert page only")
+  })
+
+  it("keeps route Open Graph image text wrappers compatible with next/og", () => {
+    for (const source of [rootOgImageSource, medCertOgImageSource]) {
+      expect(source).not.toContain("display: 'inline'")
+      expect(source).toContain("display: 'flex'")
+    }
+
+    expect(rootOgImageSource).toContain("Medical Certificates & Prescriptions")
+    expect(rootOgImageSource).toContain("Reviewed by AHPRA-registered Australian doctors")
+    expect(medCertOgImageSource).toContain("Online Medical Certificate")
+    expect(medCertOgImageSource).toContain("Routine sick, study, and carer")
   })
 
   it("keeps live reviewing indicators green instead of urgent coral", () => {
