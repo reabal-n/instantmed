@@ -234,6 +234,17 @@ describe("approved certificate missing record monitor contract", () => {
   })
 })
 
+describe("paid-but-cancelled monitor contract", () => {
+  it("counts paid cancelled intakes that still remain in reporting", () => {
+    expect(opsInvariantsSource).toContain("paidCancelledResult")
+    expect(opsInvariantsSource).toContain('.eq("payment_status", "paid")')
+    expect(opsInvariantsSource).toContain('.eq("status", "cancelled")')
+    expect(opsInvariantsSource).toContain('.or("exclude_from_reporting.is.null,exclude_from_reporting.eq.false")')
+    expect(opsInvariantsSource).toContain('paidButCancelled: countOf("paid_but_cancelled", paidCancelledResult, queryFailures)')
+    expect(opsInvariantsSource).toContain("ops_paid_but_cancelled")
+  })
+})
+
 describe("certificate sent timestamp drift monitor contract", () => {
   it("uses a 14-day sent med-cert email signal and only counts intakes missing document_sent_at", () => {
     expect(CERTIFICATE_SENT_TIMESTAMP_DRIFT_DAYS).toBe(14)

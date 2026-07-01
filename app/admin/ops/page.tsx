@@ -8,6 +8,7 @@ import {
   certOrphanHelper,
   getOperationalInvariants,
   invariantTone,
+  paidButCancelledHelper,
   refundAnomalyHelper,
   SLA_BREACH_CRITICAL,
   slaBacklogHelper,
@@ -297,6 +298,12 @@ export default async function OpsDashboardPage() {
       tone: invariantTone(operationalInvariants.slaBreachBacklog, SLA_BREACH_CRITICAL),
       helperText: slaBacklogHelper(operationalInvariants.slaBreachBacklog),
       href: buildStaffLedgerHref({}),
+    },
+    paidButCancelled: {
+      count: operationalInvariants.paidButCancelled ?? 0,
+      tone: invariantTone(operationalInvariants.paidButCancelled ?? 0, 1),
+      helperText: paidButCancelledHelper(operationalInvariants.paidButCancelled ?? 0),
+      href: buildStaffLedgerHref({ status: "cancelled" }),
     },
     certRefundOrphans: {
       count: operationalInvariants.certRefundOrphans,

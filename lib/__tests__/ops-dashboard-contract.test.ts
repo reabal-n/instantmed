@@ -76,6 +76,10 @@ const dashboardRoutesSource = readFileSync(
   join(process.cwd(), "lib/dashboard/routes.ts"),
   "utf8",
 )
+const adminWorkLanesSource = readFileSync(
+  join(process.cwd(), "lib/dashboard/admin-work-lanes.ts"),
+  "utf8",
+)
 const opsFailuresSource = readFileSync(
   join(process.cwd(), "lib/admin/ops-failures.ts"),
   "utf8",
@@ -262,6 +266,16 @@ describe("ops dashboard data contract", () => {
     expect(opsClientSource).toContain("does not resend emails or expose certificate URLs")
   })
 
+  it("surfaces paid-but-cancelled intakes as a compact critical ops invariant", () => {
+    expect(opsPageSource).toContain("paidButCancelledHelper")
+    expect(opsPageSource).toContain("paidButCancelled")
+    expect(opsPageSource).toContain('buildStaffLedgerHref({ status: "cancelled" })')
+
+    expect(opsClientSource).toContain('label="Paid + cancelled"')
+    expect(opsClientSource).toContain("invariants.paidButCancelled")
+    expect(adminWorkLanesSource).toContain('{ value: "cancelled" }')
+  })
+
   it("surfaces approved med-cert intakes missing certificate records as a compact ops invariant", () => {
     expect(opsPageSource).toContain("approvedCertificateMissingRecordHelper")
     expect(opsPageSource).toContain("approvedCertificateMissingRecord")
@@ -269,7 +283,7 @@ describe("ops dashboard data contract", () => {
 
     expect(opsClientSource).toContain('label="Cert missing record"')
     expect(opsClientSource).toContain("invariants.approvedCertificateMissingRecord")
-    expect(opsClientSource).toContain("xl:grid-cols-6")
+    expect(opsClientSource).toContain("xl:grid-cols-7")
   })
 
   it("keeps core ops pages as recovery rows instead of dense tables", () => {

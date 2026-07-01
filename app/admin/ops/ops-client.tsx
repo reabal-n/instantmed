@@ -51,6 +51,7 @@ export interface OpsDashboardClientProps {
   }
   invariants: {
     slaBreachBacklog: CounterCellData
+    paidButCancelled: CounterCellData
     certRefundOrphans: CounterCellData
     refundRecordAnomalies: CounterCellData
     certificateSentMissingTimestamp: CounterCellData
@@ -452,13 +453,20 @@ export function OpsDashboardClient({
           <h2 className="mb-3 text-sm font-semibold tracking-tight text-foreground">
             Integrity (weekly invariants)
           </h2>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
             <CounterCard
               count={invariants.slaBreachBacklog.count}
               label="Review SLA backlog"
               helperText={invariants.slaBreachBacklog.helperText}
               tone={invariants.slaBreachBacklog.tone}
               href={invariants.slaBreachBacklog.href}
+            />
+            <CounterCard
+              count={invariants.paidButCancelled.count}
+              label="Paid + cancelled"
+              helperText={invariants.paidButCancelled.helperText}
+              tone={invariants.paidButCancelled.tone}
+              href={invariants.paidButCancelled.href}
             />
             <CounterCard
               count={invariants.certRefundOrphans.count}

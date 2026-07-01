@@ -20,6 +20,7 @@ export const ADMIN_INTAKE_STATUS_FILTER_OPTIONS = [
   { value: "approved" },
   { value: "declined" },
   { value: "completed" },
+  { value: "cancelled" },
 ] as const
 
 export type AdminIntakeStatusFilterValue =

@@ -24,12 +24,17 @@ test.describe("Ops Index Page", () => {
     const counterCards = recoveryCounters.getByTestId("counter-card")
     await expect(counterCards).toHaveCount(5)
 
+    const invariantCounters = page.getByRole("region", { name: "Operational invariants" })
+    const invariantCards = invariantCounters.getByTestId("counter-card")
+    await expect(invariantCards).toHaveCount(7)
+
     // Visible labels in the 5 tiles
     await expect(page.getByText("Payment failures")).toBeVisible()
     await expect(page.getByText("Stripe webhook DLQ")).toBeVisible()
     await expect(page.getByText("Parchment unsynced")).toBeVisible()
     await expect(page.getByText("Missing identity")).toBeVisible()
     await expect(page.getByText("Google Ads conversions")).toBeVisible()
+    await expect(page.getByText("Paid + cancelled")).toBeVisible()
 
     // Recent (7 days) block heading visible regardless of content
     await expect(page.getByRole("heading", { name: /Recent \(7 days\)/ })).toBeVisible()

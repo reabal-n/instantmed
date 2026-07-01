@@ -76,4 +76,31 @@ describe("cron surface contract", () => {
     expect(healthCheckSource).not.toContain("getAIHealthMetrics")
     expect(heartbeatSource).not.toContain('"health-check":')
   })
+
+  it("keeps Google Ads diagnostics watch schedule, heartbeat, and docs aligned", () => {
+    const vercelConfig = JSON.parse(read("vercel.json")) as {
+      crons?: Array<{ path?: string; schedule?: string }>
+    }
+    const diagnosticsCron = (vercelConfig.crons ?? []).find(
+      (cron) => cron.path === "/api/cron/google-ads-diagnostics-watch",
+    )
+    const heartbeatSource = read("lib/monitoring/cron-heartbeat.ts")
+    const watchRouteSource = read("app/api/cron/google-ads-diagnostics-watch/route.ts")
+    const operationsSource = read("docs/OPERATIONS.md")
+
+    expect(diagnosticsCron).toEqual({
+      path: "/api/cron/google-ads-diagnostics-watch",
+      schedule: "50 * * * *",
+    })
+    expect(heartbeatSource).toContain(
+      '"google-ads-diagnostics-watch": { schedule: "50 * * * *", maxDelayMinutes: 75 }',
+    )
+    expect(watchRouteSource).toContain('await recordCronHeartbeat("google-ads-diagnostics-watch")')
+    expect(watchRouteSource.indexOf('await recordCronHeartbeat("google-ads-diagnostics-watch")')).toBeLessThan(
+      watchRouteSource.indexOf("resolveWatchUploadIdentifier(request)"),
+    )
+    expect(operationsSource).toContain(
+      "| Google Ads Diagnostics Watch | `/api/cron/google-ads-diagnostics-watch` | Hourly (:50) |",
+    )
+  })
 })
