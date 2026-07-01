@@ -70,6 +70,7 @@ export default async function Image() {
             color: '#1E293B',
             marginBottom: '24px',
             textAlign: 'center',
+            display: 'flex',
           }}
         >
           Medical Certificates & Prescriptions
@@ -82,6 +83,7 @@ export default async function Image() {
             color: '#64748B',
             textAlign: 'center',
             maxWidth: '800px',
+            display: 'flex',
           }}
         >
           Reviewed by AHPRA-registered Australian doctors
@@ -121,11 +123,11 @@ export default async function Image() {
             marginTop: '32px',
           }}
         >
-          <div style={{ fontSize: '20px', color: '#64748B' }}>
+          <div style={{ fontSize: '20px', color: '#64748B', display: 'flex' }}>
             Med Certs from <span style={{ fontWeight: 'bold', color: '#1E293B' }}>{PRICING_DISPLAY.MED_CERT}</span>
           </div>
-          <div style={{ fontSize: '20px', color: '#64748B' }}>•</div>
-          <div style={{ fontSize: '20px', color: '#64748B' }}>
+          <div style={{ fontSize: '20px', color: '#64748B', display: 'flex' }}>•</div>
+          <div style={{ fontSize: '20px', color: '#64748B', display: 'flex' }}>
             Scripts from <span style={{ fontWeight: 'bold', color: '#1E293B' }}>{PRICING_DISPLAY.REPEAT_SCRIPT}</span>
           </div>
         </div>

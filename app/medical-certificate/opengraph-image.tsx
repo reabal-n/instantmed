@@ -63,6 +63,7 @@ export default async function Image() {
             color: '#1E293B',
             marginBottom: '16px',
             textAlign: 'center',
+            display: 'flex',
           }}
         >
           Online Medical Certificate
@@ -76,6 +77,7 @@ export default async function Image() {
             textAlign: 'center',
             maxWidth: '800px',
             marginBottom: '40px',
+            display: 'flex',
           }}
         >
           Routine sick, study, and carer&apos;s leave certificates
@@ -112,6 +114,7 @@ export default async function Image() {
           style={{
             fontSize: '24px',
             color: '#64748B',
+            display: 'flex',
           }}
         >
           From <span style={{ fontWeight: 'bold', color: '#1E293B', fontSize: '28px' }}>{PRICING_DISPLAY.MED_CERT}</span>
