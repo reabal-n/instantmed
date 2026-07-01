@@ -141,6 +141,24 @@ describe("cert-step revenue contract", () => {
     })
   })
 
+  // ── primary CTA feedback ─────────────────────────────────────────────────
+  describe("blocked primary action feedback", () => {
+    it("keeps the first-step primary action clickable so missing fields are announced", () => {
+      const primaryActionMatch = certStepSource.match(
+        /<RequestButton[\s\S]*?data-intake-primary-action="true"[\s\S]*?<\/RequestButton>/,
+      )
+
+      expect(primaryActionMatch, "Primary RequestButton not found").toBeTruthy()
+      const primaryActionSource = primaryActionMatch![0]
+
+      expect(certStepSource).toContain("<StepBlockedSummary reasons={blockedReasons} />")
+      expect(certStepSource).toContain("setBlockedReasons(Object.values(newErrors))")
+      expect(primaryActionSource).toContain("onClick={handleNext}")
+      expect(primaryActionSource).not.toMatch(/disabled=\{!canContinue\}/)
+      expect(primaryActionSource).not.toMatch(/disabled=\{!certType\}/)
+    })
+  })
+
   // ── chip inventory ────────────────────────────────────────────────────────
   describe("chip inventory matches the documented date model", () => {
     it("START_OFFSETS includes at least one positive offset (forward dates)", () => {

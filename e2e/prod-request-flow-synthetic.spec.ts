@@ -75,6 +75,29 @@ test.describe("Production request-flow synthetic", () => {
     await expectNoRequestCrash(page)
   })
 
+  test("med-cert mobile Continue explains missing certificate type instead of dead-ending", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await openRequest(page, "/request?service=med-cert")
+
+    await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
+
+    const mobileAction = page
+      .locator('[data-intake-mobile-action-bar="true"]')
+      .getByRole("button", { name: /^Continue$/i })
+
+    await expect(mobileAction).toBeVisible({ timeout: 5000 })
+    await expect(mobileAction).toBeEnabled({ timeout: 5000 })
+    await expect(mobileAction).toHaveAttribute("data-intake-mobile-action-ready", "false")
+
+    await mobileAction.click()
+
+    await expect(
+      page.locator('div[role="alert"]').filter({ hasText: "Please select certificate type" }),
+    ).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible()
+    await expectNoRequestCrash(page)
+  })
+
   test("active request pathways render their first actionable step", async ({ page }) => {
     const pathways = [
       { path: "/request?service=repeat-script", text: /Which medication do you need/i },
