@@ -285,7 +285,7 @@ export default async function ParchmentOpsPage() {
                     <h2 className="text-base font-semibold">Parchment handoff recovery</h2>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Failed SSO, patient sync, webhook, and stale script handoffs that need one clinical/admin action.
+                    Stale script handoffs, failed SSO, and patient sync issues that need one clinical/admin action.
                   </p>
                 </div>
                 <Badge variant={handoffRecovery.length > 0 ? "warning" : "success"} size="sm">
@@ -317,10 +317,10 @@ export default async function ParchmentOpsPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <ServerCrash className="h-4 w-4 text-muted-foreground" />
-                    <h2 className="text-base font-semibold">Actionable failures</h2>
+                    <h2 className="text-base font-semibold">Webhook retry work</h2>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Only webhooks that still need staff attention appear here.
+                    Failed Parchment webhooks that still need staff attention.
                   </p>
                 </div>
                 <Badge variant={actionableFailures.length > 0 ? "warning" : "success"} size="sm">

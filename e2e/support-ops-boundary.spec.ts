@@ -31,11 +31,11 @@ test.describe("Support Ops Boundary", () => {
       "href",
       STAFF_TEST_ROUTES.adminWebhookDlq,
     )
-    await expect(recoveryCounters.getByRole("link", { name: /Parchment unsynced/ })).toHaveAttribute(
+    await expect(recoveryCounters.getByRole("link", { name: /Parchment recovery/ })).toHaveAttribute(
       "href",
       STAFF_TEST_ROUTES.adminOpsParchment,
     )
-    await expect(recoveryCounters.getByRole("link", { name: /Missing identity/ })).toHaveAttribute(
+    await expect(recoveryCounters.getByRole("link", { name: /Prescribing identity/ })).toHaveAttribute(
       "href",
       STAFF_TEST_ROUTES.adminPrescribingIdentity,
     )

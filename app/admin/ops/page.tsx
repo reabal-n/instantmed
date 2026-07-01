@@ -73,14 +73,26 @@ function helperTextForPayment(count: number): string {
   return `${count} to resolve`
 }
 
-function helperTextForParchment(count: number): string {
-  if (count === 0) return "All clear"
-  return `${count} to resolve`
+function helperTextForParchment({
+  scriptHandoffs,
+  webhookFailures,
+}: {
+  scriptHandoffs: number
+  webhookFailures: number
+}): string {
+  const parts: string[] = []
+  if (scriptHandoffs > 0) {
+    parts.push(`${scriptHandoffs} script handoff${scriptHandoffs === 1 ? "" : "s"}`)
+  }
+  if (webhookFailures > 0) {
+    parts.push(`${webhookFailures} webhook${webhookFailures === 1 ? "" : "s"}`)
+  }
+  return parts.length > 0 ? parts.join(", ") : "All clear"
 }
 
 function helperTextForIdentity(count: number): string {
-  if (count === 0) return "All clear"
-  return `${count} to chase`
+  if (count === 0) return "All ready"
+  return `${count} blocked request${count === 1 ? "" : "s"}`
 }
 
 function helperTextForWebhook(count: number): string {
@@ -269,7 +281,10 @@ export default async function OpsDashboardPage() {
     parchmentUnsynced: {
       count: parchmentUnsyncedCount,
       tone: parchmentUnsyncedCount > 0 ? "warning" : "neutral",
-      helperText: helperTextForParchment(parchmentUnsyncedCount),
+      helperText: helperTextForParchment({
+        scriptHandoffs: staleScriptCount,
+        webhookFailures: prescriptionCount,
+      }),
       href: ADMIN_PARCHMENT_OPS_HREF,
     },
     missingIdentity: {

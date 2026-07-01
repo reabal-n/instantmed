@@ -152,6 +152,18 @@ describe("ops dashboard data contract", () => {
     expect(opsClientSource).not.toContain("Recent (last 24h)")
   })
 
+  it("makes Parchment and prescribing identity counters action-specific", () => {
+    expect(opsClientSource).toContain('label="Parchment recovery"')
+    expect(opsClientSource).toContain('label="Prescribing identity"')
+    expect(opsClientSource).not.toContain('label="Parchment unsynced"')
+    expect(opsClientSource).not.toContain('label="Missing identity"')
+
+    expect(opsPageSource).toContain("helperTextForParchment({")
+    expect(opsPageSource).toContain("script handoff")
+    expect(opsPageSource).toContain("webhook")
+    expect(opsPageSource).toContain("blocked request")
+  })
+
   it("does not render a second navigation menu at the bottom of ops", () => {
     expect(opsClientSource).not.toContain("opsActionGroups")
     expect(opsClientSource).not.toContain("Recovery Paths")
@@ -161,10 +173,13 @@ describe("ops dashboard data contract", () => {
   })
 
   it("keeps Parchment ops focused on recovery instead of a metrics wall", () => {
-    expect(parchmentOpsPageSource).toContain("Actionable failures")
-    expect(parchmentOpsPageSource).toContain("Only webhooks that still need staff attention")
+    expect(parchmentOpsPageSource).toContain("Parchment handoff recovery")
+    expect(parchmentOpsPageSource).toContain("Stale script handoffs, failed SSO, and patient sync issues")
+    expect(parchmentOpsPageSource).toContain("Webhook retry work")
+    expect(parchmentOpsPageSource).toContain("Failed Parchment webhooks that still need staff attention")
     expect(parchmentOpsPageSource).toContain("Production prescribing gate")
     expect(parchmentOpsPageSource).toContain("More evidence")
+    expect(parchmentOpsPageSource).not.toContain("Actionable failures")
     expect(parchmentOpsPageSource).not.toContain("StatCard")
     expect(parchmentOpsPageSource).not.toContain("syncedPrescriptions7d")
   })

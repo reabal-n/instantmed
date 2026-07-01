@@ -303,14 +303,14 @@ export function OpsDashboardClient({
           />
           <CounterCard
             count={counters.parchmentUnsynced.count}
-            label="Parchment unsynced"
+            label="Parchment recovery"
             helperText={counters.parchmentUnsynced.helperText}
             tone={counters.parchmentUnsynced.tone}
             href={counters.parchmentUnsynced.href}
           />
           <CounterCard
             count={counters.missingIdentity.count}
-            label="Missing identity"
+            label="Prescribing identity"
             helperText={counters.missingIdentity.helperText}
             tone={counters.missingIdentity.tone}
             href={counters.missingIdentity.href}
