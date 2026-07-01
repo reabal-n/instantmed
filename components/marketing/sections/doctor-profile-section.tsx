@@ -7,7 +7,7 @@ import { Reveal } from "@/components/ui/reveal"
 // COMPONENT
 // =============================================================================
 
-/** Doctor profile - trust signal, med-cert page only */
+/** Doctor profile - shared marketing trust signal */
 export function DoctorProfileSection() {
   return (
     <section aria-label="Reviewed by a real doctor" className="py-16 lg:py-20 bg-muted/20 dark:bg-muted/10">
@@ -29,7 +29,7 @@ export function DoctorProfileSection() {
                 AHPRA-registered doctors
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Every request is reviewed and approved by an experienced,
+                Every request is reviewed by an experienced,
                 AHPRA-registered Australian doctor. No automated clinical decisions.
               </p>
               <p className="mt-3 text-xs text-muted-foreground">

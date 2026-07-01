@@ -110,6 +110,9 @@ export default async function Image() {
         {/* Price */}
         <div
           style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: '8px',
             fontSize: '24px',
             color: '#64748B',
           }}

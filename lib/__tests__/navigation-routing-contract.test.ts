@@ -3,6 +3,7 @@ import path from "node:path"
 
 import { describe, expect, it } from "vitest"
 
+import { footerLinks } from "@/lib/marketing/homepage"
 import { getActiveServices, getServiceMarketingHref } from "@/lib/services/service-catalog"
 
 const root = process.cwd()
@@ -153,9 +154,11 @@ describe("navigation routing contracts", () => {
   it("builds the services nav from active catalog services, including women's health", () => {
     const servicesDropdown = readFileSync(path.join(root, "components/shared/navbar/services-dropdown.tsx"), "utf8")
     const activeServiceHrefs = getActiveServices().map(getServiceMarketingHref)
+    const footerServiceHrefs = footerLinks.services.map((link) => link.href)
 
     expect(activeServiceHrefs).toContain("/womens-health")
     expect(activeServiceHrefs).not.toContain("/weight-loss")
+    expect(footerServiceHrefs).toEqual(activeServiceHrefs)
     expect(servicesDropdown).toContain("getActiveServices().map")
     expect(servicesDropdown).toContain("getServiceMarketingHref(service)")
     expect(servicesDropdown).toContain('isActivePath("/womens-health")')

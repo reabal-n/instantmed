@@ -310,6 +310,7 @@ export const footerLinks = {
     { label: "Repeat Prescriptions", href: "/prescriptions" },
     { label: "ED Assessment", href: "/erectile-dysfunction" },
     { label: "Hair Loss Assessment", href: "/hair-loss" },
+    { label: "Women's Health", href: "/womens-health" },
   ],
   company: [
     { label: "About Us", href: "/about" },

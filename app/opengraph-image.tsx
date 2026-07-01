@@ -121,11 +121,27 @@ export default async function Image() {
             marginTop: '32px',
           }}
         >
-          <div style={{ fontSize: '20px', color: '#64748B' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: '4px',
+              fontSize: '20px',
+              color: '#64748B',
+            }}
+          >
             Med Certs from <span style={{ fontWeight: 'bold', color: '#1E293B' }}>{PRICING_DISPLAY.MED_CERT}</span>
           </div>
           <div style={{ fontSize: '20px', color: '#64748B' }}>•</div>
-          <div style={{ fontSize: '20px', color: '#64748B' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: '4px',
+              fontSize: '20px',
+              color: '#64748B',
+            }}
+          >
             Scripts from <span style={{ fontWeight: 'bold', color: '#1E293B' }}>{PRICING_DISPLAY.REPEAT_SCRIPT}</span>
           </div>
         </div>

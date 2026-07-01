@@ -30,6 +30,10 @@ const nextConfigSource = readFileSync(join(root, "next.config.mjs"), "utf8")
 const trustBadgesSource = readFileSync(join(root, "lib/marketing/trust-badges.ts"), "utf8")
 const howItWorksContentSource = readFileSync(join(root, "components/marketing/how-it-works-content.tsx"), "utf8")
 const speedClaimsSource = readFileSync(join(root, "lib/marketing/speed-claims.ts"), "utf8")
+const doctorProfileSectionSource = readFileSync(
+  join(root, "components/marketing/sections/doctor-profile-section.tsx"),
+  "utf8",
+)
 const workplaceClaimSources = [
   readFileSync(join(root, "app/employers/page.tsx"), "utf8"),
   readFileSync(join(root, "components/employers/bulk-verification-panel.tsx"), "utf8"),
@@ -114,6 +118,12 @@ describe("marketing copy contracts", () => {
     expect(heroSource).toContain("GoogleReviewsBadge")
     expect(stickyCtaSource).not.toContain("hidden lg:block fixed")
     expect(stickyCtaSource).not.toContain("top: '62px'")
+  })
+
+  it("keeps shared doctor trust copy to review, not approval outcome language", () => {
+    expect(doctorProfileSectionSource).toContain("Every request is reviewed by an experienced")
+    expect(doctorProfileSectionSource).not.toContain("reviewed and approved")
+    expect(doctorProfileSectionSource).not.toContain("med-cert page only")
   })
 
   it("renders the employer logo marquee on the medical certificate landing page", () => {
