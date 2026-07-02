@@ -4,9 +4,14 @@
  * Hair Loss Health Step - Step 3 of 4 in the hair loss intake flow
  *
  * Safety screening with a reproductive hard block (full service decline)
- * and medical history collection in accordion sections.
+ * and medical history collection on ONE screen — no progressive phase
+ * reveal. 2026-07-02 (operator rule from #209): answered sections must stay
+ * mounted and editable; the previous "Safety 1 of 4" flow unmounted each
+ * section once complete, which read as four stacked steps and made earlier
+ * answers uneditable. Completion checkmarks in the section headers provide
+ * the progress feedback instead.
  *
- * Sections:
+ * Sections (all always visible):
  * 1. Reproductive safety (hard block if partner is pregnant/trying to conceive)
  * 2. Scalp conditions (informational toggles)
  * 3. Blood pressure & heart (informational - topical treatment safety)
@@ -24,16 +29,10 @@ import {
   XCircle,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo } from "react"
 
 import { BinaryChoice, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup, StringBinaryChoice } from "@/components/request/shared/intake-step-primitives"
 import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -86,7 +85,7 @@ const REPRODUCTIVE_OPTIONS = [
 // Helper components
 // ---------------------------------------------------------------------------
 
-/** Section completion indicator shown in accordion triggers */
+/** Section completion indicator shown in section headers */
 function SectionComplete({ complete }: { complete: boolean }) {
   if (!complete) return null
   return <CheckCircle2 className="w-4 h-4 text-success shrink-0 mr-2" />
@@ -105,13 +104,6 @@ export default function HairLossHealthStep({
   const posthog = usePostHog()
   const { answers, setAnswer } = useRequestStore()
 
-  // Track previously open sections so analytics only fires on NEW opens
-  const prevOpenSections = useRef<Set<string>>(new Set(["reproductive"]))
-
-  // Controlled accordion state for auto-expand
-  const [topAccordionValue, setTopAccordionValue] = useState<string[]>([
-    "reproductive",
-  ])
   // ---------------------------------------------------------------------------
   // Read answers from store
   // ---------------------------------------------------------------------------
@@ -313,237 +305,185 @@ export default function HairLossHealthStep({
   }
 
   // ---------------------------------------------------------------------------
-  // Main render
+  // Main render — one screen, all sections mounted
   // ---------------------------------------------------------------------------
 
   return (
     <div className="space-y-4">
       {/* Header */}
       <IntakeStepIntro
-        eyebrow={
-          !reproductiveComplete
-            ? "Safety 1 of 4"
-            : !scalpComplete
-              ? "Safety 2 of 4"
-              : !bpComplete
-                ? "Safety 3 of 4"
-                : "Safety 4 of 4"
-        }
-        title={
-          !reproductiveComplete
-            ? "A quick safety check"
-            : !scalpComplete
-              ? "Scalp health"
-              : !bpComplete
-                ? "Blood pressure & heart"
-                : "Medical basics"
-        }
-        description={
-          !reproductiveComplete
-            ? "Start with the pregnancy safety question."
-            : "Answer only what applies."
-        }
+        title="A quick safety check"
+        description="Answer only what applies — the doctor reviews everything."
       />
 
-      {/* ── Top accordion: Reproductive safety ──────────────────────── */}
-      {!reproductiveComplete && (
-        <Accordion
-          type="multiple"
-          value={topAccordionValue}
-          className="space-y-3"
-          onValueChange={(openSections: string[]) => {
-            setTopAccordionValue(openSections)
-            const newlyOpened = openSections.filter(
-              (s) => !prevOpenSections.current.has(s)
-            )
-            if (newlyOpened.length > 0) {
-              posthog?.capture("hair_loss_health_sections_viewed", {
-                opened_sections: newlyOpened,
-                total_open: openSections.length,
-              })
-            }
-            prevOpenSections.current = new Set(openSections)
-          }}
-        >
-          <AccordionItem
-            value="reproductive"
-            className="border rounded-xl overflow-hidden"
-          >
-            <AccordionTrigger className="px-4 hover:no-underline">
-              <div className="flex items-center gap-2 flex-1">
-                <Baby className="w-4 h-4 text-rose-500 shrink-0" />
-                <span>Reproductive safety</span>
-              </div>
-              <SectionComplete complete={reproductiveComplete} />
-            </AccordionTrigger>
-            <AccordionContent className="px-4 space-y-3">
-              <div className="space-y-2.5">
-                <QuestionPrompt
-                  label="Is your partner currently pregnant or trying to conceive?"
-                  hint="Some hair loss medicines are not suitable around pregnancy."
-                  required
-                />
-                <SegmentedChoiceGroup
-                  options={REPRODUCTIVE_OPTIONS}
-                  value={hairReproductive}
-                  onChange={(value) => setAnswer("hairReproductive", value)}
-                  ariaLabel="Partner pregnancy or conception status"
-                  columns="one"
-                />
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      )}
-
-      {reproductiveComplete && !isBlocked && !scalpComplete && (
-        <QuestionCard compact>
-          <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-amber-500 shrink-0" />
-            <p className="text-sm font-medium">Any scalp conditions?</p>
-            <SectionComplete complete={scalpComplete} />
-          </div>
-          <MedicalHistoryToggles
-            items={SCALP_CONDITIONS}
-            values={answers}
-            onChange={handleScalpChange}
+      {/* ── Section 1: Reproductive safety ──────────────────────────── */}
+      <QuestionCard compact>
+        <div className="flex items-center gap-2">
+          <Baby className="w-4 h-4 text-rose-500 shrink-0" />
+          <p className="text-sm font-medium">Reproductive safety</p>
+          <SectionComplete complete={reproductiveComplete} />
+        </div>
+        <div className="space-y-2.5">
+          <QuestionPrompt
+            label="Is your partner currently pregnant or trying to conceive?"
+            hint="Some hair loss medicines are not suitable around pregnancy."
+            required
           />
-        </QuestionCard>
-      )}
+          <SegmentedChoiceGroup
+            options={REPRODUCTIVE_OPTIONS}
+            value={hairReproductive}
+            onChange={(value) => setAnswer("hairReproductive", value)}
+            ariaLabel="Partner pregnancy or conception status"
+            columns="one"
+          />
+        </div>
+      </QuestionCard>
 
-      {reproductiveComplete && scalpComplete && !bpComplete && (
-        <QuestionCard compact>
-          <div className="flex items-center gap-2">
-            <HeartPulse className="w-4 h-4 text-blue-500 shrink-0" />
-            <p className="text-sm font-medium">Blood pressure &amp; heart</p>
-            <SectionComplete complete={bpComplete} />
+      {/* ── Section 2: Scalp conditions ─────────────────────────────── */}
+      <QuestionCard compact>
+        <div className="flex items-center gap-2">
+          <Activity className="w-4 h-4 text-amber-500 shrink-0" />
+          <p className="text-sm font-medium">Any scalp conditions?</p>
+          <SectionComplete complete={scalpComplete} />
+        </div>
+        <MedicalHistoryToggles
+          items={SCALP_CONDITIONS}
+          values={answers}
+          onChange={handleScalpChange}
+        />
+      </QuestionCard>
+
+      {/* ── Section 3: Blood pressure & heart ───────────────────────── */}
+      <QuestionCard compact>
+        <div className="flex items-center gap-2">
+          <HeartPulse className="w-4 h-4 text-blue-500 shrink-0" />
+          <p className="text-sm font-medium">Blood pressure &amp; heart</p>
+          <SectionComplete complete={bpComplete} />
+        </div>
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Low blood pressure or dizziness on standing?</p>
+            <BinaryChoice
+              value={hairLowBP}
+              onChange={(checked) => setAnswer("hairLowBP", checked)}
+              ariaLabel="Low blood pressure or dizziness on standing?"
+            />
           </div>
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Low blood pressure or dizziness on standing?</p>
-              <BinaryChoice
-                value={hairLowBP}
-                onChange={(checked) => setAnswer("hairLowBP", checked)}
-                ariaLabel="Low blood pressure or dizziness on standing?"
-              />
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Any heart conditions or heart medication?</p>
-              <BinaryChoice
-                value={hairHeartConditions}
-                onChange={(checked) => setAnswer("hairHeartConditions", checked)}
-                ariaLabel="Any heart conditions or heart medication?"
-              />
-            </div>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Any heart conditions or heart medication?</p>
+            <BinaryChoice
+              value={hairHeartConditions}
+              onChange={(checked) => setAnswer("hairHeartConditions", checked)}
+              ariaLabel="Any heart conditions or heart medication?"
+            />
           </div>
-        </QuestionCard>
-      )}
+        </div>
+      </QuestionCard>
 
-      {reproductiveComplete && scalpComplete && bpComplete && !medicalComplete && (
-        <QuestionCard className="space-y-5">
-          <div className="flex items-center gap-2">
-            <Pill className="w-4 h-4 text-indigo-500 shrink-0" />
-            <p className="text-sm font-medium">Medications, allergies &amp; conditions</p>
-            <SectionComplete complete={medicalComplete} />
+      {/* ── Section 4: Medications, allergies & conditions ──────────── */}
+      <QuestionCard className="space-y-5">
+        <div className="flex items-center gap-2">
+          <Pill className="w-4 h-4 text-indigo-500 shrink-0" />
+          <p className="text-sm font-medium">Medications, allergies &amp; conditions</p>
+          <SectionComplete complete={medicalComplete} />
+        </div>
+        {/* Medications */}
+        <div className="space-y-2.5">
+          <div>
+            <p className="text-sm font-medium">
+              Taking any medications?{" "}
+              <span className="text-destructive">*</span>
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Prescriptions, over-the-counter, vitamins, supplements
+            </p>
           </div>
-            {/* Medications */}
-            <div className="space-y-2.5">
-              <div>
-                <p className="text-sm font-medium">
-                  Taking any medications?{" "}
-                  <span className="text-destructive">*</span>
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Prescriptions, over-the-counter, vitamins, supplements
-                </p>
-              </div>
-              <StringBinaryChoice
-                value={takesMedications}
-                noValue="no"
-                yesValue="yes"
-                onChange={(value) => setAnswer("takes_medications", value)}
-                ariaLabel="Taking any medications?"
-                noLabel="No medications"
-              />
-              {takesMedications === "yes" && (
-                <Textarea
-                  value={currentMedications}
-                  onChange={(e) =>
-                    setAnswer("current_medications", e.target.value)
-                  }
-                  placeholder="e.g., Metformin 500mg twice daily, Vitamin D 1000IU"
-                  className="min-h-[60px] text-sm"
-                />
-              )}
-            </div>
+          <StringBinaryChoice
+            value={takesMedications}
+            noValue="no"
+            yesValue="yes"
+            onChange={(value) => setAnswer("takes_medications", value)}
+            ariaLabel="Taking any medications?"
+            noLabel="No medications"
+          />
+          {takesMedications === "yes" && (
+            <Textarea
+              value={currentMedications}
+              onChange={(e) =>
+                setAnswer("current_medications", e.target.value)
+              }
+              placeholder="e.g., Metformin 500mg twice daily, Vitamin D 1000IU"
+              className="min-h-[60px] text-sm"
+            />
+          )}
+        </div>
 
-            <div className="border-t border-border/40" />
+        <div className="border-t border-border/40" />
 
-            {/* Allergies */}
-            <div className="space-y-2.5">
-              <div>
-                <p className="text-sm font-medium">
-                  Any allergies?{" "}
-                  <span className="text-destructive">*</span>
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Drug, food, or environmental allergies
-                </p>
-              </div>
-              <StringBinaryChoice
-                value={hasAllergies}
-                noValue="no"
-                yesValue="yes"
-                onChange={(value) => setAnswer("has_allergies", value)}
-                ariaLabel="Any allergies?"
-                noLabel="No allergies"
-              />
-              {hasAllergies === "yes" && (
-                <Textarea
-                  value={knownAllergies}
-                  onChange={(e) =>
-                    setAnswer("known_allergies", e.target.value)
-                  }
-                  placeholder="e.g., Penicillin - rash, Peanuts - anaphylaxis"
-                  className="min-h-[60px] text-sm"
-                />
-              )}
-            </div>
+        {/* Allergies */}
+        <div className="space-y-2.5">
+          <div>
+            <p className="text-sm font-medium">
+              Any allergies?{" "}
+              <span className="text-destructive">*</span>
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Drug, food, or environmental allergies
+            </p>
+          </div>
+          <StringBinaryChoice
+            value={hasAllergies}
+            noValue="no"
+            yesValue="yes"
+            onChange={(value) => setAnswer("has_allergies", value)}
+            ariaLabel="Any allergies?"
+            noLabel="No allergies"
+          />
+          {hasAllergies === "yes" && (
+            <Textarea
+              value={knownAllergies}
+              onChange={(e) =>
+                setAnswer("known_allergies", e.target.value)
+              }
+              placeholder="e.g., Penicillin - rash, Peanuts - anaphylaxis"
+              className="min-h-[60px] text-sm"
+            />
+          )}
+        </div>
 
-            <div className="border-t border-border/40" />
+        <div className="border-t border-border/40" />
 
-            {/* Other conditions */}
-            <div className="space-y-2.5">
-              <div>
-                <p className="text-sm font-medium">
-                  Any other medical conditions?{" "}
-                  <span className="text-destructive">*</span>
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Chronic illness, past surgeries, ongoing issues
-                </p>
-              </div>
-              <StringBinaryChoice
-                value={hasConditions}
-                noValue="no"
-                yesValue="yes"
-                onChange={(value) => setAnswer("has_conditions", value)}
-                ariaLabel="Any other medical conditions?"
-                noLabel="No conditions"
-              />
-              {hasConditions === "yes" && (
-                <Textarea
-                  value={existingConditions}
-                  onChange={(e) =>
-                    setAnswer("existing_conditions", e.target.value)
-                  }
-                  placeholder="e.g., Asthma, Type 2 Diabetes, High blood pressure"
-                  className="min-h-[60px] text-sm"
-                />
-              )}
-            </div>
-        </QuestionCard>
-      )}
+        {/* Other conditions */}
+        <div className="space-y-2.5">
+          <div>
+            <p className="text-sm font-medium">
+              Any other medical conditions?{" "}
+              <span className="text-destructive">*</span>
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Chronic illness, past surgeries, ongoing issues
+            </p>
+          </div>
+          <StringBinaryChoice
+            value={hasConditions}
+            noValue="no"
+            yesValue="yes"
+            onChange={(value) => setAnswer("has_conditions", value)}
+            ariaLabel="Any other medical conditions?"
+            noLabel="No conditions"
+          />
+          {hasConditions === "yes" && (
+            <Textarea
+              value={existingConditions}
+              onChange={(e) =>
+                setAnswer("existing_conditions", e.target.value)
+              }
+              placeholder="e.g., Asthma, Type 2 Diabetes, High blood pressure"
+              className="min-h-[60px] text-sm"
+            />
+          )}
+        </div>
+      </QuestionCard>
 
       {/* Validation summary — announced to screen readers on first Continue tap */}
       {validationSummary.length > 0 && (
