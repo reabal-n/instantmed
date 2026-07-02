@@ -60,6 +60,55 @@ describe("request store draft hydration", () => {
     expect(localStorage.getItem("instantmed-draft-med-cert")).toBeTruthy()
   })
 
+  it("falls back to the service-scoped key when the legacy key is missing", async () => {
+    // The pre-#248 fire-and-forget migration deleted the legacy key after
+    // copying the draft to the scoped key — for patients who hit that bug,
+    // the scoped copy is the ONLY surviving copy of their in-progress intake.
+    localStorage.setItem(
+      "instantmed-draft-med-cert",
+      JSON.stringify({
+        serviceType: "med-cert",
+        currentStepId: "certificate",
+        answers: { certType: "study", duration: "2" },
+        lastSavedAt: new Date().toISOString(),
+      }),
+    )
+
+    await useRequestStore.persist.rehydrate()
+
+    const state = useRequestStore.getState()
+    expect(state.serviceType).toBe("med-cert")
+    expect(state.answers.certType).toBe("study")
+    expect(state.answers.duration).toBe("2")
+  })
+
+  it("prefers the most recently saved scoped draft when several services have one", async () => {
+    localStorage.setItem(
+      "instantmed-draft-med-cert",
+      JSON.stringify({
+        serviceType: "med-cert",
+        currentStepId: "certificate",
+        answers: { certType: "carer" },
+        lastSavedAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+      }),
+    )
+    localStorage.setItem(
+      "instantmed-draft-consult",
+      JSON.stringify({
+        serviceType: "consult",
+        currentStepId: "ed-goals",
+        answers: { consultSubtype: "ed", edGoal: "confidence" },
+        lastSavedAt: new Date().toISOString(),
+      }),
+    )
+
+    await useRequestStore.persist.rehydrate()
+
+    const state = useRequestStore.getState()
+    expect(state.serviceType).toBe("consult")
+    expect(state.answers.edGoal).toBe("confidence")
+  })
+
   it("hydrates an expired draft as empty without stomping other services", async () => {
     localStorage.setItem(
       "instantmed-request-draft",

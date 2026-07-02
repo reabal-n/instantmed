@@ -146,19 +146,69 @@ test.describe("Unified Request Flow - Draft Persistence", () => {
     await page.waitForTimeout(300)
   })
 
-  test("page reload works", async ({ page }) => {
+  test("restores certificate selections after a full page reload", async ({ page }) => {
+    // Regression guard for the 2026-07-02 draft-loss bug: the storage
+    // migration deleted the legacy key mid-hydration, so a reload silently
+    // reset every selection (and rewrote the draft with the 1-day default).
+    // This asserts actual RESTORATION, not just that the page reloads.
     await page.goto("/request?service=med-cert")
     await waitForPageLoad(page)
-    
-    // Wait for page to load
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
-    
-    // Reload page
+
+    // Dev-only: `next dev` can fire a Fast-Refresh full reload shortly after
+    // first compile of the route + its idle-imported chunks, wiping in-flight
+    // clicks. Let the compile storm settle before interacting so the
+    // selections land on a stable page. No-op against a warm/production server.
+    await page.waitForLoadState("networkidle").catch(() => {})
+
+    // Retry the selection if a dev self-reload reset the page between the
+    // click and the debounced draft write reaching storage.
+    await expect(async () => {
+      await page.getByRole("radio", { name: /Work/i }).click()
+      const changeDates = page.getByRole("button", { name: /Change length or start date/i })
+      if (await changeDates.isVisible().catch(() => false)) await changeDates.click()
+      await page.getByRole("radio", { name: /3 days/i }).click()
+      await expect(page.getByRole("radio", { name: /3 days/i })).toBeChecked()
+      // Confirm the debounced dual-write actually persisted before reloading.
+      const scoped = await page.evaluate(
+        () => window.localStorage.getItem("instantmed-draft-med-cert") ?? "",
+      )
+      expect(scoped).toContain('"duration":"3"')
+      expect(scoped).toContain('"certType":"work"')
+    }).toPass({ timeout: 20000 })
+
     await page.reload()
     await waitForPageLoad(page)
-    
-    // Page should load without errors
+
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole("radio", { name: /Work/i })).toBeChecked()
+    await expect(page.getByRole("radio", { name: /3 days/i })).toBeChecked()
+  })
+
+  test("restores from the service-scoped draft when the legacy key is gone", async ({ page }) => {
+    // Phase 2.3 read fallback: patients who hit the pre-fix migration bug
+    // have their draft ONLY in instantmed-draft-<service> (the migration
+    // deleted the legacy key). Hydration must recover it. Seeded via
+    // addInitScript so the state survives dev-server self-reloads.
+    await page.addInitScript(() => {
+      window.localStorage.setItem(
+        "instantmed-draft-med-cert",
+        JSON.stringify({
+          serviceType: "med-cert",
+          currentStepId: "certificate",
+          answers: { certType: "work", duration: "2" },
+          lastSavedAt: new Date().toISOString(),
+        }),
+      )
+      window.localStorage.removeItem("instantmed-request-draft")
+    })
+
+    await page.goto("/request?service=med-cert")
+    await waitForPageLoad(page)
+
+    await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole("radio", { name: /Work/i })).toBeChecked({ timeout: 10000 })
+    await expect(page.getByRole("radio", { name: /2 days/i })).toBeChecked({ timeout: 10000 })
   })
 })
 
