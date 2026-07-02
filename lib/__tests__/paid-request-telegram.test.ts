@@ -27,17 +27,18 @@ const PATIENT_ID = "22222222-2222-4222-8222-222222222222"
 
 function createSupabaseStub(
   claimRows: Array<Record<string, unknown>>,
-  options: { profileName?: string; isPriority?: boolean } = {},
+  options: { profileName?: string; isPriority?: boolean; guestEmail?: string | null } = {},
 ) {
   const profileName = options.profileName ?? "Alex Patient"
   const isPriority = options.isPriority ?? false
+  const guestEmail = options.guestEmail ?? null
   const updates: Array<Record<string, unknown>> = []
   const profileMaybeSingle = vi.fn(async () => ({
     data: { full_name: profileName },
     error: null,
   }))
   const intakeExtrasMaybeSingle = vi.fn(async () => ({
-    data: { is_priority: isPriority },
+    data: { is_priority: isPriority, guest_email: guestEmail },
     error: null,
   }))
   const intakesEq = vi.fn(async () => ({ data: null, error: null }))
@@ -410,5 +411,98 @@ describe("paid request Telegram notification ledger", () => {
     expect(notifyNewIntakeViaTelegram).toHaveBeenCalledWith(
       expect.objectContaining({ autoApprovalCandidate: false }),
     )
+  })
+
+  // 2026-07-02 operator complaint: E2E/CI test checkouts (fresh guest profiles
+  // with machine-shaped emails) paged the operator's phone as real "New med
+  // cert" orders — in real time from local Playwright servers holding a real
+  // .env.local, and via the PROD telegram-notifications cron retrying rows a
+  // token-less CI server had marked failed.
+  it("suppresses machine-generated guest test orders and marks them sent so the cron stops retrying", async () => {
+    const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
+    const { supabase, updates } = createSupabaseStub(
+      [
+        {
+          id: INTAKE_ID,
+          patient_id: PATIENT_ID,
+          amount_cents: 2995,
+          category: "med_certs",
+          subtype: null,
+          paid_request_telegram_attempts: 1,
+        },
+      ],
+      { guestEmail: "mobile.checkout@example.com" },
+    )
+
+    const result = await sendPaidRequestTelegramNotification({
+      supabase: supabase as never,
+      intakeId: INTAKE_ID,
+      paymentStatus: "paid",
+      amountCents: 2995,
+      serviceSlug: "med-cert-sick",
+      category: "med_certs",
+      subtype: null,
+    })
+
+    expect(result).toEqual({ sent: false, skipped: "e2e" })
+    expect(notifyNewIntakeViaTelegram).not.toHaveBeenCalled()
+    // Marked SENT (null message id): without this the prod cron re-claims the
+    // row after every stale-claim window, forever.
+    expect(updates[0]).toMatchObject({ paid_request_telegram_message_id: null })
+    expect(updates[0].paid_request_telegram_sent_at).toEqual(expect.any(String))
+  })
+
+  it("still pages for a real guest order with a normal email", async () => {
+    const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
+    const { supabase } = createSupabaseStub(
+      [
+        {
+          id: INTAKE_ID,
+          patient_id: PATIENT_ID,
+          amount_cents: 2995,
+          category: "med_certs",
+          subtype: null,
+          paid_request_telegram_attempts: 1,
+        },
+      ],
+      { guestEmail: "sarah.jones@gmail.com" },
+    )
+    vi.mocked(notifyNewIntakeViaTelegram).mockResolvedValueOnce({ messageId: 42 })
+
+    const result = await sendPaidRequestTelegramNotification({
+      supabase: supabase as never,
+      intakeId: INTAKE_ID,
+      paymentStatus: "paid",
+      amountCents: 2995,
+      serviceSlug: "med-cert-sick",
+      category: "med_certs",
+      subtype: null,
+    })
+
+    expect(result).toEqual({ sent: true })
+    expect(notifyNewIntakeViaTelegram).toHaveBeenCalled()
+  })
+
+  it("skips before claiming when the server itself runs in E2E mode", async () => {
+    vi.stubEnv("PLAYWRIGHT", "1")
+    try {
+      const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
+      const { supabase } = createSupabaseStub([])
+
+      const result = await sendPaidRequestTelegramNotification({
+        supabase: supabase as never,
+        intakeId: INTAKE_ID,
+        paymentStatus: "paid",
+        amountCents: 2995,
+        serviceSlug: "med-cert-sick",
+        category: "med_certs",
+        subtype: null,
+      })
+
+      expect(result).toEqual({ sent: false, skipped: "e2e" })
+      expect(supabase.rpc).not.toHaveBeenCalled()
+    } finally {
+      vi.unstubAllEnvs()
+    }
   })
 })

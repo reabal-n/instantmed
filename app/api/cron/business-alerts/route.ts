@@ -40,6 +40,28 @@ const logger = createLogger("cron-business-alerts")
 /** Re-page a still-standing alert signature at most once per this window (4h). */
 const TELEGRAM_ALERT_COOLDOWN_MS = 4 * 60 * 60 * 1000
 
+/**
+ * Per-metric cooldown overrides. Standing data-integrity invariants (a
+ * paid+cancelled row, cert/refund orphans, missing timestamps) persist until
+ * a human repairs the data — one page per day is signal; re-paging whenever
+ * the surrounding alert batch changes shape is noise (2026-07-02 operator
+ * complaint: the same March paid+cancelled row paged 4x in one day because
+ * the batch composition kept changing the fingerprint). Volatile operational
+ * metrics (SLA backlog, revenue silence) keep the default 4h window.
+ */
+const TELEGRAM_METRIC_COOLDOWN_OVERRIDES_MS: Record<string, number> = {
+  ops_paid_but_cancelled: 24 * 60 * 60 * 1000,
+  ops_cert_refund_orphans: 24 * 60 * 60 * 1000,
+  ops_refund_record_anomalies: 24 * 60 * 60 * 1000,
+  ops_certificate_sent_missing_timestamp: 24 * 60 * 60 * 1000,
+  ops_approved_certificate_missing_record: 24 * 60 * 60 * 1000,
+}
+
+const TELEGRAM_MAX_METRIC_COOLDOWN_MS = Math.max(
+  TELEGRAM_ALERT_COOLDOWN_MS,
+  ...Object.values(TELEGRAM_METRIC_COOLDOWN_OVERRIDES_MS),
+)
+
 type BusinessAlert = { metric: string; severity: "critical" | "warning" | "info"; detail: string; count?: number }
 
 async function getNoPurchaseRevenueWindow(
@@ -449,22 +471,41 @@ export async function GET(request: NextRequest) {
     if (telegramWorthy.length > 0) {
       // This cron runs every 30 min and standing conditions (SLA backlog, cert/refund
       // orphans, a high-risk intake sitting in the queue) persist for hours — so
-      // without a cooldown the operator gets the SAME page every 30 min. Page once
-      // per distinct alert signature per TELEGRAM_ALERT_COOLDOWN_MS, tracked in
-      // audit_logs. A genuinely new condition (different fingerprint) still pages
-      // immediately.
-      const fingerprint = [...new Set(telegramWorthy.map((a) => a.metric))].sort().join(",")
-      const cooldownSince = new Date(now.getTime() - TELEGRAM_ALERT_COOLDOWN_MS).toISOString()
-      const { data: recentAlert } = await supabase
+      // without a cooldown the operator gets the SAME page every 30 min. The
+      // cooldown is PER METRIC (not per batch fingerprint): a standing metric
+      // that already paged must not re-page just because a different metric
+      // joined or left the batch, while a genuinely new metric still pages
+      // immediately. Last-paged times are tracked in audit_logs.
+      const lookbackSince = new Date(now.getTime() - TELEGRAM_MAX_METRIC_COOLDOWN_MS).toISOString()
+      const { data: recentAlertRows } = await supabase
         .from("audit_logs")
-        .select("id")
+        .select("created_at, metadata")
         .eq("action", "telegram_business_alert")
-        .eq("metadata->>fingerprint", fingerprint)
-        .gte("created_at", cooldownSince)
-        .limit(1)
+        .gte("created_at", lookbackSince)
 
-      if (!recentAlert || recentAlert.length === 0) {
-        const lines = telegramWorthy.map((a) => `• ${a.detail}`).join("\n")
+      const lastPagedAt = new Map<string, number>()
+      for (const row of (recentAlertRows ?? []) as Array<{
+        created_at: string
+        metadata: { metrics?: string[] } | null
+      }>) {
+        const pagedAt = new Date(row.created_at).getTime()
+        if (Number.isNaN(pagedAt)) continue
+        for (const metric of row.metadata?.metrics ?? []) {
+          const previous = lastPagedAt.get(metric)
+          if (!previous || pagedAt > previous) lastPagedAt.set(metric, pagedAt)
+        }
+      }
+
+      const pageable = telegramWorthy.filter((alert) => {
+        const cooldownMs = TELEGRAM_METRIC_COOLDOWN_OVERRIDES_MS[alert.metric] ?? TELEGRAM_ALERT_COOLDOWN_MS
+        const paged = lastPagedAt.get(alert.metric)
+        return !paged || now.getTime() - paged >= cooldownMs
+      })
+
+      if (pageable.length > 0) {
+        const pagedMetrics = [...new Set(pageable.map((a) => a.metric))].sort()
+        const fingerprint = pagedMetrics.join(",")
+        const lines = pageable.map((a) => `• ${a.detail}`).join("\n")
         const delivered = await sendTelegramAlert(escapeMarkdown(`⚠️ InstantMed business alert\n${lines}`), {
           severity: "critical",
         })
@@ -474,14 +515,16 @@ export async function GET(request: NextRequest) {
           await supabase.from("audit_logs").insert({
             action: "telegram_business_alert",
             actor_type: "system",
-            metadata: { fingerprint, metrics: [...new Set(telegramWorthy.map((a) => a.metric))] },
+            metadata: { fingerprint, metrics: pagedMetrics },
             created_at: new Date().toISOString(),
           })
         } else {
           logger.warn("Business alert Telegram not delivered; cooldown not written (will retry next run)", { fingerprint })
         }
       } else {
-        logger.info("Business alert Telegram suppressed (within cooldown)", { fingerprint })
+        logger.info("Business alert Telegram suppressed (all metrics within cooldown)", {
+          metrics: [...new Set(telegramWorthy.map((a) => a.metric))],
+        })
       }
     }
 

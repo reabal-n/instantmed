@@ -4,7 +4,10 @@ import * as Sentry from "@sentry/nextjs"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { getIntakeAnswers } from "@/lib/data/intake-answers"
-import { SEEDED_E2E_PATIENT_PROFILE_ID } from "@/lib/data/seeded-e2e-data"
+import {
+  isLikelyTestPatientIdentity,
+  SEEDED_E2E_PATIENT_PROFILE_ID,
+} from "@/lib/data/seeded-e2e-data"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -208,6 +211,19 @@ export async function sendPaidRequestTelegramNotification(
     return { sent: false, skipped: "e2e" }
   }
 
+  // An E2E-mode server (local Playwright with a real .env.local, CI) must
+  // never page the operator's phone in real time, even though it points at
+  // the shared prod Supabase + Telegram env. Deliberately narrower than
+  // shouldIncludeSeededE2EData: NODE_ENV=test (vitest) still exercises the
+  // real send path in unit tests.
+  if (
+    process.env.PLAYWRIGHT === "1" ||
+    process.env.E2E === "true" ||
+    process.env.E2E_MODE === "true"
+  ) {
+    return { sent: false, skipped: "e2e" }
+  }
+
   const flags = await getFeatureFlags()
   if (!flags.telegram_notifications_enabled) {
     return { sent: false, skipped: "disabled" }
@@ -244,14 +260,19 @@ export async function sendPaidRequestTelegramNotification(
   })
 
   // Fail-soft enrichment lookups: never abort the notification if these fail.
+  // guest_email rides along on the same intake read (no profiles/PHI fetch)
+  // purely to classify machine-generated test orders below.
   let isPriority = false
+  let guestEmail: string | null = null
   try {
     const { data: intakeExtras } = await input.supabase
       .from("intakes")
-      .select("is_priority")
+      .select("is_priority, guest_email")
       .eq("id", input.intakeId)
       .maybeSingle()
-    isPriority = Boolean((intakeExtras as { is_priority?: boolean } | null)?.is_priority)
+    const extras = intakeExtras as { is_priority?: boolean; guest_email?: string | null } | null
+    isPriority = Boolean(extras?.is_priority)
+    guestEmail = extras?.guest_email ?? null
   } catch (extrasError) {
     log.error("Failed to look up is_priority for Telegram notification", {
       intakeId: input.intakeId,
@@ -271,11 +292,22 @@ export async function sendPaidRequestTelegramNotification(
 
   const detail = resolvePaidRequestServiceDetail({ category, subtype, answers })
 
-  // Defence-in-depth: catch the edge case where input.patientId was null but
-  // the claimed row turns out to be the E2E patient. The early-return above
-  // covers the normal path; this would only trigger if a caller forgot to
-  // pass patientId AND the intake was created against the seeded fixture.
-  if (claim.patient_id === SEEDED_E2E_PATIENT_PROFILE_ID) {
+  // Test-order guard AFTER claiming. E2E/CI runs create paid intakes as FRESH
+  // guest profiles with machine-shaped emails (@example.com,
+  // @instantmed-e2e.test, browser-<ts>@instantmed.com.au, ...) — the seeded-ID
+  // check can't see them, and the CI server often can't send Telegram, so the
+  // PROD telegram-notifications cron later retried these rows and paged the
+  // operator with fake "New med cert" orders (2026-07-02). Classify them from
+  // the intake's own guest_email (no profiles fetch — this path deliberately
+  // never reads patient PHI) and mark them SENT (null message id) so the cron
+  // stops re-claiming them forever.
+  const isTestOrder =
+    claim.patient_id === SEEDED_E2E_PATIENT_PROFILE_ID ||
+    isLikelyTestPatientIdentity({ email: guestEmail })
+
+  if (isTestOrder) {
+    log.info("Skipping paid-request Telegram for test order", { intakeId: input.intakeId })
+    await markSent(input.supabase, input.intakeId, null)
     return { sent: false, skipped: "e2e" }
   }
 
