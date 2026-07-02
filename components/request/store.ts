@@ -460,15 +460,38 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         getItem: (name: string): StorageValue<Partial<RequestState>> | null => {
           if (typeof localStorage === 'undefined') return null
 
-          // First, attempt migration from legacy key
-          migrateLegacyDraft()
+          // Migrate the legacy key AND use the migrated draft as the hydration
+          // payload. This used to be a fire-and-forget call, but a successful
+          // migration DELETES the legacy key — the very key this getItem reads
+          // next — so every rehydrate that triggered a migration returned null:
+          // the in-progress draft silently vanished from the store, the
+          // debounced default write then recreated the key with empty answers,
+          // and the patient's restored selections (cert type, a 2–3 day
+          // duration and its price) were stomped back to defaults on reload.
+          const migrated = migrateLegacyDraft()
 
           // Read from legacy key (will switch to new keys in Phase 2.3)
-          const stored = localStorage.getItem(name)
-          if (!stored) return null
+          const stored = migrated ? null : localStorage.getItem(name)
+          if (!migrated && !stored) return null
 
           try {
-            const parsed = JSON.parse(stored) as StorageValue<Partial<RequestState>>
+            const parsed: StorageValue<Partial<RequestState>> = migrated
+              ? {
+                  state: {
+                    serviceType: migrated.serviceType,
+                    currentStepId: migrated.currentStepId as UnifiedStepId,
+                    safetyConfirmed: migrated.safetyConfirmed,
+                    safetyTimestamp: migrated.safetyTimestamp,
+                    answers: migrated.answers,
+                    firstName: migrated.firstName,
+                    lastName: migrated.lastName,
+                    email: migrated.email,
+                    phone: migrated.phone,
+                    dob: migrated.dob,
+                    lastSavedAt: migrated.lastSavedAt,
+                  },
+                }
+              : (JSON.parse(stored as string) as StorageValue<Partial<RequestState>>)
             parsed.state = normalizePersistedState(parsed.state)
 
             // Enforce 24h expiry before hydration — mirrors request-flow.tsx banner logic.
