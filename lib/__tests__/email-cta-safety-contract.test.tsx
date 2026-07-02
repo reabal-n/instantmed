@@ -263,9 +263,11 @@ describe("patient email CTA safety contract", () => {
       "utf8",
     )
 
-    expect(reconstructSource).toContain("getGuestCertificateAccessHref(cert.intake_id, guestEmail)")
+    expect(reconstructSource).toContain("getGuestCertificateAccessHref(cert.intake_id)")
+    expect(reconstructSource).not.toContain("getGuestCertificateAccessHref(cert.intake_id, guestEmail)")
     expect(reconstructSource).toContain("getPatientIntakeDetailHref(cert.intake_id)")
-    expect(resendSource).toContain("getGuestCertificateAccessHref(intakeId, patient.email)")
+    expect(resendSource).toContain("getGuestCertificateAccessHref(intakeId)")
+    expect(resendSource).not.toContain("getGuestCertificateAccessHref(intakeId, patient.email)")
     expect(resendSource).toContain("getPatientIntakeDetailHref(intakeId)")
   })
 })

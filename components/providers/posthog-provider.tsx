@@ -11,6 +11,7 @@ import {
 
 import { trackAIReferral } from "@/lib/analytics/ai-referral"
 import { PostHogContext, usePostHog } from "@/lib/analytics/posthog-context"
+import { sanitizeUrl } from "@/lib/observability/sanitize-phi"
 import { useAuth } from "@/lib/supabase/auth-provider"
 
 /**
@@ -50,7 +51,7 @@ function PostHogPageView() {
   useEffect(() => {
     if (!pathname || !posthog) return
     const url = window.location.origin + pathname + window.location.search
-    posthog.capture("$pageview", { $current_url: url })
+    posthog.capture("$pageview", { $current_url: sanitizeUrl(url) })
 
     // Track AI referral once per session (first pageview only)
     if (!aiReferralTracked.current) {

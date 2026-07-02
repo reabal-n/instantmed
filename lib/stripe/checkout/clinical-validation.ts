@@ -40,6 +40,10 @@ export interface ClinicalValidationResult {
   intakeFlags: IntakeFlag[]
 }
 
+function isRepeatPrescriptionSubtype(category: string, subtype: string): boolean {
+  return category === "prescription" && (subtype === "repeat" || subtype === "chronic_review")
+}
+
 export async function runClinicalValidation(
   input: CreateCheckoutInput,
 ): Promise<StepResult<ClinicalValidationResult>> {
@@ -90,7 +94,7 @@ export async function runClinicalValidation(
     }
   }
 
-  if (input.category === "prescription" && input.subtype === "repeat") {
+  if (isRepeatPrescriptionSubtype(input.category, input.subtype)) {
     const validation = validateRepeatScriptPayload(input.answers)
     if (!validation.valid) {
       return stepFail(validation.error || "Invalid repeat script request.")

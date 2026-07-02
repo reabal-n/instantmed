@@ -29,6 +29,25 @@ function consultInput(consultDetails: string) {
   } as never
 }
 
+function chronicReviewInput(medicationName: string) {
+  return {
+    category: "prescription",
+    subtype: "chronic_review",
+    type: "repeat-script",
+    serviceSlug: "common-scripts",
+    idempotencyKey: "idem-key-1234567890",
+    answers: {
+      prescribed_before: true,
+      dose_changed: false,
+      last_prescribed: "6_to_12_months",
+      current_dose: "as directed",
+      medications: [
+        { name: medicationName, strength: "5 mg", form: "tablet", pbsCode: "MANUAL" },
+      ],
+    },
+  } as never
+}
+
 describe("consult checkout controlled-substance hard block (CLIN-1)", () => {
   it("blocks a consult requesting a Schedule 8 substance in consult_details", async () => {
     const result = await runClinicalValidation(consultInput("Can I get a script for diazepam please"))
@@ -44,5 +63,12 @@ describe("consult checkout controlled-substance hard block (CLIN-1)", () => {
     if (!result.ok) {
       expect(result.error).not.toMatch(/controlled substance/i)
     }
+  })
+
+  it("blocks chronic-review prescription checkout with the repeat-script controlled-substance guard", async () => {
+    const result = await runClinicalValidation(chronicReviewInput("Oxycodone"))
+
+    expect(result.ok).toBe(false)
+    expect("error" in result ? result.error : "").toMatch(/controlled substances/i)
   })
 })

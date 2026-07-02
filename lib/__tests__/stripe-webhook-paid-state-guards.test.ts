@@ -93,12 +93,14 @@ function makeEvent(type: string, object: Record<string, unknown>): Stripe.Event 
 
 function createSupabaseMock(intake: IntakeState) {
   const updates: Array<{ filters: Array<{ column: string; method: string; value: unknown }>; payload: Record<string, unknown> }> = []
+  const deadLetters: Array<Record<string, unknown>> = []
+  const updateResults: Array<{ data: Array<{ id: string; status: string }> | { id: string; status: string } | null; error: { code?: string; message: string } | null }> = []
 
   function makeUpdateChain(payload: Record<string, unknown>) {
     const record = { filters: [] as Array<{ column: string; method: string; value: unknown }>, payload }
     updates.push(record)
 
-    const result = { data: [{ id: intake.id, status: "paid" }], error: null }
+    const result = updateResults.shift() ?? { data: [{ id: intake.id, status: "paid" }], error: null }
     const chain = {
       eq: vi.fn((column: string, value: unknown) => {
         record.filters.push({ column, method: "eq", value })
@@ -112,9 +114,14 @@ function createSupabaseMock(intake: IntakeState) {
         record.filters.push({ column, method: "neq", value })
         return chain
       }),
-      select: vi.fn(() => ({
-        single: vi.fn(async () => ({ data: { id: intake.id, status: "paid" }, error: null })),
-      })),
+      select: vi.fn(() => {
+        const selectResult = {
+          single: vi.fn(async () => result),
+          then: (resolve: (value: typeof result) => void) => Promise.resolve(result).then(resolve),
+        }
+
+        return selectResult
+      }),
       then: (resolve: (value: typeof result) => void) => Promise.resolve(result).then(resolve),
     }
     return chain
@@ -162,7 +169,10 @@ function createSupabaseMock(intake: IntakeState) {
 
       if (table === "stripe_webhook_dead_letter") {
         return {
-          insert: vi.fn(async () => ({ error: null })),
+          insert: vi.fn(async (payload: Record<string, unknown>) => {
+            deadLetters.push(payload)
+            return { error: null }
+          }),
           select: vi.fn(() => ({
             gte: vi.fn(() => ({
               is: vi.fn(async () => ({ count: 0, error: null })),
@@ -188,7 +198,7 @@ function createSupabaseMock(intake: IntakeState) {
     rpc: vi.fn(async () => ({ data: true, error: null })),
   }
 
-  return { supabase, updates }
+  return { deadLetters, supabase, updates, updateResults }
 }
 
 describe("Stripe paid-state webhook guards", () => {
@@ -232,6 +242,95 @@ describe("Stripe paid-state webhook guards", () => {
       }),
     }))
     expect(mocks.startPostPaymentReviewWork).not.toHaveBeenCalled()
+  })
+
+  it("sends stale completed checkout sessions to the webhook DLQ", async () => {
+    const intakeId = "33333333-3333-4333-8333-333333333333"
+    const { deadLetters, supabase, updates } = createSupabaseMock({
+      id: intakeId,
+      payment_id: "cs_newer",
+      payment_status: "pending",
+      status: "pending_payment",
+    })
+
+    const response = await handleCheckoutSessionCompleted({
+      event: makeEvent("checkout.session.completed", {
+        amount_total: 1995,
+        customer: "cus_test",
+        id: "cs_old",
+        metadata: {
+          category: "medical_certificate",
+          intake_id: intakeId,
+          patient_id: "patient-1",
+          service_slug: "med-cert-sick",
+        },
+        payment_intent: "pi_old",
+        payment_status: "paid",
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    await expect((response as Response).json()).resolves.toMatchObject({
+      dlq: true,
+      reason: "stale_checkout_session",
+      skipped: true,
+    })
+    expect(updates).not.toContainEqual(expect.objectContaining({
+      payload: expect.objectContaining({
+        payment_status: "paid",
+        status: "paid",
+      }),
+    }))
+    expect(deadLetters).toContainEqual(expect.objectContaining({
+      error_code: "STALE_PAYMENT_SUCCESS",
+      intake_id: intakeId,
+      session_id: "cs_old",
+    }))
+  })
+
+  it("does not treat a zero-row force update as concurrent success unless the intake is paid", async () => {
+    const intakeId = "44444444-4444-4444-8444-444444444444"
+    const { deadLetters, supabase, updateResults } = createSupabaseMock({
+      id: intakeId,
+      payment_id: "cs_current",
+      payment_status: "pending",
+      status: "pending_payment",
+    })
+    updateResults.push(
+      { data: null, error: { code: "PGRST116", message: "No rows returned" } },
+      { data: [], error: null },
+    )
+
+    const response = await handleCheckoutSessionCompleted({
+      event: makeEvent("checkout.session.completed", {
+        amount_total: 1995,
+        customer: "cus_test",
+        id: "cs_current",
+        metadata: {
+          category: "medical_certificate",
+          intake_id: intakeId,
+          patient_id: "patient-1",
+          service_slug: "med-cert-sick",
+        },
+        payment_intent: "pi_current",
+        payment_status: "paid",
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    await expect((response as Response).json()).resolves.toMatchObject({
+      dlq: true,
+      reason: "zero_row_payment_update",
+      skipped: true,
+    })
+    expect(mocks.startPostPaymentReviewWork).not.toHaveBeenCalled()
+    expect(deadLetters).toContainEqual(expect.objectContaining({
+      error_code: "ZERO_ROW_PAYMENT_UPDATE",
+      intake_id: intakeId,
+      session_id: "cs_current",
+    }))
   })
 
   it("does not mark async payment succeeded when the checkout session is stale", async () => {

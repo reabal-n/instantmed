@@ -25,8 +25,8 @@ type GuestDuplicateCheckoutRecovery =
 
 const RETRYABLE_INTAKE_STATUSES = new Set(["pending_payment", "checkout_failed"])
 const RETRYABLE_PAYMENT_STATUSES = new Set(["pending", "unpaid", "failed"])
-const CANCELLABLE_UNPAID_INTAKE_STATUSES = new Set(["draft", "pending_payment", "checkout_failed"])
-const TERMINAL_PAID_PAYMENT_STATUSES = new Set(["paid", "refunded", "partially_refunded", "disputed"])
+export const CANCELLABLE_UNPAID_INTAKE_STATUSES = new Set(["draft", "pending_payment", "checkout_failed"])
+export const TERMINAL_PAID_PAYMENT_STATUSES = new Set(["paid", "refunded", "partially_refunded", "disputed"])
 
 export function buildPaymentIntentMetadata(
   metadata: Record<string, string | null | undefined>,

@@ -29,6 +29,7 @@ import {
   STALE_HUMAN_QUEUE_CATEGORIES,
   STALE_HUMAN_QUEUE_THRESHOLD_HOURS,
 } from "@/lib/monitoring/stale-human-queue"
+import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { escapeMarkdown, sendTelegramAlert } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
@@ -114,6 +115,7 @@ async function getNoPurchaseRevenueWindow(
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
+  await recordCronHeartbeat("business-alerts")
 
   try {
     const supabase = createServiceRoleClient()

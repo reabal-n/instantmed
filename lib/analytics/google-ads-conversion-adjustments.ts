@@ -23,11 +23,13 @@ type GoogleAdsConversionAdjustmentSource =
 type GoogleAdsConversionAdjustmentStatus =
   | "failed"
   | "skipped_already_adjusted"
+  | "skipped_terminal_error"
   | "skipped_invalid_adjustment"
   | "skipped_local_dev"
   | "skipped_missing_successful_upload"
   | "skipped_no_adjustment"
   | "success"
+  | "terminal_failed"
 
 type GoogleAdsConversionAdjustmentAuditRow = {
   action?: string | null
@@ -35,8 +37,11 @@ type GoogleAdsConversionAdjustmentAuditRow = {
   intake_id?: string | null
   metadata?: {
     adjustment_type?: string | null
+    error_code?: string | null
     status?: string | null
     target_net_value_cents?: number | null
+    terminal?: boolean | null
+    terminal_reason?: string | null
     upload_api?: string | null
     upload_identifier?: string | null
   } | null
@@ -145,6 +150,31 @@ function hasMatchingSuccessfulAdjustment(
   )
 }
 
+function getTerminalGoogleAdsAdjustmentReason(error?: string | null): string | null {
+  if (!error) return null
+  if (error.includes("CONVERSION_NOT_FOUND")) return "conversion_not_found"
+  return null
+}
+
+function hasMatchingTerminalAdjustmentFailure(
+  rows: GoogleAdsConversionAdjustmentAuditRow[],
+  intent: GoogleAdsConversionAdjustmentIntent,
+): boolean {
+  return rows.some((row) => {
+    const metadata = row.metadata
+    if (
+      metadata?.adjustment_type !== intent.adjustmentType ||
+      metadata?.target_net_value_cents !== intent.targetNetValueCents
+    ) return false
+
+    if (metadata.terminal && metadata.terminal_reason) return true
+    if (metadata.status === "terminal_failed") return true
+
+    const errorCode = typeof metadata.error_code === "string" ? metadata.error_code : null
+    return metadata.status === "failed" && Boolean(getTerminalGoogleAdsAdjustmentReason(errorCode))
+  })
+}
+
 async function recordGoogleAdsConversionAdjustmentAudit({
   amountCents,
   error,
@@ -196,6 +226,10 @@ async function recordGoogleAdsConversionAdjustmentAudit({
     source,
     status,
     target_net_value_cents: intent?.targetNetValueCents ?? null,
+    terminal: status === "terminal_failed",
+    terminal_reason: status === "terminal_failed"
+      ? getTerminalGoogleAdsAdjustmentReason(error || result?.error || null)
+      : null,
     upload_api: successfulUpload?.metadata?.upload_api || null,
     upload_identifier: successfulUpload?.metadata?.upload_identifier || null,
     ...getRuntimeMetadata(requestPath),
@@ -294,13 +328,21 @@ export async function runGoogleAdsConversionAdjustment({
     return { attempted: false, status: "skipped_already_adjusted" }
   }
 
+  if (hasMatchingTerminalAdjustmentFailure(adjustmentAudits, intent)) {
+    return { attempted: false, status: "skipped_terminal_error" }
+  }
+
   const result = await fireGoogleAdsConversionAdjustment({
     adjustedValue: intent.adjustedValue,
     adjustmentDateTime,
     adjustmentType: intent.adjustmentType,
     orderId: intakeId,
   })
-  const status: GoogleAdsConversionAdjustmentStatus = result.ok ? "success" : "failed"
+  const status: GoogleAdsConversionAdjustmentStatus = result.ok
+    ? "success"
+    : getTerminalGoogleAdsAdjustmentReason(result.error)
+      ? "terminal_failed"
+      : "failed"
 
   await recordGoogleAdsConversionAdjustmentAudit({
     amountCents,

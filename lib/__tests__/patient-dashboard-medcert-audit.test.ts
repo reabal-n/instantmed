@@ -28,10 +28,14 @@ describe("patient dashboard and certificate delivery contracts", () => {
 
   it("routes guest certificate CTAs through certificate-ready account access", () => {
     const href = getGuestCertificateAccessHref("intake_123")
+    const hrefWithEmail = getGuestCertificateAccessHref("intake_123", "patient@example.test")
 
     expect(href).toBe("/auth/complete-account?intake_id=intake_123&access=certificate")
+    expect(hrefWithEmail).toBe(href)
     expect(href).not.toContain("supabase.co/storage")
     expect(href).not.toContain("token=")
+    expect(hrefWithEmail).not.toContain("email=")
+    expect(hrefWithEmail).not.toContain("patient@example.test")
   })
 
   it("keeps public tracking approved-state access actionable and non-spinning", () => {
@@ -51,12 +55,22 @@ describe("patient dashboard and certificate delivery contracts", () => {
     const confirmed = readProjectFile("app/patient/intakes/confirmed/confirmed-client.tsx")
 
     expect(completeAccount).not.toContain("Your certificate will be emailed to you regardless")
+    expect(completeAccount).not.toContain('params.set("email"')
+    expect(completeAccount).not.toContain("&email=")
     expect(confirmed).not.toContain("We'll email your certificate once it's ready")
     expect(completeAccount).toContain("Certificate downloads open through a secure account link")
     expect(completeAccount).toContain("Create Account & Track Request")
     expect(completeAccount).toContain("!certificateAccess && heardToken")
     expect(completeAccount).toContain("!certificateAccess && (")
     expect(confirmed).toContain("We'll email you when the doctor has finished.")
+  })
+
+  it("sanitizes PostHog pageview URLs before capture", () => {
+    const posthogProvider = readProjectFile("components/providers/posthog-provider.tsx")
+
+    expect(posthogProvider).toContain('import { sanitizeUrl } from "@/lib/observability/sanitize-phi"')
+    expect(posthogProvider).toContain('$current_url: sanitizeUrl(url)')
+    expect(posthogProvider).not.toContain("$current_url: url")
   })
 
   it("mirrors certificate email success onto the intake delivery timestamp", () => {

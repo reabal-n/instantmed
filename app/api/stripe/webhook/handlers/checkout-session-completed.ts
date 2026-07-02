@@ -213,13 +213,31 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     }
 
     if (currentIntake.payment_id && currentIntake.payment_id !== session.id) {
+      const errorMsg = `Payment success received for stale checkout session: ${session.id}`
       log.warn("checkout.session.completed ignored because session is no longer current", {
         currentPaymentId: currentIntake.payment_id,
         eventId: event.id,
         intakeId,
         sessionId: session.id,
       })
-      return NextResponse.json({ received: true, skipped: true, reason: "stale_checkout_session" })
+      await recordEventError(supabase, event.id, errorMsg)
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        session.id,
+        intakeId,
+        errorMsg,
+        "STALE_PAYMENT_SUCCESS",
+        {
+          amount: session.amount_total,
+          current_payment_id: currentIntake.payment_id,
+          current_payment_status: currentIntake.payment_status,
+          current_status: currentIntake.status,
+          payment_intent: session.payment_intent,
+        },
+      )
+      return NextResponse.json({ received: true, skipped: true, reason: "stale_checkout_session", dlq: true })
     }
 
     // STEP 2: Guard against double-marking as paid
@@ -392,6 +410,10 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
             status: "paid",
             paid_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
+            // Mirror the primary paid update: refunds compute from this column,
+            // so a coupon/Priority intake recovered via force update must store
+            // what Stripe actually charged, not the seeded list price.
+            amount_cents: session.amount_total,
             stripe_payment_intent_id: paymentIntentId,
             stripe_customer_id: stripeCustomerId,
           })
@@ -416,9 +438,44 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
           log.info("Force update succeeded", { intakeId, newStatus: forceRows![0].status })
           // Don't return early - fall through to continue webhook flow
         } else if (!forceError && rowsUpdated === 0) {
-          log.info("Force update matched 0 rows - concurrent webhook already processed", { intakeId })
-          await notifyPaidRequestTelegramForSession(supabase, session, intakeId, patientId)
-          return NextResponse.json({ received: true, concurrent_update: true })
+          const { data: finalRecheckIntake, error: finalRecheckError } = await supabase
+            .from("intakes")
+            .select("id, status, payment_status, paid_at, payment_id, stripe_payment_intent_id")
+            .eq("id", intakeId)
+            .single()
+
+          if (finalRecheckIntake?.payment_status === "paid") {
+            log.info("Force update matched 0 rows - concurrent webhook already processed", { intakeId })
+            await notifyPaidRequestTelegramForSession(supabase, session, intakeId, patientId)
+            return NextResponse.json({ received: true, concurrent_update: true })
+          }
+
+          const errorMsg = `Payment success force update matched 0 rows and intake is still unpaid: ${finalRecheckIntake?.status || "unknown"}/${finalRecheckIntake?.payment_status || "unknown"}`
+          log.error("Force update matched 0 rows without paid confirmation", {
+            eventId: event.id,
+            finalRecheckError: finalRecheckError?.message,
+            finalRecheckState: finalRecheckIntake,
+            intakeId,
+            sessionId: session.id,
+          })
+          await recordEventError(supabase, event.id, errorMsg)
+          await addToDeadLetterQueue(
+            supabase,
+            event.id,
+            event.type,
+            session.id,
+            intakeId,
+            errorMsg,
+            "ZERO_ROW_PAYMENT_UPDATE",
+            {
+              amount: session.amount_total,
+              current_payment_id: finalRecheckIntake?.payment_id || recheckIntake.payment_id,
+              current_payment_status: finalRecheckIntake?.payment_status || recheckIntake.payment_status,
+              current_status: finalRecheckIntake?.status || recheckIntake.status,
+              payment_intent: session.payment_intent,
+            },
+          )
+          return NextResponse.json({ received: true, skipped: true, dlq: true, reason: "zero_row_payment_update" })
         } else {
           log.error("Force update also failed", {
             intakeId,

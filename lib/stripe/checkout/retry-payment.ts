@@ -251,7 +251,7 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     }
 
     // Reset retryable failures to a fresh pending checkout session.
-    const { error: retryUpdateError } = await supabase
+    const { data: retryRows, error: retryUpdateError } = await supabase
       .from("intakes")
       .update({
         payment_id: session.id,
@@ -263,10 +263,30 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       .eq("id", intake.id)
       .in("status", ["pending_payment", "checkout_failed"])
       .in("payment_status", ["pending", "unpaid", "failed"])
+      .select("id")
 
     if (retryUpdateError) {
       logger.error("Failed to attach retry checkout session", { intakeId: intake.id }, retryUpdateError)
       return { success: false, error: "Failed to prepare payment retry. Please try again." }
+    }
+
+    // Zero rows = the intake stopped being retryable between canRetry and this
+    // write (most likely a concurrent paid webhook landed). Never hand back a
+    // payable URL for an already-paid intake.
+    if (!retryRows || retryRows.length === 0) {
+      logger.warn("Retry attach matched 0 rows - intake no longer retryable (likely just paid)", {
+        intakeId: intake.id,
+        sessionId: session.id,
+      })
+      try {
+        await stripe.checkout.sessions.expire(session.id)
+      } catch {
+        // Best effort - the session expires on its own after 24h.
+      }
+      return {
+        success: false,
+        error: "This request has already been paid — no further payment is needed. Please refresh to see its status.",
+      }
     }
 
     // Count the retry in the server-side "reached pay" denominator so retried

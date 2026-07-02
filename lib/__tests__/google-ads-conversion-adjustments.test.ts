@@ -215,6 +215,73 @@ describe("Google Ads conversion adjustments", () => {
     expect(inserted).toHaveLength(0)
   })
 
+  it("records conversion-not-found adjustment failures as terminal", async () => {
+    mocks.fireGoogleAdsConversionAdjustment.mockResolvedValue({
+      attempted: true,
+      error: "conversionAdjustmentResult.adjustmentUploadError:CONVERSION_NOT_FOUND:The conversion was not found",
+      ok: false,
+    })
+    const { inserted, supabase } = adjustmentSupabaseMock([successfulPurchaseUpload()])
+
+    const result = await runGoogleAdsConversionAdjustment({
+      amountCents: 2495,
+      intakeId: "intake_123",
+      paymentStatus: "refunded",
+      refundAmountCents: 2495,
+      source: "cron_backfill",
+      supabase: supabase as never,
+    })
+
+    expect(result).toMatchObject({
+      attempted: true,
+      ok: false,
+      status: "terminal_failed",
+    })
+    expect(inserted[0]).toMatchObject({
+      payload: {
+        metadata: expect.objectContaining({
+          error_code: "conversionAdjustmentResult.adjustmentUploadError:CONVERSION_NOT_FOUND:The conversion was not found",
+          status: "terminal_failed",
+          terminal: true,
+          terminal_reason: "conversion_not_found",
+        }),
+      },
+    })
+  })
+
+  it("does not retry a matching terminal adjustment failure", async () => {
+    const { inserted, supabase } = adjustmentSupabaseMock([
+      successfulPurchaseUpload(),
+      {
+        action: GOOGLE_ADS_CONVERSION_ADJUSTMENT_AUDIT_ACTION,
+        created_at: "2026-07-01T02:00:00.000Z",
+        intake_id: "intake_123",
+        metadata: {
+          adjustment_type: "RETRACTION",
+          error_code: "conversionAdjustmentResult.adjustmentUploadError:CONVERSION_NOT_FOUND:The conversion was not found",
+          status: "failed",
+          target_net_value_cents: 0,
+        },
+      },
+    ])
+
+    const result = await runGoogleAdsConversionAdjustment({
+      amountCents: 2495,
+      intakeId: "intake_123",
+      paymentStatus: "refunded",
+      refundAmountCents: 2495,
+      source: "cron_backfill",
+      supabase: supabase as never,
+    })
+
+    expect(result).toMatchObject({
+      attempted: false,
+      status: "skipped_terminal_error",
+    })
+    expect(mocks.fireGoogleAdsConversionAdjustment).not.toHaveBeenCalled()
+    expect(inserted).toHaveLength(0)
+  })
+
   it("skips audit writes from local development runtimes", async () => {
     vi.stubEnv("NODE_ENV", "development")
     vi.stubEnv("VERCEL", "0")
