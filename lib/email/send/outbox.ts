@@ -16,6 +16,13 @@ export interface CreatePendingOutboxResult {
   duplicate: boolean
 }
 
+/**
+ * How many times a failed idempotent send may be reclaimed for retry before
+ * the failed row is treated as terminal (duplicate). Bounds retries of a
+ * permanently broken send to a handful of cron cycles.
+ */
+const MAX_IDEMPOTENT_RECLAIMS = 5
+
 type CreatePendingOutboxEntry = Omit<OutboxEntry, "status"> & {
   initialStatus?: "pending" | "sending"
 }
@@ -36,12 +43,49 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
     if (idempotencyKey) {
       const { data: existing } = await supabase
         .from("email_outbox")
-        .select("id")
+        .select("id, status, metadata")
         .eq("idempotency_key", idempotencyKey)
         .limit(1)
         .maybeSingle()
 
       if (existing) {
+        // A FAILED row must not phantom-dedup the retry. For the cron-owned
+        // types the dispatcher cannot reconstruct ("Unsupported email_type"
+        // quiet-fail), the owning cron's next sendEmail IS the only retry
+        // path — treating its failed row as "already sent" permanently drops
+        // the email. Reclaim the failed row for this attempt instead. The
+        // status filter keeps the reclaim atomic against concurrent senders.
+        // reclaim_count lives in metadata (retry_count is a per-send-attempt
+        // counter that resets each send) and caps how many cron cycles a
+        // permanently broken send can burn before going terminal-duplicate.
+        const existingMetadata = (existing.metadata ?? {}) as Record<string, unknown>
+        const reclaimCount = typeof existingMetadata.reclaim_count === "number"
+          ? existingMetadata.reclaim_count
+          : 0
+        if (existing.status === "failed" && reclaimCount < MAX_IDEMPOTENT_RECLAIMS) {
+          const { data: reclaimed } = await supabase
+            .from("email_outbox")
+            .update({
+              status: entry.initialStatus ?? "pending",
+              last_attempt_at: new Date().toISOString(),
+              scheduled_for: entry.scheduled_for ?? null,
+              metadata: { ...existingMetadata, reclaim_count: reclaimCount + 1 },
+            })
+            .eq("id", existing.id)
+            .eq("status", "failed")
+            .select("id")
+            .maybeSingle()
+
+          if (reclaimed) {
+            logger.info("[Email] DB idempotency guard: reclaimed failed outbox row for retry", {
+              existingId: reclaimed.id,
+              emailType: entry.email_type,
+            })
+            return { id: reclaimed.id, duplicate: false }
+          }
+          // Reclaim raced a concurrent sender - fall through to duplicate.
+        }
+
         logger.info("[Email] DB idempotency guard: duplicate outbox row skipped", {
           existingId: existing.id,
           emailType: entry.email_type,
