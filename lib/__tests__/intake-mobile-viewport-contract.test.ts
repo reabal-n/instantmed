@@ -66,6 +66,21 @@ describe("intake mobile viewport contract", () => {
     expect(source).toContain("max-sm:hidden")
   })
 
+  // 2026-07-02 mobile checkout outage: steps are lazy-loaded, so the sticky
+  // CTA's once-per-step sync misses every step whose primary action is a plain
+  // shadcn Button — the announce event MUST fire from the shared Button
+  // primitive too, not only from RequestButton (which only certificate-step
+  // uses). Without this, mobile users cannot continue past the first step.
+  it("keeps the shared Button primitive announcing intake primary-action changes", () => {
+    const uiButtonSource = readProjectFile("components/ui/button.tsx")
+    expect(uiButtonSource).toContain("INTAKE_PRIMARY_ACTION_CHANGE_EVENT")
+    expect(uiButtonSource).toContain("window.dispatchEvent(new Event(INTAKE_PRIMARY_ACTION_CHANGE_EVENT))")
+    expect(uiButtonSource).toContain('primaryActionFlag !== "true"')
+    // Label/ready/disabled changes must re-announce so the pay step's
+    // "Pay $X" label stays correct when Priority Review toggles.
+    expect(uiButtonSource).toContain("primaryActionLabel, primaryActionReady, isDisabled")
+  })
+
   it("declares intentional smooth scrolling on the root html element", () => {
     expect(rootLayoutSource).toContain('data-scroll-behavior="smooth"')
   })

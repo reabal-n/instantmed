@@ -54,6 +54,9 @@ export const RequestButton = React.forwardRef<HTMLButtonElement, RequestButtonPr
     React.useEffect(() => {
       if (primaryActionFlag !== "true" || typeof window === "undefined") return
       window.dispatchEvent(new Event(INTAKE_PRIMARY_ACTION_CHANGE_EVENT))
+      return () => {
+        window.dispatchEvent(new Event(INTAKE_PRIMARY_ACTION_CHANGE_EVENT))
+      }
     }, [isDisabled, primaryActionFlag, primaryActionLabel, primaryActionReady])
 
     return (

@@ -4,6 +4,7 @@ import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 import * as React from "react"
 
+import { INTAKE_PRIMARY_ACTION_CHANGE_EVENT } from "@/components/request/request-button"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
@@ -77,6 +78,24 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const Comp = asChild ? Slot : "button"
     const isDisabled = disabled || isLoading
+
+    // The intake flow's mobile sticky CTA mirrors whichever button carries
+    // data-intake-primary-action="true" (request-flow.tsx syncs once per step
+    // change and then relies on this announce event). Most steps render that
+    // button with this shared Button, and steps are lazy-loaded, so a
+    // mount-time-only sync misses them — the announce must fire from here on
+    // mount, unmount, and every label/ready/disabled change.
+    const primaryActionFlag = (props as Record<string, unknown>)["data-intake-primary-action"]
+    const primaryActionLabel = (props as Record<string, unknown>)["data-intake-primary-label"]
+    const primaryActionReady = (props as Record<string, unknown>)["data-intake-primary-ready"]
+
+    React.useEffect(() => {
+      if (primaryActionFlag !== "true" || typeof window === "undefined") return
+      window.dispatchEvent(new Event(INTAKE_PRIMARY_ACTION_CHANGE_EVENT))
+      return () => {
+        window.dispatchEvent(new Event(INTAKE_PRIMARY_ACTION_CHANGE_EVENT))
+      }
+    }, [primaryActionFlag, primaryActionLabel, primaryActionReady, isDisabled])
 
     return (
       <Comp
