@@ -47,8 +47,43 @@ import { useFlowAnalytics } from "./hooks/use-flow-analytics"
 import { useFlowNavigation } from "./hooks/use-flow-navigation"
 import { useSwipeNavigation } from "./hooks/use-swipe-navigation"
 import { useUnsavedChanges } from "./hooks/use-unsaved-changes"
+import { preloadStepComponent } from "./step-loaders"
 import { StepRouter } from "./step-router"
 import { useRequestStore } from "./store"
+
+// Kick off the FIRST step's chunk fetch as soon as this client module
+// evaluates — in parallel with hydration — instead of waiting for the full
+// RequestFlow tree to hydrate and StepRouter's effect to flush. On the paid
+// mobile entry (/request?service=med-cert) that serialized waterfall was the
+// biggest lever on time-to-interactive for the certificate form. The preload
+// cache dedupes against StepRouter's own load, and a draft resuming on a
+// later step just wastes one small prefetch.
+if (typeof window !== "undefined") {
+  queueMicrotask(() => {
+    try {
+      const search = new URLSearchParams(window.location.search)
+      const service = search.get("service")
+      const subtype = search.get("subtype")
+      const firstStepComponent =
+        service === "med-cert"
+          ? "certificate-step"
+          : service === "repeat-script" || service === "prescription"
+            ? "medication-step"
+            : service === "consult"
+              ? subtype === "hair_loss"
+                ? "hair-loss-goals-step"
+                : subtype === "womens_health"
+                  ? "womens-health-type-step"
+                  : subtype === "ed"
+                    ? "ed-goals-step"
+                    : null
+              : null
+      if (firstStepComponent) void preloadStepComponent(firstStepComponent)
+    } catch {
+      // Never let the prefetch interfere with hydration.
+    }
+  })
+}
 
 
 interface HealthProfilePrefill {
@@ -835,6 +870,7 @@ export function RequestFlow({
             serviceType={effectiveService}
             currentStepId={currentStepId}
             componentPath={currentStep.componentPath}
+            nextComponentPath={activeSteps[currentStepIndex + 1]?.componentPath}
             initialDuration={initialDuration}
             onNext={handleNext}
             onBack={handleBack}

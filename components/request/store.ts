@@ -153,6 +153,84 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+// --- Debounced draft persistence (see storage.setItem below) ---------------
+
+const DRAFT_WRITE_DEBOUNCE_MS = 400
+
+let pendingDraftWrite: { name: string; value: StorageValue<Partial<RequestState>> } | null = null
+let draftWriteTimer: ReturnType<typeof setTimeout> | null = null
+
+function writeDraftToStorage(name: string, value: StorageValue<Partial<RequestState>>): void {
+  try {
+    // Write to legacy key (for backward compatibility)
+    localStorage.setItem(name, JSON.stringify(value))
+  } catch {
+    // QuotaExceededError or SecurityError - silently ignore (private mode, full storage)
+    return
+  }
+
+  // Dual-write to new service-scoped key
+  const state = value.state
+  if (state?.serviceType) {
+    const canonical = canonicalizeServiceType(state.serviceType)
+    if (canonical) {
+      saveDraft(canonical, {
+        currentStepId: state.currentStepId || 'certificate',
+        answers: state.answers || {},
+        firstName: state.firstName,
+        lastName: state.lastName,
+        email: state.email,
+        phone: state.phone,
+        dob: state.dob,
+        safetyConfirmed: state.safetyConfirmed,
+        safetyTimestamp: state.safetyTimestamp,
+      })
+    }
+  }
+}
+
+function flushPendingDraftWrite(): void {
+  if (draftWriteTimer !== null) {
+    clearTimeout(draftWriteTimer)
+    draftWriteTimer = null
+  }
+  if (!pendingDraftWrite || typeof localStorage === 'undefined') return
+  const { name, value } = pendingDraftWrite
+  pendingDraftWrite = null
+  writeDraftToStorage(name, value)
+}
+
+if (typeof window !== 'undefined') {
+  // A killed/backgrounded tab must not lose the trailing debounce window.
+  window.addEventListener('pagehide', flushPendingDraftWrite)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flushPendingDraftWrite()
+  })
+}
+
+/**
+ * Escape hatch for edit mode on a SKIPPED step: when the current step is not
+ * in the active sequence (e.g. 'details' filtered out by canSkip for an authed
+ * complete-profile user), next/prev resolution returns null and navigation
+ * dies. The only sensible destination is the final review/pay step the patient
+ * came from. Returns null when the current step IS active, so a normal
+ * end-of-flow null (review's own Continue) is never overridden.
+ */
+function getLastActiveStepId(
+  serviceType: UnifiedServiceType,
+  currentStepId: UnifiedStepId,
+  context: Parameters<typeof _getStepsForService>[1],
+): UnifiedStepId | null {
+  try {
+    const steps = _getStepsForService(serviceType, context)
+    if (steps.length === 0) return null
+    if (steps.some((s) => s.id === currentStepId)) return null
+    return steps[steps.length - 1].id as UnifiedStepId
+  } catch {
+    return null
+  }
+}
+
 function normalizePersistedState(state: Partial<RequestState> | undefined): Partial<RequestState> {
   if (!state) return {}
 
@@ -211,6 +289,17 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         const nextId = getNextStepId(serviceType, currentStepId, context)
         if (nextId) {
           set({ currentStepId: nextId, direction: 1 })
+          return
+        }
+
+        // Edit mode on a SKIPPED step (e.g. an authed complete-profile user
+        // clicked "Edit" on Your Details from the pay step): the step isn't in
+        // the active sequence, so getNextStepId returns null and Continue
+        // would silently do nothing — an inescapable dead-end at the moment
+        // of payment. Return the patient to the final review/pay step instead.
+        const lastActiveId = getLastActiveStepId(serviceType, currentStepId, context)
+        if (lastActiveId) {
+          set({ currentStepId: lastActiveId, direction: 1 })
         }
       },
 
@@ -227,6 +316,14 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         const prevId = getPreviousStepId(serviceType, currentStepId, context)
         if (prevId) {
           set({ currentStepId: prevId, direction: -1 })
+          return
+        }
+
+        // Same edit-mode escape as nextStep: Back from a skipped step returns
+        // to the review/pay step the patient came from (not a dead button).
+        const lastActiveId = getLastActiveStepId(serviceType, currentStepId, context)
+        if (lastActiveId) {
+          set({ currentStepId: lastActiveId, direction: -1 })
         }
       },
 
@@ -415,38 +512,30 @@ export const useRequestStore = create<RequestState & RequestActions>()(
             return null
           }
         },
+        // Persist writes are debounced: every keystroke otherwise runs THREE
+        // synchronous JSON.stringify passes + two localStorage.setItem calls
+        // on the main thread (legacy key + service-scoped key), which shows up
+        // directly in the /request mobile typing latency. State stays live in
+        // Zustand — only the storage mirror trails by up to 400ms, with a
+        // flush on pagehide/hidden so a tab kill loses at most that window.
         setItem: (name: string, value: StorageValue<Partial<RequestState>>): void => {
           if (typeof localStorage === 'undefined') return
-
-          try {
-            // Write to legacy key (for backward compatibility)
-            localStorage.setItem(name, JSON.stringify(value))
-          } catch {
-            // QuotaExceededError or SecurityError - silently ignore (private mode, full storage)
-            return
-          }
-
-          // Dual-write to new service-scoped key
-          const state = value.state
-          if (state?.serviceType) {
-            const canonical = canonicalizeServiceType(state.serviceType)
-            if (canonical) {
-              saveDraft(canonical, {
-                currentStepId: state.currentStepId || 'certificate',
-                answers: state.answers || {},
-                firstName: state.firstName,
-                lastName: state.lastName,
-                email: state.email,
-                phone: state.phone,
-                dob: state.dob,
-                safetyConfirmed: state.safetyConfirmed,
-                safetyTimestamp: state.safetyTimestamp,
-              })
-            }
-          }
+          pendingDraftWrite = { name, value }
+          if (draftWriteTimer !== null) clearTimeout(draftWriteTimer)
+          draftWriteTimer = setTimeout(() => {
+            draftWriteTimer = null
+            flushPendingDraftWrite()
+          }, DRAFT_WRITE_DEBOUNCE_MS)
         },
         removeItem: (name: string): void => {
           if (typeof localStorage === 'undefined') return
+          // Cancel any trailing write so a reset cannot be resurrected by a
+          // stale pending flush.
+          pendingDraftWrite = null
+          if (draftWriteTimer !== null) {
+            clearTimeout(draftWriteTimer)
+            draftWriteTimer = null
+          }
           try {
             localStorage.removeItem(name)
           } catch {
