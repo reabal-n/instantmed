@@ -239,11 +239,53 @@ test.describe("Unified Request Flow - Accessibility", () => {
   test("interactive elements are present", async ({ page }) => {
     await page.goto("/request?service=med-cert")
     await waitForPageLoad(page)
-    
+
     // Wait for page to load
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
-    
+
     // Page should have interactive elements
     await expect(page.getByRole("button", { name: /Continue/i })).toBeVisible()
+  })
+})
+
+test.describe("Unified Request Flow - Mobile sticky CTA", () => {
+  // 2026-06-30 outage guard: the deploy that replaced the sticky-CTA
+  // MutationObserver with an announce event left the bar permanently disabled
+  // on every lazily-loaded step whose primary action is a plain Button (18 of
+  // 19 steps), killing ALL mobile checkouts for 2.5 days while desktop CI
+  // stayed green. This test advances the flow at a phone viewport using ONLY
+  // the sticky bar, so that regression class cannot ship again.
+  test.use({ viewport: { width: 375, height: 812 } })
+
+  test("advances certificate -> symptoms via the sticky bar only", async ({ page }) => {
+    await page.goto("/request?service=med-cert")
+    await waitForPageLoad(page)
+
+    await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
+
+    // Complete step 1 (duration/start date default; select them if rendered
+    // unselected so the step is valid regardless of default behaviour).
+    await page.getByRole("radio", { name: /Work/i }).click()
+    const changeDates = page.getByRole("button", { name: /Change length or start date/i })
+    if (await changeDates.isVisible().catch(() => false)) await changeDates.click()
+    const oneDay = page.getByRole("radio", { name: /1 day/i })
+    if (await oneDay.isVisible().catch(() => false)) await oneDay.click()
+    const today = page.getByRole("radio", { name: /^Today/i })
+    if (await today.isVisible().catch(() => false)) await today.click()
+
+    // The in-step Continue is max-sm:hidden at this viewport — the sticky bar
+    // is the ONLY way forward on mobile. It must become enabled and work.
+    const stickyBar = page.locator('[data-intake-mobile-action-bar="true"]')
+    await expect(stickyBar).toBeVisible({ timeout: 15000 })
+    const stickyContinue = stickyBar.getByRole("button", { name: /Continue|Pay/ })
+    await expect(stickyContinue).toBeEnabled({ timeout: 15000 })
+    await stickyContinue.click()
+
+    // Step 2 (symptoms) renders its primary action with the shared plain
+    // Button — the exact class that went dark in the outage. The sticky bar
+    // must be clickable on this step too (validation-on-tap pattern), not
+    // permanently disabled.
+    await expect(page.getByRole("heading", { name: /Your symptoms/i })).toBeVisible({ timeout: 15000 })
+    await expect(stickyContinue).toBeEnabled({ timeout: 15000 })
   })
 })
