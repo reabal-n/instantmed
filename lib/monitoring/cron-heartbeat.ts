@@ -21,6 +21,7 @@ const CRITICAL_CRONS: Record<string, { schedule: string; maxDelayMinutes: number
   "emergency-flags":        { schedule: "0 * * * *",     maxDelayMinutes: 75 },
   "daily-reconciliation":   { schedule: "0 21 * * *",    maxDelayMinutes: 1500 }, // ~25h
   "parchment-smoke":        { schedule: "30 21 * * *",   maxDelayMinutes: 1500 }, // ~25h
+  "business-alerts":        { schedule: "*/30 * * * *",   maxDelayMinutes: 75 },
   "google-ads-conversions": { schedule: "45 * * * *",    maxDelayMinutes: 75 },
   "google-ads-diagnostics-watch": { schedule: "50 * * * *", maxDelayMinutes: 75 },
 }

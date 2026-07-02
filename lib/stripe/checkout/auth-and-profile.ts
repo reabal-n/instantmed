@@ -21,6 +21,10 @@ import type { CreateCheckoutInput, StepResult } from "./types"
 import { stepFail, stepOk } from "./types"
 
 const logger = createLogger("stripe-checkout-auth")
+const AGE_REQUIREMENT_ERROR =
+  "Date of birth is required to confirm you are 18 or older before payment."
+const UNDER_18_ERROR =
+  "You must be 18 or older to use this service. If you are under 18, please visit your GP with a parent or guardian."
 
 export interface AuthAndProfileResult {
   patientId: string
@@ -28,6 +32,27 @@ export interface AuthAndProfileResult {
   stripeCustomerId: string | undefined
   authUserId: string
   baseUrl: string
+}
+
+function stringAnswer(answers: Record<string, unknown>, keys: string[]): string | null {
+  for (const key of keys) {
+    const value = answers[key]
+    if (typeof value === "string" && value.trim()) return value.trim()
+  }
+  return null
+}
+
+function ageFromDateOfBirth(value: string): number | null {
+  const dob = new Date(value)
+  if (Number.isNaN(dob.getTime())) return null
+
+  const today = new Date()
+  let age = today.getFullYear() - dob.getFullYear()
+  const monthDiff = today.getMonth() - dob.getMonth()
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+    age--
+  }
+  return age
 }
 
 export async function runAuthAndProfile(
@@ -65,6 +90,11 @@ export async function runAuthAndProfile(
   // 3. For prescribing/consult flows, sync the prescribing-identity columns
   //    captured in the intake answers into the profile so Parchment + admin
   //    blocker reports see them.
+  const requestDateOfBirth: string | null = stringAnswer(input.answers, [
+    "dateOfBirth",
+    "date_of_birth",
+    "dob",
+  ])
   if (requiresPrescribingIdentityForRequest({ category: input.category, subtype: input.subtype })) {
     const prescribingIdentityError = validateRequiredPrescribingProfileAnswers(input.answers)
     if (prescribingIdentityError) {
@@ -81,23 +111,22 @@ export async function runAuthAndProfile(
   }
 
   // 4. CLAUDE.md eligibility constraint: 18+.
-  const profileDob = authUser.profile?.date_of_birth as string | null | undefined
-  if (profileDob) {
-    const dob = new Date(profileDob)
-    if (!isNaN(dob.getTime())) {
-      const today = new Date()
-      let age = today.getFullYear() - dob.getFullYear()
-      const monthDiff = today.getMonth() - dob.getMonth()
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-        age--
-      }
-      if (age < 18) {
-        logger.warn("Checkout blocked: patient under 18", { patientId, category: input.category })
-        return stepFail(
-          "You must be 18 or older to use this service. If you are under 18, please visit your GP with a parent or guardian.",
-        )
-      }
-    }
+  const profileDob = typeof authUser.profile?.date_of_birth === "string"
+    ? authUser.profile.date_of_birth.trim()
+    : ""
+  const dobForAgeCheck = profileDob || requestDateOfBirth
+  if (!dobForAgeCheck) {
+    logger.warn("Checkout blocked: missing date of birth", { patientId, category: input.category })
+    return stepFail(AGE_REQUIREMENT_ERROR)
+  }
+
+  const age = ageFromDateOfBirth(dobForAgeCheck)
+  if (age === null) {
+    return stepFail("Please provide a valid date of birth before payment.")
+  }
+  if (age < 18) {
+    logger.warn("Checkout blocked: patient under 18", { patientId, category: input.category })
+    return stepFail(UNDER_18_ERROR)
   }
 
   // 5. Base URL must be a real URL we can build success/cancel paths from.

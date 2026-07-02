@@ -14,9 +14,8 @@ export function getPatientIntakeDetailHref(intakeId: string): string {
  * profile by intake/email and then shows the audited certificate download —
  * instead of the auth-walled portal a guest can never sign into.
  */
-export function getGuestCertificateAccessHref(intakeId: string, email?: string | null): string {
+export function getGuestCertificateAccessHref(intakeId: string, _email?: string | null): string {
   const params = new URLSearchParams({ intake_id: intakeId })
   params.set("access", "certificate")
-  if (email) params.set("email", email)
   return `/auth/complete-account?${params.toString()}`
 }

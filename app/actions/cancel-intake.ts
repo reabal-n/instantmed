@@ -3,7 +3,12 @@
 import { withServerAction } from "@/lib/actions/with-server-action"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
-import { canCancelUnpaidCheckoutIntake } from "@/lib/stripe/payment-integrity"
+import { stripe } from "@/lib/stripe/client"
+import {
+  canCancelUnpaidCheckoutIntake,
+  CANCELLABLE_UNPAID_INTAKE_STATUSES,
+  TERMINAL_PAID_PAYMENT_STATUSES,
+} from "@/lib/stripe/payment-integrity"
 import type { ActionResult } from "@/types/shared"
 
 /**
@@ -22,7 +27,7 @@ export const cancelIntake = withServerAction<string>(
     // Fetch the intake to verify ownership and status
     const { data: intake, error: fetchError } = await supabase
       .from("intakes")
-      .select("id, patient_id, status, payment_status")
+      .select("id, patient_id, status, payment_status, payment_id")
       .eq("id", intakeId)
       .single()
 
@@ -60,8 +65,11 @@ export const cancelIntake = withServerAction<string>(
       }
     }
 
-    // Update intake status to cancelled
-    const { error: updateError } = await supabase
+    // Update intake status to cancelled. The pre-check above is check-then-act:
+    // the paid webhook can land between the fetch and this write, and the DB
+    // trigger allows paid -> cancelled, so the write itself must re-assert the
+    // unpaid-cancellable state or we mint a paid+cancelled chargeback row.
+    const { data: cancelledRows, error: updateError } = await supabase
       .from("intakes")
       .update({
         status: "cancelled",
@@ -69,13 +77,40 @@ export const cancelIntake = withServerAction<string>(
         updated_at: new Date().toISOString(),
       })
       .eq("id", intakeId)
+      .in("status", Array.from(CANCELLABLE_UNPAID_INTAKE_STATUSES))
+      .or(`payment_status.is.null,payment_status.not.in.(${Array.from(TERMINAL_PAID_PAYMENT_STATUSES).join(",")})`)
+      .select("id")
 
     if (updateError) {
       log.error("Cancel intake: update failed", { intakeId, error: updateError })
       return { success: false, error: "Failed to cancel request. Please try again." }
     }
 
+    if (!cancelledRows || cancelledRows.length === 0) {
+      log.warn("Cancel intake: state changed before cancellation (likely just paid)", { intakeId })
+      return {
+        success: false,
+        error: "This request can no longer be cancelled — it may have just been paid. Please refresh to see its current status.",
+      }
+    }
+
     log.info("Intake cancelled successfully", { intakeId, userId: profile.id })
+
+    if (intake.payment_id?.startsWith("cs_")) {
+      try {
+        await stripe.checkout.sessions.expire(intake.payment_id)
+        log.info("Expired cancelled intake checkout session", {
+          intakeId,
+          sessionId: intake.payment_id,
+        })
+      } catch (expireError) {
+        log.debug("Could not expire cancelled intake checkout session", {
+          error: expireError instanceof Error ? expireError.message : String(expireError),
+          intakeId,
+          sessionId: intake.payment_id,
+        })
+      }
+    }
 
     // Revalidate paths
     revalidatePatient({ intakeId })

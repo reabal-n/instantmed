@@ -103,4 +103,29 @@ describe("cron surface contract", () => {
       "| Google Ads Diagnostics Watch | `/api/cron/google-ads-diagnostics-watch` | Hourly (:50) |",
     )
   })
+
+  it("keeps business-alerts scheduled, heartbeat-monitored, and documented", () => {
+    const vercelConfig = JSON.parse(read("vercel.json")) as {
+      crons?: Array<{ path?: string; schedule?: string }>
+    }
+    const businessAlertsCron = (vercelConfig.crons ?? []).find(
+      (cron) => cron.path === "/api/cron/business-alerts",
+    )
+    const heartbeatSource = read("lib/monitoring/cron-heartbeat.ts")
+    const routeSource = read("app/api/cron/business-alerts/route.ts")
+    const operationsSource = read("docs/OPERATIONS.md")
+
+    expect(businessAlertsCron).toEqual({
+      path: "/api/cron/business-alerts",
+      schedule: "*/30 * * * *",
+    })
+    expect(heartbeatSource).toContain(
+      '"business-alerts":        { schedule: "*/30 * * * *",   maxDelayMinutes: 75 }',
+    )
+    expect(routeSource).toContain('await recordCronHeartbeat("business-alerts")')
+    expect(routeSource.indexOf('await recordCronHeartbeat("business-alerts")')).toBeLessThan(
+      routeSource.indexOf("const supabase = createServiceRoleClient()"),
+    )
+    expect(operationsSource).toContain("| Business Alerts | `/api/cron/business-alerts` | Every 30 min |")
+  })
 })

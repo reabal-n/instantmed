@@ -75,7 +75,7 @@ function pickPatient(rawPatient: unknown) {
 function accessLink(intakeId: string, patient: { email: string; auth_user_id?: string | null }) {
   return patient.auth_user_id
     ? `${env.appUrl}${getPatientIntakeDetailHref(intakeId)}`
-    : `${env.appUrl}${getGuestCertificateAccessHref(intakeId, patient.email)}`
+    : `${env.appUrl}${getGuestCertificateAccessHref(intakeId)}`
 }
 
 export async function resendCertificate(intakeId: string): Promise<ResendCertificateResult> {

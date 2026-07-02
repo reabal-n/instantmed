@@ -189,6 +189,9 @@ function createRetrySupabaseMock(intakeOverrides: Partial<{
       updateRecord.filters.push({ column, method: "in", value })
       return updateChain
     }),
+    // The attach update ends with .select("id") so zero-row matches (intake
+    // paid concurrently) are detectable; a matched row must come back here.
+    select: vi.fn(async () => ({ data: [{ id: intake.id }], error: null })),
     then: (resolve: (value: typeof updateResult) => void) => Promise.resolve(updateResult).then(resolve),
   }
 

@@ -9,6 +9,7 @@ import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { toError } from "@/lib/errors"
+import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import {
   buildGoogleAdsPurchaseImportAlert,
   buildGoogleAdsUploadAuditSourceAnomalyAlert,
@@ -114,6 +115,7 @@ async function getNoPurchaseRevenueWindow(
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
+  await recordCronHeartbeat("business-alerts")
 
   try {
     const supabase = createServiceRoleClient()

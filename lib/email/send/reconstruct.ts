@@ -64,23 +64,21 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
     // Guest-aware CTA, mirroring execute-cert-approval.ts. Fall back to the
     // portal link if the profile lookup fails — never block a retry on it.
     let isGuest = false
-    let guestEmail: string | null = null
     if (cert.patient_id) {
       const { data: prof } = await supabase
         .from("profiles")
-        .select("auth_user_id, email")
+        .select("auth_user_id")
         .eq("id", cert.patient_id)
         .maybeSingle()
       if (prof && !prof.auth_user_id) {
         isGuest = true
-        guestEmail = prof.email
       }
     }
 
     // Render the template
     const { MedCertPatientEmail } = await import("@/lib/email/components/templates")
     const dashboardUrl = isGuest
-      ? `${env.appUrl}${getGuestCertificateAccessHref(cert.intake_id, guestEmail)}`
+      ? `${env.appUrl}${getGuestCertificateAccessHref(cert.intake_id)}`
       : `${env.appUrl}${getPatientIntakeDetailHref(cert.intake_id)}`
 
     // One-click "how did you find us?" attribution MCQ, shown below the Google

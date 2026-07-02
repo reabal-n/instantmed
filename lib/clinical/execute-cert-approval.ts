@@ -529,7 +529,7 @@ export async function executeCertApproval(
   // downloads stay ownership-checked and audit-logged through the app route.
   const isGuest = !patient.auth_user_id
   const dashboardUrl = isGuest
-    ? `${env.appUrl}${getGuestCertificateAccessHref(intakeId, patient.email)}`
+    ? `${env.appUrl}${getGuestCertificateAccessHref(intakeId)}`
     : `${env.appUrl}${getPatientIntakeDetailHref(intakeId)}`
 
   const deferEmail = !skipClaim && !aiApproved

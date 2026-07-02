@@ -39,6 +39,23 @@ import {
 } from "./prescribing-profile-fields"
 
 const logger = createLogger("guest-checkout")
+const AGE_REQUIREMENT_ERROR =
+  "Date of birth is required to confirm you are 18 or older before payment."
+const UNDER_18_ERROR =
+  "You must be 18 or older to use this service. If you are under 18, please visit your GP with a parent or guardian."
+
+function ageFromDateOfBirth(value: string): number | null {
+  const dob = new Date(value)
+  if (Number.isNaN(dob.getTime())) return null
+
+  const today = new Date()
+  let age = today.getFullYear() - dob.getFullYear()
+  const monthDiff = today.getMonth() - dob.getMonth()
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+    age--
+  }
+  return age
+}
 
 async function markGuestDraftConvertedIfPresent(
   supabase: ReturnType<typeof createServiceRoleClient>,
@@ -229,7 +246,7 @@ async function rebuildExpiredGuestSession(
 
     if (!session.url) return null
 
-    const { error: updateError } = await supabase
+    const { data: rebuildRows, error: updateError } = await supabase
       .from("intakes")
       .update({
         payment_id: session.id,
@@ -241,9 +258,23 @@ async function rebuildExpiredGuestSession(
       .eq("id", intake.id)
       .in("status", ["pending_payment", "checkout_failed"])
       .in("payment_status", ["pending", "unpaid", "failed"])
+      .select("id")
 
     if (updateError) {
       logger.error("Failed to update intake after session rebuild", { intakeId: intake.id }, updateError)
+      return null
+    }
+
+    // Zero rows = the intake stopped being retryable between the lookup and
+    // this write (most likely a concurrent paid webhook). Never hand back a
+    // payable URL for an already-paid intake.
+    if (!rebuildRows || rebuildRows.length === 0) {
+      logger.warn("Session rebuild matched 0 rows - intake no longer retryable", { intakeId: intake.id })
+      try {
+        await stripe.checkout.sessions.expire(session.id)
+      } catch {
+        // Best effort - the session expires on its own after 24h.
+      }
       return null
     }
 
@@ -324,22 +355,26 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     }
 
     // CLINICAL AUDIT: Enforce 18+ age requirement (CLAUDE.md eligibility constraint)
-    if (input.guestDateOfBirth) {
-      const dob = new Date(input.guestDateOfBirth)
-      if (!isNaN(dob.getTime())) {
-        const today = new Date()
-        let age = today.getFullYear() - dob.getFullYear()
-        const monthDiff = today.getMonth() - dob.getMonth()
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-          age--
-        }
-        if (age < 18) {
-          logger.warn("Guest checkout blocked: patient under 18", { category: input.category })
-          return {
-            success: false,
-            error: "You must be 18 or older to use this service. If you are under 18, please visit your GP with a parent or guardian.",
-          }
-        }
+    if (!input.guestDateOfBirth?.trim()) {
+      logger.warn("Guest checkout blocked: missing date of birth", { category: input.category })
+      return {
+        success: false,
+        error: AGE_REQUIREMENT_ERROR,
+      }
+    }
+
+    const guestAge = ageFromDateOfBirth(input.guestDateOfBirth)
+    if (guestAge === null) {
+      return {
+        success: false,
+        error: "Please provide a valid date of birth before payment.",
+      }
+    }
+    if (guestAge < 18) {
+      logger.warn("Guest checkout blocked: patient under 18", { category: input.category })
+      return {
+        success: false,
+        error: UNDER_18_ERROR,
       }
     }
 
@@ -866,11 +901,28 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       return { success: false, error: "Failed to create checkout session. Please try again." }
     }
 
-    // 8. Update intake with payment session ID
-    await supabase
+    // 8. Update intake with payment session ID. If the bind fails we must NOT
+    // hand back a payable URL: the completed webhook filters its paid update on
+    // payment_id, so a paid-but-unbound session can never be marked paid. Keep
+    // the intake operator-visible as checkout_failed instead.
+    const { error: bindError } = await supabase
       .from("intakes")
       .update({ payment_id: session.id })
       .eq("id", intake.id)
+    if (bindError) {
+      logger.error("Failed to bind guest checkout session to intake - withholding payable URL", {
+        intakeId: intake.id,
+        sessionId: session.id,
+        error: bindError.message,
+      })
+      try {
+        await stripe.checkout.sessions.expire(session.id)
+      } catch {
+        // Best effort - the session expires on its own after 24h.
+      }
+      await markGuestCheckoutFailed(supabase, intake.id, "Failed to bind checkout session to intake")
+      return { success: false, error: "Payment system error. Please try again." }
+    }
 
     logger.info("Guest checkout session created successfully", {
       intakeId: intake.id,

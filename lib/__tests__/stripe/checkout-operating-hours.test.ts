@@ -209,6 +209,57 @@ describe("checkout operating hours", () => {
     })
   })
 
+  it("blocks authenticated checkout when no date of birth is available", async () => {
+    mocks.getAuthenticatedUserWithProfile.mockResolvedValue({
+      user: { id: "user-1", email: "patient@example.com" },
+      profile: {
+        id: "patient-1",
+        date_of_birth: null,
+        full_name: "Patient Example",
+        stripe_customer_id: null,
+      },
+    })
+
+    const result = await createIntakeAndCheckoutAction({
+      answers: {
+        terms_agreed: true,
+        accuracy_confirmed: true,
+      },
+      category: "medical_certificate",
+      idempotencyKey: "test-idempotency-key",
+      subtype: "work",
+      type: "med-cert",
+    })
+
+    expect(result).toEqual({
+      success: false,
+      error: "Date of birth is required to confirm you are 18 or older before payment.",
+    })
+    expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("blocks guest checkout when date of birth is missing", async () => {
+    const result = await createGuestCheckoutAction({
+      answers: {
+        terms_agreed: true,
+        accuracy_confirmed: true,
+      },
+      category: "medical_certificate",
+      guestEmail: "patient@example.test",
+      guestName: "Test Patient",
+      subtype: "work",
+      type: "med-cert",
+    })
+
+    expect(result).toEqual({
+      success: false,
+      error: "Date of birth is required to confirm you are 18 or older before payment.",
+    })
+    expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
   it("blocks authenticated prescribing checkout without valid Medicare details", async () => {
     mocks.getAuthenticatedUserWithProfile.mockResolvedValue({
       user: { id: "user-1", email: "patient@example.com" },

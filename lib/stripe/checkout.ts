@@ -52,7 +52,7 @@ import {
 } from "./checkout/stripe-session"
 import type { CheckoutResult,CreateCheckoutInput } from "./checkout/types"
 import { reportCheckoutSessionFailure } from "./checkout-error-alarm"
-import { getAmountCentsForRequest, getOptionalStripePriceEnv, getPriceIdForRequest } from "./client"
+import { getAmountCentsForRequest, getOptionalStripePriceEnv, getPriceIdForRequest, stripe } from "./client"
 import { createReferralCouponIfEligible } from "./referral-coupon"
 
 const logger = createLogger("stripe-checkout")
@@ -261,8 +261,27 @@ export async function createIntakeAndCheckoutAction(
     if (!sessionResult.ok) return { success: false, error: sessionResult.error }
     const { sessionId, url } = sessionResult.data
 
-    // 11. Bind the session ID to the intake row + observability.
-    await supabase.from("intakes").update({ payment_id: sessionId }).eq("id", intake.id)
+    // 11. Bind the session ID to the intake row + observability. If the bind
+    // fails we must NOT hand back a payable URL: the completed webhook filters
+    // its paid update on payment_id, so a paid-but-unbound session can never be
+    // marked paid (it would only surface as a ZERO_ROW_PAYMENT_UPDATE DLQ row).
+    const { error: bindError } = await supabase
+      .from("intakes")
+      .update({ payment_id: sessionId })
+      .eq("id", intake.id)
+    if (bindError) {
+      logger.error("Failed to bind checkout session to intake - withholding payable URL", {
+        intakeId: intake.id,
+        sessionId,
+        error: bindError.message,
+      })
+      try {
+        await stripe.checkout.sessions.expire(sessionId)
+      } catch {
+        // Best effort - the session expires on its own after 24h.
+      }
+      return { success: false, error: "Payment system error. Please try again." }
+    }
 
     const latencyMs = Date.now() - startTime
     logger.info("Checkout session created successfully", {

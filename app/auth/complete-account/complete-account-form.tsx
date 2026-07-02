@@ -139,8 +139,14 @@ export function CompleteAccountForm({
   const handleCreateAccount = () => {
     const returnUrl = encodeURIComponent(postSignInHref)
     const params = new URLSearchParams({ redirect: returnUrl })
-    if (email) params.set("email", email)
     router.push(`/sign-up?${params.toString()}`)
+  }
+
+  const handleSkipAccount = () => {
+    const params = new URLSearchParams()
+    if (intakeId) params.set("intake_id", intakeId)
+    const query = params.toString()
+    router.push(query ? `/patient/intakes/confirmed?${query}` : "/patient/intakes/confirmed")
   }
 
   // If already signed in, show success message
@@ -204,7 +210,7 @@ export function CompleteAccountForm({
             We&apos;ll email you when the doctor has finished.{" "}
             <button
               type="button"
-              onClick={() => router.push(`/patient/intakes/confirmed?intake_id=${intakeId}&email=${encodeURIComponent(email || '')}`)}
+              onClick={handleSkipAccount}
               className="underline underline-offset-2 hover:text-foreground transition-colors"
             >
               Skip for now
