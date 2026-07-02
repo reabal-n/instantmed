@@ -9,6 +9,7 @@ import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { toError } from "@/lib/errors"
+import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import {
   buildGoogleAdsPurchaseImportAlert,
   buildGoogleAdsUploadAuditSourceAnomalyAlert,
@@ -29,7 +30,6 @@ import {
   STALE_HUMAN_QUEUE_CATEGORIES,
   STALE_HUMAN_QUEUE_THRESHOLD_HOURS,
 } from "@/lib/monitoring/stale-human-queue"
-import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { escapeMarkdown, sendTelegramAlert } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
