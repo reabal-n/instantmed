@@ -3,10 +3,14 @@
 /**
  * ED Health Step - Step 3 of 4 in the ED intake flow
  *
- * Consolidated safety + medical history with progressive mobile panels.
- * Keeps clinical screening complete without turning the step into a long form.
+ * Consolidated safety + medical history on ONE screen — no progressive
+ * phase reveal. 2026-07-02 (operator rule from #209): answered sections must
+ * stay mounted and editable; the previous "Safety 1 of 3" flow unmounted each
+ * section once complete, which read as three stacked steps and made earlier
+ * answers uneditable. Completion checkmarks in the section headers provide
+ * the progress feedback instead.
  *
- * Sections:
+ * Sections (all always visible):
  * 1. Heart & blood pressure (nitrate hard block, cardiac soft blocks + GP clearance)
  * 2. Current medications, allergies, and conditions
  * 3. Previous ED treatment
@@ -21,15 +25,9 @@ import {
   XCircle,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useCallback, useMemo, useRef,useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 
 import { BinaryChoice, IntakeStepIntro, QuestionCard, StringBinaryChoice } from "@/components/request/shared/intake-step-primitives"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -58,7 +56,7 @@ interface EdHealthStepProps {
 // Helper components
 // ---------------------------------------------------------------------------
 
-/** Section completion indicator shown in accordion triggers */
+/** Section completion indicator shown in section headers */
 function SectionComplete({ complete }: { complete: boolean }) {
   if (!complete) return null
   return (
@@ -75,12 +73,6 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
   const posthog = usePostHog()
   const { answers, setAnswer } = useRequestStore()
 
-  // Track previously open sections so analytics only fires on NEW opens
-  const prevOpenSections = useRef<Set<string>>(new Set(["heart"]))
-
-  // Controlled accordion state for auto-expand
-  const [topAccordionValue, setTopAccordionValue] = useState<string[]>(["heart"])
-
   // Hard block state
   const [isBlocked, setIsBlocked] = useState(false)
   const [blockReason, setBlockReason] = useState("")
@@ -96,19 +88,19 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
   const edSevereHeart = answers.edSevereHeart as boolean | undefined
   const edGpCleared = answers.edGpCleared as boolean | undefined
 
-  // Section 3: Current medications
+  // Section 2: Current medications
   const takesMedications = answers.takes_medications as "yes" | "no" | undefined
   const currentMedications = (answers.current_medications as string) || ""
 
-  // Section 4: Allergies
+  // Section 2: Allergies
   const hasAllergies = answers.has_allergies as "yes" | "no" | undefined
   const knownAllergies = (answers.known_allergies as string) || ""
 
-  // Section 5: Other conditions
+  // Section 2: Other conditions
   const hasConditions = answers.has_conditions as "yes" | "no" | undefined
   const existingConditions = (answers.existing_conditions as string) || ""
 
-  // Section 6: Previous ED treatment
+  // Section 3: Previous ED treatment
   const previousEdMeds = answers.previousEdMeds as boolean | undefined
   const edPreviousTreatment = (answers.edPreviousTreatment as string) || ""
   const edPreviousEffectiveness = answers.edPreviousEffectiveness as string | undefined
@@ -304,128 +296,101 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
   }
 
   // ---------------------------------------------------------------------------
-  // Main render
+  // Main render — one screen, all sections mounted
   // ---------------------------------------------------------------------------
 
   return (
     <div className="space-y-4">
       {/* Header */}
       <IntakeStepIntro
-        eyebrow={!heartComplete ? "Safety 1 of 3" : !coreHistoryComplete ? "Safety 2 of 3" : "Safety 3 of 3"}
-        title={!heartComplete ? "A quick safety check" : !coreHistoryComplete ? "Medical basics" : "Previous treatment"}
-        description={
-          !heartComplete
-            ? "Start with the heart safety questions."
-            : !coreHistoryComplete
-              ? "Answer the basics the doctor needs."
-              : "One last question before preferences."
-        }
+        title="A quick safety check"
+        description="A few quick questions so the doctor can prescribe safely."
       />
 
-      {/* Accordion sections */}
-      {!heartComplete && (
-        <Accordion
-          type="multiple"
-          value={topAccordionValue}
-          className="space-y-3"
-          onValueChange={(openSections: string[]) => {
-            setTopAccordionValue(openSections)
-            const newlyOpened = openSections.filter((s) => !prevOpenSections.current.has(s))
-            if (newlyOpened.length > 0) {
-              posthog?.capture("ed_health_sections_viewed", {
-                opened_sections: newlyOpened,
-                total_open: openSections.length,
-              })
-            }
-            prevOpenSections.current = new Set(openSections)
-          }}
-        >
-        {/* ----------------------------------------------------------------- */}
-        {/* Section 1: Heart & blood pressure */}
-        {/* ----------------------------------------------------------------- */}
-        <AccordionItem value="heart" className="border rounded-xl overflow-hidden">
-          <AccordionTrigger className="px-4 hover:no-underline">
-            <div className="flex items-center gap-2 flex-1">
-              <HeartPulse className="w-4 h-4 text-rose-500 shrink-0" />
-              <span>Heart &amp; blood pressure</span>
-            </div>
-            <SectionComplete complete={heartComplete} />
-          </AccordionTrigger>
-          <AccordionContent className="px-4 space-y-3">
-            {/* Nitrate toggle */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Do you take nitrates?</p>
-              <p className="text-xs text-muted-foreground">e.g., GTN spray, Anginine, Imdur, or medication for chest pain</p>
-              <BinaryChoice
-                value={edNitrates}
-                onChange={handleNitrateChange}
-                ariaLabel="Do you take nitrates?"
-              />
-            </div>
+      {/* ── Section 1: Heart & blood pressure ───────────────────────── */}
+      <QuestionCard className="space-y-3">
+        <div className="flex items-center gap-2">
+          <HeartPulse className="w-4 h-4 text-rose-500 shrink-0" />
+          <p className="text-sm font-medium">Heart &amp; blood pressure</p>
+          <SectionComplete complete={heartComplete} />
+        </div>
 
-            {/* Alpha-blocker toggle */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Do you take alpha-blockers?</p>
-              <p className="text-xs text-muted-foreground">e.g., tamsulosin, prazosin, or doxazosin</p>
-              <BinaryChoice
-                value={edAlphaBlockers}
-                onChange={(checked) => setAnswer("edAlphaBlockers", checked)}
-                ariaLabel="Do you take alpha-blockers?"
-              />
-            </div>
+        {/* Nitrate toggle */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Do you take nitrates?</p>
+          <p className="text-xs text-muted-foreground">e.g., GTN spray, Anginine, Imdur, or medication for chest pain</p>
+          <BinaryChoice
+            value={edNitrates}
+            onChange={handleNitrateChange}
+            ariaLabel="Do you take nitrates?"
+          />
+        </div>
 
-            {/* Recent cardiac event */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Heart attack, stroke, or unstable angina in the last 6 months?</p>
-              <BinaryChoice
-                value={edRecentHeartEvent}
-                onChange={(checked) => setAnswer("edRecentHeartEvent", checked)}
-                ariaLabel="Heart attack, stroke, or unstable angina in the last 6 months?"
-              />
-            </div>
+        {/* Alpha-blocker toggle */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Do you take alpha-blockers?</p>
+          <p className="text-xs text-muted-foreground">e.g., tamsulosin, prazosin, or doxazosin</p>
+          <BinaryChoice
+            value={edAlphaBlockers}
+            onChange={(checked) => setAnswer("edAlphaBlockers", checked)}
+            ariaLabel="Do you take alpha-blockers?"
+          />
+        </div>
 
-            {/* Severe heart condition */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Severe heart disease, very low blood pressure, or HOCM?</p>
-              <BinaryChoice
-                value={edSevereHeart}
-                onChange={(checked) => setAnswer("edSevereHeart", checked)}
-                ariaLabel="Severe heart disease, very low blood pressure, or HOCM?"
-              />
-            </div>
+        {/* Recent cardiac event */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Heart attack, stroke, or unstable angina in the last 6 months?</p>
+          <BinaryChoice
+            value={edRecentHeartEvent}
+            onChange={(checked) => setAnswer("edRecentHeartEvent", checked)}
+            ariaLabel="Heart attack, stroke, or unstable angina in the last 6 months?"
+          />
+        </div>
 
-            {/* Warning when soft block is active */}
-            {softBlockActive && (
-              <Alert variant="default" className="border-warning/30 bg-warning/5">
-                <AlertTriangle className="w-4 h-4 text-warning" />
-                <AlertDescription className="text-sm">
-                  {edAlphaBlockers
-                    ? "Alpha-blockers can interact with ED prescription options, causing a drop in blood pressure. The doctor will check dose timing and safety before prescribing."
-                    : "This condition requires clearance from your GP before we can prescribe."}
-                </AlertDescription>
-              </Alert>
-            )}
+        {/* Severe heart condition */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Severe heart disease, very low blood pressure, or HOCM?</p>
+          <BinaryChoice
+            value={edSevereHeart}
+            onChange={(checked) => setAnswer("edSevereHeart", checked)}
+            ariaLabel="Severe heart disease, very low blood pressure, or HOCM?"
+          />
+        </div>
 
-            {/* GP clearance checkbox - shown only when soft block active */}
-            {clearanceBlockActive && (
-              <div className="p-3 rounded-xl border bg-muted/30">
-                <Checkbox
-                  id="ed-gp-cleared"
-                  checked={edGpCleared === true}
-                  onCheckedChange={(checked) => setAnswer("edGpCleared", checked)}
-                >
-                  My GP has cleared me for ED treatment
-                </Checkbox>
-              </div>
-            )}
-          </AccordionContent>
-        </AccordionItem>
-        </Accordion>
-      )}
+        {/* Warning when soft block is active */}
+        {softBlockActive && (
+          <Alert variant="default" className="border-warning/30 bg-warning/5">
+            <AlertTriangle className="w-4 h-4 text-warning" />
+            <AlertDescription className="text-sm">
+              {edAlphaBlockers
+                ? "Alpha-blockers can interact with ED prescription options, causing a drop in blood pressure. The doctor will check dose timing and safety before prescribing."
+                : "This condition requires clearance from your GP before we can prescribe."}
+            </AlertDescription>
+          </Alert>
+        )}
 
-      {/* ── Medical history (inline chip cards) ─────────────────────── */}
-      {heartComplete && !coreHistoryComplete && (
+        {/* GP clearance checkbox - shown only when soft block active */}
+        {clearanceBlockActive && (
+          <div className="p-3 rounded-xl border bg-muted/30">
+            <Checkbox
+              id="ed-gp-cleared"
+              checked={edGpCleared === true}
+              onCheckedChange={(checked) => setAnswer("edGpCleared", checked)}
+            >
+              My GP has cleared me for ED treatment
+            </Checkbox>
+          </div>
+        )}
+      </QuestionCard>
+
+      {/* ── Section 2: Medications, allergies & conditions ──────────── */}
       <QuestionCard className="space-y-5">
+        <div className="flex items-center gap-2">
+          <Pill className="w-4 h-4 text-indigo-500 shrink-0" />
+          <p className="text-sm font-medium">Medications, allergies &amp; conditions</p>
+          <SectionComplete complete={coreHistoryComplete} />
+        </div>
+
         {/* Medications */}
         <div className="space-y-2.5">
           <div>
@@ -508,69 +473,66 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
           )}
         </div>
       </QuestionCard>
-      )}
 
-      {/* ── Previous treatment (accordion) ──────────────────────────── */}
-      {heartComplete && coreHistoryComplete && (
-        <QuestionCard compact>
-          <div className="flex items-center gap-2">
-            <Pill className="w-4 h-4 text-indigo-500 shrink-0" />
-            <p className="text-sm font-medium">Previous ED treatment</p>
-            <SectionComplete complete={previousTreatmentComplete} />
+      {/* ── Section 3: Previous ED treatment ────────────────────────── */}
+      <QuestionCard compact>
+        <div className="flex items-center gap-2">
+          <Pill className="w-4 h-4 text-indigo-500 shrink-0" />
+          <p className="text-sm font-medium">Previous ED treatment</p>
+          <SectionComplete complete={previousTreatmentComplete} />
+        </div>
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Have you tried ED treatment before?</p>
+            <BinaryChoice
+              value={previousEdMeds}
+              onChange={(checked) => setAnswer("previousEdMeds", checked)}
+              ariaLabel="Have you tried ED treatment before?"
+            />
           </div>
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Have you tried ED treatment before?</p>
-              <BinaryChoice
-                value={previousEdMeds}
-                onChange={(checked) => setAnswer("previousEdMeds", checked)}
-                ariaLabel="Have you tried ED treatment before?"
+          {previousEdMeds === true && (
+            <>
+              <Textarea
+                id="ed-previous-treatment"
+                value={edPreviousTreatment}
+                onChange={(e) => setAnswer("edPreviousTreatment", e.target.value)}
+                placeholder="What did you try? e.g., a daily tablet, an as-needed medication"
+                className="min-h-[80px] text-sm"
               />
-            </div>
-            {previousEdMeds === true && (
-              <>
-                <Textarea
-                  id="ed-previous-treatment"
-                  value={edPreviousTreatment}
-                  onChange={(e) => setAnswer("edPreviousTreatment", e.target.value)}
-                  placeholder="What did you try? e.g., a daily tablet, an as-needed medication"
-                  className="min-h-[80px] text-sm"
-                />
 
-                {/* Effectiveness selector */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">How effective was it?</Label>
-                  <div className="flex gap-2">
-                    {(
-                      [
-                        { value: "worked_well", label: "Worked well" },
-                        { value: "somewhat", label: "Somewhat" },
-                        { value: "didnt_work", label: "Didn\u2019t work" },
-                      ] as const
-                    ).map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setAnswer("edPreviousEffectiveness", option.value)}
-                        className={cn(
-                          "flex-1 px-3 py-2 text-sm rounded-lg border transition-colors",
-                          "hover:bg-accent hover:text-accent-foreground",
-                          "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
-                          edPreviousEffectiveness === option.value
-                            ? "border-primary bg-primary/5 text-primary font-medium"
-                            : "border-border text-muted-foreground"
-                        )}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
+              {/* Effectiveness selector */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">How effective was it?</Label>
+                <div className="flex gap-2">
+                  {(
+                    [
+                      { value: "worked_well", label: "Worked well" },
+                      { value: "somewhat", label: "Somewhat" },
+                      { value: "didnt_work", label: "Didn’t work" },
+                    ] as const
+                  ).map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setAnswer("edPreviousEffectiveness", option.value)}
+                      className={cn(
+                        "flex-1 px-3 py-2 text-sm rounded-lg border transition-colors",
+                        "hover:bg-accent hover:text-accent-foreground",
+                        "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
+                        edPreviousEffectiveness === option.value
+                          ? "border-primary bg-primary/5 text-primary font-medium"
+                          : "border-border text-muted-foreground"
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
                 </div>
-              </>
-            )}
-          </div>
-        </QuestionCard>
-      )}
+              </div>
+            </>
+          )}
+        </div>
+      </QuestionCard>
 
       {/* Validation summary — announced to screen readers on first Continue tap */}
       {validationSummary.length > 0 && (
