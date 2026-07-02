@@ -8,6 +8,7 @@
  * conditions that require immediate redirection before intake submission.
  */
 
+import { CONTROLLED_SUBSTANCE_PATTERNS } from "./controlled-substances"
 import {
   checkAutoReject,
   checkEmergencySymptoms,
@@ -211,8 +212,10 @@ export const CONTROLLED_SUBSTANCE_DISCLAIMER = {
     "Schedule 8 stimulants (e.g., dexamphetamine, methylphenidate)",
     "Benzodiazepines (e.g., diazepam, alprazolam, temazepam)",
     "Z-drugs (e.g., zolpidem, zopiclone)",
+    "Ketamine",
     "Medicinal cannabis products",
     "Testosterone and anabolic steroids",
+    "High-misuse codeine compounds (codeine phosphate, codeine linctus)",
   ],
   advice: "Please visit your regular GP or a bulk-billing clinic for these medications.",
 }
@@ -227,6 +230,8 @@ export const COMMONLY_ABUSED_MEDICATIONS = [
   "Morphine (MS Contin, Kapanol)",
   "Fentanyl (Durogesic)",
   "Tramadol",
+  "Tapentadol (Palexia)",
+  "Pethidine",
   // S8 Stimulants  
   "Dexamphetamine (Vyvanse)",
   "Methylphenidate (Ritalin, Concerta)",
@@ -243,43 +248,16 @@ export const COMMONLY_ABUSED_MEDICATIONS = [
   "Testosterone (all forms)",
 ]
 
-const CONTROLLED_SUBSTANCE_PATTERNS = [
-  // S8 Opioids
-  /oxycodone|oxycontin|endone|targin/i,
-  /morphine|ms\s*contin|kapanol|sevredol/i,
-  /fentanyl|durogesic|abstral|actiq/i,
-  /hydromorphone|dilaudid|jurnista/i,
-  /methadone|physeptone|biodone/i,
-  /buprenorphine|suboxone|subutex|temgesic/i,
-  /tramadol/i,
-  
-  // S8 Stimulants
-  /dexamphetamine|dexedrine|vyvanse|lisdexamfetamine/i,
-  /methylphenidate|ritalin|concerta/i,
-  
-  // Benzodiazepines
-  /alprazolam|xanax|kalma/i,
-  /diazepam|valium|antenex/i,
-  /clonazepam|rivotril|paxam/i,
-  /lorazepam|ativan/i,
-  /oxazepam|serepax|murelax/i,
-  /temazepam|temaze|normison/i,
-  /nitrazepam|mogadon|alodorm/i,
-  
-  // Z-drugs
-  /zolpidem|stilnox/i,
-  /zopiclone|imovane/i,
-  
-  // Cannabis
-  /cannabis|thc|cbd\s*oil|cannabidiol/i,
-  /dronabinol|marinol|nabilone|sativex/i,
-  
-  // Testosterone
-  /testosterone|androderm|testogel|primoteston|sustanon|reandron/i,
-]
-
 /**
- * Check if medication name matches controlled substance patterns
+ * Check if medication name matches controlled substance patterns.
+ *
+ * The patterns derive from the single shared term list in
+ * lib/clinical/controlled-substances.ts — the same list the repeat-script
+ * server blocklist uses — so the intake hard block and the checkout/server
+ * validation can never diverge again (they had: this detector knew tramadol,
+ * cannabis, and testosterone while the server blocklist did not, and the
+ * blocklist knew ketamine + the codeine compounds while this detector did
+ * not). Parity pinned by lib/__tests__/controlled-substances-parity.test.ts.
  */
 export function isControlledSubstance(medicationName: string): boolean {
   const lowerName = medicationName.toLowerCase()

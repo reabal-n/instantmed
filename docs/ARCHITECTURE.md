@@ -729,7 +729,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 551 files, 235 route files
+### `app/` — 550 files, 234 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -739,7 +739,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `emails/`, `features/`, `settings/`, `ops/`, `analytics/` |
 | `app/doctor/` | Doctor portal under the shared staff shell | `intakes/[id]/` (review detail), `patients/`, `settings/`; queue/scripts entry points resolve through `/dashboard` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
-| `app/api/` | API routes (86 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/` |
+| `app/api/` | API routes (85 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/` |
 | `app/api/cron/` | Scheduled jobs (27) | `stale-queue/`, `email-dispatcher/`, `health-check`, `google-ads-conversions`, `google-ads-diagnostics-watch`, `cert-reactivation`, `parchment-smoke`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | 7 handlers: `checkout-session-completed`, `checkout-session-expired`, `checkout-session-async-payment-succeeded/failed`, `charge-refunded`, `charge-dispute-created`, `payment-intent-payment-failed`. Repeat Rx subscription handlers are retired; unsupported Stripe events are acknowledged and claimed by the dispatcher without running business logic. Registered in `handlers/index.ts`. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |

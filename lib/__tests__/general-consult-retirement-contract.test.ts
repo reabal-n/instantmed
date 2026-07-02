@@ -128,7 +128,8 @@ describe("general consult retirement contract", () => {
   it("public and patient-facing prompts do not route people to retired General Consult", () => {
     const sources = [
       read("lib/validation/repeat-script-schema.ts"),
-      read("app/api/terminology/amt/search/route.ts"),
+      // app/api/terminology/amt/search was deleted 2026-07-03 (orphaned since
+      // the #211 medication-search retirement; held a stale S8 list copy).
       read("app/conditions/page.tsx"),
       read("components/patient/service-selector.tsx"),
       read("components/seo/schemas/medical-business.tsx"),
