@@ -59,3 +59,44 @@ export function filterSeededE2EIntakes<T extends PatientFilterQuery>(
 
   return query.not("patient_id", "in", SEEDED_E2E_PATIENT_FILTER) as T
 }
+
+/**
+ * Machine-generated test identities that E2E/CI/browser-automation runs
+ * create as FRESH guest profiles — the seeded-profile filter above cannot
+ * catch them. Canonical patterns, sourced from the fixtures that actually
+ * hit prod (guest checkout specs, request-qol fixtures, agent-browser runs):
+ * RFC 2606 example domains, the .test fixture domains, `browser-<ts>@` and
+ * `test@` on our own domain. Every pattern is machine-shaped — a real
+ * patient cannot plausibly submit these addresses.
+ *
+ * Used to keep operator-facing signals (Telegram paid-request pages) free of
+ * test noise even when the row was created by a server that didn't know it
+ * was in E2E mode (e.g. the prod Telegram cron retrying a CI-created intake).
+ */
+const TEST_IDENTITY_EMAIL_PATTERNS: RegExp[] = [
+  /@example\.(com|org|net)$/i,
+  /@instantmed-e2e\.test$/i,
+  /@instantmed\.test$/i,
+  /^browser-\d+@instantmed\.com\.au$/i,
+  /^test@instantmed\.com\.au$/i,
+  /^e2e[-+._]/i,
+]
+
+const TEST_IDENTITY_NAMES = new Set(["e2e test patient", "test patient"])
+
+export function isLikelyTestPatientIdentity(input: {
+  email?: string | null
+  fullName?: string | null
+}): boolean {
+  const email = input.email?.trim().toLowerCase()
+  if (email && TEST_IDENTITY_EMAIL_PATTERNS.some((pattern) => pattern.test(email))) {
+    return true
+  }
+
+  const fullName = input.fullName?.trim().toLowerCase()
+  if (fullName && TEST_IDENTITY_NAMES.has(fullName)) {
+    return true
+  }
+
+  return false
+}
