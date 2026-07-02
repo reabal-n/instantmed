@@ -208,35 +208,42 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
   const durationRef = useRef<HTMLDivElement>(null)
   const startDateRef = useRef<HTMLDivElement>(null)
 
-  // Apply a landing-page duration prefill after hydration. The user can still
-  // change this inside the form after the initial price-specific handoff.
+  // Open the selection→store sync only after the persisted draft has actually
+  // hydrated. The store uses skipHydration (request-flow calls
+  // persist.rehydrate() in a post-mount effect), so this step's effects run
+  // BEFORE the draft arrives. The old shape enabled sync on mount: the sync
+  // effect wrote the 1-day default into the still-empty store, the one-shot
+  // restore latch burned itself on that self-written "1", and when the
+  // draft's real duration hydrated a beat later the sync effect stomped it
+  // straight back to "1" — silently downgrading a restored 2–3 day selection
+  // (and its price) on reload. Applying the URL prefill / stored duration
+  // synchronously from the hydrated store in the same commit that opens the
+  // gate means the first sync run already sees the restored selection.
+  // Price-specific CTA params still win the initial handoff over a saved
+  // draft, and now correctly survive hydration landing after them.
   useEffect(() => {
-    const urlDuration = initialUrlDurationRef.current
-    if (urlDuration && !urlDurationAppliedRef.current) {
-      urlDurationAppliedRef.current = true
-      setSelectedDays(urlDuration)
-      setAnswer("duration", String(urlDuration))
+    const applyInitialDurationAndEnableSync = () => {
+      const urlDuration = initialUrlDurationRef.current
+      if (urlDuration && !urlDurationAppliedRef.current) {
+        urlDurationAppliedRef.current = true
+        setSelectedDays(urlDuration)
+        setAnswer("duration", String(urlDuration))
+      } else if (!storedDurationAppliedRef.current) {
+        const storedDuration = parseDuration(useRequestStore.getState().answers.duration)
+        if (storedDuration) {
+          storedDurationAppliedRef.current = true
+          setSelectedDays(storedDuration)
+        }
+      }
+      setCanSyncSelection(true)
     }
-    setCanSyncSelection(true)
+
+    if (useRequestStore.persist.hasHydrated()) {
+      applyInitialDurationAndEnableSync()
+      return
+    }
+    return useRequestStore.persist.onFinishHydration(applyInitialDurationAndEnableSync)
   }, [setAnswer])
-
-  // Restore persisted duration after store hydration when there is no explicit
-  // URL duration. Price-specific CTA params should win the initial handoff.
-  useEffect(() => {
-    if (!canSyncSelection || initialUrlDurationRef.current || storedDurationAppliedRef.current) {
-      return
-    }
-
-    const storedDuration = parseDuration(answers.duration)
-    if (!storedDuration) {
-      return
-    }
-
-    storedDurationAppliedRef.current = true
-    if (storedDuration && storedDuration !== selectedDays) {
-      setSelectedDays(storedDuration)
-    }
-  }, [answers.duration, canSyncSelection, selectedDays])
 
   useEffect(() => {
     if (answers.startDate) {
