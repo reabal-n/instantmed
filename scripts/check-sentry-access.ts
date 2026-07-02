@@ -23,28 +23,46 @@ async function main(): Promise<void> {
     throw new Error("Missing SENTRY_AUTH_TOKEN. Create or rotate a token with project read/release access before release.")
   }
 
-  const url = `${apiBase.replace(/\/$/, "")}/api/0/projects/${encodeURIComponent(org)}/${encodeURIComponent(project)}/`
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/json",
-    },
-  })
+  const baseUrl = apiBase.replace(/\/$/, "")
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    Accept: "application/json",
+  }
+
+  const projectPath = `/api/0/projects/${encodeURIComponent(org)}/${encodeURIComponent(project)}/`
+  const response = await fetch(`${baseUrl}${projectPath}`, { headers })
 
   if (response.ok) {
     const body = await response.json() as { slug?: string; organization?: { slug?: string } }
-    console.log(`Sentry access passed for ${body.organization?.slug || org}/${body.slug || project}.`)
+    console.log(`Sentry access passed for ${body.organization?.slug || org}/${body.slug || project} via project API.`)
     return
   }
 
   if (response.status === 401) {
     throw new Error("Sentry token was rejected with 401. Rotate SENTRY_AUTH_TOKEN.")
   }
-  if (response.status === 403) {
-    throw new Error(`Sentry token lacks access to ${org}/${project}. Add project read/release scopes or use the correct token.`)
-  }
-  if (response.status === 404) {
-    throw new Error(`Sentry project ${org}/${project} was not found or is not visible to this token. Check SENTRY_ORG and SENTRY_PROJECT.`)
+
+  if (response.status === 403 || response.status === 404) {
+    const releasesPath = `/api/0/projects/${encodeURIComponent(org)}/${encodeURIComponent(project)}/releases/?per_page=1`
+    const releasesResponse = await fetch(`${baseUrl}${releasesPath}`, { headers })
+
+    if (releasesResponse.ok) {
+      console.log(`Sentry access passed for ${org}/${project} via release API.`)
+      return
+    }
+
+    if (releasesResponse.status === 401) {
+      throw new Error("Sentry token was rejected with 401. Rotate SENTRY_AUTH_TOKEN.")
+    }
+    if (releasesResponse.status === 403) {
+      throw new Error(`Sentry token lacks release access to ${org}/${project}. Use a Sentry organization token or add project release scopes.`)
+    }
+    if (releasesResponse.status === 404) {
+      throw new Error(`Sentry project ${org}/${project} was not found or is not visible to this token. Check SENTRY_ORG and SENTRY_PROJECT.`)
+    }
+
+    const releasesBody = await releasesResponse.text().catch(() => "")
+    throw new Error(`Sentry release access check failed with ${releasesResponse.status}${releasesBody ? `: ${releasesBody.slice(0, 200)}` : ""}`)
   }
 
   const body = await response.text().catch(() => "")

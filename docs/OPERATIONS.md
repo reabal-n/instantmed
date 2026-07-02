@@ -875,7 +875,7 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 |---------|---------|-------|
 | `pnpm check:staff-roles` | Read-only Supabase check for the one-human-admin model and doctor readiness | Defaults owner admin to `me@reabal.ai`; override with `OWNER_ADMIN_EMAIL`. Set `ALLOW_OWNER_ADMIN_PAUSED=1` only when releasing intentionally paused. |
 | `DEMOTE_ADMIN_EMAILS='old-admin@example.com' DEMOTE_ADMIN_ROLE=patient pnpm fix:staff-roles` | Dry-run demotion for extra human admin profiles | Add `-- --apply` only after reviewing the target list. Writes go through `admin_change_profile_role`, which refuses to remove the last auth-linked human admin and resets clinical capability flags on demotion. |
-| `pnpm check:sentry` | Verifies `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` can read the configured Sentry project | Does not print the token. 401 means rotate the token; 404 usually means wrong org/project slug. |
+| `pnpm check:sentry` | Verifies `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` can reach the configured Sentry project via project-read access or the project release API used by organization CI tokens | Does not print the token. 401 means rotate the token; 403 means the token lacks project release access; 404 usually means wrong org/project slug. |
 
 ### Sentry Saved Searches
 
