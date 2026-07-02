@@ -38,8 +38,8 @@ interface ClinicalCaseReviewProps {
   doctorSignOffLabel?: string | null
   /**
    * Suppress the inline Parchment handoff block. Callers that render the
-   * canonical PrescriptionRecommendationCard alongside this component
-   * (the intake-review cockpit) set this to true to avoid double-render.
+   * canonical PrescribingPacketCard alongside this component (the
+   * intake-review cockpit) set this to true to avoid double-render.
    */
   hidePrescriptionIntent?: boolean
 }

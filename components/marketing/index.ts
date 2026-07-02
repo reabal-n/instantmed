@@ -11,8 +11,6 @@ export { HairLossLanding } from "./hair-loss-landing"
 export { MedCertIntentPage } from "./med-cert-intent-page"
 export { MedCertLanding } from "./med-cert-landing"
 export { PrescriptionsLanding } from "./prescriptions-landing"
-export type { ServiceFunnelConfig } from "./service-funnel-page"
-export { ServiceFunnelPage } from "./service-funnel-page"
 
 // ── Service discovery ──────────────────────────────────────────────
 export { ServiceCards } from "./service-cards"

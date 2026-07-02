@@ -637,7 +637,7 @@ Use when: the page is a standard service landing page with a fixed section order
 
 - All InstantMed service pages use this: med-cert, repeat-rx, consult, hair-loss, weight-loss, womens-health, etc.
 - Sections are ordered and spaced consistently across all services — no per-page layout decisions
-- To add a new service page: add a config to `lib/marketing/service-funnel-configs.ts`, create a route that renders `<ServiceFunnelPage config={...} />`
+- To add a new service page: build a dedicated layout following the live examples (`/medical-certificate`, `/erectile-dysfunction`, `/hair-loss`). The generic funnel template (`ServiceFunnelPage` + `lib/marketing/service-funnel-configs.ts`) was deleted 2026-07-03 — its only consumer was the retired General Consult route.
 
 **Pattern B — Manual Morning Canvas composition**
 

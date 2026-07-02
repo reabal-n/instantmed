@@ -31,7 +31,6 @@ const PAID_INTAKE_STEPS_DIR = "components/request/steps"
 // most of these via the shared shell; med-cert-landing has its own.
 const PAID_MARKETING_SHELLS: { path: string; mustContain: string }[] = [
   { path: "components/marketing/med-cert-landing.tsx", mustContain: "<main" },
-  { path: "components/marketing/service-funnel-page.tsx", mustContain: "<main" },
   { path: "components/marketing/med-cert-intent-page.tsx", mustContain: "<main" },
   { path: "components/marketing/shared/landing-page-shell.tsx", mustContain: "<main" },
   { path: "components/marketing/shared/informational-page-shell.tsx", mustContain: "<main" },

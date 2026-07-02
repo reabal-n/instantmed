@@ -45,7 +45,6 @@ const workplaceClaimSources = [
   employerEvidenceSource,
   readFileSync(join(root, "components/marketing/med-cert-intent-page.tsx"), "utf8"),
   readFileSync(join(root, "lib/seo/intents.ts"), "utf8"),
-  readFileSync(join(root, "lib/seo/service-metadata.ts"), "utf8"),
   readFileSync(join(root, "lib/data/general-faq.ts"), "utf8"),
   readFileSync(join(root, "app/for/[audience]/page.tsx"), "utf8"),
   readFileSync(join(root, "app/for/shift-workers/page.tsx"), "utf8"),

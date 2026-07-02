@@ -48,7 +48,7 @@ describe("IntakeReviewCockpit source contract", () => {
 
   it("hides the duplicate prescription handoff context in RequestInfoCard", () => {
     // RequestInfoCard owns the legacy inline handoff block; the cockpit must
-    // suppress it so PrescriptionRecommendationCard does not double-render.
+    // suppress it so PrescribingPacketCard does not double-render.
     expect(cockpitSource).toMatch(/hidePrescriptionIntent/)
   })
 

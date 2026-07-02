@@ -68,9 +68,8 @@ interface HeroProps {
   mockup?: ReactNode | null
   /**
    * Optional trust-row override. Defaults to GoogleAdsCert + LegitScript +
-   * LastReviewedSignal. Pass `null` to suppress entirely — used by the
-   * ServiceFunnelPage shell since it has its own dedicated TrustBadgeSlider
-   * directly below the hero.
+   * LastReviewedSignal. Pass `null` to suppress entirely when a page renders
+   * its own trust badges directly below the hero.
    */
   trustRow?: ReactNode | null
   /**
@@ -251,9 +250,8 @@ export function Hero({
             </div>
 
             {/* Trust row: Google + LegitScript. Constant across pages so
-                users learn the pattern. ServiceFunnelPage consumers
-                pass `trustRow={null}` since they render their own
-                TrustBadgeSlider below the hero. */}
+                users learn the pattern. Pages with their own trust badges
+                below the hero pass `trustRow={null}`. */}
             {resolvedTrustRow && (
               // items-center + a 40px cap on every direct child keeps all
               // three trust marks (GoogleAdsCert, GoogleReviewsBadge,

@@ -133,7 +133,6 @@ describe("general consult retirement contract", () => {
       read("app/conditions/page.tsx"),
       read("components/patient/service-selector.tsx"),
       read("components/seo/schemas/medical-business.tsx"),
-      read("lib/microcopy/med-cert-v2.ts"),
     ].join("\n")
 
     expect(sources).not.toMatch(/book a General Consult/i)

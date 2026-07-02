@@ -682,28 +682,12 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(controlsSource).toContain("StickyCTA")
   })
 
-  it("keeps the reusable service funnel shell server-rendered with client islands only where needed", () => {
-    const funnelShellSource = read("components/marketing/service-funnel-page.tsx")
-    const heroSectionSource = read("components/marketing/funnel/hero-section.tsx")
-    const trimmedFunnelShellSource = funnelShellSource.trimStart()
-    const trimmedHeroSectionSource = heroSectionSource.trimStart()
-
-    expect(trimmedFunnelShellSource.startsWith('"use client"')).toBe(false)
-    expect(trimmedFunnelShellSource.startsWith("'use client'")).toBe(false)
-    expect(funnelShellSource).not.toContain("framer-motion")
-    expect(funnelShellSource).not.toContain("useEffect")
-    expect(funnelShellSource).not.toContain("useState")
-    expect(trimmedHeroSectionSource.startsWith("'use client'")).toBe(true)
-  })
-
-  it("keeps static service funnel sections off Framer and client-only hooks", () => {
+  // The reusable service funnel shell (service-funnel-page.tsx + funnel/*)
+  // was deleted 2026-07-03: its only consumer was the General Consult route
+  // retired 2026-05-20. The static-section hygiene checks below keep the
+  // still-live shared sections covered.
+  it("keeps static shared marketing sections off Framer and client-only hooks", () => {
     const staticFunnelFiles = [
-      "components/marketing/funnel/who-its-for-section.tsx",
-      "components/marketing/funnel/how-it-works-section.tsx",
-      "components/marketing/funnel/after-submit-section.tsx",
-      "components/marketing/funnel/specialized-services-section.tsx",
-      "components/marketing/funnel/trust-section.tsx",
-      "components/marketing/funnel/faq-section.tsx",
       "components/marketing/sections/pricing-section.tsx",
       "components/ui/section-pill.tsx",
     ]

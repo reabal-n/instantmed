@@ -26,7 +26,6 @@ const GUARDED_FILES = [
   "lib/data/med-cert-faq.ts",
   "lib/data/ed-faq.ts",
   "lib/data/hair-loss-faq.ts",
-  "lib/seo/service-metadata.ts",
   "lib/seo/data/states.ts",
 ]
 
