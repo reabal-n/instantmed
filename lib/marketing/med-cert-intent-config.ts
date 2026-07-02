@@ -511,6 +511,26 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
         ],
       },
     ],
+    relatedLinks: [
+      {
+        href: "/medical-certificate/work",
+        label: "Off work specifically?",
+        description:
+          "Use the work certificate guidance when the evidence is for your employer and your duties or commute are affected.",
+      },
+      {
+        href: "/medical-certificate/carer",
+        label: "Caring for someone else?",
+        description:
+          "Carer's leave evidence covers time off to support an unwell family or household member rather than your own illness.",
+      },
+      {
+        href: "/medical-certificate/employer-acceptance",
+        label: "Will your employer accept it?",
+        description:
+          "Read the employer evidence guide for conservative guidance on online certificates, verification, and policy caveats.",
+      },
+    ],
     recognitionTitle: "Workplace evidence",
     recognitionSubtitle:
       "Certificates include standard workplace evidence details. Employers assess evidence under their own leave policy, so check any specific wording requirements before applying.",
@@ -1575,6 +1595,26 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
           "Return-to-work clearance, fitness-for-duty, lifting restrictions, modified duties, ergonomic reports, or work-from-home approval",
           "New weakness, numbness, saddle numbness, bladder or bowel change, fever, major trauma, cancer history, infection risk, or severe worsening pain",
         ],
+      },
+    ],
+    relatedLinks: [
+      {
+        href: "/medical-certificate/sick-leave",
+        label: "Need general sick-leave evidence?",
+        description:
+          "Use the sick leave guidance when the absence is about feeling unwell generally rather than a specific back problem.",
+      },
+      {
+        href: "/medical-certificate/work",
+        label: "Off work while you recover?",
+        description:
+          "The work certificate guidance covers routine employer absence evidence for short recovery periods.",
+      },
+      {
+        href: "/medical-certificate/migraine",
+        label: "Pain that comes in episodes?",
+        description:
+          "Migraine absence guidance covers episodic pain that can stop a work or study day at short notice.",
       },
     ],
     recognitionTitle: "Workplace evidence",
