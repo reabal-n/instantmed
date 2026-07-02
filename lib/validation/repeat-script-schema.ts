@@ -3,6 +3,7 @@
  * Single source of truth for repeat-script answers stored in request_answers.answers
  */
 
+import { CONTROLLED_SUBSTANCE_TERMS } from "@/lib/clinical/controlled-substances"
 import {
   buildRepeatScriptMedicationValidationText,
   extractRepeatScriptMedications,
@@ -36,29 +37,13 @@ export interface RepeatScriptAnswersPayload extends RepeatScriptMedicationPayloa
   safetyAnswers?: Record<string, boolean | null>
 }
 
-// S8 blocked terms for server-side validation
-export const BLOCKED_S8_TERMS = [
-  "oxycodone", "oxycontin", "endone", "targin",
-  "morphine", "ms contin", "kapanol",
-  "fentanyl", "durogesic", "abstral",
-  "hydromorphone", "dilaudid", "jurnista",
-  "methadone", "physeptone",
-  "buprenorphine", "suboxone", "subutex", "temgesic",
-  "dexamphetamine", "dexedrine",
-  "lisdexamfetamine", "vyvanse",
-  "methylphenidate", "ritalin", "concerta",
-  "ketamine",
-  "alprazolam", "xanax",
-  "diazepam", "valium",
-  "clonazepam", "rivotril",
-  "temazepam", "temaze", "normison",
-  "oxazepam", "serepax",
-  "lorazepam", "ativan",
-  "nitrazepam", "mogadon",
-  "zolpidem", "stilnox",
-  "zopiclone", "imovane",
-  "codeine phosphate", "codeine linctus",
-] as const
+// S8 blocked terms for server-side validation. Re-exported from the single
+// shared controlled-substance list so this server blocklist can never diverge
+// from the intake `isControlledSubstance` detector again (pre-2026-07 this
+// local copy was missing tramadol, cannabis, testosterone, and several AU
+// benzo brand names the intake layer blocked). Parity pinned by
+// lib/__tests__/controlled-substances-parity.test.ts.
+export const BLOCKED_S8_TERMS = CONTROLLED_SUBSTANCE_TERMS
 
 // S8 example list for disclaimers (shorter, user-facing)
 export const S8_DISCLAIMER_EXAMPLES = [
