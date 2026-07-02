@@ -51,6 +51,25 @@ InstantMed supports routine medical certificate requests for Australian patients
 - Conditions requiring physical examination, urgent assessment, or ongoing care should be seen in person.
 - Medicare is optional for medical certificate requests.
 
+**Certificates by reason (situation-specific guidance pages):**
+
+Each page explains what a certificate covers for that situation and where the boundaries are. All follow the same rules: routine short absences only, maximum 3 days, doctor review before any certificate is issued, full refund if the doctor declines. None are isolation orders or clearance certificates.
+
+- Sick leave: https://instantmed.com.au/medical-certificate/sick-leave
+- Work absence: https://instantmed.com.au/medical-certificate/work
+- Study absence: https://instantmed.com.au/medical-certificate/study
+- Carer's leave: https://instantmed.com.au/medical-certificate/carer
+- School absence: https://instantmed.com.au/medical-certificate/school
+- University absence: https://instantmed.com.au/medical-certificate/university
+- Work-from-home evidence requests: https://instantmed.com.au/medical-certificate/work-from-home
+- Flu and flu-like illness: https://instantmed.com.au/medical-certificate/flu
+- Gastro and stomach illness: https://instantmed.com.au/medical-certificate/gastro
+- Migraine: https://instantmed.com.au/medical-certificate/migraine
+- Back pain: https://instantmed.com.au/medical-certificate/back-pain
+- Anxiety-related absence: https://instantmed.com.au/medical-certificate/anxiety
+- COVID-19 absence: https://instantmed.com.au/medical-certificate/covid
+- Employer acceptance and verification: https://instantmed.com.au/medical-certificate/employer-acceptance
+
 ### Repeat Prescriptions
 
 InstantMed supports repeat prescription requests for existing regular medications. The patient completes a secure form, provides identity details, and answers safety questions. A doctor reviews the request and may approve, decline, or ask for more information.
@@ -257,4 +276,4 @@ InstantMed is an Australian telehealth platform operated by InstantMed Pty Ltd (
 
 ---
 
-Last reviewed: 2026-06-25
+Last reviewed: 2026-07-02
