@@ -31,8 +31,8 @@ describe("support nav contract", () => {
   it("does not include any clinical entry points in the support nav", () => {
     const labels = allLabels(supportNavSections)
     // Support is non-clinical operations only; these clinical labels must
-    // never appear here. The shared "Requests" label is allowed (Phase 8,
-    // refund-only access — page itself returns only ledger metadata).
+    // never appear here. The shared Ledger label is allowed (Phase 8,
+    // refund-only access; page itself returns only ledger metadata).
     expect(labels).not.toContain("Queue")
     expect(labels).not.toContain("Review queue")
     expect(labels).not.toContain("Review")
@@ -51,7 +51,7 @@ describe("support nav contract", () => {
 
     expect(adminLabels).toEqual([
       "Dashboard",
-      "Requests",
+      "Ledger",
       "Review",
       "Scripts",
       "Patients",
@@ -61,7 +61,7 @@ describe("support nav contract", () => {
       "Setup",
     ])
     expect(doctorLabels).toEqual(["Queue", "Scripts", "Patients", "Identity"])
-    expect(doctorLabels).not.toContain("Requests")
+    expect(doctorLabels).not.toContain("Ledger")
     expect(doctorLabels).not.toContain("Analytics")
     expect(doctorLabels).not.toContain("Payments")
     expect(doctorLabels).not.toContain("Ops")
@@ -104,6 +104,7 @@ describe("support nav contract", () => {
     // bare relative to doctor / admin.
     expect(navSource).toContain("Phase 7 of dashboard remaster")
     expect(navSource).toContain("bounded recovery cockpit")
+    expect(navSource).toContain("metadata ledger")
     expect(navSource).toContain("masked PHI / redacted payload")
   })
 

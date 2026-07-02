@@ -64,7 +64,7 @@ export const operatorNavSections: StaffNavSection[] = [
     title: "Today",
     items: [
       { href: STAFF_DASHBOARD_HREF, label: "Dashboard", icon: "dashboard" },
-      { href: STAFF_LEDGER_HREF, label: "Requests", icon: "intakeLedger" },
+      { href: STAFF_LEDGER_HREF, label: "Ledger", icon: "intakeLedger" },
       { href: STAFF_QUEUE_HREF, label: "Review", icon: "queue" },
       { href: STAFF_SCRIPTS_HREF, label: "Scripts", icon: "scripts", badgeKey: "scriptsToWrite", badgeTone: "primary" },
       { href: STAFF_PATIENTS_HREF, label: "Patients", icon: "users", badgeKey: "prescribingIdentityPatients", badgeTone: "warning" },
@@ -112,10 +112,12 @@ export const doctorOperatorNavItems: StaffNavItem[] = [
 // shell by role. The exported section arrays stay because mobile and sidebar
 // surfaces render the same items differently.
 //
-// Support staff get one deliberately minimal nav entry. `/admin/ops` is the
-// bounded recovery cockpit and links through to masked PHI / redacted payload
-// detail pages only when work exists. This avoids a second "support dashboard"
-// made from nested ops shortcuts while preserving the access boundary.
+// Support staff get deliberately minimal navigation. `/admin/ops` is the
+// bounded recovery cockpit and `/admin/intakes` is the metadata ledger for
+// request/payment lookup. Nested webhook, Parchment, and prescribing identity
+// pages with masked PHI / redacted payload details stay linked from Ops cards
+// only, which avoids a second support dashboard while preserving the access
+// boundary.
 // Phase 7 of dashboard remaster (2026-05-12) removed the legacy
 // `/admin/patients` entry because it was a misleading PHI-heavy link.
 
@@ -126,7 +128,7 @@ export const supportNavSections: StaffNavSection[] = [
       { href: STAFF_OPS_HREF, label: "Operations", icon: "activity" },
       // Phase 8 (2026-05-20): refund workflow opened to support. Ledger
       // shows ref/service/status/refund chips but no clinical answers.
-      { href: STAFF_LEDGER_HREF, label: "Requests", icon: "intakeLedger" },
+      { href: STAFF_LEDGER_HREF, label: "Ledger", icon: "intakeLedger" },
     ],
   },
 ]

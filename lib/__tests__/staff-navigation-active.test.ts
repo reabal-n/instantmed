@@ -171,12 +171,14 @@ describe("staff navigation active matching", () => {
       { sections: operatorNavSections, pathname: "/dashboard", status: null, expected: ["Dashboard"] },
       { sections: operatorNavSections, pathname: "/dashboard", status: "review", expected: ["Review"] },
       { sections: operatorNavSections, pathname: "/dashboard", status: "scripts", expected: ["Scripts"] },
+      { sections: operatorNavSections, pathname: "/admin/intakes", status: null, expected: ["Ledger"] },
       { sections: operatorNavSections, pathname: "/doctor/patients/123", status: null, expected: ["Patients"] },
       { sections: operatorNavSections, pathname: "/admin/ops/parchment", status: null, expected: ["Ops"] },
       { sections: doctorNavSections, pathname: "/dashboard", status: null, expected: ["Queue"] },
       { sections: doctorNavSections, pathname: "/dashboard", status: "review", expected: ["Queue"] },
       { sections: doctorNavSections, pathname: "/dashboard", status: "scripts", expected: ["Scripts"] },
       { sections: supportNavSections, pathname: "/admin/ops/parchment", status: null, expected: ["Operations"] },
+      { sections: supportNavSections, pathname: "/admin/intakes", status: null, expected: ["Ledger"] },
     ]
 
     for (const item of cases) {

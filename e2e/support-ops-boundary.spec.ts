@@ -24,7 +24,7 @@ test.describe("Support Ops Boundary", () => {
     await expect(sidebar).toBeVisible({ timeout: 10_000 })
 
     await expect(sidebar.getByRole("link", { name: "Operations" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminOps)
-    await expect(sidebar.getByRole("link", { name: "Requests" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminIntakes)
+    await expect(sidebar.getByRole("link", { name: "Ledger" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminIntakes)
 
     const recoveryCounters = page.getByRole("region", { name: "Recovery counters" })
     await expect(recoveryCounters.getByRole("link", { name: /Stripe webhook DLQ/ })).toHaveAttribute(
@@ -73,7 +73,7 @@ test.describe("Support Ops Boundary", () => {
       const sidebar = page.getByRole("complementary", { name: "Staff sidebar" })
       await expect(sidebar.locator('a[aria-current="page"]')).toHaveCount(1)
       await expect(sidebar.getByRole("link", { name: "Operations" })).toHaveAttribute("aria-current", "page")
-      await expect(sidebar.getByRole("link", { name: "Requests" })).not.toHaveAttribute("aria-current", "page")
+      await expect(sidebar.getByRole("link", { name: "Ledger" })).not.toHaveAttribute("aria-current", "page")
     }
 
     await page.goto(STAFF_TEST_ROUTES.adminPrescribingIdentity)

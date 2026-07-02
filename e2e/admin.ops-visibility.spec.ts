@@ -20,7 +20,7 @@ test.describe("Ops Navigation Visibility", () => {
     await expect(page.getByRole("region", { name: "Doctor request queue" })).toBeVisible()
 
     const sidebar = page.getByRole("complementary", { name: "Staff sidebar" })
-    await expect(sidebar.getByRole("link", { name: "Requests" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminIntakes)
+    await expect(sidebar.getByRole("link", { name: "Ledger" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminIntakes)
     await expect(sidebar.getByRole("link", { name: "Review" })).toHaveAttribute(
       "href",
       STAFF_TEST_ROUTES.dashboard + "?status=review#doctor-queue",
@@ -46,7 +46,7 @@ test.describe("Ops Navigation Visibility", () => {
     await expect(sidebar.getByRole("link", { name: "Scripts" })).toBeVisible()
     await expect(sidebar.getByRole("link", { name: "Patients" })).toBeVisible()
     await expect(sidebar.getByRole("link", { name: "Identity" })).toBeVisible()
-    await expect(sidebar.getByRole("link", { name: "Requests" })).not.toBeVisible()
+    await expect(sidebar.getByRole("link", { name: "Ledger" })).not.toBeVisible()
     await expect(sidebar.getByRole("link", { name: "Analytics" })).not.toBeVisible()
     await expect(sidebar.getByRole("link", { name: "Ops" })).not.toBeVisible()
   })

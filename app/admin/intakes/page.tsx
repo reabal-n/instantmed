@@ -26,7 +26,7 @@ import type { IntakeWithPatient } from "@/types/db"
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "Intake Ledger",
+  title: "Request Ledger",
 }
 
 type SearchParams = {
@@ -90,11 +90,11 @@ export default async function AdminIntakeLedgerPage({
     <PanelProvider>
       <OperatorPage>
         <OperatorPageHeader
-          title="Intake ledger"
+          title="Request ledger"
           description={
             initialFilters.q || initialFilters.status || initialFilters.service || initialFilters.workLane
               ? "Filtered recent requests from an operator drilldown."
-              : "Search and filter all recent requests when the cockpit is not enough."
+              : "Search, audit, and recover request records when the cockpit is not enough."
           }
           backHref={STAFF_DASHBOARD_HREF}
           backLabel="Staff cockpit"
