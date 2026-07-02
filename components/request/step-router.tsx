@@ -103,6 +103,9 @@ export interface StepRouterProps {
   serviceType: StepComponentProps["serviceType"]
   currentStepId: UnifiedStepId
   componentPath: string
+  /** The following step's component, prefetched at idle so Continue never
+   * pays a fresh chunk round-trip (and its 150ms skeleton gate) mid-funnel. */
+  nextComponentPath?: string
   onNext: () => void
   onBack: () => void
   onComplete: () => void
@@ -123,6 +126,7 @@ export function StepRouter({
   serviceType,
   currentStepId,
   componentPath,
+  nextComponentPath,
   onNext,
   onBack,
   onComplete,
@@ -165,6 +169,34 @@ export function StepRouter({
       cancelled = true
     }
   }, [componentPath])
+
+  // Once the current step is interactive, prefetch the NEXT step's chunk at
+  // idle so tapping Continue swaps steps instantly instead of gating the flow
+  // behind a fresh network round-trip + the 150ms skeleton, up to three times
+  // per med-cert funnel on mobile. The loader cache makes double-loads free.
+  useEffect(() => {
+    if (!nextComponentPath) return
+    if (!loadedStep || loadedStep.componentPath !== componentPath) return
+
+    let cancelled = false
+    const kick = () => {
+      if (!cancelled) void preloadStepComponent(nextComponentPath)
+    }
+
+    if (typeof window.requestIdleCallback === "function") {
+      const handle = window.requestIdleCallback(kick)
+      return () => {
+        cancelled = true
+        window.cancelIdleCallback?.(handle)
+      }
+    }
+
+    const timeout = window.setTimeout(kick, 200)
+    return () => {
+      cancelled = true
+      window.clearTimeout(timeout)
+    }
+  }, [loadedStep, componentPath, nextComponentPath])
 
   if (loadFailed) {
     return <StepNotFound componentPath={componentPath} />
