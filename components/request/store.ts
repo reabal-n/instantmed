@@ -11,10 +11,13 @@ import { persist, type StorageValue } from 'zustand/middleware'
 
 import { capture } from '@/lib/analytics/capture'
 import { buildIntakeAnswerChangedEvent } from '@/lib/analytics/intake-events'
-import { 
-  canonicalizeServiceType, 
+import {
+  canonicalizeServiceType,
+  type DraftData,
+  getAllDrafts,
+  getDraft,
   migrateLegacyDraft,
-  saveDraft, 
+  saveDraft,
 } from '@/lib/request/draft-storage'
 import type { UnifiedServiceType, UnifiedStepId } from '@/lib/request/step-registry'
 import { getNextStepId, getPreviousStepId,getStepsForService as _getStepsForService } from '@/lib/request/step-registry'
@@ -226,6 +229,60 @@ function getLastActiveStepId(
     if (steps.length === 0) return null
     if (steps.some((s) => s.id === currentStepId)) return null
     return steps[steps.length - 1].id as UnifiedStepId
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Map a service-scoped DraftData onto the exact shape `partialize` persists,
+ * so hydration semantics stay identical whether the payload came from the
+ * legacy envelope, the just-migrated legacy draft, or the Phase 2.3
+ * scoped-key read fallback below.
+ */
+function draftToPersistedState(draft: DraftData): Partial<RequestState> {
+  return {
+    serviceType: draft.serviceType,
+    currentStepId: draft.currentStepId,
+    safetyConfirmed: draft.safetyConfirmed,
+    safetyTimestamp: draft.safetyTimestamp,
+    answers: draft.answers,
+    firstName: draft.firstName,
+    lastName: draft.lastName,
+    email: draft.email,
+    phone: draft.phone,
+    dob: draft.dob,
+    lastSavedAt: draft.lastSavedAt,
+  }
+}
+
+/**
+ * Phase 2.3 read path: hydrate from the service-scoped keys when the legacy
+ * key is empty. Two real populations land here: (a) drafts whose legacy key
+ * was deleted by the pre-#248 fire-and-forget migration — for those patients
+ * the scoped copy is the ONLY surviving copy; (b) any future state where the
+ * scoped keys become primary. Prefers the draft matching the URL's
+ * ?service= so a patient with drafts in two services resumes the one they
+ * opened; otherwise falls back to the most recently saved draft.
+ * getDraft/getAllDrafts already enforce the 24h expiry.
+ *
+ * Limitation: scoped drafts store the CANONICAL service (repeat-script is
+ * stored under prescription); request-flow's URL-service effect re-asserts
+ * the exact service after hydration, so answers survive and the flow
+ * self-corrects.
+ */
+function readServiceScopedDraftFallback(): DraftData | null {
+  try {
+    if (typeof window !== 'undefined') {
+      const urlService = canonicalizeServiceType(
+        new URLSearchParams(window.location.search).get('service'),
+      )
+      if (urlService) {
+        const urlDraft = getDraft(urlService)
+        if (urlDraft) return urlDraft
+      }
+    }
+    return getAllDrafts()[0] ?? null
   } catch {
     return null
   }
@@ -470,27 +527,17 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           // duration and its price) were stomped back to defaults on reload.
           const migrated = migrateLegacyDraft()
 
-          // Read from legacy key (will switch to new keys in Phase 2.3)
+          // Read from the legacy key, falling back to the service-scoped
+          // keys (Phase 2.3) when it is empty — see
+          // readServiceScopedDraftFallback for who lands there.
           const stored = migrated ? null : localStorage.getItem(name)
-          if (!migrated && !stored) return null
+          const scopedDraft = migrated || stored ? null : readServiceScopedDraftFallback()
+          const sourceDraft = migrated ?? scopedDraft
+          if (!sourceDraft && !stored) return null
 
           try {
-            const parsed: StorageValue<Partial<RequestState>> = migrated
-              ? {
-                  state: {
-                    serviceType: migrated.serviceType,
-                    currentStepId: migrated.currentStepId as UnifiedStepId,
-                    safetyConfirmed: migrated.safetyConfirmed,
-                    safetyTimestamp: migrated.safetyTimestamp,
-                    answers: migrated.answers,
-                    firstName: migrated.firstName,
-                    lastName: migrated.lastName,
-                    email: migrated.email,
-                    phone: migrated.phone,
-                    dob: migrated.dob,
-                    lastSavedAt: migrated.lastSavedAt,
-                  },
-                }
+            const parsed: StorageValue<Partial<RequestState>> = sourceDraft
+              ? { state: draftToPersistedState(sourceDraft) }
               : (JSON.parse(stored as string) as StorageValue<Partial<RequestState>>)
             parsed.state = normalizePersistedState(parsed.state)
 
