@@ -89,11 +89,6 @@ const requestMoreInfoSource = readFileSync(
   "utf8",
 )
 
-const queueHealthSource = readFileSync(
-  join(process.cwd(), "lib/monitoring/queue-health.ts"),
-  "utf8",
-)
-
 const e2eResetMigrationSource = readFileSync(
   join(process.cwd(), "supabase/migrations/20260501124500_harden_e2e_intake_reset.sql"),
   "utf8",
@@ -107,9 +102,6 @@ describe("doctor queue production contract", () => {
 
   it("keeps seeded E2E intakes out of live operational queue reads", () => {
     expect(queriesSource).toContain("filterSeededE2EIntakes")
-    expect(queueHealthSource).toContain("filterSeededE2EIntakes")
-    expect(queueHealthSource).toContain("QUEUE_REVIEW_STATUSES")
-    expect(queueHealthSource).not.toContain("mailinator.com")
   })
 
   it("keeps the E2E reset helper from leaving stale terminal timestamps", () => {
@@ -228,12 +220,6 @@ describe("doctor queue production contract", () => {
     expect(queueTableSource).toContain("compactTaxonomyChipClass")
     expect(queueTableSource).toContain("bg-background text-foreground")
     expect(queueTableSource).toContain("compactClaimChipClass")
-  })
-
-  it("keeps queue health monitoring aligned with the paid doctor queue", () => {
-    expect(queueHealthSource).toContain("QUEUE_REVIEW_STATUSES")
-    expect(queueHealthSource).toContain('.in("status", QUEUE_REVIEW_STATUSES)')
-    expect(queueHealthSource).toContain('.eq("payment_status", "paid")')
   })
 
   it("retires duplicate doctor decision APIs in favour of canonical server actions", () => {

@@ -16,8 +16,8 @@ interface RequestInfoCardProps {
   actionSlot?: ReactNode
   /**
    * Suppress the inline Parchment handoff block. The intake-review cockpit
-   * sets this so the canonical PrescriptionRecommendationCard does not
-   * double-render alongside the legacy inline handoff section.
+   * sets this so the canonical PrescribingPacketCard does not double-render
+   * alongside the legacy inline handoff section.
    */
   hidePrescriptionIntent?: boolean
 }

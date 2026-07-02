@@ -51,9 +51,7 @@ const NON_MEDCERT_FORM_FIRST_SURFACES = [
   "lib/email/components/templates/abandoned-checkout-followup.tsx",
   "lib/marketing/contextual-messages.ts",
   "lib/marketing/homepage.ts",
-  "lib/marketing/service-funnel-configs.ts",
   "lib/seo/metadata.ts",
-  "lib/seo/service-metadata.ts",
   "components/request/service-hub-screen.tsx",
   "content/blog",
 ]
@@ -215,7 +213,6 @@ const PUBLIC_FIXED_TURNAROUND_SURFACES = [
   "lib/seo/data/deep-city-content",
   "lib/seo/data/guides",
   "lib/seo/data/states.ts",
-  "lib/seo/metadata-generator.ts",
   "lib/seo/pages",
   "lib/seo/symptoms.ts",
 ]

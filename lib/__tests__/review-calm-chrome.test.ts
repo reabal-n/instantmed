@@ -17,7 +17,6 @@ const FORBIDDEN_BG_CLASS_RE = /bg-(emerald|orange|red|amber|sky)-(50|100)(?!\d)/
 // panel that the /admin/ops calm-chrome contract did not cover).
 const FILES_UNDER_TEST = [
   "components/doctor/prescribing-packet-card.tsx",
-  "components/doctor/review/prescription-recommendation-card.tsx",
   "components/doctor/review/intake-review-cockpit.tsx",
   "components/doctor/review/intake-action-buttons.tsx",
 ] as const

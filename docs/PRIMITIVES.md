@@ -116,13 +116,9 @@ Metric-backed wait display per service. No fake randomization.
 
 ---
 
-## 7. Service Funnel Configs — `lib/marketing/service-funnel-configs.ts`
+## 7. Service Funnel Template — RETIRED (deleted 2026-07-03)
 
-Full-page configuration objects for the generic service funnel template (`service-funnel-page.tsx`). Each config defines hero, how-it-works, pricing, trust, FAQ, and CTA content. Public testimonial modules are retired for regulated-health advertising surfaces.
-
-Type: `ServiceFunnelConfig` (from `components/marketing/funnel/funnel-types.ts`).
-
-**Note:** Specialty landing pages (med-cert, ED, hair loss) use custom layouts, not the funnel template. The funnel template was previously used for the retired General Consult route; that route now renders a services overview page instead.
+The generic service funnel template (`components/marketing/service-funnel-page.tsx`, `components/marketing/funnel/*`, `lib/marketing/service-funnel-configs.ts`) was deleted: its only consumer was the General Consult route retired 2026-05-20, and it sat unmounted for six weeks while compliance sweeps kept polishing its dead copy. Every live service page (med-cert, ED, hair loss, prescriptions) uses a dedicated custom layout — copy one of those, do not resurrect the template.
 
 ---
 

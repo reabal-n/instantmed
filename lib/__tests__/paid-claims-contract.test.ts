@@ -33,8 +33,6 @@ const PAID_CLAIM_FILES = [
   "lib/data/med-cert-faq.ts",
   "lib/marketing/approved-claims.ts",
   "lib/marketing/homepage.ts",
-  "lib/marketing/service-funnel-configs.ts",
-  "lib/microcopy/anxiety-reducers.ts",
   "lib/seo/pages/definitions.ts",
 ]
 
