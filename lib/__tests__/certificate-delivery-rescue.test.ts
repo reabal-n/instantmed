@@ -15,7 +15,10 @@ const baseEvidence: CertificateDeliveryEvidence = {
 }
 
 function createRescueSupabaseStub(results: Record<string, unknown[]>) {
+  const filterCalls: Array<{ table: string; method: "or" | "not"; args: unknown[] }> = []
+
   return {
+    filterCalls,
     from(table: string) {
       const result = { data: results[table] ?? [], error: null }
       const query = {
@@ -23,6 +26,14 @@ function createRescueSupabaseStub(results: Record<string, unknown[]>) {
         eq: () => query,
         gte: () => query,
         in: () => query,
+        or: (...args: unknown[]) => {
+          filterCalls.push({ table, method: "or", args })
+          return query
+        },
+        not: (...args: unknown[]) => {
+          filterCalls.push({ table, method: "not", args })
+          return query
+        },
         order: () => query,
         limit: () => Promise.resolve(result),
         then: (resolve: (value: typeof result) => unknown, reject?: (reason: unknown) => unknown) =>
@@ -256,5 +267,26 @@ describe("certificate delivery rescue", () => {
     })
 
     expect(JSON.stringify(row)).not.toMatch(/@|patientName|full_name|to_email|patient_email|storage_path/i)
+  })
+
+  it("scopes the rescue query to reportable intakes (seeded-E2E + exclude_from_reporting filtered)", async () => {
+    // The panel must mirror the production scope of the
+    // ops_certificate_sent_missing_timestamp invariant: test rows inflating
+    // the panel while the alert ignores them leaves the operator chasing
+    // phantom cases that can never clear the alert.
+    const supabase = createRescueSupabaseStub({ intakes: [] })
+
+    const overview = await getCertificateDeliveryRescueCases(supabase as never)
+
+    expect(overview.queryFailed).toBe(false)
+    const intakeFilters = supabase.filterCalls.filter((call) => call.table === "intakes")
+    expect(intakeFilters).toContainEqual({
+      table: "intakes",
+      method: "or",
+      args: ["exclude_from_reporting.is.null,exclude_from_reporting.eq.false"],
+    })
+    expect(
+      intakeFilters.some((call) => call.method === "not" && call.args[0] === "patient_id"),
+    ).toBe(true)
   })
 })
