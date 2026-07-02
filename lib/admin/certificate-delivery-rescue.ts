@@ -1,4 +1,5 @@
 import { buildStaffEmailHubHref } from "@/lib/dashboard/routes"
+import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { createLogger } from "@/lib/observability/logger"
 import type { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -349,21 +350,28 @@ export async function getCertificateDeliveryRescueCases(
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
 
   try {
-    const { data: intakes, error: intakeError } = await supabase
-      .from("intakes")
-      .select(`
-        id,
-        reference_number,
-        status,
-        document_sent_at,
-        created_at,
-        updated_at,
-        approved_at,
-        completed_at,
-        service:services!inner(type)
-      `)
-      .eq("service.type", "med_certs")
-      .gte("created_at", since)
+    // Seeded-E2E CI intakes and exclude_from_reporting test orders must not
+    // surface rescue actions: the panel has to mirror the production scope of
+    // the ops invariants (ops_certificate_sent_missing_timestamp counts
+    // filtered intakes), otherwise the operator chases phantom test cases the
+    // alert never counted — and can't clear the ones it did.
+    const { data: intakes, error: intakeError } = await filterReportableIntakes(
+      supabase
+        .from("intakes")
+        .select(`
+          id,
+          reference_number,
+          status,
+          document_sent_at,
+          created_at,
+          updated_at,
+          approved_at,
+          completed_at,
+          service:services!inner(type)
+        `)
+        .eq("service.type", "med_certs")
+        .gte("created_at", since),
+    )
       .order("updated_at", { ascending: false })
       .limit(Math.max(limit * 4, 24))
 

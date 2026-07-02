@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 
-import { buildOperationalInvariantAlerts, getOperationalInvariants } from "@/lib/admin/ops-invariants"
+import { buildOperationalInvariantAlerts, getOperationalInvariants, type OperationalInvariants } from "@/lib/admin/ops-invariants"
 import { getGoogleAdsUploadStreamHealth } from "@/lib/analytics/google-ads-health"
 import { getGoogleAdsPurchaseImportHealth } from "@/lib/analytics/google-ads-report"
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
@@ -9,6 +9,7 @@ import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { toError } from "@/lib/errors"
+import { type BusinessAlert, runAlertSection } from "@/lib/monitoring/alert-sections"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import {
   buildGoogleAdsPurchaseImportAlert,
@@ -61,8 +62,6 @@ const TELEGRAM_MAX_METRIC_COOLDOWN_MS = Math.max(
   TELEGRAM_ALERT_COOLDOWN_MS,
   ...Object.values(TELEGRAM_METRIC_COOLDOWN_OVERRIDES_MS),
 )
-
-type BusinessAlert = { metric: string; severity: "critical" | "warning" | "info"; detail: string; count?: number }
 
 async function getNoPurchaseRevenueWindow(
   supabase: ReturnType<typeof createServiceRoleClient>,
@@ -127,6 +126,12 @@ async function getNoPurchaseRevenueWindow(
  * Aggregates key business health metrics and fires Sentry alerts
  * when thresholds are breached. Designed to run every 30 minutes.
  *
+ * Every check runs inside `runAlertSection` (fail-soft): one broken query
+ * must not silence the sections after it or the Sentry/Telegram dispatch —
+ * the pre-2026-07 shape threw from section 2 straight to the outer catch,
+ * which is exactly how the alerting hub goes blind. A failed section becomes
+ * its own critical alert instead.
+ *
  * Metrics checked:
  * - Failed payments in last hour
  * - No paid intakes despite saved-intake or draft demand
@@ -145,53 +150,91 @@ export async function GET(request: NextRequest) {
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
     const alerts: BusinessAlert[] = []
 
-    // 1. Failed payments in last hour
-    const { count: failedPayments } = await supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .eq("payment_status", "failed")
-      .gte("updated_at", oneHourAgo.toISOString())
-
-    if (failedPayments && failedPayments >= 3) {
-      alerts.push({
-        metric: "payment_failed",
-        severity: failedPayments >= 10 ? "critical" : "warning",
-        detail: `${failedPayments} payment failures in last hour`,
-      })
+    const onSectionFailure = (alert: BusinessAlert, error: Error) => {
+      logger.error("Business alert section failed", { metric: alert.metric, error: error.message })
       trackBusinessMetric({
-        metric: "payment_failed",
-        severity: failedPayments >= 10 ? "critical" : "warning",
-        metadata: { count: failedPayments, window: "1h" },
+        metric: "business_alert_section_failed",
+        severity: "critical",
+        metadata: { section: alert.metric, error: error.message },
       })
     }
+
+    // Section results consumed by the response payload below. Sections that
+    // fail leave their value null so the JSON shows "unknown", not a fake 0.
+    let failedPayments: number | null = null
+    let emailFailures: number | null = null
+    let bouncedEmails: number | null = null
+    let stuckPending: number | null = null
+    let highRiskWaiting: number | null = null
+    let slaBreaches: number | null = null
+    let noPurchaseWindow: NoPurchaseRevenueWindow | null = null
+    let operationalInvariants: OperationalInvariants | null = null
+    let staleHumanCount: number | null = null
+
+    // 1. Failed payments in last hour
+    await runAlertSection({
+      section: "failed_payments",
+      alerts,
+      onFailure: onSectionFailure,
+      run: async () => {
+        const { count, error } = await supabase
+          .from("intakes")
+          .select("id", { count: "exact", head: true })
+          .eq("payment_status", "failed")
+          .gte("updated_at", oneHourAgo.toISOString())
+        if (error) throw new Error(`Failed-payments count failed: ${error.message}`)
+        failedPayments = count ?? 0
+
+        if (failedPayments >= 3) {
+          alerts.push({
+            metric: "payment_failed",
+            severity: failedPayments >= 10 ? "critical" : "warning",
+            detail: `${failedPayments} payment failures in last hour`,
+          })
+          trackBusinessMetric({
+            metric: "payment_failed",
+            severity: failedPayments >= 10 ? "critical" : "warning",
+            metadata: { count: failedPayments, window: "1h" },
+          })
+        }
+      },
+    })
 
     // 2. Revenue safety: page only when paid orders are silent while the
     // funnel still has demand. A quiet traffic day should not alert.
-    const criticalNoPurchaseWindow = await getNoPurchaseRevenueWindow(
-      supabase,
-      now,
-      NO_PURCHASE_CRITICAL_WINDOW_HOURS,
-    )
-    const criticalNoPurchaseAlert = buildNoPurchaseRevenueAlert(criticalNoPurchaseWindow)
-    const noPurchaseWindow = criticalNoPurchaseAlert
-      ? criticalNoPurchaseWindow
-      : await getNoPurchaseRevenueWindow(supabase, now, NO_PURCHASE_WARNING_WINDOW_HOURS)
-    const noPurchaseAlert =
-      criticalNoPurchaseAlert ?? buildNoPurchaseRevenueAlert(noPurchaseWindow)
+    await runAlertSection({
+      section: "no_purchase_revenue",
+      alerts,
+      onFailure: onSectionFailure,
+      run: async () => {
+        const criticalNoPurchaseWindow = await getNoPurchaseRevenueWindow(
+          supabase,
+          now,
+          NO_PURCHASE_CRITICAL_WINDOW_HOURS,
+        )
+        const criticalNoPurchaseAlert = buildNoPurchaseRevenueAlert(criticalNoPurchaseWindow)
+        noPurchaseWindow = criticalNoPurchaseAlert
+          ? criticalNoPurchaseWindow
+          : await getNoPurchaseRevenueWindow(supabase, now, NO_PURCHASE_WARNING_WINDOW_HOURS)
+        const noPurchaseAlert =
+          criticalNoPurchaseAlert ?? buildNoPurchaseRevenueAlert(noPurchaseWindow)
 
-    if (noPurchaseAlert) {
-      alerts.push(noPurchaseAlert)
-      trackBusinessMetric({
-        metric: noPurchaseAlert.metric,
-        severity: noPurchaseAlert.severity,
-        metadata: noPurchaseAlert.metadata,
-      })
-    }
+        if (noPurchaseAlert) {
+          alerts.push(noPurchaseAlert)
+          trackBusinessMetric({
+            metric: noPurchaseAlert.metric,
+            severity: noPurchaseAlert.severity,
+            metadata: noPurchaseAlert.metadata,
+          })
+        }
+      },
+    })
 
     // 3. Google Ads purchase-import safety: local paid Google-attributed orders
     // must show up in the configured purchase import action. This catches the
     // expensive blind-bidding state where Stripe/Supabase have revenue but Ads
     // diagnostics or conversion reports show no import/primary purchase signal.
+    // Keeps its historical dedicated failure metric (predates runAlertSection).
     let googleAdsPurchaseImportHealth = null
     try {
       googleAdsPurchaseImportHealth = await getGoogleAdsPurchaseImportHealth({ supabase, now })
@@ -269,159 +312,220 @@ export async function GET(request: NextRequest) {
     }
 
     // 4. Email delivery failures (certificates not delivered)
-    const { count: emailFailures } = await supabase
-      .from("issued_certificates")
-      .select("id", { count: "exact", head: true })
-      .not("email_failed_at", "is", null)
-      .is("email_sent_at", null)
-      .gte("created_at", oneHourAgo.toISOString())
+    await runAlertSection({
+      section: "email_delivery_failed",
+      alerts,
+      onFailure: onSectionFailure,
+      run: async () => {
+        const { count, error } = await supabase
+          .from("issued_certificates")
+          .select("id", { count: "exact", head: true })
+          .not("email_failed_at", "is", null)
+          .is("email_sent_at", null)
+          .gte("created_at", oneHourAgo.toISOString())
+        if (error) throw new Error(`Certificate email-failure count failed: ${error.message}`)
+        emailFailures = count ?? 0
 
-    if (emailFailures && emailFailures >= 2) {
-      alerts.push({
-        metric: "email_delivery_failed",
-        severity: emailFailures >= 5 ? "critical" : "warning",
-        detail: `${emailFailures} certificate email failures in last hour`,
-      })
-      trackBusinessMetric({
-        metric: "email_delivery_failed",
-        severity: emailFailures >= 5 ? "critical" : "warning",
-        metadata: { count: emailFailures, window: "1h" },
-      })
-    }
+        if (emailFailures >= 2) {
+          alerts.push({
+            metric: "email_delivery_failed",
+            severity: emailFailures >= 5 ? "critical" : "warning",
+            detail: `${emailFailures} certificate email failures in last hour`,
+          })
+          trackBusinessMetric({
+            metric: "email_delivery_failed",
+            severity: emailFailures >= 5 ? "critical" : "warning",
+            metadata: { count: emailFailures, window: "1h" },
+          })
+        }
+      },
+    })
 
     // 5. Bounced emails in last hour (from email_outbox)
     // Only track the business metric — don't raise a Sentry alert here.
     // Email delivery and Resend's own dashboard flag the domain-level issue.
     // Spam-rate SLO is the
     // real concern; single-bounce spikes are almost always one bad address.
-    const { count: bouncedEmails } = await supabase
-      .from("email_outbox")
-      .select("id", { count: "exact", head: true })
-      .eq("delivery_status", "bounced")
-      .gte("delivery_status_updated_at", oneHourAgo.toISOString())
+    await runAlertSection({
+      section: "email_bounced",
+      alerts,
+      onFailure: onSectionFailure,
+      run: async () => {
+        const { count, error } = await supabase
+          .from("email_outbox")
+          .select("id", { count: "exact", head: true })
+          .eq("delivery_status", "bounced")
+          .gte("delivery_status_updated_at", oneHourAgo.toISOString())
+        if (error) throw new Error(`Bounced-email count failed: ${error.message}`)
+        bouncedEmails = count ?? 0
 
-    if (bouncedEmails && bouncedEmails >= 5) {
-      // Only track `critical` tier (>=5/hr sustained). No duplicate Sentry
-      // alert in the loop below — metric goes to PostHog for trending only.
-      trackBusinessMetric({
-        metric: "email_bounced",
-        severity: "critical",
-        metadata: { count: bouncedEmails, window: "1h" },
-      })
-    }
+        if (bouncedEmails >= 5) {
+          // Only track `critical` tier (>=5/hr sustained). No duplicate Sentry
+          // alert in the loop below — metric goes to PostHog for trending only.
+          trackBusinessMetric({
+            metric: "email_bounced",
+            severity: "critical",
+            metadata: { count: bouncedEmails, window: "1h" },
+          })
+        }
+      },
+    })
 
     // 6. Emails stuck in pending status for more than 30 minutes
-    const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000)
-    const { count: stuckPending } = await supabase
-      .from("email_outbox")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "pending")
-      .lt("created_at", thirtyMinAgo.toISOString())
-      .lt("retry_count", 10)
+    await runAlertSection({
+      section: "email_stuck_pending",
+      alerts,
+      onFailure: onSectionFailure,
+      run: async () => {
+        const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000)
+        const { count, error } = await supabase
+          .from("email_outbox")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending")
+          .lt("created_at", thirtyMinAgo.toISOString())
+          .lt("retry_count", 10)
+        if (error) throw new Error(`Stuck-pending email count failed: ${error.message}`)
+        stuckPending = count ?? 0
 
-    if (stuckPending && stuckPending >= 5) {
-      alerts.push({
-        metric: "email_stuck_pending",
-        severity: "warning",
-        detail: `${stuckPending} emails stuck in pending for >30min`,
-      })
-      trackBusinessMetric({
-        metric: "email_stuck_pending",
-        severity: "warning",
-        metadata: { count: stuckPending, window: "30m" },
-      })
-    }
+        if (stuckPending >= 5) {
+          alerts.push({
+            metric: "email_stuck_pending",
+            severity: "warning",
+            detail: `${stuckPending} emails stuck in pending for >30min`,
+          })
+          trackBusinessMetric({
+            metric: "email_stuck_pending",
+            severity: "warning",
+            metadata: { count: stuckPending, window: "30m" },
+          })
+        }
+      },
+    })
 
     // 7. High-risk intakes waiting in queue
-    const { count: highRiskWaiting } = await supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .in("status", ["paid", "in_review"])
-      .in("risk_tier", ["high", "critical"])
+    await runAlertSection({
+      section: "high_risk_intake",
+      alerts,
+      onFailure: onSectionFailure,
+      run: async () => {
+        const { count, error } = await supabase
+          .from("intakes")
+          .select("id", { count: "exact", head: true })
+          .in("status", ["paid", "in_review"])
+          .in("risk_tier", ["high", "critical"])
+        if (error) throw new Error(`High-risk queue count failed: ${error.message}`)
+        highRiskWaiting = count ?? 0
 
-    if (highRiskWaiting && highRiskWaiting > 0) {
-      alerts.push({
-        metric: "high_risk_intake",
-        severity: highRiskWaiting >= 3 ? "critical" : "warning",
-        detail: `${highRiskWaiting} high/critical risk intakes in queue`,
-      })
-      trackBusinessMetric({
-        metric: "high_risk_intake",
-        severity: highRiskWaiting >= 3 ? "critical" : "warning",
-        metadata: { count: highRiskWaiting },
-      })
-    }
+        if (highRiskWaiting > 0) {
+          alerts.push({
+            metric: "high_risk_intake",
+            severity: highRiskWaiting >= 3 ? "critical" : "warning",
+            detail: `${highRiskWaiting} high/critical risk intakes in queue`,
+          })
+          trackBusinessMetric({
+            metric: "high_risk_intake",
+            severity: highRiskWaiting >= 3 ? "critical" : "warning",
+            metadata: { count: highRiskWaiting },
+          })
+        }
+      },
+    })
 
     // 8. Critical email delivery SLA - med_cert_patient and script_sent must be delivered within 10 min
-    const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000)
-    const { count: slaBreaches } = await supabase
-      .from("email_outbox")
-      .select("id", { count: "exact", head: true })
-      .in("email_type", ["med_cert_patient", "script_sent"])
-      .in("status", ["sent"])
-      .neq("delivery_status", "delivered")
-      .lt("sent_at", tenMinAgo.toISOString())
-      .gte("sent_at", oneHourAgo.toISOString())
+    await runAlertSection({
+      section: "email_delivery_sla_breach",
+      alerts,
+      onFailure: onSectionFailure,
+      run: async () => {
+        const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000)
+        const { count, error } = await supabase
+          .from("email_outbox")
+          .select("id", { count: "exact", head: true })
+          .in("email_type", ["med_cert_patient", "script_sent"])
+          .in("status", ["sent"])
+          .neq("delivery_status", "delivered")
+          .lt("sent_at", tenMinAgo.toISOString())
+          .gte("sent_at", oneHourAgo.toISOString())
+        if (error) throw new Error(`Email delivery SLA count failed: ${error.message}`)
+        slaBreaches = count ?? 0
 
-    if (slaBreaches && slaBreaches > 0) {
-      alerts.push({
-        metric: "email_delivery_sla_breach",
-        severity: slaBreaches >= 3 ? "critical" : "warning",
-        detail: `${slaBreaches} critical emails (cert/script) not delivered within 10min`,
-      })
-      trackBusinessMetric({
-        metric: "sla_breach",
-        severity: slaBreaches >= 3 ? "critical" : "warning",
-        metadata: { count: slaBreaches, window: "10m", types: "med_cert_patient,script_sent", breach_type: "email_delivery" },
-      })
-    }
+        if (slaBreaches > 0) {
+          alerts.push({
+            metric: "email_delivery_sla_breach",
+            severity: slaBreaches >= 3 ? "critical" : "warning",
+            detail: `${slaBreaches} critical emails (cert/script) not delivered within 10min`,
+          })
+          trackBusinessMetric({
+            metric: "sla_breach",
+            severity: slaBreaches >= 3 ? "critical" : "warning",
+            metadata: { count: slaBreaches, window: "10m", types: "med_cert_patient,script_sent", breach_type: "email_delivery" },
+          })
+        }
+      },
+    })
 
     // 9. Weekly ops invariants promoted from dashboard-only visibility to alerting.
-    const operationalInvariants = await getOperationalInvariants(supabase)
-    const invariantAlerts = buildOperationalInvariantAlerts(operationalInvariants)
+    await runAlertSection({
+      section: "ops_invariants",
+      alerts,
+      onFailure: onSectionFailure,
+      run: async () => {
+        operationalInvariants = await getOperationalInvariants(supabase)
+        const invariantAlerts = buildOperationalInvariantAlerts(operationalInvariants)
 
-    for (const alert of invariantAlerts) {
-      alerts.push(alert)
-      trackBusinessMetric({
-        metric: alert.metric,
-        severity: alert.severity,
-        metadata: { count: alert.count },
-      })
-    }
+        for (const alert of invariantAlerts) {
+          alerts.push(alert)
+          trackBusinessMetric({
+            metric: alert.metric,
+            severity: alert.severity,
+            metadata: { count: alert.count },
+          })
+        }
+      },
+    })
 
     // 10. Human-required (Rx/consult) queue stalled >24h. Medical certificates
     // auto-approve at all hours, so a stalled HUMAN queue means the operator may
     // be unavailable and paid scripts/consults are piling up. Per the 2026-06-11
     // decision we page (Telegram, critical → cooldown'd below), we do NOT
     // auto-pause the service. See lib/monitoring/stale-human-queue.ts.
-    const staleHumanThreshold = new Date(
-      now.getTime() - STALE_HUMAN_QUEUE_THRESHOLD_HOURS * 60 * 60 * 1000,
-    )
-    const { data: staleHumanRows, count: staleHumanCount } = await filterSeededE2EIntakes(
-      supabase
-        .from("intakes")
-        .select("paid_at", { count: "exact" })
-        .eq("status", "paid")
-        .eq("payment_status", "paid")
-        .in("category", [...STALE_HUMAN_QUEUE_CATEGORIES])
-        .lt("paid_at", staleHumanThreshold.toISOString()),
-    )
-      .order("paid_at", { ascending: true })
-      .limit(1)
+    await runAlertSection({
+      section: "stale_human_queue",
+      alerts,
+      onFailure: onSectionFailure,
+      run: async () => {
+        const staleHumanThreshold = new Date(
+          now.getTime() - STALE_HUMAN_QUEUE_THRESHOLD_HOURS * 60 * 60 * 1000,
+        )
+        const { data: staleHumanRows, count, error } = await filterSeededE2EIntakes(
+          supabase
+            .from("intakes")
+            .select("paid_at", { count: "exact" })
+            .eq("status", "paid")
+            .eq("payment_status", "paid")
+            .in("category", [...STALE_HUMAN_QUEUE_CATEGORIES])
+            .lt("paid_at", staleHumanThreshold.toISOString()),
+        )
+          .order("paid_at", { ascending: true })
+          .limit(1)
+        if (error) throw new Error(`Stale human queue count failed: ${error.message}`)
+        staleHumanCount = count ?? 0
 
-    const staleHumanAlert = buildStaleHumanQueueAlert(
-      staleHumanRows?.[0]?.paid_at ?? null,
-      staleHumanCount ?? 0,
-      now,
-    )
-    if (staleHumanAlert) {
-      alerts.push(staleHumanAlert)
-      trackBusinessMetric({
-        metric: staleHumanAlert.metric,
-        severity: "critical",
-        metadata: { count: staleHumanAlert.count },
-      })
-    }
+        const staleHumanAlert = buildStaleHumanQueueAlert(
+          staleHumanRows?.[0]?.paid_at ?? null,
+          staleHumanCount,
+          now,
+        )
+        if (staleHumanAlert) {
+          alerts.push(staleHumanAlert)
+          trackBusinessMetric({
+            metric: staleHumanAlert.metric,
+            severity: "critical",
+            metadata: { count: staleHumanAlert.count },
+          })
+        }
+      },
+    })
 
     // Fire Sentry alerts for critical items
     const criticalAlerts = alerts.filter((a) => a.severity === "critical")
@@ -538,32 +642,39 @@ export async function GET(request: NextRequest) {
       logger.info("Business health check passed", {})
     }
 
+    // Explicit casts: the values are assigned inside section closures, so
+    // TS control-flow narrows the `let`s to their `null` initializers here.
+    const invariants = operationalInvariants as OperationalInvariants | null
+    const noPurchase = noPurchaseWindow as NoPurchaseRevenueWindow | null
+
     return NextResponse.json({
       success: true,
       alerts,
       metrics: {
-        failed_payments: failedPayments || 0,
-        email_failures: emailFailures || 0,
-        bounced_emails: bouncedEmails || 0,
-        stuck_pending_emails: stuckPending || 0,
-        high_risk_waiting: highRiskWaiting || 0,
-        email_sla_breaches: slaBreaches || 0,
-        no_purchase_window: {
-          window_hours: noPurchaseWindow.windowHours,
-          paid_intakes: noPurchaseWindow.paidIntakes,
-          created_intakes: noPurchaseWindow.createdIntakes,
-          checkout_stage_intakes: noPurchaseWindow.checkoutStageIntakes,
-          partial_drafts: noPurchaseWindow.partialDrafts,
-        },
+        failed_payments: failedPayments ?? 0,
+        email_failures: emailFailures ?? 0,
+        bounced_emails: bouncedEmails ?? 0,
+        stuck_pending_emails: stuckPending ?? 0,
+        high_risk_waiting: highRiskWaiting ?? 0,
+        email_sla_breaches: slaBreaches ?? 0,
+        no_purchase_window: noPurchase
+          ? {
+              window_hours: noPurchase.windowHours,
+              paid_intakes: noPurchase.paidIntakes,
+              created_intakes: noPurchase.createdIntakes,
+              checkout_stage_intakes: noPurchase.checkoutStageIntakes,
+              partial_drafts: noPurchase.partialDrafts,
+            }
+          : null,
         google_ads_purchase_import_health: googleAdsPurchaseImportHealth,
         google_ads_upload_stream: googleAdsUploadStreamHealth,
         rx_consult_queue_stalled: staleHumanCount ?? 0,
-        ops_sla_breach_backlog: operationalInvariants.slaBreachBacklog,
-        ops_cert_refund_orphans: operationalInvariants.certRefundOrphans,
-        ops_refund_record_anomalies: operationalInvariants.refundRecordAnomalies,
-        ops_paid_but_cancelled: operationalInvariants.paidButCancelled ?? 0,
-        ops_approved_certificate_missing_record: operationalInvariants.approvedCertificateMissingRecord ?? 0,
-        ops_certificate_sent_missing_timestamp: operationalInvariants.certificateSentMissingTimestamp ?? 0,
+        ops_sla_breach_backlog: invariants?.slaBreachBacklog ?? null,
+        ops_cert_refund_orphans: invariants?.certRefundOrphans ?? null,
+        ops_refund_record_anomalies: invariants?.refundRecordAnomalies ?? null,
+        ops_paid_but_cancelled: invariants?.paidButCancelled ?? 0,
+        ops_approved_certificate_missing_record: invariants?.approvedCertificateMissingRecord ?? 0,
+        ops_certificate_sent_missing_timestamp: invariants?.certificateSentMissingTimestamp ?? 0,
       },
       checked_at: now.toISOString(),
     })
