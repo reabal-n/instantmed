@@ -211,7 +211,7 @@ describe("doctor navigation contract", () => {
   it("keeps legacy doctor routes as redirects to canonical surfaces", () => {
     expect(nextConfigSource).toContain('source: "/doctor", destination: "/dashboard"')
     expect(nextConfigSource).toContain('source: "/doctor/dashboard", destination: "/dashboard"')
-    expect(nextConfigSource).toContain('source: "/doctor/queue", destination: "/dashboard"')
+    expect(nextConfigSource).toContain('source: "/doctor/queue", destination: "/dashboard?status=review#doctor-queue"')
     expect(nextConfigSource).toContain('source: "/doctor/certificates", destination: "/dashboard"')
     expect(nextConfigSource).toContain('source: "/doctor/scripts", destination: "/dashboard?status=scripts#doctor-queue"')
     expect(doctorSettingsPageSource).toContain('requireRole(["doctor", "admin"]')

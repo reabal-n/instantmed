@@ -211,10 +211,13 @@ export function buildDoctorQueueRedirectHref(
 ): string {
   // Resolve directly to the unified `STAFF_DASHBOARD_HREF` instead of the
   // legacy `DOCTOR_DASHBOARD_HREF` alias so `/doctor/queue` bookmarks do not
-  // chain through another staff alias.
+  // chain through another staff alias. Bare queue aliases retain queue intent
+  // by opening the review-filtered cockpit rather than the all-work dashboard.
+  const status = parseQueueStatusFilter(searchParams.status)
   return buildStaffDashboardHref({
-    status: searchParams.status,
+    status: status === "all" ? "review" : status,
     page: searchParams.page,
     pageSize: searchParams.pageSize,
+    anchor: "doctor-queue",
   })
 }

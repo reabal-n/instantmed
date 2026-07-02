@@ -434,17 +434,18 @@ const nextConfig = {
       { source: "/weight-management/:path*", destination: "/request", permanent: false },
       // Redirect-only pages moved to edge — no React rendering cost
       { source: "/gp-consult", destination: "/consult", permanent: true },
-      // Legacy doctor repeat-rx queue retired; canonical paid intakes live in /dashboard
-      // (Phase 2 of dashboard remaster, 2026-05-12; was /doctor/dashboard which now 307s here).
-      // `permanent: true` (308) so crawlers + bookmarks drop the legacy URL.
+      // Legacy doctor entry points retired; canonical paid intakes live in the
+      // unified /dashboard cockpit (Phase 2 of dashboard remaster, 2026-05-12).
       { source: "/doctor", destination: "/dashboard", permanent: false },
       { source: "/doctor/dashboard", destination: "/dashboard", permanent: false },
-      { source: "/doctor/queue", destination: "/dashboard", permanent: false },
+      { source: "/doctor/queue", destination: "/dashboard?status=review#doctor-queue", permanent: false },
       { source: "/doctor/certificates", destination: "/dashboard", permanent: false },
       { source: "/doctor/analytics", destination: "/dashboard", permanent: false },
       { source: "/doctor/scripts", destination: "/dashboard?status=scripts#doctor-queue", permanent: false },
       { source: "/admin/settings/doctor-identity", destination: "/doctor/settings/identity", permanent: false },
       { source: "/doctor/email-suppression", destination: "/admin/emails/suppression", permanent: true },
+      // The retired repeat-rx doctor stack can be permanent: it no longer owns
+      // a live staff workflow and should not reappear as a second queue mode.
       { source: "/doctor/repeat-rx", destination: "/dashboard", permanent: true },
       { source: "/doctor/repeat-rx/:path*", destination: "/dashboard", permanent: true },
       { source: "/patient/followups", destination: "/patient/intakes", permanent: false },

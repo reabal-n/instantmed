@@ -166,14 +166,17 @@ describe("dashboard route contracts", () => {
 
   it("preserves queue redirect intent and allowed pagination params", () => {
     // Phase 2 of dashboard remaster + dashboard-audit follow-up (2026-05-12):
-    // `/doctor/queue` now redirects straight to `/dashboard` instead of the
-    // legacy `/doctor/dashboard` alias (which 307s to the same target).
-    // Avoids a redirect chain on every queue bookmark.
+    // `/doctor/queue` now redirects straight to the review-filtered
+    // `/dashboard` cockpit instead of the legacy `/doctor/dashboard` alias.
+    // Avoids a redirect chain on every queue bookmark and keeps bare queue
+    // aliases on the review-filtered cockpit, not the all-work dashboard.
+    expect(buildDoctorQueueRedirectHref({})).toBe("/dashboard?status=review#doctor-queue")
     expect(buildDoctorQueueRedirectHref({ status: "review", page: "2", pageSize: "25" })).toBe(
-      "/dashboard?status=review&page=2&pageSize=25",
+      "/dashboard?status=review&page=2&pageSize=25#doctor-queue",
     )
+    expect(buildDoctorQueueRedirectHref({ status: "scripts" })).toBe("/dashboard?status=scripts#doctor-queue")
     expect(buildDoctorQueueRedirectHref({ status: "bad", page: "0", pageSize: "999", noise: "x" })).toBe(
-      "/dashboard",
+      "/dashboard?status=review#doctor-queue",
     )
   })
 

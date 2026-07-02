@@ -60,12 +60,16 @@ const PATIENT_PAGES = [
 
 const DASHBOARD_ROUTE_CONTRACTS = [
   {
+    from: "/doctor/queue",
+    to: /\/dashboard\?status=review(?:#doctor-queue)?$/,
+  },
+  {
     from: "/doctor/queue?status=review",
-    to: /\/dashboard\?status=review$/,
+    to: /\/dashboard\?status=review(?:#doctor-queue)?$/,
   },
   {
     from: "/doctor/queue?status=review&page=2&pageSize=25",
-    to: /\/dashboard\?status=review&page=2&pageSize=25$/,
+    to: /\/dashboard\?status=review&page=2&pageSize=25(?:#doctor-queue)?$/,
   },
 ]
 
