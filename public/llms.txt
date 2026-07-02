@@ -92,10 +92,29 @@
 - Privacy policy: https://instantmed.com.au/privacy
 - Terms of service: https://instantmed.com.au/terms
 
+## Medical Certificates by Reason
+
+Situation-specific guidance pages. All are for routine short absences (maximum 3 days), reviewed by an AHPRA-registered doctor, with a full refund if declined. None cover workers compensation, legal, fitness-to-drive, or other high-stakes assessments, and none are isolation orders or clearance certificates.
+
+- Sick leave certificate: https://instantmed.com.au/medical-certificate/sick-leave
+- Medical certificate for work: https://instantmed.com.au/medical-certificate/work
+- Medical certificate for study: https://instantmed.com.au/medical-certificate/study
+- Carer's leave certificate: https://instantmed.com.au/medical-certificate/carer
+- Medical certificate for school: https://instantmed.com.au/medical-certificate/school
+- Medical certificate for university: https://instantmed.com.au/medical-certificate/university
+- Work-from-home requests and medical evidence: https://instantmed.com.au/medical-certificate/work-from-home
+- Flu and flu-like illness absence: https://instantmed.com.au/medical-certificate/flu
+- Gastro and stomach illness absence: https://instantmed.com.au/medical-certificate/gastro
+- Migraine absence: https://instantmed.com.au/medical-certificate/migraine
+- Back pain absence: https://instantmed.com.au/medical-certificate/back-pain
+- Anxiety-related absence: https://instantmed.com.au/medical-certificate/anxiety
+- COVID-19 absence evidence: https://instantmed.com.au/medical-certificate/covid
+- Employer acceptance and verification guide: https://instantmed.com.au/medical-certificate/employer-acceptance
+
 ## Full Reference
 
 For a longer AI-readable service reference, see: https://instantmed.com.au/llms-full.txt
 
 ---
 
-Last reviewed: 2026-06-25
+Last reviewed: 2026-07-02

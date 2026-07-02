@@ -18,6 +18,7 @@ import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
 import { MedCertClientControls } from "@/components/marketing/med-cert-client-controls"
+import { MedCertReasonLinks } from "@/components/marketing/med-cert-reason-links"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
 import { RegulatoryPartners } from "@/components/marketing/regulatory-partners"
 import { CommercialIntentLinksSection } from "@/components/marketing/sections/commercial-intent-links-section"
@@ -445,6 +446,8 @@ export function MedCertLanding() {
           </div>
 
           <RegulatoryPartners />
+
+          <MedCertReasonLinks />
         </main>
 
         <MarketingFooter />
