@@ -43,7 +43,7 @@ const SHARED_SYMPTOM_FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: "How long does the doctor's review take?",
-    a: "Requests can be submitted 24/7. Prescriptions and consultations are reviewed during review hours (8am–10pm AEST, 7 days), and medical certificate review follows when a doctor is available. You'll receive an email notification once your request has been reviewed.",
+    a: "The service operates 24/7: requests can be submitted and reviewed at any time. You'll receive an email notification once your request has been reviewed.",
   },
   {
     q: "What happens if the doctor thinks I need in-person care?",

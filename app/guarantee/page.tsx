@@ -58,7 +58,7 @@ const guaranteeFaqs = [
   {
     question: "How long until I know the doctor's decision?",
     answer:
-      "Requests can be submitted 24/7. Prescriptions and consultations are reviewed during review hours (8am to 10pm AEST, 7 days), and medical certificate review follows when a doctor is available. You will get email updates. We do not guarantee a specific review time, only the refund outcome if the doctor declines.",
+      "The service operates 24/7: requests can be submitted and reviewed at any time of day. You will get email updates. We do not guarantee a specific review time, only the refund outcome if the doctor declines.",
   },
   {
     question: "What if the doctor needs more information from me?",

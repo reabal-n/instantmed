@@ -44,7 +44,7 @@ const LANDING_CONFIG: LandingPageConfig = {
     ctaText: `Start UTI assessment - ${PRICING_DISPLAY.WOMENS_HEALTH}`,
     ctaHref: ASSESSMENT_HREF,
     mobileSummary: "UTI symptoms - Doctor-reviewed",
-    responseTime: "Doctor review during 8am-10pm AEST",
+    responseTime: "Doctor review 24/7",
   },
 }
 

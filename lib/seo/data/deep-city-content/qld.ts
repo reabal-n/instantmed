@@ -59,7 +59,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       { q: "Does InstantMed cover the Gold Coast and Sunshine Coast?", a: "Yes. InstantMed covers all of South-East Queensland, including Brisbane, Gold Coast, Sunshine Coast, Ipswich, Logan, Redlands, and Moreton Bay. It's an online service - your location doesn't matter as long as you have internet access." },
       { q: "Are telehealth certificates suitable for Queensland government employer documentation?", a: "Yes. Queensland government departments, local councils, and statutory bodies all set their own policies for medical certificates from AHPRA-registered doctors, including those issued via telehealth. The method of consultation doesn't affect the certificate's workplace evidence status." },
       { q: "Can I get a medical certificate for heat-related illness in Brisbane?", a: "Yes. Heat exhaustion, heat-related fatigue, and dehydration are valid reasons for a medical certificate. Our doctors assess whether your symptoms are appropriate for telehealth management. If you're experiencing severe symptoms (confusion, loss of consciousness), call 000 - that's an emergency." },
-      { q: "Is InstantMed available during Queensland school holidays?", a: "Yes. We operate 8am–10pm AEST, 7 days a week, including all public holidays and school holiday periods. Demand for GP appointments typically increases during school holidays - telehealth avoids the queue." },
+      { q: "Is InstantMed available during Queensland school holidays?", a: "Yes. The service operates 24/7, including all public holidays and school holiday periods. Demand for GP appointments typically increases during school holidays - telehealth avoids the queue." },
       { q: "Can FIFO workers use InstantMed?", a: "Yes. FIFO workers are some of our most common users. Whether you're on site in the Bowen Basin or on R&R in Brisbane, our doctors can provide medical certificates and prescriptions. Certificates are issued by AHPRA-registered doctors and employer policies may vary." },
     ],
   },
@@ -159,7 +159,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Does InstantMed serve the Sunshine Coast hinterland?", a: "Yes. We serve all Sunshine Coast areas including Maleny, Montville, Nambour, Eumundi, and the Glass House Mountains." },
       { q: "Can USC students use InstantMed?", a: "Yes. The University of the Sunshine Coast sets its own policy for medical certificates from AHPRA-registered doctors for academic consideration and deferrals." },
-      { q: "Is InstantMed available during school holidays?", a: `Yes - we're available 8am–10pm AEST, 7 days a week, including school holidays when local clinics are at their busiest. Certificates from ${PRICING_DISPLAY.MED_CERT}.` },
+      { q: "Is InstantMed available during school holidays?", a: `Yes - the service operates 24/7, including school holidays when local clinics are at their busiest. Certificates from ${PRICING_DISPLAY.MED_CERT}.` },
     ],
   },
   townsville: {
@@ -246,7 +246,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Can tourists visiting Cairns use InstantMed?", a: "Yes. Any Australian resident (18+) can use InstantMed. International tourists are not currently eligible as our doctors prescribe under Australian regulations." },
       { q: "Does InstantMed serve Port Douglas?", a: "Yes. We serve all of Far North Queensland - Port Douglas, Palm Cove, the Atherton Tablelands, and Cairns Northern Beaches." },
-      { q: "Can hospitality workers get same-day certificates?", a: `Yes. Doctor review follows when available. We're available 8am–10pm AEST, 7 days, which suits hospitality schedules. From ${PRICING_DISPLAY.MED_CERT}.` },
+      { q: "Can hospitality workers get same-day certificates?", a: `Yes. Doctor review follows when available - the service operates 24/7, which suits hospitality schedules. From ${PRICING_DISPLAY.MED_CERT}.` },
     ],
   },
   toowoomba: {

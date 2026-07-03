@@ -49,7 +49,7 @@ export const NT_CITIES: Record<string, DeepCityContent> = {
       { q: "Does InstantMed work during the wet season?", a: "Yes. As long as you have internet access, InstantMed works regardless of weather. It's especially useful when flooding or storms make travel to a clinic difficult." },
       { q: "Can defence personnel use InstantMed?", a: "Yes. AHPRA-registered doctor certificates can support sick leave documentation, but defence personnel should check their unit's specific medical chain of command requirements." },
       { q: "Is InstantMed available in Palmerston?", a: "Yes. We serve all of Greater Darwin including Palmerston, Howard Springs, Humpty Doo, and the rural area." },
-      { q: "Does InstantMed operate on NT time?", a: `Yes. Our operating hours are 8am–10pm AEST, which is 7:30am–9:30pm ACST. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
+      { q: "Does InstantMed operate on NT time?", a: `Yes. The service operates 24/7, so the half-hour difference between ACST and AEST never matters. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
     ],
   },
   "alice-springs": {

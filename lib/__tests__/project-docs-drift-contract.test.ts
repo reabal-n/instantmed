@@ -67,7 +67,9 @@ const expectedInstantMedSkills = [
 describe("project docs drift contract", () => {
   it("keeps root assistant docs aligned on hours, gated services, and staff dashboard rules", () => {
     for (const source of [agents, claude]) {
-      expect(source).toContain("Requests submit 24/7 for every pathway")
+      // 24/7 doctrine (operator, 2026-07-03): the platform operates around the
+      // clock and public copy never states a review-hours window.
+      expect(source).toContain("The service operates 24/7 (operator decision 2026-07-03)")
       expect(source).toContain("Never hard-block checkout by time of day")
       // Women's health launched 2026-06-15 (UTI + new/switch pill); weight loss stays gated.
       expect(source).toContain("Women's health (UTI + new/switch pill, live 2026-06-15)")
