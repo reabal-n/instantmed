@@ -18,6 +18,7 @@ import {
 import { trackPurchase } from "@/lib/analytics/conversion-tracking"
 import { buildPostSignInHref } from "@/lib/navigation/auth-handoff"
 import { useAuth } from "@/lib/supabase/auth-provider"
+import { detectRelayEmail, getRelayEmailMessage } from "@/lib/validation/email-relay"
 
 export function CompleteAccountForm({
   intakeId,
@@ -42,6 +43,7 @@ export function CompleteAccountForm({
   const { isSignedIn, isLoaded } = useAuth()
   const posthog = usePostHog()
   const postSignInHref = buildPostSignInHref({ intake_id: intakeId })
+  const relayEmailNote = email ? getRelayEmailMessage(detectRelayEmail(email)) : null
 
   const [showConfetti, setShowConfetti] = useState(false)
   const purchaseTrackedRef = useRef(false)
@@ -190,6 +192,12 @@ export function CompleteAccountForm({
           <div className="p-3 rounded-lg bg-muted/50 text-center">
             <p className="text-sm text-muted-foreground">Your account email:</p>
             <p className="font-medium">{email}</p>
+            {/* Relay users (Apple Hide My Email) read forwarded copies in the
+                inbox behind the relay — without this line, "we'll email you"
+                reads as a broken promise (2026-07-02 support incident). */}
+            {relayEmailNote && (
+              <p className="text-xs text-muted-foreground mt-1.5">{relayEmailNote}</p>
+            )}
           </div>
         )}
 
