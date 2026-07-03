@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest"
 
 import {
   filterSeededE2EIntakes,
+  isLikelyE2EIntakeMarkers,
   isLikelyTestPatientIdentity,
   SEEDED_E2E_PATIENT_PROFILE_ID,
   shouldIncludeSeededE2EData,
@@ -92,5 +93,30 @@ describe("isLikelyTestPatientIdentity", () => {
   it("returns false for empty input", () => {
     expect(isLikelyTestPatientIdentity({})).toBe(false)
     expect(isLikelyTestPatientIdentity({ email: null, fullName: null })).toBe(false)
+  })
+})
+
+describe("isLikelyE2EIntakeMarkers", () => {
+  // The 2026-07-03 pager hole: AUTHED CI fixtures (fresh random patient,
+  // guest_email NULL) can only be classified from the intake's own columns.
+  it.each([
+    { referenceNumber: "E2E-AUTO-ABC123" }, // medcert.auto-approval.spec.ts
+    { referenceNumber: "E2E-GUEST-XYZ" }, // guest-checkout.spec.ts
+    { referenceNumber: "E2E-RX-IDENTITY" }, // admin.prescribing-identity.spec.ts
+    { referenceNumber: "e2e-lowercase" }, // case-insensitive
+    { paymentId: "pi_e2e_auto_m123abc" }, // medcert.auto-approval.spec.ts
+    { paymentId: "cs_e2e_fixture" }, // contains _e2e_ marker
+    { referenceNumber: "IM-WORK-20260703-01234567", paymentId: "pi_e2e_x" }, // either marker is enough
+  ])("classifies %j as an E2E fixture intake", (input) => {
+    expect(isLikelyE2EIntakeMarkers(input)).toBe(true)
+  })
+
+  it.each([
+    { referenceNumber: "IM-WORK-20260703-01234567", paymentId: "cs_live_a1Wp9pcJ4WkOioXj" }, // real order shape
+    { referenceNumber: "IM-STUDY-20260426-06236622" }, // canary cert ref stays real
+    { referenceNumber: null, paymentId: null },
+    {},
+  ])("keeps %j as a real intake", (input) => {
+    expect(isLikelyE2EIntakeMarkers(input)).toBe(false)
   })
 })

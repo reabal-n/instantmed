@@ -27,18 +27,31 @@ const PATIENT_ID = "22222222-2222-4222-8222-222222222222"
 
 function createSupabaseStub(
   claimRows: Array<Record<string, unknown>>,
-  options: { profileName?: string; isPriority?: boolean; guestEmail?: string | null } = {},
+  options: {
+    profileName?: string
+    isPriority?: boolean
+    guestEmail?: string | null
+    referenceNumber?: string | null
+    paymentId?: string | null
+  } = {},
 ) {
   const profileName = options.profileName ?? "Alex Patient"
   const isPriority = options.isPriority ?? false
   const guestEmail = options.guestEmail ?? null
+  const referenceNumber = options.referenceNumber ?? "IM-WORK-20260703-01234567"
+  const paymentId = options.paymentId ?? "cs_live_stub"
   const updates: Array<Record<string, unknown>> = []
   const profileMaybeSingle = vi.fn(async () => ({
     data: { full_name: profileName },
     error: null,
   }))
   const intakeExtrasMaybeSingle = vi.fn(async () => ({
-    data: { is_priority: isPriority, guest_email: guestEmail },
+    data: {
+      is_priority: isPriority,
+      guest_email: guestEmail,
+      reference_number: referenceNumber,
+      payment_id: paymentId,
+    },
     error: null,
   }))
   const intakesEq = vi.fn(async () => ({ data: null, error: null }))
@@ -483,11 +496,11 @@ describe("paid request Telegram notification ledger", () => {
     expect(notifyNewIntakeViaTelegram).toHaveBeenCalled()
   })
 
-  it("skips before claiming when the server itself runs in E2E mode", async () => {
+  it("skips before claiming when the server itself runs in E2E mode AND burns the row so the prod cron cannot re-claim it", async () => {
     vi.stubEnv("PLAYWRIGHT", "1")
     try {
       const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
-      const { supabase } = createSupabaseStub([])
+      const { supabase, updates } = createSupabaseStub([])
 
       const result = await sendPaidRequestTelegramNotification({
         supabase: supabase as never,
@@ -501,8 +514,53 @@ describe("paid request Telegram notification ledger", () => {
 
       expect(result).toEqual({ sent: false, skipped: "e2e" })
       expect(supabase.rpc).not.toHaveBeenCalled()
+      // The 2026-07-03 pages: an un-burned row left sent_at NULL and the PROD
+      // telegram cron (no E2E env, guest_email NULL on authed fixtures)
+      // delivered it as a real order. The E2E-mode server is the only process
+      // that KNOWS the order is synthetic, so it must mark the row itself.
+      expect(updates).toHaveLength(1)
+      expect(updates[0]).toMatchObject({
+        paid_request_telegram_message_id: null,
+      })
+      expect(updates[0].paid_request_telegram_sent_at).toBeTruthy()
     } finally {
       vi.unstubAllEnvs()
     }
+  })
+
+  it("classifies AUTHED E2E fixtures (guest_email NULL, E2E- reference) as test orders in the cron path and burns them", async () => {
+    const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
+    // No E2E env: this is the PROD telegram-notifications cron retrying a
+    // CI-created row. Fresh random patient id, no guest email — only the
+    // intake's own fixture markers can classify it.
+    const { supabase, updates } = createSupabaseStub(
+      [
+        {
+          id: INTAKE_ID,
+          patient_id: PATIENT_ID,
+          amount_cents: 1995,
+          category: "medical_certificate",
+          subtype: null,
+          paid_request_telegram_attempts: 0,
+        },
+      ],
+      { guestEmail: null, referenceNumber: "E2E-AUTO-M123ABC", paymentId: "pi_e2e_auto_m123abc" },
+    )
+
+    const result = await sendPaidRequestTelegramNotification({
+      supabase: supabase as never,
+      intakeId: INTAKE_ID,
+      paymentStatus: "paid",
+      amountCents: 1995,
+      serviceSlug: "med-cert-sick",
+      category: "medical_certificate",
+      subtype: null,
+    })
+
+    expect(result).toEqual({ sent: false, skipped: "e2e" })
+    expect(notifyNewIntakeViaTelegram).not.toHaveBeenCalled()
+    expect(updates).toHaveLength(1)
+    expect(updates[0]).toMatchObject({ paid_request_telegram_message_id: null })
+    expect(updates[0].paid_request_telegram_sent_at).toBeTruthy()
   })
 })
