@@ -19,10 +19,33 @@ function daysAgo(days) {
   return date.toISOString().slice(0, 10)
 }
 
+// The commercial surface being tracked is the LIVE med-cert reason pages at
+// /medical-certificate/<slug>. The old /intent/* target list (via the deleted
+// lib/seo/commercial-intent-tracking.ts, removed in the 2026-07-03 hygiene
+// batch) tracked pages that are wholesale-iceboxed (noindex) — dead signal.
 function loadTrackingTargets(siteOrigin) {
   const code = [
-    'import { getCommercialSeoTrackingTargets } from "./lib/seo/commercial-intent-tracking.ts"',
-    `console.log(JSON.stringify(getCommercialSeoTrackingTargets(${JSON.stringify(siteOrigin)})))`,
+    'import { MED_CERT_INTENT_SLUGS, MED_CERT_SLUG_CERT_TYPE, medCertIntentConfigs } from "./lib/marketing/med-cert-intent-config.ts"',
+    // Unsupported use cases (centrelink, return-to-work) 308 to their
+    // /medical-certificate/not-suitable/<slug> boundary pages — deliberately
+    // not commercial targets. Same source of truth as the app's redirects.
+    'import { UNSUPPORTED_MED_CERT_SLUGS } from "./lib/medical-cert/unsupported-use-cases.ts"',
+    `const origin = ${JSON.stringify(siteOrigin)}.replace(/\\/$/, "")`,
+    "const targets = MED_CERT_INTENT_SLUGS",
+    "  .filter((slug) => !UNSUPPORTED_MED_CERT_SLUGS.includes(slug))",
+    "  .map((slug, index) => {",
+    "    const page = medCertIntentConfigs[slug]",
+    "    return {",
+    "      priority: index + 1,",
+    "      slug,",
+    "      url: `${origin}/medical-certificate/${slug}`,",
+    "      cluster: MED_CERT_SLUG_CERT_TYPE[slug],",
+    "      title: page.h1,",
+    "      primaryQuery: page.metadata.keywords?.[0] ?? page.metadata.title,",
+    "      alternateQueries: page.metadata.keywords?.slice(1) ?? [],",
+    "    }",
+    "  })",
+    "console.log(JSON.stringify(targets))",
   ].join("\n")
 
   const output = execFileSync("pnpm", ["exec", "tsx", "--eval", code], {
@@ -76,7 +99,7 @@ async function getIntentRows(searchconsole, startDate, endDate) {
             {
               dimension: "page",
               operator: "contains",
-              expression: `${SITE_ORIGIN}/intent/`,
+              expression: `${SITE_ORIGIN}/medical-certificate/`,
             },
           ],
         },

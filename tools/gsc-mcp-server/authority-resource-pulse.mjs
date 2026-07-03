@@ -20,10 +20,22 @@ function daysAgo(days) {
   return date.toISOString().slice(0, 10)
 }
 
+// Inlines the mapper from the deleted lib/seo/authority-resource-tracking.ts
+// (2026-07-03 hygiene batch) against its living source, lib/authority-assets.ts.
 function loadTrackingTargets(siteOrigin) {
   const code = [
-    'import { getAuthorityResourceTrackingTargets } from "./lib/seo/authority-resource-tracking.ts"',
-    `console.log(JSON.stringify(getAuthorityResourceTrackingTargets(${JSON.stringify(siteOrigin)})))`,
+    'import { AUTHORITY_ASSETS } from "./lib/authority-assets.ts"',
+    `const origin = ${JSON.stringify(siteOrigin)}.replace(/\\/$/, "")`,
+    "const targets = AUTHORITY_ASSETS.map((asset, index) => ({",
+    "  priority: index + 1,",
+    "  slug: asset.slug,",
+    "  title: asset.title,",
+    "  category: asset.category,",
+    "  url: `${origin}/resources/${asset.slug}`,",
+    "  naturalAnchor: asset.title,",
+    "  outreachAngle: asset.summary,",
+    "}))",
+    "console.log(JSON.stringify(targets))",
   ].join("\n")
 
   const output = execFileSync("pnpm", ["exec", "tsx", "--eval", code], {
