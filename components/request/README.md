@@ -42,7 +42,9 @@ client route is bypassed.
 ```
 components/request/
 ├── request-flow.tsx       # Main orchestration component
-├── step-router.tsx        # Dynamic step component loader
+├── step-router.tsx        # Renders the current step from the dynamic registry
+├── step-components.tsx    # next/dynamic registry (SSR on: first step renders in initial HTML)
+├── step-loaders.ts        # import() prefetch cache (module-scope + idle next-step preloads)
 ├── step-error-boundary.tsx # Error handling for steps
 ├── store.ts              # Zustand state management
 ├── index.ts              # Barrel exports
@@ -125,7 +127,21 @@ const stepLoaders = {
 }
 ```
 
-3. Add step definition to `lib/request/step-registry.ts`:
+3. Register its dynamic component in `step-components.tsx` (literal `import()`
+   inside `dynamic()` — required for SSR + head chunk preload; pinned by
+   `lib/__tests__/request-performance-contract.test.ts`):
+
+```tsx
+"my-new-step": dynamic(() => import("./steps/my-new-step"), {
+  loading: stepLoadingFallback("my-new-step", true),
+}),
+```
+
+   If the step can ever be the FIRST step of a service it will server-render:
+   keep its default-state render free of window/localStorage access and
+   date-dependent markup.
+
+4. Add step definition to `lib/request/step-registry.ts`:
 
 ```ts
 {
