@@ -10,6 +10,7 @@ import { usePostHog } from "@/lib/analytics/posthog-context"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { validateEmail } from "@/lib/request/validation"
 import { cn } from "@/lib/utils"
+import { detectRelayEmail, getRelayEmailMessage } from "@/lib/validation/email-relay"
 import { detectEmailTypo } from "@/lib/validation/email-typo"
 
 import { useRequestStore } from "../store"
@@ -55,6 +56,13 @@ export function EarlyRecoveryEmailCard({
   const validationError = normalizedValue ? validateEmail(normalizedValue) : null
   const error = touched ? validationError : null
   const typo = useMemo(() => detectEmailTypo(normalizedValue), [normalizedValue])
+  // Same expectation-setting note as the details step: relay addresses (Apple
+  // Hide My Email etc.) forward to the inbox behind them, and this saved email
+  // prefills the details step, so this may be the only place the patient sees it.
+  const relayNote = useMemo(() => {
+    if (!isValidEmail(normalizedValue)) return null
+    return getRelayEmailMessage(detectRelayEmail(normalizedValue))
+  }, [normalizedValue])
   const canSave = isValidEmail(normalizedValue)
   const isSaved = savedEmail.length > 0 && savedEmail === normalizedValue && !validationError
 
@@ -109,10 +117,17 @@ export function EarlyRecoveryEmailCard({
           </div>
 
           {isSaved ? (
-            <p className="flex items-center gap-1.5 text-xs font-medium text-primary">
-              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-              Resume email saved.
-            </p>
+            <div className="space-y-1.5">
+              <p className="flex items-center gap-1.5 text-xs font-medium text-primary">
+                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                Resume email saved.
+              </p>
+              {relayNote && (
+                <p className="text-xs text-muted-foreground" aria-live="polite">
+                  {relayNote}
+                </p>
+              )}
+            </div>
           ) : (
             <div className="space-y-1.5">
               <div className="flex gap-2 max-sm:flex-col">
@@ -162,6 +177,11 @@ export function EarlyRecoveryEmailCard({
                     {typo.suggested}
                   </button>
                   ?
+                </p>
+              )}
+              {relayNote && !typo.hasTypo && !error && (
+                <p className="text-xs text-muted-foreground" aria-live="polite">
+                  {relayNote}
                 </p>
               )}
             </div>

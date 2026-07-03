@@ -30,6 +30,7 @@ import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { validateDOB, validateEmail, validateName, validatePhone } from "@/lib/request/validation"
 import { cn } from "@/lib/utils"
 import { suggestStateFromPostcode, validatePostcodeState } from "@/lib/validation/australian-address"
+import { detectRelayEmail, getRelayEmailMessage } from "@/lib/validation/email-relay"
 import { detectEmailTypo } from "@/lib/validation/email-typo"
 import { formatIHI, validateIHI } from "@/lib/validation/ihi"
 import { formatMedicareNumber, validateMedicareNumber } from "@/lib/validation/medicare"
@@ -121,6 +122,15 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null)
+  // Derived (not blur-gated) so it also fires when iOS autofills a Hide My
+  // Email address or the early-recovery card prefills one — those paths never
+  // blur the field. Relay addresses DO deliver, but into the inbox behind the
+  // relay; setting that expectation here is what prevents the "paid but never
+  // got my certificate" ticket (incident 2026-07-02).
+  const relayEmailNote = useMemo(() => {
+    if (!email || validateEmail(email) !== null) return null
+    return getRelayEmailMessage(detectRelayEmail(email))
+  }, [email])
   // Field labels to surface in the top-of-step validation summary when a
   // Continue attempt fails (otherwise the only feedback is a silent scroll-to-
   // field, which reads as "nothing happened" — esp. on mobile where the desktop
@@ -690,6 +700,12 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
               {emailSuggestion}
             </button>
             ?
+          </p>
+        )}
+        {relayEmailNote && !emailSuggestion && !errors.email && (
+          <p className="text-xs text-muted-foreground mt-1.5 flex items-start gap-1.5" aria-live="polite">
+            <span className="inline-block w-1 h-1 rounded-full bg-primary mt-1.5 shrink-0" />
+            {relayEmailNote}
           </p>
         )}
       </FormField>
