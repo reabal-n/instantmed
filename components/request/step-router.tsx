@@ -1,103 +1,32 @@
 "use client"
 
 /**
- * Step Router - Dynamically renders the current step component
+ * Step Router - renders the current step component
  *
- * This component handles:
- * - Lazy loading step components
- * - Error boundaries for step failures
+ * Step components come from the next/dynamic registry in step-components.tsx
+ * (SSR on), so the FIRST step of a service server-renders into the initial
+ * HTML and its chunk preloads from <head> — the old manual load-state
+ * waterfall here kept the form client-only and cost a full extra network
+ * round-trip after hydration on the paid mobile entry.
+ *
+ * This component still owns:
+ * - Persistent intro composition for steps that keep their intro mounted
+ * - Idle prefetch of the NEXT step's chunk
+ * - Error boundaries for step failures (chunk load failures included)
  *
  * Note: Transitions are owned by request-flow.tsx's AnimatePresence.
  * Do NOT add a second AnimatePresence here - it causes ghost renders.
  */
 
-import type { ComponentType } from "react"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 
 import type { UnifiedStepId } from "@/lib/request/step-registry"
 
+import { stepComponents,StepIntroShell } from "./step-components"
 import { StepErrorBoundary } from "./step-error-boundary"
-import {
-  loadStepComponent,
-  preloadStepComponent,
-  type StepComponentProps,
-} from "./step-loaders"
-
-const loadingCopy: Partial<Record<string, { title: string; description: string }>> = {
-  "certificate-step": {
-    title: "What do you need covered?",
-    description: "Pick the certificate type, dates, and duration.",
-  },
-}
+import { preloadStepComponent, type StepComponentProps } from "./step-loaders"
 
 const persistentIntroSteps = new Set(["certificate-step"])
-
-/**
- * StepLoading — perceived-speed first.
- *
- * Most step chunks resolve in well under 150ms, so flashing a pulsing grey
- * skeleton in the meantime makes a fast form feel slow. The product is
- * called InstantMed — the loading state IS the brand promise.
- *
- * Strategy:
- *   1. Render the step intro immediately. On mobile Lighthouse, hiding this
- *      copy behind opacity made the real step intro a late LCP candidate.
- *   2. Delay only the lower placeholder controls for 150ms. Fast chunk loads
- *      avoid the skeleton flash, while the above-fold copy still paints early.
- */
-function StepIntroShell({ componentPath }: { componentPath: string }) {
-  const copy = loadingCopy[componentPath]
-
-  if (!copy) {
-    return (
-      <div className="space-y-2">
-        <div className="h-5 w-2/3 rounded-full bg-muted/30" />
-        <div className="h-4 w-full rounded-full bg-muted/20" />
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-1.5" data-intake-step-intro="true">
-      <h2 className="text-lg font-semibold tracking-tight text-foreground">{copy.title}</h2>
-      <p className="text-sm leading-relaxed text-muted-foreground">{copy.description}</p>
-    </div>
-  )
-}
-
-function StepLoading({
-  componentPath,
-  showIntro = true,
-}: {
-  componentPath: string
-  showIntro?: boolean
-}) {
-  const [showControls, setShowControls] = useState(false)
-
-  useEffect(() => {
-    const handle = setTimeout(() => setShowControls(true), 150)
-    return () => clearTimeout(handle)
-  }, [])
-
-  return (
-    <div
-      className="space-y-4"
-      aria-live="polite"
-      aria-busy="true"
-    >
-      {showIntro && <StepIntroShell componentPath={componentPath} />}
-      {showControls && (
-        <div className="rounded-2xl border border-border/40 bg-white p-5 shadow-sm shadow-primary/[0.03] dark:bg-card">
-          <div className="space-y-3">
-            <div className="h-11 rounded-xl border border-border/30 bg-muted/20" />
-            <div className="h-11 rounded-xl border border-border/30 bg-muted/15" />
-            <div className="h-11 rounded-xl border border-border/30 bg-muted/10" />
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
 
 export interface StepRouterProps {
   serviceType: StepComponentProps["serviceType"]
@@ -132,92 +61,48 @@ export function StepRouter({
   onComplete,
   initialDuration,
 }: StepRouterProps) {
-  const [loadedStep, setLoadedStep] = useState<{
-    componentPath: string
-    Component: ComponentType<StepComponentProps>
-  } | null>(null)
-  const [loadFailed, setLoadFailed] = useState(false)
   const hasPersistentIntro = persistentIntroSteps.has(componentPath)
 
-  useEffect(() => {
-    let cancelled = false
-    setLoadFailed(false)
-    setLoadedStep((current) => current?.componentPath === componentPath ? current : null)
-
-    void preloadStepComponent(componentPath)
-    loadStepComponent(componentPath)
-      .then((Component) => {
-        if (!Component) {
-          if (!cancelled) {
-            setLoadedStep(null)
-            setLoadFailed(true)
-          }
-          return
-        }
-        if (!cancelled) {
-          setLoadedStep({ componentPath, Component })
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setLoadedStep(null)
-          setLoadFailed(true)
-        }
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [componentPath])
-
-  // Once the current step is interactive, prefetch the NEXT step's chunk at
+  // Once the current step's chunk is in, prefetch the NEXT step's chunk at
   // idle so tapping Continue swaps steps instantly instead of gating the flow
   // behind a fresh network round-trip + the 150ms skeleton, up to three times
-  // per med-cert funnel on mobile. The loader cache makes double-loads free.
+  // per med-cert funnel on mobile. The loader cache makes double-loads free
+  // (webpack shares the underlying chunk with the dynamic registry).
   useEffect(() => {
     if (!nextComponentPath) return
-    if (!loadedStep || loadedStep.componentPath !== componentPath) return
 
     let cancelled = false
-    const kick = () => {
-      if (!cancelled) void preloadStepComponent(nextComponentPath)
-    }
+    let cancelScheduled: (() => void) | undefined
 
-    if (typeof window.requestIdleCallback === "function") {
-      const handle = window.requestIdleCallback(kick)
-      return () => {
-        cancelled = true
-        window.cancelIdleCallback?.(handle)
-      }
-    }
+    void preloadStepComponent(componentPath)
+      .catch(() => null)
+      .then(() => {
+        if (cancelled) return
+        const kick = () => {
+          if (!cancelled) void preloadStepComponent(nextComponentPath)
+        }
 
-    const timeout = window.setTimeout(kick, 200)
+        if (typeof window.requestIdleCallback === "function") {
+          const handle = window.requestIdleCallback(kick)
+          cancelScheduled = () => window.cancelIdleCallback?.(handle)
+          return
+        }
+
+        const timeout = window.setTimeout(kick, 200)
+        cancelScheduled = () => window.clearTimeout(timeout)
+      })
+
     return () => {
       cancelled = true
-      window.clearTimeout(timeout)
+      cancelScheduled?.()
     }
-  }, [loadedStep, componentPath, nextComponentPath])
+  }, [componentPath, nextComponentPath])
 
-  if (loadFailed) {
+  const StepComponent = stepComponents[componentPath]
+
+  if (!StepComponent) {
     return <StepNotFound componentPath={componentPath} />
   }
-
-  if (!loadedStep || loadedStep.componentPath !== componentPath) {
-    return (
-      <StepErrorBoundary stepId={currentStepId}>
-        {hasPersistentIntro ? (
-          <div className="space-y-4">
-            <StepIntroShell componentPath={componentPath} />
-            <StepLoading componentPath={componentPath} showIntro={false} />
-          </div>
-        ) : (
-          <StepLoading componentPath={componentPath} />
-        )}
-      </StepErrorBoundary>
-    )
-  }
-
-  const { Component: StepComponent } = loadedStep
 
   return (
     <StepErrorBoundary stepId={currentStepId}>
