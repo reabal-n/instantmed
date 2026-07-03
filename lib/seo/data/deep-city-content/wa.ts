@@ -29,7 +29,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Western Australian workers have the same Fair Work Act entitlements as employees in other states. However, WA also retains its own state industrial relations system for some employees (those covered by the WA Industrial Relations Act). Under both systems, medical certificates from AHPRA-registered doctors are evidence for leave purposes.",
           "WA's mining and resources sector has its own expectations around medical documentation. Many mining companies require evidence for any absence, even single days. InstantMed certificates are for routine short sick leave and include standard document details employers can review; site medicals, return-to-work clearances, and fitness-for-duty decisions need the employer's own pathway.",
-          "Perth's time zone (AWST, UTC+8) means WA is 2–3 hours behind the eastern states. InstantMed operates 8am–10pm AEST, which translates to approximately 6am–8pm AWST (or 5am–7pm during daylight saving in the east). For most Perth residents, this covers the entire working day and evening. If you submit a request during WA business hours, you'll typically have your certificate well before the next working day.",
+          "Perth's time zone (AWST, UTC+8) means WA is 2–3 hours behind the eastern states. InstantMed operates 24/7, so the time difference never limits access - submit at any hour of the Perth day or night. If you submit a request during WA business hours, you'll typically have your certificate well before the next working day.",
         ],
       },
       {
@@ -56,7 +56,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Does InstantMed work on WA time?", a: "InstantMed operates 8am–10pm AEST, which is approximately 6am–8pm AWST (or 5am–7pm during eastern daylight saving). This covers standard working hours and evening for Perth residents. Requests submitted in the evening may be reviewed the following morning." },
+      { q: "Does InstantMed work on WA time?", a: "Yes. InstantMed operates 24/7, so WA's time difference from the eastern states never matters - submit at any hour. Requests submitted late at night may be reviewed the following morning." },
       { q: "Can FIFO workers use InstantMed from site?", a: "Yes, as long as you have internet access. Many mine sites and remote camps have wifi or mobile coverage. If you need a medical certificate while on site, you can submit your request and receive the certificate via email. Employer policies may vary, including at mining companies." },
       { q: "Are Perth GPs really that expensive?", a: "Perth has some of the lowest bulk-billing rates in Australia. Many GPs charge gap fees of $50–$100 per standard consultation. For a straightforward medical certificate, InstantMed offers a more affordable flat-fee alternative without compromising on clinical quality." },
       { q: "Can I use InstantMed in regional WA?", a: "Yes. InstantMed works anywhere in Western Australia with an internet connection - Perth, Geraldton, Kalgoorlie, Karratha, Broome, or anywhere in between. The service and pricing are the same regardless of your location." },
@@ -92,7 +92,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Western Australia has a dual industrial relations system. Most private-sector workers in Bunbury and the South-West are covered by the federal Fair Work Act, but some WA-specific employers fall under the state Industrial Relations Act. Both systems accept medical certificates from AHPRA-registered practitioners, and neither specifies that certificates must come from face-to-face consultations.",
           "Mining and resources employers often have stricter internal documentation requirements. A telehealth certificate from an AHPRA-registered doctor can support routine sick-leave review and includes standard details: doctor's name, AHPRA registration number, consultation date, and recommended period of absence. Fitness-for-duty, site medical, and compensation requests need a different pathway.",
-          "Perth operates on Australian Western Standard Time (AWST, UTC+8), two hours behind the eastern states. InstantMed's operating window of 8am–10pm AEST translates to roughly 6am–8pm AWST. For Bunbury residents, that covers the entire working day and well into the evening - plenty of time to submit a request and receive your certificate before the next shift.",
+          "Perth operates on Australian Western Standard Time (AWST, UTC+8), two hours behind the eastern states. InstantMed operates 24/7, so the time difference makes no practical difference for Bunbury residents - there is plenty of time to submit a request and receive your certificate before the next shift.",
         ],
       },
       {
@@ -108,7 +108,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "GP economics in WA's South-West have moved in line with the broader trend. Bulk-billing has declined to one of the lowest rates in the country, gap fees of $40–$80 are common, and waiting times for non-urgent appointments stretch to a week. For households across Bunbury, the Capes, and the broader South-West, the combined cost of a routine GP visit - fuel into Bunbury from outlying towns, the gap fee, lost work time, the wait - frequently exceeds what telehealth charges flat.",
           "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons at the end of the consultation. For families budgeting through the cost-of-living pressures that have hit regional WA particularly hard, that predictability matters as much as the time saved.",
-          "Doctor review follows when available during review hours (8am–10pm AEST, which is 6am–8pm AWST). The eScript or PDF arrives via email or SMS for collection at the nearest pharmacy or to forward directly to your employer. The process stays online from intake to delivery. For Bunbury and South-West residents, that is significantly faster than securing a same-day clinic appointment in the local catchment.",
+          "Doctor review follows when available - the service operates 24/7. The eScript or PDF arrives via email or SMS for collection at the nearest pharmacy or to forward directly to your employer. The process stays online from intake to delivery. For Bunbury and South-West residents, that is significantly faster than securing a same-day clinic appointment in the local catchment.",
         ],
       },
     ],
@@ -129,7 +129,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed cover Busselton, Margaret River, and the Capes?", a: "Yes. Busselton, Dunsborough, Yallingup, Margaret River, Augusta, and all the smaller Capes-region communities. Any location in the South-West with internet access is covered." },
-      { q: "Does InstantMed operate on WA time?", a: "Our operating window is 8am–10pm AEST, which is 6am–8pm AWST - so most of the Western Australian working day is covered. Submissions made early in the WA morning are typically reviewed almost immediately." },
+      { q: "Does InstantMed operate on WA time?", a: "Yes - the service operates 24/7, so the WA time difference never matters. Submissions made early in the WA morning are typically reviewed almost immediately." },
       { q: "Can Alcoa Wagerup and South32 workers use InstantMed?", a: "Yes. Our certificates include AHPRA registration details for workplace documentation and include the AHPRA registration details needed for workplace absence documentation." },
       { q: "Is InstantMed cheaper than seeing a GP in Bunbury?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Bunbury's bulk-billing rate around 62% and typical gap fees of $40–$80, InstantMed is often more affordable for straightforward certificates and scripts.` },
     ],
@@ -162,7 +162,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
         title: "Medical Certificates for WA Workers",
         paragraphs: [
           "Western Australian workers are covered by either the federal Fair Work Act or the WA Industrial Relations Act, depending on their employer. Under both systems, medical certificates from AHPRA-registered doctors can be used as evidence evidence for leave purposes. The consultation method - telehealth or face-to-face - is not a factor.",
-          "WA's time zone (AWST, UTC+8) means Fremantle is 2-3 hours behind the eastern states. InstantMed operates 8am-10pm AEST, which translates to approximately 6am-8pm AWST. For Fremantle residents, this covers the entire working day and evening. Requests submitted in the late WA evening may be reviewed the following morning.",
+          "WA's time zone (AWST, UTC+8) means Fremantle is 2-3 hours behind the eastern states. InstantMed operates 24/7, so the time difference never limits access. Requests submitted late in the WA evening may be reviewed the following morning.",
           "Notre Dame University Fremantle and Murdoch University both assess telehealth-issued medical certificates under their own policies from AHPRA-registered doctors for academic support, coursework documentation, and missed assessment documentation. The same applies to South Metropolitan TAFE and all other educational institutions in the Fremantle area.",
         ],
       },

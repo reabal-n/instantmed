@@ -41,7 +41,7 @@ const LANDING_CONFIG: LandingPageConfig = {
     ctaText: `Request pill assessment - ${PRICING_DISPLAY.WOMENS_HEALTH}`,
     ctaHref: ASSESSMENT_HREF,
     mobileSummary: "Start or switch pill - Doctor-reviewed",
-    responseTime: "Doctor review during 8am-10pm AEST",
+    responseTime: "Doctor review 24/7",
   },
 }
 

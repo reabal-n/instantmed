@@ -57,7 +57,7 @@ const LANDING_CONFIG: LandingPageConfig = {
     ctaText: `Start ED assessment - ${PRICING_DISPLAY.MENS_HEALTH}`,
     ctaHref: ASSESSMENT_HREF,
     mobileSummary: "ED concerns - Doctor-reviewed",
-    responseTime: "Doctor review during 8am-10pm AEST",
+    responseTime: "Doctor review 24/7",
   },
 }
 

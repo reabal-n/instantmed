@@ -216,9 +216,8 @@ export default function TermsPage() {
 
                 <LegalSection number="11" title="Service Availability">
                   <p>
-                    The online request flow is available 24/7. Doctor review for prescriptions and consultations
-                    usually occurs during review hours (8am–10pm AEST, 7 days a week), and review times may
-                    vary depending on demand and case complexity.
+                    The service operates 24 hours a day, 7 days a week. Requests may be submitted at any
+                    time, and review times may vary depending on demand and case complexity.
                   </p>
                   <p className="mt-3">
                     We do not guarantee specific response times. Our services are available to users located

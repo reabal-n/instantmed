@@ -50,7 +50,7 @@ const LANDING_CONFIG: LandingPageConfig = {
     ctaText: "Choose a pathway",
     ctaHref: CHOOSE_PATHWAY_HREF,
     mobileSummary: "Men's health - ED and hair loss review",
-    responseTime: "Review timing 8am-10pm AEST",
+    responseTime: "Doctor review 24/7",
   },
 }
 
@@ -65,7 +65,7 @@ const HERO_FACTS = [
     icon: Clock3,
     label: "Timing",
     value: "Form first",
-    body: "Requests submit 24/7. Review timing is 8am-10pm AEST, 7 days, and depends on clinical detail.",
+    body: "Requests submit 24/7 and are reviewed around the clock. Review timing depends on clinical detail.",
   },
   {
     icon: ShieldCheck,
@@ -391,7 +391,7 @@ export function MensHealthLanding({ visuals }: { visuals: RenderableArticleVisua
                   <div className="mt-5 grid gap-3">
                     {[
                       "Cost: ED and hair-loss review currently costs " + PRICING_DISPLAY.MENS_HEALTH + ".",
-                      "Speed: submit any time; doctor review timing is 8am-10pm AEST.",
+                      "Speed: submit any time. The service operates 24/7.",
                       "Boundary: emergency symptoms, complex health checks, and some red flags need in-person care.",
                       "Outcome: an AHPRA-registered doctor reviews and decides; treatment is not promised.",
                     ].map((item) => (

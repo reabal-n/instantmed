@@ -71,7 +71,7 @@ export const metadata: Metadata = {
 
 const STATS = [
   { value: "AHPRA", label: "Registered doctors", context: "Every review by an Australian-registered doctor" },
-  { value: "8am-10pm", label: "Review window", context: "Requests can be submitted 24/7" },
+  { value: "24/7", label: "Always open", context: "Submit a request any time, day or night" },
   { value: "24/7", label: "Request submission", context: "Rx + consult review follows when available" },
   { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: GUARANTEE },
 ]
@@ -132,7 +132,7 @@ const FAQS = [
   {
     question: "How fast will I actually hear back from the doctor?",
     answer:
-      "Requests can be submitted 24/7. Prescription and consultation review usually happens during review hours (8am–10pm AEST, seven days a week), and timing depends on clinical complexity and queue volume. We do not publish a fixed customer-facing SLA guarantee.",
+      "The service operates 24/7: requests can be submitted and reviewed at any time. Timing depends on clinical complexity and queue volume, and we do not publish a fixed customer-facing SLA guarantee.",
   },
   {
     question: "Can I use an online doctor for my children?",
@@ -178,7 +178,7 @@ const medicalBusinessSchema = {
       opens: "00:00",
       closes: "23:59",
       description:
-        "Requests accepted 24/7. Prescription and consultation reviews usually occur 08:00–22:00 AEST.",
+        "Requests accepted and reviewed 24/7. Review times vary with demand and clinical detail.",
     },
   ],
   medicalSpecialty: "General Practice",

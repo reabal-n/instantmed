@@ -26,7 +26,7 @@ const howWeDecideFaqs = [
   },
   {
     question: "How long does the review take?",
-    answer: "You can submit a request 24/7. Prescription and consultation requests are reviewed during review hours (8am-10pm AEST, 7 days). Timing depends on clinical complexity, follow-up questions, and queue volume.",
+    answer: "You can submit a request at any time; the service operates 24/7. Review timing depends on clinical complexity, follow-up questions, and queue volume.",
   },
   {
     question: "What if the doctor needs more information?",

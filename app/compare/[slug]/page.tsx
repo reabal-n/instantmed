@@ -437,7 +437,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       { feature: "Out-of-pocket cost", instantmed: PRICING_DISPLAY.FROM_MED_CERT, competitor: "Free (with Medicare)", winner: "competitor" },
       { feature: "Wait time for appointment", instantmed: "Doctor review", competitor: "Often days to weeks", winner: "instantmed" },
       { feature: "Available 7 days", instantmed: true, competitor: "Varies - limited", winner: "instantmed" },
-      { feature: "Extended hours", instantmed: "7am-10pm AEST", competitor: "Often business hours only", winner: "instantmed" },
+      { feature: "Hours", instantmed: "24/7", competitor: "Often business hours only", winner: "instantmed" },
       { feature: "Medical certificates", instantmed: true, competitor: "Yes", winner: "tie" },
       { feature: "Prescription services", instantmed: true, competitor: "Yes", winner: "tie" },
       { feature: "Doctor messaging", instantmed: true, competitor: "Rare", winner: "instantmed" },
