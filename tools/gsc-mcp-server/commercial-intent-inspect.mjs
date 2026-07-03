@@ -17,6 +17,9 @@ function parseArgs(argv) {
   return args
 }
 
+// Targets = the LIVE med-cert reason pages at /medical-certificate/<slug>.
+// The old /intent/* list (via the deleted lib/seo/commercial-intent-tracking.ts,
+// removed in the 2026-07-03 hygiene batch) tracked wholesale-iceboxed pages.
 function loadTargets() {
   const result = spawnSync(
     "pnpm",
@@ -25,9 +28,26 @@ function loadTargets() {
       "tsx",
       "--eval",
       [
-        'import { getCommercialSeoTrackingTargets } from "./lib/seo/commercial-intent-tracking.ts"',
-        "console.log(JSON.stringify(getCommercialSeoTrackingTargets()))",
-      ].join(";"),
+        'import { MED_CERT_INTENT_SLUGS, MED_CERT_SLUG_CERT_TYPE, medCertIntentConfigs } from "./lib/marketing/med-cert-intent-config.ts"',
+        // Unsupported use cases (centrelink, return-to-work) 308 to their
+        // not-suitable boundary pages — deliberately not commercial targets.
+        'import { UNSUPPORTED_MED_CERT_SLUGS } from "./lib/medical-cert/unsupported-use-cases.ts"',
+        `const origin = ${JSON.stringify(SITE_ORIGIN)}`,
+        "const targets = MED_CERT_INTENT_SLUGS",
+        "  .filter((slug) => !UNSUPPORTED_MED_CERT_SLUGS.includes(slug))",
+        "  .map((slug, index) => {",
+        "    const page = medCertIntentConfigs[slug]",
+        "    return {",
+        "      priority: index + 1,",
+        "      slug,",
+        "      url: `${origin}/medical-certificate/${slug}`,",
+        "      cluster: MED_CERT_SLUG_CERT_TYPE[slug],",
+        "      title: page.h1,",
+        "      primaryQuery: page.metadata.keywords?.[0] ?? page.metadata.title,",
+        "    }",
+        "  })",
+        "console.log(JSON.stringify(targets))",
+      ].join("\n"),
     ],
     {
       cwd: process.cwd(),
