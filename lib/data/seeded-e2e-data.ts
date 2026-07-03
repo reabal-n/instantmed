@@ -100,3 +100,36 @@ export function isLikelyTestPatientIdentity(input: {
 
   return false
 }
+
+/**
+ * E2E fixture markers on the INTAKE'S OWN columns — the classification signal
+ * for machine-created intakes whose patient is a FRESH random profile (not
+ * the seeded one) and whose `guest_email` is NULL (authed fixture, so the
+ * email-based classifier above can't see it either). This was the 2026-07-03
+ * pager hole: CI's medcert-readiness spec seeds paid intakes directly, the
+ * prod Telegram cron claimed them, and neither the seeded-id check nor the
+ * guest_email check matched — the operator got paged for synthetic orders.
+ *
+ * Every E2E fixture writes `reference_number` with an `E2E-` prefix
+ * (E2E-AUTO-, E2E-GUEST-, E2E-RX-IDENTITY, seedTestIntake's E2E-<ts>) and/or
+ * a `pi_e2e_...` payment id. Real intakes are `IM-` referenced with Stripe
+ * `cs_...` payment ids (verified across prod 2026-07-03: 166/166 IM-), so
+ * these markers cannot match a real order. Deliberately no PHI: both fields
+ * ride along on the intake read the caller already does.
+ */
+export function isLikelyE2EIntakeMarkers(input: {
+  referenceNumber?: string | null
+  paymentId?: string | null
+}): boolean {
+  const reference = input.referenceNumber?.trim().toUpperCase()
+  if (reference && reference.startsWith("E2E-")) {
+    return true
+  }
+
+  const paymentId = input.paymentId?.trim().toLowerCase()
+  if (paymentId && (paymentId.startsWith("pi_e2e") || paymentId.includes("_e2e_"))) {
+    return true
+  }
+
+  return false
+}

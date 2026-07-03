@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { getIntakeAnswers } from "@/lib/data/intake-answers"
 import {
+  isLikelyE2EIntakeMarkers,
   isLikelyTestPatientIdentity,
   SEEDED_E2E_PATIENT_PROFILE_ID,
 } from "@/lib/data/seeded-e2e-data"
@@ -221,6 +222,21 @@ export async function sendPaidRequestTelegramNotification(
     process.env.E2E === "true" ||
     process.env.E2E_MODE === "true"
   ) {
+    // Burn the row (sent_at, null message id) so the PROD telegram cron never
+    // re-claims it. 2026-07-03 pages: CI's medcert-readiness fixtures are
+    // AUTHED patients with fresh random profile ids — guest_email is NULL, so
+    // the cron's guest_email-based test-order classifier below cannot catch
+    // them. The only process that KNOWS the order is synthetic is this
+    // E2E-mode server, so it must mark the row itself. Fail-soft: an error
+    // here just leaves the pre-fix behavior (one possible cron page).
+    try {
+      await markSent(input.supabase, input.intakeId, null)
+    } catch (markError) {
+      log.warn("Failed to burn E2E-mode paid request; prod cron may page once", {
+        intakeId: input.intakeId,
+        error: getErrorMessage(markError),
+      })
+    }
     return { sent: false, skipped: "e2e" }
   }
 
@@ -260,19 +276,29 @@ export async function sendPaidRequestTelegramNotification(
   })
 
   // Fail-soft enrichment lookups: never abort the notification if these fail.
-  // guest_email rides along on the same intake read (no profiles/PHI fetch)
+  // guest_email + the intake's own E2E fixture markers (reference_number,
+  // payment_id) ride along on the same intake read (no profiles/PHI fetch)
   // purely to classify machine-generated test orders below.
   let isPriority = false
   let guestEmail: string | null = null
+  let referenceNumber: string | null = null
+  let paymentId: string | null = null
   try {
     const { data: intakeExtras } = await input.supabase
       .from("intakes")
-      .select("is_priority, guest_email")
+      .select("is_priority, guest_email, reference_number, payment_id")
       .eq("id", input.intakeId)
       .maybeSingle()
-    const extras = intakeExtras as { is_priority?: boolean; guest_email?: string | null } | null
+    const extras = intakeExtras as {
+      is_priority?: boolean
+      guest_email?: string | null
+      reference_number?: string | null
+      payment_id?: string | null
+    } | null
     isPriority = Boolean(extras?.is_priority)
     guestEmail = extras?.guest_email ?? null
+    referenceNumber = extras?.reference_number ?? null
+    paymentId = extras?.payment_id ?? null
   } catch (extrasError) {
     log.error("Failed to look up is_priority for Telegram notification", {
       intakeId: input.intakeId,
@@ -298,12 +324,15 @@ export async function sendPaidRequestTelegramNotification(
   // check can't see them, and the CI server often can't send Telegram, so the
   // PROD telegram-notifications cron later retried these rows and paged the
   // operator with fake "New med cert" orders (2026-07-02). Classify them from
-  // the intake's own guest_email (no profiles fetch — this path deliberately
-  // never reads patient PHI) and mark them SENT (null message id) so the cron
-  // stops re-claiming them forever.
+  // the intake's own guest_email PLUS its own E2E fixture markers (E2E-
+  // reference prefix / pi_e2e payment id — the 2026-07-03 pages were AUTHED
+  // fixtures whose guest_email is NULL; no profiles fetch — this path
+  // deliberately never reads patient PHI) and mark them SENT (null message
+  // id) so the cron stops re-claiming them forever.
   const isTestOrder =
     claim.patient_id === SEEDED_E2E_PATIENT_PROFILE_ID ||
-    isLikelyTestPatientIdentity({ email: guestEmail })
+    isLikelyTestPatientIdentity({ email: guestEmail }) ||
+    isLikelyE2EIntakeMarkers({ referenceNumber, paymentId })
 
   if (isTestOrder) {
     log.info("Skipping paid-request Telegram for test order", { intakeId: input.intakeId })
