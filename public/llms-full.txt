@@ -162,15 +162,15 @@ InstantMed maintains a public guide for people searching for mental health onlin
 
 ## How InstantMed Compares
 
-Several Australian telehealth services issue online medical certificates. The list below shows the lowest advertised single-day certificate price from each provider's own website, checked June 2026. Providers set their own prices and run promotions, so confirm the current price on the provider's site. This list is re-checked monthly. All listed providers use AHPRA-registered doctors.
+Several Australian telehealth services issue online medical certificates. The list below shows the lowest advertised single-day certificate price from each provider's own website, checked July 2026. Providers set their own prices and run promotions, so confirm the current price on the provider's site. This list is re-checked monthly. All listed providers use AHPRA-registered doctors.
 
 - MedCertify: from $12. Advertises certificates issued in roughly 15-30 minutes; available 24/7.
 - Doccy: from $12.90. Available 24/7; a 2-5 day certificate is a flat $28.
 - Qoctor: from $14.99. Same-day from $14.99; optional priority queue; also offers referral letters.
 - MIDOC: from $18. Advertises certificates issued in about 15 minutes.
-- NextClinic: from $19.90. You pay only if the certificate is approved; one-business-hour target.
+- NextClinic: from $19.90. You pay only if the certificate is approved; 60-minute review target.
 - InstantMed: from $24.95. One-off, no subscription. Full refund if the doctor declines the request. The doctor can message you if they have questions, and certificates can be checked through free online verification at https://instantmed.com.au/verify. Also covers repeat prescriptions, ED, and hair loss.
-- Updoc: from $24.95. Single and multi-day certificates priced the same; optional monthly subscription plans.
+- Updoc: from $39.95 one-off. The Updoc Plus subscription is $19.95/month with certificates included.
 
 InstantMed is not the cheapest option. It is positioned on doctor review with messaging, one-off pricing with no subscription, a full refund if a request is declined, and built-in certificate verification. Patients seeking the absolute lowest price or a bulk-billed service may prefer another provider. Full comparison: https://instantmed.com.au/compare
 

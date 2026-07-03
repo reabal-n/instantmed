@@ -186,19 +186,19 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       { feature: "Prescription services", instantmed: true, competitor: "Some services", winner: "instantmed" },
     ],
     // Dated, fact-only cross-provider price table. Prices verified from each
-    // provider's own website (June 2026) — re-verify monthly. Ordered by
+    // provider's own website (July 2026) — re-verify monthly. Ordered by
     // single-day price ascending. No ratings, no winner highlighting.
     providerPriceTable: {
-      pricesVerified: "June 2026",
-      note: "Lowest advertised single-day certificate price from each provider's own website, checked June 2026. Providers set their own prices and run promotions, so confirm the current price on the provider's site. We re-check this table monthly.",
+      pricesVerified: "July 2026",
+      note: "Lowest advertised single-day certificate price from each provider's own website, checked July 2026. Providers set their own prices and run promotions, so confirm the current price on the provider's site. We re-check this table monthly.",
       rows: [
         { provider: "MedCertify", singleDayFrom: "$12", ahpraDoctors: true, notable: "Issued in roughly 15–30 minutes; available 24/7." },
         { provider: "Doccy", singleDayFrom: "$12.90", ahpraDoctors: true, notable: "Available 24/7; a 2–5 day certificate is a flat $28." },
         { provider: "Qoctor", singleDayFrom: "$14.99", ahpraDoctors: true, notable: "Same-day from $14.99; optional priority queue; also offers referral letters." },
         { provider: "MIDOC", singleDayFrom: "$18", ahpraDoctors: true, notable: "Advertises certificates issued in about 15 minutes." },
-        { provider: "NextClinic", singleDayFrom: "$19.90", ahpraDoctors: true, notable: "You pay only if the certificate is approved; one-business-hour target." },
+        { provider: "NextClinic", singleDayFrom: "$19.90", ahpraDoctors: true, notable: "You pay only if the certificate is approved; 60-minute review target." },
         { provider: "InstantMed", singleDayFrom: PRICING_DISPLAY.MED_CERT, ahpraDoctors: true, isInstantMed: true, notable: `One-off, no subscription. ${GUARANTEE} Also covers repeat prescriptions, ED and hair loss.` },
-        { provider: "Updoc", singleDayFrom: "$24.95", ahpraDoctors: true, notable: "Single and multi-day certificates priced the same; optional monthly subscription plans." },
+        { provider: "Updoc", singleDayFrom: "$39.95", ahpraDoctors: true, notable: "One-off certificate consult is $39.95; the Updoc Plus subscription is $19.95/month with certificates included." },
       ],
     },
     whenInstantMedBetter: [
