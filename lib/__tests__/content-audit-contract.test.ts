@@ -29,4 +29,14 @@ describe("content audit guardrails", () => {
     expect(ciWorkflow).toContain("Health guide image audit")
     expect(ciWorkflow).toContain("pnpm content:audit:images")
   })
+
+  it("has a report mode and P1 component syntax guard", () => {
+    expect(packageJson.scripts?.["content:audit:report"]).toBe(
+      "node scripts/audit-health-guides.mjs --report=markdown",
+    )
+    expect(auditScript).toContain("P1 component")
+    expect(auditScript).toContain("findUnknownArticleComponentTags")
+    expect(auditScript).toContain("findMalformedArticleComponentBlocks")
+    expect(auditScript).toContain("renderMarkdownReport")
+  })
 })
