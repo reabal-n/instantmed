@@ -156,9 +156,9 @@ Reject and regenerate any article image that is mostly:
 
 Acceptance floor for generated article visuals:
 
-- at least five useful content regions
-- at least ten readable labels or short callouts when the format supports text
-- at least three instructional devices, such as pathway arrows, comparison columns, mini diagrams, body/anatomy callouts, timeline markers, checklist zones, warning hierarchy, data markers, or practical action strips
+- one clear educational idea per image
+- three to seven readable labels or short callouts when the format supports text
+- at least two instructional devices, such as pathway arrows, comparison columns, mini diagrams, body/anatomy callouts, timeline markers, checklist zones, warning hierarchy, data markers, or practical action strips
 - one clear reading path from headline to takeaway
 - no essential detail in the bottom-right badge-safe zone reserved for the post-processed InstantMed wordmark
 - no fake official forms, fake certificates, fake app screenshots, fake doctor chats, patient identifiers, prescription details, medication brand promotion, or service CTA

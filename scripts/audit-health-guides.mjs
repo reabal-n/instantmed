@@ -165,7 +165,7 @@ function findLongVisualTextItems(slug) {
 function hasTextHeavyVisual(slug) {
   return getRegisteredVisualTextItemGroups(slug).some((group) => {
     const totalWords = group.reduce((sum, item) => sum + countWords(item), 0)
-    return group.length > 10 || totalWords > 35
+    return group.length > 7 || totalWords > 25
   })
 }
 
