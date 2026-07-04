@@ -76,11 +76,17 @@ describe("release check contract", () => {
 
   it("keeps global CSS from importing extra render-blocking stylesheets on /request", () => {
     const globalsCss = readFileSync(join(root, "app/globals.css"), "utf8")
+    // The minimal animate utilities (the tw-animate-css replacement) moved to
+    // app/tailwind-shared.css with the 2026-07-04 staff CSS split — globals
+    // inlines it at compile time, so no extra request-time stylesheet.
+    const sharedCss = readFileSync(join(root, "app/tailwind-shared.css"), "utf8")
 
     expect(globalsCss).not.toContain('@import "tw-animate-css"')
+    expect(sharedCss).not.toContain('@import "tw-animate-css"')
     expect(globalsCss).not.toContain("@import url(\"./print.css\")")
     expect(globalsCss).toContain("@media print")
-    expect(globalsCss).toContain("@utility animate-in")
+    expect(globalsCss).toContain('@import "./tailwind-shared.css";')
+    expect(sharedCss).toContain("@utility animate-in")
     expect(existsSync(join(root, "app/print.css"))).toBe(false)
   })
 

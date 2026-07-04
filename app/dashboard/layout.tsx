@@ -1,3 +1,5 @@
+import "../staff.css"
+
 import type { Metadata } from "next"
 
 import { OperatorShell } from "@/components/operator/operator-shell"

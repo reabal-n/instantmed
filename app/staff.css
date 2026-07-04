@@ -1,0 +1,28 @@
+/* Staff-only Tailwind utilities — imported ONLY by the staff layouts
+ * (app/admin/layout.tsx, app/doctor/layout.tsx, app/dashboard/layout.tsx).
+ *
+ * app/globals.css excludes the staff cockpit sources (@source not app/admin|
+ * doctor|dashboard, components/operator|doctor|admin) so public + patient
+ * pages stop paying for cockpit utilities on every load — and so future
+ * cockpit growth (the fastest-growing UI surface) can never bloat the
+ * patient-facing sheet again. This entry re-scans exactly those sources and
+ * emits ONLY the utilities layer:
+ * - @reference makes the shared theme/variants/custom-utilities available
+ *   for GENERATION without re-emitting a single byte (theme vars, preflight
+ *   and the enter/exit keyframes already ship globally via globals.css).
+ * - source(none) + explicit @source keeps the scan scoped to staff dirs.
+ *
+ * Utilities that staff shares with public surfaces (flex, p-4, ...) are
+ * emitted in both sheets; same layer + same specificity, harmless.
+ *
+ * Verified against lib/__tests__/staff-css-split-contract.test.ts.
+ */
+@import "tailwindcss/theme.css" layer(theme) theme(reference);
+@reference "./tailwind-shared.css";
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@source "./admin";
+@source "./doctor";
+@source "./dashboard";
+@source "../components/operator";
+@source "../components/doctor";
+@source "../components/admin";
