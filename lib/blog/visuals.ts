@@ -192,6 +192,22 @@ const generatedImageBacklogVisualLibrary: Record<ImageBacklogArticleSlug, Articl
       ],
       imagePrompt: "Practical pre-consult checklist visual for Australian telehealth billing. Show a patient comparing billing model, Medicare eligibility, service type, gap amount, and urgent-care exclusion using labelled pathway panels and abstract receipt/rebate shapes. No fake Medicare card, no government branding, no dollar promises, no consultation CTA.",
     },
+    {
+      id: "telehealth-bulk-billing-eligibility-flow",
+      eyebrow: "Eligibility flow",
+      title: "Medicare telehealth starts with eligibility, then billing choice",
+      summary: "A rebate can require Medicare eligibility, the right MBS item, a usual-practice link or MyMedicare registration, and a clinic that bulk bills.",
+      visualFormat: "process-visual",
+      kind: "flow",
+      accent: "emerald",
+      items: [
+        { label: "Medicare eligible", detail: "The patient can access Medicare benefits" },
+        { label: "Right item", detail: "The service fits a current MBS telehealth item" },
+        { label: "Usual practice link", detail: "Face-to-face history, MyMedicare, or an exemption applies" },
+        { label: "Clinic billing choice", detail: "Bulk billed, rebate with gap, or private fee" },
+      ],
+      imagePrompt: "Detailed Australian telehealth bulk billing eligibility flow. Show four gates in order: Medicare eligibility, current MBS telehealth item, eligible telehealth practitioner or MyMedicare registration or exemption, then provider billing choice. Include outcome branches for bulk billed no out-of-pocket, Medicare rebate with gap, and private fee. Use a premium patient-education flowchart with receipt, video call, practice relationship, and billing choice cues. No fake Medicare card, no government logos, no dollar promises, no service CTA, no guarantee language.",
+    },
   ],
   "is-telehealth-legal-australia": [
     {
