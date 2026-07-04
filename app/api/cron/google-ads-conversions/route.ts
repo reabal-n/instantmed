@@ -30,7 +30,16 @@ const logger = createLogger("cron-google-ads-conversions")
 
 const LOOKBACK_DAYS = 90
 const BATCH_LIMIT = 25
-const GOOGLE_ADS_BACKFILL_PAYMENT_STATUSES = ["paid", "partially_refunded", "refunded"] as const
+// Fully-refunded orders are deliberately NOT upload candidates. Uploading
+// (or re-uploading) a refunded order's conversion puts the backfill in a
+// tug-of-war with the retraction path below: every re-upload resets the
+// retraction's CONVERSION_NOT_FOUND 72h grace clock, which kept one April
+// refund's retraction retrying hourly for weeks (52 failed attempts,
+// 2026-07-04). Orders refunded AFTER a successful upload are handled by the
+// adjustment finder; orders refunded before any successful upload should
+// simply never reach Google. partially_refunded stays: the order still
+// netted revenue and the conversion stands.
+const GOOGLE_ADS_BACKFILL_PAYMENT_STATUSES = ["paid", "partially_refunded"] as const
 const GOOGLE_ADS_ADJUSTMENT_PAYMENT_STATUSES = ["partially_refunded", "refunded", "disputed"] as const
 
 type GoogleAdsCandidate = GoogleAdsAttributionRow & {
