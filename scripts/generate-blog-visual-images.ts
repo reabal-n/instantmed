@@ -239,6 +239,48 @@ function renderBackgroundTexture(palette: Palette) {
 }
 
 function renderVisualMotif(visual: ArticleVisual, palette: Palette) {
+  if (visual.id.includes("terminology")) {
+    return `
+      <g transform="translate(905 84)">
+        <rect x="0" y="0" width="282" height="244" rx="34" fill="#ffffff" opacity="0.9" stroke="${palette.light}" stroke-width="2"/>
+        <path d="M64 122 H220" stroke="${palette.mid}" stroke-width="10" stroke-linecap="round" opacity="0.82"/>
+        <path d="M142 58 V186" stroke="${palette.mid}" stroke-width="10" stroke-linecap="round" opacity="0.82"/>
+        <rect x="34" y="38" width="88" height="64" rx="18" fill="${palette.light}" stroke="${palette.dark}" stroke-width="4"/>
+        <rect x="160" y="38" width="88" height="64" rx="18" fill="#ffffff" stroke="${palette.mid}" stroke-width="4"/>
+        <rect x="34" y="142" width="88" height="64" rx="18" fill="#ffffff" stroke="${palette.mid}" stroke-width="4"/>
+        <rect x="160" y="142" width="88" height="64" rx="18" fill="${palette.light}" stroke="${palette.dark}" stroke-width="4"/>
+        <circle cx="142" cy="122" r="22" fill="${palette.dark}"/>
+      </g>
+    `
+  }
+
+  if (visual.id.includes("certificate-detail")) {
+    return `
+      <g transform="translate(906 84)">
+        <rect x="0" y="0" width="282" height="244" rx="34" fill="#ffffff" opacity="0.9" stroke="${palette.light}" stroke-width="2"/>
+        <rect x="58" y="36" width="126" height="168" rx="18" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+        <path d="M84 78 H160 M84 112 H156 M84 146 H142" stroke="#ffffff" stroke-width="9" stroke-linecap="round"/>
+        <circle cx="188" cy="154" r="42" fill="#ffffff" stroke="${palette.dark}" stroke-width="8"/>
+        <path d="M218 184 L248 214" stroke="${palette.dark}" stroke-width="10" stroke-linecap="round"/>
+        <circle cx="104" cy="180" r="14" fill="${palette.dark}"/>
+      </g>
+    `
+  }
+
+  if (visual.id.includes("privacy-diagnosis")) {
+    return `
+      <g transform="translate(906 84)">
+        <rect x="0" y="0" width="282" height="244" rx="34" fill="#ffffff" opacity="0.9" stroke="${palette.light}" stroke-width="2"/>
+        <rect x="34" y="48" width="96" height="150" rx="24" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+        <rect x="152" y="48" width="96" height="150" rx="24" fill="#ffffff" stroke="${palette.mid}" stroke-width="4"/>
+        <path d="M58 96 H108 M58 126 H104" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+        <path d="M174 96 H226 M174 126 H216 M174 156 H224" stroke="${palette.light}" stroke-width="8" stroke-linecap="round"/>
+        <path d="M134 62 V194" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" opacity="0.82"/>
+        <path d="M116 126 L134 146 L166 100" fill="none" stroke="${palette.dark}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+    `
+  }
+
   if (visual.id.includes("safety-net")) {
     return `
       <g transform="translate(905 86)">
@@ -409,28 +451,54 @@ function renderTimelineMap(visual: ArticleVisual, palette: Palette) {
 }
 
 function renderChecklistMap(visual: ArticleVisual, palette: Palette) {
+  const labelsOnly = visual.textMode === "labels"
+  const yStart = labelsOnly ? 660 : 590
+  const cardHeight = labelsOnly ? 126 : 154
+  const step = labelsOnly ? 154 : 172
   return visual.items
     .slice(0, 4)
-    .map((item, index) => renderItemCard(item, index, 120, 590 + index * 172, 1040, 154, palette))
+    .map((item, index) =>
+      renderItemCard(item, index, 120, yStart + index * step, 1040, cardHeight, palette, { showDetail: !labelsOnly }),
+    )
     .join("")
 }
 
 function renderComparisonMap(visual: ArticleVisual, palette: Palette) {
   const items = visual.items.slice(0, 4)
+  const labelsOnly = visual.textMode === "labels"
+  const yStart = labelsOnly ? 660 : 590
+  const cardHeight = labelsOnly ? 126 : 154
+  const step = labelsOnly ? 154 : 172
   return items
     .map((item, index) => {
-      const y = 590 + index * 172
-      return renderItemCard(item, index, 120, y, 1040, 154, palette)
+      const y = yStart + index * step
+      return renderItemCard(item, index, 120, y, 1040, cardHeight, palette, { showDetail: !labelsOnly })
     })
     .join("")
 }
 
 function renderWarningMap(visual: ArticleVisual, palette: Palette) {
   const [first, ...rest] = visual.items
-  const primary = first ? renderItemCard(first, 0, 120, 620, 1040, 180, palette) : ""
+  const labelsOnly = visual.textMode === "labels"
+  const primary = first
+    ? renderItemCard(first, 0, 120, labelsOnly ? 650 : 620, 1040, labelsOnly ? 126 : 180, palette, {
+        showDetail: !labelsOnly,
+      })
+    : ""
   const secondary = rest
     .slice(0, 3)
-    .map((item, index) => renderItemCard(item, index + 1, 120, 820 + index * 174, 1040, 156, palette))
+    .map((item, index) =>
+      renderItemCard(
+        item,
+        index + 1,
+        120,
+        (labelsOnly ? 804 : 820) + index * (labelsOnly ? 154 : 174),
+        1040,
+        labelsOnly ? 126 : 156,
+        palette,
+        { showDetail: !labelsOnly },
+      ),
+    )
     .join("")
 
   return `
@@ -668,12 +736,36 @@ function getAssetOrientation(size: GatewayImageSize): string {
   return "portrait"
 }
 
+function getApprovedVisibleLabels(visual: ArticleVisual): string[] {
+  if (visual.textItems?.length) return visual.textItems
+  return visual.items.map((item) => item.label)
+}
+
 function getTextPlanPrompt(visual: ArticleVisual, _format: VisualFormat): string {
   // gpt-image-2 renders text accurately, so this is a TEACHING infographic that
   // should contain legible, informative text. All visible text is drawn ONLY from
   // the registry (eyebrow, title, and each item's label + detail) so it stays
   // controlled and accurate — the model must not invent copy. The same labels also
   // render in React/HTML via components/blog/article-visuals.tsx for accessibility.
+  if (visual.textMode === "labels" || visual.textMode === "title-and-labels") {
+    const labelLines = getApprovedVisibleLabels(visual)
+      .map((label) => `- "${label}"`)
+      .join("\n")
+
+    return [
+      "Visible text plan: this teaching infographic should contain only a short headline and the approved short labels below. Do not include paragraph text, explanatory callouts, tables, figures, prices, dates, source names, footers, or invented microcopy inside the generated image.",
+      `Kicker / eyebrow (small, above or near the headline): "${visual.eyebrow}"`,
+      `Headline (most prominent text): "${visual.title}"`,
+      "Approved visible labels:",
+      labelLines,
+      "Hard text rules:",
+      "- Use ONLY the exact wording provided above. Do NOT render item detail text or invent extra headings, statistics, prices, percentages, dates, drug or brand names, legal claims, source names, captions, footers, or calls to action.",
+      "- Spell every word correctly and exactly as written.",
+      "- Keep the image readable at article width. The article HTML carries the detailed explanation.",
+      "- No fake document body text, no fake UI text, no fake form fields, no signatures, no fake percentages or chart numbers.",
+    ].join("\n")
+  }
+
   const labelLines = visual.items
     .map((item) => (item.detail ? `- "${item.label}" — ${item.detail}` : `- "${item.label}"`))
     .join("\n")
