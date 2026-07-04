@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { createLogger } from "@/lib/observability/logger"
@@ -43,12 +44,18 @@ export async function GET(request: NextRequest) {
     const patientEmailThreshold = new Date(now.getTime() - patientDelayEmailHours * 60 * 60 * 1000)
 
     // ── Stale queue metrics (PostHog only) ──────────────────────────────────
-    const { count: staleCount } = await supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "paid")
-      .eq("payment_status", "paid")
-      .lt("paid_at", patientEmailThreshold.toISOString())
+    // Seeded-E2E filter: CI re-pays the persistent seeded fixture, which sat
+    // "paid" here and paged "1 intake waiting 2h+" for days (2026-07-04) while
+    // the doctor queue (already filtered) showed nothing. Alerts must count
+    // the same world the queue shows.
+    const { count: staleCount } = await filterSeededE2EIntakes(
+      supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "paid")
+        .eq("payment_status", "paid")
+        .lt("paid_at", patientEmailThreshold.toISOString()),
+    )
 
     const totalStale = staleCount ?? 0
 
@@ -77,22 +84,24 @@ export async function GET(request: NextRequest) {
     // Send a "we're running late" email to patients waiting the configured hours (once per intake).
     let delayEmailsSent = 0
     try {
-      const { data: delayEmailCandidates } = await supabase
-        .from("intakes")
-        .select(`
-          id, category, patient_id,
-          patient:profiles!patient_id(full_name, email)
-        `)
-        .eq("status", "paid")
-        .lt("paid_at", patientEmailThreshold.toISOString())
-        .is("delay_notification_sent_at", null)
-        // Cross-guard with the retry-auto-approval cron, which sends the SAME
-        // still_reviewing email but tracks it on follow_up_sent_at. Without
-        // this, the patient gets the identical email twice. Whichever cron
-        // sends first now blocks the other.
-        .is("follow_up_sent_at", null)
-        .not("patient_id", "is", null)
-        .limit(20)
+      const { data: delayEmailCandidates } = await filterSeededE2EIntakes(
+        supabase
+          .from("intakes")
+          .select(`
+            id, category, patient_id,
+            patient:profiles!patient_id(full_name, email)
+          `)
+          .eq("status", "paid")
+          .lt("paid_at", patientEmailThreshold.toISOString())
+          .is("delay_notification_sent_at", null)
+          // Cross-guard with the retry-auto-approval cron, which sends the SAME
+          // still_reviewing email but tracks it on follow_up_sent_at. Without
+          // this, the patient gets the identical email twice. Whichever cron
+          // sends first now blocks the other.
+          .is("follow_up_sent_at", null)
+          .not("patient_id", "is", null)
+          .limit(20),
+      )
 
       if (delayEmailCandidates && delayEmailCandidates.length > 0) {
         const [{ sendEmail }, { StillReviewingEmail, stillReviewingSubject }, React] =
@@ -153,11 +162,13 @@ export async function GET(request: NextRequest) {
     const AWAITING_SCRIPT_THRESHOLD_HOURS = 48
     const awaitingScriptThreshold = new Date(now.getTime() - AWAITING_SCRIPT_THRESHOLD_HOURS * 60 * 60 * 1000)
 
-    const { count: stuckScriptCount } = await supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "awaiting_script")
-      .lt("updated_at", awaitingScriptThreshold.toISOString())
+    const { count: stuckScriptCount } = await filterSeededE2EIntakes(
+      supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "awaiting_script")
+        .lt("updated_at", awaitingScriptThreshold.toISOString()),
+    )
 
     if ((stuckScriptCount ?? 0) > 0) {
       logger.warn("Intakes stuck in awaiting_script for 48+ hours", { stuck_count: stuckScriptCount })
