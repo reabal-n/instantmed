@@ -36,6 +36,7 @@ export function RelatedArticles({ articles, currentSlug }: RelatedArticlesProps)
                   alt={article.heroImageAlt}
                   fill
                   className="object-cover"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 280px"
                 />
                 <div className="absolute top-2 left-2">
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white dark:bg-card text-primary">
