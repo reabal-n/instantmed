@@ -346,6 +346,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         const nextId = getNextStepId(serviceType, currentStepId, context)
         if (nextId) {
           set({ currentStepId: nextId, direction: 1 })
+          flushPendingDraftWrite()
           return
         }
 
@@ -357,6 +358,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         const lastActiveId = getLastActiveStepId(serviceType, currentStepId, context)
         if (lastActiveId) {
           set({ currentStepId: lastActiveId, direction: 1 })
+          flushPendingDraftWrite()
         }
       },
 
@@ -373,6 +375,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         const prevId = getPreviousStepId(serviceType, currentStepId, context)
         if (prevId) {
           set({ currentStepId: prevId, direction: -1 })
+          flushPendingDraftWrite()
           return
         }
 
@@ -381,6 +384,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         const lastActiveId = getLastActiveStepId(serviceType, currentStepId, context)
         if (lastActiveId) {
           set({ currentStepId: lastActiveId, direction: -1 })
+          flushPendingDraftWrite()
         }
       },
 
@@ -419,6 +423,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
         const direction = targetIndex > currentIndex ? 1 : -1
         set({ currentStepId: stepId, direction: direction as 1 | -1 })
+        flushPendingDraftWrite()
       },
 
       setSafetyConfirmed: (confirmed) => set({ 

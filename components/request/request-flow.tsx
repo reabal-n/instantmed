@@ -30,6 +30,10 @@ import { SubtypeMismatchBanner } from "@/components/request/subtype-mismatch-ban
 import { TimeRemaining } from "@/components/request/time-remaining"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import {
+  getStoredDraftRestoreCandidate,
+  shouldOfferDraftRestore,
+} from "@/lib/request/draft-restore"
+import {
   getInitialRequestUrlDecision,
   type InitialRequestUrlContext,
 } from "@/lib/request/initial-url-seeding"
@@ -396,11 +400,42 @@ export function RequestFlow({
     storeServiceType: serviceType,
     currentStepId,
   })
+  const storedDraftAtEntryRef = useRef<ReturnType<typeof getStoredDraftRestoreCandidate> | null | undefined>(undefined)
+  if (storedDraftAtEntryRef.current === undefined) {
+    storedDraftAtEntryRef.current = getStoredDraftRestoreCandidate(initialService)
+  }
   
   // Rehydrate persisted store after mount (SSR-safe pattern).
   // The store uses skipHydration:true to avoid a server/client mismatch on first render.
   useEffect(() => {
-    useRequestStore.persist.rehydrate()
+    let cancelled = false
+
+    const offerExistingDraft = () => {
+      if (cancelled || !storedDraftAtEntryRef.current) return
+
+      const hydratedState = useRequestStore.getState()
+      if (
+        shouldOfferDraftRestore(storedDraftAtEntryRef.current) &&
+        shouldOfferDraftRestore({
+          lastSavedAt: hydratedState.lastSavedAt,
+          serviceType: hydratedState.serviceType,
+          currentStepId: hydratedState.currentStepId,
+        })
+      ) {
+        setShowDraftBanner(true)
+      }
+    }
+
+    const rehydrateResult = useRequestStore.persist.rehydrate()
+    if (rehydrateResult && typeof rehydrateResult.then === "function") {
+      void rehydrateResult.then(offerExistingDraft)
+    } else {
+      offerExistingDraft()
+    }
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   // Initialize auth context in store for step navigation
@@ -499,20 +534,6 @@ export function RequestFlow({
       router.replace(decision.redirectPath)
     }
   }, [router, setAnswer])
-
-  // Check for existing draft on mount
-  useEffect(() => {
-    if (lastSavedAt && serviceType) {
-      const savedTime = new Date(lastSavedAt).getTime()
-      const now = Date.now()
-      const hoursSinceSave = (now - savedTime) / (1000 * 60 * 60)
-      
-      // Show banner if draft is less than 24 hours old
-      if (hoursSinceSave < 24 && currentStepId !== 'review') {
-        setShowDraftBanner(true)
-      }
-    }
-  }, [lastSavedAt, serviceType, currentStepId])
 
   // Use initialService as fallback during hydration
   const effectiveService = serviceType || initialService
