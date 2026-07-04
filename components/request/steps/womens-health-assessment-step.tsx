@@ -344,7 +344,7 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
   router: ReturnType<typeof useRouter>
 }) {
   const utiSymptoms = answers.utiSymptoms as string[] | undefined
-  const utiRedFlags = (answers.utiRedFlags as string) || ""
+  const utiRedFlags = answers.utiRedFlags as "no" | "yes" | undefined
   const utiPregnant = (answers.utiPregnant as string) || ""
   const utiDetails = (answers.utiDetails as string) || ""
   const isComplete = Boolean(utiSymptoms && utiSymptoms.length > 0 && utiRedFlags === 'no' && utiPregnant === 'no')
@@ -475,7 +475,7 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
             required
           />
           <StringBinaryChoice
-            value={utiRedFlags as "no" | "yes" | undefined}
+            value={utiRedFlags}
             noValue="no"
             yesValue="yes"
             onChange={handleRedFlagsChange}

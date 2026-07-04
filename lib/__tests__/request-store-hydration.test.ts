@@ -146,4 +146,38 @@ describe("request store draft hydration", () => {
     expect(legacyDraft.state.currentStepId).toBe("womens-health-assessment")
     expect(scopedDraft.currentStepId).toBe("womens-health-assessment")
   })
+
+  it("does not hydrate a same-step shorter draft over live assessment answers", async () => {
+    useRequestStore.setState({
+      serviceType: "consult",
+      currentStepId: "womens-health-assessment",
+      answers: {
+        consultSubtype: "womens_health",
+        womensHealthOption: "uti",
+        utiSymptoms: ["burning"],
+        utiRedFlags: "no",
+      },
+    })
+    localStorage.setItem(
+      "instantmed-draft-consult",
+      JSON.stringify({
+        serviceType: "consult",
+        currentStepId: "womens-health-assessment",
+        answers: {
+          consultSubtype: "womens_health",
+          womensHealthOption: "uti",
+        },
+        lastSavedAt: new Date().toISOString(),
+      }),
+    )
+
+    await useRequestStore.persist.rehydrate()
+
+    expect(useRequestStore.getState().answers).toMatchObject({
+      consultSubtype: "womens_health",
+      womensHealthOption: "uti",
+      utiSymptoms: ["burning"],
+      utiRedFlags: "no",
+    })
+  })
 })

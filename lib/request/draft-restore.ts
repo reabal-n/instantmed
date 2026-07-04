@@ -14,6 +14,7 @@ interface DraftRestoreInput {
   serviceType: UnifiedServiceType | null | undefined
   currentStepId: UnifiedStepId | null | undefined
   now?: number
+  savedBefore?: number
 }
 
 type DraftRestoreCandidate = Omit<DraftRestoreInput, "now"> & {
@@ -90,6 +91,7 @@ export function shouldOfferDraftRestore({
   serviceType,
   currentStepId,
   now = Date.now(),
+  savedBefore,
 }: DraftRestoreInput): boolean {
   if (!lastSavedAt || !serviceType || currentStepId === "review") {
     return false
@@ -97,6 +99,10 @@ export function shouldOfferDraftRestore({
 
   const savedTime = new Date(lastSavedAt).getTime()
   if (!Number.isFinite(savedTime)) {
+    return false
+  }
+
+  if (typeof savedBefore === "number" && savedTime >= savedBefore) {
     return false
   }
 
