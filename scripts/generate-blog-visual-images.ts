@@ -35,6 +35,7 @@ const BRAND_WORDMARK_WIDTH = 152
 const BRAND_WORDMARK_HEIGHT = 24
 const BRAND_LOGO_PATH = path.join(process.cwd(), "public", "branding", "logo.png")
 const BRAND_WORDMARK_PATH = path.join(process.cwd(), "public", "branding", "wordmark.png")
+const SVG_FONT_FAMILY = "Arial, Helvetica, sans-serif"
 
 type Renderer = "deterministic" | "gpt-image-2" | "gpt-image-2-composite"
 type VisualFormat = NonNullable<ArticleVisual["visualFormat"]>
@@ -197,7 +198,7 @@ function textBlock({
   const svg = lines
     .map(
       (line, index) =>
-        `<text x="${x}" y="${y + index * lineHeight}" font-family="Inter, Arial, sans-serif" font-size="${size}" font-weight="${weight}" fill="${color}">${escapeXml(line)}</text>`,
+        `<text x="${x}" y="${y + index * lineHeight}" font-family="${SVG_FONT_FAMILY}" font-size="${size}" font-weight="${weight}" fill="${color}">${escapeXml(line)}</text>`,
     )
     .join("")
 
@@ -218,89 +219,193 @@ function card(x: number, y: number, width: number, height: number, fill = "#ffff
 function badge(x: number, y: number, text: string, palette: Palette) {
   return `
     ${pill(x, y, 216, 44, palette.light)}
-    <text x="${x + 24}" y="${y + 29}" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="800" fill="${palette.dark}" letter-spacing="1.4">${escapeXml(text.toUpperCase())}</text>
+    <text x="${x + 24}" y="${y + 29}" font-family="${SVG_FONT_FAMILY}" font-size="20" font-weight="800" fill="${palette.dark}" letter-spacing="1.4">${escapeXml(text.toUpperCase())}</text>
   `
 }
 
-function guideIcon(kind: ArticleVisual["kind"], x: number, y: number, palette: Palette) {
-  if (kind === "warning") {
+function renderBackgroundTexture(palette: Palette) {
+  return `
+    <path d="M-80 455 C210 370 405 460 650 382 C890 306 1045 350 1360 242" fill="none" stroke="${palette.mid}" stroke-width="3" opacity="0.18"/>
+    <path d="M-40 1248 C196 1120 420 1212 650 1110 C886 1006 1060 1038 1350 934" fill="none" stroke="${palette.mid}" stroke-width="3" opacity="0.14"/>
+    <g opacity="0.13">
+      <circle cx="121" cy="438" r="5" fill="${palette.dark}"/>
+      <circle cx="294" cy="402" r="5" fill="${palette.dark}"/>
+      <circle cx="486" cy="428" r="5" fill="${palette.dark}"/>
+      <circle cx="738" cy="356" r="5" fill="${palette.dark}"/>
+      <circle cx="1010" cy="332" r="5" fill="${palette.dark}"/>
+    </g>
+    <rect x="922" y="1058" width="326" height="326" rx="72" fill="${palette.light}" opacity="0.34" transform="rotate(-11 1085 1221)"/>
+  `
+}
+
+function renderVisualMotif(visual: ArticleVisual, palette: Palette) {
+  if (visual.id.includes("safety-net")) {
     return `
-      <path d="M${x + 48} ${y + 6} L${x + 92} ${y + 86} Q${x + 96} ${y + 94} ${x + 86} ${y + 94} H${x + 10} Q${x} ${y + 94} ${x + 5} ${y + 86} L${x + 49} ${y + 6} Z" fill="${palette.mid}"/>
-      <text x="${x + 43}" y="${y + 64}" font-family="Inter, Arial, sans-serif" font-size="54" font-weight="900" fill="#ffffff">!</text>
+      <g transform="translate(905 86)">
+        <rect x="0" y="0" width="278" height="238" rx="34" fill="#ffffff" opacity="0.88" stroke="${palette.light}" stroke-width="2"/>
+        <rect x="28" y="34" width="222" height="154" rx="20" fill="${palette.light}" opacity="0.78"/>
+        <path d="M60 74 H220 M60 108 H220 M60 142 H220" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.78"/>
+        <path d="M96 48 V170 M150 48 V170 M204 48 V170" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.78"/>
+        <path d="M54 180 C96 118 135 148 164 104 C190 66 210 82 236 50" fill="none" stroke="${palette.dark}" stroke-width="10" stroke-linecap="round"/>
+        <circle cx="54" cy="180" r="13" fill="${palette.dark}"/>
+        <circle cx="164" cy="104" r="13" fill="${palette.dark}"/>
+        <circle cx="236" cy="50" r="13" fill="${palette.dark}"/>
+      </g>
     `
   }
 
-  if (kind === "timeline") {
+  if (visual.id.includes("authority")) {
     return `
-      <circle cx="${x + 24}" cy="${y + 24}" r="18" fill="${palette.mid}"/>
-      <circle cx="${x + 74}" cy="${y + 74}" r="18" fill="${palette.dark}"/>
-      <path d="M${x + 24} ${y + 24} C${x + 42} ${y + 52}, ${x + 54} ${y + 46}, ${x + 74} ${y + 74}" fill="none" stroke="${palette.mid}" stroke-width="10" stroke-linecap="round"/>
-    `
-  }
-
-  if (kind === "flow") {
-    return `
-      <rect x="${x}" y="${y + 12}" width="48" height="48" rx="14" fill="${palette.light}"/>
-      <rect x="${x + 74}" y="${y + 12}" width="48" height="48" rx="14" fill="${palette.light}"/>
-      <path d="M${x + 50} ${y + 36} H${x + 70}" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round"/>
-      <path d="M${x + 68} ${y + 25} L${x + 82} ${y + 36} L${x + 68} ${y + 47}" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <g transform="translate(908 88)">
+        <rect x="0" y="0" width="280" height="240" rx="34" fill="#ffffff" opacity="0.88" stroke="${palette.light}" stroke-width="2"/>
+        <path d="M58 120 H128 C160 120 162 66 212 66" fill="none" stroke="${palette.mid}" stroke-width="12" stroke-linecap="round"/>
+        <path d="M128 120 C162 120 164 174 214 174" fill="none" stroke="${palette.mid}" stroke-width="12" stroke-linecap="round"/>
+        <circle cx="58" cy="120" r="24" fill="${palette.dark}"/>
+        <circle cx="214" cy="66" r="22" fill="${palette.light}" stroke="${palette.dark}" stroke-width="5"/>
+        <circle cx="214" cy="174" r="22" fill="${palette.light}" stroke="${palette.dark}" stroke-width="5"/>
+        <rect x="78" y="36" width="52" height="30" rx="15" fill="${palette.light}"/>
+        <rect x="84" y="174" width="68" height="30" rx="15" fill="${palette.light}"/>
+        <path d="M42 198 L70 214 L112 184" fill="none" stroke="${palette.dark}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
     `
   }
 
   return `
-    <circle cx="${x + 42}" cy="${y + 42}" r="42" fill="${palette.light}"/>
-    <path d="M${x + 22} ${y + 43} L${x + 38} ${y + 59} L${x + 66} ${y + 26}" fill="none" stroke="${palette.dark}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <g transform="translate(904 86)">
+      <rect x="0" y="0" width="282" height="240" rx="34" fill="#ffffff" opacity="0.88" stroke="${palette.light}" stroke-width="2"/>
+      <rect x="38" y="42" width="72" height="118" rx="22" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <rect x="54" y="22" width="40" height="30" rx="10" fill="${palette.dark}" opacity="0.92"/>
+      <path d="M126 92 H222" stroke="${palette.mid}" stroke-width="12" stroke-linecap="round"/>
+      <path d="M206 70 L232 92 L206 114" fill="none" stroke="${palette.dark}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="128" cy="162" r="15" fill="${palette.dark}"/>
+      <circle cx="174" cy="162" r="15" fill="${palette.mid}"/>
+      <circle cx="220" cy="162" r="15" fill="${palette.light}" stroke="${palette.dark}" stroke-width="4"/>
+      <path d="M74 190 C112 216 178 218 222 188" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.75"/>
+    </g>
   `
 }
 
-function renderItemCard(item: ArticleVisualItem, index: number, x: number, y: number, width: number, height: number, palette: Palette) {
+function renderItemCard(
+  item: ArticleVisualItem,
+  index: number,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  palette: Palette,
+  options: { showDetail?: boolean; compact?: boolean } = {},
+) {
   const tone = tonePalette[item.tone ?? "neutral"]
+  const showDetail = options.showDetail ?? true
+  const labelY = showDetail ? y + 58 : y + Math.round(height / 2) + 10
   const label = textBlock({
     text: item.label,
     x: x + 104,
-    y: y + 58,
+    y: labelY,
     width: width - 136,
-    size: 30,
+    size: options.compact ? 27 : 30,
     weight: 850,
     color: palette.text,
-    maxLines: 3,
+    maxLines: showDetail ? 3 : 2,
   })
-  const detail = textBlock({
-    text: item.detail,
-    x: x + 104,
-    y: y + 58 + label.height + 16,
-    width: width - 136,
-    size: 24,
-    weight: 500,
-    color: "#475569",
-    lineHeight: 34,
-    maxLines: 5,
-  })
+  const detail = showDetail
+    ? textBlock({
+        text: item.detail,
+        x: x + 104,
+        y: y + 58 + label.height + 16,
+        width: width - 136,
+        size: options.compact ? 21 : 24,
+        weight: 500,
+        color: "#475569",
+        lineHeight: options.compact ? 30 : 34,
+        maxLines: 5,
+      })
+    : null
 
   return `
     ${card(x, y, width, height)}
     <circle cx="${x + 52}" cy="${y + 58}" r="30" fill="${tone.bg}"/>
-    <text x="${x + 43}" y="${y + 68}" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="900" fill="${tone.fg}">${index + 1}</text>
+    <text x="${x + 43}" y="${y + 68}" font-family="${SVG_FONT_FAMILY}" font-size="28" font-weight="900" fill="${tone.fg}">${index + 1}</text>
     ${label.svg}
-    ${detail.svg}
+    ${detail?.svg ?? ""}
   `
 }
 
 function renderFlowMap(visual: ArticleVisual, palette: Palette) {
   const nodes = visual.items.slice(0, 4)
+  const labelsOnly = visual.textMode === "labels"
+  const yStart = labelsOnly ? 660 : 590
+  const cardHeight = labelsOnly ? 126 : 154
+  const step = labelsOnly ? 154 : 172
   return nodes
     .map((item, index) => {
-      const y = 590 + index * 172
+      const y = yStart + index * step
       return `
-        ${renderItemCard(item, index, 120, y, 1040, 154, palette)}
+        ${renderItemCard(item, index, 120, y, 1040, cardHeight, palette, { showDetail: !labelsOnly })}
         ${
           index < nodes.length - 1
-            ? `<path d="M640 ${y + 156} V${y + 168}" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round"/><path d="M626 ${y + 158} L640 ${y + 174} L654 ${y + 158}" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
+            ? `<path d="M640 ${y + cardHeight + 2} V${y + step - 6}" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round"/><path d="M626 ${y + step - 14} L640 ${y + step + 2} L654 ${y + step - 14}" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
             : ""
         }
       `
     })
     .join("")
+}
+
+function renderTimelineMap(visual: ArticleVisual, palette: Palette) {
+  const nodes = visual.items.slice(0, 4)
+  const labelsOnly = visual.textMode === "labels"
+  const panelX = 120
+  const panelY = labelsOnly ? 690 : 620
+  const panelWidth = 1040
+  const panelHeight = labelsOnly ? 390 : 520
+  const slotWidth = panelWidth / Math.max(nodes.length, 1)
+  const railY = panelY + 132
+
+  const items = nodes
+    .map((item, index) => {
+      const x = panelX + index * slotWidth
+      const centerX = x + slotWidth / 2
+      const label = textBlock({
+        text: item.label,
+        x: x + 28,
+        y: panelY + 238,
+        width: slotWidth - 56,
+        size: 28,
+        weight: 850,
+        color: palette.text,
+        maxLines: 2,
+      })
+      const detail = labelsOnly
+        ? null
+        : textBlock({
+            text: item.detail,
+            x: x + 28,
+            y: panelY + 238 + label.height + 12,
+            width: slotWidth - 56,
+            size: 20,
+            color: "#475569",
+            lineHeight: 28,
+            maxLines: 3,
+          })
+
+      return `
+        <circle cx="${centerX}" cy="${railY}" r="32" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+        <circle cx="${centerX}" cy="${railY}" r="12" fill="${palette.dark}"/>
+        <rect x="${x + 20}" y="${panelY + 205}" width="${slotWidth - 40}" height="${labelsOnly ? 112 : 230}" rx="24" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+        <text x="${x + 42}" y="${panelY + 194}" font-family="${SVG_FONT_FAMILY}" font-size="22" font-weight="850" fill="${palette.dark}">0${index + 1}</text>
+        ${label.svg}
+        ${detail?.svg ?? ""}
+      `
+    })
+    .join("")
+
+  return `
+    <rect x="${panelX}" y="${panelY}" width="${panelWidth}" height="${panelHeight}" rx="34" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+    <path d="M${panelX + 90} ${railY} H${panelX + panelWidth - 90}" stroke="${palette.mid}" stroke-width="10" stroke-linecap="round" opacity="0.72"/>
+    <path d="M${panelX + panelWidth - 112} ${railY - 18} L${panelX + panelWidth - 76} ${railY} L${panelX + panelWidth - 112} ${railY + 18}" fill="none" stroke="${palette.dark}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    ${items}
+  `
 }
 
 function renderChecklistMap(visual: ArticleVisual, palette: Palette) {
@@ -331,7 +436,7 @@ function renderWarningMap(visual: ArticleVisual, palette: Palette) {
   return `
     <rect x="120" y="550" width="1040" height="44" rx="22" fill="${palette.light}"/>
     <path d="M166 561 L186 583 L224 543" fill="none" stroke="${palette.dark}" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="252" y="580" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="850" fill="${palette.dark}">Safety boundary</text>
+    <text x="252" y="580" font-family="${SVG_FONT_FAMILY}" font-size="28" font-weight="850" fill="${palette.dark}">Safety boundary</text>
     ${primary}
     ${secondary}
   `
@@ -382,8 +487,9 @@ function renderMap(visual: ArticleVisual, palette: Palette) {
     case "comparison":
       return renderComparisonMap(visual, palette)
     case "flow":
-    case "timeline":
       return renderFlowMap(visual, palette)
+    case "timeline":
+      return renderTimelineMap(visual, palette)
     case "warning":
       return renderWarningMap(visual, palette)
     case "checklist":
@@ -734,11 +840,11 @@ function renderArticleVisualSvg(slug: string, visual: ArticleVisual): string {
     maxLines: 3,
   })
   const footer = textBlock({
-    text: "Educational guide. Use urgent care for emergency symptoms.",
-    x: 190,
-    y: 1506,
-    width: 820,
-    size: 23,
+    text: getFooterCopy(visual),
+    x: 164,
+    y: 1490,
+    width: 360,
+    size: 22,
     weight: 600,
     color: "#ffffff",
     maxLines: 1,
@@ -755,18 +861,17 @@ function renderArticleVisualSvg(slug: string, visual: ArticleVisual): string {
         </filter>
       </defs>
       <rect width="${WIDTH}" height="${HEIGHT}" fill="${palette.wash}"/>
-      <circle cx="1024" cy="170" r="170" fill="${palette.light}"/>
-      <circle cx="1122" cy="1290" r="220" fill="${palette.light}" opacity="0.72"/>
+      ${renderBackgroundTexture(palette)}
       ${badge(80, 72, visual.eyebrow, palette)}
-      ${guideIcon(visual.kind, 1010, 92, palette)}
+      ${renderVisualMotif(visual, palette)}
       ${title.svg}
       ${summary.svg}
       <g filter="url(#softShadow)">
         ${renderMap(visual, palette)}
       </g>
-      <rect x="80" y="1418" width="1120" height="116" rx="34" fill="${palette.dark}"/>
-      <circle cx="132" cy="1476" r="28" fill="#ffffff" opacity="0.18"/>
-      <path d="M118 1477 L130 1489 L150 1462" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="80" y="1432" width="462" height="86" rx="28" fill="${palette.dark}"/>
+      <circle cx="124" cy="1476" r="24" fill="#ffffff" opacity="0.18"/>
+      <path d="M112 1477 L123 1488 L142 1463" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
       ${footer.svg}
     </svg>
   `
