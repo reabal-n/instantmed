@@ -31,6 +31,10 @@ const reviewRequestTemplateSource = readFileSync(
   join(process.cwd(), "lib/email/components/templates/review-request.tsx"),
   "utf8",
 )
+const reviewAskCardSource = readFileSync(
+  join(process.cwd(), "components/patient/review-ask-card.tsx"),
+  "utf8",
+)
 
 describe("review CTA destination contract", () => {
   it("does not hardcode platform-specific 'Google review' copy in review email surfaces", () => {
@@ -40,9 +44,21 @@ describe("review CTA destination contract", () => {
     for (const [label, source] of [
       ["review CTA", reviewCtaSource],
       ["review request template", reviewRequestTemplateSource],
+      ["review ask card", reviewAskCardSource],
     ] as const) {
       expect(source, label).not.toMatch(/Google review/i)
     }
+  })
+
+  it("routes the on-site review ask through the rotating redirect, never a hardcoded platform", () => {
+    // The web ask card must use /api/review-redirect (tracked + rotating
+    // destination) rather than linking a review platform directly, and must
+    // not render star glyphs — rating imagery on our own surface is the
+    // s133 line the email decorations deliberately stay off the web for.
+    expect(reviewAskCardSource).toContain("/api/review-redirect")
+    expect(reviewAskCardSource).not.toMatch(/productreview\.com\.au|g\.page|trustpilot/i)
+    expect(reviewAskCardSource).not.toContain("★")
+    expect(reviewAskCardSource).not.toContain("⭐")
   })
 
   it("defaults the off-site review destination to ProductReview, not Google", () => {

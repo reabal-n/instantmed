@@ -13,6 +13,7 @@ import { useState } from "react"
 
 import { DashboardPageHeader } from "@/components/dashboard"
 import { PatientErrorAlert } from "@/components/patient/error-alert"
+import { ReviewAskCard } from "@/components/patient/review-ask-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -28,6 +29,7 @@ interface Certificate {
   serviceName: string
   url: string | null
   generatedAt: string
+  intakeId?: string | null
 }
 
 interface ReceiptDoc {
@@ -92,7 +94,8 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                     </CardContent>
                   </Card>
                 ) : (
-                  certificates.map((cert) => (
+                  <>
+                  {certificates.map((cert) => (
                     <Card key={cert.id} className="rounded-xl border-border/50 hover:border-primary/50 hover:shadow-sm transition-[border-color,box-shadow]">
                       <CardContent className="flex items-center justify-between p-3">
                         <div className="flex items-center gap-4">
@@ -119,7 +122,12 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                         )}
                       </CardContent>
                     </Card>
-                  ))
+                  ))}
+                  <ReviewAskCard
+                    source="patient_documents"
+                    intakeId={certificates[0]?.intakeId ?? undefined}
+                  />
+                  </>
                 )}
               </TabsContent>
 

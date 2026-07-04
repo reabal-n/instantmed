@@ -30,9 +30,15 @@ export interface MedCertPatientEmailProps {
   isGuest?: boolean
   /**
    * Signed heard-about-us token. When present, renders the one-click
-   * "how did you find us?" attribution question below the Google review CTA.
+   * "how did you find us?" attribution question below the review CTA.
    */
   heardToken?: string
+  /**
+   * Intake ID threaded into the footer review CTA's /api/review-redirect link
+   * so clicks attribute to an intake in PostHog instead of landing as
+   * anonymous_email_click.
+   */
+  intakeId?: string
 }
 
 export function MedCertPatientEmail({
@@ -43,6 +49,7 @@ export function MedCertPatientEmail({
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
   isGuest = false,
   heardToken,
+  intakeId,
 }: MedCertPatientEmailProps) {
   const firstName = patientName.split(" ")[0]
 
@@ -53,6 +60,7 @@ export function MedCertPatientEmail({
       showReviewCTA
       showReferral
       heardToken={heardToken}
+      intakeId={intakeId}
     >
       <HeroBlock
         icon="🎉"

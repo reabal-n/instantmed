@@ -32,6 +32,7 @@ import { DocumentReadyReveal } from "@/components/patient/document-ready-reveal"
 import { EmailVerificationGate } from "@/components/patient/email-verification-gate"
 import { IntakeStatusListener } from "@/components/patient/intake-status-listener"
 import { IntakeStatusTracker } from "@/components/patient/intake-status-tracker"
+import { ReviewAskCard } from "@/components/patient/review-ask-card"
 import { SendToEmployerDialog } from "@/components/patient/send-to-employer-dialog"
 import { CopySupportSummaryButton } from "@/components/patient/support-summary-button"
 import { Badge } from "@/components/ui/badge"
@@ -865,6 +866,9 @@ export function IntakeDetailClient({
           </DocumentReadyReveal>
         </EmailVerificationGate>
       )}
+
+      {/* ─── Review ask (right after delivery) ─────────────────────────── */}
+      {isReady && <ReviewAskCard source="patient_intake_detail" intakeId={intake.id} />}
 
       {/* ─── Cross-sell (after approval) ───────────────────────────────── */}
       {(intake.status === "approved" || intake.status === "completed") && (
