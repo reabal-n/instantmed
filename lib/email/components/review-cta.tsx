@@ -64,7 +64,7 @@ export function ReviewHero({ appUrl, serviceCopy, intakeId, userId }: ReviewHero
         lineHeight: "1.6",
         fontFamily,
       }}>
-        {serviceCopy || "If we saved you a trip to the GP, a quick review helps other Aussies find fast, easy healthcare. It takes about 30 seconds."}
+        {serviceCopy || "If we saved you a trip to the GP, a quick review helps other Aussies find fast, easy healthcare. A couple of sentences is plenty."}
       </p>
 
       {/* CTA Button */}
@@ -95,9 +95,20 @@ export function ReviewHero({ appUrl, serviceCopy, intakeId, userId }: ReviewHero
         </tbody>
       </table>
 
+      {/* Expectation-setting: the review site asks you to sign in at the end.
+          Naming that up front stops the drop-off at the sign-in wall. */}
+      <p style={{
+        margin: "14px 0 0 0",
+        fontSize: "12px",
+        color: colors.textMuted,
+        fontFamily,
+      }}>
+        Takes about a minute, including a short sign-in at the end.
+      </p>
+
       {/* Already reviewed */}
       <p style={{
-        margin: "16px 0 0 0",
+        margin: "8px 0 0 0",
         fontSize: "12px",
         color: colors.textMuted,
         fontFamily,
@@ -148,6 +159,7 @@ export function GoogleReviewCTA({ appUrl, intakeId, userId }: GoogleReviewCTAPro
         </p>
         <p style={{ margin: "0 0 14px 0", fontSize: "13px", color: colors.textBody, lineHeight: "1.5", fontFamily }}>
           If we saved you a trip to the GP, a quick review would mean the world to us.
+          A couple of sentences is plenty.
         </p>
         <a
           className="google-review-btn"
@@ -167,6 +179,9 @@ export function GoogleReviewCTA({ appUrl, intakeId, userId }: GoogleReviewCTAPro
         >
           Leave a review
         </a>
+        <p style={{ margin: "12px 0 0 0", fontSize: "12px", color: colors.textMuted, fontFamily }}>
+          Takes about a minute, including a short sign-in at the end.
+        </p>
       </div>
     </div>
   )
