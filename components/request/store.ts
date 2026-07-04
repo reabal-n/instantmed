@@ -162,6 +162,19 @@ const DRAFT_WRITE_DEBOUNCE_MS = 400
 
 let pendingDraftWrite: { name: string; value: StorageValue<Partial<RequestState>> } | null = null
 let draftWriteTimer: ReturnType<typeof setTimeout> | null = null
+let draftHydrationSavedBefore: number | null = null
+let draftHydrationCutoffToken = 0
+
+export function beginRequestDraftHydrationCutoff(savedBefore: number): number {
+  draftHydrationCutoffToken += 1
+  draftHydrationSavedBefore = savedBefore
+  return draftHydrationCutoffToken
+}
+
+export function clearRequestDraftHydrationCutoff(token: number): void {
+  if (token !== draftHydrationCutoffToken) return
+  draftHydrationSavedBefore = null
+}
 
 function writeDraftToStorage(name: string, value: StorageValue<Partial<RequestState>>): void {
   try {
@@ -201,6 +214,51 @@ function flushPendingDraftWrite(): void {
   const { name, value } = pendingDraftWrite
   pendingDraftWrite = null
   writeDraftToStorage(name, value)
+}
+
+function queueDraftStorageWrite(
+  name: string,
+  value: StorageValue<Partial<RequestState>>,
+): void {
+  if (typeof localStorage === 'undefined') return
+  pendingDraftWrite = { name, value }
+  if (draftWriteTimer !== null) clearTimeout(draftWriteTimer)
+  draftWriteTimer = setTimeout(() => {
+    draftWriteTimer = null
+    flushPendingDraftWrite()
+  }, DRAFT_WRITE_DEBOUNCE_MS)
+}
+
+function persistedRequestState(state: Partial<RequestState>): Partial<RequestState> {
+  return {
+    serviceType: state.serviceType,
+    currentStepId: state.currentStepId,
+    safetyConfirmed: state.safetyConfirmed,
+    safetyTimestamp: state.safetyTimestamp,
+    answers: state.answers,
+    firstName: state.firstName,
+    lastName: state.lastName,
+    email: state.email,
+    phone: state.phone,
+    dob: state.dob,
+    lastSavedAt: new Date().toISOString(),
+  }
+}
+
+function queueLatestDraftSnapshot(state: Partial<RequestState>): void {
+  queueDraftStorageWrite('instantmed-request-draft', {
+    state: persistedRequestState(state),
+    version: 0,
+  })
+}
+
+function queueLatestDraftSnapshotAfterMutation(readState: () => Partial<RequestState>): void {
+  const queue =
+    typeof queueMicrotask === 'function'
+      ? queueMicrotask
+      : (callback: () => void) => setTimeout(callback, 0)
+
+  queue(() => queueLatestDraftSnapshot(readState()))
 }
 
 if (typeof window !== 'undefined') {
@@ -309,8 +367,30 @@ function normalizePersistedState(state: Partial<RequestState> | undefined): Part
   }
 }
 
+function hasMeaningfulAnswerValue(value: unknown): boolean {
+  if (value === undefined || value === null || value === '') return false
+  if (Array.isArray(value)) return value.length > 0
+  return true
+}
+
+function countMeaningfulAnswers(answers: unknown): number {
+  if (!isPlainRecord(answers)) return 0
+  return Object.values(answers).filter(hasMeaningfulAnswerValue).length
+}
+
+function shouldKeepCurrentStateDuringHydration(
+  persistedState: Partial<RequestState>,
+  currentState: RequestState & RequestActions,
+): boolean {
+  if (!persistedState.serviceType || !currentState.serviceType) return false
+  if (persistedState.serviceType !== currentState.serviceType) return false
+  if (persistedState.currentStepId !== currentState.currentStepId) return false
+
+  return countMeaningfulAnswers(currentState.answers) > countMeaningfulAnswers(persistedState.answers)
+}
+
 export const useRequestStore = create<RequestState & RequestActions>()(
-  persist(
+  persist<RequestState & RequestActions, [], [], Partial<RequestState>>(
     (set, get) => ({
       ...initialState,
 
@@ -440,6 +520,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         set({
           answers: { ...answers, [key]: value },
         })
+        queueLatestDraftSnapshotAfterMutation(get)
 
         const event = buildIntakeAnswerChangedEvent({
           serviceType: state.serviceType,
@@ -451,23 +532,31 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         if (event) capture(event.event, event.properties)
       },
 
-      setAnswers: (nextAnswers) => set((state) => {
-        const answers = isPlainRecord(state.answers) ? state.answers : {}
-        const entries = Object.entries(nextAnswers)
-        const hasChanged = entries.some(([key, value]) => !Object.is(answers[key], value))
-        if (!hasChanged) {
-          return state
-        }
+      setAnswers: (nextAnswers) => {
+        let changed = false
+        set((state) => {
+          const answers = isPlainRecord(state.answers) ? state.answers : {}
+          const entries = Object.entries(nextAnswers)
+          const hasChanged = entries.some(([key, value]) => !Object.is(answers[key], value))
+          if (!hasChanged) {
+            return state
+          }
 
-        return {
-          answers: { ...answers, ...nextAnswers },
-        }
-      }),
+          changed = true
+          return {
+            answers: { ...answers, ...nextAnswers },
+          }
+        })
+        if (changed) queueLatestDraftSnapshotAfterMutation(get)
+      },
 
-      setIdentity: (data) => set((state) => ({
-        ...state,
-        ...data,
-      })),
+      setIdentity: (data) => {
+        set((state) => ({
+          ...state,
+          ...data,
+        }))
+        queueLatestDraftSnapshotAfterMutation(get)
+      },
 
       getIdentity: () => {
         const { firstName, lastName, email, phone, dob } = get()
@@ -504,19 +593,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
     }),
     {
       name: 'instantmed-request-draft',
-      partialize: (state) => ({
-        serviceType: state.serviceType,
-        currentStepId: state.currentStepId,
-        safetyConfirmed: state.safetyConfirmed,
-        safetyTimestamp: state.safetyTimestamp,
-        answers: state.answers,
-        firstName: state.firstName,
-        lastName: state.lastName,
-        email: state.email,
-        phone: state.phone,
-        dob: state.dob,
-        lastSavedAt: new Date().toISOString(),
-      }),
+      partialize: persistedRequestState,
       // Custom storage with dual-write to new service-scoped keys
       storage: {
         getItem: (name: string): StorageValue<Partial<RequestState>> | null => {
@@ -551,7 +628,12 @@ export const useRequestStore = create<RequestState & RequestActions>()(
             // silently pre-filling with old illness dates.
             const lastSavedAt = parsed.state?.lastSavedAt
             if (lastSavedAt) {
-              const hoursSinceSave = (Date.now() - new Date(lastSavedAt).getTime()) / (1000 * 60 * 60)
+              const savedTime = new Date(lastSavedAt).getTime()
+              if (draftHydrationSavedBefore !== null && savedTime >= draftHydrationSavedBefore) {
+                return null
+              }
+
+              const hoursSinceSave = (Date.now() - savedTime) / (1000 * 60 * 60)
               if (hoursSinceSave >= 24) {
                 localStorage.removeItem(name)
                 return null
@@ -594,13 +676,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         // Zustand — only the storage mirror trails by up to 400ms, with a
         // flush on pagehide/hidden so a tab kill loses at most that window.
         setItem: (name: string, value: StorageValue<Partial<RequestState>>): void => {
-          if (typeof localStorage === 'undefined') return
-          pendingDraftWrite = { name, value }
-          if (draftWriteTimer !== null) clearTimeout(draftWriteTimer)
-          draftWriteTimer = setTimeout(() => {
-            draftWriteTimer = null
-            flushPendingDraftWrite()
-          }, DRAFT_WRITE_DEBOUNCE_MS)
+          queueDraftStorageWrite(name, value)
         },
         removeItem: (name: string): void => {
           if (typeof localStorage === 'undefined') return
@@ -625,6 +701,16 @@ export const useRequestStore = create<RequestState & RequestActions>()(
       // producing HTML that differs from the server render → React hydration error.
       // We call useRequestStore.persist.rehydrate() in a useEffect instead.
       skipHydration: true,
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<RequestState>
+        if (shouldKeepCurrentStateDuringHydration(persisted, currentState)) {
+          return currentState
+        }
+        return {
+          ...currentState,
+          ...persisted,
+        }
+      },
     }
   )
 )

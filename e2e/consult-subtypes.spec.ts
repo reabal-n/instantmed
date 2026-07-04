@@ -18,6 +18,9 @@ function clearBrowserDrafts() {
   localStorage.removeItem("instantmed-draft-consult")
   localStorage.removeItem("instantmed-request-draft")
   localStorage.removeItem("instantmed-preferences")
+  localStorage.removeItem("instantmed-server-draft-med-cert")
+  localStorage.removeItem("instantmed-server-draft-prescription")
+  localStorage.removeItem("instantmed-server-draft-consult")
 }
 
 async function clearDrafts(page: Page) {
@@ -51,6 +54,7 @@ async function clickContinue(page: Page) {
     const button = page.locator('button[data-intake-primary-action="true"]').last()
     try {
       await expect(button).toBeEnabled({ timeout: 5000 })
+      await expect(button).toHaveAttribute("data-intake-primary-ready", "true", { timeout: 5000 })
       await button.click()
       return
     } catch (error) {
@@ -60,6 +64,17 @@ async function clickContinue(page: Page) {
   }
 
   throw lastError
+}
+
+async function waitForIntakeStateToSettle(page: Page) {
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => resolve())
+        })
+      }),
+  )
 }
 
 async function ensureRadioChecked(page: Page, groupName: RegExp, radioName: RegExp) {
@@ -74,6 +89,28 @@ async function ensureRadioChecked(page: Page, groupName: RegExp, radioName: RegE
 
     try {
       await expect(radio).toHaveAttribute("aria-checked", "true", { timeout: 2000 })
+      await waitForIntakeStateToSettle(page)
+      return
+    } catch (error) {
+      if (attempt === 2) throw error
+      await page.waitForTimeout(250)
+    }
+  }
+}
+
+async function ensureChipPressed(page: Page, groupName: RegExp, chipName: RegExp) {
+  const chip = page
+    .getByRole("group", { name: groupName })
+    .getByRole("button", { name: chipName })
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    if ((await chip.getAttribute("aria-pressed").catch(() => null)) !== "true") {
+      await chip.click()
+    }
+
+    try {
+      await expect(chip).toHaveAttribute("aria-pressed", "true", { timeout: 2000 })
+      await waitForIntakeStateToSettle(page)
       return
     } catch (error) {
       if (attempt === 2) throw error
@@ -84,18 +121,9 @@ async function ensureRadioChecked(page: Page, groupName: RegExp, radioName: RegE
 
 async function selectUtiCleanSafetyPath(page: Page) {
   await expect(page.getByText(/Which symptoms do you have/i)).toBeVisible({ timeout: 10000 })
-  await page
-    .getByRole("group", { name: /UTI symptoms/i })
-    .getByRole("button", { name: /Burning or stinging/i })
-    .click()
-  await page
-    .getByRole("radiogroup", { name: /fever, flank or back pain/i })
-    .getByRole("radio", { name: /^No$/ })
-    .click()
-  await page
-    .getByRole("radiogroup", { name: /pregnant/i })
-    .getByRole("radio", { name: /^No$/ })
-    .click()
+  await ensureChipPressed(page, /UTI symptoms/i, /Burning or stinging/i)
+  await ensureRadioChecked(page, /fever, flank or back pain/i, /^No$/)
+  await ensureRadioChecked(page, /pregnant/i, /^No$/)
 }
 
 async function completeConsultMedicalHistory(page: Page) {
@@ -198,9 +226,7 @@ test.describe("Consult Sub-Services", () => {
     await selectUtiCleanSafetyPath(page)
 
     // Continue is enabled and the flow advances out of the assessment.
-    const continueBtn = page.getByRole("button", { name: /^Continue$/i }).last()
-    await expect(continueBtn).toBeEnabled({ timeout: 5000 })
-    await continueBtn.click()
+    await clickContinue(page)
     await expect(page.getByText(/Which symptoms do you have/i)).not.toBeVisible({ timeout: 10000 })
   })
 

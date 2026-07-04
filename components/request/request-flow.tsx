@@ -53,7 +53,11 @@ import { useSwipeNavigation } from "./hooks/use-swipe-navigation"
 import { useUnsavedChanges } from "./hooks/use-unsaved-changes"
 import { preloadStepComponent } from "./step-loaders"
 import { StepRouter } from "./step-router"
-import { useRequestStore } from "./store"
+import {
+  beginRequestDraftHydrationCutoff,
+  clearRequestDraftHydrationCutoff,
+  useRequestStore,
+} from "./store"
 
 // Kick off the FIRST step's chunk fetch as soon as this client module
 // evaluates — in parallel with hydration — instead of waiting for the full
@@ -400,6 +404,10 @@ export function RequestFlow({
     storeServiceType: serviceType,
     currentStepId,
   })
+  const clientSessionStartedAtRef = useRef<number | null>(null)
+  if (clientSessionStartedAtRef.current === null && typeof window !== "undefined") {
+    clientSessionStartedAtRef.current = Date.now()
+  }
   const storedDraftAtEntryRef = useRef<ReturnType<typeof getStoredDraftRestoreCandidate> | null | undefined>(undefined)
   if (storedDraftAtEntryRef.current === undefined) {
     storedDraftAtEntryRef.current = getStoredDraftRestoreCandidate(initialService)
@@ -409,28 +417,43 @@ export function RequestFlow({
   // The store uses skipHydration:true to avoid a server/client mismatch on first render.
   useEffect(() => {
     let cancelled = false
+    const entryDraft = storedDraftAtEntryRef.current
+    const savedBefore = clientSessionStartedAtRef.current ?? Date.now()
 
     const offerExistingDraft = () => {
-      if (cancelled || !storedDraftAtEntryRef.current) return
+      if (cancelled || !entryDraft) return
 
       const hydratedState = useRequestStore.getState()
       if (
-        shouldOfferDraftRestore(storedDraftAtEntryRef.current) &&
+        shouldOfferDraftRestore({
+          ...entryDraft,
+          savedBefore,
+        }) &&
         shouldOfferDraftRestore({
           lastSavedAt: hydratedState.lastSavedAt,
           serviceType: hydratedState.serviceType,
           currentStepId: hydratedState.currentStepId,
+          savedBefore,
         })
       ) {
         setShowDraftBanner(true)
       }
     }
 
+    const hydrationCutoffToken = beginRequestDraftHydrationCutoff(savedBefore)
+
+    const finishHydration = () => {
+      clearRequestDraftHydrationCutoff(hydrationCutoffToken)
+      offerExistingDraft()
+    }
+
     const rehydrateResult = useRequestStore.persist.rehydrate()
     if (rehydrateResult && typeof rehydrateResult.then === "function") {
-      void rehydrateResult.then(offerExistingDraft)
+      void rehydrateResult.then(finishHydration, () => {
+        clearRequestDraftHydrationCutoff(hydrationCutoffToken)
+      })
     } else {
-      offerExistingDraft()
+      finishHydration()
     }
 
     return () => {

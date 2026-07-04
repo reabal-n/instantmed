@@ -69,6 +69,28 @@ describe("request draft restore decision", () => {
     ).toBe(false)
   })
 
+  it("does not offer restore for drafts saved during the active page session", () => {
+    expect(
+      shouldOfferDraftRestore({
+        lastSavedAt: new Date(NOW + 1000).toISOString(),
+        serviceType: "consult",
+        currentStepId: "womens-health-assessment",
+        now: NOW + 2000,
+        savedBefore: NOW,
+      }),
+    ).toBe(false)
+
+    expect(
+      shouldOfferDraftRestore({
+        lastSavedAt: new Date(NOW - 1000).toISOString(),
+        serviceType: "consult",
+        currentStepId: "womens-health-assessment",
+        now: NOW + 2000,
+        savedBefore: NOW,
+      }),
+    ).toBe(true)
+  })
+
   it("does not offer restore without a hydrated service draft", () => {
     expect(
       shouldOfferDraftRestore({
