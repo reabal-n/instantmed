@@ -12,10 +12,31 @@ export interface ArticleLink {
   title?: string
 }
 
+export type ArticleHeroImageFit = 'contain' | 'cover'
+
+export interface ArticleDecisionGroup {
+  title: 'May fit telehealth' | 'Needs in-person care' | 'Urgent care'
+  items: string[]
+}
+
 export interface ArticleSection {
-  type: 'paragraph' | 'heading' | 'list' | 'callout' | 'faq' | 'table' | 'steps'
+  type:
+    | 'paragraph'
+    | 'heading'
+    | 'list'
+    | 'callout'
+    | 'faq'
+    | 'table'
+    | 'steps'
+    | 'keyTakeaway'
+    | 'decisionBox'
+    | 'evidenceNote'
+    | 'policyNote'
   content: string
+  title?: string
+  source?: string
   items?: string[]
+  groups?: ArticleDecisionGroup[]
   headers?: string[] // table column headers
   rows?: string[][] // table body rows
   variant?: 'info' | 'warning' | 'tip' | 'emergency'
@@ -49,6 +70,7 @@ export interface Article {
   author: ArticleAuthor
   heroImage: string
   heroImageDark?: string
+  heroImageFit?: ArticleHeroImageFit
   heroImageAlt: string
   content: ArticleSection[]
   faqs?: ArticleFAQ[]

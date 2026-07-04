@@ -2,7 +2,16 @@ import fs from 'fs'
 import matter from 'gray-matter'
 import path from 'path'
 
-import type { Article, ArticleAuthor, ArticleCategory, ArticleFAQ, ArticleSection, ArticleSeries } from './types'
+import type {
+  Article,
+  ArticleAuthor,
+  ArticleCategory,
+  ArticleDecisionGroup,
+  ArticleFAQ,
+  ArticleHeroImageFit,
+  ArticleSection,
+  ArticleSeries,
+} from './types'
 import { defaultAuthor } from './types'
 
 const CONTENT_DIR = path.join(process.cwd(), 'content', 'blog')
@@ -25,6 +34,7 @@ interface MDXFrontmatter {
   author: string // key into author registry, or 'default'
   heroImage: string
   heroImageDark?: string
+  heroImageFit?: ArticleHeroImageFit
   heroImageAlt: string
   faqs?: ArticleFAQ[]
   relatedArticles?: string[]
@@ -46,6 +56,21 @@ const authorRegistry: Record<string, ArticleAuthor> = {
   default: defaultAuthor,
 }
 
+export const SUPPORTED_ARTICLE_COMPONENT_TAGS = [
+  'Callout',
+  'KeyTakeaway',
+  'DecisionBox',
+  'EvidenceNote',
+  'PolicyNote',
+] as const
+
+const SUPPORTED_ARTICLE_COMPONENT_TAG_SET = new Set<string>(SUPPORTED_ARTICLE_COMPONENT_TAGS)
+const DECISION_GROUP_TITLES: ArticleDecisionGroup['title'][] = [
+  'May fit telehealth',
+  'Needs in-person care',
+  'Urgent care',
+]
+
 function resolveAuthor(key: string): ArticleAuthor {
   return authorRegistry[key] || defaultAuthor
 }
@@ -64,7 +89,7 @@ function resolveAuthor(key: string): ArticleAuthor {
  * - <Callout variant="info">text</Callout>
  * - Inline links [text](/href "title") are converted to ArticleLink[]
  */
-function parseMDXBodyToSections(body: string): ArticleSection[] {
+export function parseMDXBodyToSections(body: string): ArticleSection[] {
   const sections: ArticleSection[] = []
   const lines = body.split('\n')
   let i = 0
@@ -89,6 +114,13 @@ function parseMDXBodyToSections(body: string): ArticleSection[] {
       if (table) {
         sections.push(table)
       }
+      continue
+    }
+
+    const learningAid = parseLearningAidComponent(lines, i)
+    if (learningAid) {
+      sections.push(learningAid.section)
+      i = learningAid.nextIndex
       continue
     }
 
@@ -119,6 +151,11 @@ function parseMDXBodyToSections(body: string): ArticleSection[] {
         variant: inlineCalloutMatch[1] as ArticleSection['variant'],
         content: cleanInlineMarkdown(inlineCalloutMatch[2].trim()),
       })
+      i++
+      continue
+    }
+
+    if (isArticleComponentTagLine(line)) {
       i++
       continue
     }
@@ -202,7 +239,7 @@ function parseMDXBodyToSections(body: string): ArticleSection[] {
       !lines[i].startsWith('- ') &&
       !/^\d+\.\s+/.test(lines[i]) &&
       !isTableRow(lines[i]) &&
-      !lines[i].startsWith('<Callout')
+      !isArticleComponentTagLine(lines[i])
     ) {
       paraLines.push(lines[i])
       i++
@@ -222,6 +259,275 @@ function parseMDXBodyToSections(body: string): ArticleSection[] {
   }
 
   return sections
+}
+
+export function findUnknownArticleComponentTags(body: string): string[] {
+  const unknown = new Set<string>()
+  for (const match of body.matchAll(/<\/?([A-Z][A-Za-z0-9]*)\b/g)) {
+    const tagName = match[1]
+    if (!SUPPORTED_ARTICLE_COMPONENT_TAG_SET.has(tagName)) {
+      unknown.add(tagName)
+    }
+  }
+  return [...unknown].sort()
+}
+
+export function findMalformedArticleComponentBlocks(body: string): string[] {
+  const issues: string[] = []
+  const lines = body.split('\n')
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const trimmed = lines[index].trim()
+    const opening = trimmed.match(/^<(KeyTakeaway|DecisionBox|EvidenceNote|PolicyNote)\b([^>]*)>\s*$/)
+    const inline = trimmed.match(/^<(KeyTakeaway|DecisionBox|EvidenceNote|PolicyNote)\b([^>]*)>(.*?)<\/\1>\s*$/)
+    if (inline) {
+      if (!validateLearningAidComponent(inline[1], parseComponentAttributes(inline[2]), [inline[3]], true)) {
+        issues.push(`${inline[1]} inline block is malformed near line ${index + 1}`)
+      }
+      continue
+    }
+    if (!opening) continue
+
+    const tagName = opening[1]
+    const closingIndex = findClosingTagIndex(lines, index + 1, tagName)
+    if (closingIndex < 0) {
+      issues.push(`${tagName} block is missing a closing tag near line ${index + 1}`)
+      continue
+    }
+
+    const bodyLines = lines.slice(index + 1, closingIndex)
+    if (!validateLearningAidComponent(tagName, parseComponentAttributes(opening[2]), bodyLines, false)) {
+      issues.push(`${tagName} block is malformed near line ${index + 1}`)
+    }
+    index = closingIndex
+  }
+
+  return issues
+}
+
+function parseLearningAidComponent(
+  lines: string[],
+  index: number,
+): { section: ArticleSection; nextIndex: number } | null {
+  const line = lines[index].trim()
+  const inline = line.match(/^<(KeyTakeaway|DecisionBox|EvidenceNote|PolicyNote)\b([^>]*)>(.*?)<\/\1>\s*$/)
+  if (inline) {
+    return {
+      section: buildLearningAidSection(inline[1], parseComponentAttributes(inline[2]), [inline[3]], true),
+      nextIndex: index + 1,
+    }
+  }
+
+  const opening = line.match(/^<(KeyTakeaway|DecisionBox|EvidenceNote|PolicyNote)\b([^>]*)>\s*$/)
+  if (!opening) return null
+
+  const tagName = opening[1]
+  const closingIndex = findClosingTagIndex(lines, index + 1, tagName)
+  if (closingIndex < 0) {
+    return {
+      section: fallbackComponentSection([], tagName),
+      nextIndex: index + 1,
+    }
+  }
+
+  return {
+    section: buildLearningAidSection(
+      tagName,
+      parseComponentAttributes(opening[2]),
+      lines.slice(index + 1, closingIndex),
+      false,
+    ),
+    nextIndex: closingIndex + 1,
+  }
+}
+
+function parseComponentAttributes(attributeText: string): Record<string, string> {
+  const attributes: Record<string, string> = {}
+  for (const match of attributeText.matchAll(/\s+([A-Za-z][\w-]*)="([^"]*)"/g)) {
+    attributes[match[1]] = cleanInlineMarkdown(match[2])
+  }
+  return attributes
+}
+
+function findClosingTagIndex(lines: string[], startIndex: number, tagName: string): number {
+  for (let index = startIndex; index < lines.length; index += 1) {
+    if (lines[index].trim() === `</${tagName}>`) return index
+  }
+  return -1
+}
+
+function buildLearningAidSection(
+  tagName: string,
+  attributes: Record<string, string>,
+  bodyLines: string[],
+  allowInline = false,
+): ArticleSection {
+  const body = bodyLines.map((item) => item.trim()).filter(Boolean)
+  const title = attributes.title || defaultLearningAidTitle(tagName)
+
+  if (tagName === 'KeyTakeaway') {
+    const items = parseBulletItems(body, allowInline)
+    if (!items || items.length === 0) return fallbackComponentSection(body, tagName, title)
+    return {
+      type: 'keyTakeaway',
+      title,
+      content: title,
+      items,
+    }
+  }
+
+  if (tagName === 'DecisionBox') {
+    const groups = parseDecisionGroups(body, allowInline)
+    if (!groups) return fallbackComponentSection(body, tagName, title)
+    return {
+      type: 'decisionBox',
+      title,
+      content: title,
+      groups,
+    }
+  }
+
+  if (tagName === 'EvidenceNote' || tagName === 'PolicyNote') {
+    const items = parseBulletListItems(body)
+    const content = items ? '' : cleanInlineMarkdown(body.join(' '))
+    if (!items && !content) return fallbackComponentSection(body, tagName, title)
+    return {
+      type: tagName === 'EvidenceNote' ? 'evidenceNote' : 'policyNote',
+      title,
+      source: attributes.source ? cleanInlineMarkdown(attributes.source) : undefined,
+      content,
+      ...(items ? { items } : {}),
+    }
+  }
+
+  return fallbackComponentSection(body, tagName, title)
+}
+
+function validateLearningAidComponent(
+  tagName: string,
+  attributes: Record<string, string>,
+  bodyLines: string[],
+  allowInline = false,
+): boolean {
+  const body = bodyLines.map((item) => item.trim()).filter(Boolean)
+  if (!attributes.title) return false
+
+  if (tagName === 'KeyTakeaway') {
+    const items = parseBulletItems(body, allowInline)
+    return Boolean(items && items.length > 0)
+  }
+
+  if (tagName === 'DecisionBox') {
+    return parseDecisionGroups(body, allowInline) !== null
+  }
+
+  if (tagName === 'EvidenceNote' || tagName === 'PolicyNote') {
+    return body.length > 0
+  }
+
+  return false
+}
+
+function parseBulletItems(lines: string[], allowInline = false): string[] | null {
+  if (allowInline && lines.length === 1 && !lines[0].startsWith('- ')) {
+    return lines[0]
+      .split(';')
+      .map((item) => cleanInlineMarkdown(item.trim().replace(/^- /, '')))
+      .filter(Boolean)
+  }
+
+  if (lines.length === 0 || !lines.every((item) => item.startsWith('- '))) return null
+
+  return lines.map((item) => cleanInlineMarkdown(item.slice(2).trim())).filter(Boolean)
+}
+
+function parseBulletListItems(lines: string[]): string[] | null {
+  if (lines.length === 0 || !lines.every((item) => item.startsWith('- '))) return null
+  return lines.map((item) => cleanInlineMarkdown(item.slice(2).trim())).filter(Boolean)
+}
+
+function parseDecisionGroups(lines: string[], allowInline = false): ArticleDecisionGroup[] | null {
+  if (allowInline && lines.length === 1 && !lines[0].startsWith('### ')) {
+    return parseInlineDecisionGroups(lines[0])
+  }
+
+  const groups: ArticleDecisionGroup[] = []
+  let activeTitle: ArticleDecisionGroup['title'] | null = null
+  let activeItems: string[] = []
+
+  const flush = () => {
+    if (!activeTitle) return
+    groups.push({ title: activeTitle, items: activeItems })
+    activeItems = []
+  }
+
+  for (const line of lines) {
+    const heading = line.match(/^###\s+(.+)$/)
+    if (heading) {
+      flush()
+      const title = heading[1].trim()
+      if (!isDecisionGroupTitle(title)) return null
+      activeTitle = title
+      continue
+    }
+
+    if (!activeTitle || !line.startsWith('- ')) return null
+    activeItems.push(cleanInlineMarkdown(line.slice(2).trim()))
+  }
+
+  flush()
+
+  if (groups.length !== DECISION_GROUP_TITLES.length) return null
+  if (groups.some((group) => group.items.length === 0)) return null
+  if (!groups.every((group, index) => group.title === DECISION_GROUP_TITLES[index])) return null
+
+  return groups
+}
+
+function parseInlineDecisionGroups(content: string): ArticleDecisionGroup[] | null {
+  const parts = content.split('|').map((part) => part.trim()).filter(Boolean)
+  if (parts.length !== DECISION_GROUP_TITLES.length) return null
+
+  const groups = parts.map((part) => {
+    const [rawTitle, rawItems] = part.split(/:\s+/, 2)
+    const title = rawTitle?.trim()
+    if (!isDecisionGroupTitle(title) || !rawItems) return null
+    return {
+      title,
+      items: rawItems.split(';').map((item) => cleanInlineMarkdown(item.trim())).filter(Boolean),
+    }
+  })
+
+  if (groups.some((group) => !group || group.items.length === 0)) return null
+  if (!groups.every((group, index) => group?.title === DECISION_GROUP_TITLES[index])) return null
+
+  return groups as ArticleDecisionGroup[]
+}
+
+function isDecisionGroupTitle(title: string | undefined): title is ArticleDecisionGroup['title'] {
+  return DECISION_GROUP_TITLES.includes(title as ArticleDecisionGroup['title'])
+}
+
+function fallbackComponentSection(bodyLines: string[], tagName: string, title?: string): ArticleSection {
+  const content = cleanInlineMarkdown(bodyLines.join(' ').trim())
+  return {
+    type: 'callout',
+    variant: 'info',
+    content: content || `${defaultLearningAidTitle(tagName)} section unavailable.`,
+    title,
+  }
+}
+
+function defaultLearningAidTitle(tagName: string): string {
+  if (tagName === 'KeyTakeaway') return 'Key takeaway'
+  if (tagName === 'DecisionBox') return 'Decision guide'
+  if (tagName === 'EvidenceNote') return 'Evidence note'
+  if (tagName === 'PolicyNote') return 'Policy note'
+  return 'Article note'
+}
+
+function isArticleComponentTagLine(line: string): boolean {
+  return /^<\/?[A-Z][A-Za-z0-9]*\b/.test(line.trim())
 }
 
 function isTableRow(line: string): boolean {
@@ -338,6 +644,7 @@ function loadMDXArticle(filePath: string): Article | null {
       author: resolveAuthor(fm.author),
       heroImage: fm.heroImage,
       heroImageDark: fm.heroImageDark,
+      heroImageFit: fm.heroImageFit,
       heroImageAlt: fm.heroImageAlt,
       content: contentSections,
       faqs: fm.faqs,

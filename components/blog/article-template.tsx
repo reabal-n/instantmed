@@ -42,6 +42,32 @@ function getBodyArticleVisuals(article: Article, articleVisuals: RenderableArtic
   return articleVisuals.filter((visual) => visual.assetPath !== article.heroImage)
 }
 
+function getHeroImageFit(article: Article) {
+  return article.heroImageFit ?? (article.heroImage.startsWith("/images/blog/") ? "contain" : "cover")
+}
+
+function getSourcesHeading(content: ArticleSection[]) {
+  const sourceHeading = content.find(
+    (section) =>
+      section.type === "heading" &&
+      section.level === 2 &&
+      /^(Sources|References|Further reading)\b/i.test(section.content),
+  )
+  if (!sourceHeading) return null
+  return {
+    label: sourceHeading.content,
+    id: slugifyHeading(sourceHeading.content),
+  }
+}
+
+function formatArticleDate(value: string) {
+  return new Date(value).toLocaleDateString("en-AU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+}
+
 function getVisualPlacements(content: ArticleSection[], visualCount: number) {
   if (visualCount === 0) return new Map<number, number[]>()
 
@@ -130,6 +156,247 @@ function CalloutBox({ variant, content }: { variant: ArticleSection['variant'], 
         <p className={cn("text-sm leading-relaxed", cfg.textColor)}>{content}</p>
       </div>
     </div>
+  )
+}
+
+function KeyTakeawayBox({ section }: { section: ArticleSection }) {
+  return (
+    <aside
+      className="group my-8 overflow-hidden rounded-2xl border border-primary/20 bg-white shadow-md shadow-primary/[0.06] transition-[transform,box-shadow,border-color] duration-300 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-lg motion-safe:hover:shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none dark:hover:border-primary/35"
+      aria-label={section.title ?? "Key takeaway"}
+    >
+      <div className="border-b border-primary/10 bg-primary/[0.035] px-5 py-4 dark:border-white/10 dark:bg-white/[0.04]">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">
+            <Lightbulb className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-primary">Key takeaway</p>
+            <h3 className="text-base font-semibold tracking-[-0.01em] text-foreground">{section.title}</h3>
+          </div>
+        </div>
+      </div>
+      <ul className="space-y-3 px-5 py-5">
+        {section.items?.map((item, index) => (
+          <li key={index} className="flex gap-3 text-[15px] leading-relaxed text-muted-foreground">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  )
+}
+
+const decisionGroupStyles: Record<
+  NonNullable<ArticleSection['groups']>[number]['title'],
+  {
+    icon: typeof CheckCircle2
+    badge: string
+    surface: string
+    iconColor: string
+  }
+> = {
+  "May fit telehealth": {
+    icon: CheckCircle2,
+    badge: "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:ring-emerald-800",
+    surface: "bg-emerald-50/55 dark:bg-emerald-950/20",
+    iconColor: "text-emerald-600 dark:text-emerald-300",
+  },
+  "Needs in-person care": {
+    icon: FileText,
+    badge: "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:ring-amber-800",
+    surface: "bg-amber-50/60 dark:bg-amber-950/20",
+    iconColor: "text-amber-600 dark:text-amber-300",
+  },
+  "Urgent care": {
+    icon: AlertTriangle,
+    badge: "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:ring-rose-800",
+    surface: "bg-rose-50/60 dark:bg-rose-950/20",
+    iconColor: "text-rose-600 dark:text-rose-300",
+  },
+}
+
+function DecisionBox({ section }: { section: ArticleSection }) {
+  return (
+    <section
+      className="my-8 rounded-2xl border border-border/50 bg-white p-5 shadow-md shadow-primary/[0.06] transition-[box-shadow,border-color] duration-300 hover:border-primary/25 dark:border-white/15 dark:bg-card dark:shadow-none"
+      aria-label={section.title ?? "Decision guide"}
+    >
+      <div className="mb-5 flex items-start gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">
+          <Shield className="h-4 w-4" />
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-primary">Decision guide</p>
+          <h3 className="text-lg font-semibold tracking-[-0.01em] text-foreground">{section.title}</h3>
+        </div>
+      </div>
+      <div className="grid gap-3 md:grid-cols-3">
+        {section.groups?.map((group) => {
+          const cfg = decisionGroupStyles[group.title]
+          const Icon = cfg.icon
+          return (
+            <div key={group.title} className={cn("rounded-xl p-4 ring-1 ring-border/50", cfg.surface)}>
+              <div className="mb-3 flex items-center gap-2">
+                <Icon className={cn("h-4 w-4 shrink-0", cfg.iconColor)} />
+                <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-medium ring-1", cfg.badge)}>
+                  {group.title}
+                </span>
+              </div>
+              <ul className="space-y-2">
+                {group.items.map((item, index) => (
+                  <li key={index} className="text-sm leading-relaxed text-foreground/75">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+function EvidencePolicyNote({ section }: { section: ArticleSection }) {
+  const isPolicy = section.type === "policyNote"
+  const Icon = isPolicy ? Shield : FileText
+
+  return (
+    <aside
+      className={cn(
+        "my-7 rounded-2xl border bg-white p-5 shadow-sm shadow-primary/[0.04] transition-[border-color,box-shadow] duration-300 hover:border-primary/25 dark:border-white/15 dark:bg-card dark:shadow-none",
+        isPolicy ? "border-blue-200/80 dark:border-blue-900/60" : "border-emerald-200/80 dark:border-emerald-900/60",
+      )}
+      aria-label={section.title ?? (isPolicy ? "Policy note" : "Evidence note")}
+    >
+      <div className="mb-3 flex items-start gap-3">
+        <div
+          className={cn(
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1",
+            isPolicy
+              ? "bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-950/30 dark:text-blue-300 dark:ring-blue-800"
+              : "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:ring-emerald-800",
+          )}
+        >
+          <Icon className="h-4 w-4" />
+        </div>
+        <div>
+          <p
+            className={cn(
+              "text-xs font-semibold uppercase tracking-[0.08em]",
+              isPolicy ? "text-blue-700 dark:text-blue-300" : "text-emerald-700 dark:text-emerald-300",
+            )}
+          >
+            {isPolicy ? "Policy note" : "Evidence note"}
+          </p>
+          <h3 className="text-base font-semibold tracking-[-0.01em] text-foreground">{section.title}</h3>
+          {section.source && (
+            <p className="mt-1 text-xs text-muted-foreground">Source: {section.source}</p>
+          )}
+        </div>
+      </div>
+      {section.items && section.items.length > 0 ? (
+        <ul className="space-y-2 pl-1">
+          {section.items.map((item, index) => (
+            <li key={index} className="flex gap-2.5 text-sm leading-relaxed text-muted-foreground">
+              <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm leading-relaxed text-muted-foreground">{section.content}</p>
+      )}
+    </aside>
+  )
+}
+
+function SourceReviewPanel({ article }: { article: Article }) {
+  const reviewer = getReviewer(article.slug)
+  const updated = formatArticleDate(article.updatedAt)
+  const sourcesHeading = getSourcesHeading(article.content)
+
+  return (
+    <section
+      aria-label="Review and source information"
+      className="mb-6 rounded-2xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
+    >
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="flex gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:ring-emerald-800">
+            <BadgeCheck className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300">
+              Review
+            </p>
+            {reviewer.kind === "person" ? (
+              <>
+                <a
+                  href={reviewer.registerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-semibold text-foreground underline-offset-2 hover:underline"
+                >
+                  {reviewer.name}
+                </a>
+                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                  {reviewer.title} · AHPRA {reviewer.ahpraNumber}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-semibold text-foreground">{reviewer.name}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                  Clinical governance review for guide content
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-950/30 dark:text-blue-300 dark:ring-blue-800">
+            <FileText className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-blue-700 dark:text-blue-300">
+              Sources
+            </p>
+            {sourcesHeading ? (
+              <a
+                href={`#${sourcesHeading.id}`}
+                className="text-sm font-semibold text-foreground underline-offset-2 hover:underline"
+              >
+                {sourcesHeading.label}
+              </a>
+            ) : (
+              <p className="text-sm font-semibold text-foreground">References listed where relevant</p>
+            )}
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              Official and clinical sources are cited in the guide body.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:ring-amber-800">
+            <Info className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-amber-700 dark:text-amber-300">
+              Updated
+            </p>
+            <p className="text-sm font-semibold text-foreground">{updated}</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              General information only, not personal medical advice.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -269,13 +536,13 @@ function ContentSection({ section }: { section: ArticleSection }) {
 
     case 'table':
       return (
-        <div className="overflow-x-auto my-6 rounded-xl border border-border">
-          <table className="w-full text-sm border-collapse">
+        <div className="my-8 overflow-x-auto rounded-2xl border border-border/50 bg-white shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none">
+          <table className="w-full min-w-[620px] border-collapse text-sm">
             {section.headers && section.headers.length > 0 && (
               <thead>
-                <tr className="bg-muted/50 border-b border-border">
+                <tr className="border-b border-border/70 bg-muted/60 dark:bg-white/[0.06]">
                   {section.headers.map((h, i) => (
-                    <th key={i} scope="col" className="px-4 py-3 text-left font-semibold text-foreground whitespace-nowrap">
+                    <th key={i} scope="col" className="px-4 py-3.5 text-left font-semibold text-foreground whitespace-nowrap">
                       {h}
                     </th>
                   ))}
@@ -284,14 +551,20 @@ function ContentSection({ section }: { section: ArticleSection }) {
             )}
             <tbody>
               {section.rows?.map((row, ri) => (
-                <tr key={ri} className={cn("border-b border-border/50", ri % 2 === 1 && "bg-muted/20")}>
+                <tr
+                  key={ri}
+                  className={cn(
+                    "border-b border-border/40 transition-colors last:border-b-0 hover:bg-primary/[0.035] dark:hover:bg-white/[0.04]",
+                    ri % 2 === 1 && "bg-muted/20 dark:bg-white/[0.025]",
+                  )}
+                >
                   {row.map((cell, ci) => (
                     ci === 0 ? (
-                      <th key={ci} scope="row" className="px-4 py-3 text-left font-medium text-foreground">
+                      <th key={ci} scope="row" className="px-4 py-3.5 text-left font-medium text-foreground">
                         {cell}
                       </th>
                     ) : (
-                      <td key={ci} className="px-4 py-3 text-muted-foreground">
+                      <td key={ci} className="px-4 py-3.5 leading-relaxed text-muted-foreground">
                         {cell}
                       </td>
                     )
@@ -305,6 +578,16 @@ function ContentSection({ section }: { section: ArticleSection }) {
 
     case 'callout':
       return <CalloutBox variant={section.variant} content={section.content} />
+
+    case 'keyTakeaway':
+      return <KeyTakeawayBox section={section} />
+
+    case 'decisionBox':
+      return <DecisionBox section={section} />
+
+    case 'evidenceNote':
+    case 'policyNote':
+      return <EvidencePolicyNote section={section} />
 
     default:
       return null
@@ -382,6 +665,7 @@ export function ArticleTemplate({
     : []
   const bodyArticleVisuals = getBodyArticleVisuals(article, articleVisuals)
   const visualPlacements = getVisualPlacements(article.content, bodyArticleVisuals.length)
+  const heroImageFit = getHeroImageFit(article)
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -468,7 +752,7 @@ export function ArticleTemplate({
           src={article.heroImage}
           alt={article.heroImageAlt}
           fill
-          className="object-cover"
+          className={heroImageFit === "contain" ? "object-contain" : "object-cover"}
           priority
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 672px, 750px"
         />
@@ -500,6 +784,8 @@ export function ArticleTemplate({
           <span className="font-semibold">Medical information only.</span> This article is for general information and does not constitute medical advice. Treatment decisions are made by an AHPRA-registered doctor after reviewing your circumstances.
         </p>
       </div>
+
+      <SourceReviewPanel article={article} />
 
       {/* Mobile jump-to-section */}
       <MobileTOC content={article.content} />
@@ -554,39 +840,7 @@ export function ArticleTemplate({
       {/* Social sharing */}
       <div className="mt-8 pt-6 border-t border-border">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            {(() => {
-              const reviewer = getReviewer(article.slug)
-              const updated = new Date(article.updatedAt).toLocaleDateString('en-AU', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })
-              if (reviewer.kind === 'person') {
-                return (
-                  <>
-                    <span className="font-medium">Medically reviewed by</span>{' '}
-                    <a
-                      href={reviewer.registerUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 font-medium text-foreground underline-offset-2 hover:underline"
-                    >
-                      {reviewer.name}
-                      <BadgeCheck className="w-3.5 h-3.5 text-primary inline-block" />
-                    </a>
-                    {` · ${reviewer.title} · AHPRA ${reviewer.ahpraNumber} · Last updated ${updated}`}
-                  </>
-                )
-              }
-              return (
-                <>
-                  <span className="font-medium">Reviewed by the {reviewer.name}</span>
-                  {` · Last updated ${updated}`}
-                </>
-              )
-            })()}
-          </p>
+          <p className="text-sm font-medium text-muted-foreground">Share this guide</p>
           <SocialShare 
             url={`https://instantmed.com.au/blog/${article.slug}`}
             title={article.title}

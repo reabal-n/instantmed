@@ -3,7 +3,7 @@
 > Canonical policy for organic educational content, prescription information pages, condition pages, symptom pages, and high-intent SEO pages.
 > Read this before creating or editing public SEO content.
 
-**Last updated:** 2026-05-05
+**Last updated:** 2026-07-04
 
 ---
 
@@ -82,7 +82,7 @@ Do not add:
 - "How InstantMed can help" sales sections
 - related-service acquisition panels
 - location SEO blocks such as "Available in Sydney"
-- request, prescription, consult, or medical-certificate links unless the article is explicitly explaining a service process and the link is neutral context
+- request, prescription, consult, or medical-certificate links in the guide body, except neutral related-reading links to other `/blog/*` guides
 
 Allowed inside guide articles:
 
@@ -91,9 +91,59 @@ Allowed inside guide articles:
 - author and reviewer details
 - safety boundaries, red flags, source notes, and neutral telehealth suitability context
 
+Neutral telehealth suitability context must stay informational. It can explain when a remote review may or may not fit, but it must not link to `/request` or otherwise become an acquisition device inside the guide body.
+
+### Supported guide components
+
+Guide article bodies are parsed by `lib/blog/mdx.ts`, not by a general MDX component map. Only the supported component tags below may appear in `content/blog/*.mdx`. Unknown capitalized tags are audit failures in `pnpm content:audit:strict`.
+
+Component tags must use opening and closing tags on their own lines for block authoring. Inline note syntax is supported only for short `EvidenceNote` and `PolicyNote` compatibility, but block syntax is preferred.
+
+Use `KeyTakeaway` near the top of a rewritten guide when the reader needs the practical answer before the full explanation:
+
+```mdx
+<KeyTakeaway title="Short answer">
+- First practical point.
+- Second practical point.
+</KeyTakeaway>
+```
+
+Use `DecisionBox` for neutral suitability or escalation logic. The three inner headings are fixed and must stay in this order:
+
+```mdx
+<DecisionBox title="Where this fits">
+### May fit telehealth
+- Routine, low-risk context.
+### Needs in-person care
+- Physical examination or testing is needed.
+### Urgent care
+- Severe, rapidly worsening, or emergency symptoms.
+</DecisionBox>
+```
+
+Use `EvidenceNote` for source or evidence context:
+
+```mdx
+<EvidenceNote title="Source note" source="AHPRA">
+This guide uses the live register rather than static screenshots because registration status can change.
+</EvidenceNote>
+```
+
+Use `PolicyNote` for workplace, university, government, or platform-policy context:
+
+```mdx
+<PolicyNote title="Policy context">
+Employer and institution evidence rules can vary. The article should explain the policy boundary without promising acceptance.
+</PolicyNote>
+```
+
+Use standard GitHub-style Markdown tables for comparisons. Do not build comparison grids with styled divs in guide content. The renderer outputs real semantic `<table>` elements for Markdown tables, which supports accessibility, indexing, and LLM extraction.
+
 Article visuals must be local assets under `public/images/blog/<slug>/`. Every rewritten article must have at least two GPT-generated local visuals, ideally three for high-intent or clinical topics. Visuals can include controlled, short readable copy when generated from the `lib/blog/visuals.ts` registry; do not let the image model invent claims, prices, diagnoses, drug names, service CTAs, or legal rules. The same clinical distinctions and labels must also exist in React/HTML through `components/blog/article-visuals.tsx` so the page remains accessible, reviewable, and indexable. Generated guide visuals should carry the deterministic `InstantMed` wordmark added by `scripts/generate-blog-visual-images.ts`; do not ask GPT to draw or spell the brand mark.
 
 Article images are educational assets, not mood boards. A generated image is acceptable only if it adds standalone patient value. The reader should learn concrete distinctions, steps, anatomy, warning signs, decision criteria, process details, risk factors, or prevention actions from the image itself. This applies to every visual format: infographic, anatomical explainer, patient poster, mechanism diagram, comparison graphic, process visual, warning graphic, body map, lab explainer, telehealth workflow, or hero image.
+
+Text-heavy explanations belong in HTML first. If a concept needs dense wording, use `KeyTakeaway`, `DecisionBox`, `EvidenceNote`, `PolicyNote`, or a semantic Markdown table before asking the image model to carry that information. Generated-image text from the registry should use short labels only, with a hard cap of 1-5 words per label. Longer explanations must render as HTML text next to or below the image.
 
 Reject and regenerate any article image that is mostly:
 
