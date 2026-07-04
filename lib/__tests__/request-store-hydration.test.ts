@@ -129,4 +129,21 @@ describe("request store draft hydration", () => {
     // resurrect them.
     expect(localStorage.getItem("instantmed-request-draft")).toBeNull()
   })
+
+  it("flushes the current step immediately when navigating", async () => {
+    await useRequestStore.persist.rehydrate()
+    useRequestStore.setState({
+      serviceType: "consult",
+      currentStepId: "womens-health-type",
+      answers: { consultSubtype: "womens_health" },
+    })
+
+    useRequestStore.getState().nextStep()
+
+    const legacyDraft = JSON.parse(localStorage.getItem("instantmed-request-draft") || "{}")
+    const scopedDraft = JSON.parse(localStorage.getItem("instantmed-draft-consult") || "{}")
+
+    expect(legacyDraft.state.currentStepId).toBe("womens-health-assessment")
+    expect(scopedDraft.currentStepId).toBe("womens-health-assessment")
+  })
 })

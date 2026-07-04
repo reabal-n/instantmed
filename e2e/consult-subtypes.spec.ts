@@ -12,14 +12,18 @@ import {
 // hair-loss, but `general` is no longer an active hub action or URL flow.
 const ACTIVE_CONSULT_SUBTYPES = ["ed", "hair_loss", "womens_health"] as const
 
+function clearBrowserDrafts() {
+  localStorage.removeItem("instantmed-draft-med-cert")
+  localStorage.removeItem("instantmed-draft-prescription")
+  localStorage.removeItem("instantmed-draft-consult")
+  localStorage.removeItem("instantmed-request-draft")
+  localStorage.removeItem("instantmed-preferences")
+}
+
 async function clearDrafts(page: Page) {
-  await page.addInitScript(() => {
-    localStorage.removeItem("instantmed-draft-med-cert")
-    localStorage.removeItem("instantmed-draft-prescription")
-    localStorage.removeItem("instantmed-draft-consult")
-    localStorage.removeItem("instantmed-request-draft")
-    localStorage.removeItem("instantmed-preferences")
-  })
+  await page.addInitScript(clearBrowserDrafts)
+  await page.goto("/")
+  await page.evaluate(clearBrowserDrafts)
 }
 
 async function dismissOverlays(page: Page) {
@@ -58,6 +62,26 @@ async function clickContinue(page: Page) {
   throw lastError
 }
 
+async function ensureRadioChecked(page: Page, groupName: RegExp, radioName: RegExp) {
+  const radio = page
+    .getByRole("radiogroup", { name: groupName })
+    .getByRole("radio", { name: radioName })
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    if ((await radio.getAttribute("aria-checked").catch(() => null)) !== "true") {
+      await radio.click()
+    }
+
+    try {
+      await expect(radio).toHaveAttribute("aria-checked", "true", { timeout: 2000 })
+      return
+    } catch (error) {
+      if (attempt === 2) throw error
+      await page.waitForTimeout(250)
+    }
+  }
+}
+
 async function selectUtiCleanSafetyPath(page: Page) {
   await expect(page.getByText(/Which symptoms do you have/i)).toBeVisible({ timeout: 10000 })
   await page
@@ -76,18 +100,9 @@ async function selectUtiCleanSafetyPath(page: Page) {
 
 async function completeConsultMedicalHistory(page: Page) {
   await expect(page.getByText(/Any allergies/i)).toBeVisible({ timeout: 10000 })
-  await page
-    .getByRole("radiogroup", { name: /Any allergies/i })
-    .getByRole("radio", { name: /^None$/i })
-    .click()
-  await page
-    .getByRole("radiogroup", { name: /Any medical conditions/i })
-    .getByRole("radio", { name: /No conditions/i })
-    .click()
-  await page
-    .getByRole("radiogroup", { name: /Taking any other medications/i })
-    .getByRole("radio", { name: /No medications/i })
-    .click()
+  await ensureRadioChecked(page, /Any allergies/i, /^None$/i)
+  await ensureRadioChecked(page, /Any medical conditions/i, /No conditions/i)
+  await ensureRadioChecked(page, /Taking any other medications/i, /No medications/i)
   await clickContinue(page)
 }
 
