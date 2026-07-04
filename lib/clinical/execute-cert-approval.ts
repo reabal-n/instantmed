@@ -548,6 +548,7 @@ export async function executeCertApproval(
       certType: certificateType === "study" ? "study" : certificateType === "carer" ? "carer" : "work",
       appUrl: env.appUrl,
       isGuest,
+      intakeId,
     }),
     emailType: "med_cert_patient",
     intakeId,

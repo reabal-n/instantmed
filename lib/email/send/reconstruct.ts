@@ -94,6 +94,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       appUrl: env.appUrl,
       isGuest,
       heardToken,
+      intakeId: cert.intake_id,
     })
 
     const html = await renderEmailToHtml(template)

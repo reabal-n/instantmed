@@ -73,6 +73,7 @@ export default async function PatientDocumentsPage() {
         serviceName: (service as { name?: string } | null)?.name || (intake as { category?: string } | null)?.category || "Medical Certificate",
         url: `/api/patient/certificates/${c.id}/download`,
         generatedAt: c.created_at,
+        intakeId: c.intake_id,
       }
     }),
     receipts: (payments || []).map((p) => {
