@@ -35,6 +35,7 @@ export function RelatedArticles({ articles, currentSlug }: RelatedArticlesProps)
                   src={article.heroImage}
                   alt={article.heroImageAlt}
                   fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   className="object-cover"
                 />
                 <div className="absolute top-2 left-2">
