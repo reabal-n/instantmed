@@ -63,6 +63,7 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 | [docs/REVENUE_MODEL.md](../REVENUE_MODEL.md) | $1M one-off revenue model, service mix, unit economics | `code-clean-retirement-contract` |
 | [docs/ADVERTISING_COMPLIANCE.md](../ADVERTISING_COMPLIANCE.md) | Google/AHPRA/TGA paid acquisition rules | `advertising-compliance-guard` |
 | [docs/SEO_CONTENT_POLICY.md](../SEO_CONTENT_POLICY.md) | Organic educational content rules, guide-only article rules | `advertising-compliance-guard` |
+| [docs/ARTICLE_TEMPLATE.md](../ARTICLE_TEMPLATE.md) | Health-guide authoring standard: archetypes, component caps, visual system, per-page workflow, indexing gate | none yet (PR 1 adds audit enforcement) |
 | [docs/PRODUCTION_RELEASE_CHECKLIST.md](../PRODUCTION_RELEASE_CHECKLIST.md) | Pre-promotion gates (quality + dashboard + clinical + payments + ops) | `release-check-contract` |
 | [docs/SERVICE_LAUNCH_CHECKLISTS.md](../SERVICE_LAUNCH_CHECKLISTS.md) | Repeat-script / ED / hair-loss / women's-health production launch gates | `service-launch-checklists-contract` |
 | [docs/DESIGN_SYSTEM_CHANGELOG.md](../DESIGN_SYSTEM_CHANGELOG.md) | Versioned design-system changelog | `release-check-contract` |
