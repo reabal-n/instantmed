@@ -37,7 +37,7 @@ test.describe("Unified Request Flow - Medical Certificate", () => {
     await page.getByRole("radio", { name: /1 day/i }).click()
     
     // Continue button should be visible (may be disabled until all fields complete)
-    await expect(page.getByRole("button", { name: /Continue/i })).toBeVisible()
+    await expect(page.locator("main").getByRole("button", { name: /^Continue$/i }).first()).toBeVisible()
   })
 
   test("certificate step shows type options", async ({ page }) => {
@@ -294,7 +294,7 @@ test.describe("Unified Request Flow - Accessibility", () => {
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
 
     // Page should have interactive elements
-    await expect(page.getByRole("button", { name: /Continue/i })).toBeVisible()
+    await expect(page.locator("main").getByRole("button", { name: /^Continue$/i }).first()).toBeVisible()
   })
 })
 
