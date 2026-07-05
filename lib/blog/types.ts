@@ -32,6 +32,7 @@ export interface ArticleSection {
     | 'decisionBox'
     | 'evidenceNote'
     | 'policyNote'
+    | 'careBoundary'
   content: string
   title?: string
   source?: string

@@ -132,6 +132,9 @@ export interface ArticleVisualItem {
 
 export interface ArticleVisual {
   id: string
+  articleType?: "condition" | "medication" | "symptom" | "policy" | "comparison" | "treatment-guide"
+  visualRole?: "mechanism" | "pattern" | "timeline" | "safety-boundary" | "decision-factors" | "process"
+  concept?: string
   title: string
   eyebrow: string
   summary: string
@@ -3685,6 +3688,9 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
   "finasteride-vs-minoxidil-hair-loss": [
     {
       id: "hair-loss-mechanism-map",
+      articleType: "comparison",
+      visualRole: "mechanism",
+      concept: "Finasteride and topical minoxidil act on different parts of a pattern-hair-loss plan after the diagnosis fits.",
       eyebrow: "Mechanism map",
       title: "Two different levers after the pattern fits",
       summary: "The diagnosis checkpoint comes first. Finasteride acts on the DHT signal, while topical minoxidil supports the hair-growth cycle.",
@@ -3697,7 +3703,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Growth cycle", detail: "Topical minoxidil supports follicle activity and visible growth" },
         { label: "Reassess", detail: "Photos and side effects guide whether the plan still makes sense" },
       ],
-      imagePrompt: "Premium medical atlas style explainer showing three visual regions: DHT-driven follicle miniaturisation, a diagnosis checkpoint with scalp-pattern view, and growth-cycle support with follicle-cycle arrows. Use warm ivory background, deep navy type, coral and teal accents, crisp labelled callouts, tactile print texture, and generous breathing room. Avoid medicine packaging, pills, faces, before-after claims, fake forms, official logos, and service calls to action.",
+      imagePrompt: "Proper patient-education mechanism diagram comparing finasteride and topical minoxidil. Build three clearly labelled teaching zones: left shows DHT pathway causing follicle miniaturisation over time, centre shows male-pattern hair-loss pattern check from scalp top view, right shows topical minoxidil supporting the hair-growth cycle with follicle-stage arrows. Make it look like a high-quality medical education diagram, not a marketing poster. Use schematic scalp top-views and follicle cross-sections only; do not use photorealistic scalp photos, face photos, or before-after photo panels. Use clean anatomy cutaways, precise arrows, restrained colour, generous spacing, and no decorative lifestyle elements. Avoid medicine packaging, pills, faces, before-after claims, fake forms, official logos, and service calls to action.",
       textMode: "labels",
       textItems: ["Pattern fit", "DHT signal", "Growth cycle", "Reassess"],
       layout: "wide",
@@ -3705,6 +3711,9 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
     },
     {
       id: "hair-treatment-response-timeline",
+      articleType: "comparison",
+      visualRole: "timeline",
+      concept: "Hair-loss treatment response is judged over months with consistent photos, not by week-to-week shedding.",
       eyebrow: "Timeline",
       title: "Response is judged over months, not days",
       summary: "Early shedding, slow growth cycles, and inconsistent photos can hide whether a treatment is helping.",
@@ -3718,7 +3727,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Compare", detail: "Six months is a better window for photo comparison" },
         { label: "Continue", detail: "Benefit usually depends on continued use and tolerability" },
       ],
-      imagePrompt: "Premium portrait patient-education timeline for judging hair-loss treatment response over months. Show a vertical timeline with follicle-density mini panels, consistent-photo checkpoints, and calm reassessment cues. Use warm ivory background, deep navy type, amber and coral accents, tactile print texture, and large readable labels only. Avoid dates, paragraphs, tiny text, medicine packaging, pills, faces, before-after claims, official logos, fake forms, and service calls to action.",
+      imagePrompt: "Proper patient-education response timeline for hair-loss treatment. Show a clean five-stage timeline with scalp-density panels and follicle mini-panels at each checkpoint: baseline, early shedding, stabilisation, comparison, continued monitoring. Include consistent-photo reference frames as schematic scalp top-view diagrams only, not phone selfies, real scalp photographs, or before-after photo panels. Make it informative like a clinic handout: clear sequence, readable labels, arrows, and visual comparison logic. Avoid decorative posters, lifestyle photos, phones as the main subject, medicine packaging, pills, faces, before-after claims, official logos, fake forms, and service calls to action.",
       textMode: "labels",
       textItems: ["Baseline", "Shedding", "Stabilise", "Compare", "Continue"],
       layout: "portrait",
@@ -3726,6 +3735,9 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
     },
     {
       id: "hair-medicine-safety-boundary",
+      articleType: "comparison",
+      visualRole: "safety-boundary",
+      concept: "Side effects, heart symptoms, pregnancy-handling, PSA context, and non-pattern hair loss can change the plan.",
       eyebrow: "Safety boundary",
       title: "Side effects and pattern uncertainty change the plan",
       summary: "Systemic finasteride risks, topical minoxidil tolerability, heart symptoms, pregnancy-handling, PSA context, and non-pattern hair loss can all change the comparison.",
@@ -3733,7 +3745,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       kind: "warning",
       accent: "rose",
       items: [
-        { label: "Sexual effects", detail: "Reduced libido, erectile difficulty, or ejaculation changes need discussion", tone: "caution" },
+        { label: "Systemic effects", detail: "Whole-body symptoms can change the risk discussion", tone: "caution" },
         { label: "Mood changes", detail: "Depression, anxiety, or low mood can change the risk discussion", tone: "caution" },
         { label: "Pregnancy handling", detail: "Crushed or broken tablets create specific handling precautions", tone: "caution" },
         { label: "PSA context", detail: "Finasteride can affect prostate screening interpretation", tone: "caution" },
@@ -3741,10 +3753,10 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Heart symptoms", detail: "Dizziness, palpitations, swelling, or chest symptoms need medical advice", tone: "urgent" },
         { label: "Different pattern", detail: "Patchy, sudden, painful, inflamed, or scarring loss changes the diagnosis", tone: "urgent" },
       ],
-      imagePrompt: "Premium portrait safety-boundary infographic for comparing finasteride and minoxidil. Show three visual zones with precise medical atlas diagrams: systemic side-effect checks, scalp and heart symptom checks, and a different-pattern diagnosis boundary. Use warm ivory background, deep navy type, rose, teal, and amber accents, crisp label chips, tactile print texture, and a quiet bottom-right badge-safe zone. Avoid medicine packaging, pills, pregnancy silhouettes, faces, before-after claims, fake forms, official logos, gore, and service calls to action.",
+      imagePrompt: "Proper patient-education safety-boundary diagram for comparing hair-loss treatment options. Build three calm zones: systemic risk discussion, scalp and heart symptom checks, and different hair-loss pattern needing reassessment. Use non-graphic anatomy icons, scalp diagrams, side-effect checklist nodes, and clear arrows to reassess. Keep it clinical, simple, and informational like a doctor handout. Avoid explicit sexual imagery, genital anatomy, pregnancy silhouettes, organs shown in a graphic way, distressed people, medicine packaging, pills, faces, before-after claims, fake forms, official logos, gore, and service calls to action.",
       textMode: "labels",
       textItems: [
-        "Sexual effects",
+        "Systemic effects",
         "Mood changes",
         "Pregnancy handling",
         "PSA context",

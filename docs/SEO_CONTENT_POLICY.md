@@ -97,6 +97,8 @@ Neutral telehealth suitability context must stay informational. It can explain w
 
 Guide article bodies are parsed by `lib/blog/mdx.ts`, not by a general MDX component map. Only the supported component tags below may appear in `content/blog/*.mdx`. Unknown capitalized tags are audit failures in `pnpm content:audit:strict`.
 
+Before rebuilding or deepening a guide, classify the article against `docs/ARTICLE_TEMPLATE.md` §2. The archetype controls the section spine and visual roles; this policy controls the compliance boundary.
+
 Component tags must use opening and closing tags on their own lines for block authoring. Inline note syntax is supported only for short `EvidenceNote` and `PolicyNote` compatibility, but block syntax is preferred.
 
 Use `KeyTakeaway` near the top of a rewritten guide when the reader needs the practical answer before the full explanation:
@@ -135,6 +137,14 @@ Use `PolicyNote` for workplace, university, government, or platform-policy conte
 <PolicyNote title="Policy context">
 Employer and institution evidence rules can vary. The article should explain the policy boundary without promising acceptance.
 </PolicyNote>
+```
+
+Use `CareBoundary` for scope-of-care limits, telehealth limits, and no-guarantee boundaries:
+
+```mdx
+<CareBoundary title="What this guide cannot decide">
+This guide can explain common decision points, but a doctor needs to assess whether remote care is suitable for a particular person.
+</CareBoundary>
 ```
 
 Use standard GitHub-style Markdown tables for comparisons. Do not build comparison grids with styled divs in guide content. The renderer outputs real semantic `<table>` elements for Markdown tables, which supports accessibility, indexing, and LLM extraction.

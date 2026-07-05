@@ -24,9 +24,14 @@ interface Palette {
 const WIDTH = 1280
 const HEIGHT = 1600
 const GPT_IMAGE_MODEL = "openai/gpt-image-2"
+const KIE_API_BASE_URL = "https://api.kie.ai"
+const KIE_GPT_IMAGE_2_MODEL = "gpt-image-2-text-to-image"
+const KIE_NANO_BANANA_2_MODEL = "nano-banana-2"
 const DEFAULT_GATEWAY_SIZE = "1024x1536"
 const supportedGatewaySizes = ["1024x1024", "1024x1536", "1536x1024"] as const
 type GatewayImageSize = (typeof supportedGatewaySizes)[number]
+const supportedKieResolutions = ["1K", "2K", "4K"] as const
+type KieResolution = (typeof supportedKieResolutions)[number]
 const BRAND_BADGE_WIDTH = 248
 const BRAND_BADGE_HEIGHT = 50
 const BRAND_BADGE_MARGIN = 24
@@ -37,8 +42,21 @@ const BRAND_LOGO_PATH = path.join(process.cwd(), "public", "branding", "logo.png
 const BRAND_WORDMARK_PATH = path.join(process.cwd(), "public", "branding", "wordmark.png")
 const SVG_FONT_FAMILY = "Arial, Helvetica, sans-serif"
 
-type Renderer = "deterministic" | "gpt-image-2" | "gpt-image-2-composite"
+type Renderer =
+  | "deterministic"
+  | "deterministic-composite"
+  | "gpt-image-2"
+  | "gpt-image-2-composite"
+  | "kie-gpt-image-2"
+  | "kie-gpt-image-2-composite"
+  | "kie-nano-banana-2"
+  | "kie-nano-banana-2-composite"
 type VisualFormat = NonNullable<ArticleVisual["visualFormat"]>
+type KieRenderer = Extract<
+  Renderer,
+  "kie-gpt-image-2" | "kie-gpt-image-2-composite" | "kie-nano-banana-2" | "kie-nano-banana-2-composite"
+>
+type KieDirectRenderer = Extract<Renderer, "kie-gpt-image-2" | "kie-nano-banana-2">
 
 const palettes: Record<ArticleVisual["accent"], Palette> = {
   amber: {
@@ -112,11 +130,34 @@ function getSlugFilters(): Set<string> | null {
 
 function getRenderer(): Renderer {
   const renderer = getArg("renderer")
-  if (!renderer) return hasFlag("gateway") ? "gpt-image-2" : "deterministic"
-  if (renderer === "deterministic" || renderer === "gpt-image-2" || renderer === "gpt-image-2-composite") {
+  if (!renderer) return hasFlag("gateway") ? "gpt-image-2-composite" : "deterministic"
+  if (
+    renderer === "deterministic" ||
+    renderer === "deterministic-composite" ||
+    renderer === "gpt-image-2" ||
+    renderer === "gpt-image-2-composite" ||
+    renderer === "kie-gpt-image-2" ||
+    renderer === "kie-gpt-image-2-composite" ||
+    renderer === "kie-nano-banana-2" ||
+    renderer === "kie-nano-banana-2-composite"
+  ) {
     return renderer
   }
-  throw new Error(`Unsupported renderer "${renderer}". Use deterministic, gpt-image-2, or gpt-image-2-composite.`)
+  throw new Error(
+    `Unsupported renderer "${renderer}". Use deterministic, deterministic-composite, gpt-image-2, gpt-image-2-composite, kie-gpt-image-2, kie-gpt-image-2-composite, kie-nano-banana-2, or kie-nano-banana-2-composite.`,
+  )
+}
+
+function getEffectiveRenderer(renderer: Renderer, visual: ArticleVisual): Renderer {
+  if (renderer === "deterministic" && visual.textMode === "labels") {
+    return "deterministic-composite"
+  }
+
+  if (renderer === "gpt-image-2" && visual.textMode === "labels") {
+    return "gpt-image-2-composite"
+  }
+
+  return renderer
 }
 
 function getGatewayImageSize(): GatewayImageSize {
@@ -124,6 +165,13 @@ function getGatewayImageSize(): GatewayImageSize {
   if (!size) return DEFAULT_GATEWAY_SIZE
   if (supportedGatewaySizes.includes(size as GatewayImageSize)) return size as GatewayImageSize
   throw new Error(`Unsupported --size "${size}". Use ${supportedGatewaySizes.join(", ")}.`)
+}
+
+function getKieResolution(): KieResolution {
+  const resolution = getArg("kie-resolution")
+  if (!resolution) return "2K"
+  if (supportedKieResolutions.includes(resolution as KieResolution)) return resolution as KieResolution
+  throw new Error(`Unsupported --kie-resolution "${resolution}". Use ${supportedKieResolutions.join(", ")}.`)
 }
 
 function configureGatewayAuth() {
@@ -137,6 +185,25 @@ function assertGatewayAuth() {
       "Missing AI Gateway auth. Run `vercel env pull .env.local --yes` or set AI_GATEWAY_API_KEY.",
     )
   }
+}
+
+function assertKieAuth() {
+  if (!process.env.KIE_API_KEY) {
+    throw new Error("Missing KIE_API_KEY. Set it in .env.local or Vercel env before using Kie renderers.")
+  }
+}
+
+function isKieRenderer(renderer: Renderer) {
+  return (
+    renderer === "kie-gpt-image-2" ||
+    renderer === "kie-gpt-image-2-composite" ||
+    renderer === "kie-nano-banana-2" ||
+    renderer === "kie-nano-banana-2-composite"
+  )
+}
+
+function isKieCompositeRenderer(renderer: Renderer) {
+  return renderer === "kie-gpt-image-2-composite" || renderer === "kie-nano-banana-2-composite"
 }
 
 function escapeXml(value: string): string {
@@ -741,6 +808,14 @@ function getApprovedVisibleLabels(visual: ArticleVisual): string[] {
   return visual.items.map((item) => item.label)
 }
 
+function getArticleVisualContext(visual: ArticleVisual): string {
+  return [
+    visual.articleType ? `Article archetype: ${visual.articleType}.` : null,
+    visual.visualRole ? `Visual role: ${visual.visualRole}.` : null,
+    visual.concept ? `Concept to teach at a glance: ${visual.concept}` : null,
+  ].filter(Boolean).join("\n")
+}
+
 function getTextPlanPrompt(visual: ArticleVisual, _format: VisualFormat): string {
   // gpt-image-2 renders text accurately, so this is a TEACHING infographic that
   // should contain legible, informative text. All visible text is drawn ONLY from
@@ -801,6 +876,7 @@ function buildGatewayPrompt(
     "",
     "Primary request:",
     cleanedPrimaryRequest,
+    getArticleVisualContext(visual),
     "",
     getVisualFormatPrompt(format),
     "Create a polished visual teaching asset that looks art-directed by a senior editorial designer. It should support the article, not try to replace the article.",
@@ -844,6 +920,7 @@ function buildGatewayCompositeUnderlayPrompt(slug: string, visual: ArticleVisual
     "",
     "Primary visual subject:",
     cleanedPrimaryRequest,
+    getArticleVisualContext(visual),
     "",
     getVisualFormatPrompt(format),
     getInfographicLayoutPrompt(visual.kind),
@@ -860,6 +937,63 @@ function buildGatewayCompositeUnderlayPrompt(slug: string, visual: ArticleVisual
     "Leave the bottom-right 320 by 110 pixel area calm and low-detail for the production badge overlay.",
     "Article context: patient education visual. Do not render or infer website names, slug text, or article metadata.",
     `Style retry seed for context only: ${styleShift}.`,
+  ].join("\n")
+}
+
+function buildKiePrompt(
+  slug: string,
+  visual: ArticleVisual,
+  renderer: KieDirectRenderer,
+  styleShift = 0,
+): string {
+  const format = visual.visualFormat ?? getDefaultVisualFormat(visual.kind)
+  const modelName = renderer === "kie-gpt-image-2" ? "GPT Image 2" : "Nano Banana 2"
+  const cleanedPrimaryRequest = sanitizeImagePrompt(visual.imagePrompt)
+  const assetShape = visual.layout === "wide" ? "wide 16:9" : "portrait 3:4"
+
+  return [
+    `Create a finished ${assetShape} patient-education diagram using ${modelName}.`,
+    `Use case: ${format}.`,
+    "Primary request:",
+    cleanedPrimaryRequest,
+    getArticleVisualContext(visual),
+    "",
+    getVisualFormatPrompt(format),
+    getInfographicLayoutPrompt(visual.kind),
+    getArtDirectionPrompt(slug, visual, format, styleShift),
+    "",
+    "Quality bar:",
+    "- Make it look like a proper patient handout or medical-education diagram, not a decorative poster.",
+    "- It must teach one clear idea from this article at a glance through anatomy, pathway logic, timelines, or decision boundaries.",
+    "- Use clear diagram structure, exact labels, directional arrows, cutaway scalp/follicle illustrations, visual comparison logic, and generous spacing.",
+    "- The visual information should be useful even if the reader only scans it for five seconds.",
+    "- Avoid sterile SaaS illustration, generic stock art, desk flat lays, medicine boxes, pills, blank documents, phone mockups, warning icon rows, abstract blob decoration, lifestyle filler, scenic Australia, or anything reusable across unrelated articles.",
+    "",
+    getTextPlanPrompt(visual, format),
+    "Important text rule: render the headline and every approved visible label exactly. If a label is hard to render, simplify the surrounding art instead of changing the wording.",
+    "Do not render any footer, signature, watermark, logo, tiny caption, invented brand mark, pseudo-word, or decorative text anywhere in the image. Keep the bottom-right blank or visually calm.",
+    "",
+    "Medical and compliance constraints:",
+    "- No product packaging, no pill imprints, no medication brand names, no official seals, no medical crosses, no gore, no before/after claims, no efficacy ranking, no consultation CTA, no website UI, no fake doctor chat, no pseudo-branding, and no service logo.",
+    "- If people appear, make them anonymous, secondary, and non-identifiable.",
+    "- Leave the bottom-right corner completely free of text, badges, marks, icons, signatures, and focal content.",
+    "Article context: patient education visual. Do not render or infer website names, slug text, URLs, source names, prices, dates, statistics, or article metadata.",
+    `Style retry seed for context only: ${styleShift}.`,
+  ].join("\n")
+}
+
+function buildKieCompositeUnderlayPrompt(slug: string, visual: ArticleVisual, renderer: KieRenderer, styleShift = 0): string {
+  const modelName = renderer.startsWith("kie-gpt-image-2") ? "GPT Image 2" : "Nano Banana 2"
+  const assetShape = visual.layout === "wide" ? "wide 16:9" : "portrait 3:4"
+
+  return [
+    buildGatewayCompositeUnderlayPrompt(slug, visual, styleShift)
+      .replace("Asset type: text-free underlay for a portrait health-guide visual", `Asset type: text-free underlay for a ${assetShape} health-guide visual`)
+      .replace(`Model: ${GPT_IMAGE_MODEL}.`, `Model: ${modelName}.`),
+    "",
+    "Extra hard rule for this Kie run: absolutely no visible text, letters, numbers, labels, captions, watermarks, logos, pseudo-words, signatures, brand names, footer text, badges, UI text, anatomical labels, or placeholder copy. Make the underlay visually rich using only diagrams, colour zones, arrows, textures, silhouettes, and unlabeled clinical motifs.",
+    "Do not show genital anatomy, explicit sexual imagery, pregnancy silhouettes, medication products, pills, blister packs, gore, wounds, distressed people, or identifiable faces.",
+    "Leave the bottom-right corner calm and empty for the production badge.",
   ].join("\n")
 }
 
@@ -971,6 +1105,10 @@ function renderArticleVisualSvg(slug: string, visual: ArticleVisual): string {
 
 function renderCompositeOverlaySvg(visual: ArticleVisual): string {
   const palette = palettes[visual.accent]
+  const labelsOnly = visual.textMode === "labels"
+  const overlayItems = labelsOnly
+    ? getApprovedVisibleLabels(visual).map((label) => ({ label, detail: "" }))
+    : visual.items
   const title = textBlock({
     text: visual.title,
     x: 112,
@@ -993,9 +1131,24 @@ function renderCompositeOverlaySvg(visual: ArticleVisual): string {
     lineHeight: 38,
     maxLines: 3,
   })
-  const itemCards = visual.items
-    .slice(0, 4)
-    .map((item, index) => renderItemCard(item, index, 96, 770 + index * 170, 820, 148, palette))
+  const visibleItems = overlayItems.slice(0, 7)
+  const useTwoColumns = labelsOnly && visibleItems.length > 4
+  const itemCardWidth = useTwoColumns ? 390 : 820
+  const itemCardHeight = labelsOnly ? 124 : 148
+  const itemCardX = 96
+  const itemCardY = labelsOnly ? (useTwoColumns ? 742 : 800) : 770
+  const itemCards = visibleItems
+    .map((item, index) => {
+      const column = useTwoColumns ? index % 2 : 0
+      const row = useTwoColumns ? Math.floor(index / 2) : index
+      const x = itemCardX + column * (itemCardWidth + 32)
+      const y = itemCardY + row * (labelsOnly ? 142 : 170)
+
+      return renderItemCard(item, index, x, y, itemCardWidth, itemCardHeight, palette, {
+        compact: labelsOnly,
+        showDetail: !labelsOnly,
+      })
+    })
     .join("")
   const footer = textBlock({
     text: getFooterCopy(visual),
@@ -1033,13 +1186,436 @@ function renderCompositeOverlaySvg(visual: ArticleVisual): string {
   `
 }
 
+function renderCompositeFallbackUnderlaySvg(visual: ArticleVisual): string {
+  const palette = palettes[visual.accent]
+  const visualCue =
+    visual.visualRole === "timeline"
+      ? `<path d="M145 710 C344 590 476 864 662 728 C820 612 930 680 1110 560" fill="none" stroke="${palette.mid}" stroke-width="18" stroke-linecap="round" opacity="0.28"/>
+         <path d="M210 1182 C390 1058 530 1212 710 1072 C880 940 1012 1016 1170 900" fill="none" stroke="${palette.dark}" stroke-width="12" stroke-linecap="round" opacity="0.18"/>`
+      : visual.visualRole === "safety-boundary"
+        ? `<path d="M106 690 H1148" stroke="${palette.mid}" stroke-width="22" stroke-linecap="round" opacity="0.22"/>
+           <path d="M208 1230 C410 1106 562 1202 720 1064 C880 926 984 978 1158 842" fill="none" stroke="${palette.dark}" stroke-width="14" stroke-linecap="round" opacity="0.2"/>
+           <rect x="840" y="578" width="300" height="300" rx="72" fill="${palette.light}" opacity="0.46" transform="rotate(-8 990 728)"/>`
+        : `<path d="M132 704 C322 554 476 802 666 660 C846 526 970 610 1150 492" fill="none" stroke="${palette.mid}" stroke-width="16" stroke-linecap="round" opacity="0.24"/>
+           <path d="M170 1190 C376 1058 532 1182 742 1030 C902 914 1018 966 1150 850" fill="none" stroke="${palette.dark}" stroke-width="12" stroke-linecap="round" opacity="0.18"/>`
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="${palette.wash}"/>
+      ${renderBackgroundTexture(palette)}
+      <circle cx="1090" cy="760" r="210" fill="${palette.light}" opacity="0.34"/>
+      <circle cx="988" cy="1080" r="148" fill="${palette.mid}" opacity="0.12"/>
+      <rect x="64" y="612" width="1040" height="250" rx="70" fill="#ffffff" opacity="0.42" transform="rotate(-6 584 737)"/>
+      <rect x="778" y="318" width="356" height="356" rx="82" fill="#ffffff" opacity="0.48" transform="rotate(9 956 496)"/>
+      ${visualCue}
+      ${renderVisualMotif(visual, palette)}
+    </svg>
+  `
+}
+
+function approvedLabel(visual: ArticleVisual, fallback: string): string {
+  return getApprovedVisibleLabels(visual).find((label) => label === fallback) ?? fallback
+}
+
+function renderControlledShell(
+  visual: ArticleVisual,
+  width: number,
+  height: number,
+  body: string,
+  options: {
+    titleX: number
+    titleY: number
+    titleWidth: number
+    titleSize: number
+    summaryWidth: number
+    showSummary?: boolean
+  },
+) {
+  const palette = palettes[visual.accent]
+  const showSummary = options.showSummary ?? true
+  const title = textBlock({
+    text: visual.title,
+    x: options.titleX,
+    y: options.titleY,
+    width: options.titleWidth,
+    size: options.titleSize,
+    weight: 900,
+    color: palette.dark,
+    lineHeight: Math.round(options.titleSize * 1.12),
+    maxLines: 3,
+  })
+  const summary = showSummary
+    ? textBlock({
+        text: visual.summary,
+        x: options.titleX + 4,
+        y: options.titleY + title.height + 26,
+        width: options.summaryWidth,
+        size: width > 1300 ? 25 : 27,
+        weight: 550,
+        color: "#334155",
+        lineHeight: width > 1300 ? 34 : 38,
+        maxLines: width > 1300 ? 2 : 3,
+      })
+    : null
+  const footer = textBlock({
+    text: getFooterCopy(visual),
+    x: 150,
+    y: height - 72,
+    width: 690,
+    size: width > 1300 ? 21 : 22,
+    weight: 700,
+    color: "#ffffff",
+    maxLines: 1,
+  })
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+      <defs>
+        <filter id="controlledShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.10"/>
+        </filter>
+        <linearGradient id="controlledWarm" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="100%" stop-color="${palette.light}"/>
+        </linearGradient>
+      </defs>
+      <rect width="${width}" height="${height}" fill="${palette.wash}"/>
+      <path d="M${-width * 0.05} ${height * 0.35} C${width * 0.2} ${height * 0.25} ${width * 0.34} ${height * 0.38} ${width * 0.52} ${height * 0.28} C${width * 0.72} ${height * 0.17} ${width * 0.86} ${height * 0.29} ${width * 1.08} ${height * 0.18}" fill="none" stroke="${palette.mid}" stroke-width="3" opacity="0.15"/>
+      <path d="M${-width * 0.05} ${height * 0.82} C${width * 0.18} ${height * 0.7} ${width * 0.35} ${height * 0.86} ${width * 0.54} ${height * 0.73} C${width * 0.72} ${height * 0.61} ${width * 0.86} ${height * 0.73} ${width * 1.08} ${height * 0.62}" fill="none" stroke="${palette.mid}" stroke-width="3" opacity="0.13"/>
+      ${badge(options.titleX, options.titleY - 84, visual.eyebrow, palette)}
+      ${title.svg}
+      ${summary?.svg ?? ""}
+      <g filter="url(#controlledShadow)">
+        ${body}
+      </g>
+      <rect x="80" y="${height - 122}" width="820" height="78" rx="26" fill="${palette.dark}"/>
+      <circle cx="124" cy="${height - 83}" r="23" fill="#ffffff" opacity="0.17"/>
+      <path d="M112 ${height - 83} L123 ${height - 72} L143 ${height - 98}" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      ${footer.svg}
+    </svg>
+  `
+}
+
+function renderScalpTopView({
+  id,
+  x,
+  y,
+  width,
+  height,
+  palette,
+  density,
+  partWidth = 28,
+}: {
+  id: string
+  x: number
+  y: number
+  width: number
+  height: number
+  palette: Palette
+  density: "high" | "medium" | "low" | "patchy"
+  partWidth?: number
+}) {
+  const rows = density === "high" ? 8 : density === "medium" ? 7 : density === "patchy" ? 6 : 5
+  const columns = density === "high" ? 12 : density === "medium" ? 10 : density === "patchy" ? 9 : 8
+  const skipPatch = (row: number, column: number) =>
+    density === "patchy" && ((row > 1 && row < 5 && column > 2 && column < 6) || (row === 4 && column > 6))
+
+  const hairs = Array.from({ length: rows }).flatMap((_, row) =>
+    Array.from({ length: columns }).map((__, column) => {
+      if (skipPatch(row, column)) return ""
+      const px = x + 20 + (column * (width - 40)) / Math.max(columns - 1, 1)
+      const py = y + 18 + (row * (height - 36)) / Math.max(rows - 1, 1)
+      const lean = (column % 3) - 1
+      const opacity = density === "low" ? 0.38 : density === "medium" ? 0.55 : 0.7
+      return `<path d="M${px} ${py + 10} C${px + lean * 6} ${py - 2} ${px + lean * 8} ${py - 10} ${px + lean * 3} ${py - 20}" fill="none" stroke="#334155" stroke-width="${density === "low" ? 2.4 : 3.2}" stroke-linecap="round" opacity="${opacity}"/>`
+    }),
+  ).join("")
+
+  return `
+    <g>
+      <defs>
+        <clipPath id="${id}">
+          <ellipse cx="${x + width / 2}" cy="${y + height / 2}" rx="${width / 2}" ry="${height / 2}"/>
+        </clipPath>
+      </defs>
+      <ellipse cx="${x + width / 2}" cy="${y + height / 2}" rx="${width / 2}" ry="${height / 2}" fill="#f8d8c8" stroke="${palette.mid}" stroke-width="3"/>
+      <g clip-path="url(#${id})">
+        <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="#f8d8c8"/>
+        ${hairs}
+        <path d="M${x + width / 2} ${y + 16} C${x + width / 2 - partWidth} ${y + height * 0.35} ${x + width / 2 - partWidth} ${y + height * 0.62} ${x + width / 2} ${y + height - 16}" fill="none" stroke="#f9eee7" stroke-width="${partWidth}" stroke-linecap="round" opacity="0.96"/>
+        <path d="M${x + width / 2} ${y + 20} C${x + width / 2 - partWidth * 0.55} ${y + height * 0.38} ${x + width / 2 - partWidth * 0.55} ${y + height * 0.62} ${x + width / 2} ${y + height - 20}" fill="none" stroke="#a16207" stroke-width="3" stroke-linecap="round" opacity="0.42"/>
+      </g>
+      <ellipse cx="${x + width / 2}" cy="${y + height / 2}" rx="${width / 2}" ry="${height / 2}" fill="none" stroke="#ffffff" stroke-width="7" opacity="0.55"/>
+    </g>
+  `
+}
+
+function renderFollicleCutaway({
+  x,
+  y,
+  scale,
+  palette,
+  state,
+}: {
+  x: number
+  y: number
+  scale: number
+  palette: Palette
+  state: "full" | "mini" | "shedding" | "active"
+}) {
+  const hairWidth = state === "mini" ? 5 : state === "shedding" ? 7 : 10
+  const hairOpacity = state === "mini" ? 0.45 : state === "shedding" ? 0.55 : 0.92
+  const bulbFill = state === "active" ? "#2f855a" : state === "mini" ? "#cbd5e1" : "#7c4a2d"
+  const glow = state === "active" ? `<circle cx="95" cy="125" r="46" fill="${palette.light}" opacity="0.85"/>` : ""
+
+  return `
+    <g transform="translate(${x} ${y}) scale(${scale})">
+      <rect x="0" y="0" width="180" height="156" rx="24" fill="#fff7ed" stroke="#e2e8f0" stroke-width="2"/>
+      <path d="M0 45 H180" stroke="#f2b8a0" stroke-width="18" opacity="0.74"/>
+      <path d="M0 75 H180" stroke="#f8d8c8" stroke-width="34" opacity="0.95"/>
+      ${glow}
+      <path d="M94 132 C84 96 90 62 108 36" fill="none" stroke="#5b3423" stroke-width="${hairWidth}" stroke-linecap="round" opacity="${hairOpacity}"/>
+      <path d="M86 129 C70 105 76 78 94 60" fill="none" stroke="#8b5a3c" stroke-width="6" stroke-linecap="round" opacity="${state === "mini" ? 0.3 : 0.56}"/>
+      <ellipse cx="88" cy="124" rx="${state === "mini" ? 14 : 24}" ry="${state === "mini" ? 12 : 21}" fill="${bulbFill}" opacity="0.9"/>
+      <path d="M28 108 C52 94 72 98 88 120 C108 146 132 148 156 130" fill="none" stroke="#ef8fa1" stroke-width="5" stroke-linecap="round" opacity="0.6"/>
+    </g>
+  `
+}
+
+function renderConnectorArrow(x1: number, y1: number, x2: number, y2: number, color: string, width = 8) {
+  const head = x2 >= x1 ? -1 : 1
+  return `
+    <path d="M${x1} ${y1} C${(x1 + x2) / 2} ${y1} ${(x1 + x2) / 2} ${y2} ${x2} ${y2}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round"/>
+    <path d="M${x2 + head * 24} ${y2 - 18} L${x2} ${y2} L${x2 + head * 24} ${y2 + 18}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>
+  `
+}
+
+function renderHairMechanismSvg(slug: string, visual: ArticleVisual) {
+  const palette = palettes[visual.accent]
+  const dhtLabel = approvedLabel(visual, "DHT signal")
+  const patternLabel = approvedLabel(visual, "Pattern fit")
+  const growthLabel = approvedLabel(visual, "Growth cycle")
+  const reassessLabel = approvedLabel(visual, "Reassess")
+  const panelY = 258
+  const panelH = 520
+  const body = `
+    <rect x="54" y="${panelY}" width="490" height="${panelH}" rx="30" fill="#ffffff" stroke="${palette.mid}" stroke-width="2"/>
+    <rect x="54" y="${panelY}" width="490" height="70" rx="30" fill="${palette.dark}"/>
+    <rect x="54" y="${panelY + 40}" width="490" height="30" fill="${palette.dark}"/>
+    <text x="88" y="${panelY + 46}" font-family="${SVG_FONT_FAMILY}" font-size="30" font-weight="900" fill="#ffffff">${escapeXml(dhtLabel)}</text>
+    ${renderScalpTopView({ id: `${slug}-dht-1`, x: 88, y: panelY + 105, width: 118, height: 150, palette, density: "medium", partWidth: 20 })}
+    ${renderScalpTopView({ id: `${slug}-dht-2`, x: 88, y: panelY + 308, width: 118, height: 150, palette, density: "low", partWidth: 34 })}
+    ${renderConnectorArrow(148, panelY + 268, 148, panelY + 300, palette.mid, 7)}
+    <g opacity="0.95">
+      <circle cx="258" cy="${panelY + 144}" r="12" fill="${palette.dark}"/>
+      <circle cx="292" cy="${panelY + 124}" r="12" fill="${palette.mid}"/>
+      <circle cx="326" cy="${panelY + 150}" r="12" fill="${palette.dark}"/>
+      <circle cx="278" cy="${panelY + 182}" r="12" fill="${palette.mid}"/>
+      <circle cx="318" cy="${panelY + 190}" r="12" fill="${palette.dark}"/>
+    </g>
+    ${renderConnectorArrow(334, panelY + 178, 370, panelY + 178, palette.mid, 7)}
+    ${renderFollicleCutaway({ x: 378, y: panelY + 102, scale: 0.72, palette, state: "full" })}
+    ${renderFollicleCutaway({ x: 236, y: panelY + 312, scale: 0.72, palette, state: "mini" })}
+    ${renderConnectorArrow(356, panelY + 390, 400, panelY + 390, palette.mid, 7)}
+    ${renderFollicleCutaway({ x: 408, y: panelY + 312, scale: 0.72, palette, state: "mini" })}
+
+    <rect x="574" y="${panelY}" width="360" height="${panelH}" rx="30" fill="#ffffff" stroke="#d8b4fe" stroke-width="2"/>
+    <rect x="574" y="${panelY}" width="360" height="70" rx="30" fill="#7e4ea3"/>
+    <rect x="574" y="${panelY + 40}" width="360" height="30" fill="#7e4ea3"/>
+    <text x="608" y="${panelY + 46}" font-family="${SVG_FONT_FAMILY}" font-size="30" font-weight="900" fill="#ffffff">${escapeXml(patternLabel)}</text>
+    ${renderScalpTopView({ id: `${slug}-pattern-1`, x: 630, y: panelY + 108, width: 152, height: 176, palette, density: "medium", partWidth: 25 })}
+    ${renderScalpTopView({ id: `${slug}-pattern-2`, x: 730, y: panelY + 250, width: 152, height: 176, palette, density: "low", partWidth: 38 })}
+    <circle cx="828" cy="${panelY + 166}" r="33" fill="#f5f3ff" stroke="#7e4ea3" stroke-width="4"/>
+    <path d="M810 ${panelY + 166} L824 ${panelY + 181} L850 ${panelY + 148}" fill="none" stroke="#7e4ea3" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="626" y="${panelY + 448}" width="254" height="56" rx="20" fill="#7e4ea3"/>
+    <text x="680" y="${panelY + 486}" font-family="${SVG_FONT_FAMILY}" font-size="29" font-weight="900" fill="#ffffff">${escapeXml(reassessLabel)}</text>
+
+    ${renderConnectorArrow(546, panelY + 260, 572, panelY + 260, palette.mid, 9)}
+    ${renderConnectorArrow(936, panelY + 260, 966, panelY + 260, "#2f855a", 9)}
+
+    <rect x="966" y="${panelY}" width="580" height="${panelH}" rx="30" fill="#ffffff" stroke="#86efac" stroke-width="2"/>
+    <rect x="966" y="${panelY}" width="580" height="70" rx="30" fill="#2f855a"/>
+    <rect x="966" y="${panelY + 40}" width="580" height="30" fill="#2f855a"/>
+    <text x="1002" y="${panelY + 46}" font-family="${SVG_FONT_FAMILY}" font-size="30" font-weight="900" fill="#ffffff">${escapeXml(growthLabel)}</text>
+    <circle cx="1254" cy="${panelY + 292}" r="142" fill="#ecfdf5" stroke="#86efac" stroke-width="4"/>
+    <path d="M1254 ${panelY + 136} C1350 ${panelY + 172} 1398 ${panelY + 250} 1376 ${panelY + 332}" fill="none" stroke="#2f855a" stroke-width="10" stroke-linecap="round"/>
+    <path d="M1130 ${panelY + 330} C1112 ${panelY + 236} 1156 ${panelY + 160} 1238 ${panelY + 132}" fill="none" stroke="#2f855a" stroke-width="10" stroke-linecap="round"/>
+    <path d="M1366 ${panelY + 296} L1376 ${panelY + 332} L1342 ${panelY + 318}" fill="none" stroke="#2f855a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M1166 ${panelY + 146} L1238 ${panelY + 132} L1204 ${panelY + 190}" fill="none" stroke="#2f855a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    ${renderFollicleCutaway({ x: 1128, y: panelY + 178, scale: 0.7, palette, state: "shedding" })}
+    ${renderFollicleCutaway({ x: 1274, y: panelY + 98, scale: 0.7, palette, state: "full" })}
+    ${renderFollicleCutaway({ x: 1320, y: panelY + 314, scale: 0.7, palette, state: "active" })}
+    ${renderFollicleCutaway({ x: 1088, y: panelY + 354, scale: 0.7, palette, state: "active" })}
+    <g opacity="0.9">
+      <path d="M1236 ${panelY + 284} C1216 ${panelY + 246} 1260 ${panelY + 244} 1244 ${panelY + 284} C1242 ${panelY + 294} 1238 ${panelY + 294} 1236 ${panelY + 284}" fill="#39b68f"/>
+      <path d="M1278 ${panelY + 292} C1258 ${panelY + 254} 1302 ${panelY + 252} 1286 ${panelY + 292} C1284 ${panelY + 302} 1280 ${panelY + 302} 1278 ${panelY + 292}" fill="#39b68f"/>
+      <path d="M1258 ${panelY + 334} C1238 ${panelY + 296} 1282 ${panelY + 294} 1266 ${panelY + 334} C1264 ${panelY + 344} 1260 ${panelY + 344} 1258 ${panelY + 334}" fill="#39b68f"/>
+    </g>
+  `
+
+  return renderControlledShell(visual, 1600, 900, body, {
+    titleX: 54,
+    titleY: 110,
+    titleWidth: 1180,
+    titleSize: 56,
+    summaryWidth: 1060,
+    showSummary: false,
+  })
+}
+
+function renderHairTimelineSvg(slug: string, visual: ArticleVisual) {
+  const palette = palettes[visual.accent]
+  const labels = ["Baseline", "Shedding", "Stabilise", "Compare", "Continue"].map((label) => approvedLabel(visual, label))
+  const densities: Array<"medium" | "low" | "medium" | "high" | "high"> = ["medium", "low", "medium", "high", "high"]
+  const follicleStates: Array<"full" | "shedding" | "mini" | "active" | "active"> = ["full", "shedding", "mini", "active", "active"]
+  const startY = 480
+  const rowH = 164
+  const rows = labels
+    .map((label, index) => {
+      const y = startY + index * (rowH + 18)
+      const fill = index % 2 === 0 ? "#ffffff" : "#fffdf6"
+      const accent = index < 2 ? palette.dark : index === 2 ? "#087457" : "#2f855a"
+      const compareInset =
+        label === "Compare"
+          ? `${renderScalpTopView({ id: `${slug}-timeline-${index}-a`, x: 494, y: y + 28, width: 118, height: 110, palette, density: "medium", partWidth: 28 })}
+             ${renderConnectorArrow(626, y + 84, 672, y + 84, accent, 6)}
+             ${renderScalpTopView({ id: `${slug}-timeline-${index}-b`, x: 686, y: y + 28, width: 118, height: 110, palette, density: "high", partWidth: 18 })}`
+          : renderScalpTopView({ id: `${slug}-timeline-${index}`, x: 540, y: y + 22, width: 178, height: 120, palette, density: densities[index], partWidth: index === 1 ? 40 : index > 2 ? 18 : 28 })
+
+      return `
+        <rect x="96" y="${y}" width="1088" height="${rowH}" rx="26" fill="${fill}" stroke="#e2e8f0" stroke-width="2"/>
+        <circle cx="150" cy="${y + rowH / 2}" r="38" fill="${accent}" opacity="0.95"/>
+        <text x="${index === 0 ? 139 : 136}" y="${y + rowH / 2 + 12}" font-family="${SVG_FONT_FAMILY}" font-size="34" font-weight="950" fill="#ffffff">${index + 1}</text>
+        <text x="218" y="${y + 76}" font-family="${SVG_FONT_FAMILY}" font-size="34" font-weight="900" fill="${palette.text}">${escapeXml(label)}</text>
+        ${compareInset}
+        ${renderFollicleCutaway({ x: 876, y: y + 22, scale: 0.74, palette, state: follicleStates[index] })}
+        ${index < labels.length - 1 ? `<path d="M150 ${y + rowH + 8} V${y + rowH + 34}" stroke="${accent}" stroke-width="7" stroke-linecap="round"/><path d="M136 ${y + rowH + 24} L150 ${y + rowH + 42} L164 ${y + rowH + 24}" fill="none" stroke="${accent}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>` : ""}
+      `
+    })
+    .join("")
+
+  return renderControlledShell(visual, WIDTH, HEIGHT, rows, {
+    titleX: 80,
+    titleY: 160,
+    titleWidth: 1000,
+    titleSize: 58,
+    summaryWidth: 940,
+  })
+}
+
+function renderPulseIcon(x: number, y: number, palette: Palette) {
+  return `
+    <g transform="translate(${x} ${y})">
+      <circle cx="86" cy="86" r="72" fill="#fff1f2" stroke="${palette.mid}" stroke-width="3"/>
+      <path d="M44 88 H68 L82 58 L104 118 L120 88 H150" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  `
+}
+
+function renderSafetyBoundarySvg(slug: string, visual: ArticleVisual) {
+  const palette = palettes[visual.accent]
+  const systemic = approvedLabel(visual, "Systemic effects")
+  const mood = approvedLabel(visual, "Mood changes")
+  const pregnancy = approvedLabel(visual, "Pregnancy handling")
+  const psa = approvedLabel(visual, "PSA context")
+  const scalp = approvedLabel(visual, "Scalp irritation")
+  const heart = approvedLabel(visual, "Heart symptoms")
+  const pattern = approvedLabel(visual, "Different pattern")
+  const chip = (x: number, y: number, label: string, tone: "caution" | "urgent" = "caution") => {
+    const toneColor = tonePalette[tone]
+    return `
+      <rect x="${x}" y="${y}" width="292" height="64" rx="22" fill="${toneColor.bg}" stroke="#ffffff" stroke-width="3"/>
+      <text x="${x + 28}" y="${y + 42}" font-family="${SVG_FONT_FAMILY}" font-size="25" font-weight="850" fill="${toneColor.fg}">${escapeXml(label)}</text>
+    `
+  }
+
+  const body = `
+    <rect x="92" y="520" width="1096" height="278" rx="34" fill="#ffffff" stroke="${palette.mid}" stroke-width="2"/>
+    <rect x="124" y="552" width="300" height="214" rx="28" fill="${palette.light}"/>
+    <path d="M246 642 C220 598 260 570 304 584 C354 600 362 666 310 708 C286 728 256 710 246 642" fill="#ffffff" stroke="${palette.dark}" stroke-width="7" opacity="0.9"/>
+    <circle cx="270" cy="626" r="9" fill="${palette.mid}"/>
+    <circle cx="306" cy="640" r="9" fill="${palette.mid}"/>
+    <circle cx="286" cy="676" r="9" fill="${palette.mid}"/>
+    <text x="464" y="596" font-family="${SVG_FONT_FAMILY}" font-size="34" font-weight="900" fill="${palette.text}">${escapeXml(systemic)}</text>
+    ${chip(464, 630, mood)}
+    ${chip(778, 630, pregnancy)}
+    ${chip(464, 710, psa)}
+    <path d="M982 712 C1020 676 1066 690 1088 730" fill="none" stroke="${palette.mid}" stroke-width="9" stroke-linecap="round" opacity="0.62"/>
+
+    <rect x="92" y="838" width="524" height="304" rx="34" fill="#ffffff" stroke="${palette.mid}" stroke-width="2"/>
+    <text x="128" y="890" font-family="${SVG_FONT_FAMILY}" font-size="32" font-weight="900" fill="${palette.text}">${escapeXml(scalp)}</text>
+    ${renderScalpTopView({ id: `${slug}-safety-scalp`, x: 142, y: 930, width: 186, height: 152, palette, density: "patchy", partWidth: 34 })}
+    ${renderFollicleCutaway({ x: 368, y: 922, scale: 0.9, palette, state: "shedding" })}
+    <path d="M164 1098 C248 1068 304 1096 376 1064 C440 1038 490 1044 548 1000" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.45"/>
+
+    <rect x="656" y="838" width="532" height="304" rx="34" fill="#ffffff" stroke="${palette.mid}" stroke-width="2"/>
+    <text x="692" y="890" font-family="${SVG_FONT_FAMILY}" font-size="32" font-weight="900" fill="${palette.text}">${escapeXml(heart)}</text>
+    ${renderPulseIcon(696, 930, palette)}
+    <rect x="910" y="956" width="188" height="92" rx="28" fill="#fff1f2"/>
+    <path d="M934 1002 H976 L996 970 L1026 1032 L1044 1002 H1080" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="1120" cy="1002" r="19" fill="${palette.dark}" opacity="0.85"/>
+
+    <rect x="92" y="1182" width="1096" height="174" rx="34" fill="#ffffff" stroke="${palette.mid}" stroke-width="2"/>
+    <text x="128" y="1236" font-family="${SVG_FONT_FAMILY}" font-size="32" font-weight="900" fill="${palette.text}">${escapeXml(pattern)}</text>
+    ${renderScalpTopView({ id: `${slug}-safety-pattern-a`, x: 520, y: 1210, width: 138, height: 116, palette, density: "patchy", partWidth: 36 })}
+    ${renderScalpTopView({ id: `${slug}-safety-pattern-b`, x: 708, y: 1210, width: 138, height: 116, palette, density: "low", partWidth: 44 })}
+    ${renderScalpTopView({ id: `${slug}-safety-pattern-c`, x: 896, y: 1210, width: 138, height: 116, palette, density: "medium", partWidth: 22 })}
+    <path d="M660 1268 H696 M848 1268 H884" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round"/>
+    <path d="M688 1252 L704 1268 L688 1284 M876 1252 L892 1268 L876 1284" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  `
+
+  return renderControlledShell(visual, WIDTH, HEIGHT, body, {
+    titleX: 80,
+    titleY: 160,
+    titleWidth: 1010,
+    titleSize: 52,
+    summaryWidth: 980,
+  })
+}
+
+function renderControlledArticleVisualSvg(slug: string, visual: ArticleVisual): string | null {
+  if (slug !== "finasteride-vs-minoxidil-hair-loss") return null
+
+  switch (visual.id) {
+    case "hair-loss-mechanism-map":
+      return renderHairMechanismSvg(slug, visual)
+    case "hair-treatment-response-timeline":
+      return renderHairTimelineSvg(slug, visual)
+    case "hair-medicine-safety-boundary":
+      return renderSafetyBoundarySvg(slug, visual)
+    default:
+      return null
+  }
+}
+
 async function saveInfographic(slug: string, visual: ArticleVisual) {
   const outputDir = path.join(process.cwd(), "public", "images", "blog", slug)
   await fs.mkdir(outputDir, { recursive: true })
 
   const filepath = path.join(outputDir, `${visual.id}.webp`)
-  const svg = renderArticleVisualSvg(slug, visual)
+  const svg = renderControlledArticleVisualSvg(slug, visual) ?? renderArticleVisualSvg(slug, visual)
   await sharp(Buffer.from(svg)).webp({ quality: 88, effort: 5 }).toFile(filepath)
+  await addInstantMedWordmark(filepath)
+  return filepath
+}
+
+async function saveDeterministicCompositeInfographic(slug: string, visual: ArticleVisual) {
+  const outputDir = path.join(process.cwd(), "public", "images", "blog", slug)
+  await fs.mkdir(outputDir, { recursive: true })
+
+  const filepath = path.join(outputDir, `${visual.id}.webp`)
+  const controlledSvg = renderControlledArticleVisualSvg(slug, visual)
+  if (controlledSvg) {
+    await sharp(Buffer.from(controlledSvg)).webp({ quality: 88, effort: 5 }).toFile(filepath)
+    await addInstantMedWordmark(filepath)
+    return filepath
+  }
+
+  await sharp(Buffer.from(renderCompositeFallbackUnderlaySvg(visual)))
+    .composite([{ input: Buffer.from(renderCompositeOverlaySvg(visual)), left: 0, top: 0 }])
+    .webp({ quality: 88, effort: 5 })
+    .toFile(filepath)
+
   await addInstantMedWordmark(filepath)
   return filepath
 }
@@ -1105,18 +1681,189 @@ async function saveGatewayCompositeInfographic(
   return filepath
 }
 
+function getKieModel(renderer: KieRenderer) {
+  return renderer.startsWith("kie-gpt-image-2") ? KIE_GPT_IMAGE_2_MODEL : KIE_NANO_BANANA_2_MODEL
+}
+
+function getKieAspectRatio(visual: ArticleVisual) {
+  return visual.layout === "wide" ? "16:9" : "3:4"
+}
+
+async function readKieResponse(response: Response) {
+  const text = await response.text()
+  try {
+    return JSON.parse(text) as Record<string, unknown>
+  } catch {
+    throw new Error(`Kie returned non-JSON response (${response.status}): ${text.slice(0, 160)}`)
+  }
+}
+
+function getObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {}
+}
+
+function getString(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value : null
+}
+
+function parseKieResultUrls(resultJson: unknown): string[] {
+  const raw = getString(resultJson)
+  if (!raw) return []
+
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    const result = getObject(parsed)
+    const urls = result.resultUrls ?? result.urls ?? result.images
+    if (Array.isArray(urls)) {
+      return urls.map(getString).filter((url): url is string => Boolean(url))
+    }
+
+    const singleUrl = getString(result.resultUrl ?? result.url ?? result.imageUrl)
+    return singleUrl ? [singleUrl] : []
+  } catch {
+    return /^https?:\/\//.test(raw) ? [raw] : []
+  }
+}
+
+async function createKieTask(
+  slug: string,
+  visual: ArticleVisual,
+  renderer: KieRenderer,
+  resolution: KieResolution,
+  styleShift = 0,
+) {
+  assertKieAuth()
+  const model = getKieModel(renderer)
+  const prompt = isKieCompositeRenderer(renderer)
+    ? buildKieCompositeUnderlayPrompt(slug, visual, renderer, styleShift)
+    : buildKiePrompt(slug, visual, renderer as KieDirectRenderer, styleShift)
+  const input =
+    renderer.startsWith("kie-nano-banana-2")
+      ? {
+          prompt,
+          image_input: [],
+          aspect_ratio: getKieAspectRatio(visual),
+          resolution,
+          output_format: "png",
+        }
+      : {
+          prompt,
+          aspect_ratio: getKieAspectRatio(visual),
+        }
+
+  const response = await fetch(`${KIE_API_BASE_URL}/api/v1/jobs/createTask`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.KIE_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      input,
+    }),
+  })
+  const payload = await readKieResponse(response)
+  if (!response.ok || payload.code !== 200) {
+    throw new Error(`Kie createTask failed for ${visual.id}: ${payload.msg ?? response.status}`)
+  }
+
+  const taskId = getString(getObject(payload.data).taskId)
+  if (!taskId) {
+    throw new Error(`Kie createTask response did not include a taskId for ${visual.id}.`)
+  }
+  return taskId
+}
+
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function pollKieTask(taskId: string) {
+  const startedAt = Date.now()
+  let attempt = 0
+
+  while (Date.now() - startedAt < 15 * 60 * 1000) {
+    const response = await fetch(`${KIE_API_BASE_URL}/api/v1/jobs/recordInfo?taskId=${encodeURIComponent(taskId)}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.KIE_API_KEY}`,
+      },
+    })
+    const payload = await readKieResponse(response)
+    if (!response.ok) {
+      throw new Error(`Kie recordInfo failed for ${taskId}: ${payload.msg ?? response.status}`)
+    }
+
+    const data = getObject(payload.data)
+    const state = getString(data.state)
+    const progress = typeof data.progress === "number" ? data.progress : null
+    console.log(`Kie task ${taskId}: ${state ?? "unknown"}${progress !== null ? ` (${progress}%)` : ""}`)
+
+    if (state === "success") {
+      const resultUrls = parseKieResultUrls(data.resultJson)
+      if (resultUrls.length === 0) {
+        throw new Error(`Kie task ${taskId} succeeded without a result URL.`)
+      }
+      return resultUrls[0]
+    }
+
+    if (state === "fail") {
+      throw new Error(`Kie task ${taskId} failed: ${data.failMsg ?? data.failCode ?? "unknown error"}`)
+    }
+
+    attempt += 1
+    await delay(Math.min(10_000, 2_000 + attempt * 1_000))
+  }
+
+  throw new Error(`Timed out waiting for Kie task ${taskId}.`)
+}
+
+async function saveKieInfographic(
+  slug: string,
+  visual: ArticleVisual,
+  renderer: KieRenderer,
+  resolution: KieResolution,
+  styleShift = 0,
+) {
+  const outputDir = path.join(process.cwd(), "public", "images", "blog", slug)
+  await fs.mkdir(outputDir, { recursive: true })
+
+  const filepath = path.join(outputDir, `${visual.id}.webp`)
+  const taskId = await createKieTask(slug, visual, renderer, resolution, styleShift)
+  const resultUrl = await pollKieTask(taskId)
+  const imageResponse = await fetch(resultUrl)
+  if (!imageResponse.ok) {
+    throw new Error(`Failed to download Kie image for ${visual.id}: ${imageResponse.status}`)
+  }
+
+  const imageBuffer = Buffer.from(await imageResponse.arrayBuffer())
+  const pipeline = isKieCompositeRenderer(renderer)
+    ? sharp(imageBuffer)
+        .resize(WIDTH, HEIGHT, { fit: "cover", background: palettes[visual.accent].wash })
+        .composite([{ input: Buffer.from(renderCompositeOverlaySvg(visual)), left: 0, top: 0 }])
+    : sharp(imageBuffer)
+
+  await pipeline.webp({ quality: 88, effort: 5 }).toFile(filepath)
+
+  await addInstantMedWordmark(filepath)
+  return filepath
+}
+
 async function main() {
   const slugFilters = getSlugFilters()
   const visualFilter = getArg("visual")
   const limit = Number(getArg("limit") ?? "0")
   const styleShift = Number(getArg("style-shift") ?? "0")
   const gatewayImageSize = getGatewayImageSize()
+  const kieResolution = getKieResolution()
   const dryRun = hasFlag("dry-run")
   const force = hasFlag("force")
   const renderer = getRenderer()
 
   if (renderer === "gpt-image-2" || renderer === "gpt-image-2-composite") {
     assertGatewayAuth()
+  }
+  if (isKieRenderer(renderer)) {
+    assertKieAuth()
   }
 
   const visualsBySlug = getAllTopArticleVisuals()
@@ -1135,6 +1882,7 @@ async function main() {
   }
 
   for (const { slug, visual } of jobs) {
+    const effectiveRenderer = getEffectiveRenderer(renderer, visual)
     const filepath = path.join(process.cwd(), "public", "images", "blog", slug, `${visual.id}.webp`)
     if (!force) {
       try {
@@ -1148,21 +1896,31 @@ async function main() {
 
     if (dryRun) {
       const output =
-        renderer === "gpt-image-2"
+        effectiveRenderer === "gpt-image-2"
           ? buildGatewayPrompt(slug, visual, styleShift, gatewayImageSize)
-          : renderer === "gpt-image-2-composite"
+          : effectiveRenderer === "gpt-image-2-composite"
             ? buildGatewayCompositeUnderlayPrompt(slug, visual, styleShift)
+            : isKieRenderer(effectiveRenderer)
+              ? isKieCompositeRenderer(effectiveRenderer)
+                ? buildKieCompositeUnderlayPrompt(slug, visual, effectiveRenderer, styleShift)
+                : buildKiePrompt(slug, visual, effectiveRenderer as KieDirectRenderer, styleShift)
+            : effectiveRenderer === "deterministic-composite"
+              ? renderCompositeFallbackUnderlaySvg(visual)
             : renderArticleVisualSvg(slug, visual)
-      console.log(`\n--- ${slug}/${visual.id} (${renderer}) ---\n${output}`)
+      console.log(`\n--- ${slug}/${visual.id} (${effectiveRenderer}) ---\n${output}`)
       continue
     }
 
-    console.log(`Generating ${renderer} visual ${slug}/${visual.id}...`)
+    console.log(`Generating ${effectiveRenderer} visual ${slug}/${visual.id}...`)
     const saved =
-      renderer === "gpt-image-2"
+      effectiveRenderer === "gpt-image-2"
         ? await saveGatewayInfographic(slug, visual, styleShift, gatewayImageSize)
-        : renderer === "gpt-image-2-composite"
+        : effectiveRenderer === "gpt-image-2-composite"
           ? await saveGatewayCompositeInfographic(slug, visual, styleShift, gatewayImageSize)
+          : isKieRenderer(effectiveRenderer)
+            ? await saveKieInfographic(slug, visual, effectiveRenderer, kieResolution, styleShift)
+          : effectiveRenderer === "deterministic-composite"
+            ? await saveDeterministicCompositeInfographic(slug, visual)
           : await saveInfographic(slug, visual)
     console.log(`Saved ${path.relative(process.cwd(), saved)}`)
   }
