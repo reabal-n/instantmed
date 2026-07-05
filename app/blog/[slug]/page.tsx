@@ -193,7 +193,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         <Navbar variant="marketing" />
         <ContentPageTracker pageType="blog" slug={slug} />
 
-        <main className="flex-1 pt-24 pb-16">
+        <main className="flex-1 bg-background pt-24 pb-16 text-foreground">
           <div className="px-4">
             <div className="max-w-4xl mx-auto mb-6">
               <PageBreadcrumbs
