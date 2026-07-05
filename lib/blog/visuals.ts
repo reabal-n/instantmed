@@ -132,6 +132,9 @@ export interface ArticleVisualItem {
 
 export interface ArticleVisual {
   id: string
+  articleType?: "condition" | "medication" | "symptom" | "policy" | "comparison" | "treatment-guide"
+  visualRole?: "mechanism" | "pattern" | "timeline" | "safety-boundary" | "decision-factors" | "process"
+  concept?: string
   title: string
   eyebrow: string
   summary: string
@@ -154,6 +157,7 @@ export interface ArticleVisual {
   imagePrompt: string
   textMode?: "none" | "labels" | "title-and-labels" | "diagram-callouts"
   textItems?: string[]
+  layout?: "portrait" | "wide" | "square"
   assetPath?: string
 }
 
@@ -3684,47 +3688,83 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
   "finasteride-vs-minoxidil-hair-loss": [
     {
       id: "hair-loss-mechanism-map",
+      articleType: "comparison",
+      visualRole: "mechanism",
+      concept: "Finasteride and topical minoxidil act on different parts of a pattern-hair-loss plan after the diagnosis fits.",
       eyebrow: "Mechanism map",
-      title: "Finasteride and minoxidil act on different parts of pattern hair loss",
-      summary: "Finasteride targets DHT-driven miniaturisation. Topical minoxidil supports follicle cycling and visible growth activity.",
+      title: "Two different levers after the pattern fits",
+      summary: "The diagnosis checkpoint comes first. Finasteride acts on the DHT signal, while topical minoxidil supports the hair-growth cycle.",
+      visualFormat: "mechanism-diagram",
       kind: "comparison",
       accent: "blue",
       items: [
-        { label: "DHT pathway", detail: "Finasteride lowers the androgen signal" },
-        { label: "Growth cycle", detail: "Minoxidil supports active growth" },
-        { label: "Correct diagnosis", detail: "Both depend on the hair-loss pattern fitting" },
+        { label: "Pattern fit", detail: "The comparison starts only after the hair-loss pattern fits androgenetic alopecia" },
+        { label: "DHT signal", detail: "Finasteride lowers the androgen signal involved in follicle miniaturisation" },
+        { label: "Growth cycle", detail: "Topical minoxidil supports follicle activity and visible growth" },
+        { label: "Reassess", detail: "Photos and side effects guide whether the plan still makes sense" },
       ],
-      imagePrompt: "Completely textless hair loss mechanism map infographic, abstract scalp follicle dots and two simple pathway shapes, soft blue and emerald accents, warm ivory background, no readable text, no words, no letters, no faces, no people, no hands, no pills with markings, no brand logos, no clinical gore",
+      imagePrompt: "Proper patient-education mechanism diagram comparing finasteride and topical minoxidil. Build three clearly labelled teaching zones: left shows DHT pathway causing follicle miniaturisation over time, centre shows male-pattern hair-loss pattern check from scalp top view, right shows topical minoxidil supporting the hair-growth cycle with follicle-stage arrows. Make it look like a high-quality medical education diagram, not a marketing poster. Use schematic scalp top-views and follicle cross-sections only; do not use photorealistic scalp photos, face photos, or before-after photo panels. Use clean anatomy cutaways, precise arrows, restrained colour, generous spacing, and no decorative lifestyle elements. Avoid medicine packaging, pills, faces, before-after claims, fake forms, official logos, and service calls to action.",
+      textMode: "labels",
+      textItems: ["Pattern fit", "DHT signal", "Growth cycle", "Reassess"],
+      layout: "wide",
       assetPath: "/images/blog/finasteride-vs-minoxidil-hair-loss/hair-loss-mechanism-map.webp",
     },
     {
       id: "hair-treatment-response-timeline",
+      articleType: "comparison",
+      visualRole: "timeline",
+      concept: "Hair-loss treatment response is judged over months with consistent photos, not by week-to-week shedding.",
       eyebrow: "Timeline",
-      title: "Hair treatment results are measured in months",
-      summary: "Early shedding, slow growth cycles, and inconsistent photos can hide whether treatment is working.",
+      title: "Response is judged over months, not days",
+      summary: "Early shedding, slow growth cycles, and inconsistent photos can hide whether a treatment is helping.",
+      visualFormat: "process-visual",
       kind: "timeline",
       accent: "amber",
       items: [
-        { label: "Weeks", detail: "Often no visible improvement" },
-        { label: "Months", detail: "Shedding can settle and stabilisation may appear" },
-        { label: "6-12 months", detail: "Better window for photo comparison" },
+        { label: "Baseline", detail: "Use consistent photos before judging change" },
+        { label: "Shedding", detail: "Early shedding can occur, especially with topical minoxidil" },
+        { label: "Stabilise", detail: "The first useful sign may be slowing loss rather than regrowth" },
+        { label: "Compare", detail: "Six months is a better window for photo comparison" },
+        { label: "Continue", detail: "Benefit usually depends on continued use and tolerability" },
       ],
-      imagePrompt: "Completely textless hair treatment response timeline visual, blank calendar blocks with no numbers, abstract hair-density dots gradually increasing, warm ivory background with amber accents, no readable text, no words, no letters, no faces, no people, no hands, no medicine brands",
+      imagePrompt: "Proper patient-education response timeline for hair-loss treatment. Show a clean five-stage timeline with scalp-density panels and follicle mini-panels at each checkpoint: baseline, early shedding, stabilisation, comparison, continued monitoring. Include consistent-photo reference frames as schematic scalp top-view diagrams only, not phone selfies, real scalp photographs, or before-after photo panels. Make it informative like a clinic handout: clear sequence, readable labels, arrows, and visual comparison logic. Avoid decorative posters, lifestyle photos, phones as the main subject, medicine packaging, pills, faces, before-after claims, official logos, fake forms, and service calls to action.",
+      textMode: "labels",
+      textItems: ["Baseline", "Shedding", "Stabilise", "Compare", "Continue"],
+      layout: "portrait",
       assetPath: "/images/blog/finasteride-vs-minoxidil-hair-loss/hair-treatment-response-timeline.webp",
     },
     {
       id: "hair-medicine-safety-boundary",
+      articleType: "comparison",
+      visualRole: "safety-boundary",
+      concept: "Side effects, heart symptoms, pregnancy-handling, PSA context, and non-pattern hair loss can change the plan.",
       eyebrow: "Safety boundary",
-      title: "Medicine choice changes when side effects, pregnancy, or diagnosis uncertainty matter",
-      summary: "Systemic finasteride risks, topical irritation, oral minoxidil off-label use, and non-pattern hair loss all change the plan.",
+      title: "Side effects and pattern uncertainty change the plan",
+      summary: "Systemic finasteride risks, topical minoxidil tolerability, heart symptoms, pregnancy-handling, PSA context, and non-pattern hair loss can all change the comparison.",
+      visualFormat: "red-flag-warning",
       kind: "warning",
       accent: "rose",
       items: [
-        { label: "Finasteride", detail: "Sexual, mood, breast, PSA, and pregnancy-handling issues", tone: "caution" },
-        { label: "Minoxidil", detail: "Irritation, shedding, transfer, and systemic symptoms", tone: "caution" },
-        { label: "Different diagnosis", detail: "Patchy, sudden, painful, or scarring loss needs assessment", tone: "urgent" },
+        { label: "Systemic effects", detail: "Whole-body symptoms can change the risk discussion", tone: "caution" },
+        { label: "Mood changes", detail: "Depression, anxiety, or low mood can change the risk discussion", tone: "caution" },
+        { label: "Pregnancy handling", detail: "Crushed or broken tablets create specific handling precautions", tone: "caution" },
+        { label: "PSA context", detail: "Finasteride can affect prostate screening interpretation", tone: "caution" },
+        { label: "Scalp irritation", detail: "Topical treatment may not suit inflamed or irritated scalp skin", tone: "caution" },
+        { label: "Heart symptoms", detail: "Dizziness, palpitations, swelling, or chest symptoms need medical advice", tone: "urgent" },
+        { label: "Different pattern", detail: "Patchy, sudden, painful, inflamed, or scarring loss changes the diagnosis", tone: "urgent" },
       ],
-      imagePrompt: "Completely textless hair medicine safety boundary visual, abstract scalp pattern beside caution shield and blank medicine silhouettes, warm ivory background with rose and blue accents, no readable text, no words, no letters, no faces, no people, no hands, no pregnancy symbol, no official logos, no graphic medical imagery",
+      imagePrompt: "Proper patient-education safety-boundary diagram for comparing hair-loss treatment options. Build three calm zones: systemic risk discussion, scalp and heart symptom checks, and different hair-loss pattern needing reassessment. Use non-graphic anatomy icons, scalp diagrams, side-effect checklist nodes, and clear arrows to reassess. Keep it clinical, simple, and informational like a doctor handout. Avoid explicit sexual imagery, genital anatomy, pregnancy silhouettes, organs shown in a graphic way, distressed people, medicine packaging, pills, faces, before-after claims, fake forms, official logos, gore, and service calls to action.",
+      textMode: "labels",
+      textItems: [
+        "Systemic effects",
+        "Mood changes",
+        "Pregnancy handling",
+        "PSA context",
+        "Scalp irritation",
+        "Heart symptoms",
+        "Different pattern",
+      ],
+      layout: "portrait",
       assetPath: "/images/blog/finasteride-vs-minoxidil-hair-loss/hair-medicine-safety-boundary.webp",
     },
   ],

@@ -9,7 +9,7 @@
 
 **Last updated:** 2026-07-05
 
-**Status:** items marked **[PR-1]** are part of the template-foundation PR and do not exist on `main` yet. Until PR 1 lands, author with the four existing components and the existing audit flags.
+**Status:** the template-foundation branch adds the parser, renderer, audit, registry, and visual-generation support described below. Legacy guides are held to this standard when touched.
 
 ---
 
@@ -58,7 +58,7 @@ Every page follows this order:
 | `DecisionBox` | Genuine triage/suitability decision (fixed headings per SEO_CONTENT_POLICY §4) | 0-1 |
 | `EvidenceNote` | Evidence strength / source context | 0-2 |
 | `PolicyNote` | External rules: TGA, Medicare, Fair Work, employer/uni policy | 0-2 |
-| `CareBoundary` **[PR-1]** | Scope-of-care limits: what this guide / telehealth cannot do, no guaranteed outcomes | 0-1 |
+| `CareBoundary` | Scope-of-care limits: what this guide / telehealth cannot do, no guaranteed outcomes | 0-1 |
 | Markdown table | ≥3 rows × ≥2 real dimensions; otherwise write prose | as needed |
 
 **Total callout-style components: max 5 per page** unless explicitly justified in the PR description. Variety comes from different section shapes (prose, table, visual, decision box) — not from wrapping every paragraph in a panel. Component wallpaper is the new AI slop.
@@ -90,19 +90,19 @@ Typography, spacing, solid-depth surfaces, and well-art-directed visuals carry t
 
 | Renderer | Use when | Text handling |
 |---|---|---|
-| `gpt-image-2-composite` | **Default for any visual with labels** [PR-1 makes this the default path] | GPT paints a text-free underlay; script overlays approved `textItems` deterministically — labels cannot be misspelled |
+| `gpt-image-2-composite` | **Default for any visual with labels** | GPT paints a text-free underlay; script overlays approved `textItems` deterministically — labels cannot be misspelled |
 | `gpt-image-2` (direct) | Text-free or near-text-free illustration/anatomy only | Model-rendered; regenerate on any garbled text |
 | `deterministic` | Topology-critical diagrams: decision trees, flows, staged timelines | Pure code (SVG → sharp); arrows and order are exact by construction |
 
 Advanced (optional): for diagrams needing both accuracy and painterly finish, render the deterministic skeleton first, feed it to gpt-image-2 as an image-edit reference ("repaint in style, preserve geometry, leave label zones blank"), then composite labels on top.
 
-### Style direction (single source of truth: the prompt builder [PR-1], `lib/blog/article-visual-system.ts`)
+### Style direction (single source of truth: the prompt builder in `scripts/generate-blog-visual-images.ts`)
 
 Premium medical atlas: warm off-white canvas, deep navy structure, coral/teal accents, thin rule lines, generous negative space, soft clinical illustration, numbered pathway chips only when genuinely sequential. Anatomy is always "simplified schematic, not anatomically detailed."
 
 ### Registry entry contract (`lib/blog/visuals.ts`)
 
-Authors fill: `articleType` **[PR-1]**, `visualRole` **[PR-1]**, `concept` **[PR-1]** (one sentence: what the reader should understand at a glance), `kind`, `accent`, `items[]` (label + detail), `textItems` (the only copy allowed in pixels), `textMode: "labels"`. The same distinctions must render in HTML via `components/blog/article-visuals.tsx`.
+Authors fill: `articleType`, `visualRole`, `concept` (one sentence: what the reader should understand at a glance), `kind`, `accent`, `items[]` (label + detail), `textItems` (the only copy allowed in pixels), `textMode: "labels"`. The same distinctions must render in HTML via `components/blog/article-visuals.tsx`.
 
 Worked example (condition/mechanism):
 
@@ -136,7 +136,7 @@ Commands per page PR:
 pnpm content:audit:report   # archetype/visual/label report
 pnpm content:audit          # baseline QA
 pnpm content:audit:images   # image presence/quality flags
-pnpm content:audit:strict   # P1 gate: unsupported tags, CTA leaks, label budgets [PR-1 extends]
+pnpm content:audit:strict   # P1 gate: unsupported tags, CTA leaks, label budgets
 pnpm lint && pnpm typecheck && pnpm test
 ```
 

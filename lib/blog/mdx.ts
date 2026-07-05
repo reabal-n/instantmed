@@ -62,9 +62,11 @@ export const SUPPORTED_ARTICLE_COMPONENT_TAGS = [
   'DecisionBox',
   'EvidenceNote',
   'PolicyNote',
+  'CareBoundary',
 ] as const
 
 const SUPPORTED_ARTICLE_COMPONENT_TAG_SET = new Set<string>(SUPPORTED_ARTICLE_COMPONENT_TAGS)
+const LEARNING_AID_TAG_PATTERN = 'KeyTakeaway|DecisionBox|EvidenceNote|PolicyNote|CareBoundary'
 const DECISION_GROUP_TITLES: ArticleDecisionGroup['title'][] = [
   'May fit telehealth',
   'Needs in-person care',
@@ -278,8 +280,8 @@ export function findMalformedArticleComponentBlocks(body: string): string[] {
 
   for (let index = 0; index < lines.length; index += 1) {
     const trimmed = lines[index].trim()
-    const opening = trimmed.match(/^<(KeyTakeaway|DecisionBox|EvidenceNote|PolicyNote)\b([^>]*)>\s*$/)
-    const inline = trimmed.match(/^<(KeyTakeaway|DecisionBox|EvidenceNote|PolicyNote)\b([^>]*)>(.*?)<\/\1>\s*$/)
+    const opening = trimmed.match(new RegExp(`^<(${LEARNING_AID_TAG_PATTERN})\\b([^>]*)>\\s*$`))
+    const inline = trimmed.match(new RegExp(`^<(${LEARNING_AID_TAG_PATTERN})\\b([^>]*)>(.*?)<\\/\\1>\\s*$`))
     if (inline) {
       if (!validateLearningAidComponent(inline[1], parseComponentAttributes(inline[2]), [inline[3]], true)) {
         issues.push(`${inline[1]} inline block is malformed near line ${index + 1}`)
@@ -310,7 +312,7 @@ function parseLearningAidComponent(
   index: number,
 ): { section: ArticleSection; nextIndex: number } | null {
   const line = lines[index].trim()
-  const inline = line.match(/^<(KeyTakeaway|DecisionBox|EvidenceNote|PolicyNote)\b([^>]*)>(.*?)<\/\1>\s*$/)
+  const inline = line.match(new RegExp(`^<(${LEARNING_AID_TAG_PATTERN})\\b([^>]*)>(.*?)<\\/\\1>\\s*$`))
   if (inline) {
     return {
       section: buildLearningAidSection(inline[1], parseComponentAttributes(inline[2]), [inline[3]], true),
@@ -318,7 +320,7 @@ function parseLearningAidComponent(
     }
   }
 
-  const opening = line.match(/^<(KeyTakeaway|DecisionBox|EvidenceNote|PolicyNote)\b([^>]*)>\s*$/)
+  const opening = line.match(new RegExp(`^<(${LEARNING_AID_TAG_PATTERN})\\b([^>]*)>\\s*$`))
   if (!opening) return null
 
   const tagName = opening[1]
@@ -387,12 +389,12 @@ function buildLearningAidSection(
     }
   }
 
-  if (tagName === 'EvidenceNote' || tagName === 'PolicyNote') {
+  if (tagName === 'EvidenceNote' || tagName === 'PolicyNote' || tagName === 'CareBoundary') {
     const items = parseBulletListItems(body)
     const content = items ? '' : cleanInlineMarkdown(body.join(' '))
     if (!items && !content) return fallbackComponentSection(body, tagName, title)
     return {
-      type: tagName === 'EvidenceNote' ? 'evidenceNote' : 'policyNote',
+      type: tagName === 'EvidenceNote' ? 'evidenceNote' : tagName === 'PolicyNote' ? 'policyNote' : 'careBoundary',
       title,
       source: attributes.source ? cleanInlineMarkdown(attributes.source) : undefined,
       content,
@@ -421,7 +423,7 @@ function validateLearningAidComponent(
     return parseDecisionGroups(body, allowInline) !== null
   }
 
-  if (tagName === 'EvidenceNote' || tagName === 'PolicyNote') {
+  if (tagName === 'EvidenceNote' || tagName === 'PolicyNote' || tagName === 'CareBoundary') {
     return body.length > 0
   }
 
@@ -523,6 +525,7 @@ function defaultLearningAidTitle(tagName: string): string {
   if (tagName === 'DecisionBox') return 'Decision guide'
   if (tagName === 'EvidenceNote') return 'Evidence note'
   if (tagName === 'PolicyNote') return 'Policy note'
+  if (tagName === 'CareBoundary') return 'Care boundary'
   return 'Article note'
 }
 

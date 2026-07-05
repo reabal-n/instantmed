@@ -43,9 +43,11 @@ const SUPPORTED_ARTICLE_COMPONENTS = new Set([
   "DecisionBox",
   "EvidenceNote",
   "PolicyNote",
+  "CareBoundary",
 ])
 
-const LEARNING_AID_COMPONENTS = ["KeyTakeaway", "DecisionBox", "EvidenceNote", "PolicyNote"]
+const LEARNING_AID_COMPONENTS = ["KeyTakeaway", "DecisionBox", "EvidenceNote", "PolicyNote", "CareBoundary"]
+const LEARNING_AID_TAG_PATTERN = "KeyTakeaway|DecisionBox|EvidenceNote|PolicyNote|CareBoundary"
 const DECISION_GROUP_TITLES = ["May fit telehealth", "Needs in-person care", "Urgent care"]
 
 function isTableRow(line) {
@@ -204,6 +206,25 @@ function parseReportArg() {
   return value
 }
 
+function parseSlugFilterArg() {
+  const values = []
+  for (const name of ["slug", "changed-slug"]) {
+    const prefix = `--${name}=`
+    const equalsArg = process.argv.find((item) => item.startsWith(prefix))?.slice(prefix.length)
+    if (equalsArg) values.push(equalsArg)
+
+    const index = process.argv.indexOf(`--${name}`)
+    if (index >= 0 && process.argv[index + 1]) values.push(process.argv[index + 1])
+  }
+
+  const slugs = values
+    .flatMap((value) => value.split(","))
+    .map((value) => value.trim())
+    .filter(Boolean)
+
+  return slugs.length > 0 ? new Set(slugs) : null
+}
+
 function issuePrefix(issue) {
   return issue.severity.split(" ")[0]
 }
@@ -311,7 +332,7 @@ function isLearningAidBlockValid(tagName, attributes, bodyLines, allowInline = f
   if (!attributes.title) return false
   if (tagName === "KeyTakeaway") return Boolean(parseBulletItems(body, allowInline)?.length)
   if (tagName === "DecisionBox") return parseDecisionGroups(body, allowInline) !== null
-  if (tagName === "EvidenceNote" || tagName === "PolicyNote") return body.length > 0
+  if (tagName === "EvidenceNote" || tagName === "PolicyNote" || tagName === "CareBoundary") return body.length > 0
   return false
 }
 
@@ -321,7 +342,7 @@ function findMalformedArticleComponentBlocks(content) {
 
   for (let index = 0; index < lines.length; index += 1) {
     const trimmed = lines[index].trim()
-    const inline = trimmed.match(/^<(KeyTakeaway|DecisionBox|EvidenceNote|PolicyNote)\b([^>]*)>(.*?)<\/\1>\s*$/)
+    const inline = trimmed.match(new RegExp(`^<(${LEARNING_AID_TAG_PATTERN})\\b([^>]*)>(.*?)<\\/\\1>\\s*$`))
     if (inline) {
       if (!isLearningAidBlockValid(inline[1], parseComponentAttributes(inline[2]), [inline[3]], true)) {
         issues.push(`${inline[1]} inline block malformed near line ${index + 1}`)
@@ -329,7 +350,7 @@ function findMalformedArticleComponentBlocks(content) {
       continue
     }
 
-    const opening = trimmed.match(/^<(KeyTakeaway|DecisionBox|EvidenceNote|PolicyNote)\b([^>]*)>\s*$/)
+    const opening = trimmed.match(new RegExp(`^<(${LEARNING_AID_TAG_PATTERN})\\b([^>]*)>\\s*$`))
     if (!opening) continue
 
     const closingIndex = findClosingTagIndex(lines, index + 1, opening[1])
@@ -364,6 +385,51 @@ function hasComponent(content, componentName) {
   return new RegExp(`<${componentName}\\b`).test(content)
 }
 
+function countComponent(content, componentName) {
+  const matches = content.match(new RegExp(`<${componentName}\\b`, "g"))
+  return matches ? matches.length : 0
+}
+
+function getLearningAidComponentCount(content) {
+  return LEARNING_AID_COMPONENTS.reduce((total, component) => total + countComponent(content, component), 0)
+}
+
+function visualRegistryMetadataIssues(slug) {
+  const block = getVisualRegistryBlock(slug)
+  if (!block) return []
+  const visualBlocks = [...block.matchAll(/\n {4}\{[\s\S]*?\n {4}\},?/g)].map((match) => match[0])
+  const issues = []
+
+  for (const visualBlock of visualBlocks) {
+    const id = visualBlock.match(/id:\s*"([^"]+)"/)?.[1] ?? "unknown"
+    for (const field of ["articleType", "visualRole", "concept"]) {
+      if (!new RegExp(`${field}:\\s*"`).test(visualBlock)) {
+        issues.push(`${id} missing ${field}`)
+      }
+    }
+  }
+
+  return issues
+}
+
+function visualRegistryBannedPromptIssues(slug) {
+  const block = getVisualRegistryBlock(slug)
+  if (!block) return []
+  const promptPatterns = [
+    /\bblank phone\b/i,
+    /\bblank document\b/i,
+    /\bmedicine box\b/i,
+    /\bbalance scale\b/i,
+    /\bdesk flat lay\b/i,
+    /\bstethoscope\b/i,
+    /\bno readable text\b/i,
+    /\btextless\b/i,
+  ]
+  return promptPatterns
+    .filter((pattern) => pattern.test(block))
+    .map((pattern) => `visual prompt contains banned low-information pattern ${pattern}`)
+}
+
 function firstThirdHasLearningAid(content) {
   const lines = content.split("\n").filter((line) => line.trim() !== "")
   const firstThird = lines.slice(0, Math.max(1, Math.ceil(lines.length / 3))).join("\n")
@@ -385,7 +451,7 @@ function getReviewerStatus(slug) {
   }
 }
 
-function auditFile(file) {
+function auditFile(file, options = {}) {
   const filePath = path.join(CONTENT_DIR, file)
   const raw = fs.readFileSync(filePath, "utf-8")
   const { data, content } = matter(raw)
@@ -399,6 +465,9 @@ function auditFile(file) {
   const unknownComponents = findUnknownArticleComponentTags(content)
   const malformedComponents = findMalformedArticleComponentBlocks(content)
   const ctaHits = CTA_PATTERNS.filter((pattern) => pattern.test(content))
+  const learningAidComponentCount = getLearningAidComponentCount(content)
+  const visualMetadataIssues = visualRegistryMetadataIssues(slug)
+  const visualPromptIssues = visualRegistryBannedPromptIssues(slug)
 
   if (!data.title || data.title.length < 20) {
     addIssue(issues, SEVERITY.seo, "Title is missing or too thin")
@@ -444,6 +513,10 @@ function auditFile(file) {
     addIssue(issues, SEVERITY.component, `Contains malformed article component blocks: ${malformedComponents.join("; ")}`)
   }
 
+  if (learningAidComponentCount > 5) {
+    addIssue(issues, SEVERITY.quality, `Guide uses ${learningAidComponentCount} callout-style components; target max is 5`)
+  }
+
   if (ctaHits.length > 0) {
     addIssue(issues, SEVERITY.cta, "Guide body contains service/acquisition links or copy")
   }
@@ -481,6 +554,22 @@ function auditFile(file) {
     addIssue(issues, SEVERITY.image, "Generated visual registry is text-heavy; move the explanation into HTML components first")
   }
 
+  if (options.enforceNewVisualMetadata && visualMetadataIssues.length > 0) {
+    addIssue(
+      issues,
+      SEVERITY.image,
+      `Generated visual registry is missing new metadata: ${visualMetadataIssues.slice(0, 4).join("; ")}`,
+    )
+  }
+
+  if (options.enforceNewVisualMetadata && visualPromptIssues.length > 0) {
+    addIssue(
+      issues,
+      SEVERITY.image,
+      `Generated visual prompt still contains banned low-information cues: ${visualPromptIssues.slice(0, 3).join("; ")}`,
+    )
+  }
+
   return {
     slug,
     file,
@@ -499,6 +588,9 @@ function auditFile(file) {
     hasDecisionBox: hasComponent(content, "DecisionBox"),
     hasEvidenceNote: hasComponent(content, "EvidenceNote"),
     hasPolicyNote: hasComponent(content, "PolicyNote"),
+    hasCareBoundary: hasComponent(content, "CareBoundary"),
+    learningAidComponentCount,
+    visualMetadataIssueCount: visualMetadataIssues.length,
     firstThirdHasLearningAid: firstThirdHasLearningAid(content),
     unknownComponents,
     malformedComponents,
@@ -524,6 +616,9 @@ function reportRows(rows) {
     hasDecisionBox: row.hasDecisionBox,
     hasEvidenceNote: row.hasEvidenceNote,
     hasPolicyNote: row.hasPolicyNote,
+    hasCareBoundary: row.hasCareBoundary,
+    learningAidComponentCount: row.learningAidComponentCount,
+    visualMetadataIssueCount: row.visualMetadataIssueCount,
     firstThirdHasLearningAid: row.firstThirdHasLearningAid,
     unknownComponents: row.unknownComponents,
     malformedComponents: row.malformedComponents,
@@ -546,6 +641,9 @@ function renderMarkdownReport(rows) {
     "decision",
     "evidence",
     "policy",
+    "care",
+    "components",
+    "visualMeta",
     "firstThirdAid",
     "ctaHits",
     "issues",
@@ -567,6 +665,9 @@ function renderMarkdownReport(rows) {
         row.hasDecisionBox ? "yes" : "no",
         row.hasEvidenceNote ? "yes" : "no",
         row.hasPolicyNote ? "yes" : "no",
+        row.hasCareBoundary ? "yes" : "no",
+        row.learningAidComponentCount,
+        row.visualMetadataIssueCount,
         row.firstThirdHasLearningAid ? "yes" : "no",
         row.ctaHitCount,
         row.issues.length,
@@ -579,7 +680,10 @@ function main() {
   const failOn = parseFailOnArg()
   const failOnImage = parseFailOnImageArg()
   const report = parseReportArg()
-  const rows = getFiles().map(auditFile)
+  const slugFilter = parseSlugFilterArg()
+  const rows = getFiles()
+    .map((file) => auditFile(file, { enforceNewVisualMetadata: Boolean(slugFilter) }))
+    .filter((row) => !slugFilter || slugFilter.has(row.slug))
   const rowsWithIssues = rows.filter((row) => row.issues.length > 0)
   const issueCounts = rowsWithIssues.reduce((counts, row) => {
     for (const issue of row.issues) {
