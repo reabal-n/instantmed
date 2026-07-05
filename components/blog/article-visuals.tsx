@@ -126,6 +126,13 @@ function ArticleVisualPanel({
   imageLoading: "eager" | "lazy"
 }) {
   const styles = accentStyles[visual.accent]
+  const visualLayout = visual.layout ?? "portrait"
+  const imageFrameClass =
+    visualLayout === "wide" ? "max-w-3xl" : visualLayout === "square" ? "max-w-[560px]" : "max-w-[480px]"
+  const imageAspectClass =
+    visualLayout === "wide" ? "aspect-video" : visualLayout === "square" ? "aspect-square" : "aspect-[2/3]"
+  const imageSizes =
+    visualLayout === "wide" ? "(max-width: 640px) 100vw, 768px" : "(max-width: 640px) 100vw, 480px"
 
   if (visual.assetPath) {
     const imageAlt = `${visual.title}: ${visual.summary}`
@@ -143,17 +150,20 @@ function ArticleVisualPanel({
           <DialogTrigger asChild>
             <button
               type="button"
-              className="group mx-auto block w-full max-w-[480px] cursor-zoom-in overflow-hidden rounded-xl border border-border/50 bg-white text-left shadow-sm shadow-primary/[0.04] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md hover:shadow-primary/[0.08] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-card dark:shadow-none"
+              className={cn(
+                "group mx-auto block w-full cursor-zoom-in overflow-hidden rounded-xl border border-border/50 bg-white text-left shadow-sm shadow-primary/[0.04] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md hover:shadow-primary/[0.08] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-card dark:shadow-none",
+                imageFrameClass,
+              )}
               aria-label={`Open ${visual.title} in a larger view`}
             >
-              <span className="relative block aspect-[2/3] w-full bg-white dark:bg-card">
+              <span className={cn("relative block w-full bg-white dark:bg-card", imageAspectClass)}>
                 <Image
                   src={visual.assetPath}
                   alt={imageAlt}
                   fill
                   className="object-contain"
                   loading={imageLoading}
-                  sizes="(max-width: 640px) 100vw, 480px"
+                  sizes={imageSizes}
                 />
               </span>
               <span className="flex min-h-11 items-center justify-center gap-2 border-t border-border/50 bg-muted/40 px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 group-hover:bg-primary/5 dark:bg-white/[0.04]">
@@ -181,7 +191,9 @@ function ArticleVisualPanel({
             </div>
           </DialogContent>
         </Dialog>
-        <p className="mx-auto mt-3 max-w-[480px] text-sm leading-relaxed text-muted-foreground">{visual.summary}</p>
+        <p className={cn("mx-auto mt-3 text-sm leading-relaxed text-muted-foreground", imageFrameClass)}>
+          {visual.summary}
+        </p>
       </figure>
     )
   }
