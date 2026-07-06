@@ -17,8 +17,11 @@ describe("email reconstruction contract", () => {
     "utf8",
   )
 
-  it("keeps stale-queue and payment-retry emails reconstructable for outbox retries", () => {
-    for (const emailType of ["still_reviewing", "payment_retry"]) {
+  it("keeps stale-queue still_reviewing emails reconstructable for outbox retries", () => {
+    // payment_retry was removed in the 2026-07-06 email Wave 2 cleanup (dead
+    // template — the retry-payment route returns to the owned checkout path
+    // instead of sending an email; the second `it` below pins that).
+    for (const emailType of ["still_reviewing"]) {
       expect(dispatcherSource).toContain(`"${emailType}"`)
       expect(reconstructSource).toContain(`row.email_type === "${emailType}"`)
     }

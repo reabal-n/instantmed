@@ -11,9 +11,6 @@ import {
   NeedsMoreInfoEmail,
   PaymentConfirmedEmail,
   PaymentFailedEmail,
-  PaymentReceiptEmail,
-  PaymentRetryEmail,
-  PrescriptionApprovedEmail,
   RequestDeclinedEmail,
   RequestReceivedEmail,
   ScriptSentEmail,
@@ -105,21 +102,6 @@ const patientEmailCases: Array<{
     expectedHref: `${APP_URL}/track/${INTAKE_ID}`,
   },
   {
-    name: "payment receipt",
-    html: render(
-      <PaymentReceiptEmail
-        patientName="Test Patient"
-        serviceName="Medical Certificate"
-        amount="$24.95"
-        intakeRef="IM-TEST"
-        paidAt="29 June 2026"
-        dashboardUrl={`${APP_URL}/track/${INTAKE_ID}`}
-        appUrl={APP_URL}
-      />,
-    ),
-    expectedHref: `${APP_URL}/track/${INTAKE_ID}`,
-  },
-  {
     name: "payment failed",
     html: render(
       <PaymentFailedEmail
@@ -127,19 +109,6 @@ const patientEmailCases: Array<{
         serviceName="Medical Certificate"
         failureReason="Card declined"
         retryUrl={`${APP_URL}/request/payment/recover?intake_id=${INTAKE_ID}`}
-        appUrl={APP_URL}
-      />,
-    ),
-    expectedHref: `${APP_URL}/request/payment/recover?intake_id=${INTAKE_ID}`,
-  },
-  {
-    name: "payment retry",
-    html: render(
-      <PaymentRetryEmail
-        patientName="Test Patient"
-        requestType="Medical Certificate"
-        amount="$24.95"
-        paymentUrl={`${APP_URL}/request/payment/recover?intake_id=${INTAKE_ID}`}
         appUrl={APP_URL}
       />,
     ),
@@ -188,18 +157,6 @@ const patientEmailCases: Array<{
       <ScriptSentEmail
         patientName="Test Patient"
         requestId={INTAKE_ID}
-        appUrl={APP_URL}
-      />,
-    ),
-    expectedHref: `${APP_URL}/track/${INTAKE_ID}`,
-  },
-  {
-    name: "prescription approved",
-    html: render(
-      <PrescriptionApprovedEmail
-        patientName="Test Patient"
-        medicationName="Test medication"
-        intakeId={INTAKE_ID}
         appUrl={APP_URL}
       />,
     ),

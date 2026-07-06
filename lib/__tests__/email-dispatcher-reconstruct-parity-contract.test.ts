@@ -48,14 +48,13 @@ const RECONSTRUCTABLE = new Set(
 
 // Known parity debt: SUPPORTED types reconstruct.ts cannot yet rebuild that are
 // NOT cron-owned. Each is a transactional/lifecycle email that needs its own
-// reconstruct branch (or removal from SUPPORTED) in focused follow-up — the
-// sharp edge is `verification_code` (auth). DO NOT add new types here; fix the gap.
+// reconstruct branch (or removal from SUPPORTED) in focused follow-up. The
+// 2026-07-06 email Wave 2 cleanup shrank this by deleting the dead
+// intake_submitted / referral_credit / verification_code templates outright.
+// DO NOT add new types here; fix the gap.
 const KNOWN_RECONSTRUCT_GAP = [
-  "intake_submitted",
-  "referral_credit",
   "refund_issued",
   "request_approved",
-  "verification_code",
 ].sort()
 
 describe("email dispatcher <-> reconstruct parity", () => {

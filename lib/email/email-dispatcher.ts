@@ -38,17 +38,14 @@ const STALE_SENDING_MINUTES = 15
 // type can't be claimed "supported" here without a reconstruct branch (the bug
 // that silently dropped cron-owned retries + Sentry-warned them).
 export const SUPPORTED_EMAIL_TYPES = [
-  // Core approvals & outcomes
+  // Core approvals & outcomes. The specialty *_approved types were retired in
+  // the 2026-07-06 email Wave 2 cleanup — real prescription approvals notify
+  // via script_sent, so those templates were dead code.
   "med_cert_patient",
   "med_cert_employer",
   "script_sent",
   "request_declined",
-  "prescription_approved",
   "consult_approved",
-  "ed_approved",
-  "hair_loss_approved",
-  "weight_loss_approved",
-  "womens_health_approved",
   "needs_more_info",
   // Payments. The hyphenated entries are DB template slugs — sendTemplateEmail
   // writes the slug verbatim as email_outbox.email_type, so the dispatcher must
@@ -60,16 +57,10 @@ export const SUPPORTED_EMAIL_TYPES = [
   "payment_confirmed",
   "refund_issued",
   // Lifecycle
-  "welcome",
   "guest_complete_account",
-  "intake_submitted",
   "request_received",
   "request_approved",
   "still_reviewing",
-  "payment_retry",
-  "verification_code",
-  // Engagement & retention
-  "referral_credit",
 ] as const
 
 function isSupportedEmailType(emailType: string): boolean {

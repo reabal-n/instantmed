@@ -5,10 +5,6 @@
  * Every template lives in components/email/templates/.
  */
 
-// --- Welcome ---
-export type { WelcomeEmailProps } from "./welcome"
-export { WelcomeEmail, welcomeEmailSubject } from "./welcome"
-
 // --- Med Cert (patient) ---
 export type { MedCertPatientEmailProps } from "./med-cert-patient"
 export { MedCertPatientEmail, medCertPatientEmailSubject } from "./med-cert-patient"
@@ -25,10 +21,6 @@ export { ScriptSentEmail, scriptSentEmailSubject } from "./script-sent"
 export type { RequestDeclinedEmailProps } from "./request-declined"
 export { RequestDeclinedEmail, requestDeclinedEmailSubject } from "./request-declined"
 
-// --- Payment Receipt ---
-export type { PaymentReceiptEmailProps } from "./payment-receipt"
-export { PaymentReceiptEmail, paymentReceiptEmailSubject } from "./payment-receipt"
-
 // --- Payment Confirmed ---
 export type { PaymentConfirmedEmailProps } from "./payment-confirmed"
 export { PaymentConfirmedEmail, paymentConfirmedSubject } from "./payment-confirmed"
@@ -36,10 +28,6 @@ export { PaymentConfirmedEmail, paymentConfirmedSubject } from "./payment-confir
 // --- Payment Failed ---
 export type { PaymentFailedEmailProps } from "./payment-failed"
 export { PaymentFailedEmail, paymentFailedSubject } from "./payment-failed"
-
-// --- Payment Retry ---
-export type { PaymentRetryEmailProps } from "./payment-retry"
-export { PaymentRetryEmail, paymentRetrySubject } from "./payment-retry"
 
 // --- Needs More Info ---
 export type { NeedsMoreInfoEmailProps } from "./needs-more-info"
@@ -61,34 +49,6 @@ export { AbandonedCheckoutEmail, abandonedCheckoutSubject } from "./abandoned-ch
 export type { ConsultApprovedEmailProps } from "./consult-approved"
 export { ConsultApprovedEmail, consultApprovedSubject } from "./consult-approved"
 
-// --- ED Approved ---
-export type { EdApprovedEmailProps } from "./ed-approved"
-export { EdApprovedEmail, edApprovedSubject } from "./ed-approved"
-
-// --- Hair Loss Approved ---
-export type { HairLossApprovedEmailProps } from "./hair-loss-approved"
-export { HairLossApprovedEmail, hairLossApprovedSubject } from "./hair-loss-approved"
-
-// --- Weight Loss Approved ---
-export type { WeightLossApprovedEmailProps } from "./weight-loss-approved"
-export { WeightLossApprovedEmail, weightLossApprovedSubject } from "./weight-loss-approved"
-
-// --- Women's Health Approved ---
-export type { WomensHealthApprovedEmailProps } from "./womens-health-approved"
-export { WomensHealthApprovedEmail, womensHealthApprovedSubject } from "./womens-health-approved"
-
-// --- Prescription Approved ---
-export type { PrescriptionApprovedEmailProps } from "./prescription-approved"
-export { PrescriptionApprovedEmail, prescriptionApprovedSubject } from "./prescription-approved"
-
-// --- Referral Credit ---
-export type { ReferralCreditEmailProps } from "./referral-credit"
-export { ReferralCreditEmail, referralCreditSubject } from "./referral-credit"
-
-// --- Intake Submitted ---
-export type { IntakeSubmittedEmailProps } from "./intake-submitted"
-export { IntakeSubmittedEmail, intakeSubmittedSubject } from "./intake-submitted"
-
 // --- Request Received (merged payment + review status) ---
 export type { RequestReceivedEmailProps } from "./request-received"
 export { RequestReceivedEmail, requestReceivedSubject } from "./request-received"
@@ -96,10 +56,6 @@ export { RequestReceivedEmail, requestReceivedSubject } from "./request-received
 // --- Refund Issued ---
 export type { RefundIssuedEmailProps } from "./refund-issued"
 export { RefundIssuedEmail, refundIssuedEmailSubject } from "./refund-issued"
-
-// --- Verification Code (OTP via Resend) ---
-export type { VerificationCodeEmailProps } from "./verification-code"
-export { VerificationCodeEmail, verificationCodeSubject } from "./verification-code"
 
 // --- Still Reviewing (45-min follow-up for pending requests) ---
 export type { StillReviewingEmailProps } from "./still-reviewing"

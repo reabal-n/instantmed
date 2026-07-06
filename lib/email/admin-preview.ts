@@ -9,31 +9,20 @@ import "server-only"
 
 import * as React from "react"
 
+// ── Template imports ──
 import { AbandonedCheckoutEmail } from "@/lib/email/components/templates/abandoned-checkout"
 import { ConsultApprovedEmail } from "@/lib/email/components/templates/consult-approved"
-import { EdApprovedEmail } from "@/lib/email/components/templates/ed-approved"
 import { GuestCompleteAccountEmail } from "@/lib/email/components/templates/guest-complete-account"
-import { HairLossApprovedEmail } from "@/lib/email/components/templates/hair-loss-approved"
-import { IntakeSubmittedEmail } from "@/lib/email/components/templates/intake-submitted"
 import { MedCertEmployerEmail } from "@/lib/email/components/templates/med-cert-employer"
 import { MedCertPatientEmail } from "@/lib/email/components/templates/med-cert-patient"
 import { NeedsMoreInfoEmail } from "@/lib/email/components/templates/needs-more-info"
 import { PaymentConfirmedEmail } from "@/lib/email/components/templates/payment-confirmed"
 import { PaymentFailedEmail } from "@/lib/email/components/templates/payment-failed"
-import { PaymentReceiptEmail } from "@/lib/email/components/templates/payment-receipt"
-import { PaymentRetryEmail } from "@/lib/email/components/templates/payment-retry"
-import { PrescriptionApprovedEmail } from "@/lib/email/components/templates/prescription-approved"
-import { ReferralCreditEmail } from "@/lib/email/components/templates/referral-credit"
 import { RefundIssuedEmail } from "@/lib/email/components/templates/refund-issued"
 import { RequestDeclinedEmail } from "@/lib/email/components/templates/request-declined"
 import { RequestReceivedEmail } from "@/lib/email/components/templates/request-received"
 import { ScriptSentEmail } from "@/lib/email/components/templates/script-sent"
 import { StillReviewingEmail } from "@/lib/email/components/templates/still-reviewing"
-import { VerificationCodeEmail } from "@/lib/email/components/templates/verification-code"
-import { WeightLossApprovedEmail } from "@/lib/email/components/templates/weight-loss-approved"
-// ── Template imports ──
-import { WelcomeEmail } from "@/lib/email/components/templates/welcome"
-import { WomensHealthApprovedEmail } from "@/lib/email/components/templates/womens-health-approved"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("admin-email-preview")
@@ -56,14 +45,6 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
 const PREVIEW_TEMPLATES: PreviewTemplate[] = [
   // ── Patient Lifecycle ──
   {
-    slug: "welcome",
-    name: "Welcome Email",
-    subject: "Welcome to InstantMed",
-    availableTags: ["patientName"],
-    sampleData: { patientName: "Sarah Johnson" },
-    render: (d) => React.createElement(WelcomeEmail, { patientName: d.patientName, appUrl: APP_URL }),
-  },
-  {
     slug: "guest_complete_account",
     name: "Guest Complete Account",
     subject: "Set up your account to track your request",
@@ -77,34 +58,8 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       appUrl: APP_URL,
     }),
   },
-  {
-    slug: "verification_code",
-    name: "Verification Code",
-    subject: "Your InstantMed verification code",
-    availableTags: ["code"],
-    sampleData: { code: "847291" },
-    render: (d) => React.createElement(VerificationCodeEmail, {
-      code: d.code,
-      requestedFrom: "Chrome on macOS",
-      requestedAt: "30 March 2026, 2:15 PM AEST",
-      appUrl: APP_URL,
-    }),
-  },
 
   // ── Request Flow ──
-  {
-    slug: "intake_submitted",
-    name: "Intake Submitted",
-    subject: "Your request is being reviewed",
-    availableTags: ["patientName", "requestType", "requestId"],
-    sampleData: { patientName: "Sarah Johnson", requestType: "medical certificate", requestId: "abc-123" },
-    render: (d) => React.createElement(IntakeSubmittedEmail, {
-      patientName: d.patientName,
-      requestType: d.requestType,
-      requestId: d.requestId,
-      appUrl: APP_URL,
-    }),
-  },
   {
     slug: "request_received",
     name: "Request Received (Payment Confirmed)",
@@ -198,20 +153,6 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
     }),
   },
   {
-    slug: "prescription_approved",
-    name: "Prescription Approved",
-    subject: "Your prescription has been approved",
-    availableTags: ["patientName", "medicationName"],
-    sampleData: { patientName: "Sarah Johnson", medicationName: "Amoxicillin 500mg" },
-    render: (d) => React.createElement(PrescriptionApprovedEmail, {
-      patientName: d.patientName,
-      medicationName: d.medicationName,
-      intakeId: "abc-123",
-      appUrl: APP_URL,
-      heardToken: "PREVIEW_SAMPLE_TOKEN",
-    }),
-  },
-  {
     slug: "script_sent",
     name: "Script Sent",
     subject: "Your eScript has been sent",
@@ -221,63 +162,6 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       patientName: d.patientName,
       requestId: "abc-123",
       escriptReference: d.escriptReference,
-      appUrl: APP_URL,
-      heardToken: "PREVIEW_SAMPLE_TOKEN",
-    }),
-  },
-  {
-    slug: "ed_approved",
-    name: "ED Consultation Approved",
-    subject: "Your ED consultation has been reviewed",
-    availableTags: ["patientName", "medicationName"],
-    sampleData: { patientName: "Sarah Johnson", medicationName: "Sildenafil 50mg" },
-    render: (d) => React.createElement(EdApprovedEmail, {
-      patientName: d.patientName,
-      medicationName: d.medicationName,
-      requestId: "abc-123",
-      appUrl: APP_URL,
-      heardToken: "PREVIEW_SAMPLE_TOKEN",
-    }),
-  },
-  {
-    slug: "hair_loss_approved",
-    name: "Hair Loss Approved",
-    subject: "Your hair loss treatment has been approved",
-    availableTags: ["patientName", "medicationName"],
-    sampleData: { patientName: "Sarah Johnson", medicationName: "Finasteride 1mg" },
-    render: (d) => React.createElement(HairLossApprovedEmail, {
-      patientName: d.patientName,
-      medicationName: d.medicationName,
-      requestId: "abc-123",
-      appUrl: APP_URL,
-      heardToken: "PREVIEW_SAMPLE_TOKEN",
-    }),
-  },
-  {
-    slug: "weight_loss_approved",
-    name: "Weight Loss Approved",
-    subject: "Your weight loss treatment has been approved",
-    availableTags: ["patientName", "medicationName"],
-    sampleData: { patientName: "Sarah Johnson", medicationName: "Semaglutide 0.25mg" },
-    render: (d) => React.createElement(WeightLossApprovedEmail, {
-      patientName: d.patientName,
-      medicationName: d.medicationName,
-      requestId: "abc-123",
-      appUrl: APP_URL,
-      heardToken: "PREVIEW_SAMPLE_TOKEN",
-    }),
-  },
-  {
-    slug: "womens_health_approved",
-    name: "Women's Health Approved",
-    subject: "Your women's health treatment has been approved",
-    availableTags: ["patientName", "medicationName", "treatmentType"],
-    sampleData: { patientName: "Sarah Johnson", medicationName: "Levonorgestrel 1.5mg", treatmentType: "contraception" },
-    render: (d) => React.createElement(WomensHealthApprovedEmail, {
-      patientName: d.patientName,
-      medicationName: d.medicationName,
-      treatmentType: d.treatmentType,
-      requestId: "abc-123",
       appUrl: APP_URL,
       heardToken: "PREVIEW_SAMPLE_TOKEN",
     }),
@@ -313,22 +197,6 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
     }),
   },
   {
-    slug: "payment_receipt",
-    name: "Payment Receipt",
-    subject: "Payment receipt",
-    availableTags: ["patientName", "serviceName", "amount", "intakeRef", "paidAt"],
-    sampleData: { patientName: "Sarah Johnson", serviceName: "Medical Certificate (2 Day)", amount: "$29.95", intakeRef: "IM-20260330-00847", paidAt: "30 Mar 2026, 2:15 PM" },
-    render: (d) => React.createElement(PaymentReceiptEmail, {
-      patientName: d.patientName,
-      serviceName: d.serviceName,
-      amount: d.amount,
-      intakeRef: d.intakeRef,
-      paidAt: d.paidAt,
-      dashboardUrl: `${APP_URL}/patient/intakes/abc-123`,
-      appUrl: APP_URL,
-    }),
-  },
-  {
     slug: "payment_failed",
     name: "Payment Failed",
     subject: "There was a hiccup with your payment",
@@ -339,20 +207,6 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       serviceName: d.serviceName,
       failureReason: d.failureReason,
       retryUrl: `${APP_URL}/patient/intakes/abc-123/retry-payment`,
-      appUrl: APP_URL,
-    }),
-  },
-  {
-    slug: "payment_retry",
-    name: "Payment Retry",
-    subject: "Your payment needs another go",
-    availableTags: ["patientName", "requestType", "amount"],
-    sampleData: { patientName: "Sarah Johnson", requestType: "medical certificate", amount: "$29.95" },
-    render: (d) => React.createElement(PaymentRetryEmail, {
-      patientName: d.patientName,
-      requestType: d.requestType,
-      amount: d.amount,
-      paymentUrl: `${APP_URL}/patient/intakes/abc-123/retry-payment`,
       appUrl: APP_URL,
     }),
   },
@@ -383,19 +237,6 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       serviceName: d.serviceName,
       resumeUrl: `${APP_URL}/request?resume=abc-123`,
       startedAgoLabel: "about 35 minutes ago",
-      appUrl: APP_URL,
-    }),
-  },
-  {
-    slug: "referral_credit",
-    name: "Referral Credit",
-    subject: "You've earned a $5.00 credit!",
-    availableTags: ["patientName", "creditAmount", "friendName"],
-    sampleData: { patientName: "Sarah Johnson", creditAmount: "$5.00", friendName: "Tom Wilson" },
-    render: (d) => React.createElement(ReferralCreditEmail, {
-      patientName: d.patientName,
-      creditAmount: d.creditAmount,
-      friendName: d.friendName,
       appUrl: APP_URL,
     }),
   },

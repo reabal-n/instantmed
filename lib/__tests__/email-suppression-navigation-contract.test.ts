@@ -56,7 +56,9 @@ describe("email suppression navigation contract", () => {
     expect(hubSource).not.toContain("Template Settings")
     expect(hubSource).toContain("Email delivery controls")
     expect(hubSource).toContain("Auth recovery")
-    expect(hubSource).toContain("/email-preview/verification-code")
+    // verification-code preview retired with its template (Wave 2, 2026-07-06);
+    // the live auth flow is magic-link only.
+    expect(hubSource).not.toContain("/email-preview/verification-code")
     expect(hubSource).toContain("/email-preview/magic-link")
     expect(hubSource).not.toContain("/email-preview/magic-link-recovery")
     expect(hubPageSource).toContain("authEmailHookStatus")
@@ -84,13 +86,16 @@ describe("email suppression navigation contract", () => {
     expect(previewSource).not.toContain("Reset your password with this link:")
   })
 
-  it("keeps the verification-code auth template previewable from Email delivery", () => {
+  it("keeps the magic-link auth template previewable from Email delivery", () => {
+    // The verification-code template was removed in the 2026-07-06 email Wave 2
+    // cleanup — the live auth flow sends magic-link (link-based), never an OTP
+    // code email — so only the magic-link preview affordance remains.
     const hubSource = readProjectFile("app/admin/emails/hub/email-hub-client.tsx")
     const previewSource = readProjectFile("app/(dev)/email-preview/[template]/page.tsx")
 
-    expect(hubSource).toContain("Verification preview")
     expect(hubSource).toContain("Magic-link preview")
-    expect(previewSource).toContain('"verification-code"')
-    expect(previewSource).toContain("VerificationCodeEmail")
+    expect(hubSource).not.toContain("Verification preview")
+    expect(previewSource).toContain('"magic-link"')
+    expect(previewSource).not.toContain("VerificationCodeEmail")
   })
 })

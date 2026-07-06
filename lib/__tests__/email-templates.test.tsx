@@ -21,14 +21,8 @@ import {
   abandonedCheckoutSubject,
   ConsultApprovedEmail,
   consultApprovedSubject,
-  EdApprovedEmail,
-  edApprovedSubject,
   GuestCompleteAccountEmail,
   guestCompleteAccountSubject,
-  HairLossApprovedEmail,
-  hairLossApprovedSubject,
-  IntakeSubmittedEmail,
-  intakeSubmittedSubject,
   MagicLinkEmail,
   magicLinkEmailSubject,
   MedCertEmployerEmail,
@@ -43,14 +37,6 @@ import {
   paymentConfirmedSubject,
   PaymentFailedEmail,
   paymentFailedSubject,
-  PaymentReceiptEmail,
-  paymentReceiptEmailSubject,
-  PaymentRetryEmail,
-  paymentRetrySubject,
-  PrescriptionApprovedEmail,
-  prescriptionApprovedSubject,
-  ReferralCreditEmail,
-  referralCreditSubject,
   RefundIssuedEmail,
   refundIssuedEmailSubject,
   RequestDeclinedEmail,
@@ -63,14 +49,6 @@ import {
   scriptSentEmailSubject,
   StillReviewingEmail,
   stillReviewingSubject,
-  VerificationCodeEmail,
-  verificationCodeSubject,
-  WeightLossApprovedEmail,
-  weightLossApprovedSubject,
-  WelcomeEmail,
-  welcomeEmailSubject,
-  WomensHealthApprovedEmail,
-  womensHealthApprovedSubject,
 } from "@/lib/email/components/templates"
 
 // ============================================================================
@@ -111,31 +89,6 @@ describe("Email Templates", () => {
 
   afterEach(() => {
     vi.useRealTimers()
-  })
-
-  describe("WelcomeEmail", () => {
-    it("renders with base structure and patient name", () => {
-      const html = render(<WelcomeEmail patientName="Sarah Chen" appUrl={APP_URL} />)
-      expectBaseEmailStructure(html)
-      expectContains(html, "Sarah", "Good to have you")
-    })
-
-    it("extracts first name correctly", () => {
-      const html = render(<WelcomeEmail patientName="Jane Elizabeth Doe" appUrl={APP_URL} />)
-      expectContains(html, "Jane")
-    })
-
-    it("subject is non-empty string", () => {
-      const subject = welcomeEmailSubject("Sarah Chen")
-      expect(subject).toBeTruthy()
-      expect(typeof subject).toBe("string")
-      expect(subject).toContain("Sarah")
-    })
-
-    it("matches snapshot", () => {
-      const html = render(<WelcomeEmail patientName="Test Patient" appUrl={APP_URL} />)
-      expect(html).toMatchSnapshot()
-    })
   })
 
   describe("MedCertPatientEmail", () => {
@@ -321,43 +274,6 @@ describe("Email Templates", () => {
     })
   })
 
-  describe("PaymentReceiptEmail", () => {
-    it("renders receipt details", () => {
-      const html = render(
-        <PaymentReceiptEmail
-          patientName="Jordan Lee"
-          serviceName="Medical Certificate (1 Day)"
-          amount="$19.95"
-          intakeRef="IM-20260301-XYZ"
-          paidAt="1 March 2026, 9:30 AM AEST"
-          dashboardUrl="https://instantmed.com.au/patient/intakes/123"
-          appUrl={APP_URL}
-        />
-      )
-      expectBaseEmailStructure(html)
-      expectContains(html, "Jordan", "$19.95", "IM-20260301-XYZ")
-    })
-
-    it("subject is non-empty", () => {
-      expect(paymentReceiptEmailSubject).toBeTruthy()
-    })
-
-    it("matches snapshot", () => {
-      const html = render(
-        <PaymentReceiptEmail
-          patientName="Test Patient"
-          serviceName="Medical Certificate"
-          amount="$19.95"
-          intakeRef="IM-TEST"
-          paidAt="1 Jan 2026"
-          dashboardUrl="https://instantmed.com.au/patient/intakes/test"
-          appUrl={APP_URL}
-        />
-      )
-      expect(html).toMatchSnapshot()
-    })
-  })
-
   describe("PaymentConfirmedEmail", () => {
     it("renders payment confirmation", () => {
       const html = render(
@@ -421,40 +337,6 @@ describe("Email Templates", () => {
           serviceName="Medical Certificate"
           failureReason="Insufficient funds"
           retryUrl="https://instantmed.com.au/retry/test"
-          appUrl={APP_URL}
-        />
-      )
-      expect(html).toMatchSnapshot()
-    })
-  })
-
-  describe("PaymentRetryEmail", () => {
-    it("renders retry details", () => {
-      const html = render(
-        <PaymentRetryEmail
-          patientName="Morgan Gray"
-          requestType="Medical Certificate"
-          amount="$19.95"
-          paymentUrl="https://instantmed.com.au/pay/abc"
-          appUrl={APP_URL}
-        />
-      )
-      expectBaseEmailStructure(html)
-      expectContains(html, "Morgan", "$19.95", "/pay/abc")
-    })
-
-    it("subject is non-empty", () => {
-      const subject = paymentRetrySubject()
-      expect(subject).toBeTruthy()
-    })
-
-    it("matches snapshot", () => {
-      const html = render(
-        <PaymentRetryEmail
-          patientName="Test Patient"
-          requestType="Medical Certificate"
-          amount="$19.95"
-          paymentUrl="https://instantmed.com.au/pay/test"
           appUrl={APP_URL}
         />
       )
@@ -632,203 +514,6 @@ describe("Email Templates", () => {
     })
   })
 
-  describe("EdApprovedEmail", () => {
-    it("renders with medication name", () => {
-      const html = render(
-        <EdApprovedEmail
-          patientName="Blake Turner"
-          medicationName="Sildenafil 50mg"
-          requestId="REQ-006"
-          appUrl={APP_URL}
-        />
-      )
-      expectBaseEmailStructure(html)
-      expectContains(html, "Blake", "Sildenafil")
-    })
-
-    it("subject is non-empty", () => {
-      expect(edApprovedSubject).toBeTruthy()
-    })
-
-    it("matches snapshot", () => {
-      const html = render(
-        <EdApprovedEmail patientName="Test Patient" medicationName="Sildenafil" requestId="REQ-TEST" appUrl={APP_URL} />
-      )
-      expect(html).toMatchSnapshot()
-    })
-  })
-
-  describe("HairLossApprovedEmail", () => {
-    it("renders with medication details", () => {
-      const html = render(
-        <HairLossApprovedEmail
-          patientName="Skyler Reed"
-          medicationName="Finasteride 1mg"
-          requestId="REQ-007"
-          appUrl={APP_URL}
-        />
-      )
-      expectBaseEmailStructure(html)
-      expectContains(html, "Skyler", "Finasteride")
-    })
-
-    it("subject is non-empty", () => {
-      expect(hairLossApprovedSubject).toBeTruthy()
-    })
-
-    it("matches snapshot", () => {
-      const html = render(
-        <HairLossApprovedEmail patientName="Test Patient" medicationName="Finasteride" requestId="REQ-TEST" appUrl={APP_URL} />
-      )
-      expect(html).toMatchSnapshot()
-    })
-  })
-
-  describe("WeightLossApprovedEmail", () => {
-    it("renders with GLP-1 medication", () => {
-      const html = render(
-        <WeightLossApprovedEmail
-          patientName="Dakota Green"
-          medicationName="Semaglutide 0.25mg"
-          requestId="REQ-008"
-          appUrl={APP_URL}
-        />
-      )
-      expectBaseEmailStructure(html)
-      expectContains(html, "Dakota", "Semaglutide")
-    })
-
-    it("subject is non-empty", () => {
-      expect(weightLossApprovedSubject).toBeTruthy()
-    })
-
-    it("matches snapshot", () => {
-      const html = render(
-        <WeightLossApprovedEmail patientName="Test Patient" medicationName="Semaglutide" requestId="REQ-TEST" appUrl={APP_URL} />
-      )
-      expect(html).toMatchSnapshot()
-    })
-  })
-
-  describe("WomensHealthApprovedEmail", () => {
-    it("renders with treatment type", () => {
-      const html = render(
-        <WomensHealthApprovedEmail
-          patientName="River Santos"
-          medicationName="Levonorgestrel"
-          treatmentType="contraception"
-          requestId="REQ-009"
-          appUrl={APP_URL}
-        />
-      )
-      expectBaseEmailStructure(html)
-      expectContains(html, "River")
-    })
-
-    it("subject is non-empty", () => {
-      expect(womensHealthApprovedSubject).toBeTruthy()
-    })
-
-    it("matches snapshot", () => {
-      const html = render(
-        <WomensHealthApprovedEmail patientName="Test Patient" medicationName="Levonorgestrel" requestId="REQ-TEST" appUrl={APP_URL} />
-      )
-      expect(html).toMatchSnapshot()
-    })
-  })
-
-  describe("PrescriptionApprovedEmail", () => {
-    it("renders with medication name", () => {
-      const html = render(
-        <PrescriptionApprovedEmail
-          patientName="Hayden Cruz"
-          medicationName="Amoxicillin 500mg"
-          intakeId="intake-456"
-          appUrl={APP_URL}
-        />
-      )
-      expectBaseEmailStructure(html)
-      expectContains(html, "Hayden", "Amoxicillin")
-    })
-
-    it("subject is non-empty", () => {
-      expect(prescriptionApprovedSubject).toBeTruthy()
-    })
-
-    it("matches snapshot", () => {
-      const html = render(
-        <PrescriptionApprovedEmail patientName="Test Patient" medicationName="Amoxicillin" intakeId="test-intake" appUrl={APP_URL} />
-      )
-      expect(html).toMatchSnapshot()
-    })
-  })
-
-  describe("ReferralCreditEmail", () => {
-    it("renders with credit amount and friend name", () => {
-      const html = render(
-        <ReferralCreditEmail
-          patientName="Emery Walsh"
-          creditAmount="$5.00"
-          friendName="Jamie"
-          appUrl={APP_URL}
-        />
-      )
-      expectBaseEmailStructure(html)
-      expectContains(html, "Emery", "$5.00", "Jamie")
-    })
-
-    it("renders without friend name", () => {
-      const html = render(
-        <ReferralCreditEmail
-          patientName="Emery Walsh"
-          creditAmount="$5.00"
-          appUrl={APP_URL}
-        />
-      )
-      expectBaseEmailStructure(html)
-      expectContains(html, "Emery", "$5.00")
-    })
-
-    it("subject factory works", () => {
-      const subject = referralCreditSubject("$5.00")
-      expect(subject).toContain("$5.00")
-    })
-
-    it("matches snapshot", () => {
-      const html = render(
-        <ReferralCreditEmail patientName="Test Patient" creditAmount="$5.00" appUrl={APP_URL} />
-      )
-      expect(html).toMatchSnapshot()
-    })
-  })
-
-  describe("IntakeSubmittedEmail", () => {
-    it("renders with request type", () => {
-      const html = render(
-        <IntakeSubmittedEmail
-          patientName="Finley Price"
-          requestType="Medical Certificate"
-          requestId="REQ-010"
-          appUrl={APP_URL}
-        />
-      )
-      expectBaseEmailStructure(html)
-      expectContains(html, "Finley")
-    })
-
-    it("subject factory works", () => {
-      const subject = intakeSubmittedSubject("Medical Certificate")
-      expect(subject).toContain("Medical Certificate")
-    })
-
-    it("matches snapshot", () => {
-      const html = render(
-        <IntakeSubmittedEmail patientName="Test Patient" requestType="Medical Certificate" requestId="REQ-TEST" appUrl={APP_URL} />
-      )
-      expect(html).toMatchSnapshot()
-    })
-  })
-
   describe("RequestReceivedEmail", () => {
     it("renders for authenticated user", () => {
       const html = render(
@@ -913,43 +598,6 @@ describe("Email Templates", () => {
     it("matches snapshot", () => {
       const html = render(
         <RefundIssuedEmail patientName="Test Patient" requestType="Medical Certificate" requestId="REQ-TEST" appUrl={APP_URL} />
-      )
-      expect(html).toMatchSnapshot()
-    })
-  })
-
-  describe("VerificationCodeEmail", () => {
-    it("renders with code", () => {
-      const html = render(
-        <VerificationCodeEmail
-          code="847291"
-          appUrl={APP_URL}
-        />
-      )
-      expectBaseEmailStructure(html)
-      expectContains(html, "847291")
-    })
-
-    it("renders with request context", () => {
-      const html = render(
-        <VerificationCodeEmail
-          code="123456"
-          requestedFrom="Chrome on macOS"
-          requestedAt="1 March 2026, 10:00 AM AEST"
-          appUrl={APP_URL}
-        />
-      )
-      expectContains(html, "123456", "Chrome on macOS")
-    })
-
-    it("subject factory works", () => {
-      const subject = verificationCodeSubject("123456")
-      expect(subject).toContain("123456")
-    })
-
-    it("matches snapshot", () => {
-      const html = render(
-        <VerificationCodeEmail code="000000" appUrl={APP_URL} />
       )
       expect(html).toMatchSnapshot()
     })
@@ -1062,30 +710,19 @@ describe("Email Templates", () => {
 describe("Email Template Cross-Checks", () => {
   it("all templates produce valid HTML (no unclosed tags)", () => {
     const templates = [
-      <WelcomeEmail key="1" patientName="Test" appUrl={APP_URL} />,
       <MedCertPatientEmail key="2" patientName="Test" dashboardUrl="https://example.com" appUrl={APP_URL} />,
       <MedCertEmployerEmail key="3" patientName="Test" downloadUrl="https://example.com" appUrl={APP_URL} />,
       <ScriptSentEmail key="4" patientName="Test" requestId="R1" appUrl={APP_URL} />,
       <RequestDeclinedEmail key="5" patientName="Test" requestType="Med Cert" requestId="R2" appUrl={APP_URL} />,
-      <PaymentReceiptEmail key="6" patientName="Test" serviceName="Med Cert" amount="$19.95" intakeRef="IM-1" paidAt="1 Jan 2026" dashboardUrl="https://example.com" appUrl={APP_URL} />,
       <PaymentConfirmedEmail key="7" patientName="Test" requestType="Med Cert" amount="$19.95" requestId="R3" appUrl={APP_URL} />,
       <PaymentFailedEmail key="8" patientName="Test" serviceName="Med Cert" failureReason="Declined" retryUrl="https://example.com" appUrl={APP_URL} />,
-      <PaymentRetryEmail key="9" patientName="Test" requestType="Med Cert" amount="$19.95" paymentUrl="https://example.com" appUrl={APP_URL} />,
       <NeedsMoreInfoEmail key="10" patientName="Test" requestType="Med Cert" requestId="R4" doctorMessage="More info needed" appUrl={APP_URL} />,
       <GuestCompleteAccountEmail key="11" patientName="Test" requestType="Med Cert" intakeId="i1" completeAccountUrl="https://example.com" appUrl={APP_URL} />,
       <PartialIntakeRecoveryEmail key="12" firstName="Test" serviceName="Med Cert" resumeUrl="https://example.com" appUrl={APP_URL} />,
       <AbandonedCheckoutEmail key="12b" patientName="Test" serviceName="Med Cert" resumeUrl="https://example.com" startedAgoLabel="about 2 hours ago" appUrl={APP_URL} />,
       <ConsultApprovedEmail key="13" patientName="Test" requestId="R5" appUrl={APP_URL} />,
-      <EdApprovedEmail key="14" patientName="Test" medicationName="Sildenafil" requestId="R6" appUrl={APP_URL} />,
-      <HairLossApprovedEmail key="15" patientName="Test" medicationName="Finasteride" requestId="R7" appUrl={APP_URL} />,
-      <WeightLossApprovedEmail key="16" patientName="Test" medicationName="Semaglutide" requestId="R8" appUrl={APP_URL} />,
-      <WomensHealthApprovedEmail key="17" patientName="Test" medicationName="Levonorgestrel" requestId="R9" appUrl={APP_URL} />,
-      <PrescriptionApprovedEmail key="18" patientName="Test" medicationName="Amoxicillin" intakeId="i2" appUrl={APP_URL} />,
-      <ReferralCreditEmail key="20" patientName="Test" creditAmount="$5" appUrl={APP_URL} />,
-      <IntakeSubmittedEmail key="21" patientName="Test" requestType="Med Cert" requestId="R10" appUrl={APP_URL} />,
       <RequestReceivedEmail key="22" patientName="Test" requestType="Med Cert" amount="$19.95" requestId="R11" appUrl={APP_URL} />,
       <RefundIssuedEmail key="23" patientName="Test" requestType="Med Cert" requestId="R12" appUrl={APP_URL} />,
-      <VerificationCodeEmail key="24" code="123456" appUrl={APP_URL} />,
       <StillReviewingEmail key="25" patientName="Test" requestType="Med Cert" requestId="R13" appUrl={APP_URL} />,
       <ReviewRequestEmail key="31" patientName="Test" serviceName="Medical Certificate" appUrl={APP_URL} />,
       <AbandonedCheckoutFollowupEmail key="33" patientName="Test" serviceName="Medical Certificate" resumeUrl="https://instantmed.com.au/request?resume=abc" appUrl={APP_URL} />,
@@ -1105,9 +742,7 @@ describe("Email Template Cross-Checks", () => {
 
   it("all templates include BaseEmail branding elements", () => {
     const templates = [
-      <WelcomeEmail key="1" patientName="Test" appUrl={APP_URL} />,
       <PaymentFailedEmail key="2" patientName="Test" serviceName="Med Cert" failureReason="Declined" retryUrl="https://example.com" appUrl={APP_URL} />,
-      <VerificationCodeEmail key="3" code="123456" appUrl={APP_URL} />,
       <StillReviewingEmail key="4" patientName="Test" requestType="Med Cert" requestId="R1" appUrl={APP_URL} />,
       <PartialIntakeRecoveryEmail key="5" firstName="Test" serviceName="Med Cert" resumeUrl="https://example.com" appUrl={APP_URL} />,
       <AbandonedCheckoutEmail key="6" patientName="Test" serviceName="Med Cert" resumeUrl="https://example.com" startedAgoLabel="about 2 hours ago" appUrl={APP_URL} />,
@@ -1121,9 +756,7 @@ describe("Email Template Cross-Checks", () => {
 
   it("no template contains PHI placeholder leaks", () => {
     const templates = [
-      <WelcomeEmail key="1" patientName="Test" appUrl={APP_URL} />,
       <MedCertPatientEmail key="2" patientName="Test" dashboardUrl="https://example.com" appUrl={APP_URL} />,
-      <PaymentReceiptEmail key="3" patientName="Test" serviceName="Med Cert" amount="$19.95" intakeRef="IM-1" paidAt="1 Jan" dashboardUrl="https://example.com" appUrl={APP_URL} />,
     ]
 
     for (const template of templates) {
@@ -1148,7 +781,6 @@ describe("Link validation", () => {
    * is the only step needed to include it in link checks.
    */
   const templateRegistry: Record<string, React.ReactElement> = {
-    WelcomeEmail: <WelcomeEmail patientName="Test Patient" appUrl={APP_URL} />,
     MedCertPatientEmail: (
       <MedCertPatientEmail
         patientName="Test Patient"
@@ -1186,17 +818,6 @@ describe("Link validation", () => {
         appUrl={APP_URL}
       />
     ),
-    PaymentReceiptEmail: (
-      <PaymentReceiptEmail
-        patientName="Test Patient"
-        serviceName="Medical Certificate (1 Day)"
-        amount="$19.95"
-        intakeRef="IM-20260301-XYZ"
-        paidAt="1 March 2026, 9:30 AM AEST"
-        dashboardUrl="https://instantmed.com.au/patient/intakes/123"
-        appUrl={APP_URL}
-      />
-    ),
     PaymentConfirmedEmail: (
       <PaymentConfirmedEmail
         patientName="Test Patient"
@@ -1212,15 +833,6 @@ describe("Link validation", () => {
         serviceName="Repeat Prescription"
         failureReason="Card declined"
         retryUrl="https://instantmed.com.au/retry/xyz"
-        appUrl={APP_URL}
-      />
-    ),
-    PaymentRetryEmail: (
-      <PaymentRetryEmail
-        patientName="Test Patient"
-        requestType="Medical Certificate"
-        amount="$19.95"
-        paymentUrl="https://instantmed.com.au/pay/abc"
         appUrl={APP_URL}
       />
     ),
@@ -1267,63 +879,6 @@ describe("Link validation", () => {
         appUrl={APP_URL}
       />
     ),
-    EdApprovedEmail: (
-      <EdApprovedEmail
-        patientName="Test Patient"
-        medicationName="Sildenafil 50mg"
-        requestId="REQ-006"
-        appUrl={APP_URL}
-      />
-    ),
-    HairLossApprovedEmail: (
-      <HairLossApprovedEmail
-        patientName="Test Patient"
-        medicationName="Finasteride 1mg"
-        requestId="REQ-007"
-        appUrl={APP_URL}
-      />
-    ),
-    WeightLossApprovedEmail: (
-      <WeightLossApprovedEmail
-        patientName="Test Patient"
-        medicationName="Semaglutide 0.25mg"
-        requestId="REQ-008"
-        appUrl={APP_URL}
-      />
-    ),
-    WomensHealthApprovedEmail: (
-      <WomensHealthApprovedEmail
-        patientName="Test Patient"
-        medicationName="Levonorgestrel"
-        treatmentType="contraception"
-        requestId="REQ-009"
-        appUrl={APP_URL}
-      />
-    ),
-    PrescriptionApprovedEmail: (
-      <PrescriptionApprovedEmail
-        patientName="Test Patient"
-        medicationName="Amoxicillin 500mg"
-        intakeId="intake-456"
-        appUrl={APP_URL}
-      />
-    ),
-    ReferralCreditEmail: (
-      <ReferralCreditEmail
-        patientName="Test Patient"
-        creditAmount="$5.00"
-        friendName="Jamie"
-        appUrl={APP_URL}
-      />
-    ),
-    IntakeSubmittedEmail: (
-      <IntakeSubmittedEmail
-        patientName="Test Patient"
-        requestType="Medical Certificate"
-        requestId="REQ-010"
-        appUrl={APP_URL}
-      />
-    ),
     RequestReceivedEmail: (
       <RequestReceivedEmail
         patientName="Test Patient"
@@ -1341,9 +896,6 @@ describe("Link validation", () => {
         amountFormatted="$19.95"
         appUrl={APP_URL}
       />
-    ),
-    VerificationCodeEmail: (
-      <VerificationCodeEmail code="847291" appUrl={APP_URL} />
     ),
     StillReviewingEmail: (
       <StillReviewingEmail
@@ -1474,9 +1026,6 @@ describe("Preheader length validation", () => {
     ScriptSentEmail: <ScriptSentEmail patientName="Test" requestId="R1" appUrl={APP_URL} />,
     ConsultApprovedEmail: <ConsultApprovedEmail patientName="Test" requestId="R1" appUrl={APP_URL} />,
     RequestDeclinedEmail: <RequestDeclinedEmail patientName="Test" requestType="Medical Certificate" requestId="R1" appUrl={APP_URL} />,
-    WelcomeEmail: <WelcomeEmail patientName="Test Patient" appUrl={APP_URL} />,
-    VerificationCodeEmail: <VerificationCodeEmail code="123456" appUrl={APP_URL} />,
-    PaymentReceiptEmail: <PaymentReceiptEmail patientName="Test" serviceName="Med Cert" amount="$19.95" intakeRef="IM-1" paidAt="1 Jan" dashboardUrl="https://example.com" appUrl={APP_URL} />,
     StillReviewingEmail: <StillReviewingEmail patientName="Test" requestType="Medical Certificate" requestId="R1" appUrl={APP_URL} />,
   }
 
@@ -1547,7 +1096,6 @@ describe("font-family regression", () => {
   const templatesToCheck = [
     { name: "MedCertPatientEmail", html: render(<MedCertPatientEmail patientName="Test User" dashboardUrl="https://example.com" appUrl={APP_URL} />) },
     { name: "RequestReceivedEmail", html: render(<RequestReceivedEmail patientName="Test User" requestType="Medical Certificate" amount="$19.95" requestId="abc12345" appUrl={APP_URL} />) },
-    { name: "PaymentReceiptEmail", html: render(<PaymentReceiptEmail patientName="Test User" serviceName="Medical Certificate" amount="$19.95" intakeRef="ABC12345" paidAt="11 April 2026" dashboardUrl="https://example.com" appUrl={APP_URL} />) },
     { name: "ReviewRequestEmail", html: render(<ReviewRequestEmail patientName="Test User" serviceName="Medical Certificate" appUrl={APP_URL} />) },
     { name: "MagicLinkEmail", html: render(<MagicLinkEmail loginUrl="https://example.com/auth/v1/verify?token=abc&type=magiclink" appUrl={APP_URL} />) },
   ]

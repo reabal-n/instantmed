@@ -46,14 +46,6 @@ const TEMPLATE_REGISTRY: Record<
       return { component: MedCertEmployerEmail as EmailComponent, subject: medCertEmployerEmailSubject }
     },
   },
-  welcome: {
-    async load() {
-      const { WelcomeEmail, welcomeEmailSubject } = await import(
-        "@/lib/email/components/templates/welcome"
-      )
-      return { component: WelcomeEmail as EmailComponent, subject: welcomeEmailSubject }
-    },
-  },
   script_sent: {
     async load() {
       const { ScriptSentEmail, scriptSentEmailSubject } = await import(
@@ -70,60 +62,12 @@ const TEMPLATE_REGISTRY: Record<
       return { component: RequestDeclinedEmail as EmailComponent, subject: requestDeclinedEmailSubject }
     },
   },
-  prescription_approved: {
-    async load() {
-      const { PrescriptionApprovedEmail } = await import(
-        "@/lib/email/components/templates/prescription-approved"
-      )
-      return { component: PrescriptionApprovedEmail as EmailComponent, subject: "Your prescription has been approved" }
-    },
-  },
   consult_approved: {
     async load() {
       const { ConsultApprovedEmail } = await import(
         "@/lib/email/components/templates/consult-approved"
       )
       return { component: ConsultApprovedEmail as EmailComponent, subject: "Your consultation has been reviewed" }
-    },
-  },
-  ed_approved: {
-    async load() {
-      const { EdApprovedEmail } = await import(
-        "@/lib/email/components/templates/ed-approved"
-      )
-      return { component: EdApprovedEmail as EmailComponent, subject: "Your ED prescription has been approved" }
-    },
-  },
-  hair_loss_approved: {
-    async load() {
-      const { HairLossApprovedEmail } = await import(
-        "@/lib/email/components/templates/hair-loss-approved"
-      )
-      return { component: HairLossApprovedEmail as EmailComponent, subject: "Your treatment has been approved" }
-    },
-  },
-  weight_loss_approved: {
-    async load() {
-      const { WeightLossApprovedEmail } = await import(
-        "@/lib/email/components/templates/weight-loss-approved"
-      )
-      return { component: WeightLossApprovedEmail as EmailComponent, subject: "Your treatment has been approved" }
-    },
-  },
-  womens_health_approved: {
-    async load() {
-      const { WomensHealthApprovedEmail } = await import(
-        "@/lib/email/components/templates/womens-health-approved"
-      )
-      return { component: WomensHealthApprovedEmail as EmailComponent, subject: "Your treatment has been approved" }
-    },
-  },
-  payment_receipt: {
-    async load() {
-      const { PaymentReceiptEmail, paymentReceiptEmailSubject } = await import(
-        "@/lib/email/components/templates/payment-receipt"
-      )
-      return { component: PaymentReceiptEmail as EmailComponent, subject: paymentReceiptEmailSubject }
     },
   },
   payment_confirmed: {
