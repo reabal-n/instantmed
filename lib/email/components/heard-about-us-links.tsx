@@ -14,7 +14,7 @@ import { colors, fontFamily } from "./email-primitives"
 export function HeardAboutUsLinks({
   appUrl,
   token,
-  heading = "One quick question — how did you find us?",
+  heading = "One quick question. How did you find us?",
 }: {
   appUrl: string
   token: string
@@ -63,7 +63,7 @@ export function HeardAboutUsLinks({
         ))}
       </p>
       <p style={{ margin: "4px 0 0 0", fontSize: "11px", color: colors.textMuted, fontFamily }}>
-        One tap — it helps us reach more Australians.
+        One tap. It helps us reach more Australians.
       </p>
     </div>
   )

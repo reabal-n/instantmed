@@ -30,6 +30,11 @@ const SCAN_DIRS = [
   path.join(ROOT, 'components/marketing'),
   path.join(ROOT, 'lib/marketing'),
   path.join(ROOT, 'app'),
+  // Patient emails are a brand surface too — the 2026-07-06 email audit found
+  // em-dashes and banned phrases that had shipped unpoliced because this list
+  // stopped at marketing. Comments are stripped before scanning, so only
+  // rendered strings/JSX are held to the rules.
+  path.join(ROOT, 'lib/email'),
 ]
 
 /** Extensions to scan. */

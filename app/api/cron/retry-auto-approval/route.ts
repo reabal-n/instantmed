@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { normalizeAutoApproveDelayMinutes } from "@/lib/data/types/feature-flags"
+import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { createLogger } from "@/lib/observability/logger"
@@ -12,22 +13,6 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 const logger = createLogger("cron-retry-auto-approval")
 
 export const maxDuration = 60
-
-function formatRequestType(category: string | null, subtype: string | null): string {
-  if (category === "medical_certificate") return "medical certificate"
-  if (category === "prescription") return "prescription"
-  if (category === "consult") {
-    if (subtype === "ed") return "ED consultation"
-    if (subtype === "hair_loss") return "hair loss consultation"
-    return "specialty consultation"
-  }
-  if (category === "referral") {
-    if (subtype === "imaging") return "imaging referral"
-    if (subtype === "pathology") return "pathology referral"
-    return "referral"
-  }
-  return "request"
-}
 
 /**
  * GET /api/cron/retry-auto-approval
@@ -91,7 +76,7 @@ export async function GET(request: NextRequest) {
           const patient = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
           if (!patient?.email) return
 
-          const requestType = formatRequestType(
+          const requestType = emailRequestTypeLabel(
             intake.category as string | null,
             intake.subtype as string | null,
           )

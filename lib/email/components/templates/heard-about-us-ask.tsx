@@ -17,7 +17,7 @@ export interface HeardAboutUsAskEmailProps {
   heardToken: string
 }
 
-export const heardAboutUsAskSubject = "Quick question — how did you find us? 👋"
+export const heardAboutUsAskSubject = "Quick question. How did you find us? 👋"
 
 export function HeardAboutUsAskEmail({
   patientName,
@@ -43,7 +43,7 @@ export function HeardAboutUsAskEmail({
       />
 
       <Text muted small>
-        That&apos;s the whole email — no action needed beyond the tap. Thanks for helping out.
+        That&apos;s the whole email. No action needed beyond the tap, thanks for helping out.
       </Text>
     </BaseEmail>
   )

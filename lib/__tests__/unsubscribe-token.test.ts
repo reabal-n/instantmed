@@ -1,6 +1,11 @@
 import { beforeEach,describe, expect, it, vi } from "vitest"
 
-import { signUnsubscribeToken, verifyUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
+import {
+  signEmailUnsubscribeToken,
+  signUnsubscribeToken,
+  verifyEmailUnsubscribeToken,
+  verifyUnsubscribeToken,
+} from "@/lib/crypto/unsubscribe-token"
 
 describe("unsubscribe-token", () => {
   beforeEach(() => {
@@ -63,6 +68,46 @@ describe("unsubscribe-token", () => {
       const token = signUnsubscribeToken("profile-recent")
       vi.spyOn(Date, "now").mockReturnValue(realNow())
       expect(verifyUnsubscribeToken(token)).not.toBeNull()
+    })
+  })
+
+  // Email-keyed tokens: the account-less unsubscribe path for recipients with
+  // no profile (partial-intake drafts). Spam Act s18 fix, 2026-07-06 audit.
+  describe("email-keyed tokens", () => {
+    it("round-trips an email address, normalized to lowercase", () => {
+      const token = signEmailUnsubscribeToken("  Person@Example.COM ")
+      const result = verifyEmailUnsubscribeToken(token)
+      expect(result?.email).toBe("person@example.com")
+    })
+
+    it("survives emails containing dots (the payload separator)", () => {
+      const token = signEmailUnsubscribeToken("first.last@sub.example.com.au")
+      expect(verifyEmailUnsubscribeToken(token)?.email).toBe("first.last@sub.example.com.au")
+    })
+
+    it("email tokens never verify as profile tokens, and vice versa", () => {
+      const emailToken = signEmailUnsubscribeToken("person@example.com")
+      expect(verifyUnsubscribeToken(emailToken)).toBeNull()
+
+      const profileToken = signUnsubscribeToken("profile-abc")
+      expect(verifyEmailUnsubscribeToken(profileToken)).toBeNull()
+    })
+
+    it("rejects tampered email tokens", () => {
+      const token = signEmailUnsubscribeToken("person@example.com")
+      const tampered = token.slice(0, -1) + (token.endsWith("A") ? "B" : "A")
+      expect(verifyEmailUnsubscribeToken(tampered)).toBeNull()
+    })
+
+    it("rejects expired email tokens", () => {
+      // Fixed timestamps: capturing `Date.now` here would grab a spy left
+      // installed by an earlier test in this file, silently collapsing the
+      // 91-day gap to zero.
+      const base = new Date("2026-07-01T00:00:00Z").getTime()
+      vi.spyOn(Date, "now").mockReturnValue(base - 91 * 24 * 60 * 60 * 1000)
+      const token = signEmailUnsubscribeToken("person@example.com")
+      vi.spyOn(Date, "now").mockReturnValue(base)
+      expect(verifyEmailUnsubscribeToken(token)).toBeNull()
     })
   })
 })

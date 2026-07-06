@@ -1,6 +1,7 @@
 import type Stripe from "stripe"
 
 import { buildCheckoutPaymentRecoveryUrl } from "@/lib/email/recovery-links"
+import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { sendPaymentFailedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -75,7 +76,7 @@ export async function handleAsyncPaymentFailed(ctx: WebhookContext): Promise<Han
         const emailResult = await sendPaymentFailedEmail({
           to: email,
           patientName: name,
-          serviceName: intake?.category || "your request",
+          serviceName: emailRequestTypeLabel(intake?.category),
           failureReason: "Your payment could not be processed. This can happen with bank transfers or direct debit payments.",
           retryUrl: buildCheckoutPaymentRecoveryUrl({
             appUrl,

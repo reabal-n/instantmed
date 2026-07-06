@@ -3,6 +3,7 @@ import type Stripe from "stripe"
 
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { buildCheckoutPaymentRecoveryUrl } from "@/lib/email/recovery-links"
+import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { sendPaymentFailedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import { stripe } from "@/lib/stripe/client"
@@ -126,13 +127,12 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
           .single()
 
         const { email, name } = resolvePaymentFailureRecipient(intake as PaymentFailureIntakeEmailContext | null)
-        const service = { name: intake?.category || "Service" }
 
         if (email) {
           const emailResult = await sendPaymentFailedEmail({
             to: email,
             patientName: name,
-            serviceName: service?.name || "your request",
+            serviceName: emailRequestTypeLabel(intake?.category),
             failureReason: failureMessage,
             retryUrl: buildCheckoutPaymentRecoveryUrl({
               appUrl: process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",

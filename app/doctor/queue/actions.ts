@@ -1296,6 +1296,7 @@ export async function issueRefundAction(
 
       if (patient?.email) {
         const { sendRefundIssuedEmail } = await import("@/lib/email/senders")
+        const { emailRequestTypeLabel } = await import("@/lib/email/request-type-label")
         const amountFormatted = refund.amount
           ? `$${(refund.amount / 100).toFixed(2)}`
           : undefined
@@ -1305,7 +1306,7 @@ export async function issueRefundAction(
           patientName: patient.full_name || "there",
           patientId: patient.id,
           intakeId,
-          requestType: intake.category || "request",
+          requestType: emailRequestTypeLabel(intake.category),
           amountFormatted,
         })
       }

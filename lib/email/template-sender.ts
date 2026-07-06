@@ -5,11 +5,17 @@
 
 import "server-only"
 
+import * as React from "react"
+
 import { env } from "@/lib/config/env"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { createLogger } from "../observability/logger"
+import {
+  PaymentFailedEmail,
+  paymentFailedSubject,
+} from "./components/templates/payment-failed"
 import { sendCriticalEmail,sendViaResend } from "./resend"
 import { sanitizeEmailForLog } from "./send/helpers"
 import {
@@ -17,6 +23,7 @@ import {
   updateOutboxStatus,
 } from "./send/outbox"
 import type { EmailType } from "./send/types"
+import { sendEmail } from "./send-email"
 
 const log = createLogger("template-sender")
 
@@ -404,7 +411,12 @@ export async function sendPaymentReceivedEmail(params: {
 }
 
 /**
- * Send payment failed notification to patient
+ * Send payment failed notification to patient.
+ *
+ * Renders the React PaymentFailedEmail via the standard send pipeline. This
+ * previously pointed at an email_templates DB slug ("payment_failed") that was
+ * never seeded, so every send failed with "Template not found" and patients
+ * whose payment failed were never notified (found in the 2026-07-06 email audit).
  */
 export async function sendPaymentFailedEmail(params: {
   to: string
@@ -416,15 +428,17 @@ export async function sendPaymentFailedEmail(params: {
   patientId?: string
   checkoutSessionId?: string
 }): Promise<SendResult> {
-  return sendTemplateEmail({
+  const result = await sendEmail({
     to: params.to,
-    templateSlug: "payment_failed",
-    data: {
-      patient_name: params.patientName,
-      service_name: params.serviceName,
-      failure_reason: params.failureReason,
-      retry_url: params.retryUrl,
-    },
+    toName: params.patientName,
+    subject: paymentFailedSubject(),
+    template: React.createElement(PaymentFailedEmail, {
+      patientName: params.patientName,
+      serviceName: params.serviceName,
+      failureReason: params.failureReason,
+      retryUrl: params.retryUrl,
+    }),
+    emailType: "payment_failed",
     intakeId: params.intakeId,
     patientId: params.patientId,
     idempotencyKey: buildPaymentFailedEmailIdempotencyKey({
@@ -435,6 +449,8 @@ export async function sendPaymentFailedEmail(params: {
       ? { checkout_session_id: params.checkoutSessionId }
       : undefined,
   })
+
+  return { success: result.success, emailId: result.outboxId, error: result.error }
 }
 
 /**

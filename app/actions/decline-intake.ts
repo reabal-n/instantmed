@@ -24,6 +24,7 @@ import { logTriageDeclined } from "@/lib/audit/compliance-audit"
 import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { logStatusChange } from "@/lib/data/intake-events"
+import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { sendRequestDeclinedEmail } from "@/lib/email/senders"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -259,7 +260,9 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
           patientName: patient.full_name || "there",
           patientId: patient.id,
           intakeId,
-          requestType: intake.category || "request",
+          // Humanized + privacy-safe: patients were receiving raw enums in the
+          // subject line ("Update on your medical_certificate request").
+          requestType: emailRequestTypeLabel(intake.category),
           reason: reason || "Your request could not be approved at this time.",
           reasonCode,
         })

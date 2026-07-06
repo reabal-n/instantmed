@@ -4,7 +4,7 @@ import "server-only"
  * Email sending helper utilities: validation, retry logic, unsubscribe injection.
  */
 import { env } from "@/lib/config/env"
-import { signUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
+import { signEmailUnsubscribeToken, signUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
 import { UNSUBSCRIBE_PLACEHOLDER } from "@/lib/email/components/base-email"
 
 // ============================================
@@ -49,22 +49,28 @@ export function isRetryableError(statusCode?: number, errorMessage?: string): bo
 
 /**
  * Replace the __UNSUBSCRIBE_URL__ placeholder in rendered HTML with a real
- * signed preference-center URL. Falls back to auth-gated settings page
- * for system emails without a patientId.
+ * signed preference-center URL. Recipients without a profile (e.g. draft
+ * recovery) get an email-keyed one-click unsubscribe URL instead — the
+ * auth-gated settings fallback is not a functional unsubscribe for someone
+ * with no account (Spam Act s18). System emails with neither id keep the
+ * settings fallback.
  */
-export function injectUnsubscribeUrl(html: string, patientId?: string): string {
+export function injectUnsubscribeUrl(
+  html: string,
+  patientId?: string,
+  unsubscribeEmail?: string,
+): string {
   if (!html.includes(UNSUBSCRIBE_PLACEHOLDER)) return html
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
-  let url: string
-  if (patientId) {
-    try {
-      const token = signUnsubscribeToken(patientId)
-      url = `${appUrl}/email-preferences?token=${token}`
-    } catch {
-      url = `${appUrl}/account?tab=notifications`
+  let url = `${appUrl}/account?tab=notifications`
+  try {
+    if (patientId) {
+      url = `${appUrl}/email-preferences?token=${signUnsubscribeToken(patientId)}`
+    } else if (unsubscribeEmail) {
+      url = `${appUrl}/api/unsubscribe?token=${signEmailUnsubscribeToken(unsubscribeEmail)}&type=marketing`
     }
-  } else {
-    url = `${appUrl}/account?tab=notifications`
+  } catch {
+    // Token signing failed (missing secret): keep the settings fallback.
   }
   return html.replaceAll(UNSUBSCRIBE_PLACEHOLDER, url)
 }

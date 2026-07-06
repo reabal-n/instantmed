@@ -12,7 +12,7 @@ const logger = createLogger("data-intakes-email")
 export async function triggerStatusEmail(
   intakeId: string,
   status: string,
-  reviewedBy?: string
+  _reviewedBy?: string
 ): Promise<void> {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
   const internalSecret = process.env.INTERNAL_API_SECRET
@@ -42,7 +42,8 @@ export async function triggerStatusEmail(
       body: JSON.stringify({
         requestId: intakeId,
         status: apiStatus,
-        doctorName: reviewedBy ? undefined : undefined, // Could fetch doctor name if needed
+        // No doctorName: without a real display name the email must not
+        // fabricate an attribution (patients were seeing "Dr Your Doctor").
       }),
     })
 

@@ -6,7 +6,9 @@ import type { createServiceRoleClient } from "@/lib/supabase/service-role"
 const log = createLogger("certificate-delivery-rescue")
 
 const CERTIFICATE_EMAIL_TYPES = ["med_cert_patient"] as const
-const RECEIPT_EMAIL_TYPES = ["request_received", "payment_confirmed", "payment_received"] as const
+// "payment-received" is the hyphenated DB template slug written verbatim to
+// email_outbox.email_type by sendTemplateEmail (underscore rows never existed).
+const RECEIPT_EMAIL_TYPES = ["request_received", "payment_confirmed", "payment-received"] as const
 
 type SupabaseClient = ReturnType<typeof createServiceRoleClient>
 

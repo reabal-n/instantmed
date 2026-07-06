@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
+import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { createLogger } from "@/lib/observability/logger"
@@ -12,13 +13,6 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 const logger = createLogger("stale-queue")
 
 export const maxDuration = 60
-
-function formatServiceType(category: string | null): string {
-  if (category === "medical_certificate") return "medical certificate"
-  if (category === "prescription") return "prescription"
-  if (category === "consultation") return "consultation"
-  return "request"
-}
 
 /**
  * Stale Queue Monitor
@@ -120,7 +114,7 @@ export async function GET(request: NextRequest) {
             const patient = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
             if (!patient?.email) return
 
-            const requestType = formatServiceType(intake.category as string | null)
+            const requestType = emailRequestTypeLabel(intake.category as string | null)
 
             try {
               const emailResult = await sendEmail({

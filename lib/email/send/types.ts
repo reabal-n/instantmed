@@ -16,9 +16,12 @@ export type EmailType =
   | "weight_loss_approved"
   | "consult_approved"
   | "generic"
-  // Database-template email types (sent via template-sender, retried via dispatcher)
-  | "payment_received"
-  | "refund_notification"
+  // Database-template email types (sent via template-sender, retried via
+  // dispatcher). Hyphenated values are DB template slugs written verbatim to
+  // email_outbox.email_type by sendTemplateEmail — the dispatcher keys must
+  // match these, not underscore variants (2026-07-06 audit fix).
+  | "payment-received"
+  | "refund-processed"
   | "payment_failed"
   | "guest_complete_account"
   | "payment_confirmed"
@@ -69,6 +72,12 @@ export interface SendEmailParams {
   intakeId?: string
   patientId?: string
   certificateId?: string
+  /**
+   * For marketing sends to recipients WITHOUT a profile (e.g. partial-intake
+   * draft recovery): enables the email-keyed List-Unsubscribe header + footer
+   * link. Ignored when patientId is present (profile token wins).
+   */
+  unsubscribeEmail?: string
   // Optional metadata (non-sensitive)
   metadata?: Record<string, unknown>
   // Optional overrides

@@ -3,7 +3,8 @@
 import { requireRole } from "@/lib/auth/helpers"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { getDoctorCaseActionError } from "@/lib/doctor/case-action-guard"
-import { NeedsMoreInfoEmail } from "@/lib/email/components/templates/needs-more-info"
+import { NeedsMoreInfoEmail, needsMoreInfoSubject } from "@/lib/email/components/templates/needs-more-info"
+import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { sendEmail } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -147,13 +148,14 @@ export async function requestMoreInfoAction(
 
     // Send email to patient
     if (patient?.email) {
+      const requestTypeLabel = emailRequestTypeLabel(intake.category)
       await sendEmail({
         to: patient.email,
         toName: patient.full_name,
-        subject: "More Information Needed for Your Request",
+        subject: needsMoreInfoSubject(requestTypeLabel),
         template: NeedsMoreInfoEmail({
           patientName: patient.full_name?.split(" ")[0] || "there",
-          requestType: intake.category || "request",
+          requestType: requestTypeLabel,
           requestId: intakeId,
           doctorMessage: trimmedMessage,
         }),
