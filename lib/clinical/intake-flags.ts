@@ -49,6 +49,12 @@ export const INTAKE_FLAG_TAXONOMY = {
   // into the generic repeat/prescription flow. The patient is steered in-form;
   // this flag is the doctor-side backstop so the routing is never client-only.
   dedicated_service_medication: { label: "Has a dedicated service pathway", severity: "attention" },
+  // The paying patient shares a normalized name + exact DOB with a DIFFERENT
+  // profile — likely the same person re-entering under a new email, which would
+  // otherwise dodge every patient_id-keyed guard (repeat-within-7d, prior
+  // approvals). Attention so a med cert routes to a doctor instead of
+  // auto-issuing a possible second cert. See lib/clinical/duplicate-patient-detection.ts.
+  duplicate_patient_name_dob: { label: "Possible duplicate profile (same name + DOB)", severity: "attention" },
 } as const satisfies Record<string, TaxonomyEntry>
 
 export type IntakeFlagCode = keyof typeof INTAKE_FLAG_TAXONOMY
