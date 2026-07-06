@@ -3,17 +3,11 @@
  */
 
 export type EmailType =
-  | "welcome"
   | "med_cert_patient"
   | "med_cert_employer"
   | "script_sent"
   | "request_declined"
   | "needs_more_info"
-  | "prescription_approved"
-  | "ed_approved"
-  | "hair_loss_approved"
-  | "womens_health_approved"
-  | "weight_loss_approved"
   | "consult_approved"
   | "generic"
   // Database-template email types (sent via template-sender, retried via
@@ -29,16 +23,12 @@ export type EmailType =
   | "abandoned_checkout"
   // Status transition emails (migrated from send-status.ts)
   | "request_approved"
-  // Lifecycle emails
-  | "intake_submitted"
   // Merged email (replaces payment_confirmed + intake_submitted for new sends)
   | "request_received"
-  | "referral_credit"
   | "refund_issued"
   | "still_reviewing"
   | "abandoned_checkout_followup"
   | "partial_intake_recovery"
-  | "verification_code"
   // Review lifecycle emails (cron-triggered)
   | "review_request"
   // Reactivation / refill reminder (cron-triggered, marketing-consent gated)
@@ -47,7 +37,6 @@ export type EmailType =
   | "cert_reactivation"
   // One-time self-reported attribution backfill (script-triggered, marketing-consent gated)
   | "heard_about_us_backfill"
-  | "payment_retry"
   | "ops_test"
 
 // Email types that are marketing/engagement - get auto List-Unsubscribe headers
@@ -56,7 +45,6 @@ export const MARKETING_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
   "abandoned_checkout_followup",
   "partial_intake_recovery",
   "review_request",
-  "referral_credit",
   "refill_reminder",
   "cert_reactivation",
   "heard_about_us_backfill",

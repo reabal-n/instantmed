@@ -47,19 +47,14 @@ const MAX_OUTBOX_RETRY_COUNT = 10
 const emailTypeLabels: Record<string, string> = {
   med_cert_patient: "Medical Certificate - Patient",
   med_cert_employer: "Medical Certificate - Employer",
-  welcome: "Welcome Email",
   script_sent: "Script Sent",
   request_declined: "Request Declined",
   needs_more_info: "Needs More Info",
   payment_confirmed: "Payment Confirmed",
-  payment_received: "Payment Received",
+  // Hyphenated keys are the DB-template slugs written verbatim to email_outbox.
+  "payment-received": "Payment Received",
   payment_failed: "Payment Failed",
-  refund_notification: "Refund Notification",
-  prescription_approved: "Prescription Approved",
-  ed_approved: "ED Treatment Approved",
-  hair_loss_approved: "Hair Loss Treatment Approved",
-  womens_health_approved: "Women's Health Approved",
-  weight_loss_approved: "Weight Loss Approved",
+  "refund-processed": "Refund Processed",
   consult_approved: "Consult Approved",
   guest_complete_account: "Complete Account (Guest)",
   generic: "Generic Email",
@@ -472,13 +467,6 @@ export function EmailHubClient({
                 </div>
                 {authEmailHookStatus.devPreviewAvailable ? (
                   <div className="mt-2 flex flex-wrap gap-3">
-                    <Link
-                      href="/email-preview/verification-code"
-                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80"
-                    >
-                      Verification preview
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
                     <Link
                       href="/email-preview/magic-link"
                       className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80"

@@ -366,12 +366,15 @@ describe("email-dispatcher", () => {
       expect(mockIncrementDailySendCount).not.toHaveBeenCalled()
     })
 
-    it("increments warmup count for marketing email sends only", async () => {
-      // referral_credit is a marketing type that is still in SUPPORTED_EMAIL_TYPES
-      // (review_request moved to CRON_OWNED_NON_RECONSTRUCTABLE in R1, so it now
-      // quiet-fails at STEP 3 instead of reaching the STEP 4 send path).
+    it("does NOT increment warmup count for a supported transactional send", async () => {
+      // After the 2026-07-06 email Wave 2 cleanup, every MARKETING type is
+      // cron-owned and quiet-fails at STEP 3 (its cron owns the resend), so no
+      // marketing type reaches the dispatcher's STEP 4 send path — warmup is
+      // incremented at original send time in send-email.ts, not here. This pins
+      // the "marketing only" half that is still reachable: a supported
+      // transactional retry must NOT touch the warmup counter.
       const candidate = makeCandidate({
-        email_type: "referral_credit",
+        email_type: "still_reviewing",
         certificate_id: null,
       })
       mockOutboxSelect([candidate])
@@ -381,12 +384,12 @@ describe("email-dispatcher", () => {
       const result = await processEmailDispatch()
 
       expect(result.sent).toBe(1)
-      expect(mockIncrementDailySendCount).toHaveBeenCalled()
+      expect(mockIncrementDailySendCount).not.toHaveBeenCalled()
     })
 
     it("processes multiple emails in a batch", async () => {
       const c1 = makeCandidate({ id: "o1", certificate_id: "c1" })
-      const c2 = makeCandidate({ id: "o2", email_type: "welcome", certificate_id: null })
+      const c2 = makeCandidate({ id: "o2", email_type: "still_reviewing", certificate_id: null })
       mockOutboxSelect([c1, c2])
       mockClaimOutboxRow
         .mockResolvedValueOnce({ claimed: true, row: c1 })
@@ -455,10 +458,10 @@ describe("email-dispatcher", () => {
   // Unsupported email type
   // -----------------------------------------------------------------------
   describe("unsupported email type", () => {
-    it("treats payment_retry and still_reviewing as supported retryable types", async () => {
-      const paymentRetry = makeCandidate({
-        id: "payment-retry",
-        email_type: "payment_retry",
+    it("treats request_declined and still_reviewing as supported retryable types", async () => {
+      const requestDeclined = makeCandidate({
+        id: "request-declined",
+        email_type: "request_declined",
         certificate_id: null,
       })
       const stillReviewing = makeCandidate({
@@ -466,16 +469,16 @@ describe("email-dispatcher", () => {
         email_type: "still_reviewing",
         certificate_id: null,
       })
-      mockOutboxSelect([paymentRetry, stillReviewing])
+      mockOutboxSelect([requestDeclined, stillReviewing])
       mockClaimOutboxRow
-        .mockResolvedValueOnce({ claimed: true, row: paymentRetry })
+        .mockResolvedValueOnce({ claimed: true, row: requestDeclined })
         .mockResolvedValueOnce({ claimed: true, row: stillReviewing })
       mockSendFromOutboxRow.mockResolvedValue({ success: true })
 
       const result = await processEmailDispatch()
 
       expect(result.sent).toBe(2)
-      expect(mockSendFromOutboxRow).toHaveBeenCalledWith(paymentRetry)
+      expect(mockSendFromOutboxRow).toHaveBeenCalledWith(requestDeclined)
       expect(mockSendFromOutboxRow).toHaveBeenCalledWith(stillReviewing)
     })
 
@@ -549,7 +552,7 @@ describe("email-dispatcher", () => {
 
     it("does NOT fail other email types missing certificate_id", async () => {
       const candidate = makeCandidate({
-        email_type: "welcome",
+        email_type: "still_reviewing",
         certificate_id: null,
       })
       mockOutboxSelect([candidate])

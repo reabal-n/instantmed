@@ -14,12 +14,10 @@ import { canAccessDevOnlyRoute } from "@/lib/dev-only-routes"
 import { AbandonedCheckoutEmail, abandonedCheckoutSubject } from "@/lib/email/components/templates/abandoned-checkout"
 import { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "@/lib/email/components/templates/abandoned-checkout-followup"
 import { CertReactivationEmail, certReactivationSubject } from "@/lib/email/components/templates/cert-reactivation"
+// ── Template imports ──
 import { ConsultApprovedEmail } from "@/lib/email/components/templates/consult-approved"
-import { EdApprovedEmail } from "@/lib/email/components/templates/ed-approved"
 import { GuestCompleteAccountEmail } from "@/lib/email/components/templates/guest-complete-account"
-import { HairLossApprovedEmail } from "@/lib/email/components/templates/hair-loss-approved"
 import { HeardAboutUsAskEmail } from "@/lib/email/components/templates/heard-about-us-ask"
-import { IntakeSubmittedEmail } from "@/lib/email/components/templates/intake-submitted"
 import { MagicLinkEmail, magicLinkEmailSubject } from "@/lib/email/components/templates/magic-link"
 import { MedCertEmployerEmail } from "@/lib/email/components/templates/med-cert-employer"
 import { MedCertPatientEmail } from "@/lib/email/components/templates/med-cert-patient"
@@ -27,10 +25,6 @@ import { NeedsMoreInfoEmail } from "@/lib/email/components/templates/needs-more-
 import { PartialIntakeRecoveryEmail, partialIntakeRecoverySubject } from "@/lib/email/components/templates/partial-intake-recovery"
 import { PaymentConfirmedEmail } from "@/lib/email/components/templates/payment-confirmed"
 import { PaymentFailedEmail } from "@/lib/email/components/templates/payment-failed"
-import { PaymentReceiptEmail } from "@/lib/email/components/templates/payment-receipt"
-import { PaymentRetryEmail } from "@/lib/email/components/templates/payment-retry"
-import { PrescriptionApprovedEmail } from "@/lib/email/components/templates/prescription-approved"
-import { ReferralCreditEmail } from "@/lib/email/components/templates/referral-credit"
 import { RefillReminderEmail, refillReminderSubject } from "@/lib/email/components/templates/refill-reminder"
 import { RefundIssuedEmail } from "@/lib/email/components/templates/refund-issued"
 import { RequestDeclinedEmail } from "@/lib/email/components/templates/request-declined"
@@ -38,11 +32,6 @@ import { RequestReceivedEmail } from "@/lib/email/components/templates/request-r
 import { ReviewRequestEmail } from "@/lib/email/components/templates/review-request"
 import { ScriptSentEmail } from "@/lib/email/components/templates/script-sent"
 import { StillReviewingEmail } from "@/lib/email/components/templates/still-reviewing"
-import { VerificationCodeEmail } from "@/lib/email/components/templates/verification-code"
-import { WeightLossApprovedEmail } from "@/lib/email/components/templates/weight-loss-approved"
-// ── Template imports ──
-import { WelcomeEmail } from "@/lib/email/components/templates/welcome"
-import { WomensHealthApprovedEmail } from "@/lib/email/components/templates/womens-health-approved"
 import { renderEmailToHtml } from "@/lib/email/react-renderer-server"
 
 export const dynamic = "force-dynamic"
@@ -62,7 +51,6 @@ const mock = {
   certEndDate: "28 January 2026",
   patientNote: "Please find my medical certificate attached. Let me know if you need anything else.",
   declineReason: "After reviewing your request, a telehealth consultation alone is not suitable for your situation. We recommend you see your regular GP in person for a proper examination.",
-  medicationName: "Sildenafil 50mg",
   doctorNotes: "Based on your consultation, I've reviewed your symptoms and medical history. Please follow the treatment plan outlined below.",
   doctorMessage: "Could you please clarify how long you've been experiencing these symptoms? This will help me assess the appropriate certificate duration.",
 }
@@ -74,11 +62,6 @@ const templates: Record<string, {
   render: () => React.ReactElement
 }> = {
   // Patient lifecycle
-  "welcome": {
-    name: "Welcome Email",
-    subject: "Welcome to InstantMed",
-    render: () => <WelcomeEmail patientName={mock.patientName} appUrl={mock.appUrl} />,
-  },
   "guest-complete-account": {
     name: "Guest Complete Account",
     subject: "Your medical certificate is underway. Set up your account to track it",
@@ -88,18 +71,6 @@ const templates: Record<string, {
         requestType="Medical Certificate"
         intakeId={mock.requestId}
         completeAccountUrl={`${mock.appUrl}/auth/complete-account?intake=${mock.requestId}`}
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
-  "verification-code": {
-    name: "Verification Code",
-    subject: "Your InstantMed verification code: 847291",
-    render: () => (
-      <VerificationCodeEmail
-        code="847291"
-        requestedFrom="Chrome on macOS"
-        requestedAt="30 March 2026, 2:15 PM AEST"
         appUrl={mock.appUrl}
       />
     ),
@@ -141,18 +112,6 @@ const templates: Record<string, {
   },
 
   // Request flow
-  "intake-submitted": {
-    name: "Intake Submitted",
-    subject: "Got it, your medical certificate is being reviewed",
-    render: () => (
-      <IntakeSubmittedEmail
-        patientName={mock.patientName}
-        requestType="medical certificate"
-        requestId={mock.requestId}
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
   "request-received": {
     name: "Request Received",
     subject: "All sorted, your medical certificate is with a doctor now",
@@ -237,18 +196,6 @@ const templates: Record<string, {
       />
     ),
   },
-  "prescription-approved": {
-    name: "Prescription Approved",
-    subject: "Your prescription has been approved",
-    render: () => (
-      <PrescriptionApprovedEmail
-        patientName={mock.patientName}
-        medicationName="Amoxicillin 500mg"
-        intakeId={mock.requestId}
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
   "script-sent": {
     name: "Script Sent",
     subject: "Your eScript has been sent",
@@ -257,55 +204,6 @@ const templates: Record<string, {
         patientName={mock.patientName}
         requestId={mock.requestId}
         escriptReference={mock.escriptReference}
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
-  "ed-approved": {
-    name: "ED Consultation Approved",
-    subject: "Your ED consultation has been reviewed",
-    render: () => (
-      <EdApprovedEmail
-        patientName={mock.patientName}
-        medicationName={mock.medicationName}
-        requestId={mock.requestId}
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
-  "hair-loss-approved": {
-    name: "Hair Loss Approved",
-    subject: "Your hair loss treatment has been approved",
-    render: () => (
-      <HairLossApprovedEmail
-        patientName={mock.patientName}
-        medicationName="Finasteride 1mg"
-        requestId={mock.requestId}
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
-  "weight-loss-approved": {
-    name: "Weight Loss Approved",
-    subject: "Your weight loss treatment has been approved",
-    render: () => (
-      <WeightLossApprovedEmail
-        patientName={mock.patientName}
-        medicationName="Semaglutide 0.25mg"
-        requestId={mock.requestId}
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
-  "womens-health-approved": {
-    name: "Women's Health Approved",
-    subject: "Your women's health treatment has been approved",
-    render: () => (
-      <WomensHealthApprovedEmail
-        patientName={mock.patientName}
-        medicationName="Levonorgestrel 1.5mg"
-        treatmentType="contraception"
-        requestId={mock.requestId}
         appUrl={mock.appUrl}
       />
     ),
@@ -338,21 +236,6 @@ const templates: Record<string, {
       />
     ),
   },
-  "payment-receipt": {
-    name: "Payment Receipt",
-    subject: "Payment confirmed: Medical Certificate",
-    render: () => (
-      <PaymentReceiptEmail
-        patientName={mock.patientName}
-        serviceName="Medical Certificate (2 Day)"
-        amount="$29.95"
-        intakeRef="IM-20260330-00847"
-        paidAt="30 Mar 2026, 2:15 PM"
-        dashboardUrl={mock.dashboardUrl}
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
   "payment-failed": {
     name: "Payment Failed",
     subject: "Heads up: there was a hiccup with your medical certificate payment",
@@ -362,19 +245,6 @@ const templates: Record<string, {
         serviceName="medical certificate"
         failureReason="Your card was declined. Please check your details or try a different payment method."
         retryUrl={`${mock.appUrl}/patient/intakes/${mock.requestId}/retry-payment`}
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
-  "payment-retry": {
-    name: "Payment Retry",
-    subject: "Just a heads up: your payment needs another go",
-    render: () => (
-      <PaymentRetryEmail
-        patientName={mock.patientName}
-        requestType="medical certificate"
-        amount="$29.95"
-        paymentUrl={`${mock.appUrl}/patient/intakes/${mock.requestId}/retry-payment`}
         appUrl={mock.appUrl}
       />
     ),
@@ -403,18 +273,6 @@ const templates: Record<string, {
         serviceName="Medical Certificate"
         resumeUrl={`${mock.appUrl}/patient/intakes/${mock.requestId}?retry=true&utm_source=recovery_email&utm_medium=email&utm_campaign=abandoned_checkout`}
         startedAgoLabel="about 35 minutes ago"
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
-  "referral-credit": {
-    name: "Referral Credit",
-    subject: "You've earned a $5.00 credit!",
-    render: () => (
-      <ReferralCreditEmail
-        patientName={mock.patientName}
-        creditAmount="$5.00"
-        friendName="Tom Wilson"
         appUrl={mock.appUrl}
       />
     ),

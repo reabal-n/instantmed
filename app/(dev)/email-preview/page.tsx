@@ -28,12 +28,6 @@ const templates = [
     category: "lifecycle",
   },
   {
-    slug: "verification-code",
-    name: "Verification Code",
-    description: "One-time verification code for identity confirmation",
-    category: "lifecycle",
-  },
-  {
     slug: "magic-link",
     name: "Magic Link",
     description: "Passwordless sign-in email sent from the Supabase auth hook",
@@ -47,12 +41,6 @@ const templates = [
   },
 
   // ── Request Flow ──
-  {
-    slug: "intake-submitted",
-    name: "Intake Submitted",
-    description: "Confirmation that a request has been submitted for review",
-    category: "request",
-  },
   {
     slug: "request-received",
     name: "Request Received (Payment Confirmed)",
@@ -92,39 +80,9 @@ const templates = [
     category: "approval",
   },
   {
-    slug: "prescription-approved",
-    name: "Prescription Approved",
-    description: "Sent when a repeat prescription request is approved",
-    category: "approval",
-  },
-  {
     slug: "script-sent",
     name: "Script Sent",
     description: "Sent when the eScript has been dispatched",
-    category: "approval",
-  },
-  {
-    slug: "ed-approved",
-    name: "ED Consultation Approved",
-    description: "Sent when an ED consultation is completed with medication guidance",
-    category: "approval",
-  },
-  {
-    slug: "hair-loss-approved",
-    name: "Hair Loss Approved",
-    description: "Sent when hair loss treatment is approved with medication details",
-    category: "approval",
-  },
-  {
-    slug: "weight-loss-approved",
-    name: "Weight Loss Approved",
-    description: "Sent when weight loss treatment is approved with medication details",
-    category: "approval",
-  },
-  {
-    slug: "womens-health-approved",
-    name: "Women's Health Approved",
-    description: "Sent when women's health treatment is approved",
     category: "approval",
   },
   {
@@ -142,21 +100,9 @@ const templates = [
     category: "payment",
   },
   {
-    slug: "payment-receipt",
-    name: "Payment Receipt",
-    description: "Detailed payment receipt with service breakdown",
-    category: "payment",
-  },
-  {
     slug: "payment-failed",
     name: "Payment Failed",
     description: "Notification that a payment attempt failed",
-    category: "payment",
-  },
-  {
-    slug: "payment-retry",
-    name: "Payment Retry",
-    description: "Prompt to retry a failed payment",
     category: "payment",
   },
   {
@@ -171,12 +117,6 @@ const templates = [
     slug: "abandoned-checkout",
     name: "Abandoned Checkout",
     description: "Reminder for patients who left during checkout",
-    category: "engagement",
-  },
-  {
-    slug: "referral-credit",
-    name: "Referral Credit",
-    description: "Notification of earned referral credit",
     category: "engagement",
   },
   {

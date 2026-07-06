@@ -174,22 +174,6 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // welcome - React template, needs only patientName
-  // ----------------------------------------------------------------
-  if (row.email_type === "welcome") {
-    const patientName = row.to_name || "there"
-
-    const { WelcomeEmail } = await import("@/lib/email/components/templates")
-    const template = WelcomeEmail({
-      patientName,
-      appUrl: env.appUrl,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
   // ops_test - PHI-free operational email delivery test
   // ----------------------------------------------------------------
   if (row.email_type === "ops_test") {
@@ -253,37 +237,6 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       reason,
       reasonCode,
       appUrl: env.appUrl,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // prescription_approved - React template, needs intake + medication
-  // ----------------------------------------------------------------
-  if (row.email_type === "prescription_approved") {
-    if (!row.intake_id) {
-      return { success: false, error: "prescription_approved requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const metadata = row.metadata as { medicationName?: string } | null
-    const answers = (ctx.intake.answers || {}) as Record<string, unknown>
-    const medicationName = metadata?.medicationName
-      || String(answers.medicationName || "")
-      || ctx.service.short_name
-      || "medication"
-
-    const { PrescriptionApprovedEmail } = await import("@/lib/email/components/templates/prescription-approved")
-    const template = PrescriptionApprovedEmail({
-      patientName: ctx.patient.full_name || row.to_name || "there",
-      medicationName,
-      intakeId: ctx.intake.id,
-      appUrl: env.appUrl,
-      heardToken: safeHeardToken(ctx.intake.id),
     })
 
     const html = await renderEmailToHtml(template)
@@ -369,58 +322,6 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       serviceName: emailRequestTypeLabel(ctx.intake.category),
       failureReason: "Your payment could not be processed. Please try again.",
       retryUrl,
-      appUrl: env.appUrl,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // payment_retry - React template, usually patient-owned invoice context
-  // ----------------------------------------------------------------
-  if (row.email_type === "payment_retry") {
-    const metadata = row.metadata as {
-      invoice_id?: string
-      request_type?: string
-      amount_cents?: number
-      payment_url?: string
-    } | null
-
-    let requestType = metadata?.request_type || "your request"
-    let amountCents = metadata?.amount_cents ?? 0
-    const paymentUrl = metadata?.payment_url
-      || (metadata?.invoice_id
-        ? `${env.appUrl}/checkout?invoiceId=${metadata.invoice_id}`
-        : `${env.appUrl}/patient/payment-history`)
-
-    if (metadata?.invoice_id) {
-      const { data: invoice } = await supabase
-        .from("invoices")
-        .select("description, amount_cents")
-        .eq("id", metadata.invoice_id)
-        .maybeSingle()
-
-      requestType = invoice?.description || requestType
-      amountCents = invoice?.amount_cents ?? amountCents
-    }
-
-    let patientName = row.to_name || "there"
-    if (row.patient_id) {
-      const { data: patient } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", row.patient_id)
-        .maybeSingle()
-      patientName = patient?.full_name || patientName
-    }
-
-    const { PaymentRetryEmail } = await import("@/lib/email/components/templates/payment-retry")
-    const template = PaymentRetryEmail({
-      patientName,
-      requestType,
-      amount: `$${(amountCents / 100).toFixed(2)}`,
-      paymentUrl,
       appUrl: env.appUrl,
     })
 
@@ -517,127 +418,6 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       patientName: ctx.patient.full_name || row.to_name || "there",
       requestId: ctx.intake.id,
       doctorNotes: metadata?.doctorNotes || undefined,
-      appUrl: env.appUrl,
-      heardToken: safeHeardToken(ctx.intake.id),
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // ed_approved - component React template, needs medication name
-  // ----------------------------------------------------------------
-  if (row.email_type === "ed_approved") {
-    if (!row.intake_id) {
-      return { success: false, error: "ed_approved requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const metadata = row.metadata as { medicationName?: string } | null
-    const answers = (ctx.intake.answers || {}) as Record<string, unknown>
-    const medicationName = metadata?.medicationName
-      || String(answers.medicationName || answers.medication_name || "")
-      || "medication"
-
-    const { EdApprovedEmail } = await import("@/lib/email/components/templates/ed-approved")
-    const template = EdApprovedEmail({
-      patientName: ctx.patient.full_name || row.to_name || "there",
-      medicationName,
-      requestId: ctx.intake.id,
-      appUrl: env.appUrl,
-      heardToken: safeHeardToken(ctx.intake.id),
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // hair_loss_approved - component React template
-  // ----------------------------------------------------------------
-  if (row.email_type === "hair_loss_approved") {
-    if (!row.intake_id) {
-      return { success: false, error: "hair_loss_approved requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const metadata = row.metadata as { medicationName?: string } | null
-    const answers = (ctx.intake.answers || {}) as Record<string, unknown>
-    const medicationName = metadata?.medicationName
-      || String(answers.medicationName || answers.medication_name || "")
-      || "medication"
-
-    const { HairLossApprovedEmail } = await import("@/lib/email/components/templates/hair-loss-approved")
-    const template = HairLossApprovedEmail({
-      patientName: ctx.patient.full_name || row.to_name || "there",
-      medicationName,
-      requestId: ctx.intake.id,
-      appUrl: env.appUrl,
-      heardToken: safeHeardToken(ctx.intake.id),
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // weight_loss_approved - component React template
-  // ----------------------------------------------------------------
-  if (row.email_type === "weight_loss_approved") {
-    if (!row.intake_id) {
-      return { success: false, error: "weight_loss_approved requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const metadata = row.metadata as { medicationName?: string } | null
-    const answers = (ctx.intake.answers || {}) as Record<string, unknown>
-    const medicationName = metadata?.medicationName
-      || String(answers.medicationName || answers.medication_name || "")
-      || "medication"
-
-    const { WeightLossApprovedEmail } = await import("@/lib/email/components/templates/weight-loss-approved")
-    const template = WeightLossApprovedEmail({
-      patientName: ctx.patient.full_name || row.to_name || "there",
-      medicationName,
-      requestId: ctx.intake.id,
-      appUrl: env.appUrl,
-      heardToken: safeHeardToken(ctx.intake.id),
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // womens_health_approved - component React template
-  // ----------------------------------------------------------------
-  if (row.email_type === "womens_health_approved") {
-    if (!row.intake_id) {
-      return { success: false, error: "womens_health_approved requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const metadata = row.metadata as { medicationName?: string; treatmentType?: string } | null
-    const answers = (ctx.intake.answers || {}) as Record<string, unknown>
-    const medicationName = metadata?.medicationName
-      || String(answers.medicationName || answers.medication_name || "")
-      || "medication"
-
-    const { WomensHealthApprovedEmail } = await import("@/lib/email/components/templates/womens-health-approved")
-    const template = WomensHealthApprovedEmail({
-      patientName: ctx.patient.full_name || row.to_name || "there",
-      medicationName,
-      treatmentType: metadata?.treatmentType || undefined,
-      requestId: ctx.intake.id,
       appUrl: env.appUrl,
       heardToken: safeHeardToken(ctx.intake.id),
     })
