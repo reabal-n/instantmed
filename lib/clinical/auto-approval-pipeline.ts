@@ -27,7 +27,8 @@ import {
   claimForProcessing, markApproved,
   markFailedRetrying, markIneligible,
 } from "./auto-approval-state"
-import { attentionFlags, parseIntakeFlags } from "./intake-flags"
+import { findDuplicatePatientProfile } from "./duplicate-patient-detection"
+import { attentionFlags, makeIntakeFlag, parseIntakeFlags } from "./intake-flags"
 
 const log = createLogger("auto-approval-pipeline")
 
@@ -305,6 +306,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
           type
         ),
         patient:profiles!patient_id(
+          full_name,
           date_of_birth
         ),
         answers:intake_answers(
@@ -384,7 +386,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
 
     // 6. Extract patient info for age check
     const patientRaw = intake.patient as unknown
-    const patientInfo = (Array.isArray(patientRaw) ? patientRaw[0] : patientRaw) as { date_of_birth: string | null } | null
+    const patientInfo = (Array.isArray(patientRaw) ? patientRaw[0] : patientRaw) as { full_name: string | null; date_of_birth: string | null } | null
 
     // Count previous successful auto-approvals for this patient (trust building)
     const patientId = intake.patient_id
@@ -434,6 +436,34 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       hasOverlappingCert = (overlapping?.length ?? 0) > 0
     }
 
+    // 6d. Same-name + DOB duplicate-profile detection. A patient re-entering
+    // under a new email gets a fresh patient_id, so every guard above (which all
+    // key on patient_id) reads them as a clean first-time patient. Matching on
+    // name + DOB catches that and routes the cert to a doctor instead of
+    // auto-issuing a possible second cert. Fail-soft; never blocks the pipeline.
+    const persistedFlags = attentionFlags(parseIntakeFlags((intake as { risk_flags?: unknown }).risk_flags))
+    const attentionFlagCodeList = persistedFlags.map((flag) => flag.code)
+
+    const duplicateMatch = await findDuplicatePatientProfile(supabase, {
+      patientId,
+      fullName: patientInfo?.full_name ?? null,
+      dateOfBirth: patientInfo?.date_of_birth ?? null,
+    })
+    if (duplicateMatch && !attentionFlagCodeList.includes("duplicate_patient_name_dob")) {
+      attentionFlagCodeList.push("duplicate_patient_name_dob")
+      // Persist the flag so the reviewing doctor sees the calm chip + tooltip
+      // (with the matched profile) via the normal IntakeFlagsBadge/Panel path,
+      // not just the raw auto-approval skip reason.
+      const dupFlag = makeIntakeFlag("duplicate_patient_name_dob", {
+        source: "clinical",
+        detail: `Matches existing profile ${duplicateMatch.matchedProfileId}`,
+      })
+      await supabase
+        .from("intakes")
+        .update({ risk_flags: [...persistedFlags, dupFlag] })
+        .eq("id", intakeId)
+    }
+
     // 7. Evaluate eligibility (with configurable max duration from admin settings)
     const eligibility = evaluateAutoApprovalEligibility(
       { service_type: service.type, subtype: intake.subtype },
@@ -453,14 +483,11 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         // a human, never auto-issued. Info-severity flags are intentionally
         // excluded so the 1–2 day fast path is preserved.
         //
-        // NOTE (forward-looking / currently dormant): deriveIntakeFlags only emits
-        // flags for repeat-prescription intakes today, and this auto-approval path
-        // runs for med certs only — so med-cert intakes carry no intake flags yet
-        // and this gate is effectively a no-op in production. It is wired and
-        // fail-safe on purpose: the moment intake flags are extended to med certs,
-        // a flagged cert routes to needs_doctor with no further change here.
-        attentionFlagCodes: attentionFlags(parseIntakeFlags((intake as { risk_flags?: unknown }).risk_flags))
-          .map((flag) => flag.code),
+        // Med certs now carry at least one intake-derived attention flag path:
+        // duplicate_patient_name_dob (step 6d), which routes a possible
+        // duplicate-profile cert to needs_doctor. Any persisted attention flag
+        // does the same — an attention-severity cert is NEVER auto-issued.
+        attentionFlagCodes: attentionFlagCodeList,
       },
     )
 

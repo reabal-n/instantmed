@@ -124,6 +124,7 @@ The platform may apply deterministic (non-AI) rules to assist triage:
 - All rules are logic-based, server-side, fully logged, and explainable
 - Rules assist but never replace clinician judgment
 - Checkout and retry-payment paths must reject missing safety-critical answers before payment. Missing-answer outcomes are `REQUEST_MORE_INFO`, not clinician declines.
+- **Duplicate-profile safety:** every patient-scoped guard (repeat-within-7d, prior-approval trust) keys on `patient_id`, so a patient re-entering under a new email (fresh profile) reads as a first-time patient. `findDuplicatePatientProfile` (`lib/clinical/duplicate-patient-detection.ts`) matches on normalized name + exact DOB; a hit raises the `duplicate_patient_name_dob` attention flag, which routes the med cert to a doctor (deterministic `needs_doctor`) instead of auto-issuing a possible second cert. Attention signal only — it never declines or approves; the doctor sees the matched profile and decides. Fail-soft (a lookup error is treated as "no duplicate").
 
 ---
 
