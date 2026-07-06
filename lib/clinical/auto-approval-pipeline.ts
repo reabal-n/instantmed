@@ -13,6 +13,7 @@ import * as Sentry from "@sentry/nextjs"
 import { getPostHogClient } from "@/lib/analytics/posthog-server"
 import { executeCertApproval } from "@/lib/clinical/execute-cert-approval"
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
+import { shouldIncludeSeededE2EData } from "@/lib/data/seeded-e2e-data"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { editPaidRequestTelegramMessageToNeedsManualReview } from "@/lib/notifications/edit-paid-request-telegram"
 import { createLogger } from "@/lib/observability/logger"
@@ -441,14 +442,21 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     // key on patient_id) reads them as a clean first-time patient. Matching on
     // name + DOB catches that and routes the cert to a doctor instead of
     // auto-issuing a possible second cert. Fail-soft; never blocks the pipeline.
+    //
+    // Skipped in E2E/test mode: the Playwright fixtures deterministically reuse
+    // one name + DOB across runs, so every test-created profile would (correctly)
+    // read as a duplicate and block the auto-approval happy-path gate. Mirrors
+    // the seeded-e2e-data read boundary — test data must not drive live logic.
     const persistedFlags = attentionFlags(parseIntakeFlags((intake as { risk_flags?: unknown }).risk_flags))
     const attentionFlagCodeList = persistedFlags.map((flag) => flag.code)
 
-    const duplicateMatch = await findDuplicatePatientProfile(supabase, {
-      patientId,
-      fullName: patientInfo?.full_name ?? null,
-      dateOfBirth: patientInfo?.date_of_birth ?? null,
-    })
+    const duplicateMatch = shouldIncludeSeededE2EData()
+      ? null
+      : await findDuplicatePatientProfile(supabase, {
+          patientId,
+          fullName: patientInfo?.full_name ?? null,
+          dateOfBirth: patientInfo?.date_of_birth ?? null,
+        })
     if (duplicateMatch && !attentionFlagCodeList.includes("duplicate_patient_name_dob")) {
       attentionFlagCodeList.push("duplicate_patient_name_dob")
       // Persist the flag so the reviewing doctor sees the calm chip + tooltip
