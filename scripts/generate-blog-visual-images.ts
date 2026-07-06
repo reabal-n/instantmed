@@ -4,6 +4,7 @@ import fs from "node:fs/promises"
 import path from "node:path"
 
 import { gateway, generateImage } from "ai"
+import { openai } from "@ai-sdk/openai"
 import dotenv from "dotenv"
 import sharp from "sharp"
 
@@ -45,6 +46,8 @@ const SVG_FONT_FAMILY = "Arial, Helvetica, sans-serif"
 type Renderer =
   | "deterministic"
   | "deterministic-composite"
+  | "openai-gpt-image-2"
+  | "openai-gpt-image-2-composite"
   | "gpt-image-2"
   | "gpt-image-2-composite"
   | "kie-gpt-image-2"
@@ -134,6 +137,8 @@ function getRenderer(): Renderer {
   if (
     renderer === "deterministic" ||
     renderer === "deterministic-composite" ||
+    renderer === "openai-gpt-image-2" ||
+    renderer === "openai-gpt-image-2-composite" ||
     renderer === "gpt-image-2" ||
     renderer === "gpt-image-2-composite" ||
     renderer === "kie-gpt-image-2" ||
@@ -144,7 +149,7 @@ function getRenderer(): Renderer {
     return renderer
   }
   throw new Error(
-    `Unsupported renderer "${renderer}". Use deterministic, deterministic-composite, gpt-image-2, gpt-image-2-composite, kie-gpt-image-2, kie-gpt-image-2-composite, kie-nano-banana-2, or kie-nano-banana-2-composite.`,
+    `Unsupported renderer "${renderer}". Use deterministic, deterministic-composite, openai-gpt-image-2, openai-gpt-image-2-composite, gpt-image-2, gpt-image-2-composite, kie-gpt-image-2, kie-gpt-image-2-composite, kie-nano-banana-2, or kie-nano-banana-2-composite.`,
   )
 }
 
@@ -155,6 +160,10 @@ function getEffectiveRenderer(renderer: Renderer, visual: ArticleVisual): Render
 
   if (renderer === "gpt-image-2" && visual.textMode === "labels") {
     return "gpt-image-2-composite"
+  }
+
+  if (renderer === "openai-gpt-image-2" && visual.textMode === "labels") {
+    return "openai-gpt-image-2-composite"
   }
 
   return renderer
@@ -184,6 +193,12 @@ function assertGatewayAuth() {
     throw new Error(
       "Missing AI Gateway auth. Run `vercel env pull .env.local --yes` or set AI_GATEWAY_API_KEY.",
     )
+  }
+}
+
+function assertOpenAIAuth() {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("Missing OPENAI_API_KEY. Set it in .env.local before using direct OpenAI renderers.")
   }
 }
 
@@ -1681,6 +1696,57 @@ async function saveGatewayCompositeInfographic(
   return filepath
 }
 
+async function saveOpenAIInfographic(
+  slug: string,
+  visual: ArticleVisual,
+  styleShift = 0,
+  size: GatewayImageSize = DEFAULT_GATEWAY_SIZE,
+) {
+  const outputDir = path.join(process.cwd(), "public", "images", "blog", slug)
+  await fs.mkdir(outputDir, { recursive: true })
+
+  const filepath = path.join(outputDir, `${visual.id}.webp`)
+  const result = await generateImage({
+    model: openai.image("gpt-image-2"),
+    prompt: buildGatewayPrompt(slug, visual, styleShift, size),
+    size,
+  })
+
+  await sharp(Buffer.from(result.image.uint8Array))
+    .webp({ quality: 88, effort: 5 })
+    .toFile(filepath)
+
+  await addInstantMedWordmark(filepath)
+  return filepath
+}
+
+async function saveOpenAICompositeInfographic(
+  slug: string,
+  visual: ArticleVisual,
+  styleShift = 0,
+  size: GatewayImageSize = DEFAULT_GATEWAY_SIZE,
+) {
+  const outputDir = path.join(process.cwd(), "public", "images", "blog", slug)
+  await fs.mkdir(outputDir, { recursive: true })
+
+  const filepath = path.join(outputDir, `${visual.id}.webp`)
+  const palette = palettes[visual.accent]
+  const result = await generateImage({
+    model: openai.image("gpt-image-2"),
+    prompt: buildGatewayCompositeUnderlayPrompt(slug, visual, styleShift),
+    size,
+  })
+
+  await sharp(Buffer.from(result.image.uint8Array))
+    .resize(WIDTH, HEIGHT, { fit: "cover", background: palette.wash })
+    .composite([{ input: Buffer.from(renderCompositeOverlaySvg(visual)), left: 0, top: 0 }])
+    .webp({ quality: 88, effort: 5 })
+    .toFile(filepath)
+
+  await addInstantMedWordmark(filepath)
+  return filepath
+}
+
 function getKieModel(renderer: KieRenderer) {
   return renderer.startsWith("kie-gpt-image-2") ? KIE_GPT_IMAGE_2_MODEL : KIE_NANO_BANANA_2_MODEL
 }
@@ -1862,6 +1928,9 @@ async function main() {
   if (renderer === "gpt-image-2" || renderer === "gpt-image-2-composite") {
     assertGatewayAuth()
   }
+  if (renderer === "openai-gpt-image-2" || renderer === "openai-gpt-image-2-composite") {
+    assertOpenAIAuth()
+  }
   if (isKieRenderer(renderer)) {
     assertKieAuth()
   }
@@ -1900,6 +1969,10 @@ async function main() {
           ? buildGatewayPrompt(slug, visual, styleShift, gatewayImageSize)
           : effectiveRenderer === "gpt-image-2-composite"
             ? buildGatewayCompositeUnderlayPrompt(slug, visual, styleShift)
+            : effectiveRenderer === "openai-gpt-image-2"
+              ? buildGatewayPrompt(slug, visual, styleShift, gatewayImageSize)
+              : effectiveRenderer === "openai-gpt-image-2-composite"
+                ? buildGatewayCompositeUnderlayPrompt(slug, visual, styleShift)
             : isKieRenderer(effectiveRenderer)
               ? isKieCompositeRenderer(effectiveRenderer)
                 ? buildKieCompositeUnderlayPrompt(slug, visual, effectiveRenderer, styleShift)
@@ -1917,6 +1990,10 @@ async function main() {
         ? await saveGatewayInfographic(slug, visual, styleShift, gatewayImageSize)
         : effectiveRenderer === "gpt-image-2-composite"
           ? await saveGatewayCompositeInfographic(slug, visual, styleShift, gatewayImageSize)
+          : effectiveRenderer === "openai-gpt-image-2"
+            ? await saveOpenAIInfographic(slug, visual, styleShift, gatewayImageSize)
+            : effectiveRenderer === "openai-gpt-image-2-composite"
+              ? await saveOpenAICompositeInfographic(slug, visual, styleShift, gatewayImageSize)
           : isKieRenderer(effectiveRenderer)
             ? await saveKieInfographic(slug, visual, effectiveRenderer, kieResolution, styleShift)
           : effectiveRenderer === "deterministic-composite"
