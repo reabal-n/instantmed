@@ -407,9 +407,11 @@ describe("Email Templates", () => {
       expectContains(html, "Riley", "Card declined", "/retry/xyz")
     })
 
-    it("subject factory works", () => {
-      const subject = paymentFailedSubject("Repeat Prescription")
-      expect(subject).toContain("Repeat Prescription")
+    it("subject is service-free (no condition leak on lock screens)", () => {
+      const subject = paymentFailedSubject()
+      expect(subject).toContain("hiccup with your payment")
+      expect(subject.toLowerCase()).not.toContain("prescription")
+      expect(subject.toLowerCase()).not.toContain("consultation")
     })
 
     it("matches snapshot", () => {

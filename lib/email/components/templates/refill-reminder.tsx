@@ -29,20 +29,24 @@ export function RefillReminderEmail({
   const firstName = patientName.split(" ")[0] || "there"
 
   return (
+    // The medication name appears ONCE, in the body only. Never put it in the
+    // subject, preview text, or button label: preview text renders on lock
+    // screens and shared inbox lists, and a drug name there discloses a health
+    // condition (2026-07-06 email audit).
     <BaseEmail
-      previewText={`Time to reorder ${medicationName} repeat script`}
+      previewText="Your repeat script may be running low. Reorder in a couple of minutes."
       appUrl={appUrl}
       showReferral
     >
       <Text>Hi {firstName},</Text>
 
       <Text>
-        If <strong>{medicationName}</strong> repeats are running low, you can request a fresh
+        If your <strong>{medicationName}</strong> repeats are running low, you can request a fresh
         script from an AHPRA-registered doctor in a couple of minutes, without booking a GP
         appointment.
       </Text>
 
-      <Button href={reorderUrl}>Reorder {medicationName}</Button>
+      <Button href={reorderUrl}>Request your repeat</Button>
 
       <Text muted small>
         A doctor reviews every request and will contact you if anything needs checking. If you have

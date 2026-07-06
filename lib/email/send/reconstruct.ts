@@ -107,7 +107,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   async function fetchIntakeContext(intakeId: string) {
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
-      .select("id, patient_id, service_id, reference_number, amount_cents, paid_at, decline_reason, decline_reason_code, decline_reason_note, refund_amount_cents, parchment_reference, guest_email")
+      .select("id, patient_id, service_id, category, reference_number, amount_cents, paid_at, decline_reason, decline_reason_code, decline_reason_note, refund_amount_cents, parchment_reference, guest_email")
       .eq("id", intakeId)
       .single()
 
@@ -291,11 +291,14 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // payment_received - database template with merge tags
+  // payment-received - database template with merge tags. Keyed on the
+  // hyphenated DB template slug because sendTemplateEmail writes the slug
+  // verbatim as email_type (the old "payment_received" key matched zero rows,
+  // so failed sends were never retryable).
   // ----------------------------------------------------------------
-  if (row.email_type === "payment_received") {
+  if (row.email_type === "payment-received") {
     if (!row.intake_id) {
-      return { success: false, error: "payment_received requires intake_id for reconstruction" }
+      return { success: false, error: "payment-received requires intake_id for reconstruction" }
     }
 
     const ctx = await fetchIntakeContext(row.intake_id)
@@ -313,11 +316,14 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // refund_notification - database template (slug: refund-processed)
+  // refund-processed - database template. Keyed on the hyphenated DB template
+  // slug because sendTemplateEmail writes the slug verbatim as email_type (the
+  // old "refund_notification" key matched zero rows — real refund rows were
+  // permanently unretryable until the 2026-07-06 email audit).
   // ----------------------------------------------------------------
-  if (row.email_type === "refund_notification") {
+  if (row.email_type === "refund-processed") {
     if (!row.intake_id) {
-      return { success: false, error: "refund_notification requires intake_id for reconstruction" }
+      return { success: false, error: "refund-processed requires intake_id for reconstruction" }
     }
 
     const ctx = await fetchIntakeContext(row.intake_id)
@@ -338,7 +344,8 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // payment_failed - database template with merge tags
+  // payment_failed - React template (repointed from a never-seeded DB slug in
+  // the 2026-07-06 email audit; must stay in lockstep with sendPaymentFailedEmail)
   // ----------------------------------------------------------------
   if (row.email_type === "payment_failed") {
     if (!row.intake_id) {
@@ -348,7 +355,6 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
     const ctx = await fetchIntakeContext(row.intake_id)
     if ("error" in ctx) return { success: false, error: ctx.error }
 
-    const serviceName = ctx.service.short_name || ctx.service.name
     const retryUrl = buildCheckoutPaymentRecoveryUrl({
       appUrl: env.appUrl,
       campaign: "payment_failed",
@@ -356,12 +362,18 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       isGuest: Boolean(ctx.intake.guest_email),
     })
 
-    return renderDatabaseTemplate("payment_failed", {
-      patient_name: ctx.patient.full_name || row.to_name || "there",
-      service_name: serviceName,
-      failure_reason: "Your payment could not be processed. Please try again.",
-      retry_url: retryUrl,
+    const { PaymentFailedEmail } = await import("@/lib/email/components/templates/payment-failed")
+    const { emailRequestTypeLabel } = await import("@/lib/email/request-type-label")
+    const template = PaymentFailedEmail({
+      patientName: ctx.patient.full_name || row.to_name || "there",
+      serviceName: emailRequestTypeLabel(ctx.intake.category),
+      failureReason: "Your payment could not be processed. Please try again.",
+      retryUrl,
+      appUrl: env.appUrl,
     })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
   }
 
   // ----------------------------------------------------------------

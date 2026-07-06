@@ -19,7 +19,7 @@ import * as Sentry from "@sentry/nextjs"
 
 import { env } from "@/lib/config/env"
 import { CONTACT_EMAIL } from "@/lib/constants"
-import { signUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
+import { signEmailUnsubscribeToken, signUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
 import { recordDeliverySent } from "@/lib/monitoring/delivery-tracking"
 import { logger } from "@/lib/observability/logger"
 
@@ -68,6 +68,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     intakeId,
     patientId,
     certificateId,
+    unsubscribeEmail,
     metadata = {},
     from = env.resendFromEmail,
     replyTo = CONTACT_EMAIL,
@@ -108,7 +109,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
   // Render React template to HTML, then inject signed unsubscribe URL
   let html: string
   try {
-    html = injectUnsubscribeUrl(await renderEmailToHtml(template), patientId)
+    html = injectUnsubscribeUrl(await renderEmailToHtml(template), patientId, unsubscribeEmail)
   } catch (err) {
     const error = `Template render failed: ${err instanceof Error ? err.message : "Unknown"}`
     logger.error("[Email] " + error, { emailType })
@@ -252,15 +253,19 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     ...(attachments && attachments.length > 0 && { attachments }),
   }
 
-  // Auto-inject headers for marketing emails (Australian Spam Act + RFC 8058)
+  // Auto-inject headers for marketing emails (Australian Spam Act + RFC 8058).
+  // Recipients without a profile (e.g. draft recovery) get an email-keyed
+  // token so the one-click unsubscribe works for them too.
   if (MARKETING_EMAIL_TYPES.has(emailType)) {
     body.headers = {
       ...(body.headers as Record<string, string> || {}),
       "Precedence": "bulk", // Reduces auto-reply storms, signals bulk mail to ESPs
     }
-    if (patientId) {
+    if (patientId || unsubscribeEmail) {
       try {
-        const unsubToken = signUnsubscribeToken(patientId)
+        const unsubToken = patientId
+          ? signUnsubscribeToken(patientId)
+          : signEmailUnsubscribeToken(unsubscribeEmail!)
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
         const unsubUrl = `${appUrl}/api/unsubscribe?token=${unsubToken}&type=marketing`
         body.headers = {
@@ -478,7 +483,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       // Increment daily warmup counter for marketing sends only.
       if (isMarketingEmail) {
         incrementDailySendCount().catch((err) => {
-          logger.warn("[Email] incrementDailySendCount failed — warmup counter may under-count", {}, err)
+          logger.warn("[Email] incrementDailySendCount failed, warmup counter may under-count", {}, err)
         })
       }
 
@@ -588,18 +593,19 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
     tags: [{ name: "email_type", value: row.email_type }],
   }
 
-  // Inject List-Unsubscribe headers for marketing emails on retry (mirrors sendEmail)
+  // Inject List-Unsubscribe headers for marketing emails on retry (mirrors
+  // sendEmail — rows without a patient_id fall back to an email-keyed token).
   if (MARKETING_EMAIL_TYPES.has(row.email_type)) {
     sendBody.headers = { "Precedence": "bulk" }
-    if (row.patient_id) {
-      try {
-        const unsubToken = signUnsubscribeToken(row.patient_id)
-        const unsubUrl = `${appUrl}/api/unsubscribe?token=${unsubToken}&type=marketing`
-        ;(sendBody.headers as Record<string, string>)["List-Unsubscribe"] = `<${unsubUrl}>`
-        ;(sendBody.headers as Record<string, string>)["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
-      } catch {
-        // Non-blocking
-      }
+    try {
+      const unsubToken = row.patient_id
+        ? signUnsubscribeToken(row.patient_id)
+        : signEmailUnsubscribeToken(row.to_email)
+      const unsubUrl = `${appUrl}/api/unsubscribe?token=${unsubToken}&type=marketing`
+      ;(sendBody.headers as Record<string, string>)["List-Unsubscribe"] = `<${unsubUrl}>`
+      ;(sendBody.headers as Record<string, string>)["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+    } catch {
+      // Non-blocking
     }
   }
 

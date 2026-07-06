@@ -50,9 +50,12 @@ export const SUPPORTED_EMAIL_TYPES = [
   "weight_loss_approved",
   "womens_health_approved",
   "needs_more_info",
-  // Payments
-  "payment_received",
-  "refund_notification",
+  // Payments. The hyphenated entries are DB template slugs — sendTemplateEmail
+  // writes the slug verbatim as email_outbox.email_type, so the dispatcher must
+  // key on those exact strings (the old underscore variants matched zero rows,
+  // leaving failed refund/receipt sends permanently unretryable).
+  "payment-received",
+  "refund-processed",
   "payment_failed",
   "payment_confirmed",
   "refund_issued",

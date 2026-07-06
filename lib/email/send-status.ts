@@ -5,6 +5,7 @@ import * as React from "react"
 import { logger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
+import { emailRequestTypeLabel } from "./request-type-label"
 import { sendEmail } from "./send-email"
 
 export type EmailTemplateType = "request_approved" | "request_declined" | "needs_more_info"
@@ -112,7 +113,7 @@ export async function sendStatusTransitionEmail(
 
   const baseData = {
     patientName: patient.full_name || "there",
-    requestType: formatRequestType(intake.category, intake.subtype),
+    requestType: emailRequestTypeLabel(intake.category, intake.subtype),
     requestId: intake.id,
     ...additionalData,
   }
@@ -137,18 +138,3 @@ export async function sendStatusTransitionEmail(
   })
 }
 
-function formatRequestType(category: string | null, subtype: string | null): string {
-  if (category === "medical_certificate") return "medical certificate"
-  if (category === "prescription") return "prescription"
-  if (category === "consult") {
-    if (subtype === "ed") return "ED consultation"
-    if (subtype === "hair_loss") return "hair loss consultation"
-    return "specialty consultation"
-  }
-  if (category === "referral") {
-    if (subtype === "imaging") return "imaging referral"
-    if (subtype === "pathology") return "pathology referral"
-    return "referral"
-  }
-  return "request"
-}

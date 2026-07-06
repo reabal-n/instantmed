@@ -18,41 +18,6 @@ export { shouldSendPaidRequestTelegramNotification } from "@/lib/notifications/p
 
 const log = createLogger("stripe-webhook:checkout-completed")
 
-type ServiceDisplayNameInput = {
-  serviceSlug?: string
-  category?: string
-  subtype?: string
-}
-
-/**
- * Resolve a human-friendly service name for patient emails + doctor notifications.
- * Consult intakes distinguish by subtype (ED, hair loss, etc.) so patients and
- * doctors see the specific pathway, not just "Consultation".
- */
-function getServiceDisplayName(input: ServiceDisplayNameInput): string {
-  const { serviceSlug = "", category = "", subtype = "" } = input
-
-  if (category === "consult" || serviceSlug === "consult") {
-    const subtypeLabels: Record<string, string> = {
-      ed: "ED Consultation",
-      hair_loss: "Hair Loss Consultation",
-      womens_health: "Women's Health Consultation",
-      weight_loss: "Weight Loss Consultation",
-      new_medication: "New Medication Request",
-      general: "Specialty Consultation",
-    }
-    return subtypeLabels[subtype] ?? "Consultation"
-  }
-
-  const slugDisplayNames: Record<string, string> = {
-    "med-cert-sick": "Medical Certificate",
-    "med-cert-carer": "Carers Certificate",
-    "common-scripts": "Prescription",
-    "consult": "Consultation",
-  }
-  return slugDisplayNames[serviceSlug] ?? "Medical Request"
-}
-
 async function notifyPaidRequestTelegramForSession(
   supabase: WebhookContext["supabase"],
   session: Stripe.Checkout.Session,
@@ -910,8 +875,12 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
           const React = await import("react")
           const { sendEmail } = await import("@/lib/email/send-email")
           const { RequestReceivedEmail, requestReceivedSubject } = await import("@/lib/email/components/templates/request-received")
+          const { emailRequestTypeLabelFromStripeMetadata } = await import("@/lib/email/request-type-label")
 
-          const serviceName = getServiceDisplayName({
+          // Privacy-safe label: this string lands in the SUBJECT line, which
+          // renders on lock screens, so sensitive consult subtypes are masked
+          // to plain "consultation".
+          const serviceName = emailRequestTypeLabelFromStripeMetadata({
             serviceSlug: session.metadata?.service_slug,
             category: session.metadata?.category,
             subtype: session.metadata?.subtype,

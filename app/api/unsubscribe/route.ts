@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { verifyUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
+import { verifyEmailUnsubscribeToken, verifyUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
+import { suppressEmail } from "@/lib/email/suppression"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -21,7 +22,9 @@ export async function GET(request: NextRequest) {
     return htmlResponse(renderPage("Invalid unsubscribe link", false), 400)
   }
 
-  const result = verifyUnsubscribeToken(token)
+  // Profile-keyed and email-keyed tokens are both honoured here (email-keyed
+  // covers account-less recipients, e.g. partial-intake draft recovery).
+  const result = verifyUnsubscribeToken(token) ?? verifyEmailUnsubscribeToken(token)
   if (!result) {
     return htmlResponse(renderPage("This unsubscribe link is invalid or has expired.", false), 403)
   }
@@ -69,6 +72,45 @@ export async function POST(request: NextRequest) {
 
   if (!token) {
     return htmlResponse(renderPage("Invalid unsubscribe link", false), 400)
+  }
+
+  // Email-keyed token (recipient without a profile): write the address to the
+  // account-less suppression list, and opt out any profile that happens to
+  // share the address so profile-keyed sends stop too.
+  const emailResult = verifyEmailUnsubscribeToken(token)
+  if (emailResult) {
+    const supabase = createServiceRoleClient()
+    const ok = await suppressEmail(emailResult.email)
+    if (!ok) {
+      return htmlResponse(renderPage("Failed to process unsubscribe request", false), 500)
+    }
+
+    try {
+      const { data: matchingProfiles } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", emailResult.email)
+
+      for (const profile of matchingProfiles ?? []) {
+        await supabase
+          .from("email_preferences")
+          .upsert(
+            {
+              profile_id: profile.id,
+              marketing_emails: false,
+              abandoned_checkout_emails: false,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "profile_id" },
+          )
+      }
+    } catch (error) {
+      // Suppression list already covers the address; profile mirroring is best-effort.
+      log.warn("Failed to mirror email suppression to profile preferences", {}, error instanceof Error ? error : undefined)
+    }
+
+    log.info("Email-keyed unsubscribe processed", { hasEmail: true })
+    return htmlResponse(renderPage("You have been unsubscribed from marketing emails", true), 200)
   }
 
   const result = verifyUnsubscribeToken(token)

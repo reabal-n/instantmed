@@ -160,7 +160,9 @@ export async function sendRefillReminderEmail(candidate: RefillCandidate): Promi
     }),
     emailType: "refill_reminder" as import("./send-email").EmailType,
     patientId: candidate.patient_id,
-    metadata: { prescription_id: candidate.id, medication: candidate.medication_name },
+    // prescription_id only — the medication name is clinical data and does not
+    // belong in the ops-visible outbox metadata (the script row has it).
+    metadata: { prescription_id: candidate.id },
     tags: [
       { name: "category", value: "refill_reminder" },
       { name: "prescription_id", value: candidate.id },

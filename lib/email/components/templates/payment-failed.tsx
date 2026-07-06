@@ -17,8 +17,10 @@ export interface PaymentFailedEmailProps {
   appUrl?: string
 }
 
-export function paymentFailedSubject(serviceName: string) {
-  return `Heads up, there was a hiccup with your ${serviceName} payment`
+// Deliberately service-free: subjects render on lock screens and shared
+// inboxes, so the service must not be named there (see request-type-label.ts).
+export function paymentFailedSubject() {
+  return "Heads up, there was a hiccup with your payment"
 }
 
 export function PaymentFailedEmail({

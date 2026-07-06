@@ -444,6 +444,7 @@ Role assignment methods: SQL update on `profiles` table (production) via Supabas
 | `fraud_flags` | Risk management flags | `intakes.id`, `profiles.id` |
 | `stripe_disputes` | Dispute tracking | `intakes.id` |
 | `email_preferences` | Unsubscribe / email prefs | `profiles.id` |
+| `email_suppressions` | Account-less marketing opt-outs (email-keyed unsubscribe for recipients with no profile, e.g. partial-intake drafts; Spam Act s18). Service-role only, no anon/authenticated grants | Standalone (`email_lower` PK) |
 | `referrals` | Referral tracking ($5 credit both parties, UI: `referral-card.tsx`) | `profiles.id` (referrer + referee) |
 | `document_drafts` | Certificate/document draft editing | `intakes.id` via `request_id` |
 | `issued_certificates` | Issued certs with template snapshots | `intakes.id` |

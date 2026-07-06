@@ -13,6 +13,7 @@ import {
 } from "./components/templates/partial-intake-recovery"
 import { buildPartialIntakeRecoveryUrl } from "./recovery-links"
 import { sendEmail } from "./send-email"
+import { getSuppressedEmails } from "./suppression"
 
 const logger = createLogger("partial-intake-recovery")
 
@@ -137,11 +138,25 @@ export async function processPartialIntakeRecoveries(): Promise<{
     return { found: 0, sent: 0, failed: 0 }
   }
 
+  // Spam Act gate: drop drafts whose address is on the account-less
+  // suppression list OR belongs to a profile that opted out of marketing.
+  // Stamp them so the cron stops re-evaluating an opted-out address daily.
+  const suppressed = await getSuppressedEmails(drafts.map((d) => d.email))
+  const sendable: PartialDraft[] = []
+  for (const draft of drafts) {
+    if (suppressed.has(draft.email.trim().toLowerCase())) {
+      await markRecoverySent(draft.session_id)
+      logger.info("Skipping recovery email - suppressed/opted out", { sessionId: draft.session_id })
+    } else {
+      sendable.push(draft)
+    }
+  }
+
   const appUrl = getAppUrl()
   let sent = 0
   let failed = 0
 
-  for (const draft of drafts) {
+  for (const draft of sendable) {
     const serviceName = SERVICE_NAMES[draft.service_type] ?? "request"
     // UTM attribution so PostHog/GA can credit recoveries that complete to
     // purchase. captureAttribution() in lib/analytics/attribution.ts persists
@@ -168,6 +183,9 @@ export async function processPartialIntakeRecoveries(): Promise<{
           appUrl,
         }),
         emailType: "partial_intake_recovery",
+        // Drafts have no profile, so the unsubscribe must be email-keyed —
+        // without this the recipient has no working opt-out (Spam Act s18).
+        unsubscribeEmail: draft.email,
         metadata: {
           draft_session_id: draft.session_id,
           service_type: draft.service_type,

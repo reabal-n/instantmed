@@ -27,6 +27,7 @@ vi.mock("@/lib/supabase/service-role", () => ({
 
 vi.mock("@/lib/email/components/templates/needs-more-info", () => ({
   NeedsMoreInfoEmail: vi.fn(() => "email-template"),
+  needsMoreInfoSubject: vi.fn((requestType: string) => `Quick question about your ${requestType} request`),
 }))
 
 const INTAKE_ID = "11111111-1111-4111-8111-111111111111"

@@ -77,7 +77,9 @@ export async function POST(request: NextRequest) {
 
     if (status === "approved") {
       templateType = "request_approved"
-      additionalData = { doctorName: doctorName || "Your Doctor" }
+      // Only attribute a doctor when a real name was supplied — the old
+      // "Your Doctor" fallback rendered "Reviewed by Dr Your Doctor" to patients.
+      additionalData = doctorName ? { doctorName } : {}
     } else if (status === "declined") {
       templateType = "request_declined"
       additionalData = { 
