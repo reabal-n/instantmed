@@ -1146,6 +1146,9 @@ function isTelehealthPolicyCompositeVisual(visual: ArticleVisual): boolean {
     visual.id === "telehealth-consultation-clinical-flow" ||
     visual.id === "telehealth-consultation-channel-map" ||
     visual.id === "telehealth-consultation-fit" ||
+    visual.id === "telehealth-best-fit-map" ||
+    visual.id === "telehealth-do-not-use-map" ||
+    visual.id === "telehealth-care-route-map" ||
     visual.id === "first-telehealth-prep-map" ||
     visual.id === "first-telehealth-what-happens" ||
     visual.id === "first-telehealth-aftercare-map"
@@ -1154,24 +1157,28 @@ function isTelehealthPolicyCompositeVisual(visual: ArticleVisual): boolean {
 
 function renderCompositeUnderlayWashSvg(visual: ArticleVisual): string {
   const palette = palettes[visual.accent]
+  const strongWash = visual.visualFormat === "red-flag-warning" || visual.kind === "warning"
+  const glowStops = strongWash
+    ? { start: "0.74", middle: "0.82", end: "0.90", fadeStart: "0.72", fadeMiddle: "0.78", fadeEnd: "0.86", solid: "0.34" }
+    : { start: "0.46", middle: "0.56", end: "0.70", fadeStart: "0.42", fadeMiddle: "0.50", fadeEnd: "0.68", solid: "0.12" }
 
   return `
     <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
       <defs>
         <radialGradient id="washGlow" cx="72%" cy="40%" r="76%">
-          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.46"/>
-          <stop offset="46%" stop-color="${palette.wash}" stop-opacity="0.56"/>
-          <stop offset="100%" stop-color="${palette.light}" stop-opacity="0.70"/>
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="${glowStops.start}"/>
+          <stop offset="46%" stop-color="${palette.wash}" stop-opacity="${glowStops.middle}"/>
+          <stop offset="100%" stop-color="${palette.light}" stop-opacity="${glowStops.end}"/>
         </radialGradient>
         <linearGradient id="washFade" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.42"/>
-          <stop offset="58%" stop-color="${palette.wash}" stop-opacity="0.50"/>
-          <stop offset="100%" stop-color="#ffffff" stop-opacity="0.68"/>
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="${glowStops.fadeStart}"/>
+          <stop offset="58%" stop-color="${palette.wash}" stop-opacity="${glowStops.fadeMiddle}"/>
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="${glowStops.fadeEnd}"/>
         </linearGradient>
       </defs>
       <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#washGlow)"/>
       <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#washFade)"/>
-      <rect width="${WIDTH}" height="${HEIGHT}" fill="${palette.wash}" fill-opacity="0.12"/>
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="${palette.wash}" fill-opacity="${glowStops.solid}"/>
     </svg>
   `
 }
@@ -1547,6 +1554,175 @@ function renderFirstTelehealthAftercareBody(visual: ArticleVisual, palette: Pale
   `
 }
 
+function renderWhenToUseTelehealthFitBody(visual: ArticleVisual, palette: Palette): string {
+  const [history, lowRisk, followUp, redirect] = getApprovedVisibleLabels(visual)
+
+  return `
+    <g>
+      <rect x="80" y="610" width="1120" height="720" rx="52" fill="#ffffff" fill-opacity="0.66" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M246 820 C376 704 514 776 640 940 C760 1098 904 1142 1054 1032" fill="none" stroke="${palette.mid}" stroke-width="18" stroke-linecap="round" opacity="0.16"/>
+      <path d="M246 820 C376 704 514 776 640 940 C760 1098 904 1142 1054 1032" fill="none" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.28"/>
+      <path d="M292 1096 C412 996 530 1056 640 940 C746 828 884 822 1004 718" fill="none" stroke="${palette.mid}" stroke-width="13" stroke-linecap="round" opacity="0.18"/>
+      <path d="M292 1096 C412 996 530 1056 640 940 C746 828 884 822 1004 718" fill="none" stroke="${palette.dark}" stroke-width="5" stroke-linecap="round" opacity="0.22"/>
+
+      <circle cx="640" cy="940" r="126" fill="${palette.dark}" fill-opacity="0.94"/>
+      <circle cx="640" cy="940" r="178" fill="none" stroke="${palette.mid}" stroke-width="5" opacity="0.26"/>
+      <circle cx="640" cy="940" r="18" fill="#ffffff" opacity="0.92"/>
+      <path d="M582 904 C616 870 666 870 700 904 M582 976 C616 1012 666 1012 700 976" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.56"/>
+      <path d="M552 940 H602 M678 940 H728 M640 852 V902 M640 978 V1028" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.36"/>
+
+      <rect x="122" y="700" width="330" height="238" rx="36" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(history, 158, 760, 250, palette, 30)}
+      <path d="M164 842 H372 M164 884 H326 M164 924 H358" stroke="${palette.mid}" stroke-width="9" stroke-linecap="round" opacity="0.44"/>
+      <circle cx="384" cy="866" r="46" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <path d="M358 866 H410" stroke="${palette.dark}" stroke-width="7" stroke-linecap="round" opacity="0.64"/>
+
+      <rect x="828" y="662" width="318" height="240" rx="36" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(lowRisk, 870, 728, 220, palette, 30)}
+      <path d="M886 820 C922 780 996 780 1034 820 C998 872 922 872 886 820 Z" fill="${palette.light}" stroke="${palette.mid}" stroke-width="5"/>
+      <circle cx="960" cy="820" r="16" fill="${palette.dark}" opacity="0.76"/>
+      <path d="M886 878 H1038" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.42"/>
+
+      <rect x="142" y="1022" width="330" height="236" rx="36" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(followUp, 186, 1088, 230, palette, 30)}
+      <path d="M214 1188 C260 1126 336 1126 384 1186" fill="none" stroke="${palette.mid}" stroke-width="10" stroke-linecap="round" opacity="0.62"/>
+      <path d="M384 1186 L354 1172 M384 1186 L366 1218" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round"/>
+
+      <rect x="820" y="1026" width="334" height="236" rx="36" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(redirect, 866, 1092, 230, palette, 30)}
+      <path d="M884 1190 H1038" stroke="${palette.mid}" stroke-width="12" stroke-linecap="round" opacity="0.46"/>
+      <path d="M1008 1156 L1044 1190 L1008 1224" fill="none" stroke="${palette.dark}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.72"/>
+      <circle cx="884" cy="1190" r="18" fill="${palette.dark}" opacity="0.72"/>
+    </g>
+  `
+}
+
+function renderWhenToUseRouteChoiceBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const lanes = [
+    { fill: "#dcfce7", stroke: "#16a34a", text: "#166534" },
+    { fill: "#e0f2fe", stroke: "#0284c7", text: "#075985" },
+    { fill: "#fef3c7", stroke: "#d97706", text: "#92400e" },
+    { fill: "#ffe4e6", stroke: "#be3455", text: "#9f1239" },
+  ]
+  const laneSvg = labels
+    .slice(0, 4)
+    .map((label, index) => {
+      const x = 104 + index * 270
+      const colour = lanes[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: x + 34,
+        y: 1118,
+        width: 202,
+        size: 28,
+        weight: 900,
+        color: colour.text,
+        maxLines: 2,
+      })
+      const mark =
+        index === 0
+          ? `<circle cx="${x + 135}" cy="842" r="68" fill="#ffffff" fill-opacity="0.56" stroke="${colour.stroke}" stroke-width="5"/><circle cx="${x + 135}" cy="842" r="15" fill="${colour.stroke}"/><path d="M${x + 90} 842 H${x + 116} M${x + 154} 842 H${x + 180}" stroke="${colour.stroke}" stroke-width="8" stroke-linecap="round" opacity="0.62"/>`
+          : index === 1
+            ? `<rect x="${x + 70}" y="770" width="130" height="124" rx="30" fill="#ffffff" fill-opacity="0.58" stroke="${colour.stroke}" stroke-width="5"/><path d="M${x + 100} 842 H${x + 170} M${x + 100} 878 H${x + 154} M${x + 100} 806 H${x + 176}" stroke="${colour.stroke}" stroke-width="8" stroke-linecap="round" opacity="0.70"/>`
+            : index === 2
+              ? `<circle cx="${x + 135}" cy="842" r="70" fill="#ffffff" fill-opacity="0.58" stroke="${colour.stroke}" stroke-width="5"/><path d="M${x + 135} 802 V848 L${x + 166} 872" stroke="${colour.stroke}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>`
+              : `<rect x="${x + 72}" y="802" width="130" height="76" rx="28" fill="#ffffff" fill-opacity="0.62" stroke="${colour.stroke}" stroke-width="6"/><path d="M${x + 94} 840 H${x + 122} L${x + 145} 812 L${x + 172} 866 L${x + 190} 840" fill="none" stroke="${colour.stroke}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
+
+      return `
+        <g>
+          <rect x="${x}" y="704" width="270" height="520" fill="${colour.fill}" fill-opacity="${index === 3 ? "0.52" : "0.60"}"/>
+          <path d="M${x + 34} 748 H${x + 230}" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.42"/>
+          <path d="M${x + 34} 1194 H${x + 230}" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.42"/>
+          ${index > 0 ? `<path d="M${x} 724 V1200" stroke="#ffffff" stroke-width="4" opacity="0.60"/>` : ""}
+          ${mark}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <defs>
+        <clipPath id="routeChoiceClip">
+          <rect x="104" y="704" width="1080" height="520" rx="44"/>
+        </clipPath>
+      </defs>
+      <rect x="104" y="704" width="1080" height="520" rx="44" fill="#ffffff" fill-opacity="0.60" stroke="${palette.light}" stroke-width="2"/>
+      <g clip-path="url(#routeChoiceClip)">
+        ${laneSvg}
+      </g>
+      <rect x="104" y="704" width="1080" height="520" rx="44" fill="none" stroke="${palette.dark}" stroke-width="3" opacity="0.12"/>
+      <path d="M160 1286 C368 1228 510 1296 674 1240 C842 1182 1014 1218 1144 1136" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" opacity="0.18"/>
+      <path d="M1110 1114 L1148 1136 L1112 1162" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.24"/>
+    </g>
+  `
+}
+
+function renderWhenToUseDoNotUseBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const lanes = [
+    { fill: "#ffe4e6", stroke: "#be3455", text: "#9f1239" },
+    { fill: "#fef3c7", stroke: "#d97706", text: "#92400e" },
+    { fill: "#ffedd5", stroke: "#ea580c", text: "#9a3412" },
+    { fill: "#fecdd3", stroke: "#be123c", text: "#881337" },
+  ]
+  const laneSvg = labels
+    .slice(0, 4)
+    .map((label, index) => {
+      const x = 104 + index * 270
+      const colour = lanes[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: x + 34,
+        y: 1116,
+        width: 202,
+        size: 27,
+        weight: 900,
+        color: colour.text,
+        maxLines: 2,
+      })
+      const symbol =
+        index === 0
+          ? `<rect x="${x + 70}" y="802" width="130" height="76" rx="28" fill="#ffffff" fill-opacity="0.62" stroke="${colour.stroke}" stroke-width="6"/><path d="M${x + 92} 840 H${x + 120} L${x + 144} 810 L${x + 172} 868 L${x + 192} 840" fill="none" stroke="${colour.stroke}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
+          : index === 1
+            ? `<circle cx="${x + 135}" cy="842" r="68" fill="#ffffff" fill-opacity="0.56" stroke="${colour.stroke}" stroke-width="5"/><path d="M${x + 96} 842 H${x + 174}" stroke="${colour.stroke}" stroke-width="10" stroke-linecap="round"/><path d="M${x + 146} 806 L${x + 182} 842 L${x + 146} 878" fill="none" stroke="${colour.stroke}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>`
+            : index === 2
+              ? `<rect x="${x + 76}" y="774" width="118" height="142" rx="30" fill="#ffffff" fill-opacity="0.58" stroke="${colour.stroke}" stroke-width="5"/><path d="M${x + 104} 828 H${x + 168} M${x + 104} 866 H${x + 154}" stroke="${colour.stroke}" stroke-width="8" stroke-linecap="round" opacity="0.70"/><circle cx="${x + 170}" cy="884" r="19" fill="${colour.stroke}" opacity="0.80"/>`
+              : `<circle cx="${x + 135}" cy="842" r="70" fill="#ffffff" fill-opacity="0.58" stroke="${colour.stroke}" stroke-width="5"/><path d="M${x + 98} 842 C${x + 118} 806 ${x + 154} 806 ${x + 174} 842 C${x + 154} 878 ${x + 118} 878 ${x + 98} 842 Z" fill="none" stroke="${colour.stroke}" stroke-width="7"/><circle cx="${x + 136}" cy="842" r="14" fill="${colour.stroke}"/>`
+
+      return `
+        <g>
+          <rect x="${x}" y="704" width="270" height="520" fill="${colour.fill}" fill-opacity="${index === 0 ? "0.64" : "0.56"}"/>
+          <path d="M${x + 34} 748 H${x + 230}" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.42"/>
+          <path d="M${x + 34} 1194 H${x + 230}" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.42"/>
+          ${index > 0 ? `<path d="M${x} 724 V1200" stroke="#ffffff" stroke-width="4" opacity="0.60"/>` : ""}
+          ${symbol}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <defs>
+        <clipPath id="noUseRouteClip">
+          <rect x="104" y="704" width="1080" height="520" rx="44"/>
+        </clipPath>
+      </defs>
+      <rect x="104" y="704" width="1080" height="520" rx="44" fill="#ffffff" fill-opacity="0.60" stroke="${palette.light}" stroke-width="2"/>
+      <g clip-path="url(#noUseRouteClip)">
+        ${laneSvg}
+      </g>
+      <rect x="104" y="704" width="1080" height="520" rx="44" fill="none" stroke="${palette.dark}" stroke-width="3" opacity="0.12"/>
+      <path d="M166 1286 C356 1198 548 1306 718 1206 C890 1104 1004 1156 1150 1058" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" opacity="0.18"/>
+      <path d="M1118 1038 L1154 1058 L1122 1086" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.24"/>
+    </g>
+  `
+}
+
 function renderTelehealthPolicyCompositeOverlaySvg(visual: ArticleVisual): string {
   const palette = palettes[visual.accent]
   const title = textBlock({
@@ -1588,6 +1764,12 @@ function renderTelehealthPolicyCompositeOverlaySvg(visual: ArticleVisual): strin
         ? renderFirstTelehealthRouteBody(visual, palette)
         : visual.id === "first-telehealth-aftercare-map"
           ? renderFirstTelehealthAftercareBody(visual, palette)
+          : visual.id === "telehealth-best-fit-map"
+            ? renderWhenToUseTelehealthFitBody(visual, palette)
+            : visual.id === "telehealth-care-route-map"
+              ? renderWhenToUseRouteChoiceBody(visual, palette)
+              : visual.id === "telehealth-do-not-use-map"
+                ? renderWhenToUseDoNotUseBody(visual, palette)
           : visual.id === "telehealth-definition-map" || visual.id === "telehealth-consultation-channel-map"
       ? renderTelehealthDefinitionBody(visual, palette)
       : visual.id === "telehealth-suitability-boundary" || visual.id === "telehealth-consultation-fit"
@@ -2412,11 +2594,12 @@ async function saveKieInfographic(
   }
 
   const imageBuffer = Buffer.from(await imageResponse.arrayBuffer())
+  const strongWash = visual.visualFormat === "red-flag-warning" || visual.kind === "warning"
   const pipeline = isKieCompositeRenderer(renderer)
     ? sharp(imageBuffer)
         .resize(WIDTH, HEIGHT, { fit: "cover", background: palettes[visual.accent].wash })
-        .blur(4)
-        .modulate({ saturation: 0.62, brightness: 1.02 })
+        .blur(strongWash ? 8 : 4)
+        .modulate(strongWash ? { saturation: 0.36, brightness: 1.06 } : { saturation: 0.62, brightness: 1.02 })
         .composite([
           { input: Buffer.from(renderCompositeUnderlayWashSvg(visual)), left: 0, top: 0 },
           { input: Buffer.from(renderCompositeOverlaySvg(visual)), left: 0, top: 0 },
