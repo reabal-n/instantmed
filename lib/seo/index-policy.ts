@@ -57,6 +57,7 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "online-doctor-consultation-australia",
   "telehealth-consultation-australia",
   "telehealth-first-time-guide",
+  "preparing-for-telehealth",
   "when-to-use-telehealth",
   "how-long-can-medical-certificate-cover",
   "university-medical-certificates",
