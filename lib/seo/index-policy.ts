@@ -63,6 +63,7 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "medical-certificate-same-day",
   "medical-certificate-period-pain",
   "telehealth-after-hours",
+  "telehealth-privacy-security",
   "medical-certificate-food-poisoning",
   "generic-vs-brand-medications",
   "when-telehealth-cant-help",
