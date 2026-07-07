@@ -1145,7 +1145,10 @@ function isTelehealthPolicyCompositeVisual(visual: ArticleVisual): boolean {
     visual.id === "telehealth-suitability-boundary" ||
     visual.id === "telehealth-consultation-clinical-flow" ||
     visual.id === "telehealth-consultation-channel-map" ||
-    visual.id === "telehealth-consultation-fit"
+    visual.id === "telehealth-consultation-fit" ||
+    visual.id === "first-telehealth-prep-map" ||
+    visual.id === "first-telehealth-what-happens" ||
+    visual.id === "first-telehealth-aftercare-map"
   )
 }
 
@@ -1156,19 +1159,19 @@ function renderCompositeUnderlayWashSvg(visual: ArticleVisual): string {
     <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
       <defs>
         <radialGradient id="washGlow" cx="72%" cy="40%" r="76%">
-          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.74"/>
-          <stop offset="46%" stop-color="${palette.wash}" stop-opacity="0.82"/>
-          <stop offset="100%" stop-color="${palette.light}" stop-opacity="0.90"/>
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.46"/>
+          <stop offset="46%" stop-color="${palette.wash}" stop-opacity="0.56"/>
+          <stop offset="100%" stop-color="${palette.light}" stop-opacity="0.70"/>
         </radialGradient>
         <linearGradient id="washFade" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.72"/>
-          <stop offset="58%" stop-color="${palette.wash}" stop-opacity="0.78"/>
-          <stop offset="100%" stop-color="#ffffff" stop-opacity="0.86"/>
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.42"/>
+          <stop offset="58%" stop-color="${palette.wash}" stop-opacity="0.50"/>
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0.68"/>
         </linearGradient>
       </defs>
       <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#washGlow)"/>
       <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#washFade)"/>
-      <rect width="${WIDTH}" height="${HEIGHT}" fill="${palette.wash}" fill-opacity="0.34"/>
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="${palette.wash}" fill-opacity="0.12"/>
     </svg>
   `
 }
@@ -1381,6 +1384,169 @@ function renderTelehealthBoundaryBody(visual: ArticleVisual, palette: Palette): 
   `
 }
 
+function renderTelehealthBodyLabel(label: string, x: number, y: number, width: number, palette: Palette, size = 27) {
+  const labelBlock = textBlock({
+    text: label,
+    x,
+    y,
+    width,
+    size,
+    weight: 900,
+    color: palette.text,
+    lineHeight: Math.round(size * 1.2),
+    maxLines: 2,
+  })
+
+  return labelBlock.svg
+}
+
+function renderFirstTelehealthPrepBody(visual: ArticleVisual, palette: Palette): string {
+  const [timeline, medicines, readings, question] = getApprovedVisibleLabels(visual)
+
+  return `
+    <g>
+      <rect x="78" y="610" width="1124" height="720" rx="52" fill="#ffffff" fill-opacity="0.66" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M210 910 C342 1042 460 990 586 1076 C720 1168 874 1086 1014 1210" fill="none" stroke="${palette.mid}" stroke-width="18" stroke-linecap="round" opacity="0.15"/>
+      <path d="M244 875 C370 1000 502 998 622 1084" fill="none" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.25"/>
+      <path d="M668 1084 C804 996 940 1040 1044 1180" fill="none" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.20"/>
+
+      <rect x="118" y="670" width="326" height="276" rx="34" fill="#ffffff" fill-opacity="0.88" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(timeline, 150, 724, 260, palette)}
+      <path d="M154 862 H402" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/>
+      <path d="M170 862 C202 812 246 836 284 782 C320 730 372 762 404 716" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="170" cy="862" r="11" fill="${palette.dark}"/>
+      <circle cx="284" cy="782" r="11" fill="${palette.mid}"/>
+      <circle cx="404" cy="716" r="11" fill="${palette.dark}"/>
+      <path d="M162 902 H228 M252 902 H310 M334 902 H394" stroke="${palette.mid}" stroke-width="7" stroke-linecap="round" opacity="0.50"/>
+
+      <rect x="480" y="642" width="318" height="304" rx="34" fill="#ffffff" fill-opacity="0.88" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(medicines, 512, 704, 250, palette)}
+      <rect x="528" y="782" width="222" height="36" rx="18" fill="${palette.light}" opacity="0.92"/>
+      <rect x="528" y="836" width="174" height="36" rx="18" fill="${palette.light}" opacity="0.74"/>
+      <rect x="528" y="890" width="198" height="36" rx="18" fill="${palette.light}" opacity="0.56"/>
+      <circle cx="722" cy="823" r="50" fill="#ffffff" fill-opacity="0.74" stroke="${palette.mid}" stroke-width="5"/>
+      <path d="M690 808 C708 788 736 790 752 812 C734 844 710 846 690 824" fill="none" stroke="${palette.dark}" stroke-width="7" stroke-linecap="round" opacity="0.58"/>
+      <circle cx="722" cy="821" r="10" fill="${palette.dark}" opacity="0.72"/>
+      <path d="M724 870 C758 902 780 930 782 968" fill="none" stroke="${palette.mid}" stroke-width="7" stroke-linecap="round" opacity="0.42"/>
+
+      <rect x="834" y="670" width="326" height="276" rx="34" fill="#ffffff" fill-opacity="0.88" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(readings, 866, 724, 254, palette)}
+      <circle cx="930" cy="838" r="56" fill="${palette.light}" opacity="0.88"/>
+      <path d="M930 838 L960 808" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round"/>
+      <path d="M898 872 A48 48 0 1 1 963 872" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round"/>
+      <rect x="1016" y="786" width="94" height="110" rx="24" fill="#ffffff" stroke="${palette.mid}" stroke-width="5"/>
+      <circle cx="1063" cy="826" r="18" fill="${palette.dark}" opacity="0.72"/>
+      <path d="M1038 868 H1088" stroke="${palette.light}" stroke-width="9" stroke-linecap="round"/>
+
+      <path d="M282 946 C360 1006 430 1042 520 1074" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.42"/>
+      <path d="M638 946 C638 1006 626 1044 610 1082" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.42"/>
+      <path d="M996 946 C904 1006 790 1048 668 1080" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.42"/>
+
+      <circle cx="612" cy="1110" r="112" fill="${palette.dark}" fill-opacity="0.94"/>
+      <circle cx="612" cy="1110" r="154" fill="none" stroke="${palette.mid}" stroke-width="5" opacity="0.30"/>
+      <circle cx="612" cy="1110" r="44" fill="#ffffff" opacity="0.16"/>
+      <circle cx="612" cy="1110" r="11" fill="#ffffff" opacity="0.92"/>
+      <path d="M574 1086 C596 1068 628 1068 650 1086 M574 1134 C596 1154 628 1154 650 1134" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.62"/>
+      <path d="M560 1110 H586 M638 1110 H664 M612 1058 V1084 M612 1136 V1162" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.42"/>
+      <path d="M438 1260 C500 1214 552 1200 612 1200 C680 1200 738 1218 804 1260" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.32"/>
+      <rect x="420" y="1228" width="398" height="82" rx="28" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(question, 472, 1281, 300, palette, 30)}
+    </g>
+  `
+}
+
+function renderFirstTelehealthRouteBody(visual: ArticleVisual, palette: Palette): string {
+  const [submit, review, outcome, redirect] = getApprovedVisibleLabels(visual)
+
+  return `
+    <g>
+      <rect x="82" y="610" width="1116" height="724" rx="52" fill="#ffffff" fill-opacity="0.66" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M206 994 H512" stroke="${palette.mid}" stroke-width="16" stroke-linecap="round" opacity="0.24"/>
+      <path d="M768 994 C862 870 956 816 1086 782" fill="none" stroke="${palette.mid}" stroke-width="15" stroke-linecap="round" opacity="0.22"/>
+      <path d="M768 994 C878 1058 970 1144 1088 1230" fill="none" stroke="#f06f8e" stroke-width="14" stroke-linecap="round" opacity="0.24"/>
+      <path d="M196 994 H500" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.42"/>
+      <path d="M760 994 C854 876 956 824 1080 790" fill="none" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.36"/>
+      <path d="M760 994 C876 1064 970 1148 1084 1220" fill="none" stroke="#be3455" stroke-width="6" stroke-linecap="round" opacity="0.42"/>
+
+      <rect x="124" y="812" width="260" height="362" rx="36" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      <circle cx="254" cy="908" r="58" fill="${palette.light}"/>
+      <path d="M214 906 H294 M214 942 H278 M214 870 H302" stroke="#ffffff" stroke-width="9" stroke-linecap="round"/>
+      <path d="M236 1008 H308 M204 1048 H300 M226 1088 H286" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.50"/>
+      ${renderTelehealthBodyLabel(submit, 174, 1146, 168, palette, 31)}
+
+      <circle cx="640" cy="994" r="142" fill="${palette.dark}" fill-opacity="0.95"/>
+      <circle cx="640" cy="994" r="190" fill="none" stroke="${palette.mid}" stroke-width="5" opacity="0.24"/>
+      <circle cx="640" cy="994" r="78" fill="#ffffff" opacity="0.13"/>
+      <circle cx="640" cy="994" r="16" fill="#ffffff" opacity="0.88"/>
+      <path d="M590 966 C618 940 672 940 700 966 M590 1022 C618 1048 672 1048 700 1022" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.58"/>
+      <path d="M576 994 H612 M668 994 H704 M640 930 V966 M640 1022 V1058" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.36"/>
+      <path d="M598 934 C626 908 676 908 704 934 M598 1054 C626 1080 676 1080 704 1054" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.50"/>
+      <rect x="532" y="1162" width="220" height="78" rx="27" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(review, 592, 1214, 112, palette, 31)}
+
+      <rect x="888" y="682" width="250" height="258" rx="36" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      <circle cx="1012" cy="784" r="56" fill="${palette.light}"/>
+      <path d="M980 784 L1004 810 L1048 754" fill="none" stroke="${palette.dark}" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M938 870 H1088" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.48"/>
+      ${renderTelehealthBodyLabel(outcome, 936, 916, 160, palette, 30)}
+
+      <rect x="878" y="1068" width="270" height="250" rx="36" fill="#fff1f2" fill-opacity="0.90" stroke="#fecdd3" stroke-width="2"/>
+      <rect x="932" y="1144" width="164" height="76" rx="28" fill="#ffffff" fill-opacity="0.62" stroke="#be3455" stroke-width="6"/>
+      <path d="M954 1182 H988 L1008 1158 L1034 1210 L1052 1182 H1074" fill="none" stroke="#be3455" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M958 1248 H1070" stroke="#be3455" stroke-width="8" stroke-linecap="round" opacity="0.58"/>
+      ${renderTelehealthBodyLabel(redirect, 930, 1292, 170, palette, 30)}
+
+      <path d="M384 994 L430 970 M384 994 L430 1018" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.34"/>
+      <path d="M1080 790 L1044 772 M1080 790 L1058 824" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
+      <path d="M1084 1220 L1042 1214 M1084 1220 L1058 1186" fill="none" stroke="#be3455" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.45"/>
+    </g>
+  `
+}
+
+function renderFirstTelehealthAftercareBody(visual: ArticleVisual, palette: Palette): string {
+  const [record, outcome, usualGp, urgentSigns] = getApprovedVisibleLabels(visual)
+
+  return `
+    <g>
+      <rect x="78" y="610" width="1124" height="720" rx="52" fill="#ffffff" fill-opacity="0.66" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M218 850 C360 752 474 850 604 946 C744 1050 894 976 1042 844" fill="none" stroke="${palette.mid}" stroke-width="18" stroke-linecap="round" opacity="0.16"/>
+      <path d="M354 1130 C506 1058 618 1194 760 1112 C886 1040 970 1080 1090 1198" fill="none" stroke="#f06f8e" stroke-width="15" stroke-linecap="round" opacity="0.14"/>
+      <path d="M212 850 C354 758 476 846 602 946 C744 1058 894 982 1038 850" fill="none" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.32"/>
+      <path d="M354 1130 C506 1058 618 1194 760 1112 C888 1040 972 1082 1086 1192" fill="none" stroke="#be3455" stroke-width="6" stroke-linecap="round" opacity="0.32"/>
+
+      <rect x="124" y="694" width="288" height="288" rx="38" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      <rect x="190" y="758" width="120" height="154" rx="22" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <rect x="218" y="730" width="120" height="154" rx="22" fill="#ffffff" fill-opacity="0.82" stroke="${palette.mid}" stroke-width="4"/>
+      <path d="M244 784 H314 M244 820 H304 M244 856 H292" stroke="${palette.light}" stroke-width="9" stroke-linecap="round"/>
+      ${renderTelehealthBodyLabel(record, 204, 954, 130, palette, 30)}
+
+      <circle cx="618" cy="972" r="122" fill="${palette.dark}" fill-opacity="0.95"/>
+      <circle cx="618" cy="972" r="166" fill="none" stroke="${palette.mid}" stroke-width="5" opacity="0.24"/>
+      <path d="M558 972 L598 1014 L684 908" fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" opacity="0.90"/>
+      <rect x="508" y="1118" width="226" height="78" rx="27" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(outcome, 564, 1170, 120, palette, 31)}
+
+      <rect x="830" y="690" width="306" height="288" rx="38" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      <circle cx="982" cy="792" r="62" fill="${palette.light}"/>
+      <path d="M940 794 C964 754 1004 750 1028 792 C1006 828 964 832 940 794 Z" fill="#ffffff" stroke="${palette.mid}" stroke-width="5"/>
+      <circle cx="984" cy="792" r="17" fill="${palette.dark}" opacity="0.78"/>
+      <path d="M916 894 C956 930 1014 932 1056 896" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.48"/>
+      <path d="M1058 896 L1034 882 M1058 896 L1042 920" fill="none" stroke="${palette.mid}" stroke-width="7" stroke-linecap="round"/>
+      ${renderTelehealthBodyLabel(usualGp, 902, 954, 176, palette, 30)}
+
+      <rect x="840" y="1086" width="296" height="238" rx="38" fill="#fff1f2" fill-opacity="0.90" stroke="#fecdd3" stroke-width="2"/>
+      <rect x="910" y="1144" width="154" height="76" rx="28" fill="#ffffff" fill-opacity="0.62" stroke="#be3455" stroke-width="6"/>
+      <path d="M930 1182 H958 L982 1158 L1010 1210 L1028 1182 H1048" fill="none" stroke="#be3455" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M926 1248 H1052" stroke="#be3455" stroke-width="8" stroke-linecap="round" opacity="0.58"/>
+      ${renderTelehealthBodyLabel(urgentSigns, 884, 1294, 210, palette, 29)}
+
+      <path d="M412 842 L448 822 M412 842 L452 858" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.30"/>
+      <path d="M1038 850 L998 840 M1038 850 L1014 884" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+      <path d="M1086 1192 L1044 1186 M1086 1192 L1062 1158" fill="none" stroke="#be3455" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.40"/>
+    </g>
+  `
+}
+
 function renderTelehealthPolicyCompositeOverlaySvg(visual: ArticleVisual): string {
   const palette = palettes[visual.accent]
   const title = textBlock({
@@ -1416,11 +1582,17 @@ function renderTelehealthPolicyCompositeOverlaySvg(visual: ArticleVisual): strin
     maxLines: 1,
   })
   const body =
-    visual.id === "telehealth-definition-map" || visual.id === "telehealth-consultation-channel-map"
+    visual.id === "first-telehealth-prep-map"
+      ? renderFirstTelehealthPrepBody(visual, palette)
+      : visual.id === "first-telehealth-what-happens"
+        ? renderFirstTelehealthRouteBody(visual, palette)
+        : visual.id === "first-telehealth-aftercare-map"
+          ? renderFirstTelehealthAftercareBody(visual, palette)
+          : visual.id === "telehealth-definition-map" || visual.id === "telehealth-consultation-channel-map"
       ? renderTelehealthDefinitionBody(visual, palette)
-      : visual.id === "telehealth-care-workflow" || visual.id === "telehealth-consultation-clinical-flow"
-        ? renderTelehealthWorkflowBody(visual, palette)
-        : renderTelehealthBoundaryBody(visual, palette)
+      : visual.id === "telehealth-suitability-boundary" || visual.id === "telehealth-consultation-fit"
+        ? renderTelehealthBoundaryBody(visual, palette)
+        : renderTelehealthWorkflowBody(visual, palette)
 
   return `
     <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
@@ -2243,8 +2415,8 @@ async function saveKieInfographic(
   const pipeline = isKieCompositeRenderer(renderer)
     ? sharp(imageBuffer)
         .resize(WIDTH, HEIGHT, { fit: "cover", background: palettes[visual.accent].wash })
-        .blur(7)
-        .modulate({ saturation: 0.48, brightness: 1.04 })
+        .blur(4)
+        .modulate({ saturation: 0.62, brightness: 1.02 })
         .composite([
           { input: Buffer.from(renderCompositeUnderlayWashSvg(visual)), left: 0, top: 0 },
           { input: Buffer.from(renderCompositeOverlaySvg(visual)), left: 0, top: 0 },

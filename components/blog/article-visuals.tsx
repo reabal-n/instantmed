@@ -128,11 +128,11 @@ function ArticleVisualPanel({
   const styles = accentStyles[visual.accent]
   const visualLayout = visual.layout ?? "portrait"
   const imageFrameClass =
-    visualLayout === "wide" ? "max-w-3xl" : visualLayout === "square" ? "max-w-[560px]" : "max-w-[480px]"
+    visualLayout === "wide" ? "max-w-3xl" : visualLayout === "square" ? "max-w-[560px]" : "max-w-[620px]"
   const imageAspectClass =
-    visualLayout === "wide" ? "aspect-video" : visualLayout === "square" ? "aspect-square" : "aspect-[2/3]"
+    visualLayout === "wide" ? "aspect-video" : visualLayout === "square" ? "aspect-square" : "aspect-[4/5]"
   const imageSizes =
-    visualLayout === "wide" ? "(max-width: 640px) 100vw, 768px" : "(max-width: 640px) 100vw, 480px"
+    visualLayout === "wide" ? "(max-width: 640px) 100vw, 768px" : "(max-width: 640px) 100vw, 620px"
 
   if (visual.assetPath) {
     const imageAlt = `${visual.title}: ${visual.summary}`
@@ -182,8 +182,8 @@ function ArticleVisualPanel({
                 <Image
                   src={visual.assetPath}
                   alt={imageAlt}
-                  width={1200}
-                  height={1800}
+                  width={1280}
+                  height={1600}
                   className="h-auto w-full"
                   sizes="(max-width: 1024px) 92vw, 960px"
                 />
