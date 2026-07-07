@@ -71,6 +71,7 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "generic-vs-brand-medications",
   "when-telehealth-cant-help",
   "is-telehealth-legal-australia",
+  "when-to-go-to-emergency-vs-telehealth",
   "remote-workers-telehealth",
   "telehealth-vs-in-person",
   "working-from-home-when-sick",
