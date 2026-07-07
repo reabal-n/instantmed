@@ -727,6 +727,13 @@ function getArtDirectionPrompt(slug: string, visual: ArticleVisual, format: Visu
     ].join(" ")
   }
 
+  if (visual.articleType === "policy") {
+    return [
+      "Art direction: premium public-service systems diagram with clear route lines, abstract care nodes, signal checks, colour-zoned boundaries, and calm clinical texture.",
+      "Make the hierarchy specific and readable through pathways, decision thresholds, and governance checkpoints. Do not use anatomy, X-rays, scan fragments, body silhouettes, patient faces, doctor portraits, clinical-room scenes, or dense editorial collage unless the individual prompt explicitly asks for them.",
+    ].join(" ")
+  }
+
   if (format === "red-flag-warning") {
     return [
       "Art direction: premium emergency-triage editorial poster with full-bleed risk zoning, strong diagonal flow, layered silhouettes, luminous anatomical overlays, and sharp stop/escalate visual hierarchy.",
@@ -927,6 +934,23 @@ function buildGatewayPrompt(
 function buildGatewayCompositeUnderlayPrompt(slug: string, visual: ArticleVisual, styleShift = 0): string {
   const format = visual.visualFormat ?? getDefaultVisualFormat(visual.kind)
   const cleanedPrimaryRequest = sanitizeImagePrompt(visual.imagePrompt)
+  const isPolicyUnderlay = visual.articleType === "policy"
+
+  const underlayDirection = isPolicyUnderlay
+    ? [
+        "Your job is the background art field only. A production script will overlay the final title, labels, diagram modules, footer text, and official brand badge after generation.",
+        "Create a calm, premium public-health diagram underlay: matte colour fields, subtle route lines, quiet signal nodes, soft risk zones, print grain, and low-contrast technical texture.",
+        "Do not create a finished infographic. Do not draw cards, headings, section labels, legends, UI panels, dashboards, document pages, people, faces, anatomy, X-rays, scans, or any object that asks for text.",
+        "Composition requirement: keep the centre and lower-middle visually useful but restrained, with enough quiet space for deterministic overlay labels. Prefer three to five broad shapes over a dense collage.",
+        "Style requirement: editorial and authored, not Canva, SaaS clip art, or decorative stock. Avoid beige emptiness, childish icons, fake app screens, and clutter.",
+      ].join("\n")
+    : [
+        "Your job is the image field only. A production script will overlay all approved article copy, cards, footer text, and the official brand badge after generation.",
+        "Create an article-specific educational visual underlay using unlabeled diagrams, process arrows, comparison zones, warning hierarchy, texture, clinical iconography, and practical objects only when they teach the topic. Use body or anatomy shapes only when the individual article prompt explicitly requires anatomy.",
+        "Boring-output rejection rule: a simple phone, simple lung, door, checklist card, flag, single warning icon, isolated body silhouette, soft pastel blob, or two-to-three-symbol composition is an automatic failure. Do not make polite health-tech clip art.",
+        "Composition requirement: fill the portrait canvas with at least 7 distinct visual clusters, strong foreground/midground/background depth, diagonal or radial movement, and dense article-specific clinical cues around the overlay-safe areas. The viewer should feel there is useful visual information at the edges, behind the title area, and between the copy cards.",
+        "Style requirement: premium editorial, tactile, layered, specific, and memorable. Use richer contrast, controlled saturation, print grain, route lines, risk zones, and overlapping panels. Use cutaway anatomy only when the article prompt explicitly requires anatomy. Avoid beige emptiness and washed-out minimalism.",
+      ].join("\n")
 
   return [
     `Use case: ${format}`,
@@ -941,11 +965,7 @@ function buildGatewayCompositeUnderlayPrompt(slug: string, visual: ArticleVisual
     getInfographicLayoutPrompt(visual.kind),
     getArtDirectionPrompt(slug, visual, format, styleShift),
     "",
-    "Your job is the image field only. A production script will overlay all approved article copy, cards, footer text, and the official brand badge after generation.",
-    "Create an article-specific educational visual underlay using unlabeled diagrams, body/anatomy shapes, process arrows, comparison zones, warning hierarchy, texture, clinical iconography, and practical objects only when they teach the topic.",
-    "Boring-output rejection rule: a simple phone, simple lung, door, checklist card, flag, single warning icon, isolated body silhouette, soft pastel blob, or two-to-three-symbol composition is an automatic failure. Do not make polite health-tech clip art.",
-    "Composition requirement: fill the portrait canvas with at least 7 distinct visual clusters, strong foreground/midground/background depth, diagonal or radial movement, and dense article-specific clinical cues around the overlay-safe areas. The viewer should feel there is useful visual information at the edges, behind the title area, and between the copy cards.",
-    "Style requirement: premium editorial, tactile, layered, specific, and memorable. Use richer contrast, controlled saturation, print grain, scan texture, cutaway anatomy, route lines, risk zones, and overlapping panels. Avoid beige emptiness and washed-out minimalism.",
+    underlayDirection,
     "Hard visible-text rule: no readable words, letters, numbers, tables, fake UI, fake forms, captions, labels, badges, stamps, signatures, handwriting, prescription text, chart labels, or signage. The final asset must contain zero generated text.",
     "Avoid generic stock art, blank phone hero, blank document hero, medicine-box hero, desk flat lay, balance-scale metaphors, scenic landscapes, road/path metaphors, clinic-door metaphors, mountains, beaches, coastlines, ocean, city skylines, Australian maps, flags, landmarks, and decorative abstract blobs. The underlay still needs to be specific to the article.",
     "No identifiable people, no fake doctor faces, no doctor-patient consultation scene, no medical crosses, no pharmacy cross signs, no plus-sign shop signs, no pills, no tablets, no capsules, no pill blister packs, no medicine bottles as focal objects, no official seals, no logos, no medication brand names, no pill imprints, no gore, no graphic symptoms, no consultation CTA.",
@@ -979,8 +999,8 @@ function buildKiePrompt(
     "",
     "Quality bar:",
     "- Make it look like a proper patient handout or medical-education diagram, not a decorative poster.",
-    "- It must teach one clear idea from this article at a glance through anatomy, pathway logic, timelines, or decision boundaries.",
-    "- Use clear diagram structure, exact labels, directional arrows, cutaway scalp/follicle illustrations, visual comparison logic, and generous spacing.",
+    "- It must teach one clear idea from this article at a glance through pathway logic, timelines, decision boundaries, mechanism diagrams, or anatomy only when the article prompt explicitly asks for anatomy.",
+    "- Use clear diagram structure, exact labels, directional arrows, visual comparison logic, and generous spacing. Do not add anatomy, body parts, skin cutaways, organs, X-rays, or scans unless the individual article prompt explicitly requires them.",
     "- The visual information should be useful even if the reader only scans it for five seconds.",
     "- Avoid sterile SaaS illustration, generic stock art, desk flat lays, medicine boxes, pills, blank documents, phone mockups, warning icon rows, abstract blob decoration, lifestyle filler, scenic Australia, or anything reusable across unrelated articles.",
     "",
@@ -1118,7 +1138,1509 @@ function renderArticleVisualSvg(slug: string, visual: ArticleVisual): string {
   `
 }
 
+function isTelehealthPolicyCompositeVisual(visual: ArticleVisual): boolean {
+  return (
+    visual.id === "telehealth-definition-map" ||
+    visual.id === "telehealth-care-workflow" ||
+    visual.id === "telehealth-suitability-boundary" ||
+    visual.id === "telehealth-consultation-clinical-flow" ||
+    visual.id === "telehealth-consultation-channel-map" ||
+    visual.id === "telehealth-consultation-fit" ||
+    visual.id === "telehealth-best-fit-map" ||
+    visual.id === "telehealth-do-not-use-map" ||
+    visual.id === "telehealth-care-route-map" ||
+    visual.id === "telehealth-privacy-data-flow" ||
+    visual.id === "telehealth-security-control-map" ||
+    visual.id === "telehealth-breach-rights-pathway" ||
+    visual.id === "telehealth-record-clinical-trail" ||
+    visual.id === "telehealth-record-sharing-boundary" ||
+    visual.id === "telehealth-record-retention-rights" ||
+    visual.id === "telehealth-prep-signal-map" ||
+    visual.id === "telehealth-prep-environment-readiness" ||
+    visual.id === "telehealth-prep-aftercare-loop" ||
+    visual.id === "elderly-parent-consent-support-map" ||
+    visual.id === "elderly-parent-medicine-context-map" ||
+    visual.id === "elderly-parent-urgent-boundary-map" ||
+    visual.id === "remote-worker-location-readiness-map" ||
+    visual.id === "remote-worker-work-capacity-boundary" ||
+    visual.id === "remote-worker-pharmacy-escalation-loop" ||
+    visual.id === "first-telehealth-prep-map" ||
+    visual.id === "first-telehealth-what-happens" ||
+    visual.id === "first-telehealth-aftercare-map"
+  )
+}
+
+function renderCompositeUnderlayWashSvg(visual: ArticleVisual): string {
+  const palette = palettes[visual.accent]
+  const strongWash = visual.visualFormat === "red-flag-warning" || visual.kind === "warning"
+  const glowStops = strongWash
+    ? { start: "0.74", middle: "0.82", end: "0.90", fadeStart: "0.72", fadeMiddle: "0.78", fadeEnd: "0.86", solid: "0.34" }
+    : { start: "0.46", middle: "0.56", end: "0.70", fadeStart: "0.42", fadeMiddle: "0.50", fadeEnd: "0.68", solid: "0.12" }
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
+      <defs>
+        <radialGradient id="washGlow" cx="72%" cy="40%" r="76%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="${glowStops.start}"/>
+          <stop offset="46%" stop-color="${palette.wash}" stop-opacity="${glowStops.middle}"/>
+          <stop offset="100%" stop-color="${palette.light}" stop-opacity="${glowStops.end}"/>
+        </radialGradient>
+        <linearGradient id="washFade" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="${glowStops.fadeStart}"/>
+          <stop offset="58%" stop-color="${palette.wash}" stop-opacity="${glowStops.fadeMiddle}"/>
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="${glowStops.fadeEnd}"/>
+        </linearGradient>
+      </defs>
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#washGlow)"/>
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#washFade)"/>
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="${palette.wash}" fill-opacity="${glowStops.solid}"/>
+    </svg>
+  `
+}
+
+function renderMiniGlyph(kind: "video" | "phone" | "form" | "review" | "identity" | "consent" | "history" | "outcome", x: number, y: number, palette: Palette) {
+  if (kind === "video") {
+    return `
+      <rect x="${x}" y="${y}" width="74" height="54" rx="16" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <path d="M${x + 30} ${y + 17} L${x + 30} ${y + 38} L${x + 49} ${y + 27} Z" fill="${palette.dark}" opacity="0.88"/>
+    `
+  }
+
+  if (kind === "phone") {
+    return `
+      <path d="M${x + 18} ${y + 12} C${x + 2} ${y + 34} ${x + 10} ${y + 66} ${x + 42} ${y + 80} C${x + 56} ${y + 86} ${x + 72} ${y + 82} ${x + 80} ${y + 68} L${x + 62} ${y + 55} C${x + 56} ${y + 61} ${x + 50} ${y + 62} ${x + 42} ${y + 58} C${x + 30} ${y + 52} ${x + 25} ${y + 40} ${x + 29} ${y + 29} C${x + 31} ${y + 21} ${x + 36} ${y + 16} ${x + 43} ${y + 12} L${x + 28} ${y - 2} C${x + 24} ${y + 1} ${x + 21} ${y + 6} ${x + 18} ${y + 12} Z" fill="${palette.mid}" opacity="0.86"/>
+      <path d="M${x + 68} ${y + 12} C${x + 84} ${y + 28} ${x + 91} ${y + 48} ${x + 84} ${y + 70}" fill="none" stroke="${palette.dark}" stroke-width="5" stroke-linecap="round" opacity="0.42"/>
+    `
+  }
+
+  if (kind === "form") {
+    return `
+      <rect x="${x + 10}" y="${y}" width="70" height="84" rx="16" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <path d="M${x + 28} ${y + 26} H${x + 62} M${x + 28} ${y + 44} H${x + 58} M${x + 28} ${y + 62} H${x + 52}" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="${x + 70}" cy="${y + 66}" r="18" fill="${palette.dark}"/>
+      <path d="M${x + 61} ${y + 66} L${x + 69} ${y + 74} L${x + 82} ${y + 56}" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    `
+  }
+
+  if (kind === "review") {
+    return `
+      <circle cx="${x + 44}" cy="${y + 44}" r="42" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <path d="M${x + 18} ${y + 45} H${x + 70}" stroke="${palette.dark}" stroke-width="7" stroke-linecap="round"/>
+      <path d="M${x + 45} ${y + 20} V${y + 70}" stroke="${palette.dark}" stroke-width="7" stroke-linecap="round" opacity="0.42"/>
+      <circle cx="${x + 44}" cy="${y + 44}" r="12" fill="${palette.dark}"/>
+    `
+  }
+
+  if (kind === "identity") {
+    return `
+      <rect x="${x + 8}" y="${y + 6}" width="78" height="64" rx="18" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <circle cx="${x + 36}" cy="${y + 34}" r="11" fill="${palette.dark}" opacity="0.82"/>
+      <path d="M${x + 21} ${y + 58} C${x + 26} ${y + 46} ${x + 47} ${y + 46} ${x + 52} ${y + 58}" fill="none" stroke="${palette.dark}" stroke-width="5" stroke-linecap="round" opacity="0.82"/>
+      <path d="M${x + 60} ${y + 30} H${x + 74} M${x + 60} ${y + 48} H${x + 76}" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+    `
+  }
+
+  if (kind === "consent") {
+    return `
+      <circle cx="${x + 44}" cy="${y + 42}" r="39" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <path d="M${x + 25} ${y + 43} L${x + 40} ${y + 58} L${x + 66} ${y + 26}" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    `
+  }
+
+  if (kind === "history") {
+    return `
+      <path d="M${x + 12} ${y + 28} C${x + 28} ${y + 6} ${x + 62} ${y + 6} ${x + 78} ${y + 28} C${x + 92} ${y + 48} ${x + 80} ${y + 78} ${x + 44} ${y + 84} C${x + 8} ${y + 78} ${x - 4} ${y + 48} ${x + 12} ${y + 28} Z" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <path d="M${x + 24} ${y + 35} H${x + 66} M${x + 28} ${y + 52} H${x + 62} M${x + 35} ${y + 68} H${x + 55}" stroke="${palette.dark}" stroke-width="5" stroke-linecap="round" opacity="0.78"/>
+    `
+  }
+
+  return `
+    <path d="M${x + 18} ${y + 18} H${x + 74} V${y + 72} H${x + 18} Z" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M${x + 30} ${y + 45} L${x + 42} ${y + 57} L${x + 66} ${y + 29}" fill="none" stroke="${palette.dark}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M${x + 76} ${y + 44} H${x + 104}" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.42"/>
+  `
+}
+
+function renderTelehealthNode(label: string, x: number, y: number, width: number, palette: Palette, glyph: string, index: number) {
+  const text = textBlock({
+    text: label,
+    x: x + 112,
+    y: y + 58,
+    width: width - 138,
+    size: 28,
+    weight: 850,
+    color: palette.text,
+    maxLines: 2,
+  })
+
+  return `
+    <g>
+      <rect x="${x}" y="${y}" width="${width}" height="126" rx="28" fill="#ffffff" fill-opacity="0.82" stroke="${palette.light}" stroke-width="2"/>
+      <circle cx="${x + 58}" cy="${y + 63}" r="37" fill="${palette.wash}" stroke="${palette.light}" stroke-width="2"/>
+      ${glyph}
+      <circle cx="${x + width - 36}" cy="${y + 34}" r="18" fill="${palette.dark}" opacity="0.92"/>
+      <text x="${x + width - 42}" y="${y + 43}" font-family="${SVG_FONT_FAMILY}" font-size="22" font-weight="900" fill="#ffffff">${index}</text>
+      ${text.svg}
+    </g>
+  `
+}
+
+function renderTelehealthDefinitionBody(visual: ArticleVisual, palette: Palette): string {
+  const [video, phone, secureForm, clinicalReview] = getApprovedVisibleLabels(visual)
+
+  return `
+    <g>
+      <path d="M246 728 C418 628 828 628 1010 728 C1120 790 1118 970 1010 1034 C828 1144 418 1144 246 1034 C138 970 138 790 246 728 Z" fill="#ffffff" fill-opacity="0.70" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M372 792 C478 714 800 714 908 792" fill="none" stroke="${palette.mid}" stroke-width="16" stroke-linecap="round" opacity="0.18"/>
+      <path d="M372 976 C478 1054 800 1054 908 976" fill="none" stroke="${palette.dark}" stroke-width="12" stroke-linecap="round" opacity="0.14"/>
+      <circle cx="640" cy="884" r="142" fill="${palette.dark}" opacity="0.94"/>
+      <circle cx="640" cy="884" r="184" fill="none" stroke="${palette.mid}" stroke-width="4" opacity="0.24"/>
+      <path d="M640 700 V584 M426 803 L306 722 M426 965 L306 1048 M854 884 H1002" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" opacity="0.25"/>
+      <circle cx="640" cy="884" r="54" fill="#ffffff" opacity="0.20"/>
+      <circle cx="640" cy="884" r="18" fill="#ffffff" opacity="0.92"/>
+      <circle cx="582" cy="842" r="13" fill="#ffffff" opacity="0.72"/>
+      <circle cx="702" cy="842" r="13" fill="#ffffff" opacity="0.72"/>
+      <circle cx="582" cy="930" r="13" fill="#ffffff" opacity="0.72"/>
+      <circle cx="702" cy="930" r="13" fill="#ffffff" opacity="0.72"/>
+      <path d="M595 850 C618 868 622 874 640 884 C658 874 662 868 689 850 M595 922 C618 902 622 895 640 884 C658 895 662 902 689 922" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.74"/>
+      ${renderTelehealthNode(video, 132, 612, 360, palette, renderMiniGlyph("video", 158, 640, palette), 1)}
+      ${renderTelehealthNode(phone, 132, 1016, 360, palette, renderMiniGlyph("phone", 158, 1038, palette), 2)}
+      ${renderTelehealthNode(secureForm, 788, 612, 390, palette, renderMiniGlyph("form", 814, 633, palette), 3)}
+      ${renderTelehealthNode(clinicalReview, 788, 1016, 390, palette, renderMiniGlyph("review", 818, 1036, palette), 4)}
+    </g>
+  `
+}
+
+function renderTelehealthWorkflowBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const glyphKinds: Array<"identity" | "consent" | "history" | "outcome"> = ["identity", "consent", "history", "outcome"]
+  const nodes = labels
+    .slice(0, 4)
+    .map((label, index) => {
+      const x = 150 + index * 264
+
+      return `
+        <g>
+          <circle cx="${x + 48}" cy="846" r="82" fill="#ffffff" fill-opacity="0.86" stroke="${palette.light}" stroke-width="3"/>
+          <circle cx="${x + 48}" cy="846" r="98" fill="none" stroke="${palette.mid}" stroke-width="3" opacity="0.20"/>
+          ${renderMiniGlyph(glyphKinds[index], x + 2, 802, palette)}
+          <circle cx="${x + 48}" cy="952" r="24" fill="${palette.dark}"/>
+          <text x="${x + 41}" y="961" font-family="${SVG_FONT_FAMILY}" font-size="24" font-weight="900" fill="#ffffff">${index + 1}</text>
+          <text x="${x + 48}" y="1020" text-anchor="middle" font-family="${SVG_FONT_FAMILY}" font-size="28" font-weight="850" fill="${palette.text}">${escapeXml(label)}</text>
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <rect x="92" y="646" width="1096" height="548" rx="44" fill="#ffffff" fill-opacity="0.42" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M198 846 H1042" stroke="${palette.mid}" stroke-width="18" stroke-linecap="round" opacity="0.20"/>
+      <path d="M198 846 H1042" stroke="${palette.dark}" stroke-width="5" stroke-linecap="round" opacity="0.35" stroke-dasharray="1 34"/>
+      <path d="M1002 846 L1060 846 M1032 816 L1062 846 L1032 876" fill="none" stroke="${palette.dark}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity="0.62"/>
+      <path d="M842 936 C934 1004 1008 1026 1104 1002" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.28"/>
+      <path d="M1104 1002 L1074 980 M1104 1002 L1078 1032" fill="none" stroke="${palette.mid}" stroke-width="7" stroke-linecap="round" opacity="0.34"/>
+      ${nodes}
+    </g>
+  `
+}
+
+function renderTelehealthBoundaryBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const laneColours = [
+    { fill: "#dcfce7", stroke: "#16a34a", text: "#166534" },
+    { fill: "#fef3c7", stroke: "#d97706", text: "#92400e" },
+    { fill: "#ffe4e6", stroke: "#e11d48", text: "#9f1239" },
+    { fill: "#fecdd3", stroke: "#be123c", text: "#881337" },
+  ]
+  const lanes = labels
+    .slice(0, 4)
+    .map((label, index) => {
+      const x = 100 + index * 270
+      const colour = laneColours[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: x + 34,
+        y: 1030,
+        width: 202,
+        size: 27,
+        weight: 900,
+        color: colour.text,
+        maxLines: 2,
+      })
+      const symbol =
+        index === 0
+          ? `<path d="M${x + 88} 846 L${x + 118} 878 L${x + 182} 790" fill="none" stroke="${colour.stroke}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>`
+          : index === 3
+            ? `<path d="M${x + 135} 792 L${x + 196} 902 H${x + 74} Z" fill="#ffffff" fill-opacity="0.52" stroke="${colour.stroke}" stroke-width="7"/><path d="M${x + 135} 824 V868 M${x + 135} 892 V894" stroke="${colour.stroke}" stroke-width="10" stroke-linecap="round"/>`
+            : `<path d="M${x + 72} 850 H${x + 188}" stroke="${colour.stroke}" stroke-width="12" stroke-linecap="round"/><path d="M${x + 148} 812 L${x + 188} 850 L${x + 148} 888" fill="none" stroke="${colour.stroke}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>`
+
+      return `
+        <g>
+          <rect x="${x}" y="688" width="270" height="478" fill="${colour.fill}" fill-opacity="${index === 0 ? "0.68" : index === 1 ? "0.64" : "0.58"}"/>
+          <path d="M${x + 34} 744 H${x + 226}" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.45"/>
+          <path d="M${x + 34} 1138 H${x + 226}" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.45"/>
+          ${index > 0 ? `<path d="M${x} 706 V1148" stroke="#ffffff" stroke-width="4" opacity="0.60"/>` : ""}
+          ${symbol}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <defs>
+        <clipPath id="telehealthBoundaryClip">
+          <rect x="100" y="688" width="1080" height="478" rx="42"/>
+        </clipPath>
+      </defs>
+      <rect x="100" y="688" width="1080" height="478" rx="42" fill="#ffffff" fill-opacity="0.52" stroke="${palette.light}" stroke-width="2"/>
+      <g clip-path="url(#telehealthBoundaryClip)">
+        ${lanes}
+      </g>
+      <rect x="100" y="688" width="1080" height="478" rx="42" fill="none" stroke="${palette.dark}" stroke-width="3" opacity="0.12"/>
+      <path d="M226 1248 C416 1168 594 1304 778 1212 C920 1140 1036 1184 1158 1118" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" opacity="0.20"/>
+      <path d="M1128 1092 L1160 1118 L1120 1134" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.25"/>
+    </g>
+  `
+}
+
+function renderTelehealthBodyLabel(label: string, x: number, y: number, width: number, palette: Palette, size = 27) {
+  const labelBlock = textBlock({
+    text: label,
+    x,
+    y,
+    width,
+    size,
+    weight: 900,
+    color: palette.text,
+    lineHeight: Math.round(size * 1.2),
+    maxLines: 2,
+  })
+
+  return labelBlock.svg
+}
+
+function renderFirstTelehealthPrepBody(visual: ArticleVisual, palette: Palette): string {
+  const [timeline, medicines, readings, question] = getApprovedVisibleLabels(visual)
+
+  return `
+    <g>
+      <rect x="78" y="610" width="1124" height="720" rx="52" fill="#ffffff" fill-opacity="0.66" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M210 910 C342 1042 460 990 586 1076 C720 1168 874 1086 1014 1210" fill="none" stroke="${palette.mid}" stroke-width="18" stroke-linecap="round" opacity="0.15"/>
+      <path d="M244 875 C370 1000 502 998 622 1084" fill="none" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.25"/>
+      <path d="M668 1084 C804 996 940 1040 1044 1180" fill="none" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.20"/>
+
+      <rect x="118" y="670" width="326" height="276" rx="34" fill="#ffffff" fill-opacity="0.88" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(timeline, 150, 724, 260, palette)}
+      <path d="M154 862 H402" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/>
+      <path d="M170 862 C202 812 246 836 284 782 C320 730 372 762 404 716" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="170" cy="862" r="11" fill="${palette.dark}"/>
+      <circle cx="284" cy="782" r="11" fill="${palette.mid}"/>
+      <circle cx="404" cy="716" r="11" fill="${palette.dark}"/>
+      <path d="M162 902 H228 M252 902 H310 M334 902 H394" stroke="${palette.mid}" stroke-width="7" stroke-linecap="round" opacity="0.50"/>
+
+      <rect x="480" y="642" width="318" height="304" rx="34" fill="#ffffff" fill-opacity="0.88" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(medicines, 512, 704, 250, palette)}
+      <rect x="528" y="782" width="222" height="36" rx="18" fill="${palette.light}" opacity="0.92"/>
+      <rect x="528" y="836" width="174" height="36" rx="18" fill="${palette.light}" opacity="0.74"/>
+      <rect x="528" y="890" width="198" height="36" rx="18" fill="${palette.light}" opacity="0.56"/>
+      <circle cx="722" cy="823" r="50" fill="#ffffff" fill-opacity="0.74" stroke="${palette.mid}" stroke-width="5"/>
+      <path d="M690 808 C708 788 736 790 752 812 C734 844 710 846 690 824" fill="none" stroke="${palette.dark}" stroke-width="7" stroke-linecap="round" opacity="0.58"/>
+      <circle cx="722" cy="821" r="10" fill="${palette.dark}" opacity="0.72"/>
+      <path d="M724 870 C758 902 780 930 782 968" fill="none" stroke="${palette.mid}" stroke-width="7" stroke-linecap="round" opacity="0.42"/>
+
+      <rect x="834" y="670" width="326" height="276" rx="34" fill="#ffffff" fill-opacity="0.88" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(readings, 866, 724, 254, palette)}
+      <circle cx="930" cy="838" r="56" fill="${palette.light}" opacity="0.88"/>
+      <path d="M930 838 L960 808" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round"/>
+      <path d="M898 872 A48 48 0 1 1 963 872" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round"/>
+      <rect x="1016" y="786" width="94" height="110" rx="24" fill="#ffffff" stroke="${palette.mid}" stroke-width="5"/>
+      <circle cx="1063" cy="826" r="18" fill="${palette.dark}" opacity="0.72"/>
+      <path d="M1038 868 H1088" stroke="${palette.light}" stroke-width="9" stroke-linecap="round"/>
+
+      <path d="M282 946 C360 1006 430 1042 520 1074" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.42"/>
+      <path d="M638 946 C638 1006 626 1044 610 1082" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.42"/>
+      <path d="M996 946 C904 1006 790 1048 668 1080" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.42"/>
+
+      <circle cx="612" cy="1110" r="112" fill="${palette.dark}" fill-opacity="0.94"/>
+      <circle cx="612" cy="1110" r="154" fill="none" stroke="${palette.mid}" stroke-width="5" opacity="0.30"/>
+      <circle cx="612" cy="1110" r="44" fill="#ffffff" opacity="0.16"/>
+      <circle cx="612" cy="1110" r="11" fill="#ffffff" opacity="0.92"/>
+      <path d="M574 1086 C596 1068 628 1068 650 1086 M574 1134 C596 1154 628 1154 650 1134" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.62"/>
+      <path d="M560 1110 H586 M638 1110 H664 M612 1058 V1084 M612 1136 V1162" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.42"/>
+      <path d="M438 1260 C500 1214 552 1200 612 1200 C680 1200 738 1218 804 1260" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.32"/>
+      <rect x="420" y="1228" width="398" height="82" rx="28" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(question, 472, 1281, 300, palette, 30)}
+    </g>
+  `
+}
+
+function renderFirstTelehealthRouteBody(visual: ArticleVisual, palette: Palette): string {
+  const [submit, review, outcome, redirect] = getApprovedVisibleLabels(visual)
+
+  return `
+    <g>
+      <rect x="82" y="610" width="1116" height="724" rx="52" fill="#ffffff" fill-opacity="0.66" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M206 994 H512" stroke="${palette.mid}" stroke-width="16" stroke-linecap="round" opacity="0.24"/>
+      <path d="M768 994 C862 870 956 816 1086 782" fill="none" stroke="${palette.mid}" stroke-width="15" stroke-linecap="round" opacity="0.22"/>
+      <path d="M768 994 C878 1058 970 1144 1088 1230" fill="none" stroke="#f06f8e" stroke-width="14" stroke-linecap="round" opacity="0.24"/>
+      <path d="M196 994 H500" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.42"/>
+      <path d="M760 994 C854 876 956 824 1080 790" fill="none" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.36"/>
+      <path d="M760 994 C876 1064 970 1148 1084 1220" fill="none" stroke="#be3455" stroke-width="6" stroke-linecap="round" opacity="0.42"/>
+
+      <rect x="124" y="812" width="260" height="362" rx="36" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      <circle cx="254" cy="908" r="58" fill="${palette.light}"/>
+      <path d="M214 906 H294 M214 942 H278 M214 870 H302" stroke="#ffffff" stroke-width="9" stroke-linecap="round"/>
+      <path d="M236 1008 H308 M204 1048 H300 M226 1088 H286" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.50"/>
+      ${renderTelehealthBodyLabel(submit, 174, 1146, 168, palette, 31)}
+
+      <circle cx="640" cy="994" r="142" fill="${palette.dark}" fill-opacity="0.95"/>
+      <circle cx="640" cy="994" r="190" fill="none" stroke="${palette.mid}" stroke-width="5" opacity="0.24"/>
+      <circle cx="640" cy="994" r="78" fill="#ffffff" opacity="0.13"/>
+      <circle cx="640" cy="994" r="16" fill="#ffffff" opacity="0.88"/>
+      <path d="M590 966 C618 940 672 940 700 966 M590 1022 C618 1048 672 1048 700 1022" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.58"/>
+      <path d="M576 994 H612 M668 994 H704 M640 930 V966 M640 1022 V1058" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.36"/>
+      <path d="M598 934 C626 908 676 908 704 934 M598 1054 C626 1080 676 1080 704 1054" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.50"/>
+      <rect x="532" y="1162" width="220" height="78" rx="27" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(review, 592, 1214, 112, palette, 31)}
+
+      <rect x="888" y="682" width="250" height="258" rx="36" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      <circle cx="1012" cy="784" r="56" fill="${palette.light}"/>
+      <path d="M980 784 L1004 810 L1048 754" fill="none" stroke="${palette.dark}" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M938 870 H1088" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.48"/>
+      ${renderTelehealthBodyLabel(outcome, 936, 916, 160, palette, 30)}
+
+      <rect x="878" y="1068" width="270" height="250" rx="36" fill="#fff1f2" fill-opacity="0.90" stroke="#fecdd3" stroke-width="2"/>
+      <rect x="932" y="1144" width="164" height="76" rx="28" fill="#ffffff" fill-opacity="0.62" stroke="#be3455" stroke-width="6"/>
+      <path d="M954 1182 H988 L1008 1158 L1034 1210 L1052 1182 H1074" fill="none" stroke="#be3455" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M958 1248 H1070" stroke="#be3455" stroke-width="8" stroke-linecap="round" opacity="0.58"/>
+      ${renderTelehealthBodyLabel(redirect, 930, 1292, 170, palette, 30)}
+
+      <path d="M384 994 L430 970 M384 994 L430 1018" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.34"/>
+      <path d="M1080 790 L1044 772 M1080 790 L1058 824" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
+      <path d="M1084 1220 L1042 1214 M1084 1220 L1058 1186" fill="none" stroke="#be3455" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.45"/>
+    </g>
+  `
+}
+
+function renderFirstTelehealthAftercareBody(visual: ArticleVisual, palette: Palette): string {
+  const [record, outcome, usualGp, urgentSigns] = getApprovedVisibleLabels(visual)
+
+  return `
+    <g>
+      <rect x="78" y="610" width="1124" height="720" rx="52" fill="#ffffff" fill-opacity="0.66" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M218 850 C360 752 474 850 604 946 C744 1050 894 976 1042 844" fill="none" stroke="${palette.mid}" stroke-width="18" stroke-linecap="round" opacity="0.16"/>
+      <path d="M354 1130 C506 1058 618 1194 760 1112 C886 1040 970 1080 1090 1198" fill="none" stroke="#f06f8e" stroke-width="15" stroke-linecap="round" opacity="0.14"/>
+      <path d="M212 850 C354 758 476 846 602 946 C744 1058 894 982 1038 850" fill="none" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.32"/>
+      <path d="M354 1130 C506 1058 618 1194 760 1112 C888 1040 972 1082 1086 1192" fill="none" stroke="#be3455" stroke-width="6" stroke-linecap="round" opacity="0.32"/>
+
+      <rect x="124" y="694" width="288" height="288" rx="38" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      <rect x="190" y="758" width="120" height="154" rx="22" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <rect x="218" y="730" width="120" height="154" rx="22" fill="#ffffff" fill-opacity="0.82" stroke="${palette.mid}" stroke-width="4"/>
+      <path d="M244 784 H314 M244 820 H304 M244 856 H292" stroke="${palette.light}" stroke-width="9" stroke-linecap="round"/>
+      ${renderTelehealthBodyLabel(record, 204, 954, 130, palette, 30)}
+
+      <circle cx="618" cy="972" r="122" fill="${palette.dark}" fill-opacity="0.95"/>
+      <circle cx="618" cy="972" r="166" fill="none" stroke="${palette.mid}" stroke-width="5" opacity="0.24"/>
+      <path d="M558 972 L598 1014 L684 908" fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" opacity="0.90"/>
+      <rect x="508" y="1118" width="226" height="78" rx="27" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(outcome, 564, 1170, 120, palette, 31)}
+
+      <rect x="830" y="690" width="306" height="288" rx="38" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      <circle cx="982" cy="792" r="62" fill="${palette.light}"/>
+      <path d="M940 794 C964 754 1004 750 1028 792 C1006 828 964 832 940 794 Z" fill="#ffffff" stroke="${palette.mid}" stroke-width="5"/>
+      <circle cx="984" cy="792" r="17" fill="${palette.dark}" opacity="0.78"/>
+      <path d="M916 894 C956 930 1014 932 1056 896" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.48"/>
+      <path d="M1058 896 L1034 882 M1058 896 L1042 920" fill="none" stroke="${palette.mid}" stroke-width="7" stroke-linecap="round"/>
+      ${renderTelehealthBodyLabel(usualGp, 902, 954, 176, palette, 30)}
+
+      <rect x="840" y="1086" width="296" height="238" rx="38" fill="#fff1f2" fill-opacity="0.90" stroke="#fecdd3" stroke-width="2"/>
+      <rect x="910" y="1144" width="154" height="76" rx="28" fill="#ffffff" fill-opacity="0.62" stroke="#be3455" stroke-width="6"/>
+      <path d="M930 1182 H958 L982 1158 L1010 1210 L1028 1182 H1048" fill="none" stroke="#be3455" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M926 1248 H1052" stroke="#be3455" stroke-width="8" stroke-linecap="round" opacity="0.58"/>
+      ${renderTelehealthBodyLabel(urgentSigns, 884, 1294, 210, palette, 29)}
+
+      <path d="M412 842 L448 822 M412 842 L452 858" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.30"/>
+      <path d="M1038 850 L998 840 M1038 850 L1014 884" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+      <path d="M1086 1192 L1044 1186 M1086 1192 L1062 1158" fill="none" stroke="#be3455" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.40"/>
+    </g>
+  `
+}
+
+function renderWhenToUseTelehealthFitBody(visual: ArticleVisual, palette: Palette): string {
+  const [history, lowRisk, followUp, redirect] = getApprovedVisibleLabels(visual)
+
+  return `
+    <g>
+      <rect x="80" y="610" width="1120" height="720" rx="52" fill="#ffffff" fill-opacity="0.66" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M246 820 C376 704 514 776 640 940 C760 1098 904 1142 1054 1032" fill="none" stroke="${palette.mid}" stroke-width="18" stroke-linecap="round" opacity="0.16"/>
+      <path d="M246 820 C376 704 514 776 640 940 C760 1098 904 1142 1054 1032" fill="none" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.28"/>
+      <path d="M292 1096 C412 996 530 1056 640 940 C746 828 884 822 1004 718" fill="none" stroke="${palette.mid}" stroke-width="13" stroke-linecap="round" opacity="0.18"/>
+      <path d="M292 1096 C412 996 530 1056 640 940 C746 828 884 822 1004 718" fill="none" stroke="${palette.dark}" stroke-width="5" stroke-linecap="round" opacity="0.22"/>
+
+      <circle cx="640" cy="940" r="126" fill="${palette.dark}" fill-opacity="0.94"/>
+      <circle cx="640" cy="940" r="178" fill="none" stroke="${palette.mid}" stroke-width="5" opacity="0.26"/>
+      <circle cx="640" cy="940" r="18" fill="#ffffff" opacity="0.92"/>
+      <path d="M582 904 C616 870 666 870 700 904 M582 976 C616 1012 666 1012 700 976" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.56"/>
+      <path d="M552 940 H602 M678 940 H728 M640 852 V902 M640 978 V1028" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.36"/>
+
+      <rect x="122" y="700" width="330" height="238" rx="36" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(history, 158, 760, 250, palette, 30)}
+      <path d="M164 842 H372 M164 884 H326 M164 924 H358" stroke="${palette.mid}" stroke-width="9" stroke-linecap="round" opacity="0.44"/>
+      <circle cx="384" cy="866" r="46" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <path d="M358 866 H410" stroke="${palette.dark}" stroke-width="7" stroke-linecap="round" opacity="0.64"/>
+
+      <rect x="828" y="662" width="318" height="240" rx="36" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(lowRisk, 870, 728, 220, palette, 30)}
+      <path d="M886 820 C922 780 996 780 1034 820 C998 872 922 872 886 820 Z" fill="${palette.light}" stroke="${palette.mid}" stroke-width="5"/>
+      <circle cx="960" cy="820" r="16" fill="${palette.dark}" opacity="0.76"/>
+      <path d="M886 878 H1038" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.42"/>
+
+      <rect x="142" y="1022" width="330" height="236" rx="36" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(followUp, 186, 1088, 230, palette, 30)}
+      <path d="M214 1188 C260 1126 336 1126 384 1186" fill="none" stroke="${palette.mid}" stroke-width="10" stroke-linecap="round" opacity="0.62"/>
+      <path d="M384 1186 L354 1172 M384 1186 L366 1218" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round"/>
+
+      <rect x="820" y="1026" width="334" height="236" rx="36" fill="#ffffff" fill-opacity="0.90" stroke="${palette.light}" stroke-width="2"/>
+      ${renderTelehealthBodyLabel(redirect, 866, 1092, 230, palette, 30)}
+      <path d="M884 1190 H1038" stroke="${palette.mid}" stroke-width="12" stroke-linecap="round" opacity="0.46"/>
+      <path d="M1008 1156 L1044 1190 L1008 1224" fill="none" stroke="${palette.dark}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.72"/>
+      <circle cx="884" cy="1190" r="18" fill="${palette.dark}" opacity="0.72"/>
+    </g>
+  `
+}
+
+function renderWhenToUseRouteChoiceBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const lanes = [
+    { fill: "#dcfce7", stroke: "#16a34a", text: "#166534" },
+    { fill: "#e0f2fe", stroke: "#0284c7", text: "#075985" },
+    { fill: "#fef3c7", stroke: "#d97706", text: "#92400e" },
+    { fill: "#ffe4e6", stroke: "#be3455", text: "#9f1239" },
+  ]
+  const laneSvg = labels
+    .slice(0, 4)
+    .map((label, index) => {
+      const x = 104 + index * 270
+      const colour = lanes[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: x + 34,
+        y: 1118,
+        width: 202,
+        size: 28,
+        weight: 900,
+        color: colour.text,
+        maxLines: 2,
+      })
+      const mark =
+        index === 0
+          ? `<circle cx="${x + 135}" cy="842" r="68" fill="#ffffff" fill-opacity="0.56" stroke="${colour.stroke}" stroke-width="5"/><circle cx="${x + 135}" cy="842" r="15" fill="${colour.stroke}"/><path d="M${x + 90} 842 H${x + 116} M${x + 154} 842 H${x + 180}" stroke="${colour.stroke}" stroke-width="8" stroke-linecap="round" opacity="0.62"/>`
+          : index === 1
+            ? `<rect x="${x + 70}" y="770" width="130" height="124" rx="30" fill="#ffffff" fill-opacity="0.58" stroke="${colour.stroke}" stroke-width="5"/><path d="M${x + 100} 842 H${x + 170} M${x + 100} 878 H${x + 154} M${x + 100} 806 H${x + 176}" stroke="${colour.stroke}" stroke-width="8" stroke-linecap="round" opacity="0.70"/>`
+            : index === 2
+              ? `<circle cx="${x + 135}" cy="842" r="70" fill="#ffffff" fill-opacity="0.58" stroke="${colour.stroke}" stroke-width="5"/><path d="M${x + 135} 802 V848 L${x + 166} 872" stroke="${colour.stroke}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>`
+              : `<rect x="${x + 72}" y="802" width="130" height="76" rx="28" fill="#ffffff" fill-opacity="0.62" stroke="${colour.stroke}" stroke-width="6"/><path d="M${x + 94} 840 H${x + 122} L${x + 145} 812 L${x + 172} 866 L${x + 190} 840" fill="none" stroke="${colour.stroke}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
+
+      return `
+        <g>
+          <rect x="${x}" y="704" width="270" height="520" fill="${colour.fill}" fill-opacity="${index === 3 ? "0.52" : "0.60"}"/>
+          <path d="M${x + 34} 748 H${x + 230}" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.42"/>
+          <path d="M${x + 34} 1194 H${x + 230}" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.42"/>
+          ${index > 0 ? `<path d="M${x} 724 V1200" stroke="#ffffff" stroke-width="4" opacity="0.60"/>` : ""}
+          ${mark}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <defs>
+        <clipPath id="routeChoiceClip">
+          <rect x="104" y="704" width="1080" height="520" rx="44"/>
+        </clipPath>
+      </defs>
+      <rect x="104" y="704" width="1080" height="520" rx="44" fill="#ffffff" fill-opacity="0.60" stroke="${palette.light}" stroke-width="2"/>
+      <g clip-path="url(#routeChoiceClip)">
+        ${laneSvg}
+      </g>
+      <rect x="104" y="704" width="1080" height="520" rx="44" fill="none" stroke="${palette.dark}" stroke-width="3" opacity="0.12"/>
+      <path d="M160 1286 C368 1228 510 1296 674 1240 C842 1182 1014 1218 1144 1136" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" opacity="0.18"/>
+      <path d="M1110 1114 L1148 1136 L1112 1162" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.24"/>
+    </g>
+  `
+}
+
+function renderWhenToUseDoNotUseBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const lanes = [
+    { fill: "#ffe4e6", stroke: "#be3455", text: "#9f1239" },
+    { fill: "#fef3c7", stroke: "#d97706", text: "#92400e" },
+    { fill: "#ffedd5", stroke: "#ea580c", text: "#9a3412" },
+    { fill: "#fecdd3", stroke: "#be123c", text: "#881337" },
+  ]
+  const laneSvg = labels
+    .slice(0, 4)
+    .map((label, index) => {
+      const x = 104 + index * 270
+      const colour = lanes[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: x + 34,
+        y: 1116,
+        width: 202,
+        size: 27,
+        weight: 900,
+        color: colour.text,
+        maxLines: 2,
+      })
+      const symbol =
+        index === 0
+          ? `<rect x="${x + 70}" y="802" width="130" height="76" rx="28" fill="#ffffff" fill-opacity="0.62" stroke="${colour.stroke}" stroke-width="6"/><path d="M${x + 92} 840 H${x + 120} L${x + 144} 810 L${x + 172} 868 L${x + 192} 840" fill="none" stroke="${colour.stroke}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
+          : index === 1
+            ? `<circle cx="${x + 135}" cy="842" r="68" fill="#ffffff" fill-opacity="0.56" stroke="${colour.stroke}" stroke-width="5"/><path d="M${x + 96} 842 H${x + 174}" stroke="${colour.stroke}" stroke-width="10" stroke-linecap="round"/><path d="M${x + 146} 806 L${x + 182} 842 L${x + 146} 878" fill="none" stroke="${colour.stroke}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>`
+            : index === 2
+              ? `<rect x="${x + 76}" y="774" width="118" height="142" rx="30" fill="#ffffff" fill-opacity="0.58" stroke="${colour.stroke}" stroke-width="5"/><path d="M${x + 104} 828 H${x + 168} M${x + 104} 866 H${x + 154}" stroke="${colour.stroke}" stroke-width="8" stroke-linecap="round" opacity="0.70"/><circle cx="${x + 170}" cy="884" r="19" fill="${colour.stroke}" opacity="0.80"/>`
+              : `<circle cx="${x + 135}" cy="842" r="70" fill="#ffffff" fill-opacity="0.58" stroke="${colour.stroke}" stroke-width="5"/><path d="M${x + 98} 842 C${x + 118} 806 ${x + 154} 806 ${x + 174} 842 C${x + 154} 878 ${x + 118} 878 ${x + 98} 842 Z" fill="none" stroke="${colour.stroke}" stroke-width="7"/><circle cx="${x + 136}" cy="842" r="14" fill="${colour.stroke}"/>`
+
+      return `
+        <g>
+          <rect x="${x}" y="704" width="270" height="520" fill="${colour.fill}" fill-opacity="${index === 0 ? "0.64" : "0.56"}"/>
+          <path d="M${x + 34} 748 H${x + 230}" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.42"/>
+          <path d="M${x + 34} 1194 H${x + 230}" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.42"/>
+          ${index > 0 ? `<path d="M${x} 724 V1200" stroke="#ffffff" stroke-width="4" opacity="0.60"/>` : ""}
+          ${symbol}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <defs>
+        <clipPath id="noUseRouteClip">
+          <rect x="104" y="704" width="1080" height="520" rx="44"/>
+        </clipPath>
+      </defs>
+      <rect x="104" y="704" width="1080" height="520" rx="44" fill="#ffffff" fill-opacity="0.60" stroke="${palette.light}" stroke-width="2"/>
+      <g clip-path="url(#noUseRouteClip)">
+        ${laneSvg}
+      </g>
+      <rect x="104" y="704" width="1080" height="520" rx="44" fill="none" stroke="${palette.dark}" stroke-width="3" opacity="0.12"/>
+      <path d="M166 1286 C356 1198 548 1306 718 1206 C890 1104 1004 1156 1150 1058" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" opacity="0.18"/>
+      <path d="M1118 1038 L1154 1058 L1122 1086" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.24"/>
+    </g>
+  `
+}
+
+function renderPrivacyDataFlowBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const positions = [
+    { x: 126, y: 832, r: 72, fill: "#e8f1ff" },
+    { x: 360, y: 714, r: 78, fill: "#e4f8f1" },
+    { x: 606, y: 902, r: 88, fill: "#fff3d4" },
+    { x: 842, y: 714, r: 78, fill: "#e8f1ff" },
+    { x: 1070, y: 832, r: 72, fill: "#eef2f7" },
+  ]
+
+  const nodes = labels
+    .slice(0, 5)
+    .map((label, index) => {
+      const position = positions[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: position.x - 82,
+        y: position.y + position.r + 66,
+        width: 164,
+        size: 27,
+        weight: 900,
+        color: palette.text,
+        lineHeight: 32,
+        maxLines: 2,
+      })
+
+      const inner =
+        index === 0
+          ? `<path d="M${position.x - 28} ${position.y - 12} H${position.x + 30} M${position.x - 28} ${position.y + 12} H${position.x + 20} M${position.x - 28} ${position.y + 36} H${position.x + 10}" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" opacity="0.62"/>`
+          : index === 1
+            ? `<circle cx="${position.x}" cy="${position.y}" r="30" fill="#ffffff" opacity="0.68"/><path d="M${position.x - 26} ${position.y} C${position.x - 10} ${position.y - 28} ${position.x + 14} ${position.y - 28} ${position.x + 30} ${position.y} C${position.x + 10} ${position.y + 28} ${position.x - 10} ${position.y + 28} ${position.x - 26} ${position.y} Z" fill="none" stroke="${palette.dark}" stroke-width="7" opacity="0.58"/>`
+            : index === 2
+              ? `<path d="M${position.x - 40} ${position.y} H${position.x + 40}" stroke="${palette.dark}" stroke-width="10" stroke-linecap="round" opacity="0.62"/><path d="M${position.x + 8} ${position.y - 32} L${position.x + 44} ${position.y} L${position.x + 8} ${position.y + 32}" fill="none" stroke="${palette.dark}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity="0.62"/>`
+              : index === 3
+                ? `<rect x="${position.x - 42}" y="${position.y - 34}" width="84" height="68" rx="22" fill="#ffffff" opacity="0.58" stroke="${palette.dark}" stroke-width="6"/><path d="M${position.x - 18} ${position.y} L${position.x - 2} ${position.y + 16} L${position.x + 28} ${position.y - 18}" fill="none" stroke="${palette.dark}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity="0.72"/>`
+                : `<rect x="${position.x - 38}" y="${position.y - 44}" width="76" height="88" rx="20" fill="#ffffff" opacity="0.58" stroke="${palette.dark}" stroke-width="6"/><path d="M${position.x - 16} ${position.y - 8} H${position.x + 16} M${position.x - 16} ${position.y + 14} H${position.x + 12}" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.56"/>`
+
+      return `
+        <g>
+          <circle cx="${position.x}" cy="${position.y}" r="${position.r}" fill="${position.fill}" stroke="#ffffff" stroke-width="10" opacity="0.94"/>
+          <circle cx="${position.x}" cy="${position.y}" r="${position.r + 18}" fill="none" stroke="${palette.mid}" stroke-width="4" opacity="0.20"/>
+          ${inner}
+          <circle cx="${position.x - position.r + 18}" cy="${position.y - position.r + 16}" r="20" fill="${palette.dark}"/>
+          <text x="${position.x - position.r + 12}" y="${position.y - position.r + 25}" font-family="${SVG_FONT_FAMILY}" font-size="22" font-weight="900" fill="#ffffff">${index + 1}</text>
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="720" rx="54" fill="#ffffff" fill-opacity="0.62" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M126 832 C246 698 452 654 606 902 C748 1130 968 972 1070 832" fill="none" stroke="${palette.mid}" stroke-width="18" stroke-linecap="round" opacity="0.16"/>
+      <path d="M126 832 C246 698 452 654 606 902 C748 1130 968 972 1070 832" fill="none" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.30"/>
+      <path d="M1036 804 L1076 832 L1038 866" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+      ${nodes}
+    </g>
+  `
+}
+
+function renderPrivacySecurityControlsBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const layers = [
+    { x: 140, y: 690, w: 1000, h: 118, fill: "#e4f8f1", stroke: "#39b68f" },
+    { x: 184, y: 830, w: 912, h: 118, fill: "#e8f1ff", stroke: "#4b83d1" },
+    { x: 228, y: 970, w: 824, h: 118, fill: "#fff3d4", stroke: "#f2b94b" },
+    { x: 272, y: 1110, w: 736, h: 118, fill: "#f6fffb", stroke: "#39b68f" },
+    { x: 316, y: 1250, w: 648, h: 118, fill: "#fff9eb", stroke: "#a16207" },
+  ]
+
+  const layerSvg = labels
+    .slice(0, 5)
+    .map((label, index) => {
+      const layer = layers[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: layer.x + 118,
+        y: layer.y + 72,
+        width: layer.w - 170,
+        size: 30,
+        weight: 900,
+        color: palette.text,
+        maxLines: 1,
+      })
+
+      return `
+        <g>
+          <rect x="${layer.x}" y="${layer.y}" width="${layer.w}" height="${layer.h}" rx="34" fill="${layer.fill}" fill-opacity="0.92" stroke="${layer.stroke}" stroke-width="3" opacity="0.96"/>
+          <circle cx="${layer.x + 58}" cy="${layer.y + 59}" r="30" fill="#ffffff" fill-opacity="0.70" stroke="${layer.stroke}" stroke-width="4"/>
+          <text x="${layer.x + 49}" y="${layer.y + 69}" font-family="${SVG_FONT_FAMILY}" font-size="28" font-weight="900" fill="${layer.stroke}">${index + 1}</text>
+          ${labelBlock.svg}
+          <path d="M${layer.x + layer.w - 88} ${layer.y + 59} H${layer.x + layer.w - 44}" stroke="${layer.stroke}" stroke-width="8" stroke-linecap="round" opacity="0.50"/>
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="800" rx="54" fill="#ffffff" fill-opacity="0.62" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M216 640 C344 604 506 636 640 690 C800 754 948 730 1088 654" fill="none" stroke="${palette.mid}" stroke-width="14" stroke-linecap="round" opacity="0.12"/>
+      <path d="M222 1410 C374 1324 532 1398 690 1322 C838 1252 978 1284 1100 1218" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" opacity="0.10"/>
+      <circle cx="640" cy="632" r="68" fill="${palette.dark}" fill-opacity="0.93"/>
+      <circle cx="640" cy="632" r="96" fill="none" stroke="${palette.mid}" stroke-width="4" opacity="0.24"/>
+      <path d="M606 632 H674 M640 598 V666" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.66"/>
+      ${layerSvg}
+    </g>
+  `
+}
+
+function renderPrivacyBreachPathwayBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const nodes = [
+    { x: 124, y: 812, fill: "#fff3d4", stroke: "#f2b94b" },
+    { x: 330, y: 984, fill: "#fff9eb", stroke: "#a16207" },
+    { x: 536, y: 812, fill: "#ffe7ee", stroke: "#f06f8e" },
+    { x: 742, y: 984, fill: "#e8f1ff", stroke: "#4b83d1" },
+    { x: 948, y: 812, fill: "#eef2f7", stroke: "#64748b" },
+  ]
+
+  const nodeSvg = labels
+    .slice(0, 5)
+    .map((label, index) => {
+      const node = nodes[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: node.x + 32,
+        y: node.y + 152,
+        width: 142,
+        size: 27,
+        weight: 900,
+        color: palette.text,
+        lineHeight: 32,
+        maxLines: 2,
+      })
+      const symbol =
+        index === 0
+          ? `<path d="M${node.x + 64} ${node.y + 78} H${node.x + 132}" stroke="${node.stroke}" stroke-width="11" stroke-linecap="round"/><path d="M${node.x + 100} ${node.y + 44} V${node.y + 112}" stroke="${node.stroke}" stroke-width="11" stroke-linecap="round" opacity="0.62"/>`
+          : index === 1
+            ? `<circle cx="${node.x + 100}" cy="${node.y + 78}" r="48" fill="#ffffff" fill-opacity="0.50" stroke="${node.stroke}" stroke-width="6"/><path d="M${node.x + 100} ${node.y + 48} V${node.y + 82} L${node.x + 124} ${node.y + 100}" stroke="${node.stroke}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
+            : index === 2
+              ? `<path d="M${node.x + 100} ${node.y + 30} L${node.x + 156} ${node.y + 126} H${node.x + 44} Z" fill="#ffffff" fill-opacity="0.50" stroke="${node.stroke}" stroke-width="6"/><path d="M${node.x + 100} ${node.y + 66} V${node.y + 94} M${node.x + 100} ${node.y + 112} V${node.y + 114}" stroke="${node.stroke}" stroke-width="9" stroke-linecap="round"/>`
+              : index === 3
+                ? `<rect x="${node.x + 58}" y="${node.y + 34}" width="84" height="88" rx="24" fill="#ffffff" fill-opacity="0.50" stroke="${node.stroke}" stroke-width="6"/><path d="M${node.x + 78} ${node.y + 78} L${node.x + 96} ${node.y + 96} L${node.x + 124} ${node.y + 60}" fill="none" stroke="${node.stroke}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`
+                : `<path d="M${node.x + 60} ${node.y + 78} H${node.x + 136}" stroke="${node.stroke}" stroke-width="10" stroke-linecap="round"/><path d="M${node.x + 108} ${node.y + 44} L${node.x + 144} ${node.y + 78} L${node.x + 108} ${node.y + 112}" fill="none" stroke="${node.stroke}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>`
+
+      return `
+        <g>
+          <rect x="${node.x}" y="${node.y}" width="200" height="260" rx="38" fill="${node.fill}" fill-opacity="0.92" stroke="${node.stroke}" stroke-width="3"/>
+          <circle cx="${node.x + 38}" cy="${node.y + 38}" r="22" fill="${node.stroke}"/>
+          <text x="${node.x + 31}" y="${node.y + 47}" font-family="${SVG_FONT_FAMILY}" font-size="24" font-weight="900" fill="#ffffff">${index + 1}</text>
+          ${symbol}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="760" rx="54" fill="#ffffff" fill-opacity="0.62" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M226 942 C330 1116 432 1116 536 942 C638 774 742 774 846 1114 C900 1286 1004 1110 1146 942" fill="none" stroke="${palette.mid}" stroke-width="18" stroke-linecap="round" opacity="0.15"/>
+      <path d="M226 942 C330 1116 432 1116 536 942 C638 774 742 774 846 1114 C900 1286 1004 1110 1146 942" fill="none" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.26"/>
+      <path d="M1108 918 L1150 942 L1114 974" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+      ${nodeSvg}
+    </g>
+  `
+}
+
+function renderRecordClinicalTrailBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const nodes = [
+    { x: 114, y: 872, fill: "#e8f1ff", stroke: "#4b83d1" },
+    { x: 334, y: 730, fill: "#e4f8f1", stroke: "#39b68f" },
+    { x: 554, y: 872, fill: "#fff3d4", stroke: "#f2b94b" },
+    { x: 774, y: 730, fill: "#eef2f7", stroke: "#64748b" },
+    { x: 994, y: 872, fill: "#f6fffb", stroke: "#39b68f" },
+  ]
+
+  const nodeSvg = labels
+    .slice(0, 5)
+    .map((label, index) => {
+      const node = nodes[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: node.x + 22,
+        y: node.y + 178,
+        width: 120,
+        size: 26,
+        weight: 900,
+        color: palette.text,
+        lineHeight: 31,
+        maxLines: 2,
+      })
+      const symbol =
+        index === 0
+          ? `<path d="M${node.x + 44} ${node.y + 68} H${node.x + 112} M${node.x + 44} ${node.y + 96} H${node.x + 96} M${node.x + 44} ${node.y + 124} H${node.x + 82}" stroke="${node.stroke}" stroke-width="8" stroke-linecap="round"/>`
+          : index === 1
+            ? `<circle cx="${node.x + 78}" cy="${node.y + 94}" r="45" fill="#ffffff" fill-opacity="0.50" stroke="${node.stroke}" stroke-width="6"/><path d="M${node.x + 48} ${node.y + 94} H${node.x + 108} M${node.x + 78} ${node.y + 64} V${node.y + 124}" stroke="${node.stroke}" stroke-width="8" stroke-linecap="round" opacity="0.78"/>`
+            : index === 2
+              ? `<rect x="${node.x + 40}" y="${node.y + 54}" width="82" height="88" rx="22" fill="#ffffff" fill-opacity="0.56" stroke="${node.stroke}" stroke-width="6"/><path d="M${node.x + 60} ${node.y + 98} L${node.x + 76} ${node.y + 116} L${node.x + 104} ${node.y + 78}" fill="none" stroke="${node.stroke}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`
+              : index === 3
+                ? `<path d="M${node.x + 40} ${node.y + 98} H${node.x + 118}" stroke="${node.stroke}" stroke-width="11" stroke-linecap="round"/><path d="M${node.x + 88} ${node.y + 64} L${node.x + 124} ${node.y + 98} L${node.x + 88} ${node.y + 132}" fill="none" stroke="${node.stroke}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>`
+                : `<rect x="${node.x + 44}" y="${node.y + 56}" width="76" height="96" rx="24" fill="#ffffff" fill-opacity="0.56" stroke="${node.stroke}" stroke-width="6"/><path d="M${node.x + 62} ${node.y + 94} H${node.x + 102} M${node.x + 62} ${node.y + 120} H${node.x + 92}" stroke="${node.stroke}" stroke-width="7" stroke-linecap="round"/>`
+
+      return `
+        <g>
+          <rect x="${node.x}" y="${node.y}" width="164" height="252" rx="40" fill="${node.fill}" fill-opacity="0.94" stroke="${node.stroke}" stroke-width="3"/>
+          <circle cx="${node.x + 32}" cy="${node.y + 34}" r="20" fill="${node.stroke}"/>
+          <text x="${node.x + 26}" y="${node.y + 42}" font-family="${SVG_FONT_FAMILY}" font-size="22" font-weight="900" fill="#ffffff">${index + 1}</text>
+          ${symbol}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="790" rx="54" fill="#ffffff" fill-opacity="0.62" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M196 998 C298 780 440 726 554 998 C658 1246 826 1022 930 856 C1000 746 1084 818 1160 998" fill="none" stroke="${palette.mid}" stroke-width="20" stroke-linecap="round" opacity="0.14"/>
+      <path d="M196 998 C298 780 440 726 554 998 C658 1246 826 1022 930 856 C1000 746 1084 818 1160 998" fill="none" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.28"/>
+      <path d="M1120 970 L1160 998 L1122 1028" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.36"/>
+      <rect x="158" y="1228" width="958" height="86" rx="28" fill="${palette.dark}" fill-opacity="0.88"/>
+      <path d="M206 1271 H1070" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.26"/>
+      ${nodeSvg}
+    </g>
+  `
+}
+
+function renderRecordSharingBoundaryBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const endpoints = [
+    { x: 156, y: 738, fill: "#e4f8f1", stroke: "#39b68f" },
+    { x: 910, y: 738, fill: "#e8f1ff", stroke: "#4b83d1" },
+    { x: 124, y: 1096, fill: "#fff3d4", stroke: "#f2b94b" },
+    { x: 544, y: 1170, fill: "#fff9eb", stroke: "#a16207" },
+    { x: 936, y: 1096, fill: "#eef2f7", stroke: "#64748b" },
+  ]
+  const centre = { x: 640, y: 970 }
+
+  const endpointSvg = labels
+    .slice(0, 5)
+    .map((label, index) => {
+      const point = endpoints[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: point.x + 28,
+        y: point.y + 94,
+        width: 176,
+        size: 27,
+        weight: 900,
+        color: palette.text,
+        lineHeight: 32,
+        maxLines: 2,
+      })
+
+      return `
+        <g>
+          <path d="M${centre.x} ${centre.y} C${centre.x} ${point.y + 100} ${point.x + 104} ${centre.y} ${point.x + 104} ${point.y + 100}" fill="none" stroke="${point.stroke}" stroke-width="8" stroke-linecap="round" opacity="0.22"/>
+          <rect x="${point.x}" y="${point.y}" width="208" height="220" rx="36" fill="${point.fill}" fill-opacity="0.94" stroke="${point.stroke}" stroke-width="3"/>
+          <circle cx="${point.x + 46}" cy="${point.y + 50}" r="26" fill="#ffffff" fill-opacity="0.62" stroke="${point.stroke}" stroke-width="5"/>
+          <path d="M${point.x + 34} ${point.y + 50} H${point.x + 58}" stroke="${point.stroke}" stroke-width="7" stroke-linecap="round"/>
+          <path d="M${point.x + 52} ${point.y + 38} L${point.x + 66} ${point.y + 50} L${point.x + 52} ${point.y + 62}" fill="none" stroke="${point.stroke}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.70"/>
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="820" rx="54" fill="#ffffff" fill-opacity="0.62" stroke="${palette.light}" stroke-width="2"/>
+      <circle cx="${centre.x}" cy="${centre.y}" r="230" fill="${palette.mid}" fill-opacity="0.08" stroke="${palette.mid}" stroke-width="5" opacity="0.70"/>
+      <circle cx="${centre.x}" cy="${centre.y}" r="152" fill="${palette.dark}" fill-opacity="0.93"/>
+      <circle cx="${centre.x}" cy="${centre.y}" r="192" fill="none" stroke="${palette.dark}" stroke-width="4" opacity="0.16"/>
+      <path d="M594 932 H686 M594 972 H670 M594 1012 H650" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity="0.70"/>
+      <path d="M704 910 C742 936 742 1004 704 1030" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.30"/>
+      ${endpointSvg}
+    </g>
+  `
+}
+
+function renderRecordRetentionRightsBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const steps = [
+    { x: 126, y: 740, fill: "#fff3d4", stroke: "#f2b94b" },
+    { x: 360, y: 902, fill: "#e4f8f1", stroke: "#39b68f" },
+    { x: 594, y: 740, fill: "#e8f1ff", stroke: "#4b83d1" },
+    { x: 828, y: 902, fill: "#f6fffb", stroke: "#39b68f" },
+    { x: 1000, y: 740, fill: "#fff9eb", stroke: "#a16207" },
+  ]
+
+  const stepSvg = labels
+    .slice(0, 5)
+    .map((label, index) => {
+      const step = steps[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: step.x + 24,
+        y: step.y + 138,
+        width: 144,
+        size: 28,
+        weight: 900,
+        color: palette.text,
+        lineHeight: 33,
+        maxLines: 2,
+      })
+      const icon =
+        index === 0
+          ? `<rect x="${step.x + 54}" y="${step.y + 48}" width="72" height="80" rx="18" fill="#ffffff" fill-opacity="0.54" stroke="${step.stroke}" stroke-width="6"/><path d="M${step.x + 72} ${step.y + 82} H${step.x + 110}" stroke="${step.stroke}" stroke-width="7" stroke-linecap="round"/>`
+          : index === 1
+            ? `<circle cx="${step.x + 90}" cy="${step.y + 88}" r="48" fill="#ffffff" fill-opacity="0.54" stroke="${step.stroke}" stroke-width="6"/><path d="M${step.x + 68} ${step.y + 88} L${step.x + 84} ${step.y + 104} L${step.x + 114} ${step.y + 66}" fill="none" stroke="${step.stroke}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
+            : index === 2
+              ? `<path d="M${step.x + 50} ${step.y + 88} H${step.x + 132}" stroke="${step.stroke}" stroke-width="10" stroke-linecap="round"/><path d="M${step.x + 98} ${step.y + 52} L${step.x + 136} ${step.y + 88} L${step.x + 98} ${step.y + 124}" fill="none" stroke="${step.stroke}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>`
+              : index === 3
+                ? `<circle cx="${step.x + 90}" cy="${step.y + 88}" r="48" fill="#ffffff" fill-opacity="0.54" stroke="${step.stroke}" stroke-width="6"/><path d="M${step.x + 66} ${step.y + 104} C${step.x + 80} ${step.y + 70} ${step.x + 106} ${step.y + 70} ${step.x + 122} ${step.y + 104}" fill="none" stroke="${step.stroke}" stroke-width="8" stroke-linecap="round"/>`
+                : `<rect x="${step.x + 50}" y="${step.y + 54}" width="82" height="72" rx="22" fill="#ffffff" fill-opacity="0.54" stroke="${step.stroke}" stroke-width="6"/><path d="M${step.x + 66} ${step.y + 90} H${step.x + 116}" stroke="${step.stroke}" stroke-width="8" stroke-linecap="round"/>`
+
+      return `
+        <g>
+          <rect x="${step.x}" y="${step.y}" width="180" height="258" rx="38" fill="${step.fill}" fill-opacity="0.94" stroke="${step.stroke}" stroke-width="3"/>
+          <circle cx="${step.x + 34}" cy="${step.y + 36}" r="21" fill="${step.stroke}"/>
+          <text x="${step.x + 28}" y="${step.y + 45}" font-family="${SVG_FONT_FAMILY}" font-size="23" font-weight="900" fill="#ffffff">${index + 1}</text>
+          ${icon}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="790" rx="54" fill="#ffffff" fill-opacity="0.62" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M220 866 C340 1154 484 1156 594 866 C694 604 846 1156 1010 866" fill="none" stroke="${palette.mid}" stroke-width="20" stroke-linecap="round" opacity="0.15"/>
+      <path d="M220 866 C340 1154 484 1156 594 866 C694 604 846 1156 1010 866" fill="none" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.27"/>
+      <path d="M970 842 L1010 866 L974 896" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.34"/>
+      <rect x="158" y="1242" width="958" height="88" rx="28" fill="${palette.dark}" fill-opacity="0.88"/>
+      <path d="M212 1286 H1064" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.25"/>
+      ${stepSvg}
+    </g>
+  `
+}
+
+function renderPrepSignalMapBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const inputs = [
+    { x: 126, y: 734, fill: "#e4f8f1", stroke: "#39b68f" },
+    { x: 126, y: 1008, fill: "#e8f1ff", stroke: "#4b83d1" },
+    { x: 906, y: 734, fill: "#fff3d4", stroke: "#f2b94b" },
+    { x: 906, y: 1008, fill: "#eef2f7", stroke: "#64748b" },
+  ]
+  const centre = { x: 640, y: 940 }
+
+  const inputSvg = labels
+    .slice(0, 4)
+    .map((label, index) => {
+      const input = inputs[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: input.x + 28,
+        y: input.y + 118,
+        width: 174,
+        size: 27,
+        weight: 900,
+        color: palette.text,
+        lineHeight: 32,
+        maxLines: 2,
+      })
+      return `
+        <g>
+          <path d="M${input.x + 214} ${input.y + 106} C${input.x + 330} ${input.y + 106} ${centre.x - 150} ${centre.y} ${centre.x - 58} ${centre.y}" fill="none" stroke="${input.stroke}" stroke-width="7" stroke-linecap="round" opacity="0.18"/>
+          <rect x="${input.x}" y="${input.y}" width="224" height="218" rx="38" fill="${input.fill}" fill-opacity="0.94" stroke="${input.stroke}" stroke-width="3"/>
+          <circle cx="${input.x + 48}" cy="${input.y + 52}" r="27" fill="#ffffff" fill-opacity="0.60" stroke="${input.stroke}" stroke-width="5"/>
+          <path d="M${input.x + 35} ${input.y + 52} H${input.x + 62} M${input.x + 50} ${input.y + 39} V${input.y + 65}" stroke="${input.stroke}" stroke-width="6" stroke-linecap="round" opacity="0.78"/>
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  const finalLabel = labels[4] || "Questions"
+  const finalBlock = textBlock({
+    text: finalLabel,
+    x: 566,
+    y: 1224,
+    width: 160,
+    size: 30,
+    weight: 900,
+    color: palette.text,
+    lineHeight: 35,
+    maxLines: 2,
+  })
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="800" rx="54" fill="#ffffff" fill-opacity="0.62" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M260 1268 C396 1186 502 1238 640 1144 C778 1052 896 1118 1028 1038" fill="none" stroke="${palette.mid}" stroke-width="12" stroke-linecap="round" opacity="0.11"/>
+      ${inputSvg}
+      <circle cx="${centre.x}" cy="${centre.y}" r="152" fill="${palette.dark}" fill-opacity="0.94"/>
+      <circle cx="${centre.x}" cy="${centre.y}" r="206" fill="none" stroke="${palette.mid}" stroke-width="5" opacity="0.24"/>
+      <path d="M590 940 H690 M640 890 V990" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity="0.62"/>
+      <path d="M540 1128 H740" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" opacity="0.28"/>
+      <rect x="514" y="1118" width="252" height="214" rx="38" fill="#f6fffb" fill-opacity="0.96" stroke="#39b68f" stroke-width="3"/>
+      <circle cx="558" cy="1164" r="25" fill="#39b68f"/>
+      <text x="551" y="1173" font-family="${SVG_FONT_FAMILY}" font-size="24" font-weight="900" fill="#ffffff">5</text>
+      <path d="M614 1150 H684 M614 1178 H666" stroke="#39b68f" stroke-width="8" stroke-linecap="round" opacity="0.68"/>
+      ${finalBlock.svg}
+    </g>
+  `
+}
+
+function renderPrepEnvironmentReadinessBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const cards = [
+    { x: 124, y: 720, fill: "#e8f1ff", stroke: "#4b83d1" },
+    { x: 392, y: 720, fill: "#e4f8f1", stroke: "#39b68f" },
+    { x: 660, y: 720, fill: "#fff3d4", stroke: "#f2b94b" },
+    { x: 258, y: 1052, fill: "#eef2f7", stroke: "#64748b" },
+    { x: 794, y: 1052, fill: "#fff9eb", stroke: "#a16207" },
+  ]
+
+  const cardSvg = labels
+    .slice(0, 5)
+    .map((label, index) => {
+      const card = cards[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: card.x + 26,
+        y: card.y + 168,
+        width: 188,
+        size: 27,
+        weight: 900,
+        color: palette.text,
+        lineHeight: 32,
+        maxLines: 2,
+      })
+      const icon =
+        index === 0
+          ? `<rect x="${card.x + 70}" y="${card.y + 54}" width="88" height="70" rx="22" fill="#ffffff" fill-opacity="0.58" stroke="${card.stroke}" stroke-width="6"/><path d="M${card.x + 92} ${card.y + 88} H${card.x + 138}" stroke="${card.stroke}" stroke-width="8" stroke-linecap="round"/>`
+          : index === 1
+            ? `<path d="M${card.x + 76} ${card.y + 104} C${card.x + 100} ${card.y + 72} ${card.x + 132} ${card.y + 72} ${card.x + 156} ${card.y + 104}" fill="none" stroke="${card.stroke}" stroke-width="9" stroke-linecap="round"/><circle cx="${card.x + 116}" cy="${card.y + 112}" r="14" fill="${card.stroke}"/>`
+            : index === 2
+              ? `<rect x="${card.x + 76}" y="${card.y + 54}" width="84" height="94" rx="22" fill="#ffffff" fill-opacity="0.58" stroke="${card.stroke}" stroke-width="6"/><path d="M${card.x + 96} ${card.y + 88} H${card.x + 140} M${card.x + 96} ${card.y + 116} H${card.x + 130}" stroke="${card.stroke}" stroke-width="7" stroke-linecap="round"/>`
+              : index === 3
+                ? `<circle cx="${card.x + 116}" cy="${card.y + 94}" r="50" fill="#ffffff" fill-opacity="0.56" stroke="${card.stroke}" stroke-width="6"/><path d="M${card.x + 88} ${card.y + 112} C${card.x + 100} ${card.y + 82} ${card.x + 132} ${card.y + 82} ${card.x + 146} ${card.y + 112}" fill="none" stroke="${card.stroke}" stroke-width="7" stroke-linecap="round"/>`
+                : `<path d="M${card.x + 78} ${card.y + 96} H${card.x + 154}" stroke="${card.stroke}" stroke-width="10" stroke-linecap="round"/><path d="M${card.x + 122} ${card.y + 62} L${card.x + 158} ${card.y + 96} L${card.x + 122} ${card.y + 130}" fill="none" stroke="${card.stroke}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>`
+
+      return `
+        <g>
+          <rect x="${card.x}" y="${card.y}" width="232" height="262" rx="40" fill="${card.fill}" fill-opacity="0.94" stroke="${card.stroke}" stroke-width="3"/>
+          <circle cx="${card.x + 36}" cy="${card.y + 38}" r="22" fill="${card.stroke}"/>
+          <text x="${card.x + 29}" y="${card.y + 47}" font-family="${SVG_FONT_FAMILY}" font-size="23" font-weight="900" fill="#ffffff">${index + 1}</text>
+          ${icon}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="820" rx="54" fill="#ffffff" fill-opacity="0.62" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M168 1014 C338 898 500 1064 640 944 C792 814 962 946 1112 842" fill="none" stroke="${palette.mid}" stroke-width="18" stroke-linecap="round" opacity="0.12"/>
+      <path d="M374 1188 C514 1072 638 1248 768 1138 C884 1040 980 1086 1090 1008" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" opacity="0.10"/>
+      ${cardSvg}
+      <rect x="158" y="1340" width="958" height="54" rx="20" fill="${palette.dark}" fill-opacity="0.88"/>
+      <path d="M214 1367 H1060" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.26"/>
+    </g>
+  `
+}
+
+function renderPrepAftercareLoopBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const nodes = [
+    { x: 168, y: 796, fill: "#fff3d4", stroke: "#f2b94b" },
+    { x: 506, y: 682, fill: "#fff9eb", stroke: "#a16207" },
+    { x: 846, y: 796, fill: "#e8f1ff", stroke: "#4b83d1" },
+    { x: 710, y: 1130, fill: "#e4f8f1", stroke: "#39b68f" },
+    { x: 306, y: 1130, fill: "#eef2f7", stroke: "#64748b" },
+  ]
+
+  const nodeSvg = labels
+    .slice(0, 5)
+    .map((label, index) => {
+      const node = nodes[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: node.x + 30,
+        y: node.y + 166,
+        width: 160,
+        size: 27,
+        weight: 900,
+        color: palette.text,
+        lineHeight: 32,
+        maxLines: 2,
+      })
+      return `
+        <g>
+          <rect x="${node.x}" y="${node.y}" width="220" height="244" rx="38" fill="${node.fill}" fill-opacity="0.94" stroke="${node.stroke}" stroke-width="3"/>
+          <circle cx="${node.x + 38}" cy="${node.y + 40}" r="22" fill="${node.stroke}"/>
+          <text x="${node.x + 31}" y="${node.y + 49}" font-family="${SVG_FONT_FAMILY}" font-size="23" font-weight="900" fill="#ffffff">${index + 1}</text>
+          <rect x="${node.x + 72}" y="${node.y + 58}" width="78" height="72" rx="22" fill="#ffffff" fill-opacity="0.56" stroke="${node.stroke}" stroke-width="6"/>
+          <path d="M${node.x + 92} ${node.y + 94} H${node.x + 132}" stroke="${node.stroke}" stroke-width="8" stroke-linecap="round"/>
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="820" rx="54" fill="#ffffff" fill-opacity="0.62" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M298 928 C350 678 826 646 936 928 C1042 1200 684 1392 426 1248 C224 1134 192 1018 298 928" fill="none" stroke="${palette.mid}" stroke-width="22" stroke-linecap="round" opacity="0.15"/>
+      <path d="M298 928 C350 678 826 646 936 928 C1042 1200 684 1392 426 1248 C224 1134 192 1018 298 928" fill="none" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.28"/>
+      <path d="M406 1252 L426 1248 L418 1224" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.34"/>
+      <circle cx="640" cy="984" r="120" fill="${palette.dark}" fill-opacity="0.90"/>
+      <path d="M596 984 H684 M640 940 V1028" stroke="#ffffff" stroke-width="9" stroke-linecap="round" opacity="0.58"/>
+      ${nodeSvg}
+    </g>
+  `
+}
+
+function renderElderlyParentConsentSupportBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const centre = { x: 640, y: 960 }
+  const bands = [
+    { labelIndex: 0, x: 126, y: 726, w: 356, stroke: "#f2b94b", fill: "#fff3d4" },
+    { labelIndex: 2, x: 132, y: 1156, w: 394, stroke: "#39b68f", fill: "#e4f8f1" },
+    { labelIndex: 3, x: 798, y: 742, w: 356, stroke: "#4b83d1", fill: "#e8f1ff" },
+    { labelIndex: 4, x: 756, y: 1166, w: 394, stroke: "#64748b", fill: "#eef2f7" },
+  ]
+
+  const bandSvg = bands
+    .map((band, index) => {
+      const label = labels[band.labelIndex] ?? visual.items[band.labelIndex]?.label ?? ""
+      const labelBlock = textBlock({
+        text: label,
+        x: band.x + 86,
+        y: band.y + 32,
+        width: band.w - 118,
+        size: 30,
+        weight: 900,
+        color: palette.text,
+        lineHeight: 34,
+        maxLines: 2,
+      })
+      const anchorX = band.x < centre.x ? band.x + band.w : band.x
+      const anchorY = band.y + 48
+      const icon =
+        index === 0
+          ? `<path d="M${band.x + 30} ${band.y + 46} L${band.x + 46} ${band.y + 62} L${band.x + 78} ${band.y + 24}" fill="none" stroke="${band.stroke}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
+          : index === 1
+            ? `<path d="M${band.x + 26} ${band.y + 54} C${band.x + 42} ${band.y + 26} ${band.x + 78} ${band.y + 26} ${band.x + 96} ${band.y + 54}" fill="none" stroke="${band.stroke}" stroke-width="8" stroke-linecap="round"/><circle cx="${band.x + 62}" cy="${band.y + 64}" r="13" fill="${band.stroke}"/>`
+            : index === 2
+              ? `<rect x="${band.x + 30}" y="${band.y + 20}" width="54" height="54" rx="18" fill="#ffffff" fill-opacity="0.74" stroke="${band.stroke}" stroke-width="5"/><path d="M${band.x + 44} ${band.y + 48} H${band.x + 70} M${band.x + 57} ${band.y + 34} V${band.y + 62}" stroke="${band.stroke}" stroke-width="6" stroke-linecap="round"/>`
+              : `<path d="M${band.x + 28} ${band.y + 48} H${band.x + 88}" stroke="${band.stroke}" stroke-width="9" stroke-linecap="round"/><path d="M${band.x + 62} ${band.y + 24} L${band.x + 92} ${band.y + 48} L${band.x + 62} ${band.y + 72}" fill="none" stroke="${band.stroke}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
+
+      return `
+        <g>
+          <path d="M${centre.x} ${centre.y} C${centre.x} ${anchorY} ${anchorX} ${centre.y} ${anchorX} ${anchorY}" fill="none" stroke="${band.stroke}" stroke-width="10" stroke-linecap="round" opacity="0.34"/>
+          <rect x="${band.x}" y="${band.y}" width="${band.w}" height="96" rx="28" fill="${band.fill}" fill-opacity="0.92" stroke="${band.stroke}" stroke-width="3"/>
+          <rect x="${band.x}" y="${band.y}" width="18" height="96" rx="9" fill="${band.stroke}"/>
+          ${icon}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  const centreLabel = textBlock({
+    text: labels[1] ?? "Patient voice",
+    x: centre.x - 112,
+    y: centre.y + 82,
+    width: 224,
+    size: 30,
+    weight: 900,
+    color: palette.text,
+    lineHeight: 35,
+    maxLines: 2,
+  })
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="820" rx="54" fill="${palette.dark}" fill-opacity="0.92"/>
+      <rect x="108" y="650" width="1064" height="760" rx="44" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-width="2" stroke-opacity="0.16"/>
+      <path d="M162 1352 C314 1198 516 1268 640 960 C762 656 962 716 1114 824" fill="none" stroke="#ffffff" stroke-width="24" stroke-linecap="round" opacity="0.08"/>
+      <path d="M168 814 C326 684 540 728 640 960 C738 1186 948 1272 1112 1080" fill="none" stroke="${palette.mid}" stroke-width="14" stroke-linecap="round" opacity="0.28"/>
+      ${bandSvg}
+      <circle cx="${centre.x}" cy="${centre.y}" r="184" fill="#ffffff" fill-opacity="0.96"/>
+      <circle cx="${centre.x}" cy="${centre.y}" r="232" fill="none" stroke="#ffffff" stroke-width="5" opacity="0.22"/>
+      <circle cx="${centre.x}" cy="${centre.y}" r="272" fill="none" stroke="${palette.mid}" stroke-width="3" opacity="0.26"/>
+      <path d="M578 910 C608 870 672 870 704 910" fill="none" stroke="${palette.dark}" stroke-width="10" stroke-linecap="round" opacity="0.64"/>
+      <circle cx="${centre.x}" cy="924" r="28" fill="${palette.dark}" fill-opacity="0.82"/>
+      <path d="M562 982 H718" stroke="${palette.dark}" stroke-width="9" stroke-linecap="round" opacity="0.44"/>
+      ${centreLabel.svg}
+      <rect x="204" y="1350" width="872" height="54" rx="20" fill="#ffffff" fill-opacity="0.18"/>
+      <path d="M260 1377 H1020" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.25"/>
+    </g>
+  `
+}
+
+function renderElderlyParentMedicineContextBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const lanes = [
+    { x: 132, y: 724, w: 850, stroke: "#39b68f", fill: "#e4f8f1" },
+    { x: 240, y: 852, w: 770, stroke: "#f2b94b", fill: "#fff3d4" },
+    { x: 150, y: 980, w: 930, stroke: "#4b83d1", fill: "#e8f1ff" },
+    { x: 302, y: 1108, w: 720, stroke: "#64748b", fill: "#eef2f7" },
+    { x: 430, y: 1236, w: 610, stroke: "#39b68f", fill: "#f6fffb" },
+  ]
+
+  const laneSvg = labels
+    .slice(0, 5)
+    .map((label, index) => {
+      const lane = lanes[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: lane.x + 118,
+        y: lane.y + 31,
+        width: lane.w - 176,
+        size: 31,
+        weight: 900,
+        color: palette.text,
+        lineHeight: 35,
+        maxLines: 2,
+      })
+      const icon =
+        index === 0
+          ? `<rect x="${lane.x + 54}" y="${lane.y + 24}" width="48" height="48" rx="14" fill="#ffffff" fill-opacity="0.76" stroke="${lane.stroke}" stroke-width="5"/><path d="M${lane.x + 66} ${lane.y + 42} H${lane.x + 90} M${lane.x + 66} ${lane.y + 58} H${lane.x + 84}" stroke="${lane.stroke}" stroke-width="5" stroke-linecap="round"/>`
+          : index === 1
+            ? `<path d="M${lane.x + 56} ${lane.y + 49} C${lane.x + 66} ${lane.y + 25} ${lane.x + 94} ${lane.y + 25} ${lane.x + 106} ${lane.y + 49} C${lane.x + 94} ${lane.y + 75} ${lane.x + 66} ${lane.y + 75} ${lane.x + 56} ${lane.y + 49} Z" fill="#ffffff" fill-opacity="0.74" stroke="${lane.stroke}" stroke-width="5"/><path d="M${lane.x + 70} ${lane.y + 49} H${lane.x + 92}" stroke="${lane.stroke}" stroke-width="6" stroke-linecap="round"/>`
+            : index === 2
+              ? `<path d="M${lane.x + 54} ${lane.y + 50} H${lane.x + 108}" stroke="${lane.stroke}" stroke-width="6" stroke-linecap="round" opacity="0.55"/><path d="M${lane.x + 62} ${lane.y + 50} L${lane.x + 76} ${lane.y + 28} L${lane.x + 94} ${lane.y + 72} L${lane.x + 108} ${lane.y + 44}" fill="none" stroke="${lane.stroke}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`
+              : index === 3
+                ? `<circle cx="${lane.x + 80}" cy="${lane.y + 50}" r="33" fill="#ffffff" fill-opacity="0.72" stroke="${lane.stroke}" stroke-width="5"/><path d="M${lane.x + 62} ${lane.y + 60} C${lane.x + 72} ${lane.y + 38} ${lane.x + 90} ${lane.y + 38} ${lane.x + 100} ${lane.y + 60}" fill="none" stroke="${lane.stroke}" stroke-width="6" stroke-linecap="round"/>`
+                : `<path d="M${lane.x + 54} ${lane.y + 50} H${lane.x + 104}" stroke="${lane.stroke}" stroke-width="8" stroke-linecap="round"/><path d="M${lane.x + 82} ${lane.y + 28} L${lane.x + 108} ${lane.y + 50} L${lane.x + 82} ${lane.y + 72}" fill="none" stroke="${lane.stroke}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`
+
+      return `
+        <g>
+          <rect x="${lane.x}" y="${lane.y}" width="${lane.w}" height="98" rx="30" fill="${lane.fill}" fill-opacity="0.94" stroke="${lane.stroke}" stroke-width="3"/>
+          <rect x="${lane.x}" y="${lane.y}" width="20" height="98" rx="10" fill="${lane.stroke}"/>
+          <circle cx="${lane.x + 42}" cy="${lane.y + 49}" r="22" fill="${lane.stroke}"/>
+          <text x="${lane.x + 35}" y="${lane.y + 58}" font-family="${SVG_FONT_FAMILY}" font-size="23" font-weight="900" fill="#ffffff">${index + 1}</text>
+          ${icon}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="820" rx="54" fill="${palette.dark}" fill-opacity="0.92"/>
+      <rect x="112" y="652" width="1056" height="756" rx="44" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-width="2" stroke-opacity="0.16"/>
+      <path d="M154 1302 C300 1118 470 1212 640 988 C804 772 954 824 1120 708" fill="none" stroke="${palette.mid}" stroke-width="24" stroke-linecap="round" opacity="0.30"/>
+      <path d="M186 770 C342 928 446 792 640 980 C808 1142 940 1052 1100 1218" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" opacity="0.10"/>
+      ${laneSvg}
+      <circle cx="1028" cy="742" r="84" fill="#ffffff" fill-opacity="0.12" stroke="#ffffff" stroke-width="3" stroke-opacity="0.16"/>
+      <circle cx="1036" cy="1300" r="110" fill="${palette.mid}" fill-opacity="0.12" stroke="#ffffff" stroke-width="3" stroke-opacity="0.14"/>
+      <rect x="170" y="1354" width="940" height="54" rx="20" fill="#ffffff" fill-opacity="0.18"/>
+      <path d="M226 1381 H1054" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.25"/>
+    </g>
+  `
+}
+
+function renderElderlyParentUrgentBoundaryBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const markers = [
+    { x: 136, y: 730, w: 430, stroke: "#be3455", fill: "#ffe7ee" },
+    { x: 696, y: 824, w: 420, stroke: "#f2b94b", fill: "#fff3d4" },
+    { x: 222, y: 942, w: 410, stroke: "#be3455", fill: "#ffe7ee" },
+    { x: 712, y: 1064, w: 424, stroke: "#be3455", fill: "#ffe7ee" },
+    { x: 338, y: 1192, w: 452, stroke: "#a16207", fill: "#fff9eb" },
+  ]
+
+  const markerSvg = labels
+    .slice(0, 5)
+    .map((label, index) => {
+      const marker = markers[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: marker.x + 116,
+        y: marker.y + 28,
+        width: marker.w - 154,
+        size: 30,
+        weight: 900,
+        color: palette.text,
+        lineHeight: 34,
+        maxLines: 2,
+      })
+      const icon =
+        index === 0
+          ? `<circle cx="${marker.x + 72}" cy="${marker.y + 47}" r="30" fill="#ffffff" fill-opacity="0.76" stroke="${marker.stroke}" stroke-width="5"/><path d="M${marker.x + 56} ${marker.y + 47} H${marker.x + 88} M${marker.x + 72} ${marker.y + 31} V${marker.y + 63}" stroke="${marker.stroke}" stroke-width="6" stroke-linecap="round"/>`
+          : index === 1
+            ? `<path d="M${marker.x + 44} ${marker.y + 60} C${marker.x + 60} ${marker.y + 30} ${marker.x + 90} ${marker.y + 30} ${marker.x + 108} ${marker.y + 60}" fill="none" stroke="${marker.stroke}" stroke-width="7" stroke-linecap="round"/><path d="M${marker.x + 58} ${marker.y + 36} L${marker.x + 104} ${marker.y + 68}" stroke="${marker.stroke}" stroke-width="7" stroke-linecap="round" opacity="0.70"/>`
+            : index === 2
+              ? `<path d="M${marker.x + 44} ${marker.y + 48} H${marker.x + 110}" stroke="${marker.stroke}" stroke-width="8" stroke-linecap="round"/><path d="M${marker.x + 78} ${marker.y + 24} L${marker.x + 112} ${marker.y + 48} L${marker.x + 78} ${marker.y + 72}" fill="none" stroke="${marker.stroke}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`
+              : index === 3
+                ? `<path d="M${marker.x + 48} ${marker.y + 35} C${marker.x + 64} ${marker.y + 18} ${marker.x + 100} ${marker.y + 18} ${marker.x + 116} ${marker.y + 35} C${marker.x + 126} ${marker.y + 56} ${marker.x + 110} ${marker.y + 78} ${marker.x + 82} ${marker.y + 78} C${marker.x + 54} ${marker.y + 78} ${marker.x + 38} ${marker.y + 56} ${marker.x + 48} ${marker.y + 35} Z" fill="#ffffff" fill-opacity="0.72" stroke="${marker.stroke}" stroke-width="5"/>`
+                : `<path d="M${marker.x + 54} ${marker.y + 24} H${marker.x + 104} L${marker.x + 94} ${marker.y + 74} H${marker.x + 44} Z" fill="#ffffff" fill-opacity="0.72" stroke="${marker.stroke}" stroke-width="5"/><path d="M${marker.x + 64} ${marker.y + 49} H${marker.x + 90}" stroke="${marker.stroke}" stroke-width="6" stroke-linecap="round"/>`
+
+      return `
+        <g>
+          <rect x="${marker.x}" y="${marker.y}" width="${marker.w}" height="96" rx="30" fill="${marker.fill}" fill-opacity="0.94" stroke="${marker.stroke}" stroke-width="3"/>
+          <rect x="${marker.x}" y="${marker.y}" width="20" height="96" rx="10" fill="${marker.stroke}"/>
+          <circle cx="${marker.x + 38}" cy="${marker.y + 48}" r="22" fill="${marker.stroke}"/>
+          <text x="${marker.x + 31}" y="${marker.y + 57}" font-family="${SVG_FONT_FAMILY}" font-size="23" font-weight="900" fill="#ffffff">${index + 1}</text>
+          ${icon}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="820" rx="54" fill="${palette.dark}" fill-opacity="0.92"/>
+      <rect x="112" y="652" width="1056" height="756" rx="44" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-width="2" stroke-opacity="0.16"/>
+      <path d="M132 1308 C310 1224 474 1060 640 948 C814 830 962 766 1130 694" fill="none" stroke="#ffffff" stroke-width="32" stroke-linecap="round" opacity="0.09"/>
+      <path d="M150 1274 C322 1206 470 1054 640 938 C812 824 958 764 1120 700" fill="none" stroke="${palette.mid}" stroke-width="14" stroke-linecap="round" opacity="0.40"/>
+      <path d="M1082 680 L1124 698 L1092 732" fill="none" stroke="${palette.mid}" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" opacity="0.50"/>
+      ${markerSvg}
+      <circle cx="184" cy="710" r="90" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-width="3" stroke-opacity="0.14"/>
+      <circle cx="1070" cy="1310" r="112" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-width="3" stroke-opacity="0.14"/>
+      <rect x="174" y="1352" width="932" height="58" rx="22" fill="#ffffff" fill-opacity="0.18"/>
+      <path d="M230 1381 H1050" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.28"/>
+    </g>
+  `
+}
+
+function renderRemoteWorkerSignalLanesBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const isWarning = visual.kind === "warning"
+  const lanes = [
+    { x: 132, y: 724, w: 850, stroke: visual.accent === "amber" ? "#f2b94b" : palette.mid, fill: visual.accent === "amber" ? "#fff3d4" : palette.light },
+    { x: 246, y: 852, w: 770, stroke: "#4b83d1", fill: "#e8f1ff" },
+    { x: 150, y: 980, w: 930, stroke: isWarning ? "#be3455" : "#39b68f", fill: isWarning ? "#ffe7ee" : "#e4f8f1" },
+    { x: 304, y: 1108, w: 720, stroke: "#64748b", fill: "#eef2f7" },
+    { x: 430, y: 1236, w: 610, stroke: isWarning ? "#a16207" : "#f2b94b", fill: isWarning ? "#fff9eb" : "#fff3d4" },
+  ]
+
+  const laneSvg = labels
+    .slice(0, 5)
+    .map((label, index) => {
+      const lane = lanes[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: lane.x + 118,
+        y: lane.y + 31,
+        width: lane.w - 176,
+        size: 31,
+        weight: 900,
+        color: palette.text,
+        lineHeight: 35,
+        maxLines: 2,
+      })
+      const icon =
+        index === 0
+          ? `<path d="M${lane.x + 78} ${lane.y + 22} C${lane.x + 48} ${lane.y + 22} ${lane.x + 42} ${lane.y + 58} ${lane.x + 78} ${lane.y + 80} C${lane.x + 114} ${lane.y + 58} ${lane.x + 108} ${lane.y + 22} ${lane.x + 78} ${lane.y + 22} Z" fill="#ffffff" fill-opacity="0.74" stroke="${lane.stroke}" stroke-width="5"/><circle cx="${lane.x + 78}" cy="${lane.y + 50}" r="12" fill="${lane.stroke}"/>`
+          : index === 1
+            ? `<rect x="${lane.x + 54}" y="${lane.y + 24}" width="52" height="52" rx="16" fill="#ffffff" fill-opacity="0.74" stroke="${lane.stroke}" stroke-width="5"/><path d="M${lane.x + 68} ${lane.y + 50} H${lane.x + 94} M${lane.x + 81} ${lane.y + 36} V${lane.y + 64}" stroke="${lane.stroke}" stroke-width="6" stroke-linecap="round"/>`
+            : index === 2
+              ? `<path d="M${lane.x + 54} ${lane.y + 50} H${lane.x + 110}" stroke="${lane.stroke}" stroke-width="7" stroke-linecap="round" opacity="0.58"/><path d="M${lane.x + 64} ${lane.y + 50} L${lane.x + 78} ${lane.y + 28} L${lane.x + 96} ${lane.y + 72} L${lane.x + 110} ${lane.y + 44}" fill="none" stroke="${lane.stroke}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`
+              : index === 3
+                ? `<circle cx="${lane.x + 80}" cy="${lane.y + 50}" r="34" fill="#ffffff" fill-opacity="0.72" stroke="${lane.stroke}" stroke-width="5"/><path d="M${lane.x + 58} ${lane.y + 58} C${lane.x + 72} ${lane.y + 36} ${lane.x + 88} ${lane.y + 36} ${lane.x + 102} ${lane.y + 58}" fill="none" stroke="${lane.stroke}" stroke-width="6" stroke-linecap="round"/>`
+                : `<path d="M${lane.x + 54} ${lane.y + 50} H${lane.x + 104}" stroke="${lane.stroke}" stroke-width="8" stroke-linecap="round"/><path d="M${lane.x + 82} ${lane.y + 28} L${lane.x + 108} ${lane.y + 50} L${lane.x + 82} ${lane.y + 72}" fill="none" stroke="${lane.stroke}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`
+
+      return `
+        <g>
+          <rect x="${lane.x}" y="${lane.y}" width="${lane.w}" height="98" rx="30" fill="${lane.fill}" fill-opacity="0.94" stroke="${lane.stroke}" stroke-width="3"/>
+          <rect x="${lane.x}" y="${lane.y}" width="20" height="98" rx="10" fill="${lane.stroke}"/>
+          <circle cx="${lane.x + 42}" cy="${lane.y + 49}" r="22" fill="${lane.stroke}"/>
+          <text x="${lane.x + 35}" y="${lane.y + 58}" font-family="${SVG_FONT_FAMILY}" font-size="23" font-weight="900" fill="#ffffff">${index + 1}</text>
+          ${icon}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="820" rx="54" fill="${palette.dark}" fill-opacity="0.92"/>
+      <rect x="112" y="652" width="1056" height="756" rx="44" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-width="2" stroke-opacity="0.16"/>
+      <path d="M154 1302 C300 1118 470 1212 640 988 C804 772 954 824 1120 708" fill="none" stroke="${palette.mid}" stroke-width="24" stroke-linecap="round" opacity="0.30"/>
+      <path d="M186 770 C342 928 446 792 640 980 C808 1142 940 1052 1100 1218" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" opacity="0.10"/>
+      ${laneSvg}
+      <circle cx="1028" cy="742" r="84" fill="#ffffff" fill-opacity="0.12" stroke="#ffffff" stroke-width="3" stroke-opacity="0.16"/>
+      <circle cx="1036" cy="1300" r="110" fill="${palette.mid}" fill-opacity="0.12" stroke="#ffffff" stroke-width="3" stroke-opacity="0.14"/>
+      <rect x="170" y="1354" width="940" height="54" rx="20" fill="#ffffff" fill-opacity="0.18"/>
+      <path d="M226 1381 H1054" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.25"/>
+    </g>
+  `
+}
+
+function renderTelehealthPolicyCompositeBody(visual: ArticleVisual, palette: Palette): string {
+  if (visual.id === "first-telehealth-prep-map") return renderFirstTelehealthPrepBody(visual, palette)
+  if (visual.id === "first-telehealth-what-happens") return renderFirstTelehealthRouteBody(visual, palette)
+  if (visual.id === "first-telehealth-aftercare-map") return renderFirstTelehealthAftercareBody(visual, palette)
+  if (visual.id === "telehealth-best-fit-map") return renderWhenToUseTelehealthFitBody(visual, palette)
+  if (visual.id === "telehealth-care-route-map") return renderWhenToUseRouteChoiceBody(visual, palette)
+  if (visual.id === "telehealth-do-not-use-map") return renderWhenToUseDoNotUseBody(visual, palette)
+  if (visual.id === "telehealth-privacy-data-flow") return renderPrivacyDataFlowBody(visual, palette)
+  if (visual.id === "telehealth-security-control-map") return renderPrivacySecurityControlsBody(visual, palette)
+  if (visual.id === "telehealth-breach-rights-pathway") return renderPrivacyBreachPathwayBody(visual, palette)
+  if (visual.id === "telehealth-record-clinical-trail") return renderRecordClinicalTrailBody(visual, palette)
+  if (visual.id === "telehealth-record-sharing-boundary") return renderRecordSharingBoundaryBody(visual, palette)
+  if (visual.id === "telehealth-record-retention-rights") return renderRecordRetentionRightsBody(visual, palette)
+  if (visual.id === "telehealth-prep-signal-map") return renderPrepSignalMapBody(visual, palette)
+  if (visual.id === "telehealth-prep-environment-readiness") return renderPrepEnvironmentReadinessBody(visual, palette)
+  if (visual.id === "telehealth-prep-aftercare-loop") return renderPrepAftercareLoopBody(visual, palette)
+  if (visual.id === "elderly-parent-consent-support-map") return renderElderlyParentConsentSupportBody(visual, palette)
+  if (visual.id === "elderly-parent-medicine-context-map") return renderElderlyParentMedicineContextBody(visual, palette)
+  if (visual.id === "elderly-parent-urgent-boundary-map") return renderElderlyParentUrgentBoundaryBody(visual, palette)
+  if (
+    visual.id === "remote-worker-location-readiness-map" ||
+    visual.id === "remote-worker-work-capacity-boundary" ||
+    visual.id === "remote-worker-pharmacy-escalation-loop"
+  ) {
+    return renderRemoteWorkerSignalLanesBody(visual, palette)
+  }
+  if (visual.id === "telehealth-definition-map" || visual.id === "telehealth-consultation-channel-map") {
+    return renderTelehealthDefinitionBody(visual, palette)
+  }
+  if (visual.id === "telehealth-suitability-boundary" || visual.id === "telehealth-consultation-fit") {
+    return renderTelehealthBoundaryBody(visual, palette)
+  }
+  return renderTelehealthWorkflowBody(visual, palette)
+}
+
+function renderTelehealthPolicyCompositeOverlaySvg(visual: ArticleVisual): string {
+  const palette = palettes[visual.accent]
+  const title = textBlock({
+    text: visual.title,
+    x: 88,
+    y: 168,
+    width: 790,
+    size: 56,
+    weight: 900,
+    color: palette.dark,
+    lineHeight: 64,
+    maxLines: 3,
+  })
+  const summary = textBlock({
+    text: visual.summary,
+    x: 92,
+    y: 168 + title.height + 26,
+    width: 760,
+    size: 28,
+    weight: 600,
+    color: "#334155",
+    lineHeight: 38,
+    maxLines: 3,
+  })
+  const footer = textBlock({
+    text: getFooterCopy(visual),
+    x: 154,
+    y: 1483,
+    width: 680,
+    size: 22,
+    weight: 700,
+    color: "#ffffff",
+    maxLines: 1,
+  })
+  const body = renderTelehealthPolicyCompositeBody(visual, palette)
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
+      <defs>
+        <filter id="telehealthSoftShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="20" stdDeviation="22" flood-color="#0f172a" flood-opacity="0.11"/>
+        </filter>
+        <linearGradient id="telehealthTopVeil" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.92"/>
+          <stop offset="64%" stop-color="#ffffff" stop-opacity="0.68"/>
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="${palette.wash}" fill-opacity="0.10"/>
+      <path d="M-80 518 C188 404 406 470 646 390 C858 320 1034 348 1340 218" fill="none" stroke="${palette.mid}" stroke-width="3" opacity="0.11"/>
+      <path d="M-86 1302 C214 1162 404 1254 644 1146 C876 1042 1060 1068 1360 940" fill="none" stroke="${palette.dark}" stroke-width="3" opacity="0.09"/>
+      <rect x="0" y="0" width="${WIDTH}" height="548" fill="url(#telehealthTopVeil)"/>
+      ${badge(88, 82, visual.eyebrow, palette)}
+      ${title.svg}
+      ${summary.svg}
+      <g filter="url(#telehealthSoftShadow)">
+        ${body}
+      </g>
+      <rect x="80" y="1438" width="760" height="78" rx="25" fill="${palette.dark}" fill-opacity="0.93"/>
+      <circle cx="123" cy="1477" r="23" fill="#ffffff" opacity="0.17"/>
+      <path d="M112 1477 L123 1488 L143 1462" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      ${footer.svg}
+    </svg>
+  `
+}
+
 function renderCompositeOverlaySvg(visual: ArticleVisual): string {
+  if (isTelehealthPolicyCompositeVisual(visual)) {
+    return renderTelehealthPolicyCompositeOverlaySvg(visual)
+  }
+
   const palette = palettes[visual.accent]
   const labelsOnly = visual.textMode === "labels"
   const overlayItems = labelsOnly
@@ -1902,10 +3424,16 @@ async function saveKieInfographic(
   }
 
   const imageBuffer = Buffer.from(await imageResponse.arrayBuffer())
+  const strongWash = visual.visualFormat === "red-flag-warning" || visual.kind === "warning"
   const pipeline = isKieCompositeRenderer(renderer)
     ? sharp(imageBuffer)
         .resize(WIDTH, HEIGHT, { fit: "cover", background: palettes[visual.accent].wash })
-        .composite([{ input: Buffer.from(renderCompositeOverlaySvg(visual)), left: 0, top: 0 }])
+        .blur(strongWash ? 8 : 4)
+        .modulate(strongWash ? { saturation: 0.36, brightness: 1.06 } : { saturation: 0.62, brightness: 1.02 })
+        .composite([
+          { input: Buffer.from(renderCompositeUnderlayWashSvg(visual)), left: 0, top: 0 },
+          { input: Buffer.from(renderCompositeOverlaySvg(visual)), left: 0, top: 0 },
+        ])
     : sharp(imageBuffer)
 
   await pipeline.webp({ quality: 88, effort: 5 }).toFile(filepath)
