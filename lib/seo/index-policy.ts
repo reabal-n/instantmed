@@ -66,6 +66,7 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "telehealth-after-hours",
   "telehealth-privacy-security",
   "telehealth-record-keeping",
+  "telehealth-for-elderly-parents",
   "medical-certificate-food-poisoning",
   "generic-vs-brand-medications",
   "when-telehealth-cant-help",

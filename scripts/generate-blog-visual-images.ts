@@ -1158,6 +1158,9 @@ function isTelehealthPolicyCompositeVisual(visual: ArticleVisual): boolean {
     visual.id === "telehealth-prep-signal-map" ||
     visual.id === "telehealth-prep-environment-readiness" ||
     visual.id === "telehealth-prep-aftercare-loop" ||
+    visual.id === "elderly-parent-consent-support-map" ||
+    visual.id === "elderly-parent-medicine-context-map" ||
+    visual.id === "elderly-parent-urgent-boundary-map" ||
     visual.id === "first-telehealth-prep-map" ||
     visual.id === "first-telehealth-what-happens" ||
     visual.id === "first-telehealth-aftercare-map"
@@ -2256,6 +2259,214 @@ function renderPrepAftercareLoopBody(visual: ArticleVisual, palette: Palette): s
   `
 }
 
+function renderElderlyParentConsentSupportBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const centre = { x: 640, y: 960 }
+  const bands = [
+    { labelIndex: 0, x: 126, y: 726, w: 356, stroke: "#f2b94b", fill: "#fff3d4" },
+    { labelIndex: 2, x: 132, y: 1156, w: 394, stroke: "#39b68f", fill: "#e4f8f1" },
+    { labelIndex: 3, x: 798, y: 742, w: 356, stroke: "#4b83d1", fill: "#e8f1ff" },
+    { labelIndex: 4, x: 756, y: 1166, w: 394, stroke: "#64748b", fill: "#eef2f7" },
+  ]
+
+  const bandSvg = bands
+    .map((band, index) => {
+      const label = labels[band.labelIndex] ?? visual.items[band.labelIndex]?.label ?? ""
+      const labelBlock = textBlock({
+        text: label,
+        x: band.x + 86,
+        y: band.y + 32,
+        width: band.w - 118,
+        size: 30,
+        weight: 900,
+        color: palette.text,
+        lineHeight: 34,
+        maxLines: 2,
+      })
+      const anchorX = band.x < centre.x ? band.x + band.w : band.x
+      const anchorY = band.y + 48
+      const icon =
+        index === 0
+          ? `<path d="M${band.x + 30} ${band.y + 46} L${band.x + 46} ${band.y + 62} L${band.x + 78} ${band.y + 24}" fill="none" stroke="${band.stroke}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
+          : index === 1
+            ? `<path d="M${band.x + 26} ${band.y + 54} C${band.x + 42} ${band.y + 26} ${band.x + 78} ${band.y + 26} ${band.x + 96} ${band.y + 54}" fill="none" stroke="${band.stroke}" stroke-width="8" stroke-linecap="round"/><circle cx="${band.x + 62}" cy="${band.y + 64}" r="13" fill="${band.stroke}"/>`
+            : index === 2
+              ? `<rect x="${band.x + 30}" y="${band.y + 20}" width="54" height="54" rx="18" fill="#ffffff" fill-opacity="0.74" stroke="${band.stroke}" stroke-width="5"/><path d="M${band.x + 44} ${band.y + 48} H${band.x + 70} M${band.x + 57} ${band.y + 34} V${band.y + 62}" stroke="${band.stroke}" stroke-width="6" stroke-linecap="round"/>`
+              : `<path d="M${band.x + 28} ${band.y + 48} H${band.x + 88}" stroke="${band.stroke}" stroke-width="9" stroke-linecap="round"/><path d="M${band.x + 62} ${band.y + 24} L${band.x + 92} ${band.y + 48} L${band.x + 62} ${band.y + 72}" fill="none" stroke="${band.stroke}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
+
+      return `
+        <g>
+          <path d="M${centre.x} ${centre.y} C${centre.x} ${anchorY} ${anchorX} ${centre.y} ${anchorX} ${anchorY}" fill="none" stroke="${band.stroke}" stroke-width="10" stroke-linecap="round" opacity="0.34"/>
+          <rect x="${band.x}" y="${band.y}" width="${band.w}" height="96" rx="28" fill="${band.fill}" fill-opacity="0.92" stroke="${band.stroke}" stroke-width="3"/>
+          <rect x="${band.x}" y="${band.y}" width="18" height="96" rx="9" fill="${band.stroke}"/>
+          ${icon}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  const centreLabel = textBlock({
+    text: labels[1] ?? "Patient voice",
+    x: centre.x - 112,
+    y: centre.y + 82,
+    width: 224,
+    size: 30,
+    weight: 900,
+    color: palette.text,
+    lineHeight: 35,
+    maxLines: 2,
+  })
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="820" rx="54" fill="${palette.dark}" fill-opacity="0.92"/>
+      <rect x="108" y="650" width="1064" height="760" rx="44" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-width="2" stroke-opacity="0.16"/>
+      <path d="M162 1352 C314 1198 516 1268 640 960 C762 656 962 716 1114 824" fill="none" stroke="#ffffff" stroke-width="24" stroke-linecap="round" opacity="0.08"/>
+      <path d="M168 814 C326 684 540 728 640 960 C738 1186 948 1272 1112 1080" fill="none" stroke="${palette.mid}" stroke-width="14" stroke-linecap="round" opacity="0.28"/>
+      ${bandSvg}
+      <circle cx="${centre.x}" cy="${centre.y}" r="184" fill="#ffffff" fill-opacity="0.96"/>
+      <circle cx="${centre.x}" cy="${centre.y}" r="232" fill="none" stroke="#ffffff" stroke-width="5" opacity="0.22"/>
+      <circle cx="${centre.x}" cy="${centre.y}" r="272" fill="none" stroke="${palette.mid}" stroke-width="3" opacity="0.26"/>
+      <path d="M578 910 C608 870 672 870 704 910" fill="none" stroke="${palette.dark}" stroke-width="10" stroke-linecap="round" opacity="0.64"/>
+      <circle cx="${centre.x}" cy="924" r="28" fill="${palette.dark}" fill-opacity="0.82"/>
+      <path d="M562 982 H718" stroke="${palette.dark}" stroke-width="9" stroke-linecap="round" opacity="0.44"/>
+      ${centreLabel.svg}
+      <rect x="204" y="1350" width="872" height="54" rx="20" fill="#ffffff" fill-opacity="0.18"/>
+      <path d="M260 1377 H1020" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.25"/>
+    </g>
+  `
+}
+
+function renderElderlyParentMedicineContextBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const lanes = [
+    { x: 132, y: 724, w: 850, stroke: "#39b68f", fill: "#e4f8f1" },
+    { x: 240, y: 852, w: 770, stroke: "#f2b94b", fill: "#fff3d4" },
+    { x: 150, y: 980, w: 930, stroke: "#4b83d1", fill: "#e8f1ff" },
+    { x: 302, y: 1108, w: 720, stroke: "#64748b", fill: "#eef2f7" },
+    { x: 430, y: 1236, w: 610, stroke: "#39b68f", fill: "#f6fffb" },
+  ]
+
+  const laneSvg = labels
+    .slice(0, 5)
+    .map((label, index) => {
+      const lane = lanes[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: lane.x + 118,
+        y: lane.y + 31,
+        width: lane.w - 176,
+        size: 31,
+        weight: 900,
+        color: palette.text,
+        lineHeight: 35,
+        maxLines: 2,
+      })
+      const icon =
+        index === 0
+          ? `<rect x="${lane.x + 54}" y="${lane.y + 24}" width="48" height="48" rx="14" fill="#ffffff" fill-opacity="0.76" stroke="${lane.stroke}" stroke-width="5"/><path d="M${lane.x + 66} ${lane.y + 42} H${lane.x + 90} M${lane.x + 66} ${lane.y + 58} H${lane.x + 84}" stroke="${lane.stroke}" stroke-width="5" stroke-linecap="round"/>`
+          : index === 1
+            ? `<path d="M${lane.x + 56} ${lane.y + 49} C${lane.x + 66} ${lane.y + 25} ${lane.x + 94} ${lane.y + 25} ${lane.x + 106} ${lane.y + 49} C${lane.x + 94} ${lane.y + 75} ${lane.x + 66} ${lane.y + 75} ${lane.x + 56} ${lane.y + 49} Z" fill="#ffffff" fill-opacity="0.74" stroke="${lane.stroke}" stroke-width="5"/><path d="M${lane.x + 70} ${lane.y + 49} H${lane.x + 92}" stroke="${lane.stroke}" stroke-width="6" stroke-linecap="round"/>`
+            : index === 2
+              ? `<path d="M${lane.x + 54} ${lane.y + 50} H${lane.x + 108}" stroke="${lane.stroke}" stroke-width="6" stroke-linecap="round" opacity="0.55"/><path d="M${lane.x + 62} ${lane.y + 50} L${lane.x + 76} ${lane.y + 28} L${lane.x + 94} ${lane.y + 72} L${lane.x + 108} ${lane.y + 44}" fill="none" stroke="${lane.stroke}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`
+              : index === 3
+                ? `<circle cx="${lane.x + 80}" cy="${lane.y + 50}" r="33" fill="#ffffff" fill-opacity="0.72" stroke="${lane.stroke}" stroke-width="5"/><path d="M${lane.x + 62} ${lane.y + 60} C${lane.x + 72} ${lane.y + 38} ${lane.x + 90} ${lane.y + 38} ${lane.x + 100} ${lane.y + 60}" fill="none" stroke="${lane.stroke}" stroke-width="6" stroke-linecap="round"/>`
+                : `<path d="M${lane.x + 54} ${lane.y + 50} H${lane.x + 104}" stroke="${lane.stroke}" stroke-width="8" stroke-linecap="round"/><path d="M${lane.x + 82} ${lane.y + 28} L${lane.x + 108} ${lane.y + 50} L${lane.x + 82} ${lane.y + 72}" fill="none" stroke="${lane.stroke}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`
+
+      return `
+        <g>
+          <rect x="${lane.x}" y="${lane.y}" width="${lane.w}" height="98" rx="30" fill="${lane.fill}" fill-opacity="0.94" stroke="${lane.stroke}" stroke-width="3"/>
+          <rect x="${lane.x}" y="${lane.y}" width="20" height="98" rx="10" fill="${lane.stroke}"/>
+          <circle cx="${lane.x + 42}" cy="${lane.y + 49}" r="22" fill="${lane.stroke}"/>
+          <text x="${lane.x + 35}" y="${lane.y + 58}" font-family="${SVG_FONT_FAMILY}" font-size="23" font-weight="900" fill="#ffffff">${index + 1}</text>
+          ${icon}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="820" rx="54" fill="${palette.dark}" fill-opacity="0.92"/>
+      <rect x="112" y="652" width="1056" height="756" rx="44" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-width="2" stroke-opacity="0.16"/>
+      <path d="M154 1302 C300 1118 470 1212 640 988 C804 772 954 824 1120 708" fill="none" stroke="${palette.mid}" stroke-width="24" stroke-linecap="round" opacity="0.30"/>
+      <path d="M186 770 C342 928 446 792 640 980 C808 1142 940 1052 1100 1218" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" opacity="0.10"/>
+      ${laneSvg}
+      <circle cx="1028" cy="742" r="84" fill="#ffffff" fill-opacity="0.12" stroke="#ffffff" stroke-width="3" stroke-opacity="0.16"/>
+      <circle cx="1036" cy="1300" r="110" fill="${palette.mid}" fill-opacity="0.12" stroke="#ffffff" stroke-width="3" stroke-opacity="0.14"/>
+      <rect x="170" y="1354" width="940" height="54" rx="20" fill="#ffffff" fill-opacity="0.18"/>
+      <path d="M226 1381 H1054" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.25"/>
+    </g>
+  `
+}
+
+function renderElderlyParentUrgentBoundaryBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const markers = [
+    { x: 136, y: 730, w: 430, stroke: "#be3455", fill: "#ffe7ee" },
+    { x: 696, y: 824, w: 420, stroke: "#f2b94b", fill: "#fff3d4" },
+    { x: 222, y: 942, w: 410, stroke: "#be3455", fill: "#ffe7ee" },
+    { x: 712, y: 1064, w: 424, stroke: "#be3455", fill: "#ffe7ee" },
+    { x: 338, y: 1192, w: 452, stroke: "#a16207", fill: "#fff9eb" },
+  ]
+
+  const markerSvg = labels
+    .slice(0, 5)
+    .map((label, index) => {
+      const marker = markers[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: marker.x + 116,
+        y: marker.y + 28,
+        width: marker.w - 154,
+        size: 30,
+        weight: 900,
+        color: palette.text,
+        lineHeight: 34,
+        maxLines: 2,
+      })
+      const icon =
+        index === 0
+          ? `<circle cx="${marker.x + 72}" cy="${marker.y + 47}" r="30" fill="#ffffff" fill-opacity="0.76" stroke="${marker.stroke}" stroke-width="5"/><path d="M${marker.x + 56} ${marker.y + 47} H${marker.x + 88} M${marker.x + 72} ${marker.y + 31} V${marker.y + 63}" stroke="${marker.stroke}" stroke-width="6" stroke-linecap="round"/>`
+          : index === 1
+            ? `<path d="M${marker.x + 44} ${marker.y + 60} C${marker.x + 60} ${marker.y + 30} ${marker.x + 90} ${marker.y + 30} ${marker.x + 108} ${marker.y + 60}" fill="none" stroke="${marker.stroke}" stroke-width="7" stroke-linecap="round"/><path d="M${marker.x + 58} ${marker.y + 36} L${marker.x + 104} ${marker.y + 68}" stroke="${marker.stroke}" stroke-width="7" stroke-linecap="round" opacity="0.70"/>`
+            : index === 2
+              ? `<path d="M${marker.x + 44} ${marker.y + 48} H${marker.x + 110}" stroke="${marker.stroke}" stroke-width="8" stroke-linecap="round"/><path d="M${marker.x + 78} ${marker.y + 24} L${marker.x + 112} ${marker.y + 48} L${marker.x + 78} ${marker.y + 72}" fill="none" stroke="${marker.stroke}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`
+              : index === 3
+                ? `<path d="M${marker.x + 48} ${marker.y + 35} C${marker.x + 64} ${marker.y + 18} ${marker.x + 100} ${marker.y + 18} ${marker.x + 116} ${marker.y + 35} C${marker.x + 126} ${marker.y + 56} ${marker.x + 110} ${marker.y + 78} ${marker.x + 82} ${marker.y + 78} C${marker.x + 54} ${marker.y + 78} ${marker.x + 38} ${marker.y + 56} ${marker.x + 48} ${marker.y + 35} Z" fill="#ffffff" fill-opacity="0.72" stroke="${marker.stroke}" stroke-width="5"/>`
+                : `<path d="M${marker.x + 54} ${marker.y + 24} H${marker.x + 104} L${marker.x + 94} ${marker.y + 74} H${marker.x + 44} Z" fill="#ffffff" fill-opacity="0.72" stroke="${marker.stroke}" stroke-width="5"/><path d="M${marker.x + 64} ${marker.y + 49} H${marker.x + 90}" stroke="${marker.stroke}" stroke-width="6" stroke-linecap="round"/>`
+
+      return `
+        <g>
+          <rect x="${marker.x}" y="${marker.y}" width="${marker.w}" height="96" rx="30" fill="${marker.fill}" fill-opacity="0.94" stroke="${marker.stroke}" stroke-width="3"/>
+          <rect x="${marker.x}" y="${marker.y}" width="20" height="96" rx="10" fill="${marker.stroke}"/>
+          <circle cx="${marker.x + 38}" cy="${marker.y + 48}" r="22" fill="${marker.stroke}"/>
+          <text x="${marker.x + 31}" y="${marker.y + 57}" font-family="${SVG_FONT_FAMILY}" font-size="23" font-weight="900" fill="#ffffff">${index + 1}</text>
+          ${icon}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="820" rx="54" fill="${palette.dark}" fill-opacity="0.92"/>
+      <rect x="112" y="652" width="1056" height="756" rx="44" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-width="2" stroke-opacity="0.16"/>
+      <path d="M132 1308 C310 1224 474 1060 640 948 C814 830 962 766 1130 694" fill="none" stroke="#ffffff" stroke-width="32" stroke-linecap="round" opacity="0.09"/>
+      <path d="M150 1274 C322 1206 470 1054 640 938 C812 824 958 764 1120 700" fill="none" stroke="${palette.mid}" stroke-width="14" stroke-linecap="round" opacity="0.40"/>
+      <path d="M1082 680 L1124 698 L1092 732" fill="none" stroke="${palette.mid}" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" opacity="0.50"/>
+      ${markerSvg}
+      <circle cx="184" cy="710" r="90" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-width="3" stroke-opacity="0.14"/>
+      <circle cx="1070" cy="1310" r="112" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-width="3" stroke-opacity="0.14"/>
+      <rect x="174" y="1352" width="932" height="58" rx="22" fill="#ffffff" fill-opacity="0.18"/>
+      <path d="M230 1381 H1050" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.28"/>
+    </g>
+  `
+}
+
 function renderTelehealthPolicyCompositeBody(visual: ArticleVisual, palette: Palette): string {
   if (visual.id === "first-telehealth-prep-map") return renderFirstTelehealthPrepBody(visual, palette)
   if (visual.id === "first-telehealth-what-happens") return renderFirstTelehealthRouteBody(visual, palette)
@@ -2272,6 +2483,9 @@ function renderTelehealthPolicyCompositeBody(visual: ArticleVisual, palette: Pal
   if (visual.id === "telehealth-prep-signal-map") return renderPrepSignalMapBody(visual, palette)
   if (visual.id === "telehealth-prep-environment-readiness") return renderPrepEnvironmentReadinessBody(visual, palette)
   if (visual.id === "telehealth-prep-aftercare-loop") return renderPrepAftercareLoopBody(visual, palette)
+  if (visual.id === "elderly-parent-consent-support-map") return renderElderlyParentConsentSupportBody(visual, palette)
+  if (visual.id === "elderly-parent-medicine-context-map") return renderElderlyParentMedicineContextBody(visual, palette)
+  if (visual.id === "elderly-parent-urgent-boundary-map") return renderElderlyParentUrgentBoundaryBody(visual, palette)
   if (visual.id === "telehealth-definition-map" || visual.id === "telehealth-consultation-channel-map") {
     return renderTelehealthDefinitionBody(visual, palette)
   }
