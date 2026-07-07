@@ -3,6 +3,8 @@
  * Centralized place for all app-wide constants
  */
 
+import { resolveConfiguredUrl } from "./resolve-configured-url"
+
 export const APP_NAME = "InstantMed"
 export const APP_DESCRIPTION =
   "Get medical certificates and prescriptions online from AHPRA-registered Australian doctors."
@@ -52,10 +54,15 @@ export const GOOGLE_REVIEW_URL = "https://g.page/r/CWqy3A7IKcX6EAE/review"
  * display, count, rate, quote, or schema-mark any review on our own surfaces —
  * the s133 line (ADVERTISING_COMPLIANCE.md §6).
  */
-export const PRODUCTREVIEW_REVIEW_URL =
-  process.env.PRODUCTREVIEW_REVIEW_URL ||
-  "https://www.productreview.com.au/listings/instantmed/write-review?collectionMethod[internalGroupIdentifier]=write_review_link&collectionMethod[solicitorType]=brand"
-export const TRUSTPILOT_REVIEW_URL = process.env.TRUSTPILOT_REVIEW_URL || ""
+// resolveConfiguredUrl (not `|| default`) so a placeholder/invalid env value —
+// e.g. PRODUCTREVIEW_REVIEW_URL set to example.com in Vercel, the 2026-07-06
+// incident — is ignored in favour of the correct default instead of silently
+// shipping a dead link. `|| default` only catches an EMPTY value.
+export const PRODUCTREVIEW_REVIEW_URL = resolveConfiguredUrl(
+  process.env.PRODUCTREVIEW_REVIEW_URL,
+  "https://www.productreview.com.au/listings/instantmed/write-review?collectionMethod[internalGroupIdentifier]=write_review_link&collectionMethod[solicitorType]=brand",
+)
+export const TRUSTPILOT_REVIEW_URL = resolveConfiguredUrl(process.env.TRUSTPILOT_REVIEW_URL, "")
 
 /** Pick the day-2 review destination. monthIndex = new Date().getUTCMonth(). */
 export function getRotatingReviewUrl(monthIndex: number): string {

@@ -59,19 +59,80 @@ export interface AttributionData {
   captured_at?: string
 }
 
+const ATTRIBUTION_DATA_KEYS = [
+  ...CLICK_IDS,
+  ...UTM_PARAMS,
+  ...GOOGLE_ADS_VALUE_TRACK_PARAMS,
+  "referrer",
+  "landing_page",
+  "captured_at",
+] as const satisfies ReadonlyArray<keyof AttributionData>
+
+function compactAttribution(data?: AttributionData | null): AttributionData {
+  const compact: AttributionData = {}
+  if (!data) return compact
+
+  for (const key of ATTRIBUTION_DATA_KEYS) {
+    const value = data[key]
+    if (typeof value !== "string") continue
+
+    const trimmed = value.trim()
+    if (trimmed) compact[key] = trimmed
+  }
+
+  return compact
+}
+
+function hasAttributionValue(data: AttributionData): boolean {
+  return ATTRIBUTION_DATA_KEYS.some((key) => Boolean(data[key]))
+}
+
+function capturedAtMs(data: AttributionData): number {
+  const parsed = Date.parse(data.captured_at ?? "")
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+function parseStoredAttribution(raw: string | null): AttributionData | null {
+  if (!raw) return null
+
+  try {
+    return compactAttribution(JSON.parse(raw) as AttributionData)
+  } catch {
+    return null
+  }
+}
+
+export function mergeAttributionByRecency(
+  ...sources: Array<AttributionData | null | undefined>
+): AttributionData {
+  const compactSources = sources
+    .map((source) => compactAttribution(source))
+    .filter(hasAttributionValue)
+    .sort((a, b) => capturedAtMs(a) - capturedAtMs(b))
+
+  return compactSources.reduce<AttributionData>(
+    (merged, source) => ({ ...merged, ...source }),
+    {},
+  )
+}
+
 function readStoredAttribution(): AttributionData {
   if (typeof window === "undefined") return {}
 
+  const sources: AttributionData[] = []
+
   try {
     const raw = sessionStorage.getItem(ATTRIBUTION_STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as AttributionData
+    const parsed = parseStoredAttribution(raw)
+    if (parsed) sources.push(parsed)
   } catch {
     // sessionStorage can be unavailable in privacy-restricted contexts.
   }
 
   try {
     const raw = localStorage.getItem(ATTRIBUTION_STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as AttributionData
+    const parsed = parseStoredAttribution(raw)
+    if (parsed) sources.push(parsed)
   } catch {
     // localStorage can be unavailable in privacy-restricted contexts.
   }
@@ -82,10 +143,15 @@ function readStoredAttribution(): AttributionData {
       .split("; ")
       .find((part) => part.startsWith(cookiePrefix))
       ?.slice(cookiePrefix.length)
-    return rawCookie ? (JSON.parse(decodeURIComponent(rawCookie)) as AttributionData) : {}
+    const parsed = rawCookie
+      ? parseStoredAttribution(decodeURIComponent(rawCookie))
+      : null
+    if (parsed) sources.push(parsed)
   } catch {
-    return {}
+    // Cookie can be unavailable or malformed; storage sources may still exist.
   }
+
+  return mergeAttributionByRecency(...sources)
 }
 
 function writeStoredAttribution(data: AttributionData): void {

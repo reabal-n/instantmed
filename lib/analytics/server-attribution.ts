@@ -5,6 +5,7 @@ import { cookies } from "next/headers"
 import {
   ATTRIBUTION_COOKIE_KEY,
   type AttributionData,
+  mergeAttributionByRecency,
 } from "@/lib/analytics/attribution"
 
 const ATTRIBUTION_TEXT_LIMITS: Record<keyof AttributionData, number> = {
@@ -63,8 +64,10 @@ export async function resolveCheckoutAttribution(
   clientAttribution?: AttributionData | null,
 ): Promise<AttributionData> {
   const cookieAttribution = await getAttributionCookie()
-  return normalizeAttribution({
-    ...cookieAttribution,
-    ...normalizeAttribution(clientAttribution),
-  })
+  return normalizeAttribution(
+    mergeAttributionByRecency(
+      cookieAttribution,
+      normalizeAttribution(clientAttribution),
+    ),
+  )
 }
