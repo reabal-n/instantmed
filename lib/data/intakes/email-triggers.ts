@@ -1,5 +1,6 @@
 import "server-only"
 
+import { env } from "@/lib/config/env"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -14,7 +15,7 @@ export async function triggerStatusEmail(
   status: string,
   _reviewedBy?: string
 ): Promise<void> {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+  const appUrl = env.appUrl
   const internalSecret = process.env.INTERNAL_API_SECRET
 
   if (!internalSecret) {

@@ -2,7 +2,14 @@ import "server-only"
 
 import { z } from "zod"
 
-import { COMPANY_NAME, CONTACT_EMAIL, CONTACT_EMAIL_ADMIN } from "@/lib/constants"
+import {
+  COMPANY_NAME,
+  CONTACT_EMAIL,
+  CONTACT_EMAIL_ADMIN,
+  DEFAULT_APP_URL,
+  LOCAL_APP_URL,
+} from "@/lib/constants"
+import { resolveConfiguredUrl } from "@/lib/constants/resolve-configured-url"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("env")
@@ -359,14 +366,11 @@ export function isAdminEmail(email: string): boolean {
  * Uses NEXT_PUBLIC_APP_URL or falls back to NEXT_PUBLIC_SITE_URL
  */
 export function getAppUrl(): string {
-  const url = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL
-  if (!url) {
-    // Fallback for development
-    if (process.env.NODE_ENV === "development") {
-      return "http://localhost:3000"
-    }
-    throw new Error("Missing NEXT_PUBLIC_APP_URL environment variable")
-  }
+  const fallback = process.env.NODE_ENV === "development" ? LOCAL_APP_URL : DEFAULT_APP_URL
+  const url = resolveConfiguredUrl(
+    process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL,
+    fallback,
+  )
   // Remove trailing slash
   return url.replace(/\/$/, "")
 }

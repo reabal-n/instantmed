@@ -8,6 +8,7 @@
 import * as React from "react"
 
 import {
+  APP_URL,
   BaseEmail,
   Button,
   HeroBlock,
@@ -46,7 +47,7 @@ export function MedCertPatientEmail({
   dashboardUrl,
   verificationCode,
   certType: _certType = "work",
-  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  appUrl = APP_URL,
   isGuest = false,
   heardToken,
   intakeId,

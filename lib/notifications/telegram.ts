@@ -2,6 +2,8 @@ import "server-only"
 
 import { createHmac, timingSafeEqual } from "crypto"
 
+import { env } from "@/lib/config/env"
+import { resolveConfiguredUrl } from "@/lib/constants/resolve-configured-url"
 import { buildDoctorIntakeHref } from "@/lib/dashboard/routes"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -12,6 +14,9 @@ const TELEGRAM_API = "https://api.telegram.org"
 function getToken() { return process.env.TELEGRAM_BOT_TOKEN }
 function getChatId() { return process.env.TELEGRAM_CHAT_ID }
 function getActionSigningSecret() { return process.env.TELEGRAM_ACTION_SIGNING_SECRET }
+function getNotificationAppUrl(override?: string): string {
+  return resolveConfiguredUrl(override, env.appUrl).replace(/\/$/, "")
+}
 
 class TelegramSendError extends Error {
   constructor(message: string) {
@@ -193,7 +198,7 @@ async function sendGenericNotification(
   token: string,
   chatId: string,
 ): Promise<NotifyNewIntakeResult> {
-  const appUrl = opts.appUrl || process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+  const appUrl = getNotificationAppUrl(opts.appUrl)
   const reviewUrl = `${appUrl}${buildDoctorIntakeHref(opts.intakeId)}`
   const title = buildTitle({
     serviceSlug: opts.serviceSlug,
@@ -236,7 +241,7 @@ async function sendMedCertNotification(
   token: string,
   chatId: string,
 ): Promise<NotifyNewIntakeResult> {
-  const appUrl = opts.appUrl || process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+  const appUrl = getNotificationAppUrl(opts.appUrl)
 
   const reviewUrl = `${appUrl}${buildDoctorIntakeHref(opts.intakeId)}`
   const buttons: Array<{ text: string; callback_data?: string; url?: string }> = [
@@ -482,7 +487,7 @@ export async function sendTelegramTestAlert(
     throw new TelegramSendError(`Telegram test alert is not configured: missing ${missing}`)
   }
 
-  const appUrl = opts.appUrl || process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+  const appUrl = getNotificationAppUrl(opts.appUrl)
   const text = [
     "InstantMed ops test alert",
     "",

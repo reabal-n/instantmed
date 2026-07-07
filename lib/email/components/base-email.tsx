@@ -10,7 +10,8 @@
 
 import * as React from "react"
 
-import { ABN, COMPANY_ADDRESS_SHORT,COMPANY_NAME } from "@/lib/constants"
+import { ABN, APP_URL, COMPANY_ADDRESS_SHORT, COMPANY_NAME } from "@/lib/constants"
+import { resolveConfiguredUrl } from "@/lib/constants/resolve-configured-url"
 import { getPatientCount } from "@/lib/social-proof"
 
 import { colors, fontFamily } from "./email-primitives"
@@ -18,6 +19,8 @@ import { HeardAboutUsLinks } from "./heard-about-us-links"
 import { GoogleReviewCTA, ReferralCTA } from "./review-cta"
 
 /* eslint-disable @next/next/no-head-element -- Email templates, not Next.js pages */
+
+export { APP_URL }
 
 // Placeholder replaced by sendEmail() / sendFromOutboxRow() with a signed preference-center URL.
 // Using a data-URI-safe literal that can't collide with real content.
@@ -43,7 +46,8 @@ interface BaseEmailProps {
   heardToken?: string
 }
 
-export function BaseEmail({ children, previewText, appUrl = "https://instantmed.com.au", showReviewCTA = false, showReferral = false, intakeId, userId, heardToken }: BaseEmailProps) {
+export function BaseEmail({ children, previewText, appUrl = APP_URL, showReviewCTA = false, showReferral = false, intakeId, userId, heardToken }: BaseEmailProps) {
+  const resolvedAppUrl = resolveConfiguredUrl(appUrl, APP_URL).replace(/\/$/, "")
   const patientFloor = Math.max(500, Math.floor(getPatientCount() / 500) * 500)
   return (
     <html lang="en-AU" style={{ colorScheme: "light dark" }}>
@@ -171,7 +175,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                         }}
                       >
                         <a
-                          href={appUrl}
+                          href={resolvedAppUrl}
                           style={{
                             textDecoration: "none",
                             display: "inline-block",
@@ -183,7 +187,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                                 <td style={{ verticalAlign: "middle", paddingRight: "10px" }}>
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img
-                                    src={`${appUrl}/branding/logo.png`}
+                                    src={`${resolvedAppUrl}/branding/logo.png`}
                                     alt="InstantMed"
                                     width="36"
                                     height="36"
@@ -200,7 +204,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                                 <td style={{ verticalAlign: "middle" }}>
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img
-                                    src={`${appUrl}/branding/wordmark.png`}
+                                    src={`${resolvedAppUrl}/branding/wordmark.png`}
                                     alt=""
                                     width="130"
                                     height="auto"
@@ -237,9 +241,9 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                         }}
                       >
                         {children}
-                        {showReviewCTA && <GoogleReviewCTA appUrl={appUrl} intakeId={intakeId} userId={userId} />}
-                        {heardToken && <HeardAboutUsLinks appUrl={appUrl} token={heardToken} />}
-                        {showReferral && <ReferralCTA appUrl={appUrl} />}
+                        {showReviewCTA && <GoogleReviewCTA appUrl={resolvedAppUrl} intakeId={intakeId} userId={userId} />}
+                        {heardToken && <HeardAboutUsLinks appUrl={resolvedAppUrl} token={heardToken} />}
+                        {showReferral && <ReferralCTA appUrl={resolvedAppUrl} />}
                       </td>
                     </tr>
 
@@ -266,11 +270,11 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                                     fontFamily,
                                   }}
                                 >
-                                  <a href={`${appUrl}/privacy`} style={{ color: colors.textSecondary, textDecoration: "none" }}>
+                                  <a href={`${resolvedAppUrl}/privacy`} style={{ color: colors.textSecondary, textDecoration: "none" }}>
                                     Privacy
                                   </a>
                                   <span style={{ margin: "0 8px", color: colors.border }}>·</span>
-                                  <a href={`${appUrl}/terms`} style={{ color: colors.textSecondary, textDecoration: "none" }}>
+                                  <a href={`${resolvedAppUrl}/terms`} style={{ color: colors.textSecondary, textDecoration: "none" }}>
                                     Terms
                                   </a>
                                   <span style={{ margin: "0 8px", color: colors.border }}>·</span>
@@ -630,5 +634,5 @@ export function HeroBlock({ icon, headline, subtitle, variant = "info" }: HeroBl
 // Re-export extracted modules so existing `import { X } from "…/base-email"` still works
 export { colors, fontFamily } from "./email-primitives"
 export { NameFirstGreeting } from "./name-first-greeting"
-export { GoogleReviewCTA, ReferralCTA,ReviewHero } from "./review-cta"
+export { GoogleReviewCTA, ReferralCTA, ReviewHero } from "./review-cta"
 export { VerificationCode } from "./verification-code"

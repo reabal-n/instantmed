@@ -61,7 +61,7 @@ export function injectUnsubscribeUrl(
   unsubscribeEmail?: string,
 ): string {
   if (!html.includes(UNSUBSCRIBE_PLACEHOLDER)) return html
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+  const appUrl = env.appUrl
   let url = `${appUrl}/account?tab=notifications`
   try {
     if (patientId) {

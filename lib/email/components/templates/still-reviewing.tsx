@@ -8,6 +8,7 @@
 import * as React from "react"
 
 import {
+  APP_URL,
   BaseEmail,
   Box,
   Button,
@@ -27,7 +28,7 @@ export function StillReviewingEmail({
   patientName,
   requestType,
   requestId,
-  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  appUrl = APP_URL,
 }: StillReviewingEmailProps) {
   const firstName = patientName.split(" ")[0]
 

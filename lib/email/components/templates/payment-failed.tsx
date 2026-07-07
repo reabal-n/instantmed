@@ -1,4 +1,5 @@
 import {
+  APP_URL,
   BaseEmail,
   Box,
   Button,
@@ -28,7 +29,7 @@ export function PaymentFailedEmail({
   serviceName,
   failureReason,
   retryUrl,
-  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  appUrl = APP_URL,
 }: PaymentFailedEmailProps) {
   const firstName = patientName.split(" ")[0]
 

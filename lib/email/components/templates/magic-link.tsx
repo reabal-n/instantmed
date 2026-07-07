@@ -7,7 +7,7 @@
 
 import * as React from "react"
 
-import { BaseEmail, Box, Button, colors, fontFamily, NameFirstGreeting, Text } from "../base-email"
+import { APP_URL, BaseEmail, Box, Button, colors, fontFamily, NameFirstGreeting, Text } from "../base-email"
 
 export interface MagicLinkEmailProps {
   loginUrl: string
@@ -54,7 +54,7 @@ function getCopy(actionType: MagicLinkEmailProps["actionType"]) {
 
 export function MagicLinkEmail({
   loginUrl,
-  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  appUrl = APP_URL,
   actionType = "magiclink",
   firstName,
 }: MagicLinkEmailProps) {

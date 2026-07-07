@@ -7,9 +7,10 @@
 
 import * as React from "react"
 
-import { ABN,COMPANY_NAME } from "@/lib/constants"
+import { ABN, COMPANY_NAME } from "@/lib/constants"
 
 import {
+  APP_URL,
   BaseEmail,
   Button,
   colors,
@@ -41,7 +42,7 @@ export function RequestReceivedEmail({
   requestId,
   isGuest,
   paidAt,
-  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  appUrl = APP_URL,
 }: RequestReceivedEmailProps) {
   const firstName = patientName.split(" ")[0]
   const dateStr = paidAt || new Date().toLocaleDateString("en-AU", {

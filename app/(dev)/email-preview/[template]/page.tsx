@@ -9,7 +9,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import * as React from "react"
 
-import { COMPANY_NAME,CONTACT_EMAIL_NOREPLY } from "@/lib/constants"
+import { COMPANY_NAME, CONTACT_EMAIL_NOREPLY, LOCAL_APP_URL } from "@/lib/constants"
 import { canAccessDevOnlyRoute } from "@/lib/dev-only-routes"
 import { AbandonedCheckoutEmail, abandonedCheckoutSubject } from "@/lib/email/components/templates/abandoned-checkout"
 import { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "@/lib/email/components/templates/abandoned-checkout-followup"
@@ -38,15 +38,15 @@ export const dynamic = "force-dynamic"
 
 // ── Mock data ──
 const mock = {
-  appUrl: "http://localhost:3000",
+  appUrl: LOCAL_APP_URL,
   patientName: "Sarah Johnson",
-  dashboardUrl: "http://localhost:3000/patient/intakes/abc-123",
+  dashboardUrl: `${LOCAL_APP_URL}/patient/intakes/abc-123`,
   verificationCode: "MC-ABC123-XYZ",
   requestId: "abc-123",
   escriptReference: "ES-2024-001234",
   employerName: "John Smith",
   companyName: "Acme Corporation",
-  downloadUrl: "http://localhost:3000/api/download/secure-token-xyz",
+  downloadUrl: `${LOCAL_APP_URL}/api/download/secure-token-xyz`,
   certStartDate: "26 January 2026",
   certEndDate: "28 January 2026",
   patientNote: "Please find my medical certificate attached. Let me know if you need anything else.",

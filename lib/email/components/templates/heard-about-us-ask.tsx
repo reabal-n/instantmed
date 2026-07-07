@@ -8,7 +8,7 @@
 
 import * as React from "react"
 
-import { BaseEmail, Text } from "../base-email"
+import { APP_URL, BaseEmail, Text } from "../base-email"
 import { HeardAboutUsLinks } from "../heard-about-us-links"
 
 export interface HeardAboutUsAskEmailProps {
@@ -21,7 +21,7 @@ export const heardAboutUsAskSubject = "Quick question. How did you find us? 👋
 
 export function HeardAboutUsAskEmail({
   patientName,
-  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  appUrl = APP_URL,
   heardToken,
 }: HeardAboutUsAskEmailProps) {
   const firstName = patientName.split(" ")[0]

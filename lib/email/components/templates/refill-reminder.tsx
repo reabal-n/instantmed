@@ -9,7 +9,7 @@
 
 import * as React from "react"
 
-import { BaseEmail, Button, Text } from "../base-email"
+import { APP_URL, BaseEmail, Button, Text } from "../base-email"
 
 export interface RefillReminderEmailProps {
   patientName: string
@@ -23,7 +23,7 @@ export const refillReminderSubject = "Running low? Reorder in a couple of minute
 export function RefillReminderEmail({
   patientName,
   medicationName,
-  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  appUrl = APP_URL,
   reorderUrl,
 }: RefillReminderEmailProps) {
   const firstName = patientName.split(" ")[0] || "there"
