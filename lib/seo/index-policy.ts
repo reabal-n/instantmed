@@ -50,6 +50,7 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "can-employer-reject-medical-certificate",
   "sick-leave-rights-australia",
   "telehealth-vs-gp-australia",
+  "what-is-telehealth",
   "how-to-verify-online-doctor",
   "sildenafil-vs-tadalafil",
   "finasteride-vs-minoxidil-hair-loss",

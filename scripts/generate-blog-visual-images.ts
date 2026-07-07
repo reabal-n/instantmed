@@ -727,6 +727,13 @@ function getArtDirectionPrompt(slug: string, visual: ArticleVisual, format: Visu
     ].join(" ")
   }
 
+  if (visual.articleType === "policy") {
+    return [
+      "Art direction: premium public-service systems diagram with clear route lines, abstract care nodes, signal checks, colour-zoned boundaries, and calm clinical texture.",
+      "Make the hierarchy specific and readable through pathways, decision thresholds, and governance checkpoints. Do not use anatomy, X-rays, scan fragments, body silhouettes, patient faces, doctor portraits, clinical-room scenes, or dense editorial collage unless the individual prompt explicitly asks for them.",
+    ].join(" ")
+  }
+
   if (format === "red-flag-warning") {
     return [
       "Art direction: premium emergency-triage editorial poster with full-bleed risk zoning, strong diagonal flow, layered silhouettes, luminous anatomical overlays, and sharp stop/escalate visual hierarchy.",
@@ -927,6 +934,23 @@ function buildGatewayPrompt(
 function buildGatewayCompositeUnderlayPrompt(slug: string, visual: ArticleVisual, styleShift = 0): string {
   const format = visual.visualFormat ?? getDefaultVisualFormat(visual.kind)
   const cleanedPrimaryRequest = sanitizeImagePrompt(visual.imagePrompt)
+  const isPolicyUnderlay = visual.articleType === "policy"
+
+  const underlayDirection = isPolicyUnderlay
+    ? [
+        "Your job is the background art field only. A production script will overlay the final title, labels, diagram modules, footer text, and official brand badge after generation.",
+        "Create a calm, premium public-health diagram underlay: matte colour fields, subtle route lines, quiet signal nodes, soft risk zones, print grain, and low-contrast technical texture.",
+        "Do not create a finished infographic. Do not draw cards, headings, section labels, legends, UI panels, dashboards, document pages, people, faces, anatomy, X-rays, scans, or any object that asks for text.",
+        "Composition requirement: keep the centre and lower-middle visually useful but restrained, with enough quiet space for deterministic overlay labels. Prefer three to five broad shapes over a dense collage.",
+        "Style requirement: editorial and authored, not Canva, SaaS clip art, or decorative stock. Avoid beige emptiness, childish icons, fake app screens, and clutter.",
+      ].join("\n")
+    : [
+        "Your job is the image field only. A production script will overlay all approved article copy, cards, footer text, and the official brand badge after generation.",
+        "Create an article-specific educational visual underlay using unlabeled diagrams, process arrows, comparison zones, warning hierarchy, texture, clinical iconography, and practical objects only when they teach the topic. Use body or anatomy shapes only when the individual article prompt explicitly requires anatomy.",
+        "Boring-output rejection rule: a simple phone, simple lung, door, checklist card, flag, single warning icon, isolated body silhouette, soft pastel blob, or two-to-three-symbol composition is an automatic failure. Do not make polite health-tech clip art.",
+        "Composition requirement: fill the portrait canvas with at least 7 distinct visual clusters, strong foreground/midground/background depth, diagonal or radial movement, and dense article-specific clinical cues around the overlay-safe areas. The viewer should feel there is useful visual information at the edges, behind the title area, and between the copy cards.",
+        "Style requirement: premium editorial, tactile, layered, specific, and memorable. Use richer contrast, controlled saturation, print grain, route lines, risk zones, and overlapping panels. Use cutaway anatomy only when the article prompt explicitly requires anatomy. Avoid beige emptiness and washed-out minimalism.",
+      ].join("\n")
 
   return [
     `Use case: ${format}`,
@@ -941,11 +965,7 @@ function buildGatewayCompositeUnderlayPrompt(slug: string, visual: ArticleVisual
     getInfographicLayoutPrompt(visual.kind),
     getArtDirectionPrompt(slug, visual, format, styleShift),
     "",
-    "Your job is the image field only. A production script will overlay all approved article copy, cards, footer text, and the official brand badge after generation.",
-    "Create an article-specific educational visual underlay using unlabeled diagrams, body/anatomy shapes, process arrows, comparison zones, warning hierarchy, texture, clinical iconography, and practical objects only when they teach the topic.",
-    "Boring-output rejection rule: a simple phone, simple lung, door, checklist card, flag, single warning icon, isolated body silhouette, soft pastel blob, or two-to-three-symbol composition is an automatic failure. Do not make polite health-tech clip art.",
-    "Composition requirement: fill the portrait canvas with at least 7 distinct visual clusters, strong foreground/midground/background depth, diagonal or radial movement, and dense article-specific clinical cues around the overlay-safe areas. The viewer should feel there is useful visual information at the edges, behind the title area, and between the copy cards.",
-    "Style requirement: premium editorial, tactile, layered, specific, and memorable. Use richer contrast, controlled saturation, print grain, scan texture, cutaway anatomy, route lines, risk zones, and overlapping panels. Avoid beige emptiness and washed-out minimalism.",
+    underlayDirection,
     "Hard visible-text rule: no readable words, letters, numbers, tables, fake UI, fake forms, captions, labels, badges, stamps, signatures, handwriting, prescription text, chart labels, or signage. The final asset must contain zero generated text.",
     "Avoid generic stock art, blank phone hero, blank document hero, medicine-box hero, desk flat lay, balance-scale metaphors, scenic landscapes, road/path metaphors, clinic-door metaphors, mountains, beaches, coastlines, ocean, city skylines, Australian maps, flags, landmarks, and decorative abstract blobs. The underlay still needs to be specific to the article.",
     "No identifiable people, no fake doctor faces, no doctor-patient consultation scene, no medical crosses, no pharmacy cross signs, no plus-sign shop signs, no pills, no tablets, no capsules, no pill blister packs, no medicine bottles as focal objects, no official seals, no logos, no medication brand names, no pill imprints, no gore, no graphic symptoms, no consultation CTA.",
@@ -979,8 +999,8 @@ function buildKiePrompt(
     "",
     "Quality bar:",
     "- Make it look like a proper patient handout or medical-education diagram, not a decorative poster.",
-    "- It must teach one clear idea from this article at a glance through anatomy, pathway logic, timelines, or decision boundaries.",
-    "- Use clear diagram structure, exact labels, directional arrows, cutaway scalp/follicle illustrations, visual comparison logic, and generous spacing.",
+    "- It must teach one clear idea from this article at a glance through pathway logic, timelines, decision boundaries, mechanism diagrams, or anatomy only when the article prompt explicitly asks for anatomy.",
+    "- Use clear diagram structure, exact labels, directional arrows, visual comparison logic, and generous spacing. Do not add anatomy, body parts, skin cutaways, organs, X-rays, or scans unless the individual article prompt explicitly requires them.",
     "- The visual information should be useful even if the reader only scans it for five seconds.",
     "- Avoid sterile SaaS illustration, generic stock art, desk flat lays, medicine boxes, pills, blank documents, phone mockups, warning icon rows, abstract blob decoration, lifestyle filler, scenic Australia, or anything reusable across unrelated articles.",
     "",
@@ -1118,7 +1138,322 @@ function renderArticleVisualSvg(slug: string, visual: ArticleVisual): string {
   `
 }
 
+function isTelehealthPolicyCompositeVisual(visual: ArticleVisual): boolean {
+  return (
+    visual.id === "telehealth-definition-map" ||
+    visual.id === "telehealth-care-workflow" ||
+    visual.id === "telehealth-suitability-boundary"
+  )
+}
+
+function renderCompositeUnderlayWashSvg(visual: ArticleVisual): string {
+  const palette = palettes[visual.accent]
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
+      <defs>
+        <radialGradient id="washGlow" cx="72%" cy="40%" r="76%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.74"/>
+          <stop offset="46%" stop-color="${palette.wash}" stop-opacity="0.82"/>
+          <stop offset="100%" stop-color="${palette.light}" stop-opacity="0.90"/>
+        </radialGradient>
+        <linearGradient id="washFade" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.72"/>
+          <stop offset="58%" stop-color="${palette.wash}" stop-opacity="0.78"/>
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0.86"/>
+        </linearGradient>
+      </defs>
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#washGlow)"/>
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#washFade)"/>
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="${palette.wash}" fill-opacity="0.34"/>
+    </svg>
+  `
+}
+
+function renderMiniGlyph(kind: "video" | "phone" | "form" | "review" | "identity" | "consent" | "history" | "outcome", x: number, y: number, palette: Palette) {
+  if (kind === "video") {
+    return `
+      <rect x="${x}" y="${y}" width="74" height="54" rx="16" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <path d="M${x + 30} ${y + 17} L${x + 30} ${y + 38} L${x + 49} ${y + 27} Z" fill="${palette.dark}" opacity="0.88"/>
+    `
+  }
+
+  if (kind === "phone") {
+    return `
+      <path d="M${x + 18} ${y + 12} C${x + 2} ${y + 34} ${x + 10} ${y + 66} ${x + 42} ${y + 80} C${x + 56} ${y + 86} ${x + 72} ${y + 82} ${x + 80} ${y + 68} L${x + 62} ${y + 55} C${x + 56} ${y + 61} ${x + 50} ${y + 62} ${x + 42} ${y + 58} C${x + 30} ${y + 52} ${x + 25} ${y + 40} ${x + 29} ${y + 29} C${x + 31} ${y + 21} ${x + 36} ${y + 16} ${x + 43} ${y + 12} L${x + 28} ${y - 2} C${x + 24} ${y + 1} ${x + 21} ${y + 6} ${x + 18} ${y + 12} Z" fill="${palette.mid}" opacity="0.86"/>
+      <path d="M${x + 68} ${y + 12} C${x + 84} ${y + 28} ${x + 91} ${y + 48} ${x + 84} ${y + 70}" fill="none" stroke="${palette.dark}" stroke-width="5" stroke-linecap="round" opacity="0.42"/>
+    `
+  }
+
+  if (kind === "form") {
+    return `
+      <rect x="${x + 10}" y="${y}" width="70" height="84" rx="16" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <path d="M${x + 28} ${y + 26} H${x + 62} M${x + 28} ${y + 44} H${x + 58} M${x + 28} ${y + 62} H${x + 52}" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="${x + 70}" cy="${y + 66}" r="18" fill="${palette.dark}"/>
+      <path d="M${x + 61} ${y + 66} L${x + 69} ${y + 74} L${x + 82} ${y + 56}" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    `
+  }
+
+  if (kind === "review") {
+    return `
+      <circle cx="${x + 44}" cy="${y + 44}" r="42" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <path d="M${x + 18} ${y + 45} H${x + 70}" stroke="${palette.dark}" stroke-width="7" stroke-linecap="round"/>
+      <path d="M${x + 45} ${y + 20} V${y + 70}" stroke="${palette.dark}" stroke-width="7" stroke-linecap="round" opacity="0.42"/>
+      <circle cx="${x + 44}" cy="${y + 44}" r="12" fill="${palette.dark}"/>
+    `
+  }
+
+  if (kind === "identity") {
+    return `
+      <rect x="${x + 8}" y="${y + 6}" width="78" height="64" rx="18" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <circle cx="${x + 36}" cy="${y + 34}" r="11" fill="${palette.dark}" opacity="0.82"/>
+      <path d="M${x + 21} ${y + 58} C${x + 26} ${y + 46} ${x + 47} ${y + 46} ${x + 52} ${y + 58}" fill="none" stroke="${palette.dark}" stroke-width="5" stroke-linecap="round" opacity="0.82"/>
+      <path d="M${x + 60} ${y + 30} H${x + 74} M${x + 60} ${y + 48} H${x + 76}" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+    `
+  }
+
+  if (kind === "consent") {
+    return `
+      <circle cx="${x + 44}" cy="${y + 42}" r="39" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <path d="M${x + 25} ${y + 43} L${x + 40} ${y + 58} L${x + 66} ${y + 26}" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    `
+  }
+
+  if (kind === "history") {
+    return `
+      <path d="M${x + 12} ${y + 28} C${x + 28} ${y + 6} ${x + 62} ${y + 6} ${x + 78} ${y + 28} C${x + 92} ${y + 48} ${x + 80} ${y + 78} ${x + 44} ${y + 84} C${x + 8} ${y + 78} ${x - 4} ${y + 48} ${x + 12} ${y + 28} Z" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4"/>
+      <path d="M${x + 24} ${y + 35} H${x + 66} M${x + 28} ${y + 52} H${x + 62} M${x + 35} ${y + 68} H${x + 55}" stroke="${palette.dark}" stroke-width="5" stroke-linecap="round" opacity="0.78"/>
+    `
+  }
+
+  return `
+    <path d="M${x + 18} ${y + 18} H${x + 74} V${y + 72} H${x + 18} Z" fill="${palette.light}" stroke="${palette.mid}" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M${x + 30} ${y + 45} L${x + 42} ${y + 57} L${x + 66} ${y + 29}" fill="none" stroke="${palette.dark}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M${x + 76} ${y + 44} H${x + 104}" stroke="${palette.dark}" stroke-width="6" stroke-linecap="round" opacity="0.42"/>
+  `
+}
+
+function renderTelehealthNode(label: string, x: number, y: number, width: number, palette: Palette, glyph: string, index: number) {
+  const text = textBlock({
+    text: label,
+    x: x + 112,
+    y: y + 58,
+    width: width - 138,
+    size: 28,
+    weight: 850,
+    color: palette.text,
+    maxLines: 2,
+  })
+
+  return `
+    <g>
+      <rect x="${x}" y="${y}" width="${width}" height="126" rx="28" fill="#ffffff" fill-opacity="0.82" stroke="${palette.light}" stroke-width="2"/>
+      <circle cx="${x + 58}" cy="${y + 63}" r="37" fill="${palette.wash}" stroke="${palette.light}" stroke-width="2"/>
+      ${glyph}
+      <circle cx="${x + width - 36}" cy="${y + 34}" r="18" fill="${palette.dark}" opacity="0.92"/>
+      <text x="${x + width - 42}" y="${y + 43}" font-family="${SVG_FONT_FAMILY}" font-size="22" font-weight="900" fill="#ffffff">${index}</text>
+      ${text.svg}
+    </g>
+  `
+}
+
+function renderTelehealthDefinitionBody(visual: ArticleVisual, palette: Palette): string {
+  const [video, phone, secureForm, clinicalReview] = getApprovedVisibleLabels(visual)
+
+  return `
+    <g>
+      <path d="M246 728 C418 628 828 628 1010 728 C1120 790 1118 970 1010 1034 C828 1144 418 1144 246 1034 C138 970 138 790 246 728 Z" fill="#ffffff" fill-opacity="0.70" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M372 792 C478 714 800 714 908 792" fill="none" stroke="${palette.mid}" stroke-width="16" stroke-linecap="round" opacity="0.18"/>
+      <path d="M372 976 C478 1054 800 1054 908 976" fill="none" stroke="${palette.dark}" stroke-width="12" stroke-linecap="round" opacity="0.14"/>
+      <circle cx="640" cy="884" r="142" fill="${palette.dark}" opacity="0.94"/>
+      <circle cx="640" cy="884" r="184" fill="none" stroke="${palette.mid}" stroke-width="4" opacity="0.24"/>
+      <path d="M640 700 V584 M426 803 L306 722 M426 965 L306 1048 M854 884 H1002" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" opacity="0.25"/>
+      <circle cx="640" cy="884" r="54" fill="#ffffff" opacity="0.20"/>
+      <circle cx="640" cy="884" r="18" fill="#ffffff" opacity="0.92"/>
+      <circle cx="582" cy="842" r="13" fill="#ffffff" opacity="0.72"/>
+      <circle cx="702" cy="842" r="13" fill="#ffffff" opacity="0.72"/>
+      <circle cx="582" cy="930" r="13" fill="#ffffff" opacity="0.72"/>
+      <circle cx="702" cy="930" r="13" fill="#ffffff" opacity="0.72"/>
+      <path d="M595 850 C618 868 622 874 640 884 C658 874 662 868 689 850 M595 922 C618 902 622 895 640 884 C658 895 662 902 689 922" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.74"/>
+      ${renderTelehealthNode(video, 132, 612, 360, palette, renderMiniGlyph("video", 158, 640, palette), 1)}
+      ${renderTelehealthNode(phone, 132, 1016, 360, palette, renderMiniGlyph("phone", 158, 1038, palette), 2)}
+      ${renderTelehealthNode(secureForm, 788, 612, 390, palette, renderMiniGlyph("form", 814, 633, palette), 3)}
+      ${renderTelehealthNode(clinicalReview, 788, 1016, 390, palette, renderMiniGlyph("review", 818, 1036, palette), 4)}
+    </g>
+  `
+}
+
+function renderTelehealthWorkflowBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const glyphKinds: Array<"identity" | "consent" | "history" | "outcome"> = ["identity", "consent", "history", "outcome"]
+  const nodes = labels
+    .slice(0, 4)
+    .map((label, index) => {
+      const x = 150 + index * 264
+
+      return `
+        <g>
+          <circle cx="${x + 48}" cy="846" r="82" fill="#ffffff" fill-opacity="0.86" stroke="${palette.light}" stroke-width="3"/>
+          <circle cx="${x + 48}" cy="846" r="98" fill="none" stroke="${palette.mid}" stroke-width="3" opacity="0.20"/>
+          ${renderMiniGlyph(glyphKinds[index], x + 2, 802, palette)}
+          <circle cx="${x + 48}" cy="952" r="24" fill="${palette.dark}"/>
+          <text x="${x + 41}" y="961" font-family="${SVG_FONT_FAMILY}" font-size="24" font-weight="900" fill="#ffffff">${index + 1}</text>
+          <text x="${x + 48}" y="1020" text-anchor="middle" font-family="${SVG_FONT_FAMILY}" font-size="28" font-weight="850" fill="${palette.text}">${escapeXml(label)}</text>
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <rect x="92" y="646" width="1096" height="548" rx="44" fill="#ffffff" fill-opacity="0.42" stroke="${palette.light}" stroke-width="2"/>
+      <path d="M198 846 H1042" stroke="${palette.mid}" stroke-width="18" stroke-linecap="round" opacity="0.20"/>
+      <path d="M198 846 H1042" stroke="${palette.dark}" stroke-width="5" stroke-linecap="round" opacity="0.35" stroke-dasharray="1 34"/>
+      <path d="M1002 846 L1060 846 M1032 816 L1062 846 L1032 876" fill="none" stroke="${palette.dark}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity="0.62"/>
+      <path d="M842 936 C934 1004 1008 1026 1104 1002" fill="none" stroke="${palette.mid}" stroke-width="8" stroke-linecap="round" opacity="0.28"/>
+      <path d="M1104 1002 L1074 980 M1104 1002 L1078 1032" fill="none" stroke="${palette.mid}" stroke-width="7" stroke-linecap="round" opacity="0.34"/>
+      ${nodes}
+    </g>
+  `
+}
+
+function renderTelehealthBoundaryBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const laneColours = [
+    { fill: "#dcfce7", stroke: "#16a34a", text: "#166534" },
+    { fill: "#fef3c7", stroke: "#d97706", text: "#92400e" },
+    { fill: "#ffe4e6", stroke: "#e11d48", text: "#9f1239" },
+    { fill: "#fecdd3", stroke: "#be123c", text: "#881337" },
+  ]
+  const lanes = labels
+    .slice(0, 4)
+    .map((label, index) => {
+      const x = 100 + index * 270
+      const colour = laneColours[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: x + 34,
+        y: 1030,
+        width: 202,
+        size: 27,
+        weight: 900,
+        color: colour.text,
+        maxLines: 2,
+      })
+      const symbol =
+        index === 0
+          ? `<path d="M${x + 88} 846 L${x + 118} 878 L${x + 182} 790" fill="none" stroke="${colour.stroke}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>`
+          : index === 3
+            ? `<path d="M${x + 135} 792 L${x + 196} 902 H${x + 74} Z" fill="#ffffff" fill-opacity="0.52" stroke="${colour.stroke}" stroke-width="7"/><path d="M${x + 135} 824 V868 M${x + 135} 892 V894" stroke="${colour.stroke}" stroke-width="10" stroke-linecap="round"/>`
+            : `<path d="M${x + 72} 850 H${x + 188}" stroke="${colour.stroke}" stroke-width="12" stroke-linecap="round"/><path d="M${x + 148} 812 L${x + 188} 850 L${x + 148} 888" fill="none" stroke="${colour.stroke}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>`
+
+      return `
+        <g>
+          <rect x="${x}" y="688" width="270" height="478" fill="${colour.fill}" fill-opacity="${index === 0 ? "0.68" : index === 1 ? "0.64" : "0.58"}"/>
+          <path d="M${x + 34} 744 H${x + 226}" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.45"/>
+          <path d="M${x + 34} 1138 H${x + 226}" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.45"/>
+          ${index > 0 ? `<path d="M${x} 706 V1148" stroke="#ffffff" stroke-width="4" opacity="0.60"/>` : ""}
+          ${symbol}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <defs>
+        <clipPath id="telehealthBoundaryClip">
+          <rect x="100" y="688" width="1080" height="478" rx="42"/>
+        </clipPath>
+      </defs>
+      <rect x="100" y="688" width="1080" height="478" rx="42" fill="#ffffff" fill-opacity="0.52" stroke="${palette.light}" stroke-width="2"/>
+      <g clip-path="url(#telehealthBoundaryClip)">
+        ${lanes}
+      </g>
+      <rect x="100" y="688" width="1080" height="478" rx="42" fill="none" stroke="${palette.dark}" stroke-width="3" opacity="0.12"/>
+      <path d="M226 1248 C416 1168 594 1304 778 1212 C920 1140 1036 1184 1158 1118" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" opacity="0.20"/>
+      <path d="M1128 1092 L1160 1118 L1120 1134" fill="none" stroke="${palette.dark}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.25"/>
+    </g>
+  `
+}
+
+function renderTelehealthPolicyCompositeOverlaySvg(visual: ArticleVisual): string {
+  const palette = palettes[visual.accent]
+  const title = textBlock({
+    text: visual.title,
+    x: 88,
+    y: 168,
+    width: 790,
+    size: 56,
+    weight: 900,
+    color: palette.dark,
+    lineHeight: 64,
+    maxLines: 3,
+  })
+  const summary = textBlock({
+    text: visual.summary,
+    x: 92,
+    y: 168 + title.height + 26,
+    width: 760,
+    size: 28,
+    weight: 600,
+    color: "#334155",
+    lineHeight: 38,
+    maxLines: 3,
+  })
+  const footer = textBlock({
+    text: getFooterCopy(visual),
+    x: 154,
+    y: 1483,
+    width: 680,
+    size: 22,
+    weight: 700,
+    color: "#ffffff",
+    maxLines: 1,
+  })
+  const body =
+    visual.id === "telehealth-definition-map"
+      ? renderTelehealthDefinitionBody(visual, palette)
+      : visual.id === "telehealth-care-workflow"
+        ? renderTelehealthWorkflowBody(visual, palette)
+        : renderTelehealthBoundaryBody(visual, palette)
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
+      <defs>
+        <filter id="telehealthSoftShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="20" stdDeviation="22" flood-color="#0f172a" flood-opacity="0.11"/>
+        </filter>
+        <linearGradient id="telehealthTopVeil" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.92"/>
+          <stop offset="64%" stop-color="#ffffff" stop-opacity="0.68"/>
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="${palette.wash}" fill-opacity="0.10"/>
+      <path d="M-80 518 C188 404 406 470 646 390 C858 320 1034 348 1340 218" fill="none" stroke="${palette.mid}" stroke-width="3" opacity="0.11"/>
+      <path d="M-86 1302 C214 1162 404 1254 644 1146 C876 1042 1060 1068 1360 940" fill="none" stroke="${palette.dark}" stroke-width="3" opacity="0.09"/>
+      <rect x="0" y="0" width="${WIDTH}" height="548" fill="url(#telehealthTopVeil)"/>
+      ${badge(88, 82, visual.eyebrow, palette)}
+      ${title.svg}
+      ${summary.svg}
+      <g filter="url(#telehealthSoftShadow)">
+        ${body}
+      </g>
+      <rect x="80" y="1438" width="760" height="78" rx="25" fill="${palette.dark}" fill-opacity="0.93"/>
+      <circle cx="123" cy="1477" r="23" fill="#ffffff" opacity="0.17"/>
+      <path d="M112 1477 L123 1488 L143 1462" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      ${footer.svg}
+    </svg>
+  `
+}
+
 function renderCompositeOverlaySvg(visual: ArticleVisual): string {
+  if (isTelehealthPolicyCompositeVisual(visual)) {
+    return renderTelehealthPolicyCompositeOverlaySvg(visual)
+  }
+
   const palette = palettes[visual.accent]
   const labelsOnly = visual.textMode === "labels"
   const overlayItems = labelsOnly
@@ -1905,7 +2240,12 @@ async function saveKieInfographic(
   const pipeline = isKieCompositeRenderer(renderer)
     ? sharp(imageBuffer)
         .resize(WIDTH, HEIGHT, { fit: "cover", background: palettes[visual.accent].wash })
-        .composite([{ input: Buffer.from(renderCompositeOverlaySvg(visual)), left: 0, top: 0 }])
+        .blur(7)
+        .modulate({ saturation: 0.48, brightness: 1.04 })
+        .composite([
+          { input: Buffer.from(renderCompositeUnderlayWashSvg(visual)), left: 0, top: 0 },
+          { input: Buffer.from(renderCompositeOverlaySvg(visual)), left: 0, top: 0 },
+        ])
     : sharp(imageBuffer)
 
   await pipeline.webp({ quality: 88, effort: 5 }).toFile(filepath)
