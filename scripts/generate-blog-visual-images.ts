@@ -1142,7 +1142,10 @@ function isTelehealthPolicyCompositeVisual(visual: ArticleVisual): boolean {
   return (
     visual.id === "telehealth-definition-map" ||
     visual.id === "telehealth-care-workflow" ||
-    visual.id === "telehealth-suitability-boundary"
+    visual.id === "telehealth-suitability-boundary" ||
+    visual.id === "telehealth-consultation-clinical-flow" ||
+    visual.id === "telehealth-consultation-channel-map" ||
+    visual.id === "telehealth-consultation-fit"
   )
 }
 
@@ -1413,9 +1416,9 @@ function renderTelehealthPolicyCompositeOverlaySvg(visual: ArticleVisual): strin
     maxLines: 1,
   })
   const body =
-    visual.id === "telehealth-definition-map"
+    visual.id === "telehealth-definition-map" || visual.id === "telehealth-consultation-channel-map"
       ? renderTelehealthDefinitionBody(visual, palette)
-      : visual.id === "telehealth-care-workflow"
+      : visual.id === "telehealth-care-workflow" || visual.id === "telehealth-consultation-clinical-flow"
         ? renderTelehealthWorkflowBody(visual, palette)
         : renderTelehealthBoundaryBody(visual, palette)
 

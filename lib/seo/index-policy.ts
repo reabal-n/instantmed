@@ -55,6 +55,7 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "sildenafil-vs-tadalafil",
   "finasteride-vs-minoxidil-hair-loss",
   "online-doctor-consultation-australia",
+  "telehealth-consultation-australia",
   "how-long-can-medical-certificate-cover",
   "university-medical-certificates",
   "medical-certificate-same-day",
