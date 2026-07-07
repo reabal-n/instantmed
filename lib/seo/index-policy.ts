@@ -29,6 +29,7 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "work-from-home-sick-certificate",
   "mental-health-certificate-work",
   "is-telehealth-bulk-billed-australia",
+  "telehealth-bulk-billing-vs-private",
   "online-doctor-certificate-for-work",
   "is-telehealth-safe",
   "telehealth-safety-screening",
