@@ -16,6 +16,7 @@ import { NextResponse } from "next/server"
 import React from "react"
 import { Webhook } from "svix"
 
+import { env } from "@/lib/config/env"
 import { recordAuthEmailEvent } from "@/lib/data/auth-email-events"
 import { MagicLinkEmail, magicLinkEmailSubject } from "@/lib/email/components/templates/magic-link"
 import { renderEmailToHtml } from "@/lib/email/react-renderer-server"
@@ -131,7 +132,7 @@ export async function POST(req: Request) {
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? emailData.site_url
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+    const appUrl = env.appUrl
     const firstName = user.user_metadata?.first_name ?? user.user_metadata?.full_name?.split(" ")[0]
 
     const verifyUrl = buildVerifyUrl(

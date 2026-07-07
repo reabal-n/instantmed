@@ -7,7 +7,14 @@
 
 import * as React from "react"
 
+import { APP_URL } from "@/lib/constants"
+import { resolveConfiguredUrl } from "@/lib/constants/resolve-configured-url"
+
 import { colors, fontFamily } from "./email-primitives"
+
+function resolveEmailAppUrl(appUrl: string): string {
+  return resolveConfiguredUrl(appUrl, APP_URL).replace(/\/$/, "")
+}
 
 // ReviewHero -- large, prominent review block for dedicated review emails
 interface ReviewHeroProps {
@@ -21,6 +28,7 @@ interface ReviewHeroProps {
 }
 
 export function ReviewHero({ appUrl, serviceCopy, intakeId, userId }: ReviewHeroProps) {
+  const baseUrl = resolveEmailAppUrl(appUrl)
   const trackingParams = [
     "utm_source=email",
     "utm_medium=review_hero",
@@ -28,7 +36,7 @@ export function ReviewHero({ appUrl, serviceCopy, intakeId, userId }: ReviewHero
     ...(intakeId ? [`intake_id=${intakeId}`] : []),
     ...(userId ? [`user_id=${userId}`] : []),
   ].join("&")
-  const trackingHref = `${appUrl}/api/review-redirect?${trackingParams}`
+  const trackingHref = `${baseUrl}/api/review-redirect?${trackingParams}`
 
   return (
     <div style={{ textAlign: "center" as const, padding: "8px 0 16px" }}>
@@ -128,6 +136,7 @@ interface GoogleReviewCTAProps {
 }
 
 export function GoogleReviewCTA({ appUrl, intakeId, userId }: GoogleReviewCTAProps) {
+  const baseUrl = resolveEmailAppUrl(appUrl)
   const trackingParams = [
     "utm_source=email",
     "utm_medium=inline_cta",
@@ -135,7 +144,7 @@ export function GoogleReviewCTA({ appUrl, intakeId, userId }: GoogleReviewCTAPro
     ...(intakeId ? [`intake_id=${intakeId}`] : []),
     ...(userId ? [`user_id=${userId}`] : []),
   ].join("&")
-  const trackingHref = `${appUrl}/api/review-redirect?${trackingParams}`
+  const trackingHref = `${baseUrl}/api/review-redirect?${trackingParams}`
   return (
     <div
       className="google-review-pill"
@@ -192,6 +201,7 @@ interface ReferralCTAProps {
 }
 
 export function ReferralCTA({ appUrl }: ReferralCTAProps) {
+  const baseUrl = resolveEmailAppUrl(appUrl)
   return (
     <div
       style={{
@@ -203,7 +213,7 @@ export function ReferralCTA({ appUrl }: ReferralCTAProps) {
     >
       <p style={{ margin: 0, fontSize: "13px", color: colors.textMuted, lineHeight: "1.6" }}>
         Know someone who needs this?{" "}
-        <a href={`${appUrl}/patient?tab=referrals&utm_source=email&utm_medium=referral_cta&utm_campaign=referral`} style={{ color: colors.accent, fontWeight: 600, textDecoration: "none" }}>
+        <a href={`${baseUrl}/patient?tab=referrals&utm_source=email&utm_medium=referral_cta&utm_campaign=referral`} style={{ color: colors.accent, fontWeight: 600, textDecoration: "none" }}>
           Give them $5 off and get $5 yourself
         </a>
       </p>

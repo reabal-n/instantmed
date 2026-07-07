@@ -1,4 +1,5 @@
 import {
+  APP_URL,
   BaseEmail,
   Box,
   Button,
@@ -26,7 +27,7 @@ export function PaymentConfirmedEmail({
   requestType,
   amount,
   requestId,
-  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  appUrl = APP_URL,
 }: PaymentConfirmedEmailProps) {
   const firstName = patientName.split(" ")[0]
 

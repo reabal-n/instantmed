@@ -45,6 +45,9 @@ jobs:
       - name: Check dependency dedupe
         run: pnpm dedupe --check
 
+      - name: Check placeholder URL env values
+        run: pnpm check:placeholder-env
+
       - name: Supabase schema lint
         env:
           POSTGRES_URL_NON_POOLING: ${{ secrets.POSTGRES_URL_NON_POOLING }}

@@ -1,7 +1,11 @@
-import { describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { PRODUCTREVIEW_REVIEW_URL } from "@/lib/constants"
 import { isPlaceholderUrl, resolveConfiguredUrl } from "@/lib/constants/resolve-configured-url"
+
+afterEach(() => {
+  vi.unstubAllEnvs()
+  vi.resetModules()
+})
 
 /**
  * Guards the 2026-07-06 incident: an AI set PRODUCTREVIEW_REVIEW_URL to
@@ -59,8 +63,29 @@ describe("resolveConfiguredUrl", () => {
 })
 
 describe("the shipped PRODUCTREVIEW_REVIEW_URL constant", () => {
-  it("is a real ProductReview URL, never a placeholder", () => {
+  it("is a real ProductReview URL, never a placeholder", async () => {
+    const { PRODUCTREVIEW_REVIEW_URL } = await import("@/lib/constants")
+
     expect(PRODUCTREVIEW_REVIEW_URL).toContain("productreview.com.au")
     expect(isPlaceholderUrl(PRODUCTREVIEW_REVIEW_URL)).toBe(false)
+  })
+})
+
+describe("APP_URL", () => {
+  it("ignores placeholder public app/site URLs and falls back to the canonical domain", async () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://example.com")
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://example.org")
+
+    const { APP_URL } = await import("@/lib/constants")
+
+    expect(APP_URL).toBe("https://instantmed.com.au")
+  })
+
+  it("keeps a real configured app URL and strips the trailing slash", async () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://preview.instantmed.com.au/")
+
+    const { APP_URL } = await import("@/lib/constants")
+
+    expect(APP_URL).toBe("https://preview.instantmed.com.au")
   })
 })

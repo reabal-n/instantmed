@@ -8,6 +8,22 @@ import { resolveConfiguredUrl } from "./resolve-configured-url"
 export const APP_NAME = "InstantMed"
 export const APP_DESCRIPTION =
   "Get medical certificates and prescriptions online from AHPRA-registered Australian doctors."
+export const DEFAULT_APP_URL = "https://instantmed.com.au"
+export const LOCAL_APP_URL = "http://localhost:3060"
+
+function withoutTrailingSlash(url: string): string {
+  return url.replace(/\/$/, "")
+}
+
+export const APP_URL = withoutTrailingSlash(
+  resolveConfiguredUrl(
+    process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL,
+    process.env.NODE_ENV === "development" ? LOCAL_APP_URL : DEFAULT_APP_URL,
+  ),
+)
+export const SITE_URL = withoutTrailingSlash(
+  resolveConfiguredUrl(process.env.NEXT_PUBLIC_SITE_URL, DEFAULT_APP_URL),
+)
 
 // Company identity
 export const COMPANY_NAME = "InstantMed Pty Ltd"

@@ -11,7 +11,7 @@
 
 import * as React from "react"
 
-import { BaseEmail, Button, Text } from "../base-email"
+import { APP_URL, BaseEmail, Button, Text } from "../base-email"
 
 export interface CertReactivationEmailProps {
   patientName: string
@@ -23,7 +23,7 @@ export const certReactivationSubject = "Next time you're unwell, we're here"
 
 export function CertReactivationEmail({
   patientName,
-  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  appUrl = APP_URL,
   requestUrl,
 }: CertReactivationEmailProps) {
   const firstName = patientName.split(" ")[0] || "there"

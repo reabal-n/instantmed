@@ -8,6 +8,7 @@
 import * as React from "react"
 
 import {
+  APP_URL,
   BaseEmail,
   Box,
   Button,
@@ -39,7 +40,7 @@ export function MedCertEmployerEmail({
   patientNote,
   certStartDate,
   certEndDate,
-  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  appUrl = APP_URL,
 }: MedCertEmployerEmailProps) {
   const greeting = employerName
     ? `Dear ${employerName},`

@@ -19,6 +19,7 @@
 import * as React from "react"
 
 import {
+  APP_URL,
   BaseEmail,
   Box,
   Button,
@@ -186,7 +187,7 @@ export function RequestDeclinedEmail({
   requestId,
   reason,
   reasonCode,
-  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  appUrl = APP_URL,
   portalUrl,
 }: RequestDeclinedEmailProps) {
   const firstName = resolveFirstName(patientFirstName, patientName)

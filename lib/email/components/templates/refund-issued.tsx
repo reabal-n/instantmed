@@ -7,6 +7,7 @@
 import * as React from "react"
 
 import {
+  APP_URL,
   BaseEmail,
   Box,
   Button,
@@ -29,7 +30,7 @@ export function RefundIssuedEmail({
   requestType,
   requestId,
   amountFormatted,
-  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  appUrl = APP_URL,
 }: RefundIssuedEmailProps) {
   const firstName = patientName.split(" ")[0]
 

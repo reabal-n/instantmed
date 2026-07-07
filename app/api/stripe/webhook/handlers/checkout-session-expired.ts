@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server"
 import type Stripe from "stripe"
 
+import { env } from "@/lib/config/env"
 import { buildExpiredCheckoutStartUrl } from "@/lib/email/recovery-links"
 import { sendSessionExpiredEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 
-import type { HandlerResult,WebhookContext } from "./types"
+import type { HandlerResult, WebhookContext } from "./types"
 import { tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:checkout-expired")
@@ -78,13 +79,12 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
 
         const patient = (intake?.patient as unknown) as { email: string; full_name: string } | null
         if (patient?.email) {
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
           await sendSessionExpiredEmail({
             to: patient.email,
             patientName: patient.full_name || "there",
             serviceName: intake?.category || "your request",
             resumeUrl: buildExpiredCheckoutStartUrl({
-              appUrl,
+              appUrl: env.appUrl,
               campaign: "checkout_expired",
               category: intake?.category,
               subtype: (intake as { subtype?: string | null } | null)?.subtype,

@@ -8,7 +8,7 @@
 
 import * as React from "react"
 
-import { BaseEmail, ReviewHero,Text } from "../base-email"
+import { APP_URL, BaseEmail, ReviewHero, Text } from "../base-email"
 import { HeardAboutUsLinks } from "../heard-about-us-links"
 
 export interface ReviewRequestEmailProps {
@@ -25,7 +25,7 @@ export const reviewRequestSubject = "Quick favour? ⭐"
 export function ReviewRequestEmail({
   patientName,
   serviceName,
-  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  appUrl = APP_URL,
   intakeId,
   heardToken,
 }: ReviewRequestEmailProps) {

@@ -9,7 +9,7 @@ import * as React from "react"
 
 import { buildStaffEmailHubHref } from "@/lib/dashboard/routes"
 
-import { BaseEmail, Button, HeroBlock, Text } from "../base-email"
+import { APP_URL, BaseEmail, Button, HeroBlock, Text } from "../base-email"
 
 export interface OpsTestEmailProps {
   eventId: string
@@ -20,7 +20,7 @@ export interface OpsTestEmailProps {
 export function OpsTestEmail({
   eventId,
   issuedAt,
-  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  appUrl = APP_URL,
 }: OpsTestEmailProps) {
   return (
     <BaseEmail

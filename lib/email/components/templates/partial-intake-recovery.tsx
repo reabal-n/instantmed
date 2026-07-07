@@ -1,4 +1,5 @@
 import {
+  APP_URL,
   BaseEmail,
   Box,
   Button,
@@ -33,7 +34,7 @@ export function PartialIntakeRecoveryEmail({
   firstName,
   serviceName,
   resumeUrl,
-  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  appUrl = APP_URL,
 }: PartialIntakeRecoveryEmailProps) {
   return (
     <BaseEmail previewText="Your request is saved if you still need it" appUrl={appUrl}>

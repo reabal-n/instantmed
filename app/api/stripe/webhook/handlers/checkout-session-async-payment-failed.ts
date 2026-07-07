@@ -1,5 +1,6 @@
 import type Stripe from "stripe"
 
+import { env } from "@/lib/config/env"
 import { buildCheckoutPaymentRecoveryUrl } from "@/lib/email/recovery-links"
 import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { sendPaymentFailedEmail } from "@/lib/email/template-sender"
@@ -10,7 +11,7 @@ import {
   type PaymentFailureIntakeEmailContext,
   resolvePaymentFailureRecipient,
 } from "./payment-failure-recovery"
-import type { HandlerResult,WebhookContext } from "./types"
+import type { HandlerResult, WebhookContext } from "./types"
 import { addToDeadLetterQueue, tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:async-payment-failed")
@@ -72,14 +73,13 @@ export async function handleAsyncPaymentFailed(ctx: WebhookContext): Promise<Han
 
       const { email, name } = resolvePaymentFailureRecipient(intake as PaymentFailureIntakeEmailContext | null)
       if (email) {
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
         const emailResult = await sendPaymentFailedEmail({
           to: email,
           patientName: name,
           serviceName: emailRequestTypeLabel(intake?.category),
           failureReason: "Your payment could not be processed. This can happen with bank transfers or direct debit payments.",
           retryUrl: buildCheckoutPaymentRecoveryUrl({
-            appUrl,
+            appUrl: env.appUrl,
             campaign: "async_payment_failed",
             intakeId,
             isGuest: Boolean((intake as { guest_email?: string | null } | null)?.guest_email),

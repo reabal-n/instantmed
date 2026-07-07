@@ -1,7 +1,8 @@
-import { after,NextResponse } from "next/server"
+import { after, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
+import { env } from "@/lib/config/env"
 import { buildCheckoutPaymentRecoveryUrl } from "@/lib/email/recovery-links"
 import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { sendPaymentFailedEmail } from "@/lib/email/template-sender"
@@ -13,7 +14,7 @@ import {
   type PaymentFailureIntakeEmailContext,
   resolvePaymentFailureRecipient,
 } from "./payment-failure-recovery"
-import type { HandlerResult,WebhookContext } from "./types"
+import type { HandlerResult, WebhookContext } from "./types"
 import { tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:payment-failed")
@@ -135,7 +136,7 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
             serviceName: emailRequestTypeLabel(intake?.category),
             failureReason: failureMessage,
             retryUrl: buildCheckoutPaymentRecoveryUrl({
-              appUrl: process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+              appUrl: env.appUrl,
               campaign: "payment_failed",
               intakeId: failedIntakeId,
               isGuest: Boolean((intake as { guest_email?: string | null } | null)?.guest_email),

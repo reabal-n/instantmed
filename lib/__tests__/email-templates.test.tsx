@@ -1012,6 +1012,15 @@ describe("Google Review UTM tracking", () => {
       expect(html).toContain("utm_source=email")
     })
   }
+
+  it("falls back from a placeholder appUrl before rendering review links", () => {
+    const html = renderToStaticMarkup(
+      <ReviewRequestEmail patientName="Test" serviceName="Medical Certificate" appUrl="https://example.com" />,
+    )
+
+    expect(html).toContain("/api/review-redirect")
+    expect(html).not.toContain("https://example.com")
+  })
 })
 
 // =============================================

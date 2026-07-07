@@ -9,6 +9,7 @@ import "server-only"
 
 import * as React from "react"
 
+import { APP_URL } from "@/lib/constants"
 // ── Template imports ──
 import { AbandonedCheckoutEmail } from "@/lib/email/components/templates/abandoned-checkout"
 import { ConsultApprovedEmail } from "@/lib/email/components/templates/consult-approved"
@@ -39,8 +40,6 @@ interface PreviewTemplate {
   sampleData: Record<string, string>
   render: (data: Record<string, string>) => React.ReactElement
 }
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
 
 const PREVIEW_TEMPLATES: PreviewTemplate[] = [
   // ── Patient Lifecycle ──

@@ -24,7 +24,7 @@ import { recordDeliverySent } from "@/lib/monitoring/delivery-tracking"
 import { logger } from "@/lib/observability/logger"
 
 import { renderEmailToHtml } from "./react-renderer-server"
-import { htmlToPlainText,isEmailSuppressed } from "./utils"
+import { htmlToPlainText, isEmailSuppressed } from "./utils"
 import { checkDailySendLimit, incrementDailySendCount } from "./warmup"
 
 // Re-export types for backwards compatibility
@@ -266,7 +266,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         const unsubToken = patientId
           ? signUnsubscribeToken(patientId)
           : signEmailUnsubscribeToken(unsubscribeEmail!)
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+        const appUrl = env.appUrl
         const unsubUrl = `${appUrl}/api/unsubscribe?token=${unsubToken}&type=marketing`
         body.headers = {
           ...(body.headers as Record<string, string>),
@@ -582,7 +582,7 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
   }
 
   // Build request body
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+  const appUrl = env.appUrl
   const sendBody: Record<string, unknown> = {
     from: env.resendFromEmail,
     to: [row.to_email],
