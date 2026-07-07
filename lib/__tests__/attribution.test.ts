@@ -4,6 +4,7 @@ import {
   ATTRIBUTION_COOKIE_KEY,
   captureAttribution,
   getAttribution,
+  mergeAttributionByRecency,
 } from "@/lib/analytics/attribution"
 
 let sessionStorageState: Record<string, string>
@@ -165,6 +166,69 @@ describe("attribution capture", () => {
       gclid: "durable-click",
       utm_source: "google",
       landing_page: "/medical-certificate",
+    })
+  })
+
+  it("prefers newer middleware-cookie Google attribution over stale browser storage", () => {
+    sessionStorageState[ATTRIBUTION_COOKIE_KEY] = JSON.stringify({
+      landing_page: "/",
+      captured_at: "2026-07-01T00:00:00.000Z",
+    })
+    localStorageState[ATTRIBUTION_COOKIE_KEY] = JSON.stringify({
+      landing_page: "/",
+      captured_at: "2026-07-01T00:00:00.000Z",
+    })
+    cookieJar = `${ATTRIBUTION_COOKIE_KEY}=${encodeURIComponent(
+      JSON.stringify({
+        gclid: "cookie-click",
+        utm_source: "google",
+        utm_medium: "cpc",
+        campaignid: "23957241733",
+        adgroupid: "197810760419",
+        landing_page: "/erectile-dysfunction",
+        captured_at: "2026-07-07T00:00:00.000Z",
+      }),
+    )}`
+    locationState = {
+      search: "",
+      pathname: "/request",
+      protocol: "https:",
+    }
+
+    captureAttribution()
+
+    expect(getAttribution()).toMatchObject({
+      gclid: "cookie-click",
+      utm_source: "google",
+      utm_medium: "cpc",
+      campaignid: "23957241733",
+      adgroupid: "197810760419",
+      landing_page: "/erectile-dysfunction",
+      captured_at: "2026-07-07T00:00:00.000Z",
+    })
+  })
+
+  it("merges attribution by capture recency without dropping older paid identifiers", () => {
+    expect(
+      mergeAttributionByRecency(
+        {
+          gclid: "old-click",
+          campaignid: "old-campaign",
+          landing_page: "/medical-certificate",
+          captured_at: "2026-07-01T00:00:00.000Z",
+        },
+        {
+          utm_content: "new-creative",
+          landing_page: "/request",
+          captured_at: "2026-07-07T00:00:00.000Z",
+        },
+      ),
+    ).toMatchObject({
+      gclid: "old-click",
+      campaignid: "old-campaign",
+      utm_content: "new-creative",
+      landing_page: "/request",
+      captured_at: "2026-07-07T00:00:00.000Z",
     })
   })
 })
