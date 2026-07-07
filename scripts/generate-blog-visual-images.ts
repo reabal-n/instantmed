@@ -1161,6 +1161,9 @@ function isTelehealthPolicyCompositeVisual(visual: ArticleVisual): boolean {
     visual.id === "elderly-parent-consent-support-map" ||
     visual.id === "elderly-parent-medicine-context-map" ||
     visual.id === "elderly-parent-urgent-boundary-map" ||
+    visual.id === "remote-worker-location-readiness-map" ||
+    visual.id === "remote-worker-work-capacity-boundary" ||
+    visual.id === "remote-worker-pharmacy-escalation-loop" ||
     visual.id === "first-telehealth-prep-map" ||
     visual.id === "first-telehealth-what-happens" ||
     visual.id === "first-telehealth-aftercare-map"
@@ -2467,6 +2470,71 @@ function renderElderlyParentUrgentBoundaryBody(visual: ArticleVisual, palette: P
   `
 }
 
+function renderRemoteWorkerSignalLanesBody(visual: ArticleVisual, palette: Palette): string {
+  const labels = getApprovedVisibleLabels(visual)
+  const isWarning = visual.kind === "warning"
+  const lanes = [
+    { x: 132, y: 724, w: 850, stroke: visual.accent === "amber" ? "#f2b94b" : palette.mid, fill: visual.accent === "amber" ? "#fff3d4" : palette.light },
+    { x: 246, y: 852, w: 770, stroke: "#4b83d1", fill: "#e8f1ff" },
+    { x: 150, y: 980, w: 930, stroke: isWarning ? "#be3455" : "#39b68f", fill: isWarning ? "#ffe7ee" : "#e4f8f1" },
+    { x: 304, y: 1108, w: 720, stroke: "#64748b", fill: "#eef2f7" },
+    { x: 430, y: 1236, w: 610, stroke: isWarning ? "#a16207" : "#f2b94b", fill: isWarning ? "#fff9eb" : "#fff3d4" },
+  ]
+
+  const laneSvg = labels
+    .slice(0, 5)
+    .map((label, index) => {
+      const lane = lanes[index]
+      const labelBlock = textBlock({
+        text: label,
+        x: lane.x + 118,
+        y: lane.y + 31,
+        width: lane.w - 176,
+        size: 31,
+        weight: 900,
+        color: palette.text,
+        lineHeight: 35,
+        maxLines: 2,
+      })
+      const icon =
+        index === 0
+          ? `<path d="M${lane.x + 78} ${lane.y + 22} C${lane.x + 48} ${lane.y + 22} ${lane.x + 42} ${lane.y + 58} ${lane.x + 78} ${lane.y + 80} C${lane.x + 114} ${lane.y + 58} ${lane.x + 108} ${lane.y + 22} ${lane.x + 78} ${lane.y + 22} Z" fill="#ffffff" fill-opacity="0.74" stroke="${lane.stroke}" stroke-width="5"/><circle cx="${lane.x + 78}" cy="${lane.y + 50}" r="12" fill="${lane.stroke}"/>`
+          : index === 1
+            ? `<rect x="${lane.x + 54}" y="${lane.y + 24}" width="52" height="52" rx="16" fill="#ffffff" fill-opacity="0.74" stroke="${lane.stroke}" stroke-width="5"/><path d="M${lane.x + 68} ${lane.y + 50} H${lane.x + 94} M${lane.x + 81} ${lane.y + 36} V${lane.y + 64}" stroke="${lane.stroke}" stroke-width="6" stroke-linecap="round"/>`
+            : index === 2
+              ? `<path d="M${lane.x + 54} ${lane.y + 50} H${lane.x + 110}" stroke="${lane.stroke}" stroke-width="7" stroke-linecap="round" opacity="0.58"/><path d="M${lane.x + 64} ${lane.y + 50} L${lane.x + 78} ${lane.y + 28} L${lane.x + 96} ${lane.y + 72} L${lane.x + 110} ${lane.y + 44}" fill="none" stroke="${lane.stroke}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`
+              : index === 3
+                ? `<circle cx="${lane.x + 80}" cy="${lane.y + 50}" r="34" fill="#ffffff" fill-opacity="0.72" stroke="${lane.stroke}" stroke-width="5"/><path d="M${lane.x + 58} ${lane.y + 58} C${lane.x + 72} ${lane.y + 36} ${lane.x + 88} ${lane.y + 36} ${lane.x + 102} ${lane.y + 58}" fill="none" stroke="${lane.stroke}" stroke-width="6" stroke-linecap="round"/>`
+                : `<path d="M${lane.x + 54} ${lane.y + 50} H${lane.x + 104}" stroke="${lane.stroke}" stroke-width="8" stroke-linecap="round"/><path d="M${lane.x + 82} ${lane.y + 28} L${lane.x + 108} ${lane.y + 50} L${lane.x + 82} ${lane.y + 72}" fill="none" stroke="${lane.stroke}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`
+
+      return `
+        <g>
+          <rect x="${lane.x}" y="${lane.y}" width="${lane.w}" height="98" rx="30" fill="${lane.fill}" fill-opacity="0.94" stroke="${lane.stroke}" stroke-width="3"/>
+          <rect x="${lane.x}" y="${lane.y}" width="20" height="98" rx="10" fill="${lane.stroke}"/>
+          <circle cx="${lane.x + 42}" cy="${lane.y + 49}" r="22" fill="${lane.stroke}"/>
+          <text x="${lane.x + 35}" y="${lane.y + 58}" font-family="${SVG_FONT_FAMILY}" font-size="23" font-weight="900" fill="#ffffff">${index + 1}</text>
+          ${icon}
+          ${labelBlock.svg}
+        </g>
+      `
+    })
+    .join("")
+
+  return `
+    <g>
+      <rect x="78" y="620" width="1124" height="820" rx="54" fill="${palette.dark}" fill-opacity="0.92"/>
+      <rect x="112" y="652" width="1056" height="756" rx="44" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-width="2" stroke-opacity="0.16"/>
+      <path d="M154 1302 C300 1118 470 1212 640 988 C804 772 954 824 1120 708" fill="none" stroke="${palette.mid}" stroke-width="24" stroke-linecap="round" opacity="0.30"/>
+      <path d="M186 770 C342 928 446 792 640 980 C808 1142 940 1052 1100 1218" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" opacity="0.10"/>
+      ${laneSvg}
+      <circle cx="1028" cy="742" r="84" fill="#ffffff" fill-opacity="0.12" stroke="#ffffff" stroke-width="3" stroke-opacity="0.16"/>
+      <circle cx="1036" cy="1300" r="110" fill="${palette.mid}" fill-opacity="0.12" stroke="#ffffff" stroke-width="3" stroke-opacity="0.14"/>
+      <rect x="170" y="1354" width="940" height="54" rx="20" fill="#ffffff" fill-opacity="0.18"/>
+      <path d="M226 1381 H1054" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.25"/>
+    </g>
+  `
+}
+
 function renderTelehealthPolicyCompositeBody(visual: ArticleVisual, palette: Palette): string {
   if (visual.id === "first-telehealth-prep-map") return renderFirstTelehealthPrepBody(visual, palette)
   if (visual.id === "first-telehealth-what-happens") return renderFirstTelehealthRouteBody(visual, palette)
@@ -2486,6 +2554,13 @@ function renderTelehealthPolicyCompositeBody(visual: ArticleVisual, palette: Pal
   if (visual.id === "elderly-parent-consent-support-map") return renderElderlyParentConsentSupportBody(visual, palette)
   if (visual.id === "elderly-parent-medicine-context-map") return renderElderlyParentMedicineContextBody(visual, palette)
   if (visual.id === "elderly-parent-urgent-boundary-map") return renderElderlyParentUrgentBoundaryBody(visual, palette)
+  if (
+    visual.id === "remote-worker-location-readiness-map" ||
+    visual.id === "remote-worker-work-capacity-boundary" ||
+    visual.id === "remote-worker-pharmacy-escalation-loop"
+  ) {
+    return renderRemoteWorkerSignalLanesBody(visual, palette)
+  }
   if (visual.id === "telehealth-definition-map" || visual.id === "telehealth-consultation-channel-map") {
     return renderTelehealthDefinitionBody(visual, palette)
   }
