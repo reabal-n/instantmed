@@ -73,6 +73,7 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "is-telehealth-legal-australia",
   "remote-workers-telehealth",
   "telehealth-vs-in-person",
+  "working-from-home-when-sick",
   "amoxicillin-guide-australia",
   "metformin-type-2-diabetes-guide",
   "omeprazole-vs-pantoprazole",
