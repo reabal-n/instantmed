@@ -39,6 +39,7 @@ const SERVICE_LINKS: ServiceLink[] = [
 const LEARN_MORE_LINKS: ServiceLink[] = [
   { label: "Online doctor in Australia", href: "/online-doctor-australia" },
   { label: "Telehealth in Australia", href: "/telehealth-australia" },
+  { label: "Compare certificate services", href: "/compare/online-medical-certificate-options" },
   { label: "Verify a certificate", href: "/verify" },
 ]
 

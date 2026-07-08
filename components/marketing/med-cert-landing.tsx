@@ -127,6 +127,14 @@ const MED_CERT_EVIDENCE_LINKS = [
   },
 ] as const
 
+const MED_CERT_DECISION_LINKS = [
+  {
+    href: "/compare/online-medical-certificate-options",
+    label: "Compare online certificate services",
+    body: "A dated, fact-only comparison of Australian online certificate options.",
+  },
+] as const
+
 // =============================================================================
 // UNIQUE SECTIONS
 // =============================================================================
@@ -280,6 +288,24 @@ function RelatedEvidenceGuides() {
               </Link>
             ))}
           </div>
+
+          <nav
+            aria-label="Certificate service comparison"
+            className="mt-5 flex flex-wrap gap-x-4 gap-y-2 border-t border-border/40 pt-4 text-sm dark:border-white/10"
+          >
+            <span className="font-medium text-muted-foreground">Comparing providers?</span>
+            {MED_CERT_DECISION_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="group inline-flex items-center gap-1 font-medium text-primary hover:underline underline-offset-4"
+              >
+                {link.label}
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                <span className="sr-only">{link.body}</span>
+              </Link>
+            ))}
+          </nav>
         </div>
       </div>
     </section>
