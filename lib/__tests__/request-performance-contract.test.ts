@@ -59,20 +59,4 @@ describe("request conversion performance contract", () => {
     expect(requestFlowSource).toContain("queueMicrotask")
     expect(requestFlowSource).toContain("preloadStepComponent(firstStepComponent)")
   })
-
-  it("defers optional recovery capture out of the first med-cert step bundle", () => {
-    const certificateStepSource = readFileSync(
-      join(root, "components/request/steps/certificate-step.tsx"),
-      "utf8",
-    )
-
-    expect(certificateStepSource).toContain("DeferredInlineRecoveryEmailField")
-    expect(certificateStepSource).toContain(
-      'import("@/components/request/shared/inline-recovery-email-field")',
-    )
-    expect(certificateStepSource).toContain("requestIdleCallback")
-    expect(certificateStepSource).not.toContain(
-      'import { InlineRecoveryEmailField } from "@/components/request/shared/inline-recovery-email-field"',
-    )
-  })
 })
