@@ -643,6 +643,29 @@ const comparisons: Record<string, ComparisonEntry> = {
   ...COMPETITOR_COMPARISONS,
 }
 
+const MED_CERT_OPTIONS_NEXT_STEPS = [
+  {
+    href: "/medical-certificate",
+    label: "Medical certificate service details",
+    body: "How the certificate request and doctor review process works.",
+  },
+  {
+    href: "/pricing",
+    label: "Current InstantMed pricing",
+    body: "Service fees, pharmacy cost boundaries, and refund information.",
+  },
+  {
+    href: "/verify",
+    label: "Certificate verification",
+    body: "How employers or institutions can check an issued certificate.",
+  },
+  {
+    href: "/blog/doctors-note-australia",
+    label: "Doctor's note or medical certificate?",
+    body: "Plain-English differences between common evidence terms in Australia.",
+  },
+] as const
+
 // Default keyword set for general (non-competitor) comparison pages.
 const DEFAULT_COMPARISON_KEYWORDS = [
   'telehealth vs gp',
@@ -689,6 +712,16 @@ export default async function ComparisonPage({ params }: PageProps) {
   if (!comparison) {
     notFound()
   }
+
+  const isOnlineMedCertOptions = slug === "online-medical-certificate-options"
+  const primaryActionHref = isOnlineMedCertOptions ? "/medical-certificate" : "/request"
+  const primaryActionLabel = isOnlineMedCertOptions ? "View certificate details" : "Try InstantMed"
+  const finalCtaTitle = isOnlineMedCertOptions
+    ? "Check the certificate details."
+    : "Ready to try telehealth?"
+  const finalCtaSubtitle = isOnlineMedCertOptions
+    ? "Review the service details, pricing, verification method, and refund boundary before starting."
+    : "See why Australians choose InstantMed for their healthcare needs."
 
   const faqSchemaData = comparison.faqs.map(faq => ({
     question: faq.q,
@@ -858,6 +891,43 @@ export default async function ComparisonPage({ params }: PageProps) {
             </div>
           </section>
 
+          {isOnlineMedCertOptions && (
+            <section aria-labelledby="certificate-comparison-next-steps" className="px-4 pb-12">
+              <div className="mx-auto max-w-4xl rounded-2xl border border-border/50 bg-white p-6 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                      Evidence and next steps
+                    </p>
+                    <h2 id="certificate-comparison-next-steps" className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+                      Check the service boundaries before choosing.
+                    </h2>
+                  </div>
+                  <p className="max-w-md text-sm leading-6 text-muted-foreground">
+                    Pricing, verification, and certificate evidence context for the online medical certificate comparison.
+                  </p>
+                </div>
+                <nav aria-label="Online medical certificate comparison evidence" className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {MED_CERT_OPTIONS_NEXT_STEPS.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="group rounded-xl border border-border/50 bg-muted/25 p-4 text-sm transition-colors hover:border-primary/30 dark:border-white/10 dark:bg-white/[0.04]"
+                    >
+                      <span className="flex items-start justify-between gap-3 font-semibold text-foreground">
+                        {link.label}
+                        <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-primary transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                      </span>
+                      <span className="mt-2 block leading-6 text-muted-foreground">
+                        {link.body}
+                      </span>
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+            </section>
+          )}
+
           {/* When to Choose Each */}
           <section className="px-4 py-12 bg-muted/50 dark:bg-white/[0.06]">
             <div className="mx-auto max-w-4xl">
@@ -877,8 +947,8 @@ export default async function ComparisonPage({ params }: PageProps) {
                     ))}
                   </ul>
                   <Button asChild className="mt-6 w-full rounded-full">
-                    <Link href="/request">
-                      Try InstantMed
+                    <Link href={primaryActionHref}>
+                      {primaryActionLabel}
                       <ArrowRight className="ml-2 w-4 h-4" />
                     </Link>
                   </Button>
@@ -970,14 +1040,14 @@ export default async function ComparisonPage({ params }: PageProps) {
           <section className="px-4 py-16 bg-primary/5">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-semibold text-foreground mb-4">
-                Ready to try telehealth?
+                {finalCtaTitle}
               </h2>
               <p className="text-muted-foreground mb-8">
-                See why Australians choose InstantMed for their healthcare needs.
+                {finalCtaSubtitle}
               </p>
               <Button asChild size="lg" className="h-14 px-10 rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-[transform,box-shadow]">
-                <Link href="/request">
-                  Get started
+                <Link href={primaryActionHref}>
+                  {isOnlineMedCertOptions ? "View certificate details" : "Get started"}
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
               </Button>

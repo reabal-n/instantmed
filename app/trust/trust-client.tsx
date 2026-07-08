@@ -92,6 +92,13 @@ const trustFAQs = [
   },
 ]
 
+const trustEvidenceLinks = [
+  { href: "/blog/ahpra-registered-doctor-meaning", label: "What AHPRA registration means" },
+  { href: "/clinical-governance", label: "Clinical governance" },
+  { href: "/privacy", label: "Privacy and data handling" },
+  { href: "/verify", label: "Certificate verification" },
+] as const
+
 // ─── Page ──────────────────────────────────────────────────────────
 
 export default function TrustPage() {
@@ -169,6 +176,22 @@ export default function TrustPage() {
                 </span>
               </Link>
             </div>
+
+            <nav
+              aria-label="Trust evidence"
+              className="mt-5 flex flex-wrap gap-x-4 gap-y-2 border-t border-border/40 pt-4 text-sm dark:border-white/10"
+            >
+              <span className="font-medium text-muted-foreground">Trust evidence:</span>
+              {trustEvidenceLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="font-medium text-primary hover:underline underline-offset-4"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
           </div>
         </section>
 
