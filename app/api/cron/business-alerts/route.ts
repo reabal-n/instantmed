@@ -57,6 +57,11 @@ const TELEGRAM_METRIC_COOLDOWN_OVERRIDES_MS: Record<string, number> = {
   ops_refund_record_anomalies: 24 * 60 * 60 * 1000,
   ops_certificate_sent_missing_timestamp: 24 * 60 * 60 * 1000,
   ops_approved_certificate_missing_record: 24 * 60 * 60 * 1000,
+  // Terminal click-attributed adjustment failures are unrepairable (no success
+  // row is ever written after a terminal), so the count persists for the full
+  // 90-day lookback — a 4h cadence would page ~6x/day for 90 days. One page/day
+  // is the signal, matching the standing-invariant metrics above.
+  google_ads_adjustment_terminal_click_attributed_failures: 24 * 60 * 60 * 1000,
 }
 
 const TELEGRAM_MAX_METRIC_COOLDOWN_MS = Math.max(
