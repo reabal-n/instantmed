@@ -17,7 +17,7 @@ import { type ComponentType, useCallback, useEffect, useRef, useState } from "re
 
 import { RequestButton } from "@/components/request/request-button"
 import { requestCx } from "@/components/request/request-cx"
-import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, useRovingRadio } from "@/components/request/shared/intake-step-primitives"
+import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, useRovingRadio } from "@/components/request/shared/intake-step-primitives"
 import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { MED_CERT_DURATIONS } from "@/lib/constants"
@@ -26,7 +26,6 @@ import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { getSmartDefaults, recordStepCompletion, savePreferences } from "@/lib/request/preferences"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
-import { FormField } from "../form-field"
 import { useRequestStore } from "../store"
 
 interface CertificateStepProps {
@@ -377,6 +376,9 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
   // Live-computed from the selections, NOT the `errors` object (which would stay
   // stale after the patient fixes a field, leaving the button looking not-ready).
   const canContinue = !!certType && selectedDays !== null && startOffset !== null
+  const certTypeError = touched.certType ? errors.certType : undefined
+  const durationError = touched.duration ? errors.duration : undefined
+  const startDateError = touched.startDate ? errors.startDate : undefined
 
   // Clear the blocking summary the moment the step becomes valid.
   useEffect(() => {
@@ -412,24 +414,30 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
 
       {/* Certificate type */}
       <QuestionCard compact className="max-[360px]:space-y-2 max-[360px]:p-2.5">
-        <FormField
-          id="certificate-type"
+        <QuestionPrompt
+          id="certificate-type-label"
           label="Certificate type"
           required
-          error={touched.certType ? errors.certType : undefined}
           hint="Choose the type that matches your situation"
-        >
-          <ChoiceCardGroup
-            options={CERT_TYPES}
-            value={certType}
-            onChange={handleCertTypeClick}
-            ariaLabel="Certificate type"
-            columns="three"
-            mobileColumns="three"
-            compact
-            className="mt-2"
-          />
-        </FormField>
+        />
+        <ChoiceCardGroup
+          options={CERT_TYPES}
+          value={certType}
+          onChange={handleCertTypeClick}
+          ariaLabel="Certificate type"
+          ariaLabelledBy="certificate-type-label"
+          ariaDescribedBy={certTypeError ? "certificate-type-error" : undefined}
+          ariaInvalid={Boolean(certTypeError)}
+          columns="three"
+          mobileColumns="three"
+          compact
+          className="mt-2"
+        />
+        {certTypeError && (
+          <p id="certificate-type-error" className="text-xs text-destructive" role="alert" aria-live="polite">
+            {certTypeError}
+          </p>
+        )}
       </QuestionCard>
 
       <DeferredInlineRecoveryEmailField serviceType={serviceType} stepId="certificate" />
@@ -443,87 +451,99 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
           {/* How many days? */}
           <div ref={durationRef}>
             <QuestionCard compact className="max-[360px]:space-y-2 max-[360px]:p-2.5">
-              <FormField
-                id="certificate-duration"
+              <QuestionPrompt
+                id="certificate-duration-label"
                 label="How many days?"
                 required
-                error={touched.duration ? errors.duration : undefined}
-              >
-                <ChoiceCardGroup
-                  options={DURATION_OPTIONS.map((days) => ({
-                    value: String(days),
-                    label: `${days} ${days === 1 ? "day" : "days"}`,
-                    description: `$${MED_CERT_DURATIONS.prices[days]}`,
-                  }))}
-                  value={selectedDays ? String(selectedDays) : ""}
-                  onChange={(value) => handleDaysClick(Number(value) as Duration)}
-                  ariaLabel="Certificate duration in days"
-                  columns="three"
-                  mobileColumns="three"
-                  compact
-                  className="mt-2"
-                />
-              </FormField>
+              />
+              <ChoiceCardGroup
+                options={DURATION_OPTIONS.map((days) => ({
+                  value: String(days),
+                  label: `${days} ${days === 1 ? "day" : "days"}`,
+                  description: `$${MED_CERT_DURATIONS.prices[days]}`,
+                }))}
+                value={selectedDays ? String(selectedDays) : ""}
+                onChange={(value) => handleDaysClick(Number(value) as Duration)}
+                ariaLabel="Certificate duration in days"
+                ariaLabelledBy="certificate-duration-label"
+                ariaDescribedBy={durationError ? "certificate-duration-error" : undefined}
+                ariaInvalid={Boolean(durationError)}
+                columns="three"
+                mobileColumns="three"
+                compact
+                className="mt-2"
+              />
+              {durationError && (
+                <p id="certificate-duration-error" className="text-xs text-destructive" role="alert" aria-live="polite">
+                  {durationError}
+                </p>
+              )}
             </QuestionCard>
           </div>
 
           {/* Starting from? */}
           <div ref={startDateRef}>
             <QuestionCard compact className="max-[360px]:space-y-2 max-[360px]:p-2.5">
-              <FormField
-                id="certificate-start-date"
+              <QuestionPrompt
+                id="certificate-start-date-label"
                 label="Starting from?"
                 required
-                error={touched.startDate ? errors.startDate : undefined}
+              />
+              <div
+                id="certificate-start-date"
+                className="mt-2 grid grid-cols-4 gap-1.5 max-[360px]:mt-1.5 sm:gap-2"
+                role="radiogroup"
+                aria-labelledby="certificate-start-date-label"
+                aria-describedby={startDateError ? "certificate-start-date-error" : undefined}
+                aria-invalid={startDateError ? true : undefined}
               >
-                <div
-                  className="mt-2 grid grid-cols-4 gap-1.5 max-[360px]:mt-1.5 sm:gap-2"
-                  role="radiogroup"
-                  aria-label="Certificate start date"
-                >
-                  {START_OFFSETS.map((offset, index) => {
-                    // Multi-day certs visually span the whole range. See
-                    // getCertChipRangeState comment for the why. The state
-                    // function is pinned by the cert-step-revenue contract
-                    // test so a future refactor cannot silently drop the
-                    // in-range rendering.
-                    const chipState = getCertChipRangeState(offset, startOffset, selectedDays)
-                    const isStart = chipState === "start"
-                    const isInRange = chipState === "in_range"
-                    const isSelected = isStart || isInRange
-                    return (
-                      <button
-                        key={offset}
-                        ref={startOffsetRoving.registerRef(index)}
-                        type="button"
-                        role="radio"
-                        aria-checked={isStart}
-                        tabIndex={startOffsetRoving.tabIndexFor(index)}
-                        aria-label={
-                          isInRange
-                            ? `${chipLabel(offset)} (also covered by this certificate)`
-                            : chipLabel(offset)
-                        }
-                        onClick={() => handleStartOffsetClick(offset)}
-                        onKeyDown={(event) => startOffsetRoving.onKeyDown(event, index)}
-                        className={requestCx(
-                          "min-h-11 sm:min-h-12 rounded-xl border px-1.5 py-2 text-xs sm:px-2 sm:py-2.5 sm:text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
-                          isStart && "bg-primary text-primary-foreground border-primary",
-                          isInRange && !isStart && "bg-primary/15 text-primary border-primary/40",
-                          // Unselected: explicit white + full-opacity border so chips
-                          // read as actionable. Prior `bg-background border-border/60`
-                          // looked greyed-out next to selected chips, making
-                          // "Yesterday" (and other unpicked dates) read as disabled.
-                          // See paid-funnel review 2026-05-25 fix #1.
-                          !isSelected && "bg-white dark:bg-card text-foreground border-border hover:border-primary/60 hover:bg-primary/5"
-                        )}
-                      >
-                        {chipLabel(offset)}
-                      </button>
-                    )
-                  })}
-                </div>
-              </FormField>
+                {START_OFFSETS.map((offset, index) => {
+                  // Multi-day certs visually span the whole range. See
+                  // getCertChipRangeState comment for the why. The state
+                  // function is pinned by the cert-step-revenue contract
+                  // test so a future refactor cannot silently drop the
+                  // in-range rendering.
+                  const chipState = getCertChipRangeState(offset, startOffset, selectedDays)
+                  const isStart = chipState === "start"
+                  const isInRange = chipState === "in_range"
+                  const isSelected = isStart || isInRange
+                  return (
+                    <button
+                      key={offset}
+                      ref={startOffsetRoving.registerRef(index)}
+                      type="button"
+                      role="radio"
+                      aria-checked={isStart}
+                      tabIndex={startOffsetRoving.tabIndexFor(index)}
+                      aria-label={
+                        isInRange
+                          ? `${chipLabel(offset)} (also covered by this certificate)`
+                          : chipLabel(offset)
+                      }
+                      onClick={() => handleStartOffsetClick(offset)}
+                      onKeyDown={(event) => startOffsetRoving.onKeyDown(event, index)}
+                      className={requestCx(
+                        "min-h-11 sm:min-h-12 rounded-xl border px-1.5 py-2 text-xs sm:px-2 sm:py-2.5 sm:text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
+                        isStart && "bg-primary text-primary-foreground border-primary",
+                        isInRange && !isStart && "bg-primary/15 text-primary border-primary/40",
+                        // Unselected: explicit white + full-opacity border so chips
+                        // read as actionable. Prior `bg-background border-border/60`
+                        // looked greyed-out next to selected chips, making
+                        // "Yesterday" (and other unpicked dates) read as disabled.
+                        // See paid-funnel review 2026-05-25 fix #1.
+                        !isSelected && "bg-white dark:bg-card text-foreground border-border hover:border-primary/60 hover:bg-primary/5"
+                      )}
+                    >
+                      {chipLabel(offset)}
+                    </button>
+                  )
+                })}
+              </div>
+              {startDateError && (
+                <p id="certificate-start-date-error" className="text-xs text-destructive" role="alert" aria-live="polite">
+                  {startDateError}
+                </p>
+              )}
             </QuestionCard>
           </div>
 

@@ -97,6 +97,21 @@ describe("intake mobile viewport contract", () => {
     expect(hairHealthSource).not.toContain("SwitchField")
   })
 
+  it("labels certificate radio groups without invalid native label wiring", () => {
+    const certificateSource = readProjectFile("components/request/steps/certificate-step.tsx")
+
+    expect(intakePrimitivesSource).toContain("ariaLabelledBy")
+    expect(intakePrimitivesSource).toContain("aria-label={ariaLabelledBy ? undefined : ariaLabel}")
+    expect(intakePrimitivesSource).toContain("aria-labelledby={ariaLabelledBy}")
+    expect(certificateSource).not.toContain("FormField")
+    expect(certificateSource).toContain('id="certificate-type-label"')
+    expect(certificateSource).toContain('ariaLabelledBy="certificate-type-label"')
+    expect(certificateSource).toContain('id="certificate-duration-label"')
+    expect(certificateSource).toContain('ariaLabelledBy="certificate-duration-label"')
+    expect(certificateSource).toContain('id="certificate-start-date-label"')
+    expect(certificateSource).toContain('aria-labelledby="certificate-start-date-label"')
+  })
+
   it("keeps the ED assessment to one visible IIEF question at a time", () => {
     const source = readProjectFile("components/request/steps/ed-assessment-step.tsx")
     expect(source).toContain("activeQuestionIndex")

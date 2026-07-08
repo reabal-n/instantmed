@@ -344,6 +344,9 @@ interface ChoiceCardGroupProps<T extends string> {
   value?: T | ""
   onChange: (value: T) => void
   ariaLabel: string
+  ariaLabelledBy?: string
+  ariaDescribedBy?: string
+  ariaInvalid?: boolean
   columns?: "one" | "two" | "three"
   mobileColumns?: "one" | "two" | "three"
   compact?: boolean
@@ -356,6 +359,9 @@ export function ChoiceCardGroup<T extends string>({
   value,
   onChange,
   ariaLabel,
+  ariaLabelledBy,
+  ariaDescribedBy,
+  ariaInvalid,
   columns = "one",
   mobileColumns = "one",
   compact = false,
@@ -389,7 +395,10 @@ export function ChoiceCardGroup<T extends string>({
     <div
       data-intake-choice-card-group="true"
       role="radiogroup"
-      aria-label={ariaLabel}
+      aria-label={ariaLabelledBy ? undefined : ariaLabel}
+      aria-labelledby={ariaLabelledBy}
+      aria-describedby={ariaDescribedBy}
+      aria-invalid={ariaInvalid || undefined}
       className={requestCx(
         "grid gap-2",
         mobileGridClass,
