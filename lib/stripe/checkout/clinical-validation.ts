@@ -157,8 +157,12 @@ export async function runClinicalValidation(
       },
       serviceSlug: serviceSlugForSafety,
     })
+    // Do NOT surface raw internal field keys (e.g. "startDate", "duration") to
+    // the patient — they read as broken. The specific missing fields are already
+    // captured in the operator record + logs above; the patient just needs to go
+    // back and complete the highlighted required questions.
     return stepFail(
-      `Required medical information is missing. Please go back and complete all questions. Missing: ${fieldCheck.missingFields.join(", ")}`,
+      "Some required medical information is missing. Please go back and complete all the required questions before continuing.",
     )
   }
 

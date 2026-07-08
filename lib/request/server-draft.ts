@@ -203,3 +203,48 @@ export function saveServerDraftDebounced(payload: ServerDraftPayload): void {
 
   pendingTimers.set(payload.serviceType, timer)
 }
+
+/**
+ * Flush a draft to the server IMMEDIATELY, bypassing the debounce. Call on
+ * pagehide / visibilitychange-hidden: the debounced mirror would otherwise start
+ * a fresh timer that dies with the page, losing the final state (e.g. a
+ * just-typed recovery email) for cross-device resume + the recovery-email cron.
+ * `sendBeacon` is guaranteed to be queued by the browser during unload;
+ * keepalive fetch is the fallback. The response (and any new sessionId) is not
+ * read — the stored sessionId upserts the existing row; a first-ever flush
+ * creates one.
+ */
+export function flushServerDraft(payload: ServerDraftPayload): void {
+  if (typeof window === "undefined") return
+
+  // Cancel any pending debounced save — we're sending the current state now.
+  const existing = pendingTimers.get(payload.serviceType)
+  if (existing) {
+    clearTimeout(existing)
+    pendingTimers.delete(payload.serviceType)
+  }
+
+  const sessionId = getStoredSessionId(payload.serviceType)
+  const body = JSON.stringify({ ...payload, ...(sessionId ? { sessionId } : {}) })
+
+  if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+    try {
+      const queued = navigator.sendBeacon("/api/draft", new Blob([body], { type: "application/json" }))
+      if (queued) return
+    } catch {
+      // fall through to keepalive fetch
+    }
+  }
+
+  try {
+    void fetch("/api/draft", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+      cache: "no-store",
+      keepalive: true,
+    })
+  } catch {
+    // best effort — localStorage remains the source of truth for same-device.
+  }
+}

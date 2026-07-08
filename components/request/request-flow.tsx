@@ -244,31 +244,85 @@ function LazySafetyBlockDialog({
   onContactUs: () => void
 }) {
   const [DialogComponent, setDialogComponent] = useState<SafetyBlockDialogComponent | null>(null)
+  const [loadFailed, setLoadFailed] = useState(false)
 
   useEffect(() => {
     if (!safetyBlock || DialogComponent) return
 
     let mounted = true
+    setLoadFailed(false)
     import("./safety-block-dialog")
       .then((mod) => {
         if (mounted) setDialogComponent(() => mod.SafetyBlockDialog)
       })
-      .catch(() => {})
+      .catch((err) => {
+        // Chunk load failed (e.g. ChunkLoadError on a flaky connection). A safety
+        // block MUST still show a message — a DECLINE'd / REQUIRES_CALL patient
+        // cannot be left on an unchanged step with no explanation. Fall back to a
+        // non-lazy render below (same patient copy, no second chunk fetch).
+        if (mounted) setLoadFailed(true)
+        import("@sentry/nextjs").then(({ captureException }) => captureException(err)).catch(() => {})
+      })
 
     return () => {
       mounted = false
     }
   }, [DialogComponent, safetyBlock])
 
-  if (!safetyBlock || !DialogComponent) return null
-  return (
-    <DialogComponent
-      safetyBlock={safetyBlock}
-      onDismiss={onDismiss}
-      onReturnHome={onReturnHome}
-      onContactUs={onContactUs}
-    />
-  )
+  if (!safetyBlock) return null
+
+  if (DialogComponent) {
+    return (
+      <DialogComponent
+        safetyBlock={safetyBlock}
+        onDismiss={onDismiss}
+        onReturnHome={onReturnHome}
+        onContactUs={onContactUs}
+      />
+    )
+  }
+
+  // Non-lazy fallback: only when the dialog chunk failed. Uses the same patient
+  // copy and same-bundle RequestButton so it can never itself fail on a second
+  // chunk fetch — the block message is always visible.
+  if (loadFailed) {
+    const isRequiresCall = safetyBlock.outcome === "REQUIRES_CALL"
+    return (
+      <div
+        className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="safety-block-fallback-title"
+        aria-describedby="safety-block-fallback-message"
+      >
+        <div className="bg-background rounded-xl p-6 max-w-md w-full shadow-xl">
+          <h3 id="safety-block-fallback-title" className="font-semibold text-lg text-destructive">
+            {safetyBlock.patientTitle}
+          </h3>
+          <p id="safety-block-fallback-message" className="text-sm text-muted-foreground mt-1">
+            {safetyBlock.patientMessage}
+          </p>
+          <div className="flex gap-3 mt-5">
+            <RequestButton
+              variant="outline"
+              className="flex-1"
+              onClick={isRequiresCall ? onReturnHome : onDismiss}
+            >
+              {isRequiresCall ? "Return home" : "Go back"}
+            </RequestButton>
+            <RequestButton
+              className="flex-1"
+              onClick={isRequiresCall ? onContactUs : onReturnHome}
+            >
+              {isRequiresCall ? "Contact us" : "Return home"}
+            </RequestButton>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return null
 }
 
 function getMobilePrimaryAction() {

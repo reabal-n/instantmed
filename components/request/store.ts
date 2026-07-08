@@ -19,6 +19,7 @@ import {
   migrateLegacyDraft,
   saveDraft,
 } from '@/lib/request/draft-storage'
+import { flushServerDraft } from '@/lib/request/server-draft'
 import type { UnifiedServiceType, UnifiedStepId } from '@/lib/request/step-registry'
 import { getNextStepId, getPreviousStepId,getStepsForService as _getStepsForService } from '@/lib/request/step-registry'
 
@@ -162,6 +163,10 @@ const DRAFT_WRITE_DEBOUNCE_MS = 400
 
 let pendingDraftWrite: { name: string; value: StorageValue<Partial<RequestState>> } | null = null
 let draftWriteTimer: ReturnType<typeof setTimeout> | null = null
+// Latest persisted snapshot, captured on every mutation so the pagehide beacon
+// can send the current state without a lazy import that would never resolve
+// during unload.
+let latestPersistedDraftState: Partial<RequestState> | null = null
 let draftHydrationSavedBefore: number | null = null
 let draftHydrationCutoffToken = 0
 
@@ -222,6 +227,9 @@ function queueDraftStorageWrite(
 ): void {
   if (typeof localStorage === 'undefined') return
   pendingDraftWrite = { name, value }
+  // Capture the latest state so the pagehide beacon can send it — covers BOTH
+  // the persist-middleware setItem and the explicit-snapshot write paths.
+  latestPersistedDraftState = value.state
   if (draftWriteTimer !== null) clearTimeout(draftWriteTimer)
   draftWriteTimer = setTimeout(() => {
     draftWriteTimer = null
@@ -261,11 +269,39 @@ function queueLatestDraftSnapshotAfterMutation(readState: () => Partial<RequestS
   queue(() => queueLatestDraftSnapshot(readState()))
 }
 
+// A killed/backgrounded tab must not lose the trailing debounce window OR the
+// final server mirror. flushPendingDraftWrite persists localStorage; the server
+// mirror is debounced (1500ms) and would die with the page, so beacon the
+// current state immediately (see flushServerDraft).
+function flushDraftImmediately(): void {
+  flushPendingDraftWrite()
+
+  const state = latestPersistedDraftState
+  if (!state?.serviceType) return
+  const canonical = canonicalizeServiceType(state.serviceType)
+  if (!canonical) return
+
+  try {
+    flushServerDraft({
+      serviceType: canonical,
+      currentStepId: state.currentStepId || undefined,
+      answers: isPlainRecord(state.answers) ? state.answers : {},
+      identity: {
+        email: state.email,
+        firstName: state.firstName,
+        lastName: state.lastName,
+        phone: state.phone,
+      },
+    })
+  } catch {
+    // best effort — localStorage above already persisted for same-device resume.
+  }
+}
+
 if (typeof window !== 'undefined') {
-  // A killed/backgrounded tab must not lose the trailing debounce window.
-  window.addEventListener('pagehide', flushPendingDraftWrite)
+  window.addEventListener('pagehide', flushDraftImmediately)
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') flushPendingDraftWrite()
+    if (document.visibilityState === 'hidden') flushDraftImmediately()
   })
 }
 
