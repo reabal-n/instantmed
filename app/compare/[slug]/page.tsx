@@ -666,6 +666,48 @@ const MED_CERT_OPTIONS_NEXT_STEPS = [
   },
 ] as const
 
+function CertificateComparisonFacts({ pricesVerified }: { pricesVerified: string }) {
+  const facts = [
+    {
+      term: "Comparison method",
+      detail: "The table uses provider-published pricing and public service details. It does not use review counts, star ratings, or unsupported ranking claims.",
+    },
+    {
+      term: "Price date",
+      detail: `Single-day certificate prices were checked in ${pricesVerified}. Provider prices can change, so patients should confirm current pricing on each provider's own website.`,
+    },
+    {
+      term: "Verification method",
+      detail: "For any service, patients and employers can check whether the issuing practitioner is registered through the public AHPRA register.",
+    },
+    {
+      term: "Refund boundary",
+      detail: `InstantMed's one-day medical certificate fee starts at ${PRICING_DISPLAY.MED_CERT}. If the doctor declines a refundable request after review, the request is refunded according to the refund policy.`,
+    },
+  ] as const
+
+  return (
+    <section aria-labelledby="certificate-comparison-facts" className="px-4 pb-12">
+      <div className="mx-auto max-w-4xl">
+        <h2 id="certificate-comparison-facts" className="text-2xl font-semibold tracking-tight text-foreground">
+          Key facts about this comparison
+        </h2>
+        <dl className="mt-6 grid gap-4 sm:grid-cols-2">
+          {facts.map((fact) => (
+            <div
+              key={fact.term}
+              className="rounded-xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
+            >
+              <dt className="font-medium text-foreground">{fact.term}</dt>
+              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{fact.detail}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  )
+}
+
 // Default keyword set for general (non-competitor) comparison pages.
 const DEFAULT_COMPARISON_KEYWORDS = [
   'telehealth vs gp',
@@ -927,6 +969,10 @@ export default async function ComparisonPage({ params }: PageProps) {
               </div>
             </section>
           )}
+
+          {isOnlineMedCertOptions && comparison.providerPriceTable ? (
+            <CertificateComparisonFacts pricesVerified={comparison.providerPriceTable.pricesVerified} />
+          ) : null}
 
           {/* When to Choose Each */}
           <section className="px-4 py-12 bg-muted/50 dark:bg-white/[0.06]">

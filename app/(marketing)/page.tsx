@@ -104,6 +104,48 @@ async function MaintenanceBanner() {
   )
 }
 
+function HomeFactsBlock() {
+  const facts = [
+    {
+      term: 'Entity',
+      detail: 'InstantMed Pty Ltd is an Australian telehealth service operating at instantmed.com.au.',
+    },
+    {
+      term: 'Services',
+      detail: 'Current public pathways cover medical certificates, repeat medication review, hair-loss assessment, erectile-dysfunction assessment, and women\'s health pathways.',
+    },
+    {
+      term: 'Eligibility',
+      detail: 'Requests are for patients in Australia. Patients start with a secure clinical form before any doctor decision.',
+    },
+    {
+      term: 'Clinical review',
+      detail: 'AHPRA-registered doctors review submitted information and decide what is clinically appropriate.',
+    },
+  ] as const
+
+  return (
+    <section aria-labelledby="instantmed-facts" className="px-4 py-12 sm:px-6">
+      <div className="mx-auto max-w-5xl">
+        <h2 id="instantmed-facts" className="text-2xl font-semibold tracking-tight text-foreground">
+          Key facts about InstantMed
+        </h2>
+        <dl className="mt-6 grid gap-4 sm:grid-cols-2">
+          {facts.map((fact) => (
+            <div
+              key={fact.term}
+              className="rounded-xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
+            >
+              <dt className="font-medium text-foreground">{fact.term}</dt>
+              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{fact.detail}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  )
+}
+
 export default async function HomePage() {
   // Transform FAQ items for schema
   const faqSchemaData = faqItems.map(item => ({
@@ -182,6 +224,8 @@ export default async function HomePage() {
             never-crawled money/pillar/verify pages into the static HTML of the
             highest-authority page (crawl demand). See component header. */}
         <HomeServiceLinks />
+
+        <HomeFactsBlock />
 
         {/* Editorial lifestyle photo, primary. Quiet visual break between
             the dense service grid and the "how it works" rhythm. */}

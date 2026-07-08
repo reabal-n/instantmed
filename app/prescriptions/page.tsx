@@ -104,6 +104,48 @@ function PrescriptionAuthorityResourceLink() {
   )
 }
 
+function PrescriptionFactsBlock() {
+  const facts = [
+    {
+      term: "Review model",
+      detail: "Repeat prescription requests start with a secure form and are reviewed by an AHPRA-registered doctor.",
+    },
+    {
+      term: "eScript delivery",
+      detail: "If the doctor approves a prescription, an electronic prescription token is delivered digitally for use at an Australian pharmacy.",
+    },
+    {
+      term: "Identity and records",
+      detail: "Prescription and consultation pathways require Medicare details for identity, prescribing records, and pharmacy continuity.",
+    },
+    {
+      term: "Pharmacy boundary",
+      detail: "The InstantMed fee covers doctor review. Medicine costs are paid separately at the pharmacy and may depend on PBS eligibility, brand, and pharmacy pricing.",
+    },
+  ] as const
+
+  return (
+    <section aria-labelledby="prescription-facts" className="px-4 py-10 sm:px-6">
+      <div className="mx-auto max-w-5xl">
+        <h2 id="prescription-facts" className="text-2xl font-semibold tracking-tight text-foreground">
+          Key facts about repeat prescriptions
+        </h2>
+        <dl className="mt-6 grid gap-4 sm:grid-cols-2">
+          {facts.map((fact) => (
+            <div
+              key={fact.term}
+              className="rounded-xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
+            >
+              <dt className="font-medium text-foreground">{fact.term}</dt>
+              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{fact.detail}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  )
+}
+
 export default function PrescriptionsPage() {
   return (
     <>
@@ -131,6 +173,7 @@ export default function PrescriptionsPage() {
         url="/prescriptions"
       />
       <PrescriptionsLanding>
+        <PrescriptionFactsBlock />
         <PrescriptionAuthorityResourceLink />
       </PrescriptionsLanding>
     </>

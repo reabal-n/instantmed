@@ -241,6 +241,48 @@ function PricingEvidenceLinks() {
   )
 }
 
+function PricingFactsBlock() {
+  const facts = [
+    {
+      term: "Service fees",
+      detail: `Medical certificates start at ${PRICING_DISPLAY.MED_CERT}. Repeat prescription review is ${PRICING_DISPLAY.REPEAT_SCRIPT}. ED, hair-loss, and women's health assessments are ${PRICING_DISPLAY.CONSULT}.`,
+    },
+    {
+      term: "Medicare and bulk billing",
+      detail: "InstantMed is a private telehealth service and does not bulk bill or claim Medicare rebates for the review fee.",
+    },
+    {
+      term: "Pharmacy costs",
+      detail: "Prescription review fees do not include medicine costs. If a prescription is approved, the pharmacy charges separately and PBS rules may affect the amount paid.",
+    },
+    {
+      term: "Declined requests",
+      detail: "If a doctor declines a refundable request after review, the request is refunded according to the refund policy.",
+    },
+  ] as const
+
+  return (
+    <section aria-labelledby="pricing-facts" className="px-4 py-12 sm:px-6">
+      <div className="mx-auto max-w-5xl">
+        <h2 id="pricing-facts" className="text-2xl font-semibold tracking-tight text-foreground">
+          Key pricing facts
+        </h2>
+        <dl className="mt-6 grid gap-4 sm:grid-cols-2">
+          {facts.map((fact) => (
+            <div
+              key={fact.term}
+              className="rounded-xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
+            >
+              <dt className="font-medium text-foreground">{fact.term}</dt>
+              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{fact.detail}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  )
+}
+
 /* ────────────────────────────── Component ────────────────────────────── */
 
 export function PricingContent() {
@@ -449,6 +491,8 @@ export function PricingContent() {
 
         {/* Pricing Guide */}
         <PricingGuideSection />
+
+        <PricingFactsBlock />
 
         <PricingEvidenceLinks />
 
