@@ -96,6 +96,7 @@ const trustEvidenceLinks = [
   { href: "/blog/ahpra-registered-doctor-meaning", label: "What AHPRA registration means" },
   { href: "/clinical-governance", label: "Clinical governance" },
   { href: "/privacy", label: "Privacy and data handling" },
+  { href: "/compare/online-medical-certificate-options", label: "Online certificate service comparison" },
   { href: "/verify", label: "Certificate verification" },
 ] as const
 
