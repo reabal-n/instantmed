@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { buildGoogleAdsHealth } from "@/lib/analytics/google-ads-health"
+import { buildGoogleAdsHealth, summarizeGoogleAdsAdjustmentHealth } from "@/lib/analytics/google-ads-health"
 
 describe("Google Ads health", () => {
   it("summarises captured, uploaded, skipped, failed, and paused uploads from latest audit state", () => {
@@ -141,5 +141,105 @@ describe("Google Ads health", () => {
     expect(health.retryPaused).toBe(0)
     expect(health.latestErrorCode).toBeNull()
     expect(health.configuration.severity).toBe("ok")
+  })
+})
+
+describe("Google Ads adjustment health", () => {
+  it("dedupes raw adjustment failures and separates transient from terminal click-attributed risk", () => {
+    const health = summarizeGoogleAdsAdjustmentHealth({
+      adjustmentRows: [
+        {
+          intake_id: "click-refund",
+          created_at: "2026-07-03T08:45:26.732Z",
+          metadata: {
+            error_code: "conversionAdjustmentUploadError:CONVERSION_NOT_FOUND:The conversion was not found",
+            status: "failed",
+          },
+        },
+        {
+          intake_id: "click-refund",
+          created_at: "2026-07-02T08:45:26.732Z",
+          metadata: {
+            error_code: "conversionAdjustmentUploadError:CONVERSION_NOT_FOUND:The conversion was not found",
+            status: "failed",
+          },
+        },
+        {
+          intake_id: "user-data-refund",
+          created_at: "2026-07-03T08:30:00.000Z",
+          metadata: {
+            error_code: "conversionAdjustmentUploadError:CONVERSION_NOT_FOUND:The conversion was not found",
+            status: "failed",
+          },
+        },
+        {
+          intake_id: "fresh-refund",
+          created_at: "2026-07-08T08:30:00.000Z",
+          metadata: {
+            error_code: "conversionAdjustmentUploadError:CONVERSION_NOT_FOUND:The conversion was not found",
+            status: "failed",
+          },
+        },
+        {
+          intake_id: "processing-refund",
+          created_at: "2026-07-08T08:35:00.000Z",
+          metadata: {
+            error_code: "dm_request_processing",
+            status: "failed",
+          },
+        },
+      ],
+      generatedAt: "2026-07-08T09:00:00.000Z",
+      lookbackDays: 90,
+      now: new Date("2026-07-08T09:00:00.000Z"),
+      purchaseUploadRows: [
+        {
+          intake_id: "click-refund",
+          created_at: "2026-06-20T23:24:43.356Z",
+          metadata: {
+            has_gclid: true,
+            has_user_data: true,
+            status: "success",
+          },
+        },
+        {
+          intake_id: "user-data-refund",
+          created_at: "2026-06-24T05:46:00.244Z",
+          metadata: {
+            has_gclid: false,
+            has_user_data: true,
+            status: "success",
+          },
+        },
+        {
+          intake_id: "fresh-refund",
+          created_at: "2026-07-08T07:30:00.000Z",
+          metadata: {
+            has_user_data: true,
+            status: "success",
+          },
+        },
+        {
+          intake_id: "processing-refund",
+          created_at: "2026-07-08T07:20:00.000Z",
+          metadata: {
+            has_user_data: true,
+            status: "success",
+          },
+        },
+      ],
+    })
+
+    expect(health).toMatchObject({
+      adjustmentFailureRows: 5,
+      clickAttributedFailures: 1,
+      dedupedFailedIntakes: 4,
+      failedIntakesWithoutSuccessfulUpload: 0,
+      latestFailureAt: "2026-07-08T08:35:00.000Z",
+      terminalClickAttributedFailures: 1,
+      terminalFailures: 2,
+      terminalNonClickAttributedFailures: 1,
+      transientFailures: 2,
+    })
   })
 })

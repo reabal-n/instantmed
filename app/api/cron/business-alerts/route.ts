@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 
 import { buildOperationalInvariantAlerts, getOperationalInvariants, type OperationalInvariants } from "@/lib/admin/ops-invariants"
-import { getGoogleAdsUploadStreamHealth } from "@/lib/analytics/google-ads-health"
+import { getGoogleAdsAdjustmentHealth, getGoogleAdsUploadStreamHealth } from "@/lib/analytics/google-ads-health"
 import { getGoogleAdsPurchaseImportHealth } from "@/lib/analytics/google-ads-report"
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
@@ -12,6 +12,7 @@ import { toError } from "@/lib/errors"
 import { type BusinessAlert, runAlertSection } from "@/lib/monitoring/alert-sections"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import {
+  buildGoogleAdsAdjustmentTerminalRiskAlert,
   buildGoogleAdsPurchaseImportAlert,
   buildGoogleAdsUploadAuditSourceAnomalyAlert,
   buildGoogleAdsUploadPartialFailureAlert,
@@ -282,6 +283,9 @@ export async function GET(request: NextRequest) {
     let googleAdsUploadStreamHealth:
       | Awaited<ReturnType<typeof getGoogleAdsUploadStreamHealth>>
       | null = null
+    let googleAdsAdjustmentHealth:
+      | Awaited<ReturnType<typeof getGoogleAdsAdjustmentHealth>>
+      | null = null
     try {
       googleAdsUploadStreamHealth = await getGoogleAdsUploadStreamHealth(supabase, { now })
       const uploadStreamStalledAlert = buildGoogleAdsUploadStreamStalledAlert(googleAdsUploadStreamHealth)
@@ -307,6 +311,26 @@ export async function GET(request: NextRequest) {
       // suppress other alerts. Section 3 already pages on a hard Google Ads
       // health failure.
       logger.warn("Google Ads upload-stream health check failed", {
+        error: toError(error).message,
+      })
+    }
+
+    // 3c. Retained-value adjustment risk: refunded/disputed purchases are
+    // noisy on Google diagnostics, so only page when a terminal retraction
+    // failure is tied to an original click-attributed purchase upload.
+    try {
+      googleAdsAdjustmentHealth = await getGoogleAdsAdjustmentHealth(supabase, { now })
+      const adjustmentRiskAlert = buildGoogleAdsAdjustmentTerminalRiskAlert(googleAdsAdjustmentHealth)
+      if (adjustmentRiskAlert) {
+        alerts.push(adjustmentRiskAlert)
+        trackBusinessMetric({
+          metric: adjustmentRiskAlert.metric,
+          severity: adjustmentRiskAlert.severity,
+          metadata: adjustmentRiskAlert.metadata,
+        })
+      }
+    } catch (error) {
+      logger.warn("Google Ads adjustment health check failed", {
         error: toError(error).message,
       })
     }
@@ -668,6 +692,7 @@ export async function GET(request: NextRequest) {
           : null,
         google_ads_purchase_import_health: googleAdsPurchaseImportHealth,
         google_ads_upload_stream: googleAdsUploadStreamHealth,
+        google_ads_adjustment_health: googleAdsAdjustmentHealth,
         rx_consult_queue_stalled: staleHumanCount ?? 0,
         ops_sla_breach_backlog: invariants?.slaBreachBacklog ?? null,
         ops_cert_refund_orphans: invariants?.certRefundOrphans ?? null,

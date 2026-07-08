@@ -74,6 +74,44 @@ export type GoogleAdsPurchaseImportAlert = {
   severity: "critical"
 }
 
+export const GOOGLE_ADS_ADJUSTMENT_HEALTH_DAYS = 90
+
+export type GoogleAdsAdjustmentHealth = {
+  adjustmentFailureRows: number
+  clickAttributedFailures: number
+  dedupedFailedIntakes: number
+  failedIntakesWithoutSuccessfulUpload: number
+  generatedAt: string
+  latestFailureAt: string | null
+  lookbackDays: number
+  queryFailed: boolean
+  terminalClickAttributedFailures: number
+  terminalFailures: number
+  terminalNonClickAttributedFailures: number
+  transientFailures: number
+}
+
+export type GoogleAdsAdjustmentTerminalRiskAlert = {
+  count: number
+  detail: string
+  metadata: {
+    adjustment_failure_rows: number
+    click_attributed_failures: number
+    deduped_failed_intakes: number
+    failed_intakes_without_successful_upload: number
+    generated_at: string
+    latest_failure_at: string | null
+    terminal_click_attributed_failures: number
+    terminal_failures: number
+    terminal_non_click_attributed_failures: number
+    transient_failures: number
+    window: string
+    window_days: number
+  }
+  metric: "google_ads_adjustment_terminal_click_attributed_failures"
+  severity: "critical"
+}
+
 function buildMetadata(snapshot: GoogleAdsPurchaseImportHealthSnapshot): GoogleAdsPurchaseImportAlert["metadata"] {
   return {
     accepted_customer_data_terms: snapshot.acceptedCustomerDataTerms,
@@ -96,6 +134,37 @@ function buildMetadata(snapshot: GoogleAdsPurchaseImportHealthSnapshot): GoogleA
     upload_audit_vercel_envs: Object.keys(snapshot.uploadAuditReconciliation?.byVercelEnv ?? {}).sort(),
     window: `${snapshot.rangeDays}d`,
     window_days: snapshot.rangeDays,
+  }
+}
+
+export function buildGoogleAdsAdjustmentTerminalRiskAlert(
+  health: GoogleAdsAdjustmentHealth,
+): GoogleAdsAdjustmentTerminalRiskAlert | null {
+  if (health.queryFailed) return null
+  if (health.terminalClickAttributedFailures <= 0) return null
+
+  return {
+    count: health.terminalClickAttributedFailures,
+    detail:
+      `Google Ads has ${health.terminalClickAttributedFailures} terminal refunded-order adjustment failure` +
+      `${health.terminalClickAttributedFailures === 1 ? "" : "s"} tied to a click-attributed purchase import; ` +
+      "Smart Bidding may still be counting refunded ad-click revenue.",
+    metadata: {
+      adjustment_failure_rows: health.adjustmentFailureRows,
+      click_attributed_failures: health.clickAttributedFailures,
+      deduped_failed_intakes: health.dedupedFailedIntakes,
+      failed_intakes_without_successful_upload: health.failedIntakesWithoutSuccessfulUpload,
+      generated_at: health.generatedAt,
+      latest_failure_at: health.latestFailureAt,
+      terminal_click_attributed_failures: health.terminalClickAttributedFailures,
+      terminal_failures: health.terminalFailures,
+      terminal_non_click_attributed_failures: health.terminalNonClickAttributedFailures,
+      transient_failures: health.transientFailures,
+      window: `${health.lookbackDays}d`,
+      window_days: health.lookbackDays,
+    },
+    metric: "google_ads_adjustment_terminal_click_attributed_failures",
+    severity: "critical",
   }
 }
 

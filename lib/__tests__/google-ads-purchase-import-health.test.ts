@@ -4,10 +4,12 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import {
+  buildGoogleAdsAdjustmentTerminalRiskAlert,
   buildGoogleAdsPurchaseImportAlert,
   buildGoogleAdsUploadAuditSourceAnomalyAlert,
   buildGoogleAdsUploadPartialFailureAlert,
   buildGoogleAdsUploadStreamStalledAlert,
+  type GoogleAdsAdjustmentHealth,
   type GoogleAdsPurchaseImportHealthSnapshot,
   type GoogleAdsUploadStreamHealth,
 } from "@/lib/monitoring/google-ads-purchase-import-health"
@@ -172,16 +174,90 @@ describe("Google Ads purchase import health", () => {
     expect(cron).toContain("getGoogleAdsPurchaseImportHealth")
     expect(cron).toContain("buildGoogleAdsPurchaseImportAlert")
     expect(cron).toContain("buildGoogleAdsUploadAuditSourceAnomalyAlert")
+    expect(cron).toContain("buildGoogleAdsAdjustmentTerminalRiskAlert")
     expect(cron).toContain("buildGoogleAdsUploadStreamStalledAlert")
     expect(cron).toContain("buildGoogleAdsUploadPartialFailureAlert")
     expect(cron).toContain("getGoogleAdsUploadStreamHealth")
+    expect(cron).toContain("getGoogleAdsAdjustmentHealth")
     expect(cron).toContain("google_ads_purchase_import_health")
+    expect(cron).toContain("google_ads_adjustment_health")
     expect(posthog).toContain("'google_ads_purchase_enhanced_conversions_setup_incomplete'")
     expect(posthog).toContain("'google_ads_purchase_imports_zero'")
     expect(posthog).toContain("'google_ads_purchase_primary_conversions_zero'")
     expect(posthog).toContain("'google_ads_upload_audit_source_anomaly'")
     expect(posthog).toContain("'google_ads_conversion_uploads_stalled'")
     expect(posthog).toContain("'google_ads_conversion_upload_partial_failures'")
+    expect(posthog).toContain("'google_ads_adjustment_terminal_click_attributed_failures'")
+  })
+})
+
+describe("Google Ads adjustment terminal-risk detector", () => {
+  function adjustmentHealth(
+    overrides: Partial<GoogleAdsAdjustmentHealth> = {},
+  ): GoogleAdsAdjustmentHealth {
+    return {
+      adjustmentFailureRows: 219,
+      clickAttributedFailures: 1,
+      dedupedFailedIntakes: 7,
+      failedIntakesWithoutSuccessfulUpload: 0,
+      generatedAt: "2026-07-08T09:00:00.000Z",
+      latestFailureAt: "2026-07-03T08:45:26.732Z",
+      lookbackDays: 90,
+      queryFailed: false,
+      terminalClickAttributedFailures: 0,
+      terminalFailures: 6,
+      terminalNonClickAttributedFailures: 6,
+      transientFailures: 1,
+      ...overrides,
+    }
+  }
+
+  it("does not page for terminal user-data-only adjustment misses", () => {
+    expect(
+      buildGoogleAdsAdjustmentTerminalRiskAlert(
+        adjustmentHealth({
+          terminalClickAttributedFailures: 0,
+          terminalFailures: 6,
+          terminalNonClickAttributedFailures: 6,
+        }),
+      ),
+    ).toBeNull()
+  })
+
+  it("does not page when the adjustment-health query fails", () => {
+    expect(
+      buildGoogleAdsAdjustmentTerminalRiskAlert(
+        adjustmentHealth({
+          queryFailed: true,
+          terminalClickAttributedFailures: 1,
+        }),
+      ),
+    ).toBeNull()
+  })
+
+  it("pages only when terminal adjustment failures are click-attributed", () => {
+    const alert = buildGoogleAdsAdjustmentTerminalRiskAlert(
+      adjustmentHealth({
+        terminalClickAttributedFailures: 1,
+        terminalFailures: 7,
+        transientFailures: 0,
+      }),
+    )
+
+    expect(alert).toMatchObject({
+      count: 1,
+      metric: "google_ads_adjustment_terminal_click_attributed_failures",
+      severity: "critical",
+      metadata: {
+        adjustment_failure_rows: 219,
+        deduped_failed_intakes: 7,
+        terminal_click_attributed_failures: 1,
+        terminal_failures: 7,
+        transient_failures: 0,
+        window: "90d",
+      },
+    })
+    expect(alert?.detail).toContain("click-attributed purchase import")
   })
 })
 
