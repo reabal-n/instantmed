@@ -13,13 +13,13 @@ import { capture } from '@/lib/analytics/capture'
 import { buildIntakeAnswerChangedEvent } from '@/lib/analytics/intake-events'
 import {
   canonicalizeServiceType,
+  type CanonicalServiceType,
   type DraftData,
   getAllDrafts,
   getDraft,
   migrateLegacyDraft,
   saveDraft,
 } from '@/lib/request/draft-storage'
-import { flushServerDraft } from '@/lib/request/server-draft'
 import type { UnifiedServiceType, UnifiedStepId } from '@/lib/request/step-registry'
 import { getNextStepId, getPreviousStepId,getStepsForService as _getStepsForService } from '@/lib/request/step-registry'
 
@@ -170,6 +170,22 @@ let latestPersistedDraftState: Partial<RequestState> | null = null
 let draftHydrationSavedBefore: number | null = null
 let draftHydrationCutoffToken = 0
 
+type ServerDraftFlush = (payload: {
+  serviceType: CanonicalServiceType
+  currentStepId?: string
+  answers?: Record<string, unknown>
+  identity?: {
+    email?: string
+    firstName?: string
+    lastName?: string
+    phone?: string
+  }
+}) => void
+
+type RequestWindow = Window & {
+  __instantmedFlushServerDraft?: ServerDraftFlush
+}
+
 export function beginRequestDraftHydrationCutoff(savedBefore: number): number {
   draftHydrationCutoffToken += 1
   draftHydrationSavedBefore = savedBefore
@@ -280,9 +296,11 @@ function flushDraftImmediately(): void {
   if (!state?.serviceType) return
   const canonical = canonicalizeServiceType(state.serviceType)
   if (!canonical) return
+  const flush = (window as RequestWindow).__instantmedFlushServerDraft
+  if (!flush) return
 
   try {
-    flushServerDraft({
+    flush({
       serviceType: canonical,
       currentStepId: state.currentStepId || undefined,
       answers: isPlainRecord(state.answers) ? state.answers : {},

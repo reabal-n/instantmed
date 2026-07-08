@@ -52,6 +52,12 @@ interface ServerDraftRecord {
   expiresAt: string
 }
 
+declare global {
+  interface Window {
+    __instantmedFlushServerDraft?: typeof flushServerDraft
+  }
+}
+
 function getStoredSessionId(service: CanonicalServiceType): string | null {
   if (typeof window === "undefined") return null
   try {
@@ -87,6 +93,28 @@ function clearStoredSessionId(service: CanonicalServiceType): void {
   }
 }
 
+function createDraftSessionId(): string | null {
+  try {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      return crypto.randomUUID()
+    }
+  } catch {
+    // fall through to server-generated id
+  }
+  return null
+}
+
+function getOrCreateStoredSessionId(service: CanonicalServiceType): string | null {
+  const existing = getStoredSessionId(service)
+  if (existing) return existing
+
+  const generated = createDraftSessionId()
+  if (!generated) return null
+
+  setStoredSessionId(service, generated)
+  return generated
+}
+
 /**
  * Upsert a draft on the server. Fire-and-forget. Returns the sessionId so
  * callers can persist it. Resolves to null on any failure.
@@ -94,7 +122,7 @@ function clearStoredSessionId(service: CanonicalServiceType): void {
 export async function saveServerDraft(payload: ServerDraftPayload): Promise<string | null> {
   if (typeof window === "undefined") return null
 
-  const sessionId = getStoredSessionId(payload.serviceType)
+  const sessionId = getOrCreateStoredSessionId(payload.serviceType)
 
   try {
     const res = await fetch("/api/draft", {
@@ -210,9 +238,9 @@ export function saveServerDraftDebounced(payload: ServerDraftPayload): void {
  * a fresh timer that dies with the page, losing the final state (e.g. a
  * just-typed recovery email) for cross-device resume + the recovery-email cron.
  * `sendBeacon` is guaranteed to be queued by the browser during unload;
- * keepalive fetch is the fallback. The response (and any new sessionId) is not
- * read — the stored sessionId upserts the existing row; a first-ever flush
- * creates one.
+ * keepalive fetch is the fallback. The response is not read during unload, so
+ * first save paths create and persist a client UUID before sending. That keeps
+ * duplicate unload signals (`visibilitychange` + `pagehide`) pointed at one row.
  */
 export function flushServerDraft(payload: ServerDraftPayload): void {
   if (typeof window === "undefined") return
@@ -224,7 +252,7 @@ export function flushServerDraft(payload: ServerDraftPayload): void {
     pendingTimers.delete(payload.serviceType)
   }
 
-  const sessionId = getStoredSessionId(payload.serviceType)
+  const sessionId = getOrCreateStoredSessionId(payload.serviceType)
   const body = JSON.stringify({ ...payload, ...(sessionId ? { sessionId } : {}) })
 
   if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
@@ -247,4 +275,8 @@ export function flushServerDraft(payload: ServerDraftPayload): void {
   } catch {
     // best effort — localStorage remains the source of truth for same-device.
   }
+}
+
+if (typeof window !== "undefined") {
+  window.__instantmedFlushServerDraft = flushServerDraft
 }

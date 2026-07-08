@@ -8,6 +8,8 @@ import { flushServerDraft } from "@/lib/request/server-draft"
 // cross-device resume + the recovery-email cron.
 
 type BeaconCall = { url: string; body: string }
+const GENERATED_SESSION_ID = "11111111-1111-4111-8111-111111111111"
+const STORED_SESSION_ID = "22222222-2222-4222-8222-222222222222"
 
 class FakeBlob {
   type: string
@@ -44,6 +46,9 @@ describe("flushServerDraft (pagehide beacon)", () => {
         return true
       },
     })
+    vi.stubGlobal("crypto", {
+      randomUUID: () => GENERATED_SESSION_ID,
+    })
     vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ ok: true, json: async () => ({}) })))
   })
 
@@ -64,13 +69,31 @@ describe("flushServerDraft (pagehide beacon)", () => {
     const body = JSON.parse(beaconCalls[0].body)
     expect(body.serviceType).toBe("med-cert")
     expect(body.identity.email).toBe("patient@example.com")
-    expect(body.sessionId).toBeUndefined()
+    expect(body.sessionId).toBe(GENERATED_SESSION_ID)
+    expect(sessionStore["instantmed-server-draft-med-cert"]).toBe(GENERATED_SESSION_ID)
     // sendBeacon path succeeded → no keepalive-fetch fallback.
     expect(fetch).not.toHaveBeenCalled()
   })
 
+  it("reuses the generated sessionId across repeated unload signals", () => {
+    flushServerDraft({
+      serviceType: "med-cert",
+      identity: { email: "patient@example.com" },
+    })
+    flushServerDraft({
+      serviceType: "med-cert",
+      identity: { email: "patient@example.com" },
+    })
+
+    expect(beaconCalls).toHaveLength(2)
+    const firstBody = JSON.parse(beaconCalls[0].body)
+    const secondBody = JSON.parse(beaconCalls[1].body)
+    expect(firstBody.sessionId).toBe(GENERATED_SESSION_ID)
+    expect(secondBody.sessionId).toBe(GENERATED_SESSION_ID)
+  })
+
   it("includes the stored sessionId so the existing row is upserted, not duplicated", () => {
-    sessionStore["instantmed-server-draft-med-cert"] = "sess-abc"
+    sessionStore["instantmed-server-draft-med-cert"] = STORED_SESSION_ID
 
     flushServerDraft({
       serviceType: "med-cert",
@@ -79,7 +102,7 @@ describe("flushServerDraft (pagehide beacon)", () => {
 
     expect(beaconCalls).toHaveLength(1)
     const body = JSON.parse(beaconCalls[0].body)
-    expect(body.sessionId).toBe("sess-abc")
+    expect(body.sessionId).toBe(STORED_SESSION_ID)
   })
 
   it("falls back to keepalive fetch when sendBeacon is unavailable", () => {

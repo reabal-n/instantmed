@@ -255,13 +255,12 @@ function LazySafetyBlockDialog({
       .then((mod) => {
         if (mounted) setDialogComponent(() => mod.SafetyBlockDialog)
       })
-      .catch((err) => {
+      .catch(() => {
         // Chunk load failed (e.g. ChunkLoadError on a flaky connection). A safety
         // block MUST still show a message — a DECLINE'd / REQUIRES_CALL patient
         // cannot be left on an unchanged step with no explanation. Fall back to a
         // non-lazy render below (same patient copy, no second chunk fetch).
         if (mounted) setLoadFailed(true)
-        import("@sentry/nextjs").then(({ captureException }) => captureException(err)).catch(() => {})
       })
 
     return () => {
@@ -289,34 +288,21 @@ function LazySafetyBlockDialog({
     const isRequiresCall = safetyBlock.outcome === "REQUIRES_CALL"
     return (
       <div
-        className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4"
         role="alertdialog"
         aria-modal="true"
-        aria-labelledby="safety-block-fallback-title"
-        aria-describedby="safety-block-fallback-message"
+        aria-label={safetyBlock.patientTitle}
       >
-        <div className="bg-background rounded-xl p-6 max-w-md w-full shadow-xl">
-          <h3 id="safety-block-fallback-title" className="font-semibold text-lg text-destructive">
+        <div className="w-full max-w-md rounded-xl bg-background p-6 shadow-xl">
+          <h3 className="text-lg font-semibold text-destructive">
             {safetyBlock.patientTitle}
           </h3>
-          <p id="safety-block-fallback-message" className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1 text-sm text-muted-foreground">
             {safetyBlock.patientMessage}
           </p>
-          <div className="flex gap-3 mt-5">
-            <RequestButton
-              variant="outline"
-              className="flex-1"
-              onClick={isRequiresCall ? onReturnHome : onDismiss}
-            >
-              {isRequiresCall ? "Return home" : "Go back"}
-            </RequestButton>
-            <RequestButton
-              className="flex-1"
-              onClick={isRequiresCall ? onContactUs : onReturnHome}
-            >
-              {isRequiresCall ? "Contact us" : "Return home"}
-            </RequestButton>
-          </div>
+          <RequestButton className="mt-5 w-full" onClick={isRequiresCall ? onContactUs : onDismiss}>
+            {isRequiresCall ? "Contact us" : "Go back"}
+          </RequestButton>
         </div>
       </div>
     )
