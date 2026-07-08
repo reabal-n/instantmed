@@ -8,7 +8,7 @@ import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: "Online Medical Certificate | AHPRA Doctor Review | InstantMed" },
+  title: { absolute: "Medical Certificate Online Australia | Doctor Review | InstantMed" },
   description: `Get a medical certificate for work or study online. Fill out a secure form, no appointment. From $${PRICING.MED_CERT.toFixed(2)}.`,
   keywords: [
     "medical certificate online australia",
