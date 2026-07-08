@@ -109,6 +109,24 @@ const FEE_DETAILS = [
   },
 ] as const
 
+const MED_CERT_EVIDENCE_LINKS = [
+  {
+    href: "/blog/doctors-note-australia",
+    title: "Doctor's note or medical certificate?",
+    body: "Plain-English differences between common evidence terms in Australia.",
+  },
+  {
+    href: "/blog/parents-sick-child-certificate",
+    title: "Carer's certificates for a sick child",
+    body: "How carer's leave evidence works when a child is unwell.",
+  },
+  {
+    href: "/blog/work-from-home-sick-certificate",
+    title: "Sick while working from home",
+    body: "When remote work can still be sick leave and how evidence may be requested.",
+  },
+] as const
+
 // =============================================================================
 // UNIQUE SECTIONS
 // =============================================================================
@@ -214,6 +232,52 @@ function FeeSuitabilityPanel() {
                 <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function RelatedEvidenceGuides() {
+  return (
+    <section aria-labelledby="related-evidence-guides" className="px-4 py-10 sm:px-6">
+      <div className="mx-auto max-w-5xl">
+        <div className="rounded-2xl border border-border/50 bg-white p-5 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                Related evidence guides
+              </p>
+              <Heading
+                id="related-evidence-guides"
+                level="h2"
+                className="mt-2 text-xl sm:text-2xl"
+              >
+                Read the common certificate evidence questions.
+              </Heading>
+            </div>
+            <p className="max-w-md text-sm leading-6 text-muted-foreground">
+              Neutral guides for workplace, carer&apos;s leave, and remote-work evidence rules.
+            </p>
+          </div>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            {MED_CERT_EVIDENCE_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="group rounded-xl border border-border/50 bg-muted/25 p-4 text-sm transition-colors hover:border-primary/30 dark:border-white/10 dark:bg-white/[0.04]"
+              >
+                <span className="flex items-start justify-between gap-3 font-semibold text-foreground">
+                  {link.title}
+                  <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-primary transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                </span>
+                <span className="mt-2 block leading-6 text-muted-foreground">
+                  {link.body}
+                </span>
+              </Link>
             ))}
           </div>
         </div>
@@ -385,6 +449,7 @@ export function MedCertLanding() {
           <MedCertHero />
           <CitationFacts variant="muted" />
           <WorkplaceProofPanel />
+          <RelatedEvidenceGuides />
 
           {/* Day-selector was retired 2026-05-26 (Tier 1 review #5). The
               pre-form 1/2/3-day chooser forced a decision before the form

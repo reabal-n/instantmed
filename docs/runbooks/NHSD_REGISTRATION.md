@@ -12,6 +12,12 @@
 > Finder is a JS app (not server-rendered), so verify the rendered name/description
 > and the absence of doctor names in a browser.
 >
+> **Verification 2026-07-08:** Live page still resolves as `InstantMed GP
+> (General practice)`, open 24 hours, with no doctor names and no weight-loss
+> scope. Description drift found: the public page still says "general practitioner
+> consultations" and omits hair-loss, erectile-dysfunction, and women's health
+> pathways. Apply the updated PCA description below at next directory maintenance.
+>
 > This doc is the as-built record + redo guide. It corrects two earlier wrong
 > assumptions: NHSD has **no "Telehealth" service type** (the portal rejects it),
 > and you create **one** service, not four.
@@ -89,15 +95,15 @@ Already registered + ABR-validated. For reference / re-entry:
 | "This service is also delivered virtually" | ✅ tick it |
 | Contact | business phone/email only (not a personal mobile) |
 
-**Service description (public, ≤500 chars — compliant version):**
+**Service description (public, ≤500 chars — compliant version, updated 2026-07-08):**
 
-> InstantMed is an Australian telehealth service for adults who want a doctor
-> without the wait: medical certificates, repeat prescriptions, and hair-loss and
-> erectile-dysfunction assessments. An AHPRA-registered doctor reviews your secure
-> online form and may contact you if clinically needed. Approved documents and
-> eScripts are delivered digitally and fill at any Australian pharmacy. Available 7
-> days. Medicare optional for certificates, required for prescriptions. Full refund
-> if declined.
+> InstantMed is an Australian telehealth service for adults seeking doctor review
+> for medical certificates, repeat prescription requests, hair-loss assessment,
+> erectile-dysfunction assessment, and women's health pathways. Patients complete
+> a secure online form; an AHPRA-registered doctor reviews and may contact them if
+> clinically needed. Approved documents or eScript tokens are delivered digitally.
+> Requests open 24/7. Medicare optional for certificates; required for
+> prescriptions/consults.
 
 **Availability:** Available 7 days / requests 24-7. **Do not** enter a guaranteed
 turnaround (no customer-facing SLA). Don't publish bank/credentials — not needed.

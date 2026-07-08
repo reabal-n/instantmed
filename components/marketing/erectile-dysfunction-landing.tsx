@@ -82,6 +82,25 @@ const HERO_FACTS = [
   },
 ] as const
 
+const ED_GEO_FACTS = [
+  {
+    term: "Review model",
+    detail: "ED requests start with a private safety form and are reviewed by an AHPRA-registered doctor.",
+  },
+  {
+    term: "Safety screen",
+    detail: "The form checks erection symptoms, duration, heart health, chest-pain medicine use, blood pressure context, current medicines, and relevant medical history.",
+  },
+  {
+    term: "Doctor contact",
+    detail: "The doctor may call or message if a safety detail needs clarification before deciding whether online care is appropriate.",
+  },
+  {
+    term: "Cost boundary",
+    detail: `The review fee is ${PRICING_DISPLAY.MENS_HEALTH}. If a prescription is approved, pharmacy costs are separate and may depend on PBS status, brand, and pharmacy pricing.`,
+  },
+] as const
+
 const HOW_IT_WORKS = [
   {
     title: "Start the ED pathway",
@@ -325,6 +344,29 @@ function SectionShell({
   )
 }
 
+function EdGeoFactsBlock() {
+  return (
+    <section aria-labelledby="ed-facts" className="px-4 py-12 sm:px-6">
+      <div className="mx-auto max-w-5xl">
+        <h2 id="ed-facts" className="text-2xl font-semibold tracking-tight text-foreground">
+          Key facts about ED assessment
+        </h2>
+        <dl className="mt-6 grid gap-4 sm:grid-cols-2">
+          {ED_GEO_FACTS.map((fact) => (
+            <div
+              key={fact.term}
+              className="rounded-xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
+            >
+              <dt className="font-medium text-foreground">{fact.term}</dt>
+              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{fact.detail}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  )
+}
+
 function VisualTextIndex({ visuals }: { visuals: RenderableArticleVisual[] }) {
   return (
     <div className="mt-8 grid gap-4 lg:grid-cols-3">
@@ -432,6 +474,8 @@ export function ErectileDysfunctionLanding({ visuals }: { visuals: RenderableArt
               </Reveal>
             </div>
           </section>
+
+          <EdGeoFactsBlock />
 
           <SectionShell
             id="how-it-works"

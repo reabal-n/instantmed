@@ -23,17 +23,13 @@ import { AccordionSection } from "@/components/sections/accordion-section"
 import { CTABanner } from "@/components/sections/cta-banner"
 import { IconChecklist } from "@/components/sections/icon-checklist"
 import { SectionHeader } from "@/components/sections/section-header"
-import { StatStrip } from "@/components/sections/stat-strip"
-import type { ChecklistItem, StatItem } from "@/components/sections/types"
+import type { ChecklistItem } from "@/components/sections/types"
 import { BreadcrumbSchema, FAQSchema, MedicalConditionSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
-import { PRICING_DISPLAY } from "@/lib/constants"
-import { GUARANTEE_LABEL } from "@/lib/marketing/voice"
 import { conditionsData } from "@/lib/seo/data/conditions"
 import { ICEBOX_ROBOTS, shouldIndexCondition } from "@/lib/seo/index-policy"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 const conditions = conditionsData
 
@@ -46,8 +42,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const condition = conditions[slug]
   if (!condition) return {}
 
-  const title = `${condition.name} | Online Doctor Assessment | InstantMed`
-  const description = `${condition.description} Get assessed by an Australian doctor online. Medical certificates available. Fast, confidential telehealth.`
+  const title = `${condition.name} Guide | Symptoms, Red Flags & Telehealth Limits | InstantMed`
+  const description = `${condition.description} Learn common symptoms, red flags, and when online review may or may not fit in Australia.`
 
   return {
     title: { absolute: title },
@@ -61,8 +57,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       `${condition.name.toLowerCase()} symptoms`,
     ],
     openGraph: {
-      title: `${condition.name} - Online Doctor Assessment | InstantMed`,
-      description: `Get professional medical advice for ${condition.name.toLowerCase()}. Australian doctors available now.`,
+      title: `${condition.name} Guide | InstantMed`,
+      description: `Learn common symptoms, red flags, and when online review may or may not fit for ${condition.name.toLowerCase()}.`,
       url: `https://instantmed.com.au/conditions/${slug}`,
     },
     alternates: {
@@ -74,13 +70,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export async function generateStaticParams() {
   return Object.keys(conditions).map((slug) => ({ slug }))
 }
-
-const PLATFORM_STATS: StatItem[] = [
-  { value: SOCIAL_PROOF.certTurnaroundMinutes, suffix: " min", label: "avg cert turnaround" },
-  { value: SOCIAL_PROOF.averageResponseMinutes, suffix: " min", label: "avg doctor review" },
-  { value: SOCIAL_PROOF.operatingDays, suffix: "", label: "days a week" },
-  { value: SOCIAL_PROOF.refundPercent, suffix: "%", label: GUARANTEE_LABEL.toLowerCase() },
-]
 
 export default async function ConditionPage({ params }: PageProps) {
   const { slug } = await params
@@ -101,7 +90,9 @@ export default async function ConditionPage({ params }: PageProps) {
     items: condition.commonQuestions.map(q => ({ question: q.q, answer: q.a })),
   }]
 
-  const fromPrice = condition.serviceType === "consult" ? PRICING_DISPLAY.CONSULT : PRICING_DISPLAY.MED_CERT
+  const conditionCtaText = condition.serviceType === "med-cert"
+    ? "Check certificate fit"
+    : "Check online review fit"
 
   return (
     <>
@@ -161,25 +152,22 @@ export default async function ConditionPage({ params }: PageProps) {
                   className="h-14 px-8 text-base font-semibold rounded-full shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-[transform,box-shadow]"
                 >
                   <Link href={condition.ctaHref}>
-                    {condition.ctaText}
+                    {conditionCtaText}
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Link>
                 </Button>
                 <p className="text-sm text-muted-foreground">
-                  From {fromPrice} · No appointment needed
+                  Online care is not suitable for every situation. A doctor decides what fits after assessment.
                 </p>
               </div>
             </CenteredHero>
-
-            {/* Platform Stats */}
-            <StatStrip stats={PLATFORM_STATS} />
 
             {/* Symptoms */}
             {symptomItems.length > 0 && (
               <IconChecklist
                 pill="Symptoms"
                 title={`Common symptoms of ${condition.name}`}
-                subtitle="An AHPRA-registered doctor assesses these symptoms online - no in-person visit required."
+                subtitle="Symptoms can overlap across conditions. A doctor considers context, red flags, and whether remote review is appropriate."
                 items={symptomItems}
                 columns={2}
                 className="bg-muted/30 dark:bg-white/[0.04]"
@@ -190,14 +178,14 @@ export default async function ConditionPage({ params }: PageProps) {
             <section className="py-16 lg:py-24 px-4">
               <SectionHeader
                 pill="Our Scope"
-                title="How we can help"
-                subtitle="InstantMed handles many common conditions entirely online. Here's what fits our service."
+                title="Where online review may fit"
+                subtitle="Online review can help with some straightforward situations, but it is not a substitute for urgent care, physical examination, or ongoing GP management."
               />
               <div className="mx-auto max-w-4xl mt-10 grid md:grid-cols-2 gap-6">
                 <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/60 rounded-2xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                   <h3 className="font-semibold text-emerald-800 dark:text-emerald-200 mb-4 flex items-center gap-2">
                     <CheckCircle2 className="w-5 h-5 shrink-0" />
-                    What we can help with
+                    May fit online review
                   </h3>
                   <ul className="space-y-3">
                     {condition.canWeHelp.yes.map((item, i) => (
@@ -212,7 +200,7 @@ export default async function ConditionPage({ params }: PageProps) {
                 <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/60 rounded-2xl p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                   <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-4 flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5 shrink-0" />
-                    What needs in-person care
+                    Needs in-person or urgent care
                   </h3>
                   <ul className="space-y-3">
                     {condition.canWeHelp.no.map((item, i) => (
@@ -392,7 +380,7 @@ export default async function ConditionPage({ params }: PageProps) {
                             href={condition.ctaHref}
                             className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
                           >
-                            Available via InstantMed
+                            May fit online review
                             <ArrowRight className="w-3 h-3" />
                           </Link>
                         </div>
@@ -498,11 +486,27 @@ export default async function ConditionPage({ params }: PageProps) {
               groups={faqGroups}
             />
 
+            <section className="px-4 py-12">
+              <div className="mx-auto max-w-4xl">
+                <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                  Related reading
+                </h2>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <Link href="/blog/when-telehealth-cant-help" className="text-primary hover:underline">
+                    When telehealth cannot safely help
+                  </Link>
+                  <Link href="/blog/telehealth-safety-screening" className="text-primary hover:underline">
+                    How telehealth safety screening works
+                  </Link>
+                </div>
+              </div>
+            </section>
+
             {/* CTA Banner */}
             <CTABanner
-              title={`Ready to get help with ${condition.name}?`}
-              subtitle={`Australian-registered doctors review your request when available.`}
-              ctaText={condition.ctaText}
+              title={`Where online review may fit for ${condition.name}`}
+              subtitle="Remote review is not suitable for every situation. A doctor reviews the information and decides whether online care is appropriate."
+              ctaText={conditionCtaText}
               ctaHref={condition.ctaHref}
               secondaryText="Learn how it works"
               secondaryHref="/how-it-works"

@@ -3,7 +3,7 @@
 > Canonical policy for organic educational content, prescription information pages, condition pages, symptom pages, and high-intent SEO pages.
 > Read this before creating or editing public SEO content.
 
-**Last updated:** 2026-07-04
+**Last updated:** 2026-07-08
 
 ---
 
@@ -14,6 +14,20 @@ Keep educational prescription SEO pages. Do not delete the organic education moa
 The correction is not "remove all medicine education." The correction is to separate **education** from **promotion**.
 
 Educational pages can explain medicines, risks, contraindications, interactions, side effects, and when to seek care. They must not read like paid acquisition pages for prescription-only medicines.
+
+## Page Template Contracts
+
+Organic SEO pages do not share one template. Pick the page type first, then apply the matching CTA and compliance boundary.
+
+| Page type | Routes | Primary job | CTA/link boundary |
+|---|---|---|---|
+| Health guide | `/blog/[slug]` from `content/blog/*.mdx` | Reviewed education and source-backed explanation | No service CTAs, no `/request`, no service sales panels, no location SEO blocks. Related reading should stay guide-to-guide unless a narrower policy below explicitly allows otherwise. |
+| Condition page | `/conditions/[slug]` | Education-first condition explainer | May explain telehealth fit and limits, but must not behave like a treatment landing page. No above-fold treatment promises, no platform stats as clinical proof, no drug-specific CTAs. |
+| Symptom page | `/symptoms/[slug]` | Non-diagnostic symptom education | Must avoid "symptom + X = diagnosis" framing. Use uncertainty, red flags, and what a doctor may ask. |
+| Medication guide | usually `/blog/[slug]` | Medicine education: uses, risks, contraindications, interactions, monitoring | Medicine names may appear in education. No "get/buy/start [medicine] online", no prescription-only medicine prices, no medicine-specific request URLs, no paid destination use. |
+| Comparison page | `/compare/[slug]` | Factual, dated comparison and research support | Tables must be sourced and dated. No competitor star ratings, review counts, stale prices, or unsupported superiority claims. |
+| Money / landing page | Service-level routes such as `/medical-certificate`, `/prescriptions`, `/erectile-dysfunction`, `/hair-loss`, `/womens-health`, `/uti-assessment-online`, `/contraceptive-pill-assessment-online`, `/pricing` | Convert service-level demand into a secure request or pricing decision | May use service-level CTAs and pricing from approved constants. No drug names, prescribing guarantees, review counts, star ratings, testimonials, or medicine-specific checkout links. |
+| Trust / utility page | `/trust`, `/how-it-works`, `/verify`, `/clinical-governance`, `/what-we-wont-do` | Explain governance, verification, privacy, security, clinical limits, and entity facts | May link to relevant money pages and education guides. No doctor count, doctor names, testimonial proof, or broad online-GP positioning. |
 
 ## 2. Allowed Organic Content
 

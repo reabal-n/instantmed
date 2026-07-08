@@ -126,6 +126,25 @@ const ASSESSMENT_AREAS = [
   },
 ] as const
 
+const HAIR_LOSS_FACTS = [
+  {
+    term: "Review model",
+    detail: "Hair loss requests start with a private assessment form and are reviewed by an AHPRA-registered doctor.",
+  },
+  {
+    term: "Safety screening",
+    detail: "The doctor reviews the pattern of hair loss, medical history, current medicines, photos, and whether online assessment is suitable.",
+  },
+  {
+    term: "Doctor contact",
+    detail: "The doctor may call or message if a safety detail needs clarification before any decision.",
+  },
+  {
+    term: "Cost boundary",
+    detail: `The review fee is $${PRICING.HAIR_LOSS.toFixed(2)}. If a prescription is approved, pharmacy costs are separate and may depend on PBS status, brand, and pharmacy pricing.`,
+  },
+] as const
+
 const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "hair-loss",
   analyticsId: "hair-loss",
@@ -198,6 +217,29 @@ function TreatmentOptions() {
             </Reveal>
           ))}
         </div>
+      </div>
+    </section>
+  )
+}
+
+function HairLossFactsBlock() {
+  return (
+    <section aria-labelledby="hair-loss-facts" className="px-4 py-12 sm:px-6">
+      <div className="mx-auto max-w-5xl">
+        <h2 id="hair-loss-facts" className="text-2xl font-semibold tracking-tight text-foreground">
+          Key facts about hair loss assessment
+        </h2>
+        <dl className="mt-6 grid gap-4 sm:grid-cols-2">
+          {HAIR_LOSS_FACTS.map((fact) => (
+            <div
+              key={fact.term}
+              className="rounded-xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
+            >
+              <dt className="font-medium text-foreground">{fact.term}</dt>
+              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{fact.detail}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   )
@@ -335,6 +377,8 @@ export function HairLossLanding() {
             }
             body="A structured doctor review for hair loss concerns. Once approved, your eScript is sent by SMS and can be used at any Australian pharmacy."
           />
+
+          <HairLossFactsBlock />
 
           {/* Editorial lifestyle photo, primary. A calm "at home"
               moment between the service claim and the how-it-works block. */}

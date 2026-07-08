@@ -111,6 +111,29 @@ const comparisonItems = [
   { label: "E-scripts to any pharmacy", us: true, them: false },
 ]
 
+const pricingEvidenceLinks = [
+  {
+    href: "/blog/is-telehealth-bulk-billed-australia",
+    title: "Bulk billing and private telehealth",
+    body: "Why private telehealth fees sit outside Medicare bulk billing.",
+  },
+  {
+    href: "/blog/pbs-pharmaceutical-benefits-scheme",
+    title: "PBS pharmacy costs",
+    body: "How PBS subsidies can affect the medication price paid at the pharmacy.",
+  },
+  {
+    href: "/compare/online-medical-certificate-options",
+    title: "Compare online certificate services",
+    body: "A dated comparison of Australian online medical certificate providers.",
+  },
+  {
+    href: "/refund-policy",
+    title: "Refund policy",
+    body: "What happens when a doctor declines a request after review.",
+  },
+] as const
+
 const pricingFaqs = [
       {
         question: "Are there any hidden fees?",
@@ -173,6 +196,92 @@ const pricingFaqs = [
           "Each request must be submitted by, or on behalf of, the individual patient. You can submit a request for a dependent (such as a child with parental consent), but each person needs their own profile. You can\u2019t use a single account to get certificates for multiple adults.",
       },
 ]
+
+function PricingEvidenceLinks() {
+  return (
+    <section aria-labelledby="pricing-evidence-links" className="px-4 py-10 sm:px-6">
+      <div className="mx-auto max-w-5xl rounded-2xl border border-border/50 bg-white p-5 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Pricing evidence
+            </p>
+            <Heading
+              id="pricing-evidence-links"
+              level="h2"
+              className="mt-2 text-xl sm:text-2xl"
+            >
+              Read the details behind the fees.
+            </Heading>
+          </div>
+          <p className="max-w-md text-sm leading-6 text-muted-foreground">
+            Medicare, PBS, comparison, and refund boundaries in one place.
+          </p>
+        </div>
+
+        <nav aria-label="Pricing evidence links" className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {pricingEvidenceLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="group rounded-xl border border-border/50 bg-muted/25 p-4 text-sm transition-colors hover:border-primary/30 dark:border-white/10 dark:bg-white/[0.04]"
+            >
+              <span className="flex items-start justify-between gap-3 font-semibold text-foreground">
+                {link.title}
+                <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-primary transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              </span>
+              <span className="mt-2 block leading-6 text-muted-foreground">
+                {link.body}
+              </span>
+            </Link>
+          ))}
+        </nav>
+      </div>
+    </section>
+  )
+}
+
+function PricingFactsBlock() {
+  const facts = [
+    {
+      term: "Service fees",
+      detail: `Medical certificates start at ${PRICING_DISPLAY.MED_CERT}. Repeat prescription review is ${PRICING_DISPLAY.REPEAT_SCRIPT}. ED, hair-loss, and women's health assessments are ${PRICING_DISPLAY.CONSULT}.`,
+    },
+    {
+      term: "Medicare and bulk billing",
+      detail: "InstantMed is a private telehealth service and does not bulk bill or claim Medicare rebates for the review fee.",
+    },
+    {
+      term: "Pharmacy costs",
+      detail: "Prescription review fees do not include medicine costs. If a prescription is approved, the pharmacy charges separately and PBS rules may affect the amount paid.",
+    },
+    {
+      term: "Declined requests",
+      detail: "If a doctor declines a refundable request after review, the request is refunded according to the refund policy.",
+    },
+  ] as const
+
+  return (
+    <section aria-labelledby="pricing-facts" className="px-4 py-12 sm:px-6">
+      <div className="mx-auto max-w-5xl">
+        <h2 id="pricing-facts" className="text-2xl font-semibold tracking-tight text-foreground">
+          Key pricing facts
+        </h2>
+        <dl className="mt-6 grid gap-4 sm:grid-cols-2">
+          {facts.map((fact) => (
+            <div
+              key={fact.term}
+              className="rounded-xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
+            >
+              <dt className="font-medium text-foreground">{fact.term}</dt>
+              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{fact.detail}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  )
+}
 
 /* ────────────────────────────── Component ────────────────────────────── */
 
@@ -382,6 +491,10 @@ export function PricingContent() {
 
         {/* Pricing Guide */}
         <PricingGuideSection />
+
+        <PricingFactsBlock />
+
+        <PricingEvidenceLinks />
 
         {/* FAQ */}
         <div className="bg-muted/30 dark:bg-white/[0.02]">
