@@ -3,7 +3,7 @@
 > Canonical advertising rules for InstantMed marketing, Google Ads, landing pages, metadata, schema, and reusable copy.
 > Read this before changing any public acquisition surface.
 
-**Last updated:** 2026-07-01
+**Last updated:** 2026-07-08
 
 > **In an active complaint?** Stop and load the runbook before doing anything else: [`docs/runbooks/comparative-tagline-complaint.md`](runbooks/comparative-tagline-complaint.md). It covers AHPRA notifications, TGA notices, Medical Board letters, Google Ads disapprovals, competitor cease-and-desists, patient complaints about ad copy, and media inquiries.
 
@@ -94,6 +94,16 @@ Also safe:
 - "eScript token sent if approved"
 - "Collect from any Australian pharmacy"
 - assessment/review language for ED, hair loss, weight management, and women's health
+
+### Page-Type Application
+
+Money and service landing pages may convert, but must stay service-level:
+
+- Medical certificate pages may use no-video/no-call/no-appointment framing only where the certificate protocol supports it.
+- Prescription, ED, hair-loss, women's-health, and weight-management pages must use form-first doctor-review framing and may say the doctor may call briefly before prescribing.
+- Paid destinations must not contain prescription-only medicine names, drug classes, drug prices, treatment menus, or schema/FAQ copy that implies medicine access before doctor review.
+- Comparison pages are allowed only when factual, dated, and source-backed. They must not publish competitor review counts, star ratings, or superiority claims that cannot be independently verified.
+- Trust and utility pages may explain entity facts, governance, verification, privacy, and clinical limits. They must not introduce doctor-count, doctor-name, or testimonial proof.
 
 ## 6. Prohibited Marketing Claims
 

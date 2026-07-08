@@ -6,8 +6,9 @@
 > **`docs/SEO_CONTENT_POLICY.md`** owns compliance law: allowed/prohibited content, CTA rules, supported MDX tags, image acceptance floor, banned image archetypes.
 > **Code** owns enforcement: `scripts/audit-health-guides.mjs`, `lib/blog/visuals.ts`, `scripts/generate-blog-visual-images.ts`.
 > On conflict: SEO_CONTENT_POLICY wins on compliance, this doc wins on structure/workflow.
+> For condition, symptom, medication, comparison, and money-page template boundaries, start with `docs/SEO_CONTENT_POLICY.md` and `docs/ADVERTISING_COMPLIANCE.md`; this document controls only health-guide structure and visual workflow.
 
-**Last updated:** 2026-07-05
+**Last updated:** 2026-07-08
 
 **Status:** the template-foundation branch adds the parser, renderer, audit, registry, and visual-generation support described below. Legacy guides are held to this standard when touched.
 

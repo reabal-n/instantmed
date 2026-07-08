@@ -40,6 +40,7 @@ ACTUAL=$(find . -name "*.md" \
   -not -path "./playwright-report/*" \
   -not -path "./test-results/*" \
   -not -path "./.vercel/*" \
+  -not -path "./.verification/*" \
   -not -path "./.lighthouseci/*" \
   -not -path "./.playwright-cli/*" \
   -not -path "./.agents/*" \
