@@ -310,8 +310,8 @@ test.describe("Intake: Medical Certificate - full flow", () => {
     const workRadio = certTypeGroup.getByRole("radio", { name: /^Work$/i })
     await workRadio.click()
     await expect(workRadio).toHaveAttribute("aria-checked", "true", { timeout: 5000 })
-    // Duration — click 1 day (default is 2, override for the test)
-    const oneDayRadio = page.getByRole("radiogroup", { name: /Certificate duration/i }).getByRole("radio", { name: /1 day/i })
+    // Duration defaults to 1 day; click it to keep this full-flow proof explicit.
+    const oneDayRadio = page.getByRole("radiogroup", { name: /How many days/i }).getByRole("radio", { name: /1 day/i })
     await oneDayRadio.click()
     await expect(oneDayRadio).toHaveAttribute("aria-checked", "true", { timeout: 3000 })
     // Start date defaults to today - no action needed
@@ -348,16 +348,16 @@ test.describe("Intake: Medical Certificate - full flow", () => {
 // ---------------------------------------------------------------------------
 
 test.describe("Intake: Certificate Step - defaults and date range", () => {
-  test("2-day duration is pre-selected by default", async ({ page }) => {
+  test("1-day duration is pre-selected by default", async ({ page }) => {
     await page.goto("/request?service=med-cert")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
     await waitForStep(page, /Certificate details/i)
 
-    // The 2-day radio button must be pre-checked without any user interaction
-    const twoDayBtn = page.getByRole("radio", { name: /2 days/i })
-    await expect(twoDayBtn).toHaveAttribute("aria-checked", "true")
+    // The 1-day radio button must be pre-checked without any user interaction.
+    const oneDayBtn = page.getByRole("radio", { name: /1 day/i })
+    await expect(oneDayBtn).toHaveAttribute("aria-checked", "true")
   })
 
   test("selecting start date and cert type enables Continue", async ({ page }) => {
@@ -370,7 +370,7 @@ test.describe("Intake: Certificate Step - defaults and date range", () => {
     // Select cert type (required to enable Continue)
     await clickChip(page, /^Work$/i)
 
-    // 2-day duration is pre-selected by default - no action needed
+    // 1-day duration is pre-selected by default - no action needed
     // Click the "Today" start-offset button (offset=0, always present)
     await page.getByRole("radio", { name: /^Today$/i }).click()
     await expect(
@@ -378,8 +378,7 @@ test.describe("Intake: Certificate Step - defaults and date range", () => {
     ).toHaveAttribute("aria-checked", "true")
 
     // Continue should now be enabled: certType, duration, startDate all set.
-    // When all fields are filled the button reads "Review my certificate".
-    const continueBtn = page.getByRole("button", { name: /Review my certificate/i }).last()
+    const continueBtn = page.getByRole("button", { name: /^Continue$/i }).last()
     await expect(continueBtn).toBeEnabled({ timeout: 3000 })
   })
 
@@ -390,22 +389,22 @@ test.describe("Intake: Certificate Step - defaults and date range", () => {
 
     await waitForStep(page, /Certificate details/i)
 
-    // 2-day is pre-selected by default
-    await expect(page.getByRole("radio", { name: /2 days/i }))
-      .toHaveAttribute("aria-checked", "true")
-
-    // Click 1-day - it becomes selected
-    await page.getByRole("radio", { name: /1 day/i }).click()
+    // 1-day is pre-selected by default
     await expect(page.getByRole("radio", { name: /1 day/i }))
       .toHaveAttribute("aria-checked", "true")
-    await expect(page.getByRole("radio", { name: /2 days/i }))
-      .toHaveAttribute("aria-checked", "false")
 
-    // Click back to 2-day - 2-day is re-selected
+    // Click 2-day - it becomes selected
     await page.getByRole("radio", { name: /2 days/i }).click()
     await expect(page.getByRole("radio", { name: /2 days/i }))
       .toHaveAttribute("aria-checked", "true")
     await expect(page.getByRole("radio", { name: /1 day/i }))
+      .toHaveAttribute("aria-checked", "false")
+
+    // Click back to 1-day - 1-day is re-selected
+    await page.getByRole("radio", { name: /1 day/i }).click()
+    await expect(page.getByRole("radio", { name: /1 day/i }))
+      .toHaveAttribute("aria-checked", "true")
+    await expect(page.getByRole("radio", { name: /2 days/i }))
       .toHaveAttribute("aria-checked", "false")
   })
 })
