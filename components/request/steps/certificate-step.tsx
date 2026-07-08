@@ -13,7 +13,7 @@
  */
 
 import { ArrowRight, Briefcase, GraduationCap, Heart } from "lucide-react"
-import { type ComponentType, useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { RequestButton } from "@/components/request/request-button"
 import { requestCx } from "@/components/request/request-cx"
@@ -45,14 +45,8 @@ const CERT_TYPES = [
 
 type CertType = "work" | "study" | "carer"
 type Duration = 1 | 2 | 3
-type InlineRecoveryEmailFieldComponent = ComponentType<{
-  serviceType: UnifiedServiceType
-  stepId: string
-  className?: string
-}>
 
 const DURATION_OPTIONS: Duration[] = [1, 2, 3]
-const RECOVERY_EMAIL_FIELD_STABLE_CLASS = "min-h-[132px]"
 
 function parseDuration(value: unknown): Duration | null {
   const numericValue = typeof value === "number" ? value : Number(value)
@@ -139,71 +133,9 @@ function summaryLabel(offset: number): string {
   return d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" })
 }
 
-function DeferredInlineRecoveryEmailField({
-  serviceType,
-  stepId,
-}: {
-  serviceType: UnifiedServiceType
-  stepId: string
-}) {
-  const [InlineRecoveryEmailField, setInlineRecoveryEmailField] =
-    useState<InlineRecoveryEmailFieldComponent | null>(null)
-
-  useEffect(() => {
-    let mounted = true
-    const load = () => {
-      import("@/components/request/shared/inline-recovery-email-field")
-        .then((mod) => {
-          if (mounted) setInlineRecoveryEmailField(() => mod.InlineRecoveryEmailField)
-        })
-        .catch(() => {})
-    }
-
-    if (typeof requestIdleCallback !== "undefined") {
-      const id = requestIdleCallback(load, { timeout: 1600 })
-      return () => {
-        mounted = false
-        cancelIdleCallback(id)
-      }
-    }
-
-    const id = setTimeout(load, 300)
-    return () => {
-      mounted = false
-      clearTimeout(id)
-    }
-  }, [])
-
-  if (!InlineRecoveryEmailField) {
-    return (
-      <div
-        aria-hidden="true"
-        data-intake-recovery-email-placeholder="true"
-        className={requestCx(
-          RECOVERY_EMAIL_FIELD_STABLE_CLASS,
-          "rounded-xl border border-border/50 bg-muted/35 px-3 py-2.5 dark:bg-white/[0.04]",
-        )}
-      >
-        <div className="space-y-2">
-          <div className="h-4 w-32 rounded bg-muted" />
-          <div className="h-3 w-full max-w-[19rem] rounded bg-muted/70" />
-          <div className="h-12 rounded-md border border-border bg-card" />
-        </div>
-      </div>
-    )
-  }
-  return (
-    <InlineRecoveryEmailField
-      serviceType={serviceType}
-      stepId={stepId}
-      className={RECOVERY_EMAIL_FIELD_STABLE_CLASS}
-    />
-  )
-}
-
 // ─── Component ────────────────────────────────────────────────────────────
 
-export default function CertificateStep({ serviceType, onNext, initialDuration, hideIntro = false }: CertificateStepProps) {
+export default function CertificateStep({ onNext, initialDuration, hideIntro = false }: CertificateStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
   const initialUrlDurationRef = useRef<Duration | null>(parseDuration(initialDuration))
@@ -596,15 +528,11 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
           )}
         </div>
 
-      <DeferredInlineRecoveryEmailField serviceType={serviceType} stepId="certificate" />
-
       {/* GP note - longer absences. Visible on every viewport so a patient
           on mobile understands the 3-day cap without scrolling laterally. */}
       <p className="px-1 text-xs text-muted-foreground">
         Need more than 3 days off? Please visit your GP for an extended certificate.
       </p>
-
-      <DeferredInlineRecoveryEmailField serviceType={serviceType} stepId="certificate" />
 
       {/* Continue */}
       {/* Always clickable so a tap runs validate() and surfaces the blocking

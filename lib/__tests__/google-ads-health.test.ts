@@ -242,4 +242,41 @@ describe("Google Ads adjustment health", () => {
       transientFailures: 2,
     })
   })
+
+  it("excludes dm_request_rejected terminals from the pageable click-attributed count", () => {
+    const health = summarizeGoogleAdsAdjustmentHealth({
+      adjustmentRows: [
+        {
+          intake_id: "dm-rejected-click",
+          created_at: "2026-07-08T08:30:00.000Z",
+          metadata: {
+            status: "terminal_failed",
+            terminal: true,
+            terminal_reason: "dm_request_rejected",
+          },
+        },
+      ],
+      generatedAt: "2026-07-08T09:00:00.000Z",
+      lookbackDays: 90,
+      now: new Date("2026-07-08T09:00:00.000Z"),
+      purchaseUploadRows: [
+        {
+          intake_id: "dm-rejected-click",
+          created_at: "2026-06-20T23:24:43.356Z",
+          metadata: {
+            has_gclid: true,
+            has_user_data: true,
+            status: "success",
+          },
+        },
+      ],
+    })
+
+    // Ingest rejected → conversion never landed → nothing counted → must not page.
+    expect(health.terminalClickAttributedFailures).toBe(0)
+    // Still observed as a terminal + click-attributed failure, just not pageable.
+    expect(health.terminalFailures).toBe(1)
+    expect(health.clickAttributedFailures).toBe(1)
+    expect(health.terminalNonClickAttributedFailures).toBe(0)
+  })
 })

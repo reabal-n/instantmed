@@ -208,7 +208,7 @@ describe("Google Ads purchase import health", () => {
     })
   })
 
-  it("keeps stale single-row Google Ads upload audit source anomalies info-only", () => {
+  it("routes stale single-row Google Ads upload audit source anomalies to a Sentry warning (not Telegram)", () => {
     const alert = buildGoogleAdsUploadAuditSourceAnomalyAlert(snapshot({
       generatedAt: "2026-07-08T11:00:00.000Z",
       uploadAuditReconciliation: {
@@ -239,7 +239,7 @@ describe("Google Ads purchase import health", () => {
     expect(alert).toMatchObject({
       count: 1,
       metric: "google_ads_upload_audit_source_anomaly",
-      severity: "info",
+      severity: "warning",
       metadata: {
         upload_audit_orphan_alert_reason: "stale_low_volume",
         upload_audit_orphan_rows: 1,

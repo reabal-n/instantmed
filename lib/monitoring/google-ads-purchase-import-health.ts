@@ -162,7 +162,10 @@ function classifyUploadAuditSourceAnomaly(snapshot: GoogleAdsPurchaseImportHealt
     return { newestAt, newestAgeHours, reason: "fresh_orphan", severity: "critical" }
   }
 
-  return { newestAt, newestAgeHours, reason: "stale_low_volume", severity: "info" }
+  // "warning" routes to a deduped Sentry breadcrumb (not Telegram) so a genuine
+  // small orphan that goes stale before the next cron still leaves a trail,
+  // instead of being muted off every channel as "info".
+  return { newestAt, newestAgeHours, reason: "stale_low_volume", severity: "warning" }
 }
 
 function buildMetadata(
@@ -239,7 +242,7 @@ export function buildGoogleAdsUploadAuditSourceAnomalyAlert(
     detail:
       `Google Ads upload audit has ${orphanRows} orphan row` +
       `${orphanRows === 1 ? "" : "s"} with no valid intake join; classify as audit-source anomaly` +
-      (classification.severity === "info" ? " (stale low-volume; not paging)" : ""),
+      (classification.reason === "stale_low_volume" ? " (stale low-volume; Sentry warning only, not paging Telegram)" : ""),
     metadata: buildMetadata(snapshot, classification),
     metric: "google_ads_upload_audit_source_anomaly",
     severity: classification.severity,

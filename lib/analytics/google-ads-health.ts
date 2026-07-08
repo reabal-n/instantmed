@@ -210,6 +210,13 @@ function latestSuccessfulPurchaseUploadByIntake(
   return best
 }
 
+// A dm_request_rejected terminal means the Data Manager ingest was rejected, so
+// the conversion never landed and nothing was ever counted — there is nothing to
+// retract and it must NOT page. Only a conversion_not_found terminal is the
+// "refunded order may still be counted" poisoning signature. Mirrors the
+// deliberate no-alarm carve-out in google-ads-conversion-adjustments.ts.
+const DM_REQUEST_REJECTED_TERMINAL_REASON = "dm_request_rejected"
+
 function isTerminalAdjustmentFailure(
   failure: GoogleAdsAdjustmentAuditRow,
   upload: GoogleAdsPurchaseUploadAuditRow | null | undefined,
@@ -270,8 +277,14 @@ export function summarizeGoogleAdsAdjustmentHealth({
 
     if (terminal) {
       terminalFailures += 1
-      if (clickAttributed) terminalClickAttributedFailures += 1
-      else terminalNonClickAttributedFailures += 1
+      // dm_request_rejected terminals are excluded from the pageable
+      // click-attributed count (ingest never landed → nothing counted → not a
+      // poisoning signal); they stay in terminalFailures for observability.
+      if (clickAttributed && failure.metadata?.terminal_reason !== DM_REQUEST_REJECTED_TERMINAL_REASON) {
+        terminalClickAttributedFailures += 1
+      } else if (!clickAttributed) {
+        terminalNonClickAttributedFailures += 1
+      }
       continue
     }
 
