@@ -10,7 +10,6 @@
 import { ArrowRight, Search, Shield, Sprout, Target } from "lucide-react"
 import { useCallback } from "react"
 
-import { InlineRecoveryEmailField } from "@/components/request/shared/inline-recovery-email-field"
 import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -97,8 +96,6 @@ export default function HairLossGoalsStep({ serviceType, onNext }: HairLossGoals
           compact
         />
       </QuestionCard>
-
-      <InlineRecoveryEmailField serviceType={serviceType} stepId="hair-loss-goals" />
 
       {/* Onset timing - segmented selector */}
       <QuestionCard compact>

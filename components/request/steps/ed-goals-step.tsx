@@ -10,7 +10,6 @@
 import { ArrowRight, Heart, Shield, Sparkles, Target } from "lucide-react"
 import { useCallback } from "react"
 
-import { InlineRecoveryEmailField } from "@/components/request/shared/inline-recovery-email-field"
 import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup, ToggleList } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -105,8 +104,6 @@ export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
           compact
         />
       </QuestionCard>
-
-      <InlineRecoveryEmailField serviceType={serviceType} stepId="ed-goals" />
 
       {/* Duration - segmented selector */}
       <QuestionCard compact>
