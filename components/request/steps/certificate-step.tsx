@@ -13,7 +13,7 @@
  */
 
 import { ArrowRight, Briefcase, GraduationCap, Heart } from "lucide-react"
-import { type ComponentType, useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { RequestButton } from "@/components/request/request-button"
 import { requestCx } from "@/components/request/request-cx"
@@ -45,10 +45,6 @@ const CERT_TYPES = [
 
 type CertType = "work" | "study" | "carer"
 type Duration = 1 | 2 | 3
-type InlineRecoveryEmailFieldComponent = ComponentType<{
-  serviceType: UnifiedServiceType
-  stepId: string
-}>
 
 const DURATION_OPTIONS: Duration[] = [1, 2, 3]
 
@@ -137,48 +133,9 @@ function summaryLabel(offset: number): string {
   return d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" })
 }
 
-function DeferredInlineRecoveryEmailField({
-  serviceType,
-  stepId,
-}: {
-  serviceType: UnifiedServiceType
-  stepId: string
-}) {
-  const [InlineRecoveryEmailField, setInlineRecoveryEmailField] =
-    useState<InlineRecoveryEmailFieldComponent | null>(null)
-
-  useEffect(() => {
-    let mounted = true
-    const load = () => {
-      import("@/components/request/shared/inline-recovery-email-field")
-        .then((mod) => {
-          if (mounted) setInlineRecoveryEmailField(() => mod.InlineRecoveryEmailField)
-        })
-        .catch(() => {})
-    }
-
-    if (typeof requestIdleCallback !== "undefined") {
-      const id = requestIdleCallback(load, { timeout: 1600 })
-      return () => {
-        mounted = false
-        cancelIdleCallback(id)
-      }
-    }
-
-    const id = setTimeout(load, 300)
-    return () => {
-      mounted = false
-      clearTimeout(id)
-    }
-  }, [])
-
-  if (!InlineRecoveryEmailField) return null
-  return <InlineRecoveryEmailField serviceType={serviceType} stepId={stepId} />
-}
-
 // ─── Component ────────────────────────────────────────────────────────────
 
-export default function CertificateStep({ serviceType, onNext, initialDuration, hideIntro = false }: CertificateStepProps) {
+export default function CertificateStep({ onNext, initialDuration, hideIntro = false }: CertificateStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
   const initialUrlDurationRef = useRef<Duration | null>(parseDuration(initialDuration))
@@ -576,8 +533,6 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
       <p className="px-1 text-xs text-muted-foreground">
         Need more than 3 days off? Please visit your GP for an extended certificate.
       </p>
-
-      <DeferredInlineRecoveryEmailField serviceType={serviceType} stepId="certificate" />
 
       {/* Continue */}
       {/* Always clickable so a tap runs validate() and surfaces the blocking

@@ -4,7 +4,6 @@ import { ArrowRight, HeartPulse } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback } from "react"
 
-import { InlineRecoveryEmailField } from "@/components/request/shared/inline-recovery-email-field"
 import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -44,7 +43,7 @@ const WOMENS_HEALTH_OPTIONS = [
   },
 ] as const
 
-export default function WomensHealthTypeStep({ serviceType, onNext }: WomensHealthTypeStepProps) {
+export default function WomensHealthTypeStep({ onNext }: WomensHealthTypeStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -109,8 +108,6 @@ export default function WomensHealthTypeStep({ serviceType, onNext }: WomensHeal
           </AlertDescription>
         </Alert>
       )}
-
-      <InlineRecoveryEmailField serviceType={serviceType} stepId="womens-health-type" />
 
       <Button
         data-intake-primary-action="true"
