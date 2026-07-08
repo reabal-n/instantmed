@@ -16,8 +16,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import type React from "react"
-import { useState } from "react"
-import { useRef } from "react"
+import { useRef, useState } from "react"
 
 import { submitContactForm } from "@/app/actions/contact-form"
 import { CenteredHero } from "@/components/heroes"
@@ -35,7 +34,8 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { Textarea } from "@/components/ui/textarea"
 import { capture } from "@/lib/analytics/capture"
 import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS, CONTACT_PHONE } from "@/lib/constants"
-import { getPatientCount, SOCIAL_PROOF } from "@/lib/social-proof"
+import { usePatientCount } from "@/lib/hooks/use-patient-count"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
 const CONTACT_CONFIG = {
@@ -55,6 +55,7 @@ export function ContactClient() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const patientCount = usePatientCount()
   const prefersReducedMotion = useReducedMotion()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -224,7 +225,7 @@ export function ContactClient() {
         {/* CTA Banner */}
         <CTABanner
           title="Looking for a medical certificate or repeat medication?"
-          subtitle={`Join ${getPatientCount().toLocaleString()}+ Australians who trust InstantMed. Fill in a quick form and an AHPRA-registered doctor reviews your request when available.`}
+          subtitle={`Join ${patientCount.toLocaleString()}+ Australians who trust InstantMed. Fill in a quick form and an AHPRA-registered doctor reviews your request when available.`}
           ctaText="Get started"
           ctaHref="/request"
           secondaryText="See how it works"
