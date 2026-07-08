@@ -3,7 +3,7 @@
 > **Last updated:** 2026-07-08.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
 >
-> **Doc-surface count:** 117 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans; 110 -> 112 on 2026-07-01 after adding the root context glossary and first ADR for Google Ads retained-value bidding; 112 -> 117 on 2026-07-08 after reconciling the live doc surface count and adding the SEO/GEO/LLM Task 5 plan.
+> **Doc-surface count:** 115 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans; 110 -> 112 on 2026-07-01 after adding the root context glossary and first ADR for Google Ads retained-value bidding; reconciled to 115 on 2026-07-08 after excluding generated verification artifacts from `scripts/doc-audit.sh` and adding the GEO citation execution record.
 >
 > **Owner:** Operator. Update on every doc add, move, or delete. Bump the timestamp.
 
@@ -85,7 +85,7 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 |------|---------|-----------|
 | [docs/adr/0001-google-ads-net-retained-purchase-value.md](../adr/0001-google-ads-net-retained-purchase-value.md) | Decision record for Google Ads optimizing against retained purchase value, not gross value or micro-conversions | `google-ads-attribution-contract` |
 
-## docs/audits/ — 21 (historical + growth records)
+## docs/audits/ — 22 (historical + growth records)
 
 | File | Purpose |
 |------|---------|
@@ -110,6 +110,7 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 | [docs/audits/2026-06-08-scale-reaudit.md](../audits/2026-06-08-scale-reaudit.md) | 11-lens scale re-audit 2026-06-08; shipped Bucket A; Bucket B greenlit |
 | [docs/audits/2026-06-10-comprehensive-audit.md](../audits/2026-06-10-comprehensive-audit.md) | 44-agent platform + business audit 2026-06-10; P0 anon PHI leak fix, competitor/regulatory/channel research, staged scaling plan |
 | [docs/audits/2026-06-11-hygiene-business-review.md](../audits/2026-06-11-hygiene-business-review.md) | 12-agent hygiene + business review 2026-06-11; Express-fee P0, GEO FAQ-HTML blocker, test gaps, resilience, women's-health skeleton, prioritized backlog |
+| [docs/audits/2026-07-08-geo-citation-execution.md](../audits/2026-07-08-geo-citation-execution.md) | GEO citation execution record: NHSD listing verification, drift found, profile copy, and comparison outreach draft |
 
 ## docs/plans/ — active
 
