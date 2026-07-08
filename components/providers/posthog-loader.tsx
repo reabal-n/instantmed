@@ -3,6 +3,7 @@
 import { type ComponentType,type ReactNode,useEffect, useState } from "react"
 
 import { onFirstInteraction } from "@/lib/browser/first-interaction"
+import { isPostConversionPath } from "@/lib/browser/post-conversion-path"
 
 /**
  * Lazy loader for PostHogProvider.
@@ -17,13 +18,13 @@ export function PostHogLoader({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelIdleLoad: (() => void) | undefined
 
-    const cancelInteraction = onFirstInteraction(() => {
-      const loadProvider = () => {
-        import("./posthog-provider")
-          .then(mod => setProvider(() => mod.PostHogProvider))
-          .catch(() => {})
-      }
+    const loadProvider = () => {
+      import("./posthog-provider")
+        .then(mod => setProvider(() => mod.PostHogProvider))
+        .catch(() => {})
+    }
 
+    const scheduleIdleLoad = () => {
       if (typeof requestIdleCallback !== "undefined") {
         const id = requestIdleCallback(loadProvider, { timeout: 1500 })
         cancelIdleLoad = () => cancelIdleCallback(id)
@@ -32,7 +33,20 @@ export function PostHogLoader({ children }: { children: ReactNode }) {
 
       const id = setTimeout(loadProvider, 0)
       cancelIdleLoad = () => clearTimeout(id)
-    })
+    }
+
+    // Post-conversion pages must NOT gate the provider behind first interaction:
+    // a no-click bounce on the success / account-link page would never mount the
+    // provider, so the funnel `purchase_completed` event would never fire. Load
+    // immediately there (still deferred to idle). Mirrors isPostConversionPath()
+    // in instrumentation-client.ts. Elsewhere the first-interaction gate stays to
+    // protect intake LCP/TBT.
+    if (isPostConversionPath()) {
+      scheduleIdleLoad()
+      return () => cancelIdleLoad?.()
+    }
+
+    const cancelInteraction = onFirstInteraction(scheduleIdleLoad)
 
     return () => {
       cancelInteraction()
