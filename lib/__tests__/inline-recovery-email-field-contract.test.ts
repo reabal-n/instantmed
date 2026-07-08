@@ -54,4 +54,15 @@ describe("inline recovery email field contract", () => {
     expect(primaryActionIndex).toBeGreaterThan(-1)
     expect(recoveryIndex).toBeLessThan(primaryActionIndex)
   })
+
+  it("reserves space for deferred cert capture to avoid mobile layout shift", () => {
+    const source = readFileSync(
+      join(root, "components/request/steps/certificate-step.tsx"),
+      "utf8",
+    )
+
+    expect(source).toContain('data-intake-recovery-email-placeholder="true"')
+    expect(source).toContain("RECOVERY_EMAIL_FIELD_STABLE_CLASS")
+    expect(source).toContain('className={RECOVERY_EMAIL_FIELD_STABLE_CLASS}')
+  })
 })

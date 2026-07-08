@@ -48,9 +48,11 @@ type Duration = 1 | 2 | 3
 type InlineRecoveryEmailFieldComponent = ComponentType<{
   serviceType: UnifiedServiceType
   stepId: string
+  className?: string
 }>
 
 const DURATION_OPTIONS: Duration[] = [1, 2, 3]
+const RECOVERY_EMAIL_FIELD_STABLE_CLASS = "min-h-[132px]"
 
 function parseDuration(value: unknown): Duration | null {
   const numericValue = typeof value === "number" ? value : Number(value)
@@ -172,8 +174,31 @@ function DeferredInlineRecoveryEmailField({
     }
   }, [])
 
-  if (!InlineRecoveryEmailField) return null
-  return <InlineRecoveryEmailField serviceType={serviceType} stepId={stepId} />
+  if (!InlineRecoveryEmailField) {
+    return (
+      <div
+        aria-hidden="true"
+        data-intake-recovery-email-placeholder="true"
+        className={requestCx(
+          RECOVERY_EMAIL_FIELD_STABLE_CLASS,
+          "rounded-xl border border-border/50 bg-muted/35 px-3 py-2.5 dark:bg-white/[0.04]",
+        )}
+      >
+        <div className="space-y-2">
+          <div className="h-4 w-32 rounded bg-muted" />
+          <div className="h-3 w-full max-w-[19rem] rounded bg-muted/70" />
+          <div className="h-12 rounded-md border border-border bg-card" />
+        </div>
+      </div>
+    )
+  }
+  return (
+    <InlineRecoveryEmailField
+      serviceType={serviceType}
+      stepId={stepId}
+      className={RECOVERY_EMAIL_FIELD_STABLE_CLASS}
+    />
+  )
 }
 
 // ─── Component ────────────────────────────────────────────────────────────
