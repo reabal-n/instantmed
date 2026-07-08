@@ -57,7 +57,7 @@ test.describe("Production request-flow synthetic", () => {
     const changeDates = page.getByRole("button", { name: /Change length or start date/i })
     if (await changeDates.isVisible().catch(() => false)) await changeDates.click()
 
-    const durationGroup = page.getByRole("radiogroup", { name: /Certificate duration/i })
+    const durationGroup = page.getByRole("radiogroup", { name: /How many days|Certificate duration/i })
     const oneDayRadio = durationGroup.getByRole("radio", { name: /1 day/i })
     await oneDayRadio.click()
     await expect(oneDayRadio).toHaveAttribute("aria-checked", "true", { timeout: 5000 })
