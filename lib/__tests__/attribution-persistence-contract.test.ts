@@ -62,4 +62,40 @@ describe("attribution persistence contract", () => {
       expect(migrations).toContain(column)
     }
   })
+
+  it("sends PHI-safe attribution dimensions with checkout_initiated", () => {
+    const reviewStep = read("components/request/steps/review-step.tsx")
+
+    for (const field of [
+      "utm_source",
+      "utm_medium",
+      "utm_id",
+      "utm_campaign",
+      "utm_content",
+      "utm_term",
+      "campaignid",
+      "has_click_id",
+      "referrer_host",
+      "landing_path",
+      "attribution_group",
+    ]) {
+      expect(reviewStep).toContain(field)
+    }
+
+    expect(reviewStep).toContain('capture("checkout_initiated"')
+    expect(reviewStep).toContain("classifyAttributionSource(attribution)")
+    expect(reviewStep).not.toContain("gclid:")
+    expect(reviewStep).not.toContain("gbraid:")
+    expect(reviewStep).not.toContain("wbraid:")
+  })
+
+  it("uses an explicit unmapped Google Ads campaign bucket", () => {
+    const googleAdsReport = read("lib/analytics/google-ads-report.ts")
+    const funnelAudit = read("scripts/conversion-funnel-audit.ts")
+
+    expect(googleAdsReport).toContain("google_ads_unmapped")
+    expect(funnelAudit).toContain("google_ads_unmapped")
+    expect(googleAdsReport).not.toContain('"missing_campaign"')
+    expect(funnelAudit).not.toContain('"missing_campaign"')
+  })
 })

@@ -662,7 +662,7 @@ export function summarizeLocalGoogleAdsPurchases(rows: LocalGoogleAdsPurchaseRow
   for (const row of rows) {
     if (!isLikelyGoogleAttributed(row)) continue
 
-    const campaignId = clean(row.campaignid) || clean(row.utm_id) || "missing_campaign"
+    const campaignId = clean(row.campaignid) || clean(row.utm_id) || "google_ads_unmapped"
     const gross = centsToAud(row.amount_cents)
     const refunded = centsToAud(row.refund_amount_cents)
     const net = roundMoney(gross - refunded)

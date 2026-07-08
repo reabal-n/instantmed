@@ -2,6 +2,9 @@
 // The added config here will be used whenever a users loads a page in their browser.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
+import type { BeforeSendFn } from "posthog-js";
+
+import { resolvePostHogClient } from "@/lib/analytics/posthog-client-resolver";
 import { onFirstInteraction } from "@/lib/browser/first-interaction";
 import { isPostConversionPath } from "@/lib/browser/post-conversion-path";
 import { scrubSentryBreadcrumb, scrubSentryEvent } from "@/lib/observability/scrub-phi";
@@ -60,6 +63,41 @@ const sentryEnvironment = getClientSentryEnvironment()
 const sentryRelease = getClientSentryRelease()
 const isPlaywrightMode = sentryEnvironment === "e2e"
 const sentryEnabled = !isPlaywrightMode && (sentryEnvironment === "production" || sentryEnvironment === "preview")
+const POSTHOG_RAW_CLICK_ID_KEYS = [
+  "gclid",
+  "gbraid",
+  "wbraid",
+  "$initial_gclid",
+  "$initial_gbraid",
+  "$initial_wbraid",
+]
+
+type PostHogBeforeSendPayload = {
+  $set?: Record<string, unknown>
+  $set_once?: Record<string, unknown>
+  properties?: Record<string, unknown>
+}
+
+function deleteRawClickIds(target: unknown): void {
+  if (typeof target !== "object" || target === null) return
+
+  const record = target as Record<string, unknown>
+  for (const key of POSTHOG_RAW_CLICK_ID_KEYS) {
+    delete record[key]
+  }
+}
+
+const scrubPostHogRawClickIds: BeforeSendFn = (event) => {
+  if (!event) return event
+
+  const payload = event as PostHogBeforeSendPayload
+  deleteRawClickIds(payload.properties)
+  deleteRawClickIds(payload.$set)
+  deleteRawClickIds(payload.$set_once)
+  deleteRawClickIds(payload.properties?.$set)
+  deleteRawClickIds(payload.properties?.$set_once)
+  return event
+}
 
 if (!sentryDsn && sentryEnabled) {
   // eslint-disable-next-line no-console
@@ -129,7 +167,10 @@ startTelemetryWhenReady(() => loadAndInitSentry());
 if (!isPlaywrightMode && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
   const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
   startTelemetryWhenReady(() => {
-  import("posthog-js").then(({ default: posthog }) => {
+  import("posthog-js").then((module) => {
+    const posthog = resolvePostHogClient(module);
+    if (!posthog) return;
+
     posthog.init(posthogKey, {
       api_host: "/ingest",
       ui_host: "https://us.posthog.com",
@@ -148,6 +189,7 @@ if (!isPlaywrightMode && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       disable_session_recording: true,  // Deferred - starts after idle to avoid blocking LCP
       // Surveys module is ~25KB and we have no surveys live. Skip loading it.
       disable_surveys: true,
+      before_send: scrubPostHogRawClickIds,
       session_recording: {
         maskAllInputs: true,          // PHI protection - mask all form inputs
         maskTextSelector: "[data-phi]", // Extra masking for PHI-tagged elements

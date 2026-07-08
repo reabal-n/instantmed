@@ -14,10 +14,12 @@ import { PriorityReviewToggle } from "@/components/request/shared/priority-revie
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { getAttribution } from "@/lib/analytics/attribution"
+import { type AttributionData, getAttribution } from "@/lib/analytics/attribution"
+import { capture } from "@/lib/analytics/capture"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { capturePriorityReviewOptedIn, capturePriorityReviewOptedOut } from "@/lib/analytics/priority-review-events"
+import { classifyAttributionSource } from "@/lib/analytics/source-classification"
 import { getRepeatsExpectation } from "@/lib/clinical/repeats-policy"
 import { PRICING as APP_PRICING } from "@/lib/constants"
 import { getAddressReviewSummary, getAddressStatusDisplay } from "@/lib/request/address-metadata"
@@ -99,6 +101,54 @@ function reviewLabel(labels: Record<string, string>, value: string | undefined):
 
 const TRUNCATE_THRESHOLD = 60
 type ReviewItem = { label: string; value: string; badge?: { label: string; tone: "success" | "warning" } }
+
+function cleanTelemetryValue(value?: string | null): string | null {
+  const trimmed = value?.trim()
+  return trimmed || null
+}
+
+function safeReferrerHost(referrer?: string | null): string | null {
+  const raw = cleanTelemetryValue(referrer)
+  if (!raw) return null
+
+  try {
+    return new URL(raw).hostname.replace(/^www\./, "") || null
+  } catch {
+    return null
+  }
+}
+
+function safeLandingPath(landingPage?: string | null): string | null {
+  const raw = cleanTelemetryValue(landingPage)
+  if (!raw) return null
+
+  try {
+    const url = raw.startsWith("http")
+      ? new URL(raw)
+      : new URL(raw, "https://instantmed.com.au")
+    return url.pathname || "/"
+  } catch {
+    return raw.startsWith("/") ? raw.split(/[?#]/)[0] || "/" : null
+  }
+}
+
+function buildCheckoutInitiatedAttributionProps(attribution: AttributionData) {
+  const classification = classifyAttributionSource(attribution)
+
+  return {
+    utm_source: cleanTelemetryValue(attribution.utm_source),
+    utm_medium: cleanTelemetryValue(attribution.utm_medium),
+    utm_id: cleanTelemetryValue(attribution.utm_id),
+    utm_campaign: cleanTelemetryValue(attribution.utm_campaign),
+    utm_content: cleanTelemetryValue(attribution.utm_content),
+    utm_term: cleanTelemetryValue(attribution.utm_term),
+    campaignid: cleanTelemetryValue(attribution.campaignid),
+    has_click_id: Boolean(attribution.gclid || attribution.gbraid || attribution.wbraid),
+    referrer_host: safeReferrerHost(attribution.referrer),
+    landing_path: safeLandingPath(attribution.landing_page),
+    attribution_group: classification.group,
+  }
+}
 
 function ExpandableValue({ value }: { value: string }) {
   const [expanded, setExpanded] = useState(false)
@@ -223,10 +273,15 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     setError(null)
 
     const identity = getIdentity()
-    posthog?.capture("checkout_initiated", {
+    const attribution = getAttribution()
+    capture("checkout_initiated", {
       service_type: serviceType,
       price_dollars: totalDue,
       is_priority: isPriority,
+      ...buildCheckoutInitiatedAttributionProps(attribution),
+    }, {
+      send_instantly: true,
+      transport: "sendBeacon",
     })
     void trackFunnelStep("checkout", serviceType, identity.email)
 
@@ -241,7 +296,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
           isPriority,
         },
         identity,
-        attribution: getAttribution(),
+        attribution,
         posthogDistinctId: posthog?.get_distinct_id() || undefined,
         serverDraftSessionId: getActiveServerDraftSessionId(serviceType) ?? undefined,
       })

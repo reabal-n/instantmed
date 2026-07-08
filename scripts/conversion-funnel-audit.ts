@@ -707,7 +707,7 @@ function serviceFromIntake(row: RawIntakeRow): string {
 }
 
 function campaignKey(row: RawIntakeRow): string {
-  return cleanDimension(row.campaignid || row.utm_id || row.utm_campaign, "missing_campaign")
+  return cleanDimension(row.campaignid || row.utm_id || row.utm_campaign, "google_ads_unmapped")
 }
 
 function cleanDimension(value: string | null | undefined, fallback: string): string {

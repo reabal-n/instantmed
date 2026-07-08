@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
  * AttributionChip: calm-chrome acquisition source display for staff.
  *
  * Surfaces "where did this request/patient come from?" using the shared
- * 9-group classifier at `lib/analytics/source-classification.ts`. Two
+ * 10-group classifier at `lib/analytics/source-classification.ts`. Two
  * variants:
  *   - "inline"  one-line "Source: Google Ads / medical-certificate" for
  *               the intake detail header strip.
@@ -44,6 +44,7 @@ const GROUP_DOT: Record<AttributionSourceGroup, string> = {
   organic_nonbrand: "bg-emerald-500",
   ai_referral: "bg-sky-500",
   recovery_email: "bg-blue-500",
+  lifecycle_email: "bg-blue-500",
   referral: "bg-blue-500",
   direct: "bg-slate-400",
   unknown: "bg-slate-400",
