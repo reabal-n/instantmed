@@ -720,7 +720,7 @@ async function runMedCertDeepFlow(page: Page, baseUrl: string) {
     await changeDates.click()
   }
 
-  await chooseRadio(page, /Certificate duration/i, /1 day/i)
+  await chooseRadio(page, /How many days|Certificate duration/i, /1 day/i)
   await page.getByRole("radio", { name: /^Today$/i }).click()
   await clickPrimaryReady(page)
 

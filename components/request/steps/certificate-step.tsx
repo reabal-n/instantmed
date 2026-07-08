@@ -604,6 +604,8 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
         Need more than 3 days off? Please visit your GP for an extended certificate.
       </p>
 
+      <DeferredInlineRecoveryEmailField serviceType={serviceType} stepId="certificate" />
+
       {/* Continue */}
       {/* Always clickable so a tap runs validate() and surfaces the blocking
           reason (StepBlockedSummary), instead of a silently greyed button that
