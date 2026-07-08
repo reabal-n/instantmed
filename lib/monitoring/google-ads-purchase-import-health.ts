@@ -58,6 +58,9 @@ export type GoogleAdsPurchaseImportAlert = {
         ? S
         : never
       : never
+    upload_audit_orphan_alert_reason?: "fresh_orphan" | "high_volume" | "stale_low_volume" | "unknown_age"
+    upload_audit_orphan_newest_at?: string | null
+    upload_audit_orphan_newest_age_hours?: number | null
     upload_audit_request_paths?: string[]
     upload_audit_runtime_sources?: string[]
     upload_audit_sources?: string[]
@@ -71,7 +74,7 @@ export type GoogleAdsPurchaseImportAlert = {
     | "google_ads_purchase_imports_zero"
     | "google_ads_purchase_primary_conversions_zero"
     | "google_ads_upload_audit_source_anomaly"
-  severity: "critical"
+  severity: "critical" | "info" | "warning"
 }
 
 export const GOOGLE_ADS_ADJUSTMENT_HEALTH_DAYS = 90
@@ -112,7 +115,60 @@ export type GoogleAdsAdjustmentTerminalRiskAlert = {
   severity: "critical"
 }
 
-function buildMetadata(snapshot: GoogleAdsPurchaseImportHealthSnapshot): GoogleAdsPurchaseImportAlert["metadata"] {
+const GOOGLE_ADS_UPLOAD_AUDIT_SOURCE_ANOMALY_FRESH_HOURS = 2
+const GOOGLE_ADS_UPLOAD_AUDIT_SOURCE_ANOMALY_CRITICAL_ROWS = 5
+
+function getNewestOrphanAt(snapshot: GoogleAdsPurchaseImportHealthSnapshot): string | null {
+  const samples = snapshot.uploadAuditReconciliation?.orphanRows.samples ?? []
+  let newestAt: string | null = null
+  let newestMs = -1
+
+  for (const sample of samples) {
+    if (!sample.at) continue
+    const sampleMs = Date.parse(sample.at)
+    if (!Number.isFinite(sampleMs)) continue
+    if (sampleMs > newestMs) {
+      newestMs = sampleMs
+      newestAt = sample.at
+    }
+  }
+
+  return newestAt
+}
+
+function classifyUploadAuditSourceAnomaly(snapshot: GoogleAdsPurchaseImportHealthSnapshot): {
+  newestAt: string | null
+  newestAgeHours: number | null
+  reason: NonNullable<GoogleAdsPurchaseImportAlert["metadata"]["upload_audit_orphan_alert_reason"]>
+  severity: GoogleAdsPurchaseImportAlert["severity"]
+} {
+  const orphanRows = snapshot.uploadAuditReconciliation?.orphanRows.total ?? 0
+  const newestAt = getNewestOrphanAt(snapshot)
+  const generatedMs = Date.parse(snapshot.generatedAt)
+  const newestMs = newestAt ? Date.parse(newestAt) : Number.NaN
+  const newestAgeHours = Number.isFinite(generatedMs) && Number.isFinite(newestMs)
+    ? Math.max(0, Math.round(((generatedMs - newestMs) / (60 * 60 * 1000)) * 10) / 10)
+    : null
+
+  if (orphanRows >= GOOGLE_ADS_UPLOAD_AUDIT_SOURCE_ANOMALY_CRITICAL_ROWS) {
+    return { newestAt, newestAgeHours, reason: "high_volume", severity: "critical" }
+  }
+
+  if (newestAgeHours === null) {
+    return { newestAt, newestAgeHours, reason: "unknown_age", severity: "warning" }
+  }
+
+  if (newestAgeHours <= GOOGLE_ADS_UPLOAD_AUDIT_SOURCE_ANOMALY_FRESH_HOURS) {
+    return { newestAt, newestAgeHours, reason: "fresh_orphan", severity: "critical" }
+  }
+
+  return { newestAt, newestAgeHours, reason: "stale_low_volume", severity: "info" }
+}
+
+function buildMetadata(
+  snapshot: GoogleAdsPurchaseImportHealthSnapshot,
+  anomalyClassification?: ReturnType<typeof classifyUploadAuditSourceAnomaly>,
+): GoogleAdsPurchaseImportAlert["metadata"] {
   return {
     accepted_customer_data_terms: snapshot.acceptedCustomerDataTerms,
     count: snapshot.localOrders,
@@ -126,6 +182,9 @@ function buildMetadata(snapshot: GoogleAdsPurchaseImportHealthSnapshot): GoogleA
     purchase_conversion_value_aud: snapshot.purchaseConversionValueAud,
     purchase_conversions: snapshot.purchaseConversions,
     query_errors: snapshot.queryErrors.map((error) => `${error.name}:${error.error}`),
+    upload_audit_orphan_alert_reason: anomalyClassification?.reason,
+    upload_audit_orphan_newest_age_hours: anomalyClassification?.newestAgeHours,
+    upload_audit_orphan_newest_at: anomalyClassification?.newestAt,
     upload_audit_orphan_rows: snapshot.uploadAuditReconciliation?.orphanRows.total,
     upload_audit_orphan_samples: snapshot.uploadAuditReconciliation?.orphanRows.samples,
     upload_audit_request_paths: Object.keys(snapshot.uploadAuditReconciliation?.byRequestPath ?? {}).sort(),
@@ -174,14 +233,16 @@ export function buildGoogleAdsUploadAuditSourceAnomalyAlert(
   const orphanRows = snapshot.uploadAuditReconciliation?.orphanRows.total ?? 0
   if (orphanRows <= 0) return null
 
+  const classification = classifyUploadAuditSourceAnomaly(snapshot)
   return {
     count: orphanRows,
     detail:
       `Google Ads upload audit has ${orphanRows} orphan row` +
-      `${orphanRows === 1 ? "" : "s"} with no valid intake join; classify as audit-source anomaly`,
-    metadata: buildMetadata(snapshot),
+      `${orphanRows === 1 ? "" : "s"} with no valid intake join; classify as audit-source anomaly` +
+      (classification.severity === "info" ? " (stale low-volume; not paging)" : ""),
+    metadata: buildMetadata(snapshot, classification),
     metric: "google_ads_upload_audit_source_anomaly",
-    severity: "critical",
+    severity: classification.severity,
   }
 }
 

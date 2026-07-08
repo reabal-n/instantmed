@@ -126,7 +126,7 @@ describe("Google Ads purchase import health", () => {
     expect(alert?.detail).toContain("enhanced-conversion setup is incomplete")
   })
 
-  it("alerts separately for Google Ads upload audit rows with no valid intake join", () => {
+  it("keeps high-volume Google Ads upload audit source anomalies critical", () => {
     const alert = buildGoogleAdsUploadAuditSourceAnomalyAlert(snapshot({
       uploadAuditReconciliation: {
         byRequestPath: { missing: 11 },
@@ -159,12 +159,93 @@ describe("Google Ads purchase import health", () => {
       severity: "critical",
       metadata: {
         upload_audit_orphan_rows: 11,
+        upload_audit_orphan_alert_reason: "high_volume",
         upload_audit_request_paths: ["missing"],
         upload_audit_runtime_sources: ["node"],
         upload_audit_sources: ["checkout_session_completed"],
       },
     })
     expect(alert?.detail).toContain("audit-source anomaly")
+  })
+
+  it("keeps a fresh Google Ads upload audit source anomaly critical", () => {
+    const alert = buildGoogleAdsUploadAuditSourceAnomalyAlert(snapshot({
+      generatedAt: "2026-07-08T11:00:00.000Z",
+      uploadAuditReconciliation: {
+        byRequestPath: { "/api/cron/google-ads-conversions": 1 },
+        byRuntimeSource: { vercel: 1 },
+        bySource: { cron_backfill: 1 },
+        byVercelEnv: { production: 1 },
+        orphanRows: {
+          invalidIntakeJoin: 0,
+          missingIntakeId: 1,
+          samples: [
+            {
+              at: "2026-07-08T10:30:00.000Z",
+              deploymentId: "dpl_live",
+              requestPath: "/api/cron/google-ads-conversions",
+              runtimeSource: "vercel",
+              source: "cron_backfill",
+              status: "success",
+              uploadJobId: null,
+              vercelEnv: "production",
+            },
+          ],
+          total: 1,
+        },
+      },
+    }))
+
+    expect(alert).toMatchObject({
+      count: 1,
+      metric: "google_ads_upload_audit_source_anomaly",
+      severity: "critical",
+      metadata: {
+        upload_audit_orphan_alert_reason: "fresh_orphan",
+        upload_audit_orphan_newest_age_hours: 0.5,
+        upload_audit_orphan_rows: 1,
+      },
+    })
+  })
+
+  it("keeps stale single-row Google Ads upload audit source anomalies info-only", () => {
+    const alert = buildGoogleAdsUploadAuditSourceAnomalyAlert(snapshot({
+      generatedAt: "2026-07-08T11:00:00.000Z",
+      uploadAuditReconciliation: {
+        byRequestPath: { "/api/cron/google-ads-conversions": 1 },
+        byRuntimeSource: { vercel: 1 },
+        bySource: { cron_backfill: 1 },
+        byVercelEnv: { production: 1 },
+        orphanRows: {
+          invalidIntakeJoin: 0,
+          missingIntakeId: 1,
+          samples: [
+            {
+              at: "2026-07-04T18:45:26.069Z",
+              deploymentId: "dpl_live",
+              requestPath: "/api/cron/google-ads-conversions",
+              runtimeSource: "vercel",
+              source: "cron_backfill",
+              status: "success",
+              uploadJobId: null,
+              vercelEnv: "production",
+            },
+          ],
+          total: 1,
+        },
+      },
+    }))
+
+    expect(alert).toMatchObject({
+      count: 1,
+      metric: "google_ads_upload_audit_source_anomaly",
+      severity: "info",
+      metadata: {
+        upload_audit_orphan_alert_reason: "stale_low_volume",
+        upload_audit_orphan_rows: 1,
+      },
+    })
+    expect(alert?.detail).toContain("not paging")
   })
 
   it("keeps the production cron and PostHog metric wired to the guard", () => {
