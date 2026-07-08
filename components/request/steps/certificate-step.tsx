@@ -465,8 +465,6 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
         )}
       </QuestionCard>
 
-      <DeferredInlineRecoveryEmailField serviceType={serviceType} stepId="certificate" />
-
       {/* Length & start date — shown inline (no collapse) so the patient sees the
           dates + length without an extra tap. The collapse-to-summary default was
           reverted 2026-06-28 (operator): hiding dates behind a dropdown on a
@@ -597,6 +595,8 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
             </div>
           )}
         </div>
+
+      <DeferredInlineRecoveryEmailField serviceType={serviceType} stepId="certificate" />
 
       {/* GP note - longer absences. Visible on every viewport so a patient
           on mobile understands the 3-day cap without scrolling laterally. */}
