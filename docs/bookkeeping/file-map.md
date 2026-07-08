@@ -1,9 +1,9 @@
 # Doc File Map
 
-> **Last updated:** 2026-07-08.
+> **Last updated:** 2026-07-09.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
 >
-> **Doc-surface count:** 115 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans; 110 -> 112 on 2026-07-01 after adding the root context glossary and first ADR for Google Ads retained-value bidding; reconciled to 115 on 2026-07-08 after excluding generated verification artifacts from `scripts/doc-audit.sh` and adding the GEO citation execution record.
+> **Doc-surface count:** 116 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans; 110 -> 112 on 2026-07-01 after adding the root context glossary and first ADR for Google Ads retained-value bidding; reconciled to 115 on 2026-07-08 after excluding generated verification artifacts from `scripts/doc-audit.sh` and adding the GEO citation execution record; reconciled to 116 on 2026-07-09 after adding the intake drop-off final plan.
 >
 > **Owner:** Operator. Update on every doc add, move, or delete. Bump the timestamp.
 
@@ -134,6 +134,7 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 | [docs/plans/2026-05-26-minimal-slide-modal-plan.md](../plans/2026-05-26-minimal-slide-modal-plan.md) | 8-task TDD implementation plan companion to the 2026-05-26 design doc. |
 | [docs/plans/2026-06-10-organic-geo-beat-nextclinic-plan.md](../plans/2026-06-10-organic-geo-beat-nextclinic-plan.md) | 90-day organic + GEO/LLM-citation growth plan (beat-NextClinic teardown, citation-layer sequence, verify-loop, ads-resume gate). Awaiting operator approval. |
 | [docs/plans/2026-06-10-content-mimic-map.md](../plans/2026-06-10-content-mimic-map.md) | NextClinic→InstantMed content mimic map: deepen-and-reindex / write-new (ED+hair) / net-new-elevate (employer-verify, one-off-vs-subscription, cost) / skip / park buckets + metered sequence. Companion to the GEO plan. Awaiting operator approval. |
+| [docs/plans/2026-07-09-intake-dropoff-final-plan.md](../plans/2026-07-09-intake-dropoff-final-plan.md) | Reconciled intake drop-off reduction plan: PostHog-backed P0/P1/P2 sequence for med-cert, mobile CTA, validation instrumentation, ED age gate, symptoms, review, patient-details, and repeat-Rx work. Awaiting build green-light. |
 
 Some active root plan files also have archived copies. Keep this mapped until the plan-retention decision is reconciled.
 
