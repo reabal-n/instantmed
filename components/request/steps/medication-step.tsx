@@ -23,7 +23,7 @@ import { ArrowRight, HeartPulse, ShieldAlert } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
-import { EarlyRecoveryEmailCard } from "@/components/request/shared/early-recovery-email-card"
+import { InlineRecoveryEmailField } from "@/components/request/shared/inline-recovery-email-field"
 import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
 import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -414,7 +414,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         </QuestionCard>
       ))}
 
-      <EarlyRecoveryEmailCard serviceType={serviceType} stepId="medication" />
+      <InlineRecoveryEmailField serviceType={serviceType} stepId="medication" />
 
       {/* Always clickable so a tap surfaces the blocking reason instead of a
           silently greyed mobile dead-end (controlled-substance block excepted —

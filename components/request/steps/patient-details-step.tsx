@@ -123,7 +123,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null)
   // Derived (not blur-gated) so it also fires when iOS autofills a Hide My
-  // Email address or the early-recovery card prefills one — those paths never
+  // Email address or the early-recovery field prefills one — those paths never
   // blur the field. Relay addresses DO deliver, but into the inbox behind the
   // relay; setting that expectation here is what prevents the "paid but never
   // got my certificate" ticket (incident 2026-07-02).

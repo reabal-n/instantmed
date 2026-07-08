@@ -66,13 +66,13 @@ describe("request conversion performance contract", () => {
       "utf8",
     )
 
-    expect(certificateStepSource).toContain("DeferredEarlyRecoveryEmailCard")
+    expect(certificateStepSource).toContain("DeferredInlineRecoveryEmailField")
     expect(certificateStepSource).toContain(
-      'import("@/components/request/shared/early-recovery-email-card")',
+      'import("@/components/request/shared/inline-recovery-email-field")',
     )
     expect(certificateStepSource).toContain("requestIdleCallback")
     expect(certificateStepSource).not.toContain(
-      'import { EarlyRecoveryEmailCard } from "@/components/request/shared/early-recovery-email-card"',
+      'import { InlineRecoveryEmailField } from "@/components/request/shared/inline-recovery-email-field"',
     )
   })
 })

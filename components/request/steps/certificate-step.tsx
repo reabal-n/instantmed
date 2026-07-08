@@ -46,7 +46,7 @@ const CERT_TYPES = [
 
 type CertType = "work" | "study" | "carer"
 type Duration = 1 | 2 | 3
-type EarlyRecoveryEmailCardComponent = ComponentType<{
+type InlineRecoveryEmailFieldComponent = ComponentType<{
   serviceType: UnifiedServiceType
   stepId: string
 }>
@@ -138,22 +138,22 @@ function summaryLabel(offset: number): string {
   return d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" })
 }
 
-function DeferredEarlyRecoveryEmailCard({
+function DeferredInlineRecoveryEmailField({
   serviceType,
   stepId,
 }: {
   serviceType: UnifiedServiceType
   stepId: string
 }) {
-  const [EarlyRecoveryEmailCard, setEarlyRecoveryEmailCard] =
-    useState<EarlyRecoveryEmailCardComponent | null>(null)
+  const [InlineRecoveryEmailField, setInlineRecoveryEmailField] =
+    useState<InlineRecoveryEmailFieldComponent | null>(null)
 
   useEffect(() => {
     let mounted = true
     const load = () => {
-      import("@/components/request/shared/early-recovery-email-card")
+      import("@/components/request/shared/inline-recovery-email-field")
         .then((mod) => {
-          if (mounted) setEarlyRecoveryEmailCard(() => mod.EarlyRecoveryEmailCard)
+          if (mounted) setInlineRecoveryEmailField(() => mod.InlineRecoveryEmailField)
         })
         .catch(() => {})
     }
@@ -173,8 +173,8 @@ function DeferredEarlyRecoveryEmailCard({
     }
   }, [])
 
-  if (!EarlyRecoveryEmailCard) return null
-  return <EarlyRecoveryEmailCard serviceType={serviceType} stepId={stepId} />
+  if (!InlineRecoveryEmailField) return null
+  return <InlineRecoveryEmailField serviceType={serviceType} stepId={stepId} />
 }
 
 // ─── Component ────────────────────────────────────────────────────────────
@@ -432,6 +432,8 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
         </FormField>
       </QuestionCard>
 
+      <DeferredInlineRecoveryEmailField serviceType={serviceType} stepId="certificate" />
+
       {/* Length & start date — shown inline (no collapse) so the patient sees the
           dates + length without an extra tap. The collapse-to-summary default was
           reverted 2026-06-28 (operator): hiding dates behind a dropdown on a
@@ -583,10 +585,6 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
           Press Enter to continue
         </p>
       )}
-
-      {/* Early-recovery email capture sits below the primary action so it never
-          interrupts the type → Continue path (paid-funnel review 2026-06-23). */}
-      <DeferredEarlyRecoveryEmailCard serviceType={serviceType} stepId="certificate" />
     </div>
   )
 }

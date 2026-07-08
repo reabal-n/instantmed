@@ -7,10 +7,10 @@
  * Age gate (Switch), chip grid for goals, segmented duration selector.
  */
 
-import { ArrowRight,Heart, Shield, Sparkles, Target } from "lucide-react"
+import { ArrowRight, Heart, Shield, Sparkles, Target } from "lucide-react"
 import { useCallback } from "react"
 
-import { EarlyRecoveryEmailCard } from "@/components/request/shared/early-recovery-email-card"
+import { InlineRecoveryEmailField } from "@/components/request/shared/inline-recovery-email-field"
 import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup, ToggleList } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -106,6 +106,8 @@ export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
         />
       </QuestionCard>
 
+      <InlineRecoveryEmailField serviceType={serviceType} stepId="ed-goals" />
+
       {/* Duration - segmented selector */}
       <QuestionCard compact>
         <QuestionPrompt label="How long has this been a concern?" required />
@@ -127,8 +129,6 @@ export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
           </AlertDescription>
         </Alert>
       )}
-
-      <EarlyRecoveryEmailCard serviceType={serviceType} stepId="ed-goals" />
 
       {/* Always clickable — variant signals readiness; handleNext gates progression */}
       <Button
