@@ -10,7 +10,9 @@ import {
 } from "react"
 
 import { trackAIReferral } from "@/lib/analytics/ai-referral"
+import { resolvePostHogClient } from "@/lib/analytics/posthog-client-resolver"
 import { PostHogContext, usePostHog } from "@/lib/analytics/posthog-context"
+import { onFirstInteraction } from "@/lib/browser/first-interaction"
 import { sanitizeUrl } from "@/lib/observability/sanitize-phi"
 import { useAuth } from "@/lib/supabase/auth-provider"
 
@@ -37,6 +39,9 @@ import { useAuth } from "@/lib/supabase/auth-provider"
 
 // Re-export usePostHog so existing `import { usePostHog } from "@/components/providers/posthog-provider"` still works.
 export { usePostHog }
+
+const POSTHOG_CONTEXT_RETRY_MS = 100
+const POSTHOG_CONTEXT_MAX_RETRIES = 50
 
 /**
  * Page View Tracker - fires `$pageview` on every client-side navigation.
@@ -98,15 +103,60 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true
-    import("posthog-js")
-      .then(({ default: posthog }) => {
-        if (mounted && posthog.__loaded) setClient(posthog)
-      })
-      .catch(() => {
-        // PostHog unavailable (missing env vars, network) - render without it
-      })
+    let retryCount = 0
+    let retryTimer: ReturnType<typeof setTimeout> | null = null
+
+    const clearRetry = () => {
+      if (retryTimer === null) return
+      clearTimeout(retryTimer)
+      retryTimer = null
+    }
+
+    const exposeClient = ({ requireLoaded }: { requireLoaded: boolean }) => {
+      if (!process.env.NEXT_PUBLIC_POSTHOG_KEY || process.env.NEXT_PUBLIC_PLAYWRIGHT === "1") {
+        return
+      }
+
+      import("posthog-js")
+        .then((module) => {
+          if (!mounted) return
+
+          const posthog = resolvePostHogClient(module)
+          if (!posthog) return
+
+          if (posthog.__loaded || !requireLoaded) {
+            clearRetry()
+            setClient(posthog)
+            return
+          }
+
+          if (retryCount >= POSTHOG_CONTEXT_MAX_RETRIES) return
+          retryCount += 1
+          clearRetry()
+          retryTimer = setTimeout(
+            () => exposeClient({ requireLoaded: true }),
+            POSTHOG_CONTEXT_RETRY_MS,
+          )
+        })
+        .catch(() => {
+          // PostHog unavailable (missing env vars, network) - render without it
+        })
+    }
+
+    // Handles post-conversion pages where instrumentation starts immediately.
+    exposeClient({ requireLoaded: true })
+
+    // Handles acquisition + request pages where instrumentation-client.ts
+    // intentionally defers PostHog init until the first real interaction.
+    const cancelFirstInteraction = onFirstInteraction(() => {
+      retryCount = 0
+      exposeClient({ requireLoaded: false })
+    })
+
     return () => {
       mounted = false
+      clearRetry()
+      cancelFirstInteraction()
     }
   }, [])
 

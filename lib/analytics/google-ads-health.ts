@@ -3,6 +3,10 @@ import "server-only"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import {
+  GOOGLE_ADS_ADJUSTMENT_CONVERSION_MATCH_GRACE_HOURS,
+  GOOGLE_ADS_CONVERSION_ADJUSTMENT_AUDIT_ACTION,
+} from "@/lib/analytics/google-ads-conversion-adjustments"
+import {
   type GoogleAdsConversionActionPreflightResult,
   preflightGoogleAdsPurchaseConversionAction,
 } from "@/lib/analytics/google-ads-conversion-api"
@@ -22,7 +26,9 @@ import {
 } from "@/lib/analytics/google-ads-upload-audit"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import {
+  GOOGLE_ADS_ADJUSTMENT_HEALTH_DAYS,
   GOOGLE_ADS_UPLOAD_STREAM_STALL_DAYS,
+  type GoogleAdsAdjustmentHealth,
   type GoogleAdsUploadStreamHealth,
 } from "@/lib/monitoring/google-ads-purchase-import-health"
 
@@ -55,6 +61,31 @@ export interface GoogleAdsConfigurationDiagnosis {
 type GoogleAdsCandidateRow = GoogleAdsAttributionRow & {
   id: string
   paid_at: string | null
+}
+
+type GoogleAdsAdjustmentAuditRow = {
+  created_at?: string | null
+  intake_id: string | null
+  metadata: {
+    error_code?: string | null
+    runtime_source?: string | null
+    status?: string | null
+    terminal?: boolean | null
+    terminal_reason?: string | null
+  } | null
+}
+
+type GoogleAdsPurchaseUploadAuditRow = {
+  created_at?: string | null
+  intake_id: string | null
+  metadata: {
+    has_gbraid?: boolean | null
+    has_gclid?: boolean | null
+    has_user_data?: boolean | null
+    has_wbraid?: boolean | null
+    runtime_source?: string | null
+    status?: string | null
+  } | null
 }
 
 export interface GoogleAdsHealth {
@@ -109,6 +140,183 @@ export const EMPTY_GOOGLE_ADS_HEALTH: GoogleAdsHealth = {
 
 function getUploadStatus(row: GoogleAdsUploadAuditRow | undefined): string | null {
   return row?.metadata?.status?.trim() || null
+}
+
+function auditCreatedAtMs(row: { created_at?: string | null }): number {
+  return row.created_at ? Date.parse(row.created_at) : 0
+}
+
+function isProductionAuditRow(row: { metadata?: { runtime_source?: string | null } | null }): boolean {
+  return row.metadata?.runtime_source !== "node"
+}
+
+function isConversionNotFound(errorCode?: string | null): boolean {
+  return Boolean(errorCode?.includes("CONVERSION_NOT_FOUND"))
+}
+
+function isDataManagerStillProcessing(errorCode?: string | null): boolean {
+  return Boolean(errorCode?.includes("dm_request_processing"))
+}
+
+function isAdjustmentFailure(row: GoogleAdsAdjustmentAuditRow): boolean {
+  const status = row.metadata?.status
+  return status === "failed" || status === "terminal_failed"
+}
+
+function uploadHadClickIdentifier(row: GoogleAdsPurchaseUploadAuditRow | null | undefined): boolean {
+  return row?.metadata?.has_gclid === true ||
+    row?.metadata?.has_gbraid === true ||
+    row?.metadata?.has_wbraid === true
+}
+
+function isUploadPastAdjustmentGrace(
+  upload: GoogleAdsPurchaseUploadAuditRow | null | undefined,
+  nowMs: number,
+): boolean {
+  const uploadMs = auditCreatedAtMs(upload ?? {})
+  if (!Number.isFinite(uploadMs) || uploadMs <= 0) return true
+  return nowMs - uploadMs > GOOGLE_ADS_ADJUSTMENT_CONVERSION_MATCH_GRACE_HOURS * 60 * 60 * 1000
+}
+
+function bestLatestAdjustmentFailureByIntake(
+  rows: GoogleAdsAdjustmentAuditRow[],
+): Map<string, GoogleAdsAdjustmentAuditRow> {
+  const best = new Map<string, GoogleAdsAdjustmentAuditRow>()
+
+  for (const row of rows) {
+    if (!row.intake_id || !isAdjustmentFailure(row)) continue
+    const current = best.get(row.intake_id)
+    if (!current || auditCreatedAtMs(row) > auditCreatedAtMs(current)) {
+      best.set(row.intake_id, row)
+    }
+  }
+
+  return best
+}
+
+function latestSuccessfulPurchaseUploadByIntake(
+  rows: GoogleAdsPurchaseUploadAuditRow[],
+): Map<string, GoogleAdsPurchaseUploadAuditRow> {
+  const best = new Map<string, GoogleAdsPurchaseUploadAuditRow>()
+
+  for (const row of rows) {
+    if (!row.intake_id || row.metadata?.status !== "success") continue
+    const current = best.get(row.intake_id)
+    if (!current || auditCreatedAtMs(row) > auditCreatedAtMs(current)) {
+      best.set(row.intake_id, row)
+    }
+  }
+
+  return best
+}
+
+function isTerminalAdjustmentFailure(
+  failure: GoogleAdsAdjustmentAuditRow,
+  upload: GoogleAdsPurchaseUploadAuditRow | null | undefined,
+  nowMs: number,
+): boolean {
+  const status = failure.metadata?.status
+  const errorCode = failure.metadata?.error_code
+  const explicitTerminal = status === "terminal_failed" ||
+    (failure.metadata?.terminal === true && Boolean(failure.metadata.terminal_reason))
+
+  if (explicitTerminal) return true
+  if (status !== "failed") return false
+  if (isDataManagerStillProcessing(errorCode)) return false
+  if (isConversionNotFound(errorCode)) return isUploadPastAdjustmentGrace(upload, nowMs)
+  return false
+}
+
+export function summarizeGoogleAdsAdjustmentHealth({
+  adjustmentRows,
+  generatedAt,
+  lookbackDays,
+  now,
+  purchaseUploadRows,
+}: {
+  adjustmentRows: GoogleAdsAdjustmentAuditRow[]
+  generatedAt: string
+  lookbackDays: number
+  now: Date
+  purchaseUploadRows: GoogleAdsPurchaseUploadAuditRow[]
+}): GoogleAdsAdjustmentHealth {
+  const failures = adjustmentRows.filter(isAdjustmentFailure)
+  const bestFailures = bestLatestAdjustmentFailureByIntake(failures)
+  const uploads = latestSuccessfulPurchaseUploadByIntake(purchaseUploadRows)
+  const nowMs = now.getTime()
+
+  let clickAttributedFailures = 0
+  let failedIntakesWithoutSuccessfulUpload = 0
+  let latestFailureAt: string | null = null
+  let latestFailureMs = -1
+  let terminalClickAttributedFailures = 0
+  let terminalFailures = 0
+  let terminalNonClickAttributedFailures = 0
+  let transientFailures = 0
+
+  for (const failure of bestFailures.values()) {
+    const upload = uploads.get(failure.intake_id || "")
+    const clickAttributed = uploadHadClickIdentifier(upload)
+    const terminal = isTerminalAdjustmentFailure(failure, upload, nowMs)
+    const at = auditCreatedAtMs(failure)
+
+    if (at > latestFailureMs) {
+      latestFailureMs = at
+      latestFailureAt = failure.created_at ?? null
+    }
+
+    if (!upload) failedIntakesWithoutSuccessfulUpload += 1
+    if (clickAttributed) clickAttributedFailures += 1
+
+    if (terminal) {
+      terminalFailures += 1
+      if (clickAttributed) terminalClickAttributedFailures += 1
+      else terminalNonClickAttributedFailures += 1
+      continue
+    }
+
+    transientFailures += 1
+  }
+
+  return {
+    adjustmentFailureRows: failures.length,
+    clickAttributedFailures,
+    dedupedFailedIntakes: bestFailures.size,
+    failedIntakesWithoutSuccessfulUpload,
+    generatedAt,
+    latestFailureAt,
+    lookbackDays,
+    queryFailed: false,
+    terminalClickAttributedFailures,
+    terminalFailures,
+    terminalNonClickAttributedFailures,
+    transientFailures,
+  }
+}
+
+function emptyGoogleAdsAdjustmentHealth({
+  generatedAt,
+  lookbackDays,
+  queryFailed = false,
+}: {
+  generatedAt: string
+  lookbackDays: number
+  queryFailed?: boolean
+}): GoogleAdsAdjustmentHealth {
+  return {
+    adjustmentFailureRows: 0,
+    clickAttributedFailures: 0,
+    dedupedFailedIntakes: 0,
+    failedIntakesWithoutSuccessfulUpload: 0,
+    generatedAt,
+    latestFailureAt: null,
+    lookbackDays,
+    queryFailed,
+    terminalClickAttributedFailures: 0,
+    terminalFailures: 0,
+    terminalNonClickAttributedFailures: 0,
+    transientFailures: 0,
+  }
 }
 
 function buildConfigurationDiagnosis({
@@ -445,6 +653,73 @@ export async function getGoogleAdsUploadStreamHealth(
     queryFailed: false,
     successfulUploads,
   }
+}
+
+/**
+ * DB-only adjustment/retraction health for Google Ads retained-value bidding.
+ * This deliberately pages only on terminal failures for purchases that had a
+ * Google click identifier. User-data-only terminal misses are diagnostics noise:
+ * if Google never matched the hashed identifiers to an ad interaction, there is
+ * no click conversion to retract from Smart Bidding.
+ */
+export async function getGoogleAdsAdjustmentHealth(
+  supabase: SupabaseClient,
+  options: { lookbackDays?: number; now?: Date } = {},
+): Promise<GoogleAdsAdjustmentHealth> {
+  const lookbackDays = options.lookbackDays ?? GOOGLE_ADS_ADJUSTMENT_HEALTH_DAYS
+  const now = options.now ?? new Date()
+  const since = new Date(now.getTime() - lookbackDays * 24 * 60 * 60 * 1000).toISOString()
+  const generatedAt = now.toISOString()
+
+  const empty = emptyGoogleAdsAdjustmentHealth({ generatedAt, lookbackDays })
+  const { data: adjustmentData, error: adjustmentError } = await supabase
+    .from("audit_logs")
+    .select("intake_id, created_at, metadata")
+    .eq("action", GOOGLE_ADS_CONVERSION_ADJUSTMENT_AUDIT_ACTION)
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(2000)
+
+  if (adjustmentError) return { ...empty, queryFailed: true }
+
+  const adjustmentRows = ((adjustmentData || []) as GoogleAdsAdjustmentAuditRow[])
+    .filter(isProductionAuditRow)
+  const failureRows = adjustmentRows.filter(isAdjustmentFailure)
+  const failureIntakeIds = [...new Set(failureRows.map((row) => row.intake_id).filter((id): id is string => Boolean(id)))]
+
+  if (failureIntakeIds.length === 0) return empty
+
+  const { data: reportable, error: reportableError } = await filterReportableIntakes(
+    supabase.from("intakes").select("id").in("id", failureIntakeIds),
+  )
+  if (reportableError) return { ...empty, queryFailed: true }
+
+  const reportableIds = new Set(((reportable || []) as Array<{ id: string }>).map((row) => row.id))
+  const reportableAdjustmentRows = adjustmentRows.filter(
+    (row) => row.intake_id != null && reportableIds.has(row.intake_id),
+  )
+  if (reportableAdjustmentRows.length === 0) return empty
+
+  const { data: uploadData, error: uploadError } = await supabase
+    .from("audit_logs")
+    .select("intake_id, created_at, metadata")
+    .eq("action", GOOGLE_ADS_CONVERSION_UPLOAD_AUDIT_ACTION)
+    .in("intake_id", Array.from(reportableIds))
+    .order("created_at", { ascending: false })
+    .limit(2000)
+
+  if (uploadError) return { ...empty, queryFailed: true }
+
+  const purchaseUploadRows = ((uploadData || []) as GoogleAdsPurchaseUploadAuditRow[])
+    .filter(isProductionAuditRow)
+
+  return summarizeGoogleAdsAdjustmentHealth({
+    adjustmentRows: reportableAdjustmentRows,
+    generatedAt,
+    lookbackDays,
+    now,
+    purchaseUploadRows,
+  })
 }
 
 export async function getGoogleAdsHealth(

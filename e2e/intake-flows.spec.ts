@@ -311,7 +311,9 @@ test.describe("Intake: Medical Certificate - full flow", () => {
     await workRadio.click()
     await expect(workRadio).toHaveAttribute("aria-checked", "true", { timeout: 5000 })
     // Duration — click 1 day (default is 2, override for the test)
-    const oneDayRadio = page.getByRole("radiogroup", { name: /Certificate duration/i }).getByRole("radio", { name: /1 day/i })
+    const oneDayRadio = page
+      .getByRole("radiogroup", { name: /How many days|Certificate duration/i })
+      .getByRole("radio", { name: /1 day/i })
     await oneDayRadio.click()
     await expect(oneDayRadio).toHaveAttribute("aria-checked", "true", { timeout: 3000 })
     // Start date defaults to today - no action needed

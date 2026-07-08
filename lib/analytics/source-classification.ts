@@ -4,6 +4,7 @@ export type AttributionSourceGroup =
   | "organic_brand"
   | "ai_referral"
   | "recovery_email"
+  | "lifecycle_email"
   | "referral"
   | "direct"
   | "unknown"
@@ -42,6 +43,7 @@ export const ATTRIBUTION_SOURCE_LABELS: Record<AttributionSourceGroup, string> =
   organic_brand: "Organic brand",
   ai_referral: "AI referral",
   recovery_email: "Recovery email",
+  lifecycle_email: "Lifecycle email",
   referral: "Referral",
   direct: "Direct",
   unknown: "Unknown",
@@ -54,6 +56,7 @@ export const ATTRIBUTION_SOURCE_ORDER: AttributionSourceGroup[] = [
   "organic_brand",
   "ai_referral",
   "recovery_email",
+  "lifecycle_email",
   "referral",
   "direct",
   "unknown",
@@ -86,6 +89,17 @@ const PAID_MEDIUM_PATTERNS = [
   "paid_search",
   "sem",
   "search_ads",
+]
+
+const LIFECYCLE_EMAIL_SOURCES = [
+  "cert_reactivation",
+  "refill_reminder",
+]
+
+const RECOVERY_EMAIL_CAMPAIGNS = [
+  "partial_intake_recovery",
+  "abandoned_checkout",
+  "abandoned_checkout_followup",
 ]
 
 const NONBRAND_HINTS = [
@@ -162,6 +176,22 @@ function containsAny(value: string, patterns: string[]): boolean {
   return patterns.some((pattern) => value.includes(pattern))
 }
 
+function matchesHost(hostLower: string, domain: string): boolean {
+  return hostLower === domain || hostLower.endsWith(`.${domain}`)
+}
+
+function isContinuationArtifactHost(hostLower: string): boolean {
+  if (!hostLower) return false
+
+  return (
+    matchesHost(hostLower, "instantmed.com.au") ||
+    matchesHost(hostLower, "stripe.com") ||
+    matchesHost(hostLower, "accounts.google.com") ||
+    matchesHost(hostLower, "supabase.co") ||
+    matchesHost(hostLower, "supabase.com")
+  )
+}
+
 function classifyOrganic(row: AttributionClassificationInput): AttributionClassification {
   const tokens = [
     lower(row.utm_source),
@@ -216,9 +246,21 @@ export function classifyAttributionSource(
   }
 
   if (
+    containsAny(utmSource, LIFECYCLE_EMAIL_SOURCES) ||
+    (utmMedium === "email" && containsAny(utmSource, LIFECYCLE_EMAIL_SOURCES))
+  ) {
+    return {
+      action: "Keep reactivation and refill reminder revenue separate from recovery and new acquisition demand.",
+      group: "lifecycle_email",
+      known: true,
+      label: ATTRIBUTION_SOURCE_LABELS.lifecycle_email,
+      source: sourceLabel || "lifecycle_email",
+    }
+  }
+
+  if (
     utmSource.includes("recovery_email") ||
-    utmCampaign.includes("recovery") ||
-    utmCampaign.includes("abandoned") ||
+    containsAny(utmCampaign, RECOVERY_EMAIL_CAMPAIGNS) ||
     (utmMedium === "email" && utmSource.includes("recovery"))
   ) {
     return {
@@ -263,12 +305,14 @@ export function classifyAttributionSource(
     }
   }
 
-  const organicToken = [utmSource, utmMedium, utmCampaign, utmTerm, hostLower].join(" ")
+  const organicToken = [utmSource, utmMedium, utmCampaign, utmTerm].join(" ")
+  const hasSearchReferrer =
+    !isContinuationArtifactHost(hostLower) && containsAny(hostLower, SEARCH_HOST_PATTERNS)
   if (
     utmMedium === "organic" ||
     utmMedium === "seo" ||
     ["google", "bing", "duckduckgo", "yahoo", "ecosia"].includes(utmSource) ||
-    containsAny(hostLower, SEARCH_HOST_PATTERNS) ||
+    hasSearchReferrer ||
     (containsAny(organicToken, SEARCH_HOST_PATTERNS) && !containsAny(organicToken, PAID_MEDIUM_PATTERNS))
   ) {
     return classifyOrganic(row)
@@ -277,7 +321,7 @@ export function classifyAttributionSource(
   if (
     utmSource.includes("referral") ||
     utmMedium === "referral" ||
-    (hostLower && !hostLower.includes("instantmed.com.au"))
+    (hostLower && !isContinuationArtifactHost(hostLower))
   ) {
     return {
       action: "Confirm partner/referral links are tagged so this bucket stays explainable.",
