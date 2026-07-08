@@ -1,9 +1,9 @@
 # Doc File Map
 
-> **Last updated:** 2026-07-01.
+> **Last updated:** 2026-07-08.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
 >
-> **Doc-surface count:** 112 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans; 110 -> 112 on 2026-07-01 after adding the root context glossary and first ADR for Google Ads retained-value bidding.
+> **Doc-surface count:** 117 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans; 110 -> 112 on 2026-07-01 after adding the root context glossary and first ADR for Google Ads retained-value bidding; 112 -> 117 on 2026-07-08 after reconciling the live doc surface count and adding the SEO/GEO/LLM Task 5 plan.
 >
 > **Owner:** Operator. Update on every doc add, move, or delete. Bump the timestamp.
 
@@ -136,7 +136,7 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 
 Some active root plan files also have archived copies. Keep this mapped until the plan-retention decision is reconciled.
 
-## docs/superpowers/plans/ — 8
+## docs/superpowers/plans/ — 9
 
 | File | Purpose |
 |------|---------|
@@ -148,6 +148,7 @@ Some active root plan files also have archived copies. Keep this mapped until th
 | [docs/superpowers/plans/2026-06-26-05-parchment-sync-lifecycle.md](../superpowers/plans/2026-06-26-05-parchment-sync-lifecycle.md) | Prescribing rebuild 05: Parchment preflight/fingerprint sync gating; separate prescribe from request completion |
 | [docs/superpowers/plans/2026-06-26-06-doctor-review-ui-simplification.md](../superpowers/plans/2026-06-26-06-doctor-review-ui-simplification.md) | Prescribing rebuild 06: doctor review UI simplification — one packet, exact blockers, identity/Parchment readiness |
 | [docs/superpowers/plans/2026-06-26-07-med-cert-wording.md](../superpowers/plans/2026-06-26-07-med-cert-wording.md) | Prescribing rebuild 07: warmer medical-certificate body wording (third locked support paragraph) |
+| [docs/superpowers/plans/2026-07-08-seo-geo-llm-task5-plan.md](../superpowers/plans/2026-07-08-seo-geo-llm-task5-plan.md) | Task 5 SEO/GEO/LLM growth plan: page-template contracts, contextual evidence links, CTR fixes, condition-template hardening, GEO answer blocks, and citation-surface workflow |
 
 ## docs/plans/archive/ — completed/superseded plans (90-day retention)
 
