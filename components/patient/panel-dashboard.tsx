@@ -56,8 +56,8 @@ const ReferralCard = dynamic(
   () => import("@/components/patient/referral-card").then((mod) => mod.ReferralCard),
   { loading: () => <ReferralCardLoading /> },
 )
-const GoogleReviewCard = dynamic(
-  () => import("@/components/patient/google-review-card").then((mod) => mod.GoogleReviewCard),
+const ReviewNudgeCard = dynamic(
+  () => import("@/components/patient/review-nudge-card").then((mod) => mod.ReviewNudgeCard),
   { ssr: false },
 )
 
@@ -422,7 +422,7 @@ export function PanelDashboard({
               </div>
             )}
 
-            {/* Referral + Google Review only after first completion. */}
+            {/* Referral + review nudge only after first completion. */}
             {hasReadyDoc && (
               <div>
                 <ReferralCard patientId={patientId} />
@@ -430,7 +430,7 @@ export function PanelDashboard({
             )}
             {hasReadyDoc && (
               <div>
-                <GoogleReviewCard />
+                <ReviewNudgeCard />
               </div>
             )}
           </div>
