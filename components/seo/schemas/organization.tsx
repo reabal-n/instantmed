@@ -1,7 +1,8 @@
-import { CONTACT_EMAIL_HELLO, PRICING } from "@/lib/constants"
+import { CONTACT_EMAIL_HELLO } from "@/lib/constants"
 
 import { JsonLdScript } from "./json-ld-script"
 import { SAME_AS_PROFILES } from "./same-as"
+import { getServiceOffers } from "./service-offerings"
 
 interface OrganizationSchemaProps {
   baseUrl?: string
@@ -81,31 +82,10 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "InstantMed Services",
-      itemListElement: [
-        {
-          "@type": "Offer",
-          // price + priceCurrency are required for a valid Offer.
-          price: PRICING.MED_CERT.toFixed(2),
-          priceCurrency: "AUD",
-          itemOffered: {
-            "@type": "Service",
-            name: "Medical Certificate",
-            serviceType: "Medical certificate request",
-            description: "Request a routine sick or study certificate reviewed by an Australian registered doctor"
-          }
-        },
-        {
-          "@type": "Offer",
-          price: PRICING.REPEAT_SCRIPT.toFixed(2),
-          priceCurrency: "AUD",
-          itemOffered: {
-            "@type": "Service",
-            name: "Online Prescription",
-            serviceType: "Repeat prescription request",
-            description: "Request prescriptions for common medications from registered doctors"
-          }
-        }
-      ]
+      // Derived from the live SERVICE_CATALOG (single source of truth) via
+      // getServiceOffers so all 5 active services — including women's health
+      // (live 2026-06-15) — stay in the entity graph and never drift again.
+      itemListElement: getServiceOffers(baseUrl)
     }
   }
 
