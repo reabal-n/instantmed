@@ -19,6 +19,11 @@ import { RequestButton } from "@/components/request/request-button"
 import { requestCx } from "@/components/request/request-cx"
 import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, useRovingRadio } from "@/components/request/shared/intake-step-primitives"
 import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
+import {
+  buildIntakeValidationBlockedProperties,
+  captureIntakeEvent,
+  INTAKE_ANALYTICS_EVENTS,
+} from "@/lib/analytics/intake-events"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { MED_CERT_DURATIONS } from "@/lib/constants"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
@@ -345,11 +350,23 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
     if (!certType) newErrors.certType = "Please select certificate type"
     if (!selectedDays) newErrors.duration = "Please select how many days"
     if (startOffset === null) newErrors.startDate = "Please select a start date"
+    const blockers = Object.values(newErrors)
     setErrors(newErrors)
-    setBlockedReasons(Object.values(newErrors))
+    setBlockedReasons(blockers)
     setTouched({ certType: true, duration: true, startDate: true })
+    if (blockers.length > 0) {
+      captureIntakeEvent(
+        posthog,
+        INTAKE_ANALYTICS_EVENTS.validationBlocked,
+        buildIntakeValidationBlockedProperties({
+          serviceType,
+          stepId: "certificate",
+          blockers,
+        }),
+      )
+    }
     return Object.keys(newErrors).length === 0
-  }, [certType, selectedDays, startOffset])
+  }, [certType, selectedDays, serviceType, startOffset, posthog])
 
   const handleNext = useCallback(() => {
     if (validate()) {

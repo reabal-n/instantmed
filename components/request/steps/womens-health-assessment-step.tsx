@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
@@ -33,7 +34,7 @@ function FieldError({ message }: { message?: string }) {
   )
 }
 
-export default function WomensHealthAssessmentStep({ onNext, onBack }: WomensHealthAssessmentStepProps) {
+export default function WomensHealthAssessmentStep({ serviceType, onNext, onBack }: WomensHealthAssessmentStepProps) {
   const router = useRouter()
   const { answers, setAnswer } = useRequestStore()
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -49,22 +50,48 @@ export default function WomensHealthAssessmentStep({ onNext, onBack }: WomensHea
   // renders nothing rather than a half-built assessment.
   switch (womensHealthOption) {
     case 'ocp_new':
-      return <ContraceptionAssessment onNext={onNext} answers={answers} setAnswer={setAnswer} errors={errors} setErrors={setErrors} />
+      return (
+        <ContraceptionAssessment
+          serviceType={serviceType}
+          onNext={onNext}
+          answers={answers}
+          setAnswer={setAnswer}
+          errors={errors}
+          setErrors={setErrors}
+        />
+      )
     case 'uti':
-      return <UTIAssessment onNext={onNext} onBack={onBack} answers={answers} setAnswer={setAnswer} errors={errors} setErrors={setErrors} isBlocked={isBlocked} setIsBlocked={setIsBlocked} blockReason={blockReason} setBlockReason={setBlockReason} router={router} />
+      return (
+        <UTIAssessment
+          serviceType={serviceType}
+          onNext={onNext}
+          onBack={onBack}
+          answers={answers}
+          setAnswer={setAnswer}
+          errors={errors}
+          setErrors={setErrors}
+          isBlocked={isBlocked}
+          setIsBlocked={setIsBlocked}
+          blockReason={blockReason}
+          setBlockReason={setBlockReason}
+          router={router}
+        />
+      )
     default:
       return null
   }
 }
 
 // Contraception assessment
-function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors }: {
+function ContraceptionAssessment({ serviceType, onNext, answers, setAnswer, errors, setErrors }: {
+  serviceType: UnifiedServiceType
   onNext: () => void
   answers: Record<string, unknown>
   setAnswer: (key: string, value: unknown) => void
   errors: Record<string, string>
   setErrors: (errors: Record<string, string>) => void
 }) {
+  const posthog = usePostHog()
   // This component now serves only the live new/switch pill (ocp_new).
   const contraceptionType = answers.contraceptionType as string | undefined
   const contraceptionCurrent = (answers.contraceptionCurrent as string) || ""
@@ -142,6 +169,7 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
       }
       return reasons
     }, [bloodClotHistory, contraceptionCurrent, contraceptionType, migraineAura, needsPillSafetyScreen, pregnancyStatus, smoker]),
+    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "womens-health-assessment" },
   )
 
   return (
@@ -330,7 +358,8 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
 }
 
 // UTI assessment
-function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, isBlocked, setIsBlocked, blockReason, setBlockReason, router }: {
+function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, errors, setErrors, isBlocked, setIsBlocked, blockReason, setBlockReason, router }: {
+  serviceType: UnifiedServiceType
   onNext: () => void
   onBack: () => void
   answers: Record<string, unknown>
@@ -343,6 +372,7 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
   setBlockReason: (reason: string) => void
   router: ReturnType<typeof useRouter>
 }) {
+  const posthog = usePostHog()
   const utiSymptoms = answers.utiSymptoms as string[] | undefined
   const utiRedFlags = answers.utiRedFlags as "no" | "yes" | undefined
   const utiPregnant = (answers.utiPregnant as string) || ""
@@ -411,6 +441,7 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
       if (!utiPregnant) reasons.push("pregnancy check")
       return reasons
     }, [utiPregnant, utiRedFlags, utiSymptoms]),
+    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "womens-health-assessment" },
   )
 
   if (isBlocked) {
