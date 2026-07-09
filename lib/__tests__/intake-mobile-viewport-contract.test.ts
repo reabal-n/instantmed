@@ -52,6 +52,18 @@ describe("intake mobile viewport contract", () => {
     expect(requestFlowSource).not.toContain("hidden on checkout/review which have their own CTAs")
   })
 
+  it("keeps the mobile primary-action bar above the soft keyboard", () => {
+    expect(requestFlowSource).toContain("window.visualViewport")
+    expect(requestFlowSource).toContain('root.style.setProperty("--keyboard-offset"')
+    expect(requestFlowSource).toContain('root.style.removeProperty("--keyboard-offset")')
+    expect(requestFlowSource).toContain('visualViewport.addEventListener("resize"')
+    expect(requestFlowSource).toContain('visualViewport.addEventListener("scroll"')
+    expect(requestFlowSource).toContain('window.addEventListener("orientationchange"')
+    expect(requestFlowSource).toContain('bottom: "calc(env(safe-area-inset-bottom) + var(--keyboard-offset, 0px))"')
+    expect(requestFlowSource).toContain("fixed inset-x-0 z-40")
+    expect(requestFlowSource).not.toContain("fixed bottom-0 inset-x-0")
+  })
+
   it("keeps the mobile intake chrome compact enough for one-screen question steps", () => {
     expect(requestFlowSource).toContain("h-12 sm:h-14")
     expect(requestFlowSource).toContain("hidden sm:flex")
