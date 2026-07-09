@@ -9,7 +9,6 @@ import {
   STAFF_DASHBOARD_HREF,
   STAFF_DOCTOR_PATIENTS_HREF,
   STAFF_DOCTOR_SCRIPTS_HREF,
-  STAFF_FINANCE_HREF,
   STAFF_IDENTITY_HREF,
   STAFF_LEDGER_HREF,
   STAFF_OPS_HREF,
@@ -73,8 +72,7 @@ export const operatorNavSections: StaffNavSection[] = [
   {
     title: "Run",
     items: [
-      { href: STAFF_ANALYTICS_HREF, label: "Analytics", icon: "analytics" },
-      { href: STAFF_FINANCE_HREF, label: "Payments", icon: "dollar" },
+      { href: STAFF_ANALYTICS_HREF, label: "Overview", icon: "analytics" },
       { href: STAFF_OPS_HREF, label: "Ops", icon: "activity" },
     ],
   },

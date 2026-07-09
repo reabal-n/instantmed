@@ -180,7 +180,7 @@ describe("ops dashboard data contract", () => {
 
     expect(analyticsPageSource).toContain("getHeardAboutUsBreakdown")
     expect(analyticsPageSource).toContain("getAiAttributionBreakdown")
-    expect(analyticsClientSource).toContain("Acquisition attribution")
+    expect(analyticsClientSource).toContain("Where patients came from")
     expect(analyticsClientSource).toContain("How did you hear about us? (30 days)")
     expect(analyticsClientSource).toContain("AI assistants")
   })
