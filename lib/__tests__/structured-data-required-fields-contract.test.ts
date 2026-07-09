@@ -3,6 +3,11 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
+import {
+  getAvailableServices,
+  getServiceOffers,
+} from "@/components/seo/schemas/service-offerings"
+
 const root = process.cwd()
 const read = (p: string) => readFileSync(join(root, p), "utf8")
 
@@ -13,14 +18,35 @@ const read = (p: string) => readFileSync(join(root, p), "utf8")
  * results + GEO extraction, so pin the required fields.
  */
 describe("structured-data required fields", () => {
-  it("OrganizationSchema OfferCatalog Offers carry price + priceCurrency", () => {
-    const src = read("components/seo/schemas/organization.tsx")
-    const offerCount = (src.match(/"@type":\s*"Offer"/g) || []).length
-    const priceCount = (src.match(/priceCurrency:\s*"AUD"/g) || []).length
-    expect(offerCount).toBeGreaterThan(0)
-    // every Offer must declare priceCurrency (and a price alongside it)
-    expect(priceCount).toBe(offerCount)
-    expect(src).toMatch(/price:\s*PRICING\./)
+  it("every derived service Offer carries price + priceCurrency + itemOffered", () => {
+    // Offers are derived from the live SERVICE_CATALOG (getServiceOffers). Assert
+    // the shape behaviorally so the Semrush "Offer missing price/priceCurrency"
+    // fix can't regress and the catalog stays in the entity graph.
+    const offers = getServiceOffers("https://instantmed.com.au")
+    // 5 active services: med cert, repeat rx, ED, hair loss, women's health.
+    expect(offers.length).toBeGreaterThanOrEqual(5)
+    for (const offer of offers) {
+      expect(offer.price).toMatch(/^\d+\.\d{2}$/)
+      expect(offer.priceCurrency).toBe("AUD")
+      expect(offer.itemOffered.name.length).toBeGreaterThan(0)
+      expect(offer.itemOffered.description.length).toBeGreaterThan(0)
+    }
+  })
+
+  it("entity graph exposes all 5 live services incl. women's health (2026-06-15 launch)", () => {
+    // Regression guard for the drift this file's refactor fixed: women's health +
+    // the specialty pathways were missing from hasOfferCatalog / availableService,
+    // so answer engines believed InstantMed only did med certs + repeat scripts.
+    const offerNames = getServiceOffers("https://instantmed.com.au").map(
+      (o) => o.itemOffered.name,
+    )
+    const procedureNames = getAvailableServices().map((p) => p.name)
+    for (const name of ["Medical Certificate", "Repeat Prescription", "Erectile Dysfunction", "Hair Loss", "Women's Health"]) {
+      expect(offerNames).toContain(name)
+      expect(procedureNames).toContain(name)
+    }
+    // Weight loss is a gated/coming-soon service — must NOT be advertised as live.
+    expect(offerNames).not.toContain("Weight management")
   })
 
   it("MedicalConditionSchema Drug entities carry a name", () => {
