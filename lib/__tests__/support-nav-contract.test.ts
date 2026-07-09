@@ -124,7 +124,6 @@ describe("support nav contract", () => {
       "app/admin/emails/hub/page.tsx",
       "app/admin/settings/page.tsx",
       "app/admin/patients/page.tsx",
-      "app/admin/finance/page.tsx",
       "app/admin/analytics/page.tsx",
     ].map((file) => readFileSync(join(root, file), "utf8")).join("\n")
 

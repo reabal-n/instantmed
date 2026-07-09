@@ -55,7 +55,7 @@ test.describe("Support Ops Boundary", () => {
     await page.waitForURL(/\/admin\/ops/, { timeout: 30_000 })
     await expect(page.getByRole("heading", { name: "Operations" })).toBeVisible()
 
-    await page.goto(STAFF_TEST_ROUTES.adminFinance)
+    await page.goto(STAFF_TEST_ROUTES.adminAnalytics)
     await page.waitForURL(/\/admin\/ops/, { timeout: 30_000 })
     await expect(page.getByRole("heading", { name: "Operations" })).toBeVisible()
 

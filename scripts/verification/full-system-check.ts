@@ -108,7 +108,6 @@ const ADMIN_ROUTES = [
   { label: "Scripts queue", path: "/dashboard?status=scripts#doctor-queue" },
   { label: "Admin intakes", path: "/admin/intakes" },
   { label: "Admin analytics", path: "/admin/analytics" },
-  { label: "Admin finance", path: "/admin/finance" },
   { label: "Admin patients", path: "/admin/patients" },
   { label: "Admin refunds", path: "/admin/refunds" },
   { label: "Admin ops", path: "/admin/ops" },
