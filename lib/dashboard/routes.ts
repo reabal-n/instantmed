@@ -9,7 +9,6 @@ export const STAFF_SCRIPTS_HREF = "/dashboard?status=scripts#doctor-queue" as co
 export const STAFF_QUEUE_HREF = "/dashboard?status=review#doctor-queue" as const
 export const STAFF_OPS_HREF = "/admin/ops" as const
 export const STAFF_ANALYTICS_HREF = "/admin/analytics" as const
-export const STAFF_FINANCE_HREF = "/admin/finance" as const
 export const STAFF_EMAILS_HREF = "/admin/emails/hub" as const
 export const STAFF_SETTINGS_HREF = "/admin/settings" as const
 export const STAFF_IDENTITY_HREF = "/doctor/settings/identity" as const

@@ -42,6 +42,7 @@ import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/componen
 import { Button } from "@/components/ui/button"
 import {
   ADMIN_PARCHMENT_OPS_HREF,
+  ADMIN_REFUNDS_HREF,
   buildAdminIntakeHref,
   buildStaffEmailHubHref,
   buildStaffLedgerHref,
@@ -585,7 +586,15 @@ export function AnalyticsDashboardClient({
           <div className="space-y-8 border-t border-border/50 px-4 py-5">
             {/* Revenue detail: service mix, payment pressure, recent orders. */}
             <section aria-labelledby="revenue-detail-heading" className="space-y-3">
-              <h3 id="revenue-detail-heading" className="text-sm font-semibold text-foreground">Revenue detail</h3>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h3 id="revenue-detail-heading" className="text-sm font-semibold text-foreground">Revenue detail</h3>
+                <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
+                  <Link href={ADMIN_REFUNDS_HREF}>
+                    Refunds
+                    <ExternalLink className="h-3 w-3" />
+                  </Link>
+                </Button>
+              </div>
               <div className="grid gap-3 xl:grid-cols-2">
                 <DashboardCard padding="md">
                   <div className="mb-3 flex items-center justify-between gap-3">

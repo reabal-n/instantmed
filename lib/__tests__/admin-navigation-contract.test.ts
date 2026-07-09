@@ -28,10 +28,6 @@ const opsParchmentSource = readFileSync(
   join(process.cwd(), "app/admin/ops/parchment/page.tsx"),
   "utf8",
 )
-const financeClientSource = readFileSync(
-  join(process.cwd(), "app/admin/finance/finance-client.tsx"),
-  "utf8",
-)
 const analyticsClientSource = readFileSync(
   join(process.cwd(), "app/admin/analytics/analytics-client.tsx"),
   "utf8",
@@ -364,7 +360,6 @@ describe("admin navigation contract", () => {
       "app/admin/audit/page.tsx",
       "app/admin/emails/suppression/page.tsx",
       "app/admin/features/page.tsx",
-      "app/admin/finance/page.tsx",
       "app/admin/refunds/page.tsx",
       "app/admin/settings/page.tsx",
       "app/admin/settings/encryption/page.tsx",
@@ -458,7 +453,6 @@ describe("admin navigation contract", () => {
         "app/admin/webhook-dlq/page.tsx",
       ],
       money: [
-        "app/admin/finance/page.tsx",
         "app/admin/refunds/page.tsx",
       ],
       emailDelivery: [
@@ -507,21 +501,9 @@ describe("admin navigation contract", () => {
     expect(analyticsClientSource).not.toContain("ResponsiveContainer")
     expect(analyticsPageSource).not.toContain("dailyData")
     expect(analyticsPageSource).not.toContain("getDoctorDashboardStats")
-    expect(financeClientSource).toContain("href={STAFF_ANALYTICS_HREF}")
-    expect(financeClientSource).not.toContain("ADMIN_ANALYTICS_HREF")
-    expect(financeClientSource).not.toContain("?tab=revenue")
-  })
-
-  it("keeps payment pressure labels explicit about checkout recovery", () => {
-    const paymentPressureBlock = navSourceBlock(
-      financeClientSource,
-      "Payment pressure",
-      "Service mix",
-    )
-
-    expect(paymentPressureBlock).toContain('label="Failed checkout"')
-    expect(paymentPressureBlock).toContain("Failed checkout</Link>")
-    expect(paymentPressureBlock).not.toContain('label="Failed"')
+    // Payments folded in: keep the explicit payment-pressure label + refund access.
+    expect(analyticsClientSource).toContain("Failed checkout")
+    expect(analyticsClientSource).toContain("ADMIN_REFUNDS_HREF")
   })
 
   it("keeps audit history as an ops-owned evidence surface, not a dashboard mode", () => {
@@ -574,7 +556,7 @@ describe("admin navigation contract", () => {
     expect(nextConfigSource).toContain('source: "/admin/emails/outbox"')
     expect(nextConfigSource).toContain('destination: "/admin/emails/hub?tab=queue"')
     expect(nextConfigSource).toContain('source: "/admin/finance/revenue"')
-    expect(nextConfigSource).toContain('destination: "/admin/finance"')
+    expect(nextConfigSource).toContain('source: "/admin/finance"')
     expect(nextConfigSource).toContain('source: "/admin/doctors/performance"')
     expect(nextConfigSource).toContain('source: "/admin/business-kpi"')
     expect(nextConfigSource).toContain('destination: "/admin/analytics"')
@@ -584,7 +566,6 @@ describe("admin navigation contract", () => {
     expect(opsParchmentSource).toContain("function isUuid")
     expect(opsParchmentSource).toContain("PatientLink patientProfileId={event.patientProfileId}")
     expect(opsParchmentSource).toContain("PatientLink patientProfileId={failure.patientProfileId}")
-    expect(financeClientSource).toContain("ADMIN_REFUNDS_HREF")
   })
 
   it("keeps payment webhook recovery copy separate from Parchment recovery copy", () => {

@@ -110,7 +110,7 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 | Review paid clinical work | `/dashboard?status=review#doctor-queue` | `/admin/intakes` Ledger for search/source records |
 | Write or reconcile scripts | `/dashboard?status=scripts#doctor-queue` | `/admin/ops/parchment` for vendor recovery |
 | Patient lookup and duplicate review | `/admin/patients` | `/doctor/patients/[id]`, `/admin/ops/patient-merge-audit` |
-| Payment and webhook recovery | `/admin/finance`, `/admin/refunds` | `/admin/intakes` Ledger for failed-payment/refund lookup, `/admin/webhook-dlq` for Stripe replay |
+| Payment and webhook recovery | `/admin/analytics`, `/admin/refunds` | `/admin/intakes` Ledger for failed-payment/refund lookup, `/admin/webhook-dlq` for Stripe replay |
 | Email delivery recovery | `/admin/emails/hub` | Compact controls link to `/admin/emails/templates` and `/admin/emails/suppression` |
 | Revenue and conversion review | `/admin/analytics` | PostHog for deeper product analysis |
 | Platform setup | `/admin/settings` | `/admin/features`, `/doctor/settings/identity`, `/admin/settings/templates` |

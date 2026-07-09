@@ -77,7 +77,6 @@ describe("retired design-system shims", () => {
 
     for (const adminPath of [
       "app/admin/analytics/analytics-client.tsx",
-      "app/admin/finance/finance-client.tsx",
       "app/admin/ops/ops-client.tsx",
       "app/admin/ops/patient-merge-audit/page.tsx",
       "app/admin/ops/prescribing-identity/page.tsx",

@@ -324,7 +324,7 @@ const nextConfig = {
       },
       {
         source: "/admin/finance/revenue",
-        destination: "/admin/finance",
+        destination: "/admin/analytics",
         permanent: true
       },
       {

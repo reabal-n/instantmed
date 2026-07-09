@@ -62,39 +62,6 @@ test.describe("Admin - Analytics Dashboard", () => {
   })
 })
 
-test.describe("Admin - Finance Dashboard", () => {
-  test.beforeEach(async ({ page }) => {
-    const result = await loginAsOperator(page)
-    expect(result.success, `Login failed: ${result.error}`).toBe(true)
-  })
-
-  test.afterEach(async ({ page }) => {
-    await logoutTestUser(page)
-  })
-
-  test("finance page loads", async ({ page }) => {
-    await page.goto(STAFF_TEST_ROUTES.adminFinance)
-    await waitForPageLoad(page)
-
-    await expect(
-      page.getByRole("heading", { name: /finance|revenue|billing/i })
-    ).toBeVisible({ timeout: 15000 })
-  })
-
-  test("finance page shows revenue metrics", async ({ page }) => {
-    await page.goto(STAFF_TEST_ROUTES.adminFinance)
-    await waitForPageLoad(page)
-
-    // Should display revenue-related content
-    const hasRevenue = await page
-      .getByText(/revenue|income|total|\$/i)
-      .first()
-      .isVisible({ timeout: 10000 })
-      .catch(() => false)
-    expect(hasRevenue).toBe(true)
-  })
-})
-
 test.describe("Admin - Email Management", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsOperator(page)

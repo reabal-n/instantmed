@@ -23,7 +23,6 @@ const ADMIN_PAGES = [
   STAFF_TEST_ROUTES.adminServices,
   STAFF_TEST_ROUTES.adminFeatures,
   STAFF_TEST_ROUTES.adminAnalytics,
-  STAFF_TEST_ROUTES.adminFinance,
   STAFF_TEST_ROUTES.adminOps,
   STAFF_TEST_ROUTES.adminAudit,
   STAFF_TEST_ROUTES.adminRefunds,
