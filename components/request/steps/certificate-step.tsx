@@ -48,6 +48,26 @@ type Duration = 1 | 2 | 3
 
 const DURATION_OPTIONS: Duration[] = [1, 2, 3]
 
+function isCertType(value: unknown): value is CertType {
+  return value === "work" || value === "study" || value === "carer"
+}
+
+export function resolveHydratedCertificateTypeDefault(
+  currentCertType: unknown,
+  smartDefaultCertType: unknown,
+  hasRestoredDraft = false,
+): CertType | null {
+  if (typeof currentCertType === "string" && currentCertType.length > 0) return null
+  if (hasRestoredDraft) return null
+  if (isCertType(smartDefaultCertType)) return smartDefaultCertType
+  return "work"
+}
+
+function hasValidUrlCertTypePrefill(): boolean {
+  if (typeof window === "undefined") return false
+  return isCertType(new URLSearchParams(window.location.search).get("certType"))
+}
+
 function parseDuration(value: unknown): Duration | null {
   const numericValue = typeof value === "number" ? value : Number(value)
   if (DURATION_OPTIONS.includes(numericValue as Duration)) {
@@ -135,12 +155,13 @@ function summaryLabel(offset: number): string {
 
 // ─── Component ────────────────────────────────────────────────────────────
 
-export default function CertificateStep({ onNext, initialDuration, hideIntro = false }: CertificateStepProps) {
+export default function CertificateStep({ serviceType, onNext, initialDuration, hideIntro = false }: CertificateStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
   const initialUrlDurationRef = useRef<Duration | null>(parseDuration(initialDuration))
   const urlDurationAppliedRef = useRef(false)
   const storedDurationAppliedRef = useRef(false)
+  const certTypeHydrationDefaultAppliedRef = useRef(false)
   const userSelectedTypeRef = useRef(false)
   const prefillReportedRef = useRef(false)
 
@@ -178,7 +199,7 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
   // Price-specific CTA params still win the initial handoff over a saved
   // draft, and now correctly survive hydration landing after them.
   useEffect(() => {
-    const applyInitialDurationAndEnableSync = () => {
+    const applyInitialDurationAndCertificateTypeDefaults = () => {
       const urlDuration = initialUrlDurationRef.current
       if (urlDuration && !urlDurationAppliedRef.current) {
         urlDurationAppliedRef.current = true
@@ -191,15 +212,36 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
           setSelectedDays(storedDuration)
         }
       }
+
+      if (
+        serviceType === "med-cert" &&
+        !certTypeHydrationDefaultAppliedRef.current &&
+        !hasValidUrlCertTypePrefill()
+      ) {
+        const hydratedState = useRequestStore.getState()
+        const hydratedCertType = hydratedState.answers.certType
+        const defaults = getSmartDefaults("certificate")
+        const certTypeDefault = resolveHydratedCertificateTypeDefault(
+          hydratedCertType,
+          defaults.certType,
+          Boolean(hydratedState.lastSavedAt),
+        )
+
+        if (certTypeDefault) {
+          certTypeHydrationDefaultAppliedRef.current = true
+          setAnswer("certType", certTypeDefault)
+        }
+      }
+
       setCanSyncSelection(true)
     }
 
     if (useRequestStore.persist.hasHydrated()) {
-      applyInitialDurationAndEnableSync()
+      applyInitialDurationAndCertificateTypeDefaults()
       return
     }
-    return useRequestStore.persist.onFinishHydration(applyInitialDurationAndEnableSync)
-  }, [setAnswer])
+    return useRequestStore.persist.onFinishHydration(applyInitialDurationAndCertificateTypeDefaults)
+  }, [serviceType, setAnswer])
 
   useEffect(() => {
     if (answers.startDate) {
@@ -209,14 +251,6 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
       }
     }
   }, [answers.startDate])
-
-  // Load smart defaults for certType
-  useEffect(() => {
-    const defaults = getSmartDefaults("certificate")
-    if (defaults.certType && !answers.certType) {
-      setAnswer("certType", defaults.certType as string)
-    }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Measure the prefill: when the cert type arrives pre-selected (intent-page
   // URL handoff or saved prefs) the user didn't pick it cold. Latch only once

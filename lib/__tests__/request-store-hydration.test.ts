@@ -34,6 +34,14 @@ import { useRequestStore } from "@/components/request/store"
 describe("request store draft hydration", () => {
   beforeEach(() => {
     mockStore = {}
+    useRequestStore.setState(useRequestStore.getInitialState(), true)
+  })
+
+  it("marks hydration complete when there is no persisted draft", async () => {
+    await useRequestStore.persist.rehydrate()
+
+    expect(useRequestStore.persist.hasHydrated()).toBe(true)
+    expect(useRequestStore.getState().answers).toEqual({})
   })
 
   it("hydrates the draft that the legacy-key migration just moved", async () => {

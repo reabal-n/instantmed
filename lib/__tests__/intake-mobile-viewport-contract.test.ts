@@ -209,6 +209,15 @@ describe("intake mobile viewport contract", () => {
     }
   })
 
+  it("keeps the med-cert first step ready after hydrated defaults apply", () => {
+    const source = readProjectFile("components/request/steps/certificate-step.tsx")
+    expect(source).toContain("resolveHydratedCertificateTypeDefault(")
+    expect(source).toContain('return "work"')
+    expect(source).toContain('data-intake-primary-ready={canContinue ? "true" : "false"}')
+    expect(source).toContain('variant={canContinue ? "default" : "secondary"}')
+    expect(source).not.toContain("opacity-60")
+  })
+
   it("keeps ED goal selection as a balanced four-option grid", () => {
     const source = readProjectFile("components/request/steps/ed-goals-step.tsx")
     const goalOptionsMatch = source.match(/const GOAL_OPTIONS = \[([\s\S]*?)\] as const/)

@@ -756,7 +756,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
       // We call useRequestStore.persist.rehydrate() in a useEffect instead.
       skipHydration: true,
       merge: (persistedState, currentState) => {
-        const persisted = persistedState as Partial<RequestState>
+        const persisted = (persistedState ?? {}) as Partial<RequestState>
         if (shouldKeepCurrentStateDuringHydration(persisted, currentState)) {
           return currentState
         }
