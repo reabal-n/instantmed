@@ -2,6 +2,7 @@ import { CONTACT_EMAIL_HELLO, CONTACT_PHONE,PRICING_DISPLAY } from "@/lib/consta
 
 import { JsonLdScript } from "./json-ld-script"
 import { SAME_AS_PROFILES } from "./same-as"
+import { getAvailableServices } from "./service-offerings"
 
 interface MedicalBusinessSchemaProps {
   baseUrl?: string
@@ -43,23 +44,10 @@ export function MedicalBusinessSchema({ baseUrl = "https://instantmed.com.au" }:
       }
     ],
     medicalSpecialty: ["PrimaryCare"],
-    availableService: [
-      {
-        "@type": "MedicalProcedure",
-        name: "Medical Certificate",
-        description: "Online medical certificates reviewed by Australian-registered doctors"
-      },
-      {
-        "@type": "MedicalProcedure",
-        name: "Repeat Prescription",
-        description: "Online prescription renewals for stable medications"
-      },
-      {
-        "@type": "MedicalProcedure",
-        name: "Specialty Consultations",
-        description: "Structured doctor-reviewed pathways for eligible ED and hair loss requests"
-      }
-    ],
+    // Derived from the live SERVICE_CATALOG via getAvailableServices so this
+    // node and OrganizationSchema.hasOfferCatalog describe the same 5 active
+    // services (women's health included) under the shared /#organization entity.
+    availableService: getAvailableServices(),
     areaServed: {
       "@type": "Country",
       name: "Australia"
