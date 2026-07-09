@@ -47,6 +47,28 @@ describe("intake funnel summary", () => {
     ])
   })
 
+  it("uses purchase_completed_server as the only paid-stage purchase event", () => {
+    const summary = buildIntakeFunnelSummary({
+      dateFrom: "2026-06-01T00:00:00.000Z",
+      dateTo: "2026-06-15T00:00:00.000Z",
+      days: 14,
+      rows: [
+        { event: "intake_started", count: 10 },
+        { event: "checkout_viewed", count: 8 },
+        { event: "purchase_completed", count: 7 },
+        { event: "purchase_completed_server", count: 5 },
+      ],
+    })
+
+    expect(INTAKE_FUNNEL_EVENT_NAMES).toContain("purchase_completed_server")
+    expect(INTAKE_FUNNEL_EVENT_NAMES).not.toContain("purchase_completed")
+    expect(summary.totals.paid).toBe(5)
+    expect(summary.stages.find((stage) => stage.key === "paid")).toMatchObject({
+      count: 5,
+      event: "purchase_completed_server",
+    })
+  })
+
   it("builds sorted step friction rows without patient-entered values", () => {
     const summary = buildIntakeFunnelSummary({
       dateFrom: "2026-06-01T00:00:00.000Z",

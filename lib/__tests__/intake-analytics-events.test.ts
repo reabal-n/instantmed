@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import { describe, expect, it } from "vitest"
 
 import {
@@ -9,12 +12,19 @@ import {
   INTAKE_ANALYTICS_EVENTS,
 } from "@/lib/analytics/intake-events"
 
+const root = process.cwd()
+
+function readProjectFile(path: string) {
+  return readFileSync(join(root, path), "utf8")
+}
+
 describe("intake analytics events", () => {
   it("keeps funnel event names canonical for existing PostHog dashboards", () => {
     expect(INTAKE_ANALYTICS_EVENTS.started).toBe("intake_started")
     expect(INTAKE_ANALYTICS_EVENTS.stepViewed).toBe("step_viewed")
     expect(INTAKE_ANALYTICS_EVENTS.stepCompleted).toBe("step_completed")
     expect(INTAKE_ANALYTICS_EVENTS.checkoutViewed).toBe("checkout_viewed")
+    expect(INTAKE_ANALYTICS_EVENTS.validationBlocked).toBe("intake_validation_blocked")
   })
 
   it("builds step view and completion payloads without patient-entered values", () => {
@@ -177,5 +187,26 @@ describe("intake analytics events", () => {
       blocker_count: 2,
       blockers: ["nitrate use", "GP clearance"],
     })
+  })
+
+  it("keeps intake validation blocked wired to med-cert and women's-health blocker summaries", () => {
+    const certificateSource = readProjectFile("components/request/steps/certificate-step.tsx")
+    const symptomsSource = readProjectFile("components/request/steps/symptoms-step.tsx")
+    const womensTypeSource = readProjectFile("components/request/steps/womens-health-type-step.tsx")
+    const womensAssessmentSource = readProjectFile("components/request/steps/womens-health-assessment-step.tsx")
+
+    expect(certificateSource).toContain("buildIntakeValidationBlockedProperties")
+    expect(certificateSource).toContain("INTAKE_ANALYTICS_EVENTS.validationBlocked")
+    expect(certificateSource).toContain('stepId: "certificate"')
+
+    expect(symptomsSource).toContain("buildIntakeValidationBlockedProperties")
+    expect(symptomsSource).toContain("INTAKE_ANALYTICS_EVENTS.validationBlocked")
+    expect(symptomsSource).toContain('stepId: "symptoms"')
+
+    expect(womensTypeSource).toContain('stepId: "womens-health-type"')
+    expect(womensTypeSource).toContain("subtype: answers.consultSubtype")
+
+    expect(womensAssessmentSource.match(/stepId: "womens-health-assessment"/g)).toHaveLength(2)
+    expect(womensAssessmentSource.match(/subtype: answers\.consultSubtype/g)).toHaveLength(2)
   })
 })

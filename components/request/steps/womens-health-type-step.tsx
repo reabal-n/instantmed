@@ -7,6 +7,7 @@ import { useCallback } from "react"
 import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
@@ -43,16 +44,18 @@ const WOMENS_HEALTH_OPTIONS = [
   },
 ] as const
 
-export default function WomensHealthTypeStep({ onNext }: WomensHealthTypeStepProps) {
+export default function WomensHealthTypeStep({ serviceType, onNext }: WomensHealthTypeStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const posthog = usePostHog()
 
   const womensHealthOption = answers.womensHealthOption as string | undefined
   const hasSelection = Boolean(womensHealthOption)
   const { validationSummary, showBlockingReasons } = useStepValidationSummary(
     hasSelection,
     useCallback(() => ["what you need today"], []),
+    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "womens-health-type" },
   )
 
   const handleSelect = (value: string) => {

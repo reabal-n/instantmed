@@ -13,6 +13,11 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  buildIntakeValidationBlockedProperties,
+  captureIntakeEvent,
+  INTAKE_ANALYTICS_EVENTS,
+} from "@/lib/analytics/intake-events"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { checkHighStakesUseCase, type HighStakesCheck } from "@/lib/clinical/intake-validation"
 import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
@@ -144,9 +149,21 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
 
     setErrors(newErrors)
     setTouched({ symptomDetails: true, symptomDuration: true })
-    setValidationSummary(buildBlockingReasons())
+    const blockers = buildBlockingReasons()
+    setValidationSummary(blockers)
+    if (blockers.length > 0) {
+      captureIntakeEvent(
+        posthog,
+        INTAKE_ANALYTICS_EVENTS.validationBlocked,
+        buildIntakeValidationBlockedProperties({
+          serviceType,
+          stepId: "symptoms",
+          blockers,
+        }),
+      )
+    }
     return Object.keys(newErrors).length === 0 && !emergencyRequiresAck && !highStakesRequiresAck
-  }, [symptomDetails, symptomDuration, emergencyRequiresAck, highStakesRequiresAck, buildBlockingReasons])
+  }, [symptomDetails, symptomDuration, emergencyRequiresAck, highStakesRequiresAck, buildBlockingReasons, posthog, serviceType])
 
   // Tap a starter to seed/clear the textarea. Source of truth stays the textarea
   // so downstream validation, AI notes, and the doctor view are unchanged.

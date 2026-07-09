@@ -155,7 +155,9 @@ describe("cert-step revenue contract", () => {
       const primaryActionSource = primaryActionMatch![0]
 
       expect(certStepSource).toContain("<StepBlockedSummary reasons={blockedReasons} />")
-      expect(certStepSource).toContain("setBlockedReasons(Object.values(newErrors))")
+      expect(certStepSource).toContain("const blockers = Object.values(newErrors)")
+      expect(certStepSource).toContain("setBlockedReasons(blockers)")
+      expect(certStepSource).toContain("buildIntakeValidationBlockedProperties")
       expect(primaryActionSource).toContain("onClick={handleNext}")
       expect(primaryActionSource).not.toMatch(/disabled=\{!canContinue\}/)
       expect(primaryActionSource).not.toMatch(/disabled=\{!certType\}/)
