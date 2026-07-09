@@ -79,16 +79,16 @@ export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
 
   return (
     <div className="space-y-4">
-      <ToggleList
-        items={[{ key: "edAgeConfirmed", label: "I confirm I am 18 years or older" }]}
-        values={{ edAgeConfirmed }}
-        onChange={(_, checked) => setAnswer("edAgeConfirmed", checked)}
-      />
-
       {/* Header */}
       <IntakeStepIntro
         title="What matters most right now?"
         description="Discreet answers help the doctor choose a safe approach."
+      />
+
+      <ToggleList
+        items={[{ key: "edAgeConfirmed", label: "I confirm I am 18 years or older" }]}
+        values={{ edAgeConfirmed }}
+        onChange={(_, checked) => setAnswer("edAgeConfirmed", checked)}
       />
 
       {/* Goal selection - chip grid */}

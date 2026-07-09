@@ -239,6 +239,19 @@ describe("intake mobile viewport contract", () => {
     expect(source).not.toContain("Maintain what I have")
   })
 
+  it("keeps the ED age confirmation below the step intro", () => {
+    const source = readProjectFile("components/request/steps/ed-goals-step.tsx")
+    const introIndex = source.indexOf("<IntakeStepIntro")
+    const ageGateIndex = source.indexOf("<ToggleList")
+    const goalPromptIndex = source.indexOf('<QuestionPrompt label="What\'s your main goal?" required />')
+
+    expect(source).toContain('key: "edAgeConfirmed"')
+    expect(source).toContain("your age confirmation")
+    expect(introIndex).toBeGreaterThan(-1)
+    expect(ageGateIndex).toBeGreaterThan(introIndex)
+    expect(goalPromptIndex).toBeGreaterThan(ageGateIndex)
+  })
+
   it("keeps hair-loss onset selection as a balanced four-option grid", () => {
     const source = readProjectFile("components/request/steps/hair-loss-goals-step.tsx")
     const onsetOptionsMatch = source.match(/const ONSET_OPTIONS = \[([\s\S]*?)\] as const/)
