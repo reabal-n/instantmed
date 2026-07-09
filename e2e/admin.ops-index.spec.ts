@@ -70,7 +70,10 @@ test.describe("Ops Index Page", () => {
 
     const sidebar = page.getByRole("complementary", { name: "Staff sidebar" })
     await expect(sidebar).toBeVisible({ timeout: 10000 })
-    await expect(sidebar.getByRole("link", { name: /Analytics/i })).toBeVisible()
+    await expect(sidebar.getByRole("link", { name: "Overview" })).toHaveAttribute(
+      "href",
+      "/admin/analytics",
+    )
     await expect(sidebar.getByRole("link", { name: "Ops" })).toBeVisible()
     await expect(sidebar.getByRole("link", { name: "Ops" })).toHaveAttribute("href", "/admin/ops")
   })
