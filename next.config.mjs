@@ -269,6 +269,14 @@ const nextConfig = {
         destination: "/admin/emails/hub",
         permanent: true
       },
+      // Payments folded into the consolidated Overview (revenue windows, service
+      // mix, and payment pressure now render there). Non-permanent in case a
+      // standalone finance surface is revived.
+      {
+        source: "/admin/finance",
+        destination: "/admin/analytics",
+        permanent: false
+      },
       {
         source: "/admin/emails",
         destination: "/admin/emails/hub",

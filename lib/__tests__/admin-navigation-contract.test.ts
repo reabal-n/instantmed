@@ -157,7 +157,7 @@ describe("admin navigation contract", () => {
     )
     const labels = navLabels(operatorNavSource)
 
-    expect(labels.filter((label) => label === "Analytics")).toHaveLength(1)
+    expect(labels.filter((label) => label === "Overview")).toHaveLength(1)
     expect(sidebarSource).not.toContain("emailNavItems")
     expect(sidebarSource).not.toContain("analyticsNavItems")
     expect(sidebarSource).not.toContain("systemNavItems")
@@ -167,8 +167,7 @@ describe("admin navigation contract", () => {
       "Review",
       "Scripts",
       "Patients",
-      "Analytics",
-      "Payments",
+      "Overview",
       "Ops",
       "Setup",
     ])
@@ -494,10 +493,10 @@ describe("admin navigation contract", () => {
 
   it("keeps analytics as a compact operator summary instead of a chart workspace", () => {
     expect(analyticsClientSource).toContain("Revenue")
-    expect(analyticsClientSource).toContain("Acquisition attribution")
+    expect(analyticsClientSource).toContain("Where patients came from")
     expect(analyticsClientSource).toContain("Conversion")
     expect(analyticsClientSource).toContain("Queue health")
-    expect(analyticsClientSource).toContain("Deeper product analysis stays in PostHog")
+    expect(analyticsClientSource).toContain("at a glance")
     expect(analyticsClientSource).not.toContain("Visits")
     expect(analyticsClientSource).not.toContain("Paid intakes")
     expect(analyticsClientSource).not.toContain("Approval rate")

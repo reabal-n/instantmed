@@ -13,7 +13,7 @@ import { getBusinessOperatingScorecard } from "@/lib/data/business-scorecard"
 import { getIntakeMonitoringStats } from "@/lib/data/intakes"
 import { getRecoveryScorecard } from "@/lib/data/recovery-scorecard"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
-import { getRevenueWindowBounds } from "@/lib/data/revenue-dashboard"
+import { getRevenueDashboard } from "@/lib/data/revenue-dashboard"
 import {
   EMPTY_PRESCRIPTION_FULFILMENT_DASHBOARD,
   getPrescriptionFulfilmentDashboard,
@@ -30,152 +30,121 @@ export default async function AnalyticsDashboardPage() {
   const supabase = createServiceRoleClient()
 
   const now = new Date()
-  // Canonical revenue windows shared with the Payments dashboard + operating
-  // scorecard: Australia/Sydney day boundaries, rolling 30d, last-7-Sydney-days.
-  // The old new Date(y,m,d) anchored to UTC midnight, so a 7:42am-AEST order
-  // counted as "yesterday" and TODAY read $0 while Payments showed the real
-  // total. Sharing one helper is what stops the pages disagreeing.
-  const { todayStart, last7DaysStart, last30DaysStart } = getRevenueWindowBounds(now)
+  const last30DaysStartMs = now.getTime() - 30 * 24 * 60 * 60 * 1000
+  const last30DaysStart = new Date(last30DaysStartMs)
 
-  // Fetch only the operator analytics that are worth keeping: revenue,
-  // conversion, and queue health. Anything deeper belongs in PostHog or ops.
+  // Fetch only the operator analytics worth keeping on one screen: revenue truth,
+  // conversion, acquisition, and queue health. `getRevenueDashboard()` owns the
+  // canonical Australia/Sydney revenue windows, daily trend, service mix, and
+  // payment pressure (this is what the standalone Payments page used to render).
   const results = await Promise.allSettled([
-    // [0] Started intakes (created)
+    // [0] Started intakes (created, 30d)
     filterReportableIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
       .gte("created_at", last30DaysStart.toISOString())),
 
-    // [1] Paid intakes
+    // [1] Paid intakes (30d)
     filterReportableIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
       .gte("created_at", last30DaysStart.toISOString())
       .not("paid_at", "is", null)),
 
-    // [2] Completed intakes
+    // [2] Completed intakes (approved, 30d)
     filterReportableIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
       .gte("created_at", last30DaysStart.toISOString())
       .eq("status", "approved")),
 
-    // [3] Revenue data - paid intakes with amount
-    filterReportableIntakes(supabase
-      .from("intakes")
-      .select("amount_cents, paid_at, created_at")
-      .not("paid_at", "is", null)
-      .gte("paid_at", last30DaysStart.toISOString())),
-
-    // [4] Monitoring stats (queue health, avg review time)
+    // [3] Monitoring stats (queue health, avg review time)
     getIntakeMonitoringStats(),
 
-    // [5] This week's paid intakes for weekly revenue
-    filterReportableIntakes(supabase
-      .from("intakes")
-      .select("amount_cents")
-      .not("paid_at", "is", null)
-      .gte("paid_at", last7DaysStart.toISOString())),
-
-    // [6] Today's paid intakes for daily revenue
-    filterReportableIntakes(supabase
-      .from("intakes")
-      .select("amount_cents")
-      .not("paid_at", "is", null)
-      .gte("paid_at", todayStart.toISOString())),
-
-    // [7] Google Ads upload health
+    // [4] Google Ads upload health
     getGoogleAdsHealth(supabase),
 
-    // [8] Prescription fulfilment handoff state
+    // [5] Prescription fulfilment handoff state
     getPrescriptionFulfilmentDashboard(supabase),
 
-    // [9] Patients by state (30d window, top 5 + unknown)
+    // [6] Patients by state (30d window, top 5 + unknown)
     getGeographicBreakdown(),
 
-    // [10] Operating scorecard: revenue, capacity, support load, and hire triggers
+    // [7] Operating scorecard: revenue, capacity, support load, and hire triggers
     getBusinessOperatingScorecard(supabase, now),
 
-    // [11] Google Ads profit truth: spend joined to local paid-order revenue
+    // [8] Google Ads profit truth: spend joined to local paid-order revenue
     getGoogleAdsSpendAuditReport({ days: 30, now, supabase }),
 
-    // [12] Recovery funnel: partial intakes, recovery sends, and recovered revenue
+    // [9] Recovery funnel: partial intakes, recovery sends, and recovered revenue
     getRecoveryScorecard(supabase, now, 30),
 
-    // [13] PostHog product funnel: aggregate-only step friction and drop-off
+    // [10] PostHog product funnel: aggregate-only step friction and drop-off
     getPostHogIntakeFunnelSnapshot({ days: 30, now }),
 
-    // [14] Self-reported acquisition source, kept here so ops stays recovery-only
+    // [11] Self-reported acquisition source
     getHeardAboutUsBreakdown(supabase, { days: 30 }),
 
-    // [15] Persisted AI-assistant UTM source attribution
+    // [12] Persisted AI-assistant UTM source attribution
     getAiAttributionBreakdown(supabase, { weeks: 8 }),
+
+    // [13] Canonical revenue dashboard (windows, daily trend, service mix, pressure)
+    getRevenueDashboard(),
   ])
 
-  // Extract results with safe fallbacks
   const startedIntakesResult = results[0].status === "fulfilled" ? results[0].value : { count: 0 }
   const paidIntakesResult = results[1].status === "fulfilled" ? results[1].value : { count: 0 }
   const completedIntakesResult = results[2].status === "fulfilled" ? results[2].value : { count: 0 }
-  const revenueResult = results[3].status === "fulfilled" ? results[3].value : { data: [] }
-  const monitoringStats = results[4].status === "fulfilled" ? results[4].value : {
+  const monitoringStats = results[3].status === "fulfilled" ? results[3].value : {
     queueSize: 0,
     avgReviewTimeMinutes: null,
     oldestInQueueMinutes: null,
   }
-  const weekRevenueResult = results[5].status === "fulfilled" ? results[5].value : { data: [] }
-  const todayRevenueResult = results[6].status === "fulfilled" ? results[6].value : { data: [] }
-  const googleAds = results[7].status === "fulfilled" ? results[7].value : EMPTY_GOOGLE_ADS_HEALTH
-  const prescriptionFulfilment = results[8].status === "fulfilled"
-    ? results[8].value
+  const googleAds = results[4].status === "fulfilled" ? results[4].value : EMPTY_GOOGLE_ADS_HEALTH
+  const prescriptionFulfilment = results[5].status === "fulfilled"
+    ? results[5].value
     : EMPTY_PRESCRIPTION_FULFILMENT_DASHBOARD
-  const geographic = results[9].status === "fulfilled"
-    ? results[9].value
+  const geographic = results[6].status === "fulfilled"
+    ? results[6].value
     : { windowDays: 30, totalPatients: 0, topStates: [], unknownCount: 0 }
-  const businessScorecard = results[10].status === "fulfilled"
+  const businessScorecard = results[7].status === "fulfilled"
+    ? results[7].value
+    : null
+  const googleAdsProfit = results[8].status === "fulfilled"
+    ? buildGoogleAdsProfitSnapshot(results[8].value)
+    : null
+  const recoveryScorecard = results[9].status === "fulfilled"
+    ? results[9].value
+    : null
+  const intakeFunnel = results[10].status === "fulfilled"
     ? results[10].value
-    : null
-  const googleAdsProfit = results[11].status === "fulfilled"
-    ? buildGoogleAdsProfitSnapshot(results[11].value)
-    : null
-  const recoveryScorecard = results[12].status === "fulfilled"
-    ? results[12].value
-    : null
-  const intakeFunnel = results[13].status === "fulfilled"
-    ? results[13].value
     : buildSkippedPostHogIntakeFunnelSnapshot({
       days: 30,
       now,
       reason: "PostHog funnel query failed before returning a snapshot.",
     })
-  const heardAboutUs = results[14].status === "fulfilled"
-    ? results[14].value
+  const heardAboutUs = results[11].status === "fulfilled"
+    ? results[11].value
     : { answered: 0, paidTotal: 0, rows: [] }
-  const aiAttribution = results[15].status === "fulfilled"
-    ? results[15].value
+  const aiAttribution = results[12].status === "fulfilled"
+    ? results[12].value
     : { weeks: 8, totalAiOrders: 0, paidTotal: 0, bySource: [], weekly: [] }
-
-  // Calculate revenue totals
-  const monthRevenue = (revenueResult.data || []).reduce(
-    (sum: number, r: { amount_cents?: number | string | null }) => sum + (Number(r.amount_cents) || 0), 0
-  )
-  const weekRevenue = (weekRevenueResult.data || []).reduce(
-    (sum: number, r: { amount_cents?: number | string | null }) => sum + (Number(r.amount_cents) || 0), 0
-  )
-  const todayRevenue = (todayRevenueResult.data || []).reduce(
-    (sum: number, r: { amount_cents?: number | string | null }) => sum + (Number(r.amount_cents) || 0), 0
-  )
+  // The revenue dashboard is the single source of payment truth and already fails
+  // soft internally, so a rejected promise here is effectively impossible; if it
+  // ever happens, the route-level error.tsx is the right surface.
+  const revenueDashboard = results[13].status === "fulfilled" ? results[13].value : null
+  if (!revenueDashboard) {
+    throw new Error("Revenue dashboard unavailable")
+  }
 
   const analytics = {
+    generatedAt: revenueDashboard.generatedAt,
     funnel: {
       started: startedIntakesResult.count || 0,
       paid: paidIntakesResult.count || 0,
       completed: completedIntakesResult.count || 0,
     },
-    revenue: {
-      today: todayRevenue,
-      thisWeek: weekRevenue,
-      thisMonth: monthRevenue,
-    },
+    revenue: revenueDashboard,
     queueHealth: {
       queueSize: monitoringStats.queueSize,
       avgReviewTimeMinutes: monitoringStats.avgReviewTimeMinutes,
