@@ -76,11 +76,18 @@ test.describe("Production request-flow synthetic", () => {
     await expectNoRequestCrash(page)
   })
 
-  test("med-cert mobile Continue explains missing certificate type instead of dead-ending", async ({ page }) => {
+  test("med-cert mobile Continue starts ready after the Work default applies", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await openRequest(page, "/request?service=med-cert")
 
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
+
+    const certTypeGroup = page.getByRole("radiogroup", { name: /Certificate type/i })
+    await expect(certTypeGroup.getByRole("radio", { name: /^Work$/i })).toHaveAttribute(
+      "aria-checked",
+      "true",
+      { timeout: 5000 },
+    )
 
     const mobileAction = page
       .locator('[data-intake-mobile-action-bar="true"]')
@@ -88,14 +95,11 @@ test.describe("Production request-flow synthetic", () => {
 
     await expect(mobileAction).toBeVisible({ timeout: 5000 })
     await expect(mobileAction).toBeEnabled({ timeout: 5000 })
-    await expect(mobileAction).toHaveAttribute("data-intake-mobile-action-ready", "false")
+    await expect(mobileAction).toHaveAttribute("data-intake-mobile-action-ready", "true")
 
     await mobileAction.click()
 
-    await expect(
-      page.locator('div[role="alert"]').filter({ hasText: "Please select certificate type" }),
-    ).toBeVisible({ timeout: 5000 })
-    await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible()
+    await expect(page.getByText(/What is stopping you today|What is happening/i).first()).toBeVisible({ timeout: 15000 })
     await expectNoRequestCrash(page)
   })
 

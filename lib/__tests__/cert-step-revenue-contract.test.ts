@@ -36,7 +36,10 @@ import { readFileSync } from "fs"
 import { join } from "path"
 import { describe, expect, it } from "vitest"
 
-import { getCertChipRangeState } from "@/components/request/steps/certificate-step"
+import {
+  getCertChipRangeState,
+  resolveHydratedCertificateTypeDefault,
+} from "@/components/request/steps/certificate-step"
 
 const certStepSource = readFileSync(
   join(process.cwd(), "components/request/steps/certificate-step.tsx"),
@@ -156,6 +159,20 @@ describe("cert-step revenue contract", () => {
       expect(primaryActionSource).toContain("onClick={handleNext}")
       expect(primaryActionSource).not.toMatch(/disabled=\{!canContinue\}/)
       expect(primaryActionSource).not.toMatch(/disabled=\{!certType\}/)
+    })
+
+    it("defaults a fresh hydrated certificate step to Work so the CTA starts ready", () => {
+      expect(resolveHydratedCertificateTypeDefault(undefined, undefined)).toBe("work")
+      expect(resolveHydratedCertificateTypeDefault("", undefined)).toBe("work")
+    })
+
+    it("does not override restored, URL-prefilled, or preferred certificate types", () => {
+      expect(resolveHydratedCertificateTypeDefault("study", undefined)).toBeNull()
+      expect(resolveHydratedCertificateTypeDefault("carer", "work")).toBeNull()
+      expect(resolveHydratedCertificateTypeDefault(undefined, "study")).toBe("study")
+      expect(resolveHydratedCertificateTypeDefault(undefined, "carer")).toBe("carer")
+      expect(resolveHydratedCertificateTypeDefault(undefined, undefined, true)).toBeNull()
+      expect(resolveHydratedCertificateTypeDefault(undefined, "study", true)).toBeNull()
     })
   })
 

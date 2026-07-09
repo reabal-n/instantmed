@@ -21,18 +21,22 @@ const source = readFileSync(
   "utf8",
 )
 
-describe("certificate step duration hydration contract", () => {
+describe("certificate step hydration contract", () => {
   it("gates selection sync on persist hydration, not bare mount", () => {
     expect(source).toContain("useRequestStore.persist.hasHydrated()")
     expect(source).toContain("useRequestStore.persist.onFinishHydration(")
   })
 
-  it("restores the stored duration synchronously from the hydrated store", () => {
-    // Reading via getState() inside the hydration callback applies the draft
-    // duration in the same commit that opens the sync gate, so the first sync
+  it("restores stored/default selections synchronously from the hydrated store", () => {
+    // Reading via getState() inside the hydration callback applies restored
+    // selections in the same commit that opens the sync gate, so the first sync
     // run already sees the restored selection (no transient stomp-and-recover
     // flap through the store).
     expect(source).toContain("parseDuration(useRequestStore.getState().answers.duration)")
+    expect(source).toContain("const hydratedState = useRequestStore.getState()")
+    expect(source).toContain("const hydratedCertType = hydratedState.answers.certType")
+    expect(source).toContain("resolveHydratedCertificateTypeDefault(")
+    expect(source).toContain("Boolean(hydratedState.lastSavedAt)")
   })
 
   it("does not reintroduce the reactive one-shot restore effect", () => {
@@ -44,5 +48,15 @@ describe("certificate step duration hydration contract", () => {
 
   it("keeps the sync effect gated behind canSyncSelection", () => {
     expect(source).toContain("if (!canSyncSelection) return")
+  })
+
+  it("does not load certificate smart defaults in a bare mount effect", () => {
+    expect(source).not.toContain("Load smart defaults for certType")
+    expect(source).toContain('const defaults = getSmartDefaults("certificate")')
+  })
+
+  it("keeps valid URL certType prefill ahead of the fresh Work fallback", () => {
+    expect(source).toContain("hasValidUrlCertTypePrefill()")
+    expect(source).toContain("!hasValidUrlCertTypePrefill()")
   })
 })
