@@ -7,9 +7,15 @@ import {
 import { SEEDED_E2E_PATIENT_PROFILE_ID } from "@/lib/data/seeded-e2e-data"
 
 // Minimal supabase stub: from().select().in().gte() resolves to { data, error }.
-function stub(result: { data: unknown; error: unknown }) {
+function stub(
+  result: { data: unknown; error: unknown },
+  opts?: { onSelect?: (columns: string) => void },
+) {
   const chain = {
-    select: () => chain,
+    select: (columns: string) => {
+      opts?.onSelect?.(columns)
+      return chain
+    },
     in: () => chain,
     gte: () => Promise.resolve(result),
   }
@@ -31,12 +37,27 @@ describe("classifyAiUtmSource", () => {
     expect(classifyAiUtmSource("gemini.google.com")).toBe("Gemini")
   })
 
+  it("falls back to referrer when utm_source is empty", () => {
+    expect(classifyAiUtmSource(null, "https://www.perplexity.ai/search?q=instantmed")).toBe(
+      "Perplexity",
+    )
+  })
+
+  it("keeps utm_source authoritative when both fields contain AI signals", () => {
+    expect(classifyAiUtmSource("chatgpt.com", "https://www.perplexity.ai/search")).toBe(
+      "ChatGPT",
+    )
+  })
+
   it("returns null for non-AI, empty, or ambiguous search sources", () => {
     expect(classifyAiUtmSource(null)).toBeNull()
     expect(classifyAiUtmSource("")).toBeNull()
     expect(classifyAiUtmSource("google")).toBeNull()
     // "bing"/"you" are deliberately NOT matched — they over-count search traffic.
     expect(classifyAiUtmSource("bing.com")).toBeNull()
+    expect(
+      classifyAiUtmSource(null, "https://www.bing.com/search?q=medical+certificate"),
+    ).toBeNull()
     expect(classifyAiUtmSource("you.com")).toBeNull()
   })
 })
@@ -57,11 +78,41 @@ describe("getAiAttributionBreakdown", () => {
     const out = await getAiAttributionBreakdown(
       stub({
         data: [
-          { utm_source: "chatgpt.com", created_at: recentIso, patient_id: "p1", exclude_from_reporting: false },
-          { utm_source: "chatgpt.com", created_at: recentIso, patient_id: "p2", exclude_from_reporting: false },
-          { utm_source: "perplexity.ai", created_at: recentIso, patient_id: "p3", exclude_from_reporting: false },
-          { utm_source: "google", created_at: recentIso, patient_id: "p4", exclude_from_reporting: false }, // non-AI
-          { utm_source: null, created_at: recentIso, patient_id: "p5", exclude_from_reporting: false }, // direct
+          {
+            utm_source: "chatgpt.com",
+            referrer: null,
+            created_at: recentIso,
+            patient_id: "p1",
+            exclude_from_reporting: false,
+          },
+          {
+            utm_source: "chatgpt.com",
+            referrer: null,
+            created_at: recentIso,
+            patient_id: "p2",
+            exclude_from_reporting: false,
+          },
+          {
+            utm_source: "perplexity.ai",
+            referrer: null,
+            created_at: recentIso,
+            patient_id: "p3",
+            exclude_from_reporting: false,
+          },
+          {
+            utm_source: "google",
+            referrer: null,
+            created_at: recentIso,
+            patient_id: "p4",
+            exclude_from_reporting: false,
+          }, // non-AI
+          {
+            utm_source: null,
+            referrer: null,
+            created_at: recentIso,
+            patient_id: "p5",
+            exclude_from_reporting: false,
+          }, // direct
         ],
         error: null,
       }),
@@ -76,13 +127,64 @@ describe("getAiAttributionBreakdown", () => {
     expect(out.weekly.reduce((sum, w) => sum + w.chatgpt, 0)).toBe(2)
   })
 
+  it("reads referrer and counts referrer-only AI orders without counting ordinary Bing search", async () => {
+    let selectedColumns = ""
+    const out = await getAiAttributionBreakdown(
+      stub(
+        {
+          data: [
+            {
+              utm_source: null,
+              referrer: "https://www.perplexity.ai/search?q=instantmed",
+              created_at: recentIso,
+              patient_id: "p1",
+              exclude_from_reporting: false,
+            },
+            {
+              utm_source: null,
+              referrer: "https://www.bing.com/search?q=medical+certificate",
+              created_at: recentIso,
+              patient_id: "p2",
+              exclude_from_reporting: false,
+            },
+          ],
+          error: null,
+        },
+        { onSelect: (columns) => (selectedColumns = columns) },
+      ),
+      { weeks: 8 },
+    )
+    expect(selectedColumns).toContain("referrer")
+    expect(out.paidTotal).toBe(2)
+    expect(out.totalAiOrders).toBe(1)
+    expect(out.bySource).toEqual([{ label: "Perplexity", count: 1 }])
+  })
+
   it("excludes seeded E2E and excluded-from-reporting rows from numerator and denominator", async () => {
     const out = await getAiAttributionBreakdown(
       stub({
         data: [
-          { utm_source: "chatgpt.com", created_at: recentIso, patient_id: "real", exclude_from_reporting: false },
-          { utm_source: "chatgpt.com", created_at: recentIso, patient_id: SEEDED_E2E_PATIENT_PROFILE_ID, exclude_from_reporting: false },
-          { utm_source: "chatgpt.com", created_at: recentIso, patient_id: "real2", exclude_from_reporting: true },
+          {
+            utm_source: "chatgpt.com",
+            referrer: null,
+            created_at: recentIso,
+            patient_id: "real",
+            exclude_from_reporting: false,
+          },
+          {
+            utm_source: "chatgpt.com",
+            referrer: null,
+            created_at: recentIso,
+            patient_id: SEEDED_E2E_PATIENT_PROFILE_ID,
+            exclude_from_reporting: false,
+          },
+          {
+            utm_source: "chatgpt.com",
+            referrer: null,
+            created_at: recentIso,
+            patient_id: "real2",
+            exclude_from_reporting: true,
+          },
         ],
         error: null,
       }),

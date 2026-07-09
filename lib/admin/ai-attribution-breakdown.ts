@@ -9,12 +9,11 @@ import { SEEDED_E2E_PATIENT_PROFILE_ID } from "@/lib/data/seeded-e2e-data"
  *
  * Distinct from the client `AI_REFERRER_PATTERNS` in lib/analytics/ai-referral.ts
  * (which does loose substring matching to fire live referral events). Here we
- * count persisted `intakes.utm_source` values, so we match precise tokens and
- * deliberately EXCLUDE ambiguous hosts ("bing", "you.com") that would over-count
- * ordinary search traffic as AI. ChatGPT appends `?utm_source=chatgpt.com`, which
- * survives the native-app referrer strip, so it is the cleanest first-party AI
- * signal we have — and the reason this KPI replaces the dead `heard_about_us`
- * survey as the way to measure GEO / AI-citation progress.
+ * count persisted `intakes.utm_source` / `intakes.referrer` values, so we match
+ * precise tokens and deliberately EXCLUDE ambiguous hosts ("bing", "you.com")
+ * that would over-count ordinary search traffic as AI. ChatGPT appends
+ * `?utm_source=chatgpt.com`, which survives the native-app referrer strip, so it
+ * stays the first source checked for the ChatGPT weekly series.
  */
 const AI_ENGINES: ReadonlyArray<{ token: string; label: string }> = [
   { token: "chatgpt", label: "ChatGPT" },
@@ -28,14 +27,25 @@ const AI_ENGINES: ReadonlyArray<{ token: string; label: string }> = [
   { token: "meta.ai", label: "Meta AI" },
 ]
 
-/** Map a persisted utm_source to an AI engine label, or null if not AI. */
-export function classifyAiUtmSource(utmSource: string | null | undefined): string | null {
-  if (!utmSource) return null
-  const s = utmSource.toLowerCase()
+function classifyAiSignal(value: string | null | undefined): string | null {
+  if (!value) return null
+  const s = value.toLowerCase()
   for (const engine of AI_ENGINES) {
     if (s.includes(engine.token)) return engine.label
   }
   return null
+}
+
+/**
+ * Map persisted attribution fields to an AI engine label, or null if not AI.
+ * `utm_source` is authoritative; referrer is only a fallback for engines that
+ * do not reliably append UTM parameters.
+ */
+export function classifyAiUtmSource(
+  utmSource: string | null | undefined,
+  referrer?: string | null | undefined,
+): string | null {
+  return classifyAiSignal(utmSource) ?? classifyAiSignal(referrer)
 }
 
 export interface AiAttributionBreakdown {
@@ -61,7 +71,7 @@ function mondayUTC(d: Date): Date {
 /**
  * AI-assistant acquisition breakdown for /admin/analytics.
  *
- * Counts paid orders by AI-engine `utm_source`, plus a per-week ChatGPT/total-AI
+ * Counts paid orders by AI-engine attribution, plus a per-week ChatGPT/total-AI
  * trend so the operator can see whether GEO / off-page work is moving the only
  * measurable AI channel. DB-only; never calls an external API. Filters seeded
  * E2E + excluded-from-reporting rows (same boundary the doctor queue uses).
@@ -86,7 +96,7 @@ export async function getAiAttributionBreakdown(
   const since = weekKeys[0] // start of the oldest week in the window
   const { data, error } = await supabase
     .from("intakes")
-    .select("utm_source, created_at, patient_id, exclude_from_reporting")
+    .select("utm_source, referrer, created_at, patient_id, exclude_from_reporting")
     .in("payment_status", ["paid", "partially_refunded", "refunded"])
     .gte("created_at", since)
 
@@ -102,7 +112,10 @@ export async function getAiAttributionBreakdown(
   const sourceCounts = new Map<string, number>()
 
   for (const r of live) {
-    const label = classifyAiUtmSource(typeof r.utm_source === "string" ? r.utm_source : null)
+    const label = classifyAiUtmSource(
+      typeof r.utm_source === "string" ? r.utm_source : null,
+      typeof r.referrer === "string" ? r.referrer : null,
+    )
     if (!label) continue
     sourceCounts.set(label, (sourceCounts.get(label) ?? 0) + 1)
 
