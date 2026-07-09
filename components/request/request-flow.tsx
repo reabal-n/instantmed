@@ -771,6 +771,41 @@ export function RequestFlow({
     }
   }, [currentStepId])
 
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.visualViewport) return
+
+    const { visualViewport } = window
+    const root = document.documentElement
+    let frameId: number | null = null
+
+    const updateKeyboardOffset = () => {
+      const viewportBottom = visualViewport.offsetTop + visualViewport.height
+      const rawOffset = Math.max(0, window.innerHeight - viewportBottom)
+      root.style.setProperty("--keyboard-offset", `${Math.round(rawOffset)}px`)
+    }
+
+    const scheduleKeyboardOffsetUpdate = () => {
+      if (frameId !== null) return
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null
+        updateKeyboardOffset()
+      })
+    }
+
+    scheduleKeyboardOffsetUpdate()
+    visualViewport.addEventListener("resize", scheduleKeyboardOffsetUpdate)
+    visualViewport.addEventListener("scroll", scheduleKeyboardOffsetUpdate)
+    window.addEventListener("orientationchange", scheduleKeyboardOffsetUpdate)
+
+    return () => {
+      visualViewport.removeEventListener("resize", scheduleKeyboardOffsetUpdate)
+      visualViewport.removeEventListener("scroll", scheduleKeyboardOffsetUpdate)
+      window.removeEventListener("orientationchange", scheduleKeyboardOffsetUpdate)
+      if (frameId !== null) window.cancelAnimationFrame(frameId)
+      root.style.removeProperty("--keyboard-offset")
+    }
+  }, [])
+
   // Scroll to top + move screen-reader focus to the new step's heading on step
   // change (2026-06-11 a11y/UX review). Sighted users who scrolled deep into a
   // long step otherwise land mid-page; SR users got no announcement of the new
@@ -968,7 +1003,8 @@ export function RequestFlow({
       {(
         <div
           data-intake-mobile-action-bar="true"
-          className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t px-4 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:hidden"
+          className="fixed inset-x-0 z-40 bg-background/95 backdrop-blur border-t px-4 pt-2.5 pb-3 sm:hidden"
+          style={{ bottom: "calc(env(safe-area-inset-bottom) + var(--keyboard-offset, 0px))" }}
         >
           <div className={`max-w-lg mx-auto grid items-center gap-3 ${
             currentStepIndex > 0 ? "grid-cols-[3rem_minmax(0,1fr)]" : "grid-cols-1"
