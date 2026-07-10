@@ -55,8 +55,8 @@ describe("password reset flow contract", () => {
     const accountActions = readRepoFile("app/actions/account.ts")
 
     expect(accountActions).toContain("resetPasswordForEmail")
-    expect(accountActions).toContain("/auth/callback?next=")
     expect(accountActions).toContain("/auth/reset-password")
+    expect(accountActions).not.toContain("/auth/callback?next=")
     expect(accountActions).not.toContain('type: "magiclink"')
     expect(accountActions).not.toContain("generateLink")
   })
@@ -73,13 +73,15 @@ describe("password reset flow contract", () => {
     expect(operations).toContain("Send Email hook")
   })
 
-  it("passes the hook token hash through GoTrue's token query parameter", () => {
+  it("routes the hook token hash through an app-owned explicit confirmation page", () => {
     const webhookRoute = readRepoFile("app/api/webhooks/supabase-auth/route.ts")
+    const planner = readRepoFile("lib/auth/auth-email-message-planner.ts")
 
-    // Supabase's send-email hook names the payload field `token_hash`, but the
-    // direct /auth/v1/verify endpoint accepts that value under `token`.
-    expect(webhookRoute).toContain("token: tokenHash")
-    expect(webhookRoute).not.toContain("token_hash: tokenHash")
+    expect(webhookRoute).toContain("planAuthEmailMessages")
+    expect(webhookRoute).not.toContain("/auth/v1/verify")
+    expect(planner).toContain("/auth/confirm")
+    expect(planner).toContain("token_hash")
+    expect(planner).toContain("confirmationUrl.hash")
   })
 
   it("updates the password from an established recovery session, not a raw code parameter", () => {

@@ -1,15 +1,18 @@
 "use server"
 
+import * as Sentry from "@sentry/nextjs"
+import crypto from "crypto"
 import { z } from "zod"
 
 import { getApiAuth, requireRole } from "@/lib/auth/helpers"
 import { env } from "@/lib/config/env"
-import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
+import { getEmployerCertificateStorageVersion } from "@/lib/crypto/employer-certificate-token"
+import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import {
+  finalizeCertificateResend,
   getCertificateForIntake,
-  incrementEmailRetry,
-  logCertificateEvent,
-  updateEmailStatus,
+  reconcileCertificateResendAttempts,
+  reserveCertificateResend,
 } from "@/lib/data/issued-certificates"
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
 import { sendEmail } from "@/lib/email/send-email"
@@ -20,9 +23,121 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("resend-certificate")
 
+type ReconciliationWriteResult = { success: boolean; error?: string }
+
+interface ReconciliationStep {
+  name: "email_status" | "email_retry_count" | "certificate_audit" | "resend_finalization"
+  run: () => Promise<ReconciliationWriteResult>
+}
+
+async function runReconciliationStepWithRetry(step: ReconciliationStep): Promise<boolean> {
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    try {
+      const result = await step.run()
+      if (result.success) return true
+    } catch {
+      // Retry only this bookkeeping write. The provider email is never resent.
+    }
+  }
+
+  return false
+}
+
+async function reserveResendWithRetry(
+  input: Parameters<typeof reserveCertificateResend>[0],
+) {
+  const reconciliation = await reconcileCertificateResendAttempts(input.certificateId)
+  if (!reconciliation.success) {
+    return {
+      success: false as const,
+      error: reconciliation.error || "Certificate resend reconciliation failed",
+    }
+  }
+
+  let lastResult: Awaited<ReturnType<typeof reserveCertificateResend>> = {
+    success: false,
+    error: "Certificate resend reservation failed",
+  }
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    try {
+      lastResult = await reserveCertificateResend(input)
+      if (lastResult.success && lastResult.attemptStatus === "reserved") {
+        return lastResult
+      }
+      if (lastResult.success) {
+        return {
+          success: false as const,
+          error: `Certificate resend attempt is already ${lastResult.attemptStatus || "finalized"}`,
+        }
+      }
+      if (
+        lastResult.error?.includes("Maximum resends reached") ||
+        lastResult.error?.includes("already queued")
+      ) {
+        return lastResult
+      }
+    } catch {
+      lastResult = { success: false, error: "Certificate resend reservation failed" }
+    }
+  }
+  return lastResult
+}
+
+async function reconcilePatientResendDelivery(input: {
+  intakeId: string
+  certificateId: string
+  deliveryOutcome: "sent" | "failed"
+  outboxId?: string
+  steps: ReconciliationStep[]
+}) {
+  const failedSteps: ReconciliationStep["name"][] = []
+
+  for (const step of input.steps) {
+    if (!await runReconciliationStepWithRetry(step)) {
+      failedSteps.push(step.name)
+    }
+  }
+
+  if (failedSteps.length === 0) return
+
+  // sendEmail's outbox row remains the delivery source of truth. Alert and
+  // expose the ops surfaces for reconciliation without re-sending the email.
+  log.error("Patient certificate resend reconciliation failed", {
+    intakeId: input.intakeId,
+    certificateId: input.certificateId,
+    deliveryOutcome: input.deliveryOutcome,
+    failedSteps,
+    outboxId: input.outboxId,
+  })
+  Sentry.captureMessage("Patient certificate resend reconciliation failed", {
+    level: "error",
+    tags: {
+      subsystem: "certificate-resend-reconciliation",
+      delivery_outcome: input.deliveryOutcome,
+    },
+    extra: {
+      intakeId: input.intakeId,
+      certificateId: input.certificateId,
+      deliveryOutcome: input.deliveryOutcome,
+      failedSteps,
+      outboxId: input.outboxId,
+    },
+  })
+  revalidateStaff({
+    intakeId: input.intakeId,
+    ops: true,
+    emails: true,
+  })
+}
+
 interface ResendCertificateResult {
   success: boolean
   error?: string
+  queued?: boolean
+}
+
+function isQueuedReservationError(error: string | undefined): boolean {
+  return Boolean(error?.includes("already queued"))
 }
 
 const patientDataSchema = z.object({
@@ -123,6 +238,33 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
       return { success: false, error: "Certificate not found. Please contact support." }
     }
 
+    const resendAttemptId = crypto.randomUUID()
+    const reservation = await reserveResendWithRetry({
+      attemptId: resendAttemptId,
+      certificateId: certificate.id,
+      actorId: authResult.profile.id,
+      actorRole: "patient",
+      resendReason: "patient_self_serve",
+      countTowardStaffLimit: false,
+    })
+    if (!reservation.success) {
+      if (isQueuedReservationError(reservation.error)) {
+        log.info("Patient certificate resend already queued", {
+          intakeId,
+          certificateId: certificate.id,
+        })
+        return { success: true, queued: true }
+      }
+      log.error("Patient certificate resend reservation failed", {
+        intakeId,
+        certificateId: certificate.id,
+      })
+      return {
+        success: false,
+        error: "We couldn't start the resend safely. Please try again.",
+      }
+    }
+
     const emailResult = await sendEmail({
       to: patient.email,
       toName: patient.full_name,
@@ -139,9 +281,14 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
       intakeId,
       patientId: patient.id,
       certificateId: certificate.id,
+      idempotencyKey: `certificate-resend:${resendAttemptId}`,
       metadata: {
+        certificate_storage_version: getEmployerCertificateStorageVersion(
+          certificate.storage_path,
+        ),
         cert_type: certificate.certificate_type,
         resent_by_patient: true,
+        resend_attempt_id: resendAttemptId,
       },
       tags: [
         { name: "category", value: "med_cert_resend" },
@@ -150,9 +297,68 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
     })
 
     if (!emailResult.success) {
+      const queuedForRetry = Boolean(
+        emailResult.outboxId && emailResult.retryable !== false,
+      )
+      if (queuedForRetry) {
+        revalidatePatient({ intakeId })
+        log.info("Patient certificate resend queued for dispatcher recovery", {
+          intakeId,
+          certificateId: certificate.id,
+          outboxId: emailResult.outboxId,
+        })
+        return { success: true, queued: true }
+      }
+
+      // An outbox-backed provider failure remains retryable by the dispatcher;
+      // keep its reservation open until the durable row reaches sent or the
+      // shared terminal retry cap. Validation, suppression, and non-retryable
+      // provider failures are finalized immediately.
+      await reconcilePatientResendDelivery({
+        intakeId,
+        certificateId: certificate.id,
+        deliveryOutcome: "failed",
+        outboxId: emailResult.outboxId,
+        steps: [
+          {
+            name: "resend_finalization",
+            run: () => finalizeCertificateResend({
+              attemptId: resendAttemptId,
+              deliverySucceeded: false,
+              emailOutboxId: emailResult.outboxId,
+              failureReason: emailResult.error,
+            }),
+          },
+        ],
+      })
+      revalidatePatient({ intakeId })
       log.error("Resend certificate: email failed", { intakeId, error: emailResult.error })
-      return { success: false, error: "Failed to send email. Please try again." }
+      return {
+        success: false,
+        error: emailResult.outboxId
+          ? "Failed to send email. Please contact support."
+          : "Failed to send email. Please try again.",
+      }
     }
+
+    await reconcilePatientResendDelivery({
+      intakeId,
+      certificateId: certificate.id,
+      deliveryOutcome: "sent",
+      outboxId: emailResult.outboxId,
+      steps: [
+        {
+          name: "resend_finalization",
+          run: () => finalizeCertificateResend({
+            attemptId: resendAttemptId,
+            deliverySucceeded: true,
+            emailOutboxId: emailResult.outboxId,
+            providerMessageId: emailResult.messageId,
+          }),
+        },
+      ],
+    })
+    revalidatePatient({ intakeId })
 
     log.info("Certificate resent successfully (patient-initiated)", { intakeId })
     return { success: true }
@@ -202,6 +408,38 @@ export async function resendCertificateAsStaff(intakeId: string): Promise<Resend
         }
       }
 
+      const actorRole = profile.role === "support"
+        ? "support"
+        : profile.role === "admin"
+          ? "admin"
+          : "doctor"
+      const resendAttemptId = crypto.randomUUID()
+      const reservation = await reserveResendWithRetry({
+        attemptId: resendAttemptId,
+        certificateId: certificate.id,
+        actorId: profile.id,
+        actorRole,
+        resendReason: "manual_admin_resend",
+        countTowardStaffLimit: true,
+      })
+      if (!reservation.success) {
+        const maximumReached = reservation.error?.includes("Maximum resends reached")
+        if (isQueuedReservationError(reservation.error)) {
+          log.info("Staff certificate resend already queued", {
+            intakeId,
+            certificateId: certificate.id,
+            actorId: profile.id,
+          })
+          return { success: true, queued: true }
+        }
+        return {
+          success: false,
+          error: maximumReached
+            ? "Maximum resends reached. Contact support if the patient still hasn't received their certificate."
+            : "Could not reserve this resend safely. Please try again.",
+        }
+      }
+
       const emailResult = await sendEmail({
         to: patient.email,
         toName: patient.full_name,
@@ -218,10 +456,15 @@ export async function resendCertificateAsStaff(intakeId: string): Promise<Resend
         intakeId,
         patientId: patient.id,
         certificateId: certificate.id,
+        idempotencyKey: `certificate-resend:${resendAttemptId}`,
         metadata: {
+          certificate_storage_version: getEmployerCertificateStorageVersion(
+            certificate.storage_path,
+          ),
           cert_type: certificate.certificate_type,
           resent_by: profile.id,
           retry_count: certificate.email_retry_count + 1,
+          resend_attempt_id: resendAttemptId,
         },
         tags: [
           { name: "category", value: "med_cert_resend" },
@@ -230,27 +473,49 @@ export async function resendCertificateAsStaff(intakeId: string): Promise<Resend
         ],
       })
 
+      const queuedForRetry = Boolean(
+        !emailResult.success &&
+        emailResult.outboxId &&
+        emailResult.retryable !== false,
+      )
+      const shouldFinalizeImmediately = !queuedForRetry
+      const resendFinalized = shouldFinalizeImmediately
+        ? await runReconciliationStepWithRetry({
+            name: "resend_finalization",
+            run: () => finalizeCertificateResend({
+              attemptId: resendAttemptId,
+              deliverySucceeded: emailResult.success,
+              emailOutboxId: emailResult.outboxId,
+              providerMessageId: emailResult.messageId,
+              failureReason: emailResult.success ? null : emailResult.error,
+            }),
+          })
+        : true
+
+      if (!resendFinalized) {
+        log.error("Staff certificate resend reconciliation failed", {
+          intakeId,
+          certificateId: certificate.id,
+          deliverySucceeded: emailResult.success,
+          outboxId: emailResult.outboxId,
+        })
+        Sentry.captureMessage("Staff certificate resend reconciliation failed", {
+          level: "error",
+          tags: {
+            subsystem: "certificate-resend-reconciliation",
+            actor_role: actorRole,
+          },
+          extra: {
+            intakeId,
+            certificateId: certificate.id,
+            deliverySucceeded: emailResult.success,
+            outboxId: emailResult.outboxId,
+          },
+        })
+        revalidateStaff({ intakeId, ops: true, emails: true })
+      }
+
       if (emailResult.success) {
-        await updateEmailStatus(certificate.id, "sent", {
-          deliveryId: emailResult.messageId,
-        })
-
-        await Promise.all([
-          incrementEmailRetry(certificate.id),
-          supabase
-            .from("issued_certificates")
-            .update({
-              resend_count: (certificate.resend_count ?? 0) + 1,
-              email_opened_at: null,
-            })
-            .eq("id", certificate.id),
-        ])
-
-        await logCertificateEvent(certificate.id, "email_retry", profile.id, "doctor", {
-          resend_reason: "manual_admin_resend",
-          resend_by_name: profile.full_name,
-        })
-
         log.info("Certificate resent by staff", {
           intakeId,
           certificateId: certificate.id,
@@ -260,18 +525,28 @@ export async function resendCertificateAsStaff(intakeId: string): Promise<Resend
         return { success: true }
       }
 
-      await updateEmailStatus(certificate.id, "failed", { failureReason: emailResult.error })
-      await logCertificateEvent(certificate.id, "email_failed", profile.id, "doctor", {
-        error: emailResult.error,
-        resend_attempt: true,
-      })
+      if (queuedForRetry) {
+        log.info("Staff certificate resend queued for dispatcher recovery", {
+          intakeId,
+          certificateId: certificate.id,
+          outboxId: emailResult.outboxId,
+          resentBy: profile.id,
+        })
+        revalidateStaff({ intakeId, emails: true })
+        return { success: true, queued: true }
+      }
 
       log.error("Certificate staff resend failed", {
         intakeId,
         certificateId: certificate.id,
         error: emailResult.error,
       })
-      return { success: false, error: emailResult.error || "Failed to send email" }
+      return {
+        success: false,
+        error: emailResult.outboxId
+          ? "Failed to send email. Check the address or contact support."
+          : emailResult.error || "Failed to send email",
+      }
     }
 
     // No certificate found. Distinguish "legacy unmigrated" from "exists but invalid".

@@ -6,6 +6,7 @@ export interface Intake {
   payment_status?: string | null
   created_at: string
   updated_at: string
+  document_ready?: boolean
   service?: { id: string; name?: string; short_name?: string; type?: string; slug?: string } | null
 }
 

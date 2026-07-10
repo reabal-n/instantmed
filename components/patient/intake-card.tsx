@@ -20,7 +20,7 @@ export function IntakeCard({
 }) {
   const config = resolveStatusConfig(intake.status)
   const Icon = config.icon
-  const isReady = ["approved", "completed"].includes(intake.status)
+  const isReady = intake.document_ready === true
 
   const getServiceName = () => {
     if (intake.service?.name) return intake.service.name

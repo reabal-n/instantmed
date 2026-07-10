@@ -91,7 +91,7 @@ const templates: Record<string, {
     subject: "Reset your InstantMed access",
     render: () => (
       <MagicLinkEmail
-        loginUrl={`${mock.appUrl}/auth/callback?next=%2Fauth%2Freset-password`}
+        loginUrl={`${mock.appUrl}/auth/confirm#token_hash=preview-only&type=recovery`}
         appUrl={mock.appUrl}
         firstName="Sarah"
         actionType="recovery"

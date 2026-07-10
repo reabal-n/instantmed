@@ -9,7 +9,6 @@ import {
   CheckCircle,
   Clock,
   Copy,
-  Download,
   FileText,
   HelpCircle,
   Link2,
@@ -22,11 +21,15 @@ import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 
 import { cancelIntake } from "@/app/actions/cancel-intake"
-import { requestDateCorrection } from "@/app/actions/request-date-correction"
+import {
+  type PatientDateCorrectionState,
+  requestDateCorrection,
+} from "@/app/actions/request-date-correction"
 import { resendCertificate } from "@/app/actions/resend-certificate"
 import { resendVerificationEmail } from "@/app/actions/resend-verification"
 import { DashboardCard } from "@/components/dashboard"
 import { CertificateCredentials } from "@/components/patient/certificate-credentials"
+import { CertificateDownloadButton } from "@/components/patient/certificate-download-button"
 import { CrossSellCard } from "@/components/patient/cross-sell-card"
 import { DocumentReadyReveal } from "@/components/patient/document-ready-reveal"
 import { EmailVerificationGate } from "@/components/patient/email-verification-gate"
@@ -66,6 +69,7 @@ interface IntakeDetailClientProps {
   retryPayment?: boolean
   isEmailVerified?: boolean
   userEmail?: string
+  dateCorrectionState?: PatientDateCorrectionState
 }
 
 // ─── Submitted answer helpers ──────────────────────────────────────────────
@@ -346,12 +350,14 @@ export function IntakeDetailClient({
   retryPayment = false,
   isEmailVerified = true,
   userEmail,
+  dateCorrectionState = "none",
 }: IntakeDetailClientProps) {
   const router = useRouter()
   const [intake, setIntake] = useState(initialIntake)
   const [isPending, startTransition] = useTransition()
   const [actionError, setActionError] = useState<string | null>(null)
   const [resendSuccess, setResendSuccess] = useState(false)
+  const [resendQueued, setResendQueued] = useState(false)
   const hasAutoRetriedPayment = useRef(false)
 
   const service = intake.service as { name?: string; short_name?: string; type?: string } | undefined
@@ -379,11 +385,13 @@ export function IntakeDetailClient({
   const handleResendEmail = () => {
     setActionError(null)
     setResendSuccess(false)
+    setResendQueued(false)
     startTransition(async () => {
       const result = await resendCertificate(intake.id)
       if (!result.success) {
         setActionError(result.error || "Failed to resend email")
       } else {
+        setResendQueued(Boolean(result.queued))
         setResendSuccess(true)
         setTimeout(() => setResendSuccess(false), 5000)
       }
@@ -421,7 +429,13 @@ export function IntakeDetailClient({
   const [correctionStartDate, setCorrectionStartDate] = useState("")
   const [correctionEndDate, setCorrectionEndDate] = useState("")
   const [correctionReason, setCorrectionReason] = useState("")
-  const [correctionSubmitted, setCorrectionSubmitted] = useState(false)
+  const [correctionSubmitted, setCorrectionSubmitted] = useState(
+    dateCorrectionState === "pending",
+  )
+
+  useEffect(() => {
+    setCorrectionSubmitted(dateCorrectionState === "pending")
+  }, [dateCorrectionState])
 
   const handleRequestDateCorrection = () => {
     setActionError(null)
@@ -444,13 +458,23 @@ export function IntakeDetailClient({
   const canCancel = ["draft", "pending_payment", "checkout_failed"].includes(intake.status)
   const canResend = ["approved", "completed"].includes(intake.status) && intakeDocument
   const canRequestCorrection =
-    ["approved", "completed"].includes(intake.status) && isMedCert && !correctionSubmitted
+    ["approved", "completed"].includes(intake.status) &&
+    isMedCert &&
+    Boolean(intakeDocument) &&
+    dateCorrectionState !== "unavailable" &&
+    !correctionSubmitted
 
   const isReady =
     (intake.status === "approved" || intake.status === "completed") && document?.pdf_url
   const showSubmittedAnswers =
     intake.answers && intake.answers.length > 0 && intake.answers[0]?.answers
-  const showSupportLink = intake.status === "declined" || intake.status === "pending_info" || intake.status === "escalated"
+  const showSupportLink =
+    intake.status === "declined" ||
+    intake.status === "pending_info" ||
+    intake.status === "escalated" ||
+    (isMedCert &&
+      ["approved", "completed"].includes(intake.status) &&
+      !document?.pdf_url)
   const showLiveTracker = ["paid", "in_review", "pending_info", "awaiting_script", "escalated"].includes(intake.status)
   const showSupportSummary =
     intake.status === "checkout_failed" ||
@@ -599,12 +623,18 @@ export function IntakeDetailClient({
               <p>Your request has been approved.</p>
               {document?.pdf_url ? (
                 <p>Download your document below.</p>
-              ) : (
-                <p className="flex items-center gap-2 text-info">
-                  <Clock className="h-4 w-4 motion-safe:animate-pulse" />
-                  Your document is being generated. This usually takes a few minutes.
-                </p>
-              )}
+              ) : isMedCert ? (
+                <div className="space-y-2 text-info">
+                  <p className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 motion-safe:animate-pulse" aria-hidden="true" />
+                    The secure PDF is still being prepared.
+                  </p>
+                  <Button type="button" variant="outline" size="sm" onClick={() => router.refresh()}>
+                    <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
+                    Check again
+                  </Button>
+                </div>
+              ) : null}
             </div>
           )}
           {intake.status === "declined" && (
@@ -658,6 +688,18 @@ export function IntakeDetailClient({
                 <p>Your repeat prescription has been issued. You should receive the eScript via SMS shortly.</p>
               )}
               {document?.pdf_url && <p>Download your document below.</p>}
+              {isMedCert && !document?.pdf_url && (
+                <div className="space-y-2 text-info">
+                  <p className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 motion-safe:animate-pulse" aria-hidden="true" />
+                    The secure PDF is still being prepared.
+                  </p>
+                  <Button type="button" variant="outline" size="sm" onClick={() => router.refresh()}>
+                    <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
+                    Check again
+                  </Button>
+                </div>
+              )}
             </div>
           )}
           {intake.status === "cancelled" && (
@@ -683,7 +725,9 @@ export function IntakeDetailClient({
             className="rounded-xl bg-success-light/30 border border-success-border p-3 text-sm text-success flex items-center gap-2"
           >
             <CheckCircle className="h-4 w-4" aria-hidden="true" />
-            Certificate has been resent to your email.
+            {resendQueued
+              ? "Your certificate email is queued for delivery. No need to try again."
+              : "Your certificate has been resent to your email."}
           </div>
         )}
 
@@ -790,30 +834,27 @@ export function IntakeDetailClient({
                 </div>
               </div>
 
-              <Button asChild size="lg" className="w-full sm:w-auto">
-                <a
-                  href={document.pdf_url ?? undefined}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download
-                  onClick={() =>
-                    capture("certificate_downloaded", {
-                      intake_id: intake.id,
-                      service_type: intake.service?.type,
-                    })
-                  }
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
-                </a>
-              </Button>
+              <CertificateDownloadButton
+                href={document.pdf_url}
+                intakeId={intake.id}
+                serviceType={intake.service?.type}
+              />
 
               <CertificateCredentials
                 verificationCode={document?.verification_code}
                 referenceId={intake.id.slice(0, 8).toUpperCase()}
               />
 
-              <p className="text-xs text-success">A copy has also been sent to your email.</p>
+              <p className={cn(
+                "text-xs",
+                intake.document_sent_at ? "text-success" : "text-muted-foreground",
+              )}>
+                {intake.document_sent_at
+                  ? "A copy has also been sent to your email."
+                  : canResend
+                    ? "Download it here, or use Resend to email for another copy."
+                    : "Your document is available to download here."}
+              </p>
 
               <div className="flex flex-wrap gap-2 pt-1">
                 {canResend && (
@@ -860,6 +901,11 @@ export function IntakeDetailClient({
               {correctionSubmitted && (
                 <p className="text-xs text-warning">
                   Date correction submitted. Your doctor will review and resend the updated certificate.
+                </p>
+              )}
+              {!correctionSubmitted && dateCorrectionState === "unavailable" && (
+                <p className="text-xs text-muted-foreground">
+                  We couldn&apos;t check your date-correction status. Refresh this page or contact support if you need help.
                 </p>
               )}
             </DashboardCard>

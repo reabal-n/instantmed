@@ -2,7 +2,7 @@
  * Medical Certificate Employer Email Template
  * 
  * Sent to employer when patient requests their certificate be forwarded.
- * Contains secure download link (Supabase signed URL).
+ * Contains an app-controlled, version-bound certificate download link.
  */
 
 import * as React from "react"

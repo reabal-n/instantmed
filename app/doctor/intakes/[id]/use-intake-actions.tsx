@@ -9,7 +9,10 @@ import type { AIDraft } from "@/app/actions/draft-approval"
 import { approveDraft, regenerateDrafts } from "@/app/actions/draft-approval"
 import { acquireIntakeLockAction, extendIntakeLockAction,releaseIntakeLockAction } from "@/app/actions/intake-lock"
 import { reissueCertificateAction } from "@/app/actions/reissue-cert"
-import { approveDateCorrection } from "@/app/actions/request-date-correction"
+import {
+  approveDateCorrection,
+  rejectDateCorrection,
+} from "@/app/actions/request-date-correction"
 import { resendCertificateAsStaff } from "@/app/actions/resend-certificate"
 import { approveWithPreviewDataAction,fetchCertPreviewDataAction } from "@/app/doctor/intakes/[id]/document/actions"
 import { approvePrescribedScriptAction, declineIntakeAction, issueRefundAction,markScriptSentAction, saveDoctorNotesAction, updateStatusAction } from "@/app/doctor/queue/actions"
@@ -520,10 +523,23 @@ export function useIntakeActions({
     startTransition(async () => {
       const result = await approveDateCorrection(pendingCorrection.id, intake.id)
       if (result.success) {
-        toast.success("Date correction approved - use Edit & Resend to generate the updated certificate")
+        toast.success("Date correction approved — updated certificate generated and delivery started")
         router.refresh()
       } else {
         toast.error(result.error || "Failed to approve correction")
+      }
+    })
+  }, [intake.id, router])
+
+  const handleRejectDateCorrection = useCallback((pendingCorrection: { id: string } | null) => {
+    if (!pendingCorrection) return
+    startTransition(async () => {
+      const result = await rejectDateCorrection(pendingCorrection.id, intake.id)
+      if (result.success) {
+        toast.success("Date correction request declined")
+        router.refresh()
+      } else {
+        toast.error(result.error || "Failed to close correction request")
       }
     })
   }, [intake.id, router])
@@ -532,7 +548,11 @@ export function useIntakeActions({
     startTransition(async () => {
       const result = await resendCertificateAsStaff(intake.id)
       if (result.success) {
-        toast.success("Certificate email resent to patient")
+        if (result.queued) {
+          toast.info("Certificate email queued for delivery")
+        } else {
+          toast.success("Certificate email resent to patient")
+        }
       } else {
         toast.error(result.error || "Failed to resend certificate")
       }
@@ -566,12 +586,16 @@ export function useIntakeActions({
         startDate: editedData.startDate,
         endDate: editedData.endDate,
         medicalReason: editedData.medicalReason,
-        notifyPatient: notifyPatient ?? false,
+        notifyPatient: notifyPatient ?? true,
       })
 
       if (result.success) {
         dialogs.setShowReissueDialog(false)
-        toast.success("Certificate reissued successfully")
+        toast.success(
+          (notifyPatient ?? true)
+            ? "Certificate updated and patient delivery started"
+            : "Certificate updated without a patient email",
+        )
         router.refresh()
       } else {
         toast.error(result.error || "Failed to reissue certificate")
@@ -633,6 +657,7 @@ export function useIntakeActions({
     handleApprovePrescribedScript,
     handleMarkRefunded,
     handleApproveDateCorrection,
+    handleRejectDateCorrection,
     handleResendCertificate,
     handleReissueCertificate,
     handleReissueConfirm,

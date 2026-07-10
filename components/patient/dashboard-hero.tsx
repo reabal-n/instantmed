@@ -41,6 +41,7 @@ interface Prescription {
 export type DashboardHeroState =
   | "doctor-question"
   | "documents-ready"
+  | "document-processing"
   | "live-review"
   | "stale-payment"
   | "renewal-due"
@@ -109,10 +110,15 @@ export function resolveHeroState({
   const pendingInfo = intakes.find((i) => i.status === "pending_info")
   if (pendingInfo) return { state: "doctor-question", intake: pendingInfo }
 
-  // 2. Documents ready: most recent approved/completed intake (assume document is ready
-  //    if status reached approved/completed; the detail page handles the actual file)
+  // 2. Documents ready: only claim a download exists when the dashboard query
+  //    found a current valid certificate. Intake status alone is not proof that
+  //    the PDF was generated successfully.
   const ready = intakes
-    .filter((i) => i.status === "approved" || i.status === "completed")
+    .filter(
+      (i) =>
+        i.document_ready === true &&
+        (i.status === "approved" || i.status === "completed"),
+    )
     .sort(
       (a, b) =>
         new Date(b.updated_at ?? b.created_at).getTime() -
@@ -126,7 +132,25 @@ export function resolveHeroState({
     }
   }
 
-  // 3. Live review: most recent paid / in_review intake
+  // 3. Approved medical certificate without a valid PDF yet. This is distinct
+  //    from doctor review and avoids sending the patient to a missing download.
+  const documentProcessing = intakes
+    .filter(
+      (i) =>
+        i.service?.type === "med_certs" &&
+        i.document_ready === false &&
+        (i.status === "approved" || i.status === "completed"),
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.updated_at ?? b.created_at).getTime() -
+        new Date(a.updated_at ?? a.created_at).getTime(),
+    )[0]
+  if (documentProcessing) {
+    return { state: "document-processing", intake: documentProcessing }
+  }
+
+  // 4. Live review: most recent paid / in_review intake
   const inReview = intakes
     .filter((i) => i.status === "paid" || i.status === "in_review")
     .sort(
@@ -135,7 +159,7 @@ export function resolveHeroState({
     )[0]
   if (inReview) return { state: "live-review", intake: inReview }
 
-  // 4. Payment recovery: failed checkout immediately; stale pending_payment over 1 hour.
+  // 5. Payment recovery: failed checkout immediately; stale pending_payment over 1 hour.
   const failedPayment = intakes.find((i) => i.status === "checkout_failed")
   if (failedPayment) return { state: "stale-payment", intake: failedPayment }
 
@@ -145,13 +169,13 @@ export function resolveHeroState({
   })
   if (stalePayment) return { state: "stale-payment", intake: stalePayment }
 
-  // 5. Renewal due: active prescription expiring soon
+  // 6. Renewal due: active prescription expiring soon
   const renewal = prescriptions.find(
     (p) => p.status === "active" && needsRenewalSoon(p.expiry_date),
   )
   if (renewal) return { state: "renewal-due", prescription: renewal }
 
-  // 6. Profile incomplete + has-request: missing required fields and has activity
+  // 7. Profile incomplete + has-request: missing required fields and has activity
   if (profileData && intakes.length > 0) {
     const missingPhone = !profileData.phone
     const missingAddress =
@@ -164,12 +188,12 @@ export function resolveHeroState({
     }
   }
 
-  // 7. Empty state: zero intakes, fresh patient
+  // 8. Empty state: zero intakes, fresh patient
   if (intakes.length === 0 && prescriptions.length === 0) {
     return { state: "empty" }
   }
 
-  // 8. Default: caught up. If we know what the patient did last, attach a
+  // 9. Default: caught up. If we know what the patient did last, attach a
   //    "Start another [service]" shortcut so the dashboard becomes a 2-tap
   //    return-visit experience for the common case (one service per patient).
   return { state: "default", lastService: resolveLastServiceShortcut(intakes) }
@@ -335,6 +359,25 @@ export function DashboardHero({
             <Button variant="outline" asChild>
               <Link href={PATIENT_DOCUMENTS_HREF}>All documents</Link>
             </Button>
+          }
+        />
+      )
+
+    case "document-processing":
+      return (
+        <HeroShell
+          pill={{ icon: <Clock className="h-3 w-3" />, label: "Preparing document", tone: "info" }}
+          title={`Your certificate is being prepared, ${firstName}.`}
+          subtitle="Doctor approval is complete. The secure download will appear on your request as soon as the PDF is ready."
+          primaryCta={
+            intake && (
+              <Button variant="outline" asChild>
+                <Link href={buildPatientIntakeHref(intake.id)}>
+                  View request
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            )
           }
         />
       )

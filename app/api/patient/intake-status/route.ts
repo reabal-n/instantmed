@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { auth } from "@/lib/auth/helpers"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 /**
@@ -9,8 +9,8 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
  * Ownership verified via auth session + patient_id check.
  */
 export async function GET(req: NextRequest) {
-  const { userId } = await auth()
-  if (!userId) {
+  const authResult = await getApiAuth()
+  if (!authResult || authResult.profile.role !== "patient") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -20,17 +20,6 @@ export async function GET(req: NextRequest) {
   }
 
   const supabase = createServiceRoleClient()
-
-  // Look up profile by auth user ID
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("auth_user_id", userId)
-    .maybeSingle()
-
-  if (!profile) {
-    return NextResponse.json({ error: "Profile not found" }, { status: 404 })
-  }
 
   // Fetch intake with ownership check. Phase: success-page Google Ads value
   // accuracy fix (2026-05-12). `amount_cents` + `is_priority` are returned
@@ -42,7 +31,7 @@ export async function GET(req: NextRequest) {
     .from("intakes")
     .select("status, amount_cents, is_priority")
     .eq("id", intakeId)
-    .eq("patient_id", profile.id)
+    .eq("patient_id", authResult.profile.id)
     .maybeSingle()
 
   if (!intake) {

@@ -7,6 +7,7 @@ import type { BeforeSendFn } from "posthog-js";
 import { resolvePostHogClient } from "@/lib/analytics/posthog-client-resolver";
 import { onFirstInteraction } from "@/lib/browser/first-interaction";
 import { isPostConversionPath } from "@/lib/browser/post-conversion-path";
+import { sanitizeUrl } from "@/lib/observability/sanitize-phi";
 import { scrubSentryBreadcrumb, scrubSentryEvent } from "@/lib/observability/scrub-phi";
 
 /**
@@ -71,6 +72,12 @@ const POSTHOG_RAW_CLICK_ID_KEYS = [
   "$initial_gbraid",
   "$initial_wbraid",
 ]
+const POSTHOG_URL_PROPERTY_KEYS = [
+  "$current_url",
+  "$initial_current_url",
+  "$referrer",
+  "$initial_referrer",
+] as const
 
 type PostHogBeforeSendPayload = {
   $set?: Record<string, unknown>
@@ -87,15 +94,33 @@ function deleteRawClickIds(target: unknown): void {
   }
 }
 
-const scrubPostHogRawClickIds: BeforeSendFn = (event) => {
+function sanitizePostHogUrls(target: unknown): void {
+  if (typeof target !== "object" || target === null) return
+
+  const record = target as Record<string, unknown>
+  for (const key of POSTHOG_URL_PROPERTY_KEYS) {
+    const value = record[key]
+    if (typeof value === "string") {
+      record[key] = sanitizeUrl(value)
+    }
+  }
+}
+
+const scrubPostHogSensitiveTelemetry: BeforeSendFn = (event) => {
   if (!event) return event
 
   const payload = event as PostHogBeforeSendPayload
-  deleteRawClickIds(payload.properties)
-  deleteRawClickIds(payload.$set)
-  deleteRawClickIds(payload.$set_once)
-  deleteRawClickIds(payload.properties?.$set)
-  deleteRawClickIds(payload.properties?.$set_once)
+  const targets = [
+    payload.properties,
+    payload.$set,
+    payload.$set_once,
+    payload.properties?.$set,
+    payload.properties?.$set_once,
+  ]
+  for (const target of targets) {
+    deleteRawClickIds(target)
+    sanitizePostHogUrls(target)
+  }
   return event
 }
 
@@ -189,7 +214,7 @@ if (!isPlaywrightMode && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       disable_session_recording: true,  // Deferred - starts after idle to avoid blocking LCP
       // Surveys module is ~25KB and we have no surveys live. Skip loading it.
       disable_surveys: true,
-      before_send: scrubPostHogRawClickIds,
+      before_send: scrubPostHogSensitiveTelemetry,
       session_recording: {
         maskAllInputs: true,          // PHI protection - mask all form inputs
         maskTextSelector: "[data-phi]", // Extra masking for PHI-tagged elements

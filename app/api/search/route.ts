@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { auth } from "@/lib/auth/helpers"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { hasAdminAccess, hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import { buildDoctorIntakeHref, buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { getDoctorAccessiblePatientIds } from "@/lib/doctor/patient-access"
@@ -24,14 +24,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ results: [] })
   }
 
-  const { userId } = await auth()
-
-  if (!userId) {
+  const authResult = await getApiAuth()
+  if (!authResult) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   // Rate limit
-  const rateLimitResponse = await applyRateLimit(request, "standard", userId)
+  const rateLimitResponse = await applyRateLimit(request, "standard", authResult.userId)
   if (rateLimitResponse) return rateLimitResponse
 
   const supabase = createServiceRoleClient()
@@ -45,11 +44,7 @@ export async function GET(request: NextRequest) {
   // patient-directory boundary in lib/data/patient-directory.ts.
   let accessiblePatientIds: string[] | null = null
   if (variant === "doctor" || variant === "admin") {
-    const { data: callerProfile } = await supabase
-      .from("profiles")
-      .select("id, role")
-      .eq("auth_user_id", userId)
-      .single()
+    const callerProfile = authResult.profile
 
     if (!callerProfile || !hasDoctorAccess(callerProfile)) {
       log.warn("Unauthorized search variant request", {
@@ -152,11 +147,7 @@ export async function GET(request: NextRequest) {
       }
     } else if (effectiveVariant === "patient") {
       // Patient can only search their own requests
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("auth_user_id", userId)
-        .single()
+      const profile = authResult.profile.role === "patient" ? authResult.profile : null
 
       if (profile) {
         const { data: intakes } = await supabase

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { acquireCronLock, releaseCronLock,verifyCronRequest } from "@/lib/api/cron-auth"
 import { toError } from "@/lib/errors"
+import { cleanupCorrectionStorageOrphans } from "@/lib/medical-certificates/correction-orphan-cleanup"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -44,10 +45,36 @@ export async function GET(request: NextRequest) {
 
   try {
     const supabase = createServiceRoleClient()
-    const stats = { checked: 0, orphaned: 0, deleted: 0, errors: 0 }
 
     const cutoffDate = new Date()
     cutoffDate.setDate(cutoffDate.getDate() - ORPHAN_GRACE_PERIOD_DAYS)
+
+    // Corrections use a nested certificates/corrections/<certificateId> layout.
+    // Scan it explicitly: Storage folder entries have id=null, and prior
+    // versions remain referenced through immutable correction audit events.
+    const stats = await cleanupCorrectionStorageOrphans(supabase, {
+      cutoffDate,
+      maxDeletes: MAX_FILES_PER_RUN,
+    })
+
+    // Repair resend reservations left by process death using the durable
+    // email_outbox provider outcome before any future staff-cap decision.
+    const { data: resendReconciliation, error: resendReconciliationError } = await supabase
+      .rpc("reconcile_certificate_resend_attempts", { p_certificate_id: null })
+    if (resendReconciliationError) {
+      stats.errors++
+      logger.error("Failed to reconcile certificate resend reservations", {}, resendReconciliationError)
+    } else {
+      const result = Array.isArray(resendReconciliation)
+        ? resendReconciliation[0]
+        : resendReconciliation
+      if (!result?.success) {
+        stats.errors++
+        logger.error("Certificate resend reservation reconciliation returned failure", {
+          error: result?.error_message,
+        })
+      }
+    }
 
     // Iterate through all storage folders (not just med-certs)
     for (const storageFolder of STORAGE_FOLDERS) {
@@ -121,7 +148,7 @@ export async function GET(request: NextRequest) {
       }
     } // End storageFolder loop
 
-    logger.info("Orphaned storage cleanup completed", stats)
+    logger.info("Orphaned storage cleanup completed", { ...stats })
 
     await releaseCronLock("cleanup-orphaned-storage")
 

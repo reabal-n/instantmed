@@ -1,12 +1,12 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
+import { getPatientDateCorrectionState } from "@/app/actions/request-date-correction"
 import { checkEmailVerified } from "@/app/actions/resend-verification"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
-import { getLatestDocumentForIntake, getMedCertCertificateForIntake } from "@/lib/data/documents"
 import { getIntakeDocument } from "@/lib/data/intake-documents"
 import { getIntakeForPatient } from "@/lib/data/intakes"
-import { getCertificateWithPdfUrl } from "@/lib/data/issued-certificates"
+import { getPatientCertificateDocumentForIntake } from "@/lib/patient/intake-certificate-document"
 
 import { IntakeDetailClient } from "./client"
 
@@ -39,20 +39,18 @@ export default async function PatientIntakeDetailPage({
   
   // Check email verification status
   const { verified: isEmailVerified, email: userEmail } = await checkEmailVerified()
+  const dateCorrectionState = await getPatientDateCorrectionState(id)
   
   // Fetch document for approved intakes
   let document = null
   let intakeDocument = null
   if (intake.status === "approved" || intake.status === "completed") {
-    // Priority order for certificate lookup:
-    // 1. issued_certificates (new canonical table)
-    // 2. med_cert_certificates (legacy)
-    // 3. documents table (older legacy)
-    document = await getCertificateWithPdfUrl(id) 
-      || await getMedCertCertificateForIntake(id) 
-      || await getLatestDocumentForIntake(id)
-    // Also fetch from intake_documents for resend functionality
-    intakeDocument = await getIntakeDocument(id, "med_cert")
+    document = await getPatientCertificateDocumentForIntake(id)
+    // A canonical invalid certificate deliberately resolves to null and must
+    // not regain resend/download affordances through an unstatused legacy row.
+    if (document) {
+      intakeDocument = await getIntakeDocument(id, "med_cert")
+    }
   }
   
   return (
@@ -63,6 +61,7 @@ export default async function PatientIntakeDetailPage({
       retryPayment={retry === "true"}
       isEmailVerified={isEmailVerified}
       userEmail={userEmail}
+      dateCorrectionState={dateCorrectionState}
     />
   )
 }

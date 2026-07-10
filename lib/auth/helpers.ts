@@ -12,6 +12,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { cookies, headers } from "next/headers"
 import { redirect } from "next/navigation"
 
+import { hasClosedAuthAccountTombstone } from "@/lib/auth/account-closure"
 import {
   buildGuestProfileAuthLinkUpdate,
   selectGuestProfileForAuthLink,
@@ -322,6 +323,10 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
   const { data: { user } } = await supabaseAuth.auth.getUser()
 
   if (!user) {
+    return null
+  }
+
+  if (await hasClosedAuthAccountTombstone(user.id)) {
     return null
   }
 

@@ -661,7 +661,7 @@ describe("Email Templates", () => {
     it("magic-link renders", () => {
       const html = render(
         <MagicLinkEmail
-          loginUrl="https://example.com/auth/v1/verify-token-abc"
+          loginUrl="https://example.com/auth/confirm#token_hash=abc&type=magiclink"
           appUrl={APP_URL}
         />
       )
@@ -669,7 +669,7 @@ describe("Email Templates", () => {
       expectContains(html, "Your sign-in link is ready", "No password. No waiting room.", "Open InstantMed", "60 minutes")
       expectContains(html, "If this link has expired", "Button playing up?", "No stress.")
       expect(html).not.toContain("Faster than your GP")
-      expectContains(html, "Copy this secure link", "https://example.com/auth/v1/verify-token-abc")
+      expectContains(html, "Copy this secure link", "https://example.com/auth/confirm#token_hash=abc&amp;type=magiclink")
       expect(html).not.toContain("{{ .ConfirmationURL }}")
       expect(html).not.toContain("Confirm your signup")
     })
@@ -677,7 +677,7 @@ describe("Email Templates", () => {
     it("renders signup confirmation copy", () => {
       const html = render(
         <MagicLinkEmail
-          loginUrl="https://example.com/auth/v1/verify?token=abc&type=signup"
+          loginUrl="https://example.com/auth/confirm#token_hash=abc&type=signup"
           appUrl={APP_URL}
           actionType="signup"
           firstName="Pat"
@@ -687,6 +687,35 @@ describe("Email Templates", () => {
       expectContains(html, "Confirm your InstantMed account", "Pat", "Confirm account")
     })
 
+    it("renders email-change copy for the current-address approval", () => {
+      const html = render(
+        <MagicLinkEmail
+          loginUrl="https://instantmed.com.au/auth/confirm#token_hash=abc&type=email_change"
+          appUrl={APP_URL}
+          actionType="email_change"
+          emailChangeAudience="current"
+        />
+      )
+
+      expectContains(html, "Approve this email change", "Approve change")
+      expect(html).not.toContain("current@example.com")
+      expect(html).not.toContain("new@example.com")
+    })
+
+    it("renders reauthentication as a code without a one-time link", () => {
+      const html = render(
+        <MagicLinkEmail
+          appUrl={APP_URL}
+          actionType="reauthentication"
+          verificationCode="654321"
+        />
+      )
+
+      expectContains(html, "Verify your identity", "654321", "verification code")
+      expect(html).not.toContain("Copy this secure link")
+      expect(html).not.toContain("/auth/v1/verify")
+    })
+
     it("magic-link subject", () => {
       expect(magicLinkEmailSubject).toBe("Your InstantMed sign-in link is ready")
     })
@@ -694,7 +723,7 @@ describe("Email Templates", () => {
     it("matches snapshot", () => {
       const html = render(
         <MagicLinkEmail
-          loginUrl="https://example.com/auth/v1/verify?token=abc&type=magiclink"
+          loginUrl="https://example.com/auth/confirm#token_hash=abc&type=magiclink"
           appUrl={APP_URL}
         />
       )
@@ -726,7 +755,7 @@ describe("Email Template Cross-Checks", () => {
       <StillReviewingEmail key="25" patientName="Test" requestType="Med Cert" requestId="R13" appUrl={APP_URL} />,
       <ReviewRequestEmail key="31" patientName="Test" serviceName="Medical Certificate" appUrl={APP_URL} />,
       <AbandonedCheckoutFollowupEmail key="33" patientName="Test" serviceName="Medical Certificate" resumeUrl="https://instantmed.com.au/request?resume=abc" appUrl={APP_URL} />,
-      <MagicLinkEmail key="35" loginUrl="https://example.com/auth/v1/verify?token=abc&type=magiclink" appUrl={APP_URL} />,
+      <MagicLinkEmail key="35" loginUrl="https://example.com/auth/confirm#token_hash=abc&type=magiclink" appUrl={APP_URL} />,
     ]
 
     for (const template of templates) {
@@ -912,7 +941,7 @@ describe("Link validation", () => {
       <AbandonedCheckoutFollowupEmail patientName="Test Patient" serviceName="Medical Certificate" resumeUrl="https://instantmed.com.au/request?resume=abc" appUrl={APP_URL} />
     ),
     MagicLinkEmail: (
-      <MagicLinkEmail loginUrl="https://example.com/auth/v1/verify?token=abc&type=magiclink" appUrl={APP_URL} />
+      <MagicLinkEmail loginUrl="https://example.com/auth/confirm#token_hash=abc&type=magiclink" appUrl={APP_URL} />
     ),
   }
 
@@ -1106,7 +1135,7 @@ describe("font-family regression", () => {
     { name: "MedCertPatientEmail", html: render(<MedCertPatientEmail patientName="Test User" dashboardUrl="https://example.com" appUrl={APP_URL} />) },
     { name: "RequestReceivedEmail", html: render(<RequestReceivedEmail patientName="Test User" requestType="Medical Certificate" amount="$19.95" requestId="abc12345" appUrl={APP_URL} />) },
     { name: "ReviewRequestEmail", html: render(<ReviewRequestEmail patientName="Test User" serviceName="Medical Certificate" appUrl={APP_URL} />) },
-    { name: "MagicLinkEmail", html: render(<MagicLinkEmail loginUrl="https://example.com/auth/v1/verify?token=abc&type=magiclink" appUrl={APP_URL} />) },
+    { name: "MagicLinkEmail", html: render(<MagicLinkEmail loginUrl="https://example.com/auth/confirm#token_hash=abc&type=magiclink" appUrl={APP_URL} />) },
   ]
 
   for (const { name, html } of templatesToCheck) {

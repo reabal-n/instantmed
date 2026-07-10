@@ -12,6 +12,7 @@ import { BrandLogo } from "@/components/shared/brand-logo"
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { getPostAuthRedirectParam } from '@/lib/auth/redirects'
+import { type SignInFieldErrors, validateSignInCredentials } from '@/lib/auth/sign-in-validation'
 import { buildPostSignInRedirectHref } from '@/lib/navigation/auth-handoff'
 import { createClient } from '@/lib/supabase/client'
 
@@ -45,7 +46,8 @@ function SignInForm() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [formState, setFormState] = useState<FormState>('idle')
-  const [errorMessage, setErrorMessage] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<SignInFieldErrors>({ email: '', password: '' })
+  const [authErrorMessage, setAuthErrorMessage] = useState('')
   const [googleErrorMessage, setGoogleErrorMessage] = useState('')
   const [googleLoading, setGoogleLoading] = useState(false)
   const [emailLinkLoading, setEmailLinkLoading] = useState(false)
@@ -53,6 +55,7 @@ function SignInForm() {
   const [emailLinkErrorMessage, setEmailLinkErrorMessage] = useState('')
   const [lastMagicLinkSentAt, setLastMagicLinkSentAt] = useState<number | null>(null)
   const emailInputRef = useRef<HTMLInputElement>(null)
+  const passwordInputRef = useRef<HTMLInputElement>(null)
 
   const supabase = createClient()
 
@@ -73,20 +76,25 @@ function SignInForm() {
     e.preventDefault()
 
     const trimmed = email.trim().toLowerCase()
-    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      setErrorMessage('Please enter a valid email address.')
-      setFormState('error')
-      return
-    }
+    const validationErrors = validateSignInCredentials(email, password)
 
-    if (!password) {
-      setErrorMessage('Please enter your password.')
+    if (validationErrors.email || validationErrors.password) {
+      setFieldErrors(validationErrors)
+      setAuthErrorMessage('')
       setFormState('error')
+
+      if (validationErrors.email) {
+        emailInputRef.current?.focus()
+      } else {
+        passwordInputRef.current?.focus()
+      }
+
       return
     }
 
     setFormState('loading')
-    setErrorMessage('')
+    setFieldErrors({ email: '', password: '' })
+    setAuthErrorMessage('')
     setEmailLinkErrorMessage('')
     setGoogleErrorMessage('')
 
@@ -97,14 +105,14 @@ function SignInForm() {
 
     if (error) {
       if (error.message?.includes('rate') || error.status === 429) {
-        setErrorMessage('Too many attempts. Please wait a few minutes.')
+        setAuthErrorMessage('Too many attempts. Please wait a few minutes.')
       } else if (error.message?.includes('Invalid login credentials')) {
         // Many accounts are Google-/link-only and have no password, so a flat
         // "incorrect password" dead-ends them. Point at the other options without
         // confirming whether the account exists (avoids account enumeration).
-        setErrorMessage('Incorrect email or password. If you signed up with Google or a sign-in link, use one of the options below.')
+        setAuthErrorMessage('Incorrect email or password. If you signed up with Google or a sign-in link, use one of the options below.')
       } else {
-        setErrorMessage(error.message || 'Something went wrong. Please try again.')
+        setAuthErrorMessage(error.message || 'Something went wrong. Please try again.')
       }
       setFormState('error')
       return
@@ -120,7 +128,7 @@ function SignInForm() {
 
   const handleGoogleSignIn = useCallback(async () => {
     setGoogleLoading(true)
-    setErrorMessage('')
+    setAuthErrorMessage('')
     setEmailLinkErrorMessage('')
     setGoogleErrorMessage('')
 
@@ -152,7 +160,7 @@ function SignInForm() {
     }
 
     setEmailLinkLoading(true)
-    setErrorMessage('')
+    setAuthErrorMessage('')
     setEmailLinkErrorMessage('')
     setGoogleErrorMessage('')
 
@@ -233,56 +241,76 @@ function SignInForm() {
                 </div>
               )}
               <Input
+                label="Email address"
                 type="email"
                 placeholder="your@email.com"
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value)
+                  setFieldErrors((current) => ({ ...current, email: '' }))
+                  setAuthErrorMessage('')
                   setEmailLinkSent(false)
                   setEmailLinkErrorMessage('')
                   setLastMagicLinkSentAt(null)
                   setGoogleErrorMessage('')
                   if (formState === 'error') {
                     setFormState('idle')
-                    setErrorMessage('')
                   }
                 }}
+                isInvalid={Boolean(fieldErrors.email)}
+                errorMessage={fieldErrors.email}
                 disabled={formState === 'loading'}
                 autoComplete="email"
                 autoFocus
                 ref={emailInputRef}
-                startContent={<Mail className="w-4 h-4" />}
+                startContent={<Mail className="w-4 h-4" aria-hidden="true" />}
               />
               <div className="relative">
                 <Input
+                  label="Password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Password"
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value)
+                    setFieldErrors((current) => ({ ...current, password: '' }))
+                    setAuthErrorMessage('')
                     if (formState === 'error') {
                       setFormState('idle')
-                      setErrorMessage('')
                     }
                   }}
-                  isInvalid={formState === 'error' && !!errorMessage}
-                  errorMessage={errorMessage}
+                  isInvalid={Boolean(fieldErrors.password)}
+                  errorMessage={fieldErrors.password}
                   disabled={formState === 'loading'}
                   autoComplete="current-password"
-                  startContent={<Lock className="w-4 h-4" />}
+                  ref={passwordInputRef}
+                  startContent={<Lock className="w-4 h-4" aria-hidden="true" />}
                   endContent={
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
                       aria-label={showPassword ? "Hide password" : "Show password"}
-                      tabIndex={-1}
+                      aria-pressed={showPassword}
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4" aria-hidden="true" />
+                      ) : (
+                        <Eye className="w-4 h-4" aria-hidden="true" />
+                      )}
                     </button>
                   }
                 />
               </div>
+              {authErrorMessage && (
+                <div
+                  className="rounded-xl border border-destructive-border bg-destructive-light px-4 py-3 text-sm text-destructive"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  {authErrorMessage}
+                </div>
+              )}
               <div className="flex justify-end pt-1">
                 <Link
                   href="/auth/forgot-password"
@@ -295,7 +323,7 @@ function SignInForm() {
                 type="submit"
                 size="lg"
                 className="w-full"
-                disabled={formState === 'loading' || emailLinkLoading || !email.trim() || !password}
+                disabled={formState === 'loading' || emailLinkLoading}
               >
                 {formState === 'loading' ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

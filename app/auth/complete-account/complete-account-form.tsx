@@ -1,6 +1,6 @@
 "use client"
 
-import { Check, Loader2 } from "lucide-react"
+import { Check, Loader2, ShieldCheck } from "lucide-react"
 import { useRouter } from "next/navigation"
 import type React from "react"
 import { useEffect, useRef, useState } from "react"
@@ -16,7 +16,7 @@ import {
   getBrowserPurchaseCompletedInsertId,
 } from "@/lib/analytics/browser-purchase-dedup"
 import { trackPurchase } from "@/lib/analytics/conversion-tracking"
-import { buildPostSignInHref } from "@/lib/navigation/auth-handoff"
+import { buildCompleteAccountPostSignInHref } from "@/lib/auth/complete-account-handoff"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { detectRelayEmail, getRelayEmailMessage } from "@/lib/validation/email-relay"
 
@@ -42,7 +42,10 @@ export function CompleteAccountForm({
   const router = useRouter()
   const { isSignedIn, isLoaded } = useAuth()
   const posthog = usePostHog()
-  const postSignInHref = buildPostSignInHref({ intake_id: intakeId })
+  const postSignInHref = buildCompleteAccountPostSignInHref({
+    intakeId,
+    certificateAccess,
+  })
   const relayEmailNote = email ? getRelayEmailMessage(detectRelayEmail(email)) : null
 
   const [showConfetti, setShowConfetti] = useState(false)
@@ -174,15 +177,23 @@ export function CompleteAccountForm({
     <div className="space-y-4">
     <div className="p-8 rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06]">
       <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success-light mb-4">
-          <Check className="w-8 h-8 text-success" />
+        <div
+          className={`inline-flex h-16 w-16 items-center justify-center rounded-full mb-4 ${
+            certificateAccess ? "bg-primary/10" : "bg-success-light"
+          }`}
+        >
+          {certificateAccess ? (
+            <ShieldCheck className="h-8 w-8 text-primary" aria-hidden="true" />
+          ) : (
+            <Check className="h-8 w-8 text-success" aria-hidden="true" />
+          )}
         </div>
         <h1 className="text-2xl font-semibold mb-2">
-          {certificateAccess ? "Your certificate is ready" : "Payment successful"}
+          {certificateAccess ? "Secure certificate access" : "Payment successful"}
         </h1>
         <p className="text-muted-foreground">
           {certificateAccess
-            ? "Create a free account to securely view and download your certificate."
+            ? "Create a free account to view this request and download any current certificate securely."
             : "Create a free account to track your request, see the doctor's notes, and contact support - all in one place."}
         </p>
       </div>
@@ -206,7 +217,7 @@ export function CompleteAccountForm({
           className="w-full rounded-xl"
           size="lg"
         >
-          {certificateAccess ? "Create Account & View Certificate" : "Create Account & Track Request"}
+          {certificateAccess ? "Create Account & View Request" : "Create Account & Track Request"}
         </Button>
 
         {certificateAccess ? (

@@ -11,6 +11,15 @@ export const DB_IDEMPOTENT_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
   "review_request",
 ])
 
+export function buildResendEmailIdempotencyKey(outboxId: string): string {
+  const normalizedOutboxId = outboxId.trim()
+  if (!normalizedOutboxId) {
+    throw new Error("A durable outbox id is required for provider idempotency")
+  }
+
+  return `instantmed-email/${normalizedOutboxId}`
+}
+
 const METADATA_SCOPE_KEYS = [
   "draft_session_id",
   "followup_id",

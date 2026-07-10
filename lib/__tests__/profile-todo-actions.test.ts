@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { getTodoItems, type ProfileData } from "@/components/patient/profile-todo-card"
 
 const mocks = vi.hoisted(() => ({
-  auth: vi.fn(),
   createServiceRoleClient: vi.fn(),
+  getAuthenticatedUserWithProfile: vi.fn(),
   revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
   verifyAddress: vi.fn(),
@@ -16,7 +16,7 @@ vi.mock("next/cache", () => ({
 }))
 
 vi.mock("@/lib/auth/helpers", () => ({
-  auth: mocks.auth,
+  getAuthenticatedUserWithProfile: mocks.getAuthenticatedUserWithProfile,
 }))
 
 vi.mock("@/lib/google-places/geocoding", () => ({
@@ -31,14 +31,6 @@ function createProfileSupabaseMock() {
   const updatePayloads: Record<string, unknown>[] = []
 
   const profiles = {
-    select: vi.fn(() => ({
-      eq: vi.fn(() => ({
-        single: vi.fn(async () => ({
-          data: { auth_user_id: "auth-user-id" },
-          error: null,
-        })),
-      })),
-    })),
     update: vi.fn((payload: Record<string, unknown>) => {
       updatePayloads.push(payload)
       return {
@@ -61,7 +53,10 @@ describe("profile todo server actions", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     process.env.ENCRYPTION_KEY = Buffer.from("12345678901234567890123456789012").toString("base64")
-    mocks.auth.mockResolvedValue({ userId: "auth-user-id" })
+    mocks.getAuthenticatedUserWithProfile.mockResolvedValue({
+      user: { id: "auth-user-id" },
+      profile: { id: "profile-id", role: "patient" },
+    })
     mocks.verifyAddress.mockResolvedValue({ verified: false, address: null })
   })
 

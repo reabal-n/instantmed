@@ -116,6 +116,53 @@ describe("createPendingOutbox failed-row reclaim", () => {
     expect(state.insertCalled).toBe(false)
   })
 
+  it("freezes the incoming provider body when reclaiming a legacy failed row", async () => {
+    state.existingRow = { id: "row-legacy", status: "failed", metadata: { reclaim_count: 1 } }
+
+    const result = await createPendingOutbox({
+      ...RECOVERY_ENTRY,
+      metadata: {
+        _provider_payload_enc: "encrypted-provider-body",
+      },
+    })
+
+    expect(result).toEqual({
+      id: "row-legacy",
+      duplicate: false,
+      providerPayloadEnc: "encrypted-provider-body",
+    })
+    expect(state.updatePayload?.metadata).toMatchObject({
+      reclaim_count: 2,
+      _provider_payload_enc: "encrypted-provider-body",
+    })
+  })
+
+  it("keeps the original frozen body when reclaiming a failed row", async () => {
+    state.existingRow = {
+      id: "row-frozen",
+      status: "failed",
+      metadata: {
+        reclaim_count: 1,
+        _provider_payload_enc: "original-encrypted-body",
+      },
+    }
+
+    const result = await createPendingOutbox({
+      ...RECOVERY_ENTRY,
+      metadata: { _provider_payload_enc: "new-encrypted-body" },
+    })
+
+    expect(result).toEqual({
+      id: "row-frozen",
+      duplicate: false,
+      providerPayloadEnc: "original-encrypted-body",
+    })
+    expect(state.updatePayload?.metadata).toMatchObject({
+      reclaim_count: 2,
+      _provider_payload_enc: "original-encrypted-body",
+    })
+  })
+
   it("still dedupes rows that are not failed", async () => {
     state.existingRow = { id: "row-2", status: "sent", metadata: null }
 

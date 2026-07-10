@@ -31,7 +31,7 @@ process.env.STRIPE_SECRET_KEY = 'sk_test_secret'
 process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_secret'
 process.env.INTERNAL_API_SECRET = 'test-internal-secret'
 process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000'
-process.env.ENCRYPTION_KEY = 'dGVzdC1lbmNyeXB0aW9uLWtleS0zMi1ieXRlcyE=' // 32-byte test key
+process.env.ENCRYPTION_KEY = 'MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=' // 32-byte test key
 
 // ============================================================================
 // SUPABASE MOCK

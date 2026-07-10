@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
-import { auth } from "@/lib/auth/helpers"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { upsertHealthProfile } from "@/lib/data/health-profile"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("patient-health-profile")
 
@@ -25,24 +24,13 @@ export async function POST(request: NextRequest) {
     const rateLimitResponse = await applyRateLimit(request, "standard")
     if (rateLimitResponse) return rateLimitResponse
 
-    const { userId } = await auth()
-    if (!userId) {
+    const authResult = await getApiAuth()
+    if (!authResult || authResult.profile.role !== "patient") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const csrfError = await requireValidCsrf(request)
     if (csrfError) return csrfError
-
-    const supabase = createServiceRoleClient()
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("auth_user_id", userId)
-      .single()
-
-    if (!profile) {
-      return NextResponse.json({ error: "Profile not found" }, { status: 404 })
-    }
 
     const body = await request.json()
     const parsed = healthProfileSchema.safeParse(body)
@@ -50,7 +38,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid input" }, { status: 400 })
     }
 
-    const success = await upsertHealthProfile(profile.id, parsed.data)
+    const success = await upsertHealthProfile(authResult.profile.id, parsed.data)
 
     if (!success) {
       return NextResponse.json({ error: "Failed to save" }, { status: 500 })

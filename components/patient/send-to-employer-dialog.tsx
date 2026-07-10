@@ -49,6 +49,7 @@ export function SendToEmployerDialog({
   // Result state
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [queued, setQueued] = useState(false)
   const [remainingSends, setRemainingSends] = useState<number | null>(null)
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -66,6 +67,7 @@ export function SendToEmployerDialog({
 
       if (result.success) {
         setSuccess(true)
+        setQueued(Boolean(result.queued))
         setRemainingSends(result.remainingSends ?? null)
         capture("certificate_emailed_employer", { intake_id: intakeId })
         onSuccess?.()
@@ -88,6 +90,7 @@ export function SendToEmployerDialog({
       setNote("")
       setError(null)
       setSuccess(false)
+      setQueued(false)
       setRemainingSends(null)
     }, 200)
   }
@@ -111,10 +114,13 @@ export function SendToEmployerDialog({
             <div className="mx-auto w-12 h-12 rounded-full bg-success-light flex items-center justify-center mb-4">
               <CheckCircle className="h-6 w-6 text-success" />
             </div>
-            <DialogTitle className="text-xl mb-2">Email Sent</DialogTitle>
+            <DialogTitle className="text-xl mb-2">
+              {queued ? "Email queued" : "Email sent"}
+            </DialogTitle>
             <DialogDescription className="mb-6">
-              Your medical certificate has been sent to {employerEmail}. They'll receive a secure
-              download link that expires in 7 days.
+              {queued
+                ? `We'll send your medical certificate to ${employerEmail} automatically. No need to try again.`
+                : `Your medical certificate has been sent to ${employerEmail}. They'll receive a secure download link that expires in 7 days.`}
             </DialogDescription>
             {remainingSends !== null && remainingSends > 0 && (
               <p className="text-sm text-muted-foreground mb-4">

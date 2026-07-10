@@ -41,7 +41,6 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { buildPrescribingPacket, getPrescribingPacketBlocker } from "@/lib/clinical/prescribing-packet"
-import { buildDoctorDocumentBuilderHref } from "@/lib/dashboard/routes"
 import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/data/status"
@@ -91,6 +90,7 @@ interface IntakeDetailHeaderProps {
   onMarkScriptSent: () => void
   onMarkRefunded: () => void
   onApproveDateCorrection: () => void
+  onRejectDateCorrection: () => void
   onResendCertificate: () => void
   onViewCertificate: () => void
   onCertPreviewConfirm: (data: CertificatePreviewData) => void
@@ -129,6 +129,7 @@ export function IntakeDetailHeader({
   onMarkScriptSent,
   onMarkRefunded,
   onApproveDateCorrection,
+  onRejectDateCorrection,
   onResendCertificate,
   onViewCertificate,
   onCertPreviewConfirm,
@@ -329,10 +330,13 @@ export function IntakeDetailHeader({
               <Button size="sm" onClick={onApproveDateCorrection} disabled={isPending}>
                 {isPending ? "Approving..." : "Approve & Update Dates"}
               </Button>
-              <Button size="sm" variant="outline" asChild>
-                <Link href={buildDoctorDocumentBuilderHref(intake.id)}>
-                  Edit & Resend
-                </Link>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onRejectDateCorrection}
+                disabled={isPending}
+              >
+                Decline correction
               </Button>
             </div>
           </CardContent>
@@ -499,7 +503,13 @@ export function IntakeDetailHeader({
                   {isViewingCert ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileText className="h-4 w-4 mr-2" />}
                   View Certificate
                 </Button>
-                <Button size={actionButtonSize} variant="outline" onClick={onReissueCertificate} disabled={isPending || isLoadingPreview}>
+                <Button
+                  size={actionButtonSize}
+                  variant="outline"
+                  onClick={onReissueCertificate}
+                  disabled={isPending || isLoadingPreview || Boolean(pendingCorrection)}
+                  title={pendingCorrection ? "Resolve the patient's pending date correction first" : undefined}
+                >
                   {isLoadingPreview ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                   Correct certificate
                 </Button>

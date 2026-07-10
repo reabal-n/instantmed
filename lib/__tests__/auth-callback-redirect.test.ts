@@ -58,6 +58,16 @@ describe("resolvePostAuthDestination", () => {
     expect(signInSource).toContain("sessionStorage.getItem(LAST_MAGIC_LINK_EMAIL_KEY)")
   })
 
+  it("keeps sign-in field errors and password visibility accessible", () => {
+    expect(signInSource).toContain('label="Email address"')
+    expect(signInSource).toContain('label="Password"')
+    expect(signInSource).toContain("fieldErrors.email")
+    expect(signInSource).toContain("fieldErrors.password")
+    expect(signInSource).toContain("passwordInputRef.current?.focus()")
+    expect(signInSource).toContain("aria-pressed={showPassword}")
+    expect(signInSource).not.toContain("tabIndex={-1}")
+  })
+
   it("uses calm account-checking copy while the magic-link session settles", () => {
     expect(postSignInLoadingSource).toContain("Finishing secure sign-in")
     expect(postSignInLoadingSource).toContain("Checking your account")

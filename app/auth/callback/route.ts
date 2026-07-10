@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 import { resolvePostAuthDestination } from "@/lib/auth/post-auth-destination"
+import { normalizePostAuthRedirect } from "@/lib/auth/redirects"
 import { AUTH_POST_SIGNIN_HREF } from "@/lib/navigation/auth-handoff"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
@@ -12,6 +13,17 @@ function destinationKind(destination: string): string {
   if (destination.startsWith("/patient")) return "patient"
   if (destination.startsWith("/doctor")) return "doctor"
   return "other"
+}
+
+function buildRecoveryUrl(origin: string, next: string | null): URL {
+  const recoveryUrl = new URL("/sign-in?auth_error=link_expired", origin)
+  const safeRedirect = normalizePostAuthRedirect(next, "", origin)
+
+  if (safeRedirect) {
+    recoveryUrl.searchParams.set("redirect", safeRedirect)
+  }
+
+  return recoveryUrl
 }
 
 /**
@@ -41,7 +53,7 @@ export async function GET(request: NextRequest) {
 
   if (!code) {
     log.warn("Auth callback called without code parameter")
-    return NextResponse.redirect(`${origin}/sign-in`)
+    return NextResponse.redirect(buildRecoveryUrl(origin, next))
   }
 
   log.info("Supabase auth callback - exchanging code for session")
@@ -59,7 +71,7 @@ export async function GET(request: NextRequest) {
       })
       return NextResponse.redirect(`${origin}${destination}`)
     }
-    return NextResponse.redirect(`${origin}/sign-in?auth_error=link_expired`)
+    return NextResponse.redirect(buildRecoveryUrl(origin, next))
   }
 
   // Successful auth - redirect through post-signin for profile linking

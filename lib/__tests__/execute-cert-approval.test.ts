@@ -98,6 +98,9 @@ vi.mock("@/lib/clinical/manual-cert-claim", () => ({
 vi.mock("@/lib/email/send-email", () => ({
   sendEmail: vi.fn(),
 }))
+vi.mock("@/lib/medical-certificates/email-delivery-reconciliation", () => ({
+  reconcileCertificateEmailDelivery: vi.fn(),
+}))
 vi.mock("@/lib/email/components/templates", () => ({
   MedCertPatientEmail: vi.fn(() => null),
   medCertPatientEmailSubject: vi.fn(() => "Your certificate is ready"),
@@ -130,10 +133,10 @@ import {
   compareForEdits,
   findExistingCertificate,
   logCertificateEdits,
-  updateEmailStatus,
 } from "@/lib/data/issued-certificates"
 import { MedCertPatientEmail } from "@/lib/email/components/templates"
 import { sendEmail } from "@/lib/email/send-email"
+import { reconcileCertificateEmailDelivery } from "@/lib/medical-certificates/email-delivery-reconciliation"
 import { generateCertificateNumber, generateCertificateRef, generateVerificationCode } from "@/lib/pdf/cert-identifiers"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { getAbsenceDays } from "@/lib/stripe/price-mapping"
@@ -210,6 +213,7 @@ beforeEach(() => {
   mock(atomicApproveCertificate).mockResolvedValue({ success: true, certificateId: "cert-1", isExisting: false })
   mock(findExistingCertificate).mockResolvedValue(null)
   mock(sendEmail).mockResolvedValue({ success: true, messageId: "msg-1", outboxId: "ob-1" })
+  mock(reconcileCertificateEmailDelivery).mockResolvedValue({ success: true, failedSteps: [] })
   mock(compareForEdits).mockReturnValue([])
   mock(logCertificateEdits).mockResolvedValue({ editCount: 0, errors: [] })
   mock(getAbsenceDays).mockReturnValue(1)
@@ -408,7 +412,9 @@ describe("executeCertApproval — atomic approval + delivery", () => {
     expect(result.emailSentTo).toBeUndefined()
     expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ scheduledFor: expect.any(String) }))
     // Deferred path logs the queue event but does NOT mark the cert "sent".
-    expect(updateEmailStatus).not.toHaveBeenCalledWith("cert-1", "sent", expect.anything())
+    expect(reconcileCertificateEmailDelivery).not.toHaveBeenCalledWith(
+      expect.objectContaining({ outcome: "sent" }),
+    )
   })
 
   it("sends immediately and flags ai_approved on auto-approval", async () => {
@@ -417,7 +423,14 @@ describe("executeCertApproval — atomic approval + delivery", () => {
     expect(result.success).toBe(true)
     expect(result.emailScheduledFor).toBeUndefined()
     expect(result.emailSentTo).toBe("jane@example.com")
-    expect(updateEmailStatus).toHaveBeenCalledWith("cert-1", "sent", expect.anything())
+    expect(reconcileCertificateEmailDelivery).toHaveBeenCalledWith(expect.objectContaining({
+      intakeId: "intake-1",
+      certificateId: "cert-1",
+      outcome: "sent",
+      providerMessageId: "msg-1",
+      outboxId: "ob-1",
+      source: "initial_approval",
+    }))
     expect(h.state.updateCalls.some((c) => c.ai_approved === true)).toBe(true)
   })
 
@@ -428,7 +441,13 @@ describe("executeCertApproval — atomic approval + delivery", () => {
 
     expect(result.success).toBe(true)
     expect(result.emailSent).toBe(false)
-    expect(updateEmailStatus).toHaveBeenCalledWith("cert-1", "failed", expect.anything())
+    expect(reconcileCertificateEmailDelivery).toHaveBeenCalledWith(expect.objectContaining({
+      intakeId: "intake-1",
+      certificateId: "cert-1",
+      outcome: "failed",
+      failureReason: "mailbox unavailable",
+      source: "initial_approval",
+    }))
   })
 
   it("routes guest patients to the account-link URL, not the auth-walled portal", async () => {

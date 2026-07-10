@@ -9,6 +9,7 @@ import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import { createLogger } from "@/lib/observability/logger"
 import { getPatientCertificateDownloadHref } from "@/lib/patient/certificate-download"
 import {
+  type CertificatePatientNameWriteResult,
   prepareCertificatePatientNameWrite,
   readCertificatePatientName,
 } from "@/lib/security/phi-field-wrappers"
@@ -98,6 +99,40 @@ export interface CreateCertificateInput {
   file_size_bytes?: number | null
 }
 
+export interface CommitCertificateCorrectionInput {
+  certificateId: string
+  expectedStoragePath: string
+  newStoragePath: string
+  patientName: string
+  patientNameEnc: CertificatePatientNameWriteResult["patient_name_enc"]
+  patientDob: string | null
+  certificateType: "work" | "study" | "carer"
+  startDate: string
+  endDate: string
+  pdfHash: string
+  fileSizeBytes: number
+  actorId: string
+  actorRole: "doctor" | "admin"
+  pendingCorrectionEventId?: string | null
+}
+
+export interface ReserveCertificateResendInput {
+  attemptId: string
+  certificateId: string
+  actorId: string
+  actorRole: "patient" | "doctor" | "admin" | "support"
+  resendReason: string
+  countTowardStaffLimit: boolean
+}
+
+export interface FinalizeCertificateResendInput {
+  attemptId: string
+  deliverySucceeded: boolean
+  emailOutboxId?: string | null
+  providerMessageId?: string | null
+  failureReason?: string | null
+}
+
 // ============================================================================
 // IDEMPOTENCY
 // ============================================================================
@@ -127,7 +162,7 @@ export async function findExistingCertificate(
     .from("issued_certificates")
     .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, email_opened_at, resend_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("intake_id", intakeId)
-    .neq("status", "revoked")
+    .eq("status", "valid")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle()
@@ -171,6 +206,53 @@ export async function findByIdempotencyKey(
   return { ...certWithoutEnc, patient_name: decryptedName || certWithoutEnc.patient_name } as IssuedCertificate
 }
 
+const MAX_CERTIFICATE_IDEMPOTENCY_REPLACEMENTS = 10
+
+function generateReplacementIdempotencyKey(
+  previousKey: string,
+  invalidCertificateId: string,
+): string {
+  return crypto
+    .createHash("sha256")
+    .update(`${previousKey}:replacement:${invalidCertificateId}`)
+    .digest("hex")
+    .slice(0, 32)
+}
+
+/**
+ * Keep first-issuance retries on the canonical intake/doctor/day key, while
+ * allowing a revoked or historical invalid certificate to be replaced on the
+ * same day. Each replacement deterministically derives its key from the prior
+ * invalid row, so concurrent/retried replacement attempts converge on the same
+ * key instead of weakening issuance idempotency with randomness.
+ */
+async function resolveCertificateIssuanceIdempotencyKey(
+  intakeId: string,
+  doctorId: string,
+  issueDate: string,
+): Promise<{ key?: string; error?: string }> {
+  let key = generateIdempotencyKey(intakeId, doctorId, issueDate)
+
+  for (let depth = 0; depth < MAX_CERTIFICATE_IDEMPOTENCY_REPLACEMENTS; depth++) {
+    const existing = await findByIdempotencyKey(key)
+    if (!existing || existing.status === "valid") {
+      return { key }
+    }
+
+    log.warn("Rotating certificate idempotency key past invalid certificate", {
+      intakeId,
+      certificateId: existing.id,
+      certificateStatus: existing.status,
+      replacementDepth: depth + 1,
+    })
+    key = generateReplacementIdempotencyKey(key, existing.id)
+  }
+
+  return {
+    error: "Certificate replacement history exceeded the safe idempotency limit",
+  }
+}
+
 // ============================================================================
 // CREATE / UPDATE
 // ============================================================================
@@ -184,12 +266,22 @@ export async function createIssuedCertificate(
 ): Promise<{ success: boolean; certificate?: IssuedCertificate; isExisting?: boolean; error?: string }> {
   const supabase = createServiceRoleClient()
 
-  // Generate idempotency key
-  const idempotencyKey = generateIdempotencyKey(
+  // Generate a deterministic idempotency key. Invalid historical certificates
+  // form a replacement chain so a same-day reapproval cannot resolve back to a
+  // revoked/superseded/expired row in the approval RPC.
+  const idempotencyResolution = await resolveCertificateIssuanceIdempotencyKey(
     input.intake_id,
     input.doctor_id,
     input.issue_date
   )
+  if (!idempotencyResolution.key) {
+    log.error("Failed to resolve certificate idempotency key", {
+      intakeId: input.intake_id,
+      error: idempotencyResolution.error,
+    })
+    return { success: false, error: idempotencyResolution.error }
+  }
+  const idempotencyKey = idempotencyResolution.key
 
   // Check for existing certificate with same idempotency key
   const existing = await findByIdempotencyKey(idempotencyKey)
@@ -381,12 +473,19 @@ export async function atomicApproveCertificate(
     return { success: false, error: "You do not have a claim on this intake" }
   }
 
-  // Generate idempotency key
-  const idempotencyKey = generateIdempotencyKey(
+  const idempotencyResolution = await resolveCertificateIssuanceIdempotencyKey(
     input.intake_id,
     input.doctor_id,
     input.issue_date
   )
+  if (!idempotencyResolution.key) {
+    log.error("Failed to resolve atomic certificate idempotency key", {
+      intakeId: input.intake_id,
+      error: idempotencyResolution.error,
+    })
+    return { success: false, error: idempotencyResolution.error }
+  }
+  const idempotencyKey = idempotencyResolution.key
 
   // Pre-encrypt patient name for PHI dual-write via RPC
   const phiWrite = await prepareCertificatePatientNameWrite(input.patient_name)
@@ -442,6 +541,28 @@ export async function atomicApproveCertificate(
     return { success: false, error: result?.error_message || "Unknown error" }
   }
 
+  if (result.is_duplicate) {
+    const duplicateCertificate = result.certificate_id
+      ? await getCertificateById(result.certificate_id)
+      : null
+
+    if (
+      !duplicateCertificate ||
+      duplicateCertificate.intake_id !== input.intake_id ||
+      duplicateCertificate.status !== "valid"
+    ) {
+      log.error("Atomic approval returned an invalid idempotent duplicate", {
+        intakeId: input.intake_id,
+        certificateId: result.certificate_id,
+        certificateStatus: duplicateCertificate?.status,
+      })
+      return {
+        success: false,
+        error: "Existing idempotent certificate is no longer valid",
+      }
+    }
+  }
+
   log.info("Atomic approval succeeded", {
     intakeId: input.intake_id,
     certificateId: result.certificate_id,
@@ -465,6 +586,12 @@ export async function updateEmailStatus(
   details: {
     deliveryId?: string
     failureReason?: string
+    /**
+     * Compare-and-set guard for delivery bookkeeping. Certificate corrections
+     * preserve the row ID while switching storage_path, so a provider response
+     * for the previous PDF must not mark the replacement document delivered.
+     */
+    expectedStoragePath?: string
   }
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = createServiceRoleClient()
@@ -483,45 +610,227 @@ export async function updateEmailStatus(
     updateData.email_failure_reason = details.failureReason
   }
 
-  const { error } = await supabase
+  let updateQuery = supabase
     .from("issued_certificates")
     .update(updateData)
     .eq("id", certificateId)
+
+  if (details.expectedStoragePath) {
+    updateQuery = updateQuery
+      .eq("storage_path", details.expectedStoragePath)
+      .eq("status", "valid")
+  }
+
+  const { data: updatedCertificate, error } = await updateQuery
+    .select("intake_id")
+    .maybeSingle()
 
   if (error) {
     log.error("Failed to update email status", { certificateId, status }, error)
     return { success: false, error: error.message }
   }
 
+  if (!updatedCertificate) {
+    const error = details.expectedStoragePath
+      ? "Certificate document version changed before email reconciliation"
+      : "Certificate not found for email reconciliation"
+    log.error("Certificate email status update matched no row", {
+      certificateId,
+      status,
+      storageVersionGuarded: Boolean(details.expectedStoragePath),
+    })
+    return { success: false, error }
+  }
+
   if (status === "sent") {
-    const { data: certificate, error: certError } = await supabase
-      .from("issued_certificates")
-      .select("intake_id")
-      .eq("id", certificateId)
-      .maybeSingle()
+    const { error: intakeError } = await supabase
+      .from("intakes")
+      .update({
+        document_sent_at: updateData.email_sent_at,
+        generated_document_type: "medical_certificate",
+      })
+      .eq("id", updatedCertificate.intake_id)
+      .is("document_sent_at", null)
 
-    if (certError) {
-      log.warn("Failed to look up certificate intake after email status update", { certificateId }, certError)
-    } else if (certificate?.intake_id) {
-      const { error: intakeError } = await supabase
-        .from("intakes")
-        .update({
-          document_sent_at: updateData.email_sent_at,
-          generated_document_type: "medical_certificate",
-        })
-        .eq("id", certificate.intake_id)
-        .is("document_sent_at", null)
-
-      if (intakeError) {
-        log.warn("Failed to mirror certificate delivery onto intake", {
-          certificateId,
-          intakeId: certificate.intake_id,
-        }, intakeError)
-      }
+    if (intakeError) {
+      log.error("Failed to mirror certificate delivery onto intake", {
+        certificateId,
+        intakeId: updatedCertificate.intake_id,
+      }, intakeError)
+      return { success: false, error: intakeError.message }
     }
   }
 
   return { success: true }
+}
+
+/**
+ * Count completed doctor corrections from the immutable certificate audit log.
+ * `resend_count` is intentionally excluded: delivery retries and clinical
+ * corrections are separate limits.
+ */
+export async function getCertificateCorrectionCount(
+  certificateId: string,
+): Promise<{ success: boolean; count?: number; error?: string }> {
+  const supabase = createServiceRoleClient()
+
+  const { count, error } = await supabase
+    .from("certificate_audit_log")
+    .select("id", { count: "exact", head: true })
+    .eq("certificate_id", certificateId)
+    .eq("event_type", "superseded")
+    .contains("event_data", { reissue_reason: "doctor_correction" })
+
+  if (error) {
+    log.error("Failed to count certificate corrections", { certificateId }, error)
+    return { success: false, error: error.message }
+  }
+
+  return { success: true, count: count ?? 0 }
+}
+
+/**
+ * Atomically make a newly uploaded correction current and append its required
+ * medicolegal audit event. The RPC locks the certificate row, re-checks the
+ * three-correction cap, and rolls the row update back if the audit insert fails.
+ */
+export async function commitCertificateCorrection(
+  input: CommitCertificateCorrectionInput,
+): Promise<{
+  success: boolean
+  correctionCount?: number
+  previousStoragePath?: string
+  error?: string
+}> {
+  const supabase = createServiceRoleClient()
+
+  const { data, error } = await supabase.rpc("commit_certificate_correction", {
+    p_certificate_id: input.certificateId,
+    p_expected_storage_path: input.expectedStoragePath,
+    p_new_storage_path: input.newStoragePath,
+    p_patient_name: input.patientName,
+    p_patient_name_enc: input.patientNameEnc,
+    p_patient_dob: input.patientDob,
+    p_certificate_type: input.certificateType,
+    p_start_date: input.startDate,
+    p_end_date: input.endDate,
+    p_pdf_hash: input.pdfHash,
+    p_file_size_bytes: input.fileSizeBytes,
+    p_actor_id: input.actorId,
+    p_actor_role: input.actorRole,
+    p_pending_correction_event_id: input.pendingCorrectionEventId ?? null,
+  })
+
+  if (error) {
+    log.error("Atomic certificate correction RPC failed", {
+      certificateId: input.certificateId,
+    }, error)
+    return { success: false, error: error.message }
+  }
+
+  const result = Array.isArray(data) ? data[0] : data
+  if (!result?.success) {
+    const errorMessage = result?.error_message || "Certificate correction failed"
+    log.error("Atomic certificate correction returned failure", {
+      certificateId: input.certificateId,
+      error: errorMessage,
+    })
+    return { success: false, error: errorMessage }
+  }
+
+  return {
+    success: true,
+    correctionCount: result.correction_count,
+    previousStoragePath: result.previous_storage_path,
+  }
+}
+
+export async function reserveCertificateResend(
+  input: ReserveCertificateResendInput,
+): Promise<{ success: boolean; attemptStatus?: string; error?: string }> {
+  const supabase = createServiceRoleClient()
+  const { data, error } = await supabase.rpc("reserve_certificate_resend", {
+    p_attempt_id: input.attemptId,
+    p_certificate_id: input.certificateId,
+    p_actor_id: input.actorId,
+    p_actor_role: input.actorRole,
+    p_resend_reason: input.resendReason,
+    p_count_toward_staff_limit: input.countTowardStaffLimit,
+  })
+
+  if (error) {
+    log.error("Certificate resend reservation RPC failed", {
+      certificateId: input.certificateId,
+    }, error)
+    return { success: false, error: error.message }
+  }
+
+  const result = Array.isArray(data) ? data[0] : data
+  if (!result?.success) {
+    return {
+      success: false,
+      error: result?.error_message || "Certificate resend reservation failed",
+    }
+  }
+
+  return {
+    success: true,
+    attemptStatus: result.attempt_status,
+  }
+}
+
+export async function reconcileCertificateResendAttempts(
+  certificateId?: string | null,
+): Promise<{ success: boolean; reconciledCount?: number; error?: string }> {
+  const supabase = createServiceRoleClient()
+  const { data, error } = await supabase.rpc("reconcile_certificate_resend_attempts", {
+    p_certificate_id: certificateId ?? null,
+  })
+
+  if (error) {
+    log.error("Certificate resend reconciliation RPC failed", { certificateId }, error)
+    return { success: false, error: error.message }
+  }
+
+  const result = Array.isArray(data) ? data[0] : data
+  if (!result?.success) {
+    return {
+      success: false,
+      error: result?.error_message || "Certificate resend reconciliation failed",
+    }
+  }
+
+  return { success: true, reconciledCount: result.reconciled_count }
+}
+
+export async function finalizeCertificateResend(
+  input: FinalizeCertificateResendInput,
+): Promise<{ success: boolean; isDuplicate?: boolean; error?: string }> {
+  const supabase = createServiceRoleClient()
+  const { data, error } = await supabase.rpc("finalize_certificate_resend", {
+    p_attempt_id: input.attemptId,
+    p_delivery_succeeded: input.deliverySucceeded,
+    p_email_outbox_id: input.emailOutboxId ?? null,
+    p_provider_message_id: input.providerMessageId ?? null,
+    p_failure_reason: input.failureReason ?? null,
+  })
+
+  if (error) {
+    log.error("Certificate resend finalization RPC failed", {
+      attemptId: input.attemptId,
+    }, error)
+    return { success: false, error: error.message }
+  }
+
+  const result = Array.isArray(data) ? data[0] : data
+  if (!result?.success) {
+    return {
+      success: false,
+      error: result?.error_message || "Certificate resend finalization failed",
+    }
+  }
+
+  return { success: true, isDuplicate: result.is_duplicate }
 }
 
 /**
@@ -532,21 +841,30 @@ export async function incrementEmailRetry(
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = createServiceRoleClient()
 
-  const { data: cert } = await supabase
+  const { data: cert, error: fetchError } = await supabase
     .from("issued_certificates")
     .select("email_retry_count")
     .eq("id", certificateId)
     .single()
 
-  if (cert) {
-    await supabase
-      .from("issued_certificates")
-      .update({
-        email_retry_count: (cert.email_retry_count || 0) + 1,
-        email_failed_at: null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", certificateId)
+  if (fetchError || !cert) {
+    const errorMessage = fetchError?.message || "Certificate not found"
+    log.error("Failed to read email retry count", { certificateId }, fetchError ?? undefined)
+    return { success: false, error: errorMessage }
+  }
+
+  const { error: updateError } = await supabase
+    .from("issued_certificates")
+    .update({
+      email_retry_count: (cert.email_retry_count || 0) + 1,
+      email_failed_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", certificateId)
+
+  if (updateError) {
+    log.error("Failed to increment email retry count", { certificateId }, updateError)
+    return { success: false, error: updateError.message }
   }
 
   return { success: true }
@@ -701,13 +1019,14 @@ export async function getCertificateForIntake(
 ): Promise<IssuedCertificate | null> {
   const supabase = createServiceRoleClient()
 
-  // Medical certificates do not expire — only revoked ones are excluded.
-  // Patients keep access to their certificate forever.
+  // Current/download-ready behavior must only resolve a valid certificate.
+  // Historical revoked/superseded/expired rows remain available by explicit
+  // history/id lookup, but must never be treated as the current document.
   const { data, error } = await supabase
     .from("issued_certificates")
     .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, email_opened_at, resend_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("intake_id", intakeId)
-    .neq("status", "revoked")
+    .eq("status", "valid")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle()
@@ -721,6 +1040,28 @@ export async function getCertificateForIntake(
   const decryptedName = await readCertificatePatientName(data)
   const { patient_name_enc: _enc, ...certWithoutEnc } = data
   return { ...certWithoutEnc, patient_name: decryptedName || certWithoutEnc.patient_name } as IssuedCertificate
+}
+
+/**
+ * Whether this intake has any canonical certificate history, including
+ * revoked/superseded/expired rows. Database errors fail closed as `true` so a
+ * legacy document can never be resurrected during a canonical lookup outage.
+ */
+export async function hasIssuedCertificateHistory(intakeId: string): Promise<boolean> {
+  const supabase = createServiceRoleClient()
+  const { data, error } = await supabase
+    .from("issued_certificates")
+    .select("id")
+    .eq("intake_id", intakeId)
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    log.error("Failed to check issued certificate history", { intakeId }, error)
+    return true
+  }
+
+  return Boolean(data)
 }
 
 /**
@@ -743,7 +1084,7 @@ export async function getCertificateWithPdfUrl(
 } | null> {
   const certificate = await getCertificateForIntake(intakeId)
   
-  if (!certificate || certificate.status === "revoked") {
+  if (!certificate || certificate.status !== "valid") {
     return null
   }
   
@@ -857,7 +1198,7 @@ export async function logCertificateEvent(
   certificateId: string,
   eventType: CertificateEventType,
   actorId: string | null,
-  actorRole: "patient" | "doctor" | "admin" | "system",
+  actorRole: "patient" | "doctor" | "admin" | "support" | "system",
   eventData: Record<string, unknown> = {},
   ipAddress?: string,
   userAgent?: string
@@ -910,7 +1251,11 @@ export async function generateSignedDownloadUrl(
 }
 
 /**
- * Verify patient owns the certificate and generate download URL
+ * Verify certificate ownership and generate a signed URL.
+ *
+ * This helper is deliberately side-effect free. The authenticated route owns
+ * the single durable download audit event because it knows the real requester
+ * and role (patient, issuing doctor, or admin).
  */
 export async function getSecureDownloadUrl(
   certificateId: string,
@@ -930,14 +1275,7 @@ export async function getSecureDownloadUrl(
     return { success: false, error: "Certificate is no longer valid" }
   }
 
-  const result = await generateSignedDownloadUrl(certificate.storage_path)
-
-  if (result.success) {
-    // Log the download event
-    await logCertificateEvent(certificateId, "downloaded", patientId, "patient")
-  }
-
-  return result
+  return generateSignedDownloadUrl(certificate.storage_path)
 }
 
 // ============================================================================

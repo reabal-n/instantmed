@@ -90,6 +90,8 @@ export interface SendEmailResult {
   messageId?: string
   outboxId?: string
   error?: string
+  /** Whether an outbox-backed failure should be retried by the dispatcher. */
+  retryable?: boolean
   skipped?: boolean  // True if skipped due to E2E mode
 }
 

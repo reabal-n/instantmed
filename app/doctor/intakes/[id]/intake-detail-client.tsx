@@ -480,6 +480,7 @@ function LegacyIntakeDetailClient({
         onMarkScriptSent={actions.handleMarkScriptSent}
         onMarkRefunded={actions.handleMarkRefunded}
         onApproveDateCorrection={() => actions.handleApproveDateCorrection(pendingCorrection ?? null)}
+        onRejectDateCorrection={() => actions.handleRejectDateCorrection(pendingCorrection ?? null)}
         onResendCertificate={actions.handleResendCertificate}
         onViewCertificate={actions.handleViewCertificate}
         onCertPreviewConfirm={actions.handleCertPreviewConfirm}

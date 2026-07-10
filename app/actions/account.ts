@@ -3,27 +3,52 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { revalidatePath } from "next/cache"
 
-import { auth, getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { revalidatePatient } from "@/lib/dashboard/revalidate-staff"
+import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { logAuditEvent } from "@/lib/security/audit-log"
+import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
-const ACCOUNT_CLOSURE_BLOCKING_STATUSES = [
-  "paid",
-  "in_review",
-  "pending_info",
-  "approved",
-  "awaiting_script",
-  "escalated",
-] as const
+const log = createLogger("account-actions")
 
-/**
- * Helper to get the current authenticated user ID
- */
-async function getAuthUserId(): Promise<string | null> {
-  const { userId } = await auth()
-  return userId
+type ClosePatientAccountResult = {
+  success: boolean
+  error_code: string | null
+  closed_at: string | null
+}
+
+async function removeClosedAccountAvatars(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  authUserId: string,
+  profileId: string,
+): Promise<void> {
+  const { data: avatarObjects, error: listError } = await supabase.storage
+    .from("avatars")
+    .list(authUserId, { limit: 1000 })
+
+  if (listError) {
+    log.warn("Failed to list avatar objects after account closure", {
+      profileId,
+      code: listError.message,
+    })
+    return
+  }
+
+  const paths = (avatarObjects ?? [])
+    .filter((object) => Boolean(object.name))
+    .map((object) => `${authUserId}/${object.name}`)
+  if (paths.length === 0) return
+
+  const { error: removeError } = await supabase.storage.from("avatars").remove(paths)
+  if (removeError) {
+    log.warn("Failed to remove avatar objects after account closure", {
+      profileId,
+      objectCount: paths.length,
+      code: removeError.message,
+    })
+  }
 }
 
 function getAppUrl(): string {
@@ -58,26 +83,13 @@ function createPasswordResetClient() {
   })
 }
 
-/**
- * Change password - handled by Supabase Auth UI
- */
-export async function changePassword(
-  _currentPassword: string,
-  _newPassword: string,
-): Promise<{ success: boolean; error: string | null }> {
-  return { 
-    success: false, 
-    error: "Password management is handled by your account settings." 
-  }
-}
-
 export async function requestPasswordReset(email: string): Promise<{ success: boolean; error: string | null }> {
   const normalizedEmail = email.trim().toLowerCase()
   if (!normalizedEmail) {
     return { success: false, error: "Email is required" }
   }
 
-  const redirectTo = `${getAppUrl()}/auth/callback?next=${encodeURIComponent("/auth/reset-password")}`
+  const redirectTo = `${getAppUrl()}/auth/reset-password`
   const supabase = createPasswordResetClient()
   const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
     redirectTo,
@@ -108,87 +120,71 @@ export async function deleteAccount(): Promise<{ success: boolean; error: string
   }
 
   const supabase = createServiceRoleClient()
-  const accountClosedAt = new Date().toISOString()
+  const { data: closeData, error: closeError } = await supabase
+    .rpc("close_patient_account", {
+      p_profile_id: authUser.profile.id,
+      p_auth_user_id: authUser.user.id,
+      p_reason: "self_service",
+    })
 
-  const { data: activeIntakes, error: activeIntakesError } = await supabase
-    .from("intakes")
-    .select("id")
-    .eq("patient_id", authUser.profile.id)
-    .in("status", ACCOUNT_CLOSURE_BLOCKING_STATUSES)
-    .limit(1)
-
-  if (activeIntakesError) {
-    return { success: false, error: "Unable to check active requests. Please try again." }
+  if (closeError) {
+    log.error("Atomic patient account closure failed", {
+      profileId: authUser.profile.id,
+      code: closeError.code,
+    }, closeError)
+    return { success: false, error: "Unable to close your account. Please try again." }
   }
 
-  if (activeIntakes && activeIntakes.length > 0) {
+  const closeResult = (Array.isArray(closeData) ? closeData[0] : closeData) as ClosePatientAccountResult | null
+  if (!closeResult?.success) {
+    if (closeResult?.error_code === "active_intake") {
+      return {
+        success: false,
+        error: "You have an active request. Contact support before closing your account.",
+      }
+    }
+
     return {
       success: false,
-      error: "You have an active request. Contact support before closing your account.",
+      error: "Account is already closed or could not be closed",
     }
   }
 
-  // Close patient sign-in access while retaining clinical, payment, and audit records.
-  const { data: closedProfile, error: updateError } = await supabase
-    .from("profiles")
-    .update({
-      auth_user_id: null,
-      account_closed_at: accountClosedAt,
-      account_closure_reason: "self_service",
-      email: null,
-      full_name: "Closed Account",
-      first_name: null,
-      last_name: null,
-      avatar_url: null,
-      date_of_birth: null,
-      date_of_birth_encrypted: null,
-      phone: null,
-      phone_encrypted: null,
-      address_line1: null,
-      suburb: null,
-      state: null,
-      postcode: null,
-      medicare_number: null,
-      medicare_number_encrypted: null,
-      ihi_number: null,
-      ihi_number_encrypted: null,
-      medicare_irn: null,
-      medicare_expiry: null,
-      phi_encrypted_at: null,
-      email_verified: false,
-      email_verified_at: null,
-      email_bounced: null,
-      email_bounced_at: null,
-      email_bounce_reason: null,
-      email_delivery_failures: 0,
-      stripe_customer_id: null,
-      parchment_patient_id: null,
-      certificate_identity_complete: false,
+  try {
+    await logAuditEvent({
+      action: "account_closed",
+      actorId: authUser.profile.id,
+      actorType: "patient",
+      metadata: {
+        account_closed_at: closeResult.closed_at,
+        closure_type: "self_service",
+        retained_records: true,
+      },
     })
-    .eq("id", authUser.profile.id)
-    .eq("auth_user_id", authUser.user.id)
-    .is("account_closed_at", null)
-    .select("id")
-    .maybeSingle()
-
-  if (updateError) {
-    return { success: false, error: updateError.message }
+  } catch (error) {
+    // The database closure is already committed. Preserve the access boundary
+    // and surface the observability failure without pretending closure failed.
+    log.error("Failed to record account closure audit event", {
+      profileId: authUser.profile.id,
+    }, error instanceof Error ? error : new Error(String(error)))
   }
 
-  if (!closedProfile) {
-    return { success: false, error: "Account is already closed or could not be closed" }
-  }
+  await removeClosedAccountAvatars(supabase, authUser.user.id, authUser.profile.id)
 
-  await logAuditEvent({
-    action: "account_closed",
-    actorId: authUser.profile.id,
-    actorType: "patient",
-    metadata: {
-      account_closed_at: accountClosedAt,
-      closure_type: "self_service",
-      retained_records: true,
-    },
-  })
+  try {
+    const supabaseAuth = await createClient()
+    const { error: signOutError } = await supabaseAuth.auth.signOut({ scope: "global" })
+    if (signOutError) {
+      log.warn("Failed to revoke all refresh sessions after account closure", {
+        profileId: authUser.profile.id,
+        code: signOutError.code,
+      }, signOutError)
+    }
+  } catch (error) {
+    log.warn("Session revocation threw after account closure", {
+      profileId: authUser.profile.id,
+    }, error instanceof Error ? error : new Error(String(error)))
+  }
 
   revalidatePath("/")
   return { success: true, error: null }
@@ -198,9 +194,9 @@ export async function updateNotificationPreferences(
   emailNotifications: boolean,
   smsNotifications: boolean,
 ): Promise<{ success: boolean; error: string | null }> {
-  const userId = await getAuthUserId()
+  const authUser = await getAuthenticatedUserWithProfile()
   
-  if (!userId) {
+  if (!authUser || authUser.profile.role !== "patient") {
     return { success: false, error: "Not authenticated" }
   }
 
@@ -212,7 +208,7 @@ export async function updateNotificationPreferences(
       email_notifications: emailNotifications,
       sms_notifications: smsNotifications,
     })
-    .eq("auth_user_id", userId)
+    .eq("id", authUser.profile.id)
 
   if (error) {
     return { success: false, error: error.message }

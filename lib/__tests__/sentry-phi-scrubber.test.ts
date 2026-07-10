@@ -115,6 +115,24 @@ describe("Sentry PHI scrubber", () => {
     expect(event.extra?.path).toBe("/track/[ID_REDACTED]")
   })
 
+  it("redacts one-time auth secrets carried in URL fragments", () => {
+    const event = scrubSentryEvent({
+      request: {
+        url: "https://instantmed.test/auth/confirm#token_hash=one-time-secret&type=recovery",
+      },
+      breadcrumbs: [{
+        data: {
+          to: "/auth/confirm#access_token=session-secret&type=magiclink",
+        },
+      }],
+    })
+
+    const serialized = JSON.stringify(event)
+    expect(serialized).not.toContain("one-time-secret")
+    expect(serialized).not.toContain("session-secret")
+    expect(event.request?.url).toContain("token_hash=[REDACTED]")
+  })
+
   it("redacts role and clinician identifiers from tags and extras", () => {
     const event = scrubSentryEvent({
       tags: {

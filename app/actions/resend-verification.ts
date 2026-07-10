@@ -1,6 +1,6 @@
 "use server"
 
-import { auth, getApiAuth } from "@/lib/auth/helpers"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -17,14 +17,13 @@ interface ResendVerificationResult {
  */
 export async function resendVerificationEmail(): Promise<ResendVerificationResult> {
   try {
-    const { userId } = await auth()
-
-    if (!userId) {
+    const authResult = await getApiAuth()
+    if (!authResult || authResult.profile.role !== "patient") {
       return { success: false, error: "Not authenticated" }
     }
 
     // Supabase Auth handles email verification automatically on sign-up
-    logger.info("Email verification requested", { userId })
+    logger.info("Email verification requested", { profileId: authResult.profile.id })
 
     return {
       success: false,

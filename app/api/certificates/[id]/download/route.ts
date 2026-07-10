@@ -8,14 +8,14 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 
-import { auth } from "@/lib/auth/helpers"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { hasAdminAccess, hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import {
   getCertificateById,
+  getCertificateForIntake,
   getSecureDownloadUrl,
   logCertificateEvent,
 } from "@/lib/data/issued-certificates"
-import { getCurrentProfile } from "@/lib/data/profiles"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 
@@ -29,23 +29,15 @@ export async function GET(
     const { id: certificateId } = await params
 
     // 1. Authenticate user
-    const { userId: authUserId } = await auth()
-
-    if (!authUserId) {
+    const authResult = await getApiAuth()
+    if (!authResult) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
       )
     }
 
-    // 2. Get current profile
-    const profile = await getCurrentProfile()
-    if (!profile) {
-      return NextResponse.json(
-        { error: "Profile not found" },
-        { status: 401 }
-      )
-    }
+    const { profile } = authResult
 
     // Rate limit: 30 downloads/hour per user
     const rateLimitResponse = await applyRateLimit(request, "upload", profile.id)
@@ -85,6 +77,17 @@ export async function GET(
       )
     }
 
+    // A legacy data race may leave more than one row marked valid. ID-based
+    // access must still resolve only the newest valid certificate for the
+    // intake, matching the employer download boundary.
+    const currentCertificate = await getCertificateForIntake(certificate.intake_id)
+    if (!currentCertificate || currentCertificate.id !== certificate.id) {
+      return NextResponse.json(
+        { error: "Certificate is no longer current" },
+        { status: 410 },
+      )
+    }
+
     // 6. Generate signed URL (5 minute expiry)
     const result = await getSecureDownloadUrl(certificateId, certificate.patient_id)
 
@@ -99,17 +102,33 @@ export async function GET(
       )
     }
 
-    // 7. Log download event
-    await logCertificateEvent(
+    // 7. Log download event. Do not release even a short-lived signed URL if
+    // the clinical access event cannot be durably recorded.
+    const auditActorRole = isOwner ? "patient" : isAdmin ? "admin" : "doctor"
+    const auditResult = await logCertificateEvent(
       certificateId,
       "downloaded",
       profile.id,
-      isOwner ? "patient" : "doctor",
+      auditActorRole,
       {
-        ip_address: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip"),
-        user_agent: request.headers.get("user-agent"),
-      }
+        endpoint: "certificate_signed_url_download",
+      },
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+        ?? request.headers.get("x-real-ip")
+        ?? undefined,
+      request.headers.get("user-agent") ?? undefined,
     )
+
+    if (!auditResult.success) {
+      log.error("Certificate download audit write failed", {
+        certificateId,
+        requesterId: profile.id,
+      })
+      return NextResponse.json(
+        { error: "Certificate access is temporarily unavailable" },
+        { status: 503, headers: { "Retry-After": "30" } },
+      )
+    }
 
     log.info("Certificate download URL generated", {
       certificateId,

@@ -1,6 +1,6 @@
 "use server"
 
-import { auth } from "@/lib/auth/helpers"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { revalidatePatient } from "@/lib/dashboard/revalidate-staff"
 import { verifyAddress } from "@/lib/google-places/geocoding"
 import { encryptField } from "@/lib/security/encryption"
@@ -16,24 +16,17 @@ import type { ActionResult } from "@/types/shared"
  * Returns the Supabase client or an error result.
  */
 async function verifyProfileOwnership(profileId: string) {
-  const { userId } = await auth()
+  const authUser = await getAuthenticatedUserWithProfile()
 
-  if (!userId) {
+  if (!authUser) {
     return { error: { success: false, error: "Not authenticated" } as ActionResult }
   }
 
-  const supabase = createServiceRoleClient()
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("auth_user_id")
-    .eq("id", profileId)
-    .single()
-
-  if (profileError || !profile || profile.auth_user_id !== userId) {
+  if (authUser.profile.role !== "patient" || authUser.profile.id !== profileId) {
     return { error: { success: false, error: "Unauthorized" } as ActionResult }
   }
 
-  return { supabase }
+  return { supabase: createServiceRoleClient() }
 }
 
 /**

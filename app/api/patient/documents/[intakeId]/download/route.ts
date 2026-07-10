@@ -120,9 +120,36 @@ export async function GET(
     // Get the PDF buffer
     const pdfBuffer = await pdfResponse.arrayBuffer()
 
-    log.info(`[document-download] Successfully downloaded ${intakeId} (${pdfBuffer.byteLength} bytes)`)
+    // A clinical document must not leave the application unless its access
+    // event was durably recorded. This legacy intake-keyed route stays live for
+    // old bookmarks, so it must enforce the same boundary as the canonical
+    // certificate-keyed patient route.
+    const auditResult = await logCertificateEvent(
+      certificate.id,
+      "downloaded",
+      profile.id,
+      "patient",
+      {
+        file_size_bytes: pdfBuffer.byteLength,
+        endpoint: "patient_documents_intake_download",
+      },
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
+      request.headers.get("user-agent") ?? undefined,
+    )
 
-    // Track document download in PostHog
+    if (!auditResult.success) {
+      log.error("[document-download] Certificate download audit write failed", {
+        intakeId,
+        certificateId: certificate.id,
+      })
+      return NextResponse.json(
+        { error: "Certificate access is temporarily unavailable" },
+        { status: 503, headers: { "Retry-After": "30" } },
+      )
+    }
+
+    // Count the download only after the durable clinical access audit accepts
+    // it. This keeps analytics aligned with what the patient actually received.
     try {
       const posthog = getPostHogClient()
       posthog.capture({
@@ -136,10 +163,7 @@ export async function GET(
       })
     } catch { /* non-blocking */ }
 
-    // Log certificate download event for audit trail
-    void logCertificateEvent(certificate.id, "downloaded", profile.id, "patient", {
-      file_size_bytes: pdfBuffer.byteLength,
-    })
+    log.info(`[document-download] Successfully released ${intakeId} (${pdfBuffer.byteLength} bytes)`)
 
     // Return as downloadable PDF
     return new NextResponse(pdfBuffer, {

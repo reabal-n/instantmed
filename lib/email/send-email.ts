@@ -19,11 +19,16 @@ import * as Sentry from "@sentry/nextjs"
 
 import { env } from "@/lib/config/env"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { getEmployerCertificateStorageVersion } from "@/lib/crypto/employer-certificate-token"
 import { signEmailUnsubscribeToken, signUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
+import { EMAIL_DISPATCHER_MAX_RETRIES } from "@/lib/email/retry-policy"
+import { reconcileCertificateEmailDelivery } from "@/lib/medical-certificates/email-delivery-reconciliation"
 import { recordDeliverySent } from "@/lib/monitoring/delivery-tracking"
 import { logger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { renderEmailToHtml } from "./react-renderer-server"
+import { reconstructEmailContent } from "./send/reconstruct"
 import { htmlToPlainText, isEmailSuppressed } from "./utils"
 import { checkDailySendLimit, incrementDailySendCount } from "./warmup"
 
@@ -33,7 +38,7 @@ import { checkDailySendLimit, incrementDailySendCount } from "./warmup"
 //   MARKETING_EMAIL_TYPES → "@/lib/email/send/types"
 //   claimOutboxRow → "@/lib/email/send/outbox"
 //   reconstructEmailContent → "@/lib/email/send/reconstruct"
-export type { EmailType, OutboxRow,SendEmailParams, SendEmailResult } from "./send/types"
+export type { EmailType, OutboxRow, SendEmailParams, SendEmailResult } from "./send/types"
 
 // Import internals from split modules
 import {
@@ -46,13 +51,34 @@ import {
   sanitizeEmailForLog,
   sleep,
 } from "./send/helpers"
+import { buildResendEmailIdempotencyKey } from "./send/idempotency"
 import {
   createPendingOutbox,
   logToOutbox,
+  persistFrozenProviderPayload,
   updateOutboxStatus,
 } from "./send/outbox"
-import type { SendEmailParams, SendEmailResult } from "./send/types"
+import {
+  freezeResendProviderPayload,
+  FROZEN_PROVIDER_PAYLOAD_KEY,
+  hasFrozenResendProviderPayload,
+  readFrozenResendProviderPayload,
+  type ResendProviderPayload,
+} from "./send/provider-payload"
+import type { OutboxRow, SendEmailParams, SendEmailResult } from "./send/types"
 import { MARKETING_EMAIL_TYPES } from "./send/types"
+
+interface ResendResponseData {
+  id?: string
+  message?: string
+  error?: { message?: string }
+  name?: string
+}
+
+async function readResendResponseData(response: Response): Promise<ResendResponseData> {
+  const data: unknown = await response.json().catch(() => null)
+  return data && typeof data === "object" ? data as ResendResponseData : {}
+}
 
 // ============================================
 // MAIN SEND FUNCTION
@@ -279,9 +305,31 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     }
   }
 
+  let frozenProviderPayload: string
+  try {
+    frozenProviderPayload = freezeResendProviderPayload(body)
+  } catch (error) {
+    logger.error("[Email] Failed to encrypt provider payload", {
+      emailType,
+      certificateId,
+      intakeId,
+    })
+    Sentry.captureException(error, {
+      tags: { action: "freeze_email_provider_payload", email_type: emailType },
+    })
+    return {
+      success: false,
+      error: "Failed to secure the email delivery record; please retry.",
+      retryable: false,
+    }
+  }
+
   // TWO-PHASE WRITE: Create pending outbox row BEFORE attempting send
   // This ensures we have a record for the dispatcher to retry if process crashes
-  // Body is NOT stored - dispatcher reconstructs from intake/certificate data
+  // The exact provider body is encrypted before storage. Reconstructing HTML,
+  // dynamic tokens, or tags later can produce a different request body; Resend
+  // rejects that under the same idempotency key and an ambiguous success can no
+  // longer be resolved safely.
   //
   // DEFERRED SEND: when `scheduledFor` is set to a future timestamp (e.g. the
   // 30s cert approval undo window), we still write the pending row with the
@@ -298,7 +346,10 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     intake_id: intakeId,
     patient_id: patientId,
     certificate_id: certificateId,
-    metadata,
+    metadata: {
+      ...metadata,
+      [FROZEN_PROVIDER_PAYLOAD_KEY]: frozenProviderPayload,
+    },
     idempotency_key: idempotencyKey,
     scheduled_for: scheduledFor,
     initialStatus: scheduledFor && new Date(scheduledFor).getTime() > Date.now()
@@ -370,15 +421,48 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     }
   }
 
-  // DEBUG: Log outbox write result - critical for diagnosing missing outbox rows
-  if (outboxId) {
-    logger.info("OUTBOX_ROW_CREATED", { outboxId, emailType, certificateId, intakeId })
-  } else {
-    logger.error("OUTBOX_ROW_FAILED", { emailType, certificateId, intakeId, to: sanitizeEmailForLog(to) })
+  // A provider send without its durable outbox row cannot be safely retried:
+  // an ambiguous network response could deliver twice and leave no stable key
+  // for the dispatcher. Fail before contacting Resend instead.
+  if (!outboxId) {
+    logger.error("[Email] Provider send blocked because outbox creation failed", {
+      emailType,
+      certificateId,
+      intakeId,
+    })
+    return {
+      success: false,
+      error: "Failed to create the email delivery record; please retry.",
+    }
   }
+
+  const providerIdempotencyKey = buildResendEmailIdempotencyKey(outboxId)
+  const providerBody = readFrozenResendProviderPayload({
+    [FROZEN_PROVIDER_PAYLOAD_KEY]: outboxResult.providerPayloadEnc ?? frozenProviderPayload,
+  })
+  if (!providerBody) {
+    await updateOutboxStatus(outboxId, "failed", {
+      error_message: "Encrypted provider payload could not be read",
+      attempts: EMAIL_DISPATCHER_MAX_RETRIES,
+    })
+    return {
+      success: false,
+      error: "The email delivery record could not be opened safely.",
+      outboxId,
+      retryable: false,
+    }
+  }
+
+  // DEBUG: Log outbox write result - critical for diagnosing missing outbox rows
+  logger.info("OUTBOX_ROW_CREATED", { outboxId, emailType, certificateId, intakeId })
 
   // Send with retries
   let lastError: string | undefined
+  const persistedCertificateStorageVersion = outboxResult.certificateStorageVersion ?? (
+    typeof metadata.certificate_storage_version === "string"
+      ? metadata.certificate_storage_version
+      : undefined
+  )
 
   for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
     try {
@@ -391,22 +475,48 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         await sleep(delay)
       }
 
+      const certificateValidation = await validateCertificateEmailReference({
+        emailType,
+        certificateId,
+        expectedStorageVersion: persistedCertificateStorageVersion,
+      })
+      if (!certificateValidation.success) {
+        lastError = certificateValidation.error || "Certificate email could not be validated"
+        const retryable = !certificateValidation.terminal
+        if (retryable && attempt < RETRY_CONFIG.maxRetries) {
+          continue
+        }
+
+        await updateOutboxStatus(outboxId, "failed", {
+          error_message: lastError,
+          attempts: retryable ? attempt + 1 : EMAIL_DISPATCHER_MAX_RETRIES,
+        })
+        return {
+          success: false,
+          error: lastError,
+          outboxId,
+          retryable,
+        }
+      }
+
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
+          "Idempotency-Key": providerIdempotencyKey,
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(providerBody),
       })
 
-      const data = await response.json()
+      const data = await readResendResponseData(response)
 
       if (!response.ok) {
         // Resend API returns { message, statusCode, name } at top level, not nested under .error
         lastError = data.message || data.error?.message || `Resend API error (${response.status})`
 
-        if (isRetryableError(response.status, lastError) && attempt < RETRY_CONFIG.maxRetries) {
+        const retryable = isRetryableError(response.status, lastError)
+        if (retryable && attempt < RETRY_CONFIG.maxRetries) {
           logger.warn(`[Email] Retryable error (${response.status}): ${lastError}`, {
             to: sanitizeEmailForLog(to),
             emailType,
@@ -426,11 +536,16 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         if (outboxId) {
           await updateOutboxStatus(outboxId, "failed", {
             error_message: lastError,
-            attempts: attempt + 1,
+            attempts: retryable ? attempt + 1 : EMAIL_DISPATCHER_MAX_RETRIES,
           })
         }
 
-        return { success: false, error: lastError, outboxId: outboxId || undefined }
+        return {
+          success: false,
+          error: lastError,
+          outboxId: outboxId || undefined,
+          retryable,
+        }
       }
 
       // Success!
@@ -459,18 +574,20 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       }
 
       // Record delivery for health monitoring
-      recordDeliverySent({
-        messageId: data.id,
-        requestId: intakeId,
-        patientId,
-        channel: "email",
-        templateType: emailType,
-        providerId: data.id,
-        recipient: to,
-      }).catch((err) => {
-        // Non-blocking but observable — silent failures corrupt CertHealthChip and ops dashboard.
-        logger.warn("[Email] recordDeliverySent failed", { to: sanitizeEmailForLog(to), emailType }, err)
-      })
+      if (data.id) {
+        recordDeliverySent({
+          messageId: data.id,
+          requestId: intakeId,
+          patientId,
+          channel: "email",
+          templateType: emailType,
+          providerId: data.id,
+          recipient: to,
+        }).catch((err) => {
+          // Non-blocking but observable — silent failures corrupt CertHealthChip and ops dashboard.
+          logger.warn("[Email] recordDeliverySent failed", { to: sanitizeEmailForLog(to), emailType }, err)
+        })
+      }
 
       // TWO-PHASE WRITE: Update existing row to sent
       if (outboxId) {
@@ -491,8 +608,9 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
 
     } catch (err) {
       lastError = err instanceof Error ? err.message : "Unknown error"
+      const retryable = isRetryableError(undefined, lastError)
 
-      if (isRetryableError(undefined, lastError) && attempt < RETRY_CONFIG.maxRetries) {
+      if (retryable && attempt < RETRY_CONFIG.maxRetries) {
         logger.warn(`[Email] Network error, will retry: ${lastError}`, {
           to: sanitizeEmailForLog(to),
           emailType,
@@ -508,11 +626,16 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       if (outboxId) {
         await updateOutboxStatus(outboxId, "failed", {
           error_message: lastError,
-          attempts: attempt + 1,
+          attempts: retryable ? attempt + 1 : EMAIL_DISPATCHER_MAX_RETRIES,
         })
       }
 
-      return { success: false, error: lastError, outboxId: outboxId || undefined }
+      return {
+        success: false,
+        error: lastError,
+        outboxId: outboxId || undefined,
+        retryable,
+      }
     }
   }
 
@@ -524,15 +647,191 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     })
   }
 
-  return { success: false, error: lastError || "Max retries exceeded", outboxId: outboxId || undefined }
+  return {
+    success: false,
+    error: lastError || "Max retries exceeded",
+    outboxId: outboxId || undefined,
+    retryable: true,
+  }
 }
 
 // ============================================
 // DISPATCHER: SEND FROM OUTBOX ROW
 // ============================================
 
-import { reconstructEmailContent } from "./send/reconstruct"
-import type { OutboxRow } from "./send/types"
+function resendAttemptId(row: OutboxRow): string | null {
+  const value = row.metadata?.resend_attempt_id
+  return typeof value === "string" && value.length > 0 ? value : null
+}
+
+async function finalizeOutboxCertificateResend(
+  row: OutboxRow,
+  input: {
+    deliverySucceeded: boolean
+    providerMessageId?: string | null
+    failureReason?: string | null
+  },
+): Promise<boolean> {
+  const attemptId = resendAttemptId(row)
+  if (!attemptId) return true
+
+  try {
+    const { finalizeCertificateResend } = await import("@/lib/data/issued-certificates")
+    const result = await finalizeCertificateResend({
+      attemptId,
+      deliverySucceeded: input.deliverySucceeded,
+      emailOutboxId: row.id,
+      providerMessageId: input.providerMessageId,
+      failureReason: input.failureReason,
+    })
+    if (result.success) return true
+
+    logger.error("[Email Dispatcher] Certificate resend finalization failed", {
+      outboxId: row.id,
+      certificateId: row.certificate_id,
+      deliverySucceeded: input.deliverySucceeded,
+    })
+    Sentry.captureMessage("Certificate resend outbox finalization failed", {
+      level: "error",
+      tags: { subsystem: "certificate-resend-reconciliation" },
+      extra: {
+        outboxId: row.id,
+        certificateId: row.certificate_id,
+        deliverySucceeded: input.deliverySucceeded,
+      },
+    })
+    return false
+  } catch (error) {
+    logger.error("[Email Dispatcher] Certificate resend finalization threw", {
+      outboxId: row.id,
+      certificateId: row.certificate_id,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return false
+  }
+}
+
+async function finalizeOutboxFailure(
+  row: OutboxRow,
+  failureReason: string,
+  attempts: number,
+  terminal = false,
+  certificateStorageVersion?: string,
+): Promise<boolean> {
+  if (!terminal && attempts < EMAIL_DISPATCHER_MAX_RETRIES) return true
+
+  if (resendAttemptId(row)) {
+    return finalizeOutboxCertificateResend(row, {
+      deliverySucceeded: false,
+      failureReason,
+    })
+  }
+
+  if (
+    row.email_type === "med_cert_patient" &&
+    row.certificate_id &&
+    row.intake_id &&
+    certificateStorageVersion
+  ) {
+    const result = await reconcileCertificateEmailDelivery({
+      intakeId: row.intake_id,
+      certificateId: row.certificate_id,
+      expectedStorageVersion: certificateStorageVersion,
+      outcome: "failed",
+      failureReason,
+      outboxId: row.id,
+      actorId: null,
+      actorRole: "system",
+      source: "outbox_dispatcher",
+    })
+    return result.success
+  }
+
+  return true
+}
+
+interface CertificateEmailReferenceValidation {
+  success: boolean
+  error?: string
+  terminal?: boolean
+  certificateStorageVersion?: string
+  certificateIntakeId?: string
+}
+
+async function validateCertificateEmailReference(input: {
+  emailType: string
+  certificateId?: string | null
+  expectedStorageVersion?: string
+}): Promise<CertificateEmailReferenceValidation> {
+  if (!["med_cert_patient", "med_cert_employer"].includes(input.emailType)) {
+    return { success: true }
+  }
+  if (!input.certificateId) {
+    return { success: false, error: "Certificate email has no certificate", terminal: true }
+  }
+
+  const supabase = createServiceRoleClient()
+  const { data: certificate, error: certificateError } = await supabase
+    .from("issued_certificates")
+    .select("id, intake_id, status, storage_path")
+    .eq("id", input.certificateId)
+    .maybeSingle()
+
+  if (certificateError) {
+    return { success: false, error: "Certificate could not be checked before email delivery" }
+  }
+  if (!certificate || certificate.status !== "valid") {
+    return { success: false, error: "Certificate is no longer valid for email delivery", terminal: true }
+  }
+
+  const { data: currentCertificate, error: currentCertificateError } = await supabase
+    .from("issued_certificates")
+    .select("id")
+    .eq("intake_id", certificate.intake_id)
+    .eq("status", "valid")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (currentCertificateError) {
+    return { success: false, error: "Current certificate could not be checked before email delivery" }
+  }
+  if (!currentCertificate || currentCertificate.id !== certificate.id) {
+    return { success: false, error: "Certificate is no longer current for email delivery", terminal: true }
+  }
+
+  if (
+    input.expectedStorageVersion &&
+    input.expectedStorageVersion !== getEmployerCertificateStorageVersion(certificate.storage_path)
+  ) {
+    return {
+      success: false,
+      error: "Certificate email belongs to an older document version",
+      terminal: true,
+    }
+  }
+
+  return {
+    success: true,
+    certificateIntakeId: certificate.intake_id,
+    certificateStorageVersion: getEmployerCertificateStorageVersion(
+      certificate.storage_path,
+    ),
+  }
+}
+
+async function validateCertificateOutboxRow(
+  row: OutboxRow,
+): Promise<CertificateEmailReferenceValidation> {
+  const expectedStorageVersion = row.metadata?.certificate_storage_version
+  return validateCertificateEmailReference({
+    emailType: row.email_type,
+    certificateId: row.certificate_id,
+    expectedStorageVersion: typeof expectedStorageVersion === "string"
+      ? expectedStorageVersion
+      : undefined,
+  })
+}
 
 /**
  * Reconstruct and send an email from an outbox row (used by dispatcher).
@@ -546,90 +845,211 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
     return { success: false, error: "No API key configured" }
   }
 
-  // Check suppression
-  const suppressed = await isEmailSuppressed(row.to_email)
-  if (suppressed) {
-    await updateOutboxStatus(row.id, "failed", {
-      error_message: "Email address previously bounced or complained",
-      attempts: row.retry_count + 1,
-    })
-    return { success: false, error: "Email suppressed" }
-  }
-
-  // Reconstruct email content based on email_type
-  let html: string
-  let textBody: string
-
-  try {
-    const reconstructed = await reconstructEmailContent(row)
-    if (!reconstructed.success) {
-      await updateOutboxStatus(row.id, "failed", {
-        error_message: reconstructed.error || "Failed to reconstruct email",
-        attempts: row.retry_count + 1,
-      })
-      return { success: false, error: reconstructed.error }
-    }
-    html = injectUnsubscribeUrl(reconstructed.html!, row.patient_id || undefined)
-    textBody = reconstructed.text || htmlToPlainText(html)
-  } catch (err) {
-    const error = err instanceof Error ? err.message : "Reconstruction failed"
-    logger.error("[Email Dispatcher] Failed to reconstruct email", { outboxId: row.id, error })
-    await updateOutboxStatus(row.id, "failed", {
-      error_message: error,
-      attempts: row.retry_count + 1,
-    })
+  const certificateValidation = await validateCertificateOutboxRow(row)
+  if (!certificateValidation.success) {
+    const error = certificateValidation.error || "Certificate email could not be validated"
+    const attempts = certificateValidation.terminal
+      ? EMAIL_DISPATCHER_MAX_RETRIES
+      : row.retry_count + 1
+    await updateOutboxStatus(row.id, "failed", { error_message: error, attempts })
+    await finalizeOutboxFailure(row, error, attempts, Boolean(certificateValidation.terminal))
     return { success: false, error }
   }
 
-  // Build request body
-  const appUrl = env.appUrl
-  const sendBody: Record<string, unknown> = {
-    from: env.resendFromEmail,
-    to: [row.to_email],
-    subject: row.subject,
-    html,
-    text: textBody,
-    reply_to: CONTACT_EMAIL,
-    tags: [{ name: "email_type", value: row.email_type }],
+  // Check suppression
+  const suppressed = await isEmailSuppressed(row.to_email)
+  if (suppressed) {
+    const attempts = EMAIL_DISPATCHER_MAX_RETRIES
+    await updateOutboxStatus(row.id, "failed", {
+      error_message: "Email address previously bounced or complained",
+      attempts,
+    })
+    await finalizeOutboxFailure(
+      row,
+      "Email address previously bounced or complained",
+      attempts,
+      true,
+      certificateValidation.certificateStorageVersion,
+    )
+    return { success: false, error: "Email suppressed" }
   }
 
-  // Inject List-Unsubscribe headers for marketing emails on retry (mirrors
-  // sendEmail — rows without a patient_id fall back to an email-keyed token).
-  if (MARKETING_EMAIL_TYPES.has(row.email_type)) {
-    sendBody.headers = { "Precedence": "bulk" }
+  let sendBody: ResendProviderPayload
+  if (hasFrozenResendProviderPayload(row.metadata)) {
+    const frozenPayload = readFrozenResendProviderPayload(row.metadata)
+    if (!frozenPayload) {
+      const error = "Encrypted provider payload could not be read"
+      await updateOutboxStatus(row.id, "failed", {
+        error_message: error,
+        attempts: EMAIL_DISPATCHER_MAX_RETRIES,
+      })
+      await finalizeOutboxFailure(
+        row,
+        error,
+        EMAIL_DISPATCHER_MAX_RETRIES,
+        true,
+        certificateValidation.certificateStorageVersion,
+      )
+      return { success: false, error }
+    }
+    sendBody = frozenPayload
+  } else {
     try {
-      const unsubToken = row.patient_id
-        ? signUnsubscribeToken(row.patient_id)
-        : signEmailUnsubscribeToken(row.to_email)
-      const unsubUrl = `${appUrl}/api/unsubscribe?token=${unsubToken}&type=marketing`
-      ;(sendBody.headers as Record<string, string>)["List-Unsubscribe"] = `<${unsubUrl}>`
-      ;(sendBody.headers as Record<string, string>)["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
-    } catch {
-      // Non-blocking
+      const reconstructed = await reconstructEmailContent(row)
+      if (!reconstructed.success) {
+        const error = reconstructed.error || "Failed to reconstruct email"
+        const attempts = reconstructed.terminal
+          ? EMAIL_DISPATCHER_MAX_RETRIES
+          : row.retry_count + 1
+        await updateOutboxStatus(row.id, "failed", { error_message: error, attempts })
+        await finalizeOutboxFailure(
+          row,
+          error,
+          attempts,
+          Boolean(reconstructed.terminal),
+          certificateValidation.certificateStorageVersion,
+        )
+        return { success: false, error }
+      }
+
+      const html = injectUnsubscribeUrl(reconstructed.html!, row.patient_id || undefined)
+      const textBody = reconstructed.text || htmlToPlainText(html)
+      sendBody = {
+        from: env.resendFromEmail,
+        to: [row.to_email],
+        subject: row.subject,
+        html,
+        text: textBody,
+        reply_to: CONTACT_EMAIL,
+        tags: [{ name: "email_type", value: row.email_type }],
+      }
+
+      // Legacy rows predate frozen payloads. Reconstruct their unsubscribe
+      // headers once; all new rows replay their encrypted original request.
+      if (MARKETING_EMAIL_TYPES.has(row.email_type)) {
+        sendBody.headers = { "Precedence": "bulk" }
+        try {
+          const unsubToken = row.patient_id
+            ? signUnsubscribeToken(row.patient_id)
+            : signEmailUnsubscribeToken(row.to_email)
+          const unsubUrl = `${env.appUrl}/api/unsubscribe?token=${unsubToken}&type=marketing`
+          ;(sendBody.headers as Record<string, string>)["List-Unsubscribe"] = `<${unsubUrl}>`
+          ;(sendBody.headers as Record<string, string>)["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+        } catch {
+          // Non-blocking
+        }
+      }
+
+      // Legacy rows predate frozen provider bodies. Persist this first
+      // reconstruction before contacting Resend so any ambiguous or retryable
+      // response replays the exact same body under the same idempotency key.
+      let encryptedPayload: string
+      try {
+        encryptedPayload = freezeResendProviderPayload(sendBody)
+      } catch {
+        const error = "Could not secure reconstructed email for retry"
+        const attempts = row.retry_count + 1
+        await updateOutboxStatus(row.id, "failed", { error_message: error, attempts })
+        await finalizeOutboxFailure(
+          row,
+          error,
+          attempts,
+          false,
+          certificateValidation.certificateStorageVersion,
+        )
+        return { success: false, error }
+      }
+
+      const payloadPersisted = await persistFrozenProviderPayload(
+        row.id,
+        {
+          ...(row.metadata ?? {}),
+          ...(certificateValidation.certificateStorageVersion
+            ? { certificate_storage_version: certificateValidation.certificateStorageVersion }
+            : {}),
+        },
+        encryptedPayload,
+      )
+      if (!payloadPersisted) {
+        const error = "Could not freeze reconstructed email before delivery"
+        const attempts = row.retry_count + 1
+        await updateOutboxStatus(row.id, "failed", { error_message: error, attempts })
+        await finalizeOutboxFailure(
+          row,
+          error,
+          attempts,
+          false,
+          certificateValidation.certificateStorageVersion,
+        )
+        return { success: false, error }
+      }
+    } catch (err) {
+      const error = err instanceof Error ? err.message : "Reconstruction failed"
+      const attempts = row.retry_count + 1
+      logger.error("[Email Dispatcher] Failed to reconstruct email", { outboxId: row.id, error })
+      await updateOutboxStatus(row.id, "failed", { error_message: error, attempts })
+      await finalizeOutboxFailure(
+        row,
+        error,
+        attempts,
+        false,
+        certificateValidation.certificateStorageVersion,
+      )
+      return { success: false, error }
     }
   }
 
   try {
+    const providerIdempotencyKey = buildResendEmailIdempotencyKey(row.id)
+    const preProviderCertificateValidation = await validateCertificateEmailReference({
+      emailType: row.email_type,
+      certificateId: row.certificate_id,
+      expectedStorageVersion: certificateValidation.certificateStorageVersion,
+    })
+    if (!preProviderCertificateValidation.success) {
+      const error = preProviderCertificateValidation.error ||
+        "Certificate email could not be validated before delivery"
+      const terminal = Boolean(preProviderCertificateValidation.terminal)
+      const attempts = terminal
+        ? EMAIL_DISPATCHER_MAX_RETRIES
+        : row.retry_count + 1
+      await updateOutboxStatus(row.id, "failed", { error_message: error, attempts })
+      await finalizeOutboxFailure(row, error, attempts, terminal)
+      return { success: false, error }
+    }
+
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        "Idempotency-Key": providerIdempotencyKey,
       },
       body: JSON.stringify(sendBody),
     })
 
-    const data = await response.json()
+    const data = await readResendResponseData(response)
 
     if (!response.ok) {
       // Resend API returns { message, statusCode, name } at top level, not nested under .error
       const error = data.message || data.error?.message || `Resend API error (${response.status})`
       logger.error("[Email Dispatcher] Send failed", { outboxId: row.id, error, statusCode: response.status, resendErrorName: data.name })
 
+      const retryable = isRetryableError(response.status, error)
+      const attempts = retryable
+        ? row.retry_count + 1
+        : EMAIL_DISPATCHER_MAX_RETRIES
       await updateOutboxStatus(row.id, "failed", {
         error_message: error,
-        attempts: row.retry_count + 1,
+        attempts,
       })
+      await finalizeOutboxFailure(
+        row,
+        error,
+        attempts,
+        !retryable,
+        preProviderCertificateValidation.certificateStorageVersion,
+      )
 
       return { success: false, error }
     }
@@ -645,13 +1065,32 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
     })
 
     // Mirror the dispatcher send onto the cert delivery state so the
-    // CertHealthChip and patient timeline stay accurate for deferred
-    // sends (e.g. cert approval undo window). Fire-and-forget; never block
-    // the dispatcher batch on this housekeeping.
+    // CertHealthChip and patient timeline stay accurate for deferred sends
+    // (e.g. cert approval undo window). Reconciliation retries only its two
+    // bookkeeping writes; the provider request above is never repeated here.
     if (row.certificate_id && row.email_type === "med_cert_patient") {
       try {
-        const { updateEmailStatus: updateCertEmailStatus } = await import("@/lib/data/issued-certificates")
-        await updateCertEmailStatus(row.certificate_id, "sent", { deliveryId: data.id })
+        if (resendAttemptId(row)) {
+          await finalizeOutboxCertificateResend(row, {
+            deliverySucceeded: true,
+            providerMessageId: data.id,
+          })
+        } else if (
+          preProviderCertificateValidation.certificateIntakeId &&
+          preProviderCertificateValidation.certificateStorageVersion
+        ) {
+          await reconcileCertificateEmailDelivery({
+            intakeId: preProviderCertificateValidation.certificateIntakeId,
+            certificateId: row.certificate_id,
+            expectedStorageVersion: preProviderCertificateValidation.certificateStorageVersion,
+            outcome: "sent",
+            providerMessageId: data.id,
+            outboxId: row.id,
+            actorId: null,
+            actorRole: "system",
+            source: "outbox_dispatcher",
+          })
+        }
       } catch (mirrorErr) {
         logger.warn("[Email Dispatcher] Failed to mirror send onto issued_certificates", {
           outboxId: row.id,
@@ -664,12 +1103,23 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
     return { success: true }
   } catch (err) {
     const error = err instanceof Error ? err.message : "Unknown error"
+    const retryable = isRetryableError(undefined, error)
+    const attempts = retryable
+      ? row.retry_count + 1
+      : EMAIL_DISPATCHER_MAX_RETRIES
     logger.error("[Email Dispatcher] Network error", { outboxId: row.id, error })
 
     await updateOutboxStatus(row.id, "failed", {
       error_message: error,
-      attempts: row.retry_count + 1,
+      attempts,
     })
+    await finalizeOutboxFailure(
+      row,
+      error,
+      attempts,
+      !retryable,
+      certificateValidation.certificateStorageVersion,
+    )
 
     return { success: false, error }
   }
@@ -678,8 +1128,6 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
 // ============================================
 // EMPLOYER EMAIL RATE LIMIT CHECK
 // ============================================
-
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export async function checkEmployerEmailRateLimit(intakeId: string): Promise<{
   allowed: boolean

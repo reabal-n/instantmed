@@ -8,7 +8,12 @@
 import * as Sentry from "@sentry/nextjs"
 
 import { env } from "@/lib/config/env"
+import { getEmployerCertificateDownloadHref } from "@/lib/crypto/employer-certificate-token"
 import { signHeardAboutUsToken } from "@/lib/crypto/heard-about-us-token"
+import {
+  getCertificateById,
+  getCertificateForIntake,
+} from "@/lib/data/issued-certificates"
 import { buildCheckoutPaymentRecoveryUrl } from "@/lib/email/recovery-links"
 import { logger } from "@/lib/observability/logger"
 import { getGuestCertificateAccessHref, getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
@@ -36,11 +41,30 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   html?: string
   text?: string
   error?: string
+  terminal?: boolean
 }> {
   const supabase = createServiceRoleClient()
 
   // Handle med_cert_patient emails
   if (row.email_type === "med_cert_patient" && row.certificate_id) {
+    const cert = await getCertificateById(row.certificate_id)
+    if (!cert || cert.status !== "valid") {
+      return {
+        success: false,
+        error: "Certificate is no longer valid for patient email reconstruction",
+        terminal: true,
+      }
+    }
+
+    const currentCertificate = await getCertificateForIntake(cert.intake_id)
+    if (!currentCertificate || currentCertificate.id !== cert.id) {
+      return {
+        success: false,
+        error: "Certificate is no longer current for patient email reconstruction",
+        terminal: true,
+      }
+    }
+
     // Check if PDF needs to be generated first
     const metadata = row.metadata as { needs_pdf_generation?: boolean } | null
     if (metadata?.needs_pdf_generation) {
@@ -48,17 +72,6 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       if (!pdfResult.success) {
         return { success: false, error: pdfResult.error || "PDF generation failed" }
       }
-    }
-
-    // Fetch certificate and patient data
-    const { data: cert, error: certError } = await supabase
-      .from("issued_certificates")
-      .select("intake_id, patient_id, patient_name, verification_code, certificate_type, storage_path")
-      .eq("id", row.certificate_id)
-      .single()
-
-    if (certError || !cert) {
-      return { success: false, error: "Certificate not found for retry" }
     }
 
     // Guest-aware CTA, mirroring execute-cert-approval.ts. Fall back to the
@@ -434,30 +447,36 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       return { success: false, error: "med_cert_employer requires certificate_id for reconstruction" }
     }
 
-    const { data: cert, error: certError } = await supabase
-      .from("issued_certificates")
-      .select("intake_id, patient_name, verification_code, start_date, end_date, storage_path")
-      .eq("id", row.certificate_id)
-      .single()
-
-    if (certError || !cert) {
-      return { success: false, error: "Certificate not found for employer email reconstruction" }
+    const cert = await getCertificateById(row.certificate_id)
+    if (!cert || cert.status !== "valid") {
+      return {
+        success: false,
+        error: "Certificate not found for employer email reconstruction",
+        terminal: true,
+      }
     }
 
-    // Generate a signed download URL (7-day expiry)
-    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-      .from("documents")
-      .createSignedUrl(cert.storage_path, 60 * 60 * 24 * 7)
-
-    if (signedUrlError) {
-      logger.warn("[Email Dispatcher] Failed to create signed URL for employer email, using fallback", {
-        certificateId: row.certificate_id,
-        storagePath: cert.storage_path,
-        error: signedUrlError.message,
-      })
+    const currentCertificate = await getCertificateForIntake(cert.intake_id)
+    if (!currentCertificate || currentCertificate.id !== cert.id) {
+      return {
+        success: false,
+        error: "Certificate is no longer current for employer email reconstruction",
+        terminal: true,
+      }
     }
 
-    const downloadUrl = signedUrlData?.signedUrl || `${env.appUrl}/api/certificates/${row.certificate_id}/download`
+    let downloadUrl: string
+    try {
+      downloadUrl = `${env.appUrl}${getEmployerCertificateDownloadHref(
+        cert.id,
+        cert.storage_path,
+      )}`
+    } catch {
+      return {
+        success: false,
+        error: "Could not create employer certificate access token",
+      }
+    }
 
     // Employer info from metadata or intake answers
     const metadata = row.metadata as { employerName?: string; companyName?: string; patientNote?: string } | null
@@ -472,6 +491,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       employerName: metadata?.employerName || undefined,
       companyName: metadata?.companyName || undefined,
       patientNote: metadata?.patientNote || undefined,
+      expiresInDays: 7,
       appUrl: env.appUrl,
     })
 

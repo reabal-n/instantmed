@@ -252,13 +252,13 @@ Entry points (doctor queue | admin panel | API)
 
 **Senders:** `lib/email/send-email.ts` (React templates via Resend), `lib/email/template-sender.ts` (DB templates with merge tags).
 
-**Template types:** Core transactional and lifecycle types are reconstructed from source records for retry, including `med_cert_patient`, `med_cert_employer`, `script_sent`, `request_declined`, `consult_approved`, and `still_reviewing`. (The dead specialty `*_approved`, `welcome`, `verification_code`, `intake_submitted`, `payment_retry`, and `referral_credit` templates were removed in the 2026-07-06 email Wave 2 cleanup — real prescription approvals notify via `script_sent`.) Supabase Auth send-email templates cover `magiclink`, `signup`, and `recovery` via `app/api/webhooks/supabase-auth/route.ts`. Marketing/engagement types are capped by warmup limits; transactional clinical/payment sends are not.
+**Template types:** Legacy retry reconstruction supports core transactional and lifecycle types including `med_cert_patient`, `med_cert_employer`, `script_sent`, `request_declined`, `consult_approved`, and `still_reviewing`; new outbox rows replay their frozen encrypted provider body instead. (The dead specialty `*_approved`, `welcome`, `verification_code`, `intake_submitted`, `payment_retry`, and `referral_credit` templates were removed in the 2026-07-06 email Wave 2 cleanup — real prescription approvals notify via `script_sent`.) Supabase Auth send-email templates cover `magiclink`, `signup`, and `recovery` via `app/api/webhooks/supabase-auth/route.ts`. Marketing/engagement types are capped by warmup limits; transactional clinical/payment sends are not.
 
 **Email delivery:** `/admin/emails/hub` is the single delivery operations surface: outbox recovery, delivery status, sequence ownership, and compact controls for templates, suppression, and auth recovery health. Email template editing lives at `/admin/emails/templates`; certificate details and static-PDF preview live separately at `/admin/settings/templates`. In development, `/email-preview/magic-link` covers Supabase auth email QA. Legacy `/admin/email-hub`, `/admin/email-test`, `/admin/email-outbox`, `/admin/email-queue`, `/admin/ops/email-outbox`, `/admin/emails/preview`, and `/admin/emails/analytics` redirect to the owning email surfaces.
 
 ### Retry & Delivery
 
-All sends logged to `email_outbox`: `status` (pending | sending | sent | failed | skipped_e2e), `delivery_status`, `provider_message_id` (Resend ID), `error_message`, `retry_count` (dispatcher max 10), `intake_id`, `patient_id`, `certificate_id`, and reconstruction metadata. The dispatcher atomically claims rows as `sending`, recovers stale `sending` claims, retries reconstructable failed rows with backoff, and permanently fails unsupported types after surfacing them to Sentry/logs.
+All sends logged to `email_outbox`: `status` (pending | sending | sent | failed | skipped_e2e), `delivery_status`, `provider_message_id` (Resend ID), `error_message`, `retry_count` (dispatcher max 10), `intake_id`, `patient_id`, `certificate_id`, and reconstruction metadata. New rows also carry the exact Resend request body as AES-256-GCM ciphertext inside internal outbox metadata; the dispatcher decrypts and replays that frozen body so dynamic links and tags remain byte-stable under the same provider idempotency key, without adding plaintext HTML or body content to metadata. For a legacy row without ciphertext, the dispatcher reconstructs once and persists that encrypted body before its first idempotent provider call. The dispatcher atomically claims rows as `sending`, recovers stale `sending` claims, retries retryable failed rows with backoff, and permanently fails invalid certificate or non-retryable provider responses after surfacing them to Sentry/logs.
 
 **Pipeline:** Doctor approval -> PDF generation -> Storage upload -> DB update -> Email send -> `email_outbox` log. Each step fails independently.
 
@@ -292,6 +292,8 @@ app/actions/approve-cert.ts
 **Security:** Private storage bucket, authenticated app-streamed downloads for patients, and short-lived storage signed URLs only behind server routes. Downloads require ownership checks (patient/doctor/admin as appropriate), and certificate IDs use `crypto.randomInt()`. Public verification (`app/api/verify/route.ts`): rate-limited, masked patient name (first + last initial), no doctor name.
 
 **Email delivery:** Links to `/patient/intakes/[id]`, failure state is visible through certificate fields and `email_outbox`, dispatcher retry max is 10, duplicate prevention happens through certificate sent markers plus the outbox idempotency guard.
+
+**Corrections:** A correction keeps the certificate identity but switches to a unique storage version inside `commit_certificate_correction`. Patient requests are limited to the current valid document, the paid 1/2/3-day tier, and three durable correction events. The atomic switch resets certificate and intake delivery state plus per-version resend counters; notification defaults on, and outbox duplicate/resend guards are scoped to the new storage version so prior delivery cannot make the corrected PDF appear sent.
 
 ### Doctor Cert Workflow
 
@@ -388,7 +390,7 @@ Static-PDF overlay config is stored as immutable JSONB in `certificate_templates
 
 **Guest → Authenticated flow:** Guest checkout creates profile without `auth_user_id` → Stripe redirect → success URL `/auth/complete-account?intake_id={id}` → post-signin page links the exact paid checkout profile when possible, otherwise one deterministic unlinked email match with paid history before newest guest fallback → sets `email_verified: true` → checks `onboarding_completed` → routes to `/patient/onboarding` or `/patient`. Closed profiles (`account_closed_at is not null`) are excluded from relinking.
 
-**Account closure:** Patient self-service closure is blocked while active clinical work exists. Otherwise it detaches `profiles.auth_user_id`, records `account_closed_at` / `account_closure_reason`, clears non-essential profile/contact PHI, and retains clinical/payment/audit rows by `profiles.id`.
+**Account closure:** Patient self-service closure enters through the service-role-only `close_patient_account` RPC. In one database transaction it checks active clinical work, inserts a no-FK `closed_auth_accounts` tombstone keyed by the Auth user ID, clears `profiles.auth_user_id`, records `account_closed_at` / `account_closure_reason`, and minimises non-essential profile/contact PHI while retained clinical/payment/audit rows remain linked by `profiles.id`. Clearing `auth_user_id` removes direct RLS access even while an old access JWT is still valid. The server then globally revokes refresh sessions; post-sign-in, the auth trigger, and every profile-creation fallback check the service-role-only tombstone before any link/create and route closed users to `/auth/account-closed`.
 
 **Payment state display:**
 
@@ -732,7 +734,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 549 files, 233 route files
+### `app/` — 552 files, 235 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -742,7 +744,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `emails/`, `features/`, `settings/`, `ops/`, `analytics/` |
 | `app/doctor/` | Doctor portal under the shared staff shell | `intakes/[id]/` (review detail), `patients/`, `settings/`; queue/scripts entry points resolve through `/dashboard` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
-| `app/api/` | API routes (85 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/` |
+| `app/api/` | API routes (86 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/` |
 | `app/api/cron/` | Scheduled jobs (27) | `stale-queue/`, `email-dispatcher/`, `health-check`, `google-ads-conversions`, `google-ads-diagnostics-watch`, `cert-reactivation`, `parchment-smoke`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | 7 handlers: `checkout-session-completed`, `checkout-session-expired`, `checkout-session-async-payment-succeeded/failed`, `charge-refunded`, `charge-dispute-created`, `payment-intent-payment-failed`. Repeat Rx subscription handlers are retired; unsupported Stripe events are acknowledged and claimed by the dispatcher without running business logic. Registered in `handlers/index.ts`. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
@@ -820,7 +822,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/certificate-template.ts` | PDF template field definitions |
 | `hooks/` | 5 custom hooks (use-connection-status, use-debounce, use-doctor-shortcuts, use-keyboard-navigation, use-landing-analytics) |
 | `e2e/` | 74 TypeScript specs/helpers, including `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
-| `supabase/migrations/` | 84 SQL migration files (1 squashed baseline + 83 incremental). Most recent: `20260612000000_lockdown_anon_readable_surfaces.sql` |
+| `supabase/migrations/` | 92 SQL migration files (1 squashed baseline + 91 incremental). Most recent: `20260710174000_idempotent_certificate_resends.sql`; the three 2026-07-10 closure/correction/resend migrations were applied to production and verified on 2026-07-10. |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
 | `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |

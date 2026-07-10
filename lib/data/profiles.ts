@@ -206,6 +206,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
       updated_at
     `)
     .eq("auth_user_id", userId)
+    .is("account_closed_at", null)
     .single()
 
   if (error || !data) {

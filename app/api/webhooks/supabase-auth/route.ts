@@ -16,71 +16,17 @@ import { NextResponse } from "next/server"
 import React from "react"
 import { Webhook } from "svix"
 
+import {
+  planAuthEmailMessages,
+  type SupabaseAuthHookPayload,
+} from "@/lib/auth/auth-email-message-planner"
 import { env } from "@/lib/config/env"
 import { recordAuthEmailEvent } from "@/lib/data/auth-email-events"
-import { MagicLinkEmail, magicLinkEmailSubject } from "@/lib/email/components/templates/magic-link"
+import { MagicLinkEmail } from "@/lib/email/components/templates/magic-link"
 import { renderEmailToHtml } from "@/lib/email/react-renderer-server"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
-
-// --- Types ---
-
-interface SupabaseAuthHookPayload {
-  user: {
-    id: string
-    email: string
-    user_metadata?: {
-      full_name?: string
-      first_name?: string
-    }
-  }
-  email_data: {
-    token: string
-    token_hash: string
-    redirect_to: string
-    email_action_type:
-      | "magiclink"
-      | "signup"
-      | "recovery"
-      | "invite"
-      | "email_change"
-      | "reauthentication"
-    site_url: string
-    token_new?: string
-    token_hash_new?: string
-  }
-}
-
-// --- Helpers ---
-
-function buildVerifyUrl(
-  supabaseUrl: string,
-  tokenHash: string,
-  actionType: string,
-  redirectTo: string
-): string {
-  const params = new URLSearchParams({
-    token: tokenHash,
-    type: actionType,
-    redirect_to: redirectTo,
-  })
-  return `${supabaseUrl}/auth/v1/verify?${params.toString()}`
-}
-
-function getSubject(actionType: string, firstName?: string): string {
-  const subjectMap: Record<string, string> = {
-    magiclink: magicLinkEmailSubject,
-    signup: firstName
-      ? `Welcome, ${firstName}! Confirm your email`
-      : "Confirm your InstantMed email",
-    recovery: "Reset your InstantMed access",
-    invite: "You've been invited to InstantMed",
-    email_change: "Confirm your new email address",
-    reauthentication: "Confirm your InstantMed identity",
-  }
-  return subjectMap[actionType] ?? "InstantMed notification"
-}
 
 const log = createLogger("supabase-auth-webhook")
 
@@ -124,99 +70,91 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 })
     }
 
-    // --- Extract data ---
-    const { user, email_data: emailData } = payload
-    if (!user?.email || !emailData?.token_hash || !emailData?.email_action_type) {
-      log.error("Malformed payload", { keys: Object.keys(payload).join(",") })
+    const plan = planAuthEmailMessages(payload, { appUrl: env.appUrl })
+    if (!plan.ok) {
+      log.error("Malformed auth email payload", { reason: plan.error })
       return NextResponse.json({ error: "Malformed payload" }, { status: 400 })
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? emailData.site_url
     const appUrl = env.appUrl
+    const { user } = payload
     const firstName = user.user_metadata?.first_name ?? user.user_metadata?.full_name?.split(" ")[0]
-
-    const verifyUrl = buildVerifyUrl(
-      supabaseUrl,
-      emailData.token_hash,
-      emailData.email_action_type,
-      emailData.redirect_to || appUrl
-    )
-
-    const subject = getSubject(emailData.email_action_type, firstName)
-
-    // --- Render email ---
-    let html: string
-    try {
-      html = await renderEmailToHtml(
-        React.createElement(MagicLinkEmail, {
-          loginUrl: verifyUrl,
-          appUrl,
-          actionType: emailData.email_action_type,
-          firstName,
-        })
-      )
-    } catch (err) {
-      log.error("Email render failed", {}, toError(err))
-      await recordAuthEmailEvent({
-        actionType: emailData.email_action_type,
-        to: user.email,
-        status: "failed",
-        errorMessage: "Email render failed",
-      })
-      return NextResponse.json({ error: "Email render failed" }, { status: 500 })
-    }
-
-    // --- Send via Resend ---
     const fromEmail = process.env.RESEND_FROM_EMAIL ?? "InstantMed <hello@instantmed.com.au>"
 
-    try {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: fromEmail,
-          to: user.email,
-          subject,
-          html,
-        }),
-      })
-
-      if (!response.ok) {
-        const resBody = await response.text().catch(() => "")
-        log.error("Resend API error", { status: response.status, body: resBody.slice(0, 200) })
+    for (const message of plan.messages) {
+      let html: string
+      try {
+        html = await renderEmailToHtml(
+          React.createElement(MagicLinkEmail, {
+            loginUrl: message.confirmationUrl,
+            verificationCode: message.verificationCode,
+            appUrl,
+            actionType: message.actionType,
+            emailChangeAudience: message.emailChangeAudience,
+            firstName,
+          })
+        )
+      } catch (err) {
+        log.error("Email render failed", { action: message.actionType }, toError(err))
         await recordAuthEmailEvent({
-          actionType: emailData.email_action_type,
-          to: user.email,
+          actionType: message.actionType,
+          to: message.to,
           status: "failed",
-          httpStatus: response.status,
-          errorMessage: resBody,
+          errorMessage: "Email render failed",
+        })
+        return NextResponse.json({ error: "Email render failed" }, { status: 500 })
+      }
+
+      try {
+        const response = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${resendApiKey}`,
+            "Content-Type": "application/json",
+            "Idempotency-Key": message.idempotencyKey,
+          },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: message.to,
+            subject: message.subject,
+            html,
+          }),
+        })
+
+        if (!response.ok) {
+          const resBody = await response.text().catch(() => "")
+          log.error("Resend API error", { status: response.status, body: resBody.slice(0, 200) })
+          await recordAuthEmailEvent({
+            actionType: message.actionType,
+            to: message.to,
+            status: "failed",
+            httpStatus: response.status,
+            errorMessage: resBody,
+          })
+          return NextResponse.json({ error: "Email delivery failed" }, { status: 500 })
+        }
+
+        const responseBody = (await response.json().catch(() => null)) as { id?: string } | null
+        await recordAuthEmailEvent({
+          actionType: message.actionType,
+          to: message.to,
+          status: "sent",
+          providerMessageId: responseBody?.id ?? null,
+        })
+        log.info("Auth email sent", { action: message.actionType, hasRecipient: true })
+      } catch (err) {
+        log.error("Resend fetch failed", { action: message.actionType }, toError(err))
+        await recordAuthEmailEvent({
+          actionType: message.actionType,
+          to: message.to,
+          status: "failed",
+          errorMessage: err instanceof Error ? err.message : "Resend fetch failed",
         })
         return NextResponse.json({ error: "Email delivery failed" }, { status: 500 })
       }
-
-      const responseBody = (await response.json().catch(() => null)) as { id?: string } | null
-      await recordAuthEmailEvent({
-        actionType: emailData.email_action_type,
-        to: user.email,
-        status: "sent",
-        providerMessageId: responseBody?.id ?? null,
-      })
-      log.info("Auth email sent", { action: emailData.email_action_type, hasRecipient: true })
-    } catch (err) {
-      log.error("Resend fetch failed", {}, toError(err))
-      await recordAuthEmailEvent({
-        actionType: emailData.email_action_type,
-        to: user.email,
-        status: "failed",
-        errorMessage: err instanceof Error ? err.message : "Resend fetch failed",
-      })
-      return NextResponse.json({ error: "Email delivery failed" }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, sent: plan.messages.length })
   } catch (uncaught) {
     log.error("Uncaught error in auth webhook", {}, toError(uncaught))
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

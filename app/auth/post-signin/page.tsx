@@ -3,6 +3,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
+import { hasClosedAuthAccountTombstone } from "@/lib/auth/account-closure"
 import {
   buildGuestProfileAuthLinkUpdate,
   selectGuestProfileForAuthLink,
@@ -96,7 +97,10 @@ type GuestProfileLinkCandidate = GuestProfileCandidateRow & {
   has_paid_intake: boolean
 }
 
-type PostSignInProfile = Pick<Profile, "id" | "role" | "onboarding_completed">
+type PostSignInProfile = Pick<
+  Profile,
+  "id" | "role" | "onboarding_completed" | "account_closed_at" | "email"
+>
 
 async function getPreferredGuestProfileIdForIntake(
   supabase: ReturnType<typeof createServiceRoleClient>,
@@ -141,6 +145,7 @@ async function getGuestProfileLinkCandidates(
     .ilike("email", escapeIlike(primaryEmail))
     .eq("role", "patient")
     .is("auth_user_id", null)
+    .is("account_closed_at", null)
     .order("created_at", { ascending: false })
     .limit(10)
 
@@ -188,6 +193,8 @@ export default async function PostSignInPage({
       id: authenticated.profile.id,
       role: authenticated.profile.role,
       onboarding_completed: authenticated.profile.onboarding_completed,
+      account_closed_at: authenticated.profile.account_closed_at,
+      email: authenticated.profile.email,
     }
     : null
   let primaryEmail = authenticated?.user.email?.toLowerCase() ?? null
@@ -225,6 +232,10 @@ export default async function PostSignInPage({
 
   log.info("Post sign-in check started", { hasEmail: Boolean(primaryEmail) })
 
+  if (await hasClosedAuthAccountTombstone(userId)) {
+    redirect("/auth/account-closed")
+  }
+
   const supabase = createServiceRoleClient()
 
   // Try to find profile with retries (handles race condition with trigger)
@@ -235,7 +246,7 @@ export default async function PostSignInPage({
     // Check by auth_user_id
     const { data: existingProfile, error: lookupError } = await supabase
       .from("profiles")
-      .select("id, role, onboarding_completed")
+      .select("id, role, onboarding_completed, account_closed_at, email")
       .eq("auth_user_id", userId)
       .maybeSingle()
 
@@ -244,6 +255,32 @@ export default async function PostSignInPage({
     }
 
     if (existingProfile) {
+      if (existingProfile.account_closed_at) {
+        redirect("/auth/account-closed")
+      }
+
+      if (primaryEmail && existingProfile.email?.toLowerCase() !== primaryEmail) {
+        const { error: emailSyncError } = await supabase
+          .from("profiles")
+          .update({
+            email: primaryEmail,
+            email_verified: true,
+            email_verified_at: new Date().toISOString(),
+          })
+          .eq("id", existingProfile.id)
+          .eq("auth_user_id", userId)
+          .is("account_closed_at", null)
+
+        if (emailSyncError) {
+          log.warn("Failed to sync confirmed auth email to profile", {
+            profileId: existingProfile.id,
+            code: emailSyncError.code,
+          })
+        } else {
+          existingProfile.email = primaryEmail
+        }
+      }
+
       profile = existingProfile
       log.info("Found profile by auth_user_id", { attempt })
       break
@@ -269,7 +306,8 @@ export default async function PostSignInPage({
           .eq("id", guestProfile.id)
           .eq("role", "patient")
           .is("auth_user_id", null)
-          .select("id, role, onboarding_completed")
+          .is("account_closed_at", null)
+          .select("id, role, onboarding_completed, account_closed_at, email")
           .maybeSingle()
 
         if (linkedProfile) {
@@ -283,7 +321,7 @@ export default async function PostSignInPage({
         // Check if another process already linked it
         const { data: nowLinkedProfile } = await supabase
           .from("profiles")
-          .select("id, role, onboarding_completed")
+          .select("id, role, onboarding_completed, account_closed_at, email")
           .eq("auth_user_id", userId)
           .maybeSingle()
 
@@ -326,7 +364,7 @@ export default async function PostSignInPage({
         email_verified: true,
         email_verified_at: new Date().toISOString(),
       })
-      .select("id, role, onboarding_completed")
+      .select("id, role, onboarding_completed, account_closed_at, email")
       .single()
 
     if (!createError && newProfile) {
@@ -336,7 +374,7 @@ export default async function PostSignInPage({
       // Race condition - trigger created it
       const { data: raceProfile } = await supabase
         .from("profiles")
-        .select("id, role, onboarding_completed")
+        .select("id, role, onboarding_completed, account_closed_at, email")
         .eq("auth_user_id", userId)
         .maybeSingle()
       if (raceProfile) {

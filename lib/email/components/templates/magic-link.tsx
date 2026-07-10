@@ -7,14 +7,26 @@
 
 import * as React from "react"
 
-import { APP_URL, BaseEmail, Box, Button, colors, fontFamily, NameFirstGreeting, Text } from "../base-email"
+import {
+  APP_URL,
+  BaseEmail,
+  Box,
+  Button,
+  colors,
+  fontFamily,
+  NameFirstGreeting,
+  Text,
+  VerificationCode,
+} from "../base-email"
 
 export interface MagicLinkEmailProps {
-  loginUrl: string
+  loginUrl?: string
   email?: string
   appUrl?: string
   actionType?: "magiclink" | "signup" | "recovery" | "invite" | "email_change" | "reauthentication" | string
+  emailChangeAudience?: "current" | "new"
   firstName?: string
+  verificationCode?: string
 }
 
 export const magicLinkEmailSubject = "Your InstantMed sign-in link is ready"
@@ -23,8 +35,8 @@ const actionCopy = {
   signup: {
     headline: "Confirm your InstantMed account",
     eyebrow: "Account setup",
-    subtitle: "One secure click, then back to your request.",
-    body: "Confirm your account and keep going. This link works once and expires in 60 minutes.",
+    subtitle: "One quick confirmation, then back to your request.",
+    body: "Open the secure page below, then confirm your account. The one-time link expires in 60 minutes.",
     buttonLabel: "Confirm account",
     previewText: "Confirm your InstantMed account and continue to your request.",
   },
@@ -32,7 +44,7 @@ const actionCopy = {
     headline: "Reset your InstantMed access",
     eyebrow: "Account recovery",
     subtitle: "A secure one-time reset link.",
-    body: "Use the button below to reset your access. This link works once and expires in 60 minutes.",
+    body: "Open the secure page below, then continue to choose a new password. The one-time link expires in 60 minutes.",
     buttonLabel: "Reset access",
     previewText: "Use this secure link to reset access to InstantMed.",
   },
@@ -40,15 +52,57 @@ const actionCopy = {
     headline: "Your sign-in link is ready",
     eyebrow: "Secure sign-in",
     subtitle: "No password. No waiting room.",
-    body: "Tap the button below and you will be signed in. This link works once and expires in 60 minutes.",
+    body: "Tap the button below to open InstantMed, then confirm to sign in. The one-time link expires in 60 minutes.",
     buttonLabel: "Open InstantMed",
     previewText: "Your secure InstantMed sign-in link is ready. Expires in 60 minutes.",
   },
+  invite: {
+    headline: "Accept your InstantMed invitation",
+    eyebrow: "Account invitation",
+    subtitle: "Confirm securely to finish joining.",
+    body: "Open the secure page below, then accept the invitation. The one-time link expires in 60 minutes.",
+    buttonLabel: "Review invitation",
+    previewText: "Your InstantMed invitation is ready to review.",
+  },
+  emailChangeCurrent: {
+    headline: "Approve this email change",
+    eyebrow: "Account security",
+    subtitle: "Confirm the request from your current inbox.",
+    body: "Open the secure page below and approve the change. Nothing changes if you ignore this email.",
+    buttonLabel: "Approve change",
+    previewText: "Approve the requested change to your InstantMed sign-in email.",
+  },
+  emailChangeNew: {
+    headline: "Confirm your new email address",
+    eyebrow: "Account security",
+    subtitle: "One final confirmation from this inbox.",
+    body: "Open the secure page below and confirm this address for your InstantMed account.",
+    buttonLabel: "Confirm new email",
+    previewText: "Confirm your new InstantMed sign-in email address.",
+  },
+  reauthentication: {
+    headline: "Verify your identity",
+    eyebrow: "Account security",
+    subtitle: "Use this one-time verification code.",
+    body: "Enter this code in the InstantMed window where you started the security check. It expires shortly.",
+    buttonLabel: "",
+    previewText: "Your InstantMed identity verification code is ready.",
+  },
 }
 
-function getCopy(actionType: MagicLinkEmailProps["actionType"]) {
+function getCopy(
+  actionType: MagicLinkEmailProps["actionType"],
+  emailChangeAudience: MagicLinkEmailProps["emailChangeAudience"],
+) {
   if (actionType === "signup") return actionCopy.signup
   if (actionType === "recovery") return actionCopy.recovery
+  if (actionType === "invite") return actionCopy.invite
+  if (actionType === "email_change") {
+    return emailChangeAudience === "current"
+      ? actionCopy.emailChangeCurrent
+      : actionCopy.emailChangeNew
+  }
+  if (actionType === "reauthentication") return actionCopy.reauthentication
   return actionCopy.magiclink
 }
 
@@ -56,9 +110,12 @@ export function MagicLinkEmail({
   loginUrl,
   appUrl = APP_URL,
   actionType = "magiclink",
+  emailChangeAudience,
   firstName,
+  verificationCode,
 }: MagicLinkEmailProps) {
-  const copy = getCopy(actionType)
+  const copy = getCopy(actionType, emailChangeAudience)
+  const isReauthentication = actionType === "reauthentication"
 
   return (
     <BaseEmail
@@ -114,59 +171,77 @@ export function MagicLinkEmail({
       <NameFirstGreeting name={firstName} />
       <Text>{copy.body}</Text>
 
-      <Button href={loginUrl}>{copy.buttonLabel}</Button>
+      {isReauthentication ? (
+        verificationCode ? (
+          <VerificationCode code={verificationCode} />
+        ) : (
+          <Box variant="warning">
+            <Text small>Request a fresh verification code from the security screen.</Text>
+          </Box>
+        )
+      ) : loginUrl ? (
+        <>
+          <Button href={loginUrl}>{copy.buttonLabel}</Button>
 
-      <Box variant="info">
-        <p
-          style={{
-            margin: "0",
-            fontSize: "13px",
-            color: colors.infoText,
-            lineHeight: "1.6",
-          }}
-        >
-          If this link has expired, request a fresh one from the sign-in page.
-        </p>
-      </Box>
+          <Box variant="info">
+            <p
+              style={{
+                margin: "0",
+                fontSize: "13px",
+                color: colors.infoText,
+                lineHeight: "1.6",
+              }}
+            >
+              If this link has expired, request a fresh one from the sign-in page.
+            </p>
+          </Box>
 
-      <Box>
-        <p
-          style={{
-            margin: "0 0 8px 0",
-            fontSize: "13px",
-            fontWeight: 600,
-            color: colors.text,
-            lineHeight: "1.5",
-          }}
-        >
-          Copy this secure link
-        </p>
-        <a
-          href={loginUrl}
-          style={{
-            display: "block",
-            color: colors.accent,
-            fontSize: "12px",
-            lineHeight: "1.5",
-            textDecoration: "none",
-            wordBreak: "break-all",
-            overflowWrap: "anywhere",
-          }}
-        >
-          {loginUrl}
-        </a>
-      </Box>
+          <Box>
+            <p
+              style={{
+                margin: "0 0 8px 0",
+                fontSize: "13px",
+                fontWeight: 600,
+                color: colors.text,
+                lineHeight: "1.5",
+              }}
+            >
+              Copy this secure link
+            </p>
+            <a
+              href={loginUrl}
+              style={{
+                display: "block",
+                color: colors.accent,
+                fontSize: "12px",
+                lineHeight: "1.5",
+                textDecoration: "none",
+                wordBreak: "break-all",
+                overflowWrap: "anywhere",
+              }}
+            >
+              {loginUrl}
+            </a>
+          </Box>
+        </>
+      ) : (
+        <Box variant="warning">
+          <Text small>Request a fresh link from the sign-in page.</Text>
+        </Box>
+      )}
 
       <Text small muted style={{ textAlign: "center" as const }}>
         Didn't ask for this? No stress. Ignore this email and nothing changes on your account.
       </Text>
 
-      <Text small muted style={{ textAlign: "center" as const, marginTop: "4px" }}>
-        Button playing up?{" "}
-        <a href={`${appUrl}/sign-in`} style={{ color: colors.accent, textDecoration: "none" }}>
-          Open the sign-in page
-        </a>
-      </Text>
+      {!isReauthentication && (
+        <Text small muted style={{ textAlign: "center" as const, marginTop: "4px" }}>
+          Button playing up?{" "}
+          <a href={`${appUrl}/sign-in`} style={{ color: colors.accent, textDecoration: "none" }}>
+            Open the sign-in page
+          </a>
+        </Text>
+      )}
     </BaseEmail>
   )
 }

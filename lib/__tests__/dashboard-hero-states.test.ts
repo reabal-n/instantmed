@@ -97,6 +97,12 @@ describe("DashboardHero · resolveHeroState", () => {
     expect(dashboardHeroSource).not.toContain('Link href={`/patient/intakes/${intake.id}`}>\n                  Reply now')
   })
 
+  it("gives approved requests without a PDF an honest refresh and support path", () => {
+    expect(intakeDetailSource).toContain("The secure PDF is still being prepared.")
+    expect(intakeDetailSource).toContain("Check again")
+    expect(intakeDetailSource).toContain('!document?.pdf_url')
+  })
+
   it("empty: no intakes and no prescriptions", () => {
     const result = resolveHeroState({ intakes: [], prescriptions: [] })
     expect(result.state).toBe("empty")
@@ -124,13 +130,14 @@ describe("DashboardHero · resolveHeroState", () => {
       expect(result.intake?.id).toBe("i-pi")
     })
 
-    it("documents-ready wins over live-review and stale-payment", () => {
+    it("documents-ready wins over live-review and stale-payment only when a current document exists", () => {
       const result = resolveHeroState({
         intakes: [
           mkIntake({ id: "i-paid", status: "paid" }),
           mkIntake({
             id: "i-approved",
             status: "approved",
+            document_ready: true,
             updated_at: new Date(NOW - 60 * 1000).toISOString(),
           }),
           mkIntake({ id: "i-pp", status: "pending_payment", created_at: TWO_HOURS_AGO }),
@@ -146,8 +153,8 @@ describe("DashboardHero · resolveHeroState", () => {
       const older = new Date(NOW - 5 * 24 * 60 * 60 * 1000).toISOString()
       const result = resolveHeroState({
         intakes: [
-          mkIntake({ id: "i-old", status: "completed", updated_at: older }),
-          mkIntake({ id: "i-new", status: "approved", updated_at: newer }),
+          mkIntake({ id: "i-old", status: "completed", document_ready: true, updated_at: older }),
+          mkIntake({ id: "i-new", status: "approved", document_ready: true, updated_at: newer }),
         ],
         prescriptions: [],
       })
@@ -161,6 +168,7 @@ describe("DashboardHero · resolveHeroState", () => {
           mkIntake({
             id: "i-stale",
             status: "approved",
+            document_ready: true,
             updated_at: elevenDaysAgo,
             created_at: elevenDaysAgo,
           }),
@@ -168,6 +176,22 @@ describe("DashboardHero · resolveHeroState", () => {
         prescriptions: [],
       })
       expect(result.state).toBe("default")
+    })
+
+    it("shows document processing instead of a false download promise after approval", () => {
+      const result = resolveHeroState({
+        intakes: [
+          mkIntake({
+            id: "i-approved-no-pdf",
+            status: "approved",
+            document_ready: false,
+          }),
+        ],
+        prescriptions: [],
+      })
+
+      expect(result.state).toBe("document-processing")
+      expect(result.intake?.id).toBe("i-approved-no-pdf")
     })
 
     it("live-review wins over stale-payment + renewal", () => {
@@ -222,21 +246,22 @@ describe("DashboardHero · resolveHeroState", () => {
     })
 
     it.each([
-      ["pending_info", "doctor-question", ONE_HOUR_AGO],
-      ["approved", "documents-ready", ONE_HOUR_AGO],
-      ["completed", "documents-ready", ONE_HOUR_AGO],
-      ["paid", "live-review", ONE_HOUR_AGO],
-      ["in_review", "live-review", ONE_HOUR_AGO],
-      ["checkout_failed", "stale-payment", ONE_HOUR_AGO],
-      ["pending_payment", "stale-payment", TWO_HOURS_AGO],
+      ["pending_info", "doctor-question", ONE_HOUR_AGO, false],
+      ["approved", "documents-ready", ONE_HOUR_AGO, true],
+      ["completed", "documents-ready", ONE_HOUR_AGO, true],
+      ["paid", "live-review", ONE_HOUR_AGO, false],
+      ["in_review", "live-review", ONE_HOUR_AGO, false],
+      ["checkout_failed", "stale-payment", ONE_HOUR_AGO, false],
+      ["pending_payment", "stale-payment", TWO_HOURS_AGO, false],
     ] as const)(
       "keeps critical patient status %s mapped to %s",
-      (status, expectedState, createdAt) => {
+      (status, expectedState, createdAt, documentReady) => {
         const result = resolveHeroState({
           intakes: [
             mkIntake({
               id: `i-${status}`,
               status,
+              document_ready: documentReady,
               created_at: createdAt,
               updated_at: createdAt,
             }),
@@ -251,7 +276,7 @@ describe("DashboardHero · resolveHeroState", () => {
 
     it("renewal-due wins over profile-incomplete", () => {
       const result = resolveHeroState({
-        intakes: [mkIntake({ status: "completed", updated_at: ONE_DAY_AGO })],
+        intakes: [mkIntake({ status: "completed", document_ready: true, updated_at: ONE_DAY_AGO })],
         prescriptions: [mkRx({ expiry_date: SOON })],
         profileData: INCOMPLETE_PROFILE,
       })
@@ -262,7 +287,7 @@ describe("DashboardHero · resolveHeroState", () => {
 
     it("profile-incomplete fires only when patient has activity", () => {
       const result = resolveHeroState({
-        intakes: [mkIntake({ status: "completed", created_at: ONE_DAY_AGO, updated_at: ONE_DAY_AGO })],
+        intakes: [mkIntake({ status: "completed", document_ready: true, created_at: ONE_DAY_AGO, updated_at: ONE_DAY_AGO })],
         prescriptions: [],
         profileData: INCOMPLETE_PROFILE,
       })

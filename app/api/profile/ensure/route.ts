@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
+import { hasClosedAuthAccountTombstone } from "@/lib/auth/account-closure"
 import {
   buildGuestProfileAuthLinkUpdate,
   selectGuestProfileForAuthLink,
@@ -29,6 +30,10 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    if (await hasClosedAuthAccountTombstone(user.id)) {
+      return NextResponse.json({ error: "Account closed" }, { status: 403 })
     }
 
     const primaryEmail = user.email?.toLowerCase()

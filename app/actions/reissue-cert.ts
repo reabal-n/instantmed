@@ -3,35 +3,67 @@
 /**
  * Reissue Certificate Action
  *
- * Allows a doctor to correct and reissue an existing medical certificate in-place.
- * Same certificate number and ref are preserved - the issued_certificates row is
- * updated, new PDF is generated, old PDF is replaced in storage, and the change
- * is logged to certificate_audit_log.
+ * Allows a doctor to correct and reissue an existing medical certificate.
+ * Same certificate number and ref are preserved. The corrected PDF is uploaded
+ * to a unique path, then the live row switch and audit event commit atomically;
+ * the previous PDF remains untouched for rollback and medicolegal traceability.
  *
  * Doctor workflow only (doctor or admin acting clinically). Max 3 reissues per intake.
- * Optional patient notification (defaults off).
+ * Patient notification defaults on so a corrected PDF does not silently
+ * replace a document the patient has already received.
  */
 
 import * as Sentry from "@sentry/nextjs"
 import crypto from "crypto"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { doctorHasCapability } from "@/lib/auth/staff-capabilities"
 import { env } from "@/lib/config/env"
+import { getEmployerCertificateStorageVersion } from "@/lib/crypto/employer-certificate-token"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { getDoctorIdentity } from "@/lib/data/doctor-identity"
-import { getCertificateForIntake, logCertificateEvent } from "@/lib/data/issued-certificates"
+import {
+  commitCertificateCorrection,
+  getCertificateCorrectionCount,
+  getCertificateForIntake,
+} from "@/lib/data/issued-certificates"
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
 import { sendEmail } from "@/lib/email/send-email"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 import { validateCertificateDateRange } from "@/lib/medical-certificates/date-policy"
+import { reconcileCertificateEmailDelivery } from "@/lib/medical-certificates/email-delivery-reconciliation"
 import { createLogger } from "@/lib/observability/logger"
-import { getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
+import {
+  getGuestCertificateAccessHref,
+  getPatientIntakeDetailHref,
+} from "@/lib/patient/certificate-download"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { prepareCertificatePatientNameWrite } from "@/lib/security/phi-field-wrappers"
 import { getAbsenceDays } from "@/lib/stripe/price-mapping"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("reissue-cert")
+
+async function removeUncommittedCorrection(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  storagePath: string,
+  context: { intakeId: string; certificateId: string },
+) {
+  const { error } = await supabase.storage.from("documents").remove([storagePath])
+  if (!error) return
+
+  logger.error("[ReissueCert] Failed to clean uncommitted correction PDF", {
+    ...context,
+    storagePath,
+  }, error)
+  Sentry.captureException(error, {
+    tags: {
+      subsystem: "reissue-cert-cleanup",
+      intakeId: context.intakeId,
+      certId: context.certificateId,
+    },
+  })
+}
 
 export interface ReissueCertInput {
   intakeId: string
@@ -41,7 +73,8 @@ export interface ReissueCertInput {
   startDate: string    // YYYY-MM-DD
   endDate: string      // YYYY-MM-DD
   medicalReason: string
-  notifyPatient?: boolean  // defaults false
+  notifyPatient?: boolean  // defaults true
+  correctionEventId?: string
 }
 
 export interface ReissueCertResult {
@@ -54,6 +87,7 @@ export async function reissueCertificateAction(
   input: ReissueCertInput
 ): Promise<ReissueCertResult> {
   const { intakeId } = input
+  const notifyPatient = input.notifyPatient ?? true
 
   // 1. AUTH CHECK - doctor workflow, with admin allowed when acting clinically
   const user = await requireRoleOrNull(["doctor", "admin"])
@@ -61,9 +95,47 @@ export async function reissueCertificateAction(
     return { success: false, error: "Unauthorized" }
   }
 
+  if (!doctorHasCapability(user.profile, "review_med_certs")) {
+    logger.warn("[ReissueCert] Doctor lacks medical certificate capability", {
+      doctorId: user.profile.id,
+      intakeId,
+    })
+    return {
+      success: false,
+      error: "Your account is not configured to review medical certificates. Contact the medical director.",
+    }
+  }
+
   const supabase = createServiceRoleClient()
+  let uncommittedStoragePath: string | null = null
+  let certificateIdForCleanup: string | null = null
 
   try {
+    const { data: intakeOwner, error: intakeOwnerError } = await supabase
+      .from("intakes")
+      .select("patient_id")
+      .eq("id", intakeId)
+      .single()
+
+    if (intakeOwnerError || !intakeOwner) {
+      logger.error("[ReissueCert] Failed to verify intake ownership", {
+        intakeId,
+        doctorId: user.profile.id,
+      }, intakeOwnerError ?? undefined)
+      return { success: false, error: "Could not verify intake ownership. Please try again." }
+    }
+
+    if (intakeOwner.patient_id === user.profile.id) {
+      logger.warn("[ReissueCert] Doctor attempted to reissue own certificate", {
+        intakeId,
+        doctorId: user.profile.id,
+      })
+      return {
+        success: false,
+        error: "You cannot reissue your own medical certificate. Please have another doctor review this correction.",
+      }
+    }
+
     // 2. VALIDATE FIELDS
     const patientName = input.patientName.trim()
     if (!patientName) {
@@ -93,8 +165,20 @@ export async function reissueCertificateAction(
       }
     }
 
-    // 4. RATE LIMIT - max 3 reissues
-    if ((cert.resend_count ?? 0) >= 3) {
+    // 4. CORRECTION LIMIT - durable audit events, separate from resend limits
+    const correctionCountResult = await getCertificateCorrectionCount(cert.id)
+    if (!correctionCountResult.success) {
+      logger.error("[ReissueCert] Failed to verify correction history", {
+        intakeId,
+        certId: cert.id,
+      })
+      return {
+        success: false,
+        error: "Could not verify certificate correction history. Please try again.",
+      }
+    }
+
+    if ((correctionCountResult.count ?? 0) >= 3) {
       return {
         success: false,
         error: "Maximum corrections reached (3). Contact support.",
@@ -128,16 +212,7 @@ export async function reissueCertificateAction(
       return { success: false, error: "Failed to fetch doctor identity" }
     }
 
-    // 7. CAPTURE OLD VALUES FOR AUDIT
-    const oldValues = {
-      patient_name: cert.patient_name,
-      start_date: cert.start_date,
-      end_date: cert.end_date,
-      certificate_type: cert.certificate_type,
-      patient_dob: cert.patient_dob,
-    }
-
-    // 8. RENDER NEW PDF
+    // 7. RENDER NEW PDF
     const consultationDate = formatDateLong(cert.issue_date)
     const formattedStartDate = formatDateLong(input.startDate)
     const formattedEndDate = formatDateLong(input.endDate)
@@ -171,22 +246,24 @@ export async function reissueCertificateAction(
 
     const pdfBuffer = pdfResult.buffer
 
-    // 9. COMPUTE NEW PDF HASH
+    // 8. COMPUTE NEW PDF HASH + PHI DUAL-WRITE FIELDS
     const newHash = crypto.createHash("sha256").update(pdfBuffer).digest("hex")
+    const patientNameFields = await prepareCertificatePatientNameWrite(patientName)
 
-    // 10. UPLOAD NEW PDF - upsert to the same storage path
+    // 9. UPLOAD TO A UNIQUE PATH. Never overwrite the currently live PDF.
+    const newStoragePath = `certificates/corrections/${cert.id}/${crypto.randomUUID()}.pdf`
     const { error: uploadError } = await supabase.storage
       .from("documents")
-      .upload(cert.storage_path, pdfBuffer, {
+      .upload(newStoragePath, pdfBuffer, {
         contentType: "application/pdf",
-        upsert: true,
+        upsert: false,
       })
 
     if (uploadError) {
       logger.error("[ReissueCert] PDF upload failed", {
         intakeId,
         certId: cert.id,
-        storagePath: cert.storage_path,
+        storagePath: newStoragePath,
       }, uploadError)
       Sentry.captureException(uploadError, {
         tags: { subsystem: "reissue-cert-upload", intakeId, certId: cert.id },
@@ -194,32 +271,43 @@ export async function reissueCertificateAction(
       return { success: false, error: "Failed to upload corrected certificate" }
     }
 
-    // 11. UPDATE issued_certificates ROW (dual-write encrypted patient name)
-    const patientNameFields = await prepareCertificatePatientNameWrite(patientName)
+    uncommittedStoragePath = newStoragePath
+    certificateIdForCleanup = cert.id
 
-    const { error: updateError } = await supabase
-      .from("issued_certificates")
-      .update({
-        ...patientNameFields,
-        patient_dob: input.patientDob,
-        certificate_type: input.certificateType,
-        start_date: input.startDate,
-        end_date: input.endDate,
-        storage_path: cert.storage_path,
-        pdf_hash: newHash,
-        file_size_bytes: pdfBuffer.length,
-        resend_count: (cert.resend_count ?? 0) + 1,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", cert.id)
+    // 10. Atomically switch the row and append the required audit event.
+    const actorRole = user.profile.role === "admin" ? "admin" : "doctor"
+    const commitResult = await commitCertificateCorrection({
+      certificateId: cert.id,
+      expectedStoragePath: cert.storage_path,
+      newStoragePath,
+      patientName: patientNameFields.patient_name,
+      patientNameEnc: patientNameFields.patient_name_enc,
+      patientDob: input.patientDob,
+      certificateType: input.certificateType,
+      startDate: input.startDate,
+      endDate: input.endDate,
+      pdfHash: newHash,
+      fileSizeBytes: pdfBuffer.length,
+      actorId: user.profile.id,
+      actorRole,
+      pendingCorrectionEventId: input.correctionEventId,
+    })
 
-    if (updateError) {
-      logger.error("[ReissueCert] Failed to update certificate row", {
+    if (!commitResult.success) {
+      logger.error("[ReissueCert] Failed to commit certificate correction", {
         intakeId,
         certId: cert.id,
-      }, updateError)
+        error: commitResult.error,
+      })
+      await removeUncommittedCorrection(supabase, newStoragePath, {
+        intakeId,
+        certificateId: cert.id,
+      })
+      uncommittedStoragePath = null
       return { success: false, error: "Failed to update certificate record" }
     }
+
+    uncommittedStoragePath = null
 
     logger.info("[ReissueCert] Certificate reissued", {
       certId: cert.id,
@@ -227,31 +315,11 @@ export async function reissueCertificateAction(
       actorId: user.profile.id,
       durationDays,
       certificateType: input.certificateType,
+      correctionCount: commitResult.correctionCount,
     })
 
-    // 12. LOG TO AUDIT TRAIL - fire-and-forget, non-blocking
-    const newValues = {
-      patient_name: patientName,
-      start_date: input.startDate,
-      end_date: input.endDate,
-      certificate_type: input.certificateType,
-      patient_dob: input.patientDob,
-    }
-
-    logCertificateEvent(
-      cert.id,
-      "superseded",
-      user.profile.id,
-      "doctor",
-      {
-        old_values: oldValues,
-        new_values: newValues,
-        reissue_reason: "doctor_correction",
-      }
-    ).then(() => {}, () => {})
-
-    // 13. OPTIONAL PATIENT NOTIFICATION
-    if (input.notifyPatient) {
+    // 11. OPTIONAL PATIENT NOTIFICATION
+    if (notifyPatient) {
       try {
         const { data: intakeRow } = await supabase
           .from("intakes")
@@ -261,7 +329,8 @@ export async function reissueCertificateAction(
             patient:profiles!patient_id(
               id,
               full_name,
-              email
+              email,
+              auth_user_id
             )
           `)
           .eq("id", intakeId)
@@ -271,9 +340,12 @@ export async function reissueCertificateAction(
         const patient = Array.isArray(rawPatient) ? rawPatient[0] : rawPatient
 
         if (patient?.email && patient?.full_name) {
-          const dashboardUrl = `${env.appUrl}${getPatientIntakeDetailHref(intakeId)}`
+          const isGuest = !patient.auth_user_id
+          const dashboardUrl = isGuest
+            ? `${env.appUrl}${getGuestCertificateAccessHref(intakeId)}`
+            : `${env.appUrl}${getPatientIntakeDetailHref(intakeId)}`
 
-          await sendEmail({
+          const emailResult = await sendEmail({
             to: patient.email,
             toName: patient.full_name,
             subject: `${medCertPatientEmailSubject(patient.full_name?.split(" ")[0])} (Updated)`,
@@ -288,12 +360,14 @@ export async function reissueCertificateAction(
                     ? "carer"
                     : "work",
               appUrl: env.appUrl,
+              isGuest,
             }),
             emailType: "med_cert_patient",
             intakeId,
             patientId: patient.id,
             certificateId: cert.id,
             metadata: {
+              certificate_storage_version: getEmployerCertificateStorageVersion(newStoragePath),
               cert_type: input.certificateType,
               reissued_by: user.profile.id,
             },
@@ -304,11 +378,53 @@ export async function reissueCertificateAction(
             ],
           })
 
-          logger.info("[ReissueCert] Patient notified of updated certificate", {
-            intakeId,
-            certId: cert.id,
-            hasPatientEmail: true,
-          })
+          if (emailResult.success) {
+            await reconcileCertificateEmailDelivery({
+              intakeId,
+              certificateId: cert.id,
+              expectedStorageVersion: getEmployerCertificateStorageVersion(newStoragePath),
+              outcome: "sent",
+              providerMessageId: emailResult.messageId,
+              outboxId: emailResult.outboxId,
+              actorId: user.profile.id,
+              actorRole,
+              source: "correction",
+              eventData: {
+                reissue_notification: true,
+              },
+            })
+            logger.info("[ReissueCert] Patient notified of updated certificate", {
+              intakeId,
+              certId: cert.id,
+              hasPatientEmail: true,
+            })
+          } else if (emailResult.outboxId && emailResult.retryable !== false) {
+            logger.info("[ReissueCert] Updated certificate notification queued for recovery", {
+              intakeId,
+              certId: cert.id,
+              outboxId: emailResult.outboxId,
+            })
+          } else {
+            await reconcileCertificateEmailDelivery({
+              intakeId,
+              certificateId: cert.id,
+              expectedStorageVersion: getEmployerCertificateStorageVersion(newStoragePath),
+              outcome: "failed",
+              failureReason: emailResult.error,
+              outboxId: emailResult.outboxId,
+              actorId: user.profile.id,
+              actorRole,
+              source: "correction",
+              eventData: {
+                reissue_notification: true,
+              },
+            })
+            logger.warn("[ReissueCert] Patient notification failed (non-fatal)", {
+              intakeId,
+              certId: cert.id,
+              error: emailResult.error,
+            })
+          }
         }
       } catch (emailError) {
         // Notification failure is non-fatal - cert update already succeeded
@@ -324,13 +440,19 @@ export async function reissueCertificateAction(
       }
     }
 
-    // 14. REVALIDATE PATHS
+    // 12. REVALIDATE PATHS
     revalidateStaff({ intakeId })
     revalidatePatient({ intakeId })
 
-    // 15. RETURN SUCCESS
+    // 13. RETURN SUCCESS
     return { success: true, certificateId: cert.id }
   } catch (error) {
+    if (uncommittedStoragePath && certificateIdForCleanup) {
+      await removeUncommittedCorrection(supabase, uncommittedStoragePath, {
+        intakeId,
+        certificateId: certificateIdForCleanup,
+      })
+    }
     logger.error(
       "[ReissueCert] Unexpected error",
       { intakeId },

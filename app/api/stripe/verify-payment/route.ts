@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/nextjs"
 import { after, NextRequest, NextResponse } from "next/server"
 
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
-import { auth } from "@/lib/auth/helpers"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { stripe } from "@/lib/stripe/client"
@@ -26,8 +26,8 @@ export async function POST(req: NextRequest) {
     if (rateLimitResponse) return rateLimitResponse
 
     // Require authentication
-    const { userId } = await auth()
-    if (!userId) {
+    const authResult = await getApiAuth()
+    if (!authResult || authResult.profile.role !== "patient") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -39,23 +39,12 @@ export async function POST(req: NextRequest) {
 
     const supabase = createServiceRoleClient()
 
-    // Verify the caller owns this intake
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("auth_user_id", userId)
-      .single()
-
-    if (!profile) {
-      return NextResponse.json({ error: "Profile not found" }, { status: 404 })
-    }
-
     // 1. Check current intake status AND verify ownership
     const { data: intake, error: fetchError } = await supabase
       .from("intakes")
       .select("id, status, payment_status, payment_id, category")
       .eq("id", intakeId)
-      .eq("patient_id", profile.id)
+      .eq("patient_id", authResult.profile.id)
       .single()
 
     if (fetchError || !intake) {

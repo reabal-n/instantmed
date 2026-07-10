@@ -53,6 +53,16 @@ const baseProps = {
 }
 
 describe("CompleteAccountForm relay email note", () => {
+  it("does not claim a certificate is currently valid before account ownership is checked", () => {
+    const html = renderToStaticMarkup(
+      <CompleteAccountForm {...baseProps} certificateAccess />,
+    )
+
+    expect(html).toContain("Secure certificate access")
+    expect(html).toContain("Create Account &amp; View Request")
+    expect(html).not.toContain("Your certificate is ready")
+  })
+
   it("shows the Hide My Email note when the account email is an Apple relay", () => {
     const html = renderToStaticMarkup(
       <CompleteAccountForm {...baseProps} email="gambols_pixie.6p@icloud.com" />,

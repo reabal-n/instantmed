@@ -484,6 +484,16 @@ export interface Profile {
   my_health_record_consent?: boolean // Alias for consent_myhr
 }
 
+// Table: closed_auth_accounts
+// Service-role-only durable tombstones. Deliberately no FK to auth.users so
+// auth cleanup cannot recreate access by cascading the closure marker away.
+export interface ClosedAuthAccount {
+  auth_user_id: string
+  profile_id: string
+  closed_at: string
+  reason: string
+}
+
 // Table: document_drafts (document builder drafts)
 export interface DocumentDraft {
   id: string // uuid, PK

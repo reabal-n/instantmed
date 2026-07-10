@@ -17,6 +17,7 @@ export interface DashboardIntake {
   created_at: string
   updated_at: string
   service_id: string
+  document_ready: boolean
   service: { id: string; name?: string; short_name?: string; type?: string; slug?: string } | null
 }
 

@@ -998,7 +998,7 @@ export const getPatientDashboardData = (patientId: string): Promise<{
     async () => {
       const supabase = createServiceRoleClient()
 
-      const [intakesResult, prescriptionsResult] = await Promise.all([
+      const [intakesResult, prescriptionsResult, certificatesResult] = await Promise.all([
         supabase
           .from("intakes")
           .select(`id, status, created_at, updated_at, service_id, service:services!service_id(id, name, short_name, type, slug)`)
@@ -1012,6 +1012,14 @@ export const getPatientDashboardData = (patientId: string): Promise<{
           .eq("patient_id", patientId)
           .order("issued_date", { ascending: false })
           .limit(10),
+
+        supabase
+          .from("issued_certificates")
+          .select("intake_id")
+          .eq("patient_id", patientId)
+          .eq("status", "valid")
+          .order("created_at", { ascending: false })
+          .limit(50),
       ])
 
       if (intakesResult.error) {
@@ -1020,13 +1028,21 @@ export const getPatientDashboardData = (patientId: string): Promise<{
       if (prescriptionsResult.error) {
         logger.error("Failed to fetch dashboard prescriptions", {}, toError(prescriptionsResult.error))
       }
+      if (certificatesResult.error) {
+        logger.error("Failed to fetch dashboard certificate readiness", {}, toError(certificatesResult.error))
+      }
 
-      const fetchError = intakesResult.error || prescriptionsResult.error
+      const fetchError = intakesResult.error || prescriptionsResult.error || certificatesResult.error
         ? "Unable to load some data. Please refresh the page or try again later."
         : null
 
+      const readyCertificateIntakeIds = new Set(
+        (certificatesResult.data || []).map((certificate) => certificate.intake_id),
+      )
+
       const intakes = (intakesResult.data || []).map(row => ({
         ...row,
+        document_ready: readyCertificateIntakeIds.has(row.id),
         service: Array.isArray(row.service) ? row.service[0] : row.service,
       })) as DashboardIntake[]
 

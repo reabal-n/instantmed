@@ -95,13 +95,14 @@ export function CertificatePreviewDialog({
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null)
   const [isLoadingPdf, setIsLoadingPdf] = useState(false)
   const [showPdf, setShowPdf] = useState(false)
-  const [notifyPatient, setNotifyPatient] = useState(false)
+  const [notifyPatient, setNotifyPatient] = useState(true)
 
   // Revoke blob URL when dialog closes to free memory
   const handleOpenChange = (open: boolean) => {
     if (open) {
       setEditedData(data)
       setDateError(null)
+      setNotifyPatient(true)
     }
     if (!open && pdfBlobUrl) {
       URL.revokeObjectURL(pdfBlobUrl)

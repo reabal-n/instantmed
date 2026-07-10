@@ -6,6 +6,7 @@ import {
   CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES,
   isCronOwnedNonReconstructableEmailType,
 } from "@/lib/email/quiet-failures"
+import { EMAIL_DISPATCHER_MAX_RETRIES } from "@/lib/email/retry-policy"
 import { claimOutboxRow } from "@/lib/email/send/outbox"
 import { MARKETING_EMAIL_TYPES } from "@/lib/email/send/types"
 import { sendFromOutboxRow } from "@/lib/email/send-email"
@@ -26,7 +27,7 @@ const logger = createLogger("email-dispatcher")
  */
 
 export const MAX_BATCH_SIZE = 25
-export const MAX_RETRIES = 10
+export const MAX_RETRIES = EMAIL_DISPATCHER_MAX_RETRIES
 
 // Backoff schedule in minutes
 const BACKOFF_MINUTES = [0, 1, 2, 5, 10, 30, 60, 60, 60, 60]

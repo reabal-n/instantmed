@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-import { auth } from "@/lib/auth/helpers"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 /**
@@ -8,8 +8,8 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
  * Returns referral code, credit balance, and referral stats for the patient dashboard.
  */
 export async function GET(req: Request) {
-  const { userId } = await auth()
-  if (!userId) {
+  const authResult = await getApiAuth()
+  if (!authResult || authResult.profile.role !== "patient") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -20,16 +20,20 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Missing patientId" }, { status: 400 })
   }
 
+  if (patientId !== authResult.profile.id) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+
   const supabase = createServiceRoleClient()
 
   // Verify ownership
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, auth_user_id, referral_code")
+    .select("id, referral_code")
     .eq("id", patientId)
     .maybeSingle()
 
-  if (!profile || profile.auth_user_id !== userId) {
+  if (!profile) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 

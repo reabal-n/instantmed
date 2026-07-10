@@ -40,8 +40,9 @@ describe("future doctor scope contract", () => {
   it("scopes /api/search patient results to a non-admin doctor's accessible patients", () => {
     const source = read("app/api/search/route.ts")
 
-    // The caller profile must expose `id` so we can resolve the doctor's scope.
-    expect(source).toContain('.select("id, role")')
+    // The shared guard supplies the caller profile and rejects closed-account
+    // tombstones before search touches patient rows.
+    expect(source).toContain("await getApiAuth()")
     // Non-admin doctors are constrained to patients they have a relationship with;
     // admins remain unscoped. Without this, any doctor could enumerate the full roster.
     expect(source).toContain("hasAdminAccess(")

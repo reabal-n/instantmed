@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-import { auth } from "@/lib/auth/helpers"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { sendPaymentReceivedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -36,8 +36,8 @@ export async function POST(request: Request) {
     }
 
     // Require authentication - only the intake owner should resend
-    const { userId } = await auth()
-    if (!userId) {
+    const authResult = await getApiAuth()
+    if (!authResult || authResult.profile.role !== "patient") {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
     }
 
@@ -68,18 +68,14 @@ export async function POST(request: Request) {
       )
     }
 
-    // Verify the authenticated user owns this intake
-    const { data: callerProfile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("auth_user_id", userId)
-      .single()
-
     const patientData = intake.patient
     const patient = Array.isArray(patientData) ? patientData[0] : patientData
 
-    if (!callerProfile || !patient || patient.id !== callerProfile.id) {
-      log.warn("User attempted to resend confirmation for intake they don't own", { intakeId, userId })
+    if (!patient || patient.id !== authResult.profile.id) {
+      log.warn("User attempted to resend confirmation for intake they don't own", {
+        intakeId,
+        profileId: authResult.profile.id,
+      })
       return NextResponse.json(
         { success: false, error: "Forbidden" },
         { status: 403 }

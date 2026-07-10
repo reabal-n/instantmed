@@ -11,14 +11,19 @@ import * as Sentry from "@sentry/nextjs"
 import { z } from "zod"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { env } from "@/lib/config/env"
+import { checkEmployerEmailBlocked } from "@/lib/config/kill-switches"
+import {
+  getEmployerCertificateDownloadHref,
+  getEmployerCertificateStorageVersion,
+} from "@/lib/crypto/employer-certificate-token"
+import { getCertificateForIntake } from "@/lib/data/issued-certificates"
 import { MedCertEmployerEmail, medCertEmployerEmailSubject } from "@/lib/email/components/templates"
-import { checkEmployerEmailRateLimit,sendEmail } from "@/lib/email/send-email"
+import { checkEmployerEmailRateLimit, sendEmail } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("send-employer-email")
-import { env } from "@/lib/config/env"
-import { checkEmployerEmailBlocked } from "@/lib/config/kill-switches"
 
 // Input validation schema
 const sendEmployerEmailSchema = z.object({
@@ -34,34 +39,8 @@ export type SendEmployerEmailInput = z.infer<typeof sendEmployerEmailSchema>
 interface SendEmployerEmailResult {
   success: boolean
   error?: string
+  queued?: boolean
   remainingSends?: number
-}
-
-/**
- * Generate a secure signed URL for the certificate PDF
- * Uses Supabase Storage signed URLs with 7-day expiry
- */
-async function generateSecureDownloadUrl(
-  storagePath: string,
-  expiresInSeconds: number = 3 * 24 * 60 * 60 // 72 hours
-): Promise<string | null> {
-  try {
-    const supabase = createServiceRoleClient()
-    
-    const { data, error } = await supabase.storage
-      .from("documents")
-      .createSignedUrl(storagePath, expiresInSeconds)
-
-    if (error) {
-      log.error("[EmployerEmail] Failed to create signed URL", { error: error.message, storagePath })
-      return null
-    }
-
-    return data.signedUrl
-  } catch (err) {
-    log.error("[EmployerEmail] Signed URL error", { error: err, storagePath })
-    return null
-  }
 }
 
 /**
@@ -98,24 +77,12 @@ export async function sendEmployerEmail(input: SendEmployerEmailInput): Promise<
 
     Sentry.setTag("intake_id", intakeId)
 
-    // 3. Fetch intake with certificate info
+    // 3. Fetch intake ownership/status. Resolve certificate separately through
+    // the valid/current certificate data boundary below.
     const supabase = createServiceRoleClient()
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
-      .select(`
-        id,
-        patient_id,
-        status,
-        issued_certificates (
-          id,
-          certificate_number,
-          verification_code,
-          storage_path,
-          start_date,
-          end_date,
-          patient_name
-        )
-      `)
+      .select("id, patient_id, status")
       .eq("id", intakeId)
       .single()
 
@@ -136,23 +103,13 @@ export async function sendEmployerEmail(input: SendEmployerEmailInput): Promise<
     }
 
     // 5. Verify intake is approved and has a certificate
-    if (intake.status !== "approved") {
+    if (!["approved", "completed"].includes(intake.status)) {
       return { success: false, error: "This request has not been approved yet" }
     }
 
-    const certificates = intake.issued_certificates as Array<{
-      id: string
-      certificate_number: string
-      verification_code: string
-      storage_path: string
-      start_date: string
-      end_date: string
-      patient_name: string
-    }> | null
-
-    const certificate = certificates?.[0]
+    const certificate = await getCertificateForIntake(intakeId)
     if (!certificate) {
-      return { success: false, error: "No certificate found for this request" }
+      return { success: false, error: "No current certificate found for this request" }
     }
 
     // 6. Check rate limit (3 sends per 24 hours per intake)
@@ -168,9 +125,19 @@ export async function sendEmployerEmail(input: SendEmployerEmailInput): Promise<
       }
     }
 
-    // 7. Generate secure download URL (7-day expiry)
-    const downloadUrl = await generateSecureDownloadUrl(certificate.storage_path)
-    if (!downloadUrl) {
+    // 7. Generate an app-controlled, seven-day token bound to this exact
+    // storage version. Corrections immediately invalidate older emailed links.
+    let downloadUrl: string
+    try {
+      downloadUrl = `${env.appUrl}${getEmployerCertificateDownloadHref(
+        certificate.id,
+        certificate.storage_path,
+      )}`
+    } catch (error) {
+      log.error("[EmployerEmail] Failed to generate version-bound link", {
+        intakeId,
+        certificateId: certificate.id,
+      }, error instanceof Error ? error : undefined)
       return { success: false, error: "Failed to generate download link. Please try again." }
     }
 
@@ -197,7 +164,7 @@ export async function sendEmployerEmail(input: SendEmployerEmailInput): Promise<
         companyName,
         patientName: certificate.patient_name,
         downloadUrl,
-        expiresInDays: 3,
+        expiresInDays: 7,
         verificationCode: certificate.verification_code,
         patientNote: note,
         certStartDate: formatDate(certificate.start_date),
@@ -209,6 +176,9 @@ export async function sendEmployerEmail(input: SendEmployerEmailInput): Promise<
       patientId: profile.id,
       certificateId: certificate.id,
       metadata: {
+        certificate_storage_version: getEmployerCertificateStorageVersion(
+          certificate.storage_path,
+        ),
         employer_email: employerEmail,
         has_note: !!note,
         secure_link_used: true,
@@ -216,6 +186,15 @@ export async function sendEmployerEmail(input: SendEmployerEmailInput): Promise<
     })
 
     if (!emailResult.success) {
+      if (emailResult.outboxId && emailResult.retryable !== false) {
+        const remainingSends = Math.max(0, 3 - (rateLimit.currentCount + 1))
+        log.info("[EmployerEmail] Queued for dispatcher recovery", {
+          intakeId,
+          certificateId: certificate.id,
+          outboxId: emailResult.outboxId,
+        })
+        return { success: true, queued: true, remainingSends }
+      }
       log.error("[EmployerEmail] Send failed", {
         intakeId,
         error: emailResult.error,

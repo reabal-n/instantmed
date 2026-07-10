@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { createSafeLogContext, sanitizeObject } from "@/lib/observability/sanitize-phi"
+import { createSafeLogContext, sanitizeObject, sanitizeUrl } from "@/lib/observability/sanitize-phi"
 
 const REDACTED = "[REDACTED]"
 
@@ -62,5 +62,20 @@ describe("sanitize-phi PHI scrubber", () => {
     expect(out.intakeId).toBe("abc-123")
     expect(out.status).toBe("paid")
     expect(out.count).toBe(5)
+  })
+
+  it("removes one-time auth secrets carried in URL fragments before telemetry", () => {
+    const sanitized = sanitizeUrl(
+      "https://instantmed.com.au/auth/confirm#token_hash=one-time-secret&type=recovery&next=%2Fauth%2Freset-password",
+    )
+
+    expect(sanitized).toBe("https://instantmed.com.au/auth/confirm")
+    expect(sanitized).not.toContain("one-time-secret")
+    expect(sanitized).not.toContain("token_hash")
+  })
+
+  it("preserves ordinary navigation anchors", () => {
+    expect(sanitizeUrl("https://instantmed.com.au/patient/settings#account-security"))
+      .toBe("https://instantmed.com.au/patient/settings#account-security")
   })
 })

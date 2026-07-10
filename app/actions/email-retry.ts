@@ -1,28 +1,26 @@
 "use server"
 
 import { requireRole } from "@/lib/auth/helpers"
-import { env } from "@/lib/config/env"
 import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import {
   getCertificateById,
-  incrementEmailRetry,
+  getCertificateForIntake,
   logCertificateEvent,
-  updateEmailStatus,
 } from "@/lib/data/issued-certificates"
-import { MedCertPatientEmail } from "@/lib/email/components/templates"
 import { isQuietCronOwnedEmailFailure } from "@/lib/email/quiet-failures"
 import { claimOutboxRow } from "@/lib/email/send/outbox"
-import { sendEmail } from "@/lib/email/send-email"
 import { type OutboxRow, sendFromOutboxRow } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
-import { getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { resendCertificateAsStaff } from "./resend-certificate"
 
 const log = createLogger("email-retry")
 
 interface RetryResult {
   success: boolean
   error?: string
+  queued?: boolean
 }
 
 async function requireAdminRole() {
@@ -35,100 +33,22 @@ async function requireAdminRole() {
  */
 export async function retryEmail(certificateId: string): Promise<RetryResult> {
   try {
-    const adminProfile = await requireAdminRole()
+    await requireAdminRole()
 
-    // Get certificate details
     const certificate = await getCertificateById(certificateId)
-    if (!certificate) {
-      return { success: false, error: "Certificate not found" }
+    if (!certificate || certificate.status !== "valid") {
+      return { success: false, error: "Current valid certificate not found" }
     }
 
-    // Check if already sent
-    if (certificate.email_sent_at) {
-      return { success: false, error: "Email already sent successfully" }
+    const currentCertificate = await getCertificateForIntake(certificate.intake_id)
+    if (!currentCertificate || currentCertificate.id !== certificate.id) {
+      return { success: false, error: "This certificate is no longer current" }
     }
 
-    // Check retry count
-    if (certificate.email_retry_count >= 3) {
-      return { success: false, error: "Maximum retry attempts reached" }
-    }
-
-    // Get patient email from profiles
-    const supabase = createServiceRoleClient()
-    const { data: patient } = await supabase
-      .from("profiles")
-      .select("email")
-      .eq("id", certificate.patient_id)
-      .single()
-
-    if (!patient?.email) {
-      return { success: false, error: "Patient email not found" }
-    }
-
-    // Increment retry count first
-    await incrementEmailRetry(certificateId)
-
-    // Generate email template as React element
-    const dashboardUrl = `${env.appUrl}${getPatientIntakeDetailHref(certificate.intake_id)}`
-    const emailTemplate = MedCertPatientEmail({
-      patientName: certificate.patient_name,
-      dashboardUrl,
-    })
-
-    // Send email via outbox (tracked, auditable)
-    log.info("Retrying email send via outbox", {
-      certificateId,
-      patientEmailPresent: true,
-      retryCount: certificate.email_retry_count + 1,
-    })
-
-    const emailResult = await sendEmail({
-      to: patient.email,
-      toName: certificate.patient_name,
-      subject: "Your medical certificate is ready 🎉",
-      template: emailTemplate,
-      emailType: "med_cert_patient",
-      intakeId: certificate.intake_id,
-      patientId: certificate.patient_id,
-      certificateId,
-      metadata: {
-        retry: true,
-        retry_count: certificate.email_retry_count + 1,
-        triggered_by: adminProfile.id,
-      },
-    })
-
-    if (emailResult.success) {
-      await updateEmailStatus(certificateId, "sent", {
-        deliveryId: emailResult.outboxId || emailResult.messageId,
-      })
-      await logCertificateEvent(certificateId, "email_sent", adminProfile.id, "admin", {
-        retry: true,
-        retry_count: certificate.email_retry_count + 1,
-        outbox_id: emailResult.outboxId,
-      })
-
-      log.info("Email retry successful via outbox", { certificateId, outboxId: emailResult.outboxId })
-
-      revalidateStaff({ emails: true })
-      return { success: true }
-    } else {
-      await updateEmailStatus(certificateId, "failed", {
-        failureReason: emailResult.error,
-      })
-      await logCertificateEvent(certificateId, "email_failed", adminProfile.id, "admin", {
-        retry: true,
-        retry_count: certificate.email_retry_count + 1,
-        error: emailResult.error,
-      })
-
-      log.error("Email retry failed", {
-        certificateId,
-        error: emailResult.error,
-      })
-
-      return { success: false, error: emailResult.error }
-    }
+    // Keep the legacy admin entry point, but route it through the same atomic
+    // reservation, cap, provider-idempotency, and queued-delivery path as every
+    // other staff resend.
+    return resendCertificateAsStaff(certificate.intake_id)
   } catch (error) {
     log.error("Email retry error", {}, error instanceof Error ? error : undefined)
     return {

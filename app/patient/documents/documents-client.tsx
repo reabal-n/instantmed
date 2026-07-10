@@ -3,7 +3,6 @@
 import {
   Calendar,
   ChevronRight,
-  Download,
   FileText,
   FolderOpen,
   Receipt,
@@ -12,6 +11,7 @@ import Link from "next/link"
 import { useState } from "react"
 
 import { DashboardPageHeader } from "@/components/dashboard"
+import { CertificateDownloadButton } from "@/components/patient/certificate-download-button"
 import { PatientErrorAlert } from "@/components/patient/error-alert"
 import { ReviewAskCard } from "@/components/patient/review-ask-card"
 import { Badge } from "@/components/ui/badge"
@@ -111,12 +111,14 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                           </div>
                         </div>
                         {cert.url ? (
-                          <Button variant="outline" size="sm" asChild>
-                            <a href={cert.url} target="_blank" rel="noopener noreferrer">
-                              <Download className="h-4 w-4 mr-2" />
-                              Download
-                            </a>
-                          </Button>
+                          <CertificateDownloadButton
+                            href={cert.url}
+                            intakeId={cert.intakeId}
+                            serviceType={cert.serviceType}
+                            label="Download"
+                            size="sm"
+                            variant="outline"
+                          />
                         ) : (
                           <Badge variant="outline">Processing</Badge>
                         )}

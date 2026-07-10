@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
+import { getApiAuth } from "@/lib/auth/helpers"
 import { revalidatePatient } from "@/lib/dashboard/revalidate-staff"
-import { getCurrentProfile, updateProfile } from "@/lib/data/profiles"
+import { updateProfile } from "@/lib/data/profiles"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import type { AustralianState } from "@/types/db"
@@ -31,12 +32,12 @@ export async function PATCH(request: Request) {
     const csrfError = await requireValidCsrf(request)
     if (csrfError) return csrfError
 
-    // getCurrentProfile() resolves the caller from auth session → profiles table.
-    // Returns null if unauthenticated or profile missing.
-    const profile = await getCurrentProfile()
-    if (!profile) {
+    const authResult = await getApiAuth()
+    if (!authResult || authResult.profile.role !== "patient") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const { profile } = authResult
 
     let rawBody
     try {

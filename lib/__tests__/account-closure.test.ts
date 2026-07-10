@@ -1,9 +1,14 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
   getAuthenticatedUserWithProfile: vi.fn(),
   createServiceRoleClient: vi.fn(),
+  createClient: vi.fn(),
   checkServerActionRateLimit: vi.fn(),
+  globalSignOut: vi.fn(),
   logAuditEvent: vi.fn(),
   revalidatePath: vi.fn(),
 }))
@@ -28,65 +33,39 @@ vi.mock("@/lib/supabase/service-role", () => ({
   createServiceRoleClient: mocks.createServiceRoleClient,
 }))
 
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: mocks.createClient,
+}))
+
 function createClosureSupabaseMock(options?: {
-  activeIntakes?: Array<Record<string, unknown>>
+  result?: { success: boolean; error_code: string | null; closed_at: string | null }
+  avatarNames?: string[]
 }) {
-  const updatePayloads: Record<string, unknown>[] = []
-  const filters: Array<{ method: string; column: string; value: unknown }> = []
-  const tableCalls: string[] = []
-  const activeIntakes = options?.activeIntakes ?? []
+  const rpc = vi.fn(async () => ({
+    data: [options?.result ?? {
+      success: true,
+      error_code: null,
+      closed_at: "2026-07-10T06:30:00.000Z",
+    }],
+    error: null,
+  }))
 
-  const intakeQueryBuilder = {
-    eq: vi.fn(() => intakeQueryBuilder),
-    in: vi.fn(() => intakeQueryBuilder),
-    limit: vi.fn(async () => ({
-      data: activeIntakes,
-      error: null,
-    })),
+  const listAvatars = vi.fn(async () => ({
+    data: (options?.avatarNames ?? []).map((name) => ({ name })),
+    error: null,
+  }))
+  const removeAvatars = vi.fn(async () => ({ error: null }))
+  const avatarBucket = {
+    list: listAvatars,
+    remove: removeAvatars,
   }
-
-  const profileUpdateBuilder = {
-    eq: vi.fn((column: string, value: unknown) => {
-      filters.push({ method: "eq", column, value })
-      return profileUpdateBuilder
-    }),
-    is: vi.fn((column: string, value: unknown) => {
-      filters.push({ method: "is", column, value })
-      return profileUpdateBuilder
-    }),
-    select: vi.fn(() => profileUpdateBuilder),
-    maybeSingle: vi.fn(async () => ({
-      data: { id: "profile-id" },
-      error: null,
-    })),
-  }
-
-  const profiles = {
-    update: vi.fn((payload: Record<string, unknown>) => {
-      updatePayloads.push(payload)
-      return profileUpdateBuilder
-    }),
-  }
-
-  const supabase = {
-    from: vi.fn((table: string) => {
-      tableCalls.push(table)
-      if (table === "intakes") {
-        return {
-          select: vi.fn(() => intakeQueryBuilder),
-        }
-      }
-      if (table !== "profiles") throw new Error(`Unexpected table ${table}`)
-      return profiles
-    }),
-  }
+  const storageFrom = vi.fn(() => avatarBucket)
 
   return {
-    filters,
-    profiles,
-    supabase,
-    tableCalls,
-    updatePayloads,
+    listAvatars,
+    removeAvatars,
+    rpc,
+    supabase: { rpc, storage: { from: storageFrom } },
   }
 }
 
@@ -104,10 +83,16 @@ describe("deleteAccount", () => {
     })
     mocks.checkServerActionRateLimit.mockResolvedValue({ success: true })
     mocks.logAuditEvent.mockResolvedValue(undefined)
+    mocks.globalSignOut.mockResolvedValue({ error: null })
+    mocks.createClient.mockResolvedValue({
+      auth: { signOut: mocks.globalSignOut },
+    })
   })
 
-  it("closes patient sign-in access, minimises profile PHI, and retains clinical tables", async () => {
-    const { filters, supabase, tableCalls, updatePayloads } = createClosureSupabaseMock()
+  it("closes the patient through the atomic database boundary and revokes all refresh sessions", async () => {
+    const { listAvatars, removeAvatars, rpc, supabase } = createClosureSupabaseMock({
+      avatarNames: ["avatar-old.webp"],
+    })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     const { deleteAccount } = await import("@/app/actions/account")
 
@@ -115,44 +100,40 @@ describe("deleteAccount", () => {
 
     expect(result).toEqual({ success: true, error: null })
     expect(mocks.checkServerActionRateLimit).toHaveBeenCalledWith("profile-id", "sensitive")
-    expect(updatePayloads).toHaveLength(1)
-    expect(updatePayloads[0]).toMatchObject({
-      auth_user_id: null,
-      account_closure_reason: "self_service",
-      email: null,
-      full_name: "Closed Account",
-      first_name: null,
-      last_name: null,
-      date_of_birth: null,
-      date_of_birth_encrypted: null,
-      phone: null,
-      phone_encrypted: null,
-      medicare_number: null,
-      medicare_number_encrypted: null,
-      medicare_irn: null,
-      medicare_expiry: null,
-      stripe_customer_id: null,
-      parchment_patient_id: null,
-      certificate_identity_complete: false,
+    expect(rpc).toHaveBeenCalledWith("close_patient_account", {
+      p_profile_id: "profile-id",
+      p_auth_user_id: "auth-user-id",
+      p_reason: "self_service",
     })
-    expect(updatePayloads[0]?.account_closed_at).toEqual(expect.any(String))
-    expect(filters).toEqual([
-      { method: "eq", column: "id", value: "profile-id" },
-      { method: "eq", column: "auth_user_id", value: "auth-user-id" },
-      { method: "is", column: "account_closed_at", value: null },
-    ])
-    expect(tableCalls).toEqual(["intakes", "profiles"])
     expect(mocks.logAuditEvent).toHaveBeenCalledWith({
       action: "account_closed",
       actorId: "profile-id",
       actorType: "patient",
       metadata: expect.objectContaining({
-        account_closed_at: updatePayloads[0]?.account_closed_at,
+        account_closed_at: "2026-07-10T06:30:00.000Z",
         closure_type: "self_service",
         retained_records: true,
       }),
     })
+    expect(mocks.globalSignOut).toHaveBeenCalledWith({ scope: "global" })
+    expect(listAvatars).toHaveBeenCalledWith("auth-user-id", { limit: 1000 })
+    expect(removeAvatars).toHaveBeenCalledWith(["auth-user-id/avatar-old.webp"])
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/")
+  })
+
+  it("keeps a durable auth tombstone and signs the browser out after closure", () => {
+    const postSignInSource = readFileSync(
+      join(process.cwd(), "app/auth/post-signin/page.tsx"),
+      "utf8",
+    )
+    const settingsSource = readFileSync(
+      join(process.cwd(), "app/patient/settings/settings-client.tsx"),
+      "utf8",
+    )
+
+    expect(postSignInSource).toContain("hasClosedAuthAccountTombstone")
+    expect(postSignInSource).toContain('redirect("/auth/account-closed")')
+    expect(settingsSource).toContain("supabase.auth.signOut")
   })
 
   it("rejects non-patient profiles", async () => {
@@ -169,8 +150,8 @@ describe("deleteAccount", () => {
   })
 
   it("does not close accounts with active clinical work", async () => {
-    const { supabase, updatePayloads } = createClosureSupabaseMock({
-      activeIntakes: [{ id: "intake-id", status: "paid" }],
+    const { supabase } = createClosureSupabaseMock({
+      result: { success: false, error_code: "active_intake", closed_at: null },
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     const { deleteAccount } = await import("@/app/actions/account")
@@ -181,7 +162,7 @@ describe("deleteAccount", () => {
       success: false,
       error: "You have an active request. Contact support before closing your account.",
     })
-    expect(updatePayloads).toHaveLength(0)
     expect(mocks.logAuditEvent).not.toHaveBeenCalled()
+    expect(mocks.globalSignOut).not.toHaveBeenCalled()
   })
 })

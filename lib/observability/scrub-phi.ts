@@ -24,6 +24,7 @@ const NAMED_ID_RE = /\b(?:actor|certificate|doctor|intake|patient|profile|reques
 
 /** Route/query locations that often carry patient/request identifiers */
 const SENSITIVE_QUERY_ID_RE = /([?&](?:certificate_id|intake_id|patient_id|profile_id|request_id|user_id|id)=)[^&#]+/gi
+const SENSITIVE_AUTH_PARAM_RE = /([?&#](?:access_token|refresh_token|token(?:_hash)?|code|secret|password)=)[^&#\s]+/gi
 const SENSITIVE_PATH_ID_RE = /(\/(?:api\/certificates|api\/doctor\/certificates|api\/patient\/documents|certificates|doctor\/intakes|doctor\/patients|patient\/documents|patient\/followups|patient\/intakes|track|verify)\/)[^/?#]+/gi
 
 const REDACTED = "[REDACTED]"
@@ -144,6 +145,7 @@ function scrubHeaders(headers: Record<string, unknown>): Record<string, unknown>
  */
 export function scrubPHI(text: string): string {
   return text
+    .replace(SENSITIVE_AUTH_PARAM_RE, `$1${REDACTED}`)
     .replace(SENSITIVE_QUERY_ID_RE, `$1${ID_REDACTED}`)
     .replace(SENSITIVE_PATH_ID_RE, `$1${ID_REDACTED}`)
     .replace(UUID_RE, ID_REDACTED)

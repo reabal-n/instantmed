@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
   applyRateLimit: vi.fn(),
-  auth: vi.fn(),
   captureException: vi.fn(),
   createServiceRoleClient: vi.fn(),
+  getApiAuth: vi.fn(),
   logger: {
     debug: vi.fn(),
     error: vi.fn(),
@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock("@/lib/auth/helpers", () => ({
-  auth: mocks.auth,
+  getApiAuth: mocks.getApiAuth,
 }))
 
 vi.mock("@/lib/observability/logger", () => ({
@@ -62,11 +62,9 @@ function makeRequest(body: Record<string, unknown>) {
 
 function setupSupabase(overrides: {
   intake?: Record<string, unknown>
-  profile?: Record<string, unknown>
   updateResult?: { data: { id: string } | null; error: null }
 } = {}) {
   const updates: Record<string, unknown>[] = []
-  const profile = overrides.profile ?? { id: "profile-1" }
   const intake = overrides.intake ?? {
     id: "intake-1",
     amount_cents: 1995,
@@ -76,10 +74,6 @@ function setupSupabase(overrides: {
   }
   const updateResult = overrides.updateResult ?? { data: { id: "intake-1" }, error: null }
 
-  const profileSelect = {
-    eq: vi.fn(() => profileSelect),
-    single: vi.fn(async () => ({ data: profile, error: null })),
-  }
   const intakeSelect = {
     eq: vi.fn(() => intakeSelect),
     single: vi.fn(async () => ({ data: intake, error: null })),
@@ -94,12 +88,6 @@ function setupSupabase(overrides: {
 
   const supabase = {
     from: vi.fn((table: string) => {
-      if (table === "profiles") {
-        return {
-          select: vi.fn(() => profileSelect),
-        }
-      }
-
       if (table === "intakes") {
         return {
           select: vi.fn(() => intakeSelect),
@@ -122,7 +110,10 @@ describe("POST /api/stripe/verify-payment", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.applyRateLimit.mockResolvedValue(null)
-    mocks.auth.mockResolvedValue({ userId: "auth-user-1" })
+    mocks.getApiAuth.mockResolvedValue({
+      userId: "auth-user-1",
+      profile: { id: "profile-1", role: "patient" },
+    })
     mocks.startPostPaymentReviewWork.mockResolvedValue(undefined)
   })
 

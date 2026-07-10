@@ -55,22 +55,6 @@ async function ensureIntakeIsApproved(intakeId: string): Promise<boolean> {
   return !error
 }
 
-async function getSignedDownloadUrl(storagePath: string): Promise<string | null> {
-  const supabase = getSupabaseClient()
-
-  const { data, error } = await supabase.storage
-    .from("documents")
-    .createSignedUrl(storagePath, 3600) // 1 hour expiry
-  
-  if (error) {
-    // eslint-disable-next-line no-console
-    console.error("Failed to create signed URL:", error.message)
-    return null
-  }
-  
-  return data?.signedUrl || null
-}
-
 // ============================================================================
 // TESTS: PATIENT CERTIFICATE ACCESS
 // ============================================================================
@@ -112,34 +96,30 @@ test.describe("Patient Certificate Download", () => {
     }
   })
 
-  test("certificate download link returns 200", async ({ page }) => {
-    // Get the document from DB to find storage path
-    const document = await getIntakeDocumentForIntake(SEEDED_INTAKE_ID)
-    
-    if (!document?.storage_path) {
-      // eslint-disable-next-line no-console
-      console.warn("[E2E] No document storage_path found - skipping download test")
-      test.skip(true, "No document storage path available")
-      return
-    }
-    
-    // Create signed URL for direct download test
-    const signedUrl = await getSignedDownloadUrl(document.storage_path)
-    
-    if (!signedUrl) {
-      // eslint-disable-next-line no-console
-      console.warn("[E2E] Could not create signed URL - storage may be mocked")
-      test.skip(true, "Signed URL creation failed")
-      return
-    }
-    
-    // Test the signed URL returns 200
-    const response = await page.request.get(signedUrl)
-    expect(response.status(), "Download URL should return 200").toBe(200)
+  test("authenticated application download route returns the PDF", async ({ page }) => {
+    const certificate = await getIssuedCertificateForIntake(SEEDED_INTAKE_ID)
+    test.skip(!certificate, "No issued certificate available")
+
+    const response = await page.request.get(
+      `/api/patient/certificates/${certificate!.id}/download`,
+    )
+    expect(response.status(), "Authenticated app download should return 200").toBe(200)
     
     // Verify content type is PDF
     const contentType = response.headers()["content-type"]
     expect(contentType).toContain("application/pdf")
+  })
+
+  test("application download route rejects an expired patient session", async ({ page }) => {
+    const certificate = await getIssuedCertificateForIntake(SEEDED_INTAKE_ID)
+    test.skip(!certificate, "No issued certificate available")
+
+    await page.context().clearCookies()
+    const response = await page.request.get(
+      `/api/patient/certificates/${certificate!.id}/download`,
+    )
+
+    expect(response.status()).toBe(401)
   })
 
   test("intake page shows download button for approved certificate", async ({ page }) => {

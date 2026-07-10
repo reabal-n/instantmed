@@ -155,6 +155,22 @@ export function sanitizeUrl(url: string): string {
       parsed.searchParams.set(key, REDACTED)
     })
 
+    // Auth providers can return one-time credentials in the URL fragment.
+    // Fragments never reach the server, but browser analytics can still read
+    // window.location.href, so drop the entire fragment when it contains a
+    // sensitive key. Ordinary anchors such as #account-security are retained.
+    if (parsed.hash) {
+      const fragmentParams = new URLSearchParams(parsed.hash.slice(1))
+      const hasSensitiveFragment = Array.from(fragmentParams.keys()).some((key) => {
+        const lowerKey = key.toLowerCase()
+        return sensitiveParams.some((sensitive) => lowerKey.includes(sensitive))
+      })
+
+      if (hasSensitiveFragment) {
+        parsed.hash = ""
+      }
+    }
+
     return parsed.toString()
   } catch {
     // Invalid URL, sanitize as string

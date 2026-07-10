@@ -9,11 +9,39 @@ import { logger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { buildEmailOutboxIdempotencyKey } from "./idempotency"
+import { FROZEN_PROVIDER_PAYLOAD_KEY } from "./provider-payload"
 import type { OutboxEntry, OutboxRow } from "./types"
 
 export interface CreatePendingOutboxResult {
   id: string | null
   duplicate: boolean
+  providerPayloadEnc?: string
+  certificateStorageVersion?: string
+}
+
+function providerPayloadEnc(metadata: unknown): string | undefined {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return undefined
+  const value = (metadata as Record<string, unknown>)[FROZEN_PROVIDER_PAYLOAD_KEY]
+  return typeof value === "string" ? value : undefined
+}
+
+function pendingOutboxResult(
+  id: string | null,
+  duplicate: boolean,
+  metadata?: unknown,
+): CreatePendingOutboxResult {
+  const encryptedPayload = providerPayloadEnc(metadata)
+  const certificateStorageVersion = metadata && typeof metadata === "object" && !Array.isArray(metadata)
+    ? (metadata as Record<string, unknown>).certificate_storage_version
+    : undefined
+  return {
+    id,
+    duplicate,
+    ...(encryptedPayload ? { providerPayloadEnc: encryptedPayload } : {}),
+    ...(typeof certificateStorageVersion === "string" && certificateStorageVersion
+      ? { certificateStorageVersion }
+      : {}),
+  }
 }
 
 /**
@@ -33,7 +61,9 @@ type CreatePendingOutboxEntry = Omit<OutboxEntry, "status"> & {
  * Immediate sends should start as `sending` so the dispatcher cannot pick up
  * the same row while the provider call is in progress. Deferred sends stay
  * `pending` until their schedule lapses.
- * Does NOT store email body - dispatcher will reconstruct from intake/certificate data.
+ * Stores only an encrypted provider body in metadata. This lets the dispatcher
+ * replay the exact request under the same provider idempotency key without
+ * exposing email HTML or patient details in plaintext.
  */
 export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Promise<CreatePendingOutboxResult> {
   try {
@@ -63,13 +93,22 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
           ? existingMetadata.reclaim_count
           : 0
         if (existing.status === "failed" && reclaimCount < MAX_IDEMPOTENT_RECLAIMS) {
+          const existingProviderPayload = providerPayloadEnc(existingMetadata)
+          const incomingProviderPayload = providerPayloadEnc(entry.metadata)
+          const reclaimedMetadata = {
+            ...existingMetadata,
+            ...(!existingProviderPayload && incomingProviderPayload
+              ? { [FROZEN_PROVIDER_PAYLOAD_KEY]: incomingProviderPayload }
+              : {}),
+            reclaim_count: reclaimCount + 1,
+          }
           const { data: reclaimed } = await supabase
             .from("email_outbox")
             .update({
               status: entry.initialStatus ?? "pending",
               last_attempt_at: new Date().toISOString(),
               scheduled_for: entry.scheduled_for ?? null,
-              metadata: { ...existingMetadata, reclaim_count: reclaimCount + 1 },
+              metadata: reclaimedMetadata,
             })
             .eq("id", existing.id)
             .eq("status", "failed")
@@ -81,7 +120,7 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
               existingId: reclaimed.id,
               emailType: entry.email_type,
             })
-            return { id: reclaimed.id, duplicate: false }
+            return pendingOutboxResult(reclaimed.id, false, reclaimedMetadata)
           }
           // Reclaim raced a concurrent sender - fall through to duplicate.
         }
@@ -90,35 +129,48 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
           existingId: existing.id,
           emailType: entry.email_type,
         })
-        return { id: existing.id, duplicate: true }
+        return pendingOutboxResult(existing.id, true, existingMetadata)
       }
     }
 
-    // Idempotency guard: skip if an identical email was created in the last 5 minutes
-    // Prevents duplicate outbox rows from double-submissions or race conditions
-    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
-    let existingQuery = supabase
-      .from("email_outbox")
-      .select("id")
-      .eq("email_type", entry.email_type)
-      .eq("to_email", entry.to_email)
-      .gte("created_at", fiveMinAgo)
-      .in("status", ["pending", "sent", "sending"])
-      .limit(1)
+    // Explicit keys define the caller's exact attempt boundary. A different
+    // explicit resend inside five minutes is intentional and must not be
+    // swallowed by the broader time-window heuristic.
+    if (!idempotencyKey) {
+      // Idempotency guard: skip if an identical email was created in the last 5 minutes
+      // Prevents duplicate outbox rows from double-submissions or race conditions
+      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+      let existingQuery = supabase
+        .from("email_outbox")
+        .select("id")
+        .eq("email_type", entry.email_type)
+        .eq("to_email", entry.to_email)
+        .gte("created_at", fiveMinAgo)
+        .in("status", ["pending", "sent", "sending"])
+        .limit(1)
 
-    existingQuery = entry.intake_id
-      ? existingQuery.eq("intake_id", entry.intake_id)
-      : existingQuery.is("intake_id", null)
+      existingQuery = entry.intake_id
+        ? existingQuery.eq("intake_id", entry.intake_id)
+        : existingQuery.is("intake_id", null)
 
-    const { data: existing } = await existingQuery
-      .maybeSingle()
+      const certificateStorageVersion = entry.metadata?.certificate_storage_version
+      if (typeof certificateStorageVersion === "string" && certificateStorageVersion) {
+        existingQuery = existingQuery.eq(
+          "metadata->>certificate_storage_version",
+          certificateStorageVersion,
+        )
+      }
 
-    if (existing) {
-      logger.info("[Email] Idempotency guard: duplicate outbox row skipped", {
-        existingId: existing.id,
-        emailType: entry.email_type,
-      })
-      return { id: existing.id, duplicate: true }
+      const { data: existing } = await existingQuery
+        .maybeSingle()
+
+      if (existing) {
+        logger.info("[Email] Idempotency guard: duplicate outbox row skipped", {
+          existingId: existing.id,
+          emailType: entry.email_type,
+        })
+        return { id: existing.id, duplicate: true }
+      }
     }
 
     const { data, error } = await supabase
@@ -146,7 +198,7 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
       if (error.code === "23505" && idempotencyKey) {
         const { data: existing } = await supabase
           .from("email_outbox")
-          .select("id")
+          .select("id, metadata")
           .eq("idempotency_key", idempotencyKey)
           .limit(1)
           .maybeSingle()
@@ -156,16 +208,59 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
             existingId: existing.id,
             emailType: entry.email_type,
           })
-          return { id: existing.id, duplicate: true }
+          return pendingOutboxResult(existing.id, true, existing.metadata)
         }
       }
       logger.error("[Email] Failed to create pending outbox", { error: error.message })
       return { id: null, duplicate: false }
     }
-    return { id: data?.id || null, duplicate: false }
+    return pendingOutboxResult(data?.id || null, false, entry.metadata)
   } catch (err) {
     logger.error("[Email] Pending outbox error", { error: err })
     return { id: null, duplicate: false }
+  }
+}
+
+/**
+ * Persist the first reconstructed provider body before a legacy outbox row is
+ * sent with a provider idempotency key. Once stored, every later attempt can
+ * replay the same bytes instead of regenerating time-varying links or tokens.
+ */
+export async function persistFrozenProviderPayload(
+  outboxId: string,
+  metadata: Record<string, unknown> | null | undefined,
+  encryptedPayload: string,
+): Promise<boolean> {
+  try {
+    const supabase = createServiceRoleClient()
+    const { data, error } = await supabase
+      .from("email_outbox")
+      .update({
+        metadata: {
+          ...(metadata ?? {}),
+          [FROZEN_PROVIDER_PAYLOAD_KEY]: encryptedPayload,
+        },
+      })
+      .eq("id", outboxId)
+      .eq("status", "sending")
+      .select("id")
+      .maybeSingle()
+
+    if (error || !data) {
+      logger.error("[Email] Failed to freeze legacy provider payload", {
+        outboxId,
+        error: error?.message,
+      })
+      return false
+    }
+
+    return true
+  } catch (error) {
+    logger.error("[Email] Legacy provider payload persistence error", {
+      outboxId,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return false
   }
 }
 

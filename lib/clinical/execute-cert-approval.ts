@@ -5,7 +5,8 @@ import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog
 import { claimIntakeForManualCertApproval } from "@/lib/clinical/manual-cert-claim"
 import { UNDO_CERT_WINDOW_SECONDS } from "@/lib/clinical/undo-cert-window"
 import { env } from "@/lib/config/env"
-import { ABN, COMPANY_ADDRESS, COMPANY_NAME, CONTACT_EMAIL,CONTACT_PHONE } from "@/lib/constants"
+import { ABN, COMPANY_ADDRESS, COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/constants"
+import { getEmployerCertificateStorageVersion } from "@/lib/crypto/employer-certificate-token"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
 import { getDoctorIdentity } from "@/lib/data/doctor-identity"
@@ -15,17 +16,17 @@ import {
   findExistingCertificate,
   logCertificateEdits,
   logCertificateEvent,
-  updateEmailStatus,
 } from "@/lib/data/issued-certificates"
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
 import { sendEmail } from "@/lib/email/send-email"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 import { validateCertificateDateRange } from "@/lib/medical-certificates/date-policy"
+import { reconcileCertificateEmailDelivery } from "@/lib/medical-certificates/email-delivery-reconciliation"
 import { editPaidRequestTelegramMessageToApproved } from "@/lib/notifications/edit-paid-request-telegram"
 import { createNotification } from "@/lib/notifications/service"
 import { logger } from "@/lib/observability/logger"
 import { getGuestCertificateAccessHref, getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
-import { generateCertificateNumber, generateCertificateRef,generateVerificationCode } from "@/lib/pdf/cert-identifiers"
+import { generateCertificateNumber, generateCertificateRef, generateVerificationCode } from "@/lib/pdf/cert-identifiers"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { getAbsenceDays } from "@/lib/stripe/price-mapping"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -555,6 +556,7 @@ export async function executeCertApproval(
     patientId: patient.id,
     certificateId,
     metadata: {
+      certificate_storage_version: getEmployerCertificateStorageVersion(storagePath),
       cert_type: certificateType,
       ...(emailScheduledFor ? { undo_window: true } : {}),
     },
@@ -575,17 +577,36 @@ export async function executeCertApproval(
   // timeline records the queue action.
   if (certificateId) {
     if (emailResult.success && !emailScheduledFor) {
-      await updateEmailStatus(certificateId, "sent", { deliveryId: emailResult.messageId })
-      await logCertificateEvent(certificateId, "email_sent", null, "system", { resend_id: emailResult.messageId })
+      await reconcileCertificateEmailDelivery({
+        intakeId,
+        certificateId,
+        expectedStorageVersion: getEmployerCertificateStorageVersion(storagePath),
+        outcome: "sent",
+        providerMessageId: emailResult.messageId,
+        outboxId: emailResult.outboxId,
+        actorId: null,
+        actorRole: "system",
+        source: "initial_approval",
+      })
     } else if (emailResult.success && emailScheduledFor) {
       await logCertificateEvent(certificateId, "email_sent", null, "system", {
         outbox_id: emailResult.outboxId,
         scheduled_for: emailScheduledFor,
         deferred: true,
+        certificate_storage_version: getEmployerCertificateStorageVersion(storagePath),
       })
     } else if (!emailResult.success) {
-      await updateEmailStatus(certificateId, "failed", { failureReason: emailResult.error })
-      await logCertificateEvent(certificateId, "email_failed", null, "system", { error: emailResult.error })
+      await reconcileCertificateEmailDelivery({
+        intakeId,
+        certificateId,
+        expectedStorageVersion: getEmployerCertificateStorageVersion(storagePath),
+        outcome: "failed",
+        failureReason: emailResult.error,
+        outboxId: emailResult.outboxId,
+        actorId: null,
+        actorRole: "system",
+        source: "initial_approval",
+      })
       logger.error("Failed to send email (certificate still issued)", { intakeId, certificateId, error: emailResult.error })
     }
   }

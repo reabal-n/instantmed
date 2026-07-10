@@ -1,5 +1,6 @@
 "use server"
 
+import { hasClosedAuthAccountTombstone } from "@/lib/auth/account-closure"
 import { auth } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
@@ -31,6 +32,10 @@ export async function ensureProfile(
     if (!sessionUserId || sessionUserId !== userId) {
       log.warn("ensureProfile caller mismatch", { requestedUserId: userId, sessionUserId: sessionUserId ?? "none" })
       return { profileId: null, error: "Unauthorized" }
+    }
+
+    if (await hasClosedAuthAccountTombstone(userId)) {
+      return { profileId: null, error: "Account closed" }
     }
 
     let supabase

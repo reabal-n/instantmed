@@ -198,7 +198,11 @@ export function OpsDashboardClient({
       try {
         const result = await resendCertificateAsStaff(intakeId)
         if (result.success) {
-          toast.success("Secure certificate link resent")
+          if (result.queued) {
+            toast.info("Secure certificate email queued for delivery")
+          } else {
+            toast.success("Secure certificate link resent")
+          }
           router.refresh()
           return
         }

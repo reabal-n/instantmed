@@ -500,7 +500,11 @@ export function useReviewActions({
     const result = await resendCertificateAsStaff(intake.id)
     setIsResending(false)
     if (result.success) {
-      toast.success("Certificate email resent to patient")
+      if (result.queued) {
+        toast.info("Certificate email queued for delivery")
+      } else {
+        toast.success("Certificate email resent to patient")
+      }
       const res = await fetch(`/api/doctor/intakes/${intake.id}/review-data`)
       if (res.ok) setData(await res.json())
     } else {

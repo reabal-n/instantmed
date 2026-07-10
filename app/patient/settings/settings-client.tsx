@@ -18,7 +18,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
-import { changePassword, deleteAccount } from "@/app/actions/account"
+import { deleteAccount } from "@/app/actions/account"
 import { type EmailPreferences,updateEmailPreferences } from "@/app/actions/email-preferences"
 import { exportPatientData } from "@/app/actions/export-data"
 import { setProfileAvatarPresetAction } from "@/app/actions/profile-avatar"
@@ -48,6 +48,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getAvatarPresetId } from "@/lib/account/avatar-presets"
+import { changeAuthenticatedPassword } from "@/lib/auth/password-change"
 import { AUSTRALIAN_STATES } from "@/lib/constants"
 import { buildPatientSettingsHref,PATIENT_HEALTH_PROFILE_HREF } from "@/lib/dashboard/routes"
 import { fetchWithCsrf } from "@/lib/security/csrf-client"
@@ -303,7 +304,12 @@ export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferen
 
     setIsUpdatingEmail(true)
     try {
-      const { error } = await supabase.auth.updateUser({ email: nextEmail })
+      const { error } = await supabase.auth.updateUser(
+        { email: nextEmail },
+        {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/patient/settings")}`,
+        },
+      )
       if (error) {
         toast.error(error.message || "Failed to update email")
         return
@@ -385,7 +391,11 @@ export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferen
 
     setIsChangingPassword(true)
     try {
-      const result = await changePassword(passwordData.currentPassword, passwordData.newPassword)
+      const result = await changeAuthenticatedPassword(supabase, {
+        email: user?.email || email,
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      })
       if (result.success) {
         toast.success("Password changed successfully")
         setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" })
@@ -458,7 +468,8 @@ export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferen
       const result = await deleteAccount()
       if (result.success) {
         toast.success("Account closed successfully")
-        router.push("/")
+        await supabase.auth.signOut({ scope: "local" })
+        window.location.assign("/")
       } else {
         toast.error(result.error || "Failed to close account")
       }

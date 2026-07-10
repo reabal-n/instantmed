@@ -1,6 +1,6 @@
 "use server"
 
-import { auth } from "@/lib/auth/helpers"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { verifyAddress } from "@/lib/google-places/geocoding"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { validatePostcodeState } from "@/lib/validation/australian-address"
@@ -25,24 +25,16 @@ export async function completeOnboardingAction(
   profileId: string,
   data: OnboardingInput,
 ): Promise<{ success: boolean; error?: string; fieldErrors?: Record<string, string> }> {
-  const supabase = createServiceRoleClient()
-
-  // Verify the user owns this profile
-  const { userId } = await auth()
-
-  if (!userId) {
+  const authUser = await getAuthenticatedUserWithProfile()
+  if (!authUser) {
     return { success: false, error: "Not authenticated" }
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("auth_user_id")
-    .eq("id", profileId)
-    .single()
-
-  if (profileError || !profile || profile.auth_user_id !== userId) {
+  if (authUser.profile.role !== "patient" || authUser.profile.id !== profileId) {
     return { success: false, error: "Unauthorized" }
   }
+
+  const supabase = createServiceRoleClient()
 
   // Server-side validation
   const fieldErrors: Record<string, string> = {}
