@@ -76,7 +76,7 @@ const howItWorks = [
   {
     step: 3,
     title: "Cert in their inbox, you on the invoice",
-    body: "Doctor reviews in writing during AEST hours. PDF arrives in the employee's email. Your monthly statement shows the count.",
+    body: "Doctor reviews in writing, 7 days a week. PDF arrives in the employee's email. Your monthly statement shows the count.",
   },
 ] as const
 
@@ -142,7 +142,7 @@ const businessFaqs = [
   {
     question: "How long do reviews take?",
     answer:
-      "Doctor review happens during AEST hours, 7 days. We don't publish a fixed SLA · most reviews land same-day during business hours and overnight requests are picked up at the start of the next AEST review window.",
+      "Requests can be submitted any time and doctor review runs 7 days a week, around the clock. We don't publish a fixed SLA · most reviews land the same day.",
   },
   {
     question: "Do you store our employees' health data?",
@@ -238,7 +238,7 @@ export default async function BusinessLandingPage() {
             </li>
             <li className="inline-flex items-center gap-1.5">
               <Timer className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
-              Reviewed during AEST hours
+              Reviewed 7 days a week
             </li>
             <li className="inline-flex items-center gap-1.5">
               <CheckCircle2 className="h-3.5 w-3.5 text-success" aria-hidden="true" />

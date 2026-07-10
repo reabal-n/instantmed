@@ -17,7 +17,6 @@ import { FeatureGrid } from "@/components/sections/feature-grid"
 import { Timeline } from "@/components/sections/timeline"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import { commercialComparisonLinks } from "@/lib/seo/commercial-links"
-import { getPatientCount } from "@/lib/social-proof"
 
 /* ────────────────────────────── Data ────────────────────────────── */
 
@@ -301,7 +300,7 @@ export function HowItWorksContent() {
         {/* CTA */}
         <CTABanner
           title="Ready when you are"
-          subtitle={`Join ${getPatientCount().toLocaleString()}+ Australians who trust InstantMed. Pick what you need, fill in a quick form, and a GP takes care of the rest.`}
+          subtitle="Pick what you need, fill in a quick form, and a doctor takes care of the rest."
           ctaText="Get Med Cert"
           ctaHref="/request?service=med-cert"
           secondaryText="Renew medication"

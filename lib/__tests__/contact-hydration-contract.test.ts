@@ -15,12 +15,13 @@ describe("contact page hydration contract", () => {
     "utf8",
   )
 
-  it("keeps the patient count behind the hydration-safe hook", () => {
-    expect(contactClientSource).toContain(
-      'import { usePatientCount } from "@/lib/hooks/use-patient-count"',
-    )
-    expect(contactClientSource).toContain("const patientCount = usePatientCount()")
-    expect(contactClientSource).not.toContain("getPatientCount().toLocaleString()")
+  it("keeps the synthetic patient count off the contact page entirely", () => {
+    // 2026-07-10: the interpolated patient count was removed from every public
+    // surface (see synthetic-patient-count-contract.test.ts). The original
+    // hydration concern is moot without the count; what must not return is
+    // any render of it, hydration-safe or not.
+    expect(contactClientSource).not.toContain("usePatientCount")
+    expect(contactClientSource).not.toContain("getPatientCount")
   })
 
   it("keeps the hook SSR output stable until hydration completes", () => {

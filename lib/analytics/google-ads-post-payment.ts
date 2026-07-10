@@ -245,37 +245,33 @@ export function isGoogleAdsClickIdentifierExpired(
 }
 
 export function isLikelyGoogleAttributed(row: GoogleAdsAttributionRow): boolean {
-  const tokens = [
-    row.utm_source,
-    row.utm_medium,
-    row.utm_campaign,
-    row.referrer,
-    row.campaignid,
-    row.adgroupid,
-    row.creative,
-    row.network,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase()
+  // Paid markers only — `row.referrer` must never feed this decision. An
+  // organic google.com referral is not ads attribution; before 2026-07-10 the
+  // referrer was substring-matched for "google", which classified organic
+  // orders as google_ads_unmapped and corrupted the ads P&L that the
+  // pause/scale decision reads. Real ads clicks always carry a click id, our
+  // final-URL-suffix valuetrack params, or utm_source=google + a paid medium.
+  if (hasGoogleClickId(row)) return true
 
-  return (
-    hasGoogleClickId(row) ||
-    Boolean(
-      clean(row.campaignid) ||
-        clean(row.adgroupid) ||
-        clean(row.keyword) ||
-        clean(row.creative) ||
-        clean(row.matchtype) ||
-        clean(row.device) ||
-        clean(row.network),
-    ) ||
-    tokens.includes("google") ||
-    tokens.includes("adwords") ||
-    tokens.includes("cpc") ||
-    tokens.includes("paid_search") ||
-    tokens.includes("doubleclick")
+  const hasValuetrackParams = Boolean(
+    clean(row.campaignid) ||
+      clean(row.adgroupid) ||
+      clean(row.keyword) ||
+      clean(row.creative) ||
+      clean(row.matchtype) ||
+      clean(row.device) ||
+      clean(row.network),
   )
+  if (hasValuetrackParams) return true
+
+  const source = (row.utm_source ?? "").toLowerCase()
+  const medium = (row.utm_medium ?? "").toLowerCase()
+  const googleSource =
+    source.includes("google") || source.includes("adwords") || source.includes("doubleclick")
+  const paidMedium =
+    medium.includes("cpc") || medium.includes("ppc") || medium.includes("paid")
+
+  return googleSource && paidMedium
 }
 
 export function isNonRetryableGoogleAdsConversionError(errorCode?: string | null): boolean {

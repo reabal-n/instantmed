@@ -18,7 +18,6 @@ import { FAQSchema } from "@/components/seo"
 import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
-import { usePatientCount } from "@/lib/hooks/use-patient-count"
 import { GUARANTEE, GUARANTEE_LABEL } from "@/lib/marketing/voice"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
@@ -108,7 +107,6 @@ const REGULATORY_LOGOS = [
 // =============================================================================
 
 export function AboutClient() {
-  const patientCount = usePatientCount()
   const faqSchemaItems = ABOUT_FAQS.map((f) => ({
     question: f.question,
     answer: f.answer,
@@ -173,8 +171,8 @@ export function AboutClient() {
               },
               {
                 type: "stat-callout",
-                value: `${patientCount.toLocaleString()}+`,
-                label: "Australians have used InstantMed",
+                value: "7 days a week",
+                label: "Doctor review availability",
               },
               {
                 type: "paragraph",

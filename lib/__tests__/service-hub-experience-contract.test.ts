@@ -8,7 +8,10 @@ const serviceHubSource = readFileSync(join(root, "components/request/service-hub
 
 describe("service hub experience contract", () => {
   it("keeps the service hub compact without a duplicate trust-card strip", () => {
-    expect(serviceHubSource).toContain("{patientCount.toLocaleString()}+ Australians")
+    // The strip's first item was the synthetic patient count until 2026-07-10
+    // (removed for compliance — see synthetic-patient-count-contract.test.ts).
+    expect(serviceHubSource).toContain("Doctor-reviewed")
+    expect(serviceHubSource).not.toContain("patientCount")
     expect(serviceHubSource).toContain("AHPRA doctors")
     expect(serviceHubSource).toContain("Google star rating")
     expect(serviceHubSource).not.toContain(">4.8<")

@@ -57,17 +57,28 @@ export const SOCIAL_PROOF = {
   averageRating: 5.0,
 
   // ── Response Times ──
-  /** Average response in minutes (used for stat displays) */
+  /**
+   * Average response in minutes (used for stat displays).
+   * Provenance 2026-07-10 (prod, 30d): med-cert median 10.4 min paid→approved,
+   * Rx median ~2.6h; overall median well under this figure, so 44 UNDER-claims
+   * speed (the compliant direction). Re-verify against live data before ever
+   * lowering it; replace with a live measure when wait-time wiring lands.
+   */
   averageResponseMinutes: 44,
-  /** Typical turnaround for certificates specifically - must stay under 30 min */
+  /**
+   * Typical turnaround for certificates specifically - must stay under 30 min.
+   * Provenance 2026-07-10: measured med-cert median 10.4 min (21/21 auto-approved).
+   */
   certTurnaroundMinutes: 20,
 
   // ── Platform Credentials ──
   ahpraVerifiedPercent: 100,
   employerAcceptancePercent: 98,
   operatingDays: 7,
-  operatingHoursStart: 8,
-  operatingHoursEnd: 22,
+  // operatingHoursStart/End were removed 2026-07-10: the service is 24/7
+  // (operator decision 2026-07-03) and the computed "8am–10pm" display string
+  // they fed was invisible to the hours-copy contract test. Never reintroduce
+  // an operating-hours window here.
   doctorCount: 1,
 
   // ── Outcome Stats ──
@@ -97,7 +108,6 @@ export const SOCIAL_PROOF_DISPLAY = {
   // (/prescriptions + /medical-certificate).
   responseTime: `${SOCIAL_PROOF.averageResponseMinutes} min`,
   certTurnaround: `${SOCIAL_PROOF.certTurnaroundMinutes} min`,
-  operatingHours: `${SOCIAL_PROOF.operatingHoursStart}am–${SOCIAL_PROOF.operatingHoursEnd > 12 ? SOCIAL_PROOF.operatingHoursEnd - 12 : SOCIAL_PROOF.operatingHoursEnd}pm`,
   operatingSchedule: `${SOCIAL_PROOF.operatingDays} days a week`,
   refundGuarantee: `${SOCIAL_PROOF.refundPercent}% refund guarantee`,
   adminFee: `$${SOCIAL_PROOF.adminFee.toFixed(2)}`,
@@ -148,6 +158,13 @@ export const GOOGLE_REVIEWS: {
  * Before anchor date → ANCHOR_COUNT.
  * After target date → TARGET_COUNT.
  * Between → linear interpolation.
+ *
+ * ⛔ COMPLIANCE (2026-07-10): DO NOT render this figure on any public surface,
+ * email, or schema. On 2026-07-10 the interpolation displayed ~1,179 against
+ * 112 ever-paying patients (~10x) and diverges further daily — a misleading-
+ * representation exposure (ACL s18 / AHPRA advertising). All public renders
+ * were removed on 2026-07-10 and `synthetic-patient-count-contract.test.ts`
+ * pins that. Re-anchor to a real, verifiable count before any future use.
  */
 export function getPatientCount(now: Date = new Date()): number {
   const elapsed = now.getTime() - ANCHOR_DATE.getTime()

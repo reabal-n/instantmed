@@ -34,7 +34,6 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { Textarea } from "@/components/ui/textarea"
 import { capture } from "@/lib/analytics/capture"
 import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS, CONTACT_PHONE } from "@/lib/constants"
-import { usePatientCount } from "@/lib/hooks/use-patient-count"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
@@ -55,7 +54,6 @@ export function ContactClient() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const patientCount = usePatientCount()
   const prefersReducedMotion = useReducedMotion()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -225,7 +223,7 @@ export function ContactClient() {
         {/* CTA Banner */}
         <CTABanner
           title="Looking for a medical certificate or repeat medication?"
-          subtitle={`Join ${patientCount.toLocaleString()}+ Australians who trust InstantMed. Fill in a quick form and an AHPRA-registered doctor reviews your request when available.`}
+          subtitle="Fill in a quick form and an AHPRA-registered doctor reviews your request."
           ctaText="Get started"
           ctaHref="/request"
           secondaryText="See how it works"

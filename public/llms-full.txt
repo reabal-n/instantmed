@@ -25,7 +25,7 @@ InstantMed is not a crisis, therapy, psychiatrist, or Mental Health Treatment Pl
 - **Clinical reviewers:** AHPRA-registered doctors
 - **Clinical model:** Secure form first, doctor review, digital outcome
 - **Requests:** Open 24/7
-- **Review hours:** Prescription and consultation review timing is 8am-10pm AEST, 7 days
+- **Review:** Doctor review runs around the clock, 7 days; no fixed turnaround is guaranteed
 - **Eligibility:** Australia-wide, patients aged 18 and over; Medicare optional for medical certificates, required for prescriptions and consultations
 - **Optional express review:** $9.95 priority add-on that moves a request to the front of the doctor review queue
 - **Refund policy:** Full refund if the doctor declines the request
@@ -276,4 +276,4 @@ InstantMed is an Australian telehealth platform operated by InstantMed Pty Ltd (
 
 ---
 
-Last reviewed: 2026-07-02
+Last reviewed: 2026-07-10

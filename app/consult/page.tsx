@@ -76,12 +76,12 @@ const services: DetailedService[] = [
     includes: [
       "1, 2, or 3-day duration",
       "PDF certificate with a verifiable reference number",
-      "Reviewed during AEST hours by an Australian doctor",
+      "Reviewed by an Australian doctor, 7 days a week",
       GUARANTEE,
     ],
     steps: [
       "Tell us what's going on (4 short questions)",
-      "Doctor reviews in writing during AEST hours",
+      "Doctor reviews in writing",
       "Certificate delivered to your dashboard and email",
     ],
     ctaLabel: "Start a certificate",
@@ -99,7 +99,7 @@ const services: DetailedService[] = [
     includes: [
       "eScript token delivered to your phone",
       "Accepted at every chemist in Australia",
-      "Reviewed during AEST hours by an Australian doctor",
+      "Reviewed by an Australian doctor, 7 days a week",
       GUARANTEE,
     ],
     steps: [
@@ -322,7 +322,7 @@ export default async function ConsultOverviewPage() {
             </li>
             <li className="inline-flex items-center gap-1.5">
               <Timer className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
-              Reviewed during AEST hours
+              Reviewed 7 days a week
             </li>
             <li className="inline-flex items-center gap-1.5">
               <CheckCircle2 className="h-3.5 w-3.5 text-success" aria-hidden="true" />
@@ -492,9 +492,9 @@ export default async function ConsultOverviewPage() {
             </li>
             <li>
               <Timer className="mx-auto mb-2 h-5 w-5 text-primary" aria-hidden="true" />
-              <p className="text-sm font-medium text-foreground">AEST-hours review</p>
+              <p className="text-sm font-medium text-foreground">Doctor review, 7 days</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Reviewed by an Australian doctor during AEST hours. No appointment, no waiting room.
+                Reviewed by an Australian doctor. No appointment, no waiting room.
               </p>
             </li>
             <li>

@@ -29,7 +29,6 @@ import {
   getComingSoonServices,
   type ServiceDef as CanonicalServiceDef,
 } from "@/lib/services/service-catalog"
-import { getPatientCount } from "@/lib/social-proof"
 
 // ─── Service definitions ──────────────────────────────────────────────────
 //
@@ -120,8 +119,6 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
     [drafts.length, lastServiceType, onSelectService, posthog],
   )
 
-  const patientCount = getPatientCount()
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
@@ -137,7 +134,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
         {/* Social proof strip */}
         <div className="flex flex-nowrap items-center justify-center gap-1.5 text-[11px] text-muted-foreground sm:gap-2.5 sm:text-xs">
           <span className="whitespace-nowrap font-medium text-foreground">
-            {patientCount.toLocaleString()}+ Australians
+            Doctor-reviewed
           </span>
           <span className="text-border-em">·</span>
           <span className="whitespace-nowrap">AHPRA doctors</span>

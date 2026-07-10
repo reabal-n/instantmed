@@ -27,7 +27,7 @@ import { PRICING_DISPLAY } from "@/lib/constants"
 import { GUARANTEE, GUARANTEE_LABEL } from "@/lib/marketing/voice"
 import { priorityCommercialLinks } from "@/lib/seo/commercial-links"
 import { getService, getServiceMarketingHref } from "@/lib/services/service-catalog"
-import { getPatientCount, SOCIAL_PROOF } from "@/lib/social-proof"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
 import { PricingStickyCta } from "./pricing-sticky-cta"
@@ -515,7 +515,7 @@ export function PricingContent() {
         {/* CTA */}
         <CTABanner
           title="Ready to get started?"
-          subtitle={`Trusted by ${getPatientCount().toLocaleString()}+ Australians. Get started in under 2 minutes. ${GUARANTEE}`}
+          subtitle={`Get started in under 2 minutes. ${GUARANTEE}`}
           ctaText="Start a consult"
           ctaHref="/medical-certificate"
         />

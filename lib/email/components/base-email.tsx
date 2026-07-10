@@ -12,7 +12,6 @@ import * as React from "react"
 
 import { ABN, APP_URL, COMPANY_ADDRESS_SHORT, COMPANY_NAME } from "@/lib/constants"
 import { resolveConfiguredUrl } from "@/lib/constants/resolve-configured-url"
-import { getPatientCount } from "@/lib/social-proof"
 
 import { colors, fontFamily } from "./email-primitives"
 import { HeardAboutUsLinks } from "./heard-about-us-links"
@@ -48,7 +47,6 @@ interface BaseEmailProps {
 
 export function BaseEmail({ children, previewText, appUrl = APP_URL, showReviewCTA = false, showReferral = false, intakeId, userId, heardToken }: BaseEmailProps) {
   const resolvedAppUrl = resolveConfiguredUrl(appUrl, APP_URL).replace(/\/$/, "")
-  const patientFloor = Math.max(500, Math.floor(getPatientCount() / 500) * 500)
   return (
     <html lang="en-AU" style={{ colorScheme: "light dark" }}>
       <head>
@@ -290,7 +288,7 @@ export function BaseEmail({ children, previewText, appUrl = APP_URL, showReviewC
                                     fontFamily,
                                   }}
                                 >
-                                  Made with care in Australia {"\u{1F324}\uFE0F"} · Trusted by {patientFloor.toLocaleString()}+ Australians
+                                  Made with care in Australia {"\u{1F324}\uFE0F"} · Reviewed by AHPRA-registered doctors
                                 </p>
                                 <p
                                   style={{

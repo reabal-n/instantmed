@@ -10,10 +10,10 @@ Single source of truth for all platform metrics shown on marketing pages.
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
-| `SOCIAL_PROOF` | `const object` | Raw operational metrics: `certTurnaroundMinutes`, `averageResponseMinutes`, `refundPercent`, operating hours, and internal historical counters. Review counts, testimonials, public numeric ratings, employer acceptance rates, approval rates, and fulfilment-rate claims are not public primitives. |
-| `SOCIAL_PROOF_DISPLAY` | `const object` | Pre-formatted strings: `responseTime`, `certTurnaround`, `operatingHours`, `refundGuarantee`, and non-outcome trust phrasing. |
+| `SOCIAL_PROOF` | `const object` | Raw operational metrics: `certTurnaroundMinutes`, `averageResponseMinutes`, `refundPercent`, `operatingDays`, and internal historical counters. NO operating-hours window fields (service is 24/7; removed 2026-07-10). Review counts, testimonials, public numeric ratings, employer acceptance rates, approval rates, and fulfilment-rate claims are not public primitives. |
+| `SOCIAL_PROOF_DISPLAY` | `const object` | Pre-formatted strings: `responseTime`, `certTurnaround`, `operatingSchedule`, `refundGuarantee`, and non-outcome trust phrasing. `operatingHours` was removed 2026-07-10 (computed a retired review-hours window). |
 | `GOOGLE_REVIEWS` | `object` | Google Business Profile star-badge config. Gates the visual Google mark + stars badge only; do not expose review counts, numeric rating text, testimonial copy, or aggregate-rating schema. |
-| `getPatientCount()` | `function` | Server-safe interpolated patient count. Client hook: `usePatientCount()` from `lib/use-patient-count.ts`. |
+| `getPatientCount()` | `function` | ⛔ NOT a public primitive (2026-07-10): synthetic interpolation that displayed ~10x the real paying-patient count. Removed from every public surface and pinned by `synthetic-patient-count-contract.test.ts`. Re-anchor to a real, verifiable count before any future render. |
 
 **Rule:** Never hardcode a social proof number on a marketing page. Import from `SOCIAL_PROOF` or `SOCIAL_PROOF_DISPLAY`.
 

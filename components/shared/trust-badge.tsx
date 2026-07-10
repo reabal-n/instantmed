@@ -17,7 +17,6 @@ import Image from 'next/image'
 import { useReducedMotion } from '@/components/ui/motion'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { BADGE_PRESETS, BADGE_REGISTRY, type BadgeConfig, type BadgeId, type BadgeVariant, type PresetEntry, resolveEntry } from '@/lib/marketing/trust-badges'
-import { getPatientCount } from '@/lib/social-proof'
 import { cn } from '@/lib/utils'
 
 // ── Shared pill wrapper ──────────────────────────────────────────────
@@ -569,9 +568,9 @@ function InstantPdfBadge({ config, className }: { config: BadgeConfig; className
   )
 }
 
-// social_proof - static patient count (counter animation removed for bundle performance)
+// social_proof - non-numeric trust line (the interpolated patient count was
+// removed from all public surfaces 2026-07-10 — see getPatientCount's compliance note)
 function SocialProofBadge({ config, className }: { config: BadgeConfig; className?: string }) {
-  const count = getPatientCount()
   return (
     <div
       className={cn(
@@ -581,7 +580,7 @@ function SocialProofBadge({ config, className }: { config: BadgeConfig; classNam
       )}
     >
       <config.icon className={cn('w-3.5 h-3.5 shrink-0', config.iconColor)} aria-hidden="true" />
-      <span>{count.toLocaleString()} Australians helped</span>
+      <span>Reviewed by AHPRA-registered doctors</span>
     </div>
   )
 }
