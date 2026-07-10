@@ -61,7 +61,7 @@ function buildVerifyUrl(
   redirectTo: string
 ): string {
   const params = new URLSearchParams({
-    token_hash: tokenHash,
+    token: tokenHash,
     type: actionType,
     redirect_to: redirectTo,
   })

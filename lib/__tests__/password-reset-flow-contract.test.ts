@@ -73,6 +73,15 @@ describe("password reset flow contract", () => {
     expect(operations).toContain("Send Email hook")
   })
 
+  it("passes the hook token hash through GoTrue's token query parameter", () => {
+    const webhookRoute = readRepoFile("app/api/webhooks/supabase-auth/route.ts")
+
+    // Supabase's send-email hook names the payload field `token_hash`, but the
+    // direct /auth/v1/verify endpoint accepts that value under `token`.
+    expect(webhookRoute).toContain("token: tokenHash")
+    expect(webhookRoute).not.toContain("token_hash: tokenHash")
+  })
+
   it("updates the password from an established recovery session, not a raw code parameter", () => {
     const resetClient = readRepoFile("app/auth/reset-password/reset-password-client.tsx")
 
