@@ -143,7 +143,8 @@ export const symptomsStepSchema = z.object({
         })
       }
     }),
-  symptomDuration: nonEmptyString("Please indicate how long you've had these symptoms"),
+  // Optional since P1.1 (2026-07-10) — doctor/AI context, not a safety gate.
+  symptomDuration: z.string().optional(),
 })
 
 const medicationEntrySchema = z.object({

@@ -71,6 +71,43 @@ describe("medical certificate validation", () => {
     expect(brief.valid).toBe(true)
   })
 
+  // P1.1 (2026-07-10): symptomDuration is doctor/AI context, not a safety
+  // gate — a tapped chip alone must be a complete answer. It stays validated
+  // against the known option set WHEN present.
+  it("accepts a payload with no symptomDuration at all (optional since P1.1)", () => {
+    const noDuration = {
+      certType: "work",
+      duration: "1",
+      symptomDetails: "Cough, sore throat, and fatigue since yesterday.",
+      startDate: new Date().toISOString().slice(0, 10),
+      telehealthConsentGiven: true,
+      confirmedAccuracy: true,
+      agreedToTerms: true,
+    }
+    const result = validateMedCertPayload(noDuration)
+    expect(result.valid).toBe(true)
+    expect(result.error).toBeUndefined()
+
+    const serverError = validateAnswersServerSide("med-cert", { ...noDuration, symptoms: undefined }, identity)
+    expect(serverError).toBeNull()
+  })
+
+  it("still rejects an unknown symptomDuration value when one is provided", () => {
+    const badDuration = {
+      certType: "work",
+      duration: "1",
+      symptomDetails: "Cough and fatigue.",
+      symptomDuration: "forever_and_a_day",
+      startDate: new Date().toISOString().slice(0, 10),
+      telehealthConsentGiven: true,
+      confirmedAccuracy: true,
+      agreedToTerms: true,
+    }
+    const result = validateMedCertPayload(badDuration)
+    expect(result.valid).toBe(false)
+    expect(result.error).toContain("Invalid symptom duration")
+  })
+
   it("does not block checkout on the absence of a legacy symptoms array", () => {
     // The exact failure mode the user hit on 2026-05-12: the "Pay $19.95"
     // button surfaced "Please select at least one symptom." even though
