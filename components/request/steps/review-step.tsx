@@ -179,49 +179,68 @@ function ExpandableValue({ value }: { value: string }) {
   )
 }
 
-function ReviewSection({
-  title,
-  items,
-  onEdit
+/**
+ * One dense summary card (P1.2, 2026-07-10). The stacked per-section cards
+ * pushed Pay far below the fold at the highest-anxiety moment; sections are
+ * now divided groups inside a single card, and EMPTY rows are hidden — a
+ * "Symptoms: -" line at the pay moment reads as a bug, not a summary.
+ */
+function ReviewSummaryCard({
+  sections,
+  onEditStep,
 }: {
-  title: string
-  items: ReviewItem[]
-  onEdit?: () => void
+  sections: { title: string; items: ReviewItem[]; stepId?: string }[]
+  onEditStep: (stepId: string) => void
 }) {
+  const visibleSections = sections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => Boolean(item.value) || Boolean(item.badge)),
+    }))
+    .filter((section) => section.items.length > 0)
+
   return (
-    <div className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06]">
-      <div className="px-5 pt-4 pb-2.5 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-foreground">{title}</h3>
-        {onEdit && (
-          <Button variant="ghost" size="sm" onClick={onEdit} className="px-2 text-xs gap-1 rounded-lg hover:bg-muted/50 dark:hover:bg-white/10" aria-label={`Edit ${title}`}>
-            <Edit2 className="w-3 h-3" />
-            Edit
-          </Button>
-        )}
-      </div>
-      <div className="px-5 pb-4">
-        <dl className="space-y-3">
-          {items.map((item, i) => (
-            <div key={i} className="flex justify-between text-sm">
-              <dt className="text-muted-foreground">{item.label}</dt>
-              <dd className="flex max-w-[64%] flex-col items-end gap-1 text-right font-medium">
-                <span>{item.value ? <ExpandableValue value={item.value} /> : '-'}</span>
-                {item.badge && (
-                  <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                      item.badge.tone === "success"
-                        ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20"
-                        : "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/20"
-                    }`}
-                  >
-                    {item.badge.label}
-                  </span>
-                )}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </div>
+    <div className="rounded-2xl border border-border/50 bg-white dark:bg-card dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none divide-y divide-border/40 dark:divide-white/10">
+      {visibleSections.map((section) => (
+        <div key={section.title} className="px-5 py-3.5">
+          <div className="flex items-center justify-between pb-2">
+            <h3 className="text-[13px] font-medium text-foreground">{section.title}</h3>
+            {section.stepId && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEditStep(section.stepId as string)}
+                className="-mr-2 h-7 px-2 text-xs gap-1 rounded-lg hover:bg-muted/50 dark:hover:bg-white/10"
+                aria-label={`Edit ${section.title}`}
+              >
+                <Edit2 className="w-3 h-3" />
+                Edit
+              </Button>
+            )}
+          </div>
+          <dl className="space-y-2">
+            {section.items.map((item, i) => (
+              <div key={i} className="flex justify-between gap-3 text-sm">
+                <dt className="text-muted-foreground">{item.label}</dt>
+                <dd className="flex max-w-[64%] flex-col items-end gap-1 text-right font-medium">
+                  {item.value ? <span><ExpandableValue value={item.value} /></span> : null}
+                  {item.badge && (
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                        item.badge.tone === "success"
+                          ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20"
+                          : "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/20"
+                      }`}
+                    >
+                      {item.badge.label}
+                    </span>
+                  )}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      ))}
     </div>
   )
 }
@@ -769,7 +788,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   const detailItems: ReviewItem[] = [
     { label: 'Name', value: `${firstName} ${lastName}`.trim() },
     { label: 'Email', value: email },
-    { label: 'Date of birth', value: dobDisplay || '-' },
+    { label: 'Date of birth', value: dobDisplay },
   ]
   // Only show phone if provided
   if (phone) detailItems.push({ label: 'Phone', value: phone })
@@ -806,22 +825,16 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         </p>
       </div>
 
-      {/* Review sections */}
-      <div className="space-y-3">
-        {displaySections.map((section, i) => (
-          <ReviewSection
-            key={i}
-            title={section.title}
-            items={section.items}
-            onEdit={section.stepId ? () => goToStep(section.stepId as Parameters<typeof goToStep>[0]) : undefined}
-          />
-        ))}
-      </div>
+      {/* Review summary — one dense card, sections divided, empty rows hidden */}
+      <ReviewSummaryCard
+        sections={displaySections}
+        onEditStep={(stepId) => goToStep(stepId as Parameters<typeof goToStep>[0])}
+      />
 
       {/* Safety consent + Continue */}
       <div className="space-y-3 pt-1">
         {/* Price summary - show before CTA so there's no payment surprise */}
-        <div className="px-4 py-3 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] space-y-2">
+        <div className="px-4 py-3 rounded-2xl border border-border/50 bg-white dark:bg-card dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">{isPrescriptionCheckout ? "Due today" : "Total today"}</span>
             <span className="text-base font-semibold text-foreground">

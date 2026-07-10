@@ -164,6 +164,20 @@ export default function EdAssessmentStep({ serviceType, onNext, onBack }: EdAsse
     } catch {
       // sessionStorage unavailable or corrupt - silently skip
     }
+
+    // Start at the FIRST UNANSWERED question (P1.5): when the landing quiz
+    // pre-seeded Q1/Q5 (or a draft restored part of the set), re-showing Q1
+    // asks the patient something they already answered. setAnswer is
+    // synchronous, so the store already reflects the seeds here.
+    const seeded = useRequestStore.getState().answers
+    const firstUnanswered = IIEF_QUESTIONS.findIndex(
+      (question) => seeded[question.id] === undefined,
+    )
+    if (firstUnanswered > 0) {
+      setActiveQuestionIndex(firstUnanswered)
+    } else if (firstUnanswered === -1) {
+      setActiveQuestionIndex(IIEF_QUESTIONS.length - 1)
+    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps -- one-time mount seed
 
   // Read IIEF values from store
@@ -243,7 +257,7 @@ export default function EdAssessmentStep({ serviceType, onNext, onBack }: EdAsse
       <motion.div variants={itemVariants}>
         <IntakeStepIntro
           title="A few questions about your experience"
-          description="One question at a time. There are no wrong answers."
+          description="5 quick questions · ~30 seconds. There are no wrong answers."
         />
       </motion.div>
 
