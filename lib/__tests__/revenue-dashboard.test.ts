@@ -13,6 +13,7 @@ function paidRow(overrides: Record<string, unknown>) {
     id: "intake-paid",
     amount_cents: 4995,
     category: "medical_certificate",
+    is_priority: false,
     paid_at: "2026-06-18T01:00:00.000Z",
     payment_status: "paid",
     refund_amount_cents: 0,

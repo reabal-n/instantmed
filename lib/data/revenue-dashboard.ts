@@ -25,6 +25,7 @@ type PaidRevenueRow = {
   id: string
   amount_cents: number | null
   category: string | null
+  is_priority: boolean | null
   paid_at: string | null
   payment_status: string | null
   refund_amount_cents: number | null
@@ -124,7 +125,30 @@ export type RevenueDashboard = {
   daily: RevenueDashboardDay[]
   maxDailyNetCents: number
   serviceMix: RevenueDashboardService[]
+  monetisation: RevenueMonetisationReadouts
   recentPayments: RevenueDashboardRecentPayment[]
+}
+
+/**
+ * Decision-support readouts for the two blind monetisation levers flagged in
+ * the 2026-07-10 audit: the $9.95 Express Review attach rate (a ~40%-margin
+ * add-on that was running unmeasured) and the med-cert duration-tier mix
+ * (docs/REVENUE_MODEL.md models a $27 med-cert AOV that assumes a real 2/3-day
+ * share — nothing tracked progress toward it).
+ */
+export type RevenueMonetisationReadouts = {
+  express: {
+    paidOrders: number
+    expressOrders: number
+    attachPct: number
+    feeGrossCents: number
+  }
+  certDurationMix: {
+    days: 1 | 2 | 3
+    orderCount: number
+    sharePct: number
+  }[]
+  certOrderCount: number
 }
 
 export type RevenueDashboardInput = {
@@ -154,7 +178,7 @@ export async function getRevenueDashboard(
   const results = await Promise.allSettled([
     filterReportableIntakes(supabase
       .from("intakes")
-      .select("id, amount_cents, category, paid_at, payment_status, refund_amount_cents, refund_status, refunded_at, status, subtype")
+      .select("id, amount_cents, category, is_priority, paid_at, payment_status, refund_amount_cents, refund_status, refunded_at, status, subtype")
       .in("payment_status", [...REVENUE_PURCHASE_PAYMENT_STATUSES])
       .not("paid_at", "is", null)
       .gte("paid_at", thirtyDaysAgo)
@@ -294,6 +318,7 @@ export function buildRevenueDashboard(input: RevenueDashboardInput): RevenueDash
     daily,
     maxDailyNetCents: Math.max(0, ...daily.map((day) => Math.max(day.netCents, 0))),
     serviceMix: buildServiceMix(input.paidRows),
+    monetisation: buildMonetisationReadouts(input.paidRows),
     recentPayments: input.paidRows.slice(0, 5).flatMap((row) => {
       if (!row.id || !row.paid_at) return []
       return [{
@@ -375,6 +400,57 @@ function buildDailyRevenue(
   }
 
   return [...buckets.values()]
+}
+
+const PRIORITY_FEE_CENTS = 995
+// Base med-cert tier prices (current since 2026-06-08). Rows whose normalised
+// amount doesn't match a tier (e.g. legacy $19.95 orders) are excluded from
+// the mix rather than misbucketed.
+const CERT_TIER_BY_BASE_CENTS: Record<number, 1 | 2 | 3> = {
+  2495: 1,
+  2995: 2,
+  3995: 3,
+}
+
+export function buildMonetisationReadouts(paidRows: PaidRevenueRow[]): RevenueMonetisationReadouts {
+  let expressOrders = 0
+  const durationCounts = new Map<1 | 2 | 3, number>()
+  let certOrderCount = 0
+
+  for (const row of paidRows) {
+    const isExpress = row.is_priority === true
+    if (isExpress) expressOrders += 1
+
+    if (row.category === "medical_certificate") {
+      certOrderCount += 1
+      // amount_cents includes the priority fee when attached — normalise back
+      // to the base tier price before bucketing.
+      const baseCents = Number(row.amount_cents ?? 0) - (isExpress ? PRIORITY_FEE_CENTS : 0)
+      const days = CERT_TIER_BY_BASE_CENTS[baseCents]
+      if (days) durationCounts.set(days, (durationCounts.get(days) ?? 0) + 1)
+    }
+  }
+
+  const bucketedCertTotal = [...durationCounts.values()].reduce((sum, n) => sum + n, 0)
+
+  return {
+    express: {
+      paidOrders: paidRows.length,
+      expressOrders,
+      attachPct:
+        paidRows.length > 0 ? Math.round((expressOrders / paidRows.length) * 1000) / 10 : 0,
+      feeGrossCents: expressOrders * PRIORITY_FEE_CENTS,
+    },
+    certDurationMix:
+      bucketedCertTotal > 0
+        ? ([1, 2, 3] as const).map((days) => ({
+            days,
+            orderCount: durationCounts.get(days) ?? 0,
+            sharePct: Math.round(((durationCounts.get(days) ?? 0) / bucketedCertTotal) * 1000) / 10,
+          }))
+        : [],
+    certOrderCount,
+  }
 }
 
 function buildServiceMix(paidRows: PaidRevenueRow[]): RevenueDashboardService[] {

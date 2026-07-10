@@ -620,6 +620,32 @@ export function AnalyticsDashboardClient({
                       <p className="rounded-md bg-muted/40 px-3 py-2 text-xs text-muted-foreground">No paid orders in this window.</p>
                     )}
                   </div>
+                  {/* Monetisation readouts (2026-07-10 audit): the two levers
+                      that were running blind — Express attach and the med-cert
+                      duration mix behind the $27-AOV model target. */}
+                  <div className="mt-4 space-y-2 border-t border-border/50 pt-3 text-xs">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-muted-foreground">Express Review attach (30d)</span>
+                      <span className="tabular-nums font-medium text-foreground">
+                        {revenue.monetisation.express.expressOrders}/{revenue.monetisation.express.paidOrders}
+                        {" · "}
+                        {revenue.monetisation.express.attachPct}%
+                        {revenue.monetisation.express.feeGrossCents > 0
+                          ? ` · ${formatCents(revenue.monetisation.express.feeGrossCents)}`
+                          : ""}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-muted-foreground">Cert duration mix (30d)</span>
+                      <span className="tabular-nums font-medium text-foreground">
+                        {revenue.monetisation.certDurationMix.length > 0
+                          ? revenue.monetisation.certDurationMix
+                              .map((tier) => `${tier.days}d ${tier.sharePct}%`)
+                              .join(" · ")
+                          : "No cert orders"}
+                      </span>
+                    </div>
+                  </div>
                 </DashboardCard>
 
                 <div className="space-y-3">
