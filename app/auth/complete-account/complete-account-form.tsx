@@ -17,6 +17,7 @@ import {
 } from "@/lib/analytics/browser-purchase-dedup"
 import { trackPurchase } from "@/lib/analytics/conversion-tracking"
 import { buildCompleteAccountPostSignInHref } from "@/lib/auth/complete-account-handoff"
+import { clearDraftAfterPayment } from "@/lib/request/draft-storage"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { detectRelayEmail, getRelayEmailMessage } from "@/lib/validation/email-relay"
 
@@ -26,6 +27,7 @@ export function CompleteAccountForm({
   amountCents,
   serviceSlug,
   serviceName,
+  paidServiceCategory,
   isNewCustomer,
   heardToken,
   certificateAccess = false,
@@ -35,6 +37,8 @@ export function CompleteAccountForm({
   amountCents?: number
   serviceSlug?: string
   serviceName?: string
+  /** Set by the page ONLY when payment was server-confirmed (session match + paid). */
+  paidServiceCategory?: string
   isNewCustomer?: boolean
   heardToken?: string
   certificateAccess?: boolean
@@ -50,6 +54,17 @@ export function CompleteAccountForm({
 
   const [showConfetti, setShowConfetti] = useState(false)
   const purchaseTrackedRef = useRef(false)
+
+  // Guest checkouts land here (never on /patient/intakes/success) — retire the
+  // paid service's local draft so a return to /request can't restore straight
+  // to Pay and double-charge past the checkout idempotency bucket. The page
+  // only passes paidServiceCategory after server-confirming payment.
+  const draftClearedRef = useRef(false)
+  useEffect(() => {
+    if (draftClearedRef.current || !paidServiceCategory) return
+    draftClearedRef.current = true
+    clearDraftAfterPayment(paidServiceCategory)
+  }, [paidServiceCategory])
   // Separate latch for the PostHog purchase event so it can wait for posthog to
   // hydrate without blocking (or being blocked by) the one-shot gtag fire.
   const posthogPurchaseFiredRef = useRef(false)

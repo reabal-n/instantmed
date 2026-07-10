@@ -83,11 +83,33 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
     }
 
     if (currentIntake.payment_id && currentIntake.payment_id !== session.id) {
+      // A STALE async success is not routine noise: with delayed payment
+      // methods (e.g. BECS) the customer's money HAS been captured by Stripe
+      // for the superseded session, while the intake stays unpaid because the
+      // current-session invariant (correctly) refuses to mark it. That's a
+      // charged-but-unserviced patient — it must reach the operator (DLQ card
+      // on /admin/ops) and Sentry, not vanish into a log line.
       log.warn("checkout.session.async_payment_succeeded ignored because session is no longer current", {
         currentPaymentId: currentIntake.payment_id,
         eventId: event.id,
         intakeId,
         sessionId: session.id,
+      })
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        session.id,
+        intakeId,
+        "Async payment succeeded for a superseded checkout session — money captured, intake not marked paid. Reconcile/refund manually.",
+        "stale_async_payment_success",
+        { current_payment_id: currentIntake.payment_id },
+      )
+      Sentry.captureMessage("Stale async payment success — captured payment on superseded session", {
+        level: "warning",
+        tags: { subsystem: "stripe-webhook", event_type: event.type },
+        fingerprint: ["stale-async-payment-success", intakeId],
+        extra: { intakeId, sessionId: session.id, currentPaymentId: currentIntake.payment_id },
       })
       return NextResponse.json({ received: true, skipped: true, reason: "stale_checkout_session" })
     }

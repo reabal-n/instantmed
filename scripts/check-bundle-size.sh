@@ -18,12 +18,12 @@
 set -euo pipefail
 
 MAX_SHARED_KB=160
-MAX_REQUEST_ROUTE_KB=25
+MAX_REQUEST_ROUTE_KB=26
 MAX_REQUEST_FIRST_LOAD_KB=180
 
 # route|max route JS kB|max first-load JS kB|failure hint
 ROUTE_BUDGETS=(
-  "/request|25|180|The intake shell is carrying code that should be lazy-loaded"
+  "/request|26|180|The intake shell is carrying code that should be lazy-loaded. Re-baselined 25->26 on 2026-07-10: main had saturated the budget at exactly 25.0 kB, and the intake state-lifecycle correctness package (scoped per-service drafts, hydration-gated URL decisions, prefill-once - PR #308) added ~0.8 kB of client logic that cannot be lazy-loaded (it IS the shell's state machinery). Before the next bump, lazy-load the conditional shell chrome instead: DraftRestorationBanner, SubtypeMismatchBanner, and FlowErrorScreen all render only in exceptional states."
   "/patient|15|190|The patient dashboard should stay tight. Re-baselined 2026-05-25 after the returning-patient shortcut shipped on the hero; re-baselined 2026-06-05 (route JS 14.2 to 15 kB ceiling, because this guard rounds up and the current patient route measured 14.2 kB on CI with no /patient code delta in the prescribing-flow branch). Investigate dynamic-imports before the next bump."
   "/dashboard|35|422|The staff cockpit first-load floor is now ~399 kB after 2026-06-16 split QueueDialogs and ApprovedTodayList out of the initial queue client, while Next's route Size includes those lazy route chunks and reports ~34.6 kB. Keep first-load below 422 kB; future route-size bumps still need real code reduction or split-chunk accounting, not a blind budget raise."
   "/admin/intakes|23|455|The request ledger should not inherit heavy doctor-review code. Ceiling reflects shared cockpit primitives + refund indicator + renewal badge work (2026-05-20 to 2026-05-21); re-baselined 22->23 on 2026-06-26 for Webpack split-chunk variance (measured 21.9-22.1 kB across builds, no ledger code delta)."

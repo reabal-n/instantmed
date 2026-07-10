@@ -39,7 +39,11 @@ describe("release check contract", () => {
 
     expect(bundleGate).toContain("MAX_REQUEST_ROUTE_KB")
     expect(bundleGate).toContain("MAX_REQUEST_FIRST_LOAD_KB")
-    expect(bundleGate).toContain('"/request|25|180|')
+    // Re-baselined 25->26 on 2026-07-10 with the intake state-lifecycle
+    // package (PR #308): main had saturated the old budget at exactly 25.0 kB
+    // and the shell's own state machinery cannot be lazy-loaded. The gate row
+    // documents the lazy-load candidates required before the NEXT bump.
+    expect(bundleGate).toContain('"/request|26|180|')
     expect(bundleGate).toContain("The intake shell is carrying code that should be lazy-loaded")
     expect(bundleGate).toContain("The patient dashboard should stay tight")
     expect(bundleGate).toContain("returning-patient shortcut shipped on the hero")

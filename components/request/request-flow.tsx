@@ -35,7 +35,6 @@ import {
 } from "@/lib/request/draft-restore"
 import {
   getInitialRequestUrlDecision,
-  type InitialRequestUrlContext,
 } from "@/lib/request/initial-url-seeding"
 import {
   getStepDefinitionById,
@@ -417,26 +416,19 @@ export function RequestFlow({
     prevStep,
     goToStep,
     answers,
-    phone,
     setAnswer,
     setIdentity,
     setAuthContext,
     lastSavedAt,
   } = useRequestStore()
 
-  const initialUrlContextRef = useRef<InitialRequestUrlContext | null>(null)
-  if (initialUrlContextRef.current === null) {
-    initialUrlContextRef.current = {
-      initialService,
-      initialSubtype,
-      initialCertType,
-      initialDuration,
-      storedConsultSubtype: answers.consultSubtype,
-      storedCertType: answers.certType,
-      storedDuration: answers.duration,
-      lastSavedAt,
-    }
-  }
+  // Hydration status for effects that must read the RESTORED store, not the
+  // empty pre-hydration snapshot. The store uses skipHydration:true, so any
+  // value read during the first render predates the persisted draft — the old
+  // render-time URL-context snapshot here made every draft-protection guard
+  // (subtype mismatch, certType/duration stomp checks) permanently dead on
+  // fresh page loads.
+  const [hydrated, setHydrated] = useState(false)
 
   const initialDebugContextRef = useRef({
     initialService,
@@ -482,8 +474,41 @@ export function RequestFlow({
 
     const hydrationCutoffToken = beginRequestDraftHydrationCutoff(savedBefore)
 
+    // Decide URL-vs-draft AFTER hydration, from the store's real restored
+    // values. Runs once per mount.
+    const applyUrlDecision = () => {
+      const hydratedState = useRequestStore.getState()
+      const decision = getInitialRequestUrlDecision({
+        initialService,
+        initialSubtype,
+        initialCertType,
+        initialDuration,
+        storedConsultSubtype: hydratedState.answers?.consultSubtype,
+        storedCertType: hydratedState.answers?.certType,
+        storedDuration: hydratedState.answers?.duration,
+        lastSavedAt: hydratedState.lastSavedAt,
+      })
+
+      if (decision.subtypeMismatch) {
+        setDraftSubtype(decision.subtypeMismatch.draftSubtype)
+        setShowSubtypeMismatch(true)
+      }
+
+      for (const seed of decision.answerSeeds) {
+        // URL seeds are navigation context, not patient work — never let them
+        // make an untouched flow look like a saved draft.
+        hydratedState.setAnswer(seed.key, seed.value, { touch: false })
+      }
+
+      if (decision.redirectPath) {
+        router.replace(decision.redirectPath)
+      }
+    }
+
     const finishHydration = () => {
       clearRequestDraftHydrationCutoff(hydrationCutoffToken)
+      applyUrlDecision()
+      setHydrated(true)
       offerExistingDraft()
     }
 
@@ -491,6 +516,10 @@ export function RequestFlow({
     if (rehydrateResult && typeof rehydrateResult.then === "function") {
       void rehydrateResult.then(finishHydration, () => {
         clearRequestDraftHydrationCutoff(hydrationCutoffToken)
+        // Hydration failed → treat as a fresh flow, but still unblock the
+        // hydration-gated effects (URL decision, prefill, service sync).
+        applyUrlDecision()
+        setHydrated(true)
       })
     } else {
       finishHydration()
@@ -499,6 +528,10 @@ export function RequestFlow({
     return () => {
       cancelled = true
     }
+    // Mount-only by design: URL params are re-checked by the hydration-gated
+    // sync effect below; re-running rehydrate on prop change would re-fight
+    // the live store.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Initialize auth context in store for step navigation
@@ -506,97 +539,92 @@ export function RequestFlow({
     setAuthContext({ isAuthenticated, hasProfile, hasCompleteIdentity: hasCompleteIdentity ?? hasProfile, hasMedicare, hasAddress, hasPhone, hasSex })
   }, [isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, hasAddress, hasPhone, hasSex, setAuthContext])
 
-  // Pre-fill identity from auth if available
+  // Pre-fill identity from the profile: ONCE, post-hydration, blanks only.
+  // The previous version re-ran on every answers.* keystroke (deps included
+  // medicareNumber etc.) and had no already-set guards on name/dob — so a
+  // signed-in patient who corrected their name or DOB on the details step had
+  // it snap back to profile values the moment they typed their Medicare
+  // number, and the wrong identity then flowed into the cert PDF and the
+  // Parchment patient sync. Prefill is a seed, not a leash.
+  const prefillAppliedRef = useRef(false)
   useEffect(() => {
-    if (userEmail && !answers.email) {
-      setIdentity({ email: userEmail })
-    }
-    if (userName) {
-      const [firstName, ...lastParts] = userName.split(' ')
-      setIdentity({ 
-        firstName: firstName || '',
-        lastName: lastParts.join(' ') || '',
-      })
-    }
-    if (userPhone && !phone) {
-      setIdentity({ phone: userPhone })
-    }
-    if (profileDateOfBirth) {
-      setIdentity({ dob: profileDateOfBirth })
-    }
-    // Pre-fill Medicare from profile
-    if (profileMedicare && !answers.medicareNumber) {
-      setAnswer('medicareNumber', profileMedicare)
-    }
-    if (profileMedicareIrn && !answers.medicareIrn) {
-      setAnswer('medicareIrn', String(profileMedicareIrn))
-    }
-    if (profileIhi && !answers.ihiNumber) {
-      setAnswer('ihiNumber', profileIhi)
-    }
-    if (profileSex && !answers.sex) {
-      setAnswer('sex', profileSex)
-    }
-    // Pre-fill address from profile
-    if (profileAddress && !answers.addressLine1) {
-      setAnswer('addressLine1', profileAddress.addressLine1)
-      setAnswer('suburb', profileAddress.suburb)
-      setAnswer('state', profileAddress.state)
-      setAnswer('postcode', profileAddress.postcode)
-    }
-  }, [userEmail, userName, userPhone, profileDateOfBirth, profileMedicare, profileMedicareIrn, profileIhi, profileSex, profileAddress, answers.email, answers.medicareNumber, answers.medicareIrn, answers.ihiNumber, answers.sex, answers.addressLine1, phone, setIdentity, setAnswer])
+    if (!hydrated || prefillAppliedRef.current) return
+    prefillAppliedRef.current = true
 
-  // Pre-fill medical history from health profile
+    const state = useRequestStore.getState()
+    const prefillIdentity: Parameters<typeof setIdentity>[0] = {}
+    if (userEmail && !state.email) prefillIdentity.email = userEmail
+    if (userName && !state.firstName && !state.lastName) {
+      const [firstName, ...lastParts] = userName.split(' ')
+      prefillIdentity.firstName = firstName || ''
+      prefillIdentity.lastName = lastParts.join(' ') || ''
+    }
+    if (userPhone && !state.phone) prefillIdentity.phone = userPhone
+    if (profileDateOfBirth && !state.dob) prefillIdentity.dob = profileDateOfBirth
+    if (Object.keys(prefillIdentity).length > 0) {
+      // touch:false — opening the flow signed-in is not patient work and must
+      // not create a restorable "draft".
+      setIdentity(prefillIdentity, { touch: false })
+    }
+
+    const storedAnswers = state.answers ?? {}
+    if (profileMedicare && !storedAnswers.medicareNumber) {
+      setAnswer('medicareNumber', profileMedicare, { touch: false })
+    }
+    if (profileMedicareIrn && !storedAnswers.medicareIrn) {
+      setAnswer('medicareIrn', String(profileMedicareIrn), { touch: false })
+    }
+    if (profileIhi && !storedAnswers.ihiNumber) {
+      setAnswer('ihiNumber', profileIhi, { touch: false })
+    }
+    if (profileSex && !storedAnswers.sex) {
+      setAnswer('sex', profileSex, { touch: false })
+    }
+    if (profileAddress && !storedAnswers.addressLine1) {
+      setAnswer('addressLine1', profileAddress.addressLine1, { touch: false })
+      setAnswer('suburb', profileAddress.suburb, { touch: false })
+      setAnswer('state', profileAddress.state, { touch: false })
+      setAnswer('postcode', profileAddress.postcode, { touch: false })
+    }
+  }, [hydrated, userEmail, userName, userPhone, profileDateOfBirth, profileMedicare, profileMedicareIrn, profileIhi, profileSex, profileAddress, setIdentity, setAnswer])
+
+  // Pre-fill medical history from health profile (post-hydration, blanks
+  // only, non-stamping — same rules as identity prefill above).
+  const healthPrefillAppliedRef = useRef(false)
   useEffect(() => {
-    if (!healthProfile) return
-    // Only pre-fill if the fields haven't been filled yet
-    if (healthProfile.allergies?.length && !answers.known_allergies) {
-      setAnswer('known_allergies', healthProfile.allergies.join(', '))
-      setAnswer('has_allergies', 'yes')
+    if (!hydrated || !healthProfile || healthPrefillAppliedRef.current) return
+    healthPrefillAppliedRef.current = true
+    const storedAnswers = useRequestStore.getState().answers ?? {}
+    if (healthProfile.allergies?.length && !storedAnswers.known_allergies) {
+      setAnswer('known_allergies', healthProfile.allergies.join(', '), { touch: false })
+      setAnswer('has_allergies', 'yes', { touch: false })
     }
-    if (healthProfile.conditions?.length && !answers.existing_conditions) {
-      setAnswer('existing_conditions', healthProfile.conditions.join(', '))
-      setAnswer('has_conditions', 'yes')
+    if (healthProfile.conditions?.length && !storedAnswers.existing_conditions) {
+      setAnswer('existing_conditions', healthProfile.conditions.join(', '), { touch: false })
+      setAnswer('has_conditions', 'yes', { touch: false })
     }
-    if (healthProfile.current_medications?.length && !answers.current_medications) {
-      setAnswer('current_medications', healthProfile.current_medications.join(', '))
-      setAnswer('takes_medications', 'yes')
+    if (healthProfile.current_medications?.length && !storedAnswers.current_medications) {
+      setAnswer('current_medications', healthProfile.current_medications.join(', '), { touch: false })
+      setAnswer('takes_medications', 'yes', { touch: false })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [healthProfile])
+  }, [hydrated, healthProfile])
 
   // Initialize service type from URL param
-  // IMPORTANT: URL param is the source of truth for which service to show
-  // We do NOT reset other service drafts - they are preserved in service-scoped storage
+  // IMPORTANT: URL param is the source of truth for which service to show.
+  // Gated on hydration: setting the service pre-hydration raced the async
+  // rehydrate (whose merge could restore a different last-touched service) and
+  // meant setServiceType's scoped-draft switch ran against pre-draft state.
+  // Switching now loads the target service's OWN scoped draft (see store).
   useEffect(() => {
+    if (!hydrated) return
     if (initialService && serviceType !== initialService) {
-      // Set the service type to match URL - drafts for THIS service will be loaded
-      // from service-scoped storage. Other service drafts remain untouched.
       setServiceType(initialService)
     }
-  }, [initialService, serviceType, setServiceType])
+  }, [hydrated, initialService, serviceType, setServiceType])
 
-  // Apply initial URL context once. These values intentionally snapshot the
-  // first render so draft restoration does not keep fighting the URL.
-  useEffect(() => {
-    const initialUrlContext = initialUrlContextRef.current
-    if (!initialUrlContext) return
-
-    const decision = getInitialRequestUrlDecision(initialUrlContext)
-
-    if (decision.subtypeMismatch) {
-      setDraftSubtype(decision.subtypeMismatch.draftSubtype)
-      setShowSubtypeMismatch(true)
-    }
-
-    for (const seed of decision.answerSeeds) {
-      setAnswer(seed.key, seed.value)
-    }
-
-    if (decision.redirectPath) {
-      router.replace(decision.redirectPath)
-    }
-  }, [router, setAnswer])
+  // (URL answer seeds + subtype-mismatch detection now run post-hydration in
+  // applyUrlDecision inside the rehydrate effect above.)
 
   // Use initialService as fallback during hydration
   const effectiveService = serviceType || initialService
@@ -641,6 +669,20 @@ export function RequestFlow({
       goToStep(activeSteps[0].id as UnifiedStepId)
     }
   }, [activeSteps, currentStepId, goToStep, editModeStep])
+
+  // Structural dead-end escape: a consult flow with no resolvable subtype has
+  // ZERO steps, so the render below falls into the spinner branch forever
+  // (reachable via draft discard pre-fix, a cleared store, or any client nav
+  // that lands on service=consult without a subtype). Seed the URL's subtype
+  // when we have one; otherwise return the patient to the service hub.
+  useEffect(() => {
+    if (!hydrated || effectiveService !== 'consult' || activeSteps.length > 0) return
+    if (initialSubtype && answers.consultSubtype !== initialSubtype) {
+      setAnswer('consultSubtype', initialSubtype, { touch: false })
+    } else {
+      router.replace('/request')
+    }
+  }, [hydrated, effectiveService, activeSteps.length, initialSubtype, answers.consultSubtype, setAnswer, router])
 
   // Get current step definition - use editModeStep when editing a skipped step
   const currentStep = editModeStep ?? (activeSteps.length > 0 ? activeSteps[currentStepIndex] : null)

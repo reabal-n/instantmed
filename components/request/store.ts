@@ -101,11 +101,16 @@ export interface RequestActions {
   setSafetyConfirmed: (confirmed: boolean) => void
   
   // Answers
-  setAnswer: (key: string, value: unknown) => void
+  // options.touch=false skips the lastSavedAt stamp — used by profile
+  // PREFILL so opening the flow signed-in doesn't masquerade as a real draft.
+  setAnswer: (key: string, value: unknown, options?: { touch?: boolean }) => void
   setAnswers: (answers: Record<string, unknown>) => void
-  
+
   // Identity
-  setIdentity: (data: Partial<Pick<RequestState, 'firstName' | 'lastName' | 'email' | 'phone' | 'dob'>>) => void
+  setIdentity: (
+    data: Partial<Pick<RequestState, 'firstName' | 'lastName' | 'email' | 'phone' | 'dob'>>,
+    options?: { touch?: boolean },
+  ) => void
   getIdentity: () => IdentityData
   
   // Auth context for step navigation
@@ -265,7 +270,13 @@ function persistedRequestState(state: Partial<RequestState>): Partial<RequestSta
     email: state.email,
     phone: state.phone,
     dob: state.dob,
-    lastSavedAt: new Date().toISOString(),
+    // Carry the store's own stamp instead of minting one at persist time.
+    // Stamping here meant EVERY set() (including setAuthContext on mount)
+    // refreshed lastSavedAt, so the "24h draft expiry" never expired for a
+    // returning visitor and empty just-opened flows looked like real drafts.
+    // lastSavedAt is now written only by meaningful mutations (answers,
+    // identity, step progression) — see touchLastSavedAt callers.
+    lastSavedAt: state.lastSavedAt ?? null,
   }
 }
 
@@ -294,6 +305,10 @@ function flushDraftImmediately(): void {
 
   const state = latestPersistedDraftState
   if (!state?.serviceType) return
+  // Never mirror a zero-answer "draft" to the server: it creates a
+  // partial_intakes row (and eventually a recovery email) for a visitor who
+  // opened the flow and left without answering anything.
+  if (countMeaningfulAnswers(state.answers) === 0) return
   const canonical = canonicalizeServiceType(state.serviceType)
   if (!canonical) return
   const flush = (window as RequestWindow).__instantmedFlushServerDraft
@@ -449,9 +464,52 @@ export const useRequestStore = create<RequestState & RequestActions>()(
       ...initialState,
 
       setServiceType: (type) => {
-        const { currentStepId, authContext, answers } = get()
-        // When switching service type, check if current step exists in the new service.
-        // If not, reset to the first step of the new service to prevent navigation failures.
+        const { serviceType: previousServiceType, currentStepId, authContext, answers } = get()
+
+        // SWITCHING services loads the TARGET service's own scoped draft (or a
+        // fresh slate) instead of carrying the previous service's answers.
+        // Before 2026-07-10 the whole answers blob rode along, so a stale
+        // med-cert symptomDetails ("chest pain since Tuesday") was submitted
+        // inside an unrelated consult's intake_answers and could set
+        // emergency_symptoms on it via deriveEmergencySymptomsFromText —
+        // a false safety decline at pay. Identity fields (name/email/dob/
+        // phone) are deliberately cross-service and are kept.
+        if (previousServiceType && previousServiceType !== type) {
+          // Mirror the outgoing service's latest state to its scoped key so
+          // switching never loses work (the debounced write may still be
+          // pending).
+          flushPendingDraftWrite()
+
+          const canonical = canonicalizeServiceType(type)
+          const scopedDraft = canonical ? getDraft(canonical) : null
+
+          const restoredAnswers = isPlainRecord(scopedDraft?.answers) ? scopedDraft.answers : {}
+          const context = { ...authContext, serviceType: type, answers: restoredAnswers }
+          let steps: { id: string }[]
+          try {
+            steps = _getStepsForService(type, context)
+          } catch {
+            steps = []
+          }
+          const restoredStepId = scopedDraft?.currentStepId
+          const stepExists = restoredStepId ? steps.some(s => s.id === restoredStepId) : false
+
+          set({
+            serviceType: type,
+            answers: restoredAnswers,
+            currentStepId: (stepExists
+              ? restoredStepId
+              : steps[0]?.id || 'certificate') as UnifiedStepId,
+            safetyConfirmed: scopedDraft?.safetyConfirmed ?? false,
+            safetyTimestamp: scopedDraft?.safetyTimestamp ?? null,
+            lastSavedAt: scopedDraft?.lastSavedAt ?? null,
+          })
+          queueLatestDraftSnapshotAfterMutation(get)
+          return
+        }
+
+        // Same service (or first selection with no previous service): keep
+        // answers; only ensure the current step exists in the service's list.
         const context = { ...authContext, serviceType: type, answers }
         let steps: { id: string }[]
         try {
@@ -565,7 +623,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         safetyTimestamp: confirmed ? new Date().toISOString() : null,
       }),
 
-      setAnswer: (key, value) => {
+      setAnswer: (key, value, options) => {
         const state = get()
         const answers = isPlainRecord(state.answers) ? state.answers : {}
         const previousValue = answers[key]
@@ -573,6 +631,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
         set({
           answers: { ...answers, [key]: value },
+          ...(options?.touch === false ? {} : { lastSavedAt: new Date().toISOString() }),
         })
         queueLatestDraftSnapshotAfterMutation(get)
 
@@ -599,15 +658,17 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           changed = true
           return {
             answers: { ...answers, ...nextAnswers },
+            lastSavedAt: new Date().toISOString(),
           }
         })
         if (changed) queueLatestDraftSnapshotAfterMutation(get)
       },
 
-      setIdentity: (data) => {
+      setIdentity: (data, options) => {
         set((state) => ({
           ...state,
           ...data,
+          ...(options?.touch === false ? {} : { lastSavedAt: new Date().toISOString() }),
         }))
         queueLatestDraftSnapshotAfterMutation(get)
       },
