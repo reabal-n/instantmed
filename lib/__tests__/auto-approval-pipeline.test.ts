@@ -756,3 +756,21 @@ describe("Auto-Approval Pipeline Helpers", () => {
     })
   })
 })
+
+// Rate-limit counter symmetry (2026-07-10): the daily-cap READ used the
+// pseudo-user string "system-auto-approve-daily" against audit_logs.actor_id
+// (a uuid column) — every DB count 400'd, so the "daily cap" silently ran on
+// the per-process in-memory fallback since it shipped, and deterministically
+// wedged CI's long-lived e2e webserver. Reads and writes must share the real
+// SYSTEM_AUTO_APPROVE_ID actor, and E2E runs must consume their own suffixed
+// action buckets, never production's.
+describe("rate-limit counter symmetry", () => {
+  it("never reintroduces the non-uuid pseudo-user and keeps E2E buckets segregated", async () => {
+    const { readFileSync } = await import("node:fs")
+    const source = readFileSync("lib/clinical/auto-approval-pipeline.ts", "utf8")
+    expect(source).not.toContain('"system-auto-approve-daily"')
+    expect(source).toContain("auto_approve_daily${rateLimitActionSuffix}")
+    expect(source).toContain("auto_approve${rateLimitActionSuffix}")
+    expect(source).toContain("shouldIncludeSeededE2EData()")
+  })
+})
