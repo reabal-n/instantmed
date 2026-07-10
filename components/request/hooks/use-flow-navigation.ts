@@ -13,6 +13,7 @@ import type { StepDefinition, UnifiedServiceType } from "@/lib/request/step-regi
 import type { SafetyEvaluationResult } from "@/lib/safety/types"
 
 import { useRequestStore } from "../store"
+import { markIntentionalNavigation } from "./use-unsaved-changes"
 
 // Map UnifiedServiceType → safety config slug for client-side pre-check.
 // Must match server-side getServiceSlug() in lib/stripe/checkout.ts
@@ -231,6 +232,9 @@ export function useFlowNavigation({
       step_number: currentStepIndex + 1,
       subtype,
     })
+    // Deliberate exit already emitted the ACTIVE abandonment event above —
+    // don't let the unload beacon double-count it as passive abandonment.
+    markIntentionalNavigation()
     // Full page navigation to avoid white-page from layout mismatch
     window.location.href = '/'
   }, [analyticsServiceType, currentStepId, currentStepIndex, answers.consultSubtype, posthog])
@@ -244,8 +248,16 @@ export function useFlowNavigation({
     setShowDraftBanner(false)
     reset()
     if (initialService) setServiceType(initialService)
+    // reset() wipes consultSubtype, and for a consult the step list is EMPTY
+    // without one — before this re-seed, Discard on any consult deep link
+    // (/request?service=consult&subtype=ed) stranded the patient on a
+    // permanent spinner at a $49.95 entry. Mirror handleStartFreshSubtype.
+    if (initialService === 'consult' && initialSubtype) {
+      setAnswer('consultSubtype', initialSubtype, { touch: false })
+      goToStep(getConsultSubtypeFirstStep(initialSubtype))
+    }
     posthog?.capture('request_draft_discarded', { service_type: analyticsServiceType })
-  }, [reset, initialService, setServiceType, analyticsServiceType, posthog, setShowDraftBanner])
+  }, [reset, initialService, initialSubtype, setServiceType, setAnswer, goToStep, analyticsServiceType, posthog, setShowDraftBanner])
 
   const handleResumeDraft = useCallback(() => {
     setShowSubtypeMismatch(false)

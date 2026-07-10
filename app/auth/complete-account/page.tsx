@@ -56,6 +56,9 @@ export default async function CompleteAccountPage({
   let amountCents: number | undefined
   let serviceSlug: string | undefined
   let serviceName: string | undefined
+  // Set ONLY when payment is server-confirmed below — the client uses it as
+  // the signal to retire the local draft for that service.
+  let paidServiceCategory: string | undefined
   let isNewCustomer = true
   if (intakeId) {
     try {
@@ -63,7 +66,7 @@ export default async function CompleteAccountPage({
       const { data: intake } = await supabase
         .from("intakes")
         .select(
-          "amount_cents, patient_id, payment_id, payment_status, patient:profiles!patient_id(email), service:services!service_id(slug, name)",
+          "amount_cents, patient_id, payment_id, payment_status, category, patient:profiles!patient_id(email), service:services!service_id(slug, name)",
         )
         .eq("id", intakeId)
         .single()
@@ -81,6 +84,7 @@ export default async function CompleteAccountPage({
         amountCents = (intake.amount_cents as number | undefined) ?? undefined
         serviceSlug = service?.slug
         serviceName = service?.name
+        paidServiceCategory = (intake.category as string | undefined) ?? undefined
 
         if (intake.patient_id) {
           const { count } = await supabase
@@ -130,6 +134,7 @@ export default async function CompleteAccountPage({
               amountCents={amountCents}
               serviceSlug={serviceSlug}
               serviceName={serviceName}
+              paidServiceCategory={paidServiceCategory}
               isNewCustomer={isNewCustomer}
               heardToken={heardToken}
               certificateAccess={params.access === "certificate"}

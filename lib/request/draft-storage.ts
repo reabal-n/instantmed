@@ -202,6 +202,49 @@ export function clearDraft(service: CanonicalServiceType): void {
 }
 
 /**
+ * Clear the local draft for a service AFTER the server has confirmed payment.
+ *
+ * Without this, a paid intake's draft survived in localStorage parked at the
+ * pay step: returning to /request restored straight to Pay, and past the
+ * 10-minute checkout idempotency bucket a "did it go through?" second payment
+ * created a second intake + second charge for the same answers.
+ *
+ * Clears the service-scoped key AND the legacy envelope key — but the legacy
+ * key only when it actually holds THIS service's draft, so paying for a
+ * med-cert never wipes an unrelated in-progress consult draft.
+ */
+export function clearDraftAfterPayment(serviceCategory: string | null | undefined): void {
+  // Accept BOTH vocabularies: client service types ('med-cert') and the DB
+  // `intakes.category` values ('medical_certificate') the payment surfaces
+  // actually have in hand.
+  const DB_CATEGORY_TO_CANONICAL: Record<string, CanonicalServiceType> = {
+    medical_certificate: 'med-cert',
+    med_certs: 'med-cert',
+    prescription: 'prescription',
+    repeat_rx: 'prescription',
+    consult: 'consult',
+  }
+  const canonical =
+    DB_CATEGORY_TO_CANONICAL[(serviceCategory ?? '').toLowerCase()] ??
+    canonicalizeServiceType(serviceCategory ?? null)
+  if (!canonical) return
+
+  clearDraft(canonical)
+
+  if (!isStorageAvailable()) return
+  try {
+    const legacyRaw = localStorage.getItem(LEGACY_KEY)
+    if (!legacyRaw) return
+    const legacy = JSON.parse(legacyRaw) as { state?: { serviceType?: string | null } }
+    if (canonicalizeServiceType(legacy?.state?.serviceType ?? null) === canonical) {
+      localStorage.removeItem(LEGACY_KEY)
+    }
+  } catch {
+    // Silently fail — the 24h expiry remains the backstop.
+  }
+}
+
+/**
  * Get all valid (non-expired) drafts across all services.
  * Returns array sorted by lastSavedAt descending (most recent first).
  */

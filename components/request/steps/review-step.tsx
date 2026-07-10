@@ -28,6 +28,7 @@ import { normalizeMedicationEntriesAnswer, stringAnswer, stringArrayAnswer } fro
 import { getActiveServerDraftSessionId } from "@/lib/request/server-draft"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
+import { markIntentionalNavigation } from "../hooks/use-unsaved-changes"
 import { useRequestStore } from "../store"
 
 interface ReviewStepProps {
@@ -329,6 +330,9 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
       })
       setShowCheckmark(true)
       setTimeout(() => {
+        // The Stripe redirect is a page unload at the pay step — without this
+        // every paying customer fired intake_abandoned_passive.
+        markIntentionalNavigation()
         window.location.href = result.checkoutUrl!
       }, 500)
     } catch (e) {

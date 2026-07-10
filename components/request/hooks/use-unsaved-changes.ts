@@ -2,6 +2,27 @@
 
 import { useEffect, useRef, useState } from "react"
 
+// INTENTIONAL-navigation suppression for the beforeunload handler below.
+// Without it, every successful payment fired `intake_abandoned_passive`: the
+// redirect to Stripe Checkout is a page unload at the pay step, so paying
+// customers were recorded as late-funnel abandoners — poisoning the exact
+// metric the drop-off work optimises. Deliberate exits (handleExit) already
+// emit the ACTIVE `intake_abandoned` event and must not double-count.
+let intentionalNavigationInProgress = false
+
+export function markIntentionalNavigation(): void {
+  intentionalNavigationInProgress = true
+}
+
+/** Test seam — the module flag would otherwise leak between vitest cases. */
+export function resetIntentionalNavigationForTests(): void {
+  intentionalNavigationInProgress = false
+}
+
+export function isIntentionalNavigationInProgress(): boolean {
+  return intentionalNavigationInProgress
+}
+
 interface UseUnsavedChangesOptions {
   answers: Record<string, unknown>
   /** Current step index - unsaved warnings only apply after the first step */
@@ -50,6 +71,10 @@ export function useUnsavedChanges({
   // Browser back button / unsaved changes warning + passive abandonment tracking
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Stripe-checkout redirects and deliberate exits are not abandonment —
+      // skip both the beacon and the leave-site warning.
+      if (intentionalNavigationInProgress) return
+
       // Track passive abandonment via sendBeacon (fires even on tab close)
       if (currentStepIndex > 0 && serviceType) {
         const payload = JSON.stringify({

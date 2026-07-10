@@ -93,7 +93,10 @@ export function shouldOfferDraftRestore({
   now = Date.now(),
   savedBefore,
 }: DraftRestoreInput): boolean {
-  if (!lastSavedAt || !serviceType || currentStepId === "review") {
+  // 'review' is the pay step for prescriptions/consults; med-cert's pay step
+  // kept the id 'checkout' for analytics continuity — exclude both, or a
+  // med-cert draft parked at Pay gets a restore banner while the others don't.
+  if (!lastSavedAt || !serviceType || currentStepId === "review" || currentStepId === "checkout") {
     return false
   }
 

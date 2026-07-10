@@ -19,6 +19,7 @@ import { trackPurchase } from "@/lib/analytics/conversion-tracking"
 import type { WaitState } from "@/lib/brand/wait-counter"
 import { PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
+import { clearDraftAfterPayment } from "@/lib/request/draft-storage"
 import { fetchWithCsrf } from "@/lib/security/csrf-client"
 
 const RESEND_COOLDOWN_SECONDS = 60
@@ -27,6 +28,8 @@ interface SuccessClientProps {
   intakeId?: string
   initialStatus?: string
   serviceName?: string
+  /** DB intakes.category — used to clear the local draft after verified payment */
+  serviceCategory?: string
   amountCents?: number
   isPriority?: boolean
   patientEmail?: string
@@ -43,6 +46,7 @@ export function SuccessClient({
   intakeId,
   initialStatus,
   serviceName,
+  serviceCategory,
   amountCents,
   isPriority = false,
   patientEmail,
@@ -82,6 +86,17 @@ export function SuccessClient({
       if (cooldownRef.current) clearInterval(cooldownRef.current)
     }
   }, [])
+
+  // Payment is server-confirmed on this surface — retire the local draft so a
+  // "did it go through?" return to /request can't restore straight to Pay and
+  // charge again past the 10-minute checkout idempotency bucket.
+  const draftClearedRef = useRef(false)
+  useEffect(() => {
+    if (draftClearedRef.current) return
+    if (!status || status === "pending_payment") return
+    draftClearedRef.current = true
+    clearDraftAfterPayment(serviceCategory)
+  }, [status, serviceCategory])
 
   // P0 FIX: Fallback to resend confirmation email if not received (with cooldown)
   const handleResendConfirmation = useCallback(async () => {
