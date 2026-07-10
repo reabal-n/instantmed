@@ -151,6 +151,8 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const sex = (answers.sex as string) || ""
   const consultSubtype = answers.consultSubtype as string | undefined
   const identityMethodManuallyChangedRef = useRef(false)
+  // Focus target for the Medicare→IRN auto-advance (P1.4).
+  const irnInputRef = useRef<HTMLInputElement>(null)
   const [identityMethod, setIdentityMethod] = useState<IdentityMethod>(() =>
     ihiNumber.trim() && !medicareNumber.trim() ? "ihi" : "medicare",
   )
@@ -638,6 +640,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             onBlur={() => handleBlur('firstName', firstName)}
             placeholder="Jane"
             autoComplete="given-name"
+            enterKeyHint="next"
             aria-invalid={touched.firstName && !!errors.firstName}
             data-error={touched.firstName && errors.firstName ? "true" : undefined}
             className={cn("h-11", touched.firstName && errors.firstName && "border-destructive")}
@@ -655,6 +658,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             onBlur={() => handleBlur('lastName', lastName)}
             placeholder="Smith"
             autoComplete="family-name"
+            enterKeyHint="next"
             aria-invalid={touched.lastName && !!errors.lastName}
             data-error={touched.lastName && errors.lastName ? "true" : undefined}
             className={cn("h-11", touched.lastName && errors.lastName && "border-destructive")}
@@ -681,6 +685,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           placeholder="jane@example.com"
           autoComplete="email"
           inputMode="email"
+          enterKeyHint="next"
           aria-invalid={touched.email && !!errors.email}
           data-error={touched.email && errors.email ? "true" : undefined}
           className={cn("h-11", touched.email && errors.email && "border-destructive")}
@@ -720,6 +725,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       >
         <Input
           autoComplete="bday"
+          enterKeyHint="next"
           aria-invalid={touched.dob && !!errors.dob}
           data-error={touched.dob && errors.dob ? "true" : undefined}
           className={cn("h-11 tabular-nums", touched.dob && errors.dob && "border-destructive")}
@@ -786,6 +792,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             onBlur={() => handleBlur('phone', phone)}
             placeholder="0412 345 678"
             autoComplete="tel"
+            enterKeyHint="next"
             inputMode="tel"
             aria-invalid={touched.phone && !!errors.phone}
             data-error={touched.phone && errors.phone ? "true" : undefined}
@@ -854,10 +861,16 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
                 <Input
                   type="text"
                   inputMode="numeric"
+                  enterKeyHint="next"
                   value={medicareNumber}
                   onChange={(e) => {
                     const raw = e.target.value.replace(/[^\d]/g, '').slice(0, 10)
                     setAnswer('medicareNumber', raw)
+                    // Complete number typed → hop focus to the one-digit IRN
+                    // so the card can be transcribed in one motion (P1.4).
+                    if (raw.length === 10 && medicareNumber.length < 10) {
+                      irnInputRef.current?.focus()
+                    }
                     if (touched.medicareNumber) {
                       const result = validateMedicareNumber(raw)
                       setErrors((prev) => {
@@ -882,38 +895,46 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
                 )}
               </FormField>
 
-              <div className="grid grid-cols-1 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs">IRN</Label>
-                  <div className="grid grid-cols-9 gap-1">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((value) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => {
-                          setAnswer("medicareIrn", String(value))
-                          setErrors((prev) => {
-                            const { medicareIrn: _, ...rest } = prev
-                            return rest
-                          })
-                        }}
-                        className={cn(
-                          "h-10 rounded-md border text-sm font-medium transition-colors",
-                          medicareIrn === String(value)
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border bg-background hover:bg-muted",
-                          touched.medicareIrn && errors.medicareIrn && "border-destructive",
-                        )}
-                        aria-pressed={medicareIrn === String(value)}
-                      >
-                        {value}
-                      </button>
-                    ))}
-                  </div>
-                  {touched.medicareIrn && errors.medicareIrn && (
-                    <p className="text-xs text-destructive">{errors.medicareIrn}</p>
+              {/* Single numeric input (P1.4) — the 9-button grid forced a scan
+                  of nine tap targets for a one-digit fact the patient reads
+                  straight off the card. Medicare auto-advances here on its
+                  10th digit. */}
+              <div className="space-y-1.5">
+                <Label htmlFor="medicare-irn" className="text-xs">IRN</Label>
+                <Input
+                  id="medicare-irn"
+                  ref={irnInputRef}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  pattern="[1-9]"
+                  value={medicareIrn || ""}
+                  onChange={(e) => {
+                    const digit = e.target.value.replace(/[^1-9]/g, "").slice(0, 1)
+                    setAnswer("medicareIrn", digit || undefined)
+                    if (digit) {
+                      setErrors((prev) => {
+                        const { medicareIrn: _, ...rest } = prev
+                        return rest
+                      })
+                    }
+                  }}
+                  onBlur={() => handleBlur("medicareIrn", medicareIrn || "")}
+                  placeholder="1"
+                  autoComplete="off"
+                  enterKeyHint="next"
+                  aria-invalid={touched.medicareIrn && !!errors.medicareIrn}
+                  className={cn(
+                    "h-11 w-16 text-center",
+                    touched.medicareIrn && errors.medicareIrn && "border-destructive",
                   )}
-                </div>
+                />
+                <p className="text-xs text-muted-foreground">
+                  The number next to your name on the card.
+                </p>
+                {touched.medicareIrn && errors.medicareIrn && (
+                  <p className="text-xs text-destructive">{errors.medicareIrn}</p>
+                )}
               </div>
             </>
           ) : (
