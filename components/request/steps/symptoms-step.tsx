@@ -119,13 +119,12 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
   const highStakesRequiresAck = highStakes.isHighStakes && !highStakesAcknowledged
 
   // Plain-English reasons the step is blocked, for the top-of-step summary.
+  // symptomDuration is deliberately NOT a blocker (P1.1, 2026-07-10): it is
+  // doctor/AI context, not a safety gate — tap-a-chip must be enough to pass.
   const buildBlockingReasons = useCallback(() => {
     const reasons: string[] = []
     if (!validateSymptomTextQuality(symptomDetails).valid) {
-      reasons.push(symptomDetails.trim() ? "a clearer symptom description" : "a short symptom description")
-    }
-    if (!symptomDuration) {
-      reasons.push("how long you've felt unwell")
+      reasons.push(symptomDetails.trim() ? "a clearer symptom description" : "a symptom tapped or typed above")
     }
     if (emergencyRequiresAck) {
       reasons.push("the emergency notice acknowledged")
@@ -134,7 +133,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
       reasons.push("the certificate-scope notice acknowledged")
     }
     return reasons
-  }, [symptomDetails, symptomDuration, emergencyRequiresAck, highStakesRequiresAck])
+  }, [symptomDetails, emergencyRequiresAck, highStakesRequiresAck])
 
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
@@ -142,9 +141,6 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
 
     if (!qualityResult.valid) {
       newErrors.symptomDetails = qualityResult.reason ?? "Please describe your symptoms"
-    }
-    if (!symptomDuration) {
-      newErrors.symptomDuration = "Please indicate how long you've had these symptoms"
     }
 
     setErrors(newErrors)
@@ -163,7 +159,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
       )
     }
     return Object.keys(newErrors).length === 0 && !emergencyRequiresAck && !highStakesRequiresAck
-  }, [symptomDetails, symptomDuration, emergencyRequiresAck, highStakesRequiresAck, buildBlockingReasons, posthog, serviceType])
+  }, [symptomDetails, emergencyRequiresAck, highStakesRequiresAck, buildBlockingReasons, posthog, serviceType])
 
   // Tap a starter to seed/clear the textarea. Source of truth stays the textarea
   // so downstream validation, AI notes, and the doctor view are unchanged.
@@ -204,7 +200,8 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
   // Readiness is computed live from the answers, NOT from the `errors` object —
   // `errors` is set by validate() for display and would otherwise stay stale
   // after the patient fixes a field, leaving the button looking not-ready.
-  const isComplete = Boolean(symptomDuration) && detailsQuality.valid
+  // Duration is optional (P1.1): a tapped chip alone is a complete answer.
+  const isComplete = detailsQuality.valid
   const canContinue = isComplete && !emergencyRequiresAck && !highStakesRequiresAck
   const starterValues = Object.fromEntries(
     COMMON_SYMPTOM_STARTERS.map((starter) => [
@@ -217,13 +214,12 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
   // becomes valid, so a fixed form stops showing "Add this to continue".
   useEffect(() => {
     setErrors((prev) => {
-      if (!prev.symptomDetails && !prev.symptomDuration) return prev
+      if (!prev.symptomDetails) return prev
       const next = { ...prev }
       if (detailsQuality.valid) delete next.symptomDetails
-      if (symptomDuration) delete next.symptomDuration
       return next
     })
-  }, [detailsQuality.valid, symptomDuration])
+  }, [detailsQuality.valid])
 
   useEffect(() => {
     if (canContinue && validationSummary.length > 0) {
@@ -270,10 +266,10 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
 
       <QuestionCard compact>
         <FormField
-          label={isCarer ? "Describe the symptoms" : "Describe your symptoms"}
+          label={isCarer ? "What symptoms are they having?" : "What symptoms are you having?"}
           required
           error={touched.symptomDetails ? errors.symptomDetails : undefined}
-          hint="Tap any that fit, then add detail like when it started."
+          hint="Tap all that fit — that's enough to continue."
         >
           <ChipToggleGroup
             options={COMMON_SYMPTOM_STARTERS}
@@ -282,24 +278,29 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
               const starter = COMMON_SYMPTOM_STARTERS.find((option) => option.key === key)
               if (starter) toggleSymptomStarter(starter.label)
             }}
-            ariaLabel="Common reasons"
+            ariaLabel="Common symptoms"
             className="mt-2"
           />
+          <Label
+            htmlFor="symptom-details"
+            className="mt-3 block text-xs font-normal text-muted-foreground"
+          >
+            Add detail (optional) — e.g. when it started
+          </Label>
           <Textarea
+            id="symptom-details"
             value={symptomDetails}
             onChange={(e) => setAnswer("symptomDetails", e.target.value)}
             onBlur={() => setTouched((prev) => ({ ...prev, symptomDetails: true }))}
-            placeholder="e.g. Fever, sore throat, and fatigue since yesterday."
-            className={`mt-2 min-h-[88px] resize-none ${touched.symptomDetails && errors.symptomDetails ? "border-destructive" : ""}`}
+            placeholder="e.g. Fever and sore throat since yesterday."
+            className={`mt-1.5 min-h-[72px] resize-none ${touched.symptomDetails && errors.symptomDetails ? "border-destructive" : ""}`}
           />
         </FormField>
       </QuestionCard>
 
       <QuestionCard compact>
         <FormField
-          label={isCarer ? "How long have they felt unwell?" : "How long have you felt unwell?"}
-          required
-          error={touched.symptomDuration ? errors.symptomDuration : undefined}
+          label={isCarer ? "How long have they felt unwell? (optional)" : "How long have you felt unwell? (optional)"}
         >
           <SegmentedChoiceGroup
             options={SYMPTOM_DURATION_OPTIONS}
@@ -308,7 +309,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
               setAnswer("symptomDuration", value)
               setTouched((prev) => ({ ...prev, symptomDuration: true }))
             }}
-            ariaLabel="How long have symptoms been present"
+            ariaLabel="How long have symptoms been present (optional)"
             columns="auto"
             className="mt-2"
           />

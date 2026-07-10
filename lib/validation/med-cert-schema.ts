@@ -100,20 +100,19 @@ export function validateMedCertPayload(
     return { valid: false, error: symptomQuality.reason ?? "Please describe your symptoms." }
   }
 
-  // Symptom duration is required for clinical defensibility
+  // Symptom duration is OPTIONAL (P1.1, 2026-07-10): it is context for the
+  // doctor and the AI draft, not a safety gate — requiring it was pure
+  // mid-funnel friction. When present it must still be a known value.
   const symptomDuration = answers.symptom_duration || answers.symptomDuration
-  if (!symptomDuration || typeof symptomDuration !== "string") {
-    return {
-      valid: false,
-      error: "Please indicate how long you've had these symptoms.",
-    }
-  }
-
-  // Validate symptom duration is a known value
-  if (!VALID_SYMPTOM_DURATIONS.includes(symptomDuration as typeof VALID_SYMPTOM_DURATIONS[number])) {
-    return {
-      valid: false,
-      error: "Invalid symptom duration. Please select a valid option.",
+  if (symptomDuration !== undefined && symptomDuration !== null && symptomDuration !== "") {
+    if (
+      typeof symptomDuration !== "string" ||
+      !VALID_SYMPTOM_DURATIONS.includes(symptomDuration as typeof VALID_SYMPTOM_DURATIONS[number])
+    ) {
+      return {
+        valid: false,
+        error: "Invalid symptom duration. Please select a valid option.",
+      }
     }
   }
 
