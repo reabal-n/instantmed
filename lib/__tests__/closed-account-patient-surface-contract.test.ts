@@ -83,4 +83,13 @@ describe("closed-account patient access boundary", () => {
 
     expect(helperSource).toContain('.is("account_closed_at", null)')
   })
+
+  it("gives the closed-account route its own patient-facing metadata", () => {
+    const pageSource = readProjectFile("app/auth/account-closed/page.tsx")
+    const clientSource = readProjectFile("app/auth/account-closed/account-closed-client.tsx")
+
+    expect(pageSource).toContain('title: "Account closed"')
+    expect(pageSource).toContain("<AccountClosedClient />")
+    expect(clientSource).toContain('signOut({ scope: "local" })')
+  })
 })
