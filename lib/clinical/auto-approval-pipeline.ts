@@ -255,11 +255,17 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     log.info("Auto-approval running in DRY RUN mode - will evaluate but NOT issue certificates", { intakeId })
   }
 
+  // E2E runs share this database with production but must never consume (or
+  // be blocked by) production's rate-limit buckets — the same test-data
+  // boundary seeded-e2e-data.ts draws for ops reads. Segregation is by ACTION
+  // string; the actor stays SYSTEM_AUTO_APPROVE_ID so reads and writes match.
+  const rateLimitActionSuffix = shouldIncludeSeededE2EData() ? "_e2e" : ""
+
   // 1b. System-level rate limiting (configurable via admin dashboard)
   const rateLimitResult = await checkRateLimit(SYSTEM_AUTO_APPROVE_ID, {
     windowMs: 5 * 60 * 1000,
     maxRequests: featureFlags.auto_approve_rate_limit_5min,
-    action: "auto_approve",
+    action: `auto_approve${rateLimitActionSuffix}`,
   })
   if (!rateLimitResult.allowed) {
     log.warn("Auto-approval rate limit hit", { intakeId, remaining: rateLimitResult.remaining })
@@ -271,11 +277,18 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     return { success: true, autoApproved: false, reason: "Rate limit exceeded" }
   }
 
-  // 1c. Daily cap check (configurable via admin dashboard)
-  const dailyRateLimitResult = await checkRateLimit("system-auto-approve-daily", {
+  // 1c. Daily cap check (configurable via admin dashboard).
+  // The actor MUST be SYSTEM_AUTO_APPROVE_ID: audit_logs.actor_id is a uuid
+  // column, and the old non-uuid pseudo-user string this read once passed
+  // made every DB count query 400 — so the "daily cap" silently ran on the
+  // per-process in-memory fallback since it shipped (never a real global
+  // cap, and a deterministic CI blocker once a long-lived e2e webserver
+  // accumulated enough approvals). The write side (recordRateLimitedAction
+  // below) always used SYSTEM_AUTO_APPROVE_ID; reads now match it.
+  const dailyRateLimitResult = await checkRateLimit(SYSTEM_AUTO_APPROVE_ID, {
     windowMs: 24 * 60 * 60 * 1000,
     maxRequests: featureFlags.auto_approve_daily_cap,
-    action: "auto_approve_daily",
+    action: `auto_approve_daily${rateLimitActionSuffix}`,
   })
   if (!dailyRateLimitResult.allowed) {
     log.warn("Auto-approval daily cap hit", { intakeId })
@@ -684,9 +697,11 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
 
       trackOutcome("approved", "auto_approved", { certificate_id: approvalResult.certificateId })
 
-      // Record rate-limit actions so the DB-backed counter increments
-      await recordRateLimitedAction(SYSTEM_AUTO_APPROVE_ID, "auto_approve", { intakeId })
-      await recordRateLimitedAction(SYSTEM_AUTO_APPROVE_ID, "auto_approve_daily", { intakeId })
+      // Record rate-limit actions so the DB-backed counter increments — the
+      // action strings must mirror the checkRateLimit reads above (incl. the
+      // E2E suffix) or the counters drift apart again.
+      await recordRateLimitedAction(SYSTEM_AUTO_APPROVE_ID, `auto_approve${rateLimitActionSuffix}`, { intakeId })
+      await recordRateLimitedAction(SYSTEM_AUTO_APPROVE_ID, `auto_approve_daily${rateLimitActionSuffix}`, { intakeId })
 
       return {
         success: true,
