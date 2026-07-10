@@ -5,7 +5,6 @@ import {
   CheckCircle2,
 } from "lucide-react"
 import Link from "next/link"
-import { useSyncExternalStore } from "react"
 
 // Morning Canvas components
 import { SplitHero } from "@/components/heroes"
@@ -24,20 +23,9 @@ import { StatStrip } from "@/components/sections/stat-strip"
 import { Timeline } from "@/components/sections/timeline"
 import { Navbar } from "@/components/shared/navbar"
 import { Heading } from "@/components/ui/heading"
-import { usePatientCount } from "@/lib/hooks/use-patient-count"
 import { GUARANTEE, GUARANTEE_LABEL } from "@/lib/marketing/voice"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
-
-// ─── Hydration helper ──────────────────────────────────────────────
-
-function useHasMounted() {
-  return useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  )
-}
 
 // ─── Data ──────────────────────────────────────────────────────────
 
@@ -103,9 +91,6 @@ const trustEvidenceLinks = [
 // ─── Page ──────────────────────────────────────────────────────────
 
 export default function TrustPage() {
-  const mounted = useHasMounted()
-  const patientCount = usePatientCount()
-
   return (
     <div className="min-h-screen">
       <script
@@ -211,10 +196,10 @@ export default function TrustPage() {
         {/* ── Stats Counter Strip ───────────────────────────── */}
         <StatStrip
           stats={[
-            { value: mounted ? patientCount : 420, suffix: "+", label: "Patients served" },
-            { value: mounted ? SOCIAL_PROOF.refundPercent : 100, suffix: "%", label: GUARANTEE_LABEL },
-            { value: mounted ? SOCIAL_PROOF.averageResponseMinutes : 47, suffix: " min", label: "Avg response" },
-            { value: mounted ? SOCIAL_PROOF.operatingDays : 7, suffix: " days/wk", label: "Available" },
+            { value: SOCIAL_PROOF.ahpraVerifiedPercent, suffix: "%", label: "AHPRA-registered doctors" },
+            { value: SOCIAL_PROOF.refundPercent, suffix: "%", label: GUARANTEE_LABEL },
+            { value: 3, suffix: " min", label: "Typical form time" },
+            { value: SOCIAL_PROOF.operatingDays, suffix: " days/wk", label: "Available" },
           ]}
         />
 
@@ -421,7 +406,7 @@ export default function TrustPage() {
         {/* ── CTA ───────────────────────────────────────────── */}
         <CTABanner
           title="Confident in the process?"
-          subtitle={`Join ${mounted ? patientCount.toLocaleString() : "420"}+ Australians who've already made the switch.`}
+          subtitle="One secure form, reviewed by an AHPRA-registered doctor."
           ctaText="Start a request"
           ctaHref="/request"
           secondaryText={`No account required · ${GUARANTEE}`}

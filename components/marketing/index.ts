@@ -41,7 +41,7 @@ export { AnimatedStat } from "./animated-stat"
 export { ContextualMessage } from "./contextual-message"
 export { LiveWaitTime, ServiceWaitBadge } from "./live-wait-time"
 export type { StatEntry } from "./total-patients-counter"
-export { StatsStrip,TotalPatientsCounter } from "./total-patients-counter"
+export { StatsStrip } from "./total-patients-counter"
 export { STAT_PRESETS } from "./total-patients-counter"
 
 // ── CTAs & forms ───────────────────────────────────────────────────

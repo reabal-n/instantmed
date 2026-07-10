@@ -13,7 +13,6 @@ import { CTABanner } from "@/components/sections/cta-banner"
 import { FAQSchema } from "@/components/seo"
 import { Heading } from "@/components/ui/heading"
 import { GENERAL_FAQ } from "@/lib/data/general-faq"
-import { getPatientCount } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
 // ---------------------------------------------------------------------------
@@ -288,7 +287,7 @@ export default function FAQPage() {
           {/* CTA */}
           <CTABanner
             title="Still have questions?"
-            subtitle={`Trusted by ${getPatientCount().toLocaleString()}+ Australians for online healthcare. Our support team is here to help.`}
+            subtitle="Our support team is here to help, 7 days a week."
             ctaText="Contact Support"
             ctaHref="/contact"
           />

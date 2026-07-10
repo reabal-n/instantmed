@@ -11,7 +11,6 @@ import { GoogleIcon } from "@/components/icons/google-icon"
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { getPostAuthRedirectParam } from '@/lib/auth/redirects'
-import { getPatientCount } from '@/lib/social-proof'
 import { createClient } from '@/lib/supabase/client'
 
 export const dynamic = "force-dynamic"
@@ -172,7 +171,7 @@ function SignUpForm() {
                   ))}
                 </div>
                 <span className="text-xs text-muted-foreground">
-                  {getPatientCount().toLocaleString()}+ Australians
+                  Reviewed by Australian doctors
                 </span>
                 <div className="flex items-center gap-0.5 text-amber-500" role="img" aria-label="Google star rating">
                   {[1,2,3,4,5].map(i => <Star key={i} className="w-2.5 h-2.5 fill-current" />)}
@@ -350,7 +349,7 @@ export default function SignUpPage() {
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Trusted by <span className="font-medium text-foreground">{getPatientCount().toLocaleString()}+</span> Australians
+                  Reviewed by <span className="font-medium text-foreground">AHPRA-registered</span> Australian doctors
                 </p>
               </div>
             </div>

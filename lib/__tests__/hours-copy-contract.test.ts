@@ -41,6 +41,11 @@ function collectFiles(dir: string): string[] {
   return files
 }
 
+// The GEO/AI-readable text files are what answer engines quote — they carried
+// the retired window for 7 days after #252 because this scan only covered
+// ts/tsx/mdx/md (found 2026-07-10, ChatGPT = the #1 acquisition channel).
+const PUBLIC_TEXT_FILES = ["public/llms.txt", "public/llms-full.txt"]
+
 describe("24/7 hours copy contract", () => {
   it("keeps retired review-hours window claims out of patient-facing copy", () => {
     const offenders: string[] = []
@@ -55,6 +60,36 @@ describe("24/7 hours copy contract", () => {
       offenders,
       `Review-hours window claims found — the platform is 24/7 (see CLAUDE.md Hours row): ${offenders.join("; ")}`,
     ).toEqual([])
+  })
+
+  it("keeps retired review-hours window claims out of the AI-readable public text files", () => {
+    const offenders: string[] = []
+    for (const file of PUBLIC_TEXT_FILES) {
+      const source = readFileSync(join(ROOT, file), "utf8")
+      const match = source.match(WINDOW_CLAIM)
+      if (match) offenders.push(`${file} :: ${match[0]}`)
+    }
+    expect(
+      offenders,
+      `Review-hours window claims found in GEO text files — these feed ChatGPT/answer engines directly: ${offenders.join("; ")}`,
+    ).toEqual([])
+  })
+
+  it("keeps operating-hours window fields out of the social-proof module (computed strings evade source grep)", async () => {
+    // SOCIAL_PROOF_DISPLAY.operatingHours used to compute "8am–10pm" at
+    // runtime from numeric fields — invisible to the literal scan above.
+    // Assert at the export level so a reintroduced window field fails here.
+    const socialProof = await import("@/lib/social-proof")
+    const proofKeys = Object.keys(socialProof.SOCIAL_PROOF)
+    expect(proofKeys.filter((k) => /operatingHours/i.test(k))).toEqual([])
+
+    const display = socialProof.SOCIAL_PROOF_DISPLAY as Record<string, string>
+    for (const [key, value] of Object.entries(display)) {
+      expect(
+        WINDOW_CLAIM.test(value),
+        `SOCIAL_PROOF_DISPLAY.${key} renders a review-hours window ("${value}") — the platform is 24/7`,
+      ).toBe(false)
+    }
   })
 
   it("keeps the terms of service on the 24/7 availability wording", () => {

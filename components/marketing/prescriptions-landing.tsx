@@ -30,7 +30,6 @@ import { PRICING } from "@/lib/constants"
 import { PRESCRIPTION_FAQ } from "@/lib/data/prescription-faq"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 import { commercialPrescriptionLinks } from "@/lib/seo/commercial-links"
-import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
 // Below-fold lazy loads
@@ -115,7 +114,7 @@ const LANDING_CONFIG: LandingPageConfig = {
   sticky: {
     ctaText: `Renew your medication · $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
     ctaHref: "/request?service=repeat-script",
-    mobileSummary: `Need your medication? Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST.`,
+    mobileSummary: "Need your medication? Doctor-reviewed, 7 days a week.",
     responseTime: "Doctor-reviewed after submission",
   },
 }

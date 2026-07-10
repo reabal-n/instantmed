@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { getPostAuthRedirectParam } from '@/lib/auth/redirects'
 import { buildPostSignInRedirectHref } from '@/lib/navigation/auth-handoff'
-import { getPatientCount } from '@/lib/social-proof'
 import { createClient } from '@/lib/supabase/client'
 
 export const dynamic = "force-dynamic"
@@ -496,7 +495,7 @@ export default function SignInPage() {
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Trusted by <span className="font-medium text-foreground">{getPatientCount().toLocaleString()}+</span> Australians
+                  Reviewed by <span className="font-medium text-foreground">AHPRA-registered</span> Australian doctors
                 </p>
               </div>
             </div>

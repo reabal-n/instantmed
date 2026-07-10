@@ -35,7 +35,7 @@ import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 import { buildMedCertRequestHref } from "@/lib/marketing/med-cert-selector"
 import { GUARANTEE, MED_CERT_WEDGE } from "@/lib/marketing/voice"
 import { commercialCertificateLinks, commercialLocationLinks } from "@/lib/seo/commercial-links"
-import { getPatientCount, SOCIAL_PROOF } from "@/lib/social-proof"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // FAQ sits below the fold — lazy-load its client chunk to trim initial JS / TBT.
 // ssr stays on (default) so the FAQ content stays server-rendered for SEO.
@@ -399,8 +399,6 @@ function MedCertHero() {
 }
 
 function MedCertFinalCta() {
-  const patientCount = getPatientCount()
-
   return (
     <section className="px-4 py-8 sm:py-10 lg:py-16">
       <div className="relative mx-auto max-w-4xl overflow-hidden rounded-3xl border border-border/50 bg-white p-6 text-center shadow-lg shadow-primary/[0.06] dark:bg-card sm:p-8 lg:p-16">
@@ -408,7 +406,7 @@ function MedCertFinalCta() {
           Back to bed in two minutes.
         </Heading>
         <p className="mx-auto mt-3 max-w-xl leading-relaxed text-muted-foreground">
-          Fill the form, a real doctor reviews it, and your certificate lands in your inbox. Trusted by {patientCount.toLocaleString()}+ Australians.
+          Fill the form, a real AHPRA-registered doctor reviews it, and your certificate lands in your inbox.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link

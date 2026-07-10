@@ -11,7 +11,7 @@
 - **Active services:** Medical certificates, repeat prescriptions, men's health (ED and hair loss), and women's health (UTI and contraceptive pill) requests
 - **Weight management:** InstantMed is not currently accepting weight-management treatment requests. The public guide explains safe review boundaries only.
 - **Mental health:** InstantMed is not a crisis, therapy, psychiatrist, or Mental Health Treatment Plan service. The public guide explains crisis boundaries, GP pathways, and short certificate review only.
-- **Hours:** Requests can be submitted 24/7. Prescription and consultation review timing is 8am-10pm AEST, 7 days.
+- **Hours:** The service operates 24/7. Requests can be submitted and are reviewed around the clock, 7 days. No fixed turnaround is guaranteed.
 - **Eligibility:** Australia-wide, patients aged 18 and over. Medicare is optional for medical certificates and required for prescription and consultation requests.
 - **Optional express review:** A $9.95 priority add-on moves a request to the front of the doctor queue. Standard review is the default.
 - **Refund policy:** Full refund if the doctor declines the request.
@@ -117,4 +117,4 @@ For a longer AI-readable service reference, see: https://instantmed.com.au/llms-
 
 ---
 
-Last reviewed: 2026-07-02
+Last reviewed: 2026-07-10

@@ -28,7 +28,7 @@ Website:         https://instantmed.com.au
 
 - **Business name = `InstantMed`** (the brand customers know), NOT "InstantMed Pty Ltd". Use the "Pty Ltd" legal form only in a dedicated legal-name/ABN field. Google's guideline is "represent your business as it's consistently presented in the real world."
 - **Phone:** use `0450 722 549` everywhere. Only switch to `+61 450 722 549` if a field rejects the local format — then keep that field's value stable on re-edit.
-- **Hours:** `Requests 24/7. Doctor review 8am–10pm AEST, 7 days.` (Never add an SLA/turnaround guarantee — compliance.)
+- **Hours:** `Open 24/7 — requests submitted and reviewed around the clock, 7 days.` (The 8am–10pm review window is RETIRED — service is 24/7 since 2026-07-03. Never add an SLA/turnaround guarantee — compliance.)
 - **Service area:** `All of Australia (online / telehealth)`. Mark as a service-area / online business wherever the option exists.
 - **Founded:** `[CONFIRM year]` — fill the founding year once and reuse.
 
@@ -51,7 +51,7 @@ Secondary (where multi-category allowed): Medical certificate service · Online 
 > InstantMed is an Australian telehealth platform for online medical certificates, repeat prescriptions, and consults (including men's health and hair loss). Patients complete a secure clinical form; an AHPRA-registered doctor reviews each request and delivers documents or eScripts digitally. Australia-wide, 18+.
 
 **Long (~550 chars)** — GBP, Crunchbase, anywhere with room:
-> InstantMed is an Australian telehealth service that helps people get medical certificates, repeat prescriptions, and one-off doctor consults online — without a waiting room. Patients start with a secure clinical questionnaire; an AHPRA-registered doctor reviews the request, contacts the patient if clinically needed, and delivers the document or electronic prescription digitally. Services include single-day to multi-day medical certificates, repeat scripts, and specialist consults for men's health and hair loss. Requests are accepted 24/7; doctor review runs 8am–10pm AEST, seven days. Available Australia-wide to patients aged 18+.
+> InstantMed is an Australian telehealth service that helps people get medical certificates, repeat prescriptions, and one-off doctor consults online — without a waiting room. Patients start with a secure clinical questionnaire; an AHPRA-registered doctor reviews the request, contacts the patient if clinically needed, and delivers the document or electronic prescription digitally. Services include single-day to multi-day medical certificates, repeat scripts, and specialist consults for men's health and hair loss. The service operates 24/7 — requests are accepted and reviewed around the clock, seven days. Available Australia-wide to patients aged 18+.
 
 **Compliance guardrails for any free-text you add:** no "accepted by all employers", no court/exam/university-special-consideration/workers-comp claims, no turnaround/SLA guarantee, no naming or promoting prescription-only medicines (ED/hair-loss drug names = TGA advertising breach), no doctor count / individual doctor names / FRACGP / "team" claims.
 

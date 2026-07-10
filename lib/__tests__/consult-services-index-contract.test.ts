@@ -90,8 +90,11 @@ describe("/consult services index contract", () => {
     expect(source).not.toMatch(/1[-–]2\s*hours?/i)
     expect(source).not.toMatch(/within (an?|1) hour/i)
     expect(source).not.toMatch(/same[- ]day\s*(review|service|access|turnaround)/i)
-    // "Reviewed during AEST hours" is allowed — it states when, not how long.
-    expect(source).toContain("AEST hours")
+    // Availability copy states cadence, not duration ("7 days a week" — the
+    // "AEST hours" framing was retired 2026-07-10; the service is 24/7 and a
+    // window claim contradicted the hours-copy contract).
+    expect(source).toContain("7 days a week")
+    expect(source).not.toContain("AEST hours")
   })
 
   it("trimmed the retired General Consult copy from the FAQ", () => {
