@@ -14,9 +14,16 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 3. Encrypt the data key with the master key (KMS or env var)
 4. Store encrypted data + encrypted data key together
 
-**Key management:** All environments use `PHI_MASTER_KEY` (base64-encoded 32-byte key) as the master key for envelope encryption. AWS KMS integration was evaluated but not adopted — AES-256-GCM with env-var key is production-ready at current scale. Key rotation: generate new key, re-encrypt PHI fields via `scripts/encrypt-phi-backfill.ts`, update env var.
+**Key management:** All environments use `PHI_MASTER_KEY` (base64-encoded 32-byte key) as the master key for envelope encryption. AWS KMS integration was evaluated but not adopted — AES-256-GCM with env-var key is production-ready at current scale.
 
-> **Key escrow / break-glass.** `PHI_MASTER_KEY` + `ENCRYPTION_KEY` are the crown jewels: Supabase backups are AES-256-GCM ciphertext and are **permanently unreadable without these keys**. They must be sealed in ≥2 independent locations (e.g. offline password manager + physical sealed copy with the solicitor), never committed. The continuity inventory + sealed-location register (pointers, never values) lives in [`docs/runbooks/BREAK_GLASS.md`](runbooks/BREAK_GLASS.md). Do **not** rotate these keys without a re-encryption migration.
+> **PHI key rotation is not implemented.** Do not replace or remove the current
+> `PHI_MASTER_KEY` or `ENCRYPTION_KEY`. `scripts/encrypt-phi-backfill.ts` is an
+> initial plaintext-to-`ENCRYPTION_KEY` backfill only; it cannot re-encrypt
+> existing ciphertext or rotate `PHI_MASTER_KEY`. If a key value was changed
+> accidentally, restore the exact previous value and redeploy, preserve both
+> sealed copies, and escalate before any data rewrite.
+
+> **Key escrow / break-glass.** `PHI_MASTER_KEY` + `ENCRYPTION_KEY` are the crown jewels: Supabase backups are AES-256-GCM ciphertext and are **permanently unreadable without these keys**. They must be sealed in ≥2 independent locations (e.g. offline password manager + physical sealed copy with the solicitor), never committed. The continuity inventory + sealed-location register (pointers, never values) lives in [`docs/runbooks/BREAK_GLASS.md`](runbooks/BREAK_GLASS.md).
 
 **Utility API** (`lib/security/phi-encryption.ts`): `encryptPHI()`, `decryptPHI()`, `encryptJSONB()`, `decryptJSONB()` -- all async, return/accept `EncryptedData` (ciphertext, encryptedDataKey, keyId, iv, authTag, version).
 

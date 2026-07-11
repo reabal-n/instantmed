@@ -5,7 +5,7 @@
 #
 # Fails if:
 #   - AGENTS.md drifted from CLAUDE.md (scripts/sync-agent-doc.sh --check)
-#   - any of the 8 doc-pinning Vitest contracts fails
+#   - any of the 9 doc-pinning Vitest contracts fails
 #   - the .md file count differs from docs/bookkeeping/expected-md-count
 #   - any docs/plans/*.md reference in surviving canon points at a non-existent file
 #
@@ -19,7 +19,7 @@ cd "$(dirname "$0")/.."
 echo "==> Sync check: AGENTS.md projected from CLAUDE.md"
 scripts/sync-agent-doc.sh --check
 
-echo "==> Vitest: doc-pinning contracts (8 specs)"
+echo "==> Vitest: doc-pinning contracts (9 specs)"
 pnpm exec vitest run --reporter=dot \
   lib/__tests__/project-docs-drift-contract.test.ts \
   lib/__tests__/code-clean-retirement-contract.test.ts \
@@ -28,7 +28,8 @@ pnpm exec vitest run --reporter=dot \
   lib/__tests__/cron-surface-contract.test.ts \
   lib/__tests__/marketing-copy-contract.test.ts \
   lib/__tests__/advertising-compliance-guard.test.ts \
-  lib/__tests__/password-reset-flow-contract.test.ts
+  lib/__tests__/password-reset-flow-contract.test.ts \
+  lib/__tests__/phi-key-rotation-doc-contract.test.ts
 
 echo "==> Doc surface count"
 ACTUAL=$(find . -name "*.md" \

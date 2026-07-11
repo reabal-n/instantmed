@@ -1,6 +1,10 @@
 #!/usr/bin/env npx tsx
 /* eslint-disable no-console */
 /**
+ * INITIAL BACKFILL ONLY — NOT KEY ROTATION.
+ * This script uses ENCRYPTION_KEY to populate missing encrypted profile fields.
+ * It does not read PHI_MASTER_KEY and cannot re-encrypt existing ciphertext.
+ *
  * PHI Encryption Backfill Script
  *
  * Encrypts existing plaintext PHI fields in multiple tables:
@@ -27,7 +31,7 @@
  * Required env vars:
  * - NEXT_PUBLIC_SUPABASE_URL
  * - SUPABASE_SERVICE_ROLE_KEY
- * - PHI_MASTER_KEY (32-byte base64 encoded key) OR AWS_KMS_KEY_ARN
+ * - ENCRYPTION_KEY (base64-encoded key, at least 32 bytes)
  *
  * Usage:
  *   npm run encrypt:backfill                    # All tables
@@ -121,6 +125,9 @@ async function main() {
   } catch {
     // dotenv not available
   }
+
+  log("INITIAL BACKFILL ONLY — NOT KEY ROTATION", "info")
+  log("This script uses ENCRYPTION_KEY and skips existing ciphertext", "info")
 
   // Verify required environment variables
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
