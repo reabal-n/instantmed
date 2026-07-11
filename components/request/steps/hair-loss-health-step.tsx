@@ -19,9 +19,7 @@
  */
 
 import {
-  Activity,
   ArrowRight,
-  Baby,
   CheckCircle2,
   HeartPulse,
   Home,
@@ -31,8 +29,15 @@ import {
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo } from "react"
 
-import { BinaryChoice, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup, StringBinaryChoice } from "@/components/request/shared/intake-step-primitives"
-import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
+import {
+  BinaryChoice,
+  ChipToggleGroup,
+  CompactChoiceRow,
+  IntakeStepIntro,
+  QuestionCard,
+  SegmentedChoiceGroup,
+  StringBinaryChoice,
+} from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -63,7 +68,7 @@ const SCALP_CONDITIONS = [
   { key: "scalpPsoriasis", label: "Scalp psoriasis" },
   { key: "scalpItching", label: "Persistent itching or irritation" },
   { key: "scalpFolliculitis", label: "Folliculitis (infected hair follicles)" },
-  { key: "scalpNone", label: "No scalp conditions" },
+  { key: "scalpNone", label: "None" },
 ] as const
 
 const REPRODUCTIVE_OPTIONS = [
@@ -73,11 +78,11 @@ const REPRODUCTIVE_OPTIONS = [
   },
   {
     value: "na",
-    label: "Not applicable",
+    label: "N/A",
   },
   {
     value: "yes",
-    label: "Yes, my partner is pregnant or trying to conceive",
+    label: "Yes",
   },
 ] as const
 
@@ -88,7 +93,7 @@ const REPRODUCTIVE_OPTIONS = [
 /** Section completion indicator shown in section headers */
 function SectionComplete({ complete }: { complete: boolean }) {
   if (!complete) return null
-  return <CheckCircle2 className="w-4 h-4 text-success shrink-0 mr-2" />
+  return <CheckCircle2 className="ml-auto h-4 w-4 shrink-0 text-success" />
 }
 
 // ---------------------------------------------------------------------------
@@ -316,173 +321,138 @@ export default function HairLossHealthStep({
         description="Answer only what applies — the doctor reviews everything."
       />
 
-      {/* ── Section 1: Reproductive safety ──────────────────────────── */}
-      <QuestionCard compact>
-        <div className="flex items-center gap-2">
-          <Baby className="w-4 h-4 text-rose-500 shrink-0" />
-          <p className="text-sm font-medium">Reproductive safety</p>
-          <SectionComplete complete={reproductiveComplete} />
+      <QuestionCard compact className="space-y-0">
+        <div className="flex items-center gap-2 pb-2">
+          <HeartPulse className="h-4 w-4 shrink-0 text-rose-500" />
+          <p className="text-sm font-medium">Treatment safety</p>
+          <SectionComplete complete={reproductiveComplete && bpComplete} />
         </div>
-        <div className="space-y-2.5">
-          <QuestionPrompt
-            label="Is your partner currently pregnant or trying to conceive?"
-            hint="Some hair loss medicines are not suitable around pregnancy."
-            required
-          />
+
+        <CompactChoiceRow
+          label="Is your partner currently pregnant or trying to conceive?"
+          hint="Some hair loss medicines are not suitable around pregnancy"
+          required
+        >
           <SegmentedChoiceGroup
             options={REPRODUCTIVE_OPTIONS}
             value={hairReproductive}
             onChange={(value) => setAnswer("hairReproductive", value)}
             ariaLabel="Partner pregnancy or conception status"
-            columns="one"
+            columns="three"
+            className="gap-1.5"
+          />
+        </CompactChoiceRow>
+
+        <CompactChoiceRow label="Low blood pressure or dizziness on standing?">
+          <BinaryChoice
+            value={hairLowBP}
+            onChange={(checked) => setAnswer("hairLowBP", checked)}
+            ariaLabel="Low blood pressure or dizziness on standing?"
+            className="gap-1.5"
+          />
+        </CompactChoiceRow>
+
+        <CompactChoiceRow label="Any heart conditions or heart medication?">
+          <BinaryChoice
+            value={hairHeartConditions}
+            onChange={(checked) => setAnswer("hairHeartConditions", checked)}
+            ariaLabel="Any heart conditions or heart medication?"
+            className="gap-1.5"
+          />
+        </CompactChoiceRow>
+      </QuestionCard>
+
+      <QuestionCard compact className="space-y-0">
+        <div className="flex items-center gap-2 pb-2">
+          <Pill className="h-4 w-4 shrink-0 text-primary" />
+          <p className="text-sm font-medium">Doctor notes</p>
+          <SectionComplete complete={scalpComplete && medicalComplete} />
+        </div>
+
+        <div className="border-b border-border/40 py-3">
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Any scalp conditions?</p>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Choose all that apply, or choose None.
+            </p>
+          </div>
+          <ChipToggleGroup
+            options={SCALP_CONDITIONS}
+            values={answers}
+            onChange={handleScalpChange}
+            ariaLabel="Scalp conditions"
+            className="pt-2"
           />
         </div>
-      </QuestionCard>
 
-      {/* ── Section 2: Scalp conditions ─────────────────────────────── */}
-      <QuestionCard compact>
-        <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-amber-500 shrink-0" />
-          <p className="text-sm font-medium">Any scalp conditions?</p>
-          <SectionComplete complete={scalpComplete} />
-        </div>
-        <MedicalHistoryToggles
-          items={SCALP_CONDITIONS}
-          values={answers}
-          onChange={handleScalpChange}
-        />
-      </QuestionCard>
-
-      {/* ── Section 3: Blood pressure & heart ───────────────────────── */}
-      <QuestionCard compact>
-        <div className="flex items-center gap-2">
-          <HeartPulse className="w-4 h-4 text-blue-500 shrink-0" />
-          <p className="text-sm font-medium">Blood pressure &amp; heart</p>
-          <SectionComplete complete={bpComplete} />
-        </div>
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Low blood pressure or dizziness on standing?</p>
-            <BinaryChoice
-              value={hairLowBP}
-              onChange={(checked) => setAnswer("hairLowBP", checked)}
-              ariaLabel="Low blood pressure or dizziness on standing?"
+        <CompactChoiceRow
+          label="Taking any medications?"
+          hint="Prescriptions, over-the-counter medicines, vitamins, or supplements"
+          required
+          detail={takesMedications === "yes" ? (
+            <Textarea
+              value={currentMedications}
+              onChange={(event) => setAnswer("current_medications", event.target.value)}
+              placeholder="List the name, dose, and how often you take each one"
+              className="min-h-[60px] text-sm"
             />
-          </div>
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Any heart conditions or heart medication?</p>
-            <BinaryChoice
-              value={hairHeartConditions}
-              onChange={(checked) => setAnswer("hairHeartConditions", checked)}
-              ariaLabel="Any heart conditions or heart medication?"
-            />
-          </div>
-        </div>
-      </QuestionCard>
-
-      {/* ── Section 4: Medications, allergies & conditions ──────────── */}
-      <QuestionCard className="space-y-5">
-        <div className="flex items-center gap-2">
-          <Pill className="w-4 h-4 text-indigo-500 shrink-0" />
-          <p className="text-sm font-medium">Medications, allergies &amp; conditions</p>
-          <SectionComplete complete={medicalComplete} />
-        </div>
-        {/* Medications */}
-        <div className="space-y-2.5">
-          <div>
-            <p className="text-sm font-medium">
-              Taking any medications?{" "}
-              <span className="text-destructive">*</span>
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Prescriptions, over-the-counter, vitamins, supplements
-            </p>
-          </div>
+          ) : undefined}
+        >
           <StringBinaryChoice
             value={takesMedications}
             noValue="no"
             yesValue="yes"
             onChange={(value) => setAnswer("takes_medications", value)}
             ariaLabel="Taking any medications?"
-            noLabel="No medications"
+            className="gap-1.5"
           />
-          {takesMedications === "yes" && (
+        </CompactChoiceRow>
+
+        <CompactChoiceRow
+          label="Any allergies?"
+          hint="Medicines, food, or environmental allergies"
+          required
+          detail={hasAllergies === "yes" ? (
             <Textarea
-              value={currentMedications}
-              onChange={(e) =>
-                setAnswer("current_medications", e.target.value)
-              }
-              placeholder="e.g., Metformin 500mg twice daily, Vitamin D 1000IU"
+              value={knownAllergies}
+              onChange={(event) => setAnswer("known_allergies", event.target.value)}
+              placeholder="List the allergy and what happens"
               className="min-h-[60px] text-sm"
             />
-          )}
-        </div>
-
-        <div className="border-t border-border/40" />
-
-        {/* Allergies */}
-        <div className="space-y-2.5">
-          <div>
-            <p className="text-sm font-medium">
-              Any allergies?{" "}
-              <span className="text-destructive">*</span>
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Drug, food, or environmental allergies
-            </p>
-          </div>
+          ) : undefined}
+        >
           <StringBinaryChoice
             value={hasAllergies}
             noValue="no"
             yesValue="yes"
             onChange={(value) => setAnswer("has_allergies", value)}
             ariaLabel="Any allergies?"
-            noLabel="No allergies"
+            className="gap-1.5"
           />
-          {hasAllergies === "yes" && (
+        </CompactChoiceRow>
+
+        <CompactChoiceRow
+          label="Any other medical conditions?"
+          hint="Chronic illness, previous surgery, or an ongoing health issue"
+          required
+          detail={hasConditions === "yes" ? (
             <Textarea
-              value={knownAllergies}
-              onChange={(e) =>
-                setAnswer("known_allergies", e.target.value)
-              }
-              placeholder="e.g., Penicillin - rash, Peanuts - anaphylaxis"
+              value={existingConditions}
+              onChange={(event) => setAnswer("existing_conditions", event.target.value)}
+              placeholder="List the condition and any relevant details"
               className="min-h-[60px] text-sm"
             />
-          )}
-        </div>
-
-        <div className="border-t border-border/40" />
-
-        {/* Other conditions */}
-        <div className="space-y-2.5">
-          <div>
-            <p className="text-sm font-medium">
-              Any other medical conditions?{" "}
-              <span className="text-destructive">*</span>
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Chronic illness, past surgeries, ongoing issues
-            </p>
-          </div>
+          ) : undefined}
+        >
           <StringBinaryChoice
             value={hasConditions}
             noValue="no"
             yesValue="yes"
             onChange={(value) => setAnswer("has_conditions", value)}
             ariaLabel="Any other medical conditions?"
-            noLabel="No conditions"
+            className="gap-1.5"
           />
-          {hasConditions === "yes" && (
-            <Textarea
-              value={existingConditions}
-              onChange={(e) =>
-                setAnswer("existing_conditions", e.target.value)
-              }
-              placeholder="e.g., Asthma, Type 2 Diabetes, High blood pressure"
-              className="min-h-[60px] text-sm"
-            />
-          )}
-        </div>
+        </CompactChoiceRow>
       </QuestionCard>
 
       {/* Validation summary — announced to screen readers on first Continue tap */}

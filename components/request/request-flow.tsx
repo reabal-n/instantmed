@@ -19,14 +19,12 @@
 
 import { ArrowLeft, ArrowRight, CheckCircle2, X } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { type ComponentType, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { type ComponentType, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { AutoSaveIndicator } from "@/components/request/auto-save-indicator"
-import { DraftRestorationBanner } from "@/components/request/draft-restoration-banner"
 import { ProgressBar } from "@/components/request/progress-bar"
 import { INTAKE_PRIMARY_ACTION_CHANGE_EVENT, RequestButton } from "@/components/request/request-button"
 import { requestCx } from "@/components/request/request-cx"
-import { SubtypeMismatchBanner } from "@/components/request/subtype-mismatch-banner"
 import { TimeRemaining } from "@/components/request/time-remaining"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import {
@@ -45,7 +43,6 @@ import {
 } from "@/lib/request/step-registry"
 import { type SafetyEvaluationResult } from "@/lib/safety/types"
 
-import { FlowErrorScreen } from "./flow-error-screen"
 import { useFlowAnalytics } from "./hooks/use-flow-analytics"
 import { useFlowNavigation } from "./hooks/use-flow-navigation"
 import { useSwipeNavigation } from "./hooks/use-swipe-navigation"
@@ -57,6 +54,16 @@ import {
   clearRequestDraftHydrationCutoff,
   useRequestStore,
 } from "./store"
+
+const FlowErrorScreen = lazy(() =>
+  import("./flow-error-screen").then(({ FlowErrorScreen: component }) => ({ default: component }))
+)
+const DraftRestorationBanner = lazy(() =>
+  import("./draft-restoration-banner").then(({ DraftRestorationBanner: component }) => ({ default: component }))
+)
+const SubtypeMismatchBanner = lazy(() =>
+  import("./subtype-mismatch-banner").then(({ SubtypeMismatchBanner: component }) => ({ default: component }))
+)
 
 // Kick off the FIRST step's chunk fetch as soon as this client module
 // evaluates — in parallel with hydration — instead of waiting for the full
@@ -905,7 +912,11 @@ export function RequestFlow({
 
   // Invalid service param provided - show error screen
   if (initialService === null && rawServiceParam) {
-    return <FlowErrorScreen invalidService={rawServiceParam} />
+    return (
+      <Suspense fallback={null}>
+        <FlowErrorScreen invalidService={rawServiceParam} />
+      </Suspense>
+    )
   }
 
   // Show loading only if we truly have no service type
@@ -1008,21 +1019,25 @@ export function RequestFlow({
       >
         {/* Draft restoration banner */}
         {showDraftBanner && (
-          <DraftRestorationBanner
-            serviceName={serviceName}
-            onRestore={handleRestoreDraft}
-            onDiscard={handleDiscardDraft}
-          />
+          <Suspense fallback={null}>
+            <DraftRestorationBanner
+              serviceName={serviceName}
+              onRestore={handleRestoreDraft}
+              onDiscard={handleDiscardDraft}
+            />
+          </Suspense>
         )}
 
         {/* Consult subtype mismatch banner */}
         {showSubtypeMismatch && draftSubtype && initialSubtype && (
-          <SubtypeMismatchBanner
-            draftSubtype={draftSubtype}
-            urlSubtype={initialSubtype}
-            onResumeDraft={handleResumeDraft}
-            onStartFresh={handleStartFreshSubtype}
-          />
+          <Suspense fallback={null}>
+            <SubtypeMismatchBanner
+              draftSubtype={draftSubtype}
+              urlSubtype={initialSubtype}
+              onResumeDraft={handleResumeDraft}
+              onStartFresh={handleStartFreshSubtype}
+            />
+          </Suspense>
         )}
 
         {/* Step content */}
