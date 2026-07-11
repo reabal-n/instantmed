@@ -51,6 +51,7 @@ import { getAvatarPresetId } from "@/lib/account/avatar-presets"
 import { changeAuthenticatedPassword } from "@/lib/auth/password-change"
 import { AUSTRALIAN_STATES } from "@/lib/constants"
 import { buildPatientSettingsHref,PATIENT_HEALTH_PROFILE_HREF } from "@/lib/dashboard/routes"
+import { clearInstantMedBrowserCaches } from "@/lib/security/browser-cache-cleanup"
 import { fetchWithCsrf } from "@/lib/security/csrf-client"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { createClient } from "@/lib/supabase/client"
@@ -468,7 +469,10 @@ export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferen
       const result = await deleteAccount()
       if (result.success) {
         toast.success("Account closed successfully")
-        await supabase.auth.signOut({ scope: "local" })
+        await Promise.allSettled([
+          clearInstantMedBrowserCaches(),
+          supabase.auth.signOut({ scope: "local" }),
+        ])
         window.location.assign("/")
       } else {
         toast.error(result.error || "Failed to close account")

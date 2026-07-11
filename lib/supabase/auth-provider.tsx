@@ -11,6 +11,7 @@ import {
   AUTH_HANDOFF_STORAGE_KEY,
   createAuthHandoffRefreshGuard,
 } from '@/lib/navigation/auth-handoff'
+import { clearInstantMedBrowserCaches } from '@/lib/security/browser-cache-cleanup'
 
 const AUTH_IMMEDIATE_PATH_PREFIXES = [
   '/account',
@@ -290,6 +291,7 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
       const supabase = createClient()
 
       await Promise.allSettled([
+        clearInstantMedBrowserCaches(),
         supabase.auth.signOut({ scope: 'local' }),
         fetch('/api/auth/sign-out', { method: 'POST', credentials: 'same-origin' }),
       ])

@@ -91,5 +91,6 @@ describe("closed-account patient access boundary", () => {
     expect(pageSource).toContain('title: "Account closed"')
     expect(pageSource).toContain("<AccountClosedClient />")
     expect(clientSource).toContain('signOut({ scope: "local" })')
+    expect(clientSource).toContain("clearInstantMedBrowserCaches()")
   })
 })

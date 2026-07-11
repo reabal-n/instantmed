@@ -1,81 +1,49 @@
 "use client"
 
-/**
- * Service Worker Registration Component
- * 
- * Registers the service worker for PWA functionality and offline support.
- * Should be included in the root layout.
- */
-
 import { useEffect } from "react"
 
 import { createLogger } from "@/lib/observability/logger"
+import { clearInstantMedBrowserCaches } from "@/lib/security/browser-cache-cleanup"
 
-const logger = createLogger("service-worker")
+const logger = createLogger("service-worker-retirement")
 
+/**
+ * Temporary Stage A bridge for clients that still have the retired worker.
+ * Keep this mounted for at least 30 days after deployment so returning clients
+ * can request the tombstone before all same-origin registrations are removed.
+ */
 export function ServiceWorkerRegistration() {
   useEffect(() => {
-    if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
-      return
-    }
-    
-    // Only register in production
-    if (process.env.NODE_ENV !== "production") {
-      logger.debug("Service worker registration skipped in development")
-      return
-    }
-    
-    const registerServiceWorker = async () => {
+    if (typeof window === "undefined") return
+
+    const retireServiceWorker = async () => {
       try {
-        const registration = await navigator.serviceWorker.register("/sw.js", {
-          scope: "/",
-        })
-
-        if (!registration) {
-          logger.warn("Service worker register returned empty registration")
-          return
+        if ("serviceWorker" in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations()
+          await Promise.allSettled(
+            registrations.map((registration) => registration.update()),
+          )
         }
-
-        logger.info("Service worker registered", {
-          scope: registration.scope,
-        })
-
-        // Handle updates
-        registration.addEventListener("updatefound", () => {
-          const newWorker = registration.installing
-          if (!newWorker) return
-          
-          newWorker.addEventListener("statechange", () => {
-            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-              // New version available
-              logger.info("New service worker version available")
-              
-              // Optionally notify user of update
-              // eslint-disable-next-line no-alert -- Intentional: browser confirm for PWA update
-              if (window.confirm("A new version is available. Reload to update?")) {
-                newWorker.postMessage("skipWaiting")
-                window.location.reload()
-              }
-            }
-          })
-        })
       } catch (error) {
-        // Service worker registration can fail in restricted browsers, incognito mode,
-        // or when sw.js is unavailable. This is non-critical - log as warning.
-        logger.warn("Service worker registration failed", {
+        logger.warn("Service worker update check failed during retirement", {
           error: error instanceof Error ? error.message : String(error),
         })
+      } finally {
+        await clearInstantMedBrowserCaches()
       }
     }
-    
-    // Register after page load to not block initial render
+
     if (document.readyState === "complete") {
-      registerServiceWorker()
-    } else {
-      window.addEventListener("load", registerServiceWorker)
-      return () => window.removeEventListener("load", registerServiceWorker)
+      void retireServiceWorker()
+      return
     }
+
+    const handleLoad = () => {
+      void retireServiceWorker()
+    }
+    window.addEventListener("load", handleLoad)
+    return () => window.removeEventListener("load", handleLoad)
   }, [])
-  
+
   return null
 }

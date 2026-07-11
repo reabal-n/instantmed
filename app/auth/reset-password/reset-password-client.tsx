@@ -13,6 +13,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { clearInstantMedBrowserCaches } from "@/lib/security/browser-cache-cleanup"
 
 
 export function ResetPasswordClient() {
@@ -60,7 +61,10 @@ export function ResetPasswordClient() {
         return
       }
 
-      await supabase.auth.signOut()
+      await Promise.allSettled([
+        clearInstantMedBrowserCaches(),
+        supabase.auth.signOut(),
+      ])
       toast.success("Password updated successfully")
       router.push("/sign-in")
     } catch (err) {
