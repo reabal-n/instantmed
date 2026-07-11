@@ -181,7 +181,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
     <>
       {/* More drawer overlay */}
       {moreOpen && (
-        <div className="lg:hidden fixed inset-0 z-50">
+        <div className="lg:hidden fixed inset-0 z-[60]">
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-xs"
             onClick={() => setMoreOpen(false)}
@@ -190,7 +190,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
           <div
             role="dialog"
             aria-label="More navigation options"
-            className="absolute bottom-0 left-0 right-0 bg-background rounded-t-2xl border-t border-border safe-area-pb"
+            className="absolute bottom-0 left-0 right-0 z-10 bg-background rounded-t-2xl border-t border-border safe-area-pb"
           >
             <div className="flex items-center justify-between px-5 pt-4 pb-2">
               <p className="text-sm font-semibold text-foreground">More</p>

@@ -5,13 +5,17 @@ import Link from "next/link"
 import { useEffect, useMemo } from "react"
 
 import { Button } from "@/components/ui/button"
+import { clearInstantMedBrowserCaches } from "@/lib/security/browser-cache-cleanup"
 import { createClient } from "@/lib/supabase/client"
 
 export function AccountClosedClient() {
   const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
-    void supabase.auth.signOut({ scope: "local" })
+    void Promise.allSettled([
+      clearInstantMedBrowserCaches(),
+      supabase.auth.signOut({ scope: "local" }),
+    ])
   }, [supabase])
 
   return (
