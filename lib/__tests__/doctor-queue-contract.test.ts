@@ -158,10 +158,17 @@ describe("doctor queue production contract", () => {
     expect(queueTableSource).toContain("if (event.detail === 0) openCaseFromPrimaryAction()")
   })
 
-  it("treats the desktop inline review as open so focus refreshes preserve selection", () => {
-    expect(queueClientSource).toContain("panelOpenRef.current = Boolean(activePanel || expandedId)")
+  it("treats the desktop inline review as open for refresh, but not for the keyboard gate", () => {
+    // Refresh suppression counts the desktop two-pane inline selection so a
+    // focus/visibility refresh can't remount the queue and clear the review.
+    expect(queueClientSource).toContain("compactShell && isDesktop && Boolean(expandedId)")
     expect(queueClientSource).toContain("panelOpenRef.current = true")
     expect(queueClientSource).not.toContain("panelOpenRef.current = false")
+    // ...but the keyboard gate keys off a real slide-over only (its own ref), so
+    // inline j/k/Enter/a/d/Escape keep working once a case is selected — gating
+    // the keyboard on the inline selection killed nav after the first keypress.
+    expect(queueClientSource).toContain("slideOverOpenRef")
+    expect(queueClientSource).toContain("if (slideOverOpenRef.current) return")
   })
 
   it("keeps queue hover visual-only so clinical review data loads only after explicit open", () => {
