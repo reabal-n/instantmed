@@ -1,9 +1,9 @@
 # Doc File Map
 
-> **Last updated:** 2026-07-09.
+> **Last updated:** 2026-07-10.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
 >
-> **Doc-surface count:** 116 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans; 110 -> 112 on 2026-07-01 after adding the root context glossary and first ADR for Google Ads retained-value bidding; reconciled to 115 on 2026-07-08 after excluding generated verification artifacts from `scripts/doc-audit.sh` and adding the GEO citation execution record; reconciled to 116 on 2026-07-09 after adding the intake drop-off final plan.
+> **Doc-surface count:** 118 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans; 110 -> 112 on 2026-07-01 after adding the root context glossary and first ADR for Google Ads retained-value bidding; reconciled to 115 on 2026-07-08 after excluding generated verification artifacts from `scripts/doc-audit.sh` and adding the GEO citation execution record; reconciled to 116 on 2026-07-09 after adding the intake drop-off final plan; reconciled to 118 on 2026-07-10 after adding the audit-remediation implementation program and the comparison-surface submission kit.
 >
 > **Owner:** Operator. Update on every doc add, move, or delete. Bump the timestamp.
 
@@ -85,7 +85,7 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 |------|---------|-----------|
 | [docs/adr/0001-google-ads-net-retained-purchase-value.md](../adr/0001-google-ads-net-retained-purchase-value.md) | Decision record for Google Ads optimizing against retained purchase value, not gross value or micro-conversions | `google-ads-attribution-contract` |
 
-## docs/audits/ — 22 (historical + growth records)
+## docs/audits/ — 23 (historical + growth records)
 
 | File | Purpose |
 |------|---------|
@@ -111,6 +111,7 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 | [docs/audits/2026-06-10-comprehensive-audit.md](../audits/2026-06-10-comprehensive-audit.md) | 44-agent platform + business audit 2026-06-10; P0 anon PHI leak fix, competitor/regulatory/channel research, staged scaling plan |
 | [docs/audits/2026-06-11-hygiene-business-review.md](../audits/2026-06-11-hygiene-business-review.md) | 12-agent hygiene + business review 2026-06-11; Express-fee P0, GEO FAQ-HTML blocker, test gaps, resilience, women's-health skeleton, prioritized backlog |
 | [docs/audits/2026-07-08-geo-citation-execution.md](../audits/2026-07-08-geo-citation-execution.md) | GEO citation execution record: NHSD listing verification, drift found, profile copy, and comparison outreach draft |
+| [docs/audits/2026-07-09-comparison-surface-submission-kit.md](../audits/2026-07-09-comparison-surface-submission-kit.md) | Submission-ready comparison-surface kit for MediCompare and Finder: channels, assets, dated fact sheet, outreach drafts, and marketing-compliance review |
 
 ## docs/plans/ — active
 
@@ -138,7 +139,7 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 
 Some active root plan files also have archived copies. Keep this mapped until the plan-retention decision is reconciled.
 
-## docs/superpowers/plans/ — 9
+## docs/superpowers/plans/ — 10
 
 | File | Purpose |
 |------|---------|
@@ -151,6 +152,7 @@ Some active root plan files also have archived copies. Keep this mapped until th
 | [docs/superpowers/plans/2026-06-26-06-doctor-review-ui-simplification.md](../superpowers/plans/2026-06-26-06-doctor-review-ui-simplification.md) | Prescribing rebuild 06: doctor review UI simplification — one packet, exact blockers, identity/Parchment readiness |
 | [docs/superpowers/plans/2026-06-26-07-med-cert-wording.md](../superpowers/plans/2026-06-26-07-med-cert-wording.md) | Prescribing rebuild 07: warmer medical-certificate body wording (third locked support paragraph) |
 | [docs/superpowers/plans/2026-07-08-seo-geo-llm-task5-plan.md](../superpowers/plans/2026-07-08-seo-geo-llm-task5-plan.md) | Task 5 SEO/GEO/LLM growth plan: page-template contracts, contextual evidence links, CTR fixes, condition-template hardening, GEO answer blocks, and citation-surface workflow |
+| [docs/superpowers/plans/2026-07-10-audit-remediation-program.md](../superpowers/plans/2026-07-10-audit-remediation-program.md) | Reconciled implementation program for PHI key-rotation containment, AI med-cert batch review, service-worker retirement, repository artifact cleanup, dead-code ratcheting, and documentation consolidation |
 
 ## docs/plans/archive/ — completed/superseded plans (90-day retention)
 
