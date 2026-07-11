@@ -38,6 +38,7 @@ import { logIntakeViewDuration, preloadViewDurationLogging } from "@/lib/doctor/
 import { QUEUE_WAIT_TARGET_MINUTES } from "@/lib/doctor/queue-pressure"
 import { getQueueEnteredAt } from "@/lib/doctor/queue-utils"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
+import { isEditableOrInteractiveKeyboardTarget } from "@/lib/hooks/use-doctor-shortcuts"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { cn } from "@/lib/utils"
 
@@ -285,7 +286,7 @@ export function IntakeReviewPanel({
   // Arrow key navigation between cases
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      if (isEditableOrInteractiveKeyboardTarget(e.target)) return
       if (e.key === "ArrowDown" && onNextCase) { e.preventDefault(); onNextCase() }
       if (e.key === "ArrowUp" && onPrevCase) { e.preventDefault(); onPrevCase() }
     }
