@@ -10,6 +10,11 @@ import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { toError } from "@/lib/errors"
 import { type BusinessAlert, runAlertSection } from "@/lib/monitoring/alert-sections"
+import {
+  type BatchReviewHealth,
+  buildBatchReviewOverdueAlert,
+  getBatchReviewHealth,
+} from "@/lib/monitoring/batch-review-health"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import {
   buildGoogleAdsAdjustmentTerminalRiskAlert,
@@ -176,6 +181,7 @@ export async function GET(request: NextRequest) {
     let noPurchaseWindow: NoPurchaseRevenueWindow | null = null
     let operationalInvariants: OperationalInvariants | null = null
     let staleHumanCount: number | null = null
+    let batchReviewHealth: BatchReviewHealth | null = null
 
     // 1. Failed payments in last hour
     await runAlertSection({
@@ -556,6 +562,39 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    // 11. Every auto-approved medical certificate must receive one individual
+    // doctor outcome within InstantMed's 24-hour governance window. This check
+    // is aggregate-only: alert payloads never include intake or patient IDs.
+    await runAlertSection({
+      section: "med_cert_batch_review",
+      alerts,
+      onFailure: onSectionFailure,
+      run: async () => {
+        batchReviewHealth = await getBatchReviewHealth(supabase, now)
+        if (batchReviewHealth.queryFailed) {
+          throw new Error("Medical-certificate batch-review aggregate query failed")
+        }
+        const batchReviewAlert = buildBatchReviewOverdueAlert(batchReviewHealth, now)
+        if (batchReviewAlert) {
+          const oldestApprovedMs = batchReviewHealth.oldestApprovedAt
+            ? new Date(batchReviewHealth.oldestApprovedAt).getTime()
+            : Number.NaN
+          alerts.push(batchReviewAlert)
+          trackBusinessMetric({
+            metric: "med_cert_batch_review_overdue",
+            severity: batchReviewAlert.severity,
+            metadata: {
+              pending_count: batchReviewHealth.pending,
+              overdue_count: batchReviewHealth.overdue,
+              oldest_age_hours: Number.isFinite(oldestApprovedMs)
+                ? Math.max(0, Math.floor((now.getTime() - oldestApprovedMs) / 3_600_000))
+                : null,
+            },
+          })
+        }
+      },
+    })
+
     // Fire Sentry alerts for critical items
     const criticalAlerts = alerts.filter((a) => a.severity === "critical")
     if (criticalAlerts.length > 0) {
@@ -675,6 +714,7 @@ export async function GET(request: NextRequest) {
     // TS control-flow narrows the `let`s to their `null` initializers here.
     const invariants = operationalInvariants as OperationalInvariants | null
     const noPurchase = noPurchaseWindow as NoPurchaseRevenueWindow | null
+    const batchReviews = batchReviewHealth as BatchReviewHealth | null
 
     return NextResponse.json({
       success: true,
@@ -699,6 +739,14 @@ export async function GET(request: NextRequest) {
         google_ads_upload_stream: googleAdsUploadStreamHealth,
         google_ads_adjustment_health: googleAdsAdjustmentHealth,
         rx_consult_queue_stalled: staleHumanCount ?? 0,
+        med_cert_batch_review: batchReviews
+          ? {
+              pending: batchReviews.pending,
+              overdue: batchReviews.overdue,
+              oldest_approved_at: batchReviews.oldestApprovedAt,
+              query_failed: batchReviews.queryFailed,
+            }
+          : null,
         ops_sla_breach_backlog: invariants?.slaBreachBacklog ?? null,
         ops_cert_refund_orphans: invariants?.certRefundOrphans ?? null,
         ops_refund_record_anomalies: invariants?.refundRecordAnomalies ?? null,

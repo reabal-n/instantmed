@@ -10,6 +10,7 @@ import { PatientDecisionStrip } from "@/components/doctor/patient-decision-strip
 import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { PrescribingPacketCard } from "@/components/doctor/prescribing-packet-card"
 import { RenewalLink } from "@/components/doctor/renewal-link"
+import { BatchReviewAttestation } from "@/components/doctor/review/batch-review-attestation"
 import { IntakeActionButtons } from "@/components/doctor/review/intake-action-buttons"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { IntakeSecondaryDisclosure } from "@/components/doctor/review/intake-secondary-disclosure"
@@ -31,6 +32,7 @@ interface IntakeReviewCockpitProps {
   showThinMedCertWarning?: boolean
   compactDecisionStrip?: boolean
   revealIdentityByDefault?: boolean
+  onBatchReviewResolved?: (intakeId: string) => void
 }
 
 const MED_CERT_SYMPTOM_DETAIL_REQUEST =
@@ -140,6 +142,7 @@ export function IntakeReviewCockpit({
   showThinMedCertWarning = true,
   compactDecisionStrip = false,
   revealIdentityByDefault = false,
+  onBatchReviewResolved,
 }: IntakeReviewCockpitProps) {
   const review = useIntakeReview()
   const { data, intake, answers, service } = review
@@ -217,7 +220,13 @@ export function IntakeReviewCockpit({
     })
   }, [canRequestClinicalDetail, intake.id, router])
 
-  const decisionActions = (
+  const isPendingBatchReview = intake.ai_approved === true &&
+    intake.category === "medical_certificate" &&
+    ["approved", "completed"].includes(intake.status) &&
+    !intake.batch_reviewed_at
+  const decisionActions = isPendingBatchReview && onBatchReviewResolved ? (
+    <BatchReviewAttestation intake={intake} onResolved={onBatchReviewResolved} />
+  ) : (
     <IntakeActionButtons
       placement="bottom"
       requiresClinicalDetail={canRequestClinicalDetail}

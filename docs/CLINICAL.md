@@ -235,7 +235,9 @@ These must remain human-only regardless of future AI capabilities:
 4. **Decline reason determination** -- requires clinical reasoning
 5. **Emergency escalation decisions** -- life safety (handled by deterministic rules)
 
-**Exception -- doctor-owned med cert protocol automation:** Simple med cert requests (1-3 day, no red flags, all deterministic checks pass) can be auto-approved via `lib/clinical/auto-approval-pipeline.ts`. This is feature-flagged (`ai_auto_approve_enabled`), rate-limited, logged to `ai_audit_log`, and subject to doctor batch review. Only med certs. Prescriptions and consults always require human doctor review. See ARCHITECTURE.md -> Auto-Approval Pipeline.
+**Exception -- doctor-owned med cert protocol automation:** Simple med cert requests (1-3 day, no red flags, all deterministic checks pass) can be auto-approved via `lib/clinical/auto-approval-pipeline.ts`. This is feature-flagged (`ai_auto_approve_enabled`), rate-limited, and logged to `ai_audit_log`. Only med certs. Prescriptions and consults always require human doctor review. See ARCHITECTURE.md -> Auto-Approval Pipeline.
+
+Every auto-approved certificate then enters individual post-approval doctor review. The 24-hour window is an **InstantMed governance control, not a statutory AHPRA requirement**. A doctor with the medical-certificate review capability must open the certificate and clinical record and record exactly one outcome: **reviewed with no change needed**, which stamps `batch_reviewed_at` and `batch_reviewed_by`; or **revoked and returned to manual review**, which invalidates the certificate, returns the intake to `in_review`, and stamps the same completion receipt. Bulk acknowledgement is prohibited. The dashboard reads the oldest unresolved obligations first, and aggregate-only monitoring pages when any cross the governance window.
 
 ### Architecture Enforcement
 

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
+import { BatchReviewBanner } from "@/components/doctor/batch-review-banner"
 import { OperatorSplitPane } from "@/components/operator/operator-page"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
@@ -57,6 +58,7 @@ interface QueueEmptyState {
 interface LazyIntakeReviewPanelProps {
   intakeId: string
   onActionComplete?: (options?: { advance?: boolean }) => void
+  onBatchReviewResolved?: (intakeId: string) => void
   onNextCase?: () => void
   onPrevCase?: () => void
   caseIndex?: number
@@ -296,7 +298,12 @@ export function QueueClient({
   identityComplete = true,
   queueDegraded = false,
   pagination,
-  aiApprovedIntakes = [],
+  pendingBatchReviews: initialPendingBatchReviews = {
+    data: [],
+    total: 0,
+    oldestApprovedAt: null,
+    degraded: false,
+  },
   recentlyCompleted = [],
   todayEarnings,
   initialStatusFilter = "all",
@@ -320,9 +327,11 @@ export function QueueClient({
     ? activePanel.id.replace("intake-review-", "")
     : null
   const [intakes, setIntakes] = useState(initialIntakes)
+  const [pendingBatchReviews, setPendingBatchReviews] = useState(initialPendingBatchReviews)
   // Keep a live ref to filtered intakes for use in panel callbacks
   const filteredIntakesRef = useRef<IntakeWithPatient[]>([])
   const intakesRef = useRef<IntakeWithPatient[]>(initialIntakes)
+  const pendingBatchReviewsRef = useRef(initialPendingBatchReviews)
 
   // Sync server data into local state after router.refresh() soft-refreshes the page.
   // useState(initialIntakes) only reads the prop on mount, so without this effect
@@ -332,8 +341,17 @@ export function QueueClient({
   }, [initialIntakes])
 
   useEffect(() => {
+    setPendingBatchReviews(initialPendingBatchReviews)
+    pendingBatchReviewsRef.current = initialPendingBatchReviews
+  }, [initialPendingBatchReviews])
+
+  useEffect(() => {
     intakesRef.current = intakes
   }, [intakes])
+
+  useEffect(() => {
+    pendingBatchReviewsRef.current = pendingBatchReviews
+  }, [pendingBatchReviews])
 
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [lastOpenedIntakeId, setLastOpenedIntakeId] = useState<string | null>(() => {
@@ -362,24 +380,14 @@ export function QueueClient({
   const [clockNow, setClockNow] = useState<Date>(() => new Date())
 
   useEffect(() => {
-    panelOpenRef.current = Boolean(activePanel)
-  }, [activePanel])
+    panelOpenRef.current = Boolean(activePanel || expandedId)
+  }, [activePanel, expandedId])
 
   useEffect(() => {
     const nextStatus = parseQueueStatusFilter(searchParams.get("status"))
     explicitStatusFilterRef.current = searchParams.has("status") && nextStatus !== "all"
     setStatusFilter(nextStatus)
   }, [searchParams])
-
-  // Warm the split-pane review module after first paint. Hover no longer
-  // prefetches clinical data, so this keeps the first explicit open feeling
-  // immediate without touching PHI-heavy API payloads.
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void loadIntakeReviewPanel()
-    }, 250)
-    return () => window.clearTimeout(timer)
-  }, [])
 
   const refreshQueue = useCallback((force = false) => {
     if (!force && panelOpenRef.current) return
@@ -577,6 +585,21 @@ export function QueueClient({
     [refreshQueue, rememberOpenedCase],
   )
 
+  const handleBatchReviewResolved = useCallback((intakeId: string) => {
+    const current = pendingBatchReviewsRef.current
+    const remaining = current.data.filter((intake) => intake.id !== intakeId)
+    const next = {
+      ...current,
+      data: remaining,
+      total: Math.max(0, current.total - 1),
+      oldestApprovedAt: remaining[0]?.ai_approved_at ?? null,
+    }
+    pendingBatchReviewsRef.current = next
+    setPendingBatchReviews(next)
+    setExpandedId(isDesktop ? (remaining[0]?.id ?? null) : null)
+    refreshQueue(true)
+  }, [isDesktop, refreshQueue])
+
   // Click / Enter handler. In compactShell mode this is a NO-SHEET path
   // on desktop: it just sets selection (`expandedId`), which drives the
   // inline right pane. On mobile (`!isDesktop`) compactShell falls back
@@ -587,7 +610,9 @@ export function QueueClient({
 
     if (compactShell && isDesktop) {
       // Desktop two-pane mode. Detail renders inline; no slide-over.
-      panelOpenRef.current = false
+      // Treat the inline case as open so focus/visibility refreshes cannot
+      // remount the queue and clear the clinician's active review.
+      panelOpenRef.current = true
       return
     }
 
@@ -603,7 +628,8 @@ export function QueueClient({
 
     const list = filteredIntakesRef.current
     const caseIndex = list.findIndex((r) => r.id === intakeId)
-    const previewIntake = list.find((r) => r.id === intakeId)
+    const previewIntake = list.find((r) => r.id === intakeId) ??
+      pendingBatchReviewsRef.current.data.find((r) => r.id === intakeId)
 
     openPanel({
       id: `intake-review-${intakeId}`,
@@ -614,6 +640,7 @@ export function QueueClient({
           previewIntake={previewIntake}
           caseIndex={caseIndex >= 0 ? caseIndex : undefined}
           totalCases={list.length > 0 ? list.length : undefined}
+          onBatchReviewResolved={handleBatchReviewResolved}
           onActionComplete={(options) => {
             handleIntakeActionComplete(intakeId, options)
             const { nextIntake } = removeCompletedIntakeFromQueue(filteredIntakesRef.current, intakeId)
@@ -632,7 +659,7 @@ export function QueueClient({
         />
       ),
     })
-  }, [openPanel, compactShell, isDesktop, handleIntakeActionComplete])
+  }, [openPanel, compactShell, isDesktop, handleIntakeActionComplete, handleBatchReviewResolved])
 
   const primeReviewPanelCode = useCallback(() => {
     void loadIntakeReviewPanel()
@@ -1052,6 +1079,11 @@ export function QueueClient({
         </div>
       )}
 
+      <BatchReviewBanner
+        result={pendingBatchReviews}
+        onOpenOldest={openReviewPanel}
+      />
+
       <div
         className={cn(
           compactShell
@@ -1109,7 +1141,6 @@ export function QueueClient({
                   openReviewPanel={openReviewPanel}
                   onPrimeReviewPanelCode={primeReviewPanelCode}
                   dialogs={dialogs}
-                  aiApprovedIntakes={aiApprovedIntakes}
                   recentlyCompleted={recentlyCompleted}
                   pagination={pagination}
                   baseHref={baseHref}
@@ -1143,10 +1174,14 @@ export function QueueClient({
                   <IntakeReviewPanel
                     inline
                     intakeId={expandedId}
-                    previewIntake={filteredIntakes.find((intake) => intake.id === expandedId)}
+                    previewIntake={
+                      filteredIntakes.find((intake) => intake.id === expandedId) ??
+                      pendingBatchReviews.data.find((intake) => intake.id === expandedId)
+                    }
                     caseIndex={filteredIntakes.findIndex((intake) => intake.id === expandedId)}
                     totalCases={filteredIntakes.length}
                     onActionComplete={(options) => handleIntakeActionComplete(expandedId, options)}
+                    onBatchReviewResolved={handleBatchReviewResolved}
                   />
                 </div>
               </div>
@@ -1178,7 +1213,6 @@ export function QueueClient({
           openReviewPanel={openReviewPanel}
           onPrimeReviewPanelCode={primeReviewPanelCode}
           dialogs={dialogs}
-          aiApprovedIntakes={aiApprovedIntakes}
           recentlyCompleted={recentlyCompleted}
           pagination={pagination}
           baseHref={baseHref}
