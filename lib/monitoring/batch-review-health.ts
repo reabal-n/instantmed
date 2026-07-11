@@ -1,4 +1,8 @@
-import { BATCH_REVIEW_DEADLINE_HOURS } from "@/lib/clinical/batch-review-policy"
+import {
+  BATCH_REVIEW_DEADLINE_HOURS,
+  BATCH_REVIEW_ELIGIBLE_STATUSES,
+  BATCH_REVIEW_ENFORCEMENT_START,
+} from "@/lib/clinical/batch-review-policy"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import type { BusinessAlert } from "@/lib/monitoring/alert-sections"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -24,7 +28,8 @@ export async function getBatchReviewHealth(
       .select("ai_approved_at", { count: "exact" })
       .eq("ai_approved", true)
       .eq("category", "medical_certificate")
-      .in("status", ["approved", "completed"])
+      .in("status", [...BATCH_REVIEW_ELIGIBLE_STATUSES])
+      .gte("ai_approved_at", BATCH_REVIEW_ENFORCEMENT_START)
       .is("batch_reviewed_at", null))
       .order("ai_approved_at", { ascending: true, nullsFirst: false })
       .limit(1)
@@ -34,7 +39,8 @@ export async function getBatchReviewHealth(
       .select("id", { count: "exact", head: true })
       .eq("ai_approved", true)
       .eq("category", "medical_certificate")
-      .in("status", ["approved", "completed"])
+      .in("status", [...BATCH_REVIEW_ELIGIBLE_STATUSES])
+      .gte("ai_approved_at", BATCH_REVIEW_ENFORCEMENT_START)
       .is("batch_reviewed_at", null)
       .lt("ai_approved_at", threshold))
 

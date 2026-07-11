@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { BATCH_REVIEW_ENFORCEMENT_START } from "@/lib/clinical/batch-review-policy"
+
 const mocks = vi.hoisted(() => ({
   createServiceRoleClient: vi.fn(),
 }))
@@ -8,7 +10,8 @@ vi.mock("@/lib/supabase/service-role", () => ({
   createServiceRoleClient: mocks.createServiceRoleClient,
 }))
 
-const OLDEST = "2026-07-10T01:00:00.000Z"
+// Post-cutover so the row is a genuine go-forward review obligation.
+const OLDEST = "2026-07-12T01:00:00.000Z"
 
 function createHarness(result: {
   data?: Array<Record<string, unknown>> | null
@@ -27,6 +30,10 @@ function createHarness(result: {
     }),
     in: vi.fn((...args: unknown[]) => {
       calls.push(["in", ...args])
+      return chain
+    }),
+    gte: vi.fn((...args: unknown[]) => {
+      calls.push(["gte", ...args])
       return chain
     }),
     is: vi.fn((...args: unknown[]) => {
@@ -93,7 +100,8 @@ describe("getPendingBatchReviews", () => {
     expect(harness.calls).toEqual(expect.arrayContaining([
       ["eq", "ai_approved", true],
       ["eq", "category", "medical_certificate"],
-      ["in", "status", ["approved", "completed"]],
+      ["in", "status", ["approved"]],
+      ["gte", "ai_approved_at", BATCH_REVIEW_ENFORCEMENT_START],
       ["is", "batch_reviewed_at", null],
       ["order", "ai_approved_at", { ascending: true, nullsFirst: false }],
       ["limit", 20],

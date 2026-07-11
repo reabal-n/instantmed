@@ -12,6 +12,7 @@ import * as Sentry from "@sentry/nextjs"
 
 import { revokeCertificateAction } from "@/app/actions/revoke-cert"
 import { withServerAction } from "@/lib/actions/with-server-action"
+import { doctorHasCapability } from "@/lib/auth/staff-capabilities"
 import { buildBatchReviewResolutionFields } from "@/lib/clinical/batch-review-policy"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
@@ -28,6 +29,18 @@ export const revokeAIApproval = withServerAction<RevokeAIApprovalInput>(
   async ({ intakeId, reason }, { supabase, profile, log }): Promise<ActionResult> => {
     if (!reason || reason.trim().length < 5) {
       return { success: false, error: "Please provide a reason for revocation (min 5 characters)" }
+    }
+
+    // Gate the destructive review outcome on the same capability as the benign
+    // confirm path (markBatchReviewed). Without this, a doctor scoped out of the
+    // med-cert service line could revoke an issued certificate and reopen the
+    // intake while being blocked from simply attesting it. Admin is exempt via
+    // doctorHasCapability (hasAdminAccess short-circuit).
+    if (!doctorHasCapability(profile, "review_med_certs")) {
+      return {
+        success: false,
+        error: "You are not authorised to review medical certificates",
+      }
     }
 
     // Verify intake has ai_approved = true
