@@ -15,11 +15,16 @@
 2. **The PHI keys (`PHI_MASTER_KEY` + `ENCRYPTION_KEY`) are the crown jewels.**
    Supabase backups are AES-256-GCM ciphertext — without these keys a perfect
    backup is **permanently unreadable**. Losing them is worse than losing the DB,
-   so keep ≥2 independent sealed copies. **Never rotate them without a
-   re-encryption migration** (`scripts/encrypt-phi-backfill.ts`) — rotation alone
-   bricks all PHI.
+   so keep ≥2 independent sealed copies.
 3. **Fill in the `🔒 ____` blanks** (operator/successor names, logins, 2FA, sealed
    locations). An inventory with blank pointers does not survive an emergency.
+
+> **PHI key rotation is not implemented.** Do not replace or remove the current
+> `PHI_MASTER_KEY` or `ENCRYPTION_KEY`. `scripts/encrypt-phi-backfill.ts` is an
+> initial plaintext-to-`ENCRYPTION_KEY` backfill only; it cannot re-encrypt
+> existing ciphertext or rotate `PHI_MASTER_KEY`. If a key value was changed
+> accidentally, restore the exact previous value and redeploy, preserve both
+> sealed copies, and escalate before any data rewrite.
 
 Entity/ABN/address are in CLAUDE.md → Platform Identity (support desks ask for the
 ABN + company docs as proof of authority; keep those docs with the §2 keys).

@@ -66,13 +66,30 @@ export default async function EncryptionDashboardPage() {
           <div>
             <h1 className="text-2xl font-semibold">Encryption diagnostics</h1>
             <p className="text-sm text-muted-foreground">
-              Incident-only checks for key rotation and encryption backfill. Routine health belongs in Ops.
+              Coverage diagnostics; key rotation is not implemented. Routine health belongs in Ops.
             </p>
           </div>
         </div>
         <Button asChild variant="outline" size="sm">
           <Link href={STAFF_OPS_HREF}>Back to Ops</Link>
         </Button>
+      </div>
+
+      <div
+        className="flex items-start gap-3 rounded-xl border border-warning-border bg-warning-light p-4 text-sm dark:border-warning/30 dark:bg-warning/10"
+        role="alert"
+      >
+        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden="true" />
+        <div className="space-y-1">
+          <p className="font-medium text-foreground dark:text-warning">
+            PHI key rotation is not implemented
+          </p>
+          <p className="max-w-3xl text-muted-foreground dark:text-foreground/80">
+            Do not replace or remove PHI_MASTER_KEY or ENCRYPTION_KEY. This page reports encryption
+            coverage only. If either value changed, restore the exact previous value, redeploy, preserve
+            both sealed copies, and escalate before rewriting data.
+          </p>
+        </div>
       </div>
 
       {/* Feature flag status */}

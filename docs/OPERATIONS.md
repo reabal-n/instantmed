@@ -116,7 +116,7 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 | Platform setup | `/admin/settings` | `/admin/features`, `/doctor/settings/identity`, `/admin/settings/templates` |
 
 Pages outside this map should either be reachable from these surfaces, redirect to them, or be treated as cleanup candidates.
-Incident-only PHI encryption diagnostics live at `/admin/settings/encryption`; keep it out of routine nav and dashboard crawl, and use it only for key rotation or backfill incidents.
+Incident-only PHI encryption coverage diagnostics live at `/admin/settings/encryption`; keep it out of routine nav and dashboard crawl. The page can inspect backfill coverage, but it cannot rotate encryption keys.
 Email delivery operations, suppression recovery, and email template editing stay under `/admin/emails/*`; do not duplicate them inside settings.
 Support staff get two bounded sidebar entries: `/admin/ops` for recovery triage and `/admin/intakes` Ledger for request/payment metadata lookup. Nested webhook, Parchment, and prescribing-identity pages stay reachable from the ops recovery cards rather than becoming separate sidebar modes.
 Admin-only pages should rely on `requireRole(["admin"])` default redirects so wrong-role staff land on the role-aware staff surface instead of bouncing through `/admin`.
@@ -222,11 +222,12 @@ Operational rules:
 
 ### ENCRYPTION_KEY / PHI_MASTER_KEY
 
-> **CRITICAL: Do NOT rotate without a data migration plan.** Existing encrypted PHI will become unreadable.
-
-1. Contact engineering lead
-2. Plan backfill/re-encryption before rotation
-3. Use `scripts/encrypt-phi-backfill.ts` for re-encryption
+> **PHI key rotation is not implemented.** Do not replace or remove the current
+> `PHI_MASTER_KEY` or `ENCRYPTION_KEY`. `scripts/encrypt-phi-backfill.ts` is an
+> initial plaintext-to-`ENCRYPTION_KEY` backfill only; it cannot re-encrypt
+> existing ciphertext or rotate `PHI_MASTER_KEY`. If a key value was changed
+> accidentally, restore the exact previous value and redeploy, preserve both
+> sealed copies, and escalate before any data rewrite.
 
 ### Stripe Keys
 
@@ -1013,8 +1014,8 @@ pg_restore --no-owner --dbname="$NEW_DATABASE_URL" backup-YYYYMMDD.dump
 | `STRIPE_WEBHOOK_SECRET` | Roll endpoint secret in Stripe → update env → redeploy | Brief (webhooks fail until deployed) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Regenerate in Supabase dashboard → update env → redeploy | Brief |
 | `RESEND_API_KEY` | Regenerate in Resend → update env → redeploy | Zero |
-| `PHI_MASTER_KEY` | **CRITICAL:** Must re-encrypt all PHI fields. See SECURITY.md | Requires migration |
-| `ENCRYPTION_KEY` | **CRITICAL:** Same as PHI_MASTER_KEY | Requires migration |
+| `PHI_MASTER_KEY` | **Rotation not implemented.** Do not replace or remove it; restore the exact previous value after an accidental change and escalate. | Unsupported |
+| `ENCRYPTION_KEY` | **Rotation not implemented.** Do not replace or remove it; restore the exact previous value after an accidental change and escalate. | Unsupported |
 | `UPSTASH_REDIS_REST_TOKEN` | Regenerate in Upstash → update env → redeploy | Brief (rate limits fail open) |
 | `CRON_SECRET` | Generate new value → update env → redeploy | Zero (crons use header auth) |
 | `ANTHROPIC_API_KEY` | Regenerate in Anthropic console → update env → redeploy | Zero |
@@ -1027,7 +1028,7 @@ pg_restore --no-owner --dbname="$NEW_DATABASE_URL" backup-YYYYMMDD.dump
 | Vercel outage | 0 (CDN failover) | 0 | Static pages served from CDN edge |
 | Supabase outage | 1-4h (PITR restore) | < 1h | Depends on PITR granularity |
 | Stripe outage | 0 (kill switches) | 0 | DLQ captures failed webhooks for replay |
-| Secret compromise | 15min (rotation) | 0 | Rotate immediately, redeploy |
+| Secret compromise | Depends on secret | 0 | Rotate supported credentials immediately. For PHI keys, preserve the current value and follow the unsupported-rotation containment above. |
 | Full data loss | 4-8h | 24h | Restore from daily backup |
 | Code regression | 5min (rollback) | 0 | Vercel instant rollback to previous deployment |
 

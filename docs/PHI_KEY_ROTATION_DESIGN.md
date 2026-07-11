@@ -2,6 +2,11 @@
 
 **Status:** DESIGN ONLY (2026-05-24). Not yet implemented. Operator approval required before shipping any of this.
 
+> This document is not an executable runbook. Neither key has a shipped rotation
+> path. Phase 2 must not begin until dual-key reads, an audited key-generation
+> procedure, complete column/cipher-format inventory, and rollback tests have
+> shipped in a separately approved security change.
+
 ## Current state
 
 The PHI encryption module at `lib/security/phi-encryption.ts` already implements envelope encryption:
@@ -17,7 +22,7 @@ Feature flags in env:
 - `PHI_ENCRYPTION_WRITE_ENABLED` — encrypt new writes
 - `PHI_ENCRYPTION_READ_ENABLED` — decrypt on read
 
-Production currently runs with the single `PHI_MASTER_KEY` (122 days old per Vercel env dashboard, 2026-05-24).
+The shipped implementation supports a single `PHI_MASTER_KEY` and no previous-key fallback.
 
 ## Gap
 
@@ -49,7 +54,7 @@ Tests:
 
 Procedure document (no code change):
 
-1. Generate a new master key (`node scripts/generate-phi-master-key.mjs` — already exists, see `encryption.ts:233` reference)
+1. Generate a new master key using the separately audited procedure required before this phase can begin
 2. In Vercel: set `PHI_MASTER_KEY_PREVIOUS` = current `PHI_MASTER_KEY` value
 3. In Vercel: set `PHI_MASTER_KEY` = new key value
 4. Redeploy (single deploy, no downtime — reads succeed via the dual-key fallback)
