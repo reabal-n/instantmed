@@ -112,6 +112,7 @@ interface IntakeReviewPanelProps {
    * unmount, so the parent should force-remount via `key={intakeId}`.
    */
   inline?: boolean
+  onBatchReviewResolved?: (intakeId: string) => void
 }
 
 type PreviewPatient = NonNullable<IntakeReviewPanelProps["previewIntake"]>["patient"]
@@ -195,6 +196,7 @@ export function IntakeReviewPanel({
   totalCases,
   profileMode = "doctor",
   inline = false,
+  onBatchReviewResolved,
 }: IntakeReviewPanelProps) {
   useAuth()
   const { closePanel, openPanel } = usePanel()
@@ -743,6 +745,7 @@ export function IntakeReviewPanel({
               revealIdentityByDefault={inline}
               showThinMedCertWarning={false}
               className={inline ? "min-h-0 flex-1" : undefined}
+              onBatchReviewResolved={onBatchReviewResolved}
             />
           </div>
         </IntakeReviewProvider>

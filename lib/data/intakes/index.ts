@@ -7,7 +7,6 @@
 // Queries (server-only)
 export {
   type FormToInboxStats,
-  getAIApprovedIntakes,
   getAllIntakesForAdmin,
   getDoctorQueue,
   getFormToInboxStats,
@@ -18,8 +17,10 @@ export {
   getPatientDashboardData,
   getPatientIntakes,
   getPatientNotes,
+  getPendingBatchReviews,
   getRecentlyCompletedIntakes,
   getTodayEarnings,
+  type PendingBatchReviewResult,
 } from "./queries"
 
 // Mutations (server-only)

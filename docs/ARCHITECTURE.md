@@ -915,6 +915,10 @@ Partial index on actionable states only: `idx_intakes_auto_approval_active` on `
 | `lib/clinical/auto-approval-pipeline.ts` | Orchestrator: claim → eligibility → doctor select → execute → mark terminal state |
 | `lib/clinical/auto-approval.ts` | Eligibility engine (unchanged) |
 
+**Post-approval doctor oversight:** Auto-approval is not the end of the governance workflow. `getPendingBatchReviews()` reads unresolved auto-approved medical certificates oldest-first (`batch_reviewed_at IS NULL`) for staff who hold `review_med_certs`. The `/dashboard` banner exposes only the aggregate count and oldest age; opening the oldest certificate loads the normal clinical record and requires one explicit outcome. `markBatchReviewed()` compare-and-set stamps one eligible certificate and writes an `ai_audit_log` review receipt. `revokeAIApproval()` is the second valid outcome: it revokes the certificate, returns the intake to manual review, and stamps the same `batch_reviewed_at` / `batch_reviewed_by` receipt. The database permits that otherwise-forbidden `approved → in_review` reversal only when the original intake was AI-approved, a revoked issued-certificate row exists, and both batch-review receipt fields are present. There is no bulk action and no silent backfill.
+
+`getBatchReviewHealth()` supplies aggregate-only pending, overdue, and oldest-age values to `/api/cron/business-alerts`. The critical `med_cert_batch_review_overdue` metric pages through the existing per-metric cooldown without including intake IDs, patient IDs, or PHI.
+
 **Race condition handling:**
 
 | Problem | Solution |
