@@ -29,6 +29,9 @@ const logger = createLogger("intake-lifecycle")
 //   approved → awaiting_script    (script needs to be sent externally)
 //   awaiting_script → completed   (script sent)
 //
+//   approved → in_review          (DB-TRIGGER-ONLY guarded reversal; see note
+//                                  on VALID_STATUS_TRANSITIONS.approved below)
+//
 // ============================================
 
 import type { IntakeStatus, PaymentStatus } from "@/types/intake"
@@ -47,6 +50,14 @@ export const VALID_STATUS_TRANSITIONS: Record<IntakeStatus, IntakeStatus[]> = {
   paid: ["in_review", "approved", "awaiting_script", "cancelled"],
   in_review: ["approved", "declined", "pending_info", "escalated", "awaiting_script"],
   pending_info: ["in_review", "paid", "cancelled", "expired"],
+  // `approved` is intentionally one-way for ordinary app-layer callers. The DB
+  // trigger additionally permits a GUARDED `approved → in_review` reversal, but
+  // only when the issued certificate is revoked (batch-review revocation and the
+  // 30s approval undo, which both do a direct service-role update and bypass this
+  // map). Do NOT add "in_review" here: the pure allowed-list can't express the
+  // revoked-cert guard, so listing it would let an unguarded reopen pass app
+  // validation that the DB then rejects — the wrong (app ⊋ DB) direction the
+  // parity contract forbids. See migration 20260711193000.
   approved: ["completed", "awaiting_script"],
   awaiting_script: ["completed"],
   declined: [], // Terminal

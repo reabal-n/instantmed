@@ -20,6 +20,7 @@ import { ReviewBlockersStrip } from "@/components/doctor/review/review-blockers-
 import { SafetyFlagsCard } from "@/components/doctor/review/safety-flags-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { isBatchReviewEligible } from "@/lib/clinical/batch-review-policy"
 import { buildClinicalCaseSummary, type ClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { buildPrescribingPacket } from "@/lib/clinical/prescribing-packet"
 import { isPrescribingConsultSubtype } from "@/lib/doctor/service-types"
@@ -220,10 +221,7 @@ export function IntakeReviewCockpit({
     })
   }, [canRequestClinicalDetail, intake.id, router])
 
-  const isPendingBatchReview = intake.ai_approved === true &&
-    intake.category === "medical_certificate" &&
-    ["approved", "completed"].includes(intake.status) &&
-    !intake.batch_reviewed_at
+  const isPendingBatchReview = isBatchReviewEligible(intake)
   const decisionActions = isPendingBatchReview && onBatchReviewResolved ? (
     <BatchReviewAttestation intake={intake} onResolved={onBatchReviewResolved} />
   ) : (

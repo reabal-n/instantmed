@@ -9,25 +9,13 @@ import { revokeAIApproval } from "@/app/actions/revoke-ai-approval"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
+import { type BatchReviewCandidate, isBatchReviewEligible } from "@/lib/clinical/batch-review-policy"
 
-interface BatchReviewIntake {
-  id: string
-  ai_approved?: boolean | null
-  category?: string | null
-  status?: string | null
-  batch_reviewed_at?: string | null
-}
+type BatchReviewIntake = BatchReviewCandidate & { id: string }
 
 interface BatchReviewAttestationProps {
   intake: BatchReviewIntake
   onResolved: (intakeId: string) => void
-}
-
-function isEligible(intake: BatchReviewIntake): boolean {
-  return intake.ai_approved === true &&
-    intake.category === "medical_certificate" &&
-    ["approved", "completed"].includes(intake.status ?? "") &&
-    !intake.batch_reviewed_at
 }
 
 export function BatchReviewAttestation({ intake, onResolved }: BatchReviewAttestationProps) {
@@ -37,7 +25,7 @@ export function BatchReviewAttestation({ intake, onResolved }: BatchReviewAttest
   const [resolved, setResolved] = useState(false)
   const [isPending, startTransition] = useTransition()
 
-  if (!isEligible(intake) || resolved) return null
+  if (!isBatchReviewEligible(intake) || resolved) return null
 
   const handleAttest = () => {
     if (!attested || isPending) return
