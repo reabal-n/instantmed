@@ -12,6 +12,7 @@ import * as Sentry from "@sentry/nextjs"
 
 import { revokeCertificateAction } from "@/app/actions/revoke-cert"
 import { withServerAction } from "@/lib/actions/with-server-action"
+import { buildBatchReviewResolutionFields } from "@/lib/clinical/batch-review-policy"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
 import { createNotification } from "@/lib/notifications/service"
@@ -55,18 +56,24 @@ export const revokeAIApproval = withServerAction<RevokeAIApprovalInput>(
       return { success: false, error: revokeResult.error || "Failed to revoke certificate" }
     }
 
-    // Move intake back to in_review (keep ai_approved=true for audit trail)
+    // Revocation is the second valid individual-review outcome. Move the
+    // intake back to manual review while closing the batch-review obligation.
+    const reviewedAt = new Date()
     const { error: updateError } = await supabase
       .from("intakes")
       .update({
         status: "in_review",
-        updated_at: new Date().toISOString(),
+        updated_at: reviewedAt.toISOString(),
+        ...buildBatchReviewResolutionFields(profile.id, reviewedAt),
       })
       .eq("id", intakeId)
 
     if (updateError) {
       log.error("Failed to update intake status after revocation", { intakeId, error: updateError.message })
-      // Certificate is already revoked, so this is a partial failure
+      return {
+        success: false,
+        error: "Certificate revoked, but the intake could not return to manual review. Retry before leaving this case.",
+      }
     }
 
     // Log to ai_audit_log

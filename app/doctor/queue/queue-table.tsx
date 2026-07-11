@@ -133,7 +133,6 @@ export interface QueueTableProps {
   dialogs: QueueDialogState
 
   // Extra sections
-  aiApprovedIntakes: IntakeWithPatient[]
   recentlyCompleted: IntakeWithPatient[]
   pagination?: PaginationInfo
   baseHref?: string
@@ -175,7 +174,6 @@ export function QueueTable({
   lastOpenedIntakeId,
   onRememberOpenedCase,
   dialogs,
-  aiApprovedIntakes,
   recentlyCompleted,
   pagination,
   baseHref = STAFF_DASHBOARD_HREF,
@@ -192,9 +190,8 @@ export function QueueTable({
   const { openPanel } = usePanel()
   const [quickPrescribePending, startQuickPrescribeTransition] = useTransition()
   const [completedExpanded, setCompletedExpanded] = useState(false)
-  const [aiExpanded, setAiExpanded] = useState(false)
   const hasOpenQueueDialog = Boolean(
-    dialogs.declineDialog || dialogs.infoDialog || dialogs.flagDialog || dialogs.revokeDialog,
+    dialogs.declineDialog || dialogs.infoDialog || dialogs.flagDialog,
   )
 
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1
@@ -798,119 +795,6 @@ export function QueueTable({
             </div>
           )}
         </div>
-      )}
-
-      {/* AI-Approved Review Section - above pagination so doctors always see it */}
-      {!compactShell && aiApprovedIntakes.length > 0 && (
-        <Card className="overflow-hidden rounded-xl border-teal-200/60 bg-card/90 shadow-sm shadow-primary/[0.025] dark:border-teal-500/20">
-          <CardHeader className="p-0">
-            <button
-              type="button"
-              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/35"
-              onClick={() => setAiExpanded((v) => !v)}
-              aria-expanded={aiExpanded}
-            >
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-                  <h3 className="text-sm font-semibold text-foreground">
-                    AI-approved certificates ({aiApprovedIntakes.length})
-                  </h3>
-                </div>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Batch review queue. Expand when spot-checking or revoking.
-                </p>
-              </div>
-              <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform", aiExpanded && "rotate-180")} />
-            </button>
-          </CardHeader>
-          {aiExpanded && <CardContent className="space-y-1.5 border-t border-border/40 px-3 py-3">
-            {aiApprovedIntakes.map((intake) => {
-              const aiService = intake.service as { short_name?: string; type?: string } | undefined
-              return (
-                <div
-                  key={intake.id}
-                  className="flex cursor-pointer flex-col justify-between gap-2 rounded-lg border border-border/40 bg-muted/20 p-2.5 transition-colors hover:bg-muted/45 sm:flex-row sm:items-center sm:gap-3"
-                  onClick={() => openReviewPanel(intake.id)}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <UserCard name={intake.patient.full_name} size="sm" className="shrink-0" />
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant="outline" className="text-xs">
-                        {aiService?.short_name || "Med Cert"}
-                      </Badge>
-                      <Badge className="bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-500/20">
-                        <Sparkles className="w-3 h-3 mr-1" />
-                        AI approved
-                      </Badge>
-                      {Boolean((intake as IntakeWithPatient & { soft_flags?: string[] }).soft_flags) && (
-                        <Badge
-                          variant="outline"
-                          className="text-xs border-amber-300 dark:border-amber-500/30 text-amber-700 dark:text-amber-400"
-                        >
-                          Flagged for review
-                        </Badge>
-                      )}
-                      {intake.ai_approved_at && (
-                        <span className="text-xs text-muted-foreground hidden sm:inline">
-                          {new Date(intake.ai_approved_at).toLocaleDateString("en-AU", {
-                            day: "numeric",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0 self-end sm:self-auto">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs shrink-0"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        openReviewPanel(intake.id)
-                      }}
-                    >
-                      Review
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs shrink-0"
-                      onClick={async (e) => {
-                        e.stopPropagation()
-                        try {
-                          const res = await fetch(`/api/doctor/certificates/${intake.id}/download`)
-                          if (!res.ok) { toast.error("Certificate not available"); return }
-                          const blob = await res.blob()
-                          window.open(URL.createObjectURL(blob), "_blank")
-                        } catch {
-                          toast.error("Failed to load certificate")
-                        }
-                      }}
-                    >
-                      <Eye className="h-3.5 w-3.5 mr-1" />
-                      PDF
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs text-destructive hover:text-destructive shrink-0"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        dialogs.setRevokeDialog(intake.id)
-                      }}
-                    >
-                      Revoke
-                    </Button>
-                  </div>
-                </div>
-              )
-            })}
-          </CardContent>}
-        </Card>
       )}
 
       {/* Recently Completed Today */}

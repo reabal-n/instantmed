@@ -158,6 +158,12 @@ describe("doctor queue production contract", () => {
     expect(queueTableSource).toContain("if (event.detail === 0) openCaseFromPrimaryAction()")
   })
 
+  it("treats the desktop inline review as open so focus refreshes preserve selection", () => {
+    expect(queueClientSource).toContain("panelOpenRef.current = Boolean(activePanel || expandedId)")
+    expect(queueClientSource).toContain("panelOpenRef.current = true")
+    expect(queueClientSource).not.toContain("panelOpenRef.current = false")
+  })
+
   it("keeps queue hover visual-only so clinical review data loads only after explicit open", () => {
     expect(existsSync(join(process.cwd(), "components/doctor/queue/queue-row-peek.tsx"))).toBe(false)
     expect(existsSync(join(process.cwd(), "lib/doctor/review-data-cache.ts"))).toBe(false)

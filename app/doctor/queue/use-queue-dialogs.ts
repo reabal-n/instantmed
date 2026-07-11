@@ -40,12 +40,6 @@ export interface QueueDialogState {
   setFlagReason: (reason: string) => void
   handleFlag: () => void
 
-  // Revoke
-  revokeDialog: string | null
-  setRevokeDialog: (id: string | null) => void
-  revokeReason: string
-  setRevokeReason: (reason: string) => void
-
   isPending: boolean
 }
 
@@ -75,10 +69,6 @@ export function useQueueDialogs({ intakes, setIntakes }: UseQueueDialogsOptions)
   // Flag dialog
   const [flagDialog, setFlagDialog] = useState<string | null>(null)
   const [flagReason, setFlagReason] = useState("")
-
-  // Revoke dialog
-  const [revokeDialog, setRevokeDialog] = useState<string | null>(null)
-  const [revokeReason, setRevokeReason] = useState("")
 
   // Lazy-load templates
   useEffect(() => {
@@ -217,10 +207,6 @@ export function useQueueDialogs({ intakes, setIntakes }: UseQueueDialogsOptions)
     flagReason,
     setFlagReason,
     handleFlag,
-    revokeDialog,
-    setRevokeDialog,
-    revokeReason,
-    setRevokeReason,
     isPending,
   }
 }

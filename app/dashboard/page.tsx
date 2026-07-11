@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import nextDynamic from "next/dynamic"
 import { redirect } from "next/navigation"
-import { Suspense } from "react"
 
 import { QueueClient } from "@/app/doctor/queue/queue-client"
 import { OwnerOperatorSetupCard } from "@/components/admin/owner-operator-setup-card"
@@ -17,9 +16,9 @@ import {
   TestDataToggleButton,
 } from "@/components/operator/test-data-banner"
 import { PanelProvider } from "@/components/panels/panel-provider"
-import { SkeletonList } from "@/components/ui/skeleton"
 import { requireRole } from "@/lib/auth/helpers"
 import {
+  doctorHasCapability,
   hasAdminAccess,
   hasDoctorAccess,
   hasSupportAccess,
@@ -36,9 +35,9 @@ import {
   isDoctorIdentityComplete,
 } from "@/lib/data/doctor-identity"
 import {
-  getAIApprovedIntakes,
   getDoctorQueue,
   getFormToInboxStats,
+  getPendingBatchReviews,
   getRecentlyCompletedIntakes,
   getTodayEarnings,
 } from "@/lib/data/intakes"
@@ -96,6 +95,7 @@ export default async function StaffDashboardPage({
   }
 
   const isAdmin = hasAdminAccess(profile)
+  const canReviewMedicalCertificates = doctorHasCapability(profile, "review_med_certs")
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page || "1", 10))
   const pageSize = Math.min(100, Math.max(10, parseInt(params.pageSize || "50", 10)))
@@ -114,7 +114,9 @@ export default async function StaffDashboardPage({
 
   const results = await Promise.allSettled([
     getDoctorQueue({ page, pageSize, doctorId: profile.id, allowSeeded: showTestData, onlySeeded: onlyTestData }),
-    isAdmin ? getAIApprovedIntakes({ limit: 20 }) : Promise.resolve([]),
+    canReviewMedicalCertificates
+      ? getPendingBatchReviews({ limit: 20 })
+      : Promise.resolve({ data: [], total: 0, oldestApprovedAt: null, degraded: false }),
     isAdmin ? getRecentlyCompletedIntakes({ limit: 50 }) : Promise.resolve([]),
     getDoctorIdentity(profile.id),
     isAdmin ? getTodayEarnings() : Promise.resolve(0),
@@ -126,7 +128,9 @@ export default async function StaffDashboardPage({
   const queueResult = results[0].status === "fulfilled"
     ? results[0].value
     : { data: [] as IntakeWithPatient[], total: 0, page: 1, pageSize, degraded: true }
-  const aiApprovedIntakes = results[1].status === "fulfilled" ? results[1].value : []
+  const pendingBatchReviews = results[1].status === "fulfilled"
+    ? results[1].value
+    : { data: [], total: 0, oldestApprovedAt: null, degraded: true }
   const recentlyCompleted = results[2].status === "fulfilled" ? results[2].value : []
   const doctorIdentity: DoctorIdentity | null = results[3].status === "fulfilled" ? results[3].value : null
   const todayEarnings = results[4].status === "fulfilled" ? results[4].value : 0
@@ -158,7 +162,7 @@ export default async function StaffDashboardPage({
     if (result.status === "rejected") {
       const names = [
         "queue",
-        "ai-approved",
+        "pending-batch-reviews",
         "recently-completed",
         "identity",
         "earnings",
@@ -239,7 +243,6 @@ export default async function StaffDashboardPage({
           */}
 
           <section id="doctor-queue" className="min-h-0 flex-1">
-            <Suspense fallback={<SkeletonList count={5} />}>
             <QueueClient
               intakes={queueResult.data}
               doctorId={profile.id}
@@ -250,7 +253,7 @@ export default async function StaffDashboardPage({
                 pageSize: queueResult.pageSize,
                 total: queueResult.total,
               }}
-              aiApprovedIntakes={aiApprovedIntakes}
+              pendingBatchReviews={pendingBatchReviews}
               recentlyCompleted={recentlyCompleted}
               todayEarnings={todayEarnings}
               initialStatusFilter={initialStatusFilter}
@@ -259,7 +262,6 @@ export default async function StaffDashboardPage({
               doctorAvailable={doctorAvailable}
               compactShell
             />
-            </Suspense>
           </section>
         </OperatorScrollArea>
       </OperatorPage>

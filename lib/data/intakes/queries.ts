@@ -398,97 +398,80 @@ export async function getDoctorQueue(
   }
 }
 
+export interface PendingBatchReviewResult {
+  data: IntakeWithPatient[]
+  total: number
+  oldestApprovedAt: string | null
+  degraded: boolean
+}
+
 /**
- * Get AI-approved intakes for doctor batch review.
- * Returns approved intakes where ai_approved=true, ordered by most recent.
+ * Read the unresolved post-auto-approval medical-certificate review queue.
+ * The first row is always the oldest review obligation so the cockpit can
+ * drive one certificate at a time.
  */
-export async function getAIApprovedIntakes(
+export async function getPendingBatchReviews(
   options?: { limit?: number }
-): Promise<IntakeWithPatient[]> {
+): Promise<PendingBatchReviewResult> {
   const supabase = createServiceRoleClient()
-  const limit = options?.limit ?? 20
+  const limit = Math.max(1, Math.min(options?.limit ?? 20, 100))
 
   try {
-    const data = await readDashboardQuery({
-      label: "AI-approved intakes",
-      fallback: [] as Array<Record<string, unknown>>,
-      context: { surface: "staff-dashboard", limit },
-      operation: async () => {
-        const { data, error } = await supabase
-          .from("intakes")
-          .select(`
-            id,
-            patient_id,
-            service_id,
-            category,
-            subtype,
-            status,
-            payment_status,
-            is_priority,
-            sla_deadline,
-            created_at,
-            updated_at,
-            ai_approved,
-            ai_approved_at,
-            ai_approval_reason,
-            patient:profiles!patient_id (id, full_name, email, date_of_birth),
-            service:services!service_id (id, name, short_name, type, slug)
-          `)
-          .eq("ai_approved", true)
-          .in("status", ["approved", "completed"])
-          .order("ai_approved_at", { ascending: false })
-          .limit(limit)
+    const { data, count, error } = await filterSeededE2EIntakes(supabase
+      .from("intakes")
+      .select(`
+        id,
+        reference_number,
+        patient_id,
+        service_id,
+        category,
+        subtype,
+        status,
+        payment_status,
+        is_priority,
+        sla_deadline,
+        approved_at,
+        created_at,
+        updated_at,
+        ai_approved,
+        ai_approved_at,
+        ai_approval_reason,
+        batch_reviewed_at,
+        batch_reviewed_by,
+        patient:profiles!patient_id (id, full_name, email, date_of_birth),
+        service:services!service_id (id, name, short_name, type, slug)
+      `, { count: "exact" })
+      .eq("ai_approved", true)
+      .eq("category", "medical_certificate")
+      .in("status", ["approved", "completed"])
+      .is("batch_reviewed_at", null))
+      .order("ai_approved_at", { ascending: true, nullsFirst: false })
+      .limit(limit)
 
-        return { data: error ? null : (data || []) as Array<Record<string, unknown>>, error }
-      },
-    })
-
-    // Fetch soft flags from audit log for these intakes. This metadata is useful
-    // but non-critical, so it must not take down the queue surface.
-    const intakeIds = (data || []).map(r => r.id)
-    const softFlagsMap: Record<string, string[]> = {}
-    if (intakeIds.length > 0) {
-      const auditRows = await readDashboardQuery({
-        label: "AI-approved audit flags",
-        fallback: [] as Array<{ intake_id: string; metadata: { softFlags?: string[] } | null }>,
-        context: { surface: "staff-dashboard", intakeCount: intakeIds.length },
-        operation: async () => {
-          const { data, error } = await supabase
-            .from("ai_audit_log")
-            .select("intake_id, metadata")
-            .in("intake_id", intakeIds)
-            .eq("action", "auto_approve")
-            .not("metadata->softFlags", "is", null)
-            .order("created_at", { ascending: false })
-
-          return {
-            data: error ? null : (data || []) as Array<{ intake_id: string; metadata: { softFlags?: string[] } | null }>,
-            error,
-          }
-        },
-      })
-
-      for (const row of auditRows) {
-        const meta = row.metadata as { softFlags?: string[] } | null
-        if (meta?.softFlags?.length && !softFlagsMap[row.intake_id]) {
-          softFlagsMap[row.intake_id] = meta.softFlags
-        }
-      }
+    if (error) {
+      logger.warn("Pending batch-review queue could not load", { error: error.message })
+      return { data: [], total: 0, oldestApprovedAt: null, degraded: true }
     }
 
-    const unwrapped = (data || []).map(row => {
-      const rowId = typeof row.id === "string" ? row.id : ""
-      return {
-        ...row,
-        patient: Array.isArray(row.patient) ? row.patient[0] : row.patient,
-        service: Array.isArray(row.service) ? row.service[0] : row.service,
-        soft_flags: softFlagsMap[rowId] || null,
-      }
-    })
-    return unwrapped.filter((r) => r.patient !== null) as unknown as IntakeWithPatient[]
+    const unwrapped = (data || []).map((row) => ({
+      ...row,
+      patient: Array.isArray(row.patient) ? row.patient[0] : row.patient,
+      service: Array.isArray(row.service) ? row.service[0] : row.service,
+    }))
+    const validData = unwrapped.filter((row) => row.patient !== null) as unknown as IntakeWithPatient[]
+    const oldestApprovedAt = typeof data?.[0]?.ai_approved_at === "string"
+      ? data[0].ai_approved_at
+      : null
+
+    return {
+      data: validData,
+      total: count ?? validData.length,
+      oldestApprovedAt,
+      degraded: false,
+    }
   } catch (err) {
-    logger.warn("AI-approved intakes failed after fallback", { error: toError(err).message })
-    return []
+    logger.warn("Pending batch-review queue failed", { error: toError(err).message })
+    return { data: [], total: 0, oldestApprovedAt: null, degraded: true }
   }
 }
 

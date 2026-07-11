@@ -85,7 +85,10 @@ function transitionBlock(source: string, fromStatus: string) {
     return ""
   }
 
-  const end = source.indexOf("END IF;", start)
+  // A status block may contain nested guards (for example the narrowly
+  // constrained approved -> in_review revocation path). Stop at the next
+  // top-level OLD.status block instead of the first nested END IF.
+  const end = source.indexOf("IF OLD.status", start + 1)
   return end === -1 ? source.slice(start) : source.slice(start, end)
 }
 
