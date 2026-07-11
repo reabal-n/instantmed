@@ -2,6 +2,10 @@ import "server-only"
 
 import { unstable_cache } from "next/cache"
 
+import {
+  BATCH_REVIEW_ELIGIBLE_STATUSES,
+  BATCH_REVIEW_ENFORCEMENT_START,
+} from "@/lib/clinical/batch-review-policy"
 import { readDashboardQuery } from "@/lib/data/dashboard-read-model"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
@@ -443,7 +447,8 @@ export async function getPendingBatchReviews(
       `, { count: "exact" })
       .eq("ai_approved", true)
       .eq("category", "medical_certificate")
-      .in("status", ["approved", "completed"])
+      .in("status", [...BATCH_REVIEW_ELIGIBLE_STATUSES])
+      .gte("ai_approved_at", BATCH_REVIEW_ENFORCEMENT_START)
       .is("batch_reviewed_at", null))
       .order("ai_approved_at", { ascending: true, nullsFirst: false })
       .limit(limit)
@@ -459,8 +464,10 @@ export async function getPendingBatchReviews(
       service: Array.isArray(row.service) ? row.service[0] : row.service,
     }))
     const validData = unwrapped.filter((row) => row.patient !== null) as unknown as IntakeWithPatient[]
-    const oldestApprovedAt = typeof data?.[0]?.ai_approved_at === "string"
-      ? data[0].ai_approved_at
+    // Derive "oldest" from the openable rows, not the raw first row: the banner
+    // age and the "review oldest" target must describe the same intake.
+    const oldestApprovedAt = typeof validData[0]?.ai_approved_at === "string"
+      ? validData[0].ai_approved_at
       : null
 
     return {

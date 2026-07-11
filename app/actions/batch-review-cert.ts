@@ -10,7 +10,10 @@ import { z } from "zod"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { doctorHasCapability } from "@/lib/auth/staff-capabilities"
-import { buildBatchReviewResolutionFields } from "@/lib/clinical/batch-review-policy"
+import {
+  BATCH_REVIEW_ELIGIBLE_STATUSES,
+  buildBatchReviewResolutionFields,
+} from "@/lib/clinical/batch-review-policy"
 import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -48,7 +51,7 @@ export async function markBatchReviewed(intakeId: string): Promise<BatchReviewRe
     .eq("id", intakeId)
     .eq("ai_approved", true)
     .eq("category", "medical_certificate")
-    .in("status", ["approved", "completed"])
+    .in("status", [...BATCH_REVIEW_ELIGIBLE_STATUSES])
     .is("batch_reviewed_at", null)
     .select("id, batch_reviewed_at")
 
