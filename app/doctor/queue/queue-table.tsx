@@ -125,6 +125,7 @@ export interface QueueTableProps {
   calculateWaitTime: (createdAt: string) => string
   getWaitTimeSeverity: (createdAt: string, slaDeadline?: string | null) => "normal" | "warning" | "critical"
   openReviewPanel: (intakeId: string) => void
+  onPrimeReviewPanelCode?: () => void
   openIntakeId: string | null
   doctorId: string
   lastOpenedIntakeId: string | null
@@ -167,6 +168,7 @@ export function QueueTable({
   calculateWaitTime,
   getWaitTimeSeverity,
   openReviewPanel,
+  onPrimeReviewPanelCode,
   openIntakeId,
   doctorId,
   lastOpenedIntakeId,
@@ -403,6 +405,8 @@ export function QueueTable({
                   })
                   openReviewPanel(intake.id)
                 }}
+                onPointerEnter={onPrimeReviewPanelCode}
+                onFocus={onPrimeReviewPanelCode}
               >
                 {/* Patient */}
                 <div className="col-start-1 row-start-1 min-w-0 sm:shrink-0">

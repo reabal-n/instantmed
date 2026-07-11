@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { toast } from "sonner"
 
 import { BatchReviewBanner } from "@/components/doctor/batch-review-banner"
-import { IntakeReviewPanel } from "@/components/doctor/intake-review-panel"
 import { OperatorSplitPane } from "@/components/operator/operator-page"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
@@ -56,12 +55,70 @@ interface QueueEmptyState {
   summary?: string | null
 }
 
+interface LazyIntakeReviewPanelProps {
+  intakeId: string
+  onActionComplete?: (options?: { advance?: boolean }) => void
+  onBatchReviewResolved?: (intakeId: string) => void
+  onNextCase?: () => void
+  onPrevCase?: () => void
+  caseIndex?: number
+  totalCases?: number
+  profileMode?: "doctor" | "admin"
+  inline?: boolean
+  previewIntake?: IntakeWithPatient
+}
+
+function IntakeReviewPanelLoading() {
+  const pulse = "rounded-md bg-[#F1EFEA]/80 motion-safe:animate-pulse dark:bg-white/10"
+
+  return (
+    <div
+      className="h-full min-h-0 overflow-y-auto p-3 sm:p-4 motion-safe:animate-[review-pane-in_280ms_cubic-bezier(0.16,1,0.3,1)]"
+      aria-busy="true"
+      aria-label="Loading case review"
+      data-testid="intake-review-loading"
+      data-review-skeleton-matched
+    >
+      <div className="flex h-full w-full flex-col gap-3">
+        <div className="space-y-2">
+          <div className={cn(pulse, "h-7 w-56")} />
+          <div className={cn(pulse, "h-4 w-28 rounded-full")} />
+        </div>
+        <div className="grid gap-2 rounded-xl border border-border/55 bg-muted/20 p-3 sm:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className={cn(pulse, "h-5")} />
+          ))}
+        </div>
+        <div className="min-h-[136px] rounded-xl border border-border/50 bg-card p-4" data-review-skeleton-reserved>
+          <div className={cn(pulse, "h-3 w-32")} />
+          <div className={cn(pulse, "mt-3 h-20 rounded-lg")} />
+        </div>
+        <div className="min-h-[154px] rounded-xl border border-border/50 bg-card p-4" data-review-skeleton-reserved>
+          <div className={cn(pulse, "h-3 w-24")} />
+          <div className={cn(pulse, "mt-3 h-4 w-full")} />
+          <div className={cn(pulse, "mt-2 h-4 w-10/12")} />
+        </div>
+        <div className="mt-auto rounded-xl border-t border-border bg-background/80 px-3 py-2">
+          <div className={cn(pulse, "h-8 w-full max-w-44 rounded-lg")} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function isQueuePrescribingConsult(serviceType?: string | null, subtype?: string | null): boolean {
   return (
     (serviceType === SERVICE_TYPES.CONSULT || serviceType === SERVICE_TYPES.CONSULTS) &&
     isPrescribingConsultSubtype(subtype)
   )
 }
+
+const loadIntakeReviewPanel = () =>
+  import("@/components/doctor/intake-review-panel").then((mod) => mod.IntakeReviewPanel)
+
+const IntakeReviewPanel = dynamic<LazyIntakeReviewPanelProps>(loadIntakeReviewPanel, {
+  loading: () => <IntakeReviewPanelLoading />,
+})
 
 const ApprovedTodayList = dynamic<{
   intakes: IntakeWithPatient[]
@@ -604,6 +661,10 @@ export function QueueClient({
     })
   }, [openPanel, compactShell, isDesktop, handleIntakeActionComplete, handleBatchReviewResolved])
 
+  const primeReviewPanelCode = useCallback(() => {
+    void loadIntakeReviewPanel()
+  }, [])
+
   const handleApprove = useCallback(async (intakeId: string, serviceType?: string | null, subtype?: string | null) => {
     if (
       serviceType === SERVICE_TYPES.MED_CERTS ||
@@ -1078,6 +1139,7 @@ export function QueueClient({
                   calculateWaitTime={calculateStableWaitTime}
                   getWaitTimeSeverity={getStableWaitTimeSeverity}
                   openReviewPanel={openReviewPanel}
+                  onPrimeReviewPanelCode={primeReviewPanelCode}
                   dialogs={dialogs}
                   recentlyCompleted={recentlyCompleted}
                   pagination={pagination}
@@ -1149,6 +1211,7 @@ export function QueueClient({
           calculateWaitTime={calculateStableWaitTime}
           getWaitTimeSeverity={getStableWaitTimeSeverity}
           openReviewPanel={openReviewPanel}
+          onPrimeReviewPanelCode={primeReviewPanelCode}
           dialogs={dialogs}
           recentlyCompleted={recentlyCompleted}
           pagination={pagination}
