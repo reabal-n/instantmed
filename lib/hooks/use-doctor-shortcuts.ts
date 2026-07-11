@@ -17,6 +17,64 @@
 
 import { useCallback,useEffect } from "react"
 
+const INTERACTIVE_KEYBOARD_TARGET_SELECTOR = [
+  "input",
+  "textarea",
+  "select",
+  "button",
+  "summary",
+  "a[href]",
+  '[contenteditable]:not([contenteditable="false"])',
+  '[role="button"]',
+  '[role="checkbox"]',
+  '[role="combobox"]',
+  '[role="link"]',
+  '[role="listbox"]',
+  '[role="menu"]',
+  '[role="menuitem"]',
+  '[role="option"]',
+  '[role="radio"]',
+  '[role="slider"]',
+  '[role="spinbutton"]',
+  '[role="switch"]',
+  '[role="tab"]',
+  '[role="textbox"]',
+  "[data-doctor-shortcuts-disabled]",
+].join(",")
+
+const INTERACTIVE_KEYBOARD_TARGET_TAGS = new Set([
+  "BUTTON",
+  "INPUT",
+  "OPTION",
+  "SELECT",
+  "SUMMARY",
+  "TEXTAREA",
+])
+
+/**
+ * Unmodified navigation and single-key doctor shortcuts must never win over
+ * typing, caret movement, or an interactive control's native keyboard
+ * behaviour. Callers may retain explicit Escape or modifier-key actions.
+ * `closest()` also catches nested elements such as an SVG inside a button or a
+ * span inside an editor.
+ */
+export function isEditableOrInteractiveKeyboardTarget(target: EventTarget | null): boolean {
+  if (!target || typeof target !== "object") return false
+
+  const element = target as EventTarget & {
+    tagName?: unknown
+    isContentEditable?: unknown
+    closest?: (selector: string) => unknown
+  }
+  const tagName = typeof element.tagName === "string" ? element.tagName.toUpperCase() : ""
+
+  if (INTERACTIVE_KEYBOARD_TARGET_TAGS.has(tagName)) return true
+  if (element.isContentEditable === true) return true
+  if (typeof element.closest !== "function") return false
+
+  return Boolean(element.closest(INTERACTIVE_KEYBOARD_TARGET_SELECTOR))
+}
+
 interface ShortcutHandlers {
   onApprove?: () => void
   onDecline?: () => void
@@ -40,13 +98,9 @@ export function useDoctorShortcuts({
     (event: KeyboardEvent) => {
       if (disabled) return
 
-      // Don't trigger shortcuts when typing in inputs
-      const target = event.target as HTMLElement
-      if (
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.isContentEditable
-      ) {
+      // Keep the legacy Escape-to-close exception, but suppress all other
+      // single-key shortcuts while editing or using a control.
+      if (isEditableOrInteractiveKeyboardTarget(event.target)) {
         // Allow Escape in inputs
         if (event.key === "Escape" && onEscape) {
           onEscape()
@@ -157,11 +211,7 @@ export function useDoctorShortcutsExtended({
     (event: KeyboardEvent) => {
       if (disabled) return
 
-      const target = event.target as HTMLElement
-      const isInput = 
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.isContentEditable
+      const isInteractiveTarget = isEditableOrInteractiveKeyboardTarget(event.target)
 
       const isMod = event.metaKey || event.ctrlKey
 
@@ -179,7 +229,7 @@ export function useDoctorShortcutsExtended({
       }
 
       // Don't trigger other shortcuts when typing in inputs
-      if (isInput) return
+      if (isInteractiveTarget) return
 
       // ⌘/Ctrl + Enter: Approve
       if (isMod && event.key === "Enter") {

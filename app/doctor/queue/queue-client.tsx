@@ -24,6 +24,7 @@ import { isPrescribingConsultSubtype, SERVICE_TYPES } from "@/lib/doctor/service
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
 import { formatServiceType } from "@/lib/format/intake"
 import { useDebounce } from "@/lib/hooks/use-debounce"
+import { isEditableOrInteractiveKeyboardTarget } from "@/lib/hooks/use-doctor-shortcuts"
 import { useIsDesktop } from "@/lib/hooks/use-media-query"
 import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import { cn } from "@/lib/utils"
@@ -861,8 +862,8 @@ export function QueueClient({
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't capture when typing in inputs
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      // Preserve typing, caret movement, and native control keyboard behaviour.
+      if (isEditableOrInteractiveKeyboardTarget(e.target)) return
       // Preserve global browser/app chords such as Cmd/Ctrl+K for the staff palette.
       if (e.metaKey || e.ctrlKey || e.altKey) return
       // Don't fire queue shortcuts while a panel is open — the focus trap handles keyboard there.

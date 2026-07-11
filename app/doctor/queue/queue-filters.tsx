@@ -11,6 +11,7 @@ import {
   QUEUE_WAIT_TARGET_MINUTES,
   type QueuePressureSeverity,
 } from "@/lib/doctor/queue-pressure"
+import { isEditableOrInteractiveKeyboardTarget } from "@/lib/hooks/use-doctor-shortcuts"
 import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
 
@@ -92,7 +93,7 @@ export function QueueFilters({
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key !== "/") return
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      if (isEditableOrInteractiveKeyboardTarget(e.target)) return
       e.preventDefault()
       searchRef.current?.focus()
     }

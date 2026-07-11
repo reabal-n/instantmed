@@ -13,6 +13,7 @@ import { trackAIReferral } from "@/lib/analytics/ai-referral"
 import { resolvePostHogClient } from "@/lib/analytics/posthog-client-resolver"
 import { PostHogContext, usePostHog } from "@/lib/analytics/posthog-context"
 import { onFirstInteraction } from "@/lib/browser/first-interaction"
+import { isPostConversionPath } from "@/lib/browser/post-conversion-path"
 import { sanitizeUrl } from "@/lib/observability/sanitize-phi"
 import { useAuth } from "@/lib/supabase/auth-provider"
 
@@ -143,14 +144,17 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
         })
     }
 
-    // Handles post-conversion pages where instrumentation starts immediately.
-    exposeClient({ requireLoaded: true })
+    // Post-conversion pages initialise analytics without waiting for a click so
+    // a no-interaction bounce can still flush the completed-funnel event.
+    if (isPostConversionPath()) {
+      exposeClient({ requireLoaded: true })
+    }
 
     // Handles acquisition + request pages where instrumentation-client.ts
     // intentionally defers PostHog init until the first real interaction.
     const cancelFirstInteraction = onFirstInteraction(() => {
       retryCount = 0
-      exposeClient({ requireLoaded: false })
+      exposeClient({ requireLoaded: true })
     })
 
     return () => {

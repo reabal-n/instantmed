@@ -7,6 +7,8 @@ const ciWorkflowSource = readFileSync(
   join(process.cwd(), ".github/workflows/ci.yml"),
   "utf8",
 )
+const testingDocsSource = readFileSync(join(process.cwd(), "docs/TESTING.md"), "utf8")
+const claudeSource = readFileSync(join(process.cwd(), "CLAUDE.md"), "utf8")
 
 describe("CI workflow contract", () => {
   it("cancels stale same-branch runs before E2E fixtures can race", () => {
@@ -40,11 +42,26 @@ describe("CI workflow contract", () => {
 
   it("uses focused E2E gates instead of the stale broad Playwright suite", () => {
     expect(ciWorkflowSource).toContain("e2e/admin.ops-index.spec.ts")
+    expect(ciWorkflowSource).toContain("e2e/marketing-dashboard-nav.spec.ts")
+    expect(ciWorkflowSource).toContain("e2e/dashboard.keyboard-safety.spec.ts")
     expect(ciWorkflowSource).toContain("Run med cert readiness E2E gate (Chromium)")
     expect(ciWorkflowSource).toContain("run: pnpm medcert:readiness:e2e")
     expect(ciWorkflowSource).toContain("Run non-medcert paid critical E2E flows (Chromium)")
     expect(ciWorkflowSource).toContain("e2e/parchment-webhook.spec.ts")
     expect(ciWorkflowSource).not.toMatch(/^\s*run: pnpm exec playwright test --project=chromium\s*$/m)
+  })
+
+  it("keeps the documented blocking browser smoke list aligned with CI", () => {
+    const blockingBrowserSpecs = [
+      "e2e/admin.ops-index.spec.ts",
+      "e2e/marketing-dashboard-nav.spec.ts",
+      "e2e/dashboard.keyboard-safety.spec.ts",
+    ]
+
+    for (const spec of blockingBrowserSpecs) {
+      expect(testingDocsSource).toContain(spec)
+      expect(claudeSource).toContain(spec)
+    }
   })
 
   it("fails the paid-flow E2E gate when webhook secrets are missing", () => {
