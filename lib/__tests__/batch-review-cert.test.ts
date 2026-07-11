@@ -151,7 +151,7 @@ describe("markBatchReviewed", () => {
       ["eq", "id", INTAKE_ID],
       ["eq", "ai_approved", true],
       ["eq", "category", "medical_certificate"],
-      ["in", "status", ["approved", "completed"]],
+      ["in", "status", ["approved"]],
       ["is", "batch_reviewed_at", null],
     ])
     expect(harness.auditRows).toEqual([
