@@ -27,17 +27,22 @@ import {
 import { useRouter } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
 
-import { BinaryChoice, IntakeStepIntro, QuestionCard, StringBinaryChoice } from "@/components/request/shared/intake-step-primitives"
+import {
+  BinaryChoice,
+  CompactChoiceRow,
+  IntakeStepIntro,
+  QuestionCard,
+  SegmentedChoiceGroup,
+  StringBinaryChoice,
+} from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
-import { cn } from "@/lib/utils"
 
 import { useRequestStore } from "../store"
 
@@ -52,6 +57,12 @@ interface EdHealthStepProps {
   onComplete: () => void
 }
 
+const ED_EFFECTIVENESS_OPTIONS = [
+  { value: "worked_well", label: "Worked well" },
+  { value: "somewhat", label: "Somewhat" },
+  { value: "didnt_work", label: "Didn’t work" },
+] as const
+
 // ---------------------------------------------------------------------------
 // Helper components
 // ---------------------------------------------------------------------------
@@ -60,7 +71,7 @@ interface EdHealthStepProps {
 function SectionComplete({ complete }: { complete: boolean }) {
   if (!complete) return null
   return (
-    <CheckCircle2 className="w-4 h-4 text-success shrink-0 mr-2" />
+    <CheckCircle2 className="ml-auto h-4 w-4 shrink-0 text-success" />
   )
 }
 
@@ -124,7 +135,6 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
   // ---------------------------------------------------------------------------
 
   const clearanceBlockActive = edRecentHeartEvent === true || edSevereHeart === true
-  const softBlockActive = clearanceBlockActive || edAlphaBlockers === true
   const gpClearanceRequired = clearanceBlockActive && edGpCleared !== true
 
   // ---------------------------------------------------------------------------
@@ -237,6 +247,26 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
     enabled: true,
   })
 
+  const cardiacClearanceDetail = (
+    <div className="space-y-2">
+      <Alert variant="default" className="border-warning/30 bg-warning/5">
+        <AlertTriangle className="h-4 w-4 text-warning" />
+        <AlertDescription className="text-sm">
+          This condition requires clearance from your GP before we can prescribe.
+        </AlertDescription>
+      </Alert>
+      <div className="rounded-xl border bg-muted/30 p-3">
+        <Checkbox
+          id="ed-gp-cleared"
+          checked={edGpCleared === true}
+          onCheckedChange={(checked) => setAnswer("edGpCleared", checked)}
+        >
+          My GP has cleared me for ED treatment
+        </Checkbox>
+      </div>
+    </div>
+  )
+
   // ---------------------------------------------------------------------------
   // Hard block screen
   // ---------------------------------------------------------------------------
@@ -307,231 +337,177 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
         description="A few quick questions so the doctor can prescribe safely."
       />
 
-      {/* ── Section 1: Heart & blood pressure ───────────────────────── */}
-      <QuestionCard className="space-y-3">
-        <div className="flex items-center gap-2">
-          <HeartPulse className="w-4 h-4 text-rose-500 shrink-0" />
-          <p className="text-sm font-medium">Heart &amp; blood pressure</p>
+      <QuestionCard compact className="space-y-0">
+        <div className="flex items-center gap-2 pb-2">
+          <HeartPulse className="h-4 w-4 shrink-0 text-rose-500" />
+          <p className="text-sm font-medium">Treatment safety</p>
           <SectionComplete complete={heartComplete} />
         </div>
 
-        {/* Nitrate toggle */}
-        <div className="space-y-2">
-          <p className="text-sm font-medium">Do you take nitrates?</p>
-          <p className="text-xs text-muted-foreground">e.g., GTN spray, Anginine, Imdur, or medication for chest pain</p>
+        <CompactChoiceRow
+          label="Do you take nitrates?"
+          hint="Including chest-pain sprays or tablets"
+        >
           <BinaryChoice
             value={edNitrates}
             onChange={handleNitrateChange}
             ariaLabel="Do you take nitrates?"
+            className="gap-1.5"
           />
-        </div>
+        </CompactChoiceRow>
 
-        {/* Alpha-blocker toggle */}
-        <div className="space-y-2">
-          <p className="text-sm font-medium">Do you take alpha-blockers?</p>
-          <p className="text-xs text-muted-foreground">e.g., tamsulosin, prazosin, or doxazosin</p>
+        <CompactChoiceRow
+          label="Do you take alpha-blockers?"
+          hint="Usually prescribed for blood pressure or prostate symptoms"
+          detail={edAlphaBlockers === true ? (
+            <Alert variant="default" className="border-warning/30 bg-warning/5">
+              <AlertTriangle className="h-4 w-4 text-warning" />
+              <AlertDescription className="text-sm">
+                These medicines can interact with ED prescription options. The doctor will check dose timing and safety before prescribing.
+              </AlertDescription>
+            </Alert>
+          ) : undefined}
+        >
           <BinaryChoice
             value={edAlphaBlockers}
             onChange={(checked) => setAnswer("edAlphaBlockers", checked)}
             ariaLabel="Do you take alpha-blockers?"
+            className="gap-1.5"
           />
-        </div>
+        </CompactChoiceRow>
 
-        {/* Recent cardiac event */}
-        <div className="space-y-2">
-          <p className="text-sm font-medium">Heart attack, stroke, or unstable angina in the last 6 months?</p>
+        <CompactChoiceRow
+          label="Heart attack, stroke, or unstable angina in the last 6 months?"
+          detail={edRecentHeartEvent === true ? cardiacClearanceDetail : undefined}
+        >
           <BinaryChoice
             value={edRecentHeartEvent}
             onChange={(checked) => setAnswer("edRecentHeartEvent", checked)}
             ariaLabel="Heart attack, stroke, or unstable angina in the last 6 months?"
+            className="gap-1.5"
           />
-        </div>
+        </CompactChoiceRow>
 
-        {/* Severe heart condition */}
-        <div className="space-y-2">
-          <p className="text-sm font-medium">Severe heart disease, very low blood pressure, or HOCM?</p>
+        <CompactChoiceRow
+          label="Severe heart disease, very low blood pressure, or HOCM?"
+          detail={edSevereHeart === true && edRecentHeartEvent !== true ? cardiacClearanceDetail : undefined}
+        >
           <BinaryChoice
             value={edSevereHeart}
             onChange={(checked) => setAnswer("edSevereHeart", checked)}
             ariaLabel="Severe heart disease, very low blood pressure, or HOCM?"
+            className="gap-1.5"
           />
-        </div>
-
-        {/* Warning when soft block is active */}
-        {softBlockActive && (
-          <Alert variant="default" className="border-warning/30 bg-warning/5">
-            <AlertTriangle className="w-4 h-4 text-warning" />
-            <AlertDescription className="text-sm">
-              {edAlphaBlockers
-                ? "Alpha-blockers can interact with ED prescription options, causing a drop in blood pressure. The doctor will check dose timing and safety before prescribing."
-                : "This condition requires clearance from your GP before we can prescribe."}
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* GP clearance checkbox - shown only when soft block active */}
-        {clearanceBlockActive && (
-          <div className="p-3 rounded-xl border bg-muted/30">
-            <Checkbox
-              id="ed-gp-cleared"
-              checked={edGpCleared === true}
-              onCheckedChange={(checked) => setAnswer("edGpCleared", checked)}
-            >
-              My GP has cleared me for ED treatment
-            </Checkbox>
-          </div>
-        )}
+        </CompactChoiceRow>
       </QuestionCard>
 
-      {/* ── Section 2: Medications, allergies & conditions ──────────── */}
-      <QuestionCard className="space-y-5">
-        <div className="flex items-center gap-2">
-          <Pill className="w-4 h-4 text-indigo-500 shrink-0" />
-          <p className="text-sm font-medium">Medications, allergies &amp; conditions</p>
-          <SectionComplete complete={coreHistoryComplete} />
+      <QuestionCard compact className="space-y-0">
+        <div className="flex items-center gap-2 pb-2">
+          <Pill className="h-4 w-4 shrink-0 text-primary" />
+          <p className="text-sm font-medium">Doctor notes</p>
+          <SectionComplete complete={coreHistoryComplete && previousTreatmentComplete} />
         </div>
 
-        {/* Medications */}
-        <div className="space-y-2.5">
-          <div>
-            <p className="text-sm font-medium">
-              Taking any medications? <span className="text-destructive">*</span>
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">Prescriptions, over-the-counter, vitamins, supplements</p>
-          </div>
+        <CompactChoiceRow
+          label="Taking any medications?"
+          hint="Prescriptions, over-the-counter medicines, vitamins, or supplements"
+          required
+          detail={takesMedications === "yes" ? (
+            <Textarea
+              value={currentMedications}
+              onChange={(event) => setAnswer("current_medications", event.target.value)}
+              placeholder="List the name, dose, and how often you take each one"
+              className="min-h-[60px] text-sm"
+            />
+          ) : undefined}
+        >
           <StringBinaryChoice
             value={takesMedications}
             noValue="no"
             yesValue="yes"
             onChange={(value) => setAnswer("takes_medications", value)}
             ariaLabel="Taking any medications?"
-            noLabel="No medications"
+            className="gap-1.5"
           />
-          {takesMedications === "yes" && (
+        </CompactChoiceRow>
+
+        <CompactChoiceRow
+          label="Any allergies?"
+          hint="Medicines, food, or environmental allergies"
+          required
+          detail={hasAllergies === "yes" ? (
             <Textarea
-              value={currentMedications}
-              onChange={(e) => setAnswer("current_medications", e.target.value)}
-              placeholder="e.g., Metformin 500mg twice daily, Vitamin D 1000IU"
+              value={knownAllergies}
+              onChange={(event) => setAnswer("known_allergies", event.target.value)}
+              placeholder="List the allergy and what happens"
               className="min-h-[60px] text-sm"
             />
-          )}
-        </div>
-
-        <div className="border-t border-border/40" />
-
-        {/* Allergies */}
-        <div className="space-y-2.5">
-          <div>
-            <p className="text-sm font-medium">
-              Any allergies? <span className="text-destructive">*</span>
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">Drug, food, or environmental allergies</p>
-          </div>
+          ) : undefined}
+        >
           <StringBinaryChoice
             value={hasAllergies}
             noValue="no"
             yesValue="yes"
             onChange={(value) => setAnswer("has_allergies", value)}
             ariaLabel="Any allergies?"
-            noLabel="No allergies"
+            className="gap-1.5"
           />
-          {hasAllergies === "yes" && (
+        </CompactChoiceRow>
+
+        <CompactChoiceRow
+          label="Any other medical conditions?"
+          hint="Including blood pressure, diabetes, chronic illness, or surgery"
+          required
+          detail={hasConditions === "yes" ? (
             <Textarea
-              value={knownAllergies}
-              onChange={(e) => setAnswer("known_allergies", e.target.value)}
-              placeholder="e.g., Penicillin - rash, Peanuts - anaphylaxis"
+              value={existingConditions}
+              onChange={(event) => setAnswer("existing_conditions", event.target.value)}
+              placeholder="List the condition and any relevant details"
               className="min-h-[60px] text-sm"
             />
-          )}
-        </div>
-
-        <div className="border-t border-border/40" />
-
-        {/* Other conditions */}
-        <div className="space-y-2.5">
-          <div>
-            <p className="text-sm font-medium">
-              Any other medical conditions? <span className="text-destructive">*</span>
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">Including blood pressure, diabetes, chronic illness, or surgeries</p>
-          </div>
+          ) : undefined}
+        >
           <StringBinaryChoice
             value={hasConditions}
             noValue="no"
             yesValue="yes"
             onChange={(value) => setAnswer("has_conditions", value)}
             ariaLabel="Any other medical conditions?"
-            noLabel="No conditions"
+            className="gap-1.5"
           />
-          {hasConditions === "yes" && (
-            <Textarea
-              value={existingConditions}
-              onChange={(e) => setAnswer("existing_conditions", e.target.value)}
-              placeholder="e.g., Asthma, diabetes, high blood pressure"
-              className="min-h-[60px] text-sm"
-            />
-          )}
-        </div>
-      </QuestionCard>
+        </CompactChoiceRow>
 
-      {/* ── Section 3: Previous ED treatment ────────────────────────── */}
-      <QuestionCard compact>
-        <div className="flex items-center gap-2">
-          <Pill className="w-4 h-4 text-indigo-500 shrink-0" />
-          <p className="text-sm font-medium">Previous ED treatment</p>
-          <SectionComplete complete={previousTreatmentComplete} />
-        </div>
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Have you tried ED treatment before?</p>
-            <BinaryChoice
-              value={previousEdMeds}
-              onChange={(checked) => setAnswer("previousEdMeds", checked)}
-              ariaLabel="Have you tried ED treatment before?"
-            />
-          </div>
-          {previousEdMeds === true && (
-            <>
+        <CompactChoiceRow
+          label="Have you tried ED treatment before?"
+          detail={previousEdMeds === true ? (
+            <div className="space-y-3">
               <Textarea
                 id="ed-previous-treatment"
                 value={edPreviousTreatment}
-                onChange={(e) => setAnswer("edPreviousTreatment", e.target.value)}
-                placeholder="What did you try? e.g., a daily tablet, an as-needed medication"
-                className="min-h-[80px] text-sm"
+                onChange={(event) => setAnswer("edPreviousTreatment", event.target.value)}
+                placeholder="What did you try?"
+                className="min-h-[60px] text-sm"
               />
-
-              {/* Effectiveness selector */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">How effective was it?</Label>
-                <div className="flex gap-2">
-                  {(
-                    [
-                      { value: "worked_well", label: "Worked well" },
-                      { value: "somewhat", label: "Somewhat" },
-                      { value: "didnt_work", label: "Didn’t work" },
-                    ] as const
-                  ).map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => setAnswer("edPreviousEffectiveness", option.value)}
-                      className={cn(
-                        "flex-1 px-3 py-2 text-sm rounded-lg border transition-colors",
-                        "hover:bg-accent hover:text-accent-foreground",
-                        "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
-                        edPreviousEffectiveness === option.value
-                          ? "border-primary bg-primary/5 text-primary font-medium"
-                          : "border-border text-muted-foreground"
-                      )}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
+                <p className="text-sm font-medium">How effective was it?</p>
+                <SegmentedChoiceGroup
+                  options={ED_EFFECTIVENESS_OPTIONS}
+                  value={edPreviousEffectiveness}
+                  onChange={(value) => setAnswer("edPreviousEffectiveness", value)}
+                  ariaLabel="Previous treatment effectiveness"
+                  columns="three"
+                />
               </div>
-            </>
-          )}
-        </div>
+            </div>
+          ) : undefined}
+        >
+          <BinaryChoice
+            value={previousEdMeds}
+            onChange={(checked) => setAnswer("previousEdMeds", checked)}
+            ariaLabel="Have you tried ED treatment before?"
+            className="gap-1.5"
+          />
+        </CompactChoiceRow>
       </QuestionCard>
 
       {/* Validation summary — announced to screen readers on first Continue tap */}

@@ -194,6 +194,42 @@ export function QuestionPrompt({
   )
 }
 
+interface CompactChoiceRowProps {
+  label: string
+  hint?: string
+  required?: boolean
+  children: ReactNode
+  detail?: ReactNode
+}
+
+export function CompactChoiceRow({
+  label,
+  hint,
+  required,
+  children,
+  detail,
+}: CompactChoiceRowProps) {
+  return (
+    <div
+      data-intake-compact-choice-row="true"
+      className="border-b border-border/40 last:border-b-0"
+    >
+      <div className="flex min-h-12 items-center gap-3 py-2.5">
+        <QuestionPrompt
+          label={label}
+          hint={hint}
+          required={required}
+          className="min-w-0 flex-1"
+        />
+        <div className="w-40 shrink-0">{children}</div>
+      </div>
+      {detail && (
+        <div className="pb-3">{detail}</div>
+      )}
+    </div>
+  )
+}
+
 export interface ChoiceOption<T extends string> {
   value: T
   label: string

@@ -1,6 +1,6 @@
 # Intake Drop-off Reduction — Final Plan (2026-07-09)
 
-**Status: APPROVED FOR AUDIT, AWAITING BUILD GREEN-LIGHT. No code changed yet.**
+**Status: P0 shipped. P1.1, P1.2, P1.4, and P1.5 shipped. P1.3 is implemented in this change. P2 remains queued.**
 
 Produced by a three-source audit, reconciled 2026-07-09:
 
@@ -8,6 +8,15 @@ Produced by a three-source audit, reconciled 2026-07-09:
 2. Live PostHog funnel data (90d to 2026-07-08, real traffic, `is_e2e` excluded).
 3. External critique brains (GPT-5.5, Gemini 3.1 Pro) — advisory only; every claim verified against repo source + data before inclusion.
 4. Independent Codex review (repo source + PostHog + Playwright + CDP) — corrections folded in below.
+
+### Shipped-state reconciliation (2026-07-11)
+
+- P0.1 through P0.4 shipped in PRs #296 through #299.
+- The adjacent intake state-lifecycle repair shipped in PR #308; do not rebuild its draft scoping, hydration, prefill, payment-clear, or abandonment-beacon work here.
+- P1.1 shipped in #309, P1.2 in #310, P1.4 in #311, and P1.5 in #312.
+- P1.3 is the only P1 item implemented by this change. It is layout-only: every answer key, hard block, GP-clearance gate, persistence path, and server rule remains unchanged.
+- Overview readouts (#313) and the auto-approval counter/E2E bucket fix (#314) are shipped adjacent work, not tasks to repeat from this plan.
+- Day-0 public-copy, synthetic-counter, and attribution containment shipped separately in #307 and is not reopened here.
 
 ---
 
