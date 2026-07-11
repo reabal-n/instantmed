@@ -98,18 +98,16 @@ export function useDoctorShortcuts({
     (event: KeyboardEvent) => {
       if (disabled) return
 
-      // Keep the legacy Escape-to-close exception, but suppress all other
-      // single-key shortcuts while editing or using a control.
-      if (isEditableOrInteractiveKeyboardTarget(event.target)) {
-        // Allow Escape in inputs
-        if (event.key === "Escape" && onEscape) {
-          onEscape()
-          return
-        }
-        return
-      }
-
+      const isInteractiveTarget = isEditableOrInteractiveKeyboardTarget(event.target)
       const isMod = event.metaKey || event.ctrlKey
+
+      // Modifier chords and Escape are explicit doctor actions that must win
+      // even while a control is focused — the review panel auto-focuses a
+      // button on open, so gating these behind the interactive-target guard
+      // (as the pre-fix order did) left ⌘Enter approve / ⌘⇧D decline dead the
+      // moment the panel opened. This mirrors useDoctorShortcutsExtended and
+      // the hook docstring ("Callers may retain explicit Escape or
+      // modifier-key actions").
 
       // ⌘/Ctrl + Enter: Approve
       if (isMod && event.key === "Enter") {
@@ -146,6 +144,16 @@ export function useDoctorShortcuts({
         return
       }
 
+      // Escape: Close dialogs (allowed anywhere, including inputs)
+      if (event.key === "Escape") {
+        onEscape?.()
+        return
+      }
+
+      // Unmodified single-key shortcuts must never win over typing, caret
+      // movement, or a control's native keyboard behaviour.
+      if (isInteractiveTarget) return
+
       // Vim-style J/K (no modifier): Next / Previous case
       if (!isMod && !event.shiftKey && !event.altKey) {
         if (event.key === "j") {
@@ -158,12 +166,6 @@ export function useDoctorShortcuts({
           onPrevious?.()
           return
         }
-      }
-
-      // Escape: Close dialogs
-      if (event.key === "Escape") {
-        onEscape?.()
-        return
       }
     },
     [disabled, onApprove, onDecline, onNext, onPrevious, onNote, onEscape]

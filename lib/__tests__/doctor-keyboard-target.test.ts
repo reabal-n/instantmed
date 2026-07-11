@@ -37,6 +37,36 @@ describe("doctor keyboard shortcut target safety", () => {
     expect(guard(fakeTarget({ closest: () => ({ role: "textbox" }) }))).toBe(true)
   })
 
+  it("evaluates modifier chords and Escape before the interactive-target guard", () => {
+    // The review panel auto-focuses a button on open (panel-provider focus
+    // trap). If the interactive-target early-return runs first — as the pre-fix
+    // order did — Cmd+Enter approve and Cmd+Shift+D decline die the moment the
+    // panel opens, because the focused button matches the guard. Modifier
+    // chords and Escape must be handled BEFORE the guard suppresses.
+    const source = readFileSync(
+      join(process.cwd(), "lib/hooks/use-doctor-shortcuts.ts"),
+      "utf8",
+    )
+    const start = source.indexOf("export function useDoctorShortcuts(")
+    const end = source.indexOf("export const DOCTOR_SHORTCUTS")
+    expect(start).toBeGreaterThan(-1)
+    expect(end).toBeGreaterThan(start)
+    const body = source.slice(start, end)
+
+    const approveIdx = body.indexOf("onApprove?.()")
+    const declineIdx = body.indexOf("onDecline?.()")
+    const escapeIdx = body.indexOf("onEscape?.()")
+    const guardReturnIdx = body.indexOf("if (isInteractiveTarget) return")
+
+    expect(approveIdx).toBeGreaterThan(-1)
+    expect(declineIdx).toBeGreaterThan(-1)
+    expect(escapeIdx).toBeGreaterThan(-1)
+    expect(guardReturnIdx).toBeGreaterThan(-1)
+    expect(approveIdx).toBeLessThan(guardReturnIdx)
+    expect(declineIdx).toBeLessThan(guardReturnIdx)
+    expect(escapeIdx).toBeLessThan(guardReturnIdx)
+  })
+
   it("routes every global doctor queue shortcut through the shared guard", () => {
     const root = process.cwd()
     const sources = [
