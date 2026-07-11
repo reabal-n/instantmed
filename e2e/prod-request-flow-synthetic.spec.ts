@@ -18,6 +18,16 @@ async function openRequest(page: Page, path: string) {
   const pageErrors: string[] = []
   page.on("pageerror", (error) => pageErrors.push(error.message))
 
+  // Each pathway assertion owns a fresh entry. Scoped drafts are deliberately
+  // sticky across navigations now, so leaving one behind turns the next route
+  // into a subtype-mismatch test instead of a first-step synthetic.
+  await page.addInitScript(() => {
+    localStorage.removeItem("instantmed-request-draft")
+    localStorage.removeItem("instantmed-draft-med-cert")
+    localStorage.removeItem("instantmed-draft-prescription")
+    localStorage.removeItem("instantmed-draft-consult")
+  })
+
   const response = await page.goto(path)
   expect(response?.status(), `${path} should return 200`).toBe(200)
   await waitForPageLoad(page)

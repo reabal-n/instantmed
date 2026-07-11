@@ -914,7 +914,14 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
                     setAnswer("medicareIrn", digit || undefined)
                     if (digit) {
                       setErrors((prev) => {
-                        const { medicareIrn: _, ...rest } = prev
+                        const { medicareIrn: _, ...withoutIrn } = prev
+                        if (!medicareValidation?.valid) return withoutIrn
+
+                        // Auto-advancing from the tenth Medicare digit blurs
+                        // the number field before React commits that digit.
+                        // A stale combined-identity error can therefore remain
+                        // even though both values are now valid.
+                        const { medicareNumber: _medicareNumber, ...rest } = withoutIrn
                         return rest
                       })
                     }
