@@ -154,7 +154,7 @@ async function completeConsultDetailsWithTestMedicare(page: Page) {
   await page.getByRole("option", { name: /^Female$/i }).click()
   await page.locator('input[placeholder="10 digits"]').fill(medicare.number)
   await page.locator('input[placeholder="10 digits"]').blur()
-  await page.getByRole("button", { name: new RegExp(`^${medicare.irn}$`) }).last().click()
+  await page.locator("#medicare-irn").fill(medicare.irn)
   await page.locator('[placeholder="Start typing your address..."]').fill(address.line1)
   await page.locator("#suburb").fill(address.suburb)
   await page.locator("#state-select-trigger").click()
