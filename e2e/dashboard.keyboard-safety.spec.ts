@@ -205,4 +205,69 @@ test.describe("Doctor keyboard shortcut safety", () => {
     expect(reviewDataRequests).toEqual([])
     await expect(fullRecordLink).toHaveAttribute("href", new RegExp(`${secondIntakeId}$`))
   })
+
+  test("j/k still navigate cases in the desktop two-pane cockpit once a case is selected", async ({ page }, testInfo) => {
+    // Desktop-only two-pane behaviour; the keyboard gate itself is engine-
+    // independent JS, so one desktop engine is a sufficient (and non-flaky)
+    // regression guard. Mobile projects use the slide-over path already covered
+    // by the note-safety tests above.
+    test.skip(
+      testInfo.project.name !== "chromium",
+      "Two-pane keyboard nav regression guard runs on chromium only",
+    )
+
+    // Regression guard: the queue keyboard handler previously gated on a ref
+    // that flipped true as soon as an inline `expandedId` selection existed,
+    // so j/k/Enter/a/d/Escape went dead after the very first keypress. The gate
+    // now keys off a real slide-over only, so keyboard triage keeps working
+    // while a case is selected in the two-pane layout.
+    const [firstQueueTime, secondQueueTime] = createAdjacentQueueTimes()
+    const firstIntakeId = await seedShortcutSafetyCase(firstQueueTime, "First desktop nav note")
+    testIntakeIds.push(firstIntakeId)
+    const secondIntakeId = await seedShortcutSafetyCase(secondQueueTime, "Second desktop nav note")
+    testIntakeIds.push(secondIntakeId)
+
+    const prewarm = await page.request.get(`/api/doctor/intakes/${firstIntakeId}/review-data`)
+    expect(prewarm.ok(), `Review-data prewarm should succeed: ${prewarm.status()}`).toBe(true)
+
+    // Wide viewport → compactShell two-pane (inline detail, no slide-over).
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto("/dashboard?showTestData=1&onlyTestData=1")
+    await waitForPageLoad(page)
+
+    const firstRow = page.getByTestId(`queue-row-${firstIntakeId}`)
+    const secondRow = page.getByTestId(`queue-row-${secondIntakeId}`)
+    await expect(firstRow).toBeVisible({ timeout: 15_000 })
+    await expect(secondRow).toBeVisible({ timeout: 15_000 })
+
+    const panel = page.getByTestId("intake-review-panel")
+    const fullRecordLink = panel.getByRole("link", { name: "Open full record" })
+
+    // Select the first case with a real click. Clicking auto-waits for the row
+    // to be actionable (hydrated + listeners attached), so the subsequent
+    // keyboard navigation isn't racing hydration. In the two-pane layout this
+    // renders the detail inline (no slide-over).
+    await firstRow.getByRole("button", { name: /Open case/ }).click()
+    await expect(panel).toBeVisible({ timeout: 15_000 })
+    await expect(fullRecordLink).toHaveAttribute("href", new RegExp(`${firstIntakeId}$`), { timeout: 15_000 })
+
+    // Dispatch on <body> (a non-interactive target) so the window keydown
+    // handler runs exactly as a real body-focused keypress would, independent of
+    // which control the click left focused.
+    const pressQueueKey = (key: string) =>
+      page.evaluate((k) => {
+        document.body.dispatchEvent(new KeyboardEvent("keydown", { key: k, bubbles: true }))
+      }, key)
+
+    // j advances to the adjacent case — the exact navigation that went dead once
+    // any case was selected. `createAdjacentQueueTimes` guarantees the second
+    // case sorts immediately after the first (same guarantee the Next-case test
+    // above relies on).
+    await pressQueueKey("j")
+    await expect(fullRecordLink).toHaveAttribute("href", new RegExp(`${secondIntakeId}$`), { timeout: 15_000 })
+
+    // k returns to the first case.
+    await pressQueueKey("k")
+    await expect(fullRecordLink).toHaveAttribute("href", new RegExp(`${firstIntakeId}$`), { timeout: 15_000 })
+  })
 })

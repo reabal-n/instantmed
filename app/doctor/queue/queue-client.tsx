@@ -316,7 +316,15 @@ export function QueueClient({
   const router = useRouter()
   const searchParams = useSearchParams()
   const { openPanel, activePanel } = usePanel()
+  // Two distinct concerns, previously conflated into one ref:
+  // - `panelOpenRef` gates the auto-refresh (protects an active review pane
+  //   from a router.refresh() remount).
+  // - `slideOverOpenRef` gates the queue keyboard shortcuts (only a real
+  //   slide-over has a focus trap that owns the keyboard; an inline two-pane
+  //   `expandedId` selection does NOT, and the queue keydown switch is built
+  //   to walk that selection, so it must keep firing).
   const panelOpenRef = useRef(Boolean(activePanel))
+  const slideOverOpenRef = useRef(Boolean(activePanel))
   // `/dashboard` two-pane is desktop-only. On mobile we fall back to the
   // slide-over (`openPanel`) so the operator isn't asked to scroll past
   // the queue to reach the inline review pane.
@@ -381,8 +389,15 @@ export function QueueClient({
   const [clockNow, setClockNow] = useState<Date>(() => new Date())
 
   useEffect(() => {
-    panelOpenRef.current = Boolean(activePanel || expandedId)
-  }, [activePanel, expandedId])
+    slideOverOpenRef.current = Boolean(activePanel)
+    // Suppress auto-refresh while a review is genuinely open: a slide-over
+    // (any surface) or the desktop two-pane inline pane. A lingering mobile
+    // `expandedId` after the sheet has closed must NOT keep suppressing —
+    // otherwise focus/visibility/stale-backstop refreshes stay dead for the
+    // rest of the session and newly paid intakes never appear.
+    panelOpenRef.current =
+      Boolean(activePanel) || (compactShell && isDesktop && Boolean(expandedId))
+  }, [activePanel, expandedId, compactShell, isDesktop])
 
   useEffect(() => {
     const nextStatus = parseQueueStatusFilter(searchParams.get("status"))
@@ -618,8 +633,11 @@ export function QueueClient({
     }
 
     // Legacy slide-over mode (admin patient drawer, doctor intake detail
-    // page entry points). Kept identical behaviour.
+    // page entry points). Kept identical behaviour. The slide-over owns the
+    // keyboard via its focus trap, so suppress queue shortcuts immediately
+    // (before the sync effect runs) as well as auto-refresh.
     panelOpenRef.current = true
+    slideOverOpenRef.current = true
     const getAdjacentId = (direction: "next" | "prev"): string | null => {
       const list = filteredIntakesRef.current
       const idx = list.findIndex((r) => r.id === intakeId)
@@ -866,8 +884,12 @@ export function QueueClient({
       if (isEditableOrInteractiveKeyboardTarget(e.target)) return
       // Preserve global browser/app chords such as Cmd/Ctrl+K for the staff palette.
       if (e.metaKey || e.ctrlKey || e.altKey) return
-      // Don't fire queue shortcuts while a panel is open — the focus trap handles keyboard there.
-      if (panelOpenRef.current) return
+      // Only a real slide-over owns the keyboard via its focus trap. An inline
+      // two-pane `expandedId` selection has no trap and this switch is built to
+      // walk it (j/k/Enter/a/d/Escape all key off `expandedId`), so gating on
+      // the inline selection here silently killed keyboard triage after the
+      // first keypress. Gate on the slide-over only.
+      if (slideOverOpenRef.current) return
 
       const currentIndex = expandedId ? filteredIntakes.findIndex((r) => r.id === expandedId) : -1
 
