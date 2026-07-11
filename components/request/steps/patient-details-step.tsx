@@ -867,8 +867,11 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
                     const raw = e.target.value.replace(/[^\d]/g, '').slice(0, 10)
                     setAnswer('medicareNumber', raw)
                     // Complete number typed → hop focus to the one-digit IRN
-                    // so the card can be transcribed in one motion (P1.4).
-                    if (raw.length === 10 && medicareNumber.length < 10) {
+                    // so the card can be transcribed in one motion (P1.4). Skip
+                    // the hop when the IRN is already filled (restored draft /
+                    // back-nav): there's nothing to advance to, and yanking focus
+                    // fires a synchronous blur on this field mid-onChange.
+                    if (raw.length === 10 && medicareNumber.length < 10 && !medicareIrn) {
                       irnInputRef.current?.focus()
                     }
                     if (touched.medicareNumber) {
@@ -881,7 +884,13 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
                       })
                     }
                   }}
-                  onBlur={() => handleBlur('medicareNumber', medicareNumber)}
+                  // Validate the live DOM value, not the `medicareNumber`
+                  // closure: the 10th-digit auto-advance focuses the IRN
+                  // synchronously inside onChange, firing this blur before React
+                  // commits the 10th digit — the closure would still hold 9
+                  // digits and stamp a false "Invalid Medicare number". Also
+                  // covers browser autofill that skips onChange.
+                  onBlur={(e) => handleBlur('medicareNumber', e.target.value.replace(/[^\d]/g, '').slice(0, 10))}
                   placeholder="10 digits"
                   autoComplete="off"
                   aria-invalid={touched.medicareNumber && !!errors.medicareNumber}
