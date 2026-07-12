@@ -425,7 +425,14 @@ export async function POST(request: Request) {
         log.info("Resuming partially-processed webhook", { eventId: payload.event_id })
         const resumePrescriberId = selectParchmentWebhookPrescriberId(existing, prescriberProfileIds)
         const resumeSync = await syncPrescription(existing.id, resumePrescriberId)
-        const resumeSuccess = await updateScriptSent(existing.id, true, scriptNotes, scid, resumePrescriberId ?? undefined)
+        const resumeSuccess = await updateScriptSent(
+          existing.id,
+          true,
+          scriptNotes,
+          scid,
+          resumePrescriberId ?? undefined,
+          { externalEvidenceAlreadyIssued: true },
+        )
         if (!resumeSuccess) {
           log.error("Failed to mark script sent (resumed)", { eventId: payload.event_id })
           Sentry.captureMessage("Parchment webhook resume failed", {
@@ -531,7 +538,14 @@ export async function POST(request: Request) {
 
     // Record durable script-sent evidence. The doctor still approves the
     // request separately from InstantMed after the webhook refreshes the case.
-    const success = await updateScriptSent(intake.id, true, scriptNotes, scid, webhookPrescriberId ?? undefined)
+    const success = await updateScriptSent(
+      intake.id,
+      true,
+      scriptNotes,
+      scid,
+      webhookPrescriberId ?? undefined,
+      { externalEvidenceAlreadyIssued: true },
+    )
 
     if (!success) {
       log.error("Failed to mark script sent via webhook", { eventId: payload.event_id })

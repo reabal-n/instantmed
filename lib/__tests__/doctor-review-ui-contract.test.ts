@@ -47,8 +47,8 @@ describe("doctor review prescribing controls", () => {
     expect(fullCaseHeaderSource).toContain("Script sent")
     expect(fullCaseHeaderSource).toContain("Complete or record the prescription in Parchment first.")
     expect(fullCaseHeaderSource).toContain("full-case-prescribing-approve-hint")
-    expect(fullCaseHeaderSource).toContain("{canPrescribeInParchment && (")
-    expect(fullCaseHeaderSource).not.toContain("canPrescribeInParchment && onOpenParchmentPrescribe")
+    expect(fullCaseHeaderSource).toContain("canPrescribeInParchment || canCompleteRecordedRepeatScript")
+    expect(fullCaseHeaderSource).toContain("canPrescribeInParchment && intake.script_sent !== true")
   })
 
   it("surfaces incomplete prescribing identity before queue-sheet approve and Parchment actions", () => {

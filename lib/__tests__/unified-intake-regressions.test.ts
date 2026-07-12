@@ -411,12 +411,56 @@ describe("unified intake regressions", () => {
     expect(transformed.sex).toBe("M")
   })
 
+  it("requires an explicit unchanged dose-and-directions answer before repeat checkout", () => {
+    const validRepeatAnswers = {
+      medicationName: "Budesonide + formoterol",
+      medicationStrength: "100/3 micrograms",
+      medicationForm: "inhaler",
+      prescriptionHistory: "6 to 12 months",
+      currentDose: "2 puffs twice daily",
+      indication: "asthma",
+      ...sharedMedicalHistory,
+      ...sharedPrescribingIdentity,
+    }
+
+    expect(validateAnswersServerSide("repeat-script", validRepeatAnswers, identity)).toMatch(
+      /dose or the way you take this medicine has changed/i,
+    )
+    expect(validateAnswersServerSide("repeat-script", {
+      ...validRepeatAnswers,
+      doseChanged: true,
+    }, identity)).toMatch(/regular GP or specialist/i)
+    expect(validateAnswersServerSide("repeat-script", {
+      ...validRepeatAnswers,
+      doseChanged: false,
+    }, identity)).toBeNull()
+  })
+
+  it("does not invent an unchanged-dose answer during checkout transformation", () => {
+    const withoutAnswer = transformAnswersForUnifiedCheckout("repeat-script", {
+      medicationName: "Rosuvastatin",
+      prescriptionHistory: "6_to_12_months",
+    })
+    const explicitlyUnchanged = transformAnswersForUnifiedCheckout("repeat-script", {
+      medicationName: "Rosuvastatin",
+      prescriptionHistory: "6_to_12_months",
+      doseChanged: false,
+    })
+
+    expect(withoutAnswer).not.toHaveProperty("dose_changed")
+    expect(explicitlyUnchanged).toMatchObject({
+      doseChanged: false,
+      dose_changed: false,
+    })
+  })
+
   it("blocks prescription checkout when manual address is missing suburb state or postcode", () => {
     const validPrescriptionAnswers = {
       medicationName: "Budesonide + formoterol",
       medicationStrength: "100/3 micrograms",
       medicationForm: "inhaler",
       prescriptionHistory: "6 to 12 months",
+      doseChanged: false,
       currentDose: "2 puffs twice daily",
       indication: "asthma",
       ...sharedMedicalHistory,
@@ -444,6 +488,7 @@ describe("unified intake regressions", () => {
       medicationStrength: "100/3 micrograms",
       medicationForm: "inhaler",
       prescriptionHistory: "6 to 12 months",
+      doseChanged: false,
       currentDose: "2 puffs twice daily",
       indication: "asthma",
       ...sharedMedicalHistory,
@@ -471,6 +516,7 @@ describe("unified intake regressions", () => {
       medicationStrength: "100/3 micrograms",
       medicationForm: "inhaler",
       prescriptionHistory: "6 to 12 months",
+      doseChanged: false,
       currentDose: "2 puffs twice daily",
       indication: "asthma",
       ...sharedMedicalHistory,
@@ -497,6 +543,7 @@ describe("unified intake regressions", () => {
       medicationStrength: "100/3 micrograms",
       medicationForm: "inhaler",
       prescriptionHistory: "6 to 12 months",
+      doseChanged: false,
       ...sharedMedicalHistory,
       medicareNumber: "1111111111",
       medicareIrn: "2",
@@ -532,6 +579,7 @@ describe("unified intake regressions", () => {
       medicationForm: "tablet",
       pbsCode: "MANUAL",
       prescriptionHistory: "never",
+      doseChanged: false,
       currentDose: "10 mg nightly",
       ...sharedMedicalHistory,
       medicareNumber: "1111111111",
@@ -552,6 +600,7 @@ describe("unified intake regressions", () => {
   it("rejects unknown or incomplete repeat prescription medication details", () => {
     const baseAnswers = {
       prescriptionHistory: "6 to 12 months",
+      doseChanged: false,
       currentDose: "2 puffs twice daily",
       indication: "asthma",
       ...sharedMedicalHistory,
@@ -635,6 +684,7 @@ describe("unified intake regressions", () => {
       prescriptionHistory: "6 to 12 months",
       currentDose: "2 puffs twice daily",
       indication: "asthma",
+      doseChanged: false,
       hasAllergies: false,
       hasConditions: false,
       medicareNumber: "1111111111",

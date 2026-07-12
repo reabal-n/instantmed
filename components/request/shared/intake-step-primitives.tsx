@@ -159,6 +159,7 @@ export function QuestionCard({
 interface QuestionPromptProps {
   label: string
   hint?: string
+  hintId?: string
   required?: boolean
   icon?: ElementType
   id?: string
@@ -168,6 +169,7 @@ interface QuestionPromptProps {
 export function QuestionPrompt({
   label,
   hint,
+  hintId,
   required,
   icon: Icon,
   id,
@@ -186,7 +188,7 @@ export function QuestionPrompt({
         </p>
       </div>
       {hint && (
-        <p className={requestCx("text-xs leading-relaxed text-muted-foreground", Icon && "pl-6")}>
+        <p id={hintId} className={requestCx("text-xs leading-relaxed text-muted-foreground", Icon && "pl-6")}>
           {hint}
         </p>
       )}
@@ -658,6 +660,9 @@ interface BinaryChoiceProps {
   value: boolean | undefined
   onChange: (value: boolean) => void
   ariaLabel: string
+  ariaDescribedBy?: string
+  ariaInvalid?: boolean
+  ariaRequired?: boolean
   yesLabel?: string
   noLabel?: string
   className?: string
@@ -667,6 +672,9 @@ export function BinaryChoice({
   value,
   onChange,
   ariaLabel,
+  ariaDescribedBy,
+  ariaInvalid,
+  ariaRequired,
   yesLabel = "Yes",
   noLabel = "No",
   className,
@@ -687,6 +695,9 @@ export function BinaryChoice({
       data-intake-binary-choice="true"
       role="radiogroup"
       aria-label={ariaLabel}
+      aria-describedby={ariaDescribedBy}
+      aria-invalid={ariaInvalid || undefined}
+      aria-required={ariaRequired || undefined}
       className={requestCx("grid grid-cols-2 gap-2", className)}
     >
       {options.map((option, index) => {
@@ -789,6 +800,8 @@ export function YesNoDetailQuestion({
 }: YesNoDetailQuestionProps) {
   const questionId = id || questionIdFromLabel(label)
   const errorId = `${questionId}-error`
+  const hintId = helpText ? `${questionId}-hint` : undefined
+  const describedBy = [hintId, error ? errorId : undefined].filter(Boolean).join(" ") || undefined
 
   return (
     <div
@@ -801,12 +814,16 @@ export function YesNoDetailQuestion({
         id={`${questionId}-label`}
         label={label}
         hint={helpText}
+        hintId={hintId}
         required
       />
       <BinaryChoice
         value={value}
         onChange={onSelect}
         ariaLabel={label}
+        ariaDescribedBy={describedBy}
+        ariaInvalid={Boolean(error)}
+        ariaRequired
         noLabel={noLabel}
         yesLabel={yesLabel}
       />
@@ -817,7 +834,7 @@ export function YesNoDetailQuestion({
           placeholder={detailPlaceholder}
           className="min-h-[60px]"
           textareaClassName="text-base sm:text-sm"
-          aria-describedby={error ? errorId : undefined}
+          aria-describedby={describedBy}
         />
       )}
       {error && (

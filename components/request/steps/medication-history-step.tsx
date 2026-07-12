@@ -18,7 +18,6 @@ import { AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
@@ -39,14 +38,17 @@ const PRESCRIPTION_HISTORY_OPTIONS = [
   { value: "over_12_months", label: "Over 12 months" },
 ] as const
 
-export default function MedicationHistoryStep({ serviceType, onNext, onBack }: MedicationHistoryStepProps) {
-  const posthog = usePostHog()
+const DOSE_CONFIRMATION_REQUIRED = "Please confirm whether the dose or the way you take this medicine has changed"
+const DOSE_CHANGE_REQUIRES_REVIEW = "A dose or directions change needs review by your regular GP or specialist"
+
+export default function MedicationHistoryStep({ onNext, onBack }: MedicationHistoryStepProps) {
   const { answers, setAnswer } = useRequestStore()
   
   const prescriptionHistory = answers.prescriptionHistory as string | undefined
   const lastPrescribedBy = (answers.lastPrescribedBy as string) || ""
   const currentDose = (answers.currentDose as string) || ""
   const indication = (answers.indication as string) || ""
+  const doseChanged = answers.doseChanged as boolean | undefined
   const sideEffects = (answers.sideEffects as string) || ""
   const hasSideEffects = answers.hasSideEffects as boolean | undefined
   
@@ -74,6 +76,11 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
     if (isRepeatActive && !indication.trim()) {
       newErrors.indication = "Tell the doctor what this medication is for"
     }
+    if (isRepeatActive && doseChanged === undefined) {
+      newErrors.doseChanged = DOSE_CONFIRMATION_REQUIRED
+    } else if (isRepeatActive && doseChanged === true) {
+      newErrors.doseChanged = DOSE_CHANGE_REQUIRES_REVIEW
+    }
 
     if (prescriptionHistory && prescriptionHistory !== "never" && hasSideEffects === undefined) {
       newErrors.sideEffects = "Please indicate if you have had side effects"
@@ -83,20 +90,19 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
 
     setErrors(newErrors)
     setBlockedReasons(Object.values(newErrors))
-    setTouched({ prescriptionHistory: true, currentDose: true, indication: true, sideEffects: true })
+    setTouched({ prescriptionHistory: true, currentDose: true, indication: true, doseChanged: true, sideEffects: true })
     return Object.keys(newErrors).length === 0
-  }, [prescriptionHistory, currentDose, indication, hasSideEffects, sideEffects])
+  }, [prescriptionHistory, currentDose, indication, doseChanged, hasSideEffects, sideEffects])
 
   const handleNext = useCallback(() => {
     if (validate()) {
-      posthog?.capture('step_completed', { step: 'medication-history', service_type: serviceType, prescription_history: prescriptionHistory, has_current_dose: Boolean(currentDose.trim()), has_side_effects: hasSideEffects })
       onNext()
     }
-  }, [validate, posthog, serviceType, prescriptionHistory, currentDose, hasSideEffects, onNext])
+  }, [validate, onNext])
 
   const isNeverPrescribed = prescriptionHistory === "never"
   // Repeat-Rx readiness now requires dose+frequency and an indication.
-  const isComplete = prescriptionHistory && !isNeverPrescribed && currentDose.trim() && indication.trim() && (hasSideEffects === false || (hasSideEffects && sideEffects.trim()))
+  const isComplete = prescriptionHistory && !isNeverPrescribed && currentDose.trim() && indication.trim() && doseChanged === false && (hasSideEffects === false || (hasSideEffects && sideEffects.trim()))
   // Live-computed (not gated on the stale `errors` object).
   const canContinue = Boolean(isComplete)
 
@@ -223,14 +229,57 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
             <Textarea
               value={currentDose}
               onChange={(e) => {
-                setAnswer("currentDose", e.target.value)
-                setAnswer("dosageInstructions", e.target.value)
+                const nextDose = e.target.value
+                const hadRegimenAttestation = doseChanged !== undefined
+                setAnswer("currentDose", nextDose)
+                setAnswer("dosageInstructions", nextDose)
+                if (hadRegimenAttestation) {
+                  setAnswer("doseChanged", undefined)
+                  setAnswer("dose_changed", undefined)
+                  setErrors((prev) => ({ ...prev, doseChanged: DOSE_CONFIRMATION_REQUIRED }))
+                  setBlockedReasons((prev) => [
+                    ...prev.filter((reason) =>
+                      reason !== DOSE_CONFIRMATION_REQUIRED && reason !== DOSE_CHANGE_REQUIRES_REVIEW
+                    ),
+                    DOSE_CONFIRMATION_REQUIRED,
+                  ])
+                }
               }}
               onBlur={() => setTouched((prev) => ({ ...prev, currentDose: true }))}
               placeholder="e.g., 2 puffs twice daily"
               className="min-h-[72px] mt-2"
             />
           </FormField>
+        </QuestionCard>
+      )}
+
+      {/* Repeat eligibility requires the patient's explicit confirmation. */}
+      {needsDose && (
+        <QuestionCard compact>
+          <YesNoDetailQuestion
+            label="Has the dose or the way you take this medicine changed since it was last prescribed?"
+            helpText="This includes how much you take, how often you take it, and the directions on the label."
+            noLabel="No, unchanged"
+            yesLabel="Yes, changed"
+            value={doseChanged}
+            onSelect={(value) => {
+              setAnswer("doseChanged", value)
+              setTouched((prev) => ({ ...prev, doseChanged: true }))
+              setErrors((prev) => {
+                const next = { ...prev }
+                if (value) next.doseChanged = DOSE_CHANGE_REQUIRES_REVIEW
+                else delete next.doseChanged
+                return next
+              })
+              setBlockedReasons((prev) => {
+                const remaining = prev.filter((reason) =>
+                  reason !== DOSE_CONFIRMATION_REQUIRED && reason !== DOSE_CHANGE_REQUIRES_REVIEW
+                )
+                return value ? [...remaining, DOSE_CHANGE_REQUIRES_REVIEW] : remaining
+              })
+            }}
+            error={touched.doseChanged ? errors.doseChanged : undefined}
+          />
         </QuestionCard>
       )}
 

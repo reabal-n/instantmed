@@ -36,6 +36,7 @@ const prescriptionIdentity = {
 const validRepeatAnswers = {
   prescriptionHistory: "6_to_12_months",
   currentDose: "As previously prescribed",
+  doseChanged: false,
   indication: "Ongoing therapy",
   ...medicalHistory,
   ...prescriptionIdentity,
@@ -78,6 +79,7 @@ describe("repeat script medication array safety", () => {
       medication_form: "tablet",
       pbs_code: "MANUAL",
       prescribed_before: true,
+      doseChanged: false,
       dose_changed: false,
       last_prescribed: "6_to_12_months",
       current_dose: "As previously prescribed",
@@ -104,6 +106,7 @@ describe("repeat script medication array safety", () => {
       medication_display: "Unknown - doctor to identify",
       pbs_code: "UNKNOWN",
       prescribed_before: true,
+      doseChanged: false,
       dose_changed: false,
       last_prescribed: "6_to_12_months",
       current_dose: "As previously prescribed",
@@ -132,6 +135,7 @@ describe("repeat script medication array safety", () => {
         ],
         prescriptionHistory: "6_to_12_months",
         currentDose: "As previously prescribed",
+        doseChanged: false,
         ...medicalHistory,
       },
     })

@@ -150,6 +150,7 @@ interface UpdateRecord {
 }
 
 function createRetrySupabaseMock(intakeOverrides: Partial<{
+  answers: Array<{ answers: Record<string, unknown> }>
   category: string | null
   service: { id: string; name: string; price_cents: number; slug: string; type: string } | null
   stripe_price_id: string | null
@@ -261,6 +262,41 @@ describe("retryPaymentForIntakeAction", () => {
       }),
       { idempotencyKey: "retry_intake-1_cs_previous" },
     )
+  })
+
+  it("grandfathers payment retry for a canonical-only legacy repeat request", async () => {
+    const { supabase } = createRetrySupabaseMock({
+      answers: [{ answers: { dose_changed: false } }],
+      category: "prescription",
+      service: {
+        id: "svc-repeat",
+        name: "Repeat prescription",
+        price_cents: 2995,
+        slug: "repeat-script",
+        type: "repeat_rx",
+      },
+      stripe_price_id: "price_repeat",
+      subtype: "repeat",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getPriceIdForRequest.mockReturnValue("price_repeat")
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toMatchObject({
+      checkoutUrl: "https://checkout.stripe.test/pay/cs_retry",
+      intakeId: "intake-1",
+      success: true,
+    })
+    expect(mocks.validateSafetyFieldsPresent).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ dose_changed: false }),
+    )
+    expect(mocks.checkSafetyForServer).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ dose_changed: false }),
+    )
+    expect(mocks.stripeSessionCreate).toHaveBeenCalled()
   })
 
   it("hands retry-payment return state into the success screen copy", () => {

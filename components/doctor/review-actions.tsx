@@ -31,7 +31,7 @@ import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
 import { DECLINE_REASONS } from "@/lib/doctor/constants"
 import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
-import { isPrescribingConsultSubtype } from "@/lib/doctor/service-types"
+import { isPrescribingServiceRequest } from "@/lib/doctor/service-types"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
 import type { DeclineReasonCode, IntakeStatus } from "@/types/db"
 
@@ -135,6 +135,10 @@ export function useReviewActions({
     setDoctorNotes(notes)
     lastSavedNotesRef.current = dbNotes
   }, [])
+  const updateDoctorNotes = useCallback((notes: string) => {
+    setDoctorNotes(notes)
+    setIsAiPrefilled(false)
+  }, [])
 
   // Decline dialog
   const [showDeclineDialog, setShowDeclineDialog] = useState(false)
@@ -217,6 +221,7 @@ export function useReviewActions({
       patientSex: intake.patient.sex ?? null,
       riskTier: intake.risk_tier,
       requiresLiveConsult: intake.requires_live_consult,
+      scriptSent: intake.script_sent,
     })
   }, [intake, service?.type])
 
@@ -538,16 +543,11 @@ export function useReviewActions({
     onApprove: () => {
       if (!intake || intake.status !== "paid" || isPending) return
       const caseSummary = getClinicalCaseSummary()
+      const hasPrescriptionIntent = Boolean(caseSummary?.prescriptionIntent)
       if (service?.type === "med_certs") {
         handleMedCertApprove()
-      } else if (service?.type === "repeat_rx" || service?.type === "common_scripts") {
-        handleOpenParchmentPrescribe()
-      } else if (
-        intake.category === "consult" &&
-        isPrescribingConsultSubtype(intake.subtype) &&
-        caseSummary?.prescriptionIntent
-      ) {
-        handleOpenParchmentPrescribe()
+      } else if (isPrescribingServiceRequest(service?.type, intake.subtype)) {
+        if (hasPrescriptionIntent) handleOpenParchmentPrescribe()
       } else {
         handleStatusChange("approved")
       }
@@ -569,7 +569,7 @@ export function useReviewActions({
   return {
     isPending,
     doctorNotes,
-    setDoctorNotes,
+    setDoctorNotes: updateDoctorNotes,
     setInitialNotes,
     noteSaved,
     setNoteSaved,

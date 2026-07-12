@@ -7,6 +7,8 @@ import {
   type RequestType,
 } from "@/lib/audit/compliance-audit"
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { describeServiceCapability, doctorCanReviewService } from "@/lib/auth/staff-capabilities"
+import { getRepeatRxPrescribingBlocker, isRepeatRxIntake } from "@/lib/clinical/repeat-rx-attestation"
 import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { acquireIntakeLock } from "@/lib/data/intake-lock"
 import { startParchmentPrescribing } from "@/lib/data/intakes"
@@ -143,6 +145,7 @@ export async function getParchmentPrescribeUrlAction(
         payment_status,
         category,
         subtype,
+        script_sent,
         claimed_by,
         reviewing_doctor_id,
         reviewed_by,
@@ -170,6 +173,14 @@ export async function getParchmentPrescribeUrlAction(
       return { success: false, error: "Intake or patient not found" }
     }
 
+    if (intake.script_sent === true) {
+      log.warn("Parchment prescribe blocked because script evidence is already recorded", { intakeId })
+      return {
+        success: false,
+        error: "A prescription is already recorded as issued for this request. Do not prescribe again; review the recorded evidence and complete the request.",
+      }
+    }
+
     const serviceType = getServiceType(intake.service)
     const eligibility = getParchmentPrescribingEligibility({
       status: intake.status,
@@ -187,6 +198,48 @@ export async function getParchmentPrescribeUrlAction(
         serviceType,
       })
       return { success: false, error: eligibility.error }
+    }
+
+    const { data: answerRow } = await supabase
+      .from("intake_answers")
+      .select("answers, answers_encrypted")
+      .eq("intake_id", intakeId)
+      .maybeSingle()
+
+    const answers = answerRow
+      ? (await readAnswers({
+          answers: answerRow.answers as Record<string, unknown> | null,
+          answers_enc: answerRow.answers_encrypted as never,
+        })) ?? undefined
+      : undefined
+
+    if (isRepeatRxIntake({ category: intake.category, serviceType })) {
+      const regimenBlocker = getRepeatRxPrescribingBlocker(answers)
+      if (regimenBlocker) {
+        log.warn("Parchment prescribe blocked by missing or changed repeat-Rx regimen attestation", {
+          code: regimenBlocker.code,
+        })
+        return { success: false, error: regimenBlocker.error }
+      }
+    }
+
+    if (!doctorCanReviewService(authResult.profile, serviceType, intake.subtype)) {
+      return {
+        success: false,
+        error: `Your account is not configured to review ${describeServiceCapability(serviceType, intake.subtype)}. Contact the medical director.`,
+      }
+    }
+
+    const prescribingCapability = checkParchmentPrescribingCapability({
+      profile: authResult.profile,
+      answers,
+    })
+    if (!prescribingCapability.allowed) {
+      log.warn("Parchment prescribe blocked by doctor prescribing capability", {
+        requiredCapability: prescribingCapability.requiredCapability,
+        controlledMedicationDetected: prescribingCapability.controlledMedicationDetected,
+      })
+      return { success: false, error: prescribingCapability.error }
     }
 
     // Defense-in-depth: ensure a live doctor-owned review claim exists before SSO.
@@ -215,32 +268,6 @@ export async function getParchmentPrescribeUrlAction(
         log.warn("Parchment prescribe blocked because review claim could not be verified")
         return { success: false, error: "You must claim this intake before prescribing" }
       }
-    }
-
-    const { data: answerRow } = await supabase
-      .from("intake_answers")
-      .select("answers, answers_encrypted")
-      .eq("intake_id", intakeId)
-      .maybeSingle()
-
-    // Extract answers for sex field fallback and controlled-medicine defence.
-    const answers = answerRow
-      ? (await readAnswers({
-          answers: answerRow.answers as Record<string, unknown> | null,
-          answers_enc: answerRow.answers_encrypted as never,
-        })) ?? undefined
-      : undefined
-
-    const prescribingCapability = checkParchmentPrescribingCapability({
-      profile: authResult.profile,
-      answers,
-    })
-    if (!prescribingCapability.allowed) {
-      log.warn("Parchment prescribe blocked by doctor prescribing capability", {
-        requiredCapability: prescribingCapability.requiredCapability,
-        controlledMedicationDetected: prescribingCapability.controlledMedicationDetected,
-      })
-      return { success: false, error: prescribingCapability.error }
     }
 
     const patient = await getProfileById(intake.patient_id)
@@ -299,6 +326,30 @@ export async function getParchmentPrescribeUrlAction(
       )
     } catch (auditError) {
       log.warn("Failed to log Parchment prescribing boundary evidence", {}, auditError)
+    }
+
+    // Close the webhook/manual-evidence race between the initial intake read and
+    // returning the already-minted SSO URL. Generating a URL does not issue a
+    // prescription, so fail closed and withhold it if durable script evidence
+    // appeared while the handoff was opening.
+    const { data: finalScriptEvidence, error: finalScriptEvidenceError } = await supabase
+      .from("intakes")
+      .select("script_sent")
+      .eq("id", intakeId)
+      .single()
+    if (finalScriptEvidenceError || !finalScriptEvidence) {
+      log.warn("Parchment prescribe blocked because final script evidence could not be verified", { intakeId })
+      return {
+        success: false,
+        error: "Could not verify that this request is still ready for prescribing. Refresh the case and try again.",
+      }
+    }
+    if (finalScriptEvidence.script_sent === true) {
+      log.warn("Parchment prescribe blocked because script evidence appeared during handoff", { intakeId })
+      return {
+        success: false,
+        error: "A prescription was recorded while this handoff was opening. Do not prescribe again; review the recorded evidence and complete the request.",
+      }
     }
 
     log.info("Parchment prescribe URL generated")

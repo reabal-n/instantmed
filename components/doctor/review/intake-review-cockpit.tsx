@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button"
 import { isBatchReviewEligible } from "@/lib/clinical/batch-review-policy"
 import { buildClinicalCaseSummary, type ClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { buildPrescribingPacket } from "@/lib/clinical/prescribing-packet"
-import { isPrescribingConsultSubtype } from "@/lib/doctor/service-types"
+import { isPrescribingServiceRequest } from "@/lib/doctor/service-types"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
 import { cn } from "@/lib/utils"
 
@@ -167,6 +167,7 @@ export function IntakeReviewCockpit({
         answers: answers ?? {},
         riskTier: intake.risk_tier,
         requiresLiveConsult: intake.requires_live_consult,
+        scriptSent: intake.script_sent,
       }),
     [
       intake.category,
@@ -175,6 +176,7 @@ export function IntakeReviewCockpit({
       intake.patient?.date_of_birth,
       intake.patient?.sex,
       intake.requires_live_consult,
+      intake.script_sent,
       intake.risk_tier,
       service?.type,
       answers,
@@ -237,16 +239,10 @@ export function IntakeReviewCockpit({
     disabled: review.isPending,
     onApprove: () => {
       if (intake.status !== "paid" && intake.status !== "in_review") return
-      if (
-        intake.category === "consult" &&
-        isPrescribingConsultSubtype(intake.subtype) &&
-        hasPrescriptionIntent
-      ) {
-        review.handleOpenParchmentPrescribe()
-      } else if (service?.type === "med_certs") {
+      if (service?.type === "med_certs") {
         review.handleMedCertApprove()
-      } else if (service?.type === "repeat_rx" || service?.type === "common_scripts") {
-        review.handleOpenParchmentPrescribe()
+      } else if (isPrescribingServiceRequest(service?.type, intake.subtype)) {
+        if (hasPrescriptionIntent) review.handleOpenParchmentPrescribe()
       } else {
         review.handleStatusChange("approved")
       }

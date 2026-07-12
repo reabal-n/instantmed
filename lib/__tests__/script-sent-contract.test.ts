@@ -69,6 +69,26 @@ describe("script sent mutation production contract", () => {
     )
   })
 
+  it("keeps the shared prescribing mutations fail-closed on repeat-Rx attestation", () => {
+    const transitionBody = functionBody("updateIntakeStatus")
+    const startBody = functionBody("startParchmentPrescribing")
+    const recordBody = functionBody("updateScriptSent")
+
+    expect(mutationSource).toContain("getRepeatRxPrescribingBlocker")
+    for (const body of [transitionBody, startBody, recordBody]) {
+      expect(body).toContain("isRepeatRxIntake(")
+      expect(body).toContain("getRepeatRxPrescribingBlocker(")
+    }
+    expect(transitionBody).toContain('status === "awaiting_script"')
+    expect(recordBody.indexOf("intake.script_sent === true")).toBeLessThan(
+      recordBody.indexOf("getRepeatRxPrescribingBlocker("),
+    )
+    expect(recordBody.indexOf("getRepeatRxPrescribingBlocker(")).toBeLessThan(
+      recordBody.indexOf("script_sent: scriptSent"),
+    )
+    expect(recordBody).toContain("options.externalEvidenceAlreadyIssued")
+  })
+
   it("keeps script recording separate from final prescription approval", () => {
     const recordBody = functionBody("updateScriptSent")
     const approveBody = functionBody("approvePrescribedScript")
@@ -134,7 +154,8 @@ describe("script sent mutation production contract", () => {
     expect(body).toContain("confirmed by the reviewing doctor on completion")
     expect(body).toContain("doctorCanReviewService(profile, serviceType, subtype)")
     expect(body).toContain("Doctor lacks capability to approve prescription")
-    expect(body).toContain("ensureClinicalDecisionNoteForApproval(intakeId)")
+    expect(body).toContain("ensureClinicalDecisionNoteForApproval(intakeId, {")
+    expect(body).toContain("requireExistingNote: Boolean(regimenBlocker && intake.script_sent === true)")
     expect(body).toContain("sendScriptSentEmailIfNeeded(supabase, intakeId)")
     expect(body).toContain("emailNotification")
     expect(body).toContain('emailNotification: "sent"')
@@ -169,7 +190,10 @@ describe("script sent mutation production contract", () => {
   // (re)syncing the patient must never mark the script sent — only the deliberate
   // doctor completion or the prescription.created webhook may.
   it("never records script_sent from the primary Parchment launch action", () => {
-    expect(parchmentActionSource).not.toMatch(/updateScriptSent|markScriptSent|script_sent/)
+    // Reading script_sent is required to suppress duplicate prescribing; this
+    // action must still never call a completion mutator or write the field.
+    expect(parchmentActionSource).not.toMatch(/updateScriptSent|markScriptSent/)
+    expect(parchmentActionSource).not.toMatch(/\.update\([\s\S]{0,160}script_sent/)
   })
 
   it("records script_sent from the webhook only on an eligible prescription.created event", () => {
@@ -178,5 +202,6 @@ describe("script sent mutation production contract", () => {
     expect(parchmentWebhookSource).toContain('.eq("status", "awaiting_script")')
     expect(parchmentWebhookSource).toContain('.eq("payment_status", "paid")')
     expect(parchmentWebhookSource).toContain('.eq("script_sent", false)')
+    expect(parchmentWebhookSource).toContain("externalEvidenceAlreadyIssued: true")
   })
 })
