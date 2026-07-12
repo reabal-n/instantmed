@@ -181,6 +181,7 @@ export async function retryParchmentWebhookFailureAction(
         `Manual retry from Parchment webhook failure ${auditLogId}`,
         scid,
         prescriberProfileId,
+        { externalEvidenceAlreadyIssued: true },
       )
       if (!markedScriptSent) {
         return { success: false, error: "Prescription synced, but the linked intake could not be marked script sent." }

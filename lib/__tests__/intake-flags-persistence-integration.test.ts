@@ -52,6 +52,7 @@ function missingStrengthRepeatInput() {
     answers: {
       medications: [{ name: "Atorvastatin", form: "tablet", pbsCode: "1234" }], // no strength
       prescribed_before: true,
+      doseChanged: false,
       dose_changed: false,
       last_prescribed: "6_to_12_months",
       current_dose: "20 mg nightly",
@@ -78,6 +79,7 @@ describe("intake flags persistence shape (what risk_flags receives)", () => {
       answers: {
         medications: [{ name: "Atorvastatin", pbsCode: "1234" }], // no strength, no form
         prescribed_before: true,
+        doseChanged: false,
         dose_changed: false,
         last_prescribed: "6_to_12_months",
         current_dose: "20 mg nightly",
@@ -108,6 +110,7 @@ describe("intake flags persistence shape (what risk_flags receives)", () => {
           },
         ],
         prescribed_before: true,
+        doseChanged: false,
         dose_changed: false,
         last_prescribed: "6_to_12_months",
         current_dose: "one daily",

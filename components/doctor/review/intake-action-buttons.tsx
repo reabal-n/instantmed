@@ -13,6 +13,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { buildPrescribingPacket, getPrescribingPacketBlocker } from "@/lib/clinical/prescribing-packet"
+import {
+  getRepeatRxAttestationStatus,
+  hasLegacyRepeatRxReconciliationNote,
+} from "@/lib/clinical/repeat-rx-attestation"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
 import {
@@ -218,6 +222,8 @@ export function IntakeActionButtons({
     service,
     answers,
     doctorNotes,
+    isAiPrefilled,
+    noteDirty,
     isPending,
     isLoadingPreview,
     handleMedCertApprove,
@@ -244,6 +250,7 @@ export function IntakeActionButtons({
         patientSex: intake.patient.sex ?? null,
         riskTier: intake.risk_tier,
         requiresLiveConsult: intake.requires_live_consult,
+        scriptSent: intake.script_sent,
       }),
     [
       answers,
@@ -252,6 +259,7 @@ export function IntakeActionButtons({
       intake.patient.date_of_birth,
       intake.patient.sex,
       intake.requires_live_consult,
+      intake.script_sent,
       intake.risk_tier,
       intake.subtype,
       service?.type,
@@ -269,6 +277,12 @@ export function IntakeActionButtons({
   const canPrescribeInParchment =
     isActivePrescribingStatus &&
     ((isRepeatScript && caseSummary.recommendedPlan.action === "prescribe") || shouldPrescribeFromConsult)
+  const canCompleteRecordedRepeatScript =
+    isRepeatScript && intake.script_sent === true && isActivePrescribingStatus
+  const recordedRepeatCompletionNeedsNote =
+    canCompleteRecordedRepeatScript && getRepeatRxAttestationStatus(answers) !== "confirmed_unchanged"
+  const recordedRepeatReconciliationReady =
+    hasLegacyRepeatRxReconciliationNote(doctorNotes) && !isAiPrefilled && !noteDirty
   // Plan 06: block Prescribe/Complete for a legacy repeat-Rx missing
   // medication/dose/indication unless a clinical note exists (then it warns).
   // New repeats can't be missing fields — checkout enforces them (Plan 04).
@@ -297,9 +311,11 @@ export function IntakeActionButtons({
     (service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status)) ||
     canShowCompleteConsult ||
     (!isKnownDoctorServiceType(service?.type) && intake.status === "paid")
-  const approveDisabledReason = approvalNeedsClinicalNotes && needsClinicalNotes
-    ? "Use the draft note or add a brief clinical note."
-    : null
+  const approveDisabledReason = recordedRepeatCompletionNeedsNote && !recordedRepeatReconciliationReady
+    ? "Add and save a reconciliation note for the already-issued script before completing this legacy request."
+    : approvalNeedsClinicalNotes && needsClinicalNotes
+      ? "Use the draft note or add a brief clinical note."
+      : null
   const snapshotContext = {
     answers,
     category: intake.category,
@@ -346,7 +362,10 @@ export function IntakeActionButtons({
       : `Full refund if you decline. ${refundRecipient} is refunded.`
     : "Opens confirmation."
   const safetyReady =
-    caseSummary.safetyItems.every((item) => item.severity === "info") &&
+    caseSummary.safetyItems.every((item) => (
+      item.severity === "info" ||
+      (recordedRepeatReconciliationReady && item.label === "Recorded script evidence needs reconciliation")
+    )) &&
     intake.requires_live_consult !== true &&
     intake.risk_tier !== "high"
   const queueEnteredAt = getQueueEnteredAt(intake)
@@ -481,24 +500,26 @@ export function IntakeActionButtons({
           </>
         )}
 
-      {canPrescribeInParchment && (
+      {(canPrescribeInParchment || canCompleteRecordedRepeatScript) && (
         <>
-          <Button
-            onClick={handlePrescribeClick}
-            className="h-7 px-2.5 text-xs bg-blue-600 hover:bg-blue-700"
-            disabled={isActionDisabled || hasPrescribingIdentityBlocker || packetBlocker.blocked}
-            title={packetBlocker.message ?? prescribingIdentityTitle}
-            size="sm"
-          >
-            <Send className="h-4 w-4 mr-1.5" />
-            {prescribingActionLabel ?? "Prescribe"}
-          </Button>
+          {canPrescribeInParchment && intake.script_sent !== true ? (
+            <Button
+              onClick={handlePrescribeClick}
+              className="h-7 px-2.5 text-xs bg-blue-600 hover:bg-blue-700"
+              disabled={isActionDisabled || hasPrescribingIdentityBlocker || packetBlocker.blocked}
+              title={packetBlocker.message ?? prescribingIdentityTitle}
+              size="sm"
+            >
+              <Send className="h-4 w-4 mr-1.5" />
+              {prescribingActionLabel ?? "Prescribe"}
+            </Button>
+          ) : null}
           {!shouldPrescribeFromConsult ? (
             <Button
               onClick={handleApprovePrescribedScript}
               className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
-              disabled={isActionDisabled || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe || packetBlocker.blocked}
-              title={packetBlocker.message ?? approveAfterPrescribeTitle}
+              disabled={isActionDisabled || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe || packetBlocker.blocked || Boolean(approveDisabledReason)}
+              title={approveDisabledReason ?? packetBlocker.message ?? approveAfterPrescribeTitle}
               aria-describedby={prescribingApproveHint ? "queue-prescribing-approve-hint" : undefined}
               size="sm"
             >
@@ -506,7 +527,9 @@ export function IntakeActionButtons({
               {isPending ? "Approving..." : "Approve"}
             </Button>
           ) : null}
-          {intake.script_sent === true ? null : <MarkSentManuallyButton intakeId={intake.id} disabled={!isHydrated} />}
+          {canPrescribeInParchment && intake.script_sent !== true
+            ? <MarkSentManuallyButton intakeId={intake.id} disabled={!isHydrated} />
+            : null}
         </>
       )}
 

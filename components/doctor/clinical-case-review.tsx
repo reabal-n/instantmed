@@ -8,6 +8,12 @@ import { ClinicalSummary } from "@/components/doctor/clinical-summary"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { buildClinicalCaseSummary, type PrescriptionIntent } from "@/lib/clinical/case-summary"
+import {
+  getRepeatRxAttestationStatus,
+  hasLegacyRepeatRxReconciliationNote,
+  isRepeatRxIntake,
+  LEGACY_REPEAT_RX_RECONCILIATION_NOTE,
+} from "@/lib/clinical/repeat-rx-attestation"
 import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
 import { cn } from "@/lib/utils"
 
@@ -21,6 +27,7 @@ interface ClinicalCaseReviewProps {
   answers: Record<string, unknown>
   riskTier?: string | null
   requiresLiveConsult?: boolean | null
+  scriptSent?: boolean | null
   className?: string
   compact?: boolean
   showFullAnswers?: boolean
@@ -146,6 +153,7 @@ export function ClinicalCaseReview({
   answers,
   riskTier,
   requiresLiveConsult,
+  scriptSent,
   className,
   compact = false,
   showFullAnswers = true,
@@ -173,6 +181,7 @@ export function ClinicalCaseReview({
     answers,
     riskTier,
     requiresLiveConsult,
+    scriptSent,
   })
 
   const copyPreset = async () => {
@@ -203,6 +212,21 @@ export function ClinicalCaseReview({
   const hiddenFactCount = Math.max(scannableFacts.length - visibleFacts.length, 0)
   const isEditableDraftNote = Boolean(onDraftNoteChange)
   const visibleDraftNote = isEditableDraftNote ? draftNoteValue ?? "" : summary.draftNote
+  const needsRecordedScriptReconciliation =
+    scriptSent === true &&
+    isRepeatRxIntake({ category, serviceType }) &&
+    getRepeatRxAttestationStatus(answers) !== "confirmed_unchanged"
+  const recordedScriptAcknowledged = hasLegacyRepeatRxReconciliationNote(visibleDraftNote)
+  const recordedScriptReconciliationSaved = recordedScriptAcknowledged && !draftNoteDirty
+  const visibleSafetyItems = summary.safetyItems.map((item) => (
+    recordedScriptReconciliationSaved && item.label === "Recorded script evidence needs reconciliation"
+      ? {
+          severity: "info" as const,
+          label: "Recorded script evidence acknowledged",
+          detail: "The recorded external script evidence is acknowledged in the saved clinical note. Do not issue another prescription from this request.",
+        }
+      : item
+  ))
   const draftNoteReady = isClinicalNoteSufficient(visibleDraftNote)
   const pinnedDraftFacts = compact ? [] : summary.keyFacts.slice(0, PINNED_DRAFT_FACT_LIMIT)
   const signOffParts = doctorSignOffLabel?.split(/\s+·\s+/, 2) ?? null
@@ -227,7 +251,11 @@ export function ClinicalCaseReview({
         <div className="flex items-center gap-2">
           <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <p className="text-xs font-semibold text-foreground">
-            {isEditableDraftNote ? "Draft note" : "Clinical note"}
+            {needsRecordedScriptReconciliation
+              ? "Recorded-script reconciliation note"
+              : isEditableDraftNote
+                ? "Draft note"
+                : "Clinical note"}
             <span className="font-normal text-muted-foreground"> · Check before you send.</span>
           </p>
         </div>
@@ -247,6 +275,42 @@ export function ClinicalCaseReview({
       </div>
       {isEditableDraftNote ? (
         <div className={cn("space-y-2", compact ? "p-2.5" : "p-3")}>
+          {needsRecordedScriptReconciliation ? (
+            <div className="space-y-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100">
+              <p>
+                This prescription is already recorded as issued. Do not prescribe again. Review the recorded evidence, acknowledge it below, and let the note save before completing the request.
+              </p>
+              {!recordedScriptAcknowledged ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onDraftNoteChange?.(
+                    visibleDraftNote.trim()
+                      ? `${visibleDraftNote.trim()}\n\n${LEGACY_REPEAT_RX_RECONCILIATION_NOTE}`
+                      : LEGACY_REPEAT_RX_RECONCILIATION_NOTE,
+                  )}
+                >
+                  Acknowledge recorded script evidence
+                </Button>
+              ) : draftNoteDirty && onDraftNoteSave ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void onDraftNoteSave(visibleDraftNote)}
+                  disabled={isDraftNoteSaving}
+                >
+                  {isDraftNoteSaving ? (
+                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Save className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                  )}
+                  Save reconciliation note
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
           {!compact ? (
             <div
               aria-label="Pinned reason for visit"
@@ -504,7 +568,7 @@ export function ClinicalCaseReview({
             )
           ) : null}
 
-          {summary.safetyItems.length > 0 && (
+          {visibleSafetyItems.length > 0 && (
             <section className="space-y-2">
               <p className="text-xs font-medium text-muted-foreground">
                 Safety
@@ -515,7 +579,7 @@ export function ClinicalCaseReview({
                 )}
                 data-compact-safety-summary={compact ? "true" : undefined}
               >
-                {summary.safetyItems.map((item) => {
+                {visibleSafetyItems.map((item) => {
                   const destructive = item.severity === "block"
                   const SafetyIcon = destructive
                     ? ShieldAlert

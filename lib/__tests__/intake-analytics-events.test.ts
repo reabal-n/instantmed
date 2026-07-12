@@ -209,4 +209,13 @@ describe("intake analytics events", () => {
     expect(womensAssessmentSource.match(/stepId: "womens-health-assessment"/g)).toHaveLength(2)
     expect(womensAssessmentSource.match(/subtype: answers\.consultSubtype/g)).toHaveLength(2)
   })
+
+  it("keeps medication-history completion on the centralized PHI-safe funnel hook", () => {
+    const medicationHistorySource = readProjectFile("components/request/steps/medication-history-step.tsx")
+
+    expect(medicationHistorySource).not.toContain("usePostHog")
+    expect(medicationHistorySource).not.toContain("posthog?.capture('step_completed'")
+    expect(medicationHistorySource).not.toContain("prescription_history")
+    expect(medicationHistorySource).not.toContain("has_side_effects")
+  })
 })

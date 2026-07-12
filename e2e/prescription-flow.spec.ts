@@ -119,13 +119,17 @@ async function completeMedicationStep(page: Page) {
 /**
  * Complete the medication history step.
  *
- * Selects "Under 3 months" for when last prescribed,
- * and "No side effects" for adverse reactions.
+ * Selects "Under 3 months" for when last prescribed, confirms the dose and
+ * directions are unchanged, and reports no side effects.
  */
 async function completeMedicationHistoryStep(page: Page) {
   await waitForStep(page, /When were you last prescribed/i)
   await clickChip(page, /Under 3 months/i)
   await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
+  await page
+    .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
+    .getByRole("radio", { name: /No, unchanged/i })
+    .click()
   await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
   // Side effects question appears after entering the current dose + indication.
   await clickChip(page, /No side effects/i)
@@ -180,7 +184,7 @@ async function completeDetailsStep(page: Page) {
   await page.locator('input[placeholder="10 digits"]').fill("2123456701")
   await page.locator('input[placeholder="10 digits"]').blur()
   await page.waitForTimeout(200)
-  await page.getByRole("button", { name: /^1$/ }).last().click()
+  await page.locator("#medicare-irn").fill("1")
 
   await page.locator('[placeholder="Start typing your address..."]').fill("123 Test Street")
   await page.locator("#suburb").fill("Sydney")
@@ -364,6 +368,68 @@ test.describe("Prescription: step validation", () => {
     await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
     await clickContinue(page)
     await waitForStep(page, /When were you last prescribed/i)
+  })
+
+  test("medication history requires an unchanged dose-and-directions confirmation", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await completeMedicationStep(page)
+    await waitForStep(page, /When were you last prescribed/i)
+    await clickChip(page, /Under 3 months/i)
+    await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
+    await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
+    await clickChip(page, /No side effects/i)
+
+    await clickContinue(page)
+    await expect(page.getByText(/Please confirm whether the dose or the way you take this medicine has changed/i).first()).toBeVisible()
+
+    const regimenQuestion = page.getByRole("radiogroup", {
+      name: /dose or the way you take this medicine changed/i,
+    })
+    await regimenQuestion.getByRole("radio", { name: /Yes, changed/i }).click()
+    await expect(page.getByText(/needs review by your regular GP or specialist/i).first()).toBeVisible()
+    await expect(page.getByText(/Your prescription history/i).first()).toBeVisible()
+
+    await regimenQuestion.getByRole("radio", { name: /No, unchanged/i }).click()
+    await clickContinue(page)
+    await waitForStep(page, /Anything the doctor should know/i)
+  })
+
+  test("editing the medication clears the unchanged-regimen confirmation", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await completeMedicationStep(page)
+    await waitForStep(page, /When were you last prescribed/i)
+    await clickChip(page, /Under 3 months/i)
+    await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
+    await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
+    await clickChip(page, /No side effects/i)
+    const regimenQuestion = page.getByRole("radiogroup", {
+      name: /dose or the way you take this medicine changed/i,
+    })
+    await regimenQuestion.getByRole("radio", { name: /No, unchanged/i }).click()
+
+    await page.getByRole("button", { name: /Go back/i }).click()
+    await waitForStep(page, /Which medication do you need/i)
+    await page.locator("#medication-name-0").fill("E2E changed medication")
+    await clickContinue(page)
+    await waitForStep(page, /When were you last prescribed/i)
+
+    const unchangedOption = page
+      .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
+      .getByRole("radio", { name: /No, unchanged/i })
+    await expect(unchangedOption).toHaveAttribute("aria-checked", "false")
+    await clickContinue(page)
+    await expect(page.getByText(/Please confirm whether the dose or the way you take this medicine has changed/i).first()).toBeVisible()
+
+    await unchangedOption.click()
+    await page.getByPlaceholder(/2 puffs twice daily/i).fill("2 tablets daily")
+    await expect(unchangedOption).toHaveAttribute("aria-checked", "false")
+    await expect(page.getByText(/Please confirm whether the dose or the way you take this medicine has changed/i).first()).toBeVisible()
   })
 
   test("patient details validates email format", async ({ page }) => {

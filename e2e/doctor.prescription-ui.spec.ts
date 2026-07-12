@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test"
 
+import { LEGACY_REPEAT_RX_RECONCILIATION_NOTE } from "@/lib/clinical/repeat-rx-attestation"
+
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import {
   cleanupTestIntake,
@@ -13,7 +15,11 @@ const E2E_OPERATOR_ID = "e2e00000-0000-0000-0000-000000000001"
 const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
 const E2E_CONSULT_SERVICE_ID = "e2e00000-0000-0000-0000-000000000022"
 
-async function seedRepeatPrescriptionCase(): Promise<string> {
+async function seedRepeatPrescriptionCase({
+  confirmUnchangedRegimen = true,
+}: {
+  confirmUnchangedRegimen?: boolean
+} = {}): Promise<string> {
   const seed = await seedTestIntake({
     status: "in_review",
     payment_status: "paid",
@@ -66,6 +72,7 @@ async function seedRepeatPrescriptionCase(): Promise<string> {
       current_medications: "Atorvastatin",
       isPregnantOrBreastfeeding: "no",
       hasAdverseMedicationReactions: "no",
+      ...(confirmUnchangedRegimen ? { doseChanged: false } : {}),
     },
   })
 
@@ -226,7 +233,52 @@ test.describe("Doctor prescription UI flow", () => {
 
     const refreshedActionRail = page.locator('[data-review-action-rail="true"]').first()
     await expect(page.getByText("Script sent").first()).toBeVisible()
+    await expect(page.getByText("Prescription already recorded").first()).toBeVisible()
+    await expect(refreshedActionRail.getByRole("button", { name: "Prescribe" })).toHaveCount(0)
     await expect(refreshedActionRail.getByRole("button", { name: "Approve" })).toBeEnabled()
+  })
+
+  test("requires a saved reconciliation acknowledgement for recorded legacy script evidence", async ({ page }) => {
+    const intakeId = await seedRepeatPrescriptionCase({ confirmUnchangedRegimen: false })
+    testIntakeIds.push(intakeId)
+    await recordDurableScriptEvidence(intakeId)
+
+    await page.goto(`/doctor/intakes/${intakeId}`)
+    await waitForPageLoad(page)
+
+    const actionRail = page.locator('[data-review-action-rail="true"]').first()
+    await expect(actionRail.getByRole("button", { name: "Prescribe" })).toHaveCount(0)
+    await expect(actionRail.getByRole("button", { name: "Sent outside Parchment" })).toHaveCount(0)
+
+    const approveButton = actionRail.getByRole("button", { name: "Approve" })
+    await expect(approveButton).toBeDisabled()
+    await expect(page.getByText("Recorded-script reconciliation note")).toBeVisible()
+
+    await page.getByRole("button", { name: "Acknowledge recorded script evidence" }).click()
+    await expect(approveButton).toBeDisabled()
+    await page.getByRole("button", { name: "Save reconciliation note" }).click()
+
+    await expect.poll(async () => {
+      const supabase = getSupabaseClient()
+      const { data } = await supabase
+        .from("intakes")
+        .select("doctor_notes")
+        .eq("id", intakeId)
+        .single()
+      return data?.doctor_notes ?? ""
+    }).toContain(LEGACY_REPEAT_RX_RECONCILIATION_NOTE)
+    await expect(approveButton).toBeEnabled()
+
+    await approveButton.click()
+    await expect.poll(async () => {
+      const supabase = getSupabaseClient()
+      const { data } = await supabase
+        .from("intakes")
+        .select("status")
+        .eq("id", intakeId)
+        .single()
+      return data?.status ?? null
+    }).toBe("completed")
   })
 
   test("women's health UTI review is compact and exposes Prescribe plus Complete Consultation", async ({ page }) => {
@@ -252,8 +304,7 @@ test.describe("Doctor prescription UI flow", () => {
     await expect(actionRail.getByRole("button", { name: "Prescribe" })).toBeVisible()
     const completeButton = actionRail.getByRole("button", { name: "Complete Consultation" })
     await expect(completeButton).toBeVisible()
-    await expect(completeButton).toBeDisabled()
+    await expect(completeButton).toBeEnabled()
     await expect(actionRail.getByRole("button", { name: "Approve" })).toHaveCount(0)
-    await expect(actionRail.getByText("Complete or record the prescription in Parchment first.")).toBeVisible()
   })
 })

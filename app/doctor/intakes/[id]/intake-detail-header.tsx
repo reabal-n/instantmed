@@ -41,6 +41,10 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { buildPrescribingPacket, getPrescribingPacketBlocker } from "@/lib/clinical/prescribing-packet"
+import {
+  getRepeatRxAttestationStatus,
+  hasLegacyRepeatRxReconciliationNote,
+} from "@/lib/clinical/repeat-rx-attestation"
 import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/data/status"
@@ -97,6 +101,8 @@ interface IntakeDetailHeaderProps {
   onOpenParchmentPrescribe?: () => void
   onApprovePrescribedScript?: () => void
   hasPrescriptionIntent?: boolean
+  isAiPrefilled?: boolean
+  noteDirty: boolean
   showReissueDialog: boolean
   setShowReissueDialog: (val: boolean) => void
   reissuePreviewData: CertificatePreviewData | null
@@ -136,6 +142,8 @@ export function IntakeDetailHeader({
   onOpenParchmentPrescribe,
   onApprovePrescribedScript,
   hasPrescriptionIntent,
+  isAiPrefilled = false,
+  noteDirty,
   showReissueDialog,
   setShowReissueDialog,
   reissuePreviewData,
@@ -161,6 +169,12 @@ export function IntakeDetailHeader({
     isActivePrescribingStatus &&
     hasPrescriptionIntent === true &&
     (isRepeatScript || shouldPrescribeFromConsult)
+  const canCompleteRecordedRepeatScript =
+    isRepeatScript && intake.script_sent === true && isActivePrescribingStatus
+  const recordedRepeatCompletionNeedsNote =
+    canCompleteRecordedRepeatScript && getRepeatRxAttestationStatus(answers) !== "confirmed_unchanged"
+  const recordedRepeatReconciliationReady =
+    hasLegacyRepeatRxReconciliationNote(doctorNotes) && !isAiPrefilled && !noteDirty
   const snapshotContext = {
     answers,
     category: intake.category,
@@ -180,9 +194,11 @@ export function IntakeDetailHeader({
     canShowCompleteConsult ||
     (!isKnownDoctorServiceType(service?.type) && intake.status === "paid")
   const approveDisabledReason =
-    approvalNeedsClinicalNotes && !isClinicalNoteSufficient(doctorNotes)
-      ? "Use the draft note or add a brief clinical note."
-      : null
+    recordedRepeatCompletionNeedsNote && !recordedRepeatReconciliationReady
+      ? "Add and save a reconciliation note for the already-issued script before completing this legacy request."
+      : approvalNeedsClinicalNotes && !isClinicalNoteSufficient(doctorNotes)
+        ? "Use the draft note or add a brief clinical note."
+        : null
 
   // Plan 06: block Prescribe/Complete for a legacy repeat-Rx missing
   // medication/dose/indication unless a clinical note exists (then it warns).
@@ -407,9 +423,9 @@ export function IntakeDetailHeader({
               </Button>
             )}
 
-            {canPrescribeInParchment && (
+            {(canPrescribeInParchment || canCompleteRecordedRepeatScript) && (
               <>
-                {onOpenParchmentPrescribe && (
+                {canPrescribeInParchment && intake.script_sent !== true && onOpenParchmentPrescribe && (
                   <Button
                     size={actionButtonSize}
                     onClick={handlePrescribeClick}
@@ -427,8 +443,8 @@ export function IntakeDetailHeader({
                       size={actionButtonSize}
                       onClick={onApprovePrescribedScript}
                       className="bg-primary hover:bg-primary/90"
-                      disabled={isPending || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe || packetBlocker.blocked}
-                      title={packetBlocker.message ?? approveAfterPrescribeTitle}
+                      disabled={isPending || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe || packetBlocker.blocked || Boolean(approveDisabledReason)}
+                      title={approveDisabledReason ?? packetBlocker.message ?? approveAfterPrescribeTitle}
                       aria-describedby={prescribingApproveHint ? "full-case-prescribing-approve-hint" : undefined}
                     >
                       {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
@@ -436,7 +452,7 @@ export function IntakeDetailHeader({
                     </Button>
                   ) : null
                 )}
-                {intake.script_sent === true ? null : (
+                {canPrescribeInParchment && intake.script_sent !== true ? (
                   <Button
                     size={actionButtonSize}
                     variant="outline"
@@ -444,7 +460,7 @@ export function IntakeDetailHeader({
                   >
                     Sent outside Parchment
                   </Button>
-                )}
+                ) : null}
               </>
             )}
 

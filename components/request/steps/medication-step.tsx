@@ -145,6 +145,10 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         medicationStrength: primary.strength || "",
         medicationForm: primary.form || "",
         pbsCode: primary.pbsCode || "",
+        // The unchanged-regimen attestation belongs to the exact medication
+        // details the patient reviewed. Any edit requires a fresh answer.
+        doseChanged: undefined,
+        dose_changed: undefined,
       })
     }
   }, [setAnswer, setAnswers])
