@@ -34,7 +34,7 @@ InstantMed is not a crisis, therapy, psychiatrist, or Mental Health Treatment Pl
 
 ### Medical Certificates
 
-InstantMed supports routine medical certificate requests for Australian patients aged 18 and over. The patient completes a secure form about symptoms, timing, and the requested certificate period. A doctor reviews the information and issues a certificate only if clinically appropriate.
+InstantMed supports routine medical certificate requests for Australian patients aged 18 and over. The patient completes a secure form about symptoms, timing, and the requested certificate period. Eligible low-risk requests may be issued under a logged doctor-owned protocol and are individually reviewed afterward; other requests go to doctor review before issue.
 
 **Pricing:**
 
@@ -53,13 +53,13 @@ InstantMed supports routine medical certificate requests for Australian patients
 
 **Certificates by reason (situation-specific guidance pages):**
 
-Each page explains what a certificate covers for that situation and where the boundaries are. All follow the same rules: routine short absences only, maximum 3 days, doctor review before any certificate is issued, full refund if the doctor declines. None are isolation orders or clearance certificates.
+Each page explains what a certificate covers for that situation and where the boundaries are. All follow the same rules: routine short absences only, maximum 3 days, a doctor-owned issue pathway with individual doctor review, and a full refund if the doctor declines. None are isolation orders or clearance certificates.
 
 - Sick leave: https://instantmed.com.au/medical-certificate/sick-leave
 - Work absence: https://instantmed.com.au/medical-certificate/work
 - Study absence: https://instantmed.com.au/medical-certificate/study
 - Carer's leave: https://instantmed.com.au/medical-certificate/carer
-- School absence: https://instantmed.com.au/medical-certificate/school
+- Adult student school or training absence: https://instantmed.com.au/medical-certificate/school
 - University absence: https://instantmed.com.au/medical-certificate/university
 - Work-from-home evidence requests: https://instantmed.com.au/medical-certificate/work-from-home
 - Flu and flu-like illness: https://instantmed.com.au/medical-certificate/flu
@@ -154,10 +154,10 @@ InstantMed maintains a public guide for people searching for mental health onlin
 1. The patient chooses a service.
 2. The patient completes a secure clinical form.
 3. The patient pays online.
-4. The request enters the doctor review queue.
-5. An AHPRA-registered doctor reviews the submitted information.
-6. The doctor approves, declines, or asks for more information.
-7. If approved, the patient receives the certificate, eScript, or written outcome digitally.
+4. Prescribing requests and medical certificates outside the eligible protocol enter the doctor review queue.
+5. Eligible low-risk certificates may be issued under the logged doctor-owned protocol and are individually reviewed afterward.
+6. The doctor approves, declines, asks for more information, or records the individual protocol-review outcome.
+7. The patient receives the certificate, eScript, decline, or written outcome digitally.
 8. If declined, the patient receives a full refund.
 
 ## How InstantMed Compares
@@ -181,7 +181,7 @@ InstantMed uses documented clinical governance for asynchronous telehealth. The 
 Key governance points:
 
 - AHPRA-registered doctors review clinical requests.
-- Clinical decisions are not automated.
+- AHPRA-registered doctors make prescribing decisions. Eligible low-risk medical certificates may be issued under a doctor-owned protocol and are individually reviewed afterward. AI does not prescribe.
 - Doctors are not required to approve a request.
 - Declined requests receive a full refund.
 - Protocols define which requests are suitable for telehealth and which need in-person care.

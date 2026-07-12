@@ -20,7 +20,7 @@ export function ConsultLimitationsSection() {
               "Schedule 8 drugs (opioids, stimulants)",
               "Workers\u2019 compensation assessments",
               "Complex mental health crises",
-              "Patients under 18 (parental consent required)",
+              "Patients under 18",
             ].map((item) => (
               <li key={item} className="flex items-start gap-2 text-xs text-muted-foreground">
                 <span aria-hidden="true" className="mt-0.5 text-muted-foreground/70 shrink-0">&times;</span>

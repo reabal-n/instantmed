@@ -86,7 +86,7 @@ export default function TermsPage() {
                 <LegalSection number="2" title="Eligibility">
                   <p>To use InstantMed, you must:</p>
                   <ul>
-                    <li>Be at least 18 years of age (or have parental/guardian consent)</li>
+                    <li>Be at least 18 years of age</li>
                     <li>Be located in Australia at the time of consultation</li>
                     <li>Provide accurate and complete information</li>
                     <li>Have a valid email address and phone number</li>

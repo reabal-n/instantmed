@@ -1,5 +1,7 @@
 # Doc Cleanup Plan — InstantMed (PR 1 of 3)
 
+> **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
+
 > **Status:** Locked. Plan-only. Do NOT execute in this session.
 > **Date:** 2026-05-23
 > **Authored in:** session `c725409e-a484-46e6-9fbe-0772209a81e1`

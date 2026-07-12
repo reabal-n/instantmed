@@ -17,6 +17,7 @@
     "check:staff-roles": "tsx scripts/check-staff-role-readiness.ts",
     "fix:staff-roles": "tsx scripts/fix-staff-admin-roles.ts",
     "check:sentry": "tsx scripts/check-sentry-access.ts",
+    "support:inbox-alert": "tsx scripts/post-support-inbox-alert.ts",
     "doc:audit": "bash scripts/doc-audit.sh",
     "start": "next start",
     "lint": "eslint --max-warnings 0",

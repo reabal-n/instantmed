@@ -19,7 +19,7 @@ export function PrescriptionLimitationsSection() {
               "Sedative or dependence-forming medicines",
               "New medications you haven\u2019t taken before",
               "Medications requiring blood test monitoring",
-              "Patients under 18 (parental consent required)",
+              "Patients under 18",
               "Medical emergencies: call 000",
             ].map((item) => (
               <li key={item} className="flex items-start gap-2 text-xs text-muted-foreground">

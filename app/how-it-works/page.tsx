@@ -17,7 +17,7 @@ const howItWorksFaqs = [
   { question: "Is this available outside major cities?", answer: "Yes. InstantMed works anywhere in Australia with internet access. Regional, rural, and remote patients use our service regularly." },
   { question: "What hours are you open?", answer: "The online request flow is open 24/7. Submit when it suits you, including weekends and public holidays. Doctor review follows when a doctor is available." },
   { question: "How is this different from calling a GP clinic?", answer: "No appointments, no waiting rooms, no phone queues. You submit your request when it suits you, and a doctor reviews it without you needing to be available at a specific time." },
-  { question: "Can I use this for my kids?", answer: "We primarily serve adults (18+). Minors may be assessed with parental consent for certain services, but complex paediatric cases should be seen by a GP in person." },
+  { question: "Can I use this for my kids?", answer: "No. InstantMed currently accepts patients aged 18 and over only. Contact your child's GP or another paediatric-capable service for assessment or school documentation." },
   { question: "What can't you do online?", answer: "We can't prescribe Schedule 8 medications (opioids, stimulants, benzodiazepines), issue WorkCover certificates, or manage conditions requiring physical examination. If your situation needs in-person care, we'll tell you and refund you." },
 ]
 

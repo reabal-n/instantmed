@@ -1,5 +1,7 @@
 # Staff Cockpit Overhaul — Design
 
+> **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
+
 **Date:** 2026-05-20
 **Status:** Approved, ready for implementation plan
 **Scope:** `/dashboard` (admin + doctor), `/admin/ops` (support), `/admin/intakes` (Ledger), `/admin/patients` (People)

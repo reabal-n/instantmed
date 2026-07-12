@@ -1,4 +1,4 @@
-type GoogleAdsProfitCampaignInput = {
+type GoogleAdsReturnCampaignInput = {
   campaignId: string
   campaignName: string
   channel: string | null
@@ -13,6 +13,7 @@ type GoogleAdsProfitCampaignInput = {
   purchaseCpaAud: number | null
   purchaseRoas: number | null
   spendAud: number
+  status: string | null
 }
 
 type LocalCampaignInput = {
@@ -24,9 +25,9 @@ type LocalCampaignInput = {
   services: Record<string, number>
 }
 
-export type GoogleAdsProfitSnapshotInput = {
+export type GoogleAdsReturnSnapshotInput = {
   ads: {
-    campaigns: GoogleAdsProfitCampaignInput[]
+    campaigns: GoogleAdsReturnCampaignInput[]
     summary: {
       avgCpcAud: number | null
       purchaseCpaAud: number | null
@@ -56,9 +57,11 @@ export type GoogleAdsProfitSnapshotInput = {
   }
 }
 
-export type GoogleAdsProfitStatus = "profitable" | "losing" | "no_local_orders" | "no_spend" | "unknown"
+export type GoogleAdsReturnStatus = "revenue_above_spend" | "revenue_below_spend" | "no_local_orders" | "no_spend" | "unknown"
+export type GoogleAdsCampaignState = "enabled" | "paused" | "mixed" | "unknown"
+export type GoogleAdsReturnMetricsAvailability = "available" | "unavailable"
 
-export type GoogleAdsProfitCampaign = {
+export type GoogleAdsReturnCampaign = {
   campaignId: string
   campaignName: string
   channel: string | null
@@ -69,20 +72,24 @@ export type GoogleAdsProfitCampaign = {
   localOrders: number
   localRefundedAud: number
   localRoas: number | null
-  netProfitAud: number
+  revenueAfterAdSpendAud: number
   networks: string[]
   primaryService: string | null
   primaryServiceLabel: string
   purchaseCpaAud: number | null
   spendAud: number
+  status: string | null
 }
 
-export type GoogleAdsProfitSnapshot = {
-  campaigns: GoogleAdsProfitCampaign[]
+export type GoogleAdsReturnSnapshot = {
+  campaigns: GoogleAdsReturnCampaign[]
+  campaignState: GoogleAdsCampaignState
   generatedAt: string
   queryErrorCount: number
-  range: GoogleAdsProfitSnapshotInput["range"]
-  status: GoogleAdsProfitStatus
+  queryErrorNames: string[]
+  range: GoogleAdsReturnSnapshotInput["range"]
+  returnMetricsAvailability: GoogleAdsReturnMetricsAvailability
+  status: GoogleAdsReturnStatus
   summary: {
     avgCpcAud: number | null
     costPerLocalOrderAud: number | null
@@ -90,24 +97,27 @@ export type GoogleAdsProfitSnapshot = {
     localNetRevenueAud: number
     localOrders: number
     localRoas: number | null
-    netProfitAud: number
+    revenueAfterAdSpendAud: number | null
     purchaseCpaAud: number | null
     purchaseRoas: number | null
     refundedAud: number
-    spendAud: number
+    spendAud: number | null
     totalClicks: number
   }
 }
 
-export const EMPTY_GOOGLE_ADS_PROFIT_SNAPSHOT: GoogleAdsProfitSnapshot = {
+export const EMPTY_GOOGLE_ADS_RETURN_SNAPSHOT: GoogleAdsReturnSnapshot = {
   campaigns: [],
+  campaignState: "unknown",
   generatedAt: "",
   queryErrorCount: 0,
+  queryErrorNames: [],
   range: {
     days: 30,
     endDate: "",
     startDate: "",
   },
+  returnMetricsAvailability: "unavailable",
   status: "unknown",
   summary: {
     avgCpcAud: null,
@@ -116,11 +126,11 @@ export const EMPTY_GOOGLE_ADS_PROFIT_SNAPSHOT: GoogleAdsProfitSnapshot = {
     localNetRevenueAud: 0,
     localOrders: 0,
     localRoas: null,
-    netProfitAud: 0,
+    revenueAfterAdSpendAud: null,
     purchaseCpaAud: null,
     purchaseRoas: null,
     refundedAud: 0,
-    spendAud: 0,
+    spendAud: null,
     totalClicks: 0,
   },
 }
@@ -141,7 +151,7 @@ function divideRatio(numerator: number, denominator: number): number | null {
   return denominator > 0 ? roundRatio(numerator / denominator) : null
 }
 
-function profitStatus({
+function returnStatus({
   localNetRevenueAud,
   localOrders,
   spendAud,
@@ -149,11 +159,11 @@ function profitStatus({
   localNetRevenueAud: number
   localOrders: number
   spendAud: number
-}): GoogleAdsProfitStatus {
+}): GoogleAdsReturnStatus {
   if (spendAud <= 0 && localOrders <= 0) return "no_spend"
-  if (spendAud <= 0) return "profitable"
+  if (spendAud <= 0) return "revenue_above_spend"
   if (localOrders <= 0) return "no_local_orders"
-  return localNetRevenueAud >= spendAud ? "profitable" : "losing"
+  return localNetRevenueAud >= spendAud ? "revenue_above_spend" : "revenue_below_spend"
 }
 
 function primaryServiceForCampaign(localCampaign?: LocalCampaignInput): string | null {
@@ -172,17 +182,33 @@ function serviceLabel(service: string | null): string {
   return service || "No local order"
 }
 
-export function buildGoogleAdsProfitSnapshot(
-  report: GoogleAdsProfitSnapshotInput,
+function campaignState(campaigns: GoogleAdsReturnCampaignInput[]): GoogleAdsCampaignState {
+  const statuses = new Set(campaigns.map((campaign) => campaign.status?.toUpperCase()).filter(Boolean))
+  const hasEnabled = statuses.has("ENABLED")
+  const hasPaused = statuses.has("PAUSED")
+  if (hasEnabled && hasPaused) return "mixed"
+  if (hasEnabled) return "enabled"
+  if (hasPaused) return "paused"
+  return "unknown"
+}
+
+export function buildGoogleAdsReturnSnapshot(
+  report: GoogleAdsReturnSnapshotInput,
   campaignLimit = 5,
-): GoogleAdsProfitSnapshot {
+): GoogleAdsReturnSnapshot {
   const localByCampaign = new Map(report.local.byCampaign.map((campaign) => [campaign.campaignId, campaign]))
-  const spendAud = report.ads.summary.totalSpendAud
+  const queryErrorNames = Array.from(new Set(report.queryErrors.map((error) => error.name))).sort()
+  const returnMetricsAvailability: GoogleAdsReturnMetricsAvailability = queryErrorNames.includes("campaign_performance")
+    ? "unavailable"
+    : "available"
+  const spendAud = returnMetricsAvailability === "available"
+    ? report.ads.summary.totalSpendAud
+    : null
   const localNetRevenueAud = report.local.summary.netRevenueAud
   const localOrders = report.local.summary.orders
 
   return {
-    campaigns: report.ads.campaigns
+    campaigns: (returnMetricsAvailability === "available" ? report.ads.campaigns : [])
       .slice(0, campaignLimit)
       .map((campaign) => {
         const primaryService = primaryServiceForCampaign(localByCampaign.get(campaign.campaignId))
@@ -198,26 +224,34 @@ export function buildGoogleAdsProfitSnapshot(
           localOrders: campaign.localOrders,
           localRefundedAud: campaign.localRefundedAud,
           localRoas: divideRatio(campaign.localNetRevenueAud, campaign.spendAud),
-          netProfitAud: roundMoney(campaign.localNetRevenueAud - campaign.spendAud),
+          revenueAfterAdSpendAud: roundMoney(campaign.localNetRevenueAud - campaign.spendAud),
           networks: campaign.networks,
           primaryService,
           primaryServiceLabel: serviceLabel(primaryService),
           purchaseCpaAud: campaign.purchaseCpaAud,
           spendAud: campaign.spendAud,
+          status: campaign.status,
         }
       }),
+    campaignState: returnMetricsAvailability === "available"
+      ? campaignState(report.ads.campaigns)
+      : "unknown",
     generatedAt: report.generatedAt,
     queryErrorCount: report.queryErrors.length,
+    queryErrorNames,
     range: report.range,
-    status: profitStatus({ localNetRevenueAud, localOrders, spendAud }),
+    returnMetricsAvailability,
+    status: spendAud === null
+      ? "unknown"
+      : returnStatus({ localNetRevenueAud, localOrders, spendAud }),
     summary: {
       avgCpcAud: report.ads.summary.avgCpcAud,
-      costPerLocalOrderAud: divideMoney(spendAud, localOrders),
+      costPerLocalOrderAud: spendAud === null ? null : divideMoney(spendAud, localOrders),
       localGrossRevenueAud: report.local.summary.grossRevenueAud,
       localNetRevenueAud,
       localOrders,
-      localRoas: divideRatio(localNetRevenueAud, spendAud),
-      netProfitAud: roundMoney(localNetRevenueAud - spendAud),
+      localRoas: spendAud === null ? null : divideRatio(localNetRevenueAud, spendAud),
+      revenueAfterAdSpendAud: spendAud === null ? null : roundMoney(localNetRevenueAud - spendAud),
       purchaseCpaAud: report.ads.summary.purchaseCpaAud,
       purchaseRoas: report.ads.summary.purchaseRoas,
       refundedAud: report.local.summary.refundedAud,

@@ -17,7 +17,7 @@
 | Doctor model | Supports multiple AHPRA-registered doctors. Per-doctor capability flags on `profiles` (`can_review_med_certs`, `can_review_repeat_rx`, `can_review_consults`, `can_review_ed`, `can_review_hair_loss`, `can_prescribe_s4`, `can_prescribe_s8`) scope future hires before they are verified for a service line; owner-operator is unrestricted. Public surfaces must not disclose doctor count or individual doctor names. Use "AHPRA-registered doctors" for service copy, or "AHPRA-registered Medical Director" only where a governance role is necessary. Never advertise FRACGP, peer review across a cohort, or team training unless formally verified. |
 | Staff roles | `admin` (owner-operator only, full clinical + ops + config), `doctor` (clinical only), `support` (non-clinical ops: payment recovery, webhook retries, identity chase-ups, masked PHI). One admin. Multiple doctors and support staff allowed. Capabilities helper at `lib/auth/staff-capabilities.ts`. |
 | Hours | The service operates 24/7 (operator decision 2026-07-03): requests submit AND review around the clock for every pathway — med-cert auto-approval runs at all hours; Rx/consult reviews run 7 days with variable timing. Public copy says "24/7" calmly (not plastered) and NEVER states a review-hours window (the old "8am–10pm AEST review hours" framing is retired — `lib/__tests__/hours-copy-contract.test.ts` blocks it) or a customer-facing SLA guarantee. Internal target 1-2h review, 24h max. Never hard-block checkout by time of day. |
-| Eligibility | Australia only · 18+ (parental consent for minors) · Medicare optional for med certs, required for Rx/consults |
+| Eligibility | Australia only · strictly 18+ for every paid service (no parental/guardian-consent exception for minors) · Medicare optional for med certs, required for Rx/consults |
 
 ## Satellite Documentation
 
@@ -25,8 +25,8 @@
 |------|-------|-------------|
 | `wiki/index.md` | First navigation layer after the project brain: context map, file directory, architecture snapshot, hygiene audit, refactor plan, decisions, and open questions | After loading the project brain for any non-trivial task, before scanning broad folders |
 | `docs/AI_ONBOARDING.md` | **Start here.** 5-min orientation for AI assistants on UI: top 10 rules, canonical files, common gotchas, ship checklist | **First** UI session in any new context. |
-| `docs/BUSINESS_PLAN.md` | Business strategy, product priority, current one-off operating model, current no-subscription/no-pharmacy decisions | Strategy, roadmap, positioning, pricing, growth work |
-| `docs/REVENUE_MODEL.md` | $1M/year one-off revenue model, service mix, unit economics, hiring triggers | Pricing, growth plans, dashboards, business-model changes |
+| `docs/BUSINESS_PLAN.md` | **Sole owner of durable business strategy:** positioning, active/gated service boundaries, one-off model, owner-doctor model, and expansion exclusions | Strategy, positioning, service/business-model decisions |
+| `docs/REVENUE_MODEL.md` | **Sole owner of revenue economics:** `$2k -> $5k -> $10k` milestones, net-retained revenue, first-order contribution, paid-scaling gates, and hiring/capacity triggers | Revenue targets, pricing economics, growth gates, dashboards, staffing assumptions |
 | `docs/ADVERTISING_COMPLIANCE.md` | Google Ads, LegitScript, AHPRA/Medical Board, TGA, paid landing page, and audience rules | Ads, landing pages, acquisition copy, metadata, schema |
 | `docs/SEO_CONTENT_POLICY.md` | Organic educational content rules, prescription-page guardrails, guide-only article rules, CTA and URL rules | SEO pages, medicine pages, condition/symptom content, health guides |
 | `docs/ARTICLE_TEMPLATE.md` | Canonical health-guide authoring standard: page archetypes, body structure + component caps, anti-slop rules, visual system (renderer selection, label budgets, style direction), per-page workflow, GSC-ordered queue, indexing gate | **Every** guide build/deepen/edit in `content/blog/`. Pair with SEO_CONTENT_POLICY.md (compliance law). |
@@ -39,10 +39,10 @@
 | `docs/ARCHITECTURE.md` | System design, data flows, portals, DB schema, API routes, directory index, tech stack, key pages, AI config | Building features, understanding flows, navigating the codebase |
 | `docs/CLINICAL.md` | Clinical boundaries, prescribing rules, AI limits, consent, privacy (APP 1-13) | Any clinical logic, AI prompts, compliance work |
 | `docs/SECURITY.md` | PHI encryption, RLS, rate limiting, audit logging, incident classification | Security work, auth, data access patterns |
-| `docs/OPERATIONS.md` | Incident response, key rotation, debugging, cron jobs, monitoring, env vars | Ops tasks, debugging, deployments |
+| `docs/OPERATIONS.md` | Incident response, key rotation, debugging, cron jobs, monitoring, env vars, and the Google Ads daily approval/mutation workflow | Ops tasks, debugging, deployments, live Ads account changes |
 | `docs/TESTING.md` | Unit test conventions, E2E patterns, auth bypass, coverage rules, CI pipeline | Writing tests, debugging test failures |
 | `docs/PRIMITIVES.md` | Marketing primitives registry: social proof, trust badges, stats, pricing, FAQ data, wait times | Adding/changing marketing page content, stats, badges, or FAQ |
-| `docs/ROADMAP.md` | Internal product roadmap: operating phase, last-90-days shipped, active priorities, expansion gates | Monthly refresh, strategic prioritisation, before suggesting new feature work |
+| `docs/ROADMAP.md` | **Sole active priority queue:** current operating phase, ordered work, status, checkpoints, and operator cadence | Every next-step or prioritisation question; refresh when status/order changes and at least monthly |
 | `docs/DOCTOR_ONBOARDING.md` | Technical onboarding for new clinicians: capability flags, AHPRA, Parchment linking, identity gates, service-line verification | Onboarding a new doctor, capability change, Parchment integration debugging |
 
 ---
@@ -233,7 +233,7 @@ Any message touching UI / UX / styling / animation / component review: scan avai
 
 ## Pricing
 
-All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/price-mapping.ts`.
+All prices in `lib/constants/index.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/price-mapping.ts`.
 
 **Stripe payment-state invariant:** Webhook and fallback payment confirmation must never mark an intake paid from a stale Checkout Session. Paid transitions are guarded by the current stored `intakes.payment_id`, retryable intake status, and unpaid/failed `payment_status`. Expiry and async failure handlers already use the same current-session guard.
 

@@ -1,5 +1,7 @@
 # Revenue & Engagement Implementation Plan
 
+> **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
+
 > **Status: Partially superseded. Do not execute directly.** The review request
 > work exists in the current codebase, but the repeat Rx subscription nudge in
 > Task 6 is no longer aligned with the current one-off prescription checkout

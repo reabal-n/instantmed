@@ -1,5 +1,7 @@
 # Content Mimic Map — NextClinic → InstantMed
 
+> **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
+
 > **Date:** 2026-06-10 · **Status: AWAITING OPERATOR APPROVAL of buckets + sequence.** Companion to `docs/plans/2026-06-10-organic-geo-beat-nextclinic-plan.md`. Built from a full enumeration of NextClinic's 500-post blog + 8-state/7-city pages + ~1,057-page glossary + 13 condition pages (crawled 2026-06-10) cross-mapped against InstantMed's 105 blog articles, 53 conditions, 16 guides, 28 intent pages, 26 symptoms, 11 resources, 42 city datasets.
 
 ---

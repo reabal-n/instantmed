@@ -115,7 +115,7 @@ export const SOCIAL_PROOF_DISPLAY = {
   gpComparisonComplex: `Typically ${SOCIAL_PROOF.gpPriceComplex} at a GP`,
   doctorExperience: "AHPRA-registered doctors",
   sameDayDelivery: "Digital delivery after approval",
-  certApproval: "Doctor review before issue",
+  certApproval: "Doctor-owned issue pathway",
   scriptFulfillment: "eScript after doctor approval",
   patientReturn: "Secure follow-up messages",
 } as const

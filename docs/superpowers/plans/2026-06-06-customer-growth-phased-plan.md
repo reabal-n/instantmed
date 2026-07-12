@@ -1,6 +1,6 @@
 # Customer Growth Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Status: Reference only.** This plan preserves historical implementation detail and volatile baseline data. It is not an execution queue. `docs/ROADMAP.md` is the sole authority for current priority, approval, and checkpoints; use a task below only when the ROADMAP explicitly activates it.
 
 **Goal:** Increase customers in phases by first making abandoned-cart and partial-intake recovery measurable and reliable, then controlling Google Ads CAC, then compounding organic, LLM-referral, SEO, and backlink growth.
 
@@ -89,9 +89,9 @@ Do not move to a later phase until the gate before it passes.
 
 - Modify: `lib/data/recovery-scorecard.ts` - reconcile partial drafts, recovery emails, recovered paid orders, and recovered revenue.
 - Modify: `app/admin/analytics/analytics-client.tsx` or the current analytics surface - show recovery and Ads profit gates where the operator already looks.
-- Modify: `lib/analytics/google-ads-profit-summary.ts` - keep campaign-level local CAC, local net, local ROAS, and net profit.
+- Modify: `lib/analytics/google-ads-return-summary.ts` - keep campaign-level local CAC, local net, local ROAS, and revenue after ad spend. This is not contribution or profit.
 - Test: `lib/__tests__/recovery-scorecard.test.ts`.
-- Test: `lib/__tests__/google-ads-profit-summary.test.ts`.
+- Test: `lib/__tests__/google-ads-return-summary.test.ts`.
 
 ### Google Ads
 
@@ -99,7 +99,7 @@ Do not move to a later phase until the gate before it passes.
 - Use: `app/api/internal/google-ads-report/route.ts` - production protected report for spend and local-order proof.
 - Use: `lib/analytics/google-ads-report.ts` - report generation.
 - Use: `lib/analytics/google-ads-post-payment.ts` - Stripe payment truth to Google Ads.
-- Test: `lib/__tests__/google-ads-profit-summary.test.ts`.
+- Test: `lib/__tests__/google-ads-return-summary.test.ts`.
 - Test: `lib/__tests__/google-ads-post-payment.test.ts`.
 - Test: `lib/__tests__/integration-check-contract.test.ts`.
 
@@ -606,7 +606,7 @@ Implementation requirements:
 
 Show:
 
-- "Ads losing money" if net profit is negative.
+- "Revenue below ad spend" when net-retained attributed revenue is below spend; do not call this profit until payment fees and incremental labour are included.
 - "Recovery unmeasured" if marker drift exists.
 - "Scale blocked" until recovery and CAC gates pass.
 - last refreshed timestamp.
@@ -614,7 +614,7 @@ Show:
 - [ ] **Step 4: Verify**
 
 ```bash
-pnpm test run lib/__tests__/growth-readiness.test.ts lib/__tests__/recovery-scorecard.test.ts lib/__tests__/google-ads-profit-summary.test.ts
+pnpm test run lib/__tests__/growth-readiness.test.ts lib/__tests__/recovery-scorecard.test.ts lib/__tests__/google-ads-return-summary.test.ts
 pnpm typecheck
 ```
 
@@ -626,7 +626,7 @@ Run:
 
 ```bash
 CHECK_INTEGRATIONS_STRICT=1 pnpm check:integrations
-pnpm test run lib/__tests__/growth-readiness.test.ts lib/__tests__/recovery-scorecard.test.ts lib/__tests__/google-ads-profit-summary.test.ts
+pnpm test run lib/__tests__/growth-readiness.test.ts lib/__tests__/recovery-scorecard.test.ts lib/__tests__/google-ads-return-summary.test.ts
 pnpm typecheck
 pnpm lint
 ```
@@ -724,7 +724,7 @@ Run:
 
 ```bash
 CHECK_INTEGRATIONS_STRICT=1 pnpm check:integrations
-pnpm test run lib/__tests__/google-ads-profit-summary.test.ts lib/__tests__/google-ads-post-payment.test.ts lib/__tests__/integration-check-contract.test.ts
+pnpm test run lib/__tests__/google-ads-return-summary.test.ts lib/__tests__/google-ads-post-payment.test.ts lib/__tests__/integration-check-contract.test.ts
 ```
 
 Manual verification:
@@ -858,7 +858,7 @@ If these pass:
 Before marking the whole plan complete:
 
 ```bash
-pnpm test run lib/__tests__/draft-conversion-link.test.ts lib/__tests__/partial-intake-recovery.test.ts lib/__tests__/recovery-scorecard.test.ts lib/__tests__/email-sequence-ownership-contract.test.ts lib/__tests__/email-templates.test.tsx lib/__tests__/advertising-compliance-guard.test.ts lib/__tests__/voice-guard.test.ts lib/__tests__/google-ads-profit-summary.test.ts lib/__tests__/google-ads-post-payment.test.ts lib/__tests__/seo-indexing-contract.test.ts lib/__tests__/indexnow.test.ts
+pnpm test run lib/__tests__/draft-conversion-link.test.ts lib/__tests__/partial-intake-recovery.test.ts lib/__tests__/recovery-scorecard.test.ts lib/__tests__/email-sequence-ownership-contract.test.ts lib/__tests__/email-templates.test.tsx lib/__tests__/advertising-compliance-guard.test.ts lib/__tests__/voice-guard.test.ts lib/__tests__/google-ads-return-summary.test.ts lib/__tests__/google-ads-post-payment.test.ts lib/__tests__/seo-indexing-contract.test.ts lib/__tests__/indexnow.test.ts
 CHECK_INTEGRATIONS_STRICT=1 pnpm check:integrations
 pnpm typecheck
 pnpm lint

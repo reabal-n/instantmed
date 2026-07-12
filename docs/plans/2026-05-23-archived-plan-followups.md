@@ -1,6 +1,8 @@
 # Open Follow-ups From Archived Plans
 
-> **Status:** Active backlog stub. Captured 2026-05-23 during doc cleanup audit.
+> **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
+
+> **Status:** Reference only. This is a historical deferred-item inventory, not an active backlog or execution queue. `docs/ROADMAP.md` ranks 6 and its Deferred Backlog decide whether any item becomes actionable.
 > **Provenance:** Items lifted from plans archived on 2026-05-23 that had explicit "deferred" or "ongoing" threads, plus one item surfaced by the cleanup audit itself.
 
 ## From archive/2026-04-13-lib-restructure-and-script-wiring.md

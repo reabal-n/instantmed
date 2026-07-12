@@ -71,6 +71,8 @@ describe("project docs drift contract", () => {
       // clock and public copy never states a review-hours window.
       expect(source).toContain("The service operates 24/7 (operator decision 2026-07-03)")
       expect(source).toContain("Never hard-block checkout by time of day")
+      expect(source).toContain("strictly 18+ for every paid service")
+      expect(source).not.toContain("18+ (parental consent for minors)")
       // Women's health launched 2026-06-15 (UTI + new/switch pill); weight loss stays gated.
       expect(source).toContain("Women's health (UTI + new/switch pill, live 2026-06-15)")
       expect(source).toContain("Weight loss (gated future subtype)")
@@ -242,11 +244,59 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain(`| clinical | ${defaultClinicalModel} |`)
   })
 
-  it("keeps ROADMAP.md pinned to current operating phase + last refreshed stamp + backlog provenance", () => {
+  it("keeps business canon split across one durable strategy, one revenue model, and one active queue", () => {
+    const businessPlan = readProjectFile("docs/BUSINESS_PLAN.md")
+    const clinical = readProjectFile("docs/CLINICAL.md")
+    const fileMap = readProjectFile("docs/bookkeeping/file-map.md")
+    const revenueModel = readProjectFile("docs/REVENUE_MODEL.md")
     const roadmap = readProjectFile("docs/ROADMAP.md")
-    expect(roadmap).toContain("Live. Hardening operator surfaces and scaling toward $1M one-off revenue")
+
+    expect(businessPlan).toContain("**Authority:** durable business strategy")
+    expect(businessPlan).toContain("does not own the current operating phase")
+    expect(revenueModel).toContain("**Authority:** revenue milestones")
+    expect(revenueModel).toContain("$2,000/month")
+    expect(revenueModel).toContain("$5,000/month")
+    expect(revenueModel).toContain("$10,000/month")
+    expect(roadmap).toContain("**Authority:** the sole source of truth")
+    expect(roadmap).toContain("Controlled demand validation")
     expect(roadmap).toContain("Last refreshed:")
-    expect(roadmap).toContain("docs/plans/2026-05-23-archived-plan-followups.md")
+    expect(roadmap).not.toContain("Last 90 days shipped")
+    expect(roadmap).toContain("Partially complete")
+    expect(roadmap).toContain("Receiver implemented; Gmail count source and schedule pending")
+
+    expect(clinical).not.toContain("No automated clinical decisions are made")
+    expect(clinical).toContain("Prescribing decisions are always clinician-made")
+    expect(clinical).toContain("doctor-owned medical-certificate protocol")
+
+    expect(fileMap).toContain("implementation records (non-authoritative)")
+    expect(fileMap).not.toContain("docs/plans/ — active")
+
+    const rootPlanFiles = readdirSync(join(root, "docs/plans"), { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
+      .map((entry) => entry.name)
+    for (const plan of rootPlanFiles) {
+      const planHeader = readProjectFile(`docs/plans/${plan}`).split("\n").slice(0, 10).join("\n")
+      expect(planHeader, plan).toContain("**Authority:** Reference only.")
+      expect(planHeader, plan).toContain("docs/ROADMAP.md")
+    }
+
+    for (const plan of [
+      "docs/plans/2026-05-23-archived-plan-followups.md",
+      "docs/plans/2026-06-10-organic-geo-beat-nextclinic-plan.md",
+      "docs/superpowers/plans/2026-06-06-customer-growth-phased-plan.md",
+    ]) {
+      const source = readProjectFile(plan)
+      expect(source).toContain("Reference only")
+      expect(source).toContain("docs/ROADMAP.md")
+    }
+
+    for (const source of [agents, claude]) {
+      expect(source).toContain("`lib/constants/index.ts`")
+      expect(source).not.toContain("`lib/constants.ts`")
+    }
+
+    expect(existsSync(join(root, "docs/plans/2026-07-12-cleanup-and-scale-roadmap.md"))).toBe(false)
+    expect(existsSync(join(root, "docs/plans/archive/2026-07-12-cleanup-and-scale-roadmap.md"))).toBe(true)
   })
 
   it("keeps DOCTOR_ONBOARDING.md pinned to the 7 capability flags + AHPRA format + Parchment env floor", () => {

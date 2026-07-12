@@ -13,7 +13,7 @@ const DEFAULT_FACTS = [
   },
   {
     label: "Clinical model",
-    value: "AHPRA-registered doctors review each request. Clinical decisions are not automated.",
+    value: "Prescribing is clinician-decided. Eligible low-risk medical certificates may use a doctor-owned protocol with individual review afterward.",
   },
   {
     label: "Active services",

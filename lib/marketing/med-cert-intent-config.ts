@@ -341,7 +341,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "carer",
     h1: "Carer medical certificate.",
     heroSubheadline:
-      `Need leave to care for a sick child, family member, or household member? A doctor reviews the care need and dates before deciding whether a carer's leave certificate is appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
+      `If you are 18 or older and need leave to care for an immediate family or household member, request evidence for your own work absence online. From ${PRICING_DISPLAY.MED_CERT}.`,
     explainerTitle: "Carer's leave evidence",
     explainerSubtitle: "For short carer's leave absences where online doctor review is clinically suitable.",
     explainerParagraphs: [
@@ -399,13 +399,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       { label: "Privacy aware", sub: "Minimal clinical detail" },
       { label: "Employer policy", sub: "May require more" },
     ],
-    relatedLinks: [
-      {
-        href: "/medical-certificate/school",
-        label: "School absence certificate",
-        description: "Use this if the school needs evidence for the child's own illness-related absence.",
-      },
-    ],
+    relatedLinks: [],
     ctaTitle: "Request carer's leave evidence",
     ctaSubtitle:
       "For short caring-related absences where routine evidence is clinically appropriate.",
@@ -717,120 +711,118 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
 
   school: {
     slug: "school",
-    h1: "Medical certificate for school.",
+    h1: "Medical certificate for adult students.",
     heroSubheadline:
-      `When a child misses school because of illness, a parent or guardian can request routine absence evidence online. The doctor reviews the history and may ask follow-up questions. From ${PRICING_DISPLAY.MED_CERT}.`,
-    explainerTitle: "School absence evidence",
-    explainerSubtitle: "For school-aged children with short illness-related absences.",
+      `If you are 18 or older and miss school or training because of illness, you can request routine absence evidence online. From ${PRICING_DISPLAY.MED_CERT}.`,
+    explainerTitle: "Adult student absence evidence",
+    explainerSubtitle: "For patients aged 18 and over enrolled in school, TAFE, training, or another education program.",
     explainerParagraphs: [
-      "If your child has been unwell and missed school, the school may ask for medical evidence. This page is for routine school absence documentation where a doctor can make a safe decision from the history you provide as the parent or guardian.",
-      "You complete a structured form describing your child's symptoms, when they started, the school dates missed, and any safety concerns. For children, the doctor may ask follow-up questions or request a brief call before deciding whether a certificate can be issued.",
-      "An approved certificate includes standard doctor-issued details for the school absence period. School attendance policies vary. Some schools, childcare services, or programs may need different wording, an in-person assessment, or a return-to-school clearance rather than a routine absence certificate.",
+      "InstantMed currently accepts patients aged 18 and over only. This page is for adult students who need routine evidence of their own illness-related absence.",
+      "Complete the structured form with your symptoms, timing, absence dates, and relevant safety information. The doctor may ask follow-up questions before deciding whether a certificate is appropriate.",
+      "Education providers set their own evidence rules. Check whether yours accepts a routine medical certificate or requires an institution-specific form, special-consideration application, or in-person assessment.",
     ],
     detailSections: [
       {
         title: "When online review fits",
         body:
-          "Online review is best suited to school-aged children with short, clearly described illness where the doctor does not need to examine the child in person.",
+          "Online review may fit an adult student's short, clearly described illness when a physical examination is not required.",
         items: [
-          "Short absence from primary or secondary school due to common acute illness",
+          "You are 18 or older and requesting evidence for your own absence",
           "Symptoms are mild or improving, and the requested dates match the illness history",
-          "A parent or guardian can provide enough detail about symptoms, timing, and care so far",
+          "Your education provider accepts a routine medical certificate for this purpose",
         ],
       },
       {
         title: "What the doctor checks",
         body:
-          "The doctor checks whether the child's symptoms, timing, age, absence dates, and safety answers support routine school absence documentation.",
+          "The doctor checks whether your symptoms, timing, absence dates, and safety answers support routine absence documentation.",
         items: [
-          "When symptoms started, whether they are improving, and whether the child is drinking and passing urine",
-          "Whether fever, pain, breathing, rash, dehydration, injury, or drowsiness needs urgent or in-person care",
-          "Whether the request is for absence evidence only, not clearance to return after a contagious illness",
+          "When symptoms started and whether they are improving",
+          "Whether any red flags require urgent or in-person care",
+          "Whether you need routine absence evidence rather than a clearance, report, or institution-specific form",
         ],
       },
       {
         title: "What the certificate includes",
         body:
-          "A routine school certificate focuses on the child's inability to attend school for a period. It usually does not need diagnosis details.",
+          "A routine certificate focuses on whether you were medically unfit for usual study activities for a period. It usually does not include diagnosis details.",
         items: [
-          "Child's name, review date, recommended absence dates, and doctor details",
-          "A statement about unfitness for school or usual activities for the relevant period",
-          "Verification details so the school can check the document if required",
+          "Your name, review date, recommended absence dates, and doctor details",
+          "A statement about unfitness for usual study activities for the relevant period",
+          "Verification details your education provider can check if required",
         ],
       },
       {
         title: "When a standard certificate is not enough",
         body:
-          "Some child health and school situations need a different pathway. The doctor will not issue a routine certificate if online review is not safe.",
+          "Some education or clinical situations need a different pathway. The doctor will not issue a routine certificate when online review is unsuitable.",
         items: [
-          "Return-to-school clearance, childcare clearance, infectious-disease exclusion decisions, or program-specific forms",
-          "Children who are very young, worsening, dehydrated, unusually drowsy, short of breath, or in severe pain",
-          "Long absences, repeated absences, injury, complex conditions, or any situation needing examination",
+          "Return-to-study clearance, placement fitness, infectious-disease clearance, or program-specific forms",
+          "Assessment-related applications, disability support, insurance, or legal reports with separate requirements",
+          "Long or repeated absences, injury, complex conditions, or any situation needing examination",
         ],
       },
     ],
-    recognitionTitle: "School documentation",
+    recognitionTitle: "Education-provider documentation",
     recognitionSubtitle:
-      "School attendance policies vary. Check whether your school needs a routine absence certificate, a clearance document, or its own form.",
+      "Policies vary. Check whether your provider needs a routine absence certificate, a clearance document, or its own form.",
     recognitionBadges: [
-      { label: "School absence", sub: "Policy dependent" },
-      { label: "Parent or guardian", sub: "Completes form" },
+      { label: "Adult patients", sub: "18 and over only" },
+      { label: "Study absence", sub: "Policy dependent" },
       { label: "No clearance", sub: "Absence evidence only" },
     ],
     relatedLinks: [
       {
-        href: "/medical-certificate/carer",
-        label: "Carer's leave certificate",
-        description: "Use this if your employer needs evidence because you took leave to care for the child.",
+        href: "/medical-certificate/study",
+        label: "Study medical certificate",
+        description: "Read the broader guidance for TAFE, training, and other adult study absences.",
       },
     ],
-    ctaTitle: "Request school absence evidence",
+    ctaTitle: "Request adult student absence evidence",
     ctaSubtitle:
-      "For short child illness absences where online review is clinically suitable.",
+      "For patients aged 18 and over where routine online review is clinically suitable.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: `Medical Certificate for School | Child Absence ${PRICING_DISPLAY.MED_CERT}`,
+      title: `Medical Certificate for Adult Students | From ${PRICING_DISPLAY.MED_CERT}`,
       description:
-        `Request a medical certificate for school absence. AHPRA-registered doctors review parent or guardian answers. From ${PRICING_DISPLAY.MED_CERT}. School policies vary.`,
+        `Adult students aged 18 and over can request routine school or training absence evidence online. From ${PRICING_DISPLAY.MED_CERT}. Provider policies vary.`,
       keywords: [
-        "medical certificate for school",
-        "school absence certificate",
-        "child sick certificate",
-        "school medical certificate australia",
-        "child school absence certificate",
-        "doctor certificate for school absence",
+        "adult student medical certificate",
+        "school absence certificate over 18",
+        "student medical certificate australia",
+        "training absence medical certificate",
       ],
     },
     faqs: [
       {
-        question: "Can I get a certificate for my child's school absence?",
+        question: "Can InstantMed assess a child for a school certificate?",
         answer:
-          "Yes, where online review is clinically appropriate. A parent or guardian completes the form on behalf of the child. The doctor reviews the answers and may ask follow-up questions or request a brief call for child-safety reasons.",
+          "No. InstantMed currently accepts patients aged 18 and over only. Contact the child's GP or another paediatric-capable service for assessment or school documentation.",
       },
       {
-        question: "Can I submit it to the school?",
+        question: "Can I submit my certificate to school or training?",
         answer:
-          "You can submit it where your school allows routine medical certificates as absence evidence. InstantMed certificates are issued by AHPRA-registered doctors and include standard doctor, date, and absence details. School policies vary.",
+          "You can submit it where your education provider accepts routine medical certificates as absence evidence. Policies vary, so check the exact evidence rules first.",
       },
       {
-        question: "Do I need to be the child's parent?",
+        question: "Can someone submit the request for me?",
         answer:
-          "The person requesting the certificate should be the parent or guardian. You provide your details, your child's details, and a clear description of the illness and school dates missed.",
+          "No. The patient must be 18 or older and submit their own health information through their own profile.",
       },
       {
-        question: "Does this clear my child to return to school?",
+        question: "Does this clear me to return to study?",
         answer:
-          "No. A routine school absence certificate documents illness-related absence. It is not a return-to-school clearance, childcare clearance, or infectious-disease exclusion decision.",
+          "No. A routine absence certificate is not a return-to-study, placement, infectious-disease, or fitness clearance.",
       },
       {
-        question: "Will the certificate include my child's diagnosis?",
+        question: "Will the certificate include my diagnosis?",
         answer:
-          "Usually no. Routine school absence evidence normally focuses on whether the child was medically unfit for school for the relevant period. Diagnosis details are usually not needed.",
+          "Usually no. Routine absence evidence normally focuses on whether you were medically unfit for usual study activities for the relevant period.",
       },
       {
         question: "When should I not use this pathway?",
         answer:
-          "Do not use online review for a child who is very unwell, dehydrated, unusually drowsy, short of breath, in severe pain, injured, or worsening. Seek urgent or in-person care instead.",
+          "Do not use this pathway if you are under 18, need urgent care, require examination, or need a provider-specific report or clearance.",
       },
     ],
   },

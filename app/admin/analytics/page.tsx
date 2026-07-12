@@ -1,15 +1,19 @@
 import { getAiAttributionBreakdown } from "@/lib/admin/ai-attribution-breakdown"
 import { getHeardAboutUsBreakdown } from "@/lib/admin/heard-about-us-breakdown"
+import { buildOperatorBrief } from "@/lib/admin/operator-brief"
 import { EMPTY_GOOGLE_ADS_HEALTH, getGoogleAdsHealth } from "@/lib/analytics/google-ads-health"
-import { buildGoogleAdsProfitSnapshot } from "@/lib/analytics/google-ads-profit-summary"
 import { getGoogleAdsSpendAuditReport } from "@/lib/analytics/google-ads-report"
+import { buildGoogleAdsReturnSnapshot } from "@/lib/analytics/google-ads-return-summary"
 import {
   buildSkippedPostHogIntakeFunnelSnapshot,
   getPostHogIntakeFunnelSnapshot,
 } from "@/lib/analytics/posthog-intake-funnel"
 import { requireRole } from "@/lib/auth/helpers"
 import { getGeographicBreakdown } from "@/lib/data/analytics-geographic"
-import { getBusinessOperatingScorecard } from "@/lib/data/business-scorecard"
+import {
+  buildBusinessOperatingScorecard,
+  getBusinessOperatingScorecardSource,
+} from "@/lib/data/business-scorecard"
 import { getIntakeMonitoringStats } from "@/lib/data/intakes"
 import { getRecoveryScorecard } from "@/lib/data/recovery-scorecard"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
@@ -70,10 +74,10 @@ export default async function AnalyticsDashboardPage() {
     // [6] Patients by state (30d window, top 5 + unknown)
     getGeographicBreakdown(),
 
-    // [7] Operating scorecard: revenue, capacity, support load, and hire triggers
-    getBusinessOperatingScorecard(supabase, now),
+    // [7] Operating scorecard inputs; canonical revenue is injected after reads settle
+    getBusinessOperatingScorecardSource(supabase, now),
 
-    // [8] Google Ads profit truth: spend joined to local paid-order revenue
+    // [8] Google Ads return readout: spend joined to local paid-order revenue
     getGoogleAdsSpendAuditReport({ days: 30, now, supabase }),
 
     // [9] Recovery funnel: partial intakes, recovery sends, and recovered revenue
@@ -89,7 +93,7 @@ export default async function AnalyticsDashboardPage() {
     getAiAttributionBreakdown(supabase, { weeks: 8 }),
 
     // [13] Canonical revenue dashboard (windows, daily trend, service mix, pressure)
-    getRevenueDashboard(),
+    getRevenueDashboard(supabase, now),
   ])
 
   const startedIntakesResult = results[0].status === "fulfilled" ? results[0].value : { count: 0 }
@@ -107,11 +111,11 @@ export default async function AnalyticsDashboardPage() {
   const geographic = results[6].status === "fulfilled"
     ? results[6].value
     : { windowDays: 30, totalPatients: 0, topStates: [], unknownCount: 0 }
-  const businessScorecard = results[7].status === "fulfilled"
+  const businessScorecardSource = results[7].status === "fulfilled"
     ? results[7].value
     : null
-  const googleAdsProfit = results[8].status === "fulfilled"
-    ? buildGoogleAdsProfitSnapshot(results[8].value)
+  const googleAdsReturn = results[8].status === "fulfilled"
+    ? buildGoogleAdsReturnSnapshot(results[8].value)
     : null
   const recoveryScorecard = results[9].status === "fulfilled"
     ? results[9].value
@@ -136,6 +140,75 @@ export default async function AnalyticsDashboardPage() {
   if (!revenueDashboard) {
     throw new Error("Revenue dashboard unavailable")
   }
+  const rolling30DayWindow = revenueDashboard.windows.find(
+    (window) => window.key === "last30Days",
+  )
+  const rolling30DayNetCents = revenueDashboard.sourceAvailability.revenue === "available"
+    ? rolling30DayWindow?.netCents ?? 0
+    : null
+  const businessScorecard = businessScorecardSource && rolling30DayNetCents !== null
+    ? buildBusinessOperatingScorecard({
+        ...businessScorecardSource,
+        rolling30DayNetRetainedCents: rolling30DayNetCents,
+      })
+    : null
+  const adsHealthAvailable = results[4].status === "fulfilled"
+  const adsReportAvailable = results[8].status === "fulfilled"
+  const adsReportDegraded = googleAdsReturn !== null && googleAdsReturn.queryErrorCount > 0
+  const recoveryScorecardAvailable = results[9].status === "fulfilled"
+  const recoveryAvailability = recoveryScorecardAvailable &&
+    revenueDashboard.sourceAvailability.recovery === "available"
+    ? "available"
+    : !recoveryScorecardAvailable && revenueDashboard.sourceAvailability.recovery === "unavailable"
+      ? "unavailable"
+      : "degraded"
+  const operatorBrief = buildOperatorBrief({
+    revenue: rolling30DayNetCents === null
+      ? { availability: "unavailable" }
+      : {
+          availability: "available",
+          value: { rolling30DayNetCents },
+        },
+    queue: results[3].status === "fulfilled"
+      ? {
+          availability: "available",
+          value: {
+            waitingCount: monitoringStats.queueSize,
+            oldestWaitingMinutes: monitoringStats.oldestInQueueMinutes,
+          },
+        }
+      : { availability: "unavailable" },
+    recovery: recoveryAvailability === "unavailable"
+      ? { availability: "unavailable" }
+      : {
+          availability: recoveryAvailability,
+          value: {
+            criticalIssueCount: revenueDashboard.sourceAvailability.recovery === "unavailable"
+              ? 0
+              : revenueDashboard.refundWork.failedRefunds,
+            warningIssueCount:
+              (revenueDashboard.sourceAvailability.recovery === "unavailable"
+                ? 0
+                : Math.max(
+                    0,
+                    revenueDashboard.refundWork.openRefundWork - revenueDashboard.refundWork.failedRefunds,
+                  )) + (recoveryScorecard?.measurementWarnings.length ?? 0),
+          },
+        },
+    ads: !adsHealthAvailable && !adsReportAvailable
+      ? { availability: "unavailable" }
+      : {
+          availability: adsHealthAvailable && adsReportAvailable && !adsReportDegraded
+            ? "available"
+            : "degraded",
+          value: {
+            configurationSeverity: googleAds.configuration.severity,
+            failedUploads: googleAds.failed,
+            missingUploads: googleAds.missingUpload,
+            queryErrorCount: googleAdsReturn?.queryErrorCount ?? 0,
+          },
+        },
+  })
 
   const analytics = {
     generatedAt: revenueDashboard.generatedAt,
@@ -151,13 +224,14 @@ export default async function AnalyticsDashboardPage() {
       oldestInQueueMinutes: monitoringStats.oldestInQueueMinutes,
     },
     googleAds,
-    googleAdsProfit,
+    googleAdsReturn,
     intakeFunnel,
     heardAboutUs,
     aiAttribution,
     recoveryScorecard,
     prescriptionFulfilment,
     businessScorecard,
+    operatorBrief,
   }
 
   return (

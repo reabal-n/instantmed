@@ -61,7 +61,7 @@ const HERO_FACTS = [
     icon: Clock3,
     label: "Timing",
     value: "Form first",
-    body: "The secure form takes about 3 minutes. A doctor reviews the request before any certificate is issued.",
+    body: "The secure form takes about 3 minutes. Eligible low-risk requests may follow a logged doctor-owned protocol and are individually reviewed afterward; other requests go to doctor review before issue.",
   },
   {
     icon: ShieldCheck,

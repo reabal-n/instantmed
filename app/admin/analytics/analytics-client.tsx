@@ -30,6 +30,7 @@ import {
 import Link from "next/link"
 
 import { GeographicBreakdownCard } from "@/components/admin/geographic-breakdown-card"
+import { OperatorBriefPanel } from "@/components/admin/operator-brief"
 import {
   DashboardCard,
   DashboardGrid,
@@ -51,6 +52,8 @@ import {
 } from "@/lib/dashboard/routes"
 import type { GeographicBreakdown } from "@/lib/data/analytics-geographic"
 import { formatMinutes, formatTimeAgo } from "@/lib/format"
+import { formatAudDollars } from "@/lib/format/aud"
+import { cn } from "@/lib/utils"
 
 import { type AnalyticsData } from "./analytics-helpers"
 import { LiveRefresh } from "./live-refresh"
@@ -69,12 +72,6 @@ function formatCents(cents: number | null | undefined): string {
 
 function formatNullableTime(value: string | null): string {
   return value ? formatTimeAgo(value) : "Not recorded"
-}
-
-// googleAdsProfit summary amounts are cents-scaled and rendered via /100 (same as
-// the original `formatAud`). Keep that call site intact when relocating the P&L.
-function formatAud(value: number | null | undefined): string {
-  return value == null ? "No data" : `$${(value / 100).toFixed(2)}`
 }
 
 function formatRatio(value: number | null | undefined): string {
@@ -132,7 +129,7 @@ function notificationStatusLabel(status: AnalyticsData["prescriptionFulfilment"]
   return null
 }
 
-type BusinessScorecardStatus = NonNullable<AnalyticsData["businessScorecard"]>["monthlyGrossCents"]["status"]
+type BusinessScorecardStatus = NonNullable<AnalyticsData["businessScorecard"]>["rolling30DayNetRetainedCents"]["status"]
 
 function scorecardStatus(status: BusinessScorecardStatus): StatCardStatus {
   if (status === "healthy") return "success"
@@ -148,18 +145,18 @@ function scorecardBadgeStatus(status: BusinessScorecardStatus): StatusBadgeStatu
   return "neutral"
 }
 
-type GoogleAdsProfitStatus = NonNullable<AnalyticsData["googleAdsProfit"]>["status"]
+type GoogleAdsReturnStatus = NonNullable<AnalyticsData["googleAdsReturn"]>["status"]
 
-function profitBadgeStatus(status: GoogleAdsProfitStatus): StatusBadgeStatus {
-  if (status === "profitable") return "success"
-  if (status === "losing" || status === "no_local_orders") return "error"
+function adsReturnBadgeStatus(status: GoogleAdsReturnStatus): StatusBadgeStatus {
+  if (status === "revenue_above_spend") return "success"
+  if (status === "revenue_below_spend" || status === "no_local_orders") return "error"
   if (status === "unknown") return "warning"
   return "neutral"
 }
 
-function profitStatusLabel(status: GoogleAdsProfitStatus): string {
-  if (status === "profitable") return "Profitable"
-  if (status === "losing") return "Losing"
+function adsReturnStatusLabel(status: GoogleAdsReturnStatus): string {
+  if (status === "revenue_above_spend") return "Revenue above ad spend"
+  if (status === "revenue_below_spend") return "Revenue below ad spend"
   if (status === "no_local_orders") return "No local orders"
   if (status === "no_spend") return "No spend"
   return "Incomplete"
@@ -195,9 +192,10 @@ export function AnalyticsDashboardClient({
     funnel,
     generatedAt,
     googleAds,
-    googleAdsProfit,
+    googleAdsReturn,
     heardAboutUs,
     intakeFunnel,
+    operatorBrief,
     recoveryScorecard,
     prescriptionFulfilment,
     revenue,
@@ -228,19 +226,33 @@ export function AnalyticsDashboardClient({
   const week = revenue.windows.find((w) => w.key === "last7Days")
   const month = revenue.windows.find((w) => w.key === "last30Days")
   const maxDailyNet = Math.max(1, revenue.maxDailyNetCents)
+  const revenueDataAvailable = revenue.sourceAvailability.revenue === "available"
+  const recoveryDataAvailable = revenue.sourceAvailability.recovery === "available"
 
   // Google Ads: at trivial spend, ROAS/"Losing" is noise. Present it calmly and
   // only sound the profit alarm once real money is going out.
-  const spendDollars = googleAdsProfit ? (googleAdsProfit.summary.spendAud ?? 0) / 100 : 0
-  const adsMinimalSpend = !googleAdsProfit || spendDollars < 50
-  const adsBadgeStatus: StatusBadgeStatus = adsMinimalSpend
+  const adsReturnAvailable = googleAdsReturn?.returnMetricsAvailability === "available"
+  const spendDollars = googleAdsReturn?.summary.spendAud ?? 0
+  const adsMinimalSpend = adsReturnAvailable && spendDollars < 50
+  const adsBadgeStatus: StatusBadgeStatus = !adsReturnAvailable
+    ? "warning"
+    : adsMinimalSpend
     ? "neutral"
-    : profitBadgeStatus(googleAdsProfit.status)
-  const adsBadgeLabel = adsMinimalSpend
+    : adsReturnBadgeStatus(googleAdsReturn.status)
+  const adsBadgeLabel = !adsReturnAvailable
+    ? "Spend data unavailable"
+    : adsMinimalSpend
     ? spendDollars > 0
       ? "Minimal spend"
-      : "Ads paused"
-    : profitStatusLabel(googleAdsProfit!.status)
+      : "No recent spend"
+    : adsReturnStatusLabel(googleAdsReturn!.status)
+  const campaignStateLabel = googleAdsReturn?.campaignState === "enabled"
+    ? "enabled"
+    : googleAdsReturn?.campaignState === "paused"
+      ? "paused"
+      : googleAdsReturn?.campaignState === "mixed"
+        ? "mixed"
+        : "unverified"
 
   const notificationIssueHref = prescriptionFulfilment.firstNotificationIssueIntakeId
     ? buildStaffEmailHubHref({
@@ -272,44 +284,48 @@ export function AnalyticsDashboardClient({
       <OperatorScrollArea>
         {/* ============================ ESSENTIALS ============================ */}
 
+        <OperatorBriefPanel brief={operatorBrief} googleAdsReturn={googleAdsReturn} />
+
         {/* Revenue: refund-adjusted net + AOV + a 7-day net trend. */}
         <section aria-labelledby="revenue-heading" className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 id="revenue-heading" className="text-sm font-semibold text-foreground">Revenue</h2>
             <p className="text-xs text-muted-foreground">
-              Last paid {revenue.lastPaidAt ? formatTimeAgo(revenue.lastPaidAt) : "—"}
-              {week ? ` · ${week.orderCount} orders in 7d` : ""}
-              {month ? ` · ${month.orderCount} in 30d` : ""}
+              {revenueDataAvailable
+                ? `Last paid ${revenue.lastPaidAt ? formatTimeAgo(revenue.lastPaidAt) : "—"}`
+                : "Payment or refund data unavailable"}
+              {revenueDataAvailable && week ? ` · ${week.orderCount} orders in 7d` : ""}
+              {revenueDataAvailable && month ? ` · ${month.orderCount} in 30d` : ""}
             </p>
           </div>
           <DashboardGrid columns={4} gap="md">
             <StatCard
               label="Today"
-              value={formatCents(todayWindow?.netCents ?? 0)}
+              value={revenueDataAvailable ? formatCents(todayWindow?.netCents ?? 0) : "Unavailable"}
               icon={<DollarSign className="h-5 w-5" />}
-              status={(todayWindow?.netCents ?? 0) > 0 ? "success" : "neutral"}
+              status={!revenueDataAvailable ? "warning" : (todayWindow?.netCents ?? 0) > 0 ? "success" : "neutral"}
             />
             <StatCard
               label="7 days"
-              value={formatCents(week?.netCents ?? 0)}
+              value={revenueDataAvailable ? formatCents(week?.netCents ?? 0) : "Unavailable"}
               icon={<TrendingUp className="h-5 w-5" />}
               status="info"
             />
             <StatCard
               label="30 days"
-              value={formatCents(month?.netCents ?? 0)}
+              value={revenueDataAvailable ? formatCents(month?.netCents ?? 0) : "Unavailable"}
               icon={<Receipt className="h-5 w-5" />}
               status="info"
             />
             <StatCard
               label="Avg order (30d)"
-              value={month?.averageOrderCents == null ? "—" : formatCents(month.averageOrderCents)}
+              value={!revenueDataAvailable ? "Unavailable" : month?.averageOrderCents == null ? "—" : formatCents(month.averageOrderCents)}
               icon={<WalletCards className="h-5 w-5" />}
               status="neutral"
             />
           </DashboardGrid>
 
-          {revenue.daily.length > 0 ? (
+          {revenueDataAvailable && revenue.daily.length > 0 ? (
             <DashboardCard padding="md">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h3 className="text-xs font-semibold uppercase tracking-[0.10em] text-muted-foreground">
@@ -511,14 +527,17 @@ export function AnalyticsDashboardClient({
         </section>
 
         {/* Paid ads: compact + calm at trivial spend. Detail lives below. */}
-        {googleAdsProfit ? (
+        {googleAdsReturn ? (
           <section aria-labelledby="paid-ads-heading" className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <h2 id="paid-ads-heading" className="text-sm font-semibold text-foreground">Google Ads</h2>
-                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-emerald-500 ring-1 ring-inset ring-black/5" />
-                  live
+                  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span aria-hidden="true" className={cn(
+                    "h-2 w-2 shrink-0 rounded-full ring-1 ring-inset ring-black/5",
+                    googleAdsReturn.campaignState === "enabled" ? "bg-emerald-500" : "bg-amber-500",
+                  )} />
+                  {campaignStateLabel}
                 </span>
               </div>
               <StatusBadge status={adsBadgeStatus} size="sm">
@@ -529,21 +548,21 @@ export function AnalyticsDashboardClient({
             <DashboardCard padding="md">
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">Spend {googleAdsProfit.range.days}d</p>
-                  <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{formatAud(googleAdsProfit.summary.spendAud)}</p>
+                  <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">Spend {googleAdsReturn.range.days}d</p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{formatAudDollars(googleAdsReturn.summary.spendAud)}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">Local orders</p>
-                  <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{googleAdsProfit.summary.localOrders}</p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{googleAdsReturn.summary.localOrders}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">CAC</p>
-                  <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{formatAud(googleAdsProfit.summary.costPerLocalOrderAud)}</p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{formatAudDollars(googleAdsReturn.summary.costPerLocalOrderAud)}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">Net ROAS</p>
                   <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">
-                    {formatRatio(googleAdsProfit.summary.localRoas)}
+                    {formatRatio(googleAdsReturn.summary.localRoas)}
                   </p>
                 </div>
               </div>
@@ -563,7 +582,7 @@ export function AnalyticsDashboardClient({
                 </span>
                 <span>Last upload {formatNullableTime(googleAds.lastSuccessfulUploadAt)}</span>
                 {adsMinimalSpend ? (
-                  <span className="text-muted-foreground">ROAS is noise at this spend — resume budget to read it.</span>
+                  <span className="text-muted-foreground">ROAS is directional at this spend; keep the pilot bounded.</span>
                 ) : null}
               </div>
             </DashboardCard>
@@ -602,7 +621,9 @@ export function AnalyticsDashboardClient({
                     <span className="text-xs text-muted-foreground">By net revenue</span>
                   </div>
                   <div className="grid gap-2">
-                    {revenue.serviceMix.length > 0 ? (
+                    {!revenueDataAvailable ? (
+                      <p className="rounded-md bg-muted/40 px-3 py-2 text-xs text-muted-foreground">Revenue data unavailable.</p>
+                    ) : revenue.serviceMix.length > 0 ? (
                       revenue.serviceMix.map((service) => (
                         <div key={service.key} className="text-xs">
                           <div className="flex items-center justify-between gap-3">
@@ -623,7 +644,7 @@ export function AnalyticsDashboardClient({
                   {/* Monetisation readouts (2026-07-10 audit): the two levers
                       that were running blind — Express attach and the med-cert
                       duration mix behind the $27-AOV model target. */}
-                  <div className="mt-4 space-y-2 border-t border-border/50 pt-3 text-xs">
+                  {revenueDataAvailable ? <div className="mt-4 space-y-2 border-t border-border/50 pt-3 text-xs">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-muted-foreground">Express Review attach (30d)</span>
                       <span className="tabular-nums font-medium text-foreground">
@@ -645,7 +666,7 @@ export function AnalyticsDashboardClient({
                           : "No cert orders"}
                       </span>
                     </div>
-                  </div>
+                  </div> : null}
                 </DashboardCard>
 
                 <div className="space-y-3">
@@ -670,16 +691,18 @@ export function AnalyticsDashboardClient({
                     />
                     <StatCard
                       label="Refunded (30d)"
-                      value={formatCents(revenue.refundWork.totalRefunded30dCents)}
+                      value={recoveryDataAvailable ? formatCents(revenue.refundWork.totalRefunded30dCents) : "Unavailable"}
                       icon={<Receipt className="h-5 w-5" />}
-                      status={revenue.refundWork.failedRefunds > 0 ? "error" : "neutral"}
+                      status={!recoveryDataAvailable ? "warning" : revenue.refundWork.failedRefunds > 0 ? "error" : "neutral"}
                     />
                   </DashboardGrid>
 
                   <DashboardCard padding="md">
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-[0.10em] text-muted-foreground">Recent paid orders</h4>
                     <div className="grid gap-1.5">
-                      {revenue.recentPayments.length > 0 ? (
+                      {!revenueDataAvailable ? (
+                        <p className="text-xs text-muted-foreground">Revenue data unavailable.</p>
+                      ) : revenue.recentPayments.length > 0 ? (
                         revenue.recentPayments.slice(0, 6).map((payment) => (
                           <div key={payment.id} className="flex items-center justify-between gap-3 text-xs">
                             <span className="min-w-0 truncate text-muted-foreground">
@@ -704,15 +727,14 @@ export function AnalyticsDashboardClient({
                     <h3 id="operating-scorecard-heading" className="text-sm font-semibold text-foreground">Operating scorecard</h3>
                     <p className="mt-1 text-xs text-muted-foreground">Live 30-day commercial and capacity gates before paid-ramp decisions.</p>
                   </div>
-                  <StatusBadge status={scorecardBadgeStatus(businessScorecard.hireTriggerState.status)} size="sm">
-                    {businessScorecard.hireTriggerState.display}
+                  <StatusBadge status={scorecardBadgeStatus(businessScorecard.capacityReviewState.status)} size="sm">
+                    {businessScorecard.capacityReviewState.display}
                   </StatusBadge>
                 </div>
 
                 <DashboardGrid columns={4} gap="md">
-                  <StatCard label="Monthly gross" value={businessScorecard.monthlyGrossCents.display} icon={<DollarSign className="h-5 w-5" />} status={scorecardStatus(businessScorecard.monthlyGrossCents.status)} />
+                  <StatCard label="30d net retained" value={businessScorecard.rolling30DayNetRetainedCents.display} icon={<DollarSign className="h-5 w-5" />} status={scorecardStatus(businessScorecard.rolling30DayNetRetainedCents.status)} />
                   <StatCard label="Paid volume" value={businessScorecard.paidOrderVolume.display} icon={<CreditCard className="h-5 w-5" />} status={scorecardStatus(businessScorecard.paidOrderVolume.status)} />
-                  <StatCard label="Max CAC @30%" value={businessScorecard.cacCeilingCents.display} icon={<WalletCards className="h-5 w-5" />} status={scorecardStatus(businessScorecard.cacCeilingCents.status)} />
                   <StatCard label="Refund rate" value={businessScorecard.refundRate.display} icon={<Receipt className="h-5 w-5" />} status={scorecardStatus(businessScorecard.refundRate.status)} />
                   <StatCard label="Chargeback rate" value={businessScorecard.chargebackRate.display} icon={<AlertCircle className="h-5 w-5" />} status={scorecardStatus(businessScorecard.chargebackRate.status)} />
                   <StatCard label="Support tickets/100 orders" value={businessScorecard.supportTicketsPer100Orders.display} icon={<Headphones className="h-5 w-5" />} status={scorecardStatus(businessScorecard.supportTicketsPer100Orders.status)} />
@@ -725,35 +747,35 @@ export function AnalyticsDashboardClient({
                     <div>
                       <div className="flex items-center gap-2">
                         <UserPlus className="h-4 w-4 text-muted-foreground" />
-                        <h4 className="text-sm font-semibold text-foreground">Hire trigger state</h4>
+                        <h4 className="text-sm font-semibold text-foreground">Capacity review</h4>
                       </div>
                       <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                        Tracks the revenue, queue, support, and workload thresholds that should block paid ramp until staffing or process capacity catches up.
+                        Tracks the net-retained revenue, queue, support, and workload conditions that require an operator capacity decision before scaling.
                       </p>
                     </div>
-                    <StatusBadge status={scorecardBadgeStatus(businessScorecard.hireTriggerState.status)} size="sm">
-                      {businessScorecard.hireTriggerState.display}
+                    <StatusBadge status={scorecardBadgeStatus(businessScorecard.capacityReviewState.status)} size="sm">
+                      {businessScorecard.capacityReviewState.display}
                     </StatusBadge>
                   </div>
-                  {businessScorecard.hireTriggerState.triggeredBy.length > 0 ? (
+                  {businessScorecard.capacityReviewState.triggeredBy.length > 0 ? (
                     <ul className="mt-3 grid gap-2 text-xs text-muted-foreground md:grid-cols-2">
-                      {businessScorecard.hireTriggerState.triggeredBy.map((trigger) => (
+                      {businessScorecard.capacityReviewState.triggeredBy.map((trigger) => (
                         <li key={trigger} className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2">{trigger}</li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="mt-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs text-muted-foreground">No hire triggers active.</p>
+                    <p className="mt-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs text-muted-foreground">No capacity-review triggers active.</p>
                   )}
                 </DashboardCard>
               </section>
             ) : null}
 
-            {googleAdsProfit ? (
-              <section aria-labelledby="google-ads-profit-heading" className="space-y-3">
+            {googleAdsReturn ? (
+              <section aria-labelledby="google-ads-return-heading" className="space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <h3 id="google-ads-profit-heading" className="text-sm font-semibold text-foreground">Paid acquisition P&amp;L</h3>
-                    <p className="mt-1 text-xs text-muted-foreground">Google Ads spend joined to local paid-order revenue over {googleAdsProfit.range.days} days.</p>
+                    <h3 id="google-ads-return-heading" className="text-sm font-semibold text-foreground">Paid acquisition revenue readout</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">Google Ads spend joined to local net-retained paid-order revenue over {googleAdsReturn.range.days} days.</p>
                   </div>
                   <StatusBadge status={adsBadgeStatus} size="sm">{adsBadgeLabel}</StatusBadge>
                 </div>
@@ -762,17 +784,17 @@ export function AnalyticsDashboardClient({
                   <div className="grid gap-4 md:grid-cols-3">
                     <div>
                       <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">Local net revenue</p>
-                      <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{formatAud(googleAdsProfit.summary.localNetRevenueAud)}</p>
+                      <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{formatAudDollars(googleAdsReturn.summary.localNetRevenueAud)}</p>
                       <p className="mt-1 text-xs text-muted-foreground">Paid intake revenue after local refund adjustments.</p>
                     </div>
                     <div>
-                      <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">Net profit</p>
-                      <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{formatAud(googleAdsProfit.summary.netProfitAud)}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">Revenue minus Google Ads spend.</p>
+                      <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">After refunds − ad spend</p>
+                      <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{formatAudDollars(googleAdsReturn.summary.revenueAfterAdSpendAud)}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">Excludes payment fees and incremental doctor/support labour; not contribution or profit.</p>
                     </div>
                     <div>
                       <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">Refunded</p>
-                      <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{formatAud(googleAdsProfit.summary.refundedAud)}</p>
+                      <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{formatAudDollars(googleAdsReturn.summary.refundedAud)}</p>
                       <p className="mt-1 text-xs text-muted-foreground">Google-attributed refund amount in this window.</p>
                     </div>
                   </div>
@@ -783,17 +805,17 @@ export function AnalyticsDashboardClient({
                       <span className="text-xs text-muted-foreground">Local attribution only</span>
                     </div>
                     <div className="grid gap-2">
-                      {googleAdsProfit.campaigns.length > 0 ? (
-                        googleAdsProfit.campaigns.map((campaign) => (
+                      {googleAdsReturn.campaigns.length > 0 ? (
+                        googleAdsReturn.campaigns.map((campaign) => (
                           <div key={campaign.campaignId} className="grid gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-3 text-xs md:grid-cols-[minmax(0,1fr)_repeat(4,minmax(80px,auto))]">
                             <div className="min-w-0">
                               <p className="truncate font-medium text-foreground">{campaign.campaignName}</p>
                               <p className="mt-1 truncate text-muted-foreground">{campaign.primaryServiceLabel}</p>
                             </div>
-                            <div><p className="text-muted-foreground">Spend</p><p className="font-medium tabular-nums text-foreground">{formatAud(campaign.spendAud)}</p></div>
+                            <div><p className="text-muted-foreground">Spend</p><p className="font-medium tabular-nums text-foreground">{formatAudDollars(campaign.spendAud)}</p></div>
                             <div><p className="text-muted-foreground">Orders</p><p className="font-medium tabular-nums text-foreground">{campaign.localOrders}</p></div>
-                            <div><p className="text-muted-foreground">CAC</p><p className="font-medium tabular-nums text-foreground">{formatAud(campaign.costPerLocalOrderAud)}</p></div>
-                            <div><p className="text-muted-foreground">Profit</p><p className="font-medium tabular-nums text-foreground">{formatAud(campaign.netProfitAud)}</p></div>
+                            <div><p className="text-muted-foreground">CAC</p><p className="font-medium tabular-nums text-foreground">{formatAudDollars(campaign.costPerLocalOrderAud)}</p></div>
+                            <div><p className="text-muted-foreground">After ad spend</p><p className="font-medium tabular-nums text-foreground">{formatAudDollars(campaign.revenueAfterAdSpendAud)}</p></div>
                           </div>
                         ))
                       ) : (

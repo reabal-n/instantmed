@@ -186,7 +186,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "Can I get a carer's leave certificate for my child?",
-        a: "Yes. If your child is unwell and you need time off to care for them, we can issue a carer's leave certificate. This covers your absence from school work duties.",
+        a: "If you are 18 or older and need time away from work to care for an immediate family or household member, you may request evidence for your own carer's leave. InstantMed does not assess or issue documentation for a minor as the patient.",
       },
       {
         q: "Are these certificates valid under education department policies?",
@@ -525,104 +525,74 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
   },
   parents: {
     slug: "parents",
-    badgeLabel: "For Parents",
-    h1: "Medical Certificates for Parents",
+    badgeLabel: "For Parents & Carers",
+    h1: "Carer's leave certificates for adults",
     heroSubtext:
-      "When your child is sick, you need carer's leave - and sometimes a certificate. Get documentation for school or work online. No need to take a sick child to a clinic.",
-    heroTagline: "Carer's leave • School absence • No clinic visit needed",
+      "If you are 18 or older and need time away from work to care for an immediate family or household member, request evidence for your own carer's leave online.",
+    heroTagline: "Adult requester • Carer's leave • Employer policies vary",
     icon: Users,
     metadata: {
-      title: "Medical Certificates for Parents | Carer's Leave",
+      title: "Carer's Leave Certificates for Parents | Adult Requesters",
       description:
-        "Parents: get a medical certificate for carer's leave or school absence when your child is sick. No need to take them to a clinic. Doctor-reviewed, digital delivery if approved.",
+        "Adults aged 18 and over can request carer's leave evidence when caring for an immediate family or household member. Employer policies vary.",
       keywords: [
-        "medical certificate parents",
+        "carers leave certificate parents",
         "carers leave certificate",
-        "sick child medical certificate",
-        "school absence certificate",
+        "adult carer medical certificate",
+        "family care leave evidence",
       ],
     },
     faqs: [
       {
-        q: "Can I get a certificate for my child's school absence?",
-        a: "Yes. You complete the form on behalf of your child. The doctor assesses and may issue a certificate. Some cases may need a brief call.",
+        q: "Who is the patient for a carer's leave request?",
+        a: "The patient and requester must be the adult seeking evidence for their own absence from work. InstantMed does not accept a minor as the patient.",
       },
       {
-        q: "What about carer's leave for work?",
-        a: "Yes. A carer's leave certificate documents that your child needed care. Your employer uses it to approve your leave.",
+        q: "Can InstantMed issue my child's school certificate?",
+        a: "No. InstantMed currently accepts patients aged 18 and over only. Contact the child's GP or another paediatric-capable service for assessment or school documentation.",
       },
       {
-        q: "Do I need to take my child to a clinic?",
-        a: "No. You describe their symptoms. For straightforward cases, we can issue documentation without a clinic visit. If they need urgent care, we'll advise.",
+        q: "What does carer's leave evidence cover?",
+        a: "It may support your absence from work while caring for an immediate family or household member. Your employer decides what evidence it requires under its policy and applicable workplace law.",
       },
       {
         q: "How much does it cost?",
         a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. ${GUARANTEE}`,
       },
       {
-        q: "Will the certificate show my child's diagnosis?",
-        a: "No. The certificate states that your child was assessed and found unfit for school or care. It does not include the specific diagnosis or clinical details.",
-      },
-      {
-        q: "Can I use the same certificate for both school and my work?",
-        a: "Yes. A single certificate documenting your child's illness covers their school absence and supports your carer's leave application at work. Two birds, one form.",
-      },
-      {
-        q: "What age does my child need to be?",
-        a: "We can issue certificates for children of any age. A parent or legal guardian completes the form on the child's behalf and provides details about their symptoms.",
-      },
-      {
-        q: "Does my child need a Medicare card?",
-        a: "No. Medicare is not required for medical certificates. You pay a flat fee and receive the certificate directly.",
-      },
-      {
-        q: "Can I get a certificate for my own illness too?",
-        a: "Yes. If you are also unwell - which happens often when kids bring something home - you can submit a separate request for your own certificate.",
-      },
-      {
-        q: "What if the school requires a certificate for absences near holidays?",
-        a: "Some schools request medical documentation for absences immediately before or after school holidays. Our certificates include standard doctor-issued details; school policies may vary.",
-      },
-      {
-        q: "Can daycare centres use online certificates as documentation?",
-        a: "Yes. Childcare centres, daycare, and early learning centres all set their own policies for certificates from AHPRA-registered doctors. The format is the same as any GP certificate.",
+        q: "Will the certificate disclose the other person's diagnosis?",
+        a: "Routine carer's leave evidence should not disclose unnecessary clinical details. The doctor decides what can be supported from the information available and what wording is appropriate.",
       },
       {
         q: "What happens if the doctor declines the request?",
-        a: `${GUARANTEE} The doctor may recommend you take your child to a GP in person for a more thorough assessment.`,
+        a: `${GUARANTEE} The doctor may explain that different evidence or an in-person pathway is needed.`,
       },
     ],
     whyChoose: [
       {
-        title: "Sick kids shouldn't travel",
-        desc: "The last thing a sick child needs is a trip to a clinic. Get your certificate from home.",
+        title: "Centred on your leave",
+        desc: "The request documents the adult requester's need for carer's leave; it is not a paediatric assessment.",
       },
       {
-        title: "School and work sorted",
-        desc: "One certificate can cover both - school absence and your carer's leave from work.",
+        title: "Clear scope",
+        desc: "Use it for routine workplace evidence, not school documentation, diagnosis reports, or child treatment.",
       },
       {
-        title: "Quick when you need it",
-        desc: "Child woke up sick? Get your cert before you need to call work or the school.",
+        title: "Digital delivery",
+        desc: "If approved, your certificate is delivered digitally so you can provide it under your employer's policy.",
       },
     ],
     industryContext: [
-      "Carer's leave is one of the most underused workplace entitlements in Australia. Under the Fair Work Act, employees are entitled to use their personal leave to care for an immediate family member or household member who is unwell. This means you don't need separate 'carer's leave' - it comes from the same 10-day personal leave balance. Many parents don't realise a medical certificate for their child's illness also supports their own leave application.",
-      "When your child wakes up sick, you're juggling three things simultaneously: caring for them, notifying their school, and telling your employer. Dragging a sick child to a GP waiting room adds a fourth. Telehealth lets you get a certificate from home while your child rests - often before you even need to call the school office.",
-      "For parents of school-aged children, some schools require medical certificates for absences of 3+ days or for absences around school holidays. Our certificates cover the child's dates of illness and are school policies may vary. For your employer, the same certificate supports your carer's leave application.",
-    ],
-    commonConditions: [
-      { name: "Cold & Flu", slug: "cold-and-flu", why: "Children bring home every virus from school and daycare - and pass it to parents" },
-      { name: "Gastroenteritis", slug: "gastro", why: "Childcare and school outbreaks are common, and gastro spreads easily within families" },
-      { name: "Mental Health Day", slug: "mental-health-day", why: "Parental burnout from juggling work, childcare, and household responsibilities" },
-      { name: "Ear Infection", slug: "ear-infection", why: "Very common in children under 5 - may require your time off to care for them" },
+      "Under the National Employment Standards, eligible employees may use paid personal/carer's leave to provide care or support to an immediate family or household member because of illness, injury, or an unexpected emergency. Workplace and evidence requirements vary.",
+      "InstantMed's carer's leave pathway is for the adult employee requesting evidence for their own absence. It does not assess or treat the person receiving care and does not produce school, childcare, or return-to-activity clearance documents.",
+      "If the person receiving care is a child who needs medical assessment or documentation in their own name, contact their GP or another paediatric-capable service.",
     ],
     workplaceRights: [
       "You can use personal/carer's leave to care for an unwell immediate family member or household member",
       "Personal and carer's leave comes from the same 10-day annual balance under the NES",
-      "Your employer can request evidence but cannot deny leave if you provide a certificate",
+      "Your employer may request evidence that would satisfy a reasonable person",
       "Part-time employees receive pro-rata personal leave (e.g. 3 days/week = 6 days leave/year)",
-      "A single certificate covering your child's illness also supports your carer's leave application",
+      "Employer policies and individual circumstances determine whether a certificate is accepted",
     ],
   },
   "remote-workers": {

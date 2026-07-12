@@ -73,6 +73,38 @@ const staleCommercialPolicySources = [
   "lib/seo/pages/definitions.ts",
 ].map((file) => readFileSync(join(root, file), "utf8")).join("\n")
 
+const eligibilityAndAutomationSources = [
+  "app/how-it-works/page.tsx",
+  "app/how-we-decide/page.tsx",
+  "app/medical-certificate/[slug]/page.tsx",
+  "app/medical-certificate/employer-acceptance/page.tsx",
+  "app/our-doctors/our-doctors-client.tsx",
+  "app/pricing/pricing-content.tsx",
+  "app/privacy/page.tsx",
+  "app/terms/page.tsx",
+  "app/trust/trust-client.tsx",
+  "app/why-instant/page.tsx",
+  "components/marketing/citation-facts.tsx",
+  "components/marketing/how-it-works-content.tsx",
+  "components/marketing/medical-certificate-online-landing.tsx",
+  "components/marketing/sections/consult-limitations-section.tsx",
+  "components/marketing/sections/consult-guide-section.tsx",
+  "components/marketing/sections/how-we-decide-guide-section.tsx",
+  "components/marketing/sections/prescription-limitations-section.tsx",
+  "components/marketing/sections/pricing-guide-section.tsx",
+  "content/blog/same-day-medical-certificate-fast.mdx",
+  "content/blog/same-day-medical-certificate.mdx",
+  "docs/VOICE.md",
+  "lib/marketing/homepage.ts",
+  "lib/marketing/med-cert-intent-config.ts",
+  "lib/marketing/voice.ts",
+  "lib/seo/intents.ts",
+  "lib/seo/data/audience-pages.ts",
+  "lib/social-proof/index.ts",
+  "public/llms-full.txt",
+  "public/llms.txt",
+].map((file) => readFileSync(join(root, file), "utf8")).join("\n")
+
 describe("marketing copy contracts", () => {
   it("keeps the homepage hero kicker calm and clinically grounded", () => {
     expect(voiceSource).not.toContain("Three minutes. Done.")
@@ -251,5 +283,35 @@ describe("marketing copy contracts", () => {
     expect(staleCommercialPolicySources).not.toMatch(/\b(?:in|within|sorted in|ready in)\s+15 minutes\b/i)
     expect(speedClaimsSource).toContain("buildMedCertSpeedClaim")
     expect(speedClaimsSource).toContain("newestSampleAgeMinutes")
+  })
+
+  it("keeps public eligibility strictly 18+ and retires child-as-patient claims", () => {
+    expect(eligibilityAndAutomationSources).not.toMatch(/parental\/?guardian consent/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/parental consent required/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/minors may be assessed/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/we can issue certificates for children/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/complete(?:s)? the form on behalf of (?:your|the) child/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/parents? or guardians? can request medical certificates for their children/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/provide the child(?:'|&apos;|’)s details/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/complex presentations in children under 18/i)
+    expect(readFileSync(join(root, "app/terms/page.tsx"), "utf8")).toContain("Be at least 18 years of age")
+    expect(medCertIntentSource).toContain("InstantMed currently accepts patients aged 18 and over only")
+  })
+
+  it("describes the doctor-owned med-cert protocol without absolute automation denials", () => {
+    expect(eligibilityAndAutomationSources).not.toMatch(/no automated approvals/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/there is no automated approval/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/clinical decisions are not automated/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/reviewed, not automated/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/no algorithmic auto-approval/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/never algorithmic/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/convenient, not automated/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/reviewed, not robo-approved/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/doctor review before (?:any )?certificate is issued/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/a doctor reviews[^.]*before (?:any )?certificate is issued/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/no algorithms(?:\.| deciding)/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/every request is reviewed[^.]*not an algorithm/i)
+    expect(eligibilityAndAutomationSources).toContain("doctor-owned protocol")
+    expect(eligibilityAndAutomationSources).toContain("AI does not prescribe")
   })
 })

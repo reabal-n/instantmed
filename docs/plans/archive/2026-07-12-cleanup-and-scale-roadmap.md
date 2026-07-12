@@ -1,6 +1,7 @@
 # Cleanup & Scale Roadmap — 2026-07-12
 
-> **Status:** Proposed. Awaiting first-session kickoff.
+> **Status:** Superseded. Do not execute directly.
+> `docs/ROADMAP.md` is the sole active priority queue and incorporates the operator decisions that replaced this proposal. This archived file is historical context only.
 > **Operator intent (2026-07-12):** mostly break the demand ceiling, a bit of reliability, all of the cleanup. Keep it simple. Each demand lever runs as its own focused session. Ask before decisions.
 
 ## Context (why this shape)

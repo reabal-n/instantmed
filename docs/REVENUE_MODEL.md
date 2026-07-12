@@ -1,159 +1,162 @@
 # InstantMed Revenue Model
 
-> Canonical revenue model for the current one-off, solo-doctor operating phase.
-> Read this before changing pricing, service mix, growth targets, subscriptions, or staffing assumptions.
+> **Authority:** revenue milestones, economic definitions, paid-scaling gates, and hiring/capacity thresholds.
+> Live values come from the admin dashboard. Durable strategy lives in `docs/BUSINESS_PLAN.md`. Current priorities and status live in `docs/ROADMAP.md`.
 
-**Last updated:** 2026-06-16
+**Last updated:** 2026-07-12
 
 ---
 
-## 1. Revenue Target
+## 1. Revenue Milestone Ladder
 
-The current target is **$1M AUD annual gross revenue** from one-off transactions.
+The active goal is staged, evidence-backed revenue growth:
 
-| Period | Gross revenue required |
-|--------|------------------------|
-| Annual | $1,000,000 |
-| Monthly | $83,333 |
-| Weekly | $19,231 |
-| Daily | $2,740 |
+| Milestone | Timing | Decision unlocked |
+|-----------|--------|-------------------|
+| **$2,000/month** rolling net-retained revenue run-rate | Within 30 days | Proves that the current baseline can move through focused channel work. |
+| **$5,000/month** rolling net-retained revenue run-rate | Within 90 days | Proves repeatable demand across more than one order source. |
+| **$10,000/month** rolling net-retained revenue run-rate | Next phase | Triggers a formal capacity and staffing review; it does not trigger an automatic hire. |
 
-This is gross revenue, not net profit. It excludes Stripe fees, refunds, software costs, indemnity, tax, advertising spend, admin time, and doctor labour.
+`$1M` annual gross remains a distant directional north star for the one-off model. It is not the active planning frame and does not override the milestone ladder.
 
-## 2. Current Pricing
+### Milestone Definition
 
-All canonical prices live in `lib/constants/index.ts`.
+**Net-retained revenue** is captured order revenue less refunds and disputes for the same reporting window.
 
-| Service | Current price |
-|---------|---------------|
-| Med cert, 1 day | $24.95 |
-| Med cert, 2 days | $29.95 |
-| Med cert, 3 days | $39.95 |
-| Repeat prescription | $29.95 |
-| ED consult | $49.95 |
-| Hair loss consult | $49.95 |
-| Women's health | $49.95 |
-| Weight loss | $89.95 |
-| Priority fee | $9.95 |
+The dashboard measures the rolling 30-day value from payment truth. A milestone counts only when:
 
-Repeat Rx subscription acquisition is dormant/future strategy. Patient-facing checkout, nudge cron, email template, env requirement, and display price were retired. Treat subscriptions as inactive unless explicitly reactivated in this document and `docs/BUSINESS_PLAN.md`.
+- revenue comes from real paid orders, excluding seeded E2E and failed checkout rows
+- refunds and disputes are deducted
+- paid acquisition is first-order contribution-positive or inside an explicitly approved bounded test
+- clinical QA, queue health, chargebacks, and support load remain controlled
 
-## 3. Orders Needed For $1M
+Leads, clicks, intake starts, gross checkout value, and temporary revenue that is later refunded do not count as milestone attainment.
 
-| Blended AOV | Orders per year | Orders per month | Orders per day |
-|-------------|-----------------|------------------|----------------|
-| $24 | 41,667 | 3,472 | 114 |
-| $30 | 33,333 | 2,778 | 91 |
-| $35 | 28,571 | 2,381 | 78 |
-| $45 | 22,222 | 1,852 | 61 |
-| $55 | 18,182 | 1,515 | 50 |
+## 2. Current Pricing Authority
 
-The business should not try to reach $1M with $24.95 med certs alone. It needs a blended AOV lift from 2-3 day med certs, repeat prescriptions, hair loss, ED, women's health, weight loss, and priority fees.
+Canonical prices live in `PRICING` in `lib/constants/index.ts`. Stripe price IDs are mapped in `lib/stripe/price-mapping.ts`.
 
-## 4. Target Service Mix
+This document does not duplicate the price table. Pricing changes must update the code source, Stripe mapping, tests, and any approved public display surfaces together.
 
-### Conservative $1M Scenario
+The current model is one-off transactions only. Repeat-Rx subscriptions, memberships, bundles, pharmacy fulfilment, and recurring prescribing are inactive until `docs/BUSINESS_PLAN.md` deliberately changes the model.
 
-| Service | Share | AOV | Monthly orders | Monthly revenue |
-|---------|-------|-----|----------------|-----------------|
-| Med certs | 65% | $27 | 2,000 | $54,000 |
-| Repeat prescriptions | 15% | $30 | 462 | $13,860 |
-| Hair loss | 7% | $50 | 215 | $10,750 |
-| ED | 7% | $50 | 215 | $10,750 |
-| Women's health | 3% | $50 | 92 | $4,600 |
-| Weight loss | 3% | $90 | 92 | $8,280 |
+## 3. Service Economics
 
-This mix produces about $102k monthly gross at roughly 3,076 orders/month. It leaves room for refunds and seasonality while still clearing the $83k/month target.
+Measure economics by service. A blended account-level result can hide a profitable service subsidising an unprofitable one.
 
-### Solo-Doctor Reality Check
+| Service state | Revenue rule |
+|---------------|--------------|
+| Medical certificates | Live. Low-budget acquisition may continue while contribution and queue health are measured. |
+| Repeat prescriptions | Live low-budget pilot. Measure prescribing time, fulfilment, refunds, and first-order contribution separately. |
+| ED | Live low-budget pilot. Keep contraindication, doctor-contact, refund, and unsuitable-case rates visible. |
+| Hair loss | Live low-budget pilot. Keep unsuitable-case, fulfilment, and refund rates visible. |
+| Women's health | Live low-budget pilot for UTI + new/switch pill only. Measure UTI and contraception separately where data permits. |
+| Weight loss | Gated. No paid traffic or revenue assumption. |
+| General Consult | Retired. No paid traffic or revenue assumption. |
 
-The limiting resource is not traffic. It is doctor review time plus support load.
+Target service mix is learned from retained revenue and capacity evidence. It is not fixed by a speculative long-range order table.
 
-| Work type | Target active doctor time |
-|-----------|---------------------------|
-| Safe med-cert protocol case | Near-zero active time averaged across QA |
-| Manual med cert | 2-5 minutes |
-| Repeat prescription | 6-10 minutes |
-| Hair loss | 6-12 minutes |
-| ED | 8-15 minutes |
-| Women's health | 8-15 minutes |
-| Weight loss | 15-25 minutes |
+## 4. First-Order Contribution
 
-If service mix shifts too far into ED, women's health, or weight loss before staffing, revenue can rise while clinical risk and burnout rise faster.
+Scaled paid acquisition must be first-order contribution-positive until repeat purchasing is proven with real cohort data.
 
-## 5. Key Unit Economics
+For each service and paid channel:
 
-Track these weekly by service:
+```text
+First-order contribution after acquisition
+  = net-retained order revenue
+  - Stripe/payment fees
+  - incremental doctor labour
+  - incremental support/admin labour
+  - advertising cost
+```
 
-| Metric | Target |
-|--------|--------|
-| Intake start to payment conversion | 35-55% for qualified starts |
-| Payment success rate | 95%+ |
-| Approval rate | Service-specific, but should not be manipulated upward |
-| Refund rate | Below 8-10% |
-| Chargeback rate | Below 0.5% |
-| Support tickets | Below 5 per 100 orders |
-| Doctor minutes per order | Falling over time without higher complaints |
-| Median med-cert turnaround | Below 30 minutes |
-| Doctor queue P95 | Below 2 hours during operating hours |
-| Organic share of orders | Increasing month over month |
+Fixed software, insurance, accounting, and general business overhead stay outside this channel-level calculation. They remain business costs, but they do not determine whether one extra paid order contributes positively.
 
-## 6. Operating Scorecard
+Doctor and support labour must use explicit operator-approved hourly rates multiplied by sampled active minutes. Until those rates are recorded, contribution is **unknown** and no campaign can be described as ready to scale. Do not substitute zero-cost owner labour.
 
-Review weekly before scaling paid traffic or adding clinical capacity. The point is not to make the dashboard bigger; it is to stop revenue ambition from outrunning doctor capacity, attribution quality, and support load.
+Do not use assumed lifetime value, hoped-for repeat orders, approval rate, or gross AOV to justify first-order losses.
 
-| Metric | Current gate | Target / decision rule |
-|--------|--------------|------------------------|
-| Monthly gross revenue | Pull from Stripe/Supabase paid intakes, net of refunded orders in the same period. | Scale only when revenue is growing with stable refund, chargeback, and queue metrics. |
-| Paid order volume | Paid intakes by service line, excluding seeded E2E and failed checkout rows. | 30-50 orders/day triggers admin/support planning; service mix must not overload prescribing review time. |
-| Max CAC @30% first-order (CAC ceiling) | Paid spend divided by paid first orders by channel. | 30% of first-order gross (~AOV) — a spend ceiling, not measured CAC. Keep CAC below this for low-AOV services before increasing spend. |
-| Refund rate | Refunded or partially refunded paid intakes by service line. | Stay below 8-10%; spikes pause paid ramp and trigger eligibility/copy review. |
-| Chargeback rate | Stripe disputes divided by paid orders. | Stay below 0.5%; any cluster gets same-week root-cause review. |
-| Support tickets per 100 orders | Support-visible patient/admin contacts per 100 paid orders. | Stay below 5 per 100; above target means fix product friction before adding demand. |
-| Doctor minutes per order | Sample by service from queue/review timestamps and operator review notes. | Must fall or stay stable as volume rises; do not hide worsening complexity behind revenue growth. |
-| Queue P95 | Doctor queue P95 during operating hours, by service line. | Keep below 2h during operating hours and below the 24h hard ceiling. |
-| Hire trigger state | Admin/support, doctor coverage, and QA sampling thresholds from §9. | Treat any triggered state as an operating decision before paid growth. |
+## 5. Operating scorecard
 
-**Do not ramp ED or hair-loss paid traffic** until Google Ads purchase attribution is verified, refund/chargeback baselines are stable, and queue P95 is under control for the existing paid mix.
+Review these metrics by service before increasing paid demand:
+
+| Metric | Definition | Decision rule |
+|--------|------------|---------------|
+| Rolling 30-day net-retained revenue | Captured revenue less refunds and disputes in the rolling window. | Track against the active `$2k -> $5k -> $10k` milestone. |
+| Paid order volume | Real paid intakes, excluding seeded E2E and failed checkout rows. | Growth must not overload clinical or support capacity. |
+| First-order contribution after acquisition | Formula in section 4, by service and channel. | Must be positive for scaling. |
+| Refund rate | Refunded or partially refunded paid intakes by service. | Stay below 8-10%; a spike pauses scaling and triggers eligibility/copy review. |
+| Chargeback rate | Stripe disputes divided by paid orders. | Stay below 0.5%; any cluster gets same-week review. |
+| Support tickets per 100 orders | Patient support contacts per 100 paid orders. | Stay below 5 per 100; above target means fix friction before adding demand. |
+| Doctor minutes per order | Sample active review time by service. | Stable or falling without weaker clinical QA or more complaints. |
+| Queue P95 | Paid-to-review wait by service. | Keep below 2 hours and below the 24-hour hard ceiling. |
+| Clinical/fulfilment health | Safety escalations, unsuitable cases, Parchment completion, delivery failures. | Any unsafe or unreliable pattern blocks scaling. |
+| Capacity review state | Section 8 thresholds. | A triggered state requires an operating decision before further ramp. |
+
+## 6. Paid Growth Guardrails
+
+Every launched service remains a low-budget pilot while it gathers data. Remaining live is not the same as being approved to scale.
+
+Material budget increases require:
+
+- compliant ads and destinations under `docs/ADVERTISING_COMPLIANCE.md`
+- trustworthy purchase and refund/dispute measurement
+- a complete contribution calculation using explicit labour rates
+- positive first-order contribution for the service being scaled
+- stable refund, chargeback, clinical, queue, fulfilment, and support metrics
+- explicit operator approval for the exact change
+
+Every budget, keyword, negative keyword, asset, sitelink, targeting, bid-strategy, pause, or enable recommendation follows the approval workflow in `docs/OPERATIONS.md`. No routine Google Ads mutation is autonomous.
+
+### Bounded Learning Exception
+
+A campaign may temporarily be contribution-negative only as an operator-approved learning experiment with:
+
+- a fixed maximum budget
+- named campaign/service and match types
+- a defined start/end window
+- a minimum useful sample or time checkpoint
+- an explicit stop/kill threshold
+- no claim that the campaign is "scaling"
+
+When the budget, time, or kill threshold is reached, stop and present the result before any extension.
 
 ## 7. Profit Levers
 
 | Lever | Why it matters |
 |-------|----------------|
-| Increase 2-3 day med-cert attach rate | Raises med-cert AOV without adding much clinical complexity. |
-| Add priority fee carefully | Raises AOV, but must not create unsafe time pressure. |
-| Cross-sell repeat prescriptions post-med-cert | Low CAC expansion from existing trust. |
-| Keep hair loss and ED one-off for now | Higher AOV without subscription support debt. |
-| Reduce support tickets | Every support ticket consumes margin and doctor/admin capacity. |
-| Improve eligibility screening before payment | Lowers refunds and complaints. |
-| Invest in compliant SEO | Paid healthcare traffic is expensive and policy-constrained. |
+| Improve qualified conversion | More paid orders from the same compliant demand. |
+| Increase 2-3 day med-cert mix appropriately | Raises med-cert AOV without adding the same complexity as a new service. |
+| Use Priority review carefully | Raises AOV but must not create unsafe time pressure. |
+| Encourage appropriate one-off repeat requests | Expands revenue from existing trust without assuming subscription LTV. |
+| Improve service-level paid intent | Better keywords and negatives reduce unsuitable and refund-heavy traffic. |
+| Reduce support contacts | Protects margin and owner capacity. |
+| Reduce doctor minutes safely | Improves contribution only when clinical quality and complaints remain stable. |
+| Compound compliant organic and external authority | Reduces dependence on paid acquisition over time. |
 
-## 8. Paid Growth Guardrails
+## 8. Hiring And Capacity Triggers
 
-Do not scale paid spend until:
+Revenue alone does not decide staffing. Use the earliest triggered operational constraint.
 
-- paid landing pages follow `docs/ADVERTISING_COMPLIANCE.md`
-- prescription drug names are not used in ad copy or paid destinations
-- no paid campaign uses advertiser-curated health audiences
-- refund and chargeback rates are stable
-- conversion is measured from click to paid order
-- CAC is under 30% of first-order gross profit for low-AOV services
+| Trigger | Required decision |
+|---------|-------------------|
+| `$10k/month` rolling net-retained run-rate | Formal capacity and staffing review. |
+| 30-50 paid orders/day or 10+ support contacts/day | Plan admin/support capacity first. |
+| Support contacts above 5 per 100 orders | Fix product friction or add bounded support capacity before scaling. |
+| Queue P95 above 2 hours or any work approaching the 24-hour ceiling | Review doctor coverage and service mix. |
+| Clinical QA sampling falls behind | Pause growth that worsens the gap; add clinical capacity or reduce load. |
+| Prescribing-service complexity rises faster than retained revenue | Rebalance service mix or add doctor coverage. |
+| Weight-loss launch is reconsidered | Add monitoring and support capacity before accepting paid requests. |
 
-## 9. Hiring Triggers
+Future clinicians use `doctor` accounts with verified capability flags. Future non-clinical operators use `support`. The owner remains the sole human admin.
 
-| Trigger | Hire |
-|---------|------|
-| 30-50 orders/day or 10+ support tickets/day | Admin/support first |
-| Queue P95 above 2 hours during operating hours | Additional doctor coverage |
-| QA sampling falls behind | Doctor or clinical admin support |
-| Revenue consistently above $60k-$80k/month | Start formal staff plan |
-| Weight loss demand grows | Add monitoring/admin capacity before scaling |
+## 9. What Not To Do Yet
 
-## 10. What Not To Do Yet
-
-- Do not launch subscriptions while operating solo.
-- Do not add pharmacy fulfilment.
-- Do not promise ongoing monitoring unless staff exists to deliver it.
-- Do not push weight loss as a high-volume automated product.
-- Do not use med-cert subscriptions or bundles.
+- Do not launch subscriptions or recurring prescribing.
+- Do not add pharmacy fulfilment, dispensing, delivery, or inventory.
+- Do not promise ongoing monitoring without staff to deliver it.
+- Do not launch or advertise weight loss as an automated or high-volume service.
+- Do not treat owner labour as free.
 - Do not optimise approval rate at the expense of clinical defensibility.
+- Do not increase Ads spend without the operator approving the exact mutation.

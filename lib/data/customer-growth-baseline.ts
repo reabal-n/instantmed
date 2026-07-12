@@ -59,7 +59,7 @@ export type CustomerGrowthGoogleAdsBaseline = {
     localNetRevenueAud: number
     localOrders: number
     localRoas: number | null
-    spendAud: number
+    spendAud: number | null
   }
 }
 
@@ -111,10 +111,11 @@ function phaseOneGate(input: CustomerGrowthBaselineSummaryInput): string {
 function phaseFourGate(input: CustomerGrowthBaselineSummaryInput): string {
   const summary = input.googleAds30d.summary
   if (!summary) return "blocked - Google Ads report unavailable"
-  if (summary.spendAud > 0 && (summary.localRoas ?? 0) < 1) {
+  const spendAud = summary.spendAud ?? 0
+  if (spendAud > 0 && (summary.localRoas ?? 0) < 1) {
     return "blocked - Google Ads local ROAS below 1"
   }
-  if (summary.spendAud > 0 && summary.localOrders === 0) {
+  if (spendAud > 0 && summary.localOrders === 0) {
     return "blocked - Google Ads spend has no local paid orders"
   }
   return "watch - Ads economics need weekly review"

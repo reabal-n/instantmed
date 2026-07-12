@@ -28,7 +28,7 @@ test.describe("Admin - Analytics Dashboard", () => {
     await page.goto(STAFF_TEST_ROUTES.adminAnalytics)
     await waitForPageLoad(page)
 
-    await expect(page.getByRole("heading", { name: /analytics|dashboard/i })).toBeVisible({
+    await expect(page.getByRole("heading", { name: "Overview", exact: true })).toBeVisible({
       timeout: 15000,
     })
 
@@ -41,24 +41,36 @@ test.describe("Admin - Analytics Dashboard", () => {
     await page.goto(STAFF_TEST_ROUTES.adminAnalytics)
     await waitForPageLoad(page)
 
-    // Should show metric values (numbers or charts)
-    const hasMetrics = await page
-      .getByText(/total|request|conversion|revenue|patient/i)
-      .first()
-      .isVisible({ timeout: 10000 })
-      .catch(() => false)
-    expect(hasMetrics).toBe(true)
+    const brief = page.getByRole("region", { name: "Operator brief" })
+    await expect(brief.getByText("Revenue milestone", { exact: true })).toBeVisible()
+    await expect(
+      page.getByRole("region", { name: "Revenue" }).getByText("30 days", { exact: true }),
+    ).toBeVisible()
   })
 
   test("analytics page keeps operator reporting source-of-truth sections", async ({ page }) => {
     await page.goto(STAFF_TEST_ROUTES.adminAnalytics)
     await waitForPageLoad(page)
 
-    await expect(page.getByRole("heading", { name: "Revenue" })).toBeVisible()
-    await expect(page.getByRole("heading", { name: "Acquisition attribution" })).toBeVisible()
-    await expect(page.getByRole("heading", { name: "Conversion" })).toBeVisible()
-    await expect(page.getByRole("heading", { name: "Queue health" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Revenue", exact: true })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Where patients came from", exact: true })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Conversion (30 days)", exact: true })).toBeVisible()
+    await page.getByText(/Detailed metrics/).click()
+    await expect(page.getByRole("heading", { name: "Queue health", exact: true })).toBeVisible()
     await expect(page.locator(".recharts-responsive-container, .recharts-wrapper")).toHaveCount(0)
+  })
+
+  test("overview surfaces the controlled-demand operator brief", async ({ page }) => {
+    await page.goto(STAFF_TEST_ROUTES.adminAnalytics)
+    await waitForPageLoad(page)
+
+    await expect(page.getByRole("heading", { name: "Operator brief" })).toBeVisible()
+    await expect(page.getByText("Controlled demand validation", { exact: true })).toBeVisible()
+    await expect(page.getByText("Revenue milestone", { exact: true })).toBeVisible()
+    await expect(page.getByText("Actionable exceptions", { exact: true })).toBeVisible()
+    await expect(page.getByText("Google Ads decision", { exact: true })).toBeVisible()
+    await expect(page.getByText("Approval required", { exact: true })).toBeVisible()
+    await expect(page.getByText(/Support inbox: count-only Telegram alerts/)).toBeVisible()
   })
 })
 

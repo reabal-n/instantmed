@@ -1,5 +1,7 @@
 # Blood Test Referral Implementation Plan
 
+> **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
+
 > **Status: Superseded. Do not execute directly.** This plan describes a
 > standalone `pathology` checkout service that is not part of the current
 > canonical `/request` service model. Use it only as historical product context

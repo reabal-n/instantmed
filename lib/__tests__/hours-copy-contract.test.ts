@@ -22,7 +22,7 @@ const SCAN_EXTENSIONS = new Set([".ts", ".tsx", ".mdx", ".md"])
 // Review-window claim shapes. Deliberately narrow: scenario copy may still
 // mention clock times ("submit at 5am before school", "clinics close at 6pm"),
 // but a WINDOW claim shaped like our retired operating-hours framing fails.
-const WINDOW_CLAIM = /8\s?am\s*(?:–|-|—|to)\s*10\s?pm|08:00\s*(?:–|-|—)\s*22:00|7\s?am\s*(?:–|-|—|to)\s*10\s?pm|review hours \(/i
+const WINDOW_CLAIM = /8\s?am\s*(?:–|-|—|to)\s*10\s?pm|08:00\s*(?:–|-|—)\s*22:00|7\s?am\s*(?:–|-|—|to)\s*10\s?pm|review hours \(|clinical review hours/i
 
 function collectFiles(dir: string): string[] {
   const absolute = join(ROOT, dir)

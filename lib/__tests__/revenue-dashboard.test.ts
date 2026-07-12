@@ -1,12 +1,38 @@
+import type { SupabaseClient } from "@supabase/supabase-js"
 import { describe, expect, it } from "vitest"
 
 import {
   buildRevenueDashboard,
-  REVENUE_DAILY_TARGET_CENTS,
-  REVENUE_MONTHLY_TARGET_CENTS,
+  getRevenueDashboard,
+  resolveRevenueDashboardSourceAvailability,
+  REVENUE_ACTIVE_MILESTONE_CENTS,
 } from "@/lib/data/revenue-dashboard"
 
 const NOW = new Date("2026-06-18T02:00:00.000Z")
+
+function queryResult(result: { data: unknown[] | null; error: { message: string } | null }) {
+  const query = new Proxy({}, {
+    get: (_target, property) => {
+      if (property === "then") {
+        return (
+          resolve: (value: typeof result) => unknown,
+          reject: (reason: unknown) => unknown,
+        ) => Promise.resolve(result).then(resolve, reject)
+      }
+      return () => query
+    },
+  })
+  return query
+}
+
+function revenueDashboardClient(
+  results: Array<{ data: unknown[] | null; error: { message: string } | null }>,
+) {
+  let index = 0
+  return {
+    from: () => queryResult(results[index++] ?? { data: [], error: null }),
+  } as unknown as SupabaseClient
+}
 
 function paidRow(overrides: Record<string, unknown>) {
   return {
@@ -35,6 +61,63 @@ function refundRow(overrides: Record<string, unknown>) {
 }
 
 describe("revenue dashboard read model", () => {
+  it("marks incomplete revenue unavailable and partial recovery data degraded", () => {
+    const sourceAvailability = resolveRevenueDashboardSourceAvailability({
+      paidRowsAvailable: true,
+      refundRowsAvailable: false,
+      refundStatsAvailable: true,
+      createdRowsAvailable: true,
+      checkoutRowsAvailable: true,
+      partialDraftRowsAvailable: true,
+    })
+
+    expect(sourceAvailability).toEqual({
+      revenue: "unavailable",
+      recovery: "degraded",
+    })
+
+    const dashboard = buildRevenueDashboard({
+      now: NOW,
+      paidRows: [],
+      refundRows: [],
+      createdRows: [],
+      checkoutRows: [],
+      partialDraftRows: [],
+      refundStats: { eligible: 0, failed: 0, totalRefunded: 0 },
+      sourceAvailability,
+    })
+
+    expect(dashboard.sourceAvailability).toEqual(sourceAvailability)
+
+    expect(resolveRevenueDashboardSourceAvailability({
+      paidRowsAvailable: true,
+      refundRowsAvailable: true,
+      refundStatsAvailable: true,
+      createdRowsAvailable: true,
+      checkoutRowsAvailable: false,
+      partialDraftRowsAvailable: true,
+    })).toEqual({
+      revenue: "available",
+      recovery: "degraded",
+    })
+  })
+
+  it("preserves query failure quality through the live revenue loader", async () => {
+    const dashboard = await getRevenueDashboard(revenueDashboardClient([
+      { data: [], error: null },
+      { data: null, error: { message: "refund read unavailable" } },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+    ]), NOW)
+
+    expect(dashboard.sourceAvailability).toEqual({
+      revenue: "unavailable",
+      recovery: "degraded",
+    })
+  })
+
   it("summarizes reportable revenue, refunds, service mix, and checkout pressure", () => {
     const dashboard = buildRevenueDashboard({
       now: NOW,
@@ -80,7 +163,7 @@ describe("revenue dashboard read model", () => {
         refundCents: 2495,
         netCents: 2500,
         orderCount: 1,
-        targetCents: REVENUE_DAILY_TARGET_CENTS,
+        targetCents: null,
       },
       {
         key: "last7Days",
@@ -95,7 +178,7 @@ describe("revenue dashboard read model", () => {
         refundCents: 2495,
         netCents: 10490,
         orderCount: 3,
-        targetCents: REVENUE_MONTHLY_TARGET_CENTS,
+        targetCents: REVENUE_ACTIVE_MILESTONE_CENTS,
       },
     ])
     expect(dashboard.paymentFriction).toMatchObject({

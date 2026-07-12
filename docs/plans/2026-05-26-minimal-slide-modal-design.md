@@ -1,5 +1,7 @@
 # Minimal slide modal + ED prescription recommendation + auto-approve fixes
 
+> **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
+
 **Date:** 2026-05-26
 **Status:** Approved (operator). Ready for implementation plan.
 **Authors:** rey + Claude

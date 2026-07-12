@@ -3,7 +3,7 @@ import { join, resolve } from "node:path"
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
-import { buildGoogleAdsProfitSnapshot } from "@/lib/analytics/google-ads-profit-summary"
+import { buildGoogleAdsReturnSnapshot } from "@/lib/analytics/google-ads-return-summary"
 import { classifyAttributionSource } from "@/lib/analytics/source-classification"
 import {
   assertNoSensitiveBaselineText,
@@ -383,7 +383,7 @@ async function queryGoogleAdsBaseline(days: number): Promise<CustomerGrowthGoogl
     cache: "no-store",
   })
   const payload = (await response.json().catch(() => null)) as {
-    report?: Parameters<typeof buildGoogleAdsProfitSnapshot>[0]
+    report?: Parameters<typeof buildGoogleAdsReturnSnapshot>[0]
     success?: boolean
   } | null
 
@@ -396,18 +396,18 @@ async function queryGoogleAdsBaseline(days: number): Promise<CustomerGrowthGoogl
     }
   }
 
-  const profit = buildGoogleAdsProfitSnapshot(payload.report)
+  const adsReturn = buildGoogleAdsReturnSnapshot(payload.report)
   return {
     ok: Boolean(payload.success),
     source: "protected-endpoint",
     status: response.status,
     summary: {
-      clicks: profit.summary.totalClicks,
-      localCacAud: profit.summary.costPerLocalOrderAud,
-      localNetRevenueAud: profit.summary.localNetRevenueAud,
-      localOrders: profit.summary.localOrders,
-      localRoas: profit.summary.localRoas,
-      spendAud: profit.summary.spendAud,
+      clicks: adsReturn.summary.totalClicks,
+      localCacAud: adsReturn.summary.costPerLocalOrderAud,
+      localNetRevenueAud: adsReturn.summary.localNetRevenueAud,
+      localOrders: adsReturn.summary.localOrders,
+      localRoas: adsReturn.summary.localRoas,
+      spendAud: adsReturn.summary.spendAud,
     },
   }
 }

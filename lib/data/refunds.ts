@@ -5,6 +5,8 @@
 
 import "server-only"
 
+import type { SupabaseClient } from "@supabase/supabase-js"
+
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -104,14 +106,29 @@ export async function getEligibleRefunds(): Promise<PaymentWithRefund[]> {
 /**
  * Get refund stats
  */
-export async function getRefundStats(): Promise<{
+export type RefundStatsSummary = {
   eligible: number
   processing: number
   refunded: number
   failed: number
   totalRefunded: number
-}> {
-  const supabase = createServiceRoleClient()
+}
+
+export type RefundStatsRead =
+  | { availability: "available"; stats: RefundStatsSummary }
+  | { availability: "unavailable"; stats: null }
+
+const EMPTY_REFUND_STATS: RefundStatsSummary = {
+  eligible: 0,
+  processing: 0,
+  refunded: 0,
+  failed: 0,
+  totalRefunded: 0,
+}
+
+export async function getRefundStatsRead(
+  supabase: SupabaseClient = createServiceRoleClient(),
+): Promise<RefundStatsRead> {
 
   const { data, error } = await supabase
     .from("payments")
@@ -120,7 +137,7 @@ export async function getRefundStats(): Promise<{
 
   if (error) {
     log.error("Failed to fetch refund stats", {}, error)
-    return { eligible: 0, processing: 0, refunded: 0, failed: 0, totalRefunded: 0 }
+    return { availability: "unavailable", stats: null }
   }
 
   const stats = {
@@ -141,7 +158,12 @@ export async function getRefundStats(): Promise<{
     else if (row.refund_status === "failed") stats.failed++
   }
 
-  return stats
+  return { availability: "available", stats }
+}
+
+export async function getRefundStats(): Promise<RefundStatsSummary> {
+  const read = await getRefundStatsRead()
+  return read.stats ?? { ...EMPTY_REFUND_STATS }
 }
 
 // ============================================================================

@@ -1,5 +1,7 @@
 # Revenue & Engagement Improvements
 
+> **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
+
 **Date:** 2026-04-06
 **Status:** Partially superseded
 **Scope:** GSC fix, abandoned checkout sequence, referral visibility, review request system, Rx subscription nudge

@@ -1,5 +1,7 @@
 # Health Guides Rehaul Plan
 
+> **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
+
 > **Verdict:** Rebuild the health guides as a content product, not as a batch of AI-written articles with stock images. The immediate failure mode is not just bad copy. The renderer is dropping supported-looking Markdown into plain paragraphs, the table of contents points at IDs that do not exist, and every article still uses Unsplash imagery. Fix the system first, then rewrite and replace assets page by page.
 
 ## Initial Evidence Before Implementation

@@ -447,6 +447,30 @@ A local `pnpm dev` server pointed at the **prod Supabase service-role key** (rec
 
 ---
 
+## Google Ads Daily Approval Workflow
+
+`docs/ADVERTISING_COMPLIANCE.md` owns certification status and advertising rules. This section owns the operating workflow for reading and changing the live account.
+
+InstantMed has Google Ads API access and an authenticated `@instantmed.com.au` admin browser session that can be driven through CDP. Verify access at the start of a session rather than treating credentials as a roadmap blocker. Never store passwords, refresh tokens, browser cookies, or exported account secrets in this repository or an operator brief.
+
+Launched services remain live at low budgets to gather data. That standing approval does not authorise an unreviewed mutation.
+
+### Daily loop
+
+1. Read the live account through the Google Ads API and use the authenticated browser only when the API cannot prove or perform the required operation.
+2. Reconcile Ads spend and conversions with local paid-order and net-retained revenue truth. State the reporting window and service/campaign scope.
+3. Present each proposed change with: campaign/ad group, current value, proposed value, reason, expected bounded impact, economic/safety evidence, and rollback.
+4. Wait for the operator to approve or decline the exact batch. Read-only inspection does not need approval. Every mutation does.
+5. For an approved API mutation, run `validateOnly` first when Google supports it. Apply only after validation succeeds. Use the authenticated CDP/browser path for UI-only changes.
+6. Re-read the changed object and record a PHI-free receipt with timestamp, before/after state, validation result, and rollback path.
+7. Return the result in the next daily brief. Do not silently extend a test, raise a budget again, or compensate for a weak result with another mutation.
+
+Approval is required for budgets, bids, bid strategies, keywords, negative keywords, match types, ads, assets, sitelinks, callouts, targeting, schedules, pauses, enables, experiments, and campaign creation/removal. No unattended Ads mutation is authorised by this workflow.
+
+Paid scaling remains governed by the first-order contribution and bounded-learning rules in `docs/REVENUE_MODEL.md`. Compliance failures follow `docs/ADVERTISING_COMPLIANCE.md` and the incident process; they do not widen mutation authority.
+
+---
+
 ## Search Indexing Triage
 
 Use the read-only Google Search Console audit before changing SEO/content code:
@@ -864,10 +888,11 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 | Email Bounce Spike | Bounce rate > 5% | Sentry (email alert) |
 | Business Alerts | Failed payments, no-purchase revenue safety, SLA breaches | Telegram (`lib/notifications/telegram.ts`) |
 | Payment Notifications | Successful checkout | Telegram (real-time) |
+| Support Inbox | Receiver implemented; Gmail label-count source and hourly Codex schedule pending operator OAuth/automation setup. Once activated, only a positive unread count can page. | Telegram count only; no sender, subject, snippet, message ID, body, attachment, or draft. Dedicated opt-in `TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED=1`; unchanged counts repeat at most every 4h. |
 | Request Flow Synthetic | Any production request-path render/click failure | GitHub Actions failure |
 | Staff Role Gate | More than one auth-linked human admin, owner-admin missing doctor identity, or doctor missing required prescribing/certificate identity | `pnpm check:staff-roles` release failure |
 
-**Telegram alerts** require `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env vars. If missing, alerts are silently skipped. Used by `business-alerts` cron and payment webhook.
+**Telegram alerts** require `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env vars. General system-alert helpers may silently skip when those credentials are absent. The support Inbox bridge has a stricter contract: when its dedicated `TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED=1` flag is on but Telegram credentials are missing or delivery fails, it records `delivery_failed` and returns HTTP 502 so the local poster exits unsuccessfully. The bridge accepts only a bounded integer unread count through the `CRON_SECRET`-protected `/api/internal/support-inbox-alert` endpoint. Its receiver is implemented, but the Gmail label-count source and hourly Codex schedule are not active yet. Gmail remains the message source of truth; identifiable email content and drafts must not enter this bridge or the dashboard.
 
 ### Health Endpoints
 
@@ -923,7 +948,7 @@ Required env vars validated at startup via Zod in `lib/env.ts`:
 - **Monitoring**: `SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`
 - **Analytics**: `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`
 - **Google Ads / Data Manager purchase uploads**: `GOOGLE_ADS_CUSTOMER_ID`, `GOOGLE_ADS_CONVERSION_ACTION_PURCHASE` (must be an offline click-import `UPLOAD_CLICKS` action, not the browser purchase tag), and optional `GOOGLE_ADS_LOGIN_CUSTOMER_ID`. Legacy Google Ads API upload/reporting/preflight also needs `GOOGLE_ADS_DEVELOPER_TOKEN`, `GOOGLE_ADS_CLIENT_ID`, `GOOGLE_ADS_CLIENT_SECRET`, `GOOGLE_ADS_REFRESH_TOKEN`, optional `GOOGLE_ADS_QUOTA_PROJECT_ID`, `GOOGLE_ADS_API_VERSION`, and `GOOGLE_ADS_CLICK_IDENTIFIER_MAX_AGE_DAYS` (defaults to 90; lower only if the conversion action's click-through window is shorter). Data Manager rollout needs `GOOGLE_DATA_MANAGER_CONVERSIONS_ENABLED=true`, `GOOGLE_DATA_MANAGER_CLIENT_ID`, `GOOGLE_DATA_MANAGER_CLIENT_SECRET`, `GOOGLE_DATA_MANAGER_REFRESH_TOKEN`, and optional `GOOGLE_DATA_MANAGER_QUOTA_PROJECT_ID`; diagnostics watch uses `GOOGLE_ADS_DIAGNOSTICS_WATCH_REQUEST_ID` for Data Manager request IDs or legacy `GOOGLE_ADS_DIAGNOSTICS_WATCH_JOB_ID`, plus `GOOGLE_ADS_DIAGNOSTICS_WATCH_UPLOADED_AT`.
-- **Alerts**: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET` (optional)
+- **Alerts**: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET` (optional), `TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED` (`0` by default; set to `1` only for the aggregate unread-count bridge)
 - **Parchment**: `PARCHMENT_API_URL`, `PARCHMENT_PARTNER_ID`, `PARCHMENT_PARTNER_SECRET`, `PARCHMENT_ORGANIZATION_ID`, `PARCHMENT_ORGANIZATION_SECRET`, `PARCHMENT_WEBHOOK_SECRET` (all optional — required only when `parchment_embedded_prescribing` feature flag is enabled); optional `NEXT_PUBLIC_PARCHMENT_IFRAME_ALLOWED_HOSTS` override if the default iframe host allow-list needs to change
 - **Parchment smoke test**: `PARCHMENT_SMOKE_USER_ID` (sandbox/linked prescriber user ID required for `pnpm smoke:parchment`)
 - **Address search**: `ADDRESSFINDER_KEY` or existing `NEXT_PUBLIC_ADDRESSFINDER_KEY`, `ADDRESSFINDER_SECRET` (primary AU address provider), `GOOGLE_PLACES_API_KEY` (fallback + server-side geocoding). Prefer `ADDRESSFINDER_KEY` for new deployments because the key is only used server-side.
@@ -939,6 +964,7 @@ Required env vars validated at startup via Zod in `lib/env.ts`:
 vercel logs --follow               # Tail Vercel logs
 stripe prices list --limit 5       # Verify Stripe prices
 supabase db push --project-ref X   # Apply migrations
+pnpm support:inbox-alert --count 3 # Post only an aggregate unread count; loads CRON_SECRET without printing it
 ```
 
 ## Compliance Documents
@@ -1322,7 +1348,7 @@ The Google Ads `INVALID_CONVERSION_ACTION_TYPE` bug (env var points at a resourc
 | **Google Ads conversion action ID** | ✅ if env var present | ✅ `pnpm check:integrations` fetches the configured action and asserts `type = UPLOAD_CLICKS` and `status = ENABLED` | **High when failing** |
 | **Google Data Manager OAuth** | ✅ when `GOOGLE_DATA_MANAGER_CONVERSIONS_ENABLED=true` | ✅ `pnpm check:integrations` mints a Data Manager OAuth token and verifies purchase destination env is present | **High when failing** |
 
-Current gate: `pnpm release:check` runs `CHECK_INTEGRATIONS_STRICT=1 pnpm check:integrations`. Treat any strict warning/failure as a release blocker before paid ramp. Google Ads remains blocked until production-scoped Vercel env/runtime preflight proves `GOOGLE_ADS_CONVERSION_ACTION_PURCHASE` is a live offline click-import purchase action, not a browser website purchase tag. Data Manager rollout remains blocked until the Google Cloud project has Data Manager API enabled and production can mint a refresh token with `https://www.googleapis.com/auth/datamanager`.
+Current gate: `pnpm release:check` runs `CHECK_INTEGRATIONS_STRICT=1 pnpm check:integrations`. Treat any new strict warning/failure as a release blocker before a paid ramp. The Data Manager rollout and production purchase-import proof completed on 2026-06-30 (see the canonical proof chain above); do not describe API enablement or OAuth as an unresolved launch blocker. Re-run production-scoped preflight when configuration changes or monitoring reports drift.
 
 ### Q4 — Refund record invariant check
 

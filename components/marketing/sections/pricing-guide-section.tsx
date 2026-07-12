@@ -54,7 +54,7 @@ const GUIDE_SECTIONS: GuideBlock[] = [
     sticker: "medical-history",
     title: "What's included in your consultation fee",
     paragraphs: [
-      `When you pay for a consultation through InstantMed, you're paying for a genuine clinical service - not a rubber stamp. Every request is reviewed by an AHPRA-registered doctor who assesses your symptoms, medical history, and the clinical appropriateness of your request. If something doesn't add up, the doctor will ask follow-up questions or decline the request entirely. ${GUARANTEE}`,
+      `When you pay for an InstantMed request, you're paying for a doctor-owned clinical service - not a blank document. AHPRA-registered doctors make prescribing decisions. Eligible low-risk medical certificates may follow the logged protocol and are individually reviewed afterward. If something doesn't add up, the request goes to a doctor for follow-up or decline. ${GUARANTEE}`,
       "Your fee covers the doctor's review time, clinical assessment, document generation (medical certificates with unique verification IDs, or eScript generation for prescriptions), secure digital delivery, and encrypted storage of your records. If the reviewing doctor needs additional information before making a decision, that follow-up is included - no extra charge for the doctor doing their job properly.",
       "You also get access to our certificate verification system, which employers and institutions can use to confirm your certificate was genuinely issued by our practice. This is an additional layer of trust that most traditional paper certificates don't offer.",
     ],
