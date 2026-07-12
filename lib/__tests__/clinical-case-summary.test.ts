@@ -345,6 +345,7 @@ describe("buildClinicalCaseSummary", () => {
         medicationForm: "tablet",
         prescriptionHistory: "last_3_months",
         currentDose: "10 mg nightly",
+        doseChanged: false,
         takes_medications: "no",
         has_allergies: "no",
         has_conditions: "no",
@@ -375,6 +376,7 @@ describe("buildClinicalCaseSummary", () => {
         medicationForm: "tablet",
         prescriptionHistory: "last_3_months",
         currentDose: "10 mg nightly",
+        doseChanged: false,
         hasAllergies: true,
         allergies: "Penicillin rash",
         hasConditions: true,
@@ -391,8 +393,113 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.keyFacts).toContainEqual({ label: "Current medications", value: "Vitamin D daily" })
     expect(summary.keyFacts).toContainEqual({ label: "Pregnant/breastfeeding", value: "No" })
     expect(summary.keyFacts).toContainEqual({ label: "Adverse medication reactions", value: "Yes" })
+    expect(summary.keyFacts).toContainEqual({ label: "Same dose and directions", value: "Patient confirmed unchanged" })
     expect(summary.draftNote).toContain("Penicillin rash")
     expect(summary.draftNote).toContain("Vitamin D daily")
+    expect(summary.draftNote).toContain("Patient confirmed the dose and directions are unchanged")
+    expect(summary.draftNote).not.toContain("Stable patient")
+  })
+
+  it("marks legacy repeat requests as not captured without claiming dose stability", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "prescription",
+      serviceType: "repeat-script",
+      patientName: "Pat Legacy",
+      answers: {
+        medicationName: "Rosuvastatin",
+        medicationStrength: "10 mg",
+        medicationForm: "tablet",
+        prescriptionHistory: "last_3_months",
+        currentDose: "10 mg nightly",
+        dose_changed: false,
+      },
+    })
+
+    expect(summary.keyFacts).toContainEqual({
+      label: "Same dose and directions",
+      value: "Not captured (legacy request)",
+    })
+    expect(summary.draftNote).toContain("Dose and directions confirmation was not captured")
+    expect(summary.draftNote).not.toContain("Stable patient")
+    expect(summary.draftNote).not.toMatch(/^P:\s+Repeat/m)
+    expect(summary.recommendedPlan.action).toBe("decline")
+    expect(summary.recommendedPlan.nextSteps.join(" ")).toMatch(/full refund/i)
+    expect(summary.recommendedPlan.nextSteps.join(" ")).toMatch(/new repeat request/i)
+    expect(summary.draftNote).toMatch(/decline.*refund.*new repeat request/i)
+    expect(summary.prescriptionIntent).toBeUndefined()
+  })
+
+  it("reconciles already-recorded script evidence without suggesting another prescription or refund", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "prescription",
+      serviceType: "common_scripts",
+      patientName: "Pat Recorded",
+      scriptSent: true,
+      answers: {
+        medicationName: "Rosuvastatin",
+        medicationStrength: "10 mg",
+        currentDose: "10 mg nightly",
+        prescriptionHistory: "last_3_months",
+        dose_changed: false,
+      },
+    })
+
+    expect(summary.recommendedPlan.action).toBe("approve")
+    expect(summary.recommendedPlan.title).toBe("Reconcile recorded script evidence")
+    expect(summary.recommendedPlan.nextSteps.join(" ")).toMatch(/do not prescribe again/i)
+    expect(summary.safetyItems).toContainEqual(expect.objectContaining({
+      severity: "caution",
+      label: "Recorded script evidence needs reconciliation",
+    }))
+    expect(summary.draftNote).toMatch(/do not issue another prescription/i)
+    expect(summary.draftNote).not.toMatch(/decline.*refund/i)
+    expect(summary.prescriptionIntent).toBeUndefined()
+  })
+
+  it("suppresses new-prescribing intent after a confirmed repeat script is already recorded", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "prescription",
+      serviceType: "common_scripts",
+      patientName: "Pat Completed",
+      scriptSent: true,
+      answers: {
+        medicationName: "Rosuvastatin",
+        currentDose: "10 mg nightly",
+        doseChanged: false,
+      },
+    })
+
+    expect(summary.recommendedPlan).toMatchObject({
+      action: "approve",
+      title: "Complete the recorded prescription",
+    })
+    expect(summary.safetyItems).toContainEqual(expect.objectContaining({
+      severity: "info",
+      label: "Prescription already recorded",
+    }))
+    expect(summary.prescriptionIntent).toBeUndefined()
+    expect(summary.draftNote).toMatch(/do not issue another prescription/i)
+    expect(summary.draftNote).not.toMatch(/confirm quantity and repeats in Parchment/i)
+  })
+
+  it("does not generate prescribing intent when the patient reports a regimen change", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "prescription",
+      serviceType: "repeat-script",
+      patientName: "Pat Changed",
+      answers: {
+        medicationName: "Rosuvastatin",
+        prescriptionHistory: "last_3_months",
+        currentDose: "20 mg nightly",
+        doseChanged: true,
+      },
+    })
+
+    expect(summary.recommendedPlan.action).toBe("decline")
+    expect(summary.recommendedPlan.nextSteps.join(" ")).toMatch(/full refund/i)
+    expect(summary.prescriptionIntent).toBeUndefined()
+    expect(summary.draftNote).toMatch(/Do not prescribe through this repeat workflow.*full refund/i)
+    expect(summary.draftNote).not.toMatch(/^P:\s+Repeat/m)
   })
 
   it("surfaces every requested repeat medication in the doctor summary", () => {
@@ -406,6 +513,7 @@ describe("buildClinicalCaseSummary", () => {
         medicationForm: "tablet",
         prescriptionHistory: "last_3_months",
         currentDose: "10 mg nightly",
+        doseChanged: false,
         medications: [
           { name: "Rosuvastatin", strength: "10 mg", form: "tablet", pbsCode: "MANUAL" },
           { name: "Metformin", strength: "500 mg", form: "tablet", pbsCode: "MANUAL" },
@@ -488,6 +596,7 @@ describe("buildClinicalCaseSummary", () => {
         ],
         prescriptionHistory: "over_12_months",
         currentDose: "1 tablet daily",
+        doseChanged: false,
         hasAllergies: false,
         hasConditions: false,
         hasOtherMedications: false,

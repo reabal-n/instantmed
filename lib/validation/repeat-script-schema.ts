@@ -4,6 +4,7 @@
  */
 
 import { CONTROLLED_SUBSTANCE_TERMS } from "@/lib/clinical/controlled-substances"
+import { getRepeatRxAttestationStatus } from "@/lib/clinical/repeat-rx-attestation"
 import {
   buildRepeatScriptMedicationValidationText,
   extractRepeatScriptMedications,
@@ -18,7 +19,7 @@ export interface RepeatScriptMedicationPayload {
   medication_display: string // Full AMT display string - required
   medication_name: string // Parsed medication name - required
   prescribed_before: boolean // Must be true for repeat scripts
-  dose_changed: boolean // Must be false for repeat scripts
+  dose_changed: boolean // Canonical mirror; raw doseChanged provenance is also required at checkout
 
   // Optional fields
   medication_strength?: string | null
@@ -177,7 +178,7 @@ export function validateRepeatScriptPayload(
 
   // Check gating questions
   const prescribedBefore = answers.prescribed_before
-  const doseChanged = answers.dose_changed
+  const regimenAttestation = getRepeatRxAttestationStatus(answers)
 
   if (typeof prescribedBefore !== "boolean") {
     return {
@@ -195,18 +196,18 @@ export function validateRepeatScriptPayload(
     }
   }
 
-  if (typeof doseChanged !== "boolean") {
+  if (regimenAttestation === "missing") {
     return {
       valid: false,
-      error: "Please confirm whether your dose has changed.",
+      error: "Please confirm whether your dose or directions have changed.",
       requiresConsult: false,
     }
   }
 
-  if (doseChanged !== false) {
+  if (regimenAttestation === "changed") {
     return {
       valid: false,
-      error: "Dose changes need review by your regular GP or specialist unless your request matches an active specialty pathway.",
+      error: "Dose or directions changes need review by your regular GP or specialist unless your request matches an active specialty pathway.",
       requiresConsult: true,
     }
   }

@@ -9,6 +9,12 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  getRepeatRxAttestationStatus,
+  hasLegacyRepeatRxReconciliationNote,
+  isRepeatRxIntake,
+  LEGACY_REPEAT_RX_RECONCILIATION_NOTE,
+} from "@/lib/clinical/repeat-rx-attestation"
 import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
 import { cn } from "@/lib/utils"
 
@@ -79,6 +85,7 @@ export function ClinicalNotesEditor() {
   const {
     intake,
     service,
+    answers,
     doctorNotes,
     setDoctorNotes,
     setNoteSaved,
@@ -104,7 +111,14 @@ export function ClinicalNotesEditor() {
     return () => clearInterval(id)
   }, [savedAt])
 
-  const isReadonly = ["approved", "completed", "awaiting_script"].includes(intake.status)
+  const needsLegacyScriptReconciliation =
+    intake.status === "awaiting_script" &&
+    intake.script_sent === true &&
+    isRepeatRxIntake({ category: intake.category, serviceType: service?.type }) &&
+    getRepeatRxAttestationStatus(answers) !== "confirmed_unchanged"
+  const isReadonly =
+    ["approved", "completed"].includes(intake.status) ||
+    (intake.status === "awaiting_script" && !needsLegacyScriptReconciliation)
   const snippets = (service?.type && SNIPPETS_BY_TYPE[service.type]) || DEFAULT_SNIPPETS
   const noteReady = isClinicalNoteSufficient(doctorNotes)
 
@@ -113,7 +127,7 @@ export function ClinicalNotesEditor() {
       <CardHeader className="py-4 px-5">
         <CardTitle className="flex items-center gap-2 text-sm">
           <FileText className="h-4 w-4" />
-          {isReadonly ? "Approved Clinical Note" : "Clinical Notes"}
+          {isReadonly ? "Approved Clinical Note" : needsLegacyScriptReconciliation ? "Recorded-script reconciliation note" : "Clinical Notes"}
           {isAiPrefilled && !isReadonly && (
             <Badge variant="secondary" className="text-xs px-1.5 py-0 font-normal">
               AI Draft
@@ -134,6 +148,11 @@ export function ClinicalNotesEditor() {
           </div>
         ) : (
           <>
+            {needsLegacyScriptReconciliation && (
+              <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100">
+                This prescription is already recorded as issued. Add the acknowledgement below, reconcile the note, then save before completing the request.
+              </div>
+            )}
             {isAiPrefilled && (
               <p className="text-xs text-muted-foreground">
                 Draft loaded. Save or approve to persist it.
@@ -160,6 +179,21 @@ export function ClinicalNotesEditor() {
                   </button>
                 ))}
               </div>
+            )}
+
+            {needsLegacyScriptReconciliation && !hasLegacyRepeatRxReconciliationNote(doctorNotes) && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setDoctorNotes(
+                  isAiPrefilled || !doctorNotes.trim()
+                    ? LEGACY_REPEAT_RX_RECONCILIATION_NOTE
+                    : `${doctorNotes.trim()}\n\n${LEGACY_REPEAT_RX_RECONCILIATION_NOTE}`,
+                )}
+              >
+                Acknowledge recorded script evidence
+              </Button>
             )}
 
             {isRegenerating && !doctorNotes ? (

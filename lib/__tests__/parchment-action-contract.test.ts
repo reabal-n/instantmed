@@ -86,6 +86,52 @@ describe("Parchment action production contract", () => {
     )
   })
 
+  it("fails closed on repeat-Rx SSO unless the raw unchanged-regimen attestation is present", () => {
+    const body = functionBody("getParchmentPrescribeUrlAction")
+
+    expect(parchmentSource).toContain('from "@/lib/clinical/repeat-rx-attestation"')
+    expect(body).toContain("isRepeatRxIntake({ category: intake.category, serviceType })")
+    expect(body).toContain("getRepeatRxPrescribingBlocker(answers)")
+    expect(body.indexOf("getRepeatRxPrescribingBlocker(answers)")).toBeLessThan(
+      body.indexOf("acquireIntakeLock("),
+    )
+    expect(body.indexOf("getRepeatRxPrescribingBlocker(answers)")).toBeLessThan(
+      body.indexOf("getSsoUrl("),
+    )
+  })
+
+  it("never creates another Parchment handoff after script evidence is recorded", () => {
+    const body = functionBody("getParchmentPrescribeUrlAction")
+    const scriptSentGuard = body.indexOf("if (intake.script_sent === true)")
+    const prescribingStarted = body.indexOf("await startParchmentPrescribing(")
+    const finalEvidenceRead = body.indexOf("const { data: finalScriptEvidence")
+    const finalEvidenceGuard = body.indexOf("if (finalScriptEvidence.script_sent === true)")
+    const successReturn = body.indexOf("success: true", finalEvidenceGuard)
+
+    expect(body).toContain("script_sent,")
+    expect(scriptSentGuard).toBeGreaterThanOrEqual(0)
+    expect(body).toContain("Do not prescribe again; review the recorded evidence")
+    expect(scriptSentGuard).toBeLessThan(body.indexOf('from("intake_answers")'))
+    expect(scriptSentGuard).toBeLessThan(body.indexOf("acquireIntakeLock("))
+    expect(scriptSentGuard).toBeLessThan(body.indexOf("syncPatientToParchment("))
+    expect(scriptSentGuard).toBeLessThan(body.indexOf("getSsoUrl("))
+    expect(finalEvidenceRead).toBeGreaterThan(prescribingStarted)
+    expect(finalEvidenceGuard).toBeGreaterThan(finalEvidenceRead)
+    expect(finalEvidenceGuard).toBeLessThan(successReturn)
+    expect(body).toContain("finalScriptEvidenceError || !finalScriptEvidence")
+  })
+
+  it("checks per-service and medicine capabilities before claim or external handoff", () => {
+    const body = functionBody("getParchmentPrescribeUrlAction")
+
+    expect(parchmentSource).toContain("doctorCanReviewService")
+    expect(body).toContain("doctorCanReviewService(authResult.profile, serviceType, intake.subtype)")
+    expect(body).toContain("checkParchmentPrescribingCapability")
+    expect(body.indexOf("doctorCanReviewService(")).toBeLessThan(body.indexOf("acquireIntakeLock("))
+    expect(body.indexOf("checkParchmentPrescribingCapability(")).toBeLessThan(body.indexOf("acquireIntakeLock("))
+    expect(body.indexOf("doctorCanReviewService(")).toBeLessThan(body.indexOf("syncPatientToParchment("))
+  })
+
   it("does not select profile columns absent from the live schema in the SSO handoff", () => {
     const body = functionBody("getParchmentPrescribeUrlAction")
 

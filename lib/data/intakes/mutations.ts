@@ -2,13 +2,14 @@ import "server-only"
 
 import { revalidateTag } from "next/cache"
 
+import { getRepeatRxPrescribingBlocker, isRepeatRxIntake } from "@/lib/clinical/repeat-rx-attestation"
 import {
   getParchmentPrescribingEligibility,
   getParchmentScriptCompletionEligibility,
 } from "@/lib/doctor/parchment-claim"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
-import { prepareDoctorNotesWrite } from "@/lib/security/phi-field-wrappers"
+import { prepareDoctorNotesWrite, readAnswers } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type {
   Intake,
@@ -29,9 +30,27 @@ import { triggerStatusEmail } from "./email-triggers"
 const logger = createLogger("data-intakes-mutations")
 
 type ServiceRelation = { type?: string | null } | { type?: string | null }[] | null
+type RelationValue<T> = T | T[] | null | undefined
+type IntakeAnswersRow = {
+  answers: Record<string, unknown> | null
+  answers_encrypted: never | null
+}
 
 function getServiceType(service: ServiceRelation | undefined): string | null {
   return Array.isArray(service) ? service[0]?.type ?? null : service?.type ?? null
+}
+
+function firstRelation<T>(value: RelationValue<T>): T | null {
+  return Array.isArray(value) ? value[0] ?? null : value ?? null
+}
+
+async function readIntakeAnswers(value: RelationValue<IntakeAnswersRow>): Promise<Record<string, unknown> | undefined> {
+  const row = firstRelation(value)
+  if (!row) return undefined
+  return (await readAnswers({
+    answers: row.answers,
+    answers_enc: row.answers_encrypted,
+  })) ?? undefined
 }
 
 // ============================================
@@ -90,7 +109,8 @@ export async function createIntake(
 export async function updateIntakeStatus(
   intakeId: string,
   status: IntakeStatus,
-  reviewedBy?: string
+  reviewedBy?: string,
+  expectedClaimedBy?: string,
 ): Promise<Intake | null> {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   if (!uuidRegex.test(intakeId)) {
@@ -103,7 +123,7 @@ export async function updateIntakeStatus(
   // Fetch current state
   const { data: currentIntake, error: fetchError } = await supabase
     .from("intakes")
-    .select("status, payment_status")
+    .select("status, payment_status, claimed_by")
     .eq("id", intakeId)
     .single()
 
@@ -114,6 +134,42 @@ export async function updateIntakeStatus(
 
   const currentStatus = currentIntake.status as IntakeStatus
   const paymentStatus = currentIntake.payment_status
+  if (expectedClaimedBy && currentIntake.claimed_by !== expectedClaimedBy) {
+    logger.warn("[updateIntakeStatus] Claim ownership changed before transition", {
+      intakeId,
+      expectedClaimedBy,
+    })
+    return null
+  }
+
+  if (status === "awaiting_script") {
+    const { data: prescribingIntake, error: prescribingContextError } = await supabase
+      .from("intakes")
+      .select(`
+        category,
+        service:services!service_id(type),
+        answers:intake_answers(answers, answers_encrypted)
+      `)
+      .eq("id", intakeId)
+      .single()
+    if (prescribingContextError || !prescribingIntake) {
+      logger.warn("[updateIntakeStatus] Could not verify repeat-Rx regimen attestation", { intakeId })
+      return null
+    }
+
+    const serviceType = getServiceType(prescribingIntake.service as ServiceRelation)
+    const answers = await readIntakeAnswers(prescribingIntake.answers as RelationValue<IntakeAnswersRow>)
+    const regimenBlocker = isRepeatRxIntake({ category: prescribingIntake.category, serviceType })
+      ? getRepeatRxPrescribingBlocker(answers)
+      : null
+    if (regimenBlocker) {
+      logger.warn("[updateIntakeStatus] Blocked repeat-Rx prescribing transition", {
+        intakeId,
+        code: regimenBlocker.code,
+      })
+      return null
+    }
+  }
 
   logTransitionAttempt(intakeId, currentStatus, status, paymentStatus, reviewedBy || "unknown", reviewedBy ? "doctor" : "system")
 
@@ -153,11 +209,15 @@ export async function updateIntakeStatus(
 
   // ATOMIC UPDATE: Only update if status hasn't changed since we fetched it
   // This prevents race conditions where concurrent updates could skip validation
-  const { data, error } = await supabase
+  let updateQuery = supabase
     .from("intakes")
     .update(updateData)
     .eq("id", intakeId)
     .eq("status", currentStatus) // Optimistic lock - fails if status changed
+  if (expectedClaimedBy) {
+    updateQuery = updateQuery.eq("claimed_by", expectedClaimedBy)
+  }
+  const { data, error } = await updateQuery
     .select("id, status, updated_at")
     .single()
 
@@ -223,6 +283,7 @@ export async function startParchmentPrescribing(
     .from("intakes")
     .select(`
       status, payment_status, category, subtype,
+      answers:intake_answers(answers, answers_encrypted),
       service:services!service_id(type)
     `)
     .eq("id", intakeId)
@@ -233,11 +294,23 @@ export async function startParchmentPrescribing(
     return false
   }
 
+  const serviceType = getServiceType(intake.service as ServiceRelation)
+  const answers = await readIntakeAnswers(intake.answers as RelationValue<IntakeAnswersRow>)
+  const regimenBlocker = isRepeatRxIntake({ category: intake.category, serviceType })
+    ? getRepeatRxPrescribingBlocker(answers)
+    : null
+  if (regimenBlocker) {
+    logger.warn("[startParchmentPrescribing] Blocked repeat-Rx prescribing-session start", {
+      intakeId,
+      code: regimenBlocker.code,
+    })
+    return false
+  }
+
   if (intake.status === "awaiting_script") {
     return true
   }
 
-  const serviceType = getServiceType(intake.service as ServiceRelation)
   const eligibility = getParchmentPrescribingEligibility({
     status: intake.status,
     payment_status: intake.payment_status,
@@ -278,7 +351,8 @@ export async function updateScriptSent(
   scriptSent: boolean,
   scriptNotes?: string,
   parchmentReference?: string,
-  reviewedBy?: string
+  reviewedBy?: string,
+  options: { externalEvidenceAlreadyIssued?: boolean } = {},
 ): Promise<boolean> {
   const supabase = createServiceRoleClient()
   const now = new Date().toISOString()
@@ -293,6 +367,7 @@ export async function updateScriptSent(
       .from("intakes")
       .select(`
         status, payment_status, category, subtype, script_sent,
+        answers:intake_answers(answers, answers_encrypted),
         service:services!service_id(type)
       `)
       .eq("id", intakeId)
@@ -308,6 +383,24 @@ export async function updateScriptSent(
     }
 
     const serviceType = getServiceType(intake.service as ServiceRelation)
+    const answers = await readIntakeAnswers(intake.answers as RelationValue<IntakeAnswersRow>)
+    const regimenBlocker = isRepeatRxIntake({ category: intake.category, serviceType })
+      ? getRepeatRxPrescribingBlocker(answers)
+      : null
+    if (regimenBlocker && !options.externalEvidenceAlreadyIssued) {
+      logger.warn("[updateScriptSent] Blocked repeat-Rx script completion", {
+        intakeId,
+        code: regimenBlocker.code,
+      })
+      return false
+    }
+    if (regimenBlocker && options.externalEvidenceAlreadyIssued) {
+      logger.warn("[updateScriptSent] Recording already-issued external script evidence for legacy repeat-Rx", {
+        intakeId,
+        code: regimenBlocker.code,
+      })
+    }
+
     const eligibility = getParchmentScriptCompletionEligibility({
       status: intake.status,
       payment_status: intake.payment_status,
@@ -494,12 +587,16 @@ export async function approvePrescribedScript(
  * Encrypts notes via PHI envelope encryption when enabled.
  * During migration, writes both plaintext (for rollback) and encrypted.
  */
-export async function saveDoctorNotes(intakeId: string, notes: string): Promise<boolean> {
+export async function saveDoctorNotes(
+  intakeId: string,
+  notes: string,
+  expectedClaimedBy?: string,
+): Promise<boolean> {
   const supabase = createServiceRoleClient()
 
   const { doctor_notes, doctor_notes_enc } = await prepareDoctorNotesWrite(notes)
 
-  const { error } = await supabase
+  let updateQuery = supabase
     .from("intakes")
     .update({
       doctor_notes,
@@ -507,6 +604,17 @@ export async function saveDoctorNotes(intakeId: string, notes: string): Promise<
       updated_at: new Date().toISOString(),
     })
     .eq("id", intakeId)
+  if (expectedClaimedBy) {
+    updateQuery = updateQuery.eq("claimed_by", expectedClaimedBy)
+    const { data, error } = await updateQuery.select("id").maybeSingle()
+    if (error || !data) {
+      logger.error("Error saving doctor notes for claimed intake", { intakeId, expectedClaimedBy }, error ? toError(error) : undefined)
+      return false
+    }
+    return true
+  }
+
+  const { error } = await updateQuery
 
   if (error) {
     logger.error("Error saving doctor notes", {}, toError(error))
@@ -544,10 +652,14 @@ export async function flagForFollowup(intakeId: string, reason: string): Promise
  * Uses optimistic lock to prevent race conditions when two doctors
  * attempt to claim the same intake simultaneously.
  */
-export async function markAsReviewed(intakeId: string, doctorId: string): Promise<boolean> {
+export async function markAsReviewed(
+  intakeId: string,
+  doctorId: string,
+  expectedClaimedBy?: string,
+): Promise<boolean> {
   const supabase = createServiceRoleClient()
 
-  const { data, error } = await supabase
+  let updateQuery = supabase
     .from("intakes")
     .update({
       reviewed_by: doctorId,
@@ -557,6 +669,10 @@ export async function markAsReviewed(intakeId: string, doctorId: string): Promis
     })
     .eq("id", intakeId)
     .eq("status", "paid") // Optimistic lock: only transition from paid
+  if (expectedClaimedBy) {
+    updateQuery = updateQuery.eq("claimed_by", expectedClaimedBy)
+  }
+  const { data, error } = await updateQuery
     .select("id")
     .maybeSingle()
 

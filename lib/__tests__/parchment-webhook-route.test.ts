@@ -238,6 +238,7 @@ describe("Parchment webhook route", () => {
       "Webhook event: evt_route_1",
       SCID,
       PRESCRIBER_PROFILE_ID,
+      { externalEvidenceAlreadyIssued: true },
     )
     expect(mocks.logExternalPrescribingIndicated).toHaveBeenCalledWith(
       INTAKE_ID,
@@ -297,6 +298,7 @@ describe("Parchment webhook route", () => {
       "Webhook event: evt_route_1",
       SCID,
       PRESCRIBER_PROFILE_ID,
+      { externalEvidenceAlreadyIssued: true },
     )
     expect(mocks.getPatientPrescriptions).not.toHaveBeenCalled()
     expect(mocks.logWebhookFailure).not.toHaveBeenCalled()

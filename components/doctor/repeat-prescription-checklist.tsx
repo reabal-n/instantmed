@@ -34,6 +34,7 @@ interface RepeatPrescriptionChecklistProps {
   scriptSent: boolean
   scriptSentAt: string | null
   scriptSentChannel?: string | null
+  scriptCompletionAllowed: boolean
   doctorName?: string
   compact?: boolean
 }
@@ -45,6 +46,7 @@ export function RepeatPrescriptionChecklist({
   scriptSent,
   scriptSentAt,
   scriptSentChannel,
+  scriptCompletionAllowed,
   doctorName,
   compact = false,
 }: RepeatPrescriptionChecklistProps) {
@@ -67,7 +69,7 @@ export function RepeatPrescriptionChecklist({
 
   // Handle script sent toggle
   const handleScriptSentToggle = (checked: boolean) => {
-    if (isPending) return
+    if (isPending || !scriptCompletionAllowed) return
 
     if (!checked || isScriptSent) {
       return
@@ -151,7 +153,7 @@ export function RepeatPrescriptionChecklist({
                 id="script-sent"
                 checked={scriptChecked}
                 onCheckedChange={handleScriptSentToggle}
-                disabled={isPending || isScriptSent || intakeStatus === "completed"}
+                disabled={isPending || isScriptSent || intakeStatus === "completed" || !scriptCompletionAllowed}
                 className="mt-0.5 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
               />
             )}
@@ -164,7 +166,11 @@ export function RepeatPrescriptionChecklist({
               <Send className="h-4 w-4 text-primary" />
               Script sent via {scriptSentChannel || "Parchment"}
             </label>
-            {scriptSentAt ? (
+            {!scriptCompletionAllowed ? (
+              <p className="text-xs text-destructive">
+                Decline and refund this request, then ask the patient to submit a new repeat request.
+              </p>
+            ) : scriptSentAt ? (
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Clock className="h-3 w-3" />
                 Sent {formatSentTime(scriptSentAt)}

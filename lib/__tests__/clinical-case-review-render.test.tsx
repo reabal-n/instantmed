@@ -62,6 +62,32 @@ describe("ClinicalCaseReview", () => {
     expect(html).toContain("Patient requests a one-day work certificate")
   })
 
+  it("renders the recorded-script reconciliation action on the active draft-note surface", () => {
+    const html = render(
+      <ClinicalCaseReview
+        category="prescription"
+        serviceType="common_scripts"
+        patientName="Pat Recorded"
+        answers={{
+          medicationName: "Rosuvastatin",
+          currentDose: "10 mg nightly",
+          dose_changed: false,
+        }}
+        scriptSent
+        compact
+        draftNoteValue="Existing clinical note."
+        draftNoteDirty
+        onDraftNoteChange={() => undefined}
+        onDraftNoteSave={() => undefined}
+      />,
+    )
+
+    expect(html).toContain("Recorded-script reconciliation note")
+    expect(html).toContain("Acknowledge recorded script evidence")
+    expect(html).toContain("Do not prescribe again")
+    expect(html).not.toContain("cannot be unlocked")
+  })
+
   it("strips generic process-speak note boilerplate before it reaches the editable note", () => {
     expect(
       stripGenericClinicalNoteBoilerplate(

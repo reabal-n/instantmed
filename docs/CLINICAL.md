@@ -192,7 +192,7 @@ Prescribing is framed as: "a possible outcome of clinician review, occurring sep
 
 Subscriptions, monthly prescribing, pharmacy fulfilment, and ongoing check-in programs are not part of the current operating model.
 
-Repeat-prescription intake is server-enforced as prior-prescription only. If the patient indicates the medicine has never been prescribed before, checkout must be blocked or routed to a consult/regular GP pathway; it must not be normalized into a repeat request.
+Repeat-prescription intake is server-enforced as prior-prescription only. If the patient indicates the medicine has never been prescribed before, checkout must be blocked or routed to a consult/regular GP pathway; it must not be normalized into a repeat request. The patient must also explicitly confirm that both the dose and directions are unchanged since the last prescription. Missing confirmation fails closed, and any reported change routes the patient to their regular GP or specialist. New checkout submissions must never infer an unchanged regimen from an unanswered question. Pre-cutover unpaid rows may retry their existing payment flow with the historical canonical value, but that payment-recovery exception does not satisfy the prescribing gate: if paid without the raw patient attestation, decline with a full refund and ask the patient to submit a new repeat request. A failed automated refund remains visible in Ops and must be retried; it never re-opens prescribing. Already-recorded script evidence remains completable so historical prescribing is not stranded, but a saved reconciliation note is required before final approval.
 
 ### Repeat Quantity & Supply Standard
 
@@ -364,7 +364,7 @@ Patients must be informed at intake of:
 | Service | Required Consent Elements |
 |---------|--------------------------|
 | All services | Telehealth consent, terms acceptance, privacy collection notice |
-| Prescriptions | Additional: medication adherence attestation |
+| Repeat prescriptions | Additional: explicit confirmation that the requested dose and directions are unchanged |
 | Consultations | Additional: limitations of async assessment |
 | My Health Record | Explicit opt-in per ADHA requirements (if/when implemented) |
 

@@ -9,6 +9,12 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  getRepeatRxAttestationStatus,
+  hasLegacyRepeatRxReconciliationNote,
+  isRepeatRxIntake,
+  LEGACY_REPEAT_RX_RECONCILIATION_NOTE,
+} from "@/lib/clinical/repeat-rx-attestation"
 import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
 import { formatDateTime } from "@/lib/format"
 import type { IntakeWithDetails } from "@/types/db"
@@ -54,6 +60,17 @@ export function IntakeDetailDrafts({
 }: IntakeDetailDraftsProps) {
   const router = useRouter()
   const service = intake.service as { type?: string } | undefined
+  const intakeAnswers = intake.answers?.answers as Record<string, unknown> | null | undefined
+  const repeatRxAttestationConfirmed = getRepeatRxAttestationStatus(intakeAnswers) === "confirmed_unchanged"
+  const repeatRxScriptCompletionAllowed = Boolean(intake.script_sent) || repeatRxAttestationConfirmed
+  const needsLegacyScriptReconciliation =
+    intake.status === "awaiting_script" &&
+    Boolean(intake.script_sent) &&
+    isRepeatRxIntake({ category: intake.category, serviceType: service?.type }) &&
+    !repeatRxAttestationConfirmed
+  const noteIsReadonly =
+    ["approved", "completed"].includes(intake.status) ||
+    (intake.status === "awaiting_script" && !needsLegacyScriptReconciliation)
 
   return (
     <>
@@ -103,6 +120,7 @@ export function IntakeDetailDrafts({
                 scriptSent={Boolean(intake.script_sent)}
                 scriptSentAt={intake.script_sent_at || null}
                 scriptSentChannel={intake.parchment_reference ? "Parchment" : null}
+                scriptCompletionAllowed={repeatRxScriptCompletionAllowed}
                 compact={compact}
               />
             </div>
@@ -115,6 +133,7 @@ export function IntakeDetailDrafts({
             scriptSent={Boolean(intake.script_sent)}
             scriptSentAt={intake.script_sent_at || null}
             scriptSentChannel={intake.parchment_reference ? "Parchment" : null}
+            scriptCompletionAllowed={repeatRxScriptCompletionAllowed}
             compact={compact}
           />
         )
@@ -125,10 +144,12 @@ export function IntakeDetailDrafts({
         <CardHeader className={compact ? "px-4 py-2.5" : "py-3 px-4"}>
           <CardTitle className="flex items-center gap-2 text-base">
             <FileText className="h-4 w-4" />
-            {["approved", "completed", "awaiting_script"].includes(intake.status)
+            {noteIsReadonly
               ? "Approved Clinical Note"
-              : "Clinical Notes (Private)"}
-            {isAiPrefilled && !["approved", "completed", "awaiting_script"].includes(intake.status) && (
+              : needsLegacyScriptReconciliation
+                ? "Recorded-script reconciliation note"
+                : "Clinical Notes (Private)"}
+            {isAiPrefilled && !noteIsReadonly && (
               <Badge variant="secondary" className="text-xs px-1.5 py-0 font-normal">
                 AI Draft
               </Badge>
@@ -136,7 +157,7 @@ export function IntakeDetailDrafts({
           </CardTitle>
         </CardHeader>
         <CardContent className={compact ? "px-4 pb-3 space-y-2" : "px-4 py-3 space-y-3"}>
-          {["approved", "completed", "awaiting_script"].includes(intake.status) ? (
+          {noteIsReadonly ? (
             // Read-only view for approved intakes
             <div className="space-y-2">
               {intake.doctor_notes ? (
@@ -155,6 +176,11 @@ export function IntakeDetailDrafts({
           ) : (
             // Editable view for pending intakes
             <>
+              {needsLegacyScriptReconciliation && (
+                <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100">
+                  This prescription is already recorded as issued. Add the acknowledgement below, reconcile the note, then save before completing the request.
+                </div>
+              )}
               {isAiPrefilled && (
                 <p className="text-xs text-muted-foreground">
                   Pre-filled from AI draft. Edits save on approval, or click Save to persist now.
@@ -174,6 +200,20 @@ export function IntakeDetailDrafts({
                   disabled={isPending || isRegenerating}
                   className={compact ? "min-h-24 text-sm" : "min-h-[120px] text-sm"}
                 />
+              )}
+              {needsLegacyScriptReconciliation && !hasLegacyRepeatRxReconciliationNote(doctorNotes) && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDoctorNotes(
+                    isAiPrefilled || !doctorNotes.trim()
+                      ? LEGACY_REPEAT_RX_RECONCILIATION_NOTE
+                      : `${doctorNotes.trim()}\n\n${LEGACY_REPEAT_RX_RECONCILIATION_NOTE}`,
+                  )}
+                >
+                  Acknowledge recorded script evidence
+                </Button>
               )}
               {notesAutoSaveError && (
                 <div role="status" className="rounded-lg border border-warning-border bg-warning-light/40 px-3 py-2 text-xs text-warning">

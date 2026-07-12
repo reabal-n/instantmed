@@ -89,6 +89,13 @@ const requestMoreInfoSource = readFileSync(
   "utf8",
 )
 
+function queueActionBody(name: string): string {
+  const start = queueActionsSource.indexOf(`export async function ${name}`)
+  expect(start).toBeGreaterThanOrEqual(0)
+  const nextExport = queueActionsSource.indexOf("\nexport async function ", start + 1)
+  return queueActionsSource.slice(start, nextExport === -1 ? queueActionsSource.length : nextExport)
+}
+
 const e2eResetMigrationSource = readFileSync(
   join(process.cwd(), "supabase/migrations/20260501124500_harden_e2e_intake_reset.sql"),
   "utf8",
@@ -367,6 +374,46 @@ describe("doctor queue production contract", () => {
   it("blocks awaiting-script transitions when prescribing identity is incomplete", () => {
     expect(queueActionsSource).toContain("getParchmentPatientIdentityIssues")
     expect(queueActionsSource).toContain("Cannot approve for prescribing until patient identity is complete")
+  })
+
+  it("blocks repeat-Rx prescribing state changes without the raw unchanged-regimen attestation", () => {
+    const updateStatusBody = queueActionBody("updateStatusAction")
+    const quickPrescribeBody = queueActionBody("quickPrescribeRenewalAction")
+    const markSentBody = queueActionBody("markScriptSentAction")
+    const approveScriptBody = queueActionBody("approvePrescribedScriptAction")
+
+    expect(queueActionsSource).toContain('from "@/lib/clinical/repeat-rx-attestation"')
+    for (const body of [updateStatusBody, quickPrescribeBody, markSentBody, approveScriptBody]) {
+      expect(body).toContain("getRepeatRxPrescribingBlocker(")
+    }
+    for (const body of [updateStatusBody, markSentBody, approveScriptBody]) {
+      expect(body).toContain("isRepeatRxIntake(")
+    }
+    expect(quickPrescribeBody).toContain("isPrescribingServiceType(serviceType)")
+    expect(updateStatusBody.indexOf("getRepeatRxPrescribingBlocker(")).toBeLessThan(
+      updateStatusBody.indexOf("saveDoctorNotes(intakeId, decisionNote)"),
+    )
+    expect(quickPrescribeBody.indexOf("getRepeatRxPrescribingBlocker(answers)")).toBeLessThan(
+      quickPrescribeBody.indexOf('.from("prescriptions")'),
+    )
+    expect(quickPrescribeBody).toContain("if (claimError || !claim?.success)")
+    expect(quickPrescribeBody).toContain('select("claimed_by")')
+    expect(quickPrescribeBody).toContain("claimedIntake?.claimed_by !== profile.id")
+    expect(quickPrescribeBody).toContain("saveDoctorNotes(intakeId, renewalNote, profile.id)")
+    expect(quickPrescribeBody).toContain("markAsReviewed(intakeId, profile.id, profile.id)")
+    expect(quickPrescribeBody).toContain('updateIntakeStatus(intakeId, "awaiting_script", profile.id, profile.id)')
+    expect(markSentBody.indexOf("getRepeatRxPrescribingBlocker(")).toBeLessThan(
+      markSentBody.indexOf("updateScriptSent(intakeId, true"),
+    )
+    expect(markSentBody).toContain("intake.script_sent !== true")
+    expect(approveScriptBody.indexOf("getRepeatRxPrescribingBlocker(")).toBeLessThan(
+      approveScriptBody.indexOf("updateScriptSent("),
+    )
+    expect(approveScriptBody).toContain("intake.script_sent !== true")
+    expect(approveScriptBody).toContain("requireExistingNote: Boolean(regimenBlocker && intake.script_sent === true)")
+    expect(queueActionsSource).toContain("Add and save a reconciliation note for the already-issued script")
+    expect(queueActionsSource).toContain("hasLegacyRepeatRxReconciliationNote(existingNotes)")
+    expect(queueActionsSource).toContain("Replace the decline/refund draft with a saved reconciliation note")
   })
 
   it("persists the generated case-summary draft when approving without typed notes", () => {

@@ -181,7 +181,7 @@ async function completeDetailsStep(
     // Blur to trigger validation
     await page.locator('input[placeholder="10 digits"]').blur()
     await page.waitForTimeout(200)
-    await page.getByRole("button", { name: /^1$/ }).last().click()
+    await page.locator("#medicare-irn").fill("1")
 
     // Address - typed text sets addressLine1 via onChange (no autocomplete required)
     await page.locator('[placeholder="Start typing your address..."]').fill("123 Test Street")
@@ -427,6 +427,10 @@ test.describe("Intake: Repeat Prescription - full flow", () => {
     await waitForStep(page, /When were you last prescribed/i)
     await clickChip(page, /Under 3 months/i)
     await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
+    await page
+      .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
+      .getByRole("radio", { name: /No, unchanged/i })
+      .click()
     await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
     // Side effects question appears after entering the current dose + indication.
     await clickChip(page, /No side effects/i)

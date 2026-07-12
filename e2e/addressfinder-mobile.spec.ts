@@ -43,6 +43,10 @@ async function completeToDetails(page: import("@playwright/test").Page) {
   await expect(page.getByText(/When were you last prescribed/i).first()).toBeVisible()
   await page.getByRole("radio", { name: /Under 3 months/i }).click()
   await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
+  await page
+    .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
+    .getByRole("radio", { name: /No, unchanged/i })
+    .click()
   await page.getByPlaceholder(/e\.g\., asthma/i).fill("high cholesterol")
   await page.getByRole("radio", { name: /No side effects/i }).click()
   await clickPrimary()
@@ -112,11 +116,11 @@ test.describe("Addressfinder mobile path", () => {
     await expect(page.locator("input#suburb")).toHaveValue("DAPTO")
     await expect(page.locator("input#postcode")).toHaveValue("2530")
 
-    const draft = await page.evaluate(() => {
+    await expect.poll(async () => page.evaluate(() => {
       const raw = window.localStorage.getItem("instantmed-request-draft")
-      return raw ? JSON.parse(raw) : null
-    })
-    expect(draft?.state?.answers).toMatchObject({
+      const draft = raw ? JSON.parse(raw) : null
+      return draft?.state?.answers ?? null
+    }), { timeout: 5000 }).toMatchObject({
       addressLine1: "Unit 2, 21 Kent Road",
       suburb: "DAPTO",
       state: "NSW",
@@ -144,11 +148,11 @@ test.describe("Addressfinder mobile path", () => {
     await expect(page.locator("input#suburb")).toBeVisible()
     await expect(page.locator("input#postcode")).toBeVisible()
 
-    const draft = await page.evaluate(() => {
+    await expect.poll(async () => page.evaluate(() => {
       const raw = window.localStorage.getItem("instantmed-request-draft")
-      return raw ? JSON.parse(raw) : null
-    })
-    expect(draft?.state?.answers).toMatchObject({
+      const draft = raw ? JSON.parse(raw) : null
+      return draft?.state?.answers ?? null
+    }), { timeout: 5000 }).toMatchObject({
       addressVerified: false,
       addressProviderPlaceId: "",
     })

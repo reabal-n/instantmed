@@ -11,12 +11,41 @@ const validRepeatScriptAnswers = {
   medication_strength: "10 mg",
   medication_form: "tablet",
   prescribed_before: true,
+  doseChanged: false,
   dose_changed: false,
   last_prescribed: "6_to_12_months",
   current_dose: "10 mg nightly",
 }
 
 describe("repeat script schema", () => {
+  it("requires an explicit answer about whether dose or directions changed", () => {
+    const { doseChanged: _omitted, ...withoutDoseConfirmation } = validRepeatScriptAnswers
+    void _omitted
+
+    const result = validateRepeatScriptPayload(withoutDoseConfirmation)
+
+    expect(result.valid).toBe(false)
+    expect(result.error).toMatch(/dose or directions have changed/i)
+  })
+
+  it("routes changed dose or directions to the patient's regular prescriber", () => {
+    const result = validateRepeatScriptPayload({
+      ...validRepeatScriptAnswers,
+      doseChanged: true,
+      dose_changed: true,
+    })
+
+    expect(result).toMatchObject({ valid: false, requiresConsult: true })
+    expect(result.error).toMatch(/regular GP or specialist/i)
+  })
+
+  it("accepts an explicit confirmation that dose and directions are unchanged", () => {
+    expect(validateRepeatScriptPayload({
+      ...validRepeatScriptAnswers,
+      dose_changed: false,
+    })).toEqual({ valid: true })
+  })
+
   it("blocks controlled medicines hidden in secondary medication entries", () => {
     const result = validateRepeatScriptPayload({
       ...validRepeatScriptAnswers,
@@ -44,6 +73,7 @@ describe("repeat script schema", () => {
 describe("A3 softening — missing medication strength is a flag, not a block", () => {
   const base = {
     prescribed_before: true,
+    doseChanged: false,
     dose_changed: false,
     last_prescribed: "6_to_12_months",
     current_dose: "10 mg nightly",
@@ -71,6 +101,7 @@ describe("A3 softening — missing medication strength is a flag, not a block", 
   it("still blocks a dose change", () => {
     const result = validateRepeatScriptPayload({
       ...base,
+      doseChanged: true,
       dose_changed: true,
       medications: [{ name: "Rosuvastatin", strength: "10 mg", form: "tablet", pbsCode: "1234" }],
     })
@@ -92,6 +123,7 @@ describe("A3 softening — missing medication strength is a flag, not a block", 
 describe("A3 softening — missing medication form is a flag, not a block (boundary 2)", () => {
   const base = {
     prescribed_before: true,
+    doseChanged: false,
     dose_changed: false,
     last_prescribed: "6_to_12_months",
     current_dose: "10 mg nightly",
@@ -139,6 +171,7 @@ describe("A3 softening — missing medication form is a flag, not a block (bound
   it("still blocks a dose change", () => {
     const result = validateRepeatScriptPayload({
       ...base,
+      doseChanged: true,
       dose_changed: true,
       medications: [{ name: "Rosuvastatin", pbsCode: "1234" }],
     })
@@ -180,6 +213,7 @@ describe("A3 softening — missing medication form is a flag, not a block (bound
 describe("A3 softening — unknown medication passes only with a useful description (boundary 3)", () => {
   const base = {
     prescribed_before: true,
+    doseChanged: false,
     dose_changed: false,
     last_prescribed: "6_to_12_months",
     current_dose: "one daily",
