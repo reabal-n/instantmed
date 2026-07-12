@@ -8,6 +8,7 @@ import {
   hasUncertainMedicationAnswer,
   requiresClinicalAdministration,
 } from "@/lib/clinical/medication-flags"
+import { getRepeatRxAttestationStatus } from "@/lib/clinical/repeat-rx-attestation"
 import { normaliseSymptomText } from "@/lib/clinical/symptom-normaliser"
 import {
   buildRepeatScriptMedicationValidationText,
@@ -30,6 +31,8 @@ export interface ClinicalCaseInput {
   answers: Answers
   riskTier?: string | null
   requiresLiveConsult?: boolean | null
+  /** Durable evidence that a prescription has already been issued/recorded. */
+  scriptSent?: boolean | null
 }
 
 export interface ClinicalKeyFact {
@@ -749,6 +752,20 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const currentMedications = firstStr(answers, ["current_medications", "otherMedications", "other_medications"])
   const pregnancyAnswer = raw(answers, "isPregnantOrBreastfeeding") ?? raw(answers, "is_pregnant_or_breastfeeding")
   const adverseReactionAnswer = raw(answers, "hasAdverseMedicationReactions") ?? raw(answers, "has_adverse_medication_reactions")
+  const regimenAttestation = getRepeatRxAttestationStatus(answers)
+  const doseChangedAnswer = regimenAttestation === "confirmed_unchanged"
+    ? false
+    : regimenAttestation === "changed"
+      ? true
+      : undefined
+  const hasRecordedScriptEvidence = input.scriptSent === true && !controlled
+  const requiresRecordedScriptReconciliation =
+    hasRecordedScriptEvidence && doseChangedAnswer !== false
+  const doseDirectionsConfirmation = doseChangedAnswer === false
+    ? "Patient confirmed unchanged"
+    : doseChangedAnswer === true
+      ? "Patient reported a change"
+      : "Not captured (legacy request)"
 
   const keyFacts = compactFacts([
     { label: hasMultipleMedications ? "Requested medications" : "Requested medication", value: requestedMedicationValue },
@@ -756,6 +773,7 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     !hasMultipleMedications ? fact("Form", form) : null,
     { label: "Last prescribed", value: humanize(history) },
     fact("Patient-reported dose", currentDose),
+    { label: "Same dose and directions", value: doseDirectionsConfirmation },
     fact("Last prescription date", str(answers, "lastPrescriptionDate")),
     fact("Side effects", str(answers, "sideEffects")),
     fact("Allergies", allergies),
@@ -794,6 +812,33 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
       detail: "Schedule 8 or controlled medicines are outside this repeat prescription workflow.",
     })
   } else {
+    if (requiresRecordedScriptReconciliation) {
+      safetyItems.push({
+        severity: "caution",
+        label: "Recorded script evidence needs reconciliation",
+        detail: doseChangedAnswer === true
+          ? "A prescription is already recorded as issued, but the patient reported a regimen change. Do not prescribe again. Review the recorded evidence, save the reconciliation acknowledgement, and escalate any mismatch before completion."
+          : "A prescription is already recorded as issued, but the unchanged-regimen confirmation is unavailable. Do not prescribe again. Review the recorded evidence and save the reconciliation acknowledgement before completion.",
+      })
+    } else if (hasRecordedScriptEvidence) {
+      safetyItems.push({
+        severity: "info",
+        label: "Prescription already recorded",
+        detail: "Durable script-sent evidence is recorded. Do not issue another prescription; review the evidence and complete this request.",
+      })
+    } else if (doseChangedAnswer === true) {
+      safetyItems.push({
+        severity: "block",
+        label: "Dose or directions changed",
+        detail: "This request is outside the unchanged-repeat pathway. Direct the patient to their regular GP or specialist.",
+      })
+    } else if (doseChangedAnswer === undefined) {
+      safetyItems.push({
+        severity: "block",
+        label: "Regimen confirmation not captured",
+        detail: "This legacy request cannot be unlocked with a doctor note. Decline with a full refund and ask the patient to submit a new repeat request.",
+      })
+    }
     if (clinicianAdministered) {
       safetyItems.push({
         severity: "caution",
@@ -817,14 +862,49 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
         rationale: "The requested medicine matches controlled-substance safeguards.",
         nextSteps: ["Decline and direct patient to their regular GP or in-person care."],
       }
-    : {
-        action: "prescribe",
-        title: "Repeat prescription if stable and clinically appropriate",
-        rationale: "The request is for a repeat medication and no controlled-substance block was detected.",
-        nextSteps: ["Confirm ongoing indication, dose stability, allergies and interactions.", "Open Parchment and prescribe within Parchment if satisfied."],
-      }
+    : requiresRecordedScriptReconciliation
+      ? {
+          action: "approve",
+          title: "Reconcile recorded script evidence",
+          rationale: "Durable script-sent evidence is already recorded, so another prescription must not be issued from this request.",
+          nextSteps: [
+            "Review the recorded external script evidence and do not prescribe again.",
+            "Add and save the recorded-script reconciliation acknowledgement.",
+            "Complete the request only if the evidence is consistent; escalate any mismatch.",
+          ],
+        }
+      : hasRecordedScriptEvidence
+        ? {
+            action: "approve",
+            title: "Complete the recorded prescription",
+            rationale: "Durable script-sent evidence is already recorded, so another prescription must not be issued from this request.",
+            nextSteps: [
+              "Review the recorded script evidence and do not prescribe again.",
+              "Complete the request if the recorded evidence is consistent.",
+            ],
+          }
+      : doseChangedAnswer === true
+      ? {
+          action: "decline",
+          title: "Do not prescribe through this workflow",
+          rationale: "The patient reported a change to the dose or directions.",
+          nextSteps: ["Decline and issue a full refund.", "Direct the patient to their regular GP or specialist for review."],
+        }
+      : doseChangedAnswer === undefined
+        ? {
+            action: "decline",
+            title: "Do not prescribe through this workflow",
+            rationale: "This legacy request does not contain the required patient unchanged-regimen attestation and cannot be unlocked with a doctor note.",
+            nextSteps: ["Decline and issue a full refund.", "Ask the patient to submit a new repeat request and answer the regimen question."],
+          }
+        : {
+            action: "prescribe",
+            title: "Repeat prescription if clinically appropriate",
+            rationale: "The patient explicitly confirmed the dose and directions are unchanged.",
+            nextSteps: ["Confirm ongoing indication, allergies and interactions.", "Open Parchment and prescribe within Parchment if satisfied."],
+          }
 
-  const prescriptionIntent = controlled ? undefined : makeIntent({
+  const prescriptionIntent = controlled || hasRecordedScriptEvidence || doseChangedAnswer !== false ? undefined : makeIntent({
     presetLabel: "Repeat prescription Parchment context",
     medicationName,
     strength,
@@ -837,7 +917,7 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
       : `${hasMultipleMedications ? `Patient requested multiple medicines: ${requestedMedicationValue}. ` : ""}Repeat existing regimen after doctor confirms dose, quantity, repeats and indication in Parchment.`,
     quantityTemplate: hasMultipleMedications ? undefined : "Match clinically appropriate repeat quantity in Parchment",
     repeatsTemplate: hasMultipleMedications ? undefined : "Doctor to confirm in Parchment",
-    safetyChecks: ["Repeat history reviewed", "Allergies checked", "Current medications checked", "Controlled-substance screen checked"],
+    safetyChecks: ["Dose and directions confirmed unchanged", "Repeat history reviewed", "Allergies checked", "Current medications checked", "Controlled-substance screen checked"],
   })
 
   const header = patientHeader(input)
@@ -846,6 +926,11 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const subjective = [
     `${header}, requesting repeat prescription for ${requestedMedicationValue}.`,
     currentDose ? `Patient reports current dose: ${currentDose}.` : null,
+    doseChangedAnswer === false
+      ? "Patient confirmed the dose and directions are unchanged."
+      : doseChangedAnswer === true
+        ? "Patient reported that the dose or directions have changed."
+        : "Dose and directions confirmation was not captured for this legacy request.",
     history && history !== "not specified" ? `Last prescribed ${humanize(history).toLowerCase()}.` : null,
   ]
     .filter(Boolean)
@@ -863,11 +948,27 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
 
   const assessment = controlled
     ? `${medicationName} is a controlled substance. Repeat prescription via this workflow is not permitted.`
-    : `Stable patient on ${medicationName}. No safety flags identified on screen.`
+    : requiresRecordedScriptReconciliation
+      ? `A prescription for ${medicationName} is already recorded as issued. The unchanged-regimen attestation needed for new prescribing is unavailable or not satisfied; reconcile the existing evidence and do not prescribe again.`
+      : hasRecordedScriptEvidence
+        ? `A prescription for ${medicationName} is already recorded as issued. Review the recorded evidence and do not prescribe again.`
+      : doseChangedAnswer === false
+      ? `Patient confirmed the dose and directions for ${medicationName} are unchanged. Clinical appropriateness still requires doctor review.`
+      : doseChangedAnswer === true
+        ? `Patient reported a dose or directions change for ${medicationName}. This is outside the unchanged-repeat pathway.`
+        : `Dose and directions confirmation for ${medicationName} was not captured. This legacy request cannot be used for prescribing.`
 
   const planText = controlled
     ? "Decline repeat prescription. Advise patient to see their regular GP for in-person review."
-    : `Repeat ${medicationName}${currentDose ? ` at ${currentDose}` : ""}. Confirm quantity and repeats in Parchment. Advise patient to book a face-to-face review if dose or condition changes.`
+    : requiresRecordedScriptReconciliation
+      ? "Do not issue another prescription. Review the recorded script evidence, save the reconciliation acknowledgement, and complete only if the evidence is consistent; escalate any mismatch."
+      : hasRecordedScriptEvidence
+        ? "Do not issue another prescription. Review the recorded script evidence and complete the request if it is consistent."
+      : doseChangedAnswer === true
+      ? "Do not prescribe through this repeat workflow. Decline and issue a full refund, then direct the patient to their regular GP or specialist for review."
+      : doseChangedAnswer === undefined
+        ? "Decline and issue a full refund. Ask the patient to submit a new repeat request; a doctor note cannot replace the missing patient attestation."
+        : `Repeat ${medicationName}${currentDose ? ` at ${currentDose}` : ""}. Confirm quantity and repeats in Parchment. Advise patient to book a face-to-face review if dose or condition changes.`
 
   return {
     title: "Repeat prescription",

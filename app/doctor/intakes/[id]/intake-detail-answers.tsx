@@ -195,6 +195,7 @@ export function IntakeDetailAnswers({
               patientSex={intake.patient.sex ?? null}
               riskTier={intake.risk_tier}
               requiresLiveConsult={intake.requires_live_consult}
+              scriptSent={intake.script_sent}
               className="border-0 shadow-none p-0"
               compact={compact}
             />

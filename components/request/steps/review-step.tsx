@@ -428,6 +428,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     const medicationStrength = stringAnswer(answers.medicationStrength) || primaryMedication?.strength || ""
     const prescriptionHistory = stringAnswer(answers.prescriptionHistory) || undefined
     const currentDose = stringAnswer(answers.currentDose) || undefined
+    const doseChanged = answers.doseChanged as boolean | undefined
     const hasSideEffects = answers.hasSideEffects as boolean | undefined
     const sideEffects = stringAnswer(answers.sideEffects) || undefined
 
@@ -450,6 +451,9 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
       if (currentDose) {
         items.push({ label: 'Current dose', value: currentDose })
       }
+      if (doseChanged === false) {
+        items.push({ label: 'Same dose and directions', value: 'Confirmed' })
+      }
       if (hasSideEffects) {
         items.push({ label: 'Side effects', value: sideEffects || 'Yes' })
       }
@@ -464,6 +468,9 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
       }
       if (currentDose) {
         items.push({ label: 'Current dose', value: currentDose })
+      }
+      if (doseChanged === false) {
+        items.push({ label: 'Same dose and directions', value: 'Confirmed' })
       }
       if (hasSideEffects) {
         items.push({ label: 'Side effects', value: sideEffects || 'Yes' })

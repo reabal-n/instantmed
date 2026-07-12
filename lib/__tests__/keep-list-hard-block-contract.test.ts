@@ -55,6 +55,7 @@ describe("keep-list: validator-level hard-blocks", () => {
 
     const result = validateRepeatScriptPayload({
       prescribed_before: true,
+      doseChanged: false,
       dose_changed: false,
       last_prescribed: "6_to_12_months",
       current_dose: "5 mg",
@@ -87,6 +88,7 @@ describe("keep-list: validator-level hard-blocks", () => {
   it("blocks a never-before-prescribed medicine in the repeat flow (new-med stays routed/declined)", () => {
     const result = validateRepeatScriptPayload({
       prescribed_before: false,
+      doseChanged: false,
       dose_changed: false,
       last_prescribed: "6_to_12_months",
       current_dose: "10 mg",
@@ -98,6 +100,7 @@ describe("keep-list: validator-level hard-blocks", () => {
   it("blocks a dose change in the repeat flow", () => {
     const result = validateRepeatScriptPayload({
       prescribed_before: true,
+      doseChanged: true,
       dose_changed: true,
       last_prescribed: "6_to_12_months",
       current_dose: "20 mg",

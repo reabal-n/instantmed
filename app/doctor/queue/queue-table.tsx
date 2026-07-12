@@ -31,6 +31,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Pagination, UserCard } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
 import { parseIntakeFlags } from "@/lib/clinical/intake-flags"
+import { getRepeatRxAttestationStatus } from "@/lib/clinical/repeat-rx-attestation"
 import { ADMIN_PRESCRIBING_IDENTITY_HREF, buildDoctorIntakeHref, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { resolveStaffCaseActionLabel } from "@/lib/doctor/case-action-label"
 import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
@@ -291,6 +292,7 @@ export function QueueTable({
             const waitSeverity = getWaitTimeSeverity(queueEnteredAt, intake.sla_deadline)
             const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
             const answers = (intake.answers as Array<{ answers: Record<string, unknown> }> | null | undefined)?.[0]?.answers
+            const repeatRxAttestationConfirmed = getRepeatRxAttestationStatus(answers) === "confirmed_unchanged"
             const patientSnapshot = buildPatientSnapshot(intake.patient, {
               ...getPatientSnapshotOptionsForCase({
                 answers,
@@ -676,6 +678,7 @@ export function QueueTable({
                       </Button>
                       {/* Quick Prescribe — renewal repeat scripts only */}
                       {Boolean((intake as IntakeWithPatient & { is_renewal?: boolean }).is_renewal) &&
+                        repeatRxAttestationConfirmed &&
                         (service?.type === SERVICE_TYPES.REPEAT_RX || service?.type === SERVICE_TYPES.COMMON_SCRIPTS) && (
                           <Button
                             size="sm"

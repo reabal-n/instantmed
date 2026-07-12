@@ -17,6 +17,11 @@ import {
 } from "@/lib/auth/staff-capabilities"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { isControlledSubstance } from "@/lib/clinical/intake-validation"
+import {
+  getRepeatRxPrescribingBlocker,
+  hasLegacyRepeatRxReconciliationNote,
+  isRepeatRxIntake,
+} from "@/lib/clinical/repeat-rx-attestation"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
 import { formatClaimWarning } from "@/lib/data/intake-lock-warning"
@@ -93,6 +98,7 @@ function getScriptCompletionRequestType(category: string | null, serviceType?: s
 
 async function ensureClinicalDecisionNoteForApproval(
   intakeId: string,
+  options: { requireExistingNote?: boolean } = {},
 ): Promise<{ success: true } | { success: false; error: string }> {
   const supabase = createServiceRoleClient()
   const { data: intake } = await supabase
@@ -126,7 +132,7 @@ async function ensureClinicalDecisionNoteForApproval(
     : {}
   const patient = firstRelation(intake?.patient as RelationValue<ClinicalDecisionPatient>)
   const serviceType = getServiceType(intake?.service as ServiceRelation)
-  const fallbackDraftNote = intake
+  const fallbackDraftNote = !options.requireExistingNote && intake
     ? buildClinicalCaseSummary({
         answers,
         category: intake.category,
@@ -140,6 +146,18 @@ async function ensureClinicalDecisionNoteForApproval(
       }).draftNote
     : null
   const existingNotes = intake?.doctor_notes?.trim() || ""
+  if (options.requireExistingNote && !hasLegacyRepeatRxReconciliationNote(existingNotes)) {
+    return {
+      success: false,
+      error: "Add and save the recorded-script reconciliation acknowledgement before completing this legacy request.",
+    }
+  }
+  if (options.requireExistingNote && /\bdecline\b[\s\S]*\brefund\b/i.test(existingNotes)) {
+    return {
+      success: false,
+      error: "Replace the decline/refund draft with a saved reconciliation note for the already-issued script before completing this legacy request.",
+    }
+  }
   const decisionNote = resolveClinicalDecisionNote({
     doctorNotes: existingNotes,
     fallbackDraftNote,
@@ -148,7 +166,9 @@ async function ensureClinicalDecisionNoteForApproval(
   if (!decisionNote) {
     return {
       success: false,
-      error: "Use the draft note or add a brief clinical note before approving.",
+      error: options.requireExistingNote
+        ? "Add and save a reconciliation note for the already-issued script before completing this legacy request."
+        : "Use the draft note or add a brief clinical note before approving.",
     }
   }
 
@@ -289,6 +309,12 @@ export async function updateStatusAction(
       : {}
     const patient = firstRelation(intake?.patient as RelationValue<ClinicalDecisionPatient>)
     const serviceType = getServiceType(intake?.service as ServiceRelation)
+    if (status === "awaiting_script" && isRepeatRxIntake({ category: intake?.category, serviceType })) {
+      const regimenBlocker = getRepeatRxPrescribingBlocker(answers)
+      if (regimenBlocker) {
+        return { success: false, error: regimenBlocker.error, code: regimenBlocker.code }
+      }
+    }
     const fallbackDraftNote = intake
       ? buildClinicalCaseSummary({
           answers,
@@ -680,6 +706,21 @@ export async function markScriptSentAction(
   const serviceType = getServiceType(intake.service as ServiceRelation)
   const subtype = intake.subtype ?? null
 
+  const answerRow = firstRelation(intake.answers as RelationValue<IntakeAnswersRow>)
+  const answers = answerRow
+    ? (await readAnswers({
+        answers: answerRow.answers,
+        answers_enc: answerRow.answers_encrypted,
+      })) ?? undefined
+    : undefined
+
+  const regimenBlocker = isRepeatRxIntake({ category: intake.category, serviceType })
+    ? getRepeatRxPrescribingBlocker(answers)
+    : null
+  if (regimenBlocker && intake.script_sent !== true) {
+    return { success: false, error: regimenBlocker.error, code: regimenBlocker.code }
+  }
+
   if (!doctorCanReviewService(profile, serviceType, subtype)) {
     logger.warn("Doctor lacks capability to record prescription completion", {
       doctorId: profile.id,
@@ -713,13 +754,6 @@ export async function markScriptSentAction(
 
   if (identityEligibility.eligible) {
     const patient = firstRelation(intake.patient as RelationValue<PrescribingIdentityPatient>)
-    const answerRow = firstRelation(intake.answers as RelationValue<IntakeAnswersRow>)
-    const answers = answerRow
-      ? (await readAnswers({
-          answers: answerRow.answers,
-          answers_enc: answerRow.answers_encrypted,
-        })) ?? undefined
-      : undefined
 
     if (!patient) {
       return { success: false, error: "Patient profile not found" }
@@ -787,7 +821,7 @@ export async function markScriptSentAction(
 
 export async function approvePrescribedScriptAction(
   intakeId: string,
-): Promise<{ success: boolean; error?: string; emailNotification?: "sent" | "already_sent" | "skipped_no_patient" | "failed" }> {
+): Promise<{ success: boolean; error?: string; code?: string; emailNotification?: "sent" | "already_sent" | "skipped_no_patient" | "failed" }> {
   const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
@@ -807,6 +841,10 @@ export async function approvePrescribedScriptAction(
       reviewed_by,
       script_sent,
       parchment_reference,
+      answers:intake_answers (
+        answers,
+        answers_encrypted
+      ),
       service:services!service_id(type)
     `)
     .eq("id", intakeId)
@@ -822,6 +860,21 @@ export async function approvePrescribedScriptAction(
 
   const serviceType = getServiceType(intake.service as ServiceRelation)
   const subtype = intake.subtype ?? null
+
+  const answerRow = firstRelation(intake.answers as RelationValue<IntakeAnswersRow>)
+  const answers = answerRow
+    ? (await readAnswers({
+        answers: answerRow.answers,
+        answers_enc: answerRow.answers_encrypted,
+      })) ?? undefined
+    : undefined
+
+  const regimenBlocker = isRepeatRxIntake({ category: intake.category, serviceType })
+    ? getRepeatRxPrescribingBlocker(answers)
+    : null
+  if (regimenBlocker && intake.script_sent !== true) {
+    return { success: false, error: regimenBlocker.error, code: regimenBlocker.code }
+  }
 
   if (!doctorCanReviewService(profile, serviceType, subtype)) {
     logger.warn("Doctor lacks capability to approve prescription", {
@@ -892,7 +945,9 @@ export async function approvePrescribedScriptAction(
     }
   }
 
-  const clinicalNote = await ensureClinicalDecisionNoteForApproval(intakeId)
+  const clinicalNote = await ensureClinicalDecisionNoteForApproval(intakeId, {
+    requireExistingNote: Boolean(regimenBlocker && intake.script_sent === true),
+  })
   if (!clinicalNote.success) {
     return { success: false, error: clinicalNote.error }
   }
@@ -1411,6 +1466,11 @@ export async function quickPrescribeRenewalAction(
     ? (await readAnswers({ answers: answerRow.answers, answers_enc: answerRow.answers_encrypted })) ?? {}
     : {}
 
+  const regimenBlocker = getRepeatRxPrescribingBlocker(answers)
+  if (regimenBlocker) {
+    return { success: false, error: regimenBlocker.error, code: regimenBlocker.code }
+  }
+
   const medicationName: string =
     ((answers.medicationName as string) || (answers.medication_name as string) || "").trim()
 
@@ -1457,13 +1517,36 @@ export async function quickPrescribeRenewalAction(
   }
 
   if (!intake.claimed_by) {
-    const { error: claimError } = await supabase.rpc("claim_intake_for_review", {
+    const { data: claimData, error: claimError } = await supabase.rpc("claim_intake_for_review", {
       p_intake_id: intakeId,
       p_doctor_id: profile.id,
       p_force: false,
     })
-    if (claimError) {
-      logger.warn("[QuickPrescribe] Claim RPC failed (proceeding)", { intakeId, error: claimError.message })
+    const claim = Array.isArray(claimData) ? claimData[0] : claimData
+    if (claimError || !claim?.success) {
+      logger.warn("[QuickPrescribe] Claim failed", {
+        intakeId,
+        error: claimError?.message,
+        currentClaimant: claim?.current_claimant,
+      })
+      return {
+        success: false,
+        error: formatClaimWarning(claim, "This intake could not be claimed for quick prescribing."),
+        code: "CASE_NOT_CLAIMED",
+      }
+    }
+
+    const { data: claimedIntake, error: claimVerificationError } = await supabase
+      .from("intakes")
+      .select("claimed_by")
+      .eq("id", intakeId)
+      .single()
+    if (claimVerificationError || claimedIntake?.claimed_by !== profile.id) {
+      return {
+        success: false,
+        error: "This intake is no longer claimed by you. Refresh the queue before prescribing.",
+        code: "CASE_NOT_CLAIMED",
+      }
     }
   }
 
@@ -1476,11 +1559,22 @@ export async function quickPrescribeRenewalAction(
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" })
   const renewalNote = `Renewal reviewed ${today}. Patient has an established prescription for ${medDesc}. Clinically appropriate for repeat supply. Prescribing via Parchment.`
 
-  await saveDoctorNotes(intakeId, renewalNote)
-  await markAsReviewed(intakeId, profile.id)
+  const notesSaved = await saveDoctorNotes(intakeId, renewalNote, profile.id)
+  if (!notesSaved) {
+    return { success: false, error: "Failed to save the renewal clinical note" }
+  }
+
+  const markedReviewed = await markAsReviewed(intakeId, profile.id, profile.id)
+  if (!markedReviewed) {
+    return {
+      success: false,
+      error: "This intake changed before quick prescribing could complete. Refresh and try again.",
+      code: "CASE_NOT_CLAIMED",
+    }
+  }
 
   try {
-    const result = await updateIntakeStatus(intakeId, "awaiting_script", profile.id)
+    const result = await updateIntakeStatus(intakeId, "awaiting_script", profile.id, profile.id)
     if (!result) return { success: false, error: "Failed to move intake to prescribing" }
   } catch (error) {
     if (error instanceof IntakeLifecycleError) {

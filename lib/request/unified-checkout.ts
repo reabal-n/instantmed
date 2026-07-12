@@ -299,7 +299,11 @@ export function transformAnswersForUnifiedCheckout(
     transformed.prescribed_before = typeof answers.prescribedBefore === "boolean"
       ? answers.prescribedBefore
       : String(answers.prescriptionHistory || "").trim().toLowerCase() !== "never"
-    transformed.dose_changed = answers.doseChanged ?? false
+    if (typeof answers.doseChanged === "boolean") {
+      transformed.dose_changed = answers.doseChanged
+    } else {
+      delete transformed.dose_changed
+    }
   }
 
   if (serviceType === "consult") {

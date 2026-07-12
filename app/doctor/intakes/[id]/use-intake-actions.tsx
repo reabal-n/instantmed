@@ -152,6 +152,7 @@ export function useIntakeActions({
       patientSex: intake.patient.sex ?? null,
       riskTier: intake.risk_tier,
       requiresLiveConsult: intake.requires_live_consult,
+      scriptSent: intake.script_sent,
     })
   }, [intake, service?.type])
 

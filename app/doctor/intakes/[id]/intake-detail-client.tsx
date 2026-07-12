@@ -33,7 +33,7 @@ import { parseIntakeFlags } from "@/lib/clinical/intake-flags"
 import { buildDoctorIntakeHref, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import type { PatientThreadMessage } from "@/lib/data/patient-messages"
-import { isPrescribingConsultSubtype } from "@/lib/doctor/service-types"
+import { isPrescribingServiceRequest } from "@/lib/doctor/service-types"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
 import type { IntakeWithDetails, IntakeWithPatient, PatientNote } from "@/types/db"
@@ -399,6 +399,7 @@ function LegacyIntakeDetailClient({
         answers: intakeAnswers ?? {},
         riskTier: intake.risk_tier,
         requiresLiveConsult: intake.requires_live_consult,
+        scriptSent: intake.script_sent,
       }),
     [
       intake.category,
@@ -406,6 +407,7 @@ function LegacyIntakeDetailClient({
       intake.patient?.date_of_birth,
       intake.patient?.sex,
       intake.requires_live_consult,
+      intake.script_sent,
       intake.risk_tier,
       intake.subtype,
       intakeAnswers,
@@ -418,17 +420,10 @@ function LegacyIntakeDetailClient({
   useDoctorShortcuts({
     onApprove: () => {
       if (intake.status === "paid" && !actions.isPending) {
-        if (
-          intake.category === "consult" &&
-          isPrescribingConsultSubtype(intake.subtype) &&
-          hasPrescriptionIntent &&
-          actions.handleOpenParchmentPrescribe
-        ) {
-          actions.handleOpenParchmentPrescribe()
-        } else if (service?.type === "med_certs") {
+        if (service?.type === "med_certs") {
           actions.handleMedCertApprove()
-        } else if (service?.type === "repeat_rx" || service?.type === "common_scripts") {
-          actions.handleOpenParchmentPrescribe?.()
+        } else if (isPrescribingServiceRequest(service?.type, intake.subtype)) {
+          if (hasPrescriptionIntent) actions.handleOpenParchmentPrescribe?.()
         } else {
           actions.handleStatusChange("approved")
         }
@@ -487,6 +482,8 @@ function LegacyIntakeDetailClient({
         onOpenParchmentPrescribe={actions.handleOpenParchmentPrescribe}
         onApprovePrescribedScript={actions.handleApprovePrescribedScript}
         hasPrescriptionIntent={hasPrescriptionIntent}
+        isAiPrefilled={actions.isAiPrefilled}
+        noteDirty={actions.noteDirty}
         showReissueDialog={dialogs.showReissueDialog}
         setShowReissueDialog={dialogs.setShowReissueDialog}
         reissuePreviewData={dialogs.reissuePreviewData}

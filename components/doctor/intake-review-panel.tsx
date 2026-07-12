@@ -341,6 +341,7 @@ export function IntakeReviewPanel({
       patientSex: data.intake.patient.sex ?? null,
       riskTier: data.intake.risk_tier,
       requiresLiveConsult: data.intake.requires_live_consult,
+      scriptSent: data.intake.script_sent,
     }).draftNote
     if (!existingNotes && data.aiDrafts) {
       const clinicalDraft = findClinicalNoteDraft(data.aiDrafts)

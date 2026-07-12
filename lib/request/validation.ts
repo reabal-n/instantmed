@@ -214,6 +214,7 @@ export const medicationHistoryStepSchema = z
     // are handled upstream in the medication step.
     currentDose: z.string().optional(),
     indication: z.string().optional(),
+    doseChanged: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.prescriptionHistory.trim().toLowerCase() === "never") {
@@ -236,6 +237,20 @@ export const medicationHistoryStepSchema = z
         code: "custom",
         path: ["indication"],
         message: "Tell the doctor what this medication is for",
+      })
+    }
+    if (data.doseChanged === undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["doseChanged"],
+        message: "Please confirm whether the dose or the way you take this medicine has changed",
+      })
+    }
+    if (data.doseChanged) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["doseChanged"],
+        message: "A dose or directions change needs review by your regular GP or specialist",
       })
     }
   })
