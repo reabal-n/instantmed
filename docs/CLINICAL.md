@@ -391,6 +391,7 @@ Patients must be informed at intake of:
 | Access | RLS on all tables + role-based access via Supabase Auth (see SECURITY.md) |
 | Government IDs | Medicare number used only for eligibility; never internal ID (UUID primary keys) |
 | PHI in logs | Production logs sanitized; no PHI in error/debug logs |
+| Telegram | Operational alerts only. Never include patient identity, medicine names, presenting complaints, symptoms, consultation subtype, intake answers, or clinical notes. |
 | AI data sharing | Clinical notes sent to Anthropic (Claude) with no patient identifiers; DPA in place |
 
 ### Australian Privacy Principles (APP 1-13) Summary

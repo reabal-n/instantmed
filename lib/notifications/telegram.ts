@@ -67,9 +67,9 @@ export function verifyIntakeAction(intakeId: string, action: string, signature: 
 interface TelegramNotifyOptions {
   intakeId: string
   serviceSlug?: string
-  /** Consult subtype — used to pick a per-service emoji + noun (ed, hair_loss, etc.). */
+  /** Consult subtype — retained for routing context, never rendered in Telegram. */
   subtype?: string
-  /** Compact detail appended to the title as "· detail" (e.g. "1 day", "Atorvastatin"). */
+  /** Compact non-clinical detail. Only med-cert duration may render. */
   serviceDetail?: string
   appUrl?: string
   isPriority?: boolean
@@ -97,33 +97,21 @@ interface TitleOptions {
  * glance. Med cert is the only auto-approval candidate: ✅ when the system
  * will try, ❌ when the operator needs to handle it manually.
  */
-function getServiceEmoji(opts: Pick<TitleOptions, "serviceSlug" | "subtype" | "autoApprovalCandidate">): string {
-  const { serviceSlug, subtype, autoApprovalCandidate } = opts
+function getServiceEmoji(opts: Pick<TitleOptions, "serviceSlug" | "autoApprovalCandidate">): string {
+  const { serviceSlug, autoApprovalCandidate } = opts
   if (serviceSlug?.startsWith("med-cert")) {
     return autoApprovalCandidate ? "✅" : "❌"
   }
   if (serviceSlug === "common-scripts") return "💊"
-  if (serviceSlug === "consult") {
-    if (subtype === "ed") return "💙"
-    if (subtype === "hair_loss") return "💇"
-    if (subtype === "womens_health") return "🌸"
-    if (subtype === "weight_loss") return "⚖️"
-    if (subtype === "new_medication") return "💊"
-  }
+  if (serviceSlug === "consult") return "🩺"
   return "🩺"
 }
 
-function getServiceNoun(opts: Pick<TitleOptions, "serviceSlug" | "subtype">): string {
-  const { serviceSlug, subtype } = opts
+function getServiceNoun(opts: Pick<TitleOptions, "serviceSlug">): string {
+  const { serviceSlug } = opts
   if (serviceSlug?.startsWith("med-cert")) return "med cert"
   if (serviceSlug === "common-scripts") return "prescription"
-  if (serviceSlug === "consult") {
-    if (subtype === "ed") return "ED consult"
-    if (subtype === "hair_loss") return "hair loss consult"
-    if (subtype === "womens_health") return "women's health consult"
-    if (subtype === "weight_loss") return "weight loss consult"
-    if (subtype === "new_medication") return "new Rx consult"
-  }
+  if (serviceSlug === "consult") return "consult"
   return "request"
 }
 
@@ -132,11 +120,15 @@ function appendDetail(noun: string, detail?: string): string {
   return `${noun} · ${escapeMarkdownValue(detail)}`
 }
 
+function safeTelegramDetail(opts: TitleOptions): string | undefined {
+  return opts.serviceSlug?.startsWith("med-cert") ? opts.serviceDetail : undefined
+}
+
 function buildTitle(opts: TitleOptions): string {
   const parts: string[] = []
   if (opts.isPriority) parts.push("⚡")
   parts.push(getServiceEmoji(opts))
-  parts.push(`New ${appendDetail(getServiceNoun(opts), opts.serviceDetail)}`)
+  parts.push(`New ${appendDetail(getServiceNoun(opts), safeTelegramDetail(opts))}`)
   return `*${parts.join(" ")}*`
 }
 
@@ -147,7 +139,7 @@ function buildTitle(opts: TitleOptions): string {
  * drop the routing ✅/❌ to avoid stacking marks (the prefix already conveys it).
  */
 function buildEditedTitle(prefix: string, opts: TitleOptions): string {
-  const noun = appendDetail(getServiceNoun(opts), opts.serviceDetail)
+  const noun = appendDetail(getServiceNoun(opts), safeTelegramDetail(opts))
   const isMedCert = opts.serviceSlug?.startsWith("med-cert")
   const middle = isMedCert ? noun : `${getServiceEmoji(opts)} ${noun}`
   return `*${prefix} · ${middle}*`
@@ -166,7 +158,9 @@ function parseMessageId(json: unknown): number | null {
 
 /**
  * Send a new-order notification to the doctor's Telegram.
- * Messages are PHI-minimal: service, amount, short ref, and authenticated review link.
+ * Messages are PHI-minimal: broad service class and authenticated review link.
+ * Medication, presenting complaint, consultation subtype, patient identity, and
+ * other clinical detail must never enter Telegram.
  * Med cert approval buttons are disabled unless explicitly enabled with a separate signing secret.
  * Other requests get a notification + Review link.
  *

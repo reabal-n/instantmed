@@ -103,7 +103,8 @@ describe("Telegram request notifications", () => {
     })
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body)
-    expect(body.text).toContain("*💊 New prescription · Atorvastatin*")
+    expect(body.text).toContain("*💊 New prescription*")
+    expect(body.text).not.toContain("Atorvastatin")
     expect(body.text).not.toContain("⚡")
     expect(body.text).toContain("[Review now →]")
   })
@@ -181,12 +182,12 @@ describe("Telegram request notifications", () => {
     expect(body.text).toBe("*⚡ ✅ New med cert · 2 days*")
   })
 
-  it("picks per-subtype emoji + noun for consults", async () => {
+  it("keeps consult subtype out of Telegram titles", async () => {
     const cases = [
-      { subtype: "ed", expected: "*💙 New ED consult*" },
-      { subtype: "hair_loss", expected: "*💇 New hair loss consult*" },
-      { subtype: "womens_health", expected: "*🌸 New women's health consult*" },
-      { subtype: "weight_loss", expected: "*⚖️ New weight loss consult*" },
+      { subtype: "ed", forbidden: "ED" },
+      { subtype: "hair_loss", forbidden: "hair loss" },
+      { subtype: "womens_health", forbidden: "women's health" },
+      { subtype: "weight_loss", forbidden: "weight loss" },
     ]
 
     const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
@@ -202,7 +203,8 @@ describe("Telegram request notifications", () => {
       })
 
       const body = JSON.parse(fetchMock.mock.calls[0][1].body)
-      expect(body.text, `subtype=${c.subtype}`).toContain(c.expected)
+      expect(body.text, `subtype=${c.subtype}`).toContain("*🩺 New consult*")
+      expect(body.text, `subtype=${c.subtype}`).not.toContain(c.forbidden)
     }
   })
 
@@ -218,7 +220,8 @@ describe("Telegram request notifications", () => {
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body)
     expect(body.message_id).toBe(99)
-    expect(body.text).toBe("*✓ Approved · 💊 prescription · Atorvastatin*")
+    expect(body.text).toBe("*✓ Approved · 💊 prescription*")
+    expect(body.text).not.toContain("Atorvastatin")
   })
 
   it("drops the routing emoji from the med-cert edited title to avoid stacking ✓ + ✅/❌", async () => {
@@ -248,7 +251,8 @@ describe("Telegram request notifications", () => {
     })
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body)
-    expect(body.text).toBe("*✕ Declined · 💙 ED consult*")
+    expect(body.text).toBe("*✕ Declined · 🩺 consult*")
+    expect(body.text).not.toContain("ED")
   })
 
   it("edits the message to ❌ Manual review needed when the auto-approval pipeline declines", async () => {
