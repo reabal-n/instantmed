@@ -101,8 +101,13 @@ export const doctorNavSections: StaffNavSection[] = [
   },
 ]
 
+// Admin-only extra in the doctor mobile shell's "More" sheet. Points at the
+// ops recovery cockpit — its label's actual home. It previously pointed at
+// /dashboard, which duplicated the Queue tab (two mobile entries opening the
+// same page, both rendering active) — the same duplication class the
+// 2026-07-12 sidebar consolidation removed.
 export const doctorOperatorNavItems: StaffNavItem[] = [
-  { href: STAFF_DASHBOARD_HREF, label: "Operations", icon: "shield" },
+  { href: STAFF_OPS_HREF, label: "Operations", icon: "shield" },
 ]
 
 // ── Canonical role-aware nav ────────────────────────────────────────────────
