@@ -1,5 +1,7 @@
 # Lib Restructure + Script Wiring Plan
 
+> **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
+
 **Date:** 2026-04-13
 **Status:** Pending approval
 **Scope:** Consolidate lib/ single-file directories, organize loose files, wire orphaned scripts, add CI gaps

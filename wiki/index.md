@@ -19,7 +19,7 @@ This wiki is the first navigation layer after `CLAUDE.md`. Use it to choose the 
 | Clinical, safety, prescribing, AI drafting | `docs/CLINICAL.md`, `docs/SECURITY.md` | `lib/safety/*`, `lib/clinical/*`, `lib/ai/provider.ts` |
 | Staff cockpit, admin, doctor, support | `components/operator/README.md`, `wiki/context-map.md` | `lib/dashboard/routes.ts`, `lib/dashboard/staff-navigation.ts`, target `app/admin/*` or `app/doctor/*` page |
 | Patient portal | `wiki/context-map.md`, `docs/ARCHITECTURE.md` patient portal section | `app/patient/*`, `components/patient/*`, `lib/data/patient-*` |
-| Analytics, attribution, paid growth | `docs/ADVERTISING_COMPLIANCE.md`, `docs/BUSINESS_PLAN.md` | `lib/analytics/*`, `app/admin/analytics/*`, `app/admin/ops/*` |
+| Analytics, attribution, paid growth | `docs/REVENUE_MODEL.md`, `docs/ADVERTISING_COMPLIANCE.md` | `docs/ROADMAP.md` for current priority, `docs/OPERATIONS.md` for Ads mutations, then `lib/analytics/*`, `app/admin/analytics/*`, `app/admin/ops/*` |
 | SEO or health guide work | `docs/SEO_CONTENT_POLICY.md`, `docs/ADVERTISING_COMPLIANCE.md` | `content/blog/*`, `lib/blog/*`, `lib/seo/*`, target route |
 | Ops, cron, deploy, incidents | `docs/OPERATIONS.md`, `docs/SECURITY.md` | `vercel.json`, `app/api/cron/*`, `.github/workflows/*` |
 | Tests or release checks | `docs/TESTING.md`, `wiki/code-hygiene-audit.md` | `vitest.config.ts`, `playwright.config.ts`, `.github/workflows/ci.yml` |

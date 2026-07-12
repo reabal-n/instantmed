@@ -36,7 +36,7 @@ export const siteConfig = {
 export const heroRotatingTexts = [
   "A doctor, without the waiting room.",
   "Skip the waiting room, not the doctor.",
-  "AHPRA-registered doctors. Reviewed, not automated.",
+  "AHPRA-registered doctors. Human clinical accountability.",
   "Fill in a form. A doctor reviews it. Done.",
   "Real doctor review, without leaving the couch.",
 ]
@@ -284,7 +284,7 @@ export const faqItems = [
   },
   {
     question: "How fast is it really?",
-    answer: "Medical certificate requests are open 24/7. Prescription and consultation requests can be submitted any time and are reviewed during clinical review hours. You'll get email updates as things progress, so you're not left wondering.",
+    answer: "Requests can be submitted and reviewed 24/7. Timing varies with clinical complexity, follow-up questions, and queue volume. You'll get email updates as things progress, so you're not left wondering.",
   },
   {
     question: "Is my information private?",

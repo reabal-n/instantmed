@@ -50,7 +50,7 @@ const GUIDE_SECTIONS: Array<{
     title: "When you need to see a doctor in person",
     paragraphs: [
       "Some things genuinely need hands-on assessment, and we're upfront about that. If you've found a lump, injured a joint, or are experiencing chest pain, shortness of breath, or severe abdominal pain - see a doctor in person or call 000. These are conditions where physical examination, imaging, or immediate intervention may be necessary, and telehealth can't replicate that.",
-      "Anything requiring a procedure - stitches, injections, wound care, or physical manipulation - needs an in-person visit. Complex presentations in children under 18, particularly infants and young children, should generally be assessed face-to-face where a doctor can observe the patient directly.",
+      "Anything requiring a procedure - stitches, injections, wound care, or physical manipulation - needs an in-person visit. InstantMed does not accept patients under 18; contact the child's GP or another paediatric-capable service for assessment.",
       "We don't see this as a limitation - it's a feature. Knowing where telehealth ends and in-person care begins is a sign that your doctor is prioritising your safety over convenience. If your concern falls outside what can be responsibly assessed remotely, we'll tell you, and we'll recommend the appropriate next step. No one benefits from a doctor stretching beyond what the format supports.",
     ],
   },

@@ -1,5 +1,7 @@
 # Staff Cockpit Overhaul Implementation Plan
 
+> **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to implement this plan task-by-task. Reference `superpowers:test-driven-development` for every component task. Reference `superpowers:verification-before-completion` before marking any task done.
 
 **Goal:** Rebuild the InstantMed staff cockpit (admin, doctor, support dashboards + Ledger + People) to a calm, role-aware, sortable design behind a `cockpit_v2` feature flag.

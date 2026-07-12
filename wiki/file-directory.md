@@ -20,15 +20,15 @@ Important files and folders referenced by the root docs and current architecture
 | `docs/SECURITY.md` | PHI encryption, RLS, auth, audit logging, kill switches | Security, PHI, auth, RLS, env changes | Critical |
 | `docs/OPERATIONS.md` | Incidents, cron jobs, env vars, deploy, monitoring | Ops, cron, deploy, incidents, production checks | Critical |
 | `docs/TESTING.md` | Vitest, Playwright, CI, coverage and E2E seams | Any test work or verification choice | Critical |
-| `docs/BUSINESS_PLAN.md` | Business strategy and non-negotiable service model | Strategy, pricing, growth, service expansion | Critical |
-| `docs/REVENUE_MODEL.md` | $1M one-off revenue model and unit economics | Pricing, growth, operator dashboards | Useful |
+| `docs/BUSINESS_PLAN.md` | Sole durable strategy owner: positioning, service boundaries, business model, owner-doctor model | Strategy, positioning, service or business-model expansion | Critical |
+| `docs/REVENUE_MODEL.md` | Sole revenue-economics owner: milestones, contribution, paid-scaling and hiring gates | Revenue targets, pricing economics, growth gates, operator dashboards | Critical |
 | `docs/ADVERTISING_COMPLIANCE.md` | Google/AHPRA/TGA paid acquisition rules | Ads, landing pages, metadata, schema, public claims | Critical |
 | `docs/SEO_CONTENT_POLICY.md` | Organic health content and guide-only rules | SEO, health guides, medicine/condition pages | Critical |
 | `docs/BRAND.md` | Brand spine, voice, taglines, signature devices | Brand, copy, hero, marketing creative | Critical |
 | `docs/VOICE.md` | Voice layers, banned phrases, compliance copy rules | Copy/microcopy/headline changes | Critical |
 | `docs/PHOTOGRAPHY_BRIEF.md` | Launch imagery rules and generation brief | Generating or replacing visuals | Useful |
 | `docs/PRIMITIVES.md` | Marketing primitive registry | Marketing stats, trust badges, FAQ, pricing data | Useful |
-| `docs/ROADMAP.md` | Current phase, active priorities, deferred backlog | Roadmap or next-step questions | Useful |
+| `docs/ROADMAP.md` | Sole active queue: current phase, ordered priorities, status and checkpoints | Every roadmap, status, or next-step question | Critical |
 | `docs/DOCTOR_ONBOARDING.md` | Capability flags, AHPRA, Parchment and identity gates | Doctor onboarding or capability changes | Useful |
 | `docs/bookkeeping/file-map.md` | Canonical doc surface map and count rules | Adding, moving, or deleting docs | Critical |
 | `app/request/page.tsx` | Canonical intake page | Intake routing and initial props | Critical |

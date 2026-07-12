@@ -2,7 +2,8 @@ import "server-only"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { getRefundStats } from "@/lib/data/refunds"
+import { REVENUE_ACTIVE_MILESTONE_CENTS } from "@/lib/business/revenue-milestones"
+import { getRefundStatsRead } from "@/lib/data/refunds"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import {
   buildNoPurchaseRevenueAlert,
@@ -18,8 +19,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
-export const REVENUE_DAILY_TARGET_CENTS = 2_740_00
-export const REVENUE_MONTHLY_TARGET_CENTS = 83_333_00
+export { REVENUE_ACTIVE_MILESTONE_CENTS }
 
 type PaidRevenueRow = {
   id: string
@@ -57,6 +57,41 @@ type PartialDraftRow = {
 }
 
 export type RevenueDashboardStatus = "healthy" | "watch" | "critical" | "quiet"
+export type RevenueDashboardSourceAvailability = "available" | "degraded" | "unavailable"
+
+export type RevenueDashboardSourceState = {
+  revenue: RevenueDashboardSourceAvailability
+  recovery: RevenueDashboardSourceAvailability
+}
+
+export function resolveRevenueDashboardSourceAvailability(input: {
+  paidRowsAvailable: boolean
+  refundRowsAvailable: boolean
+  refundStatsAvailable: boolean
+  createdRowsAvailable: boolean
+  checkoutRowsAvailable: boolean
+  partialDraftRowsAvailable: boolean
+}): RevenueDashboardSourceState {
+  const recoverySources = [
+    input.refundRowsAvailable,
+    input.refundStatsAvailable,
+    input.createdRowsAvailable,
+    input.checkoutRowsAvailable,
+    input.partialDraftRowsAvailable,
+  ]
+  const recoverySourceCount = recoverySources.filter(Boolean).length
+
+  return {
+    revenue: input.paidRowsAvailable && input.refundRowsAvailable
+      ? "available"
+      : "unavailable",
+    recovery: recoverySourceCount === recoverySources.length
+      ? "available"
+      : recoverySourceCount > 0
+        ? "degraded"
+        : "unavailable",
+  }
+}
 
 export type RevenueDashboardWindow = {
   key: "today" | "last7Days" | "last30Days"
@@ -96,6 +131,7 @@ export type RevenueDashboardRecentPayment = {
 
 export type RevenueDashboard = {
   generatedAt: string
+  sourceAvailability: RevenueDashboardSourceState
   status: RevenueDashboardStatus
   statusLabel: string
   lastPaidAt: string | null
@@ -153,6 +189,7 @@ export type RevenueMonetisationReadouts = {
 
 export type RevenueDashboardInput = {
   now: Date
+  sourceAvailability?: RevenueDashboardSourceState
   paidRows: PaidRevenueRow[]
   refundRows: RefundRevenueRow[]
   createdRows: TimedRow[]
@@ -207,30 +244,51 @@ export async function getRevenueDashboard(
       .gte("updated_at", criticalSince)
       .lte("updated_at", nowIso)
       .gte("expires_at", nowIso),
-    getRefundStats(),
+    getRefundStatsRead(supabase),
   ])
 
-  const paidRows = results[0].status === "fulfilled" && !results[0].value.error
-    ? ((results[0].value.data ?? []) as PaidRevenueRow[])
+  const paidResult = results[0].status === "fulfilled" ? results[0].value : null
+  const refundResult = results[1].status === "fulfilled" ? results[1].value : null
+  const createdResult = results[2].status === "fulfilled" ? results[2].value : null
+  const checkoutResult = results[3].status === "fulfilled" ? results[3].value : null
+  const partialDraftResult = results[4].status === "fulfilled" ? results[4].value : null
+  const refundStatsRead = results[5].status === "fulfilled" ? results[5].value : null
+  const paidRowsAvailable = paidResult !== null && !paidResult.error
+  const refundRowsAvailable = refundResult !== null && !refundResult.error
+  const createdRowsAvailable = createdResult !== null && !createdResult.error
+  const checkoutRowsAvailable = checkoutResult !== null && !checkoutResult.error
+  const partialDraftRowsAvailable = partialDraftResult !== null && !partialDraftResult.error
+  const refundStatsAvailable = refundStatsRead?.availability === "available"
+  const paidRows = paidRowsAvailable
+    ? ((paidResult.data ?? []) as PaidRevenueRow[])
     : []
-  const refundRows = results[1].status === "fulfilled" && !results[1].value.error
-    ? ((results[1].value.data ?? []) as RefundRevenueRow[])
+  const refundRows = refundRowsAvailable
+    ? ((refundResult.data ?? []) as RefundRevenueRow[])
     : []
-  const createdRows = results[2].status === "fulfilled" && !results[2].value.error
-    ? ((results[2].value.data ?? []) as TimedRow[])
+  const createdRows = createdRowsAvailable
+    ? ((createdResult.data ?? []) as TimedRow[])
     : []
-  const checkoutRows = results[3].status === "fulfilled" && !results[3].value.error
-    ? ((results[3].value.data ?? []) as CheckoutDemandRow[])
+  const checkoutRows = checkoutRowsAvailable
+    ? ((checkoutResult.data ?? []) as CheckoutDemandRow[])
     : []
-  const partialDraftRows = results[4].status === "fulfilled" && !results[4].value.error
-    ? ((results[4].value.data ?? []) as PartialDraftRow[])
+  const partialDraftRows = partialDraftRowsAvailable
+    ? ((partialDraftResult.data ?? []) as PartialDraftRow[])
     : []
-  const refundStats = results[5].status === "fulfilled"
-    ? results[5].value
+  const refundStats = refundStatsAvailable
+    ? refundStatsRead.stats
     : { eligible: 0, failed: 0, totalRefunded: 0 }
+  const sourceAvailability = resolveRevenueDashboardSourceAvailability({
+    paidRowsAvailable,
+    refundRowsAvailable,
+    refundStatsAvailable,
+    createdRowsAvailable,
+    checkoutRowsAvailable,
+    partialDraftRowsAvailable,
+  })
 
   return buildRevenueDashboard({
     now,
+    sourceAvailability,
     paidRows,
     refundRows,
     createdRows,
@@ -277,15 +335,19 @@ export function buildRevenueDashboard(input: RevenueDashboardInput): RevenueDash
   const staleCheckoutCutoff = new Date(input.now.getTime() - 20 * 60 * 1000)
 
   const windows: RevenueDashboardWindow[] = [
-    buildRevenueWindow("today", "Today", input.paidRows, input.refundRows, todayStart, REVENUE_DAILY_TARGET_CENTS),
+    buildRevenueWindow("today", "Today", input.paidRows, input.refundRows, todayStart, null),
     buildRevenueWindow("last7Days", "7 days", input.paidRows, input.refundRows, last7DaysStart, null),
-    buildRevenueWindow("last30Days", "30 days", input.paidRows, input.refundRows, last30DaysStart, REVENUE_MONTHLY_TARGET_CENTS),
+    buildRevenueWindow("last30Days", "30 days", input.paidRows, input.refundRows, last30DaysStart, REVENUE_ACTIVE_MILESTONE_CENTS),
   ]
   const daily = buildDailyRevenue(input.paidRows, input.refundRows, todayStart)
   const status = resolveDashboardStatus(noPurchaseAlert, warningWindow.paidIntakes, hoursSinceLastPayment)
 
   return {
     generatedAt: input.now.toISOString(),
+    sourceAvailability: input.sourceAvailability ?? {
+      revenue: "available",
+      recovery: "available",
+    },
     status,
     statusLabel: statusLabel(status),
     lastPaidAt,

@@ -1,5 +1,7 @@
 # Intake Drop-off Reduction — Final Plan (2026-07-09)
 
+> **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
+
 **Status: P0 shipped. P1.1, P1.2, P1.4, and P1.5 shipped. P1.3 is implemented in this change. P2 remains queued.**
 
 Produced by a three-source audit, reconciled 2026-07-09:

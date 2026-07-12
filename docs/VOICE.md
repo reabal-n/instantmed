@@ -78,7 +78,7 @@ This is the merchandised promise. It lives above checkout CTAs, inline on hero C
 13. *Real doctors. No runaround.*
 14. *A doctor, not a queue.*
 15. *AHPRA doctors. Every single time.*
-16. *Reviewed, not robo-approved.*
+16. *Doctor-owned. Clearly explained.*
 17. *Fill it out. Get on with it.*
 
 ## Phrases banned from every marketing surface

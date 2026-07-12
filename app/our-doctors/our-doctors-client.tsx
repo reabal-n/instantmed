@@ -177,7 +177,7 @@ export default function OurDoctorsClient() {
           pill="AHPRA-Registered Australian Practice"
           title="Every request reviewed by a real doctor"
           highlightWords={["a real doctor"]}
-          subtitle="No algorithms. No shortcuts. Every request is reviewed by an AHPRA-registered Australian doctor who takes the time to understand your situation before making a clinical decision."
+          subtitle="AHPRA-registered Australian doctors make prescribing decisions and own the medical-certificate protocol. Each eligible protocol-issued certificate is individually reviewed afterward."
         >
           <div className="flex flex-wrap justify-center gap-3">
             <Badge variant="outline" className="py-2 px-4">

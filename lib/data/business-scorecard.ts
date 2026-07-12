@@ -2,6 +2,10 @@ import "server-only"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 
+import {
+  REVENUE_ACTIVE_MILESTONE_CENTS,
+  REVENUE_CAPACITY_REVIEW_CENTS,
+} from "@/lib/business/revenue-milestones"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { QUEUE_REVIEW_STATUSES } from "@/lib/doctor/queue-utils"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -17,15 +21,14 @@ export type BusinessScorecardMetric = {
 }
 
 export type BusinessOperatingScorecard = {
-  monthlyGrossCents: BusinessScorecardMetric
+  rolling30DayNetRetainedCents: BusinessScorecardMetric
   paidOrderVolume: BusinessScorecardMetric
-  cacCeilingCents: BusinessScorecardMetric
   refundRate: BusinessScorecardMetric
   chargebackRate: BusinessScorecardMetric
   supportTicketsPer100Orders: BusinessScorecardMetric
   doctorMinutesPerOrder: BusinessScorecardMetric
   queueP95Minutes: BusinessScorecardMetric
-  hireTriggerState: {
+  capacityReviewState: {
     label: string
     status: ScorecardStatus
     display: string
@@ -46,13 +49,17 @@ export type BusinessScorecardPaidIntake = {
 
 export type BusinessScorecardInput = {
   now: Date
+  rolling30DayNetRetainedCents: number
   paidIntakes: BusinessScorecardPaidIntake[]
   supportMessageCount: number
   queueWaitMinutes: number[]
 }
 
-const MONTHLY_REVENUE_HIRE_TRIGGER_CENTS = 60_000_00
-const DAILY_ORDER_HIRE_TRIGGER = 30
+export type BusinessScorecardSource = Omit<
+  BusinessScorecardInput,
+  "rolling30DayNetRetainedCents"
+>
+
 const SUPPORT_TICKETS_PER_100_TARGET = 5
 const QUEUE_P95_TARGET_MINUTES = 120
 const REFUND_RATE_TARGET = 10
@@ -60,9 +67,7 @@ const CHARGEBACK_RATE_TARGET = 0.5
 
 export function buildBusinessOperatingScorecard(input: BusinessScorecardInput): BusinessOperatingScorecard {
   const paidOrderCount = input.paidIntakes.length
-  const monthlyGrossCents = sum(input.paidIntakes.map((row) => row.amount_cents ?? 0))
-  const averageOrderCents = paidOrderCount > 0 ? monthlyGrossCents / paidOrderCount : 0
-  const cacCeilingCents = paidOrderCount > 0 ? Math.round(averageOrderCents * 0.3) : null
+  const rolling30DayNetRetainedCents = input.rolling30DayNetRetainedCents
 
   const refundedCount = input.paidIntakes.filter((row) => {
     const status = row.payment_status ?? ""
@@ -82,35 +87,29 @@ export function buildBusinessOperatingScorecard(input: BusinessScorecardInput): 
     ? Math.round(sum(reviewedMinuteSamples) / reviewedMinuteSamples.length)
     : null
   const queueP95Minutes = percentile(input.queueWaitMinutes, 95)
-  const dailyOrderRunRate = paidOrderCount / 30
-
   const triggeredBy: string[] = []
-  if (dailyOrderRunRate >= DAILY_ORDER_HIRE_TRIGGER) triggeredBy.push("30+ paid orders/day run rate")
-  if (monthlyGrossCents >= MONTHLY_REVENUE_HIRE_TRIGGER_CENTS) triggeredBy.push("$60k+ monthly gross")
+  if (rolling30DayNetRetainedCents >= REVENUE_CAPACITY_REVIEW_CENTS) triggeredBy.push("$10k+ rolling 30-day net-retained revenue")
   if ((supportTicketsPer100Orders ?? 0) > SUPPORT_TICKETS_PER_100_TARGET) triggeredBy.push("support load above 5/100 orders")
   if ((queueP95Minutes ?? 0) > QUEUE_P95_TARGET_MINUTES) triggeredBy.push("queue P95 above 2h")
 
   return {
-    monthlyGrossCents: metric({
-      label: "Monthly gross revenue",
-      value: monthlyGrossCents,
-      display: formatCurrencyCents(monthlyGrossCents),
-      status: monthlyGrossCents >= MONTHLY_REVENUE_HIRE_TRIGGER_CENTS ? "triggered" : "watch",
-      target: "$60k-$80k starts formal staff planning",
+    rolling30DayNetRetainedCents: metric({
+      label: "Rolling 30-day net-retained revenue",
+      value: rolling30DayNetRetainedCents,
+      display: formatCurrencyCents(rolling30DayNetRetainedCents),
+      status: rolling30DayNetRetainedCents >= REVENUE_CAPACITY_REVIEW_CENTS
+        ? "triggered"
+        : rolling30DayNetRetainedCents >= REVENUE_ACTIVE_MILESTONE_CENTS
+          ? "healthy"
+          : "watch",
+      target: "$2k active milestone; $10k triggers a capacity review",
     }),
     paidOrderVolume: metric({
       label: "Paid order volume",
       value: paidOrderCount,
       display: `${paidOrderCount}`,
-      status: dailyOrderRunRate >= DAILY_ORDER_HIRE_TRIGGER ? "triggered" : "watch",
-      target: "30-50 orders/day triggers admin/support planning",
-    }),
-    cacCeilingCents: metric({
-      label: "Max CAC @30% first-order",
-      value: cacCeilingCents,
-      display: cacCeilingCents == null ? "No paid orders" : formatCurrencyCents(cacCeilingCents),
-      status: cacCeilingCents == null ? "unknown" : "healthy",
-      target: "30% of first-order gross (~AOV) — a spend ceiling, not measured CAC",
+      status: paidOrderCount > 0 ? "healthy" : "unknown",
+      target: "Watch service mix and clinical workload as demand grows",
     }),
     refundRate: metric({
       label: "Refund rate",
@@ -147,19 +146,19 @@ export function buildBusinessOperatingScorecard(input: BusinessScorecardInput): 
       status: queueP95Minutes == null ? "healthy" : queueP95Minutes > QUEUE_P95_TARGET_MINUTES ? "triggered" : "healthy",
       target: "Below 2h during operating hours",
     }),
-    hireTriggerState: {
-      label: "Hire trigger state",
+    capacityReviewState: {
+      label: "Capacity review state",
       status: triggeredBy.length > 0 ? "triggered" : "healthy",
-      display: triggeredBy.length > 0 ? "Triggered" : "Clear",
+      display: triggeredBy.length > 0 ? "Review needed" : "Within current capacity",
       triggeredBy,
     },
   }
 }
 
-export async function getBusinessOperatingScorecard(
+export async function getBusinessOperatingScorecardSource(
   supabase: SupabaseClient = createServiceRoleClient(),
   now = new Date(),
-): Promise<BusinessOperatingScorecard> {
+): Promise<BusinessScorecardSource> {
   const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
   const [paidResult, supportResult, queueResult] = await Promise.all([
@@ -180,6 +179,10 @@ export async function getBusinessOperatingScorecard(
       .eq("payment_status", "paid")),
   ])
 
+  if (paidResult.error || supportResult.error || queueResult.error) {
+    throw new Error("Business scorecard source unavailable")
+  }
+
   const paidIntakes = (paidResult.data ?? []) as BusinessScorecardPaidIntake[]
   const queueRows = (queueResult.data ?? []) as Array<{
     paid_at?: string | null
@@ -187,7 +190,7 @@ export async function getBusinessOperatingScorecard(
     created_at?: string | null
   }>
 
-  return buildBusinessOperatingScorecard({
+  return {
     now,
     paidIntakes,
     supportMessageCount: supportResult.count ?? 0,
@@ -198,7 +201,7 @@ export async function getBusinessOperatingScorecard(
         return Math.max(0, Math.round((now.getTime() - new Date(timestamp).getTime()) / 60000))
       })
       .filter((value): value is number => typeof value === "number"),
-  })
+  }
 }
 
 function metric(input: BusinessScorecardMetric): BusinessScorecardMetric {

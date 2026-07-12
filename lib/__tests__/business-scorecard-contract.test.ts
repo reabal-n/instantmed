@@ -1,34 +1,64 @@
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
+import type { SupabaseClient } from "@supabase/supabase-js"
 import { describe, expect, it } from "vitest"
 
-import { buildBusinessOperatingScorecard } from "@/lib/data/business-scorecard"
+import {
+  buildBusinessOperatingScorecard,
+  getBusinessOperatingScorecardSource,
+} from "@/lib/data/business-scorecard"
 
 function readProjectFile(path: string): string {
   return readFileSync(join(process.cwd(), path), "utf8")
+}
+
+function scorecardSourceClient(
+  results: Array<{ count?: number | null; data: unknown[] | null; error: { message: string } | null }>,
+) {
+  let index = 0
+  const makeQuery = (result: (typeof results)[number]) => {
+    const query = new Proxy({}, {
+      get: (_target, property) => {
+        if (property === "then") {
+          return (
+            resolve: (value: typeof result) => unknown,
+            reject: (reason: unknown) => unknown,
+          ) => Promise.resolve(result).then(resolve, reject)
+        }
+        return () => query
+      },
+    })
+    return query
+  }
+
+  return {
+    from: () => makeQuery(results[index++] ?? { data: [], error: null }),
+  } as unknown as SupabaseClient
 }
 
 describe("business operating scorecard contract", () => {
   it("keeps the revenue model grounded in capacity, attribution, and hire-trigger metrics", () => {
     const revenueModel = readProjectFile("docs/REVENUE_MODEL.md")
 
-    expect(revenueModel).toContain("Operating Scorecard")
-    expect(revenueModel).toContain("Monthly gross revenue")
+    expect(revenueModel).toContain("Operating scorecard")
+    expect(revenueModel).toContain("Rolling 30-day net-retained revenue")
     expect(revenueModel).toContain("Paid order volume")
-    expect(revenueModel).toContain("CAC ceiling")
+    expect(revenueModel).toContain("first-order contribution")
     expect(revenueModel).toContain("Refund rate")
     expect(revenueModel).toContain("Chargeback rate")
     expect(revenueModel).toContain("Support tickets per 100 orders")
     expect(revenueModel).toContain("Doctor minutes per order")
     expect(revenueModel).toContain("Queue P95")
-    expect(revenueModel).toContain("Hire trigger state")
-    expect(revenueModel).toContain("Do not ramp ED or hair-loss paid traffic")
+    expect(revenueModel).toContain("Capacity review state")
+    expect(revenueModel).toContain("Every launched service remains a low-budget pilot")
+    expect(revenueModel).not.toContain("CAC ceiling")
   })
 
-  it("calculates live scorecard metrics from paid/refund/dispute/support/queue rows", () => {
+  it("uses canonical net retained while calculating the remaining live scorecard metrics", () => {
     const scorecard = buildBusinessOperatingScorecard({
       now: new Date("2026-06-01T00:00:00.000Z"),
+      rolling30DayNetRetainedCents: -2_500,
       paidIntakes: [
         {
           amount_cents: 1995,
@@ -65,15 +95,25 @@ describe("business operating scorecard contract", () => {
       queueWaitMinutes: [10, 80, 180],
     })
 
-    expect(scorecard.monthlyGrossCents.value).toBe(9985)
+    expect(scorecard.rolling30DayNetRetainedCents.value).toBe(-2_500)
     expect(scorecard.paidOrderVolume.value).toBe(3)
-    expect(scorecard.cacCeilingCents.value).toBe(999)
     expect(scorecard.refundRate.value).toBe(33.3)
     expect(scorecard.chargebackRate.value).toBe(33.3)
     expect(scorecard.supportTicketsPer100Orders.value).toBe(66.7)
     expect(scorecard.doctorMinutesPerOrder.value).toBe(14)
     expect(scorecard.queueP95Minutes.value).toBe(180)
-    expect(scorecard.hireTriggerState.status).toBe("triggered")
+    expect(scorecard.capacityReviewState.status).toBe("triggered")
+    expect(scorecard.capacityReviewState.triggeredBy).toContain("support load above 5/100 orders")
+  })
+
+  it("rejects an incomplete scorecard source instead of converting it to zero", async () => {
+    await expect(getBusinessOperatingScorecardSource(scorecardSourceClient([
+      { data: [], error: null },
+      { count: null, data: null, error: { message: "support read unavailable" } },
+      { data: [], error: null },
+    ]), new Date("2026-06-01T00:00:00.000Z"))).rejects.toThrow(
+      "Business scorecard source unavailable",
+    )
   })
 
   it("promotes the scorecard into the operator analytics product surface", () => {
@@ -82,8 +122,9 @@ describe("business operating scorecard contract", () => {
 
     expect(pageSource).toContain("getBusinessOperatingScorecard")
     expect(clientSource).toContain("Operating scorecard")
-    expect(clientSource).toContain("Monthly gross")
+    expect(clientSource).toContain("30d net retained")
     expect(clientSource).toContain("Support tickets/100 orders")
-    expect(clientSource).toContain("Hire trigger state")
+    expect(clientSource).toContain("Capacity review")
+    expect(clientSource).not.toContain("Max CAC @30%")
   })
 })

@@ -1,6 +1,8 @@
 # Organic + GEO Growth Plan: Beat NextClinic, Win the LLM-Citation Layer
 
-> **Date:** 2026-06-10 · **Status: AWAITING OPERATOR APPROVAL — nothing below is built/sent yet.**
+> **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
+
+> **Date:** 2026-06-10 · **Status: Reference only.** Superseded as an execution queue by `docs/ROADMAP.md`; ranks 3 and 6 own any future reputation, distribution, or evidence-led organic work. Nothing below is independently approved for build or send.
 > Produced from a 16-agent research workflow (3 verification agents against live GSC/Supabase/code, 7 competitor teardowns, 4 citation-surface maps, 2 GEO-mechanics researchers) plus operator constraints. Supersedes Phase 5 ("Organic, LLM, SEO, And Backlinks") of `docs/superpowers/plans/2026-06-06-customer-growth-phased-plan.md` for the organic/GEO lane. Companion execution kits that already exist and are folded in (not duplicated): `docs/audits/2026-06-04-citation-kit.md`, `docs/audits/2026-06-04-reactive-pr-kit.md`, `docs/audits/2026-06-06-authority-distribution-execution.md`.
 
 ---

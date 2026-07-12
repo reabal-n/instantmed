@@ -39,11 +39,12 @@ General Consult is retired publicly; the consult service type remains only as th
 **Audit narrative (must always remain true):**
 
 - Patient self-identifies symptoms and history
-- Platform assists intake and triage only
-- No automated clinical decisions are made
-- A clinician reviews every request
+- Platform supports intake, triage, and a logged, doctor-owned medical-certificate protocol
+- Prescribing decisions are always clinician-made; there is no protocol-based prescribing
+- Eligible low-risk medical certificates may be protocol-issued and then individually reviewed by a doctor within the governance window
+- AI does not prescribe or make an independent clinical outcome decision
 - Prescribing (if any) occurs entirely in Parchment (external)
-- The clinician remains fully responsible for clinical outcomes
+- The doctor remains accountable for protocol ownership, individual review, prescribing, and clinical outcomes
 
 ## Form-First Doctor Review Model
 
@@ -67,7 +68,7 @@ InstantMed's commercial moat is no booked appointment, no waiting room, and a se
 | Constraint | Rule |
 |-----------|------|
 | **Geography** | Australia only. Postcode-state validation via `lib/validation/australian-address.ts` |
-| **Age** | 18+ minimum. Parental/guardian consent for minors (Terms section 2) |
+| **Age** | Strictly 18+ for every paid service. Minors are not accepted, including with parental/guardian consent. Direct an under-18 patient to a GP with a parent or guardian. Authenticated and guest checkout enforce the same boundary before payment. |
 | **Medicare** | Optional for med certs. Required for prescriptions and consultations |
 | **Identity** | Name + DOB + address. No photo ID verification. Medicare Luhn check when provided |
 | **Hours** | The service operates 24/7: requests submit and review around the clock for every pathway (med-cert auto-approval runs at all hours; Rx/consult reviews run 7 days with variable timing). Public copy never states a review-hours window or a guaranteed response time. Internal target 1-2h review, 24h max. Never hard-block checkout by time of day |
@@ -85,11 +86,11 @@ InstantMed's commercial moat is no booked appointment, no waiting room, and a se
 
 ### Mandatory Outcomes
 
-Every request must end in exactly one clinician-selected outcome. No defaults. No silent automation.
+Every request must end in one accountable clinical outcome. Prescribing decisions and requests outside the medical-certificate protocol require a clinician-selected outcome before fulfilment. Eligible low-risk medical certificates may be issued through the logged, doctor-owned protocol and then require an individual doctor review outcome within the governance window. There are no unlogged or default clinical outcomes.
 
 | Outcome | Definition | Constraints |
 |---------|-----------|-------------|
-| **Approved** | Clinician satisfied request is clinically appropriate | No synchronous contact required; any prescribing occurs externally |
+| **Approved** | Clinician selects approval, or an eligible low-risk medical certificate is issued under the doctor-owned protocol pending individual governance review | No protocol-based prescribing; any prescribing decision is clinician-made and occurs externally |
 | **Needs Call** | Unclear, escalating, conflicting, or incomplete presentation | No prescribing until call occurs; this is the default when clinician is unsure |
 | **Declined** | Outside scope, unsafe, red-flag, or repeated misuse | Requires brief internal rationale; patient receives redirection advice |
 

@@ -193,7 +193,7 @@ const pricingFaqs = [
       {
         question: "Can I use InstantMed for my family members?",
         answer:
-          "Each request must be submitted by, or on behalf of, the individual patient. You can submit a request for a dependent (such as a child with parental consent), but each person needs their own profile. You can\u2019t use a single account to get certificates for multiple adults.",
+          "Each patient must be 18 or older and submit a request through their own profile. You can\u2019t use one account to request care for another adult or for a child. If a minor needs medical care or school documentation, contact their GP or another paediatric-capable service.",
       },
 ]
 

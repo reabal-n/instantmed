@@ -56,7 +56,7 @@ const whyInstantFaqs = [
   {
     question: "Are you cutting corners to be faster?",
     answer:
-      "No. The form is structured to capture the same clinical information a doctor would gather in a 14-minute appointment. Every request is reviewed by an AHPRA-registered doctor, not an algorithm. The speed comes from removing the booking, the waiting room, and the small talk, not from removing clinical review.",
+      "No. The form captures the information needed for the relevant clinical pathway. AHPRA-registered doctors make prescribing decisions. Eligible low-risk medical certificates may follow a logged doctor-owned protocol and are individually reviewed afterward. The speed comes from removing booking and waiting-room friction, not accountability.",
   },
   {
     question: "Will my GP appointment ever be replaced by InstantMed?",
@@ -82,9 +82,9 @@ const whyInstantFaqs = [
 const honestFastFeatures: FeatureItem[] = [
   {
     icon: <StickerIcon name="user-check" size={48} />,
-    title: "Real doctor, every request",
+    title: "Doctor-owned clinical process",
     description:
-      "Every request is reviewed by an AHPRA-registered Australian doctor. No algorithmic auto-approval, no AI-only decisions.",
+      "AHPRA-registered doctors make prescribing decisions. Eligible low-risk medical certificates may follow a logged doctor-owned protocol and are individually reviewed afterward. AI does not prescribe.",
   },
   {
     icon: <StickerIcon name="clock" size={48} />,

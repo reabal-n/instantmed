@@ -57,17 +57,17 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 | [docs/PRIMITIVES.md](../PRIMITIVES.md) | Marketing primitives registry (social proof, badges, pricing, FAQ, wait times) | `code-clean-retirement-contract` |
 | [docs/CLINICAL.md](../CLINICAL.md) | Clinical boundaries, prescribing rules, AI limits, consent, APP privacy | Code headers across `lib/clinical/`, `lib/ai/` |
 | [docs/SECURITY.md](../SECURITY.md) | PHI encryption, RLS, rate limiting, audit logging, kill switches | Code header in `lib/config/kill-switches.ts` |
-| [docs/OPERATIONS.md](../OPERATIONS.md) | Incident response, cron jobs, debugging, env vars, rollback runbook | `cron-surface-contract`; `code-clean-retirement-contract`; `password-reset-flow-contract` |
+| [docs/OPERATIONS.md](../OPERATIONS.md) | Incident response, cron jobs, debugging, env vars, rollback runbook, Google Ads daily approval/mutation workflow | `cron-surface-contract`; `code-clean-retirement-contract`; `password-reset-flow-contract` |
 | [docs/TESTING.md](../TESTING.md) | Unit + E2E test conventions, auth bypass, coverage rules | `project-docs-drift-contract` |
-| [docs/BUSINESS_PLAN.md](../BUSINESS_PLAN.md) | Current business strategy + non-negotiable business decisions | `service-launch-checklists-contract`; `advertising-compliance-guard` |
-| [docs/REVENUE_MODEL.md](../REVENUE_MODEL.md) | $1M one-off revenue model, service mix, unit economics | `code-clean-retirement-contract` |
+| [docs/BUSINESS_PLAN.md](../BUSINESS_PLAN.md) | Sole durable strategy owner: positioning, service boundaries, business model, owner-doctor model | `service-launch-checklists-contract`; `advertising-compliance-guard`; `project-docs-drift-contract` |
+| [docs/REVENUE_MODEL.md](../REVENUE_MODEL.md) | Sole revenue-economics owner: `$2k -> $5k -> $10k` milestones, contribution formula, paid-scaling and hiring gates | `code-clean-retirement-contract`; `project-docs-drift-contract` |
 | [docs/ADVERTISING_COMPLIANCE.md](../ADVERTISING_COMPLIANCE.md) | Google/AHPRA/TGA paid acquisition rules | `advertising-compliance-guard` |
 | [docs/SEO_CONTENT_POLICY.md](../SEO_CONTENT_POLICY.md) | Organic educational content rules, guide-only article rules | `advertising-compliance-guard` |
 | [docs/ARTICLE_TEMPLATE.md](../ARTICLE_TEMPLATE.md) | Health-guide authoring standard: archetypes, component caps, visual system, per-page workflow, indexing gate | none yet (PR 1 adds audit enforcement) |
 | [docs/PRODUCTION_RELEASE_CHECKLIST.md](../PRODUCTION_RELEASE_CHECKLIST.md) | Pre-promotion gates (quality + dashboard + clinical + payments + ops) | `release-check-contract` |
-| [docs/SERVICE_LAUNCH_CHECKLISTS.md](../SERVICE_LAUNCH_CHECKLISTS.md) | Repeat-script / ED / hair-loss / women's-health production launch gates | `service-launch-checklists-contract` |
+| [docs/SERVICE_LAUNCH_CHECKLISTS.md](../SERVICE_LAUNCH_CHECKLISTS.md) | Repeat-script / ED / hair-loss / women's-health bounded-pilot and paid-scaling gates | `service-launch-checklists-contract` |
 | [docs/DESIGN_SYSTEM_CHANGELOG.md](../DESIGN_SYSTEM_CHANGELOG.md) | Versioned design-system changelog | `release-check-contract` |
-| [docs/ROADMAP.md](../ROADMAP.md) | Internal product roadmap: operating phase, last-90-days shipped, active priorities, expansion gates | `project-docs-drift-contract` (phase label + Last refreshed stamp + backlog provenance link) |
+| [docs/ROADMAP.md](../ROADMAP.md) | Sole active queue: current phase, ordered priorities, status, checkpoints, operator cadence | `project-docs-drift-contract` (authority + phase + Last refreshed stamp + archived-plan boundary) |
 | [docs/DOCTOR_ONBOARDING.md](../DOCTOR_ONBOARDING.md) | Technical onboarding for new clinicians: capability flags, AHPRA, Parchment linking, identity gates, service-line verification | `project-docs-drift-contract` (7 capability flag keys + AHPRA regex + Parchment env-var floor) |
 | [docs/PHI_KEY_ROTATION_DESIGN.md](../PHI_KEY_ROTATION_DESIGN.md) | DESIGN ONLY (2026-05-24). Three-phase PHI master-key rotation: dual-key reads + operator-paced key swap + optional re-encryption batch. Not yet implemented; operator approval required per phase. | none yet (design doc; will need `phi-key-rotation-contract` when Phase 1 ships) |
 
@@ -113,32 +113,31 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 | [docs/audits/2026-07-08-geo-citation-execution.md](../audits/2026-07-08-geo-citation-execution.md) | GEO citation execution record: NHSD listing verification, drift found, profile copy, and comparison outreach draft |
 | [docs/audits/2026-07-09-comparison-surface-submission-kit.md](../audits/2026-07-09-comparison-surface-submission-kit.md) | Submission-ready comparison-surface kit for MediCompare and Finder: channels, assets, dated fact sheet, outreach drafts, and marketing-compliance review |
 
-## docs/plans/ — active
+## docs/plans/ — implementation records (non-authoritative)
 
 | File | Purpose |
 |------|---------|
-| [docs/plans/2026-03-25-blood-test-referrals.md](../plans/2026-03-25-blood-test-referrals.md) | Active root copy of blood-test referrals plan |
-| [docs/plans/2026-04-06-revenue-engagement-design.md](../plans/2026-04-06-revenue-engagement-design.md) | Active root copy of revenue engagement design |
-| [docs/plans/2026-04-06-revenue-engagement-plan.md](../plans/2026-04-06-revenue-engagement-plan.md) | Active root copy of revenue engagement plan |
-| [docs/plans/2026-04-13-god-component-decomposition.md](../plans/2026-04-13-god-component-decomposition.md) | Active root copy of god-component decomposition plan |
-| [docs/plans/2026-04-13-lib-restructure-and-script-wiring.md](../plans/2026-04-13-lib-restructure-and-script-wiring.md) | Active root copy of lib restructure and script-wiring plan |
-| [docs/plans/2026-04-20-design-system-95-sprint.md](../plans/2026-04-20-design-system-95-sprint.md) | Active root copy of design-system sprint plan |
-| [docs/plans/2026-05-04-health-guides-rehaul.md](../plans/2026-05-04-health-guides-rehaul.md) | Active root copy of health-guides rehaul plan |
-| [docs/plans/2026-05-20-admin-ops-cockpit-reshape-design.md](../plans/2026-05-20-admin-ops-cockpit-reshape-design.md) | Active root copy of admin ops cockpit reshape design |
-| [docs/plans/2026-05-20-admin-ops-cockpit-reshape-plan.md](../plans/2026-05-20-admin-ops-cockpit-reshape-plan.md) | Active root copy of admin ops cockpit reshape plan |
-| [docs/plans/2026-05-20-staff-cockpit-overhaul-design.md](../plans/2026-05-20-staff-cockpit-overhaul-design.md) | Active root copy of staff cockpit overhaul design |
-| [docs/plans/2026-05-20-staff-cockpit-overhaul-plan.md](../plans/2026-05-20-staff-cockpit-overhaul-plan.md) | Active root copy of staff cockpit overhaul plan |
-| [docs/plans/2026-05-23-archived-plan-followups.md](../plans/2026-05-23-archived-plan-followups.md) | Active backlog stub: 6 open follow-ups carried out of archived plans (lib restructure deferrals + health guides remaining rewrite + /admin/ops release feed idea) |
-| [docs/plans/2026-05-23-doc-cleanup-plan.md](../plans/2026-05-23-doc-cleanup-plan.md) | Active root copy of doc cleanup plan |
-| [docs/plans/2026-05-23-doc-content-audit-plan.md](../plans/2026-05-23-doc-content-audit-plan.md) | Active root copy of doc content audit plan |
+| [docs/plans/2026-03-25-blood-test-referrals.md](../plans/2026-03-25-blood-test-referrals.md) | Historical blood-test referrals implementation record |
+| [docs/plans/2026-04-06-revenue-engagement-design.md](../plans/2026-04-06-revenue-engagement-design.md) | Historical revenue engagement design record |
+| [docs/plans/2026-04-06-revenue-engagement-plan.md](../plans/2026-04-06-revenue-engagement-plan.md) | Historical revenue engagement implementation record |
+| [docs/plans/2026-04-13-god-component-decomposition.md](../plans/2026-04-13-god-component-decomposition.md) | Historical decomposition implementation record |
+| [docs/plans/2026-04-13-lib-restructure-and-script-wiring.md](../plans/2026-04-13-lib-restructure-and-script-wiring.md) | Historical library-restructure implementation record |
+| [docs/plans/2026-04-20-design-system-95-sprint.md](../plans/2026-04-20-design-system-95-sprint.md) | Historical design-system sprint record |
+| [docs/plans/2026-05-04-health-guides-rehaul.md](../plans/2026-05-04-health-guides-rehaul.md) | Historical health-guide rehaul record |
+| [docs/plans/2026-05-20-admin-ops-cockpit-reshape-design.md](../plans/2026-05-20-admin-ops-cockpit-reshape-design.md) | Historical admin-ops design record |
+| [docs/plans/2026-05-20-admin-ops-cockpit-reshape-plan.md](../plans/2026-05-20-admin-ops-cockpit-reshape-plan.md) | Historical admin-ops implementation record |
+| [docs/plans/2026-05-20-staff-cockpit-overhaul-design.md](../plans/2026-05-20-staff-cockpit-overhaul-design.md) | Historical staff-cockpit design record |
+| [docs/plans/2026-05-20-staff-cockpit-overhaul-plan.md](../plans/2026-05-20-staff-cockpit-overhaul-plan.md) | Historical staff-cockpit implementation record |
+| [docs/plans/2026-05-23-archived-plan-followups.md](../plans/2026-05-23-archived-plan-followups.md) | Reference-only deferred-item inventory; ROADMAP decides activation |
+| [docs/plans/2026-05-23-doc-cleanup-plan.md](../plans/2026-05-23-doc-cleanup-plan.md) | Historical documentation cleanup record |
+| [docs/plans/2026-05-23-doc-content-audit-plan.md](../plans/2026-05-23-doc-content-audit-plan.md) | Historical documentation audit record |
 | [docs/plans/2026-05-26-minimal-slide-modal-design.md](../plans/2026-05-26-minimal-slide-modal-design.md) | Design doc for the 2026-05-26 cockpit cleanup bundle (2-day auto-approve widening, single-column slide modal, ED prescription preset). |
 | [docs/plans/2026-05-26-minimal-slide-modal-plan.md](../plans/2026-05-26-minimal-slide-modal-plan.md) | 8-task TDD implementation plan companion to the 2026-05-26 design doc. |
-| [docs/plans/2026-06-10-organic-geo-beat-nextclinic-plan.md](../plans/2026-06-10-organic-geo-beat-nextclinic-plan.md) | 90-day organic + GEO/LLM-citation growth plan (beat-NextClinic teardown, citation-layer sequence, verify-loop, ads-resume gate). Awaiting operator approval. |
-| [docs/plans/2026-06-10-content-mimic-map.md](../plans/2026-06-10-content-mimic-map.md) | NextClinic→InstantMed content mimic map: deepen-and-reindex / write-new (ED+hair) / net-new-elevate (employer-verify, one-off-vs-subscription, cost) / skip / park buckets + metered sequence. Companion to the GEO plan. Awaiting operator approval. |
-| [docs/plans/2026-07-09-intake-dropoff-final-plan.md](../plans/2026-07-09-intake-dropoff-final-plan.md) | Reconciled intake drop-off reduction plan: PostHog-backed P0/P1/P2 sequence for med-cert, mobile CTA, validation instrumentation, ED age gate, symptoms, review, patient-details, and repeat-Rx work. Awaiting build green-light. |
-| [docs/plans/2026-07-12-cleanup-and-scale-roadmap.md](../plans/2026-07-12-cleanup-and-scale-roadmap.md) | Operator-directed cleanup + scale roadmap: 4 demand levers in priority (AI-citation → reactivation → gated paid ads → SEO depth), each a separate session, + a cleanup track (open audit findings → reliability/perf → tech-debt sweep). Session-pickup format. |
+| [docs/plans/2026-06-10-organic-geo-beat-nextclinic-plan.md](../plans/2026-06-10-organic-geo-beat-nextclinic-plan.md) | Reference-only organic + GEO/LLM-citation research and sequence; ROADMAP ranks 3 and 6 decide activation |
+| [docs/plans/2026-06-10-content-mimic-map.md](../plans/2026-06-10-content-mimic-map.md) | Reference content map; no independent execution authority |
+| [docs/plans/2026-07-09-intake-dropoff-final-plan.md](../plans/2026-07-09-intake-dropoff-final-plan.md) | Reference intake-dropoff implementation plan; no independent execution authority |
 
-Some active root plan files also have archived copies. Keep this mapped until the plan-retention decision is reconciled.
+Root plan files preserve implementation detail only. They are not active merely because they remain outside the archive; `docs/ROADMAP.md` is the sole queue.
 
 ## docs/superpowers/plans/ — 10
 

@@ -277,10 +277,9 @@ export default function PrivacyPage() {
 
                 <LegalSection number="11" title="Children's Privacy">
                   <p>
-                    Our services are intended for individuals aged 18 and over. We do not knowingly collect
-                    personal information from individuals under 18 without verified parental or guardian
-                    consent. If you believe a minor has provided us with personal information without
-                    appropriate consent, please contact us immediately.
+                    Our services accept patients aged 18 and over only. We do not knowingly collect patient
+                    information from individuals under 18. If you believe a minor has provided us with
+                    personal information, please contact us immediately so we can handle it appropriately.
                   </p>
                 </LegalSection>
 

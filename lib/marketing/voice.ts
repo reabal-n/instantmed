@@ -129,7 +129,7 @@ export const OWNED_PHRASES = [
   "Real doctors. No runaround.",
   "A doctor, not a queue.",
   "AHPRA doctors. Every single time.",
-  "Reviewed, not robo-approved.",
+  "Doctor-owned. Clearly explained.",
   "Fill it out. Get on with it.",
 ] as const
 

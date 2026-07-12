@@ -145,7 +145,7 @@ const HOW_IT_WORKS_FAQ = [
   { question: "Do I need a Medicare card?", answer: "For medical certificates, no. For prescriptions and consultations, Medicare details are requested for identity and prescribing history verification, but this is a private service." },
   { question: "What if my request is declined?", answer: `${GUARANTEE} If your situation requires in-person care or falls outside telehealth scope, the doctor will recommend appropriate next steps.` },
   { question: "Is my information private?", answer: "Completely. Your health data is encrypted with bank-level security and never shared with employers, insurers, or anyone else without your consent." },
-  { question: "Can I use this for my kids?", answer: "We primarily serve adults (18+). Minors may be assessed with parental consent for certain services, but complex paediatric cases should be seen by a GP in person." },
+  { question: "Can I use this for my kids?", answer: "No. InstantMed currently accepts patients aged 18 and over only. Contact your child's GP or another paediatric-capable service for assessment or school documentation." },
   { question: "How do I receive my documents?", answer: "Medical certificates are emailed as PDFs and available in your patient dashboard. Prescriptions are sent as eScripts via SMS. Take your phone to any pharmacy." },
   { question: "Is this available outside major cities?", answer: "Yes. InstantMed works anywhere in Australia with internet access. Regional, rural, and remote patients use our service regularly." },
   { question: "What hours are you open?", answer: "The online request flow is open 24/7. Submit when it suits you, including weekends and public holidays. Doctor review follows when a doctor is available." },
@@ -172,17 +172,16 @@ export function HowItWorksContent() {
           subtitle="Submit your request online. A real Australian doctor reviews it and determines the best way to help you. Convenient, but still thorough."
         />
 
-        {/* Page superpower — the asynchronous-but-not-automated promise.
-            "Convenient" reads like a hedge in the subhead; this anchors the
-            two beats that actually matter: it's fast AND a real doctor. */}
+        {/* Page superpower — a clear accountability promise across both the
+            doctor-review and eligible medical-certificate protocol paths. */}
         <ServiceClaimSection
-          eyebrow="Convenient, not automated"
+          eyebrow="Doctor-owned at every step"
           headline={
             <>
-              <span className="text-primary">Async</span>, but never algorithmic.
+              <span className="text-primary">Form-first</span>, with clear accountability.
             </>
           }
-          body="A real AHPRA-registered Australian doctor reviews every request. They read your full history. They make the call. The only thing the software does is move the request from your screen to theirs and back."
+          body="AHPRA-registered doctors make prescribing decisions. Eligible low-risk medical certificates may be issued under a logged doctor-owned protocol and each is individually reviewed afterward. AI does not prescribe."
         />
 
         {/* Process Steps */}

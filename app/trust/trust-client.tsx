@@ -44,7 +44,7 @@ const trustFAQs = [
   },
   {
     question: "Is this actually reviewed by a doctor, or is it automated?",
-    answer: "Every single request is reviewed by a qualified, AHPRA-registered Australian doctor who makes an independent clinical decision. There are no automated approvals - ever.",
+    answer: "Prescribing decisions are made by AHPRA-registered doctors. Eligible low-risk medical-certificate requests may be issued under a doctor-owned protocol and each is individually reviewed afterward. AI does not prescribe or make independent clinical decisions.",
   },
   {
     question: "What if I'm not happy with the service?",
@@ -321,14 +321,14 @@ export default function TrustPage() {
         <section className="py-20 px-4">
           <div className="mx-auto max-w-3xl text-center lg:text-left">
             <Heading level="h1" as="h2">
-              Clear process. <span className="text-primary">No automated</span> approvals.
+              Clear process. <span className="text-primary">Named accountability</span>.
             </Heading>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              Every request is reviewed by a human doctor who reads your full medical history and makes an independent clinical decision. If something doesn&apos;t look right, they&apos;ll contact you directly.
+              AHPRA-registered doctors make prescribing decisions. Eligible low-risk medical certificates may follow a logged doctor-owned protocol and are individually reviewed afterward. If something doesn&apos;t look right, the request goes to a doctor.
             </p>
             <ul className="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-3">
               {[
-                "Every request is human-reviewed",
+                "Every certificate is individually reviewed",
                 "General complaints responded to within 48 hours",
                 GUARANTEE,
                 "Escalation to Health Complaints Commissioner",

@@ -1,5 +1,7 @@
 # Minimal slide modal + ED rec + auto-approve fixes: Implementation Plan
 
+> **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Three bundled fixes to the doctor intake-review surface. Widen med-cert auto-approve to 2 days, replace the empty `( minutes remaining)` claim banner, collapse the cockpit tabs to a single column, and replace the generic ED Parchment-preset hint with a concrete medication recommendation derived from the patient's stated treatment preference.

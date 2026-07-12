@@ -1,5 +1,7 @@
 # Design System 95-Readiness Sprint
 
+> **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Close the 83→95 gap between the documented design system and shipping code. Unify service-icon system, kill prohibited colour/shadow drift, ship missing tooling, fix dark-mode regressions, normalise pickers, add trust strip, and lock it all down against future drift.

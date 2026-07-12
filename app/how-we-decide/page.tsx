@@ -22,7 +22,7 @@ import { GUARANTEE } from "@/lib/marketing/voice"
 const howWeDecideFaqs = [
   {
     question: "Does a real doctor review every request?",
-    answer: "Yes, every single one. No automated approvals, no AI making clinical decisions. An AHPRA-registered doctor reviews your information and makes a clinical judgement - the same way they would in a face-to-face consultation.",
+    answer: "Yes. Prescribing requests receive clinician review before a decision. Eligible low-risk medical certificates may be issued under a doctor-owned protocol and are individually reviewed afterward. AI does not prescribe or make independent clinical decisions.",
   },
   {
     question: "How long does the review take?",
@@ -38,7 +38,7 @@ const howWeDecideFaqs = [
   },
   {
     question: "Do you use AI in the decision-making process?",
-    answer: "AI assists with intake and information gathering - helping you describe your symptoms and organising your medical history for the doctor. All clinical decisions are made by human doctors. AI never approves, declines, or influences a clinical outcome.",
+    answer: "AI may assist with intake and information organisation. It does not prescribe. Eligible low-risk medical-certificate issuance uses a logged, deterministic doctor-owned protocol rather than an AI decision, and each certificate is individually reviewed afterward.",
   },
   {
     question: "What happens to my data after the review?",
@@ -65,11 +65,11 @@ const howWeDecideFaqs = [
 export const metadata: Metadata = {
   title: "How Doctors Review Your Request | Our Process",
   description:
-    "How AHPRA-registered doctors assess your request, why some are declined, and how we prioritise safety. Real medical judgment, not algorithms.",
+    "How AHPRA-registered doctors assess prescribing requests, how the doctor-owned medical-certificate protocol works, and why some requests need more review.",
   openGraph: {
     title: "How We Make Decisions | InstantMed",
     description:
-      "Every request is reviewed by a real Australian doctor. Here's what they look at and how they decide.",
+      "Prescribing decisions are made by Australian doctors. Eligible protocol-issued medical certificates are individually reviewed afterward.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/how-we-decide",
@@ -191,7 +191,7 @@ export default function HowWeDecidePage() {
           pill="Our Process"
           title="Every request gets a real review"
           highlightWords={["real review"]}
-          subtitle="No algorithms deciding your health. No rubber stamps. Just a doctor looking at your request and making a call - the same way they would if you were sitting across from them."
+          subtitle="Prescribing decisions are made by a doctor. Eligible low-risk medical certificates may follow a logged doctor-owned protocol, with individual review afterward."
         />
 
         <CitationFacts variant="muted" />

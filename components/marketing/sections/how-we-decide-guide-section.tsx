@@ -20,7 +20,7 @@ const GUIDE_SECTIONS: Array<{
     sticker: "checklist",
     title: "The clinical decision-making process",
     paragraphs: [
-      "Every request submitted through InstantMed goes through a structured clinical assessment by an AHPRA-registered doctor. There are no automated approvals, no AI making clinical calls, and no shortcuts. The doctor reviews your reported symptoms, medical history, current medications, and the specific service you've requested - then applies clinical guidelines to determine whether your request is appropriate.",
+      "Every request submitted through InstantMed follows a doctor-owned clinical pathway. Prescribing decisions are made by an AHPRA-registered doctor. Eligible low-risk medical-certificate requests may be issued under a doctor-owned protocol and are individually reviewed afterward. AI does not prescribe or make independent clinical decisions.",
       "This is the same standard of care you'd receive at an in-person consultation. The difference is the delivery method, not the rigour. A doctor sitting across from you in a clinic asks questions, listens to your answers, and applies their training and experience to make a decision. That's exactly what happens here - just without the waiting room magazines and the fifteen-minute drive.",
       "Doctors aren't incentivised to approve or decline. They're paid the same either way. The only thing that matters is whether the request is clinically appropriate. If it is, they approve it. If it isn't, they don't. That's not a policy statement - it's just how medicine works when you remove the wrong incentives.",
     ],
