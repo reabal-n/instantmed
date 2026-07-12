@@ -158,6 +158,9 @@ describe("doctor navigation contract", () => {
       "Identity",
       "Operations",
     ])
+    // The admin-only "Operations" extra must open the ops cockpit — pointing
+    // it at /dashboard duplicated the Queue entry (two mobile items, one page).
+    expect(operatorNavSource).toContain('{ href: STAFF_OPS_HREF, label: "Operations"')
     expect(mobileNavSource).toContain("isAdmin")
     expect(mobileNavSource).toContain("useSearchParams")
     expect(mobileNavSource).toContain("getStaffNavHrefStatus")

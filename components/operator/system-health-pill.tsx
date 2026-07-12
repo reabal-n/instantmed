@@ -28,8 +28,10 @@ import { cn } from "@/lib/utils"
  * Renders a colored dot + count in the header; clicking opens a popover with
  * the breakdown and deep links to the relevant ops surface.
  *
- * Polls /api/admin/system-health every 45s. Failure-tolerant: if the endpoint
- * is unreachable, the pill stays at last-known state rather than flashing red.
+ * Polls /api/admin/system-health every 90s (POLL_INTERVAL_MS is the single
+ * source of truth — keep this comment and the popover copy in sync with it).
+ * Failure-tolerant: if the endpoint is unreachable, the pill stays at
+ * last-known state rather than flashing red.
  */
 export interface SystemHealth {
   stuckIntakes: number
@@ -193,7 +195,8 @@ export function SystemHealthPill({ initial }: { initial?: SystemHealth }) {
         </div>
 
         <p className="mt-1 text-xs text-muted-foreground">
-          Polls every 45 seconds. Click a row to investigate.
+          {/* Keep in sync with POLL_INTERVAL_MS above. */}
+          Polls every {POLL_INTERVAL_MS / 1000} seconds. Click a row to investigate.
         </p>
 
         <div className="mt-3 space-y-1">
