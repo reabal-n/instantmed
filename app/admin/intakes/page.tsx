@@ -17,6 +17,7 @@ import {
 } from "@/lib/dashboard/admin-work-lanes"
 import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { getAllIntakesForAdmin } from "@/lib/data/intakes"
+import { buildCaseRowAttribution } from "@/lib/operator/cases/case-attribution"
 import {
   ADMIN_SERVICE_FILTER_OPTIONS,
   type AdminServiceFilterValue,
@@ -86,6 +87,17 @@ export default async function AdminIntakeLedgerPage({
     ? results[0].value
     : { data: [] as IntakeWithPatient[], total: 0, page: 1, pageSize: 50 }
 
+  // Classify acquisition source SERVER-side and ship only the tiny precomputed
+  // label per row. Doing this in the client mapper would pull the 10-group
+  // classifier (+ the heard-about-us module) into the ledger's first-load JS —
+  // the exact bundle-budget class this route's gate exists to catch.
+  const intakesWithAttribution = intakesResult.data.map((intake) => ({
+    ...intake,
+    attribution: buildCaseRowAttribution(
+      intake as Parameters<typeof buildCaseRowAttribution>[0],
+    ),
+  }))
+
   return (
     <PanelProvider>
       <OperatorPage>
@@ -104,7 +116,7 @@ export default async function AdminIntakeLedgerPage({
           <div id="intakes" className="min-h-[520px]">
             <Suspense fallback={null}>
               <AdminIntakesLedgerClient
-                allIntakes={intakesResult.data || []}
+                allIntakes={intakesWithAttribution}
                 initialFilters={initialFilters}
               />
             </Suspense>
