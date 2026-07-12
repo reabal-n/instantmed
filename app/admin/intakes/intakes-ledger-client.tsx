@@ -26,6 +26,7 @@ import {
   formatRenewalMatchTitle,
   type RenewalMatch,
 } from "@/lib/doctor/renewal-format"
+import type { CaseRowAttribution } from "@/lib/operator/cases/case-attribution"
 import { computeLedgerDailyAggregate } from "@/lib/operator/cases/daily-aggregate"
 import { getPaymentRecoveryIndicator } from "@/lib/operator/cases/payment-recovery-indicator"
 import {
@@ -173,6 +174,9 @@ function mapToCaseRow(intake: LedgerRow): CaseRowData {
     paymentStatus,
     amountCents: (intake as { amount_cents?: number | null }).amount_cents ?? null,
     refundAmountCents: (intake as { refund_amount_cents?: number | null }).refund_amount_cents ?? null,
+    // Precomputed on the server (app/admin/intakes/page.tsx) so the 10-group
+    // classifier stays out of the ledger's client bundle.
+    attribution: (intake as { attribution?: CaseRowAttribution | null }).attribution ?? null,
   }
 }
 
