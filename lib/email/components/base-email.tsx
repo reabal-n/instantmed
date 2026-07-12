@@ -33,9 +33,9 @@ interface BaseEmailProps {
   showReviewCTA?: boolean
   /** Show the referral CTA after content. Default false. */
   showReferral?: boolean
-  /** Intake ID for PostHog tracking attribution. */
+  /** Deprecated compatibility input. Review tracking is aggregate-only. */
   intakeId?: string
-  /** User ID for PostHog tracking attribution. */
+  /** Deprecated compatibility input. Review tracking is aggregate-only. */
   userId?: string
   /**
    * Signed heard-about-us token. When present, renders the one-click
@@ -45,7 +45,7 @@ interface BaseEmailProps {
   heardToken?: string
 }
 
-export function BaseEmail({ children, previewText, appUrl = APP_URL, showReviewCTA = false, showReferral = false, intakeId, userId, heardToken }: BaseEmailProps) {
+export function BaseEmail({ children, previewText, appUrl = APP_URL, showReviewCTA = false, showReferral = false, heardToken }: BaseEmailProps) {
   const resolvedAppUrl = resolveConfiguredUrl(appUrl, APP_URL).replace(/\/$/, "")
   return (
     <html lang="en-AU" style={{ colorScheme: "light dark" }}>
@@ -239,7 +239,7 @@ export function BaseEmail({ children, previewText, appUrl = APP_URL, showReviewC
                         }}
                       >
                         {children}
-                        {showReviewCTA && <GoogleReviewCTA appUrl={resolvedAppUrl} intakeId={intakeId} userId={userId} />}
+                        {showReviewCTA && <GoogleReviewCTA appUrl={resolvedAppUrl} />}
                         {heardToken && <HeardAboutUsLinks appUrl={resolvedAppUrl} token={heardToken} />}
                         {showReferral && <ReferralCTA appUrl={resolvedAppUrl} />}
                       </td>

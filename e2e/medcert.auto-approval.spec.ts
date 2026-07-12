@@ -8,7 +8,6 @@
  */
 
 import { expect,test } from "@playwright/test"
-import { randomUUID } from "crypto"
 
 import {
   cleanupTestIntake,
@@ -29,6 +28,7 @@ const AUTO_APPROVAL_FLAGS = {
   auto_approve_dry_run: false,
 } as const
 const E2E_MED_CERT_SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
+const AUTO_APPROVAL_PATIENT_ID = "e2e00000-0000-0000-0000-0000000000a2"
 const E2E_SECRET = process.env.E2E_SECRET || "e2e-test-secret-local"
 
 type FeatureFlagKey = keyof typeof AUTO_APPROVAL_FLAGS
@@ -47,13 +47,12 @@ function todayInSydney(): string {
 }
 
 async function createAutoApprovalPatient(): Promise<string> {
-  const patientId = randomUUID()
   const { error } = await getSupabaseClient()
     .from("profiles")
-    .insert({
-      id: patientId,
+    .upsert({
+      id: AUTO_APPROVAL_PATIENT_ID,
       auth_user_id: null,
-      email: `e2e-auto-${patientId.slice(0, 8)}@test.instantmed.com.au`,
+      email: "e2e-auto-approval@instantmed-e2e.test",
       full_name: "E2E Auto Approval Patient",
       date_of_birth: "1990-06-20",
       role: "patient",
@@ -68,13 +67,13 @@ async function createAutoApprovalPatient(): Promise<string> {
       medicare_number: "2123456701",
       medicare_irn: 1,
       medicare_expiry: "2028-12-01",
-    })
+    }, { onConflict: "id" })
 
   if (error) {
     throw new Error(`Failed to seed auto-approval patient: ${error.message}`)
   }
 
-  return patientId
+  return AUTO_APPROVAL_PATIENT_ID
 }
 
 async function deleteAutoApprovalPatient(patientId: string | null): Promise<void> {
@@ -103,6 +102,7 @@ async function seedPaidMedCertIntake(patientId: string): Promise<string> {
       payment_id: `pi_e2e_auto_${Date.now().toString(36)}`,
       category: "medical_certificate",
       amount_cents: 1995,
+      exclude_from_reporting: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })

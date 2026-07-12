@@ -64,7 +64,7 @@ describe("editPaidRequestTelegramMessageToApproved", () => {
     expect(mocks.editTelegramMessageToApproved).not.toHaveBeenCalled()
   })
 
-  it("calls the Telegram editor with the composed service name (med cert + duration)", async () => {
+  it("calls the Telegram editor without reading or forwarding intake answers", async () => {
     mocks.createServiceRoleClient.mockReturnValue(
       makeSupabaseStub({
         paid_request_telegram_message_id: 99,
@@ -72,16 +72,15 @@ describe("editPaidRequestTelegramMessageToApproved", () => {
         subtype: null,
       }),
     )
-    mocks.getIntakeAnswers.mockResolvedValueOnce({ duration: "3" })
-
     const { editPaidRequestTelegramMessageToApproved } = await import("@/lib/notifications/edit-paid-request-telegram")
     await editPaidRequestTelegramMessageToApproved(INTAKE_ID)
 
     expect(mocks.editTelegramMessageToApproved).toHaveBeenCalledWith(99, {
       serviceSlug: "med-cert-sick",
       subtype: undefined,
-      serviceDetail: "3 days",
+      serviceDetail: undefined,
     })
+    expect(mocks.getIntakeAnswers).not.toHaveBeenCalled()
   })
 
   it("swallows errors so callers (approval action) never see a throw", async () => {
@@ -132,11 +131,11 @@ describe("editPaidRequestTelegramMessageToDeclined", () => {
         subtype: null,
       }),
     )
-    mocks.getIntakeAnswers.mockResolvedValueOnce({ duration: "1" })
     mocks.editTelegramMessageToDeclined.mockRejectedValueOnce(new Error("Telegram down"))
 
     const { editPaidRequestTelegramMessageToDeclined } = await import("@/lib/notifications/edit-paid-request-telegram")
     await expect(editPaidRequestTelegramMessageToDeclined(INTAKE_ID)).resolves.toBeUndefined()
+    expect(mocks.getIntakeAnswers).not.toHaveBeenCalled()
   })
 })
 
@@ -153,16 +152,15 @@ describe("editPaidRequestTelegramMessageToNeedsManualReview", () => {
         subtype: null,
       }),
     )
-    mocks.getIntakeAnswers.mockResolvedValueOnce({ duration: "2" })
-
     const { editPaidRequestTelegramMessageToNeedsManualReview } = await import("@/lib/notifications/edit-paid-request-telegram")
     await editPaidRequestTelegramMessageToNeedsManualReview(INTAKE_ID)
 
     expect(mocks.editTelegramMessageToNeedsManualReview).toHaveBeenCalledWith(21, {
       serviceSlug: "med-cert-sick",
       subtype: undefined,
-      serviceDetail: "2 days",
+      serviceDetail: undefined,
     })
+    expect(mocks.getIntakeAnswers).not.toHaveBeenCalled()
   })
 
   it("no-ops cleanly when the row has no Telegram message_id (notification never sent)", async () => {

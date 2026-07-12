@@ -3,7 +3,6 @@ import "server-only"
 import * as Sentry from "@sentry/nextjs"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { getIntakeAnswers } from "@/lib/data/intake-answers"
 import {
   isLikelyE2EIntakeMarkers,
   isLikelyTestPatientIdentity,
@@ -79,26 +78,6 @@ export function resolvePaidRequestServiceSlug(input: {
   }
 
   return ""
-}
-
-export function resolvePaidRequestServiceDetail(input: {
-  category?: string | null
-  subtype?: string | null
-  answers?: Record<string, unknown> | null
-}): string | null {
-  const { category, answers } = input
-  if (!answers) return null
-
-  if (category === "med_certs" || category === "medical_certificate") {
-    const raw = answers.duration
-    const days = typeof raw === "string" ? raw : typeof raw === "number" ? String(raw) : null
-    if (!days) return null
-    const trimmed = days.trim()
-    if (!/^[1-3]$/.test(trimmed)) return null
-    return `${trimmed} day${trimmed === "1" ? "" : "s"}`
-  }
-
-  return null
 }
 
 async function markSent(
@@ -299,20 +278,6 @@ export async function sendPaidRequestTelegramNotification(
     })
   }
 
-  let answers: Record<string, unknown> | null = null
-  if (category === "med_certs" || category === "medical_certificate") {
-    try {
-      answers = await getIntakeAnswers(input.intakeId)
-    } catch (answersError) {
-      log.error("Failed to load med-cert duration for Telegram notification detail", {
-        intakeId: input.intakeId,
-        error: getErrorMessage(answersError),
-      })
-    }
-  }
-
-  const detail = resolvePaidRequestServiceDetail({ category, subtype, answers })
-
   // Test-order guard AFTER claiming. E2E/CI runs create paid intakes as FRESH
   // guest profiles with machine-shaped emails (@example.com,
   // @instantmed-e2e.test, browser-<ts>@instantmed.com.au, ...) — the seeded-ID
@@ -347,7 +312,7 @@ export async function sendPaidRequestTelegramNotification(
       intakeId: input.intakeId,
       serviceSlug,
       subtype: subtype ?? undefined,
-      serviceDetail: detail ?? undefined,
+      serviceDetail: undefined,
       isPriority,
       autoApprovalCandidate,
     })

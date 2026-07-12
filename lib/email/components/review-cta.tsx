@@ -21,20 +21,18 @@ interface ReviewHeroProps {
   appUrl: string
   /** Customize the warm copy for the service they used */
   serviceCopy?: string
-  /** Intake ID for PostHog tracking attribution. */
+  /** Deprecated compatibility input. Review tracking is aggregate-only. */
   intakeId?: string
-  /** User ID for PostHog tracking attribution. */
+  /** Deprecated compatibility input. Review tracking is aggregate-only. */
   userId?: string
 }
 
-export function ReviewHero({ appUrl, serviceCopy, intakeId, userId }: ReviewHeroProps) {
+export function ReviewHero({ appUrl, serviceCopy }: ReviewHeroProps) {
   const baseUrl = resolveEmailAppUrl(appUrl)
   const trackingParams = [
     "utm_source=email",
     "utm_medium=review_hero",
     "utm_campaign=review",
-    ...(intakeId ? [`intake_id=${intakeId}`] : []),
-    ...(userId ? [`user_id=${userId}`] : []),
   ].join("&")
   const trackingHref = `${baseUrl}/api/review-redirect?${trackingParams}`
 
@@ -129,20 +127,18 @@ export function ReviewHero({ appUrl, serviceCopy, intakeId, userId }: ReviewHero
 
 interface GoogleReviewCTAProps {
   appUrl: string
-  /** Intake ID for PostHog tracking attribution. */
+  /** Deprecated compatibility input. Review tracking is aggregate-only. */
   intakeId?: string
-  /** User ID for PostHog tracking attribution. */
+  /** Deprecated compatibility input. Review tracking is aggregate-only. */
   userId?: string
 }
 
-export function GoogleReviewCTA({ appUrl, intakeId, userId }: GoogleReviewCTAProps) {
+export function GoogleReviewCTA({ appUrl }: GoogleReviewCTAProps) {
   const baseUrl = resolveEmailAppUrl(appUrl)
   const trackingParams = [
     "utm_source=email",
     "utm_medium=inline_cta",
     "utm_campaign=review",
-    ...(intakeId ? [`intake_id=${intakeId}`] : []),
-    ...(userId ? [`user_id=${userId}`] : []),
   ].join("&")
   const trackingHref = `${baseUrl}/api/review-redirect?${trackingParams}`
   return (

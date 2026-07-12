@@ -1,10 +1,6 @@
 import "server-only"
 
-import { getIntakeAnswers } from "@/lib/data/intake-answers"
-import {
-  resolvePaidRequestServiceDetail,
-  resolvePaidRequestServiceSlug,
-} from "@/lib/notifications/paid-request-telegram"
+import { resolvePaidRequestServiceSlug } from "@/lib/notifications/paid-request-telegram"
 import {
   type EditTelegramMessageOptions,
   editTelegramMessageToApproved,
@@ -37,23 +33,9 @@ async function loadIntakeForEdit(
   const row = data as IntakeForEdit
   if (!row.paid_request_telegram_message_id) return null
 
-  let answers: Record<string, unknown> | null = null
-  if (row.category === "med_certs" || row.category === "medical_certificate") {
-    try {
-      answers = await getIntakeAnswers(intakeId)
-    } catch {
-      answers = null
-    }
-  }
-
   const serviceSlug = resolvePaidRequestServiceSlug({
     category: row.category,
     subtype: row.subtype,
-  })
-  const detail = resolvePaidRequestServiceDetail({
-    category: row.category,
-    subtype: row.subtype,
-    answers,
   })
 
   return {
@@ -61,7 +43,7 @@ async function loadIntakeForEdit(
     opts: {
       serviceSlug: serviceSlug || undefined,
       subtype: row.subtype ?? undefined,
-      serviceDetail: detail ?? undefined,
+      serviceDetail: undefined,
     },
   }
 }

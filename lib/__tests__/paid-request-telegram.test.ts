@@ -140,6 +140,7 @@ describe("paid request Telegram notification ledger", () => {
       isPriority: false,
       autoApprovalCandidate: false,
     })
+    expect(getIntakeAnswers).not.toHaveBeenCalled()
     expect(profileMaybeSingle).not.toHaveBeenCalled()
     expect(updates[0]).toMatchObject({
       paid_request_telegram_claimed_at: null,

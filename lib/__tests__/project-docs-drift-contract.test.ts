@@ -229,7 +229,8 @@ describe("project docs drift contract", () => {
   })
 
   it("keeps shared E2E fixture docs aligned with preserved canonical fixtures", () => {
-    expect(testing).toContain("canonical auth/profile/intake fixtures use deterministic shared IDs")
+    expect(testing).toContain("Paid-flow fixtures use deterministic patient IDs")
+    expect(testing).toContain("exclude_from_reporting: true")
     expect(testing).toContain("E2E_TEARDOWN_RESET_FIXTURES=1")
     expect(ciWorkflow).toContain("instantmed-shared-e2e-fixtures")
     expect(e2eTeardown).not.toContain("Deletes all seeded test data by e2e_run_id")
@@ -261,8 +262,8 @@ describe("project docs drift contract", () => {
     expect(roadmap).toContain("Controlled demand validation")
     expect(roadmap).toContain("Last refreshed:")
     expect(roadmap).not.toContain("Last 90 days shipped")
-    expect(roadmap).toContain("Partially complete")
-    expect(roadmap).toContain("Receiver implemented; Gmail count source and schedule pending")
+    expect(roadmap).toContain("Complete 2026-07-12")
+    expect(roadmap).toContain("Count-only bridge active")
 
     expect(clinical).not.toContain("No automated clinical decisions are made")
     expect(clinical).toContain("Prescribing decisions are always clinician-made")
