@@ -102,6 +102,7 @@ test.describe.serial("Guest Checkout → Account Linking", () => {
         status: "pending_payment",
         payment_status: "pending",
         category: "medical_certificate",
+        exclude_from_reporting: true,
       })
       .select("id")
       .single()

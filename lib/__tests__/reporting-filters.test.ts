@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest"
 
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
-import { SEEDED_E2E_PATIENT_PROFILE_ID } from "@/lib/data/seeded-e2e-data"
-
 function createQuery() {
   const calls: Array<{ method: string; args: unknown[] }> = []
   const query = {
@@ -31,7 +29,11 @@ describe("filterReportableIntakes", () => {
       },
       {
         method: "not",
-        args: ["patient_id", "in", `(${SEEDED_E2E_PATIENT_PROFILE_ID})`],
+        args: [
+          "patient_id",
+          "in",
+          "(e2e00000-0000-0000-0000-000000000002,e2e00000-0000-0000-0000-000000000090,e2e00000-0000-0000-0000-0000000000a1,e2e00000-0000-0000-0000-0000000000a2,e2e00000-0000-0000-0000-0000000000a3)",
+        ],
       },
     ])
   })
@@ -44,7 +46,11 @@ describe("filterReportableIntakes", () => {
     expect(calls).toEqual([
       {
         method: "not",
-        args: ["patient_id", "in", `(${SEEDED_E2E_PATIENT_PROFILE_ID})`],
+        args: [
+          "patient_id",
+          "in",
+          "(e2e00000-0000-0000-0000-000000000002,e2e00000-0000-0000-0000-000000000090,e2e00000-0000-0000-0000-0000000000a1,e2e00000-0000-0000-0000-0000000000a2,e2e00000-0000-0000-0000-0000000000a3)",
+        ],
       },
     ])
   })

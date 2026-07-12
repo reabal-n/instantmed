@@ -688,6 +688,7 @@ async function seedPaidIntake(serviceId: string) {
         status: "paid",
         payment_status: "paid",
         amount_cents: 2500,
+        exclude_from_reporting: true,
         payment_id: `pi_e2e_${randomUUID().slice(0, 8)}`,
         paid_at: now,
         submitted_at: now,
@@ -757,6 +758,7 @@ async function seedPaidIntake(serviceId: string) {
       status: "draft",
       payment_status: "unpaid",
       amount_cents: 2500,
+      exclude_from_reporting: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })

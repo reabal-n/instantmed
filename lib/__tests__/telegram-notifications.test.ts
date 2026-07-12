@@ -33,7 +33,8 @@ describe("Telegram request notifications", () => {
 
     const requestBody = JSON.parse(fetchMock.mock.calls[0][1].body)
     expect(requestBody.parse_mode).toBe("MarkdownV2")
-    expect(requestBody.text).toBe("*❌ New med cert · 1 day*")
+    expect(requestBody.text).toBe("*❌ New med cert*")
+    expect(requestBody.text).not.toContain("1 day")
     expect(requestBody.text).not.toContain("$29")
     expect(requestBody.text).not.toContain("💰")
     expect(requestBody.text).not.toContain("Patient")
@@ -87,7 +88,8 @@ describe("Telegram request notifications", () => {
     })
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body)
-    expect(body.text).toBe("*⚡ ❌ New med cert · 3 days*")
+    expect(body.text).toBe("*⚡ ❌ New med cert*")
+    expect(body.text).not.toContain("3 days")
   })
 
   it("omits the ⚡ prefix when isPriority is false and renders generic message body with Review link", async () => {
@@ -161,7 +163,8 @@ describe("Telegram request notifications", () => {
     })
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body)
-    expect(body.text).toBe("*✅ New med cert · 1 day*")
+    expect(body.text).toBe("*✅ New med cert*")
+    expect(body.text).not.toContain("1 day")
     expect(body.text).not.toContain("❌")
   })
 
@@ -179,7 +182,8 @@ describe("Telegram request notifications", () => {
     })
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body)
-    expect(body.text).toBe("*⚡ ✅ New med cert · 2 days*")
+    expect(body.text).toBe("*⚡ ✅ New med cert*")
+    expect(body.text).not.toContain("2 days")
   })
 
   it("keeps consult subtype out of Telegram titles", async () => {
@@ -235,7 +239,8 @@ describe("Telegram request notifications", () => {
     })
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body)
-    expect(body.text).toBe("*✓ Approved · med cert · 1 day*")
+    expect(body.text).toBe("*✓ Approved · med cert*")
+    expect(body.text).not.toContain("1 day")
     expect(body.text).not.toContain("✅")
     expect(body.text).not.toContain("❌")
   })
@@ -266,7 +271,8 @@ describe("Telegram request notifications", () => {
     })
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body)
-    expect(body.text).toBe("*❌ Manual review needed · med cert · 2 days*")
+    expect(body.text).toBe("*❌ Manual review needed · med cert*")
+    expect(body.text).not.toContain("2 days")
   })
 
   it("keeps system Telegram alerts off unless explicitly re-enabled", async () => {

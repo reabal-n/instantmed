@@ -1,5 +1,3 @@
-import { randomUUID } from "node:crypto"
-
 import { expect, test } from "@playwright/test"
 
 import {
@@ -20,6 +18,7 @@ import { waitForPageLoad } from "./helpers/test-utils"
 const OPERATOR_ID = "e2e00000-0000-0000-0000-000000000001"
 const DOCTOR_ID = "e2e00000-0000-0000-0000-000000000003"
 const SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
+const BATCH_REVIEW_PATIENT_ID = "e2e00000-0000-0000-0000-0000000000a3"
 
 interface BatchReviewFixture {
   intakeId: string
@@ -41,9 +40,9 @@ async function seedPendingBatchReview(hoursOld = 1): Promise<BatchReviewFixture>
   const approvedAt = new Date(Date.now() - hoursOld * 3_600_000).toISOString()
   const today = new Date().toISOString().slice(0, 10)
   const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-  const patientId = randomUUID()
+  const patientId = BATCH_REVIEW_PATIENT_ID
 
-  const { error: profileError } = await supabase.from("profiles").insert({
+  const { error: profileError } = await supabase.from("profiles").upsert({
     id: patientId,
     auth_user_id: null,
     email: `e2e-batch-${unique}@instantmed-e2e.test`,
@@ -59,7 +58,7 @@ async function seedPendingBatchReview(hoursOld = 1): Promise<BatchReviewFixture>
     onboarding_completed: true,
     email_verified: true,
     email_verified_at: approvedAt,
-  })
+  }, { onConflict: "id" })
   if (profileError) throw new Error(`Could not seed isolated E2E patient: ${profileError.message}`)
 
   const { error: intakeError } = await supabase
@@ -74,6 +73,7 @@ async function seedPendingBatchReview(hoursOld = 1): Promise<BatchReviewFixture>
       approved_at: approvedAt,
       reviewed_at: approvedAt,
       reviewed_by: OPERATOR_ID,
+      exclude_from_reporting: true,
       updated_at: approvedAt,
     })
     .eq("id", seeded.intakeId)

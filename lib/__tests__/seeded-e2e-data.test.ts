@@ -4,7 +4,6 @@ import {
   filterSeededE2EIntakes,
   isLikelyE2EIntakeMarkers,
   isLikelyTestPatientIdentity,
-  SEEDED_E2E_PATIENT_PROFILE_ID,
   shouldIncludeSeededE2EData,
 } from "@/lib/data/seeded-e2e-data"
 
@@ -27,7 +26,11 @@ describe("seeded E2E data guards", () => {
 
     expect(returned).toBe(query)
     expect(query.calls).toEqual([
-      ["patient_id", "in", `(${SEEDED_E2E_PATIENT_PROFILE_ID})`],
+      [
+        "patient_id",
+        "in",
+        "(e2e00000-0000-0000-0000-000000000002,e2e00000-0000-0000-0000-000000000090,e2e00000-0000-0000-0000-0000000000a1,e2e00000-0000-0000-0000-0000000000a2,e2e00000-0000-0000-0000-0000000000a3)",
+      ],
     ])
   })
 

@@ -60,6 +60,7 @@ test.describe("Prescribing Identity Ops Page", () => {
       payment_status: "paid",
       category: "prescription",
       subtype: "repeat",
+      exclude_from_reporting: true,
       created_at: new Date().toISOString(),
       paid_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

@@ -69,7 +69,7 @@ interface TelegramNotifyOptions {
   serviceSlug?: string
   /** Consult subtype — retained for routing context, never rendered in Telegram. */
   subtype?: string
-  /** Compact non-clinical detail. Only med-cert duration may render. */
+  /** Deprecated compatibility input. Telegram never renders request detail. */
   serviceDetail?: string
   appUrl?: string
   isPriority?: boolean
@@ -115,20 +115,11 @@ function getServiceNoun(opts: Pick<TitleOptions, "serviceSlug">): string {
   return "request"
 }
 
-function appendDetail(noun: string, detail?: string): string {
-  if (!detail) return noun
-  return `${noun} · ${escapeMarkdownValue(detail)}`
-}
-
-function safeTelegramDetail(opts: TitleOptions): string | undefined {
-  return opts.serviceSlug?.startsWith("med-cert") ? opts.serviceDetail : undefined
-}
-
 function buildTitle(opts: TitleOptions): string {
   const parts: string[] = []
   if (opts.isPriority) parts.push("⚡")
   parts.push(getServiceEmoji(opts))
-  parts.push(`New ${appendDetail(getServiceNoun(opts), safeTelegramDetail(opts))}`)
+  parts.push(`New ${getServiceNoun(opts)}`)
   return `*${parts.join(" ")}*`
 }
 
@@ -139,7 +130,7 @@ function buildTitle(opts: TitleOptions): string {
  * drop the routing ✅/❌ to avoid stacking marks (the prefix already conveys it).
  */
 function buildEditedTitle(prefix: string, opts: TitleOptions): string {
-  const noun = appendDetail(getServiceNoun(opts), safeTelegramDetail(opts))
+  const noun = getServiceNoun(opts)
   const isMedCert = opts.serviceSlug?.startsWith("med-cert")
   const middle = isMedCert ? noun : `${getServiceEmoji(opts)} ${noun}`
   return `*${prefix} · ${middle}*`

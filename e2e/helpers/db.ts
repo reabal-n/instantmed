@@ -674,6 +674,7 @@ async function reseedCanonicalIntake(
     payment_status: "paid",
     category: "medical_certificate",
     amount_cents: 1995,
+    exclude_from_reporting: true,
     paid_at: new Date().toISOString(),
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -1222,6 +1223,7 @@ export async function seedTestIntake(options: SeedTestIntakeOptions = {}): Promi
         category: options.category || "medical_certificate",
         refund_status: options.refund_status || null,
         refund_error: options.refund_error || null,
+        exclude_from_reporting: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })

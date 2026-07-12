@@ -12,14 +12,14 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 export async function canSendMarketingEmail(profileId: string): Promise<boolean> {
   const serviceClient = createServiceRoleClient()
 
-  const { data } = await serviceClient
+  const { data, error } = await serviceClient
     .from("email_preferences")
     .select("marketing_emails, abandoned_checkout_emails")
     .eq("profile_id", profileId)
     .maybeSingle()
 
-  // If no preferences exist, default to allowing marketing emails
-  if (!data) return true
+  // Marketing consent is explicit: missing or unreadable preferences fail closed.
+  if (error || !data) return false
 
-  return data.marketing_emails && data.abandoned_checkout_emails
+  return data.marketing_emails === true && data.abandoned_checkout_emails === true
 }

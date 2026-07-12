@@ -15,7 +15,7 @@ export interface ReviewRequestEmailProps {
   patientName: string
   serviceName: string
   appUrl?: string
-  /** Intake ID + signed token power the one-click attribution links. */
+  /** Intake ID is retained for compatibility; the signed token powers attribution links. */
   intakeId?: string
   heardToken?: string
 }

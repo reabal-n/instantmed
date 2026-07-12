@@ -35,9 +35,7 @@ export interface MedCertPatientEmailProps {
    */
   heardToken?: string
   /**
-   * Intake ID threaded into the footer review CTA's /api/review-redirect link
-   * so clicks attribute to an intake in PostHog instead of landing as
-   * anonymous_email_click.
+   * Retained for send-path compatibility. Review click tracking is aggregate-only.
    */
   intakeId?: string
 }

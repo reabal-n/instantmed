@@ -10,12 +10,18 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { getRotatingReviewUrl } from "@/lib/constants"
 
+const REVIEW_SOURCES = new Set(["email", "patient_dashboard"])
+const REVIEW_MEDIA = new Set(["inline_cta", "review_hero", "review_card", "review_cta"])
+const REVIEW_CAMPAIGNS = new Set(["review"])
+
+function allowedDimension(value: string | null, allowed: Set<string>, fallback: string): string {
+  return value && allowed.has(value) ? value : fallback
+}
+
 export async function GET(req: NextRequest) {
-  const source = req.nextUrl.searchParams.get("utm_source") || "email"
-  const medium = req.nextUrl.searchParams.get("utm_medium") || "review_cta"
-  const campaign = req.nextUrl.searchParams.get("utm_campaign") || "review"
-  const intakeId = req.nextUrl.searchParams.get("intake_id")
-  const userId = req.nextUrl.searchParams.get("user_id")
+  const source = allowedDimension(req.nextUrl.searchParams.get("utm_source"), REVIEW_SOURCES, "email")
+  const medium = allowedDimension(req.nextUrl.searchParams.get("utm_medium"), REVIEW_MEDIA, "review_cta")
+  const campaign = allowedDimension(req.nextUrl.searchParams.get("utm_campaign"), REVIEW_CAMPAIGNS, "review")
 
   // Fire PostHog event server-side if API key available
   const phKey = process.env.NEXT_PUBLIC_POSTHOG_KEY
@@ -30,14 +36,11 @@ export async function GET(req: NextRequest) {
         api_key: phKey,
         event: "review_cta_clicked",
         properties: {
-          $current_url: req.url,
           source,
           medium,
           campaign,
-          intake_id: intakeId || undefined,
-          service: req.nextUrl.searchParams.get("service") || undefined,
         },
-        distinct_id: userId || (intakeId ? `intake_${intakeId}` : "anonymous_email_click"),
+        distinct_id: "review_cta_aggregate",
         timestamp: new Date().toISOString(),
       }),
     }).catch(() => {}) // Swallow errors - tracking should never block

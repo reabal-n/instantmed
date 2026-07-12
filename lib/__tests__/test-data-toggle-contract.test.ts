@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   filterSeededE2EIntakes,
-  SEEDED_E2E_PATIENT_PROFILE_ID,
+  SEEDED_E2E_PATIENT_PROFILE_IDS,
   shouldIncludeSeededE2EData,
 } from "@/lib/data/seeded-e2e-data"
 
@@ -33,11 +33,11 @@ function fakeQuery(): FakeQuery {
 const EMPTY_ENV = {}
 
 describe("test-data toggle contract", () => {
-  it("filters the seeded E2E patient by default when no override is provided", () => {
+  it("filters seeded E2E patients by default when no override is provided", () => {
     const q = fakeQuery()
     filterSeededE2EIntakes(q, EMPTY_ENV)
     expect(q.__calls).toEqual([
-      { column: "patient_id", op: "in", value: `(${SEEDED_E2E_PATIENT_PROFILE_ID})` },
+      { column: "patient_id", op: "in", value: `(${SEEDED_E2E_PATIENT_PROFILE_IDS.join(",")})` },
     ])
   })
 

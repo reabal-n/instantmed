@@ -889,11 +889,11 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 | Email Bounce Spike | Bounce rate > 5% | Sentry (email alert) |
 | Business Alerts | Failed payments, no-purchase revenue safety, SLA breaches | Telegram (`lib/notifications/telegram.ts`) |
 | Payment Notifications | Successful checkout | Telegram (real-time) |
-| Support Inbox | Receiver and hourly Gmail label-count schedule implemented; production opt-in is activated separately after deployment. Only a positive unread count can page. | Telegram count only; no sender, subject, snippet, message ID, body, attachment, or draft. Dedicated opt-in `TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED=1`; unchanged counts repeat at most every 4h. |
+| Support Inbox | Receiver and hourly Gmail label-count schedule active. Only a positive unread count can page. | Telegram count only; no sender, subject, snippet, message ID, body, attachment, or draft. Dedicated opt-in `TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED=1`; unchanged counts repeat at most every 4h. |
 | Request Flow Synthetic | Any production request-path render/click failure | GitHub Actions failure |
 | Staff Role Gate | More than one auth-linked human admin, owner-admin missing doctor identity, or doctor missing required prescribing/certificate identity | `pnpm check:staff-roles` release failure |
 
-**Telegram alerts** require `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env vars. General system-alert helpers may silently skip when those credentials are absent. The support Inbox bridge has a stricter contract: when its dedicated `TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED=1` flag is on but Telegram credentials are missing or delivery fails, it records `delivery_failed` and returns HTTP 502 so the local poster exits unsuccessfully. The bridge accepts only a bounded integer unread count through the `CRON_SECRET`-protected `/api/internal/support-inbox-alert` endpoint. Its receiver is implemented, but the Gmail label-count source and hourly Codex schedule are not active yet. Gmail remains the message source of truth; identifiable email content and drafts must not enter this bridge or the dashboard.
+**Telegram alerts** require `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env vars. General system-alert helpers may silently skip when those credentials are absent. The support Inbox bridge has a stricter contract: when its dedicated `TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED=1` flag is on but Telegram credentials are missing or delivery fails, it records `delivery_failed` and returns HTTP 502 so the local poster exits unsuccessfully. The bridge accepts only a bounded integer unread count through the `CRON_SECRET`-protected `/api/internal/support-inbox-alert` endpoint. The Gmail label-count source and hourly local Codex schedule are active; the automation reads only the `INBOX` label aggregate and posts only the unread count. Gmail remains the message source of truth; identifiable email content and drafts must not enter this bridge or the dashboard.
 
 ### Health Endpoints
 
@@ -1279,7 +1279,7 @@ Using Vercel MCP, PostHog MCP, and Sentry MCP:
 
 ## Integration Invariants + Operator Runbook Queries (added 2026-05-23 evening)
 
-Queries the operator should run weekly. As of 2026-05-29, Q1/Q2/Q4 also render live on `/admin/ops` (the "Integrity (weekly invariants)" strip); Q3 stays a manual config check. Future work: convert each to a cron + Sentry alert. The seeded-E2E patient filter in the SQL below uses `e2e00000-0000-0000-0000-000000000002` to match `SEEDED_E2E_PATIENT_PROFILE_ID` (the app filter); the prior `0000...0001` literal matched no real row.
+Queries the operator should run weekly. As of 2026-05-29, Q1/Q2/Q4 also render live on `/admin/ops` (the "Integrity (weekly invariants)" strip); Q3 stays a manual config check. Future work: convert each to a cron + Sentry alert. App reporting uses `SEEDED_E2E_PATIENT_PROFILE_IDS` plus `exclude_from_reporting`; manual SQL examples retain the canonical shared patient literal for readability and must also keep the explicit reporting-exclusion predicate.
 
 ### Q1 — Queue P95 by category/subtype (90d)
 
