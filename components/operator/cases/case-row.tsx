@@ -3,6 +3,7 @@ import Link from "next/link"
 
 import { IntakeFlagsBadge } from "@/components/doctor/intake-flags-panel"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import type { AttributionSourceGroup } from "@/lib/analytics/source-classification"
 import type { PaymentRecoveryIndicator } from "@/lib/operator/cases/payment-recovery-indicator"
 import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import {
@@ -60,6 +61,25 @@ const PAYMENT_RECOVERY_PRESENTATION: Record<
     className: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300",
     title: "Charged but cancelled: verify refund or delivery before closing",
   },
+}
+
+// Acquisition-source dot colours. Mirrors AttributionChip's GROUP_DOT palette
+// (components/doctor/attribution-chip.tsx) so the ledger row and the intake
+// detail header tell the same colour story: amber = paid, emerald = organic,
+// sky = AI, blue = email/referral, slate = dark/unknown. Calm chrome — dot +
+// plain muted text, never a colored-background pill (routine info, not an
+// exception state).
+const ATTRIBUTION_DOT: Record<AttributionSourceGroup, string> = {
+  google_ads: "bg-amber-500",
+  other_paid: "bg-amber-500",
+  organic_brand: "bg-emerald-500",
+  organic_nonbrand: "bg-emerald-500",
+  ai_referral: "bg-sky-500",
+  recovery_email: "bg-blue-500",
+  lifecycle_email: "bg-blue-500",
+  referral: "bg-blue-500",
+  direct: "bg-slate-400",
+  unknown: "bg-slate-400",
 }
 
 type CaseRowProps = {
@@ -173,13 +193,33 @@ export function CaseRow({
         ) : null}
       </div>
 
-      {/* Service + ref */}
+      {/* Service + ref (+ acquisition source when the caller fetched it) */}
       <div className="relative z-[1] pointer-events-none min-w-0">
         <div className="truncate text-sm text-foreground">
           {row.serviceLabel}
         </div>
-        <div className="truncate font-mono text-[11px] tabular-nums text-muted-foreground">
-          {row.intakeRef}
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate font-mono text-[11px] tabular-nums text-muted-foreground">
+            {row.intakeRef}
+          </span>
+          {row.attribution ? (
+            <span
+              className="inline-flex min-w-0 shrink items-center gap-1 text-[11px] text-muted-foreground"
+              title={row.attribution.title}
+              aria-label={`Acquisition source: ${row.attribution.title}`}
+              data-attribution-group={row.attribution.group}
+            >
+              <span aria-hidden="true" className="text-muted-foreground/50">·</span>
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "h-1.5 w-1.5 shrink-0 rounded-full ring-1 ring-inset ring-black/5",
+                  ATTRIBUTION_DOT[row.attribution.group] ?? ATTRIBUTION_DOT.unknown,
+                )}
+              />
+              <span className="truncate">{row.attribution.label}</span>
+            </span>
+          ) : null}
         </div>
       </div>
 

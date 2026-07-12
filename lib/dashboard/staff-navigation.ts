@@ -8,13 +8,10 @@ import {
   STAFF_ANALYTICS_HREF,
   STAFF_DASHBOARD_HREF,
   STAFF_DOCTOR_PATIENTS_HREF,
-  STAFF_DOCTOR_SCRIPTS_HREF,
   STAFF_IDENTITY_HREF,
   STAFF_LEDGER_HREF,
   STAFF_OPS_HREF,
   STAFF_PATIENTS_HREF,
-  STAFF_QUEUE_HREF,
-  STAFF_SCRIPTS_HREF,
   STAFF_SETTINGS_HREF,
 } from "@/lib/dashboard/routes"
 import type { Profile } from "@/types/db"
@@ -58,14 +55,21 @@ export interface StaffNavSection {
   items: StaffNavItem[]
 }
 
+// Consolidation (2026-07-12, operator request): the old "Review" and "Scripts"
+// nav items were deep-links to /dashboard?status=… — the SAME page the
+// "Dashboard" item opens, whose in-page tab strip (All / Review / Info /
+// Scripts to write) already switches those filters with zero navigation
+// (window.history.replaceState, no server round-trip). Three sidebar entries
+// rendering one surface read as duplication and every hop re-ran the full
+// dashboard server render. Do not re-add filter deep-links as nav items; the
+// tab strip is the filter surface. STAFF_QUEUE_HREF/STAFF_SCRIPTS_HREF remain
+// for redirects, user-menu, and onboarding links.
 export const operatorNavSections: StaffNavSection[] = [
   {
     title: "Today",
     items: [
-      { href: STAFF_DASHBOARD_HREF, label: "Dashboard", icon: "dashboard" },
+      { href: STAFF_DASHBOARD_HREF, label: "Dashboard", icon: "dashboard", badgeKey: "inQueue", badgeTone: "primary" },
       { href: STAFF_LEDGER_HREF, label: "Ledger", icon: "intakeLedger" },
-      { href: STAFF_QUEUE_HREF, label: "Review", icon: "queue" },
-      { href: STAFF_SCRIPTS_HREF, label: "Scripts", icon: "scripts", badgeKey: "scriptsToWrite", badgeTone: "primary" },
       { href: STAFF_PATIENTS_HREF, label: "Patients", icon: "users", badgeKey: "prescribingIdentityPatients", badgeTone: "warning" },
     ],
   },
@@ -84,12 +88,14 @@ export const operatorNavSections: StaffNavSection[] = [
   },
 ]
 
+// Same consolidation as the operator nav: the doctor "Scripts" item was a
+// deep-link to the identical /dashboard queue with the scripts tab active —
+// the in-page tab strip owns that filter now.
 export const doctorNavSections: StaffNavSection[] = [
   {
     title: "Work",
     items: [
-      { href: STAFF_QUEUE_HREF, label: "Queue", icon: "intakeLedger", badge: true, badgeKey: "inQueue", badgeTone: "primary" },
-      { href: STAFF_DOCTOR_SCRIPTS_HREF, label: "Scripts", icon: "scripts", badgeKey: "scriptsToWrite", badgeTone: "primary" },
+      { href: STAFF_DASHBOARD_HREF, label: "Queue", icon: "intakeLedger", badge: true, badgeKey: "inQueue", badgeTone: "primary" },
       { href: STAFF_DOCTOR_PATIENTS_HREF, label: "Patients", icon: "users" },
     ],
   },

@@ -21,10 +21,11 @@ test.describe("Ops Navigation Visibility", () => {
 
     const sidebar = page.getByRole("complementary", { name: "Staff sidebar" })
     await expect(sidebar.getByRole("link", { name: "Ledger" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminIntakes)
-    await expect(sidebar.getByRole("link", { name: "Review" })).toHaveAttribute(
-      "href",
-      STAFF_TEST_ROUTES.dashboard + "?status=review#doctor-queue",
-    )
+    // Consolidated 2026-07-12: Review/Scripts were /dashboard?status=… deep
+    // links to the page the Dashboard item already opens; the in-page queue
+    // tab strip owns those filters now.
+    await expect(sidebar.getByRole("link", { name: "Review" })).toHaveCount(0)
+    await expect(sidebar.getByRole("link", { name: "Scripts" })).toHaveCount(0)
     await expect(sidebar.getByRole("link", { name: "Ops" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminOps)
     await expect(sidebar.getByRole("link", { name: "Admin Panel" })).not.toBeVisible()
     await expect(sidebar.getByRole("link", { name: "Email Suppression" })).not.toBeVisible()
@@ -43,7 +44,8 @@ test.describe("Ops Navigation Visibility", () => {
 
     const sidebar = page.getByRole("complementary", { name: "Staff sidebar" })
     await expect(sidebar.getByRole("link", { name: "Queue" })).toBeVisible()
-    await expect(sidebar.getByRole("link", { name: "Scripts" })).toBeVisible()
+    // Scripts consolidated into the in-page queue tab strip (2026-07-12).
+    await expect(sidebar.getByRole("link", { name: "Scripts" })).toHaveCount(0)
     await expect(sidebar.getByRole("link", { name: "Patients" })).toBeVisible()
     await expect(sidebar.getByRole("link", { name: "Identity" })).toBeVisible()
     await expect(sidebar.getByRole("link", { name: "Ledger" })).not.toBeVisible()

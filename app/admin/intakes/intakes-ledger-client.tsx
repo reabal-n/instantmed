@@ -26,6 +26,7 @@ import {
   formatRenewalMatchTitle,
   type RenewalMatch,
 } from "@/lib/doctor/renewal-format"
+import { buildCaseRowAttribution } from "@/lib/operator/cases/case-attribution"
 import { computeLedgerDailyAggregate } from "@/lib/operator/cases/daily-aggregate"
 import { getPaymentRecoveryIndicator } from "@/lib/operator/cases/payment-recovery-indicator"
 import {
@@ -173,6 +174,9 @@ function mapToCaseRow(intake: LedgerRow): CaseRowData {
     paymentStatus,
     amountCents: (intake as { amount_cents?: number | null }).amount_cents ?? null,
     refundAmountCents: (intake as { refund_amount_cents?: number | null }).refund_amount_cents ?? null,
+    attribution: buildCaseRowAttribution(
+      intake as Parameters<typeof buildCaseRowAttribution>[0],
+    ),
   }
 }
 

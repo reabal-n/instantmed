@@ -118,7 +118,10 @@ describe("doctor navigation contract", () => {
     expect(sidebarSource).toContain("operatorNavSections")
     expect(sidebarSource).toContain("navSections")
     expect(labels).toContain("Queue")
-    expect(labels).toContain("Scripts")
+    // "Scripts" was consolidated away 2026-07-12: it deep-linked to the same
+    // /dashboard queue with the scripts tab active; the in-page tab strip owns
+    // that filter. Do not re-add a status-filter deep-link as a nav item.
+    expect(labels).not.toContain("Scripts")
     expect(labels).toContain("Patients")
     expect(labels).toContain("Identity")
     expect(labels).toContain("Operations")
@@ -151,7 +154,6 @@ describe("doctor navigation contract", () => {
     expect(mobileNavSource).toContain("doctorOperatorNavItems")
     expect(navLabels(`${doctorNavSource}\n${operatorNavSource}`)).toEqual([
       "Queue",
-      "Scripts",
       "Patients",
       "Identity",
       "Operations",
@@ -193,15 +195,27 @@ describe("doctor navigation contract", () => {
     expect(sharedMobileMenuSource).not.toContain('label: "Admin"')
   })
 
-  it("does not eagerly prefetch every dashboard route from the persistent sidebar", () => {
-    expect(sidebarSource).toContain("prefetch={false}")
+  it("never full-prefetches PHI route payloads from the persistent sidebar", () => {
+    // Privacy invariant: the sidebar must not force FULL route prefetch —
+    // prefetch={true} / router.prefetch would pull the dynamic PHI page
+    // payload into the browser cache on hover/viewport. Default (auto)
+    // prefetch is allowed and deliberate: on our force-dynamic staff routes it
+    // prefetches only the shared layout down to the nearest loading.tsx
+    // boundary (the skeleton), never the PHI payload — that skeleton warming
+    // is what makes sidebar navigation feel instant. prefetch={false} was
+    // stricter than the privacy requirement and made every click sit frozen
+    // for a full server round-trip (2026-07-12 lag fix).
     expect(sidebarSource).not.toContain("router.prefetch")
     expect(sidebarSource).not.toContain("prefetch={true}")
+    expect(sidebarSource).not.toContain("prefetch={false}")
   })
 
   it("keeps scripts work inside the unified dashboard instead of a second page", () => {
     expect(existsSync(join(process.cwd(), "app/doctor/scripts/page.tsx"))).toBe(false)
-    expect(staffNavigationSource).toContain("STAFF_DOCTOR_SCRIPTS_HREF")
+    // 2026-07-12 consolidation: scripts is an in-page dashboard tab, not a nav
+    // item — the nav no longer references the scripts deep-link at all. The
+    // redirect for old bookmarks/links stays.
+    expect(staffNavigationSource).not.toContain("STAFF_DOCTOR_SCRIPTS_HREF")
     expect(staffNavigationSource).not.toContain('href: "/doctor/scripts"')
     expect(nextConfigSource).toContain('source: "/doctor/scripts"')
     expect(nextConfigSource).toContain('destination: "/dashboard?status=scripts#doctor-queue"')
