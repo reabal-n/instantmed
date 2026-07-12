@@ -1,5 +1,6 @@
 import type { IntakeFlag } from "@/lib/clinical/intake-flags"
 import type { IntakeStatus } from "@/lib/data/status"
+import type { CaseRowAttribution } from "@/lib/operator/cases/case-attribution"
 import type { PaymentRecoveryIndicator } from "@/lib/operator/cases/payment-recovery-indicator"
 
 /**
@@ -62,6 +63,13 @@ export type CaseRowData = {
   amountCents?: number | null
   /** Already-refunded amount in cents. 0 if none. */
   refundAmountCents?: number | null
+  /**
+   * Compact acquisition source ("where did this patient come from?") built by
+   * buildCaseRowAttribution — classifier group + short label, with the
+   * self-reported heard_about_us answer standing in for dark Direct/Unknown
+   * rows. Absent = caller didn't fetch attribution columns; renders nothing.
+   */
+  attribution?: CaseRowAttribution | null
 }
 
 export type Density = "compact" | "comfortable" | "spacious"

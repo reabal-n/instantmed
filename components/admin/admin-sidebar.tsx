@@ -126,7 +126,15 @@ function NavIconLink({
   const link = (
     <Link
       href={item.href}
-      prefetch={false}
+      // Default (auto) prefetch — deliberately no prefetch prop: on our
+      // force-dynamic staff routes the automatic mode prefetches only the
+      // shared layout down to the nearest loading.tsx boundary — the skeleton,
+      // never the PHI page payload (Next 15 Link docs). That skeleton warming
+      // is what makes sidebar clicks feel instant; disabling prefetch entirely
+      // (the pre-2026-07-12 behaviour) froze every navigation on the old page
+      // for a full server round-trip before anything visibly changed. FULL
+      // prefetch stays banned by the doctor-navigation contract — forcing it
+      // WOULD pull PHI payloads into the browser cache.
       onClick={handleClick}
       className={cn(
         "relative flex h-10 rounded-lg text-sm font-medium transition-[background-color,border-color,color,box-shadow] duration-150",
@@ -177,7 +185,6 @@ function Brand({ expanded, brandLabel, current }: { expanded: boolean; brandLabe
   return (
     <Link
       href={STAFF_DASHBOARD_HREF}
-      prefetch={false}
       onClick={handleClick}
       className={cn(
         "flex rounded-lg transition-colors",
@@ -491,7 +498,6 @@ export function MobileAdminNav({ navCounts, navSections, brandLabel: _brandLabel
                       <Link
                         key={item.href}
                         href={item.href}
-                        prefetch={false}
                         onClick={(event) => {
                           if (shouldNoopCurrentNavigation(event, current)) {
                             event.preventDefault()

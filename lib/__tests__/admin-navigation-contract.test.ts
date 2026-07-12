@@ -157,16 +157,20 @@ describe("admin navigation contract", () => {
     expect(sidebarSource).not.toContain("emailNavItems")
     expect(sidebarSource).not.toContain("analyticsNavItems")
     expect(sidebarSource).not.toContain("systemNavItems")
+    // Consolidated 2026-07-12 (operator request): "Review" and "Scripts" were
+    // deep-links to /dashboard?status=… — the same page Dashboard opens, whose
+    // in-page tab strip already switches those filters without navigating.
+    // Do not re-add status-filter deep-links as sidebar items.
     expect(labels).toEqual([
       "Dashboard",
       "Ledger",
-      "Review",
-      "Scripts",
       "Patients",
       "Overview",
       "Ops",
       "Setup",
     ])
+    expect(operatorNavSource).not.toContain("STAFF_QUEUE_HREF")
+    expect(operatorNavSource).not.toContain("STAFF_SCRIPTS_HREF")
     expect(sidebarSource).toContain("operatorNavSections")
     expect(sidebarSource).toContain("Expand staff navigation")
     expect(sidebarSource).toContain("Collapse staff navigation")
@@ -182,18 +186,15 @@ describe("admin navigation contract", () => {
     expect(sidebarSource).toContain('aria-current={active ? "page" : undefined}')
     expect(sidebarSource).not.toContain("clinicalNavItems")
     expect(sidebarSource).not.toContain("Clinical mode")
-    expect(operatorNavSource).toContain("STAFF_QUEUE_HREF")
     expect(dashboardRoutesSource).not.toContain("ADMIN_DOCTOR_QUEUE_HREF")
-    expect(operatorNavSource).toContain("STAFF_SCRIPTS_HREF")
     expect(operatorNavSource).toContain("STAFF_PATIENTS_HREF")
-    expect(operatorNavSource).toContain('badgeKey: "scriptsToWrite"')
+    expect(operatorNavSource).toContain('badgeKey: "inQueue"')
     expect(operatorNavSource).toContain('badgeKey: "prescribingIdentityPatients"')
     expect(sidebarSource).toContain("useLiveStaffNavCounts")
     expect(sidebarSource).toContain('from "@/lib/dashboard/use-staff-nav-counts"')
     expect(operatorNavSource).not.toContain('href: "/doctor/dashboard"')
     expect(sidebarSource).not.toContain('href: "/doctor/patients"')
     expect(sidebarSource).not.toContain('href: "/doctor/scripts"')
-    expect(sidebarSource).toContain("prefetch={false}")
     expect(adminLayoutSource).toContain("OperatorShell")
     expect(operatorShellSource).toContain("AdminSidebar")
     expect(operatorShellSource).toContain("MobileAdminNav")

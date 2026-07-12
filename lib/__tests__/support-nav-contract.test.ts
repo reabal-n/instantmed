@@ -49,17 +49,18 @@ describe("support nav contract", () => {
     const adminLabels = allLabels(getStaffNav(adminProfile))
     const doctorLabels = allLabels(getStaffNav(doctorProfile))
 
+    // Consolidated 2026-07-12: Review/Scripts were /dashboard?status=… deep
+    // links to the page Dashboard already opens; the in-page tab strip owns
+    // those filters now.
     expect(adminLabels).toEqual([
       "Dashboard",
       "Ledger",
-      "Review",
-      "Scripts",
       "Patients",
       "Overview",
       "Ops",
       "Setup",
     ])
-    expect(doctorLabels).toEqual(["Queue", "Scripts", "Patients", "Identity"])
+    expect(doctorLabels).toEqual(["Queue", "Patients", "Identity"])
     expect(doctorLabels).not.toContain("Ledger")
     expect(doctorLabels).not.toContain("Overview")
     expect(doctorLabels).not.toContain("Payments")

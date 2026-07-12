@@ -11,6 +11,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { cookies, headers } from "next/headers"
 import { redirect } from "next/navigation"
+import { cache } from "react"
 
 import { hasClosedAuthAccountTombstone } from "@/lib/auth/account-closure"
 import {
@@ -231,8 +232,15 @@ export interface AuthenticatedUser {
 /**
  * Get the authenticated user and their profile.
  * Returns null if not authenticated or profile doesn't exist.
+ *
+ * Memoized with React cache(): staff routes call requireRole in BOTH the
+ * layout and the page, which previously ran auth.getUser() + the profile
+ * fetch + PHI field decrypts twice per navigation. cache() dedupes to one
+ * execution per server request; a fresh request always re-authenticates.
  */
-export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUser | null> {
+export const getAuthenticatedUserWithProfile = cache(getAuthenticatedUserWithProfileUncached)
+
+async function getAuthenticatedUserWithProfileUncached(): Promise<AuthenticatedUser | null> {
   // Check for E2E test auth first (non-production only)
   const e2eAuth = await getE2EAuthUser()
   if (e2eAuth) {

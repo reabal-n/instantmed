@@ -169,14 +169,18 @@ describe("staff navigation active matching", () => {
       expected: string[]
     }> = [
       { sections: operatorNavSections, pathname: "/dashboard", status: null, expected: ["Dashboard"] },
-      { sections: operatorNavSections, pathname: "/dashboard", status: "review", expected: ["Review"] },
-      { sections: operatorNavSections, pathname: "/dashboard", status: "scripts", expected: ["Scripts"] },
+      // Post-consolidation (2026-07-12): status deep-links (old bookmarks,
+      // /doctor/queue and /doctor/scripts redirects) land on the same dashboard
+      // page with an in-page tab active — the Dashboard/Queue item stays the
+      // single active nav entry.
+      { sections: operatorNavSections, pathname: "/dashboard", status: "review", expected: ["Dashboard"] },
+      { sections: operatorNavSections, pathname: "/dashboard", status: "scripts", expected: ["Dashboard"] },
       { sections: operatorNavSections, pathname: "/admin/intakes", status: null, expected: ["Ledger"] },
       { sections: operatorNavSections, pathname: "/doctor/patients/123", status: null, expected: ["Patients"] },
       { sections: operatorNavSections, pathname: "/admin/ops/parchment", status: null, expected: ["Ops"] },
       { sections: doctorNavSections, pathname: "/dashboard", status: null, expected: ["Queue"] },
       { sections: doctorNavSections, pathname: "/dashboard", status: "review", expected: ["Queue"] },
-      { sections: doctorNavSections, pathname: "/dashboard", status: "scripts", expected: ["Scripts"] },
+      { sections: doctorNavSections, pathname: "/dashboard", status: "scripts", expected: ["Queue"] },
       { sections: supportNavSections, pathname: "/admin/ops/parchment", status: null, expected: ["Operations"] },
       { sections: supportNavSections, pathname: "/admin/intakes", status: null, expected: ["Ledger"] },
     ]
