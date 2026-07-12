@@ -98,13 +98,6 @@ export function resolvePaidRequestServiceDetail(input: {
     return `${trimmed} day${trimmed === "1" ? "" : "s"}`
   }
 
-  if (category === "prescription" || category === "common_scripts") {
-    const name = typeof answers.medicationName === "string" ? answers.medicationName.trim() : ""
-    if (!name) return null
-    // Truncate to keep the Telegram one-liner readable.
-    return name.length > 40 ? `${name.slice(0, 39)}…` : name
-  }
-
   return null
 }
 
@@ -307,13 +300,15 @@ export async function sendPaidRequestTelegramNotification(
   }
 
   let answers: Record<string, unknown> | null = null
-  try {
-    answers = await getIntakeAnswers(input.intakeId)
-  } catch (answersError) {
-    log.error("Failed to load intake answers for Telegram notification detail", {
-      intakeId: input.intakeId,
-      error: getErrorMessage(answersError),
-    })
+  if (category === "med_certs" || category === "medical_certificate") {
+    try {
+      answers = await getIntakeAnswers(input.intakeId)
+    } catch (answersError) {
+      log.error("Failed to load med-cert duration for Telegram notification detail", {
+        intakeId: input.intakeId,
+        error: getErrorMessage(answersError),
+      })
+    }
   }
 
   const detail = resolvePaidRequestServiceDetail({ category, subtype, answers })

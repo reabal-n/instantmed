@@ -150,7 +150,7 @@ describe("paid request Telegram notification ledger", () => {
     expect(updates[0].paid_request_telegram_sent_at).toEqual(expect.any(String))
   })
 
-  it("passes the resolved detail (medication / duration) through as serviceDetail and sets the Priority flag when is_priority is true", async () => {
+  it("never reads or forwards prescription detail to Telegram and still sets the Priority flag", async () => {
     const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
     const { supabase } = createSupabaseStub(
       [
@@ -185,10 +185,11 @@ describe("paid request Telegram notification ledger", () => {
       intakeId: INTAKE_ID,
       serviceSlug: "common-scripts",
       subtype: undefined,
-      serviceDetail: "Atorvastatin",
+      serviceDetail: undefined,
       isPriority: true,
       autoApprovalCandidate: false,
     })
+    expect(getIntakeAnswers).not.toHaveBeenCalled()
   })
 
   it("records failed Telegram attempts so cron can retry missed notifications", async () => {

@@ -92,11 +92,11 @@ describe("editPaidRequestTelegramMessageToApproved", () => {
         subtype: null,
       }),
     )
-    mocks.getIntakeAnswers.mockResolvedValueOnce({ medicationName: "Atorvastatin" })
     mocks.editTelegramMessageToApproved.mockRejectedValueOnce(new Error("Telegram down"))
 
     const { editPaidRequestTelegramMessageToApproved } = await import("@/lib/notifications/edit-paid-request-telegram")
     await expect(editPaidRequestTelegramMessageToApproved(INTAKE_ID)).resolves.toBeUndefined()
+    expect(mocks.getIntakeAnswers).not.toHaveBeenCalled()
   })
 })
 
@@ -113,8 +113,6 @@ describe("editPaidRequestTelegramMessageToDeclined", () => {
         subtype: "ed",
       }),
     )
-    mocks.getIntakeAnswers.mockResolvedValueOnce(null)
-
     const { editPaidRequestTelegramMessageToDeclined } = await import("@/lib/notifications/edit-paid-request-telegram")
     await editPaidRequestTelegramMessageToDeclined(INTAKE_ID)
 
@@ -123,6 +121,7 @@ describe("editPaidRequestTelegramMessageToDeclined", () => {
       subtype: "ed",
       serviceDetail: undefined,
     })
+    expect(mocks.getIntakeAnswers).not.toHaveBeenCalled()
   })
 
   it("swallows errors so the decline action never fails because of a stale chat edit", async () => {

@@ -443,11 +443,12 @@ export async function GET(request: NextRequest) {
       alerts,
       onFailure: onSectionFailure,
       run: async () => {
-        const { count, error } = await supabase
+        const { count, error } = await filterSeededE2EIntakes(supabase
           .from("intakes")
           .select("id", { count: "exact", head: true })
           .in("status", ["paid", "in_review"])
-          .in("risk_tier", ["high", "critical"])
+          .eq("payment_status", "paid")
+          .in("risk_tier", ["high", "critical"]))
         if (error) throw new Error(`High-risk queue count failed: ${error.message}`)
         highRiskWaiting = count ?? 0
 

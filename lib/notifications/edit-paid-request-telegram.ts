@@ -38,10 +38,12 @@ async function loadIntakeForEdit(
   if (!row.paid_request_telegram_message_id) return null
 
   let answers: Record<string, unknown> | null = null
-  try {
-    answers = await getIntakeAnswers(intakeId)
-  } catch {
-    answers = null
+  if (row.category === "med_certs" || row.category === "medical_certificate") {
+    try {
+      answers = await getIntakeAnswers(intakeId)
+    } catch {
+      answers = null
+    }
   }
 
   const serviceSlug = resolvePaidRequestServiceSlug({

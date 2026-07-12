@@ -166,7 +166,7 @@ describe("support inbox alert posting script", () => {
       'TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED: z.enum(["0", "1"]).optional()',
     )
     expect(operationsSource).toContain(
-      "Receiver implemented; Gmail label-count source and hourly Codex schedule pending",
+      "Receiver and hourly Gmail label-count schedule implemented",
     )
     expect(operationsSource).toContain(
       "records `delivery_failed` and returns HTTP 502",
