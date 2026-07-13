@@ -94,6 +94,16 @@ describe("navigation routing contracts", () => {
     expect(animatedMobileMenu).toContain("exit={closedMotionState}")
   })
 
+  it("keeps the navbar glow markup stable across server and client themes", () => {
+    const navbar = readFileSync(path.join(root, "components/shared/navbar.tsx"), "utf8")
+
+    expect(navbar).not.toContain('from "next-themes"')
+    expect(navbar).not.toContain("useTheme()")
+    expect(navbar).toContain(
+      "bg-gradient-radial from-transparent via-primary/8 to-transparent dark:via-primary/15",
+    )
+  })
+
   it("defers first-interaction callbacks so they do not pre-empt the initiating nav click", () => {
     const firstInteraction = readFileSync(path.join(root, "lib/browser/first-interaction.ts"), "utf8")
 

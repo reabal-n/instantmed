@@ -8,6 +8,7 @@ import {
 } from "@playwright/test"
 
 import {
+  assertResolvedTheme,
   finishFiniteEntranceAnimations,
   gotoIntakeEntry,
   gotoPublicRoute,
@@ -562,6 +563,36 @@ async function inspectSequentialHeaderControls(page: Page) {
 
 test.beforeEach(({ browserName }) => {
   test.skip(browserName !== "chromium", "Money-page foundations use Chromium layout metrics")
+})
+
+test.describe("money-page theme foundations", () => {
+  test("dark homepage hydrates without a React markup mismatch", async ({ page }) => {
+    const hydrationDiagnostics: string[] = []
+    const isHydrationMismatch = (message: string) =>
+      /hydration|hydrated|server rendered html|did not match|didn't match/i.test(message)
+
+    page.on("console", (message) => {
+      if (message.type() === "error" && isHydrationMismatch(message.text())) {
+        hydrationDiagnostics.push(`console: ${message.text()}`)
+      }
+    })
+    page.on("pageerror", (error) => {
+      if (isHydrationMismatch(error.message)) {
+        hydrationDiagnostics.push(`pageerror: ${error.message}`)
+      }
+    })
+
+    await seedMoneyPageState(page, "dark")
+    await gotoPublicRoute(page, "/")
+    await assertResolvedTheme(page, "dark")
+    await expect(page.locator('nav[data-mobile-menu-hydrated="true"]')).toBeAttached()
+    await waitTwoFrames(page)
+
+    expect(
+      hydrationDiagnostics,
+      `dark homepage hydration diagnostics:\n${hydrationDiagnostics.join("\n\n")}`,
+    ).toEqual([])
+  })
 })
 
 test.describe("money-page responsive foundations", () => {
