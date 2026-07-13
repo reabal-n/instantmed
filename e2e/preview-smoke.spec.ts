@@ -35,44 +35,13 @@ test.describe("Preview Smoke Tests", () => {
     await expect(page.locator("body")).not.toBeEmpty()
   })
 
-  test("E2E test login endpoint is safely disabled or correctly configured", async ({ request }) => {
-    // Skip if E2E_SECRET not configured
-    const e2eSecret = process.env.E2E_SECRET
-    if (!e2eSecret) {
-      test.skip(true, "E2E_SECRET not configured")
-      return
-    }
+  test("E2E test login endpoint is blocked", async ({ request }) => {
+    const response = await request.post("/api/test/login")
 
-    const response = await request.post("/api/test/login", {
-      headers: {
-        "X-E2E-SECRET": e2eSecret,
-      },
-      data: {
-        userType: "patient",
-      },
-    })
-
-    if (response.status() === 410) {
-      // Vercel preview deployments intentionally blocks /api/test/login unless
-      // PLAYWRIGHT=1 is configured on the deployed app, not just in the runner.
-      return
-    }
-
-    // If the endpoint is enabled for a staging-style preview, it must follow
-    // the canonical login contract and secret check.
-    const status = response.status()
     expect(
-      [200, 401, 403].includes(status),
-      `E2E login endpoint should be safely disabled or configured. Got ${response.status()}: ${await response.text()}`
-    ).toBe(true)
-
-    if (status === 401) {
-      throw new Error("E2E_SECRET mismatch - check preview deployment has matching secret")
-    }
-
-    if (status === 403) {
-      throw new Error("E2E_ALLOWED_HOSTS missing preview host for enabled E2E login endpoint")
-    }
+      response.status(),
+      "Vercel preview deployments must always block /api/test/login"
+    ).toBe(410)
   })
 
   test("health check endpoint responds", async ({ request }) => {

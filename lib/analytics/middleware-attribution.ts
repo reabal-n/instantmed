@@ -11,9 +11,8 @@ import { deriveChannelFromClickIds } from "@/lib/analytics/click-id-channels"
  * `resolveCheckoutAttribution()` in lib/analytics/server-attribution.ts reads
  * it back at checkout time.
  *
- * Kept in its own module (not inlined in middleware.ts) so it can be unit
- * tested. Middleware is an edge-runtime entry point and vitest cannot
- * exercise it directly.
+ * Kept in its own module (not inlined in middleware.ts) so attribution can be
+ * unit tested independently and reused by middleware behavior tests.
  */
 
 export const ATTRIBUTION_PARAM_KEYS = [
