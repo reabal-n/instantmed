@@ -49,8 +49,16 @@ type UpdateEmailPrefsInput = Partial<Pick<EmailPreferences, "marketing_emails" |
 export const updateEmailPreferences = withServerAction<UpdateEmailPrefsInput>(
   { auth: "apiAuth", name: "update-email-preferences" },
   async (preferences, { supabase, profile, log }): Promise<ActionResult> => {
-    // First ensure preferences exist
-    await supabase.rpc("get_or_create_email_preferences", { p_profile_id: profile.id })
+    // Creation is privileged; the user-scoped client remains responsible for the update.
+    const serviceClient = createServiceRoleClient()
+    const { error: ensureError } = await serviceClient.rpc("get_or_create_email_preferences", {
+      p_profile_id: profile.id,
+    })
+
+    if (ensureError) {
+      log.error("Failed to ensure email preferences exist", { error: ensureError.message })
+      return { success: false, error: "Failed to update preferences" }
+    }
 
     // Update preferences
     const { error } = await supabase

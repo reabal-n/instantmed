@@ -44,6 +44,7 @@
     "smoke:parchment": "npx tsx scripts/parchment-smoke.ts",
     "db:lint:linked": "supabase db lint --linked --schema public,extensions --fail-on error",
     "db:check-migrations": "node scripts/check-supabase-migration-history.mjs",
+    "db:check:security-definer-acls": "tsx scripts/check-security-definer-acls.ts",
     "check:rls": "npx tsx scripts/rls-check.ts",
     "import:artg": "npx tsx scripts/import_artg.ts",
     "encrypt:backfill": "npx tsx scripts/encrypt-phi-backfill.ts",

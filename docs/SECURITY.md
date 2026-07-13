@@ -151,6 +151,24 @@ FOR SELECT USING (
 - `safety_audit_log`: dropped `safety_audit_authenticated_insert` (gated only on `session_id IS NOT NULL`, trivially bypassable) and replaced with a service_role-only INSERT policy. Prevents audit forgery (e.g. flipping `safety_outcome` from DECLINE to ALLOW to bypass clinical knockouts).
 - `log_safety_evaluation` (both overloads) and `cleanup_old_drafts`: `REVOKE EXECUTE ... FROM PUBLIC, anon, authenticated`. These are `SECURITY DEFINER` functions that could mutate `safety_audit_log` and `intake_drafts.safety_outcome` — they're only invoked from server-side code via the service role, so revoking client access is safe and necessary.
 
+### `SECURITY DEFINER` Function ACLs
+
+Migration `20260713085920_lock_down_security_definer_rpc_acls.sql` removes direct `anon`, `authenticated`, and `PUBLIC` execution from all 36 functions exposed in production and nine additional legacy functions exposed only when replaying the canonical migration history. The 45-function cross-environment policy has four classes:
+
+- **Service-role RPCs (25):** server actions, cron routes, webhook handlers, and test reset helpers. These grant `EXECUTE` only to `service_role`.
+- **Authenticated RLS helpers (3):** `get_my_profile_id`, `is_doctor`, and `is_patient`. These grant `EXECUTE` to `authenticated` and `service_role`, but never `anon` or `PUBLIC`.
+- **Owner-only legacy helpers (7):** production-only `is_doctor_or_admin` plus six replay-only functions (`create_clinical_summaries_table`, `create_notification`, `get_patient_notes`, `grant_consent`, `log_audit_event`, and `record_admin_action`) have no current repository caller or RLS dependency. The migration revokes every app-role grant when each object exists without recreating it where absent.
+- **Trigger-only functions (10):** seven production functions plus replay-only `audit_intake_created`, `audit_intake_status_change`, and `notify_on_intake_status_change` have no direct app-role execution grant. Existing database triggers continue to invoke them as their function owner.
+
+The migration also revokes unsafe default function privileges for the `postgres` migration owner. `public.security_definer_acl_violations()` is a service-role-only, `SECURITY INVOKER` catalog check covering every current `public.SECURITY DEFINER` function, including functions created after this incident. Run `corepack pnpm db:check:security-definer-acls` after applying any function migration. `lib/__tests__/security-definer-acl-ratchet.test.ts` enforces the reviewed manifest and requires later `SECURITY DEFINER` migrations to include an explicit ACL decision.
+
+For every new function:
+
+1. Prefer `SECURITY INVOKER`.
+2. If `SECURITY DEFINER` is required, set a fixed safe `search_path` and fully qualify referenced objects.
+3. Revoke `EXECUTE` from `PUBLIC`, `anon`, and `authenticated` before granting only the minimum required role.
+4. Run the static ratchet and the live catalog check before deployment sign-off.
+
 See `OPERATIONS.md` §Rollback Runbook for the reversibility matrix and rollback path if any RLS change needs to be reverted.
 
 **Patient-visible audit events:** `intake_created`, `intake_submitted`, `payment_received`, `status_changed`, `document_generated`, `document_sent`. All other events blocked.
