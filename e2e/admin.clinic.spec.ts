@@ -124,14 +124,15 @@ test.describe("Admin Clinic Identity", () => {
 
     // Should show validation error or the save should fail
     // Check for either error toast or form validation message
-    const _hasError = await page.getByText(/required|cannot be empty/i).isVisible({ timeout: 5000 }).catch(() => false)
+    const hasError = await page.getByText(/required|cannot be empty/i).isVisible({ timeout: 5000 }).catch(() => false)
+    const isBrowserInvalid = await clinicNameInput.evaluate(
+      (input: HTMLInputElement) => !input.checkValidity(),
+    )
     
     // Restore the value regardless
     await clinicNameInput.fill(originalValue)
     
-    // If no visible error, the form may have client-side validation preventing submission
-    // Either way, the test passes if we get here without crash
-    expect(true).toBe(true)
+    expect(hasError || isBrowserInvalid).toBe(true)
   })
 
   test("displays current clinic details", async ({ page }) => {

@@ -11,6 +11,7 @@
 #   7. Copied local artifact directories that confuse deploy/package scans
 #   8. Raw browser review evidence that should use expiring artifact storage
 #   9. Retired public assets with no runtime consumers
+#  10. Retired vacuous E2E specs
 #
 # Exit 1 if any orphans found.
 
@@ -381,6 +382,18 @@ for retired_public_asset in \
 do
   if [[ -e "$retired_public_asset" ]]; then
     echo "ORPHAN: $retired_public_asset still exists (retired public asset with no runtime consumers)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 10. Retired vacuous E2E specs ─────────────────────────────────────────
+for retired_e2e_spec in \
+  "e2e/admin.decline-flow.spec.ts" \
+  "e2e/dashboard.keyboard-nav.spec.ts" \
+  "e2e/patient.certificate-download.spec.ts"
+do
+  if [[ -e "$retired_e2e_spec" ]]; then
+    echo "ORPHAN: $retired_e2e_spec still exists (retired duplicate or vacuous E2E coverage)"
     orphans=$((orphans + 1))
   fi
 done
