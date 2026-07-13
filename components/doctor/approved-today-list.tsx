@@ -3,10 +3,10 @@
 import Link from "next/link"
 
 import { buildDoctorIntakeHref } from "@/lib/dashboard/routes"
-import { buildStaffCaseSummary } from "@/lib/doctor/case-summary"
+import { formatServiceType } from "@/lib/format/intake"
 import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import { cn } from "@/lib/utils"
-import type { IntakeWithPatient } from "@/types/db"
+import type { RecentlyCompletedIntake } from "@/types/db"
 
 // `recentlyCompleted` is already today-scoped (reviewed_at >= start of today AEST)
 // and returns approved/declined/completed. The doctor asked to glance at the
@@ -22,7 +22,7 @@ export function ApprovedTodayList({
   intakes,
   className,
 }: {
-  intakes: IntakeWithPatient[]
+  intakes: RecentlyCompletedIntake[]
   className?: string
 }) {
   const approved = intakes.filter((intake) => APPROVED_STATUSES.has(intake.status))
@@ -45,7 +45,11 @@ export function ApprovedTodayList({
       </div>
       <ul className="min-h-0 flex-1 divide-y divide-border/40 overflow-y-auto">
         {approved.map((intake) => {
-          const summary = buildStaffCaseSummary({ intake })
+          const patientName = intake.patient.full_name.trim() || "Unnamed patient"
+          const serviceShortLabel =
+            intake.service?.short_name ||
+            intake.service?.name ||
+            formatServiceType(intake.service?.type || "")
           const stamp = intake.reviewed_at ?? intake.completed_at ?? null
           return (
             <li key={intake.id}>
@@ -54,10 +58,10 @@ export function ApprovedTodayList({
                 className="flex items-center justify-between gap-3 px-4 py-2 transition-colors hover:bg-muted/40"
               >
                 <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-                  {summary.patientName}
+                  {patientName}
                 </span>
                 <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-                  <span className="max-w-[9rem] truncate">{summary.serviceShortLabel}</span>
+                  <span className="max-w-[9rem] truncate">{serviceShortLabel}</span>
                   {stamp ? <span className="tabular-nums">{formatRelativeTime(stamp, now)}</span> : null}
                 </span>
               </Link>

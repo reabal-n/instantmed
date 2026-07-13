@@ -331,6 +331,15 @@ export interface IntakeWithPatient extends Intake {
   answers?: Array<{ id: string; answers: Record<string, unknown> }> | null
 }
 
+/** Minimum-necessary read model serialized into the staff dashboard queue. */
+export type RecentlyCompletedIntake = Pick<
+  Intake,
+  "id" | "patient_id" | "status" | "reviewed_at" | "completed_at"
+> & {
+  patient: Pick<Profile, "full_name">
+  service?: Pick<Service, "name" | "short_name" | "type"> | null
+}
+
 export interface IntakeWithDetails extends Intake {
   patient: Profile
   service?: Service

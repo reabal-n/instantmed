@@ -1,6 +1,6 @@
 import type { QueueStatusFilter } from "@/lib/dashboard/routes"
 import type { PendingBatchReviewResult } from "@/lib/data/intakes"
-import type { IntakeWithPatient } from "@/types/db"
+import type { IntakeWithPatient, RecentlyCompletedIntake } from "@/types/db"
 import type { PaginationInfo } from "@/types/shared"
 
 export type { PaginationInfo }
@@ -12,7 +12,7 @@ export interface QueueClientProps {
   queueDegraded?: boolean
   pagination?: PaginationInfo
   pendingBatchReviews?: PendingBatchReviewResult
-  recentlyCompleted?: IntakeWithPatient[]
+  recentlyCompleted?: RecentlyCompletedIntake[]
   initialStatusFilter?: QueueStatusFilter
   hasExplicitStatusFilter?: boolean
   baseHref?: string
