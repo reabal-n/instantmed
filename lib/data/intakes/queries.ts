@@ -13,8 +13,6 @@ import {
   filterSeededE2EIntakes,
   SEEDED_E2E_PATIENT_PROFILE_ID,
 } from "@/lib/data/seeded-e2e-data"
-import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
-import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
 import { buildDoctorQueueServiceFilter, type QueueCapabilityService } from "@/lib/doctor/queue-capability-scope"
 import { QUEUE_REVIEW_STATUSES } from "@/lib/doctor/queue-utils"
 import { detectRenewalsForIntakes, type IntakeRenewalProbe } from "@/lib/doctor/renewal-detection"
@@ -35,6 +33,10 @@ import {
   asPatientNote,
 } from "@/types/db"
 
+import {
+  ADMIN_LEDGER_SELECT,
+  projectAdminLedgerPatient,
+} from "./admin-ledger-projection"
 import type { DashboardIntake, DashboardPrescription } from "./types"
 
 const logger = createLogger("data-intakes")
@@ -642,68 +644,7 @@ export async function getAllIntakesForAdmin(
   // Fetch paginated data with only necessary fields
   let dataQuery = supabase
     .from("intakes")
-    .select(`
-      id,
-      patient_id,
-      service_id,
-      category,
-      subtype,
-      status,
-      risk_flags,
-      payment_status,
-      refund_status,
-      refund_amount_cents,
-      amount_cents,
-      is_priority,
-      sla_deadline,
-      reference_number,
-      created_at,
-      updated_at,
-      paid_at,
-      approved_at,
-      declined_at,
-      reviewed_by,
-      reviewed_at,
-      utm_source,
-      utm_medium,
-      utm_campaign,
-      utm_term,
-      referrer,
-      landing_page,
-      gclid,
-      gbraid,
-      wbraid,
-      campaignid,
-      adgroupid,
-      keyword,
-      creative,
-      matchtype,
-      device,
-      network,
-      heard_about_us,
-      answers:intake_answers(id, answers, answers_encrypted),
-      patient:profiles!patient_id (
-        id,
-        full_name,
-        email,
-        date_of_birth,
-        date_of_birth_encrypted,
-        phone,
-        phone_encrypted,
-        sex,
-        medicare_number,
-        medicare_number_encrypted,
-        medicare_irn,
-        medicare_expiry,
-        ihi_number,
-        ihi_number_encrypted,
-        address_line1,
-        suburb,
-        state,
-        postcode
-      ),
-      service:services!service_id (id, name, short_name, type, slug)
-    `)
+    .select(ADMIN_LEDGER_SELECT)
 
   // Apply same filters as count query
   dataQuery = dataQuery.gte("created_at", dateFrom)
@@ -729,8 +670,8 @@ export async function getAllIntakesForAdmin(
     return { data: [], total: count ?? 0, page, pageSize }
   }
 
-  // Decrypt only long enough to calculate handoff completeness. Do not return raw
-  // answers, Medicare, or structured address fields in the admin ledger payload.
+  // Decrypt the phone field for client-side operator search. Do not return raw
+  // answers or encrypted fields in the admin ledger payload.
   const unwrapped = await Promise.all((data || []).map(async (row) => {
     const rawPatient = Array.isArray(row.patient) ? row.patient[0] : row.patient
     const decryptedPatient = rawPatient ? decryptProfilePhi(rawPatient as Record<string, unknown>) : rawPatient
@@ -742,28 +683,7 @@ export async function getAllIntakesForAdmin(
         })
       : null
     const service = Array.isArray(row.service) ? row.service[0] : row.service
-    const handoff = decryptedPatient
-      ? buildPatientHandoffSummary(buildPatientSnapshot(decryptedPatient as never, {
-          ...getPatientSnapshotOptionsForCase({
-            answers,
-            category: row.category,
-            serviceType: service?.type,
-            subtype: row.subtype,
-          }),
-          answers,
-        }))
-      : null
-    const patientForClient = decryptedPatient
-      ? {
-          id: decryptedPatient.id,
-          full_name: decryptedPatient.full_name,
-          email: decryptedPatient.email,
-          date_of_birth: decryptedPatient.date_of_birth,
-          phone: decryptedPatient.phone,
-          suburb: decryptedPatient.suburb,
-          state: decryptedPatient.state,
-        }
-      : decryptedPatient
+    const patientForClient = projectAdminLedgerPatient(decryptedPatient)
 
     return {
       // Carry medicationName + service.type only long enough to feed the
@@ -773,7 +693,6 @@ export async function getAllIntakesForAdmin(
       answers: null,
       patient: patientForClient,
       service,
-      handoff,
     }
   }))
   const validData = unwrapped.filter((r) => r.patient !== null)
