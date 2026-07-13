@@ -185,19 +185,31 @@ describe("SEO indexing contracts", () => {
     expect(requestPage).not.toContain('"https://instantmed.com.au/"')
   })
 
-  it("consolidates prescription indexing on /prescriptions", () => {
+  it("gives the prescription service and explainer distinct indexing roles", () => {
     const prescriptionsPage = read("app/prescriptions/page.tsx")
     const onlinePrescriptionsPage = read("app/online-prescriptions/page.tsx")
+    const onlinePrescriptionsLanding = read("components/marketing/online-prescriptions-landing.tsx")
 
     expect(prescriptionsPage).toContain("canonical: 'https://instantmed.com.au/prescriptions'")
     expect(prescriptionsPage).toContain("robots: {")
     expect(prescriptionsPage).toContain("index: true")
     expect(prescriptionsPage).toContain("follow: true")
 
-    expect(onlinePrescriptionsPage).toContain('canonical: "https://instantmed.com.au/prescriptions"')
-    expect(onlinePrescriptionsPage).toContain('url: "https://instantmed.com.au/prescriptions"')
-    expect(onlinePrescriptionsPage).toContain('url="/prescriptions"')
-    expect(onlinePrescriptionsPage).not.toContain('canonical: "https://instantmed.com.au/online-prescriptions"')
+    expect(onlinePrescriptionsPage).toContain(
+      'canonical: "https://instantmed.com.au/online-prescriptions"',
+    )
+    expect(onlinePrescriptionsPage).toContain(
+      'url: "https://instantmed.com.au/online-prescriptions"',
+    )
+    expect(onlinePrescriptionsPage).toContain('url="/online-prescriptions"')
+    expect(onlinePrescriptionsPage).toContain('type: "article"')
+    expect(onlinePrescriptionsPage).not.toContain("ServiceSchema")
+    expect(onlinePrescriptionsPage).not.toContain("PRICING_DISPLAY")
+
+    expect(onlinePrescriptionsLanding).toContain('const MONEY_PAGE_HREF = "/prescriptions"')
+    expect(onlinePrescriptionsLanding).toContain("See repeat prescription service")
+    expect(onlinePrescriptionsLanding).not.toContain('/request?service=repeat-script')
+    expect(onlinePrescriptionsLanding).not.toContain("PRICING_DISPLAY")
   })
 
   it("keeps GSC indexing audits as read-only diagnostics", () => {

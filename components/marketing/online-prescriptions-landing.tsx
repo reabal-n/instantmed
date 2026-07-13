@@ -31,7 +31,6 @@ import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import type { RenderableArticleVisual } from "@/lib/blog/visuals"
-import { PRICING_DISPLAY } from "@/lib/constants"
 import { ONLINE_PRESCRIPTIONS_FAQ } from "@/lib/data/online-prescriptions-faq"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 import { cn } from "@/lib/utils"
@@ -44,26 +43,24 @@ const FAQSection = dynamic(
   { loading: () => <div className="min-h-[300px]" /> },
 )
 
-const REQUEST_HREF = "/request?service=repeat-script"
 const MONEY_PAGE_HREF = "/prescriptions"
 
 const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "scripts",
   analyticsId: "online-prescriptions",
   sticky: {
-    ctaText: `Request repeat review - ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
-    ctaHref: REQUEST_HREF,
-    mobileSummary: "Repeat prescriptions - Doctor-reviewed",
-    responseTime: "Doctor review 24/7",
+    ctaText: "See repeat prescription service",
+    ctaHref: MONEY_PAGE_HREF,
+    mobileSummary: "Online prescription guide",
   },
 }
 
 const HERO_FACTS = [
   {
     icon: WalletCards,
-    label: "Cost",
-    value: PRICING_DISPLAY.REPEAT_SCRIPT,
-    body: "One-off repeat prescription review. Pharmacy cost is separate if a prescription is approved.",
+    label: "Fees",
+    value: "Two separate costs",
+    body: "A doctor review fee and the pharmacy medicine cost are separate. Current service pricing is listed on the service page.",
   },
   {
     icon: Clock3,
@@ -155,8 +152,8 @@ const SCOPE_CARDS = [
 const COST_AND_ESCRIPT = [
   {
     icon: WalletCards,
-    title: "Review fee",
-    body: `The repeat prescription review fee is ${PRICING_DISPLAY.REPEAT_SCRIPT}. The fee covers doctor review, not pharmacy supply. ${GUARANTEE}`,
+    title: "Doctor review fee",
+    body: `The service charges a one-off fee for the doctor's review, not pharmacy supply. Current pricing is listed on the repeat prescription service page. ${GUARANTEE}`,
   },
   {
     icon: FileText,
@@ -423,22 +420,22 @@ function OnlinePrescriptionsHero({
           </div>
           <div className="mb-4 h-1.5 w-10 rounded-full bg-brand-coral" aria-hidden="true" />
           <Heading level="display" className="text-balance">
-            Online prescriptions in Australia, reviewed by a doctor
+            How online prescriptions work in Australia
           </Heading>
           <p data-speakable className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
             {FORM_FIRST_WEDGE} This page explains when an online prescription
-            request can fit, what information the doctor needs, what it costs,
-            and when in-person care is safer.
+            request can fit, what information the doctor needs, how fees and
+            pharmacy costs differ, and when in-person care is safer.
           </p>
           <div ref={heroCTARef} className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg" disabled={isDisabled} onClick={handleHeroCTA}>
-              <Link href={isDisabled ? "/contact" : REQUEST_HREF}>
-                {isDisabled ? "Contact us" : `Request repeat review - ${PRICING_DISPLAY.REPEAT_SCRIPT}`}
+              <Link href={isDisabled ? "/contact" : MONEY_PAGE_HREF}>
+                {isDisabled ? "Contact us" : "See repeat prescription service"}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link href={MONEY_PAGE_HREF}>Compare prescription options</Link>
+              <Link href="#how-it-works">Read how it works</Link>
             </Button>
           </div>
           <p className="mt-4 flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
@@ -665,7 +662,7 @@ export function OnlinePrescriptionsLanding({
             id="sources"
             pill="Sources"
             title="Sources and references"
-            intro="This page is written for Australian patients and cites public Australian authorities where possible. Last reviewed: 2026-06."
+            intro="This page is written for Australian patients and cites public Australian authorities where possible. Last reviewed: 2026-07."
           >
             <div className="grid gap-4 md:grid-cols-2">
               {SOURCES.map((source) => (
@@ -698,22 +695,22 @@ export function OnlinePrescriptionsLanding({
             <div className="mx-auto max-w-4xl rounded-3xl border border-border/50 bg-white p-6 text-center shadow-lg shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-8 lg:p-12">
               <SectionPill>Start here</SectionPill>
               <Heading level="h2" className="mt-4 text-balance">
-                Request a repeat prescription review online.
+                Looking for the repeat prescription service?
               </Heading>
               <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
-                Complete the secure form. A doctor reviews the information and
-                decides whether a prescription is clinically appropriate. No
-                promised prescription, and contact may be needed.
+                The service page explains the current fee and links to the secure
+                form. A doctor still decides whether a prescription is clinically
+                appropriate, and contact may be needed.
               </p>
               <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button asChild size="lg" disabled={isDisabled} onClick={handleFinalCTA}>
-                  <Link href={isDisabled ? "/contact" : REQUEST_HREF}>
-                    {isDisabled ? "Contact us" : `Request repeat review - ${PRICING_DISPLAY.REPEAT_SCRIPT}`}
+                  <Link href={isDisabled ? "/contact" : MONEY_PAGE_HREF}>
+                    {isDisabled ? "Contact us" : "See repeat prescription service"}
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" onClick={handleHowItWorksCTA}>
-                  <Link href={MONEY_PAGE_HREF}>See the prescription service page</Link>
+                  <Link href="#how-it-works">Review how it works</Link>
                 </Button>
               </div>
               <p className="mt-4 text-sm text-muted-foreground">{GUARANTEE}</p>
