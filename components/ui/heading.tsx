@@ -59,6 +59,7 @@ export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(
         className={cn(
           levelStyles[level],
           balance && "text-balance",
+          "max-w-full min-w-0 hyphens-auto [overflow-wrap:anywhere]",
           "text-foreground",
           className,
         )}

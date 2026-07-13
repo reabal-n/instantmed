@@ -14,6 +14,7 @@ import { useCallback, useEffect, useState } from "react"
 import { ServiceIconTile } from "@/components/icons/service-icons"
 import { RequestButton } from "@/components/request/request-button"
 import { requestCx } from "@/components/request/request-cx"
+import { Heading } from "@/components/ui/heading"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { getConsultDraftResumeHref } from "@/lib/request/consult-flow"
 import {
@@ -120,7 +121,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
   )
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div data-patient-flow="true" className="min-h-screen flex flex-col bg-background">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="max-w-xl mx-auto px-4 py-3">
@@ -132,7 +133,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
 
       <main className="flex-1 max-w-xl mx-auto w-full px-4 py-4 space-y-4 sm:py-6 sm:space-y-6">
         {/* Social proof strip */}
-        <div className="flex flex-nowrap items-center justify-center gap-1.5 text-[11px] text-muted-foreground sm:gap-2.5 sm:text-xs">
+        <div className="flex flex-wrap min-[240px]:flex-nowrap items-center justify-center gap-1.5 text-[11px] text-muted-foreground sm:gap-2.5 sm:text-xs">
           <span className="whitespace-nowrap font-medium text-foreground">
             Doctor-reviewed
           </span>
@@ -277,6 +278,7 @@ interface CompactRowProps extends ServiceDef {
 }
 
 function CompactServiceRow({
+  id,
   title,
   subtitle,
   price,
@@ -287,11 +289,17 @@ function CompactServiceRow({
   popular,
   onClick,
 }: CompactRowProps) {
+  const headingId = `request-service-${id}-heading`
+
   return (
-    <div>
+    <section aria-labelledby={headingId}>
+      <Heading id={headingId} level="h3" as="h2" className="sr-only">
+        {title}
+      </Heading>
       <button
         type="button"
         onClick={onClick}
+        aria-labelledby={headingId}
         className={requestCx(
           "w-full text-left group px-4 py-3.5",
           "hover:bg-muted/50 active:scale-[0.99] active:bg-muted/60 dark:hover:bg-white/[0.08]",
@@ -299,16 +307,16 @@ function CompactServiceRow({
           "transition-[background-color,transform] duration-150",
         )}
       >
-        <div className="flex items-center gap-3.5">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3.5 gap-y-2 min-[240px]:flex min-[240px]:items-center">
           {/* Service icon tile — canonical gradient-tile variant */}
           <ServiceIconTile iconKey={iconKey} color={colorToken} size="md" className="shrink-0" variant="sticker" />
 
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <h3 className="font-semibold text-base leading-tight text-foreground">
+              <span aria-hidden="true" className="font-semibold text-base leading-tight text-foreground">
                 {title}
-              </h3>
+              </span>
               {popular && (
                 <span className="inline-flex items-center text-[9px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-amber-200/60 dark:border-amber-700/40 rounded-full px-1.5 py-0.5 leading-none whitespace-nowrap">
                   Popular
@@ -323,7 +331,7 @@ function CompactServiceRow({
           </div>
 
           {/* Price + chevron */}
-          <div className="flex w-[4.5rem] shrink-0 items-center justify-end gap-1.5 sm:w-20">
+          <div className="col-span-2 flex w-full items-center justify-end gap-1.5 min-[240px]:col-span-1 min-[240px]:w-[4.5rem] min-[240px]:shrink-0 sm:w-20">
             <div className="min-w-0 text-right tabular-nums">
               {pricePrefix && (
                 <span className="block text-[10px] leading-none text-muted-foreground">
@@ -344,6 +352,6 @@ function CompactServiceRow({
           </div>
         </div>
       </button>
-    </div>
+    </section>
   )
 }

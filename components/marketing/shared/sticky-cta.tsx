@@ -62,12 +62,9 @@ export function StickyCTA({
         role="region"
         aria-label="Quick purchase"
         className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
-        initial={prefersReducedMotion ? {} : { y: 100 }}
-        animate={prefersReducedMotion
-          ? { opacity: show ? 1 : 0 }
-          : { y: show ? 0 : 100 }
-        }
-        transition={{ duration: 0.3, ease: "easeOut" }}
+        initial={{ y: "100%", opacity: 0 }}
+        animate={{ y: show ? 0 : "100%", opacity: show ? 1 : 0 }}
+        transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeOut" }}
         inert={!show ? true : undefined}
       >
         {/*
@@ -100,13 +97,13 @@ export function StickyCTA({
           <Button
             asChild
             size="lg"
-            className="w-full h-11 text-base font-semibold shadow-md shadow-primary/20"
+            className="h-auto min-h-12 w-full whitespace-normal py-3 text-center text-base font-semibold shadow-md shadow-primary/20"
             disabled={isDisabled}
             onClick={onCTAClick}
           >
             <Link href={resolvedHref}>
               {resolvedCtaText}
-              <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+              <ArrowRight className="ml-2 h-4 w-4 shrink-0" aria-hidden="true" />
             </Link>
           </Button>
           {mobileFooter}

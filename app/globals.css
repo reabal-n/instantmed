@@ -2688,6 +2688,21 @@ body {
     min-width: 44px;
   }
 
+  /* Patient flows use the stricter 48px design-system target without
+     increasing control density across marketing or staff surfaces. */
+  [data-patient-flow="true"] :is(
+    button,
+    [role="button"],
+    a[href],
+    input:not([type="hidden"]),
+    select,
+    textarea,
+    label[for]
+  ) {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
   /* Prevent zoom on input focus (iOS Safari) */
   input,
   textarea,
@@ -2711,6 +2726,14 @@ body {
   :where(textarea) {
     min-height: 48px;
     padding: 12px 16px;
+  }
+}
+
+/* At 200% zoom a 375px device exposes roughly 188 CSS pixels. Keep the
+   progress track inside that viewport while retaining its 48px height. */
+@media (max-width: 240px) {
+  [data-patient-flow="true"] [data-request-progress-step="true"] {
+    min-width: 0;
   }
 }
 

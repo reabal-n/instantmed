@@ -16,7 +16,7 @@ export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarPro
 
   return (
     <nav className="w-full" aria-label="Request progress">
-      <div className="relative h-10 sm:h-[3.35rem]">
+      <div className="relative h-12 sm:h-[3.35rem]">
         <div className="absolute left-3 right-3 top-4 h-1.5 overflow-hidden rounded-full bg-muted/70 sm:top-3.5">
           <div
             className="h-full rounded-full transition-[width] duration-300 ease-out motion-reduce:transition-none"
@@ -41,6 +41,7 @@ export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarPro
             return (
               <button
                 key={step.id}
+                data-request-progress-step="true"
                 type="button"
                 onClick={() => isClickable && onStepClick(step.id, i)}
                 disabled={!isClickable}

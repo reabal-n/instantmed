@@ -70,8 +70,9 @@ describe("marketing theme and serious-contrast contract", () => {
   it("keeps the consult coming-soon treatment muted without fading its text", () => {
     const consult = read("app/consult/page.tsx")
 
-    expect(consult).toContain("border-dashed border-border/60 bg-muted/20 p-5")
-    expect(consult).not.toContain("bg-muted/20 p-5 opacity-80")
+    expect(consult).toContain("border-dashed border-border/60 bg-muted/20")
+    expect(consult).toContain("min-[241px]:p-5")
+    expect(consult).not.toMatch(/bg-muted\/20[^"\n]*opacity-/)
   })
 
   it("keeps the hero doctor primary card entrance transform-only", () => {
