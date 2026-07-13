@@ -180,7 +180,7 @@ BEGIN
   INTO violations
   FROM public.security_definer_acl_violations() AS result;
 
-  IF pg_catalog.coalesce(pg_catalog.array_length(violations, 1), 0) > 0 THEN
+  IF COALESCE(pg_catalog.array_length(violations, 1), 0) > 0 THEN
     RAISE EXCEPTION 'SECURITY DEFINER ACL verification failed: %',
       pg_catalog.array_to_string(violations, ', ');
   END IF;

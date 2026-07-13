@@ -132,6 +132,10 @@ describe("SECURITY DEFINER ACL ratchet", () => {
       "GRANT EXECUTE ON FUNCTION public.security_definer_acl_violations() TO service_role",
     )
     expect(migrationSource).toContain("RAISE EXCEPTION 'SECURITY DEFINER ACL verification failed")
+    expect(migrationSource).not.toContain("pg_catalog.coalesce")
+    expect(migrationSource).toContain(
+      "IF COALESCE(pg_catalog.array_length(violations, 1), 0) > 0 THEN",
+    )
 
     expect(checkerSource).toContain('.rpc("security_definer_acl_violations")')
     expect(checkerSource).toContain("process.exitCode = 1")
