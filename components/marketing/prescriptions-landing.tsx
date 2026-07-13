@@ -189,7 +189,7 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
                 <div className="flex items-start justify-between mb-4">
                   <StickerIcon name={service.sticker} size={56} />
                   {service.badge && (
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary-strong border border-primary/20">
                       <span
                         className="w-1.5 h-1.5 rounded-full bg-primary mr-1.5"
                         style={{ animation: "pulse 3s ease-in-out infinite" }}

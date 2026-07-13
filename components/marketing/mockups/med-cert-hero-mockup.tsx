@@ -179,7 +179,6 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
             "shadow-lg shadow-primary/[0.08] dark:shadow-none",
             "px-3.5 py-2.5 min-w-[200px]",
           )}
-          style={{ animation: "hero-fade-up 0.5s ease-out 0.55s both" }}
         >
           <div className="flex items-center gap-2.5">
             <div className="relative shrink-0">

@@ -438,7 +438,7 @@ export default async function ConsultOverviewPage() {
             {comingSoon.map((service) => (
               <div
                 key={service.id}
-                className="relative flex items-start gap-4 rounded-2xl border border-dashed border-border/60 bg-muted/20 p-5 opacity-80"
+                className="relative flex items-start gap-4 rounded-2xl border border-dashed border-border/60 bg-muted/20 p-5"
               >
                 <span
                   className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-muted text-muted-foreground"

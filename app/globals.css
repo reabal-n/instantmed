@@ -25,14 +25,14 @@ html {
      never plain white. Without this the body bg only applies after the
      stylesheet hydrates, which was visible enough for Gemini's video-review
      rubric to flag as a "3s white flash on load" (2026-05-25 /consult review). */
-  background: #F8F7F4;
+  background: var(--background, #F8F7F4);
 }
 
 body {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  /* Mirror html so any per-element opacity/transform still composites onto ivory. */
-  background: #F8F7F4;
+  /* Mirror html so opacity/transform layers composite onto the active theme surface. */
+  background: var(--background, #F8F7F4);
 }
 
 /* Parallax performance optimization */
@@ -113,6 +113,7 @@ body {
   
   /* Primary: Morning sky blue — trustworthy, calm, professional (WCAG AA: 5.17:1 with white) */
   --primary: #2563EB;
+  --primary-strong: #1D4ED8;
   --primary-foreground: #ffffff;
   /* Brand accent: semantic alias for highlight text. Resolves to primary (light) / teal (dark). */
   --brand-accent: var(--primary);
@@ -313,6 +314,7 @@ body {
   
   /* Primary - calm teal glow */
   --primary: #5DB8C9;
+  --primary-strong: var(--primary);
   --primary-foreground: #ffffff;
   /* Brand accent: resolves to teal in dark mode for headline highlights */
   --brand-accent: var(--primary);

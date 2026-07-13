@@ -159,7 +159,7 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${sourceSans.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
-      style={{ backgroundColor: '#f8f7f4' }}
+      style={{ backgroundColor: "var(--background, #F8F7F4)" }}
     >
       <head>
         {/* Analytics and replay are interaction-gated; keep only non-analytics
@@ -171,7 +171,7 @@ export default function RootLayout({
       </head>
       <body
         className="font-sans antialiased text-foreground"
-        style={{ backgroundColor: "#f8f7f4" }}
+        style={{ backgroundColor: "var(--background, #F8F7F4)" }}
       >
         <SupabaseAuthProvider>
           <OrganizationSchema />
