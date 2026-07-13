@@ -36,7 +36,7 @@ BEGIN
         ('public.handle_new_user()', 'trigger'),
         ('public.increment_auto_approval_attempts(uuid)', 'service_role'),
         ('public.is_doctor()', 'authenticated'),
-        ('public.is_doctor_or_admin()', 'authenticated'),
+        ('public.is_doctor_or_admin()', 'owner_only'),
         ('public.is_patient()', 'authenticated'),
         ('public.log_ai_audit(uuid, ai_audit_action, draft_type, uuid, uuid, ai_actor_type, character varying, character varying, character varying, integer, integer, integer, boolean, boolean, jsonb, jsonb, jsonb, text)', 'service_role'),
         ('public.log_certificate_edit()', 'trigger'),
@@ -57,8 +57,15 @@ BEGIN
         ('public.upsert_exit_intent_capture(text, text)', 'service_role')
     ) AS policy(function_signature, access_policy)
   LOOP
-    IF function_oid IS NULL THEN
+    -- is_doctor_or_admin() is unused production-only drift and is absent from
+    -- migration-replayed preview schemas. Keep it in the production ACL audit
+    -- without manufacturing the legacy helper in clean environments.
+    IF function_oid IS NULL AND function_policy <> 'owner_only' THEN
       RAISE EXCEPTION 'Expected SECURITY DEFINER function is missing from ACL policy: %', function_signature;
+    END IF;
+
+    IF function_oid IS NULL THEN
+      CONTINUE;
     END IF;
 
     EXECUTE pg_catalog.format(
@@ -80,7 +87,7 @@ BEGIN
         'GRANT EXECUTE ON FUNCTION %s TO service_role',
         function_oid
       );
-    ELSIF function_policy <> 'trigger' THEN
+    ELSIF function_policy NOT IN ('owner_only', 'trigger') THEN
       RAISE EXCEPTION 'Unknown SECURITY DEFINER ACL policy: %', function_policy;
     END IF;
 
@@ -113,7 +120,6 @@ AS $function$
     VALUES
       ('public.get_my_profile_id()'::pg_catalog.regprocedure::oid),
       ('public.is_doctor()'::pg_catalog.regprocedure::oid),
-      ('public.is_doctor_or_admin()'::pg_catalog.regprocedure::oid),
       ('public.is_patient()'::pg_catalog.regprocedure::oid)
   ),
   security_definer_functions AS (

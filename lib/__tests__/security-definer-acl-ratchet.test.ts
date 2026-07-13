@@ -3,7 +3,7 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
-type FunctionPolicy = "authenticated" | "service_role" | "trigger"
+type FunctionPolicy = "authenticated" | "owner_only" | "service_role" | "trigger"
 
 const expectedPolicies = new Map<string, FunctionPolicy>([
   ["public.add_to_webhook_dead_letter(text, text, text, uuid, text, text, jsonb)", "service_role"],
@@ -23,7 +23,7 @@ const expectedPolicies = new Map<string, FunctionPolicy>([
   ["public.handle_new_user()", "trigger"],
   ["public.increment_auto_approval_attempts(uuid)", "service_role"],
   ["public.is_doctor()", "authenticated"],
-  ["public.is_doctor_or_admin()", "authenticated"],
+  ["public.is_doctor_or_admin()", "owner_only"],
   ["public.is_patient()", "authenticated"],
   [
     "public.log_ai_audit(uuid, ai_audit_action, draft_type, uuid, uuid, ai_actor_type, character varying, character varying, character varying, integer, integer, integer, boolean, boolean, jsonb, jsonb, jsonb, text)",
@@ -74,7 +74,7 @@ function readPolicyEntries(source: string): Map<string, FunctionPolicy> {
   const policyValues = source.slice(policyValuesStart, policyValuesEnd)
   const entries = [
     ...policyValues.matchAll(
-      /\('([^']+)', '(authenticated|service_role|trigger)'\)/g,
+      /\('([^']+)', '(authenticated|owner_only|service_role|trigger)'\)/g,
     ),
   ].map((match) => [match[1], match[2] as FunctionPolicy] as const)
 
@@ -88,7 +88,8 @@ describe("SECURITY DEFINER ACL ratchet", () => {
     expect(readPolicyEntries(migrationSource)).toEqual(expectedPolicies)
     expect(expectedPolicies).toHaveLength(36)
     expect([...expectedPolicies.values()].filter((policy) => policy === "service_role")).toHaveLength(25)
-    expect([...expectedPolicies.values()].filter((policy) => policy === "authenticated")).toHaveLength(4)
+    expect([...expectedPolicies.values()].filter((policy) => policy === "authenticated")).toHaveLength(3)
+    expect([...expectedPolicies.values()].filter((policy) => policy === "owner_only")).toHaveLength(1)
     expect([...expectedPolicies.values()].filter((policy) => policy === "trigger")).toHaveLength(7)
 
     expect(migrationSource).toContain(
@@ -99,6 +100,16 @@ describe("SECURITY DEFINER ACL ratchet", () => {
     expect(migrationSource).toContain(
       "SECURITY DEFINER ACL policy was not applied exactly",
     )
+    expect(migrationSource).toContain(
+      "IF function_oid IS NULL AND function_policy <> 'owner_only' THEN",
+    )
+
+    const verifierSource = migrationSource.slice(
+      migrationSource.indexOf(
+        "CREATE OR REPLACE FUNCTION public.security_definer_acl_violations()",
+      ),
+    )
+    expect(verifierSource).not.toContain("is_doctor_or_admin")
   })
 
   it("removes unsafe default function privileges for the migration owner", () => {
