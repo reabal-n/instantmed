@@ -1117,26 +1117,3 @@ export async function getRecentlyCompletedIntakes(opts: { limit?: number } = {})
 
   return (data || []) as unknown as IntakeWithPatient[]
 }
-
-/**
- * Get today's total earnings from approved intakes.
- */
-export async function getTodayEarnings(): Promise<number> {
-  const supabase = createServiceRoleClient()
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
-
-  const { data, error } = await supabase
-    .from("intakes")
-    .select("amount_cents")
-    .in("status", ["approved", "completed"])
-    .eq("payment_status", "paid")
-    .gte("reviewed_at", todayStart.toISOString())
-
-  if (error) {
-    logger.error("Failed to fetch today's earnings", { error: error.message })
-    return 0
-  }
-
-  return (data || []).reduce((sum, row) => sum + (row.amount_cents || 0), 0)
-}

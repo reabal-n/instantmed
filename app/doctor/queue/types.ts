@@ -13,7 +13,6 @@ export interface QueueClientProps {
   pagination?: PaginationInfo
   pendingBatchReviews?: PendingBatchReviewResult
   recentlyCompleted?: IntakeWithPatient[]
-  todayEarnings?: number
   initialStatusFilter?: QueueStatusFilter
   hasExplicitStatusFilter?: boolean
   baseHref?: string

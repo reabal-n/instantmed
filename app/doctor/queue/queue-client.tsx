@@ -306,7 +306,6 @@ export function QueueClient({
     degraded: false,
   },
   recentlyCompleted = [],
-  todayEarnings,
   initialStatusFilter = "all",
   hasExplicitStatusFilter = false,
   baseHref = STAFF_DASHBOARD_HREF,
@@ -979,19 +978,6 @@ export function QueueClient({
     }
   }, [compactShell, expandedId, isDesktop])
 
-  const reviewedToday = recentlyCompleted.length
-  const queueSize = intakes.length
-  // Memoised so the clock tick / search input / hover doesn't recompute
-  // this on every render. Only depends on the (rarely-changing) recent
-  // completions prop.
-  const approvalRate = useMemo(() => {
-    if (recentlyCompleted.length === 0) return null
-    const approved = recentlyCompleted.filter(
-      (r) => r.status === "approved" || r.status === "completed",
-    ).length
-    return Math.round((approved / recentlyCompleted.length) * 100)
-  }, [recentlyCompleted])
-
   return (
     <div
       ref={queueRegionRef}
@@ -1003,34 +989,6 @@ export function QueueClient({
         "focus:outline-none",
       )}
     >
-      {/* Daily stats strip */}
-      {!compactShell && (reviewedToday > 0 || queueSize > 0 || todayEarnings) && (
-        <div
-          className="flex flex-wrap items-center gap-x-5 gap-y-1 px-0.5 text-xs text-muted-foreground"
-          aria-live="polite"
-          aria-atomic="false"
-        >
-          {reviewedToday > 0 && (
-            <span>
-              <span className="font-medium text-foreground tabular-nums">{reviewedToday}</span>{" "}reviewed today
-              {approvalRate !== null && (
-                <span className="ml-1 text-muted-foreground">({approvalRate}%)</span>
-              )}
-            </span>
-          )}
-          {queueSize > 0 && (
-            <span aria-label={`${queueSize} intake${queueSize === 1 ? "" : "s"} in queue`}>
-              <span className="font-medium text-foreground tabular-nums">{queueSize}</span>{" "}in queue
-            </span>
-          )}
-          {todayEarnings != null && todayEarnings > 0 && (
-            <span>
-              <span className="font-medium text-success tabular-nums">${(todayEarnings / 100).toFixed(2)}</span>{" "}today
-            </span>
-          )}
-        </div>
-      )}
-
       {/* Priority inbox banner */}
       {priorityModeActive && (
         <div
