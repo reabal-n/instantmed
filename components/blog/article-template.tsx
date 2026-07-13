@@ -32,14 +32,21 @@ import { TableOfContents } from "@/components/blog/table-of-contents"
 import { Badge } from "@/components/ui/badge"
 import { slugifyHeading } from "@/lib/blog/heading"
 import { getReviewer } from "@/lib/blog/medical-reviewer"
-import type { Article, ArticleFAQ, ArticleLink, ArticleSection } from "@/lib/blog/types"
+import type {
+  Article,
+  ArticleFAQ,
+  ArticleIndexItem,
+  ArticleLink,
+  ArticleSection,
+} from "@/lib/blog/types"
 import type { RenderableArticleVisual } from "@/lib/blog/visuals"
 import { cn } from "@/lib/utils"
 
 interface ArticleTemplateProps {
   article: Article
-  relatedArticles?: Article[]
-  allArticles?: Article[]
+  relatedArticles?: ArticleIndexItem[]
+  seriesArticles?: ArticleIndexItem[]
+  popularArticles?: ArticleIndexItem[]
   articleVisuals?: RenderableArticleVisual[]
 }
 
@@ -426,7 +433,8 @@ function FAQSection({ faqs }: { faqs: ArticleFAQ[] }) {
 export function ArticleTemplate({
   article,
   relatedArticles,
-  allArticles = [],
+  seriesArticles = [],
+  popularArticles = [],
   articleVisuals = [],
 }: ArticleTemplateProps) {
   const [readingProgress, setReadingProgress] = useState(0)
@@ -451,10 +459,6 @@ export function ArticleTemplate({
     section => section.type === 'heading' && section.level && section.level <= 3
   ).length >= 4
 
-  // Get series articles count if in a series
-  const seriesArticles = article.series
-    ? allArticles.filter(a => a.series?.id === article.series?.id)
-    : []
   const bodyArticleVisuals = getBodyArticleVisuals(article, articleVisuals)
   const visualPlacements = getVisualPlacements(article.content, bodyArticleVisuals.length)
   const heroImageFit = getHeroImageFit(article)
@@ -650,7 +654,7 @@ export function ArticleTemplate({
         </article>
 
         {/* Sidebar */}
-        {(hasEnoughHeadings || article.series || allArticles.length > 0) && (
+        {(hasEnoughHeadings || seriesArticles.length > 0 || popularArticles.length > 0) && (
           <aside className="hidden lg:block space-y-6">
             {/* Table of Contents */}
             {hasEnoughHeadings && (
@@ -658,18 +662,18 @@ export function ArticleTemplate({
             )}
             
             {/* Series Navigation */}
-            {article.series && allArticles.length > 0 && (
+            {article.series && seriesArticles.length > 0 && (
               <ArticleSeriesNav 
                 series={article.series}
-                articles={allArticles}
+                articles={seriesArticles}
                 currentSlug={article.slug}
               />
             )}
             
             {/* Popular Articles */}
-            {allArticles.length > 0 && (
+            {popularArticles.length > 0 && (
               <div className="bg-white dark:bg-card rounded-xl p-5 border border-border/50 dark:border-white/10">
-                <PopularArticlesCompact articles={allArticles} limit={3} />
+                <PopularArticlesCompact articles={popularArticles} limit={3} />
               </div>
             )}
           </aside>

@@ -7,12 +7,12 @@ import { useMemo,useState } from 'react'
 
 import { SearchAutocomplete } from '@/components/blog/search-autocomplete'
 import { Button } from '@/components/ui/button'
-import type { Article, ArticleCategory } from '@/lib/blog/types'
+import type { ArticleCategory, ArticleIndexItem } from '@/lib/blog/types'
 import { categories } from '@/lib/blog/types'
 import { cn } from '@/lib/utils'
 
 interface ArticlesPageProps {
-  articles: Article[]
+  articles: ArticleIndexItem[]
 }
 
 const ARTICLES_PER_PAGE = 12
@@ -43,7 +43,7 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
         article =>
           article.title.toLowerCase().includes(query) ||
           article.excerpt.toLowerCase().includes(query) ||
-          article.seo.keywords.some(k => k.toLowerCase().includes(query))
+          article.keywords.some(k => k.toLowerCase().includes(query))
       )
     }
 
@@ -179,7 +179,12 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
       {paginatedArticles.length > 0 ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {paginatedArticles.map((article) => (
-            <Link key={article.slug} href={`/blog/${article.slug}`} className="group">
+            <Link
+              key={article.slug}
+              href={`/blog/${article.slug}`}
+              prefetch={false}
+              className="group"
+            >
               <article className="bg-white dark:bg-card rounded-xl overflow-hidden h-full border border-border/50 dark:border-white/10 hover:border-primary/50 transition-[box-shadow,border-color] hover:shadow-lg">
                 <div className="relative h-40 bg-card/40 dark:bg-white/10">
                   <Image
@@ -187,6 +192,7 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
                     alt={article.heroImageAlt}
                     fill
                     className="object-cover"
+                    sizes="(max-width: 639px) calc(100vw - 2rem), (max-width: 1023px) 50vw, 384px"
                   />
                   <div className="absolute top-3 left-3">
                     <span className="text-xs font-medium px-2 py-1 rounded-full bg-white dark:bg-card text-primary">

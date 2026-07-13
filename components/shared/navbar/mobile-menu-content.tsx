@@ -64,7 +64,12 @@ export function MobileMenuContent({ variant, onClose }: MobileMenuContentProps) 
           onClose={onClose}
         />
         <AnimatedMobileMenu.Item
-          item={{ label: "Health Guides", href: "/blog", icon: <BookOpen className="h-5 w-5" /> }}
+          item={{
+            label: "Health Guides",
+            href: "/blog",
+            icon: <BookOpen className="h-5 w-5" />,
+            prefetch: false,
+          }}
           index={services.length + 2}
           onClose={onClose}
         />

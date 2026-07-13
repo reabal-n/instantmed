@@ -3,7 +3,6 @@
 import { AnimatePresence,motion } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 import { ServiceIconTile } from "@/components/icons/service-icons"
@@ -51,7 +50,6 @@ interface ServicesDropdownProps {
 
 export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
   const { isServiceDisabled } = useServiceAvailability()
-  const router = useRouter()
   const [open, setOpen] = useState(false)
   const prefersReducedMotion = useReducedMotion()
 
@@ -62,16 +60,11 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
     isActivePath("/hair-loss") ||
     isActivePath("/womens-health")
 
-  const handleTriggerMouseEnter = () => {
-    services.forEach(service => router.prefetch(service.href))
-  }
-
   return (
     <div className="relative">
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <button
-            onMouseEnter={handleTriggerMouseEnter}
             className={cn(
               "group/services relative z-10 flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
               isServiceActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
@@ -120,6 +113,7 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
                       ) : (
                         <Link
                           href={service.href}
+                          prefetch={false}
                           onPointerDown={(event) => event.stopPropagation()}
                           onKeyDown={(event) => event.stopPropagation()}
                           className="flex items-center gap-3 px-3 py-2.5 w-full"
