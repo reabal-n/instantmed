@@ -734,7 +734,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 557 files, 237 route files
+### `app/` — 558 files, 238 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -744,8 +744,8 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `emails/`, `features/`, `settings/`, `ops/`, `analytics/` |
 | `app/doctor/` | Doctor portal under the shared staff shell | `intakes/[id]/` (review detail), `patients/`, `settings/`; queue/scripts entry points resolve through `/dashboard` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
-| `app/api/` | API routes (88 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/`, and the count-only `internal/support-inbox-alert/` bridge |
-| `app/api/cron/` | Scheduled jobs (28) | `stale-queue/`, `pending-queue-reminders/`, `email-dispatcher/`, `health-check`, `google-ads-conversions`, `google-ads-diagnostics-watch`, `cert-reactivation`, `parchment-smoke`, etc. See OPERATIONS.md |
+| `app/api/` | API routes (89 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/`, and the count-only `internal/support-inbox-alert/` bridge |
+| `app/api/cron/` | Scheduled jobs (29) | `stale-queue/`, `pending-queue-reminders/`, `support-inbox-alert/` (Gmail label aggregate only), `email-dispatcher/`, `health-check`, `google-ads-conversions`, `google-ads-diagnostics-watch`, `cert-reactivation`, `parchment-smoke`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | 7 handlers: `checkout-session-completed`, `checkout-session-expired`, `checkout-session-async-payment-succeeded/failed`, `charge-refunded`, `charge-dispute-created`, `payment-intent-payment-failed`. Repeat Rx subscription handlers are retired; unsupported Stripe events are acknowledged and claimed by the dispatcher without running business logic. Registered in `handlers/index.ts`. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
 | `app/(dev)/` | Dev-only routes | Email preview only; retired `/cert-preview` and `/sentry-test` prefixes remain fail-closed in middleware |
@@ -804,7 +804,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `lib/stripe/` | Payments | `checkout.ts`, `guest-checkout.ts`, `price-mapping.ts`, `client.ts` |
 | `lib/seo/data/` | SEO content | `conditions.ts`, `symptoms.ts`, `guides.ts`, `comparisons.ts`, `audience-pages.ts`, `condition-location-combos.ts`, `deep-city-content.ts` — drive programmatic pages |
 | `lib/blog/` | Health guide content system | MDX loader/parser, article registry, shared heading slugs, visual registry |
-| `lib/notifications/` | Alerts | `telegram.ts` (ops alerts), `service.ts` (payment notifications) |
+| `lib/notifications/` | Alerts | `telegram.ts` (ops alerts), `service.ts` (payment notifications), `support-inbox-alert.ts` + processor (aggregate-only Gmail count paging) |
 | `lib/observability/` | Logging/monitoring | `logger.ts` (structured logger), `sentry.ts` (helpers) |
 | `lib/feature-flags.ts` | Feature flags | DB-backed via `feature_flags` table, `getFeatureFlags()` |
 | `lib/operational-controls/` | Runtime controls | Capacity fail-closed checks and medication-blocklist answer extraction |

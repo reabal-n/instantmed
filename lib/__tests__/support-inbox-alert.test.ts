@@ -150,7 +150,7 @@ describe("support inbox alerts", () => {
     expect(payload).toEqual({
       chat_id: "123456",
       disable_web_page_preview: true,
-      text: "Support inbox: 7 unread.\nReview in Gmail: https://mail.google.com/mail/#inbox",
+      text: "Support inbox: 7 unread threads need review.\nReview in Gmail: https://mail.google.com/mail/#inbox",
     })
   })
 })

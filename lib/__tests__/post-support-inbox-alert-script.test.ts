@@ -152,7 +152,7 @@ describe("support inbox alert posting script", () => {
     })).rejects.toThrow("Support inbox alert endpoint returned HTTP 502")
   })
 
-  it("exposes a package command and validates the dedicated opt-in environment flag", () => {
+  it("keeps the manual diagnostic command while the backend owns the scheduled poll", () => {
     const packageJson = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8")) as {
       scripts: Record<string, string>
     }
@@ -165,9 +165,13 @@ describe("support inbox alert posting script", () => {
     expect(envSource).toContain(
       'TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED: z.enum(["0", "1"]).optional()',
     )
-    expect(operationsSource).toContain(
-      "Receiver and hourly Gmail label-count schedule active",
+    expect(envSource).toContain(
+      'GMAIL_SUPPORT_INBOX_POLL_ENABLED: z.enum(["0", "1"]).optional()',
     )
+    expect(operationsSource).toContain(
+      "Backend-owned hourly Gmail label-count cron active",
+    )
+    expect(operationsSource).toContain("manual diagnostic seam")
     expect(operationsSource).toContain(
       "records `delivery_failed` and returns HTTP 502",
     )
