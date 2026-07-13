@@ -26,6 +26,7 @@ import type {
   IntakeWithPatient,
   PatientNote,
   Profile,
+  RecentlyCompletedIntake,
 } from "@/types/db"
 import {
   asIntakeWithDetails,
@@ -1091,8 +1092,10 @@ export async function getFormToInboxStats(opts: {
 
 /**
  * Get recently completed intakes for the unified staff cockpit.
+ * Keep this projection aligned with the client read model: broad intake or
+ * profile fields would otherwise be serialized into the dashboard RSC payload.
  */
-export async function getRecentlyCompletedIntakes(opts: { limit?: number } = {}): Promise<IntakeWithPatient[]> {
+export async function getRecentlyCompletedIntakes(opts: { limit?: number } = {}): Promise<RecentlyCompletedIntake[]> {
   const supabase = createServiceRoleClient()
   const limit = opts.limit || 8
   const todayStart = new Date()
@@ -1101,9 +1104,13 @@ export async function getRecentlyCompletedIntakes(opts: { limit?: number } = {})
   const { data, error } = await supabase
     .from("intakes")
     .select(`
-      *,
-      patient:profiles!patient_id(id, full_name, email, date_of_birth, phone, suburb, state, medicare_number, ihi_number, auth_user_id),
-      service:services!service_id(id, slug, name, type, short_name)
+      id,
+      patient_id,
+      status,
+      reviewed_at,
+      completed_at,
+      patient:profiles!patient_id(full_name),
+      service:services!service_id(name, type, short_name)
     `)
     .in("status", ["approved", "declined", "completed"])
     .gte("reviewed_at", todayStart.toISOString())
@@ -1115,5 +1122,5 @@ export async function getRecentlyCompletedIntakes(opts: { limit?: number } = {})
     return []
   }
 
-  return (data || []) as unknown as IntakeWithPatient[]
+  return (data || []) as unknown as RecentlyCompletedIntake[]
 }

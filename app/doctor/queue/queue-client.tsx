@@ -28,7 +28,7 @@ import { isEditableOrInteractiveKeyboardTarget } from "@/lib/hooks/use-doctor-sh
 import { useIsDesktop } from "@/lib/hooks/use-media-query"
 import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import { cn } from "@/lib/utils"
-import type { IntakeStatus, IntakeWithPatient } from "@/types/db"
+import type { IntakeStatus, IntakeWithPatient, RecentlyCompletedIntake } from "@/types/db"
 
 import { updateStatusAction } from "./actions"
 import { QueueFilters } from "./queue-filters"
@@ -122,7 +122,7 @@ const IntakeReviewPanel = dynamic<LazyIntakeReviewPanelProps>(loadIntakeReviewPa
 })
 
 const ApprovedTodayList = dynamic<{
-  intakes: IntakeWithPatient[]
+  intakes: RecentlyCompletedIntake[]
   className?: string
 }>(() => import("@/components/doctor/approved-today-list").then((mod) => mod.ApprovedTodayList), {
   loading: () => null,
@@ -138,7 +138,7 @@ function buildCaughtUpSummary({
   recentlyCompleted,
   now,
 }: {
-  recentlyCompleted: IntakeWithPatient[]
+  recentlyCompleted: RecentlyCompletedIntake[]
   now: Date
 }): string {
   // Reviewed today = today's reviewed_at OR completed_at, AEST-naive (uses
@@ -178,7 +178,7 @@ function buildQueueEmptyState({
   statusFilter: QueueStatusFilter
   searchQuery: string
   baseHref: string
-  recentlyCompleted: IntakeWithPatient[]
+  recentlyCompleted: RecentlyCompletedIntake[]
   now: Date
 }): QueueEmptyState {
   if (!doctorAvailable && totalCount === 0) {

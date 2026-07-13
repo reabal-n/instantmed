@@ -46,7 +46,7 @@ import {
 import { isPrescribingConsultSubtype, SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { formatServiceType } from "@/lib/format/intake"
 import { cn } from "@/lib/utils"
-import type { IntakeWithPatient } from "@/types/db"
+import type { IntakeWithPatient, RecentlyCompletedIntake } from "@/types/db"
 
 import type { PaginationInfo } from "./types"
 import type { QueueDialogState } from "./use-queue-dialogs"
@@ -134,7 +134,7 @@ export interface QueueTableProps {
   dialogs: QueueDialogState
 
   // Extra sections
-  recentlyCompleted: IntakeWithPatient[]
+  recentlyCompleted: RecentlyCompletedIntake[]
   pagination?: PaginationInfo
   baseHref?: string
   emptyState?: {
