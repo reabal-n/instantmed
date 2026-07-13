@@ -1,7 +1,8 @@
-import { type ReactNode,Suspense } from "react"
+import { type ReactNode, Suspense } from "react"
 
 import { AdminSidebar, MobileAdminNav } from "@/components/admin/admin-sidebar"
 import { operatorNavSections, type StaffNavCounts, type StaffNavSection } from "@/lib/dashboard/staff-navigation"
+import { StaffNavCountsProvider } from "@/lib/dashboard/use-staff-nav-counts"
 import { cn } from "@/lib/utils"
 
 // Width-preserving placeholder shown while AdminSidebar's useSearchParams() resolves.
@@ -48,45 +49,45 @@ export function OperatorShell({
 }: OperatorShellProps) {
   const resolvedSections = navSections ?? operatorNavSections
   return (
-    <div
-      data-operator-shell
-      className="flex min-h-screen bg-[#F7F3EC] text-foreground dark:bg-background"
-    >
-      <Suspense fallback={<AdminSidebarFallback />}>
-        <AdminSidebar
-          userName={userName}
-          userRole={userRole}
-          navCounts={navCounts}
-          navSections={resolvedSections}
-          brandLabel={brandLabel}
-        />
-      </Suspense>
-      <main
-        className={cn(
-          "min-w-0 flex-1 bg-[#F7F3EC] px-4 py-8 transition-colors duration-150 dark:bg-background sm:px-6 lg:px-8",
-          mainClassName,
-        )}
+    <StaffNavCountsProvider initialCounts={navCounts}>
+      <div
+        data-operator-shell
+        className="flex min-h-screen bg-[#F7F3EC] text-foreground dark:bg-background"
       >
-        <div
+        <Suspense fallback={<AdminSidebarFallback />}>
+          <AdminSidebar
+            userName={userName}
+            userRole={userRole}
+            navSections={resolvedSections}
+            brandLabel={brandLabel}
+          />
+        </Suspense>
+        <main
           className={cn(
-            "mx-auto",
-            contentMaxWidth === "wide" ? "max-w-7xl" : "max-w-[1440px]",
+            "min-w-0 flex-1 bg-[#F7F3EC] px-4 py-8 transition-colors duration-150 dark:bg-background sm:px-6 lg:px-8",
+            mainClassName,
           )}
         >
-          {!hideMobileHamburger && (
-            <div className="mb-4 lg:hidden">
-              <Suspense fallback={null}>
-                <MobileAdminNav
-                  navCounts={navCounts}
-                  navSections={navSections}
-                  brandLabel={brandLabel}
-                />
-              </Suspense>
-            </div>
-          )}
-          {children}
-        </div>
-      </main>
-    </div>
+          <div
+            className={cn(
+              "mx-auto",
+              contentMaxWidth === "wide" ? "max-w-7xl" : "max-w-[1440px]",
+            )}
+          >
+            {!hideMobileHamburger && (
+              <div className="mb-4 lg:hidden">
+                <Suspense fallback={null}>
+                  <MobileAdminNav
+                    navSections={navSections}
+                    brandLabel={brandLabel}
+                  />
+                </Suspense>
+              </div>
+            )}
+            {children}
+          </div>
+        </main>
+      </div>
+    </StaffNavCountsProvider>
   )
 }
