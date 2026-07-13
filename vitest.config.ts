@@ -44,7 +44,6 @@ export default defineConfig({
         'lib/security/sanitize-audit.ts',
         'lib/security/csrf-client.ts',
         'lib/security/fraud-detector.ts',
-        'lib/security/immutable-dates.ts',
         'lib/clinical/consent-versioning.ts',
         'lib/clinical/triage-types.ts',
         // Stripe: type-only / tiny-helper files
