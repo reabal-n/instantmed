@@ -745,7 +745,6 @@ Three regulatory logos displayed on service and marketing pages:
 | AHPRA | `/logos/AHPRA.png` | 100px |
 | TGA | `/logos/TGA.png` | 80px |
 | Medicare | `/logos/medicare.png` | 90px |
-| RACGP | `/logos/RACGP.png` | 90px |
 
 Dark mode: `rounded dark:bg-white/90 dark:p-0.5` — adds white backing for PNGs with transparent backgrounds.
 

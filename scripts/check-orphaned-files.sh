@@ -9,6 +9,8 @@
 #   5. Retired subscription acquisition files
 #   6. Stale worktree directories
 #   7. Copied local artifact directories that confuse deploy/package scans
+#   8. Raw browser review evidence that should use expiring artifact storage
+#   9. Retired public assets with no runtime consumers
 #
 # Exit 1 if any orphans found.
 
@@ -341,6 +343,47 @@ while IFS= read -r tracked_review_markdown; do
     orphans=$((orphans + 1))
   fi
 done < <(git ls-files 'docs/reviews/**/*.md')
+
+# ── 9. Retired public assets ───────────────────────────────────────────────
+for retired_public_asset in \
+  "public/animations/Confetti.json" \
+  "public/animations/Empty State.json" \
+  "public/animations/Error.json" \
+  "public/animations/Loading Files.json" \
+  "public/animations/Loading.json" \
+  "public/animations/Notification.json" \
+  "public/animations/Success.json" \
+  "public/sounds/notification.mp3" \
+  "public/placeholder.svg" \
+  "public/images/ed-1.webp" \
+  "public/images/ed-2.webp" \
+  "public/icons/stickers/bandage.svg" \
+  "public/icons/stickers/brain.svg" \
+  "public/icons/stickers/lungs.svg" \
+  "public/icons/stickers/no-mobile.svg" \
+  "public/icons/stickers/syringe.svg" \
+  "public/icons/stickers/verified-badge.svg" \
+  "public/logos/JMIRO.png" \
+  "public/logos/NHMRC.png" \
+  "public/logos/RACGP.png" \
+  "public/logos/RANZCR.png" \
+  "public/logos/acpsem.png" \
+  "public/logos/anthropic.png" \
+  "public/logos/claude.png" \
+  "public/logos/clerk.png" \
+  "public/logos/eRx.png" \
+  "public/logos/next.js.png" \
+  "public/logos/stripe.png" \
+  "public/logos/supabase.png" \
+  "public/logos/vercel.png" \
+  "public/logos/wiley.png" \
+  "public/logos/payment/paypal.svg"
+do
+  if [[ -e "$retired_public_asset" ]]; then
+    echo "ORPHAN: $retired_public_asset still exists (retired public asset with no runtime consumers)"
+    orphans=$((orphans + 1))
+  fi
+done
 
 # ── Results ──────────────────────────────────────────────────────────────
 if [[ $orphans -gt 0 ]]; then
