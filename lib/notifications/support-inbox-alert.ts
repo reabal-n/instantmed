@@ -105,7 +105,7 @@ export async function sendSupportInboxTelegramAlert(unreadCount: number): Promis
       body: JSON.stringify({
         chat_id: chatId,
         disable_web_page_preview: true,
-        text: `Support inbox: ${unreadCount} unread.\nReview in Gmail: https://mail.google.com/mail/#inbox`,
+        text: `Support inbox: ${unreadCount} unread thread${unreadCount === 1 ? "" : "s"} need review.\nReview in Gmail: https://mail.google.com/mail/#inbox`,
       }),
       signal: AbortSignal.timeout(SUPPORT_INBOX_OUTBOUND_TIMEOUT_MS),
     })

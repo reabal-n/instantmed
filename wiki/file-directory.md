@@ -74,6 +74,7 @@ Important files and folders referenced by the root docs and current architecture
 | `app/api/webhooks/parchment/route.ts` | Parchment webhook | eScript completion integration | Critical |
 | `lib/email/*` | Email rendering, outbox, dispatcher helpers | Email, notification, template work | Useful |
 | `app/api/cron/email-dispatcher/route.ts` | Email dispatcher cron | Email delivery operations | Useful |
+| `app/api/cron/support-inbox-alert/route.ts` | Aggregate-only Gmail Inbox counter -> Telegram cron | Support inbox alert operations | Critical |
 | `lib/analytics/*` | Attribution, Google Ads, PostHog, reporting | Acquisition, profitability, conversion work | Critical |
 | `instrumentation-client.ts` | Client telemetry init | Sentry/PostHog client startup | Critical |
 | `instrumentation.ts` | Server Sentry init | Server observability startup | Useful |
