@@ -37,8 +37,6 @@ export default defineConfig({
         'lib/__tests__/**',
         '**/*.d.ts',
         '**/types/**',
-        // Barrel re-export files (no logic to test)
-        'lib/clinical/index.ts',
         // Server-only modules requiring DB/Redis/external APIs - tested via E2E
         'lib/security/audit-log.ts',
         'lib/security/rate-limit.ts',

@@ -101,7 +101,6 @@ describe("code-clean retirement contracts", () => {
       expect(orphanCheck).toContain(path)
     }
 
-    expect(read("components/shared/index.ts")).not.toContain("NotificationBell")
     expect(read("components/shared/navbar/user-menu.tsx")).not.toContain("NotificationBell")
     expect(read("components/ui/mobile-nav.tsx")).not.toContain("PATIENT_NOTIFICATIONS_HREF")
     expect(read("components/ui/mobile-nav.tsx")).not.toContain('label: "Notifications"')

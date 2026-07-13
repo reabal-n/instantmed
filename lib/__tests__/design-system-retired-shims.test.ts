@@ -44,12 +44,8 @@ describe("retired design-system shims", () => {
     expect(existsSync(join(root, "components/ui/glass-radio-group.tsx"))).toBe(false)
 
     const onboardingSource = readFileSync(join(root, "components/shared/inline-onboarding-step.tsx"), "utf8")
-    const uiBarrelSource = readFileSync(join(root, "components/ui/index.ts"), "utf8")
-
     expect(onboardingSource).not.toContain("GlassRadioGroup")
     expect(onboardingSource).not.toContain("glass-radio-group")
-    expect(uiBarrelSource).not.toContain("GlassRadioGroup")
-    expect(uiBarrelSource).not.toContain("glass-radio-group")
   })
 
   it("keeps Select on the canonical Radix API instead of legacy selectedKeys shims", () => {
