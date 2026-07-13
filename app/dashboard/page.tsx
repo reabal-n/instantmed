@@ -39,7 +39,6 @@ import {
   getFormToInboxStats,
   getPendingBatchReviews,
   getRecentlyCompletedIntakes,
-  getTodayEarnings,
 } from "@/lib/data/intakes"
 import { EMPTY_SYSTEM_HEALTH, getSystemHealth } from "@/lib/data/system-health"
 import { getQueueEnteredAt } from "@/lib/doctor/queue-utils"
@@ -119,7 +118,6 @@ export default async function StaffDashboardPage({
       : Promise.resolve({ data: [], total: 0, oldestApprovedAt: null, degraded: false }),
     isAdmin ? getRecentlyCompletedIntakes({ limit: 50 }) : Promise.resolve([]),
     getDoctorIdentity(profile.id),
-    isAdmin ? getTodayEarnings() : Promise.resolve(0),
     getFormToInboxStats(),
     import("@/app/actions/doctor-availability").then((m) => m.getDoctorAvailabilityAction()),
     isAdmin ? getSystemHealth() : Promise.resolve(EMPTY_SYSTEM_HEALTH),
@@ -133,10 +131,9 @@ export default async function StaffDashboardPage({
     : { data: [], total: 0, oldestApprovedAt: null, degraded: true }
   const recentlyCompleted = results[2].status === "fulfilled" ? results[2].value : []
   const doctorIdentity: DoctorIdentity | null = results[3].status === "fulfilled" ? results[3].value : null
-  const todayEarnings = results[4].status === "fulfilled" ? results[4].value : 0
-  const formToInboxStats = !onlyTestData && results[5].status === "fulfilled" ? results[5].value : null
-  const doctorAvailable = results[6].status === "fulfilled" ? results[6].value?.available !== false : true
-  const systemHealth = results[7].status === "fulfilled" ? results[7].value : EMPTY_SYSTEM_HEALTH
+  const formToInboxStats = !onlyTestData && results[4].status === "fulfilled" ? results[4].value : null
+  const doctorAvailable = results[5].status === "fulfilled" ? results[5].value?.available !== false : true
+  const systemHealth = results[6].status === "fulfilled" ? results[6].value : EMPTY_SYSTEM_HEALTH
   const nowMs = Date.now()
   const oldestWaitingEnteredAt = queueResult.data.reduce<string | null>((oldest, intake) => {
     const enteredAt = new Date(getQueueEnteredAt(intake)).getTime()
@@ -165,7 +162,6 @@ export default async function StaffDashboardPage({
         "pending-batch-reviews",
         "recently-completed",
         "identity",
-        "earnings",
         "form-to-inbox",
         "availability",
         "system-health",
@@ -255,7 +251,6 @@ export default async function StaffDashboardPage({
               }}
               pendingBatchReviews={pendingBatchReviews}
               recentlyCompleted={recentlyCompleted}
-              todayEarnings={todayEarnings}
               initialStatusFilter={initialStatusFilter}
               hasExplicitStatusFilter={hasExplicitStatusFilter}
               baseHref={STAFF_DASHBOARD_HREF}

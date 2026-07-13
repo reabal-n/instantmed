@@ -119,6 +119,24 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(source).not.toContain("onMouseEnter")
   })
 
+  it("does not fetch or render unreachable dashboard earnings stats", () => {
+    const dashboardPageSource = read("app/dashboard/page.tsx")
+    const queueClientSource = read("app/doctor/queue/queue-client.tsx")
+    const queueTypesSource = read("app/doctor/queue/types.ts")
+    const intakeQueriesSource = read("lib/data/intakes/queries.ts")
+    const intakeIndexSource = read("lib/data/intakes/index.ts")
+
+    expect(dashboardPageSource).toContain("compactShell")
+    expect(dashboardPageSource).not.toContain("getTodayEarnings")
+    expect(dashboardPageSource).not.toContain("todayEarnings")
+    expect(queueClientSource).not.toContain("todayEarnings")
+    expect(queueClientSource).not.toContain("Daily stats strip")
+    expect(queueClientSource).not.toContain("const approvalRate")
+    expect(queueTypesSource).not.toContain("todayEarnings")
+    expect(intakeQueriesSource).not.toContain("export async function getTodayEarnings")
+    expect(intakeIndexSource).not.toContain("getTodayEarnings")
+  })
+
   it("keeps the doctor queue header focused on current operational pressure", () => {
     const dashboardPageSource = read("app/dashboard/page.tsx")
     const queueClientSource = read("app/doctor/queue/queue-client.tsx")

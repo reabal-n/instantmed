@@ -195,7 +195,7 @@ describe("dashboard route contracts", () => {
     const sidebarSource = read("components/admin/admin-sidebar.tsx")
     const authHelperSource = read("lib/auth/helpers.ts")
 
-    expect(dashboardSource).toContain("results[6].value?.available !== false")
+    expect(dashboardSource).toContain("results[5].value?.available !== false")
     expect(dashboardSource).not.toContain("getDoctorDashboardStats")
     expect(intakeIndexSource).not.toContain("getDoctorDashboardStats")
     expect(intakeIndexSource).not.toContain("getAllIntakesByStatus")

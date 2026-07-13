@@ -19,7 +19,6 @@ export {
   getPatientNotes,
   getPendingBatchReviews,
   getRecentlyCompletedIntakes,
-  getTodayEarnings,
   type PendingBatchReviewResult,
 } from "./queries"
 
