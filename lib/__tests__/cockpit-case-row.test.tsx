@@ -1,3 +1,4 @@
+import Link from "next/link"
 import * as React from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
@@ -7,6 +8,22 @@ import type { CaseRowData } from "@/lib/operator/cases/types"
 
 function render(el: React.ReactElement): string {
   return renderToStaticMarkup(el)
+}
+
+function findElementByType(
+  node: React.ReactNode,
+  type: React.ElementType,
+): React.ReactElement | null {
+  if (!React.isValidElement(node)) return null
+  if (node.type === type) return node
+
+  const children = (node.props as { children?: React.ReactNode }).children
+  for (const child of React.Children.toArray(children)) {
+    const match = findElementByType(child, type)
+    if (match) return match
+  }
+
+  return null
 }
 
 const baseRow: CaseRowData = {
@@ -45,6 +62,14 @@ describe("CaseRow", () => {
     expect(html).toContain('href="/admin/intakes/intake-1"')
     // The link must be standalone, not wrapping a button.
     expect(html).not.toMatch(/<a [^>]*>\s*<button/)
+  })
+
+  it("does not prefetch PHI-rich case detail routes from list views", () => {
+    const tree = CaseRow({ row: baseRow, density: "comfortable" })
+    const primaryLink = findElementByType(tree, Link)
+
+    expect(primaryLink).not.toBeNull()
+    expect(primaryLink?.props).toMatchObject({ prefetch: false })
   })
 
   it("emits role=row for table semantics", () => {

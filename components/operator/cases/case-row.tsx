@@ -151,6 +151,7 @@ export function CaseRow({
           Ctrl/Shift/middle-click still follow the link. */}
       <Link
         href={row.href}
+        prefetch={false}
         onClick={(event) => {
           if (!onPrimary) return
           if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
