@@ -101,6 +101,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   <AnimatedNavLink
                     href="/blog"
                     isActive={isActivePath("/blog")}
+                    prefetch={false}
                   >
                     Blog
                   </AnimatedNavLink>

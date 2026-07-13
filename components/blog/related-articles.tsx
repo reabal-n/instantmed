@@ -4,10 +4,10 @@ import { ArrowRight, BadgeCheck } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import type { Article } from '@/lib/blog/types'
+import type { ArticleIndexItem } from '@/lib/blog/types'
 
 interface RelatedArticlesProps {
-  articles: Article[]
+  articles: ArticleIndexItem[]
   currentSlug: string
 }
 
@@ -27,6 +27,7 @@ export function RelatedArticles({ articles, currentSlug }: RelatedArticlesProps)
           <Link 
             key={article.slug} 
             href={`/blog/${article.slug}`}
+            prefetch={false}
             className="group"
           >
             <article className="bg-white dark:bg-card rounded-xl overflow-hidden h-full border border-border/50 dark:border-white/10 hover:border-primary/50 transition-[box-shadow,border-color] hover:shadow-lg">
@@ -36,6 +37,7 @@ export function RelatedArticles({ articles, currentSlug }: RelatedArticlesProps)
                   alt={article.heroImageAlt}
                   fill
                   className="object-cover"
+                  sizes="(max-width: 639px) calc(100vw - 2rem), (max-width: 1023px) 50vw, 256px"
                 />
                 <div className="absolute top-2 left-2">
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white dark:bg-card text-primary">
@@ -53,7 +55,7 @@ export function RelatedArticles({ articles, currentSlug }: RelatedArticlesProps)
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <BadgeCheck className="w-3 h-3 text-emerald-600" />
-                    <span>{article.author.name}</span>
+                    <span>{article.authorName}</span>
                   </div>
                   <ArrowRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>

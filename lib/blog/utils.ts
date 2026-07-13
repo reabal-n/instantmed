@@ -1,4 +1,4 @@
-import type { Article, ArticleSection } from './types'
+import type { Article, ArticleIndexItem, ArticleSection } from './types'
 
 /**
  * Calculate reading time based on word count
@@ -157,7 +157,7 @@ export function searchArticles(articles: Article[], query: string): Article[] {
  * Get search suggestions based on partial query
  */
 export function getSearchSuggestions(
-  articles: Article[], 
+  articles: ArticleIndexItem[],
   query: string, 
   limit: number = 5
 ): { type: 'article' | 'tag' | 'category', text: string, slug?: string }[] {
@@ -179,7 +179,15 @@ export function getSearchSuggestions(
   })
   
   // Match tags
-  const allTags = getAllTags(articles)
+  const allTags = new Set<string>()
+  articles.forEach((article) => {
+    article.tags?.forEach(tag => allTags.add(tag))
+    article.keywords.forEach((keyword) => {
+      if (keyword.length <= 20) {
+        allTags.add(keyword.toLowerCase())
+      }
+    })
+  })
   allTags.forEach(tag => {
     if (tag.toLowerCase().includes(lowerQuery)) {
       suggestions.push({

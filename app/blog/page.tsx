@@ -11,6 +11,7 @@ import { BreadcrumbSchema } from "@/components/seo";
 import { Navbar } from "@/components/shared/navbar"
 import { SectionPill } from "@/components/ui/section-pill";
 import { allArticles } from "@/lib/blog/articles";
+import { toArticleIndexItems } from "@/lib/blog/index-item";
 import { categories } from "@/lib/blog/types";
 import { PRICING_DISPLAY } from "@/lib/constants";
 
@@ -38,6 +39,8 @@ export const metadata: Metadata = {
     canonical: "https://instantmed.com.au/blog",
   },
 };
+
+const articleIndexItems = toArticleIndexItems(allArticles);
 
 function formatViewCount(count: number): string {
   if (count >= 1000) {
@@ -79,7 +82,7 @@ export default function BlogPage() {
                 <div className="mb-6">
                   <SectionPill>Featured</SectionPill>
                 </div>
-                <Link href={`/blog/${featured.slug}`} className="group block">
+                <Link href={`/blog/${featured.slug}`} prefetch={false} className="group block">
                   <div className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none overflow-hidden hover:shadow-lg hover:shadow-primary/[0.08] transition-[transform,box-shadow] duration-300">
                     <div className="grid md:grid-cols-2">
                       <div className="relative h-48 md:h-full min-h-[240px]">
@@ -89,6 +92,7 @@ export default function BlogPage() {
                           fill
                           className="object-cover"
                           priority
+                          sizes="(max-width: 767px) 100vw, 576px"
                         />
                       </div>
                       <div className="p-6 sm:p-8 flex flex-col justify-center">
@@ -162,7 +166,12 @@ export default function BlogPage() {
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {trending.map((article, i) => (
-                      <Link key={article.slug} href={`/blog/${article.slug}`} className="group">
+                      <Link
+                        key={article.slug}
+                        href={`/blog/${article.slug}`}
+                        prefetch={false}
+                        className="group"
+                      >
                         <div className="rounded-xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none p-4 hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/[0.06] transition-[transform,box-shadow] duration-300 h-full">
                           <div className="flex items-start gap-3">
                             <div className="flex flex-col items-center shrink-0">
@@ -202,7 +211,7 @@ export default function BlogPage() {
                   Browse all health guides
                 </h2>
               </div>
-              <ArticlesPage articles={allArticles} />
+              <ArticlesPage articles={articleIndexItems} />
             </div>
           </section>
 

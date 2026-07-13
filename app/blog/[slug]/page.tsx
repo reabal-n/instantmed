@@ -9,6 +9,7 @@ import { BreadcrumbSchema, HowToSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
 import { PageBreadcrumbs } from "@/components/uix"
 import { allArticles, getAllArticleSlugs, getArticleBySlug, getRelatedArticles } from "@/lib/blog/articles"
+import { toArticleIndexItems } from "@/lib/blog/index-item"
 import { reviewedBySchema } from "@/lib/blog/medical-reviewer"
 import { getArticleVisualsForRender } from "@/lib/blog/visuals"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
@@ -18,6 +19,11 @@ import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 interface PageProps {
   params: Promise<{ slug: string }>
 }
+
+const articleIndexItems = toArticleIndexItems(allArticles)
+const popularArticleItems = [...articleIndexItems]
+  .sort((a, b) => b.viewCount - a.viewCount)
+  .slice(0, 3)
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
@@ -79,6 +85,9 @@ export default async function BlogPostPage({ params }: PageProps) {
   const article = getArticleBySlug(slug)
   if (!article) notFound()
   const articleVisuals = getArticleVisualsForRender(slug)
+  const seriesArticleItems = article.series
+    ? articleIndexItems.filter((item) => item.series?.id === article.series?.id)
+    : []
 
   // Build FAQ schema data if FAQs exist
   const faqSchemaData = article.faqs?.map(faq => ({
@@ -207,8 +216,9 @@ export default async function BlogPostPage({ params }: PageProps) {
             <ArticleTemplate
               article={article}
               articleVisuals={articleVisuals}
-              relatedArticles={getRelatedArticles(slug, 3)}
-              allArticles={allArticles}
+              relatedArticles={toArticleIndexItems(getRelatedArticles(slug, 3))}
+              seriesArticles={seriesArticleItems}
+              popularArticles={popularArticleItems}
             />
           </div>
         </main>

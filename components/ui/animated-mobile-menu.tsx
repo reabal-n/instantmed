@@ -186,6 +186,7 @@ export interface MenuItemData {
   description?: string
   onClick?: () => void
   disabled?: boolean
+  prefetch?: boolean
 }
 
 interface MenuItemProps {
@@ -256,6 +257,7 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
       ) : (
       <Link
         href={item.href}
+        prefetch={item.prefetch}
         onClick={handleClick}
         onPointerDown={(event) => event.stopPropagation()}
         onKeyDown={(event) => event.stopPropagation()}

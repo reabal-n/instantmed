@@ -3,12 +3,12 @@
 import { BookOpen, Check,ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
-import type { Article, ArticleSeries } from '@/lib/blog/types'
+import type { ArticleIndexItem, ArticleSeries } from '@/lib/blog/types'
 import { cn } from '@/lib/utils'
 
 interface ArticleSeriesNavProps {
   series: ArticleSeries
-  articles: Article[]
+  articles: ArticleIndexItem[]
   currentSlug: string
   className?: string
 }
@@ -52,6 +52,7 @@ export function ArticleSeriesNav({
             <Link
               key={article.slug}
               href={`/blog/${article.slug}`}
+              prefetch={false}
               className={cn(
                 "flex items-center gap-3 p-2.5 rounded-lg transition-colors",
                 isCurrent 
@@ -91,6 +92,7 @@ export function ArticleSeriesNav({
       {currentIndex < seriesArticles.length - 1 && (
         <Link
           href={`/blog/${seriesArticles[currentIndex + 1].slug}`}
+          prefetch={false}
           className="mt-4 flex items-center justify-between p-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           <div>

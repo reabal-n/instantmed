@@ -3,7 +3,6 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
@@ -37,7 +36,6 @@ interface ResourcesDropdownProps {
 }
 
 export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
-  const router = useRouter()
   const [open, setOpen] = useState(false)
   const prefersReducedMotion = useReducedMotion()
 
@@ -52,17 +50,11 @@ export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
     isActivePath("/employers") ||
     isActivePath("/locations")
 
-  const handleTriggerMouseEnter = () => {
-    resourceLinks.forEach(link => router.prefetch(link.href))
-    companyLinks.forEach(link => router.prefetch(link.href))
-  }
-
   return (
     <div className="relative">
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <button
-            onMouseEnter={handleTriggerMouseEnter}
             className={cn(
               "group/resources relative z-10 flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
               isResourceActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
@@ -95,6 +87,7 @@ export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
                   <DropdownMenuItem key={link.href} asChild className="rounded-xl p-0 focus:bg-primary/10 dark:focus:bg-primary/20">
                     <Link
                       href={link.href}
+                      prefetch={false}
                       onPointerDown={(event) => event.stopPropagation()}
                       onKeyDown={(event) => event.stopPropagation()}
                       className="flex items-center gap-3 px-3 py-2.5 w-full"
@@ -117,6 +110,7 @@ export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
                   <DropdownMenuItem key={link.href} asChild className="rounded-xl p-0 focus:bg-primary/10 dark:focus:bg-primary/20">
                     <Link
                       href={link.href}
+                      prefetch={false}
                       onPointerDown={(event) => event.stopPropagation()}
                       onKeyDown={(event) => event.stopPropagation()}
                       className="flex items-center gap-2.5 px-3 py-2 w-full"

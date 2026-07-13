@@ -86,6 +86,22 @@ export interface Article {
   }
 }
 
+export interface ArticleIndexItem {
+  slug: string
+  title: string
+  excerpt: string
+  category: ArticleCategory
+  tags?: string[]
+  keywords: string[]
+  updatedAt: string
+  readingTime: number
+  viewCount: number
+  authorName: string
+  heroImage: string
+  heroImageAlt: string
+  series?: Pick<ArticleSeries, 'id' | 'order'>
+}
+
 // Pre-defined article series
 export const articleSeries = {
   'medical-certificates-101': {

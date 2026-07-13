@@ -3,10 +3,10 @@
 import { Clock,Eye, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 
-import type { Article } from '@/lib/blog/types'
+import type { ArticleIndexItem } from '@/lib/blog/types'
 
 interface PopularArticlesProps {
-  articles: Article[]
+  articles: ArticleIndexItem[]
   limit?: number
   title?: string
   className?: string
@@ -45,6 +45,7 @@ export function PopularArticles({
             <Link
               key={article.slug}
               href={`/blog/${article.slug}`}
+              prefetch={false}
               className="flex gap-3 p-4 hover:bg-muted/50 transition-colors group"
             >
               {/* Rank number */}
@@ -101,6 +102,7 @@ export function PopularArticlesCompact({
           <Link
             key={article.slug}
             href={`/blog/${article.slug}`}
+            prefetch={false}
             className="block group"
           >
             <p className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors">

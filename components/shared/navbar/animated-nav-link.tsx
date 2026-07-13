@@ -9,14 +9,16 @@ export interface AnimatedNavLinkProps {
   children: React.ReactNode
   icon?: React.ReactNode
   isActive?: boolean
+  prefetch?: boolean
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
 }
 
-export function AnimatedNavLink({ href, children, icon, isActive, onClick }: AnimatedNavLinkProps) {
+export function AnimatedNavLink({ href, children, icon, isActive, prefetch, onClick }: AnimatedNavLinkProps) {
   return (
     <div className="relative">
       <Link
         href={href}
+        prefetch={prefetch}
         onClick={onClick}
         onPointerDown={(event) => event.stopPropagation()}
         onKeyDown={(event) => event.stopPropagation()}

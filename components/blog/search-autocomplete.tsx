@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation'
 import { useCallback,useEffect, useRef, useState } from 'react'
 
 import { Input } from '@/components/ui/input'
-import type { Article } from '@/lib/blog/types'
+import type { ArticleIndexItem } from '@/lib/blog/types'
 import { getSearchSuggestions } from '@/lib/blog/utils'
 import { cn } from '@/lib/utils'
 
 interface SearchAutocompleteProps {
-  articles: Article[]
+  articles: ArticleIndexItem[]
   placeholder?: string
   onSearch?: (query: string) => void
   className?: string
