@@ -113,7 +113,7 @@ await page.request.post(`${BASE_URL}/api/test/login`, {
 // Requires PLAYWRIGHT=1 env var — middleware checks this before accepting the cookies
 ```
 
-Every active `/api/test/*` endpoint must use the same seam: `PLAYWRIGHT=1` or `NODE_ENV=test`, allowed host, and `X-E2E-SECRET`. Do not add a test endpoint that relies on host/test-mode checks alone.
+Every active `/api/test/*` endpoint must use the same local/CI seam: `PLAYWRIGHT=1` or `NODE_ENV=test`, allowed host, and `X-E2E-SECRET`. Vercel production and preview deployments block these endpoints before the route handler, regardless of `PLAYWRIGHT`; do not add a test endpoint that relies on host/test-mode checks alone.
 
 The client auth provider also treats the readable `__e2e_auth_role` cookie as a minimal signed-in browser user. Server-side authorization still resolves through the httpOnly `__e2e_auth_user_id` cookie, but public client surfaces such as the marketing nav can render signed-in UI in Playwright without creating a real Supabase browser session.
 
@@ -246,7 +246,7 @@ steps:
   - playwright test --config=playwright.preview.config.ts e2e/preview-smoke.spec.ts
 ```
 
-**E2E runs in two places:** (1) `ci.yml` on push/PR to main as required Chromium ops/navigation/clinical-input smoke plus blocking paid critical flows; (2) `e2e-preview.yml` against Vercel preview deployments for deploy health plus an active `/request` route smoke. Protected Vercel preview E2E requires the GitHub secret `VERCEL_AUTOMATION_BYPASS_SECRET`; without it, the preview readiness check fails fast on the expected `401`. Preview smoke accepts `410 Gone` from `/api/test/login` because `/api/test/*` is intentionally blocked on Vercel production/preview unless `PLAYWRIGHT=1` is configured on the deployed app itself. Unit tests and lint run on every push to main and all PRs.
+**E2E runs in two places:** (1) `ci.yml` on push/PR to main as required Chromium ops/navigation/clinical-input smoke plus blocking paid critical flows; (2) `e2e-preview.yml` against Vercel preview deployments for deploy health plus an active `/request` route smoke. Protected Vercel preview E2E requires the GitHub secret `VERCEL_AUTOMATION_BYPASS_SECRET`; without it, the preview readiness check fails fast on the expected `401`. Preview smoke requires `410 Gone` from `/api/test/login` because `/api/test/*` is always blocked on Vercel production and preview deployments, including when `PLAYWRIGHT=1` is accidentally configured. Unit tests and lint run on every push to main and all PRs.
 
 **Monthly stack health:** `.github/workflows/stack-drift.yml` runs on the first day of each month and can be triggered manually. It verifies active Node 24, stack pins, lockfile dedupe, high-severity audit, and writes a non-blocking outdated-package report to the workflow summary. Framework upgrades remain separate planned windows, not opportunistic dependency bumps.
 

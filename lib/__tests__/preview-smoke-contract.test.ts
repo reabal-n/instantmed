@@ -9,10 +9,12 @@ const previewSmokeSource = readFileSync(
 )
 
 describe("preview smoke contract", () => {
-  it("does not require preview deployments to expose the E2E test login route", () => {
-    expect(previewSmokeSource).toContain('response.status() === 410')
-    expect(previewSmokeSource).toContain("always block /api/test/login")
-    expect(previewSmokeSource).toContain('"X-E2E-SECRET"')
-    expect(previewSmokeSource).toContain('userType: "patient"')
+  it("requires preview deployments to block the E2E test login route", () => {
+    expect(previewSmokeSource).toContain(
+      "Vercel preview deployments must always block /api/test/login",
+    )
+    expect(previewSmokeSource).toContain(".toBe(410)")
+    expect(previewSmokeSource).not.toContain('"X-E2E-SECRET"')
+    expect(previewSmokeSource).not.toContain("E2E_SECRET not configured")
   })
 })

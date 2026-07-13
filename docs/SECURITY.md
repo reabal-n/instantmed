@@ -373,7 +373,7 @@ None of these routes expose real PHI — all use hardcoded mock data. The middle
 
 ### E2E Test Auth Bypass
 
-Only when `NODE_ENV=test` or `PLAYWRIGHT=1`. Middleware blocks `/api/test/*` and `/(dev)/*` in production/preview unless the deployed app itself is explicitly running with `PLAYWRIGHT=1`; even then every active `/api/test/*` route must pass the shared `X-E2E-SECRET` check from `lib/dev-only-route-auth.ts` plus the allowed-host check from `lib/dev-only-routes.ts`. The active test API surface is limited to auth bypass and the med-cert auto-approval trigger used by focused E2E flows.
+Only local/CI execution with `NODE_ENV=test` or `PLAYWRIGHT=1` may use the E2E auth bypass. Middleware always blocks `/api/test/*` and `/(dev)/*` in Vercel production and preview deployments, even if `PLAYWRIGHT=1` is accidentally configured there. Every active local/CI `/api/test/*` route must also pass the shared `X-E2E-SECRET` check from `lib/dev-only-route-auth.ts` plus the allowed-host check from `lib/dev-only-routes.ts`. The active test API surface is limited to auth bypass and the med-cert auto-approval trigger used by focused E2E flows.
 
 ---
 
