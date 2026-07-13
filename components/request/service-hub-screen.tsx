@@ -290,6 +290,8 @@ function CompactServiceRow({
   onClick,
 }: CompactRowProps) {
   const headingId = `request-service-${id}-heading`
+  const descriptionId = `request-service-${id}-description`
+  const priceId = `request-service-${id}-price`
 
   return (
     <section aria-labelledby={headingId}>
@@ -300,6 +302,7 @@ function CompactServiceRow({
         type="button"
         onClick={onClick}
         aria-labelledby={headingId}
+        aria-describedby={`${descriptionId} ${priceId}`}
         className={requestCx(
           "w-full text-left group px-4 py-3.5",
           "hover:bg-muted/50 active:scale-[0.99] active:bg-muted/60 dark:hover:bg-white/[0.08]",
@@ -323,7 +326,7 @@ function CompactServiceRow({
                 </span>
               )}
             </div>
-            <p className="text-sm leading-snug text-muted-foreground mt-0.5">
+            <p id={descriptionId} className="text-sm leading-snug text-muted-foreground mt-0.5">
               {subtitle}
               <span className="text-border-em mx-1.5">·</span>
               {effort}
@@ -332,7 +335,7 @@ function CompactServiceRow({
 
           {/* Price + chevron */}
           <div className="col-span-2 flex w-full items-center justify-end gap-1.5 min-[240px]:col-span-1 min-[240px]:w-[4.5rem] min-[240px]:shrink-0 sm:w-20">
-            <div className="min-w-0 text-right tabular-nums">
+            <div id={priceId} className="min-w-0 text-right tabular-nums">
               {pricePrefix && (
                 <span className="block text-[10px] leading-none text-muted-foreground">
                   {pricePrefix}{" "}

@@ -62,6 +62,11 @@ describe("marketing and request reflow contract", () => {
     expect(compactRow).toContain('level="h3" as="h2"')
     expect(compactRow).toContain('className="sr-only"')
     expect(compactRow).toContain("aria-labelledby={headingId}")
+    expect(compactRow).toContain("const descriptionId = `request-service-${id}-description`")
+    expect(compactRow).toContain("const priceId = `request-service-${id}-price`")
+    expect(compactRow).toContain('aria-describedby={`${descriptionId} ${priceId}`}')
+    expect(compactRow).toContain("<p id={descriptionId}")
+    expect(compactRow).toContain("<div id={priceId}")
     expect(compactRow).toContain('aria-hidden="true"')
     expect(compactRow).not.toContain("<h3")
     expect(compactRow).toContain("grid-cols-[auto_minmax(0,1fr)]")
@@ -104,10 +109,18 @@ describe("marketing and request reflow contract", () => {
     expect(globals).toContain("min-height: 48px;")
     expect(globals).toContain("min-width: 48px;")
     expect(globals).toContain('@media (max-width: 240px)')
-    expect(globals).toContain(
-      '[data-patient-flow="true"] [data-request-progress-step="true"]',
+    const broadTargetIndex = globals.indexOf('[data-patient-flow="true"] :is(')
+    const broadMinWidthIndex = globals.indexOf("min-width: 48px;", broadTargetIndex)
+    const narrowProgressIndex = globals.indexOf(
+      '[data-patient-flow="true"] button[data-request-progress-step="true"]',
     )
-    expect(globals).toContain("min-width: 0;")
+
+    expect(broadTargetIndex).toBeGreaterThan(-1)
+    expect(broadMinWidthIndex).toBeGreaterThan(broadTargetIndex)
+    expect(narrowProgressIndex).toBeGreaterThan(broadMinWidthIndex)
+    expect(
+      globals.slice(narrowProgressIndex, globals.indexOf("}", narrowProgressIndex)),
+    ).toContain("min-width: 0;")
     expect(globals).toContain("/* Ensure all interactive elements meet touch target requirements */")
     expect(globals).toContain("min-height: 44px;")
     expect(globals).toContain("min-width: 44px;")

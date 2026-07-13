@@ -2732,7 +2732,7 @@ body {
 /* At 200% zoom a 375px device exposes roughly 188 CSS pixels. Keep the
    progress track inside that viewport while retaining its 48px height. */
 @media (max-width: 240px) {
-  [data-patient-flow="true"] [data-request-progress-step="true"] {
+  [data-patient-flow="true"] button[data-request-progress-step="true"] {
     min-width: 0;
   }
 }
