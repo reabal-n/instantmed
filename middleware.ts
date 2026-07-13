@@ -2,6 +2,7 @@ import { type NextRequest,NextResponse } from 'next/server'
 
 import { captureAttributionToCookie } from '@/lib/analytics/middleware-attribution'
 import { isDevOnlyRoute, isE2ETestModeEnabled, isVercelProdOrPreview } from '@/lib/dev-only-routes'
+import { requestMayHaveSupabaseSession } from '@/lib/supabase/auth-cookie'
 import { updateSupabaseSession } from '@/lib/supabase/middleware'
 
 // Define protected routes that require authentication.
@@ -54,11 +55,24 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  // Refresh Supabase Auth session (token refresh on every request)
+  const protectedRoute = isProtectedRoute(pathname)
+  const mayHaveSupabaseSession = requestMayHaveSupabaseSession(
+    req.cookies.getAll().map(({ name }) => name),
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+  )
+
+  // Anonymous public traffic has no session to verify or refresh. Protected
+  // routes never use this shortcut, and any Supabase auth cookie keeps the
+  // verified getUser() path below.
+  if (!protectedRoute && !mayHaveSupabaseSession) {
+    return captureAttributionToCookie(req, NextResponse.next())
+  }
+
+  // Verify and refresh the Supabase Auth session when one may exist.
   const { response, user } = await updateSupabaseSession(req)
 
   // Protect authenticated routes
-  if (isProtectedRoute(pathname)) {
+  if (protectedRoute) {
     if (!user) {
       // Not authenticated - redirect to sign-in (pages) or 401 (API)
       if (pathname.startsWith("/api/")) {
