@@ -4,63 +4,71 @@
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
   REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC, anon, authenticated;
 
--- This manifest is the reviewed policy for all 36 SECURITY DEFINER functions
--- that were executable by anon or authenticated before this migration.
+-- This manifest covers the 36 functions exposed in production plus nine
+-- replay-only legacy functions exposed by the canonical migration history.
 DO $acl_policy$
 DECLARE
   function_signature text;
   function_oid regprocedure;
   function_policy text;
+  required_presence boolean;
 BEGIN
-  FOR function_signature, function_oid, function_policy IN
+  FOR function_signature, function_oid, function_policy, required_presence IN
     SELECT
       policy.function_signature,
       pg_catalog.to_regprocedure(policy.function_signature),
-      policy.access_policy
+      policy.access_policy,
+      policy.required_presence
     FROM (
       VALUES
-        ('public.add_to_webhook_dead_letter(text, text, text, uuid, text, text, jsonb)', 'service_role'),
-        ('public.approve_draft(uuid, uuid, jsonb)', 'service_role'),
-        ('public.archive_old_audit_logs(integer)', 'service_role'),
-        ('public.audit_phi_access()', 'trigger'),
-        ('public.audit_phi_access(text, uuid, text, uuid, text, text)', 'service_role'),
-        ('public.check_employer_email_rate_limit(uuid)', 'service_role'),
-        ('public.cleanup_expired_partial_intakes()', 'service_role'),
-        ('public.count_intakes_today_sydney()', 'service_role'),
-        ('public.e2e_reset_intake_status(uuid, text)', 'service_role'),
-        ('public.expire_pending_payment_intakes(integer)', 'service_role'),
-        ('public.get_email_outbox_stats()', 'service_role'),
-        ('public.get_my_profile_id()', 'authenticated'),
-        ('public.get_or_create_email_preferences(uuid)', 'service_role'),
-        ('public.get_queue_position(uuid)', 'service_role'),
-        ('public.handle_new_user()', 'trigger'),
-        ('public.increment_auto_approval_attempts(uuid)', 'service_role'),
-        ('public.is_doctor()', 'authenticated'),
-        ('public.is_doctor_or_admin()', 'owner_only'),
-        ('public.is_patient()', 'authenticated'),
-        ('public.log_ai_audit(uuid, ai_audit_action, draft_type, uuid, uuid, ai_actor_type, character varying, character varying, character varying, integer, integer, integer, boolean, boolean, jsonb, jsonb, jsonb, text)', 'service_role'),
-        ('public.log_certificate_edit()', 'trigger'),
-        ('public.log_certificate_edit(uuid, uuid, uuid, text, text, text, text)', 'service_role'),
-        ('public.log_compliance_event(compliance_event_type, uuid, text, uuid, text, boolean, text, text, boolean, boolean, boolean, boolean, text, jsonb, inet, text)', 'service_role'),
-        ('public.log_intake_event(uuid, text, text, uuid, intake_status, intake_status, jsonb)', 'service_role'),
-        ('public.medications_search_vector_update()', 'trigger'),
-        ('public.merge_guest_profile(uuid, uuid)', 'service_role'),
-        ('public.payment_exists_for_session(text)', 'service_role'),
-        ('public.reject_draft(uuid, uuid, text)', 'service_role'),
-        ('public.release_intake_claim(uuid, uuid)', 'service_role'),
-        ('public.release_stale_intake_claims(integer)', 'service_role'),
-        ('public.search_medications(text, integer)', 'service_role'),
-        ('public.try_process_stripe_event(text, text, uuid, text, jsonb)', 'service_role'),
-        ('public.update_certificate_edit_count()', 'trigger'),
-        ('public.update_email_outbox_updated_at()', 'trigger'),
-        ('public.update_repeat_rx_updated_at()', 'trigger'),
-        ('public.upsert_exit_intent_capture(text, text)', 'service_role')
-    ) AS policy(function_signature, access_policy)
+        ('public.add_to_webhook_dead_letter(text, text, text, uuid, text, text, jsonb)', 'service_role', true),
+        ('public.approve_draft(uuid, uuid, jsonb)', 'service_role', true),
+        ('public.archive_old_audit_logs(integer)', 'service_role', true),
+        ('public.audit_intake_created()', 'trigger', false),
+        ('public.audit_intake_status_change()', 'trigger', false),
+        ('public.audit_phi_access()', 'trigger', true),
+        ('public.audit_phi_access(text, uuid, text, uuid, text, text)', 'service_role', true),
+        ('public.check_employer_email_rate_limit(uuid)', 'service_role', true),
+        ('public.cleanup_expired_partial_intakes()', 'service_role', true),
+        ('public.count_intakes_today_sydney()', 'service_role', true),
+        ('public.create_clinical_summaries_table()', 'owner_only', false),
+        ('public.create_notification(uuid, text, text, text, text, jsonb)', 'owner_only', false),
+        ('public.e2e_reset_intake_status(uuid, text)', 'service_role', true),
+        ('public.expire_pending_payment_intakes(integer)', 'service_role', true),
+        ('public.get_email_outbox_stats()', 'service_role', true),
+        ('public.get_my_profile_id()', 'authenticated', true),
+        ('public.get_or_create_email_preferences(uuid)', 'service_role', true),
+        ('public.get_patient_notes(uuid, text, integer)', 'owner_only', false),
+        ('public.get_queue_position(uuid)', 'service_role', true),
+        ('public.grant_consent(uuid, consent_type, text, text, text, text)', 'owner_only', false),
+        ('public.handle_new_user()', 'trigger', true),
+        ('public.increment_auto_approval_attempts(uuid)', 'service_role', true),
+        ('public.is_doctor()', 'authenticated', true),
+        ('public.is_doctor_or_admin()', 'owner_only', false),
+        ('public.is_patient()', 'authenticated', true),
+        ('public.log_ai_audit(uuid, ai_audit_action, draft_type, uuid, uuid, ai_actor_type, character varying, character varying, character varying, integer, integer, integer, boolean, boolean, jsonb, jsonb, jsonb, text)', 'service_role', true),
+        ('public.log_audit_event(audit_event_type, text, uuid, uuid, uuid, text, jsonb, jsonb, jsonb, text, text, text)', 'owner_only', false),
+        ('public.log_certificate_edit()', 'trigger', true),
+        ('public.log_certificate_edit(uuid, uuid, uuid, text, text, text, text)', 'service_role', true),
+        ('public.log_compliance_event(compliance_event_type, uuid, text, uuid, text, boolean, text, text, boolean, boolean, boolean, boolean, text, jsonb, inet, text)', 'service_role', true),
+        ('public.log_intake_event(uuid, text, text, uuid, intake_status, intake_status, jsonb)', 'service_role', true),
+        ('public.medications_search_vector_update()', 'trigger', true),
+        ('public.merge_guest_profile(uuid, uuid)', 'service_role', true),
+        ('public.notify_on_intake_status_change()', 'trigger', false),
+        ('public.payment_exists_for_session(text)', 'service_role', true),
+        ('public.record_admin_action(uuid, admin_action_type, intake_status, text, text, text, jsonb, jsonb)', 'owner_only', false),
+        ('public.reject_draft(uuid, uuid, text)', 'service_role', true),
+        ('public.release_intake_claim(uuid, uuid)', 'service_role', true),
+        ('public.release_stale_intake_claims(integer)', 'service_role', true),
+        ('public.search_medications(text, integer)', 'service_role', true),
+        ('public.try_process_stripe_event(text, text, uuid, text, jsonb)', 'service_role', true),
+        ('public.update_certificate_edit_count()', 'trigger', true),
+        ('public.update_email_outbox_updated_at()', 'trigger', true),
+        ('public.update_repeat_rx_updated_at()', 'trigger', true),
+        ('public.upsert_exit_intent_capture(text, text)', 'service_role', true)
+    ) AS policy(function_signature, access_policy, required_presence)
   LOOP
-    -- is_doctor_or_admin() is unused production-only drift and is absent from
-    -- migration-replayed preview schemas. Keep it in the production ACL audit
-    -- without manufacturing the legacy helper in clean environments.
-    IF function_oid IS NULL AND function_policy <> 'owner_only' THEN
+    IF function_oid IS NULL AND required_presence THEN
       RAISE EXCEPTION 'Expected SECURITY DEFINER function is missing from ACL policy: %', function_signature;
     END IF;
 
