@@ -98,9 +98,8 @@ describe("general consult retirement contract", () => {
     expect(source).not.toMatch(/['"]consult['"]\s*:\s*\{\s*category:\s*['"]consult['"]\s*,\s*subtype:\s*['"]general['"]/)
   })
 
-  it("consultation-types catalog does not expose a 'general' entry", () => {
-    const source = read("lib/data/consultation-types.ts")
-    expect(source).not.toMatch(/id:\s*['"]general['"]/)
+  it("keeps the obsolete consultation-types catalog removed", () => {
+    expect(existsSync(join(root, "lib/data/consultation-types.ts"))).toBe(false)
   })
 
   it("DB migration enforcing the constraint exists", () => {

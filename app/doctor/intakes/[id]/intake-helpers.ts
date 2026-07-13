@@ -2,9 +2,6 @@ import type { AIDraft } from "@/app/actions/draft-approval"
 import { formatClinicalNoteBullets } from "@/lib/doctor/clinical-notes"
 import type { IntakeWithDetails, IntakeWithPatient } from "@/types/db"
 
-// Re-export so existing consumers (intake-decline-dialog) keep working.
-// Single source of truth lives at lib/doctor/decline-reasons.ts (Phase 2 extract).
-export { DECLINE_REASONS } from "@/lib/doctor/decline-reasons"
 export type { AIDraft }
 
 export interface IntakeDetailClientProps {

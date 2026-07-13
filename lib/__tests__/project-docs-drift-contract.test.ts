@@ -44,6 +44,7 @@ function findRouteInventoryFiles(dir: string): string[] {
 const agents = readProjectFile("AGENTS.md")
 const claude = readProjectFile("CLAUDE.md")
 const architecture = readProjectFile("docs/ARCHITECTURE.md")
+const wikiArchitecture = readProjectFile("wiki/architecture.md")
 const aiProvider = readProjectFile("lib/ai/provider.ts")
 const aiOnboarding = readProjectFile("docs/AI_ONBOARDING.md")
 const design = readProjectFile("DESIGN.md")
@@ -206,10 +207,34 @@ describe("project docs drift contract", () => {
     const appFiles = findFiles(appRoot)
     const routeFiles = findRouteInventoryFiles(appRoot)
     const apiRoutes = findRouteFiles(join(root, "app/api"))
+    const cronRoutes = findRouteFiles(join(root, "app/api/cron"))
+    const componentFiles = findFiles(join(root, "components"))
+    const libFiles = findFiles(join(root, "lib"))
+    const e2eFiles = findFiles(join(root, "e2e"))
+    const e2eTypeScriptFiles = e2eFiles.filter((file) => file.endsWith(".ts"))
+    const e2eSpecs = e2eFiles.filter((file) => file.endsWith(".spec.ts"))
+    const blogArticles = findFiles(join(root, "content/blog")).filter((file) => file.endsWith(".mdx"))
+    const migrations = findFiles(join(root, "supabase/migrations")).filter((file) => file.endsWith(".sql"))
 
     expect(architecture).toContain(`### \`app/\` — ${appFiles.length} files, ${routeFiles.length} route files`)
     expect(architecture).toContain(`| \`app/api/\` | API routes (${apiRoutes.length} route files) |`)
+    expect(architecture).toContain(
+      `| \`e2e/\` | ${e2eTypeScriptFiles.length} TypeScript files, including ${e2eSpecs.length} specs`,
+    )
+    expect(architecture).toContain(`| \`supabase/migrations/\` | ${migrations.length} SQL migration files`)
     expect(architecture).toContain("Filesystem route-count drift is guarded by")
+
+    expect(wikiArchitecture).toContain(`| \`app/\` | ${appFiles.length} files |`)
+    expect(wikiArchitecture).toContain(`| Route-like files under \`app/\` | ${routeFiles.length} |`)
+    expect(wikiArchitecture).toContain(`| API route files under \`app/api/\` | ${apiRoutes.length} |`)
+    expect(wikiArchitecture).toContain(`| Cron route files under \`app/api/cron/\` | ${cronRoutes.length} |`)
+    expect(wikiArchitecture).toContain(`| \`components/\` | ${componentFiles.length} files |`)
+    expect(wikiArchitecture).toContain(`| \`lib/\` | ${libFiles.length.toLocaleString("en-US")} files |`)
+    expect(wikiArchitecture).toContain(
+      `| E2E TypeScript files under \`e2e/\` | ${e2eTypeScriptFiles.length} (${e2eSpecs.length} specs) |`,
+    )
+    expect(wikiArchitecture).toContain(`| Health guide MDX files under \`content/blog/\` | ${blogArticles.length} |`)
+    expect(wikiArchitecture).toContain(`| SQL migrations under \`supabase/migrations/\` | ${migrations.length} |`)
   })
 
   it("documents the medication step as free-text, not a live PBS search (retired #211)", () => {

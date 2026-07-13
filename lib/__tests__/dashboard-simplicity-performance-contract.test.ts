@@ -456,7 +456,6 @@ describe("dashboard simplicity and runtime performance contracts", () => {
   it("keeps the review pane decision controls visible before scrolling", () => {
     const cockpitSource = read("components/doctor/review/intake-review-cockpit.tsx")
     const actionSource = read("components/doctor/review/intake-action-buttons.tsx")
-    const notesEditorSource = read("components/doctor/review/clinical-notes-editor.tsx")
     const clinicalCaseReviewSource = read("components/doctor/clinical-case-review.tsx")
     const reviewPanelSource = read("components/doctor/intake-review-panel.tsx")
     const requestInfoSource = read("components/doctor/review/request-info-card.tsx")
@@ -508,11 +507,10 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(reasonOrderIndex).toBeGreaterThan(-1)
     expect(requestFactsOrderIndex).toBeGreaterThan(reasonOrderIndex)
     expect(patientContextOrderIndex).toBeGreaterThan(requestFactsOrderIndex)
-    expect(notesEditorSource).toContain("isNoteFocused")
-    expect(notesEditorSource).toContain("setIsNoteFocused(true)")
-    expect(notesEditorSource).toContain("setIsNoteFocused(false)")
-    expect(notesEditorSource).toContain("min-h-[320px]")
-    expect(notesEditorSource).toContain("focus-within:shadow-sm")
+    expect(clinicalCaseReviewSource).toContain('aria-label="Draft clinical note"')
+    expect(clinicalCaseReviewSource).toContain("draftNoteTextareaRef")
+    expect(clinicalCaseReviewSource).toContain("focus:min-h-[150px]")
+    expect(clinicalCaseReviewSource).toContain("focus:ring-2")
     // Patient-facing queue copy was removed from the doctor review header
     // (2026-06-22 declutter — essentials only). The doctor doesn't need to see
     // the message shown to the patient; it was pure noise on the review surface.

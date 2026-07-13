@@ -28,8 +28,8 @@ const actionButtonsSource = readFileSync(
   join(process.cwd(), "components/doctor/review/intake-action-buttons.tsx"),
   "utf8",
 )
-const clinicalNotesEditorSource = readFileSync(
-  join(process.cwd(), "components/doctor/review/clinical-notes-editor.tsx"),
+const clinicalCaseReviewSource = readFileSync(
+  join(process.cwd(), "components/doctor/clinical-case-review.tsx"),
   "utf8",
 )
 
@@ -71,8 +71,9 @@ describe("doctor prescribing keyboard shortcuts", () => {
       expect(source).toContain("canPrescribeInParchment && intake.script_sent !== true")
     }
     expect(actionButtonsSource).toContain("Recorded script evidence needs reconciliation")
-    for (const source of [detailDraftsSource, clinicalNotesEditorSource]) {
-      expect(source).toContain("needsLegacyScriptReconciliation")
+    expect(detailDraftsSource).toContain("needsLegacyScriptReconciliation")
+    expect(clinicalCaseReviewSource).toContain("needsRecordedScriptReconciliation")
+    for (const source of [detailDraftsSource, clinicalCaseReviewSource]) {
       expect(source).toContain("LEGACY_REPEAT_RX_RECONCILIATION_NOTE")
       expect(source).toContain("Acknowledge recorded script evidence")
     }

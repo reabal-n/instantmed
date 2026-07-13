@@ -47,8 +47,8 @@ const onboardingBannerSource = readFileSync(
   join(process.cwd(), "components/doctor/onboarding-banner.tsx"),
   "utf8",
 )
-const clinicalNotesEditorSource = readFileSync(
-  join(process.cwd(), "components/doctor/review/clinical-notes-editor.tsx"),
+const clinicalCaseReviewSource = readFileSync(
+  join(process.cwd(), "components/doctor/clinical-case-review.tsx"),
   "utf8",
 )
 const doctorIntakeDetailSource = readFileSync(
@@ -243,7 +243,7 @@ describe("doctor navigation contract", () => {
   it("keeps portal surfaces free of decorative progress motion", () => {
     const portalSource = [
       onboardingBannerSource,
-      clinicalNotesEditorSource,
+      clinicalCaseReviewSource,
     ].join("\n")
 
     expect(portalSource).not.toContain("transition-[width] duration-500")

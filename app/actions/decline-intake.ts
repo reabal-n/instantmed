@@ -8,12 +8,9 @@
  *
  * Use this action everywhere decline happens:
  * - Doctor queue
- * - Admin panel
- * - Bulk actions
- * - API routes
+ * - Full-page intake review
  *
  * Refund processing: ./decline-refund.ts
- * Bulk operations:   ./decline-bulk.ts
  */
 
 import * as Sentry from "@sentry/nextjs"
@@ -34,7 +31,6 @@ import {
   REFUND_ON_DECLINE_CATEGORIES,
 } from "./decline-refund"
 
-// Split modules: import directly from ./decline-bulk and ./decline-refund.
 // Cannot re-export non-async values from "use server" files.
 
 const logger = createLogger("decline-intake")

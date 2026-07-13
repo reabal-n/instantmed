@@ -12,6 +12,7 @@
 #   8. Raw browser review evidence that should use expiring artifact storage
 #   9. Retired public assets with no runtime consumers
 #  10. Retired vacuous E2E specs
+#  11. Superseded staff and data sidecars
 #
 # Exit 1 if any orphans found.
 
@@ -394,6 +395,26 @@ for retired_e2e_spec in \
 do
   if [[ -e "$retired_e2e_spec" ]]; then
     echo "ORPHAN: $retired_e2e_spec still exists (retired duplicate or vacuous E2E coverage)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 11. Superseded staff and data sidecars ────────────────────────────────
+for retired_staff_sidecar in \
+  "app/actions/decline-bulk.ts" \
+  "app/actions/render-test-email.ts" \
+  "app/actions/safety-symptoms.ts" \
+  "app/doctor/intakes/[id]/intake-decline-dialog.tsx" \
+  "app/doctor/patients/manual-patient-dialog.tsx" \
+  "components/doctor/review/clinical-notes-editor.tsx" \
+  "components/doctor/review/formatting-toolbar.tsx" \
+  "components/doctor/review/patient-info-card.tsx" \
+  "lib/data/consultation-types.ts" \
+  "lib/data/queue-availability.ts" \
+  "lib/doctor/session-timeout.ts"
+do
+  if [[ -e "$retired_staff_sidecar" ]]; then
+    echo "ORPHAN: $retired_staff_sidecar still exists (superseded staff or data sidecar)"
     orphans=$((orphans + 1))
   fi
 done

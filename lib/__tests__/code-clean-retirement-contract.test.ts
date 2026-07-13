@@ -68,6 +68,39 @@ describe("code-clean retirement contracts", () => {
     }
   })
 
+  it("keeps superseded staff and data sidecars retired", () => {
+    const retiredSidecars = [
+      "app/actions/decline-bulk.ts",
+      "app/actions/render-test-email.ts",
+      "app/actions/safety-symptoms.ts",
+      "app/doctor/intakes/[id]/intake-decline-dialog.tsx",
+      "app/doctor/patients/manual-patient-dialog.tsx",
+      "components/doctor/review/clinical-notes-editor.tsx",
+      "components/doctor/review/formatting-toolbar.tsx",
+      "components/doctor/review/patient-info-card.tsx",
+      "lib/data/consultation-types.ts",
+      "lib/data/queue-availability.ts",
+      "lib/doctor/session-timeout.ts",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredSidecars) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("app/doctor/patients/patients-list-client.tsx")).toContain("AddPatientDialog")
+    expect(read("components/doctor/review/intake-review-cockpit.tsx")).toContain(
+      "PatientDecisionStrip",
+    )
+    expect(read("components/doctor/clinical-case-review.tsx")).toContain(
+      'aria-label="Draft clinical note"',
+    )
+    expect(read("app/api/cron/release-stale-claims/route.ts")).toContain(
+      'supabase.rpc("release_stale_intake_claims"',
+    )
+  })
+
   it("keeps stale patient quick-reorder APIs out of the route tree", () => {
     const retiredPatientApis = [
       "app/api/patient/last-prescription/route.ts",
