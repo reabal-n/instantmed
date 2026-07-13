@@ -1895,7 +1895,7 @@ function buildEvidenceSummary(evidencePack: EvidencePack): string {
   const ads90 = extractAdsMetrics(evidencePack.ads90)
   const captureLines = evidencePack.browser.captures.map(
     (capture) =>
-      `- ${capture.service} ${capture.journey} ${capture.viewport}: ${capture.status}, final=${capture.finalUrl}, screenshot=${capture.screenshotPath}, video=${capture.videoPath ?? "none"}, consoleErrors=${capture.consoleErrors.length}, requestFailures=${capture.requestFailures.length}`,
+      `- ${capture.service} ${capture.journey} ${capture.viewport}: ${capture.status}, final=${capture.finalUrl}, screenshot=${capture.screenshotPath}, dom=${capture.domPath}, consoleErrors=${capture.consoleErrors.length}, requestFailures=${capture.requestFailures.length}`,
   )
 
   return [
@@ -1991,13 +1991,13 @@ function buildReport({
     "",
     "## Browser Evidence",
     "",
-    "Video links point to generated local `.webm` captures in this workspace. The repository review policy intentionally keeps those videos out of git; screenshots, traces, HARs, DOM evidence, model reports, and data extracts are the committed evidence.",
+    "Screenshots and structured DOM evidence are committed for each capture. Raw recordings, traces, and HARs remain local or use expiring CI artifact storage; model reports and aggregate data extracts remain committed.",
     "",
-    "| Service | Journey | Viewport | Status | Screenshot | Video | Trace | Notes |",
-    "|---|---|---:|---|---|---|---|---|",
+    "| Service | Journey | Viewport | Status | Screenshot | DOM evidence | Notes |",
+    "|---|---|---:|---|---|---|---|",
     ...evidencePack.browser.captures.map(
       (capture) =>
-        `| ${capture.service} | ${capture.journey} | ${capture.viewport} | ${capture.status} | ${link(capture.screenshotPath)} | ${capture.videoPath ? link(capture.videoPath) : "not committed"} | ${capture.tracePath ? link(capture.tracePath) : "none"} | console=${capture.consoleErrors.length}, failed_requests=${capture.requestFailures.length} |`,
+        `| ${capture.service} | ${capture.journey} | ${capture.viewport} | ${capture.status} | ${link(capture.screenshotPath)} | ${link(capture.domPath)} | console=${capture.consoleErrors.length}, failed_requests=${capture.requestFailures.length} |`,
     ),
     "",
     "## Model Reports",
@@ -2020,7 +2020,7 @@ function buildReport({
     "- No live card charge was attempted.",
     "- Production landing/attribution captures did not submit clinical forms; local request captures blocked draft and analytics writes.",
     "- Artifacts use synthetic patient data only, and text/JSON outputs redact emails, phone numbers, click IDs, UUIDs, Stripe identifiers, and payment/session tokens.",
-    "- Capture videos remain local `.webm` files under the audit directory because `docs/reviews/.gitignore` intentionally excludes reproducible browser videos.",
+    "- Raw browser recordings, traces, and HARs remain local or use expiring CI artifact storage because `docs/reviews/.gitignore` excludes reproducible raw evidence.",
   ].join("\n")
 }
 

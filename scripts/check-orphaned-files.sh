@@ -324,6 +324,24 @@ do
   fi
 done
 
+# ── 8. Tracked raw review evidence ───────────────────────────────────────
+while IFS= read -r tracked_review_file; do
+  case "$tracked_review_file" in
+    *.har|*/trace.zip|*.webm|*/critique.raw.txt)
+      echo "ORPHAN: $tracked_review_file is raw review evidence and must use expiring artifact storage"
+      orphans=$((orphans + 1))
+      ;;
+  esac
+done < <(git ls-files docs/reviews)
+
+while IFS= read -r tracked_review_markdown; do
+  [[ -f "$tracked_review_markdown" ]] || continue
+  if grep -Eq '\.(har|webm)|trace\.zip|video=captures/' "$tracked_review_markdown"; then
+    echo "ORPHAN: $tracked_review_markdown references raw review evidence that is not committed"
+    orphans=$((orphans + 1))
+  fi
+done < <(git ls-files 'docs/reviews/**/*.md')
+
 # ── Results ──────────────────────────────────────────────────────────────
 if [[ $orphans -gt 0 ]]; then
   echo ""
