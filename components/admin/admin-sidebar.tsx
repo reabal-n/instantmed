@@ -9,7 +9,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import {
   operatorNavSections,
-  type StaffNavCounts,
   type StaffNavItem,
   type StaffNavSection,
 } from "@/lib/dashboard/staff-navigation"
@@ -26,7 +25,6 @@ import { STAFF_NAV_ICONS } from "./staff-nav-icons"
 interface AdminSidebarProps {
   userName: string
   userRole?: string
-  navCounts?: StaffNavCounts
   /** Override the nav sections. Defaults to `operatorNavSections`. */
   navSections?: StaffNavSection[]
   /** Brand subtitle under "InstantMed". Defaults to "Operator". */
@@ -269,13 +267,12 @@ function UserInitials({
 export function AdminSidebar({
   userName,
   userRole = "Operator",
-  navCounts,
   navSections,
   brandLabel = "Operator",
 }: AdminSidebarProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const counts = useLiveStaffNavCounts(navCounts)
+  const counts = useLiveStaffNavCounts()
   const currentStatus = searchParams.get("status")
   const sections = navSections ?? operatorNavSections
   const currentSearch = searchParams.toString()
@@ -392,7 +389,6 @@ export function AdminSidebar({
 }
 
 interface MobileAdminNavProps {
-  navCounts?: StaffNavCounts
   navSections?: StaffNavSection[]
   brandLabel?: string
 }
@@ -401,11 +397,11 @@ interface MobileAdminNavProps {
  * Mobile uses the original labeled drawer pattern. On a phone you want full
  * labels because there's room for a sheet, and tooltips don't work on touch.
  */
-export function MobileAdminNav({ navCounts, navSections, brandLabel: _brandLabel }: MobileAdminNavProps) {
+export function MobileAdminNav({ navSections, brandLabel: _brandLabel }: MobileAdminNavProps) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const counts = useLiveStaffNavCounts(navCounts)
+  const counts = useLiveStaffNavCounts()
   const currentStatus = searchParams.get("status")
   const sections = navSections ?? operatorNavSections
   const currentSearch = searchParams.toString()
