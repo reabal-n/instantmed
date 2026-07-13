@@ -42,6 +42,9 @@ describe("marketing reduced-motion contract", () => {
   it("settles the hero doctor card and floats immediately", () => {
     const hero = read("components/marketing/hero-doctor-review-mockup.tsx")
 
+    expect(hero).toContain(
+      "const [activeIndex, setActiveIndex] = useState(REVIEW_STEPS.length - 1)",
+    )
     expect(hero).toContain('initial={animate ? "hidden" : "reduced"}')
     expect(hero.match(/animate=\{entranceControls\}/g)).toHaveLength(2)
     expect(hero).toContain("entranceControls.stop()")
@@ -81,13 +84,21 @@ describe("marketing reduced-motion contract", () => {
     expect(strip).toContain('data-reduced-motion-final="stat-item"')
   })
 
-  it("uses a static mobile-menu branch without changing normal timings", () => {
+  it("uses one stable mobile-menu tree and disables motion in place", () => {
     const menu = read("components/ui/animated-mobile-menu.tsx")
     const navbar = read("components/shared/navbar.tsx")
 
     expect(navbar).toContain('mobileMenuOpen && "max-md:z-[60]"')
-    expect(menu).toContain('data-mobile-menu-motion="static"')
-    expect(menu).toContain('data-mobile-menu-motion="animated"')
+    expect(menu).toContain(
+      'data-mobile-menu-motion={prefersReducedMotion ? "static" : "animated"}',
+    )
+    expect(menu).toContain(
+      'const openMotionState = prefersReducedMotion ? "reducedOpen" : "open"',
+    )
+    expect(menu).toContain(
+      'const closedMotionState = prefersReducedMotion ? "reducedClosed" : "closed"',
+    )
+    expect(menu).not.toContain("if (prefersReducedMotion) {")
     expect(menu).toContain('data-mobile-menu-panel="true"')
     expect(menu).toContain('data-mobile-menu-content="true"')
     expect(menu).toContain("const returnFocusRef = useRef<HTMLElement | null>(null)")

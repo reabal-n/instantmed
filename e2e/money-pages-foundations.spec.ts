@@ -719,6 +719,51 @@ test.describe("money-page responsive foundations", () => {
 })
 
 test.describe("money-page keyboard foundations", () => {
+  test("mobile drawer preserves focus and containment when reduced motion changes live", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" })
+    await prepareKeyboardPage(page, "/")
+
+    const open = page.getByRole("button", { name: "Open menu" })
+    await page.keyboard.press("Tab")
+    await expect(page.locator('a[href="#main-content"]').first()).toBeFocused()
+    await tabUntilFocused(page, open, 8)
+    await page.keyboard.press("Enter")
+
+    const menu = page.locator('nav[data-mobile-menu-hydrated="true"]')
+    const content = page.locator('[data-mobile-menu-content="true"]')
+    const focusedLink = content.locator("ul a[href]").first()
+    await expect(menu).toBeAttached()
+    await expect(focusedLink).toBeFocused()
+
+    await page.emulateMedia({ reducedMotion: "reduce" })
+    await expect
+      .poll(() => page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches))
+      .toBe(true)
+    await expect(menu).toHaveAttribute("data-mobile-menu-motion", "static")
+    await expect(focusedLink).toBeFocused()
+    await waitTwoFrames(page)
+    expect(await inspectActiveMeaningfulAnimations(page)).toEqual([])
+
+    await page.keyboard.press("Shift+Tab")
+    expect(
+      await content.evaluate((element) => element.contains(document.activeElement)),
+      "reverse Tab should remain inside the open drawer after the live preference change",
+    ).toBe(true)
+    await page.keyboard.press("Tab")
+    await expect(focusedLink).toBeFocused()
+
+    await page.emulateMedia({ reducedMotion: "no-preference" })
+    await expect
+      .poll(() => page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches))
+      .toBe(false)
+    await expect(menu).toHaveAttribute("data-mobile-menu-motion", "animated")
+    await expect(focusedLink).toBeFocused()
+
+    await page.keyboard.press("Escape")
+    await expect(content).toBeHidden()
+    await expect(open).toBeFocused()
+  })
+
   for (const activationKey of ["Enter", "Space"] as const) {
     test(`mobile drawer contains focus after ${activationKey} and restores its trigger`, async ({ page }) => {
       await prepareKeyboardPage(page, "/")
@@ -971,6 +1016,41 @@ test.describe("money-page keyboard foundations", () => {
 })
 
 test.describe("money-page reduced-motion foundations", () => {
+  test("hero first paint starts on the resolved review step for either motion preference", async ({ browser }, testInfo) => {
+    for (const reducedMotion of ["no-preference", "reduce"] as const) {
+      const context = await browser.newContext({
+        baseURL: projectBaseURL(testInfo),
+        viewport: { width: 390, height: 844 },
+        screen: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+        javaScriptEnabled: false,
+        reducedMotion,
+        colorScheme: "light",
+        locale: "en-AU",
+        timezoneId: "Australia/Sydney",
+      })
+      const page = await context.newPage()
+
+      try {
+        const response = await page.goto("/", { waitUntil: "domcontentloaded" })
+        expect(response?.ok(), `${reducedMotion} first-paint response`).toBe(true)
+
+        const doctorCard = page.locator('[data-reduced-motion-final="doctor-card"]')
+        const activeStepIcon = doctorCard.locator('svg[style*="spin"]').first()
+        const activeStep = activeStepIcon.locator(
+          "xpath=ancestor::div[contains(@class, 'flex') and contains(@class, 'items-center')][1]",
+        )
+
+        await expect(doctorCard).toBeAttached()
+        await expect(activeStepIcon).toHaveCount(1)
+        await expect(activeStep).toContainText("Decision")
+      } finally {
+        await context.close()
+      }
+    }
+  })
+
   for (const route of MONEY_ROUTES) {
     test(`${route.path} has no meaningful active motion when reduced`, async ({ browser }, testInfo) => {
       test.setTimeout(90_000)

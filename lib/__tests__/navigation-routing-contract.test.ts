@@ -80,17 +80,18 @@ describe("navigation routing contracts", () => {
     expect(animatedMobileMenu).toContain('aria-hidden="true"')
   })
 
-  it("keeps reduced motion static and animates the default drawer with explicit variants", () => {
+  it("keeps one drawer tree stable while switching explicit reduced-motion variants", () => {
     const animatedMobileMenu = readFileSync(path.join(root, "components/ui/animated-mobile-menu.tsx"), "utf8")
 
-    expect(animatedMobileMenu).toContain("if (prefersReducedMotion)")
     expect(animatedMobileMenu).toContain('data-mobile-menu-hydrated={isHydrated ? "true" : "false"}')
-    expect(animatedMobileMenu).toContain('data-mobile-menu-motion="static"')
-    expect(animatedMobileMenu).toContain('data-mobile-menu-motion="animated"')
+    expect(animatedMobileMenu).toContain(
+      'data-mobile-menu-motion={prefersReducedMotion ? "static" : "animated"}',
+    )
+    expect(animatedMobileMenu).not.toContain("if (prefersReducedMotion) {")
     expect(animatedMobileMenu).toContain("menuContentVariants")
-    expect(animatedMobileMenu).toContain('initial="closed"')
-    expect(animatedMobileMenu).toContain('animate="open"')
-    expect(animatedMobileMenu).toContain('exit="closed"')
+    expect(animatedMobileMenu).toContain('initial={prefersReducedMotion ? "reducedOpen" : "closed"}')
+    expect(animatedMobileMenu).toContain("animate={openMotionState}")
+    expect(animatedMobileMenu).toContain("exit={closedMotionState}")
   })
 
   it("defers first-interaction callbacks so they do not pre-empt the initiating nav click", () => {

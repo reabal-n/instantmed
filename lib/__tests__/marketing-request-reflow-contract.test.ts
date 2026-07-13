@@ -81,7 +81,7 @@ describe("marketing and request reflow contract", () => {
     expect(footer).toContain("grid-cols-1 min-[241px]:grid-cols-2")
     expect(footer).toContain("min-w-0 flex-wrap")
     expect(footer).not.toContain('<p className="whitespace-nowrap">')
-    expect(mobileMenu.match(/w-full max-w-\[300px\]/g)).toHaveLength(4)
+    expect(mobileMenu.match(/w-full max-w-\[300px\]/g)).toHaveLength(2)
     expect(mobileMenu).not.toMatch(/(?:^|\s)w-\[300px\](?:\s|")/m)
     expect(mobileMenu).toContain("focus-visible:ring-2 focus-visible:ring-primary")
     expect(mobileMenu).not.toContain("focus-visible:ring-primary/50")

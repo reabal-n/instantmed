@@ -137,7 +137,7 @@ const REST_AT_END_MS = 1400
 export function HeroDoctorReviewMockup() {
   const prefersReducedMotion = useReducedMotion()
   const entranceControls = useAnimationControls()
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [activeIndex, setActiveIndex] = useState(REVIEW_STEPS.length - 1)
 
   useEffect(() => {
     if (prefersReducedMotion) {

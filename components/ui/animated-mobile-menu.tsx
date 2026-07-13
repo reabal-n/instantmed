@@ -49,6 +49,14 @@ const sidebarVariants: Variants = {
       ease: DRAWER_EASE,
     },
   },
+  reducedOpen: {
+    clipPath: "none",
+    transition: { duration: 0, delay: 0 },
+  },
+  reducedClosed: {
+    clipPath: "circle(0px at calc(100% - 44px) 44px)",
+    transition: { duration: 0, delay: 0 },
+  },
 }
 
 // Navigation list animation variants
@@ -58,6 +66,12 @@ const navVariants: Variants = {
   },
   closed: {
     transition: { staggerChildren: 0.05, staggerDirection: -1 },
+  },
+  reducedOpen: {
+    transition: { duration: 0, delayChildren: 0, staggerChildren: 0 },
+  },
+  reducedClosed: {
+    transition: { duration: 0, delayChildren: 0, staggerChildren: 0 },
   },
 }
 
@@ -69,6 +83,14 @@ const menuContentVariants: Variants = {
   closed: {
     opacity: 0,
     transition: { duration: 0.12, ease: DRAWER_EASE },
+  },
+  reducedOpen: {
+    opacity: 1,
+    transition: { duration: 0, delay: 0 },
+  },
+  reducedClosed: {
+    opacity: 0,
+    transition: { duration: 0, delay: 0 },
   },
 }
 
@@ -87,6 +109,16 @@ const itemVariants: Variants = {
     transition: {
       y: { duration: 0.15, ease: 'easeOut' },
     },
+  },
+  reducedOpen: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: 0, delay: 0 },
+  },
+  reducedClosed: {
+    y: 0,
+    opacity: 0,
+    transition: { duration: 0, delay: 0 },
   },
 }
 
@@ -353,8 +385,28 @@ export function AnimatedMobileMenu({
   const returnFocusRef = useRef<HTMLElement | null>(null)
   const wasOpenRef = useRef(false)
   const { height } = useDimensions(containerRef)
+  const openMotionState = prefersReducedMotion ? "reducedOpen" : "open"
+  const closedMotionState = prefersReducedMotion ? "reducedClosed" : "closed"
 
   useEffect(() => setIsHydrated(true), [])
+
+  useEffect(() => {
+    if (!prefersReducedMotion) return
+
+    const settleDrawerMotion = () => {
+      for (const animation of containerRef.current?.getAnimations({ subtree: true }) ?? []) {
+        try {
+          animation.finish()
+        } catch {
+          animation.cancel()
+        }
+      }
+    }
+
+    settleDrawerMotion()
+    const settleFrame = requestAnimationFrame(settleDrawerMotion)
+    return () => cancelAnimationFrame(settleFrame)
+  }, [prefersReducedMotion])
 
   useEffect(() => {
     const wasOpen = wasOpenRef.current
@@ -424,58 +476,13 @@ export function AnimatedMobileMenu({
     }
   }, [isOpen])
 
-  if (prefersReducedMotion) {
-    return (
-      <nav
-        data-mobile-menu-hydrated={isHydrated ? "true" : "false"}
-        data-mobile-menu-motion="static"
-        aria-label="Mobile navigation"
-        className="md:hidden"
-      >
-        {isOpen ? (
-          <>
-            <div
-              onClick={onClose}
-              className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm dark:bg-black/40"
-            />
-            <div
-              data-mobile-menu-panel="true"
-              aria-hidden="true"
-              className={cn(
-                "fixed top-0 right-0 bottom-0 z-40 w-full max-w-[300px]",
-                "bg-card/85 dark:bg-white/10",
-                "backdrop-blur-2xl",
-                "border-l border-border/50 dark:border-white/15",
-                "shadow-[-20px_0_60px_rgb(59,130,246,0.12)] dark:shadow-[-20px_0_60px_rgb(93,184,201,0.15)]",
-              )}
-            />
-            <div
-              id="mobile-navigation-menu"
-              data-mobile-menu-content="true"
-              ref={contentRef}
-              className="fixed top-0 right-0 bottom-0 z-50 flex w-full max-w-[300px] flex-col"
-            >
-              {header ? (
-                <div className="border-b border-border/30 p-5">{header}</div>
-              ) : null}
-              <ul className="flex-1 overflow-y-auto px-2 py-4">{children}</ul>
-              {footer ? (
-                <div className="border-t border-border/30 p-4">{footer}</div>
-              ) : null}
-            </div>
-          </>
-        ) : null}
-      </nav>
-    )
-  }
-
   return (
     <motion.nav
       data-mobile-menu-hydrated={isHydrated ? "true" : "false"}
-      data-mobile-menu-motion="animated"
+      data-mobile-menu-motion={prefersReducedMotion ? "static" : "animated"}
       aria-label="Mobile navigation"
       initial={{}}
-      animate={isOpen ? "open" : "closed"}
+      animate={isOpen ? openMotionState : closedMotionState}
       custom={height}
       ref={containerRef}
       className="md:hidden"
@@ -484,9 +491,9 @@ export function AnimatedMobileMenu({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={prefersReducedMotion ? {} : { opacity: 0 }}
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={prefersReducedMotion ? undefined : { opacity: 0 }}
+            exit={{ opacity: prefersReducedMotion ? 1 : 0 }}
             transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2 }}
             onClick={onClose}
             className="fixed inset-0 z-40 bg-black/20 dark:bg-black/40 backdrop-blur-sm"
@@ -497,6 +504,7 @@ export function AnimatedMobileMenu({
       {/* Animated background panel - Glass with glow */}
       <motion.div
         data-mobile-menu-panel="true"
+        aria-hidden="true"
         variants={sidebarVariants}
         className={cn(
           "fixed top-0 right-0 bottom-0 z-40 w-full max-w-[300px]",
@@ -518,9 +526,9 @@ export function AnimatedMobileMenu({
             data-mobile-menu-content="true"
             ref={contentRef}
             variants={menuContentVariants}
-            initial="closed"
-            animate="open"
-            exit="closed"
+            initial={prefersReducedMotion ? "reducedOpen" : "closed"}
+            animate={openMotionState}
+            exit={closedMotionState}
             className="fixed top-0 right-0 bottom-0 z-50 flex w-full max-w-[300px] flex-col"
           >
             {/* Header */}
