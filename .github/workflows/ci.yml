@@ -95,6 +95,9 @@ jobs:
       - name: Check for orphaned files
         run: bash scripts/check-orphaned-files.sh
 
+      - name: Dead-code baseline ratchet
+        run: pnpm deadcode:check
+
       - name: AGENTS.md is in sync with CLAUDE.md
         run: bash scripts/sync-agent-doc.sh --check
 

@@ -34,6 +34,39 @@ describe("release check contract", () => {
     expect(gitIgnore).toContain("/playwright-report*/")
   })
 
+  it("ratchets dead-code findings before lint without deleting files", () => {
+    const packageJson = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
+      scripts: Record<string, string>
+    }
+    const releaseCheck = packageJson.scripts["release:check"]
+    const ciWorkflow = readFileSync(join(root, ".github/workflows/ci.yml"), "utf8")
+    const deadCodeRunner = readFileSync(
+      join(root, "scripts/dead-code-baseline.ts"),
+      "utf8",
+    )
+
+    expect(packageJson.scripts["deadcode:scan"]).toBe("knip --reporter compact")
+    expect(packageJson.scripts["deadcode:scan:production"]).toBe(
+      "knip --production --reporter compact",
+    )
+    expect(packageJson.scripts["deadcode:baseline"]).toBe(
+      "tsx scripts/dead-code-baseline.ts --write",
+    )
+    expect(packageJson.scripts["deadcode:check"]).toBe(
+      "tsx scripts/dead-code-baseline.ts",
+    )
+    expect(releaseCheck).toContain("pnpm deadcode:check")
+    expect(releaseCheck.indexOf("pnpm deadcode:check")).toBeLessThan(
+      releaseCheck.indexOf("pnpm lint"),
+    )
+    expect(ciWorkflow).toContain("Dead-code baseline ratchet")
+    expect(ciWorkflow).toContain("run: pnpm deadcode:check")
+    expect(deadCodeRunner).toContain('"--no-exit-code"')
+    expect(deadCodeRunner).toContain('"--production"')
+    expect(deadCodeRunner).not.toContain('"--fix"')
+    expect(deadCodeRunner).not.toContain('"--allow-remove-files"')
+  })
+
   it("keeps /request under route and first-load bundle budgets", () => {
     const bundleGate = readFileSync(join(root, "scripts/check-bundle-size.sh"), "utf8")
 
