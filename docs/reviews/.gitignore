@@ -1,7 +1,9 @@
-# Capture videos are large and reproducible from the journey definition.
-# Commit the structured critique JSON + voice-corrected report + frame
-# stills (referenced inline in report.md). Skip the webms.
+# Raw browser evidence is large and reproducible from the journey definition.
+# Commit curated reports, screenshots, and structured DOM/network summaries.
+# Keep recordings, HARs, and traces in local or expiring CI artifact storage.
 *.webm
+*.har
+trace.zip
 
 # Raw Gemini responses kept only for ad-hoc debugging when JSON parse
 # fails. Do not commit transient debug artefacts.
