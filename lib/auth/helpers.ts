@@ -20,6 +20,7 @@ import {
 } from "@/lib/auth/guest-profile-linking"
 import { hasAdminAccess, hasDoctorAccess, hasSupportAccess, type RoleCapability, roleHasAnyCapability } from "@/lib/auth/staff-capabilities"
 import { PATIENT_DASHBOARD_HREF, STAFF_DASHBOARD_HREF, STAFF_OPS_HREF } from "@/lib/dashboard/routes"
+import { isE2ETestModeEnabled } from "@/lib/dev-only-routes"
 import { buildPostSignInRedirectHref } from "@/lib/navigation/auth-handoff"
 import { createLogger } from "@/lib/observability/logger"
 import { decryptField } from "@/lib/security/encryption"
@@ -176,22 +177,6 @@ async function fetchProfileByColumn(
 // ============================================================================
 // E2E TEST AUTH BYPASS (test mode only)
 // ============================================================================
-
-/**
- * Check if E2E test mode is enabled.
- * Returns true ONLY if NODE_ENV === "test" OR PLAYWRIGHT === "1"
- * This is intentionally strict to prevent bypass in development/staging.
- *
- * CRITICAL: Explicitly blocked in Vercel production to prevent any possible bypass.
- */
-function isE2ETestModeEnabled(): boolean {
-  const isE2ETest = process.env.PLAYWRIGHT === "1"
-  if (!isE2ETest && (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview")) {
-    return false
-  }
-
-  return process.env.NODE_ENV === "test" || process.env.PLAYWRIGHT === "1"
-}
 
 /**
  * Check for E2E test auth cookies (only in test mode).

@@ -132,7 +132,7 @@ describe("retired compatibility modules", () => {
     expect(devOnlyRoutes).toContain("DEV_ONLY_ROUTE_PREFIXES")
     expect(middleware).toContain("isDevOnlyRoute(pathname)")
     expect(middleware).toContain("isVercelProdOrPreview")
-    expect(middleware).toContain('process.env.PLAYWRIGHT === "1"')
+    expect(middleware).toContain("isE2ETestModeEnabled()")
     expect(middleware).toContain("status: 410")
   })
 })

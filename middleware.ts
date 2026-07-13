@@ -1,7 +1,7 @@
 import { type NextRequest,NextResponse } from 'next/server'
 
 import { captureAttributionToCookie } from '@/lib/analytics/middleware-attribution'
-import { isDevOnlyRoute, isVercelProdOrPreview } from '@/lib/dev-only-routes'
+import { isDevOnlyRoute, isE2ETestModeEnabled, isVercelProdOrPreview } from '@/lib/dev-only-routes'
 import { updateSupabaseSession } from '@/lib/supabase/middleware'
 
 // Define protected routes that require authentication.
@@ -23,22 +23,13 @@ function isProtectedRoute(pathname: string): boolean {
 
 /**
  * Check if E2E test mode is enabled and has valid auth cookie.
- * Only bypasses auth when PLAYWRIGHT=1 AND the E2E cookie is present.
+ * Only bypasses auth in local/CI test mode when the E2E cookie is present.
  *
  * SECURITY: Explicitly blocked in Vercel production AND preview to match
- * the auth helper in lib/auth.ts - defense-in-depth.
+ * the shared auth helper policy - defense-in-depth.
  */
 function hasE2EAuthBypass(req: NextRequest): boolean {
-  const isE2ETest = process.env.PLAYWRIGHT === "1"
-  if (!isE2ETest && (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview")) {
-    return false
-  }
-
-  if (process.env.PLAYWRIGHT !== "1" && process.env.NODE_ENV !== "test") {
-    return false
-  }
-
-  return req.cookies.has("__e2e_auth_user_id")
+  return isE2ETestModeEnabled() && req.cookies.has("__e2e_auth_user_id")
 }
 
 export default async function middleware(req: NextRequest) {
@@ -54,8 +45,7 @@ export default async function middleware(req: NextRequest) {
   // Block dev routes in production and preview.
   // Use 410 Gone (not 404) so Google permanently drops these from its crawl queue.
   // A 404 means "might come back" — Google retries. A 410 means "stop wasting crawl budget."
-  const isE2ETest = process.env.PLAYWRIGHT === "1"
-  if (isDevOnlyRoute(pathname) && isVercelProdOrPreview() && !isE2ETest) {
+  if (isDevOnlyRoute(pathname) && isVercelProdOrPreview()) {
     return NextResponse.json({ error: "Gone" }, { status: 410 })
   }
 

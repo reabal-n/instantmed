@@ -14,11 +14,13 @@ export function isVercelProdOrPreview(): boolean {
 }
 
 export function canAccessDevOnlyRoute(): boolean {
+  if (isVercelProdOrPreview()) return false
   if (process.env.PLAYWRIGHT === "1") return true
-  return process.env.NODE_ENV === "development" && !isVercelProdOrPreview()
+  return process.env.NODE_ENV === "development"
 }
 
 export function isE2ETestModeEnabled(): boolean {
+  if (isVercelProdOrPreview()) return false
   return process.env.NODE_ENV === "test" || process.env.PLAYWRIGHT === "1"
 }
 
