@@ -137,7 +137,6 @@ const PUBLIC_CREDENTIAL_CLAIM_SURFACES = [
   "app/for/employers/page.tsx",
   "app/for/universities/page.tsx",
   "components/marketing/sections",
-  "components/marketing/trust-badge-slider.tsx",
   "components/shared/regulator-logo-marquee.tsx",
   "components/seo/schemas/organization.tsx",
   "lib/marketing/trust-badges.ts",

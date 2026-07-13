@@ -37,18 +37,13 @@ Centralized badge definitions with icon, color, tooltip, and styled/plain tiers.
 
 ---
 
-## 3. Stat Presets — `components/marketing/total-patients-counter.tsx`
-
-Service-specific stat configurations for social proof strips.
+## 3. Stats Strip — `components/marketing/total-patients-counter.tsx`
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
-| `StatEntry` | `interface` | `{ icon: LucideIcon, value: number, suffix: string, label: string, color: string, decimals?: number }` |
-| `STAT_PRESETS` | `Record<string, readonly StatEntry[]>` | 3 presets: `med-cert` (approval%, turnaround, refund, same-day delivery), `prescription` (fulfillment%, response time, refund guarantee, days a week), `consult` (review time, approval%, refund guarantee, days a week). All values sourced from `SOCIAL_PROOF`. |
-| `TotalPatientsCounter` | `component` | Variants: `inline`, `card`, `hero`, `badge`. Uses `usePatientCount()` + `NumberFlow`. |
-| `StatsStrip` | `component` | Compact strip showing patients served and refund/operations proof. It must not show public approval-rate or fulfilment-rate claims. |
+| `StatsStrip` | `component` | Compact strip showing AHPRA-registered doctor review and the refund guarantee using verified primitives. It must not show synthetic patient counts, public approval-rate claims, or fulfilment-rate claims. |
 
-**Usage:** Import `STAT_PRESETS['med-cert']` and render with an `AnimatedStat` component or map directly.
+**Usage:** Render `StatsStrip` on an approved marketing surface. Values and labels must continue to come from `SOCIAL_PROOF` and `lib/marketing/voice.ts`.
 
 ---
 

@@ -629,7 +629,7 @@ Single source of truth for service icons across the entire UI. Import from `@/co
 **Color → service mapping** (canonical, matches `services-dropdown.tsx`):
 - `emerald` = Medical Certificates · `cyan` = Repeat Medication · `blue` = ED Assessment · `violet` = Hair Loss
 
-**Used in:** `services-dropdown.tsx`, `mobile-menu-content.tsx`, `user-menu.tsx`, `service-cards.tsx`, `service-picker.tsx`. Do not create local icon containers — always use `ServiceIconTile`.
+**Used in:** `services-dropdown.tsx`, `mobile-menu-content.tsx`, `user-menu.tsx`, and `service-cards.tsx`. Do not create local icon containers — always use `ServiceIconTile`.
 
 ### Service Page Patterns
 
@@ -761,33 +761,32 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/compare/[slug]/` | SEO: comparisons | Service comparison pages |
 | `app/offline/` | Offline fallback | PWA offline page — shown by service worker when network unavailable |
 
-### `components/` — 511 files
+### `components/`
 
-| Directory | Count | Purpose |
-|-----------|-------|---------|
-| `ui/` | 69 | shadcn/Radix primitives (Button, Input, Dialog, etc.) |
-| `uix/` | 12 | Thin shared wrappers and re-exports (UserCard, PageBreadcrumbs, DatePickerField, Pagination, Snippet, etc.) |
-| `shared/` | 40 | Header, Footer, InlineAuthStep, CheckoutButton, LazyOverlays |
-| `operator/` | 17 | OperatorShell, bounded staff pages, split panes, local action palettes |
-| `request/` | 51 | Intake flow: `request-flow.tsx` (orchestrator), `steps/` (per-step components), `store.ts` (Zustand) |
-| `marketing/` | 111 | Landing pages, ServiceFunnelPage, testimonials, exit intent |
-| `blog/` | 12 | Guide article template, TOC, visuals, related reading, share controls |
-| `doctor/` | 43 | IntakeReviewPanel, RepeatPrescriptionChecklist, clinical views |
-| `admin/` | 9 | Admin-specific panels and views |
-| `patient/` | 28 | ReferralCard, CrossSellCard, dashboard components |
-| `effects/` | 2 | Confetti, ShakeAnimation |
-| `providers/` | 7 | PostHogProvider, ThemeProvider, MotionProvider |
-| `heroes/` | 5 | Morning Canvas hero variants (Split, Centered, Stats, FullBleed) |
-| `ui/morning/` | 7 | Morning Canvas primitives (MeshGradientCanvas, WordReveal, PerspectiveTiltCard) |
-| `ui/skeleton.tsx` | — | SkeletonCard, SkeletonForm, SkeletonList, SkeletonDashboard, Spinner |
+| Directory | Purpose |
+|-----------|---------|
+| `ui/` | shadcn/Radix primitives (Button, Input, Dialog, etc.) |
+| `uix/` | Thin shared wrappers and re-exports (UserCard, PageBreadcrumbs, DatePickerField, Pagination, Snippet, etc.) |
+| `shared/` | Header, Footer, InlineAuthStep, LazyOverlays |
+| `operator/` | OperatorShell, bounded staff pages, split panes, local action palettes |
+| `request/` | Intake flow: `request-flow.tsx` (orchestrator), `steps/` (per-step components), `store.ts` (Zustand) |
+| `marketing/` | Landing pages, ServiceFunnelPage, testimonials, exit intent |
+| `blog/` | Guide article template, TOC, visuals, related reading, share controls |
+| `doctor/` | IntakeReviewPanel, RepeatPrescriptionChecklist, clinical views |
+| `admin/` | Admin-specific panels and views |
+| `patient/` | ReferralCard, CrossSellCard, dashboard components |
+| `providers/` | PostHogProvider, ThemeProvider, MotionProvider |
+| `heroes/` | Morning Canvas hero variants (Split, Centered, Stats, FullBleed) |
+| `ui/morning/` | Morning Canvas primitives (MeshGradientCanvas, WordReveal, PerspectiveTiltCard) |
+| `ui/skeleton.tsx` | SkeletonCard, SkeletonForm, SkeletonList, SkeletonDashboard, Spinner |
 
-### `lib/` — 872 files
+### `lib/`
 
 | Directory | Purpose | Key files |
 |-----------|---------|-----------|
 | `lib/auth/` | Auth helpers | `helpers.ts`, `staff-capabilities.ts`, post-auth redirects and guest profile linking |
 | `lib/constants/index.ts` | App constants | PRICING, SYSTEM_AUTO_APPROVE_ID, CONTACT_EMAIL |
-| `lib/env.ts` | Env validation | Zod schemas, `getAppUrl()` |
+| `lib/config/env.ts` | Env validation | Zod schemas, `getAppUrl()` |
 | `lib/format.ts` | Date formatting | All AEST, `formatDateLong()`, `addDays()` |
 | `lib/utils.ts` | Utilities | `cn()` (class merger) |
 | `lib/ai/` | AI integration | `provider.ts` (model profiles), prompts, clinical note generation |

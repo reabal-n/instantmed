@@ -433,7 +433,7 @@ Monitoring: Sentry (errors, CSP), PostHog (behavior), Supabase (DB audit logs).
 | **Sensitive** | `STRIPE_WEBHOOK_SECRET`, `INTERNAL_API_SECRET`, `RESEND_API_KEY` | Server-only |
 | **Public** | `NEXT_PUBLIC_*` (Supabase URL, anon key, Stripe publishable key) | Safe for client |
 
-**Production validation** (`lib/env.ts`, Zod): requires `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `INTERNAL_API_SECRET`, `ENCRYPTION_KEY` (min 32 bytes), all `STRIPE_PRICE_*` IDs.
+**Production validation** (`lib/config/env.ts`, Zod): requires `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `INTERNAL_API_SECRET`, `ENCRYPTION_KEY` (min 32 bytes), all `STRIPE_PRICE_*` IDs.
 
 **Access:** Service role client (`lib/supabase/service-role.ts`) is marked `"server-only"`, uses singleton pattern, never leaks secrets in error messages.
 

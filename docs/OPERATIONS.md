@@ -261,7 +261,7 @@ Operational rules:
 2. Run: `pnpm test lib/__tests__/consult-subtype-pricing.test.ts`
 3. Check mapping in `lib/stripe/price-mapping.ts` -> `getConsultPriceId()`
 
-> **Note:** Consult subtype prices (`STRIPE_PRICE_CONSULT_ED`, `STRIPE_PRICE_CONSULT_HAIR_LOSS`, `STRIPE_PRICE_CONSULT_WOMENS_HEALTH`, `STRIPE_PRICE_CONSULT_WEIGHT_LOSS`) are hard-validated in production by `lib/stripe/price-mapping.ts` — a missing env var causes a thrown error at checkout rather than a silent fallback to the generic consult price. This is intentional: mischarging a customer is worse than a 500. `lib/env.ts` also enforces these four vars at boot under `NODE_ENV=production`, so this is a belt-and-braces check.
+> **Note:** Consult subtype prices (`STRIPE_PRICE_CONSULT_ED`, `STRIPE_PRICE_CONSULT_HAIR_LOSS`, `STRIPE_PRICE_CONSULT_WOMENS_HEALTH`, `STRIPE_PRICE_CONSULT_WEIGHT_LOSS`) are hard-validated in production by `lib/stripe/price-mapping.ts` — a missing env var causes a thrown error at checkout rather than a silent fallback to the generic consult price. This is intentional: mischarging a customer is worse than a 500. `lib/config/env.ts` also enforces these four vars at boot under `NODE_ENV=production`, so this is a belt-and-braces check.
 
 **Client-Side React Error:**
 1. Open browser DevTools Console
@@ -937,7 +937,7 @@ All previously identified gaps have been resolved:
 
 ## Environment Variables
 
-Required env vars validated at startup via Zod in `lib/env.ts`:
+Required env vars validated at startup via Zod in `lib/config/env.ts`:
 
 - **Supabase**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 - **Stripe**: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, active one-off `STRIPE_PRICE_*` IDs, and `STRIPE_PRICE_PRIORITY_FEE`. Repeat Rx subscription acquisition is inactive and has no production price env requirement.
@@ -1159,7 +1159,7 @@ pnpm build
 
 - Fix type errors, lint violations, build failures.
 - Flag new `any` types, `@ts-ignore`, or `as unknown as` casts.
-- Check `lib/env.ts` — any new env vars missing validation?
+- Check `lib/config/env.ts` — any new env vars missing validation?
 
 ### 2. Dead Code & Redundancy
 
