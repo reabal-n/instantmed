@@ -188,13 +188,15 @@ Medication details should be collected inside the secure intake, not in URL para
 
 ## 9. Campaign Structure
 
+Rows labelled future/gated are planning guidance only. They do not authorise campaign creation or paid traffic before the canonical service boundary is explicitly changed.
+
 | Campaign type | Allowed approach |
 |---------------|------------------|
 | Medical certificate search | Service terms, price, speed, no appointment, doctor-reviewed. Avoid unsupported employer/university acceptance claims. |
 | Repeat prescription search | Repeat medication review, eScript if approved, no booked appointment. Avoid drug names in ad/destination. |
 | ED search | ED assessment or men's health assessment. Avoid drug names, performance guarantees, explicit sexualized copy, or "no call needed." |
 | Hair loss search | Hair loss assessment. Avoid drug names and outcome guarantees. |
-| Weight loss search | Weight management assessment. Avoid injection/drug references, guaranteed weight loss, and body-shaming language. |
+| Weight loss search (future/gated) | No campaign may run while weight loss remains gated. If a future launch is explicitly approved, use weight-management assessment framing and avoid injection/drug references, guaranteed weight loss, and body-shaming language. |
 | Women's health search | Narrow condition/service terms. Avoid sensitive targeting and guaranteed outcomes. |
 
 ## 10. Audience Rules

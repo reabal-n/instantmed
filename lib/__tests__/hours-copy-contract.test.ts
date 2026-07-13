@@ -22,7 +22,7 @@ const SCAN_EXTENSIONS = new Set([".ts", ".tsx", ".mdx", ".md"])
 // Review-window claim shapes. Deliberately narrow: scenario copy may still
 // mention clock times ("submit at 5am before school", "clinics close at 6pm"),
 // but a WINDOW claim shaped like our retired operating-hours framing fails.
-const WINDOW_CLAIM = /8\s?am\s*(?:–|-|—|to)\s*10\s?pm|08:00\s*(?:–|-|—)\s*22:00|7\s?am\s*(?:–|-|—|to)\s*10\s?pm|review hours \(|clinical review hours/i
+const WINDOW_CLAIM = /8\s?am\s*(?:–|-|—|to)\s*10\s?pm|08:00\s*(?:–|-|—)\s*22:00|7\s?am\s*(?:–|-|—|to)\s*10\s?pm|first review at \d{1,2}(?::\d{2})?\s?(?:am|pm)|review hours \(|clinical review hours/i
 
 function collectFiles(dir: string): string[] {
   const absolute = join(ROOT, dir)
@@ -45,6 +45,7 @@ function collectFiles(dir: string): string[] {
 // the retired window for 7 days after #252 because this scan only covered
 // ts/tsx/mdx/md (found 2026-07-10, ChatGPT = the #1 acquisition channel).
 const PUBLIC_TEXT_FILES = ["public/llms.txt", "public/llms-full.txt"]
+const POLICY_DOC_FILES = ["docs/BRAND.md"]
 
 describe("24/7 hours copy contract", () => {
   it("keeps retired review-hours window claims out of patient-facing copy", () => {
@@ -72,6 +73,19 @@ describe("24/7 hours copy contract", () => {
     expect(
       offenders,
       `Review-hours window claims found in GEO text files — these feed ChatGPT/answer engines directly: ${offenders.join("; ")}`,
+    ).toEqual([])
+  })
+
+  it("keeps retired review-hours window instructions out of public-copy policy docs", () => {
+    const offenders: string[] = []
+    for (const file of POLICY_DOC_FILES) {
+      const source = readFileSync(join(ROOT, file), "utf8")
+      const match = source.match(WINDOW_CLAIM)
+      if (match) offenders.push(`${file} :: ${match[0]}`)
+    }
+    expect(
+      offenders,
+      `Review-hours window instructions found in public-copy policy docs: ${offenders.join("; ")}`,
     ).toEqual([])
   })
 

@@ -2,6 +2,8 @@
 
 Status: prepared only. Do not submit to MediCompare, Finder, or any other third party without operator confirmation.
 
+InstantMed fact-sheet terminology refreshed 2026-07-13. Third-party surface research remains dated 2026-07-09 and must be rechecked before submission.
+
 Purpose: get InstantMed into the Australian third-party comparison surfaces that answer engines cite for telehealth, online medical certificates, and online doctor comparisons.
 
 ## Source checks
@@ -60,7 +62,7 @@ Do not attach patient examples, certificates, screenshots containing PHI, review
 
 ## Submission-ready fact sheet
 
-Version date: 2026-07-09.
+Version date: 2026-07-13.
 
 ### Short profile copy
 
@@ -74,14 +76,14 @@ InstantMed Pty Ltd, ABN 64 694 559 334. Surry Hills, NSW. LegitScript certified,
 | --- | --- |
 | Provider | InstantMed |
 | Website | `https://instantmed.com.au` |
-| Medical certificate pricing | 1 day: $24.95. 2 days: $29.95. 3 days: $39.95. Optional Express Review: +$9.95. |
+| Medical certificate pricing | 1 day: $24.95. 2 days: $29.95. 3 days: $39.95. Optional Priority review: +$9.95. |
 | Bulk billing | Not advertised as bulk billed. Private fixed-fee service. |
 | Hours | Operates 24/7. |
 | Certificate types | Routine sick leave, carer's leave, and study leave certificates. |
 | Certificate duration | Up to 3 days, issued only if clinically appropriate after doctor review. |
 | Certificate exclusions | Not for high-stakes requests such as court, fitness-to-drive, fitness-to-fly, workers compensation, NDIS, or exam deferral evidence. |
 | Review model | Secure form first. Doctor review before issue. Doctor may contact the patient if clinically needed. |
-| Turnaround wording | No customer-facing review-time guarantee supplied. Optional Express Review is available for +$9.95. |
+| Turnaround wording | No customer-facing review-time guarantee supplied. Optional Priority review is available for +$9.95. |
 | Verification | Free certificate verification at `https://instantmed.com.au/verify`. |
 | Ease of use | Web-based secure form. No app required. |
 | Other active services | Repeat prescriptions, ED assessment, hair loss assessment, women's health for UTI and starting or switching the contraceptive pill. |
@@ -95,7 +97,7 @@ InstantMed Pty Ltd, ABN 64 694 559 334. Surry Hills, NSW. LegitScript certified,
 | --- | --- |
 | Provider | InstantMed |
 | Services available | Medical certificates, repeat prescriptions, ED assessment, hair loss assessment, women's health for UTI and starting or switching the contraceptive pill. |
-| Fees per consult | Medical certificates from $24.95. Repeat prescriptions $29.95. ED, hair loss, and women's health $49.95. Optional Express Review +$9.95. |
+| Fees per consult | Medical certificates from $24.95. Repeat prescriptions $29.95. ED, hair loss, and women's health $49.95. Optional Priority review +$9.95. |
 | Can the appointment be bulk billed? | Not advertised as bulk billed. Private fixed-fee service. |
 | Will it also post prescriptions? | No posted prescriptions. If approved, eScript tokens are delivered digitally for use at any Australian pharmacy. |
 | Are mental health services available? | No dedicated mental-health service currently listed as active. |
@@ -131,7 +133,7 @@ To make fact-checking easier, here is our dated provider fact sheet:
 - Certification: LegitScript Healthcare Merchant Certification, ID 48400566
 - Service model: patients start with a secure clinical form. AHPRA-registered doctors review requests and may contact the patient if clinically needed.
 - Active services: medical certificates, repeat prescriptions, erectile-dysfunction assessment, hair-loss assessment, women's health for UTI and starting or switching the contraceptive pill
-- Medical certificate pricing: 1 day $24.95, 2 days $29.95, 3 days $39.95, optional Express Review +$9.95
+- Medical certificate pricing: 1 day $24.95, 2 days $29.95, 3 days $39.95, optional Priority review +$9.95
 - Repeat prescription price: $29.95
 - ED, hair loss, and women's health price: $49.95
 - Medical certificate scope: routine sick leave, carer's leave, and study leave certificates, up to 3 days, issued only if clinically appropriate after doctor review
@@ -165,7 +167,7 @@ Current factual details:
 - Legal entity: InstantMed Pty Ltd, ABN 64 694 559 334
 - Location: Surry Hills, NSW
 - Certification: LegitScript Healthcare Merchant Certification, ID 48400566
-- Medical certificates: 1 day $24.95, 2 days $29.95, 3 days $39.95, optional Express Review +$9.95
+- Medical certificates: 1 day $24.95, 2 days $29.95, 3 days $39.95, optional Priority review +$9.95
 - Repeat prescriptions: $29.95
 - ED, hair loss, and women's health: $49.95
 - Services: medical certificates, repeat prescriptions, ED assessment, hair loss assessment, women's health for UTI and starting or switching the contraceptive pill

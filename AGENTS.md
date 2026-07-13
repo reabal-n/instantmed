@@ -251,7 +251,7 @@ All prices in `lib/constants/index.ts` (`PRICING`). Stripe IDs mapped in `lib/st
 | Hair loss | $49.95 | `STRIPE_PRICE_CONSULT_HAIR_LOSS` |
 | Women's health (UTI + new/switch pill, live 2026-06-15) | $49.95 | `STRIPE_PRICE_CONSULT_WOMENS_HEALTH` |
 | Weight loss (gated future subtype) | $89.95 reserved | `STRIPE_PRICE_CONSULT_WEIGHT_LOSS` |
-| Priority fee (Express Review) | $9.95 | `STRIPE_PRICE_PRIORITY_FEE` |
+| Priority review fee | $9.95 | `STRIPE_PRICE_PRIORITY_FEE` |
 | Referral letter | $29.95 | — (display only, not yet Stripe-mapped) |
 | Pathology request | $29.95 | — (display only, not yet Stripe-mapped) |
 
@@ -273,7 +273,7 @@ All prices in `lib/constants/index.ts` (`PRICING`). Stripe IDs mapped in `lib/st
 
 **Repeat Rx subscription:** Dormant/future strategy. Patient-facing checkout, nudge cron, email template, env requirement, and display price were retired; the current business model is one-off transactions only. Historical subscription webhook/account support may remain for compatibility. Do not market, default, or expand subscriptions until `docs/BUSINESS_PLAN.md` and `docs/REVENUE_MODEL.md` are explicitly updated.
 
-**Priority fee (Express Review):** $9.95 add-on toggle on checkout. Adds second line item to Stripe session. Sets `is_priority` on intake → doctor queue sorts priority-first.
+**Priority review:** $9.95 add-on toggle on checkout. Adds second line item to Stripe session. Sets `is_priority` on intake → doctor queue sorts priority-first.
 
 **Certificate pipeline:** Doctor approves → PDF generated → Uploaded to private Supabase Storage → Patient emailed dashboard link (not attachment). See docs/ARCHITECTURE.md for 9-step generation flow.
 
