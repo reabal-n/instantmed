@@ -379,4 +379,9 @@ describe("code-clean retirement contracts", () => {
       expect(orphanCheck).toContain(modulePath)
     }
   })
+
+  it("does not redirect legacy image names into a missing people directory", () => {
+    expect(existsSync(join(root, "public/images/people"))).toBe(false)
+    expect(read("next.config.mjs")).not.toContain("/images/people/")
+  })
 })

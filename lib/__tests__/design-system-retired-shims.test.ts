@@ -39,6 +39,20 @@ describe("retired design-system shims", () => {
     }
   })
 
+  it("keeps Tailwind configuration CSS-first", () => {
+    expect(existsSync(join(root, "tailwind.config.js"))).toBe(false)
+
+    const eslintSource = readFileSync(join(root, "eslint.config.mjs"), "utf8")
+    const resetPasswordSource = readFileSync(
+      join(root, "app/auth/reset-password/reset-password-client.tsx"),
+      "utf8",
+    )
+
+    expect(eslintSource).not.toContain('"tailwind.config.js"')
+    expect(resetPasswordSource).not.toContain("shadow-soft")
+    expect(resetPasswordSource).toContain("shadow-primary/[0.06]")
+  })
+
   it("uses canonical segmented radio naming instead of GlassRadioGroup", () => {
     expect(existsSync(join(root, "components/ui/segmented-radio-group.tsx"))).toBe(true)
     expect(existsSync(join(root, "components/ui/glass-radio-group.tsx"))).toBe(false)

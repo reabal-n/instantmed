@@ -138,7 +138,11 @@ export function ResetPasswordClient() {
                 />
               </div>
 
-              <Button type="submit" disabled={isLoading} className="w-full rounded-xl h-12 shadow-soft hover:shadow-soft-md">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="h-12 w-full rounded-xl shadow-md shadow-primary/[0.06] hover:shadow-lg hover:shadow-primary/[0.08]"
+              >
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />

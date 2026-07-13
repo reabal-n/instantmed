@@ -506,20 +506,6 @@ const nextConfig = {
       { source: "/blog/can-you-get-prescription-without-seeing-doctor", destination: "/blog/online-prescription-australia", permanent: true },
       { source: "/blog/telehealth-vs-gp-when-to-use-each", destination: "/blog/telehealth-vs-gp-australia", permanent: true },
       { source: "/admin/studio", destination: "/admin/settings/templates", permanent: true },
-      // Public image path migration — old root paths redirected
-      { source: "/:filename(asian-australian-woman-professional-headshot-smili.jpg)", destination: "/images/people/:filename", permanent: true },
-      { source: "/:filename(asian-woman-professional-headshot-warm-smile.jpg)", destination: "/images/people/:filename", permanent: true },
-      { source: "/:filename(female-doctor-professional-headshot-warm-smile-aus.jpg)", destination: "/images/people/:filename", permanent: true },
-      { source: "/:filename(indian-australian-woman-professional-headshot-smil.jpg)", destination: "/images/people/:filename", permanent: true },
-      { source: "/:filename(middle-aged-australian-man-kind-face-professional-.jpg)", destination: "/images/people/:filename", permanent: true },
-      { source: "/:filename(middle-aged-australian-man-with-glasses-friendly-p.jpg)", destination: "/images/people/:filename", permanent: true },
-      { source: "/:filename(prescription-medication-pharmacy.jpg)", destination: "/images/people/:filename", permanent: true },
-      { source: "/:filename(professional-businesswoman-australian-headshot-con.jpg)", destination: "/images/people/:filename", permanent: true },
-      { source: "/:filename(young-australian-man-creative-professional-headsho.jpg)", destination: "/images/people/:filename", permanent: true },
-      { source: "/:filename(young-australian-man-with-beard-casual-friendly-he.jpg)", destination: "/images/people/:filename", permanent: true },
-      { source: "/:filename(young-australian-woman-red-hair-professional-heads.jpg)", destination: "/images/people/:filename", permanent: true },
-      { source: "/:filename(young-australian-woman-with-blonde-hair-smiling-pr.jpg)", destination: "/images/people/:filename", permanent: true },
-      { source: "/:filename(young-university-student-male-casual-headshot-frie.jpg)", destination: "/images/people/:filename", permanent: true },
     ];
   },
   // PostHog reverse proxy rewrites

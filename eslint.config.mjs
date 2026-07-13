@@ -20,7 +20,6 @@ const eslintConfig = [
       "dist/**",
       "next.config.mjs",
       "postcss.config.mjs",
-      "tailwind.config.js",
       "**/*.d.ts",
       "public/sw.js",
       "playwright-report/**",
