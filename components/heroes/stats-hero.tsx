@@ -47,20 +47,28 @@ export function StatsHero({
         />
         {subtitle && (
           <motion.p
+            key={prefersReducedMotion ? "subtitle-reduced" : "subtitle-motion"}
             className="mt-6 text-lg text-muted-foreground max-w-xl mx-auto"
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.6 }}
+            transition={{
+              duration: prefersReducedMotion ? 0 : 0.3,
+              delay: prefersReducedMotion ? 0 : 0.6,
+            }}
           >
             {subtitle}
           </motion.p>
         )}
         {children && (
           <motion.div
+            key={prefersReducedMotion ? "content-reduced" : "content-motion"}
             className="mt-8"
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.8 }}
+            transition={{
+              duration: prefersReducedMotion ? 0 : 0.3,
+              delay: prefersReducedMotion ? 0 : 0.8,
+            }}
           >
             {children}
           </motion.div>

@@ -315,7 +315,7 @@ body {
   /* Primary - calm teal glow */
   --primary: #5DB8C9;
   --primary-strong: var(--primary);
-  --primary-foreground: #ffffff;
+  --primary-foreground: #0B1120;
   /* Brand accent: resolves to teal in dark mode for headline highlights */
   --brand-accent: var(--primary);
   
@@ -845,20 +845,23 @@ body {
   }
 }
 
-/* Rich text dark mode — scoped to marketing/content pages.
-   Dashboards use Tailwind dark: utilities instead. */
-.dark [data-marketing] {
-  h1, h2, h3, h4, h5, h6 { color: var(--foreground); }
-  p, span, label { color: var(--foreground); }
+@layer base {
+  /* Rich text dark mode — scoped to marketing/content pages.
+     Keep the scope zero-specificity and in the base layer so semantic Tailwind
+     color utilities can win on badges, links, and controls. */
+  :where(.dark [data-marketing]) {
+    h1, h2, h3, h4, h5, h6 { color: var(--foreground); }
+    p, span, label { color: var(--foreground); }
 
-  table { color: var(--foreground); }
-  th { color: var(--foreground); background: var(--secondary); }
-  td { color: var(--foreground); border-color: var(--border); }
+    table { color: var(--foreground); }
+    th { color: var(--foreground); background: var(--secondary); }
+    td { color: var(--foreground); border-color: var(--border); }
 
-  pre, code { background: var(--secondary); color: var(--foreground); }
-  blockquote { border-left-color: var(--primary); background: var(--secondary); color: var(--foreground); }
-  ul, ol { color: var(--foreground); }
-  li::marker { color: var(--muted-foreground); }
+    pre, code { background: var(--secondary); color: var(--foreground); }
+    blockquote { border-left-color: var(--primary); background: var(--secondary); color: var(--foreground); }
+    ul, ol { color: var(--foreground); }
+    li::marker { color: var(--muted-foreground); }
+  }
 }
 
 /* ================================
@@ -2729,9 +2732,32 @@ body {
   }
 }
 
+/* Marketing copy includes addresses, medicine names, and hyphenated clinical
+   terms. Let those tokens break before they become the page's min-content
+   width when a patient uses enlarged default text. */
+:where([data-marketing]) {
+  overflow-wrap: anywhere;
+}
+
+/* Keep conversion controls operable when mobile text is enlarged. The fixed
+   pixel inset deliberately avoids doubling the button chrome with the root
+   font while the label itself remains user-scaled. */
+@media (max-width: 640px) {
+  :where([data-marketing]) a.inline-flex.items-center.justify-center {
+    max-width: 100%;
+    height: auto;
+    min-height: 48px;
+    padding: 12px 16px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+}
+
 /* At 200% zoom a 375px device exposes roughly 188 CSS pixels. Keep the
    progress track inside that viewport while retaining its 48px height. */
 @media (max-width: 240px) {
+
   [data-patient-flow="true"] button[data-request-progress-step="true"] {
     min-width: 0;
   }
@@ -3408,8 +3434,10 @@ button:not(.no-micro):active:not(:disabled),
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
     scroll-behavior: auto !important;
   }
 }

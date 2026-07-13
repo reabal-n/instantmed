@@ -7,6 +7,9 @@
 ### Added
 - `--primary-strong` / `text-primary-strong` for AA-safe small primary text on primary tints. Light mode uses `#1D4ED8`; dark mode maps to the existing primary. This is additive and does not require a version bump.
 
+### Changed
+- Set the dark `--primary-foreground` to `#0B1120` so text and icons on the unchanged teal primary clear AA contrast. Raised low-contrast medical-certificate mockup metadata and its decorative "Specimen" watermark to legible dark-mode treatments. No design-system version bump is required.
+
 ## [2.0.2] — 2026-05-01
 
 ### Removed

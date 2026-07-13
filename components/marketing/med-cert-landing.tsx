@@ -389,7 +389,7 @@ function MedCertHero() {
             </div>
           </div>
 
-          <div className="relative mt-12 shrink-0 self-center lg:mt-0">
+          <div className="relative mt-12 shrink-0 self-center max-[240px]:hidden lg:mt-0">
             <MedCertHeroMockup />
           </div>
         </div>

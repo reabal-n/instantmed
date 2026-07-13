@@ -24,7 +24,7 @@ interface MedCertHeroMockupProps {
  */
 export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
   return (
-    <div className={cn("relative", compact ? "w-full" : "w-[22rem] xl:w-[24rem]")}>
+    <div className={cn("relative", compact ? "w-full" : "w-[352px] xl:w-[384px]")}>
       {/* Paper card */}
       <div
         className={cn(
@@ -58,8 +58,8 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
               </div>
             </div>
             <div className="text-right leading-tight">
-              <p className="text-[9px] text-muted-foreground/70 dark:text-white/40">Level 1, 457 Elizabeth St</p>
-              <p className="text-[9px] text-muted-foreground/70 dark:text-white/40">Surry Hills NSW 2010</p>
+              <p className="text-[9px] text-muted-foreground/70 dark:text-white/60">Level 1, 457 Elizabeth St</p>
+              <p className="text-[9px] text-muted-foreground/70 dark:text-white/60">Surry Hills NSW 2010</p>
             </div>
           </div>
         </div>
@@ -76,7 +76,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
 
           {/* Date row */}
           <div className="flex items-baseline justify-between text-[10px]">
-            <span className="text-muted-foreground/70 dark:text-white/45 uppercase tracking-wider font-semibold">Date issued</span>
+            <span className="text-muted-foreground/70 dark:text-white/60 uppercase tracking-wider font-semibold">Date issued</span>
             <span className="font-medium text-foreground dark:text-white/90">27 April 2026</span>
           </div>
 
@@ -99,14 +99,14 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
 
           {/* Period of incapacity */}
           <div className="bg-[#f4eedf]/60 dark:bg-white/[0.04] rounded-md px-3 py-2.5 flex items-center justify-between">
-            <span className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground/70 dark:text-white/45">Absent</span>
+            <span className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground/70 dark:text-white/60">Absent</span>
             <span className="text-[11px] font-medium text-foreground dark:text-white/90">Friday, 27 April 2026 (1 day)</span>
           </div>
 
           {/* Issuer + AHPRA seal */}
           <div className="flex items-end justify-between gap-3 pt-1">
             <div className="space-y-0.5">
-              <p className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground/70 dark:text-white/45">Issued by</p>
+              <p className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground/70 dark:text-white/60">Issued by</p>
               {/* Signature line - stylised mark to suggest handwriting without naming a doctor */}
               <svg
                 width="80"
@@ -127,7 +127,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
               <p className="text-[10px] text-foreground/80 dark:text-white/70 font-medium">
                 AHPRA-registered doctor
               </p>
-              <p className="text-[9px] text-muted-foreground/70 dark:text-white/40 font-mono tracking-wide">
+              <p className="text-[9px] text-muted-foreground/70 dark:text-white/60 font-mono tracking-wide">
                 Registration on file
               </p>
             </div>
@@ -153,13 +153,13 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
             <CheckCircle2 className="w-3 h-3 text-success" aria-hidden="true" />
             <span className="text-[9px] text-muted-foreground dark:text-white/70">Fair Work Act s 107</span>
           </div>
-          <span className="text-[9px] text-muted-foreground/70 dark:text-white/40 font-mono">REF IM-2026-{compact ? "4823" : "48231"}</span>
+          <span className="text-[9px] text-muted-foreground/70 dark:text-white/60 font-mono">REF IM-2026-{compact ? "4823" : "48231"}</span>
         </div>
 
         {/* SPECIMEN watermark - corner ribbon, very subtle */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute top-3 right-3 text-[7px] font-semibold uppercase tracking-[0.24em] text-muted-foreground/35 dark:text-white/30 rotate-[8deg] select-none"
+          className="pointer-events-none absolute top-3 right-3 text-[7px] font-semibold uppercase tracking-[0.24em] text-muted-foreground/35 dark:text-white/60 rotate-[8deg] select-none"
         >
           Specimen
         </div>

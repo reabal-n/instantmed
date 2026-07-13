@@ -361,7 +361,7 @@ export default async function ConsultOverviewPage() {
                 className="flex min-w-0 flex-col rounded-2xl border border-border/50 bg-white p-4 min-[241px]:p-6 shadow-md shadow-primary/[0.06] transition-shadow duration-200 hover:shadow-lg dark:bg-card sm:p-8"
               >
                 {/* Header: icon + name + price */}
-                <header className="flex flex-col items-start gap-3 min-[241px]:flex-row min-[241px]:gap-4">
+                <header className="flex flex-col items-start gap-3 sm:flex-row sm:gap-4">
                   <span
                     className={cn(
                       "grid h-12 w-12 shrink-0 place-items-center rounded-2xl",
@@ -465,10 +465,10 @@ export default async function ConsultOverviewPage() {
                   {service.guideHref && service.guideLabel ? (
                     <Link
                       href={service.guideHref}
-                      className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                      className="mt-3 inline-flex max-w-full min-w-0 items-start gap-1 whitespace-normal text-sm font-medium text-primary transition-colors hover:text-primary/80"
                     >
-                      {service.guideLabel}
-                      <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span className="min-w-0 [overflow-wrap:anywhere]">{service.guideLabel}</span>
+                      <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     </Link>
                   ) : null}
                 </div>

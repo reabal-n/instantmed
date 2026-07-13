@@ -1,0 +1,100 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
+import { describe, expect, it } from "vitest"
+
+const root = process.cwd()
+
+function read(relativePath: string): string {
+  return readFileSync(join(root, relativePath), "utf8")
+}
+
+describe("marketing reduced-motion contract", () => {
+  it("keeps hydration stable and resolves the browser preference before paint", () => {
+    const motion = read("components/ui/motion.tsx")
+
+    expect(motion).toContain('const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)"')
+    expect(motion).toContain("function getReducedMotionSnapshot()")
+    expect(motion).toContain("function getServerReducedMotionSnapshot()")
+    expect(motion).toContain("return React.useSyncExternalStore(")
+    expect(motion).not.toContain("React.useState(getInitialReducedMotion)")
+  })
+
+  it("removes global animation and transition delays", () => {
+    const globals = read("app/globals.css")
+    const globalReducedMotion = globals.slice(globals.indexOf("GLOBAL REDUCED MOTION"))
+
+    expect(globalReducedMotion).toContain("animation-duration: 0.01ms !important;")
+    expect(globalReducedMotion).toContain("animation-delay: 0ms !important;")
+    expect(globalReducedMotion).toContain("transition-duration: 0.01ms !important;")
+    expect(globalReducedMotion).toContain("transition-delay: 0ms !important;")
+  })
+
+  it("settles the hero doctor card and floats immediately", () => {
+    const hero = read("components/marketing/hero-doctor-review-mockup.tsx")
+
+    expect(hero).toContain("initial={animate ? { y: 16 } : {}}")
+    expect(hero).toContain("initial={animate ? { opacity: 0, scale: 0.92, y: 4 } : {}}")
+    expect(hero).not.toContain(": false}")
+    expect(hero.match(/duration: prefersReducedMotion \? 0 : /g)).toHaveLength(2)
+    expect(hero.match(/delay: prefersReducedMotion \? 0 : /g)).toHaveLength(2)
+  })
+
+  it("settles stats hero and strip entrances immediately", () => {
+    const hero = read("components/heroes/stats-hero.tsx")
+    const strip = read("components/sections/stat-strip.tsx")
+
+    expect(hero.match(/duration: prefersReducedMotion \? 0 : 0\.3/g)).toHaveLength(2)
+    expect(hero).toContain("delay: prefersReducedMotion ? 0 : 0.6")
+    expect(hero).toContain("delay: prefersReducedMotion ? 0 : 0.8")
+    expect(hero).toContain(
+      'key={prefersReducedMotion ? "subtitle-reduced" : "subtitle-motion"}',
+    )
+    expect(hero).toContain(
+      'key={prefersReducedMotion ? "content-reduced" : "content-motion"}',
+    )
+    expect(strip).toContain("duration: prefersReducedMotion ? 0 : 0.3")
+    expect(strip).toContain("delay: prefersReducedMotion ? 0 : i * 0.1")
+  })
+
+  it("uses a static mobile-menu branch without changing normal timings", () => {
+    const menu = read("components/ui/animated-mobile-menu.tsx")
+    const navbar = read("components/shared/navbar.tsx")
+
+    expect(navbar).toContain('mobileMenuOpen && "max-md:z-[60]"')
+    expect(menu).toContain('data-mobile-menu-motion="static"')
+    expect(menu).toContain('data-mobile-menu-motion="animated"')
+    expect(menu).toContain('data-mobile-menu-panel="true"')
+    expect(menu).toContain('data-mobile-menu-content="true"')
+    expect(menu).not.toContain("initial={prefersReducedMotion ? false")
+    expect(menu).toContain(
+      "whileHover={item.disabled || prefersReducedMotion ? undefined : { y: -2, x: 8 }}",
+    )
+    expect(menu).toContain(
+      "whileTap={item.disabled || prefersReducedMotion ? undefined : { scale: 0.98 }}",
+    )
+    expect(menu).toContain("duration: 0.35")
+    expect(menu).toContain("delay: 0.1")
+    expect(menu).toContain("staggerChildren: 0.06")
+  })
+
+  it("moves the pricing sticky CTA by its own height and settles reduced motion", () => {
+    const sticky = read("app/pricing/pricing-sticky-cta.tsx")
+
+    expect(sticky).toContain(
+      'initial={prefersReducedMotion ? {} : { y: "100%", opacity: 0 }}',
+    )
+    expect(sticky).toContain("animate={{ y: 0, opacity: 1 }}")
+    expect(sticky).toContain(
+      'exit={prefersReducedMotion ? {} : { y: "100%", opacity: 0 }}',
+    )
+    expect(sticky).toContain("duration: prefersReducedMotion ? 0 : 0.3")
+  })
+
+  it("does not create a mount animation for the shared mobile purchase bar", () => {
+    const sticky = read("components/marketing/shared/sticky-cta.tsx")
+
+    expect(sticky).toContain("initial={false}")
+    expect(sticky).toContain("duration: prefersReducedMotion ? 0 : 0.3")
+  })
+})

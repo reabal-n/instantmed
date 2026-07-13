@@ -93,8 +93,8 @@ export function StatStrip({ stats, className, id }: StatStripProps) {
                   : undefined
             }
             transition={{
-              duration: 0.3,
-              delay: i * 0.1,
+              duration: prefersReducedMotion ? 0 : 0.3,
+              delay: prefersReducedMotion ? 0 : i * 0.1,
               ease: "easeOut",
             }}
           >

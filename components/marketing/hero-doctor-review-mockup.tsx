@@ -158,8 +158,12 @@ export function HeroDoctorReviewMockup() {
       <motion.div
         className="relative rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-xl shadow-primary/[0.08] dark:shadow-none overflow-hidden"
         initial={animate ? { y: 16 } : {}}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.3, delay: 0.1, ease: [0, 0, 0.2, 1] }}
+        animate={animate ? { y: 0 } : {}}
+        transition={{
+          duration: prefersReducedMotion ? 0 : 0.3,
+          delay: prefersReducedMotion ? 0 : 0.1,
+          ease: [0, 0, 0.2, 1],
+        }}
       >
         {/* Header */}
         <div className="px-5 pt-5 pb-4 flex items-center gap-3 border-b border-border/40">
@@ -253,11 +257,11 @@ export function HeroDoctorReviewMockup() {
               "border border-border/50 dark:border-white/15 dark:bg-card dark:shadow-none",
               FLOATING_POSITIONS[card.position],
             )}
-            initial={animate ? { opacity: 0, scale: 0.92, y: 4 } : false}
-            animate={animate ? { opacity: 1, scale: 1, y: 0 } : { opacity: 1 }}
+            initial={animate ? { opacity: 0, scale: 0.92, y: 4 } : {}}
+            animate={animate ? { opacity: 1, scale: 1, y: 0 } : {}}
             transition={{
-              duration: 0.32,
-              delay: 0.45 + i * 0.12,
+              duration: prefersReducedMotion ? 0 : 0.32,
+              delay: prefersReducedMotion ? 0 : 0.45 + i * 0.12,
               ease: [0.16, 1, 0.3, 1],
             }}
           >

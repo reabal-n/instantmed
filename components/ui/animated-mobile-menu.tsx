@@ -196,6 +196,7 @@ interface MenuItemProps {
 
 const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
   const { theme } = useTheme()
+  const prefersReducedMotion = useReducedMotion()
   const colorIndex = index % menuColors.length
   const accentColor = theme === "dark" ? menuColors[colorIndex].dark : menuColors[colorIndex].light
 
@@ -240,8 +241,8 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
   return (
     <motion.li
       variants={itemVariants}
-      whileHover={item.disabled ? undefined : { y: -2, x: 8 }}
-      whileTap={item.disabled ? undefined : { scale: 0.98 }}
+      whileHover={item.disabled || prefersReducedMotion ? undefined : { y: -2, x: 8 }}
+      whileTap={item.disabled || prefersReducedMotion ? undefined : { scale: 0.98 }}
       className="list-none"
     >
       {item.disabled ? (
@@ -343,8 +344,47 @@ export function AnimatedMobileMenu({
     }
   }, [isOpen])
 
+  if (prefersReducedMotion) {
+    return (
+      <nav data-mobile-menu-motion="static" className="md:hidden">
+        {isOpen ? (
+          <>
+            <div
+              onClick={onClose}
+              className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm dark:bg-black/40"
+            />
+            <div
+              data-mobile-menu-panel="true"
+              aria-hidden="true"
+              className={cn(
+                "fixed top-0 right-0 bottom-0 z-40 w-[300px]",
+                "bg-card/85 dark:bg-white/10",
+                "backdrop-blur-2xl",
+                "border-l border-border/50 dark:border-white/15",
+                "shadow-[-20px_0_60px_rgb(59,130,246,0.12)] dark:shadow-[-20px_0_60px_rgb(93,184,201,0.15)]",
+              )}
+            />
+            <div
+              data-mobile-menu-content="true"
+              className="fixed top-0 right-0 bottom-0 z-50 flex w-[300px] flex-col"
+            >
+              {header ? (
+                <div className="border-b border-border/30 p-5">{header}</div>
+              ) : null}
+              <ul className="flex-1 overflow-y-auto px-2 py-4">{children}</ul>
+              {footer ? (
+                <div className="border-t border-border/30 p-4">{footer}</div>
+              ) : null}
+            </div>
+          </>
+        ) : null}
+      </nav>
+    )
+  }
+
   return (
     <motion.nav
+      data-mobile-menu-motion="animated"
       initial={{}}
       animate={isOpen ? "open" : "closed"}
       custom={height}
@@ -367,6 +407,7 @@ export function AnimatedMobileMenu({
 
       {/* Animated background panel - Glass with glow */}
       <motion.div
+        data-mobile-menu-panel="true"
         variants={sidebarVariants}
         className={cn(
           "fixed top-0 right-0 bottom-0 z-40 w-[300px]",
@@ -384,10 +425,11 @@ export function AnimatedMobileMenu({
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            data-mobile-menu-content="true"
             variants={menuContentVariants}
-            initial={prefersReducedMotion ? false : "closed"}
+            initial="closed"
             animate="open"
-            exit={prefersReducedMotion ? undefined : "closed"}
+            exit="closed"
             className="fixed top-0 right-0 bottom-0 z-50 w-[300px] flex flex-col"
           >
             {/* Header */}

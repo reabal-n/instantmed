@@ -52,6 +52,48 @@ describe("marketing and request reflow contract", () => {
     )
   })
 
+  it("provides a shared emergency-width reflow floor", () => {
+    const globals = read("app/globals.css")
+    const button = read("components/ui/button.tsx")
+    const footer = read("components/shared/footer.tsx")
+
+    expect(globals).toContain(':where([data-marketing]) {\n  overflow-wrap: anywhere;')
+    expect(globals.indexOf(':where([data-marketing]) {\n  overflow-wrap: anywhere;')).toBeLessThan(
+      globals.indexOf('@media (max-width: 240px)'),
+    )
+    expect(globals).toContain(
+      ':where([data-marketing]) a.inline-flex.items-center.justify-center',
+    )
+    expect(globals).toContain('max-width: 100%;\n    height: auto;')
+    expect(globals).toContain('white-space: normal;\n    overflow-wrap: anywhere;')
+    expect(button).toContain("max-[240px]:h-auto max-[240px]:min-h-11")
+    expect(button).toContain("max-[240px]:whitespace-normal max-[240px]:px-3")
+    expect(footer).toContain("grid-cols-1 min-[241px]:grid-cols-2")
+    expect(footer).toContain("min-w-0 flex-wrap")
+    expect(footer).not.toContain('<p className="whitespace-nowrap">')
+  })
+
+  it("stacks dense comparisons and keeps homepage service cards shrinkable", () => {
+    const timeComparison = read("components/marketing/sections/time-comparison-viz.tsx")
+    const comparisonTable = read("components/sections/comparison-table.tsx")
+    const serviceCards = read("components/marketing/service-cards.tsx")
+
+    expect(timeComparison).toContain(
+      "flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between",
+    )
+    expect(timeComparison).toContain("text-left sm:text-right")
+    expect(comparisonTable.match(/grid-cols-3 sm:grid-cols-\[1fr_120px_120px\]/g)).toHaveLength(2)
+    expect(comparisonTable.match(/px-2 min-\[241px\]:px-6/g)).toHaveLength(2)
+    expect(serviceCards).toContain("'group block h-full min-w-0 max-w-full'")
+    expect(serviceCards).toContain('<Reveal key={service.id} delay={i * 0.05} className="min-w-0">')
+  })
+
+  it("moves each compact commercial link as one reflowable unit", () => {
+    const links = read("components/marketing/sections/commercial-intent-links-section.tsx")
+
+    expect(links).toContain('<span key={link.href} className="inline-block">')
+  })
+
   it("gives request services valid H2 structure and emergency-width reflow", () => {
     const serviceHub = read("components/request/service-hub-screen.tsx")
     const compactRow = serviceHub.slice(serviceHub.indexOf("function CompactServiceRow"))
@@ -81,14 +123,37 @@ describe("marketing and request reflow contract", () => {
     expect(consult).toContain("grid min-w-0 grid-cols-1 gap-6 md:grid-cols-2")
     expect(consult).toContain("grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2")
     expect(consult).toMatch(/className="[^"\n]*min-w-0[^"\n]*p-4[^"\n]*min-\[241px\]:p-6[^"\n]*sm:p-8/)
-    expect(consult).toContain("flex-col items-start gap-3 min-[241px]:flex-row")
+    expect(consult).toContain(
+      'className="flex flex-col items-start gap-3 sm:flex-row sm:gap-4"',
+    )
     expect(consult).toContain("whitespace-normal h-auto min-h-12 py-3 text-center")
+    expect(consult).toContain(
+      "inline-flex max-w-full min-w-0 items-start gap-1 whitespace-normal",
+    )
+    expect(consult).toContain(
+      '<span className="min-w-0 [overflow-wrap:anywhere]">{service.guideLabel}</span>',
+    )
+    expect(consult).toContain('className="mt-0.5 h-3.5 w-3.5 shrink-0"')
+  })
+
+  it("keeps fixed-size hero specimens stable under enlarged root text", () => {
+    const medCertLanding = read("components/marketing/med-cert-landing.tsx")
+    const medCertMockup = read("components/marketing/mockups/med-cert-hero-mockup.tsx")
+    const hairLossMockup = read("components/marketing/mockups/hair-loss-hero-mockup.tsx")
+
+    expect(medCertLanding).toContain(
+      'className="relative mt-12 shrink-0 self-center max-[240px]:hidden lg:mt-0"',
+    )
+    expect(medCertMockup).toContain('"w-[352px] xl:w-[384px]"')
+    expect(medCertMockup).not.toContain('"w-[22rem] xl:w-[24rem]"')
+    expect(hairLossMockup).toContain('"w-[288px] xl:w-[320px]"')
+    expect(hairLossMockup).not.toContain('"w-72 xl:w-80"')
   })
 
   it("keeps the shared sticky call to action off-canvas when hidden", () => {
     const sticky = read("components/marketing/shared/sticky-cta.tsx")
 
-    expect(sticky).toContain('initial={{ y: "100%", opacity: 0 }}')
+    expect(sticky).toContain("initial={false}")
     expect(sticky).toContain('animate={{ y: show ? 0 : "100%", opacity: show ? 1 : 0 }}')
     expect(sticky).toContain("duration: prefersReducedMotion ? 0 : 0.3")
     expect(sticky).toContain("inert={!show ? true : undefined}")

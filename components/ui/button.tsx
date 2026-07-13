@@ -14,7 +14,7 @@ const buttonVariants = cva(
     "rounded-md",
     "select-none",
     "origin-center",
-    "whitespace-nowrap",
+    "whitespace-nowrap max-[240px]:h-auto max-[240px]:min-h-11 max-[240px]:whitespace-normal max-[240px]:px-3 max-[240px]:py-2 max-[240px]:text-center",
     "transition-[transform,box-shadow,background-color,border-color,color,opacity] duration-200",
     "active:scale-[0.97]",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dawn-300 dark:focus-visible:ring-dawn-500/40 focus-visible:ring-offset-2",

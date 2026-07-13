@@ -37,6 +37,22 @@ describe("marketing theme and serious-contrast contract", () => {
     expect(sharedTheme).toContain("--color-primary-strong: var(--primary-strong);")
   })
 
+  it("uses the night-sky foreground on dark primary surfaces", () => {
+    const globals = read("app/globals.css")
+    const sharedTheme = read("app/tailwind-shared.css")
+    const design = read("DESIGN.md")
+    const changelog = read("docs/DESIGN_SYSTEM_CHANGELOG.md")
+    const darkTheme = requireMatch(globals, /\.dark\s*\{([\s\S]*?)\n\}/, "dark theme")
+
+    expect(darkTheme).toContain("--primary: #5DB8C9;")
+    expect(darkTheme).toContain("--primary-foreground: #0B1120;")
+    expect(sharedTheme).toContain("--color-primary-foreground: var(--primary-foreground);")
+    expect(globals).toContain("@layer base {\n  /* Rich text dark mode")
+    expect(globals).toContain("  :where(.dark [data-marketing]) {")
+    expect(design).toContain("Dark primary foreground: `#0B1120`")
+    expect(changelog).toContain("dark `--primary-foreground` to `#0B1120`")
+  })
+
   it("pins primary-strong to the canonical design docs and unreleased changelog", () => {
     const design = read("DESIGN.md")
     const changelog = read("docs/DESIGN_SYSTEM_CHANGELOG.md")
@@ -97,5 +113,23 @@ describe("marketing theme and serious-contrast contract", () => {
 
     expect(deliveryOpening).not.toContain("hero-fade-up")
     expect(deliveryOpening).not.toContain("opacity")
+  })
+
+  it("keeps the decorative med-cert specimen legible in dark mode", () => {
+    const medCertMockup = read("components/marketing/mockups/med-cert-hero-mockup.tsx")
+
+    expect(medCertMockup).toMatch(
+      /aria-hidden="true"[\s\S]*?Specimen/,
+    )
+    expect(medCertMockup).toContain("dark:text-white/60")
+    expect(medCertMockup).not.toMatch(/dark:text-white\/(?:40|45)/)
+  })
+
+  it("uses a dark-safe Stripe brand treatment on checkout trust badges", () => {
+    const trustBadges = read("components/checkout/trust-badges.tsx")
+
+    expect(
+      trustBadges.match(/text-\[#4F46E5\] dark:text-\[#A5B4FC\]/g),
+    ).toHaveLength(2)
   })
 })

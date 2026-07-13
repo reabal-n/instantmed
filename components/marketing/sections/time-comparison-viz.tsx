@@ -92,7 +92,7 @@ export function TimeComparisonViz({
 
         <div ref={ref} className="space-y-5">
           {/* Labels + times */}
-          <div className="flex items-end justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-[11px] font-semibold text-primary uppercase tracking-wider mb-1.5">
                 {ours.label}
@@ -103,7 +103,7 @@ export function TimeComparisonViz({
                 <span className="text-xl font-normal text-muted-foreground ml-1">{ours.unit}</span>
               </p>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
                 {theirs.label}
               </p>

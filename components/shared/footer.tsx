@@ -22,17 +22,17 @@ export function Footer({ variant = "marketing" }: FooterProps) {
   return (
     <footer className="mt-6 mb-4 px-4 max-w-5xl mx-auto" role="contentinfo">
       {/* Main card */}
-      <div className="bg-white dark:bg-card rounded-3xl px-5 sm:px-8 py-7 sm:py-9 border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+      <div className="min-w-0 bg-white dark:bg-card rounded-3xl px-5 sm:px-8 py-7 sm:py-9 border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none">
         <div className="flex flex-col md:flex-row gap-6 md:gap-10">
           {/* Brand + Contact */}
-          <div className="md:w-[200px] shrink-0">
+          <div className="min-w-0 md:w-[200px] shrink-0">
             <BrandLogo size="md" />
             <p className="text-muted-foreground text-sm mt-3 leading-snug">
               See a doctor from bed. Requests open 24/7.
             </p>
             {isMarketing && (
               <div className="mt-3 flex flex-col gap-1 text-xs text-muted-foreground">
-                <a href={`mailto:${CONTACT_EMAIL}`} className="flex min-h-6 items-center gap-1.5 py-1 hover:text-foreground transition-colors">
+                <a href={`mailto:${CONTACT_EMAIL}`} className="flex min-h-6 min-w-0 flex-wrap items-center gap-1.5 py-1 [overflow-wrap:anywhere] hover:text-foreground transition-colors">
                   <Mail className="w-3 h-3 shrink-0" />
                   {CONTACT_EMAIL}
                 </a>
@@ -62,7 +62,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
           </div>
 
           {/* Link columns */}
-          <div className={`flex-1 grid grid-cols-2 gap-x-4 gap-y-5 md:gap-x-8 ${isMarketing ? "md:grid-cols-3" : ""}`}>
+          <div className={`min-w-0 flex-1 grid grid-cols-1 min-[241px]:grid-cols-2 gap-x-4 gap-y-5 md:gap-x-8 ${isMarketing ? "md:grid-cols-3" : ""}`}>
             <nav aria-label="Services">
               <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground font-semibold tracking-wider mb-2">Services</p>
               <div className="flex flex-col gap-1.5">
@@ -129,9 +129,9 @@ export function Footer({ variant = "marketing" }: FooterProps) {
       )}
 
       {/* Bottom bar */}
-      <div className="px-1 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 text-[10px] text-muted-foreground">
-        <div className="flex flex-wrap gap-x-3 gap-y-1 items-center">
-          <p className="whitespace-nowrap">
+      <div className="min-w-0 px-1 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 text-[10px] text-muted-foreground">
+        <div className="min-w-0 flex flex-wrap gap-x-3 gap-y-1 items-center">
+          <p>
             &copy; {currentYear} {COMPANY_NAME}. All rights reserved.
           </p>
           <div className="flex flex-row flex-wrap gap-x-2.5 gap-y-1">
@@ -143,7 +143,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
           </div>
         </div>
         <p className="text-pretty italic">An apple a day keeps the doctor away. We&apos;re here for when that fails.</p>
-        <p className="whitespace-nowrap">ABN: {ABN}</p>
+        <p>ABN: {ABN}</p>
       </div>
     </footer>
   )

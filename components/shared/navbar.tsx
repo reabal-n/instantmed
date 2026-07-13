@@ -51,7 +51,10 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   return (
     <>
       <header
-        className={cn("fixed left-0 right-0 z-50 px-4 sm:px-6 top-0")}
+        className={cn(
+          "fixed left-0 right-0 z-50 px-4 sm:px-6 top-0",
+          mobileMenuOpen && "max-md:z-[60]",
+        )}
         style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}
         data-first-interaction-ignore="true"
       >
