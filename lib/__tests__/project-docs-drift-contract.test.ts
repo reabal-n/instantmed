@@ -49,6 +49,14 @@ const aiOnboarding = readProjectFile("docs/AI_ONBOARDING.md")
 const design = readProjectFile("DESIGN.md")
 const product = readProjectFile("PRODUCT.md")
 const testing = readProjectFile("docs/TESTING.md")
+const brand = readProjectFile("docs/BRAND.md")
+const advertisingCompliance = readProjectFile("docs/ADVERTISING_COMPLIANCE.md")
+const seoContentPolicy = readProjectFile("docs/SEO_CONTENT_POLICY.md")
+const voice = readProjectFile("docs/VOICE.md")
+const citationKit = readProjectFile("docs/audits/2026-06-04-citation-kit.md")
+const comparisonSubmissionKit = readProjectFile(
+  "docs/audits/2026-07-09-comparison-surface-submission-kit.md",
+)
 const requestReadme = readProjectFile("components/request/README.md")
 const ciWorkflow = readProjectFile(".github/workflows/ci.yml")
 const e2eSeed = readProjectFile("scripts/e2e/seed.ts")
@@ -76,6 +84,8 @@ describe("project docs drift contract", () => {
       // Women's health launched 2026-06-15 (UTI + new/switch pill); weight loss stays gated.
       expect(source).toContain("Women's health (UTI + new/switch pill, live 2026-06-15)")
       expect(source).toContain("Weight loss (gated future subtype)")
+      expect(source).toContain("Priority review fee")
+      expect(source).not.toContain("Priority fee (Express Review)")
       // Phase 1 of dashboard remaster (2026-05-11) renamed the "Staff cockpit"
       // workflow heading to "Staff dashboard" and introduced `/dashboard` as the
       // canonical staff URL. The unified-shell rule still holds.
@@ -87,6 +97,36 @@ describe("project docs drift contract", () => {
       expect(source).toContain("`components/operator/*`")
       expect(source).toContain("`AGENTS.md` + `CLAUDE.md`")
     }
+  })
+
+  it("keeps growth policy and prepared submission packets aligned with active service scope", () => {
+    const internalLinkRules = seoContentPolicy.slice(
+      seoContentPolicy.indexOf("## 5. Internal Linking Rules"),
+      seoContentPolicy.indexOf("## 6. Paid Traffic Boundary"),
+    )
+    const paidTrafficRules = seoContentPolicy.slice(
+      seoContentPolicy.indexOf("## 6. Paid Traffic Boundary"),
+      seoContentPolicy.indexOf("## 7. Schema And Metadata"),
+    )
+
+    expect(internalLinkRules).not.toContain("- `/weight-loss`")
+    expect(paidTrafficRules).not.toContain("- `/weight-loss`")
+    expect(seoContentPolicy).toContain("Weight loss remains a future/gated educational surface")
+    expect(seoContentPolicy).toContain(
+      "Weight loss remains future/gated and is not an approved paid destination",
+    )
+    expect(advertisingCompliance).toContain("| Weight loss search (future/gated) |")
+    expect(advertisingCompliance).toContain("No campaign may run while weight loss remains gated")
+    expect(voice).toContain("| Weight loss (future/gated) |")
+    expect(voice).toContain("| `/weight-loss` (future/gated) |")
+    expect(brand).not.toContain("First review at 6am")
+    expect(brand).not.toContain("Pre-6am / post-10pm")
+    expect(citationKit).not.toContain("doctor consults")
+    expect(citationKit).not.toContain("one-off doctor consults")
+    expect(citationKit).not.toContain("consults (including men's health and hair loss)")
+    expect(citationKit).toContain("women's health pathways for UTI")
+    expect(comparisonSubmissionKit).not.toContain("Express Review")
+    expect(comparisonSubmissionKit).toContain("Priority review")
   })
 
   it("keeps InstantMed workflow skills repo-owned and installable for Codex and Claude", () => {

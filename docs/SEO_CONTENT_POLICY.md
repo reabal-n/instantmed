@@ -215,11 +215,12 @@ Baseline guide quality:
 
 Educational medicine pages may link to generic service pages:
 
+Only active services may be used as acquisition links. Weight loss remains a future/gated educational surface and must not be presented as an active service link until launch status is explicitly changed.
+
 - `/prescriptions`
 - `/request?service=prescription`
 - `/erectile-dysfunction`
 - `/hair-loss`
-- `/weight-loss`
 - `/womens-health`
 - `/uti-assessment-online`
 - `/contraceptive-pill-assessment-online`
@@ -247,10 +248,11 @@ Paid campaigns should use service-level landing pages only:
 - `/prescriptions`
 - `/erectile-dysfunction`
 - `/hair-loss`
-- `/weight-loss`
 - `/womens-health`
 - `/uti-assessment-online`
 - `/contraceptive-pill-assessment-online`
+
+Weight loss remains future/gated and is not an approved paid destination. A future launch requires an explicit change to the canonical service boundary before `/weight-loss` can enter this list.
 
 Those paid destinations should avoid prescription drug names and follow `docs/ADVERTISING_COMPLIANCE.md`.
 

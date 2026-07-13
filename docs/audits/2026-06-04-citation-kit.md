@@ -45,15 +45,15 @@ Secondary (where multi-category allowed): Medical certificate service · Online 
 ## Business descriptions (TGA/AHPRA-safe — paste as-is)
 
 **Short (~150 chars)** — for tight fields:
-> InstantMed is an Australian telehealth service for online medical certificates, repeat prescriptions, and doctor consults, reviewed by AHPRA-registered doctors.
+> InstantMed provides online medical certificates, repeat prescriptions, and selected one-off health assessments reviewed by AHPRA-registered doctors.
 
 **Medium (~300 chars)** — most directories:
-> InstantMed is an Australian telehealth platform for online medical certificates, repeat prescriptions, and consults (including men's health and hair loss). Patients complete a secure clinical form; an AHPRA-registered doctor reviews each request and delivers documents or eScripts digitally. Australia-wide, 18+.
+> InstantMed is an Australian telehealth platform for medical certificates, repeat prescriptions, ED assessment, hair-loss assessment, and women's health pathways for UTI and starting or switching the contraceptive pill. Patients complete a secure clinical form for review by an AHPRA-registered doctor. Australia-wide, 18+.
 
 **Long (~550 chars)** — GBP, Crunchbase, anywhere with room:
-> InstantMed is an Australian telehealth service that helps people get medical certificates, repeat prescriptions, and one-off doctor consults online — without a waiting room. Patients start with a secure clinical questionnaire; an AHPRA-registered doctor reviews the request, contacts the patient if clinically needed, and delivers the document or electronic prescription digitally. Services include single-day to multi-day medical certificates, repeat scripts, and specialist consults for men's health and hair loss. The service operates 24/7 — requests are accepted and reviewed around the clock, seven days. Available Australia-wide to patients aged 18+.
+> InstantMed is an Australian telehealth service for selected one-off services: medical certificates, repeat prescriptions, erectile-dysfunction assessment, hair-loss assessment, and women's health pathways for UTI and starting or switching the contraceptive pill. Patients start with a secure clinical questionnaire; an AHPRA-registered doctor reviews the request, contacts the patient if clinically needed, and delivers approved documents or eScript tokens digitally. The service operates 24/7, with requests accepted and reviewed around the clock. Available Australia-wide to adults aged 18+.
 
-**Compliance guardrails for any free-text you add:** no "accepted by all employers", no court/exam/university-special-consideration/workers-comp claims, no turnaround/SLA guarantee, no naming or promoting prescription-only medicines (ED/hair-loss drug names = TGA advertising breach), no doctor count / individual doctor names / FRACGP / "team" claims.
+**Compliance guardrails for any free-text you add:** no "accepted by all employers", no court/exam/university-special-consideration/workers-comp claims, no turnaround/SLA guarantee, no naming or promoting prescription-only medicines (ED/hair-loss drug names = TGA advertising breach), no doctor count / individual doctor names / FRACGP / "team" claims, and no general consult or weight loss as a live service.
 
 ---
 
