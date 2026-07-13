@@ -8,7 +8,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("auth-email-events")
 
-export type AuthEmailActionType =
+type AuthEmailActionType =
   | "magiclink"
   | "signup"
   | "recovery"
@@ -16,9 +16,9 @@ export type AuthEmailActionType =
   | "email_change"
   | "reauthentication"
 
-export type AuthEmailEventStatus = "sent" | "failed"
+type AuthEmailEventStatus = "sent" | "failed"
 
-export interface AuthEmailEventInput {
+interface AuthEmailEventInput {
   actionType: AuthEmailActionType
   to: string
   status: AuthEmailEventStatus
@@ -26,24 +26,6 @@ export interface AuthEmailEventInput {
   httpStatus?: number | null
   errorMessage?: string | null
   metadata?: Record<string, unknown>
-}
-
-export interface AuthEmailFailureSummary {
-  id: string
-  createdAt: string
-  actionType: AuthEmailActionType
-  recipientDomain: string | null
-  httpStatus: number | null
-  errorMessage: string | null
-}
-
-export interface AuthEmailHealth {
-  total: number
-  sent: number
-  failed: number
-  successRate: number
-  recentFailures: AuthEmailFailureSummary[]
-  unavailable: boolean
 }
 
 function normalizeAddress(value: string): string {
@@ -87,84 +69,14 @@ export async function recordAuthEmailEvent(input: AuthEmailEventInput): Promise<
   }
 }
 
-export async function getAuthEmailHealth(since: Date): Promise<AuthEmailHealth> {
-  try {
-    const supabase = createServiceRoleClient()
-    const sinceIso = since.toISOString()
-    const [totalResult, sentResult, failedResult, failuresResult] = await Promise.all([
-      supabase
-        .from("auth_email_events")
-        .select("id", { count: "exact", head: true })
-        .gte("created_at", sinceIso),
-      supabase
-        .from("auth_email_events")
-        .select("id", { count: "exact", head: true })
-        .gte("created_at", sinceIso)
-        .eq("status", "sent"),
-      supabase
-        .from("auth_email_events")
-        .select("id", { count: "exact", head: true })
-        .gte("created_at", sinceIso)
-        .eq("status", "failed"),
-      supabase
-        .from("auth_email_events")
-        .select("id, created_at, action_type, recipient_domain, http_status, error_message")
-        .gte("created_at", sinceIso)
-        .eq("status", "failed")
-        .order("created_at", { ascending: false })
-        .limit(5),
-    ])
+export async function getAuthEmailFailureCount(since: Date): Promise<number> {
+  const supabase = createServiceRoleClient()
+  const { count, error } = await supabase
+    .from("auth_email_events")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "failed")
+    .gte("created_at", since.toISOString())
 
-    const queryError = totalResult.error ?? sentResult.error ?? failedResult.error ?? failuresResult.error
-    if (queryError) {
-      log.error("Failed to load auth email health", {}, toError(queryError))
-      return {
-        total: 0,
-        sent: 0,
-        failed: 0,
-        successRate: 100,
-        recentFailures: [],
-        unavailable: true,
-      }
-    }
-
-    const failureRows = (failuresResult.data ?? []) as Array<{
-      id: string
-      created_at: string
-      action_type: AuthEmailActionType
-      recipient_domain: string | null
-      http_status: number | null
-      error_message: string | null
-    }>
-
-    const total = totalResult.count ?? 0
-    const sent = sentResult.count ?? 0
-    const failed = failedResult.count ?? 0
-
-    return {
-      total,
-      sent,
-      failed,
-      successRate: total > 0 ? Number(((sent / total) * 100).toFixed(1)) : 100,
-      recentFailures: failureRows.map((row) => ({
-        id: row.id,
-        createdAt: row.created_at,
-        actionType: row.action_type,
-        recipientDomain: row.recipient_domain,
-        httpStatus: row.http_status,
-        errorMessage: row.error_message,
-      })),
-      unavailable: false,
-    }
-  } catch (err) {
-    log.error("Auth email health query threw", {}, toError(err))
-    return {
-      total: 0,
-      sent: 0,
-      failed: 0,
-      successRate: 100,
-      recentFailures: [],
-      unavailable: true,
-    }
-  }
+  if (error) throw new Error(`Auth email failure count failed: ${error.message}`)
+  return count ?? 0
 }

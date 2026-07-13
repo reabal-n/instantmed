@@ -6,10 +6,12 @@ import { getGoogleAdsAdjustmentHealth, getGoogleAdsUploadStreamHealth } from "@/
 import { getGoogleAdsPurchaseImportHealth } from "@/lib/analytics/google-ads-report"
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { getAuthEmailFailureCount } from "@/lib/data/auth-email-events"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { toError } from "@/lib/errors"
 import { type BusinessAlert, runAlertSection } from "@/lib/monitoring/alert-sections"
+import { buildAuthEmailFailureAlert } from "@/lib/monitoring/auth-email-failure"
 import {
   type BatchReviewHealth,
   buildBatchReviewOverdueAlert,
@@ -147,6 +149,7 @@ async function getNoPurchaseRevenueWindow(
  * - Failed payments in last hour
  * - No paid intakes despite saved-intake or draft demand
  * - Email delivery failures in last hour
+ * - Auth email delivery failures in last hour
  * - High-risk intakes awaiting review
  * - SLA breaches (intakes past deadline)
  */
@@ -174,6 +177,7 @@ export async function GET(request: NextRequest) {
     // fail leave their value null so the JSON shows "unknown", not a fake 0.
     let failedPayments: number | null = null
     let emailFailures: number | null = null
+    let authEmailFailures: number | null = null
     let bouncedEmails: number | null = null
     let stuckPending: number | null = null
     let highRiskWaiting: number | null = null
@@ -371,6 +375,27 @@ export async function GET(request: NextRequest) {
             metric: "email_delivery_failed",
             severity: emailFailures >= 5 ? "critical" : "warning",
             metadata: { count: emailFailures, window: "1h" },
+          })
+        }
+      },
+    })
+
+    // 4b. Auth email failures can block sign-in and password recovery. Keep
+    // this aggregate-only: recipient hashes, domains, and error text stay out
+    // of Sentry, PostHog, Telegram, and the cron response.
+    await runAlertSection({
+      section: "auth_email_delivery_failed",
+      alerts,
+      onFailure: onSectionFailure,
+      run: async () => {
+        authEmailFailures = await getAuthEmailFailureCount(oneHourAgo)
+        const authEmailAlert = buildAuthEmailFailureAlert(authEmailFailures)
+        if (authEmailAlert) {
+          alerts.push(authEmailAlert)
+          trackBusinessMetric({
+            metric: authEmailAlert.metric,
+            severity: authEmailAlert.severity,
+            metadata: { count: authEmailFailures, window: "1h" },
           })
         }
       },
@@ -723,6 +748,7 @@ export async function GET(request: NextRequest) {
       metrics: {
         failed_payments: failedPayments ?? 0,
         email_failures: emailFailures ?? 0,
+        auth_email_failures: authEmailFailures,
         bounced_emails: bouncedEmails ?? 0,
         stuck_pending_emails: stuckPending ?? 0,
         high_risk_waiting: highRiskWaiting ?? 0,
