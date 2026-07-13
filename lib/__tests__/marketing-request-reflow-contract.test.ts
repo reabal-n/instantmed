@@ -87,6 +87,12 @@ describe("marketing and request reflow contract", () => {
     expect(mobileMenu).not.toContain("focus-visible:ring-primary/50")
     expect(skipLink).toContain("focus:ring-4 focus:ring-primary")
     expect(skipLink).not.toContain("focus:ring-primary/30")
+    expect(skipLink).toContain('data-skip-link-hydrated={isHydrated ? "true" : "false"}')
+    expect(skipLink).toContain('fallbackTarget.querySelector<HTMLElement>("main")')
+    expect(skipLink).toContain('target.setAttribute("tabindex", "-1")')
+    expect(skipLink).toContain('target.focus({ preventScroll: true })')
+    expect(skipLink).toContain('target.removeAttribute("tabindex")')
+    expect(skipLink.match(/activateSkipTarget\(event,/g)).toHaveLength(2)
   })
 
   it("stacks dense comparisons and keeps homepage service cards shrinkable", () => {
@@ -177,7 +183,7 @@ describe("marketing and request reflow contract", () => {
     const pricingSticky = read("app/pricing/pricing-sticky-cta.tsx")
 
     expect(sticky).toContain("initial={false}")
-    expect(sticky).toContain('animate={{ y: show ? 0 : "100%", opacity: show ? 1 : 0 }}')
+    expect(sticky).toContain('animate={{ y: show ? 0 : "100%" }}')
     expect(sticky).toContain("duration: prefersReducedMotion ? 0 : 0.3")
     expect(sticky).toContain("inert={!show ? true : undefined}")
     expect(sticky).toContain("h-auto min-h-12 w-full whitespace-normal py-3 text-center")

@@ -363,6 +363,10 @@ async function inspectFocusedElement(page: Page) {
         rect.bottom > 0 &&
         rect.top < window.innerHeight,
       isSkipLink: element.matches('a[href="#main-content"]'),
+      insideHeader: Boolean(element.closest("header")),
+      insideMain: Boolean(element.closest("main")),
+      insideFooter: Boolean(element.closest("footer")),
+      insideMobileMenu: Boolean(element.closest('[data-mobile-menu-content="true"]')),
       focusIndicator:
         focusVisible && indicatorGeometry >= 1 && indicatorContrast >= 3,
       indicatorGeometry: Math.round(indicatorGeometry * 100) / 100,
@@ -477,6 +481,85 @@ async function inspectPatientTargets(page: Page) {
   })
 }
 
+async function prepareKeyboardPage(page: Page, path: string) {
+  await page.setViewportSize({ width: 375, height: 844 })
+  await seedMoneyPageState(page, "light")
+  await gotoPublicRoute(page, path)
+  await expect(page.locator('a[href="#main-content"]').first()).toHaveAttribute(
+    "data-skip-link-hydrated",
+    "true",
+  )
+  await finishFiniteEntranceAnimations(page)
+  await page.addStyleTag({
+    content: `
+      html { scroll-behavior: auto !important; }
+      *, *::before, *::after {
+        transition-property: none !important;
+        transition-duration: 0s !important;
+        transition-delay: 0s !important;
+      }
+    `,
+  })
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+}
+
+async function tabUntilFocused(page: Page, target: Locator, maxTabs = 80) {
+  for (let index = 0; index < maxTabs; index += 1) {
+    if (await target.evaluate((element) => element === document.activeElement)) return index
+    await page.keyboard.press("Tab")
+  }
+
+  await expect(target, `target should be reachable within ${maxTabs} Tab presses`).toBeFocused()
+  return maxTabs
+}
+
+async function inspectSequentialHeaderControls(page: Page) {
+  return page.evaluate(() => {
+    const candidates = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        'header a[href],header button,header input:not([type="hidden"]),header select,header textarea,header [tabindex]',
+      ),
+    )
+
+    return Array.from(
+      new Set(
+        candidates.flatMap((element) => {
+          if (
+            element.tabIndex < 0 ||
+            element.matches(":disabled") ||
+            element.closest('[hidden],[inert],[aria-hidden="true"]')
+          ) {
+            return []
+          }
+
+          const style = getComputedStyle(element)
+          const rect = element.getBoundingClientRect()
+          if (
+            style.display === "none" ||
+            style.visibility === "hidden" ||
+            Number(style.opacity) <= 0.01 ||
+            rect.width <= 0 ||
+            rect.height <= 0
+          ) {
+            return []
+          }
+
+          const name = String(
+            element.getAttribute("aria-label") ||
+              element.textContent ||
+              element.getAttribute("href") ||
+              element.id,
+          )
+            .trim()
+            .replace(/\s+/g, " ")
+            .slice(0, 120)
+          return [`${element.tagName.toLowerCase()}:${name}`]
+        }),
+      ),
+    )
+  })
+}
+
 test.beforeEach(({ browserName }) => {
   test.skip(browserName !== "chromium", "Money-page foundations use Chromium layout metrics")
 })
@@ -584,7 +667,10 @@ test.describe("money-page responsive foundations", () => {
     try {
       await gotoPublicRoute(page, "/")
       await expect(page.locator('nav[data-mobile-menu-hydrated="true"]')).toBeAttached()
-      await page.getByRole("button", { name: "Open menu" }).click()
+      const open = page.getByRole("button", { name: "Open menu" })
+      await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+      await tabUntilFocused(page, open, 8)
+      await page.keyboard.press("Enter")
       await expect(page.getByRole("button", { name: "Close menu" })).toHaveAttribute("aria-expanded", "true")
       const content = page.locator('[data-mobile-menu-content="true"]')
       const panel = page.locator('[data-mobile-menu-panel="true"]')
@@ -622,8 +708,9 @@ test.describe("money-page responsive foundations", () => {
       expect(audit.scrollWidth).toBeLessThanOrEqual(audit.clientWidth + 1)
       expect(audit.findings).toEqual([])
 
-      await close.click()
+      await page.keyboard.press("Escape")
       await expect(content).toBeHidden()
+      await expect(open).toBeFocused()
       await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).overflow)).not.toBe("hidden")
     } finally {
       await context.close()
@@ -632,24 +719,81 @@ test.describe("money-page responsive foundations", () => {
 })
 
 test.describe("money-page keyboard foundations", () => {
-  for (const route of MONEY_ROUTES) {
-    test(`${route.path} starts with skip navigation and exposes visible focus`, async ({ page }) => {
-      test.setTimeout(150_000)
-      await page.setViewportSize({ width: 375, height: 844 })
-      await seedMoneyPageState(page, "light")
-      await gotoPublicRoute(page, route.path)
-      await finishFiniteEntranceAnimations(page)
-      await page.addStyleTag({
-        content: `
-          html { scroll-behavior: auto !important; }
-          *, *::before, *::after {
-            transition-property: none !important;
-            transition-duration: 0s !important;
-            transition-delay: 0s !important;
+  for (const activationKey of ["Enter", "Space"] as const) {
+    test(`mobile drawer contains focus after ${activationKey} and restores its trigger`, async ({ page }) => {
+      await prepareKeyboardPage(page, "/")
+
+      const open = page.getByRole("button", { name: "Open menu" })
+      await page.keyboard.press("Tab")
+      await expect(page.locator('a[href="#main-content"]').first()).toBeFocused()
+      await tabUntilFocused(page, open, 8)
+      await page.keyboard.press(activationKey)
+
+      const close = page.getByRole("button", { name: "Close menu" })
+      const content = page.locator('[data-mobile-menu-content="true"]')
+      const firstNavigationLink = content.locator("ul a[href]").first()
+      await expect(close).toHaveAttribute("aria-expanded", "true")
+      await expect(content).toBeVisible()
+      await expect(firstNavigationLink).toBeFocused()
+      await expect(content.locator('li[tabindex="0"]')).toHaveCount(0)
+
+      let reachedThemeSwitch = false
+      let reachedCloseBoundary = false
+      for (let index = 0; index < 80; index += 1) {
+        const active = await page.evaluate(() => {
+          const element = document.activeElement
+          if (!(element instanceof HTMLElement)) return null
+          const contentRoot = document.querySelector('[data-mobile-menu-content="true"]')
+          return {
+            tag: element.tagName.toLowerCase(),
+            name: element.getAttribute("aria-label") || element.textContent?.trim() || "",
+            insideContent: Boolean(contentRoot?.contains(element)),
+            isCloseTrigger: element.matches('button[aria-label="Close menu"]'),
+            isThemeSwitch: element.matches('[role="switch"][aria-label^="Switch to "]'),
           }
-        `,
-      })
-      await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+        })
+
+        expect(active, `${activationKey} drawer focus ${index + 1}`).not.toBeNull()
+        if (active?.isCloseTrigger) {
+          reachedCloseBoundary = true
+          break
+        }
+        expect(
+          active?.insideContent,
+          `${activationKey} drawer focus escaped to ${active?.tag}:${active?.name}`,
+        ).toBe(true)
+        expect(["a", "button"]).toContain(active?.tag)
+        reachedThemeSwitch ||= Boolean(active?.isThemeSwitch)
+        await page.keyboard.press("Tab")
+      }
+
+      expect(reachedThemeSwitch, `${activationKey} should reach the mobile theme switch`).toBe(true)
+      expect(reachedCloseBoundary, `${activationKey} should wrap the last drawer control to Close menu`).toBe(true)
+
+      await page.keyboard.press("Shift+Tab")
+      expect(
+        await content.evaluate((element) => element.contains(document.activeElement)),
+        `${activationKey} reverse Tab should wrap back into drawer content`,
+      ).toBe(true)
+      await page.keyboard.press("Tab")
+      await expect(close).toBeFocused()
+      await page.keyboard.press("Tab")
+      expect(
+        await content.evaluate((element) => element.contains(document.activeElement)),
+        `${activationKey} forward Tab from Close menu should re-enter drawer content`,
+      ).toBe(true)
+
+      await page.keyboard.press("Escape")
+      await expect(content).toBeHidden()
+      await expect(open).toBeFocused()
+      await expect(open).toHaveAttribute("aria-expanded", "false")
+    })
+  }
+
+  for (const route of MONEY_ROUTES) {
+    test(`${route.path} skip navigation activates the main-content target`, async ({ page }) => {
+      test.setTimeout(150_000)
+      await prepareKeyboardPage(page, route.path)
 
       const skipLink = page.locator('a[href="#main-content"]').first()
       await page.keyboard.press("Tab")
@@ -664,8 +808,10 @@ test.describe("money-page keyboard foundations", () => {
 
       await expect(skipLink).toHaveAttribute("href", "#main-content")
       await page.keyboard.press("Enter")
-      const mainContent = page.locator("#main-content")
+      const mainContent = page.locator("#main-content main").first()
       await expect(mainContent).toBeFocused()
+      await expect(mainContent).toHaveJSProperty("tagName", "MAIN")
+      expect(new URL(page.url()).hash).toBe("#main-content")
       expect(
         await mainContent.evaluate((element) => {
           const rect = element.getBoundingClientRect()
@@ -674,7 +820,28 @@ test.describe("money-page keyboard foundations", () => {
         `${route.path} skip target should intersect the viewport`,
       ).toBe(true)
 
+      await page.keyboard.press("Tab")
+      expect(
+        await page.evaluate(() => Boolean(document.activeElement?.closest("header"))),
+        `${route.path} next Tab after skip activation must not return to route header controls`,
+      ).toBe(false)
+    })
+
+    test(`${route.path} completes an uninterrupted document Tab cycle`, async ({ page }) => {
+      test.setTimeout(150_000)
+      await prepareKeyboardPage(page, route.path)
+
+      const skipLink = page.locator('a[href="#main-content"]').first()
+      await page.keyboard.press("Tab")
+      await expect(skipLink).toBeFocused()
+      const skipFocus = await inspectFocusedElement(page)
+      expect(skipFocus).toMatchObject({ isSkipLink: true, focusIndicator: true })
+
+      const expectedHeaderControls = new Set(await inspectSequentialHeaderControls(page))
       const seen = new Set<string>()
+      const headerControls = new Set<string>()
+      let nonHeaderControlCount = 0
+      let firstPostSkipFocus: Awaited<ReturnType<typeof inspectFocusedElement>> = null
       let completedCycle = false
       let browserBoundaryTransitions = 0
       let expectingSkipAfterBoundary = false
@@ -750,12 +917,18 @@ test.describe("money-page keyboard foundations", () => {
           completedCycle = true
           break
         }
+        firstPostSkipFocus ??= focused
 
         expect(
           seen.has(focused?.focusKey ?? ""),
           `${route.path} repeated ${focused?.focusKey} before completing the keyboard cycle`,
         ).toBe(false)
         seen.add(focused?.focusKey ?? "")
+        if (focused?.insideHeader) {
+          headerControls.add(`${focused.tag}:${focused.name}`)
+        } else {
+          nonHeaderControlCount += 1
+        }
 
         expect(
           focused,
@@ -777,6 +950,22 @@ test.describe("money-page keyboard foundations", () => {
 
       expect(completedCycle, `${route.path} should complete a full keyboard focus cycle`).toBe(true)
       expect(seen.size, `${route.path} should expose at least one post-skip focus target`).toBeGreaterThan(0)
+      for (const expectedControl of expectedHeaderControls) {
+        expect(
+          headerControls.has(expectedControl),
+          `${route.path} should traverse header control ${expectedControl}; saw: ${Array.from(headerControls).join(", ")}`,
+        ).toBe(true)
+      }
+      if (expectedHeaderControls.size > 0) {
+        expect(
+          firstPostSkipFocus?.insideHeader,
+          `${route.path} should continue from skip navigation into its first header control`,
+        ).toBe(true)
+      }
+      expect(
+        nonHeaderControlCount,
+        `${route.path} should continue from the header through the remaining document controls`,
+      ).toBeGreaterThan(0)
     })
   }
 })

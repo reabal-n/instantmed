@@ -9,6 +9,12 @@ function read(relativePath: string): string {
   return readFileSync(join(root, relativePath), "utf8")
 }
 
+function firstMotionContainerOpeningTag(source: string): string {
+  const match = source.match(/<motion\.div[\s\S]*?>/)
+  expect(match, "expected a motion.div container").not.toBeNull()
+  return match?.[0] ?? ""
+}
+
 describe("marketing reduced-motion contract", () => {
   it("keeps hydration stable and resolves the browser preference before paint", () => {
     const motion = read("components/ui/motion.tsx")
@@ -84,6 +90,15 @@ describe("marketing reduced-motion contract", () => {
     expect(menu).toContain('data-mobile-menu-motion="animated"')
     expect(menu).toContain('data-mobile-menu-panel="true"')
     expect(menu).toContain('data-mobile-menu-content="true"')
+    expect(menu).toContain("const returnFocusRef = useRef<HTMLElement | null>(null)")
+    expect(menu).toContain(
+      "returnFocusRef.current = opener instanceof HTMLElement ? opener : null",
+    )
+    expect(menu).toContain("returnFocusRef.current?.focus({ preventScroll: true })")
+    expect(menu).toContain("firstNavigationLink ?? getVisibleDrawerControls(contentRef.current)[0]")
+    expect(menu).toContain("tabIndex={-1}")
+    expect(menu).toContain('e.key !== "Tab"')
+    expect(menu).toContain('aria-controls="mobile-navigation-menu"')
     expect(menu).not.toContain("initial={prefersReducedMotion ? false")
     expect(menu).toContain(
       "whileHover={item.disabled || prefersReducedMotion ? undefined : { y: -2, x: 8 }}",
@@ -98,21 +113,27 @@ describe("marketing reduced-motion contract", () => {
 
   it("moves the pricing sticky CTA by its own height and settles reduced motion", () => {
     const sticky = read("app/pricing/pricing-sticky-cta.tsx")
+    const container = firstMotionContainerOpeningTag(sticky)
 
     expect(sticky).toContain(
-      'initial={prefersReducedMotion ? { y: 0, opacity: 1 } : { y: "100%", opacity: 0 }}',
+      'initial={prefersReducedMotion ? { y: 0 } : { y: "100%" }}',
     )
-    expect(sticky).toContain("animate={{ y: 0, opacity: 1 }}")
+    expect(sticky).toContain("animate={{ y: 0 }}")
     expect(sticky).toContain(
-      'exit={prefersReducedMotion ? { y: 0, opacity: 1 } : { y: "100%", opacity: 0 }}',
+      'exit={prefersReducedMotion ? { y: 0 } : { y: "100%" }}',
     )
     expect(sticky).toContain("duration: prefersReducedMotion ? 0 : 0.3")
+    expect(container).not.toMatch(/\bopacity\b/)
   })
 
-  it("does not create a mount animation for the shared mobile purchase bar", () => {
+  it("keeps the shared mobile purchase bar inert when hidden and transform-only", () => {
     const sticky = read("components/marketing/shared/sticky-cta.tsx")
+    const container = firstMotionContainerOpeningTag(sticky)
 
     expect(sticky).toContain("initial={false}")
+    expect(sticky).toContain('animate={{ y: show ? 0 : "100%" }}')
     expect(sticky).toContain("duration: prefersReducedMotion ? 0 : 0.3")
+    expect(sticky).toContain("inert={!show ? true : undefined}")
+    expect(container).not.toMatch(/\bopacity\b/)
   })
 })

@@ -90,6 +90,33 @@ const itemVariants: Variants = {
   },
 }
 
+const DRAWER_FOCUSABLE_SELECTOR = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled]):not([type='hidden'])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  "[tabindex]:not([tabindex='-1'])",
+].join(",")
+
+function getVisibleDrawerControls(root: HTMLElement | null) {
+  if (!root) return []
+  return Array.from(root.querySelectorAll<HTMLElement>(DRAWER_FOCUSABLE_SELECTOR)).filter(
+    (element) => {
+      if (element.closest("[hidden],[inert],[aria-hidden='true']")) return false
+      const style = getComputedStyle(element)
+      const rect = element.getBoundingClientRect()
+      return (
+        style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        Number(style.opacity) > 0.01 &&
+        rect.width > 0 &&
+        rect.height > 0
+      )
+    },
+  )
+}
+
 // Path component for animated hamburger icon
 interface PathProps {
   d?: string
@@ -132,6 +159,7 @@ export const MenuToggle = ({ toggle, isOpen }: MenuToggleProps) => {
       )}
       aria-label={isOpen ? "Close menu" : "Open menu"}
       aria-expanded={isOpen}
+      aria-controls="mobile-navigation-menu"
     >
       <svg
         width="20"
@@ -243,6 +271,7 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
       variants={itemVariants}
       whileHover={item.disabled || prefersReducedMotion ? undefined : { y: -2, x: 8 }}
       whileTap={item.disabled || prefersReducedMotion ? undefined : { scale: 0.98 }}
+      tabIndex={-1}
       className="list-none"
     >
       {item.disabled ? (
@@ -320,19 +349,67 @@ export function AnimatedMobileMenu({
   const prefersReducedMotion = useReducedMotion()
   const [isHydrated, setIsHydrated] = React.useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const returnFocusRef = useRef<HTMLElement | null>(null)
+  const wasOpenRef = useRef(false)
   const { height } = useDimensions(containerRef)
 
   useEffect(() => setIsHydrated(true), [])
 
-  // Close menu on escape key
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
+    const wasOpen = wasOpenRef.current
+
+    if (isOpen && !wasOpen) {
+      const opener = document.activeElement
+      returnFocusRef.current = opener instanceof HTMLElement ? opener : null
+      const focusFrame = requestAnimationFrame(() => {
+        const firstNavigationLink = contentRef.current?.querySelector<HTMLElement>("ul a[href]")
+        const firstControl = firstNavigationLink ?? getVisibleDrawerControls(contentRef.current)[0]
+        firstControl?.focus({ preventScroll: true })
+      })
+      wasOpenRef.current = isOpen
+      return () => cancelAnimationFrame(focusFrame)
+    } else if (!isOpen && wasOpen) {
+      returnFocusRef.current?.focus({ preventScroll: true })
+    }
+
+    wasOpenRef.current = isOpen
+  }, [isOpen])
+
+  // Keep keyboard focus inside the open drawer and close it with Escape.
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleDrawerKeyboard = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
         onClose()
+        return
+      }
+
+      if (e.key !== "Tab") return
+      const contentControls = getVisibleDrawerControls(contentRef.current)
+      const opener = returnFocusRef.current
+      const controls = opener?.isConnected ? [opener, ...contentControls] : contentControls
+      if (controls.length === 0) return
+
+      const active = document.activeElement
+      const first = controls[0]
+      const last = controls[controls.length - 1]
+      if (e.shiftKey && active === first) {
+        e.preventDefault()
+        last.focus({ preventScroll: true })
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault()
+        first.focus({ preventScroll: true })
+      } else if (!(active instanceof HTMLElement) || !controls.includes(active)) {
+        e.preventDefault()
+        const fallbackControl = e.shiftKey ? last : contentControls[0] ?? first
+        fallbackControl.focus({ preventScroll: true })
       }
     }
-    document.addEventListener("keydown", handleEscape)
-    return () => document.removeEventListener("keydown", handleEscape)
+
+    document.addEventListener("keydown", handleDrawerKeyboard)
+    return () => document.removeEventListener("keydown", handleDrawerKeyboard)
   }, [isOpen, onClose])
 
   // Prevent body scroll when menu is open
@@ -352,6 +429,7 @@ export function AnimatedMobileMenu({
       <nav
         data-mobile-menu-hydrated={isHydrated ? "true" : "false"}
         data-mobile-menu-motion="static"
+        aria-label="Mobile navigation"
         className="md:hidden"
       >
         {isOpen ? (
@@ -372,7 +450,9 @@ export function AnimatedMobileMenu({
               )}
             />
             <div
+              id="mobile-navigation-menu"
               data-mobile-menu-content="true"
+              ref={contentRef}
               className="fixed top-0 right-0 bottom-0 z-50 flex w-full max-w-[300px] flex-col"
             >
               {header ? (
@@ -393,6 +473,7 @@ export function AnimatedMobileMenu({
     <motion.nav
       data-mobile-menu-hydrated={isHydrated ? "true" : "false"}
       data-mobile-menu-motion="animated"
+      aria-label="Mobile navigation"
       initial={{}}
       animate={isOpen ? "open" : "closed"}
       custom={height}
@@ -433,7 +514,9 @@ export function AnimatedMobileMenu({
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            id="mobile-navigation-menu"
             data-mobile-menu-content="true"
+            ref={contentRef}
             variants={menuContentVariants}
             initial="closed"
             animate="open"

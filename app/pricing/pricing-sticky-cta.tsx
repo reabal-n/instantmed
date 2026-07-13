@@ -35,9 +35,9 @@ export function PricingStickyCta({ targetId }: PricingStickyCtaProps) {
       {showStickyCTA && (
         <motion.div
           className="fixed bottom-0 left-0 right-0 z-40 lg:hidden"
-          initial={prefersReducedMotion ? { y: 0, opacity: 1 } : { y: "100%", opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={prefersReducedMotion ? { y: 0, opacity: 1 } : { y: "100%", opacity: 0 }}
+          initial={prefersReducedMotion ? { y: 0 } : { y: "100%" }}
+          animate={{ y: 0 }}
+          exit={prefersReducedMotion ? { y: 0 } : { y: "100%" }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeOut" }}
         >
           <div className="border-t border-border/50 bg-white/95 px-4 pb-3 pt-2.5 shadow-lg backdrop-blur-xl safe-area-pb dark:bg-card/95">
