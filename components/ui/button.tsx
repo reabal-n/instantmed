@@ -17,7 +17,7 @@ const buttonVariants = cva(
     "whitespace-nowrap max-[240px]:h-auto max-[240px]:min-h-11 max-[240px]:whitespace-normal max-[240px]:px-3 max-[240px]:py-2 max-[240px]:text-center",
     "transition-[transform,box-shadow,background-color,border-color,color,opacity] duration-200",
     "active:scale-[0.97]",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dawn-300 dark:focus-visible:ring-dawn-500/40 focus-visible:ring-offset-2",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
     "disabled:pointer-events-none disabled:opacity-50",
     "[&_svg]:pointer-events-none [&_svg]:shrink-0",
   ],

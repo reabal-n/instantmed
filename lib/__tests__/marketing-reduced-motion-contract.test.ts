@@ -28,13 +28,24 @@ describe("marketing reduced-motion contract", () => {
     expect(globalReducedMotion).toContain("animation-delay: 0ms !important;")
     expect(globalReducedMotion).toContain("transition-duration: 0.01ms !important;")
     expect(globalReducedMotion).toContain("transition-delay: 0ms !important;")
+    expect(globalReducedMotion).toContain("[data-reduced-motion-final] {")
+    expect(globalReducedMotion).toContain("opacity: 1 !important;")
+    expect(globalReducedMotion).toContain("transform: none !important;")
   })
 
   it("settles the hero doctor card and floats immediately", () => {
     const hero = read("components/marketing/hero-doctor-review-mockup.tsx")
 
-    expect(hero).toContain("initial={animate ? { y: 16 } : {}}")
-    expect(hero).toContain("initial={animate ? { opacity: 0, scale: 0.92, y: 4 } : {}}")
+    expect(hero).toContain('initial={animate ? "hidden" : "reduced"}')
+    expect(hero.match(/animate=\{entranceControls\}/g)).toHaveLength(2)
+    expect(hero).toContain("entranceControls.stop()")
+    expect(hero).toContain('entranceControls.set("reduced")')
+    expect(hero).toContain("reduced: { y: 0, transition: { duration: 0, delay: 0 } }")
+    expect(hero).toContain(
+      "reduced: { opacity: 1, scale: 1, y: 0, transition: { duration: 0, delay: 0 } }",
+    )
+    expect(hero).toContain('data-reduced-motion-final="doctor-card"')
+    expect(hero).toContain('data-reduced-motion-final="doctor-float"')
     expect(hero).not.toContain(": false}")
     expect(hero.match(/duration: prefersReducedMotion \? 0 : /g)).toHaveLength(2)
     expect(hero.match(/delay: prefersReducedMotion \? 0 : /g)).toHaveLength(2)
@@ -47,14 +58,21 @@ describe("marketing reduced-motion contract", () => {
     expect(hero.match(/duration: prefersReducedMotion \? 0 : 0\.3/g)).toHaveLength(2)
     expect(hero).toContain("delay: prefersReducedMotion ? 0 : 0.6")
     expect(hero).toContain("delay: prefersReducedMotion ? 0 : 0.8")
-    expect(hero).toContain(
-      'key={prefersReducedMotion ? "subtitle-reduced" : "subtitle-motion"}',
-    )
-    expect(hero).toContain(
-      'key={prefersReducedMotion ? "content-reduced" : "content-motion"}',
-    )
+    expect(hero).not.toMatch(/key=\{prefersReducedMotion/)
+    expect(hero.match(/initial=\{prefersReducedMotion \? "reduced" : "hidden"\}/g)).toHaveLength(2)
+    expect(hero.match(/animate=\{entranceControls\}/g)).toHaveLength(2)
+    expect(hero).toContain("entranceControls.stop()")
+    expect(hero).toContain('entranceControls.set("reduced")')
+    expect(hero).toContain("reduced: { opacity: 1, y: 0, transition: { duration: 0, delay: 0 } }")
+    expect(hero).toContain('data-reduced-motion-final="stats-subtitle"')
+    expect(hero).toContain('data-reduced-motion-final="stats-content"')
     expect(strip).toContain("duration: prefersReducedMotion ? 0 : 0.3")
     expect(strip).toContain("delay: prefersReducedMotion ? 0 : i * 0.1")
+    expect(strip).toContain("entranceControls.stop()")
+    expect(strip).toContain('entranceControls.set("reduced")')
+    expect(strip).toContain("animate={entranceControls}")
+    expect(strip).toContain("reduced: { opacity: 1, y: 0, transition: { duration: 0, delay: 0 } }")
+    expect(strip).toContain('data-reduced-motion-final="stat-item"')
   })
 
   it("uses a static mobile-menu branch without changing normal timings", () => {
@@ -82,11 +100,11 @@ describe("marketing reduced-motion contract", () => {
     const sticky = read("app/pricing/pricing-sticky-cta.tsx")
 
     expect(sticky).toContain(
-      'initial={prefersReducedMotion ? {} : { y: "100%", opacity: 0 }}',
+      'initial={prefersReducedMotion ? { y: 0, opacity: 1 } : { y: "100%", opacity: 0 }}',
     )
     expect(sticky).toContain("animate={{ y: 0, opacity: 1 }}")
     expect(sticky).toContain(
-      'exit={prefersReducedMotion ? {} : { y: "100%", opacity: 0 }}',
+      'exit={prefersReducedMotion ? { y: 0, opacity: 1 } : { y: "100%", opacity: 0 }}',
     )
     expect(sticky).toContain("duration: prefersReducedMotion ? 0 : 0.3")
   })

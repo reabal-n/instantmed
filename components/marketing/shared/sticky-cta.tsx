@@ -70,7 +70,7 @@ export function StickyCTA({
         {/*
           Compact layout - Tier 1 review 2026-05-25 flagged the ED sticky
           bar as "eating 20% of the viewport". Tighter padding (pt-1.5 pb-2),
-          summary line truncated, response time bumped to text-[13px] on
+          summary line compact, response time bumped to text-[13px] on
           solid surface so the number actually reads.
 
           Plus a scroll-direction collapse: while scrolling down the
@@ -87,7 +87,7 @@ export function StickyCTA({
             }`}
             aria-hidden={isCollapsed}
           >
-            <p className="min-h-0 text-[11px] leading-tight text-muted-foreground text-center truncate">
+            <p className="min-h-0 min-w-0 break-words text-center text-[11px] leading-tight text-muted-foreground">
               {mobileSummary}
               {responseTime && (
                 <span className="text-foreground/80 font-medium"> &middot; {responseTime}</span>

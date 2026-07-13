@@ -50,7 +50,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center shrink-0">
-                <span className="text-sm font-black text-white leading-none translate-y-[-1px]">+</span>
+                <span className="text-sm font-black text-primary-foreground leading-none translate-y-[-1px]">+</span>
               </div>
               <div className="leading-tight">
                 <p className="text-[13px] font-semibold tracking-tight text-foreground dark:text-white">InstantMed</p>

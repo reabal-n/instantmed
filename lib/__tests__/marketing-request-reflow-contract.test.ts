@@ -56,6 +56,8 @@ describe("marketing and request reflow contract", () => {
     const globals = read("app/globals.css")
     const button = read("components/ui/button.tsx")
     const footer = read("components/shared/footer.tsx")
+    const mobileMenu = read("components/ui/animated-mobile-menu.tsx")
+    const skipLink = read("components/shared/skip-to-content.tsx")
 
     expect(globals).toContain(':where([data-marketing]) {\n  overflow-wrap: anywhere;')
     expect(globals.indexOf(':where([data-marketing]) {\n  overflow-wrap: anywhere;')).toBeLessThan(
@@ -64,13 +66,27 @@ describe("marketing and request reflow contract", () => {
     expect(globals).toContain(
       ':where([data-marketing]) a.inline-flex.items-center.justify-center',
     )
+    expect(globals).toContain("summary:focus-visible,")
+    expect(globals).toContain('[tabindex]:not([tabindex="-1"]):focus-visible')
+    expect(globals).toContain("outline: 2px solid var(--primary) !important;")
+    expect(globals).toContain("outline-offset: 2px !important;")
+    expect(globals).toContain("box-shadow: 0 0 0 4px var(--background) !important;")
     expect(globals).toContain('max-width: 100%;\n    height: auto;')
     expect(globals).toContain('white-space: normal;\n    overflow-wrap: anywhere;')
     expect(button).toContain("max-[240px]:h-auto max-[240px]:min-h-11")
     expect(button).toContain("max-[240px]:whitespace-normal max-[240px]:px-3")
+    expect(button).toContain("focus-visible:ring-2 focus-visible:ring-primary")
+    expect(button).not.toContain("focus-visible:ring-dawn-300")
+    expect(button).not.toContain("dark:focus-visible:ring-dawn-500/40")
     expect(footer).toContain("grid-cols-1 min-[241px]:grid-cols-2")
     expect(footer).toContain("min-w-0 flex-wrap")
     expect(footer).not.toContain('<p className="whitespace-nowrap">')
+    expect(mobileMenu.match(/w-full max-w-\[300px\]/g)).toHaveLength(4)
+    expect(mobileMenu).not.toMatch(/(?:^|\s)w-\[300px\](?:\s|")/m)
+    expect(mobileMenu).toContain("focus-visible:ring-2 focus-visible:ring-primary")
+    expect(mobileMenu).not.toContain("focus-visible:ring-primary/50")
+    expect(skipLink).toContain("focus:ring-4 focus:ring-primary")
+    expect(skipLink).not.toContain("focus:ring-primary/30")
   })
 
   it("stacks dense comparisons and keeps homepage service cards shrinkable", () => {
@@ -114,6 +130,12 @@ describe("marketing and request reflow contract", () => {
     expect(compactRow).toContain("grid-cols-[auto_minmax(0,1fr)]")
     expect(compactRow).toContain("min-[240px]:flex")
     expect(compactRow).toContain("col-span-2")
+    expect(compactRow).toContain("hidden text-border-em min-[240px]:inline")
+    expect(compactRow).toContain("mt-1 block text-xs min-[240px]:mt-0 min-[240px]:inline")
+    expect(compactRow).toContain(
+      "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+    )
+    expect(compactRow).not.toContain("focus-visible:ring-primary/25")
   })
 
   it("keeps the consult overview landmark and card tracks reflowable", () => {
@@ -152,13 +174,22 @@ describe("marketing and request reflow contract", () => {
 
   it("keeps the shared sticky call to action off-canvas when hidden", () => {
     const sticky = read("components/marketing/shared/sticky-cta.tsx")
+    const pricingSticky = read("app/pricing/pricing-sticky-cta.tsx")
 
     expect(sticky).toContain("initial={false}")
     expect(sticky).toContain('animate={{ y: show ? 0 : "100%", opacity: show ? 1 : 0 }}')
     expect(sticky).toContain("duration: prefersReducedMotion ? 0 : 0.3")
     expect(sticky).toContain("inert={!show ? true : undefined}")
     expect(sticky).toContain("h-auto min-h-12 w-full whitespace-normal py-3 text-center")
+    expect(sticky).toContain("min-w-0 break-words")
+    expect(sticky).not.toContain("text-center truncate")
     expect(sticky).not.toContain("y: 100")
+    expect(pricingSticky).toContain(
+      "flex flex-col items-stretch gap-2 min-[241px]:flex-row min-[241px]:items-center min-[241px]:justify-between",
+    )
+    expect(pricingSticky).toContain(
+      "w-full min-[241px]:w-auto min-[241px]:shrink-0",
+    )
   })
 
   it("scopes 48px touch targets to patient flows without changing global targets", () => {
@@ -169,7 +200,10 @@ describe("marketing and request reflow contract", () => {
     expect(requestFlow).toContain('data-patient-flow="true"')
     expect(requestFlow.match(/className="h-12 w-12 sm:h-10 sm:w-10"/g)).toHaveLength(2)
     expect(progress).toContain('data-request-progress-step="true"')
-    expect(progress).toContain('className="relative h-12 sm:h-[3.35rem]"')
+    expect(progress).toContain('data-request-progress-shell="true"')
+    expect(progress).toContain('data-request-progress-track="true"')
+    expect(progress).toContain('data-request-progress-grid="true"')
+    expect(progress).toContain('data-request-progress-actionable={isClickable ? "true" : "false"}')
     expect(globals).toContain('[data-patient-flow="true"] :is(')
     expect(globals).toContain("min-height: 48px;")
     expect(globals).toContain("min-width: 48px;")
@@ -185,7 +219,12 @@ describe("marketing and request reflow contract", () => {
     expect(narrowProgressIndex).toBeGreaterThan(broadMinWidthIndex)
     expect(
       globals.slice(narrowProgressIndex, globals.indexOf("}", narrowProgressIndex)),
-    ).toContain("min-width: 0;")
+    ).toContain("min-width: 48px;")
+    expect(globals).toContain('[data-request-progress-grid="true"]')
+    expect(globals).toContain('[data-request-progress-step="true"]:disabled')
+    expect(globals).not.toContain(
+      '[data-patient-flow="true"] button[data-request-progress-step="true"] {\n    min-width: 0;',
+    )
     expect(globals).toContain("/* Ensure all interactive elements meet touch target requirements */")
     expect(globals).toContain("min-height: 44px;")
     expect(globals).toContain("min-width: 44px;")

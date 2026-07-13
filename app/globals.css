@@ -562,10 +562,12 @@ body {
   [role="button"]:focus-visible,
   input:focus-visible,
   textarea:focus-visible,
-  select:focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  select:focus-visible,
+  summary:focus-visible,
+  [tabindex]:not([tabindex="-1"]):focus-visible {
+    outline: 2px solid var(--primary) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 4px var(--background) !important;
   }
   
   /* Skip link styles */
@@ -2754,12 +2756,35 @@ body {
   }
 }
 
-/* At 200% zoom a 375px device exposes roughly 188 CSS pixels. Keep the
-   progress track inside that viewport while retaining its 48px height. */
+/* At 200% zoom a 375px device exposes roughly 188 CSS pixels. Switch the
+   progress affordance to its compact, completed/current-only layout: every
+   actionable step remains a real 48px target and wraps without overlap. The
+   header already names the current step and count, so unreached dots add no
+   useful information at this emergency width. */
 @media (max-width: 240px) {
+  [data-request-progress-shell="true"] {
+    height: auto;
+    min-height: 48px;
+  }
+
+  [data-request-progress-track="true"] {
+    display: none;
+  }
+
+  [data-request-progress-grid="true"] {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 
   [data-patient-flow="true"] button[data-request-progress-step="true"] {
-    min-width: 0;
+    flex: 0 0 48px;
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  [data-patient-flow="true"] [data-request-progress-step="true"]:disabled {
+    display: none;
   }
 }
 
@@ -3439,5 +3464,14 @@ button:not(.no-micro):active:not(:disabled),
     transition-duration: 0.01ms !important;
     transition-delay: 0ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* The reduced preference is only observable after the hydration snapshot.
+     Keep explicitly marked Framer entrances at their final paint even during
+     that brief server-to-client handoff; animation controls then cancel the
+     dormant timeline and preserve live preference changes. */
+  [data-reduced-motion-final] {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

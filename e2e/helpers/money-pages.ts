@@ -129,6 +129,12 @@ export interface OverflowFinding {
   text: string
   left: number
   right: number
+  boundary: "viewport" | "clipping-ancestor"
+  boundarySelector?: string
+  boundaryLeft?: number
+  boundaryRight?: number
+  localClientWidth?: number
+  localScrollWidth?: number
 }
 
 export interface ReflowAudit {
@@ -193,14 +199,44 @@ export async function inspectMeaningfulHorizontalOverflow(page: Page): Promise<R
       text: string,
       rect: DOMRect,
     ) => {
-      if (rect.left >= -tolerance && rect.right <= viewportWidth + tolerance) return
-      findings.push({
+      const rounded = (value: number) => Math.round(value * 10) / 10
+      const base = {
         kind,
         selector: selector(element),
         text: clean(text),
-        left: Math.round(rect.left * 10) / 10,
-        right: Math.round(rect.right * 10) / 10,
-      })
+        left: rounded(rect.left),
+        right: rounded(rect.right),
+      }
+
+      if (rect.left < -tolerance || rect.right > viewportWidth + tolerance) {
+        findings.push({ ...base, boundary: "viewport" })
+      }
+
+      let ancestor = element.parentElement
+      while (ancestor && ancestor !== document.body) {
+        if (isIntentionalOverflow(ancestor)) break
+
+        const style = getComputedStyle(ancestor)
+        if (style.overflowX === "hidden" || style.overflowX === "clip") {
+          const boundaryRect = ancestor.getBoundingClientRect()
+          if (
+            rect.left < boundaryRect.left - tolerance ||
+            rect.right > boundaryRect.right + tolerance
+          ) {
+            findings.push({
+              ...base,
+              boundary: "clipping-ancestor",
+              boundarySelector: selector(ancestor),
+              boundaryLeft: rounded(boundaryRect.left),
+              boundaryRight: rounded(boundaryRect.right),
+              localClientWidth: ancestor.clientWidth,
+              localScrollWidth: ancestor.scrollWidth,
+            })
+            break
+          }
+        }
+        ancestor = ancestor.parentElement
+      }
     }
 
     const controls = document.querySelectorAll(
@@ -234,7 +270,7 @@ export async function inspectMeaningfulHorizontalOverflow(page: Page): Promise<R
     const unique = Array.from(
       new Map(
         findings.map((finding) => [
-          `${finding.kind}:${finding.selector}:${finding.text}:${finding.left}:${finding.right}`,
+          `${finding.kind}:${finding.selector}:${finding.text}:${finding.left}:${finding.right}:${finding.boundary}:${finding.boundarySelector ?? ""}`,
           finding,
         ]),
       ).values(),
@@ -246,9 +282,111 @@ export async function inspectMeaningfulHorizontalOverflow(page: Page): Promise<R
         document.documentElement.scrollWidth,
         document.body.scrollWidth,
       ),
-      findings: unique.slice(0, 40),
+      findings: unique.slice(0, 200),
     }
   })
+}
+
+/**
+ * Scroll-walk the entire rendered page so viewport-triggered sections reach
+ * their settled state. Reflow findings are unioned at every stop; this keeps
+ * below-fold text and controls from escaping the audit while they are still
+ * hidden by an entrance reveal.
+ */
+export async function walkPublicPageForReveals(
+  page: Page,
+  options: { inspectReflow?: boolean } = {},
+): Promise<ReflowAudit> {
+  const inspectReflow = options.inspectReflow ?? false
+  const findings = new Map<string, OverflowFinding>()
+  let clientWidth = 0
+  let scrollWidth = 0
+
+  const previousScrollBehavior = await page.evaluate(() => {
+    const root = document.documentElement
+    const previous = {
+      value: root.style.getPropertyValue("scroll-behavior"),
+      priority: root.style.getPropertyPriority("scroll-behavior"),
+    }
+    root.style.setProperty("scroll-behavior", "auto", "important")
+    window.scrollTo(0, 0)
+    return previous
+  })
+
+  for (let pass = 0; pass < 240; pass += 1) {
+    await finishFiniteEntranceAnimations(page)
+
+    if (inspectReflow) {
+      const audit = await inspectMeaningfulHorizontalOverflow(page)
+      clientWidth = audit.clientWidth
+      scrollWidth = Math.max(scrollWidth, audit.scrollWidth)
+      for (const finding of audit.findings) {
+        findings.set(
+          `${finding.kind}:${finding.selector}:${finding.text}:${finding.left}:${finding.right}:${finding.boundary}:${finding.boundarySelector ?? ""}`,
+          finding,
+        )
+      }
+    }
+
+    const scroll = await page.evaluate(() => {
+      const root = document.documentElement
+      const max = Math.max(0, root.scrollHeight - window.innerHeight)
+      const current = window.scrollY
+      if (current >= max - 2) return { done: true, next: max }
+
+      const step = Math.max(160, Math.floor(window.innerHeight * 0.75))
+      return { done: false, next: Math.min(max, current + step) }
+    })
+
+    if (scroll.done) {
+      await page.evaluate((next) => window.scrollTo(0, next), scroll.next)
+      await finishFiniteEntranceAnimations(page)
+      if (inspectReflow) {
+        const audit = await inspectMeaningfulHorizontalOverflow(page)
+        clientWidth = audit.clientWidth
+        scrollWidth = Math.max(scrollWidth, audit.scrollWidth)
+        for (const finding of audit.findings) {
+          findings.set(
+            `${finding.kind}:${finding.selector}:${finding.text}:${finding.left}:${finding.right}:${finding.boundary}:${finding.boundarySelector ?? ""}`,
+            finding,
+          )
+        }
+      }
+      break
+    }
+
+    await page.evaluate((next) => window.scrollTo(0, next), scroll.next)
+
+    if (pass === 239) {
+      throw new Error("Public-page reveal walk exceeded 240 viewport stops")
+    }
+  }
+
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await finishFiniteEntranceAnimations(page)
+  await page.evaluate(({ value, priority }) => {
+    const root = document.documentElement
+    if (value) root.style.setProperty("scroll-behavior", value, priority)
+    else root.style.removeProperty("scroll-behavior")
+  }, previousScrollBehavior)
+
+  if (!inspectReflow) {
+    const metrics = await page.evaluate(() => ({
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: Math.max(
+        document.documentElement.scrollWidth,
+        document.body.scrollWidth,
+      ),
+    }))
+    clientWidth = metrics.clientWidth
+    scrollWidth = metrics.scrollWidth
+  }
+
+  return {
+    clientWidth,
+    scrollWidth,
+    findings: Array.from(findings.values()),
+  }
 }
 
 export interface MeaningfulAnimation {

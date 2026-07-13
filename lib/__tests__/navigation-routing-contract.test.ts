@@ -80,13 +80,17 @@ describe("navigation routing contracts", () => {
     expect(animatedMobileMenu).toContain('aria-hidden="true"')
   })
 
-  it("animates the mobile drawer content with variant labels so links become visible", () => {
+  it("keeps reduced motion static and animates the default drawer with explicit variants", () => {
     const animatedMobileMenu = readFileSync(path.join(root, "components/ui/animated-mobile-menu.tsx"), "utf8")
 
+    expect(animatedMobileMenu).toContain("if (prefersReducedMotion)")
+    expect(animatedMobileMenu).toContain('data-mobile-menu-hydrated={isHydrated ? "true" : "false"}')
+    expect(animatedMobileMenu).toContain('data-mobile-menu-motion="static"')
+    expect(animatedMobileMenu).toContain('data-mobile-menu-motion="animated"')
     expect(animatedMobileMenu).toContain("menuContentVariants")
+    expect(animatedMobileMenu).toContain('initial="closed"')
     expect(animatedMobileMenu).toContain('animate="open"')
-    expect(animatedMobileMenu).toContain('initial={prefersReducedMotion ? false : "closed"}')
-    expect(animatedMobileMenu).toContain('exit={prefersReducedMotion ? undefined : "closed"}')
+    expect(animatedMobileMenu).toContain('exit="closed"')
   })
 
   it("defers first-interaction callbacks so they do not pre-empt the initiating nav click", () => {

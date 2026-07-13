@@ -35,17 +35,21 @@ export function PricingStickyCta({ targetId }: PricingStickyCtaProps) {
       {showStickyCTA && (
         <motion.div
           className="fixed bottom-0 left-0 right-0 z-40 lg:hidden"
-          initial={prefersReducedMotion ? {} : { y: "100%", opacity: 0 }}
+          initial={prefersReducedMotion ? { y: 0, opacity: 1 } : { y: "100%", opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={prefersReducedMotion ? {} : { y: "100%", opacity: 0 }}
+          exit={prefersReducedMotion ? { y: 0, opacity: 1 } : { y: "100%", opacity: 0 }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeOut" }}
         >
           <div className="border-t border-border/50 bg-white/95 px-4 pb-3 pt-2.5 shadow-lg backdrop-blur-xl safe-area-pb dark:bg-card/95">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col items-stretch gap-2 min-[241px]:flex-row min-[241px]:items-center min-[241px]:justify-between">
               <p className="text-sm font-medium text-foreground">
                 {PRICING_DISPLAY.FROM_MED_CERT}
               </p>
-              <Button asChild size="sm" className="shrink-0 shadow-md shadow-primary/20">
+              <Button
+                asChild
+                size="sm"
+                className="w-full min-[241px]:w-auto min-[241px]:shrink-0 shadow-md shadow-primary/20"
+              >
                 <Link href="/request">
                   Get started
                   <ArrowRight className="ml-1.5 h-3.5 w-3.5" />

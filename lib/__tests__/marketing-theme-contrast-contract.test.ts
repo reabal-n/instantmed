@@ -99,7 +99,8 @@ describe("marketing theme and serious-contrast contract", () => {
       "hero doctor primary card",
     )
 
-    expect(primaryCardOpening).toContain("initial={animate ? { y: 16 } : {}}")
+    expect(primaryCardOpening).toContain('initial={animate ? "hidden" : "reduced"}')
+    expect(primaryCardOpening).toContain("animate={entranceControls}")
     expect(primaryCardOpening).not.toContain("opacity")
   })
 
@@ -123,6 +124,18 @@ describe("marketing theme and serious-contrast contract", () => {
     )
     expect(medCertMockup).toContain("dark:text-white/60")
     expect(medCertMockup).not.toMatch(/dark:text-white\/(?:40|45)/)
+  })
+
+  it("uses the theme foreground token for the med-cert primary mark", () => {
+    const medCertMockup = read("components/marketing/mockups/med-cert-hero-mockup.tsx")
+    const primaryMark = requireMatch(
+      medCertMockup,
+      /<div className="w-7 h-7 rounded-md bg-primary[^"]*">([\s\S]*?)<\/div>/,
+      "med-cert primary mark",
+    )
+
+    expect(primaryMark).toContain("text-primary-foreground")
+    expect(primaryMark).not.toContain("text-white")
   })
 
   it("uses a dark-safe Stripe brand treatment on checkout trust badges", () => {

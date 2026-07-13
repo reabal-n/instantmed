@@ -1,6 +1,7 @@
 import {
   type Browser,
   expect,
+  type Locator,
   type Page,
   test,
   type TestInfo,
@@ -14,6 +15,7 @@ import {
   inspectMeaningfulHorizontalOverflow,
   MONEY_ROUTES,
   seedMoneyPageState,
+  walkPublicPageForReveals,
 } from "./helpers/money-pages"
 
 const REFLOW_STATES = [
@@ -38,6 +40,11 @@ const STICKY_SERVICE_ROUTES = [
   "/womens-health",
   "/uti-assessment-online",
   "/contraceptive-pill-assessment-online",
+] as const
+
+const STICKY_STRESS_STATES = [
+  { name: "zoom-200-proxy", width: 188, height: 422, deviceScaleFactor: 2 },
+  { name: "root-32-at-375", width: 375, height: 844, deviceScaleFactor: 1, rootFontSize: 32 },
 ] as const
 
 function projectBaseURL(testInfo: TestInfo): string {
@@ -81,10 +88,77 @@ async function waitTwoFrames(page: Page) {
   )
 }
 
+async function applyRootFontSize(page: Page, size?: number) {
+  if (!size) return
+  await page.addStyleTag({ content: `:root { font-size: ${size}px !important; }` })
+  await expect
+    .poll(() => page.evaluate(() => getComputedStyle(document.documentElement).fontSize))
+    .toBe(`${size}px`)
+}
+
+async function inspectVisibleStickyRegion(page: Page, region: Locator) {
+  const regionMetrics = await region.evaluate((element) => {
+    const rootRect = element.getBoundingClientRect()
+    const tolerance = 2
+    const failures: Array<{ kind: string; label: string; left: number; right: number }> = []
+    const clean = (value: string | null) => String(value ?? "").trim().replace(/\s+/g, " ").slice(0, 100)
+    const visible = (node: Element) => {
+      if (node.closest("[hidden],[inert],[aria-hidden='true'],.sr-only")) return false
+      const style = getComputedStyle(node)
+      const rect = node.getBoundingClientRect()
+      return style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity) > 0.01 && rect.width > 0 && rect.height > 0
+    }
+    const inspectRect = (kind: string, label: string, rect: DOMRect) => {
+      if (
+        rect.left < Math.max(0, rootRect.left) - tolerance ||
+        rect.right > Math.min(document.documentElement.clientWidth, rootRect.right) + tolerance
+      ) {
+        failures.push({ kind, label: clean(label), left: rect.left, right: rect.right })
+      }
+    }
+
+    for (const control of element.querySelectorAll<HTMLElement>('a[href],button,input,select,textarea')) {
+      if (visible(control)) inspectRect("control", control.getAttribute("aria-label") || control.textContent || control.tagName, control.getBoundingClientRect())
+    }
+
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+    while (walker.nextNode()) {
+      const text = walker.currentNode as Text
+      const parent = text.parentElement
+      if (!parent || !clean(text.textContent) || !visible(parent)) continue
+      const range = document.createRange()
+      range.selectNodeContents(text)
+      for (const rect of range.getClientRects()) {
+        if (rect.width > 0 && rect.height > 0) inspectRect("text", text.textContent || "", rect)
+      }
+    }
+
+    return {
+      top: rootRect.top,
+      bottom: rootRect.bottom,
+      left: rootRect.left,
+      right: rootRect.right,
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+      viewportWidth: document.documentElement.clientWidth,
+      viewportHeight: window.innerHeight,
+      failures,
+    }
+  })
+
+  const audit = await inspectMeaningfulHorizontalOverflow(page)
+  return { regionMetrics, audit }
+}
+
 async function inspectFocusedElement(page: Page) {
   return page.evaluate(() => {
     const element = document.activeElement
     if (!(element instanceof HTMLElement)) return null
+
+    const inlineTransition = element.style.getPropertyValue("transition")
+    const inlineTransitionPriority = element.style.getPropertyPriority("transition")
+    element.style.setProperty("transition", "none", "important")
+    void element.offsetWidth
 
     const focusedStyle = getComputedStyle(element)
     const rect = element.getBoundingClientRect()
@@ -95,10 +169,12 @@ async function inspectFocusedElement(page: Page) {
       outlineOffset: focusedStyle.outlineOffset,
       boxShadow: focusedStyle.boxShadow,
     }
+    const focusedVisibility = {
+      display: focusedStyle.display,
+      visibility: focusedStyle.visibility,
+      opacity: focusedStyle.opacity,
+    }
     const focusVisible = element.matches(":focus-visible")
-    const inlineTransition = element.style.getPropertyValue("transition")
-    const inlineTransitionPriority = element.style.getPropertyPriority("transition")
-    element.style.setProperty("transition", "none", "important")
 
     const sentinel = document.createElement("button")
     sentinel.tabIndex = -1
@@ -107,6 +183,7 @@ async function inspectFocusedElement(page: Page) {
       "position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none"
     document.body.append(sentinel)
     sentinel.focus({ preventScroll: true })
+    void element.offsetWidth
 
     const unfocusedStyle = getComputedStyle(element)
     const unfocusedPaint = {
@@ -119,25 +196,151 @@ async function inspectFocusedElement(page: Page) {
 
     sentinel.remove()
     element.focus({ preventScroll: true })
+
     if (inlineTransition) {
       element.style.setProperty("transition", inlineTransition, inlineTransitionPriority)
     } else {
       element.style.removeProperty("transition")
     }
 
-    const outlineVisible =
-      focusedPaint.outlineStyle !== "none" &&
-      Number.parseFloat(focusedPaint.outlineWidth) > 0
+    type Rgba = { r: number; g: number; b: number; a: number }
+
+    const canvas = document.createElement("canvas")
+    canvas.width = 1
+    canvas.height = 1
+    const context = canvas.getContext("2d", { willReadFrequently: true })
+
+    const parseColor = (value: string): Rgba | null => {
+      if (!context || !value || value === "none") return null
+      context.clearRect(0, 0, 1, 1)
+      context.fillStyle = "rgba(0, 0, 0, 0)"
+      try {
+        context.fillStyle = value
+      } catch {
+        return null
+      }
+      context.fillRect(0, 0, 1, 1)
+      const [r, g, b, alpha] = context.getImageData(0, 0, 1, 1).data
+      return { r, g, b, a: alpha / 255 }
+    }
+
+    const composite = (foreground: Rgba, background: Rgba): Rgba => {
+      const alpha = foreground.a + background.a * (1 - foreground.a)
+      if (alpha <= 0) return { r: 0, g: 0, b: 0, a: 0 }
+      return {
+        r: (foreground.r * foreground.a + background.r * background.a * (1 - foreground.a)) / alpha,
+        g: (foreground.g * foreground.a + background.g * background.a * (1 - foreground.a)) / alpha,
+        b: (foreground.b * foreground.a + background.b * background.a * (1 - foreground.a)) / alpha,
+        a: alpha,
+      }
+    }
+
+    const channel = (value: number) => {
+      const normalized = value / 255
+      return normalized <= 0.04045
+        ? normalized / 12.92
+        : ((normalized + 0.055) / 1.055) ** 2.4
+    }
+    const luminance = (color: Rgba) =>
+      0.2126 * channel(color.r) + 0.7152 * channel(color.g) + 0.0722 * channel(color.b)
+    const contrast = (a: Rgba, b: Rgba) => {
+      const lighter = Math.max(luminance(a), luminance(b))
+      const darker = Math.min(luminance(a), luminance(b))
+      return (lighter + 0.05) / (darker + 0.05)
+    }
+
+    const ancestors: HTMLElement[] = []
+    let backgroundNode: HTMLElement | null = element.parentElement
+    while (backgroundNode) {
+      ancestors.push(backgroundNode)
+      backgroundNode = backgroundNode.parentElement
+    }
+    let adjacentBackground: Rgba = { r: 255, g: 255, b: 255, a: 1 }
+    for (const ancestor of ancestors.reverse()) {
+      const layer = parseColor(getComputedStyle(ancestor).backgroundColor)
+      if (layer && layer.a > 0) adjacentBackground = composite(layer, adjacentBackground)
+    }
+
     const outlineChanged =
       focusedPaint.outlineStyle !== unfocusedPaint.outlineStyle ||
       focusedPaint.outlineWidth !== unfocusedPaint.outlineWidth ||
       focusedPaint.outlineColor !== unfocusedPaint.outlineColor ||
       focusedPaint.outlineOffset !== unfocusedPaint.outlineOffset
-    const ringChanged =
-      focusedPaint.boxShadow !== "none" &&
-      focusedPaint.boxShadow !== unfocusedPaint.boxShadow
+    const outlineWidth = Number.parseFloat(focusedPaint.outlineWidth) || 0
+    const outlineColor = parseColor(focusedPaint.outlineColor)
+    const outlineContrast =
+      focusedPaint.outlineStyle !== "none" &&
+      outlineChanged &&
+      outlineWidth >= 1 &&
+      outlineColor &&
+      outlineColor.a > 0.01
+        ? contrast(composite(outlineColor, adjacentBackground), adjacentBackground)
+        : 0
+
+    const splitShadows = (value: string) => {
+      const layers: string[] = []
+      let depth = 0
+      let start = 0
+      for (let index = 0; index < value.length; index += 1) {
+        const character = value[index]
+        if (character === "(") depth += 1
+        if (character === ")") depth = Math.max(0, depth - 1)
+        if (character === "," && depth === 0) {
+          layers.push(value.slice(start, index).trim())
+          start = index + 1
+        }
+      }
+      layers.push(value.slice(start).trim())
+      return layers.filter(Boolean)
+    }
+
+    const unfocusedLayers = new Set(splitShadows(unfocusedPaint.boxShadow))
+    const colorToken = /(rgba?\([^)]*\)|oklch\([^)]*\)|oklab\([^)]*\)|hsla?\([^)]*\)|#[0-9a-f]{3,8})/i
+    let ringGeometry = 0
+    let ringContrast = 0
+
+    for (const layer of splitShadows(focusedPaint.boxShadow)) {
+      if (layer === "none" || unfocusedLayers.has(layer)) continue
+      const token = layer.match(colorToken)?.[0]
+      if (!token) continue
+      const color = parseColor(token)
+      if (!color || color.a <= 0.01) continue
+
+      const lengths = layer
+        .replace(token, "")
+        .match(/-?\d*\.?\d+px/g)
+        ?.map((value) => Math.abs(Number.parseFloat(value))) ?? []
+      const [x = 0, y = 0, blur = 0, spread = 0] = lengths
+      const geometry = Math.max(x, y) + blur + spread
+      if (geometry < 1) continue
+
+      ringGeometry = Math.max(ringGeometry, geometry)
+      ringContrast = Math.max(
+        ringContrast,
+        contrast(composite(color, adjacentBackground), adjacentBackground),
+      )
+    }
+
+    const indicatorGeometry = Math.max(outlineWidth, ringGeometry)
+    const indicatorContrast = Math.max(outlineContrast, ringContrast)
+
+    const path: string[] = []
+    let pathNode: Element | null = element
+    while (pathNode && pathNode !== document.body) {
+      if (pathNode.id) {
+        path.unshift(`${pathNode.tagName.toLowerCase()}#${pathNode.id}`)
+        break
+      }
+      const tag = pathNode.tagName.toLowerCase()
+      const siblings = pathNode.parentElement
+        ? Array.from(pathNode.parentElement.children).filter((child) => child.tagName === pathNode?.tagName)
+        : []
+      path.unshift(`${tag}:nth-of-type(${Math.max(1, siblings.indexOf(pathNode) + 1)})`)
+      pathNode = pathNode.parentElement
+    }
 
     return {
+      focusKey: `${path.join(">")}::${element.getAttribute("href") ?? ""}::${element.getAttribute("aria-label") ?? ""}`,
       tag: element.tagName.toLowerCase(),
       name: String(
         element.getAttribute("aria-label") ||
@@ -149,9 +352,9 @@ async function inspectFocusedElement(page: Page) {
         .replace(/\s+/g, " ")
         .slice(0, 120),
       visible:
-        focusedStyle.display !== "none" &&
-        focusedStyle.visibility !== "hidden" &&
-        Number(focusedStyle.opacity) > 0.01 &&
+        focusedVisibility.display !== "none" &&
+        focusedVisibility.visibility !== "hidden" &&
+        Number(focusedVisibility.opacity) > 0.01 &&
         rect.width > 0 &&
         rect.height > 0,
       intersectsViewport:
@@ -159,7 +362,11 @@ async function inspectFocusedElement(page: Page) {
         rect.left < window.innerWidth &&
         rect.bottom > 0 &&
         rect.top < window.innerHeight,
-      focusIndicator: focusVisible && ((outlineVisible && outlineChanged) || ringChanged),
+      isSkipLink: element.matches('a[href="#main-content"]'),
+      focusIndicator:
+        focusVisible && indicatorGeometry >= 1 && indicatorContrast >= 3,
+      indicatorGeometry: Math.round(indicatorGeometry * 100) / 100,
+      indicatorContrast: Math.round(indicatorContrast * 100) / 100,
     }
   })
 }
@@ -191,6 +398,33 @@ async function collectReducedMotionFindings(page: Page) {
       ]),
     ).values(),
   )
+}
+
+async function inspectReducedMotionFinalState(page: Page) {
+  return page.evaluate(() => {
+    const identityTransforms = new Set([
+      "none",
+      "matrix(1, 0, 0, 1, 0, 0)",
+      "matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)",
+    ])
+    const elements = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-reduced-motion-final]"),
+    )
+
+    return {
+      count: elements.length,
+      failures: elements.flatMap((element) => {
+        const style = getComputedStyle(element)
+        const opacity = Number(style.opacity)
+        if (opacity >= 0.999 && identityTransforms.has(style.transform)) return []
+        return [{
+          marker: element.dataset.reducedMotionFinal,
+          opacity: style.opacity,
+          transform: style.transform,
+        }]
+      }),
+    }
+  })
 }
 
 async function inspectPatientTargets(page: Page) {
@@ -262,9 +496,7 @@ test.describe("money-page responsive foundations", () => {
               .poll(() => page.evaluate(() => getComputedStyle(document.documentElement).fontSize))
               .toBe("32px")
           }
-          await finishFiniteEntranceAnimations(page)
-
-          const audit = await inspectMeaningfulHorizontalOverflow(page)
+          const audit = await walkPublicPageForReveals(page, { inspectReflow: true })
           expect(
             audit.scrollWidth,
             `${route.path} ${state.name} document width`,
@@ -280,7 +512,7 @@ test.describe("money-page responsive foundations", () => {
     })
   }
 
-  test("request progress preserves 48px height while releasing min-width at the zoom proxy", async ({ browser }, testInfo) => {
+  test("request progress preserves 48px actionable targets without overlap at the zoom proxy", async ({ browser }, testInfo) => {
     const { context, page } = await newFoundationPage(browser, testInfo, {
       width: 188,
       height: 422,
@@ -296,31 +528,103 @@ test.describe("money-page responsive foundations", () => {
       const metrics = await progress.evaluate((nav) => {
         const navRect = nav.getBoundingClientRect()
         const buttons = Array.from(
-          nav.querySelectorAll<HTMLElement>('[data-request-progress-step="true"]'),
+          nav.querySelectorAll<HTMLElement>('[data-request-progress-actionable="true"]'),
         ).map((button) => {
           const style = getComputedStyle(button)
           const rect = button.getBoundingClientRect()
           return {
             minWidth: style.minWidth,
             minHeight: style.minHeight,
+            width: rect.width,
             height: rect.height,
+            left: rect.left,
+            right: rect.right,
+            top: rect.top,
+            bottom: rect.bottom,
           }
         })
+        const overlaps = buttons.flatMap((button, index) =>
+          buttons.slice(index + 1).filter((other) =>
+            button.left < other.right - 1 &&
+            button.right > other.left + 1 &&
+            button.top < other.bottom - 1 &&
+            button.bottom > other.top + 1,
+          ).map(() => index),
+        )
         return {
           left: navRect.left,
           right: navRect.right,
           viewportWidth: document.documentElement.clientWidth,
           buttons,
+          overlaps,
         }
       })
 
       expect(metrics.left).toBeGreaterThanOrEqual(-1)
       expect(metrics.right).toBeLessThanOrEqual(metrics.viewportWidth + 1)
+      expect(metrics.buttons.length).toBeGreaterThan(0)
+      expect(metrics.overlaps).toEqual([])
       for (const button of metrics.buttons) {
-        expect(button.minWidth).toBe("0px")
+        expect(Number.parseFloat(button.minWidth)).toBeGreaterThanOrEqual(48)
         expect(Number.parseFloat(button.minHeight)).toBeGreaterThanOrEqual(48)
+        expect(button.width).toBeGreaterThanOrEqual(47.5)
         expect(button.height).toBeGreaterThanOrEqual(47.5)
       }
+    } finally {
+      await context.close()
+    }
+  })
+
+  test("the open mobile drawer stays bounded and closable at the zoom proxy", async ({ browser }, testInfo) => {
+    const { context, page } = await newFoundationPage(browser, testInfo, {
+      width: 188,
+      height: 422,
+      deviceScaleFactor: 2,
+    })
+    try {
+      await gotoPublicRoute(page, "/")
+      await expect(page.locator('nav[data-mobile-menu-hydrated="true"]')).toBeAttached()
+      await page.getByRole("button", { name: "Open menu" }).click()
+      await expect(page.getByRole("button", { name: "Close menu" })).toHaveAttribute("aria-expanded", "true")
+      const content = page.locator('[data-mobile-menu-content="true"]')
+      const panel = page.locator('[data-mobile-menu-panel="true"]')
+      const close = page.getByRole("button", { name: "Close menu" })
+      await expect(content).toBeVisible()
+      await expect(panel).toBeVisible()
+      await expect(close).toBeVisible()
+      await finishFiniteEntranceAnimations(page)
+
+      const bounds = await content.evaluate((element) => {
+        const rect = element.getBoundingClientRect()
+        const closeButton = document.querySelector<HTMLElement>('button[aria-label="Close menu"]')
+        const closeRect = closeButton?.getBoundingClientRect()
+        return {
+          left: rect.left,
+          right: rect.right,
+          width: rect.width,
+          clientWidth: element.clientWidth,
+          scrollWidth: element.scrollWidth,
+          viewportWidth: document.documentElement.clientWidth,
+          bodyOverflow: getComputedStyle(document.body).overflow,
+          closeLeft: closeRect?.left ?? -1,
+          closeRight: closeRect?.right ?? Number.POSITIVE_INFINITY,
+        }
+      })
+      expect(bounds.left).toBeGreaterThanOrEqual(-1)
+      expect(bounds.right).toBeLessThanOrEqual(bounds.viewportWidth + 1)
+      expect(bounds.width).toBeLessThanOrEqual(bounds.viewportWidth + 1)
+      expect(bounds.scrollWidth).toBeLessThanOrEqual(bounds.clientWidth + 1)
+      expect(bounds.closeLeft).toBeGreaterThanOrEqual(-1)
+      expect(bounds.closeRight).toBeLessThanOrEqual(bounds.viewportWidth + 1)
+      expect(bounds.bodyOverflow).toBe("hidden")
+
+      const audit = await inspectMeaningfulHorizontalOverflow(page)
+      expect(audit.scrollWidth).toBeLessThanOrEqual(audit.clientWidth + 1)
+      expect(audit.findings).toEqual([])
+
+      await close.click()
+      await expect(content).toBeHidden()
+      await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).overflow)).not.toBe("hidden")
     } finally {
       await context.close()
     }
@@ -335,35 +639,144 @@ test.describe("money-page keyboard foundations", () => {
       await seedMoneyPageState(page, "light")
       await gotoPublicRoute(page, route.path)
       await finishFiniteEntranceAnimations(page)
+      await page.addStyleTag({
+        content: `
+          html { scroll-behavior: auto !important; }
+          *, *::before, *::after {
+            transition-property: none !important;
+            transition-duration: 0s !important;
+            transition-delay: 0s !important;
+          }
+        `,
+      })
       await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
 
       const skipLink = page.locator('a[href="#main-content"]').first()
       await page.keyboard.press("Tab")
       await expect(skipLink).toBeFocused()
       await expect(skipLink).toBeVisible()
+      const skipFocus = await inspectFocusedElement(page)
+      expect(skipFocus?.isSkipLink).toBe(true)
+      expect(
+        skipFocus?.focusIndicator,
+        `${route.path} skip link focus paint:\n${JSON.stringify(skipFocus, null, 2)}`,
+      ).toBe(true)
 
+      await expect(skipLink).toHaveAttribute("href", "#main-content")
       await page.keyboard.press("Enter")
-      await expect(page.locator("#main-content")).toBeFocused()
-      await expect.poll(() => new URL(page.url()).hash).toBe("#main-content")
+      const mainContent = page.locator("#main-content")
+      await expect(mainContent).toBeFocused()
+      expect(
+        await mainContent.evaluate((element) => {
+          const rect = element.getBoundingClientRect()
+          return rect.right > 0 && rect.left < innerWidth && rect.bottom > 0 && rect.top < innerHeight
+        }),
+        `${route.path} skip target should intersect the viewport`,
+      ).toBe(true)
 
-      for (let index = 0; index < 5; index += 1) {
+      const seen = new Set<string>()
+      let completedCycle = false
+      let browserBoundaryTransitions = 0
+      let expectingSkipAfterBoundary = false
+      for (let index = 0; index < 240; index += 1) {
         await page.keyboard.press("Tab")
-        await expect
-          .poll(() => inspectFocusedElement(page), {
-            message: `${route.path} focus ${index + 1} should settle visibly inside the viewport`,
+        const activeTag = await page.evaluate(() => document.activeElement?.tagName.toLowerCase() ?? "none")
+        if (activeTag === "body" || activeTag === "nextjs-portal") {
+          if (!expectingSkipAfterBoundary) browserBoundaryTransitions += 1
+          expect(
+            browserBoundaryTransitions,
+            `${route.path} should cross the browser or Next.js dev-tools focus boundary at most once`,
+          ).toBeLessThanOrEqual(1)
+          expectingSkipAfterBoundary = true
+          continue
+        }
+
+        let focusViewportObservation: Record<string, unknown> | null = null
+        await expect(async () => {
+          focusViewportObservation = await page.evaluate(() => {
+            const active = document.activeElement
+            if (!(active instanceof HTMLElement)) return { intersects: false, tag: "none" }
+            const rect = active.getBoundingClientRect()
+            const style = getComputedStyle(active)
+            const inertAncestor = active.closest("[inert]")
+            return {
+              intersects:
+                rect.right > 0 &&
+                rect.left < window.innerWidth &&
+                rect.bottom > 0 &&
+                rect.top < window.innerHeight,
+              tag: active.tagName.toLowerCase(),
+              name: String(
+                active.getAttribute("aria-label") ||
+                active.textContent ||
+                active.getAttribute("href") ||
+                active.id,
+              ).trim().replace(/\s+/g, " ").slice(0, 120),
+              href: active.getAttribute("href") || "",
+              left: Math.round(rect.left),
+              right: Math.round(rect.right),
+              top: Math.round(rect.top),
+              bottom: Math.round(rect.bottom),
+              width: Math.round(rect.width),
+              height: Math.round(rect.height),
+              position: style.position,
+              transform: style.transform,
+              visibility: style.visibility,
+              opacity: style.opacity,
+              inert: Boolean(inertAncestor),
+              inertAncestor: inertAncestor?.tagName.toLowerCase() ?? "",
+              disabled: active.matches(":disabled"),
+              connected: active.isConnected,
+              scrollY: Math.round(window.scrollY),
+              viewportWidth: window.innerWidth,
+              viewportHeight: window.innerHeight,
+              intentionalOverflow: Boolean(active.closest('[role="marquee"],[data-a11y-intentional-overflow="true"]')),
+            }
           })
-          .toMatchObject({
-            visible: true,
-            intersectsViewport: true,
-            focusIndicator: true,
-          })
+          expect(
+            focusViewportObservation,
+            `${route.path} focus ${index + 1} should settle inside the viewport:\n${JSON.stringify(focusViewportObservation, null, 2)}`,
+          ).toMatchObject({ intersects: true })
+        }).toPass({ timeout: 5_000 })
         const focused = await inspectFocusedElement(page)
         expect(focused, `${route.path} focus ${index + 1}`).not.toBeNull()
-        expect(focused?.tag, `${route.path} focus ${index + 1}`).not.toBe("body")
+        if (expectingSkipAfterBoundary) {
+          expect(
+            focused?.isSkipLink,
+            `${route.path} should return directly to the skip link after the focus boundary`,
+          ).toBe(true)
+        }
+        if (focused?.isSkipLink) {
+          completedCycle = true
+          break
+        }
+
+        expect(
+          seen.has(focused?.focusKey ?? ""),
+          `${route.path} repeated ${focused?.focusKey} before completing the keyboard cycle`,
+        ).toBe(false)
+        seen.add(focused?.focusKey ?? "")
+
+        expect(
+          focused,
+          `${route.path} focus ${index + 1} paint:\n${JSON.stringify(focused, null, 2)}`,
+        ).toMatchObject({
+          visible: true,
+          intersectsViewport: true,
+          focusIndicator: true,
+        })
+        expect(
+          focused?.indicatorGeometry ?? 0,
+          `${route.path} ${focused?.name} focus indicator geometry`,
+        ).toBeGreaterThanOrEqual(1)
+        expect(
+          focused?.indicatorContrast ?? 0,
+          `${route.path} ${focused?.name} focus indicator contrast`,
+        ).toBeGreaterThanOrEqual(3)
       }
 
-      await page.keyboard.press("Shift+Tab")
-      expect((await inspectFocusedElement(page))?.tag).not.toBe("body")
+      expect(completedCycle, `${route.path} should complete a full keyboard focus cycle`).toBe(true)
+      expect(seen.size, `${route.path} should expose at least one post-skip focus target`).toBeGreaterThan(0)
     })
   }
 })
@@ -387,6 +800,14 @@ test.describe("money-page reduced-motion foundations", () => {
           findings,
           `${route.path} reduced-motion timelines:\n${JSON.stringify(findings, null, 2)}`,
         ).toEqual([])
+        const finalState = await inspectReducedMotionFinalState(page)
+        expect(
+          finalState.failures,
+          `${route.path} reduced-motion final paint:\n${JSON.stringify(finalState.failures, null, 2)}`,
+        ).toEqual([])
+        if (route.path === "/") {
+          expect(finalState.count, "homepage reduced-motion final-state markers").toBeGreaterThan(1)
+        }
 
         if (route.path === "/") {
           const staticMenu = page.locator('nav[data-mobile-menu-motion="static"]')
@@ -484,6 +905,46 @@ test.describe("mobile sticky purchase foundations", () => {
         .poll(async () => (await region.boundingBox())?.y ?? 0)
         .toBeGreaterThanOrEqual(843)
     })
+
+    test(`${path} keeps the expanded Quick purchase usable in sticky stress states`, async ({ browser }, testInfo) => {
+      test.setTimeout(120_000)
+
+      for (const state of STICKY_STRESS_STATES) {
+        const { context, page } = await newFoundationPage(browser, testInfo, state)
+        try {
+          await gotoPublicRoute(page, path)
+          await applyRootFontSize(page, "rootFontSize" in state ? state.rootFontSize : undefined)
+
+          const region = page.locator('[role="region"][aria-label="Quick purchase"]')
+          await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+          await waitTwoFrames(page)
+          await expect.poll(() => region.evaluate((element) => element.hasAttribute("inert"))).toBe(false)
+
+          // An upward beat restores the expanded summary while leaving the
+          // hero out of view, so the stress assertion covers every sticky row.
+          await page.evaluate(() => window.scrollBy(0, -24))
+          await waitTwoFrames(page)
+          await expect.poll(() => region.evaluate((element) => element.hasAttribute("inert"))).toBe(false)
+          await finishFiniteEntranceAnimations(page)
+          await expect.poll(async () => {
+            const rect = await region.boundingBox()
+            return rect ? rect.y + rect.height : Number.POSITIVE_INFINITY
+          }).toBeLessThanOrEqual(state.height + 1)
+
+          const { regionMetrics, audit } = await inspectVisibleStickyRegion(page, region)
+          expect(regionMetrics.top, `${path} ${state.name} sticky top`).toBeGreaterThanOrEqual(-1)
+          expect(regionMetrics.bottom, `${path} ${state.name} sticky bottom`).toBeLessThanOrEqual(regionMetrics.viewportHeight + 1)
+          expect(regionMetrics.left, `${path} ${state.name} sticky left`).toBeGreaterThanOrEqual(-1)
+          expect(regionMetrics.right, `${path} ${state.name} sticky right`).toBeLessThanOrEqual(regionMetrics.viewportWidth + 1)
+          expect(regionMetrics.scrollWidth, `${path} ${state.name} sticky local width`).toBeLessThanOrEqual(regionMetrics.clientWidth + 1)
+          expect(regionMetrics.failures, `${path} ${state.name} sticky content overflow`).toEqual([])
+          expect(audit.scrollWidth, `${path} ${state.name} document width`).toBeLessThanOrEqual(audit.clientWidth + 1)
+          expect(audit.findings, `${path} ${state.name} semantic overflow`).toEqual([])
+        } finally {
+          await context.close()
+        }
+      }
+    })
   }
 
   test("pricing sticky CTA settles fully inside the mobile viewport", async ({ page }) => {
@@ -513,6 +974,39 @@ test.describe("mobile sticky purchase foundations", () => {
           : null
       })
       .toEqual({ topInside: true, bottomInside: true })
+  })
+
+  test("pricing sticky CTA remains usable in sticky stress states", async ({ browser }, testInfo) => {
+    for (const state of STICKY_STRESS_STATES) {
+      const { context, page } = await newFoundationPage(browser, testInfo, state)
+      try {
+        await gotoPublicRoute(page, "/pricing")
+        await applyRootFontSize(page, "rootFontSize" in state ? state.rootFontSize : undefined)
+        const pricingCards = page.locator("#pricing-cards")
+        await pricingCards.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+
+        const sticky = page
+          .locator("div.fixed.bottom-0")
+          .filter({ has: page.getByRole("link", { name: "Get started", exact: true }) })
+          .last()
+        await expect(sticky).toBeVisible()
+        await expect.poll(async () => {
+          const rect = await sticky.boundingBox()
+          return rect ? rect.y + rect.height : Number.POSITIVE_INFINITY
+        }).toBeLessThanOrEqual(state.height + 1)
+        await finishFiniteEntranceAnimations(page)
+
+        const { regionMetrics, audit } = await inspectVisibleStickyRegion(page, sticky)
+        expect(regionMetrics.top, `${state.name} pricing sticky top`).toBeGreaterThanOrEqual(-1)
+        expect(regionMetrics.bottom, `${state.name} pricing sticky bottom`).toBeLessThanOrEqual(regionMetrics.viewportHeight + 1)
+        expect(regionMetrics.scrollWidth, `${state.name} pricing sticky local width`).toBeLessThanOrEqual(regionMetrics.clientWidth + 1)
+        expect(regionMetrics.failures, `${state.name} pricing sticky content overflow`).toEqual([])
+        expect(audit.scrollWidth, `${state.name} pricing document width`).toBeLessThanOrEqual(audit.clientWidth + 1)
+        expect(audit.findings, `${state.name} pricing semantic overflow`).toEqual([])
+      } finally {
+        await context.close()
+      }
+    }
   })
 })
 

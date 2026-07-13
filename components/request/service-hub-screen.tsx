@@ -306,7 +306,7 @@ function CompactServiceRow({
         className={requestCx(
           "w-full text-left group px-4 py-3.5",
           "hover:bg-muted/50 active:scale-[0.99] active:bg-muted/60 dark:hover:bg-white/[0.08]",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           "transition-[background-color,transform] duration-150",
         )}
       >
@@ -326,10 +326,12 @@ function CompactServiceRow({
                 </span>
               )}
             </div>
-            <p id={descriptionId} className="text-sm leading-snug text-muted-foreground mt-0.5">
+            <p id={descriptionId} className="mt-0.5 min-w-0 text-sm leading-snug text-muted-foreground">
               {subtitle}
-              <span className="text-border-em mx-1.5">·</span>
-              {effort}
+              <span className="mx-1.5 hidden text-border-em min-[240px]:inline">·</span>
+              <span className="mt-1 block text-xs min-[240px]:mt-0 min-[240px]:inline min-[240px]:text-sm">
+                {effort}
+              </span>
             </p>
           </div>
 

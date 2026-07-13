@@ -11,12 +11,12 @@ import { expect, type Page, test } from "@playwright/test"
 
 import {
   assertResolvedTheme,
-  finishFiniteEntranceAnimations,
   gotoPublicRoute,
   LEGACY_LIGHT_ROUTES,
   MONEY_ROUTES,
   type MoneyPageTheme,
   seedMoneyPageState,
+  walkPublicPageForReveals,
 } from "./helpers/money-pages"
 
 type AxeResults = Awaited<ReturnType<AxeBuilder["analyze"]>>
@@ -25,7 +25,11 @@ async function runAxe(page: Page, path: string, theme: MoneyPageTheme) {
   await seedMoneyPageState(page, theme)
   await gotoPublicRoute(page, path)
   await assertResolvedTheme(page, theme)
-  await finishFiniteEntranceAnimations(page)
+  // Walk every viewport before Axe so intersection-triggered sections are
+  // visible and their finite entrances have reached the real final paint.
+  // Infinite status indicators remain active; the helper only finishes
+  // bounded entrance animations.
+  await walkPublicPageForReveals(page)
 
   return new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
@@ -65,6 +69,8 @@ async function assertDarkCanvasPaint(page: Page) {
 
   expect(paint.htmlBackground).toBe(paint.probeBackground)
   expect(paint.bodyBackground).toBe(paint.probeBackground)
+  expect(paint.htmlBackground).toBe("rgb(11, 17, 32)")
+  expect(paint.bodyBackground).toBe("rgb(11, 17, 32)")
   expect(paint.bodyForeground).toBe(paint.probeForeground)
   expect(paint.colorScheme).toContain("dark")
 }

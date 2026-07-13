@@ -128,7 +128,7 @@ export const MenuToggle = ({ toggle, isOpen }: MenuToggleProps) => {
         "bg-transparent",
         "hover:bg-card/50 dark:hover:bg-white/10",
         "transition-colors duration-200",
-        "outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+        "outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       )}
       aria-label={isOpen ? "Close menu" : "Open menu"}
       aria-expanded={isOpen}
@@ -318,8 +318,11 @@ export function AnimatedMobileMenu({
   footer,
 }: AnimatedMobileMenuProps) {
   const prefersReducedMotion = useReducedMotion()
+  const [isHydrated, setIsHydrated] = React.useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const { height } = useDimensions(containerRef)
+
+  useEffect(() => setIsHydrated(true), [])
 
   // Close menu on escape key
   useEffect(() => {
@@ -346,7 +349,11 @@ export function AnimatedMobileMenu({
 
   if (prefersReducedMotion) {
     return (
-      <nav data-mobile-menu-motion="static" className="md:hidden">
+      <nav
+        data-mobile-menu-hydrated={isHydrated ? "true" : "false"}
+        data-mobile-menu-motion="static"
+        className="md:hidden"
+      >
         {isOpen ? (
           <>
             <div
@@ -357,7 +364,7 @@ export function AnimatedMobileMenu({
               data-mobile-menu-panel="true"
               aria-hidden="true"
               className={cn(
-                "fixed top-0 right-0 bottom-0 z-40 w-[300px]",
+                "fixed top-0 right-0 bottom-0 z-40 w-full max-w-[300px]",
                 "bg-card/85 dark:bg-white/10",
                 "backdrop-blur-2xl",
                 "border-l border-border/50 dark:border-white/15",
@@ -366,7 +373,7 @@ export function AnimatedMobileMenu({
             />
             <div
               data-mobile-menu-content="true"
-              className="fixed top-0 right-0 bottom-0 z-50 flex w-[300px] flex-col"
+              className="fixed top-0 right-0 bottom-0 z-50 flex w-full max-w-[300px] flex-col"
             >
               {header ? (
                 <div className="border-b border-border/30 p-5">{header}</div>
@@ -384,6 +391,7 @@ export function AnimatedMobileMenu({
 
   return (
     <motion.nav
+      data-mobile-menu-hydrated={isHydrated ? "true" : "false"}
       data-mobile-menu-motion="animated"
       initial={{}}
       animate={isOpen ? "open" : "closed"}
@@ -410,7 +418,7 @@ export function AnimatedMobileMenu({
         data-mobile-menu-panel="true"
         variants={sidebarVariants}
         className={cn(
-          "fixed top-0 right-0 bottom-0 z-40 w-[300px]",
+          "fixed top-0 right-0 bottom-0 z-40 w-full max-w-[300px]",
           // Glass surface
           "bg-card/85 dark:bg-white/10",
           "backdrop-blur-2xl",
@@ -430,7 +438,7 @@ export function AnimatedMobileMenu({
             initial="closed"
             animate="open"
             exit="closed"
-            className="fixed top-0 right-0 bottom-0 z-50 w-[300px] flex flex-col"
+            className="fixed top-0 right-0 bottom-0 z-50 flex w-full max-w-[300px] flex-col"
           >
             {/* Header */}
             {header && (
