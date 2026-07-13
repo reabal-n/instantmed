@@ -2,6 +2,11 @@
 
 > Tracks breaking and notable changes to the InstantMed design system. Pin against `DESIGN_SYSTEM_VERSION` in `lib/design-system/version.ts`.
 
+## [Unreleased]
+
+### Added
+- `--primary-strong` / `text-primary-strong` for AA-safe small primary text on primary tints. Light mode uses `#1D4ED8`; dark mode maps to the existing primary. This is additive and does not require a version bump.
+
 ## [2.0.2] — 2026-05-01
 
 ### Removed

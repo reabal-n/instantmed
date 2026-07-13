@@ -37,6 +37,18 @@ describe("marketing theme and serious-contrast contract", () => {
     expect(sharedTheme).toContain("--color-primary-strong: var(--primary-strong);")
   })
 
+  it("pins primary-strong to the canonical design docs and unreleased changelog", () => {
+    const design = read("DESIGN.md")
+    const changelog = read("docs/DESIGN_SYSTEM_CHANGELOG.md")
+
+    expect(design).toContain("--primary-strong: #1D4ED8;")
+    expect(design).toContain("`text-primary-strong`")
+    expect(design).toContain("small text on primary tints")
+    expect(changelog).toMatch(/^# Design System Changelog/)
+    expect(changelog.indexOf("## [Unreleased]")).toBeLessThan(changelog.indexOf("## [2.0.2]"))
+    expect(changelog).toContain("`--primary-strong` / `text-primary-strong`")
+  })
+
   it("uses primary-strong for the shared AHPRA badge and repeated pricing badges", () => {
     const sources = [
       "components/marketing/sections/doctor-profile-section.tsx",
@@ -70,7 +82,7 @@ describe("marketing theme and serious-contrast contract", () => {
       "hero doctor primary card",
     )
 
-    expect(primaryCardOpening).toContain("initial={animate ? { y: 16 } : false}")
+    expect(primaryCardOpening).toContain("initial={animate ? { y: 16 } : {}}")
     expect(primaryCardOpening).not.toContain("opacity")
   })
 

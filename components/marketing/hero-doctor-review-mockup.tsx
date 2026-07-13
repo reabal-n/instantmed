@@ -157,7 +157,7 @@ export function HeroDoctorReviewMockup() {
       {/* Primary card */}
       <motion.div
         className="relative rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-xl shadow-primary/[0.08] dark:shadow-none overflow-hidden"
-        initial={animate ? { y: 16 } : false}
+        initial={animate ? { y: 16 } : {}}
         animate={{ y: 0 }}
         transition={{ duration: 0.3, delay: 0.1, ease: [0, 0, 0.2, 1] }}
       >
