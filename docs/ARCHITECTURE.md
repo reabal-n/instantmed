@@ -775,9 +775,9 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `doctor/` | IntakeReviewPanel, RepeatPrescriptionChecklist, clinical views |
 | `admin/` | Admin-specific panels and views |
 | `patient/` | ReferralCard, CrossSellCard, dashboard components |
-| `providers/` | PostHogProvider, ThemeProvider, MotionProvider |
+| `providers/` | AttributionCapture, GlobalDeferredClients, PostHogLoader, ServiceAvailabilityProvider |
 | `heroes/` | Morning Canvas hero variants (Split, Centered, Stats, FullBleed) |
-| `ui/morning/` | Morning Canvas primitives (MeshGradientCanvas, WordReveal, PerspectiveTiltCard) |
+| `ui/morning/` | Morning Canvas primitives (MorningSkyBackground, NavigationProgress, WordReveal, PerspectiveTiltCard) |
 | `ui/skeleton.tsx` | SkeletonCard, SkeletonForm, SkeletonList, SkeletonDashboard, Spinner |
 
 ### `lib/`

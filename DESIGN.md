@@ -294,7 +294,7 @@ Centered headline + animated stat counters. Used on: pricing, trust.
 
 ### Hero Rules
 
-- Morning gradient background (`MeshGradientCanvas`) on all marketing heroes
+- Ambient `MorningSkyBackground` supplied by the canonical `MarketingPageShell`; do not mount a second canvas per hero
 - Availability indicator badge where relevant
 - Emergency disclaimer on clinical service pages
 - Trust badges below CTA (AHPRA, response time, refund guarantee)
@@ -499,7 +499,7 @@ Two curves. Use the right one:
 
 No CSS custom properties for easing exist. For CSS transitions, use `ease-out` keyword or inline the cubic-bezier.
 
-**Note:** `[0.25, 0.1, 0.25, 1]` (CSS standard `ease`) appears in 15+ section/marketing components and `PageTransitionProvider`. Not exported from `lib/motion/index.ts` - components use it inline. Intentional.
+**Note:** `[0.25, 0.1, 0.25, 1]` (CSS standard `ease`) appears in section and marketing components. It is not exported from `lib/motion/index.ts`; those components use it inline intentionally.
 
 ### Duration Tokens
 
@@ -584,7 +584,7 @@ import { sessionPanelVariants, drawerVariants, sheetVariants } from '@/lib/motio
 
 ### Page Transitions
 
-`PageTransitionProvider` uses opacity + subtle translateY (6px enter, -4px exit), 250ms, ease `[0.25, 0.1, 0.25, 1]`. Kept minimal.
+Root-level page transitions are intentionally not mounted. The root layout renders route children directly, while `NavigationProgress` provides navigation feedback after deferred client startup. Keep motion local to the component that owns it rather than wrapping the entire application.
 
 **Asymmetric timing rule:** Enter slower than exit. If an element enters over 200ms, it exits in 100ms or less.
 
