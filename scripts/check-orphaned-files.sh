@@ -13,6 +13,7 @@
 #   9. Retired public assets with no runtime consumers
 #  10. Retired vacuous E2E specs
 #  11. Superseded staff and data sidecars
+#  12. Unused copy catalogs and parallel flow models
 #
 # Exit 1 if any orphans found.
 
@@ -415,6 +416,24 @@ for retired_staff_sidecar in \
 do
   if [[ -e "$retired_staff_sidecar" ]]; then
     echo "ORPHAN: $retired_staff_sidecar still exists (superseded staff or data sidecar)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 12. Unused copy catalogs and parallel flow models ────────────────────
+for retired_catalog in \
+  "lib/microcopy/buttons.ts" \
+  "lib/microcopy/errors.ts" \
+  "lib/microcopy/feedback.ts" \
+  "lib/microcopy/prescription.ts" \
+  "lib/microcopy/referral.ts" \
+  "lib/microcopy/repeat-rx.ts" \
+  "types/marketing.ts" \
+  "types/med-cert.ts" \
+  "types/repeat-rx.ts"
+do
+  if [[ -e "$retired_catalog" ]]; then
+    echo "ORPHAN: $retired_catalog still exists (unused copy catalog or parallel flow model)"
     orphans=$((orphans + 1))
   fi
 done

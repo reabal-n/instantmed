@@ -101,6 +101,30 @@ describe("code-clean retirement contracts", () => {
     )
   })
 
+  it("keeps unused copy catalogs and parallel flow models retired", () => {
+    const retiredCatalogs = [
+      "lib/microcopy/buttons.ts",
+      "lib/microcopy/errors.ts",
+      "lib/microcopy/feedback.ts",
+      "lib/microcopy/prescription.ts",
+      "lib/microcopy/referral.ts",
+      "lib/microcopy/repeat-rx.ts",
+      "types/marketing.ts",
+      "types/med-cert.ts",
+      "types/repeat-rx.ts",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredCatalogs) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("lib/microcopy/universal.ts")).toContain("export const COPY")
+    expect(read("lib/validation/schemas.ts")).toContain("medCertRequestSchema")
+    expect(read("lib/validation/repeat-script-schema.ts")).toContain("validateRepeatScriptPayload")
+  })
+
   it("keeps stale patient quick-reorder APIs out of the route tree", () => {
     const retiredPatientApis = [
       "app/api/patient/last-prescription/route.ts",
