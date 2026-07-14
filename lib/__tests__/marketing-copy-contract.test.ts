@@ -62,7 +62,6 @@ const staleCommercialPolicySources = [
   "app/for/students/page.tsx",
   "app/for/tradies/page.tsx",
   "app/medical-certificate/[slug]/page.tsx",
-  "components/marketing/blog-cta-card.tsx",
   "components/marketing/how-it-works-content.tsx",
   "docs/AI_ONBOARDING.md",
   "docs/CLINICAL.md",

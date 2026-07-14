@@ -40,7 +40,6 @@ const NON_MEDCERT_FORM_FIRST_SURFACES = [
   "components/marketing/womens-health-landing.tsx",
   "components/shared/navbar/services-dropdown.tsx",
   "components/marketing/sections/how-it-works-inline.tsx",
-  "components/marketing/blog-cta-card.tsx",
   "components/marketing/how-it-works.tsx",
   "components/marketing/mental-health-online-landing.tsx",
   "lib/data/ed-faq.ts",
