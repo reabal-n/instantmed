@@ -1,7 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion"
-import { type ReactNode } from "react";
+import { motion, useAnimationControls } from "framer-motion"
+import { type ReactNode, useEffect } from "react";
 
 import { StatStrip } from "@/components/sections/stat-strip";
 import type { StatItem } from "@/components/sections/types";
@@ -20,6 +20,12 @@ interface StatsHeroProps {
   className?: string;
 }
 
+const SETTLED_CONTENT_VARIANTS = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0 },
+  reduced: { opacity: 1, y: 0, transition: { duration: 0, delay: 0 } },
+};
+
 export function StatsHero({
   pill,
   title,
@@ -30,6 +36,17 @@ export function StatsHero({
   className,
 }: StatsHeroProps) {
   const prefersReducedMotion = useReducedMotion();
+  const entranceControls = useAnimationControls();
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      entranceControls.stop();
+      void entranceControls.set("reduced");
+      return;
+    }
+
+    void entranceControls.start("visible");
+  }, [entranceControls, prefersReducedMotion]);
 
   return (
     <section className={cn("relative pt-20 lg:pt-28", className)}>
@@ -47,20 +64,30 @@ export function StatsHero({
         />
         {subtitle && (
           <motion.p
+            data-reduced-motion-final="stats-subtitle"
             className="mt-6 text-lg text-muted-foreground max-w-xl mx-auto"
-            initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.6 }}
+            variants={SETTLED_CONTENT_VARIANTS}
+            initial={prefersReducedMotion ? "reduced" : "hidden"}
+            animate={entranceControls}
+            transition={{
+              duration: prefersReducedMotion ? 0 : 0.3,
+              delay: prefersReducedMotion ? 0 : 0.6,
+            }}
           >
             {subtitle}
           </motion.p>
         )}
         {children && (
           <motion.div
+            data-reduced-motion-final="stats-content"
             className="mt-8"
-            initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.8 }}
+            variants={SETTLED_CONTENT_VARIANTS}
+            initial={prefersReducedMotion ? "reduced" : "hidden"}
+            animate={entranceControls}
+            transition={{
+              duration: prefersReducedMotion ? 0 : 0.3,
+              delay: prefersReducedMotion ? 0 : 0.8,
+            }}
           >
             {children}
           </motion.div>

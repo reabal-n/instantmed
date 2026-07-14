@@ -331,12 +331,12 @@ export function PricingContent() {
         {/* Pricing Cards */}
         <section id="pricing-cards" className="px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-5xl">
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid min-w-0 grid-cols-1 gap-6 md:grid-cols-3">
               {services.map((service) => (
                 <div
                   key={service.name}
                   className={cn(
-                    "rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card p-5 lg:p-6 relative hover:-translate-y-1 transition-[transform,box-shadow] duration-300",
+                    "relative min-w-0 rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card p-5 lg:p-6 hover:-translate-y-1 transition-[transform,box-shadow] duration-300",
                     service.popular
                       ? "ring-2 ring-primary shadow-lg shadow-primary/[0.1] hover:shadow-xl hover:shadow-primary/[0.15]"
                       : "shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08]"
@@ -400,7 +400,7 @@ export function PricingContent() {
                     asChild
                     variant={service.popular ? "default" : "outline"}
                     className={cn(
-                      "w-full rounded-xl h-12 font-medium",
+                      "w-full h-auto min-h-12 whitespace-normal rounded-xl py-3 text-center font-medium",
                       service.popular
                         ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
                         : service.buttonClass

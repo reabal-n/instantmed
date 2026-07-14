@@ -3,7 +3,6 @@
 import { LayoutDashboard, LogOut } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 
 import { AppSignInButton } from "@/components/shared/app-sign-in-button"
@@ -30,8 +29,6 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
-  const { theme } = useTheme()
-  const isDarkTheme = theme === "dark"
   const { signOut, user, isLoaded } = useAuth()
 
   useEffect(() => {
@@ -51,7 +48,10 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   return (
     <>
       <header
-        className={cn("fixed left-0 right-0 z-50 px-4 sm:px-6 top-0")}
+        className={cn(
+          "fixed left-0 right-0 z-50 px-4 sm:px-6 top-0",
+          mobileMenuOpen && "max-md:z-[60]",
+        )}
         style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}
         data-first-interaction-ignore="true"
       >
@@ -72,9 +72,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             className={cn(
               "absolute -inset-2 rounded-3xl z-0 pointer-events-none",
               "opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-              isDarkTheme
-                ? "bg-gradient-radial from-transparent via-primary/15 to-transparent"
-                : "bg-gradient-radial from-transparent via-primary/8 to-transparent"
+              "bg-gradient-radial from-transparent via-primary/8 to-transparent dark:via-primary/15",
             )}
           />
           <div className="relative z-10 flex items-center justify-between px-3 py-1">

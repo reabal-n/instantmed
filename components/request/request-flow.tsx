@@ -929,7 +929,7 @@ export function RequestFlow({
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div data-patient-flow="true" className="min-h-screen bg-background">
       {/* Connection status banner */}
       <LazyConnectionBanner />
 
@@ -962,7 +962,7 @@ export function RequestFlow({
             size="icon" 
             onClick={handleBack}
             aria-label="Go back"
-            className="h-11 w-11 sm:h-10 sm:w-10"
+            className="h-12 w-12 sm:h-10 sm:w-10"
           >
             <ArrowLeft className="w-5 h-5" />
           </RequestButton>
@@ -982,7 +982,7 @@ export function RequestFlow({
             size="icon" 
             onClick={handleExitWithConfirm}
             aria-label="Exit"
-            className="h-11 w-11 sm:h-10 sm:w-10"
+            className="h-12 w-12 sm:h-10 sm:w-10"
           >
             <X className="w-5 h-5" />
           </RequestButton>

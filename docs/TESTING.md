@@ -9,7 +9,7 @@
 | Layer | Framework | Location | Count |
 |-------|-----------|----------|-------|
 | Unit tests | Vitest | `**/*.test.ts` / `lib/__tests__/**/*.test.ts` | Local run 2026-07-14: **4,234 passed, 0 skipped** across 494 test files. |
-| E2E tests | Playwright | `e2e/**/*.spec.ts` | 64 specs — blocking CI currently runs ops/navigation/clinical-input smoke plus focused paid critical flows |
+| E2E tests | Playwright | `e2e/**/*.spec.ts` | 65 specs — blocking CI currently runs ops/navigation/clinical-input smoke plus focused paid critical flows |
 
 **Coverage threshold:** 80% statements / 70% branches / 80% functions / 80% lines (enforced by Vitest config, scoped to `lib/clinical/`, `lib/security/`, the `lib/stripe/` payment-safety surface, and `lib/data/intake-lifecycle.ts`). The E2E-only Stripe orchestrators (`checkout.ts`, `guest-checkout.ts`, `checkout/stripe-session.ts`, `checkout/persistence.ts`, `checkout/auth-and-profile.ts`, `checkout/retry-payment.ts`, `client.ts`, `referral-coupon.ts`, `post-payment.ts`) are excluded — they're exercised by `e2e/unified-request-flow.spec.ts` / `consult-subtypes.spec.ts` / payment-smoke, not units. **Note:** `lib/state-machine/` was removed from the include list 2026-04-08 because the directory no longer exists — the state-machine logic was consolidated into `lib/clinical/auto-approval-state.ts`.
 

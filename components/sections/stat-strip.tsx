@@ -1,6 +1,6 @@
 "use client";
 
-import { animate, motion, useInView } from "framer-motion";
+import { animate, motion, useAnimationControls, useInView } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
 import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
@@ -16,6 +16,12 @@ import type { SectionProps, StatItem } from "./types";
 // overshoot entirely, and the inline min-w lock removes any digit-count
 // reflow under the surrounding flex/grid.
 const VALUE_MIN_WIDTH = "4ch";
+
+const STAT_ITEM_VARIANTS = {
+  hidden: { y: 12 },
+  visible: { opacity: 1, y: 0 },
+  reduced: { opacity: 1, y: 0, transition: { duration: 0, delay: 0 } },
+};
 
 function AnimatedNumber({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -69,6 +75,18 @@ export function StatStrip({ stats, className, id }: StatStripProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useScrollReveal(ref);
   const prefersReducedMotion = useReducedMotion();
+  const entranceControls = useAnimationControls();
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      entranceControls.stop();
+      void entranceControls.set("reduced");
+      return;
+    }
+
+    if (isInView) void entranceControls.start("visible");
+    else void entranceControls.set("hidden");
+  }, [entranceControls, isInView, prefersReducedMotion]);
 
   return (
     <section
@@ -83,18 +101,14 @@ export function StatStrip({ stats, className, id }: StatStripProps) {
         {stats.map((stat, i) => (
           <motion.div
             key={stat.label}
+            data-reduced-motion-final="stat-item"
             className="text-center"
-            initial={prefersReducedMotion ? {} : { y: 12 }}
-            animate={
-              prefersReducedMotion
-                ? {}
-                : isInView
-                  ? { opacity: 1, y: 0 }
-                  : undefined
-            }
+            variants={STAT_ITEM_VARIANTS}
+            initial={prefersReducedMotion ? "reduced" : "hidden"}
+            animate={entranceControls}
             transition={{
-              duration: 0.3,
-              delay: i * 0.1,
+              duration: prefersReducedMotion ? 0 : 0.3,
+              delay: prefersReducedMotion ? 0 : i * 0.1,
               ease: "easeOut",
             }}
           >

@@ -36,7 +36,7 @@ const TIMELINE = [
  */
 export function HairLossHeroMockup({ compact = false }: HairLossHeroMockupProps) {
   return (
-    <div className={cn("relative", compact ? "w-full" : "w-72 xl:w-80")}>
+    <div className={cn("relative", compact ? "w-full" : "w-[288px] xl:w-[320px]")}>
       {/* Main card */}
       <div
         className={cn(

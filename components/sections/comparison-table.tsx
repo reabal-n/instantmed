@@ -37,7 +37,7 @@ export function ComparisonTable({
 
       <div className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none">
         {/* Header row */}
-        <div className="grid grid-cols-[1fr_120px_120px] gap-0 border-b border-border bg-muted/50 px-6 py-4 text-sm font-medium text-muted-foreground">
+        <div className="grid grid-cols-3 sm:grid-cols-[1fr_120px_120px] gap-0 border-b border-border bg-muted/50 px-2 min-[241px]:px-6 py-4 text-xs min-[241px]:text-sm font-medium text-muted-foreground">
           <span />
           <span className="text-center text-primary font-semibold">{usLabel}</span>
           <span className="text-center">{themLabel}</span>
@@ -48,7 +48,7 @@ export function ComparisonTable({
           <div
             key={item.label}
             className={cn(
-              "grid grid-cols-[1fr_120px_120px] gap-0 px-6 py-4 text-sm hover:bg-muted/30 transition-colors duration-200",
+              "grid grid-cols-3 sm:grid-cols-[1fr_120px_120px] gap-0 px-2 min-[241px]:px-6 py-4 text-xs min-[241px]:text-sm hover:bg-muted/30 transition-colors duration-200",
               i < items.length - 1 && "border-b border-border/50"
             )}
           >

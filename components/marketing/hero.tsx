@@ -94,7 +94,7 @@ const DEFAULT_OPEN_NOW = (
 
 function buildDefaultPill(liveWait?: WaitState) {
   return (
-    <div className="inline-flex items-center gap-2.5 rounded-full px-3 py-1.5 text-xs font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
+    <div className="inline-flex max-w-full flex-wrap items-center justify-center gap-2.5 rounded-full px-3 py-1.5 text-xs font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
       <span
         className="inline-flex items-center gap-0.5 text-amber-400"
         role="img"
@@ -105,7 +105,7 @@ function buildDefaultPill(liveWait?: WaitState) {
         ))}
       </span>
       <span className="text-border/70" aria-hidden="true">·</span>
-      <span className="text-muted-foreground">AHPRA-registered doctors</span>
+      <span className="text-muted-foreground min-[241px]:whitespace-nowrap">AHPRA-registered doctors</span>
       <span className="text-border/70 hidden sm:inline" aria-hidden="true">·</span>
       {liveWait ? (
         <span className="hidden sm:inline-flex">
@@ -157,10 +157,10 @@ export function Hero({
     // can extend slightly outside the section without horizontal scrollbars
     // on iOS.
     <section className="relative overflow-x-clip pt-6 pb-12 sm:pt-14 sm:pb-20 lg:pt-20 lg:pb-24">
-      <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
+      <div className="mx-auto max-w-5xl px-4 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center lg:items-start lg:gap-12 xl:gap-14">
           {/* ── Text column ───────────────────────────────────────── */}
-          <div className="flex-1 min-w-0 text-center lg:text-left">
+          <div className="flex-1 w-full min-w-0 text-center lg:text-left">
             {/* Announcement pill */}
             {resolvedPill && (
               <div className="hero-availability-enter flex justify-center lg:justify-start mb-5 sm:mb-7">
@@ -199,7 +199,7 @@ export function Hero({
                     (/medical-certificate #3): "the most important credential
                     breaks mid-word".
                   */}
-                  <span className="whitespace-nowrap">AHPRA-registered</span> Australian doctors. Secure form-first review.
+                  <span className="min-[241px]:whitespace-nowrap">AHPRA-registered</span> Australian doctors. Secure form-first review.
                 </p>
               )}
             </div>
@@ -216,12 +216,12 @@ export function Hero({
               <Button
                 asChild
                 size="lg"
-                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
+                className="h-auto min-h-12 whitespace-normal px-4 py-3 text-center text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 sm:px-8"
                 onClick={primaryCta.onClick}
               >
                 <Link href={primaryCta.href}>
                   {primaryCta.text}
-                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                  <ArrowRight className="ml-2 h-4 w-4 shrink-0" aria-hidden="true" />
                 </Link>
               </Button>
               {resolvedSecondary && (
@@ -229,7 +229,7 @@ export function Hero({
                   asChild
                   variant="ghost"
                   size="lg"
-                  className="h-12 px-4 text-sm font-medium text-muted-foreground hover:text-foreground"
+                  className="h-auto min-h-12 whitespace-normal px-4 py-3 text-center text-sm font-medium text-muted-foreground hover:text-foreground"
                 >
                   <Link href={resolvedSecondary.href}>{resolvedSecondary.text}</Link>
                 </Button>
@@ -270,7 +270,7 @@ export function Hero({
 
           {/* ── Mockup column ─────────────────────────────────────── */}
           {resolvedMockup && (
-            <div className="relative shrink-0 mt-12 lg:mt-0 self-center">
+            <div className="relative shrink-0 mt-12 max-[240px]:hidden lg:mt-0 self-center">
               {resolvedMockup}
             </div>
           )}

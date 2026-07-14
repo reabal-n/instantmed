@@ -33,7 +33,7 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
     <Link
       href={service.href || `/${service.slug}/request`}
       className={cn(
-        'group block h-full',
+        'group block h-full min-w-0 max-w-full',
         disabled && 'pointer-events-none',
       )}
       aria-disabled={disabled || undefined}
@@ -209,7 +209,7 @@ export function ServiceCards() {
           {activeServices.map((service, i) => {
             const disabled = isServiceDisabled(service.id)
             return (
-              <Reveal key={service.id} delay={i * 0.05}>
+              <Reveal key={service.id} delay={i * 0.05} className="min-w-0">
                 <ServiceCard service={service} disabled={disabled} />
               </Reveal>
             )
