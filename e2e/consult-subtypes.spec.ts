@@ -110,16 +110,6 @@ async function ensureRadioChecked(page: Page, groupName: RegExp, radioName: RegE
   }
 }
 
-async function selectRadio(page: Page, groupName: RegExp, radioName: RegExp) {
-  const radio = page
-    .getByRole("radiogroup", { name: groupName })
-    .getByRole("radio", { name: radioName })
-
-  await radio.click()
-  await expect(radio).toHaveAttribute("aria-checked", "true", { timeout: 2000 })
-  await waitForIntakeStateToSettle(page)
-}
-
 async function ensureChipPressed(page: Page, groupName: RegExp, chipName: RegExp) {
   const chip = page
     .getByRole("group", { name: groupName })
@@ -304,12 +294,9 @@ async function selectNewPillSafePath(page: Page) {
   await ensureRadioChecked(page, /What would you like/i, /^Start$/i)
   await ensureRadioChecked(page, /currently using contraception/i, /^None$/i)
   await ensureRadioChecked(page, /pregnant or could you be pregnant/i, /^No$/i)
-  // These three controls currently render an unanswered empty string as an
-  // aria-selected "No". Click each explicitly so the stored safety answer is
-  // real rather than relying on that pre-existing presentation defect.
-  await selectRadio(page, /migraines with aura/i, /^No$/i)
-  await selectRadio(page, /blood clot/i, /^No$/i)
-  await selectRadio(page, /Do you smoke/i, /^No$/i)
+  await ensureRadioChecked(page, /migraines with aura/i, /^No$/i)
+  await ensureRadioChecked(page, /blood clot/i, /^No$/i)
+  await ensureRadioChecked(page, /Do you smoke/i, /^No$/i)
   await clickContinue(page)
 
   await completeConsultMedicalHistory(page)
@@ -388,6 +375,34 @@ test.describe("Consult Sub-Services", () => {
     // Continue is enabled and the flow advances out of the assessment.
     await clickContinue(page)
     await expect(page.getByText(/Which symptoms do you have/i)).not.toBeVisible({ timeout: 10000 })
+  })
+
+  test("new-pill safety controls start neutral and keep Continue not ready", async ({ page }) => {
+    await page.goto("/request?service=consult&subtype=womens_health")
+    await waitForPageLoad(page)
+    await page.waitForURL(/subtype=womens_health/, { timeout: 15000 })
+
+    await expect(page.getByText(/What do you need today/i)).toBeVisible({ timeout: 10000 })
+    await ensureRadioChecked(page, /Women's health option/i, /Start or switch pill/i)
+    await clickContinue(page)
+
+    await expect(page.getByText(/A few safety checks/i)).toBeVisible({ timeout: 10000 })
+
+    const pregnancyGroup = page.getByRole("radiogroup", { name: /pregnant or could you be pregnant/i })
+    await expect(pregnancyGroup.getByRole("radio", { name: "No", exact: true })).toHaveAttribute("aria-checked", "false")
+    await expect(pregnancyGroup.getByRole("radio", { name: "Not sure", exact: true })).toHaveAttribute("aria-checked", "false")
+    await expect(pregnancyGroup.getByRole("radio", { name: "Yes", exact: true })).toHaveAttribute("aria-checked", "false")
+
+    for (const groupName of [/migraines with aura/i, /blood clot/i, /Do you smoke/i]) {
+      const group = page.getByRole("radiogroup", { name: groupName })
+      await expect(group.getByRole("radio", { name: "No", exact: true })).toHaveAttribute("aria-checked", "false")
+      await expect(group.getByRole("radio", { name: "Yes", exact: true })).toHaveAttribute("aria-checked", "false")
+    }
+
+    await expect(page.locator('button[data-intake-primary-action="true"]').last()).toHaveAttribute(
+      "data-intake-primary-ready",
+      "false",
+    )
   })
 
   test("women's health UTI clean case reaches enabled checkout with test Medicare", async ({ page }) => {

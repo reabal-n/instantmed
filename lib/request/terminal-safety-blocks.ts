@@ -25,6 +25,12 @@ export interface UtiTerminalBlock {
   answerKeysToClear: UtiTerminalAnswerKey[]
 }
 
+export interface PillPregnancyTerminalBlock {
+  kind: "pill_pregnancy"
+  title: "This service is not suitable during pregnancy"
+  reason: string
+}
+
 export interface RepeatMedicationTerminalBlock {
   kind: "repeat_controlled_medication"
   medicationName: string
@@ -36,6 +42,7 @@ export interface RepeatMedicationTerminalBlock {
 const ED_NITRATE_REASON = "Some ED prescription options can cause a dangerous drop in blood pressure when combined with nitrates. Please see your GP or cardiologist."
 const UTI_RED_FLAGS_REASON = "Symptoms like fever, back/flank pain, or feeling very unwell may indicate a kidney infection which requires urgent in-person medical care. Please see a GP or visit urgent care today."
 const UTI_PREGNANCY_REASON = "UTIs during pregnancy need in-person assessment. Please see your GP or visit a clinic for safe treatment."
+const PILL_PREGNANCY_REASON = "The contraceptive pill is not started during pregnancy. Please speak with your GP or obstetrician about the right care for you."
 
 export function deriveEdNitrateTerminalBlock(
   answers: IntakeAnswers,
@@ -81,6 +88,29 @@ export function buildUtiTerminalBlockCorrection(
   return Object.fromEntries(
     block.answerKeysToClear.map((key) => [key, undefined]),
   ) as Partial<Record<UtiTerminalAnswerKey, undefined>>
+}
+
+export function derivePillPregnancyTerminalBlock(
+  answers: IntakeAnswers,
+): PillPregnancyTerminalBlock | null {
+  if (answers.pregnancyStatus !== "yes") return null
+
+  return {
+    kind: "pill_pregnancy",
+    title: "This service is not suitable during pregnancy",
+    reason: PILL_PREGNANCY_REASON,
+  }
+}
+
+export function buildPillPregnancyTerminalBlockCorrection(
+  block: PillPregnancyTerminalBlock,
+): Partial<Record<"pregnancyStatus" | "requiresCall", undefined>> {
+  if (block.kind !== "pill_pregnancy") return {}
+
+  return {
+    pregnancyStatus: undefined,
+    requiresCall: undefined,
+  }
 }
 
 export function deriveRepeatMedicationTerminalBlock(

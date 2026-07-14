@@ -365,18 +365,18 @@ export function validateContraceptionConsult(answers: Answers): ConsultValidatio
   const pregnancy = str(answers, "pregnancyStatus")
   if (pregnancy === "yes") {
     flags.push({
-      type: "requires_call",
+      type: "safety_block",
       reason: "pregnancy_confirmed",
-      details: "Patient reports current pregnancy. Requires doctor phone consultation for appropriate care.",
+      details: "Patient reports current pregnancy. The contraceptive pill is not started during pregnancy; refer to their GP or obstetrician.",
     })
-    warnings.push("Because you've indicated pregnancy, the doctor will need to speak with you by phone.")
+    errors.push("The contraceptive pill is not started during pregnancy. Please speak with your GP or obstetrician about the right care for you.")
   }
 
   if (pregnancy === "not_sure") {
     flags.push({
-      type: "clinical_note",
+      type: "requires_call",
       reason: "pregnancy_uncertain",
-      details: "Patient unsure about pregnancy status. Consider recommending pregnancy test before prescribing.",
+      details: "Patient unsure about pregnancy status. Exclude pregnancy before prescribing contraception.",
     })
     warnings.push("If you're unsure about pregnancy, the doctor may recommend a test before prescribing contraception.")
   }

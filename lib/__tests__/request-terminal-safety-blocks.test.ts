@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  buildPillPregnancyTerminalBlockCorrection,
   buildUtiTerminalBlockCorrection,
   deriveEdNitrateTerminalBlock,
+  derivePillPregnancyTerminalBlock,
   deriveRepeatMedicationTerminalBlock,
   deriveUtiTerminalBlock,
 } from "@/lib/request/terminal-safety-blocks"
@@ -73,6 +75,49 @@ describe("request terminal safety blocks", () => {
       { utiRedFlags: "no", utiPregnant: "no" },
     ])("leaves the editable form visible for non-blocking answers: %o", (answers) => {
       expect(deriveUtiTerminalBlock(answers)).toBeNull()
+    })
+  })
+
+  describe("new-pill pregnancy block", () => {
+    it("derives an in-person block from a persisted confirmed-pregnancy answer", () => {
+      expect(derivePillPregnancyTerminalBlock({ pregnancyStatus: "yes" })).toEqual({
+        kind: "pill_pregnancy",
+        title: "This service is not suitable during pregnancy",
+        reason: "The contraceptive pill is not started during pregnancy. Please speak with your GP or obstetrician about the right care for you.",
+      })
+    })
+
+    it("clears confirmed pregnancy and the stale call flag without changing other answers", () => {
+      const answers = {
+        pregnancyStatus: "yes",
+        requiresCall: true,
+        womens_migraine_aura: "no",
+        womens_blood_clot_history: "no",
+        womens_smoker: "no",
+      }
+      const block = derivePillPregnancyTerminalBlock(answers)
+
+      const correctedAnswers = {
+        ...answers,
+        ...buildPillPregnancyTerminalBlockCorrection(block!),
+      }
+
+      expect(correctedAnswers).toEqual({
+        pregnancyStatus: undefined,
+        requiresCall: undefined,
+        womens_migraine_aura: "no",
+        womens_blood_clot_history: "no",
+        womens_smoker: "no",
+      })
+      expect(derivePillPregnancyTerminalBlock(correctedAnswers)).toBeNull()
+    })
+
+    it.each([
+      {},
+      { pregnancyStatus: "no" },
+      { pregnancyStatus: "not_sure" },
+    ])("leaves non-confirmed pregnancy answers editable: %o", (answers) => {
+      expect(derivePillPregnancyTerminalBlock(answers)).toBeNull()
     })
   })
 

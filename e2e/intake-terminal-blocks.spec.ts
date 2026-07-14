@@ -166,6 +166,83 @@ test.describe("persisted intake terminal blocks", () => {
     await expect(pregnancyGroup.getByRole("radio", { name: "Yes", exact: true })).toHaveAttribute("aria-checked", "false")
   })
 
+  test("restores a confirmed-pregnancy pill block and clears pregnancy plus stale call state", async ({ page }) => {
+    await seedScopedDraft(page, "instantmed-draft-consult", {
+      serviceType: "consult",
+      currentStepId: "womens-health-assessment",
+      answers: {
+        consultSubtype: "womens_health",
+        womensHealthOption: "ocp_new",
+        contraceptionType: "start",
+        contraceptionCurrent: "none",
+        pregnancyStatus: "yes",
+        requiresCall: true,
+        womens_migraine_aura: "no",
+        womens_blood_clot_history: "no",
+        womens_smoker: "no",
+      },
+    })
+
+    await page.goto("/request?service=consult&subtype=womens_health")
+    await waitForPageLoad(page)
+
+    const pregnancyExplanation = page.getByText(
+      /The contraceptive pill is not started during pregnancy/i,
+    )
+    await expect(page.getByText("This service is not suitable during pregnancy")).toBeVisible({ timeout: 15_000 })
+    await expect(pregnancyExplanation).toBeVisible()
+
+    await page.reload()
+    await waitForPageLoad(page)
+    await dismissCookieBanner(page)
+
+    await expect(pregnancyExplanation).toBeVisible({ timeout: 15_000 })
+    await page.getByRole("button", { name: "I need to correct this answer" }).click()
+
+    await expect(page.getByRole("heading", { name: "A few safety checks" })).toBeVisible()
+    await expect(pregnancyExplanation).toHaveCount(0)
+    await expect(page.getByText("This service is not suitable during pregnancy")).toHaveCount(0)
+
+    const pregnancyGroup = page.getByRole("radiogroup", { name: /pregnant or could you be pregnant/i })
+    await expect(pregnancyGroup.getByRole("radio", { name: "No", exact: true })).toHaveAttribute("aria-checked", "false")
+    await expect(pregnancyGroup.getByRole("radio", { name: "Not sure", exact: true })).toHaveAttribute("aria-checked", "false")
+    await expect(pregnancyGroup.getByRole("radio", { name: "Yes", exact: true })).toHaveAttribute("aria-checked", "false")
+
+    await expect(
+      page
+        .getByRole("radiogroup", { name: /What would you like/i })
+        .getByRole("radio", { name: "Start", exact: true }),
+    ).toHaveAttribute("aria-checked", "true")
+    await expect(
+      page
+        .getByRole("radiogroup", { name: /currently using contraception/i })
+        .getByRole("radio", { name: "None", exact: true }),
+    ).toHaveAttribute("aria-checked", "true")
+
+    for (const groupName of [/migraines with aura/i, /blood clot/i, /Do you smoke/i]) {
+      await expect(
+        page
+          .getByRole("radiogroup", { name: groupName })
+          .getByRole("radio", { name: "No", exact: true }),
+      ).toHaveAttribute("aria-checked", "true")
+    }
+
+    await expect.poll(async () => page.evaluate(() => {
+      const rawDraft = localStorage.getItem("instantmed-draft-consult")
+      const answers = rawDraft
+        ? (JSON.parse(rawDraft) as { answers?: Record<string, unknown> }).answers ?? {}
+        : {}
+
+      return {
+        hasPregnancyStatus: Object.prototype.hasOwnProperty.call(answers, "pregnancyStatus"),
+        hasRequiresCall: Object.prototype.hasOwnProperty.call(answers, "requiresCall"),
+      }
+    })).toEqual({
+      hasPregnancyStatus: false,
+      hasRequiresCall: false,
+    })
+  })
+
   test("restores a controlled repeat-medication block and removes it after a safe edit", async ({ page }) => {
     await seedScopedDraft(page, "instantmed-draft-prescription", {
       serviceType: "prescription",

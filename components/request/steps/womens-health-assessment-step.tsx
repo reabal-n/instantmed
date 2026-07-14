@@ -14,7 +14,9 @@ import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import {
+  buildPillPregnancyTerminalBlockCorrection,
   buildUtiTerminalBlockCorrection,
+  derivePillPregnancyTerminalBlock,
   deriveUtiTerminalBlock,
 } from "@/lib/request/terminal-safety-blocks"
 
@@ -56,10 +58,13 @@ export default function WomensHealthAssessmentStep({ serviceType, onNext, onBack
         <ContraceptionAssessment
           serviceType={serviceType}
           onNext={onNext}
+          onBack={onBack}
           answers={answers}
           setAnswer={setAnswer}
+          setAnswers={setAnswers}
           errors={errors}
           setErrors={setErrors}
+          router={router}
         />
       )
     case 'uti':
@@ -82,32 +87,36 @@ export default function WomensHealthAssessmentStep({ serviceType, onNext, onBack
 }
 
 // Contraception assessment
-function ContraceptionAssessment({ serviceType, onNext, answers, setAnswer, errors, setErrors }: {
+function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAnswers, errors, setErrors, router }: {
   serviceType: UnifiedServiceType
   onNext: () => void
+  onBack: () => void
   answers: Record<string, unknown>
   setAnswer: (key: string, value: unknown) => void
+  setAnswers: (answers: Record<string, unknown>) => void
   errors: Record<string, string>
   setErrors: (errors: Record<string, string>) => void
+  router: ReturnType<typeof useRouter>
 }) {
   const posthog = usePostHog()
   // This component now serves only the live new/switch pill (ocp_new).
   const contraceptionType = answers.contraceptionType as string | undefined
   const contraceptionCurrent = (answers.contraceptionCurrent as string) || ""
-  const pregnancyStatus = (answers.pregnancyStatus as string) || ""
+  const pregnancyStatus = answers.pregnancyStatus as "no" | "not_sure" | "yes" | undefined
   const lastPeriod = (answers.lastPeriod as string) || ""
   const contraceptionDetails = (answers.contraceptionDetails as string) || ""
   // Combined-pill safety screen (new/switch pill only). Drives the REQUIRES_CALL
   // contraindication rules; doctor steers to a progestogen-only option if needed.
-  const migraineAura = (answers.womens_migraine_aura as string) || ""
-  const bloodClotHistory = (answers.womens_blood_clot_history as string) || ""
-  const smoker = (answers.womens_smoker as string) || ""
+  const migraineAura = answers.womens_migraine_aura as "no" | "yes" | undefined
+  const bloodClotHistory = answers.womens_blood_clot_history as "no" | "yes" | undefined
+  const smoker = answers.womens_smoker as "no" | "yes" | undefined
   // Always shown — this component only serves the new/switch combined pill now.
   const needsPillSafetyScreen = true
   const isComplete = Boolean(
     contraceptionType && contraceptionCurrent && pregnancyStatus
       && (!needsPillSafetyScreen || (migraineAura && bloodClotHistory && smoker)),
   )
+  const terminalBlock = derivePillPregnancyTerminalBlock(answers)
 
   const clearError = (key: string) => {
     if (!errors[key]) return
@@ -116,16 +125,9 @@ function ContraceptionAssessment({ serviceType, onNext, answers, setAnswer, erro
     setErrors(nextErrors)
   }
 
-  // If pregnant, flag for doctor call
   const handlePregnancyChange = (value: string) => {
     setAnswer("pregnancyStatus", value)
     clearError("pregnancyStatus")
-    if (value === 'yes') {
-      setAnswer("requiresCall", true)
-    } else if (answers.requiresCall) {
-      // Only clear if we were the ones who set it
-      setAnswer("requiresCall", false)
-    }
   }
 
   const validate = () => {
@@ -170,6 +172,36 @@ function ContraceptionAssessment({ serviceType, onNext, answers, setAnswer, erro
     }, [bloodClotHistory, contraceptionCurrent, contraceptionType, migraineAura, needsPillSafetyScreen, pregnancyStatus, smoker]),
     { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "womens-health-assessment" },
   )
+
+  if (terminalBlock) {
+    return (
+      <div className="space-y-6">
+        <Alert variant="destructive" className="border-destructive/50">
+          <XCircle className="h-5 w-5" aria-hidden="true" />
+          <AlertTitle className="font-semibold">{terminalBlock.title}</AlertTitle>
+          <AlertDescription className="mt-2 text-sm">{terminalBlock.reason}</AlertDescription>
+        </Alert>
+        <div className="flex flex-col gap-2 pt-2">
+          <Button variant="outline" onClick={() => router.push('/')} className="w-full">
+            Return home
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setAnswers(buildPillPregnancyTerminalBlockCorrection(terminalBlock))
+              clearError("pregnancyStatus")
+            }}
+            className="w-full"
+          >
+            I need to correct this answer
+          </Button>
+          <Button variant="ghost" onClick={onBack} className="w-full">
+            Go back
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -248,14 +280,6 @@ function ContraceptionAssessment({ serviceType, onNext, answers, setAnswer, erro
             columns="three"
           />
           <FieldError message={errors.pregnancyStatus} />
-          {pregnancyStatus === "yes" && (
-            <Alert variant="default" className="border-warning-border bg-warning-light/50 dark:bg-warning/10">
-              <AlertCircle className="h-4 w-4 text-warning" aria-hidden="true" />
-              <AlertDescription className="text-xs text-warning">
-                Some contraception is not suitable during pregnancy. The doctor will discuss safe options with you.
-              </AlertDescription>
-            </Alert>
-          )}
           {pregnancyStatus === "not_sure" && (
             <p className="text-xs leading-relaxed text-muted-foreground">
               Consider taking a pregnancy test before starting contraception.
