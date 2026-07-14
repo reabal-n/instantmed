@@ -9,6 +9,13 @@
  * but adds server-authoritative checks (e.g. BMI ranges, drug interactions).
  */
 
+import {
+  PILL_CONTRACEPTION_TYPE_VALUES,
+  PILL_CURRENT_CONTRACEPTION_VALUES,
+  PILL_PREGNANCY_DECLINE_REASON,
+  PILL_PREGNANCY_STATUS_VALUES,
+} from "@/lib/clinical/womens-health-pill"
+
 // ============================================================================
 // SHARED TYPES
 // ============================================================================
@@ -349,18 +356,14 @@ export function validateHairLossConsult(answers: Answers): ConsultValidationResu
 // WOMEN'S HEALTH - CONTRACEPTION VALIDATOR
 // ============================================================================
 
-const CONTRACEPTION_TYPE_VALUES = ["start", "switch"] as const
-const CONTRACEPTION_CURRENT_VALUES = ["pill", "iud", "other", "none"] as const
-const PREGNANCY_STATUS_VALUES = ["no", "not_sure", "yes"] as const
-
 export function validateContraceptionConsult(answers: Answers): ConsultValidationResult {
   const errors: string[] = []
   const warnings: string[] = []
   const flags: ConsultFlag[] = []
 
-  requireOneOf(answers, "contraceptionType", "Contraception request type", CONTRACEPTION_TYPE_VALUES, errors)
-  requireOneOf(answers, "contraceptionCurrent", "Current contraception method", CONTRACEPTION_CURRENT_VALUES, errors)
-  requireOneOf(answers, "pregnancyStatus", "Pregnancy status", PREGNANCY_STATUS_VALUES, errors)
+  requireOneOf(answers, "contraceptionType", "Contraception request type", PILL_CONTRACEPTION_TYPE_VALUES, errors)
+  requireOneOf(answers, "contraceptionCurrent", "Current contraception method", PILL_CURRENT_CONTRACEPTION_VALUES, errors)
+  requireOneOf(answers, "pregnancyStatus", "Pregnancy status", PILL_PREGNANCY_STATUS_VALUES, errors)
 
   const pregnancy = str(answers, "pregnancyStatus")
   if (pregnancy === "yes") {
@@ -369,7 +372,7 @@ export function validateContraceptionConsult(answers: Answers): ConsultValidatio
       reason: "pregnancy_confirmed",
       details: "Patient reports current pregnancy. The contraceptive pill is not started during pregnancy; refer to their GP or obstetrician.",
     })
-    errors.push("The contraceptive pill is not started during pregnancy. Please speak with your GP or obstetrician about the right care for you.")
+    errors.push(PILL_PREGNANCY_DECLINE_REASON)
   }
 
   if (pregnancy === "not_sure") {
@@ -408,7 +411,7 @@ export function validateUtiConsult(answers: Answers): ConsultValidationResult {
   }
 
   requireOneOf(answers, "utiRedFlags", "Red flag symptoms", YES_NO_VALUES, errors)
-  requireOneOf(answers, "utiPregnant", "Pregnancy status", [...PREGNANCY_STATUS_VALUES], errors)
+  requireOneOf(answers, "utiPregnant", "Pregnancy status", PILL_PREGNANCY_STATUS_VALUES, errors)
 
   const redFlags = str(answers, "utiRedFlags")
   if (redFlags === "yes") {

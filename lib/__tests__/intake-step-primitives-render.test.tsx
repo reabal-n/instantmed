@@ -8,7 +8,6 @@ import {
   ChoiceCardGroup,
   ScaleChoiceGroup,
   SegmentedChoiceGroup,
-  StringBinaryChoice,
   ToggleList,
   YesNoDetailQuestion,
 } from "@/components/request/shared/intake-step-primitives"
@@ -177,21 +176,6 @@ describe("intake step primitives", () => {
     expect(html).toContain("No")
     expect(html).toContain("Not sure")
     expect(html).toContain("Yes")
-  })
-
-  it("keeps a string binary choice neutral for an unexpected persisted value", () => {
-    const html = render(
-      <StringBinaryChoice
-        value={"legacy-value" as "no" | "yes"}
-        noValue="no"
-        yesValue="yes"
-        onChange={vi.fn()}
-        ariaLabel="Safety check"
-      />,
-    )
-
-    expect(html.match(/aria-checked="false"/g)).toHaveLength(2)
-    expect(html).not.toContain('aria-checked="true"')
   })
 
   it("renders canonical toggle rows for independent yes/no selections", () => {

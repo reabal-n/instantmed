@@ -9,6 +9,14 @@
 import { z } from "zod"
 
 import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
+import {
+  isExactStringValue,
+  PILL_CONTRACEPTION_TYPE_VALUES,
+  PILL_CURRENT_CONTRACEPTION_VALUES,
+  PILL_PREGNANCY_DECLINE_REASON,
+  PILL_PREGNANCY_STATUS_VALUES,
+  PILL_YES_NO_VALUES,
+} from "@/lib/clinical/womens-health-pill"
 import { validateCertificateStartDate } from "@/lib/medical-certificates/date-policy"
 import { isWomensHealthOptionLive } from "@/lib/request/consult-subtypes"
 import {
@@ -628,19 +636,31 @@ export function validateWomensHealthAssessmentStep(answers: Record<string, unkno
   }
 
   if (option === "ocp_new") {
-    const contraceptionType = typeof answers.contraceptionType === "string" ? answers.contraceptionType : ""
+    const contraceptionType = answers.contraceptionType
     if (!contraceptionType) {
       errors.contraceptionType = "Please select what you need"
-    } else if (!["start", "switch"].includes(contraceptionType)) {
+    } else if (!isExactStringValue(contraceptionType, PILL_CONTRACEPTION_TYPE_VALUES)) {
       errors.contraceptionType = "Current-pill repeats go through repeat prescriptions."
     }
     // Client (ContraceptionAssessment.validate) requires this unconditionally for
     // the new/switch pill screen; mirror it here so a crafted payload can't skip it.
-    if (!answers.contraceptionCurrent) errors.contraceptionCurrent = "Please select an option"
-    if (!answers.pregnancyStatus) errors.pregnancyStatus = "Please answer this question"
-    if (!answers.womens_migraine_aura) errors.womens_migraine_aura = "Please answer this question"
-    if (!answers.womens_blood_clot_history) errors.womens_blood_clot_history = "Please answer this question"
-    if (!answers.womens_smoker) errors.womens_smoker = "Please answer this question"
+    if (!isExactStringValue(answers.contraceptionCurrent, PILL_CURRENT_CONTRACEPTION_VALUES)) {
+      errors.contraceptionCurrent = "Please select an option"
+    }
+    if (!isExactStringValue(answers.pregnancyStatus, PILL_PREGNANCY_STATUS_VALUES)) {
+      errors.pregnancyStatus = "Please answer this question"
+    } else if (answers.pregnancyStatus === "yes") {
+      errors.pregnancyStatus = PILL_PREGNANCY_DECLINE_REASON
+    }
+    if (!isExactStringValue(answers.womens_migraine_aura, PILL_YES_NO_VALUES)) {
+      errors.womens_migraine_aura = "Please answer this question"
+    }
+    if (!isExactStringValue(answers.womens_blood_clot_history, PILL_YES_NO_VALUES)) {
+      errors.womens_blood_clot_history = "Please answer this question"
+    }
+    if (!isExactStringValue(answers.womens_smoker, PILL_YES_NO_VALUES)) {
+      errors.womens_smoker = "Please answer this question"
+    }
   } else if (option === "uti") {
     const symptoms = answers.utiSymptoms as string[] | undefined
     if (!symptoms || symptoms.length === 0) errors.utiSymptoms = "Please select at least one symptom"

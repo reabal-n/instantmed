@@ -110,4 +110,25 @@ describe("women's health — required safety fields", () => {
       expect.arrayContaining(["womens_migraine_aura", "womens_blood_clot_history", "womens_smoker", "pregnancyStatus"]),
     )
   })
+
+  it.each([
+    ["pregnancyStatus", "pregnant"],
+    ["womens_migraine_aura", "unknown"],
+    ["womens_blood_clot_history", true],
+    ["womens_smoker", "sometimes"],
+  ])("fails closed when the OCP %s safety answer is invalid", (field, invalidValue) => {
+    const result = validateSafetyFieldsPresent("consult", {
+      consultSubtype: "womens_health",
+      womensHealthOption: "ocp_new",
+      pregnancyStatus: "no",
+      womens_migraine_aura: "no",
+      womens_blood_clot_history: "no",
+      womens_smoker: "no",
+      emergency_symptoms: [],
+      [field]: invalidValue,
+    })
+
+    expect(result.valid).toBe(false)
+    expect(result.missingFields).toContain(field)
+  })
 })

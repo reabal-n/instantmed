@@ -11,6 +11,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { usePostHog } from "@/lib/analytics/posthog-context"
+import {
+  exactStringValue,
+  PILL_CONTRACEPTION_TYPE_VALUES,
+  PILL_CURRENT_CONTRACEPTION_VALUES,
+  PILL_PREGNANCY_STATUS_VALUES,
+  PILL_YES_NO_VALUES,
+} from "@/lib/clinical/womens-health-pill"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import {
@@ -100,16 +107,16 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
 }) {
   const posthog = usePostHog()
   // This component now serves only the live new/switch pill (ocp_new).
-  const contraceptionType = answers.contraceptionType as string | undefined
-  const contraceptionCurrent = (answers.contraceptionCurrent as string) || ""
-  const pregnancyStatus = answers.pregnancyStatus as "no" | "not_sure" | "yes" | undefined
+  const contraceptionType = exactStringValue(answers.contraceptionType, PILL_CONTRACEPTION_TYPE_VALUES)
+  const contraceptionCurrent = exactStringValue(answers.contraceptionCurrent, PILL_CURRENT_CONTRACEPTION_VALUES)
+  const pregnancyStatus = exactStringValue(answers.pregnancyStatus, PILL_PREGNANCY_STATUS_VALUES)
   const lastPeriod = (answers.lastPeriod as string) || ""
   const contraceptionDetails = (answers.contraceptionDetails as string) || ""
   // Combined-pill safety screen (new/switch pill only). Drives the REQUIRES_CALL
   // contraindication rules; doctor steers to a progestogen-only option if needed.
-  const migraineAura = answers.womens_migraine_aura as "no" | "yes" | undefined
-  const bloodClotHistory = answers.womens_blood_clot_history as "no" | "yes" | undefined
-  const smoker = answers.womens_smoker as "no" | "yes" | undefined
+  const migraineAura = exactStringValue(answers.womens_migraine_aura, PILL_YES_NO_VALUES)
+  const bloodClotHistory = exactStringValue(answers.womens_blood_clot_history, PILL_YES_NO_VALUES)
+  const smoker = exactStringValue(answers.womens_smoker, PILL_YES_NO_VALUES)
   // Always shown — this component only serves the new/switch combined pill now.
   const needsPillSafetyScreen = true
   const isComplete = Boolean(
@@ -179,10 +186,10 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
         <Alert variant="destructive" className="border-destructive/50">
           <XCircle className="h-5 w-5" aria-hidden="true" />
           <AlertTitle className="font-semibold">{terminalBlock.title}</AlertTitle>
-          <AlertDescription className="mt-2 text-sm">{terminalBlock.reason}</AlertDescription>
+          <AlertDescription className="mt-2 text-base">{terminalBlock.reason}</AlertDescription>
         </Alert>
         <div className="flex flex-col gap-2 pt-2">
-          <Button variant="outline" onClick={() => router.push('/')} className="w-full">
+          <Button variant="outline" onClick={() => router.push('/')} className="h-12 w-full">
             Return home
           </Button>
           <Button
@@ -191,11 +198,11 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
               setAnswers(buildPillPregnancyTerminalBlockCorrection(terminalBlock))
               clearError("pregnancyStatus")
             }}
-            className="w-full"
+            className="h-12 w-full"
           >
             I need to correct this answer
           </Button>
-          <Button variant="ghost" onClick={onBack} className="w-full">
+          <Button variant="ghost" onClick={onBack} className="h-12 w-full">
             Go back
           </Button>
         </div>

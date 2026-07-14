@@ -3,6 +3,10 @@ import {
   isControlledSubstance,
 } from "@/lib/clinical/intake-validation"
 import {
+  PILL_PREGNANCY_DECLINE_REASON,
+  PILL_PREGNANCY_DECLINE_TITLE,
+} from "@/lib/clinical/womens-health-pill"
+import {
   normalizeMedicationEntriesAnswer,
   normalizeMedicationProductAnswer,
   stringAnswer,
@@ -42,7 +46,6 @@ export interface RepeatMedicationTerminalBlock {
 const ED_NITRATE_REASON = "Some ED prescription options can cause a dangerous drop in blood pressure when combined with nitrates. Please see your GP or cardiologist."
 const UTI_RED_FLAGS_REASON = "Symptoms like fever, back/flank pain, or feeling very unwell may indicate a kidney infection which requires urgent in-person medical care. Please see a GP or visit urgent care today."
 const UTI_PREGNANCY_REASON = "UTIs during pregnancy need in-person assessment. Please see your GP or visit a clinic for safe treatment."
-const PILL_PREGNANCY_REASON = "The contraceptive pill is not started during pregnancy. Please speak with your GP or obstetrician about the right care for you."
 
 export function deriveEdNitrateTerminalBlock(
   answers: IntakeAnswers,
@@ -93,12 +96,16 @@ export function buildUtiTerminalBlockCorrection(
 export function derivePillPregnancyTerminalBlock(
   answers: IntakeAnswers,
 ): PillPregnancyTerminalBlock | null {
-  if (answers.pregnancyStatus !== "yes") return null
+  if (
+    answers.consultSubtype !== "womens_health" ||
+    answers.womensHealthOption !== "ocp_new" ||
+    answers.pregnancyStatus !== "yes"
+  ) return null
 
   return {
     kind: "pill_pregnancy",
-    title: "This service is not suitable during pregnancy",
-    reason: PILL_PREGNANCY_REASON,
+    title: PILL_PREGNANCY_DECLINE_TITLE,
+    reason: PILL_PREGNANCY_DECLINE_REASON,
   }
 }
 

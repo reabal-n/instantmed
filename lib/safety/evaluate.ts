@@ -1,4 +1,9 @@
 import { isControlledSubstance } from '@/lib/clinical/intake-validation'
+import {
+  isExactStringValue,
+  PILL_PREGNANCY_STATUS_VALUES,
+  PILL_YES_NO_VALUES,
+} from '@/lib/clinical/womens-health-pill'
 
 import { getSafetyConfig } from './rules'
 import type {
@@ -511,7 +516,7 @@ export function validateSafetyFieldsPresent(
   if (!config) return { valid: true, missingFields: [] }
 
   const missingFields = getRequiredSafetyFields(serviceSlug, answers).filter(
-    (fieldId) => !hasAnsweredField(answers[fieldId]),
+    (fieldId) => !hasAnsweredSafetyField(fieldId, answers[fieldId]),
   )
 
   return {
@@ -520,7 +525,19 @@ export function validateSafetyFieldsPresent(
   }
 }
 
-function hasAnsweredField(value: unknown): boolean {
+function hasAnsweredSafetyField(fieldId: string, value: unknown): boolean {
+  if (fieldId === 'pregnancyStatus') {
+    return isExactStringValue(value, PILL_PREGNANCY_STATUS_VALUES)
+  }
+
+  if (
+    fieldId === 'womens_migraine_aura' ||
+    fieldId === 'womens_blood_clot_history' ||
+    fieldId === 'womens_smoker'
+  ) {
+    return isExactStringValue(value, PILL_YES_NO_VALUES)
+  }
+
   if (value === null || value === undefined) return false
   if (typeof value === 'string') return value.trim().length > 0
   return true

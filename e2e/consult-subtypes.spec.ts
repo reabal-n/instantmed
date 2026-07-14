@@ -302,6 +302,49 @@ async function selectNewPillSafePath(page: Page) {
   await completeConsultMedicalHistory(page)
 }
 
+async function expectFreshConfirmedPregnancyTerminalBlock(page: Page) {
+  await page.goto("/request?service=consult&subtype=womens_health")
+  await waitForPageLoad(page)
+  await dismissOverlays(page)
+  await page.waitForURL(/subtype=womens_health/, { timeout: 15000 })
+
+  await ensureRadioChecked(page, /Women's health option/i, /Start or switch pill/i)
+  await clickContinue(page)
+  await expect(page.getByText(/A few safety checks/i)).toBeVisible({ timeout: 10000 })
+
+  await ensureRadioChecked(page, /What would you like/i, /^Start$/i)
+  await ensureRadioChecked(page, /currently using contraception/i, /^None$/i)
+  await page
+    .getByRole("radiogroup", { name: /pregnant or could you be pregnant/i })
+    .getByRole("radio", { name: "Yes", exact: true })
+    .click()
+
+  const title = page.getByText("This service is not suitable during pregnancy")
+  const reason = page.getByText(/The contraceptive pill is not started during pregnancy/i)
+  await expect(title).toBeVisible({ timeout: 10000 })
+  await expect(reason).toBeVisible()
+  await expect(reason).toHaveCSS("font-size", "16px")
+  await expect(page.locator('button[data-intake-primary-action="true"]')).toHaveCount(0)
+  await expect(page.locator('[data-intake-mobile-action-bar="true"]')).toHaveCount(0)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+
+  const terminalActions = page.getByRole("main")
+  for (const actionName of ["Return home", "I need to correct this answer", "Go back"]) {
+    await expect(terminalActions.getByRole("button", { name: actionName, exact: true })).toHaveCSS("height", "48px")
+  }
+
+  await terminalActions.getByRole("button", { name: "I need to correct this answer", exact: true }).click()
+  await expect(page.getByRole("heading", { name: "A few safety checks" })).toBeVisible()
+  await expect(title).toHaveCount(0)
+  await expect(reason).toHaveCount(0)
+
+  const pregnancyGroup = page.getByRole("radiogroup", { name: /pregnant or could you be pregnant/i })
+  await expect(pregnancyGroup.getByRole("radio", { name: "No", exact: true })).toHaveAttribute("aria-checked", "false")
+  await expect(pregnancyGroup.getByRole("radio", { name: "Not sure", exact: true })).toHaveAttribute("aria-checked", "false")
+  await expect(pregnancyGroup.getByRole("radio", { name: "Yes", exact: true })).toHaveAttribute("aria-checked", "false")
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+}
+
 async function expectReviewAttestationEditContract(page: Page) {
   const safetyCheckbox = page.locator("#safety-consent")
 
@@ -399,6 +442,46 @@ test.describe("Consult Sub-Services", () => {
       await expect(group.getByRole("radio", { name: "Yes", exact: true })).toHaveAttribute("aria-checked", "false")
     }
 
+    await expect(page.locator('button[data-intake-primary-action="true"]').last()).toHaveAttribute(
+      "data-intake-primary-ready",
+      "false",
+    )
+  })
+
+  test("confirmed pregnancy hard-stops a fresh pill request and correction returns neutral", async ({ page }) => {
+    await expectFreshConfirmedPregnancyTerminalBlock(page)
+  })
+
+  test("confirmed pregnancy hard-stops a fresh pill request at 390x844 without a sticky action", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await expectFreshConfirmedPregnancyTerminalBlock(page)
+  })
+
+  test("an invalid persisted pill safety value stays neutral and keeps Continue not ready", async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem("instantmed-draft-consult", JSON.stringify({
+        serviceType: "consult",
+        currentStepId: "womens-health-assessment",
+        answers: {
+          consultSubtype: "womens_health",
+          womensHealthOption: "ocp_new",
+          contraceptionType: "start",
+          contraceptionCurrent: "none",
+          pregnancyStatus: "no",
+          womens_migraine_aura: "no",
+          womens_blood_clot_history: "no",
+          womens_smoker: "legacy-value",
+        },
+        lastSavedAt: new Date().toISOString(),
+      }))
+    })
+
+    await page.goto("/request?service=consult&subtype=womens_health")
+    await waitForPageLoad(page)
+
+    const smokingGroup = page.getByRole("radiogroup", { name: /Do you smoke/i })
+    await expect(smokingGroup.getByRole("radio", { name: "No", exact: true })).toHaveAttribute("aria-checked", "false")
+    await expect(smokingGroup.getByRole("radio", { name: "Yes", exact: true })).toHaveAttribute("aria-checked", "false")
     await expect(page.locator('button[data-intake-primary-action="true"]').last()).toHaveAttribute(
       "data-intake-primary-ready",
       "false",
