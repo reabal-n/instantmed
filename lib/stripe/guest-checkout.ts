@@ -26,6 +26,12 @@ import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ServiceCategory } from "@/types/services"
 
+import {
+  attachRetryCheckoutSession,
+  HIGH_STAKES_PAYMENT_LOCK,
+  inspectCheckoutSession,
+  invalidateCheckoutSessionForSafety,
+} from "./checkout/checkout-session-safety"
 import { runClinicalValidation } from "./checkout/clinical-validation"
 import { reportCheckoutSessionFailure } from "./checkout-error-alarm"
 import { buildGuestCheckoutCancelUrl } from "./checkout-recovery-link"
@@ -201,11 +207,11 @@ async function rebuildExpiredGuestSession(
   baseUrl: string,
 ): Promise<string | null> {
   if (intake.payment_id) {
-    try {
-      await stripe.checkout.sessions.expire(intake.payment_id)
-    } catch {
-      // Already expired or completed — safe to continue
-    }
+    const invalidation = await invalidateCheckoutSessionForSafety(
+      intake.payment_id,
+      intake.id,
+    )
+    if (invalidation !== "invalidated") return null
   }
 
   const priceId =
@@ -244,37 +250,19 @@ async function rebuildExpiredGuestSession(
       { idempotencyKey: `resume_${intake.id}_${intake.payment_id || "initial"}` },
     )
 
-    if (!session.url) return null
-
-    const { data: rebuildRows, error: updateError } = await supabase
-      .from("intakes")
-      .update({
-        payment_id: session.id,
-        payment_status: "pending",
-        status: "pending_payment",
-        checkout_error: null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", intake.id)
-      .in("status", ["pending_payment", "checkout_failed"])
-      .in("payment_status", ["pending", "unpaid", "failed"])
-      .select("id")
-
-    if (updateError) {
-      logger.error("Failed to update intake after session rebuild", { intakeId: intake.id }, updateError)
+    if (!session.url) {
+      await invalidateCheckoutSessionForSafety(session.id, intake.id)
       return null
     }
 
-    // Zero rows = the intake stopped being retryable between the lookup and
-    // this write (most likely a concurrent paid webhook). Never hand back a
-    // payable URL for an already-paid intake.
-    if (!rebuildRows || rebuildRows.length === 0) {
-      logger.warn("Session rebuild matched 0 rows - intake no longer retryable", { intakeId: intake.id })
-      try {
-        await stripe.checkout.sessions.expire(session.id)
-      } catch {
-        // Best effort - the session expires on its own after 24h.
-      }
+    const attachResult = await attachRetryCheckoutSession({
+      expectedPaymentId: intake.payment_id,
+      intakeId: intake.id,
+      sessionId: session.id,
+      source: "guest_checkout",
+      supabase,
+    })
+    if (attachResult.outcome !== "attached" && attachResult.outcome !== "already_attached") {
       return null
     }
 
@@ -657,27 +645,47 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       if (intakeError?.code === "23505") {
         const { data: existingIntake } = await supabase
           .from("intakes")
-          .select("id, status, payment_status, payment_id, category, subtype, stripe_price_id, is_priority, guest_email")
+          .select("id, status, payment_status, payment_id, checkout_error, category, subtype, stripe_price_id, is_priority, guest_email")
           .eq("idempotency_key", guestIdempotencyKey)
           .eq("patient_id", guestProfileId)
           .maybeSingle()
 
         if (existingIntake) {
-          let checkoutUrl: string | null = null
-          if (existingIntake.payment_id && existingIntake.payment_status !== "paid") {
-            try {
-              const existingSession = await stripe.checkout.sessions.retrieve(existingIntake.payment_id)
-              checkoutUrl = existingSession.url || null
-            } catch (stripeError) {
-              logger.warn("Could not retrieve duplicate guest checkout session", {
-                intakeId: existingIntake.id,
-                error: stripeError instanceof Error ? stripeError.message : String(stripeError),
-              })
+          if (existingIntake.checkout_error === HIGH_STAKES_PAYMENT_LOCK) {
+            return {
+              success: false,
+              error:
+                "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
             }
           }
 
+          let checkoutUrl: string | null = null
+          let canRebuild = !existingIntake.payment_id
+          if (existingIntake.payment_id && existingIntake.payment_status !== "paid") {
+            const inspection = await inspectCheckoutSession(
+              existingIntake.payment_id,
+              existingIntake.id,
+            )
+            if (inspection.state === "open" && inspection.session?.url) {
+              checkoutUrl = inspection.session.url
+            } else if (inspection.state === "payment_in_flight") {
+              const accountUrl = `${baseUrl}/auth/complete-account?intake_id=${encodeURIComponent(existingIntake.id)}&session_id=${encodeURIComponent(existingIntake.payment_id)}`
+              await markGuestDraftConvertedIfPresent(supabase, input, existingIntake.id)
+              return {
+                success: true,
+                checkoutUrl: accountUrl,
+                intakeId: existingIntake.id,
+              }
+            }
+            canRebuild = inspection.state === "expired"
+          }
+
           // Retryable intake with no live Stripe URL (expired or failed session) — rebuild.
-          if (!checkoutUrl && canRetryPaymentForIntake(existingIntake.status, existingIntake.payment_status)) {
+          if (
+            !checkoutUrl &&
+            canRebuild &&
+            canRetryPaymentForIntake(existingIntake.status, existingIntake.payment_status)
+          ) {
             const rebuiltUrl = await rebuildExpiredGuestSession(
               supabase,
               existingIntake,

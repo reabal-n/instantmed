@@ -9,7 +9,7 @@ const logger = createLogger("safety-audit-log")
 
 interface RecordSafetyEvaluationInput {
   answers: Record<string, unknown>
-  context: "checkout" | "retry_payment"
+  context: "checkout" | "guest_resume" | "retry_payment"
   requestId?: string
   result: ServerSafetyCheck
   serviceSlug: string

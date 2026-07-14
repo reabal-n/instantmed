@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const mocks = vi.hoisted(() => ({
   createServiceRoleClient: vi.fn(),
   getAppUrl: vi.fn(),
+  getIntakeAnswers: vi.fn(),
   getOptionalStripePriceEnv: vi.fn(),
   getPriceIdForRequest: vi.fn(),
   logger: {
@@ -12,23 +13,17 @@ const mocks = vi.hoisted(() => ({
     warn: vi.fn(),
   },
   recordSafetyEvaluationForOperators: vi.fn(),
-  redirect: vi.fn(),
   stripeSessionCreate: vi.fn(),
   stripeSessionExpire: vi.fn(),
   stripeSessionRetrieve: vi.fn(),
-  verifyCheckoutResumeToken: vi.fn(),
-}))
-
-vi.mock("next/navigation", () => ({
-  redirect: mocks.redirect,
 }))
 
 vi.mock("@/lib/config/env", () => ({
   getAppUrl: mocks.getAppUrl,
 }))
 
-vi.mock("@/lib/crypto/checkout-resume-token", () => ({
-  verifyCheckoutResumeToken: mocks.verifyCheckoutResumeToken,
+vi.mock("@/lib/data/intake-answers", () => ({
+  getIntakeAnswers: mocks.getIntakeAnswers,
 }))
 
 vi.mock("@/lib/observability/logger", () => ({
@@ -62,20 +57,22 @@ vi.mock("@/lib/supabase/service-role", () => ({
   createServiceRoleClient: mocks.createServiceRoleClient,
 }))
 
-import CheckoutResumePage from "@/app/resume/[token]/page"
+import { resolveGuestCheckoutResume } from "@/lib/stripe/checkout/guest-resume"
+
+interface QueryFilter {
+  column?: string
+  method: "eq" | "in" | "is" | "or"
+  value: unknown
+}
 
 interface UpdateRecord {
-  filters: Array<{
-    column: string
-    method: "eq" | "in" | "is"
-    value: unknown
-  }>
+  filters: QueryFilter[]
   payload: Record<string, unknown>
 }
 
 type ResumeIntake = {
-  answers: Array<{ answers: Record<string, unknown> }>
   category: string | null
+  checkout_error: string | null
   guest_email: string | null
   id: string
   is_priority: boolean | null
@@ -87,19 +84,22 @@ type ResumeIntake = {
   subtype: string | null
 }
 
+interface ResumeSupabaseOptions {
+  events?: string[]
+  refetchedIntakes?: Array<Partial<ResumeIntake>>
+  updateResults?: Array<{
+    data: Array<Partial<ResumeIntake>> | null
+    error: { message: string } | null
+  }>
+}
+
 function createResumeSupabaseMock(
   intakeOverrides: Partial<ResumeIntake> = {},
-  options: {
-    refetchedIntakes?: Array<Partial<ResumeIntake>>
-    updateResults?: Array<{
-      data: Array<{ id: string; payment_id?: string | null }> | null
-      error: { message: string } | null
-    }>
-  } = {},
+  options: ResumeSupabaseOptions = {},
 ) {
   const intake: ResumeIntake = {
-    answers: [{ answers: { symptomDetails: "Need to defer my exam" } }],
     category: "medical_certificate",
+    checkout_error: null,
     guest_email: "patient@example.test",
     id: "intake-1",
     is_priority: false,
@@ -148,9 +148,22 @@ function createResumeSupabaseMock(
             record.filters.push({ column, method: "is", value })
             return updateChain
           }),
-          select: vi.fn(async () => options.updateResults?.shift() || {
-            data: [{ id: intake.id, payment_id: intake.payment_id }],
-            error: null,
+          or: vi.fn((value: string) => {
+            record.filters.push({ method: "or", value })
+            return updateChain
+          }),
+          select: vi.fn(async () => {
+            options.events?.push("update-select")
+            return options.updateResults?.shift() || {
+              data: [{
+                ...intake,
+                checkout_error: payload.checkout_error ?? intake.checkout_error,
+                payment_id: payload.payment_id ?? intake.payment_id,
+                payment_status: payload.payment_status ?? intake.payment_status,
+                status: payload.status ?? intake.status,
+              }],
+              error: null,
+            }
           }),
         }
         return updateChain
@@ -161,139 +174,175 @@ function createResumeSupabaseMock(
   return { intake, supabase, updateRecords }
 }
 
-async function expectPageRedirect(url: string) {
-  await expect(CheckoutResumePage({ params: Promise.resolve({ token: "signed-token" }) }))
-    .rejects.toMatchObject({ redirectUrl: url })
-}
-
 describe("signed guest checkout resume payment safety", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.getAppUrl.mockReturnValue("https://instantmed.example")
+    mocks.getIntakeAnswers.mockResolvedValue({ symptomDetails: "A cold since yesterday" })
     mocks.getOptionalStripePriceEnv.mockReturnValue(null)
     mocks.getPriceIdForRequest.mockReturnValue("price_med_cert")
-    mocks.redirect.mockImplementation((url: string) => {
-      throw Object.assign(new Error("NEXT_REDIRECT"), { redirectUrl: url })
-    })
     mocks.stripeSessionCreate.mockResolvedValue({
       id: "cs_resumed",
       url: "https://checkout.stripe.test/pay/cs_resumed",
     })
     mocks.stripeSessionExpire.mockResolvedValue({ id: "cs_previous" })
-    mocks.stripeSessionRetrieve.mockResolvedValue({
-      id: "cs_previous",
+    mocks.stripeSessionRetrieve.mockImplementation(async (sessionId: string) => ({
+      id: sessionId,
       payment_status: "unpaid",
       status: "open",
-      url: "https://checkout.stripe.test/pay/cs_previous",
-    })
-    mocks.verifyCheckoutResumeToken.mockReturnValue({ intakeId: "intake-1" })
+      url: `https://checkout.stripe.test/pay/${sessionId}`,
+    }))
   })
 
-  it("blocks a persisted high-stakes medical certificate before returning its live Stripe URL", async () => {
-    const { supabase, updateRecords } = createResumeSupabaseMock()
+  it("loads encrypted-first answers and atomically locks a high-stakes payment before closing it", async () => {
+    const events: string[] = []
+    const { supabase, updateRecords } = createResumeSupabaseMock({}, { events })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-
-    await expectPageRedirect("/medical-certificate")
-
-    expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
-    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
-    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
-    expect(updateRecords).toHaveLength(1)
-    expect(updateRecords[0].payload).toMatchObject({
-      status: "cancelled",
-      triage_reasons: ["high_stakes_use_case"],
-      triage_result: "decline",
+    mocks.getIntakeAnswers.mockResolvedValueOnce({
+      symptomDetails: "Migraine and need to defer my exam tomorrow",
     })
-    expect(updateRecords[0].filters).toContainEqual({
-      column: "payment_id",
-      method: "eq",
-      value: "cs_previous",
+    mocks.stripeSessionExpire.mockImplementationOnce(async () => {
+      events.push("expire")
+      return { id: "cs_previous" }
     })
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe("/checkout/cancelled?reason=safety_blocked")
+    expect(mocks.getIntakeAnswers).toHaveBeenCalledWith("intake-1")
     expect(mocks.recordSafetyEvaluationForOperators).toHaveBeenCalledWith(
       expect.objectContaining({
-        answers: expect.objectContaining({ symptomDetails: "Need to defer my exam" }),
-        context: "retry_payment",
+        answers: expect.objectContaining({ symptomDetails: expect.stringContaining("defer") }),
+        context: "guest_resume",
         requestId: "intake-1",
       }),
     )
-  })
-
-  it("uses the authoritative service relation when a legacy med-cert category is missing", async () => {
-    const { supabase, updateRecords } = createResumeSupabaseMock({ category: null })
-    mocks.createServiceRoleClient.mockReturnValue(supabase)
-
-    await expectPageRedirect("/request")
-
-    expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
-    expect(updateRecords[0]?.payload).toMatchObject({
-      status: "cancelled",
+    expect(updateRecords).toHaveLength(2)
+    expect(updateRecords[0].payload).toMatchObject({
+      checkout_error: "safety_blocked_high_stakes",
       triage_reasons: ["high_stakes_use_case"],
+      triage_result: "decline",
     })
+    expect(updateRecords[0].payload).not.toHaveProperty("status")
+    expect(updateRecords[1].payload).toMatchObject({
+      checkout_error: "safety_blocked_high_stakes",
+      status: "cancelled",
+    })
+    expect(updateRecords[1].filters).toEqual(expect.arrayContaining([
+      { column: "payment_id", method: "eq", value: "cs_previous" },
+      { column: "checkout_error", method: "eq", value: "safety_blocked_high_stakes" },
+    ]))
+    expect(events).toEqual(["update-select", "expire", "update-select"])
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
-  it("does not cancel or rebuild when a high-stakes session completed before invalidation", async () => {
+  it("uses the service relation to classify a legacy med-cert row with no category", async () => {
+    const { supabase } = createResumeSupabaseMock({ category: null })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswers.mockResolvedValueOnce({ symptomDetails: "Need to defer an exam" })
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe("/checkout/cancelled?reason=safety_blocked")
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("routes a captured high-stakes session with payment in flight to account completion", async () => {
+    const { supabase, updateRecords } = createResumeSupabaseMock({}, {
+      refetchedIntakes: [{ checkout_error: "safety_blocked_high_stakes" }],
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswers.mockResolvedValueOnce({ symptomDetails: "Need to defer an exam" })
+    mocks.stripeSessionExpire.mockRejectedValueOnce(new Error("Session already complete"))
+    mocks.stripeSessionRetrieve
+      .mockResolvedValueOnce({
+        id: "cs_previous",
+        payment_status: "unpaid",
+        status: "complete",
+        url: "https://checkout.stripe.test/pay/cs_previous",
+      })
+      .mockResolvedValueOnce({
+        id: "cs_previous",
+        payment_status: "unpaid",
+        status: "complete",
+        url: "https://checkout.stripe.test/pay/cs_previous",
+      })
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe(
+      "/auth/complete-account?intake_id=intake-1&session_id=cs_previous",
+    )
+    expect(updateRecords).toHaveLength(1)
+    expect(updateRecords[0].payload).toMatchObject({
+      checkout_error: "safety_blocked_high_stakes",
+    })
+    expect(updateRecords[0].payload).not.toHaveProperty("status")
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("routes unresolved high-stakes invalidation to honest payment recovery", async () => {
     const { supabase, updateRecords } = createResumeSupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.stripeSessionExpire.mockRejectedValueOnce(new Error("Session already complete"))
-    mocks.stripeSessionRetrieve.mockResolvedValueOnce({
-      id: "cs_previous",
-      payment_status: "unpaid",
-      status: "complete",
-      url: "https://checkout.stripe.test/pay/cs_previous",
+    mocks.getIntakeAnswers.mockResolvedValueOnce({ symptomDetails: "Need to defer an exam" })
+    mocks.stripeSessionExpire.mockRejectedValueOnce(new Error("Stripe unavailable"))
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe("/checkout/cancelled?reason=payment_state_unresolved")
+    expect(updateRecords).toHaveLength(1)
+    expect(updateRecords[0].payload).toMatchObject({
+      checkout_error: "safety_blocked_high_stakes",
     })
-
-    await expectPageRedirect("/medical-certificate")
-
-    expect(mocks.stripeSessionRetrieve).toHaveBeenCalledWith("cs_previous")
-    expect(updateRecords).toHaveLength(0)
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
-  it("invalidates a concurrently reattached session before cancelling the high-stakes intake", async () => {
-    const { supabase, updateRecords } = createResumeSupabaseMock({}, {
-      refetchedIntakes: [{ payment_id: "cs_newer" }],
-      updateResults: [
-        { data: [], error: null },
-        { data: [{ id: "intake-1", payment_id: "cs_newer" }], error: null },
+  it("refetches a changed high-stakes row and routes a concurrent paid transition safely", async () => {
+    const { supabase } = createResumeSupabaseMock({}, {
+      refetchedIntakes: [
+        { payment_status: "paid", status: "paid" },
+        { payment_status: "paid", status: "paid" },
       ],
+      updateResults: [{ data: [], error: null }],
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.stripeSessionExpire.mockImplementation(async (sessionId: string) => ({ id: sessionId }))
+    mocks.getIntakeAnswers.mockResolvedValueOnce({ symptomDetails: "Need to defer an exam" })
 
-    await expectPageRedirect("/medical-certificate")
+    const destination = await resolveGuestCheckoutResume("intake-1")
 
-    expect(mocks.stripeSessionExpire.mock.calls.map(([sessionId]) => sessionId)).toEqual([
-      "cs_previous",
-      "cs_newer",
-    ])
-    expect(updateRecords).toHaveLength(2)
-    expect(updateRecords[1].filters).toContainEqual({
-      column: "payment_id",
-      method: "eq",
-      value: "cs_newer",
-    })
+    expect(destination).toBe(
+      "/auth/complete-account?intake_id=intake-1&session_id=cs_previous",
+    )
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
   it("returns the existing open Checkout Session for a safe persisted request", async () => {
-    const { supabase, updateRecords } = createResumeSupabaseMock({
-      answers: [{ answers: { symptomDetails: "A cold since yesterday" } }],
-    })
+    const { supabase, updateRecords } = createResumeSupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)
 
-    await expectPageRedirect("https://checkout.stripe.test/pay/cs_previous")
+    const destination = await resolveGuestCheckoutResume("intake-1")
 
-    expect(mocks.stripeSessionRetrieve).toHaveBeenCalledWith("cs_previous")
+    expect(destination).toBe("https://checkout.stripe.test/pay/cs_previous")
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
     expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
     expect(updateRecords).toHaveLength(0)
   })
 
+  it("fails closed before returning a live session when encrypted answers cannot be read", async () => {
+    const { supabase } = createResumeSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswers.mockResolvedValueOnce(null)
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe("/checkout/cancelled?reason=payment_state_unresolved")
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
   it("routes a safe completed Checkout Session to account completion without rebuilding", async () => {
-    const { supabase, updateRecords } = createResumeSupabaseMock({
-      answers: [{ answers: { symptomDetails: "A cold since yesterday" } }],
-    })
+    const { supabase } = createResumeSupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     mocks.stripeSessionRetrieve.mockResolvedValueOnce({
       id: "cs_previous",
@@ -302,113 +351,177 @@ describe("signed guest checkout resume payment safety", () => {
       url: "https://checkout.stripe.test/pay/cs_previous",
     })
 
-    await expectPageRedirect(
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe(
       "/auth/complete-account?intake_id=intake-1&session_id=cs_previous",
     )
-
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
-    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+  })
+
+  it("rebuilds an expired session only when the deterministic session replay is open", async () => {
+    const { supabase, updateRecords } = createResumeSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.stripeSessionRetrieve
+      .mockResolvedValueOnce({
+        id: "cs_previous",
+        payment_status: "unpaid",
+        status: "expired",
+        url: null,
+      })
+      .mockResolvedValueOnce({
+        id: "cs_resumed",
+        payment_status: "unpaid",
+        status: "open",
+        url: "https://checkout.stripe.test/pay/cs_resumed",
+      })
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe("https://checkout.stripe.test/pay/cs_resumed")
+    expect(mocks.stripeSessionCreate).toHaveBeenCalledTimes(1)
+    const attachRecord = updateRecords.find((record) => record.payload.payment_id === "cs_resumed")
+    expect(attachRecord?.filters).toEqual(expect.arrayContaining([
+      { column: "payment_id", method: "eq", value: "cs_previous" },
+      {
+        method: "or",
+        value: "checkout_error.is.null,checkout_error.neq.safety_blocked_high_stakes",
+      },
+    ]))
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalledWith("cs_resumed")
+  })
+
+  it.each([
+    ["expired", "unpaid"],
+    ["complete", "unpaid"],
+  ])("withholds a deterministic %s session replay instead of attaching it", async (
+    replayStatus,
+    replayPaymentStatus,
+  ) => {
+    const { supabase, updateRecords } = createResumeSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.stripeSessionRetrieve
+      .mockResolvedValueOnce({
+        id: "cs_previous",
+        payment_status: "unpaid",
+        status: "expired",
+        url: null,
+      })
+      .mockResolvedValueOnce({
+        id: "cs_resumed",
+        payment_status: replayPaymentStatus,
+        status: replayStatus,
+        url: replayStatus === "complete" ? "https://checkout.stripe.test/pay/cs_resumed" : null,
+      })
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe("/checkout/cancelled?reason=payment_state_unresolved")
     expect(updateRecords).toHaveLength(0)
   })
 
-  it("rebuilds an expired safe session and attaches it under the exact previous payment id", async () => {
-    const { supabase, updateRecords } = createResumeSupabaseMock(
-      { answers: [{ answers: { symptomDetails: "A cold since yesterday" } }] },
-      {
-        updateResults: [{
-          data: [{ id: "intake-1", payment_id: "cs_resumed" }],
-          error: null,
-        }],
-      },
-    )
+  it("reuses a rebuilt session when an attach error committed before the response failed", async () => {
+    const { supabase } = createResumeSupabaseMock({}, {
+      refetchedIntakes: [{ payment_id: "cs_resumed" }],
+      updateResults: [{ data: null, error: { message: "response lost after commit" } }],
+    })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.stripeSessionRetrieve.mockResolvedValueOnce({
-      id: "cs_previous",
-      payment_status: "unpaid",
-      status: "expired",
-      url: null,
-    })
+    mocks.stripeSessionRetrieve
+      .mockResolvedValueOnce({
+        id: "cs_previous",
+        payment_status: "unpaid",
+        status: "expired",
+        url: null,
+      })
+      .mockResolvedValueOnce({
+        id: "cs_resumed",
+        payment_status: "unpaid",
+        status: "open",
+        url: "https://checkout.stripe.test/pay/cs_resumed",
+      })
 
-    await expectPageRedirect("https://checkout.stripe.test/pay/cs_resumed")
+    const destination = await resolveGuestCheckoutResume("intake-1")
 
-    expect(mocks.stripeSessionCreate).toHaveBeenCalledTimes(1)
-    expect(updateRecords).toHaveLength(1)
-    expect(updateRecords[0].filters).toContainEqual({
-      column: "payment_id",
-      method: "eq",
-      value: "cs_previous",
-    })
+    expect(destination).toBe("https://checkout.stripe.test/pay/cs_resumed")
     expect(mocks.stripeSessionExpire).not.toHaveBeenCalledWith("cs_resumed")
   })
 
-  it("withholds and expires a rebuilt session when its exact payment-state attach loses", async () => {
-    const { supabase, updateRecords } = createResumeSupabaseMock(
-      { answers: [{ answers: { symptomDetails: "A cold since yesterday" } }] },
-      { updateResults: [{ data: [], error: null }] },
-    )
+  it("withholds a same-id session when the high-stakes lock wins after attach", async () => {
+    const { supabase } = createResumeSupabaseMock({}, {
+      refetchedIntakes: [{
+        checkout_error: "safety_blocked_high_stakes",
+        payment_id: "cs_resumed",
+      }],
+      updateResults: [{ data: [], error: null }],
+    })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.stripeSessionRetrieve.mockResolvedValueOnce({
-      id: "cs_previous",
-      payment_status: "unpaid",
-      status: "expired",
-      url: null,
-    })
+    mocks.stripeSessionRetrieve
+      .mockResolvedValueOnce({
+        id: "cs_previous",
+        payment_status: "unpaid",
+        status: "expired",
+        url: null,
+      })
+      .mockResolvedValueOnce({
+        id: "cs_resumed",
+        payment_status: "unpaid",
+        status: "open",
+        url: "https://checkout.stripe.test/pay/cs_resumed",
+      })
 
-    await expectPageRedirect("/medical-certificate")
+    const destination = await resolveGuestCheckoutResume("intake-1")
 
-    expect(mocks.stripeSessionCreate).toHaveBeenCalledTimes(1)
-    expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_resumed")
-    expect(updateRecords).toHaveLength(1)
-    expect(updateRecords[0].filters).toContainEqual({
-      column: "payment_id",
-      method: "eq",
-      value: "cs_previous",
-    })
-  })
-
-  it("reuses the same idempotent session when a parallel resume already attached it", async () => {
-    const { supabase } = createResumeSupabaseMock(
-      { answers: [{ answers: { symptomDetails: "A cold since yesterday" } }] },
-      {
-        refetchedIntakes: [{ payment_id: "cs_resumed" }],
-        updateResults: [{ data: [], error: null }],
-      },
-    )
-    mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.stripeSessionRetrieve.mockResolvedValueOnce({
-      id: "cs_previous",
-      payment_status: "unpaid",
-      status: "expired",
-      url: null,
-    })
-
-    await expectPageRedirect("https://checkout.stripe.test/pay/cs_resumed")
-
-    expect(mocks.stripeSessionCreate).toHaveBeenCalledTimes(1)
+    expect(destination).toBe("/checkout/cancelled?reason=payment_state_unresolved")
     expect(mocks.stripeSessionExpire).not.toHaveBeenCalledWith("cs_resumed")
   })
 
-  it("withholds and expires a rebuilt session when the attach write errors", async () => {
-    const { supabase } = createResumeSupabaseMock(
-      { answers: [{ answers: { symptomDetails: "A cold since yesterday" } }] },
-      { updateResults: [{ data: null, error: { message: "database unavailable" } }] },
-    )
-    mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.stripeSessionRetrieve.mockResolvedValueOnce({
-      id: "cs_previous",
-      payment_status: "unpaid",
-      status: "expired",
-      url: null,
+  it("invalidates only a confirmed orphan after the exact attach loses", async () => {
+    const { supabase } = createResumeSupabaseMock({}, {
+      refetchedIntakes: [{ payment_id: "cs_other" }],
+      updateResults: [{ data: [], error: null }],
     })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.stripeSessionRetrieve
+      .mockResolvedValueOnce({
+        id: "cs_previous",
+        payment_status: "unpaid",
+        status: "expired",
+        url: null,
+      })
+      .mockResolvedValueOnce({
+        id: "cs_resumed",
+        payment_status: "unpaid",
+        status: "open",
+        url: "https://checkout.stripe.test/pay/cs_resumed",
+      })
 
-    await expectPageRedirect("/medical-certificate")
+    const destination = await resolveGuestCheckoutResume("intake-1")
 
-    expect(mocks.stripeSessionCreate).toHaveBeenCalledTimes(1)
+    expect(destination).toBe("/checkout/cancelled?reason=payment_state_unresolved")
     expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_resumed")
-    expect(mocks.logger.error).toHaveBeenCalledWith(
-      expect.stringMatching(/failed to update intake/i),
-      expect.objectContaining({ intakeId: "intake-1" }),
-      expect.objectContaining({ message: "database unavailable" }),
-    )
+  })
+
+  it("routes an already-paid intake directly to account completion", async () => {
+    const { supabase } = createResumeSupabaseMock({ payment_status: "paid", status: "paid" })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe("/auth/complete-account?intake_id=intake-1")
+    expect(mocks.getIntakeAnswers).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+  })
+
+  it("keeps a previously safety-locked cancellation on the non-PHI blocked route", async () => {
+    const { supabase } = createResumeSupabaseMock({
+      checkout_error: "safety_blocked_high_stakes",
+      status: "cancelled",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe("/checkout/cancelled?reason=safety_blocked")
+    expect(mocks.getIntakeAnswers).not.toHaveBeenCalled()
   })
 })

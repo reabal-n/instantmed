@@ -10,6 +10,10 @@ const checkoutResumeSource = readFileSync(
   join(process.cwd(), "app/resume/[token]/page.tsx"),
   "utf8",
 )
+const guestResumeSource = readFileSync(
+  join(process.cwd(), "lib/stripe/checkout/guest-resume.ts"),
+  "utf8",
+)
 const checkoutRecoveryLinkSource = readFileSync(
   join(process.cwd(), "lib/stripe/checkout-recovery-link.ts"),
   "utf8",
@@ -34,13 +38,43 @@ describe("guest checkout operational contract", () => {
 
   it("keeps cancelled guest checkout recoverable without requiring a patient login first", () => {
     expect(guestCheckoutSource).toContain("buildGuestCheckoutCancelUrl({ baseUrl, intakeId: intake.id })")
-    expect(checkoutResumeSource).toContain("buildGuestCheckoutCancelUrl({ baseUrl, intakeId: intake.id })")
+    expect(guestResumeSource).toContain("buildGuestCheckoutCancelUrl({ baseUrl, intakeId: intake.id })")
+    expect(checkoutResumeSource).toContain("resolveGuestCheckoutResume")
     expect(checkoutRecoveryLinkSource).toContain('new URL("/checkout/cancelled", baseUrl)')
     expect(publicCancelledPageSource).toContain("PaymentCancelledContent")
     expect(publicCancelledPageSource).toContain("CHECKOUT_RESUME_TOKEN_PARAM")
     expect(cancelledPageSource).toContain("resumeToken")
     expect(cancelledPageSource).toContain("Resume secure checkout")
     expect(guestCheckoutSource).not.toContain("/patient/intakes/cancelled?intake_id=${intake.id}")
-    expect(checkoutResumeSource).not.toContain("/patient/intakes/cancelled?intake_id=${intake.id}")
+    expect(guestResumeSource).not.toContain("/patient/intakes/cancelled?intake_id=${intake.id}")
+  })
+
+  it("routes duplicate guest recovery through the shared session classifier and attach guard", () => {
+    const rebuildSection = guestCheckoutSource.slice(
+      guestCheckoutSource.indexOf("async function rebuildExpiredGuestSession"),
+      guestCheckoutSource.indexOf("async function markGuestCheckoutFailed"),
+    )
+    const duplicateSection = guestCheckoutSource.slice(
+      guestCheckoutSource.indexOf("if (intakeError || !intake)"),
+      guestCheckoutSource.indexOf('logger.error("Failed to create intake"'),
+    )
+
+    expect(rebuildSection).toContain("invalidateCheckoutSessionForSafety")
+    expect(rebuildSection).toContain("attachRetryCheckoutSession")
+    expect(rebuildSection).not.toContain('.update({\n        payment_id: session.id')
+    expect(duplicateSection).toContain("inspectCheckoutSession")
+    expect(duplicateSection).not.toContain("stripe.checkout.sessions.retrieve")
+    expect(duplicateSection).toContain("payment_id, checkout_error, category")
+    expect(duplicateSection).toContain(
+      "existingIntake.checkout_error === HIGH_STAKES_PAYMENT_LOCK",
+    )
+    expect(duplicateSection.indexOf("HIGH_STAKES_PAYMENT_LOCK")).toBeLessThan(
+      duplicateSection.indexOf("inspectCheckoutSession"),
+    )
+  })
+
+  it("keeps signed resume reads on the encrypted-first answer helper", () => {
+    expect(guestResumeSource).toContain("getIntakeAnswers(intake.id)")
+    expect(guestResumeSource).not.toContain("answers:intake_answers(answers)")
   })
 })

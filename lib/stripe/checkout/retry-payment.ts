@@ -14,6 +14,7 @@ import { cookies } from "next/headers"
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
+import { getIntakeAnswers } from "@/lib/data/intake-answers"
 import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
@@ -26,6 +27,7 @@ import { getOptionalStripePriceEnv, getPriceIdForRequest, normalizeStripePriceId
 import { buildPaymentIntentMetadata, canRetryPaymentForIntake } from "../payment-integrity"
 import { createReferralCouponIfEligible } from "../referral-coupon"
 import {
+  attachRetryCheckoutSession,
   cancelHighStakesUnpaidIntake,
   invalidateCheckoutSessionForSafety,
 } from "./checkout-session-safety"
@@ -58,7 +60,7 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
 
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
-      .select("*, service:services!service_id(id, slug, name, type, price_cents), answers:intake_answers(answers)")
+      .select("*, service:services!service_id(id, slug, name, type, price_cents)")
       .eq("id", intakeId)
       .eq("patient_id", patientId)
       .single()
@@ -82,8 +84,15 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     const serviceSlugForSafety =
       serviceForSafety?.slug ||
       (categoryForSafety ? getServiceSlug(categoryForSafety, intake.subtype || "") : "consult")
-    const intakeAnswers =
-      (intake.answers as Array<{ answers: Record<string, unknown> }> | null)?.[0]?.answers || {}
+    const intakeAnswers = await getIntakeAnswers(intake.id)
+    if (intakeAnswers === null) {
+      logger.error(
+        "Could not read persisted answers before payment retry",
+        { intakeId: intake.id },
+        new Error("Encrypted-first intake answer read returned no row"),
+      )
+      return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
+    }
 
     const isMedicalCertificate = isMedicalCertificateIntake(categoryForSafety, serviceForSafety)
     const highStakesBlock = isMedicalCertificate
@@ -295,64 +304,22 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       return { success: false, error: "Failed to create checkout session. Please try again." }
     }
 
-    // Reset retryable failures to a fresh pending checkout session.
-    let retryAttachQuery = supabase
-      .from("intakes")
-      .update({
-        payment_id: session.id,
-        payment_status: "pending",
-        status: "pending_payment",
-        checkout_error: null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", intake.id)
-      .in("status", ["pending_payment", "checkout_failed"])
-      .in("payment_status", ["pending", "unpaid", "failed"])
+    const attachResult = await attachRetryCheckoutSession({
+      expectedPaymentId: intake.payment_id,
+      intakeId: intake.id,
+      patientId,
+      sessionId: session.id,
+      source: "retry_payment",
+      supabase,
+    })
 
-    retryAttachQuery = intake.payment_id
-      ? retryAttachQuery.eq("payment_id", intake.payment_id)
-      : retryAttachQuery.is("payment_id", null)
-
-    const { data: retryRows, error: retryUpdateError } = await retryAttachQuery.select("id")
-
-    if (retryUpdateError) {
-      logger.error("Failed to attach retry checkout session", { intakeId: intake.id }, retryUpdateError)
-      await invalidateCheckoutSessionForSafety(session.id, intake.id)
-      return { success: false, error: "Failed to prepare payment retry. Please try again." }
-    }
-
-    // A parallel request can receive the same Stripe Session because retry
-    // creation uses a stable idempotency key. Reuse that already-current session;
-    // otherwise the CAS loser is an orphan and must be invalidated.
-    if (!retryRows || retryRows.length === 0) {
-      const { data: currentIntake, error: refetchError } = await supabase
-        .from("intakes")
-        .select("id, status, payment_status, payment_id")
-        .eq("id", intake.id)
-        .eq("patient_id", patientId)
-        .single()
-
-      if (
-        !refetchError &&
-        currentIntake?.payment_id === session.id &&
-        canRetryPaymentForIntake(currentIntake.status, currentIntake.payment_status)
-      ) {
-        logger.info("Parallel retry already attached the same idempotent session", {
-          intakeId: intake.id,
-          sessionId: session.id,
-        })
-      } else {
-        logger.warn("Retry attach lost its payment-state CAS; expiring orphan session", {
-          intakeId: intake.id,
-          sessionId: session.id,
-        })
-        await invalidateCheckoutSessionForSafety(session.id, intake.id)
-        return {
-          success: false,
-          error: currentIntake?.payment_status === "paid"
-            ? "This request has already been paid — no further payment is needed. Please refresh to see its status."
-            : RETRY_PAYMENT_STATE_ERROR,
-        }
+    if (attachResult.outcome !== "attached" && attachResult.outcome !== "already_attached") {
+      return {
+        success: false,
+        error: attachResult.outcome === "state_changed" &&
+          attachResult.currentState?.payment_status === "paid"
+          ? "This request has already been paid — no further payment is needed. Please refresh to see its status."
+          : RETRY_PAYMENT_STATE_ERROR,
       }
     }
 
