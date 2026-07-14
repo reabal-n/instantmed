@@ -286,7 +286,6 @@ Available correlation IDs:
 
 | ID Type | Format | Where It Appears |
 |---------|--------|-----------------|
-| `correlation_id` | `{timestamp36}-{uuid8}` | HTTP header `x-correlation-id`, Stripe webhook |
 | `request_id` | UUID v4 | HTTP header `x-request-id` |
 | `intake_id` | UUID | DB primary key, Stripe metadata, Sentry extra |
 | `session_id` | Stripe session ID | URL param, Stripe metadata |
