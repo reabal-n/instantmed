@@ -184,7 +184,7 @@ describe("marketing and request reflow contract", () => {
     const sticky = read("components/marketing/shared/sticky-cta.tsx")
     const pricingSticky = read("app/pricing/pricing-sticky-cta.tsx")
 
-    expect(sticky).toContain("initial={false}")
+    expect(sticky).toContain("initial={{}}")
     expect(sticky).toContain('animate={{ y: show ? 0 : "100%" }}')
     expect(sticky).toContain("duration: prefersReducedMotion ? 0 : 0.3")
     expect(sticky).toContain("inert={!show ? true : undefined}")
