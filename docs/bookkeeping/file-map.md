@@ -1,9 +1,9 @@
 # Doc File Map
 
-> **Last updated:** 2026-07-12.
+> **Last updated:** 2026-07-14.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
 >
-> **Doc-surface count:** 119 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans; 110 -> 112 on 2026-07-01 after adding the root context glossary and first ADR for Google Ads retained-value bidding; reconciled to 115 on 2026-07-08 after excluding generated verification artifacts from `scripts/doc-audit.sh` and adding the GEO citation execution record; reconciled to 116 on 2026-07-09 after adding the intake drop-off final plan; reconciled to 118 on 2026-07-10 after adding the audit-remediation implementation program and the comparison-surface submission kit; reconciled to 119 on 2026-07-12 after adding the cleanup-and-scale roadmap.
+> **Doc-surface count:** 120 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans; 110 -> 112 on 2026-07-01 after adding the root context glossary and first ADR for Google Ads retained-value bidding; reconciled to 115 on 2026-07-08 after excluding generated verification artifacts from `scripts/doc-audit.sh` and adding the GEO citation execution record; reconciled to 116 on 2026-07-09 after adding the intake drop-off final plan; reconciled to 118 on 2026-07-10 after adding the audit-remediation implementation program and the comparison-surface submission kit; reconciled to 119 on 2026-07-12 after adding the cleanup-and-scale roadmap; reconciled to 120 on 2026-07-14 after adding the doctor review and patient-record consolidation design.
 >
 > **Owner:** Operator. Update on every doc add, move, or delete. Bump the timestamp.
 
@@ -136,6 +136,7 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 | [docs/plans/2026-06-10-organic-geo-beat-nextclinic-plan.md](../plans/2026-06-10-organic-geo-beat-nextclinic-plan.md) | Reference-only organic + GEO/LLM-citation research and sequence; ROADMAP ranks 3 and 6 decide activation |
 | [docs/plans/2026-06-10-content-mimic-map.md](../plans/2026-06-10-content-mimic-map.md) | Reference content map; no independent execution authority |
 | [docs/plans/2026-07-09-intake-dropoff-final-plan.md](../plans/2026-07-09-intake-dropoff-final-plan.md) | Reference intake-dropoff implementation plan; no independent execution authority |
+| [docs/plans/2026-07-14-doctor-review-patient-record-consolidation-design.md](../plans/2026-07-14-doctor-review-patient-record-consolidation-design.md) | Approved no-bloat design for one canonical request packet, targeted fulfilment refresh, and clinically useful patient profile surfaces |
 
 Root plan files preserve implementation detail only. They are not active merely because they remain outside the archive; `docs/ROADMAP.md` is the sole queue.
 

@@ -1,5 +1,7 @@
 # Doctor Review UI Simplification Implementation Plan
 
+> **Status (2026-07-14): Superseded pending rewrite.** Do not execute this version. It describes the partial implementation that produced competing request renderers and conflicts with the approved action lifecycle. The replacement design is `docs/plans/2026-07-14-doctor-review-patient-record-consolidation-design.md`; after written-spec approval, this file will be rewritten as its implementation plan instead of leaving two active instructions.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make prescription review screens show one clear request packet, exact blockers, identity/Parchment readiness, and next actions without repeated medication/dose noise.
