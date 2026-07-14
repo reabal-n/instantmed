@@ -121,8 +121,32 @@ describe("code-clean retirement contracts", () => {
     }
 
     expect(read("lib/microcopy/universal.ts")).toContain("export const COPY")
-    expect(read("lib/validation/schemas.ts")).toContain("medCertRequestSchema")
+    expect(read("lib/validation/med-cert-schema.ts")).toContain("validateMedCertPayload")
     expect(read("lib/validation/repeat-script-schema.ts")).toContain("validateRepeatScriptPayload")
+  })
+
+  it("keeps superseded validation and formatting helpers retired", () => {
+    const retiredHelpers = [
+      "lib/api/responses.ts",
+      "lib/format/service.ts",
+      "lib/utils/form-formatting.ts",
+      "lib/utils/idempotency.ts",
+      "lib/validation/dates.ts",
+      "lib/validation/schemas.ts",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredHelpers) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("lib/format/intake.ts")).toContain("formatServiceType")
+    expect(read("lib/medical-certificates/date-policy.ts")).toContain(
+      "validateCertificateDateRange",
+    )
+    expect(read("lib/validation/medicare.ts")).toContain("formatMedicareNumber")
+    expect(read("lib/email/send/idempotency.ts")).toContain("buildEmailOutboxIdempotencyKey")
   })
 
   it("keeps stale patient quick-reorder APIs out of the route tree", () => {

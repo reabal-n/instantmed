@@ -14,6 +14,7 @@
 #  10. Retired vacuous E2E specs
 #  11. Superseded staff and data sidecars
 #  12. Unused copy catalogs and parallel flow models
+#  13. Superseded validation and formatting helpers
 #
 # Exit 1 if any orphans found.
 
@@ -434,6 +435,21 @@ for retired_catalog in \
 do
   if [[ -e "$retired_catalog" ]]; then
     echo "ORPHAN: $retired_catalog still exists (unused copy catalog or parallel flow model)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 13. Superseded validation and formatting helpers ─────────────────────
+for retired_helper in \
+  "lib/api/responses.ts" \
+  "lib/format/service.ts" \
+  "lib/utils/form-formatting.ts" \
+  "lib/utils/idempotency.ts" \
+  "lib/validation/dates.ts" \
+  "lib/validation/schemas.ts"
+do
+  if [[ -e "$retired_helper" ]]; then
+    echo "ORPHAN: $retired_helper still exists (superseded validation or formatting helper)"
     orphans=$((orphans + 1))
   fi
 done
