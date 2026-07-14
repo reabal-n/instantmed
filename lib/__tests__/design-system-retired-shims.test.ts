@@ -97,7 +97,12 @@ describe("retired design-system shims", () => {
     const versionSource = readFileSync(join(root, "lib/design-system/version.ts"), "utf8")
     const changelogSource = readFileSync(join(root, "docs/DESIGN_SYSTEM_CHANGELOG.md"), "utf8")
 
-    expect(changelogSource).toContain("## [2.0.2]")
-    expect(versionSource).toContain('DESIGN_SYSTEM_VERSION = "2.0.2"')
+    const designSource = readFileSync(join(root, "DESIGN.md"), "utf8")
+    const onboardingSource = readFileSync(join(root, "docs/AI_ONBOARDING.md"), "utf8")
+
+    expect(changelogSource).toContain("## [2.0.3]")
+    expect(versionSource).toContain('DESIGN_SYSTEM_VERSION = "2.0.3"')
+    expect(designSource).toContain("**Version: 2.0.3**")
+    expect(onboardingSource).toContain("`DESIGN_SYSTEM_VERSION` (2.0.3 as of 2026-07-14)")
   })
 })

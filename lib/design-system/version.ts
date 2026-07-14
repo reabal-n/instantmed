@@ -25,10 +25,13 @@
  *   2.0.2 (2026-05-01) — Removed unused portal/SEO/status compatibility
  *                         shims, renamed marketing wrappers, and removed
  *                         legacy Select/DashboardHeader compatibility APIs.
+ *   2.0.3 (2026-07-14) — Removed verified zero-consumer CTA, trust, motion,
+ *                         form, onboarding, clinical, and shell component
+ *                         graphs without changing mounted UI or tokens.
  *
  * Consumers (plan doc, future packages) pin against this. Changelog lives
  * at docs/DESIGN_SYSTEM_CHANGELOG.md.
  */
-export const DESIGN_SYSTEM_VERSION = "2.0.2" as const
+export const DESIGN_SYSTEM_VERSION = "2.0.3" as const
 
 export type DesignSystemVersion = typeof DESIGN_SYSTEM_VERSION

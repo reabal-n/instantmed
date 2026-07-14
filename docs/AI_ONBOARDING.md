@@ -25,7 +25,7 @@ Read (or re-read) these before touching any `.tsx` / `.css` in `app/` or `compon
 17. **`lib/dashboard/routes.ts`** — `STAFF_*_HREF` canonical constants for the staff dashboard, ledger, patients, ops, etc. Legacy `ADMIN_*_HREF` / `DOCTOR_*_HREF` constants are aliases kept for the Phase 1/2 transition; reference the STAFF_* names in new code.
 18. **`lib/dashboard/revalidate-staff.ts`** — Central `revalidateStaff({ intakeId?, patientId?, ops?, identity? })` helper. Use this from every server action that touches staff-visible state; do not scatter raw `revalidatePath("/admin")` / `revalidatePath("/doctor")` strings.
 
-Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2.0.1 as of 2026-05-01). Bump and update `docs/DESIGN_SYSTEM_CHANGELOG.md` on breaking changes.
+Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2.0.3 as of 2026-07-14). Bump and update `docs/DESIGN_SYSTEM_CHANGELOG.md` on breaking changes.
 
 ## Top 11 rules of thumb
 

@@ -1,6 +1,6 @@
 # DESIGN.md — InstantMed
 
-> **Version: 2.0.2** · Pinned 2026-05-01 · See [changelog](docs/DESIGN_SYSTEM_CHANGELOG.md) · Pin constant: `lib/design-system/version.ts`
+> **Version: 2.0.3** · Pinned 2026-07-14 · See [changelog](docs/DESIGN_SYSTEM_CHANGELOG.md) · Pin constant: `lib/design-system/version.ts`
 
 > **Load every session.** Single source of truth for all visual, layout, and interaction decisions. The design system is law.
 
