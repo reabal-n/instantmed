@@ -7,6 +7,7 @@
 
 import * as Sentry from "@sentry/nextjs"
 
+import { buildVerifiedCompleteAccountHref } from "@/lib/auth/complete-account-handoff"
 import { env } from "@/lib/config/env"
 import { getEmployerCertificateDownloadHref } from "@/lib/crypto/employer-certificate-token"
 import { signHeardAboutUsToken } from "@/lib/crypto/heard-about-us-token"
@@ -120,7 +121,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   async function fetchIntakeContext(intakeId: string) {
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
-      .select("id, patient_id, service_id, category, reference_number, amount_cents, paid_at, decline_reason, decline_reason_code, decline_reason_note, refund_amount_cents, parchment_reference, guest_email")
+      .select("id, patient_id, service_id, category, reference_number, amount_cents, paid_at, payment_id, decline_reason, decline_reason_code, decline_reason_note, refund_amount_cents, parchment_reference, guest_email")
       .eq("id", intakeId)
       .single()
 
@@ -352,9 +353,19 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
 
     const ctx = await fetchIntakeContext(row.intake_id)
     if ("error" in ctx) return { success: false, error: ctx.error }
+    if (!ctx.intake.payment_id) {
+      return {
+        success: false,
+        error: "guest_complete_account requires a current payment_id for reconstruction",
+      }
+    }
 
     const serviceName = ctx.service.short_name || ctx.service.name
-    const completeAccountUrl = `${env.appUrl}/auth/complete-account?intake_id=${ctx.intake.id}`
+    const completeAccountUrl = buildVerifiedCompleteAccountHref({
+      appUrl: env.appUrl,
+      intakeId: ctx.intake.id,
+      sessionId: ctx.intake.payment_id,
+    })
 
     return renderDatabaseTemplate("guest_complete_account", {
       patient_name: ctx.patient.full_name || row.to_name || "there",
@@ -557,12 +568,20 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       .then(r => r.data?.auth_user_id))
 
     const { RequestReceivedEmail } = await import("@/lib/email/components/templates/request-received")
+    const completeAccountUrl = isGuest && ctx.intake.payment_id
+      ? buildVerifiedCompleteAccountHref({
+          appUrl: env.appUrl,
+          intakeId: ctx.intake.id,
+          sessionId: ctx.intake.payment_id,
+        })
+      : undefined
     const template = RequestReceivedEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       requestType: serviceName,
       amount: amountFormatted,
       requestId: ctx.intake.id,
       isGuest,
+      completeAccountUrl,
     })
 
     const html = await renderEmailToHtml(template)

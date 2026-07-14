@@ -4,7 +4,11 @@ import { createLogger } from "@/lib/observability/logger"
 import type { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { stripe } from "../client"
-import { canRetryPaymentForIntake } from "../payment-integrity"
+import {
+  canRetryPaymentForIntake,
+  PAYMENT_REPLACEMENT_LOCK,
+  validateCheckoutSessionIntakeMatch,
+} from "../payment-integrity"
 
 const logger = createLogger("checkout-session-safety")
 
@@ -25,7 +29,9 @@ function toError(value: unknown, fallback: string): Error {
 
 export type CheckoutSessionState =
   | "expired"
+  | "failed"
   | "open"
+  | "paid"
   | "payment_in_flight"
   | "unresolved"
 
@@ -49,26 +55,44 @@ export interface RetryablePaymentState {
   status: string | null
 }
 
+export interface CheckoutSessionReplacementState extends RetryablePaymentState {
+  checkout_error: string | null
+}
+
+export type CheckoutSessionReplacementClaimResult =
+  | { outcome: "claimed" | "not_needed" }
+  | { currentState: RetryablePaymentState | null; outcome: "state_changed" }
+  | { outcome: "unresolved" }
+
 interface StoredPaymentState extends RetryablePaymentState {
   checkout_error: string | null
 }
 
 type CheckoutSessionSnapshot = Pick<
   Stripe.Checkout.Session,
-  "id" | "payment_status" | "status" | "url"
+  "amount_total" | "id" | "metadata" | "payment_status" | "status" | "url"
 >
 
 function classifyCheckoutSession(
   session: CheckoutSessionSnapshot,
+  persistedState?: Pick<RetryablePaymentState, "payment_status" | "status">,
 ): CheckoutSessionState {
+  if (session.payment_status === "paid") return "paid"
+
+  // Stripe leaves an async-payment Session as complete/unpaid after failure.
+  // Once that failure is durably reflected on the intake, the Session is final
+  // and a replacement may be created. Without the persisted pair, fail closed
+  // as payment in flight so a delayed success webhook can still win.
   if (
-    session.status === "complete" ||
-    session.payment_status === "paid" ||
-    session.payment_status === "no_payment_required"
+    session.status === "complete" &&
+    session.payment_status === "unpaid" &&
+    persistedState?.status === "checkout_failed" &&
+    persistedState.payment_status === "failed"
   ) {
-    return "payment_in_flight"
+    return "failed"
   }
 
+  if (session.status === "complete") return "payment_in_flight"
   if (session.status === "expired") return "expired"
   if (session.status === "open") return "open"
   return "unresolved"
@@ -77,10 +101,35 @@ function classifyCheckoutSession(
 export async function inspectCheckoutSession(
   sessionId: string,
   intakeId: string,
+  options: {
+    intakeStatus?: string | null
+    paymentStatus?: string | null
+    storedPaymentId?: string | null
+  } = {},
 ): Promise<{ session: CheckoutSessionSnapshot | null; state: CheckoutSessionState }> {
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId)
-    return { session, state: classifyCheckoutSession(session) }
+    const ownership = validateCheckoutSessionIntakeMatch({
+      intakeId,
+      session,
+      storedPaymentId: options.storedPaymentId,
+    })
+    if (!ownership.valid) {
+      logger.error(
+        "Checkout session does not belong to the requested intake",
+        { intakeId, reason: ownership.reason, sessionId },
+        new Error("Stripe Checkout Session ownership validation failed"),
+      )
+      return { session: null, state: "unresolved" }
+    }
+
+    return {
+      session,
+      state: classifyCheckoutSession(session, {
+        payment_status: options.paymentStatus ?? null,
+        status: options.intakeStatus ?? null,
+      }),
+    }
   } catch (error) {
     logger.error(
       "Could not retrieve checkout session state",
@@ -94,17 +143,36 @@ export async function inspectCheckoutSession(
 export async function invalidateCheckoutSessionForSafety(
   sessionId: string,
   intakeId: string,
+  options: {
+    intakeStatus?: string | null
+    paymentStatus?: string | null
+    storedPaymentId?: string | null
+  } = {},
 ): Promise<SessionInvalidationResult> {
+  // Ownership comes before mutation. A caller-controlled or stale Session id
+  // must never be enough to expire another intake's Checkout Session.
+  let inspection = await inspectCheckoutSession(sessionId, intakeId, options)
+
+  if (inspection.state === "expired" || inspection.state === "failed") {
+    return "invalidated"
+  }
+  if (inspection.state === "paid" || inspection.state === "payment_in_flight") {
+    return "payment_in_flight"
+  }
+  if (inspection.state !== "open") return "unresolved"
+
   try {
     await stripe.checkout.sessions.expire(sessionId)
     logger.info("Expired checkout session for payment safety", { intakeId, sessionId })
     return "invalidated"
   } catch (expireError) {
-    const inspection = await inspectCheckoutSession(sessionId, intakeId)
+    inspection = await inspectCheckoutSession(sessionId, intakeId, options)
 
-    if (inspection.state === "expired") return "invalidated"
+    if (inspection.state === "expired" || inspection.state === "failed") {
+      return "invalidated"
+    }
 
-    if (inspection.state === "payment_in_flight") {
+    if (inspection.state === "paid" || inspection.state === "payment_in_flight") {
       logger.error(
         "Checkout session is complete or payment is in flight",
         {
@@ -132,7 +200,7 @@ export async function invalidateCheckoutSessionForSafety(
   }
 }
 
-export async function attachRetryCheckoutSession({
+export async function attachCheckoutSession({
   expectedPaymentId,
   intakeId,
   patientId,
@@ -144,7 +212,11 @@ export async function attachRetryCheckoutSession({
   intakeId: string
   patientId?: string
   sessionId: string
-  source: "guest_checkout" | "guest_resume" | "retry_payment"
+  source:
+    | "authenticated_checkout"
+    | "guest_checkout"
+    | "guest_resume"
+    | "retry_payment"
   supabase: ReturnType<typeof createServiceRoleClient>
 }): Promise<CheckoutSessionAttachResult> {
   // Stripe idempotency can replay a session created by an earlier request. A
@@ -177,6 +249,8 @@ export async function attachRetryCheckoutSession({
     .in("payment_status", ["pending", "unpaid", "failed"])
     .or(`checkout_error.is.null,checkout_error.neq.${HIGH_STAKES_PAYMENT_LOCK}`)
 
+  if (patientId) attachQuery = attachQuery.eq("patient_id", patientId)
+
   attachQuery = expectedPaymentId
     ? attachQuery.eq("payment_id", expectedPaymentId)
     : attachQuery.is("payment_id", null)
@@ -199,6 +273,7 @@ export async function attachRetryCheckoutSession({
       { intakeId, sessionId, source },
       refetchError,
     )
+    await invalidateCheckoutSessionForSafety(sessionId, intakeId)
     return { outcome: "unresolved" }
   }
 
@@ -224,6 +299,120 @@ export async function attachRetryCheckoutSession({
       "Checkout session attach failed after state reconciliation",
       { intakeId, sessionId, source },
       attachError,
+    )
+  }
+
+  return {
+    currentState: currentIntake
+      ? {
+          payment_id: currentIntake.payment_id,
+          payment_status: currentIntake.payment_status,
+          status: currentIntake.status,
+        }
+      : null,
+    outcome: "state_changed",
+  }
+}
+
+/**
+ * Claim a pending Session replacement before expiring the current Stripe
+ * Session. The expiry webhook only transitions rows that are not carrying this
+ * marker, preventing it from changing the row to expired between Stripe expiry
+ * and the exact-CAS replacement attach.
+ *
+ * checkout_failed rows do not need the marker because the expiry webhook
+ * already ignores them. A pre-existing marker is safe to resume: every caller
+ * uses a deterministic Stripe idempotency key and the final attach still uses
+ * the exact previous payment_id compare-and-swap. The marker is deliberately
+ * durable on intermediate failure; only a successful attach or a terminal
+ * payment webhook clears/replaces it, so one parallel caller cannot reopen the
+ * expiry race while another caller is still working.
+ */
+export async function claimCheckoutSessionReplacement({
+  initialState,
+  intakeId,
+  patientId,
+  source,
+  supabase,
+}: {
+  initialState: CheckoutSessionReplacementState
+  intakeId: string
+  patientId?: string
+  source: "guest_checkout" | "guest_resume" | "retry_payment"
+  supabase: ReturnType<typeof createServiceRoleClient>
+}): Promise<CheckoutSessionReplacementClaimResult> {
+  if (!initialState.payment_id || initialState.status !== "pending_payment") {
+    return { outcome: "not_needed" }
+  }
+
+  if (
+    initialState.checkout_error === HIGH_STAKES_PAYMENT_LOCK ||
+    !canRetryPaymentForIntake(initialState.status, initialState.payment_status)
+  ) {
+    return {
+      currentState: initialState,
+      outcome: "state_changed",
+    }
+  }
+
+  // A prior process may have stopped after claiming the row. It is safe for a
+  // later request to continue because replacement Session creation is
+  // idempotent and attachment still exact-CASes the captured payment_id.
+  if (initialState.checkout_error === PAYMENT_REPLACEMENT_LOCK) {
+    return { outcome: "claimed" }
+  }
+
+  let claimQuery = supabase
+    .from("intakes")
+    .update({
+      checkout_error: PAYMENT_REPLACEMENT_LOCK,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", intakeId)
+    .eq("payment_id", initialState.payment_id)
+    .eq("status", initialState.status)
+    .eq("payment_status", initialState.payment_status)
+
+  if (patientId) claimQuery = claimQuery.eq("patient_id", patientId)
+  claimQuery = initialState.checkout_error
+    ? claimQuery.eq("checkout_error", initialState.checkout_error)
+    : claimQuery.is("checkout_error", null)
+
+  const { data: claimedRows, error: claimError } = await claimQuery.select("id")
+  if (!claimError && claimedRows && claimedRows.length > 0) {
+    return { outcome: "claimed" }
+  }
+
+  let refetchQuery = supabase
+    .from("intakes")
+    .select("id, status, payment_status, payment_id, checkout_error")
+    .eq("id", intakeId)
+  if (patientId) refetchQuery = refetchQuery.eq("patient_id", patientId)
+
+  const { data: currentIntake, error: refetchError } = await refetchQuery.maybeSingle()
+  if (refetchError) {
+    logger.error(
+      "Could not reconcile checkout replacement claim",
+      { intakeId, source },
+      refetchError,
+    )
+    return { outcome: "unresolved" }
+  }
+
+  if (
+    currentIntake?.checkout_error === PAYMENT_REPLACEMENT_LOCK &&
+    currentIntake.payment_id === initialState.payment_id &&
+    currentIntake.status === initialState.status &&
+    currentIntake.payment_status === initialState.payment_status
+  ) {
+    return { outcome: "claimed" }
+  }
+
+  if (claimError) {
+    logger.error(
+      "Checkout replacement claim failed after state reconciliation",
+      { intakeId, source },
+      claimError,
     )
   }
 
@@ -339,6 +528,11 @@ export async function cancelHighStakesUnpaidIntake({
     const invalidation = await invalidateCheckoutSessionForSafety(
       lockedState.payment_id,
       intakeId,
+      {
+        intakeStatus: lockedState.status,
+        paymentStatus: lockedState.payment_status,
+        storedPaymentId: lockedState.payment_id,
+      },
     )
     if (invalidation !== "invalidated") return invalidation
   }

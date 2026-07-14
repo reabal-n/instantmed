@@ -4,7 +4,12 @@ import { Footer } from "@/components/shared/footer"
 import { Navbar } from "@/components/shared/navbar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { signHeardAboutUsToken } from "@/lib/crypto/heard-about-us-token"
-import { stripe } from "@/lib/stripe/client"
+import { inspectCheckoutSession } from "@/lib/stripe/checkout/checkout-session-safety"
+import {
+  type CompleteAccountPaymentState,
+  resolveCompleteAccountAmountCents,
+  resolveCompleteAccountPaymentState,
+} from "@/lib/stripe/payment-integrity"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { CompleteAccountForm } from "./complete-account-form"
@@ -15,19 +20,6 @@ export const dynamic = "force-dynamic"
 export const metadata = {
   title: "Complete Your Account",
   description: "Create your account to access your medical certificate",
-}
-
-// Confirm a Checkout Session is paid directly from Stripe, bypassing the webhook
-// lag on intakes.payment_status. Fail-soft: any error (or missing id) → not
-// confirmed, so a Stripe hiccup never breaks the account-completion page.
-async function isStripeSessionPaid(sessionId: string | undefined): Promise<boolean> {
-  if (!sessionId) return false
-  try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId)
-    return session.payment_status === "paid" || session.status === "complete"
-  } catch {
-    return false
-  }
 }
 
 export default async function CompleteAccountPage({
@@ -43,14 +35,11 @@ export default async function CompleteAccountPage({
   // Guest checkouts land here (not /patient/intakes/success), so without firing
   // the gtag conversion here we lose browser-side attribution for ~all guests.
   //
-  // We do NOT hard-filter on payment_status = "paid": the Stripe webhook that
-  // flips that column lags the redirect to this page (a race that previously hid
-  // amount/service and skipped the conversion fire — Codex review 2026-06-27).
-  // Instead we (1) require the URL session_id to match the intake's stored
-  // payment_id — a high-entropy proof the visitor is the paying customer, and
-  // strictly stronger than the old paid-only filter for not exposing order data
-  // to a bare intake_id — then (2) confirm payment from the column OR, when it
-  // still lags, directly from Stripe.
+  // The URL session_id must exactly match the intake's stored payment_id before
+  // this public route can inspect or expose any order data. Payment is confirmed
+  // only by the persisted paid state or an owned Stripe Session whose
+  // payment_status is paid. A complete/unpaid Session remains processing, and
+  // no conversion or draft-retirement data is exposed until confirmation.
   const sessionId = params.session_id
   let email = params.email
   let amountCents: number | undefined
@@ -59,6 +48,7 @@ export default async function CompleteAccountPage({
   // Set ONLY when payment is server-confirmed below — the client uses it as
   // the signal to retire the local draft for that service.
   let paidServiceCategory: string | undefined
+  let paymentState: CompleteAccountPaymentState = "unconfirmed"
   let isNewCustomer = true
   if (intakeId) {
     try {
@@ -66,22 +56,36 @@ export default async function CompleteAccountPage({
       const { data: intake } = await supabase
         .from("intakes")
         .select(
-          "amount_cents, patient_id, payment_id, payment_status, category, patient:profiles!patient_id(email), service:services!service_id(slug, name)",
+          "amount_cents, patient_id, payment_id, payment_status, status, category, patient:profiles!patient_id(email), service:services!service_id(slug, name)",
         )
         .eq("id", intakeId)
         .single()
 
       const sessionMatches =
         !!sessionId && !!intake?.payment_id && intake.payment_id === sessionId
-      const paid =
-        sessionMatches &&
-        (intake?.payment_status === "paid" || (await isStripeSessionPaid(sessionId)))
+      const inspection =
+        sessionMatches && intake?.payment_status !== "paid" && sessionId && intake?.payment_id
+          ? await inspectCheckoutSession(sessionId, intakeId, {
+              intakeStatus: intake.status,
+              paymentStatus: intake.payment_status,
+              storedPaymentId: intake.payment_id,
+            })
+          : null
+      paymentState = resolveCompleteAccountPaymentState({
+        intakePaymentStatus: intake?.payment_status,
+        sessionMatches,
+        sessionState: inspection?.state ?? null,
+      })
 
-      if (intake && paid) {
+      if (intake && paymentState === "paid") {
         const patient = intake.patient as { email?: string } | null
         const service = intake.service as { slug?: string; name?: string } | null
         if (!email) email = patient?.email || undefined
-        amountCents = (intake.amount_cents as number | undefined) ?? undefined
+        amountCents = resolveCompleteAccountAmountCents({
+          intakeAmountCents: intake.amount_cents as number | null | undefined,
+          sessionAmountTotal: inspection?.session?.amount_total,
+          sessionState: inspection?.state ?? null,
+        })
         serviceSlug = service?.slug
         serviceName = service?.name
         paidServiceCategory = (intake.category as string | undefined) ?? undefined
@@ -135,6 +139,7 @@ export default async function CompleteAccountPage({
               serviceSlug={serviceSlug}
               serviceName={serviceName}
               paidServiceCategory={paidServiceCategory}
+              paymentState={paymentState}
               isNewCustomer={isNewCustomer}
               heardToken={heardToken}
               certificateAccess={params.access === "certificate"}

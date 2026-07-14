@@ -14,7 +14,7 @@ import { cookies } from "next/headers"
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
-import { getIntakeAnswers } from "@/lib/data/intake-answers"
+import { getIntakeAnswersForPaymentSafety } from "@/lib/data/intake-answers"
 import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
@@ -27,8 +27,9 @@ import { getOptionalStripePriceEnv, getPriceIdForRequest, normalizeStripePriceId
 import { buildPaymentIntentMetadata, canRetryPaymentForIntake } from "../payment-integrity"
 import { createReferralCouponIfEligible } from "../referral-coupon"
 import {
-  attachRetryCheckoutSession,
+  attachCheckoutSession,
   cancelHighStakesUnpaidIntake,
+  claimCheckoutSessionReplacement,
   invalidateCheckoutSessionForSafety,
 } from "./checkout-session-safety"
 import { getBaseUrl, getServiceSlug, isValidUrl } from "./helpers"
@@ -84,12 +85,12 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     const serviceSlugForSafety =
       serviceForSafety?.slug ||
       (categoryForSafety ? getServiceSlug(categoryForSafety, intake.subtype || "") : "consult")
-    const intakeAnswers = await getIntakeAnswers(intake.id)
+    const intakeAnswers = await getIntakeAnswersForPaymentSafety(intake.id)
     if (intakeAnswers === null) {
       logger.error(
         "Could not read persisted answers before payment retry",
         { intakeId: intake.id },
-        new Error("Encrypted-first intake answer read returned no row"),
+        new Error("Authoritative intake answer read failed"),
       )
       return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
     }
@@ -186,15 +187,6 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       }
     }
 
-    // Expire any prior session before creating the next one. Stale Checkout
-    // Sessions can otherwise still complete server-side after retry.
-    if (intake.payment_id) {
-      const invalidation = await invalidateCheckoutSessionForSafety(intake.payment_id, intake.id)
-      if (invalidation !== "invalidated") {
-        return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
-      }
-    }
-
     const service = intake.service as { slug: string; price_cents: number } | null
     const storedPriceId = normalizeStripePriceId((intake as { stripe_price_id?: string }).stripe_price_id)
     const storedCategory = intake.category as ServiceCategory | null
@@ -277,6 +269,43 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
         !authUser.profile.stripe_customer_id && patientEmail ? ("always" as const) : undefined,
     }
 
+    const replacementState = {
+      checkout_error: intake.checkout_error as string | null,
+      payment_id: intake.payment_id as string | null,
+      payment_status: intake.payment_status as string | null,
+      status: intake.status as string | null,
+    }
+    const replacementClaim = await claimCheckoutSessionReplacement({
+      initialState: replacementState,
+      intakeId: intake.id,
+      patientId,
+      source: "retry_payment",
+      supabase,
+    })
+    if (
+      replacementClaim.outcome === "state_changed" ||
+      replacementClaim.outcome === "unresolved"
+    ) {
+      return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
+    }
+    // Claim pending rows before expiring their current Session so the expiry
+    // webhook cannot strand the intake between Stripe expiry and replacement
+    // attachment. checkout_failed rows are already ignored by that webhook.
+    if (intake.payment_id) {
+      const invalidation = await invalidateCheckoutSessionForSafety(
+        intake.payment_id,
+        intake.id,
+        {
+          intakeStatus: intake.status,
+          paymentStatus: intake.payment_status,
+          storedPaymentId: intake.payment_id,
+        },
+      )
+      if (invalidation !== "invalidated") {
+        return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
+      }
+    }
+
     let session
     try {
       // Stable retry idempotency key derived from intake + previous payment.
@@ -301,10 +330,11 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     }
 
     if (!session.url) {
+      await invalidateCheckoutSessionForSafety(session.id, intake.id)
       return { success: false, error: "Failed to create checkout session. Please try again." }
     }
 
-    const attachResult = await attachRetryCheckoutSession({
+    const attachResult = await attachCheckoutSession({
       expectedPaymentId: intake.payment_id,
       intakeId: intake.id,
       patientId,

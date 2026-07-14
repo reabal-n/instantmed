@@ -38,6 +38,7 @@ export async function handleAsyncPaymentFailed(ctx: WebhookContext): Promise<Han
     const { data: failedIntake, error: updateError } = await supabase
       .from("intakes")
       .update({
+        checkout_error: "Asynchronous payment failed",
         payment_status: "failed",
         status: "checkout_failed",
         updated_at: new Date().toISOString(),

@@ -1,5 +1,5 @@
 import { getAppUrl } from "@/lib/config/env"
-import { getIntakeAnswers } from "@/lib/data/intake-answers"
+import { getIntakeAnswersForPaymentSafety } from "@/lib/data/intake-answers"
 import { createLogger } from "@/lib/observability/logger"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import { buildGuestCheckoutCancelUrl } from "@/lib/stripe/checkout-recovery-link"
@@ -9,8 +9,9 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ServiceCategory } from "@/types/services"
 
 import {
-  attachRetryCheckoutSession,
+  attachCheckoutSession,
   cancelHighStakesUnpaidIntake,
+  claimCheckoutSessionReplacement,
   HIGH_STAKES_PAYMENT_LOCK,
   inspectCheckoutSession,
   invalidateCheckoutSessionForSafety,
@@ -38,6 +39,7 @@ interface ResumeIntake {
   guest_email: string | null
   id: string
   is_priority: boolean | null
+  patient_id: string | null
   payment_id: string | null
   payment_status: string | null
   service: { slug?: string | null; type?: string | null } | null
@@ -47,7 +49,7 @@ interface ResumeIntake {
 }
 
 const RESUME_INTAKE_SELECT =
-  "id, status, payment_status, payment_id, checkout_error, category, subtype, stripe_price_id, is_priority, guest_email, service:services!service_id(slug, type)"
+  "id, patient_id, status, payment_status, payment_id, checkout_error, category, subtype, stripe_price_id, is_priority, guest_email, service:services!service_id(slug, type)"
 
 function accountCompletionDestination(intakeId: string, sessionId?: string | null): string {
   const destination = `/auth/complete-account?intake_id=${encodeURIComponent(intakeId)}`
@@ -98,8 +100,12 @@ async function resolveChangedHighStakesPayment(
   }
 
   if (intake.payment_id) {
-    const inspection = await inspectCheckoutSession(intake.payment_id, intake.id)
-    if (inspection.state === "payment_in_flight") {
+    const inspection = await inspectCheckoutSession(intake.payment_id, intake.id, {
+      intakeStatus: intake.status,
+      paymentStatus: intake.payment_status,
+      storedPaymentId: intake.payment_id,
+    })
+    if (inspection.state === "paid" || inspection.state === "payment_in_flight") {
       return accountCompletionDestination(intake.id, intake.payment_id)
     }
   }
@@ -129,6 +135,25 @@ async function rebuildGuestCheckoutSession(
   ]
   if (priorityPriceId) lineItems.push({ price: priorityPriceId, quantity: 1 })
 
+  const replacementState = {
+    checkout_error: intake.checkout_error,
+    payment_id: intake.payment_id,
+    payment_status: intake.payment_status,
+    status: intake.status,
+  }
+  const replacementClaim = await claimCheckoutSessionReplacement({
+    initialState: replacementState,
+    intakeId: intake.id,
+    patientId: intake.patient_id || undefined,
+    source: "guest_resume",
+    supabase,
+  })
+  if (
+    replacementClaim.outcome === "state_changed" ||
+    replacementClaim.outcome === "unresolved"
+  ) {
+    return null
+  }
   try {
     const session = await stripe.checkout.sessions.create(
       {
@@ -154,18 +179,23 @@ async function rebuildGuestCheckoutSession(
       return null
     }
 
-    const attachResult = await attachRetryCheckoutSession({
+    const attachResult = await attachCheckoutSession({
       expectedPaymentId: intake.payment_id,
       intakeId: intake.id,
+      patientId: intake.patient_id || undefined,
       sessionId: session.id,
       source: "guest_resume",
       supabase,
     })
 
-    return attachResult.outcome === "attached" ||
+    if (
+      attachResult.outcome === "attached" ||
       attachResult.outcome === "already_attached"
-      ? session.url
-      : null
+    ) {
+      return session.url
+    }
+
+    return null
   } catch (error) {
     logger.error(
       "Failed to rebuild checkout session on resume",
@@ -192,16 +222,16 @@ export async function resolveGuestCheckoutResume(intakeId: string): Promise<stri
 
   const intake = initial.intake
   if (intake.payment_status === "paid") {
-    return accountCompletionDestination(intake.id)
+    return accountCompletionDestination(intake.id, intake.payment_id)
   }
 
   if (canRetryPaymentForIntake(intake.status, intake.payment_status)) {
-    const answers = await getIntakeAnswers(intake.id)
+    const answers = await getIntakeAnswersForPaymentSafety(intake.id)
     if (answers === null) {
       logger.error(
         "Could not read persisted answers before guest checkout resume",
         { intakeId: intake.id },
-        new Error("Encrypted-first intake answer read returned no row"),
+        new Error("Authoritative intake answer read failed"),
       )
       return PAYMENT_STATE_UNRESOLVED_DESTINATION
     }
@@ -242,17 +272,21 @@ export async function resolveGuestCheckoutResume(intakeId: string): Promise<stri
 
     let canRebuild = !intake.payment_id
     if (intake.payment_id) {
-      const inspection = await inspectCheckoutSession(intake.payment_id, intake.id)
+      const inspection = await inspectCheckoutSession(intake.payment_id, intake.id, {
+        intakeStatus: intake.status,
+        paymentStatus: intake.payment_status,
+        storedPaymentId: intake.payment_id,
+      })
       if (inspection.state === "open" && inspection.session?.url) {
         return inspection.session.url
       }
-      if (inspection.state === "payment_in_flight") {
+      if (inspection.state === "paid" || inspection.state === "payment_in_flight") {
         return accountCompletionDestination(intake.id, intake.payment_id)
       }
       if (inspection.state === "unresolved") {
         return PAYMENT_STATE_UNRESOLVED_DESTINATION
       }
-      canRebuild = inspection.state === "expired"
+      canRebuild = inspection.state === "expired" || inspection.state === "failed"
     }
 
     if (canRebuild) {

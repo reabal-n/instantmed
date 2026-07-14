@@ -67,6 +67,32 @@ test.describe("Checkout recovery notices", () => {
 
     await expect(page.locator('a[href^="/request"], a[href^="/resume/"]')).toHaveCount(0)
   })
+
+  test("does not claim payment success without exact completion proof", async ({ page }) => {
+    await prepareDarkMobilePage(page)
+    const missingIntakeId = randomUUID()
+
+    await page.goto(
+      `/auth/complete-account?intake_id=${missingIntakeId}&session_id=cs_missing`,
+    )
+
+    await expect(page.locator("html")).toHaveClass(/dark/)
+    await expect(
+      page.getByRole("heading", { name: "We can’t confirm payment yet" }),
+    ).toBeVisible()
+    await expect(page.getByText(/please don.t try payment again/i)).toBeVisible()
+    await expect(page.getByText("Payment successful", { exact: true })).toHaveCount(0)
+    await expect(
+      page.getByRole("button", { name: /create account|track request/i }),
+    ).toHaveCount(0)
+
+    for (const actionName of ["Contact support", "Return home"]) {
+      await expect(page.getByRole("link", { name: actionName, exact: true })).toHaveCSS(
+        "height",
+        "48px",
+      )
+    }
+  })
 })
 
 test.describe("Signed guest checkout resume safety", () => {

@@ -6,6 +6,10 @@ const guestCheckoutSource = readFileSync(
   join(process.cwd(), "lib/stripe/guest-checkout.ts"),
   "utf8",
 )
+const authenticatedCheckoutSource = readFileSync(
+  join(process.cwd(), "lib/stripe/checkout.ts"),
+  "utf8",
+)
 const checkoutResumeSource = readFileSync(
   join(process.cwd(), "app/resume/[token]/page.tsx"),
   "utf8",
@@ -60,7 +64,7 @@ describe("guest checkout operational contract", () => {
     )
 
     expect(rebuildSection).toContain("invalidateCheckoutSessionForSafety")
-    expect(rebuildSection).toContain("attachRetryCheckoutSession")
+    expect(rebuildSection).toContain("attachCheckoutSession")
     expect(rebuildSection).not.toContain('.update({\n        payment_id: session.id')
     expect(duplicateSection).toContain("inspectCheckoutSession")
     expect(duplicateSection).not.toContain("stripe.checkout.sessions.retrieve")
@@ -73,8 +77,23 @@ describe("guest checkout operational contract", () => {
     )
   })
 
+  it("binds both initial checkout sessions through the exact-CAS shared helper", () => {
+    const guestInitialBind = guestCheckoutSource.slice(
+      guestCheckoutSource.indexOf("// 8. Bind the current exact-CAS winner"),
+    )
+    const authenticatedInitialBind = authenticatedCheckoutSource.slice(
+      authenticatedCheckoutSource.indexOf("// 11. Bind the exact current winner"),
+    )
+
+    for (const source of [guestInitialBind, authenticatedInitialBind]) {
+      expect(source).toContain("attachCheckoutSession")
+      expect(source).toContain("expectedPaymentId: null")
+      expect(source).not.toContain(".update({ payment_id:")
+    }
+  })
+
   it("keeps signed resume reads on the encrypted-first answer helper", () => {
-    expect(guestResumeSource).toContain("getIntakeAnswers(intake.id)")
+    expect(guestResumeSource).toContain("getIntakeAnswersForPaymentSafety(intake.id)")
     expect(guestResumeSource).not.toContain("answers:intake_answers(answers)")
   })
 })

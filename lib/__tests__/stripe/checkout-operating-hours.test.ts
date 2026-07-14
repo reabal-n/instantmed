@@ -10,6 +10,8 @@ const mocks = vi.hoisted(() => ({
   isMedicationBlocked: vi.fn(),
   isServiceDisabled: vi.fn(),
   stripeSessionCreate: vi.fn(),
+  stripeSessionExpire: vi.fn(),
+  stripeSessionRetrieve: vi.fn(),
   trackOperationalBlock: vi.fn(),
   validateMedCertPayload: vi.fn(),
   validateSafetyFieldsPresent: vi.fn(),
@@ -84,6 +86,8 @@ vi.mock("@/lib/stripe/client", () => ({
     checkout: {
       sessions: {
         create: mocks.stripeSessionCreate,
+        expire: mocks.stripeSessionExpire,
+        retrieve: mocks.stripeSessionRetrieve,
       },
     },
   },
@@ -114,8 +118,10 @@ function createGuestCheckoutSupabaseMock() {
     let selectCount = 0
     const builder = {
       eq: vi.fn(() => builder),
+      in: vi.fn(() => builder),
       is: vi.fn(() => builder),
       not: vi.fn(() => builder),
+      or: vi.fn(() => builder),
       order: vi.fn(() => builder),
       limit: vi.fn(async () => ({ data: [], error: null })),
       select: vi.fn(() => {
@@ -153,6 +159,9 @@ function createGuestCheckoutSupabaseMock() {
         if (table === "intake_answers" && operation === "insert") {
           return Promise.resolve({ error: null }).then(resolve)
         }
+        if (table === "intakes" && operation === "update") {
+          return Promise.resolve({ data: [{ id: "intake-1" }], error: null }).then(resolve)
+        }
         return Promise.resolve({ data: null, error: null }).then(resolve)
       },
     }
@@ -185,8 +194,17 @@ describe("checkout operating hours", () => {
     mocks.getPriceIdForRequest.mockReturnValue("price_med_cert")
     mocks.stripeSessionCreate.mockResolvedValue({
       id: "cs_test",
+      metadata: { intake_id: "intake-1" },
       url: "https://checkout.stripe.test/pay/cs_test",
     })
+    mocks.stripeSessionExpire.mockResolvedValue({ id: "cs_test" })
+    mocks.stripeSessionRetrieve.mockImplementation(async (sessionId: string) => ({
+      id: sessionId,
+      metadata: { intake_id: "intake-1" },
+      payment_status: "unpaid",
+      status: "open",
+      url: `https://checkout.stripe.test/pay/${sessionId}`,
+    }))
     mocks.validateMedCertPayload.mockReturnValue({ valid: true })
     mocks.validateSafetyFieldsPresent.mockReturnValue({ valid: true, missingFields: [] })
   })

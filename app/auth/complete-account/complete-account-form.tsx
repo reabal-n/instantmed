@@ -1,6 +1,7 @@
 "use client"
 
-import { Check, Loader2, ShieldCheck } from "lucide-react"
+import { Check, Clock3, Loader2, ShieldAlert, ShieldCheck } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import type React from "react"
 import { useEffect, useRef, useState } from "react"
@@ -10,6 +11,7 @@ import { RelatedServicesProbe } from "@/components/patient/related-services-prob
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
 import { Confetti } from "@/components/ui/confetti"
+import { Heading } from "@/components/ui/heading"
 import { getAttribution } from "@/lib/analytics/attribution"
 import {
   claimBrowserPurchaseCompleted,
@@ -17,7 +19,9 @@ import {
 } from "@/lib/analytics/browser-purchase-dedup"
 import { trackPurchase } from "@/lib/analytics/conversion-tracking"
 import { buildCompleteAccountPostSignInHref } from "@/lib/auth/complete-account-handoff"
+import { CONTACT_EMAIL } from "@/lib/constants"
 import { clearDraftAfterPayment } from "@/lib/request/draft-storage"
+import type { CompleteAccountPaymentState } from "@/lib/stripe/payment-integrity"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { detectRelayEmail, getRelayEmailMessage } from "@/lib/validation/email-relay"
 
@@ -28,6 +32,7 @@ export function CompleteAccountForm({
   serviceSlug,
   serviceName,
   paidServiceCategory,
+  paymentState = "unconfirmed",
   isNewCustomer,
   heardToken,
   certificateAccess = false,
@@ -39,6 +44,8 @@ export function CompleteAccountForm({
   serviceName?: string
   /** Set by the page ONLY when payment was server-confirmed (session match + paid). */
   paidServiceCategory?: string
+  /** Public-route payment proof. Non-paid states must never render success UI. */
+  paymentState?: CompleteAccountPaymentState
   isNewCustomer?: boolean
   heardToken?: string
   certificateAccess?: boolean
@@ -69,19 +76,19 @@ export function CompleteAccountForm({
   // hydrate without blocking (or being blocked by) the one-shot gtag fire.
   const posthogPurchaseFiredRef = useRef(false)
 
-  // Fire Google Ads PURCHASE conversion as soon as the guest lands here.
-  // Stripe only redirects to this page after a successful payment, so it is
-  // safe to fire unconditionally. Without this fire, guest checkouts (most
-  // pre-launch users) miss browser-side gtag attribution entirely because
-  // they never reach /patient/intakes/success. The server-side CAPI fires
-  // separately from the Stripe webhook; Google deduplicates on transactionId.
+  // Fire the Google Ads PURCHASE conversion only after the server has supplied
+  // exact current-session payment proof. Guest checkouts land here rather than
+  // /patient/intakes/success, so this is their browser-side attribution point.
+  // The server-side CAPI fires separately from the Stripe webhook; Google
+  // deduplicates on transactionId.
   useEffect(() => {
+    if (paymentState !== "paid") return
     if (!intakeId) return
     // Don't fire the Google Ads conversion until we have a real
-    // amount_cents from the database. The complete-account page now
-    // confirms payment via the Stripe session (not just the lagging
-    // payment_status column), so amount_cents is present even during a
-    // webhook race; if it's still unknown the old code defaulted to $1 —
+    // amount_cents from the database. The complete-account page can confirm
+    // payment from the persisted state or the exact owned Stripe Session, so
+    // amount_cents is present even during a webhook race; if it's still
+    // unknown the old code defaulted to $1 —
     // worse than nothing because Smart Bidding trains on a fake low-value
     // purchase. Skip the browser fire when amount is unknown; the
     // server-side Google Ads CAPI fires separately from the Stripe webhook
@@ -136,9 +143,10 @@ export function CompleteAccountForm({
         })
       }
     }
-  }, [intakeId, amountCents, serviceSlug, serviceName, email, isNewCustomer, posthog])
+  }, [intakeId, amountCents, serviceSlug, serviceName, email, isNewCustomer, paymentState, posthog])
 
   useEffect(() => {
+    if (!certificateAccess && paymentState !== "paid") return
     // If already signed in, redirect through post-signin to ensure profile is linked
     if (isLoaded && isSignedIn && intakeId) {
       const confettiTimer = setTimeout(() => {
@@ -154,7 +162,7 @@ export function CompleteAccountForm({
         clearTimeout(redirectTimer)
       }
     }
-  }, [isLoaded, isSignedIn, intakeId, postSignInHref, router])
+  }, [certificateAccess, isLoaded, isSignedIn, intakeId, paymentState, postSignInHref, router])
 
   const handleCreateAccount = () => {
     const returnUrl = encodeURIComponent(postSignInHref)
@@ -167,6 +175,46 @@ export function CompleteAccountForm({
     if (intakeId) params.set("intake_id", intakeId)
     const query = params.toString()
     router.push(query ? `/patient/intakes/confirmed?${query}` : "/patient/intakes/confirmed")
+  }
+
+  if (!certificateAccess && paymentState !== "paid") {
+    const isProcessing = paymentState === "processing"
+    const RecoveryIcon = isProcessing ? Clock3 : ShieldAlert
+
+    return (
+      <div
+        className="rounded-2xl border border-border/50 bg-white p-8 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none"
+        role="status"
+      >
+        <div className="text-center">
+          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-950/30">
+            <RecoveryIcon
+              aria-hidden="true"
+              className="h-8 w-8 text-amber-700 dark:text-amber-300"
+            />
+          </div>
+          <Heading as="h1" level="h2">
+            {isProcessing
+              ? "Payment is still processing"
+              : "We can’t confirm payment yet"}
+          </Heading>
+          <p className="mt-3 text-base leading-relaxed text-muted-foreground">
+            {isProcessing
+              ? "Stripe has not confirmed the payment yet. Please don’t try payment again. We’ll update your request when the result arrives."
+              : "We could not verify this payment. Please don’t try payment again. Contact support so we can check it before another charge is attempted."}
+          </p>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          <Button asChild className="w-full rounded-xl" size="lg">
+            <a href={`mailto:${CONTACT_EMAIL}`}>Contact support</a>
+          </Button>
+          <Button asChild className="w-full rounded-xl" size="lg" variant="outline">
+            <Link href="/">Return home</Link>
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   // If already signed in, show success message

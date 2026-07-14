@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   createServiceRoleClient: vi.fn(),
   getAppUrl: vi.fn(),
   getAuthenticatedUserWithProfile: vi.fn(),
-  getIntakeAnswers: vi.fn(),
+  getIntakeAnswersForPaymentSafety: vi.fn(),
   getPriceIdForRequest: vi.fn(),
   logger: {
     debug: vi.fn(),
@@ -80,7 +80,7 @@ vi.mock("@/lib/data/profiles", () => ({
 }))
 
 vi.mock("@/lib/data/intake-answers", () => ({
-  getIntakeAnswers: mocks.getIntakeAnswers,
+  getIntakeAnswersForPaymentSafety: mocks.getIntakeAnswersForPaymentSafety,
 }))
 
 vi.mock("@/lib/dashboard/revalidate-staff", () => ({
@@ -293,15 +293,17 @@ describe("retryPaymentForIntakeAction", () => {
       profile: { id: "patient-1", stripe_customer_id: null },
       user: { email: "patient@example.test", id: "user-1" },
     })
-    mocks.getIntakeAnswers.mockResolvedValue({ symptom: "test" })
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValue({ symptom: "test" })
     mocks.getPriceIdForRequest.mockReturnValue("price_med_cert")
     mocks.stripeSessionCreate.mockResolvedValue({
       id: "cs_retry",
+      metadata: { intake_id: "intake-1" },
       url: "https://checkout.stripe.test/pay/cs_retry",
     })
     mocks.stripeSessionExpire.mockResolvedValue({ id: "cs_previous" })
     mocks.stripeSessionRetrieve.mockImplementation(async (sessionId: string) => ({
       id: sessionId,
+      metadata: { intake_id: "intake-1" },
       payment_status: "unpaid",
       status: "open",
       url: `https://checkout.stripe.test/pay/${sessionId}`,
@@ -331,6 +333,7 @@ describe("retryPaymentForIntakeAction", () => {
     })
     expect(updateRecord.filters).toEqual(expect.arrayContaining([
       { column: "id", method: "eq", value: "intake-1" },
+      { column: "patient_id", method: "eq", value: "patient-1" },
       { column: "payment_id", method: "eq", value: "cs_previous" },
       { column: "status", method: "in", value: ["pending_payment", "checkout_failed"] },
       { column: "payment_status", method: "in", value: ["pending", "unpaid", "failed"] },
@@ -351,10 +354,50 @@ describe("retryPaymentForIntakeAction", () => {
     )
   })
 
+  it("claims a pending intake before expiring its current Session", async () => {
+    const events: string[] = []
+    const { supabase, updateRecords } = createRetrySupabaseMock(
+      {
+        checkout_error: null,
+        payment_status: "pending",
+        status: "pending_payment",
+      },
+      {
+        events,
+        updateResults: [
+          { data: [{ id: "intake-1" }], error: null },
+          { data: [{ id: "intake-1" }], error: null },
+        ],
+      },
+    )
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.stripeSessionExpire.mockImplementationOnce(async () => {
+      events.push("stripe-expire")
+      return { id: "cs_previous" }
+    })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toMatchObject({ success: true })
+    expect(events).toEqual(["update-select", "stripe-expire", "update-select"])
+    expect(updateRecords[0]).toMatchObject({
+      payload: {
+        checkout_error: "payment_session_replacement_in_progress",
+      },
+    })
+    expect(updateRecords[0].filters).toEqual(expect.arrayContaining([
+      { column: "id", method: "eq", value: "intake-1" },
+      { column: "patient_id", method: "eq", value: "patient-1" },
+      { column: "payment_id", method: "eq", value: "cs_previous" },
+      { column: "payment_status", method: "eq", value: "pending" },
+      { column: "status", method: "eq", value: "pending_payment" },
+    ]))
+  })
+
   it("fails closed before touching Stripe when encrypted answers cannot be read", async () => {
     const { supabase, updateRecords } = createRetrySupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.getIntakeAnswers.mockResolvedValueOnce(null)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce(null)
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
@@ -368,16 +411,19 @@ describe("retryPaymentForIntakeAction", () => {
   })
 
   it("uses the encrypted-first answer reader instead of a plaintext relation projection", () => {
-    expect(retryPaymentSource).toContain("getIntakeAnswers(intake.id)")
+    expect(retryPaymentSource).toContain("getIntakeAnswersForPaymentSafety(intake.id)")
     expect(retryPaymentSource).not.toContain("answers:intake_answers(answers)")
   })
 
   it("does not create a second retry session when the stored session is complete or processing", async () => {
-    const { supabase, updateRecords } = createRetrySupabaseMock()
+    const { supabase, updateRecords } = createRetrySupabaseMock({
+      payment_status: "pending",
+      status: "pending_payment",
+    })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.stripeSessionExpire.mockRejectedValueOnce(new Error("Session already complete"))
     mocks.stripeSessionRetrieve.mockResolvedValueOnce({
       id: "cs_previous",
+      metadata: { intake_id: "intake-1" },
       payment_status: "unpaid",
       status: "complete",
     })
@@ -389,7 +435,69 @@ describe("retryPaymentForIntakeAction", () => {
       success: false,
     })
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
-    expect(updateRecords).toHaveLength(0)
+    expect(updateRecords).toHaveLength(1)
+    expect(updateRecords[0].payload).toMatchObject({
+      checkout_error: "payment_session_replacement_in_progress",
+    })
+    expect(updateRecords).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ payload: expect.objectContaining({ payment_id: "cs_retry" }) }),
+    ]))
+  })
+
+  it("resumes a durable replacement marker after an interrupted attempt", async () => {
+    const { supabase, updateRecords } = createRetrySupabaseMock({
+      checkout_error: "payment_session_replacement_in_progress",
+      payment_status: "pending",
+      status: "pending_payment",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.stripeSessionRetrieve
+      .mockResolvedValueOnce({
+        id: "cs_previous",
+        metadata: { intake_id: "intake-1" },
+        payment_status: "unpaid",
+        status: "expired",
+      })
+      .mockResolvedValueOnce({
+        id: "cs_retry",
+        metadata: { intake_id: "intake-1" },
+        payment_status: "unpaid",
+        status: "open",
+        url: "https://checkout.stripe.test/pay/cs_retry",
+      })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toMatchObject({
+      checkoutUrl: "https://checkout.stripe.test/pay/cs_retry",
+      success: true,
+    })
+    expect(updateRecords).toHaveLength(1)
+    expect(updateRecords[0].payload).toMatchObject({
+      checkout_error: null,
+      payment_id: "cs_retry",
+    })
+  })
+
+  it("rebuilds a persisted async-payment failure even when Stripe remains complete and unpaid", async () => {
+    const { supabase } = createRetrySupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.stripeSessionRetrieve.mockResolvedValueOnce({
+      id: "cs_previous",
+      metadata: { intake_id: "intake-1" },
+      payment_status: "unpaid",
+      status: "complete",
+    })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toEqual({
+      checkoutUrl: "https://checkout.stripe.test/pay/cs_retry",
+      intakeId: "intake-1",
+      success: true,
+    })
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalledWith("cs_previous")
+    expect(mocks.stripeSessionCreate).toHaveBeenCalledOnce()
   })
 
   it("reuses the same idempotent retry session when a parallel request already attached it", async () => {
@@ -466,12 +574,21 @@ describe("retryPaymentForIntakeAction", () => {
   ) => {
     const { supabase, updateRecords } = createRetrySupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.stripeSessionRetrieve.mockResolvedValueOnce({
-      id: "cs_retry",
-      payment_status: replayPaymentStatus,
-      status: replayStatus,
-      url: replayStatus === "complete" ? "https://checkout.stripe.test/pay/cs_retry" : null,
-    })
+    mocks.stripeSessionRetrieve
+      .mockResolvedValueOnce({
+        id: "cs_previous",
+        metadata: { intake_id: "intake-1" },
+        payment_status: "unpaid",
+        status: "expired",
+        url: null,
+      })
+      .mockResolvedValueOnce({
+        id: "cs_retry",
+        metadata: { intake_id: "intake-1" },
+        payment_status: replayPaymentStatus,
+        status: replayStatus,
+        url: replayStatus === "complete" ? "https://checkout.stripe.test/pay/cs_retry" : null,
+      })
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
@@ -516,7 +633,7 @@ describe("retryPaymentForIntakeAction", () => {
       subtype: "repeat",
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.getIntakeAnswers.mockResolvedValueOnce({ dose_changed: false })
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ dose_changed: false })
     mocks.getPriceIdForRequest.mockReturnValue("price_repeat")
 
     const result = await retryPaymentForIntakeAction("intake-1")
@@ -544,7 +661,7 @@ describe("retryPaymentForIntakeAction", () => {
       { events },
     )
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.getIntakeAnswers.mockResolvedValueOnce({
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({
       symptomDetails: "Migraine and need to defer my exam tomorrow",
     })
     mocks.stripeSessionExpire.mockImplementationOnce(async () => {
@@ -626,7 +743,7 @@ describe("retryPaymentForIntakeAction", () => {
     })
     expect(mocks.checkHighStakesUseCase).not.toHaveBeenCalled()
     expect(updateRecords).toHaveLength(0)
-    expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
@@ -675,9 +792,9 @@ describe("retryPaymentForIntakeAction", () => {
       isHighStakes: true,
       reason: "Exam deferrals require an in-person assessment.",
     })
-    mocks.stripeSessionExpire.mockRejectedValueOnce(new Error("Session already complete"))
     mocks.stripeSessionRetrieve.mockResolvedValueOnce({
       id: "cs_previous",
+      metadata: { intake_id: "intake-1" },
       payment_status: "unpaid",
       status: "complete",
     })

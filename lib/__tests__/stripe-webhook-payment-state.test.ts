@@ -94,8 +94,8 @@ import { handlePaymentIntentFailed } from "@/app/api/stripe/webhook/handlers/pay
 
 interface UpdateRecord {
   filters: Array<{
-    column: string
-    method: "eq" | "in"
+    column?: string
+    method: "eq" | "in" | "or"
     value: unknown
   }>
   payload: Record<string, unknown>
@@ -115,6 +115,10 @@ function createUpdateChain(record: UpdateRecord, result: UpdateResult = { data: 
     }),
     in: vi.fn((column: string, value: unknown) => {
       record.filters.push({ column, method: "in", value })
+      return chain
+    }),
+    or: vi.fn((value: string) => {
+      record.filters.push({ method: "or", value })
       return chain
     }),
     select: vi.fn(() => {
@@ -267,6 +271,11 @@ describe("Stripe webhook payment state transitions", () => {
       { column: "id", method: "eq", value: "intake-1" },
       { column: "status", method: "eq", value: "pending_payment" },
       { column: "payment_id", method: "eq", value: "cs_current" },
+      {
+        method: "or",
+        value:
+          "checkout_error.is.null,checkout_error.neq.payment_session_replacement_in_progress",
+      },
     ]))
   })
 
