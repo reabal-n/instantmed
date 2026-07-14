@@ -14,7 +14,6 @@ const patientSettingsSource = readIfExists("app/patient/settings/settings-client
 const adminSettingsSource = readIfExists("app/admin/settings/page.tsx")
 const signInSource = readIfExists("app/sign-in/[[...sign-in]]/page.tsx")
 const signUpSource = readIfExists("app/sign-up/[[...sign-up]]/page.tsx")
-const inlineAuthSource = readIfExists("components/shared/inline-auth-step.tsx")
 
 describe("account Google linking UX contract", () => {
   it("uses one branded Google linking card across doctor, admin, and patient settings", () => {
@@ -70,10 +69,7 @@ describe("account Google linking UX contract", () => {
   it("keeps Google OAuth artwork canonical instead of duplicating inline SVGs", () => {
     expect(signInSource).toContain('import { GoogleIcon } from "@/components/icons/google-icon"')
     expect(signUpSource).toContain('import { GoogleIcon } from "@/components/icons/google-icon"')
-    expect(inlineAuthSource).toContain('import { GoogleIcon } from "@/components/icons/google-icon"')
-
     expect(signInSource).not.toContain("function GoogleIcon")
     expect(signUpSource).not.toContain("function GoogleIcon")
-    expect(inlineAuthSource).not.toContain("function GoogleIcon")
   })
 })

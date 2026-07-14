@@ -3,7 +3,7 @@
 > **Last updated:** 2026-07-14.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
 >
-> **Doc-surface count:** 120 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans; 110 -> 112 on 2026-07-01 after adding the root context glossary and first ADR for Google Ads retained-value bidding; reconciled to 115 on 2026-07-08 after excluding generated verification artifacts from `scripts/doc-audit.sh` and adding the GEO citation execution record; reconciled to 116 on 2026-07-09 after adding the intake drop-off final plan; reconciled to 118 on 2026-07-10 after adding the audit-remediation implementation program and the comparison-surface submission kit; reconciled to 119 on 2026-07-12 after adding the cleanup-and-scale roadmap; reconciled to 120 on 2026-07-14 after adding the doctor review and patient-record consolidation design.
+> **Doc-surface count:** 106 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans; 110 -> 112 on 2026-07-01 after adding the root context glossary and first ADR for Google Ads retained-value bidding; reconciled to 115 on 2026-07-08 after excluding generated verification artifacts from `scripts/doc-audit.sh` and adding the GEO citation execution record; reconciled to 116 on 2026-07-09 after adding the intake drop-off final plan; reconciled to 118 on 2026-07-10 after adding the audit-remediation implementation program and the comparison-surface submission kit; reconciled to 119 on 2026-07-12 after adding the cleanup-and-scale roadmap; reconciled to 105 on 2026-07-14 after retiring 13 superseded plans and the obsolete load-test README; reconciled to 106 after adding the doctor review and patient-record consolidation design.
 >
 > **Owner:** Operator. Update on every doc add, move, or delete. Bump the timestamp.
 
@@ -117,20 +117,7 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 
 | File | Purpose |
 |------|---------|
-| [docs/plans/2026-03-25-blood-test-referrals.md](../plans/2026-03-25-blood-test-referrals.md) | Historical blood-test referrals implementation record |
-| [docs/plans/2026-04-06-revenue-engagement-design.md](../plans/2026-04-06-revenue-engagement-design.md) | Historical revenue engagement design record |
-| [docs/plans/2026-04-06-revenue-engagement-plan.md](../plans/2026-04-06-revenue-engagement-plan.md) | Historical revenue engagement implementation record |
-| [docs/plans/2026-04-13-god-component-decomposition.md](../plans/2026-04-13-god-component-decomposition.md) | Historical decomposition implementation record |
-| [docs/plans/2026-04-13-lib-restructure-and-script-wiring.md](../plans/2026-04-13-lib-restructure-and-script-wiring.md) | Historical library-restructure implementation record |
-| [docs/plans/2026-04-20-design-system-95-sprint.md](../plans/2026-04-20-design-system-95-sprint.md) | Historical design-system sprint record |
-| [docs/plans/2026-05-04-health-guides-rehaul.md](../plans/2026-05-04-health-guides-rehaul.md) | Historical health-guide rehaul record |
-| [docs/plans/2026-05-20-admin-ops-cockpit-reshape-design.md](../plans/2026-05-20-admin-ops-cockpit-reshape-design.md) | Historical admin-ops design record |
-| [docs/plans/2026-05-20-admin-ops-cockpit-reshape-plan.md](../plans/2026-05-20-admin-ops-cockpit-reshape-plan.md) | Historical admin-ops implementation record |
-| [docs/plans/2026-05-20-staff-cockpit-overhaul-design.md](../plans/2026-05-20-staff-cockpit-overhaul-design.md) | Historical staff-cockpit design record |
-| [docs/plans/2026-05-20-staff-cockpit-overhaul-plan.md](../plans/2026-05-20-staff-cockpit-overhaul-plan.md) | Historical staff-cockpit implementation record |
 | [docs/plans/2026-05-23-archived-plan-followups.md](../plans/2026-05-23-archived-plan-followups.md) | Reference-only deferred-item inventory; ROADMAP decides activation |
-| [docs/plans/2026-05-23-doc-cleanup-plan.md](../plans/2026-05-23-doc-cleanup-plan.md) | Historical documentation cleanup record |
-| [docs/plans/2026-05-23-doc-content-audit-plan.md](../plans/2026-05-23-doc-content-audit-plan.md) | Historical documentation audit record |
 | [docs/plans/2026-05-26-minimal-slide-modal-design.md](../plans/2026-05-26-minimal-slide-modal-design.md) | Design doc for the 2026-05-26 cockpit cleanup bundle (2-day auto-approve widening, single-column slide modal, ED prescription preset). |
 | [docs/plans/2026-05-26-minimal-slide-modal-plan.md](../plans/2026-05-26-minimal-slide-modal-plan.md) | 8-task TDD implementation plan companion to the 2026-05-26 design doc. |
 | [docs/plans/2026-06-10-organic-geo-beat-nextclinic-plan.md](../plans/2026-06-10-organic-geo-beat-nextclinic-plan.md) | Reference-only organic + GEO/LLM-citation research and sequence; ROADMAP ranks 3 and 6 decide activation |
@@ -186,7 +173,6 @@ See [docs/plans/archive/README.md](../plans/archive/README.md) for the retention
 
 | File | Purpose |
 |------|---------|
-| [scripts/load-tests/README.md](../../scripts/load-tests/README.md) | k6 load test operational doc |
 
 `scripts/blog-photos/README.md` was deleted on 2026-05-23 (one-sentence placeholder; the script that uses the dir documents the path inline).
 

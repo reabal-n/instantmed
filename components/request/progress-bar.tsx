@@ -16,8 +16,14 @@ export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarPro
 
   return (
     <nav className="w-full" aria-label="Request progress">
-      <div className="relative h-10 sm:h-[3.35rem]">
-        <div className="absolute left-3 right-3 top-4 h-1.5 overflow-hidden rounded-full bg-muted/70 sm:top-3.5">
+      <div
+        data-request-progress-shell="true"
+        className="relative h-12 sm:h-[3.35rem]"
+      >
+        <div
+          data-request-progress-track="true"
+          className="absolute left-3 right-3 top-4 h-1.5 overflow-hidden rounded-full bg-muted/70 sm:top-3.5"
+        >
           <div
             className="h-full rounded-full transition-[width] duration-300 ease-out motion-reduce:transition-none"
             style={{
@@ -30,6 +36,7 @@ export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarPro
         </div>
 
         <div
+          data-request-progress-grid="true"
           className="relative z-10 grid"
           style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}
         >
@@ -41,11 +48,13 @@ export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarPro
             return (
               <button
                 key={step.id}
+                data-request-progress-step="true"
+                data-request-progress-actionable={isClickable ? "true" : "false"}
                 type="button"
                 onClick={() => isClickable && onStepClick(step.id, i)}
                 disabled={!isClickable}
                 className={requestCx(
-                  "group flex min-h-10 flex-col items-center outline-none",
+                  "group flex min-h-10 flex-col items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                   isClickable ? "cursor-pointer" : "cursor-default",
                 )}
                 aria-current={isCurrent ? "step" : undefined}
@@ -62,7 +71,6 @@ export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarPro
                   <div
                     className={requestCx(
                       "relative flex items-center justify-center rounded-full border transition-[background-color,border-color,box-shadow,transform] duration-200 motion-reduce:transition-none",
-                      "focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
                       isCurrent &&
                         "h-5 w-5 scale-105 border-primary bg-background shadow-md shadow-primary/20 ring-4 ring-sky-200/50",
                       isCompleted &&

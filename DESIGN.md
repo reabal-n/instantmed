@@ -1,6 +1,6 @@
 # DESIGN.md — InstantMed
 
-> **Version: 2.0.2** · Pinned 2026-05-01 · See [changelog](docs/DESIGN_SYSTEM_CHANGELOG.md) · Pin constant: `lib/design-system/version.ts`
+> **Version: 2.0.3** · Pinned 2026-07-14 · See [changelog](docs/DESIGN_SYSTEM_CHANGELOG.md) · Pin constant: `lib/design-system/version.ts`
 
 > **Load every session.** Single source of truth for all visual, layout, and interaction decisions. The design system is law.
 
@@ -46,6 +46,7 @@
   --blue:         #3B82F6;   /* primary */
   --blue-light:   #EFF6FF;
   --blue-border:  rgba(59,130,246,0.20);
+  --primary-strong: #1D4ED8; /* AA-safe small text on primary tints; dark maps to --primary */
 
   --teal:         #5DB8C9;   /* dark mode primary accent */
   --teal-light:   rgba(93,184,201,0.12);
@@ -108,6 +109,8 @@
 - Morning spectrum: marketing heroes only. Never inside the product UI.
 - **Sky-toned shadows only: `shadow-primary/[0.06]`.** Never black shadows on marketing surfaces. The global `--shadow-*` CSS tokens in `app/globals.css` (light + dark `:root` blocks) are based on `rgba(59, 130, 246, ...)` (the primary blue at low alpha) — updated 2026-04-08 in commit `270e6c3a1`. Every `shadow-sm`/`shadow-md`/`shadow-lg` Tailwind utility now cascades through these sky-tinted values.
 - **Brand coral is a signature accent, not a system colour.** Use `bg-brand-coral` / `text-brand-coral` only on the brand-recognition moments listed above. Do not introduce it into intake, dashboard, live-status indicators, or product UI. `--primary` (system blue) remains the CTA colour everywhere.
+- **Small primary text on tints:** use `text-primary-strong` (`--primary-strong`) for labels and badges below 18px on `bg-primary/10`. It resolves to `#1D4ED8` in light mode and the existing dark-mode primary in Quiet Night Sky.
+- **Dark primary foreground: `#0B1120`.** Quiet Night Sky keeps the teal `--primary` unchanged and pairs it with the night-sky foreground for AA-safe text and icons on solid primary surfaces. Do not use white or pale text on the dark-mode teal primary.
 - **Dark mode card surfaces are SOLID**, not translucent. `--card` and `--popover` are `#111827` (not `rgba(17, 24, 39, 0.75)`) — updated 2026-04-08 in the same commit. Previously the translucent rgba values created an unintended glass effect on every card in dark mode.
 - Semantic colors convey status. Never use decoratively.
 
@@ -294,7 +297,7 @@ Centered headline + animated stat counters. Used on: pricing, trust.
 
 ### Hero Rules
 
-- Morning gradient background (`MeshGradientCanvas`) on all marketing heroes
+- Ambient `MorningSkyBackground` supplied by the canonical `MarketingPageShell`; do not mount a second canvas per hero
 - Availability indicator badge where relevant
 - Emergency disclaimer on clinical service pages
 - Trust badges below CTA (AHPRA, response time, refund guarantee)
@@ -499,7 +502,7 @@ Two curves. Use the right one:
 
 No CSS custom properties for easing exist. For CSS transitions, use `ease-out` keyword or inline the cubic-bezier.
 
-**Note:** `[0.25, 0.1, 0.25, 1]` (CSS standard `ease`) appears in 15+ section/marketing components and `PageTransitionProvider`. Not exported from `lib/motion/index.ts` - components use it inline. Intentional.
+**Note:** `[0.25, 0.1, 0.25, 1]` (CSS standard `ease`) appears in section and marketing components. It is not exported from `lib/motion/index.ts`; those components use it inline intentionally.
 
 ### Duration Tokens
 
@@ -572,19 +575,19 @@ const myVariants: Variants = {
 
 ### Panel & Drawer Variants
 
-`lib/motion/panel-variants.ts` exports ready-made variants for panels, drawers, sheets, and floating bars. All use `easing.panel` and shared duration tokens.
+`lib/motion/panel-variants.ts` exports ready-made backdrop, drawer, and sheet variants. All use `easing.panel` and shared duration tokens.
 
 ```tsx
-import { sessionPanelVariants, drawerVariants, sheetVariants } from '@/lib/motion/panel-variants'
+import { backdropVariants, drawerVariants, sheetVariants } from '@/lib/motion/panel-variants'
 
-// Modal entrance: scale(0.98 to 1) + opacity + y(20 to 0), 400ms panel ease
+// Backdrop: opacity only
 // Drawer: slides from edge, 220ms panel ease
 // Exit: opacity only, 180ms or less
 ```
 
 ### Page Transitions
 
-`PageTransitionProvider` uses opacity + subtle translateY (6px enter, -4px exit), 250ms, ease `[0.25, 0.1, 0.25, 1]`. Kept minimal.
+Root-level page transitions are intentionally not mounted. The root layout renders route children directly, while `NavigationProgress` provides navigation feedback after deferred client startup. Keep motion local to the component that owns it rather than wrapping the entire application.
 
 **Asymmetric timing rule:** Enter slower than exit. If an element enters over 200ms, it exits in 100ms or less.
 
@@ -745,7 +748,6 @@ Three regulatory logos displayed on service and marketing pages:
 | AHPRA | `/logos/AHPRA.png` | 100px |
 | TGA | `/logos/TGA.png` | 80px |
 | Medicare | `/logos/medicare.png` | 90px |
-| RACGP | `/logos/RACGP.png` | 90px |
 
 Dark mode: `rounded dark:bg-white/90 dark:p-0.5` — adds white backing for PNGs with transparent backgrounds.
 

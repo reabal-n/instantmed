@@ -2,6 +2,24 @@
 
 > Tracks breaking and notable changes to the InstantMed design system. Pin against `DESIGN_SYSTEM_VERSION` in `lib/design-system/version.ts`.
 
+## [Unreleased]
+
+### Added
+- `--primary-strong` / `text-primary-strong` for AA-safe small primary text on primary tints. Light mode uses `#1D4ED8`; dark mode maps to the existing primary. This is additive and does not require a version bump.
+
+### Changed
+- Set the dark `--primary-foreground` to `#0B1120` so text and icons on the unchanged teal primary clear AA contrast. Raised low-contrast medical-certificate mockup metadata and its decorative "Specimen" watermark to legible dark-mode treatments. No design-system version bump is required.
+
+## [2.0.3] — 2026-07-14
+
+### Removed
+- Verified zero-consumer CTA and trust graphs. Service pages continue to use their mounted `StickyCTA`, `TrustBadgeRow`, and `RegulatoryPartners` paths.
+- Superseded motion/provider/canvas wrappers. Mounted surfaces continue to use `GlobalDeferredClients`, the marketing-owned page shell, `MorningSkyBackground`, and the active drawer/sheet variants.
+- Abandoned form and onboarding primitives, including `SegmentedRadioGroup`, `RadioGroupCard`, and inline auth/onboarding steps. Canonical Radix form primitives and route-owned auth remain unchanged.
+- Unmounted clinical and shell leaves (`EmergencyGate`, `SymptomChecker`, `ServiceDisabledBanner`, `SessionPanel`, and related controls). Request safety remains enforced by the active client validators and server checkout/retry gates.
+
+This is a removal-only internal API cleanup. No mounted surface, token, or visual behavior changed.
+
 ## [2.0.2] — 2026-05-01
 
 ### Removed

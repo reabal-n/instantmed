@@ -105,6 +105,8 @@ AddressAutocomplete
 
 Prescribing cases require the structured fields before checkout. They are normalized into `address_line1`, `suburb`, `state`, and `postcode`, persisted on `profiles`, visible in the doctor patient snapshot/admin prescribing identity blocker report, and used by `lib/parchment/sync-patient.ts` to build the Parchment address payload. Doctor approval into `awaiting_script` also rechecks prescribing identity server-side so legacy or imported incomplete profiles cannot enter the prescribing handoff silently.
 
+Parchment linkage and demographic refresh are separate operations. If `profiles.parchment_patient_id` already exists, normal prescribing handoffs reuse it and proceed to SSO without calling the Parchment patient-update endpoint. Doctor-created patients still sync on first link; the explicit patient edit/resync path pushes current structured given name, family name, identifiers, and address. This prevents a provider-side demographic verification outage—or a correction made only in Parchment—from blocking every later prescription open.
+
 **DB insert sequence:** INSERT `intakes` (status=pending_payment) -> INSERT `intake_answers` -> Stripe redirect -> UPDATE `intakes` status=paid (webhook) -> INSERT `intake_drafts` (via `generateDraftsForIntake`).
 
 **Tables:** `intakes`, `intake_answers`, `safety_audit_log`, `ai_chat_transcripts`, `ai_chat_audit_log`, `ai_safety_blocks`.
@@ -208,6 +210,7 @@ review-step.tsx -> unified-checkout.ts createCheckoutFromUnifiedFlow()
 | Server | Key validation >=16 chars (`checkout.ts:284`) |
 | Database | UNIQUE constraint on `intakes.idempotency_key` |
 | Stripe | Idempotency key on `sessions.create()` (guest flow) |
+| Checkout bind/rebuild | Every new initial, retry, and recovery Session must carry matching intake metadata and still be `open`; a metadata-less legacy Session is accepted only when its ID exactly equals the stored `payment_id`. Attachment uses an exact previous-`payment_id` compare-and-swap, refetches ambiguous writes, reuses the same idempotent winner, and expires only an ownership-verified orphan |
 | Webhook | Atomic event claim via `try_process_stripe_event` RPC |
 | Webhook | `payment_status === 'paid'` early return |
 | Webhook | Paid transitions require current `payment_id = session.id`, retryable intake status, and `payment_status IN ('pending','unpaid','failed')` |
@@ -216,7 +219,11 @@ On Postgres 23505 (duplicate key), returns existing intake. If already paid, red
 
 **DLQ:** Missing intake -> `addToDeadLetterQueue()` + 500 (Stripe retries). Non-retryable or stale paid webhooks -> `addToDeadLetterQueue()` + 200 (operator-visible, no retry storm). Max 3 retries then 200. 5 items/hour -> Sentry FATAL. Admin UI at `/admin/webhook-dlq` with `X-Admin-Replay` replay. Daily cron: `cron/dlq-monitor/route.ts`.
 
-**Retry payment** (`retryPaymentForIntakeAction`): auth + ownership + status guard (`pending_payment` or `checkout_failed` with unpaid/pending/failed payment state) + safety re-validation + expire old session + create fresh session.
+**Retry payment** (`retryPaymentForIntakeAction`): auth + ownership + status guard (`pending_payment` or `checkout_failed` with unpaid/pending/failed payment state) + authoritative answer read + safety re-validation + invalidate the old session + create and exact-CAS attach an open replacement. If an encrypted answer envelope exists, payment safety must decrypt it successfully or fail closed; stale plaintext is accepted only for a legacy row with no encrypted envelope. Before expiring a current Session on a `pending_payment` row, replacement writes a durable `payment_session_replacement_in_progress` marker; the expiry webhook ignores that marker, while a successful replacement attach or terminal payment webhook clears/replaces it. This prevents an expiry event from stranding the row between Stripe invalidation and attachment, including parallel and interrupted retries. Initial authenticated checkout, initial guest checkout, authenticated retry, signed guest resume, and duplicate guest-checkout recovery share the same metadata ownership check, Session classifier, and attachment reconciler; none may hand out an expired, completed, unresolved, mismatched, stale, or confirmed-orphan Session.
+
+**Signed guest resume** (`/resume/[token]`): verifies the seven-day HMAC token, loads the intake without projecting plaintext clinical answers, then reads answers through `getIntakeAnswersForPaymentSafety()`. A current open Session may be returned; a completed/payment-in-flight Session routes to account completion; unresolved ownership routes to the no-retry recovery surface. A persisted high-stakes medical-certificate request first claims a durable safety lock that blocks every shared attach path, invalidates the captured current Session, and only then exact-CAS transitions the intake to `cancelled`. The patient receives a reason-coded, non-PHI safety page with no pay/new-request CTA. Successful or in-flight payments remain recoverable by the current-session webhook rather than being silently replaced.
+
+**Async payment completion:** Stripe `status=complete` with `payment_status=unpaid` is processing, not paid. `/auth/complete-account` requires the URL Session ID to exactly match the intake's current `payment_id`, then shows paid UI, clears the local draft, and fires purchase conversion only when the intake or Stripe reports `payment_status=paid`. If Stripe is the proof source before the webhook reconciles the row, conversion value comes from the owned Session's `amount_total` so referral discounts and Priority fees are accurate. Guest account CTAs in live payment emails and outbox reconstruction carry the same exact Session proof. Processing or unconfirmed states show a no-retry support surface. A persisted `checkout_failed` / `failed` state from `checkout.session.async_payment_failed` makes the otherwise complete/unpaid Session final and permits an exact-CAS replacement.
 
 **Guest checkout failures:** after clinical answers/compliance audit are persisted, Stripe price/session failures mark the intake `checkout_failed` and keep `checkout_error` for operator recovery. The system must not hard-delete those intakes because that hides paid-flow failures from support and breaks the audit trail.
 
@@ -501,11 +508,11 @@ Any function that uses `createServiceRoleClient()` or accesses PHI directly must
 
 **Pattern:**
 ```ts
-// lib/db/patient-count.ts
+// lib/data/system-health.ts
 import "server-only"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
-export async function getPatientCountFromDB(): Promise<number> { ... }
+export async function getSystemHealth(): Promise<SystemHealth> { ... }
 ```
 
 **Rule:** If a linter or build error says "server-only import in client component" — the fix is to split the function into its own `server-only` file, not to suppress the error or remove the import guard.
@@ -592,7 +599,7 @@ import { PageBreadcrumbs, Snippet, UserCard } from "@/components/uix"
 
 **Component decision tree:** See CLAUDE.md for quick-reference selection guide (shadcn vs UIX vs solid-depth components).
 
-**File organization:** `components/ui/` (67 primitives), `components/shared/` (39 shared), `components/uix/` (UIX wrappers), `components/operator/` (staff cockpit shell/page/split-pane/local action palettes), plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
+**File organization:** core primitives in `components/ui/`, shared cross-surface components in `components/shared/`, UIX wrappers in `components/uix/`, staff cockpit shell/page/split-pane/action palettes in `components/operator/`, plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
 
 ### Operator Components
 
@@ -633,7 +640,7 @@ Single source of truth for service icons across the entire UI. Import from `@/co
 **Color → service mapping** (canonical, matches `services-dropdown.tsx`):
 - `emerald` = Medical Certificates · `cyan` = Repeat Medication · `blue` = ED Assessment · `violet` = Hair Loss
 
-**Used in:** `services-dropdown.tsx`, `mobile-menu-content.tsx`, `user-menu.tsx`, `service-cards.tsx`, `service-picker.tsx`. Do not create local icon containers — always use `ServiceIconTile`.
+**Used in:** `services-dropdown.tsx`, `mobile-menu-content.tsx`, `user-menu.tsx`, and `service-cards.tsx`. Do not create local icon containers — always use `ServiceIconTile`.
 
 ### Service Page Patterns
 
@@ -738,7 +745,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 558 files, 238 route files
+### `app/` — 549 files, 235 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -748,8 +755,8 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `emails/`, `features/`, `settings/`, `ops/`, `analytics/` |
 | `app/doctor/` | Doctor portal under the shared staff shell | `intakes/[id]/` (review detail), `patients/`, `settings/`; queue/scripts entry points resolve through `/dashboard` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
-| `app/api/` | API routes (89 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/`, and the count-only `internal/support-inbox-alert/` bridge |
-| `app/api/cron/` | Scheduled jobs (29) | `stale-queue/`, `pending-queue-reminders/`, `support-inbox-alert/` (Gmail label aggregate only), `email-dispatcher/`, `health-check`, `google-ads-conversions`, `google-ads-diagnostics-watch`, `cert-reactivation`, `parchment-smoke`, etc. See OPERATIONS.md |
+| `app/api/` | API routes (86 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/`, and the count-only `internal/support-inbox-alert/` diagnostic bridge |
+| `app/api/cron/` | Scheduled jobs (27) | `stale-queue/`, `telegram-notifications/`, `email-dispatcher/`, `health-check`, `google-ads-conversions`, `google-ads-diagnostics-watch`, `cert-reactivation`, `parchment-smoke`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | 7 handlers: `checkout-session-completed`, `checkout-session-expired`, `checkout-session-async-payment-succeeded/failed`, `charge-refunded`, `charge-dispute-created`, `payment-intent-payment-failed`. Repeat Rx subscription handlers are retired; unsupported Stripe events are acknowledged and claimed by the dispatcher without running business logic. Registered in `handlers/index.ts`. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
 | `app/(dev)/` | Dev-only routes | Email preview only; retired `/cert-preview` and `/sentry-test` prefixes remain fail-closed in middleware |
@@ -765,33 +772,32 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/compare/[slug]/` | SEO: comparisons | Service comparison pages |
 | `app/offline/` | Offline fallback | PWA offline page — shown by service worker when network unavailable |
 
-### `components/` — 511 files
+### `components/`
 
-| Directory | Count | Purpose |
-|-----------|-------|---------|
-| `ui/` | 69 | shadcn/Radix primitives (Button, Input, Dialog, etc.) |
-| `uix/` | 12 | Thin shared wrappers and re-exports (UserCard, PageBreadcrumbs, DatePickerField, Pagination, Snippet, etc.) |
-| `shared/` | 40 | Header, Footer, InlineAuthStep, CheckoutButton, LazyOverlays |
-| `operator/` | 17 | OperatorShell, bounded staff pages, split panes, local action palettes |
-| `request/` | 51 | Intake flow: `request-flow.tsx` (orchestrator), `steps/` (per-step components), `store.ts` (Zustand) |
-| `marketing/` | 111 | Landing pages, ServiceFunnelPage, testimonials, exit intent |
-| `blog/` | 12 | Guide article template, TOC, visuals, related reading, share controls |
-| `doctor/` | 43 | IntakeReviewPanel, RepeatPrescriptionChecklist, clinical views |
-| `admin/` | 9 | Admin-specific panels and views |
-| `patient/` | 28 | ReferralCard, CrossSellCard, dashboard components |
-| `effects/` | 2 | Confetti, ShakeAnimation |
-| `providers/` | 7 | PostHogProvider, ThemeProvider, MotionProvider |
-| `heroes/` | 5 | Morning Canvas hero variants (Split, Centered, Stats, FullBleed) |
-| `ui/morning/` | 7 | Morning Canvas primitives (MeshGradientCanvas, WordReveal, PerspectiveTiltCard) |
-| `ui/skeleton.tsx` | — | SkeletonCard, SkeletonForm, SkeletonList, SkeletonDashboard, Spinner |
+| Directory | Purpose |
+|-----------|---------|
+| `ui/` | shadcn/Radix primitives (Button, Input, Dialog, etc.) |
+| `uix/` | Thin shared wrappers and re-exports (UserCard, PageBreadcrumbs, DatePickerField, Pagination, Snippet, etc.) |
+| `shared/` | Header, Footer, global notices, referral capture, and shared trust/auth controls |
+| `operator/` | OperatorShell, bounded staff pages, split panes, local action palettes |
+| `request/` | Intake flow: `request-flow.tsx` (orchestrator), `steps/` (per-step components), `store.ts` (Zustand) |
+| `marketing/` | Landing pages, ServiceFunnelPage, testimonials, exit intent |
+| `blog/` | Guide article template, TOC, visuals, related reading, share controls |
+| `doctor/` | IntakeReviewPanel, RepeatPrescriptionChecklist, clinical views |
+| `admin/` | Admin-specific panels and views |
+| `patient/` | ReferralCard, CrossSellCard, dashboard components |
+| `providers/` | AttributionCapture, GlobalDeferredClients, PostHogLoader, ServiceAvailabilityProvider |
+| `heroes/` | Morning Canvas hero variants (Split, Centered, Stats, FullBleed) |
+| `ui/morning/` | Morning Canvas primitives (MorningSkyBackground, NavigationProgress, WordReveal, PerspectiveTiltCard) |
+| `ui/skeleton.tsx` | SkeletonCard, SkeletonForm, SkeletonList, SkeletonDashboard, Spinner |
 
-### `lib/` — 872 files
+### `lib/`
 
 | Directory | Purpose | Key files |
 |-----------|---------|-----------|
 | `lib/auth/` | Auth helpers | `helpers.ts`, `staff-capabilities.ts`, post-auth redirects and guest profile linking |
 | `lib/constants/index.ts` | App constants | PRICING, SYSTEM_AUTO_APPROVE_ID, CONTACT_EMAIL |
-| `lib/env.ts` | Env validation | Zod schemas, `getAppUrl()` |
+| `lib/config/env.ts` | Env validation | Zod schemas, `getAppUrl()` |
 | `lib/format.ts` | Date formatting | All AEST, `formatDateLong()`, `addDays()` |
 | `lib/utils.ts` | Utilities | `cn()` (class merger) |
 | `lib/ai/` | AI integration | `provider.ts` (model profiles), prompts, clinical note generation |
@@ -808,7 +814,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `lib/stripe/` | Payments | `checkout.ts`, `guest-checkout.ts`, `price-mapping.ts`, `client.ts` |
 | `lib/seo/data/` | SEO content | `conditions.ts`, `symptoms.ts`, `guides.ts`, `comparisons.ts`, `audience-pages.ts`, `condition-location-combos.ts`, `deep-city-content.ts` — drive programmatic pages |
 | `lib/blog/` | Health guide content system | MDX loader/parser, article registry, shared heading slugs, visual registry |
-| `lib/notifications/` | Alerts | `telegram.ts` (ops alerts), `service.ts` (payment notifications), `support-inbox-alert.ts` + processor (aggregate-only Gmail count paging) |
+| `lib/notifications/` | Alerts | `telegram.ts` + `paid-request-telegram.ts` (broad-service-class request pager), `service.ts` (payment notifications), `support-inbox-alert.ts` + processor (manual aggregate-only support count diagnostics) |
 | `lib/observability/` | Logging/monitoring | `logger.ts` (structured logger), `sentry.ts` (helpers) |
 | `lib/feature-flags.ts` | Feature flags | DB-backed via `feature_flags` table, `getFeatureFlags()` |
 | `lib/operational-controls/` | Runtime controls | Capacity fail-closed checks and medication-blocklist answer extraction |
@@ -825,8 +831,8 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/db.ts` | Supabase generated types + custom interfaces |
 | `types/certificate-template.ts` | PDF template field definitions |
 | `hooks/` | 5 custom hooks (use-connection-status, use-debounce, use-doctor-shortcuts, use-keyboard-navigation, use-landing-analytics) |
-| `e2e/` | 74 TypeScript specs/helpers, including `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
-| `supabase/migrations/` | 92 SQL migration files (1 squashed baseline + 91 incremental). Most recent: `20260710174000_idempotent_certificate_resends.sql`; the three 2026-07-10 closure/correction/resend migrations were applied to production and verified on 2026-07-10. |
+| `e2e/` | 75 TypeScript files, including 67 specs and `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
+| `supabase/migrations/` | 95 SQL migration files (1 squashed baseline + 94 incremental). Most recent: `20260713085920_lock_down_security_definer_rpc_acls.sql`. |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
 | `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |
@@ -915,13 +921,13 @@ Partial index on actionable states only: `idx_intakes_auto_approval_active` on `
 
 | File | Role |
 |------|------|
-| `lib/clinical/auto-approval-state.ts` | Atomic CAS state transitions — all Sentry/PostHog/Telegram observability lives here |
+| `lib/clinical/auto-approval-state.ts` | Atomic CAS state transitions with Sentry/PostHog observability |
 | `lib/clinical/auto-approval-pipeline.ts` | Orchestrator: claim → eligibility → doctor select → execute → mark terminal state |
 | `lib/clinical/auto-approval.ts` | Eligibility engine (unchanged) |
 
 **Post-approval doctor oversight:** Auto-approval is not the end of the governance workflow. `getPendingBatchReviews()` reads unresolved auto-approved medical certificates oldest-first (`batch_reviewed_at IS NULL`) for staff who hold `review_med_certs`. The `/dashboard` banner exposes only the aggregate count and oldest age; opening the oldest certificate loads the normal clinical record and requires one explicit outcome. `markBatchReviewed()` compare-and-set stamps one eligible certificate and writes an `ai_audit_log` review receipt. `revokeAIApproval()` is the second valid outcome: it revokes the certificate, returns the intake to manual review, and stamps the same `batch_reviewed_at` / `batch_reviewed_by` receipt. The database permits that otherwise-forbidden `approved → in_review` reversal only when the original intake was AI-approved, a revoked issued-certificate row exists, and both batch-review receipt fields are present. There is no bulk action and no silent backfill.
 
-`getBatchReviewHealth()` supplies aggregate-only pending, overdue, and oldest-age values to `/api/cron/business-alerts`. The critical `med_cert_batch_review_overdue` metric pages through the existing per-metric cooldown without including intake IDs, patient IDs, or PHI.
+`getBatchReviewHealth()` supplies aggregate-only pending, overdue, and oldest-age values to `/api/cron/business-alerts`. The critical `med_cert_batch_review_overdue` metric is captured in Sentry without including intake IDs, patient IDs, or PHI.
 
 **Race condition handling:**
 
@@ -933,7 +939,7 @@ Partial index on actionable states only: `idx_intakes_auto_approval_active` on `
 | Doctor acts while auto-approval is `attempting` | Manual med-cert approval force-takes only the `System (Auto-Approve)` claim, parks `auto_approval_state='needs_doctor'` with `manual_doctor_override`, then continues through the normal certificate approval pipeline |
 | Pipeline succeeds, no release needed | `markApproved()` is atomic — no release step |
 
-**Alerting:** `needs_doctor` (exhausted retries) and stale recovery trigger Telegram. Sentry: `warning` on exhausted retries and stale recovery; `info` on approval and deterministic `needs_doctor`.
+**Alerting:** Sentry records `warning` on exhausted retries and stale recovery, and `info` on approval and deterministic `needs_doctor`. These state changes do not create Telegram messages; the original paid-request message may be edited when its review status changes.
 
 ---
 

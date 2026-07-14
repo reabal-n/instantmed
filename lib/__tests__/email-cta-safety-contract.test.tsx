@@ -24,6 +24,7 @@ import {
 const APP_URL = "https://instantmed.com.au"
 const INTAKE_ID = "intake_123"
 const REQUEST_REF = "REQ-123"
+const SESSION_ID = "cs_test_current"
 
 function render(element: React.ReactElement): string {
   return renderToStaticMarkup(element)
@@ -83,10 +84,11 @@ const patientEmailCases: Array<{
         amount="$24.95"
         requestId={INTAKE_ID}
         isGuest
+        completeAccountUrl={`${APP_URL}/auth/complete-account?intake_id=${INTAKE_ID}&session_id=${SESSION_ID}`}
         appUrl={APP_URL}
       />,
     ),
-    expectedHref: `${APP_URL}/auth/complete-account?intake_id=${INTAKE_ID}`,
+    expectedHref: `${APP_URL}/auth/complete-account?intake_id=${INTAKE_ID}&session_id=${SESSION_ID}`,
   },
   {
     name: "payment confirmed",
@@ -169,11 +171,11 @@ const patientEmailCases: Array<{
         patientName="Test Patient"
         requestType="Medical Certificate"
         intakeId={INTAKE_ID}
-        completeAccountUrl={`${APP_URL}/auth/complete-account?intake_id=${INTAKE_ID}`}
+        completeAccountUrl={`${APP_URL}/auth/complete-account?intake_id=${INTAKE_ID}&session_id=${SESSION_ID}`}
         appUrl={APP_URL}
       />,
     ),
-    expectedHref: `${APP_URL}/auth/complete-account?intake_id=${INTAKE_ID}`,
+    expectedHref: `${APP_URL}/auth/complete-account?intake_id=${INTAKE_ID}&session_id=${SESSION_ID}`,
   },
 ]
 
@@ -226,5 +228,31 @@ describe("patient email CTA safety contract", () => {
     expect(resendSource).toContain("getGuestCertificateAccessHref(intakeId)")
     expect(resendSource).not.toContain("getGuestCertificateAccessHref(intakeId, patient.email)")
     expect(resendSource).toContain("getPatientIntakeDetailHref(intakeId)")
+  })
+
+  it("carries exact current Session proof through guest account email sends and retries", () => {
+    const completedSource = readFileSync(
+      join(process.cwd(), "app/api/stripe/webhook/handlers/checkout-session-completed.ts"),
+      "utf8",
+    )
+    const asyncSucceededSource = readFileSync(
+      join(process.cwd(), "app/api/stripe/webhook/handlers/checkout-session-async-payment-succeeded.ts"),
+      "utf8",
+    )
+    const senderSource = readFileSync(
+      join(process.cwd(), "lib/email/template-sender.ts"),
+      "utf8",
+    )
+    const reconstructSource = readFileSync(
+      join(process.cwd(), "lib/email/send/reconstruct.ts"),
+      "utf8",
+    )
+
+    expect(completedSource).toContain("sessionId: session.id")
+    expect(asyncSucceededSource).toContain("sessionId: session.id")
+    expect(senderSource).toContain("buildVerifiedCompleteAccountHref")
+    expect(senderSource).toContain("sessionId: params.sessionId")
+    expect(reconstructSource).toContain("payment_id")
+    expect(reconstructSource).toContain("sessionId: ctx.intake.payment_id")
   })
 })

@@ -404,7 +404,7 @@ function WomensHealthPricingSection({
             <div className="p-6 flex flex-col flex-1">
               <div className="flex items-start justify-between mb-4">
                 <StickerIcon name="stethoscope" size={56} />
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary-strong border border-primary/20">
                   One-time
                 </span>
               </div>

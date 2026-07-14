@@ -70,7 +70,7 @@ const templates: Record<string, {
         patientName={mock.patientName}
         requestType="Medical Certificate"
         intakeId={mock.requestId}
-        completeAccountUrl={`${mock.appUrl}/auth/complete-account?intake=${mock.requestId}`}
+        completeAccountUrl={`${mock.appUrl}/auth/complete-account?intake_id=${mock.requestId}&session_id=cs_preview`}
         appUrl={mock.appUrl}
       />
     ),

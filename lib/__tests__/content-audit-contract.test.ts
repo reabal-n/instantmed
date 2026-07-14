@@ -22,7 +22,10 @@ describe("content audit guardrails", () => {
 
   it("has an image-only guard for local guide visual regressions", () => {
     expect(packageJson.scripts?.["content:audit:images"]).toBe(
-      "node scripts/audit-health-guides.mjs --fail-on-image",
+      "node scripts/audit-health-guides.mjs --fail-on-image && tsx scripts/check-blog-visual-assets.ts",
+    )
+    expect(packageJson.scripts?.["content:audit:assets"]).toBe(
+      "tsx scripts/check-blog-visual-assets.ts",
     )
     expect(auditScript).toContain("parseFailOnImageArg")
     expect(auditScript).toContain("Blocking image failures:")

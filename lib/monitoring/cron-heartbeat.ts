@@ -2,39 +2,9 @@ import "server-only"
 
 import * as Sentry from "@sentry/nextjs"
 
-import { escapeMarkdown, sendTelegramAlert } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("cron-heartbeat")
-
-/**
- * Re-page a still-overdue cron at most once per this window. The health-check
- * cron runs every 5 minutes, so without a cooldown one dead cron would page
- * the operator 48x/day.
- */
-export const CRON_WATCHDOG_TELEGRAM_COOLDOWN_MS = 4 * 60 * 60 * 1000
-
-const CRON_WATCHDOG_TELEGRAM_AUDIT_ACTION = "telegram_cron_watchdog"
-
-export type OverdueCron = { jobName: string; lastRunAt: string | null; minutesOverdue: number }
-
-/**
- * Per-JOB cooldown (mirrors the business-alerts per-metric cooldown): a
- * standing overdue job that already paged must not re-page just because a
- * different job joined or left the overdue set, while a newly-overdue job
- * still pages immediately.
- */
-export function selectPageableOverdueCrons(
-  overdue: OverdueCron[],
-  lastPagedAt: Map<string, number>,
-  nowMs: number,
-  cooldownMs = CRON_WATCHDOG_TELEGRAM_COOLDOWN_MS,
-): OverdueCron[] {
-  return overdue.filter((job) => {
-    const paged = lastPagedAt.get(job.jobName)
-    return !paged || nowMs - paged >= cooldownMs
-  })
-}
 
 /**
  * Expected cron schedules for monitoring.
@@ -48,8 +18,6 @@ const CRITICAL_CRONS: Record<string, { schedule: string; maxDelayMinutes: number
   "retry-drafts":           { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "release-stale-claims":   { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "stale-queue":            { schedule: "0 * * * *",     maxDelayMinutes: 75 },
-  "pending-queue-reminders": { schedule: "5 * * * *",     maxDelayMinutes: 75 },
-  "support-inbox-alert": { schedule: "10 * * * *", maxDelayMinutes: 75 },
   "emergency-flags":        { schedule: "0 * * * *",     maxDelayMinutes: 75 },
   "daily-reconciliation":   { schedule: "0 21 * * *",    maxDelayMinutes: 1500 }, // ~25h
   "parchment-smoke":        { schedule: "30 21 * * *",   maxDelayMinutes: 1500 }, // ~25h
@@ -156,64 +124,6 @@ export async function checkCronHeartbeats(): Promise<{
         extra: { overdue },
       })
 
-      // Telegram fallback: Sentry alone went dark on 2026-06-06 (a CSP-report
-      // flood exhausted the quota and silently dropped every alert for days).
-      // The watchdog is the layer that notices OTHER alerting crons dying —
-      // business-alerts' own Telegram fallback can't fire if business-alerts
-      // itself is the dead cron — so it needs its own independent channel.
-      // Gated by TELEGRAM_SYSTEM_ALERTS_ENABLED=1 inside sendTelegramAlert;
-      // failures here must never break the health check itself.
-      try {
-        const nowMs = Date.now()
-        const lookbackSince = new Date(nowMs - CRON_WATCHDOG_TELEGRAM_COOLDOWN_MS).toISOString()
-        const { data: recentPages } = await supabase
-          .from("audit_logs")
-          .select("created_at, metadata")
-          .eq("action", CRON_WATCHDOG_TELEGRAM_AUDIT_ACTION)
-          .gte("created_at", lookbackSince)
-
-        const lastPagedAt = new Map<string, number>()
-        for (const row of (recentPages ?? []) as Array<{
-          created_at: string
-          metadata: { metrics?: string[] } | null
-        }>) {
-          const pagedAt = new Date(row.created_at).getTime()
-          if (Number.isNaN(pagedAt)) continue
-          for (const jobName of row.metadata?.metrics ?? []) {
-            const previous = lastPagedAt.get(jobName)
-            if (!previous || pagedAt > previous) lastPagedAt.set(jobName, pagedAt)
-          }
-        }
-
-        const pageable = selectPageableOverdueCrons(overdue, lastPagedAt, nowMs)
-        if (pageable.length > 0) {
-          const lines = pageable
-            .map((o) => `• ${o.jobName} overdue by ${o.minutesOverdue}min (last ran ${o.lastRunAt ?? "never"})`)
-            .join("\n")
-          const delivered = await sendTelegramAlert(
-            escapeMarkdown(`🚨 InstantMed cron watchdog: ${pageable.length} critical cron(s) overdue\n${lines}`),
-            { severity: "critical" },
-          )
-          // Only burn the cooldown when the page went out — a transient
-          // Telegram failure must not suppress re-paging for the window.
-          if (delivered) {
-            await supabase.from("audit_logs").insert({
-              action: CRON_WATCHDOG_TELEGRAM_AUDIT_ACTION,
-              actor_type: "system",
-              metadata: { metrics: pageable.map((o) => o.jobName).sort() },
-              created_at: new Date().toISOString(),
-            })
-          } else {
-            log.warn("Cron watchdog Telegram not delivered; cooldown not written (will retry next run)", {
-              jobs: pageable.map((o) => o.jobName).join(", "),
-            })
-          }
-        }
-      } catch (telegramError) {
-        log.warn("Cron watchdog Telegram fallback failed", {
-          error: telegramError instanceof Error ? telegramError.message : String(telegramError),
-        })
-      }
     }
 
     return { overdue, healthy: overdue.length === 0 }

@@ -77,17 +77,6 @@ test.describe("Patient Intakes List", () => {
     await expect(page.getByRole("heading", { name: /request|intake/i })).toBeVisible()
   })
 
-  test("shows filter options if available", async ({ page }) => {
-    await page.goto("/patient/intakes")
-    
-    // Check for filter/sort controls
-    const hasFilters = await page.getByRole("combobox").isVisible().catch(() => false)
-    const hasTabs = await page.getByRole("tablist").isVisible().catch(() => false)
-    
-    // Either filters or tabs should exist for organizing intakes
-    expect(hasFilters || hasTabs || true).toBeTruthy() // Soft check
-  })
-
   test("clicking an intake navigates to detail page", async ({ page }) => {
     await page.goto("/patient/intakes")
     
@@ -113,25 +102,6 @@ test.describe("Patient Settings", () => {
     await expect(page.getByText(/name|email|phone/i).first()).toBeVisible()
   })
 
-  test("shows notification preferences", async ({ page }) => {
-    await page.goto("/patient/settings")
-    
-    // Look for notification settings
-    const hasNotifications = await page.getByText(/notification|email.*preference|sms/i).isVisible().catch(() => false)
-    expect(hasNotifications || true).toBeTruthy() // Soft check - section may not exist
-  })
-
-  test("can update profile information", async ({ page }) => {
-    await page.goto("/patient/settings")
-    
-    // Find an editable field
-    const editButton = page.getByRole("button", { name: /edit|update|save/i }).first()
-    
-    if (await editButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-      // Profile is editable
-      expect(true).toBeTruthy()
-    }
-  })
 })
 
 test.describe("Patient Messages", () => {
@@ -152,7 +122,7 @@ test.describe("Patient Messages", () => {
     const hasMessages = await page.getByText(/doctor|clinician|from/i).isVisible().catch(() => false)
     const hasEmpty = await page.getByText(/no.*message|inbox.*empty/i).isVisible().catch(() => false)
     
-    expect(hasMessages || hasEmpty || true).toBeTruthy()
+    expect(hasMessages || hasEmpty).toBe(true)
   })
 })
 
@@ -173,7 +143,7 @@ test.describe("Patient Prescriptions", () => {
     const hasPrescriptions = await page.getByText(/active|current|past/i).isVisible().catch(() => false)
     const hasEmpty = await page.getByText(/no.*prescription/i).isVisible().catch(() => false)
     
-    expect(hasPrescriptions || hasEmpty || true).toBeTruthy()
+    expect(hasPrescriptions || hasEmpty).toBe(true)
   })
 })
 

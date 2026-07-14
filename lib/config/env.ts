@@ -100,13 +100,6 @@ const serverEnvSchema = z.object({
   TELEGRAM_ACTION_SIGNING_SECRET: z.string().optional(),
   TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED: z.enum(["0", "1"]).optional(),
 
-  // Gmail aggregate-only support inbox poll. Never reads message content.
-  GMAIL_SUPPORT_INBOX_POLL_ENABLED: z.enum(["0", "1"]).optional(),
-  GMAIL_SUPPORT_CLIENT_ID: z.string().optional(),
-  GMAIL_SUPPORT_CLIENT_SECRET: z.string().optional(),
-  GMAIL_SUPPORT_REFRESH_TOKEN: z.string().optional(),
-  GMAIL_SUPPORT_QUOTA_PROJECT_ID: z.string().optional(),
-
   // Cron job authentication
   CRON_SECRET: z.string().optional(),
 

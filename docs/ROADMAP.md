@@ -3,7 +3,7 @@
 > **Authority:** the sole source of truth for the current operating phase, ordered active work, status, and checkpoints.
 > `docs/BUSINESS_PLAN.md` owns durable strategy. `docs/REVENUE_MODEL.md` owns milestones and economic gates. Implementation plans may elaborate one item but may not redefine this queue.
 >
-> **Last refreshed:** 2026-07-13. Refresh whenever priority or status changes; perform a deliberate review at least monthly.
+> **Last refreshed:** 2026-07-14. Refresh whenever priority or status changes; perform a deliberate review at least monthly.
 
 ---
 
@@ -38,10 +38,10 @@ One bounded operator brief should show:
 
 - progress against the active net-retained revenue rung
 - Google Ads spend, retained revenue, service-level contribution readiness, and exact proposed mutations
-- support Inbox unread counts through the active aggregate-only Telegram bridge
+- support issues that need an operator decision; conversations stay in Gmail and are handled manually
 - operational issues requiring a decision rather than another dashboard visit
 
-Google Ads mutations and customer replies require operator approval. The implementation workflows live in `docs/OPERATIONS.md`. Gmail remains the source of truth for conversations; the app does not store email bodies or PHI. Thread summaries and reply drafts remain blocked until the OpenAI workspace, DPA, retention, APP 8, and public processor disclosures are explicitly approved for identifiable health-support mail.
+Google Ads mutations and customer replies require operator approval. The implementation workflows live in `docs/OPERATIONS.md`. Gmail remains the source of truth for conversations; the app does not store email bodies or PHI. Automatic Telegram paging for support Inbox mail is retired; paid-request Telegram alerts are a separate operational channel. Thread summaries and reply drafts remain blocked until the OpenAI workspace, DPA, retention, APP 8, and public processor disclosures are explicitly approved for identifiable health-support mail.
 
 ### Weekly review
 
@@ -52,7 +52,7 @@ Review channel/service contribution, refund and chargeback trends, queue/support
 | Rank | Priority | Current status | Success / stop checkpoint |
 |------|----------|----------------|---------------------------|
 | 1 | **Truth and measurement gate** - reconcile canonical docs; repair public 24/7, automation, and 18+ contradictions; close the batch-review and synthetic-E2E boundaries; correct Google Ads dollar units; make review-email consent fail closed and tracking aggregate-only. | **Complete 2026-07-12.** Canon ownership and public eligibility/protocol language are contract-guarded; Ads dollar semantics are corrected; the doctor batch-review queue is reconciled; paid E2E fixtures use deterministic excluded identities; review email requires an explicit readable opt-in row; review redirect tracking is aggregate-only. | Complete only when each named boundary has implementation plus focused proof. Re-open any closed sub-boundary when production evidence or an operator decision exposes drift. |
-| 2 | **Operator brief and support approval surface** - keep the Overview brief actionable, route aggregate support counts to Telegram, and preserve the approval boundary for Ads changes and customer replies. | **Count-only bridge active and backend-owned.** Overview shows the milestone, exceptions, and Ads performance; the hourly Vercel cron reads only Gmail's aggregate `INBOX.threadsUnread` counter and pages Telegram only for a positive count. The local Codex mailbox schedule is retired. Identifiable Gmail summaries/drafts remain blocked by the privacy-processor gate. | One calm decision surface, aggregate-only alerts, no copied mailbox, no PHI in analytics, and no send or Ads mutation without approval. |
+| 2 | **Operator brief and support approval surface** - keep the Overview brief actionable, preserve the approval boundary for Ads changes and customer replies, and keep support conversations in Gmail. | **Manual support handling restored 2026-07-14.** Overview shows the milestone, exceptions, and Ads performance. Automatic Gmail polling and support-inbox Telegram paging are retired; support conversations stay in Gmail and are handled manually. The aggregate-only internal diagnostic receiver remains off in production. Identifiable Gmail summaries/drafts remain blocked by the privacy-processor gate. | One calm decision surface, no copied mailbox, no support-email Telegram spam, no PHI in analytics, and no send or Ads mutation without approval. |
 | 3 | **External reputation and distribution** - accrue genuine ProductReview evidence, submit selected Australian comparison/directories, and distribute the existing employer verification workflow to HR, payroll, and employment-law publishers. | Operator distribution sprint pending. | Completed submissions/outreach receipts plus attributable traffic/orders; no unsupported review or acceptance claims. |
 | 4 | **Prove paid contribution by service** - keep launched services live at low budgets, review performance daily, improve keywords/negatives/assets/sitelinks with approval, and scale only a service that passes the first-order contribution gate. | Live bounded pilots; not approved to scale. | Explicit labour rates, trusted measurement, positive first-order contribution, stable safety/refund/queue metrics, and operator approval for the exact change. |
 | 5 | **Reactivation checkpoint** - assess repeat-Rx refill reminders after three real weekly waves; keep certificate reactivation bounded. | Measurement window open. | Continue only if delivery and paid reorder conversion justify more work. Stop or rework a near-zero lever. |

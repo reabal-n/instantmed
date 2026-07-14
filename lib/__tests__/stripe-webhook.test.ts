@@ -1,14 +1,5 @@
 import { beforeEach,describe, expect, it, vi } from 'vitest'
 
-// Mock environment
-vi.mock('@/lib/env', () => ({
-  env: {
-    supabaseUrl: 'https://test.supabase.co',
-    supabaseServiceRoleKey: 'test-service-role-key',
-    stripeWebhookSecret: 'whsec_test_secret',
-  },
-}))
-
 // Mock Stripe
 vi.mock('@/lib/stripe/client', () => ({
   stripe: {

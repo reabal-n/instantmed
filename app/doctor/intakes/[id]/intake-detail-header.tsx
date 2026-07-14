@@ -49,7 +49,6 @@ import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/data/status"
 import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
-// Re-export so existing consumers (intake-decline-dialog) don't have to change import paths.
 import { DECLINE_REASONS } from "@/lib/doctor/decline-reasons"
 import {
   buildPatientSnapshot,
@@ -63,8 +62,6 @@ import type { DeclineReasonCode, IntakeStatus, IntakeWithDetails } from "@/types
 import { formatAutoApprovalReason } from "./intake-helpers"
 import { IntakeRefundDialog } from "./intake-refund-dialog"
 import type { IntakeDialogState } from "./use-intake-dialogs"
-
-export { DECLINE_REASONS }
 
 interface PendingCorrection {
   id: string

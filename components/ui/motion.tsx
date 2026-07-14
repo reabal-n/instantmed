@@ -52,24 +52,30 @@ export function useScrollReveal(ref: React.RefObject<Element>) {
  * Reactive hook for reduced motion preference.
  *
  * Unlike framer-motion's `useReducedMotion`, this hook:
- * - Returns `false` during SSR (safe for server components)
+ * - Returns `false` during SSR and the first hydrating render
  * - Listens for live changes to the media query
  * - Is the single canonical source for reduced-motion checks
  */
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)"
+
+function subscribeReducedMotion(onStoreChange: () => void) {
+  const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY)
+  mediaQuery.addEventListener("change", onStoreChange)
+  return () => mediaQuery.removeEventListener("change", onStoreChange)
+}
+
+function getReducedMotionSnapshot() {
+  return window.matchMedia(REDUCED_MOTION_QUERY).matches
+}
+
+function getServerReducedMotionSnapshot() {
+  return false
+}
+
 export function useReducedMotion() {
-  const [reduced, setReduced] = React.useState(false)
-
-  React.useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
-    setReduced(mediaQuery.matches)
-
-    const handleChange = (event: MediaQueryListEvent) => {
-      setReduced(event.matches)
-    }
-
-    mediaQuery.addEventListener("change", handleChange)
-    return () => mediaQuery.removeEventListener("change", handleChange)
-  }, [])
-
-  return reduced
+  return React.useSyncExternalStore(
+    subscribeReducedMotion,
+    getReducedMotionSnapshot,
+    getServerReducedMotionSnapshot,
+  )
 }

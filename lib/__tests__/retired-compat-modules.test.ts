@@ -39,10 +39,6 @@ describe("retired compatibility modules", () => {
     expect(existsSync(join(root, "components/marketing/media-mentions.tsx"))).toBe(false)
     expect(existsSync(join(root, "components/marketing/regulatory-partners.tsx"))).toBe(true)
 
-    const marketingBarrel = readFileSync(join(root, "components/marketing/index.ts"), "utf8")
-    expect(marketingBarrel).not.toContain("MediaMentions")
-    expect(marketingBarrel).not.toContain("media-mentions")
-
     for (const { path, source } of readSources(join(root, "app")).concat(readSources(join(root, "components")))) {
       if (path.endsWith("components/marketing/regulatory-partners.tsx")) continue
       expect(source, path).not.toContain("MediaMentions")
@@ -53,10 +49,6 @@ describe("retired compatibility modules", () => {
   it("names the marketing footer wrapper explicitly", () => {
     expect(existsSync(join(root, "components/marketing/footer.tsx"))).toBe(false)
     expect(existsSync(join(root, "components/marketing/marketing-footer.tsx"))).toBe(true)
-
-    const marketingBarrel = readFileSync(join(root, "components/marketing/index.ts"), "utf8")
-    expect(marketingBarrel).toContain("./marketing-footer")
-    expect(marketingBarrel).not.toContain("./footer")
 
     for (const { path, source } of readSources(join(root, "app")).concat(readSources(join(root, "components/marketing")))) {
       if (path.endsWith("components/marketing/marketing-footer.tsx")) continue

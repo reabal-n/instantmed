@@ -75,7 +75,7 @@ export function CommercialIntentLinksSection({
                 See also:
               </span>
               {compactLinks.map((link, i) => (
-                <span key={link.href}>
+                <span key={link.href} className="inline-block">
                   {i > 0 && (
                     <span className="mx-1.5 text-border" aria-hidden="true">
                       ·

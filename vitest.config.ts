@@ -37,8 +37,6 @@ export default defineConfig({
         'lib/__tests__/**',
         '**/*.d.ts',
         '**/types/**',
-        // Barrel re-export files (no logic to test)
-        'lib/clinical/index.ts',
         // Server-only modules requiring DB/Redis/external APIs - tested via E2E
         'lib/security/audit-log.ts',
         'lib/security/rate-limit.ts',
@@ -46,7 +44,6 @@ export default defineConfig({
         'lib/security/sanitize-audit.ts',
         'lib/security/csrf-client.ts',
         'lib/security/fraud-detector.ts',
-        'lib/security/immutable-dates.ts',
         'lib/clinical/consent-versioning.ts',
         'lib/clinical/triage-types.ts',
         // Stripe: type-only / tiny-helper files

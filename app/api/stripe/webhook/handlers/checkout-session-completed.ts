@@ -5,6 +5,8 @@ import type Stripe from "stripe"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
 import { GOOGLE_ADS_ATTRIBUTION_SELECT, runGoogleAdsPostPaymentAttribution } from "@/lib/analytics/google-ads-post-payment"
 import { getPostHogBaselineProperties, getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
+import { buildVerifiedCompleteAccountHref } from "@/lib/auth/complete-account-handoff"
+import { env } from "@/lib/config/env"
 import { sendPaidRequestTelegramNotification } from "@/lib/notifications/paid-request-telegram"
 import { notifyPaymentReceived } from "@/lib/notifications/service"
 import { createLogger } from "@/lib/observability/logger"
@@ -270,6 +272,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     const { error: intakeError, data: intakeData } = await supabase
       .from("intakes")
       .update({
+        checkout_error: null,
         payment_status: "paid",
         status: "paid", // Now visible to doctor in queue
         paid_at: new Date().toISOString(),
@@ -371,6 +374,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
         const { error: forceError, data: forceRows } = await supabase
           .from("intakes")
           .update({
+            checkout_error: null,
             payment_status: "paid",
             status: "paid",
             paid_at: new Date().toISOString(),
@@ -899,6 +903,13 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
               amount: amountFormatted,
               requestId: intakeId,
               isGuest,
+              completeAccountUrl: isGuest
+                ? buildVerifiedCompleteAccountHref({
+                    appUrl: env.appUrl,
+                    intakeId,
+                    sessionId: session.id,
+                  })
+                : undefined,
               paidAt: new Date().toLocaleDateString("en-AU", {
                 timeZone: "Australia/Sydney",
                 year: "numeric",

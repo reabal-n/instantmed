@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, useAnimationControls } from "framer-motion"
 import {
   CheckCircle2,
   FileText,
@@ -46,6 +46,18 @@ const FLOATING_POSITIONS: Record<FloatPosition, string> = {
   "top-right": "-top-2 -right-4 sm:-right-8 lg:-right-10",
   "bottom-left": "-bottom-2 -left-4 sm:-left-8 lg:-left-12",
   "bottom-right": "-bottom-3 -right-5 sm:-right-10 lg:-right-14",
+}
+
+const PRIMARY_CARD_VARIANTS = {
+  hidden: { y: 16 },
+  visible: { y: 0 },
+  reduced: { y: 0, transition: { duration: 0, delay: 0 } },
+}
+
+const FLOAT_VARIANTS = {
+  hidden: { opacity: 0, scale: 0.92, y: 4 },
+  visible: { opacity: 1, scale: 1, y: 0 },
+  reduced: { opacity: 1, scale: 1, y: 0, transition: { duration: 0, delay: 0 } },
 }
 
 const FLOATS: FloatingCard[] = [
@@ -124,7 +136,18 @@ const REST_AT_END_MS = 1400
  */
 export function HeroDoctorReviewMockup() {
   const prefersReducedMotion = useReducedMotion()
-  const [activeIndex, setActiveIndex] = useState(0)
+  const entranceControls = useAnimationControls()
+  const [activeIndex, setActiveIndex] = useState(REVIEW_STEPS.length - 1)
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      entranceControls.stop()
+      void entranceControls.set("reduced")
+      return
+    }
+
+    void entranceControls.start("visible")
+  }, [entranceControls, prefersReducedMotion])
 
   useEffect(() => {
     if (prefersReducedMotion) return
@@ -156,10 +179,16 @@ export function HeroDoctorReviewMockup() {
     <div className="relative w-[280px] lg:w-[320px] xl:w-[340px]">
       {/* Primary card */}
       <motion.div
+        data-reduced-motion-final="doctor-card"
         className="relative rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-xl shadow-primary/[0.08] dark:shadow-none overflow-hidden"
-        initial={animate ? { opacity: 0, y: 16 } : false}
-        animate={animate ? { opacity: 1, y: 0 } : { opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.1, ease: [0, 0, 0.2, 1] }}
+        variants={PRIMARY_CARD_VARIANTS}
+        initial={animate ? "hidden" : "reduced"}
+        animate={entranceControls}
+        transition={{
+          duration: prefersReducedMotion ? 0 : 0.3,
+          delay: prefersReducedMotion ? 0 : 0.1,
+          ease: [0, 0, 0.2, 1],
+        }}
       >
         {/* Header */}
         <div className="px-5 pt-5 pb-4 flex items-center gap-3 border-b border-border/40">
@@ -248,16 +277,18 @@ export function HeroDoctorReviewMockup() {
         return (
           <motion.div
             key={card.title}
+            data-reduced-motion-final="doctor-float"
             className={cn(
               "absolute z-10 inline-flex items-center gap-2.5 whitespace-nowrap rounded-xl bg-white px-3 py-2 shadow-lg shadow-primary/[0.06] pointer-events-none",
               "border border-border/50 dark:border-white/15 dark:bg-card dark:shadow-none",
               FLOATING_POSITIONS[card.position],
             )}
-            initial={animate ? { opacity: 0, scale: 0.92, y: 4 } : false}
-            animate={animate ? { opacity: 1, scale: 1, y: 0 } : { opacity: 1 }}
+            variants={FLOAT_VARIANTS}
+            initial={animate ? "hidden" : "reduced"}
+            animate={entranceControls}
             transition={{
-              duration: 0.32,
-              delay: 0.45 + i * 0.12,
+              duration: prefersReducedMotion ? 0 : 0.32,
+              delay: prefersReducedMotion ? 0 : 0.45 + i * 0.12,
               ease: [0.16, 1, 0.3, 1],
             }}
           >

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -45,10 +45,6 @@ const stuckIntakesClientSource = readFileSync(
 )
 const reconciliationClientSource = readFileSync(
   join(process.cwd(), "components/shared/ops/reconciliation-client.tsx"),
-  "utf8",
-)
-const telegramOpsActionsSource = readFileSync(
-  join(process.cwd(), "app/actions/telegram-ops.ts"),
   "utf8",
 )
 const emailOpsActionsSource = readFileSync(
@@ -223,32 +219,14 @@ describe("ops dashboard data contract", () => {
     expect(nextConfigSource).not.toContain('.from("webhook_dlq")')
   })
 
-  it("lets admins send an audited Telegram test alert from ops", () => {
+  it("keeps the retired manual Telegram test path out of ops", () => {
     expect(opsClientSource).not.toContain("sendTelegramTestAlertAction")
     expect(opsClientSource).not.toContain("Live alert check")
     expect(opsClientSource).not.toContain("Telegram test alert sent")
-
-    expect(telegramOpsActionsSource).toContain('requireRoleOrNull(["admin"])')
-    expect(telegramOpsActionsSource).toContain("checkServerActionRateLimit")
-    expect(telegramOpsActionsSource).toContain("getMissingTelegramAlertEnv")
-    expect(telegramOpsActionsSource).toContain("sendTelegramTestAlert")
-    expect(telegramOpsActionsSource).toContain("logAuditEvent")
-    expect(telegramOpsActionsSource).toContain('action_type: "telegram_test_alert"')
-    expect(telegramOpsActionsSource).toContain('status: "blocked"')
-    expect(telegramOpsActionsSource).toContain('status: "sent"')
-    expect(telegramOpsActionsSource).toContain('status: "failed"')
-  })
-
-  it("keeps the Telegram test helper operational and PHI-minimal", () => {
-    const functionStart = telegramNotificationsSource.indexOf("export async function sendTelegramTestAlert")
-    const functionSource = telegramNotificationsSource.slice(functionStart)
-
-    expect(functionStart).toBeGreaterThan(0)
-    expect(functionSource).toContain("InstantMed ops test alert")
-    expect(functionSource).toContain("message_id")
-    expect(functionSource).toContain("Telegram test alert failed")
-    expect(functionSource).not.toContain("patientName")
-    expect(functionSource).not.toContain("intakeId")
+    expect(existsSync(join(process.cwd(), "app/actions/telegram-ops.ts"))).toBe(false)
+    expect(telegramNotificationsSource).not.toContain("sendTelegramTestAlert")
+    expect(telegramNotificationsSource).not.toContain("export async function sendTelegramAlert")
+    expect(telegramNotificationsSource).toContain("notifyNewIntakeViaTelegram")
   })
 
   it("lets admins send an audited PHI-free email delivery test", () => {

@@ -262,14 +262,17 @@ describe("validateContraceptionConsult", () => {
     expect(result.errors).toContain("Contraception request type has an invalid value")
   })
 
-  it("flags pregnancy for phone consultation", () => {
+  it("blocks confirmed pregnancy with in-person guidance", () => {
     const result = validateContraceptionConsult({
       ...validContraception,
       pregnancyStatus: "yes",
     })
-    expect(result.valid).toBe(true) // Not blocked, just flagged
+    expect(result.valid).toBe(false)
+    expect(result.errors).toContain(
+      "The contraceptive pill is not started during pregnancy. Please speak with your GP or obstetrician about the right care for you.",
+    )
     expect(result.flags).toContainEqual(
-      expect.objectContaining({ type: "requires_call", reason: "pregnancy_confirmed" })
+      expect.objectContaining({ type: "safety_block", reason: "pregnancy_confirmed" })
     )
   })
 
@@ -280,7 +283,7 @@ describe("validateContraceptionConsult", () => {
     })
     expect(result.valid).toBe(true)
     expect(result.flags).toContainEqual(
-      expect.objectContaining({ type: "clinical_note", reason: "pregnancy_uncertain" })
+      expect.objectContaining({ type: "requires_call", reason: "pregnancy_uncertain" })
     )
   })
 })

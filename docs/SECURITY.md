@@ -78,6 +78,10 @@ Medicare number is stored in both `profiles.medicare_number` (plaintext) and `pr
 
 The Phase 2 PHI fields (added March 2026) are in dual-write mode — plaintext and encrypted columns are both written on every write, and reads prefer the encrypted column with a plaintext fallback. This is indefinitely safe. Post-launch, if a plaintext cutover is desired for non-medicare fields, create a new plan at that time.
 
+**Payment-safety exception:** retry and signed-resume clinical revalidation use `getIntakeAnswersForPaymentSafety()`. Once `intake_answers.answers_encrypted` exists, that envelope is authoritative: disabled encrypted reads, malformed ciphertext, missing keys, decrypt failure, or a non-object payload fail closed before Stripe. Plaintext fallback is permitted only for a legacy row with no encrypted envelope.
+
+**Guest payment completion proof:** public account-completion pages and guest account email CTAs require the high-entropy Checkout Session ID to exactly match the intake's current `payment_id`. A bare intake UUID never exposes paid order details or renders payment-success UI.
+
 ### Dual-Write Pattern
 
 During migration, all writes store **both** plaintext and encrypted values. Reads prefer encrypted, fall back to plaintext. This allows:
@@ -292,6 +296,10 @@ All webhooks use signature verification (not CSRF).
 
 **Stripe admin replay path:** The webhook handler also accepts replays from the DLQ admin UI (`X-Admin-Replay: true` + `X-Admin-Replay-Secret` header). Replays are authenticated with `crypto.timingSafeEqual` against `INTERNAL_API_SECRET` and bypass signature verification (the payload was already verified on first receipt). This is intentional and audited.
 
+### Telegram Pager Boundary
+
+Production Telegram is an operator request pager, not a clinical record or general monitoring channel. Automatic messages are limited to newly paid requests; later approval/decline edits the original message. Titles contain only the broad service class. Patient identity, contact or government identifiers, medicine names or free-text descriptions, symptoms, presenting condition, consultation subtype, notes, payment details, and intake answers are prohibited. Business, cron, and queue alerts remain in Sentry and admin surfaces; the support-inbox count bridge is unscheduled and disabled in production.
+
 ---
 
 ## Authentication & Authorization
@@ -433,7 +441,7 @@ Monitoring: Sentry (errors, CSP), PostHog (behavior), Supabase (DB audit logs).
 | **Sensitive** | `STRIPE_WEBHOOK_SECRET`, `INTERNAL_API_SECRET`, `RESEND_API_KEY` | Server-only |
 | **Public** | `NEXT_PUBLIC_*` (Supabase URL, anon key, Stripe publishable key) | Safe for client |
 
-**Production validation** (`lib/env.ts`, Zod): requires `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `INTERNAL_API_SECRET`, `ENCRYPTION_KEY` (min 32 bytes), all `STRIPE_PRICE_*` IDs.
+**Production validation** (`lib/config/env.ts`, Zod): requires `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `INTERNAL_API_SECRET`, `ENCRYPTION_KEY` (min 32 bytes), all `STRIPE_PRICE_*` IDs.
 
 **Access:** Service role client (`lib/supabase/service-role.ts`) is marked `"server-only"`, uses singleton pattern, never leaks secrets in error messages.
 

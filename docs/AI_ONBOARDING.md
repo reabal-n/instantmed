@@ -25,7 +25,7 @@ Read (or re-read) these before touching any `.tsx` / `.css` in `app/` or `compon
 17. **`lib/dashboard/routes.ts`** — `STAFF_*_HREF` canonical constants for the staff dashboard, ledger, patients, ops, etc. Legacy `ADMIN_*_HREF` / `DOCTOR_*_HREF` constants are aliases kept for the Phase 1/2 transition; reference the STAFF_* names in new code.
 18. **`lib/dashboard/revalidate-staff.ts`** — Central `revalidateStaff({ intakeId?, patientId?, ops?, identity? })` helper. Use this from every server action that touches staff-visible state; do not scatter raw `revalidatePath("/admin")` / `revalidatePath("/doctor")` strings.
 
-Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2.0.1 as of 2026-05-01). Bump and update `docs/DESIGN_SYSTEM_CHANGELOG.md` on breaking changes.
+Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2.0.3 as of 2026-07-14). Bump and update `docs/DESIGN_SYSTEM_CHANGELOG.md` on breaking changes.
 
 ## Top 11 rules of thumb
 
@@ -55,12 +55,12 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2
 - **Do not use prescription drug pages as paid destinations.** Educational prescription SEO pages can exist, but paid ads route to service-level pages only.
 - **Brand-surfaces smoke spec** (`e2e/brand-surfaces.smoke.spec.ts`) verifies `GUARANTEE` literal renders on every brand surface. If you change voice canon, update the test's `GUARANTEE_LITERAL` constant in the same commit.
 - **Em-dashes (U+2014) are banned from marketing surfaces.** `voice-guard.test.ts` enforces three layers: literal U+2014, JS escape, and HTML entities (`&mdash;` / `&#8212;` / `&#x2014;`). Use commas, periods, colons, or parens.
-- **Patient counter is honest, not inflated.** `lib/social-proof/index.ts` ANCHOR_COUNT recalibrated 3,000 → 500 (April 11 launch), TARGET_COUNT 8,000 → 2,500 (Dec 31). Defensible against the current 3-review GBP base. Don't bump unless real Supabase data exceeds the floor.
+- **No patient-count claim exists.** Synthetic interpolation, its public API, and its client hook were retired 2026-07-14. Do not add a patient-count claim without a verified persisted source and a fresh compliance review.
 
 ## When you're in doubt
 
 1. Can I find this in `DESIGN.md`? Do that.
-2. Is there an existing primitive (`Button`, `Card`, `ServiceIconTile`, `SectionPill`, `RadioGroupCard`)? Use it.
+2. Is there an existing primitive (`Button`, `Card`, `ServiceIconTile`, `SectionPill`, `RadioGroup`)? Use it.
 3. Is a Tailwind arbitrary (`shadow-[...]`, `text-[12px]`, etc.) tempting? Pause. 90% of the time there's a canonical class that does it.
 4. Is the change touching motion? Read `lib/motion/index.ts` — never hardcode durations/easings.
 5. Still stuck? Prefer "do nothing" over "invent a new system." Flag it for a human.
@@ -87,4 +87,4 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2
 
 ---
 
-**Last updated:** 2026-05-07 (runtime source-of-truth and release gate refresh). Updates should be co-commited with any meaningful design-system change.
+**Last updated:** 2026-07-14 (v2.0.3 removal cleanup and canonical primitive refresh). Updates should be co-commited with any meaningful design-system change.

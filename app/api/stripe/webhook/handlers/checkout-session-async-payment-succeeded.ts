@@ -175,6 +175,7 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
     const { data: updatedIntake, error: updateError } = await supabase
       .from("intakes")
       .update({
+        checkout_error: null,
         payment_status: "paid",
         status: "paid",
         paid_at: new Date().toISOString(),
@@ -315,6 +316,7 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
               patientName: patientProfile.full_name || "there",
               serviceName: guestServiceName,
               intakeId: asyncEmailIntakeId,
+              sessionId: session.id,
               patientId: asyncEmailPatientId,
             }).catch((err: unknown) => {
               log.error("Guest account email error in async payment (non-fatal)", { intakeId: asyncEmailIntakeId }, err)

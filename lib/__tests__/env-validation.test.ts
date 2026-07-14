@@ -12,7 +12,7 @@ const envConfigSource = readFileSync(join(process.cwd(), "lib/config/env.ts"), "
  * because the module uses 'server-only' and validates at import time
  */
 
-// Replicate the schema from lib/env.ts for testing
+// Replicate the schema from lib/config/env.ts for focused validation tests.
 const serverEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url("Invalid Supabase URL"),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, "Supabase anon key required"),

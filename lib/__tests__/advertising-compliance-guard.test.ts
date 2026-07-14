@@ -39,9 +39,7 @@ const NON_MEDCERT_FORM_FIRST_SURFACES = [
   "components/marketing/hair-loss-landing.tsx",
   "components/marketing/womens-health-landing.tsx",
   "components/shared/navbar/services-dropdown.tsx",
-  "components/marketing/mockups/ed-hero-mockup.tsx",
   "components/marketing/sections/how-it-works-inline.tsx",
-  "components/marketing/blog-cta-card.tsx",
   "components/marketing/how-it-works.tsx",
   "components/marketing/mental-health-online-landing.tsx",
   "lib/data/ed-faq.ts",
@@ -49,9 +47,7 @@ const NON_MEDCERT_FORM_FIRST_SURFACES = [
   "lib/data/mental-health-online-faq.ts",
   "lib/data/womens-health-faq.ts",
   "lib/email/components/templates/abandoned-checkout-followup.tsx",
-  "lib/marketing/contextual-messages.ts",
   "lib/marketing/homepage.ts",
-  "lib/seo/metadata.ts",
   "components/request/service-hub-screen.tsx",
   "content/blog",
 ]
@@ -75,7 +71,6 @@ const MED_CERT_ACCEPTANCE_SURFACES = [
 
 const MED_CERT_VISIBLE_CERTIFICATE_MOCKUP_SURFACES = [
   "components/marketing/mockups/med-cert-hero-mockup.tsx",
-  "components/marketing/mockups/certificate.tsx",
   "components/marketing/sample-certificate.tsx",
 ]
 
@@ -91,7 +86,6 @@ const PUBLIC_FAKE_PROOF_AVATAR_SURFACES = [
   "components/marketing/med-cert-intent-page.tsx",
   "components/marketing/hero-doctor-review-mockup.tsx",
   "components/marketing/how-it-works.tsx",
-  "components/marketing/mockups/how-it-works-steps.tsx",
 ]
 
 const URL_PRIVACY_SURFACES = [
@@ -114,7 +108,6 @@ const PAID_PRESCRIPTION_DESTINATION_SURFACES = [
   "components/marketing/hair-loss-landing.tsx",
   "components/marketing/womens-health-landing.tsx",
   "components/marketing/prescriptions-landing.tsx",
-  "components/marketing/mockups/ed-hero-mockup.tsx",
   "components/marketing/mockups/escript-hero-mockup.tsx",
   "components/marketing/sections/escript-explainer-section.tsx",
   "components/marketing/sections/prescription-limitations-section.tsx",
@@ -137,8 +130,6 @@ const PUBLIC_CREDENTIAL_CLAIM_SURFACES = [
   "app/for/employers/page.tsx",
   "app/for/universities/page.tsx",
   "components/marketing/sections",
-  "components/marketing/trust-badge-slider.tsx",
-  "components/shared/regulator-logo-marquee.tsx",
   "components/seo/schemas/organization.tsx",
   "lib/marketing/trust-badges.ts",
 ]
@@ -186,9 +177,7 @@ const PUBLIC_DOCTOR_MODEL_SURFACES = [
   "app/blog/page.tsx",
   "app/our-doctors",
   "app/trust",
-  "components/marketing/credential-card.tsx",
   "components/marketing/how-it-works.tsx",
-  "components/marketing/sections/how-it-works-section.tsx",
   "components/marketing/med-cert-landing.tsx",
   "lib/constants/index.ts",
   "lib/marketing/homepage.ts",

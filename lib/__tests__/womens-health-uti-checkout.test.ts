@@ -110,4 +110,15 @@ describe("OCP (new/switch pill) checkout clinical path", () => {
     )
     expect(result.ok).toBe(false)
   })
+
+  it.each([
+    ["pregnancyStatus", "pregnant"],
+    ["womens_migraine_aura", "unknown"],
+    ["womens_blood_clot_history", true],
+    ["womens_smoker", "sometimes"],
+  ])("blocks checkout when the OCP %s value is stale or crafted", async (field, invalidValue) => {
+    const result = await runClinicalValidation(ocpInput({ [field]: invalidValue }))
+
+    expect(result.ok).toBe(false)
+  })
 })

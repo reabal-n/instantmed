@@ -49,14 +49,6 @@
       "schedule": "0 * * * *"
     },
     {
-      "path": "/api/cron/pending-queue-reminders",
-      "schedule": "5 * * * *"
-    },
-    {
-      "path": "/api/cron/support-inbox-alert",
-      "schedule": "10 * * * *"
-    },
-    {
       "path": "/api/cron/emergency-flags",
       "schedule": "0 * * * *"
     },

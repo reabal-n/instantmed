@@ -102,10 +102,11 @@ describe("doctor add patient Parchment contract", () => {
     expect(detailSource).toContain("handleOpenParchmentPrescribe")
     expect(detailSource).toContain("patientId={patient.id}")
     expect(body).toContain("await validateIntegration(doctorProfile.parchment_user_id)")
-    expect(body).toContain("syncPatientToParchment(patient.id, doctorProfile.parchment_user_id)")
+    expect(body).toContain("const parchmentPatientId = await syncPatientToParchment(")
+    expect(body).toContain('{ existingPatientMode: "reuse" }')
     expect(body).toContain("getSsoUrl(")
     expect(body.indexOf("await validateIntegration(doctorProfile.parchment_user_id)")).toBeLessThan(
-      body.indexOf("syncPatientToParchment(patient.id, doctorProfile.parchment_user_id)"),
+      body.indexOf("const parchmentPatientId = await syncPatientToParchment("),
     )
   })
 

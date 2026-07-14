@@ -750,9 +750,15 @@ export function StringBinaryChoice<TNo extends string, TYes extends string>({
   noLabel = "No",
   className,
 }: StringBinaryChoiceProps<TNo, TYes>) {
+  const binaryValue = value === yesValue
+    ? true
+    : value === noValue
+      ? false
+      : undefined
+
   return (
     <BinaryChoice
-      value={value === undefined ? undefined : value === yesValue}
+      value={binaryValue}
       onChange={(next) => onChange(next ? yesValue : noValue)}
       ariaLabel={ariaLabel}
       yesLabel={yesLabel}

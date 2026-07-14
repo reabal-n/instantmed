@@ -15,10 +15,6 @@ const doctorLayoutSource = readFileSync(
   join(process.cwd(), "app/doctor/layout.tsx"),
   "utf8",
 )
-const sharedIndexSource = readFileSync(
-  join(process.cwd(), "components/shared/index.ts"),
-  "utf8",
-)
 const sharedUserMenuSource = readFileSync(
   join(process.cwd(), "components/shared/navbar/user-menu.tsx"),
   "utf8",
@@ -51,8 +47,8 @@ const onboardingBannerSource = readFileSync(
   join(process.cwd(), "components/doctor/onboarding-banner.tsx"),
   "utf8",
 )
-const clinicalNotesEditorSource = readFileSync(
-  join(process.cwd(), "components/doctor/review/clinical-notes-editor.tsx"),
+const clinicalCaseReviewSource = readFileSync(
+  join(process.cwd(), "components/doctor/clinical-case-review.tsx"),
   "utf8",
 )
 const doctorIntakeDetailSource = readFileSync(
@@ -133,9 +129,8 @@ describe("doctor navigation contract", () => {
     expect(sidebarSource).not.toContain('href: "/doctor/email-suppression"')
     expect(sidebarSource).not.toContain("/api/doctor/export")
     expect(sidebarSource).not.toContain("KeyboardShortcutsModal")
-    expect(sharedIndexSource).not.toContain("MobileDashboardNav")
     // Phase 1.2: legacy patient-only DashboardSidebar export is retired.
-    expect(sharedIndexSource).not.toContain('from "./dashboard-sidebar"')
+    expect(existsSync(join(process.cwd(), "components/shared/dashboard-sidebar.tsx"))).toBe(false)
   })
 
   it("uses the same doctor labels on mobile", () => {
@@ -248,7 +243,7 @@ describe("doctor navigation contract", () => {
   it("keeps portal surfaces free of decorative progress motion", () => {
     const portalSource = [
       onboardingBannerSource,
-      clinicalNotesEditorSource,
+      clinicalCaseReviewSource,
     ].join("\n")
 
     expect(portalSource).not.toContain("transition-[width] duration-500")

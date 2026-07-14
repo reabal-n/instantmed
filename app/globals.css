@@ -25,14 +25,14 @@ html {
      never plain white. Without this the body bg only applies after the
      stylesheet hydrates, which was visible enough for Gemini's video-review
      rubric to flag as a "3s white flash on load" (2026-05-25 /consult review). */
-  background: #F8F7F4;
+  background: var(--background, #F8F7F4);
 }
 
 body {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  /* Mirror html so any per-element opacity/transform still composites onto ivory. */
-  background: #F8F7F4;
+  /* Mirror html so opacity/transform layers composite onto the active theme surface. */
+  background: var(--background, #F8F7F4);
 }
 
 /* Parallax performance optimization */
@@ -113,7 +113,9 @@ body {
   
   /* Primary: Morning sky blue — trustworthy, calm, professional (WCAG AA: 5.17:1 with white) */
   --primary: #2563EB;
+  --primary-strong: #1D4ED8;
   --primary-foreground: #ffffff;
+  --stripe-brand: #4F46E5;
   /* Brand accent: semantic alias for highlight text. Resolves to primary (light) / teal (dark). */
   --brand-accent: var(--primary);
   
@@ -313,7 +315,9 @@ body {
   
   /* Primary - calm teal glow */
   --primary: #5DB8C9;
-  --primary-foreground: #ffffff;
+  --primary-strong: var(--primary);
+  --primary-foreground: #0B1120;
+  --stripe-brand: #A5A1FF;
   /* Brand accent: resolves to teal in dark mode for headline highlights */
   --brand-accent: var(--primary);
   
@@ -560,10 +564,12 @@ body {
   [role="button"]:focus-visible,
   input:focus-visible,
   textarea:focus-visible,
-  select:focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  select:focus-visible,
+  summary:focus-visible,
+  [tabindex]:not([tabindex="-1"]):focus-visible {
+    outline: 2px solid var(--primary) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 4px var(--background) !important;
   }
   
   /* Skip link styles */
@@ -843,20 +849,23 @@ body {
   }
 }
 
-/* Rich text dark mode — scoped to marketing/content pages.
-   Dashboards use Tailwind dark: utilities instead. */
-.dark [data-marketing] {
-  h1, h2, h3, h4, h5, h6 { color: var(--foreground); }
-  p, span, label { color: var(--foreground); }
+@layer base {
+  /* Rich text dark mode — scoped to marketing/content pages.
+     Keep the scope zero-specificity and in the base layer so semantic Tailwind
+     color utilities can win on badges, links, and controls. */
+  :where(.dark [data-marketing]) {
+    h1, h2, h3, h4, h5, h6 { color: var(--foreground); }
+    p, span, label { color: var(--foreground); }
 
-  table { color: var(--foreground); }
-  th { color: var(--foreground); background: var(--secondary); }
-  td { color: var(--foreground); border-color: var(--border); }
+    table { color: var(--foreground); }
+    th { color: var(--foreground); background: var(--secondary); }
+    td { color: var(--foreground); border-color: var(--border); }
 
-  pre, code { background: var(--secondary); color: var(--foreground); }
-  blockquote { border-left-color: var(--primary); background: var(--secondary); color: var(--foreground); }
-  ul, ol { color: var(--foreground); }
-  li::marker { color: var(--muted-foreground); }
+    pre, code { background: var(--secondary); color: var(--foreground); }
+    blockquote { border-left-color: var(--primary); background: var(--secondary); color: var(--foreground); }
+    ul, ol { color: var(--foreground); }
+    li::marker { color: var(--muted-foreground); }
+  }
 }
 
 /* ================================
@@ -1756,8 +1765,8 @@ body {
   animation: marquee-scroll 40s linear infinite;
 }
 
-/* animate-marquee-* utility classes (used by RegulatorLogoMarquee,
-   ComplianceMarquee, EmployerLogoMarquee, ScrollingLogoMarquee).
+/* animate-marquee-* utility classes (used by ComplianceMarquee,
+   EmployerLogoMarquee, ScrollingLogoMarquee).
    Doubled the durations on 2026-05-26 per Tier 1 review (paid-funnel
    kkq2): the previous 25s/15s cadences made the cards visibly overlap
    on devices with 120Hz displays and felt like a frantic ticker.
@@ -2686,6 +2695,21 @@ body {
     min-width: 44px;
   }
 
+  /* Patient flows use the stricter 48px design-system target without
+     increasing control density across marketing or staff surfaces. */
+  [data-patient-flow="true"] :is(
+    button,
+    [role="button"],
+    a[href],
+    input:not([type="hidden"]),
+    select,
+    textarea,
+    label[for]
+  ) {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
   /* Prevent zoom on input focus (iOS Safari) */
   input,
   textarea,
@@ -2709,6 +2733,60 @@ body {
   :where(textarea) {
     min-height: 48px;
     padding: 12px 16px;
+  }
+}
+
+/* Marketing copy includes addresses, medicine names, and hyphenated clinical
+   terms. Let those tokens break before they become the page's min-content
+   width when a patient uses enlarged default text. */
+:where([data-marketing]) {
+  overflow-wrap: anywhere;
+}
+
+/* Keep conversion controls operable when mobile text is enlarged. The fixed
+   pixel inset deliberately avoids doubling the button chrome with the root
+   font while the label itself remains user-scaled. */
+@media (max-width: 640px) {
+  :where([data-marketing]) a.inline-flex.items-center.justify-center {
+    max-width: 100%;
+    height: auto;
+    min-height: 48px;
+    padding: 12px 16px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+}
+
+/* At 200% zoom a 375px device exposes roughly 188 CSS pixels. Switch the
+   progress affordance to its compact, completed/current-only layout: every
+   actionable step remains a real 48px target and wraps without overlap. The
+   header already names the current step and count, so unreached dots add no
+   useful information at this emergency width. */
+@media (max-width: 240px) {
+  [data-request-progress-shell="true"] {
+    height: auto;
+    min-height: 48px;
+  }
+
+  [data-request-progress-track="true"] {
+    display: none;
+  }
+
+  [data-request-progress-grid="true"] {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  [data-patient-flow="true"] button[data-request-progress-step="true"] {
+    flex: 0 0 48px;
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  [data-patient-flow="true"] [data-request-progress-step="true"]:disabled {
+    display: none;
   }
 }
 
@@ -2743,20 +2821,6 @@ body {
     animation: none;
   }
 }
-
-/* Screen reader only content */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
-
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
@@ -3383,8 +3447,19 @@ button:not(.no-micro):active:not(:disabled),
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* The reduced preference is only observable after the hydration snapshot.
+     Keep explicitly marked Framer entrances at their final paint even during
+     that brief server-to-client handoff; animation controls then cancel the
+     dormant timeline and preserve live preference changes. */
+  [data-reduced-motion-final] {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

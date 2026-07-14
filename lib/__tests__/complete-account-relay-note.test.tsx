@@ -50,6 +50,7 @@ const baseProps = {
   serviceSlug: "medical-certificate",
   serviceName: "Medical Certificate",
   isNewCustomer: true,
+  paymentState: "paid" as const,
 }
 
 describe("CompleteAccountForm relay email note", () => {
@@ -84,5 +85,26 @@ describe("CompleteAccountForm relay email note", () => {
     const html = renderToStaticMarkup(<CompleteAccountForm {...baseProps} />)
     expect(html).not.toMatch(/Hide My Email/)
     expect(html).toMatch(/Payment successful/)
+  })
+
+  it("shows a no-retry processing surface before an async payment is confirmed", () => {
+    const html = renderToStaticMarkup(
+      <CompleteAccountForm {...baseProps} paymentState="processing" />,
+    )
+
+    expect(html).toContain("Payment is still processing")
+    expect(html).toContain("Please don\u2019t try payment again")
+    expect(html).not.toContain("Payment successful")
+    expect(html).not.toContain("Create Account &amp; Track Request")
+  })
+
+  it("does not claim success when payment cannot be confirmed", () => {
+    const html = renderToStaticMarkup(
+      <CompleteAccountForm {...baseProps} paymentState="unconfirmed" />,
+    )
+
+    expect(html).toContain("We can\u2019t confirm payment yet")
+    expect(html).toContain("Please don\u2019t try payment again")
+    expect(html).not.toContain("Payment successful")
   })
 })

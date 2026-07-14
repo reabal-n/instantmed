@@ -68,6 +68,8 @@ describe("keep-list: validator-level hard-blocks", () => {
   it("flags high-stakes med-cert use cases (exam / court / fitness-to-X)", () => {
     expect(checkHighStakesUseCase("I need a certificate for exam deferral").isHighStakes).toBe(true)
     expect(checkHighStakesUseCase("certificate for a court appearance").isHighStakes).toBe(true)
+    expect(checkHighStakesUseCase("exam flu").isHighStakes).toBe(true)
+    expect(checkHighStakesUseCase("court flu").isHighStakes).toBe(true)
     expect(checkHighStakesUseCase("just a cold, need a day off work").isHighStakes).toBe(false)
   })
 
@@ -127,5 +129,44 @@ describe("keep-list: validator-level hard-blocks", () => {
 
     expect(result.isValid).toBe(false)
     expect(result.errors.contraceptionType).toContain("repeat prescriptions")
+  })
+
+  it.each([
+    ["contraceptionCurrent", "legacy-method"],
+    ["pregnancyStatus", "pregnant"],
+    ["womens_migraine_aura", "unknown"],
+    ["womens_blood_clot_history", true],
+    ["womens_smoker", "sometimes"],
+  ])("rejects a stale or crafted %s value", (field, invalidValue) => {
+    const result = validateWomensHealthAssessmentStep({
+      womensHealthOption: "ocp_new",
+      contraceptionType: "start",
+      contraceptionCurrent: "none",
+      pregnancyStatus: "no",
+      womens_migraine_aura: "no",
+      womens_blood_clot_history: "no",
+      womens_smoker: "no",
+      [field]: invalidValue,
+    })
+
+    expect(result.isValid).toBe(false)
+    expect(result.errors[field]).toBeDefined()
+  })
+
+  it("rejects a confirmed-pregnancy pill assessment before unified checkout", () => {
+    const result = validateWomensHealthAssessmentStep({
+      womensHealthOption: "ocp_new",
+      contraceptionType: "start",
+      contraceptionCurrent: "none",
+      pregnancyStatus: "yes",
+      womens_migraine_aura: "no",
+      womens_blood_clot_history: "no",
+      womens_smoker: "no",
+    })
+
+    expect(result.isValid).toBe(false)
+    expect(result.errors.pregnancyStatus).toBe(
+      "The contraceptive pill is not started during pregnancy. Please speak with your GP or obstetrician about the right care for you.",
+    )
   })
 })

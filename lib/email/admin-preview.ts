@@ -53,7 +53,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       patientName: d.patientName,
       requestType: d.requestType,
       intakeId: d.intakeId,
-      completeAccountUrl: `${APP_URL}/auth/complete-account?intake=${d.intakeId}`,
+      completeAccountUrl: `${APP_URL}/auth/complete-account?intake_id=${d.intakeId}&session_id=cs_preview`,
       appUrl: APP_URL,
     }),
   },

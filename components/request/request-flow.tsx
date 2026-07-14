@@ -929,7 +929,7 @@ export function RequestFlow({
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div data-patient-flow="true" className="min-h-screen bg-background">
       {/* Connection status banner */}
       <LazyConnectionBanner />
 
@@ -962,7 +962,7 @@ export function RequestFlow({
             size="icon" 
             onClick={handleBack}
             aria-label="Go back"
-            className="h-11 w-11 sm:h-10 sm:w-10"
+            className="h-12 w-12 sm:h-10 sm:w-10"
           >
             <ArrowLeft className="w-5 h-5" />
           </RequestButton>
@@ -982,7 +982,7 @@ export function RequestFlow({
             size="icon" 
             onClick={handleExitWithConfirm}
             aria-label="Exit"
-            className="h-11 w-11 sm:h-10 sm:w-10"
+            className="h-12 w-12 sm:h-10 sm:w-10"
           >
             <X className="w-5 h-5" />
           </RequestButton>
@@ -1055,9 +1055,10 @@ export function RequestFlow({
         </div>
       </main>
 
-      {/* Sticky bottom CTA bar for mobile — shown on every step including the
-          unified review+pay step (the retired checkout-step had its own bar). */}
-      {(
+      {/* Mirror the current step action on mobile, including review+pay. Safety
+          terminal states intentionally expose no primary action, so the bar
+          disappears with the in-step button instead of showing a stale CTA. */}
+      {mobilePrimaryAction.available && (
         <div
           data-intake-mobile-action-bar="true"
           className="fixed inset-x-0 z-40 bg-background/95 backdrop-blur border-t px-4 pt-2.5 pb-3 sm:hidden"

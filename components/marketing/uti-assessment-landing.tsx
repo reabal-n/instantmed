@@ -332,8 +332,8 @@ export function UtiAssessmentLanding({ visuals }: { visuals: RenderableArticleVi
               aria-hidden="true"
               className="absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_20%_20%,rgba(186,212,245,0.30),transparent_34%),radial-gradient(circle_at_80%_10%,rgba(245,198,160,0.22),transparent_30%)]"
             />
-            <div className="relative mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8">
-              <Reveal instant className="max-w-2xl">
+            <div className="relative mx-auto grid min-w-0 grid-cols-1 max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8">
+              <Reveal instant className="min-w-0 max-w-2xl">
                 <SectionPill>Women's health</SectionPill>
                 <Heading level="display" className="mt-5">
                   UTI assessment online Australia
@@ -346,7 +346,7 @@ export function UtiAssessmentLanding({ visuals }: { visuals: RenderableArticleVi
                   <Button
                     asChild
                     size="lg"
-                    className="h-12 w-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 sm:w-auto"
+                    className="h-auto min-h-12 w-full whitespace-normal py-3 text-center shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 sm:w-auto"
                     disabled={isDisabled}
                     onClick={handleHeroCTA}
                   >
@@ -355,7 +355,7 @@ export function UtiAssessmentLanding({ visuals }: { visuals: RenderableArticleVi
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
                   </Button>
-                  <Button asChild size="lg" variant="outline" className="h-12 w-full sm:w-auto">
+                  <Button asChild size="lg" variant="outline" className="h-auto min-h-12 w-full whitespace-normal py-3 text-center sm:w-auto">
                     <Link href="#red-flags">Check red flags first</Link>
                   </Button>
                 </div>
@@ -365,7 +365,7 @@ export function UtiAssessmentLanding({ visuals }: { visuals: RenderableArticleVi
                 </p>
               </Reveal>
 
-              <Reveal instant>
+              <Reveal instant className="min-w-0">
                 <div className="rounded-3xl border border-border/50 bg-white p-6 shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none">
                   <p className="text-xs font-semibold uppercase text-primary">Practical answer</p>
                   <Heading level="h2" as="h2" className="mt-3">

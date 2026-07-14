@@ -23,8 +23,19 @@ type GuestDuplicateCheckoutRecovery =
   | { success: true; checkoutUrl: string; intakeId: string }
   | { success: false; error: string }
 
+export type CompleteAccountPaymentState = "paid" | "processing" | "unconfirmed"
+
+type CompleteAccountSessionState =
+  | "expired"
+  | "failed"
+  | "open"
+  | "paid"
+  | "payment_in_flight"
+  | "unresolved"
+
 const RETRYABLE_INTAKE_STATUSES = new Set(["pending_payment", "checkout_failed"])
 const RETRYABLE_PAYMENT_STATUSES = new Set(["pending", "unpaid", "failed"])
+export const PAYMENT_REPLACEMENT_LOCK = "payment_session_replacement_in_progress"
 export const CANCELLABLE_UNPAID_INTAKE_STATUSES = new Set(["draft", "pending_payment", "checkout_failed"])
 export const TERMINAL_PAID_PAYMENT_STATUSES = new Set(["paid", "refunded", "partially_refunded", "disputed"])
 
@@ -80,6 +91,43 @@ export function validateCheckoutSessionIntakeMatch({
   return { valid: false, reason: "missing_intake_metadata" }
 }
 
+export function resolveCompleteAccountPaymentState({
+  intakePaymentStatus,
+  sessionMatches,
+  sessionState,
+}: {
+  intakePaymentStatus?: string | null
+  sessionMatches: boolean
+  sessionState: CompleteAccountSessionState | null
+}): CompleteAccountPaymentState {
+  // This public route must never expose a paid/processing state from a bare
+  // intake id. The high-entropy Checkout Session id must exactly match the id
+  // currently stored on the intake first.
+  if (!sessionMatches) return "unconfirmed"
+
+  if (intakePaymentStatus === "paid" || sessionState === "paid") return "paid"
+  if (sessionState === "payment_in_flight") return "processing"
+  return "unconfirmed"
+}
+
+export function resolveCompleteAccountAmountCents({
+  intakeAmountCents,
+  sessionAmountTotal,
+  sessionState,
+}: {
+  intakeAmountCents?: number | null
+  sessionAmountTotal?: number | null
+  sessionState: CompleteAccountSessionState | null
+}): number | undefined {
+  // During the redirect-before-webhook race, the intake still carries its
+  // seeded list/base amount. Stripe's owned paid Session is authoritative for
+  // the actual charge after referral discounts and the Priority line item.
+  if (sessionState === "paid" && typeof sessionAmountTotal === "number") {
+    return sessionAmountTotal
+  }
+  return typeof intakeAmountCents === "number" ? intakeAmountCents : undefined
+}
+
 export function resolveGuestDuplicateCheckoutRecovery({
   baseUrl,
   checkoutUrl,
@@ -90,9 +138,12 @@ export function resolveGuestDuplicateCheckoutRecovery({
   intake: GuestDuplicateCheckoutIntake
 }): GuestDuplicateCheckoutRecovery {
   if (intake.payment_status === "paid") {
+    const destination = `${baseUrl}/auth/complete-account?intake_id=${encodeURIComponent(intake.id)}`
     return {
       success: true,
-      checkoutUrl: `${baseUrl}/auth/complete-account?intake_id=${encodeURIComponent(intake.id)}`,
+      checkoutUrl: intake.payment_id
+        ? `${destination}&session_id=${encodeURIComponent(intake.payment_id)}`
+        : destination,
       intakeId: intake.id,
     }
   }

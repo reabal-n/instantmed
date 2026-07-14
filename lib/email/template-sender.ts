@@ -7,6 +7,7 @@ import "server-only"
 
 import * as React from "react"
 
+import { buildVerifiedCompleteAccountHref } from "@/lib/auth/complete-account-handoff"
 import { env } from "@/lib/config/env"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -517,9 +518,14 @@ export async function sendGuestCompleteAccountEmail(params: {
   patientName: string
   serviceName: string
   intakeId: string
+  sessionId: string
   patientId?: string
 }): Promise<SendResult> {
-  const completeAccountUrl = `${env.appUrl}/auth/complete-account?intake_id=${params.intakeId}`
+  const completeAccountUrl = buildVerifiedCompleteAccountHref({
+    appUrl: env.appUrl,
+    intakeId: params.intakeId,
+    sessionId: params.sessionId,
+  })
   
   return sendTemplateEmail({
     to: params.to,

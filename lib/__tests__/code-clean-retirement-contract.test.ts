@@ -68,6 +68,211 @@ describe("code-clean retirement contracts", () => {
     }
   })
 
+  it("keeps superseded staff and data sidecars retired", () => {
+    const retiredSidecars = [
+      "app/actions/decline-bulk.ts",
+      "app/actions/render-test-email.ts",
+      "app/actions/safety-symptoms.ts",
+      "app/doctor/intakes/[id]/intake-decline-dialog.tsx",
+      "app/doctor/patients/manual-patient-dialog.tsx",
+      "components/doctor/review/clinical-notes-editor.tsx",
+      "components/doctor/review/formatting-toolbar.tsx",
+      "components/doctor/review/patient-info-card.tsx",
+      "lib/data/consultation-types.ts",
+      "lib/data/queue-availability.ts",
+      "lib/doctor/session-timeout.ts",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredSidecars) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("app/doctor/patients/patients-list-client.tsx")).toContain("AddPatientDialog")
+    expect(read("components/doctor/intake-review-panel.tsx")).toContain(
+      "PatientDecisionStrip",
+    )
+    expect(read("components/doctor/review/intake-review-cockpit.tsx")).not.toContain(
+      "PatientDecisionStrip",
+    )
+    expect(read("components/doctor/clinical-case-review.tsx")).toContain(
+      'aria-label="Draft clinical note"',
+    )
+    expect(read("app/api/cron/release-stale-claims/route.ts")).toContain(
+      'supabase.rpc("release_stale_intake_claims"',
+    )
+  })
+
+  it("keeps unused copy catalogs and parallel flow models retired", () => {
+    const retiredCatalogs = [
+      "lib/microcopy/buttons.ts",
+      "lib/microcopy/errors.ts",
+      "lib/microcopy/feedback.ts",
+      "lib/microcopy/prescription.ts",
+      "lib/microcopy/referral.ts",
+      "lib/microcopy/repeat-rx.ts",
+      "types/marketing.ts",
+      "types/med-cert.ts",
+      "types/repeat-rx.ts",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredCatalogs) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("lib/microcopy/universal.ts")).toContain("export const COPY")
+    expect(read("lib/validation/med-cert-schema.ts")).toContain("validateMedCertPayload")
+    expect(read("lib/validation/repeat-script-schema.ts")).toContain("validateRepeatScriptPayload")
+  })
+
+  it("keeps superseded validation and formatting helpers retired", () => {
+    const retiredHelpers = [
+      "lib/api/responses.ts",
+      "lib/format/service.ts",
+      "lib/utils/form-formatting.ts",
+      "lib/utils/idempotency.ts",
+      "lib/validation/dates.ts",
+      "lib/validation/schemas.ts",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredHelpers) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("lib/format/intake.ts")).toContain("formatServiceType")
+    expect(read("lib/medical-certificates/date-policy.ts")).toContain(
+      "validateCertificateDateRange",
+    )
+    expect(read("lib/validation/medicare.ts")).toContain("formatMedicareNumber")
+    expect(read("lib/email/send/idempotency.ts")).toContain("buildEmailOutboxIdempotencyKey")
+  })
+
+  it("keeps obsolete analytics, blog-image, and SEO engines retired", () => {
+    const retiredContentHelpers = [
+      "lib/analytics/ab-test.ts",
+      "lib/blog/images.ts",
+      "lib/data/analytics.ts",
+      "lib/seo/comparisons.ts",
+      "lib/seo/linking.ts",
+      "lib/seo/metadata.ts",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredContentHelpers) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("lib/blog/visuals.ts")).toContain("getArticleVisualsForRender")
+    expect(read("app/admin/analytics/page.tsx")).toContain("getRevenueDashboard")
+    expect(read("app/compare/[slug]/page.tsx")).toContain("export async function generateMetadata")
+    expect(read("app/compare/sitemap.ts")).toContain("@/lib/seo/data/comparisons")
+  })
+
+  it("keeps superseded marketing mockups and wrappers retired", () => {
+    const retiredMockups = [
+      "components/marketing/mockups/certificate-showcase.tsx",
+      "components/marketing/mockups/certificate.tsx",
+      "components/marketing/mockups/consult-chat-mockup.tsx",
+      "components/marketing/mockups/consult.tsx",
+      "components/marketing/mockups/ed-hero-mockup.tsx",
+      "components/marketing/mockups/escript.tsx",
+      "components/marketing/mockups/how-it-works-steps.tsx",
+      "components/marketing/sections/certificate-preview-section.tsx",
+      "components/marketing/sections/how-it-works-section.tsx",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredMockups) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("components/marketing/med-cert-landing.tsx")).toContain("MedCertHeroMockup")
+    expect(read("components/marketing/prescriptions-landing.tsx")).toContain("EScriptHeroMockup")
+    expect(read("components/marketing/hair-loss-landing.tsx")).toContain("HairLossHeroMockup")
+    expect(read("app/(marketing)/page.tsx")).toContain("@/components/marketing/how-it-works")
+    expect(read("app/for/universities/page.tsx")).toContain("SampleCertificate")
+  })
+
+  it("keeps abandoned specialty landing experiments retired", () => {
+    const retiredSpecialtySections = [
+      "components/marketing/sections/ed-hook-quiz.tsx",
+      "components/marketing/sections/ed-mechanism-explainer.tsx",
+      "components/marketing/sections/ed-outcomes-section.tsx",
+      "components/marketing/sections/ed-prevalence-calculator.tsx",
+      "components/marketing/sections/hair-loss-family-history-strip.tsx",
+      "components/marketing/sections/hair-loss-hook-quiz.tsx",
+      "components/marketing/sections/hair-loss-limitations-section.tsx",
+      "components/marketing/sections/hair-loss-progress-timeline.tsx",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredSpecialtySections) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("app/erectile-dysfunction/page.tsx")).toContain(
+      "ErectileDysfunctionLanding",
+    )
+    expect(read("app/hair-loss/page.tsx")).toContain("HairLossLanding")
+    expect(read("components/marketing/erectile-dysfunction-landing.tsx")).toContain(
+      "SAFETY_CHECKS",
+    )
+    expect(read("components/marketing/hair-loss-landing.tsx")).toContain(
+      "HairLossHeroMockup",
+    )
+    expect(read("components/request/steps/ed-assessment-step.tsx")).toContain(
+      "@/lib/marketing/ed-hook-quiz",
+    )
+  })
+
+  it("keeps the retired generic service funnel layer out of the app", () => {
+    const retiredFunnelSections = [
+      "components/marketing/sections/certificate-type-selector.tsx",
+      "components/marketing/sections/common-concerns-section.tsx",
+      "components/marketing/sections/consult-guide-section.tsx",
+      "components/marketing/sections/consult-limitations-section.tsx",
+      "components/marketing/sections/expect-call-strip.tsx",
+      "components/marketing/sections/final-cta-section.tsx",
+      "components/marketing/sections/med-cert-guide-section.tsx",
+      "components/marketing/sections/pricing-section.tsx",
+      "components/marketing/sections/specialised-consults-section.tsx",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredFunnelSections) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("app/consult/page.tsx")).toContain("canonical detailed services index")
+    expect(read("app/pricing/page.tsx")).toContain("<PricingContent />")
+    expect(read("components/marketing/med-cert-landing.tsx")).toContain(
+      "WorkplaceProofPanel",
+    )
+    expect(read("components/marketing/med-cert-landing.tsx")).toContain("CertComparisonViz")
+    expect(read("components/sections/cta-banner.tsx")).toContain("export function CTABanner")
+
+    expect(read("lib/__tests__/marketing-copy-contract.test.ts")).toContain(
+      '"app/consult/page.tsx"',
+    )
+    expect(read("lib/__tests__/paid-claims-contract.test.ts")).toContain(
+      '"components/sections/cta-banner.tsx"',
+    )
+    expect(read("lib/__tests__/dashboard-simplicity-performance-contract.test.ts")).toContain(
+      '"components/marketing/sections/pricing-guide-section.tsx"',
+    )
+    expect(read("CLAUDE.md")).not.toContain("certificate-type-selector.tsx")
+    expect(read("AGENTS.md")).not.toContain("certificate-type-selector.tsx")
+  })
+
   it("keeps stale patient quick-reorder APIs out of the route tree", () => {
     const retiredPatientApis = [
       "app/api/patient/last-prescription/route.ts",
@@ -101,7 +306,6 @@ describe("code-clean retirement contracts", () => {
       expect(orphanCheck).toContain(path)
     }
 
-    expect(read("components/shared/index.ts")).not.toContain("NotificationBell")
     expect(read("components/shared/navbar/user-menu.tsx")).not.toContain("NotificationBell")
     expect(read("components/ui/mobile-nav.tsx")).not.toContain("PATIENT_NOTIFICATIONS_HREF")
     expect(read("components/ui/mobile-nav.tsx")).not.toContain('label: "Notifications"')
@@ -379,5 +583,10 @@ describe("code-clean retirement contracts", () => {
       expect(existsSync(join(root, modulePath)), modulePath).toBe(false)
       expect(orphanCheck).toContain(modulePath)
     }
+  })
+
+  it("does not redirect legacy image names into a missing people directory", () => {
+    expect(existsSync(join(root, "public/images/people"))).toBe(false)
+    expect(read("next.config.mjs")).not.toContain("/images/people/")
   })
 })

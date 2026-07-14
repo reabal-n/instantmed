@@ -27,8 +27,8 @@ export function DoctorProfileSection({ instant = false }: DoctorProfileSectionPr
             {/* Details */}
             <div className="text-center sm:text-left flex-1">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 mb-3">
-                <BadgeCheck className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium text-primary">AHPRA Verified</span>
+                <BadgeCheck className="h-3.5 w-3.5 text-primary-strong" />
+                <span className="text-xs font-medium text-primary-strong">AHPRA Verified</span>
               </div>
               <h2 className="text-lg font-semibold text-foreground mb-2">
                 AHPRA-registered doctors

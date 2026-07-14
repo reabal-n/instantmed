@@ -136,7 +136,6 @@ describe("support inbox alerts", () => {
   it("sends only the aggregate count and a generic Gmail review link under its dedicated flag", async () => {
     vi.stubEnv("TELEGRAM_BOT_TOKEN", "test-token")
     vi.stubEnv("TELEGRAM_CHAT_ID", "123456")
-    vi.stubEnv("TELEGRAM_SYSTEM_ALERTS_ENABLED", "0")
     vi.stubEnv("TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED", "1")
     const fetchMock = vi.fn().mockResolvedValue(Response.json({ ok: true }))
     vi.stubGlobal("fetch", fetchMock)

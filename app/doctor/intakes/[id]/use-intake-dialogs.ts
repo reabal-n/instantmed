@@ -3,9 +3,8 @@
 import { useCallback,useState } from "react"
 
 import type { CertificatePreviewData } from "@/components/doctor"
+import { DECLINE_REASONS } from "@/lib/doctor/decline-reasons"
 import type { DeclineReasonCode } from "@/types/db"
-
-import { DECLINE_REASONS } from "./intake-detail-header"
 
 export interface IntakeDialogState {
   // Decline

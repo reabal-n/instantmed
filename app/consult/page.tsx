@@ -25,6 +25,8 @@ import {
   HealthArticleSchema,
   MedicalServiceSchema,
 } from "@/components/seo/healthcare-schema"
+import { Footer } from "@/components/shared/footer"
+import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { getWaitState } from "@/lib/brand/wait-counter"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
@@ -240,7 +242,7 @@ const overviewFaqs = [
 ]
 
 export const metadata: Metadata = {
-  title: "Online Doctor Services in Australia | InstantMed",
+  title: { absolute: "Online Doctor Services in Australia | InstantMed" },
   description:
     `Medical certificates, repeat prescriptions, ED, hair loss, and women's health assessments online. Focused services reviewed by Australian doctors. From ${PRICING_DISPLAY.MED_CERT}.`,
   openGraph: {
@@ -296,6 +298,8 @@ export default async function ConsultOverviewPage() {
         url="/consult"
       />
 
+      <Navbar variant="marketing" />
+      <main aria-label="Online doctor services" className="min-w-0 bg-background">
       {/* Hero · tightened mobile padding so the first service card peeks
           into a 375x812 viewport before the patient scrolls (2026-05-25
           video-review fix). */}
@@ -352,15 +356,15 @@ export default async function ConsultOverviewPage() {
       {/* Active services · detailed blocks */}
       <section id="services" className="bg-background py-12 sm:py-16">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid min-w-0 grid-cols-1 gap-6 md:grid-cols-2">
             {services.map((service) => (
               <article
                 key={service.id}
                 id={service.id}
-                className="flex flex-col rounded-2xl border border-border/50 bg-white p-6 shadow-md shadow-primary/[0.06] transition-shadow duration-200 hover:shadow-lg dark:bg-card sm:p-8"
+                className="flex min-w-0 flex-col rounded-2xl border border-border/50 bg-white p-4 min-[241px]:p-6 shadow-md shadow-primary/[0.06] transition-shadow duration-200 hover:shadow-lg dark:bg-card sm:p-8"
               >
                 {/* Header: icon + name + price */}
-                <header className="flex items-start gap-4">
+                <header className="flex flex-col items-start gap-3 sm:flex-row sm:gap-4">
                   <span
                     className={cn(
                       "grid h-12 w-12 shrink-0 place-items-center rounded-2xl",
@@ -423,7 +427,11 @@ export default async function ConsultOverviewPage() {
 
                 <div className="mt-6 flex-1" />
 
-                <Button asChild size="lg" className="mt-2 w-full">
+                <Button
+                  asChild
+                  size="lg"
+                  className="mt-2 w-full whitespace-normal h-auto min-h-12 py-3 text-center"
+                >
                   <Link href={service.href}>
                     {service.ctaLabel}
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -434,11 +442,11 @@ export default async function ConsultOverviewPage() {
           </div>
 
           {/* Coming soon · quieter, greyed cards */}
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
+          <div className="mt-8 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
             {comingSoon.map((service) => (
               <div
                 key={service.id}
-                className="relative flex items-start gap-4 rounded-2xl border border-dashed border-border/60 bg-muted/20 p-5 opacity-80"
+                className="relative flex min-w-0 flex-col items-start gap-3 rounded-2xl border border-dashed border-border/60 bg-muted/20 p-4 min-[241px]:flex-row min-[241px]:gap-4 min-[241px]:p-5"
               >
                 <span
                   className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-muted text-muted-foreground"
@@ -446,7 +454,7 @@ export default async function ConsultOverviewPage() {
                 >
                   <service.icon className="h-4 w-4" />
                 </span>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 w-full flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-base font-semibold text-foreground">
                       {service.name}
@@ -460,10 +468,10 @@ export default async function ConsultOverviewPage() {
                   {service.guideHref && service.guideLabel ? (
                     <Link
                       href={service.guideHref}
-                      className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                      className="mt-3 inline-flex max-w-full min-w-0 items-start gap-1 whitespace-normal text-sm font-medium text-primary transition-colors hover:text-primary/80"
                     >
-                      {service.guideLabel}
-                      <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span className="min-w-0 [overflow-wrap:anywhere]">{service.guideLabel}</span>
+                      <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     </Link>
                   ) : null}
                 </div>
@@ -512,6 +520,8 @@ export default async function ConsultOverviewPage() {
         faqs={overviewFaqs}
         subtitle="Everything about our online doctor services."
       />
+      </main>
+      <Footer />
     </>
   )
 }

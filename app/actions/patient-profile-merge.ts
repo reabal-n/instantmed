@@ -12,6 +12,7 @@ import {
 import { createLogger } from "@/lib/observability/logger"
 import { validateIntegration } from "@/lib/parchment/client"
 import {
+  formatParchmentPatientSyncError,
   ParchmentPatientIdentityError,
   ParchmentPatientSyncError,
   syncPatientToParchment,
@@ -74,7 +75,7 @@ function formatParchmentSyncWarning(error: unknown): string {
     return `Profiles merged, but Parchment sync is missing: ${error.issues.join(", ")}.`
   }
   if (error instanceof ParchmentPatientSyncError) {
-    return "Profiles merged, but Parchment rejected the canonical patient details. Check Medicare/IHI, address, DOB, phone, and sex; then retry sync."
+    return `Profiles merged, but ${formatParchmentPatientSyncError(error)}`
   }
   return "Profiles merged, but Parchment could not be synced. Retry sync from the prescribing strip."
 }

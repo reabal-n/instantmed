@@ -1,3 +1,4 @@
+import { PILL_PREGNANCY_DECLINE_REASON } from '@/lib/clinical/womens-health-pill'
 import {
   CERTIFICATE_FUTURE_START_ERROR,
   CERTIFICATE_MAX_FORWARD_DAYS_DEFAULT,
@@ -544,7 +545,7 @@ const consultRules: SafetyRule[] = [
     conditionLogic: 'AND',
     outcome: 'DECLINE',
     riskTier: 'high',
-    patientMessage: 'The contraceptive pill is not started during pregnancy. Please speak with your GP or obstetrician about the right care for you.',
+    patientMessage: PILL_PREGNANCY_DECLINE_REASON,
     doctorNote: 'New/switch pill request with reported pregnancy - oral contraceptive contraindicated in pregnancy. Declined; referred to GP/obstetrician.',
     priority: 950,
     services: ['gp-consult', 'consult'],

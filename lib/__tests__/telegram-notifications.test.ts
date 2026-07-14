@@ -275,18 +275,8 @@ describe("Telegram request notifications", () => {
     expect(body.text).not.toContain("2 days")
   })
 
-  it("keeps system Telegram alerts off unless explicitly re-enabled", async () => {
-    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ result: { message_id: 42 } }) })
-    process.env.TELEGRAM_ALL_LEVELS = "1"
-    delete process.env.TELEGRAM_SYSTEM_ALERTS_ENABLED
-
-    const { sendTelegramAlert } = await import("@/lib/notifications/telegram")
-
-    await sendTelegramAlert("*Critical test*", { severity: "critical" })
-    expect(fetchMock).not.toHaveBeenCalled()
-
-    process.env.TELEGRAM_SYSTEM_ALERTS_ENABLED = "1"
-    await sendTelegramAlert("*Critical test*", { severity: "critical" })
-    expect(fetchMock).toHaveBeenCalledOnce()
+  it("does not expose a generic automatic system-alert sender", async () => {
+    const telegram = await import("@/lib/notifications/telegram")
+    expect("sendTelegramAlert" in telegram).toBe(false)
   })
 })

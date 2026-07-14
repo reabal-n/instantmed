@@ -16,7 +16,8 @@ describe("Parchment stale patient recovery contract", () => {
   it("preserves Parchment HTTP status without exposing response bodies", () => {
     expect(clientSource).toContain("export class ParchmentApiError extends Error")
     expect(clientSource).toContain("readonly status: number")
-    expect(clientSource).toContain("new ParchmentApiError(`Parchment update patient failed: ${res.status}`, res.status)")
+    expect(clientSource).toContain("const metadata = parseParchmentErrorMetadata(body)")
+    expect(clientSource).toContain("new ParchmentApiError(`Parchment update patient failed: ${res.status}`, res.status, metadata)")
     expect(clientSource).toContain("responseBytes: body.length")
     expect(clientSource).not.toContain("responseBody")
   })

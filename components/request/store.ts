@@ -154,6 +154,20 @@ const initialState: RequestState = {
   lastSavedAt: null,
 }
 
+const invalidatedAttestationState = {
+  safetyConfirmed: false,
+  safetyTimestamp: null,
+  agreedToTerms: false,
+  confirmedAccuracy: false,
+  telehealthConsent: false,
+} as const
+
+const identityFields = ['firstName', 'lastName', 'email', 'phone', 'dob'] as const
+
+function draftIdentityMatchesCurrentState(draft: DraftData, state: RequestState): boolean {
+  return identityFields.every((field) => (draft[field] ?? '') === state[field])
+}
+
 type PersistedRequestState = Partial<RequestState> & {
   answers?: unknown
 }
@@ -464,7 +478,8 @@ export const useRequestStore = create<RequestState & RequestActions>()(
       ...initialState,
 
       setServiceType: (type) => {
-        const { serviceType: previousServiceType, currentStepId, authContext, answers } = get()
+        const currentState = get()
+        const { serviceType: previousServiceType, currentStepId, authContext, answers } = currentState
 
         // SWITCHING services loads the TARGET service's own scoped draft (or a
         // fresh slate) instead of carrying the previous service's answers.
@@ -482,6 +497,9 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
           const canonical = canonicalizeServiceType(type)
           const scopedDraft = canonical ? getDraft(canonical) : null
+          const restoreConfirmedAttestation = Boolean(
+            scopedDraft?.safetyConfirmed && draftIdentityMatchesCurrentState(scopedDraft, currentState),
+          )
 
           const restoredAnswers = isPlainRecord(scopedDraft?.answers) ? scopedDraft.answers : {}
           const context = { ...authContext, serviceType: type, answers: restoredAnswers }
@@ -500,8 +518,11 @@ export const useRequestStore = create<RequestState & RequestActions>()(
             currentStepId: (stepExists
               ? restoredStepId
               : steps[0]?.id || 'certificate') as UnifiedStepId,
-            safetyConfirmed: scopedDraft?.safetyConfirmed ?? false,
-            safetyTimestamp: scopedDraft?.safetyTimestamp ?? null,
+            safetyConfirmed: restoreConfirmedAttestation,
+            safetyTimestamp: restoreConfirmedAttestation ? scopedDraft?.safetyTimestamp ?? null : null,
+            agreedToTerms: restoreConfirmedAttestation,
+            confirmedAccuracy: restoreConfirmedAttestation,
+            telehealthConsent: restoreConfirmedAttestation,
             lastSavedAt: scopedDraft?.lastSavedAt ?? null,
           })
           queueLatestDraftSnapshotAfterMutation(get)
@@ -632,6 +653,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         set({
           answers: { ...answers, [key]: value },
           ...(options?.touch === false ? {} : { lastSavedAt: new Date().toISOString() }),
+          ...invalidatedAttestationState,
         })
         queueLatestDraftSnapshotAfterMutation(get)
 
@@ -659,17 +681,24 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           return {
             answers: { ...answers, ...nextAnswers },
             lastSavedAt: new Date().toISOString(),
+            ...invalidatedAttestationState,
           }
         })
         if (changed) queueLatestDraftSnapshotAfterMutation(get)
       },
 
       setIdentity: (data, options) => {
-        set((state) => ({
-          ...state,
-          ...data,
-          ...(options?.touch === false ? {} : { lastSavedAt: new Date().toISOString() }),
-        }))
+        set((state) => {
+          const changed = (Object.keys(data) as Array<keyof typeof data>)
+            .some((key) => !Object.is(state[key], data[key]))
+
+          return {
+            ...state,
+            ...data,
+            ...(options?.touch === false ? {} : { lastSavedAt: new Date().toISOString() }),
+            ...(changed ? invalidatedAttestationState : {}),
+          }
+        })
         queueLatestDraftSnapshotAfterMutation(get)
       },
 

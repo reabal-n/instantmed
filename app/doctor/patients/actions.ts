@@ -12,6 +12,7 @@ import {
 import { createLogger } from "@/lib/observability/logger"
 import { getSsoUrl, validateIntegration } from "@/lib/parchment/client"
 import {
+  formatParchmentPatientSyncError,
   ParchmentPatientIdentityError,
   ParchmentPatientSyncError,
   syncPatientToParchment,
@@ -88,7 +89,7 @@ function patientSavedButParchmentFailed(patientId: string, error: unknown): Doct
     return {
       success: false,
       patientId,
-      error: "Patient saved, but Parchment rejected the patient details. Check Medicare/IHI, address, DOB, phone, and sex; then retry.",
+      error: formatParchmentPatientSyncError(error, { patientSaved: true }),
     }
   }
 
@@ -293,7 +294,12 @@ export async function openPatientInParchmentAction(
       return parchmentValidationFailure(patient.id)
     }
 
-    const parchmentPatientId = await syncPatientToParchment(patient.id, doctorProfile.parchment_user_id)
+    const parchmentPatientId = await syncPatientToParchment(
+      patient.id,
+      doctorProfile.parchment_user_id,
+      undefined,
+      { existingPatientMode: "reuse" },
+    )
     const ssoData = await getSsoUrl(
       doctorProfile.parchment_user_id,
       `/embed/patients/${parchmentPatientId}/prescriptions`,
@@ -313,7 +319,7 @@ export async function openPatientInParchmentAction(
     }
 
     if (error instanceof ParchmentPatientSyncError) {
-      return { success: false, error: "Parchment rejected the patient details. Check Medicare/IHI, address, DOB, phone, and sex; then retry." }
+      return { success: false, error: formatParchmentPatientSyncError(error) }
     }
 
     const connectionFailureMessage = getParchmentConnectionFailureMessage(error)

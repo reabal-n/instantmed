@@ -1,13 +1,13 @@
 "use client"
 
-import { RotateCcw } from "lucide-react"
+import { RotateCcw, X } from "lucide-react"
+import dynamic from "next/dynamic"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { IntakeRefundDialog } from "@/app/doctor/intakes/[id]/intake-refund-dialog"
 import { issueRefundAction } from "@/app/doctor/queue/actions"
-import { IntakeReviewPanel } from "@/components/doctor"
 import { CaseTable } from "@/components/operator/cases/case-table"
 import { FilterBar, type QuickFilter } from "@/components/operator/cases/filter-bar"
 import { usePanel } from "@/components/panels/panel-provider"
@@ -57,6 +57,69 @@ type AdminIntakesLedgerClientProps = {
   allIntakes: LedgerRow[]
   initialFilters?: AdminIntakesLedgerInitialFilters
 }
+
+type LazyIntakeReviewPanelProps = {
+  intakeId: string
+  caseIndex?: number
+  totalCases?: number
+  profileMode?: "doctor" | "admin"
+  onActionComplete?: (options?: { advance?: boolean }) => void
+}
+
+function IntakeReviewPanelLoading() {
+  const { closePanel } = usePanel()
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closePanel()
+    }
+    window.addEventListener("keydown", handleEscape)
+    return () => window.removeEventListener("keydown", handleEscape)
+  }, [closePanel])
+
+  return (
+    <div className="fixed inset-0 z-50">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/40"
+        aria-label="Close case review"
+        onClick={closePanel}
+      />
+      <div
+        className="absolute inset-y-0 right-0 w-full max-w-[1040px] border-l border-border/60 bg-background p-6 shadow-2xl"
+        aria-busy="true"
+        aria-label="Loading case review"
+        aria-modal="true"
+        role="dialog"
+      >
+        <button
+          type="button"
+          className="absolute right-4 top-4 rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          aria-label="Close case review"
+          onClick={closePanel}
+        >
+          <X className="h-5 w-5" />
+        </button>
+        <div className="space-y-4 pr-10 motion-safe:animate-pulse">
+          <div className="h-7 w-56 rounded-md bg-muted" />
+          <div className="h-4 w-32 rounded-full bg-muted" />
+          <div className="h-28 rounded-xl bg-muted/70" />
+          <div className="h-40 rounded-xl bg-muted/70" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const loadIntakeReviewPanel = () =>
+  import("@/components/doctor/intake-review-panel").then(
+    (module) => module.IntakeReviewPanel,
+  )
+
+const IntakeReviewPanel = dynamic<LazyIntakeReviewPanelProps>(
+  loadIntakeReviewPanel,
+  { loading: () => <IntakeReviewPanelLoading /> },
+)
 
 const QUICK_FILTERS: QuickFilter[] = [
   { id: "priority", label: "Priority" },

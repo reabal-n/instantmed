@@ -154,7 +154,7 @@ Current safe flow:
 1. Patients type the medication name as plain free text only for recall/record accuracy (the PBS/AMT reference-search was retired 2026-06-28, #211). It must not be described as MIMS, prescribing advice, or medicine recommendation.
 2. InstantMed stores patient-reported medicine name, strength, form, prior history, current dose, and safety answers on the intake.
 3. Doctor review builds a doctor-facing prescription context from the intake answers.
-4. When the doctor opens Parchment, InstantMed syncs the patient profile and opens the Parchment patient prescription screen by SSO.
+4. When the doctor opens Parchment, InstantMed creates a patient only when no Parchment link exists. Normal prescribing reuses an existing `parchment_patient_id` without pushing demographics on every open; an explicit patient edit/resync is the only path that refreshes those fields in Parchment.
 5. The doctor must search/select the actual medicine inside Parchment. Parchment/MIMS is the prescribing source of truth.
 
 Operational rules:
@@ -162,6 +162,8 @@ Operational rules:
 - Do not add patient-facing MIMS search unless Parchment and MIMS both grant written permission for that specific patient-facing use.
 - Do not preselect or auto-create prescription items in Parchment unless Parchment provides a supported, conformant API endpoint for prescription drafts.
 - The Parchment panel may show copyable requested-medicine context for doctor convenience, but the doctor must confirm medicine, PBS/private status, quantity, repeats, directions, contraindications, and monitoring inside Parchment.
+- Correct names in InstantMed first using the structured given-name and family-name fields, then run the explicit Parchment resync once. Editing only Parchment leaves stale InstantMed fields available to overwrite the correction during a later explicit resync.
+- A Parchment HTTP 422 means the submitted patient data needs correction. A Parchment HTTP 500, including Health Services Directory validation failures, is provider-side: keep the InstantMed data, retain the linked patient, record only the PHI-safe request ID/code, and retry later. Normal prescribing must not force this provider update before opening an already-linked patient.
 - Parchment confirmed custom-domain iframe whitelist for `https://instantmed.com.au` and `https://www.instantmed.com.au` on 2026-05-01. If the doctor portal falls back to a new tab on those hosts, check `lib/parchment/embed-policy.ts`, `NEXT_PUBLIC_PARCHMENT_IFRAME_ALLOWED_HOSTS`, and Parchment CSP before assuming SSO is broken.
 - If a doctor reports mismatch between InstantMed context and Parchment/MIMS search results, treat Parchment as source of truth and document the discrepancy in clinical notes.
 - Treat `Parchment webhook could not match prescription.created to an intake` Sentry warnings as P1 operations issues: the script may exist in Parchment while InstantMed has not completed the linked request or sent the patient notification. These are also logged as `webhook_failed` audit events and surfaced in `/admin/ops`.
@@ -261,7 +263,7 @@ Operational rules:
 2. Run: `pnpm test lib/__tests__/consult-subtype-pricing.test.ts`
 3. Check mapping in `lib/stripe/price-mapping.ts` -> `getConsultPriceId()`
 
-> **Note:** Consult subtype prices (`STRIPE_PRICE_CONSULT_ED`, `STRIPE_PRICE_CONSULT_HAIR_LOSS`, `STRIPE_PRICE_CONSULT_WOMENS_HEALTH`, `STRIPE_PRICE_CONSULT_WEIGHT_LOSS`) are hard-validated in production by `lib/stripe/price-mapping.ts` — a missing env var causes a thrown error at checkout rather than a silent fallback to the generic consult price. This is intentional: mischarging a customer is worse than a 500. `lib/env.ts` also enforces these four vars at boot under `NODE_ENV=production`, so this is a belt-and-braces check.
+> **Note:** Consult subtype prices (`STRIPE_PRICE_CONSULT_ED`, `STRIPE_PRICE_CONSULT_HAIR_LOSS`, `STRIPE_PRICE_CONSULT_WOMENS_HEALTH`, `STRIPE_PRICE_CONSULT_WEIGHT_LOSS`) are hard-validated in production by `lib/stripe/price-mapping.ts` — a missing env var causes a thrown error at checkout rather than a silent fallback to the generic consult price. This is intentional: mischarging a customer is worse than a 500. `lib/config/env.ts` also enforces these four vars at boot under `NODE_ENV=production`, so this is a belt-and-braces check.
 
 **Client-Side React Error:**
 1. Open browser DevTools Console
@@ -286,7 +288,6 @@ Available correlation IDs:
 
 | ID Type | Format | Where It Appears |
 |---------|--------|-----------------|
-| `correlation_id` | `{timestamp36}-{uuid8}` | HTTP header `x-correlation-id`, Stripe webhook |
 | `request_id` | UUID v4 | HTTP header `x-request-id` |
 | `intake_id` | UUID | DB primary key, Stripe metadata, Sentry extra |
 | `session_id` | Stripe session ID | URL param, Stripe metadata |
@@ -395,9 +396,8 @@ Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `verce
 | Email Dispatcher | `/api/cron/email-dispatcher` | Every 5 min | Process pending/failed emails from `email_outbox` with atomic claiming; recovers stale `sending` claims and applies `DAILY_EMAIL_LIMIT` only to marketing/engagement sends |
 | Release Stale Claims | `/api/cron/release-stale-claims` | Every 5 min | Release doctor intake claims that have gone stale to prevent queue stalls |
 | Retry Drafts | `/api/cron/retry-drafts` | Every 5 min | Retry failed AI draft generation with exponential backoff |
-| Business Alerts | `/api/cron/business-alerts` | Every 30 min | Aggregates business metrics: failed payments, no-purchase revenue safety, Google Ads purchase-import health, **Google Ads upload-stream stall** (`google_ads_conversion_uploads_stalled`: paid orders exist but zero successful server-side uploads reached Google in 3d — the "absence of success" detector that complements the failure counter and catches a Data-Manager-only stall the click-id-gated `purchase_imports_zero` alert cannot see), email failures, SLA breaches, and overdue post-auto-approval medical-certificate reviews (`med_cert_batch_review_overdue`). The batch-review signal carries only count and oldest age in its aggregate-only alert payload. The Google Ads upload-audit reconciliation that feeds the `google_ads_upload_audit_source_anomaly` signal is **production-scoped** (`runtime_source !== "node"`) — local-dev / CI rows are never counted as orphans (see runbook below). Stale, low-volume audit-source residue is info-only and must not page Telegram; fresh or high-volume orphaning still pages as critical. Every check runs **per-section fail-soft** (`lib/monitoring/alert-sections.ts`): a broken query in one section becomes its own critical `business_alert_section_failed_<section>` alert instead of throwing to the outer catch and silencing every later section plus the Sentry/Telegram dispatch — and section query errors are surfaced, not swallowed as "no alert". |
+| Business Alerts | `/api/cron/business-alerts` | Every 30 min | Aggregates business metrics: failed payments, no-purchase revenue safety, Google Ads purchase-import health, **Google Ads upload-stream stall** (`google_ads_conversion_uploads_stalled`: paid orders exist but zero successful server-side uploads reached Google in 3d — the "absence of success" detector that complements the failure counter and catches a Data-Manager-only stall the click-id-gated `purchase_imports_zero` alert cannot see), certificate/email-outbox failures, auth email send failures (`auth_email_delivery_failed`), SLA breaches, and overdue post-auto-approval medical-certificate reviews (`med_cert_batch_review_overdue`). Auth-email alert payloads contain only the aggregate failed count and one-hour window; recipient hashes, domains, and provider error text stay out of Sentry, PostHog, Telegram, and the cron response. The batch-review signal carries only count and oldest age in its aggregate-only alert payload. The Google Ads upload-audit reconciliation that feeds the `google_ads_upload_audit_source_anomaly` signal is **production-scoped** (`runtime_source !== "node"`) — local-dev / CI rows are never counted as orphans (see runbook below). Stale, low-volume audit-source residue is info-only; fresh or high-volume orphaning remains critical in Sentry and admin surfaces. Every check runs **per-section fail-soft** (`lib/monitoring/alert-sections.ts`): a broken query in one section becomes its own critical `business_alert_section_failed_<section>` alert instead of throwing to the outer catch and silencing every later section plus the Sentry dispatch — and section query errors are surfaced, not swallowed as "no alert". |
 | Stale Queue | `/api/cron/stale-queue` | Hourly | Alerts on paid intakes waiting > 4h (warning) or > 8h (critical) |
-| Pending Queue Reminder | `/api/cron/pending-queue-reminders` | Hourly (:05) | Sends one PHI-free Telegram digest with one line per real paid queue item, ordered like the staff queue. Includes only priority, operational status, and waiting time; names, identifiers, service type/subtype, medication, symptoms, and answers are prohibited. New paid-request alerts remain immediate. |
 | Abandoned Checkouts | `/api/cron/abandoned-checkouts` | Every 20 min (:00/:20/:40) | Payment-stage recovery for submitted intakes stuck at checkout; first nudge eligible after 20 min, follow-up 24h after first nudge |
 | Partial Intake Recovery | `/api/cron/recover-partial-intakes` | Hourly (:15) | Pre-checkout draft recovery only; excludes review/checkout drafts so it does not overlap abandoned-checkout recovery |
 | Cleanup Intake Drafts | `/api/cron/cleanup-intake-drafts` | Daily (4 AM UTC) | Delete stale saved intake drafts so anonymous draft storage does not grow unbounded |
@@ -442,7 +442,7 @@ The Google Data Manager API purchase-upload path ([apps#234](https://github.com/
 A local `pnpm dev` server pointed at the **prod Supabase service-role key** (receiving prod Stripe webhooks) writes `google_ads_conversion_upload` audit rows into prod `audit_logs` tagged `runtime_source: "node"`, `node_env: "development"`, `status: skipped_missing_env`, with a **NULL `intake_id` column** (their intake lives in a different DB). `getGoogleAdsUploadAuditReconciliation` had **no `runtime_source` filter**, so all ~822 dev rows counted as `orphanRows`, which fired the **critical `google_ads_upload_audit_source_anomaly` Telegram + Sentry alert every ~4h for 10+ days** (06-26 → 06-30) — a pure false alarm.
 
 - **Fix:** reconciliation now drops `runtime_source === "node"` rows (mirrors the `/admin/ops` card filter at `google-ads-health.ts`). Genuine production orphans (`vercel` rows with no valid intake join) are still detected. Pinned by `lib/__tests__/google-ads-report.test.ts`.
-- **Paging policy:** `google_ads_upload_audit_source_anomaly` is not itself a conversion-delivery failure. A stale single-row orphan remains visible as an info-level metric and cron JSON field, but it does not page Telegram. A fresh orphan (within 2h of the generated snapshot) or high-volume orphaning (5+ rows) remains critical so a live write-path regression still wakes the operator. Pinned by `lib/__tests__/google-ads-purchase-import-health.test.ts`.
+- **Paging policy:** `google_ads_upload_audit_source_anomaly` is not itself a conversion-delivery failure. A stale single-row orphan remains visible as an info-level metric and cron JSON field without escalating. A fresh orphan (within 2h of the generated snapshot) or high-volume orphaning (5+ rows) remains critical in Sentry/admin surfaces so a live write-path regression is visible. Pinned by `lib/__tests__/google-ads-purchase-import-health.test.ts`.
 - **Root cause is environmental, not just code:** local dev should not run against the prod service-role key. If the page noise recurs, point local dev at a local/staging Supabase. Optionally add the write-layer guard in `recordGoogleAdsConversionAudit` (skip the insert when `runtime_source === "node" && node_env ∉ {production, test}`) to stop the accumulation at source.
 - The ~822 historical dev rows are now **inert at every read** (ops card + reconciliation both filter them). They can be left to age out, or purged with operator approval; do not delete prod `audit_logs` rows without sign-off.
 
@@ -673,13 +673,13 @@ ROLLBACK  ROLLBACK    ROLLBACK
 1. **Check the user shape first** — Supabase Dashboard → Authentication → Users → search the email. If the user exists without a password provider, do not create a duplicate user or duplicate profile.
 2. **Use the lowest-friction recovery path** — direct the patient to `/sign-in`, enter their email, and use **Email me a sign-in link**. This works for existing passwordless accounts without account duplication.
 3. **If they want a password** — direct them to `/auth/forgot-password`. The branded recovery email opens the scanner-safe `/auth/confirm` interstitial. Only the patient's explicit **Continue to password reset** action exchanges the one-time token in the browser and establishes the recovery session before `/auth/reset-password` opens.
-4. **Check auth email health** — `/admin/ops` → **Auth Email Failures (24h)**. A failed `magiclink` or `recovery` event points to Resend/API/config delivery failure, not bad patient input.
+4. **Check auth email health** — the 30-minute Business Alerts cron raises a Sentry/admin alert on any `auth_email_delivery_failed` event in the last hour. Its payload is aggregate-only. A failed `magiclink` or `recovery` event points to Resend/API/config delivery failure, not bad patient input.
 5. **If Supabase shows `validation_failed` / “Verify requires a token or a token hash”** — inspect only the link shape, never the secret value. Current emails must point to `/auth/confirm#token_hash=...&type=...`; the hash stays out of HTTP logs and is exchanged with browser `verifyOtp()` only after an explicit click. A direct `/auth/v1/verify` link or a query-string token is legacy/broken behavior and should be treated as an auth-email regression.
 6. **Keep link rewriting off** — Supabase warns that external-provider click tracking can rewrite auth links. Keep Resend click tracking disabled for the auth-sending domain, and use exact production redirect allow-list entries for `/auth/callback` and `/auth/reset-password` rather than a broad production wildcard.
 7. **If auth events are unavailable** — verify migration `20260504063000_auth_email_events.sql` has been applied and that the production hook has `SUPABASE_AUTH_WEBHOOK_HOOK_SECRET`, `RESEND_API_KEY`, and `RESEND_FROM_EMAIL` configured.
 8. **Do not bypass the flow** — do not manually set a patient password, email raw Supabase action links, or link multiple profiles by email match. Fix the delivery/config issue, then let Supabase issue a fresh sign-in or recovery link.
 
-**Escalate immediately** if `/admin/ops` shows any auth email failure after a deploy or if multiple patients report missing sign-in/recovery links within 15 minutes.
+**Escalate immediately** on any `auth_email_delivery_failed` alert after a deploy or if multiple patients report missing sign-in/recovery links within 15 minutes.
 
 ---
 
@@ -844,8 +844,8 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 
 | Severity | Response time | Escalation |
 |---|---|---|
-| P0 (PHI leak, payment broken, clinical-safety breach) | 15 min | Phone + Telegram + Sentry |
-| P1 (SLO breach sustained 30 min) | 1 hour | Telegram + Sentry email |
+| P0 (PHI leak, payment broken, clinical-safety breach) | 15 min | Phone + Sentry + admin incident surface |
+| P1 (SLO breach sustained 30 min) | 1 hour | Sentry email + admin incident surface |
 | P2 (SLO warning / non-breaching anomaly) | Next business day | Sentry email |
 | P3 (informational, trend) | Weekly review | Dashboard only |
 
@@ -887,20 +887,20 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 | AI Down | Failure rate > 25% | Sentry (email alert) |
 | Payment DLQ | > 5 items | Sentry (email alert) |
 | Email Bounce Spike | Bounce rate > 5% | Sentry (email alert) |
-| Business Alerts | Failed payments, no-purchase revenue safety, SLA breaches | Telegram (`lib/notifications/telegram.ts`) |
-| Payment Notifications | Successful checkout | Telegram (real-time) |
-| Support Inbox | Backend-owned hourly Gmail label-count cron active. Only a positive unread count can page. | Telegram count only; no sender, subject, snippet, message ID, thread ID, body, attachment, or draft. Dedicated opt-ins `GMAIL_SUPPORT_INBOX_POLL_ENABLED=1` and `TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED=1`; unchanged counts repeat at most every 4h. |
+| Business Alerts | Failed payments, no-purchase revenue safety, SLA breaches | Sentry + admin operations surfaces |
+| Paid Request Notifications | Successful paid request | Telegram (real-time, with retry cron) |
+| Support Inbox | Manual-only and disabled in production; no scheduled mailbox polling. | No automatic Telegram alerts. The PHI-safe aggregate count receiver remains available for deliberate diagnostics only. |
 | Request Flow Synthetic | Any production request-path render/click failure | GitHub Actions failure |
 | Staff Role Gate | More than one auth-linked human admin, owner-admin missing doctor identity, or doctor missing required prescribing/certificate identity | `pnpm check:staff-roles` release failure |
 
-**Telegram alerts** require `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env vars. General system-alert helpers may silently skip when those credentials are absent. The support Inbox bridge has a stricter contract: when its dedicated `TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED=1` flag is on but Telegram credentials are missing or delivery fails, it records `delivery_failed` and returns HTTP 502 so the scheduled run fails visibly. The hourly `/api/cron/support-inbox-alert` route uses a dedicated Gmail OAuth grant and makes exactly one mailbox request: `GET /gmail/v1/users/me/labels/INBOX`. It reads only the bounded aggregate `threadsUnread` counter, then uses the existing distributed lock, four-hour same-count cooldown, audit row, and Telegram delivery path. The code never calls Gmail message or thread endpoints. `GMAIL_SUPPORT_INBOX_POLL_ENABLED=1` is the independent poll kill switch. The `CRON_SECRET`-protected `/api/internal/support-inbox-alert` count receiver remains available as a manual diagnostic seam, but no local Codex automation owns the schedule. Gmail remains the message source of truth; identifiable email content and drafts must not enter this bridge or the dashboard.
+**Telegram is request-only in production.** Automatic sends are limited to a newly paid request; approval/decline changes edit that original message instead of sending another. Titles contain only the broad service class. Patient identity, contact or government identifiers, medicine names or free-text descriptions, symptoms, presenting condition, consultation subtype, notes, payment details, and intake answers are prohibited. The support Inbox bridge is manual-only and disabled in production: there is no scheduled support-inbox cron or Gmail reader. The `CRON_SECRET`-protected `/api/internal/support-inbox-alert` receiver remains only for deliberate aggregate-count diagnostics and requires `TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED=1`; production keeps it `0`. When deliberately enabled but delivery fails, it records `delivery_failed` and returns HTTP 502. Business alerts, queue age, and cron watchdog failures remain in Sentry/admin surfaces and do not send Telegram messages.
 
 ### Health Endpoints
 
 | Endpoint | Checks | Response |
 |----------|--------|----------|
 | `/api/health` | Database, Redis, Stripe, env vars | `{ status: "healthy"|"degraded", checks, totalLatencyMs }` |
-| `/api/cron/health-check` | Critical cron heartbeats | Sentry capture when essential scheduled jobs are overdue, plus a Telegram fallback page (independent channel — the 2026-06-06 Sentry quota blackout precedent; the watchdog is the layer that notices other alerting crons dying, so it cannot rely on Sentry alone). Per-job 4h cooldown tracked in `audit_logs` action `telegram_cron_watchdog`; a newly-overdue job pages immediately even while another is cooling down. Gated by `TELEGRAM_SYSTEM_ALERTS_ENABLED=1`. |
+| `/api/cron/health-check` | Critical cron heartbeats | Sentry capture when essential scheduled jobs are overdue; current state is also visible in the admin system-health surface. |
 
 ### Release-time Ops Checks
 
@@ -937,7 +937,7 @@ All previously identified gaps have been resolved:
 
 ## Environment Variables
 
-Required env vars validated at startup via Zod in `lib/env.ts`:
+Required env vars validated at startup via Zod in `lib/config/env.ts`:
 
 - **Supabase**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 - **Stripe**: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, active one-off `STRIPE_PRICE_*` IDs, and `STRIPE_PRICE_PRIORITY_FEE`. Repeat Rx subscription acquisition is inactive and has no production price env requirement.
@@ -949,7 +949,7 @@ Required env vars validated at startup via Zod in `lib/env.ts`:
 - **Monitoring**: `SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`
 - **Analytics**: `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`
 - **Google Ads / Data Manager purchase uploads**: `GOOGLE_ADS_CUSTOMER_ID`, `GOOGLE_ADS_CONVERSION_ACTION_PURCHASE` (must be an offline click-import `UPLOAD_CLICKS` action, not the browser purchase tag), and optional `GOOGLE_ADS_LOGIN_CUSTOMER_ID`. Legacy Google Ads API upload/reporting/preflight also needs `GOOGLE_ADS_DEVELOPER_TOKEN`, `GOOGLE_ADS_CLIENT_ID`, `GOOGLE_ADS_CLIENT_SECRET`, `GOOGLE_ADS_REFRESH_TOKEN`, optional `GOOGLE_ADS_QUOTA_PROJECT_ID`, `GOOGLE_ADS_API_VERSION`, and `GOOGLE_ADS_CLICK_IDENTIFIER_MAX_AGE_DAYS` (defaults to 90; lower only if the conversion action's click-through window is shorter). Data Manager rollout needs `GOOGLE_DATA_MANAGER_CONVERSIONS_ENABLED=true`, `GOOGLE_DATA_MANAGER_CLIENT_ID`, `GOOGLE_DATA_MANAGER_CLIENT_SECRET`, `GOOGLE_DATA_MANAGER_REFRESH_TOKEN`, and optional `GOOGLE_DATA_MANAGER_QUOTA_PROJECT_ID`; diagnostics watch uses `GOOGLE_ADS_DIAGNOSTICS_WATCH_REQUEST_ID` for Data Manager request IDs or legacy `GOOGLE_ADS_DIAGNOSTICS_WATCH_JOB_ID`, plus `GOOGLE_ADS_DIAGNOSTICS_WATCH_UPLOADED_AT`.
-- **Alerts**: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET` (optional), `TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED` (`0` by default; set to `1` only for the aggregate unread-count bridge). The backend-owned support Inbox poll additionally needs `GMAIL_SUPPORT_INBOX_POLL_ENABLED=1`, `GMAIL_SUPPORT_CLIENT_ID`, `GMAIL_SUPPORT_CLIENT_SECRET`, `GMAIL_SUPPORT_REFRESH_TOKEN`, and optional `GMAIL_SUPPORT_QUOTA_PROJECT_ID`; its OAuth grant is label-only and the implementation performs GET-only aggregate reads.
+- **Alerts**: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET` (optional), `TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED` (`0` in production; retained only for deliberate aggregate-count diagnostics). Automatic Telegram is limited to paid-request notifications through the database feature flag `telegram_notifications_enabled`.
 - **Parchment**: `PARCHMENT_API_URL`, `PARCHMENT_PARTNER_ID`, `PARCHMENT_PARTNER_SECRET`, `PARCHMENT_ORGANIZATION_ID`, `PARCHMENT_ORGANIZATION_SECRET`, `PARCHMENT_WEBHOOK_SECRET` (all optional — required only when `parchment_embedded_prescribing` feature flag is enabled); optional `NEXT_PUBLIC_PARCHMENT_IFRAME_ALLOWED_HOSTS` override if the default iframe host allow-list needs to change
 - **Parchment smoke test**: `PARCHMENT_SMOKE_USER_ID` (sandbox/linked prescriber user ID required for `pnpm smoke:parchment`)
 - **Address search**: `ADDRESSFINDER_KEY` or existing `NEXT_PUBLIC_ADDRESSFINDER_KEY`, `ADDRESSFINDER_SECRET` (primary AU address provider), `GOOGLE_PLACES_API_KEY` (fallback + server-side geocoding). Prefer `ADDRESSFINDER_KEY` for new deployments because the key is only used server-side.
@@ -1159,7 +1159,7 @@ pnpm build
 
 - Fix type errors, lint violations, build failures.
 - Flag new `any` types, `@ts-ignore`, or `as unknown as` casts.
-- Check `lib/env.ts` — any new env vars missing validation?
+- Check `lib/config/env.ts` — any new env vars missing validation?
 
 ### 2. Dead Code & Redundancy
 
