@@ -15,6 +15,7 @@ type AxeResults = Awaited<ReturnType<AxeBuilder["analyze"]>>
 // Full page list — audited in light mode
 const PAGES = [
   { name: "Homepage", path: "/" },
+  { name: "Online Doctor Services", path: "/consult" },
   { name: "Medical Certificate", path: "/medical-certificate" },
   { name: "Prescriptions", path: "/prescriptions" },
   { name: "Hair Loss", path: "/hair-loss" },
@@ -30,6 +31,7 @@ const PAGES = [
 // Subset checked in dark mode — marketing critical path + high-contrast risk pages
 const DARK_MODE_PAGES = [
   { name: "Homepage", path: "/" },
+  { name: "Online Doctor Services", path: "/consult" },
   { name: "Pricing", path: "/pricing" },
   { name: "Request Flow", path: "/request" },
   { name: "Hair Loss", path: "/hair-loss" },
@@ -96,8 +98,31 @@ test.describe("Accessibility — dark mode", () => {
 
   for (const { name, path } of DARK_MODE_PAGES) {
     test(`${name} (${path})`, async ({ page }) => {
+      await page.addInitScript(() => window.localStorage.setItem("theme", "dark"))
       const results = await runAxe(page, path)
+
+      await expect(page.locator("html")).toHaveClass(/dark/)
+      await expect(page.locator("html")).toHaveCSS("background-color", "rgb(11, 17, 32)")
+      await expect(page.locator("body")).toHaveCSS("background-color", "rgb(11, 17, 32)")
       assertNoViolations(name, results, "dark")
     })
   }
+})
+
+test.describe("Public shell keyboard navigation", () => {
+  test("skip link becomes visible and moves focus to the page wrapper", async ({ page }) => {
+    await page.goto("/consult", { waitUntil: "domcontentloaded" })
+
+    const skipLink = page.getByRole("link", { name: "Skip to main content" })
+    await page.keyboard.press("Tab")
+
+    await expect(skipLink).toBeFocused()
+    await expect(skipLink).toBeVisible()
+    await expect(skipLink).not.toHaveCSS("clip", "rect(0px, 0px, 0px, 0px)")
+
+    await page.keyboard.press("Enter")
+
+    await expect(page.locator("#main-content")).toBeFocused()
+    await expect(page.getByRole("main")).toHaveCount(1)
+  })
 })

@@ -159,7 +159,6 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${sourceSans.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
-      style={{ backgroundColor: '#f8f7f4' }}
     >
       <head>
         {/* Analytics and replay are interaction-gated; keep only non-analytics
@@ -169,10 +168,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://api.dicebear.com" />
 
       </head>
-      <body
-        className="font-sans antialiased text-foreground"
-        style={{ backgroundColor: "#f8f7f4" }}
-      >
+      <body className="font-sans antialiased text-foreground">
         <SupabaseAuthProvider>
           <OrganizationSchema />
           <WebSiteSchema />

@@ -25,14 +25,14 @@ html {
      never plain white. Without this the body bg only applies after the
      stylesheet hydrates, which was visible enough for Gemini's video-review
      rubric to flag as a "3s white flash on load" (2026-05-25 /consult review). */
-  background: #F8F7F4;
+  background: var(--background, #F8F7F4);
 }
 
 body {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  /* Mirror html so any per-element opacity/transform still composites onto ivory. */
-  background: #F8F7F4;
+  /* Mirror html so transformed or translucent surfaces composite onto the active theme. */
+  background: var(--background, #F8F7F4);
 }
 
 /* Parallax performance optimization */
@@ -114,6 +114,7 @@ body {
   /* Primary: Morning sky blue — trustworthy, calm, professional (WCAG AA: 5.17:1 with white) */
   --primary: #2563EB;
   --primary-foreground: #ffffff;
+  --stripe-brand: #4F46E5;
   /* Brand accent: semantic alias for highlight text. Resolves to primary (light) / teal (dark). */
   --brand-accent: var(--primary);
   
@@ -313,7 +314,8 @@ body {
   
   /* Primary - calm teal glow */
   --primary: #5DB8C9;
-  --primary-foreground: #ffffff;
+  --primary-foreground: #0B1120;
+  --stripe-brand: #A5A1FF;
   /* Brand accent: resolves to teal in dark mode for headline highlights */
   --brand-accent: var(--primary);
   
@@ -845,18 +847,20 @@ body {
 
 /* Rich text dark mode — scoped to marketing/content pages.
    Dashboards use Tailwind dark: utilities instead. */
-.dark [data-marketing] {
-  h1, h2, h3, h4, h5, h6 { color: var(--foreground); }
-  p, span, label { color: var(--foreground); }
+@layer base {
+  .dark [data-marketing] {
+    h1, h2, h3, h4, h5, h6 { color: var(--foreground); }
+    p, span, label { color: var(--foreground); }
 
-  table { color: var(--foreground); }
-  th { color: var(--foreground); background: var(--secondary); }
-  td { color: var(--foreground); border-color: var(--border); }
+    table { color: var(--foreground); }
+    th { color: var(--foreground); background: var(--secondary); }
+    td { color: var(--foreground); border-color: var(--border); }
 
-  pre, code { background: var(--secondary); color: var(--foreground); }
-  blockquote { border-left-color: var(--primary); background: var(--secondary); color: var(--foreground); }
-  ul, ol { color: var(--foreground); }
-  li::marker { color: var(--muted-foreground); }
+    pre, code { background: var(--secondary); color: var(--foreground); }
+    blockquote { border-left-color: var(--primary); background: var(--secondary); color: var(--foreground); }
+    ul, ol { color: var(--foreground); }
+    li::marker { color: var(--muted-foreground); }
+  }
 }
 
 /* ================================
@@ -2743,20 +2747,6 @@ body {
     animation: none;
   }
 }
-
-/* Screen reader only content */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
-
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
