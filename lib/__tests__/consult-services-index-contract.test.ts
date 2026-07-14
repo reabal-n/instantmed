@@ -52,21 +52,19 @@ describe("/consult services index contract", () => {
 
   it("uses the canonical public shell and an absolute document title", () => {
     const source = read("app/consult/page.tsx")
+    const mainTag =
+      '<main aria-label="Online doctor services" className="min-w-0 bg-background">'
 
     expect(source).toContain(
       'title: { absolute: "Online Doctor Services in Australia | InstantMed" }',
     )
     expect(source).toContain('<Navbar variant="marketing" />')
-    expect(source).toContain(
-      '<main aria-label="Online doctor services" className="bg-background">',
-    )
+    expect(source).toContain(mainTag)
     expect(source).toContain("<Footer />")
     expect(source.indexOf('<Navbar variant="marketing" />')).toBeLessThan(
-      source.indexOf('<main aria-label="Online doctor services" className="bg-background">'),
+      source.indexOf(mainTag),
     )
-    expect(
-      source.indexOf('<main aria-label="Online doctor services" className="bg-background">'),
-    ).toBeLessThan(source.indexOf("<Footer />"))
+    expect(source.indexOf(mainTag)).toBeLessThan(source.indexOf("<Footer />"))
   })
 
   it("keeps women's health scope narrow and routes same-pill repeats away from the consult promise", () => {

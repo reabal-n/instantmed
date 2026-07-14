@@ -123,7 +123,7 @@ export async function finishFiniteEntranceAnimations(page: Page) {
   })
 }
 
-export interface OverflowFinding {
+interface OverflowFinding {
   kind: "control" | "text"
   selector: string
   text: string

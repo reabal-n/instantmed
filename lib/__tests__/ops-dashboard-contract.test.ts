@@ -225,7 +225,8 @@ describe("ops dashboard data contract", () => {
     expect(opsClientSource).not.toContain("Telegram test alert sent")
     expect(existsSync(join(process.cwd(), "app/actions/telegram-ops.ts"))).toBe(false)
     expect(telegramNotificationsSource).not.toContain("sendTelegramTestAlert")
-    expect(telegramNotificationsSource).toContain("sendTelegramAlert")
+    expect(telegramNotificationsSource).not.toContain("export async function sendTelegramAlert")
+    expect(telegramNotificationsSource).toContain("notifyNewIntakeViaTelegram")
   })
 
   it("lets admins send an audited PHI-free email delivery test", () => {
