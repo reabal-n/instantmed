@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation"
 
 import { requireRole } from "@/lib/auth/helpers"
 import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
+import { buildClinicalProfileDifferences } from "@/lib/clinical/case-summary"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { getHealthProfile } from "@/lib/data/health-profile"
 import { decryptProfilePhi } from "@/lib/data/profiles"
@@ -47,6 +48,7 @@ function toAttributionRow(
 
 interface PageProps {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ requestId?: string | string[] }>
 }
 
 interface MedicationHistoryItem {
@@ -373,7 +375,10 @@ async function getPatientParchmentAuditRows(
   return Array.from(rows.values())
 }
 
-async function getPatientWithHistory(patientId: string, options: { doctorId?: string } = {}) {
+async function getPatientWithHistory(
+  patientId: string,
+  options: { doctorId?: string; comparisonRequestId?: string } = {},
+) {
   const supabase = createServiceRoleClient()
 
   // Get patient profile
@@ -632,6 +637,20 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
     logger.error("Error fetching patient prescriptions", { patientId }, prescriptionsError)
   }
 
+  const intakeRows = (intakes || []) as Array<Record<string, unknown>>
+  const comparisonIntake = options.comparisonRequestId
+    ? intakeRows.find((intake) => intake.id === options.comparisonRequestId)
+    : null
+  const clinicalDifferences = comparisonIntake
+    ? buildClinicalProfileDifferences({
+        answers: getJoinedAnswers(comparisonIntake.answers as IntakeAnswerJoin | undefined),
+        profile: healthProfile,
+      })
+    : []
+  const comparisonRequestCreatedAt = comparisonIntake && typeof comparisonIntake.created_at === "string"
+    ? comparisonIntake.created_at
+    : null
+
   // Transform intakes to flatten the service relation (Supabase returns array for joins)
   const transformedIntakes = (intakes || []).map(intake => {
     const { answers: _answers, ...intakeWithoutAnswers } = intake
@@ -700,6 +719,8 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
     intakes: transformedIntakes,
     medications: medicationHistory,
     healthProfile,
+    clinicalDifferences,
+    comparisonRequestCreatedAt,
     parchmentActivity,
     emailLogs: emailLogs || [],
     patientNotes: patientNotes || [],
@@ -713,12 +734,13 @@ export const metadata = { title: "Patient Detail" }
 
 export const dynamic = "force-dynamic"
 
-export default async function PatientDetailPage({ params }: PageProps) {
+export default async function PatientDetailPage({ params, searchParams }: PageProps) {
   const authResult = await requireRole(["doctor", "admin"])
-  const { id } = await params
+  const [{ id }, query] = await Promise.all([params, searchParams])
+  const comparisonRequestId = typeof query.requestId === "string" ? query.requestId : undefined
   const doctorId = hasAdminAccess(authResult.profile) ? undefined : authResult.profile.id
   const [data, flags] = await Promise.all([
-    getPatientWithHistory(id, { doctorId }),
+    getPatientWithHistory(id, { doctorId, comparisonRequestId }),
     getFeatureFlags(),
   ])
 
@@ -733,6 +755,8 @@ export default async function PatientDetailPage({ params }: PageProps) {
       intakes={data.intakes}
       medications={data.medications}
       healthProfile={data.healthProfile}
+      clinicalDifferences={data.clinicalDifferences}
+      comparisonRequestCreatedAt={data.comparisonRequestCreatedAt}
       linkedProfileCount={data.linkedProfileCount}
       emailLogs={data.emailLogs}
       patientNotes={data.patientNotes}

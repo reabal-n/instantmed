@@ -1,6 +1,6 @@
 # Doctor Review and Patient Record Consolidation Implementation Plan
 
-> **Status (2026-07-14): Implemented and verified.** This plan implements `docs/plans/2026-07-14-doctor-review-patient-record-consolidation-design.md` and replaces the superseded June 2026 request-review plan. Repository, seeded Chromium, and bounded manual browser proof are recorded below.
+> **Status (2026-07-14): Implemented and verified.** This plan implements `docs/plans/2026-07-14-doctor-review-patient-record-consolidation-design.md` and replaces the superseded June 2026 request-review plan. Repository, seeded Chromium/Mobile Chrome, and bounded manual browser proof are recorded below.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to execute this plan task-by-task. Use `superpowers:test-driven-development` for each behavioural slice and `superpowers:verification-before-completion` before reporting completion. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -810,13 +810,15 @@ Expected:
 
 ## Verification evidence
 
-- Focused packet policy: `21` tests passed.
-- Full Vitest suite: `496` files passed; `4,342` tests passed and `1` existing test skipped.
-- Static and production gates: typecheck, zero-warning lint, and the Next.js production build passed; the build generated `489/489` static pages.
-- Documentation and hygiene: `doc:audit` passed `9` files / `90` tests with the expected `120` Markdown files; the dead-code ratchet remained `2,881`.
-- Seeded Chromium: `7/7` doctor-review tests passed in one run. These cover in-place fulfilment refresh, legacy recorded-script reconciliation, the women's-health UTI completion gate, the single inline request packet, collapsed disclosures, quick-profile provenance, full-record tabs, and acquisition attribution.
+- Focused profile-comparison policy: `5` tests passed across `clinical-profile-comparison.test.ts` and `patient-profile-differences-contract.test.ts`; the final full suite subsumes the packet and rendering contracts.
+- Full Vitest suite: `501` files and `4,404` tests passed.
+- Static and production gates: typecheck, zero-warning lint, and the Next.js production build passed; the build generated `488/488` static pages.
+- Documentation and hygiene: `doc:audit` passed `9` files / `99` tests with the expected `106` Markdown files; the dead-code ratchet matched its `2,542` baseline.
+- Seeded Chromium with Playwright retries disabled: `14/14` doctor-review tests passed in one run. Coverage includes explicit-open/no-prefetch profile loading, exact current-request versus saved-profile differences, empty profile, embedded inferred strength plus missing form, prior history excluding the active request, ED and hair-loss packets, targeted fulfilment refresh, saved legacy-script reconciliation, the women's-health UTI completion gate, the single inline request packet, collapsed disclosures, mobile dark viewport containment, full-record tabs, and acquisition attribution.
+- Keyboard safety: `3/3` Chromium tests passed for note typing/caret isolation and desktop case navigation. The legacy reconciliation test also passed `3/3` consecutive runs with retries disabled after its cold-start persistence assertion was made appropriately bounded.
+- Responsive targeted proof: `4/4` Mobile Chrome tests passed for profile conflict, empty profile, inferred/missing medication data, and hair-loss rendering; the final Chromium matrix separately exercised the settled dark mobile drawer geometry.
 - Manual port `3060` proof: the seeded desktop medical-certificate request showed patient safety context before the request scroller, one request packet, collapsed draft/full-intake disclosures, explicit-open quick profile, and the Clinical / History / Operations record split. The profile summary request occurred only after explicit profile intent, and the browser console contained no errors.
-- Exact visual boundary: repeat-prescription fulfilment and women's-health UTI were exercised in Chromium E2E rather than the manual `3060` session. ED, hair loss, narrow/mobile, slide-over, and dark-mode rendering rely on the same typed packet/components and passed unit/source contracts, but were not separately captured in this manual proof pass. No production environment was exercised.
+- Exact proof boundary: local browser execution covered Chromium and Mobile Chrome. Firefox/WebKit were not rerun locally because those browser binaries were unavailable; no production environment or persisted production data was exercised.
 
 ---
 
@@ -830,6 +832,7 @@ Expected:
 - [x] Completion remains visible and disabled until fulfilment is confirmed.
 - [x] Fulfilment enables completion through a selected-intake reload without remounting or page refresh.
 - [x] Quick profile provides saved clinical context, three prior relevant events, and counts without repeating the active request.
+- [x] Quick and full profiles compare saved clinical data only with the exact active request, show identity/contact/freshness, and do not invent conflicts or fall back to another request.
 - [x] Full patient record opens on Clinical and preserves History and Operations capabilities.
 - [x] No new React component family, API route, schema, realtime subscription, polling loop, or state library exists.
 - [x] Superseded code, exports, tests, comments, refresh paths, and plan language are removed.

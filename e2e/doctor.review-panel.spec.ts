@@ -193,8 +193,31 @@ test.describe("Doctor review cockpit", () => {
     }
     await expect(drawer.getByRole("link", { name: "Open full record" })).toHaveAttribute(
       "href",
-      `/doctor/patients/${E2E_PATIENT_ID}`,
+      `/doctor/patients/${E2E_PATIENT_ID}?requestId=${INTAKE_ID}`,
     )
+  })
+
+  test("keeps the mobile dark review and profile within the viewport", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.emulateMedia({ colorScheme: "dark" })
+    await page.addInitScript(() => {
+      window.localStorage.setItem("theme", "dark")
+    })
+
+    const cockpit = await openSeededReviewCockpit(page)
+    await expect(page.locator("html")).toHaveClass(/dark/)
+    await expect(cockpit.getByRole("region", { name: "Patient safety context" })).toBeVisible()
+    await expect(cockpit.getByRole("region", { name: "Request packet" })).toBeVisible()
+
+    await cockpit.getByRole("button", { name: "View profile" }).click()
+    const drawer = page.getByRole("dialog", { name: "Patient profile" })
+    await expect(drawer).toBeVisible()
+    await expect(drawer.getByText("Saved clinical profile", { exact: true })).toBeVisible()
+
+    await expect.poll(() => drawer.evaluate((element) => {
+      const bounds = element.getBoundingClientRect()
+      return bounds.left >= -1 && bounds.right <= window.innerWidth + 1
+    })).toBe(true)
   })
 
   test("full patient record opens on Clinical and separates history from operations", async ({ page }) => {
@@ -203,11 +226,11 @@ test.describe("Doctor review cockpit", () => {
 
     const drawer = page.getByRole("dialog", { name: "Patient profile" })
     await Promise.all([
-      page.waitForURL(`**/doctor/patients/${E2E_PATIENT_ID}`, { timeout: 15_000 }),
+      page.waitForURL(`**/doctor/patients/${E2E_PATIENT_ID}?requestId=${INTAKE_ID}`, { timeout: 15_000 }),
       drawer.getByRole("link", { name: "Open full record" }).click(),
     ])
     await waitForPageLoad(page)
-    await expect(page).toHaveURL(`/doctor/patients/${E2E_PATIENT_ID}`)
+    await expect(page).toHaveURL(`/doctor/patients/${E2E_PATIENT_ID}?requestId=${INTAKE_ID}`)
 
     const tabs = page.getByRole("tablist", { name: "Patient record sections" })
     const clinicalTab = tabs.getByRole("tab", { name: "Clinical" })

@@ -39,6 +39,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { TypedConfirmDialog } from "@/components/ui/typed-confirm-dialog"
 import type { AttributionClassificationInput } from "@/lib/analytics/source-classification"
+import type { ClinicalProfileDifference } from "@/lib/clinical/case-summary"
 import { STAFF_DOCTOR_PATIENTS_HREF, STAFF_IDENTITY_HREF, STAFF_PATIENTS_HREF } from "@/lib/dashboard/routes"
 import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
 import { cn } from "@/lib/utils"
@@ -146,6 +147,27 @@ function formatSavedValues(values: string[]): string {
   return values.length > 0 ? values.join(" · ") : "None recorded in saved profile"
 }
 
+function renderClinicalProfileValue(
+  values: string[],
+  difference?: ClinicalProfileDifference,
+) {
+  const savedValue = formatSavedValues(values)
+  if (!difference) return savedValue
+
+  return (
+    <div className="space-y-1.5">
+      <p>
+        <span className="mr-1 text-xs font-medium text-muted-foreground">Saved profile</span>
+        <span>{savedValue}</span>
+      </p>
+      <p className="text-xs text-warning">
+        <span className="mr-1 font-semibold">Current request</span>
+        <span>{difference.currentRequest}</span>
+      </p>
+    </div>
+  )
+}
+
 function joinDistinctValues(...values: Array<string | null | undefined>): string {
   return Array.from(new Set(values.filter((value): value is string => Boolean(value?.trim())))).join(" · ")
 }
@@ -181,6 +203,8 @@ interface PatientDetailClientProps {
   intakes: IntakeWithService[]
   medications: PatientMedication[]
   healthProfile: PatientHealthProfile | null
+  clinicalDifferences: ClinicalProfileDifference[]
+  comparisonRequestCreatedAt: string | null
   linkedProfileCount: number
   emailLogs: EmailLog[]
   patientNotes: PatientNote[]
@@ -198,6 +222,8 @@ export function PatientDetailClient({
   intakes,
   medications,
   healthProfile,
+  clinicalDifferences,
+  comparisonRequestCreatedAt,
   linkedProfileCount,
   emailLogs,
   patientNotes,
@@ -219,6 +245,10 @@ export function PatientDetailClient({
   const [notes, setNotes] = useState<PatientNote[]>(patientNotes)
   const [showNoteForm, setShowNoteForm] = useState(false)
   const [activeTab, setActiveTab] = useState<PatientRecordTab>("clinical")
+  const clinicalDifferenceByKey = new Map(
+    clinicalDifferences.map((difference) => [difference.key, difference]),
+  )
+  const comparisonRequestDate = formatParchmentActivityTime(comparisonRequestCreatedAt)
   const noteFormRef = useRef<HTMLDivElement | null>(null)
   const noteTextareaRef = useRef<HTMLTextAreaElement | null>(null)
 
@@ -477,18 +507,44 @@ export function PatientDetailClient({
             <CardContent className="border-t border-border/40 p-4">
               {healthProfile ? (
                 <div className="space-y-4">
+                  {clinicalDifferences.length > 0 ? (
+                    <div className="rounded-lg border border-warning-border bg-warning-light px-3 py-2">
+                      <p className="flex items-center gap-2 text-xs font-semibold text-warning">
+                        <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                        Review differences
+                      </p>
+                      <p className="mt-1 text-xs text-warning/90">
+                        Current request answers{comparisonRequestDate ? ` from ${comparisonRequestDate}` : ""} differ from the patient-entered saved profile.
+                      </p>
+                    </div>
+                  ) : null}
                   <dl className="grid gap-4 sm:grid-cols-3">
                     <div>
                       <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Allergies</dt>
-                      <dd className="mt-1 text-sm leading-relaxed text-foreground">{formatSavedValues(healthProfile.allergies)}</dd>
+                      <dd className="mt-1 text-sm leading-relaxed text-foreground">
+                        {renderClinicalProfileValue(
+                          healthProfile.allergies,
+                          clinicalDifferenceByKey.get("allergies"),
+                        )}
+                      </dd>
                     </div>
                     <div>
                       <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Conditions</dt>
-                      <dd className="mt-1 text-sm leading-relaxed text-foreground">{formatSavedValues(healthProfile.conditions)}</dd>
+                      <dd className="mt-1 text-sm leading-relaxed text-foreground">
+                        {renderClinicalProfileValue(
+                          healthProfile.conditions,
+                          clinicalDifferenceByKey.get("conditions"),
+                        )}
+                      </dd>
                     </div>
                     <div>
                       <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Current medicines</dt>
-                      <dd className="mt-1 text-sm leading-relaxed text-foreground">{formatSavedValues(healthProfile.current_medications)}</dd>
+                      <dd className="mt-1 text-sm leading-relaxed text-foreground">
+                        {renderClinicalProfileValue(
+                          healthProfile.current_medications,
+                          clinicalDifferenceByKey.get("current_medications"),
+                        )}
+                      </dd>
                     </div>
                   </dl>
                   {healthProfile.blood_type || healthProfile.notes || healthProfile.emergency_contact_name || healthProfile.emergency_contact_phone ? (

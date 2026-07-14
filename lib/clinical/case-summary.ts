@@ -79,6 +79,54 @@ export interface ClinicalCaseSummary {
   draftNote: string
 }
 
+type ClinicalProfileFieldKey = "allergies" | "conditions" | "current_medications"
+
+export interface ClinicalProfileDifference {
+  key: ClinicalProfileFieldKey
+  label: string
+  currentRequest: string
+  savedProfile: string
+  severity: "warning" | "info"
+}
+
+interface SavedClinicalProfileFacts {
+  allergies: string[]
+  conditions: string[]
+  current_medications: string[]
+}
+
+interface ClinicalProfileFieldDefinition {
+  key: ClinicalProfileFieldKey
+  label: string
+  answerKeys: string[]
+  presenceKeys: string[]
+  severity: ClinicalProfileDifference["severity"]
+}
+
+const CLINICAL_PROFILE_FIELDS: ClinicalProfileFieldDefinition[] = [
+  {
+    key: "allergies",
+    label: "Allergies",
+    answerKeys: ["known_allergies", "allergies"],
+    presenceKeys: ["has_allergies", "hasAllergies"],
+    severity: "warning",
+  },
+  {
+    key: "conditions",
+    label: "Conditions",
+    answerKeys: ["existing_conditions", "conditions"],
+    presenceKeys: ["has_conditions", "hasConditions"],
+    severity: "info",
+  },
+  {
+    key: "current_medications",
+    label: "Current medicines",
+    answerKeys: ["current_medications", "otherMedications", "other_medications"],
+    presenceKeys: ["takes_medications", "hasOtherMedications", "has_other_medications"],
+    severity: "info",
+  },
+]
+
 function raw(answers: Answers, key: string): unknown {
   return answers[key]
 }
@@ -96,6 +144,80 @@ function firstStr(answers: Answers, keys: string[]): string | undefined {
     if (value) return value
   }
   return undefined
+}
+
+function isExplicitlyAbsent(value: unknown): boolean {
+  if (value === false) return true
+  if (typeof value !== "string") return false
+  return ["no", "false", "none", "nil", "na", "n/a"].includes(value.trim().toLowerCase())
+}
+
+function readClinicalProfileAnswer(
+  answers: Answers,
+  field: ClinicalProfileFieldDefinition,
+): string | null {
+  const detail = firstStr(answers, field.answerKeys)
+  if (detail) return detail
+
+  return field.presenceKeys.some((key) => isExplicitlyAbsent(raw(answers, key)))
+    ? "None reported"
+    : null
+}
+
+const ABSENCE_VALUE_RE = /^(?:none(?: reported| known| recorded)?|no (?:known )?(?:allergies|conditions|medications|medicines)|nil|n\/?a)$/i
+
+function normalizeComparableItems(values: string[]): string[] {
+  const normalized = values
+    .flatMap((value) => value.split(/[;,\n\u2022]+/))
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean)
+    .map((value) => (
+      ABSENCE_VALUE_RE.test(value)
+        ? "__none__"
+        : value
+          .replace(/\s+/g, " ")
+          .replace(/(\d)\s+(mg|mcg|g|ml)\b/g, "$1$2")
+    ))
+
+  return Array.from(new Set(normalized)).sort()
+}
+
+/**
+ * Compares episode-specific answers with patient-entered longitudinal facts.
+ * Missing episode answers and empty saved-profile arrays are intentionally not
+ * treated as conflicts because neither proves a contradictory patient claim.
+ */
+export function buildClinicalProfileDifferences({
+  answers,
+  profile,
+}: {
+  answers: Answers
+  profile: SavedClinicalProfileFacts | null
+}): ClinicalProfileDifference[] {
+  if (!profile) return []
+
+  return CLINICAL_PROFILE_FIELDS.flatMap((field) => {
+    const currentRequest = readClinicalProfileAnswer(answers, field)
+    const savedValues = profile[field.key]
+    if (!currentRequest || savedValues.length === 0) return []
+
+    const normalizedCurrent = normalizeComparableItems([currentRequest])
+    const normalizedSaved = normalizeComparableItems(savedValues)
+    if (
+      normalizedCurrent.length === normalizedSaved.length
+      && normalizedCurrent.every((value, index) => value === normalizedSaved[index])
+    ) {
+      return []
+    }
+
+    return [{
+      key: field.key,
+      label: field.label,
+      currentRequest,
+      savedProfile: savedValues.join(" · "),
+      severity: field.severity,
+    }]
+  })
 }
 
 function bool(answers: Answers, key: string): boolean | undefined {
