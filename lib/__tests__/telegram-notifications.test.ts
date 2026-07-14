@@ -92,7 +92,7 @@ describe("Telegram request notifications", () => {
     expect(body.text).not.toContain("3 days")
   })
 
-  it("omits the ⚡ prefix when isPriority is false and renders generic message body with Review link", async () => {
+  it("includes the requested medicine without patient or payment noise", async () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => ({ result: { message_id: 42 } }) })
 
     const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
@@ -105,8 +105,7 @@ describe("Telegram request notifications", () => {
     })
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body)
-    expect(body.text).toContain("*💊 New prescription*")
-    expect(body.text).not.toContain("Atorvastatin")
+    expect(body.text).toContain("*💊 New prescription · Atorvastatin*")
     expect(body.text).not.toContain("⚡")
     expect(body.text).toContain("[Review now →]")
   })
@@ -186,12 +185,12 @@ describe("Telegram request notifications", () => {
     expect(body.text).not.toContain("2 days")
   })
 
-  it("keeps consult subtype out of Telegram titles", async () => {
+  it("includes canonical consult type labels in Telegram titles", async () => {
     const cases = [
-      { subtype: "ed", forbidden: "ED" },
-      { subtype: "hair_loss", forbidden: "hair loss" },
-      { subtype: "womens_health", forbidden: "women's health" },
-      { subtype: "weight_loss", forbidden: "weight loss" },
+      { subtype: "ed", label: "Erectile dysfunction" },
+      { subtype: "hair_loss", label: "Hair loss treatment" },
+      { subtype: "womens_health", label: "Women's health" },
+      { subtype: "weight_loss", label: "Weight management" },
     ]
 
     const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
@@ -207,9 +206,23 @@ describe("Telegram request notifications", () => {
       })
 
       const body = JSON.parse(fetchMock.mock.calls[0][1].body)
-      expect(body.text, `subtype=${c.subtype}`).toContain("*🩺 New consult*")
-      expect(body.text, `subtype=${c.subtype}`).not.toContain(c.forbidden)
+      expect(body.text, `subtype=${c.subtype}`).toContain(`*🩺 New consult · ${c.label}*`)
     }
+  })
+
+  it("escapes Markdown and strips line breaks from request detail", async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ result: { message_id: 42 } }) })
+
+    const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
+    await notifyNewIntakeViaTelegram({
+      intakeId: "12345678-1234-1234-1234-123456789abc",
+      serviceSlug: "common-scripts",
+      serviceDetail: "Medicine_name\n20mg (tablet)",
+    })
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body)
+    expect(body.text).toContain("Medicine\\_name 20mg \\(tablet\\)")
+    expect(body.text.split("\n")[0]).not.toContain("\n")
   })
 
   it("edits the message to ✓ Approved with the original service context for chat-history continuity", async () => {
@@ -224,8 +237,7 @@ describe("Telegram request notifications", () => {
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body)
     expect(body.message_id).toBe(99)
-    expect(body.text).toBe("*✓ Approved · 💊 prescription*")
-    expect(body.text).not.toContain("Atorvastatin")
+    expect(body.text).toBe("*✓ Approved · 💊 prescription · Atorvastatin*")
   })
 
   it("drops the routing emoji from the med-cert edited title to avoid stacking ✓ + ✅/❌", async () => {
@@ -256,8 +268,7 @@ describe("Telegram request notifications", () => {
     })
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body)
-    expect(body.text).toBe("*✕ Declined · 🩺 consult*")
-    expect(body.text).not.toContain("ED")
+    expect(body.text).toBe("*✕ Declined · 🩺 consult · Erectile dysfunction*")
   })
 
   it("edits the message to ❌ Manual review needed when the auto-approval pipeline declines", async () => {
@@ -275,18 +286,8 @@ describe("Telegram request notifications", () => {
     expect(body.text).not.toContain("2 days")
   })
 
-  it("keeps system Telegram alerts off unless explicitly re-enabled", async () => {
-    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ result: { message_id: 42 } }) })
-    process.env.TELEGRAM_ALL_LEVELS = "1"
-    delete process.env.TELEGRAM_SYSTEM_ALERTS_ENABLED
-
-    const { sendTelegramAlert } = await import("@/lib/notifications/telegram")
-
-    await sendTelegramAlert("*Critical test*", { severity: "critical" })
-    expect(fetchMock).not.toHaveBeenCalled()
-
-    process.env.TELEGRAM_SYSTEM_ALERTS_ENABLED = "1"
-    await sendTelegramAlert("*Critical test*", { severity: "critical" })
-    expect(fetchMock).toHaveBeenCalledOnce()
+  it("does not expose a generic automatic system-alert sender", async () => {
+    const telegram = await import("@/lib/notifications/telegram")
+    expect("sendTelegramAlert" in telegram).toBe(false)
   })
 })

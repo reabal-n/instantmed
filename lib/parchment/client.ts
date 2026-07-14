@@ -15,6 +15,11 @@ import crypto from "crypto"
 import { createLogger } from "@/lib/observability/logger"
 
 import {
+  type ParchmentErrorMetadata,
+  type ParchmentErrorReason,
+  parseParchmentErrorMetadata,
+} from "./error-metadata"
+import {
   type CreatePatientRequest,
   type CreatePatientResponse,
   createPatientResponseSchema,
@@ -43,9 +48,22 @@ const log = createLogger("parchment")
 const PARCHMENT_REQUEST_TIMEOUT_MS = 15_000
 
 export class ParchmentApiError extends Error {
-  constructor(message: string, readonly status: number) {
+  readonly code?: string
+  readonly reason: ParchmentErrorReason
+  readonly requestId?: string
+  readonly safeDetail?: string
+
+  constructor(
+    message: string,
+    readonly status: number,
+    metadata: ParchmentErrorMetadata = { reason: "unknown" },
+  ) {
     super(message)
     this.name = "ParchmentApiError"
+    this.code = metadata.code
+    this.reason = metadata.reason
+    this.requestId = metadata.requestId
+    this.safeDetail = metadata.safeDetail
   }
 }
 
@@ -283,9 +301,16 @@ export async function createPatient(
   if (!res.ok) {
     if (res.status === 401) clearTokenCache(userId)
     const body = await res.text().catch(() => "")
-    const err = new ParchmentApiError(`Parchment create patient failed: ${res.status}`, res.status)
-    log.error("Create patient failed", { status: res.status, responseBytes: body.length }, err)
-    Sentry.captureException(err, { extra: { status: res.status, responseBytes: body.length } })
+    const metadata = parseParchmentErrorMetadata(body)
+    const err = new ParchmentApiError(`Parchment create patient failed: ${res.status}`, res.status, metadata)
+    log.error("Create patient failed", {
+      status: res.status,
+      responseBytes: body.length,
+      code: metadata.code,
+      reason: metadata.reason,
+      requestId: metadata.requestId,
+    }, err)
+    Sentry.captureException(err, { extra: { status: res.status, responseBytes: body.length, ...metadata } })
     throw err
   }
 
@@ -327,9 +352,16 @@ export async function updatePatient(
   if (!res.ok) {
     if (res.status === 401) clearTokenCache(userId)
     const body = await res.text().catch(() => "")
-    const err = new ParchmentApiError(`Parchment update patient failed: ${res.status}`, res.status)
-    log.error("Update patient failed", { status: res.status, responseBytes: body.length }, err)
-    Sentry.captureException(err, { extra: { status: res.status, responseBytes: body.length } })
+    const metadata = parseParchmentErrorMetadata(body)
+    const err = new ParchmentApiError(`Parchment update patient failed: ${res.status}`, res.status, metadata)
+    log.error("Update patient failed", {
+      status: res.status,
+      responseBytes: body.length,
+      code: metadata.code,
+      reason: metadata.reason,
+      requestId: metadata.requestId,
+    }, err)
+    Sentry.captureException(err, { extra: { status: res.status, responseBytes: body.length, ...metadata } })
     throw err
   }
 

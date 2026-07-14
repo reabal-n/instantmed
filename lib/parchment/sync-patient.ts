@@ -89,6 +89,34 @@ export class ParchmentPatientSyncError extends Error {
   }
 }
 
+export function formatParchmentPatientSyncError(
+  error: ParchmentPatientSyncError,
+  options: { patientSaved?: boolean } = {},
+): string {
+  const apiError = error.cause instanceof ParchmentApiError ? error.cause : null
+  if (apiError?.reason === "health_services_directory_validation") {
+    const prefix = options.patientSaved ? "Patient saved, but " : ""
+    return `${prefix}Parchment's identity verification service failed. Your InstantMed details are saved; retry later or open the linked patient directly in Parchment.`
+  }
+
+  if (apiError?.status !== undefined && apiError.status >= 500) {
+    const prefix = options.patientSaved ? "Patient saved, but " : ""
+    return `${prefix}Parchment is temporarily unavailable. Your InstantMed details are saved; retry later.`
+  }
+
+  const prefix = options.patientSaved ? "Patient saved, but " : ""
+  return `${prefix}Parchment rejected the patient details. Check given/family name, Medicare/IHI, address, DOB, phone, and sex; then retry.`
+}
+
+export interface ParchmentPatientSyncOptions {
+  /**
+   * Normal prescribing opens reuse an already-linked Parchment patient. An
+   * explicit edit/resync keeps the default refresh behavior and pushes the
+   * current demographics to Parchment.
+   */
+  existingPatientMode?: "refresh" | "reuse"
+}
+
 function answerString(
   intakeAnswers: Record<string, unknown> | undefined,
   keys: string[],
@@ -405,6 +433,7 @@ export async function syncPatientToParchment(
   patientProfileId: string,
   prescriberParchmentUserId: string,
   intakeAnswers?: Record<string, unknown>,
+  options: ParchmentPatientSyncOptions = {},
 ): Promise<string> {
   const supabase = createServiceRoleClient()
 
@@ -434,8 +463,14 @@ export async function syncPatientToParchment(
   }
 
   let staleParchmentPatientId: string | null = null
+  const existingPatientMode = options.existingPatientMode ?? "refresh"
 
   if (existing?.parchment_patient_id) {
+    if (existingPatientMode === "reuse") {
+      log.info("Reusing existing Parchment patient for prescribing handoff")
+      return existing.parchment_patient_id
+    }
+
     try {
       await updatePatient(
         prescriberParchmentUserId,

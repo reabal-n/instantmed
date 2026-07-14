@@ -11,6 +11,10 @@ import {
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 
+import {
+  getTelegramRequestDetail,
+  loadTelegramRequestAnswers,
+} from "./request-context"
 import { notifyNewIntakeViaTelegram } from "./telegram"
 
 const log = createLogger("paid-request-telegram")
@@ -302,6 +306,20 @@ export async function sendPaidRequestTelegramNotification(
 
   const isMedCert = serviceSlug.startsWith("med-cert")
   const autoApprovalCandidate = autoApproveFlagOn && isMedCert
+  let answers: Record<string, unknown> | null = null
+  if (serviceSlug === "common-scripts") {
+    try {
+      answers = await loadTelegramRequestAnswers(input.intakeId)
+    } catch (answersError) {
+      // Context is optional: never delay or drop a paid-request page because
+      // the encrypted answers lookup failed.
+      log.warn("Prescription label unavailable for Telegram notification", {
+        intakeId: input.intakeId,
+        error: getErrorMessage(answersError),
+      })
+    }
+  }
+  const serviceDetail = getTelegramRequestDetail({ answers, serviceSlug, subtype })
 
   // Track whether the external Telegram call succeeded so the catch block
   // can distinguish "Telegram failed → allow cron retry" from "Telegram
@@ -312,7 +330,7 @@ export async function sendPaidRequestTelegramNotification(
       intakeId: input.intakeId,
       serviceSlug,
       subtype: subtype ?? undefined,
-      serviceDetail: undefined,
+      serviceDetail,
       isPriority,
       autoApprovalCandidate,
     })

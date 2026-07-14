@@ -36,7 +36,7 @@ describe("support inbox alert ownership contract", () => {
     })
     expect(heartbeat).toContain('"telegram-notifications"')
     expect(operations).toContain("Manual-only and disabled in production")
-    expect(operations).toContain("Paid request alerts remain independent")
+    expect(operations).toContain("Telegram is request-only in production")
     expect(architecture).not.toContain("support-inbox-alert/` (Gmail label aggregate only)")
     expect(architecture).toContain("manual aggregate-only support count diagnostics")
     expect(roadmap).not.toContain("support Inbox unread counts through the active aggregate-only Telegram bridge")

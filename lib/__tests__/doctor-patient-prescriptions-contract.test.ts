@@ -203,6 +203,16 @@ describe("doctor patient medication history contract", () => {
     expect(panelSource).toContain("Edit patient details")
   })
 
+  it("treats a Parchment identity-service outage as a provider recovery, not a patient edit", () => {
+    expect(panelSource).toContain("Parchment identity service unavailable")
+    expect(panelSource).toContain("Your InstantMed details are already saved")
+
+    const fixabilityStart = panelSource.indexOf("function canFixParchmentErrorFromPatientProfile")
+    const fixabilityEnd = panelSource.indexOf("\n}\n", fixabilityStart)
+    const fixabilityBody = panelSource.slice(fixabilityStart, fixabilityEnd)
+    expect(fixabilityBody).not.toContain("identity verification service failed")
+  })
+
   it("names the copied medicine in Parchment copy feedback", () => {
     expect(panelSource).toContain("getCopiedMedicineLabel")
     expect(panelSource).toContain("Copied")

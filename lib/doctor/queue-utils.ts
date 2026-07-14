@@ -14,7 +14,6 @@ export const QUEUE_REVIEW_STATUSES = [
   "awaiting_script",
 ] as const satisfies readonly IntakeStatus[]
 
-export type QueueReviewStatus = (typeof QUEUE_REVIEW_STATUSES)[number]
 export type QueueStatusTone = "review" | "info" | "script"
 
 export interface QueueTimestampInput {

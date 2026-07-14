@@ -292,6 +292,10 @@ All webhooks use signature verification (not CSRF).
 
 **Stripe admin replay path:** The webhook handler also accepts replays from the DLQ admin UI (`X-Admin-Replay: true` + `X-Admin-Replay-Secret` header). Replays are authenticated with `crypto.timingSafeEqual` against `INTERNAL_API_SECRET` and bypass signature verification (the payload was already verified on first receipt). This is intentional and audited.
 
+### Telegram Pager Boundary
+
+Production Telegram is an operator request pager, not a clinical record or general monitoring channel. Automatic messages are limited to newly paid requests, with later approval/decline represented by editing the original message. The only clinical context allowed in a title is a canonical consult type or the selected repeat-script medicine label, normalized to one line and capped at 80 characters. Patient identity, email, phone, address, Medicare/IHI, symptoms, notes, free-text medicine descriptions, payment details, and full intake answers are prohibited. Business/cron/queue alerts remain in Sentry and admin surfaces. The count-only support-inbox diagnostic bridge is unscheduled and disabled in production.
+
 ---
 
 ## Authentication & Authorization

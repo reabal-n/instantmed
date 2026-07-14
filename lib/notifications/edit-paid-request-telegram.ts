@@ -2,6 +2,10 @@ import "server-only"
 
 import { resolvePaidRequestServiceSlug } from "@/lib/notifications/paid-request-telegram"
 import {
+  getTelegramRequestDetail,
+  loadTelegramRequestAnswers,
+} from "@/lib/notifications/request-context"
+import {
   type EditTelegramMessageOptions,
   editTelegramMessageToApproved,
   editTelegramMessageToDeclined,
@@ -37,13 +41,22 @@ async function loadIntakeForEdit(
     category: row.category,
     subtype: row.subtype,
   })
+  let answers: Record<string, unknown> | null = null
+  if (serviceSlug === "common-scripts") {
+    try {
+      answers = await loadTelegramRequestAnswers(intakeId)
+    } catch {
+      // The original status update remains useful without the optional label.
+      log.warn("Prescription label unavailable while editing Telegram request", { intakeId })
+    }
+  }
 
   return {
     messageId: row.paid_request_telegram_message_id,
     opts: {
       serviceSlug: serviceSlug || undefined,
       subtype: row.subtype ?? undefined,
-      serviceDetail: undefined,
+      serviceDetail: getTelegramRequestDetail({ answers, serviceSlug, subtype: row.subtype }),
     },
   }
 }

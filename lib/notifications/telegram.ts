@@ -5,6 +5,10 @@ import { createHmac, timingSafeEqual } from "crypto"
 import { env } from "@/lib/config/env"
 import { resolveConfiguredUrl } from "@/lib/constants/resolve-configured-url"
 import { buildDoctorIntakeHref } from "@/lib/dashboard/routes"
+import {
+  getTelegramConsultLabel,
+  sanitizeTelegramRequestDetail,
+} from "@/lib/notifications/request-context"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("telegram")
@@ -115,12 +119,25 @@ function getServiceNoun(opts: Pick<TitleOptions, "serviceSlug">): string {
   return "request"
 }
 
+function getRequestTitleDetail(opts: TitleOptions): string | undefined {
+  if (opts.serviceSlug === "common-scripts") {
+    return sanitizeTelegramRequestDetail(opts.serviceDetail)
+  }
+  if (opts.serviceSlug === "consult") {
+    return sanitizeTelegramRequestDetail(opts.serviceDetail)
+      ?? getTelegramConsultLabel(opts.subtype)
+  }
+  return undefined
+}
+
 function buildTitle(opts: TitleOptions): string {
   const parts: string[] = []
   if (opts.isPriority) parts.push("⚡")
   parts.push(getServiceEmoji(opts))
   parts.push(`New ${getServiceNoun(opts)}`)
-  return `*${parts.join(" ")}*`
+  const detail = getRequestTitleDetail(opts)
+  const suffix = detail ? ` · ${escapeMarkdown(detail)}` : ""
+  return `*${parts.join(" ")}${suffix}*`
 }
 
 /**
@@ -133,7 +150,9 @@ function buildEditedTitle(prefix: string, opts: TitleOptions): string {
   const noun = getServiceNoun(opts)
   const isMedCert = opts.serviceSlug?.startsWith("med-cert")
   const middle = isMedCert ? noun : `${getServiceEmoji(opts)} ${noun}`
-  return `*${prefix} · ${middle}*`
+  const detail = getRequestTitleDetail(opts)
+  const suffix = detail && !isMedCert ? ` · ${escapeMarkdown(detail)}` : ""
+  return `*${prefix} · ${middle}${suffix}*`
 }
 
 export interface NotifyNewIntakeResult {
@@ -149,9 +168,9 @@ function parseMessageId(json: unknown): number | null {
 
 /**
  * Send a new-order notification to the doctor's Telegram.
- * Messages are PHI-minimal: broad service class and authenticated review link.
- * Medication, presenting complaint, consultation subtype, patient identity, and
- * other clinical detail must never enter Telegram.
+ * Messages are PHI-minimal: service class, a bounded canonical consult type or
+ * selected medicine label, and an authenticated review link. Patient identity,
+ * symptoms, notes, contact details, and free-text clinical detail stay out.
  * Med cert approval buttons are disabled unless explicitly enabled with a separate signing secret.
  * Other requests get a notification + Review link.
  *
@@ -385,65 +404,6 @@ export async function answerCallbackQuery(
     }
   } catch (error) {
     log.error("Failed to answer callback query", {}, error instanceof Error ? error : new Error(String(error)))
-  }
-}
-
-/**
- * Telegram system alerts are disabled by default. The doctor-facing phone
- * channel should stay reserved for new paid request notifications sent via
- * notifyNewIntakeViaTelegram().
- *
- * Temporary ops override: set TELEGRAM_SYSTEM_ALERTS_ENABLED=1.
- */
-export type TelegramSeverity = "critical" | "warning" | "info"
-
-function isSeverityAllowed(severity: TelegramSeverity): boolean {
-  void severity
-  return process.env.TELEGRAM_SYSTEM_ALERTS_ENABLED === "1"
-}
-
-/**
- * Send a plain text alert (for system events, errors, etc.).
- *
- * Disabled unless TELEGRAM_SYSTEM_ALERTS_ENABLED=1. New request alerts use
- * notifyNewIntakeViaTelegram() directly and are not affected by this gate.
- */
-export async function sendTelegramAlert(
-  message: string,
-  options: { severity?: TelegramSeverity } = {}
-): Promise<boolean> {
-  // Returns true only if the alert was actually delivered. Callers that write a
-  // cooldown/dedup row (e.g. business-alerts) MUST gate that write on this
-  // result — otherwise a transient Telegram failure burns the cooldown and
-  // suppresses re-paging for the whole window. Returns false (not throws) when
-  // disabled/unconfigured/failed so callers never crash on alerting.
-  const severity = options.severity ?? "critical"
-  if (!isSeverityAllowed(severity)) return false
-
-  const token = getToken()
-  const chatId = getChatId()
-  if (!token || !chatId) return false
-
-  try {
-    const response = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: message,
-        parse_mode: "MarkdownV2",
-        disable_web_page_preview: true,
-      }),
-    })
-    if (!response.ok) {
-      const body = await response.text()
-      log.error("Telegram alert failed", { status: response.status, body })
-      return false
-    }
-    return true
-  } catch (error) {
-    log.error("Telegram alert failed", {}, error instanceof Error ? error : new Error(String(error)))
-    return false
   }
 }
 

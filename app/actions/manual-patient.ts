@@ -16,6 +16,7 @@ import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { getSsoUrl, validateIntegration } from "@/lib/parchment/client"
 import {
+  formatParchmentPatientSyncError,
   getParchmentPatientIdentityIssues,
   ParchmentPatientIdentityError,
   ParchmentPatientSyncError,
@@ -166,7 +167,7 @@ function formatParchmentSyncError(error: unknown): string {
     return `Missing prescribing details: ${error.issues.join(", ")}`
   }
   if (error instanceof ParchmentPatientSyncError) {
-    return "Parchment rejected the patient details. Check Medicare/IHI, address, DOB, phone, and sex; then retry."
+    return formatParchmentPatientSyncError(error, { patientSaved: true })
   }
   return "Failed to sync patient to Parchment. Confirm the integration status and try again."
 }
@@ -379,7 +380,12 @@ export async function getPatientParchmentPrescribeUrlAction(
       }
     }
 
-    const parchmentPatientId = await syncPatientToParchment(patientId, callerParchmentUserId)
+    const parchmentPatientId = await syncPatientToParchment(
+      patientId,
+      callerParchmentUserId,
+      undefined,
+      { existingPatientMode: "reuse" },
+    )
     const ssoData = await getSsoUrl(
       callerParchmentUserId,
       `/embed/patients/${parchmentPatientId}/prescriptions`,
@@ -413,7 +419,7 @@ export async function getPatientParchmentPrescribeUrlAction(
     if (error instanceof ParchmentPatientSyncError) {
       log.warn("Patient profile Parchment prescribe blocked by sync failure")
       Sentry.captureException(error, { extra: { context: "patient_profile_parchment_sync" } })
-      return { success: false, error: "Parchment rejected the patient details. Check Medicare/IHI, address, DOB, phone, and sex; then retry." }
+      return { success: false, error: formatParchmentPatientSyncError(error) }
     }
 
     const connectionFailureMessage = getParchmentConnectionFailureMessage(error)
