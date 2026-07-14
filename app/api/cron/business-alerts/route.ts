@@ -39,42 +39,11 @@ import {
   STALE_HUMAN_QUEUE_CATEGORIES,
   STALE_HUMAN_QUEUE_THRESHOLD_HOURS,
 } from "@/lib/monitoring/stale-human-queue"
-import { escapeMarkdown, sendTelegramAlert } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("cron-business-alerts")
-
-/** Re-page a still-standing alert signature at most once per this window (4h). */
-const TELEGRAM_ALERT_COOLDOWN_MS = 4 * 60 * 60 * 1000
-
-/**
- * Per-metric cooldown overrides. Standing data-integrity invariants (a
- * paid+cancelled row, cert/refund orphans, missing timestamps) persist until
- * a human repairs the data — one page per day is signal; re-paging whenever
- * the surrounding alert batch changes shape is noise (2026-07-02 operator
- * complaint: the same March paid+cancelled row paged 4x in one day because
- * the batch composition kept changing the fingerprint). Volatile operational
- * metrics (SLA backlog, revenue silence) keep the default 4h window.
- */
-const TELEGRAM_METRIC_COOLDOWN_OVERRIDES_MS: Record<string, number> = {
-  ops_paid_but_cancelled: 24 * 60 * 60 * 1000,
-  ops_cert_refund_orphans: 24 * 60 * 60 * 1000,
-  ops_refund_record_anomalies: 24 * 60 * 60 * 1000,
-  ops_certificate_sent_missing_timestamp: 24 * 60 * 60 * 1000,
-  ops_approved_certificate_missing_record: 24 * 60 * 60 * 1000,
-  // Terminal click-attributed adjustment failures are unrepairable (no success
-  // row is ever written after a terminal), so the count persists for the full
-  // 90-day lookback — a 4h cadence would page ~6x/day for 90 days. One page/day
-  // is the signal, matching the standing-invariant metrics above.
-  google_ads_adjustment_terminal_click_attributed_failures: 24 * 60 * 60 * 1000,
-}
-
-const TELEGRAM_MAX_METRIC_COOLDOWN_MS = Math.max(
-  TELEGRAM_ALERT_COOLDOWN_MS,
-  ...Object.values(TELEGRAM_METRIC_COOLDOWN_OVERRIDES_MS),
-)
 
 async function getNoPurchaseRevenueWindow(
   supabase: ReturnType<typeof createServiceRoleClient>,
@@ -140,7 +109,7 @@ async function getNoPurchaseRevenueWindow(
  * when thresholds are breached. Designed to run every 30 minutes.
  *
  * Every check runs inside `runAlertSection` (fail-soft): one broken query
- * must not silence the sections after it or the Sentry/Telegram dispatch —
+ * must not silence the sections after it or the Sentry dispatch —
  * the pre-2026-07 shape threw from section 2 straight to the outer catch,
  * which is exactly how the alerting hub goes blind. A failed section becomes
  * its own critical alert instead.
@@ -548,7 +517,7 @@ export async function GET(request: NextRequest) {
     // 10. Human-required (Rx/consult) queue stalled >24h. Medical certificates
     // auto-approve at all hours, so a stalled HUMAN queue means the operator may
     // be unavailable and paid scripts/consults are piling up. Per the 2026-06-11
-    // decision we page (Telegram, critical → cooldown'd below), we do NOT
+    // decision we alert through Sentry; we do NOT
     // auto-pause the service. See lib/monitoring/stale-human-queue.ts.
     await runAlertSection({
       section: "stale_human_queue",
@@ -656,74 +625,6 @@ export async function GET(request: NextRequest) {
           },
         }
       )
-    }
-
-    // Telegram fallback so the operator is still paged when Sentry ingestion is
-    // down. On 2026-06-06 a CSP-report flood exhausted the Sentry quota and
-    // silently dropped every alert (including a 26h review-SLA breach) for days.
-    // Telegram is an independent channel. Gated by TELEGRAM_SYSTEM_ALERTS_ENABLED=1.
-    // Escalate criticals and any 24h review-SLA backlog regardless of tier.
-    const telegramWorthy = alerts.filter(
-      (a) => a.severity === "critical" || a.metric === "ops_sla_breach_backlog",
-    )
-    if (telegramWorthy.length > 0) {
-      // This cron runs every 30 min and standing conditions (SLA backlog, cert/refund
-      // orphans, a high-risk intake sitting in the queue) persist for hours — so
-      // without a cooldown the operator gets the SAME page every 30 min. The
-      // cooldown is PER METRIC (not per batch fingerprint): a standing metric
-      // that already paged must not re-page just because a different metric
-      // joined or left the batch, while a genuinely new metric still pages
-      // immediately. Last-paged times are tracked in audit_logs.
-      const lookbackSince = new Date(now.getTime() - TELEGRAM_MAX_METRIC_COOLDOWN_MS).toISOString()
-      const { data: recentAlertRows } = await supabase
-        .from("audit_logs")
-        .select("created_at, metadata")
-        .eq("action", "telegram_business_alert")
-        .gte("created_at", lookbackSince)
-
-      const lastPagedAt = new Map<string, number>()
-      for (const row of (recentAlertRows ?? []) as Array<{
-        created_at: string
-        metadata: { metrics?: string[] } | null
-      }>) {
-        const pagedAt = new Date(row.created_at).getTime()
-        if (Number.isNaN(pagedAt)) continue
-        for (const metric of row.metadata?.metrics ?? []) {
-          const previous = lastPagedAt.get(metric)
-          if (!previous || pagedAt > previous) lastPagedAt.set(metric, pagedAt)
-        }
-      }
-
-      const pageable = telegramWorthy.filter((alert) => {
-        const cooldownMs = TELEGRAM_METRIC_COOLDOWN_OVERRIDES_MS[alert.metric] ?? TELEGRAM_ALERT_COOLDOWN_MS
-        const paged = lastPagedAt.get(alert.metric)
-        return !paged || now.getTime() - paged >= cooldownMs
-      })
-
-      if (pageable.length > 0) {
-        const pagedMetrics = [...new Set(pageable.map((a) => a.metric))].sort()
-        const fingerprint = pagedMetrics.join(",")
-        const lines = pageable.map((a) => `• ${a.detail}`).join("\n")
-        const delivered = await sendTelegramAlert(escapeMarkdown(`⚠️ InstantMed business alert\n${lines}`), {
-          severity: "critical",
-        })
-        // Only burn the cooldown if the page actually went out. A transient
-        // Telegram failure must NOT suppress re-paging for the whole window.
-        if (delivered) {
-          await supabase.from("audit_logs").insert({
-            action: "telegram_business_alert",
-            actor_type: "system",
-            metadata: { fingerprint, metrics: pagedMetrics },
-            created_at: new Date().toISOString(),
-          })
-        } else {
-          logger.warn("Business alert Telegram not delivered; cooldown not written (will retry next run)", { fingerprint })
-        }
-      } else {
-        logger.info("Business alert Telegram suppressed (all metrics within cooldown)", {
-          metrics: [...new Set(telegramWorthy.map((a) => a.metric))],
-        })
-      }
     }
 
     if (alerts.length > 0) {

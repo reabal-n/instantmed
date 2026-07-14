@@ -29,6 +29,7 @@ import {
   validateIntegration,
 } from "@/lib/parchment/client"
 import {
+  formatParchmentPatientSyncError,
   getParchmentPatientIdentityIssues,
   ParchmentPatientIdentityError,
   ParchmentPatientSyncError,
@@ -302,6 +303,7 @@ export async function getParchmentPrescribeUrlAction(
       intake.patient_id,
       doctorProfile.parchment_user_id,
       answers,
+      { existingPatientMode: "reuse" },
     )
 
     // Generate SSO URL for embedded prescribing
@@ -370,7 +372,7 @@ export async function getParchmentPrescribeUrlAction(
     if (error instanceof ParchmentPatientSyncError) {
       log.warn("Parchment prescribe blocked by patient sync failure")
       Sentry.captureException(error, { extra: { context: "parchment_prescribe_patient_sync" } })
-      return { success: false, error: "Parchment rejected the patient details. Check Medicare/IHI, address, DOB, phone, and sex; then retry." }
+      return { success: false, error: formatParchmentPatientSyncError(error) }
     }
 
     const connectionFailureMessage = getParchmentConnectionFailureMessage(error)
@@ -497,6 +499,12 @@ export async function retryParchmentPatientSyncAction(
         error: `Missing prescribing details: ${error.issues.join(", ")}`,
         missingFields: error.issues,
       }
+    }
+
+    if (error instanceof ParchmentPatientSyncError) {
+      log.warn("Parchment patient sync retry failed")
+      Sentry.captureException(error, { extra: { context: "parchment_patient_sync_retry" } })
+      return { success: false, error: formatParchmentPatientSyncError(error) }
     }
 
     log.error("Failed to retry Parchment patient sync", {}, error instanceof Error ? error : new Error(String(error)))

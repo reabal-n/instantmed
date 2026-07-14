@@ -105,6 +105,8 @@ AddressAutocomplete
 
 Prescribing cases require the structured fields before checkout. They are normalized into `address_line1`, `suburb`, `state`, and `postcode`, persisted on `profiles`, visible in the doctor patient snapshot/admin prescribing identity blocker report, and used by `lib/parchment/sync-patient.ts` to build the Parchment address payload. Doctor approval into `awaiting_script` also rechecks prescribing identity server-side so legacy or imported incomplete profiles cannot enter the prescribing handoff silently.
 
+Parchment linkage and demographic refresh are separate operations. If `profiles.parchment_patient_id` already exists, normal prescribing handoffs reuse it and proceed to SSO without calling the Parchment patient-update endpoint. Doctor-created patients still sync on first link; the explicit patient edit/resync path pushes current structured given name, family name, identifiers, and address. This prevents a provider-side demographic verification outage—or a correction made only in Parchment—from blocking every later prescription open.
+
 **DB insert sequence:** INSERT `intakes` (status=pending_payment) -> INSERT `intake_answers` -> Stripe redirect -> UPDATE `intakes` status=paid (webhook) -> INSERT `intake_drafts` (via `generateDraftsForIntake`).
 
 **Tables:** `intakes`, `intake_answers`, `safety_audit_log`, `ai_chat_transcripts`, `ai_chat_audit_log`, `ai_safety_blocks`.
@@ -588,7 +590,7 @@ import { PageBreadcrumbs, Snippet, UserCard } from "@/components/uix"
 
 **Component decision tree:** See CLAUDE.md for quick-reference selection guide (shadcn vs UIX vs solid-depth components).
 
-**File organization:** `components/ui/` (47 top-level primitives), `components/shared/` (15 top-level shared files), `components/uix/` (UIX wrappers), `components/operator/` (staff cockpit shell/page/split-pane/local action palettes), plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
+**File organization:** core primitives in `components/ui/`, shared cross-surface components in `components/shared/`, UIX wrappers in `components/uix/`, staff cockpit shell/page/split-pane/action palettes in `components/operator/`, plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
 
 ### Operator Components
 
@@ -744,8 +746,8 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `emails/`, `features/`, `settings/`, `ops/`, `analytics/` |
 | `app/doctor/` | Doctor portal under the shared staff shell | `intakes/[id]/` (review detail), `patients/`, `settings/`; queue/scripts entry points resolve through `/dashboard` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
-| `app/api/` | API routes (88 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/`, and the count-only `internal/support-inbox-alert/` bridge |
-| `app/api/cron/` | Scheduled jobs (29) | `stale-queue/`, `pending-queue-reminders/`, `support-inbox-alert/` (Gmail label aggregate only), `email-dispatcher/`, `health-check`, `google-ads-conversions`, `google-ads-diagnostics-watch`, `cert-reactivation`, `parchment-smoke`, etc. See OPERATIONS.md |
+| `app/api/` | API routes (88 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/`, and the count-only `internal/support-inbox-alert/` diagnostic bridge |
+| `app/api/cron/` | Scheduled jobs (27) | `stale-queue/`, `telegram-notifications/`, `email-dispatcher/`, `health-check`, `google-ads-conversions`, `google-ads-diagnostics-watch`, `cert-reactivation`, `parchment-smoke`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | 7 handlers: `checkout-session-completed`, `checkout-session-expired`, `checkout-session-async-payment-succeeded/failed`, `charge-refunded`, `charge-dispute-created`, `payment-intent-payment-failed`. Repeat Rx subscription handlers are retired; unsupported Stripe events are acknowledged and claimed by the dispatcher without running business logic. Registered in `handlers/index.ts`. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
 | `app/(dev)/` | Dev-only routes | Email preview only; retired `/cert-preview` and `/sentry-test` prefixes remain fail-closed in middleware |
@@ -803,7 +805,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `lib/stripe/` | Payments | `checkout.ts`, `guest-checkout.ts`, `price-mapping.ts`, `client.ts` |
 | `lib/seo/data/` | SEO content | `conditions.ts`, `symptoms.ts`, `guides.ts`, `comparisons.ts`, `audience-pages.ts`, `condition-location-combos.ts`, `deep-city-content.ts` — drive programmatic pages |
 | `lib/blog/` | Health guide content system | MDX loader/parser, article registry, shared heading slugs, visual registry |
-| `lib/notifications/` | Alerts | `telegram.ts` (ops alerts), `service.ts` (payment notifications), `support-inbox-alert.ts` + processor (aggregate-only Gmail count paging) |
+| `lib/notifications/` | Alerts | `telegram.ts` + `paid-request-telegram.ts` (broad-service-class request pager), `service.ts` (payment notifications), `support-inbox-alert.ts` + processor (manual aggregate-only support count diagnostics) |
 | `lib/observability/` | Logging/monitoring | `logger.ts` (structured logger), `sentry.ts` (helpers) |
 | `lib/feature-flags.ts` | Feature flags | DB-backed via `feature_flags` table, `getFeatureFlags()` |
 | `lib/operational-controls/` | Runtime controls | Capacity fail-closed checks and medication-blocklist answer extraction |
@@ -910,13 +912,13 @@ Partial index on actionable states only: `idx_intakes_auto_approval_active` on `
 
 | File | Role |
 |------|------|
-| `lib/clinical/auto-approval-state.ts` | Atomic CAS state transitions — all Sentry/PostHog/Telegram observability lives here |
+| `lib/clinical/auto-approval-state.ts` | Atomic CAS state transitions with Sentry/PostHog observability |
 | `lib/clinical/auto-approval-pipeline.ts` | Orchestrator: claim → eligibility → doctor select → execute → mark terminal state |
 | `lib/clinical/auto-approval.ts` | Eligibility engine (unchanged) |
 
 **Post-approval doctor oversight:** Auto-approval is not the end of the governance workflow. `getPendingBatchReviews()` reads unresolved auto-approved medical certificates oldest-first (`batch_reviewed_at IS NULL`) for staff who hold `review_med_certs`. The `/dashboard` banner exposes only the aggregate count and oldest age; opening the oldest certificate loads the normal clinical record and requires one explicit outcome. `markBatchReviewed()` compare-and-set stamps one eligible certificate and writes an `ai_audit_log` review receipt. `revokeAIApproval()` is the second valid outcome: it revokes the certificate, returns the intake to manual review, and stamps the same `batch_reviewed_at` / `batch_reviewed_by` receipt. The database permits that otherwise-forbidden `approved → in_review` reversal only when the original intake was AI-approved, a revoked issued-certificate row exists, and both batch-review receipt fields are present. There is no bulk action and no silent backfill.
 
-`getBatchReviewHealth()` supplies aggregate-only pending, overdue, and oldest-age values to `/api/cron/business-alerts`. The critical `med_cert_batch_review_overdue` metric pages through the existing per-metric cooldown without including intake IDs, patient IDs, or PHI.
+`getBatchReviewHealth()` supplies aggregate-only pending, overdue, and oldest-age values to `/api/cron/business-alerts`. The critical `med_cert_batch_review_overdue` metric is captured in Sentry without including intake IDs, patient IDs, or PHI.
 
 **Race condition handling:**
 
@@ -928,7 +930,7 @@ Partial index on actionable states only: `idx_intakes_auto_approval_active` on `
 | Doctor acts while auto-approval is `attempting` | Manual med-cert approval force-takes only the `System (Auto-Approve)` claim, parks `auto_approval_state='needs_doctor'` with `manual_doctor_override`, then continues through the normal certificate approval pipeline |
 | Pipeline succeeds, no release needed | `markApproved()` is atomic — no release step |
 
-**Alerting:** `needs_doctor` (exhausted retries) and stale recovery trigger Telegram. Sentry: `warning` on exhausted retries and stale recovery; `info` on approval and deterministic `needs_doctor`.
+**Alerting:** Sentry records `warning` on exhausted retries and stale recovery, and `info` on approval and deterministic `needs_doctor`. These state changes do not create Telegram messages; the original paid-request message may be edited when its review status changes.
 
 ---
 

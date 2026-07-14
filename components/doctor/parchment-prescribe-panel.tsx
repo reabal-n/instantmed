@@ -51,6 +51,20 @@ function getParchmentErrorCopy(error: string | null): { title: string; detail: s
     }
   }
 
+  if (error.startsWith("Parchment's identity verification service failed")) {
+    return {
+      title: "Parchment identity service unavailable",
+      detail: "Your InstantMed details are already saved. Retry later or open the linked patient directly in Parchment.",
+    }
+  }
+
+  if (error.startsWith("Parchment is temporarily unavailable")) {
+    return {
+      title: "Parchment temporarily unavailable",
+      detail: "Your InstantMed details are already saved. Retry later.",
+    }
+  }
+
   if (error.startsWith("Parchment rejected the patient details")) {
     return {
       title: "Parchment rejected patient details",

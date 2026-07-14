@@ -1,11 +1,84 @@
 import { describe, expect, it } from "vitest"
 
+import * as parchmentClient from "@/lib/parchment/client"
+import { parseParchmentErrorMetadata } from "@/lib/parchment/error-metadata"
 import {
   buildCreatePatientRequest,
   buildUpdatePatientRequest,
   getParchmentPatientIdentityIssues,
 } from "@/lib/parchment/sync-patient"
 import type { Profile } from "@/types/db"
+
+describe("Parchment error metadata", () => {
+  it("classifies the provider HSD failure without retaining arbitrary response detail", () => {
+    const providerFailure = parseParchmentErrorMetadata(JSON.stringify({
+      code: "INTERNAL_ERROR",
+      error: {
+        detail: "The record could not be validated against the Health Servies Directory",
+      },
+      requestId: "req_safe_123",
+    }))
+    expect(providerFailure).toEqual({
+      code: "INTERNAL_ERROR",
+      reason: "health_services_directory_validation",
+      requestId: "req_safe_123",
+      safeDetail: "The record could not be validated against the Health Services Directory.",
+    })
+
+    const arbitraryFailure = parseParchmentErrorMetadata(JSON.stringify({
+      code: "INTERNAL_ERROR",
+      error: { detail: "Patient Jane Example could not be updated" },
+      requestId: "req_safe_456",
+    }))
+    expect(arbitraryFailure?.safeDetail).toBeUndefined()
+  })
+
+  it("separates provider identity-service failures from fixable patient detail errors", async () => {
+    const syncModule = await import("@/lib/parchment/sync-patient")
+    const format = (syncModule as typeof syncModule & {
+      formatParchmentPatientSyncError?: (
+        error: InstanceType<typeof syncModule.ParchmentPatientSyncError>,
+        options?: { patientSaved?: boolean },
+      ) => string
+    }).formatParchmentPatientSyncError
+
+    expect(format).toBeTypeOf("function")
+
+    const providerError = new syncModule.ParchmentPatientSyncError(
+      "Failed to refresh patient details in Parchment",
+      new parchmentClient.ParchmentApiError("Parchment update patient failed: 500", 500, {
+        code: "INTERNAL_ERROR",
+        reason: "health_services_directory_validation",
+        requestId: "req_safe_123",
+      }),
+    )
+    expect(format?.(providerError, { patientSaved: true })).toBe(
+      "Patient saved, but Parchment's identity verification service failed. Your InstantMed details are saved; retry later or open the linked patient directly in Parchment.",
+    )
+
+    const genericProviderError = new syncModule.ParchmentPatientSyncError(
+      "Failed to refresh patient details in Parchment",
+      new parchmentClient.ParchmentApiError("Parchment update patient failed: 500", 500, {
+        code: "INTERNAL_ERROR",
+        reason: "unknown",
+        requestId: "req_safe_456",
+      }),
+    )
+    expect(format?.(genericProviderError)).toBe(
+      "Parchment is temporarily unavailable. Your InstantMed details are saved; retry later.",
+    )
+
+    const validationError = new syncModule.ParchmentPatientSyncError(
+      "Failed to refresh patient details in Parchment",
+      new parchmentClient.ParchmentApiError("Parchment update patient failed: 422", 422, {
+        reason: "validation",
+      }),
+    )
+    expect(format?.(validationError)).toBe(
+      "Parchment rejected the patient details. Check given/family name, Medicare/IHI, address, DOB, phone, and sex; then retry.",
+    )
+  })
+})
 
 const baseProfile = {
   id: "profile-1",
