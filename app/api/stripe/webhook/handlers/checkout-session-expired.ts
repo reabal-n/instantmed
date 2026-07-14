@@ -5,6 +5,7 @@ import { env } from "@/lib/config/env"
 import { buildExpiredCheckoutStartUrl } from "@/lib/email/recovery-links"
 import { sendSessionExpiredEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
+import { PAYMENT_REPLACEMENT_LOCK } from "@/lib/stripe/payment-integrity"
 
 import type { HandlerResult, WebhookContext } from "./types"
 import { tryClaimEvent } from "./utils"
@@ -49,6 +50,7 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
         .eq("id", intakeId)
         .eq("payment_id", session.id)
         .eq("status", "pending_payment")
+        .or(`checkout_error.is.null,checkout_error.neq.${PAYMENT_REPLACEMENT_LOCK}`)
         .select("id")
         .maybeSingle()
 

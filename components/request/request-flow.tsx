@@ -1055,9 +1055,10 @@ export function RequestFlow({
         </div>
       </main>
 
-      {/* Sticky bottom CTA bar for mobile — shown on every step including the
-          unified review+pay step (the retired checkout-step had its own bar). */}
-      {(
+      {/* Mirror the current step action on mobile, including review+pay. Safety
+          terminal states intentionally expose no primary action, so the bar
+          disappears with the in-step button instead of showing a stale CTA. */}
+      {mobilePrimaryAction.available && (
         <div
           data-intake-mobile-action-bar="true"
           className="fixed inset-x-0 z-40 bg-background/95 backdrop-blur border-t px-4 pt-2.5 pb-3 sm:hidden"

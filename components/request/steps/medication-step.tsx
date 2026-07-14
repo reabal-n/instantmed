@@ -29,7 +29,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { usePostHog } from "@/lib/analytics/posthog-context"
-import { CONTROLLED_SUBSTANCE_DISCLAIMER, isControlledSubstance } from "@/lib/clinical/intake-validation"
+import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { type DedicatedServiceMatch, detectDedicatedServiceForMedication } from "@/lib/clinical/medication-service-routing"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import {
@@ -39,6 +39,7 @@ import {
 } from "@/lib/request/intake-answer-normalizers"
 import { addRecentMedication, getSmartDefaults } from "@/lib/request/preferences"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { deriveRepeatMedicationTerminalBlock } from "@/lib/request/terminal-safety-blocks"
 
 import { FormField } from "../form-field"
 import { useRequestStore } from "../store"
@@ -109,11 +110,11 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [controlledBlock, setControlledBlock] = useState<string | null>(null)
   // Subtype the patient explicitly chose to keep as a repeat (clears the steer).
   const [steerDismissedSubtype, setSteerDismissedSubtype] = useState<string | null>(null)
   const [blockedReasons, setBlockedReasons] = useState<string[]>([])
   const [recentMeds, setRecentMeds] = useState<RecentMedication[]>([])
+  const controlledBlock = deriveRepeatMedicationTerminalBlock(answers)
 
   // Load recent medications on mount
   useEffect(() => {
@@ -153,16 +154,6 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     }
   }, [setAnswer, setAnswers])
 
-  const checkForControlledSubstance = useCallback((meds: MedicationEntry[]) => {
-    for (const med of meds) {
-      if (med.name && isControlledSubstance(med.name)) {
-        setControlledBlock(CONTROLLED_SUBSTANCE_DISCLAIMER.message)
-        return
-      }
-    }
-    setControlledBlock(null)
-  }, [])
-
   const handleMedicationNameChange = (index: number, value: string) => {
     const updated = [...medications]
     updated[index] = {
@@ -171,7 +162,6 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       pbsCode: value ? "MANUAL" : "",
     }
     syncToStore(updated)
-    checkForControlledSubstance(updated)
     setErrors((prev) => {
       const next = { ...prev }
       delete next.medication
@@ -202,7 +192,6 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       pbsCode: med.pbsCode || "MANUAL",
     }
     syncToStore(updated)
-    checkForControlledSubstance(updated)
   }
 
   // Steer medicines that have a dedicated service (hair loss / women's health)
@@ -306,10 +295,10 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       {controlledBlock && (
         <Alert variant="destructive">
           <ShieldAlert className="w-4 h-4" />
-          <AlertTitle>{CONTROLLED_SUBSTANCE_DISCLAIMER.title}</AlertTitle>
+          <AlertTitle>{controlledBlock.title}</AlertTitle>
           <AlertDescription className="text-xs">
-            <p>{controlledBlock}</p>
-            <p className="mt-1 font-medium">{CONTROLLED_SUBSTANCE_DISCLAIMER.advice}</p>
+            <p>{controlledBlock.reason}</p>
+            <p className="mt-1 font-medium">{controlledBlock.advice}</p>
           </AlertDescription>
         </Alert>
       )}

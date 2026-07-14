@@ -348,6 +348,7 @@ Every triage outcome and external prescribing handoff is now reconstructable fro
 
 - Explicit consent checkbox required at each intake submission (not implied by signup)
 - Consent timestamp must be recorded in compliance audit log per intake
+- Any material answer or identity change invalidates the prior confirmation and timestamp, requiring the patient to confirm again before submission
 - AHPRA expects documented informed consent for each episode of care
 
 ### Required Disclosures (Before Service)

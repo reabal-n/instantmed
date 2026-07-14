@@ -78,6 +78,10 @@ Medicare number is stored in both `profiles.medicare_number` (plaintext) and `pr
 
 The Phase 2 PHI fields (added March 2026) are in dual-write mode — plaintext and encrypted columns are both written on every write, and reads prefer the encrypted column with a plaintext fallback. This is indefinitely safe. Post-launch, if a plaintext cutover is desired for non-medicare fields, create a new plan at that time.
 
+**Payment-safety exception:** retry and signed-resume clinical revalidation use `getIntakeAnswersForPaymentSafety()`. Once `intake_answers.answers_encrypted` exists, that envelope is authoritative: disabled encrypted reads, malformed ciphertext, missing keys, decrypt failure, or a non-object payload fail closed before Stripe. Plaintext fallback is permitted only for a legacy row with no encrypted envelope.
+
+**Guest payment completion proof:** public account-completion pages and guest account email CTAs require the high-entropy Checkout Session ID to exactly match the intake's current `payment_id`. A bare intake UUID never exposes paid order details or renders payment-success UI.
+
 ### Dual-Write Pattern
 
 During migration, all writes store **both** plaintext and encrypted values. Reads prefer encrypted, fall back to plaintext. This allows:

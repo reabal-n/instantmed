@@ -43,8 +43,12 @@ vi.mock("@/lib/auth/helpers", () => ({
 vi.mock("@/lib/rate-limit/redis", () => ({
   checkServerActionRateLimit: vi.fn(async () => ({ success: true })),
 }))
+vi.mock("@/lib/data/intake-answers", () => ({
+  getIntakeAnswersForPaymentSafety: vi.fn(),
+}))
 
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { getIntakeAnswersForPaymentSafety } from "@/lib/data/intake-answers"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { runClinicalValidation } from "@/lib/stripe/checkout/clinical-validation"
 import { retryPaymentForIntakeAction } from "@/lib/stripe/checkout/retry-payment"
@@ -127,6 +131,10 @@ describe("retry-payment path (retryPaymentForIntakeAction)", () => {
     mock(getAuthenticatedUserWithProfile).mockResolvedValue({
       user: { id: "user-1", email: "jane@example.com" },
       profile: { id: "pat-1", stripe_customer_id: null },
+    })
+    mock(getIntakeAnswersForPaymentSafety).mockResolvedValue({
+      certificate_type: "work",
+      duration: "1",
     })
     mockSupabaseSingle.mockResolvedValue({ data: retryableIntake, error: null })
   })

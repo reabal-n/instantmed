@@ -76,6 +76,25 @@ describe("med-cert checkout high-stakes server block (B4)", () => {
     expect("error" in result ? result.error : "").toMatch(/not been charged/i)
   })
 
+  it.each([
+    "symptoms_description",
+    "symptom_details",
+    "symptomDetails",
+    "symptomsDescription",
+    "additional_info",
+    "additionalInfo",
+    "additional_information",
+  ])("blocks high-stakes wording stored under the %s answer alias", async (answerKey) => {
+    const result = await runClinicalValidation(
+      medCertInput("Fever and sore throat since yesterday", {
+        [answerKey]: "I have a migraine and need this certificate to defer my exam",
+      }),
+    )
+
+    expect(result.ok).toBe(false)
+    expect("error" in result ? result.error : "").toMatch(/not been charged/i)
+  })
+
   it("does not high-stakes-block an ordinary sick-day request", async () => {
     const result = await runClinicalValidation(
       medCertInput("gastro since last night, cramps and vomiting, need a day off work"),

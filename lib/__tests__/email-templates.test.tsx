@@ -537,6 +537,7 @@ describe("Email Templates", () => {
           amount="$19.95"
           requestId="REQ-011"
           isGuest={true}
+          completeAccountUrl={`${APP_URL}/auth/complete-account?intake_id=REQ-011&session_id=cs_test`}
           appUrl={APP_URL}
         />
       )

@@ -418,14 +418,36 @@ jobs:
           pnpm exec playwright test --project=chromium
           e2e/unified-request-flow.spec.ts
           e2e/consult-subtypes.spec.ts
+          e2e/intake-terminal-blocks.spec.ts
           e2e/parchment-webhook.spec.ts
+
+      - name: Run signed guest resume safety E2E (Chromium)
+        if: ${{ always() && steps.verify_e2e_secrets.outcome == 'success' }}
+        env:
+          PLAYWRIGHT: '1'
+          NEXT_PUBLIC_PLAYWRIGHT: '1'
+          E2E_SECRET: ${{ secrets.E2E_SECRET }}
+          INTERNAL_API_SECRET: ${{ secrets.E2E_SECRET }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          PHI_ENCRYPTION_ENABLED: 'true'
+          PHI_ENCRYPTION_READ_ENABLED: 'true'
+          PHI_ENCRYPTION_WRITE_ENABLED: 'true'
+          PHI_MASTER_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_APP_URL: http://localhost:3001
+          PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-checkout-resume
+        run: pnpm exec playwright test --project=chromium --output=test-results-checkout-resume e2e/checkout-resume.spec.ts
 
       - name: Upload test results
         uses: actions/upload-artifact@v7.0.1
         if: always()
         with:
           name: playwright-report
-          path: playwright-report/
+          path: |
+            playwright-report/
+            playwright-report-checkout-resume/
           retention-days: 7
 
       - name: Upload test traces on failure
@@ -433,5 +455,7 @@ jobs:
         if: failure()
         with:
           name: playwright-traces
-          path: test-results/
+          path: |
+            test-results/
+            test-results-checkout-resume/
           retention-days: 7

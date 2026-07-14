@@ -87,6 +87,16 @@ export interface HighStakesCheck {
   matched?: string
 }
 
+const HIGH_STAKES_ANSWER_KEYS = [
+  "symptoms_description",
+  "symptom_details",
+  "symptomDetails",
+  "symptomsDescription",
+  "additional_info",
+  "additionalInfo",
+  "additional_information",
+] as const
+
 export function checkHighStakesUseCase(text: string | null | undefined): HighStakesCheck {
   if (!text) return { isHighStakes: false }
   for (const { pattern, reason } of HIGH_STAKES_PATTERNS) {
@@ -96,6 +106,23 @@ export function checkHighStakesUseCase(text: string | null | undefined): HighSta
     }
   }
   return { isHighStakes: false }
+}
+
+/**
+ * Evaluate every free-text alias accepted by current and legacy med-cert
+ * intake payloads. Checkout creation and retry-payment must call this same
+ * helper so a saved request cannot bypass the high-stakes gate through an
+ * older answer shape.
+ */
+export function checkHighStakesAnswers(
+  answers: Record<string, unknown>,
+): HighStakesCheck {
+  const text = HIGH_STAKES_ANSWER_KEYS
+    .map((key) => answers[key])
+    .filter((value): value is string => typeof value === "string" && value.length > 0)
+    .join("\n")
+
+  return checkHighStakesUseCase(text)
 }
 
 /**

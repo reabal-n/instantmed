@@ -13,6 +13,8 @@ import { cookies } from "next/headers"
 
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
+import { getIntakeAnswersForPaymentSafety } from "@/lib/data/intake-answers"
 import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
@@ -24,11 +26,20 @@ import { reportCheckoutSessionFailure } from "../checkout-error-alarm"
 import { getOptionalStripePriceEnv, getPriceIdForRequest, normalizeStripePriceId, stripe } from "../client"
 import { buildPaymentIntentMetadata, canRetryPaymentForIntake } from "../payment-integrity"
 import { createReferralCouponIfEligible } from "../referral-coupon"
+import {
+  attachCheckoutSession,
+  cancelHighStakesUnpaidIntake,
+  claimCheckoutSessionReplacement,
+  invalidateCheckoutSessionForSafety,
+} from "./checkout-session-safety"
 import { getBaseUrl, getServiceSlug, isValidUrl } from "./helpers"
+import { getHighStakesCheckoutBlock, isMedicalCertificateIntake } from "./high-stakes-validation"
 import type { CheckoutResult } from "./types"
 
 const logger = createLogger("stripe-checkout-retry")
 
+const RETRY_PAYMENT_STATE_ERROR =
+  "No new payment session was created. Please refresh your request status. If you completed payment, contact support before trying again."
 export async function retryPaymentForIntakeAction(intakeId: string): Promise<CheckoutResult> {
   try {
     const authUser = await getAuthenticatedUserWithProfile()
@@ -50,7 +61,7 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
 
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
-      .select("*, service:services!service_id(id, slug, name, type, price_cents), answers:intake_answers(answers)")
+      .select("*, service:services!service_id(id, slug, name, type, price_cents)")
       .eq("id", intakeId)
       .eq("patient_id", patientId)
       .single()
@@ -66,12 +77,64 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     // Re-evaluate safety so a saved-then-retried intake cannot bypass new
     // safety rules introduced after the original submission.
     const categoryForSafety = intake.category as ServiceCategory | null
-    const serviceForSafety = intake.service as { slug: string; price_cents: number } | null
+    const serviceForSafety = intake.service as {
+      slug: string
+      price_cents: number
+      type?: string | null
+    } | null
     const serviceSlugForSafety =
       serviceForSafety?.slug ||
-      getServiceSlug(categoryForSafety || "medical_certificate", intake.subtype || "")
-    const intakeAnswers =
-      (intake.answers as Array<{ answers: Record<string, unknown> }> | null)?.[0]?.answers || {}
+      (categoryForSafety ? getServiceSlug(categoryForSafety, intake.subtype || "") : "consult")
+    const intakeAnswers = await getIntakeAnswersForPaymentSafety(intake.id)
+    if (intakeAnswers === null) {
+      logger.error(
+        "Could not read persisted answers before payment retry",
+        { intakeId: intake.id },
+        new Error("Authoritative intake answer read failed"),
+      )
+      return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
+    }
+
+    const isMedicalCertificate = isMedicalCertificateIntake(categoryForSafety, serviceForSafety)
+    const highStakesBlock = isMedicalCertificate
+      ? getHighStakesCheckoutBlock(intakeAnswers)
+      : null
+
+    if (highStakesBlock) {
+      logger.warn("High-stakes use case blocked retry payment", {
+        intakeId,
+        matched: highStakesBlock.matched,
+        serviceSlug: serviceSlugForSafety,
+      })
+
+      await recordSafetyEvaluationForOperators({
+        answers: intakeAnswers,
+        context: "retry_payment",
+        requestId: intakeId,
+        result: highStakesBlock.safetyCheck,
+        serviceSlug: serviceSlugForSafety,
+      })
+
+      const cancellation = await cancelHighStakesUnpaidIntake({
+        initialState: {
+          payment_id: intake.payment_id,
+          payment_status: intake.payment_status,
+          status: intake.status,
+        },
+        intakeId: intake.id,
+        patientId,
+        source: "retry_payment",
+        supabase,
+      })
+
+      if (cancellation === "cancelled") {
+        revalidatePatient({ intakeId })
+        revalidateStaff({ intakeId })
+        return { success: false, error: highStakesBlock.retryPaymentError }
+      }
+
+      return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
+    }
 
     const fieldCheck = validateSafetyFieldsPresent(serviceSlugForSafety, intakeAnswers)
     if (!fieldCheck.valid) {
@@ -121,23 +184,6 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
         error:
           safetyCheck.blockReason ||
           "This request cannot be processed online. Please see your regular doctor.",
-      }
-    }
-
-    // Expire any prior session before creating the next one. Stale Checkout
-    // Sessions can otherwise still complete server-side after retry.
-    if (intake.payment_id) {
-      try {
-        await stripe.checkout.sessions.expire(intake.payment_id)
-        logger.info("Expired previous checkout session", {
-          sessionId: intake.payment_id,
-          intakeId,
-        })
-      } catch (expireError) {
-        logger.debug("Could not expire previous session (may be completed/expired)", {
-          sessionId: intake.payment_id,
-          error: expireError instanceof Error ? expireError.message : String(expireError),
-        })
       }
     }
 
@@ -223,6 +269,43 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
         !authUser.profile.stripe_customer_id && patientEmail ? ("always" as const) : undefined,
     }
 
+    const replacementState = {
+      checkout_error: intake.checkout_error as string | null,
+      payment_id: intake.payment_id as string | null,
+      payment_status: intake.payment_status as string | null,
+      status: intake.status as string | null,
+    }
+    const replacementClaim = await claimCheckoutSessionReplacement({
+      initialState: replacementState,
+      intakeId: intake.id,
+      patientId,
+      source: "retry_payment",
+      supabase,
+    })
+    if (
+      replacementClaim.outcome === "state_changed" ||
+      replacementClaim.outcome === "unresolved"
+    ) {
+      return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
+    }
+    // Claim pending rows before expiring their current Session so the expiry
+    // webhook cannot strand the intake between Stripe expiry and replacement
+    // attachment. checkout_failed rows are already ignored by that webhook.
+    if (intake.payment_id) {
+      const invalidation = await invalidateCheckoutSessionForSafety(
+        intake.payment_id,
+        intake.id,
+        {
+          intakeStatus: intake.status,
+          paymentStatus: intake.payment_status,
+          storedPaymentId: intake.payment_id,
+        },
+      )
+      if (invalidation !== "invalidated") {
+        return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
+      }
+    }
+
     let session
     try {
       // Stable retry idempotency key derived from intake + previous payment.
@@ -247,45 +330,26 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     }
 
     if (!session.url) {
+      await invalidateCheckoutSessionForSafety(session.id, intake.id)
       return { success: false, error: "Failed to create checkout session. Please try again." }
     }
 
-    // Reset retryable failures to a fresh pending checkout session.
-    const { data: retryRows, error: retryUpdateError } = await supabase
-      .from("intakes")
-      .update({
-        payment_id: session.id,
-        payment_status: "pending",
-        status: "pending_payment",
-        checkout_error: null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", intake.id)
-      .in("status", ["pending_payment", "checkout_failed"])
-      .in("payment_status", ["pending", "unpaid", "failed"])
-      .select("id")
+    const attachResult = await attachCheckoutSession({
+      expectedPaymentId: intake.payment_id,
+      intakeId: intake.id,
+      patientId,
+      sessionId: session.id,
+      source: "retry_payment",
+      supabase,
+    })
 
-    if (retryUpdateError) {
-      logger.error("Failed to attach retry checkout session", { intakeId: intake.id }, retryUpdateError)
-      return { success: false, error: "Failed to prepare payment retry. Please try again." }
-    }
-
-    // Zero rows = the intake stopped being retryable between canRetry and this
-    // write (most likely a concurrent paid webhook landed). Never hand back a
-    // payable URL for an already-paid intake.
-    if (!retryRows || retryRows.length === 0) {
-      logger.warn("Retry attach matched 0 rows - intake no longer retryable (likely just paid)", {
-        intakeId: intake.id,
-        sessionId: session.id,
-      })
-      try {
-        await stripe.checkout.sessions.expire(session.id)
-      } catch {
-        // Best effort - the session expires on its own after 24h.
-      }
+    if (attachResult.outcome !== "attached" && attachResult.outcome !== "already_attached") {
       return {
         success: false,
-        error: "This request has already been paid — no further payment is needed. Please refresh to see its status.",
+        error: attachResult.outcome === "state_changed" &&
+          attachResult.currentState?.payment_status === "paid"
+          ? "This request has already been paid — no further payment is needed. Please refresh to see its status."
+          : RETRY_PAYMENT_STATE_ERROR,
       }
     }
 

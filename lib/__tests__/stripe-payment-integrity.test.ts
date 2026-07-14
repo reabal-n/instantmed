@@ -4,6 +4,8 @@ import {
   buildPaymentIntentMetadata,
   canCancelUnpaidCheckoutIntake,
   canRetryPaymentForIntake,
+  resolveCompleteAccountAmountCents,
+  resolveCompleteAccountPaymentState,
   resolveGuestDuplicateCheckoutRecovery,
   validateCheckoutSessionIntakeMatch,
 } from "@/lib/stripe/payment-integrity"
@@ -85,9 +87,57 @@ describe("Stripe payment integrity helpers", () => {
         status: "paid",
       },
     })).toEqual({
-      checkoutUrl: "https://instantmed.example/auth/complete-account?intake_id=intake-2",
+      checkoutUrl: "https://instantmed.example/auth/complete-account?intake_id=intake-2&session_id=cs_paid",
       intakeId: "intake-2",
       success: true,
     })
+  })
+
+  it("keeps complete-but-unpaid guest payments in processing until payment is confirmed", () => {
+    expect(resolveCompleteAccountPaymentState({
+      intakePaymentStatus: "pending",
+      sessionMatches: true,
+      sessionState: "payment_in_flight",
+    })).toBe("processing")
+
+    expect(resolveCompleteAccountPaymentState({
+      intakePaymentStatus: "pending",
+      sessionMatches: true,
+      sessionState: "paid",
+    })).toBe("paid")
+
+    expect(resolveCompleteAccountPaymentState({
+      intakePaymentStatus: "paid",
+      sessionMatches: false,
+      sessionState: null,
+    })).toBe("unconfirmed")
+  })
+
+  it("does not confirm a Stripe payment when the requested session is not stored", () => {
+    expect(resolveCompleteAccountPaymentState({
+      intakePaymentStatus: "pending",
+      sessionMatches: false,
+      sessionState: "paid",
+    })).toBe("unconfirmed")
+  })
+
+  it("uses Stripe's charged total while the paid webhook is still reconciling the intake", () => {
+    expect(resolveCompleteAccountAmountCents({
+      intakeAmountCents: 4995,
+      sessionAmountTotal: 4000,
+      sessionState: "paid",
+    })).toBe(4000)
+
+    expect(resolveCompleteAccountAmountCents({
+      intakeAmountCents: 4995,
+      sessionAmountTotal: 5990,
+      sessionState: "paid",
+    })).toBe(5990)
+
+    expect(resolveCompleteAccountAmountCents({
+      intakeAmountCents: 4995,
+      sessionAmountTotal: 4000,
+      sessionState: "payment_in_flight",
+    })).toBe(4995)
   })
 })

@@ -11,8 +11,21 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { usePostHog } from "@/lib/analytics/posthog-context"
+import {
+  exactStringValue,
+  PILL_CONTRACEPTION_TYPE_VALUES,
+  PILL_CURRENT_CONTRACEPTION_VALUES,
+  PILL_PREGNANCY_STATUS_VALUES,
+  PILL_YES_NO_VALUES,
+} from "@/lib/clinical/womens-health-pill"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import {
+  buildPillPregnancyTerminalBlockCorrection,
+  buildUtiTerminalBlockCorrection,
+  derivePillPregnancyTerminalBlock,
+  deriveUtiTerminalBlock,
+} from "@/lib/request/terminal-safety-blocks"
 
 import { useRequestStore } from "../store"
 
@@ -36,10 +49,8 @@ function FieldError({ message }: { message?: string }) {
 
 export default function WomensHealthAssessmentStep({ serviceType, onNext, onBack }: WomensHealthAssessmentStepProps) {
   const router = useRouter()
-  const { answers, setAnswer } = useRequestStore()
+  const { answers, setAnswer, setAnswers } = useRequestStore()
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isBlocked, setIsBlocked] = useState(false)
-  const [blockReason, setBlockReason] = useState("")
 
   const womensHealthOption = answers.womensHealthOption as string | undefined
 
@@ -54,10 +65,13 @@ export default function WomensHealthAssessmentStep({ serviceType, onNext, onBack
         <ContraceptionAssessment
           serviceType={serviceType}
           onNext={onNext}
+          onBack={onBack}
           answers={answers}
           setAnswer={setAnswer}
+          setAnswers={setAnswers}
           errors={errors}
           setErrors={setErrors}
+          router={router}
         />
       )
     case 'uti':
@@ -68,12 +82,9 @@ export default function WomensHealthAssessmentStep({ serviceType, onNext, onBack
           onBack={onBack}
           answers={answers}
           setAnswer={setAnswer}
+          setAnswers={setAnswers}
           errors={errors}
           setErrors={setErrors}
-          isBlocked={isBlocked}
-          setIsBlocked={setIsBlocked}
-          blockReason={blockReason}
-          setBlockReason={setBlockReason}
           router={router}
         />
       )
@@ -83,32 +94,36 @@ export default function WomensHealthAssessmentStep({ serviceType, onNext, onBack
 }
 
 // Contraception assessment
-function ContraceptionAssessment({ serviceType, onNext, answers, setAnswer, errors, setErrors }: {
+function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAnswers, errors, setErrors, router }: {
   serviceType: UnifiedServiceType
   onNext: () => void
+  onBack: () => void
   answers: Record<string, unknown>
   setAnswer: (key: string, value: unknown) => void
+  setAnswers: (answers: Record<string, unknown>) => void
   errors: Record<string, string>
   setErrors: (errors: Record<string, string>) => void
+  router: ReturnType<typeof useRouter>
 }) {
   const posthog = usePostHog()
   // This component now serves only the live new/switch pill (ocp_new).
-  const contraceptionType = answers.contraceptionType as string | undefined
-  const contraceptionCurrent = (answers.contraceptionCurrent as string) || ""
-  const pregnancyStatus = (answers.pregnancyStatus as string) || ""
+  const contraceptionType = exactStringValue(answers.contraceptionType, PILL_CONTRACEPTION_TYPE_VALUES)
+  const contraceptionCurrent = exactStringValue(answers.contraceptionCurrent, PILL_CURRENT_CONTRACEPTION_VALUES)
+  const pregnancyStatus = exactStringValue(answers.pregnancyStatus, PILL_PREGNANCY_STATUS_VALUES)
   const lastPeriod = (answers.lastPeriod as string) || ""
   const contraceptionDetails = (answers.contraceptionDetails as string) || ""
   // Combined-pill safety screen (new/switch pill only). Drives the REQUIRES_CALL
   // contraindication rules; doctor steers to a progestogen-only option if needed.
-  const migraineAura = (answers.womens_migraine_aura as string) || ""
-  const bloodClotHistory = (answers.womens_blood_clot_history as string) || ""
-  const smoker = (answers.womens_smoker as string) || ""
+  const migraineAura = exactStringValue(answers.womens_migraine_aura, PILL_YES_NO_VALUES)
+  const bloodClotHistory = exactStringValue(answers.womens_blood_clot_history, PILL_YES_NO_VALUES)
+  const smoker = exactStringValue(answers.womens_smoker, PILL_YES_NO_VALUES)
   // Always shown — this component only serves the new/switch combined pill now.
   const needsPillSafetyScreen = true
   const isComplete = Boolean(
     contraceptionType && contraceptionCurrent && pregnancyStatus
       && (!needsPillSafetyScreen || (migraineAura && bloodClotHistory && smoker)),
   )
+  const terminalBlock = derivePillPregnancyTerminalBlock(answers)
 
   const clearError = (key: string) => {
     if (!errors[key]) return
@@ -117,16 +132,9 @@ function ContraceptionAssessment({ serviceType, onNext, answers, setAnswer, erro
     setErrors(nextErrors)
   }
 
-  // If pregnant, flag for doctor call
   const handlePregnancyChange = (value: string) => {
     setAnswer("pregnancyStatus", value)
     clearError("pregnancyStatus")
-    if (value === 'yes') {
-      setAnswer("requiresCall", true)
-    } else if (answers.requiresCall) {
-      // Only clear if we were the ones who set it
-      setAnswer("requiresCall", false)
-    }
   }
 
   const validate = () => {
@@ -171,6 +179,36 @@ function ContraceptionAssessment({ serviceType, onNext, answers, setAnswer, erro
     }, [bloodClotHistory, contraceptionCurrent, contraceptionType, migraineAura, needsPillSafetyScreen, pregnancyStatus, smoker]),
     { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "womens-health-assessment" },
   )
+
+  if (terminalBlock) {
+    return (
+      <div className="space-y-6">
+        <Alert variant="destructive" className="border-destructive/50">
+          <XCircle className="h-5 w-5" aria-hidden="true" />
+          <AlertTitle className="font-semibold">{terminalBlock.title}</AlertTitle>
+          <AlertDescription className="mt-2 text-base">{terminalBlock.reason}</AlertDescription>
+        </Alert>
+        <div className="flex flex-col gap-2 pt-2">
+          <Button variant="outline" onClick={() => router.push('/')} className="h-12 w-full">
+            Return home
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setAnswers(buildPillPregnancyTerminalBlockCorrection(terminalBlock))
+              clearError("pregnancyStatus")
+            }}
+            className="h-12 w-full"
+          >
+            I need to correct this answer
+          </Button>
+          <Button variant="ghost" onClick={onBack} className="h-12 w-full">
+            Go back
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -249,14 +287,6 @@ function ContraceptionAssessment({ serviceType, onNext, answers, setAnswer, erro
             columns="three"
           />
           <FieldError message={errors.pregnancyStatus} />
-          {pregnancyStatus === "yes" && (
-            <Alert variant="default" className="border-warning-border bg-warning-light/50 dark:bg-warning/10">
-              <AlertCircle className="h-4 w-4 text-warning" aria-hidden="true" />
-              <AlertDescription className="text-xs text-warning">
-                Some contraception is not suitable during pregnancy. The doctor will discuss safe options with you.
-              </AlertDescription>
-            </Alert>
-          )}
           {pregnancyStatus === "not_sure" && (
             <p className="text-xs leading-relaxed text-muted-foreground">
               Consider taking a pregnancy test before starting contraception.
@@ -358,18 +388,15 @@ function ContraceptionAssessment({ serviceType, onNext, answers, setAnswer, erro
 }
 
 // UTI assessment
-function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, errors, setErrors, isBlocked, setIsBlocked, blockReason, setBlockReason, router }: {
+function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAnswers, errors, setErrors, router }: {
   serviceType: UnifiedServiceType
   onNext: () => void
   onBack: () => void
   answers: Record<string, unknown>
   setAnswer: (key: string, value: unknown) => void
+  setAnswers: (answers: Record<string, unknown>) => void
   errors: Record<string, string>
   setErrors: (errors: Record<string, string>) => void
-  isBlocked: boolean
-  setIsBlocked: (blocked: boolean) => void
-  blockReason: string
-  setBlockReason: (reason: string) => void
   router: ReturnType<typeof useRouter>
 }) {
   const posthog = usePostHog()
@@ -378,6 +405,7 @@ function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, errors
   const utiPregnant = (answers.utiPregnant as string) || ""
   const utiDetails = (answers.utiDetails as string) || ""
   const isComplete = Boolean(utiSymptoms && utiSymptoms.length > 0 && utiRedFlags === 'no' && utiPregnant === 'no')
+  const terminalBlock = deriveUtiTerminalBlock(answers)
 
   const clearError = (key: string) => {
     if (!errors[key]) return
@@ -389,20 +417,11 @@ function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, errors
   const handlePregnancyChange = (value: string) => {
     setAnswer("utiPregnant", value)
     clearError("utiPregnant")
-    if (value === 'yes' || value === 'not_sure') {
-      setIsBlocked(true)
-      setBlockReason("UTIs during pregnancy need in-person assessment. Please see your GP or visit a clinic for safe treatment.")
-    }
   }
 
   const handleRedFlagsChange = (value: string) => {
     setAnswer("utiRedFlags", value)
     clearError("utiRedFlags")
-    
-    if (value === 'yes') {
-      setIsBlocked(true)
-      setBlockReason("Symptoms like fever, back/flank pain, or feeling very unwell may indicate a kidney infection which requires urgent in-person medical care. Please see a GP or visit urgent care today.")
-    }
   }
 
   const validate = () => {
@@ -444,17 +463,31 @@ function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, errors
     { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "womens-health-assessment" },
   )
 
-  if (isBlocked) {
+  if (terminalBlock) {
     return (
       <div className="space-y-6">
         <Alert variant="destructive" className="border-destructive/50">
-          <XCircle className="w-5 h-5" />
-          <AlertTitle className="font-semibold">Please seek urgent care</AlertTitle>
-          <AlertDescription className="mt-2 text-sm">{blockReason}</AlertDescription>
+          <XCircle className="h-5 w-5" aria-hidden="true" />
+          <AlertTitle className="font-semibold">{terminalBlock.title}</AlertTitle>
+          <AlertDescription className="mt-2 text-base">{terminalBlock.reason}</AlertDescription>
         </Alert>
         <div className="flex flex-col gap-2 pt-2">
-          <Button variant="outline" onClick={() => router.push('/')} className="w-full">Return home</Button>
-          <Button variant="ghost" onClick={onBack} className="w-full">Go back</Button>
+          <Button variant="outline" onClick={() => router.push('/')} className="h-12 w-full">Return home</Button>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setAnswers(buildUtiTerminalBlockCorrection(terminalBlock))
+              const nextErrors = { ...errors }
+              terminalBlock.answerKeysToClear.forEach((key) => delete nextErrors[key])
+              setErrors(nextErrors)
+            }}
+            className="h-12 w-full"
+          >
+            {terminalBlock.answerKeysToClear.length === 1
+              ? "I need to correct this answer"
+              : "I need to correct these answers"}
+          </Button>
+          <Button variant="ghost" onClick={onBack} className="h-12 w-full">Go back</Button>
         </div>
       </div>
     )

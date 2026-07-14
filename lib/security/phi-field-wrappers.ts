@@ -493,27 +493,6 @@ export async function prepareAllergyDetailsWrite(
   return { allergy_details: allergyDetails, allergy_details_enc: null }
 }
 
-/**
- * Read allergy details from database record
- */
-export async function readAllergyDetails(record: {
-  allergy_details?: string | null
-  allergy_details_enc?: EncryptedPHI | null
-}): Promise<string | null> {
-  if (isEncryptionEnabled() && isReadEnabled() && record.allergy_details_enc) {
-    if (isEncryptedPHI(record.allergy_details_enc)) {
-      try {
-        return await decryptPHI(record.allergy_details_enc)
-      } catch (error) {
-        logger.error("Failed to decrypt intake_answers.allergy_details, falling back to plaintext", {},
-          toError(error))
-      }
-    }
-  }
-
-  return record.allergy_details ?? null
-}
-
 // ============================================================================
 // MEDICAL CONDITIONS (intake_answers.medical_conditions / medical_conditions_enc)
 // ============================================================================
@@ -551,28 +530,6 @@ export async function prepareMedicalConditionsWrite(
   }
 
   return { medical_conditions: conditions, medical_conditions_enc: null }
-}
-
-/**
- * Read medical conditions from database record
- */
-export async function readMedicalConditions(record: {
-  medical_conditions?: string[] | null
-  medical_conditions_enc?: EncryptedPHI | null
-}): Promise<string[] | null> {
-  if (isEncryptionEnabled() && isReadEnabled() && record.medical_conditions_enc) {
-    if (isEncryptedPHI(record.medical_conditions_enc)) {
-      try {
-        const plaintext = await decryptPHI(record.medical_conditions_enc)
-        return JSON.parse(plaintext) as string[]
-      } catch (error) {
-        logger.error("Failed to decrypt intake_answers.medical_conditions, falling back to plaintext", {},
-          toError(error))
-      }
-    }
-  }
-
-  return record.medical_conditions ?? null
 }
 
 // ============================================================================

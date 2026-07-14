@@ -27,6 +27,7 @@ export interface RequestReceivedEmailProps {
   amount: string
   requestId: string
   isGuest?: boolean
+  completeAccountUrl?: string
   paidAt?: string
   appUrl?: string
 }
@@ -41,6 +42,7 @@ export function RequestReceivedEmail({
   amount,
   requestId,
   isGuest,
+  completeAccountUrl,
   paidAt,
   appUrl = APP_URL,
 }: RequestReceivedEmailProps) {
@@ -76,10 +78,10 @@ export function RequestReceivedEmail({
         Track your request
       </Button>
 
-      {isGuest && (
+      {isGuest && completeAccountUrl && (
         <Text small muted style={{ textAlign: "center" as const, fontFamily }}>
           Want to track this on your dashboard?{" "}
-          <a href={`${appUrl}/auth/complete-account?intake_id=${requestId}`} style={{ color: colors.accent, fontWeight: 500 }}>
+          <a href={completeAccountUrl} style={{ color: colors.accent, fontWeight: 500 }}>
             Create a free account
           </a>
         </Text>

@@ -18,8 +18,6 @@ import {
 import {
   prepareAllergyDetailsWrite,
   prepareMedicalConditionsWrite,
-  readAllergyDetails,
-  readMedicalConditions,
 } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -29,6 +27,8 @@ const logger = createLogger("intake-answers")
 const isEncryptionEnabled = () => process.env.PHI_ENCRYPTION_ENABLED === "true"
 const isWriteEnabled = () => process.env.PHI_ENCRYPTION_WRITE_ENABLED === "true"
 const isReadEnabled = () => process.env.PHI_ENCRYPTION_READ_ENABLED === "true"
+const isAnswerRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === "object" && !Array.isArray(value)
 
 // ============================================================================
 // TYPES
@@ -207,20 +207,86 @@ async function updateIntakeAnswers(
 // ============================================================================
 
 /**
- * Get intake answers by intake ID
- * 
- * When encryption is enabled:
- * - Attempts to read from answers_encrypted first
- * - Falls back to plaintext answers if decryption fails
+ * Get the authoritative answer blob for payment-safety revalidation.
+ *
+ * Once a row has an encrypted envelope, that envelope is the source of truth:
+ * disabled reads, a malformed envelope, a missing key, or a decrypt failure all
+ * fail closed. Plaintext is accepted only for a legacy row that has no encrypted
+ * envelope at all.
+ *
+ * Auxiliary dual-write columns are deliberately not merged here. The complete
+ * answers blob is the safety source of truth, and a stale duplicate field must
+ * never overwrite successfully decrypted answers before retrying payment.
  */
-export async function getIntakeAnswers(
+export async function getIntakeAnswersForPaymentSafety(
   intakeId: string
 ): Promise<Record<string, unknown> | null> {
+  const row = await getIntakeAnswersRow(intakeId)
+  if (!row) return null
+
+  if (row.answers_encrypted === null || row.answers_encrypted === undefined) {
+    if (!isAnswerRecord(row.answers)) {
+      logger.error(
+        "Legacy intake answers are not a valid answer object",
+        { intakeId, rowId: row.id },
+        new Error("Invalid legacy intake answers"),
+      )
+      return null
+    }
+    return row.answers
+  }
+
+  if (!isEncryptionEnabled() || !isReadEnabled()) {
+    logger.error(
+      "Encrypted intake answers are authoritative but encrypted reads are disabled",
+      { intakeId, rowId: row.id },
+      new Error("Authoritative encrypted intake answers unavailable"),
+    )
+    return null
+  }
+
+  if (!isEncryptedPHI(row.answers_encrypted)) {
+    logger.error(
+      "Authoritative encrypted intake answers envelope is malformed",
+      { intakeId, rowId: row.id },
+      new Error("Malformed encrypted intake answers envelope"),
+    )
+    return null
+  }
+
+  try {
+    const answers = await decryptJSONB<Record<string, unknown>>(row.answers_encrypted)
+    if (!isAnswerRecord(answers)) {
+      logger.error(
+        "Decrypted authoritative intake answers are not a valid answer object",
+        { intakeId, rowId: row.id },
+        new Error("Invalid decrypted intake answers"),
+      )
+      return null
+    }
+    logger.debug("Decrypted authoritative intake answers", {
+      id: row.id,
+      keyId: row.answers_encrypted.keyId,
+    })
+    return answers
+  } catch (decryptError) {
+    logger.error(
+      "Failed to decrypt authoritative intake answers",
+      { intakeId, rowId: row.id },
+      decryptError instanceof Error ? decryptError : new Error(String(decryptError)),
+    )
+    return null
+  }
+}
+
+async function getIntakeAnswersRow(
+  intakeId: string
+): Promise<Pick<IntakeAnswersRow, "answers" | "answers_encrypted" | "id"> | null> {
   const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("intake_answers")
-    .select("id, answers, answers_encrypted, encryption_metadata, allergy_details, allergy_details_enc, medical_conditions, medical_conditions_enc")
+    .select("id, answers, answers_encrypted")
     .eq("intake_id", intakeId)
     .single()
 
@@ -231,23 +297,8 @@ export async function getIntakeAnswers(
     return null
   }
 
-  // Decrypt the main answers blob
-  // Supabase .select() returns an untyped row; the columns match IntakeAnswersRow
-  const answers = await decryptAnswersRow(data as unknown as IntakeAnswersRow)
-
-  // Decrypt extracted PHI fields (prefer _enc, fall back to plaintext)
-  const allergyDetails = await readAllergyDetails(data)
-  const medicalConditions = await readMedicalConditions(data)
-
-  // Merge decrypted extracted fields back into answers
-  if (allergyDetails !== null) {
-    answers.allergy_details = allergyDetails
-  }
-  if (medicalConditions !== null) {
-    answers.medical_conditions = medicalConditions
-  }
-
-  return answers
+  // Supabase .select() returns an untyped row; the projected columns match.
+  return data as unknown as Pick<IntakeAnswersRow, "answers" | "answers_encrypted" | "id">
 }
 
 /**

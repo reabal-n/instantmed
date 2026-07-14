@@ -5,21 +5,25 @@ vi.mock("@/lib/notifications/telegram", () => ({
   notifyNewIntakeViaTelegram: vi.fn(),
 }))
 
-vi.mock("@/lib/data/intake-answers", () => ({
-  getIntakeAnswers: vi.fn(async () => null),
-}))
-
-const { mockGetFeatureFlags } = vi.hoisted(() => ({
+const { mockGetFeatureFlags, mockGetIntakeAnswers } = vi.hoisted(() => ({
   mockGetFeatureFlags: vi.fn(async () => ({
     telegram_notifications_enabled: true,
     ai_auto_approve_enabled: false,
   })),
+  mockGetIntakeAnswers: vi.fn<() => Promise<Record<string, unknown> | null>>(
+    async () => null,
+  ),
 }))
+
+vi.mock("@/lib/data/intake-answers", () => ({
+  // Deliberate virtual guard: Telegram must never import or read clinical answers.
+  getIntakeAnswers: mockGetIntakeAnswers,
+}))
+
 vi.mock("@/lib/feature-flags", () => ({
   getFeatureFlags: () => mockGetFeatureFlags(),
 }))
 
-import { getIntakeAnswers } from "@/lib/data/intake-answers"
 import { notifyNewIntakeViaTelegram } from "@/lib/notifications/telegram"
 
 const INTAKE_ID = "11111111-1111-4111-8111-111111111111"
@@ -97,7 +101,7 @@ describe("paid request Telegram notification ledger", () => {
       telegram_notifications_enabled: true,
       ai_auto_approve_enabled: false,
     })
-    vi.mocked(getIntakeAnswers).mockResolvedValue(null)
+    mockGetIntakeAnswers.mockResolvedValue(null)
   })
 
   it("claims a paid intake before sending and marks Telegram delivery as sent without fetching patient PHI", async () => {
@@ -115,7 +119,7 @@ describe("paid request Telegram notification ledger", () => {
     ])
 
     vi.mocked(notifyNewIntakeViaTelegram).mockResolvedValueOnce({ messageId: 42 })
-    vi.mocked(getIntakeAnswers).mockResolvedValueOnce(null)
+    mockGetIntakeAnswers.mockResolvedValueOnce(null)
 
     const result = await sendPaidRequestTelegramNotification({
       supabase: supabase as never,
@@ -140,7 +144,7 @@ describe("paid request Telegram notification ledger", () => {
       isPriority: false,
       autoApprovalCandidate: false,
     })
-    expect(getIntakeAnswers).not.toHaveBeenCalled()
+    expect(mockGetIntakeAnswers).not.toHaveBeenCalled()
     expect(profileMaybeSingle).not.toHaveBeenCalled()
     expect(updates[0]).toMatchObject({
       paid_request_telegram_claimed_at: null,
@@ -169,7 +173,7 @@ describe("paid request Telegram notification ledger", () => {
     )
 
     vi.mocked(notifyNewIntakeViaTelegram).mockResolvedValueOnce({ messageId: 42 })
-    vi.mocked(getIntakeAnswers).mockResolvedValueOnce({ medicationName: "Atorvastatin" })
+    mockGetIntakeAnswers.mockResolvedValueOnce({ medicationName: "Atorvastatin" })
 
     const result = await sendPaidRequestTelegramNotification({
       supabase: supabase as never,
@@ -190,7 +194,7 @@ describe("paid request Telegram notification ledger", () => {
       isPriority: true,
       autoApprovalCandidate: false,
     })
-    expect(getIntakeAnswers).not.toHaveBeenCalled()
+    expect(mockGetIntakeAnswers).not.toHaveBeenCalled()
   })
 
   it("records failed Telegram attempts so cron can retry missed notifications", async () => {
