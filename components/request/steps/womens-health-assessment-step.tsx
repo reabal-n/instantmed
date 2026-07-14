@@ -13,6 +13,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import {
+  buildUtiTerminalBlockCorrection,
+  deriveUtiTerminalBlock,
+} from "@/lib/request/terminal-safety-blocks"
 
 import { useRequestStore } from "../store"
 
@@ -36,10 +40,8 @@ function FieldError({ message }: { message?: string }) {
 
 export default function WomensHealthAssessmentStep({ serviceType, onNext, onBack }: WomensHealthAssessmentStepProps) {
   const router = useRouter()
-  const { answers, setAnswer } = useRequestStore()
+  const { answers, setAnswer, setAnswers } = useRequestStore()
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isBlocked, setIsBlocked] = useState(false)
-  const [blockReason, setBlockReason] = useState("")
 
   const womensHealthOption = answers.womensHealthOption as string | undefined
 
@@ -68,12 +70,9 @@ export default function WomensHealthAssessmentStep({ serviceType, onNext, onBack
           onBack={onBack}
           answers={answers}
           setAnswer={setAnswer}
+          setAnswers={setAnswers}
           errors={errors}
           setErrors={setErrors}
-          isBlocked={isBlocked}
-          setIsBlocked={setIsBlocked}
-          blockReason={blockReason}
-          setBlockReason={setBlockReason}
           router={router}
         />
       )
@@ -358,18 +357,15 @@ function ContraceptionAssessment({ serviceType, onNext, answers, setAnswer, erro
 }
 
 // UTI assessment
-function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, errors, setErrors, isBlocked, setIsBlocked, blockReason, setBlockReason, router }: {
+function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAnswers, errors, setErrors, router }: {
   serviceType: UnifiedServiceType
   onNext: () => void
   onBack: () => void
   answers: Record<string, unknown>
   setAnswer: (key: string, value: unknown) => void
+  setAnswers: (answers: Record<string, unknown>) => void
   errors: Record<string, string>
   setErrors: (errors: Record<string, string>) => void
-  isBlocked: boolean
-  setIsBlocked: (blocked: boolean) => void
-  blockReason: string
-  setBlockReason: (reason: string) => void
   router: ReturnType<typeof useRouter>
 }) {
   const posthog = usePostHog()
@@ -378,6 +374,7 @@ function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, errors
   const utiPregnant = (answers.utiPregnant as string) || ""
   const utiDetails = (answers.utiDetails as string) || ""
   const isComplete = Boolean(utiSymptoms && utiSymptoms.length > 0 && utiRedFlags === 'no' && utiPregnant === 'no')
+  const terminalBlock = deriveUtiTerminalBlock(answers)
 
   const clearError = (key: string) => {
     if (!errors[key]) return
@@ -389,20 +386,11 @@ function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, errors
   const handlePregnancyChange = (value: string) => {
     setAnswer("utiPregnant", value)
     clearError("utiPregnant")
-    if (value === 'yes' || value === 'not_sure') {
-      setIsBlocked(true)
-      setBlockReason("UTIs during pregnancy need in-person assessment. Please see your GP or visit a clinic for safe treatment.")
-    }
   }
 
   const handleRedFlagsChange = (value: string) => {
     setAnswer("utiRedFlags", value)
     clearError("utiRedFlags")
-    
-    if (value === 'yes') {
-      setIsBlocked(true)
-      setBlockReason("Symptoms like fever, back/flank pain, or feeling very unwell may indicate a kidney infection which requires urgent in-person medical care. Please see a GP or visit urgent care today.")
-    }
   }
 
   const validate = () => {
@@ -444,16 +432,30 @@ function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, errors
     { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "womens-health-assessment" },
   )
 
-  if (isBlocked) {
+  if (terminalBlock) {
     return (
       <div className="space-y-6">
         <Alert variant="destructive" className="border-destructive/50">
           <XCircle className="w-5 h-5" />
-          <AlertTitle className="font-semibold">Please seek urgent care</AlertTitle>
-          <AlertDescription className="mt-2 text-sm">{blockReason}</AlertDescription>
+          <AlertTitle className="font-semibold">{terminalBlock.title}</AlertTitle>
+          <AlertDescription className="mt-2 text-sm">{terminalBlock.reason}</AlertDescription>
         </Alert>
         <div className="flex flex-col gap-2 pt-2">
           <Button variant="outline" onClick={() => router.push('/')} className="w-full">Return home</Button>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setAnswers(buildUtiTerminalBlockCorrection(terminalBlock))
+              const nextErrors = { ...errors }
+              terminalBlock.answerKeysToClear.forEach((key) => delete nextErrors[key])
+              setErrors(nextErrors)
+            }}
+            className="w-full"
+          >
+            {terminalBlock.answerKeysToClear.length === 1
+              ? "I need to correct this answer"
+              : "I need to correct these answers"}
+          </Button>
           <Button variant="ghost" onClick={onBack} className="w-full">Go back</Button>
         </div>
       </div>

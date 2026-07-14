@@ -25,7 +25,7 @@ import {
   XCircle,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo } from "react"
 
 import {
   BinaryChoice,
@@ -43,6 +43,7 @@ import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { deriveEdNitrateTerminalBlock } from "@/lib/request/terminal-safety-blocks"
 
 import { useRequestStore } from "../store"
 
@@ -83,10 +84,7 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
   const router = useRouter()
   const posthog = usePostHog()
   const { answers, setAnswer } = useRequestStore()
-
-  // Hard block state
-  const [isBlocked, setIsBlocked] = useState(false)
-  const [blockReason, setBlockReason] = useState("")
+  const terminalBlock = deriveEdNitrateTerminalBlock(answers)
 
   // ---------------------------------------------------------------------------
   // Read answers from store
@@ -122,12 +120,6 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
 
   const handleNitrateChange = useCallback((checked: boolean) => {
     setAnswer("edNitrates", checked)
-    if (checked) {
-      setIsBlocked(true)
-      setBlockReason(
-        "Some ED prescription options can cause a dangerous drop in blood pressure when combined with nitrates. Please see your GP or cardiologist."
-      )
-    }
   }, [setAnswer])
 
   // ---------------------------------------------------------------------------
@@ -271,16 +263,16 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
   // Hard block screen
   // ---------------------------------------------------------------------------
 
-  if (isBlocked) {
+  if (terminalBlock) {
     return (
       <div className="space-y-6">
         <Alert variant="destructive" className="border-destructive/50">
           <XCircle className="w-5 h-5" />
           <AlertTitle className="font-semibold">
-            This service is not suitable for you
+            {terminalBlock.title}
           </AlertTitle>
           <AlertDescription className="mt-2 text-sm">
-            {blockReason}
+            {terminalBlock.reason}
           </AlertDescription>
         </Alert>
 
@@ -313,7 +305,6 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
           <Button
             variant="ghost"
             onClick={() => {
-              setIsBlocked(false)
               setAnswer("edNitrates", false)
             }}
             className="w-full"
