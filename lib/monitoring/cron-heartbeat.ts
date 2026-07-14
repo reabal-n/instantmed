@@ -49,7 +49,6 @@ const CRITICAL_CRONS: Record<string, { schedule: string; maxDelayMinutes: number
   "release-stale-claims":   { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "stale-queue":            { schedule: "0 * * * *",     maxDelayMinutes: 75 },
   "pending-queue-reminders": { schedule: "5 * * * *",     maxDelayMinutes: 75 },
-  "support-inbox-alert": { schedule: "10 * * * *", maxDelayMinutes: 75 },
   "emergency-flags":        { schedule: "0 * * * *",     maxDelayMinutes: 75 },
   "daily-reconciliation":   { schedule: "0 21 * * *",    maxDelayMinutes: 1500 }, // ~25h
   "parchment-smoke":        { schedule: "30 21 * * *",   maxDelayMinutes: 1500 }, // ~25h
