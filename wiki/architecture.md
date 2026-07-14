@@ -6,7 +6,7 @@ This is a compact current map. `docs/ARCHITECTURE.md` remains the canonical deep
 
 | Area | Current count |
 |------|---------------|
-| `app/` | 552 files |
+| `app/` | 551 files |
 | Route-like files under `app/` | 237 |
 | API route files under `app/api/` | 88 |
 | Cron route files under `app/api/cron/` | 29 |
