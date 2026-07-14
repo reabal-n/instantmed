@@ -5,6 +5,7 @@
 
 export function formatIntakeStatus(status: string): string {
   const labels: Record<string, string> = {
+    draft: "Draft",
     pending_payment: "Awaiting Payment",
     paid: "In queue",
     in_review: "Under Review",
@@ -12,6 +13,7 @@ export function formatIntakeStatus(status: string): string {
     declined: "Declined",
     completed: "Completed",
     pending_info: "Needs Info",
+    escalated: "Escalated",
     awaiting_script: "Awaiting Script",
     expired: "Expired",
     disputed: "Disputed",

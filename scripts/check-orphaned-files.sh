@@ -20,6 +20,7 @@
 #  16. Superseded marketing mockups and wrappers
 #  17. Abandoned specialty landing experiments
 #  18. Retired generic service funnel layer
+#  19. Test-only production modules and compatibility shims
 #
 # Exit 1 if any orphans found.
 
@@ -536,6 +537,22 @@ for retired_funnel_section in \
 do
   if [[ -e "$retired_funnel_section" ]]; then
     echo "ORPHAN: $retired_funnel_section still exists (retired generic service funnel layer)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 19. Test-only production modules and compatibility shims ────────────
+for retired_test_only_module in \
+  "components/doctor/queue-shortcut-hint.tsx" \
+  "lib/data/intakes/format.ts" \
+  "lib/data/types/certificate-templates.ts" \
+  "lib/doctor/onboarding-state.ts" \
+  "lib/marketing/ed-prevalence-data.ts" \
+  "lib/marketing/hair-loss-hook-quiz.ts" \
+  "lib/safety/index.ts"
+do
+  if [[ -e "$retired_test_only_module" ]]; then
+    echo "ORPHAN: $retired_test_only_module still exists (test-only production module or compatibility shim)"
     orphans=$((orphans + 1))
   fi
 done

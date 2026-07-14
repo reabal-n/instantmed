@@ -13,7 +13,7 @@ import {
   transformAnswersForUnifiedCheckout,
   validateAnswersServerSide,
 } from "@/lib/request/unified-checkout"
-import { checkSafetyForServer } from "@/lib/safety"
+import { checkSafetyForServer } from "@/lib/safety/evaluate"
 
 const identity = {
   email: "patient@example.com",

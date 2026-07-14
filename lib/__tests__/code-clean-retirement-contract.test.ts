@@ -585,6 +585,37 @@ describe("code-clean retirement contracts", () => {
     }
   })
 
+  it("keeps test-only production modules and compatibility shims retired", () => {
+    const retiredModules = [
+      "components/doctor/queue-shortcut-hint.tsx",
+      "lib/data/intakes/format.ts",
+      "lib/data/types/certificate-templates.ts",
+      "lib/doctor/onboarding-state.ts",
+      "lib/marketing/ed-prevalence-data.ts",
+      "lib/marketing/hair-loss-hook-quiz.ts",
+      "lib/safety/index.ts",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const modulePath of retiredModules) {
+      expect(existsSync(join(root, modulePath)), modulePath).toBe(false)
+      expect(orphanCheck).toContain(modulePath)
+    }
+
+    expect(read("lib/__tests__/safety-rules-engine.test.ts")).toContain(
+      "@/lib/safety/evaluate",
+    )
+    expect(read("lib/__tests__/intake-status-source-of-truth.test.ts")).toContain(
+      "@/lib/format/intake",
+    )
+    expect(read("lib/data/certificate-templates.ts")).toContain(
+      "@/types/certificate-template",
+    )
+    expect(read("lib/doctor/onboarding-status.ts")).toContain(
+      "getDoctorOnboardingStatus",
+    )
+  })
+
   it("does not redirect legacy image names into a missing people directory", () => {
     expect(existsSync(join(root, "public/images/people"))).toBe(false)
     expect(read("next.config.mjs")).not.toContain("/images/people/")
