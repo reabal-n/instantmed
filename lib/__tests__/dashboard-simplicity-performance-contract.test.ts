@@ -704,7 +704,7 @@ describe("dashboard simplicity and runtime performance contracts", () => {
   // still-live shared sections covered.
   it("keeps static shared marketing sections off Framer and client-only hooks", () => {
     const staticFunnelFiles = [
-      "components/marketing/sections/pricing-section.tsx",
+      "components/marketing/sections/pricing-guide-section.tsx",
       "components/ui/section-pill.tsx",
     ]
 

@@ -73,6 +73,7 @@ const staleCommercialPolicySources = [
 ].map((file) => readFileSync(join(root, file), "utf8")).join("\n")
 
 const eligibilityAndAutomationSources = [
+  "app/consult/page.tsx",
   "app/how-it-works/page.tsx",
   "app/how-we-decide/page.tsx",
   "app/medical-certificate/[slug]/page.tsx",
@@ -86,8 +87,6 @@ const eligibilityAndAutomationSources = [
   "components/marketing/citation-facts.tsx",
   "components/marketing/how-it-works-content.tsx",
   "components/marketing/medical-certificate-online-landing.tsx",
-  "components/marketing/sections/consult-limitations-section.tsx",
-  "components/marketing/sections/consult-guide-section.tsx",
   "components/marketing/sections/how-we-decide-guide-section.tsx",
   "components/marketing/sections/prescription-limitations-section.tsx",
   "components/marketing/sections/pricing-guide-section.tsx",

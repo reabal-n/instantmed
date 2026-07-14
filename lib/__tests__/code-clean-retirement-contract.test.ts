@@ -230,6 +230,46 @@ describe("code-clean retirement contracts", () => {
     )
   })
 
+  it("keeps the retired generic service funnel layer out of the app", () => {
+    const retiredFunnelSections = [
+      "components/marketing/sections/certificate-type-selector.tsx",
+      "components/marketing/sections/common-concerns-section.tsx",
+      "components/marketing/sections/consult-guide-section.tsx",
+      "components/marketing/sections/consult-limitations-section.tsx",
+      "components/marketing/sections/expect-call-strip.tsx",
+      "components/marketing/sections/final-cta-section.tsx",
+      "components/marketing/sections/med-cert-guide-section.tsx",
+      "components/marketing/sections/pricing-section.tsx",
+      "components/marketing/sections/specialised-consults-section.tsx",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredFunnelSections) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("app/consult/page.tsx")).toContain("canonical detailed services index")
+    expect(read("app/pricing/page.tsx")).toContain("<PricingContent />")
+    expect(read("components/marketing/med-cert-landing.tsx")).toContain(
+      "WorkplaceProofPanel",
+    )
+    expect(read("components/marketing/med-cert-landing.tsx")).toContain("CertComparisonViz")
+    expect(read("components/sections/cta-banner.tsx")).toContain("export function CTABanner")
+
+    expect(read("lib/__tests__/marketing-copy-contract.test.ts")).toContain(
+      '"app/consult/page.tsx"',
+    )
+    expect(read("lib/__tests__/paid-claims-contract.test.ts")).toContain(
+      '"components/sections/cta-banner.tsx"',
+    )
+    expect(read("lib/__tests__/dashboard-simplicity-performance-contract.test.ts")).toContain(
+      '"components/marketing/sections/pricing-guide-section.tsx"',
+    )
+    expect(read("CLAUDE.md")).not.toContain("certificate-type-selector.tsx")
+    expect(read("AGENTS.md")).not.toContain("certificate-type-selector.tsx")
+  })
+
   it("keeps stale patient quick-reorder APIs out of the route tree", () => {
     const retiredPatientApis = [
       "app/api/patient/last-prescription/route.ts",

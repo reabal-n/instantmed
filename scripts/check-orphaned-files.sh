@@ -19,6 +19,7 @@
 #  15. Obsolete analytics, blog-image, and SEO engines
 #  16. Superseded marketing mockups and wrappers
 #  17. Abandoned specialty landing experiments
+#  18. Retired generic service funnel layer
 #
 # Exit 1 if any orphans found.
 
@@ -517,6 +518,24 @@ for retired_specialty_section in \
 do
   if [[ -e "$retired_specialty_section" ]]; then
     echo "ORPHAN: $retired_specialty_section still exists (abandoned specialty landing experiment)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 18. Retired generic service funnel layer ────────────────────────────
+for retired_funnel_section in \
+  "components/marketing/sections/certificate-type-selector.tsx" \
+  "components/marketing/sections/common-concerns-section.tsx" \
+  "components/marketing/sections/consult-guide-section.tsx" \
+  "components/marketing/sections/consult-limitations-section.tsx" \
+  "components/marketing/sections/expect-call-strip.tsx" \
+  "components/marketing/sections/final-cta-section.tsx" \
+  "components/marketing/sections/med-cert-guide-section.tsx" \
+  "components/marketing/sections/pricing-section.tsx" \
+  "components/marketing/sections/specialised-consults-section.tsx"
+do
+  if [[ -e "$retired_funnel_section" ]]; then
+    echo "ORPHAN: $retired_funnel_section still exists (retired generic service funnel layer)"
     orphans=$((orphans + 1))
   fi
 done
