@@ -2,7 +2,9 @@ import { notFound, redirect } from "next/navigation"
 
 import { requireRole } from "@/lib/auth/helpers"
 import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
+import { buildClinicalProfileDifferences } from "@/lib/clinical/case-summary"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
+import { getHealthProfile } from "@/lib/data/health-profile"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { doctorCanAccessPatient } from "@/lib/doctor/patient-access"
 import {
@@ -46,6 +48,7 @@ function toAttributionRow(
 
 interface PageProps {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ requestId?: string | string[] }>
 }
 
 interface MedicationHistoryItem {
@@ -372,7 +375,10 @@ async function getPatientParchmentAuditRows(
   return Array.from(rows.values())
 }
 
-async function getPatientWithHistory(patientId: string, options: { doctorId?: string } = {}) {
+async function getPatientWithHistory(
+  patientId: string,
+  options: { doctorId?: string; comparisonRequestId?: string } = {},
+) {
   const supabase = createServiceRoleClient()
 
   // Get patient profile
@@ -504,7 +510,7 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
     }
   }
 
-  const [intakesResult, certsResult, emailResult, notesResult, prescriptionsResult, firstTouchResult, lastTouchResult] = await Promise.all([
+  const [intakesResult, emailResult, notesResult, prescriptionsResult, firstTouchResult, lastTouchResult, healthProfile] = await Promise.all([
     supabase
       .from("intakes")
       .select(`
@@ -530,11 +536,6 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
       .in("patient_id", patientIds)
       .order("created_at", { ascending: false })
       .limit(50),
-
-    supabase
-      .from("issued_certificates")
-      .select("id", { count: "exact", head: true })
-      .in("patient_id", patientIds),
 
     supabase
       .from("email_outbox")
@@ -605,10 +606,11 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
+
+    getHealthProfile(canonicalPatient.id),
   ])
 
   const { data: intakes, error: intakesError } = intakesResult
-  const { count: certificatesCount } = certsResult
   const { data: emailLogs, error: emailError } = emailResult
   const { data: patientNotes, error: notesError } = notesResult
   const { data: prescriptions, error: prescriptionsError } = prescriptionsResult
@@ -634,6 +636,20 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
   if (prescriptionsError) {
     logger.error("Error fetching patient prescriptions", { patientId }, prescriptionsError)
   }
+
+  const intakeRows = (intakes || []) as Array<Record<string, unknown>>
+  const comparisonIntake = options.comparisonRequestId
+    ? intakeRows.find((intake) => intake.id === options.comparisonRequestId)
+    : null
+  const clinicalDifferences = comparisonIntake
+    ? buildClinicalProfileDifferences({
+        answers: getJoinedAnswers(comparisonIntake.answers as IntakeAnswerJoin | undefined),
+        profile: healthProfile,
+      })
+    : []
+  const comparisonRequestCreatedAt = comparisonIntake && typeof comparisonIntake.created_at === "string"
+    ? comparisonIntake.created_at
+    : null
 
   // Transform intakes to flatten the service relation (Supabase returns array for joins)
   const transformedIntakes = (intakes || []).map(intake => {
@@ -702,17 +718,15 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
     duplicateCandidates: duplicateCandidatesForClient,
     intakes: transformedIntakes,
     medications: medicationHistory,
+    healthProfile,
+    clinicalDifferences,
+    comparisonRequestCreatedAt,
     parchmentActivity,
     emailLogs: emailLogs || [],
     patientNotes: patientNotes || [],
     firstTouchAttribution,
     lastTouchAttribution,
-    stats: {
-      totalRequests: intakes?.length || 0,
-      approvedRequests: intakes?.filter(i => i.status === "approved" || i.status === "completed").length || 0,
-      certificatesIssued: certificatesCount || 0,
-      linkedProfiles: patientIds.length,
-    }
+    linkedProfileCount: patientIds.length,
   }
 }
 
@@ -720,12 +734,13 @@ export const metadata = { title: "Patient Detail" }
 
 export const dynamic = "force-dynamic"
 
-export default async function PatientDetailPage({ params }: PageProps) {
+export default async function PatientDetailPage({ params, searchParams }: PageProps) {
   const authResult = await requireRole(["doctor", "admin"])
-  const { id } = await params
+  const [{ id }, query] = await Promise.all([params, searchParams])
+  const comparisonRequestId = typeof query.requestId === "string" ? query.requestId : undefined
   const doctorId = hasAdminAccess(authResult.profile) ? undefined : authResult.profile.id
   const [data, flags] = await Promise.all([
-    getPatientWithHistory(id, { doctorId }),
+    getPatientWithHistory(id, { doctorId, comparisonRequestId }),
     getFeatureFlags(),
   ])
 
@@ -739,7 +754,10 @@ export default async function PatientDetailPage({ params }: PageProps) {
       duplicateCandidates={data.duplicateCandidates}
       intakes={data.intakes}
       medications={data.medications}
-      stats={data.stats}
+      healthProfile={data.healthProfile}
+      clinicalDifferences={data.clinicalDifferences}
+      comparisonRequestCreatedAt={data.comparisonRequestCreatedAt}
+      linkedProfileCount={data.linkedProfileCount}
       emailLogs={data.emailLogs}
       patientNotes={data.patientNotes}
       parchmentActivity={data.parchmentActivity}

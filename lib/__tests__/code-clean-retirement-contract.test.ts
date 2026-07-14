@@ -90,7 +90,10 @@ describe("code-clean retirement contracts", () => {
     }
 
     expect(read("app/doctor/patients/patients-list-client.tsx")).toContain("AddPatientDialog")
-    expect(read("components/doctor/review/intake-review-cockpit.tsx")).toContain(
+    expect(read("components/doctor/intake-review-panel.tsx")).toContain(
+      "PatientDecisionStrip",
+    )
+    expect(read("components/doctor/review/intake-review-cockpit.tsx")).not.toContain(
       "PatientDecisionStrip",
     )
     expect(read("components/doctor/clinical-case-review.tsx")).toContain(

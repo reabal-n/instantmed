@@ -31,6 +31,7 @@ export function isUsefulMedicationDescription(description: string | undefined | 
 export interface RepeatScriptMedicationDisplayParts {
   name: string
   strength?: string
+  strengthSource?: "structured" | "inferred"
   form?: string
 }
 
@@ -149,17 +150,42 @@ function stripFormFromName(value: string): string {
     : value.trim()
 }
 
+function stripStrengthFromName(value: string, strength: string | undefined): string {
+  if (!strength) return value.trim()
+
+  const embeddedStrength = extractStrength(value)
+  if (!embeddedStrength) return value.trim()
+
+  const normalizedEmbedded = embeddedStrength.replace(/\s+/g, "").toLowerCase()
+  const normalizedStrength = strength.replace(/\s+/g, "").toLowerCase()
+  if (normalizedEmbedded !== normalizedStrength) return value.trim()
+
+  return value
+    .replace(embeddedStrength, "")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
 export function getRepeatScriptMedicationDisplayParts(
   entry: RepeatScriptMedicationEntry,
 ): RepeatScriptMedicationDisplayParts {
   const normalizedName = stripContainingClause(entry.activeIngredient || entry.name) || entry.name
-  const name = stripFormFromName(normalizedName)
-  const strength = extractStrength(entry.strength) || extractStrength(entry.displayName) || stripContainingClause(entry.strength)
+  const structuredStrength = extractStrength(entry.strength) || stripContainingClause(entry.strength)
+  const inferredStrength = structuredStrength
+    ? undefined
+    : extractStrength(entry.displayName) || extractStrength(normalizedName)
+  const strength = structuredStrength || inferredStrength
+  const name = stripStrengthFromName(stripFormFromName(normalizedName), strength)
   const form = stripContainingClause(entry.form)
 
   return {
     name,
     strength,
+    strengthSource: strength
+      ? structuredStrength
+        ? "structured"
+        : "inferred"
+      : undefined,
     form: form && form.toLowerCase() !== name.toLowerCase() ? form : undefined,
   }
 }

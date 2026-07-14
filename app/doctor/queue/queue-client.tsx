@@ -67,6 +67,7 @@ interface LazyIntakeReviewPanelProps {
   profileMode?: "doctor" | "admin"
   inline?: boolean
   previewIntake?: IntakeWithPatient
+  reviewRevision?: string | null
 }
 
 function IntakeReviewPanelLoading() {
@@ -656,6 +657,7 @@ export function QueueClient({
         <IntakeReviewPanel
           intakeId={intakeId}
           previewIntake={previewIntake}
+          reviewRevision={previewIntake?.updated_at ?? null}
           caseIndex={caseIndex >= 0 ? caseIndex : undefined}
           totalCases={list.length > 0 ? list.length : undefined}
           onBatchReviewResolved={handleBatchReviewResolved}
@@ -1158,6 +1160,11 @@ export function QueueClient({
                     previewIntake={
                       filteredIntakes.find((intake) => intake.id === expandedId) ??
                       pendingBatchReviews.data.find((intake) => intake.id === expandedId)
+                    }
+                    reviewRevision={
+                      intakes.find((intake) => intake.id === expandedId)?.updated_at ??
+                      pendingBatchReviews.data.find((intake) => intake.id === expandedId)?.updated_at ??
+                      null
                     }
                     caseIndex={filteredIntakes.findIndex((intake) => intake.id === expandedId)}
                     totalCases={filteredIntakes.length}

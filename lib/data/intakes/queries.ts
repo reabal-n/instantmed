@@ -912,6 +912,24 @@ export async function getPatientNotes(
   return decrypted.map(row => asPatientNote(row as Record<string, unknown>))
 }
 
+/**
+ * Count every note attached to a patient without loading or decrypting note content.
+ */
+export async function getPatientNoteCount(patientId: string): Promise<number> {
+  const supabase = createServiceRoleClient()
+  const { count, error } = await supabase
+    .from("patient_notes")
+    .select("id", { count: "exact", head: true })
+    .eq("patient_id", patientId)
+
+  if (error) {
+    logger.error("Error counting patient notes", {}, toError(error))
+    return 0
+  }
+
+  return count ?? 0
+}
+
 // ============================================
 // PATIENT DASHBOARD DATA
 // ============================================

@@ -1,20 +1,12 @@
 "use client"
 
 /**
- * Unified patient activity timeline.
+ * Chronological renderer for patient record activity.
  *
- * Phase 4b of dashboard remaster (2026-05-12). The patient profile
- * page used to render four separate scroll-heavy cards (intakes,
- * prescriptions, emails, audit events) plus an old narrower
- * `PatientTimeline` that only knew about intakes + notes. This
- * component absorbs all of them into one chronological stream so the
- * doctor reads the patient's interaction history top-to-bottom
- * instead of jumping between cards.
- *
- * Item shapes are discriminated unions; the parent decides the
- * shape of each input array and the timeline merges, sorts, and
- * renders. Filter tabs let the operator narrow to a single channel
- * (Requests / Prescriptions / Notes / Emails / Audit) when needed.
+ * Callers choose the relevant channels for their context. The full patient
+ * record uses one instance for clinical history and another for operational
+ * events; compact drawers use a hard-capped recent-activity view. Empty
+ * channel filters stay hidden so each instance exposes only useful choices.
  */
 
 import {
@@ -203,11 +195,7 @@ interface PatientTimelineProps {
    * Hides the channel filter row and tightens spacing. Defaults to false.
    */
   compact?: boolean
-  /**
-   * Legacy alias for `initialPageSize`. Kept so existing compact callers
-   * (intake-review-cockpit, patient-profile-panel) don't churn during
-   * Phase 4b. Prefer `initialPageSize` for new code.
-   */
+  /** Hard cap used by compact drawers; omits the "Show older" affordance. */
   maxItems?: number
   title?: string
   emptyLabel?: string
@@ -298,6 +286,10 @@ export function PatientTimeline({
     return totals
   }, [allItems])
 
+  const availableFilters = FILTERS.filter(
+    (entry) => entry.kind === "all" || totalsByKind[entry.kind] > 0,
+  )
+
   const filteredItems = useMemo(
     () => (filter === "all" ? allItems : allItems.filter((item) => item.kind === filter)),
     [allItems, filter],
@@ -330,16 +322,14 @@ export function PatientTimeline({
 
         {!compact && (
         <div className="flex flex-wrap items-center gap-1.5">
-          {FILTERS.map((entry) => {
+          {availableFilters.map((entry) => {
             const Icon = entry.icon
             const count = totalsByKind[entry.kind]
             const isActive = filter === entry.kind
-            const isDisabled = entry.kind !== "all" && count === 0
             return (
               <button
                 key={entry.kind}
                 type="button"
-                disabled={isDisabled}
                 onClick={() => {
                   setFilter(entry.kind)
                   setVisibleCount(resolvedInitial)
@@ -349,7 +339,6 @@ export function PatientTimeline({
                   isActive
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border/60 bg-background text-muted-foreground hover:bg-muted/40 hover:text-foreground",
-                  isDisabled && "cursor-not-allowed opacity-40 hover:bg-background hover:text-muted-foreground",
                 )}
                 data-testid={`timeline-filter-${entry.kind}`}
               >

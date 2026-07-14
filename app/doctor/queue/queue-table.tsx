@@ -741,13 +741,7 @@ export function QueueTable({
                             component: (
                               <PatientProfilePanel
                                 patient={intake.patient}
-                                answers={answers}
-                                serviceContext={{
-                                  category: intake.category,
-                                  serviceType: service?.type,
-                                  subtype: intake.subtype,
-                                }}
-                                sourceLabel={intake.reference_number || "Queue case"}
+                                currentRequestId={intake.id}
                               />
                             ),
                           })

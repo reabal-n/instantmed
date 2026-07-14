@@ -45,17 +45,10 @@ describe("doctor patient medication history contract", () => {
     expect(timelineSource).toContain("Parchment")
   })
 
-  // Phase 4 of dashboard remaster (2026-05-12): patient profile became an
-  // entity page. The "Prescribing workspace" card collapsed into a thin
-  // strip; the "Delivery evidence" card was retired (its content lives in
-  // the unified timeline's Audit tab); the "Patient summary" card became
-  // a single bounded label/value strip.
   it("keeps patient-profile prescribing actions visible with clear blocked states", () => {
-    // Prescribing strip — the primary CTA + the four blocked states must
-    // still be reachable on the entity page.
+    expect(detailSource).toContain('value="clinical"')
     expect(detailSource).toContain("Prescribe in Parchment")
     expect(detailSource).not.toContain("Add prescription")
-    // Refresh / Sync controls live in the strip, not in a big card.
     expect(detailSource).toContain("Refresh")
     expect(detailSource).toContain("Sync")
     expect(detailSource).toContain("Prescriber not linked")
@@ -65,13 +58,19 @@ describe("doctor patient medication history contract", () => {
     expect(detailSource).toContain("Invalid Medicare is ignored")
   })
 
-  it("organizes the profile around the unified timeline as primary content", () => {
-    // Identity / Prescribing identity / Parchment cards collapsed into one
-    // bounded `<dl>` strip. Phase 4b kept Email/Phone/Address/DOB/Medicare/
-    // Member-since; the 2026-05-21 compression dropped Member-since (low
-    // priority above the timeline) and the standalone DOB cell (already
-    // shown in the identity strip header via snapshot.ageDobLabel). Email
-    // / Phone / Address / Medicare remain as the four-cell identity row.
+  it("organizes the full record into clinical, history, and operations tabs", () => {
+    const operationsStart = detailSource.indexOf('<TabsContent value="operations"')
+
+    expect(detailSource).toContain("TabsList")
+    expect(detailSource).toContain('value="clinical"')
+    expect(detailSource).toContain('value="history"')
+    expect(detailSource).toContain('value="operations"')
+    expect(detailSource).toContain('aria-label="Saved clinical profile"')
+    expect(detailSource).toContain("Allergies")
+    expect(detailSource).toContain("Conditions")
+    expect(detailSource).toContain("Current medicines")
+    expect(detailPageSource).toContain("getHealthProfile")
+    expect(detailPageSource).toContain("healthProfile={data.healthProfile}")
     expect(detailSource).toContain("Email")
     expect(detailSource).toContain("Phone")
     expect(detailSource).toContain("Address")
@@ -80,25 +79,41 @@ describe("doctor patient medication history contract", () => {
     // Old card titles must NOT come back.
     expect(detailSource).not.toContain("Patient summary")
     expect(detailSource).not.toContain("Prescribing identity")
-    // Audit / delivery evidence is the timeline's job now.
     expect(detailSource).not.toContain("Delivery evidence")
+    expect(detailSource).not.toContain('aria-label="Patient file status"')
+    expect(detailSource).not.toContain('label: "Latest request"')
+    expect(detailPageSource).not.toContain("certsResult")
+    expect(detailPageSource).not.toContain("certificatesIssued")
     expect(detailPageSource).toContain("Prescription synced to PMS")
-    // Phase 4b: PatientTimeline is the canonical history surface.
     expect(detailSource).toContain("<PatientTimeline")
     expect(detailSource).toContain("prescriptions={medications}")
+    expect(detailSource).toContain('title="Clinical history"')
+    expect(detailSource).toContain('title="Recent clinical activity"')
+    expect(detailSource).toContain('title="Operational activity"')
+    expect(detailSource.indexOf("Prescribe in Parchment")).toBeGreaterThan(operationsStart)
+    expect(detailSource.indexOf("<EditPatientDialog patient={patient} />")).toBeGreaterThan(operationsStart)
     expect(timelineSource).toContain("initialPageSize")
     expect(timelineSource).toContain("Show ")
   })
 
+  it("keeps full acquisition detail in Operations without repeating it in Clinical", () => {
+    expect(detailSource).toContain('aria-label="Acquisition attribution"')
+    expect(detailSource).toContain("Landing page")
+    expect(detailSource).toContain("formatLandingPath(attribution.landing_page)")
+    expect(detailSource).toContain("Campaign")
+    expect(detailSource).toContain("Keyword")
+    expect(detailSource).toContain('label: "First touch"')
+    expect(detailSource).toContain('label: "Most recent"')
+    expect(detailSource).toContain("contextLabel={label}")
+  })
+
   it("surfaces Parchment webhook and sync activity without exposing raw PHI", () => {
-    // The audit-row mapping (page.tsx) feeds the timeline; the timeline
-    // renders these without exposing raw PHI.
     expect(detailPageSource).toContain("getPatientParchmentAuditRows")
     expect(detailPageSource).toContain("parchment_webhook_script_sent")
     expect(detailPageSource).toContain("metadata->>patient_id")
     expect(detailPageSource).toContain("metadata->>partner_patient_id")
     expect(detailSource).toContain("parchmentActivity")
-    // The audit-event labels live on the timeline now.
+    expect(detailSource).toContain('value="operations"')
     expect(timelineSource.toLowerCase()).toContain("webhook")
   })
 
@@ -115,19 +130,14 @@ describe("doctor patient medication history contract", () => {
   })
 
   it("hides empty secondary patient sections instead of rendering full empty cards", () => {
-    // Phase 4b: requests, prescriptions, notes, emails, and audit events
-    // all flow through one PatientTimeline. The legacy
-    // `{emailLogs.length > 0 && <PatientCommunicationHistory ...>}` block
-    // is gone — the timeline handles the empty state itself.
     expect(detailSource).toContain("<PatientTimeline")
     expect(detailSource).toContain("emails={emailLogs}")
     expect(detailSource).toContain("audit={parchmentActivity}")
     expect(detailSource).toContain("notes={notes}")
     expect(detailSource).toContain("emptyLabel=")
-    expect(detailSource).toContain("{showNoteForm && (")
-    // No more `PatientCommunicationHistory` import or rendering — emails
-    // are absorbed into the timeline. (A comment in the file may still
-    // mention the retired component for historical context.)
+    expect(detailSource).toContain("showNoteForm ? (")
+    expect(timelineSource).toContain("availableFilters")
+    expect(timelineSource).toContain('entry.kind === "all" || totalsByKind[entry.kind] > 0')
     expect(detailSource).not.toContain('import { ParchmentPrescribePanel, PatientCommunicationHistory }')
     expect(detailSource).not.toContain("<PatientCommunicationHistory")
     expect(existsSync(join(process.cwd(), "components/doctor/patient-communication-history.tsx"))).toBe(false)

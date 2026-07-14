@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test"
 
-import { waitForPageLoad } from "./helpers/test-utils"
+import { enterManualTestAddress, waitForPageLoad } from "./helpers/test-utils"
 
 /**
  * Full Intake Flow E2E Tests
@@ -183,12 +183,7 @@ async function completeDetailsStep(
     await page.waitForTimeout(200)
     await page.locator("#medicare-irn").fill("1")
 
-    // Address - typed text sets addressLine1 via onChange (no autocomplete required)
-    await page.locator('[placeholder="Start typing your address..."]').fill("123 Test Street")
-    await page.locator("#suburb").fill("Sydney")
-    await page.locator("#state-select-trigger").click()
-    await page.getByRole("option", { name: /^NSW$/i }).click()
-    await page.locator("#postcode").fill("2000")
+    await enterManualTestAddress(page)
     await page.waitForTimeout(200)
   }
 

@@ -1,19 +1,20 @@
 "use client"
 
-import { ArrowDown, ArrowUp, ExternalLink, LockKeyhole, User } from "lucide-react"
+import { ArrowDown, ArrowUp, ExternalLink, LockKeyhole, RefreshCw, User } from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { CertificatePreviewDialog } from "@/components/doctor/certificate-preview-dialog"
 import { useAuditTrail } from "@/components/doctor/hooks/use-audit-trail"
 import { type IntakeLockState, useIntakeLock } from "@/components/doctor/hooks/use-intake-lock"
+import { useReviewData } from "@/components/doctor/hooks/use-review-data"
 import { IntakeFlagsPanel } from "@/components/doctor/intake-flags-panel"
+import { PatientDecisionStrip } from "@/components/doctor/patient-decision-strip"
 import { PatientProfilePanel } from "@/components/doctor/patient-profile-panel"
 import { DeclineIntakeDialog } from "@/components/doctor/review/decline-intake-dialog"
 import { IntakeReviewCockpit } from "@/components/doctor/review/intake-review-cockpit"
 import {
   IntakeReviewProvider,
-  type ReviewData,
 } from "@/components/doctor/review/intake-review-context"
 import {
   findClinicalNoteDraft,
@@ -37,6 +38,7 @@ import { isReviewLockableStatus } from "@/lib/doctor/intake-lock-status"
 import { logIntakeViewDuration, preloadViewDurationLogging } from "@/lib/doctor/log-view-duration-client"
 import { QUEUE_WAIT_TARGET_MINUTES } from "@/lib/doctor/queue-pressure"
 import { getQueueEnteredAt } from "@/lib/doctor/queue-utils"
+import { isPrescribingServiceRequest } from "@/lib/doctor/service-types"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
 import { isEditableOrInteractiveKeyboardTarget } from "@/lib/hooks/use-doctor-shortcuts"
 import { useAuth } from "@/lib/supabase/auth-provider"
@@ -114,6 +116,8 @@ interface IntakeReviewPanelProps {
    */
   inline?: boolean
   onBatchReviewResolved?: (intakeId: string) => void
+  /** Updated queue-row revision used to refresh only the open review payload. */
+  reviewRevision?: string | null
 }
 
 type PreviewPatient = NonNullable<IntakeReviewPanelProps["previewIntake"]>["patient"]
@@ -137,36 +141,6 @@ function formatPreviewAgeDob(dateOfBirth?: string | null): string {
 function formatPreviewLocation(patient?: PreviewPatient): string {
   if (!patient) return "Address loading"
   return [patient.suburb, patient.state, patient.postcode].filter(Boolean).join(", ") || "Address loading"
-}
-
-function getPatientFirstName(fullName: string | null | undefined): string | null {
-  const name = fullName?.trim().split(/\s+/)[0]
-  return name || null
-}
-
-function formatCaseAnchorLine({
-  patient,
-  patientAge,
-  previousIntakeCount,
-}: {
-  patient: PreviewPatient
-  patientAge: number | null
-  previousIntakeCount: number
-}): string {
-  const firstName = getPatientFirstName(patient.full_name)
-  const location = [patient.suburb, patient.state].filter(Boolean).join(", ")
-  const identityParts = [
-    firstName,
-    typeof patientAge === "number" && Number.isFinite(patientAge) ? String(patientAge) : null,
-    location || null,
-  ].filter(Boolean)
-  const visitLabel = previousIntakeCount > 0
-    ? `${previousIntakeCount} prior request${previousIntakeCount === 1 ? "" : "s"}`
-    : "First visit"
-
-  return identityParts.length > 0
-    ? `${identityParts.join(", ")}. ${visitLabel}.`
-    : `${visitLabel}.`
 }
 
 function formatClaimAge(lockedAt: string | null, now = Date.now()): string {
@@ -198,69 +172,31 @@ export function IntakeReviewPanel({
   profileMode = "doctor",
   inline = false,
   onBatchReviewResolved,
+  reviewRevision,
 }: IntakeReviewPanelProps) {
   useAuth()
   const { closePanel, openPanel } = usePanel()
-  const [data, setData] = useState<ReviewData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [reloadToken, setReloadToken] = useState(0)
+  // This hook runs only after an explicit case open; queue hover remains visual
+  // and does not prefetch PHI-heavy review payloads.
+  const {
+    data,
+    isLoading,
+    error,
+    refreshError,
+    isRefreshing,
+    reloadReviewData,
+  } = useReviewData({ intakeId, initialLoadDelayMs: 150 })
 
   // Safety flags
   const [redFlagsAcknowledged, setRedFlagsAcknowledged] = useState(false)
 
   const viewStartTime = useRef<number>(Date.now())
-  const loadSequenceRef = useRef(0)
+  const initializedNotesForIntakeRef = useRef<string | null>(null)
+  const previousReviewRevisionRef = useRef(reviewRevision)
 
   useEffect(() => {
     preloadViewDurationLogging()
   }, [])
-
-  // Fetch data only after explicit open intent. Queue hover intentionally
-  // does not prefetch PHI-heavy review payloads.
-  useEffect(() => {
-    const loadSequence = loadSequenceRef.current + 1
-    loadSequenceRef.current = loadSequence
-    const controller = new AbortController()
-    const timeout = window.setTimeout(() => controller.abort(), 12000)
-    setIsLoading(true)
-    setError(null)
-    async function fetchData() {
-      try {
-        const res = await fetch(`/api/doctor/intakes/${intakeId}/review-data`, {
-          signal: controller.signal,
-        })
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({ error: "Failed to load" }))
-          throw new Error(body.error || `HTTP ${res.status}`)
-        }
-        const reviewData: ReviewData = await res.json()
-        if (loadSequenceRef.current === loadSequence) {
-          setData(reviewData)
-          setIsLoading(false)
-        }
-      } catch (err) {
-        if (loadSequenceRef.current === loadSequence) {
-          const message = err instanceof DOMException && err.name === "AbortError"
-            ? "Review details took too long to load. Retry before making a decision."
-            : err instanceof Error ? err.message : "Failed to load intake data"
-          setError(message)
-          setIsLoading(false)
-        }
-      } finally {
-        window.clearTimeout(timeout)
-      }
-    }
-    // Debounce ~150ms so holding j/k to skim the queue doesn't fire a
-    // /review-data roundtrip for every intermediate selection — only the settled
-    // selection fetches (an unmount before then clears the timer via cleanup).
-    const debounce = window.setTimeout(fetchData, 150)
-    return () => {
-      window.clearTimeout(debounce)
-      window.clearTimeout(timeout)
-      controller.abort()
-    }
-  }, [intakeId, reloadToken])
 
   // Computed values from data
   const intake = data?.intake
@@ -317,7 +253,7 @@ export function IntakeReviewPanel({
   // Review actions: all approve/decline/notes/cert handlers + keyboard shortcuts
   const actions = useReviewActions({
     data,
-    setData,
+    reloadReviewData,
     hasRedFlags,
     redFlagsAcknowledged,
     onActionComplete,
@@ -330,6 +266,8 @@ export function IntakeReviewPanel({
   // persisted until the doctor edits, saves, or approves.
   useEffect(() => {
     if (!data) return
+    if (initializedNotesForIntakeRef.current === data.intake.id) return
+    initializedNotesForIntakeRef.current = data.intake.id
     const existingNotes = stripGenericClinicalNoteBoilerplate(data.intake.doctor_notes || "")
     const fallbackDraftNote = buildClinicalCaseSummary({
       answers: (data.intake.answers?.answers || {}) as Record<string, unknown>,
@@ -356,9 +294,33 @@ export function IntakeReviewPanel({
       // dbNotes=existingNotes → already in DB, no immediate auto-save
       actions.setInitialNotes(existingNotes, existingNotes)
     }
-    // Only run when data first arrives
+    // Only run when this request first arrives. Targeted fulfilment refreshes
+    // must never replace an in-progress clinician note.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data])
+
+  useEffect(() => {
+    if (previousReviewRevisionRef.current === undefined) {
+      previousReviewRevisionRef.current = reviewRevision
+      return
+    }
+    if (!reviewRevision || reviewRevision === previousReviewRevisionRef.current || !data) return
+    previousReviewRevisionRef.current = reviewRevision
+    void reloadReviewData({ background: true })
+  }, [data, reloadReviewData, reviewRevision])
+
+  const shouldRefreshPendingFulfilment = Boolean(
+    data &&
+    data.intake.script_sent !== true &&
+    isPrescribingServiceRequest(service?.type, data.intake.subtype),
+  )
+
+  useEffect(() => {
+    if (!shouldRefreshPendingFulfilment) return
+    const refreshOnFocus = () => void reloadReviewData({ background: true })
+    window.addEventListener("focus", refreshOnFocus)
+    return () => window.removeEventListener("focus", refreshOnFocus)
+  }, [reloadReviewData, shouldRefreshPendingFulfilment])
 
   // Handle panel close - release lock + log view duration
   const handlePanelClose = useCallback(() => {
@@ -526,7 +488,7 @@ export function IntakeReviewPanel({
         <div className="py-12 text-center">
           <p className="text-destructive font-medium">{error || "Intake not found"}</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
-            <Button variant="outline" onClick={() => setReloadToken((value) => value + 1)}>
+            <Button variant="outline" onClick={() => void reloadReviewData({ background: false })}>
               Retry
             </Button>
             {!inline ? (
@@ -546,6 +508,8 @@ export function IntakeReviewPanel({
     service,
     answers,
     intakeAnswers,
+    reloadReviewData,
+    isRefreshingReviewData: isRefreshing,
     hasRedFlags,
     redFlagDetails,
     redFlagsAcknowledged,
@@ -592,13 +556,6 @@ export function IntakeReviewPanel({
   const claimStateLabel = formatClaimStateLabel(lockState, claimAgeNow)
   const visibleClaimStateLabel = lockState.status === "blocked" ? claimStateLabel : null
   const previousIntakeCount = data.previousIntakeCount ?? data.previousIntakes?.length ?? 0
-  const caseAnchorLine = inline
-    ? formatCaseAnchorLine({
-        patient: intake.patient,
-        patientAge: data.patientAge,
-        previousIntakeCount,
-      })
-    : null
   const queueEnteredAt = getQueueEnteredAt(intake)
 
   return (
@@ -618,118 +575,53 @@ export function IntakeReviewPanel({
             )}
             data-testid="intake-review-panel"
           >
-            {/* Top bar: patient anchor, grouped status, and quiet patient actions. */}
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0 space-y-1">
-                {inline ? (
-                  <>
-                    <h2 className="truncate text-[28px] font-semibold leading-tight tracking-tight text-foreground">
-                      {intake.patient.full_name}
-                    </h2>
-                    {caseAnchorLine ? (
-                      <p className="truncate text-xs font-medium text-muted-foreground" data-case-anchor-line>
-                        {caseAnchorLine}
-                      </p>
-                    ) : null}
-                  </>
+            {/* Queue state stays separate from patient safety context. */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className={getStatusColor(intake.status)}>
+                  {formatIntakeStatus(intake.status)}
+                </Badge>
+                <SlaChip
+                  paidAt={queueEnteredAt}
+                  mode="waiting"
+                  targetMinutes={QUEUE_WAIT_TARGET_MINUTES}
+                  showTargetState
+                />
+                {visibleClaimStateLabel ? (
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/35 px-2 py-1 text-[11px] font-semibold text-muted-foreground",
+                      lockState.status === "blocked" && "border-warning-border bg-warning-light text-warning",
+                    )}
+                    data-review-claim-state={lockState.status}
+                  >
+                    <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>{visibleClaimStateLabel}</span>
+                  </span>
                 ) : null}
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge className={getStatusColor(intake.status)}>
-                    {formatIntakeStatus(intake.status)}
-                  </Badge>
-                  {/* SLA chip follows the case from the queue into review so
-                      wait pressure remains visible at the decision moment. */}
-                  <SlaChip
-                    paidAt={queueEnteredAt}
-                    mode="waiting"
-                    targetMinutes={QUEUE_WAIT_TARGET_MINUTES}
-                    showTargetState
-                  />
-                  {visibleClaimStateLabel ? (
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/35 px-2 py-1 text-[11px] font-semibold text-muted-foreground",
-                        lockState.status === "blocked" && "border-warning-border bg-warning-light text-warning",
-                      )}
-                      data-review-claim-state={lockState.status}
-                    >
-                      <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
-                      <span>{visibleClaimStateLabel}</span>
-                    </span>
-                  ) : null}
+              </div>
+              {!inline && (onPrevCase || onNextCase) ? (
+                <div className="flex items-center gap-1" aria-label="Case navigation">
+                  <Button
+                    variant="outline"
+                    size="icon-sm"
+                    aria-label="Previous case"
+                    disabled={!onPrevCase || caseIndex === 0}
+                    onClick={onPrevCase}
+                  >
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon-sm"
+                    aria-label="Next case"
+                    disabled={!onNextCase || (caseIndex != null && totalCases != null && caseIndex >= totalCases - 1)}
+                    onClick={onNextCase}
+                  >
+                    <ArrowDown className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
-              </div>
-              <div className="flex flex-wrap items-center justify-end gap-1.5" aria-label="Patient actions">
-                {/* Inline mode: j/k in the queue is the canonical case navigator,
-                    so the in-panel ↑/↓ buttons are hidden. */}
-                {!inline && (onPrevCase || onNextCase) && (
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="outline"
-                      size="icon-sm"
-                      aria-label="Previous case"
-                      disabled={!onPrevCase || caseIndex === 0}
-                      onClick={onPrevCase}
-                    >
-                      <ArrowUp className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon-sm"
-                      aria-label="Next case"
-                      disabled={!onNextCase || (caseIndex != null && totalCases != null && caseIndex >= totalCases - 1)}
-                      onClick={onNextCase}
-                    >
-                      <ArrowDown className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    "border-border/65 bg-background text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground",
-                    inline && "h-7 px-1.5 text-xs font-medium",
-                  )}
-                  onClick={() => {
-                    openPanel({
-                      id: `${profileMode}-patient-profile-${intake.patient.id}`,
-                      type: "drawer",
-                      component: (
-                        <PatientProfilePanel
-                          patient={intake.patient}
-                          answers={answers}
-                          serviceContext={{
-                            category: intake.category,
-                            serviceType: service?.type,
-                            subtype: intake.subtype,
-                          }}
-                          admin={profileMode === "admin"}
-                          sourceLabel={intake.reference_number || "Current case"}
-                        />
-                      ),
-                    })
-                  }}
-                >
-                  <User className="h-3.5 w-3.5" />
-                  {inline ? "View profile" : "Patient profile"}
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    "border-border/65 bg-background text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground",
-                    inline && "h-7 px-1.5 text-xs font-medium",
-                  )}
-                >
-                  <Link href={fullCaseHref} onClick={inline ? undefined : () => closePanel()}>
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    Open full record
-                  </Link>
-                </Button>
-              </div>
+              ) : null}
             </div>
 
             {/* Lock warning */}
@@ -739,13 +631,77 @@ export function IntakeReviewPanel({
               </div>
             )}
 
-            <IntakeFlagsPanel flags={parseIntakeFlags((data.intake as { risk_flags?: unknown }).risk_flags)} />
+            {refreshError ? (
+              <div
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-xs font-medium text-warning"
+                role="status"
+              >
+                <span>Couldn’t refresh fulfilment status. Showing the last confirmed request state.</span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 border-warning-border bg-background"
+                  disabled={isRefreshing}
+                  onClick={() => void reloadReviewData({ background: true })}
+                >
+                  <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} />
+                  Retry
+                </Button>
+              </div>
+            ) : null}
+
+            <PatientDecisionStrip
+              intake={intake}
+              answers={answers}
+              previousIntakes={data.previousIntakes ?? []}
+              previousIntakeCount={previousIntakeCount}
+              service={service}
+              actions={
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="border-border/65 bg-background text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground"
+                    onClick={() => {
+                      openPanel({
+                        id: `${profileMode}-patient-profile-${intake.patient.id}`,
+                        type: "drawer",
+                        component: (
+                          <PatientProfilePanel
+                            patient={intake.patient}
+                            currentRequestId={intake.id}
+                            admin={profileMode === "admin"}
+                          />
+                        ),
+                      })
+                    }}
+                  >
+                    <User className="h-3.5 w-3.5" />
+                    View profile
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="border-border/65 bg-background text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground"
+                  >
+                    <Link href={fullCaseHref} onClick={inline ? undefined : () => closePanel()}>
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      Open full record
+                    </Link>
+                  </Button>
+                </>
+              }
+            />
+
+            <IntakeFlagsPanel
+              flags={parseIntakeFlags((data.intake as { risk_flags?: unknown }).risk_flags)}
+              hideRequestFieldFlags
+            />
 
             <IntakeReviewCockpit
-              showDecisionStrip
-              compactDecisionStrip
-              revealIdentityByDefault={inline}
-              showThinMedCertWarning={false}
               className={inline ? "min-h-0 flex-1" : undefined}
               onBatchReviewResolved={onBatchReviewResolved}
             />

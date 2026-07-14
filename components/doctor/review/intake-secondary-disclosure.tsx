@@ -17,11 +17,9 @@ interface IntakeSecondaryDisclosureProps {
 }
 
 /**
- * Bottom-of-cockpit disclosure that hides the clinical notes editor and
- * the unified patient timeline behind a single click. Closed by default
- * so the operator sees the patient facts and recommended prescription
- * first; the Cmd+N shortcut opens this disclosure before focusing the
- * notes textarea so notes are never unreachable.
+ * Bottom-of-cockpit disclosure for raw current-intake answers and the patient
+ * timeline. Closed by default so the canonical packet stays primary; draft-note
+ * access is owned separately by the packet disclosure.
  */
 export function IntakeSecondaryDisclosure({
   priorRequestCount,

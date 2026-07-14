@@ -6,6 +6,8 @@
  * for database assertions in E2E tests.
  */
 
+import { randomUUID } from "node:crypto"
+
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
 import * as path from "path"
 
@@ -1173,6 +1175,7 @@ export interface SeedTestIntakeOptions {
   payment_id?: string
   category?: string
   service_id?: string
+  patient_id?: string
   refund_status?: string
   refund_error?: string
   claimed_by?: string
@@ -1208,13 +1211,13 @@ export async function seedTestIntake(options: SeedTestIntakeOptions = {}): Promi
     await ensureE2ESeedDependencies(supabase, serviceId)
     
     // Generate unique reference number
-    const refNum = `E2E-${Date.now().toString(36).toUpperCase()}`
+    const refNum = `E2E-${Date.now().toString(36).toUpperCase()}-${randomUUID().slice(0, 6).toUpperCase()}`
     
     // Insert with valid initial state (trigger requires draft or pending_payment)
     const { data: intake, error: insertError } = await supabase
       .from("intakes")
       .insert({
-        patient_id: E2E_PATIENT_ID,
+        patient_id: options.patient_id || E2E_PATIENT_ID,
         service_id: serviceId,
         reference_number: refNum,
         status: "pending_payment",

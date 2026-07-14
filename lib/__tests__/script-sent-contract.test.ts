@@ -147,15 +147,13 @@ describe("script sent mutation production contract", () => {
     const body = queueActionBody("approvePrescribedScriptAction")
 
     expect(body).toContain("approvePrescribedScript(intakeId, profile.id)")
-    // Operator policy 2026-06-22: completing a prescribing consult attests the
-    // script was prescribed (via updateScriptSent) rather than hard-blocking when
-    // the Parchment webhook hasn't confirmed (it never fires in test mode).
-    expect(body).toContain("updateScriptSent(")
-    expect(body).toContain("confirmed by the reviewing doctor on completion")
+    expect(body).toContain('code: "PRESCRIPTION_REQUIRES_SCRIPT_EVIDENCE"')
+    expect(body).toContain("Complete or record the prescription in Parchment first.")
+    expect(body).not.toContain("updateScriptSent(")
     expect(body).toContain("doctorCanReviewService(profile, serviceType, subtype)")
     expect(body).toContain("Doctor lacks capability to approve prescription")
     expect(body).toContain("ensureClinicalDecisionNoteForApproval(intakeId, {")
-    expect(body).toContain("requireExistingNote: Boolean(regimenBlocker && intake.script_sent === true)")
+    expect(body).toContain("requireExistingNote: Boolean(regimenBlocker)")
     expect(body).toContain("sendScriptSentEmailIfNeeded(supabase, intakeId)")
     expect(body).toContain("emailNotification")
     expect(body).toContain('emailNotification: "sent"')

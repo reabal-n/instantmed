@@ -59,6 +59,13 @@ export const INTAKE_FLAG_TAXONOMY = {
 
 export type IntakeFlagCode = keyof typeof INTAKE_FLAG_TAXONOMY
 
+const REQUEST_PACKET_FLAG_CODES = new Set<string>([
+  "medication_needs_identification",
+  "medication_strength_missing",
+  "medication_form_missing",
+  "dose_not_stated",
+])
+
 const SEVERITY_RANK: Record<IntakeFlagSeverity, number> = { attention: 2, info: 1 }
 const VALID_SEVERITIES: readonly IntakeFlagSeverity[] = ["attention", "info"]
 const VALID_SOURCES: readonly IntakeFlagSource[] = ["intake", "auto_approval", "clinical"]
@@ -82,6 +89,11 @@ export function makeIntakeFlag(
 /** Flags the doctor must act on (drives the queue badge + needs_doctor routing). */
 export function attentionFlags(flags: IntakeFlag[]): IntakeFlag[] {
   return flags.filter((flag) => flag.severity === "attention")
+}
+
+/** Field-quality flags rendered beside their affected fact in ReviewPacket. */
+export function withoutRequestPacketFlags(flags: IntakeFlag[]): IntakeFlag[] {
+  return flags.filter((flag) => !REQUEST_PACKET_FLAG_CODES.has(flag.code))
 }
 
 /** Collapse duplicate codes, keeping the highest-severity instance per code. */

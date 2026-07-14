@@ -4,13 +4,31 @@ import { describe, expect, it } from "vitest"
 
 import { ClinicalCaseReview } from "@/components/doctor/clinical-case-review"
 import { stripGenericClinicalNoteBoilerplate } from "@/components/doctor/review/utils"
+import type { ClinicalCaseSummary } from "@/lib/clinical/case-summary"
 
 function render(element: React.ReactElement): string {
   return renderToStaticMarkup(element)
 }
 
 describe("ClinicalCaseReview", () => {
-  it("renders the doctor-first patient story, plan, visible note, and Parchment handoff context before raw answers", () => {
+  it("starts the draft note collapsed with the approved review label", () => {
+    const html = render(
+      <ClinicalCaseReview
+        category="medical_certificate"
+        serviceType="med_certs"
+        patientName="Sam Lee"
+        answers={{ symptomDetails: "Fever and cough today." }}
+        draftNoteValue="Patient requests a one-day work certificate for acute symptoms."
+        onDraftNoteChange={() => undefined}
+      />,
+    )
+
+    expect(html).toContain("Draft note · Review required")
+    expect(html).toContain('aria-expanded="false"')
+    expect(html).not.toContain("Patient requests a one-day work certificate")
+  })
+
+  it("renders the doctor-first patient story, plan, opened note, and Parchment handoff context before raw answers", () => {
     const html = render(
       <ClinicalCaseReview
         category="consult"
@@ -27,12 +45,13 @@ describe("ClinicalCaseReview", () => {
           edSevereHeart: "no",
           edAlphaBlockers: "no",
         }}
+        draftNoteOpen
       />,
     )
 
     expect(html).toContain("Reason for visit")
     expect(html).toContain("Prescribing context")
-    expect(html).toContain("Check before you send.")
+    expect(html).toContain("Clinical note · Review required")
     expect(html).toContain("Parchment handoff context")
     expect(html).toContain("Full answers")
     expect(html.indexOf("Reason for visit")).toBeLessThan(html.indexOf("Full answers"))
@@ -51,13 +70,14 @@ describe("ClinicalCaseReview", () => {
           symptomDetails: "Fever and cough today.",
         }}
         hideRecommendedPlan
+        draftNoteOpen
         draftNoteValue="Patient requests a one-day work certificate for acute symptoms."
         onDraftNoteChange={() => undefined}
       />,
     )
 
     expect(html).not.toContain("Clinical plan")
-    expect(html).toContain("Check before you send.")
+    expect(html).toContain("Draft note · Review required")
     expect(html).toContain("contenteditable")
     expect(html).toContain("Patient requests a one-day work certificate")
   })
@@ -75,6 +95,7 @@ describe("ClinicalCaseReview", () => {
         }}
         scriptSent
         compact
+        draftNoteOpen
         draftNoteValue="Existing clinical note."
         draftNoteDirty
         onDraftNoteChange={() => undefined}
@@ -155,5 +176,38 @@ describe("ClinicalCaseReview", () => {
     expect(html).toContain("Penicillin — anaphylaxis")
     expect(html).toContain("Sertraline 50mg daily")
     expect(html).not.toContain("in full intake")
+  })
+
+  it("uses a supplied case summary and can suppress request facts owned by ReviewPacket", () => {
+    const summary: ClinicalCaseSummary = {
+      title: "Repeat prescription",
+      patientStory: "Patient requests Effexor.",
+      keyFacts: [
+        { label: "Requested medication", value: "Effexor" },
+        { label: "Strength", value: "75mg" },
+      ],
+      safetyItems: [],
+      recommendedPlan: {
+        action: "prescribe",
+        title: "Repeat if appropriate",
+        rationale: "Structured review complete.",
+        nextSteps: [],
+      },
+      draftNote: "S: Patient requests Effexor.\nO: Review complete.\nA: Stable.\nP: Review.",
+    }
+    const html = render(
+      <ClinicalCaseReview
+        answers={{}}
+        summary={summary}
+        hideRequestFacts
+        hidePatientStory
+        hideRecommendedPlan
+        hidePrescriptionIntent
+      />,
+    )
+
+    expect(html).not.toContain("Requested medication")
+    expect(html).not.toContain("75mg")
+    expect(html).toContain("Clinical note · Review required")
   })
 })

@@ -1,4 +1,4 @@
-import { expect,Page } from "@playwright/test"
+import { expect, type Page } from "@playwright/test"
 
 /**
  * E2E Test Utilities
@@ -122,4 +122,31 @@ export function generateTestAddress() {
     state: "NSW",
     postcode: "2000",
   }
+}
+
+/**
+ * Enter the deterministic prescribing address through the explicit manual
+ * path. This keeps every request-flow spec on the same interaction contract
+ * and avoids racing the asynchronous address-provider fallback.
+ */
+export async function enterManualTestAddress(
+  page: Page,
+  address = generateTestAddress(),
+): Promise<void> {
+  const manualEntry = page.getByRole("button", {
+    name: "Enter address manually",
+    exact: true,
+  })
+
+  await expect(manualEntry).toBeVisible({ timeout: 5_000 })
+  await manualEntry.click()
+  await expect(manualEntry).toBeHidden()
+
+  await page.locator('[placeholder="Start typing your address..."]').fill(address.line1)
+  await page.locator("#suburb").fill(address.suburb)
+  await page.locator("#state-select-trigger").click()
+  await page
+    .getByRole("option", { name: new RegExp(`^${address.state}$`, "i") })
+    .click()
+  await page.locator("#postcode").fill(address.postcode)
 }

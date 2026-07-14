@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test"
 
 import {
-  generateTestAddress,
+  enterManualTestAddress,
   generateTestMedicare,
   generateTestPhone,
   waitForPageLoad,
@@ -151,7 +151,6 @@ async function completeConsultDetailsWithTestMedicare(
   sex: "Female" | "Male",
 ) {
   const medicare = generateTestMedicare()
-  const address = generateTestAddress()
 
   await expect(page.getByRole("heading", { name: "Your details", level: 2 })).toBeVisible({ timeout: 10000 })
 
@@ -170,11 +169,7 @@ async function completeConsultDetailsWithTestMedicare(
   await page.locator('input[placeholder="10 digits"]').fill(medicare.number)
   await page.locator('input[placeholder="10 digits"]').blur()
   await page.locator("#medicare-irn").fill(medicare.irn)
-  await page.locator('[placeholder="Start typing your address..."]').fill(address.line1)
-  await page.locator("#suburb").fill(address.suburb)
-  await page.locator("#state-select-trigger").click()
-  await page.getByRole("option", { name: new RegExp(`^${address.state}$`, "i") }).click()
-  await page.locator("#postcode").fill(address.postcode)
+  await enterManualTestAddress(page)
 
   await clickContinue(page)
 }

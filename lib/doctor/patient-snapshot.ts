@@ -35,6 +35,7 @@ export interface PatientSnapshotField {
 }
 
 export interface PatientSnapshotAddressField extends PatientSnapshotField {
+  localityLabel?: string
   verificationLabel?: string
   verificationTone?: "success" | "warning" | "outline"
   verified?: boolean
@@ -422,6 +423,7 @@ export function buildPatientSnapshot(
     },
     address: {
       label: address.label ?? "Not provided",
+      localityLabel: [address.suburb, address.state].filter(Boolean).join(", ") || undefined,
       present: Boolean(address.label),
       value: address.label ?? undefined,
       complete: address.complete,

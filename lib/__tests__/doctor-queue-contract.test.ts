@@ -39,6 +39,10 @@ const intakeReviewPanelSource = readFileSync(
   join(process.cwd(), "components/doctor/intake-review-panel.tsx"),
   "utf8",
 )
+const reviewDataHookSource = readFileSync(
+  join(process.cwd(), "components/doctor/hooks/use-review-data.ts"),
+  "utf8",
+)
 const intakeLockHookSource = readFileSync(
   join(process.cwd(), "components/doctor/hooks/use-intake-lock.ts"),
   "utf8",
@@ -183,7 +187,8 @@ describe("doctor queue production contract", () => {
     expect(existsSync(join(process.cwd(), "lib/doctor/review-data-cache.ts"))).toBe(false)
     expect(queueTableSource).not.toContain("onMouseEnter")
     expect(queueTableSource).not.toContain("prefetchReviewData")
-    expect(intakeReviewPanelSource).toContain("fetch(`/api/doctor/intakes/${intakeId}/review-data`,")
+    expect(intakeReviewPanelSource).toContain("useReviewData")
+    expect(reviewDataHookSource).toContain("fetch(`/api/doctor/intakes/${intakeId}/review-data`,")
     expect(intakeReviewPanelSource).toContain("does not prefetch PHI-heavy review payloads")
   })
 
@@ -406,11 +411,10 @@ describe("doctor queue production contract", () => {
       markSentBody.indexOf("updateScriptSent(intakeId, true"),
     )
     expect(markSentBody).toContain("intake.script_sent !== true")
-    expect(approveScriptBody.indexOf("getRepeatRxPrescribingBlocker(")).toBeLessThan(
-      approveScriptBody.indexOf("updateScriptSent("),
-    )
     expect(approveScriptBody).toContain("intake.script_sent !== true")
-    expect(approveScriptBody).toContain("requireExistingNote: Boolean(regimenBlocker && intake.script_sent === true)")
+    expect(approveScriptBody).toContain('code: "PRESCRIPTION_REQUIRES_SCRIPT_EVIDENCE"')
+    expect(approveScriptBody).not.toContain("updateScriptSent(")
+    expect(approveScriptBody).toContain("requireExistingNote: Boolean(regimenBlocker)")
     expect(queueActionsSource).toContain("Add and save a reconciliation note for the already-issued script")
     expect(queueActionsSource).toContain("hasLegacyRepeatRxReconciliationNote(existingNotes)")
     expect(queueActionsSource).toContain("Replace the decline/refund draft with a saved reconciliation note")

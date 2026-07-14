@@ -67,7 +67,7 @@ describe("doctor prescribing keyboard shortcuts", () => {
       expect(source).toContain("!noteDirty")
       expect(source).toContain("Add and save a reconciliation note for the already-issued script")
       expect(source).toContain("isAiPrefilled")
-      expect(source).toContain("canPrescribeInParchment || canCompleteRecordedRepeatScript")
+      expect(source).toContain("canShowPrescribingCompletion")
       expect(source).toContain("canPrescribeInParchment && intake.script_sent !== true")
     }
     expect(actionButtonsSource).toContain("Recorded script evidence needs reconciliation")

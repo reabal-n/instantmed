@@ -66,4 +66,36 @@ describe("IntakeFlagsPanel", () => {
     expect(html).toContain("Strength not provided")
     expect(html).toContain("Atorvastatin")
   })
+
+  it("hides request-field flags after the canonical request packet takes ownership", () => {
+    const html = render(
+      <IntakeFlagsPanel
+        flags={[
+          makeIntakeFlag("medication_strength_missing", { detail: "Venlafaxine" }),
+          makeIntakeFlag("medication_form_missing", { detail: "Venlafaxine" }),
+          makeIntakeFlag("dose_not_stated", { detail: "Venlafaxine" }),
+        ]}
+        hideRequestFieldFlags
+      />,
+    )
+
+    expect(html).toBe("")
+  })
+
+  it("retains genuine routing and duplicate-identity flags when request fields are hidden", () => {
+    const html = render(
+      <IntakeFlagsPanel
+        flags={[
+          makeIntakeFlag("medication_strength_missing", { detail: "Venlafaxine" }),
+          makeIntakeFlag("dedicated_service_medication", { detail: "Dedicated pathway" }),
+          makeIntakeFlag("duplicate_patient_name_dob"),
+        ]}
+        hideRequestFieldFlags
+      />,
+    )
+
+    expect(html).not.toContain("Strength not provided")
+    expect(html).toContain("Has a dedicated service pathway")
+    expect(html).toContain("Possible duplicate profile")
+  })
 })

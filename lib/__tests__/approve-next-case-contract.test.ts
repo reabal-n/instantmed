@@ -33,7 +33,8 @@ describe("Approve + next case auto-advance contract", () => {
     expect(intakeDetailClientSource).toMatch(/buildDoctorIntakeHref\(nextIntakeId\)/)
   })
 
-  it("the parchment handoff path emits advance:false so opening Parchment never silently skips the next case", () => {
-    expect(reviewActionsSource).toMatch(/onActionComplete\?\.\(\{[^}]*advance:\s*false/)
+  it("the parchment handoff path never fires action-complete, so opening it cannot skip a case", () => {
+    expect(reviewActionsSource).not.toMatch(/onActionComplete\?\.\(\{[^}]*advance:\s*false/)
+    expect(reviewActionsSource).toContain("onIntakeRefresh={reloadReviewData}")
   })
 })

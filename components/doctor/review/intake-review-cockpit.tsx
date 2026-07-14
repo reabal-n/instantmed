@@ -1,14 +1,13 @@
 "use client"
 
-import { AlertTriangle, FileText, Loader2, RefreshCw } from "lucide-react"
+import { FileText, Loader2, RefreshCw } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCallback, useMemo, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { requestMoreInfoAction } from "@/app/actions/request-more-info"
-import { PatientDecisionStrip } from "@/components/doctor/patient-decision-strip"
+import { ClinicalSummary } from "@/components/doctor/clinical-summary"
 import { PatientTimeline } from "@/components/doctor/patient-timeline"
-import { PrescribingPacketCard } from "@/components/doctor/prescribing-packet-card"
 import { RenewalLink } from "@/components/doctor/renewal-link"
 import { BatchReviewAttestation } from "@/components/doctor/review/batch-review-attestation"
 import { IntakeActionButtons } from "@/components/doctor/review/intake-action-buttons"
@@ -21,44 +20,29 @@ import { SafetyFlagsCard } from "@/components/doctor/review/safety-flags-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { isBatchReviewEligible } from "@/lib/clinical/batch-review-policy"
-import { buildClinicalCaseSummary, type ClinicalCaseSummary } from "@/lib/clinical/case-summary"
-import { buildPrescribingPacket } from "@/lib/clinical/prescribing-packet"
+import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import { buildReviewPacket } from "@/lib/clinical/review-packet"
 import { isPrescribingServiceRequest } from "@/lib/doctor/service-types"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
 import { cn } from "@/lib/utils"
 
 interface IntakeReviewCockpitProps {
   className?: string
-  showDecisionStrip?: boolean
-  showThinMedCertWarning?: boolean
-  compactDecisionStrip?: boolean
-  revealIdentityByDefault?: boolean
   onBatchReviewResolved?: (intakeId: string) => void
 }
 
 const MED_CERT_SYMPTOM_DETAIL_REQUEST =
   "Could you please add a brief description of your symptoms and when they started? I need that before I can safely issue a medical certificate."
 
-function formatCompactReasonForVisit(summary: ClinicalCaseSummary): string {
-  const factLabels = new Set(["Certificate type", "Requested duration", "Start date", "Symptoms", "Preference"])
-  const facts = summary.keyFacts
-    .filter((fact) => factLabels.has(fact.label))
-    .slice(0, 3)
-    .map((fact) => fact.value)
-
-  return [summary.title, ...facts].filter(Boolean).join(" · ")
-}
-
 /**
  * IntakeReviewCockpit, single-column edition.
  *
  * 2026-05-26: collapses the Request/Notes/History tabs into one
- * scrollable column. The patient decision strip, blockers, safety
- * flags, request facts, optional patient messages, the visible draft
- * note, the recommended prescription card, and certificate delivery
- * status all live above the fold. The unified patient timeline stays
- * inside a bottom "Show full intake" disclosure; Cmd+N focuses the
- * visible note instead of opening a hidden duplicate editor.
+ * scrollable column. Patient safety context is owned by the fixed parent
+ * header; blockers, one request packet, optional patient messages, and
+ * certificate delivery status share this surface. The unified patient
+ * timeline stays inside the bottom disclosure; Cmd+N opens and focuses the
+ * packet's draft note.
  */
 
 function CertificateDeliveryCard() {
@@ -139,10 +123,6 @@ function CertificateDeliveryCard() {
 
 export function IntakeReviewCockpit({
   className,
-  showDecisionStrip = true,
-  showThinMedCertWarning = true,
-  compactDecisionStrip = false,
-  revealIdentityByDefault = false,
   onBatchReviewResolved,
 }: IntakeReviewCockpitProps) {
   const review = useIntakeReview()
@@ -150,6 +130,7 @@ export function IntakeReviewCockpit({
   const router = useRouter()
 
   const [disclosureOpen, setDisclosureOpen] = useState(false)
+  const [draftNoteOpen, setDraftNoteOpen] = useState(false)
   const [isRequestingClinicalDetail, startRequestingClinicalDetail] = useTransition()
 
   const messageCount = (data.patientMessages?.length ?? 0) +
@@ -182,20 +163,32 @@ export function IntakeReviewCockpit({
       answers,
     ],
   )
-  const prescribingPacket = useMemo(
+  const reviewPacket = useMemo(
     () =>
-      buildPrescribingPacket({
+      buildReviewPacket({
+        category: intake.category,
         serviceType: service?.type,
         subtype: intake.subtype,
         answers: answers ?? {},
-        intake: { status: intake.status, script_sent: intake.script_sent },
+        intake: {
+          status: intake.status,
+          script_sent: intake.script_sent,
+          script_sent_at: intake.script_sent_at,
+        },
+        summary: caseSummary,
       }),
-    [service?.type, intake.subtype, intake.status, intake.script_sent, answers],
+    [
+      answers,
+      caseSummary,
+      intake.category,
+      intake.script_sent,
+      intake.script_sent_at,
+      intake.status,
+      intake.subtype,
+      service?.type,
+    ],
   )
   const hasPrescriptionIntent = Boolean(caseSummary.prescriptionIntent)
-  const reasonForVisitText = compactDecisionStrip
-    ? formatCompactReasonForVisit(caseSummary)
-    : caseSummary.patientStory
   const symptomDetail =
     typeof answers?.symptomDetails === "string"
       ? answers.symptomDetails
@@ -252,7 +245,8 @@ export function IntakeReviewCockpit({
       review.setShowDeclineDialog(true)
     },
     onNote: () => {
-      setTimeout(() => review.notesRef.current?.focus(), 60)
+      setDraftNoteOpen(true)
+      requestAnimationFrame(() => review.notesRef.current?.focus())
     },
     onEscape: () => {
       if (review.showDeclineDialog) review.setShowDeclineDialog(false)
@@ -284,45 +278,12 @@ export function IntakeReviewCockpit({
                 />
               </div>
             ) : null}
-            <div className="space-y-1.5">
-              <div className="flex items-baseline gap-1.5">
-                <span className="shrink-0 text-[11px] font-medium text-muted-foreground">Reason for visit</span>
-                <span className="text-sm font-medium text-foreground leading-5">{reasonForVisitText}</span>
-              </div>
-              {showThinMedCertWarning && hasThinMedCertIntake ? (
-                <div className="flex items-start gap-2 rounded-lg border border-border/60 bg-muted/25 px-3 py-2 text-slate-600 dark:text-muted-foreground">
-                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-                  <p className="text-xs font-medium leading-relaxed">
-                    No symptoms yet. Ask the patient for detail.
-                  </p>
-                </div>
-              ) : null}
-            </div>
             <RequestInfoCard
-              compact
-              hideFullAnswers
-              hidePatientStory
-              hidePrescriptionIntent
+              packet={reviewPacket}
+              summary={caseSummary}
+              draftNoteOpen={draftNoteOpen}
+              onDraftNoteOpenChange={setDraftNoteOpen}
             />
-            {/* Rx rec sits directly below the clinical facts + note so the
-                doctor sees what to prescribe before confirming identity. */}
-            <PrescribingPacketCard
-              packet={prescribingPacket}
-              cautions={caseSummary.prescriptionIntent?.cautionChecks}
-            />
-            {showDecisionStrip ? (
-              <PatientDecisionStrip
-                intake={intake}
-                answers={answers}
-                previousIntakes={data.previousIntakes ?? []}
-                service={service}
-                doctorNotes={review.doctorNotes}
-                compact
-                showPatientName={!compactDecisionStrip}
-                summaryOnly={compactDecisionStrip}
-                revealIdentityByDefault={revealIdentityByDefault}
-              />
-            ) : null}
             {messageCount > 0 ? (
               <PatientMessageThread
                 messages={data.patientMessages ?? []}
@@ -339,6 +300,15 @@ export function IntakeReviewCockpit({
               open={disclosureOpen}
               onOpenChange={setDisclosureOpen}
             >
+              <section aria-label="Full intake answers">
+                <ClinicalSummary
+                  answers={answers}
+                  consultSubtype={intake.category === "consult" && intake.subtype
+                    ? intake.subtype
+                    : undefined}
+                  className="border-0 p-0 shadow-none"
+                />
+              </section>
               <PatientTimeline
                 requests={data.previousIntakes ?? []}
                 notes={data.patientNotes ?? []}

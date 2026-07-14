@@ -7,7 +7,6 @@ import {
   FileText,
   GitMerge,
   Loader2,
-  type LucideIcon,
   Mail,
   MapPin,
   Phone,
@@ -15,7 +14,6 @@ import {
   Plus,
   RefreshCw,
   Trash2,
-  XCircle,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -37,15 +35,13 @@ import { usePanel } from "@/components/panels/panel-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { TypedConfirmDialog } from "@/components/ui/typed-confirm-dialog"
-import {
-  type AttributionClassificationInput,
-  classifyAttributionSource,
-} from "@/lib/analytics/source-classification"
+import type { AttributionClassificationInput } from "@/lib/analytics/source-classification"
+import type { ClinicalProfileDifference } from "@/lib/clinical/case-summary"
 import { STAFF_DOCTOR_PATIENTS_HREF, STAFF_IDENTITY_HREF, STAFF_PATIENTS_HREF } from "@/lib/dashboard/routes"
 import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
-import { formatIntakeStatus } from "@/lib/format/intake"
 import { cn } from "@/lib/utils"
 import { validateMedicareNumber } from "@/lib/validation/medicare"
 import { normalizeIdentifierDigits, normalizeValidIhiNumber } from "@/lib/validation/prescribing-identifier"
@@ -134,13 +130,58 @@ type PatientDetailProfile = Profile & {
   duplicate_profile_ids?: string[]
 }
 
-type PatientFileStatusTone = "success" | "warning" | "destructive" | "muted"
+interface PatientHealthProfile {
+  allergies: string[]
+  conditions: string[]
+  current_medications: string[]
+  blood_type: string | null
+  emergency_contact_name: string | null
+  emergency_contact_phone: string | null
+  notes: string | null
+  updated_at: string
+}
 
-const PATIENT_FILE_STATUS_TONE_CLASS: Record<PatientFileStatusTone, string> = {
-  success: "bg-success-light/55 text-success",
-  warning: "bg-warning-light/60 text-warning",
-  destructive: "bg-destructive/10 text-destructive",
-  muted: "bg-muted/45 text-muted-foreground",
+type PatientRecordTab = "clinical" | "history" | "operations"
+
+function formatSavedValues(values: string[]): string {
+  return values.length > 0 ? values.join(" · ") : "None recorded in saved profile"
+}
+
+function renderClinicalProfileValue(
+  values: string[],
+  difference?: ClinicalProfileDifference,
+) {
+  const savedValue = formatSavedValues(values)
+  if (!difference) return savedValue
+
+  return (
+    <div className="space-y-1.5">
+      <p>
+        <span className="mr-1 text-xs font-medium text-muted-foreground">Saved profile</span>
+        <span>{savedValue}</span>
+      </p>
+      <p className="text-xs text-warning">
+        <span className="mr-1 font-semibold">Current request</span>
+        <span>{difference.currentRequest}</span>
+      </p>
+    </div>
+  )
+}
+
+function joinDistinctValues(...values: Array<string | null | undefined>): string {
+  return Array.from(new Set(values.filter((value): value is string => Boolean(value?.trim())))).join(" · ")
+}
+
+function formatLandingPath(value: string | null | undefined): string {
+  if (!value?.trim()) return "Not captured"
+  try {
+    const url = value.startsWith("http")
+      ? new URL(value)
+      : new URL(value, "https://instantmed.com.au")
+    return url.pathname || "/"
+  } catch {
+    return value
+  }
 }
 
 function formatParchmentActivityTime(value: string | null | undefined): string | null {
@@ -161,12 +202,10 @@ interface PatientDetailClientProps {
   duplicateCandidates: PatientDuplicateCandidate[]
   intakes: IntakeWithService[]
   medications: PatientMedication[]
-  stats: {
-    totalRequests: number
-    approvedRequests: number
-    certificatesIssued: number
-    linkedProfiles: number
-  }
+  healthProfile: PatientHealthProfile | null
+  clinicalDifferences: ClinicalProfileDifference[]
+  comparisonRequestCreatedAt: string | null
+  linkedProfileCount: number
   emailLogs: EmailLog[]
   patientNotes: PatientNote[]
   parchmentActivity: ParchmentActivity[]
@@ -182,7 +221,10 @@ export function PatientDetailClient({
   duplicateCandidates,
   intakes,
   medications,
-  stats,
+  healthProfile,
+  clinicalDifferences,
+  comparisonRequestCreatedAt,
+  linkedProfileCount,
   emailLogs,
   patientNotes,
   parchmentActivity,
@@ -202,6 +244,11 @@ export function PatientDetailClient({
   const [newNote, setNewNote] = useState("")
   const [notes, setNotes] = useState<PatientNote[]>(patientNotes)
   const [showNoteForm, setShowNoteForm] = useState(false)
+  const [activeTab, setActiveTab] = useState<PatientRecordTab>("clinical")
+  const clinicalDifferenceByKey = new Map(
+    clinicalDifferences.map((difference) => [difference.key, difference]),
+  )
+  const comparisonRequestDate = formatParchmentActivityTime(comparisonRequestCreatedAt)
   const noteFormRef = useRef<HTMLDivElement | null>(null)
   const noteTextareaRef = useRef<HTMLTextAreaElement | null>(null)
 
@@ -259,19 +306,15 @@ export function PatientDetailClient({
     })
   }
 
-  const refreshParchmentDeliveryEvidence = (mode: "refresh" | "verify" = "refresh") => {
+  const handleRefreshParchmentPrescriptions = () => {
     startPrescriptionRefreshTransition(async () => {
       const result = await refreshPatientParchmentPrescriptionsAction(patient.id)
       if (result.success) {
         const syncedCount = result.syncedCount ?? 0
         toast.success(
           syncedCount === 0
-            ? mode === "verify"
-              ? "Parchment delivery evidence refreshed. No new prescription yet."
-              : "No Parchment prescriptions found"
-            : mode === "verify"
-              ? `Verified ${syncedCount} Parchment prescription${syncedCount === 1 ? "" : "s"} in the PMS`
-              : `Refreshed ${syncedCount} Parchment prescription${syncedCount === 1 ? "" : "s"}`,
+            ? "No Parchment prescriptions found"
+            : `Refreshed ${syncedCount} Parchment prescription${syncedCount === 1 ? "" : "s"}`,
         )
         router.refresh()
         return
@@ -280,10 +323,6 @@ export function PatientDetailClient({
       if ((result.syncedCount ?? 0) > 0) router.refresh()
       toast.error(result.error || "Could not refresh prescriptions from Parchment")
     })
-  }
-
-  const handleRefreshParchmentPrescriptions = () => {
-    refreshParchmentDeliveryEvidence("refresh")
   }
 
   const handleAddNote = () => {
@@ -348,25 +387,18 @@ export function PatientDetailClient({
     validateMedicare: true,
   })
 
-  // Acquisition source: first-touch and last-touch. If the patient has only
-  // one request, render a single chip. If the two intakes resolved to the
-  // same group, also render a single chip. Otherwise render both labelled
-  // so the operator can see how acquisition has evolved.
-  const firstGroup = firstTouchAttribution
-    ? classifyAttributionSource(firstTouchAttribution).group
-    : null
-  const lastGroup = lastTouchAttribution
-    ? classifyAttributionSource(lastTouchAttribution).group
-    : null
   const isSameTouch =
     Boolean(firstTouchAttribution) &&
     Boolean(lastTouchAttribution) &&
     firstTouchAttribution?.created_at === lastTouchAttribution?.created_at
-  const showSeparateTouches =
-    Boolean(firstTouchAttribution) &&
-    Boolean(lastTouchAttribution) &&
-    !isSameTouch &&
-    firstGroup !== lastGroup
+  const attributionTouches = [
+    firstTouchAttribution
+      ? { label: "First touch", attribution: firstTouchAttribution }
+      : null,
+    lastTouchAttribution && !isSameTouch
+      ? { label: "Most recent", attribution: lastTouchAttribution }
+      : null,
+  ].filter((touch): touch is { label: string; attribution: PatientTouchAttribution } => touch !== null)
   const addressVerificationVariant = snapshot.address.verificationTone === "success"
     ? "success"
     : snapshot.address.verificationTone === "warning"
@@ -393,7 +425,6 @@ export function PatientDetailClient({
   const latestIdentitySyncLabel = formatParchmentActivityTime(latestIdentitySync?.occurred_at)
   const syncButtonLabel = patient.parchment_patient_id ? "Resync identity" : "Sync identity"
   const syncButtonTitle = prescribingIdentityBlockerTitle ?? "Push current Medicare/IHI, address, DOB, phone, and sex to Parchment"
-  const latestRequest = intakes[0] ?? null
   const parchmentStatusLabel = !parchmentEnabled
     ? "Parchment integration disabled"
       : !parchmentUserLinked
@@ -406,51 +437,11 @@ export function PatientDetailClient({
   const parchmentStatusTone = canUseParchment
     ? patient.parchment_patient_id ? "outline" : "warning"
     : "destructive"
-  const patientFileStatusItems: Array<{
-    label: string
-    value: string
-    tone: PatientFileStatusTone
-    icon: LucideIcon
-  }> = [
-    {
-      label: "Identity",
-      value: snapshot.completenessTone === "complete"
-        ? "Details complete"
-        : `${snapshot.missingCriticalFields.length} ${snapshot.missingCriticalFields.length === 1 ? "field" : "fields"} missing`,
-      tone: snapshot.completenessTone === "complete"
-        ? "muted"
-        : snapshot.completenessTone === "partial"
-          ? "warning"
-          : "destructive",
-      icon: snapshot.completenessTone === "complete" ? CheckCircle : AlertTriangle,
-    },
-    {
-      label: "Prescribing",
-      value: hasPrescribingIdentityBlocker
-        ? "Verify identity"
-        : patient.parchment_patient_id ? "Ready" : parchmentStatusLabel,
-      tone: hasPrescribingIdentityBlocker ? "warning" : patient.parchment_patient_id ? "muted" : parchmentStatusTone === "warning" ? "warning" : "destructive",
-      icon: hasPrescribingIdentityBlocker ? AlertTriangle : patient.parchment_patient_id ? CheckCircle : Pill,
-    },
-    {
-      label: "Latest request",
-      value: latestRequest
-        ? `${latestRequest.service?.short_name || latestRequest.service?.name || latestRequest.category || "Request"} · ${formatIntakeStatus(latestRequest.status)}`
-        : "No requests",
-      tone: "muted",
-      icon: FileText,
-    },
-    {
-      label: "Duplicate",
-      value: reconcileDuplicateProfileIds.length > 0
-        ? `${reconcileDuplicateProfileIds.length} candidate${reconcileDuplicateProfileIds.length === 1 ? "" : "s"}${canMergeLinkedProfiles ? " · reconcile available" : ""}`
-        : stats.linkedProfiles > 1
-          ? `${stats.linkedProfiles} linked${canMergeLinkedProfiles ? " · reconcile available" : ""}`
-          : "Single profile",
-      tone: stats.linkedProfiles > 1 || reconcileDuplicateProfileIds.length > 0 ? "warning" : "muted",
-      icon: stats.linkedProfiles > 1 || reconcileDuplicateProfileIds.length > 0 ? GitMerge : CheckCircle,
-    },
-  ]
+
+  const openNoteComposer = () => {
+    setActiveTab("clinical")
+    setShowNoteForm(true)
+  }
 
   return (
     <div className="space-y-5">
@@ -483,349 +474,439 @@ export function PatientDetailClient({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-          {canMergePatientProfiles ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="border-destructive/35 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => setShowDeleteDialog(true)}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Delete patient
-            </Button>
-          ) : null}
-          <EditPatientDialog patient={patient} />
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setShowNoteForm((value) => !value)}
+            onClick={openNoteComposer}
           >
             <Plus className="h-3.5 w-3.5" />
             Add note
           </Button>
-          {patient.onboarding_completed ? (
-            <Badge variant="outline" className="text-muted-foreground">
-              <CheckCircle className="mr-1 h-3 w-3" />
-              Onboarded
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="bg-warning-light text-warning border-warning-border">
-              <XCircle className="mr-1 h-3 w-3" />
-              Incomplete Profile
-            </Badge>
-          )}
         </div>
       </div>
 
-      <div
-        className="grid gap-2 rounded-xl border border-border/50 bg-card p-2 text-sm sm:grid-cols-2 xl:grid-cols-4"
-        aria-label="Patient file status"
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as PatientRecordTab)}
       >
-        {patientFileStatusItems.map((item) => (
-          <div key={item.label} className="flex min-w-0 items-center gap-2 rounded-lg bg-muted/25 px-3 py-2">
-            <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${PATIENT_FILE_STATUS_TONE_CLASS[item.tone]}`}>
-              <item.icon className="h-3.5 w-3.5" aria-hidden />
-            </span>
-            <span className="min-w-0">
-              <span className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                {item.label}
-              </span>
-              <span className="block truncate text-sm font-medium text-foreground">{item.value}</span>
-            </span>
-          </div>
-        ))}
-      </div>
+        <TabsList aria-label="Patient record sections" className="w-full justify-start overflow-x-auto sm:w-fit">
+          <TabsTrigger value="clinical">Clinical</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
+          <TabsTrigger value="operations">Operations</TabsTrigger>
+        </TabsList>
 
-      {/* Prescribing workspace — Linear-tier strip. The old card carried four
-          big metadata blocks that duplicated the patient-summary row below
-          AND the timeline's Audit / Prescriptions tabs. Now a single bounded
-          row: status chip, latest prescription/request as one inline line,
-          and a primary "Prescribe" CTA. The rest of the parchment actions
-          (sync, refresh, link prescriber) live in the Actions menu. */}
-      <div
-        className={cn(
-          "flex flex-wrap items-center gap-3 rounded-xl border px-4 py-2.5 text-sm transition-colors duration-150",
-          hasParchmentBlocker
-            ? "border-warning-border bg-warning-light/45"
-            : "border-border/50 bg-card",
-        )}
-      >
-        <Pill className={cn("h-4 w-4 shrink-0", hasParchmentBlocker ? "text-warning" : "text-muted-foreground")} aria-hidden />
-        <span className="text-sm font-medium text-foreground">Prescribing</span>
-        <Badge variant={parchmentStatusTone} size="sm">{parchmentStatusLabel}</Badge>
-        {canUseParchment && patient.parchment_patient_id ? (
-          <span className="text-xs text-muted-foreground">
-            {latestIdentitySyncLabel ? `Last identity sync ${latestIdentitySyncLabel}` : "Resync after Medicare/IHI edits."}
-          </span>
-        ) : null}
-        <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2">
-          {parchmentEnabled && !parchmentUserLinked ? (
-            <Button type="button" variant="outline" size="sm" asChild>
-              <Link href={`${STAFF_IDENTITY_HREF}#parchment-account`}>Link prescriber</Link>
-            </Button>
-          ) : null}
-          {canUseParchment ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={isParchmentSyncPending || hasPrescribingIdentityBlocker}
-              onClick={handleSyncPatientToParchment}
-              title={syncButtonTitle}
-            >
-              {isParchmentSyncPending ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <RefreshCw className="h-3.5 w-3.5" />
-              )}
-              {syncButtonLabel}
-            </Button>
-          ) : null}
-          {canUseParchment ? (
-            <Button
-              type="button"
-            variant="outline"
-            size="sm"
-            disabled={isPrescriptionRefreshPending || hasPrescribingIdentityBlocker}
-            onClick={handleRefreshParchmentPrescriptions}
-            title={prescribingIdentityBlockerTitle ?? "Refresh prescriptions from Parchment"}
-            >
-              {isPrescriptionRefreshPending ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <RefreshCw className="h-3.5 w-3.5" />
-              )}
-              Refresh
-            </Button>
-          ) : null}
-          <Button
-            type="button"
-            size="sm"
-            disabled={!canUseParchment}
-            title={prescribingIdentityBlockerTitle}
-            onClick={handleOpenParchmentPrescribe}
-          >
-            <Pill className="h-4 w-4" />
-            Prescribe in Parchment
-          </Button>
-        </div>
-      </div>
-
-      {/* Phase 4 entity-page cleanup (2026-05-12): the standalone Delivery
-          Evidence card was duplicate surface area. Every Parchment webhook
-          and manual refresh event is rendered in `<PatientTimeline>` below
-          under the Audit filter tab, with the same SCID + event-id + "View
-          request" deep links. The "Verify delivery" action moves into the
-          Prescribing strip's Refresh button (same RPC, same intent).
-          Removing the card returns ~150 vertical pixels above the timeline. */}
-      {/* Compact patient identity strip. Phase 4 entity-page pass: the
-          previous summary card had a 3-column grid that triple-printed
-          details already in the header (name/age/sex/address) and the
-          prescribing strip above (parchment patient id). Compressed into
-          one bounded row of label / value pairs grouped by purpose. Saves
-          ~120 vertical px and pushes the timeline up into the fold. */}
-      <div className="rounded-xl border border-border/50 bg-card">
-        {stats.linkedProfiles > 1 || reconcileDuplicateProfileIds.length > 0 ? (
-          <div className="flex flex-col gap-2 border-b border-border/40 bg-info-light/40 px-4 py-2.5 text-xs text-info sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-1">
-              <span className="block">
-                {stats.linkedProfiles > 1
-                  ? `History from ${stats.linkedProfiles} linked patient profiles.`
-                  : "Potential duplicate patient profiles found."}
-              </span>
-              {duplicateCandidates.length > 0 ? (
-                <span className="flex flex-wrap gap-1">
-                  {duplicateCandidates.slice(0, 4).map((candidate) => (
-                    <Badge key={candidate.id} variant="outline" size="sm" className="bg-card/80 text-[10px] text-info">
-                      {candidate.full_name} · {candidate.matchReason === "name_dob" ? "name + DOB" : candidate.matchReason}
-                    </Badge>
-                  ))}
-                  {signedInDuplicateCandidateCount > 0 ? (
-                    <Badge variant="warning" size="sm" className="text-[10px]">
-                      {signedInDuplicateCandidateCount} signed-in duplicate{signedInDuplicateCandidateCount === 1 ? "" : "s"} need manual review
-                    </Badge>
+        <TabsContent value="clinical" className="space-y-4">
+          <Card aria-label="Saved clinical profile" className="rounded-xl border-border/50">
+            <CardHeader className="px-4 py-3">
+              <CardTitle className="text-base">Saved clinical profile</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Longitudinal patient-entered history. Read-only in the staff record.
+              </p>
+            </CardHeader>
+            <CardContent className="border-t border-border/40 p-4">
+              {healthProfile ? (
+                <div className="space-y-4">
+                  {clinicalDifferences.length > 0 ? (
+                    <div className="rounded-lg border border-warning-border bg-warning-light px-3 py-2">
+                      <p className="flex items-center gap-2 text-xs font-semibold text-warning">
+                        <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                        Review differences
+                      </p>
+                      <p className="mt-1 text-xs text-warning/90">
+                        Current request answers{comparisonRequestDate ? ` from ${comparisonRequestDate}` : ""} differ from the patient-entered saved profile.
+                      </p>
+                    </div>
                   ) : null}
+                  <dl className="grid gap-4 sm:grid-cols-3">
+                    <div>
+                      <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Allergies</dt>
+                      <dd className="mt-1 text-sm leading-relaxed text-foreground">
+                        {renderClinicalProfileValue(
+                          healthProfile.allergies,
+                          clinicalDifferenceByKey.get("allergies"),
+                        )}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Conditions</dt>
+                      <dd className="mt-1 text-sm leading-relaxed text-foreground">
+                        {renderClinicalProfileValue(
+                          healthProfile.conditions,
+                          clinicalDifferenceByKey.get("conditions"),
+                        )}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Current medicines</dt>
+                      <dd className="mt-1 text-sm leading-relaxed text-foreground">
+                        {renderClinicalProfileValue(
+                          healthProfile.current_medications,
+                          clinicalDifferenceByKey.get("current_medications"),
+                        )}
+                      </dd>
+                    </div>
+                  </dl>
+                  {healthProfile.blood_type || healthProfile.notes || healthProfile.emergency_contact_name || healthProfile.emergency_contact_phone ? (
+                    <dl className="grid gap-4 border-t border-border/40 pt-4 sm:grid-cols-3">
+                      {healthProfile.blood_type ? (
+                        <div>
+                          <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Blood type</dt>
+                          <dd className="mt-1 text-sm text-foreground">{healthProfile.blood_type}</dd>
+                        </div>
+                      ) : null}
+                      {healthProfile.emergency_contact_name || healthProfile.emergency_contact_phone ? (
+                        <div>
+                          <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Emergency contact</dt>
+                          <dd className="mt-1 text-sm text-foreground">
+                            {joinDistinctValues(healthProfile.emergency_contact_name, healthProfile.emergency_contact_phone)}
+                          </dd>
+                        </div>
+                      ) : null}
+                      {healthProfile.notes ? (
+                        <div>
+                          <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Health notes</dt>
+                          <dd className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-foreground">{healthProfile.notes}</dd>
+                        </div>
+                      ) : null}
+                    </dl>
+                  ) : null}
+                  <p className="text-[11px] text-muted-foreground">
+                    Updated {formatParchmentActivityTime(healthProfile.updated_at) ?? "date unavailable"}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No saved allergies, conditions, or medicines recorded.</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-xl border-border/50">
+            <CardHeader className="px-4 py-3">
+              <CardTitle className="text-base">Identity and contact</CardTitle>
+              <p className="text-xs text-muted-foreground">Current details used for prescribing and patient contact.</p>
+            </CardHeader>
+            <CardContent className="border-t border-border/40 p-4">
+              <dl className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+                <div className="flex min-w-0 items-start gap-2">
+                  <Mail className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
+                  <div className="min-w-0">
+                    <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Email</dt>
+                    <dd className="truncate">{snapshot.email.label}</dd>
+                  </div>
+                </div>
+                <div className="flex min-w-0 items-start gap-2">
+                  <Phone className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
+                  <div className="min-w-0">
+                    <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Phone</dt>
+                    <dd className="tabular-nums">{snapshot.phone.label}</dd>
+                  </div>
+                </div>
+                <div className="flex min-w-0 items-start gap-2">
+                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
+                  <div className="min-w-0">
+                    <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Address</dt>
+                    <dd>{snapshot.address.label}</dd>
+                    {snapshot.address.verificationLabel ? (
+                      <Badge variant={addressVerificationVariant} size="sm" className="mt-1 w-fit text-[10px]">
+                        {snapshot.address.verificationLabel}
+                      </Badge>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="min-w-0">
+                  <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{prescribingIdentifierHeading}</dt>
+                  <dd className="font-mono tabular-nums">
+                    {snapshot.medicare.present ? snapshot.medicare.label : "Not provided"}
+                  </dd>
+                  {usingIhiForPrescribing && hasInvalidMedicareNumber ? (
+                    <p className="text-[11px] text-success">IHI used for prescribing. Invalid Medicare is ignored.</p>
+                  ) : null}
+                  {snapshot.medicare.error ? (
+                    <p className="text-[11px] text-warning">{snapshot.medicare.error}</p>
+                  ) : null}
+                  {snapshot.medicare.detailsLabel ? (
+                    <p className="text-[11px] text-muted-foreground">{snapshot.medicare.detailsLabel}</p>
+                  ) : null}
+                </div>
+              </dl>
+            </CardContent>
+          </Card>
+
+          {medications.length > 0 || notes.length > 0 ? (
+            <PatientTimeline
+              prescriptions={medications}
+              notes={notes}
+              admin={canMergePatientProfiles}
+              compact
+              maxItems={3}
+              title="Recent clinical activity"
+              emptyLabel="No recent prescriptions or notes recorded."
+            />
+          ) : null}
+
+          {showNoteForm ? (
+            <Card ref={noteFormRef} className="rounded-xl border-border/50">
+              <CardHeader className="px-4 py-3">
+                <CardTitle className="text-base">Add patient note</CardTitle>
+                <p className="text-xs text-muted-foreground">Internal only. Not visible to the patient.</p>
+              </CardHeader>
+              <CardContent className="border-t border-border/40 p-4">
+                <Textarea
+                  ref={noteTextareaRef}
+                  placeholder="Add a note about this patient..."
+                  value={newNote}
+                  onChange={(event) => setNewNote(event.target.value)}
+                  className="min-h-[80px]"
+                />
+                <div className="mt-3 flex justify-end gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => { setShowNoteForm(false); setNewNote("") }}>
+                    Cancel
+                  </Button>
+                  <Button size="sm" onClick={handleAddNote} disabled={isNotePending || !newNote.trim()}>
+                    {isNotePending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+                    Save note
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+        </TabsContent>
+
+        <TabsContent value="history">
+          {intakes.length === 0 && medications.length === 0 && notes.length === 0 ? (
+            <Card className="rounded-xl border-dashed border-border/60 bg-card/50">
+              <CardContent className="flex flex-col items-center gap-3 px-6 py-12 text-center">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <FileText className="h-5 w-5" aria-hidden />
                 </span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">No clinical history yet</p>
+                  <p className="mt-1 max-w-md text-sm text-muted-foreground">
+                    Requests, prescriptions, and doctor notes will appear here.
+                  </p>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={openNoteComposer}>
+                  <Plus className="h-3.5 w-3.5" />
+                  Add a doctor note
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <PatientTimeline
+              requests={intakes}
+              prescriptions={medications}
+              notes={notes}
+              admin={canMergePatientProfiles}
+              title="Clinical history"
+              emptyLabel="No requests, prescriptions, or notes recorded for this patient yet."
+              initialPageSize={10}
+              pageStep={20}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="operations" className="space-y-4">
+          <div
+            className={cn(
+              "flex flex-wrap items-center gap-3 rounded-xl border px-4 py-2.5 text-sm transition-colors duration-150",
+              hasParchmentBlocker
+                ? "border-warning-border bg-warning-light/45"
+                : "border-border/50 bg-card",
+            )}
+          >
+            <Pill className={cn("h-4 w-4 shrink-0", hasParchmentBlocker ? "text-warning" : "text-muted-foreground")} aria-hidden />
+            <span className="text-sm font-medium text-foreground">Prescribing</span>
+            <Badge variant={parchmentStatusTone} size="sm">{parchmentStatusLabel}</Badge>
+            {canUseParchment && patient.parchment_patient_id ? (
+              <span className="text-xs text-muted-foreground">
+                {latestIdentitySyncLabel ? `Last identity sync ${latestIdentitySyncLabel}` : "Resync after Medicare/IHI edits."}
+              </span>
+            ) : null}
+            <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2">
+              {parchmentEnabled && !parchmentUserLinked ? (
+                <Button type="button" variant="outline" size="sm" asChild>
+                  <Link href={`${STAFF_IDENTITY_HREF}#parchment-account`}>Link prescriber</Link>
+                </Button>
               ) : null}
-            </div>
-            {canMergeLinkedProfiles ? (
+              {canUseParchment ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isParchmentSyncPending || hasPrescribingIdentityBlocker}
+                  onClick={handleSyncPatientToParchment}
+                  title={syncButtonTitle}
+                >
+                  {isParchmentSyncPending ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  )}
+                  {syncButtonLabel}
+                </Button>
+              ) : null}
+              {canUseParchment ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isPrescriptionRefreshPending || hasPrescribingIdentityBlocker}
+                  onClick={handleRefreshParchmentPrescriptions}
+                  title={prescribingIdentityBlockerTitle ?? "Refresh prescriptions from Parchment"}
+                >
+                  {isPrescriptionRefreshPending ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  )}
+                  Refresh
+                </Button>
+              ) : null}
               <Button
                 type="button"
                 size="sm"
-                variant="outline"
-                className="self-start border-info text-info hover:bg-info/10"
-                onClick={() => setShowMergeDialog(true)}
+                disabled={!canUseParchment}
+                title={prescribingIdentityBlockerTitle}
+                onClick={handleOpenParchmentPrescribe}
               >
-                <GitMerge className="mr-1 h-3.5 w-3.5" />
-                Reconcile & sync
+                <Pill className="h-4 w-4" />
+                Prescribe in Parchment
               </Button>
-            ) : null}
-          </div>
-        ) : null}
-        {/*
-          2-row identity grid (compressed 2026-05-21).
-          Row 1: Email + Phone. Row 2: Address + Medicare.
-          DOB is shown in the identity strip header (line ~337); Member
-          since was dropped because it doesn't earn its place above the
-          clinical timeline. Saves ~120px of vertical above the timeline
-          on the longest operator page.
-        */}
-        <dl className="grid gap-x-6 gap-y-3 p-4 text-sm sm:grid-cols-2">
-          <div className="flex items-start gap-2 min-w-0">
-            <Mail className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
-            <div className="min-w-0">
-              <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Email</dt>
-              <dd className="truncate text-sm">{snapshot.email.label}</dd>
             </div>
           </div>
-          <div className="flex items-start gap-2 min-w-0">
-            <Phone className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
-            <div className="min-w-0">
-              <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Phone</dt>
-              <dd className="text-sm tabular-nums">{snapshot.phone.label}</dd>
-            </div>
-          </div>
-          <div className="flex items-start gap-2 min-w-0">
-            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
-            <div className="min-w-0">
-              <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Address</dt>
-              <dd className="truncate text-sm">{snapshot.address.label}</dd>
-              {snapshot.address.verificationLabel ? (
-                <Badge variant={addressVerificationVariant} size="sm" className="mt-1 w-fit text-[10px]">
-                  {snapshot.address.verificationLabel}
-                </Badge>
-              ) : null}
-            </div>
-          </div>
-          <div className="min-w-0">
-            <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{prescribingIdentifierHeading}</dt>
-            <dd className="font-mono text-sm tabular-nums">
-              {snapshot.medicare.present ? snapshot.medicare.label : "Not provided"}
-            </dd>
-            {usingIhiForPrescribing && hasInvalidMedicareNumber ? (
-              <p className="text-[11px] text-success">IHI used for prescribing. Invalid Medicare is ignored.</p>
-            ) : null}
-            {snapshot.medicare.error ? (
-              <p className="text-[11px] text-warning">{snapshot.medicare.error}</p>
-            ) : null}
-            {snapshot.medicare.detailsLabel ? (
-              <p className="text-[11px] text-muted-foreground">{snapshot.medicare.detailsLabel}</p>
-            ) : null}
-          </div>
-          {/* Acquisition source: first-touch and last-touch when they differ.
-              Staff-only signal; never rendered on patient-facing surfaces. */}
-          {firstTouchAttribution ? (
-            <div className="min-w-0 sm:col-span-2">
-              <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Source</dt>
-              <dd className="mt-1 flex flex-wrap items-start gap-x-6 gap-y-2">
-                {showSeparateTouches ? (
-                  <>
-                    <AttributionChip
-                      variant="block"
-                      attribution={firstTouchAttribution}
-                      contextLabel="First touch"
-                    />
-                    {lastTouchAttribution ? (
+
+          <Card aria-label="Acquisition attribution" className="rounded-xl border-border/50">
+            <CardHeader className="px-4 py-3">
+              <CardTitle className="text-base">Acquisition</CardTitle>
+              <p className="text-xs text-muted-foreground">Where this patient first arrived and their most recent source.</p>
+            </CardHeader>
+            <CardContent className="border-t border-border/40 p-4">
+              {attributionTouches.length > 0 ? (
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {attributionTouches.map(({ label, attribution }) => (
+                    <div key={`${label}-${attribution.created_at ?? "unknown"}`} className="rounded-lg border border-border/50 bg-muted/20 p-3">
                       <AttributionChip
                         variant="block"
-                        attribution={lastTouchAttribution}
-                        contextLabel="Most recent"
+                        attribution={attribution}
+                        contextLabel={label}
                       />
-                    ) : null}
-                  </>
-                ) : (
-                  <AttributionChip
-                    variant="block"
-                    attribution={lastTouchAttribution ?? firstTouchAttribution}
-                  />
-                )}
-              </dd>
-            </div>
-          ) : null}
-        </dl>
-      </div>
+                      <dl className="mt-3 grid gap-2 text-xs">
+                        <div className="grid grid-cols-[92px_minmax(0,1fr)] gap-2">
+                          <dt className="text-muted-foreground">Landing page</dt>
+                          <dd className="break-words text-foreground">{formatLandingPath(attribution.landing_page)}</dd>
+                        </div>
+                        <div className="grid grid-cols-[92px_minmax(0,1fr)] gap-2">
+                          <dt className="text-muted-foreground">Campaign</dt>
+                          <dd className="break-words text-foreground">
+                            {joinDistinctValues(attribution.utm_campaign, attribution.campaignid) || "Not captured"}
+                          </dd>
+                        </div>
+                        <div className="grid grid-cols-[92px_minmax(0,1fr)] gap-2">
+                          <dt className="text-muted-foreground">Keyword</dt>
+                          <dd className="break-words text-foreground">
+                            {joinDistinctValues(attribution.keyword, attribution.utm_term) || "Not captured"}
+                          </dd>
+                        </div>
+                      </dl>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No acquisition attribution was captured.</p>
+              )}
+            </CardContent>
+          </Card>
 
-      {/*
-        Phase 4b of dashboard remaster (2026-05-12): the patient profile used
-        to render four separate scroll-heavy cards under the patient summary
-        (Active Prescriptions, PatientTimeline-requests-only, an inline note
-        composer, and PatientCommunicationHistory). They are now all folded
-        into one chronological `PatientTimeline` with channel filter tabs so
-        the doctor reads the patient's history top-to-bottom in one stream.
-      */}
-      {intakes.length === 0 && medications.length === 0 && notes.length === 0 ? (
-        <Card className="rounded-xl border-dashed border-border/60 bg-card/50">
-          <CardContent className="flex flex-col items-center gap-3 px-6 py-12 text-center">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <FileText className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <div>
-              <p className="text-sm font-semibold text-foreground">
-                No clinical history yet
-              </p>
-              <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                The first request, prescription, or doctor note from this
-                patient will appear in the timeline here.
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setShowNoteForm(true)}
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Add a doctor note
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <PatientTimeline
-          requests={intakes}
-          prescriptions={medications}
-          notes={notes}
-          emails={emailLogs}
-          audit={parchmentActivity}
-          admin={canMergePatientProfiles}
-          title="Patient timeline"
-          emptyLabel="No requests, prescriptions, notes, emails, or webhook events recorded for this patient yet."
-          initialPageSize={10}
-          pageStep={20}
-        />
-      )}
+          <PatientTimeline
+            emails={emailLogs}
+            audit={parchmentActivity}
+            admin={canMergePatientProfiles}
+            title="Operational activity"
+            emptyLabel="No email or integration activity recorded for this patient yet."
+            initialPageSize={10}
+            pageStep={20}
+          />
 
-      {showNoteForm && (
-        <Card ref={noteFormRef} className="rounded-xl border-border/50">
-          <CardHeader className="py-3 px-4">
-            <CardTitle className="text-base">Add patient note</CardTitle>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Internal only. Not visible to the patient.
-            </p>
-          </CardHeader>
-          <CardContent className="px-4 py-3">
-            <div className="space-y-3 rounded-lg bg-muted/50 p-4">
-              <Textarea
-                ref={noteTextareaRef}
-                placeholder="Add a note about this patient..."
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-                className="min-h-[80px]"
-              />
-              <div className="flex justify-end gap-2">
-                <Button variant="ghost" size="sm" onClick={() => { setShowNoteForm(false); setNewNote("") }}>
-                  Cancel
-                </Button>
-                <Button size="sm" onClick={handleAddNote} disabled={isNotePending || !newNote.trim()}>
-                  {isNotePending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-                  Save note
-                </Button>
+          <Card className="rounded-xl border-border/50">
+            <CardHeader className="px-4 py-3">
+              <CardTitle className="text-base">Profile administration</CardTitle>
+              <p className="text-xs text-muted-foreground">Account state, linked profiles, and protected maintenance actions.</p>
+            </CardHeader>
+            <CardContent className="space-y-4 border-t border-border/40 p-4">
+              <dl className="grid gap-4 text-sm sm:grid-cols-2">
+                <div>
+                  <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Account setup</dt>
+                  <dd className="mt-1 flex items-center gap-2 text-foreground">
+                    {patient.onboarding_completed ? (
+                      <CheckCircle className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
+                    ) : (
+                      <AlertTriangle className="h-3.5 w-3.5 text-warning" aria-hidden />
+                    )}
+                    {patient.onboarding_completed ? "Onboarded" : "Profile setup incomplete"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Linked profiles</dt>
+                  <dd className="mt-1 text-foreground">{linkedProfileCount}</dd>
+                </div>
+              </dl>
+
+              {linkedProfileCount > 1 || reconcileDuplicateProfileIds.length > 0 ? (
+                <div className="rounded-lg border border-info/20 bg-info-light/35 p-3 text-xs text-info">
+                  <p>
+                    {linkedProfileCount > 1
+                      ? `History includes ${linkedProfileCount} linked patient profiles.`
+                      : "Potential duplicate patient profiles found."}
+                  </p>
+                  {duplicateCandidates.length > 0 ? (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {duplicateCandidates.slice(0, 4).map((candidate) => (
+                        <Badge key={candidate.id} variant="outline" size="sm" className="bg-card/80 text-[10px] text-info">
+                          {candidate.full_name} · {candidate.matchReason === "name_dob" ? "name + DOB" : candidate.matchReason}
+                        </Badge>
+                      ))}
+                      {signedInDuplicateCandidateCount > 0 ? (
+                        <Badge variant="warning" size="sm" className="text-[10px]">
+                          {signedInDuplicateCandidateCount} signed-in duplicate{signedInDuplicateCandidateCount === 1 ? "" : "s"} need manual review
+                        </Badge>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  {canMergeLinkedProfiles ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="mt-3 border-info text-info hover:bg-info/10"
+                      onClick={() => setShowMergeDialog(true)}
+                    >
+                      <GitMerge className="mr-1 h-3.5 w-3.5" />
+                      Reconcile & sync
+                    </Button>
+                  ) : null}
+                </div>
+              ) : null}
+
+              <div className="flex flex-wrap justify-end gap-2 border-t border-border/40 pt-4">
+                <EditPatientDialog patient={patient} />
+                {canMergePatientProfiles ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="border-destructive/35 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => setShowDeleteDialog(true)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Delete patient
+                  </Button>
+                ) : null}
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <TypedConfirmDialog
         open={showMergeDialog}

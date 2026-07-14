@@ -141,12 +141,16 @@ test.describe("Addressfinder mobile path", () => {
 
     await completeToDetails(page)
 
-    await page.locator("input[placeholder='Start typing your address...']").fill("No Match Avenue")
+    const addressInput = page.locator("input[placeholder='Start typing your address...']")
+    await addressInput.fill("No Match Avenue")
     await expect(page.getByRole("button", { name: /Use manual address/i })).toBeVisible({ timeout: 8000 })
     await page.getByRole("button", { name: /Use manual address/i }).click()
 
     await expect(page.locator("input#suburb")).toBeVisible()
     await expect(page.locator("input#postcode")).toBeVisible()
+    await addressInput.fill("No Match Avenue Unit 2")
+    await expect(addressInput).toHaveValue("No Match Avenue Unit 2")
+    await expect(page.getByRole("button", { name: /Use manual address/i })).toHaveCount(0)
 
     await expect.poll(async () => page.evaluate(() => {
       const raw = window.localStorage.getItem("instantmed-request-draft")
