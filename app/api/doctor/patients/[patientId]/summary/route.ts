@@ -2,7 +2,8 @@ import { type NextRequest, NextResponse } from "next/server"
 
 import { requireApiRole } from "@/lib/auth/helpers"
 import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
-import { getPatientIntakes, getPatientNotes } from "@/lib/data/intakes"
+import { getHealthProfile } from "@/lib/data/health-profile"
+import { getPatientIntakes, getPatientNoteCount, getPatientNotes } from "@/lib/data/intakes"
 import { doctorCanAccessPatient } from "@/lib/doctor/patient-access"
 import { formatServiceType } from "@/lib/format/intake"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -46,13 +47,24 @@ export async function GET(
     }
   }
 
-  const [patientHistory, notes] = await Promise.all([
+  const [patientHistory, notes, totalNotes, healthProfile] = await Promise.all([
     getPatientIntakes(patientId, { pageSize: 10 }),
     getPatientNotes(patientId, undefined, 5),
+    getPatientNoteCount(patientId),
+    getHealthProfile(patientId),
   ])
 
   return NextResponse.json({
     totalIntakes: patientHistory.total,
+    totalNotes,
+    healthProfile: healthProfile
+      ? {
+          allergies: healthProfile.allergies,
+          conditions: healthProfile.conditions,
+          current_medications: healthProfile.current_medications,
+          updated_at: healthProfile.updated_at,
+        }
+      : null,
     history: patientHistory.data.map((intake) => {
       const service = intake.service as { short_name?: string | null; name?: string | null; type?: string | null } | null
       return {

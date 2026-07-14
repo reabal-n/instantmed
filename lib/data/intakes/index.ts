@@ -16,6 +16,7 @@ export {
   getNextQueueIntakeId,
   getPatientDashboardData,
   getPatientIntakes,
+  getPatientNoteCount,
   getPatientNotes,
   getPendingBatchReviews,
   getRecentlyCompletedIntakes,

@@ -326,13 +326,7 @@ function CockpitIntakeDetailClient({
                       component: (
                         <PatientProfilePanel
                           patient={reviewData.intake.patient}
-                          answers={answers}
-                          serviceContext={{
-                            category: reviewData.intake.category,
-                            serviceType: service?.type,
-                            subtype: reviewData.intake.subtype,
-                          }}
-                          sourceLabel={reviewData.intake.reference_number || "Current case"}
+                          currentRequestId={intake.id}
                         />
                       ),
                     })

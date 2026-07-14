@@ -671,14 +671,8 @@ export function IntakeReviewPanel({
                         component: (
                           <PatientProfilePanel
                             patient={intake.patient}
-                            answers={answers}
-                            serviceContext={{
-                              category: intake.category,
-                              serviceType: service?.type,
-                              subtype: intake.subtype,
-                            }}
+                            currentRequestId={intake.id}
                             admin={profileMode === "admin"}
-                            sourceLabel={intake.reference_number || "Current case"}
                           />
                         ),
                       })

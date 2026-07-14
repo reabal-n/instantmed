@@ -639,13 +639,31 @@ describe("dashboard simplicity and runtime performance contracts", () => {
 
   it("keeps the patient profile drawer as a fast reference surface", () => {
     const source = read("components/doctor/patient-profile-panel.tsx")
+    const summaryRoute = read("app/api/doctor/patients/[patientId]/summary/route.ts")
+    const reviewPanel = read("components/doctor/intake-review-panel.tsx")
+    const queueTable = read("app/doctor/queue/queue-table.tsx")
+    const fullCase = read("app/doctor/intakes/[id]/intake-detail-client.tsx")
 
-    expect(source).toContain('aria-label="Identity risk"')
-    expect(source).toContain('aria-label="Prescribing readiness"')
-    expect(source).toContain('aria-label="Latest request"')
-    expect(source).toContain('aria-label="Patient timeline"')
-    expect(source).toContain("Contact and identifiers")
+    expect(source).toContain('aria-label="Saved clinical profile"')
+    expect(source).toContain("Allergies")
+    expect(source).toContain("Conditions")
+    expect(source).toContain("Current medicines")
+    expect(source).toContain('title="Recent activity"')
+    expect(source).toContain("maxItems={3}")
+    expect(source).toContain("currentRequestId")
+    expect(source).toContain("summary.data.history.filter")
+    expect(source).toContain("requests total")
+    expect(source).toContain("notes total")
+    expect(source).not.toContain('aria-label="Prescribing readiness"')
+    expect(source).not.toContain('aria-label="Latest request"')
+    expect(source).not.toContain("sourceLabel")
+    expect(source).not.toContain("Contact and identifiers")
     expect(source).not.toContain("TabsList")
+    expect(summaryRoute).toContain("getHealthProfile")
+    expect(summaryRoute).toContain("getPatientNoteCount")
+    for (const caller of [reviewPanel, queueTable, fullCase]) {
+      expect(caller).toContain("currentRequestId={intake.id}")
+    }
   })
 
   it("keeps route-facing code off broad public component barrels", () => {
