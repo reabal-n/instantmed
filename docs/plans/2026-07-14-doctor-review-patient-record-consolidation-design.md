@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-14
 
-**Status:** Approved direction; awaiting written-spec review
+**Status:** Approved for implementation
 
 **Scope:** Doctor request review, quick patient profile, and full patient record
 
