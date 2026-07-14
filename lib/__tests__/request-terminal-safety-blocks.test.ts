@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  buildPillPregnancyTerminalBlockCorrection,
+  buildPillTerminalBlockCorrection,
   buildUtiTerminalBlockCorrection,
   deriveEdNitrateTerminalBlock,
-  derivePillPregnancyTerminalBlock,
+  derivePillTerminalBlock,
   deriveRepeatMedicationTerminalBlock,
   deriveUtiTerminalBlock,
 } from "@/lib/request/terminal-safety-blocks"
@@ -78,9 +78,9 @@ describe("request terminal safety blocks", () => {
     })
   })
 
-  describe("new-pill pregnancy block", () => {
+  describe("new-pill terminal redirects", () => {
     it("derives an in-person block from a persisted confirmed-pregnancy answer", () => {
-      expect(derivePillPregnancyTerminalBlock({
+      expect(derivePillTerminalBlock({
         consultSubtype: "womens_health",
         womensHealthOption: "ocp_new",
         pregnancyStatus: "yes",
@@ -88,24 +88,82 @@ describe("request terminal safety blocks", () => {
         kind: "pill_pregnancy",
         title: "This service is not suitable during pregnancy",
         reason: "The contraceptive pill is not started during pregnancy. Please speak with your GP or obstetrician about the right care for you.",
+        answerKeysToClear: ["pregnancyStatus"],
       })
     })
 
-    it("clears confirmed pregnancy and the stale call flag without changing other answers", () => {
-      const answers = {
+    it.each([
+      {
+        label: "possible pregnancy",
+        answer: { pregnancyStatus: "not_sure" },
+        answerKey: "pregnancyStatus",
+        reason: "Pregnancy needs to be ruled out before starting or switching the pill. Please take a pregnancy test or speak with a GP or sexual health clinic.",
+      },
+      {
+        label: "migraine with aura",
+        answer: { pregnancyStatus: "no", womens_migraine_aura: "yes" },
+        answerKey: "womens_migraine_aura",
+        reason: "Some contraceptive pills may be unsafe if you have migraines with aura. Please speak with a GP or sexual health clinic.",
+      },
+      {
+        label: "blood-clot history",
+        answer: { pregnancyStatus: "no", womens_blood_clot_history: "yes" },
+        answerKey: "womens_blood_clot_history",
+        reason: "Some contraceptive pills may be unsafe if you or a close family member have had a blood clot. Please speak with a GP or sexual health clinic.",
+      },
+      {
+        label: "smoking",
+        answer: { pregnancyStatus: "no", womens_smoker: "yes" },
+        answerKey: "womens_smoker",
+        reason: "Smoking changes which contraceptive pills may be safe, especially from age 35. Please speak with a GP or sexual health clinic.",
+      },
+    ])("derives a truthful pre-payment redirect for $label", ({ answer, answerKey, reason }) => {
+      expect(derivePillTerminalBlock({
         consultSubtype: "womens_health",
         womensHealthOption: "ocp_new",
-        pregnancyStatus: "yes",
-        requiresCall: true,
         womens_migraine_aura: "no",
         womens_blood_clot_history: "no",
         womens_smoker: "no",
+        ...answer,
+      })).toEqual({
+        kind: "pill_redirect",
+        title: "This paid pathway cannot continue",
+        reason,
+        answerKeysToClear: [answerKey],
+      })
+    })
+
+    it("explains and clears every active pre-payment redirect trigger", () => {
+      const answers = {
+        consultSubtype: "womens_health",
+        womensHealthOption: "ocp_new",
+        pregnancyStatus: "not_sure",
+        requiresCall: true,
+        womens_migraine_aura: "yes",
+        womens_blood_clot_history: "yes",
+        womens_smoker: "yes",
+        lastPeriod: "2 weeks ago",
       }
-      const block = derivePillPregnancyTerminalBlock(answers)
+      const block = derivePillTerminalBlock(answers)
+
+      expect(block).toMatchObject({
+        kind: "pill_redirect",
+        title: "This paid pathway cannot continue",
+        answerKeysToClear: [
+          "pregnancyStatus",
+          "womens_migraine_aura",
+          "womens_blood_clot_history",
+          "womens_smoker",
+        ],
+      })
+      expect(block?.reason).toContain("Pregnancy needs to be ruled out")
+      expect(block?.reason).toContain("migraines with aura")
+      expect(block?.reason).toContain("blood clot")
+      expect(block?.reason).toContain("Smoking changes")
 
       const correctedAnswers = {
         ...answers,
-        ...buildPillPregnancyTerminalBlockCorrection(block!),
+        ...buildPillTerminalBlockCorrection(block!),
       }
 
       expect(correctedAnswers).toEqual({
@@ -113,11 +171,45 @@ describe("request terminal safety blocks", () => {
         womensHealthOption: "ocp_new",
         pregnancyStatus: undefined,
         requiresCall: undefined,
-        womens_migraine_aura: "no",
-        womens_blood_clot_history: "no",
-        womens_smoker: "no",
+        womens_migraine_aura: undefined,
+        womens_blood_clot_history: undefined,
+        womens_smoker: undefined,
+        lastPeriod: "2 weeks ago",
       })
-      expect(derivePillPregnancyTerminalBlock(correctedAnswers)).toBeNull()
+      expect(derivePillTerminalBlock(correctedAnswers)).toBeNull()
+    })
+
+    it("keeps confirmed pregnancy copy as the priority while correction clears every active key", () => {
+      const answers = {
+        consultSubtype: "womens_health",
+        womensHealthOption: "ocp_new",
+        pregnancyStatus: "yes",
+        requiresCall: true,
+        womens_migraine_aura: "yes",
+        womens_blood_clot_history: "yes",
+        womens_smoker: "yes",
+      }
+      const block = derivePillTerminalBlock(answers)
+
+      expect(block).toEqual({
+        kind: "pill_pregnancy",
+        title: "This service is not suitable during pregnancy",
+        reason: "The contraceptive pill is not started during pregnancy. Please speak with your GP or obstetrician about the right care for you.",
+        answerKeysToClear: [
+          "pregnancyStatus",
+          "womens_migraine_aura",
+          "womens_blood_clot_history",
+          "womens_smoker",
+        ],
+      })
+
+      expect({ ...answers, ...buildPillTerminalBlockCorrection(block!) }).toMatchObject({
+        pregnancyStatus: undefined,
+        requiresCall: undefined,
+        womens_migraine_aura: undefined,
+        womens_blood_clot_history: undefined,
+        womens_smoker: undefined,
+      })
     })
 
     it.each([
@@ -131,15 +223,23 @@ describe("request terminal safety blocks", () => {
         consultSubtype: "ed",
         womensHealthOption: "ocp_new",
         pregnancyStatus: "yes",
+        womens_migraine_aura: "yes",
       },
       {
         consultSubtype: "womens_health",
         pregnancyStatus: "yes",
       },
       { pregnancyStatus: "no" },
-      { pregnancyStatus: "not_sure" },
-    ])("leaves out-of-scope or non-confirmed pregnancy answers editable: %o", (answers) => {
-      expect(derivePillPregnancyTerminalBlock(answers)).toBeNull()
+      {
+        consultSubtype: "womens_health",
+        womensHealthOption: "ocp_new",
+        pregnancyStatus: "no",
+        womens_migraine_aura: "no",
+        womens_blood_clot_history: "no",
+        womens_smoker: "no",
+      },
+    ])("leaves clean or out-of-scope answers editable: %o", (answers) => {
+      expect(derivePillTerminalBlock(answers)).toBeNull()
     })
   })
 

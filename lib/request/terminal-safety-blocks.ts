@@ -3,8 +3,13 @@ import {
   isControlledSubstance,
 } from "@/lib/clinical/intake-validation"
 import {
+  PILL_BLOOD_CLOT_REDIRECT_REASON,
+  PILL_MIGRAINE_AURA_REDIRECT_REASON,
+  PILL_PATHWAY_REDIRECT_TITLE,
+  PILL_POSSIBLE_PREGNANCY_REDIRECT_REASON,
   PILL_PREGNANCY_DECLINE_REASON,
   PILL_PREGNANCY_DECLINE_TITLE,
+  PILL_SMOKING_REDIRECT_REASON,
 } from "@/lib/clinical/womens-health-pill"
 import {
   normalizeMedicationEntriesAnswer,
@@ -29,10 +34,17 @@ export interface UtiTerminalBlock {
   answerKeysToClear: UtiTerminalAnswerKey[]
 }
 
-export interface PillPregnancyTerminalBlock {
-  kind: "pill_pregnancy"
-  title: "This service is not suitable during pregnancy"
+type PillTerminalAnswerKey =
+  | "pregnancyStatus"
+  | "womens_migraine_aura"
+  | "womens_blood_clot_history"
+  | "womens_smoker"
+
+export interface PillTerminalBlock {
+  kind: "pill_pregnancy" | "pill_redirect"
+  title: string
   reason: string
+  answerKeysToClear: PillTerminalAnswerKey[]
 }
 
 export interface RepeatMedicationTerminalBlock {
@@ -93,31 +105,67 @@ export function buildUtiTerminalBlockCorrection(
   ) as Partial<Record<UtiTerminalAnswerKey, undefined>>
 }
 
-export function derivePillPregnancyTerminalBlock(
+export function derivePillTerminalBlock(
   answers: IntakeAnswers,
-): PillPregnancyTerminalBlock | null {
+): PillTerminalBlock | null {
   if (
     answers.consultSubtype !== "womens_health" ||
-    answers.womensHealthOption !== "ocp_new" ||
-    answers.pregnancyStatus !== "yes"
+    answers.womensHealthOption !== "ocp_new"
   ) return null
 
+  const answerKeysToClear: PillTerminalAnswerKey[] = []
+  if (answers.pregnancyStatus === "yes" || answers.pregnancyStatus === "not_sure") {
+    answerKeysToClear.push("pregnancyStatus")
+  }
+  if (answers.womens_migraine_aura === "yes") {
+    answerKeysToClear.push("womens_migraine_aura")
+  }
+  if (answers.womens_blood_clot_history === "yes") {
+    answerKeysToClear.push("womens_blood_clot_history")
+  }
+  if (answers.womens_smoker === "yes") {
+    answerKeysToClear.push("womens_smoker")
+  }
+
+  if (answerKeysToClear.length === 0) return null
+
+  if (answers.pregnancyStatus === "yes") {
+    return {
+      kind: "pill_pregnancy",
+      title: PILL_PREGNANCY_DECLINE_TITLE,
+      reason: PILL_PREGNANCY_DECLINE_REASON,
+      answerKeysToClear,
+    }
+  }
+
+  const reasons: string[] = []
+  if (answers.pregnancyStatus === "not_sure") {
+    reasons.push(PILL_POSSIBLE_PREGNANCY_REDIRECT_REASON)
+  }
+  if (answers.womens_migraine_aura === "yes") {
+    reasons.push(PILL_MIGRAINE_AURA_REDIRECT_REASON)
+  }
+  if (answers.womens_blood_clot_history === "yes") {
+    reasons.push(PILL_BLOOD_CLOT_REDIRECT_REASON)
+  }
+  if (answers.womens_smoker === "yes") {
+    reasons.push(PILL_SMOKING_REDIRECT_REASON)
+  }
+
   return {
-    kind: "pill_pregnancy",
-    title: PILL_PREGNANCY_DECLINE_TITLE,
-    reason: PILL_PREGNANCY_DECLINE_REASON,
+    kind: "pill_redirect",
+    title: PILL_PATHWAY_REDIRECT_TITLE,
+    reason: reasons.join(" "),
+    answerKeysToClear,
   }
 }
 
-export function buildPillPregnancyTerminalBlockCorrection(
-  block: PillPregnancyTerminalBlock,
-): Partial<Record<"pregnancyStatus" | "requiresCall", undefined>> {
-  if (block.kind !== "pill_pregnancy") return {}
-
-  return {
-    pregnancyStatus: undefined,
-    requiresCall: undefined,
-  }
+export function buildPillTerminalBlockCorrection(
+  block: PillTerminalBlock,
+): Partial<Record<PillTerminalAnswerKey | "requiresCall", undefined>> {
+  return Object.fromEntries(
+    [...block.answerKeysToClear, "requiresCall"].map((key) => [key, undefined]),
+  ) as Partial<Record<PillTerminalAnswerKey | "requiresCall", undefined>>
 }
 
 export function deriveRepeatMedicationTerminalBlock(

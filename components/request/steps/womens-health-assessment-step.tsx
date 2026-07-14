@@ -21,9 +21,9 @@ import {
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import {
-  buildPillPregnancyTerminalBlockCorrection,
+  buildPillTerminalBlockCorrection,
   buildUtiTerminalBlockCorrection,
-  derivePillPregnancyTerminalBlock,
+  derivePillTerminalBlock,
   deriveUtiTerminalBlock,
 } from "@/lib/request/terminal-safety-blocks"
 
@@ -112,8 +112,8 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
   const pregnancyStatus = exactStringValue(answers.pregnancyStatus, PILL_PREGNANCY_STATUS_VALUES)
   const lastPeriod = (answers.lastPeriod as string) || ""
   const contraceptionDetails = (answers.contraceptionDetails as string) || ""
-  // Combined-pill safety screen (new/switch pill only). Drives the REQUIRES_CALL
-  // contraindication rules; doctor steers to a progestogen-only option if needed.
+  // Combined-pill safety screen (new/switch pill only). These answers can stop
+  // an unsuitable paid pathway before checkout and direct the patient elsewhere.
   const migraineAura = exactStringValue(answers.womens_migraine_aura, PILL_YES_NO_VALUES)
   const bloodClotHistory = exactStringValue(answers.womens_blood_clot_history, PILL_YES_NO_VALUES)
   const smoker = exactStringValue(answers.womens_smoker, PILL_YES_NO_VALUES)
@@ -123,7 +123,7 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
     contraceptionType && contraceptionCurrent && pregnancyStatus
       && (!needsPillSafetyScreen || (migraineAura && bloodClotHistory && smoker)),
   )
-  const terminalBlock = derivePillPregnancyTerminalBlock(answers)
+  const terminalBlock = derivePillTerminalBlock(answers)
 
   const clearError = (key: string) => {
     if (!errors[key]) return
@@ -195,12 +195,16 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
           <Button
             variant="ghost"
             onClick={() => {
-              setAnswers(buildPillPregnancyTerminalBlockCorrection(terminalBlock))
-              clearError("pregnancyStatus")
+              setAnswers(buildPillTerminalBlockCorrection(terminalBlock))
+              const nextErrors = { ...errors }
+              terminalBlock.answerKeysToClear.forEach((key) => delete nextErrors[key])
+              setErrors(nextErrors)
             }}
             className="h-12 w-full"
           >
-            I need to correct this answer
+            {terminalBlock.answerKeysToClear.length === 1
+              ? "I need to correct this answer"
+              : "I need to correct these answers"}
           </Button>
           <Button variant="ghost" onClick={onBack} className="h-12 w-full">
             Go back
@@ -215,7 +219,7 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
       <IntakeStepIntro
         eyebrow="Contraception"
         title="A few safety checks"
-        description="These answers help the doctor choose a safe option. If anything needs more context, the doctor will contact you."
+        description="These answers help check whether this online pathway is suitable. If it is not, we will explain the next safe step before payment."
       />
 
       <QuestionCard compact>
@@ -302,7 +306,7 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
             <div className="space-y-1">
               <p className="text-sm font-medium">Combined pill safety</p>
               <p className="text-xs leading-relaxed text-muted-foreground">
-                If any of these apply, the doctor will check whether the combined pill is right for you or suggest a safer option.
+                Some contraceptive pills may not be safe when these apply. We will explain the next safe step before payment.
               </p>
             </div>
           </div>

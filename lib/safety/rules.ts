@@ -1,4 +1,10 @@
-import { PILL_PREGNANCY_DECLINE_REASON } from '@/lib/clinical/womens-health-pill'
+import {
+  PILL_BLOOD_CLOT_REDIRECT_REASON,
+  PILL_MIGRAINE_AURA_REDIRECT_REASON,
+  PILL_POSSIBLE_PREGNANCY_REDIRECT_REASON,
+  PILL_PREGNANCY_DECLINE_REASON,
+  PILL_SMOKING_REDIRECT_REASON,
+} from '@/lib/clinical/womens-health-pill'
 import {
   CERTIFICATE_FUTURE_START_ERROR,
   CERTIFICATE_MAX_FORWARD_DAYS_DEFAULT,
@@ -463,71 +469,69 @@ const consultRules: SafetyRule[] = [
   // ----------------------------------------
   // BLOOD CLOT HISTORY - Absolute contraindication for combined OCP
   // ----------------------------------------
-  // The three OCP contraindications below are flag-not-block (REQUIRES_CALL):
-  // each is a contraindication to the COMBINED (oestrogen) pill but a
-  // progestogen-only option is usually safe, so the doctor reviews and steers
-  // rather than the system auto-declining. Scoped to a new/switch pill request
-  // (womensHealthOption === 'ocp_new') and fired on the real yes/no fields the
-  // OCP safety screen collects.
+  // The three OCP contraindications below stop the paid pathway and redirect
+  // the patient to a GP or sexual health clinic. They do not recommend or
+  // promise a replacement treatment. Each is scoped to a new/switch pill
+  // request and fires on the real yes/no fields the OCP safety screen collects.
   {
     id: 'ocp_blood_clot_contraindication',
-    name: 'Blood Clot History - Combined OCP Review',
-    description: 'New/switch pill request with a personal/family history of blood clots - combined OCP contraindicated; doctor steers to a progestogen-only option or declines.',
+    name: 'Blood Clot History - Pill Pathway Redirect',
+    description: 'New/switch pill request with a personal/family history of blood clots - stop this paid pathway and redirect to in-person care.',
     conditions: [
       { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
       { fieldId: 'womensHealthOption', operator: 'equals', value: 'ocp_new' },
       { fieldId: 'womens_blood_clot_history', operator: 'equals', value: 'yes' },
     ],
     conditionLogic: 'AND',
-    outcome: 'REQUIRES_CALL',
+    outcome: 'DECLINE',
     riskTier: 'high',
-    patientMessage: 'Because of your history of blood clots, the combined (oestrogen) pill may not be safe for you. A doctor will review and contact you about safer options like a progestogen-only pill, implant, or IUD.',
-    doctorNote: 'Blood clot history (VTE/DVT/PE) on a new/switch pill request - combined OCP contraindicated per WHOMEC Cat 4. Steer to progestogen-only or decline.',
+    patientMessage: PILL_BLOOD_CLOT_REDIRECT_REASON,
+    doctorNote: 'Blood clot history (VTE/DVT/PE) on a new/switch pill request - paid pathway blocked before payment; redirected to a GP or sexual health clinic.',
     priority: 900,
     services: ['gp-consult', 'consult'],
   },
   // ----------------------------------------
-  // MIGRAINE WITH AURA - Combined OCP contraindication (flag, not block)
+  // MIGRAINE WITH AURA - Pill pathway redirect
   // ----------------------------------------
   {
     id: 'ocp_migraine_aura_contraindication',
-    name: 'Migraine with Aura - Combined OCP Review',
-    description: 'New/switch pill request with migraine with aura - combined OCP contraindicated (stroke risk); doctor steers to a progestogen-only option or declines.',
+    name: 'Migraine with Aura - Pill Pathway Redirect',
+    description: 'New/switch pill request with migraine with aura - stop this paid pathway and redirect to in-person care.',
     conditions: [
       { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
       { fieldId: 'womensHealthOption', operator: 'equals', value: 'ocp_new' },
       { fieldId: 'womens_migraine_aura', operator: 'equals', value: 'yes' },
     ],
     conditionLogic: 'AND',
-    outcome: 'REQUIRES_CALL',
+    outcome: 'DECLINE',
     riskTier: 'high',
-    patientMessage: 'Migraines with visual disturbances (aura) raise stroke risk with the combined (oestrogen) pill. A doctor will review and contact you about progestogen-only options like a mini-pill, implant, or hormonal IUD.',
-    doctorNote: 'Migraine with aura on a new/switch pill request - combined OCP contraindicated per WHOMEC Cat 4 (stroke risk). Steer to progestogen-only or decline.',
+    patientMessage: PILL_MIGRAINE_AURA_REDIRECT_REASON,
+    doctorNote: 'Migraine with aura on a new/switch pill request - paid pathway blocked before payment; redirected to a GP or sexual health clinic.',
     priority: 900,
     services: ['gp-consult', 'consult'],
   },
   // ----------------------------------------
-  // SMOKER - Combined OCP review (cardiovascular risk, sharp rise at 35+)
+  // SMOKER - Pill pathway redirect (cardiovascular risk rises at 35+)
   // ----------------------------------------
   {
     id: 'ocp_smoker_over_35_contraindication',
-    name: 'Smoker - Combined OCP Review',
-    description: 'New/switch pill request from a smoker - combined-pill cardiovascular risk rises sharply at 35+; doctor reviews age and steers to a safer option if needed.',
+    name: 'Smoker - Pill Pathway Redirect',
+    description: 'New/switch pill request from a smoker - stop this paid pathway and redirect to in-person care; cardiovascular risk rises at 35+.',
     conditions: [
       { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
       { fieldId: 'womensHealthOption', operator: 'equals', value: 'ocp_new' },
       { fieldId: 'womens_smoker', operator: 'equals', value: 'yes' },
     ],
     conditionLogic: 'AND',
-    outcome: 'REQUIRES_CALL',
+    outcome: 'DECLINE',
     riskTier: 'high',
-    patientMessage: 'Smoking raises the cardiovascular risk of the combined (oestrogen) pill, especially from age 35. A doctor will review and contact you about whether it is suitable or a safer alternative is better.',
-    doctorNote: 'Smoker on a new/switch pill request - combined OCP cardiovascular risk (WHOMEC Cat 3-4 if >=35). Confirm age + steer to progestogen-only/alternative if needed.',
+    patientMessage: PILL_SMOKING_REDIRECT_REASON,
+    doctorNote: 'Smoker on a new/switch pill request - paid pathway blocked before payment; redirected to a GP or sexual health clinic.',
     priority: 900,
     services: ['gp-consult', 'consult'],
   },
   // ----------------------------------------
-  // PREGNANCY on a new/switch pill request - Decline (confirmed) / Requires call (possible)
+  // PREGNANCY on a new/switch pill request - Decline and redirect
   // The live pregnancy guard for the OCP path. Fires on the real pregnancyStatus
   // values the assessment step emits ('yes' | 'no' | 'not_sure'), scoped to
   // womensHealthOption === 'ocp_new'. Supersedes the legacy womens_pregnancy_hormonal
@@ -552,18 +556,18 @@ const consultRules: SafetyRule[] = [
   },
   {
     id: 'ocp_pregnancy_possible',
-    name: 'Possible Pregnancy - Combined OCP Review',
-    description: 'New/switch pill request where pregnancy is not ruled out - exclude pregnancy before starting the pill.',
+    name: 'Possible Pregnancy - Pill Pathway Redirect',
+    description: 'New/switch pill request where pregnancy is not ruled out - stop this paid pathway and redirect before starting the pill.',
     conditions: [
       { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
       { fieldId: 'womensHealthOption', operator: 'equals', value: 'ocp_new' },
       { fieldId: 'pregnancyStatus', operator: 'equals', value: 'not_sure' },
     ],
     conditionLogic: 'AND',
-    outcome: 'REQUIRES_CALL',
+    outcome: 'DECLINE',
     riskTier: 'high',
-    patientMessage: 'Before starting the pill we need to be sure you are not pregnant. A doctor will review and contact you to confirm before prescribing.',
-    doctorNote: 'New/switch pill request with possible pregnancy (patient unsure) - exclude pregnancy before prescribing. Phone review required.',
+    patientMessage: PILL_POSSIBLE_PREGNANCY_REDIRECT_REASON,
+    doctorNote: 'New/switch pill request with possible pregnancy - paid pathway blocked before payment; advised to test or speak with a GP or sexual health clinic.',
     priority: 900,
     services: ['gp-consult', 'consult'],
   },

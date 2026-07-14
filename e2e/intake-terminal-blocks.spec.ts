@@ -49,6 +49,117 @@ async function clickContinue(page: Page): Promise<void> {
   await canonicalAction.click()
 }
 
+async function exercisePersistedPillRedirect(
+  page: Page,
+  options: { mobileDark: boolean },
+): Promise<void> {
+  const browserErrors: string[] = []
+  page.on("console", (message) => {
+    if (message.type() === "error") browserErrors.push(`console: ${message.text()}`)
+  })
+  page.on("pageerror", (error) => {
+    browserErrors.push(`pageerror: ${error.message}`)
+  })
+
+  if (options.mobileDark) {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.emulateMedia({ colorScheme: "dark" })
+    await page.addInitScript(() => {
+      localStorage.setItem("theme", "dark")
+    })
+  }
+
+  await seedScopedDraft(page, "instantmed-draft-consult", {
+    serviceType: "consult",
+    currentStepId: "womens-health-assessment",
+    answers: {
+      consultSubtype: "womens_health",
+      womensHealthOption: "ocp_new",
+      contraceptionType: "start",
+      contraceptionCurrent: "none",
+      pregnancyStatus: "not_sure",
+      requiresCall: true,
+      womens_migraine_aura: "yes",
+      womens_blood_clot_history: "yes",
+      womens_smoker: "yes",
+      lastPeriod: "2 weeks ago",
+    },
+  })
+
+  await page.goto("/request?service=consult&subtype=womens_health")
+  await waitForPageLoad(page)
+
+  const title = page.getByText("This paid pathway cannot continue")
+  await expect(title).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(/Pregnancy needs to be ruled out/i)).toBeVisible()
+  await expect(page.getByText(/migraines with aura/i)).toBeVisible()
+  await expect(page.getByText(/blood clot/i)).toBeVisible()
+  await expect(page.getByText(/Smoking changes which contraceptive pills may be safe/i)).toBeVisible()
+  await expect(page.getByText(/doctor will (call|contact)/i)).toHaveCount(0)
+  await expect(page.locator('button[data-intake-primary-action="true"]')).toHaveCount(0)
+  await expect(page.locator('[data-intake-mobile-action-bar="true"]')).toHaveCount(0)
+  await expect(
+    page.getByRole("button", { name: "I need to correct these answers", exact: true }),
+  ).toHaveCSS("height", "48px")
+
+  if (options.mobileDark) {
+    await expect(page.locator("html")).toHaveClass(/dark/)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  }
+
+  await page.reload()
+  await waitForPageLoad(page)
+  await dismissCookieBanner(page)
+
+  await expect(title).toBeVisible({ timeout: 15_000 })
+  await page.getByRole("button", { name: "I need to correct these answers", exact: true }).click()
+
+  await expect(page.getByRole("heading", { name: "A few safety checks" })).toBeVisible()
+  await expect(title).toHaveCount(0)
+
+  const pregnancyGroup = page.getByRole("radiogroup", { name: /pregnant or could you be pregnant/i })
+  for (const label of ["No", "Not sure", "Yes"]) {
+    await expect(pregnancyGroup.getByRole("radio", { name: label, exact: true })).toHaveAttribute(
+      "aria-checked",
+      "false",
+    )
+  }
+
+  for (const groupName of [/migraines with aura/i, /blood clot/i, /Do you smoke/i]) {
+    const group = page.getByRole("radiogroup", { name: groupName })
+    await expect(group.getByRole("radio", { name: "No", exact: true })).toHaveAttribute("aria-checked", "false")
+    await expect(group.getByRole("radio", { name: "Yes", exact: true })).toHaveAttribute("aria-checked", "false")
+  }
+
+  await expect(
+    page
+      .getByRole("radiogroup", { name: /What would you like/i })
+      .getByRole("radio", { name: "Start", exact: true }),
+  ).toHaveAttribute("aria-checked", "true")
+  await expect(page.locator("#womens-last-period")).toHaveValue("2 weeks ago")
+
+  await expect.poll(async () => page.evaluate(() => {
+    const rawDraft = localStorage.getItem("instantmed-draft-consult")
+    const answers = rawDraft
+      ? (JSON.parse(rawDraft) as { answers?: Record<string, unknown> }).answers ?? {}
+      : {}
+    const clearedKeys = [
+      "pregnancyStatus",
+      "requiresCall",
+      "womens_migraine_aura",
+      "womens_blood_clot_history",
+      "womens_smoker",
+    ]
+
+    return {
+      cleared: clearedKeys.every((key) => !Object.prototype.hasOwnProperty.call(answers, key)),
+      lastPeriod: answers.lastPeriod,
+    }
+  })).toEqual({ cleared: true, lastPeriod: "2 weeks ago" })
+
+  expect(browserErrors, `Unexpected browser errors:\n${browserErrors.join("\n\n")}`).toEqual([])
+}
+
 test.describe("persisted intake terminal blocks", () => {
   test("restores the ED nitrate block after resume and full reload", async ({ page }) => {
     await seedScopedDraft(page, "instantmed-draft-consult", {
@@ -253,6 +364,15 @@ test.describe("persisted intake terminal blocks", () => {
       hasRequiresCall: false,
     })
   })
+
+  for (const mode of [
+    { label: "desktop", mobileDark: false },
+    { label: "390x844 dark mode", mobileDark: true },
+  ]) {
+    test(`restores a multi-trigger pill redirect at ${mode.label} and clears every active answer`, async ({ page }) => {
+      await exercisePersistedPillRedirect(page, mode)
+    })
+  }
 
   test("restores a controlled repeat-medication block and removes it after a safe edit", async ({ page }) => {
     await seedScopedDraft(page, "instantmed-draft-prescription", {

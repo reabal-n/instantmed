@@ -280,6 +280,41 @@ describe("project docs drift contract", () => {
     expect(agents).toContain("one medication per repeat request")
   })
 
+  it("keeps new-pill redirect rules and clinical policy blocked before payment", () => {
+    const clinical = readProjectFile("docs/CLINICAL.md")
+    const safetyRules = readProjectFile("lib/safety/rules.ts")
+
+    expect(clinical).toContain(
+      "Possible pregnancy, migraine with aura, blood-clot history, and smoking block checkout before payment",
+    )
+    expect(clinical).toContain(
+      "redirected to a GP or sexual health clinic without creating a paid intake",
+    )
+    expect(clinical).toContain(
+      "Deterministic safety redirects can stop an unsuitable pathway before payment",
+    )
+    expect(clinical).not.toContain(
+      "combined-pill contraindications (migraine-with-aura, blood-clot history, smoker) are REQUIRES_CALL",
+    )
+
+    for (const ruleId of [
+      "ocp_blood_clot_contraindication",
+      "ocp_migraine_aura_contraindication",
+      "ocp_smoker_over_35_contraindication",
+      "ocp_pregnancy_possible",
+    ]) {
+      const start = safetyRules.indexOf(`id: '${ruleId}'`)
+      const end = safetyRules.indexOf("\n  {", start + 1)
+      const ruleSource = safetyRules.slice(start, end === -1 ? undefined : end)
+
+      expect(start, `${ruleId} must remain a live safety rule`).toBeGreaterThanOrEqual(0)
+      expect(ruleSource, `${ruleId} must decline before payment`).toContain("outcome: 'DECLINE'")
+      expect(ruleSource, `${ruleId} must not promise a call path`).not.toContain(
+        "outcome: 'REQUIRES_CALL'",
+      )
+    }
+  })
+
   it("keeps the retired checkout-step out of active flow docs", () => {
     expect(existsSync(join(root, "components/request/steps/checkout-step.tsx"))).toBe(false)
 

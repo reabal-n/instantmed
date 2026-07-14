@@ -276,15 +276,19 @@ describe("validateContraceptionConsult", () => {
     )
   })
 
-  it("flags uncertain pregnancy status", () => {
+  it("blocks uncertain pregnancy with pre-payment redirection", () => {
     const result = validateContraceptionConsult({
       ...validContraception,
       pregnancyStatus: "not_sure",
     })
-    expect(result.valid).toBe(true)
-    expect(result.flags).toContainEqual(
-      expect.objectContaining({ type: "requires_call", reason: "pregnancy_uncertain" })
+    expect(result.valid).toBe(false)
+    expect(result.errors).toContain(
+      "Pregnancy needs to be ruled out before starting or switching the pill. Please take a pregnancy test or speak with a GP or sexual health clinic.",
     )
+    expect(result.flags).toContainEqual(
+      expect.objectContaining({ type: "safety_block", reason: "pregnancy_uncertain" })
+    )
+    expect(result.warnings).toHaveLength(0)
   })
 })
 

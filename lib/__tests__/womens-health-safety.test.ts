@@ -27,7 +27,7 @@ describe("women's health — UTI server safety (keep-list, server-enforced)", ()
   })
 })
 
-describe("women's health — OCP contraindications are flag-not-block (REQUIRES_CALL)", () => {
+describe("women's health — OCP redirects are blocked before payment", () => {
   const ocpBase = {
     consultSubtype: "womens_health",
     womensHealthOption: "ocp_new",
@@ -36,11 +36,19 @@ describe("women's health — OCP contraindications are flag-not-block (REQUIRES_
     emergency_symptoms: [] as string[],
   }
 
-  it("requires a call (not a decline) for migraine-aura / clot / smoker", () => {
-    for (const field of ["womens_migraine_aura", "womens_blood_clot_history", "womens_smoker"]) {
-      const result = checkSafetyForServer("consult", { ...ocpBase, [field]: "yes" })
-      expect(result.outcome, field).toBe("REQUIRES_CALL")
-    }
+  it.each([
+    ["womens_migraine_aura", "Some contraceptive pills may be unsafe if you have migraines with aura"],
+    ["womens_blood_clot_history", "Some contraceptive pills may be unsafe if you or a close family member have had a blood clot"],
+    ["womens_smoker", "Smoking changes which contraceptive pills may be safe, especially from age 35"],
+  ])("declines %s without promising contact or a replacement treatment", (field, expectedMessage) => {
+    const result = checkSafetyForServer("consult", { ...ocpBase, [field]: "yes" })
+
+    expect(result.outcome).toBe("DECLINE")
+    expect(result.requiresCall).toBe(false)
+    expect(result.isAllowed).toBe(false)
+    expect(result.blockReason).toContain(expectedMessage)
+    expect(result.blockReason).toMatch(/GP or sexual health clinic/i)
+    expect(result.blockReason).not.toMatch(/call|contact|progestogen|mini-pill|implant|IUD/i)
   })
 
   it("allows a clean new-pill request", () => {
@@ -75,11 +83,14 @@ describe("women's health — new/switch pill pregnancy is server-blocked", () =>
     expect(result.isAllowed).toBe(false)
   })
 
-  it("requires a call when pregnancy is not ruled out", () => {
+  it("declines when pregnancy is not ruled out without promising contact", () => {
     const result = checkSafetyForServer("consult", { ...ocpBase, pregnancyStatus: "not_sure" })
-    expect(result.outcome).toBe("REQUIRES_CALL")
-    expect(result.requiresCall).toBe(true)
+    expect(result.outcome).toBe("DECLINE")
+    expect(result.requiresCall).toBe(false)
     expect(result.isAllowed).toBe(false)
+    expect(result.blockReason).toContain("Pregnancy needs to be ruled out before starting or switching the pill")
+    expect(result.blockReason).toMatch(/pregnancy test|GP or sexual health clinic/i)
+    expect(result.blockReason).not.toMatch(/call|contact/i)
   })
 
   it("still allows a not-pregnant new-pill request", () => {

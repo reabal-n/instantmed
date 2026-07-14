@@ -21,11 +21,12 @@ InstantMed is **not a broad online GP clinic** and **not a prescribing system**.
 `uti` and `ocp_new` are live (`LIVE_WOMENS_HEALTH_OPTIONS` in
 `lib/request/consult-subtypes.ts`); morning-after and period-pain stay gated,
 and "continue my current pill" is routed to the repeat-script flow rather than
-a parallel consult. Server-enforced safety: UTI red-flags and pregnancy/
-possible-pregnancy DECLINE to in-person care; combined-pill contraindications
-(migraine-with-aura, blood-clot history, smoker) are REQUIRES_CALL so the
-doctor steers to a progestogen-only option. See `lib/safety/rules.ts` and
-`validateSafetyFieldsPresent` in `lib/safety/evaluate.ts`.
+a parallel consult. Server-enforced safety: UTI red flags and pregnancy or
+possible pregnancy decline to in-person care. Possible pregnancy, migraine with aura, blood-clot history, and smoking block checkout before payment. Patients are
+redirected to a GP or sexual health clinic without creating a paid intake. The
+pathway does not promise doctor contact or recommend a replacement treatment.
+See `lib/safety/rules.ts` and `validateSafetyFieldsPresent` in
+`lib/safety/evaluate.ts`.
 
 **Retired/gated future scope:** general consult was retired on 2026-05-20
 because it served as a back-channel for gated services with no structured
@@ -53,9 +54,10 @@ InstantMed's commercial moat is no booked appointment, no waiting room, and a se
 **Approved patient-facing model:**
 
 - Patient starts with a secure clinical form
+- Deterministic safety redirects can stop an unsuitable pathway before payment, without doctor review or intake creation
 - Doctor reviews the submitted information
 - Doctor contacts the patient only if more information is clinically needed
-- Prescription, certificate, decline, refund, or redirection happens only after doctor review or approved med-cert protocol automation
+- Apart from deterministic pre-payment safety redirects, prescription, certificate, decline, refund, or redirection happens only after doctor review or approved med-cert protocol automation
 
 **Regulatory risk posture:** Medical Board telehealth guidance states that prescribing or providing healthcare for a patient without a real-time direct consultation, where the practitioner has never spoken with the patient, is not good practice and is not supported. If a doctor prescribes after an asynchronous form-first assessment, the doctor must be able to explain why that assessment and management were appropriate and necessary in the circumstances.
 

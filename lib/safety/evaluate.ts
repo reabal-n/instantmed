@@ -577,7 +577,7 @@ function getRequiredSafetyFields(
         fields.add('utiPregnant')
       }
       if (option === 'ocp_new') {
-        // New/switch pill safety screen (drives the REQUIRES_CALL contraindication rules).
+        // New/switch pill safety screen (drives the pre-payment redirect rules).
         fields.add('pregnancyStatus')
         fields.add('womens_migraine_aura')
         fields.add('womens_blood_clot_history')
