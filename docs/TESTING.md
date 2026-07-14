@@ -9,7 +9,7 @@
 | Layer | Framework | Location | Count |
 |-------|-----------|----------|-------|
 | Unit tests | Vitest | `**/*.test.ts` / `lib/__tests__/**/*.test.ts` | Local run 2026-07-11: **4,152 passed, 1 skipped** across 467 test files. |
-| E2E tests | Playwright | `e2e/**/*.spec.ts` | 68 specs — blocking CI currently runs ops/navigation/clinical-input smoke plus focused paid critical flows |
+| E2E tests | Playwright | `e2e/**/*.spec.ts` | 69 specs — blocking CI currently runs ops/navigation/clinical-input smoke plus focused paid critical flows |
 
 **Coverage threshold:** 80% statements / 70% branches / 80% functions / 80% lines (enforced by Vitest config, scoped to `lib/clinical/`, `lib/security/`, the `lib/stripe/` payment-safety surface, and `lib/data/intake-lifecycle.ts`). The E2E-only Stripe orchestrators (`checkout.ts`, `guest-checkout.ts`, `checkout/stripe-session.ts`, `checkout/persistence.ts`, `checkout/auth-and-profile.ts`, `checkout/retry-payment.ts`, `client.ts`, `referral-coupon.ts`, `post-payment.ts`) are excluded — they're exercised by `e2e/unified-request-flow.spec.ts` / `consult-subtypes.spec.ts` / payment-smoke, not units. **Note:** `lib/state-machine/` was removed from the include list 2026-04-08 because the directory no longer exists — the state-machine logic was consolidated into `lib/clinical/auto-approval-state.ts`.
 
@@ -20,9 +20,9 @@
 
 Prior to these, the canonical refund code had **zero unit coverage** — only the e2e suite exercised it, which gave slow feedback and no per-branch visibility.
 
-**CI pipeline:** `pnpm ci` runs `install → lint → typecheck → test → build` in sequence. The blocking PR E2E gate always runs the current ops/navigation/clinical-input smoke (`e2e/admin.ops-index.spec.ts`, `e2e/marketing-dashboard-nav.spec.ts`, `e2e/dashboard.keyboard-safety.spec.ts`) plus focused paid-flow smoke coverage (`pnpm medcert:readiness:e2e`, `e2e/unified-request-flow.spec.ts`, `e2e/consult-subtypes.spec.ts`, `e2e/parchment-webhook.spec.ts`) after a fail-fast required-secret check. The older broad Playwright suite is not a reliable blocking signal right now; it contains stale routes and product-state assumptions and should be repaired as a dedicated E2E cleanup pass before being restored as a merge gate. Preview deployments run `e2e/preview-smoke.spec.ts`.
+**CI pipeline:** `pnpm ci` runs `install → lint → typecheck → test → build` in sequence. The blocking PR E2E gate always runs the current ops/navigation/clinical-input smoke (`e2e/admin.ops-index.spec.ts`, `e2e/marketing-dashboard-nav.spec.ts`, `e2e/dashboard.keyboard-safety.spec.ts`) plus focused paid-flow smoke coverage (`pnpm medcert:readiness:e2e`, `e2e/unified-request-flow.spec.ts`, `e2e/consult-subtypes.spec.ts`, `e2e/intake-terminal-blocks.spec.ts`, `e2e/parchment-webhook.spec.ts`) after a fail-fast required-secret check, then runs `e2e/checkout-resume.spec.ts` as a separate encrypted-answer safety gate with isolated Playwright artifacts. The older broad Playwright suite is not a reliable blocking signal right now; it contains stale routes and product-state assumptions and should be repaired as a dedicated E2E cleanup pass before being restored as a merge gate. Preview deployments run `e2e/preview-smoke.spec.ts`.
 
-**Required CI secrets:** `E2E_SECRET`, `ENCRYPTION_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are required for ops/admin E2E pages and seeded auth. The paid-flow E2E gate also requires `STRIPE_WEBHOOK_SECRET` (test-mode `whsec_...`) and `PARCHMENT_WEBHOOK_SECRET`; CI fails fast if any required secret is missing so payment/prescribing specs cannot silently skip.
+**Required CI secrets:** `E2E_SECRET`, `ENCRYPTION_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are required for ops/admin E2E pages and seeded auth. The paid-flow E2E gate also requires `STRIPE_WEBHOOK_SECRET` (test-mode `whsec_...`) and `PARCHMENT_WEBHOOK_SECRET`; CI fails fast if any required secret is missing so payment/prescribing specs cannot silently skip. The signed guest-resume E2E runs in its own step and derives test-only `INTERNAL_API_SECRET` and `PHI_MASTER_KEY` values from `E2E_SECRET` and `ENCRYPTION_KEY`; it deliberately seeds stale benign plaintext beside encrypted high-stakes truth to prove the route reads through the encrypted-first data layer.
 
 ---
 
@@ -239,7 +239,8 @@ jobs:
       - verify E2E_SECRET + Supabase + ENCRYPTION_KEY + STRIPE_WEBHOOK_SECRET + PARCHMENT_WEBHOOK_SECRET are present
       - playwright test --project=chromium e2e/admin.ops-index.spec.ts e2e/marketing-dashboard-nav.spec.ts e2e/dashboard.keyboard-safety.spec.ts
       - pnpm medcert:readiness:e2e
-      - playwright test --project=chromium e2e/unified-request-flow.spec.ts e2e/consult-subtypes.spec.ts e2e/parchment-webhook.spec.ts
+      - playwright test --project=chromium e2e/unified-request-flow.spec.ts e2e/consult-subtypes.spec.ts e2e/intake-terminal-blocks.spec.ts e2e/parchment-webhook.spec.ts
+      - playwright test --project=chromium e2e/checkout-resume.spec.ts
 
 # .github/workflows/e2e-preview.yml
 # Runs deployment smoke against Vercel preview deployment

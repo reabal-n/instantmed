@@ -106,11 +106,13 @@ test.describe("Unified Request Flow - Medical Certificate", () => {
     await expect(page.getByRole("button", { name: /Go back/i })).toBeVisible()
   })
 
-  test("high-stakes certificate wording hard-stops until the patient edits it", async ({ page }) => {
+  test("short high-stakes certificate wording hard-stops until the patient edits it", async ({ page }) => {
     await advanceMedCertToSymptoms(page)
 
     const details = page.locator("#symptom-details")
-    await details.fill("Migraine and need to defer my exam tomorrow")
+    // Deliberately under 10 characters: the quality gate accepts "flu", so the
+    // high-stakes check must not hide behind a client-only length threshold.
+    await details.fill("exam flu")
 
     const block = page.getByRole("alert").filter({ hasText: /Exam deferrals/i })
     await expect(block).toBeVisible()

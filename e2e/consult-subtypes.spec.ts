@@ -452,9 +452,14 @@ test.describe("Consult Sub-Services", () => {
     await expectFreshConfirmedPregnancyTerminalBlock(page)
   })
 
-  test("confirmed pregnancy hard-stops a fresh pill request at 390x844 without a sticky action", async ({ page }) => {
+  test("confirmed pregnancy hard-stops at 390x844 in dark mode without a sticky action", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
+    await page.emulateMedia({ colorScheme: "dark" })
+    await page.addInitScript(() => {
+      window.localStorage.setItem("theme", "dark")
+    })
     await expectFreshConfirmedPregnancyTerminalBlock(page)
+    await expect(page.locator("html")).toHaveClass(/dark/)
   })
 
   test("an invalid persisted pill safety value stays neutral and keeps Continue not ready", async ({ page }) => {

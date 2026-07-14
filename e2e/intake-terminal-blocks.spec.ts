@@ -64,14 +64,19 @@ test.describe("persisted intake terminal blocks", () => {
     await waitForPageLoad(page)
 
     await expect(page.getByText("This service is not suitable for you")).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByText(/dangerous drop in blood pressure/i)).toBeVisible()
+    const nitrateExplanation = page.getByText(/dangerous drop in blood pressure/i)
+    await expect(nitrateExplanation).toBeVisible()
+    await expect(nitrateExplanation).toHaveCSS("font-size", "16px")
 
     await page.reload()
     await waitForPageLoad(page)
 
     await expect(page.getByText("This service is not suitable for you")).toBeVisible({ timeout: 15_000 })
     await dismissCookieBanner(page)
-    await page.getByRole("button", { name: /I made a mistake/i }).click()
+    for (const actionName of ["Return home", "I need to correct this answer"]) {
+      await expect(page.getByRole("button", { name: actionName, exact: true })).toHaveCSS("height", "48px")
+    }
+    await page.getByRole("button", { name: "I need to correct this answer", exact: true }).click()
 
     await expect(page.getByRole("heading", { name: "A quick safety check" })).toBeVisible()
     await expect(
@@ -98,14 +103,20 @@ test.describe("persisted intake terminal blocks", () => {
     await waitForPageLoad(page)
 
     await expect(page.getByText("Please seek urgent care")).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByText(/kidney infection/i)).toBeVisible()
+    const kidneyInfectionExplanation = page.getByText(/kidney infection/i)
+    await expect(kidneyInfectionExplanation).toBeVisible()
+    await expect(kidneyInfectionExplanation).toHaveCSS("font-size", "16px")
+    for (const actionName of ["Return home", "I need to correct these answers"]) {
+      await expect(page.getByRole("button", { name: actionName, exact: true })).toHaveCSS("height", "48px")
+    }
+    await expect(page.getByRole("main").getByText("Go back", { exact: true })).toHaveCSS("height", "48px")
     await expect(page.getByText(/UTIs during pregnancy need in-person assessment/i)).toHaveCount(0)
 
     await page.reload()
     await waitForPageLoad(page)
     await dismissCookieBanner(page)
 
-    await expect(page.getByText(/kidney infection/i)).toBeVisible({ timeout: 15_000 })
+    await expect(kidneyInfectionExplanation).toBeVisible({ timeout: 15_000 })
     await page.getByRole("main").getByRole("button", { name: "Go back" }).click()
     await expect(page.getByRole("heading", { name: "What do you need today?" })).toBeVisible()
 

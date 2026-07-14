@@ -113,8 +113,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
   // comp, etc.) are refused at intake. This is derived from the current text so
   // the block survives reload and disappears only when the patient edits the
   // request into an eligible illness-certificate use case.
-  const highStakes: HighStakesCheck =
-    symptomDetails.length >= 10 ? checkHighStakesUseCase(symptomDetails) : { isHighStakes: false }
+  const highStakes: HighStakesCheck = checkHighStakesUseCase(symptomDetails)
 
   // Plain-English reasons the step is blocked, for the top-of-step summary.
   // symptomDuration is deliberately NOT a blocker (P1.1, 2026-07-10): it is

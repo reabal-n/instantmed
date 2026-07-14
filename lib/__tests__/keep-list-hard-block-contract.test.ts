@@ -68,6 +68,8 @@ describe("keep-list: validator-level hard-blocks", () => {
   it("flags high-stakes med-cert use cases (exam / court / fitness-to-X)", () => {
     expect(checkHighStakesUseCase("I need a certificate for exam deferral").isHighStakes).toBe(true)
     expect(checkHighStakesUseCase("certificate for a court appearance").isHighStakes).toBe(true)
+    expect(checkHighStakesUseCase("exam flu").isHighStakes).toBe(true)
+    expect(checkHighStakesUseCase("court flu").isHighStakes).toBe(true)
     expect(checkHighStakesUseCase("just a cold, need a day off work").isHighStakes).toBe(false)
   })
 

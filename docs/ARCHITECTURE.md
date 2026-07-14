@@ -208,6 +208,7 @@ review-step.tsx -> unified-checkout.ts createCheckoutFromUnifiedFlow()
 | Server | Key validation >=16 chars (`checkout.ts:284`) |
 | Database | UNIQUE constraint on `intakes.idempotency_key` |
 | Stripe | Idempotency key on `sessions.create()` (guest flow) |
+| Checkout rebuild | A replayed Session must still be `open`; attachment uses an exact previous-`payment_id` compare-and-swap, refetches ambiguous writes, reuses the same idempotent winner, and expires only a confirmed orphan |
 | Webhook | Atomic event claim via `try_process_stripe_event` RPC |
 | Webhook | `payment_status === 'paid'` early return |
 | Webhook | Paid transitions require current `payment_id = session.id`, retryable intake status, and `payment_status IN ('pending','unpaid','failed')` |
@@ -216,7 +217,9 @@ On Postgres 23505 (duplicate key), returns existing intake. If already paid, red
 
 **DLQ:** Missing intake -> `addToDeadLetterQueue()` + 500 (Stripe retries). Non-retryable or stale paid webhooks -> `addToDeadLetterQueue()` + 200 (operator-visible, no retry storm). Max 3 retries then 200. 5 items/hour -> Sentry FATAL. Admin UI at `/admin/webhook-dlq` with `X-Admin-Replay` replay. Daily cron: `cron/dlq-monitor/route.ts`.
 
-**Retry payment** (`retryPaymentForIntakeAction`): auth + ownership + status guard (`pending_payment` or `checkout_failed` with unpaid/pending/failed payment state) + safety re-validation + expire old session + create fresh session.
+**Retry payment** (`retryPaymentForIntakeAction`): auth + ownership + status guard (`pending_payment` or `checkout_failed` with unpaid/pending/failed payment state) + encrypted-first answer read + safety re-validation + invalidate the old session + create and exact-CAS attach an open replacement. Authenticated retry, signed guest resume, and duplicate guest-checkout recovery share the same Session classifier and attachment reconciler; none may hand out an expired, completed, unresolved, stale, or confirmed-orphan Session.
+
+**Signed guest resume** (`/resume/[token]`): verifies the seven-day HMAC token, loads the intake without projecting plaintext clinical answers, then reads answers through `getIntakeAnswers()`. A current open Session may be returned; a completed/payment-in-flight Session routes to account completion; unresolved ownership routes to the no-retry recovery surface. A persisted high-stakes medical-certificate request first claims a durable safety lock that blocks every shared attach path, invalidates the captured current Session, and only then exact-CAS transitions the intake to `cancelled`. The patient receives a reason-coded, non-PHI safety page with no pay/new-request CTA. Successful or in-flight payments remain recoverable by the current-session webhook rather than being silently replaced.
 
 **Guest checkout failures:** after clinical answers/compliance audit are persisted, Stripe price/session failures mark the intake `checkout_failed` and keep `checkout_error` for operator recovery. The system must not hard-delete those intakes because that hides paid-flow failures from support and breaks the audit trail.
 

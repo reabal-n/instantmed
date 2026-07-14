@@ -467,12 +467,12 @@ function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAns
     return (
       <div className="space-y-6">
         <Alert variant="destructive" className="border-destructive/50">
-          <XCircle className="w-5 h-5" />
+          <XCircle className="h-5 w-5" aria-hidden="true" />
           <AlertTitle className="font-semibold">{terminalBlock.title}</AlertTitle>
-          <AlertDescription className="mt-2 text-sm">{terminalBlock.reason}</AlertDescription>
+          <AlertDescription className="mt-2 text-base">{terminalBlock.reason}</AlertDescription>
         </Alert>
         <div className="flex flex-col gap-2 pt-2">
-          <Button variant="outline" onClick={() => router.push('/')} className="w-full">Return home</Button>
+          <Button variant="outline" onClick={() => router.push('/')} className="h-12 w-full">Return home</Button>
           <Button
             variant="ghost"
             onClick={() => {
@@ -481,13 +481,13 @@ function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAns
               terminalBlock.answerKeysToClear.forEach((key) => delete nextErrors[key])
               setErrors(nextErrors)
             }}
-            className="w-full"
+            className="h-12 w-full"
           >
             {terminalBlock.answerKeysToClear.length === 1
               ? "I need to correct this answer"
               : "I need to correct these answers"}
           </Button>
-          <Button variant="ghost" onClick={onBack} className="w-full">Go back</Button>
+          <Button variant="ghost" onClick={onBack} className="h-12 w-full">Go back</Button>
         </div>
       </div>
     )

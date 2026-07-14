@@ -267,18 +267,18 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
     return (
       <div className="space-y-6">
         <Alert variant="destructive" className="border-destructive/50">
-          <XCircle className="w-5 h-5" />
+          <XCircle className="h-5 w-5" aria-hidden="true" />
           <AlertTitle className="font-semibold">
             {terminalBlock.title}
           </AlertTitle>
-          <AlertDescription className="mt-2 text-sm">
+          <AlertDescription className="mt-2 text-base">
             {terminalBlock.reason}
           </AlertDescription>
         </Alert>
 
         <div className="p-4 rounded-xl border bg-muted/30 space-y-3">
-          <h4 className="text-sm font-medium">What you can do</h4>
-          <ul className="space-y-2 text-sm text-muted-foreground">
+          <h4 className="text-base font-medium">What you can do</h4>
+          <ul className="space-y-2 text-base text-muted-foreground">
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
               <span>Book an appointment with your GP or cardiologist</span>
@@ -298,7 +298,7 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
           <Button
             variant="outline"
             onClick={() => router.push("/")}
-            className="w-full"
+            className="h-12 w-full"
           >
             Return home
           </Button>
@@ -307,9 +307,9 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
             onClick={() => {
               setAnswer("edNitrates", false)
             }}
-            className="w-full"
+            className="h-12 w-full"
           >
-            I made a mistake - I do NOT take nitrates
+            I need to correct this answer
           </Button>
         </div>
       </div>
