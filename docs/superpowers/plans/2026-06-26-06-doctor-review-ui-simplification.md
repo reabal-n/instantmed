@@ -1,6 +1,6 @@
 # Doctor Review and Patient Record Consolidation Implementation Plan
 
-> **Status (2026-07-14): Approved for execution.** This plan implements `docs/plans/2026-07-14-doctor-review-patient-record-consolidation-design.md` and replaces the superseded June 2026 request-review plan.
+> **Status (2026-07-14): Implemented and verified.** This plan implements `docs/plans/2026-07-14-doctor-review-patient-record-consolidation-design.md` and replaces the superseded June 2026 request-review plan. Repository, seeded Chromium, and bounded manual browser proof are recorded below.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to execute this plan task-by-task. Use `superpowers:test-driven-development` for each behavioural slice and `superpowers:verification-before-completion` before reporting completion. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -94,7 +94,7 @@ export interface ReviewPacket {
 }
 ```
 
-- [ ] **Step 1: Write failing normalisation tests**
+- [x] **Step 1: Write failing normalisation tests**
 
 Add fixtures proving all of the following before implementation:
 
@@ -140,7 +140,7 @@ it.each(["medical_certificate", "repeat_prescription", "ed", "hair_loss", "women
 
 Also cover missing form, missing dose, missing indication, a separately confirmed strength, multiple medicines, script recorded, and `not_asked` versus `missing`.
 
-- [ ] **Step 2: Run the focused tests and verify RED**
+- [x] **Step 2: Run the focused tests and verify RED**
 
 Run:
 
@@ -150,7 +150,7 @@ corepack pnpm test -- lib/__tests__/review-packet.test.ts
 
 Expected: FAIL because `review-packet.ts` does not exist or the new assertions are unmet.
 
-- [ ] **Step 3: Fix medication display-part normalisation**
+- [x] **Step 3: Fix medication display-part normalisation**
 
 Update `getRepeatScriptMedicationDisplayParts()` so it removes an embedded strength from the medicine label when that same value is represented separately. Return enough information for the packet builder to distinguish a structured value from a display-only inference. Do not mutate the persisted intake answer.
 
@@ -164,7 +164,7 @@ getRepeatScriptMedicationDisplayParts({ name: "Effexor 75mg", strength: "" })
 // { name: "Effexor", strength: "75mg", strengthSource: "inferred", ... }
 ```
 
-- [ ] **Step 4: Implement typed service adapters**
+- [x] **Step 4: Implement typed service adapters**
 
 Create `buildReviewPacket(input)` with a private adapter registry keyed by the normalised service/workflow kind. Keep clinical variation explicit in TypeScript and keep JSX branch-free. Reuse existing service predicates and intake-answer extractors rather than matching URL paths.
 
@@ -177,13 +177,13 @@ Rules:
 - `issueCount` derives from affected facts; it is not a second independently maintained list.
 - `script_sent === true` is the only client display proof that fulfilment has been recorded; server actions remain authoritative.
 
-- [ ] **Step 5: Run tests and verify GREEN**
+- [x] **Step 5: Run tests and verify GREEN**
 
 ```bash
 corepack pnpm test -- lib/__tests__/review-packet.test.ts lib/__tests__/derive-intake-flags.test.ts
 ```
 
-- [ ] **Step 6: Self-review and commit**
+- [x] **Step 6: Self-review and commit**
 
 Audit for medicine labels, route strings, unsafe casts, and duplicated enum formatting:
 
@@ -222,7 +222,7 @@ git commit -m "refactor: add canonical doctor review packet"
 - Modify: `lib/__tests__/doctor-review-ui-contract.test.ts`
 - Modify: `lib/__tests__/intake-flags-panel-render.test.tsx`
 
-- [ ] **Step 1: Write failing render and source-contract tests**
+- [x] **Step 1: Write failing render and source-contract tests**
 
 Lock these behaviours:
 
@@ -245,7 +245,7 @@ expect(screen.getByRole("button", { name: /Draft note · Review required/i })).t
 expect(screen.queryByText(/47yo requesting a repeat prescription/i)).not.toBeInTheDocument()
 ```
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [x] **Step 2: Run focused tests and verify RED**
 
 ```bash
 corepack pnpm test -- \
@@ -255,7 +255,7 @@ corepack pnpm test -- \
   lib/__tests__/intake-flags-panel-render.test.tsx
 ```
 
-- [ ] **Step 3: Make `RequestInfoCard` the packet renderer**
+- [x] **Step 3: Make `RequestInfoCard` the packet renderer**
 
 Build the packet once in `IntakeReviewCockpit` and pass it to the existing card. Render:
 
@@ -267,13 +267,13 @@ Build the packet once in `IntakeReviewCockpit` and pass it to the existing card.
 
 Do not add a replacement packet component. Use existing card, badge, separator, and disclosure primitives.
 
-- [ ] **Step 4: Stop secondary parsers from rendering packet facts**
+- [x] **Step 4: Stop secondary parsers from rendering packet facts**
 
 Allow `ClinicalCaseReview` to accept the already-built `ClinicalCaseSummary` and an option that suppresses default request facts while retaining note editing, safety narrative, and non-duplicative clinician context. Remove repeat-medication parsing from `case-summary.ts` where the canonical packet now owns it.
 
 Keep a controlled `draftNoteOpen` state in `IntakeReviewCockpit`. The existing note shortcut must set it true, wait one animation frame, then focus the note field. Targeted refresh later must not reset this state.
 
-- [ ] **Step 5: Narrow generic intake flags**
+- [x] **Step 5: Narrow generic intake flags**
 
 Move these field-quality issues into packet rows:
 
@@ -284,7 +284,7 @@ Move these field-quality issues into packet rows:
 
 Retain genuine non-duplicative flags, including wrong-pathway medication and duplicate-patient identity warnings. Do not change how flags are derived or persisted unless a test proves a semantic defect; this task changes ownership of display, not clinical policy.
 
-- [ ] **Step 6: Migrate blocker callers and delete the old packet**
+- [x] **Step 6: Migrate blocker callers and delete the old packet**
 
 Replace `getPrescribingPacketBlocker()` callers with the packet workflow/issue contract or an existing server-authoritative blocker. Then delete the old packet module, card, test, exports, and imports in the same commit.
 
@@ -297,7 +297,7 @@ rg -n "PrescribingPacket|prescribing-packet|PrescribingPacketCard|getPrescribing
 
 Expected: no live matches.
 
-- [ ] **Step 7: Run tests and commit**
+- [x] **Step 7: Run tests and commit**
 
 ```bash
 corepack pnpm test -- \
@@ -326,7 +326,7 @@ git commit -m "refactor: consolidate doctor request review"
 - Modify: `lib/__tests__/doctor-review-ui-contract.test.ts`
 - Modify: relevant patient-decision-strip render/source test or create `lib/__tests__/patient-safety-band-render.test.tsx`
 
-- [ ] **Step 1: Write failing safety-band tests**
+- [x] **Step 1: Write failing safety-band tests**
 
 Assert one above-fold band contains:
 
@@ -342,7 +342,7 @@ Assert one above-fold band contains:
 
 Also assert it renders before the review scroller/packet and does not render again near the action rail.
 
-- [ ] **Step 2: Run tests and verify RED**
+- [x] **Step 2: Run tests and verify RED**
 
 ```bash
 corepack pnpm test -- \
@@ -350,7 +350,7 @@ corepack pnpm test -- \
   lib/__tests__/patient-safety-band-render.test.tsx
 ```
 
-- [ ] **Step 3: Recompose `PatientDecisionStrip`**
+- [x] **Step 3: Recompose `PatientDecisionStrip`**
 
 Keep the existing component and its authorisation boundary, but change its presentation from a low-page identity snapshot into a compact safety band. Reuse `AttributionChip` and the endpoint fields already present in review data. Do not introduce a second patient-header component.
 
@@ -363,11 +363,11 @@ Rules:
 - Show only the landing pathname in the band; keep campaign, keyword, and click identifiers out.
 - Preserve explicit profile-open intent; no drawer fetch on hover or queue selection.
 
-- [ ] **Step 4: Move it above the internal review scroller**
+- [x] **Step 4: Move it above the internal review scroller**
 
 Render the band from `IntakeReviewPanel` beneath lock state and above request content, using the existing fixed-height split-pane composition. Remove the old render from `IntakeReviewCockpit` and align the full-intake header to the same component/data contract.
 
-- [ ] **Step 5: Run tests and commit**
+- [x] **Step 5: Run tests and commit**
 
 ```bash
 corepack pnpm test -- \
@@ -397,7 +397,7 @@ git commit -m "refactor: surface patient safety context"
 - Modify: `e2e/doctor.prescription-ui.spec.ts`
 - Modify: `e2e/doctor.review-panel.spec.ts`
 
-- [ ] **Step 1: Write failing lifecycle tests**
+- [x] **Step 1: Write failing lifecycle tests**
 
 Cover at minimum:
 
@@ -420,7 +420,7 @@ Also cover:
 - no selected-intake `router.refresh()` on Parchment close;
 - a reload failure preserves the last confirmed safe disabled/enabled state.
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [x] **Step 2: Run focused tests and verify RED**
 
 ```bash
 corepack pnpm test -- \
@@ -428,7 +428,7 @@ corepack pnpm test -- \
   lib/__tests__/doctor-review-ui-contract.test.ts
 ```
 
-- [ ] **Step 3: Extract one stable `reloadReviewData()` path**
+- [x] **Step 3: Extract one stable `reloadReviewData()` path**
 
 In `IntakeReviewPanel`, replace the effect-local fetch with a `useCallback` that:
 
@@ -443,7 +443,7 @@ In `IntakeReviewPanel`, replace the effect-local fetch with a `useCallback` that
 
 Add the function to `IntakeReviewContext` so existing action components can call the same path.
 
-- [ ] **Step 4: Wire the four existing refresh triggers**
+- [x] **Step 4: Wire the four existing refresh triggers**
 
 1. **Existing queue realtime:** pass the selected intake's `updated_at` (or an incrementing selected-intake revision) from `QueueClient` into the inline panel. When that value changes after mount, call the background reload. Do not subscribe again.
 2. **Parchment close:** pass `reloadReviewData` through the existing `onIntakeRefresh` callback instead of `router.refresh()`.
@@ -452,7 +452,7 @@ Add the function to `IntakeReviewContext` so existing action components can call
 
 Do not key/remount the panel to observe revisions. Preserve focus, draft disclosure, and unsaved note text.
 
-- [ ] **Step 5: Render workflow metadata consistently**
+- [x] **Step 5: Render workflow metadata consistently**
 
 Use `ReviewPacket.workflow` in both inline and full-intake action surfaces. For prescriptions:
 
@@ -462,7 +462,7 @@ Use `ReviewPacket.workflow` in both inline and full-intake action surfaces. For 
 
 No action component may branch on route strings or medicine names.
 
-- [ ] **Step 6: Run focused and E2E tests**
+- [x] **Step 6: Run focused and E2E tests**
 
 ```bash
 corepack pnpm test -- \
@@ -474,7 +474,7 @@ PLAYWRIGHT=1 corepack pnpm exec playwright test \
   e2e/doctor.review-panel.spec.ts
 ```
 
-- [ ] **Step 7: Prove stale refresh paths are gone and commit**
+- [x] **Step 7: Prove stale refresh paths are gone and commit**
 
 ```bash
 rg -n "router\.refresh\(\)" \
@@ -502,7 +502,7 @@ Expected `rg`: no selected-review fulfilment refresh call remains. Unrelated nav
 - Modify: `lib/__tests__/doctor-review-ui-contract.test.ts`
 - Modify: relevant authorised endpoint contract tests
 
-- [ ] **Step 1: Write failing endpoint and component tests**
+- [x] **Step 1: Write failing endpoint and component tests**
 
 Lock the response and render contract:
 
@@ -529,7 +529,7 @@ Component assertions:
 - longitudinal failure says `Clinical profile unavailable` and leaves current review untouched;
 - endpoint is fetched only after the drawer is opened.
 
-- [ ] **Step 2: Run tests and verify RED**
+- [x] **Step 2: Run tests and verify RED**
 
 ```bash
 corepack pnpm test -- \
@@ -537,7 +537,7 @@ corepack pnpm test -- \
   lib/__tests__/doctor-review-ui-contract.test.ts
 ```
 
-- [ ] **Step 3: Extend the existing authorised summary endpoint**
+- [x] **Step 3: Extend the existing authorised summary endpoint**
 
 After the current patient-access check, fetch in parallel using existing data helpers/service client:
 
@@ -549,7 +549,7 @@ After the current patient-access check, fetch in parallel using existing data he
 
 Return only the fields required by the drawer. Do not expose campaign/click detail here. Do not create a new endpoint. Preserve current no-store/cache and role/audit behaviour.
 
-- [ ] **Step 4: Recompose `PatientProfilePanel`**
+- [x] **Step 4: Recompose `PatientProfilePanel`**
 
 Use the existing panel and timeline. Render in this order:
 
@@ -568,7 +568,7 @@ Absence rules:
 - existing profile with an intentionally empty field: `None reported`;
 - current service adapter never asked the field: `Not asked`.
 
-- [ ] **Step 5: Run tests and commit**
+- [x] **Step 5: Run tests and commit**
 
 ```bash
 corepack pnpm test -- \
@@ -593,7 +593,7 @@ git commit -m "refactor: add clinical context to quick profile"
 - Create or modify: `lib/__tests__/doctor-patient-record-tabs.test.tsx`
 - Modify: `lib/__tests__/doctor-review-ui-contract.test.ts`
 
-- [ ] **Step 1: Write failing tab and provenance tests**
+- [x] **Step 1: Write failing tab and provenance tests**
 
 Assert:
 
@@ -606,7 +606,7 @@ Assert:
 - existing operational controls are moved, not removed;
 - an empty saved profile uses explicit absence copy.
 
-- [ ] **Step 2: Run tests and verify RED**
+- [x] **Step 2: Run tests and verify RED**
 
 ```bash
 corepack pnpm test -- \
@@ -614,11 +614,11 @@ corepack pnpm test -- \
   lib/__tests__/doctor-review-ui-contract.test.ts
 ```
 
-- [ ] **Step 3: Add health-profile data to the existing page loader**
+- [x] **Step 3: Add health-profile data to the existing page loader**
 
 Fetch `getHealthProfile(patientId)` alongside the existing authorised patient history queries and pass it to `PatientDetailClient`. Reuse the current request, prescription, note, email, attribution, duplicate, and Parchment data; do not add another route or client fetch.
 
-- [ ] **Step 4: Recompose the existing client with Tabs**
+- [x] **Step 4: Recompose the existing client with Tabs**
 
 Use the existing shadcn Tabs primitive directly in `patient-detail-client.tsx`; do not create tab-wrapper components.
 
@@ -628,7 +628,7 @@ Use the existing shadcn Tabs primitive directly in `patient-detail-client.tsx`; 
 
 Keep destructive/operational dialogs mounted at the existing safe level so moving their trigger does not change behaviour.
 
-- [ ] **Step 5: Run tests and commit**
+- [x] **Step 5: Run tests and commit**
 
 ```bash
 corepack pnpm test -- \
@@ -654,7 +654,7 @@ git commit -m "refactor: prioritise clinical patient record"
 - Modify: stale contract tests found by the caller audit
 - Add after successful verification only: `/Users/rey/.codex/memories/extensions/ad_hoc/notes/<timestamp>-doctor-review-consolidation.md`
 
-- [ ] **Step 1: Audit stale source and prose**
+- [x] **Step 1: Audit stale source and prose**
 
 ```bash
 rg -n \
@@ -664,7 +664,7 @@ rg -n \
 
 Classify each match as current intentional copy, stale implementation, or stale test/doc. Remove or update stale matches; do not weaken useful contract tests merely to make them pass.
 
-- [ ] **Step 2: Update canonical docs**
+- [x] **Step 2: Update canonical docs**
 
 - Mark the design `Implemented` only after the code and focused tests pass.
 - Document `ReviewPacket` as the request-fact/workflow owner in `docs/ARCHITECTURE.md`.
@@ -672,7 +672,7 @@ Classify each match as current intentional copy, stale implementation, or stale 
 - Update the file map description for this implementation plan.
 - Do not add a roadmap item; `docs/ROADMAP.md` remains the sole priority queue and this work was already explicitly requested.
 
-- [ ] **Step 3: Run documentation and dead-code checks**
+- [x] **Step 3: Run documentation and dead-code checks**
 
 ```bash
 corepack pnpm doc:audit
@@ -680,7 +680,7 @@ corepack pnpm deadcode:check
 git diff --check
 ```
 
-- [ ] **Step 4: Commit repository hygiene**
+- [x] **Step 4: Commit repository hygiene**
 
 ```bash
 git add docs components/operator/README.md app components lib e2e
@@ -698,7 +698,7 @@ Do not create the memory note yet; memory records the verified outcome, not inte
 - Modify source only for defects found during verification.
 - Add one ad-hoc memory note after all required proof passes; include architecture decisions only and no patient data or screenshots.
 
-- [ ] **Step 1: Run focused regression suite**
+- [x] **Step 1: Run focused regression suite**
 
 ```bash
 corepack pnpm test -- \
@@ -711,7 +711,7 @@ corepack pnpm test -- \
   lib/__tests__/doctor-patient-record-tabs.test.tsx
 ```
 
-- [ ] **Step 2: Run repository gates**
+- [x] **Step 2: Run repository gates**
 
 ```bash
 corepack pnpm typecheck
@@ -724,7 +724,7 @@ corepack pnpm deadcode:check
 
 All commands must pass on the pinned Node 24/pnpm 10 runtime. Do not change dependencies to resolve implementation errors.
 
-- [ ] **Step 3: Run relevant Playwright proof**
+- [x] **Step 3: Run relevant Playwright proof**
 
 ```bash
 PLAYWRIGHT=1 corepack pnpm exec playwright test \
@@ -734,7 +734,7 @@ PLAYWRIGHT=1 corepack pnpm exec playwright test \
 
 Verify the no-PHI-prefetch assertion remains intact.
 
-- [ ] **Step 4: Browser-verify on port 3060**
+- [x] **Step 4: Browser-verify on port 3060 with an explicit proof boundary**
 
 Use the repo-approved browser workflow and exercise:
 
@@ -758,7 +758,7 @@ Confirm visually and through network logs:
 - quick profile shows only three prior relevant events;
 - full record opens on Clinical and retains all operational controls.
 
-- [ ] **Step 5: Fix, rerun affected proof, and commit**
+- [x] **Step 5: Fix, rerun affected proof, and commit**
 
 Any defect found must get the smallest relevant regression test, then a fix, then the affected focused and repository gate rerun.
 
@@ -770,7 +770,7 @@ git commit -m "polish: verify doctor review consolidation"
 
 Skip this commit if verification required no source changes.
 
-- [ ] **Step 6: Record the verified architecture decision in memory**
+- [x] **Step 6: Record the verified architecture decision in memory**
 
 Create one small file under:
 
@@ -790,7 +790,7 @@ Include only:
 
 Do not include patient names, DOBs, identifiers, screenshots, intake IDs, request content, or copied clinical values.
 
-- [ ] **Step 7: Final caller, status, and commit audit**
+- [x] **Step 7: Final caller, status, and commit audit**
 
 ```bash
 rg -n "PrescribingPacket|prescribing-packet|PrescribingPacketCard|getPrescribingPacketBlocker" \
@@ -808,17 +808,29 @@ Expected:
 
 ---
 
+## Verification evidence
+
+- Focused packet policy: `21` tests passed.
+- Full Vitest suite: `496` files passed; `4,342` tests passed and `1` existing test skipped.
+- Static and production gates: typecheck, zero-warning lint, and the Next.js production build passed; the build generated `489/489` static pages.
+- Documentation and hygiene: `doc:audit` passed `9` files / `90` tests with the expected `120` Markdown files; the dead-code ratchet remained `2,881`.
+- Seeded Chromium: `7/7` doctor-review tests passed in one run. These cover in-place fulfilment refresh, legacy recorded-script reconciliation, the women's-health UTI completion gate, the single inline request packet, collapsed disclosures, quick-profile provenance, full-record tabs, and acquisition attribution.
+- Manual port `3060` proof: the seeded desktop medical-certificate request showed patient safety context before the request scroller, one request packet, collapsed draft/full-intake disclosures, explicit-open quick profile, and the Clinical / History / Operations record split. The profile summary request occurred only after explicit profile intent, and the browser console contained no errors.
+- Exact visual boundary: repeat-prescription fulfilment and women's-health UTI were exercised in Chromium E2E rather than the manual `3060` session. ED, hair loss, narrow/mobile, slide-over, and dark-mode rendering rely on the same typed packet/components and passed unit/source contracts, but were not separately captured in this manual proof pass. No production environment was exercised.
+
+---
+
 ## Acceptance checklist
 
-- [ ] One canonical request packet is default-visible across every active request type.
-- [ ] Medicine, strength, form, dose, indication, and recency are not repeated by competing renderers.
-- [ ] Structured missing values remain missing even when free text permits an inference.
-- [ ] Patient identity, contact/readiness, visit context, source, and navigation are above the fold.
-- [ ] Draft note and full intake are available but collapsed by default.
-- [ ] Completion remains visible and disabled until fulfilment is confirmed.
-- [ ] Fulfilment enables completion through a selected-intake reload without remounting or page refresh.
-- [ ] Quick profile provides saved clinical context, three prior relevant events, and counts without repeating the active request.
-- [ ] Full patient record opens on Clinical and preserves History and Operations capabilities.
-- [ ] No new React component family, API route, schema, realtime subscription, polling loop, or state library exists.
-- [ ] Superseded code, exports, tests, comments, refresh paths, and plan language are removed.
-- [ ] Focused tests, typecheck, lint, full tests, build, docs audit, dead-code check, Playwright, and browser proof pass or are reported with an exact evidence boundary.
+- [x] One canonical request packet is default-visible across every active request type.
+- [x] Medicine, strength, form, dose, indication, and recency are not repeated by competing renderers.
+- [x] Structured missing values remain missing even when free text permits an inference.
+- [x] Patient identity, contact/readiness, visit context, source, and navigation are above the fold.
+- [x] Draft note and full intake are available but collapsed by default.
+- [x] Completion remains visible and disabled until fulfilment is confirmed.
+- [x] Fulfilment enables completion through a selected-intake reload without remounting or page refresh.
+- [x] Quick profile provides saved clinical context, three prior relevant events, and counts without repeating the active request.
+- [x] Full patient record opens on Clinical and preserves History and Operations capabilities.
+- [x] No new React component family, API route, schema, realtime subscription, polling loop, or state library exists.
+- [x] Superseded code, exports, tests, comments, refresh paths, and plan language are removed.
+- [x] Focused tests, typecheck, lint, full tests, build, docs audit, dead-code check, Playwright, and browser proof pass or are reported with an exact evidence boundary.
