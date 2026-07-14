@@ -16,6 +16,7 @@
 #  12. Unused copy catalogs and parallel flow models
 #  13. Superseded validation and formatting helpers
 #  14. Retired synthetic patient-count plumbing
+#  15. Obsolete analytics, blog-image, and SEO engines
 #
 # Exit 1 if any orphans found.
 
@@ -464,6 +465,21 @@ for retired_patient_count_path in \
 do
   if [[ -e "$retired_patient_count_path" ]]; then
     echo "ORPHAN: $retired_patient_count_path still exists (synthetic patient-count plumbing)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 15. Obsolete analytics, blog-image, and SEO engines ─────────────────
+for retired_content_helper in \
+  "lib/analytics/ab-test.ts" \
+  "lib/blog/images.ts" \
+  "lib/data/analytics.ts" \
+  "lib/seo/comparisons.ts" \
+  "lib/seo/linking.ts" \
+  "lib/seo/metadata.ts"
+do
+  if [[ -e "$retired_content_helper" ]]; then
+    echo "ORPHAN: $retired_content_helper still exists (obsolete analytics, blog-image, or SEO engine)"
     orphans=$((orphans + 1))
   fi
 done

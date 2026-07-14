@@ -149,6 +149,28 @@ describe("code-clean retirement contracts", () => {
     expect(read("lib/email/send/idempotency.ts")).toContain("buildEmailOutboxIdempotencyKey")
   })
 
+  it("keeps obsolete analytics, blog-image, and SEO engines retired", () => {
+    const retiredContentHelpers = [
+      "lib/analytics/ab-test.ts",
+      "lib/blog/images.ts",
+      "lib/data/analytics.ts",
+      "lib/seo/comparisons.ts",
+      "lib/seo/linking.ts",
+      "lib/seo/metadata.ts",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredContentHelpers) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("lib/blog/visuals.ts")).toContain("getArticleVisualsForRender")
+    expect(read("app/admin/analytics/page.tsx")).toContain("getRevenueDashboard")
+    expect(read("app/compare/[slug]/page.tsx")).toContain("export async function generateMetadata")
+    expect(read("app/compare/sitemap.ts")).toContain("@/lib/seo/data/comparisons")
+  })
+
   it("keeps stale patient quick-reorder APIs out of the route tree", () => {
     const retiredPatientApis = [
       "app/api/patient/last-prescription/route.ts",
