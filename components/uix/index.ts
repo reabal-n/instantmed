@@ -12,14 +12,6 @@
  */
 
 // Core Components - Button re-exported from shadcn/ui
-export {
-  Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  type ModalProps,
-  useDisclosure,
-} from "./modal"
 export { Button, type ButtonProps } from "@/components/ui/button"
 export {
   Card,
@@ -32,19 +24,6 @@ export {
   CardTitle,
 } from "@/components/ui/card"
 export { Input, type InputProps } from "@/components/ui/input"
-
-// Navigation & Organization
-export {
-  Accordion,
-  AccordionItem,
-} from "./accordion"
-export {
-  CompactStepper,
-  type CompactStepperProps,
-  type Step,
-  Stepper,
-  type StepperProps,
-} from "./stepper"
 
 // Loading States - re-export from @/components/ui
 export { Badge } from "@/components/ui/badge"

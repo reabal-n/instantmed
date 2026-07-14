@@ -2,7 +2,7 @@
 
 Unified staff cockpit primitives for admin, doctor, and support workflows.
 
-Use these components when a staff screen combines operations, clinical review, recovery queues, patient context, or fast navigation. The goal is one compact product surface, not separate admin and doctor modes.
+Use these components when a staff screen combines operations, clinical review, recovery queues, or patient context. The goal is one compact product surface, not separate admin and doctor modes.
 
 ## Canonical URL
 
@@ -18,7 +18,6 @@ Use these components when a staff screen combines operations, clinical review, r
 | `OperatorScrollArea` | Internal scroll region inside bounded pages |
 | `OperatorPanel` | Solid-depth staff panel |
 | `OperatorSplitPane` | Recovery queue list plus detail panel |
-| `StaffCommandPalette` | Local quick-action lists on case-heavy staff pages |
 
 ## Rules
 

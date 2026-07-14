@@ -616,6 +616,29 @@ describe("code-clean retirement contracts", () => {
     )
   })
 
+  it("keeps barrel-masked zero-consumer leaves retired", () => {
+    const retiredLeaves = [
+      "components/dashboard/dashboard-empty.tsx",
+      "components/doctor/identity-incomplete-banner.tsx",
+      "components/heroes/full-bleed-hero.tsx",
+      "components/operator/staff-command-palette.tsx",
+      "components/uix/README.md",
+      "components/uix/accordion.tsx",
+      "components/uix/modal.tsx",
+      "components/uix/stepper.tsx",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const modulePath of retiredLeaves) {
+      expect(existsSync(join(root, modulePath)), modulePath).toBe(false)
+      expect(orphanCheck).toContain(modulePath)
+    }
+
+    expect(read("components/uix/index.ts")).not.toContain('from "./modal"')
+    expect(read("components/operator/index.ts")).not.toContain("StaffCommandPalette")
+    expect(read("docs/ARCHITECTURE.md")).not.toContain("`StaffCommandPalette`")
+  })
+
   it("does not redirect legacy image names into a missing people directory", () => {
     expect(existsSync(join(root, "public/images/people"))).toBe(false)
     expect(read("next.config.mjs")).not.toContain("/images/people/")

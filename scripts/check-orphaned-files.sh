@@ -21,6 +21,7 @@
 #  17. Abandoned specialty landing experiments
 #  18. Retired generic service funnel layer
 #  19. Test-only production modules and compatibility shims
+#  20. Barrel-masked zero-consumer leaves
 #
 # Exit 1 if any orphans found.
 
@@ -553,6 +554,23 @@ for retired_test_only_module in \
 do
   if [[ -e "$retired_test_only_module" ]]; then
     echo "ORPHAN: $retired_test_only_module still exists (test-only production module or compatibility shim)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 20. Barrel-masked zero-consumer leaves ──────────────────────────────
+for retired_barrel_leaf in \
+  "components/dashboard/dashboard-empty.tsx" \
+  "components/doctor/identity-incomplete-banner.tsx" \
+  "components/heroes/full-bleed-hero.tsx" \
+  "components/operator/staff-command-palette.tsx" \
+  "components/uix/README.md" \
+  "components/uix/accordion.tsx" \
+  "components/uix/modal.tsx" \
+  "components/uix/stepper.tsx"
+do
+  if [[ -e "$retired_barrel_leaf" ]]; then
+    echo "ORPHAN: $retired_barrel_leaf still exists (barrel-masked zero-consumer leaf)"
     orphans=$((orphans + 1))
   fi
 done
