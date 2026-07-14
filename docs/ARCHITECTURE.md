@@ -588,7 +588,7 @@ import { PageBreadcrumbs, Snippet, UserCard } from "@/components/uix"
 
 **Component decision tree:** See CLAUDE.md for quick-reference selection guide (shadcn vs UIX vs solid-depth components).
 
-**File organization:** `components/ui/` (67 primitives), `components/shared/` (39 shared), `components/uix/` (UIX wrappers), `components/operator/` (staff cockpit shell/page/split-pane/local action palettes), plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
+**File organization:** `components/ui/` (47 top-level primitives), `components/shared/` (17 top-level shared files), `components/uix/` (UIX wrappers), `components/operator/` (staff cockpit shell/page/split-pane/local action palettes), plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
 
 ### Operator Components
 
@@ -767,7 +767,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 |-----------|---------|
 | `ui/` | shadcn/Radix primitives (Button, Input, Dialog, etc.) |
 | `uix/` | Thin shared wrappers and re-exports (UserCard, PageBreadcrumbs, DatePickerField, Pagination, Snippet, etc.) |
-| `shared/` | Header, Footer, inline auth/onboarding steps, global notices |
+| `shared/` | Header, Footer, global notices, referral capture, and shared trust/auth controls |
 | `operator/` | OperatorShell, bounded staff pages, split panes, local action palettes |
 | `request/` | Intake flow: `request-flow.tsx` (orchestrator), `steps/` (per-step components), `store.ts` (Zustand) |
 | `marketing/` | Landing pages, ServiceFunnelPage, testimonials, exit intent |

@@ -53,13 +53,10 @@ describe("retired design-system shims", () => {
     expect(resetPasswordSource).toContain("shadow-primary/[0.06]")
   })
 
-  it("uses canonical segmented radio naming instead of GlassRadioGroup", () => {
-    expect(existsSync(join(root, "components/ui/segmented-radio-group.tsx"))).toBe(true)
+  it("removes the segmented radio used only by the retired inline onboarding flow", () => {
+    expect(existsSync(join(root, "components/ui/segmented-radio-group.tsx"))).toBe(false)
     expect(existsSync(join(root, "components/ui/glass-radio-group.tsx"))).toBe(false)
-
-    const onboardingSource = readFileSync(join(root, "components/shared/inline-onboarding-step.tsx"), "utf8")
-    expect(onboardingSource).not.toContain("GlassRadioGroup")
-    expect(onboardingSource).not.toContain("glass-radio-group")
+    expect(existsSync(join(root, "components/shared/inline-onboarding-step.tsx"))).toBe(false)
   })
 
   it("keeps Select on the canonical Radix API instead of legacy selectedKeys shims", () => {

@@ -55,11 +55,8 @@ describe("legacy prescription routes", () => {
     expect(scriptTasks).not.toContain("createScriptTask")
   })
 
-  it("keeps legacy inline onboarding address writes aligned with profile columns", () => {
-    const inlineOnboarding = readFileSync(path.join(root, "components/shared/inline-onboarding-step.tsx"), "utf8")
-
-    expect(inlineOnboarding).toContain("address_line1:")
-    expect(inlineOnboarding).not.toContain("address_line_1:")
-    expect(inlineOnboarding).not.toContain("address_line_2:")
+  it("removes the legacy inline auth and onboarding stack with its retired route", () => {
+    expect(existsSync(path.join(root, "components/shared/inline-auth-step.tsx"))).toBe(false)
+    expect(existsSync(path.join(root, "components/shared/inline-onboarding-step.tsx"))).toBe(false)
   })
 })
