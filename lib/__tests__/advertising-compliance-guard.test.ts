@@ -48,7 +48,6 @@ const NON_MEDCERT_FORM_FIRST_SURFACES = [
   "lib/data/mental-health-online-faq.ts",
   "lib/data/womens-health-faq.ts",
   "lib/email/components/templates/abandoned-checkout-followup.tsx",
-  "lib/marketing/contextual-messages.ts",
   "lib/marketing/homepage.ts",
   "components/request/service-hub-screen.tsx",
   "content/blog",
