@@ -15,8 +15,8 @@
  *
  * Color tokens: uses the design-system `--warning` / `--warning-light`
  * / `--warning-border` family (defined in `app/globals.css`) so the
- * banner sits in the same amber notice register as `ContextualHelp`
- * and other warning states. Avoid raw `amber-*` Tailwind classes
+ * banner sits in the same amber notice register as other warning states.
+ * Avoid raw `amber-*` Tailwind classes
  * here — they're outside the token system.
  */
 

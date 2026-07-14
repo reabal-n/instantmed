@@ -60,7 +60,7 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2
 ## When you're in doubt
 
 1. Can I find this in `DESIGN.md`? Do that.
-2. Is there an existing primitive (`Button`, `Card`, `ServiceIconTile`, `SectionPill`, `RadioGroupCard`)? Use it.
+2. Is there an existing primitive (`Button`, `Card`, `ServiceIconTile`, `SectionPill`, `RadioGroup`)? Use it.
 3. Is a Tailwind arbitrary (`shadow-[...]`, `text-[12px]`, etc.) tempting? Pause. 90% of the time there's a canonical class that does it.
 4. Is the change touching motion? Read `lib/motion/index.ts` — never hardcode durations/easings.
 5. Still stuck? Prefer "do nothing" over "invent a new system." Flag it for a human.

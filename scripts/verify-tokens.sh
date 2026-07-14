@@ -13,7 +13,6 @@
 #   - useSpring() in stat-strip.tsx    ← animated counter MotionValue, not a transition
 #   - stiffness/damping in perspective-tilt-card.tsx and interactive-product-mockup.tsx
 #     ← mouse-tracking physics, not entrance transitions
-#   - drop-shadow-[...] in cinematic-switch.tsx ← CSS filter on text, no canonical alternative
 #
 # Exit 1 if any violation is found.
 
