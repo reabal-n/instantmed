@@ -1,6 +1,32 @@
-import { expect,test } from "@playwright/test"
+import { expect, type Page, test } from "@playwright/test"
 
 import { waitForPageLoad } from "./helpers/test-utils"
+
+async function advanceMedCertToSymptoms(page: Page) {
+  await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
+  await page.getByRole("radio", { name: /Work/i }).click()
+
+  const changeDates = page.getByRole("button", { name: /Change length or start date/i })
+  if (await changeDates.isVisible().catch(() => false)) await changeDates.click()
+
+  const oneDay = page.getByRole("radio", { name: /1 day/i })
+  if (await oneDay.isVisible().catch(() => false)) await oneDay.click()
+  const today = page.getByRole("radio", { name: /^Today/i })
+  if (await today.isVisible().catch(() => false)) await today.click()
+
+  const stickyBar = page.locator('[data-intake-mobile-action-bar="true"]')
+  if (await stickyBar.isVisible().catch(() => false)) {
+    const stickyContinue = stickyBar.getByRole("button", { name: /^Continue$/i })
+    await expect(stickyContinue).toHaveAttribute("data-intake-mobile-action-ready", "true")
+    await stickyContinue.click()
+  } else {
+    const primaryContinue = page.locator('button[data-intake-primary-action="true"]').last()
+    await expect(primaryContinue).toHaveAttribute("data-intake-primary-ready", "true")
+    await primaryContinue.click()
+  }
+
+  await expect(page.locator("#symptom-details")).toBeVisible({ timeout: 15000 })
+}
 
 /**
  * Unified Request Flow E2E Tests
@@ -78,6 +104,26 @@ test.describe("Unified Request Flow - Medical Certificate", () => {
     
     // Back button should be visible
     await expect(page.getByRole("button", { name: /Go back/i })).toBeVisible()
+  })
+
+  test("high-stakes certificate wording hard-stops until the patient edits it", async ({ page }) => {
+    await advanceMedCertToSymptoms(page)
+
+    const details = page.locator("#symptom-details")
+    await details.fill("Migraine and need to defer my exam tomorrow")
+
+    const block = page.getByRole("alert").filter({ hasText: /Exam deferrals/i })
+    await expect(block).toBeVisible()
+    await expect(page.locator("#high-stakes-ack")).toHaveCount(0)
+    await expect(page.locator('button[data-intake-primary-action="true"]')).toHaveCount(0)
+
+    await details.fill("Fever and sore throat since yesterday")
+
+    await expect(block).toHaveCount(0)
+    const primaryContinue = page.locator('button[data-intake-primary-action="true"]').last()
+    await expect(primaryContinue).toHaveAttribute("data-intake-primary-ready", "true")
+    await primaryContinue.click()
+    await expect(details).toHaveCount(0)
   })
 })
 
@@ -337,5 +383,27 @@ test.describe("Unified Request Flow - Mobile sticky CTA", () => {
     // permanently disabled.
     await expect(page.getByRole("heading", { name: /Your symptoms/i })).toBeVisible({ timeout: 15000 })
     await expect(stickyContinue).toBeEnabled({ timeout: 15000 })
+  })
+
+  test("removes the sticky Continue for high-stakes wording and restores it after correction", async ({ page }) => {
+    await page.goto("/request?service=med-cert")
+    await waitForPageLoad(page)
+    await advanceMedCertToSymptoms(page)
+
+    const details = page.locator("#symptom-details")
+    await details.fill("Migraine and need to defer my exam tomorrow")
+
+    await expect(page.getByRole("alert").filter({ hasText: /Exam deferrals/i })).toBeVisible()
+    const stickyBar = page.locator('[data-intake-mobile-action-bar="true"]')
+    await expect(stickyBar).toBeHidden()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+
+    await details.fill("Fever and sore throat since yesterday")
+
+    await expect(stickyBar).toBeVisible()
+    await expect(stickyBar.getByRole("button", { name: /^Continue$/i })).toHaveAttribute(
+      "data-intake-mobile-action-ready",
+      "true",
+    )
   })
 })

@@ -13,6 +13,7 @@ import { cookies } from "next/headers"
 
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
@@ -25,9 +26,80 @@ import { getOptionalStripePriceEnv, getPriceIdForRequest, normalizeStripePriceId
 import { buildPaymentIntentMetadata, canRetryPaymentForIntake } from "../payment-integrity"
 import { createReferralCouponIfEligible } from "../referral-coupon"
 import { getBaseUrl, getServiceSlug, isValidUrl } from "./helpers"
+import { getHighStakesCheckoutBlock } from "./high-stakes-validation"
 import type { CheckoutResult } from "./types"
 
 const logger = createLogger("stripe-checkout-retry")
+
+const HIGH_STAKES_RETRY_STATE_ERROR =
+  "No new payment session was created. Please refresh your request status. If you completed payment, contact support before trying again."
+const MAX_HIGH_STAKES_INVALIDATION_ATTEMPTS = 3
+
+interface RetryPaymentState {
+  payment_id: string | null
+  payment_status: string | null
+  status: string | null
+}
+
+type SessionInvalidationResult = "invalidated" | "payment_in_flight" | "unresolved"
+
+async function invalidateCheckoutSessionForSafety(
+  sessionId: string,
+  intakeId: string,
+): Promise<SessionInvalidationResult> {
+  try {
+    await stripe.checkout.sessions.expire(sessionId)
+    logger.info("Expired high-stakes retry checkout session", { intakeId, sessionId })
+    return "invalidated"
+  } catch (expireError) {
+    try {
+      const session = await stripe.checkout.sessions.retrieve(sessionId)
+
+      if (session.status === "expired") {
+        return "invalidated"
+      }
+
+      if (
+        session.status === "complete" ||
+        session.payment_status === "paid" ||
+        session.payment_status === "no_payment_required"
+      ) {
+        logger.error(
+          "High-stakes retry found a completed or processing checkout session",
+          { intakeId, paymentStatus: session.payment_status, sessionId, sessionStatus: session.status },
+          expireError,
+        )
+        return "payment_in_flight"
+      }
+
+      logger.error(
+        "Could not invalidate open high-stakes retry checkout session",
+        { intakeId, paymentStatus: session.payment_status, sessionId, sessionStatus: session.status },
+        expireError,
+      )
+      return "unresolved"
+    } catch (retrieveError) {
+      logger.error(
+        "Could not invalidate or reconcile high-stakes retry checkout session",
+        { intakeId, sessionId },
+        retrieveError,
+      )
+      return "unresolved"
+    }
+  }
+}
+
+function isMedicalCertificateRetry(
+  category: ServiceCategory | null,
+  service: { slug?: string | null; type?: string | null } | null,
+): boolean {
+  return Boolean(
+    category === "medical_certificate" ||
+    service?.type === "med_certs" ||
+    service?.type === "medical_certificate" ||
+    service?.slug?.startsWith("med-cert"),
+  )
+}
 
 export async function retryPaymentForIntakeAction(intakeId: string): Promise<CheckoutResult> {
   try {
@@ -66,12 +138,128 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     // Re-evaluate safety so a saved-then-retried intake cannot bypass new
     // safety rules introduced after the original submission.
     const categoryForSafety = intake.category as ServiceCategory | null
-    const serviceForSafety = intake.service as { slug: string; price_cents: number } | null
+    const serviceForSafety = intake.service as {
+      slug: string
+      price_cents: number
+      type?: string | null
+    } | null
     const serviceSlugForSafety =
       serviceForSafety?.slug ||
-      getServiceSlug(categoryForSafety || "medical_certificate", intake.subtype || "")
+      (categoryForSafety ? getServiceSlug(categoryForSafety, intake.subtype || "") : "consult")
     const intakeAnswers =
       (intake.answers as Array<{ answers: Record<string, unknown> }> | null)?.[0]?.answers || {}
+
+    const isMedicalCertificate = isMedicalCertificateRetry(categoryForSafety, serviceForSafety)
+    const highStakesBlock = isMedicalCertificate
+      ? getHighStakesCheckoutBlock(intakeAnswers)
+      : null
+
+    if (highStakesBlock) {
+      logger.warn("High-stakes use case blocked retry payment", {
+        intakeId,
+        matched: highStakesBlock.matched,
+        serviceSlug: serviceSlugForSafety,
+      })
+
+      await recordSafetyEvaluationForOperators({
+        answers: intakeAnswers,
+        context: "retry_payment",
+        requestId: intakeId,
+        result: highStakesBlock.safetyCheck,
+        serviceSlug: serviceSlugForSafety,
+      })
+
+      let paymentState: RetryPaymentState = {
+        payment_id: intake.payment_id,
+        payment_status: intake.payment_status,
+        status: intake.status,
+      }
+
+      for (let attempt = 0; attempt < MAX_HIGH_STAKES_INVALIDATION_ATTEMPTS; attempt += 1) {
+        if (paymentState.payment_id) {
+          const invalidation = await invalidateCheckoutSessionForSafety(
+            paymentState.payment_id,
+            intake.id,
+          )
+          if (invalidation !== "invalidated") {
+            return { success: false, error: HIGH_STAKES_RETRY_STATE_ERROR }
+          }
+        }
+
+        const now = new Date().toISOString()
+        let cancellationQuery = supabase
+          .from("intakes")
+          .update({
+            status: "cancelled",
+            cancelled_at: now,
+            checkout_error: null,
+            triage_result: "decline",
+            triage_reasons: ["high_stakes_use_case"],
+            requires_live_consult: false,
+            live_consult_reason: null,
+            updated_at: now,
+          })
+          .eq("id", intake.id)
+          .in("status", ["pending_payment", "checkout_failed"])
+          .in("payment_status", ["pending", "unpaid", "failed"])
+
+        cancellationQuery = paymentState.payment_id
+          ? cancellationQuery.eq("payment_id", paymentState.payment_id)
+          : cancellationQuery.is("payment_id", null)
+
+        const { data: cancelledRows, error: cancellationError } = await cancellationQuery
+          .select("id, payment_id")
+
+        if (cancellationError) {
+          logger.error("Failed to cancel high-stakes retry intake", { intakeId }, cancellationError)
+          return { success: false, error: HIGH_STAKES_RETRY_STATE_ERROR }
+        }
+
+        if (cancelledRows && cancelledRows.length > 0) {
+          revalidatePatient({ intakeId })
+          revalidateStaff({ intakeId })
+          return { success: false, error: highStakesBlock.retryPaymentError }
+        }
+
+        logger.warn("High-stakes retry cancellation matched 0 rows - refetching payment state", {
+          attempt: attempt + 1,
+          intakeId,
+        })
+
+        const { data: refreshedIntake, error: refreshError } = await supabase
+          .from("intakes")
+          .select("id, status, payment_status, payment_id")
+          .eq("id", intake.id)
+          .eq("patient_id", patientId)
+          .single()
+
+        if (refreshError || !refreshedIntake) {
+          logger.error(
+            "Failed to refetch high-stakes retry payment state",
+            { intakeId },
+            refreshError || new Error("Intake disappeared during safety invalidation"),
+          )
+          return { success: false, error: HIGH_STAKES_RETRY_STATE_ERROR }
+        }
+
+        if (!canRetryPaymentForIntake(refreshedIntake.status, refreshedIntake.payment_status)) {
+          return { success: false, error: HIGH_STAKES_RETRY_STATE_ERROR }
+        }
+
+        paymentState = {
+          payment_id: refreshedIntake.payment_id,
+          payment_status: refreshedIntake.payment_status,
+          status: refreshedIntake.status,
+        }
+      }
+
+      logger.error(
+        "High-stakes retry payment state kept changing during invalidation",
+        { intakeId },
+        new Error("Safety invalidation exceeded retry limit"),
+      )
+      return { success: false, error: HIGH_STAKES_RETRY_STATE_ERROR }
+    }
 
     const fieldCheck = validateSafetyFieldsPresent(serviceSlugForSafety, intakeAnswers)
     if (!fieldCheck.valid) {

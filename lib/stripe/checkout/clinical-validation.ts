@@ -11,10 +11,10 @@
  * the intake row exists.
  */
 
-import { trackSafetyBlock,trackSafetyOutcome } from "@/lib/analytics/posthog-server"
+import { trackSafetyBlock, trackSafetyOutcome } from "@/lib/analytics/posthog-server"
 import { deriveIntakeFlags } from "@/lib/clinical/derive-intake-flags"
 import type { IntakeFlag } from "@/lib/clinical/intake-flags"
-import { checkHighStakesUseCase, isControlledSubstance } from "@/lib/clinical/intake-validation"
+import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { getMedicationBlocklistCandidate } from "@/lib/operational-controls/medication-blocklist"
@@ -24,6 +24,7 @@ import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 
 import { getServiceSlug } from "./helpers"
+import { getHighStakesCheckoutBlock } from "./high-stakes-validation"
 import type { CreateCheckoutInput, StepResult } from "./types"
 import { stepFail, stepOk } from "./types"
 
@@ -58,39 +59,18 @@ export async function runClinicalValidation(
     // advisory only and the auto-approval net fires AFTER payment; this is
     // the authoritative pre-payment enforcement so a structurally
     // un-issuable cert never takes money (pay-then-decline refund churn).
-    // Same alias set as validateMedCertPayload reads, plus additional-info fields.
-    const highStakesText = [
-      input.answers["symptoms_description"],
-      input.answers["symptom_details"],
-      input.answers["symptomDetails"],
-      input.answers["symptomsDescription"],
-      input.answers["additional_info"],
-      input.answers["additionalInfo"],
-      input.answers["additional_information"],
-    ]
-      .filter((value): value is string => typeof value === "string" && value.length > 0)
-      .join("\n")
-    const highStakes = checkHighStakesUseCase(highStakesText)
-    if (highStakes.isHighStakes) {
+    const highStakesBlock = getHighStakesCheckoutBlock(input.answers)
+    if (highStakesBlock) {
       logger.warn("High-stakes use case blocked at checkout", {
-        matched: highStakes.matched,
+        matched: highStakesBlock.matched,
       })
       await recordSafetyEvaluationForOperators({
         answers: input.answers,
         context: "checkout",
-        result: {
-          isAllowed: false,
-          outcome: "DECLINE",
-          riskTier: "high",
-          blockReason: highStakes.reason || "High-stakes certificate use case.",
-          requiresCall: false,
-          triggeredRuleIds: ["high_stakes_use_case"],
-        },
+        result: highStakesBlock.safetyCheck,
         serviceSlug: input.serviceSlug || getServiceSlug(input.category, input.subtype),
       })
-      return stepFail(
-        `${highStakes.reason || "This type of certificate cannot be issued through an online assessment."} You have not been charged. Please see a GP in person, who can carry out the assessment this document requires.`,
-      )
+      return stepFail(highStakesBlock.initialCheckoutError)
     }
   }
 

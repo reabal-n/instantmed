@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
+  checkHighStakesUseCase: vi.fn(),
   checkSafetyForServer: vi.fn(),
   checkServerActionRateLimit: vi.fn(),
   cookies: vi.fn(),
@@ -18,8 +19,12 @@ const mocks = vi.hoisted(() => ({
     info: vi.fn(),
     warn: vi.fn(),
   },
+  revalidatePatient: vi.fn(),
+  revalidateStaff: vi.fn(),
+  recordSafetyEvaluationForOperators: vi.fn(),
   stripeSessionCreate: vi.fn(),
   stripeSessionExpire: vi.fn(),
+  stripeSessionRetrieve: vi.fn(),
   validateSafetyFieldsPresent: vi.fn(),
 }))
 
@@ -46,6 +51,8 @@ vi.mock("@/lib/auth/helpers", () => ({
 }))
 
 vi.mock("@/lib/clinical/intake-validation", () => ({
+  checkHighStakesAnswers: mocks.checkHighStakesUseCase,
+  checkHighStakesUseCase: mocks.checkHighStakesUseCase,
   isControlledSubstance: vi.fn(() => false),
 }))
 
@@ -71,6 +78,11 @@ vi.mock("@/lib/data/profiles", () => ({
   updateProfile: vi.fn(),
 }))
 
+vi.mock("@/lib/dashboard/revalidate-staff", () => ({
+  revalidatePatient: mocks.revalidatePatient,
+  revalidateStaff: mocks.revalidateStaff,
+}))
+
 vi.mock("@/lib/feature-flags", () => ({
   isMedicationBlocked: vi.fn(() => false),
   isServiceDisabled: vi.fn(() => false),
@@ -88,6 +100,10 @@ vi.mock("@/lib/rate-limit/redis", () => ({
 vi.mock("@/lib/safety/evaluate", () => ({
   checkSafetyForServer: mocks.checkSafetyForServer,
   validateSafetyFieldsPresent: mocks.validateSafetyFieldsPresent,
+}))
+
+vi.mock("@/lib/safety/audit-log", () => ({
+  recordSafetyEvaluationForOperators: mocks.recordSafetyEvaluationForOperators,
 }))
 
 vi.mock("@/lib/security/fraud-detector", () => ({
@@ -116,6 +132,7 @@ vi.mock("@/lib/stripe/client", () => ({
       sessions: {
         create: mocks.stripeSessionCreate,
         expire: mocks.stripeSessionExpire,
+        retrieve: mocks.stripeSessionRetrieve,
       },
     },
   },
@@ -143,23 +160,37 @@ const successClientSource = readFileSync(
 interface UpdateRecord {
   filters: Array<{
     column: string
-    method: "eq" | "in"
+    method: "eq" | "in" | "is"
     value: unknown
   }>
   payload: Record<string, unknown> | null
 }
 
-function createRetrySupabaseMock(intakeOverrides: Partial<{
+type RetryIntake = {
   answers: Array<{ answers: Record<string, unknown> }>
   category: string | null
+  payment_id: string | null
+  payment_status: string | null
   service: { id: string; name: string; price_cents: number; slug: string; type: string } | null
+  status: string | null
   stripe_price_id: string | null
   subtype: string | null
-}> = {}) {
-  const updateRecord: UpdateRecord = {
-    filters: [],
-    payload: null,
-  }
+}
+
+interface RetrySupabaseOptions {
+  events?: string[]
+  refetchedIntakes?: Array<Partial<RetryIntake>>
+  updateResults?: Array<{
+    data: Array<{ id: string; payment_id?: string | null }> | null
+    error: { message: string } | null
+  }>
+}
+
+function createRetrySupabaseMock(
+  intakeOverrides: Partial<RetryIntake> = {},
+  options: RetrySupabaseOptions = {},
+) {
+  const updateRecords: UpdateRecord[] = []
 
   const intake = {
     id: "intake-1",
@@ -175,38 +206,61 @@ function createRetrySupabaseMock(intakeOverrides: Partial<{
     ...intakeOverrides,
   }
 
+  const selectResults = [
+    intake,
+    ...(options.refetchedIntakes || []).map((overrides) => ({ ...intake, ...overrides })),
+  ]
+  let selectIndex = 0
+
   const selectChain = {
     eq: vi.fn(() => selectChain),
-    single: vi.fn(async () => ({ data: intake, error: null })),
+    single: vi.fn(async () => ({
+      data: selectResults[Math.min(selectIndex++, selectResults.length - 1)],
+      error: null,
+    })),
   }
 
-  const updateResult = { error: null }
-  const updateChain = {
-    eq: vi.fn((column: string, value: unknown) => {
-      updateRecord.filters.push({ column, method: "eq", value })
-      return updateChain
-    }),
-    in: vi.fn((column: string, value: unknown) => {
-      updateRecord.filters.push({ column, method: "in", value })
-      return updateChain
-    }),
-    // The attach update ends with .select("id") so zero-row matches (intake
-    // paid concurrently) are detectable; a matched row must come back here.
-    select: vi.fn(async () => ({ data: [{ id: intake.id }], error: null })),
-    then: (resolve: (value: typeof updateResult) => void) => Promise.resolve(updateResult).then(resolve),
+  const defaultUpdateResult = {
+    data: [{ id: intake.id, payment_id: intake.payment_id }],
+    error: null,
+  }
+  const updateResults = [...(options.updateResults || [])]
+
+  function createUpdateChain(updateRecord: UpdateRecord) {
+    const updateChain = {
+      eq: vi.fn((column: string, value: unknown) => {
+        updateRecord.filters.push({ column, method: "eq", value })
+        return updateChain
+      }),
+      in: vi.fn((column: string, value: unknown) => {
+        updateRecord.filters.push({ column, method: "in", value })
+        return updateChain
+      }),
+      is: vi.fn((column: string, value: unknown) => {
+        updateRecord.filters.push({ column, method: "is", value })
+        return updateChain
+      }),
+      select: vi.fn(async () => {
+        options.events?.push("update-select")
+        return updateResults.shift() || defaultUpdateResult
+      }),
+      then: (resolve: (value: { error: null }) => void) => Promise.resolve({ error: null }).then(resolve),
+    }
+    return updateChain
   }
 
   const supabase = {
     from: vi.fn(() => ({
       select: vi.fn(() => selectChain),
       update: vi.fn((payload: Record<string, unknown>) => {
-        updateRecord.payload = payload
-        return updateChain
+        const updateRecord: UpdateRecord = { filters: [], payload }
+        updateRecords.push(updateRecord)
+        return createUpdateChain(updateRecord)
       }),
     })),
   }
 
-  return { supabase, updateRecord }
+  return { supabase, updateRecords }
 }
 
 describe("retryPaymentForIntakeAction", () => {
@@ -226,15 +280,22 @@ describe("retryPaymentForIntakeAction", () => {
       url: "https://checkout.stripe.test/pay/cs_retry",
     })
     mocks.stripeSessionExpire.mockResolvedValue({ id: "cs_previous" })
+    mocks.stripeSessionRetrieve.mockResolvedValue({
+      id: "cs_previous",
+      payment_status: "unpaid",
+      status: "expired",
+    })
+    mocks.checkHighStakesUseCase.mockReturnValue({ isHighStakes: false })
     mocks.validateSafetyFieldsPresent.mockReturnValue({ missingFields: [], valid: true })
     mocks.checkSafetyForServer.mockReturnValue({ isAllowed: true })
   })
 
   it("resets failed checkout retries to the new pending Stripe session", async () => {
-    const { supabase, updateRecord } = createRetrySupabaseMock()
+    const { supabase, updateRecords } = createRetrySupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)
 
     const result = await retryPaymentForIntakeAction("intake-1")
+    const [updateRecord] = updateRecords
 
     expect(result).toEqual({
       checkoutUrl: "https://checkout.stripe.test/pay/cs_retry",
@@ -297,6 +358,248 @@ describe("retryPaymentForIntakeAction", () => {
       expect.objectContaining({ dose_changed: false }),
     )
     expect(mocks.stripeSessionCreate).toHaveBeenCalled()
+  })
+
+  it("blocks retry payment for a stored high-stakes medical-certificate request", async () => {
+    const events: string[] = []
+    const { supabase, updateRecords } = createRetrySupabaseMock(
+      { answers: [{ answers: { symptomDetails: "Migraine and need to defer my exam tomorrow" } }] },
+      { events },
+    )
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.stripeSessionExpire.mockImplementationOnce(async () => {
+      events.push("expire")
+      return { id: "cs_previous" }
+    })
+    mocks.checkHighStakesUseCase.mockReturnValueOnce({
+      isHighStakes: true,
+      matched: "defer",
+      reason: "Exam deferrals require an in-person assessment.",
+    })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+    const [updateRecord] = updateRecords
+
+    expect(result).toEqual({
+      error: expect.stringMatching(/no new payment session/i),
+      success: false,
+    })
+    expect(mocks.recordSafetyEvaluationForOperators).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: "retry_payment",
+        requestId: "intake-1",
+        result: expect.objectContaining({
+          outcome: "DECLINE",
+          triggeredRuleIds: ["high_stakes_use_case"],
+        }),
+      }),
+    )
+    expect(updateRecord.payload).toMatchObject({
+      checkout_error: null,
+      live_consult_reason: null,
+      requires_live_consult: false,
+      status: "cancelled",
+      triage_reasons: ["high_stakes_use_case"],
+      triage_result: "decline",
+    })
+    expect(updateRecord.filters).toEqual(expect.arrayContaining([
+      { column: "id", method: "eq", value: "intake-1" },
+      { column: "payment_id", method: "eq", value: "cs_previous" },
+      { column: "status", method: "in", value: ["pending_payment", "checkout_failed"] },
+      { column: "payment_status", method: "in", value: ["pending", "unpaid", "failed"] },
+    ]))
+    expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
+    expect(events).toEqual(["expire", "update-select"])
+    expect(mocks.revalidatePatient).toHaveBeenCalledWith({ intakeId: "intake-1" })
+    expect(mocks.revalidateStaff).toHaveBeenCalledWith({ intakeId: "intake-1" })
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("does not classify a category-less non-med-cert legacy row as a medical certificate", async () => {
+    const { supabase, updateRecords } = createRetrySupabaseMock({
+      answers: [{ answers: { notes: "Need to defer my exam" } }],
+      category: null,
+      service: null,
+      stripe_price_id: null,
+      subtype: null,
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.checkHighStakesUseCase.mockReturnValue({
+      isHighStakes: true,
+      reason: "Exam deferrals require an in-person assessment.",
+    })
+    mocks.getPriceIdForRequest.mockReturnValue(undefined)
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toEqual({
+      error: "Unable to determine pricing. Please contact support.",
+      success: false,
+    })
+    expect(mocks.checkHighStakesUseCase).not.toHaveBeenCalled()
+    expect(updateRecords).toHaveLength(0)
+    expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("does not cancel when the previous Checkout Session remains open after expiry fails", async () => {
+    const { supabase, updateRecords } = createRetrySupabaseMock({
+      answers: [{ answers: { symptomDetails: "Need to defer my exam" } }],
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.checkHighStakesUseCase.mockReturnValue({
+      isHighStakes: true,
+      reason: "Exam deferrals require an in-person assessment.",
+    })
+    mocks.stripeSessionExpire.mockRejectedValueOnce(new Error("Stripe unavailable"))
+    mocks.stripeSessionRetrieve.mockResolvedValueOnce({
+      id: "cs_previous",
+      payment_status: "unpaid",
+      status: "open",
+    })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toEqual({
+      error: expect.stringMatching(/no new payment session/i),
+      success: false,
+    })
+    expect(updateRecords).toHaveLength(0)
+    expect(mocks.stripeSessionRetrieve).toHaveBeenCalledWith("cs_previous")
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(mocks.logger.error).toHaveBeenCalledWith(
+      expect.stringMatching(/could not invalidate/i),
+      expect.objectContaining({ sessionId: "cs_previous" }),
+      expect.any(Error),
+    )
+  })
+
+  it("does not cancel a completed or processing Checkout Session", async () => {
+    const { supabase, updateRecords } = createRetrySupabaseMock({
+      answers: [{ answers: { symptomDetails: "Need to defer my exam" } }],
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.checkHighStakesUseCase.mockReturnValue({
+      isHighStakes: true,
+      reason: "Exam deferrals require an in-person assessment.",
+    })
+    mocks.stripeSessionExpire.mockRejectedValueOnce(new Error("Session already complete"))
+    mocks.stripeSessionRetrieve.mockResolvedValueOnce({
+      id: "cs_previous",
+      payment_status: "unpaid",
+      status: "complete",
+    })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toEqual({
+      error: expect.stringMatching(/refresh.*completed payment.*support/i),
+      success: false,
+    })
+    expect(updateRecords).toHaveLength(0)
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("expires a concurrently attached session before retrying the guarded cancellation", async () => {
+    const events: string[] = []
+    const { supabase, updateRecords } = createRetrySupabaseMock(
+      { answers: [{ answers: { symptomDetails: "Need to defer my exam" } }] },
+      {
+        events,
+        refetchedIntakes: [{ payment_id: "cs_newer" }],
+        updateResults: [
+          { data: [], error: null },
+          { data: [{ id: "intake-1", payment_id: "cs_newer" }], error: null },
+        ],
+      },
+    )
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.checkHighStakesUseCase.mockReturnValue({
+      isHighStakes: true,
+      reason: "Exam deferrals require an in-person assessment.",
+    })
+    mocks.stripeSessionExpire.mockImplementation(async (sessionId: string) => {
+      events.push(`expire:${sessionId}`)
+      return { id: sessionId }
+    })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toEqual({
+      error: expect.stringMatching(/no new payment session/i),
+      success: false,
+    })
+    expect(mocks.stripeSessionExpire.mock.calls.map(([sessionId]) => sessionId)).toEqual([
+      "cs_previous",
+      "cs_newer",
+    ])
+    expect(updateRecords).toHaveLength(2)
+    expect(updateRecords[1].filters).toContainEqual({
+      column: "payment_id",
+      method: "eq",
+      value: "cs_newer",
+    })
+    expect(events).toEqual([
+      "expire:cs_previous",
+      "update-select",
+      "expire:cs_newer",
+      "update-select",
+    ])
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("leaves an expired high-stakes intake retryable when the cancellation write fails", async () => {
+    const { supabase, updateRecords } = createRetrySupabaseMock(
+      { answers: [{ answers: { symptomDetails: "Need to defer my exam" } }] },
+      { updateResults: [{ data: null, error: { message: "database unavailable" } }] },
+    )
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.checkHighStakesUseCase.mockReturnValue({
+      isHighStakes: true,
+      reason: "Exam deferrals require an in-person assessment.",
+    })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toEqual({
+      error: expect.stringMatching(/no new payment session/i),
+      success: false,
+    })
+    expect(updateRecords).toHaveLength(1)
+    expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(mocks.logger.error).toHaveBeenCalledWith(
+      expect.stringMatching(/failed to cancel/i),
+      expect.objectContaining({ intakeId: "intake-1" }),
+      expect.objectContaining({ message: "database unavailable" }),
+    )
+  })
+
+  it("cancels a high-stakes retry with no stored session using a null payment-id guard", async () => {
+    const { supabase, updateRecords } = createRetrySupabaseMock({
+      answers: [{ answers: { symptomDetails: "Need to defer my exam" } }],
+      payment_id: null,
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.checkHighStakesUseCase.mockReturnValue({
+      isHighStakes: true,
+      reason: "Exam deferrals require an in-person assessment.",
+    })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toEqual({
+      error: expect.stringMatching(/no new payment session/i),
+      success: false,
+    })
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    expect(updateRecords).toHaveLength(1)
+    expect(updateRecords[0].filters).toContainEqual({
+      column: "payment_id",
+      method: "is",
+      value: null,
+    })
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
   it("hands retry-payment return state into the success screen copy", () => {
