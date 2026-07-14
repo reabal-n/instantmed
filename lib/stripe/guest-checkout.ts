@@ -34,6 +34,7 @@ import {
   invalidateCheckoutSessionForSafety,
 } from "./checkout/checkout-session-safety"
 import { runClinicalValidation } from "./checkout/clinical-validation"
+import { preflightPriorityPriceForRecovery } from "./checkout/priority-price-recovery"
 import { reportCheckoutSessionFailure } from "./checkout-error-alarm"
 import { buildGuestCheckoutCancelUrl } from "./checkout-recovery-link"
 import { getAmountCentsForRequest, getOptionalStripePriceEnv, getPriceIdForRequest, stripe } from "./client"
@@ -221,9 +222,17 @@ async function rebuildExpiredGuestSession(
   if (!priceId) return null
 
   const isPriority = intake.is_priority === true
-  const priorityPriceId = isPriority ? getOptionalStripePriceEnv("STRIPE_PRICE_PRIORITY_FEE") : null
+  const priorityPreflight = await preflightPriorityPriceForRecovery({
+    category: intake.category || "",
+    intakeId: intake.id,
+    isPriority,
+  })
+  if (!priorityPreflight.ok) return null
+
   const lineItems: Array<{ price: string; quantity: number }> = [{ price: priceId, quantity: 1 }]
-  if (isPriority && priorityPriceId) lineItems.push({ price: priorityPriceId, quantity: 1 })
+  if (priorityPreflight.priceId) {
+    lineItems.push({ price: priorityPreflight.priceId, quantity: 1 })
+  }
 
   const guestEmail = intake.guest_email || fallbackGuestEmail
   const replacementState = {
@@ -613,12 +622,6 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     })
     const isPriority = input.answers.is_priority === true || input.answers.isPriority === true
     const priorityPriceId = isPriority ? getOptionalStripePriceEnv("STRIPE_PRICE_PRIORITY_FEE") : null
-    if (isPriority && !priorityPriceId) {
-      return {
-        success: false,
-        error: "Priority review is temporarily unavailable. Please try again without it or contact support.",
-      }
-    }
 
     // 3. Create the intake with pending_payment status
     // Include category, subtype, idempotency_key, guest_email, and stripe_price_id
@@ -850,6 +853,26 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         failedPriceRole: "base",
       })
       return { success: false, error: "Unable to determine pricing. Please contact support." }
+    }
+
+    // The insert attempt above must resolve an idempotency collision first so
+    // persisted duplicate recovery can use the shared read-only preflight. For
+    // a genuinely new request, keep the clinical record operator-visible and
+    // alarm the missing Priority role before any Stripe Session is created.
+    if (isPriority && !priorityPriceId) {
+      const priorityConfigError = new Error(
+        "Missing STRIPE_PRICE_PRIORITY_FEE environment variable",
+      )
+      await markGuestCheckoutFailed(supabase, intake.id, priorityConfigError.message)
+      await reportCheckoutSessionFailure(priorityConfigError, {
+        intakeId: intake.id,
+        category: input.category,
+        failedPriceRole: "priority_fee",
+      })
+      return {
+        success: false,
+        error: "Priority review is temporarily unavailable. Please try again without it or contact support.",
+      }
     }
 
     // 6. Build success and cancel URLs

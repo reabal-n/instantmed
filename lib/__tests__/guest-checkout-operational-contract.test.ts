@@ -77,6 +77,57 @@ describe("guest checkout operational contract", () => {
     )
   })
 
+  it("preflights persisted Priority recovery before claim, invalidation, or Session creation", () => {
+    const rebuildSection = guestCheckoutSource.slice(
+      guestCheckoutSource.indexOf("async function rebuildExpiredGuestSession"),
+      guestCheckoutSource.indexOf("async function markGuestCheckoutFailed"),
+    )
+    const preflightIndex = rebuildSection.indexOf("preflightPriorityPriceForRecovery")
+
+    expect(preflightIndex).toBeGreaterThanOrEqual(0)
+    expect(preflightIndex).toBeLessThan(
+      rebuildSection.indexOf("claimCheckoutSessionReplacement"),
+    )
+    expect(preflightIndex).toBeLessThan(
+      rebuildSection.indexOf("invalidateCheckoutSessionForSafety"),
+    )
+    expect(preflightIndex).toBeLessThan(
+      rebuildSection.indexOf("stripe.checkout.sessions.create"),
+    )
+    expect(rebuildSection).toMatch(
+      /if \(!priorityPreflight\.ok\) return null[\s\S]*priorityPreflight\.priceId/,
+    )
+    expect(rebuildSection).not.toContain(
+      'isPriority ? getOptionalStripePriceEnv("STRIPE_PRICE_PRIORITY_FEE") : null',
+    )
+  })
+
+  it("does not let the initial Priority env guard bypass duplicate recovery", () => {
+    expect(
+      guestCheckoutSource.indexOf("if (isPriority && !priorityPriceId)"),
+    ).toBeGreaterThan(
+      guestCheckoutSource.indexOf("if (intakeError || !intake)"),
+    )
+  })
+
+  it("keeps a new Priority config failure recoverable instead of deleting its intake", () => {
+    const priorityGuardIndex = guestCheckoutSource.indexOf(
+      "if (isPriority && !priorityPriceId)",
+    )
+    const priorityFailureSection = guestCheckoutSource.slice(
+      priorityGuardIndex,
+      guestCheckoutSource.indexOf("// 6. Build success and cancel URLs"),
+    )
+
+    expect(priorityGuardIndex).toBeGreaterThan(
+      guestCheckoutSource.indexOf("// 5. Validate price ID"),
+    )
+    expect(priorityFailureSection).toContain("markGuestCheckoutFailed")
+    expect(priorityFailureSection).toContain("reportCheckoutSessionFailure")
+    expect(priorityFailureSection).toContain('failedPriceRole: "priority_fee"')
+    expect(priorityFailureSection).not.toContain('.from("intakes")\n        .delete()')
+  })
+
   it("binds both initial checkout sessions through the exact-CAS shared helper", () => {
     const guestInitialBind = guestCheckoutSource.slice(
       guestCheckoutSource.indexOf("// 8. Bind the current exact-CAS winner"),

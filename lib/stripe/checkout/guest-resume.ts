@@ -3,7 +3,7 @@ import { getIntakeAnswersForPaymentSafety } from "@/lib/data/intake-answers"
 import { createLogger } from "@/lib/observability/logger"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import { buildGuestCheckoutCancelUrl } from "@/lib/stripe/checkout-recovery-link"
-import { getOptionalStripePriceEnv, getPriceIdForRequest, stripe } from "@/lib/stripe/client"
+import { getPriceIdForRequest, stripe } from "@/lib/stripe/client"
 import { canRetryPaymentForIntake } from "@/lib/stripe/payment-integrity"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ServiceCategory } from "@/types/services"
@@ -20,6 +20,7 @@ import {
   getHighStakesCheckoutBlock,
   isMedicalCertificateIntake,
 } from "./high-stakes-validation"
+import { preflightPriorityPriceForRecovery } from "./priority-price-recovery"
 
 const logger = createLogger("checkout-resume")
 
@@ -127,13 +128,19 @@ async function rebuildGuestCheckoutSession(
     })
   if (!priceId) return null
 
-  const priorityPriceId = intake.is_priority
-    ? getOptionalStripePriceEnv("STRIPE_PRICE_PRIORITY_FEE")
-    : null
+  const priorityPreflight = await preflightPriorityPriceForRecovery({
+    category: intake.category || "",
+    intakeId: intake.id,
+    isPriority: intake.is_priority === true,
+  })
+  if (!priorityPreflight.ok) return null
+
   const lineItems: Array<{ price: string; quantity: number }> = [
     { price: priceId, quantity: 1 },
   ]
-  if (priorityPriceId) lineItems.push({ price: priorityPriceId, quantity: 1 })
+  if (priorityPreflight.priceId) {
+    lineItems.push({ price: priorityPreflight.priceId, quantity: 1 })
+  }
 
   const replacementState = {
     checkout_error: intake.checkout_error,

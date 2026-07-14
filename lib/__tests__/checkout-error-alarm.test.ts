@@ -55,6 +55,30 @@ describe("reportCheckoutSessionFailure", () => {
     expect((opts.tags as Record<string, string>).checkout_error).toBe("session_create_failed")
   })
 
+  it("escalates an invalid Priority Price object as a stable fatal configuration alarm", async () => {
+    const result = await reportCheckoutSessionFailure(
+      new Error("Invalid STRIPE_PRICE_PRIORITY_FEE configuration: inactive"),
+      {
+        intakeId: "i-priority",
+        category: "medical_certificate",
+        failedPriceRole: "priority_fee",
+      },
+    )
+
+    expect(result.isMisconfiguredPrice).toBe(true)
+    expect(captureException).toHaveBeenCalledTimes(1)
+    const [, opts] = captureException.mock.calls[0] as [unknown, Record<string, unknown>]
+    expect(opts.level).toBe("fatal")
+    expect((opts.tags as Record<string, string>).checkout_error).toBe(
+      "invalid_price_config",
+    )
+    expect((opts.tags as Record<string, string>).price_role).toBe("priority_fee")
+    expect(opts.fingerprint).toEqual([
+      "stripe-invalid-price-config",
+      "priority_fee",
+    ])
+  })
+
   it("never throws even if Sentry is unavailable", async () => {
     captureException.mockImplementationOnce(() => {
       throw new Error("sentry down")

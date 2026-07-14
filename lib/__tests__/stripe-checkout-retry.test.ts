@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   getAppUrl: vi.fn(),
   getAuthenticatedUserWithProfile: vi.fn(),
   getIntakeAnswersForPaymentSafety: vi.fn(),
+  getOptionalStripePriceEnv: vi.fn(),
   getPriceIdForRequest: vi.fn(),
   logger: {
     debug: vi.fn(),
@@ -26,6 +27,7 @@ const mocks = vi.hoisted(() => ({
   stripeSessionCreate: vi.fn(),
   stripeSessionExpire: vi.fn(),
   stripeSessionRetrieve: vi.fn(),
+  stripePriceRetrieve: vi.fn(),
   validateSafetyFieldsPresent: vi.fn(),
 }))
 
@@ -130,6 +132,7 @@ vi.mock("@/lib/validation/repeat-script-schema", () => ({
 
 vi.mock("@/lib/stripe/client", () => ({
   getAmountCentsForRequest: vi.fn(() => 1995),
+  getOptionalStripePriceEnv: mocks.getOptionalStripePriceEnv,
   getPriceIdForRequest: mocks.getPriceIdForRequest,
   normalizeStripePriceId: vi.fn((priceId: string | null | undefined) => priceId?.trim() || undefined),
   stripe: {
@@ -139,6 +142,9 @@ vi.mock("@/lib/stripe/client", () => ({
         expire: mocks.stripeSessionExpire,
         retrieve: mocks.stripeSessionRetrieve,
       },
+    },
+    prices: {
+      retrieve: mocks.stripePriceRetrieve,
     },
   },
 }))
@@ -179,6 +185,7 @@ type RetryIntake = {
   answers: Array<{ answers: Record<string, unknown> }>
   category: string | null
   checkout_error: string | null
+  is_priority: boolean | null
   payment_id: string | null
   payment_status: string | null
   service: { id: string; name: string; price_cents: number; slug: string; type: string } | null
@@ -208,6 +215,7 @@ function createRetrySupabaseMock(
     answers: [{ answers: { symptom: "test" } }],
     category: "medical_certificate",
     checkout_error: null,
+    is_priority: false,
     payment_id: "cs_previous",
     payment_status: "failed",
     service: { id: "svc-1", name: "Medical certificate", price_cents: 1995, slug: "med-cert-sick", type: "medical_certificate" },
@@ -294,7 +302,16 @@ describe("retryPaymentForIntakeAction", () => {
       user: { email: "patient@example.test", id: "user-1" },
     })
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValue({ symptom: "test" })
+    mocks.getOptionalStripePriceEnv.mockReturnValue("price_priority")
     mocks.getPriceIdForRequest.mockReturnValue("price_med_cert")
+    mocks.stripePriceRetrieve.mockResolvedValue({
+      active: true,
+      currency: "aud",
+      id: "price_priority",
+      recurring: null,
+      type: "one_time",
+      unit_amount: 995,
+    })
     mocks.stripeSessionCreate.mockResolvedValue({
       id: "cs_retry",
       metadata: { intake_id: "intake-1" },
@@ -351,6 +368,111 @@ describe("retryPaymentForIntakeAction", () => {
         }),
       }),
       { idempotencyKey: "retry_intake-1_cs_previous" },
+    )
+    expect(mocks.getOptionalStripePriceEnv).not.toHaveBeenCalled()
+    expect(mocks.stripePriceRetrieve).not.toHaveBeenCalled()
+  })
+
+  it("fails a Priority retry with exact patient copy before referral, replacement, expiry, or create when config is missing", async () => {
+    const { supabase, updateRecords } = createRetrySupabaseMock({ is_priority: true })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getOptionalStripePriceEnv.mockReturnValue(null)
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toEqual({
+      error:
+        "Priority review is temporarily unavailable. Your request was not changed and no new checkout was opened. Please try again later or contact support.",
+      success: false,
+    })
+    expect(mocks.createReferralCouponIfEligible).not.toHaveBeenCalled()
+    expect(mocks.stripePriceRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(updateRecords).toHaveLength(0)
+  })
+
+  it("fails an unusable Priority retry before referral or any replacement mutation", async () => {
+    const { supabase, updateRecords } = createRetrySupabaseMock({ is_priority: true })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.stripePriceRetrieve.mockResolvedValueOnce({
+      active: false,
+      currency: "aud",
+      id: "price_priority",
+      recurring: null,
+      type: "one_time",
+      unit_amount: 995,
+    })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toEqual({
+      error:
+        "Priority review is temporarily unavailable. Your request was not changed and no new checkout was opened. Please try again later or contact support.",
+      success: false,
+    })
+    expect(mocks.createReferralCouponIfEligible).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(updateRecords).toHaveLength(0)
+  })
+
+  it("preflights a valid Priority Price before replacement and creates exactly base plus Priority line items", async () => {
+    const events: string[] = []
+    const { supabase } = createRetrySupabaseMock(
+      {
+        is_priority: true,
+        payment_status: "pending",
+        status: "pending_payment",
+      },
+      { events },
+    )
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.stripePriceRetrieve.mockImplementationOnce(async () => {
+      events.push("priority-preflight")
+      return {
+        active: true,
+        currency: "aud",
+        id: "price_priority",
+        recurring: null,
+        type: "one_time",
+        unit_amount: 995,
+      }
+    })
+    mocks.createReferralCouponIfEligible.mockImplementationOnce(async () => {
+      events.push("referral")
+      return null
+    })
+    mocks.stripeSessionExpire.mockImplementationOnce(async () => {
+      events.push("expire")
+      return { id: "cs_previous" }
+    })
+    mocks.stripeSessionCreate.mockImplementationOnce(async () => {
+      events.push("create")
+      return {
+        id: "cs_retry",
+        metadata: { intake_id: "intake-1" },
+        url: "https://checkout.stripe.test/pay/cs_retry",
+      }
+    })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toMatchObject({ success: true })
+    expect(events.indexOf("priority-preflight")).toBeLessThan(events.indexOf("referral"))
+    expect(events.indexOf("priority-preflight")).toBeLessThan(events.indexOf("update-select"))
+    expect(events.indexOf("priority-preflight")).toBeLessThan(events.indexOf("expire"))
+    expect(events.indexOf("priority-preflight")).toBeLessThan(events.indexOf("create"))
+    expect(mocks.stripeSessionCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [
+          { price: "price_med_cert", quantity: 1 },
+          { price: "price_priority", quantity: 1 },
+        ],
+      }),
+      expect.any(Object),
     )
   })
 

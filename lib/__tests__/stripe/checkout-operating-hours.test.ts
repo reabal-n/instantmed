@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
@@ -456,6 +457,69 @@ describe("checkout operating hours", () => {
           status: "checkout_failed",
         }),
       })
+    } finally {
+      if (previousPriorityPrice === undefined) {
+        delete process.env.STRIPE_PRICE_PRIORITY_FEE
+      } else {
+        process.env.STRIPE_PRICE_PRIORITY_FEE = previousPriorityPrice
+      }
+    }
+  })
+
+  it("persists a recoverable guest intake when the Priority price env is missing", async () => {
+    const { deletes, inserts, supabase, updates } = createGuestCheckoutSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    const previousPriorityPrice = process.env.STRIPE_PRICE_PRIORITY_FEE
+    delete process.env.STRIPE_PRICE_PRIORITY_FEE
+
+    try {
+      const result = await createGuestCheckoutAction({
+        answers: {
+          terms_agreed: true,
+          accuracy_confirmed: true,
+          is_priority: true,
+        },
+        category: "medical_certificate",
+        guestDateOfBirth: "1985-04-01",
+        guestEmail: "patient@example.test",
+        guestName: "Test Patient",
+        subtype: "work",
+        type: "med-cert",
+      })
+
+      expect(result).toEqual({
+        success: false,
+        error: "Priority review is temporarily unavailable. Please try again without it or contact support.",
+      })
+      expect(inserts).toContainEqual({
+        table: "intakes",
+        payload: expect.objectContaining({ is_priority: true }),
+      })
+      expect(inserts).toContainEqual({
+        table: "intake_answers",
+        payload: expect.objectContaining({ intake_id: "intake-1" }),
+      })
+      expect(deletes).not.toContain("intakes")
+      expect(updates).toContainEqual({
+        table: "intakes",
+        payload: expect.objectContaining({
+          checkout_error: "Missing STRIPE_PRICE_PRIORITY_FEE environment variable",
+          status: "checkout_failed",
+        }),
+      })
+      expect(Sentry.captureException).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Missing STRIPE_PRICE_PRIORITY_FEE environment variable",
+        }),
+        expect.objectContaining({
+          level: "fatal",
+          tags: expect.objectContaining({
+            checkout_error: "missing_price_env",
+            price_role: "priority_fee",
+          }),
+        }),
+      )
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
     } finally {
       if (previousPriorityPrice === undefined) {
         delete process.env.STRIPE_PRICE_PRIORITY_FEE

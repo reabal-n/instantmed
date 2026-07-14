@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
   stripeSessionCreate: vi.fn(),
   stripeSessionExpire: vi.fn(),
   stripeSessionRetrieve: vi.fn(),
+  stripePriceRetrieve: vi.fn(),
 }))
 
 vi.mock("@/lib/config/env", () => ({
@@ -49,6 +50,9 @@ vi.mock("@/lib/stripe/client", () => ({
         expire: mocks.stripeSessionExpire,
         retrieve: mocks.stripeSessionRetrieve,
       },
+    },
+    prices: {
+      retrieve: mocks.stripePriceRetrieve,
     },
   },
 }))
@@ -186,6 +190,14 @@ describe("signed guest checkout resume payment safety", () => {
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValue({ symptomDetails: "A cold since yesterday" })
     mocks.getOptionalStripePriceEnv.mockReturnValue(null)
     mocks.getPriceIdForRequest.mockReturnValue("price_med_cert")
+    mocks.stripePriceRetrieve.mockResolvedValue({
+      active: true,
+      currency: "aud",
+      id: "price_priority",
+      recurring: null,
+      type: "one_time",
+      unit_amount: 995,
+    })
     mocks.stripeSessionCreate.mockResolvedValue({
       id: "cs_resumed",
       metadata: { intake_id: "intake-1" },
@@ -414,6 +426,86 @@ describe("signed guest checkout resume payment safety", () => {
       },
     ]))
     expect(mocks.stripeSessionExpire).not.toHaveBeenCalledWith("cs_resumed")
+    expect(mocks.stripePriceRetrieve).not.toHaveBeenCalled()
+  })
+
+  it("leaves a signed Priority resume unresolved with no replacement write or Session when preflight fails", async () => {
+    const { supabase, updateRecords } = createResumeSupabaseMock({ is_priority: true })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getOptionalStripePriceEnv.mockReturnValue(null)
+    mocks.stripeSessionRetrieve.mockResolvedValueOnce({
+      id: "cs_previous",
+      metadata: { intake_id: "intake-1" },
+      payment_status: "unpaid",
+      status: "expired",
+      url: null,
+    })
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe("/checkout/cancelled?reason=payment_state_unresolved")
+    expect(updateRecords).toHaveLength(0)
+    expect(mocks.stripePriceRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("preflights signed Priority resume before replacement and creates exactly base plus Priority line items", async () => {
+    const events: string[] = []
+    const { supabase } = createResumeSupabaseMock({ is_priority: true }, { events })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getOptionalStripePriceEnv.mockReturnValue("price_priority")
+    mocks.stripePriceRetrieve.mockImplementationOnce(async () => {
+      events.push("priority-preflight")
+      return {
+        active: true,
+        currency: "aud",
+        id: "price_priority",
+        recurring: null,
+        type: "one_time",
+        unit_amount: 995,
+      }
+    })
+    mocks.stripeSessionRetrieve
+      .mockResolvedValueOnce({
+        id: "cs_previous",
+        metadata: { intake_id: "intake-1" },
+        payment_status: "unpaid",
+        status: "expired",
+        url: null,
+      })
+      .mockResolvedValueOnce({
+        id: "cs_resumed",
+        metadata: { intake_id: "intake-1" },
+        payment_status: "unpaid",
+        status: "open",
+        url: "https://checkout.stripe.test/pay/cs_resumed",
+      })
+    mocks.stripeSessionCreate.mockImplementationOnce(async () => {
+      events.push("create")
+      return {
+        id: "cs_resumed",
+        metadata: { intake_id: "intake-1" },
+        url: "https://checkout.stripe.test/pay/cs_resumed",
+      }
+    })
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe("https://checkout.stripe.test/pay/cs_resumed")
+    expect(mocks.stripePriceRetrieve).toHaveBeenCalledWith("price_priority")
+    expect(events[0]).toBe("priority-preflight")
+    expect(events.indexOf("priority-preflight")).toBeLessThan(events.indexOf("update-select"))
+    expect(events.indexOf("priority-preflight")).toBeLessThan(events.indexOf("create"))
+    expect(mocks.stripeSessionCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [
+          { price: "price_med_cert", quantity: 1 },
+          { price: "price_priority", quantity: 1 },
+        ],
+      }),
+      expect.any(Object),
+    )
   })
 
   it.each([
