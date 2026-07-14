@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation"
 import { requireRole } from "@/lib/auth/helpers"
 import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
+import { getHealthProfile } from "@/lib/data/health-profile"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { doctorCanAccessPatient } from "@/lib/doctor/patient-access"
 import {
@@ -504,7 +505,7 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
     }
   }
 
-  const [intakesResult, certsResult, emailResult, notesResult, prescriptionsResult, firstTouchResult, lastTouchResult] = await Promise.all([
+  const [intakesResult, emailResult, notesResult, prescriptionsResult, firstTouchResult, lastTouchResult, healthProfile] = await Promise.all([
     supabase
       .from("intakes")
       .select(`
@@ -530,11 +531,6 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
       .in("patient_id", patientIds)
       .order("created_at", { ascending: false })
       .limit(50),
-
-    supabase
-      .from("issued_certificates")
-      .select("id", { count: "exact", head: true })
-      .in("patient_id", patientIds),
 
     supabase
       .from("email_outbox")
@@ -605,10 +601,11 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
+
+    getHealthProfile(canonicalPatient.id),
   ])
 
   const { data: intakes, error: intakesError } = intakesResult
-  const { count: certificatesCount } = certsResult
   const { data: emailLogs, error: emailError } = emailResult
   const { data: patientNotes, error: notesError } = notesResult
   const { data: prescriptions, error: prescriptionsError } = prescriptionsResult
@@ -702,17 +699,13 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
     duplicateCandidates: duplicateCandidatesForClient,
     intakes: transformedIntakes,
     medications: medicationHistory,
+    healthProfile,
     parchmentActivity,
     emailLogs: emailLogs || [],
     patientNotes: patientNotes || [],
     firstTouchAttribution,
     lastTouchAttribution,
-    stats: {
-      totalRequests: intakes?.length || 0,
-      approvedRequests: intakes?.filter(i => i.status === "approved" || i.status === "completed").length || 0,
-      certificatesIssued: certificatesCount || 0,
-      linkedProfiles: patientIds.length,
-    }
+    linkedProfileCount: patientIds.length,
   }
 }
 
@@ -739,7 +732,8 @@ export default async function PatientDetailPage({ params }: PageProps) {
       duplicateCandidates={data.duplicateCandidates}
       intakes={data.intakes}
       medications={data.medications}
-      stats={data.stats}
+      healthProfile={data.healthProfile}
+      linkedProfileCount={data.linkedProfileCount}
       emailLogs={data.emailLogs}
       patientNotes={data.patientNotes}
       parchmentActivity={data.parchmentActivity}
