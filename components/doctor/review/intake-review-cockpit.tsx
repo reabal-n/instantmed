@@ -7,7 +7,6 @@ import { toast } from "sonner"
 
 import { requestMoreInfoAction } from "@/app/actions/request-more-info"
 import { ClinicalSummary } from "@/components/doctor/clinical-summary"
-import { PatientDecisionStrip } from "@/components/doctor/patient-decision-strip"
 import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { RenewalLink } from "@/components/doctor/renewal-link"
 import { BatchReviewAttestation } from "@/components/doctor/review/batch-review-attestation"
@@ -29,9 +28,6 @@ import { cn } from "@/lib/utils"
 
 interface IntakeReviewCockpitProps {
   className?: string
-  showDecisionStrip?: boolean
-  compactDecisionStrip?: boolean
-  revealIdentityByDefault?: boolean
   onBatchReviewResolved?: (intakeId: string) => void
 }
 
@@ -42,10 +38,11 @@ const MED_CERT_SYMPTOM_DETAIL_REQUEST =
  * IntakeReviewCockpit, single-column edition.
  *
  * 2026-05-26: collapses the Request/Notes/History tabs into one
- * scrollable column. The patient decision strip, blockers, one request
- * packet, optional patient messages, and certificate delivery status share
- * the surface. The unified patient timeline stays inside the bottom
- * disclosure; Cmd+N opens and focuses the packet's draft note.
+ * scrollable column. Patient safety context is owned by the fixed parent
+ * header; blockers, one request packet, optional patient messages, and
+ * certificate delivery status share this surface. The unified patient
+ * timeline stays inside the bottom disclosure; Cmd+N opens and focuses the
+ * packet's draft note.
  */
 
 function CertificateDeliveryCard() {
@@ -126,9 +123,6 @@ function CertificateDeliveryCard() {
 
 export function IntakeReviewCockpit({
   className,
-  showDecisionStrip = true,
-  compactDecisionStrip = false,
-  revealIdentityByDefault = false,
   onBatchReviewResolved,
 }: IntakeReviewCockpitProps) {
   const review = useIntakeReview()
@@ -290,19 +284,6 @@ export function IntakeReviewCockpit({
               draftNoteOpen={draftNoteOpen}
               onDraftNoteOpenChange={setDraftNoteOpen}
             />
-            {showDecisionStrip ? (
-              <PatientDecisionStrip
-                intake={intake}
-                answers={answers}
-                previousIntakes={data.previousIntakes ?? []}
-                service={service}
-                doctorNotes={review.doctorNotes}
-                compact
-                showPatientName={!compactDecisionStrip}
-                summaryOnly={compactDecisionStrip}
-                revealIdentityByDefault={revealIdentityByDefault}
-              />
-            ) : null}
             {messageCount > 0 ? (
               <PatientMessageThread
                 messages={data.patientMessages ?? []}

@@ -241,30 +241,33 @@ function CockpitIntakeDetailClient({
     <>
       <IntakeReviewProvider value={contextValue}>
         <div className="flex flex-col gap-3 lg:h-[calc(100vh-4rem)] lg:min-h-0 lg:overflow-hidden">
-          <div className="shrink-0 rounded-xl border border-border/50 bg-white px-3 py-2.5 shadow-sm shadow-primary/[0.04] dark:bg-card dark:shadow-none">
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-              <div className="min-w-0">
-                <Button variant="ghost" size="sm" asChild className="-ml-2 mb-1 text-muted-foreground">
-                  <Link href={backHref}>{backLabel}</Link>
-                </Button>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="truncate text-2xl font-semibold tracking-tight text-foreground">
-                    {reviewData.intake.patient.full_name}
-                  </h1>
-                  <Badge className={getStatusColor(reviewData.intake.status)}>
-                    {formatIntakeStatus(reviewData.intake.status)}
-                  </Badge>
-                  {reviewData.intake.script_sent === true ? (
-                    <Badge className="border-success/20 bg-success-light text-success">
-                      Script sent
-                    </Badge>
-                  ) : null}
-                </div>
-                <p className="mt-1 truncate text-sm text-muted-foreground">
-                  {(service?.short_name || formatServiceType(service?.type || ""))} · {reviewData.intake.reference_number || reviewData.intake.id}
-                </p>
-              </div>
-              <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
+            <Button variant="ghost" size="sm" asChild className="-ml-2 text-muted-foreground">
+              <Link href={backHref}>{backLabel}</Link>
+            </Button>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <Badge className={getStatusColor(reviewData.intake.status)}>
+                {formatIntakeStatus(reviewData.intake.status)}
+              </Badge>
+              {reviewData.intake.script_sent === true ? (
+                <Badge className="border-success/20 bg-success-light text-success">
+                  Script sent
+                </Badge>
+              ) : null}
+              <span className="text-xs text-muted-foreground">
+                {(service?.short_name || formatServiceType(service?.type || ""))} · {reviewData.intake.reference_number || reviewData.intake.id}
+              </span>
+            </div>
+          </div>
+
+          <PatientDecisionStrip
+            intake={reviewData.intake}
+            answers={answers}
+            previousIntakes={reviewData.previousIntakes ?? []}
+            previousIntakeCount={reviewData.previousIntakeCount}
+            service={service}
+            actions={
+              <>
                 <Button
                   type="button"
                   variant="outline"
@@ -288,12 +291,12 @@ function CockpitIntakeDetailClient({
                     })
                   }}
                 >
-                  Patient profile
+                  View profile
                 </Button>
                 {supplementaryActions}
-              </div>
-            </div>
-          </div>
+              </>
+            }
+          />
 
           <div className="min-h-0 flex-1 overflow-y-auto pr-1">
             <IntakeFlagsPanel
@@ -502,9 +505,8 @@ function LegacyIntakeDetailClient({
         intake={intake}
         answers={intakeAnswers ?? {}}
         previousIntakes={previousIntakes}
+        previousIntakeCount={previousIntakes.length}
         service={service}
-        doctorNotes={actions.doctorNotes}
-        compact={compact}
       />
 
       {compact ? (

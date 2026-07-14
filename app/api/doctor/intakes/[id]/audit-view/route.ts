@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 
 import {
   logClinicianViewedIntakeAnswers,
-  logClinicianViewedMedicalHistory,
   logClinicianViewedSafetyFlags,
   type RequestType,
 } from "@/lib/audit/compliance-audit"
@@ -41,22 +40,9 @@ export async function POST(
   const body = await request.json().catch(() => ({})) as {
     serviceType?: unknown
     hasSafetyFlags?: unknown
-    identifierReveal?: unknown
   }
   const serviceType = typeof body.serviceType === "string" ? body.serviceType : undefined
   const requestType = getRequestType(serviceType)
-  const identifierReveal = typeof body.identifierReveal === "string" &&
-    ["medicare", "phone", "identity"].includes(body.identifierReveal)
-    ? body.identifierReveal
-    : null
-
-  if (identifierReveal) {
-    await logClinicianViewedMedicalHistory(intakeId, requestType, auth.profile.id, {
-      identifierReveal,
-    })
-
-    return NextResponse.json({ success: true })
-  }
 
   await logClinicianViewedIntakeAnswers(intakeId, requestType, auth.profile.id)
   if (body.hasSafetyFlags === true) {

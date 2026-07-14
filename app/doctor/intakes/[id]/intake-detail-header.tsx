@@ -16,7 +16,7 @@ import {
 import Link from "next/link"
 import { type ReactNode } from "react"
 
-import { AttributionChip, CertHealthChip, type CertificatePreviewData, CertificatePreviewDialog, PdfViewerDialog } from "@/components/doctor"
+import { CertHealthChip, type CertificatePreviewData, CertificatePreviewDialog, PdfViewerDialog } from "@/components/doctor"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -288,33 +288,6 @@ export function IntakeDetailHeader({
           {supplementaryActions}
         </div>
       </div>
-
-      {/* Acquisition source: calm-chrome staff-only signal so the operator
-          can see at a glance where this request came from (Google Ads,
-          organic, AI referral, direct). Driven by intake attribution
-          columns and the shared `classifyAttributionSource` classifier. */}
-      <AttributionChip
-        variant="inline"
-        className="px-1"
-        attribution={{
-          adgroupid: intake.adgroupid,
-          campaignid: intake.campaignid,
-          creative: intake.creative,
-          device: intake.device,
-          gbraid: intake.gbraid,
-          gclid: intake.gclid,
-          keyword: intake.keyword,
-          landing_page: intake.landing_page,
-          matchtype: intake.matchtype,
-          network: intake.network,
-          referrer: intake.referrer,
-          utm_campaign: intake.utm_campaign,
-          utm_medium: intake.utm_medium,
-          utm_source: intake.utm_source,
-          utm_term: intake.utm_term,
-          wbraid: intake.wbraid,
-        }}
-      />
 
       {/* Action Message */}
       {actionMessage && (

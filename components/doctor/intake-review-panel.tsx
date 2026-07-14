@@ -8,6 +8,7 @@ import { CertificatePreviewDialog } from "@/components/doctor/certificate-previe
 import { useAuditTrail } from "@/components/doctor/hooks/use-audit-trail"
 import { type IntakeLockState, useIntakeLock } from "@/components/doctor/hooks/use-intake-lock"
 import { IntakeFlagsPanel } from "@/components/doctor/intake-flags-panel"
+import { PatientDecisionStrip } from "@/components/doctor/patient-decision-strip"
 import { PatientProfilePanel } from "@/components/doctor/patient-profile-panel"
 import { DeclineIntakeDialog } from "@/components/doctor/review/decline-intake-dialog"
 import { IntakeReviewCockpit } from "@/components/doctor/review/intake-review-cockpit"
@@ -137,36 +138,6 @@ function formatPreviewAgeDob(dateOfBirth?: string | null): string {
 function formatPreviewLocation(patient?: PreviewPatient): string {
   if (!patient) return "Address loading"
   return [patient.suburb, patient.state, patient.postcode].filter(Boolean).join(", ") || "Address loading"
-}
-
-function getPatientFirstName(fullName: string | null | undefined): string | null {
-  const name = fullName?.trim().split(/\s+/)[0]
-  return name || null
-}
-
-function formatCaseAnchorLine({
-  patient,
-  patientAge,
-  previousIntakeCount,
-}: {
-  patient: PreviewPatient
-  patientAge: number | null
-  previousIntakeCount: number
-}): string {
-  const firstName = getPatientFirstName(patient.full_name)
-  const location = [patient.suburb, patient.state].filter(Boolean).join(", ")
-  const identityParts = [
-    firstName,
-    typeof patientAge === "number" && Number.isFinite(patientAge) ? String(patientAge) : null,
-    location || null,
-  ].filter(Boolean)
-  const visitLabel = previousIntakeCount > 0
-    ? `${previousIntakeCount} prior request${previousIntakeCount === 1 ? "" : "s"}`
-    : "First visit"
-
-  return identityParts.length > 0
-    ? `${identityParts.join(", ")}. ${visitLabel}.`
-    : `${visitLabel}.`
 }
 
 function formatClaimAge(lockedAt: string | null, now = Date.now()): string {
@@ -592,13 +563,6 @@ export function IntakeReviewPanel({
   const claimStateLabel = formatClaimStateLabel(lockState, claimAgeNow)
   const visibleClaimStateLabel = lockState.status === "blocked" ? claimStateLabel : null
   const previousIntakeCount = data.previousIntakeCount ?? data.previousIntakes?.length ?? 0
-  const caseAnchorLine = inline
-    ? formatCaseAnchorLine({
-        patient: intake.patient,
-        patientAge: data.patientAge,
-        previousIntakeCount,
-      })
-    : null
   const queueEnteredAt = getQueueEnteredAt(intake)
 
   return (
@@ -618,118 +582,53 @@ export function IntakeReviewPanel({
             )}
             data-testid="intake-review-panel"
           >
-            {/* Top bar: patient anchor, grouped status, and quiet patient actions. */}
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0 space-y-1">
-                {inline ? (
-                  <>
-                    <h2 className="truncate text-[28px] font-semibold leading-tight tracking-tight text-foreground">
-                      {intake.patient.full_name}
-                    </h2>
-                    {caseAnchorLine ? (
-                      <p className="truncate text-xs font-medium text-muted-foreground" data-case-anchor-line>
-                        {caseAnchorLine}
-                      </p>
-                    ) : null}
-                  </>
+            {/* Queue state stays separate from patient safety context. */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className={getStatusColor(intake.status)}>
+                  {formatIntakeStatus(intake.status)}
+                </Badge>
+                <SlaChip
+                  paidAt={queueEnteredAt}
+                  mode="waiting"
+                  targetMinutes={QUEUE_WAIT_TARGET_MINUTES}
+                  showTargetState
+                />
+                {visibleClaimStateLabel ? (
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/35 px-2 py-1 text-[11px] font-semibold text-muted-foreground",
+                      lockState.status === "blocked" && "border-warning-border bg-warning-light text-warning",
+                    )}
+                    data-review-claim-state={lockState.status}
+                  >
+                    <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>{visibleClaimStateLabel}</span>
+                  </span>
                 ) : null}
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge className={getStatusColor(intake.status)}>
-                    {formatIntakeStatus(intake.status)}
-                  </Badge>
-                  {/* SLA chip follows the case from the queue into review so
-                      wait pressure remains visible at the decision moment. */}
-                  <SlaChip
-                    paidAt={queueEnteredAt}
-                    mode="waiting"
-                    targetMinutes={QUEUE_WAIT_TARGET_MINUTES}
-                    showTargetState
-                  />
-                  {visibleClaimStateLabel ? (
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/35 px-2 py-1 text-[11px] font-semibold text-muted-foreground",
-                        lockState.status === "blocked" && "border-warning-border bg-warning-light text-warning",
-                      )}
-                      data-review-claim-state={lockState.status}
-                    >
-                      <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
-                      <span>{visibleClaimStateLabel}</span>
-                    </span>
-                  ) : null}
+              </div>
+              {!inline && (onPrevCase || onNextCase) ? (
+                <div className="flex items-center gap-1" aria-label="Case navigation">
+                  <Button
+                    variant="outline"
+                    size="icon-sm"
+                    aria-label="Previous case"
+                    disabled={!onPrevCase || caseIndex === 0}
+                    onClick={onPrevCase}
+                  >
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon-sm"
+                    aria-label="Next case"
+                    disabled={!onNextCase || (caseIndex != null && totalCases != null && caseIndex >= totalCases - 1)}
+                    onClick={onNextCase}
+                  >
+                    <ArrowDown className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
-              </div>
-              <div className="flex flex-wrap items-center justify-end gap-1.5" aria-label="Patient actions">
-                {/* Inline mode: j/k in the queue is the canonical case navigator,
-                    so the in-panel ↑/↓ buttons are hidden. */}
-                {!inline && (onPrevCase || onNextCase) && (
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="outline"
-                      size="icon-sm"
-                      aria-label="Previous case"
-                      disabled={!onPrevCase || caseIndex === 0}
-                      onClick={onPrevCase}
-                    >
-                      <ArrowUp className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon-sm"
-                      aria-label="Next case"
-                      disabled={!onNextCase || (caseIndex != null && totalCases != null && caseIndex >= totalCases - 1)}
-                      onClick={onNextCase}
-                    >
-                      <ArrowDown className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    "border-border/65 bg-background text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground",
-                    inline && "h-7 px-1.5 text-xs font-medium",
-                  )}
-                  onClick={() => {
-                    openPanel({
-                      id: `${profileMode}-patient-profile-${intake.patient.id}`,
-                      type: "drawer",
-                      component: (
-                        <PatientProfilePanel
-                          patient={intake.patient}
-                          answers={answers}
-                          serviceContext={{
-                            category: intake.category,
-                            serviceType: service?.type,
-                            subtype: intake.subtype,
-                          }}
-                          admin={profileMode === "admin"}
-                          sourceLabel={intake.reference_number || "Current case"}
-                        />
-                      ),
-                    })
-                  }}
-                >
-                  <User className="h-3.5 w-3.5" />
-                  {inline ? "View profile" : "Patient profile"}
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    "border-border/65 bg-background text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground",
-                    inline && "h-7 px-1.5 text-xs font-medium",
-                  )}
-                >
-                  <Link href={fullCaseHref} onClick={inline ? undefined : () => closePanel()}>
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    Open full record
-                  </Link>
-                </Button>
-              </div>
+              ) : null}
             </div>
 
             {/* Lock warning */}
@@ -739,15 +638,63 @@ export function IntakeReviewPanel({
               </div>
             )}
 
+            <PatientDecisionStrip
+              intake={intake}
+              answers={answers}
+              previousIntakes={data.previousIntakes ?? []}
+              previousIntakeCount={previousIntakeCount}
+              service={service}
+              actions={
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="border-border/65 bg-background text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground"
+                    onClick={() => {
+                      openPanel({
+                        id: `${profileMode}-patient-profile-${intake.patient.id}`,
+                        type: "drawer",
+                        component: (
+                          <PatientProfilePanel
+                            patient={intake.patient}
+                            answers={answers}
+                            serviceContext={{
+                              category: intake.category,
+                              serviceType: service?.type,
+                              subtype: intake.subtype,
+                            }}
+                            admin={profileMode === "admin"}
+                            sourceLabel={intake.reference_number || "Current case"}
+                          />
+                        ),
+                      })
+                    }}
+                  >
+                    <User className="h-3.5 w-3.5" />
+                    View profile
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="border-border/65 bg-background text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground"
+                  >
+                    <Link href={fullCaseHref} onClick={inline ? undefined : () => closePanel()}>
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      Open full record
+                    </Link>
+                  </Button>
+                </>
+              }
+            />
+
             <IntakeFlagsPanel
               flags={parseIntakeFlags((data.intake as { risk_flags?: unknown }).risk_flags)}
               hideRequestFieldFlags
             />
 
             <IntakeReviewCockpit
-              showDecisionStrip
-              compactDecisionStrip
-              revealIdentityByDefault={inline}
               className={inline ? "min-h-0 flex-1" : undefined}
               onBatchReviewResolved={onBatchReviewResolved}
             />

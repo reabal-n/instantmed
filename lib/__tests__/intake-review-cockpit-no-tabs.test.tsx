@@ -69,6 +69,12 @@ describe("IntakeReviewCockpit source contract", () => {
     expect(requestInfoSource).toMatch(/hidePatientStory/)
   })
 
+  it("leaves patient safety context to the fixed panel header", () => {
+    expect(cockpitSource).not.toMatch(/PatientDecisionStrip/)
+    expect(cockpitSource).not.toMatch(/showDecisionStrip/)
+    expect(cockpitSource).not.toMatch(/revealIdentityByDefault/)
+  })
+
   it("opens Parchment from the prescribing shortcut instead of approving first", () => {
     expect(cockpitSource).toContain("review.handleOpenParchmentPrescribe()")
     expect(cockpitSource).not.toContain("review.handleApproveAndOpenParchment")
