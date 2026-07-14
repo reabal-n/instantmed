@@ -77,11 +77,12 @@ export function AddressAutocomplete({
   const listboxIdRef = useRef(`address-suggestions-${generateSessionToken()}`)
 
   const debouncedValue = useDebounce(value, 300)
-  const shouldSearch = debouncedValue && debouncedValue.length >= 3
+  const shouldSearch = !isManualEntry && debouncedValue.length >= 3
 
   // Search addresses when input changes
   const doSearch = useCallback(async (searchValue: string) => {
     if (!searchValue || searchValue.length < 3) {
+      lastSearchRef.current = ""
       setSuggestions([])
       setIsOpen(false)
       setIsSearching(false)
@@ -371,6 +372,7 @@ export function AddressAutocomplete({
       {!isOpen &&
         !isSearching &&
         !isLoadingDetails &&
+        !isManualEntry &&
         hasSearched &&
         suggestions.length === 0 &&
         value.length >= 3 &&
@@ -395,7 +397,7 @@ export function AddressAutocomplete({
         )}
 
       {/* Loading state during search */}
-      {(isSearching || isLoadingDetails) && value.length >= 3 && (
+      {!isManualEntry && (isSearching || isLoadingDetails) && value.length >= 3 && (
         <div className="absolute z-50 mt-1 w-full rounded-xl border border-border/50 bg-white px-4 py-3 shadow-lg shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />

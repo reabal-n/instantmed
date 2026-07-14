@@ -87,6 +87,20 @@ async function placeCaretAtEnd(locator: Locator): Promise<void> {
   })
 }
 
+async function openDraftNote(panel: Locator): Promise<Locator> {
+  const trigger = panel.getByRole("button", { name: /^Draft note · Review required$/ })
+  await expect(trigger).toBeVisible({ timeout: 15_000 })
+
+  if ((await trigger.getAttribute("aria-expanded")) !== "true") {
+    await trigger.click()
+  }
+
+  await expect(trigger).toHaveAttribute("aria-expanded", "true")
+  const note = panel.locator('[contenteditable="true"][aria-label="Draft clinical note"]')
+  await expect(note).toBeVisible({ timeout: 15_000 })
+  return note
+}
+
 test.describe("Doctor keyboard shortcut safety", () => {
   const testIntakeIds: string[] = []
 
@@ -134,8 +148,7 @@ test.describe("Doctor keyboard shortcut safety", () => {
 
     const panel = page.getByTestId("intake-review-panel")
     const fullRecordLink = panel.getByRole("link", { name: "Open full record" })
-    const firstNote = panel.locator('[contenteditable="true"][aria-label="Draft clinical note"]')
-    await expect(firstNote).toBeVisible({ timeout: 15_000 })
+    const firstNote = await openDraftNote(panel)
     await expect(fullRecordLink).toHaveAttribute("href", new RegExp(`${firstIntakeId}$`))
 
     await placeCaretAtEnd(firstNote)
@@ -172,8 +185,7 @@ test.describe("Doctor keyboard shortcut safety", () => {
 
     const panel = page.getByTestId("intake-review-panel")
     const fullRecordLink = panel.getByRole("link", { name: "Open full record" })
-    const firstNote = panel.locator('[contenteditable="true"][aria-label="Draft clinical note"]')
-    await expect(firstNote).toBeVisible({ timeout: 15_000 })
+    const firstNote = await openDraftNote(panel)
     await expect(fullRecordLink).toHaveAttribute("href", new RegExp(`${firstIntakeId}$`))
     await placeCaretAtEnd(firstNote)
 
@@ -194,8 +206,7 @@ test.describe("Doctor keyboard shortcut safety", () => {
     await panel.getByRole("button", { name: "Next case" }).click()
     await expect(fullRecordLink).toHaveAttribute("href", new RegExp(`${secondIntakeId}$`), { timeout: 15_000 })
 
-    const secondNote = panel.locator('[contenteditable="true"][aria-label="Draft clinical note"]')
-    await expect(secondNote).toBeVisible({ timeout: 15_000 })
+    const secondNote = await openDraftNote(panel)
     await placeCaretAtEnd(secondNote)
     reviewDataRequests.length = 0
 
