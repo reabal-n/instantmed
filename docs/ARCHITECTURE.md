@@ -820,7 +820,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/db.ts` | Supabase generated types + custom interfaces |
 | `types/certificate-template.ts` | PDF template field definitions |
 | `hooks/` | 5 custom hooks (use-connection-status, use-debounce, use-doctor-shortcuts, use-keyboard-navigation, use-landing-analytics) |
-| `e2e/` | 72 TypeScript files, including 64 specs and `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
+| `e2e/` | 71 TypeScript files, including 64 specs and `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
 | `supabase/migrations/` | 95 SQL migration files (1 squashed baseline + 94 incremental). Most recent: `20260713085920_lock_down_security_definer_rpc_acls.sql`. |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |

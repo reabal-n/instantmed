@@ -185,7 +185,6 @@ See [docs/plans/archive/README.md](../plans/archive/README.md) for the retention
 
 | File | Purpose |
 |------|---------|
-| [scripts/load-tests/README.md](../../scripts/load-tests/README.md) | k6 load test operational doc |
 
 `scripts/blog-photos/README.md` was deleted on 2026-05-23 (one-sentence placeholder; the script that uses the dir documents the path inline).
 
