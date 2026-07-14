@@ -51,10 +51,22 @@ async function clickContinue(page: Page) {
   let lastError: unknown
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
-    const button = page.locator('button[data-intake-primary-action="true"]').last()
+    const mobileButton = page
+      .locator('[data-intake-mobile-action-bar="true"]')
+      .getByRole("button")
+      .last()
+    const useMobileButton = await mobileButton.isVisible().catch(() => false)
+    const button = useMobileButton
+      ? mobileButton
+      : page.locator('button[data-intake-primary-action="true"]').last()
+
     try {
       await expect(button).toBeEnabled({ timeout: 5000 })
-      await expect(button).toHaveAttribute("data-intake-primary-ready", "true", { timeout: 5000 })
+      await expect(button).toHaveAttribute(
+        useMobileButton ? "data-intake-mobile-action-ready" : "data-intake-primary-ready",
+        "true",
+        { timeout: 5000 },
+      )
       await button.click()
       return
     } catch (error) {
@@ -98,6 +110,16 @@ async function ensureRadioChecked(page: Page, groupName: RegExp, radioName: RegE
   }
 }
 
+async function selectRadio(page: Page, groupName: RegExp, radioName: RegExp) {
+  const radio = page
+    .getByRole("radiogroup", { name: groupName })
+    .getByRole("radio", { name: radioName })
+
+  await radio.click()
+  await expect(radio).toHaveAttribute("aria-checked", "true", { timeout: 2000 })
+  await waitForIntakeStateToSettle(page)
+}
+
 async function ensureChipPressed(page: Page, groupName: RegExp, chipName: RegExp) {
   const chip = page
     .getByRole("group", { name: groupName })
@@ -134,11 +156,14 @@ async function completeConsultMedicalHistory(page: Page) {
   await clickContinue(page)
 }
 
-async function completeConsultDetailsWithTestMedicare(page: Page) {
+async function completeConsultDetailsWithTestMedicare(
+  page: Page,
+  sex: "Female" | "Male",
+) {
   const medicare = generateTestMedicare()
   const address = generateTestAddress()
 
-  await expect(page.getByText(/Your details/i)).toBeVisible({ timeout: 10000 })
+  await expect(page.getByRole("heading", { name: "Your details", level: 2 })).toBeVisible({ timeout: 10000 })
 
   const noThanks = page.getByRole("button", { name: /No thanks/i })
   if (await noThanks.isVisible({ timeout: 1000 }).catch(() => false)) {
@@ -151,7 +176,7 @@ async function completeConsultDetailsWithTestMedicare(page: Page) {
   await page.locator('input[placeholder="DD/MM/YYYY"]').fill("01/01/1990")
   await page.locator('input[placeholder="0412 345 678"]').fill(generateTestPhone())
   await page.locator("#sex-select-trigger").click()
-  await page.getByRole("option", { name: /^Female$/i }).click()
+  await page.getByRole("option", { name: new RegExp(`^${sex}$`, "i") }).click()
   await page.locator('input[placeholder="10 digits"]').fill(medicare.number)
   await page.locator('input[placeholder="10 digits"]').blur()
   await page.locator("#medicare-irn").fill(medicare.irn)
@@ -164,7 +189,34 @@ async function completeConsultDetailsWithTestMedicare(page: Page) {
   await clickContinue(page)
 }
 
-async function expectEnabledWomensHealthCheckout(page: Page) {
+async function expectConsultPayState(page: Page, ready: boolean) {
+  const canonicalPayButton = page.locator('button[data-intake-primary-action="true"]').last()
+  await expect(canonicalPayButton).toHaveAttribute(
+    "data-intake-primary-ready",
+    ready ? "true" : "false",
+  )
+  await expect(canonicalPayButton).toHaveAttribute(
+    "aria-disabled",
+    ready ? "false" : "true",
+  )
+
+  const mobileActionBar = page.locator('[data-intake-mobile-action-bar="true"]')
+  if (await mobileActionBar.isVisible().catch(() => false)) {
+    const mobilePayButton = mobileActionBar.getByRole("button", { name: /^Pay \$49\.95$/ })
+    await expect(mobilePayButton).toBeVisible()
+    await expect(mobilePayButton).toHaveAttribute(
+      "data-intake-mobile-action-ready",
+      ready ? "true" : "false",
+    )
+    // Even while not ready, the review action stays natively clickable so it
+    // can focus the missing-consent guidance. Readiness is the source of truth.
+    await expect(mobilePayButton).toBeEnabled()
+  } else {
+    await expect(canonicalPayButton).toBeVisible()
+  }
+}
+
+async function expectEnabledConsultCheckout(page: Page) {
   await expect(page.getByText(/One last check/i)).toBeVisible({ timeout: 10000 })
   await expect(page.getByText("Total today")).toBeVisible()
   await expect(page.getByText("$49.95").first()).toBeVisible()
@@ -175,10 +227,118 @@ async function expectEnabledWomensHealthCheckout(page: Page) {
   await expect(safetyCheckbox).toBeVisible({ timeout: 5000 })
   await safetyCheckbox.click()
 
-  const payButton = page.getByRole("button", { name: /^Pay \$49\.95$/ }).last()
-  await expect(payButton).toBeVisible({ timeout: 10000 })
-  await expect(payButton).toBeEnabled({ timeout: 5000 })
-  await expect(payButton).toHaveAttribute("aria-disabled", "false")
+  await expectConsultPayState(page, true)
+}
+
+async function selectEdSafePath(page: Page) {
+  await expect(page.getByText(/What matters most right now/i)).toBeVisible({ timeout: 10000 })
+
+  const ageConfirmation = page.getByRole("switch", {
+    name: /I confirm I am 18 years or older/i,
+  })
+  await ageConfirmation.click()
+  await expect(ageConfirmation).toBeChecked()
+
+  await ensureRadioChecked(page, /Treatment goal/i, /Improve erections/i)
+  await ensureRadioChecked(page, /How long this has been a concern/i, /< 3 months/i)
+  await clickContinue(page)
+
+  await expect(page.getByText(/A few questions about your experience/i)).toBeVisible({ timeout: 10000 })
+  for (let question = 1; question <= 5; question += 1) {
+    await ensureRadioChecked(page, new RegExp(`^iief${question}$`, "i"), /^3 out of 5$/i)
+  }
+  await clickContinue(page)
+
+  await expect(page.getByText(/A quick safety check/i)).toBeVisible({ timeout: 10000 })
+  for (const groupName of [
+    /Do you take nitrates/i,
+    /Do you take alpha-blockers/i,
+    /Heart attack, stroke, or unstable angina/i,
+    /Severe heart disease, very low blood pressure, or HOCM/i,
+    /Taking any medications/i,
+    /Any allergies/i,
+    /Any other medical conditions/i,
+    /Have you tried ED treatment before/i,
+  ]) {
+    await ensureRadioChecked(page, groupName, /^No$/i)
+  }
+  await clickContinue(page)
+
+  await expect(page.getByText(/How should treatment fit your life/i)).toBeVisible({ timeout: 10000 })
+  await ensureRadioChecked(page, /Treatment preference/i, /Let the doctor decide/i)
+  await clickContinue(page)
+}
+
+async function selectHairLossSafePath(page: Page) {
+  await expect(page.getByText(/What matters most right now/i)).toBeVisible({ timeout: 10000 })
+  await ensureRadioChecked(page, /Hair loss goal/i, /Both \(stop \+ regrow\)/i)
+  await ensureRadioChecked(page, /When did you first notice changes/i, /Under 6 months/i)
+  await clickContinue(page)
+
+  await expect(page.getByText(/Which pattern looks closest/i)).toBeVisible({ timeout: 10000 })
+  await ensureRadioChecked(page, /Hair loss pattern/i, /Thinning \/ recession/i)
+  await ensureRadioChecked(page, /family history of hair loss/i, /No or not sure/i)
+  await clickContinue(page)
+
+  await expect(page.getByText(/A quick safety check/i)).toBeVisible({ timeout: 10000 })
+  await ensureRadioChecked(page, /Partner pregnancy or conception status/i, /^N\/A$/i)
+  await ensureRadioChecked(page, /Low blood pressure or dizziness on standing/i, /^No$/i)
+  await ensureRadioChecked(page, /heart conditions or heart medication/i, /^No$/i)
+  await ensureChipPressed(page, /Scalp conditions/i, /^None$/i)
+  await ensureRadioChecked(page, /Taking any medications/i, /^No$/i)
+  await ensureRadioChecked(page, /Any allergies/i, /^No$/i)
+  await ensureRadioChecked(page, /Any other medical conditions/i, /^No$/i)
+  await clickContinue(page)
+
+  await expect(page.getByText(/How should treatment fit your routine/i)).toBeVisible({ timeout: 10000 })
+  await ensureRadioChecked(page, /Treatment preference/i, /Let the doctor decide/i)
+  await clickContinue(page)
+}
+
+async function selectNewPillSafePath(page: Page) {
+  await expect(page.getByText(/What do you need today/i)).toBeVisible({ timeout: 10000 })
+  await ensureRadioChecked(page, /Women's health option/i, /Start or switch pill/i)
+  await clickContinue(page)
+
+  await expect(page.getByText(/A few safety checks/i)).toBeVisible({ timeout: 10000 })
+  await ensureRadioChecked(page, /What would you like/i, /^Start$/i)
+  await ensureRadioChecked(page, /currently using contraception/i, /^None$/i)
+  await ensureRadioChecked(page, /pregnant or could you be pregnant/i, /^No$/i)
+  // These three controls currently render an unanswered empty string as an
+  // aria-selected "No". Click each explicitly so the stored safety answer is
+  // real rather than relying on that pre-existing presentation defect.
+  await selectRadio(page, /migraines with aura/i, /^No$/i)
+  await selectRadio(page, /blood clot/i, /^No$/i)
+  await selectRadio(page, /Do you smoke/i, /^No$/i)
+  await clickContinue(page)
+
+  await completeConsultMedicalHistory(page)
+}
+
+async function expectReviewAttestationEditContract(page: Page) {
+  const safetyCheckbox = page.locator("#safety-consent")
+
+  const editDetails = page.getByRole("button", { name: /^Edit Your Details$/i })
+  await expect(editDetails).toHaveCount(1)
+  await expect(editDetails).toBeVisible()
+  await editDetails.click()
+  await expect(page.getByRole("heading", { name: "Your details", level: 2 })).toBeVisible({ timeout: 10000 })
+  await clickContinue(page)
+
+  await expect(page.getByText(/One last check/i)).toBeVisible({ timeout: 10000 })
+  await expect(safetyCheckbox).toBeChecked()
+  await expectConsultPayState(page, true)
+
+  await expect(editDetails).toHaveCount(1)
+  await expect(editDetails).toBeVisible()
+  await editDetails.click()
+  await expect(page.getByRole("heading", { name: "Your details", level: 2 })).toBeVisible({ timeout: 10000 })
+  await page.locator('input[placeholder="Smith"]').fill("Updated")
+  await clickContinue(page)
+
+  await expect(page.getByText(/One last check/i)).toBeVisible({ timeout: 10000 })
+  await expect(safetyCheckbox).not.toBeChecked()
+  await expectConsultPayState(page, false)
 }
 
 test.describe("Consult Sub-Services", () => {
@@ -243,8 +403,42 @@ test.describe("Consult Sub-Services", () => {
     await selectUtiCleanSafetyPath(page)
     await clickContinue(page)
     await completeConsultMedicalHistory(page)
-    await completeConsultDetailsWithTestMedicare(page)
-    await expectEnabledWomensHealthCheckout(page)
+    await completeConsultDetailsWithTestMedicare(page, "Female")
+    await expectEnabledConsultCheckout(page)
+    await expectReviewAttestationEditContract(page)
+  })
+
+  test("ED safe guest case reaches enabled checkout with test Medicare", async ({ page }) => {
+    await page.goto("/request?service=consult&subtype=ed")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+    await page.waitForURL(/subtype=ed/, { timeout: 15000 })
+
+    await selectEdSafePath(page)
+    await completeConsultDetailsWithTestMedicare(page, "Male")
+    await expectEnabledConsultCheckout(page)
+  })
+
+  test("hair-loss safe guest case reaches enabled checkout with test Medicare", async ({ page }) => {
+    await page.goto("/request?service=consult&subtype=hair_loss")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+    await page.waitForURL(/subtype=hair_loss/, { timeout: 15000 })
+
+    await selectHairLossSafePath(page)
+    await completeConsultDetailsWithTestMedicare(page, "Male")
+    await expectEnabledConsultCheckout(page)
+  })
+
+  test("women's health new-pill safe guest case reaches enabled checkout with test Medicare", async ({ page }) => {
+    await page.goto("/request?service=consult&subtype=womens_health")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+    await page.waitForURL(/subtype=womens_health/, { timeout: 15000 })
+
+    await selectNewPillSafePath(page)
+    await completeConsultDetailsWithTestMedicare(page, "Female")
+    await expectEnabledConsultCheckout(page)
   })
 
   test("hub rows route to current active consult subtypes", async ({ page }) => {

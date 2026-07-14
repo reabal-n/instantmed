@@ -32,6 +32,23 @@ async function dismissCookieBanner(page: Page): Promise<void> {
   }
 }
 
+async function clickContinue(page: Page): Promise<void> {
+  const mobileAction = page
+    .locator('[data-intake-mobile-action-bar="true"]')
+    .getByRole("button")
+    .last()
+  if (await mobileAction.isVisible().catch(() => false)) {
+    await expect(mobileAction).toBeEnabled()
+    await expect(mobileAction).toHaveAttribute("data-intake-mobile-action-ready", "true")
+    await mobileAction.click()
+    return
+  }
+
+  const canonicalAction = page.locator('button[data-intake-primary-action="true"]').last()
+  await expect(canonicalAction).toHaveAttribute("data-intake-primary-ready", "true")
+  await canonicalAction.click()
+}
+
 test.describe("persisted intake terminal blocks", () => {
   test("restores the ED nitrate block after resume and full reload", async ({ page }) => {
     await seedScopedDraft(page, "instantmed-draft-consult", {
@@ -92,7 +109,7 @@ test.describe("persisted intake terminal blocks", () => {
     await page.getByRole("main").getByRole("button", { name: "Go back" }).click()
     await expect(page.getByRole("heading", { name: "What do you need today?" })).toBeVisible()
 
-    await page.locator('button[data-intake-primary-action="true"]').last().click()
+    await clickContinue(page)
     await expect(page.getByText(/kidney infection/i)).toBeVisible({ timeout: 10_000 })
 
     await page.getByRole("button", { name: "I need to correct these answers" }).click()

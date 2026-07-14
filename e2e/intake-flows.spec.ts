@@ -246,10 +246,22 @@ async function completeReviewStep(page: Page) {
  * because it fires a server action → Stripe redirect.
  */
 async function verifyCheckoutStep(page: Page) {
-  const combinedPayButton = page.getByRole("button", { name: /^Pay \$/ }).last()
-  if (await combinedPayButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await expect(combinedPayButton).toBeEnabled({ timeout: 5000 })
-    await expect(combinedPayButton).toHaveAttribute("aria-disabled", "false")
+  const canonicalPayButton = page.locator(
+    'button[data-intake-primary-action="true"][data-intake-primary-label^="Pay $"]',
+  ).last()
+  if ((await canonicalPayButton.count()) > 0) {
+    await expect(canonicalPayButton).toHaveAttribute("data-intake-primary-ready", "true")
+    await expect(canonicalPayButton).toHaveAttribute("aria-disabled", "false")
+
+    const mobileActionBar = page.locator('[data-intake-mobile-action-bar="true"]')
+    if (await mobileActionBar.isVisible().catch(() => false)) {
+      const mobilePayButton = mobileActionBar.getByRole("button", { name: /^Pay \$/ })
+      await expect(mobilePayButton).toBeVisible()
+      await expect(mobilePayButton).toBeEnabled({ timeout: 5000 })
+      await expect(mobilePayButton).toHaveAttribute("data-intake-mobile-action-ready", "true")
+    } else {
+      await expect(canonicalPayButton).toBeVisible()
+    }
     return
   }
 
@@ -318,8 +330,8 @@ test.describe("Intake: Medical Certificate - full flow", () => {
     await clickContinue(page)
 
     // ── Step 2: Symptoms ──
-    await waitForStep(page, /What symptoms do you have/i)
-    await clickChip(page, /Cold\/Flu/i)
+    await waitForStep(page, /What is stopping you today/i)
+    await clickChip(page, /Cold or flu/i)
     await clickChip(page, /Headache/i)
     // Symptom duration
     await clickChip(page, /1-2 days/i)
