@@ -588,7 +588,7 @@ import { PageBreadcrumbs, Snippet, UserCard } from "@/components/uix"
 
 **Component decision tree:** See CLAUDE.md for quick-reference selection guide (shadcn vs UIX vs solid-depth components).
 
-**File organization:** `components/ui/` (67 primitives), `components/shared/` (39 shared), `components/uix/` (UIX wrappers), `components/operator/` (staff cockpit shell/page/split-pane/local action palettes), plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
+**File organization:** core primitives in `components/ui/`, shared cross-surface components in `components/shared/`, UIX wrappers in `components/uix/`, staff cockpit shell/page/split-pane/action palettes in `components/operator/`, plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
 
 ### Operator Components
 
@@ -727,7 +727,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 **Quick reference:**
 - Unit tests: Vitest, Node environment, `lib/__tests__/`, 80/70/80/80 coverage thresholds (scoped to `lib/clinical/` and `lib/security/` — `lib/state-machine/` was removed from the include list in 2026-04-08 since the directory no longer exists)
 - E2E tests: Playwright, `e2e/`, auth bypass via `PLAYWRIGHT=1` + `__e2e_auth_user_id` cookie. **Full suite runs in CI** as of commit `ae1c80822` (previously only 4 of 47 specs ran). Requires `STRIPE_WEBHOOK_SECRET` (test-mode) in GitHub repo secrets or webhook tests silently skip.
-- Current local unit test count: **2,453 tests** across 258 test files as of 2026-05-19. Earlier 1,521-test and 987-test references are stale.
+- The most recent full local unit-run snapshot lives in `TESTING.md`. Run `corepack pnpm test --run` for current proof; test totals are verification output, not architecture.
 - Commands: `pnpm test` · `pnpm test:coverage` · `pnpm e2e:chromium`
 
 ---
@@ -761,27 +761,27 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/compare/[slug]/` | SEO: comparisons | Service comparison pages |
 | `app/offline/` | Offline fallback | PWA offline page — shown by service worker when network unavailable |
 
-### `components/` — 511 files
+### `components/` — 521 files
 
 | Directory | Count | Purpose |
 |-----------|-------|---------|
 | `ui/` | 69 | shadcn/Radix primitives (Button, Input, Dialog, etc.) |
 | `uix/` | 12 | Thin shared wrappers and re-exports (UserCard, PageBreadcrumbs, DatePickerField, Pagination, Snippet, etc.) |
-| `shared/` | 40 | Header, Footer, InlineAuthStep, CheckoutButton, LazyOverlays |
+| `shared/` | 38 | Header, Footer, InlineAuthStep, CheckoutButton, LazyOverlays |
 | `operator/` | 17 | OperatorShell, bounded staff pages, split panes, local action palettes |
 | `request/` | 51 | Intake flow: `request-flow.tsx` (orchestrator), `steps/` (per-step components), `store.ts` (Zustand) |
 | `marketing/` | 111 | Landing pages, ServiceFunnelPage, testimonials, exit intent |
-| `blog/` | 12 | Guide article template, TOC, visuals, related reading, share controls |
-| `doctor/` | 43 | IntakeReviewPanel, RepeatPrescriptionChecklist, clinical views |
-| `admin/` | 9 | Admin-specific panels and views |
-| `patient/` | 28 | ReferralCard, CrossSellCard, dashboard components |
+| `blog/` | 13 | Guide article template, TOC, visuals, related reading, share controls |
+| `doctor/` | 46 | IntakeReviewPanel, RepeatPrescriptionChecklist, clinical views |
+| `admin/` | 10 | Admin-specific panels and views |
+| `patient/` | 31 | ReferralCard, CrossSellCard, dashboard components |
 | `effects/` | 2 | Confetti, ShakeAnimation |
 | `providers/` | 7 | PostHogProvider, ThemeProvider, MotionProvider |
 | `heroes/` | 5 | Morning Canvas hero variants (Split, Centered, Stats, FullBleed) |
 | `ui/morning/` | 7 | Morning Canvas primitives (MeshGradientCanvas, WordReveal, PerspectiveTiltCard) |
 | `ui/skeleton.tsx` | — | SkeletonCard, SkeletonForm, SkeletonList, SkeletonDashboard, Spinner |
 
-### `lib/` — 872 files
+### `lib/` — 1,047 files
 
 | Directory | Purpose | Key files |
 |-----------|---------|-----------|
@@ -821,8 +821,8 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/db.ts` | Supabase generated types + custom interfaces |
 | `types/certificate-template.ts` | PDF template field definitions |
 | `hooks/` | 5 custom hooks (use-connection-status, use-debounce, use-doctor-shortcuts, use-keyboard-navigation, use-landing-analytics) |
-| `e2e/` | 74 TypeScript specs/helpers, including `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
-| `supabase/migrations/` | 92 SQL migration files (1 squashed baseline + 91 incremental). Most recent: `20260710174000_idempotent_certificate_resends.sql`; the three 2026-07-10 closure/correction/resend migrations were applied to production and verified on 2026-07-10. |
+| `e2e/` | 75 TypeScript specs/helpers, including `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
+| `supabase/migrations/` | 95 SQL migration files (1 squashed baseline + 94 incremental). Most recent: `20260713085920_lock_down_security_definer_rpc_acls.sql`; it locks down `SECURITY DEFINER` function execution and adds a service-role-only ACL verifier. See `SECURITY.md` for the policy and use the migration tracker/live catalog check for deployment proof. |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
 | `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |

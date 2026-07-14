@@ -1,5 +1,5 @@
 import { existsSync,readdirSync, readFileSync } from "node:fs"
-import { join, relative } from "node:path"
+import { basename, join, relative } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
@@ -44,6 +44,7 @@ function findRouteInventoryFiles(dir: string): string[] {
 const agents = readProjectFile("AGENTS.md")
 const claude = readProjectFile("CLAUDE.md")
 const architecture = readProjectFile("docs/ARCHITECTURE.md")
+const wikiArchitecture = readProjectFile("wiki/architecture.md")
 const aiProvider = readProjectFile("lib/ai/provider.ts")
 const aiOnboarding = readProjectFile("docs/AI_ONBOARDING.md")
 const design = readProjectFile("DESIGN.md")
@@ -206,9 +207,78 @@ describe("project docs drift contract", () => {
     const appFiles = findFiles(appRoot)
     const routeFiles = findRouteInventoryFiles(appRoot)
     const apiRoutes = findRouteFiles(join(root, "app/api"))
+    const cronRoutes = findRouteFiles(join(root, "app/api/cron"))
+    const componentFiles = findFiles(join(root, "components"))
+    const libFiles = findFiles(join(root, "lib"))
+    const e2eFiles = findFiles(join(root, "e2e")).filter((file) => file.endsWith(".ts"))
+    const e2eSpecFiles = e2eFiles.filter((file) => file.endsWith(".spec.ts"))
+    const guideFiles = findFiles(join(root, "content/blog")).filter((file) => file.endsWith(".mdx"))
+    const unitTestFiles = [...libFiles, ...findFiles(join(root, "scripts"))].filter(
+      (file) => file.endsWith(".test.ts") || file.endsWith(".test.tsx"),
+    )
+    const migrationFiles = findFiles(join(root, "supabase/migrations"))
+      .filter((file) => file.endsWith(".sql"))
+      .sort()
+    const latestMigration = basename(migrationFiles.at(-1) ?? "")
 
     expect(architecture).toContain(`### \`app/\` — ${appFiles.length} files, ${routeFiles.length} route files`)
     expect(architecture).toContain(`| \`app/api/\` | API routes (${apiRoutes.length} route files) |`)
+    expect(architecture).toContain(`| \`app/api/cron/\` | Scheduled jobs (${cronRoutes.length}) |`)
+    expect(architecture).toContain(`### \`components/\` — ${componentFiles.length} files`)
+    expect(architecture).toContain(
+      `### \`lib/\` — ${libFiles.length.toLocaleString("en-AU")} files`,
+    )
+    expect(architecture).toContain(`| \`e2e/\` | ${e2eFiles.length} TypeScript specs/helpers`)
+    expect(architecture).toContain(
+      `| \`supabase/migrations/\` | ${migrationFiles.length} SQL migration files (1 squashed baseline + ${migrationFiles.length - 1} incremental). Most recent: \`${latestMigration}\``,
+    )
+
+    expect(wikiArchitecture).toContain(`| \`app/\` | ${appFiles.length} files |`)
+    expect(wikiArchitecture).toContain(`| Route-like files under \`app/\` | ${routeFiles.length} |`)
+    expect(wikiArchitecture).toContain(`| API route files under \`app/api/\` | ${apiRoutes.length} |`)
+    expect(wikiArchitecture).toContain(
+      `| Cron route files under \`app/api/cron/\` | ${cronRoutes.length} |`,
+    )
+    expect(wikiArchitecture).toContain(`| \`components/\` | ${componentFiles.length} files |`)
+    expect(wikiArchitecture).toContain(`| \`lib/\` | ${libFiles.length.toLocaleString("en-AU")} files |`)
+    expect(wikiArchitecture).toContain(
+      `| E2E TypeScript files under \`e2e/\` | ${e2eFiles.length} |`,
+    )
+    expect(wikiArchitecture).toContain(
+      `| Health guide MDX files under \`content/blog/\` | ${guideFiles.length} |`,
+    )
+    expect(wikiArchitecture).toContain(
+      `| SQL migrations under \`supabase/migrations/\` | ${migrationFiles.length} |`,
+    )
+    expect(testing).toContain(`across ${unitTestFiles.length} test files`)
+    expect(testing).toContain(`| E2E tests | Playwright | \`e2e/**/*.spec.ts\` | ${e2eSpecFiles.length} specs`)
+
+    for (const directory of [
+      "ui",
+      "uix",
+      "shared",
+      "operator",
+      "request",
+      "marketing",
+      "blog",
+      "doctor",
+      "admin",
+      "patient",
+      "effects",
+      "providers",
+      "heroes",
+      "ui/morning",
+    ]) {
+      const directoryFiles = findFiles(join(root, "components", directory))
+      expect(architecture).toContain(`| \`${directory}/\` | ${directoryFiles.length} |`)
+    }
+
+    for (const source of [agents, claude]) {
+      expect(source).toContain(
+        `Current count on disk: **${migrationFiles.length} migration files** (1 baseline + ${migrationFiles.length - 1} incremental).`,
+      )
+      expect(source).toContain(`Most recent: \`${latestMigration}\``)
+    }
     expect(architecture).toContain("Filesystem route-count drift is guarded by")
   })
 
@@ -303,7 +373,7 @@ describe("project docs drift contract", () => {
     expect(roadmap).toContain("Last refreshed:")
     expect(roadmap).not.toContain("Last 90 days shipped")
     expect(roadmap).toContain("Complete 2026-07-12")
-    expect(roadmap).toContain("Count-only bridge active")
+    expect(roadmap).toContain("Manual support handling restored 2026-07-14")
 
     expect(clinical).not.toContain("No automated clinical decisions are made")
     expect(clinical).toContain("Prescribing decisions are always clinician-made")

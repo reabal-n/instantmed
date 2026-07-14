@@ -17,6 +17,8 @@ describe("support inbox alert ownership contract", () => {
     const env = read("lib/config/env.ts")
     const architecture = read("docs/ARCHITECTURE.md")
     const operations = read("docs/OPERATIONS.md")
+    const roadmap = read("docs/ROADMAP.md")
+    const fileDirectory = read("wiki/file-directory.md")
 
     expect(vercel.crons).not.toContainEqual({
       path: "/api/cron/support-inbox-alert",
@@ -37,5 +39,11 @@ describe("support inbox alert ownership contract", () => {
     expect(operations).toContain("Paid request alerts remain independent")
     expect(architecture).not.toContain("support-inbox-alert/` (Gmail label aggregate only)")
     expect(architecture).toContain("manual aggregate-only support count diagnostics")
+    expect(roadmap).not.toContain("support Inbox unread counts through the active aggregate-only Telegram bridge")
+    expect(roadmap).not.toContain("route aggregate support counts to Telegram")
+    expect(roadmap).not.toContain("the hourly Vercel cron reads only Gmail's aggregate")
+    expect(roadmap).toContain("support conversations stay in Gmail and are handled manually")
+    expect(fileDirectory).not.toContain("app/api/cron/support-inbox-alert/route.ts")
+    expect(fileDirectory).toContain("app/api/internal/support-inbox-alert/route.ts")
   })
 })
