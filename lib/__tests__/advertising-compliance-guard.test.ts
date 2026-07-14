@@ -130,7 +130,6 @@ const PUBLIC_CREDENTIAL_CLAIM_SURFACES = [
   "app/for/employers/page.tsx",
   "app/for/universities/page.tsx",
   "components/marketing/sections",
-  "components/shared/regulator-logo-marquee.tsx",
   "components/seo/schemas/organization.tsx",
   "lib/marketing/trust-badges.ts",
 ]
@@ -178,7 +177,6 @@ const PUBLIC_DOCTOR_MODEL_SURFACES = [
   "app/blog/page.tsx",
   "app/our-doctors",
   "app/trust",
-  "components/marketing/credential-card.tsx",
   "components/marketing/how-it-works.tsx",
   "components/marketing/med-cert-landing.tsx",
   "lib/constants/index.ts",

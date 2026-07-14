@@ -1760,8 +1760,8 @@ body {
   animation: marquee-scroll 40s linear infinite;
 }
 
-/* animate-marquee-* utility classes (used by RegulatorLogoMarquee,
-   ComplianceMarquee, EmployerLogoMarquee, ScrollingLogoMarquee).
+/* animate-marquee-* utility classes (used by ComplianceMarquee,
+   EmployerLogoMarquee, ScrollingLogoMarquee).
    Doubled the durations on 2026-05-26 per Tier 1 review (paid-funnel
    kkq2): the previous 25s/15s cadences made the cards visibly overlap
    on devices with 120Hz displays and felt like a frantic ticker.

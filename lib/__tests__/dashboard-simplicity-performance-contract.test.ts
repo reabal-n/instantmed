@@ -737,7 +737,6 @@ describe("dashboard simplicity and runtime performance contracts", () => {
       "components/sections/feature-grid.tsx",
       "components/sections/icon-checklist.tsx",
       "components/sections/image-text-split.tsx",
-      "components/sections/logo-badge-strip.tsx",
       "components/sections/process-steps.tsx",
       "components/sections/section-header.tsx",
       "components/sections/timeline.tsx",
