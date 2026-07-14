@@ -8,7 +8,6 @@ export { ClinicalNoteDiffView, DraftContent,formatDraftType, getStatusBadge, Val
 export { DraftReviewPanel } from "./draft-review-panel"
 export { IdentityIncompleteBanner } from "./identity-incomplete-banner"
 export { IntakeNotificationListener } from "./intake-notification-listener"
-export { IntakeReviewPanel } from "./intake-review-panel"
 export { DoctorOnboardingBanner } from "./onboarding-banner"
 export { ParchmentPrescribePanel } from "./parchment-prescribe-panel"
 export { PdfViewerDialog } from "./pdf-viewer-dialog"
