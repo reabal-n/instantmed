@@ -1,6 +1,6 @@
 # DESIGN.md — InstantMed
 
-> **Version: 2.0.2** · Pinned 2026-05-01 · See [changelog](docs/DESIGN_SYSTEM_CHANGELOG.md) · Pin constant: `lib/design-system/version.ts`
+> **Version: 2.0.3** · Pinned 2026-07-14 · See [changelog](docs/DESIGN_SYSTEM_CHANGELOG.md) · Pin constant: `lib/design-system/version.ts`
 
 > **Load every session.** Single source of truth for all visual, layout, and interaction decisions. The design system is law.
 
@@ -294,7 +294,7 @@ Centered headline + animated stat counters. Used on: pricing, trust.
 
 ### Hero Rules
 
-- Morning gradient background (`MeshGradientCanvas`) on all marketing heroes
+- Ambient `MorningSkyBackground` supplied by the canonical `MarketingPageShell`; do not mount a second canvas per hero
 - Availability indicator badge where relevant
 - Emergency disclaimer on clinical service pages
 - Trust badges below CTA (AHPRA, response time, refund guarantee)
@@ -499,7 +499,7 @@ Two curves. Use the right one:
 
 No CSS custom properties for easing exist. For CSS transitions, use `ease-out` keyword or inline the cubic-bezier.
 
-**Note:** `[0.25, 0.1, 0.25, 1]` (CSS standard `ease`) appears in 15+ section/marketing components and `PageTransitionProvider`. Not exported from `lib/motion/index.ts` - components use it inline. Intentional.
+**Note:** `[0.25, 0.1, 0.25, 1]` (CSS standard `ease`) appears in section and marketing components. It is not exported from `lib/motion/index.ts`; those components use it inline intentionally.
 
 ### Duration Tokens
 
@@ -572,19 +572,19 @@ const myVariants: Variants = {
 
 ### Panel & Drawer Variants
 
-`lib/motion/panel-variants.ts` exports ready-made variants for panels, drawers, sheets, and floating bars. All use `easing.panel` and shared duration tokens.
+`lib/motion/panel-variants.ts` exports ready-made backdrop, drawer, and sheet variants. All use `easing.panel` and shared duration tokens.
 
 ```tsx
-import { sessionPanelVariants, drawerVariants, sheetVariants } from '@/lib/motion/panel-variants'
+import { backdropVariants, drawerVariants, sheetVariants } from '@/lib/motion/panel-variants'
 
-// Modal entrance: scale(0.98 to 1) + opacity + y(20 to 0), 400ms panel ease
+// Backdrop: opacity only
 // Drawer: slides from edge, 220ms panel ease
 // Exit: opacity only, 180ms or less
 ```
 
 ### Page Transitions
 
-`PageTransitionProvider` uses opacity + subtle translateY (6px enter, -4px exit), 250ms, ease `[0.25, 0.1, 0.25, 1]`. Kept minimal.
+Root-level page transitions are intentionally not mounted. The root layout renders route children directly, while `NavigationProgress` provides navigation feedback after deferred client startup. Keep motion local to the component that owns it rather than wrapping the entire application.
 
 **Asymmetric timing rule:** Enter slower than exit. If an element enters over 200ms, it exits in 100ms or less.
 
@@ -745,7 +745,6 @@ Three regulatory logos displayed on service and marketing pages:
 | AHPRA | `/logos/AHPRA.png` | 100px |
 | TGA | `/logos/TGA.png` | 80px |
 | Medicare | `/logos/medicare.png` | 90px |
-| RACGP | `/logos/RACGP.png` | 90px |
 
 Dark mode: `rounded dark:bg-white/90 dark:p-0.5` — adds white backing for PNGs with transparent backgrounds.
 

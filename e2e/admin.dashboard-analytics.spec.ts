@@ -176,6 +176,6 @@ test.describe("Admin - Audit Logs", () => {
       .isVisible()
       .catch(() => false)
 
-    expect(hasSearch || hasFilters || true).toBeTruthy()
+    expect(hasSearch || hasFilters).toBe(true)
   })
 })

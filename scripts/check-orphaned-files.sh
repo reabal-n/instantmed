@@ -9,6 +9,17 @@
 #   5. Retired subscription acquisition files
 #   6. Stale worktree directories
 #   7. Copied local artifact directories that confuse deploy/package scans
+#   8. Raw browser review evidence that should use expiring artifact storage
+#   9. Retired public assets with no runtime consumers
+#  10. Retired vacuous E2E specs
+#  11. Superseded staff and data sidecars
+#  12. Unused copy catalogs and parallel flow models
+#  13. Superseded validation and formatting helpers
+#  14. Retired synthetic patient-count plumbing
+#  15. Obsolete analytics, blog-image, and SEO engines
+#  16. Superseded marketing mockups and wrappers
+#  17. Abandoned specialty landing experiments
+#  18. Retired generic service funnel layer
 #
 # Exit 1 if any orphans found.
 
@@ -341,6 +352,193 @@ while IFS= read -r tracked_review_markdown; do
     orphans=$((orphans + 1))
   fi
 done < <(git ls-files 'docs/reviews/**/*.md')
+
+# ── 9. Retired public assets ───────────────────────────────────────────────
+for retired_public_asset in \
+  "public/animations/Confetti.json" \
+  "public/animations/Empty State.json" \
+  "public/animations/Error.json" \
+  "public/animations/Loading Files.json" \
+  "public/animations/Loading.json" \
+  "public/animations/Notification.json" \
+  "public/animations/Success.json" \
+  "public/sounds/notification.mp3" \
+  "public/placeholder.svg" \
+  "public/images/ed-1.webp" \
+  "public/images/ed-2.webp" \
+  "public/icons/stickers/bandage.svg" \
+  "public/icons/stickers/brain.svg" \
+  "public/icons/stickers/lungs.svg" \
+  "public/icons/stickers/no-mobile.svg" \
+  "public/icons/stickers/syringe.svg" \
+  "public/icons/stickers/verified-badge.svg" \
+  "public/logos/JMIRO.png" \
+  "public/logos/NHMRC.png" \
+  "public/logos/RACGP.png" \
+  "public/logos/RANZCR.png" \
+  "public/logos/acpsem.png" \
+  "public/logos/anthropic.png" \
+  "public/logos/claude.png" \
+  "public/logos/clerk.png" \
+  "public/logos/eRx.png" \
+  "public/logos/next.js.png" \
+  "public/logos/stripe.png" \
+  "public/logos/supabase.png" \
+  "public/logos/vercel.png" \
+  "public/logos/wiley.png" \
+  "public/logos/payment/paypal.svg"
+do
+  if [[ -e "$retired_public_asset" ]]; then
+    echo "ORPHAN: $retired_public_asset still exists (retired public asset with no runtime consumers)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 10. Retired vacuous E2E specs ─────────────────────────────────────────
+for retired_e2e_spec in \
+  "e2e/admin.decline-flow.spec.ts" \
+  "e2e/dashboard.keyboard-nav.spec.ts" \
+  "e2e/patient.certificate-download.spec.ts"
+do
+  if [[ -e "$retired_e2e_spec" ]]; then
+    echo "ORPHAN: $retired_e2e_spec still exists (retired duplicate or vacuous E2E coverage)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 11. Superseded staff and data sidecars ────────────────────────────────
+for retired_staff_sidecar in \
+  "app/actions/decline-bulk.ts" \
+  "app/actions/render-test-email.ts" \
+  "app/actions/safety-symptoms.ts" \
+  "app/doctor/intakes/[id]/intake-decline-dialog.tsx" \
+  "app/doctor/patients/manual-patient-dialog.tsx" \
+  "components/doctor/review/clinical-notes-editor.tsx" \
+  "components/doctor/review/formatting-toolbar.tsx" \
+  "components/doctor/review/patient-info-card.tsx" \
+  "lib/data/consultation-types.ts" \
+  "lib/data/queue-availability.ts" \
+  "lib/doctor/session-timeout.ts"
+do
+  if [[ -e "$retired_staff_sidecar" ]]; then
+    echo "ORPHAN: $retired_staff_sidecar still exists (superseded staff or data sidecar)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 12. Unused copy catalogs and parallel flow models ────────────────────
+for retired_catalog in \
+  "lib/microcopy/buttons.ts" \
+  "lib/microcopy/errors.ts" \
+  "lib/microcopy/feedback.ts" \
+  "lib/microcopy/prescription.ts" \
+  "lib/microcopy/referral.ts" \
+  "lib/microcopy/repeat-rx.ts" \
+  "types/marketing.ts" \
+  "types/med-cert.ts" \
+  "types/repeat-rx.ts"
+do
+  if [[ -e "$retired_catalog" ]]; then
+    echo "ORPHAN: $retired_catalog still exists (unused copy catalog or parallel flow model)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 13. Superseded validation and formatting helpers ─────────────────────
+for retired_helper in \
+  "lib/api/responses.ts" \
+  "lib/format/service.ts" \
+  "lib/utils/form-formatting.ts" \
+  "lib/utils/idempotency.ts" \
+  "lib/validation/dates.ts" \
+  "lib/validation/schemas.ts"
+do
+  if [[ -e "$retired_helper" ]]; then
+    echo "ORPHAN: $retired_helper still exists (superseded validation or formatting helper)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 14. Retired synthetic patient-count plumbing ────────────────────────
+for retired_patient_count_path in \
+  "app/api/patient-count/route.ts" \
+  "lib/hooks/use-patient-count.ts" \
+  "lib/social-proof/server.ts" \
+  "lib/__tests__/contact-hydration-contract.test.ts"
+do
+  if [[ -e "$retired_patient_count_path" ]]; then
+    echo "ORPHAN: $retired_patient_count_path still exists (synthetic patient-count plumbing)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 15. Obsolete analytics, blog-image, and SEO engines ─────────────────
+for retired_content_helper in \
+  "lib/analytics/ab-test.ts" \
+  "lib/blog/images.ts" \
+  "lib/data/analytics.ts" \
+  "lib/seo/comparisons.ts" \
+  "lib/seo/linking.ts" \
+  "lib/seo/metadata.ts"
+do
+  if [[ -e "$retired_content_helper" ]]; then
+    echo "ORPHAN: $retired_content_helper still exists (obsolete analytics, blog-image, or SEO engine)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 16. Superseded marketing mockups and wrappers ───────────────────────
+for retired_mockup in \
+  "components/marketing/mockups/certificate-showcase.tsx" \
+  "components/marketing/mockups/certificate.tsx" \
+  "components/marketing/mockups/consult-chat-mockup.tsx" \
+  "components/marketing/mockups/consult.tsx" \
+  "components/marketing/mockups/ed-hero-mockup.tsx" \
+  "components/marketing/mockups/escript.tsx" \
+  "components/marketing/mockups/how-it-works-steps.tsx" \
+  "components/marketing/sections/certificate-preview-section.tsx" \
+  "components/marketing/sections/how-it-works-section.tsx"
+do
+  if [[ -e "$retired_mockup" ]]; then
+    echo "ORPHAN: $retired_mockup still exists (superseded marketing mockup or wrapper)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 17. Abandoned specialty landing experiments ─────────────────────────
+for retired_specialty_section in \
+  "components/marketing/sections/ed-hook-quiz.tsx" \
+  "components/marketing/sections/ed-mechanism-explainer.tsx" \
+  "components/marketing/sections/ed-outcomes-section.tsx" \
+  "components/marketing/sections/ed-prevalence-calculator.tsx" \
+  "components/marketing/sections/hair-loss-family-history-strip.tsx" \
+  "components/marketing/sections/hair-loss-hook-quiz.tsx" \
+  "components/marketing/sections/hair-loss-limitations-section.tsx" \
+  "components/marketing/sections/hair-loss-progress-timeline.tsx"
+do
+  if [[ -e "$retired_specialty_section" ]]; then
+    echo "ORPHAN: $retired_specialty_section still exists (abandoned specialty landing experiment)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 18. Retired generic service funnel layer ────────────────────────────
+for retired_funnel_section in \
+  "components/marketing/sections/certificate-type-selector.tsx" \
+  "components/marketing/sections/common-concerns-section.tsx" \
+  "components/marketing/sections/consult-guide-section.tsx" \
+  "components/marketing/sections/consult-limitations-section.tsx" \
+  "components/marketing/sections/expect-call-strip.tsx" \
+  "components/marketing/sections/final-cta-section.tsx" \
+  "components/marketing/sections/med-cert-guide-section.tsx" \
+  "components/marketing/sections/pricing-section.tsx" \
+  "components/marketing/sections/specialised-consults-section.tsx"
+do
+  if [[ -e "$retired_funnel_section" ]]; then
+    echo "ORPHAN: $retired_funnel_section still exists (retired generic service funnel layer)"
+    orphans=$((orphans + 1))
+  fi
+done
 
 # ── Results ──────────────────────────────────────────────────────────────
 if [[ $orphans -gt 0 ]]; then

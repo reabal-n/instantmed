@@ -38,6 +38,8 @@ const config: KnipConfig = {
     "@svgr/webpack",
     "import-in-the-middle",
     "require-in-the-middle",
+    // Tailwind v4 is loaded from CSS and the PostCSS plugin, not a TS import.
+    "tailwindcss",
   ],
   // These executables are supplied externally in CI or operator environments.
   ignoreBinaries: ["supabase", "cwebp", "ffmpeg", "pdftotext"],

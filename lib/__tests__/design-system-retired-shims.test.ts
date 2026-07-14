@@ -39,17 +39,24 @@ describe("retired design-system shims", () => {
     }
   })
 
-  it("uses canonical segmented radio naming instead of GlassRadioGroup", () => {
-    expect(existsSync(join(root, "components/ui/segmented-radio-group.tsx"))).toBe(true)
+  it("keeps Tailwind configuration CSS-first", () => {
+    expect(existsSync(join(root, "tailwind.config.js"))).toBe(false)
+
+    const eslintSource = readFileSync(join(root, "eslint.config.mjs"), "utf8")
+    const resetPasswordSource = readFileSync(
+      join(root, "app/auth/reset-password/reset-password-client.tsx"),
+      "utf8",
+    )
+
+    expect(eslintSource).not.toContain('"tailwind.config.js"')
+    expect(resetPasswordSource).not.toContain("shadow-soft")
+    expect(resetPasswordSource).toContain("shadow-primary/[0.06]")
+  })
+
+  it("removes the segmented radio used only by the retired inline onboarding flow", () => {
+    expect(existsSync(join(root, "components/ui/segmented-radio-group.tsx"))).toBe(false)
     expect(existsSync(join(root, "components/ui/glass-radio-group.tsx"))).toBe(false)
-
-    const onboardingSource = readFileSync(join(root, "components/shared/inline-onboarding-step.tsx"), "utf8")
-    const uiBarrelSource = readFileSync(join(root, "components/ui/index.ts"), "utf8")
-
-    expect(onboardingSource).not.toContain("GlassRadioGroup")
-    expect(onboardingSource).not.toContain("glass-radio-group")
-    expect(uiBarrelSource).not.toContain("GlassRadioGroup")
-    expect(uiBarrelSource).not.toContain("glass-radio-group")
+    expect(existsSync(join(root, "components/shared/inline-onboarding-step.tsx"))).toBe(false)
   })
 
   it("keeps Select on the canonical Radix API instead of legacy selectedKeys shims", () => {
@@ -90,7 +97,12 @@ describe("retired design-system shims", () => {
     const versionSource = readFileSync(join(root, "lib/design-system/version.ts"), "utf8")
     const changelogSource = readFileSync(join(root, "docs/DESIGN_SYSTEM_CHANGELOG.md"), "utf8")
 
-    expect(changelogSource).toContain("## [2.0.2]")
-    expect(versionSource).toContain('DESIGN_SYSTEM_VERSION = "2.0.2"')
+    const designSource = readFileSync(join(root, "DESIGN.md"), "utf8")
+    const onboardingSource = readFileSync(join(root, "docs/AI_ONBOARDING.md"), "utf8")
+
+    expect(changelogSource).toContain("## [2.0.3]")
+    expect(versionSource).toContain('DESIGN_SYSTEM_VERSION = "2.0.3"')
+    expect(designSource).toContain("**Version: 2.0.3**")
+    expect(onboardingSource).toContain("`DESIGN_SYSTEM_VERSION` (2.0.3 as of 2026-07-14)")
   })
 })

@@ -34,9 +34,14 @@ describe("auth email operational visibility contract", () => {
     expect(migration).not.toContain("recipient_email")
   })
 
-  // Phase 2 of the /admin/ops reshape (2026-05-20) retired auth-email
-  // signals from the support cockpit. The new home is /admin/features
-  // with inline banners; that migration is a separate follow-up task.
-  // Restore this test against the new surface once that lands.
-  it.skip("surfaces auth email failures somewhere accessible to admin", () => {})
+  it("routes aggregate auth email failures through the business alert channel", () => {
+    const alertsRoute = readRepoFile("app/api/cron/business-alerts/route.ts")
+    const operations = readRepoFile("docs/OPERATIONS.md")
+
+    expect(alertsRoute).toContain("getAuthEmailFailureCount")
+    expect(alertsRoute).toContain("buildAuthEmailFailureAlert")
+    expect(alertsRoute).toContain("auth_email_failures: authEmailFailures")
+    expect(operations).toContain("auth_email_delivery_failed")
+    expect(operations).not.toContain("Auth Email Failures (24h)")
+  })
 })

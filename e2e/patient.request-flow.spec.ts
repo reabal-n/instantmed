@@ -84,7 +84,7 @@ test.describe("Patient - Medical Certificate Request Flow", () => {
     const progressNav = page.getByRole("navigation", { name: /progress/i })
     const hasProgress = await progressNav.isVisible().catch(() => false)
     const hasSteps = await page.getByText(/step/i).isVisible().catch(() => false)
-    expect(hasProgress || hasSteps || true).toBeTruthy()
+    expect(hasProgress || hasSteps).toBe(true)
   })
 
   test("has continue and back buttons", async ({ page }) => {

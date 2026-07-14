@@ -11,7 +11,6 @@ const voiceSource = readFileSync(join(root, "lib/marketing/voice.ts"), "utf8")
 const homePageSource = readFileSync(join(root, "app/(marketing)/page.tsx"), "utf8")
 const homepageMarketingSource = readFileSync(join(root, "lib/marketing/homepage.ts"), "utf8")
 const homeServiceCardsSource = readFileSync(join(root, "components/marketing/service-cards.tsx"), "utf8")
-const marketingIndexSource = readFileSync(join(root, "components/marketing/index.ts"), "utf8")
 const heroSource = readFileSync(join(root, "components/marketing/hero.tsx"), "utf8")
 const stickyCtaSource = readFileSync(join(root, "components/marketing/shared/sticky-cta.tsx"), "utf8")
 const waitCounterSource = readFileSync(join(root, "components/marketing/wait-counter.tsx"), "utf8")
@@ -63,7 +62,6 @@ const staleCommercialPolicySources = [
   "app/for/students/page.tsx",
   "app/for/tradies/page.tsx",
   "app/medical-certificate/[slug]/page.tsx",
-  "components/marketing/blog-cta-card.tsx",
   "components/marketing/how-it-works-content.tsx",
   "docs/AI_ONBOARDING.md",
   "docs/CLINICAL.md",
@@ -74,6 +72,7 @@ const staleCommercialPolicySources = [
 ].map((file) => readFileSync(join(root, file), "utf8")).join("\n")
 
 const eligibilityAndAutomationSources = [
+  "app/consult/page.tsx",
   "app/how-it-works/page.tsx",
   "app/how-we-decide/page.tsx",
   "app/medical-certificate/[slug]/page.tsx",
@@ -87,8 +86,6 @@ const eligibilityAndAutomationSources = [
   "components/marketing/citation-facts.tsx",
   "components/marketing/how-it-works-content.tsx",
   "components/marketing/medical-certificate-online-landing.tsx",
-  "components/marketing/sections/consult-limitations-section.tsx",
-  "components/marketing/sections/consult-guide-section.tsx",
   "components/marketing/sections/how-we-decide-guide-section.tsx",
   "components/marketing/sections/prescription-limitations-section.tsx",
   "components/marketing/sections/pricing-guide-section.tsx",
@@ -131,7 +128,6 @@ describe("marketing copy contracts", () => {
     expect(homeServiceCardsSource).not.toContain("Notify me")
     expect(homeServiceCardsSource).toContain("Coming next")
     expect(homeServiceCardsSource).toContain("Not taking requests yet")
-    expect(marketingIndexSource).not.toContain("waitlist-form")
     expect(existsSync(join(root, "components/marketing/waitlist-form.tsx"))).toBe(false)
     expect(existsSync(join(root, "app/actions/waitlist.ts"))).toBe(false)
   })

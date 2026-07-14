@@ -456,7 +456,6 @@ describe("dashboard simplicity and runtime performance contracts", () => {
   it("keeps the review pane decision controls visible before scrolling", () => {
     const cockpitSource = read("components/doctor/review/intake-review-cockpit.tsx")
     const actionSource = read("components/doctor/review/intake-action-buttons.tsx")
-    const notesEditorSource = read("components/doctor/review/clinical-notes-editor.tsx")
     const clinicalCaseReviewSource = read("components/doctor/clinical-case-review.tsx")
     const reviewPanelSource = read("components/doctor/intake-review-panel.tsx")
     const requestInfoSource = read("components/doctor/review/request-info-card.tsx")
@@ -508,11 +507,10 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(reasonOrderIndex).toBeGreaterThan(-1)
     expect(requestFactsOrderIndex).toBeGreaterThan(reasonOrderIndex)
     expect(patientContextOrderIndex).toBeGreaterThan(requestFactsOrderIndex)
-    expect(notesEditorSource).toContain("isNoteFocused")
-    expect(notesEditorSource).toContain("setIsNoteFocused(true)")
-    expect(notesEditorSource).toContain("setIsNoteFocused(false)")
-    expect(notesEditorSource).toContain("min-h-[320px]")
-    expect(notesEditorSource).toContain("focus-within:shadow-sm")
+    expect(clinicalCaseReviewSource).toContain('aria-label="Draft clinical note"')
+    expect(clinicalCaseReviewSource).toContain("draftNoteTextareaRef")
+    expect(clinicalCaseReviewSource).toContain("focus:min-h-[150px]")
+    expect(clinicalCaseReviewSource).toContain("focus:ring-2")
     // Patient-facing queue copy was removed from the doctor review header
     // (2026-06-22 declutter — essentials only). The doctor doesn't need to see
     // the message shown to the patient; it was pure noise on the review surface.
@@ -706,7 +704,7 @@ describe("dashboard simplicity and runtime performance contracts", () => {
   // still-live shared sections covered.
   it("keeps static shared marketing sections off Framer and client-only hooks", () => {
     const staticFunnelFiles = [
-      "components/marketing/sections/pricing-section.tsx",
+      "components/marketing/sections/pricing-guide-section.tsx",
       "components/ui/section-pill.tsx",
     ]
 
@@ -739,7 +737,6 @@ describe("dashboard simplicity and runtime performance contracts", () => {
       "components/sections/feature-grid.tsx",
       "components/sections/icon-checklist.tsx",
       "components/sections/image-text-split.tsx",
-      "components/sections/logo-badge-strip.tsx",
       "components/sections/process-steps.tsx",
       "components/sections/section-header.tsx",
       "components/sections/timeline.tsx",

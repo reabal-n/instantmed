@@ -10,7 +10,7 @@
  *
  * Adding/changing a service? Update this file, not the consumers.
  *
- * See: docs/plans/2026-04-20-design-system-95-sprint.md (Task 1.2)
+ * See: docs/plans/archive/2026-04-20-design-system-95-sprint.md (Task 1.2)
  * See: DESIGN.md §1 (colour tokens), §7 (service icon tiles)
  */
 import { PRICING_DISPLAY } from "@/lib/constants"

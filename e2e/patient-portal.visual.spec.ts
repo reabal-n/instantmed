@@ -1,7 +1,7 @@
 /**
  * Patient portal visual regression baselines.
  *
- * Locks the post-rebuild patient portal state (DESIGN_SYSTEM_VERSION 2.0.2)
+ * Locks the post-rebuild patient portal state (DESIGN_SYSTEM_VERSION 2.0.3)
  * so silent drift back toward the legacy "21st.dev glass-forward" patterns
  * fails CI. Pairs with `scripts/check-portal-no-legacy-classes.sh` (which
  * catches className drift) by catching visual drift the className guard

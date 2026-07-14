@@ -22,7 +22,7 @@ import { usePanel } from './panel-provider'
  * Design principles:
  * - Slides in from right (default) or left
  * - Background remains accessible visually
- * - Faster animation than SessionPanel
+ * - Fast 220ms panel transition
  * - Narrower width (suitable for details, not full content)
  */
 

@@ -54,13 +54,8 @@ test.describe("Email Dispatcher", () => {
   })
 
   test("cron email-dispatcher accepts valid auth", async ({ request }) => {
-    const cronSecret = process.env.CRON_SECRET
-    
-    // Skip if no cron secret configured in test env
-    if (!cronSecret) {
-      test.skip()
-      return
-    }
+    test.skip(!process.env.CRON_SECRET, "CRON_SECRET required")
+    const cronSecret = process.env.CRON_SECRET!
 
     const response = await request.get("/api/cron/email-dispatcher", {
       headers: {
@@ -122,13 +117,8 @@ test.describe("Email Dispatcher", () => {
   })
 
   test("dispatcher processes eligible failed emails", async ({ request }) => {
-    const cronSecret = process.env.CRON_SECRET
-    
-    // Skip if no cron secret configured
-    if (!cronSecret) {
-      test.skip()
-      return
-    }
+    test.skip(!process.env.CRON_SECRET, "CRON_SECRET required")
+    const cronSecret = process.env.CRON_SECRET!
 
     const supabase = getSupabaseClient()
     

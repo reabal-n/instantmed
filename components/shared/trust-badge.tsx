@@ -367,10 +367,16 @@ function StripeBadge({ config, className }: { config: BadgeConfig; className?: s
         className,
       )}
     >
-      <Lock className="w-3.5 h-3.5 text-[#4F46E5]" aria-hidden="true" />
+      <Lock className="w-3.5 h-3.5 text-[var(--stripe-brand)]" aria-hidden="true" />
       <span className="text-muted-foreground">Secured by</span>
-      <svg viewBox="0 0 50 21" width={40} height={17} aria-label="Stripe">
-        <text x="0" y="16" fontFamily="Arial, sans-serif" fontSize="16" fontWeight="700" fill="#4F46E5">stripe</text>
+      <svg
+        viewBox="0 0 50 21"
+        width={40}
+        height={17}
+        className="text-[var(--stripe-brand)]"
+        aria-label="Stripe"
+      >
+        <text x="0" y="16" fontFamily="Arial, sans-serif" fontSize="16" fontWeight="700" fill="currentColor">stripe</text>
       </svg>
     </div>
   )
@@ -569,7 +575,7 @@ function InstantPdfBadge({ config, className }: { config: BadgeConfig; className
 }
 
 // social_proof - non-numeric trust line (the interpolated patient count was
-// removed from all public surfaces 2026-07-10 — see getPatientCount's compliance note)
+// removed from all public surfaces 2026-07-10; its plumbing was retired 2026-07-14)
 function SocialProofBadge({ config, className }: { config: BadgeConfig; className?: string }) {
   return (
     <div

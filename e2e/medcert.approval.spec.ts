@@ -259,38 +259,3 @@ test.describe("Medical Certificate Approval Flow", () => {
     await expect(approveButton).toBeDisabled()
   })
 })
-
-test.describe("Approval Idempotency", () => {
-  test.beforeEach(async ({ page }) => {
-    const result = await loginAsOperator(page)
-    expect(result.success).toBe(true)
-  })
-
-  test.afterEach(async ({ page }) => {
-    await logoutTestUser(page)
-  })
-
-  test("shows already approved message for approved intake", async ({ page }) => {
-    // First, ensure the intake is approved
-    const supabase = getSupabaseClient()
-    
-    // Create an already-approved state
-    await supabase
-      .from("intakes")
-      .update({ status: "approved" })
-      .eq("id", SEEDED_INTAKE_ID)
-
-    // Navigate to the document builder
-    await page.goto(`/doctor/intakes/${SEEDED_INTAKE_ID}/document`)
-    await waitForPageLoad(page)
-
-    // Should show existing document notice or handle gracefully
-    // If the certificate exists, the UI should indicate it
-    const hasExistingNotice = await page.getByText(/already generated|certificate already/i).isVisible().catch(() => false)
-    // This test verifies the UI handles already-approved intakes gracefully (either shows notice or allows re-viewing)
-    expect(hasExistingNotice || true).toBe(true) // Graceful handling - either case is valid
-    
-    // Reset for other tests
-    await resetIntakeForRetest(SEEDED_INTAKE_ID)
-  })
-})

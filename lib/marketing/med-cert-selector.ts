@@ -1,8 +1,8 @@
 /**
  * Med cert landing page selector - data contract
  *
- * Extracted from CertificateTypeSelector so the category list, valid IDs,
- * and PostHog event name are unit-testable without jsdom.
+ * Originally extracted from the retired landing-page selector. It now owns
+ * URL-prefill validation and landing CTA href construction.
  */
 
 // ---------------------------------------------------------------------------

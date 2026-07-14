@@ -53,7 +53,7 @@ Use this checklist before promoting dashboard, payment, clinical, or patient-flo
 - `pnpm check:sentry` passes with the same Sentry env vars used by the deployment.
 - Dashboard degraded-read monitor is active in production.
 - Authenticated `/dashboard` production smoke runs after deploy with the owner-admin session cookie and does not show the generic error shell.
-- `/admin/ops` shows no auth email failures for recent `magiclink` or `recovery` sends.
+- The latest Business Alerts run reports `auth_email_failures: 0` and no `auth_email_delivery_failed` alert for recent `magiclink` or `recovery` sends.
 - Cron jobs for stale queue, retry auto-approval, email dispatcher, and reconciliation are enabled.
 - Supabase backups and PITR status are confirmed.
 - Rollback target is known before promotion.

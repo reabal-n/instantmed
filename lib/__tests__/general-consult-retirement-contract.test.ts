@@ -98,9 +98,8 @@ describe("general consult retirement contract", () => {
     expect(source).not.toMatch(/['"]consult['"]\s*:\s*\{\s*category:\s*['"]consult['"]\s*,\s*subtype:\s*['"]general['"]/)
   })
 
-  it("consultation-types catalog does not expose a 'general' entry", () => {
-    const source = read("lib/data/consultation-types.ts")
-    expect(source).not.toMatch(/id:\s*['"]general['"]/)
+  it("keeps the obsolete consultation-types catalog removed", () => {
+    expect(existsSync(join(root, "lib/data/consultation-types.ts"))).toBe(false)
   })
 
   it("DB migration enforcing the constraint exists", () => {
@@ -131,7 +130,6 @@ describe("general consult retirement contract", () => {
       // app/api/terminology/amt/search was deleted 2026-07-03 (orphaned since
       // the #211 medication-search retirement; held a stale S8 list copy).
       read("app/conditions/page.tsx"),
-      read("components/patient/service-selector.tsx"),
       read("components/seo/schemas/medical-business.tsx"),
     ].join("\n")
 

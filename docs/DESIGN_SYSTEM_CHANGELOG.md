@@ -2,6 +2,16 @@
 
 > Tracks breaking and notable changes to the InstantMed design system. Pin against `DESIGN_SYSTEM_VERSION` in `lib/design-system/version.ts`.
 
+## [2.0.3] — 2026-07-14
+
+### Removed
+- Verified zero-consumer CTA and trust graphs. Service pages continue to use their mounted `StickyCTA`, `TrustBadgeRow`, and `RegulatoryPartners` paths.
+- Superseded motion/provider/canvas wrappers. Mounted surfaces continue to use `GlobalDeferredClients`, the marketing-owned page shell, `MorningSkyBackground`, and the active drawer/sheet variants.
+- Abandoned form and onboarding primitives, including `SegmentedRadioGroup`, `RadioGroupCard`, and inline auth/onboarding steps. Canonical Radix form primitives and route-owned auth remain unchanged.
+- Unmounted clinical and shell leaves (`EmergencyGate`, `SymptomChecker`, `ServiceDisabledBanner`, `SessionPanel`, and related controls). Request safety remains enforced by the active client validators and server checkout/retry gates.
+
+This is a removal-only internal API cleanup. No mounted surface, token, or visual behavior changed.
+
 ## [2.0.2] — 2026-05-01
 
 ### Removed

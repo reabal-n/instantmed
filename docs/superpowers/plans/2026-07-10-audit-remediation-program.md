@@ -715,7 +715,7 @@ git commit -m "chore(reviews): move raw browser evidence out of Git"
 - Consumes: Archive status policy and ROADMAP as the active backlog owner.
 - Produces: Exactly one location per plan basename and an audit that prevents active/archive duplication.
 
-- [ ] **Step 1: Add the duplicate-basename guard before deleting anything**
+- [x] **Step 1: Add the duplicate-basename guard before deleting anything**
 
 Add to `scripts/doc-audit.sh`:
 
@@ -732,29 +732,11 @@ fi
 echo "OK: active/archive plan basenames are unique"
 ```
 
-Run `corepack pnpm doc:audit`; expect failure listing 13 basenames.
+The guard now runs in `corepack pnpm doc:audit` and the duplicate set is empty.
 
-- [ ] **Step 2: Delete only the duplicate root copies**
+- [x] **Step 2: Delete only the duplicate root copies**
 
-Delete exactly these root copies and keep their archive counterparts:
-
-```text
-docs/plans/2026-03-25-blood-test-referrals.md
-docs/plans/2026-04-06-revenue-engagement-design.md
-docs/plans/2026-04-06-revenue-engagement-plan.md
-docs/plans/2026-04-13-god-component-decomposition.md
-docs/plans/2026-04-13-lib-restructure-and-script-wiring.md
-docs/plans/2026-04-20-design-system-95-sprint.md
-docs/plans/2026-05-04-health-guides-rehaul.md
-docs/plans/2026-05-20-admin-ops-cockpit-reshape-design.md
-docs/plans/2026-05-20-admin-ops-cockpit-reshape-plan.md
-docs/plans/2026-05-20-staff-cockpit-overhaul-design.md
-docs/plans/2026-05-20-staff-cockpit-overhaul-plan.md
-docs/plans/2026-05-23-doc-cleanup-plan.md
-docs/plans/2026-05-23-doc-content-audit-plan.md
-```
-
-Do not prune archive originals based solely on age. Update the service-catalog source comment/reference from the root design-system plan to its archive path.
+The 13 duplicate root copies were removed; their archive counterparts remain indexed by `docs/plans/archive/README.md`. Archive originals were not pruned, and the service-catalog source reference now points at the archived design-system plan.
 
 - [ ] **Step 3: Archive shipped implementation receipts**
 

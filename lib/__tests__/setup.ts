@@ -211,30 +211,6 @@ vi.mock('@ai-sdk/anthropic', () => ({
 }))
 
 // ============================================================================
-// ENV MOCK
-// ============================================================================
-
-vi.mock('@/lib/env', () => ({
-  env: {
-    supabaseUrl: 'https://test.supabase.co',
-    supabaseAnonKey: 'test-anon-key',
-    supabaseServiceRoleKey: 'test-service-role-key',
-    stripeSecretKey: 'sk_test_secret',
-    stripeWebhookSecret: 'whsec_test_secret',
-    internalApiSecret: 'test-internal-secret',
-    appUrl: 'http://localhost:3000',
-    isDev: false,
-    isProd: false,
-    hasUpstash: false,
-  },
-  getAppUrl: vi.fn(() => 'http://localhost:3000'),
-  getStripeSecretKey: vi.fn(() => 'sk_test_secret'),
-  getStripeWebhookSecret: vi.fn(() => 'whsec_test_secret'),
-  getSupabaseServiceRoleKey: vi.fn(() => 'test-service-role-key'),
-  isAdminEmail: vi.fn(() => false),
-}))
-
-// ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
 

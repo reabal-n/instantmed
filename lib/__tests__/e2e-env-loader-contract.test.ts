@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -19,15 +19,14 @@ describe("E2E env loader contract", () => {
     expect(read("e2e/helpers/db.ts")).toContain("loadE2EEnv(path.join(__dirname, \"..\", \"..\"))")
   })
 
-  it("starts Playwright web servers through the local Next binary, not pnpm", () => {
-    const config = read("playwright.config.ts")
-    const intakeConfig = read("playwright.intake.config.ts")
+  it("uses one canonical Playwright config with the local Next binary", () => {
+    expect(existsSync(join(root, "playwright.intake.config.ts"))).toBe(false)
 
-    for (const source of [config, intakeConfig]) {
-      expect(source).toContain("process.execPath")
-      expect(source).toContain("node_modules/next/dist/bin/next")
-      expect(source).toContain("${NODE_EXECUTABLE} ${NEXT_DEV_BIN} dev --port ${E2E_PORT}")
-      expect(source).not.toContain("pnpm dev --port")
-    }
+    const config = read("playwright.config.ts")
+
+    expect(config).toContain("process.execPath")
+    expect(config).toContain("node_modules/next/dist/bin/next")
+    expect(config).toContain("${NODE_EXECUTABLE} ${NEXT_DEV_BIN} dev --port ${E2E_PORT}")
+    expect(config).not.toContain("pnpm dev --port")
   })
 })

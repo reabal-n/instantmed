@@ -25,6 +25,8 @@ import {
   HealthArticleSchema,
   MedicalServiceSchema,
 } from "@/components/seo/healthcare-schema"
+import { Footer } from "@/components/shared/footer"
+import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { getWaitState } from "@/lib/brand/wait-counter"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
@@ -240,7 +242,7 @@ const overviewFaqs = [
 ]
 
 export const metadata: Metadata = {
-  title: "Online Doctor Services in Australia | InstantMed",
+  title: { absolute: "Online Doctor Services in Australia | InstantMed" },
   description:
     `Medical certificates, repeat prescriptions, ED, hair loss, and women's health assessments online. Focused services reviewed by Australian doctors. From ${PRICING_DISPLAY.MED_CERT}.`,
   openGraph: {
@@ -295,6 +297,9 @@ export default async function ConsultOverviewPage() {
         description="Medical certificates, repeat prescriptions, ED, hair loss, and women's health assessments. Form-first review by AHPRA-registered Australian doctors."
         url="/consult"
       />
+
+      <Navbar variant="marketing" />
+      <main aria-label="Online doctor services" className="bg-background">
 
       {/* Hero · tightened mobile padding so the first service card peeks
           into a 375x812 viewport before the patient scrolls (2026-05-25
@@ -438,7 +443,7 @@ export default async function ConsultOverviewPage() {
             {comingSoon.map((service) => (
               <div
                 key={service.id}
-                className="relative flex items-start gap-4 rounded-2xl border border-dashed border-border/60 bg-muted/20 p-5 opacity-80"
+                className="relative flex items-start gap-4 rounded-2xl border border-dashed border-border/60 bg-muted/20 p-5"
               >
                 <span
                   className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-muted text-muted-foreground"
@@ -512,6 +517,8 @@ export default async function ConsultOverviewPage() {
         faqs={overviewFaqs}
         subtitle="Everything about our online doctor services."
       />
+      </main>
+      <Footer />
     </>
   )
 }

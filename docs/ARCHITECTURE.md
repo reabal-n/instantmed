@@ -497,11 +497,11 @@ Any function that uses `createServiceRoleClient()` or accesses PHI directly must
 
 **Pattern:**
 ```ts
-// lib/db/patient-count.ts
+// lib/data/system-health.ts
 import "server-only"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
-export async function getPatientCountFromDB(): Promise<number> { ... }
+export async function getSystemHealth(): Promise<SystemHealth> { ... }
 ```
 
 **Rule:** If a linter or build error says "server-only import in client component" — the fix is to split the function into its own `server-only` file, not to suppress the error or remove the import guard.
@@ -588,7 +588,7 @@ import { PageBreadcrumbs, Snippet, UserCard } from "@/components/uix"
 
 **Component decision tree:** See CLAUDE.md for quick-reference selection guide (shadcn vs UIX vs solid-depth components).
 
-**File organization:** `components/ui/` (67 primitives), `components/shared/` (39 shared), `components/uix/` (UIX wrappers), `components/operator/` (staff cockpit shell/page/split-pane/local action palettes), plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
+**File organization:** `components/ui/` (47 top-level primitives), `components/shared/` (15 top-level shared files), `components/uix/` (UIX wrappers), `components/operator/` (staff cockpit shell/page/split-pane/local action palettes), plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
 
 ### Operator Components
 
@@ -629,7 +629,7 @@ Single source of truth for service icons across the entire UI. Import from `@/co
 **Color → service mapping** (canonical, matches `services-dropdown.tsx`):
 - `emerald` = Medical Certificates · `cyan` = Repeat Medication · `blue` = ED Assessment · `violet` = Hair Loss
 
-**Used in:** `services-dropdown.tsx`, `mobile-menu-content.tsx`, `user-menu.tsx`, `service-cards.tsx`, `service-picker.tsx`. Do not create local icon containers — always use `ServiceIconTile`.
+**Used in:** `services-dropdown.tsx`, `mobile-menu-content.tsx`, `user-menu.tsx`, and `service-cards.tsx`. Do not create local icon containers — always use `ServiceIconTile`.
 
 ### Service Page Patterns
 
@@ -734,7 +734,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 558 files, 238 route files
+### `app/` — 551 files, 237 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -744,7 +744,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `emails/`, `features/`, `settings/`, `ops/`, `analytics/` |
 | `app/doctor/` | Doctor portal under the shared staff shell | `intakes/[id]/` (review detail), `patients/`, `settings/`; queue/scripts entry points resolve through `/dashboard` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
-| `app/api/` | API routes (89 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/`, and the count-only `internal/support-inbox-alert/` bridge |
+| `app/api/` | API routes (88 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/`, and the count-only `internal/support-inbox-alert/` bridge |
 | `app/api/cron/` | Scheduled jobs (29) | `stale-queue/`, `pending-queue-reminders/`, `support-inbox-alert/` (Gmail label aggregate only), `email-dispatcher/`, `health-check`, `google-ads-conversions`, `google-ads-diagnostics-watch`, `cert-reactivation`, `parchment-smoke`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | 7 handlers: `checkout-session-completed`, `checkout-session-expired`, `checkout-session-async-payment-succeeded/failed`, `charge-refunded`, `charge-dispute-created`, `payment-intent-payment-failed`. Repeat Rx subscription handlers are retired; unsupported Stripe events are acknowledged and claimed by the dispatcher without running business logic. Registered in `handlers/index.ts`. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
@@ -761,33 +761,32 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/compare/[slug]/` | SEO: comparisons | Service comparison pages |
 | `app/offline/` | Offline fallback | PWA offline page — shown by service worker when network unavailable |
 
-### `components/` — 511 files
+### `components/`
 
-| Directory | Count | Purpose |
-|-----------|-------|---------|
-| `ui/` | 69 | shadcn/Radix primitives (Button, Input, Dialog, etc.) |
-| `uix/` | 12 | Thin shared wrappers and re-exports (UserCard, PageBreadcrumbs, DatePickerField, Pagination, Snippet, etc.) |
-| `shared/` | 40 | Header, Footer, InlineAuthStep, CheckoutButton, LazyOverlays |
-| `operator/` | 17 | OperatorShell, bounded staff pages, split panes, local action palettes |
-| `request/` | 51 | Intake flow: `request-flow.tsx` (orchestrator), `steps/` (per-step components), `store.ts` (Zustand) |
-| `marketing/` | 111 | Landing pages, ServiceFunnelPage, testimonials, exit intent |
-| `blog/` | 12 | Guide article template, TOC, visuals, related reading, share controls |
-| `doctor/` | 43 | IntakeReviewPanel, RepeatPrescriptionChecklist, clinical views |
-| `admin/` | 9 | Admin-specific panels and views |
-| `patient/` | 28 | ReferralCard, CrossSellCard, dashboard components |
-| `effects/` | 2 | Confetti, ShakeAnimation |
-| `providers/` | 7 | PostHogProvider, ThemeProvider, MotionProvider |
-| `heroes/` | 5 | Morning Canvas hero variants (Split, Centered, Stats, FullBleed) |
-| `ui/morning/` | 7 | Morning Canvas primitives (MeshGradientCanvas, WordReveal, PerspectiveTiltCard) |
-| `ui/skeleton.tsx` | — | SkeletonCard, SkeletonForm, SkeletonList, SkeletonDashboard, Spinner |
+| Directory | Purpose |
+|-----------|---------|
+| `ui/` | shadcn/Radix primitives (Button, Input, Dialog, etc.) |
+| `uix/` | Thin shared wrappers and re-exports (UserCard, PageBreadcrumbs, DatePickerField, Pagination, Snippet, etc.) |
+| `shared/` | Header, Footer, global notices, referral capture, and shared trust/auth controls |
+| `operator/` | OperatorShell, bounded staff pages, split panes, local action palettes |
+| `request/` | Intake flow: `request-flow.tsx` (orchestrator), `steps/` (per-step components), `store.ts` (Zustand) |
+| `marketing/` | Landing pages, ServiceFunnelPage, testimonials, exit intent |
+| `blog/` | Guide article template, TOC, visuals, related reading, share controls |
+| `doctor/` | IntakeReviewPanel, RepeatPrescriptionChecklist, clinical views |
+| `admin/` | Admin-specific panels and views |
+| `patient/` | ReferralCard, CrossSellCard, dashboard components |
+| `providers/` | AttributionCapture, GlobalDeferredClients, PostHogLoader, ServiceAvailabilityProvider |
+| `heroes/` | Morning Canvas hero variants (Split, Centered, Stats, FullBleed) |
+| `ui/morning/` | Morning Canvas primitives (MorningSkyBackground, NavigationProgress, WordReveal, PerspectiveTiltCard) |
+| `ui/skeleton.tsx` | SkeletonCard, SkeletonForm, SkeletonList, SkeletonDashboard, Spinner |
 
-### `lib/` — 872 files
+### `lib/`
 
 | Directory | Purpose | Key files |
 |-----------|---------|-----------|
 | `lib/auth/` | Auth helpers | `helpers.ts`, `staff-capabilities.ts`, post-auth redirects and guest profile linking |
 | `lib/constants/index.ts` | App constants | PRICING, SYSTEM_AUTO_APPROVE_ID, CONTACT_EMAIL |
-| `lib/env.ts` | Env validation | Zod schemas, `getAppUrl()` |
+| `lib/config/env.ts` | Env validation | Zod schemas, `getAppUrl()` |
 | `lib/format.ts` | Date formatting | All AEST, `formatDateLong()`, `addDays()` |
 | `lib/utils.ts` | Utilities | `cn()` (class merger) |
 | `lib/ai/` | AI integration | `provider.ts` (model profiles), prompts, clinical note generation |
@@ -821,8 +820,8 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/db.ts` | Supabase generated types + custom interfaces |
 | `types/certificate-template.ts` | PDF template field definitions |
 | `hooks/` | 5 custom hooks (use-connection-status, use-debounce, use-doctor-shortcuts, use-keyboard-navigation, use-landing-analytics) |
-| `e2e/` | 74 TypeScript specs/helpers, including `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
-| `supabase/migrations/` | 92 SQL migration files (1 squashed baseline + 91 incremental). Most recent: `20260710174000_idempotent_certificate_resends.sql`; the three 2026-07-10 closure/correction/resend migrations were applied to production and verified on 2026-07-10. |
+| `e2e/` | 71 TypeScript files, including 64 specs and `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
+| `supabase/migrations/` | 95 SQL migration files (1 squashed baseline + 94 incremental). Most recent: `20260713085920_lock_down_security_definer_rpc_acls.sql`. |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
 | `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |

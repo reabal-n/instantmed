@@ -192,9 +192,7 @@ async function clickDashboardLink(page: Page, href: string) {
 test.describe("Dashboard Audit - Admin", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsOperator(page)
-    if (!result.success) {
-      test.skip(true, `E2E login failed: ${result.error}`)
-    }
+    expect(result.success, `E2E login failed: ${result.error}`).toBe(true)
   })
 
   test.afterEach(async ({ page }) => {
@@ -214,9 +212,7 @@ test.describe("Dashboard Audit - Admin", () => {
 test.describe("Dashboard Audit - Doctor", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsOperator(page)
-    if (!result.success) {
-      test.skip(true, `E2E login failed: ${result.error}`)
-    }
+    expect(result.success, `E2E login failed: ${result.error}`).toBe(true)
   })
 
   test.afterEach(async ({ page }) => {
@@ -236,9 +232,7 @@ test.describe("Dashboard Audit - Doctor", () => {
 test.describe("Dashboard Audit - Patient", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsPatient(page)
-    if (!result.success) {
-      test.skip(true, `E2E login failed: ${result.error}`)
-    }
+    expect(result.success, `E2E login failed: ${result.error}`).toBe(true)
   })
 
   test.afterEach(async ({ page }) => {
@@ -258,9 +252,7 @@ test.describe("Dashboard Audit - Patient", () => {
 test.describe("Dashboard Audit - Doctor-only user", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsDoctor(page)
-    if (!result.success) {
-      test.skip(true, `E2E login failed: ${result.error}`)
-    }
+    expect(result.success, `E2E login failed: ${result.error}`).toBe(true)
   })
 
   test.afterEach(async ({ page }) => {
@@ -292,9 +284,7 @@ test.describe("Dashboard Audit - Accessibility", () => {
   for (const target of DASHBOARD_A11Y_TARGETS) {
     test(`${target.name} dashboard axe audit`, async ({ page }) => {
       const login = await target.login(page)
-      if (!login.success) {
-        test.skip(true, `E2E login failed: ${login.error}`)
-      }
+      expect(login.success, `E2E login failed: ${login.error}`).toBe(true)
 
       const tracker = createConsoleErrorTracker()
       tracker.attach(page)
@@ -314,9 +304,7 @@ test.describe("Dashboard Audit - Mobile screenshots", () => {
       await page.setViewportSize({ width: 390, height: 844 })
 
       const login = await target.login(page)
-      if (!login.success) {
-        test.skip(true, `E2E login failed: ${login.error}`)
-      }
+      expect(login.success, `E2E login failed: ${login.error}`).toBe(true)
 
       const tracker = createConsoleErrorTracker()
       tracker.attach(page)
@@ -339,9 +327,7 @@ test.describe("Dashboard Audit - Mobile screenshots", () => {
 test.describe("Dashboard Audit - Link navigation", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsOperator(page)
-    if (!result.success) {
-      test.skip(true, `E2E login failed: ${result.error}`)
-    }
+    expect(result.success, `E2E login failed: ${result.error}`).toBe(true)
   })
 
   test.afterEach(async ({ page }) => {
@@ -397,9 +383,7 @@ test.describe("Dashboard Audit - Link navigation", () => {
 
   test("patient sidebar links navigate correctly", async ({ page }) => {
     const result = await loginAsPatient(page)
-    if (!result.success) {
-      test.skip(true, `E2E login failed: ${result.error}`)
-    }
+    expect(result.success, `E2E login failed: ${result.error}`).toBe(true)
 
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
