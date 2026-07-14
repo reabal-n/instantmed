@@ -10,6 +10,18 @@ export interface HighStakesCheckoutBlock {
   safetyCheck: ServerSafetyCheck
 }
 
+export function isMedicalCertificateIntake(
+  category: string | null,
+  service: { slug?: string | null; type?: string | null } | null,
+): boolean {
+  return Boolean(
+    category === "medical_certificate" ||
+    service?.type === "med_certs" ||
+    service?.type === "medical_certificate" ||
+    service?.slug?.startsWith("med-cert"),
+  )
+}
+
 /**
  * Canonical pre-payment representation of a high-stakes medical-certificate
  * block. Shared by initial checkout and retry-payment so their answer aliases,
