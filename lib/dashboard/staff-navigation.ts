@@ -62,8 +62,8 @@ export interface StaffNavSection {
 // (window.history.replaceState, no server round-trip). Three sidebar entries
 // rendering one surface read as duplication and every hop re-ran the full
 // dashboard server render. Do not re-add filter deep-links as nav items; the
-// tab strip is the filter surface. STAFF_QUEUE_HREF/STAFF_SCRIPTS_HREF remain
-// for redirects, user-menu, and onboarding links.
+// tab strip is the filter surface. STAFF_QUEUE_HREF and the doctor scripts
+// deep-link remain for redirects, user-menu, and onboarding links.
 export const operatorNavSections: StaffNavSection[] = [
   {
     title: "Today",
