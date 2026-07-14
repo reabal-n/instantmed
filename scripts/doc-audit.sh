@@ -6,6 +6,7 @@
 # Fails if:
 #   - AGENTS.md drifted from CLAUDE.md (scripts/sync-agent-doc.sh --check)
 #   - any of the 9 doc-pinning Vitest contracts fails
+#   - a plan basename exists in both docs/plans and docs/plans/archive
 #   - the .md file count differs from docs/bookkeeping/expected-md-count
 #   - any docs/plans/*.md reference in surviving canon points at a non-existent file
 #
@@ -18,6 +19,17 @@ cd "$(dirname "$0")/.."
 
 echo "==> Sync check: AGENTS.md projected from CLAUDE.md"
 scripts/sync-agent-doc.sh --check
+
+echo "==> Duplicate active/archive plan basename check"
+DUPLICATE_PLAN_NAMES=$(comm -12 \
+  <(find docs/plans -maxdepth 1 -type f -name '*.md' -exec basename {} \; | sort) \
+  <(find docs/plans/archive -maxdepth 1 -type f -name '*.md' -exec basename {} \; | sort))
+if [[ -n "$DUPLICATE_PLAN_NAMES" ]]; then
+  echo "FAIL: plan basenames exist in both active and archive locations:"
+  printf '%s\n' "$DUPLICATE_PLAN_NAMES"
+  exit 1
+fi
+echo "OK: active/archive plan basenames are unique"
 
 echo "==> Vitest: doc-pinning contracts (9 specs)"
 pnpm exec vitest run --reporter=dot \

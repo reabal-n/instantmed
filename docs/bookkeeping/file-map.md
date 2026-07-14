@@ -117,20 +117,7 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 
 | File | Purpose |
 |------|---------|
-| [docs/plans/2026-03-25-blood-test-referrals.md](../plans/2026-03-25-blood-test-referrals.md) | Historical blood-test referrals implementation record |
-| [docs/plans/2026-04-06-revenue-engagement-design.md](../plans/2026-04-06-revenue-engagement-design.md) | Historical revenue engagement design record |
-| [docs/plans/2026-04-06-revenue-engagement-plan.md](../plans/2026-04-06-revenue-engagement-plan.md) | Historical revenue engagement implementation record |
-| [docs/plans/2026-04-13-god-component-decomposition.md](../plans/2026-04-13-god-component-decomposition.md) | Historical decomposition implementation record |
-| [docs/plans/2026-04-13-lib-restructure-and-script-wiring.md](../plans/2026-04-13-lib-restructure-and-script-wiring.md) | Historical library-restructure implementation record |
-| [docs/plans/2026-04-20-design-system-95-sprint.md](../plans/2026-04-20-design-system-95-sprint.md) | Historical design-system sprint record |
-| [docs/plans/2026-05-04-health-guides-rehaul.md](../plans/2026-05-04-health-guides-rehaul.md) | Historical health-guide rehaul record |
-| [docs/plans/2026-05-20-admin-ops-cockpit-reshape-design.md](../plans/2026-05-20-admin-ops-cockpit-reshape-design.md) | Historical admin-ops design record |
-| [docs/plans/2026-05-20-admin-ops-cockpit-reshape-plan.md](../plans/2026-05-20-admin-ops-cockpit-reshape-plan.md) | Historical admin-ops implementation record |
-| [docs/plans/2026-05-20-staff-cockpit-overhaul-design.md](../plans/2026-05-20-staff-cockpit-overhaul-design.md) | Historical staff-cockpit design record |
-| [docs/plans/2026-05-20-staff-cockpit-overhaul-plan.md](../plans/2026-05-20-staff-cockpit-overhaul-plan.md) | Historical staff-cockpit implementation record |
 | [docs/plans/2026-05-23-archived-plan-followups.md](../plans/2026-05-23-archived-plan-followups.md) | Reference-only deferred-item inventory; ROADMAP decides activation |
-| [docs/plans/2026-05-23-doc-cleanup-plan.md](../plans/2026-05-23-doc-cleanup-plan.md) | Historical documentation cleanup record |
-| [docs/plans/2026-05-23-doc-content-audit-plan.md](../plans/2026-05-23-doc-content-audit-plan.md) | Historical documentation audit record |
 | [docs/plans/2026-05-26-minimal-slide-modal-design.md](../plans/2026-05-26-minimal-slide-modal-design.md) | Design doc for the 2026-05-26 cockpit cleanup bundle (2-day auto-approve widening, single-column slide modal, ED prescription preset). |
 | [docs/plans/2026-05-26-minimal-slide-modal-plan.md](../plans/2026-05-26-minimal-slide-modal-plan.md) | 8-task TDD implementation plan companion to the 2026-05-26 design doc. |
 | [docs/plans/2026-06-10-organic-geo-beat-nextclinic-plan.md](../plans/2026-06-10-organic-geo-beat-nextclinic-plan.md) | Reference-only organic + GEO/LLM-citation research and sequence; ROADMAP ranks 3 and 6 decide activation |

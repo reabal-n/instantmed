@@ -237,6 +237,19 @@ describe("project docs drift contract", () => {
     expect(wikiArchitecture).toContain(`| SQL migrations under \`supabase/migrations/\` | ${migrations.length} |`)
   })
 
+  it("keeps archived plan basenames out of the active plan root", () => {
+    const activePlanNames = readdirSync(join(root, "docs/plans"), { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
+      .map((entry) => entry.name)
+    const archivedPlanNames = new Set(
+      readdirSync(join(root, "docs/plans/archive"), { withFileTypes: true })
+        .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
+        .map((entry) => entry.name),
+    )
+
+    expect(activePlanNames.filter((name) => archivedPlanNames.has(name))).toEqual([])
+  })
+
   it("documents the medication step as free-text, not a live PBS search (retired #211)", () => {
     // The PBS reference-search stack was removed in #211. While the route is
     // gone, the canonical docs must NOT describe a live patient-facing PBS
