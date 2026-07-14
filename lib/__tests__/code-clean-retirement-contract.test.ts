@@ -171,6 +171,32 @@ describe("code-clean retirement contracts", () => {
     expect(read("app/compare/sitemap.ts")).toContain("@/lib/seo/data/comparisons")
   })
 
+  it("keeps superseded marketing mockups and wrappers retired", () => {
+    const retiredMockups = [
+      "components/marketing/mockups/certificate-showcase.tsx",
+      "components/marketing/mockups/certificate.tsx",
+      "components/marketing/mockups/consult-chat-mockup.tsx",
+      "components/marketing/mockups/consult.tsx",
+      "components/marketing/mockups/ed-hero-mockup.tsx",
+      "components/marketing/mockups/escript.tsx",
+      "components/marketing/mockups/how-it-works-steps.tsx",
+      "components/marketing/sections/certificate-preview-section.tsx",
+      "components/marketing/sections/how-it-works-section.tsx",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredMockups) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("components/marketing/med-cert-landing.tsx")).toContain("MedCertHeroMockup")
+    expect(read("components/marketing/prescriptions-landing.tsx")).toContain("EScriptHeroMockup")
+    expect(read("components/marketing/hair-loss-landing.tsx")).toContain("HairLossHeroMockup")
+    expect(read("app/(marketing)/page.tsx")).toContain("@/components/marketing/how-it-works")
+    expect(read("app/for/universities/page.tsx")).toContain("SampleCertificate")
+  })
+
   it("keeps stale patient quick-reorder APIs out of the route tree", () => {
     const retiredPatientApis = [
       "app/api/patient/last-prescription/route.ts",

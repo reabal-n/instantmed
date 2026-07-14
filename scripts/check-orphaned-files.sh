@@ -17,6 +17,7 @@
 #  13. Superseded validation and formatting helpers
 #  14. Retired synthetic patient-count plumbing
 #  15. Obsolete analytics, blog-image, and SEO engines
+#  16. Superseded marketing mockups and wrappers
 #
 # Exit 1 if any orphans found.
 
@@ -480,6 +481,24 @@ for retired_content_helper in \
 do
   if [[ -e "$retired_content_helper" ]]; then
     echo "ORPHAN: $retired_content_helper still exists (obsolete analytics, blog-image, or SEO engine)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 16. Superseded marketing mockups and wrappers ───────────────────────
+for retired_mockup in \
+  "components/marketing/mockups/certificate-showcase.tsx" \
+  "components/marketing/mockups/certificate.tsx" \
+  "components/marketing/mockups/consult-chat-mockup.tsx" \
+  "components/marketing/mockups/consult.tsx" \
+  "components/marketing/mockups/ed-hero-mockup.tsx" \
+  "components/marketing/mockups/escript.tsx" \
+  "components/marketing/mockups/how-it-works-steps.tsx" \
+  "components/marketing/sections/certificate-preview-section.tsx" \
+  "components/marketing/sections/how-it-works-section.tsx"
+do
+  if [[ -e "$retired_mockup" ]]; then
+    echo "ORPHAN: $retired_mockup still exists (superseded marketing mockup or wrapper)"
     orphans=$((orphans + 1))
   fi
 done
