@@ -767,7 +767,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 |-----------|---------|
 | `ui/` | shadcn/Radix primitives (Button, Input, Dialog, etc.) |
 | `uix/` | Thin shared wrappers and re-exports (UserCard, PageBreadcrumbs, DatePickerField, Pagination, Snippet, etc.) |
-| `shared/` | Header, Footer, InlineAuthStep, LazyOverlays |
+| `shared/` | Header, Footer, inline auth/onboarding steps, global notices |
 | `operator/` | OperatorShell, bounded staff pages, split panes, local action palettes |
 | `request/` | Intake flow: `request-flow.tsx` (orchestrator), `steps/` (per-step components), `store.ts` (Zustand) |
 | `marketing/` | Landing pages, ServiceFunnelPage, testimonials, exit intent |
