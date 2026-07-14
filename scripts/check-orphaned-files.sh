@@ -564,6 +564,7 @@ for retired_barrel_leaf in \
   "components/doctor/identity-incomplete-banner.tsx" \
   "components/heroes/full-bleed-hero.tsx" \
   "components/operator/staff-command-palette.tsx" \
+  "components/ui/progress.tsx" \
   "components/uix/README.md" \
   "components/uix/accordion.tsx" \
   "components/uix/modal.tsx" \

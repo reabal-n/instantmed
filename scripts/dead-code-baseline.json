@@ -1,7 +1,6 @@
 {
   "version": 1,
   "keys": [
-    "full|dependencies|package.json|@radix-ui/react-progress",
     "full|duplicates|scripts/e2e/seed.ts|DOCTOR_AUTH_USER_ID,DOCTOR_PROFILE_ID",
     "full|duplicates|scripts/e2e/seed.ts|OPERATOR_AUTH_USER_ID,OPERATOR_PROFILE_ID",
     "full|duplicates|scripts/e2e/seed.ts|PATIENT_AUTH_USER_ID,PATIENT_PROFILE_ID",
@@ -727,7 +726,6 @@
     "full|exports|types/certificate-template.ts|FONT_SIZE_VALUES",
     "full|exports|types/certificate-template.ts|MARGIN_VALUES",
     "full|exports|types/db.ts|STAFF_ROLES",
-    "full|files|components/ui/progress.tsx|components/ui/progress.tsx",
     "full|types|app/actions/contact-form.ts|ContactFormData",
     "full|types|app/actions/decline-intake.ts|RefundStatus",
     "full|types|app/actions/draft-approval.ts|AuditEventParams",
@@ -1069,7 +1067,6 @@
     "full|types|types/db.ts|WebhookDeadLetter",
     "full|types|types/shared.ts|CursorPaginationInfo",
     "production|dependencies|package.json|@ai-sdk/openai",
-    "production|dependencies|package.json|@radix-ui/react-progress",
     "production|exports|app/actions/account.ts|updateNotificationPreferences",
     "production|exports|app/actions/admin-config.ts|createEmailTemplateAction",
     "production|exports|app/actions/admin-config.ts|getEligibleRefundsAction",
@@ -2018,7 +2015,6 @@
     "production|exports|types/certificate-template.ts|FONT_SIZE_VALUES",
     "production|exports|types/certificate-template.ts|MARGIN_VALUES",
     "production|exports|types/db.ts|STAFF_ROLES",
-    "production|files|components/ui/progress.tsx|components/ui/progress.tsx",
     "production|files|lib/__tests__/setup.ts|lib/__tests__/setup.ts",
     "production|files|lib/data/customer-growth-baseline.ts|lib/data/customer-growth-baseline.ts",
     "production|types|app/actions/contact-form.ts|ContactFormData",

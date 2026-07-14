@@ -622,6 +622,7 @@ describe("code-clean retirement contracts", () => {
       "components/doctor/identity-incomplete-banner.tsx",
       "components/heroes/full-bleed-hero.tsx",
       "components/operator/staff-command-palette.tsx",
+      "components/ui/progress.tsx",
       "components/uix/README.md",
       "components/uix/accordion.tsx",
       "components/uix/modal.tsx",
@@ -637,6 +638,7 @@ describe("code-clean retirement contracts", () => {
     expect(read("components/uix/index.ts")).not.toContain('from "./modal"')
     expect(read("components/operator/index.ts")).not.toContain("StaffCommandPalette")
     expect(read("docs/ARCHITECTURE.md")).not.toContain("`StaffCommandPalette`")
+    expect(read("package.json")).not.toContain("@radix-ui/react-progress")
   })
 
   it("does not redirect legacy image names into a missing people directory", () => {
