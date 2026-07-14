@@ -572,7 +572,7 @@ const myVariants: Variants = {
 
 ### Panel & Drawer Variants
 
-`lib/motion/panel-variants.ts` exports ready-made variants for panels, drawers, sheets, and floating bars. All use `easing.panel` and shared duration tokens.
+`lib/motion/panel-variants.ts` exports ready-made backdrop, drawer, and sheet variants. All use `easing.panel` and shared duration tokens.
 
 ```tsx
 import { backdropVariants, drawerVariants, sheetVariants } from '@/lib/motion/panel-variants'

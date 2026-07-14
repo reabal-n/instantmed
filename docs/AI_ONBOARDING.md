@@ -87,4 +87,4 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2
 
 ---
 
-**Last updated:** 2026-05-07 (runtime source-of-truth and release gate refresh). Updates should be co-commited with any meaningful design-system change.
+**Last updated:** 2026-07-14 (v2.0.3 removal cleanup and canonical primitive refresh). Updates should be co-commited with any meaningful design-system change.
