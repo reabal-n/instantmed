@@ -299,6 +299,7 @@ function CockpitIntakeDetailClient({
             <IntakeFlagsPanel
               flags={parseIntakeFlags((reviewData.intake as { risk_flags?: unknown }).risk_flags)}
               className="mb-3"
+              hideRequestFieldFlags
             />
             <IntakeReviewCockpit />
           </div>

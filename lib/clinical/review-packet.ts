@@ -5,7 +5,7 @@ import {
   getRepeatScriptMedicationDisplayParts,
 } from "@/lib/validation/repeat-script-medications"
 
-export type ReviewFactState =
+type ReviewFactState =
   | "confirmed"
   | "inferred"
   | "missing"
@@ -24,7 +24,7 @@ export interface ReviewFact {
   noteCanResolve?: boolean
 }
 
-export interface ReviewWorkflow {
+interface ReviewWorkflow {
   kind: "medical_certificate" | "repeat_prescription" | "prescribing_consult" | "consult"
   prescribeLabel: string | null
   completionLabel: string
@@ -174,6 +174,29 @@ function genericFacts(input: BuildReviewPacketInput): ReviewFact[] {
     ...normalizeGenericFactValue(value),
     provenance: "current_request" as const,
   }))
+}
+
+function medicalCertificateFacts(input: BuildReviewPacketInput): ReviewFact[] {
+  const facts = genericFacts(input)
+  const symptomDetail = answerString(input.answers, ["symptomDetails", "symptom_details"])
+  const existingSymptomFact = facts.find((reviewFact) => reviewFact.key === "symptoms")
+
+  if (!symptomDetail && !existingSymptomFact) {
+    facts.push(fact(
+      "symptoms",
+      "Symptoms",
+      null,
+      {
+        state: "missing",
+        issue: "Request symptom detail",
+        optional: false,
+        blocksPrescribing: false,
+        noteCanResolve: false,
+      },
+    ))
+  }
+
+  return facts
 }
 
 function repeatPrescriptionFacts(input: BuildReviewPacketInput): ReviewFact[] {
@@ -342,7 +365,9 @@ export function buildReviewPacket(input: BuildReviewPacketInput): ReviewPacket {
   const workflow = workflowFor(deriveWorkflowKind(input))
   const facts = workflow.kind === "repeat_prescription"
     ? repeatPrescriptionFacts(input)
-    : genericFacts(input)
+    : workflow.kind === "medical_certificate"
+      ? medicalCertificateFacts(input)
+      : genericFacts(input)
 
   return {
     title: input.summary.title,

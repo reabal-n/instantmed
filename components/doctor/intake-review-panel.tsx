@@ -739,13 +739,15 @@ export function IntakeReviewPanel({
               </div>
             )}
 
-            <IntakeFlagsPanel flags={parseIntakeFlags((data.intake as { risk_flags?: unknown }).risk_flags)} />
+            <IntakeFlagsPanel
+              flags={parseIntakeFlags((data.intake as { risk_flags?: unknown }).risk_flags)}
+              hideRequestFieldFlags
+            />
 
             <IntakeReviewCockpit
               showDecisionStrip
               compactDecisionStrip
               revealIdentityByDefault={inline}
-              showThinMedCertWarning={false}
               className={inline ? "min-h-0 flex-1" : undefined}
               onBatchReviewResolved={onBatchReviewResolved}
             />

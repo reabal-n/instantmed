@@ -676,7 +676,7 @@ Classify each match as current intentional copy, stale implementation, or stale 
 
 ```bash
 corepack pnpm doc:audit
-corepack pnpm dead-code:check
+corepack pnpm deadcode:check
 git diff --check
 ```
 
@@ -719,7 +719,7 @@ corepack pnpm lint
 corepack pnpm test
 corepack pnpm build
 corepack pnpm doc:audit
-corepack pnpm dead-code:check
+corepack pnpm deadcode:check
 ```
 
 All commands must pass on the pinned Node 24/pnpm 10 runtime. Do not change dependencies to resolve implementation errors.

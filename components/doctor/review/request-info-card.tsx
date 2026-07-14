@@ -1,48 +1,45 @@
 "use client"
 
-import { CheckCircle, Clock, FileText } from "lucide-react"
+import { AlertCircle, FileText } from "lucide-react"
 import type { ReactNode } from "react"
 
 import { ClinicalCaseReview } from "@/components/doctor/clinical-case-review"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
-import { getQueueEnteredAt } from "@/lib/doctor/queue-utils"
-import { formatServiceType } from "@/lib/format/intake"
+import type { ClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import type { ReviewFact, ReviewPacket } from "@/lib/clinical/review-packet"
 import { cn } from "@/lib/utils"
 
 interface RequestInfoCardProps {
-  compact?: boolean
-  hideFullAnswers?: boolean
-  hidePatientStory?: boolean
+  packet: ReviewPacket
+  summary: ClinicalCaseSummary
+  draftNoteOpen: boolean
+  onDraftNoteOpenChange: (open: boolean) => void
   actionSlot?: ReactNode
-  /**
-   * Suppress the inline Parchment handoff block. The intake-review cockpit
-   * sets this so the canonical PrescribingPacketCard does not double-render
-   * alongside the legacy inline handoff section.
-   */
-  hidePrescriptionIntent?: boolean
+}
+
+function reviewFactTone(fact: ReviewFact): string {
+  if (fact.state === "missing") return "text-warning"
+  if (fact.state === "inferred") return "text-amber-700 dark:text-amber-300"
+  return "text-foreground"
 }
 
 /**
- * Request facts always visible (no collapse-toggle).
- *
- * Pre-2026-05-21 this card collapsed via a chevron click in the header.
- * That added a click on the most-used tab and hid the patient story
- * behind a state-management surprise. The card now renders open every
- * time it mounts.
+ * The single default-visible packet for current-request facts. ClinicalCaseReview
+ * remains the note/safety editor, but its competing story, key-fact, plan, and
+ * prescribing-context renderers are suppressed here.
  */
 export function RequestInfoCard({
-  compact = false,
-  hideFullAnswers = false,
-  hidePatientStory = false,
+  packet,
+  summary,
+  draftNoteOpen,
+  onDraftNoteOpenChange,
   actionSlot,
-  hidePrescriptionIntent = false,
 }: RequestInfoCardProps) {
   const {
     data,
     intake,
     service,
     answers,
-    formatDate,
     doctorNotes,
     setDoctorNotes,
     setNoteSaved,
@@ -54,11 +51,6 @@ export function RequestInfoCard({
     notesRef,
     handleSaveNotes,
   } = useIntakeReview()
-  const submittedAt = intake.submitted_at ?? intake.created_at
-  const queueEnteredAt = getQueueEnteredAt(intake)
-  const isMedCert = service?.type === "med_certs"
-  const showCompactRequestHeader = !(compact && hideFullAnswers && hidePatientStory)
-  const splitCompactReview = compact && hideFullAnswers && hidePatientStory
   const doctorSignOffLabel = [
     data.reviewingClinician?.fullName,
     data.reviewingClinician?.ahpraNumber,
@@ -66,37 +58,50 @@ export function RequestInfoCard({
 
   return (
     <section
-      aria-label="Case summary"
-      className={cn(
-        splitCompactReview
-          ? "space-y-3"
-          : "rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04]",
-        !splitCompactReview && (compact ? "p-4" : "p-5 sm:p-6"),
-      )}
+      aria-label="Request packet"
+      data-review-packet="true"
+      className="rounded-xl border border-border/50 bg-card px-3 py-3 shadow-sm shadow-primary/[0.04] sm:px-4"
     >
-      <div className="space-y-4">
-        {showCompactRequestHeader ? (
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-              <FileText className="h-4 w-4 text-primary" aria-hidden="true" />
-              {service?.name || formatServiceType(service?.type || "")}
-            </h3>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-              Submitted: {formatDate(submittedAt)}
-            </div>
-            {(intake.payment_status === "paid" || intake.paid_at) && (
-              <div className="flex items-center gap-1">
-                <CheckCircle className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-                Paid: {intake.paid_at ? formatDate(queueEnteredAt) : "time missing"}
-              </div>
-            )}
-            </div>
-          </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="flex min-w-0 items-center gap-2 text-sm font-semibold text-foreground">
+          <FileText className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+          <span className="truncate">{packet.title}</span>
+        </h3>
+        {packet.issueCount > 0 ? (
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-warning">
+            <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
+            {packet.issueCount} {packet.issueCount === 1 ? "item" : "items"} to confirm
+          </span>
         ) : null}
+      </div>
 
+      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border/50 pt-3 lg:grid-cols-3">
+        {packet.facts.map((fact) => (
+          <div
+            key={fact.key}
+            className={cn("min-w-0", fact.optional && "text-muted-foreground")}
+            data-review-fact={fact.key}
+            data-review-fact-state={fact.state}
+          >
+            <dt className="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
+              {fact.label}
+            </dt>
+            <dd className={cn("mt-0.5 break-words text-[13px] font-semibold leading-5", reviewFactTone(fact))}>
+              {fact.value}
+            </dd>
+            {fact.issue ? (
+              <p className="mt-0.5 text-[11px] font-medium leading-4 text-warning">
+                {fact.state === "inferred" ? "Inferred from patient text · " : ""}
+                {fact.issue}
+              </p>
+            ) : null}
+          </div>
+        ))}
+      </dl>
+
+      <div className="mt-3 border-t border-border/50 pt-3">
         <ClinicalCaseReview
+          summary={summary}
           answers={answers}
           category={intake.category}
           subtype={intake.subtype}
@@ -107,12 +112,15 @@ export function RequestInfoCard({
           riskTier={intake.risk_tier}
           requiresLiveConsult={intake.requires_live_consult}
           scriptSent={intake.script_sent}
-          compact={compact}
-          showFullAnswers={!hideFullAnswers}
-          hidePatientStory={hidePatientStory}
-          hideTitle={compact}
-          hideRecommendedPlan={compact || isMedCert}
-          hidePrescriptionIntent={hidePrescriptionIntent}
+          compact
+          showFullAnswers={false}
+          hidePatientStory
+          hideTitle
+          hideRequestFacts
+          hideRecommendedPlan
+          hidePrescriptionIntent
+          draftNoteOpen={draftNoteOpen}
+          onDraftNoteOpenChange={onDraftNoteOpenChange}
           draftNoteValue={doctorNotes}
           draftNoteTextareaRef={notesRef}
           onDraftNoteChange={(value) => {
@@ -126,12 +134,13 @@ export function RequestInfoCard({
           draftNoteSaveError={autoSaveError}
           doctorSignOffLabel={doctorSignOffLabel}
         />
-        {actionSlot ? (
-          <div className="border-t border-border/60 pt-3">
-            {actionSlot}
-          </div>
-        ) : null}
       </div>
+
+      {actionSlot ? (
+        <div className="mt-3 border-t border-border/60 pt-3">
+          {actionSlot}
+        </div>
+      ) : null}
     </section>
   )
 }

@@ -8,6 +8,11 @@ const cockpitSource = readFileSync(
   "utf-8",
 )
 
+const requestInfoSource = readFileSync(
+  resolve(process.cwd(), "components/doctor/review/request-info-card.tsx"),
+  "utf-8",
+)
+
 describe("IntakeReviewCockpit source contract", () => {
   it("does not import or render Tabs primitives", () => {
     expect(cockpitSource).not.toMatch(/from\s+["']@\/components\/ui\/tabs["']/)
@@ -25,14 +30,24 @@ describe("IntakeReviewCockpit source contract", () => {
     )
   })
 
-  it("renders the prescribing packet card (medication + dose + indication)", () => {
-    // Plan 06: the cockpit's primary medication card is now PrescribingPacketCard,
-    // which closes the dose+indication gap PrescriptionIntent could not show.
-    expect(cockpitSource).toMatch(/PrescribingPacketCard/)
-    expect(cockpitSource).toMatch(
-      /from\s+["']@\/components\/doctor\/prescribing-packet-card["']/,
-    )
-    expect(cockpitSource).toMatch(/buildPrescribingPacket/)
+  it("keeps raw current-intake answers available only inside the full-intake disclosure", () => {
+    const disclosureIndex = cockpitSource.indexOf("<IntakeSecondaryDisclosure")
+    const clinicalSummaryIndex = cockpitSource.indexOf("<ClinicalSummary", disclosureIndex)
+    const disclosureCloseIndex = cockpitSource.indexOf("</IntakeSecondaryDisclosure>", disclosureIndex)
+
+    expect(cockpitSource).toMatch(/from\s+["']@\/components\/doctor\/clinical-summary["']/)
+    expect(clinicalSummaryIndex).toBeGreaterThan(disclosureIndex)
+    expect(clinicalSummaryIndex).toBeLessThan(disclosureCloseIndex)
+  })
+
+  it("builds one review packet and gives it to the existing request card", () => {
+    expect(cockpitSource).toMatch(/buildReviewPacket/)
+    expect(cockpitSource).toMatch(/packet=\{reviewPacket\}/)
+    expect(cockpitSource).not.toMatch(/PrescribingPacketCard/)
+    expect(cockpitSource).not.toMatch(/buildPrescribingPacket/)
+    expect(requestInfoSource).toContain("packet.facts")
+    expect(requestInfoSource).toContain('data-review-packet="true"')
+    expect(requestInfoSource).toContain("hideRequestFacts")
   })
 
   it("preserves the Cmd+N notes shortcut wiring", () => {
@@ -42,14 +57,16 @@ describe("IntakeReviewCockpit source contract", () => {
   })
 
   it("focuses the visible draft note on Cmd+N without opening a duplicate editor", () => {
+    expect(cockpitSource).toMatch(/setDraftNoteOpen\(true\)/)
+    expect(cockpitSource).toMatch(/requestAnimationFrame/)
     expect(cockpitSource).toMatch(/notesRef\.current\?\.focus\(\)/)
     expect(cockpitSource).not.toMatch(/ClinicalNotesEditor/)
   })
 
-  it("hides the duplicate prescription handoff context in RequestInfoCard", () => {
-    // RequestInfoCard owns the legacy inline handoff block; the cockpit must
-    // suppress it so PrescribingPacketCard does not double-render.
-    expect(cockpitSource).toMatch(/hidePrescriptionIntent/)
+  it("does not render a second reason-for-visit or prescribing handoff block", () => {
+    expect(cockpitSource).not.toMatch(/reasonForVisitText/)
+    expect(requestInfoSource).toMatch(/hidePrescriptionIntent/)
+    expect(requestInfoSource).toMatch(/hidePatientStory/)
   })
 
   it("opens Parchment from the prescribing shortcut instead of approving first", () => {

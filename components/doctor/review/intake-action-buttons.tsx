@@ -12,11 +12,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
-import { buildPrescribingPacket, getPrescribingPacketBlocker } from "@/lib/clinical/prescribing-packet"
 import {
   getRepeatRxAttestationStatus,
   hasLegacyRepeatRxReconciliationNote,
 } from "@/lib/clinical/repeat-rx-attestation"
+import { buildReviewPacket, getReviewPacketBlocker } from "@/lib/clinical/review-packet"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
 import {
@@ -283,28 +283,39 @@ export function IntakeActionButtons({
     canCompleteRecordedRepeatScript && getRepeatRxAttestationStatus(answers) !== "confirmed_unchanged"
   const recordedRepeatReconciliationReady =
     hasLegacyRepeatRxReconciliationNote(doctorNotes) && !isAiPrefilled && !noteDirty
-  // Plan 06: block Prescribe/Complete for a legacy repeat-Rx missing
-  // medication/dose/indication unless a clinical note exists (then it warns).
-  // New repeats can't be missing fields — checkout enforces them (Plan 04).
+  const reviewPacket = useMemo(() => buildReviewPacket({
+    category: intake.category,
+    serviceType: service?.type,
+    subtype: intake.subtype,
+    answers: answers ?? {},
+    intake: {
+      status: intake.status,
+      script_sent: intake.script_sent,
+    },
+    summary: caseSummary,
+  }), [
+    answers,
+    caseSummary,
+    intake.category,
+    intake.script_sent,
+    intake.status,
+    intake.subtype,
+    service?.type,
+  ])
+  // Legacy repeat requests can still lack fields introduced after checkout.
+  // The canonical packet owns both their display state and prescribing gate.
   const packetBlocker = useMemo(() => {
-    const packet = buildPrescribingPacket({
-      serviceType: service?.type,
-      subtype: intake.subtype,
-      answers: answers ?? {},
-      intake: { status: intake.status, script_sent: intake.script_sent },
-    })
-    return getPrescribingPacketBlocker(packet, doctorNotes)
-  }, [service?.type, intake.subtype, intake.status, intake.script_sent, answers, doctorNotes])
+    return getReviewPacketBlocker(reviewPacket, doctorNotes)
+  }, [doctorNotes, reviewPacket])
   // packetBlocker.blocked drives the disabled state + disabled-reason wiring.
   // The non-blocking warning (legacy repeat-Rx missing dose/indication WITH a
   // clinical note recorded) is surfaced as a visible calm line at the decision
-  // point below (prescribingPacketWarning) AND via the button title — not only the
-  // PrescribingPacketCard, which renders solely in the cockpit (the full-case
-  // header has no card). Do NOT use packetBlocker.message for the disabled-reason —
+  // point below (reviewPacketWarning) AND via the button title — not only the
+  // request packet. Do NOT use packetBlocker.message for the disabled-reason —
   // only the blocked message gates, so this stays blocked-only.
-  const prescribingPacketBlockMessage = packetBlocker.blocked ? packetBlocker.message : null
+  const reviewPacketBlockMessage = packetBlocker.blocked ? packetBlocker.message : null
   // Visible, non-gating nudge for the warning case (note recorded → confirm in Parchment).
-  const prescribingPacketWarning = packetBlocker.warning ? packetBlocker.message : null
+  const reviewPacketWarning = packetBlocker.warning ? packetBlocker.message : null
 
   const needsClinicalNotes = !isClinicalNoteSufficient(doctorNotes)
   const approvalNeedsClinicalNotes =
@@ -387,8 +398,8 @@ export function IntakeActionButtons({
   const completeConsultDisabledReason = shouldPrescribeFromConsult
     ? hasPrescribingIdentityBlocker
       ? prescribingIdentityTitle
-      : prescribingPacketBlockMessage ?? approveDisabledReason
-    : prescribingPacketBlockMessage ?? approveDisabledReason
+      : reviewPacketBlockMessage ?? approveDisabledReason
+    : reviewPacketBlockMessage ?? approveDisabledReason
   const visibleDisabledHint =
     disabledApproveHint ??
     (canShowCompleteConsult ? completeConsultDisabledReason : null) ??
@@ -436,13 +447,13 @@ export function IntakeActionButtons({
           </Button>
         </div>
       )}
-      {prescribingPacketWarning && (
+      {reviewPacketWarning && (
         <p
-          data-testid="prescribing-packet-warning"
+          data-testid="review-packet-warning"
           className="mb-2 flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-300"
         >
           <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-500" aria-hidden />
-          <span>{prescribingPacketWarning}</span>
+          <span>{reviewPacketWarning}</span>
         </p>
       )}
       <div

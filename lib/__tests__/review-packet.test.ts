@@ -285,6 +285,28 @@ describe("buildReviewPacket", () => {
       expect.objectContaining({ key: "patient_note", value: "Not recorded", state: "missing" }),
     ])
   })
+
+  it("attaches missing medical-certificate symptom detail to the request packet", () => {
+    const packet = buildReviewPacket({
+      category: "medical_certificate",
+      serviceType: "med_certs",
+      answers: { duration: "1", certType: "work" },
+      summary: {
+        title: "Medical certificate request",
+        keyFacts: [
+          { label: "Certificate type", value: "Work" },
+          { label: "Requested duration", value: "1 day" },
+        ],
+      },
+    })
+
+    expect(packet.facts.find((fact) => fact.key === "symptoms")).toMatchObject({
+      value: "Not recorded",
+      state: "missing",
+      issue: "Request symptom detail",
+    })
+    expect(packet.issueCount).toBe(1)
+  })
 })
 
 describe("getReviewPacketBlocker", () => {

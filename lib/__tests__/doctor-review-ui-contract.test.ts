@@ -160,29 +160,26 @@ describe("doctor review prescribing controls", () => {
     expect(sharedSource).toContain('.join("\\n")')
   })
 
-  it("gates Prescribe/Complete behind the prescribing-packet blocker on both surfaces", () => {
-    // Plan 06: a legacy repeat-Rx missing dose/indication (and no clinical note)
-    // disables Prescribe + Complete via getPrescribingPacketBlocker, label
-    // unchanged. Both review surfaces must wire it identically so one surface
-    // can't silently drop the gate.
+  it("gates Prescribe/Complete behind the canonical review-packet blocker on both surfaces", () => {
     for (const source of [queueSheetActionsSource, fullCaseHeaderSource]) {
-      expect(source).toContain("buildPrescribingPacket")
-      expect(source).toContain("getPrescribingPacketBlocker")
+      expect(source).toContain("buildReviewPacket")
+      expect(source).toContain("getReviewPacketBlocker")
       expect(source).toContain("packetBlocker.blocked")
+      expect(source).not.toContain("buildPrescribingPacket")
     }
   })
 
   it("surfaces the non-blocking packet warning visibly at the decision point on both surfaces", () => {
-    // Codex review 2026-06-27: getPrescribingPacketBlocker returns a non-blocking
+    // The review packet returns a non-blocking
     // warning (legacy repeat-Rx missing dose/indication WITH a clinical note) whose
     // message was previously surfaced only as a button tooltip — and the full-case
-    // header renders NO PrescribingPacketCard, so it was effectively invisible there.
+    // header renders no request packet, so it must remain visible there.
     // Both surfaces must now render the warning text visibly near the controls
     // (prescribingPacketWarning), in addition to the button title.
     for (const source of [queueSheetActionsSource, fullCaseHeaderSource]) {
       expect(source).toContain("packetBlocker.warning")
-      expect(source).toContain("prescribingPacketWarning")
-      expect(source).toContain('data-testid="prescribing-packet-warning"')
+      expect(source).toContain("reviewPacketWarning")
+      expect(source).toContain('data-testid="review-packet-warning"')
       // Tooltip nudge preserved too.
       expect(source).toContain("packetBlocker.message ??")
     }

@@ -40,11 +40,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { buildPrescribingPacket, getPrescribingPacketBlocker } from "@/lib/clinical/prescribing-packet"
 import {
   getRepeatRxAttestationStatus,
   hasLegacyRepeatRxReconciliationNote,
 } from "@/lib/clinical/repeat-rx-attestation"
+import { buildReviewPacket, getReviewPacketBlocker } from "@/lib/clinical/review-packet"
 import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/data/status"
@@ -200,24 +200,25 @@ export function IntakeDetailHeader({
         ? "Use the draft note or add a brief clinical note."
         : null
 
-  // Plan 06: block Prescribe/Complete for a legacy repeat-Rx missing
-  // medication/dose/indication unless a clinical note exists (then it warns).
-  const packetBlocker = getPrescribingPacketBlocker(
-    buildPrescribingPacket({
+  // The full-case header consumes the same packet gate as the inline cockpit.
+  const packetBlocker = getReviewPacketBlocker(
+    buildReviewPacket({
+      category: intake.category,
       serviceType: service?.type,
       subtype: intake.subtype,
       answers,
       intake: { status: intake.status, script_sent: intake.script_sent },
+      summary: { title: "Request", keyFacts: [] },
     }),
     doctorNotes,
   )
   // blocked-only (gates the disabled-reason).
-  const prescribingPacketBlockMessage = packetBlocker.blocked ? packetBlocker.message : null
+  const reviewPacketBlockMessage = packetBlocker.blocked ? packetBlocker.message : null
   // Non-gating warning (legacy repeat-Rx missing dose/indication WITH a clinical
-  // note recorded). This surface does NOT render the PrescribingPacketCard, so
+  // note recorded). This surface does not render the request packet, so
   // without this the warning was only a button tooltip — surface it visibly near
   // the controls (calm chrome). Does NOT disable anything.
-  const prescribingPacketWarning = packetBlocker.warning ? packetBlocker.message : null
+  const reviewPacketWarning = packetBlocker.warning ? packetBlocker.message : null
 
   const getStatusColor = (status: string) => {
     return INTAKE_STATUS[status as StatusType]?.color ?? "bg-primary/10 text-primary"
@@ -237,10 +238,10 @@ export function IntakeDetailHeader({
   const completeConsultDisabledReason = shouldPrescribeFromConsult
     ? hasPrescribingIdentityBlocker
       ? prescribingIdentityTitle
-      : prescribingPacketBlockMessage ?? (completeConsultNeedsScript
+      : reviewPacketBlockMessage ?? (completeConsultNeedsScript
         ? "Complete or record the prescription in Parchment first."
         : approveDisabledReason)
-    : prescribingPacketBlockMessage ?? approveDisabledReason
+    : reviewPacketBlockMessage ?? approveDisabledReason
 
   const handlePrescribeClick = () => {
     onOpenParchmentPrescribe?.()
@@ -399,13 +400,13 @@ export function IntakeDetailHeader({
               </div>
             )}
 
-            {prescribingPacketWarning && (
+            {reviewPacketWarning && (
               <p
-                data-testid="prescribing-packet-warning"
+                data-testid="review-packet-warning"
                 className="flex w-full items-start gap-1.5 text-xs text-amber-700 dark:text-amber-300"
               >
                 <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-500" aria-hidden />
-                <span>{prescribingPacketWarning}</span>
+                <span>{reviewPacketWarning}</span>
               </p>
             )}
 

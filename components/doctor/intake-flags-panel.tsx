@@ -1,4 +1,8 @@
-import { attentionFlags, type IntakeFlag } from "@/lib/clinical/intake-flags"
+import {
+  attentionFlags,
+  type IntakeFlag,
+  withoutRequestPacketFlags,
+} from "@/lib/clinical/intake-flags"
 import { cn } from "@/lib/utils"
 
 /**
@@ -35,10 +39,22 @@ export function IntakeFlagsBadge({ flags, className }: { flags: IntakeFlag[]; cl
  * Full "Needs doctor attention" panel for the intake detail page. Lists every
  * flag (attention first, then info). Renders nothing when there are no flags.
  */
-export function IntakeFlagsPanel({ flags, className }: { flags: IntakeFlag[]; className?: string }) {
-  if (flags.length === 0) return null
+export function IntakeFlagsPanel({
+  flags,
+  className,
+  hideRequestFieldFlags = false,
+}: {
+  flags: IntakeFlag[]
+  className?: string
+  hideRequestFieldFlags?: boolean
+}) {
+  const visibleFlags = hideRequestFieldFlags ? withoutRequestPacketFlags(flags) : flags
+  if (visibleFlags.length === 0) return null
 
-  const ordered = [...attentionFlags(flags), ...flags.filter((flag) => flag.severity === "info")]
+  const ordered = [
+    ...attentionFlags(visibleFlags),
+    ...visibleFlags.filter((flag) => flag.severity === "info"),
+  ]
 
   return (
     <section
