@@ -1,31 +1,14 @@
 "use client"
 
-import {
-  AlertCircle,
-  Calendar,
-  Clock,
-  FileText,
-  Pill,
-} from "lucide-react"
+import { AlertCircle } from "lucide-react"
 import dynamic from "next/dynamic"
-import Link from "next/link"
 import { type MouseEvent, useEffect, useMemo } from "react"
 
-import { DashboardSection } from "@/components/dashboard/dashboard-section"
 import { usePanel } from "@/components/panels/panel-provider"
 import { DashboardHero } from "@/components/patient/dashboard-hero"
-import { IntakeCard } from "@/components/patient/intake-card"
 import { type Intake } from "@/components/patient/intake-types"
 import { type ProfileData, type TodoDrawerType } from "@/components/patient/profile-todo-card"
-import { Button } from "@/components/ui/button"
 import { capture } from "@/lib/analytics/capture"
-import {
-  buildPatientIntakeHref,
-  PATIENT_INTAKES_HREF,
-  PATIENT_PRESCRIPTIONS_HREF,
-  REQUEST_REPEAT_SCRIPT_HREF,
-} from "@/lib/dashboard/routes"
-import { formatDate } from "@/lib/format"
 import { needsRenewalSoon } from "@/lib/prescriptions"
 
 const DrawerPanel = dynamic(
@@ -62,6 +45,10 @@ const ReviewNudgeCard = dynamic(
 const UndeliveredCertificateAlert = dynamic(
   () => import("@/components/patient/undelivered-certificate-alert").then((mod) => mod.UndeliveredCertificateAlert),
 )
+const DashboardActivity = dynamic(
+  () => import("@/components/patient/dashboard-activity").then((mod) => mod.DashboardActivity),
+  { ssr: false, loading: () => <DashboardActivityLoading /> },
+)
 
 function ProfileDrawerLoading() {
   return (
@@ -79,6 +66,19 @@ function ReferralCardLoading() {
       <div className="mb-4 h-5 w-32 rounded-md bg-muted motion-safe:animate-pulse" />
       <div className="mb-5 h-4 w-64 max-w-full rounded-md bg-muted/80 motion-safe:animate-pulse" />
       <div className="h-10 rounded-lg bg-muted/70 motion-safe:animate-pulse" />
+    </div>
+  )
+}
+
+function DashboardActivityLoading() {
+  return (
+    <div
+      className="min-h-52 space-y-4"
+      aria-busy="true"
+      aria-label="Loading recent activity"
+    >
+      <div className="h-6 w-40 rounded-md bg-muted motion-safe:animate-pulse" />
+      <div className="h-24 rounded-xl bg-muted/60 motion-safe:animate-pulse" />
     </div>
   )
 }
@@ -289,85 +289,11 @@ export function PanelDashboard({
       )}
 
       {hasAnyActivity && (
-        <>
-          {/* ─── ZONE 2 · ACTIVITY ──────────────────────────────────────── */}
-          {intakes.length > 0 && (
-            <DashboardSection
-              title="Recent requests"
-              viewAllHref={intakes.length > 5 ? PATIENT_INTAKES_HREF : undefined}
-            >
-              <div className="space-y-4">
-                {intakes.slice(0, 5).map((intake) => (
-                  <div key={intake.id}>
-                    <IntakeCard
-                      intake={intake}
-                      href={buildPatientIntakeHref(intake.id)}
-                      onClick={(event) => handleViewIntake(event, intake)}
-                    />
-                  </div>
-                ))}
-              </div>
-            </DashboardSection>
-          )}
-
-          {prescriptions.filter((p) => p.status === "active").length > 0 && (
-            <DashboardSection
-              title="Active prescriptions"
-              viewAllHref={
-                prescriptions.filter((p) => p.status === "active").length > 3
-                  ? PATIENT_PRESCRIPTIONS_HREF
-                  : undefined
-              }
-            >
-              <div className="space-y-4">
-                {prescriptions
-                  .filter((p) => p.status === "active")
-                  .slice(0, 3)
-                  .map((rx) => (
-                    <div
-                      key={rx.id}
-                      className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5 transition-[transform,box-shadow,border-color] duration-300 hover:border-primary/40 hover:shadow-md hover:shadow-primary/[0.06]"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-foreground">{rx.medication_name}</h3>
-                          <p className="text-sm text-muted-foreground mt-1">{rx.dosage_instructions}</p>
-                          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1.5">
-                              <Calendar className="w-4 h-4" />
-                              Issued {formatDate(rx.issued_date)}
-                            </span>
-                            <span className="flex items-center gap-1.5">
-                              <Clock className="w-4 h-4" />
-                              Renews {formatDate(rx.expiry_date)}
-                            </span>
-                          </div>
-                        </div>
-                        <Link href={REQUEST_REPEAT_SCRIPT_HREF} className="shrink-0">
-                          <Button variant="outline" size="sm">
-                            <Pill className="w-4 h-4 mr-2" />
-                            Renew
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </DashboardSection>
-          )}
-
-          {/* Empty case for activity sub-zone. */}
-          {intakes.length === 0 && (
-            <DashboardSection title="Recent requests">
-              <div className="rounded-xl border border-dashed border-border/60 bg-muted/30 px-6 py-8 text-center">
-                <FileText className="mx-auto mb-3 h-6 w-6 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  When you submit a request, it&apos;ll show up here.
-                </p>
-              </div>
-            </DashboardSection>
-          )}
-        </>
+        <DashboardActivity
+          intakes={intakes}
+          prescriptions={prescriptions}
+          onViewIntake={handleViewIntake}
+        />
       )}
 
       {hasAnyActivity && (
