@@ -569,7 +569,7 @@ function InstantPdfBadge({ config, className }: { config: BadgeConfig; className
 }
 
 // social_proof - non-numeric trust line (the interpolated patient count was
-// removed from all public surfaces 2026-07-10 — see getPatientCount's compliance note)
+// removed from all public surfaces 2026-07-10; its plumbing was retired 2026-07-14)
 function SocialProofBadge({ config, className }: { config: BadgeConfig; className?: string }) {
   return (
     <div

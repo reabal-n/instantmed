@@ -13,9 +13,10 @@ Single source of truth for all platform metrics shown on marketing pages.
 | `SOCIAL_PROOF` | `const object` | Raw operational metrics: `certTurnaroundMinutes`, `averageResponseMinutes`, `refundPercent`, `operatingDays`, and internal historical counters. NO operating-hours window fields (service is 24/7; removed 2026-07-10). Review counts, testimonials, public numeric ratings, employer acceptance rates, approval rates, and fulfilment-rate claims are not public primitives. |
 | `SOCIAL_PROOF_DISPLAY` | `const object` | Pre-formatted strings: `responseTime`, `certTurnaround`, `operatingSchedule`, `refundGuarantee`, and non-outcome trust phrasing. `operatingHours` was removed 2026-07-10 (computed a retired review-hours window). |
 | `GOOGLE_REVIEWS` | `object` | Google Business Profile star-badge config. Gates the visual Google mark + stars badge only; do not expose review counts, numeric rating text, testimonial copy, or aggregate-rating schema. |
-| `getPatientCount()` | `function` | ⛔ NOT a public primitive (2026-07-10): synthetic interpolation that displayed ~10x the real paying-patient count. Removed from every public surface and pinned by `synthetic-patient-count-contract.test.ts`. Re-anchor to a real, verifiable count before any future render. |
 
 **Rule:** Never hardcode a social proof number on a marketing page. Import from `SOCIAL_PROOF` or `SOCIAL_PROOF_DISPLAY`.
+
+There is no patient-count primitive or public patient-count API. The synthetic interpolation and all of its plumbing were retired on 2026-07-14. Any future count claim requires a verified persisted source and a fresh compliance review.
 
 ---
 
@@ -131,6 +132,6 @@ The generic service funnel template (`components/marketing/service-funnel-page.t
 | Wait time display | `components/marketing/live-wait-time.tsx` → `SERVICE_CONFIG` |
 | Stat strip metrics for a service | `components/marketing/total-patients-counter.tsx` → `STAT_PRESETS` |
 | Google Reviews config | `lib/social-proof/index.ts` → `GOOGLE_REVIEWS` |
-| Patient counter growth model | `lib/social-proof/index.ts` → anchor/target constants |
+| A patient-count claim | No current primitive; establish a verified persisted source and complete compliance review first |
 | Paid ads or acquisition copy | `docs/ADVERTISING_COMPLIANCE.md` |
 | Educational prescription/medicine SEO content | `docs/SEO_CONTENT_POLICY.md` |

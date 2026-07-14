@@ -55,7 +55,7 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2
 - **Do not use prescription drug pages as paid destinations.** Educational prescription SEO pages can exist, but paid ads route to service-level pages only.
 - **Brand-surfaces smoke spec** (`e2e/brand-surfaces.smoke.spec.ts`) verifies `GUARANTEE` literal renders on every brand surface. If you change voice canon, update the test's `GUARANTEE_LITERAL` constant in the same commit.
 - **Em-dashes (U+2014) are banned from marketing surfaces.** `voice-guard.test.ts` enforces three layers: literal U+2014, JS escape, and HTML entities (`&mdash;` / `&#8212;` / `&#x2014;`). Use commas, periods, colons, or parens.
-- **Patient counter is honest, not inflated.** `lib/social-proof/index.ts` ANCHOR_COUNT recalibrated 3,000 → 500 (April 11 launch), TARGET_COUNT 8,000 → 2,500 (Dec 31). Defensible against the current 3-review GBP base. Don't bump unless real Supabase data exceeds the floor.
+- **No patient-count claim exists.** Synthetic interpolation, its public API, and its client hook were retired 2026-07-14. Do not add a patient-count claim without a verified persisted source and a fresh compliance review.
 
 ## When you're in doubt
 

@@ -1,42 +1,10 @@
 /**
  * Centralized Social Proof - Single Source of Truth
  *
- * Patient counter uses linear interpolation. Anchors recalibrated 2026-04-28
- * to a defensible early-stage range — previous 3,000 → 8,000 read inflated
- * against early Google Business Profile maturity. Update both anchors when real Supabase counts
- * exceed the floor; the DB query in ./server.ts returns Math.max(real, interpolated).
- *
- *   Anchor: April 11, 2026 → 500 patients (launch baseline)
- *   Target: December 31, 2026 → 2,500 patients
- *   Rate: ~7-8 patients/day (defensible for early AU telehealth growth)
- *
- *   Approx display values:
- *     April 11 launch: ~500
- *     June:            ~860
- *     September:       ~1,540
- *     December 31:     ~2,500
- *
- * To recalibrate: update ANCHOR_COUNT to actual Supabase count,
- * set ANCHOR_DATE to today, and adjust TARGET_COUNT if needed.
- *
- * Use `getPatientCount()` for server-side, `usePatientCount()` for client.
- * All public platform stats, response times, and badge state live here.
- *
- * This file is SERVER-SAFE - no React hooks. Client hook is in ./use-patient-count.ts
+ * Only verified operational and trust primitives belong here. The synthetic
+ * patient-count interpolation, DB-max fallback, public API, and client hook
+ * were retired on 2026-07-14 after all rendered consumers were removed.
  */
-
-// ─── Counter Anchors ───────────────────────────────────────────────
-
-/** AEST (UTC+10) anchor date - recalibrated April 11 2026 */
-const ANCHOR_DATE = new Date("2026-04-11T00:00:00+10:00")
-export const ANCHOR_COUNT = 500
-
-/** AEST (UTC+11) target date */
-const TARGET_DATE = new Date("2026-12-31T23:59:59+11:00")
-const TARGET_COUNT = 2_500
-
-const TOTAL_GROWTH = TARGET_COUNT - ANCHOR_COUNT
-const TOTAL_MS = TARGET_DATE.getTime() - ANCHOR_DATE.getTime()
 
 // ─── Platform Stats ────────────────────────────────────────────────
 
@@ -149,33 +117,3 @@ export const GOOGLE_REVIEWS: {
   /** Real rating from Google dashboard */
   rating: 5.0,
 }
-
-// ─── Counter Logic ─────────────────────────────────────────────────
-
-/**
- * Returns the interpolated patient count for the current moment.
- * Used as a fallback when the DB count is unavailable.
- * Before anchor date → ANCHOR_COUNT.
- * After target date → TARGET_COUNT.
- * Between → linear interpolation.
- *
- * ⛔ COMPLIANCE (2026-07-10): DO NOT render this figure on any public surface,
- * email, or schema. On 2026-07-10 the interpolation displayed ~1,179 against
- * 112 ever-paying patients (~10x) and diverges further daily — a misleading-
- * representation exposure (ACL s18 / AHPRA advertising). All public renders
- * were removed on 2026-07-10 and `synthetic-patient-count-contract.test.ts`
- * pins that. Re-anchor to a real, verifiable count before any future use.
- */
-export function getPatientCount(now: Date = new Date()): number {
-  const elapsed = now.getTime() - ANCHOR_DATE.getTime()
-
-  if (elapsed <= 0) return ANCHOR_COUNT
-  if (elapsed >= TOTAL_MS) return TARGET_COUNT
-
-  const progress = elapsed / TOTAL_MS
-  return Math.floor(ANCHOR_COUNT + progress * TOTAL_GROWTH)
-}
-
-// getPatientCountFromDB has moved to @/lib/social-proof/server (server-only).
-// Import it from there in API routes and Server Components.
-// Client components should use /api/patient-count via usePatientCount().

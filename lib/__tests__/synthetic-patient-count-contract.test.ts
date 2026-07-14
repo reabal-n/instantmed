@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -13,9 +13,9 @@ import { describe, expect, it } from "vitest"
  * public render was removed that day; this scan keeps the figure from creeping
  * back into pages, components, or emails.
  *
- * The plumbing itself (interpolation, DB max, API route, client hook) is
- * deliberately retained pending an operator decision on a truthful
- * replacement stat — but nothing outside that plumbing may CALL it.
+ * The interpolation, DB-max fallback, public API route, and client hook were
+ * retired together on 2026-07-14. A future patient-count claim needs a real,
+ * persisted source and a fresh compliance review rather than dormant plumbing.
  */
 
 const ROOT = process.cwd()
@@ -26,14 +26,12 @@ const SCAN_EXTENSIONS = new Set([".ts", ".tsx"])
 // comments referencing the function name don't false-positive.
 const COUNT_CALL = /\b(getPatientCount|usePatientCount)\s*\(/
 
-const ALLOWED_FILES = new Set([
-  // Definition + DB-max wrapper
-  "lib/social-proof/index.ts",
-  "lib/social-proof/server.ts",
-  // Client plumbing (currently consumer-less; delete or re-anchor before reuse)
-  "lib/hooks/use-patient-count.ts",
+const RETIRED_PATIENT_COUNT_PATHS = [
   "app/api/patient-count/route.ts",
-])
+  "lib/hooks/use-patient-count.ts",
+  "lib/social-proof/server.ts",
+  "lib/__tests__/contact-hydration-contract.test.ts",
+]
 
 function collectFiles(dir: string): string[] {
   const absolute = join(ROOT, dir)
@@ -52,12 +50,18 @@ function collectFiles(dir: string): string[] {
   return files
 }
 
-describe("synthetic patient-count containment", () => {
-  it("keeps getPatientCount/usePatientCount calls out of every public surface", () => {
+describe("synthetic patient-count retirement", () => {
+  it("keeps the synthetic patient-count plumbing retired", () => {
+    const orphanCheck = readFileSync(join(ROOT, "scripts/check-orphaned-files.sh"), "utf8")
+
+    for (const path of RETIRED_PATIENT_COUNT_PATHS) {
+      expect(existsSync(join(ROOT, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
     const offenders: string[] = []
     for (const dir of SCAN_DIRS) {
       for (const file of collectFiles(dir)) {
-        if (ALLOWED_FILES.has(file)) continue
         const source = readFileSync(join(ROOT, file), "utf8")
         const match = source.match(COUNT_CALL)
         if (match) offenders.push(`${file} :: ${match[0]}`)
@@ -65,7 +69,7 @@ describe("synthetic patient-count containment", () => {
     }
     expect(
       offenders,
-      `Synthetic patient count rendered outside plumbing — see getPatientCount's compliance note in lib/social-proof/index.ts: ${offenders.join("; ")}`,
+      `Synthetic patient-count code returned after retirement: ${offenders.join("; ")}`,
     ).toEqual([])
   })
 

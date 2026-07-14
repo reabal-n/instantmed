@@ -15,6 +15,7 @@
 #  11. Superseded staff and data sidecars
 #  12. Unused copy catalogs and parallel flow models
 #  13. Superseded validation and formatting helpers
+#  14. Retired synthetic patient-count plumbing
 #
 # Exit 1 if any orphans found.
 
@@ -450,6 +451,19 @@ for retired_helper in \
 do
   if [[ -e "$retired_helper" ]]; then
     echo "ORPHAN: $retired_helper still exists (superseded validation or formatting helper)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 14. Retired synthetic patient-count plumbing ────────────────────────
+for retired_patient_count_path in \
+  "app/api/patient-count/route.ts" \
+  "lib/hooks/use-patient-count.ts" \
+  "lib/social-proof/server.ts" \
+  "lib/__tests__/contact-hydration-contract.test.ts"
+do
+  if [[ -e "$retired_patient_count_path" ]]; then
+    echo "ORPHAN: $retired_patient_count_path still exists (synthetic patient-count plumbing)"
     orphans=$((orphans + 1))
   fi
 done
