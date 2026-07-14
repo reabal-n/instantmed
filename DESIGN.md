@@ -637,8 +637,8 @@ const prefersReducedMotion = useReducedMotion()
 // PREFERRED: empty object disables animation cleanly
 initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
 
-// ALSO VALID: initial={false} means "start at animate state, skip entrance"
-// Used in AnimatePresence children. Use {} for reduced motion though.
+// Stateful off-canvas UI should start at its current endpoint to prevent a flash.
+initial={{ y: show ? 0 : "100%" }}
 ```
 
 All ambient and scroll-triggered animations fully disabled under reduced motion. Feedback states (color shifts, hover states, focus rings) remain. Remove timing and transforms, keep the endpoint state.

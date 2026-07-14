@@ -62,7 +62,7 @@ export function StickyCTA({
         role="region"
         aria-label="Quick purchase"
         className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
-        initial={{}}
+        initial={{ y: show ? 0 : "100%" }}
         animate={{ y: show ? 0 : "100%" }}
         transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeOut" }}
         inert={!show ? true : undefined}

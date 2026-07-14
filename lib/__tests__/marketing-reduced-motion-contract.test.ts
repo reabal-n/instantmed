@@ -141,7 +141,8 @@ describe("marketing reduced-motion contract", () => {
     const sticky = read("components/marketing/shared/sticky-cta.tsx")
     const container = firstMotionContainerOpeningTag(sticky)
 
-    expect(sticky).toContain("initial={{}}")
+    expect(sticky).toContain('initial={{ y: show ? 0 : "100%" }}')
+    expect(sticky).not.toContain("initial={false}")
     expect(sticky).toContain('animate={{ y: show ? 0 : "100%" }}')
     expect(sticky).toContain("duration: prefersReducedMotion ? 0 : 0.3")
     expect(sticky).toContain("inert={!show ? true : undefined}")
