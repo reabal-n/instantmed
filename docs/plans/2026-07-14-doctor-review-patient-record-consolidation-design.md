@@ -2,13 +2,13 @@
 
 **Date:** 2026-07-14
 
-**Status:** Approved for implementation
+**Status:** Implemented 2026-07-14
 
 **Scope:** Doctor request review, quick patient profile, and full patient record
 
 **Authority:** Reference only. `docs/ROADMAP.md` remains the sole active priority queue.
 
-**Relationship:** For this approved implementation, the design supersedes the layout and interaction assumptions in `docs/superpowers/plans/2026-06-26-06-doctor-review-ui-simplification.md` where they conflict.
+**Relationship:** This design supersedes the layout and interaction assumptions in the historical prescribing-packet plan. Its executable implementation record is `docs/superpowers/plans/2026-06-26-06-doctor-review-ui-simplification.md`.
 
 ## Problem
 

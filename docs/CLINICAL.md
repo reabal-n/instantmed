@@ -332,13 +332,13 @@ Every script handoff to Parchment (the external eScript system) is evidenced in 
 | Emission point | When fired | Event type |
 |---|---|---|
 | `app/doctor/queue/actions.ts` (`updateStatusAction`, `declineIntakeAction`) | Doctor approves/declines an intake | `triage_approved` or `triage_declined` |
-| `app/doctor/queue/actions.ts` (`markScriptSentAction`) | Doctor completes a claimed paid prescribing intake after Parchment handoff | `external_prescribing_indicated` (reference = parchment ID or "parchment") |
+| `app/doctor/queue/actions.ts` (`markScriptSentAction`) | Doctor records durable external fulfilment evidence after Parchment or another named channel; the request remains open for explicit completion | `external_prescribing_indicated` (reference = Parchment ID or named external channel) |
 | `app/api/doctor/scripts/[id]/route.ts` | Doctor transitions a script task to "sent" | `external_prescribing_indicated` (reference = "parchment") |
-| `app/api/webhooks/parchment/route.ts` | Parchment confirms `prescription.created` and completes the linked intake | `external_prescribing_indicated` (reference = SCID) |
+| `app/api/webhooks/parchment/route.ts` | Parchment confirms `prescription.created` and records durable `script_sent` evidence on the linked intake; the doctor completes the request separately | `external_prescribing_indicated` (reference = SCID) |
 
 Previously these mutations only updated the `intakes` row and logged to the observability logger — an AHPRA defensibility gap. The decline path via `app/actions/decline-intake.ts` emits `triage_declined` via `logTriageDeclined()`; doctor mutation surfaces are now aligned around the canonical queue actions.
 
-Every triage outcome and external prescribing handoff is now reconstructable from `compliance_audit_log` alone, per the core requirement: *"if an action affects clinical care or access to care, it must be reconstructable after the fact."*
+Recording fulfilment evidence and completing the request are deliberately separate. `approvePrescribedScriptAction` refuses completion until `script_sent === true`; it never manufactures fulfilment evidence. Every triage outcome and external prescribing handoff is reconstructable from `compliance_audit_log`, per the core requirement: *"if an action affects clinical care or access to care, it must be reconstructable after the fact."*
 
 ---
 

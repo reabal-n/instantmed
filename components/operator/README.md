@@ -24,7 +24,8 @@ Use these components when a staff screen combines operations, clinical review, r
 
 - One cockpit for all staff roles. Do not reintroduce separate "switch to doctor mode" flows.
 - Put the next decision or recovery action first.
-- Keep patient identity, request summary, blockers, and action controls together.
+- Keep the fixed patient safety band, one `RequestInfoCard` review packet, genuine safety blockers, and action controls together. Do not add parallel attention or prescribing-summary cards.
+- Refresh fulfilment through the selected request's review-data reload path; do not remount the dashboard to observe `script_sent`.
 - Prefer internal scroll panes over whole-page dashboard scrolling on desktop.
 - Do not add decorative motion. Portal surfaces use state-only color transitions.
 - Gate clinical actions on `hasDoctorAccess(profile)`; gate admin actions on `hasAdminAccess(profile)`; gate ops-only actions on `hasStaffAccess(profile)`. Helpers in `lib/auth/staff-capabilities.ts`.

@@ -1,5 +1,7 @@
 # Prescribing Packet Implementation Plan
 
+> **SUPERSEDED 2026-07-14.** Do not implement this plan. The dedicated `PrescribingPacket` module and card were removed in favour of the cross-service `ReviewPacket` rendered by the existing `RequestInfoCard`. Current architecture and implementation history live in `docs/plans/2026-07-14-doctor-review-patient-record-consolidation-design.md` and `docs/superpowers/plans/2026-06-26-06-doctor-review-ui-simplification.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace duplicated medication/request rendering with one typed `PrescribingPacket` domain model used by review, queue, timeline, Parchment handoff, and notes context.
