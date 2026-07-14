@@ -137,28 +137,3 @@ test.describe("Feature Flags - FORCE_CALL_REQUIRED", () => {
     expect(hasContent?.length).toBeGreaterThan(0)
   })
 })
-
-test.describe("Feature Flags - Service Disabled Banner", () => {
-  test("service disabled banner component renders when needed", async ({ page }) => {
-    // This test verifies the ServiceDisabledBanner component works
-    // The banner is conditionally rendered based on DB feature flags
-    
-    await page.goto("/")
-    await waitForPageLoad(page)
-
-    // Check for service disabled banner
-    const banner = page.locator('[data-testid="service-disabled-banner"]')
-    const hasBanner = await banner.isVisible().catch(() => false)
-
-    // Banner should either be visible (if any service disabled) or not present
-    // Either state is valid - we're testing the infrastructure
-    if (hasBanner) {
-      await expect(banner).toContainText(/.+/)
-      // eslint-disable-next-line no-console
-      console.log("[E2E] Service disabled banner is visible")
-    }
-
-    // Page should always load
-    expect(await page.locator("body").isVisible()).toBe(true)
-  })
-})

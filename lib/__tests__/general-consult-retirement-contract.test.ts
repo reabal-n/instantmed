@@ -130,7 +130,6 @@ describe("general consult retirement contract", () => {
       // app/api/terminology/amt/search was deleted 2026-07-03 (orphaned since
       // the #211 medication-search retirement; held a stale S8 list copy).
       read("app/conditions/page.tsx"),
-      read("components/patient/service-selector.tsx"),
       read("components/seo/schemas/medical-business.tsx"),
     ].join("\n")
 
