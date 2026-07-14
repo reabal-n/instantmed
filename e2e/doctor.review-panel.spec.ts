@@ -1,168 +1,240 @@
 /**
- * Doctor Review Panel (Slide-over) E2E Tests
+ * Doctor review cockpit E2E coverage.
  *
- * Tests the intake review panel that opens as a sheet from the queue:
- * - "Review case" link opens the slide-over panel
- * - Panel displays patient info and status badge
- * - Panel has clinical notes editor
- * - Escape key or close button dismisses the panel
- * - Keyboard navigation (Enter/Space) opens expanded card
+ * The dashboard owns an in-page split pane, not the retired slide-over. These
+ * tests lock the compact review hierarchy, explicit profile intent boundary,
+ * and the Clinical / History / Operations patient-record split.
  */
 
-import { expect, test } from "@playwright/test"
+import { expect, type Page, test } from "@playwright/test"
 
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
-import { INTAKE_ID, isDbAvailable, resetIntakeForRetest } from "./helpers/db"
+import {
+  getIntakeById,
+  getSupabaseClient,
+  INTAKE_ID,
+  isDbAvailable,
+  resetIntakeForRetest,
+} from "./helpers/db"
 import { waitForPageLoad } from "./helpers/test-utils"
 
+const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
 const SEEDED_PATIENT_NAME = "E2E Test Patient"
+const LANDING_PATH = "/medical-certificate"
 
-async function openSeededReviewPanel(page: import("@playwright/test").Page) {
+async function seedReviewContext(): Promise<void> {
   await resetIntakeForRetest(INTAKE_ID)
 
+  const supabase = getSupabaseClient()
+  const { error: attributionError } = await supabase
+    .from("intakes")
+    .update({
+      gclid: "e2e-google-click",
+      landing_page: `https://instantmed.com.au${LANDING_PATH}`,
+      utm_source: "google",
+      utm_medium: "cpc",
+      utm_campaign: "e2e-clinical-review",
+      keyword: "online medical certificate",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", INTAKE_ID)
+
+  if (attributionError) {
+    throw new Error(`Failed to seed review attribution: ${attributionError.message}`)
+  }
+
+  const { error: profileError } = await supabase
+    .from("patient_health_profiles")
+    .upsert({
+      patient_id: E2E_PATIENT_ID,
+      allergies: ["Penicillin"],
+      allergies_enc: null,
+      conditions: ["Asthma"],
+      conditions_enc: null,
+      current_medications: ["Salbutamol"],
+      current_medications_enc: null,
+      notes_enc: null,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "patient_id" })
+  if (profileError) throw new Error(`Failed to seed saved clinical profile: ${profileError.message}`)
+}
+
+async function cleanupReviewContext(): Promise<void> {
+  const supabase = getSupabaseClient()
+  const [profileResult, intakeResult] = await Promise.all([
+    supabase
+      .from("patient_health_profiles")
+      .delete()
+      .eq("patient_id", E2E_PATIENT_ID),
+    supabase
+      .from("intakes")
+      .update({
+        gclid: null,
+        landing_page: null,
+        utm_source: null,
+        utm_medium: null,
+        utm_campaign: null,
+        keyword: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", INTAKE_ID),
+  ])
+
+  if (profileResult.error) {
+    throw new Error(`Failed to clean saved clinical profile: ${profileResult.error.message}`)
+  }
+  if (intakeResult.error) {
+    throw new Error(`Failed to clean review attribution: ${intakeResult.error.message}`)
+  }
+}
+
+async function openSeededReviewCockpit(page: Page) {
   await page.goto("/dashboard")
   await waitForPageLoad(page)
 
-  await expect(
-    page.getByRole("heading", { name: /review queue/i })
-  ).toBeVisible({ timeout: 15000 })
+  await expect(page.getByRole("heading", { name: "Today's queue" })).toBeVisible({ timeout: 15_000 })
 
-  const patientRow = page.getByRole("button", { name: new RegExp(`Open case for ${SEEDED_PATIENT_NAME}`, "i") })
-  await expect(patientRow).toBeVisible({ timeout: 15000 })
+  const patientRow = page
+    .getByTestId(`queue-row-${INTAKE_ID}`)
+    .getByRole("button", {
+      name: new RegExp(`Open case for ${SEEDED_PATIENT_NAME}`, "i"),
+    })
+  await expect(patientRow).toBeVisible({ timeout: 15_000 })
   await patientRow.click()
 
-  const panel = page.getByRole("dialog")
-  await expect(panel).toBeVisible({ timeout: 10000 })
-  await expect(panel.getByRole("heading", { name: SEEDED_PATIENT_NAME })).toBeVisible({ timeout: 15000 })
-  await expect(panel.getByText(/patient profile/i)).toBeVisible()
-  await expect(panel.getByText(/full case/i)).toBeVisible()
-  return panel
+  const cockpit = page.getByTestId("intake-review-panel")
+  await expect(cockpit).toBeVisible({ timeout: 15_000 })
+  await expect(cockpit.getByRole("heading", { name: SEEDED_PATIENT_NAME })).toBeVisible()
+  return cockpit
 }
 
-test.describe("Doctor Review Panel", () => {
+test.describe("Doctor review cockpit", () => {
+  test.describe.configure({ mode: "serial" })
+
   test.beforeEach(async ({ page }) => {
+    test.skip(!isDbAvailable(), "DB credentials required")
+    await seedReviewContext()
     const result = await loginAsOperator(page)
     expect(result.success, `Login should succeed: ${result.error}`).toBe(true)
+
+    // Compile and authenticate the drawer endpoint before the dashboard mounts.
+    // In Next dev mode, compiling it on first click can trigger a full-page Fast
+    // Refresh that correctly closes the transient drawer and makes this UI test
+    // race the development server rather than the product behavior.
+    const summaryResponse = await page.request.get(
+      `/api/doctor/patients/${E2E_PATIENT_ID}/summary`,
+    )
+    expect(summaryResponse.ok(), "Patient summary route should be ready").toBe(true)
   })
 
   test.afterEach(async ({ page }) => {
     await logoutTestUser(page)
+    await cleanupReviewContext()
   })
 
-  test("review case link opens slide-over panel with patient info", async ({ page }) => {
-    test.skip(!isDbAvailable(), "DB credentials required")
+  test("opens the inline cockpit with patient safety context and one request packet", async ({ page }) => {
+    const cockpit = await openSeededReviewCockpit(page)
+    const safetyBand = cockpit.getByRole("region", { name: "Patient safety context" })
 
-    const panel = await openSeededReviewPanel(page)
+    await expect(safetyBand).toBeVisible()
+    await expect(safetyBand.getByLabel(`Acquisition source: Google Ads via ${LANDING_PATH}`)).toBeVisible()
+    await expect(safetyBand.getByText("Age / DOB", { exact: true })).toBeVisible()
+    await expect(safetyBand.getByText("Sex", { exact: true })).toBeVisible()
+    await expect(safetyBand.getByText("Location", { exact: true })).toBeVisible()
+    await expect(safetyBand.getByText("Phone", { exact: true })).toBeVisible()
+    await expect(safetyBand.getByText("Medicare / IHI", { exact: true })).toBeVisible()
+    await expect(safetyBand.getByText("Visits", { exact: true })).toBeVisible()
+    await expect(safetyBand.getByRole("button", { name: "View profile" })).toBeVisible()
+    await expect(safetyBand.getByRole("link", { name: "Open full record" })).toHaveAttribute(
+      "href",
+      `/doctor/intakes/${INTAKE_ID}`,
+    )
 
-    // Panel should show patient name
-    await expect(panel.getByRole("heading", { name: SEEDED_PATIENT_NAME })).toBeVisible()
-
-    // Panel should show current workflow status
-    await expect(panel.getByText(/in queue/i).first()).toBeVisible()
+    await expect(cockpit.getByRole("region", { name: "Request packet" })).toHaveCount(1)
   })
 
-  test("panel close button dismisses the panel", async ({ page }) => {
-    test.skip(!isDbAvailable(), "DB credentials required")
+  test("keeps the draft note and full intake collapsed until requested", async ({ page }) => {
+    const cockpit = await openSeededReviewCockpit(page)
+    const draftNote = cockpit.getByRole("button", { name: "Draft note · Review required" })
+    const fullIntake = cockpit.getByRole("button", { name: /Show full intake/i })
 
-    const panel = await openSeededReviewPanel(page)
+    await expect(draftNote).toHaveAttribute("aria-expanded", "false")
+    await expect(fullIntake).toHaveAttribute("aria-expanded", "false")
+    await expect(cockpit.locator('[contenteditable="true"]')).toHaveCount(0)
 
-    // Click close button (X icon with aria-label)
-    const closeButton = panel.getByRole("button", { name: /close/i }).first()
-    if (await closeButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await closeButton.click()
-      await page.waitForTimeout(500)
+    await draftNote.click()
+    await expect(draftNote).toHaveAttribute("aria-expanded", "true")
+    await expect(cockpit.locator('[contenteditable="true"]')).toHaveCount(1)
 
-      // Panel should be dismissed
-      await expect(panel).not.toBeVisible({ timeout: 5000 })
+    await fullIntake.click()
+    await expect(cockpit.getByRole("button", { name: "Hide full intake" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    )
+    await expect(cockpit.getByRole("region", { name: "Full intake answers" })).toBeVisible()
+  })
+
+  test("quick profile adds saved clinical context without repeating the active request", async ({ page }) => {
+    const cockpit = await openSeededReviewCockpit(page)
+    const activeIntake = await getIntakeById(INTAKE_ID)
+
+    await cockpit.getByRole("button", { name: "View profile" }).click()
+    const drawer = page.getByRole("dialog", { name: "Patient profile" })
+
+    await expect(drawer).toBeVisible()
+    await expect(drawer.getByText("Saved clinical profile", { exact: true })).toBeVisible()
+    await expect(drawer.getByText("Penicillin", { exact: true })).toBeVisible()
+    await expect(drawer.getByText("Asthma", { exact: true })).toBeVisible()
+    await expect(drawer.getByText("Salbutamol", { exact: true })).toBeVisible()
+    await expect(drawer.getByText(/requests total · \d+ notes total/)).toBeVisible()
+    await expect(drawer.getByText("Recent activity", { exact: true })).toBeVisible()
+    if (activeIntake?.reference_number) {
+      await expect(drawer.getByText(activeIntake.reference_number, { exact: true })).toHaveCount(0)
     }
+    await expect(drawer.getByRole("link", { name: "Open full record" })).toHaveAttribute(
+      "href",
+      `/doctor/patients/${E2E_PATIENT_ID}`,
+    )
   })
 
-  test("panel shows clinical notes editor", async ({ page }) => {
-    test.skip(!isDbAvailable(), "DB credentials required")
+  test("full patient record opens on Clinical and separates history from operations", async ({ page }) => {
+    const cockpit = await openSeededReviewCockpit(page)
+    await cockpit.getByRole("button", { name: "View profile" }).click()
 
-    const panel = await openSeededReviewPanel(page)
-
-    // Should have a textarea or notes area for clinical notes
-    const notesArea = panel.locator("textarea").first()
-    await notesArea.scrollIntoViewIfNeeded()
-    const hasNotes = await notesArea.isVisible({ timeout: 5000 }).catch(() => false)
-
-    // Also check for the "Full case" link
-    const fullPageLink = panel.getByText(/full case/i)
-    const hasFullPageLink = await fullPageLink.isVisible().catch(() => false)
-
-    // At least one of these should be present in the panel
-    expect(hasNotes || hasFullPageLink).toBe(true)
-  })
-
-  test("panel shows clinical summary, recommended plan, and draft note", async ({ page }) => {
-    test.skip(!isDbAvailable(), "DB credentials required")
-
-    const panel = await openSeededReviewPanel(page)
-
-    await expect(panel.getByText(/patient story/i)).toBeVisible({ timeout: 10000 })
-    await expect(panel.getByText(/recommended plan/i)).toBeVisible()
-    await expect(panel.getByText(/draft note/i)).toBeVisible()
-    await expect(panel.getByText(/full answers/i)).toBeVisible()
-  })
-
-  test("panel exposes patient snapshot, profile navigation, and identifier completeness", async ({ page }) => {
-    test.skip(!isDbAvailable(), "DB credentials required")
-
-    const panel = await openSeededReviewPanel(page)
-
-    await expect(panel.getByText(/patient snapshot/i)).toBeVisible()
-    await expect(panel.getByText(/details complete/i).first()).toBeVisible()
-    await expect(panel.getByText(/2123456701/i)).toBeVisible()
-
-    const profileLink = panel.getByRole("link", { name: /patient profile/i })
-    await expect(profileLink).toHaveAttribute("href", "/doctor/patients/e2e00000-0000-0000-0000-000000000002")
-  })
-
-  test("escape key dismisses the panel", async ({ page }) => {
-    test.skip(!isDbAvailable(), "DB credentials required")
-
-    const panel = await openSeededReviewPanel(page)
-
-    // Press Escape
-    await page.keyboard.press("Escape")
-    await page.waitForTimeout(500)
-
-    // Panel should be dismissed
-    await expect(panel).not.toBeVisible({ timeout: 5000 })
-  })
-})
-
-test.describe("Doctor Queue Keyboard Navigation", () => {
-  test.beforeEach(async ({ page }) => {
-    const result = await loginAsOperator(page)
-    expect(result.success, `Login should succeed: ${result.error}`).toBe(true)
-  })
-
-  test.afterEach(async ({ page }) => {
-    await logoutTestUser(page)
-  })
-
-  test("queue card headers have keyboard accessible roles", async ({ page }) => {
-    test.skip(!isDbAvailable(), "DB credentials required")
-
-    await resetIntakeForRetest(INTAKE_ID)
-
-    await page.goto("/dashboard")
+    const drawer = page.getByRole("dialog", { name: "Patient profile" })
+    await Promise.all([
+      page.waitForURL(`**/doctor/patients/${E2E_PATIENT_ID}`, { timeout: 15_000 }),
+      drawer.getByRole("link", { name: "Open full record" }).click(),
+    ])
     await waitForPageLoad(page)
+    await expect(page).toHaveURL(`/doctor/patients/${E2E_PATIENT_ID}`)
 
-    await expect(
-      page.getByRole("heading", { name: /review queue/i })
-    ).toBeVisible({ timeout: 15000 })
+    const tabs = page.getByRole("tablist", { name: "Patient record sections" })
+    const clinicalTab = tabs.getByRole("tab", { name: "Clinical" })
+    const historyTab = tabs.getByRole("tab", { name: "History" })
+    const operationsTab = tabs.getByRole("tab", { name: "Operations" })
 
-    // Wait for seeded patient to appear
-    await expect(page.getByText(SEEDED_PATIENT_NAME).first()).toBeVisible({ timeout: 10000 })
+    await expect(clinicalTab).toHaveAttribute("aria-selected", "true")
+    const clinicalPanel = page.getByRole("tabpanel", { name: "Clinical" })
+    await expect(clinicalPanel.getByText("Saved clinical profile", { exact: true })).toBeVisible()
+    await expect(clinicalPanel.getByText("Identity and contact", { exact: true })).toBeVisible()
+    await expect(clinicalPanel.getByText("Acquisition", { exact: true })).toHaveCount(0)
 
-    // Card headers should have role="button" and tabIndex for keyboard access
-    const cardButtons = page.locator('[role="button"][tabindex="0"]')
-    const count = await cardButtons.count()
+    await historyTab.click()
+    await expect(historyTab).toHaveAttribute("aria-selected", "true")
+    const historyPanel = page.getByRole("tabpanel", { name: "History" })
+    await expect(historyPanel.getByText("Clinical history", { exact: true })).toBeVisible()
 
-    // At least one card header should be keyboard-accessible
-    expect(count).toBeGreaterThan(0)
+    await operationsTab.click()
+    await expect(operationsTab).toHaveAttribute("aria-selected", "true")
+    const operationsPanel = page.getByRole("tabpanel", { name: "Operations" })
+    await expect(operationsPanel.getByText("Prescribing", { exact: true })).toBeVisible()
+    await expect(operationsPanel.getByText("Acquisition", { exact: true })).toBeVisible()
+    const landingPageTerm = operationsPanel.getByText("Landing page", { exact: true }).first()
+    await expect(landingPageTerm.locator("..").locator("dd")).toHaveText(LANDING_PATH)
+    await expect(operationsPanel.getByText("e2e-clinical-review", { exact: true })).toBeVisible()
+    await expect(operationsPanel.getByText("online medical certificate", { exact: true })).toBeVisible()
+    await expect(operationsPanel.getByText("Operational activity", { exact: true })).toBeVisible()
+    await expect(operationsPanel.getByText("Profile administration", { exact: true })).toBeVisible()
   })
 })

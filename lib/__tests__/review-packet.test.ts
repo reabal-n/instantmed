@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 
+import { LEGACY_REPEAT_RX_RECONCILIATION_NOTE } from "@/lib/clinical/repeat-rx-attestation"
 import {
   buildReviewPacket,
   type BuildReviewPacketInput,
@@ -310,6 +311,27 @@ describe("buildReviewPacket", () => {
 })
 
 describe("getReviewPacketBlocker", () => {
+  it("allows only reconciled closure after legacy script evidence is already recorded", () => {
+    const packet = buildReviewPacket(repeatRxInput({
+      answers: {
+        medicationName: "Atorvastatin",
+        medicationStrength: "20 mg",
+        medicationForm: "tablet",
+        currentDose: "Take one tablet at night",
+      },
+      intake: { status: "awaiting_script", script_sent: true },
+    }))
+
+    expect(getReviewPacketBlocker(packet, "Confirmed by phone")).toMatchObject({
+      blocked: true,
+      warning: false,
+    })
+    expect(getReviewPacketBlocker(packet, LEGACY_REPEAT_RX_RECONCILIATION_NOTE)).toMatchObject({
+      blocked: false,
+      warning: true,
+    })
+  })
+
   it("retains the legacy clinical-note override for missing dose and indication", () => {
     const packet = buildReviewPacket(repeatRxInput({
       answers: { medicationName: "Atorvastatin 20mg", medicationForm: "tablet", doseChanged: false },

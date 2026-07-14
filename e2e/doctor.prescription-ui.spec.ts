@@ -251,7 +251,9 @@ test.describe("Doctor prescription UI flow", () => {
 
     const completeButton = actionRail.getByRole("button", { name: "Complete request" })
     await expect(completeButton).toBeDisabled()
-    await expect(page.getByText("Recorded-script reconciliation note")).toBeVisible()
+    await page.getByRole("button", {
+      name: "Recorded-script reconciliation note · Review required",
+    }).click()
 
     await page.getByRole("button", { name: "Acknowledge recorded script evidence" }).click()
     await expect(completeButton).toBeDisabled()

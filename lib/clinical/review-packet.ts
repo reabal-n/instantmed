@@ -1,4 +1,7 @@
-import { getRepeatRxAttestationStatus } from "@/lib/clinical/repeat-rx-attestation"
+import {
+  getRepeatRxAttestationStatus,
+  hasLegacyRepeatRxReconciliationNote,
+} from "@/lib/clinical/repeat-rx-attestation"
 import {
   extractRepeatScriptMedications,
   formatRepeatScriptMedicationCompactLabel,
@@ -399,7 +402,13 @@ export function getReviewPacketBlocker(
     return { blocked: false, warning: false, message: null }
   }
 
-  const unresolvedHardBlock = blockingFacts.some((reviewFact) => !reviewFact.noteCanResolve)
+  const recordedLegacyScriptReconciled =
+    packet.fulfilment.status === "recorded" &&
+    hasLegacyRepeatRxReconciliationNote(doctorNotes)
+  const unresolvedHardBlock = blockingFacts.some((reviewFact) => (
+    !reviewFact.noteCanResolve &&
+    !(recordedLegacyScriptReconciled && reviewFact.key === "regimen")
+  ))
   const labels = blockingFacts.map((reviewFact) => reviewFact.label.toLowerCase()).join(", ")
   const hasNote = Boolean(doctorNotes?.trim())
 
