@@ -18,6 +18,7 @@ import { approveWithPreviewDataAction,fetchCertPreviewDataAction } from "@/app/d
 import { approvePrescribedScriptAction, declineIntakeAction, issueRefundAction,markScriptSentAction, saveDoctorNotesAction, updateStatusAction } from "@/app/doctor/queue/actions"
 import type { CertificatePreviewData } from "@/components/doctor"
 import { ParchmentPrescribePanel } from "@/components/doctor"
+import type { ReloadReviewData } from "@/components/doctor/review/intake-review-context"
 import { usePanel } from "@/components/panels/panel-provider"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { buildDoctorIntakeHref, buildStaffPatientHref, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
@@ -39,6 +40,7 @@ interface UseIntakeActionsParams {
   draftId?: string | null
   dialogs: IntakeDialogState
   parchmentEnabled: boolean
+  reloadReviewData: ReloadReviewData
 }
 
 export function useIntakeActions({
@@ -48,6 +50,7 @@ export function useIntakeActions({
   draftId,
   dialogs,
   parchmentEnabled,
+  reloadReviewData,
 }: UseIntakeActionsParams) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -439,13 +442,15 @@ export function useIntakeActions({
       const result = await markScriptSentAction(intake.id, undefined, dialogs.parchmentReference.trim() || undefined)
       if (result.success) {
         dialogs.closeScriptDialog()
-        toast.success("Script recorded. Approve the request when ready.")
-        router.refresh()
+        const refreshed = await reloadReviewData({ background: true })
+        if (!refreshed) {
+          toast.success("Prescription recorded. Retry the status refresh to unlock completion.")
+        }
       } else {
         toast.error(result.error || "Failed to mark script sent")
       }
     })
-  }, [intake.id, dialogs, router])
+  }, [intake.id, dialogs, reloadReviewData])
 
   const handleApprovePrescribedScript = useCallback(async () => {
     const decisionNote = resolveDecisionNote()
@@ -496,14 +501,14 @@ export function useIntakeActions({
           patientName={intake.patient?.full_name || "Patient"}
           patientProfileHref={intake.patient?.id ? buildStaffPatientHref(intake.patient.id) : undefined}
           prescriptionContext={buildParchmentPrescriptionContext(getClinicalCaseSummary())}
-          onIntakeRefresh={() => router.refresh()}
+          onIntakeRefresh={reloadReviewData}
           onScriptSent={() => {
             dialogs.openScriptDialog()
           }}
         />
       ),
     })
-  }, [getClinicalCaseSummary, intake.id, intake.patient?.full_name, intake.patient?.id, parchmentEnabled, openPanel, dialogs, router])
+  }, [getClinicalCaseSummary, intake.id, intake.patient?.full_name, intake.patient?.id, parchmentEnabled, openPanel, dialogs, reloadReviewData])
 
   const handleMarkRefunded = useCallback(async () => {
     startTransition(async () => {

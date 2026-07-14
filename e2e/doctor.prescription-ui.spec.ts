@@ -203,7 +203,7 @@ test.describe("Doctor prescription UI flow", () => {
     }
   })
 
-  test("keeps Approve disabled until script evidence is recorded, then surfaces Script sent", async ({ page }) => {
+  test("auto-unlocks Complete request after durable script evidence is recorded", async ({ page }) => {
     const intakeId = await seedRepeatPrescriptionCase()
     testIntakeIds.push(intakeId)
 
@@ -213,8 +213,8 @@ test.describe("Doctor prescription UI flow", () => {
     const actionRail = page.locator('[data-review-action-rail="true"]').first()
     await expect(actionRail.getByRole("button", { name: "Prescribe" })).toBeVisible({ timeout: 15000 })
 
-    const approveButton = actionRail.getByRole("button", { name: "Approve" })
-    await expect(approveButton).toBeDisabled()
+    const completeButton = actionRail.getByRole("button", { name: "Complete request" })
+    await expect(completeButton).toBeDisabled()
     await expect(actionRail.getByText("Complete or record the prescription in Parchment first.")).toBeVisible()
 
     await actionRail.getByRole("button", { name: "Sent outside Parchment" }).click()
@@ -227,15 +227,14 @@ test.describe("Doctor prescription UI flow", () => {
     await expect(manualSentPanel).toBeHidden()
 
     await recordDurableScriptEvidence(intakeId)
-
-    await page.reload()
-    await waitForPageLoad(page)
+    await page.evaluate(() => window.dispatchEvent(new Event("focus")))
 
     const refreshedActionRail = page.locator('[data-review-action-rail="true"]').first()
-    await expect(page.getByText("Script sent").first()).toBeVisible()
+    await expect(page.getByText("Prescription recorded — complete when ready")).toBeVisible()
+    await expect(page.getByText("Prescription recorded").first()).toBeVisible()
     await expect(page.getByText("Prescription already recorded").first()).toBeVisible()
     await expect(refreshedActionRail.getByRole("button", { name: "Prescribe" })).toHaveCount(0)
-    await expect(refreshedActionRail.getByRole("button", { name: "Approve" })).toBeEnabled()
+    await expect(refreshedActionRail.getByRole("button", { name: "Complete request" })).toBeEnabled()
   })
 
   test("requires a saved reconciliation acknowledgement for recorded legacy script evidence", async ({ page }) => {
@@ -250,12 +249,12 @@ test.describe("Doctor prescription UI flow", () => {
     await expect(actionRail.getByRole("button", { name: "Prescribe" })).toHaveCount(0)
     await expect(actionRail.getByRole("button", { name: "Sent outside Parchment" })).toHaveCount(0)
 
-    const approveButton = actionRail.getByRole("button", { name: "Approve" })
-    await expect(approveButton).toBeDisabled()
+    const completeButton = actionRail.getByRole("button", { name: "Complete request" })
+    await expect(completeButton).toBeDisabled()
     await expect(page.getByText("Recorded-script reconciliation note")).toBeVisible()
 
     await page.getByRole("button", { name: "Acknowledge recorded script evidence" }).click()
-    await expect(approveButton).toBeDisabled()
+    await expect(completeButton).toBeDisabled()
     await page.getByRole("button", { name: "Save reconciliation note" }).click()
 
     await expect.poll(async () => {
@@ -267,9 +266,9 @@ test.describe("Doctor prescription UI flow", () => {
         .single()
       return data?.doctor_notes ?? ""
     }).toContain(LEGACY_REPEAT_RX_RECONCILIATION_NOTE)
-    await expect(approveButton).toBeEnabled()
+    await expect(completeButton).toBeEnabled()
 
-    await approveButton.click()
+    await completeButton.click()
     await expect.poll(async () => {
       const supabase = getSupabaseClient()
       const { data } = await supabase
@@ -281,7 +280,7 @@ test.describe("Doctor prescription UI flow", () => {
     }).toBe("completed")
   })
 
-  test("women's health UTI review is compact and exposes Prescribe plus Complete Consultation", async ({ page }) => {
+  test("women's health UTI review keeps completion disabled until fulfilment is recorded", async ({ page }) => {
     const intakeId = await seedWomensHealthUtiCase()
     testIntakeIds.push(intakeId)
 
@@ -302,9 +301,9 @@ test.describe("Doctor prescription UI flow", () => {
 
     const actionRail = page.locator('[data-review-action-rail="true"]').first()
     await expect(actionRail.getByRole("button", { name: "Prescribe" })).toBeVisible()
-    const completeButton = actionRail.getByRole("button", { name: "Complete Consultation" })
+    const completeButton = actionRail.getByRole("button", { name: "Complete request" })
     await expect(completeButton).toBeVisible()
-    await expect(completeButton).toBeEnabled()
+    await expect(completeButton).toBeDisabled()
     await expect(actionRail.getByRole("button", { name: "Approve" })).toHaveCount(0)
   })
 })

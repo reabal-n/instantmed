@@ -2,12 +2,14 @@
 
 import { ArrowUpRight, CheckCircle, ClipboardCheck, Clock, Loader2, Send, X } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { markScriptSentAction } from "@/app/doctor/queue/actions"
-import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
+import {
+  type ReloadReviewData,
+  useIntakeReview,
+} from "@/components/doctor/review/intake-review-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -226,6 +228,7 @@ export function IntakeActionButtons({
     noteDirty,
     isPending,
     isLoadingPreview,
+    reloadReviewData,
     handleMedCertApprove,
     handleStatusChange,
     handleOpenParchmentPrescribe,
@@ -271,7 +274,7 @@ export function IntakeActionButtons({
   const isPrescribingConsult = intake.category === "consult" && isPrescribingConsultSubtype(intake.subtype)
   const shouldPrescribeFromConsult = isPrescribingConsult && hasPrescriptionIntent
   const isActivePrescribingStatus = ["paid", "in_review", "awaiting_script"].includes(intake.status)
-  const canShowCompleteConsult =
+  const canShowConsultCompletion =
     isConsultServiceType(service?.type) &&
     (shouldPrescribeFromConsult ? isActivePrescribingStatus : intake.status === "paid")
   const canPrescribeInParchment =
@@ -320,7 +323,8 @@ export function IntakeActionButtons({
   const needsClinicalNotes = !isClinicalNoteSufficient(doctorNotes)
   const approvalNeedsClinicalNotes =
     (service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status)) ||
-    canShowCompleteConsult ||
+    canShowConsultCompletion ||
+    (reviewPacket.workflow.requiresFulfilment && isActivePrescribingStatus) ||
     (!isKnownDoctorServiceType(service?.type) && intake.status === "paid")
   const approveDisabledReason = recordedRepeatCompletionNeedsNote && !recordedRepeatReconciliationReady
     ? "Add and save a reconciliation note for the already-issued script before completing this legacy request."
@@ -351,20 +355,10 @@ export function IntakeActionButtons({
   const requestClinicalDetailLabel = "Request symptoms"
   const disabledApproveHint = requiresClinicalDetail
     ? "Symptoms missing; the next screen asks you to confirm before sending."
-    : approveDisabledReason
+    : null
   const showActionReadiness = ["paid", "in_review", "awaiting_script"].includes(intake.status)
   const readyLabel = service?.type === "med_certs" ? "Certificate ready to send." : "Case ready to send."
   const patientFirstName = intake.patient.full_name?.trim().split(/\s+/)[0] || ""
-  const medCertApproveLabel = requiresClinicalDetail
-    ? "Review and send"
-    : patientFirstName
-      ? `Send to ${patientFirstName}`
-      : "Approve and send"
-  const medCertApproveAriaLabel = requiresClinicalDetail
-    ? "Review and send certificate"
-    : patientFirstName
-      ? `Approve and send certificate to ${patientFirstName}`
-      : "Approve and send certificate"
   const refundRecipient = patientFirstName || "the patient"
   const declineLabel = showRefundOnDecline ? "Decline with reason" : "Decline request"
   const declineCaption = showRefundOnDecline
@@ -381,28 +375,28 @@ export function IntakeActionButtons({
     intake.risk_tier !== "high"
   const queueEnteredAt = getQueueEnteredAt(intake)
   const canApproveAfterPrescribe = intake.script_sent === true
+  const isPrescribingWorkflow = reviewPacket.workflow.requiresFulfilment
+  const canShowPrescribingCompletion = isPrescribingWorkflow && isActivePrescribingStatus
   const isActionDisabled = isPending || !isHydrated
   const approveAfterPrescribeTitle = hasPrescribingIdentityBlocker
     ? prescribingIdentityTitle
     : canApproveAfterPrescribe
-      ? "Approve after the prescription has been completed in Parchment."
+      ? "Prescription recorded. Complete the request when ready."
       : "Complete or record the prescription in Parchment first."
   const prescribingApproveHint =
     canPrescribeInParchment && !hasPrescribingIdentityBlocker && !canApproveAfterPrescribe
       ? "Complete or record the prescription in Parchment first."
       : null
-  // Complete Consultation is pressable once prescribing identity is complete.
-  // The script-sent webhook no longer gates it — clicking Complete records the
-  // prescription by the doctor's attestation (handled server-side in
-  // approvePrescribedScriptAction). See operator policy 2026-06-22.
-  const completeConsultDisabledReason = shouldPrescribeFromConsult
+  const completionDisabledReason = isPrescribingWorkflow
     ? hasPrescribingIdentityBlocker
       ? prescribingIdentityTitle
-      : reviewPacketBlockMessage ?? approveDisabledReason
+      : !canApproveAfterPrescribe
+        ? "Complete or record the prescription in Parchment first."
+        : reviewPacketBlockMessage ?? approveDisabledReason
     : reviewPacketBlockMessage ?? approveDisabledReason
   const visibleDisabledHint =
     disabledApproveHint ??
-    (canShowCompleteConsult ? completeConsultDisabledReason : null) ??
+    ((canShowConsultCompletion || canShowPrescribingCompletion) ? completionDisabledReason : approveDisabledReason) ??
     prescribingApproveHint
 
   const handlePrescribeClick = () => {
@@ -477,7 +471,7 @@ export function IntakeActionButtons({
           <>
             <Button
               onClick={handleMedCertApprove}
-              aria-label={medCertApproveAriaLabel}
+              aria-label={reviewPacket.workflow.completionLabel}
               className="h-7 bg-[#2563EB] px-2.5 text-xs text-white transition-colors hover:bg-[#1D4ED8]"
               disabled={isActionDisabled || isLoadingPreview || Boolean(approveDisabledReason)}
               title={approveDisabledReason || undefined}
@@ -488,7 +482,7 @@ export function IntakeActionButtons({
               ) : (
                 <CheckCircle className="h-4 w-4 mr-1.5" />
               )}
-              {isLoadingPreview ? "Loading..." : isPending ? "Generating..." : medCertApproveLabel}
+              {isLoadingPreview ? "Loading..." : isPending ? "Approving..." : reviewPacket.workflow.completionLabel}
               <ShortcutHint tone="on-primary">Cmd+Enter</ShortcutHint>
             </Button>
             {requiresClinicalDetail ? (
@@ -511,7 +505,7 @@ export function IntakeActionButtons({
           </>
         )}
 
-      {(canPrescribeInParchment || canCompleteRecordedRepeatScript) && (
+      {canShowPrescribingCompletion && (
         <>
           {canPrescribeInParchment && intake.script_sent !== true ? (
             <Button
@@ -525,36 +519,46 @@ export function IntakeActionButtons({
               {prescribingActionLabel ?? "Prescribe"}
             </Button>
           ) : null}
-          {!shouldPrescribeFromConsult ? (
-            <Button
-              onClick={handleApprovePrescribedScript}
-              className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
-              disabled={isActionDisabled || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe || packetBlocker.blocked || Boolean(approveDisabledReason)}
-              title={approveDisabledReason ?? packetBlocker.message ?? approveAfterPrescribeTitle}
-              aria-describedby={prescribingApproveHint ? "queue-prescribing-approve-hint" : undefined}
-              size="sm"
-            >
-              {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
-              {isPending ? "Approving..." : "Approve"}
-            </Button>
+          {canApproveAfterPrescribe ? (
+            <span className="inline-flex h-7 items-center gap-1.5 px-1 text-xs font-semibold text-success" data-fulfilment-recorded>
+              <CheckCircle className="h-3.5 w-3.5" aria-hidden="true" />
+              Prescription recorded
+            </span>
           ) : null}
+          <Button
+            onClick={handleApprovePrescribedScript}
+            className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
+            disabled={isActionDisabled || Boolean(completionDisabledReason)}
+            title={completionDisabledReason ?? approveAfterPrescribeTitle}
+            aria-describedby={prescribingApproveHint ? "queue-prescribing-approve-hint" : undefined}
+            size="sm"
+          >
+            {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
+            {isPending ? "Completing..." : reviewPacket.workflow.completionLabel}
+          </Button>
           {canPrescribeInParchment && intake.script_sent !== true
-            ? <MarkSentManuallyButton intakeId={intake.id} disabled={!isHydrated} />
+            ? (
+              <MarkSentManuallyButton
+                intakeId={intake.id}
+                disabled={!isHydrated}
+                reloadReviewData={reloadReviewData}
+              />
+            )
             : null}
         </>
       )}
 
-      {/* Consults: complete */}
-      {canShowCompleteConsult && (
+      {/* Non-prescribing consults share the canonical completion label. */}
+      {canShowConsultCompletion && !isPrescribingWorkflow && (
         <Button
-          onClick={shouldPrescribeFromConsult ? handleApprovePrescribedScript : () => handleStatusChange("approved")}
+          onClick={() => handleStatusChange("approved")}
           className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
-          disabled={isActionDisabled || Boolean(completeConsultDisabledReason)}
-          title={completeConsultDisabledReason || undefined}
+          disabled={isActionDisabled || Boolean(completionDisabledReason)}
+          title={completionDisabledReason || undefined}
           size="sm"
         >
           {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
-          {isPending ? "Completing..." : "Complete Consultation"}
+          {isPending ? "Completing..." : reviewPacket.workflow.completionLabel}
         </Button>
       )}
 
@@ -622,16 +626,21 @@ export function IntakeActionButtons({
  * intake-review slide-over. Added 2026-05-12 to mirror the full-page case
  * header's fallback path. Without it, an operator stuck on a broken
  * Parchment iframe (sandbox connected, real prescribing done externally)
- * can record durable script completion and then press the separate Approve
- * button after the case refreshes.
+ * can record durable script completion before completing the request.
  *
  * Kept local to this file so the slide-over's existing action-rail
- * `useTransition` is not disturbed. On success, `router.refresh()` reloads
- * the page state and the slide-over re-fetches the intake (now with
- * `script_sent=true`) so the operator can approve deliberately.
+ * `useTransition` is not disturbed. On success, the selected review payload
+ * reloads in place so the completion control unlocks without a page refresh.
  */
-function MarkSentManuallyButton({ intakeId, disabled = false }: { intakeId: string; disabled?: boolean }) {
-  const router = useRouter()
+function MarkSentManuallyButton({
+  intakeId,
+  reloadReviewData,
+  disabled = false,
+}: {
+  intakeId: string
+  reloadReviewData: ReloadReviewData
+  disabled?: boolean
+}) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -697,10 +706,12 @@ function MarkSentManuallyButton({ intakeId, disabled = false }: { intakeId: stri
         externalReference || undefined,
       )
       if (result.success) {
-        toast.success("Script recorded. Approve the request when ready.")
         setManualPanelOpen(false)
         reset()
-        router.refresh()
+        const refreshed = await reloadReviewData({ background: true })
+        if (!refreshed) {
+          toast.success("Prescription recorded. Retry the status refresh to unlock completion.")
+        }
       } else {
         toast.error(result.error || "Failed to mark script sent")
       }
@@ -725,7 +736,7 @@ function MarkSentManuallyButton({ intakeId, disabled = false }: { intakeId: stri
               </h2>
               <p id={descriptionId} className="text-sm leading-relaxed text-muted-foreground">
                 Record this only after the script was sent through another channel.
-                The patient is notified after you press Approve.
+                The patient is notified after you complete the request.
               </p>
             </div>
             <Button

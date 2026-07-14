@@ -40,6 +40,15 @@ export interface ReviewData {
   renewalMatch?: RenewalMatch | null
 }
 
+export interface ReloadReviewDataOptions {
+  background?: boolean
+  signal?: AbortSignal
+}
+
+export type ReloadReviewData = (
+  options?: ReloadReviewDataOptions,
+) => Promise<ReviewData | null>
+
 export interface IntakeReviewContextValue {
   // Data
   data: ReviewData
@@ -47,6 +56,8 @@ export interface IntakeReviewContextValue {
   service: { name?: string; type?: string; short_name?: string } | undefined
   answers: Record<string, unknown>
   intakeAnswers: Record<string, unknown> | undefined
+  reloadReviewData: ReloadReviewData
+  isRefreshingReviewData: boolean
 
   // Safety flags
   hasRedFlags: boolean

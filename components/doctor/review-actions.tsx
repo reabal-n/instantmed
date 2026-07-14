@@ -19,7 +19,10 @@ import {
 import { showCertApprovalUndoToast } from "@/components/doctor/cert-approval-undo-toast"
 import type { CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
 import { ParchmentPrescribePanel } from "@/components/doctor/parchment-prescribe-panel"
-import type { ReviewData } from "@/components/doctor/review/intake-review-context"
+import type {
+  ReloadReviewData,
+  ReviewData,
+} from "@/components/doctor/review/intake-review-context"
 import {
   findClinicalNoteDraft,
   formatClinicalNoteContent,
@@ -96,7 +99,7 @@ export interface ReviewActionsState {
 
 interface UseReviewActionsOptions {
   data: ReviewData | null
-  setData: (d: ReviewData) => void
+  reloadReviewData: ReloadReviewData
   hasRedFlags: boolean
   redFlagsAcknowledged: boolean
   onActionComplete?: (options?: { advance?: boolean }) => void
@@ -108,7 +111,7 @@ interface UseReviewActionsOptions {
  */
 export function useReviewActions({
   data,
-  setData,
+  reloadReviewData,
   hasRedFlags,
   redFlagsAcknowledged,
   onActionComplete,
@@ -236,11 +239,11 @@ export function useReviewActions({
           patientName={intake.patient?.full_name || "Patient"}
           patientProfileHref={intake.patient?.id ? buildStaffPatientHref(intake.patient.id) : undefined}
           prescriptionContext={buildParchmentPrescriptionContext(getClinicalCaseSummary())}
-          onIntakeRefresh={() => router.refresh()}
+          onIntakeRefresh={reloadReviewData}
         />
       ),
     })
-  }, [getClinicalCaseSummary, intake, openPanel, router])
+  }, [getClinicalCaseSummary, intake, openPanel, reloadReviewData])
 
   const resolveDecisionNote = useCallback(() => {
     const caseSummary = getClinicalCaseSummary()
@@ -378,7 +381,6 @@ export function useReviewActions({
 
   const handleOpenParchmentPrescribe = () => {
     openParchmentPanel()
-    onActionComplete?.({ advance: false })
   }
 
   const handleApprovePrescribedScript = async () => {
@@ -447,10 +449,8 @@ export function useReviewActions({
     try {
       const result = await regenerateDrafts(intake.id)
       if (result.success) {
-        const res = await fetch(`/api/doctor/intakes/${intake.id}/review-data`)
-        if (res.ok) {
-          const reviewData: ReviewData = await res.json()
-          setData(reviewData)
+        const reviewData = await reloadReviewData({ background: true })
+        if (reviewData) {
           const clinicalDraft = findClinicalNoteDraft(reviewData.aiDrafts || [])
           if (clinicalDraft) {
             const formatted = formatClinicalNoteContent(clinicalDraft.content)
@@ -510,8 +510,7 @@ export function useReviewActions({
       } else {
         toast.success("Certificate email resent to patient")
       }
-      const res = await fetch(`/api/doctor/intakes/${intake.id}/review-data`)
-      if (res.ok) setData(await res.json())
+      await reloadReviewData({ background: true })
     } else {
       toast.error(result.error || "Failed to resend certificate")
     }

@@ -28,8 +28,28 @@ const queueClientSource = readFileSync(
   "utf8",
 )
 
+const intakeReviewPanelSource = readFileSync(
+  join(process.cwd(), "components/doctor/intake-review-panel.tsx"),
+  "utf8",
+)
+
+const reviewDataHookSource = readFileSync(
+  join(process.cwd(), "components/doctor/hooks/use-review-data.ts"),
+  "utf8",
+)
+
+const parchmentPanelSource = readFileSync(
+  join(process.cwd(), "components/doctor/parchment-prescribe-panel.tsx"),
+  "utf8",
+)
+
+const queueActionSource = readFileSync(
+  join(process.cwd(), "app/doctor/queue/actions.ts"),
+  "utf8",
+)
+
 describe("doctor review prescribing controls", () => {
-  it("keeps prescribing as separate Prescribe then Approve controls in the review rail", () => {
+  it("keeps prescribing as separate Prescribe then Complete request controls in the review rail", () => {
     expect(queueSheetActionsSource).not.toContain("Approve + Prescribe")
     expect(queueSheetActionsSource).not.toContain("handleApproveAndOpenParchment")
     expect(queueSheetActionsSource).not.toContain("parchmentOpened")
@@ -37,17 +57,19 @@ describe("doctor review prescribing controls", () => {
     expect(queueSheetActionsSource).toContain("handleApprovePrescribedScript")
     expect(queueSheetActionsSource).toContain("const canApproveAfterPrescribe = intake.script_sent === true")
     expect(queueSheetActionsSource).toContain('"Prescribe"')
-    expect(queueSheetActionsSource).toContain('"Approve"')
+    expect(queueSheetActionsSource).toContain("reviewPacket.workflow.completionLabel")
+    expect(queueSheetActionsSource).toContain("Prescription recorded")
+    expect(queueSheetActionsSource).not.toContain('"Complete Consultation"')
   })
 
   it("keeps full-case prescribing approval gated on durable script-sent evidence only", () => {
     expect(fullCaseHeaderSource).not.toContain("parchmentOpened")
     expect(fullCaseHeaderSource).not.toContain("Boolean(intake.parchment_reference)")
     expect(fullCaseHeaderSource).toContain("const canApproveAfterPrescribe = intake.script_sent === true")
-    expect(fullCaseHeaderSource).toContain("Script sent")
+    expect(fullCaseHeaderSource).toContain("Prescription recorded")
     expect(fullCaseHeaderSource).toContain("Complete or record the prescription in Parchment first.")
     expect(fullCaseHeaderSource).toContain("full-case-prescribing-approve-hint")
-    expect(fullCaseHeaderSource).toContain("canPrescribeInParchment || canCompleteRecordedRepeatScript")
+    expect(fullCaseHeaderSource).toContain("canShowPrescribingCompletion")
     expect(fullCaseHeaderSource).toContain("canPrescribeInParchment && intake.script_sent !== true")
   })
 
@@ -124,12 +146,42 @@ describe("doctor review prescribing controls", () => {
     expect(queueTableSource).toContain("onApprove(intake.id, service?.type, intake.subtype)")
   })
 
-  it("shows prescribing consults as Prescribe plus Complete Consultation, not a generic approve pair", () => {
-    expect(queueSheetActionsSource).toContain("shouldPrescribeFromConsult ? handleApprovePrescribedScript")
-    expect(queueSheetActionsSource).toContain("\"Complete Consultation\"")
-    expect(queueSheetActionsSource).toContain("!shouldPrescribeFromConsult ? (")
-    expect(fullCaseHeaderSource).toContain("shouldPrescribeFromConsult && onApprovePrescribedScript")
-    expect(fullCaseHeaderSource).toContain("\"Complete Consultation\"")
+  it("shows prescribing consults as Prescribe plus the unified completion action", () => {
+    expect(queueSheetActionsSource).toContain("canShowPrescribingCompletion")
+    expect(queueSheetActionsSource).toContain("onClick={handleApprovePrescribedScript}")
+    expect(queueSheetActionsSource).toContain("reviewPacket.workflow.completionLabel")
+    expect(queueSheetActionsSource).not.toContain("\"Complete Consultation\"")
+    expect(fullCaseHeaderSource).toContain("canShowPrescribingCompletion")
+    expect(fullCaseHeaderSource).toContain("onClick={onApprovePrescribedScript}")
+    expect(fullCaseHeaderSource).toContain("reviewPacket.workflow.completionLabel")
+    expect(fullCaseHeaderSource).not.toContain("\"Complete Consultation\"")
+  })
+
+  it("refreshes only the selected review payload after prescribing", () => {
+    expect(intakeReviewPanelSource).toContain("useReviewData")
+    expect(intakeReviewPanelSource).toContain("reviewRevision")
+    expect(reviewActionsSource).toContain("reloadReviewData")
+    expect(reviewActionsSource).toContain("onIntakeRefresh={reloadReviewData}")
+    expect(reviewActionsSource).not.toContain("onActionComplete?.({ advance: false })")
+    expect(queueSheetActionsSource).toContain("await reloadReviewData")
+    expect(queueSheetActionsSource).not.toContain("useRouter")
+    expect(parchmentPanelSource).toContain("void onIntakeRefresh?.({ background: true })")
+    expect(reviewDataHookSource).toContain("Prescription recorded — complete when ready")
+    expect(reviewDataHookSource).toContain("announcedEvidenceRef")
+    expect(reviewDataHookSource).toContain("if (background && dataRef.current)")
+    expect(reviewDataHookSource).toContain("setRefreshError(message)")
+    expect(reviewDataHookSource).not.toContain("setData(null)")
+    expect(intakeReviewPanelSource).toContain("Showing the last confirmed request state.")
+  })
+
+  it("requires durable fulfilment evidence at the server action boundary", () => {
+    const actionStart = queueActionSource.indexOf("export async function approvePrescribedScriptAction")
+    const actionEnd = queueActionSource.indexOf("export async function claimIntakeAction", actionStart)
+    const actionBody = queueActionSource.slice(actionStart, actionEnd)
+
+    expect(actionBody).toContain('code: "PRESCRIPTION_REQUIRES_SCRIPT_EVIDENCE"')
+    expect(actionBody).toContain("intake.script_sent !== true")
+    expect(actionBody).not.toContain("updateScriptSent(")
   })
 
   // Audit follow-up (2026-06-27): plan-06 bulleted the AI draft clinical note, but

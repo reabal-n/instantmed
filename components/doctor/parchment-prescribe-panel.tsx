@@ -8,6 +8,7 @@ import { toast } from "sonner"
 
 import { getPatientParchmentPrescribeUrlAction } from "@/app/actions/manual-patient"
 import { getParchmentPrescribeUrlAction } from "@/app/actions/parchment"
+import type { ReloadReviewData } from "@/components/doctor/review/intake-review-context"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
@@ -21,7 +22,7 @@ type ParchmentPrescribePanelProps = {
   patientName: string
   patientProfileHref?: string
   prescriptionContext?: ParchmentPrescriptionContext | null
-  onIntakeRefresh?: () => void
+  onIntakeRefresh?: ReloadReviewData
   onScriptSent?: () => void
   onPrescriptionsRefresh?: () => void
   prescriptionsRefreshPending?: boolean
@@ -115,7 +116,7 @@ export function ParchmentPrescribePanel({
 
   const closeAndRefresh = useCallback(() => {
     if (intakeId) {
-      onIntakeRefresh?.()
+      void onIntakeRefresh?.({ background: true })
     }
     if (patientId && iframeLoaded && onPrescriptionsRefresh) {
       onPrescriptionsRefresh()
@@ -272,7 +273,7 @@ export function ParchmentPrescribePanel({
               </h2>
               <p className="text-sm text-muted-foreground mt-0.5">
                 {intakeId
-                  ? "Write the prescription in Parchment below. When it is confirmed, close this panel and press Approve."
+                  ? "Write the prescription in Parchment below. Closing this panel checks for confirmation and unlocks Complete request when it is recorded."
                   : "Write the prescription in Parchment below. It will sync back to this patient profile."}
               </p>
               {prescriptionContext && (
@@ -482,7 +483,7 @@ export function ParchmentPrescribePanel({
               <CheckCircle className="h-3.5 w-3.5" />
               <span>
                 {intakeId
-                  ? "Webhook confirmation unlocks the separate Approve step after refresh"
+                  ? "Confirmation unlocks Complete request automatically"
                   : "Prescription will sync back to the PMS via Parchment webhook"}
               </span>
             </div>

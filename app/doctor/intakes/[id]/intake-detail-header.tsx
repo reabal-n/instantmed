@@ -175,6 +175,22 @@ export function IntakeDetailHeader({
     canCompleteRecordedRepeatScript && getRepeatRxAttestationStatus(answers) !== "confirmed_unchanged"
   const recordedRepeatReconciliationReady =
     hasLegacyRepeatRxReconciliationNote(doctorNotes) && !isAiPrefilled && !noteDirty
+  // The full-case header consumes the same packet metadata and gate as the
+  // inline cockpit, so service labels and fulfilment rules cannot diverge.
+  const reviewPacket = buildReviewPacket({
+    category: intake.category,
+    serviceType: service?.type,
+    subtype: intake.subtype,
+    answers,
+    intake: {
+      status: intake.status,
+      script_sent: intake.script_sent,
+      script_sent_at: intake.script_sent_at,
+    },
+    summary: { title: "Request", keyFacts: [] },
+  })
+  const packetBlocker = getReviewPacketBlocker(reviewPacket, doctorNotes)
+  const isPrescribingWorkflow = reviewPacket.workflow.requiresFulfilment
   const snapshotContext = {
     answers,
     category: intake.category,
@@ -192,6 +208,7 @@ export function IntakeDetailHeader({
   const approvalNeedsClinicalNotes =
     (service?.type === SERVICE_TYPES.MED_CERTS && ["paid", "in_review"].includes(intake.status)) ||
     canShowCompleteConsult ||
+    (isPrescribingWorkflow && isActivePrescribingStatus) ||
     (!isKnownDoctorServiceType(service?.type) && intake.status === "paid")
   const approveDisabledReason =
     recordedRepeatCompletionNeedsNote && !recordedRepeatReconciliationReady
@@ -200,18 +217,6 @@ export function IntakeDetailHeader({
         ? "Use the draft note or add a brief clinical note."
         : null
 
-  // The full-case header consumes the same packet gate as the inline cockpit.
-  const packetBlocker = getReviewPacketBlocker(
-    buildReviewPacket({
-      category: intake.category,
-      serviceType: service?.type,
-      subtype: intake.subtype,
-      answers,
-      intake: { status: intake.status, script_sent: intake.script_sent },
-      summary: { title: "Request", keyFacts: [] },
-    }),
-    doctorNotes,
-  )
   // blocked-only (gates the disabled-reason).
   const reviewPacketBlockMessage = packetBlocker.blocked ? packetBlocker.message : null
   // Non-gating warning (legacy repeat-Rx missing dose/indication WITH a clinical
@@ -225,22 +230,22 @@ export function IntakeDetailHeader({
   }
   const actionButtonSize = compact ? "sm" : "default"
   const canApproveAfterPrescribe = intake.script_sent === true
-  const completeConsultNeedsScript = shouldPrescribeFromConsult && !canApproveAfterPrescribe
+  const canShowPrescribingCompletion = isPrescribingWorkflow && isActivePrescribingStatus
   const approveAfterPrescribeTitle = hasPrescribingIdentityBlocker
     ? prescribingIdentityTitle
     : canApproveAfterPrescribe
-      ? "Approve after the prescription has been completed in Parchment."
+      ? "Prescription recorded. Complete the request when ready."
       : "Complete or record the prescription in Parchment first."
   const prescribingApproveHint =
     canPrescribeInParchment && !hasPrescribingIdentityBlocker && !canApproveAfterPrescribe
       ? "Complete or record the prescription in Parchment first."
       : null
-  const completeConsultDisabledReason = shouldPrescribeFromConsult
+  const completionDisabledReason = isPrescribingWorkflow
     ? hasPrescribingIdentityBlocker
       ? prescribingIdentityTitle
-      : reviewPacketBlockMessage ?? (completeConsultNeedsScript
+      : !canApproveAfterPrescribe
         ? "Complete or record the prescription in Parchment first."
-        : approveDisabledReason)
+        : reviewPacketBlockMessage ?? approveDisabledReason
     : reviewPacketBlockMessage ?? approveDisabledReason
 
   const handlePrescribeClick = () => {
@@ -261,11 +266,6 @@ export function IntakeDetailHeader({
           <Badge className={getStatusColor(intake.status)}>
             {formatIntakeStatus(intake.status)}
           </Badge>
-          {intake.script_sent === true ? (
-            <Badge className="border-success/20 bg-success-light text-success">
-              Script sent
-            </Badge>
-          ) : null}
           {/* Phase 3 of dashboard remaster (2026-05-12): consolidated badge */}
           <CertHealthChip certificate={certDelivery ?? null} intakeId={intake.id} />
           {/* Why auto-approval routed this to a human (B4 visibility, 2026-06-11
@@ -393,11 +393,11 @@ export function IntakeDetailHeader({
                 title={approveDisabledReason || undefined}
               >
                 {(isPending || isLoadingPreview) ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
-                {isLoadingPreview ? "Loading Preview..." : isPending ? "Generating Certificate..." : "Approve & Send Certificate"}
+                {isLoadingPreview ? "Loading Preview..." : isPending ? "Approving..." : reviewPacket.workflow.completionLabel}
               </Button>
             )}
 
-            {(canPrescribeInParchment || canCompleteRecordedRepeatScript) && (
+            {canShowPrescribingCompletion && (
               <>
                 {canPrescribeInParchment && intake.script_sent !== true && onOpenParchmentPrescribe && (
                   <Button
@@ -411,21 +411,25 @@ export function IntakeDetailHeader({
                     {prescribingActionLabel ?? "Prescribe"}
                   </Button>
                 )}
-                {onApprovePrescribedScript && (
-                  !shouldPrescribeFromConsult ? (
-                    <Button
-                      size={actionButtonSize}
-                      onClick={onApprovePrescribedScript}
-                      className="bg-primary hover:bg-primary/90"
-                      disabled={isPending || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe || packetBlocker.blocked || Boolean(approveDisabledReason)}
-                      title={approveDisabledReason ?? packetBlocker.message ?? approveAfterPrescribeTitle}
-                      aria-describedby={prescribingApproveHint ? "full-case-prescribing-approve-hint" : undefined}
-                    >
-                      {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
-                      {isPending ? "Approving..." : "Approve"}
-                    </Button>
-                  ) : null
-                )}
+                {canApproveAfterPrescribe ? (
+                  <span className="inline-flex items-center gap-1.5 px-1 text-sm font-semibold text-success" data-fulfilment-recorded>
+                    <CheckCircle className="h-4 w-4" aria-hidden="true" />
+                    Prescription recorded
+                  </span>
+                ) : null}
+                {onApprovePrescribedScript ? (
+                  <Button
+                    size={actionButtonSize}
+                    onClick={onApprovePrescribedScript}
+                    className="bg-primary hover:bg-primary/90"
+                    disabled={isPending || Boolean(completionDisabledReason)}
+                    title={completionDisabledReason ?? packetBlocker.message ?? approveAfterPrescribeTitle}
+                    aria-describedby={prescribingApproveHint ? "full-case-prescribing-approve-hint" : undefined}
+                  >
+                    {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                    {isPending ? "Completing..." : reviewPacket.workflow.completionLabel}
+                  </Button>
+                ) : null}
                 {canPrescribeInParchment && intake.script_sent !== true ? (
                   <Button
                     size={actionButtonSize}
@@ -439,18 +443,16 @@ export function IntakeDetailHeader({
             )}
 
             {/* For consults - approve after call with notes */}
-            {canShowCompleteConsult && (
+            {canShowCompleteConsult && !isPrescribingWorkflow && (
               <Button
                 size={actionButtonSize}
-                onClick={shouldPrescribeFromConsult && onApprovePrescribedScript
-                  ? onApprovePrescribedScript
-                  : () => onStatusChange("approved")}
+                onClick={() => onStatusChange("approved")}
                 className="bg-primary hover:bg-primary/90"
-                disabled={isPending || Boolean(completeConsultDisabledReason)}
-                title={completeConsultDisabledReason || undefined}
+                disabled={isPending || Boolean(completionDisabledReason)}
+                title={completionDisabledReason || undefined}
               >
                 {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
-                {isPending ? "Completing..." : "Complete Consultation"}
+                {isPending ? "Completing..." : reviewPacket.workflow.completionLabel}
               </Button>
             )}
 
@@ -576,7 +578,7 @@ export function IntakeDetailHeader({
           <AlertDialogHeader>
             <AlertDialogTitle>Record script sent</AlertDialogTitle>
             <AlertDialogDescription>
-              Confirm the prescription was sent outside the embedded Parchment flow. This records script completion; the patient is notified only after you press Approve.
+              Confirm the prescription was sent outside the embedded Parchment flow. This records fulfilment; the patient is notified only after you complete the request.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4 py-4">
