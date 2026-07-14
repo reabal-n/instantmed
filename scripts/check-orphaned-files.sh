@@ -18,6 +18,7 @@
 #  14. Retired synthetic patient-count plumbing
 #  15. Obsolete analytics, blog-image, and SEO engines
 #  16. Superseded marketing mockups and wrappers
+#  17. Abandoned specialty landing experiments
 #
 # Exit 1 if any orphans found.
 
@@ -499,6 +500,23 @@ for retired_mockup in \
 do
   if [[ -e "$retired_mockup" ]]; then
     echo "ORPHAN: $retired_mockup still exists (superseded marketing mockup or wrapper)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 17. Abandoned specialty landing experiments ─────────────────────────
+for retired_specialty_section in \
+  "components/marketing/sections/ed-hook-quiz.tsx" \
+  "components/marketing/sections/ed-mechanism-explainer.tsx" \
+  "components/marketing/sections/ed-outcomes-section.tsx" \
+  "components/marketing/sections/ed-prevalence-calculator.tsx" \
+  "components/marketing/sections/hair-loss-family-history-strip.tsx" \
+  "components/marketing/sections/hair-loss-hook-quiz.tsx" \
+  "components/marketing/sections/hair-loss-limitations-section.tsx" \
+  "components/marketing/sections/hair-loss-progress-timeline.tsx"
+do
+  if [[ -e "$retired_specialty_section" ]]; then
+    echo "ORPHAN: $retired_specialty_section still exists (abandoned specialty landing experiment)"
     orphans=$((orphans + 1))
   fi
 done

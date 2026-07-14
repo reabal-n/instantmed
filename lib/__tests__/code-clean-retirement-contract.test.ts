@@ -197,6 +197,39 @@ describe("code-clean retirement contracts", () => {
     expect(read("app/for/universities/page.tsx")).toContain("SampleCertificate")
   })
 
+  it("keeps abandoned specialty landing experiments retired", () => {
+    const retiredSpecialtySections = [
+      "components/marketing/sections/ed-hook-quiz.tsx",
+      "components/marketing/sections/ed-mechanism-explainer.tsx",
+      "components/marketing/sections/ed-outcomes-section.tsx",
+      "components/marketing/sections/ed-prevalence-calculator.tsx",
+      "components/marketing/sections/hair-loss-family-history-strip.tsx",
+      "components/marketing/sections/hair-loss-hook-quiz.tsx",
+      "components/marketing/sections/hair-loss-limitations-section.tsx",
+      "components/marketing/sections/hair-loss-progress-timeline.tsx",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredSpecialtySections) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("app/erectile-dysfunction/page.tsx")).toContain(
+      "ErectileDysfunctionLanding",
+    )
+    expect(read("app/hair-loss/page.tsx")).toContain("HairLossLanding")
+    expect(read("components/marketing/erectile-dysfunction-landing.tsx")).toContain(
+      "SAFETY_CHECKS",
+    )
+    expect(read("components/marketing/hair-loss-landing.tsx")).toContain(
+      "HairLossHeroMockup",
+    )
+    expect(read("components/request/steps/ed-assessment-step.tsx")).toContain(
+      "@/lib/marketing/ed-hook-quiz",
+    )
+  })
+
   it("keeps stale patient quick-reorder APIs out of the route tree", () => {
     const retiredPatientApis = [
       "app/api/patient/last-prescription/route.ts",
