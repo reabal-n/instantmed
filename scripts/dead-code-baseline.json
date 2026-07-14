@@ -1955,8 +1955,6 @@
     "production|exports|lib/hooks/use-doctor-shortcuts.ts|useDoctorShortcutsExtended",
     "production|exports|lib/hooks/use-media-query.ts|useMediaQuery",
     "production|exports|lib/hooks/use-relative-refresh-age.ts|useRelativeRefreshAge",
-    "production|exports|lib/integrations/gmail/support-inbox-count.ts|SUPPORT_INBOX_GMAIL_LABEL_URL",
-    "production|exports|lib/integrations/gmail/support-inbox-count.ts|SUPPORT_INBOX_GMAIL_TOKEN_URL",
     "production|exports|lib/marketing/approved-claims.ts|APPROVED_CLAIMS",
     "production|exports|lib/marketing/ed-hook-quiz.ts|ED_HOOK_QUIZ_QUESTIONS",
     "production|exports|lib/marketing/ed-hook-quiz.ts|getEdHookQuizReassurance",
