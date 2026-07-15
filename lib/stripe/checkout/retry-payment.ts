@@ -308,8 +308,11 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
 
     let session
     try {
-      // Stable retry idempotency key derived from intake + previous payment.
-      const retryIdempotencyKey = `retry_${intake.id}_${intake.payment_id || "initial"}`
+      // Keep authenticated recovery in its own versioned operation namespace.
+      // This bypasses any expired Session cached under the pre-fix retry key
+      // after a successful Stripe create followed by a failed intake attach.
+      const retryIdempotencyKey =
+        `authenticated-retry-v2_${intake.id}_${intake.payment_id || "initial"}`
       session = await stripe.checkout.sessions.create(sessionParams, {
         idempotencyKey: retryIdempotencyKey,
       })

@@ -69,17 +69,35 @@ export const cancelIntake = withServerAction<string>(
     // the paid webhook can land between the fetch and this write, and the DB
     // trigger allows paid -> cancelled, so the write itself must re-assert the
     // unpaid-cancellable state or we mint a paid+cancelled chargeback row.
-    const { data: cancelledRows, error: updateError } = await supabase
-      .from("intakes")
-      .update({
-        status: "cancelled",
-        cancelled_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", intakeId)
-      .in("status", Array.from(CANCELLABLE_UNPAID_INTAKE_STATUSES))
-      .or(`payment_status.is.null,payment_status.not.in.(${Array.from(TERMINAL_PAID_PAYMENT_STATUSES).join(",")})`)
-      .select("id")
+    // PostgREST rejects nullable `.or()` filters on this PATCH path (42703).
+    // Keep the same union as two guarded writes so a concurrent paid webhook
+    // still wins before either cancellation attempt can match.
+    const cancelledAt = new Date().toISOString()
+    const terminalPaidPaymentStatusesFilter = `(${Array.from(TERMINAL_PAID_PAYMENT_STATUSES).join(",")})`
+    const cancelWithPaymentGuard = (paymentGuard: "null" | "not_terminal_paid") => {
+      let cancelQuery = supabase
+        .from("intakes")
+        .update({
+          status: "cancelled",
+          cancelled_at: cancelledAt,
+          updated_at: cancelledAt,
+        })
+        .eq("id", intakeId)
+        .in("status", Array.from(CANCELLABLE_UNPAID_INTAKE_STATUSES))
+
+      cancelQuery = paymentGuard === "null"
+        ? cancelQuery.is("payment_status", null)
+        : cancelQuery.not("payment_status", "in", terminalPaidPaymentStatusesFilter)
+
+      return cancelQuery.select("id")
+    }
+
+    let { data: cancelledRows, error: updateError } = await cancelWithPaymentGuard("null")
+    if (!updateError && (!cancelledRows || cancelledRows.length === 0)) {
+      const fallbackCancellation = await cancelWithPaymentGuard("not_terminal_paid")
+      cancelledRows = fallbackCancellation.data
+      updateError = fallbackCancellation.error
+    }
 
     if (updateError) {
       log.error("Cancel intake: update failed", { intakeId, error: updateError })

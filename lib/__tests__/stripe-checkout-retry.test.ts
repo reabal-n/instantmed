@@ -354,7 +354,7 @@ describe("retryPaymentForIntakeAction", () => {
           is_retry: "true",
         }),
       }),
-      { idempotencyKey: "retry_intake-1_cs_previous" },
+      { idempotencyKey: "authenticated-retry-v2_intake-1_cs_previous" },
     )
   })
 

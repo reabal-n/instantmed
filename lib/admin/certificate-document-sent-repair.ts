@@ -276,8 +276,11 @@ export async function repairCertificateDocumentSentAt(
     }
 
     for (const candidate of plan.candidates) {
-      const updateQuery = filterSeededE2EIntakes(
-        supabase
+      // PostgREST rejects nullable `.or()` filters on this PATCH path (42703).
+      // Preserve the reportable-row union as two guarded updates while keeping
+      // every candidate/status/document/E2E constraint on both attempts.
+      const repairWithReportingGuard = (reportingGuard: "null" | "false") => {
+        let updateQuery = supabase
           .from("intakes")
           .update({
             document_sent_at: candidate.documentSentAt,
@@ -287,10 +290,20 @@ export async function repairCertificateDocumentSentAt(
           .eq("category", "medical_certificate")
           .in("status", [...REPAIRABLE_INTAKE_STATUSES])
           .is("document_sent_at", null)
-          .or("exclude_from_reporting.is.null,exclude_from_reporting.eq.false"),
-      )
 
-      const { data: updatedRows, error: updateError } = await updateQuery.select("id")
+        updateQuery = reportingGuard === "null"
+          ? updateQuery.is("exclude_from_reporting", null)
+          : updateQuery.eq("exclude_from_reporting", false)
+
+        return filterSeededE2EIntakes(updateQuery).select("id")
+      }
+
+      let { data: updatedRows, error: updateError } = await repairWithReportingGuard("null")
+      if (!updateError && (!updatedRows || updatedRows.length === 0)) {
+        const fallbackRepair = await repairWithReportingGuard("false")
+        updatedRows = fallbackRepair.data
+        updateError = fallbackRepair.error
+      }
 
       if (updateError) {
         summary.failedCount += 1
