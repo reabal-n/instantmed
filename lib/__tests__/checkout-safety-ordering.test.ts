@@ -35,6 +35,13 @@ vi.mock("@/lib/analytics/posthog-server", () => ({
 vi.mock("@/lib/safety/audit-log", () => ({
   recordSafetyEvaluationForOperators: vi.fn(async () => {}),
 }))
+vi.mock("@/lib/validation/repeat-script-schema", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/validation/repeat-script-schema")>()
+  return {
+    ...actual,
+    validateRepeatScriptPayload: vi.fn(actual.validateRepeatScriptPayload),
+  }
+})
 // retry-payment.ts collaborators (only reached after the safety gate; mocked so
 // the module loads and the post-safety path is inert for these tests).
 vi.mock("@/lib/auth/helpers", () => ({
@@ -52,6 +59,7 @@ import { getIntakeAnswersForPaymentSafety } from "@/lib/data/intake-answers"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { runClinicalValidation } from "@/lib/stripe/checkout/clinical-validation"
 import { retryPaymentForIntakeAction } from "@/lib/stripe/checkout/retry-payment"
+import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 
 import { mockSupabaseSingle, resetAllMocks } from "./setup"
 
@@ -79,10 +87,34 @@ function medCertInput() {
   } as never
 }
 
+function repeatScriptInput(sideEffectAnswers: Record<string, unknown>) {
+  return {
+    category: "prescription",
+    subtype: "repeat",
+    type: "repeat_rx",
+    idempotencyKey: "idem-key-1234567890",
+    answers: {
+      pbs_code: "MANUAL",
+      medication_name: "Rosuvastatin",
+      medication_display: "Rosuvastatin",
+      medication_strength: "10 mg",
+      medication_form: "tablet",
+      prescribed_before: true,
+      doseChanged: false,
+      dose_changed: false,
+      last_prescribed: "6_to_12_months",
+      current_dose: "10 mg nightly",
+      emergency_symptoms: [],
+      ...sideEffectAnswers,
+    },
+  } as never
+}
+
 beforeEach(() => {
   resetAllMocks()
   mock(validateSafetyFieldsPresent).mockClear()
   mock(checkSafetyForServer).mockClear()
+  mock(validateRepeatScriptPayload).mockClear()
 })
 
 describe("shared checkout path (authenticated + guest via runClinicalValidation)", () => {
@@ -110,6 +142,27 @@ describe("shared checkout path (authenticated + guest via runClinicalValidation)
 
     expect(result.ok).toBe(false)
     expect("error" in result ? result.error : "").toMatch(/missing/i)
+    expect(checkSafetyForServer).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ["a missing yes/no answer", {}],
+    ["a true answer with blank details", { hasSideEffects: true, sideEffects: "   " }],
+  ])("uses canonical repeat completeness for %s before auth/guest safety evaluation", async (
+    _case,
+    sideEffectAnswers,
+  ) => {
+    // Payload validation is covered independently. This isolates the shared
+    // auth/guest completeness boundary and keeps the real completeness logic.
+    mock(validateRepeatScriptPayload).mockReturnValueOnce({ valid: true })
+
+    const result = await runClinicalValidation(repeatScriptInput(sideEffectAnswers))
+
+    expect(result.ok).toBe(false)
+    expect(validateSafetyFieldsPresent).toHaveBeenCalledWith(
+      "common-scripts",
+      expect.objectContaining(sideEffectAnswers),
+    )
     expect(checkSafetyForServer).not.toHaveBeenCalled()
   })
 })

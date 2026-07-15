@@ -740,40 +740,55 @@ describe("retryPaymentForIntakeAction", () => {
     expect(mocks.stripeSessionExpire).not.toHaveBeenCalledWith("cs_retry")
   })
 
-  it("grandfathers payment retry for a canonical-only legacy repeat request", async () => {
-    const { supabase } = createRetrySupabaseMock({
-      answers: [{ answers: { dose_changed: false } }],
+  it.each([
+    ["a missing side-effect answer", {}],
+    ["a reported side effect with blank details", { hasSideEffects: true, sideEffects: "   " }],
+  ])("fails canonical repeat retry before safety or Stripe for %s", async (
+    _case,
+    sideEffectAnswers,
+  ) => {
+    const authoritativeAnswers = {
+      emergency_symptoms: [],
+      dose_changed: false,
+      ...sideEffectAnswers,
+    }
+    const { supabase, updateRecords } = createRetrySupabaseMock({
+      answers: [{ answers: authoritativeAnswers }],
       category: "prescription",
       service: {
         id: "svc-repeat",
         name: "Repeat prescription",
         price_cents: 2995,
-        slug: "repeat-script",
+        slug: "common-scripts",
         type: "repeat_rx",
       },
       stripe_price_id: "price_repeat",
       subtype: "repeat",
     })
+    const actualSafety = await vi.importActual<typeof import("@/lib/safety/evaluate")>(
+      "@/lib/safety/evaluate",
+    )
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ dose_changed: false })
-    mocks.getPriceIdForRequest.mockReturnValue("price_repeat")
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce(authoritativeAnswers)
+    mocks.validateSafetyFieldsPresent.mockImplementationOnce(
+      actualSafety.validateSafetyFieldsPresent,
+    )
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
     expect(result).toMatchObject({
-      checkoutUrl: "https://checkout.stripe.test/pay/cs_retry",
-      intakeId: "intake-1",
-      success: true,
+      error: expect.stringMatching(/required medical information is missing/i),
+      success: false,
     })
     expect(mocks.validateSafetyFieldsPresent).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({ dose_changed: false }),
+      "common-scripts",
+      authoritativeAnswers,
     )
-    expect(mocks.checkSafetyForServer).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({ dose_changed: false }),
-    )
-    expect(mocks.stripeSessionCreate).toHaveBeenCalled()
+    expect(mocks.checkSafetyForServer).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(updateRecords).toHaveLength(0)
   })
 
   it("blocks retry payment for a stored high-stakes medical-certificate request", async () => {

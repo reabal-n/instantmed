@@ -40,6 +40,7 @@ function chronicReviewInput(medicationName: string) {
       prescribed_before: true,
       doseChanged: false,
       dose_changed: false,
+      hasSideEffects: false,
       last_prescribed: "6_to_12_months",
       current_dose: "as directed",
       medications: [

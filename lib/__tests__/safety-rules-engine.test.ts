@@ -355,6 +355,7 @@ describe("Safety Rules Engine", () => {
       const aliases = [
         "prescription",
         "repeat-prescription",
+        "repeat-script",
         "repeat-scripts",
         "common-scripts",
         "script-renewal",
@@ -693,6 +694,49 @@ describe("Safety Rules Engine", () => {
       const result = validateSafetyFieldsPresent("medical-certificate", {})
       expect(result.valid).toBe(false)
       expect(result.missingFields).toEqual(["emergency_symptoms", "start_date"])
+    })
+
+    it("requires canonical repeat-prescription side-effect completeness", () => {
+      expect(validateSafetyFieldsPresent("common-scripts", {
+        emergency_symptoms: [],
+      })).toEqual({
+        valid: false,
+        missingFields: ["hasSideEffects"],
+      })
+      expect(validateSafetyFieldsPresent("common-scripts", {
+        emergency_symptoms: [],
+        hasSideEffects: "false",
+      })).toEqual({
+        valid: false,
+        missingFields: ["hasSideEffects"],
+      })
+      expect(validateSafetyFieldsPresent("common-scripts", {
+        emergency_symptoms: [],
+        hasSideEffects: true,
+        sideEffects: "   ",
+      })).toEqual({
+        valid: false,
+        missingFields: ["sideEffects"],
+      })
+      expect(validateSafetyFieldsPresent("common-scripts", {
+        emergency_symptoms: [],
+        hasSideEffects: false,
+        sideEffects: "",
+      })).toEqual({ valid: true, missingFields: [] })
+      expect(validateSafetyFieldsPresent("common-scripts", {
+        emergency_symptoms: [],
+        hasSideEffects: true,
+        sideEffects: "  mild nausea  ",
+      })).toEqual({ valid: true, missingFields: [] })
+    })
+
+    it("resolves the singular repeat-script alias to prescription completeness", () => {
+      expect(validateSafetyFieldsPresent("repeat-script", {
+        emergency_symptoms: [],
+      })).toEqual({
+        valid: false,
+        missingFields: ["hasSideEffects"],
+      })
     })
 
     it("requires ED safety screen fields without requiring general consult fields", () => {

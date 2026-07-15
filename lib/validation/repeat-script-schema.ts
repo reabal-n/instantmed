@@ -33,6 +33,7 @@ export interface RepeatScriptAnswersPayload extends RepeatScriptMedicationPayloa
   otherCondition?: string
   duration?: string
   control?: string
+  hasSideEffects?: boolean
   sideEffects?: string
   notes?: string
   safetyAnswers?: Record<string, boolean | null>
@@ -209,6 +210,24 @@ export function validateRepeatScriptPayload(
       valid: false,
       error: "Dose or directions changes need review by your regular GP or specialist unless your request matches an active specialty pathway.",
       requiresConsult: true,
+    }
+  }
+
+  if (typeof answers.hasSideEffects !== "boolean") {
+    return {
+      valid: false,
+      error: "Please indicate whether you have had side effects with this medication.",
+      requiresConsult: false,
+    }
+  }
+
+  if (answers.hasSideEffects === true && (
+    typeof answers.sideEffects !== "string" || answers.sideEffects.trim().length === 0
+  )) {
+    return {
+      valid: false,
+      error: "Please describe the side effects you experienced.",
+      requiresConsult: false,
     }
   }
 

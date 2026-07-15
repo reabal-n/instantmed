@@ -57,6 +57,7 @@ describe("keep-list: validator-level hard-blocks", () => {
       prescribed_before: true,
       doseChanged: false,
       dose_changed: false,
+      hasSideEffects: false,
       last_prescribed: "6_to_12_months",
       current_dose: "5 mg",
       medications: [{ name: "Oxycodone", strength: "5 mg", form: "tablet", pbsCode: "MANUAL" }],

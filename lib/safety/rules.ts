@@ -966,6 +966,7 @@ export const safetyConfigs: Record<string, SafetyRulesConfig> = {
   // Prescriptions - all variations
   prescription: prescriptionSafetyConfig,
   'repeat-prescription': prescriptionSafetyConfig,
+  'repeat-script': prescriptionSafetyConfig,
   'repeat-scripts': prescriptionSafetyConfig,
   'common-scripts': prescriptionSafetyConfig,
   'script-renewal': prescriptionSafetyConfig,

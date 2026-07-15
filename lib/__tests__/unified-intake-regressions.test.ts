@@ -13,6 +13,7 @@ import {
   transformAnswersForUnifiedCheckout,
   validateAnswersServerSide,
 } from "@/lib/request/unified-checkout"
+import { validateMedicationHistoryStep } from "@/lib/request/validation"
 import { checkSafetyForServer } from "@/lib/safety"
 
 const identity = {
@@ -433,6 +434,72 @@ describe("unified intake regressions", () => {
     expect(validateAnswersServerSide("repeat-script", {
       ...validRepeatAnswers,
       doseChanged: false,
+      hasSideEffects: false,
+    }, identity)).toBeNull()
+  })
+
+  it("requires an explicit side-effect answer and details only when side effects are reported", () => {
+    const medicationHistoryAnswers = {
+      prescriptionHistory: "6 to 12 months",
+      currentDose: "2 puffs twice daily",
+      indication: "asthma",
+      doseChanged: false,
+    }
+    const checkoutAnswers = {
+      medicationName: "Budesonide + formoterol",
+      medicationStrength: "100/3 micrograms",
+      medicationForm: "inhaler",
+      ...medicationHistoryAnswers,
+      ...sharedMedicalHistory,
+      ...sharedPrescribingIdentity,
+    }
+
+    expect(validateMedicationHistoryStep(medicationHistoryAnswers)).toMatchObject({
+      isValid: false,
+      errors: { hasSideEffects: expect.stringMatching(/indicate/i) },
+    })
+    expect(validateMedicationHistoryStep({
+      ...medicationHistoryAnswers,
+      hasSideEffects: "false",
+    })).toMatchObject({
+      isValid: false,
+      errors: { hasSideEffects: expect.any(String) },
+    })
+    expect(validateAnswersServerSide("repeat-script", checkoutAnswers, identity)).toMatch(/side effects/i)
+
+    for (const sideEffects of ["", "   "]) {
+      expect(validateMedicationHistoryStep({
+        ...medicationHistoryAnswers,
+        hasSideEffects: true,
+        sideEffects,
+      }).isValid).toBe(false)
+      expect(validateAnswersServerSide("repeat-script", {
+        ...checkoutAnswers,
+        hasSideEffects: true,
+        sideEffects,
+      }, identity)).toMatch(/describe the side effects/i)
+    }
+
+    expect(validateMedicationHistoryStep({
+      ...medicationHistoryAnswers,
+      hasSideEffects: false,
+      sideEffects: "",
+    }).isValid).toBe(true)
+    expect(validateAnswersServerSide("repeat-script", {
+      ...checkoutAnswers,
+      hasSideEffects: false,
+      sideEffects: "",
+    }, identity)).toBeNull()
+
+    expect(validateMedicationHistoryStep({
+      ...medicationHistoryAnswers,
+      hasSideEffects: true,
+      sideEffects: "  mild nausea  ",
+    }).isValid).toBe(true)
+    expect(validateAnswersServerSide("repeat-script", {
+      ...checkoutAnswers,
+      hasSideEffects: true,
+      sideEffects: "  mild nausea  ",
     }, identity)).toBeNull()
   })
 
@@ -463,6 +530,7 @@ describe("unified intake regressions", () => {
       doseChanged: false,
       currentDose: "2 puffs twice daily",
       indication: "asthma",
+      hasSideEffects: false,
       ...sharedMedicalHistory,
       medicareNumber: "1111111111",
       medicareIrn: "2",
@@ -491,6 +559,7 @@ describe("unified intake regressions", () => {
       doseChanged: false,
       currentDose: "2 puffs twice daily",
       indication: "asthma",
+      hasSideEffects: false,
       ...sharedMedicalHistory,
       medicareNumber: "1111111111",
       addressLine1: "12 Manual Entry Road",
@@ -519,6 +588,7 @@ describe("unified intake regressions", () => {
       doseChanged: false,
       currentDose: "2 puffs twice daily",
       indication: "asthma",
+      hasSideEffects: false,
       ...sharedMedicalHistory,
       medicareNumber: "0000000000",
       medicareIrn: "2",
@@ -544,6 +614,7 @@ describe("unified intake regressions", () => {
       medicationForm: "inhaler",
       prescriptionHistory: "6 to 12 months",
       doseChanged: false,
+      hasSideEffects: false,
       ...sharedMedicalHistory,
       medicareNumber: "1111111111",
       medicareIrn: "2",
@@ -566,7 +637,7 @@ describe("unified intake regressions", () => {
     expect(
       validateAnswersServerSide(
         "repeat-script",
-        { ...base, currentDose: "2 puffs twice daily", indication: "asthma" },
+        { ...base, currentDose: "2 puffs twice daily", indication: "asthma", hasSideEffects: false },
         identity,
       ),
     ).toBeNull()
@@ -603,6 +674,7 @@ describe("unified intake regressions", () => {
       doseChanged: false,
       currentDose: "2 puffs twice daily",
       indication: "asthma",
+      hasSideEffects: false,
       ...sharedMedicalHistory,
       medicareNumber: "1111111111",
       medicareIrn: "2",
@@ -685,6 +757,7 @@ describe("unified intake regressions", () => {
       currentDose: "2 puffs twice daily",
       indication: "asthma",
       doseChanged: false,
+      hasSideEffects: false,
       hasAllergies: false,
       hasConditions: false,
       medicareNumber: "1111111111",

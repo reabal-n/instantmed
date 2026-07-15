@@ -223,6 +223,8 @@ export const medicationHistoryStepSchema = z
     currentDose: z.string().optional(),
     indication: z.string().optional(),
     doseChanged: z.boolean().optional(),
+    hasSideEffects: z.boolean().optional(),
+    sideEffects: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.prescriptionHistory.trim().toLowerCase() === "never") {
@@ -259,6 +261,19 @@ export const medicationHistoryStepSchema = z
         code: "custom",
         path: ["doseChanged"],
         message: "A dose or directions change needs review by your regular GP or specialist",
+      })
+    }
+    if (typeof data.hasSideEffects !== "boolean") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["hasSideEffects"],
+        message: "Please indicate if you have had side effects",
+      })
+    } else if (data.hasSideEffects === true && !data.sideEffects?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["sideEffects"],
+        message: "Please describe the side effects you experienced",
       })
     }
   })

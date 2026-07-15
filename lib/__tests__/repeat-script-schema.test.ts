@@ -13,11 +13,46 @@ const validRepeatScriptAnswers = {
   prescribed_before: true,
   doseChanged: false,
   dose_changed: false,
+  hasSideEffects: false,
   last_prescribed: "6_to_12_months",
   current_dose: "10 mg nightly",
 }
 
 describe("repeat script schema", () => {
+  it("requires an explicit side-effect answer and details only when side effects are reported", () => {
+    const { hasSideEffects: _omitted, ...withoutSideEffectAnswer } = validRepeatScriptAnswers
+    void _omitted
+
+    expect(validateRepeatScriptPayload(withoutSideEffectAnswer)).toMatchObject({ valid: false })
+    expect(validateRepeatScriptPayload({
+      ...validRepeatScriptAnswers,
+      hasSideEffects: null,
+    })).toMatchObject({ valid: false })
+    expect(validateRepeatScriptPayload({
+      ...validRepeatScriptAnswers,
+      hasSideEffects: "false",
+    })).toMatchObject({ valid: false })
+
+    for (const sideEffects of ["", "   "]) {
+      expect(validateRepeatScriptPayload({
+        ...validRepeatScriptAnswers,
+        hasSideEffects: true,
+        sideEffects,
+      })).toMatchObject({ valid: false })
+    }
+
+    expect(validateRepeatScriptPayload({
+      ...validRepeatScriptAnswers,
+      hasSideEffects: false,
+      sideEffects: "",
+    })).toEqual({ valid: true })
+    expect(validateRepeatScriptPayload({
+      ...validRepeatScriptAnswers,
+      hasSideEffects: true,
+      sideEffects: "  mild nausea  ",
+    })).toEqual({ valid: true })
+  })
+
   it("requires an explicit answer about whether dose or directions changed", () => {
     const { doseChanged: _omitted, ...withoutDoseConfirmation } = validRepeatScriptAnswers
     void _omitted
@@ -75,6 +110,7 @@ describe("A3 softening — missing medication strength is a flag, not a block", 
     prescribed_before: true,
     doseChanged: false,
     dose_changed: false,
+    hasSideEffects: false,
     last_prescribed: "6_to_12_months",
     current_dose: "10 mg nightly",
   }
@@ -125,6 +161,7 @@ describe("A3 softening — missing medication form is a flag, not a block (bound
     prescribed_before: true,
     doseChanged: false,
     dose_changed: false,
+    hasSideEffects: false,
     last_prescribed: "6_to_12_months",
     current_dose: "10 mg nightly",
   }
@@ -215,6 +252,7 @@ describe("A3 softening — unknown medication passes only with a useful descript
     prescribed_before: true,
     doseChanged: false,
     dose_changed: false,
+    hasSideEffects: false,
     last_prescribed: "6_to_12_months",
     current_dose: "one daily",
   }
