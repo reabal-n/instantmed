@@ -133,30 +133,33 @@ test.describe("Production request-flow synthetic", () => {
     ).toBeLessThanOrEqual(dimensions.clientWidth + 1)
   })
 
-  test("cookie notice stays clear of the mobile action bar", async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 })
+  test("cookie notice stays out of the mobile request flow", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 })
     await page.addInitScript(() => {
       localStorage.removeItem("instantmed_cookie_consent")
     })
-    await openRequest(page, "/request?service=med-cert")
 
-    await page.getByRole("radiogroup", { name: /Certificate type/i })
-      .getByRole("radio", { name: /^Work$/i })
-      .click()
+    const response = await page.goto("/request?service=med-cert", {
+      waitUntil: "networkidle",
+    })
+    expect(response?.status(), "request page should return 200").toBe(200)
+    await expect(page.getByRole("main")).toBeVisible()
+    await page.waitForTimeout(1500)
 
-    const notice = page.getByRole("status", { name: "Cookie notice" })
-    const actionBar = page.locator('[data-intake-mobile-action-bar="true"]')
-    await expect(notice).toBeVisible({ timeout: 8000 })
-    await expect(actionBar).toBeVisible()
+    // The cookie client is intentionally deferred until first interaction.
+    // Trigger it deterministically on the intake route, then verify consent is
+    // still initialised without placing a late overlay over clinical questions.
+    await page.keyboard.press("Tab")
+    await expect.poll(
+      () => page.evaluate(() => localStorage.getItem("instantmed_cookie_consent")),
+      { timeout: 8000 },
+    ).not.toBeNull()
+    await page.waitForTimeout(4000)
 
-    const noticeBox = await notice.boundingBox()
-    const actionBarBox = await actionBar.boundingBox()
-    expect(noticeBox, "Cookie notice should have a measured box").not.toBeNull()
-    expect(actionBarBox, "Mobile action bar should have a measured box").not.toBeNull()
     expect(
-      noticeBox!.y + noticeBox!.height,
-      "Cookie notice should sit above the primary mobile action",
-    ).toBeLessThanOrEqual(actionBarBox!.y)
+      await page.getByRole("status", { name: "Cookie notice" }).count(),
+      "Cookie notice must never overlay the intake flow",
+    ).toBe(0)
   })
 
   test("active request pathways render their first actionable step", async ({ page }) => {
