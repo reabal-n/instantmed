@@ -33,6 +33,15 @@ const loadingCopy: Partial<Record<string, { title: string; description: string }
     title: "What do you need covered?",
     description: "Pick the certificate type, dates, and duration.",
   },
+  "symptoms-step": {
+    title: "What is stopping you today?",
+    description: "A short, specific sentence is enough for the doctor to review.",
+  },
+}
+
+const loadingControlLabels: Partial<Record<string, readonly string[]>> = {
+  "certificate-step": ["Certificate type", "How many days?", "Starting from?"],
+  "symptoms-step": ["What symptoms are you having?", "How long have you felt unwell?"],
 }
 
 /**
@@ -48,7 +57,13 @@ const loadingCopy: Partial<Record<string, { title: string; description: string }
  *   2. Delay only the lower placeholder controls for 150ms. Fast chunk loads
  *      avoid the skeleton flash, while the above-fold copy still paints early.
  */
-export function StepIntroShell({ componentPath }: { componentPath: string }) {
+export function StepIntroShell({
+  componentPath,
+  titleOverride,
+}: {
+  componentPath: string
+  titleOverride?: string
+}) {
   const copy = loadingCopy[componentPath]
 
   if (!copy) {
@@ -62,7 +77,9 @@ export function StepIntroShell({ componentPath }: { componentPath: string }) {
 
   return (
     <div className="space-y-1.5" data-intake-step-intro="true">
-      <h2 className="text-lg font-semibold tracking-tight text-foreground">{copy.title}</h2>
+      <h2 className="text-lg font-semibold tracking-tight text-foreground">
+        {titleOverride ?? copy.title}
+      </h2>
       <p className="text-sm leading-relaxed text-muted-foreground">{copy.description}</p>
     </div>
   )
@@ -76,6 +93,7 @@ export function StepLoading({
   showIntro?: boolean
 }) {
   const [showControls, setShowControls] = useState(false)
+  const controlLabels = loadingControlLabels[componentPath]
 
   useEffect(() => {
     const handle = setTimeout(() => setShowControls(true), 150)
@@ -88,14 +106,27 @@ export function StepLoading({
       aria-live="polite"
       aria-busy="true"
     >
+      <span className="sr-only">Loading this step</span>
       {showIntro && <StepIntroShell componentPath={componentPath} />}
       {showControls && (
-        <div className="rounded-2xl border border-border/40 bg-white p-5 shadow-sm shadow-primary/[0.03] dark:bg-card">
-          <div className="space-y-3">
-            <div className="h-11 rounded-xl border border-border/30 bg-muted/20" />
-            <div className="h-11 rounded-xl border border-border/30 bg-muted/15" />
-            <div className="h-11 rounded-xl border border-border/30 bg-muted/10" />
-          </div>
+        <div className="space-y-3" aria-hidden="true">
+          {(controlLabels ?? ["Preparing your form"]).map((label, index) => (
+            <div
+              key={label}
+              className="rounded-2xl border border-border/40 bg-white p-4 shadow-sm shadow-primary/[0.03] dark:bg-card"
+            >
+              <p className="text-xs font-medium text-muted-foreground">{label}</p>
+              <div className="mt-2 grid grid-cols-3 gap-2">
+                <div className="h-9 rounded-xl border border-border/30 bg-muted/20" />
+                <div className="h-9 rounded-xl border border-border/30 bg-muted/15" />
+                <div
+                  className={`h-9 rounded-xl border border-border/30 bg-muted/10 ${
+                    index === (controlLabels?.length ?? 1) - 1 ? "max-sm:hidden" : ""
+                  }`}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -105,8 +136,8 @@ export function StepLoading({
 // The loading fallback only renders on CLIENT transitions to a step whose
 // chunk hasn't arrived yet (the idle prefetch usually wins that race). The
 // server render awaits the real module, so first paint is the real form.
-// certificate-step hides the intro because step-router owns its persistent
-// intro shell above the swap area.
+// certificate-step and symptoms-step hide their intros because step-router
+// owns a persistent shell above the swap area.
 function stepLoadingFallback(componentPath: string, showIntro: boolean) {
   const Fallback = () => <StepLoading componentPath={componentPath} showIntro={showIntro} />
   Fallback.displayName = `StepLoading(${componentPath})`
@@ -122,7 +153,7 @@ export const stepComponents: Record<string, ComponentType<StepComponentProps>> =
     loading: stepLoadingFallback("certificate-step", false),
   }),
   "symptoms-step": dynamic<StepComponentProps>(() => import("./steps/symptoms-step"), {
-    loading: stepLoadingFallback("symptoms-step", true),
+    loading: stepLoadingFallback("symptoms-step", false),
   }),
   "medication-step": dynamic<StepComponentProps>(() => import("./steps/medication-step"), {
     loading: stepLoadingFallback("medication-step", true),

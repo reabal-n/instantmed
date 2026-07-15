@@ -22,18 +22,19 @@ import { useEffect } from "react"
 
 import type { UnifiedStepId } from "@/lib/request/step-registry"
 
-import { stepComponents,StepIntroShell } from "./step-components"
+import { stepComponents, StepIntroShell } from "./step-components"
 import { StepErrorBoundary } from "./step-error-boundary"
 import { preloadStepComponent, type StepComponentProps } from "./step-loaders"
+import { useRequestStore } from "./store"
 
-const persistentIntroSteps = new Set(["certificate-step"])
+const persistentIntroSteps = new Set(["certificate-step", "symptoms-step"])
 
 export interface StepRouterProps {
   serviceType: StepComponentProps["serviceType"]
   currentStepId: UnifiedStepId
   componentPath: string
   /** The following step's component, prefetched at idle so Continue never
-   * pays a fresh chunk round-trip (and its 150ms skeleton gate) mid-funnel. */
+   * pays a fresh chunk round-trip (and its 150ms loading gate) mid-funnel. */
   nextComponentPath?: string
   onNext: () => void
   onBack: () => void
@@ -62,12 +63,17 @@ export function StepRouter({
   initialDuration,
 }: StepRouterProps) {
   const hasPersistentIntro = persistentIntroSteps.has(componentPath)
+  const isCarerCertificate = useRequestStore((state) => state.answers.certType === "carer")
+  const persistentIntroTitle = componentPath === "symptoms-step" && isCarerCertificate
+    ? "What is happening?"
+    : undefined
 
   // Once the current step's chunk is in, prefetch the NEXT step's chunk at
-  // idle so tapping Continue swaps steps instantly instead of gating the flow
-  // behind a fresh network round-trip + the 150ms skeleton, up to three times
-  // per med-cert funnel on mobile. The loader cache makes double-loads free
-  // (webpack shares the underlying chunk with the dynamic registry).
+  // during the next idle window so tapping Continue swaps steps instantly
+  // instead of gating the flow behind a fresh network round-trip. The timeout
+  // bounds that wait on busy devices, where requestIdleCallback may otherwise
+  // never run before the patient taps Continue. The loader cache makes
+  // double-loads free (webpack shares the chunk with the dynamic registry).
   useEffect(() => {
     if (!nextComponentPath) return
 
@@ -83,7 +89,7 @@ export function StepRouter({
         }
 
         if (typeof window.requestIdleCallback === "function") {
-          const handle = window.requestIdleCallback(kick)
+          const handle = window.requestIdleCallback(kick, { timeout: 1500 })
           cancelScheduled = () => window.cancelIdleCallback?.(handle)
           return
         }
@@ -108,7 +114,7 @@ export function StepRouter({
     <StepErrorBoundary stepId={currentStepId}>
       {hasPersistentIntro ? (
         <div className="space-y-4">
-          <StepIntroShell componentPath={componentPath} />
+          <StepIntroShell componentPath={componentPath} titleOverride={persistentIntroTitle} />
           <StepComponent
             serviceType={serviceType}
             onNext={onNext}
