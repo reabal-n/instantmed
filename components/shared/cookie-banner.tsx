@@ -163,17 +163,12 @@ export function CookieBanner() {
 
   const handleSavePreferences = () => savePreferences(preferences)
 
-  if (!showBanner) return null
-
-  const sitsAboveRequestActionBar = pathname === "/request"
+  if (!showBanner || pathname === "/request") return null
 
   return (
     <div
       className={cn(
-        "fixed left-4 right-4 z-50 sm:bottom-6 sm:left-6 sm:right-auto sm:max-w-xs",
-        sitsAboveRequestActionBar
-          ? "bottom-[calc(4.25rem+env(safe-area-inset-bottom)+1rem)]"
-          : "bottom-4",
+        "fixed bottom-4 left-4 right-4 z-50 sm:bottom-6 sm:left-6 sm:right-auto sm:max-w-xs",
         "transition-[transform,opacity] duration-300 ease-out motion-reduce:transition-none",
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       )}
