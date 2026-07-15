@@ -62,7 +62,7 @@ jobs:
             --fail-on error
 
       - name: Security audit
-        run: pnpm audit --audit-level=high
+        run: pnpm security:audit
 
       - name: "Run lint (budget: 60s)"
         run: |
