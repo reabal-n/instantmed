@@ -297,6 +297,17 @@ export async function resolveGuestCheckoutResume(intakeId: string): Promise<stri
   }
 
   if (canRetryPaymentForIntake(intake.status, intake.payment_status)) {
+    if (isMissingSafetyInformationPaymentLock(intake.checkout_error)) {
+      const hold = await holdCheckoutForMissingSafetyInformation({
+        intakeId: intake.id,
+        missingFields: [],
+        source: "guest_resume",
+        supabase,
+      })
+      if (hold !== "state_changed") revalidateHeldIntake(intake)
+      return missingInformationDestination(supabase, hold, intake)
+    }
+
     const answers = await getIntakeAnswersForPaymentSafety(intake.id)
     if (answers === null) {
       logger.error(
@@ -339,17 +350,6 @@ export async function resolveGuestCheckoutResume(intakeId: string): Promise<stri
     // read is temporarily unavailable. Never return its live payment URL.
     if (isHighStakesPaymentLock(intake.checkout_error)) {
       return resolveChangedHighStakesPayment(supabase, intake.id)
-    }
-
-    if (isMissingSafetyInformationPaymentLock(intake.checkout_error)) {
-      const hold = await holdCheckoutForMissingSafetyInformation({
-        intakeId: intake.id,
-        missingFields: [],
-        source: "guest_resume",
-        supabase,
-      })
-      if (hold !== "state_changed") revalidateHeldIntake(intake)
-      return missingInformationDestination(supabase, hold, intake)
     }
 
     const serviceSlugForSafety =

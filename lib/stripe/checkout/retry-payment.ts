@@ -93,6 +93,28 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     const serviceSlugForSafety =
       serviceForSafety?.slug ||
       (categoryForSafety ? getServiceSlug(categoryForSafety, intake.subtype || "") : "consult")
+
+    if (isMissingSafetyInformationPaymentLock(intake.checkout_error)) {
+      const hold = await holdCheckoutForMissingSafetyInformation({
+        intakeId: intake.id,
+        missingFields: [],
+        patientId,
+        source: "retry_payment",
+        supabase,
+      })
+      if (hold !== "state_changed") {
+        revalidatePatient({ intakeId: intake.id, patientId })
+        revalidateStaff({ intakeId: intake.id, patientId })
+      }
+      return {
+        success: false,
+        error:
+          hold === "held"
+            ? "Required medical information is missing. Please start a new request before trying payment again."
+            : RETRY_PAYMENT_STATE_ERROR,
+      }
+    }
+
     const intakeAnswers = await getIntakeAnswersForPaymentSafety(intake.id)
     if (intakeAnswers === null) {
       logger.error(
@@ -146,27 +168,6 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
 
     if (isHighStakesPaymentLock(intake.checkout_error)) {
       return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
-    }
-
-    if (isMissingSafetyInformationPaymentLock(intake.checkout_error)) {
-      const hold = await holdCheckoutForMissingSafetyInformation({
-        intakeId: intake.id,
-        missingFields: [],
-        patientId,
-        source: "retry_payment",
-        supabase,
-      })
-      if (hold !== "state_changed") {
-        revalidatePatient({ intakeId: intake.id, patientId })
-        revalidateStaff({ intakeId: intake.id, patientId })
-      }
-      return {
-        success: false,
-        error:
-          hold === "held"
-            ? "Required medical information is missing. Please start a new request before trying payment again."
-            : RETRY_PAYMENT_STATE_ERROR,
-      }
     }
 
     const fieldCheck = validateSafetyFieldsPresent(serviceSlugForSafety, intakeAnswers)

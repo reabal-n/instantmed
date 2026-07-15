@@ -381,13 +381,45 @@ describe("signed guest checkout resume payment safety", () => {
   it("fails closed before returning a live session when encrypted answers cannot be read", async () => {
     const { supabase } = createResumeSupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce(null)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValue(null)
 
     const destination = await resolveGuestCheckoutResume("intake-1")
 
     expect(destination).toBe("/checkout/cancelled?reason=payment_state_unresolved")
     expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("retries exact-current invalidation for an existing missing-information marker before reading answers", async () => {
+    const { supabase } = createResumeSupabaseMock({
+      checkout_error: "safety_missing_required_information",
+      payment_status: "pending",
+      status: "checkout_failed",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    let destination: string | undefined
+    await mocks.getIntakeAnswersForPaymentSafety.withImplementation(
+      async () => null,
+      async () => {
+        destination = await resolveGuestCheckoutResume("intake-1")
+      },
+    )
+
+    expect(destination).toBe(
+      "/checkout/cancelled?reason=more_information_required",
+    )
+    expect(mocks.getIntakeAnswersForPaymentSafety).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionRetrieve).toHaveBeenCalledWith("cs_previous")
+    expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(mocks.revalidateStaff).toHaveBeenCalledWith({
+      intakeId: "intake-1",
+      patientId: "patient-1",
+    })
+    expect(mocks.revalidatePatient).toHaveBeenCalledWith({
+      intakeId: "intake-1",
+      patientId: "patient-1",
+    })
   })
 
   it("holds and invalidates an incomplete repeat-Rx Session before returning any URL", async () => {

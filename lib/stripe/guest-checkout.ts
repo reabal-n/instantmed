@@ -727,6 +727,24 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
         if (existingIntake) {
           if (isPaymentSafetyLock(existingIntake.checkout_error)) {
+            const completionUrl =
+              await resolveGuestPaymentCompletionAfterStateChange({
+                baseUrl,
+                intakeId: existingIntake.id,
+                state: existingIntake,
+              })
+            if (completionUrl) {
+              await markGuestDraftConvertedIfPresent(
+                supabase,
+                input,
+                existingIntake.id,
+              )
+              return {
+                success: true,
+                checkoutUrl: completionUrl,
+                intakeId: existingIntake.id,
+              }
+            }
             return {
               success: false,
               error:

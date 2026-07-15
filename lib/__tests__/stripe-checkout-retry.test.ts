@@ -520,7 +520,7 @@ describe("retryPaymentForIntakeAction", () => {
   it("fails closed before touching Stripe when encrypted answers cannot be read", async () => {
     const { supabase, updateRecords } = createRetrySupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce(null)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValue(null)
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
@@ -802,6 +802,40 @@ describe("retryPaymentForIntakeAction", () => {
     expect(updateRecords[0].payload).not.toHaveProperty("payment_status")
     expect(updateRecords[0].payload).not.toHaveProperty("cancelled_at")
     expect(updateRecords[0].payload).not.toHaveProperty("declined_at")
+    expect(mocks.revalidatePatient).toHaveBeenCalledWith({
+      intakeId: "intake-1",
+      patientId: "patient-1",
+    })
+    expect(mocks.revalidateStaff).toHaveBeenCalledWith({
+      intakeId: "intake-1",
+      patientId: "patient-1",
+    })
+  })
+
+  it("retries exact-current invalidation for an existing missing-information marker before reading answers", async () => {
+    const { supabase } = createRetrySupabaseMock({
+      checkout_error: "safety_missing_required_information",
+      payment_status: "pending",
+      status: "checkout_failed",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    let result: Awaited<ReturnType<typeof retryPaymentForIntakeAction>> | undefined
+    await mocks.getIntakeAnswersForPaymentSafety.withImplementation(
+      async () => null,
+      async () => {
+        result = await retryPaymentForIntakeAction("intake-1")
+      },
+    )
+
+    expect(result).toEqual({
+      error:
+        "Required medical information is missing. Please start a new request before trying payment again.",
+      success: false,
+    })
+    expect(mocks.getIntakeAnswersForPaymentSafety).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionRetrieve).toHaveBeenCalledWith("cs_previous")
+    expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
     expect(mocks.revalidatePatient).toHaveBeenCalledWith({
       intakeId: "intake-1",
       patientId: "patient-1",

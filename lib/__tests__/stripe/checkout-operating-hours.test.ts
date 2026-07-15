@@ -109,7 +109,26 @@ vi.mock("@/lib/validation/repeat-script-schema", () => ({
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 
-function createGuestCheckoutSupabaseMock() {
+interface DuplicateGuestIntake {
+  category: string
+  checkout_error:
+    | "safety_blocked_high_stakes"
+    | "safety_missing_required_information"
+  guest_email: string
+  id: string
+  is_priority: boolean
+  payment_id: string
+  payment_status: string
+  status: string
+  stripe_price_id: string
+  subtype: string
+}
+
+function createGuestCheckoutSupabaseMock({
+  duplicateIntake,
+}: {
+  duplicateIntake?: DuplicateGuestIntake
+} = {}) {
   const inserts: Array<{ table: string; payload: Record<string, unknown> }> = []
   const updates: Array<{ table: string; payload: Record<string, unknown> }> = []
   const deletes: string[] = []
@@ -149,10 +168,16 @@ function createGuestCheckoutSupabaseMock() {
         if (table === "profiles" && operation === "insert") return { data: { id: "guest-profile-1" }, error: null }
         if (table === "profiles") return { data: null, error: null }
         if (table === "services") return { data: { id: "service-1", price_cents: 1995 }, error: null }
+        if (table === "intakes" && operation === "insert" && duplicateIntake) {
+          return { data: null, error: { code: "23505", message: "duplicate" } }
+        }
         if (table === "intakes" && operation === "insert") return { data: { id: "intake-1" }, error: null }
         return { data: null, error: null }
       }),
-      maybeSingle: vi.fn(async () => ({ data: null, error: null })),
+      maybeSingle: vi.fn(async () => ({
+        data: table === "intakes" && operation === "select" ? duplicateIntake || null : null,
+        error: null,
+      })),
       then: (resolve: (value: { data?: unknown; error: null }) => void) => {
         if (table === "profiles" && operation === "select" && selectCount > 1) {
           return Promise.resolve({ data: [], error: null }).then(resolve)
@@ -278,6 +303,79 @@ describe("checkout operating hours", () => {
     expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
+
+  it.each([
+    ["safety_blocked_high_stakes", "open"],
+    ["safety_blocked_high_stakes", "paid"],
+    ["safety_blocked_high_stakes", "processing"],
+    ["safety_missing_required_information", "open"],
+    ["safety_missing_required_information", "paid"],
+    ["safety_missing_required_information", "processing"],
+  ] as const)(
+    "reconciles a duplicate guest checkout under %s when its exact-current Session is %s",
+    async (checkoutError, sessionState) => {
+      const duplicateIntake: DuplicateGuestIntake = {
+        category: "medical_certificate",
+        checkout_error: checkoutError,
+        guest_email: "patient@example.test",
+        id: "intake-existing",
+        is_priority: false,
+        payment_id: "cs_current",
+        payment_status: sessionState === "paid" ? "paid" : "pending",
+        status: sessionState === "paid" ? "paid" : "checkout_failed",
+        stripe_price_id: "price_med_cert",
+        subtype: "work",
+      }
+      const { supabase } = createGuestCheckoutSupabaseMock({ duplicateIntake })
+      mocks.createServiceRoleClient.mockReturnValue(supabase)
+      mocks.stripeSessionRetrieve.mockResolvedValue({
+        id: "cs_current",
+        metadata: { intake_id: "intake-existing" },
+        payment_status: "unpaid",
+        status: sessionState === "processing" ? "complete" : "open",
+        url:
+          sessionState === "open"
+            ? "https://checkout.stripe.test/pay/cs_current"
+            : null,
+      })
+
+      const result = await createGuestCheckoutAction({
+        answers: {
+          accuracy_confirmed: true,
+          terms_agreed: true,
+        },
+        category: "medical_certificate",
+        guestDateOfBirth: "1985-04-01",
+        guestEmail: "patient@example.test",
+        guestName: "Test Patient",
+        subtype: "work",
+        type: "med-cert",
+      })
+
+      if (sessionState === "open") {
+        expect(result).toEqual({
+          error:
+            "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
+          success: false,
+        })
+      } else {
+        expect(result).toEqual({
+          checkoutUrl:
+            "http://localhost:3000/auth/complete-account?intake_id=intake-existing&session_id=cs_current",
+          intakeId: "intake-existing",
+          success: true,
+        })
+      }
+
+      if (sessionState === "paid") {
+        expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+      } else {
+        expect(mocks.stripeSessionRetrieve).toHaveBeenCalledWith("cs_current")
+      }
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    },
+  )
 
   it("blocks authenticated prescribing checkout without valid Medicare details", async () => {
     mocks.getAuthenticatedUserWithProfile.mockResolvedValue({

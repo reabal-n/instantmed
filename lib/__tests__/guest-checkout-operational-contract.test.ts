@@ -11,7 +11,7 @@ const authenticatedCheckoutSource = readFileSync(
   "utf8",
 )
 const checkoutResumeSource = readFileSync(
-  join(process.cwd(), "app/resume/[token]/page.tsx"),
+  join(process.cwd(), "app/resume/[token]/route.ts"),
   "utf8",
 )
 const guestResumeSource = readFileSync(
@@ -44,6 +44,8 @@ describe("guest checkout operational contract", () => {
     expect(guestCheckoutSource).toContain("buildGuestCheckoutCancelUrl({ baseUrl, intakeId: intake.id })")
     expect(guestResumeSource).toContain("buildGuestCheckoutCancelUrl({ baseUrl, intakeId: intake.id })")
     expect(checkoutResumeSource).toContain("resolveGuestCheckoutResume")
+    expect(checkoutResumeSource).toContain('export const dynamic = "force-dynamic"')
+    expect(checkoutResumeSource).toContain('"X-Robots-Tag": "noindex, nofollow"')
     expect(checkoutRecoveryLinkSource).toContain('new URL("/checkout/cancelled", baseUrl)')
     expect(publicCancelledPageSource).toContain("PaymentCancelledContent")
     expect(publicCancelledPageSource).toContain("CHECKOUT_RESUME_TOKEN_PARAM")
