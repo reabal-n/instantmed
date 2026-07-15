@@ -178,7 +178,7 @@ describe("project docs drift contract", () => {
 
     expect(architecture).toContain("**Staff cockpit architecture:**")
     expect(architecture).toContain("`OperatorShell`")
-    expect(architecture).toContain("`StaffCommandPalette`")
+    expect(architecture).toContain("`OperatorSplitPane`")
     expect(architecture).toContain("`components/operator/`")
     expect(operatorReadme).toContain("Unified staff cockpit primitives")
     expect(operatorReadme).toContain("Do not reintroduce separate \"switch to doctor mode\" flows")

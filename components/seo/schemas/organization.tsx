@@ -91,10 +91,3 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
 
   return <JsonLdScript id="organization-schema" data={schema} />
 }
-
-/**
- * MedicalOrganization schema - named alias for OrganizationSchema.
- * Use on pages where you want to explicitly emit the MedicalOrganization entity
- * (e.g. homepage, service landing pages) without relying solely on layout.tsx.
- */
-export const MedicalOrganizationSchema = OrganizationSchema

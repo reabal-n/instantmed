@@ -25,7 +25,7 @@ const colorMap = {
   muted: "bg-muted-foreground",
 }
 
-export function Loader({ size = "md", color = "primary", className }: LoaderProps) {
+function Loader({ size = "md", color = "primary", className }: LoaderProps) {
   const prefersReducedMotion = useReducedMotion()
   return (
     <div className={cn("flex items-center justify-center gap-1", className)}>
@@ -196,13 +196,3 @@ export function RequestListSkeleton({ count = 3 }: { count?: number }) {
     </div>
   )
 }
-
-export function FullPageLoader({ text }: { text?: string }) {
-  return (
-    <div className="fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50">
-      <PremiumLoader text={text} />
-    </div>
-  )
-}
-
-export default Loader

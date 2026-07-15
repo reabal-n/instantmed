@@ -13,7 +13,7 @@ import {
   evaluateSafety,
   evaluateSafetyWithAdditionalInfo,
   validateSafetyFieldsPresent,
-} from "@/lib/safety"
+} from "@/lib/safety/evaluate"
 
 // ============================================
 // HELPERS

@@ -159,15 +159,12 @@ See [docs/plans/archive/README.md](../plans/archive/README.md) for the retention
 |------|---------|
 | [docs/reviews/INDEX.md](../reviews/INDEX.md) | Auto-generated video-review log. Maintained by `scripts/video-review/index-update.ts` (runs at the end of every `pnpm review`). Per-run `report.md` files under `docs/reviews/<runId>/` are gitignored from the count by being inside subdirectories — only INDEX.md sits at the top. |
 
-## components/*/README.md — 3 colocated docs
+## components/*/README.md — 2 colocated docs
 
 | File | Purpose | Pinned by |
 |------|---------|-----------|
 | [components/operator/README.md](../../components/operator/README.md) | Unified staff cockpit primitives doctrine | `project-docs-drift-contract` |
 | [components/request/README.md](../../components/request/README.md) | Unified intake flow how-to (orchestrator + step registry + Zustand store) | Colocated with code; no test pin |
-| [components/uix/README.md](../../components/uix/README.md) | Legacy UIX component library notes still present in tree; reconcile with `docs/ARCHITECTURE.md` before retiring again | No current pin |
-
-`components/uix/README.md` was previously marked as deleted, but is currently present and counted by `scripts/doc-audit.sh`.
 
 ## scripts/*/README.md — 1
 
