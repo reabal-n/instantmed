@@ -6,11 +6,15 @@ import { buildExpiredCheckoutStartUrl } from "@/lib/email/recovery-links"
 import { sendSessionExpiredEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import { PAYMENT_REPLACEMENT_LOCK } from "@/lib/stripe/payment-integrity"
+import { PAYMENT_SAFETY_LOCKS } from "@/lib/stripe/payment-safety-lock"
 
 import type { HandlerResult, WebhookContext } from "./types"
 import { tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:checkout-expired")
+const EXPIRY_LOCK_EXCLUSION_FILTER = [PAYMENT_REPLACEMENT_LOCK, ...PAYMENT_SAFETY_LOCKS]
+  .map((lock) => `checkout_error.neq.${lock}`)
+  .join(",")
 
 export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise<HandlerResult> {
   const { event, supabase } = ctx
@@ -50,7 +54,7 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
         .eq("id", intakeId)
         .eq("payment_id", session.id)
         .eq("status", "pending_payment")
-        .or(`checkout_error.is.null,checkout_error.neq.${PAYMENT_REPLACEMENT_LOCK}`)
+        .or(`checkout_error.is.null,and(${EXPIRY_LOCK_EXCLUSION_FILTER})`)
         .select("id")
         .maybeSingle()
 

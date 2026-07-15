@@ -121,6 +121,29 @@ describe("operational failure overview", () => {
     expect(overview.recent).toEqual([])
   })
 
+  it.each([
+    ["safety_blocked_high_stakes", "High-stakes request blocked before payment"],
+    ["safety_missing_required_information", "More medical information required before payment"],
+  ])("humanises checkout safety marker %s", (marker, expectedDetail) => {
+    const overview = buildOperationalFailureOverview({
+      stripeDlq: [],
+      emailFailures: [],
+      checkoutFailures: [{
+        id: `intake-${marker}`,
+        created_at: "2026-07-15T00:00:00.000Z",
+        checkout_error: marker,
+      }],
+      incompleteRequests: [],
+      certificateFailures: [],
+      prescriptionWebhookFailures: [],
+      staleScriptIntakes: [],
+      refundFailures: [],
+    })
+
+    expect(overview.recent[0]?.detail).toBe(expectedDetail)
+    expect(overview.recent[0]?.detail).not.toContain(marker)
+  })
+
   it("surfaces approved prescribing rows that are missing script evidence", () => {
     const overview = buildOperationalFailureOverview({
       stripeDlq: [],

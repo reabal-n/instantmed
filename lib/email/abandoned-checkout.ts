@@ -16,15 +16,24 @@ import { canSendMarketingEmail } from "@/lib/email/preferences"
 import { buildAbandonedCheckoutResumeUrl } from "@/lib/email/recovery-links"
 import { createLogger } from "@/lib/observability/logger"
 import { captureRedisWarning } from "@/lib/observability/redis-sentry"
+import { PAYMENT_REPLACEMENT_LOCK } from "@/lib/stripe/payment-integrity"
+import { PAYMENT_SAFETY_LOCKS } from "@/lib/stripe/payment-safety-lock"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { sendEmail } from "./send-email"
 
 const logger = createLogger("abandoned-checkout")
 
+const ABANDONED_CHECKOUT_LOCK_EXCLUSION_FILTER =
+  `checkout_error.is.null,and(${[
+    ...PAYMENT_SAFETY_LOCKS,
+    PAYMENT_REPLACEMENT_LOCK,
+  ].map((marker) => `checkout_error.neq.${marker}`).join(",")})`
+
 interface AbandonedIntake {
   id: string
   patient_id: string
+  payment_id: string | null
   category: string | null
   subtype: string | null
   created_at: string
@@ -35,10 +44,140 @@ interface AbandonedIntake {
   } | null
 }
 
+interface AbandonedIntakeRecord {
+  id: string
+  patient_id: string
+  payment_id: string | null
+  category: string | null
+  subtype: string | null
+  created_at: string
+  guest_email?: string | null
+  patient:
+    | { email: string | null; first_name: string | null }
+    | Array<{ email: string | null; first_name: string | null }>
+    | null
+}
+
+type AbandonedEmailStage = "first" | "followup"
+
 const SERVICE_NAMES: Record<string, string> = {
   medical_certificate: "Medical Certificate",
   prescription: "Repeat Prescription",
   consult: "GP Consult",
+}
+
+function normalizeAbandonedIntake(item: AbandonedIntakeRecord): AbandonedIntake {
+  const patient = Array.isArray(item.patient) ? item.patient[0] : item.patient
+  const guestEmail = item.guest_email
+
+  return {
+    id: item.id,
+    patient_id: item.patient_id,
+    payment_id: item.payment_id,
+    category: item.category,
+    subtype: item.subtype,
+    created_at: item.created_at,
+    isGuest: Boolean(guestEmail),
+    patient: patient?.email
+      ? patient
+      : (guestEmail ? { email: guestEmail, first_name: null } : (patient ?? null)),
+  }
+}
+
+async function readCurrentAbandonedIntake(
+  intake: AbandonedIntake,
+  stage: AbandonedEmailStage,
+): Promise<AbandonedIntake | null> {
+  const supabase = createServiceRoleClient()
+  let query = supabase
+    .from("intakes")
+    .select(`
+      id,
+      patient_id,
+      payment_id,
+      category,
+      subtype,
+      created_at,
+      guest_email,
+      patient:profiles!patient_id(email, first_name)
+    `)
+    .eq("id", intake.id)
+    .eq("patient_id", intake.patient_id)
+
+  query = intake.payment_id === null
+    ? query.is("payment_id", null)
+    : query.eq("payment_id", intake.payment_id)
+
+  query = query
+    .in("status", ["pending_payment", "checkout_failed"])
+    .in("payment_status", ["pending", "unpaid", "failed"])
+    .or(ABANDONED_CHECKOUT_LOCK_EXCLUSION_FILTER)
+
+  query = stage === "first"
+    ? query.is("abandoned_email_sent_at", null)
+    : query.not("abandoned_email_sent_at", "is", null).is("abandoned_followup_sent_at", null)
+
+  const { data, error } = await query.maybeSingle()
+
+  if (error) {
+    logger.error("Failed to verify abandoned checkout email eligibility", {
+      intakeId: intake.id,
+      stage,
+      errorCode: error.code,
+    })
+    return null
+  }
+
+  return data ? normalizeAbandonedIntake(data as AbandonedIntakeRecord) : null
+}
+
+async function markCurrentAbandonedEmailSent(
+  intake: AbandonedIntake,
+  stage: AbandonedEmailStage,
+): Promise<boolean> {
+  const supabase = createServiceRoleClient()
+  const timestampColumn = stage === "first"
+    ? "abandoned_email_sent_at"
+    : "abandoned_followup_sent_at"
+  let query = supabase
+    .from("intakes")
+    .update({ [timestampColumn]: new Date().toISOString() })
+    .eq("id", intake.id)
+    .eq("patient_id", intake.patient_id)
+
+  query = intake.payment_id === null
+    ? query.is("payment_id", null)
+    : query.eq("payment_id", intake.payment_id)
+
+  query = query
+    .in("status", ["pending_payment", "checkout_failed"])
+    .in("payment_status", ["pending", "unpaid", "failed"])
+    .or(ABANDONED_CHECKOUT_LOCK_EXCLUSION_FILTER)
+
+  query = stage === "first"
+    ? query.is("abandoned_email_sent_at", null)
+    : query.not("abandoned_email_sent_at", "is", null).is("abandoned_followup_sent_at", null)
+
+  const { data, error } = await query.select("id").maybeSingle()
+
+  if (error) {
+    logger.error("Failed to mark abandoned checkout email sent", {
+      intakeId: intake.id,
+      stage,
+      errorCode: error.code,
+    })
+    return false
+  }
+
+  if (!data) {
+    logger.warn("Abandoned checkout email timestamp not marked because state changed", {
+      intakeId: intake.id,
+      stage,
+    })
+    return false
+  }
+
+  return true
 }
 
 /**
@@ -63,6 +202,7 @@ export async function findAbandonedCheckouts(): Promise<AbandonedIntake[]> {
     .select(`
       id,
       patient_id,
+      payment_id,
       category,
       subtype,
       created_at,
@@ -70,41 +210,24 @@ export async function findAbandonedCheckouts(): Promise<AbandonedIntake[]> {
       patient:profiles!patient_id(email, first_name)
     `)
     .in("status", ["pending_payment", "checkout_failed"])
-    .or("payment_status.eq.pending,payment_status.is.null,payment_status.eq.failed")
+    .in("payment_status", ["pending", "unpaid", "failed"])
+    .or(ABANDONED_CHECKOUT_LOCK_EXCLUSION_FILTER)
     .gte("created_at", firstNudgeWindowFloor)
     .lte("created_at", firstNudgeReadyAt)
     .is("abandoned_email_sent_at", null)
   
   if (error) {
-    logger.error("Failed to fetch abandoned checkouts", { error: error.message })
+    logger.error("Failed to fetch abandoned checkouts", { errorCode: error.code })
     return []
   }
   
-  // Transform data - Supabase returns joined tables as arrays
-  // P1 FIX: Include guest_email for guest checkout recovery
-  return (data || []).map(item => {
-    const patient = Array.isArray(item.patient) ? item.patient[0] : item.patient
-    const guestEmail = (item as { guest_email?: string }).guest_email
-    return {
-      ...item,
-      isGuest: !!guestEmail,
-      patient: patient?.email ? patient : (guestEmail ? { email: guestEmail, first_name: null } : patient),
-    }
-  }) as AbandonedIntake[]
+  return (data || []).map((item) => normalizeAbandonedIntake(item as AbandonedIntakeRecord))
 }
 
 /**
  * Send abandoned checkout recovery email
  */
 export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promise<boolean> {
-  const appUrl = getAppUrl()
-  const patient = intake.patient
-  
-  if (!patient?.email) {
-    logger.warn("Skipping abandoned checkout email - no patient email", { intakeId: intake.id })
-    return false
-  }
-
   // Check if patient has opted out of marketing emails
   if (intake.patient_id) {
     const canSend = await canSendMarketingEmail(intake.patient_id)
@@ -113,15 +236,25 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
       return false
     }
   }
+
+  const currentIntake = await readCurrentAbandonedIntake(intake, "first")
+  if (!currentIntake) return false
+
+  const patient = currentIntake.patient
+  if (!patient?.email) {
+    logger.warn("Skipping abandoned checkout email - no patient email", { intakeId: intake.id })
+    return false
+  }
   
+  const appUrl = getAppUrl()
   const patientName = patient.first_name || "there"
-  const serviceName = SERVICE_NAMES[intake.category || ""] || "your request"
-  const startedAgoLabel = formatAbandonedCheckoutStartedAgo(intake.created_at)
+  const serviceName = SERVICE_NAMES[currentIntake.category || ""] || "your request"
+  const startedAgoLabel = formatAbandonedCheckoutStartedAgo(currentIntake.created_at)
   const resumeUrl = buildAbandonedCheckoutResumeUrl({
     appUrl,
     campaign: "abandoned_checkout",
-    intakeId: intake.id,
-    isGuest: intake.isGuest,
+    intakeId: currentIntake.id,
+    isGuest: currentIntake.isGuest,
   })
   
   const result = await sendEmail({
@@ -135,23 +268,19 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
       startedAgoLabel,
     }),
     emailType: "abandoned_checkout",
-    intakeId: intake.id,
-    patientId: intake.patient_id,
+    intakeId: currentIntake.id,
+    patientId: currentIntake.patient_id,
     tags: [
       { name: "category", value: "abandoned_checkout" },
-      { name: "intake_id", value: intake.id },
+      { name: "intake_id", value: currentIntake.id },
     ],
   })
 
   if (result.success) {
-    // Mark as sent to avoid duplicate emails
-    const supabase = createServiceRoleClient()
-    await supabase
-      .from("intakes")
-      .update({ abandoned_email_sent_at: new Date().toISOString() })
-      .eq("id", intake.id)
-    
-    logger.info("Sent abandoned checkout email", { intakeId: intake.id, email: patient.email })
+    const marked = await markCurrentAbandonedEmailSent(currentIntake, "first")
+    if (marked) {
+      logger.info("Sent abandoned checkout email", { intakeId: currentIntake.id })
+    }
   }
   
   return result.success
@@ -178,6 +307,7 @@ export async function findAbandonedFollowups(): Promise<AbandonedIntake[]> {
     .select(`
       id,
       patient_id,
+      payment_id,
       category,
       subtype,
       created_at,
@@ -185,40 +315,25 @@ export async function findAbandonedFollowups(): Promise<AbandonedIntake[]> {
       patient:profiles!patient_id(email, first_name)
     `)
     .in("status", ["pending_payment", "checkout_failed"])
-    .or("payment_status.eq.pending,payment_status.is.null,payment_status.eq.failed")
+    .in("payment_status", ["pending", "unpaid", "failed"])
+    .or(ABANDONED_CHECKOUT_LOCK_EXCLUSION_FILTER)
     .gte("abandoned_email_sent_at", followupWindowFloor)
     .lte("abandoned_email_sent_at", followupReadyAt)
     .not("abandoned_email_sent_at", "is", null)
     .is("abandoned_followup_sent_at", null)
 
   if (error) {
-    logger.error("Failed to fetch abandoned followups", { error: error.message })
+    logger.error("Failed to fetch abandoned followups", { errorCode: error.code })
     return []
   }
 
-  return (data || []).map(item => {
-    const patient = Array.isArray(item.patient) ? item.patient[0] : item.patient
-    const guestEmail = (item as { guest_email?: string }).guest_email
-    return {
-      ...item,
-      isGuest: !!guestEmail,
-      patient: patient?.email ? patient : (guestEmail ? { email: guestEmail, first_name: null } : patient),
-    }
-  }) as AbandonedIntake[]
+  return (data || []).map((item) => normalizeAbandonedIntake(item as AbandonedIntakeRecord))
 }
 
 /**
  * Send the 24h abandoned checkout followup email (last call with social proof)
  */
 export async function sendAbandonedFollowupEmail(intake: AbandonedIntake): Promise<boolean> {
-  const appUrl = getAppUrl()
-  const patient = intake.patient
-
-  if (!patient?.email) {
-    logger.warn("Skipping abandoned followup email - no patient email", { intakeId: intake.id })
-    return false
-  }
-
   if (intake.patient_id) {
     const canSend = await canSendMarketingEmail(intake.patient_id)
     if (!canSend) {
@@ -227,13 +342,23 @@ export async function sendAbandonedFollowupEmail(intake: AbandonedIntake): Promi
     }
   }
 
+  const currentIntake = await readCurrentAbandonedIntake(intake, "followup")
+  if (!currentIntake) return false
+
+  const patient = currentIntake.patient
+  if (!patient?.email) {
+    logger.warn("Skipping abandoned followup email - no patient email", { intakeId: intake.id })
+    return false
+  }
+
+  const appUrl = getAppUrl()
   const patientName = patient.first_name || "there"
-  const serviceName = SERVICE_NAMES[intake.category || ""] || "your request"
+  const serviceName = SERVICE_NAMES[currentIntake.category || ""] || "your request"
   const resumeUrl = buildAbandonedCheckoutResumeUrl({
     appUrl,
     campaign: "abandoned_checkout_followup",
-    intakeId: intake.id,
-    isGuest: intake.isGuest,
+    intakeId: currentIntake.id,
+    isGuest: currentIntake.isGuest,
   })
 
   const result = await sendEmail({
@@ -246,22 +371,19 @@ export async function sendAbandonedFollowupEmail(intake: AbandonedIntake): Promi
       appUrl,
     }),
     emailType: "abandoned_checkout_followup",
-    intakeId: intake.id,
-    patientId: intake.patient_id,
+    intakeId: currentIntake.id,
+    patientId: currentIntake.patient_id,
     tags: [
       { name: "category", value: "abandoned_checkout_followup" },
-      { name: "intake_id", value: intake.id },
+      { name: "intake_id", value: currentIntake.id },
     ],
   })
 
   if (result.success) {
-    const supabase = createServiceRoleClient()
-    await supabase
-      .from("intakes")
-      .update({ abandoned_followup_sent_at: new Date().toISOString() })
-      .eq("id", intake.id)
-
-    logger.info("Sent abandoned followup email", { intakeId: intake.id, email: patient.email })
+    const marked = await markCurrentAbandonedEmailSent(currentIntake, "followup")
+    if (marked) {
+      logger.info("Sent abandoned followup email", { intakeId: currentIntake.id })
+    }
   }
 
   return result.success

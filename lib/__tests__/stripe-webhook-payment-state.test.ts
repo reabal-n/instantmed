@@ -3,6 +3,7 @@ import type Stripe from "stripe"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
+  addToDeadLetterQueue: vi.fn(),
   after: vi.fn(),
   generateDraftsForIntake: vi.fn(),
   getPostHogClient: vi.fn(() => ({
@@ -80,6 +81,16 @@ vi.mock("@/lib/stripe/post-payment", () => ({
   startPostPaymentReviewWork: mocks.startPostPaymentReviewWork,
 }))
 
+vi.mock("@/app/api/stripe/webhook/handlers/utils", async () => {
+  const actual = await vi.importActual<typeof import("@/app/api/stripe/webhook/handlers/utils")>(
+    "@/app/api/stripe/webhook/handlers/utils",
+  )
+  return {
+    ...actual,
+    addToDeadLetterQueue: mocks.addToDeadLetterQueue,
+  }
+})
+
 vi.mock("@sentry/nextjs", () => ({
   addBreadcrumb: vi.fn(),
   captureMessage: vi.fn(),
@@ -95,7 +106,7 @@ import { handlePaymentIntentFailed } from "@/app/api/stripe/webhook/handlers/pay
 interface UpdateRecord {
   filters: Array<{
     column?: string
-    method: "eq" | "in" | "or"
+    method: "eq" | "in" | "is" | "or"
     value: unknown
   }>
   payload: Record<string, unknown>
@@ -103,11 +114,32 @@ interface UpdateRecord {
 }
 
 interface UpdateResult {
-  data: { id: string } | Array<{ id: string }> | null
-  error: null
+  data: Record<string, unknown> | Array<Record<string, unknown>> | null
+  error: { code?: string; message: string } | null
 }
 
-function createUpdateChain(record: UpdateRecord, result: UpdateResult = { data: { id: "intake-1" }, error: null }) {
+type UpdateResultFactory = (record: UpdateRecord) => UpdateResult | Promise<UpdateResult>
+
+interface SelectRecord {
+  filters: UpdateRecord["filters"]
+  selected?: string
+  table: string
+}
+
+type SelectResult = {
+  data: Record<string, unknown> | null
+  error: { code?: string; message: string } | null
+}
+
+type SelectResultFactory = (record: SelectRecord) => SelectResult | Promise<SelectResult>
+
+function createUpdateChain(
+  record: UpdateRecord,
+  result: UpdateResult | UpdateResultFactory = { data: { id: "intake-1" }, error: null },
+) {
+  const resolveResult = () => Promise.resolve(
+    typeof result === "function" ? result(record) : result,
+  )
   const chain = {
     eq: vi.fn((column: string, value: unknown) => {
       record.filters.push({ column, method: "eq", value })
@@ -117,20 +149,24 @@ function createUpdateChain(record: UpdateRecord, result: UpdateResult = { data: 
       record.filters.push({ column, method: "in", value })
       return chain
     }),
+    is: vi.fn((column: string, value: unknown) => {
+      record.filters.push({ column, method: "is", value })
+      return chain
+    }),
     or: vi.fn((value: string) => {
       record.filters.push({ method: "or", value })
       return chain
     }),
     select: vi.fn(() => {
       const selectResult = {
-        maybeSingle: vi.fn(async () => result),
-        single: vi.fn(async () => result),
-        then: (resolve: (value: typeof result) => void) => Promise.resolve(result).then(resolve),
+        maybeSingle: vi.fn(resolveResult),
+        single: vi.fn(resolveResult),
+        then: (resolve: (value: UpdateResult) => void) => resolveResult().then(resolve),
       }
 
       return selectResult
     }),
-    then: (resolve: (value: typeof result) => void) => Promise.resolve(result).then(resolve),
+    then: (resolve: (value: UpdateResult) => void) => resolveResult().then(resolve),
   }
 
   return chain
@@ -199,39 +235,78 @@ function createPaymentSuccessSupabaseMock() {
   return { intakeId, supabase, updates }
 }
 
-function createSelectChain() {
-  return {
-    eq: vi.fn(() => ({
-      single: vi.fn(async () => ({
-        data: {
-          category: "medical_certificate",
-          patient: { email: null, full_name: null },
-        },
-        error: null,
-      })),
-    })),
+function createSelectChain(
+  record: SelectRecord,
+  resultFactory: SelectResultFactory,
+) {
+  const resolve = () => Promise.resolve(resultFactory(record))
+  const chain = {
+    eq: vi.fn((column: string, value: unknown) => {
+      record.filters.push({ column, method: "eq", value })
+      return chain
+    }),
+    in: vi.fn((column: string, value: unknown) => {
+      record.filters.push({ column, method: "in", value })
+      return chain
+    }),
+    is: vi.fn((column: string, value: unknown) => {
+      record.filters.push({ column, method: "is", value })
+      return chain
+    }),
+    maybeSingle: vi.fn(resolve),
+    or: vi.fn((value: string) => {
+      record.filters.push({ method: "or", value })
+      return chain
+    }),
+    single: vi.fn(resolve),
+    then: (resolvePromise: (value: SelectResult) => void) => resolve().then(resolvePromise),
   }
+  return chain
 }
 
 function createWebhookSupabaseMock(
-  updateResult: UpdateResult = { data: { id: "intake-1" }, error: null },
+  updateResult: UpdateResult | UpdateResultFactory | Array<UpdateResult | UpdateResultFactory> = {
+    data: { id: "intake-1" },
+    error: null,
+  },
   claimResult = { data: true, error: null },
+  selectResult: SelectResult | SelectResultFactory = {
+    data: {
+      category: "medical_certificate",
+      patient: { email: null, full_name: null },
+    },
+    error: null,
+  },
 ) {
   const updates: UpdateRecord[] = []
+  const selects: SelectRecord[] = []
+  const updateResults = Array.isArray(updateResult) ? [...updateResult] : null
+  const selectResultFactory: SelectResultFactory = typeof selectResult === "function"
+    ? selectResult
+    : () => selectResult
 
   const supabase = {
     from: vi.fn((table: string) => ({
-      select: vi.fn(() => createSelectChain()),
+      select: vi.fn((selected?: string) => {
+        const record: SelectRecord = { filters: [], selected, table }
+        selects.push(record)
+        return createSelectChain(record, selectResultFactory)
+      }),
       update: vi.fn((payload: Record<string, unknown>) => {
         const record: UpdateRecord = { filters: [], payload, table }
         updates.push(record)
-        return createUpdateChain(record, updateResult)
+        return createUpdateChain(
+          record,
+          updateResults?.shift() ?? (Array.isArray(updateResult)
+            ? { data: null, error: null }
+            : updateResult),
+        )
       }),
     })),
     rpc: vi.fn(async () => claimResult),
   }
 
-  return { supabase, updates }
+  return { selects, supabase, updates }
 }
 
 function makeEvent(type: string, object: Record<string, unknown>): Stripe.Event {
@@ -240,6 +315,12 @@ function makeEvent(type: string, object: Record<string, unknown>): Stripe.Event 
     type,
     data: { object },
   } as unknown as Stripe.Event
+}
+
+async function runAfterCallbacks() {
+  for (const [callback] of mocks.after.mock.calls) {
+    await callback()
+  }
 }
 
 describe("Stripe webhook payment state transitions", () => {
@@ -274,9 +355,84 @@ describe("Stripe webhook payment state transitions", () => {
       {
         method: "or",
         value:
-          "checkout_error.is.null,checkout_error.neq.payment_session_replacement_in_progress",
+          "checkout_error.is.null,and(checkout_error.neq.payment_session_replacement_in_progress,checkout_error.neq.safety_blocked_high_stakes,checkout_error.neq.safety_missing_required_information)",
       },
     ]))
+  })
+
+  it.each([
+    "payment_session_replacement_in_progress",
+    "safety_blocked_high_stakes",
+    "safety_missing_required_information",
+  ])("does not expire or email a pending row carrying %s", async (marker) => {
+    let expiryApplied = false
+    const { supabase } = createWebhookSupabaseMock(
+      ({ filters }) => {
+        const filter = filters.find((entry) => entry.method === "or")?.value
+        const markerExcluded = typeof filter === "string" && filter.includes(`checkout_error.neq.${marker}`)
+        expiryApplied = !markerExcluded
+        return markerExcluded
+          ? { data: null, error: null }
+          : { data: { id: "intake-1" }, error: null }
+      },
+      { data: true, error: null },
+      {
+        data: {
+          category: "medical_certificate",
+          patient: { email: "patient@example.test", full_name: "Patient" },
+        },
+        error: null,
+      },
+    )
+
+    await handleCheckoutSessionExpired({
+      event: makeEvent("checkout.session.expired", {
+        id: "cs_current",
+        metadata: { intake_id: "intake-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(expiryApplied).toBe(false)
+    expect(mocks.sendSessionExpiredEmail).not.toHaveBeenCalled()
+  })
+
+  it("leaves a held checkout_failed row untouched and sends no expiry email", async () => {
+    let expiryApplied = false
+    const heldStatus = "checkout_failed"
+    const { supabase } = createWebhookSupabaseMock(
+      ({ filters }) => {
+        const statusFilter = filters.find(
+          (entry) => entry.method === "eq" && entry.column === "status",
+        )
+        const matchesHeldRow = statusFilter?.value === heldStatus
+        expiryApplied = matchesHeldRow
+        return matchesHeldRow
+          ? { data: { id: "intake-1" }, error: null }
+          : { data: null, error: null }
+      },
+      { data: true, error: null },
+      {
+        data: {
+          category: "medical_certificate",
+          patient: { email: "patient@example.test", full_name: "Patient" },
+        },
+        error: null,
+      },
+    )
+
+    await handleCheckoutSessionExpired({
+      event: makeEvent("checkout.session.expired", {
+        id: "cs_current",
+        metadata: { intake_id: "intake-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(expiryApplied).toBe(false)
+    expect(mocks.sendSessionExpiredEmail).not.toHaveBeenCalled()
   })
 
   it("does not notify expiry when a stale checkout session no longer matches", async () => {
@@ -322,6 +478,254 @@ describe("Stripe webhook payment state transitions", () => {
     ]))
     expect(mocks.listCheckoutSessions).toHaveBeenCalledWith({ limit: 1, payment_intent: "pi_failed" })
     expect(after).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    "safety_blocked_high_stakes",
+    "safety_missing_required_information",
+  ])("records a sync failure without replacing the %s lock", async (marker) => {
+    const { supabase, updates } = createWebhookSupabaseMock([
+      { data: null, error: null },
+      { data: { checkout_error: marker, id: "intake-1" }, error: null },
+    ])
+
+    await handlePaymentIntentFailed({
+      event: makeEvent("payment_intent.payment_failed", {
+        id: "pi_failed",
+        last_payment_error: { code: "card_declined", decline_code: "generic_decline", message: "Sensitive bank detail" },
+        metadata: { intake_id: "intake-1", patient_id: "patient-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(updates).toHaveLength(2)
+    expect(updates[1]).toMatchObject({
+      payload: {
+        payment_status: "failed",
+        status: "checkout_failed",
+      },
+      table: "intakes",
+    })
+    expect(updates[1].payload).not.toHaveProperty("checkout_error")
+    expect(updates[1].payload).not.toHaveProperty("triage_reason")
+    expect(updates[1].filters).toEqual(expect.arrayContaining([
+      { column: "id", method: "eq", value: "intake-1" },
+      { column: "payment_id", method: "eq", value: "cs_current" },
+      { column: "checkout_error", method: "in", value: [
+        "safety_blocked_high_stakes",
+        "safety_missing_required_information",
+      ] },
+    ]))
+    expect(mocks.trackBusinessMetric).toHaveBeenCalledWith(expect.objectContaining({
+      metadata: expect.objectContaining({
+        decline_code: "generic_decline",
+        failure_code: "card_declined",
+        intake_id: "intake-1",
+        payment_intent_id: "pi_failed",
+      }),
+      metric: "payment_failed",
+    }))
+    expect(JSON.stringify(mocks.trackBusinessMetric.mock.calls)).not.toContain("Sensitive bank detail")
+    expect(after).not.toHaveBeenCalled()
+  })
+
+  it("catches a safety lock that appears between the ordinary and fallback sync updates", async () => {
+    const marker = "safety_missing_required_information"
+    const { supabase, updates } = createWebhookSupabaseMock([
+      { data: null, error: null },
+      { data: { checkout_error: marker, id: "intake-1" }, error: null },
+    ])
+
+    await handlePaymentIntentFailed({
+      event: makeEvent("payment_intent.payment_failed", {
+        id: "pi_failed",
+        metadata: { intake_id: "intake-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(updates[0].filters).toContainEqual(expect.objectContaining({
+      method: "or",
+      value: expect.stringContaining("checkout_error.is.null"),
+    }))
+    expect(updates[1].filters).toContainEqual({
+      column: "checkout_error",
+      method: "in",
+      value: ["safety_blocked_high_stakes", "safety_missing_required_information"],
+    })
+    expect(mocks.sendPaymentFailedEmail).not.toHaveBeenCalled()
+  })
+
+  it("re-reads exact current failure eligibility before an ordinary sync recovery email", async () => {
+    mocks.sendPaymentFailedEmail.mockResolvedValue({ success: true })
+    const { selects, supabase, updates } = createWebhookSupabaseMock(
+      [
+        { data: { checkout_error: "Payment failed", id: "intake-1" }, error: null },
+        { data: { id: "intake-1" }, error: null },
+      ],
+      { data: true, error: null },
+      {
+        data: {
+          abandoned_email_sent_at: null,
+          category: "medical_certificate",
+          checkout_error: "Payment failed",
+          guest_email: "patient@example.test",
+          id: "intake-1",
+          payment_id: "cs_current",
+          payment_status: "failed",
+          status: "checkout_failed",
+          patient: null,
+        },
+        error: null,
+      },
+    )
+
+    await handlePaymentIntentFailed({
+      event: makeEvent("payment_intent.payment_failed", {
+        id: "pi_failed",
+        last_payment_error: { code: "card_declined", decline_code: "generic_decline", message: "Card declined" },
+        metadata: { intake_id: "intake-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(mocks.sendPaymentFailedEmail).not.toHaveBeenCalled()
+    await runAfterCallbacks()
+
+    expect(mocks.sendPaymentFailedEmail).toHaveBeenCalledTimes(1)
+    expect(selects).toHaveLength(1)
+    expect(selects[0].filters).toEqual(expect.arrayContaining([
+      { column: "id", method: "eq", value: "intake-1" },
+      { column: "payment_id", method: "eq", value: "cs_current" },
+      { column: "status", method: "eq", value: "checkout_failed" },
+      { column: "payment_status", method: "eq", value: "failed" },
+      { column: "abandoned_email_sent_at", method: "is", value: null },
+      { method: "or", value: "checkout_error.is.null,and(checkout_error.neq.safety_blocked_high_stakes,checkout_error.neq.safety_missing_required_information)" },
+    ]))
+    expect(updates[1].filters).toEqual(expect.arrayContaining([
+      { column: "payment_id", method: "eq", value: "cs_current" },
+      { column: "abandoned_email_sent_at", method: "is", value: null },
+    ]))
+  })
+
+  it("suppresses a scheduled sync recovery email when a hold wins before the read", async () => {
+    const { supabase } = createWebhookSupabaseMock(
+      { data: { checkout_error: "Payment failed", id: "intake-1" }, error: null },
+      { data: true, error: null },
+      { data: null, error: null },
+    )
+
+    await handlePaymentIntentFailed({
+      event: makeEvent("payment_intent.payment_failed", {
+        id: "pi_failed",
+        last_payment_error: { message: "Card declined" },
+        metadata: { intake_id: "intake-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(after).toHaveBeenCalledTimes(1)
+    await runAfterCallbacks()
+    expect(mocks.sendPaymentFailedEmail).not.toHaveBeenCalled()
+  })
+
+  it("fails closed when the scheduled sync recovery eligibility read errors", async () => {
+    const { supabase } = createWebhookSupabaseMock(
+      { data: { checkout_error: "Payment failed", id: "intake-1" }, error: null },
+      { data: true, error: null },
+      { data: null, error: { code: "57014", message: "database detail" } },
+    )
+
+    await handlePaymentIntentFailed({
+      event: makeEvent("payment_intent.payment_failed", {
+        id: "pi_failed",
+        metadata: { intake_id: "intake-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    await runAfterCallbacks()
+    expect(mocks.sendPaymentFailedEmail).not.toHaveBeenCalled()
+    expect(mocks.logger.error).toHaveBeenCalledWith(
+      "Failed to verify payment failure recovery eligibility",
+      expect.objectContaining({ checkoutSessionId: "cs_current", intakeId: "intake-1" }),
+    )
+    expect(mocks.addToDeadLetterQueue).toHaveBeenCalledWith(
+      supabase,
+      "evt_test",
+      "payment_intent.payment_failed",
+      "cs_current",
+      "intake-1",
+      "Failed to verify exact-current payment failure email eligibility",
+      "DB_READ_FAILED",
+    )
+  })
+
+  it("keeps raw Stripe failure detail out of sync logs and analytics", async () => {
+    const rawDetail = "Card 4242 belonging to Jane Doe was declined"
+    const { supabase } = createWebhookSupabaseMock()
+
+    await handlePaymentIntentFailed({
+      event: makeEvent("payment_intent.payment_failed", {
+        id: "pi_failed",
+        last_payment_error: { code: "card_declined", decline_code: "generic_decline", message: rawDetail },
+        metadata: { intake_id: "intake-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(JSON.stringify(mocks.logger.warn.mock.calls)).not.toContain(rawDetail)
+    expect(JSON.stringify(mocks.trackBusinessMetric.mock.calls)).not.toContain(rawDetail)
+  })
+
+  it.each([
+    {
+      expectedStage: "ordinary",
+      updateResults: [
+        { data: null, error: { code: "57014", message: "database detail" } },
+      ],
+    },
+    {
+      expectedStage: "locked_fallback",
+      updateResults: [
+        { data: null, error: null },
+        { data: null, error: { code: "57014", message: "database detail" } },
+      ],
+    },
+  ])("DLQs a sync $expectedStage database failure before returning 500", async ({
+    expectedStage,
+    updateResults,
+  }) => {
+    const { supabase } = createWebhookSupabaseMock(updateResults)
+
+    const response = await handlePaymentIntentFailed({
+      event: makeEvent("payment_intent.payment_failed", {
+        id: "pi_failed",
+        metadata: { intake_id: "intake-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect((response as Response).status).toBe(500)
+    expect(mocks.addToDeadLetterQueue).toHaveBeenCalledWith(
+      supabase,
+      "evt_test",
+      "payment_intent.payment_failed",
+      "cs_current",
+      "intake-1",
+      `Exact-current payment failure update failed at ${expectedStage}`,
+      "DB_UPDATE_FAILED",
+      { stage: expectedStage },
+    )
+    expect(mocks.trackBusinessMetric).not.toHaveBeenCalled()
+    expect(after).not.toHaveBeenCalled()
   })
 
   it("does not notify payment failure when the failed PaymentIntent belongs to a stale checkout session", async () => {
@@ -519,9 +923,230 @@ describe("Stripe webhook payment state transitions", () => {
     })
     expect(updates[0].filters).toEqual(expect.arrayContaining([
       { column: "id", method: "eq", value: "intake-1" },
-      { column: "status", method: "eq", value: "pending_payment" },
       { column: "payment_id", method: "eq", value: "cs_current" },
+      { column: "status", method: "in", value: ["pending_payment", "checkout_failed"] },
+      { column: "payment_status", method: "in", value: ["pending", "unpaid", "failed"] },
     ]))
+  })
+
+  it.each([
+    "safety_blocked_high_stakes",
+    "safety_missing_required_information",
+  ])("records an async failure without replacing the %s lock", async (marker) => {
+    const { supabase, updates } = createWebhookSupabaseMock([
+      { data: null, error: null },
+      { data: { checkout_error: marker, id: "intake-1" }, error: null },
+    ])
+
+    await handleAsyncPaymentFailed({
+      event: makeEvent("checkout.session.async_payment_failed", {
+        id: "cs_current",
+        metadata: { intake_id: "intake-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(updates).toHaveLength(2)
+    expect(updates[1].payload).toMatchObject({
+      payment_status: "failed",
+      status: "checkout_failed",
+    })
+    expect(updates[1].payload).not.toHaveProperty("checkout_error")
+    expect(mocks.sendPaymentFailedEmail).not.toHaveBeenCalled()
+  })
+
+  it("suppresses an async failure email when a hold wins before the immediate read", async () => {
+    const { supabase } = createWebhookSupabaseMock(
+      { data: { checkout_error: "Asynchronous payment failed", id: "intake-1" }, error: null },
+      { data: true, error: null },
+      { data: null, error: null },
+    )
+
+    await handleAsyncPaymentFailed({
+      event: makeEvent("checkout.session.async_payment_failed", {
+        id: "cs_current",
+        metadata: { intake_id: "intake-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(mocks.sendPaymentFailedEmail).not.toHaveBeenCalled()
+  })
+
+  it("sends an ordinary async failure email only after an exact-current read", async () => {
+    mocks.sendPaymentFailedEmail.mockResolvedValue({ success: true })
+    const { selects, supabase, updates } = createWebhookSupabaseMock(
+      [
+        { data: { checkout_error: "Asynchronous payment failed", id: "intake-1" }, error: null },
+        { data: { id: "intake-1" }, error: null },
+      ],
+      { data: true, error: null },
+      {
+        data: {
+          abandoned_email_sent_at: null,
+          category: "medical_certificate",
+          checkout_error: "Asynchronous payment failed",
+          guest_email: "patient@example.test",
+          id: "intake-1",
+          payment_id: "cs_current",
+          payment_status: "failed",
+          status: "checkout_failed",
+          patient: null,
+        },
+        error: null,
+      },
+    )
+
+    await handleAsyncPaymentFailed({
+      event: makeEvent("checkout.session.async_payment_failed", {
+        id: "cs_current",
+        metadata: { intake_id: "intake-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(mocks.sendPaymentFailedEmail).toHaveBeenCalledTimes(1)
+    expect(selects[0].filters).toEqual(expect.arrayContaining([
+      { column: "payment_id", method: "eq", value: "cs_current" },
+      { column: "abandoned_email_sent_at", method: "is", value: null },
+      { method: "or", value: "checkout_error.is.null,and(checkout_error.neq.safety_blocked_high_stakes,checkout_error.neq.safety_missing_required_information)" },
+    ]))
+    expect(updates[1].filters).toEqual(expect.arrayContaining([
+      { column: "payment_id", method: "eq", value: "cs_current" },
+      { column: "abandoned_email_sent_at", method: "is", value: null },
+    ]))
+  })
+
+  it.each([
+    ["payment_intent.payment_failed", "Sent payment failure notification"],
+    ["checkout.session.async_payment_failed", "Payment failed email sent"],
+  ])("does not emit a clean sent log when the guarded nudge mark loses for %s", async (
+    eventType,
+    cleanLogMessage,
+  ) => {
+    mocks.sendPaymentFailedEmail.mockResolvedValue({ success: true })
+    const { supabase } = createWebhookSupabaseMock(
+      [
+        { data: { checkout_error: "Payment failed", id: "intake-1" }, error: null },
+        { data: null, error: null },
+      ],
+      { data: true, error: null },
+      {
+        data: {
+          abandoned_email_sent_at: null,
+          category: "medical_certificate",
+          checkout_error: "Payment failed",
+          guest_email: "patient@example.test",
+          id: "intake-1",
+          payment_id: "cs_current",
+          payment_status: "failed",
+          status: "checkout_failed",
+          patient: null,
+        },
+        error: null,
+      },
+    )
+
+    if (eventType === "payment_intent.payment_failed") {
+      await handlePaymentIntentFailed({
+        event: makeEvent(eventType, {
+          id: "pi_failed",
+          metadata: { intake_id: "intake-1" },
+        }),
+        startTime: Date.now(),
+        supabase: supabase as never,
+      })
+      await runAfterCallbacks()
+    } else {
+      await handleAsyncPaymentFailed({
+        event: makeEvent(eventType, {
+          id: "cs_current",
+          metadata: { intake_id: "intake-1" },
+        }),
+        startTime: Date.now(),
+        supabase: supabase as never,
+      })
+    }
+
+    expect(mocks.sendPaymentFailedEmail).toHaveBeenCalledOnce()
+    expect(mocks.logger.info.mock.calls.some(([message]) => message === cleanLogMessage)).toBe(false)
+    expect(mocks.logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining("nudge state changed before marking"),
+      expect.objectContaining({ intakeId: "intake-1" }),
+    )
+  })
+
+  it("fails closed and DLQs when the async recovery eligibility read errors", async () => {
+    const { supabase } = createWebhookSupabaseMock(
+      { data: { checkout_error: "Asynchronous payment failed", id: "intake-1" }, error: null },
+      { data: true, error: null },
+      { data: null, error: { code: "57014", message: "database detail" } },
+    )
+
+    await handleAsyncPaymentFailed({
+      event: makeEvent("checkout.session.async_payment_failed", {
+        id: "cs_current",
+        metadata: { intake_id: "intake-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(mocks.sendPaymentFailedEmail).not.toHaveBeenCalled()
+    expect(mocks.addToDeadLetterQueue).toHaveBeenCalledWith(
+      supabase,
+      "evt_test",
+      "checkout.session.async_payment_failed",
+      "cs_current",
+      "intake-1",
+      "Failed to verify exact-current async payment failure email eligibility",
+      "DB_READ_FAILED",
+    )
+  })
+
+  it.each([
+    {
+      expectedStage: "ordinary",
+      updateResults: [
+        { data: null, error: { code: "57014", message: "database detail" } },
+      ],
+    },
+    {
+      expectedStage: "locked_fallback",
+      updateResults: [
+        { data: null, error: null },
+        { data: null, error: { code: "57014", message: "database detail" } },
+      ],
+    },
+  ])("DLQs an async $expectedStage database failure", async ({
+    expectedStage,
+    updateResults,
+  }) => {
+    const { supabase } = createWebhookSupabaseMock(updateResults)
+
+    await handleAsyncPaymentFailed({
+      event: makeEvent("checkout.session.async_payment_failed", {
+        id: "cs_current",
+        metadata: { intake_id: "intake-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(mocks.addToDeadLetterQueue).toHaveBeenCalledWith(
+      supabase,
+      "evt_test",
+      "checkout.session.async_payment_failed",
+      "cs_current",
+      "intake-1",
+      `Exact-current async payment failure update failed at ${expectedStage}`,
+      "DB_UPDATE_FAILED",
+      { stage: expectedStage },
+    )
+    expect(mocks.sendPaymentFailedEmail).not.toHaveBeenCalled()
   })
 
   it("does not notify async payment failure when a stale checkout session no longer matches", async () => {
@@ -536,7 +1161,7 @@ describe("Stripe webhook payment state transitions", () => {
       supabase: supabase as never,
     })
 
-    expect(supabase.from).toHaveBeenCalledTimes(1)
+    expect(supabase.from).toHaveBeenCalledTimes(2)
     expect(mocks.sendPaymentFailedEmail).not.toHaveBeenCalled()
   })
 

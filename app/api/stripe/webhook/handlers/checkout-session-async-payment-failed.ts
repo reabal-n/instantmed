@@ -8,7 +8,8 @@ import { createLogger } from "@/lib/observability/logger"
 
 import {
   markCheckoutRecoveryNudgeSent,
-  type PaymentFailureIntakeEmailContext,
+  readExactCurrentPaymentFailureEmailContext,
+  recordExactCurrentPaymentFailure,
   resolvePaymentFailureRecipient,
 } from "./payment-failure-recovery"
 import type { HandlerResult, WebhookContext } from "./types"
@@ -35,28 +36,34 @@ export async function handleAsyncPaymentFailed(ctx: WebhookContext): Promise<Han
   }
 
   if (intakeId) {
-    const { data: failedIntake, error: updateError } = await supabase
-      .from("intakes")
-      .update({
-        checkout_error: "Asynchronous payment failed",
-        payment_status: "failed",
-        status: "checkout_failed",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", intakeId)
-      .eq("status", "pending_payment")
-      .eq("payment_id", session.id)
-      .in("payment_status", ["pending", "unpaid"])
-      .select("id")
-      .maybeSingle()
+    const failureUpdate = await recordExactCurrentPaymentFailure({
+      checkoutSessionId: session.id,
+      intakeId,
+      ordinaryError: "Asynchronous payment failed",
+      source: "checkout.session.async_payment_failed",
+      supabase,
+    })
 
-    if (updateError) {
-      log.error("Failed to mark async checkout payment failure", { eventId: event.id, sessionId: session.id }, updateError)
-      await addToDeadLetterQueue(supabase, event.id, event.type, session.id, intakeId, updateError.message, "DB_UPDATE_FAILED")
+    if (failureUpdate.outcome === "database_error") {
+      log.error("Failed to record exact-current async checkout payment failure", {
+        eventId: event.id,
+        sessionId: session.id,
+        stage: failureUpdate.stage,
+      })
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        session.id,
+        intakeId,
+        `Exact-current async payment failure update failed at ${failureUpdate.stage}`,
+        "DB_UPDATE_FAILED",
+        { stage: failureUpdate.stage },
+      )
       return
     }
 
-    if (!failedIntake) {
+    if (failureUpdate.outcome === "state_changed") {
       log.info("Async payment failure ignored because checkout session is no longer current", {
         eventId: event.id,
         sessionId: session.id,
@@ -64,15 +71,45 @@ export async function handleAsyncPaymentFailed(ctx: WebhookContext): Promise<Han
       return
     }
 
+    if (failureUpdate.outcome === "locked_failure") {
+      log.info("Recorded async payment failure while preserving recovery suppression", {
+        eventId: event.id,
+        intakeId,
+        sessionId: session.id,
+        state: failureUpdate.outcome,
+      })
+      return
+    }
+
     // Send payment failed email to patient
     try {
-      const { data: intake } = await supabase
-        .from("intakes")
-        .select("patient:profiles!intakes_patient_id_fkey(email, full_name), category, guest_email")
-        .eq("id", intakeId)
-        .single()
+      const eligibility = await readExactCurrentPaymentFailureEmailContext({
+        checkoutSessionId: session.id,
+        intakeId,
+        supabase,
+      })
 
-      const { email, name } = resolvePaymentFailureRecipient(intake as PaymentFailureIntakeEmailContext | null)
+      if (eligibility.outcome === "database_error") {
+        log.error("Failed to verify async payment failure recovery eligibility", {
+          eventId: event.id,
+          intakeId,
+          sessionId: session.id,
+        })
+        await addToDeadLetterQueue(
+          supabase,
+          event.id,
+          event.type,
+          session.id,
+          intakeId,
+          "Failed to verify exact-current async payment failure email eligibility",
+          "DB_READ_FAILED",
+        )
+        return
+      }
+      if (eligibility.outcome === "ineligible") return
+
+      const intake = eligibility.context
+      const { email, name } = resolvePaymentFailureRecipient(intake)
       if (email) {
         const emailResult = await sendPaymentFailedEmail({
           to: email,
@@ -89,12 +126,29 @@ export async function handleAsyncPaymentFailed(ctx: WebhookContext): Promise<Han
           checkoutSessionId: session.id,
         })
         if (emailResult.success) {
-          await markCheckoutRecoveryNudgeSent(supabase, intakeId, "checkout.session.async_payment_failed")
-          log.info("Payment failed email sent", { intakeId })
+          const marked = await markCheckoutRecoveryNudgeSent(
+            supabase,
+            intakeId,
+            session.id,
+            "checkout.session.async_payment_failed",
+          )
+          if (marked) {
+            log.info("Payment failed email sent", { intakeId })
+          } else {
+            log.warn("Payment failed email sent but nudge state changed before marking", {
+              eventId: event.id,
+              intakeId,
+              sessionId: session.id,
+            })
+          }
         }
       }
-    } catch (emailError) {
-      log.error("Failed to send payment failed email", { intakeId }, emailError)
+    } catch {
+      log.error("Failed to send payment failed email", {
+        eventId: event.id,
+        intakeId,
+        sessionId: session.id,
+      })
     }
   }
 }

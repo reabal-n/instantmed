@@ -8,6 +8,8 @@ export const PAYMENT_SAFETY_LOCKS = [
   MISSING_SAFETY_INFORMATION_PAYMENT_LOCK,
 ] as const
 
+export type PaymentSafetyLock = (typeof PAYMENT_SAFETY_LOCKS)[number]
+
 export const PAYMENT_SAFETY_LOCK_EXCLUSION_FILTER =
   `checkout_error.is.null,and(checkout_error.neq.${HIGH_STAKES_PAYMENT_LOCK},checkout_error.neq.${MISSING_SAFETY_INFORMATION_PAYMENT_LOCK})`
 
