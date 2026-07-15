@@ -21,8 +21,8 @@ import { addToDeadLetterQueue, tryClaimEvent } from "./utils"
 const log = createLogger("stripe-webhook:payment-failed")
 
 type CheckoutSessionResolution =
-  | { success: true; checkoutSessionId: string | null }
-  | { success: false; error: unknown }
+  | { success: true; checkoutSessionId: string }
+  | { success: false; reason: "lookup_failed" | "session_not_found" }
 
 async function resolveCheckoutSessionIdForPaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise<CheckoutSessionResolution> {
   const metadataSessionId = paymentIntent.metadata?.checkout_session_id || paymentIntent.metadata?.session_id
@@ -33,12 +33,12 @@ async function resolveCheckoutSessionIdForPaymentIntent(paymentIntent: Stripe.Pa
       limit: 1,
       payment_intent: paymentIntent.id,
     })
-    return { success: true, checkoutSessionId: sessions.data[0]?.id ?? null }
-  } catch (error) {
-    log.warn("Could not resolve Checkout Session for failed PaymentIntent", {
-      paymentIntentId: paymentIntent.id,
-    }, error instanceof Error ? error : undefined)
-    return { success: false, error }
+    const checkoutSessionId = sessions.data[0]?.id
+    return checkoutSessionId
+      ? { success: true, checkoutSessionId }
+      : { success: false, reason: "session_not_found" }
+  } catch {
+    return { success: false, reason: "lookup_failed" }
   }
 }
 
@@ -55,27 +55,27 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
     intakeId,
   })
 
+  let checkoutSessionId: string | null = null
+  if (intakeId) {
+    const checkoutSessionResolution = await resolveCheckoutSessionIdForPaymentIntent(paymentIntent)
+    if (!checkoutSessionResolution.success) {
+      log.error("Payment failure Checkout Session resolution unavailable", {
+        eventId: event.id,
+        intakeId,
+        paymentIntentId: paymentIntent.id,
+        resolution: checkoutSessionResolution.reason,
+      })
+      return NextResponse.json({ error: "Failed to verify checkout session" }, { status: 500 })
+    }
+    checkoutSessionId = checkoutSessionResolution.checkoutSessionId
+  }
+
   const shouldProcess = ctx.adminReplay || await tryClaimEvent(supabase, event.id, event.type, intakeId, paymentIntent.id)
   if (!shouldProcess) {
     return NextResponse.json({ received: true, skipped: true })
   }
 
-  if (intakeId) {
-    const checkoutSessionResolution = await resolveCheckoutSessionIdForPaymentIntent(paymentIntent)
-    if (!checkoutSessionResolution.success) {
-      return NextResponse.json({ error: "Failed to verify checkout session" }, { status: 500 })
-    }
-
-    const checkoutSessionId = checkoutSessionResolution.checkoutSessionId
-    if (!checkoutSessionId) {
-      log.warn("Payment failure ignored because current checkout session could not be verified", {
-        eventId: event.id,
-        intakeId,
-        paymentIntentId: paymentIntent.id,
-      })
-      return NextResponse.json({ received: true, skipped: true, reason: "missing_checkout_session" })
-    }
-
+  if (intakeId && checkoutSessionId) {
     const failureUpdate = await recordExactCurrentPaymentFailure({
       checkoutSessionId,
       intakeId,

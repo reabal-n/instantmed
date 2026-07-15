@@ -680,7 +680,13 @@ describe("Stripe webhook payment state transitions", () => {
       supabase: supabase as never,
     })
 
-    expect(JSON.stringify(mocks.logger.warn.mock.calls)).not.toContain(rawDetail)
+    const emittedLogs = JSON.stringify([
+      ...mocks.logger.debug.mock.calls,
+      ...mocks.logger.error.mock.calls,
+      ...mocks.logger.info.mock.calls,
+      ...mocks.logger.warn.mock.calls,
+    ])
+    expect(emittedLogs).not.toContain(rawDetail)
     expect(JSON.stringify(mocks.trackBusinessMetric.mock.calls)).not.toContain(rawDetail)
   })
 
@@ -750,23 +756,89 @@ describe("Stripe webhook payment state transitions", () => {
     expect(after).not.toHaveBeenCalled()
   })
 
-  it("does not consume failed-payment webhook events when Stripe checkout lookup is transiently unavailable", async () => {
-    mocks.listCheckoutSessions.mockRejectedValue(new Error("Stripe unavailable"))
-    const { supabase } = createWebhookSupabaseMock()
+  it("leaves a failed-payment event unclaimed when lookup fails so the next delivery can process it", async () => {
+    const providerException = "provider-cardholder-detail-do-not-log"
+    mocks.listCheckoutSessions
+      .mockRejectedValueOnce(new Error(providerException))
+      .mockResolvedValueOnce({ data: [{ id: "cs_current" }] })
+    const { supabase, updates } = createWebhookSupabaseMock()
+    const event = makeEvent("payment_intent.payment_failed", {
+      id: "pi_failed",
+      last_payment_error: { message: "Card declined" },
+      metadata: { intake_id: "intake-1", patient_id: "patient-1" },
+    })
+
+    const firstResponse = await handlePaymentIntentFailed({
+      event,
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect((firstResponse as Response).status).toBe(500)
+    expect(supabase.rpc).not.toHaveBeenCalled()
+    expect(updates).toHaveLength(0)
+    expect(mocks.trackBusinessMetric).not.toHaveBeenCalled()
+    expect(mocks.sendPaymentFailedEmail).not.toHaveBeenCalled()
+    expect(after).not.toHaveBeenCalled()
+    expect(JSON.stringify([
+      ...mocks.logger.debug.mock.calls,
+      ...mocks.logger.error.mock.calls,
+      ...mocks.logger.info.mock.calls,
+      ...mocks.logger.warn.mock.calls,
+    ])).not.toContain(providerException)
+    expect(mocks.logger.error).toHaveBeenCalledWith(
+      "Payment failure Checkout Session resolution unavailable",
+      expect.objectContaining({
+        eventId: "evt_test",
+        paymentIntentId: "pi_failed",
+        resolution: "lookup_failed",
+      }),
+    )
+
+    await handlePaymentIntentFailed({
+      event,
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(supabase.rpc).toHaveBeenCalledTimes(1)
+    expect(updates[0]).toMatchObject({
+      payload: {
+        payment_status: "failed",
+        status: "checkout_failed",
+      },
+    })
+    expect(mocks.trackBusinessMetric).toHaveBeenCalledTimes(1)
+    expect(after).toHaveBeenCalledTimes(1)
+  })
+
+  it("keeps an empty Checkout Session lookup unclaimed and retryable", async () => {
+    mocks.listCheckoutSessions.mockResolvedValue({ data: [] })
+    const { supabase, updates } = createWebhookSupabaseMock()
 
     const response = await handlePaymentIntentFailed({
       event: makeEvent("payment_intent.payment_failed", {
         id: "pi_failed",
-        last_payment_error: { message: "Card declined" },
         metadata: { intake_id: "intake-1", patient_id: "patient-1" },
       }),
       startTime: Date.now(),
       supabase: supabase as never,
     })
 
-    expect((response as Response).status).toBe(500)
+    expect((response as Response).status).toBeGreaterThanOrEqual(500)
+    expect(supabase.rpc).not.toHaveBeenCalled()
+    expect(updates).toHaveLength(0)
     expect(mocks.trackBusinessMetric).not.toHaveBeenCalled()
+    expect(mocks.sendPaymentFailedEmail).not.toHaveBeenCalled()
     expect(after).not.toHaveBeenCalled()
+    expect(mocks.logger.error).toHaveBeenCalledWith(
+      "Payment failure Checkout Session resolution unavailable",
+      expect.objectContaining({
+        eventId: "evt_test",
+        paymentIntentId: "pi_failed",
+        resolution: "session_not_found",
+      }),
+    )
   })
 
   it("does not notify payment failure when the guarded failure update matches no row", async () => {
