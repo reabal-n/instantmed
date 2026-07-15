@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { updateConsent } from "@/lib/analytics/conversion-tracking"
@@ -62,6 +63,7 @@ function Toggle({ checked, onChange, id }: { checked: boolean; onChange: (checke
 }
 
 export function CookieBanner() {
+  const pathname = usePathname()
   const [showBanner, setShowBanner] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
@@ -152,10 +154,15 @@ export function CookieBanner() {
 
   if (!showBanner) return null
 
+  const sitsAboveRequestActionBar = pathname === "/request"
+
   return (
     <div
       className={cn(
-        "fixed bottom-4 left-4 right-4 sm:left-6 sm:right-auto sm:bottom-6 z-50 sm:max-w-xs",
+        "fixed left-4 right-4 z-50 sm:bottom-6 sm:left-6 sm:right-auto sm:max-w-xs",
+        sitsAboveRequestActionBar
+          ? "bottom-[calc(4.25rem+env(safe-area-inset-bottom)+1rem)]"
+          : "bottom-4",
         "transition-[transform,opacity] duration-300 ease-out motion-reduce:transition-none",
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       )}

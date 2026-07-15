@@ -113,6 +113,52 @@ test.describe("Production request-flow synthetic", () => {
     await expectNoRequestCrash(page)
   })
 
+  test("selected Work choice stays fully readable on mobile", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 844 })
+    await openRequest(page, "/request?service=med-cert")
+
+    const workRadio = page.getByRole("radiogroup", { name: /Certificate type/i })
+      .getByRole("radio", { name: /^Work$/i })
+    await expect(workRadio).toHaveAttribute("aria-checked", "true", { timeout: 5000 })
+
+    const label = workRadio.getByText("Work", { exact: true })
+    const dimensions = await label.evaluate((element) => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+    }))
+
+    expect(
+      dimensions.scrollWidth,
+      "The selected Work label should not be truncated by its inline checkmark",
+    ).toBeLessThanOrEqual(dimensions.clientWidth + 1)
+  })
+
+  test("cookie notice stays clear of the mobile action bar", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.addInitScript(() => {
+      localStorage.removeItem("instantmed_cookie_consent")
+    })
+    await openRequest(page, "/request?service=med-cert")
+
+    await page.getByRole("radiogroup", { name: /Certificate type/i })
+      .getByRole("radio", { name: /^Work$/i })
+      .click()
+
+    const notice = page.getByRole("status", { name: "Cookie notice" })
+    const actionBar = page.locator('[data-intake-mobile-action-bar="true"]')
+    await expect(notice).toBeVisible({ timeout: 8000 })
+    await expect(actionBar).toBeVisible()
+
+    const noticeBox = await notice.boundingBox()
+    const actionBarBox = await actionBar.boundingBox()
+    expect(noticeBox, "Cookie notice should have a measured box").not.toBeNull()
+    expect(actionBarBox, "Mobile action bar should have a measured box").not.toBeNull()
+    expect(
+      noticeBox!.y + noticeBox!.height,
+      "Cookie notice should sit above the primary mobile action",
+    ).toBeLessThanOrEqual(actionBarBox!.y)
+  })
+
   test("active request pathways render their first actionable step", async ({ page }) => {
     const pathways = [
       { path: "/request?service=repeat-script", text: /Which medication do you need/i },
