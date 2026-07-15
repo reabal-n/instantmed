@@ -14,10 +14,16 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { createLogger } from "../observability/logger"
 import {
+  DisputeAlertEmail,
+  disputeAlertSubject,
+  SessionExpiredEmail,
+  sessionExpiredSubject,
+} from "./components/templates"
+import {
   PaymentFailedEmail,
   paymentFailedSubject,
 } from "./components/templates/payment-failed"
-import { sendCriticalEmail,sendViaResend } from "./resend"
+import { sendCriticalEmail, sendViaResend } from "./resend"
 import { sanitizeEmailForLog } from "./send/helpers"
 import {
   createPendingOutbox,
@@ -467,21 +473,34 @@ export async function sendDisputeAlertEmail(params: {
   evidenceDueBy?: string
 }): Promise<SendResult> {
   const adminEmail = process.env.ADMIN_EMAILS?.split(",")[0] || CONTACT_EMAIL
-  
-  return sendTemplateEmail({
+
+  const result = await sendEmail({
     to: adminEmail,
-    templateSlug: "dispute_alert",
-    data: {
-      dispute_id: params.disputeId,
-      charge_id: params.chargeId,
-      intake_id: params.intakeId || "Unknown",
+    toName: "InstantMed operations",
+    subject: disputeAlertSubject(),
+    template: React.createElement(DisputeAlertEmail, {
+      disputeId: params.disputeId,
+      chargeId: params.chargeId,
+      intakeId: params.intakeId,
       amount: `${params.currency} ${params.amount}`,
       reason: params.reason,
-      evidence_due_by: params.evidenceDueBy || "Check Stripe Dashboard",
-      stripe_dashboard_url: `https://dashboard.stripe.com/disputes/${params.disputeId}`,
+      evidenceDueBy: params.evidenceDueBy,
+      stripeDashboardUrl: `https://dashboard.stripe.com/disputes/${params.disputeId}`,
+    }),
+    emailType: "dispute_alert",
+    intakeId: params.intakeId,
+    idempotencyKey: `email:dispute_alert:${params.disputeId}`,
+    metadata: {
+      amount: params.amount,
+      charge_id: params.chargeId,
+      currency: params.currency,
+      dispute_id: params.disputeId,
+      evidence_due_by: params.evidenceDueBy,
+      reason: params.reason,
     },
-    isCritical: true,
   })
+
+  return { success: result.success, emailId: result.outboxId, error: result.error }
 }
 
 /**
@@ -492,21 +511,28 @@ export async function sendSessionExpiredEmail(params: {
   to: string
   patientName: string
   serviceName: string
-  resumeUrl: string
+  startUrl: string
   intakeId?: string
   patientId?: string
 }): Promise<SendResult> {
-  return sendTemplateEmail({
+  const result = await sendEmail({
     to: params.to,
-    templateSlug: "session_expired",
-    data: {
-      patient_name: params.patientName,
-      service_name: params.serviceName,
-      resume_url: params.resumeUrl,
-    },
+    toName: params.patientName,
+    subject: sessionExpiredSubject(),
+    template: React.createElement(SessionExpiredEmail, {
+      patientName: params.patientName,
+      serviceName: params.serviceName,
+      startUrl: params.startUrl,
+    }),
+    emailType: "session_expired",
     intakeId: params.intakeId,
     patientId: params.patientId,
+    idempotencyKey: params.intakeId
+      ? `email:session_expired:${params.intakeId}`
+      : undefined,
   })
+
+  return { success: result.success, emailId: result.outboxId, error: result.error }
 }
 
 /**

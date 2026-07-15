@@ -17,6 +17,8 @@ export type EmailType =
   | "payment-received"
   | "refund-processed"
   | "payment_failed"
+  | "session_expired"
+  | "dispute_alert"
   | "guest_complete_account"
   | "payment_confirmed"
   // Cron-enqueued email types

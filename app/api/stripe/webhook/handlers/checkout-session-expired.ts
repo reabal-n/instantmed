@@ -3,6 +3,7 @@ import type Stripe from "stripe"
 
 import { env } from "@/lib/config/env"
 import { buildExpiredCheckoutStartUrl } from "@/lib/email/recovery-links"
+import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { sendSessionExpiredEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import { PAYMENT_REPLACEMENT_LOCK } from "@/lib/stripe/payment-integrity"
@@ -95,11 +96,11 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
 
         const patient = (intake?.patient as unknown) as { email: string; full_name: string } | null
         if (patient?.email) {
-          await sendSessionExpiredEmail({
+          const emailResult = await sendSessionExpiredEmail({
             to: patient.email,
             patientName: patient.full_name || "there",
-            serviceName: intake?.category || "your request",
-            resumeUrl: buildExpiredCheckoutStartUrl({
+            serviceName: emailRequestTypeLabel(intake?.category, intake?.subtype),
+            startUrl: buildExpiredCheckoutStartUrl({
               appUrl: env.appUrl,
               campaign: "checkout_expired",
               category: intake?.category,
@@ -107,7 +108,14 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
             }),
             intakeId,
           })
-          log.info("Session expired email sent", { intakeId })
+          if (emailResult.success) {
+            log.info("Session expired email sent", { intakeId })
+          } else {
+            log.error("Failed to send session expired email", {
+              intakeId,
+              error: emailResult.error,
+            })
+          }
         }
       } catch (emailError) {
         log.error("Failed to send session expired email", { intakeId }, emailError)

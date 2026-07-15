@@ -207,14 +207,14 @@ function createPaymentSuccessSupabaseMock() {
   return { intakeId, supabase, updates }
 }
 
-function createSelectChain() {
+function createSelectChain(data: Record<string, unknown> = {
+  category: "medical_certificate",
+  patient: { email: null, full_name: null },
+}) {
   return {
     eq: vi.fn(() => ({
       single: vi.fn(async () => ({
-        data: {
-          category: "medical_certificate",
-          patient: { email: null, full_name: null },
-        },
+        data,
         error: null,
       })),
     })),
@@ -224,13 +224,14 @@ function createSelectChain() {
 function createWebhookSupabaseMock(
   updateResult: UpdateResult | UpdateResult[] = { data: { id: "intake-1" }, error: null },
   claimResult = { data: true, error: null },
+  selectData?: Record<string, unknown>,
 ) {
   const updates: UpdateRecord[] = []
   const updateResults = Array.isArray(updateResult) ? [...updateResult] : [updateResult]
 
   const supabase = {
     from: vi.fn((table: string) => ({
-      select: vi.fn(() => createSelectChain()),
+      select: vi.fn(() => createSelectChain(selectData)),
       update: vi.fn((payload: Record<string, unknown>) => {
         const record: UpdateRecord = { filters: [], payload, table }
         updates.push(record)
@@ -258,6 +259,7 @@ describe("Stripe webhook payment state transitions", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.listCheckoutSessions.mockResolvedValue({ data: [{ id: "cs_current" }] })
+    mocks.sendSessionExpiredEmail.mockResolvedValue({ success: true, emailId: "email-1" })
   })
 
   it("only expires the intake for the currently stored checkout session", async () => {
@@ -334,6 +336,48 @@ describe("Stripe webhook payment state transitions", () => {
     })
 
     expect(mocks.sendSessionExpiredEmail).not.toHaveBeenCalled()
+  })
+
+  it("keeps the expiry transition successful while surfacing an email delivery failure", async () => {
+    mocks.sendSessionExpiredEmail.mockResolvedValue({
+      success: false,
+      error: "Provider failed",
+    })
+    const { supabase, updates } = createWebhookSupabaseMock(
+      { data: { id: "intake-1" }, error: null },
+      { data: true, error: null },
+      {
+        category: "prescription",
+        patient: { email: "test@instantmed.com.au", full_name: "Test Patient" },
+        subtype: null,
+      },
+    )
+
+    await handleCheckoutSessionExpired({
+      event: makeEvent("checkout.session.expired", {
+        id: "cs_current",
+        metadata: { intake_id: "intake-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(updates[0]).toMatchObject({
+      payload: { payment_status: "expired", status: "expired" },
+    })
+    expect(mocks.sendSessionExpiredEmail).toHaveBeenCalledWith(expect.objectContaining({
+      intakeId: "intake-1",
+      serviceName: "prescription",
+      startUrl: expect.stringContaining("service=repeat-script"),
+    }))
+    expect(mocks.logger.error).toHaveBeenCalledWith(
+      "Failed to send session expired email",
+      { error: "Provider failed", intakeId: "intake-1" },
+    )
+    expect(mocks.logger.info).not.toHaveBeenCalledWith(
+      "Session expired email sent",
+      { intakeId: "intake-1" },
+    )
   })
 
   it("marks failed card attempts as checkout_failed without touching paid intakes", async () => {

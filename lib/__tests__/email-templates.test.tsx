@@ -21,6 +21,8 @@ import {
   abandonedCheckoutSubject,
   ConsultApprovedEmail,
   consultApprovedSubject,
+  DisputeAlertEmail,
+  disputeAlertSubject,
   GuestCompleteAccountEmail,
   guestCompleteAccountSubject,
   MagicLinkEmail,
@@ -47,6 +49,8 @@ import {
   reviewRequestSubject,
   ScriptSentEmail,
   scriptSentEmailSubject,
+  SessionExpiredEmail,
+  sessionExpiredSubject,
   StillReviewingEmail,
   stillReviewingSubject,
 } from "@/lib/email/components/templates"
@@ -341,6 +345,66 @@ describe("Email Templates", () => {
         />
       )
       expect(html).toMatchSnapshot()
+    })
+  })
+
+  describe("SessionExpiredEmail", () => {
+    it("renders an honest fresh-request recovery path", () => {
+      const html = render(
+        <SessionExpiredEmail
+          patientName="Riley Adams"
+          serviceName="Repeat Prescription"
+          startUrl="https://instantmed.com.au/request?service=repeat-script"
+          appUrl={APP_URL}
+        />
+      )
+      expectBaseEmailStructure(html)
+      expectContains(
+        html,
+        "Riley",
+        "No payment was taken",
+        "Start a new request",
+        "service=repeat-script",
+      )
+      expect(html).not.toContain("Your request is saved")
+      expect(html).not.toContain("Return to payment")
+    })
+
+    it("uses a service-free subject", () => {
+      const subject = sessionExpiredSubject()
+      expect(subject).toBe("Your payment window expired")
+      expect(subject.toLowerCase()).not.toContain("prescription")
+      expect(subject.toLowerCase()).not.toContain("consultation")
+    })
+  })
+
+  describe("DisputeAlertEmail", () => {
+    it("renders the operational dispute details and Stripe link", () => {
+      const html = render(
+        <DisputeAlertEmail
+          disputeId="dp_test_123"
+          chargeId="ch_test_123"
+          intakeId="intake-test"
+          amount="AUD 29.95"
+          reason="fraudulent"
+          evidenceDueBy="18 July 2026"
+          stripeDashboardUrl="https://dashboard.stripe.com/disputes/dp_test_123"
+          appUrl={APP_URL}
+        />
+      )
+      expectBaseEmailStructure(html)
+      expectContains(
+        html,
+        "dp_test_123",
+        "AUD 29.95",
+        "fraudulent",
+        "18 July 2026",
+        "Open dispute in Stripe",
+      )
+    })
+
+    it("uses an urgent operational subject", () => {
+      expect(disputeAlertSubject()).toBe("Urgent: Stripe dispute requires review")
     })
   })
 
@@ -746,6 +810,8 @@ describe("Email Template Cross-Checks", () => {
       <RequestDeclinedEmail key="5" patientName="Test" requestType="Med Cert" requestId="R2" appUrl={APP_URL} />,
       <PaymentConfirmedEmail key="7" patientName="Test" requestType="Med Cert" amount="$19.95" requestId="R3" appUrl={APP_URL} />,
       <PaymentFailedEmail key="8" patientName="Test" serviceName="Med Cert" failureReason="Declined" retryUrl="https://example.com" appUrl={APP_URL} />,
+      <SessionExpiredEmail key="9" patientName="Test" serviceName="Med Cert" startUrl="https://example.com" appUrl={APP_URL} />,
+      <DisputeAlertEmail key="9b" disputeId="dp_test" chargeId="ch_test" amount="AUD 29.95" reason="fraudulent" stripeDashboardUrl="https://dashboard.stripe.com/disputes/dp_test" appUrl={APP_URL} />,
       <NeedsMoreInfoEmail key="10" patientName="Test" requestType="Med Cert" requestId="R4" doctorMessage="More info needed" appUrl={APP_URL} />,
       <GuestCompleteAccountEmail key="11" patientName="Test" requestType="Med Cert" intakeId="i1" completeAccountUrl="https://example.com" appUrl={APP_URL} />,
       <PartialIntakeRecoveryEmail key="12" firstName="Test" serviceName="Med Cert" resumeUrl="https://example.com" appUrl={APP_URL} />,
@@ -773,6 +839,8 @@ describe("Email Template Cross-Checks", () => {
   it("all templates include BaseEmail branding elements", () => {
     const templates = [
       <PaymentFailedEmail key="2" patientName="Test" serviceName="Med Cert" failureReason="Declined" retryUrl="https://example.com" appUrl={APP_URL} />,
+      <SessionExpiredEmail key="3" patientName="Test" serviceName="Med Cert" startUrl="https://example.com" appUrl={APP_URL} />,
+      <DisputeAlertEmail key="3b" disputeId="dp_test" chargeId="ch_test" amount="AUD 29.95" reason="fraudulent" stripeDashboardUrl="https://dashboard.stripe.com/disputes/dp_test" appUrl={APP_URL} />,
       <StillReviewingEmail key="4" patientName="Test" requestType="Med Cert" requestId="R1" appUrl={APP_URL} />,
       <PartialIntakeRecoveryEmail key="5" firstName="Test" serviceName="Med Cert" resumeUrl="https://example.com" appUrl={APP_URL} />,
       <AbandonedCheckoutEmail key="6" patientName="Test" serviceName="Med Cert" resumeUrl="https://example.com" startedAgoLabel="about 2 hours ago" appUrl={APP_URL} />,
@@ -863,6 +931,24 @@ describe("Link validation", () => {
         serviceName="Repeat Prescription"
         failureReason="Card declined"
         retryUrl="https://instantmed.com.au/retry/xyz"
+        appUrl={APP_URL}
+      />
+    ),
+    SessionExpiredEmail: (
+      <SessionExpiredEmail
+        patientName="Test Patient"
+        serviceName="Repeat Prescription"
+        startUrl="https://instantmed.com.au/request?service=repeat-script"
+        appUrl={APP_URL}
+      />
+    ),
+    DisputeAlertEmail: (
+      <DisputeAlertEmail
+        disputeId="dp_test"
+        chargeId="ch_test"
+        amount="AUD 29.95"
+        reason="fraudulent"
+        stripeDashboardUrl="https://dashboard.stripe.com/disputes/dp_test"
         appUrl={APP_URL}
       />
     ),
@@ -1066,6 +1152,8 @@ describe("Preheader length validation", () => {
     ConsultApprovedEmail: <ConsultApprovedEmail patientName="Test" requestId="R1" appUrl={APP_URL} />,
     RequestDeclinedEmail: <RequestDeclinedEmail patientName="Test" requestType="Medical Certificate" requestId="R1" appUrl={APP_URL} />,
     StillReviewingEmail: <StillReviewingEmail patientName="Test" requestType="Medical Certificate" requestId="R1" appUrl={APP_URL} />,
+    SessionExpiredEmail: <SessionExpiredEmail patientName="Test" serviceName="Medical Certificate" startUrl="https://instantmed.com.au/request?service=med-cert" appUrl={APP_URL} />,
+    DisputeAlertEmail: <DisputeAlertEmail disputeId="dp_test" chargeId="ch_test" amount="AUD 29.95" reason="fraudulent" stripeDashboardUrl="https://dashboard.stripe.com/disputes/dp_test" appUrl={APP_URL} />,
   }
 
   for (const [name, element] of Object.entries(allTemplates)) {

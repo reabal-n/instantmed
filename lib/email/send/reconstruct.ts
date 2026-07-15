@@ -15,7 +15,10 @@ import {
   getCertificateById,
   getCertificateForIntake,
 } from "@/lib/data/issued-certificates"
-import { buildCheckoutPaymentRecoveryUrl } from "@/lib/email/recovery-links"
+import {
+  buildCheckoutPaymentRecoveryUrl,
+  buildExpiredCheckoutStartUrl,
+} from "@/lib/email/recovery-links"
 import { logger } from "@/lib/observability/logger"
 import { getGuestCertificateAccessHref, getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -121,7 +124,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   async function fetchIntakeContext(intakeId: string) {
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
-      .select("id, patient_id, service_id, category, reference_number, amount_cents, paid_at, payment_id, decline_reason, decline_reason_code, decline_reason_note, refund_amount_cents, parchment_reference, guest_email")
+      .select("id, patient_id, service_id, category, subtype, reference_number, amount_cents, paid_at, payment_id, decline_reason, decline_reason_code, decline_reason_note, refund_amount_cents, parchment_reference, guest_email")
       .eq("id", intakeId)
       .single()
 
@@ -336,6 +339,75 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       serviceName: emailRequestTypeLabel(ctx.intake.category),
       failureReason: "Your payment could not be processed. Please try again.",
       retryUrl,
+      appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // session_expired - terminal checkout recovery. Expired intakes cannot be
+  // reopened, so retries must point to a fresh request rather than payment.
+  // ----------------------------------------------------------------
+  if (row.email_type === "session_expired") {
+    if (!row.intake_id) {
+      return { success: false, error: "session_expired requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const startUrl = buildExpiredCheckoutStartUrl({
+      appUrl: env.appUrl,
+      campaign: "checkout_expired",
+      category: ctx.intake.category,
+      subtype: ctx.intake.subtype,
+    })
+
+    const { SessionExpiredEmail } = await import("@/lib/email/components/templates/session-expired")
+    const { emailRequestTypeLabel } = await import("@/lib/email/request-type-label")
+    const template = SessionExpiredEmail({
+      patientName: ctx.patient.full_name || row.to_name || "there",
+      serviceName: emailRequestTypeLabel(ctx.intake.category),
+      startUrl,
+      appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // dispute_alert - operational Stripe alert reconstructed from non-clinical
+  // outbox metadata. The Stripe dashboard remains the source of truth.
+  // ----------------------------------------------------------------
+  if (row.email_type === "dispute_alert") {
+    const metadata = row.metadata as {
+      amount?: string
+      charge_id?: string
+      currency?: string
+      dispute_id?: string
+      evidence_due_by?: string
+      reason?: string
+    } | null
+    if (!metadata?.dispute_id || !metadata.charge_id) {
+      return {
+        success: false,
+        error: "dispute_alert requires dispute and charge metadata for reconstruction",
+        terminal: true,
+      }
+    }
+
+    const { DisputeAlertEmail } = await import("@/lib/email/components/templates/dispute-alert")
+    const template = DisputeAlertEmail({
+      disputeId: metadata.dispute_id,
+      chargeId: metadata.charge_id,
+      intakeId: row.intake_id || undefined,
+      amount: `${metadata.currency || ""} ${metadata.amount || "Unknown"}`.trim(),
+      reason: metadata.reason || "Check Stripe Dashboard",
+      evidenceDueBy: metadata.evidence_due_by,
+      stripeDashboardUrl: `https://dashboard.stripe.com/disputes/${encodeURIComponent(metadata.dispute_id)}`,
       appUrl: env.appUrl,
     })
 
