@@ -582,17 +582,37 @@ test.describe("Consult Sub-Services", () => {
     await expect(page.getByRole("heading", { name: "Pattern & history", level: 3 })).toBeVisible()
     await expect(page.getByRole("heading", { name: "Treatment preference", level: 3 })).toBeVisible()
 
+    const patternSection = page
+      .getByRole("heading", { name: "Pattern & history", level: 3 })
+      .locator("../..")
     const safetySection = page
       .getByRole("heading", { name: "Safety & health", level: 3 })
       .locator("../..")
+    const preferenceSection = page
+      .getByRole("heading", { name: "Treatment preference", level: 3 })
+      .locator("../..")
+    await expectSummaryRow(safetySection, "Scalp conditions", "None reported")
+    await expectSummaryRow(safetySection, "Partner pregnant/trying", "Not applicable")
     await expectSummaryRow(safetySection, "Low blood pressure/dizziness", "No")
     await expectSummaryRow(safetySection, "Heart conditions/heart medication", "No")
     await expectSummaryRow(safetySection, "Current medications", "None reported")
     await expectSummaryRow(safetySection, "Allergies", "None reported")
     await expectSummaryRow(safetySection, "Other conditions", "None reported")
+    await expect(patternSection.getByText("Scalp conditions", { exact: true })).toHaveCount(0)
+    await expect(preferenceSection.getByText("Partner pregnant/trying", { exact: true })).toHaveCount(0)
 
     await safetySection.getByRole("button", { name: "Edit Safety & health", exact: true }).click()
     await expect(page.getByRole("heading", { name: "A quick safety check" })).toBeVisible()
+    await expect(
+      page
+        .getByRole("radiogroup", { name: /Partner pregnancy or conception status/i })
+        .getByRole("radio", { name: "N/A", exact: true }),
+    ).toHaveAttribute("aria-checked", "true")
+    await expect(
+      page
+        .getByRole("group", { name: "Scalp conditions", exact: true })
+        .getByRole("button", { name: "None", exact: true }),
+    ).toHaveAttribute("aria-pressed", "true")
     await expect(
       page
         .getByRole("radiogroup", { name: /Low blood pressure or dizziness on standing/i })
@@ -727,6 +747,16 @@ test.describe("Consult review summary: persisted health details", () => {
     await expect(page.getByText(/One last check/i)).toBeVisible({ timeout: 10000 })
     await expect(page.locator("html")).toHaveClass(/dark/)
 
+    const concernSection = page
+      .getByRole("heading", { name: "Your concern", level: 3 })
+      .locator("../..")
+    await expectSummaryRow(concernSection, "Duration of concern", "Less than 3 months")
+
+    const assessmentSection = page
+      .getByRole("heading", { name: "ED assessment", level: 3 })
+      .locator("../..")
+    await expect(assessmentSection.getByText("Duration of concern", { exact: true })).toHaveCount(0)
+
     const safetySection = page
       .getByRole("heading", { name: "Safety & health", level: 3 })
       .locator("../..")
@@ -748,6 +778,75 @@ test.describe("Consult review summary: persisted health details", () => {
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true)
+
+    await concernSection.getByRole("button", { name: "Edit Your concern", exact: true }).click()
+    await expect(page.getByRole("heading", { name: "What matters most right now?" })).toBeVisible()
+    await expect(
+      page
+        .getByRole("radiogroup", { name: /How long this has been a concern/i })
+        .getByRole("radio", { name: "< 3 months", exact: true }),
+    ).toHaveAttribute("aria-checked", "true")
+    expect(browserErrors).toEqual([])
+  })
+
+  test("hair onset belongs to goals and edits the saved goals step", async ({ page }) => {
+    const browserErrors = collectBrowserErrors(page)
+    await page.addInitScript(() => {
+      window.localStorage.setItem(
+        "instantmed-request-draft",
+        JSON.stringify({
+          state: {
+            serviceType: "consult",
+            currentStepId: "review",
+            answers: {
+              consultSubtype: "hair_loss",
+              hairGoal: "both",
+              hairOnset: "under_6_months",
+              hairPattern: "noticeable_thinning",
+              hairFamilyHistory: "no_or_unsure",
+              hairReproductive: "na",
+              scalpNone: true,
+              hairLowBP: false,
+              hairHeartConditions: false,
+              takes_medications: "no",
+              has_allergies: "no",
+              has_conditions: "no",
+              hairMedicationPreference: "doctor_decides",
+            },
+            firstName: "Test",
+            lastName: "Patient",
+            email: "test@instantmed.com.au",
+            phone: "0412345678",
+            dob: "1990-01-01",
+            lastSavedAt: new Date(Date.now() - 1000).toISOString(),
+          },
+          version: 0,
+        }),
+      )
+    })
+
+    await page.goto("/request?service=consult&subtype=hair_loss")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+    await expect(page.getByText(/One last check/i)).toBeVisible({ timeout: 10000 })
+
+    const goalsSection = page
+      .getByRole("heading", { name: "Your goals", level: 3 })
+      .locator("../..")
+    await expectSummaryRow(goalsSection, "Onset", "Under 6 months")
+
+    const patternSection = page
+      .getByRole("heading", { name: "Pattern & history", level: 3 })
+      .locator("../..")
+    await expect(patternSection.getByText("Onset", { exact: true })).toHaveCount(0)
+
+    await goalsSection.getByRole("button", { name: "Edit Your goals", exact: true }).click()
+    await expect(page.getByRole("heading", { name: "What matters most right now?" })).toBeVisible()
+    await expect(
+      page
+        .getByRole("radiogroup", { name: /When did you first notice changes/i })
+        .getByRole("radio", { name: "Under 6 months", exact: true }),
+    ).toHaveAttribute("aria-checked", "true")
     expect(browserErrors).toEqual([])
   })
 })

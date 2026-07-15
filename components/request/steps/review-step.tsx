@@ -537,17 +537,15 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
             label: 'Main goal',
             value: edGoal ? ED_GOAL_LABELS[edGoal] || edGoal : '',
           },
+          {
+            label: 'Duration of concern',
+            value: edDuration ? ED_DURATION_LABELS[edDuration] || edDuration : '',
+          },
         ],
         stepId: 'ed-goals',
       })
 
       const edAssessmentItems: ReviewItem[] = []
-      if (edDuration) {
-        edAssessmentItems.push({
-          label: 'Duration of concern',
-          value: ED_DURATION_LABELS[edDuration] || edDuration,
-        })
-      }
       if (answers.iiefTotal !== undefined) {
         const score = answers.iiefTotal as number
         const severity = score >= 22 ? 'Mild' : score >= 17 ? 'Mild\u2013moderate' : score >= 12 ? 'Moderate' : 'Significant'
@@ -681,12 +679,15 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
             label: 'Goal',
             value: hairGoal ? GOAL_LABELS[hairGoal] || hairGoal : '',
           },
+          {
+            label: 'Onset',
+            value: hairOnset ? ONSET_LABELS[hairOnset] || hairOnset : '',
+          },
         ],
         stepId: 'hair-loss-goals',
       })
 
       const hairAssessmentItems: ReviewItem[] = [
-        { label: 'Onset', value: hairOnset ? ONSET_LABELS[hairOnset] || hairOnset : '' },
         { label: 'Pattern', value: hairPattern ? PATTERN_LABELS[hairPattern] || hairPattern : '' },
         {
           label: 'Family history',
@@ -698,41 +699,50 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
       if (triedTreatments.length > 0) {
         hairAssessmentItems.push({ label: 'Tried previously', value: triedTreatments.join(', ') })
       }
-      if (scalpConditions.length > 0) {
-        hairAssessmentItems.push({ label: 'Scalp conditions', value: scalpConditions.join(', ') })
-      } else if (answers.scalpNone === true) {
-        hairAssessmentItems.push({ label: 'Scalp conditions', value: 'None reported' })
-      }
       sections.push({
         title: 'Pattern & history',
         items: hairAssessmentItems,
         stepId: 'hair-loss-assessment',
       })
 
+      const hairSafetyItems: ReviewItem[] = [
+        {
+          label: 'Partner pregnant/trying',
+          value: hairReproductive
+            ? REPRODUCTIVE_LABELS[hairReproductive] || hairReproductive
+            : '',
+        },
+      ]
+      if (scalpConditions.length > 0) {
+        hairSafetyItems.push({ label: 'Scalp conditions', value: scalpConditions.join(', ') })
+      } else if (answers.scalpNone === true) {
+        hairSafetyItems.push({ label: 'Scalp conditions', value: 'None reported' })
+      }
+      hairSafetyItems.push(
+        {
+          label: 'Low blood pressure/dizziness',
+          value: explicitYesNoReviewLabel(answers.hairLowBP),
+        },
+        {
+          label: 'Heart conditions/heart medication',
+          value: explicitYesNoReviewLabel(answers.hairHeartConditions),
+        },
+        {
+          label: 'Current medications',
+          value: medicalHistoryReviewValue(answers.takes_medications, answers.current_medications),
+        },
+        {
+          label: 'Allergies',
+          value: medicalHistoryReviewValue(answers.has_allergies, answers.known_allergies),
+        },
+        {
+          label: 'Other conditions',
+          value: medicalHistoryReviewValue(answers.has_conditions, answers.existing_conditions),
+        },
+      )
       sections.push({
         title: 'Safety & health',
-        items: [
-          {
-            label: 'Low blood pressure/dizziness',
-            value: explicitYesNoReviewLabel(answers.hairLowBP),
-          },
-          {
-            label: 'Heart conditions/heart medication',
-            value: explicitYesNoReviewLabel(answers.hairHeartConditions),
-          },
-          {
-            label: 'Current medications',
-            value: medicalHistoryReviewValue(answers.takes_medications, answers.current_medications),
-          },
-          {
-            label: 'Allergies',
-            value: medicalHistoryReviewValue(answers.has_allergies, answers.known_allergies),
-          },
-          {
-            label: 'Other conditions',
-            value: medicalHistoryReviewValue(answers.has_conditions, answers.existing_conditions),
-          },
-        ],
+        items: hairSafetyItems,
         stepId: 'hair-loss-health',
       })
 
@@ -742,12 +752,6 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
           {
             label: 'Preference',
             value: hairPreference ? HAIR_MED_LABELS[hairPreference] || hairPreference : '',
-          },
-          {
-            label: 'Partner pregnant/trying',
-            value: hairReproductive
-              ? REPRODUCTIVE_LABELS[hairReproductive] || hairReproductive
-              : '',
           },
           { label: 'Additional information', value: hairAdditionalInfo },
         ],
