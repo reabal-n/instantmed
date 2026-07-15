@@ -38,6 +38,11 @@ describe("request conversion performance contract", () => {
     expect(stepComponentsSource).not.toContain("ssr: false")
     expect(stepComponentsSource).not.toContain("ssr:false")
     expect(stepComponentsSource).toContain("Pick the certificate type, dates, and duration.")
+    expect(stepComponentsSource).toContain('"Certificate type"')
+    expect(stepComponentsSource).toContain('"How many days?"')
+    expect(stepComponentsSource).toContain('"Starting from?"')
+    expect(stepComponentsSource).toContain('"What symptoms are you having?"')
+    expect(stepComponentsSource).toContain('"How long have you felt unwell?"')
   })
 
   it("renders steps straight from the dynamic registry instead of a client-only load-state waterfall", () => {
@@ -46,6 +51,7 @@ describe("request conversion performance contract", () => {
     // The idle next-step prefetch stays: Continue should never pay a fresh
     // chunk round-trip mid-funnel.
     expect(stepRouterSource).toContain("preloadStepComponent(nextComponentPath)")
+    expect(stepRouterSource).toContain('requestIdleCallback(kick, { timeout: 1500 })')
     // The old manual chunk-state machinery must not come back — it kept the
     // form client-only and serialized chunk fetch behind hydration.
     // (negative lookbehind: preloadStepComponent legitimately stays)
@@ -53,6 +59,13 @@ describe("request conversion performance contract", () => {
     expect(stepRouterSource).not.toContain("setLoadedStep")
     expect(stepLoadersSource).toContain("stepComponentCache")
     expect(stepLoadersSource).toContain("preloadStepComponent")
+  })
+
+  it("keeps med-cert step intros mounted while their control chunks resolve", () => {
+    expect(stepRouterSource).toContain('new Set(["certificate-step", "symptoms-step"])')
+    expect(stepComponentsSource).toContain('stepLoadingFallback("symptoms-step", false)')
+    expect(stepRouterSource).toContain('state.answers.certType === "carer"')
+    expect(stepRouterSource).toContain('titleOverride={persistentIntroTitle}')
   })
 
   it("kicks off the first step's chunk fetch at client-module evaluation (pre-hydration)", () => {

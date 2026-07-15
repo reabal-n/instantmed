@@ -52,6 +52,11 @@ export interface Journey {
    */
   preCapture?: (baseUrl: string) => Promise<void>
   /**
+   * Optional cleanup while the captured page is still open. This runs after
+   * DOM evidence is saved, including when the journey itself throws.
+   */
+  postCapture?: (page: Page, baseUrl: string) => Promise<void>
+  /**
    * Drive the page. The page is already navigated to baseUrl and
    * sized to mobile 375x812 with a touch-capable browser context.
    * Use page.waitForTimeout for pacing scroll capture, NOT

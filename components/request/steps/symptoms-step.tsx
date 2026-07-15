@@ -34,6 +34,7 @@ interface SymptomsStepProps {
   onNext: () => void
   onBack: () => void
   onComplete: () => void
+  hideIntro?: boolean
 }
 
 const SYMPTOM_DURATION_OPTIONS = [
@@ -60,7 +61,7 @@ function escapeForRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
-export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps) {
+export default function SymptomsStep({ serviceType, onNext, hideIntro = false }: SymptomsStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
 
@@ -236,10 +237,12 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
 
   return (
     <div className="space-y-4">
-      <IntakeStepIntro
-        title={isCarer ? "What is happening?" : "What is stopping you today?"}
-        description="A short, specific sentence is enough for the doctor to review."
-      />
+      {!hideIntro && (
+        <IntakeStepIntro
+          title={isCarer ? "What is happening?" : "What is stopping you today?"}
+          description="A short, specific sentence is enough for the doctor to review."
+        />
+      )}
 
       {validationSummary.length > 0 ? (
         <Alert variant="destructive" role="alert" aria-live="assertive">
