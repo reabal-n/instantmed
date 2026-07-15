@@ -56,6 +56,7 @@ vi.mock("@/lib/data/intake-answers", () => ({
 
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getIntakeAnswersForPaymentSafety } from "@/lib/data/intake-answers"
+import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { runClinicalValidation } from "@/lib/stripe/checkout/clinical-validation"
 import { retryPaymentForIntakeAction } from "@/lib/stripe/checkout/retry-payment"
@@ -115,6 +116,7 @@ beforeEach(() => {
   mock(validateSafetyFieldsPresent).mockClear()
   mock(checkSafetyForServer).mockClear()
   mock(validateRepeatScriptPayload).mockClear()
+  mock(recordSafetyEvaluationForOperators).mockClear()
 })
 
 describe("shared checkout path (authenticated + guest via runClinicalValidation)", () => {
@@ -152,17 +154,28 @@ describe("shared checkout path (authenticated + guest via runClinicalValidation)
     _case,
     sideEffectAnswers,
   ) => {
-    // Payload validation is covered independently. This isolates the shared
-    // auth/guest completeness boundary and keeps the real completeness logic.
-    mock(validateRepeatScriptPayload).mockReturnValueOnce({ valid: true })
-
     const result = await runClinicalValidation(repeatScriptInput(sideEffectAnswers))
 
     expect(result.ok).toBe(false)
+    expect("error" in result ? result.error : "").toMatch(/required medical information is missing/i)
+    expect(validateRepeatScriptPayload).not.toHaveBeenCalled()
     expect(validateSafetyFieldsPresent).toHaveBeenCalledWith(
       "common-scripts",
       expect.objectContaining(sideEffectAnswers),
     )
+    expect(recordSafetyEvaluationForOperators).toHaveBeenCalledWith({
+      answers: expect.objectContaining(sideEffectAnswers),
+      context: "checkout",
+      result: {
+        isAllowed: false,
+        outcome: "REQUEST_MORE_INFO",
+        riskTier: "high",
+        blockReason: "Required medical information is missing.",
+        requiresCall: false,
+        triggeredRuleIds: ["missing_safety_fields"],
+      },
+      serviceSlug: "common-scripts",
+    })
     expect(checkSafetyForServer).not.toHaveBeenCalled()
   })
 })
