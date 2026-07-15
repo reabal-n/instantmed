@@ -100,6 +100,20 @@ function reviewLabel(labels: Record<string, string>, value: string | undefined):
   return value ? labels[value] || value : ''
 }
 
+function explicitYesNoReviewLabel(value: unknown): string {
+  if (value === true || value === 'yes') return 'Yes'
+  if (value === false || value === 'no') return 'No'
+  return ''
+}
+
+function medicalHistoryReviewValue(response: unknown, detail: unknown): string {
+  if (response === false || response === 'no') return 'None reported'
+  if (response === true || response === 'yes') {
+    return stringAnswer(detail) || 'Not answered'
+  }
+  return ''
+}
+
 const TRUNCATE_THRESHOLD = 60
 type ReviewItem = { label: string; value: string; badge?: { label: string; tone: "success" | "warning" } }
 
@@ -203,17 +217,17 @@ function ReviewSummaryCard({
     <div className="rounded-2xl border border-border/50 bg-white dark:bg-card dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none divide-y divide-border/40 dark:divide-white/10">
       {visibleSections.map((section) => (
         <div key={section.title} className="px-5 py-3.5">
-          <div className="flex items-center justify-between pb-2">
-            <h3 className="text-[13px] font-medium text-foreground">{section.title}</h3>
+          <div className="flex items-center justify-between gap-3 pb-2">
+            <h3 className="min-w-0 text-[13px] font-medium text-foreground">{section.title}</h3>
             {section.stepId && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onEditStep(section.stepId as string)}
-                className="-mr-2 h-7 px-2 text-xs gap-1 rounded-lg hover:bg-muted/50 dark:hover:bg-white/10"
+                className="-my-2 -mr-2 h-12 shrink-0 gap-1 rounded-lg px-2 text-xs hover:bg-muted/50 dark:hover:bg-white/10"
                 aria-label={`Edit ${section.title}`}
               >
-                <Edit2 className="w-3 h-3" />
+                <Edit2 className="h-3 w-3" />
                 Edit
               </Button>
             )}
@@ -221,7 +235,7 @@ function ReviewSummaryCard({
           <dl className="space-y-2">
             {section.items.map((item, i) => (
               <div key={i} className="flex justify-between gap-3 text-sm">
-                <dt className="text-muted-foreground">{item.label}</dt>
+                <dt className="min-w-0 text-muted-foreground">{item.label}</dt>
                 <dd className="flex max-w-[64%] flex-col items-end gap-1 text-right font-medium">
                   {item.value ? <span><ExpandableValue value={item.value} /></span> : null}
                   {item.badge && (
@@ -420,7 +434,8 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     })
   }
 
-  // Prescription specific sections - combined Medication + History into one card
+  // Prescription-specific sections. Keep the medication identity and the
+  // patient-reported prescribing history under the steps that own them.
   if (serviceType === 'prescription' || serviceType === 'repeat-script') {
     const medications = normalizeMedicationEntriesAnswer(answers.medications)
     const primaryMedication = medications[0]
@@ -428,6 +443,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     const medicationStrength = stringAnswer(answers.medicationStrength) || primaryMedication?.strength || ""
     const prescriptionHistory = stringAnswer(answers.prescriptionHistory) || undefined
     const currentDose = stringAnswer(answers.currentDose) || undefined
+    const indication = stringAnswer(answers.indication) || undefined
     const doseChanged = answers.doseChanged as boolean | undefined
     const hasSideEffects = answers.hasSideEffects as boolean | undefined
     const sideEffects = stringAnswer(answers.sideEffects) || undefined
@@ -439,51 +455,56 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
       over_12_months: 'Over 12 months ago',
     }
 
-    if (medications.length > 1) {
-      // Multi-medication mode
-      const items = medications.flatMap((med, i) => [
+    const medicationItems: ReviewItem[] = medications.length > 1
+      ? medications.flatMap((med, i) => [
         { label: `Medication ${i + 1}`, value: med.name || '' },
-        ...(med.strength ? [{ label: `Strength`, value: med.strength }] : []),
+        ...(med.strength ? [{ label: `Strength ${i + 1}`, value: med.strength }] : []),
       ])
-      if (prescriptionHistory) {
-        items.push({ label: 'Last prescribed', value: PRESCRIPTION_HISTORY_LABELS[prescriptionHistory] || prescriptionHistory })
-      }
-      if (currentDose) {
-        items.push({ label: 'Current dose', value: currentDose })
-      }
-      if (doseChanged === false) {
-        items.push({ label: 'Same dose and directions', value: 'Confirmed' })
-      }
-      if (hasSideEffects) {
-        items.push({ label: 'Side effects', value: sideEffects || 'Yes' })
-      }
-      sections.push({ title: 'Medications', items, stepId: 'medication' })
-    } else {
-      const items = [
+      : [
         { label: 'Medication', value: medicationName || '' },
         ...(medicationStrength ? [{ label: 'Strength', value: medicationStrength }] : []),
       ]
-      if (prescriptionHistory) {
-        items.push({ label: 'Last prescribed', value: PRESCRIPTION_HISTORY_LABELS[prescriptionHistory] || prescriptionHistory })
-      }
-      if (currentDose) {
-        items.push({ label: 'Current dose', value: currentDose })
-      }
-      if (doseChanged === false) {
-        items.push({ label: 'Same dose and directions', value: 'Confirmed' })
-      }
-      if (hasSideEffects) {
-        items.push({ label: 'Side effects', value: sideEffects || 'Yes' })
-      }
-      sections.push({ title: 'Medication', items, stepId: 'medication' })
+
+    sections.push({
+      title: medications.length > 1 ? 'Medications' : 'Medication',
+      items: medicationItems,
+      stepId: 'medication',
+    })
+
+    const prescriptionDetailItems: ReviewItem[] = []
+    if (prescriptionHistory) {
+      prescriptionDetailItems.push({
+        label: 'Last prescribed',
+        value: PRESCRIPTION_HISTORY_LABELS[prescriptionHistory] || prescriptionHistory,
+      })
     }
+    if (currentDose) {
+      prescriptionDetailItems.push({ label: 'Current dose', value: currentDose })
+    }
+    if (doseChanged === false) {
+      prescriptionDetailItems.push({ label: 'Same dose and directions', value: 'Confirmed' })
+    }
+    if (indication) {
+      prescriptionDetailItems.push({ label: 'Used for', value: indication })
+    }
+    if (hasSideEffects === false) {
+      prescriptionDetailItems.push({ label: 'Side effects', value: 'No side effects reported' })
+    } else if (hasSideEffects === true) {
+      prescriptionDetailItems.push({ label: 'Side effects', value: sideEffects || 'Not answered' })
+    }
+
+    sections.push({
+      title: 'Prescription details',
+      items: prescriptionDetailItems,
+      stepId: 'medication-history',
+    })
   }
 
   // Consult-specific sections
   if (serviceType === 'consult') {
     const consultSubtype = stringAnswer(answers.consultSubtype) || undefined
 
-    // ED assessment
+    // Erectile dysfunction review groups
     if (consultSubtype === 'ed') {
       const ED_GOAL_LABELS: Record<string, string> = {
         improve_erections: 'Improve erections',
@@ -504,36 +525,89 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         doctor_decides: 'Doctor\u2019s recommendation',
       }
 
-      const edItems: { label: string; value: string }[] = []
+      const edGoal = stringAnswer(answers.edGoal)
+      const edDuration = stringAnswer(answers.edDuration)
+      const edPreference = stringAnswer(answers.edPreference)
+      const edAdditionalInfo = stringAnswer(answers.edAdditionalInfo)
 
-      if (answers.edGoal) {
-        edItems.push({ label: 'Main goal', value: ED_GOAL_LABELS[answers.edGoal as string] || String(answers.edGoal) })
-      }
-      if (answers.edDuration) {
-        edItems.push({ label: 'Duration of concern', value: ED_DURATION_LABELS[answers.edDuration as string] || String(answers.edDuration) })
+      sections.push({
+        title: 'Your concern',
+        items: [
+          {
+            label: 'Main goal',
+            value: edGoal ? ED_GOAL_LABELS[edGoal] || edGoal : '',
+          },
+        ],
+        stepId: 'ed-goals',
+      })
+
+      const edAssessmentItems: ReviewItem[] = []
+      if (edDuration) {
+        edAssessmentItems.push({
+          label: 'Duration of concern',
+          value: ED_DURATION_LABELS[edDuration] || edDuration,
+        })
       }
       if (answers.iiefTotal !== undefined) {
         const score = answers.iiefTotal as number
         const severity = score >= 22 ? 'Mild' : score >= 17 ? 'Mild\u2013moderate' : score >= 12 ? 'Moderate' : 'Significant'
-        edItems.push({ label: 'IIEF-5 score', value: `${score}/25 \u2014 ${severity}` })
-      }
-      if (answers.edPreference) {
-        edItems.push({ label: 'Treatment preference', value: ED_PREF_LABELS[answers.edPreference as string] || String(answers.edPreference) })
-      }
-      if (answers.bmi) {
-        edItems.push({ label: 'BMI', value: String(answers.bmi) })
-      }
-      if (answers.edAdditionalInfo) {
-        edItems.push({ label: 'Additional info', value: String(answers.edAdditionalInfo) })
+        edAssessmentItems.push({ label: 'IIEF-5 score', value: `${score}/25 \u2014 ${severity}` })
       }
       sections.push({
-        title: 'ED Assessment',
-        items: edItems,
+        title: 'ED assessment',
+        items: edAssessmentItems,
         stepId: 'ed-assessment',
+      })
+
+      const edSafetyItems: ReviewItem[] = [
+        { label: 'Nitrates', value: explicitYesNoReviewLabel(answers.edNitrates) },
+        { label: 'Alpha-blockers', value: explicitYesNoReviewLabel(answers.edAlphaBlockers) },
+        {
+          label: 'Recent cardiac event (6 months)',
+          value: explicitYesNoReviewLabel(answers.edRecentHeartEvent),
+        },
+        {
+          label: 'Severe heart condition/very low blood pressure',
+          value: explicitYesNoReviewLabel(answers.edSevereHeart),
+        },
+      ]
+      if (answers.edGpCleared === true) {
+        edSafetyItems.push({ label: 'GP clearance', value: 'Confirmed' })
+      }
+      edSafetyItems.push(
+        {
+          label: 'Current medications',
+          value: medicalHistoryReviewValue(answers.takes_medications, answers.current_medications),
+        },
+        {
+          label: 'Allergies',
+          value: medicalHistoryReviewValue(answers.has_allergies, answers.known_allergies),
+        },
+        {
+          label: 'Other conditions',
+          value: medicalHistoryReviewValue(answers.has_conditions, answers.existing_conditions),
+        },
+      )
+      sections.push({
+        title: 'Safety & health',
+        items: edSafetyItems,
+        stepId: 'ed-health',
+      })
+
+      sections.push({
+        title: 'Treatment preference',
+        items: [
+          {
+            label: 'Preference',
+            value: edPreference ? ED_PREF_LABELS[edPreference] || edPreference : '',
+          },
+          { label: 'Additional information', value: edAdditionalInfo },
+        ],
+        stepId: 'ed-preferences',
       })
     }
 
-    // Hair loss assessment (4-step flow: goals, pattern, health, preferences)
+    // Hair loss review groups
     if (consultSubtype === 'hair_loss') {
       const GOAL_LABELS: Record<string, string> = {
         prevent: 'Prevent further loss',
@@ -592,41 +666,96 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         { key: 'scalpFolliculitis', label: 'Folliculitis' },
       ].filter(c => answers[c.key]).map(c => c.label)
 
-      const hairItems = [
-        { label: 'Goal', value: GOAL_LABELS[answers.hairGoal as string] || String(answers.hairGoal || '-') },
-        { label: 'Onset', value: ONSET_LABELS[answers.hairOnset as string] || String(answers.hairOnset || '-') },
-        { label: 'Pattern', value: PATTERN_LABELS[answers.hairPattern as string] || String(answers.hairPattern || '-') },
-        { label: 'Family history', value: FAMILY_HISTORY_LABELS[answers.hairFamilyHistory as string] || String(answers.hairFamilyHistory || '-') },
-        { label: 'Preference', value: HAIR_MED_LABELS[answers.hairMedicationPreference as string] || String(answers.hairMedicationPreference || '-') },
+      const hairGoal = stringAnswer(answers.hairGoal)
+      const hairOnset = stringAnswer(answers.hairOnset)
+      const hairPattern = stringAnswer(answers.hairPattern)
+      const hairFamilyHistory = stringAnswer(answers.hairFamilyHistory)
+      const hairPreference = stringAnswer(answers.hairMedicationPreference)
+      const hairReproductive = stringAnswer(answers.hairReproductive)
+      const hairAdditionalInfo = stringAnswer(answers.hairAdditionalInfo)
+
+      sections.push({
+        title: 'Your goals',
+        items: [
+          {
+            label: 'Goal',
+            value: hairGoal ? GOAL_LABELS[hairGoal] || hairGoal : '',
+          },
+        ],
+        stepId: 'hair-loss-goals',
+      })
+
+      const hairAssessmentItems: ReviewItem[] = [
+        { label: 'Onset', value: hairOnset ? ONSET_LABELS[hairOnset] || hairOnset : '' },
+        { label: 'Pattern', value: hairPattern ? PATTERN_LABELS[hairPattern] || hairPattern : '' },
+        {
+          label: 'Family history',
+          value: hairFamilyHistory
+            ? FAMILY_HISTORY_LABELS[hairFamilyHistory] || hairFamilyHistory
+            : '',
+        },
       ]
-      if (answers.hairReproductive) {
-        hairItems.push({ label: 'Partner pregnant/trying', value: REPRODUCTIVE_LABELS[answers.hairReproductive as string] || String(answers.hairReproductive) })
-      }
       if (triedTreatments.length > 0) {
-        hairItems.push({ label: 'Tried previously', value: triedTreatments.join(', ') })
+        hairAssessmentItems.push({ label: 'Tried previously', value: triedTreatments.join(', ') })
       }
       if (scalpConditions.length > 0) {
-        hairItems.push({ label: 'Scalp conditions', value: scalpConditions.join(', ') })
-      } else if (answers.scalpNone) {
-        hairItems.push({ label: 'Scalp conditions', value: 'None' })
-      }
-      if (answers.hairLowBP || answers.hairHeartConditions) {
-        const bpItems = []
-        if (answers.hairLowBP) bpItems.push('Low blood pressure / dizziness')
-        if (answers.hairHeartConditions) bpItems.push('Heart conditions / palpitations')
-        hairItems.push({ label: 'Cardiovascular', value: bpItems.join(', ') })
-      }
-      if (answers.hairAdditionalInfo) {
-        hairItems.push({ label: 'Additional info', value: String(answers.hairAdditionalInfo) })
+        hairAssessmentItems.push({ label: 'Scalp conditions', value: scalpConditions.join(', ') })
+      } else if (answers.scalpNone === true) {
+        hairAssessmentItems.push({ label: 'Scalp conditions', value: 'None reported' })
       }
       sections.push({
-        title: 'Hair Loss Assessment',
-        items: hairItems,
-        stepId: 'hair-loss-goals',
+        title: 'Pattern & history',
+        items: hairAssessmentItems,
+        stepId: 'hair-loss-assessment',
+      })
+
+      sections.push({
+        title: 'Safety & health',
+        items: [
+          {
+            label: 'Low blood pressure/dizziness',
+            value: explicitYesNoReviewLabel(answers.hairLowBP),
+          },
+          {
+            label: 'Heart conditions/heart medication',
+            value: explicitYesNoReviewLabel(answers.hairHeartConditions),
+          },
+          {
+            label: 'Current medications',
+            value: medicalHistoryReviewValue(answers.takes_medications, answers.current_medications),
+          },
+          {
+            label: 'Allergies',
+            value: medicalHistoryReviewValue(answers.has_allergies, answers.known_allergies),
+          },
+          {
+            label: 'Other conditions',
+            value: medicalHistoryReviewValue(answers.has_conditions, answers.existing_conditions),
+          },
+        ],
+        stepId: 'hair-loss-health',
+      })
+
+      sections.push({
+        title: 'Treatment preference',
+        items: [
+          {
+            label: 'Preference',
+            value: hairPreference ? HAIR_MED_LABELS[hairPreference] || hairPreference : '',
+          },
+          {
+            label: 'Partner pregnant/trying',
+            value: hairReproductive
+              ? REPRODUCTIVE_LABELS[hairReproductive] || hairReproductive
+              : '',
+          },
+          { label: 'Additional information', value: hairAdditionalInfo },
+        ],
+        stepId: 'hair-loss-preferences',
       })
     }
 
-    // Women's health assessment
+    // Women's health pathway choice and assessment answers have separate owners.
     if (consultSubtype === 'womens_health') {
       const WH_TYPE_LABELS: Record<string, string> = {
         contraception: 'Contraception',
@@ -637,33 +766,42 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         period_pain: 'Period pain',
         other: 'Other concern',
       }
-      const whOption = answers.womensHealthOption as string | undefined
-      const whItems = [
-        { label: 'Concern', value: WH_TYPE_LABELS[whOption as string] || String(whOption || '-') },
-      ]
+      const whOption = stringAnswer(answers.womensHealthOption)
+      const whAssessmentItems: ReviewItem[] = []
+
+      sections.push({
+        title: "Women's health",
+        items: [
+          {
+            label: 'Concern',
+            value: whOption ? WH_TYPE_LABELS[whOption] || whOption : '',
+          },
+        ],
+        stepId: 'womens-health-type',
+      })
 
       // Contraception details
       if (whOption === 'ocp_new' || whOption === 'ocp_repeat' || whOption === 'contraception') {
         const contraceptionType = stringAnswer(answers.contraceptionType)
         const contraceptionCurrent = stringAnswer(answers.contraceptionCurrent)
         const pregnancyStatus = stringAnswer(answers.pregnancyStatus)
-        if (contraceptionType) whItems.push({ label: 'Pill request', value: reviewLabel(CONTRACEPTION_REVIEW_TYPE_LABELS, contraceptionType) })
-        if (contraceptionCurrent) whItems.push({ label: 'Current contraception', value: reviewLabel(CONTRACEPTION_CURRENT_REVIEW_LABELS, contraceptionCurrent) })
-        if (pregnancyStatus) whItems.push({ label: 'Pregnancy check', value: reviewLabel(UTI_PREGNANCY_REVIEW_LABELS, pregnancyStatus) })
+        if (contraceptionType) whAssessmentItems.push({ label: 'Pill request', value: reviewLabel(CONTRACEPTION_REVIEW_TYPE_LABELS, contraceptionType) })
+        if (contraceptionCurrent) whAssessmentItems.push({ label: 'Current contraception', value: reviewLabel(CONTRACEPTION_CURRENT_REVIEW_LABELS, contraceptionCurrent) })
+        if (pregnancyStatus) whAssessmentItems.push({ label: 'Pregnancy check', value: reviewLabel(UTI_PREGNANCY_REVIEW_LABELS, pregnancyStatus) })
         for (const [key, label] of Object.entries(PILL_SAFETY_REVIEW_LABELS)) {
           const value = stringAnswer(answers[key])
-          if (value) whItems.push({ label, value: reviewLabel(YES_NO_REVIEW_LABELS, value) })
+          if (value) whAssessmentItems.push({ label, value: reviewLabel(YES_NO_REVIEW_LABELS, value) })
         }
         const lastPeriod = stringAnswer(answers.lastPeriod)
         const contraceptionDetails = stringAnswer(answers.contraceptionDetails)
-        if (lastPeriod) whItems.push({ label: 'Last period', value: lastPeriod })
-        if (contraceptionDetails) whItems.push({ label: 'Details', value: contraceptionDetails })
+        if (lastPeriod) whAssessmentItems.push({ label: 'Last period', value: lastPeriod })
+        if (contraceptionDetails) whAssessmentItems.push({ label: 'Details', value: contraceptionDetails })
       }
 
       // Morning-after details
       if (whOption === 'morning_after') {
         const HOURS_LABELS: Record<string, string> = { under_24: '< 24 hours', '24_to_72': '24-72 hours', '72_to_120': '72-120 hours' }
-        if (answers.hoursSinceIntercourse) whItems.push({ label: 'Time since', value: HOURS_LABELS[answers.hoursSinceIntercourse as string] || String(answers.hoursSinceIntercourse) })
+        if (answers.hoursSinceIntercourse) whAssessmentItems.push({ label: 'Time since', value: HOURS_LABELS[answers.hoursSinceIntercourse as string] || String(answers.hoursSinceIntercourse) })
       }
 
       // UTI details
@@ -673,25 +811,25 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         const utiPregnant = stringAnswer(answers.utiPregnant)
         const utiDetails = stringAnswer(answers.utiDetails)
         if (utiSymptoms?.length) {
-          whItems.push({
+          whAssessmentItems.push({
             label: 'Symptoms',
             value: utiSymptoms.map((symptom) => reviewLabel(UTI_REVIEW_SYMPTOM_LABELS, symptom)).join(', '),
           })
         }
-        if (utiRedFlags) whItems.push({ label: 'UTI red flags', value: reviewLabel(YES_NO_REVIEW_LABELS, utiRedFlags) })
-        if (utiPregnant) whItems.push({ label: 'Pregnancy check', value: reviewLabel(UTI_PREGNANCY_REVIEW_LABELS, utiPregnant) })
-        if (utiDetails) whItems.push({ label: 'Details', value: utiDetails })
+        if (utiRedFlags) whAssessmentItems.push({ label: 'UTI red flags', value: reviewLabel(YES_NO_REVIEW_LABELS, utiRedFlags) })
+        if (utiPregnant) whAssessmentItems.push({ label: 'Pregnancy check', value: reviewLabel(UTI_PREGNANCY_REVIEW_LABELS, utiPregnant) })
+        if (utiDetails) whAssessmentItems.push({ label: 'Details', value: utiDetails })
       }
 
       // General details
       if ((whOption === 'period_pain' || whOption === 'other') && answers.womensDetails) {
-        whItems.push({ label: 'Details', value: String(answers.womensDetails) })
+        whAssessmentItems.push({ label: 'Details', value: String(answers.womensDetails) })
       }
 
       sections.push({
-        title: "Women's Health",
-        items: whItems,
-        stepId: 'womens-health-type',
+        title: 'Assessment & safety',
+        items: whAssessmentItems,
+        stepId: 'womens-health-assessment',
       })
     }
 
@@ -802,6 +940,10 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   // Show Medicare and address for prescriptions
   const medicareNumber = answers.medicareNumber as string | undefined
   if (medicareNumber) detailItems.push({ label: 'Medicare', value: medicareNumber.replace(/(\d{4})(\d{5})(\d)/, '$1 $2 $3') })
+  if (serviceType === 'consult' && consultSubtypeForLabel === 'ed') {
+    const bmi = stringAnswer(answers.bmi)
+    if (bmi) detailItems.push({ label: 'BMI', value: bmi })
+  }
   const addressSummary = getAddressReviewSummary(answers)
   if (addressSummary) {
     detailItems.push({

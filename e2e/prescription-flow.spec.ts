@@ -59,6 +59,15 @@ async function dismissOverlays(page: Page) {
   })
 }
 
+function collectBrowserErrors(page: Page) {
+  const errors: string[] = []
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(`console: ${message.text()}`)
+  })
+  page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`))
+  return errors
+}
+
 /** Click a chip / selection button whose visible text matches `label` */
 async function clickChip(page: Page, label: string | RegExp) {
   const radio = page.getByRole("radio", { name: label })
@@ -269,6 +278,47 @@ test.describe("Prescription: full flow - start to checkout", () => {
 
     // ── Step 6: Checkout - verify price and consent ──
     await verifyCheckoutStep(page)
+  })
+
+  test("review shows complete prescription details and edits the saved history", async ({ page }) => {
+    const browserErrors = collectBrowserErrors(page)
+
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await completeMedicationStep(page)
+    await completeMedicationHistoryStep(page)
+    await completeMedicalHistoryStep(page)
+    await completeDetailsStep(page)
+
+    await waitForStep(page, /One last check/i)
+    await expect(page.getByRole("heading", { name: "Medication", level: 3 })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Prescription details", level: 3 })).toBeVisible()
+    await expect(page.getByText("Used for", { exact: true })).toBeVisible()
+    await expect(page.getByText("asthma", { exact: true })).toBeVisible()
+    await expect(page.getByText("No side effects reported", { exact: true })).toBeVisible()
+
+    const editPrescriptionDetails = page.getByRole("button", {
+      name: "Edit Prescription details",
+      exact: true,
+    })
+    await expect(editPrescriptionDetails).toBeVisible()
+    await editPrescriptionDetails.click()
+
+    await expect(page.getByRole("heading", { name: "Your prescription history", level: 2 })).toBeVisible()
+    await expect(page.getByPlaceholder(/2 puffs twice daily/i)).toHaveValue("1 tablet daily")
+    await expect(page.getByPlaceholder(/e\.g\., asthma/i)).toHaveValue("asthma")
+    await expect(
+      page
+        .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
+        .getByRole("radio", { name: /No, unchanged/i }),
+    ).toHaveAttribute("aria-checked", "true")
+    await expect(page.getByRole("radio", { name: "No side effects", exact: true })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    )
+    expect(browserErrors).toEqual([])
   })
 })
 

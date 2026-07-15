@@ -1,4 +1,4 @@
-import { expect, type Page, test } from "@playwright/test"
+import { expect, type Locator, type Page, test } from "@playwright/test"
 
 import {
   enterManualTestAddress,
@@ -45,6 +45,21 @@ async function dismissOverlays(page: Page) {
     `
     document.head.appendChild(style)
   })
+}
+
+function collectBrowserErrors(page: Page) {
+  const errors: string[] = []
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(`console: ${message.text()}`)
+  })
+  page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`))
+  return errors
+}
+
+async function expectSummaryRow(section: Locator, label: string, value: string) {
+  const term = section.getByText(label, { exact: true })
+  await expect(term).toBeVisible()
+  await expect(term.locator("xpath=following-sibling::dd")).toHaveText(value)
 }
 
 async function clickContinue(page: Page) {
@@ -507,6 +522,11 @@ test.describe("Consult Sub-Services", () => {
   })
 
   test("ED safe guest case reaches enabled checkout with test Medicare", async ({ page }) => {
+    const browserErrors = collectBrowserErrors(page)
+    await page.setViewportSize({ width: 1280, height: 900 })
+    await page.emulateMedia({ colorScheme: "light" })
+    await page.addInitScript(() => window.localStorage.setItem("theme", "light"))
+
     await page.goto("/request?service=consult&subtype=ed")
     await waitForPageLoad(page)
     await dismissOverlays(page)
@@ -515,9 +535,40 @@ test.describe("Consult Sub-Services", () => {
     await selectEdSafePath(page)
     await completeConsultDetailsWithTestMedicare(page, "Male")
     await expectEnabledConsultCheckout(page)
+
+    await expect(page.locator("html")).not.toHaveClass(/dark/)
+    await expect(page.getByRole("heading", { name: "Your concern", level: 3 })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "ED assessment", level: 3 })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Treatment preference", level: 3 })).toBeVisible()
+
+    const safetySection = page
+      .getByRole("heading", { name: "Safety & health", level: 3 })
+      .locator("../..")
+    await expectSummaryRow(safetySection, "Nitrates", "No")
+    await expectSummaryRow(safetySection, "Alpha-blockers", "No")
+    await expectSummaryRow(safetySection, "Recent cardiac event (6 months)", "No")
+    await expectSummaryRow(
+      safetySection,
+      "Severe heart condition/very low blood pressure",
+      "No",
+    )
+    await expectSummaryRow(safetySection, "Current medications", "None reported")
+    await expectSummaryRow(safetySection, "Allergies", "None reported")
+    await expectSummaryRow(safetySection, "Other conditions", "None reported")
+
+    await safetySection.getByRole("button", { name: "Edit Safety & health", exact: true }).click()
+    await expect(page.getByRole("heading", { name: "A quick safety check" })).toBeVisible()
+    await expect(
+      page
+        .getByRole("radiogroup", { name: /Do you take nitrates/i })
+        .getByRole("radio", { name: "No", exact: true }),
+    ).toHaveAttribute("aria-checked", "true")
+    expect(browserErrors).toEqual([])
   })
 
   test("hair-loss safe guest case reaches enabled checkout with test Medicare", async ({ page }) => {
+    const browserErrors = collectBrowserErrors(page)
+
     await page.goto("/request?service=consult&subtype=hair_loss")
     await waitForPageLoad(page)
     await dismissOverlays(page)
@@ -526,6 +577,33 @@ test.describe("Consult Sub-Services", () => {
     await selectHairLossSafePath(page)
     await completeConsultDetailsWithTestMedicare(page, "Male")
     await expectEnabledConsultCheckout(page)
+
+    await expect(page.getByRole("heading", { name: "Your goals", level: 3 })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Pattern & history", level: 3 })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Treatment preference", level: 3 })).toBeVisible()
+
+    const safetySection = page
+      .getByRole("heading", { name: "Safety & health", level: 3 })
+      .locator("../..")
+    await expectSummaryRow(safetySection, "Low blood pressure/dizziness", "No")
+    await expectSummaryRow(safetySection, "Heart conditions/heart medication", "No")
+    await expectSummaryRow(safetySection, "Current medications", "None reported")
+    await expectSummaryRow(safetySection, "Allergies", "None reported")
+    await expectSummaryRow(safetySection, "Other conditions", "None reported")
+
+    await safetySection.getByRole("button", { name: "Edit Safety & health", exact: true }).click()
+    await expect(page.getByRole("heading", { name: "A quick safety check" })).toBeVisible()
+    await expect(
+      page
+        .getByRole("radiogroup", { name: /Low blood pressure or dizziness on standing/i })
+        .getByRole("radio", { name: "No", exact: true }),
+    ).toHaveAttribute("aria-checked", "true")
+    await expect(
+      page
+        .getByRole("radiogroup", { name: /Taking any medications/i })
+        .getByRole("radio", { name: "No", exact: true }),
+    ).toHaveAttribute("aria-checked", "true")
+    expect(browserErrors).toEqual([])
   })
 
   test("women's health new-pill safe guest case reaches enabled checkout with test Medicare", async ({ page }) => {
@@ -537,6 +615,20 @@ test.describe("Consult Sub-Services", () => {
     await selectNewPillSafePath(page)
     await completeConsultDetailsWithTestMedicare(page, "Female")
     await expectEnabledConsultCheckout(page)
+
+    await expect(page.getByRole("button", { name: "Edit Women's health", exact: true })).toBeVisible()
+    const editAssessment = page.getByRole("button", {
+      name: "Edit Assessment & safety",
+      exact: true,
+    })
+    await expect(editAssessment).toBeVisible()
+    await editAssessment.click()
+    await expect(page.getByRole("heading", { name: "A few safety checks" })).toBeVisible()
+    await expect(
+      page
+        .getByRole("radiogroup", { name: /pregnant or could you be pregnant/i })
+        .getByRole("radio", { name: "No", exact: true }),
+    ).toHaveAttribute("aria-checked", "true")
   })
 
   test("hub rows route to current active consult subtypes", async ({ page }) => {
@@ -582,5 +674,80 @@ test.describe("Consult Sub-Services", () => {
     await waitForPageLoad(page)
 
     await expect(page.locator("body")).toBeVisible()
+  })
+})
+
+test.describe("Consult review summary: persisted health details", () => {
+  test("entered ED health details replace negative fallbacks at 390x844 dark", async ({ page }) => {
+    const browserErrors = collectBrowserErrors(page)
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.emulateMedia({ colorScheme: "dark" })
+    await page.addInitScript(() => {
+      window.localStorage.setItem("theme", "dark")
+      window.localStorage.setItem(
+        "instantmed-request-draft",
+        JSON.stringify({
+          state: {
+            serviceType: "consult",
+            currentStepId: "review",
+            answers: {
+              consultSubtype: "ed",
+              edGoal: "improve_erections",
+              edDuration: "less_than_3_months",
+              iiefTotal: 15,
+              edNitrates: false,
+              edAlphaBlockers: false,
+              edRecentHeartEvent: false,
+              edSevereHeart: false,
+              takes_medications: "yes",
+              current_medications: "Atorvastatin 20 mg nightly",
+              has_allergies: "yes",
+              known_allergies: "Penicillin rash",
+              has_conditions: "yes",
+              existing_conditions: "Managed hypertension",
+              edPreference: "doctor_decides",
+              bmi: "24.2",
+            },
+            firstName: "Test",
+            lastName: "Patient",
+            email: "test@instantmed.com.au",
+            phone: "0412345678",
+            dob: "1990-01-01",
+            lastSavedAt: new Date(Date.now() - 1000).toISOString(),
+          },
+          version: 0,
+        }),
+      )
+    })
+
+    await page.goto("/request?service=consult&subtype=ed")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await expect(page.getByText(/One last check/i)).toBeVisible({ timeout: 10000 })
+    await expect(page.locator("html")).toHaveClass(/dark/)
+
+    const safetySection = page
+      .getByRole("heading", { name: "Safety & health", level: 3 })
+      .locator("../..")
+    await expectSummaryRow(safetySection, "Current medications", "Atorvastatin 20 mg nightly")
+    await expectSummaryRow(safetySection, "Allergies", "Penicillin rash")
+    await expectSummaryRow(safetySection, "Other conditions", "Managed hypertension")
+    await expect(safetySection.getByText("None reported", { exact: true })).toHaveCount(0)
+
+    const detailsSection = page
+      .getByRole("heading", { name: "Your Details", level: 3 })
+      .locator("../..")
+    await expectSummaryRow(detailsSection, "BMI", "24.2")
+
+    const editSafety = safetySection.getByRole("button", {
+      name: "Edit Safety & health",
+      exact: true,
+    })
+    await expect(editSafety).toHaveCSS("height", "48px")
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true)
+    expect(browserErrors).toEqual([])
   })
 })
