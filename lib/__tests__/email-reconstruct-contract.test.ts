@@ -42,4 +42,10 @@ describe("email reconstruction contract", () => {
     expect(reconstructSource).toContain("isGuest: Boolean(ctx.intake.guest_email)")
     expect(reconstructSource).not.toContain("const retryUrl = `${env.appUrl}/patient/intakes/${ctx.intake.id}`")
   })
+
+  it("reconstructs session-expired emails with a fresh-request URL", () => {
+    expect(reconstructSource).toContain('row.email_type === "session_expired"')
+    expect(reconstructSource).toContain("buildExpiredCheckoutStartUrl")
+    expect(reconstructSource).toContain('campaign: "checkout_expired"')
+  })
 })
