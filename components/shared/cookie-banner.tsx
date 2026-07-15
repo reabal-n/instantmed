@@ -69,6 +69,7 @@ export function CookieBanner() {
   const [showDetails, setShowDetails] = useState(false)
   const [preferences, setPreferences] = useState<CookiePreferences>(DEFAULT_PREFERENCES)
   const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const shouldShowInitialNoticeRef = useRef(false)
 
   const dismiss = useCallback(() => {
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current)
@@ -78,26 +79,36 @@ export function CookieBanner() {
 
   useEffect(() => {
     const stored = localStorage.getItem(COOKIE_CONSENT_KEY)
+    let hasCurrentConsent = false
+
     if (stored) {
       try {
         const parsed = JSON.parse(stored) as CookiePreferences
         if (parsed.version === COOKIE_CONSENT_VERSION) {
           syncGoogleConsent(parsed)
           setPreferences(parsed)
-          return
+          hasCurrentConsent = true
         }
       } catch {
         // fall through to auto-accept
       }
     }
 
-    // AU Privacy Act 1988 — implied consent model.
-    // Accept all by default; show a brief notification so users can opt out.
-    const defaults: CookiePreferences = { ...DEFAULT_PREFERENCES, acceptedAt: new Date().toISOString() }
-    localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(defaults))
-    syncGoogleConsent(defaults)
-    setPreferences(defaults)
-    window.dispatchEvent(new CustomEvent("cookieConsentUpdated", { detail: defaults }))
+    if (!hasCurrentConsent) {
+      // AU Privacy Act 1988 — implied consent model.
+      // Accept all by default; show a brief notification so users can opt out.
+      const defaults: CookiePreferences = { ...DEFAULT_PREFERENCES, acceptedAt: new Date().toISOString() }
+      localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(defaults))
+      syncGoogleConsent(defaults)
+      setPreferences(defaults)
+      window.dispatchEvent(new CustomEvent("cookieConsentUpdated", { detail: defaults }))
+      shouldShowInitialNoticeRef.current = true
+    }
+
+    // React Strict Mode runs this effect twice in development. The first cleanup
+    // cancels its timer after consent is stored, so the second run must reschedule
+    // the same first-visit notice instead of treating it as an existing consent.
+    if (!shouldShowInitialNoticeRef.current) return
 
     const showTimer = setTimeout(() => {
       setShowBanner(true)
