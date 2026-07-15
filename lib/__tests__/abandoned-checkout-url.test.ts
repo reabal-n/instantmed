@@ -5,6 +5,7 @@ import {
   buildAbandonedCheckoutResumeUrl,
   buildCheckoutPaymentRecoveryUrl,
   buildExpiredCheckoutStartUrl,
+  buildSignedCheckoutResumeUrl,
 } from "@/lib/email/recovery-links"
 
 const APP_URL = "https://instantmed.com.au"
@@ -72,6 +73,21 @@ describe("abandoned checkout retry URL", () => {
 
     expect(parsed.pathname).toMatch(/^\/resume\//)
     expect(parsed.searchParams.get("utm_campaign")).toBe("async_payment_failed")
+    expect(verifyCheckoutResumeToken(token)).toEqual({ intakeId: INTAKE_ID })
+  })
+
+  it("builds a signed in-app resume URL without pretending it came from email", () => {
+    process.env.INTERNAL_API_SECRET = "test-internal-secret"
+
+    const url = buildSignedCheckoutResumeUrl({
+      appUrl: APP_URL,
+      intakeId: INTAKE_ID,
+    })
+    const parsed = new URL(url)
+    const token = decodeURIComponent(parsed.pathname.replace("/resume/", ""))
+
+    expect(parsed.pathname).toMatch(/^\/resume\//)
+    expect(parsed.search).toBe("")
     expect(verifyCheckoutResumeToken(token)).toEqual({ intakeId: INTAKE_ID })
   })
 

@@ -10,6 +10,10 @@ import {
   ABANDONED_CHECKOUT_FOLLOWUP_LOOKBACK_HOURS,
   formatAbandonedCheckoutStartedAgo,
 } from "@/lib/email/abandoned-checkout-timing"
+import {
+  type CheckoutReminderIdentity,
+  keepCanonicalCheckoutReminderCandidates,
+} from "@/lib/email/checkout-reminder-dedupe"
 import { AbandonedCheckoutEmail, abandonedCheckoutSubject } from "@/lib/email/components/templates/abandoned-checkout"
 import { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "@/lib/email/components/templates/abandoned-checkout-followup"
 import { canSendMarketingEmail } from "@/lib/email/preferences"
@@ -33,6 +37,87 @@ interface AbandonedIntake {
     email: string | null
     first_name: string | null
   } | null
+}
+
+function unwrapAbandonedIntakes(data: Record<string, unknown>[]): AbandonedIntake[] {
+  return data.map((item) => {
+    const relation = item.patient
+    const patient = Array.isArray(relation) ? relation[0] : relation
+    const typedPatient = patient as AbandonedIntake["patient"]
+    const guestEmail = typeof item.guest_email === "string" ? item.guest_email : null
+    return {
+      ...item,
+      isGuest: Boolean(guestEmail),
+      patient: typedPatient?.email
+        ? typedPatient
+        : guestEmail
+          ? { email: guestEmail, first_name: null }
+          : typedPatient,
+    } as AbandonedIntake
+  })
+}
+
+function reminderIdentity(intake: AbandonedIntake): CheckoutReminderIdentity {
+  return {
+    category: intake.category,
+    createdAt: intake.created_at,
+    email: intake.patient?.email ?? null,
+    id: intake.id,
+    subtype: intake.subtype,
+  }
+}
+
+async function loadRecentCheckoutReminderSiblings(
+  createdAfter: string,
+): Promise<CheckoutReminderIdentity[] | null> {
+  const supabase = createServiceRoleClient()
+  const { data, error } = await supabase
+    .from("intakes")
+    .select(`
+      id,
+      category,
+      subtype,
+      created_at,
+      guest_email,
+      patient:profiles!patient_id(email, first_name)
+    `)
+    .gte("created_at", createdAfter)
+    .order("created_at", { ascending: false })
+    .limit(1000)
+
+  if (error) {
+    logger.error("Failed to load checkout siblings before recovery email", {
+      error: error.message,
+    })
+    return null
+  }
+
+  return unwrapAbandonedIntakes((data ?? []) as unknown as Record<string, unknown>[])
+    .map(reminderIdentity)
+}
+
+async function suppressSupersededReminders(
+  candidates: AbandonedIntake[],
+  createdAfter: string,
+): Promise<AbandonedIntake[]> {
+  if (candidates.length === 0) return candidates
+
+  const siblingFloor = candidates.reduce((earliest, candidate) => (
+    candidate.created_at < earliest ? candidate.created_at : earliest
+  ), createdAfter)
+  const siblings = await loadRecentCheckoutReminderSiblings(siblingFloor)
+  // Fail closed for this cron run: delaying a nudge is safer than telling a
+  // person to pay an old request after a newer request may already be paid.
+  if (siblings === null) return []
+
+  const canonicalIds = new Set(
+    keepCanonicalCheckoutReminderCandidates(
+      candidates.map(reminderIdentity),
+      siblings,
+    ).map((candidate) => candidate.id),
+  )
+
+  return candidates.filter((candidate) => canonicalIds.has(candidate.id))
 }
 
 const SERVICE_NAMES: Record<string, string> = {
@@ -80,17 +165,13 @@ export async function findAbandonedCheckouts(): Promise<AbandonedIntake[]> {
     return []
   }
   
-  // Transform data - Supabase returns joined tables as arrays
-  // P1 FIX: Include guest_email for guest checkout recovery
-  return (data || []).map(item => {
-    const patient = Array.isArray(item.patient) ? item.patient[0] : item.patient
-    const guestEmail = (item as { guest_email?: string }).guest_email
-    return {
-      ...item,
-      isGuest: !!guestEmail,
-      patient: patient?.email ? patient : (guestEmail ? { email: guestEmail, first_name: null } : patient),
-    }
-  }) as AbandonedIntake[]
+  // Transform data - Supabase returns joined tables as arrays. Then keep only
+  // the newest request for each email/service lane, including when a newer
+  // sibling has already paid and is not itself a reminder candidate.
+  const candidates = unwrapAbandonedIntakes(
+    (data ?? []) as unknown as Record<string, unknown>[],
+  )
+  return suppressSupersededReminders(candidates, firstNudgeWindowFloor)
 }
 
 /**
@@ -196,15 +277,10 @@ export async function findAbandonedFollowups(): Promise<AbandonedIntake[]> {
     return []
   }
 
-  return (data || []).map(item => {
-    const patient = Array.isArray(item.patient) ? item.patient[0] : item.patient
-    const guestEmail = (item as { guest_email?: string }).guest_email
-    return {
-      ...item,
-      isGuest: !!guestEmail,
-      patient: patient?.email ? patient : (guestEmail ? { email: guestEmail, first_name: null } : patient),
-    }
-  }) as AbandonedIntake[]
+  const candidates = unwrapAbandonedIntakes(
+    (data ?? []) as unknown as Record<string, unknown>[],
+  )
+  return suppressSupersededReminders(candidates, followupWindowFloor)
 }
 
 /**

@@ -1,11 +1,12 @@
 "use client"
 
-import { RotateCcw, X } from "lucide-react"
+import { Copy, Loader2, RotateCcw, X } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
+import { buildPaymentRescueAction } from "@/app/admin/intakes/payment-rescue-action"
 import { IntakeRefundDialog } from "@/app/doctor/intakes/[id]/intake-refund-dialog"
 import { issueRefundAction } from "@/app/doctor/queue/actions"
 import { CaseTable } from "@/components/operator/cases/case-table"
@@ -335,6 +336,8 @@ export function AdminIntakesLedgerClient({
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null)
   const [refundTarget, setRefundTarget] = useState<CaseRowData | null>(null)
   const [isRefundPending, startRefundTransition] = useTransition()
+  const [paymentRescueTargetId, setPaymentRescueTargetId] = useState<string | null>(null)
+  const [isPaymentRescuePending, startPaymentRescueTransition] = useTransition()
 
   const handleRefund = useCallback(() => {
     if (!refundTarget) return
@@ -350,6 +353,26 @@ export function AdminIntakesLedgerClient({
       }
     })
   }, [refundTarget, router])
+
+  const handleCopyPaymentRescue = useCallback((row: CaseRowData) => {
+    setPaymentRescueTargetId(row.id)
+    startPaymentRescueTransition(async () => {
+      try {
+        const result = await buildPaymentRescueAction(row.id)
+        if (!result.success) {
+          toast.error(result.error)
+          return
+        }
+
+        await navigator.clipboard.writeText(result.data.clipboardText)
+        toast.success("Payment reply copied")
+      } catch {
+        toast.error("Couldn't prepare the reply. Try again.")
+      } finally {
+        setPaymentRescueTargetId(null)
+      }
+    })
+  }, [])
   const [searchQuery, setSearchQuery] = useState(initialFilters?.q ?? "")
   const [statusFilter] = useState<AdminIntakeStatusFilterValue>(
     initialFilters?.status ?? "all",
@@ -674,23 +697,50 @@ export function AdminIntakesLedgerClient({
         onRowPrimary={openCaseSlideover}
         selectedRowId={selectedRowId}
         rowActions={(row) => {
-          const isEligible =
+          const canRefund =
             row.paymentStatus === "paid" || row.paymentStatus === "partially_refunded"
-          if (!isEligible) return null
+          const canCopyPaymentRescue =
+            row.paymentRecoveryIndicator === "payment_pending" ||
+            row.paymentRecoveryIndicator === "payment_retry"
+          if (!canRefund && !canCopyPaymentRescue) return null
           return (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              title="Issue refund"
-              aria-label={`Issue refund for ${row.patientName}`}
-              onClick={(e) => {
-                e.stopPropagation()
-                setRefundTarget(row)
-              }}
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-            </Button>
+            <>
+              {canCopyPaymentRescue ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-11 w-11 sm:h-8 sm:w-8"
+                  title="Copy payment reply"
+                  aria-label={`Copy payment recovery reply for ${row.patientName}`}
+                  disabled={isPaymentRescuePending}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    handleCopyPaymentRescue(row)
+                  }}
+                >
+                  {isPaymentRescuePending && paymentRescueTargetId === row.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                </Button>
+              ) : null}
+              {canRefund ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-11 w-11 sm:h-8 sm:w-8"
+                  title="Issue refund"
+                  aria-label={`Issue refund for ${row.patientName}`}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setRefundTarget(row)
+                  }}
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                </Button>
+              ) : null}
+            </>
           )
         }}
         emptyState={{
