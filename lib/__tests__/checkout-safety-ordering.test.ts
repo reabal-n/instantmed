@@ -53,12 +53,20 @@ vi.mock("@/lib/rate-limit/redis", () => ({
 vi.mock("@/lib/data/intake-answers", () => ({
   getIntakeAnswersForPaymentSafety: vi.fn(),
 }))
+vi.mock("@/lib/dashboard/revalidate-staff", () => ({
+  revalidatePatient: vi.fn(),
+  revalidateStaff: vi.fn(),
+}))
+vi.mock("@/lib/stripe/checkout/missing-safety-payment-hold", () => ({
+  holdCheckoutForMissingSafetyInformation: vi.fn(async () => "held"),
+}))
 
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getIntakeAnswersForPaymentSafety } from "@/lib/data/intake-answers"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { runClinicalValidation } from "@/lib/stripe/checkout/clinical-validation"
+import { holdCheckoutForMissingSafetyInformation } from "@/lib/stripe/checkout/missing-safety-payment-hold"
 import { retryPaymentForIntakeAction } from "@/lib/stripe/checkout/retry-payment"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 
@@ -217,6 +225,14 @@ describe("retry-payment path (retryPaymentForIntakeAction)", () => {
     expect(result.error).toMatch(/missing/i)
     // The safety engine must not run, and we must not have reached Stripe.
     expect(validateSafetyFieldsPresent).toHaveBeenCalledTimes(1)
+    expect(holdCheckoutForMissingSafetyInformation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        intakeId: "intake-1",
+        missingFields: ["symptom_duration"],
+        patientId: "pat-1",
+        source: "retry_payment",
+      }),
+    )
     expect(checkSafetyForServer).not.toHaveBeenCalled()
   })
 

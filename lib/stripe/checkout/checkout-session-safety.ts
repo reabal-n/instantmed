@@ -9,10 +9,15 @@ import {
   PAYMENT_REPLACEMENT_LOCK,
   validateCheckoutSessionIntakeMatch,
 } from "../payment-integrity"
+import {
+  HIGH_STAKES_PAYMENT_LOCK,
+  isPaymentSafetyLock,
+  PAYMENT_SAFETY_LOCK_EXCLUSION_FILTER,
+} from "../payment-safety-lock"
 
 const logger = createLogger("checkout-session-safety")
 
-export const HIGH_STAKES_PAYMENT_LOCK = "safety_blocked_high_stakes"
+export { HIGH_STAKES_PAYMENT_LOCK } from "../payment-safety-lock"
 
 function toError(value: unknown, fallback: string): Error {
   if (value instanceof Error) return value
@@ -62,6 +67,11 @@ export interface CheckoutSessionReplacementState extends RetryablePaymentState {
 export type CheckoutSessionReplacementClaimResult =
   | { outcome: "claimed" | "not_needed" }
   | { currentState: RetryablePaymentState | null; outcome: "state_changed" }
+  | { outcome: "unresolved" }
+
+export type CheckoutSessionReturnConfirmation =
+  | { currentState: CheckoutSessionReplacementState; outcome: "current" }
+  | { currentState: CheckoutSessionReplacementState | null; outcome: "state_changed" }
   | { outcome: "unresolved" }
 
 interface StoredPaymentState extends RetryablePaymentState {
@@ -247,7 +257,7 @@ export async function attachCheckoutSession({
     .eq("id", intakeId)
     .in("status", ["pending_payment", "checkout_failed"])
     .in("payment_status", ["pending", "unpaid", "failed"])
-    .or(`checkout_error.is.null,checkout_error.neq.${HIGH_STAKES_PAYMENT_LOCK}`)
+    .or(PAYMENT_SAFETY_LOCK_EXCLUSION_FILTER)
 
   if (patientId) attachQuery = attachQuery.eq("patient_id", patientId)
 
@@ -279,7 +289,7 @@ export async function attachCheckoutSession({
 
   if (
     currentIntake?.payment_id === sessionId &&
-    currentIntake.checkout_error !== HIGH_STAKES_PAYMENT_LOCK &&
+    !isPaymentSafetyLock(currentIntake.checkout_error) &&
     canRetryPaymentForIntake(currentIntake.status, currentIntake.payment_status)
   ) {
     logger.info("Parallel request already attached the same idempotent session", {
@@ -290,7 +300,10 @@ export async function attachCheckoutSession({
     return { outcome: "already_attached" }
   }
 
-  if (currentIntake?.payment_id !== sessionId) {
+  if (
+    currentIntake?.payment_id !== sessionId ||
+    isPaymentSafetyLock(currentIntake?.checkout_error)
+  ) {
     await invalidateCheckoutSessionForSafety(sessionId, intakeId)
   }
 
@@ -312,6 +325,60 @@ export async function attachCheckoutSession({
       : null,
     outcome: "state_changed",
   }
+}
+
+/**
+ * Re-read the exact persisted Session immediately before a guest recovery path
+ * returns its open URL. This narrows the inspection/return race: a visible
+ * safety lock or a different current Session always withholds the URL.
+ */
+export async function confirmCheckoutSessionStillCurrent({
+  intakeId,
+  patientId,
+  sessionId,
+  source,
+  supabase,
+}: {
+  intakeId: string
+  patientId?: string
+  sessionId: string
+  source: "guest_checkout" | "guest_resume"
+  supabase: ReturnType<typeof createServiceRoleClient>
+}): Promise<CheckoutSessionReturnConfirmation> {
+  let query = supabase
+    .from("intakes")
+    .select("id, status, payment_status, payment_id, checkout_error")
+    .eq("id", intakeId)
+  if (patientId) query = query.eq("patient_id", patientId)
+
+  const { data: currentIntake, error } = await query.maybeSingle()
+  if (error) {
+    logger.error(
+      "Could not confirm current checkout Session before returning its URL",
+      { intakeId, sessionId, source },
+      error,
+    )
+    return { outcome: "unresolved" }
+  }
+
+  const currentState = currentIntake
+    ? {
+        checkout_error: currentIntake.checkout_error,
+        payment_id: currentIntake.payment_id,
+        payment_status: currentIntake.payment_status,
+        status: currentIntake.status,
+      }
+    : null
+
+  if (
+    currentState?.payment_id === sessionId &&
+    !isPaymentSafetyLock(currentState.checkout_error) &&
+    canRetryPaymentForIntake(currentState.status, currentState.payment_status)
+  ) {
+    return { currentState, outcome: "current" }
+  }
+
+  return { currentState, outcome: "state_changed" }
 }
 
 /**
@@ -346,7 +413,7 @@ export async function claimCheckoutSessionReplacement({
   }
 
   if (
-    initialState.checkout_error === HIGH_STAKES_PAYMENT_LOCK ||
+    isPaymentSafetyLock(initialState.checkout_error) ||
     !canRetryPaymentForIntake(initialState.status, initialState.payment_status)
   ) {
     return {

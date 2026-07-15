@@ -25,6 +25,10 @@ import type { ServiceCategory } from "@/types/services"
 import { reportCheckoutSessionFailure } from "../checkout-error-alarm"
 import { getPriceIdForRequest, normalizeStripePriceId, stripe } from "../client"
 import { buildPaymentIntentMetadata, canRetryPaymentForIntake } from "../payment-integrity"
+import {
+  isHighStakesPaymentLock,
+  isMissingSafetyInformationPaymentLock,
+} from "../payment-safety-lock"
 import { createReferralCouponIfEligible } from "../referral-coupon"
 import {
   attachCheckoutSession,
@@ -34,6 +38,7 @@ import {
 } from "./checkout-session-safety"
 import { getBaseUrl, getServiceSlug, isValidUrl } from "./helpers"
 import { getHighStakesCheckoutBlock, isMedicalCertificateIntake } from "./high-stakes-validation"
+import { holdCheckoutForMissingSafetyInformation } from "./missing-safety-payment-hold"
 import { preflightPriorityPriceForRecovery } from "./priority-price-recovery"
 import type { CheckoutResult } from "./types"
 
@@ -139,6 +144,31 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
     }
 
+    if (isHighStakesPaymentLock(intake.checkout_error)) {
+      return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
+    }
+
+    if (isMissingSafetyInformationPaymentLock(intake.checkout_error)) {
+      const hold = await holdCheckoutForMissingSafetyInformation({
+        intakeId: intake.id,
+        missingFields: [],
+        patientId,
+        source: "retry_payment",
+        supabase,
+      })
+      if (hold !== "state_changed") {
+        revalidatePatient({ intakeId: intake.id, patientId })
+        revalidateStaff({ intakeId: intake.id, patientId })
+      }
+      return {
+        success: false,
+        error:
+          hold === "held"
+            ? "Required medical information is missing. Please start a new request before trying payment again."
+            : RETRY_PAYMENT_STATE_ERROR,
+      }
+    }
+
     const fieldCheck = validateSafetyFieldsPresent(serviceSlugForSafety, intakeAnswers)
     if (!fieldCheck.valid) {
       logger.warn("Safety fields missing at checkout", {
@@ -159,9 +189,23 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
         },
         serviceSlug: serviceSlugForSafety,
       })
+      const hold = await holdCheckoutForMissingSafetyInformation({
+        intakeId: intake.id,
+        missingFields: fieldCheck.missingFields,
+        patientId,
+        source: "retry_payment",
+        supabase,
+      })
+      if (hold !== "state_changed") {
+        revalidatePatient({ intakeId: intake.id, patientId })
+        revalidateStaff({ intakeId: intake.id, patientId })
+      }
       return {
         success: false,
-        error: `Required medical information is missing. Please go back and complete all questions. Missing: ${fieldCheck.missingFields.join(", ")}`,
+        error:
+          hold === "held"
+            ? "Required medical information is missing. Please start a new request before trying payment again."
+            : RETRY_PAYMENT_STATE_ERROR,
       }
     }
 

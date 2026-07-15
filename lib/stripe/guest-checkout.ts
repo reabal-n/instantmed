@@ -29,18 +29,20 @@ import type { ServiceCategory } from "@/types/services"
 import {
   attachCheckoutSession,
   claimCheckoutSessionReplacement,
-  HIGH_STAKES_PAYMENT_LOCK,
+  confirmCheckoutSessionStillCurrent,
   inspectCheckoutSession,
   invalidateCheckoutSessionForSafety,
 } from "./checkout/checkout-session-safety"
 import { runClinicalValidation } from "./checkout/clinical-validation"
 import { preflightPriorityPriceForRecovery } from "./checkout/priority-price-recovery"
+import { reconcileChangedCheckoutSessionForReturn } from "./checkout/return-payment-reconciliation"
 import { reportCheckoutSessionFailure } from "./checkout-error-alarm"
 import { buildGuestCheckoutCancelUrl } from "./checkout-recovery-link"
 import { getAmountCentsForRequest, getOptionalStripePriceEnv, getPriceIdForRequest, stripe } from "./client"
 import { shouldReuseGuestProfileForCheckout } from "./guest-profile-dedupe"
 import { inferStripeLineItemFailureRole, stripePriceErrorUserMessage } from "./line-item-error"
 import { buildPaymentIntentMetadata, canRetryPaymentForIntake, resolveGuestDuplicateCheckoutRecovery } from "./payment-integrity"
+import { isPaymentSafetyLock } from "./payment-safety-lock"
 import {
   buildPrescribingProfileUpdates,
   validateRequiredPrescribingProfileAnswers,
@@ -146,6 +148,30 @@ function isValidUrl(url: string): boolean {
   } catch {
     return false
   }
+}
+
+async function resolveGuestPaymentCompletionAfterStateChange({
+  baseUrl,
+  intakeId,
+  state,
+}: {
+  baseUrl: string
+  intakeId: string
+  state: {
+    checkout_error: string | null
+    payment_id: string | null
+    payment_status: string | null
+    status: string | null
+  } | null
+}): Promise<string | null> {
+  const reconciliation = await reconcileChangedCheckoutSessionForReturn({
+    intakeId,
+    state,
+  })
+  if (reconciliation.outcome !== "payment_in_flight") {
+    return null
+  }
+  return `${baseUrl}/auth/complete-account?intake_id=${encodeURIComponent(intakeId)}&session_id=${encodeURIComponent(reconciliation.sessionId)}`
 }
 
 function buildGuestProfileIdentityUpdate(
@@ -306,7 +332,22 @@ async function rebuildExpiredGuestSession(
       return null
     }
 
-    return session.url
+    const confirmation = await confirmCheckoutSessionStillCurrent({
+      intakeId: intake.id,
+      patientId,
+      sessionId: session.id,
+      source: "guest_checkout",
+      supabase,
+    })
+    if (confirmation.outcome === "current") return session.url
+    if (confirmation.outcome === "state_changed") {
+      return resolveGuestPaymentCompletionAfterStateChange({
+        baseUrl,
+        intakeId: intake.id,
+        state: confirmation.currentState,
+      })
+    }
+    return null
   } catch (error) {
     logger.error("Failed to rebuild guest checkout session", {
       intakeId: intake.id,
@@ -685,7 +726,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           .maybeSingle()
 
         if (existingIntake) {
-          if (existingIntake.checkout_error === HIGH_STAKES_PAYMENT_LOCK) {
+          if (isPaymentSafetyLock(existingIntake.checkout_error)) {
             return {
               success: false,
               error:
@@ -706,7 +747,42 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
               },
             )
             if (inspection.state === "open" && inspection.session?.url) {
-              checkoutUrl = inspection.session.url
+              const confirmation = await confirmCheckoutSessionStillCurrent({
+                intakeId: existingIntake.id,
+                patientId: guestProfileId,
+                sessionId: existingIntake.payment_id,
+                source: "guest_checkout",
+                supabase,
+              })
+              if (confirmation.outcome === "current") {
+                checkoutUrl = inspection.session.url
+              } else {
+                const completionUrl =
+                  confirmation.outcome === "state_changed"
+                    ? await resolveGuestPaymentCompletionAfterStateChange({
+                        baseUrl,
+                        intakeId: existingIntake.id,
+                        state: confirmation.currentState,
+                      })
+                    : null
+                if (completionUrl) {
+                  await markGuestDraftConvertedIfPresent(
+                    supabase,
+                    input,
+                    existingIntake.id,
+                  )
+                  return {
+                    success: true,
+                    checkoutUrl: completionUrl,
+                    intakeId: existingIntake.id,
+                  }
+                }
+                return {
+                  success: false,
+                  error:
+                    "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
+                }
+              }
             } else if (inspection.state === "paid") {
               const accountUrl = `${baseUrl}/auth/complete-account?intake_id=${encodeURIComponent(existingIntake.id)}&session_id=${encodeURIComponent(existingIntake.payment_id)}`
               await markGuestDraftConvertedIfPresent(supabase, input, existingIntake.id)

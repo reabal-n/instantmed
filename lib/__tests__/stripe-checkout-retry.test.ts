@@ -356,7 +356,8 @@ describe("retryPaymentForIntakeAction", () => {
       { column: "payment_status", method: "in", value: ["pending", "unpaid", "failed"] },
       {
         method: "or",
-        value: "checkout_error.is.null,checkout_error.neq.safety_blocked_high_stakes",
+        value:
+          "checkout_error.is.null,and(checkout_error.neq.safety_blocked_high_stakes,checkout_error.neq.safety_missing_required_information)",
       },
     ]))
     expect(mocks.stripeSessionCreate).toHaveBeenCalledWith(
@@ -737,7 +738,7 @@ describe("retryPaymentForIntakeAction", () => {
       error: expect.stringMatching(/no new payment session/i),
       success: false,
     })
-    expect(mocks.stripeSessionExpire).not.toHaveBeenCalledWith("cs_retry")
+    expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_retry")
   })
 
   it.each([
@@ -785,10 +786,30 @@ describe("retryPaymentForIntakeAction", () => {
       authoritativeAnswers,
     )
     expect(mocks.checkSafetyForServer).not.toHaveBeenCalled()
-    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
-    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionRetrieve).toHaveBeenCalledWith("cs_previous")
+    expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
-    expect(updateRecords).toHaveLength(0)
+    expect(updateRecords).toHaveLength(1)
+    expect(updateRecords[0].payload).toMatchObject({
+      checkout_error: "safety_missing_required_information",
+      live_consult_reason: "Required medical information is missing.",
+      requires_live_consult: false,
+      status: "checkout_failed",
+      triage_reasons: ["missing_safety_fields"],
+      triage_result: "request_more_info",
+    })
+    expect(updateRecords[0].payload).not.toHaveProperty("payment_id")
+    expect(updateRecords[0].payload).not.toHaveProperty("payment_status")
+    expect(updateRecords[0].payload).not.toHaveProperty("cancelled_at")
+    expect(updateRecords[0].payload).not.toHaveProperty("declined_at")
+    expect(mocks.revalidatePatient).toHaveBeenCalledWith({
+      intakeId: "intake-1",
+      patientId: "patient-1",
+    })
+    expect(mocks.revalidateStaff).toHaveBeenCalledWith({
+      intakeId: "intake-1",
+      patientId: "patient-1",
+    })
   })
 
   it("blocks retry payment for a stored high-stakes medical-certificate request", async () => {

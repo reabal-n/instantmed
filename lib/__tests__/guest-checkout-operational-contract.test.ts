@@ -70,11 +70,13 @@ describe("guest checkout operational contract", () => {
     expect(duplicateSection).not.toContain("stripe.checkout.sessions.retrieve")
     expect(duplicateSection).toContain("payment_id, checkout_error, category")
     expect(duplicateSection).toContain(
-      "existingIntake.checkout_error === HIGH_STAKES_PAYMENT_LOCK",
+      "isPaymentSafetyLock(existingIntake.checkout_error)",
     )
-    expect(duplicateSection.indexOf("HIGH_STAKES_PAYMENT_LOCK")).toBeLessThan(
+    expect(duplicateSection.indexOf("isPaymentSafetyLock")).toBeLessThan(
       duplicateSection.indexOf("inspectCheckoutSession"),
     )
+    expect(duplicateSection).toContain("confirmCheckoutSessionStillCurrent")
+    expect(rebuildSection).toContain("confirmCheckoutSessionStillCurrent")
   })
 
   it("preflights persisted Priority recovery before claim, invalidation, or Session creation", () => {

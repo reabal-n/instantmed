@@ -13,10 +13,13 @@ const mocks = vi.hoisted(() => ({
     warn: vi.fn(),
   },
   recordSafetyEvaluationForOperators: vi.fn(),
+  revalidatePatient: vi.fn(),
+  revalidateStaff: vi.fn(),
   stripeSessionCreate: vi.fn(),
   stripeSessionExpire: vi.fn(),
   stripeSessionRetrieve: vi.fn(),
   stripePriceRetrieve: vi.fn(),
+  validateSafetyFieldsPresent: vi.fn(),
 }))
 
 vi.mock("@/lib/config/env", () => ({
@@ -27,12 +30,21 @@ vi.mock("@/lib/data/intake-answers", () => ({
   getIntakeAnswersForPaymentSafety: mocks.getIntakeAnswersForPaymentSafety,
 }))
 
+vi.mock("@/lib/dashboard/revalidate-staff", () => ({
+  revalidatePatient: mocks.revalidatePatient,
+  revalidateStaff: mocks.revalidateStaff,
+}))
+
 vi.mock("@/lib/observability/logger", () => ({
   createLogger: () => mocks.logger,
 }))
 
 vi.mock("@/lib/safety/audit-log", () => ({
   recordSafetyEvaluationForOperators: mocks.recordSafetyEvaluationForOperators,
+}))
+
+vi.mock("@/lib/safety/evaluate", () => ({
+  validateSafetyFieldsPresent: mocks.validateSafetyFieldsPresent,
 }))
 
 vi.mock("@/lib/stripe/checkout-recovery-link", () => ({
@@ -185,11 +197,12 @@ function createResumeSupabaseMock(
 
 describe("signed guest checkout resume payment safety", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.resetAllMocks()
     mocks.getAppUrl.mockReturnValue("https://instantmed.example")
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValue({ symptomDetails: "A cold since yesterday" })
     mocks.getOptionalStripePriceEnv.mockReturnValue(null)
     mocks.getPriceIdForRequest.mockReturnValue("price_med_cert")
+    mocks.validateSafetyFieldsPresent.mockReturnValue({ missingFields: [], valid: true })
     mocks.stripePriceRetrieve.mockResolvedValue({
       active: true,
       currency: "aud",
@@ -377,6 +390,176 @@ describe("signed guest checkout resume payment safety", () => {
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
+  it("holds and invalidates an incomplete repeat-Rx Session before returning any URL", async () => {
+    const incompleteAnswers = {
+      dose_changed: false,
+      emergency_symptoms: [],
+    }
+    const { supabase, updateRecords } = createResumeSupabaseMock({
+      category: "prescription",
+      service: { slug: "common-scripts", type: "repeat_rx" },
+      stripe_price_id: "price_repeat",
+      subtype: "repeat",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce(incompleteAnswers)
+    mocks.validateSafetyFieldsPresent.mockReturnValueOnce({
+      missingFields: ["hasSideEffects"],
+      valid: false,
+    })
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe(
+      "/checkout/cancelled?reason=more_information_required",
+    )
+    expect(mocks.recordSafetyEvaluationForOperators).toHaveBeenCalledWith(
+      expect.objectContaining({
+        answers: incompleteAnswers,
+        context: "guest_resume",
+        requestId: "intake-1",
+        result: expect.objectContaining({
+          outcome: "REQUEST_MORE_INFO",
+          triggeredRuleIds: ["missing_safety_fields"],
+        }),
+      }),
+    )
+    expect(updateRecords).toHaveLength(1)
+    expect(updateRecords[0].payload).toMatchObject({
+      checkout_error: "safety_missing_required_information",
+      live_consult_reason: "Required medical information is missing.",
+      requires_live_consult: false,
+      status: "checkout_failed",
+      triage_reasons: ["missing_safety_fields"],
+      triage_result: "request_more_info",
+    })
+    expect(updateRecords[0].payload).not.toHaveProperty("payment_id")
+    expect(updateRecords[0].payload).not.toHaveProperty("payment_status")
+    expect(updateRecords[0].filters).not.toContainEqual(
+      expect.objectContaining({ column: "patient_id" }),
+    )
+    expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(mocks.revalidateStaff).toHaveBeenCalledWith({
+      intakeId: "intake-1",
+      patientId: "patient-1",
+    })
+    expect(mocks.revalidatePatient).toHaveBeenCalledWith({
+      intakeId: "intake-1",
+      patientId: "patient-1",
+    })
+  })
+
+  it("holds an incomplete signed resume with no stored Session", async () => {
+    const { supabase } = createResumeSupabaseMock({
+      category: "prescription",
+      payment_id: null,
+      service: { slug: "common-scripts", type: "repeat_rx" },
+      stripe_price_id: "price_repeat",
+      subtype: "repeat",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.validateSafetyFieldsPresent.mockReturnValueOnce({
+      missingFields: ["hasSideEffects"],
+      valid: false,
+    })
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe(
+      "/checkout/cancelled?reason=more_information_required",
+    )
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("reconciles an existing missing-information marker before newly complete answers", async () => {
+    const { supabase } = createResumeSupabaseMock({
+      category: "prescription",
+      checkout_error: "safety_missing_required_information",
+      service: { slug: "common-scripts", type: "repeat_rx" },
+      stripe_price_id: "price_repeat",
+      subtype: "repeat",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe(
+      "/checkout/cancelled?reason=more_information_required",
+    )
+    expect(mocks.validateSafetyFieldsPresent).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("uses a fresh exact-current Session after a concurrent attach reaches payment in flight", async () => {
+    const concurrentState = {
+      checkout_error: "safety_missing_required_information",
+      id: "intake-1",
+      payment_id: "cs_new_current",
+      payment_status: "pending",
+      status: "checkout_failed",
+    }
+    const { supabase } = createResumeSupabaseMock({
+      category: "prescription",
+      service: { slug: "common-scripts", type: "repeat_rx" },
+      stripe_price_id: "price_repeat",
+      subtype: "repeat",
+    }, {
+      refetchedIntakes: [concurrentState],
+      updateResults: [{ data: [concurrentState], error: null }],
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.validateSafetyFieldsPresent.mockReturnValueOnce({
+      missingFields: ["hasSideEffects"],
+      valid: false,
+    })
+    mocks.stripeSessionRetrieve.mockResolvedValue({
+      id: "cs_new_current",
+      metadata: { intake_id: "intake-1" },
+      payment_status: "unpaid",
+      status: "complete",
+      url: null,
+    })
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe(
+      "/auth/complete-account?intake_id=intake-1&session_id=cs_new_current",
+    )
+    expect(mocks.stripeSessionRetrieve).toHaveBeenCalledWith("cs_new_current")
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("keeps a missing-information marker and returns honest recovery when invalidation is unresolved", async () => {
+    const { supabase, updateRecords } = createResumeSupabaseMock({
+      category: "prescription",
+      service: { slug: "common-scripts", type: "repeat_rx" },
+      stripe_price_id: "price_repeat",
+      subtype: "repeat",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.validateSafetyFieldsPresent.mockReturnValueOnce({
+      missingFields: ["hasSideEffects"],
+      valid: false,
+    })
+    mocks.stripeSessionExpire.mockRejectedValueOnce(new Error("Stripe unavailable"))
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe(
+      "/checkout/cancelled?reason=payment_state_unresolved",
+    )
+    expect(updateRecords[0].payload).toMatchObject({
+      checkout_error: "safety_missing_required_information",
+      status: "checkout_failed",
+    })
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
   it("routes a safe completed Checkout Session to account completion without rebuilding", async () => {
     const { supabase } = createResumeSupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)
@@ -396,7 +579,14 @@ describe("signed guest checkout resume payment safety", () => {
   })
 
   it("rebuilds an expired session only when the deterministic session replay is open", async () => {
-    const { supabase, updateRecords } = createResumeSupabaseMock()
+    const { supabase, updateRecords } = createResumeSupabaseMock({}, {
+      refetchedIntakes: [{
+        checkout_error: null,
+        payment_id: "cs_resumed",
+        payment_status: "pending",
+        status: "pending_payment",
+      }],
+    })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     mocks.stripeSessionRetrieve
       .mockResolvedValueOnce({
@@ -422,7 +612,8 @@ describe("signed guest checkout resume payment safety", () => {
       { column: "payment_id", method: "eq", value: "cs_previous" },
       {
         method: "or",
-        value: "checkout_error.is.null,checkout_error.neq.safety_blocked_high_stakes",
+        value:
+          "checkout_error.is.null,and(checkout_error.neq.safety_blocked_high_stakes,checkout_error.neq.safety_missing_required_information)",
       },
     ]))
     expect(mocks.stripeSessionExpire).not.toHaveBeenCalledWith("cs_resumed")
@@ -452,7 +643,15 @@ describe("signed guest checkout resume payment safety", () => {
 
   it("preflights signed Priority resume before replacement and creates exactly base plus Priority line items", async () => {
     const events: string[] = []
-    const { supabase } = createResumeSupabaseMock({ is_priority: true }, { events })
+    const { supabase } = createResumeSupabaseMock({ is_priority: true }, {
+      events,
+      refetchedIntakes: [{
+        checkout_error: null,
+        payment_id: "cs_resumed",
+        payment_status: "pending",
+        status: "pending_payment",
+      }],
+    })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     mocks.getOptionalStripePriceEnv.mockReturnValue("price_priority")
     mocks.stripePriceRetrieve.mockImplementationOnce(async () => {
@@ -596,7 +795,7 @@ describe("signed guest checkout resume payment safety", () => {
     const destination = await resolveGuestCheckoutResume("intake-1")
 
     expect(destination).toBe("/checkout/cancelled?reason=payment_state_unresolved")
-    expect(mocks.stripeSessionExpire).not.toHaveBeenCalledWith("cs_resumed")
+    expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_resumed")
   })
 
   it("invalidates only a confirmed orphan after the exact attach loses", async () => {
@@ -711,6 +910,13 @@ describe("signed guest checkout resume payment safety", () => {
     const { supabase } = createResumeSupabaseMock({
       payment_status: "failed",
       status: "checkout_failed",
+    }, {
+      refetchedIntakes: [{
+        checkout_error: null,
+        payment_id: "cs_resumed",
+        payment_status: "pending",
+        status: "pending_payment",
+      }],
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     mocks.stripeSessionRetrieve
