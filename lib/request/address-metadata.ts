@@ -25,6 +25,13 @@ function getBoolean(answers: Record<string, unknown>, keys: string[]): boolean |
   return undefined
 }
 
+function normalizeAddressFragment(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+}
+
 export function deriveAddressProvider(placeId: string | undefined): AddressProvider | undefined {
   if (!placeId) return undefined
   if (placeId.startsWith("af:")) return "addressfinder"
@@ -97,7 +104,13 @@ export function getAddressReviewSummary(answers: Record<string, unknown>): Addre
   const provider = deriveAddressProvider(providerPlaceId) || "manual"
   const isVerified = explicitVerified === true && provider !== "manual"
   const locality = [suburb, state, postcode].filter(Boolean).join(" ")
-  const compact = [line, locality].filter(Boolean).join(", ")
+  const normalizedLocality = normalizeAddressFragment(locality)
+  const lineAlreadyIncludesLocality = Boolean(
+    normalizedLocality && normalizeAddressFragment(line).endsWith(normalizedLocality),
+  )
+  const compact = lineAlreadyIncludesLocality
+    ? line
+    : [line, locality].filter(Boolean).join(", ")
 
   return {
     line,

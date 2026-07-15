@@ -38,8 +38,21 @@ export type CheckoutPaymentRecoveryCampaign =
   | "abandoned_checkout_followup"
   | "payment_failed"
   | "async_payment_failed"
+  | "support_payment_recovery"
 
 export type ExpiredCheckoutRecoveryCampaign = "checkout_expired"
+
+export function buildSignedCheckoutResumeUrl({
+  appUrl,
+  intakeId,
+}: {
+  appUrl: string
+  intakeId: string
+}): string {
+  const base = appUrl.replace(/\/$/, "")
+  const token = signCheckoutResumeToken(intakeId)
+  return new URL(`/resume/${encodeURIComponent(token)}`, base).toString()
+}
 
 function addRecoveryAttribution(
   url: URL,
@@ -68,8 +81,7 @@ export function buildCheckoutPaymentRecoveryUrl({
 }): string {
   const base = appUrl.replace(/\/$/, "")
   if (isGuest) {
-    const token = signCheckoutResumeToken(intakeId)
-    const url = new URL(`/resume/${encodeURIComponent(token)}`, base)
+    const url = new URL(buildSignedCheckoutResumeUrl({ appUrl: base, intakeId }))
     addRecoveryAttribution(url, campaign)
     return url.toString()
   }

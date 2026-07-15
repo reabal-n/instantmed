@@ -36,6 +36,7 @@ import {
 import { runClinicalValidation } from "./checkout/clinical-validation"
 import { reportCheckoutSessionFailure } from "./checkout-error-alarm"
 import { buildGuestCheckoutCancelUrl } from "./checkout-recovery-link"
+import { buildGuestCheckoutSubmissionKey } from "./checkout-submission-key"
 import { getAmountCentsForRequest, getOptionalStripePriceEnv, getPriceIdForRequest, stripe } from "./client"
 import { shouldReuseGuestProfileForCheckout } from "./guest-profile-dedupe"
 import { inferStripeLineItemFailureRole, stripePriceErrorUserMessage } from "./line-item-error"
@@ -116,6 +117,7 @@ interface GuestCheckoutInput {
   }
   posthogDistinctId?: string // Client-side PostHog distinct ID for identity stitching
   serverDraftSessionId?: string
+  checkoutSubmissionKey?: string
 }
 
 interface CheckoutResult {
@@ -627,12 +629,16 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     // 3. Create the intake with pending_payment status
     // Include category, subtype, idempotency_key, guest_email, and stripe_price_id
-    // Idempotency key: 10-minute time bucket prevents double-clicks while allowing legitimate repeat requests
-    const { createHash } = await import("crypto")
-    const guestIdempotencyKey = `guest-${createHash("sha256")
-      .update(`${normalizedEmail}:${input.category}:${input.subtype}:${Math.floor(Date.now() / 600_000)}:${JSON.stringify(input.answers)}`)
-      .digest("hex")
-      .slice(0, 24)}`
+    // Unified checkout supplies a draft-stable key so guest -> authenticated
+    // retries cannot create a second unpaid intake. Direct callers preserve the
+    // existing 10-minute identity bucket.
+    const guestIdempotencyKey = input.checkoutSubmissionKey ?? buildGuestCheckoutSubmissionKey({
+      answers: input.answers,
+      category: input.category,
+      email: normalizedEmail,
+      serverDraftSessionId: input.serverDraftSessionId,
+      subtype: input.subtype,
+    })
     const attribution = normalizeAttributionForStorage(resolvedAttribution)
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")

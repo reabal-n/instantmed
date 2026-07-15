@@ -12,6 +12,7 @@ import { BrandLogo } from "@/components/shared/brand-logo"
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { getPostAuthRedirectParam } from '@/lib/auth/redirects'
+import { getSignInContext } from '@/lib/auth/sign-in-context'
 import { type SignInFieldErrors, validateSignInCredentials } from '@/lib/auth/sign-in-validation'
 import { buildPostSignInRedirectHref } from '@/lib/navigation/auth-handoff'
 import { createClient } from '@/lib/supabase/client'
@@ -41,6 +42,7 @@ function SignInForm() {
   const authError = searchParams.get('auth_error')
   const linkExpired = authError === 'link_expired'
   const shouldReduceMotion = useReducedMotion()
+  const signInContext = getSignInContext(redirectUrl)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -224,10 +226,10 @@ function SignInForm() {
             </div>
             <div className="text-center mb-6">
               <h2 className="text-xl font-semibold text-foreground mb-1">
-                Welcome back
+                {signInContext.heading}
               </h2>
               <p className="text-sm text-muted-foreground">
-                Sign in to your account
+                {signInContext.description}
               </p>
             </div>
 
@@ -329,7 +331,7 @@ function SignInForm() {
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <>
-                    Sign in
+                    {signInContext.submitLabel}
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
