@@ -63,6 +63,7 @@ const ciWorkflow = readProjectFile(".github/workflows/ci.yml")
 const e2eSeed = readProjectFile("scripts/e2e/seed.ts")
 const e2eTeardown = readProjectFile("scripts/e2e/teardown.ts")
 const syncAgentSkills = readProjectFile("scripts/sync-agent-skills.sh")
+const docAudit = readProjectFile("scripts/doc-audit.sh")
 
 const expectedInstantMedSkills = [
   "instantmed-checkout-payment-review",
@@ -74,6 +75,10 @@ const expectedInstantMedSkills = [
 ]
 
 describe("project docs drift contract", () => {
+  it("keeps linked worktree docs out of the canonical doc-surface count", () => {
+    expect(docAudit).toContain('-not -path "./.worktrees/*"')
+  })
+
   it("keeps root assistant docs aligned on hours, gated services, and staff dashboard rules", () => {
     for (const source of [agents, claude]) {
       // 24/7 doctrine (operator, 2026-07-03): the platform operates around the

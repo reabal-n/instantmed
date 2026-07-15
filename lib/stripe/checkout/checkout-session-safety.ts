@@ -235,27 +235,43 @@ export async function attachCheckoutSession({
       : { outcome: "session_not_open", sessionState: inspection.state }
   }
 
-  let attachQuery = supabase
-    .from("intakes")
-    .update({
-      payment_id: sessionId,
-      payment_status: "pending",
-      status: "pending_payment",
-      checkout_error: null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", intakeId)
-    .in("status", ["pending_payment", "checkout_failed"])
-    .in("payment_status", ["pending", "unpaid", "failed"])
-    .or(`checkout_error.is.null,checkout_error.neq.${HIGH_STAKES_PAYMENT_LOCK}`)
+  // PostgREST rejects a PATCH that combines these nullable guards with `.or()`
+  // (42703 on intakes.checkout_error). Preserve the same union as two guarded
+  // compare-and-swap attempts so the high-stakes lock still cannot be cleared.
+  const runAttach = async (checkoutErrorGuard: "null" | "not_high_stakes") => {
+    let attachQuery = supabase
+      .from("intakes")
+      .update({
+        payment_id: sessionId,
+        payment_status: "pending",
+        status: "pending_payment",
+        checkout_error: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", intakeId)
+      .in("status", ["pending_payment", "checkout_failed"])
+      .in("payment_status", ["pending", "unpaid", "failed"])
 
-  if (patientId) attachQuery = attachQuery.eq("patient_id", patientId)
+    attachQuery = checkoutErrorGuard === "null"
+      ? attachQuery.is("checkout_error", null)
+      : attachQuery.neq("checkout_error", HIGH_STAKES_PAYMENT_LOCK)
 
-  attachQuery = expectedPaymentId
-    ? attachQuery.eq("payment_id", expectedPaymentId)
-    : attachQuery.is("payment_id", null)
+    if (patientId) attachQuery = attachQuery.eq("patient_id", patientId)
 
-  const { data: attachedRows, error: attachError } = await attachQuery.select("id")
+    attachQuery = expectedPaymentId
+      ? attachQuery.eq("payment_id", expectedPaymentId)
+      : attachQuery.is("payment_id", null)
+
+    return attachQuery.select("id")
+  }
+
+  let { data: attachedRows, error: attachError } = await runAttach("null")
+  if (!attachError && (!attachedRows || attachedRows.length === 0)) {
+    const fallbackAttach = await runAttach("not_high_stakes")
+    attachedRows = fallbackAttach.data
+    attachError = fallbackAttach.error
+  }
+
   if (!attachError && attachedRows && attachedRows.length > 0) {
     return { outcome: "attached" }
   }

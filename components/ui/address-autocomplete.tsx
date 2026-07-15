@@ -77,7 +77,8 @@ export function AddressAutocomplete({
   const listboxIdRef = useRef(`address-suggestions-${generateSessionToken()}`)
 
   const debouncedValue = useDebounce(value, 300)
-  const shouldSearch = !isManualEntry && debouncedValue.length >= 3
+  const shouldSearch =
+    !isManualEntry && !isLoadingDetails && !isVerified && debouncedValue.length >= 3
 
   // Search addresses when input changes
   const doSearch = useCallback(async (searchValue: string) => {

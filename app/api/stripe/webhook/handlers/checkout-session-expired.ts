@@ -40,19 +40,33 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
   if (intakeId) {
     try {
       // Update intake status and payment_status to expired if still pending payment
-      const { data: expiredIntake, error: expireError } = await supabase
-        .from("intakes")
-        .update({
-          status: "expired",
-          payment_status: "expired",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", intakeId)
-        .eq("payment_id", session.id)
-        .eq("status", "pending_payment")
-        .or(`checkout_error.is.null,checkout_error.neq.${PAYMENT_REPLACEMENT_LOCK}`)
-        .select("id")
-        .maybeSingle()
+      // Keep nullable checkout_error guards as separate PATCHes. Combining
+      // them with PostgREST `.or()` produces a 42703 error on this update path.
+      const expireWithGuard = (checkoutErrorGuard: "null" | "not_replacing") => {
+        let expireQuery = supabase
+          .from("intakes")
+          .update({
+            status: "expired",
+            payment_status: "expired",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", intakeId)
+          .eq("payment_id", session.id)
+          .eq("status", "pending_payment")
+
+        expireQuery = checkoutErrorGuard === "null"
+          ? expireQuery.is("checkout_error", null)
+          : expireQuery.neq("checkout_error", PAYMENT_REPLACEMENT_LOCK)
+
+        return expireQuery.select("id").maybeSingle()
+      }
+
+      let { data: expiredIntake, error: expireError } = await expireWithGuard("null")
+      if (!expireError && !expiredIntake) {
+        const fallbackExpiry = await expireWithGuard("not_replacing")
+        expiredIntake = fallbackExpiry.data
+        expireError = fallbackExpiry.error
+      }
 
       if (expireError) {
         log.error("Error expiring intake", { sessionId: session.id }, expireError)
