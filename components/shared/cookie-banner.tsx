@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { updateConsent } from "@/lib/analytics/conversion-tracking"
@@ -62,11 +63,13 @@ function Toggle({ checked, onChange, id }: { checked: boolean; onChange: (checke
 }
 
 export function CookieBanner() {
+  const pathname = usePathname()
   const [showBanner, setShowBanner] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
   const [preferences, setPreferences] = useState<CookiePreferences>(DEFAULT_PREFERENCES)
   const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const shouldShowInitialNoticeRef = useRef(false)
 
   const dismiss = useCallback(() => {
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current)
@@ -76,26 +79,36 @@ export function CookieBanner() {
 
   useEffect(() => {
     const stored = localStorage.getItem(COOKIE_CONSENT_KEY)
+    let hasCurrentConsent = false
+
     if (stored) {
       try {
         const parsed = JSON.parse(stored) as CookiePreferences
         if (parsed.version === COOKIE_CONSENT_VERSION) {
           syncGoogleConsent(parsed)
           setPreferences(parsed)
-          return
+          hasCurrentConsent = true
         }
       } catch {
         // fall through to auto-accept
       }
     }
 
-    // AU Privacy Act 1988 — implied consent model.
-    // Accept all by default; show a brief notification so users can opt out.
-    const defaults: CookiePreferences = { ...DEFAULT_PREFERENCES, acceptedAt: new Date().toISOString() }
-    localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(defaults))
-    syncGoogleConsent(defaults)
-    setPreferences(defaults)
-    window.dispatchEvent(new CustomEvent("cookieConsentUpdated", { detail: defaults }))
+    if (!hasCurrentConsent) {
+      // AU Privacy Act 1988 — implied consent model.
+      // Accept all by default; show a brief notification so users can opt out.
+      const defaults: CookiePreferences = { ...DEFAULT_PREFERENCES, acceptedAt: new Date().toISOString() }
+      localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(defaults))
+      syncGoogleConsent(defaults)
+      setPreferences(defaults)
+      window.dispatchEvent(new CustomEvent("cookieConsentUpdated", { detail: defaults }))
+      shouldShowInitialNoticeRef.current = true
+    }
+
+    // React Strict Mode runs this effect twice in development. The first cleanup
+    // cancels its timer after consent is stored, so the second run must reschedule
+    // the same first-visit notice instead of treating it as an existing consent.
+    if (!shouldShowInitialNoticeRef.current) return
 
     const showTimer = setTimeout(() => {
       setShowBanner(true)
@@ -152,10 +165,15 @@ export function CookieBanner() {
 
   if (!showBanner) return null
 
+  const sitsAboveRequestActionBar = pathname === "/request"
+
   return (
     <div
       className={cn(
-        "fixed bottom-4 left-4 right-4 sm:left-6 sm:right-auto sm:bottom-6 z-50 sm:max-w-xs",
+        "fixed left-4 right-4 z-50 sm:bottom-6 sm:left-6 sm:right-auto sm:max-w-xs",
+        sitsAboveRequestActionBar
+          ? "bottom-[calc(4.25rem+env(safe-area-inset-bottom)+1rem)]"
+          : "bottom-4",
         "transition-[transform,opacity] duration-300 ease-out motion-reduce:transition-none",
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       )}

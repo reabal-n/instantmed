@@ -266,6 +266,9 @@ test.describe("Medical Certificate Auto-Approval", () => {
           intakeId,
           startDate,
         },
+        // This route executes the complete draft -> approval -> PDF -> outbox
+        // pipeline. A cold CI worker can exceed the suite's 15s action timeout.
+        timeout: 45_000,
       })
 
       expect(triggerResponse.ok(), await triggerResponse.text()).toBe(true)

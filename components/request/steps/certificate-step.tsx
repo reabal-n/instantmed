@@ -439,6 +439,7 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
           columns="three"
           mobileColumns="three"
           compact
+          hideSelectedIndicatorOnMobile
           className="mt-2"
         />
         {certTypeError && (

@@ -389,6 +389,7 @@ interface ChoiceCardGroupProps<T extends string> {
   mobileColumns?: "one" | "two" | "three"
   compact?: boolean
   hideChipsOnMobile?: boolean
+  hideSelectedIndicatorOnMobile?: boolean
   className?: string
 }
 
@@ -404,6 +405,7 @@ export function ChoiceCardGroup<T extends string>({
   mobileColumns = "one",
   compact = false,
   hideChipsOnMobile = false,
+  hideSelectedIndicatorOnMobile = false,
   className,
 }: ChoiceCardGroupProps<T>) {
   const selectedIndex = options.findIndex((option) => option.value === value)
@@ -542,7 +544,14 @@ export function ChoiceCardGroup<T extends string>({
                 </span>
               )}
               {!disabled && selected && (
-                <span className={requestCx("flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground", selectedOffsetClass)}>
+                <span
+                  data-intake-choice-card-selected-indicator="true"
+                  className={requestCx(
+                    "flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground",
+                    hideSelectedIndicatorOnMobile && "hidden sm:flex",
+                    selectedOffsetClass,
+                  )}
+                >
                   <Check className="h-3.5 w-3.5" aria-hidden="true" />
                 </span>
               )}
