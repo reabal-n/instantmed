@@ -171,7 +171,11 @@ async function rebuildGuestCheckoutSession(
           guest_checkout: "true",
         },
       },
-      { idempotencyKey: `resume_${intake.id}_${intake.payment_id || "initial"}` },
+      {
+        // Signed-link recovery has its own versioned Stripe operation shape.
+        idempotencyKey:
+          `signed-guest-resume-v2_${intake.id}_${intake.payment_id || "initial"}`,
+      },
     )
 
     if (!session.url) {

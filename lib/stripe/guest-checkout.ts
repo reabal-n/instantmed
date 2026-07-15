@@ -277,7 +277,12 @@ async function rebuildExpiredGuestSession(
           guest_checkout: "true",
         },
       },
-      { idempotencyKey: `resume_${intake.id}_${intake.payment_id || "initial"}` },
+      {
+        // Version and scope recovery keys so Stripe never replays parameters
+        // from a different recovery operation or an older request shape.
+        idempotencyKey:
+          `guest-duplicate-resume-v2_${intake.id}_${intake.payment_id || "initial"}`,
+      },
     )
 
     if (!session.url) {

@@ -95,7 +95,7 @@ import { handlePaymentIntentFailed } from "@/app/api/stripe/webhook/handlers/pay
 interface UpdateRecord {
   filters: Array<{
     column?: string
-    method: "eq" | "in" | "or"
+    method: "eq" | "in" | "is" | "neq" | "or"
     value: unknown
   }>
   payload: Record<string, unknown>
@@ -115,6 +115,14 @@ function createUpdateChain(record: UpdateRecord, result: UpdateResult = { data: 
     }),
     in: vi.fn((column: string, value: unknown) => {
       record.filters.push({ column, method: "in", value })
+      return chain
+    }),
+    is: vi.fn((column: string, value: unknown) => {
+      record.filters.push({ column, method: "is", value })
+      return chain
+    }),
+    neq: vi.fn((column: string, value: unknown) => {
+      record.filters.push({ column, method: "neq", value })
       return chain
     }),
     or: vi.fn((value: string) => {
@@ -214,10 +222,11 @@ function createSelectChain() {
 }
 
 function createWebhookSupabaseMock(
-  updateResult: UpdateResult = { data: { id: "intake-1" }, error: null },
+  updateResult: UpdateResult | UpdateResult[] = { data: { id: "intake-1" }, error: null },
   claimResult = { data: true, error: null },
 ) {
   const updates: UpdateRecord[] = []
+  const updateResults = Array.isArray(updateResult) ? [...updateResult] : [updateResult]
 
   const supabase = {
     from: vi.fn((table: string) => ({
@@ -225,7 +234,10 @@ function createWebhookSupabaseMock(
       update: vi.fn((payload: Record<string, unknown>) => {
         const record: UpdateRecord = { filters: [], payload, table }
         updates.push(record)
-        return createUpdateChain(record, updateResult)
+        return createUpdateChain(
+          record,
+          updateResults.shift() || { data: { id: "intake-1" }, error: null },
+        )
       }),
     })),
     rpc: vi.fn(async () => claimResult),
@@ -271,12 +283,42 @@ describe("Stripe webhook payment state transitions", () => {
       { column: "id", method: "eq", value: "intake-1" },
       { column: "status", method: "eq", value: "pending_payment" },
       { column: "payment_id", method: "eq", value: "cs_current" },
+      { column: "checkout_error", method: "is", value: null },
+    ]))
+    expect(updates[0].filters).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ method: "or" }),
+    ]))
+  })
+
+  it("expires a current session through a separate non-replacement error guard", async () => {
+    const { supabase, updates } = createWebhookSupabaseMock([
+      { data: null, error: null },
+      { data: { id: "intake-1" }, error: null },
+    ])
+
+    await handleCheckoutSessionExpired({
+      event: makeEvent("checkout.session.expired", {
+        id: "cs_current",
+        metadata: { intake_id: "intake-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(updates).toHaveLength(2)
+    expect(updates[0].filters).toEqual(expect.arrayContaining([
+      { column: "checkout_error", method: "is", value: null },
+    ]))
+    expect(updates[1].filters).toEqual(expect.arrayContaining([
       {
-        method: "or",
-        value:
-          "checkout_error.is.null,checkout_error.neq.payment_session_replacement_in_progress",
+        column: "checkout_error",
+        method: "neq",
+        value: "payment_session_replacement_in_progress",
       },
     ]))
+    expect(updates.flatMap((record) => record.filters)).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ method: "or" })]),
+    )
   })
 
   it("does not notify expiry when a stale checkout session no longer matches", async () => {

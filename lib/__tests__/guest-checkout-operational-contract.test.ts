@@ -65,6 +65,10 @@ describe("guest checkout operational contract", () => {
 
     expect(rebuildSection).toContain("invalidateCheckoutSessionForSafety")
     expect(rebuildSection).toContain("attachCheckoutSession")
+    expect(rebuildSection).toContain("guest-duplicate-resume-v2_")
+    expect(guestResumeSource).toContain("signed-guest-resume-v2_")
+    expect(rebuildSection).not.toContain("`resume_${intake.id}_")
+    expect(guestResumeSource).not.toContain("`resume_${intake.id}_")
     expect(rebuildSection).not.toContain('.update({\n        payment_id: session.id')
     expect(duplicateSection).toContain("inspectCheckoutSession")
     expect(duplicateSection).not.toContain("stripe.checkout.sessions.retrieve")
