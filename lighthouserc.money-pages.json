@@ -1,0 +1,42 @@
+{
+  "ci": {
+    "collect": {
+      "startServerCommand": "PORT=3061 corepack pnpm start",
+      "url": [
+        "http://localhost:3061/",
+        "http://localhost:3061/medical-certificate",
+        "http://localhost:3061/prescriptions",
+        "http://localhost:3061/consult",
+        "http://localhost:3061/pricing",
+        "http://localhost:3061/erectile-dysfunction",
+        "http://localhost:3061/hair-loss",
+        "http://localhost:3061/womens-health",
+        "http://localhost:3061/uti-assessment-online",
+        "http://localhost:3061/contraceptive-pill-assessment-online",
+        "http://localhost:3061/request"
+      ],
+      "numberOfRuns": 3,
+      "settings": {
+        "formFactor": "mobile",
+        "onlyCategories": ["performance"],
+        "screenEmulation": {
+          "mobile": true,
+          "width": 390,
+          "height": 844,
+          "deviceScaleFactor": 3
+        }
+      }
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": ["warn", { "minScore": 0.9 }],
+        "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
+        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": ".lighthouseci/money-pages"
+    }
+  }
+}

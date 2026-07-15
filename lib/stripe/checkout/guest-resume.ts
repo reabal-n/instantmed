@@ -105,6 +105,9 @@ async function missingInformationDestination(
   intake: ResumeIntake,
 ): Promise<string> {
   if (hold === "held") return MORE_INFORMATION_REQUIRED_DESTINATION
+  if (hold === "held_invalidation_unresolved") {
+    return PAYMENT_STATE_UNRESOLVED_DESTINATION
+  }
   if (hold === "payment_in_flight") {
     return resolveCurrentPaymentCompletion(supabase, intake.id)
   }

@@ -3,6 +3,8 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+
 /**
  * 24/7 positioning contract (operator decision 2026-07-03).
  *
@@ -108,7 +110,8 @@ describe("24/7 hours copy contract", () => {
 
   it("keeps the terms of service on the 24/7 availability wording", () => {
     const terms = readFileSync(join(ROOT, "app/terms/page.tsx"), "utf8")
-    expect(terms).toContain("The service operates 24 hours a day, 7 days a week.")
+    expect(terms).toContain('getApprovedClaim("availability_24_7")')
+    expect(getApprovedClaim("availability_24_7")).toContain("submitted and reviewed 24/7")
     expect(terms).toContain("We do not guarantee specific response times.")
   })
 })

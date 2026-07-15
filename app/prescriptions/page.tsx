@@ -1,7 +1,6 @@
 export const revalidate = 86400
 
 import type { Metadata } from 'next'
-import Link from 'next/link'
 
 import { PrescriptionsLanding } from '@/components/marketing/prescriptions-landing'
 import {
@@ -13,7 +12,7 @@ import {
   SpeakableSchema,
 } from '@/components/seo/healthcare-schema'
 import { PRICING } from '@/lib/constants'
-import { PRESCRIPTION_FAQ } from '@/lib/data/prescription-faq'
+import { PRESCRIPTION_LANDING_FAQ } from '@/lib/data/prescription-faq'
 
 export const metadata: Metadata = {
   title: 'Repeat Prescription Online | Doctor Review',
@@ -52,100 +51,6 @@ export const metadata: Metadata = {
   },
 }
 
-function PrescriptionAuthorityResourceLink() {
-  const resources = [
-    {
-      href: "/resources/secure-online-prescription-requests",
-      title: "How secure online prescription requests work in Australia",
-      body: "eScript tokens, doctor review, safety boundaries, and medicine-neutral public language.",
-    },
-    {
-      href: "/resources/repeat-prescription-safety-checklist",
-      title: "Repeat prescription safety checklist",
-      body: "Identity, current medicine details, monitoring needs, safety changes, and secure eScript delivery.",
-    },
-    {
-      href: "/online-prescriptions",
-      title: "Online prescriptions in Australia",
-      body: "A practical guide to repeat prescription review, eScripts, PBS, Medicare, and when in-person care is safer.",
-    },
-  ] as const
-
-  return (
-    <section className="px-4 py-8 sm:px-6">
-      <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-3">
-        {resources.map((resource) => (
-          <Link
-            key={resource.href}
-            href={resource.href}
-            className="group flex h-full flex-col gap-3 rounded-2xl border border-border/50 bg-white p-5 shadow-md shadow-primary/[0.06] transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none"
-          >
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-                Source-backed explainer
-              </p>
-              <p className="mt-2 text-base font-semibold text-foreground">
-                {resource.title}
-              </p>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                {resource.body}
-              </p>
-            </div>
-            <span
-              aria-hidden="true"
-              className="mt-auto shrink-0 text-lg font-semibold text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary"
-            >
-              -&gt;
-            </span>
-          </Link>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function PrescriptionFactsBlock() {
-  const facts = [
-    {
-      term: "Review model",
-      detail: "Repeat prescription requests start with a secure form and are reviewed by an AHPRA-registered doctor.",
-    },
-    {
-      term: "eScript delivery",
-      detail: "If the doctor approves a prescription, an electronic prescription token is delivered digitally for use at an Australian pharmacy.",
-    },
-    {
-      term: "Identity and records",
-      detail: "Prescription and consultation pathways require Medicare details for identity, prescribing records, and pharmacy continuity.",
-    },
-    {
-      term: "Pharmacy boundary",
-      detail: "The InstantMed fee covers doctor review. Medicine costs are paid separately at the pharmacy and may depend on PBS eligibility, brand, and pharmacy pricing.",
-    },
-  ] as const
-
-  return (
-    <section aria-labelledby="prescription-facts" className="px-4 py-10 sm:px-6">
-      <div className="mx-auto max-w-5xl">
-        <h2 id="prescription-facts" className="text-2xl font-semibold tracking-tight text-foreground">
-          Key facts about repeat prescriptions
-        </h2>
-        <dl className="mt-6 grid gap-4 sm:grid-cols-2">
-          {facts.map((fact) => (
-            <div
-              key={fact.term}
-              className="rounded-xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
-            >
-              <dt className="font-medium text-foreground">{fact.term}</dt>
-              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{fact.detail}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </section>
-  )
-}
-
 export default function PrescriptionsPage() {
   return (
     <>
@@ -166,16 +71,13 @@ export default function PrescriptionsPage() {
         description={`Request doctor review for regular repeat medications online. AHPRA-registered Australian doctors review your request and send an eScript to your phone if approved. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`}
         url="/prescriptions"
       />
-      <FAQSchema faqs={[...PRESCRIPTION_FAQ]} />
+      <FAQSchema faqs={[...PRESCRIPTION_LANDING_FAQ]} />
       <HealthArticleSchema
         title="Online Prescription Australia"
         description={`Request doctor review for regular repeat medications online. AHPRA-registered Australian doctors send an eScript to your phone if approved. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`}
         url="/prescriptions"
       />
-      <PrescriptionsLanding>
-        <PrescriptionFactsBlock />
-        <PrescriptionAuthorityResourceLink />
-      </PrescriptionsLanding>
+      <PrescriptionsLanding />
     </>
   )
 }

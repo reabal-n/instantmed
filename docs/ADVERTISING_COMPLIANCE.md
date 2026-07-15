@@ -180,9 +180,10 @@ Avoid:
 
 Use:
 
-- `/request?service=prescription`
+- `/request?service=repeat-script`
 - `/request?service=consult&subtype=ed`
 - `/request?service=consult&subtype=hair_loss`
+- `/request?service=consult&subtype=womens_health`
 
 Medication details should be collected inside the secure intake, not in URL params.
 

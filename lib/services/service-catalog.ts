@@ -2,7 +2,7 @@
  * Service Catalog — Single Source of Truth
  *
  * One canonical definition per service. Consumed by:
- *   - Home service grid (components/marketing/service-cards.tsx via lib/marketing/homepage.ts)
+ *   - Home route map (components/marketing/portfolio-route-map.tsx)
  *   - Intake service hub (components/request/service-hub-screen.tsx)
  *   - Pricing page (app/pricing/pricing-content.tsx)
  *   - Services dropdown (components/shared/navbar/services-dropdown.tsx)
@@ -44,7 +44,7 @@ export type ServiceColorToken =
   | "cyan"     // repeat prescriptions
   | "blue"     // ED treatment
   | "amber"    // hair loss (was `violet`; fixed in Phase 1)
-  | "sky"      // general consult
+  | "sky"      // reserved legacy token; no active service uses it
   | "pink"     // women's health
   | "rose"     // weight loss (coming soon)
 
@@ -90,7 +90,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
     price: PRICING_DISPLAY.MED_CERT,
     pricePrefix: "From",
     priceFrom: 24.95,
-    effort: "~2 min",
+    effort: "~3 min",
     iconKey: "FileText",
     colorToken: "emerald",
     serviceRoute: "med-cert",
@@ -128,7 +128,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
     slug: "hair-loss",
     price: PRICING_DISPLAY.HAIR_LOSS,
     priceFrom: 49.95,
-    effort: "~2 min",
+    effort: "~3 min",
     iconKey: "Sparkles",
     colorToken: "amber", // was 'violet'; fixed per audit C1/C2
     serviceRoute: "consult",

@@ -41,8 +41,8 @@ const patientIntakeClientSource = readFileSync(
   "utf8",
 )
 
-const patientStatusListenerSource = readFileSync(
-  join(process.cwd(), "components/patient/intake-status-listener.tsx"),
+const patientStatusNotificationsSource = readFileSync(
+  join(process.cwd(), "components/patient/global-intake-notifications.tsx"),
   "utf8",
 )
 const patientIntakeDrawerSource = readFileSync(
@@ -115,8 +115,8 @@ describe("intake status source of truth", () => {
   it("keeps active patient statuses visible in the live status tracker", () => {
     expect(patientIntakeClientSource).toContain("awaiting_script")
     expect(patientIntakeClientSource).toContain("escalated")
-    expect(patientStatusListenerSource).toContain("awaiting_script")
-    expect(patientStatusListenerSource).toContain("escalated")
+    expect(patientStatusNotificationsSource).toContain("awaiting_script")
+    expect(patientStatusNotificationsSource).toContain("escalated")
   })
 
   it("keeps the database state machine aligned with payment recovery and decline flows", () => {

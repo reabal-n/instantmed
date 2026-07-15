@@ -8,9 +8,9 @@ import { GUARANTEE } from "@/lib/marketing/voice"
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: "Telehealth Pricing | No Hidden Fees",
+  title: "Telehealth Pricing | Five Focused Services",
   description:
-    `Med certs from ${PRICING_DISPLAY.MED_CERT}, prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No subscriptions, no hidden fees. ${GUARANTEE}`,
+    `Medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and focused ED, hair-loss, and women's-health assessments from ${PRICING_DISPLAY.CONSULT}. No subscription. ${GUARANTEE}`,
   keywords: [
     "telehealth pricing australia",
     "online doctor cost",
@@ -22,15 +22,15 @@ export const metadata: Metadata = {
     "no subscription telehealth",
   ],
   openGraph: {
-    title: "Telehealth Pricing | Simple & Transparent | InstantMed",
-    description: `Medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No subscriptions, no hidden fees. ${GUARANTEE}`,
+    title: "Telehealth Pricing | Five Focused Services | InstantMed",
+    description: `Medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and focused assessments from ${PRICING_DISPLAY.CONSULT}. No subscription. ${GUARANTEE}`,
     url: "https://instantmed.com.au/pricing",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Telehealth Pricing | Simple & Transparent | InstantMed",
-    description: `Medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No subscriptions, no hidden fees.`,
+    title: "Telehealth Pricing | Five Focused Services | InstantMed",
+    description: `Medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and focused assessments from ${PRICING_DISPLAY.CONSULT}.`,
   },
   alternates: {
     canonical: "https://instantmed.com.au/pricing",
@@ -45,6 +45,10 @@ export const metadata: Metadata = {
  * canonical source), creating a duplicate FAQPage on the same URL. GSC
  * flagged this as critical 2026-04-06. Removed from layout in the same
  * fix as /general-consult (commit: duplicate FAQPage sweep).
+ *
+ * The root OrganizationSchema owns the catalog-wide five-service OfferCatalog.
+ * This route deliberately does not duplicate those service offers as separate
+ * JSON-LD nodes; visible pricing inventory still derives from SERVICE_CATALOG.
  */
 export default function PricingLayout({
   children,

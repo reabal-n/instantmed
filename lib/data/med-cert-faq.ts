@@ -86,3 +86,20 @@ export const MED_CERT_FAQ = [
       "All data is encrypted in transit and at rest using AES-256 encryption. We comply with the Australian Privacy Principles (APPs) and never share your health information with employers or third parties. See our privacy policy for details.",
   },
 ] as const
+
+const MED_CERT_LANDING_QUESTIONS = new Set([
+  "Can I use this for uni or TAFE?",
+  "Can I get a certificate backdated?",
+  "How do I receive my certificate?",
+  "Is this suitable for WorkCover or legal matters?",
+  "How is my information protected?",
+])
+
+/**
+ * Concise money-page FAQ. Core eligibility, pricing, process, and refund facts
+ * render in the decision path above it; this list keeps only residual practical
+ * questions. The full set remains available to broader FAQ surfaces.
+ */
+export const MED_CERT_LANDING_FAQ = MED_CERT_FAQ.filter(({ question }) =>
+  MED_CERT_LANDING_QUESTIONS.has(question),
+)

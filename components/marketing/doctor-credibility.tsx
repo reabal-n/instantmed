@@ -1,11 +1,11 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { CheckCircle2, Clock, ShieldCheck, Stethoscope,Users } from 'lucide-react'
+import { CheckCircle2, Clock, ShieldCheck, Stethoscope, Users } from 'lucide-react'
 
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
 import { useReducedMotion } from '@/components/ui/motion'
-import { SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
+import { getApprovedClaim } from '@/lib/marketing/approved-claims'
 import { cn } from '@/lib/utils'
 
 interface DoctorCredibilityProps {
@@ -17,15 +17,15 @@ interface DoctorCredibilityProps {
 const STAT_CONFIG = {
   experience: {
     icon: Stethoscope,
-    value: SOCIAL_PROOF_DISPLAY.doctorExperience,
-    label: 'Your GP',
+    value: 'AHPRA registration',
+    label: 'independently verifiable',
     color: 'text-primary',
     bg: 'bg-primary/10',
   },
   approval: {
     icon: CheckCircle2,
-    value: 'Doctor review',
-    label: 'before issue',
+    value: 'Clinical ownership',
+    label: 'doctor-owned pathways',
     color: 'text-success',
     bg: 'bg-success-light',
   },
@@ -87,7 +87,7 @@ export function DoctorCredibility({
           </div>
           <div>
             <h3 className="font-semibold text-foreground">AHPRA-registered doctors</h3>
-            <p className="text-xs text-muted-foreground">{SOCIAL_PROOF_DISPLAY.doctorExperience}</p>
+            <p className="text-xs text-muted-foreground">Independent public-register verification</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -117,10 +117,10 @@ export function DoctorCredibility({
         >
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Our doctors</p>
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground">
-            {SOCIAL_PROOF_DISPLAY.doctorExperience}
+            AHPRA-registered clinical care
           </h2>
           <p className="text-muted-foreground mt-2">
-            Every request reviewed by a qualified, AHPRA-registered Australian doctor.
+            {getApprovedClaim('doctor_registration')} {getApprovedClaim('clinical_decision_model')}
           </p>
         </motion.div>
 

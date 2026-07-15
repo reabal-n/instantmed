@@ -38,7 +38,10 @@ import {
 } from "./checkout-session-safety"
 import { getBaseUrl, getServiceSlug, isValidUrl } from "./helpers"
 import { getHighStakesCheckoutBlock, isMedicalCertificateIntake } from "./high-stakes-validation"
-import { holdCheckoutForMissingSafetyInformation } from "./missing-safety-payment-hold"
+import {
+  holdCheckoutForMissingSafetyInformation,
+  type MissingSafetyPaymentHoldResult,
+} from "./missing-safety-payment-hold"
 import { preflightPriorityPriceForRecovery } from "./priority-price-recovery"
 import type { CheckoutResult } from "./types"
 
@@ -48,6 +51,13 @@ const RETRY_PAYMENT_STATE_ERROR =
   "No new payment session was created. Please refresh your request status. If you completed payment, contact support before trying again."
 const PRIORITY_RECOVERY_ERROR =
   "Priority review is temporarily unavailable. Your request was not changed and no new checkout was opened. Please try again later or contact support."
+
+function isKnownMissingInformationHold(
+  result: MissingSafetyPaymentHoldResult,
+): boolean {
+  return result === "held" || result === "held_invalidation_unresolved"
+}
+
 export async function retryPaymentForIntakeAction(intakeId: string): Promise<CheckoutResult> {
   try {
     const authUser = await getAuthenticatedUserWithProfile()
@@ -112,6 +122,9 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
           hold === "held"
             ? "Required medical information is missing. Please start a new request before trying payment again."
             : RETRY_PAYMENT_STATE_ERROR,
+        ...(isKnownMissingInformationHold(hold)
+          ? { paymentRecoveryReason: "more_information_required" as const }
+          : {}),
       }
     }
 
@@ -207,6 +220,9 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
           hold === "held"
             ? "Required medical information is missing. Please start a new request before trying payment again."
             : RETRY_PAYMENT_STATE_ERROR,
+        ...(isKnownMissingInformationHold(hold)
+          ? { paymentRecoveryReason: "more_information_required" as const }
+          : {}),
       }
     }
 

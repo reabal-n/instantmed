@@ -9,6 +9,10 @@ import {
   CANCELLABLE_UNPAID_INTAKE_STATUSES,
   TERMINAL_PAID_PAYMENT_STATUSES,
 } from "@/lib/stripe/payment-integrity"
+import {
+  isMissingSafetyInformationPaymentLock,
+  PAYMENT_SAFETY_LOCK_EXCLUSION_FILTER,
+} from "@/lib/stripe/payment-safety-lock"
 import type { ActionResult } from "@/types/shared"
 
 /**
@@ -27,7 +31,7 @@ export const cancelIntake = withServerAction<string>(
     // Fetch the intake to verify ownership and status
     const { data: intake, error: fetchError } = await supabase
       .from("intakes")
-      .select("id, patient_id, status, payment_status, payment_id")
+      .select("id, patient_id, status, payment_status, payment_id, checkout_error")
       .eq("id", intakeId)
       .single()
 
@@ -44,6 +48,14 @@ export const cancelIntake = withServerAction<string>(
         userId: profile.id,
       })
       return { success: false, error: "You can only cancel your own requests" }
+    }
+
+    if (isMissingSafetyInformationPaymentLock(intake.checkout_error)) {
+      log.warn("Cancel intake: missing-information hold is binding", { intakeId })
+      return {
+        success: false,
+        error: "This request cannot be cancelled while more information is required.",
+      }
     }
 
     // Verify status allows cancellation
@@ -79,6 +91,7 @@ export const cancelIntake = withServerAction<string>(
       .eq("id", intakeId)
       .in("status", Array.from(CANCELLABLE_UNPAID_INTAKE_STATUSES))
       .or(`payment_status.is.null,payment_status.not.in.(${Array.from(TERMINAL_PAID_PAYMENT_STATUSES).join(",")})`)
+      .or(PAYMENT_SAFETY_LOCK_EXCLUSION_FILTER)
       .select("id")
 
     if (updateError) {

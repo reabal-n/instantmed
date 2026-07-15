@@ -13,6 +13,8 @@ interface BrandLogoProps {
   className?: string
   href?: string
   onClick?: MouseEventHandler<HTMLAnchorElement>
+  /** Load both mark assets eagerly when this logo is above the fold. */
+  priority?: boolean
 }
 
 const sizeConfig = {
@@ -27,6 +29,7 @@ export function BrandLogo({
   className,
   href = "/",
   onClick,
+  priority = false,
 }: BrandLogoProps) {
   const { iconSize, textHeight, textWidth } = sizeConfig[size]
 
@@ -39,7 +42,7 @@ export function BrandLogo({
         height={iconSize}
         className="rounded-lg object-contain transition-opacity duration-200 group-hover:opacity-80"
         style={{ width: iconSize, height: iconSize, flexShrink: 0 }}
-        priority
+        priority={priority}
       />
       {!iconOnly && (
         <Image
@@ -49,7 +52,7 @@ export function BrandLogo({
           height={textHeight}
           className="object-contain dark:brightness-0 dark:invert transition-opacity duration-200 group-hover:opacity-80"
           style={{ width: textWidth, height: textHeight, flexShrink: 0, filter: "drop-shadow(0 0 6px rgba(37,99,235,0.2))" }}
-          priority
+          priority={priority}
         />
       )}
     </span>

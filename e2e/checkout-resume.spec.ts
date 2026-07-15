@@ -62,6 +62,7 @@ async function expectNoPaymentRecoveryActions(page: Page): Promise<void> {
     await expect(page.getByRole("button", { name: exactName })).toHaveCount(0)
   }
   await expect(page.getByText("Opening secure checkout...", { exact: true })).toHaveCount(0)
+  await expect(page.getByRole("button", { name: "Cancel request", exact: true })).toHaveCount(0)
 }
 
 async function expectKeyboardFocusVisible(page: Page, target: Locator): Promise<void> {
@@ -358,6 +359,111 @@ test.describe("Signed guest checkout resume safety", () => {
     expect(retainedAnswers?.id).toBeTruthy()
   })
 
+  test("turns an ordinary failed checkout into a safe missing-information hold on retry", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000)
+
+    const seeded = await seedTestIntake({
+      category: "medical_certificate",
+      payment_status: "unpaid",
+      status: "pending_payment",
+    })
+    expect(seeded.success, seeded.error).toBe(true)
+    expect(seeded.intakeId).toBeTruthy()
+    intakeId = seeded.intakeId!
+
+    const supabase = getSupabaseClient()
+    const { data: service, error: serviceError } = await supabase
+      .from("services")
+      .select("id")
+      .eq("slug", "med-cert-sick")
+      .single()
+
+    if (serviceError || !service) {
+      throw new Error(`Could not load canonical med-cert service: ${serviceError?.message || "missing row"}`)
+    }
+
+    const { error: failedFixtureError } = await supabase
+      .from("intakes")
+      .update({
+        checkout_error: "stripe_checkout_session_failed",
+        payment_id: null,
+        payment_status: "unpaid",
+        service_id: service.id,
+        status: "checkout_failed",
+        subtype: "work",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", intakeId)
+
+    if (failedFixtureError) {
+      throw new Error(`Could not prepare ordinary checkout failure: ${failedFixtureError.message}`)
+    }
+
+    const { error: answersError } = await supabase.from("intake_answers").insert({
+      answers: { emergency_symptoms: [] },
+      intake_id: intakeId,
+    })
+    if (answersError) {
+      throw new Error(`Could not prepare incomplete safety answers: ${answersError.message}`)
+    }
+
+    const stripeRequests: string[] = []
+    const stripeMainNavigations: string[] = []
+    page.on("request", (request) => {
+      if (isStripeNavigation(request.url())) stripeRequests.push(request.url())
+      if (
+        request.isNavigationRequest() &&
+        request.frame() === page.mainFrame() &&
+        isStripeNavigation(request.url())
+      ) {
+        stripeMainNavigations.push(request.url())
+      }
+    })
+    await page.route(/https?:\/\/(?:[^/]+\.)?stripe\.com\/.*/, async (route) => {
+      await route.abort("blockedbyclient")
+    })
+
+    const patientLogin = await loginAsPatient(page)
+    expect(patientLogin.success, patientLogin.error).toBe(true)
+
+    await page.goto(`/patient/intakes/${intakeId}`, { waitUntil: "domcontentloaded" })
+    const retryButton = page.getByRole("button", { name: "Try payment again", exact: true })
+    await expect(retryButton).toBeVisible()
+
+    await retryButton.click()
+
+    await expect(page.getByRole("heading", {
+      name: "More information needed",
+      exact: true,
+    })).toBeVisible()
+    await expectNoPaymentRecoveryActions(page)
+    await expect(page.getByText(/we couldn.t open secure checkout/i)).toHaveCount(0)
+    await expect(page).toHaveURL(new RegExp(`/patient/intakes/${intakeId}$`))
+
+    const { data: heldIntake, error: heldIntakeError } = await supabase
+      .from("intakes")
+      .select("status, payment_status, payment_id, checkout_error, triage_result, triage_reasons")
+      .eq("id", intakeId)
+      .single()
+
+    if (heldIntakeError || !heldIntake) {
+      throw new Error(`Could not verify retry-created hold: ${heldIntakeError?.message || "missing row"}`)
+    }
+
+    expect(heldIntake).toEqual({
+      checkout_error: "safety_missing_required_information",
+      payment_id: null,
+      payment_status: "unpaid",
+      status: "checkout_failed",
+      triage_reasons: ["missing_safety_fields"],
+      triage_result: "request_more_info",
+    })
+    expect(stripeRequests).toEqual([])
+    expect(stripeMainNavigations).toEqual([])
+  })
+
   test("projects a missing-information hold across patient recovery without retrying payment", async ({
     page,
   }, testInfo) => {
@@ -569,7 +675,7 @@ test.describe("Signed guest checkout resume safety", () => {
 
     const { data: heldIntake, error: heldIntakeError } = await supabase
       .from("intakes")
-      .select("status, payment_status, payment_id, checkout_error, triage_result, triage_reasons, requires_live_consult, live_consult_reason, cancelled_at, declined_at, expired_at, refunded_at")
+      .select("status, payment_status, payment_id, checkout_error, triage_result, triage_reasons, requires_live_consult, live_consult_reason, refund_status, refund_amount_cents, refund_error, refund_stripe_id, refunded_by, decision, decline_reason, decline_reason_code, decline_reason_note, decided_at, cancelled_at, declined_at, expired_at, refunded_at")
       .eq("id", intakeId)
       .single()
 
@@ -580,12 +686,22 @@ test.describe("Signed guest checkout resume safety", () => {
     expect(heldIntake).toMatchObject({
       cancelled_at: null,
       checkout_error: "safety_missing_required_information",
+      decision: null,
+      decided_at: null,
+      decline_reason: null,
+      decline_reason_code: null,
+      decline_reason_note: null,
       declined_at: null,
       expired_at: null,
       live_consult_reason: "Required medical information is missing.",
       payment_id: null,
       payment_status: "unpaid",
+      refund_amount_cents: 0,
+      refund_error: null,
+      refund_status: null,
+      refund_stripe_id: null,
       refunded_at: null,
+      refunded_by: null,
       requires_live_consult: false,
       status: "checkout_failed",
       triage_reasons: ["missing_safety_fields"],

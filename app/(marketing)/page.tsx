@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
-import Image from 'next/image'
 import { Suspense } from 'react'
 
 import { Hero } from '@/components/marketing/hero'
 import { HomeServiceLinks } from '@/components/marketing/home-service-links'
 import { IntakeResumeChip } from '@/components/marketing/intake-resume-chip'
 import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
+import { PortfolioRouteMap } from '@/components/marketing/portfolio-route-map'
 import { FAQSchema, MedicalBusinessSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
 import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
 import { Navbar } from '@/components/shared/navbar'
@@ -15,27 +15,16 @@ import { getWaitState } from '@/lib/brand/wait-counter'
 import { PRICING_DISPLAY } from '@/lib/constants'
 import { isMaintenanceMode } from '@/lib/feature-flags'
 import { faqItems } from '@/lib/marketing/homepage'
-import { ICONIC_HOOK, PROP_PHRASE, TAGLINE, WEDGE } from '@/lib/marketing/voice'
+import { PROP_PHRASE, TAGLINE } from '@/lib/marketing/voice'
 
 // All below-fold sections are lazy-loaded to keep framer-motion and client
 // component bundles out of the critical JS path. SSR:true (default) keeps
 // full HTML in the initial response for SEO and CLS stability.
-const ServiceCards = dynamic(
-  () => import('@/components/marketing/service-cards').then(m => ({ default: m.ServiceCards })),
-  { loading: () => <div className="min-h-[600px]" /> },
-)
-const HowItWorks = dynamic(
-  () => import('@/components/marketing/how-it-works').then(m => ({ default: m.HowItWorks })),
-  { loading: () => <div className="min-h-[500px]" /> },
-)
 const CTABanner = dynamic(
   () => import('@/components/sections/cta-banner').then(m => ({ default: m.CTABanner })),
 )
 const FAQSection = dynamic(
   () => import('@/components/sections/faq-section').then(m => ({ default: m.FAQSection })),
-)
-const ComplianceMarquee = dynamic(
-  () => import('@/components/marketing/compliance-marquee').then(m => ({ default: m.ComplianceMarquee })),
 )
 const MarketingFooter = dynamic(
   () => import('@/components/marketing/marketing-footer').then(m => ({ default: m.MarketingFooter })),
@@ -52,8 +41,8 @@ export const revalidate = 3600
 // SEO metadata for homepage - critical for Google ranking
 // Note: Avoid prescription drug terms (script, prescription) per Google Ads policy for Australia
 export const metadata: Metadata = {
-  title: { absolute: 'Online Doctor Australia | Consults, Repeat Rx, Med Certs, ED & Hair Loss | InstantMed' },
-  description: `Faster than your GP. Telehealth without the small talk. Medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}, online doctor consults from ${PRICING_DISPLAY.CONSULT}. AHPRA-registered Australian doctors.`,
+  title: { absolute: 'Online Doctor Australia | Med Certs, Repeat Rx & Focused Assessments | InstantMed' },
+  description: `Faster than your GP. Telehealth without the small talk. Medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and focused ED, hair loss, and women's health assessments from ${PRICING_DISPLAY.CONSULT}. AHPRA-registered Australian doctors.`,
   keywords: [
     'online doctor australia',
     'telehealth australia',
@@ -68,7 +57,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Faster than your GP. Telehealth without the small talk. | InstantMed',
-    description: 'Start with a secure form that takes about 3 minutes. AHPRA-registered Australian doctors review medical certificates, repeat medication, and online consults.',
+    description: "Start with a secure form that takes about 3 minutes. AHPRA-registered Australian doctors review medical certificates, repeat medication, and focused ED, hair loss, and women's health assessments.",
     type: 'website',
     locale: 'en_AU',
     url: 'https://instantmed.com.au',
@@ -104,48 +93,6 @@ async function MaintenanceBanner() {
   )
 }
 
-function HomeFactsBlock() {
-  const facts = [
-    {
-      term: 'Entity',
-      detail: 'InstantMed Pty Ltd is an Australian telehealth service operating at instantmed.com.au.',
-    },
-    {
-      term: 'Services',
-      detail: 'Current public pathways cover medical certificates, repeat medication review, hair-loss assessment, erectile-dysfunction assessment, and women\'s health pathways.',
-    },
-    {
-      term: 'Eligibility',
-      detail: 'Requests are for patients in Australia. Patients start with a secure clinical form before any doctor decision.',
-    },
-    {
-      term: 'Clinical review',
-      detail: 'AHPRA-registered doctors review submitted information and decide what is clinically appropriate.',
-    },
-  ] as const
-
-  return (
-    <section aria-labelledby="instantmed-facts" className="px-4 py-12 sm:px-6">
-      <div className="mx-auto max-w-5xl">
-        <h2 id="instantmed-facts" className="text-2xl font-semibold tracking-tight text-foreground">
-          Key facts about InstantMed
-        </h2>
-        <dl className="mt-6 grid gap-4 sm:grid-cols-2">
-          {facts.map((fact) => (
-            <div
-              key={fact.term}
-              className="rounded-xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
-            >
-              <dt className="font-medium text-foreground">{fact.term}</dt>
-              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{fact.detail}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </section>
-  )
-}
-
 export default async function HomePage() {
   // Transform FAQ items for schema
   const faqSchemaData = faqItems.map(item => ({
@@ -159,154 +106,72 @@ export default async function HomePage() {
 
   return (
     <MarketingPageShell>
-    <div className="min-h-screen overflow-x-hidden">
-      {/* SEO Structured Data */}
-      <MedicalBusinessSchema />
-      <FAQSchema faqs={faqSchemaData} />
-      <SpeakableSchema
-        name="InstantMed - Online Doctor Australia"
-        description={`Start with a secure clinical form. AHPRA-registered Australian doctors review medical certificates, repeat medication, and discreet treatment requests. ${PRICING_DISPLAY.FROM_MED_CERT}.`}
-        url="/"
-      />
+      <div className="min-h-screen overflow-x-hidden">
+        {/* SEO Structured Data */}
+        <MedicalBusinessSchema />
+        <FAQSchema faqs={faqSchemaData} />
+        <SpeakableSchema
+          name="InstantMed - Online Doctor Australia"
+          description={`Start with a secure clinical form. AHPRA-registered Australian doctors review medical certificates, repeat medication, and discreet treatment requests. ${PRICING_DISPLAY.FROM_MED_CERT}.`}
+          url="/"
+        />
 
-      {/* Client component for hash navigation */}
-      <HashScrollHandler />
+        {/* Client component for hash navigation */}
+        <HashScrollHandler />
 
-      {/* Returning patient recognition */}
-      <ReturningPatientBanner className="mx-4 mt-2" />
+        {/* Returning patient recognition */}
+        <ReturningPatientBanner className="mx-4 mt-2" />
 
-      {/* Resume unfinished intake draft */}
-      <IntakeResumeChip className="mx-4 mt-2 max-w-5xl lg:mx-auto" />
+        {/* Resume unfinished intake draft */}
+        <IntakeResumeChip className="mx-4 mt-2 max-w-5xl lg:mx-auto" />
 
-      <Navbar variant="marketing" />
+        <Navbar variant="marketing" />
 
-      {/* Maintenance banner - streamed independently, doesn't block hero */}
-      <Suspense fallback={null}>
-        <MaintenanceBanner />
-      </Suspense>
+        {/* Maintenance banner - streamed independently, doesn't block hero */}
+        <Suspense fallback={null}>
+          <MaintenanceBanner />
+        </Suspense>
 
-      <main className="relative">
-        {/* 1. Hero with main value prop.
-            New brand stack (locked 2026-04-29 in docs/BRAND.md §4):
-              H1 = TAGLINE ("Faster than your GP.")
-              H2 = PROP_PHRASE ("Telehealth without the small talk.")
-              reassurance above CTA = ICONIC_HOOK in calm foreground tone
-              subhead body = AHPRA reassurance + WEDGE
-        */}
-        <Hero
-          title={TAGLINE}
-          liveWait={waitState}
-          beforeCta={
-            <p className="text-sm sm:text-base font-medium text-foreground/70 tracking-tight">
-              {ICONIC_HOOK}
+        <main className="relative">
+          {/* Hero owns the first-fold action and states the service boundary. */}
+          <Hero title={TAGLINE} liveWait={waitState} secondaryCta={null}>
+            <h2 className="font-display text-2xl sm:text-3xl lg:text-[2.5rem] text-foreground/85 max-w-xl mx-auto lg:mx-0 mb-6 leading-tight font-semibold tracking-tight">
+              {PROP_PHRASE}
+            </h2>
+            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
+              Five focused services for Australian adults 18+: medical certificates, repeat
+              prescriptions, ED, hair loss, and women&apos;s health. Fees from{" "}
+              {PRICING_DISPLAY.MED_CERT} AUD. Broader concerns, ongoing care, or anything needing an
+              examination belongs with your regular GP or an in-person service.
             </p>
-          }
-        >
-          <h2 className="font-display text-2xl sm:text-3xl lg:text-[2.5rem] text-foreground/85 max-w-xl mx-auto lg:mx-0 mb-6 leading-tight font-semibold tracking-tight">
-            {PROP_PHRASE}
-          </h2>
-          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
-            AHPRA-registered Australian doctors. Secure form-first review. {WEDGE}
-          </p>
-        </Hero>
+          </Hero>
 
-        {/* Quiet regulatory strip — demoted from hero. One subtle line,
-            grayscale logos, low visual weight. Honest signal without crowding
-            the above-fold composition. */}
-        <RegulatoryPartners className="border-t border-b border-border/30 bg-muted/20 dark:bg-white/[0.02]" />
+          {/* One portfolio visual explains how five services feed one clinical spine. */}
+          <PortfolioRouteMap />
 
-        {/* 2. Service cards - what we offer */}
-        <ServiceCards />
+          <RegulatoryPartners className="border-t border-b border-border/30 bg-muted/20 dark:bg-white/[0.02]" />
 
-        {/* Server-rendered raw-HTML links to the service landing + pillar pages.
-            ServiceCards is dynamically imported, so its links live only in the
-            streamed RSC payload; this block puts keyword-matched links to the
-            never-crawled money/pillar/verify pages into the static HTML of the
-            highest-authority page (crawl demand). See component header. */}
-        <HomeServiceLinks />
+          <FAQSection
+            pill="FAQ"
+            title="Before you start"
+            subtitle="The stuff people actually want to know."
+            items={faqItems}
+            viewAllHref="/faq"
+          />
 
-        <HomeFactsBlock />
+          <CTABanner
+            title="Ready when you are"
+            subtitle="Tell us what's going on, a doctor reviews it, and you're sorted. No appointments, no waiting rooms."
+            ctaText="Get started"
+            ctaHref="/request"
+          />
 
-        {/* Editorial lifestyle photo, primary. Quiet visual break between
-            the dense service grid and the "how it works" rhythm. */}
-        <section aria-hidden="true" className="py-10 sm:py-14">
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border/40 shadow-md shadow-primary/[0.06]">
-              <Image
-                src="/images/home-1.webp"
-                alt="Patient at home reviewing their care on a phone"
-                fill
-                className="object-cover"
-                loading="lazy"
-                sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
-              />
-            </div>
-          </div>
-        </section>
+          {/* Active service links already render in the server-owned route map. */}
+          <HomeServiceLinks />
+        </main>
 
-        {/* 3. How it works - muted bg for rhythm */}
-        <div className="bg-muted/30 dark:bg-white/[0.02]">
-          <HowItWorks />
-        </div>
-
-        {/* Editorial lifestyle photo, secondary. A calm trust beat before
-            the FAQ block. */}
-        <section aria-hidden="true" className="py-10 sm:py-14">
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border/40 shadow-md shadow-primary/[0.06]">
-              <Image
-                src="/images/home-2.webp"
-                alt="Australian home setting with daylight, suggesting unhurried care"
-                fill
-                className="object-cover"
-                loading="lazy"
-                sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* 4. FAQs */}
-        <FAQSection
-          pill="FAQ"
-          title="Before you start"
-          subtitle="The stuff people actually want to know."
-          items={faqItems}
-          viewAllHref="/faq"
-        />
-
-        {/* Editorial lifestyle photo, closing. Sits between the FAQ block
-            and the final CTA so the page closes on a human note. */}
-        <section aria-hidden="true" className="pb-2 sm:pb-4">
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border/40 shadow-md shadow-primary/[0.06]">
-              <Image
-                src="/images/home-3.webp"
-                alt="Lived-in Australian interior on a sunlit morning"
-                fill
-                className="object-cover"
-                loading="lazy"
-                sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* 5. Final CTA */}
-        <CTABanner
-          title="Ready when you are"
-          subtitle="Tell us what's going on, a doctor reviews it, and you're sorted. No appointments, no waiting rooms."
-          ctaText="Get started"
-          ctaHref="/request"
-        />
-      </main>
-
-      {/* Compliance strip */}
-      <ComplianceMarquee />
-
-      {/* 7. Footer */}
-      <MarketingFooter />
-    </div>
+        <MarketingFooter />
+      </div>
     </MarketingPageShell>
   )
 }

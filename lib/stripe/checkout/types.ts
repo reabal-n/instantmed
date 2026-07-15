@@ -50,6 +50,7 @@ export interface CheckoutResult {
   checkoutUrl?: string
   intakeId?: string
   error?: string
+  paymentRecoveryReason?: "more_information_required"
 }
 
 /**

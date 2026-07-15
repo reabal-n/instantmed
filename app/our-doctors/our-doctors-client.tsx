@@ -4,7 +4,6 @@ import {
   BadgeCheck,
   ExternalLink,
   GraduationCap,
-  MapPin,
   Shield,
 } from "lucide-react"
 import Link from "next/link"
@@ -26,6 +25,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { FAQGroup } from "@/components/ui/faq-list"
 import { Heading } from "@/components/ui/heading"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
 
 /* ────────────────────────────── Data ────────────────────────────── */
@@ -38,24 +38,26 @@ function TrustIcon({ icon }: { icon: ReactNode }) {
   )
 }
 
+const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
+const DOCTOR_REGISTRATION = getApprovedClaim("doctor_registration")
+
 const credentials: FeatureItem[] = [
   {
     icon: <TrustIcon icon={<BadgeCheck className="w-6 h-6 text-primary" />} />,
     title: "AHPRA Registered",
-    description:
-      "Current, unrestricted registration with the Australian Health Practitioner Regulation Agency. Independently verifiable on the AHPRA public register.",
+    description: DOCTOR_REGISTRATION,
   },
   {
     icon: <TrustIcon icon={<GraduationCap className="w-6 h-6 text-primary" />} />,
-    title: "Qualified doctor",
+    title: "Service-line scope",
     description:
-      "Medical degree from an accredited Australian or equivalent international institution, with current medical registration.",
+      "Capability controls limit each clinician to the service lines they are authorised to review.",
   },
   {
-    icon: <TrustIcon icon={<MapPin className="w-6 h-6 text-primary" />} />,
-    title: "Australian Based",
+    icon: <TrustIcon icon={<Shield className="w-6 h-6 text-primary" />} />,
+    title: "Role-scoped access",
     description:
-      "Practising from within Australia under Australian healthcare guidelines and AHPRA jurisdiction.",
+      "Doctors access the clinical records needed for care; support access stays bounded and masked.",
   },
   {
     icon: <TrustIcon icon={<Shield className="w-6 h-6 text-primary" />} />,
@@ -65,40 +67,40 @@ const credentials: FeatureItem[] = [
   },
 ]
 
-const experienceAreas: FeatureItem[] = [
+const accountabilityAreas: FeatureItem[] = [
   {
     icon: <StickerIcon name="stethoscope" size={48} />,
-    title: "General Practice",
+    title: "Registration verification",
     description:
-      "Experience managing a wide range of common health concerns in community settings.",
+      "AHPRA registration can be checked independently on the public practitioner register.",
   },
   {
     icon: <StickerIcon name="heart-with-pulse" size={48} />,
-    title: "Emergency Medicine",
+    title: "Scope-limited review",
     description:
-      "Acute-care background to identify red flags and escalate appropriately when a request falls outside telehealth scope.",
+      "Structured safety checks stop or redirect requests that are not suitable for online care.",
   },
   {
     icon: <StickerIcon name="hospital" size={48} />,
-    title: "Hospital Medicine",
+    title: "Doctor-owned protocols",
     description:
-      "Experience across Australian public and private hospital systems.",
+      "Medical-certificate protocol rules are owned by medical leadership and logged in the clinical record.",
   },
   {
     icon: <StickerIcon name="briefcase" size={48} />,
-    title: "Telehealth",
+    title: "Escalation and decline",
     description:
-      "Trained in remote assessment, asynchronous review, documentation, and escalation when online care is not the right fit.",
+      "Doctors can ask for more information, decline, or direct a patient to in-person or urgent care.",
   },
 ]
 
 const standards: ChecklistItem[] = [
   { text: "Current AHPRA registration verified before any clinical work" },
-  { text: "Minimum post-graduate clinical experience requirement" },
-  { text: "Professional indemnity insurance maintained" },
-  { text: "Ongoing continuing medical education" },
+  { text: "Service-line capability controls applied before case access" },
   { text: "Documented scope-of-practice and escalation rules" },
-  { text: "Background checks and credentialing completed" },
+  { text: "Treating clinician recorded in the clinical record" },
+  { text: "Prescribing decisions kept with the reviewing doctor" },
+  { text: "Low-risk certificate protocol outcomes individually reviewed afterward" },
 ]
 
 const doctorFaqs: FAQGroup[] = [
@@ -106,29 +108,29 @@ const doctorFaqs: FAQGroup[] = [
     category: "Our Clinical Team",
     items: [
       {
-        question: "Is the reviewing doctor a real, registered Australian doctor?",
+        question: "Is the reviewing doctor AHPRA registered?",
         answer:
-          "Yes. Your request is reviewed by an AHPRA-registered Australian doctor. Registration and scope are verified internally before clinical work begins. We do not use overseas practitioners, nurse practitioners, or AI to make clinical decisions.",
+          `${DOCTOR_REGISTRATION} ${CLINICAL_DECISION_MODEL}`,
       },
       {
         question: "Who actually reviews my request?",
         answer:
-          "An AHPRA-registered Australian doctor reviews your request. Clinical accountability is recorded in the patient record and on issued clinical documents where applicable.",
+          "An AHPRA-registered doctor performs clinical reviews. Clinical accountability is recorded in the patient record and on issued clinical documents where applicable.",
       },
       {
         question: "What qualifications does the reviewing doctor hold?",
         answer:
-          "A medical degree from an accredited Australian or equivalent international institution, current AHPRA registration, professional indemnity insurance, and experience across general practice, emergency medicine, and hospital systems. The Medical Director is subject to the same regulatory oversight and continuing professional development obligations as any other registered GP in Australia.",
+          "The public claim we make is the one you can verify: the treating clinician holds current AHPRA medical registration and works within their authorised service scope. AHPRA registration can be checked on the public register.",
       },
       {
         question: "How do you verify doctor credentials?",
         answer:
-          "Credentials are verified against the AHPRA public register before any clinical work begins, and registration status is monitored on an ongoing basis rather than checked once. Professional indemnity insurance is verified annually. If registration status changes for any reason, platform access is suspended immediately. The same standards apply to any future clinician onboarded.",
+          "AHPRA registration is checked against the public register before clinical access is enabled. Separate service-line capability flags control which request types a clinician can review.",
       },
       {
-        question: "Does the reviewing doctor have telehealth experience?",
+        question: "How do service-line capabilities work?",
         answer:
-          "Yes. Telehealth is a specific clinical skillset beyond general practice. Reviewing doctors must understand remote assessment, asynchronous consultation, documentation, and appropriate escalation when a request falls outside what can be safely handled remotely.",
+          "A clinician can review only the service lines enabled for their profile. This lets InstantMed verify scope separately for certificates, repeat prescriptions, specialties, and prescribing permissions.",
       },
       {
         question: "Will the same doctor review my follow-up requests?",
@@ -143,12 +145,12 @@ const doctorFaqs: FAQGroup[] = [
       {
         question: "What clinical oversight is in place?",
         answer:
-          "Our Medical Director is responsible for designing and maintaining all clinical protocols, which are reviewed on a regular cadence and enforced through the platform itself (including hard blocks on out-of-scope requests and controlled substances). Our full clinical governance framework is documented at /clinical-governance.",
+          "AHPRA-registered medical leadership owns the clinical protocols, service boundaries, and escalation rules. Platform safety checks support those rules; prescribing decisions remain with the doctor. The framework is documented at /clinical-governance.",
       },
       {
         question: "What can and cannot be prescribed?",
         answer:
-          "Prescribing follows TGA (Therapeutic Goods Administration) guidelines and the treating doctor's scope of practice. Schedule 8 controlled substances (including opioids, benzodiazepines, and stimulants) are not available through telehealth on our platform. If a medication falls outside what can be safely prescribed remotely, the doctor will tell you and suggest an alternative pathway.",
+          "Prescribing stays within Australian medicines rules, the doctor's scope, and the selected pathway's exclusions. InstantMed does not prescribe Schedule 8 controlled substances, and additional medicines are excluded when remote assessment or monitoring is not suitable. The doctor will direct you to another pathway when needed.",
       },
       {
         question: "Do you use anonymous reviewers?",
@@ -174,10 +176,10 @@ export default function OurDoctorsClient() {
       <main className="flex-1">
         {/* Hero */}
         <CenteredHero
-          pill="AHPRA-Registered Australian Practice"
-          title="Every request reviewed by a real doctor"
-          highlightWords={["a real doctor"]}
-          subtitle="AHPRA-registered Australian doctors make prescribing decisions and own the medical-certificate protocol. Each eligible protocol-issued certificate is individually reviewed afterward."
+          pill="AHPRA-registered doctors"
+          title="Doctor-owned clinical care"
+          highlightWords={["Doctor-owned"]}
+          subtitle={CLINICAL_DECISION_MODEL}
         >
           <div className="flex flex-wrap justify-center gap-3">
             <Badge variant="outline" className="py-2 px-4">
@@ -189,15 +191,14 @@ export default function OurDoctorsClient() {
               Registered doctors
             </Badge>
             <Badge variant="outline" className="py-2 px-4">
-              <MapPin className="w-4 h-4 mr-2 text-primary" />
-              Australian Based
+              <Shield className="w-4 h-4 mr-2 text-primary" />
+              Capability scoped
             </Badge>
           </div>
         </CenteredHero>
 
-        {/* Page superpower — distinguishes from anonymous or offshore care by
-            anchoring registration and governance without publicly marketing
-            individual doctor identity. */}
+        {/* Anchor registration and governance without publicly marketing
+            individual doctor identity or doctor count. */}
         <ServiceClaimSection
           eyebrow="Registered, governed, accountable"
           headline={
@@ -205,7 +206,7 @@ export default function OurDoctorsClient() {
               The doctor reviewing your case is <span className="text-primary">on the AHPRA register</span>.
             </>
           }
-          body="Registration, scope, and clinical accountability are verified before any doctor reviews requests on InstantMed. No offshore prescribers, no anonymous decision-making, no AI standing in for clinical judgment."
+          body="AHPRA registration is independently verifiable, service-line access is capability-scoped, and the responsible clinician is recorded in the clinical record."
         />
 
         {/* Credentials Grid */}
@@ -216,11 +217,11 @@ export default function OurDoctorsClient() {
           columns={4}
         />
 
-        {/* Experience Areas */}
+        {/* Accountability Areas */}
         <FeatureGrid
-          title="Clinical experience that matters"
-          subtitle="A background across general practice, emergency medicine, and hospital systems means clinical scenarios are handled appropriately."
-          features={experienceAreas}
+          title="How clinical accountability works"
+          subtitle="Verifiable registration, bounded scope, doctor-owned protocols, and a clear escalation path."
+          features={accountabilityAreas}
           columns={2}
         />
 
@@ -247,9 +248,9 @@ export default function OurDoctorsClient() {
               Verify the registration yourself
             </Heading>
             <p className="text-muted-foreground mb-6">
-              Doctor registration is checked against the AHPRA public register
-              before clinical work begins, with ongoing monitoring for any
-              registration change.
+            Doctor registration is checked against the AHPRA public register
+              before clinical work begins. You can verify current registration
+              directly on the public register.
             </p>
             <Button asChild variant="outline" className="rounded-full bg-transparent">
               <Link
@@ -279,7 +280,7 @@ export default function OurDoctorsClient() {
         <section className="px-4 py-8 border-t border-border/30 dark:border-white/10">
           <div className="mx-auto max-w-3xl">
             <h3 className="text-sm font-semibold text-foreground mb-4 text-center">
-              Health resources reviewed by a registered GP
+              Health information and service guides
             </h3>
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
               <Link href="/conditions" className="text-primary hover:underline">
@@ -307,7 +308,7 @@ export default function OurDoctorsClient() {
         {/* CTA */}
         <CTABanner
           title="Ready to get started?"
-          subtitle="Complete a short form and an AHPRA-registered doctor will review your request."
+          subtitle={CLINICAL_DECISION_MODEL}
           ctaText="Start a request"
           ctaHref="/request"
           secondaryText="Our clinical standards"

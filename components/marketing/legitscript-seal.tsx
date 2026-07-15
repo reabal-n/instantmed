@@ -1,5 +1,6 @@
 import Image from "next/image"
 
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { cn } from "@/lib/utils"
 
 /**
@@ -45,7 +46,7 @@ export function LegitScriptSeal({ size = "sm", className }: LegitScriptSealProps
       href={LEGITSCRIPT_VERIFY_URL}
       target="_blank"
       rel="noopener noreferrer"
-      title="Verify LegitScript certification for instantmed.com.au"
+      title={`${getApprovedClaim("legitscript_tooltip")} Verify certification for instantmed.com.au.`}
       className={cn(
         "inline-flex shrink-0 items-center rounded-md transition-opacity hover:opacity-80",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
@@ -54,7 +55,7 @@ export function LegitScriptSeal({ size = "sm", className }: LegitScriptSealProps
     >
       <Image
         src="/logos/legitscript.png"
-        alt="LegitScript certified - verify approval for instantmed.com.au"
+        alt={`${getApprovedClaim("legitscript_label")} - verify approval for instantmed.com.au`}
         width={width}
         height={height}
         unoptimized

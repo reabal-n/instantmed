@@ -42,7 +42,7 @@ Each shot should be deliverable in two crops: **16:9 (1920×1080)** for hero/ban
 **Mood:** Considered. "I'm answering this thoroughly because someone is going to read it."
 
 ### 3. `rx-1.webp` — At a pharmacy counter (replaces existing)
-**Use:** /prescriptions (inside EScriptExplainerSection accent)
+**Use:** reserved for future pharmacy editorial or ad creative; the compressed `/prescriptions` money page does not use lifestyle photography
 **Scene:** Person at an Australian pharmacy counter (Chemist Warehouse, Priceline, or generic). Phone screen visible showing an SMS-style eScript token. Pharmacist in soft focus background. Australian pharmacy interior cues — Healthy Living signage in soft background, AHPRA notice on a wall.
 **Mood:** Frictionless. "I just showed them my phone and walked out with my medication."
 
@@ -110,7 +110,7 @@ The Australian audience is genuinely diverse. Across the 8 shots, represent:
 |---|---|
 | `home-1.webp` | Reserved for future /home editorial accents, email |
 | `consult-1.webp` | /weight-loss (above treatments), /consult (mockup fallback), ads |
-| `rx-1.webp` | /prescriptions (EScriptExplainerSection accent) |
+| `rx-1.webp` | Reserved for future pharmacy editorial or ad creative |
 | `med-cert-context.webp` | /medical-certificate (NEW slot, recommended adjacent to LimitationsSection) |
 | `doctor-reviewing.webp` | /trust, /clinical-governance, /our-doctors, /how-it-works (NEW slots) |
 | `australian-context.webp` | /about, /trust hero accent (NEW slot) |

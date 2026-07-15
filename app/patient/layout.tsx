@@ -21,7 +21,6 @@ export default async function PatientLayout({
   return (
     <PatientShell
       user={{
-        id: authUser.profile.id,
         name: authUser.profile.full_name,
         email: authUser.user.email ?? '',
         avatar: avatarUrl ?? undefined,

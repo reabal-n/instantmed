@@ -40,7 +40,6 @@ const NON_MEDCERT_FORM_FIRST_SURFACES = [
   "components/marketing/womens-health-landing.tsx",
   "components/shared/navbar/services-dropdown.tsx",
   "components/marketing/sections/how-it-works-inline.tsx",
-  "components/marketing/how-it-works.tsx",
   "components/marketing/mental-health-online-landing.tsx",
   "lib/data/ed-faq.ts",
   "lib/data/hair-loss-faq.ts",
@@ -85,7 +84,6 @@ const PUBLIC_FAKE_PROOF_AVATAR_SURFACES = [
   "app/sign-up",
   "components/marketing/med-cert-intent-page.tsx",
   "components/marketing/hero-doctor-review-mockup.tsx",
-  "components/marketing/how-it-works.tsx",
 ]
 
 const URL_PRIVACY_SURFACES = [
@@ -109,9 +107,6 @@ const PAID_PRESCRIPTION_DESTINATION_SURFACES = [
   "components/marketing/womens-health-landing.tsx",
   "components/marketing/prescriptions-landing.tsx",
   "components/marketing/mockups/escript-hero-mockup.tsx",
-  "components/marketing/sections/escript-explainer-section.tsx",
-  "components/marketing/sections/prescription-limitations-section.tsx",
-  "components/marketing/sections/supported-medications-section.tsx",
   "components/shared/navbar/services-dropdown.tsx",
   "lib/data/ed-faq.ts",
   "lib/data/hair-loss-faq.ts",
@@ -177,7 +172,6 @@ const PUBLIC_DOCTOR_MODEL_SURFACES = [
   "app/blog/page.tsx",
   "app/our-doctors",
   "app/trust",
-  "components/marketing/how-it-works.tsx",
   "components/marketing/med-cert-landing.tsx",
   "lib/constants/index.ts",
   "lib/marketing/homepage.ts",
@@ -270,6 +264,7 @@ const LOCKED_CERTIFICATE_LANGUAGE_PATTERNS = [
 
 const PUBLIC_PRESCRIPTION_DRUG_TERM_PATTERNS = [
   /\b(sildenafil|tadalafil|viagra|cialis|finasteride|dutasteride|minoxidil|ozempic|wegovy|mounjaro|duromine|phentermine|semaglutide|tirzepatide|atorvastatin|amlodipine|ramipril|perindopril|rosuvastatin|ventolin|seretide|symbicort|valium|xanax)\b/i,
+  /\balpha[- ]blockers?\b/i,
   /\bED medication\b/i,
   /\bweight loss injections?\b/i,
   /\bTGA-approved (?:treatments?|medications?)\b/i,
@@ -554,8 +549,16 @@ describe("advertising compliance guard", () => {
     expect(source).not.toMatch(/\bFRACGP\b/)
   })
 
-  it("keeps RACGP, FRACGP, and peer-review claims out of public credential marketing", () => {
-    const patterns = [/\bRACGP\b/i, /\bFRACGP\b/i, /\bpeer[- ]review\b/i]
+  it("keeps unverified credential claims out of public doctor marketing", () => {
+    const patterns = [
+      /\bRACGP\b/i,
+      /\bFRACGP\b/i,
+      /\bpeer[- ]review\b/i,
+      /\bsame training\b/i,
+      /\bprofessional indemnity insurance\b/i,
+      /\bcontinuous (?:registration )?monitoring\b/i,
+      /\bpenetration test(?:ed|ing)?\b/i,
+    ]
     const hits = findHits(collectFiles(PUBLIC_CREDENTIAL_CLAIM_SURFACES), patterns)
     if (hits.length > 0) {
       failWithReport("Public credential claim guard failed", hits)

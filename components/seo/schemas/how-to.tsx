@@ -1,4 +1,5 @@
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 
 import { JsonLdScript } from "./json-ld-script"
 
@@ -26,7 +27,7 @@ export function HowToSchema({
   name,
   description,
   steps,
-  totalTime = "PT30M",
+  totalTime,
   estimatedCost,
   baseUrl = "https://instantmed.com.au"
 }: HowToSchemaProps) {
@@ -35,7 +36,7 @@ export function HowToSchema({
     "@type": "HowTo",
     name,
     description,
-    totalTime,
+    ...(totalTime && { totalTime }),
     ...(estimatedCost && {
       estimatedCost: {
         "@type": "MonetaryAmount",
@@ -77,13 +78,12 @@ export function MedCertHowToSchema({ baseUrl = "https://instantmed.com.au" }: { 
     <HowToSchema
       name="How to Get a Medical Certificate Online in Australia"
       description="Request a routine sick, study, or carer's leave certificate from an AHPRA-registered doctor online. No appointment needed."
-      totalTime="PT120M"
       estimatedCost={PRICING.MED_CERT.toFixed(2)}
       baseUrl={baseUrl}
       steps={[
         {
           name: "Fill out a quick form",
-          text: "Tell us about your symptoms and how long you need off. Takes about 2 minutes."
+          text: "Tell us about your symptoms and how long you need off. Takes about 3 minutes."
         },
         {
           name: "Verify your identity",
@@ -94,8 +94,8 @@ export function MedCertHowToSchema({ baseUrl = "https://instantmed.com.au" }: { 
           text: `Pay securely online. 1-day certificates ${PRICING_DISPLAY.MED_CERT}, 2-day certificates ${PRICING_DISPLAY.MED_CERT_2DAY}.`
         },
         {
-          name: "Doctor reviews your request",
-          text: "An AHPRA-registered Australian doctor reviews your request. Requests can be submitted 24/7; review follows when a doctor is available."
+          name: "Clinical pathway reviews your request",
+          text: getApprovedClaim("clinical_decision_model")
         },
         {
           name: "Receive your certificate",
@@ -114,13 +114,12 @@ export function PrescriptionHowToSchema({ baseUrl = "https://instantmed.com.au" 
     <HowToSchema
       name="How to Get a Prescription Online in Australia"
       description="Request a prescription from an AHPRA-registered doctor online. If approved, your eScript is sent directly to your phone."
-      totalTime="PT120M"
       estimatedCost={PRICING.REPEAT_SCRIPT.toFixed(2)}
       baseUrl={baseUrl}
       steps={[
         {
           name: "Select your medication",
-          text: "Start typing the name of your medication. We use the PBS database to help you find the right one."
+          text: "Enter the name, strength, and dose of the regular medication you want the doctor to review."
         },
         {
           name: "Answer clinical questions",
@@ -136,7 +135,7 @@ export function PrescriptionHowToSchema({ baseUrl = "https://instantmed.com.au" 
         },
         {
           name: "Doctor reviews your request",
-          text: "An AHPRA-registered Australian doctor reviews your request and medical history. They may ask for one more detail before making a decision."
+          text: `${getApprovedClaim("doctor_registration")} They may ask for more information or call before deciding. ${getApprovedClaim("availability_24_7")}`
         },
         {
           name: "Receive your eScript",

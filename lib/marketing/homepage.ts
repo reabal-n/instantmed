@@ -1,4 +1,5 @@
 import { ABN, COMPANY_ADDRESS, COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE, PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import {
   type CanonicalServiceId,
@@ -11,9 +12,14 @@ import {
 // Homepage Marketing Data
 // All content centralized for easy updates
 
+const AVAILABILITY_24_7 = getApprovedClaim("availability_24_7")
+const CLINICAL_ACCESS_SCOPE = getApprovedClaim("clinical_access_scope")
+const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+
 export const siteConfig = {
   name: "InstantMed",
-  tagline: "Online doctor consultations, reviewed by real doctors.",
+  tagline: "Focused online requests with doctor-owned clinical pathways.",
   operatingHours: {
     medCerts: "24/7",
     rxConsults: "Submit 24/7",
@@ -37,30 +43,30 @@ export const heroRotatingTexts = [
   "A doctor, without the waiting room.",
   "Skip the waiting room, not the doctor.",
   "AHPRA-registered doctors. Human clinical accountability.",
-  "Fill in a form. A doctor reviews it. Done.",
-  "Real doctor review, without leaving the couch.",
+  "Fill in a form. The clinical pathway takes it from there.",
+  "Doctor-owned care, without leaving the couch.",
 ]
 
 export const trustSignals = [
   {
     icon: "Clock",
     text: "Submit requests 24/7",
-    description: "Doctor review follows when available",
+    description: AVAILABILITY_24_7,
   },
   {
     icon: "Clock",
-    text: "7 days a week",
-    description: "Available every day",
+    text: "Review operates 24/7",
+    description: "Timing varies by complexity, follow-up, and queue volume",
   },
   {
     icon: "Shield",
     text: "AHPRA registered drs",
-    description: "Real Australian doctors review every request",
+    description: CLINICAL_DECISION_MODEL,
   },
   {
     icon: "Lock",
     text: "Private and secure",
-    description: "Your info stays between you and the doctor",
+    description: CLINICAL_ACCESS_SCOPE,
   },
 ]
 
@@ -73,88 +79,13 @@ const HOMEPAGE_SERVICE_ORDER: CanonicalServiceId[] = [
   "weight-loss",
 ]
 
-type HomepageServiceCopy = {
-  title: string
-  shortTitle: string
-  benefitQuestion: string
-  description: string
-  cta: string
-  benefits: string[]
-}
-
-const HOMEPAGE_SERVICE_COPY: Record<CanonicalServiceId, HomepageServiceCopy> = {
-  "med-cert": {
-    title: "Medical Certificates",
-    shortTitle: "Med Certs",
-    benefitQuestion: "Too sick to see a doctor in person?",
-    description: "Get a certificate for work, study, or carer's leave, without leaving bed",
-    cta: "Get your certificate",
-    benefits: [
-      "Issued if clinically appropriate",
-      "Delivered to your inbox if approved",
-      "AHPRA-registered doctor on every cert",
-    ],
-  },
-  "repeat-rx": {
-    title: "Repeat Medication",
-    shortTitle: "Medication",
-    benefitQuestion: "Need your regular medication?",
-    description: "Get your regular medication sorted without the hassle",
-    cta: "Renew medication",
-    benefits: [
-      "Works with any chemist",
-      "Repeats included where appropriate",
-      "Sent to your phone via SMS",
-    ],
-  },
-  ed: {
-    title: "ED Assessment",
-    shortTitle: "ED",
-    benefitQuestion: "Need a discreet ED assessment?",
-    description: "Private ED assessment reviewed by an Australian doctor. No booked appointment or waiting room.",
-    cta: "Start assessment",
-    benefits: [
-      "Form-first doctor review",
-      "eScript sent if approved",
-      "Prescription only if appropriate",
-    ],
-  },
-  "hair-loss": {
-    title: "Hair Loss Assessment",
-    shortTitle: "Hair Loss",
-    benefitQuestion: "Noticed your hairline changing?",
-    description: "Doctor-led assessment for hair loss concerns. Private form-first review.",
-    cta: "Start assessment",
-    benefits: [
-      "Doctor-assessed options",
-      "No waiting room",
-      "eScript sent straight to your phone",
-    ],
-  },
-  "womens-health": {
-    title: "Women's Health",
-    shortTitle: "Women's Health",
-    benefitQuestion: "Need support with women's health?",
-    description: "UTI care and contraceptive pill requests, reviewed by an Australian doctor. No waiting room.",
-    cta: "Start women's health request",
-    benefits: [
-      "UTI or contraception screen",
-      "Doctor-reviewed form",
-      "eScript sent if approved",
-    ],
-  },
-  "weight-loss": {
-    title: "Weight Loss",
-    shortTitle: "Weight Loss",
-    benefitQuestion: "Looking for medical weight management?",
-    description: "Doctor-led weight loss assessment with evidence-based treatment options.",
-    cta: "Coming soon",
-    benefits: [
-      "Evidence-based treatment plans",
-      "Doctor-reviewed assessment",
-      "Ongoing support available",
-    ],
-  },
+const HOMEPAGE_SERVICE_TITLES: Record<CanonicalServiceId, string> = {
+  "med-cert": "Medical Certificates",
+  "repeat-rx": "Repeat Medication",
+  ed: "ED Assessment",
+  "hair-loss": "Hair Loss Assessment",
+  "womens-health": "Women's Health",
+  "weight-loss": "Weight Loss",
 }
 
 function getHomepageServiceHref(service: ServiceDef): string {
@@ -165,28 +96,6 @@ function getHomepageServiceHref(service: ServiceDef): string {
   return getServiceMarketingHref(service)
 }
 
-function toHomepageService(service: ServiceDef) {
-  const copy = HOMEPAGE_SERVICE_COPY[service.id]
-
-  return {
-    ...service,
-    title: copy.title,
-    shortTitle: copy.shortTitle,
-    benefitQuestion: copy.benefitQuestion,
-    description: copy.description,
-    icon: service.iconKey,
-    color: service.colorToken,
-    href: getHomepageServiceHref(service),
-    popular: service.popular ?? false,
-    cta: service.comingSoon ? "Coming soon" : copy.cta,
-    benefits: copy.benefits,
-  }
-}
-
-export const serviceCategories = HOMEPAGE_SERVICE_ORDER.map((id) =>
-  toHomepageService(getService(id)),
-)
-
 export const proofMetrics = [
   {
     label: "Review timing",
@@ -194,13 +103,13 @@ export const proofMetrics = [
     icon: "Zap",
   },
   {
-    label: "Every request",
-    value: "Real doctor reviewed",
+    label: "Clinical ownership",
+    value: "Doctor-owned pathways",
     icon: "MessageSquare",
   },
   {
     label: "No account needed",
-    value: "Start in 2 mins",
+    value: "Start in about 3 mins",
     icon: "CheckCircle",
   },
   {
@@ -214,13 +123,13 @@ export const howItWorks = [
   {
     step: 1,
     title: "Answer a few questions",
-    description: "Tell us what's going on. Takes about 2 minutes.",
+    description: "Tell us what's going on. Takes about 3 minutes.",
     icon: "ClipboardList",
   },
   {
     step: 2,
-    title: "A doctor reviews it",
-    description: "A real Australian doctor reviews your request and makes a clinical decision.",
+    title: "Your request follows its clinical pathway",
+    description: CLINICAL_REVIEW_SEQUENCE,
     icon: "Stethoscope",
   },
   {
@@ -268,7 +177,7 @@ export const featuredServices = HOMEPAGE_SERVICE_ORDER.map((id) => {
   const copy = FEATURED_SERVICE_COPY[id]
 
   return {
-    title: HOMEPAGE_SERVICE_COPY[id].title,
+    title: HOMEPAGE_SERVICE_TITLES[id],
     description: copy.description,
     priceFrom: service.comingSoon ? undefined : service.priceFrom,
     href: getHomepageServiceHref(service),

@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { MedCertLanding } from "@/components/marketing/med-cert-landing"
 import { BreadcrumbSchema, FAQSchema, HealthArticleSchema,MedCertHowToSchema, MedicalServiceSchema, SpeakableSchema } from "@/components/seo"
 import { PRICING } from "@/lib/constants"
-import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
+import { MED_CERT_LANDING_FAQ } from "@/lib/data/med-cert-faq"
 
 export const revalidate = 86400
 
@@ -47,7 +47,7 @@ export default function Page() {
         url="/medical-certificate"
       />
       <MedCertHowToSchema />
-      <FAQSchema faqs={[...MED_CERT_FAQ]} />
+      <FAQSchema faqs={[...MED_CERT_LANDING_FAQ]} />
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },

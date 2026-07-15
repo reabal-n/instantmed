@@ -1,9 +1,9 @@
 /**
- * InstantMed brand voice constants — SINGLE SOURCE OF TRUTH
+ * InstantMed brand voice aliases and phrase guards.
  *
- * Every hero, ad, email, LP, and press surface reads from here.
- * Do not duplicate these strings anywhere. If the tagline changes,
- * it changes here once.
+ * High-risk factual strings and their source receipts are owned by
+ * `lib/marketing/approved-claims.ts`. This module keeps stable aliases for
+ * common brand phrases and the banned-phrase API used by public surfaces.
  *
  * Enforced by:
  *  - lib/__tests__/voice-guard.test.ts (banned phrases + em-dash scan)

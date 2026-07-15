@@ -13,6 +13,7 @@ const logger = createLogger("missing-safety-payment-hold")
 
 export type MissingSafetyPaymentHoldResult =
   | "held"
+  | "held_invalidation_unresolved"
   | "payment_in_flight"
   | "state_changed"
   | "unresolved"
@@ -187,5 +188,5 @@ export async function holdCheckoutForMissingSafetyInformation({
     },
     new Error("Stripe Checkout Session invalidation unresolved"),
   )
-  return "unresolved"
+  return "held_invalidation_unresolved"
 }

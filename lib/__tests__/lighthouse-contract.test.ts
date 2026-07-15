@@ -9,6 +9,9 @@ const lighthouseConfig = JSON.parse(
 const requestLighthouseConfig = JSON.parse(
   readFileSync(join(process.cwd(), "lighthouserc.request.json"), "utf8"),
 )
+const moneyPagesLighthouseConfig = JSON.parse(
+  readFileSync(join(process.cwd(), "lighthouserc.money-pages.json"), "utf8"),
+)
 
 describe("lighthouse CI contract", () => {
   it("keeps simulated LCP warning-only while hard-gating stable core web vitals", () => {
@@ -44,5 +47,41 @@ describe("lighthouse CI contract", () => {
       { maxNumericValue: 0.05 },
     ])
     expect(assertions["largest-contentful-paint"][0]).toBe("warn")
+  })
+
+  it("provides an opt-in three-run mobile profile for all money pages", () => {
+    const collect = moneyPagesLighthouseConfig.ci.collect
+    const assertions = moneyPagesLighthouseConfig.ci.assert.assertions
+
+    expect(collect.url).toHaveLength(11)
+    expect(collect.url).toEqual(expect.arrayContaining([
+      "http://localhost:3061/",
+      "http://localhost:3061/medical-certificate",
+      "http://localhost:3061/prescriptions",
+      "http://localhost:3061/consult",
+      "http://localhost:3061/pricing",
+      "http://localhost:3061/erectile-dysfunction",
+      "http://localhost:3061/hair-loss",
+      "http://localhost:3061/womens-health",
+      "http://localhost:3061/uti-assessment-online",
+      "http://localhost:3061/contraceptive-pill-assessment-online",
+      "http://localhost:3061/request",
+    ]))
+    expect(collect.numberOfRuns).toBe(3)
+    expect(collect.settings.formFactor).toBe("mobile")
+    expect(collect.settings.screenEmulation).toMatchObject({
+      mobile: true,
+      width: 390,
+      height: 844,
+      deviceScaleFactor: 3,
+    })
+    expect(assertions["largest-contentful-paint"]).toEqual([
+      "error",
+      { maxNumericValue: 2500 },
+    ])
+    expect(assertions["cumulative-layout-shift"]).toEqual([
+      "error",
+      { maxNumericValue: 0.1 },
+    ])
   })
 })

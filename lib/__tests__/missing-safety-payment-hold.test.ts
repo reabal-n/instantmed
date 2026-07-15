@@ -44,10 +44,12 @@ interface PaymentState {
 function createHoldSupabaseMock({
   holdError = null,
   heldRows,
+  refetchError = null,
   refetchedRows = [],
 }: {
   holdError?: { message: string } | null
   heldRows: PaymentState[] | null
+  refetchError?: { message: string } | null
   refetchedRows?: Array<PaymentState | null>
 }) {
   const filters: Array<{ column?: string; method: string; value: unknown }> = []
@@ -76,7 +78,7 @@ function createHoldSupabaseMock({
     eq: vi.fn(() => selectChain),
     maybeSingle: vi.fn(async () => ({
       data: refetchedRows[Math.min(refetchIndex++, refetchedRows.length - 1)] ?? null,
-      error: null,
+      error: refetchError,
     })),
   }
   const supabase = {
@@ -319,7 +321,7 @@ describe("missing safety information payment hold", () => {
     expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
   })
 
-  it("retains the marker and returns unresolved when Stripe cannot classify the exact Session", async () => {
+  it("distinguishes a persisted hold whose exact Session invalidation is unresolved", async () => {
     const heldState: PaymentState = {
       checkout_error: "safety_missing_required_information",
       id: "intake-1",
@@ -339,11 +341,30 @@ describe("missing safety information payment hold", () => {
       supabase: supabase as never,
     })
 
-    expect(result).toBe("unresolved")
+    expect(result).toBe("held_invalidation_unresolved")
     expect(updatePayloads[0]).toMatchObject({
       checkout_error: "safety_missing_required_information",
       status: "checkout_failed",
     })
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+  })
+
+  it("keeps an unknown hold reconciliation failure unresolved", async () => {
+    const { supabase } = createHoldSupabaseMock({
+      heldRows: null,
+      holdError: { message: "hold write unavailable" },
+      refetchError: { message: "hold read unavailable" },
+    })
+
+    const result = await holdCheckoutForMissingSafetyInformation({
+      intakeId: "intake-1",
+      missingFields: ["hasSideEffects"],
+      source: "retry_payment",
+      supabase: supabase as never,
+    })
+
+    expect(result).toBe("unresolved")
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
     expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
   })
 
@@ -521,7 +542,7 @@ describe("missing safety information payment hold", () => {
       supabase: supabase as never,
     })
 
-    expect(result).toBe("unresolved")
+    expect(result).toBe("held_invalidation_unresolved")
     expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
   })
 

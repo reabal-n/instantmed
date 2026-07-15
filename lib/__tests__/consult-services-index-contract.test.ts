@@ -1,23 +1,9 @@
-/**
- * /consult page contract.
- *
- * After PR1b (2026-05-25), /consult is the canonical detailed services index
- * (was a thin services-overview before, was the General Consult landing page
- * before that). Each active service gets a substantive block with
- * a CTA; gated services render as greyed coming-soon cards.
- *
- * Pinned here:
- *   - All active services are listed by name + correct href
- *   - "General consult" copy is gone from the FAQ
- *   - The "Not finding your concern?" amber alert block is gone
- *   - Per-service MedicalServiceSchema renders (better SEO than one umbrella)
- *   - Weight Management remains the only coming-soon card
- */
-
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
+
+import { getActiveServiceDecisions } from "@/lib/marketing/service-decisions"
 
 const root = process.cwd()
 
@@ -25,111 +11,145 @@ function read(path: string): string {
   return readFileSync(join(root, path), "utf8")
 }
 
-describe("/consult services index contract", () => {
-  it("lists all active services with their canonical href (incl. women's health, live 2026-06-15)", () => {
-    const source = read("app/consult/page.tsx")
-    expect(source).toContain('name: "Medical certificate"')
-    expect(source).toContain('href: "/request?service=med-cert"')
-    expect(source).toContain('name: "Repeat prescription"')
-    expect(source).toContain('href: "/request?service=prescription"')
-    expect(source).toContain('name: "ED assessment"')
-    expect(source).toContain('href: "/request?service=consult&subtype=ed"')
-    expect(source).toContain('name: "Hair loss assessment"')
-    expect(source).toContain('href: "/request?service=consult&subtype=hair_loss"')
-    expect(source).toContain('name: "Women\'s health"')
-    expect(source).toContain('href: "/request?service=consult&subtype=womens_health"')
+describe("/consult specialty-only services index contract", () => {
+  it("derives exactly the five active service actions from the canonical catalog", () => {
+    const decisions = getActiveServiceDecisions()
+
+    expect(decisions.map(({ id }) => id)).toEqual([
+      "med-cert",
+      "repeat-rx",
+      "ed",
+      "hair-loss",
+      "womens-health",
+    ])
+    expect(decisions.map(({ requestHref }) => requestHref)).toEqual([
+      "/request?service=med-cert",
+      "/request?service=repeat-script",
+      "/request?service=consult&subtype=ed",
+      "/request?service=consult&subtype=hair_loss",
+      "/request?service=consult&subtype=womens_health",
+    ])
   })
 
-  it("keeps consult metadata and visible copy synced with the active service set", () => {
+  it("uses the catalog-derived decision board instead of local service inventory", () => {
+    const source = read("app/consult/page.tsx")
+    const decisions = read("lib/marketing/service-decisions.ts")
+    const board = read("components/marketing/service-decision-board.tsx")
+
+    expect(source).toContain('const ACTIVE_SERVICES = getActiveServiceDecisions()')
+    expect(source).toContain('<ServiceDecisionBoard id="services" className=')
+    expect(source).not.toContain("showDetails")
+    expect(decisions).toContain("getActiveServices()")
+    expect(decisions).toContain("getServiceRequestHref(service)")
+    expect(decisions).not.toContain("inclusions:")
+    expect(decisions).not.toContain("steps:")
+    expect(board).not.toContain("decision.inclusions")
+    expect(board).not.toContain("decision.steps")
+    expect(source).not.toContain("interface DetailedService")
+    expect(source).not.toContain("const comingSoon")
+  })
+
+  it("keeps consult metadata and visible scope synced with the active set", () => {
     const source = read("app/consult/page.tsx")
 
     expect(source).toContain('canonical: "https://instantmed.com.au/consult"')
-    expect(source).toContain("women's health")
-    expect(source).toContain("Medical certificates, repeat prescriptions, ED, hair loss, and women's health assessments")
-    expect(source).toContain("We treat focused services, properly.")
+    expect(source).toContain("five focused online services")
+    expect(source).toContain("InstantMed does not offer a broad general consult")
+    expect(source.match(/question:/g)).toHaveLength(4)
+    expect(source).toContain('question: "Will the doctor call me?"')
+    expect(source).toContain('question: "How is this different from a GP visit?"')
+    expect(source).toContain('question: "Is my information private?"')
+    expect(source).toContain('question: "What if my concern does not fit these services?"')
+    expect(source).not.toContain('question: "How much does it cost?"')
     expect(source).not.toContain("We treat four things")
   })
 
-  it("uses the canonical public shell and an absolute document title", () => {
+  it("uses the canonical marketing shell and landmarks", () => {
     const source = read("app/consult/page.tsx")
     const mainTag =
-      '<main aria-label="Online doctor services" className="min-w-0 bg-background">'
+      '<main aria-label="Online doctor services" className="min-w-0 flex-1 bg-background">'
 
     expect(source).toContain(
       'title: { absolute: "Online Doctor Services in Australia | InstantMed" }',
     )
+    expect(source).toContain("<MarketingPageShell>")
     expect(source).toContain('<Navbar variant="marketing" />')
+    expect(source).toContain("<Hero")
+    expect(source).toContain('className="pt-14"')
+    expect(source).toContain('mockupClassName="hidden lg:block"')
+    expect(source).toContain("<FAQSection")
+    expect(source).toContain("<CTABanner")
+    expect(source).not.toContain("<FaqCtaSection")
+    expect(source).not.toContain("<h1 className=")
     expect(source).toContain(mainTag)
-    expect(source).toContain("<Footer />")
+    expect(source).toContain("<MarketingFooter />")
     expect(source.indexOf('<Navbar variant="marketing" />')).toBeLessThan(
       source.indexOf(mainTag),
     )
-    expect(source.indexOf(mainTag)).toBeLessThan(source.indexOf("<Footer />"))
+    expect(source.indexOf(mainTag)).toBeLessThan(source.indexOf("<MarketingFooter />"))
   })
 
-  it("keeps women's health scope narrow and routes same-pill repeats away from the consult promise", () => {
+  it("keeps women's health narrow and possible prescribing contact visible", () => {
     const source = read("app/consult/page.tsx")
+    const decisions = read("lib/marketing/service-decisions.ts")
+    const board = read("components/marketing/service-decision-board.tsx")
 
-    expect(source).toContain("start or switch the contraceptive pill")
-    expect(source).not.toContain("start, switch, or continue the contraceptive pill")
+    expect(decisions).toContain("starting or switching the contraceptive pill")
+    expect(decisions).not.toContain("start, switch, or continue the contraceptive pill")
+    expect(source).toContain("may call or message if more information is clinically needed")
+    expect(source).not.toContain("no call needed")
+    expect(decisions).not.toContain("FORM_FIRST_WEDGE")
+    expect(decisions.match(/doctorRole:/g)).toHaveLength(1)
+    expect(board).toContain('import { FORM_FIRST_WEDGE } from "@/lib/marketing/voice"')
+    expect(board.match(/\{FORM_FIRST_WEDGE\}/g)).toHaveLength(1)
+    expect(board).toContain('aria-label="Prescription review model"')
   })
 
-  it("does not hide possible prescribing calls behind retired interruption copy", () => {
+  it("does not attach a med-cert-only live counter to the generic service selector", () => {
     const source = read("app/consult/page.tsx")
 
-    expect(source).toContain("may call you briefly before deciding")
-    expect(source).not.toContain("We only call if something clinically important is missing")
+    expect(source).not.toContain("getWaitState")
+    expect(source).not.toContain("<WaitCounter")
+    expect(source).toContain("reassuranceRow={(")
   })
 
-  it("keeps weight management as the only coming-soon card (women's health is now live)", () => {
+  it("keeps gated categories non-actionable on the overview", () => {
     const source = read("app/consult/page.tsx")
-    expect(source).toContain('id: "weight_loss"')
-    expect(source).toContain("Coming soon")
-    // women's health was promoted out of the coming-soon array.
-    expect(source).not.toContain('id: "womens_health"')
-    // No General Consult option (retired). The history comment mentions it
-    // intentionally so the diff is searchable.
-    const withoutComment = source.split("\n").filter((l) => !l.trim().startsWith("*")).join("\n")
-    expect(withoutComment).not.toMatch(/General consult|General consultation/i)
+
+    expect(source).not.toContain("weight_loss")
+    expect(source).not.toContain("weight-loss-online")
+    expect(source).not.toMatch(/Start (?:a )?(?:general consult|antibiotics?|weight)/i)
   })
 
-  it("renders a per-service MedicalServiceSchema (not a single umbrella one)", () => {
+  it("renders one schema entry per active catalog service", () => {
     const source = read("app/consult/page.tsx")
-    expect(source).toContain("services.map((service) => (")
+
+    expect(source).toContain("ACTIVE_SERVICES.map((service) => (")
     expect(source).toContain("MedicalServiceSchema")
-    // The umbrella schema with a fixed price ("19.95") was retired in favour
-    // of per-service entries that match each card's price.
+    expect(source).toContain("price={service.priceFrom.toFixed(2)}")
     expect(source).not.toMatch(/MedicalServiceSchema[\s\S]*?name="Online Doctor Services"/)
   })
 
-  it("does not promise a fixed review time (per ADVERTISING_COMPLIANCE.md SLA rule)", () => {
+  it("uses 24/7 availability without a fixed review-time promise", () => {
     const source = read("app/consult/page.tsx")
-    expect(source).not.toMatch(/1[-–]2\s*hours?/i)
-    expect(source).not.toMatch(/within (an?|1) hour/i)
-    expect(source).not.toMatch(/same[- ]day\s*(review|service|access|turnaround)/i)
-    // Availability copy states cadence, not duration ("7 days a week" — the
-    // "AEST hours" framing was retired 2026-07-10; the service is 24/7 and a
-    // window claim contradicted the hours-copy contract).
-    expect(source).toContain("7 days a week")
-    expect(source).not.toContain("AEST hours")
+
+    expect(source).toContain("Requests and review 24/7")
+    expect(source).not.toMatch(/1[-–]2\s*hours?|within (?:an?|1) hour|same[- ]day\s*(?:review|service|access|turnaround)|7 days a week|AEST hours/i)
   })
 
-  it("trimmed the retired General Consult copy from the FAQ", () => {
+  it("keeps the eligibility, fee, Medicare, and outside-scope boundaries concise", () => {
     const source = read("app/consult/page.tsx")
-    expect(source).not.toContain("Why don't you offer a general consult anymore?")
-    expect(source).not.toContain("general consults, weight loss treatment, or women's health treatment")
-  })
 
-  it("dropped the amber 'Not finding your concern?' alert in favour of a single quiet line", () => {
-    const source = read("app/consult/page.tsx")
     expect(source).not.toContain("bg-amber-100")
-    expect(source).not.toContain("Not finding your concern?")
-    // Replacement is a single calm sentence.
-    expect(source).toContain("Outside our scope?")
+    expect(source).toContain("Australia only. 18+. Fees from")
+    expect(source).toContain("PRICING_DISPLAY.MED_CERT")
+    expect(source).toContain("Medical certificates")
+    expect(source).toContain("do not require Medicare; prescribing pathways require Medicare")
+    expect(source).toContain('question: "What if my concern does not fit these services?"')
+    expect(source).toContain("call 000 or seek urgent in-person care")
   })
 
-  it("no em-dashes (operator preference)", () => {
-    const source = read("app/consult/page.tsx")
-    expect(source).not.toContain("—") // U+2014 em dash
+  it("uses no em dashes", () => {
+    expect(read("app/consult/page.tsx")).not.toContain("—")
   })
 })

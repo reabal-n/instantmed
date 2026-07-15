@@ -710,10 +710,7 @@ describe("dashboard simplicity and runtime performance contracts", () => {
   // retired 2026-05-20. The static-section hygiene checks below keep the
   // still-live shared sections covered.
   it("keeps static shared marketing sections off Framer and client-only hooks", () => {
-    const staticFunnelFiles = [
-      "components/marketing/sections/pricing-guide-section.tsx",
-      "components/ui/section-pill.tsx",
-    ]
+    const staticFunnelFiles = ["components/ui/section-pill.tsx"]
 
     for (const file of staticFunnelFiles) {
       const source = read(file)

@@ -35,7 +35,7 @@ definitions but is not currently accepting paid requests. Entry and server
 checkout validation are blocked by `lib/request/consult-subtypes.ts`
 (BLOCKED_CONSULT_SUBTYPES) until launch readiness is explicitly changed.
 
-General Consult is retired publicly; the consult service type remains only as the parent category for active ED and hair-loss pathways.
+General Consult is retired publicly; the consult service type remains only as the parent category for active ED, hair-loss, and narrow women's-health pathways.
 
 **Audit narrative (must always remain true):**
 
@@ -47,6 +47,8 @@ General Consult is retired publicly; the consult service type remains only as th
 - Prescribing (if any) occurs entirely in Parchment (external)
 - The doctor remains accountable for protocol ownership, individual review, prescribing, and clinical outcomes
 
+**Canonical public clinical-model claim:** "AI never prescribes or makes clinical decisions. Eligible low-risk certificate requests may be approved under a doctor-owned protocol and are individually reviewed afterward." Public surfaces must read this from `clinical_decision_model` in `lib/marketing/approved-claims.ts`, which also owns its risk classification, allowed contexts, and evidence receipts.
+
 ## Form-First Doctor Review Model
 
 InstantMed's commercial moat is no booked appointment, no waiting room, and a secure form-first clinical intake. The moat is **not** "no doctor" and the product must not be framed that way.
@@ -55,9 +57,10 @@ InstantMed's commercial moat is no booked appointment, no waiting room, and a se
 
 - Patient starts with a secure clinical form
 - Deterministic safety redirects can stop an unsuitable pathway before payment, without doctor review or intake creation
-- Doctor reviews the submitted information
-- Doctor contacts the patient only if more information is clinically needed
-- Apart from deterministic pre-payment safety redirects, prescription, certificate, decline, refund, or redirection happens only after doctor review or approved med-cert protocol automation
+- AI never prescribes or makes clinical decisions
+- Eligible low-risk certificate requests may be approved under a logged, doctor-owned protocol and are individually reviewed afterward
+- Prescribing, specialty requests, and certificate requests outside that protocol require a doctor-selected outcome
+- A doctor may call or message when a key detail or synchronous assessment is clinically needed
 
 **Regulatory risk posture:** Medical Board telehealth guidance states that prescribing or providing healthcare for a patient without a real-time direct consultation, where the practitioner has never spoken with the patient, is not good practice and is not supported. If a doctor prescribes after an asynchronous form-first assessment, the doctor must be able to explain why that assessment and management were appropriate and necessary in the circumstances.
 
@@ -73,7 +76,7 @@ InstantMed's commercial moat is no booked appointment, no waiting room, and a se
 | **Age** | Strictly 18+ for every paid service. Minors are not accepted, including with parental/guardian consent. Direct an under-18 patient to a GP with a parent or guardian. Authenticated and guest checkout enforce the same boundary before payment. |
 | **Medicare** | Optional for med certs. Required for prescriptions and consultations |
 | **Identity** | Name + DOB + address. No photo ID verification. Medicare Luhn check when provided |
-| **Hours** | The service operates 24/7: requests submit and review around the clock for every pathway (med-cert auto-approval runs at all hours; Rx/consult reviews run 7 days with variable timing). Public copy never states a review-hours window or a guaranteed response time. Internal target 1-2h review, 24h max. Never hard-block checkout by time of day |
+| **Hours** | The service operates 24/7. Canonical public copy: "Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume." Med-cert protocol processing runs at all hours; prescription and specialty reviews run 7 days with variable timing. Public copy never states a review-hours window or a guaranteed response time. Internal target 1-2h review, 24h max. Never hard-block checkout by time of day |
 | **Med cert duration** | Hard cap 3 days. Constant: `MAX_MED_CERT_DURATION_DAYS` in `lib/clinical/intake-validation.ts`. Auto-approval flags `duration_too_long` for anything above. No override |
 | **Med cert start date** | Start date can be today, past-dated within the backdate cap, or up to 14 days in the future for planned absence/recovery requests. Shared policy lives in `lib/medical-certificates/date-policy.ts` (`CERTIFICATE_MAX_FORWARD_DAYS_DEFAULT`) and is enforced across checkout validation, approval, in-place reissue/date correction, render/preview routes, and the DB constraint from `supabase/migrations/20260524090000_allow_forward_dated_med_certs.sql`. |
 | **Med cert validity** | Certificates do not expire. Once issued, they remain authentic indefinitely. Only `revoked` status invalidates a cert; DB trigger from migration `20260428000001_lock_cert_status.sql` rejects any other transition. The retired expiry cron must not exist in Vercel cron config, heartbeat monitoring, routes, or tests. |
@@ -191,7 +194,7 @@ Prescribing is framed as: "a possible outcome of clinician review, occurring sep
 | Hair loss | One-off form-first doctor assessment. No subscription or outcome guarantee. Avoid drug names in acquisition copy. |
 | Erectile dysfunction | One-off form-first doctor assessment with strict contraindication screening. Cardiac history, nitrate/alpha-blocker use, uncertain medication history, or clinical discomfort requires contact or decline. |
 | Women's health | Live for UTI + new/switch contraceptive pill only. Keep it narrow and protocol-led; pregnancy risk, UTI red flags, STI risk, pelvic pain, heavy bleeding, complex symptoms, or safety uncertainty require contact, decline, or in-person redirection. |
-| Weight loss | Gated future service. Manual review only in the solo-doctor phase. No automated approval. No ongoing monitoring promise unless operational capacity exists. |
+| Weight loss | Gated future service. Manual review only unless launch readiness explicitly changes the clinical policy. No automated approval. No ongoing monitoring promise unless operational capacity exists. |
 
 Subscriptions, monthly prescribing, pharmacy fulfilment, and ongoing check-in programs are not part of the current operating model.
 
@@ -228,17 +231,16 @@ Default: **original script + 2 repeats** (≈ 3 months for a daily medicine, fro
 | **Prescribing** | Recommend medications; suggest dosages; indicate PBS eligibility; imply prescribing authority |
 | **Diagnosis** | Provide diagnostic conclusions; suggest conditions from symptoms; recommend treatment paths |
 
-### "Never Automate" Decisions (Human-Only)
+### Human Clinical Decisions and the Protocol Boundary
 
-These must remain human-only regardless of future AI capabilities:
+AI does not make clinical decisions. The following decisions require clinician judgment:
 
-1. **Safety knockout overrides** -- life safety decisions cannot be delegated to AI
-2. **Prescribing decisions** -- TGA/PBS require human prescriber
-3. **Call requirement decisions** -- requires clinical judgment
-4. **Decline reason determination** -- requires clinical reasoning
-5. **Emergency escalation decisions** -- life safety (handled by deterministic rules)
+1. **Safety-rule overrides** -- a clinician must decide whether an exception is appropriate; AI cannot bypass a knockout
+2. **Prescribing decisions** -- prescribing requires a human prescriber
+3. **Call requirement decisions** -- the doctor decides when synchronous contact is clinically necessary
+4. **Decline rationale** -- a clinician records the clinical reasoning for a paid-request decline
 
-**Exception -- doctor-owned med cert protocol automation:** Simple med cert requests (1-3 day, no red flags, all deterministic checks pass) can be auto-approved via `lib/clinical/auto-approval-pipeline.ts`. This is feature-flagged (`ai_auto_approve_enabled`), rate-limited, and logged to `ai_audit_log`. Only med certs. Prescriptions and consults always require human doctor review. See ARCHITECTURE.md -> Auto-Approval Pipeline.
+Deterministic safety rules may stop or redirect a clearly unsuitable pathway without AI or clinician inference. Separately, eligible low-risk medical-certificate requests (1-3 days, no red flags, all deterministic checks pass) may be approved under the doctor-owned protocol in `lib/clinical/auto-approval-pipeline.ts`. This is feature-flagged (`ai_auto_approve_enabled`), rate-limited, and logged to `ai_audit_log`. It applies only to medical certificates; prescriptions and specialty requests require doctor review. See ARCHITECTURE.md -> Auto-Approval Pipeline.
 
 Every auto-approved certificate then enters individual post-approval doctor review. The 24-hour window is an **InstantMed governance control, not a statutory AHPRA requirement**. A doctor with the medical-certificate review capability must open the certificate and clinical record and record exactly one outcome: **reviewed with no change needed**, which stamps `batch_reviewed_at` and `batch_reviewed_by`; or **revoked and returned to manual review**, which invalidates the certificate, returns the intake to `in_review`, and stamps the same completion receipt. Bulk acknowledgement is prohibited. The dashboard reads the oldest unresolved obligations first, and aggregate-only monitoring pages when any cross the governance window. Eligibility is scoped to `approved` med certs only (the delivered terminal state — med certs never reach `completed`, and a revoke from `completed` cannot reopen the intake). Because the window is a governance control rather than a statutory obligation, enforcement is **forward-only from the feature-launch cutover** (`BATCH_REVIEW_ENFORCEMENT_START` in `lib/clinical/batch-review-policy.ts`): certificates auto-approved before the review surfaces existed are grandfathered rather than retroactively attested. Both the revoke and the 30s approval-undo return the intake to `in_review` via a DB-trigger-guarded reversal that requires the certificate to be revoked first (migration `20260711193000`).
 
@@ -489,13 +491,15 @@ When litigation or investigation is anticipated: legal places hold on specific r
 
 Canonical complaints policy lives at [`/complaints`](../app/complaints/page.tsx). Referenced from Terms §13 and the marketing footer.
 
+Canonical public copy: "We acknowledge complaints within 24 hours. Clinical complaints target resolution within 14 days." Public surfaces must read this from `complaints_timing` in `lib/marketing/approved-claims.ts`. The clinical timeframe is a target, not a guaranteed outcome.
+
 | Stage | SLA | Owner |
 |-------|-----|-------|
-| Acknowledgement of complaint | Within 24 business hours | Medical Director |
-| Service complaints (billing, refunds, response time) | Substantive response within 48 hours | Operations |
-| Clinical complaints (decision, decline, Rx, cert) | Substantive response within 14 calendar days | Medical Director |
+| Acknowledgement of complaint | Within 24 hours | Medical Director |
+| Service complaints (billing, refunds, response time) | Triaged according to scope and complexity; no fixed public resolution promise | Operations |
+| Clinical complaints (decision, decline, Rx, cert) | Target resolution within 14 calendar days | Medical Director |
 | Privacy complaints (APP 1-13) | Reviewed against Privacy Act 1988; escalation to OAIC | `complaints@instantmed.com.au` + `privacy@instantmed.com.au` |
 
 **Escalation pathways** disclosed on `/complaints`: AHPRA notifications + 8 state/territory HCCC bodies (NSW HCCC, VIC HCC, QLD Office of the Health Ombudsman, WA HADSCO, SA HCSCC, TAS HCC, ACT HRC, NT HCSCC) + OAIC for privacy.
 
-**Governance framing** (same language in Terms §5, `/clinical-governance`, `/complaints` §4): InstantMed currently operates with a single AHPRA-registered Australian GP as both treating practitioner and Medical Director. Frame this as an honest disclosure of scale, not a limitation. **Do NOT advertise** FRACGP fellowship, peer review across a cohort, or team training on marketing surfaces — these claims were stripped in the 2026-04-21 solo-director pass.
+**Governance framing:** InstantMed supports multiple AHPRA-registered doctors with service-line capability flags. Public surfaces use "AHPRA-registered doctors" without disclosing doctor count or individual names. Use "AHPRA-registered Medical Director" only where the governance role is necessary. Do not advertise FRACGP fellowship, peer review across a cohort, team training, insurance coverage, or monitoring claims unless each claim has a current evidence receipt in `lib/marketing/approved-claims.ts`.

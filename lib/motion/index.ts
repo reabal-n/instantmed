@@ -4,7 +4,7 @@
  * Timing constants, easing presets, and shared animation variants.
  *
  * Design System rules:
- * - 200–500ms durations, ease-out only
+ * - 200–250ms durations, ease-out only
  * - No bounce, no elastic, no spring physics
  * - Max scale 1.02x
  * - Reduced motion: `initial={{}}` (empty object), never `initial={false}`
@@ -89,7 +89,7 @@ export const fadeIn: Variants = {
 /** Fade + slide up - most common entrance */
 export const fadeUp: Variants = {
   initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] } },
+  animate: { opacity: 1, y: 0, transition: { duration: duration.slow, ease: easing.strongOut } },
   exit: { opacity: 0, y: -6, transition: transition.fast },
 }
 

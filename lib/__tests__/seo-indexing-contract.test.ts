@@ -52,7 +52,6 @@ describe("SEO indexing contracts", () => {
       "app/how-we-decide/page.tsx",
       "app/online-doctor-australia/page.tsx",
       "app/telehealth-australia/page.tsx",
-      "components/marketing/med-cert-landing.tsx",
     ]
 
     for (const pageFile of priorityPageFiles) {
@@ -61,9 +60,12 @@ describe("SEO indexing contracts", () => {
 
     const prescriptionsPage = read("app/prescriptions/page.tsx")
     const prescriptionsLanding = read("components/marketing/prescriptions-landing.tsx")
-    expect(prescriptionsPage).toContain("PrescriptionAuthorityResourceLink")
-    expect(prescriptionsPage).toContain("/resources/secure-online-prescription-requests")
-    expect(prescriptionsLanding).toContain("{children}")
+    const medCertLanding = read("components/marketing/med-cert-landing.tsx")
+    expect(medCertLanding).toContain("WorkplaceProofPanel")
+    expect(medCertLanding).toContain("Fair Work Act 2009")
+    expect(prescriptionsPage).toContain("<PrescriptionsLanding />")
+    expect(prescriptionsLanding).toContain("PrescriptionResourceNav")
+    expect(prescriptionsLanding).toContain("/resources/secure-online-prescription-requests")
   })
 
   it("hard-links new authority resources from relevant public source pages", () => {
@@ -71,9 +73,9 @@ describe("SEO indexing contracts", () => {
       "components/marketing/med-cert-landing.tsx": [
         "/resources/medical-certificate-employer-policy",
         "/resources/online-medical-certificate-verification",
-        "/prescriptions",
       ],
-      "app/prescriptions/page.tsx": [
+      "components/marketing/med-cert-reason-links.tsx": ["/prescriptions"],
+      "components/marketing/prescriptions-landing.tsx": [
         "/resources/secure-online-prescription-requests",
         "/resources/repeat-prescription-safety-checklist",
         "/online-prescriptions",

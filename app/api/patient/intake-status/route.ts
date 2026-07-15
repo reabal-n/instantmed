@@ -1,12 +1,16 @@
+import { revalidateTag } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
 
 import { getApiAuth } from "@/lib/auth/helpers"
+import { PATIENT_INTAKE_POLL_LIMIT } from "@/lib/patient/intake-status-polling"
+import { derivePatientPaymentRecoveryReason } from "@/lib/patient/payment-recovery"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 /**
- * Lightweight endpoint for polling intake status from the success page.
- * Uses service-role to bypass RLS (client Supabase has no auth session).
- * Ownership verified via auth session + patient_id check.
+ * Dual-mode patient status endpoint: exact-ID payment verification for the
+ * success page and a bounded list projection for the authenticated shell.
+ * Service-role reads are always constrained by the server-derived patient ID;
+ * successful list reads invalidate only that patient's cached portal views.
  */
 export async function GET(req: NextRequest) {
   const authResult = await getApiAuth()
@@ -15,11 +19,53 @@ export async function GET(req: NextRequest) {
   }
 
   const intakeId = req.nextUrl.searchParams.get("id")
+  const scope = req.nextUrl.searchParams.get("scope")
+
+  const supabase = createServiceRoleClient()
+
+  if (scope === "list") {
+    const { data: intakes, error } = await supabase
+      .from("intakes")
+      .select("id, status, updated_at, checkout_error")
+      .eq("patient_id", authResult.profile.id)
+      .order("updated_at", { ascending: false })
+      .limit(PATIENT_INTAKE_POLL_LIMIT)
+
+    if (error) {
+      return NextResponse.json(
+        { error: "Unable to load request updates" },
+        { status: 500 },
+      )
+    }
+
+    // The shell refresh that follows a changed polling snapshot must not reread
+    // the authenticated patient's 30-60s cached dashboard/list projections.
+    // Keep invalidation patient-specific; no public or staff cache is touched.
+    revalidateTag(`patient-dashboard-${authResult.profile.id}`)
+    revalidateTag(`patient-intakes-${authResult.profile.id}`)
+
+    return NextResponse.json(
+      {
+        intakes: (intakes ?? []).map((intake) => ({
+          id: intake.id,
+          status: intake.status,
+          updated_at: intake.updated_at,
+          payment_recovery_reason: derivePatientPaymentRecoveryReason(
+            intake.checkout_error,
+          ),
+        })),
+      },
+      {
+        headers: {
+          "Cache-Control": "private, no-store, max-age=0",
+        },
+      },
+    )
+  }
+
   if (!intakeId) {
     return NextResponse.json({ error: "Missing intake ID" }, { status: 400 })
   }
-
-  const supabase = createServiceRoleClient()
 
   // Fetch intake with ownership check. Phase: success-page Google Ads value
   // accuracy fix (2026-05-12). `amount_cents` + `is_priority` are returned

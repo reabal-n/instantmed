@@ -74,7 +74,6 @@ export function WhatHappensNext({
   const prefersReducedMotion = useReducedMotion()
   const [confettiTrigger, setConfettiTrigger] = useState(false)
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
-  const [_currentStatus, setCurrentStatus] = useState<IntakeStatus>(initialStatus)
   const [queuePosition, setQueuePosition] = useState<number | null>(initialQueuePosition ?? null)
   const isMedCert = serviceName?.toLowerCase().includes("cert") ?? false
   // Trigger confetti on mount
@@ -188,9 +187,7 @@ export function WhatHappensNext({
           transition={{ delay: prefersReducedMotion ? 0 : 0.35 }}
         >
           <IntakeStatusTracker
-            intakeId={intakeId}
             initialStatus={initialStatus}
-            onStatusChange={setCurrentStatus}
           />
         </motion.div>
 

@@ -45,6 +45,7 @@ const agents = readProjectFile("AGENTS.md")
 const claude = readProjectFile("CLAUDE.md")
 const architecture = readProjectFile("docs/ARCHITECTURE.md")
 const wikiArchitecture = readProjectFile("wiki/architecture.md")
+const wikiContextMap = readProjectFile("wiki/context-map.md")
 const aiProvider = readProjectFile("lib/ai/provider.ts")
 const aiOnboarding = readProjectFile("docs/AI_ONBOARDING.md")
 const design = readProjectFile("DESIGN.md")
@@ -63,6 +64,7 @@ const ciWorkflow = readProjectFile(".github/workflows/ci.yml")
 const e2eSeed = readProjectFile("scripts/e2e/seed.ts")
 const e2eTeardown = readProjectFile("scripts/e2e/teardown.ts")
 const syncAgentSkills = readProjectFile("scripts/sync-agent-skills.sh")
+const docAudit = readProjectFile("scripts/doc-audit.sh")
 
 const expectedInstantMedSkills = [
   "instantmed-checkout-payment-review",
@@ -74,6 +76,10 @@ const expectedInstantMedSkills = [
 ]
 
 describe("project docs drift contract", () => {
+  it("excludes ignored task-execution artifacts from the canonical documentation count", () => {
+    expect(docAudit).toContain('-not -path "./.superpowers/*"')
+  })
+
   it("keeps root assistant docs aligned on hours, gated services, and staff dashboard rules", () => {
     for (const source of [agents, claude]) {
       // 24/7 doctrine (operator, 2026-07-03): the platform operates around the
@@ -173,6 +179,15 @@ describe("project docs drift contract", () => {
     expect(aiOnboarding).toContain("## Top 11 rules of thumb")
   })
 
+  it("documents the five-service consult overview and all active consult subtypes", () => {
+    expect(architecture).toContain("routes visitors to the 5 active services")
+    expect(architecture).toContain("narrow women's health")
+    expect(aiOnboarding).toContain(
+      "parent category for ED, hair-loss, and narrow women's-health pathways",
+    )
+    expect(aiOnboarding).not.toContain("parent category for ED and hair-loss pathways")
+  })
+
   it("keeps the architecture and operator README documenting the active staff component pattern", () => {
     const operatorReadme = readProjectFile("components/operator/README.md")
 
@@ -243,6 +258,12 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("/checkout/cancelled?reason=more_information_required")
     expect(architecture).toContain("`payment_recovery_reason = more_information_required`")
     expect(architecture).toContain("raw `checkout_error` is not serialized")
+    expect(architecture).toContain("`/api/patient/intake-status?scope=list`")
+    expect(architecture).toContain("never subscribes to `public.intakes`")
+    expect(architecture).toContain("ID additions/removals trigger a structural refresh")
+    expect(architecture).toContain("excludes both payment-safety locks")
+    expect(architecture).toContain("`patient-dashboard-${patientId}`")
+    expect(wikiContextMap).toContain("Patient request updates")
   })
 
   it("keeps archived plan basenames out of the active plan root", () => {

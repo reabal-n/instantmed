@@ -19,10 +19,13 @@ describe("women's health landing layout contract", () => {
     const delayedTags = revealTags(source).filter((tag) => !/\binstant\b/.test(tag))
 
     expect(delayedTags).toEqual([])
-    expect(source).toContain("<HowItWorksInline")
-    expect(source).toContain("revealInstant")
-    expect(source).toContain("<DoctorProfileSection instant />")
-    expect(source).toContain("<CTABanner")
+    expect(source).toContain("<WomensHealthCommonFacts />")
+    expect(source).toContain("<WomensHealthBoundarySection />")
+    expect(source).toContain("<WomensHealthReviewAndPriceSection />")
+    expect(source).toContain("<WomensHealthFinalChoice")
+    expect(source).not.toContain("HowItWorksInline")
+    expect(source).not.toContain("DoctorProfileSection")
+    expect(source).not.toContain("CTABanner")
   })
 
   it("keeps shared landing modules opt-in for instant reveal behavior", () => {

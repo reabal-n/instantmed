@@ -87,6 +87,10 @@ describe("marketing reduced-motion contract", () => {
   it("uses one stable mobile-menu tree and disables motion in place", () => {
     const menu = read("components/ui/animated-mobile-menu.tsx")
     const navbar = read("components/shared/navbar.tsx")
+    const iconPath = menu.slice(
+      menu.indexOf("const Path ="),
+      menu.indexOf("// Animated hamburger toggle button"),
+    )
 
     expect(navbar).toContain('mobileMenuOpen && "max-md:z-[60]"')
     expect(menu).toContain(
@@ -112,14 +116,27 @@ describe("marketing reduced-motion contract", () => {
     expect(menu).toContain('aria-controls="mobile-navigation-menu"')
     expect(menu).not.toContain("initial={prefersReducedMotion ? false")
     expect(menu).toContain(
-      "whileHover={item.disabled || prefersReducedMotion ? undefined : { y: -2, x: 8 }}",
+      "whileHover={item.disabled || prefersReducedMotion ? undefined : { y: -1, x: 4",
     )
     expect(menu).toContain(
-      "whileTap={item.disabled || prefersReducedMotion ? undefined : { scale: 0.98 }}",
+      "whileTap={item.disabled || prefersReducedMotion ? undefined : { scale: 0.98,",
     )
-    expect(menu).toContain("duration: 0.35")
-    expect(menu).toContain("delay: 0.1")
-    expect(menu).toContain("staggerChildren: 0.06")
+    expect(menu).not.toContain("clipPath")
+    expect(menu).toContain("d: string")
+    expect(menu).toContain('d="M 2 2.5 L 20 2.5"')
+    expect(menu).toContain('d="M 2 16.346 L 20 16.346"')
+    expect(iconPath).toContain("initial={false}")
+    expect(iconPath).not.toContain("initial={{}}")
+    expect(menu).toContain('x: "100%"')
+    expect(menu).toContain("duration: 0.22")
+    expect(menu).toContain("duration: 0.16")
+    expect(menu).not.toContain("delay: 0.1")
+    expect(menu).toContain("staggerChildren: 0.05")
+    expect(menu).toContain("delayChildren: 0.04")
+    expect(menu).toContain("y: 12")
+    expect(menu).toContain('type: "tween"')
+    expect(menu).toContain('animate={isOpen ? "open" : "closed"}')
+    expect(menu).toContain("duration: prefersReducedMotion ? 0 : 0.15")
   })
 
   it("moves the pricing sticky CTA by its own height and settles reduced motion", () => {
@@ -129,11 +146,10 @@ describe("marketing reduced-motion contract", () => {
     expect(sticky).toContain(
       'initial={prefersReducedMotion ? { y: 0 } : { y: "100%" }}',
     )
-    expect(sticky).toContain("animate={{ y: 0 }}")
-    expect(sticky).toContain(
-      'exit={prefersReducedMotion ? { y: 0 } : { y: "100%" }}',
-    )
-    expect(sticky).toContain("duration: prefersReducedMotion ? 0 : 0.3")
+    expect(sticky).toContain("animate={{")
+    expect(sticky).toContain('y: prefersReducedMotion ? 0 : "100%"')
+    expect(sticky).toContain("duration: prefersReducedMotion ? 0 : 0.18")
+    expect(sticky).toContain("duration: prefersReducedMotion ? 0 : 0.14")
     expect(container).not.toMatch(/\bopacity\b/)
   })
 
@@ -142,9 +158,49 @@ describe("marketing reduced-motion contract", () => {
     const container = firstMotionContainerOpeningTag(sticky)
 
     expect(sticky).toContain("initial={{}}")
-    expect(sticky).toContain('animate={{ y: show ? 0 : "100%" }}')
-    expect(sticky).toContain("duration: prefersReducedMotion ? 0 : 0.3")
+    expect(sticky).toContain('y: show ? 0 : "100%"')
+    expect(sticky).toContain("show ? 0.18 : 0.14")
+    expect(sticky).toContain('visibility: show ? "visible" : "hidden"')
     expect(sticky).toContain("inert={!show ? true : undefined}")
+    expect(sticky).not.toContain("useScrollDirection")
+    expect(sticky).not.toContain("grid-template-rows,opacity,margin")
     expect(container).not.toMatch(/\bopacity\b/)
+  })
+
+  it("uses the shared strong-out timing for hero and reveal entrances", () => {
+    const globals = read("app/globals.css")
+    const motion = read("lib/motion/index.ts")
+    const escriptMockup = read("components/marketing/mockups/escript-hero-mockup.tsx")
+    const heroMotion = globals.slice(
+      globals.indexOf("/* Hero entrance animations"),
+      globals.indexOf("/* Fade in up with spring */"),
+    )
+
+    expect(heroMotion).toContain("0.22s cubic-bezier(0.23, 1, 0.32, 1)")
+    expect(heroMotion).toContain("0.25s cubic-bezier(0.23, 1, 0.32, 1)")
+    expect(heroMotion).toContain("0.05s")
+    expect(heroMotion).toContain("reveal-fade-up 0.25s cubic-bezier(0.23, 1, 0.32, 1)")
+    expect(heroMotion).not.toMatch(/hero-fade-(?:up|down|up-lg)\s+0\.[45]s/)
+    expect(heroMotion).not.toContain("reveal-fade-up 0.5s")
+
+    expect(motion).toContain("duration: duration.slow")
+    expect(motion).toContain("ease: easing.strongOut")
+    expect(motion).not.toContain("duration: 0.4")
+
+    expect(escriptMockup).toContain("hero-fade-up 0.22s cubic-bezier(0.23, 1, 0.32, 1) 0.15s both")
+    expect(escriptMockup).toContain("hero-fade-up 0.22s cubic-bezier(0.23, 1, 0.32, 1) 0.30s both")
+    expect(escriptMockup).not.toMatch(/hero-fade-up 0\.[3-9]s/)
+    expect(escriptMockup).not.toMatch(/hero-fade-up[^"\n]+(?:0\.9s|1\.1s|1\.3s)/)
+  })
+
+  it("animates request progress with a composite transform", () => {
+    const progress = read("components/request/progress-bar.tsx")
+
+    expect(progress).toContain('data-request-progress-fill="true"')
+    expect(progress).toContain("transition-transform duration-200")
+    expect(progress).toContain("transform: `scaleX(${progressPercent / 100})`")
+    expect(progress).toContain('transformOrigin: "left center"')
+    expect(progress).not.toContain("transition-[width]")
+    expect(progress).not.toContain("width: `${progressPercent}%`")
   })
 })

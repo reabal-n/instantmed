@@ -779,6 +779,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     expect(result).toMatchObject({
       error: expect.stringMatching(/required medical information is missing/i),
+      paymentRecoveryReason: "more_information_required",
       success: false,
     })
     expect(mocks.validateSafetyFieldsPresent).toHaveBeenCalledWith(
@@ -830,11 +831,40 @@ describe("retryPaymentForIntakeAction", () => {
     expect(result).toEqual({
       error:
         "Required medical information is missing. Please start a new request before trying payment again.",
+      paymentRecoveryReason: "more_information_required",
       success: false,
     })
     expect(mocks.getIntakeAnswersForPaymentSafety).not.toHaveBeenCalled()
     expect(mocks.stripeSessionRetrieve).toHaveBeenCalledWith("cs_previous")
     expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(mocks.revalidatePatient).toHaveBeenCalledWith({
+      intakeId: "intake-1",
+      patientId: "patient-1",
+    })
+    expect(mocks.revalidateStaff).toHaveBeenCalledWith({
+      intakeId: "intake-1",
+      patientId: "patient-1",
+    })
+  })
+
+  it("projects a persisted missing-information hold when exact-Session invalidation is unresolved", async () => {
+    const { supabase } = createRetrySupabaseMock({
+      checkout_error: "safety_missing_required_information",
+      payment_status: "pending",
+      status: "checkout_failed",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.stripeSessionRetrieve.mockRejectedValueOnce(new Error("Stripe unavailable"))
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toMatchObject({
+      paymentRecoveryReason: "more_information_required",
+      success: false,
+    })
+    expect(result.checkoutUrl).toBeUndefined()
+    expect(mocks.getIntakeAnswersForPaymentSafety).not.toHaveBeenCalled()
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
     expect(mocks.revalidatePatient).toHaveBeenCalledWith({
       intakeId: "intake-1",

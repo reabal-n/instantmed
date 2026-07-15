@@ -1,102 +1,141 @@
 "use client"
 
-import { useRouter } from "next/navigation"
 import { useEffect, useRef } from "react"
-import { toast } from "sonner"
 
-import { createClient } from "@/lib/supabase/client"
+import {
+  PATIENT_INTAKE_POLL_INTERVAL_MS,
+  type PatientIntakePollingChange,
+  type PatientIntakePollingProjection,
+  reconcilePatientIntakePollingSnapshot,
+} from "@/lib/patient/intake-status-polling"
 
-interface IntakeStatusListenerProps {
-  intakeId: string
-  currentStatus: string
+interface UsePatientIntakeStatusPollingOptions {
+  onChanges: (changes: PatientIntakePollingChange[]) => void
 }
 
-const statusMessages: Record<string, { title: string; description: string; type: "success" | "info" | "warning" }> = {
-  approved: {
-    title: "Request Approved",
-    description: "Your request has been approved by a doctor.",
-    type: "success",
-  },
-  declined: {
-    title: "Request Declined", 
-    description: "Your request could not be approved. Check your email for details.",
-    type: "warning",
-  },
-  pending_info: {
-    title: "More Information Needed",
-    description: "The doctor needs additional information. Please check your request.",
-    type: "info",
-  },
-  escalated: {
-    title: "Additional Review Needed",
-    description: "Your request needs additional review. We will update you as soon as there is a decision.",
-    type: "info",
-  },
-  completed: {
-    title: "Request Complete",
-    description: "Your request has been fully processed.",
-    type: "success",
-  },
-  in_review: {
-    title: "Under Review",
-    description: "A doctor is now reviewing your request.",
-    type: "info",
-  },
-  awaiting_script: {
-    title: "Prescription Processing",
-    description: "Your prescription is being prepared.",
-    type: "info",
-  },
+function parsePollingProjection(value: unknown): PatientIntakePollingProjection[] | null {
+  if (!value || typeof value !== "object" || !("intakes" in value)) return null
+  const intakes = value.intakes
+  if (!Array.isArray(intakes)) return null
+
+  const projected: PatientIntakePollingProjection[] = []
+  for (const intake of intakes) {
+    if (!intake || typeof intake !== "object") return null
+    const row = intake as Record<string, unknown>
+    if (
+      typeof row.id !== "string" ||
+      typeof row.status !== "string" ||
+      typeof row.updated_at !== "string" ||
+      (row.payment_recovery_reason !== null &&
+        row.payment_recovery_reason !== "more_information_required")
+    ) {
+      return null
+    }
+
+    projected.push({
+      id: row.id,
+      status: row.status,
+      updated_at: row.updated_at,
+      payment_recovery_reason: row.payment_recovery_reason,
+    })
+  }
+
+  return projected
 }
 
-export function IntakeStatusListener({ intakeId, currentStatus }: IntakeStatusListenerProps) {
-  const router = useRouter()
-  const lastStatusRef = useRef(currentStatus)
+/**
+ * Sole authenticated patient request-status poll owner. The route derives the
+ * caller and ownership from the server session; the browser supplies no row or
+ * profile filters.
+ */
+export function usePatientIntakeStatusPolling({
+  onChanges,
+}: UsePatientIntakeStatusPollingOptions): void {
+  const onChangesRef = useRef(onChanges)
 
   useEffect(() => {
-    const supabase = createClient()
+    onChangesRef.current = onChanges
+  }, [onChanges])
 
-    const channel = supabase
-      .channel(`intake-status-${intakeId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "intakes",
-          filter: `id=eq.${intakeId}`,
-        },
-        (payload) => {
-          const newStatus = payload.new.status as string
-          const oldStatus = lastStatusRef.current
+  useEffect(() => {
+    let snapshot: ReturnType<typeof reconcilePatientIntakePollingSnapshot>["snapshot"] | null = null
+    let intervalId: ReturnType<typeof setInterval> | null = null
+    let activeController: AbortController | null = null
+    let disposed = false
 
-          // Only notify on actual status changes
-          if (newStatus !== oldStatus) {
-            lastStatusRef.current = newStatus
-            
-            const message = statusMessages[newStatus]
-            if (message) {
-              if (message.type === "success") {
-                toast.success(message.title, { description: message.description })
-              } else if (message.type === "warning") {
-                toast.warning(message.title, { description: message.description })
-              } else {
-                toast.info(message.title, { description: message.description })
-              }
-            }
+    const poll = async () => {
+      if (disposed || document.hidden || activeController) return
 
-            // Refresh the page to show updated status
-            router.refresh()
-          }
+      const controller = new AbortController()
+      activeController = controller
+
+      try {
+        const response = await fetch("/api/patient/intake-status?scope=list", {
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+          signal: controller.signal,
+        })
+        if (!response.ok) return
+
+        const currentRows = parsePollingProjection(await response.json())
+        if (disposed || controller.signal.aborted || !currentRows) return
+
+        const reconciled = reconcilePatientIntakePollingSnapshot(snapshot, currentRows)
+        snapshot = reconciled.snapshot
+        if (
+          reconciled.changes.length > 0 ||
+          reconciled.hasStructuralChanges
+        ) {
+          onChangesRef.current(reconciled.changes)
         }
-      )
-      .subscribe()
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          // A later bounded poll or focus return will retry transient failures.
+        }
+      } finally {
+        if (activeController === controller) activeController = null
+      }
+    }
+
+    const stopPolling = () => {
+      if (intervalId) {
+        clearInterval(intervalId)
+        intervalId = null
+      }
+      activeController?.abort()
+      activeController = null
+    }
+
+    const startPolling = () => {
+      if (disposed || document.hidden) return
+      void poll()
+      if (!intervalId) {
+        intervalId = setInterval(() => {
+          void poll()
+        }, PATIENT_INTAKE_POLL_INTERVAL_MS)
+      }
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopPolling()
+      } else {
+        startPolling()
+      }
+    }
+    const handleFocus = () => {
+      void poll()
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    window.addEventListener("focus", handleFocus)
+    startPolling()
 
     return () => {
-      supabase.removeChannel(channel)
+      disposed = true
+      stopPolling()
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+      window.removeEventListener("focus", handleFocus)
     }
-  }, [intakeId, router])
-
-  // This component doesn't render anything visible
-  return null
+  }, [])
 }

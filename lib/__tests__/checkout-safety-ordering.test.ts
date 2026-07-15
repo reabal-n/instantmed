@@ -62,6 +62,7 @@ vi.mock("@/lib/stripe/checkout/missing-safety-payment-hold", () => ({
 }))
 
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { getIntakeAnswersForPaymentSafety } from "@/lib/data/intake-answers"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
@@ -223,6 +224,7 @@ describe("retry-payment path (retryPaymentForIntakeAction)", () => {
 
     expect(result.success).toBe(false)
     expect(result.error).toMatch(/missing/i)
+    expect(result.paymentRecoveryReason).toBe("more_information_required")
     // The safety engine must not run, and we must not have reached Stripe.
     expect(validateSafetyFieldsPresent).toHaveBeenCalledTimes(1)
     expect(holdCheckoutForMissingSafetyInformation).toHaveBeenCalledWith(
@@ -235,6 +237,55 @@ describe("retry-payment path (retryPaymentForIntakeAction)", () => {
     )
     expect(checkSafetyForServer).not.toHaveBeenCalled()
   })
+
+  it("projects a known persisted hold when exact-Session invalidation remains unresolved", async () => {
+    mockSupabaseSingle.mockResolvedValue({
+      data: {
+        ...retryableIntake,
+        checkout_error: "safety_missing_required_information",
+      },
+      error: null,
+    })
+    mock(holdCheckoutForMissingSafetyInformation).mockResolvedValueOnce(
+      "held_invalidation_unresolved",
+    )
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result.success).toBe(false)
+    expect(result.paymentRecoveryReason).toBe("more_information_required")
+    expect(getIntakeAnswersForPaymentSafety).not.toHaveBeenCalled()
+    expect(checkSafetyForServer).not.toHaveBeenCalled()
+    expect(revalidatePatient).toHaveBeenCalledWith({
+      intakeId: "intake-1",
+      patientId: "pat-1",
+    })
+    expect(revalidateStaff).toHaveBeenCalledWith({
+      intakeId: "intake-1",
+      patientId: "pat-1",
+    })
+  })
+
+  it.each(["state_changed", "unresolved", "payment_in_flight"] as const)(
+    "does not project a held recovery reason for %s reconciliation",
+    async (holdResult) => {
+    mockSupabaseSingle.mockResolvedValue({
+      data: {
+        ...retryableIntake,
+        checkout_error: "safety_missing_required_information",
+      },
+      error: null,
+    })
+    mock(holdCheckoutForMissingSafetyInformation).mockResolvedValueOnce(holdResult)
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result.success).toBe(false)
+    expect(result.paymentRecoveryReason).toBeUndefined()
+    expect(getIntakeAnswersForPaymentSafety).not.toHaveBeenCalled()
+    expect(checkSafetyForServer).not.toHaveBeenCalled()
+    },
+  )
 
   it("runs field presence BEFORE the safety engine on a complete intake", async () => {
     mock(validateSafetyFieldsPresent).mockReturnValueOnce({ valid: true, missingFields: [] })

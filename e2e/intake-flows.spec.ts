@@ -462,29 +462,34 @@ test.describe("Intake: Repeat Prescription - full flow", () => {
 })
 
 // ---------------------------------------------------------------------------
-// 3 · CONSULTATION (no subtype) - Service Hub Redirect
+// 3 · CONSULTATION (no subtype) - Specialty Overview Redirect
 //
 // General Consult was retired on 2026-05-20 so the full-flow test that
-// used to live here was removed. ED and Hair Loss are the only consult
-// subtypes; their flows live in their own describe blocks.
+// used to live here was removed. ED, hair loss, and women's health are the
+// active consult subtypes; their flows live in their own describe blocks.
 // ---------------------------------------------------------------------------
 
-test.describe("Intake: Consultation without subtype - service hub", () => {
-  test("shows service hub when no subtype is pre-selected", async ({ page }) => {
-    // Navigating to /request?service=consult WITHOUT a subtype now redirects to
-    // the service hub (request-flow.tsx line 428). The old category-grid step
-    // is only shown when a subtype is already set via URL or store.
+test.describe("Intake: Consultation without subtype - specialty overview", () => {
+  test("redirects to the five-service overview when no subtype is pre-selected", async ({ page }) => {
+    // Bare consult has no fallback flow. It redirects to the public services
+    // overview so the patient must choose a launched, structured pathway.
     await page.goto("/request?service=consult")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    // Service hub heading should be visible
-    await expect(page.getByText(/What brings you in today/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(page).toHaveURL(/\/consult$/)
+    await expect(page.getByRole("heading", { name: /Choose a focused online service/i })).toBeVisible({ timeout: 10000 })
 
-    // All active services should appear (General Consult retired 2026-05-20)
-    await expect(page.getByText(/Medical certificate/i).first()).toBeVisible()
-    await expect(page.getByText(/Erectile dysfunction/i).first()).toBeVisible()
-    await expect(page.getByText(/Hair loss/i).first()).toBeVisible()
+    const serviceIds = await page.locator("[data-service-id]").evaluateAll((items) =>
+      items.map((item) => item.getAttribute("data-service-id")),
+    )
+    expect(serviceIds).toEqual([
+      "med-cert",
+      "repeat-rx",
+      "ed",
+      "hair-loss",
+      "womens-health",
+    ])
   })
 })
 

@@ -13,7 +13,15 @@ import { ProcessSteps } from "@/components/sections/process-steps"
 import type { ChecklistItem, FeatureItem, ProcessStep } from "@/components/sections/types"
 import { FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
+
+const AVAILABILITY_24_7 = getApprovedClaim("availability_24_7")
+const CLINICAL_ACCESS_SCOPE = getApprovedClaim("clinical_access_scope")
+const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+const COMPLAINTS_TIMING = getApprovedClaim("complaints_timing")
+const DOCTOR_REGISTRATION = getApprovedClaim("doctor_registration")
 
 // =============================================================================
 // FAQ DATA
@@ -22,11 +30,11 @@ import { GUARANTEE } from "@/lib/marketing/voice"
 const howWeDecideFaqs = [
   {
     question: "Does a real doctor review every request?",
-    answer: "Yes. Prescribing requests receive clinician review before a decision. Eligible low-risk medical certificates may be issued under a doctor-owned protocol and are individually reviewed afterward. AI does not prescribe or make independent clinical decisions.",
+    answer: CLINICAL_DECISION_MODEL,
   },
   {
     question: "How long does the review take?",
-    answer: "You can submit a request at any time; the service operates 24/7. Review timing depends on clinical complexity, follow-up questions, and queue volume.",
+    answer: AVAILABILITY_24_7,
   },
   {
     question: "What if the doctor needs more information?",
@@ -42,23 +50,23 @@ const howWeDecideFaqs = [
   },
   {
     question: "What happens to my data after the review?",
-    answer: "Your information is securely stored with AES-256 encryption on Australian servers hosted by Supabase. Medical records are retained in accordance with Australian healthcare record-keeping requirements. We never sell or share your data with third parties.",
+    answer: `Medical records are retained in accordance with Australian healthcare record-keeping requirements. ${CLINICAL_ACCESS_SCOPE} Our privacy policy explains storage and the service providers needed to deliver care.`,
   },
   {
     question: "How do I know the process is fair?",
-    answer: "Clinical decisions are audited regularly by our Medical Director. Doctors aren't incentivised to approve or decline - they're paid the same either way. This removes the financial pressure that can compromise clinical judgement in other models.",
+    answer: "Clinical outcomes and the information used to reach them are recorded. Business staff cannot override a clinical decline, and the complaints process provides a formal route to question a decision.",
   },
   {
     question: "What if I disagree with the doctor's decision?",
-    answer: "Contact us at support@instantmed.com.au. Complaints are taken seriously and responded to within 48 hours. For formal clinical complaints, email complaints@instantmed.com.au - these are reviewed by our Medical Director within 14 days.",
+    answer: `Contact support@instantmed.com.au for help or complaints@instantmed.com.au to make a formal complaint. ${COMPLAINTS_TIMING}`,
   },
   {
-    question: "Is the reviewing doctor insured?",
-    answer: "Yes. Every clinician on the platform maintains professional indemnity insurance, which is a requirement for AHPRA registration. This protects both the doctor and the patient in the event of an adverse outcome.",
+    question: "Who performs clinical reviews?",
+    answer: `${DOCTOR_REGISTRATION} Registration can be checked on the AHPRA public register.`,
   },
   {
     question: "How does this compare to seeing a GP in person?",
-    answer: "The clinical standard is the same - the reviewing doctor follows the same guidelines and has the same obligations as any GP. The information available is different: we rely on your reported history rather than a physical examination. For straightforward presentations, history-based assessment is well-established and effective in medical practice.",
+    answer: "The setting and information available are different. InstantMed relies on the history you provide and cannot perform a physical examination. Its documented pathways are limited to requests suitable for remote assessment; anything needing examination, testing, or ongoing care should move to an in-person service.",
   },
 ]
 
@@ -99,7 +107,7 @@ const reviewFactors: FeatureItem[] = [
     icon: <StickerIcon name="security-shield" size={48} />,
     title: "Clinical guidelines",
     description:
-      "The same rules any doctor follows. Some things just need to be done in person. We don\u2019t bend on that.",
+      "Documented service boundaries guide the review. Some things need to be done in person, and the pathway stops when they do.",
   },
 ]
 
@@ -135,14 +143,13 @@ const safetyFeatures: FeatureItem[] = [
   {
     icon: <StickerIcon name="user-check" size={48} />,
     title: "Real doctors, real accountability",
-    description:
-      "Every reviewer is an AHPRA-registered doctor. They put their name on every decision.",
+    description: DOCTOR_REGISTRATION,
   },
   {
     icon: <StickerIcon name="heart" size={48} />,
     title: "No pressure to approve",
     description:
-      "Clinicians on our platform aren\u2019t paid to say yes. They\u2019re paid to get it right. Big difference.",
+      "A business preference cannot override a clinical decline. The documented clinical outcome stands.",
   },
   {
     icon: <StickerIcon name="speech-bubble" size={48} />,
@@ -161,21 +168,20 @@ const safetyFeatures: FeatureItem[] = [
 const afterSubmitSteps: ProcessStep[] = [
   {
     number: 1,
-    title: "A doctor reviews your request",
-    description:
-      "Review timing depends on doctor availability. They look at everything you've shared and make a decision.",
+    title: "Your request follows its service pathway",
+    description: `${CLINICAL_REVIEW_SEQUENCE} ${AVAILABILITY_24_7}`,
   },
   {
     number: 2,
-    title: "You hear back",
+    title: "You receive an outcome or a question",
     description:
-      `Approved? Your certificate or script is on its way. ${GUARANTEE}`,
+      `A doctor may ask for more information before a prescribing decision. Otherwise you receive an approval or decline. ${GUARANTEE}`,
   },
   {
     number: 3,
-    title: "Questions? They'll ask",
+    title: "The outcome is recorded",
     description:
-      "If anything's unclear, the doctor reaches out before deciding. We don\u2019t guess.",
+      "Approved documents or eScripts are delivered digitally. Declines and follow-up questions stay attached to the request record.",
   },
 ]
 
@@ -189,8 +195,8 @@ export default function HowWeDecidePage() {
       <main className="flex-1">
         <CenteredHero
           pill="Our Process"
-          title="Every request gets a real review"
-          highlightWords={["real review"]}
+          title="Every request has clinical ownership"
+          highlightWords={["clinical ownership"]}
           subtitle="Prescribing decisions are made by a doctor. Eligible low-risk medical certificates may follow a logged doctor-owned protocol, with individual review afterward."
         />
 
@@ -198,7 +204,7 @@ export default function HowWeDecidePage() {
 
         <FeatureGrid
           title="What the doctor looks at"
-          subtitle="The same stuff they'd consider if you walked into a clinic. Nothing more, nothing less."
+          subtitle="The history you provide, the request you make, and the limits of remote assessment."
           features={reviewFactors}
           columns={2}
         />
@@ -210,7 +216,7 @@ export default function HowWeDecidePage() {
         />
 
         <p className="mx-auto max-w-3xl text-center text-sm text-muted-foreground px-4 -mt-12 mb-8">
-          {GUARANTEE} No hassle.
+          {GUARANTEE}
         </p>
 
         <FeatureGrid

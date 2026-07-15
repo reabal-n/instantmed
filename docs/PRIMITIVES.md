@@ -1,6 +1,6 @@
 # Marketing Primitives Registry
 
-> Shared data modules and components that marketing pages must use instead of hardcoding values. If a number, label, or FAQ appears on a marketing page, it should come from one of these.
+> Shared data modules and components that marketing pages must use instead of hardcoding values. High-risk factual copy must retain the evidence receipts in `lib/marketing/approved-claims.ts`; voice aliases and banned-phrase APIs remain in `lib/marketing/voice.ts`.
 
 ---
 
@@ -26,11 +26,13 @@ Centralized badge definitions with icon, color, tooltip, and styled/plain tiers.
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
-| `BADGE_REGISTRY` | `Record<BadgeId, BadgeConfig>` | 26 badges across 6 categories: Credential (ahpra, tga advertising-aware, documented_protocols, medical_director, refund, privacy), Payment/Security (stripe, ssl, pci, au_data), Friction-free (no_call, no_speaking, form_only, no_waiting_room, no_appointment, from_your_phone, no_face_to_face, fast_form, same_day), Outcome (legally_valid, no_medicare, real_gp, instant_pdf), Social proof (social_proof), **Certifications (legitscript, google healthcare ads)**. |
+| `BADGE_REGISTRY` | `Record<BadgeId, BadgeConfig>` | 26 badges across 6 categories: Credential (ahpra, tga advertising-aware, documented_protocols, medical_director, refund, privacy), Payment/Security (stripe, ssl, pci, au_data), Friction-free (no_call, no_speaking, form_only, no_waiting_room, no_appointment, from_your_phone, no_face_to_face, fast_form, same_day), Outcome (legally_valid, no_medicare, real_gp, instant_pdf), Social proof (social_proof), **Certifications (LegitScript and Google Ads Online Pharmacy Certification)**. |
 | `BADGE_PRESETS` | `Record<string, PresetEntry[]>` | Pre-configured badge sets: `hero_medcert`, `hero_rx`, `hero_consult`, `hero_generic`, `doctor_credibility`, `pre_cta`, `medcert_pricing`, `medcert_outcome`, `checkout`, `footer`, `float`, **`trust_certifications`**. |
 | `resolveEntry()` | `function` | Normalizes `PresetEntry` (string or `{id, variant}`) to `{id, variant}`. |
 
 **Certification badges:** `legitscript` and `google_pharmacy` have styled tiers that render actual logos (LegitScript seal image, Google "G" multicolor SVG). Use `<TrustBadgeRow preset="trust_certifications" />` for an inline row, or the standalone components `LegitScriptSeal` (`components/marketing/legitscript-seal.tsx`) and `GoogleAdsCert` (`components/marketing/google-ads-cert.tsx`) for larger dedicated displays (e.g. footer logo row, trust page hero).
+
+Certification copy comes from `legitscript_*` and `google_healthcare_ads_*` in `lib/marketing/approved-claims.ts`. Google approval is advertising eligibility, not a telehealth or clinical endorsement.
 
 **Rule:** Max 2 styled badges per row. Never put `no_call` + `no_speaking` together (redundant). Use `BADGE_PRESETS` for standard placements; compose custom sets from `BADGE_REGISTRY` for page-specific needs.
 
@@ -44,7 +46,7 @@ Centralized badge definitions with icon, color, tooltip, and styled/plain tiers.
 |--------|------|-----------------|
 | `StatsStrip` | `component` | Compact strip showing AHPRA-registered doctor review and the refund guarantee using verified primitives. It must not show synthetic patient counts, public approval-rate claims, or fulfilment-rate claims. |
 
-**Usage:** Render `StatsStrip` on an approved marketing surface. Values and labels must continue to come from `SOCIAL_PROOF` and `lib/marketing/voice.ts`.
+**Usage:** Render `StatsStrip` on an approved marketing surface. Operational values come from `SOCIAL_PROOF`; factual doctor/refund labels come from `lib/marketing/approved-claims.ts`, directly or through a deliberate voice alias.
 
 ---
 
@@ -61,7 +63,22 @@ Centralized badge definitions with icon, color, tooltip, and styled/plain tiers.
 
 ---
 
-## 4a. Voice — `lib/marketing/voice.ts`
+## 4a. Approved Claims — `lib/marketing/approved-claims.ts`
+
+Canonical control point for repeated public claims with clinical, operational, privacy, complaints, doctor, refund, or certification risk.
+
+| Export | Type | What it provides |
+|--------|------|-----------------|
+| `APPROVED_CLAIMS` | `Record<ApprovedClaimId, ApprovedClaim>` | Approved text plus allowed contexts, risk level, implementation notes, and evidence-receipt paths. |
+| `getApprovedClaim()` | `function` | Returns the approved text for a typed claim ID. Use this in components instead of copying the string. |
+
+Core PR5 claims include `availability_24_7`, `clinical_decision_model`, `clinical_review_sequence`, `clinical_access_scope`, `complaints_timing`, `doctor_registration`, `refund_payment_process`, and the LegitScript/Google certification labels and tooltips. The clinical-model text must remain explicit: AI never prescribes or makes clinical decisions; eligible low-risk certificate requests may use a doctor-owned protocol and are individually reviewed afterward. The review-sequence claim keeps prescribing review-before-issue separate from eligible certificate protocol outcomes that receive individual review afterward.
+
+**Rule:** A high-risk factual string is changed in this registry together with its contexts, risk, notes, and receipts. Do not fork it in `voice.ts`, a badge config, schema, metadata, or page copy. Public doctor claims use "AHPRA-registered doctors" without count or names.
+
+---
+
+## 4b. Voice — `lib/marketing/voice.ts`
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
@@ -72,8 +89,9 @@ Centralized badge definitions with icon, color, tooltip, and styled/plain tiers.
 | `GUARANTEE` | `string` | Outcome guarantee: "Full refund if the doctor declines." |
 | `GUARANTEE_LABEL` | `string` | Compact display label: "Refund if declined". Use in stat strips, badges, and dense trust rows. |
 | `BANNED_PHRASES` | `readonly string[]` | Brand voice banned phrases enforced by tests. |
+| `containsBannedPhrase()` / `containsEmDash()` | `functions` | Reusable voice-policy guards. |
 
-**Rule:** Marketing surfaces must import voice constants instead of hardcoding wedge/guarantee copy. Healthcare advertising rules live in `docs/ADVERTISING_COMPLIANCE.md`; SEO rules live in `docs/SEO_CONTENT_POLICY.md`.
+**Rule:** `voice.ts` owns stable brand aliases and voice-policy APIs. Its factual aliases resolve through `getApprovedClaim()` so evidence remains attached to the registry. Healthcare advertising rules live in `docs/ADVERTISING_COMPLIANCE.md`; SEO rules live in `docs/SEO_CONTENT_POLICY.md`.
 
 ---
 
@@ -124,8 +142,10 @@ The generic service funnel template (`components/marketing/service-funnel-page.t
 |------------------------|---------------|
 | A social proof number (rating, approval %, turnaround) | `lib/social-proof/index.ts` |
 | A price | `lib/constants/index.ts` |
-| A tagline, wedge, or guarantee | `lib/marketing/voice.ts` |
-| A trust badge label, icon, or tooltip | `lib/marketing/trust-badges.ts` |
+| A high-risk factual claim or its evidence | `lib/marketing/approved-claims.ts` |
+| A tagline, wedge, or guarantee | `lib/marketing/approved-claims.ts`, then its stable alias in `lib/marketing/voice.ts` |
+| A high-risk trust-badge label or tooltip | `lib/marketing/approved-claims.ts` |
+| A trust-badge icon, colour, tier, or composition | `lib/marketing/trust-badges.ts` |
 | Which badges appear on a page | `lib/marketing/trust-badges.ts` → `BADGE_PRESETS` |
 | FAQ content for a service | `lib/data/<service>-faq.ts` |
 | General FAQ content (/faq page) | `lib/data/general-faq.ts` |

@@ -57,8 +57,28 @@ describe("patient intake missing-information presentation", () => {
   })
 
   it("suppresses visible and query-param retry paths for the held detail", () => {
+    const retryHandler = intakeDetailSource.slice(
+      intakeDetailSource.indexOf("const handleRetryPayment"),
+      intakeDetailSource.indexOf("useEffect", intakeDetailSource.indexOf("const handleRetryPayment")),
+    )
+    const cancellationEligibility = intakeDetailSource.slice(
+      intakeDetailSource.indexOf("const canCancel"),
+      intakeDetailSource.indexOf("const canResend"),
+    )
+
     expect(intakeDetailSource).toContain("isMoreInformationRequiredPaymentRecovery(intake)")
     expect(intakeDetailSource).toContain("!isMoreInformationRequiredRecovery")
+    expect(intakeDetailSource).toContain("setIntake(initialIntake)")
+    expect(intakeDetailSource).toContain(
+      'result.paymentRecoveryReason === "more_information_required"',
+    )
+    expect(intakeDetailSource).toContain(
+      'payment_recovery_reason: "more_information_required"',
+    )
+    expect(retryHandler.indexOf("result.paymentRecoveryReason")).toBeLessThan(
+      retryHandler.indexOf("if (!result.success)"),
+    )
+    expect(cancellationEligibility).toContain("!isMoreInformationRequiredRecovery")
     expect(intakeDetailSource).toContain("Start a fresh request")
     expect(intakeDetailSource).toContain("Contact support")
   })

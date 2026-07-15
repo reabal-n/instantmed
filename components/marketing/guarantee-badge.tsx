@@ -70,7 +70,7 @@ export function GuaranteeBadge({
     <Link
       href={GUARANTEE_HREF}
       className="inline-flex focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:ring-offset-2 rounded-full"
-      title="Refund policy and approval window"
+      title="Read the full refund guarantee"
     >
       {inner}
     </Link>

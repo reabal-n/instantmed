@@ -17,6 +17,7 @@ This map names the main domains, entry points, and files to open first.
 | Flow | Path | Important files |
 |------|------|-----------------|
 | Intake to checkout | `/request` -> server action -> Stripe Checkout -> webhook | `app/actions/unified-checkout.ts`, `lib/stripe/checkout.ts`, `lib/stripe/guest-checkout.ts`, `app/api/stripe/webhook/route.ts` |
+| Patient request updates | Authenticated server projection -> patient-specific cache invalidation -> visibility-aware structural/status poll -> patient-safe refresh | `app/api/patient/intake-status/route.ts`, `components/patient/intake-status-listener.tsx`, `components/patient/global-intake-notifications.tsx`, `lib/patient/intake-status-polling.ts` |
 | Safety gate | Answers saved -> safety completeness -> safety rules -> audit log | `lib/safety/evaluate.ts`, `lib/safety/rules.ts`, `lib/safety/audit-log.ts`, `lib/stripe/checkout/*` |
 | Medical certificate | Doctor approval -> PDF render -> private storage -> patient email/dashboard | `lib/clinical/execute-cert-approval.ts`, `lib/pdf/template-renderer.ts`, `lib/data/issued-certificates.ts`, `app/doctor/intakes/[id]/document/*` |
 | Auto-approval | Paid med cert -> draft readiness -> cron -> CAS state transition -> cert or doctor queue | `lib/clinical/auto-approval-state.ts`, `lib/clinical/auto-approval-pipeline.ts`, `app/api/cron/retry-auto-approval/route.ts` |
@@ -35,6 +36,7 @@ This map names the main domains, entry points, and files to open first.
 | Feature flags and kill switches | `lib/feature-flags.ts`, `lib/operational-controls/*`, `docs/SECURITY.md` |
 | Route aliases and retirements | `next.config.mjs`, `middleware.ts`, `scripts/check-orphaned-files.sh` |
 | PHI encryption and RLS | `docs/SECURITY.md`, `lib/security/*`, relevant migrations |
+| Patient status projection | Server-authenticated, newest-100 polling allowlist only; no browser `intakes` Realtime/table queries |
 
 ## Verification Map
 

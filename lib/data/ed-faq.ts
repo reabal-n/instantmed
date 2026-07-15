@@ -51,3 +51,14 @@ export const ED_FAQ = [
     answer: "Not as the main reason for the request. Those problems may need a broader history, examination, blood tests, counselling, or specialist review. This pathway is focused on erectile dysfunction assessment and safety screening.",
   },
 ] as const
+
+// The service landing keeps only the questions needed to choose this pathway.
+// The full set remains available to broader FAQ/search surfaces.
+export const ED_LANDING_FAQ = [
+  ED_FAQ[0],
+  ED_FAQ[1],
+  ED_FAQ[4],
+  ED_FAQ[8],
+  ED_FAQ[9],
+  ED_FAQ[10],
+] as const

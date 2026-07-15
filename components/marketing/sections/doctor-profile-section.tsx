@@ -2,6 +2,7 @@ import { BadgeCheck } from "lucide-react"
 
 import { StickerIcon } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 
 // =============================================================================
 // COMPONENT
@@ -34,8 +35,7 @@ export function DoctorProfileSection({ instant = false }: DoctorProfileSectionPr
                 AHPRA-registered doctors
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Every request is reviewed by an experienced,
-                AHPRA-registered Australian doctor. No automated clinical decisions.
+                {getApprovedClaim("doctor_registration")} {getApprovedClaim("clinical_decision_model")}
               </p>
               <p className="mt-3 text-xs text-muted-foreground">
                 Verify any doctor&apos;s registration on the{" "}

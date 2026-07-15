@@ -27,7 +27,6 @@ const PAID_CLAIM_FILES = [
   "components/marketing/how-it-works-content.tsx",
   "components/marketing/prescriptions-landing.tsx",
   "components/sections/cta-banner.tsx",
-  "components/marketing/sections/pricing-guide-section.tsx",
   "components/request/steps/review-step.tsx",
   "lib/data/general-faq.ts",
   "lib/data/med-cert-faq.ts",

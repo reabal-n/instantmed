@@ -1,22 +1,23 @@
 "use client"
 
 import {
+  Activity,
   AlertTriangle,
   ArrowRight,
   CheckCircle2,
-  ClipboardCheck,
   Clock3,
-  FileText,
   HeartPulse,
   Lock,
   type LucideIcon,
+  MessageCircle,
+  Pill,
   ShieldCheck,
   Stethoscope,
   WalletCards,
 } from "lucide-react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import type { ReactNode } from "react"
+import type { RefObject } from "react"
 
 import {
   type LandingPageConfig,
@@ -26,29 +27,18 @@ import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
-import type { RenderableArticleVisual } from "@/lib/blog/visuals"
 import { PRICING_DISPLAY } from "@/lib/constants"
-import { ED_FAQ } from "@/lib/data/ed-faq"
+import { ED_LANDING_FAQ } from "@/lib/data/ed-faq"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
-import { cn } from "@/lib/utils"
 
-// Below-fold sections are code-split to keep the /erectile-dysfunction route JS
-// under budget (mirrors the hair-loss landing). ssr stays on (default) so the
-// FAQ + content-hub links remain server-rendered for SEO.
-const ArticleVisuals = dynamic(
-  () => import("@/components/blog/article-visuals").then((m) => m.ArticleVisuals),
-  { loading: () => <div className="min-h-[200px]" /> },
-)
 const FAQSection = dynamic(
-  () => import("@/components/sections/faq-section").then((m) => m.FAQSection),
+  () => import("@/components/sections/faq-section").then((module) => module.FAQSection),
   { loading: () => <div className="min-h-[300px]" /> },
-)
-const ContentHubLinks = dynamic(
-  () => import("@/components/seo").then((m) => m.ContentHubLinks),
-  { loading: () => <div className="min-h-[120px]" /> },
 )
 
 const ASSESSMENT_HREF = "/request?service=consult&subtype=ed"
+const DOCTOR_REGISTRATION_CLAIM = getApprovedClaim("doctor_registration")
 
 const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "ed",
@@ -56,176 +46,137 @@ const LANDING_CONFIG: LandingPageConfig = {
   sticky: {
     ctaText: `Start ED assessment - ${PRICING_DISPLAY.MENS_HEALTH}`,
     ctaHref: ASSESSMENT_HREF,
-    mobileSummary: "ED concerns - Doctor-reviewed",
+    mobileSummary: "ED assessment",
     responseTime: "Doctor review 24/7",
   },
 }
 
 const HERO_FACTS = [
   {
+    icon: ShieldCheck,
+    label: "Eligibility",
+    value: "Australia only · Ages 18+",
+    body: "Medicare details required for consultation records and electronic prescribing.",
+  },
+  {
     icon: WalletCards,
-    label: "Cost",
+    label: "Review fee",
     value: PRICING_DISPLAY.MENS_HEALTH,
-    body: "One-off doctor review. Pharmacy cost is separate if a prescription is approved.",
+    body: "One-off doctor review. Full refund if the doctor declines. Medicine cost is separate.",
   },
   {
     icon: Clock3,
-    label: "Timing",
-    value: "Form first",
-    body: "The secure form takes about 3 minutes. Review timing depends on clinical detail and queue volume.",
+    label: "Secure form",
+    value: "About 3 minutes",
+    body: "Describe the erection pattern, heart context, chest-pain medicines, and relevant history.",
   },
   {
-    icon: ShieldCheck,
-    label: "Boundary",
-    value: "Safety-led",
-    body: "Chest pain, chest-pain medicine use, unstable heart symptoms, or unclear medicines can mean contact, decline, or in-person care.",
+    icon: Stethoscope,
+    label: "Clinical decision",
+    value: "Doctor decides",
+    body: "The doctor may approve, call or message for clarification, decline, or redirect to in-person care.",
   },
 ] as const
 
-const ED_GEO_FACTS = [
-  {
-    term: "Review model",
-    detail: "ED requests start with a private safety form and are reviewed by an AHPRA-registered doctor.",
-  },
-  {
-    term: "Safety screen",
-    detail: "The form checks erection symptoms, duration, heart health, chest-pain medicine use, blood pressure context, current medicines, and relevant medical history.",
-  },
-  {
-    term: "Doctor contact",
-    detail: "The doctor may call or message if a safety detail needs clarification before deciding whether online care is appropriate.",
-  },
-  {
-    term: "Cost boundary",
-    detail: `The review fee is ${PRICING_DISPLAY.MENS_HEALTH}. If a prescription is approved, pharmacy costs are separate and may depend on PBS status, brand, and pharmacy pricing.`,
-  },
-] as const
-
-const HOW_IT_WORKS = [
-  {
-    title: "Start the ED pathway",
-    body: "Choose erectile dysfunction assessment and complete the private form. The page does not ask you to choose a medicine.",
-  },
-  {
-    title: "Complete the safety screen",
-    body: "Answer questions about erection symptoms, duration, heart health, chest-pain medicines, blood pressure context, other medicines, and relevant medical history.",
-  },
-  {
-    title: "Doctor review",
-    body: "An AHPRA-registered Australian doctor reviews the request and may call or message if a safety detail needs clarification.",
-  },
-  {
-    title: "Outcome sent digitally",
-    body: "If online care is suitable and a prescription is clinically appropriate, the outcome is sent digitally. Declined requests are refunded.",
-  },
-] as const
-
-const SUITABLE_ITEMS = [
+const ELIGIBILITY_ITEMS = [
   "You are in Australia and aged 18 or over.",
-  "You have ongoing difficulty getting or keeping an erection and can describe the pattern clearly.",
-  "You can provide current medicine details, heart-health history, blood pressure context, allergies, and relevant medical conditions.",
-  "You do not have chest pain, unstable heart symptoms, a recent serious cardiovascular event, or an erection lasting more than 4 hours.",
-  "You understand the doctor may call, decline, or recommend in-person care if remote review is not safe enough.",
+  "You can provide Medicare details, current medicines, allergies, heart-health history, and blood pressure context.",
+  "Your main concern is ongoing difficulty getting or keeping an erection, and you can describe the pattern clearly.",
+  "You understand that a prescription is not guaranteed and doctor contact may be needed before a decision.",
 ] as const
 
-const NOT_COVERED_ITEMS = [
-  "Chest pain, severe shortness of breath, collapse, stroke symptoms, or symptoms that make sexual activity unsafe.",
-  "An erection lasting more than 4 hours, a painful erection, penile injury, or sudden severe genital pain.",
-  "Use of certain chest-pain heart medicines, or uncertainty about whether a current medicine affects sexual-activity safety.",
-  "New low libido, fertility concerns, premature ejaculation, penile curvature, testosterone investigation, or complex sexual-health symptoms as the main concern.",
-  "Requests for a named medicine, a guaranteed prescription, or treatment without doctor review.",
-] as const
-
-const ED_CONTEXT = [
+const ED_DECISION_SIGNALS = [
   {
-    title: "Blood flow and heart health",
-    body: "ED can be linked with blood-vessel health. High blood pressure, diabetes, cholesterol, smoking, and cardiovascular disease are part of the clinical picture the doctor considers.",
-  },
-  {
-    title: "Medicines and safety",
-    body: "Some medicines and heart conditions make common ED medicines unsafe. That is why the form asks about chest-pain medicines, blood pressure context, and your full medicine list.",
-  },
-  {
-    title: "Stress, sleep, and mental health",
-    body: "Anxiety, low mood, relationship stress, alcohol, and sleep problems can contribute. Online prescribing is not the right answer for every pattern.",
-  },
-] as const
-
-const SAFETY_CHECKS = [
-  "chest pain, exertional symptoms, breathlessness, fainting, palpitations, and exercise tolerance",
-  "chest-pain heart medicines, blood pressure medicines, and interaction risks",
-  "recent heart attack, stroke, heart procedure, unstable angina, or specialist heart advice",
-  "diabetes, high blood pressure, high cholesterol, smoking, sleep apnoea, and other vascular risk factors",
-  "penile pain, injury, curvature, prolonged erection, urinary symptoms, or genital symptoms that need examination",
-  "mental health, alcohol or substance use, relationship context, and whether counselling or GP follow-up may be safer",
-] as const
-
-const COVERED_ITEMS = [
-  {
-    icon: ClipboardCheck,
-    title: "Covered",
-    body: "A structured doctor review for erectile dysfunction concerns when the history and safety screen give enough information for remote assessment.",
+    icon: Activity,
+    title: "Erection pattern",
+    body: "What has changed, how long it has been happening, and whether getting or keeping an erection is the main concern.",
   },
   {
     icon: HeartPulse,
-    title: "May need contact",
-    body: "Unclear medicines, cardiovascular risk, inconsistent answers, or symptoms that do not fit straightforward ED can lead to a call or message before any decision.",
+    title: "Cardiovascular context",
+    body: "Chest symptoms, exercise tolerance, recent heart or stroke events, and blood pressure context.",
+  },
+  {
+    icon: Pill,
+    title: "Medicine safety",
+    body: "Chest-pain medicines, other current medicines, allergies, and relevant conditions.",
   },
   {
     icon: AlertTriangle,
-    title: "Not covered",
-    body: "Urgent symptoms, prolonged painful erection, injury, complex genital symptoms, fertility or libido workups, or requests for a guaranteed medicine.",
+    title: "Red flags",
+    body: "A prolonged or painful erection, injury, sudden severe genital pain, or symptoms that need urgent assessment.",
   },
 ] as const
 
-const AFTER_SUBMIT = [
+const ED_DECISION_OUTCOMES = [
   {
     icon: CheckCircle2,
-    title: "Approved",
-    body: "If the doctor decides online care is suitable and a prescription is clinically appropriate, the outcome is sent digitally.",
+    title: "Online care may be suitable",
+    body: "The doctor decides whether the complete history supports remote care and whether prescribing is clinically appropriate.",
   },
   {
-    icon: Clock3,
-    title: "Needs more information",
-    body: "The doctor may call or message to clarify medicines, heart symptoms, blood pressure, medical history, or whether in-person review is safer.",
+    icon: MessageCircle,
+    title: "A detail needs clarification",
+    body: "The doctor may call or message about symptoms, medicines, heart context, or previous treatment before deciding.",
+  },
+  {
+    icon: Stethoscope,
+    title: "In-person care is safer",
+    body: "The doctor may decline or redirect when examination, urgent assessment, or broader investigation is needed.",
+  },
+] as const
+
+const SCOPE_ITEMS = [
+  {
+    icon: CheckCircle2,
+    title: "This pathway covers",
+    body: "A structured doctor review for erectile dysfunction concerns when the history and safety screen are complete enough for remote assessment.",
+  },
+  {
+    icon: MessageCircle,
+    title: "The doctor may contact you",
+    body: "Unclear medicines, cardiovascular risk, conflicting answers, or symptoms outside a straightforward ED pattern can require a call or message.",
   },
   {
     icon: AlertTriangle,
-    title: "Declined",
-    body: "If online prescribing is not safe or suitable, the doctor explains the reason, recommends next steps, and the request is refunded.",
+    title: "This pathway does not cover",
+    body: "Emergencies, prolonged painful erection, injury, fertility or libido workups, testosterone investigation, or requests for a guaranteed medicine.",
+  },
+] as const
+
+const REVIEW_STEPS = [
+  {
+    number: "01",
+    title: "Complete the private form",
+    body: "Answer the erection-pattern, heart-health, medicine, blood pressure, allergy, and medical-history questions.",
+  },
+  {
+    number: "02",
+    title: "Doctor review and clarification",
+    body: "An AHPRA-registered Australian doctor reviews the request and may call or message if a safety detail needs clarification.",
+  },
+  {
+    number: "03",
+    title: "Receive a clinical outcome",
+    body: "The outcome may be approval if clinically appropriate, a request for more information, or decline with safer next steps and a refund.",
   },
 ] as const
 
 const ALTERNATIVES = [
   {
-    title: "Prescriptions",
+    title: "Repeat prescriptions",
     href: "/prescriptions",
-    body: "For stable repeat medicines you already take, reviewed separately from the ED pathway.",
+    body: "For a stable medicine you already take, use the separate repeat-prescription pathway.",
   },
   {
     title: "Hair loss assessment",
     href: "/hair-loss",
-    body: "A different private men's-health pathway with its own safety screen.",
-  },
-  {
-    title: "Medical certificate",
-    href: "/medical-certificate",
-    body: "For short work or study absence documentation when illness affects attendance.",
-  },
-  {
-    title: "Type 2 diabetes",
-    href: "/conditions/type-2-diabetes",
-    body: "A common health context that can affect erection symptoms.",
-  },
-  {
-    title: "High cholesterol",
-    href: "/conditions/high-cholesterol",
-    body: "Cardiovascular risk context that may matter in ED assessment.",
+    body: "A separate men's-health pathway with its own history and safety screen.",
   },
   {
     title: "Chest pain",
     href: "/symptoms/chest-pain",
-    body: "Chest pain should be assessed urgently before any ED request.",
+    body: "Chest pain leaves the ED pathway. Read the urgent-care boundary before doing anything else.",
   },
 ] as const
 
@@ -233,523 +184,398 @@ const SOURCES = [
   {
     title: "Healthdirect: erectile dysfunction",
     href: "https://www.healthdirect.gov.au/erectile-dysfunction",
-    body: "Australian patient information on ED symptoms, causes, diagnosis, treatment options, and when to see a doctor.",
   },
   {
     title: "Healthdirect: erectile dysfunction medicines",
     href: "https://www.healthdirect.gov.au/erectile-dysfunction-medicines",
-    body: "Australian patient information explaining prescription requirements and important safety checks for ED medicines.",
   },
   {
     title: "Healthdirect: prolonged erection",
     href: "https://www.healthdirect.gov.au/prolonged-erection",
-    body: "Patient information on priapism, including why an erection lasting more than 4 hours is a medical emergency.",
-  },
-  {
-    title: "RACGP: assessment and treatment of erectile dysfunction",
-    href: "https://www.racgp.org.au/afp/2017/september/much-more-than-prescribing-a-pill",
-    body: "Australian GP-focused clinical article describing ED risk factors, comorbidities, and the need for broader assessment.",
   },
   {
     title: "Medical Board of Australia: telehealth consultations",
     href: "https://www.medicalboard.gov.au/Codes-Guidelines-Policies/Telehealth-consultations-with-patients.aspx",
-    body: "Guidance on the standard expected of doctors when care is delivered by telehealth.",
-  },
-  {
-    title: "AHPRA and Medical Board: updated telehealth guidance",
-    href: "https://www.medicalboard.gov.au/sitecore/content/Home/News/2025-10-07-Updated-telehealth-guidance.aspx",
-    body: "Public guidance emphasising that convenience must not come at the cost of safety or quality.",
-  },
-  {
-    title: "Australian Digital Health Agency: electronic prescriptions",
-    href: "https://www.digitalhealth.gov.au/initiatives-and-programs/electronic-prescriptions",
-    body: "Explains electronic prescription tokens sent by SMS or email and used at Australian pharmacies.",
-  },
-  {
-    title: "PBS: Browse by body system",
-    href: "https://www.pbs.gov.au/browse/body-system",
-    body: "PBS schedule navigation for medicine groups and pharmacy cost context in Australia.",
-  },
-  {
-    title: "TGA: restrictions on advertising prescription medicines",
-    href: "https://www.tga.gov.au/resources/guidance/complying-restrictions-advertising-prescription-medicines-public",
-    body: "Advertising guidance relevant to public health-service pages where prescription medicines may be involved.",
   },
 ] as const
 
-function InfoCard({
-  title,
-  body,
-  icon: Icon,
-  className,
+function EdHero({
+  isDisabled,
+  heroCTARef,
+  onStart,
 }: {
-  title: string
-  body: string
-  icon: LucideIcon
-  className?: string
+  isDisabled: boolean
+  heroCTARef: RefObject<HTMLDivElement>
+  onStart: () => void
 }) {
   return (
-    <div
-      className={cn(
-        "h-full rounded-2xl border border-border/50 bg-white p-5 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none",
-        className,
-      )}
-    >
-      <div className="flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <Icon className="h-5 w-5" aria-hidden="true" />
-        </span>
-        <div>
-          <Heading level="h3" className="text-base">
-            {title}
+    <section className="relative overflow-hidden bg-[color:var(--morning-ivory)]/60 pb-14 pt-10 dark:bg-background sm:pt-14 lg:pb-20 lg:pt-20">
+      <div className="relative mx-auto grid min-w-0 grid-cols-1 max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:px-8">
+        <Reveal instant className="min-w-0 max-w-2xl">
+          <SectionPill>Men&apos;s health</SectionPill>
+          <Heading level="display" className="mt-5">
+            Erectile dysfunction assessment online Australia
           </Heading>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">{body}</p>
+          <p data-speakable className="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
+            Start with a private safety screen for ED concerns. An Australian doctor reviews your answers and decides whether online care is clinically appropriate.
+          </p>
+
+          <div ref={heroCTARef} className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <Button
+              asChild
+              size="lg"
+              className="h-auto min-h-12 w-full whitespace-normal py-3 text-center shadow-lg shadow-primary/20 sm:w-auto"
+              disabled={isDisabled}
+              onClick={onStart}
+            >
+              <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
+                {isDisabled ? "Contact us" : "Start ED assessment"}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="h-auto min-h-12 w-full whitespace-normal py-3 text-center sm:w-auto">
+              <Link href="#red-flags">Check the safety boundary</Link>
+            </Button>
+          </div>
+
+          <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
+            {GUARANTEE} Prescription is not guaranteed. The doctor may call or message before deciding.
+          </p>
+        </Reveal>
+
+        <Reveal instant className="min-w-0">
+          <div className="rounded-3xl border border-border/50 bg-white p-5 shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-6">
+            <div className="flex items-start gap-3 rounded-2xl bg-muted/40 p-4 dark:bg-white/[0.04]">
+              <Lock className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-primary">Before you start</p>
+                <Heading level="h2" as="h2" className="mt-2">The practical facts</Heading>
+              </div>
+            </div>
+            <dl className="mt-4 divide-y divide-border/50">
+              {HERO_FACTS.map((fact) => (
+                <div key={fact.label} className="py-3 first:pt-0 last:pb-0">
+                  <dt className="flex items-center gap-3 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <fact.icon className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    <span>{fact.label}</span>
+                  </dt>
+                  <dd className="ml-12 mt-1 text-sm font-semibold text-foreground">{fact.value}</dd>
+                  <dd className="ml-12 mt-1 text-sm leading-5 text-muted-foreground">{fact.body}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
+function EdEligibilitySection() {
+  return (
+    <section id="eligibility" className="py-14 sm:py-16">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-7 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
+          <Reveal instant>
+            <SectionPill>Eligibility</SectionPill>
+            <Heading level="h2" className="mt-4">A focused starting point for ED concerns</Heading>
+            <p className="mt-3 text-base leading-7 text-muted-foreground">
+              {FORM_FIRST_WEDGE} The form gives the doctor the information needed to decide whether remote assessment is suitable.
+            </p>
+          </Reveal>
+          <Reveal instant>
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {ELIGIBILITY_ITEMS.map((item) => (
+                <li key={item} className="flex gap-3 rounded-2xl border border-border/50 bg-white p-4 text-sm leading-6 text-muted-foreground shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </Reveal>
         </div>
       </div>
+    </section>
+  )
+}
+
+function EdSafetyDecisionMap() {
+  return (
+    <section id="decision-map" aria-labelledby="ed-decision-map-title" className="bg-muted/30 py-14 dark:bg-white/[0.02] sm:py-16 lg:py-20">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <Reveal instant className="mx-auto max-w-3xl text-center">
+          <SectionPill>Safety decision map</SectionPill>
+          <Heading id="ed-decision-map-title" level="h2" className="mt-4">The doctor reviews the whole picture</Heading>
+          <p className="mt-3 text-base leading-7 text-muted-foreground">
+            One answer does not decide the outcome. The pattern, cardiovascular context, medicine safety, and red flags are considered together.
+          </p>
+        </Reveal>
+
+        <figure
+          data-art-direction="ed-safety-decision-map"
+          aria-labelledby="ed-decision-map-title"
+          aria-describedby="ed-decision-map-warning"
+          className="mt-9 overflow-hidden rounded-2xl border border-border/50 bg-white shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none"
+        >
+          <div className="grid min-w-0 lg:grid-cols-[minmax(0,1.1fr)_minmax(13rem,0.62fr)_minmax(0,0.95fr)]">
+            <div className="min-w-0 p-5 sm:p-6">
+              <div className="flex items-center justify-between gap-3 border-b border-border/50 pb-4">
+                <Heading level="h3">Your private safety screen</Heading>
+                <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary-strong dark:text-primary">Four signals</span>
+              </div>
+              <ol className="divide-y divide-border/50">
+                {ED_DECISION_SIGNALS.map((signal, index) => (
+                  <li key={signal.title} className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] gap-3 py-4">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted/70 text-primary dark:bg-white/[0.06]">
+                      <signal.icon className="h-5 w-5" aria-hidden="true" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground"><span className="mr-2 text-muted-foreground" aria-hidden="true">{index + 1}.</span>{signal.title}</p>
+                      <p className="mt-1 text-sm leading-6 text-muted-foreground">{signal.body}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="flex min-w-0 flex-col items-center justify-center border-y border-border/50 bg-[color:var(--morning-ivory)]/70 p-5 text-center dark:border-white/10 dark:bg-white/[0.04] lg:border-x lg:border-y-0">
+              <ArrowRight className="mb-3 h-5 w-5 rotate-90 text-primary lg:rotate-0" aria-hidden="true" />
+              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm shadow-primary/20">
+                <Stethoscope className="h-6 w-6" aria-hidden="true" />
+              </span>
+              <Heading level="h3" className="mt-4">Doctor review</Heading>
+              <p className="mt-2 max-w-xs text-sm leading-6 text-muted-foreground">
+                {DOCTOR_REGISTRATION_CLAIM} The doctor weighs the combined clinical picture before any prescribing decision.
+              </p>
+              <ArrowRight className="mt-3 h-5 w-5 rotate-90 text-primary lg:rotate-0" aria-hidden="true" />
+            </div>
+
+            <div className="min-w-0 p-5 sm:p-6">
+              <Heading level="h3">Possible next steps</Heading>
+              <ul className="mt-4 divide-y divide-border/50">
+                {ED_DECISION_OUTCOMES.map((outcome) => (
+                  <li key={outcome.title} className="flex gap-3 py-4 first:pt-0 last:pb-0">
+                    <outcome.icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{outcome.title}</p>
+                      <p className="mt-1 text-sm leading-6 text-muted-foreground">{outcome.body}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <figcaption id="ed-decision-map-warning" role="note" className="border-t border-border/50 bg-muted/30 px-5 py-4 text-sm leading-6 text-muted-foreground dark:border-white/10 dark:bg-white/[0.03] sm:px-6">
+            <span className="font-semibold text-foreground">Safety answers can change the care route.</span>{" "}
+            The doctor may ask for non-urgent clarification, decline the online request, or recommend GP, sexual-health, or cardiovascular follow-up. The urgent-care boundary is set out next.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+  )
+}
+
+function ScopeCard({ icon: Icon, title, body }: { icon: LucideIcon; title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none">
+      <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
+      <Heading level="h3" className="mt-3 text-base">{title}</Heading>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
     </div>
   )
 }
 
-function SectionShell({
-  id,
-  pill,
-  title,
-  intro,
-  children,
-  muted = false,
-}: {
-  id: string
-  pill: string
-  title: string
-  intro?: string
-  children: ReactNode
-  muted?: boolean
-}) {
+function EdScopeBoundarySection() {
   return (
-    <section
-      id={id}
-      className={cn("bg-background py-14 sm:py-16 lg:py-20", muted && "bg-muted/30 dark:bg-white/[0.02]")}
-    >
+    <section id="red-flags" className="py-14 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-3xl text-center">
-          <SectionPill>{pill}</SectionPill>
-          <Heading level="h2" className="mt-4">
-            {title}
-          </Heading>
-          {intro ? <p className="mt-3 text-base leading-7 text-muted-foreground">{intro}</p> : null}
-        </Reveal>
-        <div className="mt-9">{children}</div>
-      </div>
-    </section>
-  )
-}
-
-function EdGeoFactsBlock() {
-  return (
-    <section aria-labelledby="ed-facts" className="px-4 py-12 sm:px-6">
-      <div className="mx-auto max-w-5xl">
-        <h2 id="ed-facts" className="text-2xl font-semibold tracking-tight text-foreground">
-          Key facts about ED assessment
-        </h2>
-        <dl className="mt-6 grid gap-4 sm:grid-cols-2">
-          {ED_GEO_FACTS.map((fact) => (
-            <div
-              key={fact.term}
-              className="rounded-xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
-            >
-              <dt className="font-medium text-foreground">{fact.term}</dt>
-              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{fact.detail}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </section>
-  )
-}
-
-function VisualTextIndex({ visuals }: { visuals: RenderableArticleVisual[] }) {
-  return (
-    <div className="mt-8 grid gap-4 lg:grid-cols-3">
-      {visuals.map((visual) => (
-        <div
-          key={visual.id}
-          className="rounded-2xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
-        >
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-primary">{visual.eyebrow}</p>
-          <Heading level="h3" className="mt-2 text-base">
-            {visual.title}
-          </Heading>
-          <ul className="mt-4 space-y-3">
-            {visual.items.map((item) => (
-              <li key={`${visual.id}-${item.label}`} className="text-sm leading-6 text-muted-foreground">
-                <span className="font-medium text-foreground">{item.label}:</span> {item.detail}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-4 text-xs font-medium text-muted-foreground">
-            {visual.kind === "warning" ? "Educational guide. Urgent symptoms need urgent care." : "Educational guide."}
+          <SectionPill>Scope and red flags</SectionPill>
+          <Heading level="h2" className="mt-4">Know when this pathway stops</Heading>
+          <p className="mt-3 text-base leading-7 text-muted-foreground">
+            This is a bounded ED review, not an emergency service, a full sexual-health clinic, or a guarantee of prescription medicine.
           </p>
+        </Reveal>
+
+        <Reveal instant className="mt-8 rounded-2xl border border-rose-200 bg-rose-50 p-5 dark:border-rose-800 dark:bg-rose-950/20 sm:p-6">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-600" aria-hidden="true" />
+            <div>
+              <Heading level="h3" className="text-base">Do not wait for the online form</Heading>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Call 000 for chest pain, severe breathlessness, collapse, or stroke symptoms. Seek urgent care for an erection lasting more than 4 hours, a painful erection, penile injury, or sudden severe genital pain. Chest-pain medicines, unstable heart symptoms, or uncertainty about current medicines need a safer clinical route before any ED prescribing decision.
+              </p>
+            </div>
+          </div>
+        </Reveal>
+
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          {SCOPE_ITEMS.map((item) => <ScopeCard key={item.title} {...item} />)}
         </div>
-      ))}
-    </div>
+      </div>
+    </section>
   )
 }
 
-export function ErectileDysfunctionLanding({ visuals }: { visuals: RenderableArticleVisual[] }) {
+function EdReviewCostOutcomeSection({ isDisabled, onStart }: { isDisabled: boolean; onStart: () => void }) {
   return (
-    <LandingPageShell
-      config={LANDING_CONFIG}
-      afterFooter={<ContentHubLinks service="ed" />}
-    >
+    <section id="how-it-works" className="bg-muted/30 py-14 dark:bg-white/[0.02] sm:py-16 lg:py-20">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <Reveal instant className="mx-auto max-w-3xl text-center">
+          <SectionPill>Process, outcome, and cost</SectionPill>
+          <Heading level="h2" className="mt-4">One review path, with the fee clear</Heading>
+          <p className="mt-3 text-base leading-7 text-muted-foreground">
+            Complete the form, let the doctor review the safety picture, then receive the clinically appropriate next step.
+          </p>
+        </Reveal>
+
+        <ol className="mt-8 grid gap-4 lg:grid-cols-3">
+          {REVIEW_STEPS.map((step) => (
+            <li key={step.number} className="rounded-2xl border border-border/50 bg-white p-5 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none">
+              <span className="text-xs font-semibold tracking-[0.12em] text-primary">{step.number}</span>
+              <Heading level="h3" className="mt-3 text-base">{step.title}</Heading>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.body}</p>
+            </li>
+          ))}
+        </ol>
+
+        <Reveal instant className="mt-5 overflow-hidden rounded-2xl border border-primary/25 bg-white shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none">
+          <dl className="grid divide-y divide-border/50 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            <div className="p-5">
+              <dt className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Doctor review</dt>
+              <dd className="mt-2 text-xl font-semibold text-foreground">{PRICING_DISPLAY.MENS_HEALTH}</dd>
+              <dd className="mt-1 text-sm leading-6 text-muted-foreground">One-off fee, shown before checkout.</dd>
+            </div>
+            <div className="p-5">
+              <dt className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">If declined</dt>
+              <dd className="mt-2 text-base font-semibold text-foreground">Full refund</dd>
+              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{GUARANTEE}</dd>
+            </div>
+            <div className="p-5">
+              <dt className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">If prescribed</dt>
+              <dd className="mt-2 text-base font-semibold text-foreground">Medicine cost is separate</dd>
+              <dd className="mt-1 text-sm leading-6 text-muted-foreground">Pharmacy price may vary with PBS status, brand, and pharmacy pricing.</dd>
+            </div>
+          </dl>
+          <div className="border-t border-border/50 p-5 text-center">
+            <Button asChild size="lg" disabled={isDisabled} onClick={onStart}>
+              <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
+                {isDisabled ? "Contact us" : "Start the secure form"}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
+function EdAlternativesSection() {
+  return (
+    <section className="py-14 sm:py-16">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <Reveal instant className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <SectionPill>Other routes</SectionPill>
+            <Heading level="h2" className="mt-4">If ED assessment is not the right fit</Heading>
+          </div>
+          <p className="max-w-md text-sm leading-6 text-muted-foreground">Choose the pathway that matches the problem you need help with today.</p>
+        </Reveal>
+        <div className="mt-7 grid gap-4 md:grid-cols-3">
+          {ALTERNATIVES.map((item) => (
+            <Link key={item.href} href={item.href} className="group rounded-2xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] transition-colors hover:border-primary/30 dark:border-white/15 dark:bg-card dark:shadow-none">
+              <Heading level="h3" className="text-base">{item.title}</Heading>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.body}</p>
+              <span className="mt-4 inline-flex items-center text-sm font-medium text-primary">Read more<ArrowRight className="ml-1 h-3.5 w-3.5" aria-hidden="true" /></span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function EdSourcesSection() {
+  return (
+    <section className="bg-muted/30 py-10 dark:bg-white/[0.02] sm:py-12">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
+          <Reveal instant>
+            <SectionPill>References</SectionPill>
+            <Heading level="h2" className="mt-4 text-balance">Australian safety sources</Heading>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">Reviewed against patient and telehealth guidance. Last reviewed June 2026.</p>
+          </Reveal>
+          <Reveal instant>
+            <ul className="divide-y divide-border/50 rounded-2xl border border-border/50 bg-white px-5 dark:border-white/15 dark:bg-card">
+              {SOURCES.map((source) => (
+                <li key={source.href} className="py-3">
+                  <a href={source.href} target="_blank" rel="noreferrer" className="inline-flex items-center text-sm font-medium text-primary hover:underline">
+                    {source.title}<ArrowRight className="ml-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function EdFinalCta({ isDisabled, onStart }: { isDisabled: boolean; onStart: () => void }) {
+  return (
+    <section className="py-14 sm:py-16 lg:py-20">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <Reveal className="rounded-3xl border border-border/50 bg-white p-7 text-center shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-9">
+          <SectionPill>Start privately</SectionPill>
+          <Heading level="h2" className="mt-4">Request an ED assessment</Heading>
+          <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
+            Complete the secure form. An AHPRA-registered doctor reviews your answers and decides whether online care is appropriate.
+          </p>
+          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button asChild size="lg" className="w-full sm:w-auto" disabled={isDisabled} onClick={onStart}>
+              <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
+                {isDisabled ? "Contact us" : `Request assessment - ${PRICING_DISPLAY.MENS_HEALTH}`}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+              <Link href="#red-flags">Review the safety boundary</Link>
+            </Button>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
+export function ErectileDysfunctionLanding() {
+  return (
+    <LandingPageShell config={LANDING_CONFIG}>
       {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <div className="bg-background text-foreground">
-          <section className="relative overflow-hidden bg-background pb-14 pt-10 sm:pt-14 lg:pb-20 lg:pt-20">
-            <div
-              aria-hidden="true"
-              className="absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_20%_20%,rgba(186,212,245,0.30),transparent_34%),radial-gradient(circle_at_80%_10%,rgba(245,198,160,0.20),transparent_30%)]"
-            />
-            <div className="relative mx-auto grid min-w-0 grid-cols-1 max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8">
-              <Reveal instant className="min-w-0 max-w-2xl">
-                <SectionPill>Men's health</SectionPill>
-                <Heading level="display" className="mt-5">
-                  Erectile dysfunction assessment online Australia
-                </Heading>
-                <p data-speakable className="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-                  Start with a private safety screen for ED concerns. An Australian doctor reviews your answers and decides whether online care is clinically appropriate.
-                </p>
-
-                <div ref={heroCTARef} className="mt-7 flex flex-col gap-3 sm:flex-row">
-                  <Button
-                    asChild
-                    size="lg"
-                    className="h-auto min-h-12 w-full whitespace-normal py-3 text-center shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 sm:w-auto"
-                    disabled={isDisabled}
-                    onClick={handleHeroCTA}
-                  >
-                    <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
-                      {isDisabled ? "Contact us" : "Start ED assessment"}
-                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                    </Link>
-                  </Button>
-                  <Button asChild size="lg" variant="outline" className="h-auto min-h-12 w-full whitespace-normal py-3 text-center sm:w-auto">
-                    <Link href="#red-flags">Check red flags first</Link>
-                  </Button>
-                </div>
-
-                <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
-                  {GUARANTEE} Prescription is not guaranteed. The doctor may call or message you before deciding.
-                </p>
-              </Reveal>
-
-              <Reveal instant className="min-w-0">
-                <div className="rounded-3xl border border-border/50 bg-white p-6 shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none">
-                  <div className="flex items-start gap-3 rounded-2xl bg-muted/40 p-4 dark:bg-white/[0.04]">
-                    <Lock className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-primary">
-                        Practical answer
-                      </p>
-                      <Heading level="h2" as="h2" className="mt-2">
-                        What matters before you start
-                      </Heading>
-                    </div>
-                  </div>
-                  <div className="mt-5 divide-y divide-border/50">
-                    {HERO_FACTS.map((fact) => (
-                      <div key={fact.label} className="flex gap-3 py-4 first:pt-0 last:pb-0">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                          <fact.icon className="h-4 w-4" aria-hidden="true" />
-                        </span>
-                        <div>
-                          <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                            {fact.label}
-                          </p>
-                          <p className="mt-1 text-base font-semibold text-foreground">{fact.value}</p>
-                          <p className="mt-1 text-sm leading-6 text-muted-foreground">{fact.body}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Reveal>
-            </div>
-          </section>
-
-          <EdGeoFactsBlock />
-
-          <SectionShell
-            id="how-it-works"
-            pill="How it works"
-            title="A structured assessment, not a medicine menu"
-            intro={`${FORM_FIRST_WEDGE} The purpose is to give the doctor enough information to decide whether remote ED care is safe enough, not to bypass clinical review.`}
-          >
-            <div className="grid gap-4 lg:grid-cols-4">
-              {HOW_IT_WORKS.map((step, index) => (
-                <Reveal key={step.title} delay={index * 0.05}>
-                  <div className="h-full rounded-2xl border border-border/50 bg-white p-5 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                      {index + 1}
-                    </span>
-                    <Heading level="h3" className="mt-4 text-base">
-                      {step.title}
-                    </Heading>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.body}</p>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-            <div className="mt-7 text-center">
-              <Button asChild size="lg" disabled={isDisabled} onClick={handleHowItWorksCTA}>
-                <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
-                  {isDisabled ? "Contact us" : "Start the secure form"}
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </Button>
-            </div>
-          </SectionShell>
-
-          <SectionShell
-            id="eligibility"
-            pill="Eligibility"
-            title="Who this online ED assessment is designed for"
-            intro="ED is common, but it can be connected with heart, blood-vessel, hormone, medicine, mental-health, and relationship factors. Online review is only reasonable when the safety screen is complete and low-risk enough."
-            muted
-          >
-            <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-2xl border border-emerald-200 bg-white p-6 shadow-md shadow-primary/[0.06] dark:border-emerald-800 dark:bg-card dark:shadow-none">
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-600" aria-hidden="true" />
-                  <Heading level="h3">Usually a reasonable starting point</Heading>
-                </div>
-                <ul className="mt-5 space-y-3">
-                  {SUITABLE_ITEMS.map((item) => (
-                    <li key={item} className="flex gap-3 text-sm leading-6 text-muted-foreground">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-2xl border border-amber-200 bg-white p-6 shadow-md shadow-primary/[0.06] dark:border-amber-800 dark:bg-card dark:shadow-none">
-                <div className="flex items-center gap-3">
-                  <AlertTriangle className="h-5 w-5 text-amber-600" aria-hidden="true" />
-                  <Heading level="h3">Use in-person care instead</Heading>
-                </div>
-                <ul className="mt-5 space-y-3">
-                  {NOT_COVERED_ITEMS.map((item) => (
-                    <li key={item} className="flex gap-3 text-sm leading-6 text-muted-foreground">
-                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden="true" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </SectionShell>
-
-          <SectionShell
-            id="clinical-context"
-            pill="Clinical context"
-            title="ED can be a symptom, not just a sex problem"
-            intro="The useful assessment is broader than whether an erection medicine exists. The doctor needs enough clinical signal to decide whether online care is safe and whether another health issue needs attention."
-          >
-            <div className="grid gap-4 md:grid-cols-3">
-              {ED_CONTEXT.map((item, index) => (
-                <InfoCard
-                  key={item.title}
-                  icon={index === 0 ? HeartPulse : index === 1 ? ShieldCheck : Stethoscope}
-                  title={item.title}
-                  body={item.body}
-                />
-              ))}
-            </div>
-          </SectionShell>
-
-          <SectionShell
-            id="red-flags"
-            pill="Red flags"
-            title="Do not wait for an online form if these are present"
-            intro="These symptoms can indicate urgent heart, neurological, genital, or mental-health risk. Handle immediate safety first, then come back to routine online care later if appropriate."
-            muted
-          >
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 dark:border-rose-800 dark:bg-rose-950/20">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-600" aria-hidden="true" />
-                <div>
-                  <Heading level="h3" className="text-base">
-                    Seek urgent or in-person care
-                  </Heading>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Call 000 for chest pain, severe breathlessness, collapse, stroke symptoms, or a mental-health crisis. Seek urgent care for an erection lasting more than 4 hours, a painful erection, penile injury, sudden severe genital pain, blood in urine, or symptoms after trauma.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-              <InfoCard
-                icon={HeartPulse}
-                title="Why the boundary is strict"
-                body="Some ED patterns are early clues to cardiovascular disease, diabetes, medication effects, or mental-health stress. Some symptoms need examination or urgent care before any prescribing decision."
-              />
-              <div className="rounded-2xl border border-border/50 bg-white p-6 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none">
-                <Heading level="h3">Safety topics the doctor reviews</Heading>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {SAFETY_CHECKS.map((item) => (
-                    <div key={item} className="rounded-xl bg-muted/50 px-3 py-2 text-sm leading-6 text-muted-foreground dark:bg-white/[0.05]">
-                      {item}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </SectionShell>
-
-          <SectionShell
-            id="covered"
-            pill="Scope"
-            title="What is covered, and what stays outside this pathway"
-            intro="The safest ED page is clear about limits. This service supports a doctor review for ED concerns. It is not an emergency service, a full sexual-health clinic, or a guarantee of prescription medicine."
-          >
-            <div className="grid gap-4 md:grid-cols-3">
-              {COVERED_ITEMS.map((item) => (
-                <InfoCard key={item.title} icon={item.icon} title={item.title} body={item.body} />
-              ))}
-            </div>
-          </SectionShell>
-
-          <SectionShell
-            id="costs"
-            pill="Costs"
-            title="Doctor review, Medicare, PBS, and pharmacy costs"
-            intro={`The InstantMed review fee is ${PRICING_DISPLAY.MENS_HEALTH}. Medicare or suitable identity details are required for consultation and prescribing records. If the doctor approves a prescription, pharmacy pricing is separate and may depend on PBS listing, brand choice, and pharmacy pricing.`}
-            muted
-          >
-            <div className="grid gap-4 lg:grid-cols-3">
-              <InfoCard
-                icon={WalletCards}
-                title="Review fee"
-                body={`${PRICING_DISPLAY.MENS_HEALTH} for the online doctor review. ${GUARANTEE}`}
-              />
-              <InfoCard
-                icon={FileText}
-                title="Identity and records"
-                body="The form asks for details needed to support safe clinical records and electronic prescribing workflows where relevant."
-              />
-              <InfoCard
-                icon={ShieldCheck}
-                title="Pharmacy cost"
-                body="If approved, the pharmacy charges separately. PBS status and brand choice can affect the amount paid at the counter."
-              />
-            </div>
-          </SectionShell>
-
-          <SectionShell
-            id="visual-guide"
-            pill="Visual guide"
-            title="Three practical ways to think about ED suitability"
-            intro="These figures are educational. They explain why the doctor asks broader health questions, but they do not replace doctor review or urgent care when red flags are present."
-          >
-            <ArticleVisuals visuals={visuals} imageLoading="eager" />
-            <VisualTextIndex visuals={visuals} />
-          </SectionShell>
-
-          <SectionShell
-            id="alternatives"
-            pill="Alternatives"
-            title="If this is not the right pathway"
-            intro="Choose the route that matches the problem today. ED concerns sometimes point to another health issue that is better managed with a regular GP, urgent care, or a different InstantMed service."
-            muted
-          >
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {ALTERNATIVES.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="group rounded-2xl border border-border/50 bg-white p-5 shadow-md shadow-primary/[0.06] transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none"
-                >
-                  <Heading level="h3" className="text-base">
-                    {item.title}
-                  </Heading>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.body}</p>
-                  <span className="mt-4 inline-flex items-center text-sm font-medium text-primary">
-                    Read more
-                    <ArrowRight className="ml-1 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </SectionShell>
-
-          <SectionShell
-            id="expect"
-            pill="What to expect"
-            title="After you submit"
-            intro="The doctor reviews the details you provide. There are three honest outcomes: approval if clinically appropriate, contact for more information, or decline with redirection and refund."
-          >
-            <div className="grid gap-4 md:grid-cols-3">
-              {AFTER_SUBMIT.map((item) => (
-                <InfoCard key={item.title} icon={item.icon} title={item.title} body={item.body} />
-              ))}
-            </div>
-          </SectionShell>
-
-          <SectionShell
-            id="sources"
-            pill="Sources"
-            title="Sources and references"
-            intro="This page was reviewed against Australian patient information, telehealth guidance, PBS schedule navigation, electronic prescription guidance, and advertising rules. Last reviewed: 2026-06."
-            muted
-          >
-            <div className="grid gap-4 md:grid-cols-2">
-              {SOURCES.map((source) => (
-                <a
-                  key={source.href}
-                  href={source.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-2xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md hover:shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none"
-                >
-                  <p className="text-sm font-semibold text-foreground">{source.title}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{source.body}</p>
-                </a>
-              ))}
-            </div>
-          </SectionShell>
-
+          <EdHero isDisabled={isDisabled} heroCTARef={heroCTARef} onStart={handleHeroCTA} />
+          <EdEligibilitySection />
+          <EdSafetyDecisionMap />
+          <EdScopeBoundarySection />
+          <EdReviewCostOutcomeSection isDisabled={isDisabled} onStart={handleHowItWorksCTA} />
+          <EdAlternativesSection />
+          <EdSourcesSection />
           <FAQSection
             pill="FAQ"
             title="Erectile dysfunction assessment FAQ"
-            subtitle="Static answers for the common clinical, cost, privacy, and pathway questions before you start."
-            items={ED_FAQ}
+            subtitle="The key clinical, cost, privacy, and pathway questions before you start."
+            items={ED_LANDING_FAQ}
+            initialCount={6}
             onFAQOpen={handleFAQOpen}
+            viewAllHref="/faq"
             className="bg-background"
           />
-
-          <section className="py-14 sm:py-16 lg:py-20">
-            <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-              <Reveal className="rounded-3xl border border-border/50 bg-white p-7 text-center shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-9">
-                <SectionPill>Start privately</SectionPill>
-                <Heading level="h2" className="mt-4">
-                  Request an ED assessment
-                </Heading>
-                <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
-                  Complete the secure form. An AHPRA-registered doctor reviews your answers and decides whether online care is appropriate.
-                </p>
-                <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                  <Button asChild size="lg" className="w-full sm:w-auto" disabled={isDisabled} onClick={handleFinalCTA}>
-                    <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
-                      {isDisabled ? "Contact us" : `Request assessment - ${PRICING_DISPLAY.MENS_HEALTH}`}
-                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                    </Link>
-                  </Button>
-                  <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-                    <Link href="/blog/telehealth-safety-screening">Read about safety screening</Link>
-                  </Button>
-                </div>
-              </Reveal>
-            </div>
-          </section>
+          <EdFinalCta isDisabled={isDisabled} onStart={handleFinalCTA} />
         </div>
       )}
     </LandingPageShell>

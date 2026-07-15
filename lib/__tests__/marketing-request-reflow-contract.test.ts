@@ -44,12 +44,13 @@ describe("marketing and request reflow contract", () => {
 
   it("keeps pricing cards and their calls to action reflowable", () => {
     const pricing = read("app/pricing/pricing-content.tsx")
+    const decisions = read("components/marketing/service-decision-board.tsx")
 
-    expect(pricing).toContain("grid min-w-0 grid-cols-1 gap-6 md:grid-cols-3")
-    expect(pricing).toContain("relative min-w-0 rounded-2xl")
-    expect(pricing).toContain(
-      "w-full h-auto min-h-12 whitespace-normal rounded-xl py-3 text-center font-medium",
-    )
+    expect(pricing).toContain('<ServiceDecisionBoard id="pricing-cards"')
+    expect(decisions).toContain("grid min-w-0 grid-cols-1 gap-5 md:grid-cols-2")
+    expect(decisions).toContain("grid min-w-0 grid-cols-1 gap-5 md:grid-cols-3")
+    expect(decisions).toContain("flex min-w-0 flex-col rounded-2xl")
+    expect(decisions).toContain("h-auto min-h-12 w-full whitespace-normal py-3 text-center")
   })
 
   it("provides a shared emergency-width reflow floor", () => {
@@ -95,10 +96,10 @@ describe("marketing and request reflow contract", () => {
     expect(skipLink.match(/activateSkipTarget\(event,/g)).toHaveLength(2)
   })
 
-  it("stacks dense comparisons and keeps homepage service cards shrinkable", () => {
+  it("stacks dense comparisons and keeps the homepage route map shrinkable", () => {
     const timeComparison = read("components/marketing/sections/time-comparison-viz.tsx")
     const comparisonTable = read("components/sections/comparison-table.tsx")
-    const serviceCards = read("components/marketing/service-cards.tsx")
+    const routeMap = read("components/marketing/portfolio-route-map.tsx")
 
     expect(timeComparison).toContain(
       "flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between",
@@ -106,8 +107,9 @@ describe("marketing and request reflow contract", () => {
     expect(timeComparison).toContain("text-left sm:text-right")
     expect(comparisonTable.match(/grid-cols-3 sm:grid-cols-\[1fr_120px_120px\]/g)).toHaveLength(2)
     expect(comparisonTable.match(/px-2 min-\[241px\]:px-6/g)).toHaveLength(2)
-    expect(serviceCards).toContain("'group block h-full min-w-0 max-w-full'")
-    expect(serviceCards).toContain('<Reveal key={service.id} delay={i * 0.05} className="min-w-0">')
+    expect(routeMap).toContain("lg:grid-cols-[minmax(0,0.86fr)_auto_minmax(0,1.14fr)]")
+    expect(routeMap).toContain('className="min-w-0 flex-1"')
+    expect(routeMap).toContain("grid-cols-[auto_minmax(0,1fr)]")
   })
 
   it("moves each compact commercial link as one reflowable unit", () => {
@@ -146,38 +148,29 @@ describe("marketing and request reflow contract", () => {
 
   it("keeps the consult overview landmark and card tracks reflowable", () => {
     const consult = read("app/consult/page.tsx")
+    const decisions = read("components/marketing/service-decision-board.tsx")
 
     expect(consult).toContain(
-      '<main aria-label="Online doctor services" className="min-w-0 bg-background">',
+      '<main aria-label="Online doctor services" className="min-w-0 flex-1 bg-background">',
     )
-    expect(consult).toContain("grid min-w-0 grid-cols-1 gap-6 md:grid-cols-2")
-    expect(consult).toContain("grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2")
-    expect(consult).toMatch(/className="[^"\n]*min-w-0[^"\n]*p-4[^"\n]*min-\[241px\]:p-6[^"\n]*sm:p-8/)
-    expect(consult).toContain(
-      'className="flex flex-col items-start gap-3 sm:flex-row sm:gap-4"',
-    )
-    expect(consult).toContain("whitespace-normal h-auto min-h-12 py-3 text-center")
-    expect(consult).toContain(
-      "inline-flex max-w-full min-w-0 items-start gap-1 whitespace-normal",
-    )
-    expect(consult).toContain(
-      '<span className="min-w-0 [overflow-wrap:anywhere]">{service.guideLabel}</span>',
-    )
-    expect(consult).toContain('className="mt-0.5 h-3.5 w-3.5 shrink-0"')
+    expect(consult).toContain("<Hero")
+    expect(consult).toContain('<ServiceDecisionBoard id="services" className=')
+    expect(consult).not.toContain("showDetails")
+    expect(consult).not.toContain('from "next/image"')
+    expect(consult).not.toContain("/images/consult-1.webp")
+    expect(decisions).toContain("min-w-0 flex-1")
+    expect(decisions).toContain("h-auto min-h-12 w-full whitespace-normal py-3 text-center")
   })
 
   it("keeps fixed-size hero specimens stable under enlarged root text", () => {
     const medCertLanding = read("components/marketing/med-cert-landing.tsx")
     const medCertMockup = read("components/marketing/mockups/med-cert-hero-mockup.tsx")
-    const hairLossMockup = read("components/marketing/mockups/hair-loss-hero-mockup.tsx")
 
     expect(medCertLanding).toContain(
       'className="relative mt-12 shrink-0 self-center max-[240px]:hidden lg:mt-0"',
     )
     expect(medCertMockup).toContain('"w-[352px] xl:w-[384px]"')
     expect(medCertMockup).not.toContain('"w-[22rem] xl:w-[24rem]"')
-    expect(hairLossMockup).toContain('"w-[288px] xl:w-[320px]"')
-    expect(hairLossMockup).not.toContain('"w-72 xl:w-80"')
   })
 
   it("keeps the shared sticky call to action off-canvas when hidden", () => {
@@ -185,8 +178,8 @@ describe("marketing and request reflow contract", () => {
     const pricingSticky = read("app/pricing/pricing-sticky-cta.tsx")
 
     expect(sticky).toContain("initial={{}}")
-    expect(sticky).toContain('animate={{ y: show ? 0 : "100%" }}')
-    expect(sticky).toContain("duration: prefersReducedMotion ? 0 : 0.3")
+    expect(sticky).toContain('y: show ? 0 : "100%"')
+    expect(sticky).toContain('visibility: show ? "visible" : "hidden"')
     expect(sticky).toContain("inert={!show ? true : undefined}")
     expect(sticky).toContain("h-auto min-h-12 w-full whitespace-normal py-3 text-center")
     expect(sticky).toContain("min-w-0 break-words")

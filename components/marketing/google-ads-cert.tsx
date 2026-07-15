@@ -1,13 +1,11 @@
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { cn } from "@/lib/utils"
 
 /**
- * Google Ads Telehealth Certification badge.
+ * Google healthcare-advertising certification badge.
  *
- * InstantMed holds Google Ads Healthcare Provider certification (Account: 920-501-0513),
- * approved to advertise telehealth and healthcare services on Google Search.
- * Underlying certification class is the Online Pharmacy / Healthcare Provider
- * track; surface label uses "Telehealth Certified" to reflect product positioning
- * (we are a doctor-led telehealth service, not a pharmacy).
+ * InstantMed's Google Ads account is approved for Online Pharmacy Certification /
+ * healthcare promotion. This is advertising eligibility, not a clinical endorsement.
  *
  * Display rules:
  * - Renders inline with other certification logos (LegitScript)
@@ -22,6 +20,7 @@ interface GoogleAdsCertProps {
 
 export function GoogleAdsCert({ size = "sm", className }: GoogleAdsCertProps) {
   const isLarge = size === "md"
+  const qualification = getApprovedClaim("google_healthcare_ads_tooltip")
 
   return (
     <div
@@ -31,12 +30,14 @@ export function GoogleAdsCert({ size = "sm", className }: GoogleAdsCertProps) {
         isLarge ? "px-4 py-2.5" : "px-3 py-1.5",
         className,
       )}
-      title="Google Ads Healthcare Provider Certification"
+      aria-label={qualification}
+      role="img"
+      title={qualification}
     >
       {/* Google "G" multicolor logo */}
       <svg
         viewBox="0 0 24 24"
-        aria-label="Google"
+        aria-hidden="true"
         className="shrink-0"
         width={isLarge ? 22 : 18}
         height={isLarge ? 22 : 18}
@@ -64,7 +65,7 @@ export function GoogleAdsCert({ size = "sm", className }: GoogleAdsCertProps) {
           Google
         </p>
         <p className={cn("text-muted-foreground", isLarge ? "text-xs" : "text-[10px]")}>
-          Telehealth Certified
+          Online Pharmacy Certification
         </p>
       </div>
     </div>

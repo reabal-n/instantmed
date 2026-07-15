@@ -33,7 +33,6 @@ import { CertificateDownloadButton } from "@/components/patient/certificate-down
 import { CrossSellCard } from "@/components/patient/cross-sell-card"
 import { DocumentReadyReveal } from "@/components/patient/document-ready-reveal"
 import { EmailVerificationGate } from "@/components/patient/email-verification-gate"
-import { IntakeStatusListener } from "@/components/patient/intake-status-listener"
 import { IntakeStatusTracker } from "@/components/patient/intake-status-tracker"
 import {
   resolvePatientIntakeNextStep,
@@ -369,6 +368,10 @@ export function IntakeDetailClient({
   const [resendQueued, setResendQueued] = useState(false)
   const hasAutoRetriedPayment = useRef(false)
 
+  useEffect(() => {
+    setIntake(initialIntake)
+  }, [initialIntake])
+
   const service = intake.service as { name?: string; short_name?: string; type?: string } | undefined
   const isMedCert = (service?.type || "").toLowerCase().includes("cert")
   const serviceLabel = service?.short_name || service?.name || "Request"
@@ -376,11 +379,6 @@ export function IntakeDetailClient({
   const statusConfig = resolvePatientIntakeStatusConfig(intake)
   const statusNextStep = resolvePatientIntakeNextStep(intake)
   const StatusIcon = statusConfig.icon
-
-  const handleStatusChange = (newStatus: IntakeStatus) => {
-    setIntake((prev) => ({ ...prev, status: newStatus }))
-    router.refresh()
-  }
 
   const handleCancel = () => {
     setActionError(null)
@@ -414,7 +412,15 @@ export function IntakeDetailClient({
     setActionError(null)
     startTransition(async () => {
       const result = await retryPaymentForIntakeAction(intake.id)
-      if (!result.success) {
+      if (result.paymentRecoveryReason === "more_information_required") {
+        setIntake((previous) => ({
+          ...previous,
+          payment_recovery_reason: "more_information_required",
+          status: "checkout_failed",
+        }))
+        setActionError(null)
+        router.refresh()
+      } else if (!result.success) {
         setActionError(result.error || "We couldn't open secure checkout. Please try again in a moment or contact support.")
       } else if (!result.checkoutUrl) {
         setActionError("We couldn't open secure checkout. Please try again in a moment or contact support.")
@@ -422,7 +428,7 @@ export function IntakeDetailClient({
         window.location.href = result.checkoutUrl
       }
     })
-  }, [intake.id])
+  }, [intake.id, router])
 
   useEffect(() => {
     if (
@@ -468,7 +474,9 @@ export function IntakeDetailClient({
     })
   }
 
-  const canCancel = ["draft", "pending_payment", "checkout_failed"].includes(intake.status)
+  const canCancel =
+    !isMoreInformationRequiredRecovery &&
+    ["draft", "pending_payment", "checkout_failed"].includes(intake.status)
   const canResend = ["approved", "completed"].includes(intake.status) && intakeDocument
   const canRequestCorrection =
     ["approved", "completed"].includes(intake.status) &&
@@ -496,8 +504,6 @@ export function IntakeDetailClient({
 
   return (
     <div className="space-y-6">
-      <IntakeStatusListener intakeId={intake.id} currentStatus={intake.status} />
-
       <Button variant="ghost" asChild className="-ml-3">
         <Link href={PATIENT_DASHBOARD_HREF}>
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -792,9 +798,7 @@ export function IntakeDetailClient({
         {/* Live status tracker */}
         {showLiveTracker && (
           <IntakeStatusTracker
-            intakeId={intake.id}
             initialStatus={intake.status as IntakeStatus}
-            onStatusChange={handleStatusChange}
           />
         )}
 

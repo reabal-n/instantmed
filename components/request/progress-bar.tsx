@@ -25,9 +25,11 @@ export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarPro
           className="absolute left-3 right-3 top-4 h-1.5 overflow-hidden rounded-full bg-muted/70 sm:top-3.5"
         >
           <div
-            className="h-full rounded-full transition-[width] duration-300 ease-out motion-reduce:transition-none"
+            data-request-progress-fill="true"
+            className="h-full w-full rounded-full transition-transform duration-200 ease-out motion-reduce:transition-none"
             style={{
-              width: `${progressPercent}%`,
+              transform: `scaleX(${progressPercent / 100})`,
+              transformOrigin: "left center",
               background:
                 "linear-gradient(90deg, oklch(0.62 0.18 246), oklch(0.7 0.13 190), oklch(0.74 0.13 150))",
               boxShadow: "0 0 18px oklch(0.7 0.13 190 / 0.28)",

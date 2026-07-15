@@ -1,6 +1,5 @@
 "use client"
 
-import type { RealtimeChannel } from "@supabase/supabase-js"
 import {
   CheckCircle,
   Clock,
@@ -13,7 +12,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useMemo,useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { DashboardPageHeader } from "@/components/dashboard"
@@ -24,12 +23,10 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { buildPatientIntakeHref,PATIENT_INTAKES_HREF, REQUEST_HREF } from "@/lib/dashboard/routes"
 import type { PatientIntakeWithPatient } from "@/lib/data/intakes/types"
-import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
 
 interface IntakesClientProps {
   intakes: PatientIntakeWithPatient[]
-  patientId: string
   pagination?: {
     page: number
     total: number
@@ -39,15 +36,12 @@ interface IntakesClientProps {
 
 // Use shared status config - single source of truth
 
-export function IntakesClient({ intakes: initialIntakes, patientId, pagination }: IntakesClientProps) {
+export function IntakesClient({ intakes: initialIntakes, pagination }: IntakesClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [intakes, setIntakes] = useState<PatientIntakeWithPatient[]>(initialIntakes)
   const [activeTab, setActiveTab] = useState("all")
   const [isRefreshing, setIsRefreshing] = useState(false)
-  // Memoize Supabase client to prevent memory leak from constant recreation
-  const supabase = useMemo(() => createClient(), [])
-  
   // Server-side pagination
   const currentPage = pagination?.page ?? 1
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1
@@ -81,43 +75,6 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
     setIntakes(initialIntakes)
   }, [initialIntakes])
 
-  // Subscribe to real-time updates
-  useEffect(() => {
-    let channel: RealtimeChannel | null = null
-
-    const setupRealtimeSubscription = () => {
-      channel = supabase
-        .channel(`patient-intakes-${patientId}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "intakes",
-            filter: `patient_id=eq.${patientId}`,
-          },
-          (payload) => {
-            if (["UPDATE", "INSERT", "DELETE"].includes(payload.eventType)) {
-              // Re-read the server-owned patient projection. Never merge an
-              // unbounded realtime row into client state: it can contain
-              // internal payment-recovery fields that are not patient copy.
-              refreshIntakesRef.current?.()
-            }
-          }
-        )
-        .subscribe()
-    }
-
-    setupRealtimeSubscription()
-
-    // Cleanup on unmount
-    return () => {
-      if (channel) {
-        supabase.removeChannel(channel)
-      }
-    }
-  }, [supabase, patientId])
-  
   // Filter intakes by status
   const upcomingIntakes = intakes.filter(i => 
     ["paid", "in_review", "pending", "pending_info"].includes(i.status)

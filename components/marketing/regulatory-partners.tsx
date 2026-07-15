@@ -2,13 +2,30 @@ import Image from 'next/image'
 
 import { cn } from '@/lib/utils'
 
-const regulatoryPartners = [
-  { name: 'AHPRA', logo: '/logos/AHPRA.png', width: 80, height: 40 },
-  { name: 'TGA', logo: '/logos/TGA.png', width: 64, height: 38 },
-  { name: 'Medicare', logo: '/logos/medicare.png', width: 52, height: 16 },
-  // Text-only entries for partners without logo files
-  { name: 'Stripe', logo: null, width: 0, height: 0 },
-  { name: 'ADHA', logo: null, width: 0, height: 0 },
+const regulatoryContextItems = [
+  {
+    name: 'AHPRA',
+    logo: '/logos/AHPRA.png',
+    width: 80,
+    height: 40,
+    context: 'Registers health practitioners',
+  },
+  {
+    name: 'TGA',
+    logo: '/logos/TGA.png',
+    width: 64,
+    height: 38,
+    context: 'Regulates therapeutic goods',
+  },
+  {
+    name: 'Medicare',
+    logo: '/logos/medicare.png',
+    width: 52,
+    height: 16,
+    context: 'Australian health-program context',
+  },
+  { name: 'Stripe', logo: null, width: 0, height: 0, context: 'Payment infrastructure' },
+  { name: 'ADHA', logo: null, width: 0, height: 0, context: 'Digital-health infrastructure' },
 ]
 
 interface RegulatoryPartnersProps {
@@ -33,7 +50,7 @@ function ADHALogo({ className }: { className?: string }) {
   )
 }
 
-function LogoItem({ partner }: { partner: typeof regulatoryPartners[number] }) {
+function LogoItem({ item }: { item: typeof regulatoryContextItems[number] }) {
   // Single monochrome treatment: greyscale at 60% with a hover-to-100%
   // affordance so the row reads as a quiet compliance strip but rewards
   // attention. Bumped from opacity-40 which read as "washed out" in the
@@ -41,35 +58,43 @@ function LogoItem({ partner }: { partner: typeof regulatoryPartners[number] }) {
   const logoClass =
     "object-contain grayscale opacity-60 transition-[opacity,filter] duration-200 hover:opacity-100 hover:grayscale-0 dark:invert dark:opacity-50 dark:hover:opacity-90"
 
-  if (partner.name === 'Stripe') {
+  if (item.name === 'Stripe') {
     return <StripeLogo className={cn('text-muted-foreground', logoClass)} />
   }
-  if (partner.name === 'ADHA') {
+  if (item.name === 'ADHA') {
     return <ADHALogo className={cn('text-muted-foreground', logoClass)} />
   }
-  if (!partner.logo) return null
+  if (!item.logo) return null
 
   return (
     <Image
-      src={partner.logo}
-      alt={partner.name}
-      width={partner.width}
-      height={partner.height}
-      unoptimized
+      src={item.logo}
+      alt={item.name}
+      width={item.width}
+      height={item.height}
+      sizes={`${item.width}px`}
+      quality={85}
       style={{ height: 'auto' }}
       className={logoClass}
     />
   )
 }
 
+/**
+ * Kept under its established export name for call-site compatibility. This is
+ * a context strip, not a claim that the listed organisations endorse InstantMed.
+ */
 export function RegulatoryPartners({ className, exclude = [] }: RegulatoryPartnersProps) {
-  const visible = regulatoryPartners.filter((p) => !exclude.includes(p.name))
+  const visible = regulatoryContextItems.filter((item) => !exclude.includes(item.name))
 
   return (
     <div className={cn('py-6 sm:py-8', className)}>
-      {/* Label */}
       <p className="text-[10px] font-semibold text-muted-foreground text-center mb-4 uppercase tracking-[0.15em]">
-        Compliance stack
+        Regulatory and delivery context
+      </p>
+      <p className="mx-auto mb-5 max-w-2xl px-4 text-center text-xs leading-relaxed text-muted-foreground">
+        These organisations regulate practitioners or therapeutic goods, administer health programs,
+        or provide service infrastructure. Listed for context only; none endorses InstantMed.
       </p>
 
       {/* Static centered row - gap bumped from 8/12 to 10/16 so the
@@ -77,9 +102,9 @@ export function RegulatoryPartners({ className, exclude = [] }: RegulatoryPartne
           (brand-spine yhf6): "compliance logo row washed-out grey,
           cramped". */}
       <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 sm:gap-x-16 px-4">
-        {visible.map((partner) => (
-          <div key={partner.name} className="flex items-center shrink-0" title={partner.name}>
-            <LogoItem partner={partner} />
+        {visible.map((item) => (
+          <div key={item.name} className="flex items-center shrink-0" title={`${item.name}: ${item.context}`}>
+            <LogoItem item={item} />
           </div>
         ))}
       </div>

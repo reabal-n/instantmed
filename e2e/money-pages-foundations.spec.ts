@@ -641,6 +641,9 @@ test.describe("money-page responsive foundations", () => {
 
       const metrics = await progress.evaluate((nav) => {
         const navRect = nav.getBoundingClientRect()
+        const track = nav.querySelector<HTMLElement>('[data-request-progress-track="true"]')
+        const fill = nav.querySelector<HTMLElement>('[data-request-progress-fill="true"]')
+        const fillStyle = fill ? getComputedStyle(fill) : null
         const buttons = Array.from(
           nav.querySelectorAll<HTMLElement>('[data-request-progress-actionable="true"]'),
         ).map((button) => {
@@ -671,6 +674,15 @@ test.describe("money-page responsive foundations", () => {
           viewportWidth: document.documentElement.clientWidth,
           buttons,
           overlaps,
+          fill: fill && track && fillStyle
+            ? {
+                offsetWidth: fill.offsetWidth,
+                trackWidth: track.clientWidth,
+                inlineTransform: fill.style.transform,
+                transformOrigin: fillStyle.transformOrigin,
+                transitionProperty: fillStyle.transitionProperty,
+              }
+            : null,
         }
       })
 
@@ -678,6 +690,11 @@ test.describe("money-page responsive foundations", () => {
       expect(metrics.right).toBeLessThanOrEqual(metrics.viewportWidth + 1)
       expect(metrics.buttons.length).toBeGreaterThan(0)
       expect(metrics.overlaps).toEqual([])
+      expect(metrics.fill).not.toBeNull()
+      expect(metrics.fill?.offsetWidth).toBe(metrics.fill?.trackWidth)
+      expect(metrics.fill?.inlineTransform).toMatch(/^scaleX\([\d.]+\)$/)
+      expect(metrics.fill?.transformOrigin).toContain("0px")
+      expect(metrics.fill?.transitionProperty).toContain("transform")
       for (const button of metrics.buttons) {
         expect(Number.parseFloat(button.minWidth)).toBeGreaterThanOrEqual(48)
         expect(Number.parseFloat(button.minHeight)).toBeGreaterThanOrEqual(48)
@@ -1260,7 +1277,7 @@ test.describe("mobile sticky purchase foundations", () => {
 
     const sticky = page
       .locator("div.fixed.bottom-0")
-      .filter({ has: page.getByRole("link", { name: "Get started", exact: true }) })
+      .filter({ has: page.getByRole("link", { name: "Choose a service", exact: true }) })
       .last()
     await expect(sticky).toBeVisible()
     await expect
@@ -1287,7 +1304,7 @@ test.describe("mobile sticky purchase foundations", () => {
 
         const sticky = page
           .locator("div.fixed.bottom-0")
-          .filter({ has: page.getByRole("link", { name: "Get started", exact: true }) })
+          .filter({ has: page.getByRole("link", { name: "Choose a service", exact: true }) })
           .last()
         await expect(sticky).toBeVisible()
         await expect.poll(async () => {

@@ -495,7 +495,12 @@ for retired_mockup in \
   "components/marketing/mockups/consult.tsx" \
   "components/marketing/mockups/ed-hero-mockup.tsx" \
   "components/marketing/mockups/escript.tsx" \
+  "components/marketing/mockups/hair-loss-hero-mockup.tsx" \
   "components/marketing/mockups/how-it-works-steps.tsx" \
+  "components/marketing/compliance-marquee.tsx" \
+  "components/marketing/floating-card.tsx" \
+  "components/marketing/how-it-works.tsx" \
+  "components/marketing/service-cards.tsx" \
   "components/marketing/sections/certificate-preview-section.tsx" \
   "components/marketing/sections/how-it-works-section.tsx"
 do
@@ -528,10 +533,14 @@ for retired_funnel_section in \
   "components/marketing/sections/common-concerns-section.tsx" \
   "components/marketing/sections/consult-guide-section.tsx" \
   "components/marketing/sections/consult-limitations-section.tsx" \
+  "components/marketing/sections/escript-explainer-section.tsx" \
   "components/marketing/sections/expect-call-strip.tsx" \
   "components/marketing/sections/final-cta-section.tsx" \
   "components/marketing/sections/med-cert-guide-section.tsx" \
+  "components/marketing/sections/competitor-links-section.tsx" \
+  "components/marketing/sections/pricing-guide-section.tsx" \
   "components/marketing/sections/pricing-section.tsx" \
+  "components/marketing/sections/prescription-limitations-section.tsx" \
   "components/marketing/sections/specialised-consults-section.tsx"
 do
   if [[ -e "$retired_funnel_section" ]]; then

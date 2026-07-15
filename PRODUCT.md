@@ -18,14 +18,14 @@ AHPRA-registered doctors and admin operators reviewing cases, with role overlap 
 
 **Three words: calm, authoritative, crisp.**
 
-Voice model: an experienced GP explaining their service over coffee. Dry wit. Never stiff, never slangy. Not a startup, not a pharmacy chain, not a wellness app.
+Voice model: an experienced doctor explaining the service over coffee. Dry wit. Never stiff, never slangy. Not a startup, not a pharmacy chain, not a wellness app.
 
 Brand essence (from the design system): "Clarity emerging." Morning light. Good judgment. If it feels impressive but loud — kill it. If it resembles crypto or AI SaaS — kill it. If it feels like wellness marketing — kill it.
 
 **Emotional goals:**
-- Patient feels calm confidence: "I can sort this in 2 minutes and get on with my day"
+- Patient feels calm confidence: "I can start this in about 3 minutes and get on with my day"
 - Patient feels legitimacy: "This is proper medicine, not a workaround"
-- Patient feels relief: "I don't have to leave the house, and the doctor only contacts me if clinically needed"
+- Patient feels relief: "I can start from home, and a doctor may contact me if they need a key detail"
 - Never: urgency-as-pressure, clinical sterility, fintech aggression
 
 ### Aesthetic Direction

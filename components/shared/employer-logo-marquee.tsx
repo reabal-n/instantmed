@@ -56,8 +56,9 @@ function LogoRow({ logos, className }: { logos: typeof EMPLOYER_LOGOS; className
                 alt={logo.name}
                 width={96}
                 height={32}
+                sizes="80px"
                 unoptimized={logo.src.endsWith('.svg')}
-                className="object-contain h-6 w-auto opacity-65 grayscale transition-[opacity,filter] duration-300 hover:opacity-90 hover:grayscale-0 focus-visible:opacity-90 focus-visible:grayscale-0 dark:brightness-150 dark:contrast-75"
+                className="h-6 w-20 object-contain opacity-65 grayscale transition-[opacity,filter] duration-300 hover:opacity-90 hover:grayscale-0 focus-visible:opacity-90 focus-visible:grayscale-0 dark:brightness-150 dark:contrast-75"
               />
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
@@ -111,8 +112,9 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
                 alt={logo.name}
                 width={96}
                 height={32}
+                sizes="80px"
                 unoptimized={logo.src.endsWith('.svg')}
-                className="object-contain h-6 w-auto opacity-65 grayscale dark:brightness-150 dark:contrast-75"
+                className="h-6 w-20 object-contain opacity-65 grayscale dark:brightness-150 dark:contrast-75"
               />
             </div>
           ))}
