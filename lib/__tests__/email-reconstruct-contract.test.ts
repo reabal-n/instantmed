@@ -29,7 +29,8 @@ describe("email reconstruction contract", () => {
 
   it("returns patients to the owned checkout retry path without sending a second email", () => {
     expect(retryPaymentRouteSource).toContain("getRetryablePaymentIntakeId")
-    expect(retryPaymentRouteSource).toContain("paymentUrl: `${env.appUrl}/patient/intakes/${intakeId}?retry=true`")
+    expect(retryPaymentRouteSource).toContain("if (intakeRecovery.paymentSafetyLocked)")
+    expect(retryPaymentRouteSource).toContain("paymentUrl: `${env.appUrl}/patient/intakes/${intakeRecovery.intakeId}?retry=true`")
     expect(retryPaymentRouteSource).not.toContain("emailType: \"payment_retry\"")
     expect(retryPaymentRouteSource).not.toContain("PaymentRetryEmail")
     expect(retryPaymentRouteSource).not.toContain("payment_url: paymentUrl")

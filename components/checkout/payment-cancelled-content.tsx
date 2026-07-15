@@ -1,4 +1,4 @@
-import { ArrowLeft, Clock, CreditCard, House, Mail, RefreshCw, ShieldAlert, ShieldCheck, TriangleAlert, XCircle } from "lucide-react"
+import { AlertCircle, ArrowLeft, Clock, CreditCard, House, Mail, RefreshCw, ShieldAlert, ShieldCheck, TriangleAlert, XCircle } from "lucide-react"
 import Link from "next/link"
 
 import { DashboardCard } from "@/components/dashboard"
@@ -80,6 +80,39 @@ function CheckoutRecoveryNotice({ reason }: { reason: "payment_state_unresolved"
   )
 }
 
+function MoreInformationRequiredNotice() {
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center px-4">
+      <div className="mx-auto w-full max-w-lg">
+        <DashboardCard tier="elevated" padding="none" className="p-6 text-center sm:p-8">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-warning-light/30">
+            <AlertCircle className="h-8 w-8 text-warning" aria-hidden="true" />
+          </div>
+
+          <Heading level="h1" className="mb-3 !text-2xl">
+            We need a little more medical information before payment
+          </Heading>
+          <p className="mb-6 text-base leading-relaxed text-muted-foreground">
+            This saved request is missing a required medical answer, so it can’t continue to payment. Start a fresh secure form and answer every medical question again.
+          </p>
+
+          <div className="flex flex-col gap-3">
+            <Button asChild size="lg" className="h-12 w-full rounded-xl">
+              <Link href={REQUEST_HREF}>Start a fresh request</Link>
+            </Button>
+            <Button variant="outline" asChild className="h-12 w-full rounded-xl bg-transparent">
+              <a href={`mailto:${CONTACT_EMAIL}`}>
+                <Mail className="mr-2 h-4 w-4" aria-hidden="true" />
+                Contact support
+              </a>
+            </Button>
+          </div>
+        </DashboardCard>
+      </div>
+    </div>
+  )
+}
+
 export function PaymentCancelledContent({
   intakeId,
   reason,
@@ -87,6 +120,10 @@ export function PaymentCancelledContent({
 }: PaymentCancelledContentProps) {
   if (reason === "safety_blocked" || reason === "payment_state_unresolved") {
     return <CheckoutRecoveryNotice reason={reason} />
+  }
+
+  if (reason === "more_information_required") {
+    return <MoreInformationRequiredNotice />
   }
 
   const resumeHref = resumeToken ? `/resume/${encodeURIComponent(resumeToken)}` : null

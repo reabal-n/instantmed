@@ -237,6 +237,14 @@ describe("project docs drift contract", () => {
     expect(wikiArchitecture).toContain(`| SQL migrations under \`supabase/migrations/\` | ${migrations.length} |`)
   })
 
+  it("documents missing-information payment recovery without inventing a lifecycle state", () => {
+    expect(architecture).toContain("| `checkout_failed` | `pending_payment`, `paid`, `cancelled` |")
+    expect(architecture).toContain("`safety_missing_required_information`")
+    expect(architecture).toContain("/checkout/cancelled?reason=more_information_required")
+    expect(architecture).toContain("`payment_recovery_reason = more_information_required`")
+    expect(architecture).toContain("raw `checkout_error` is not serialized")
+  })
+
   it("keeps archived plan basenames out of the active plan root", () => {
     const activePlanNames = readdirSync(join(root, "docs/plans"), { withFileTypes: true })
       .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))

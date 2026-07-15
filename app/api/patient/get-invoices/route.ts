@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 
 import { getApiAuth } from "@/lib/auth/helpers"
+import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
+import { derivePatientPaymentRecoveryReason } from "@/lib/patient/payment-recovery"
+import { isPaymentSafetyLock } from "@/lib/stripe/payment-safety-lock"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export async function GET(_request: Request) {
@@ -21,7 +24,7 @@ export async function GET(_request: Request) {
 
     const { data: intakes, error: intakeError } = await supabase
       .from("intakes")
-      .select("id, reference_number, category, subtype, service:services!service_id(name, short_name)")
+      .select("id, reference_number, category, subtype, checkout_error, service:services!service_id(name, short_name)")
       .eq("patient_id", authResult.profile.id)
 
     if (!intakeError) {
@@ -54,6 +57,9 @@ export async function GET(_request: Request) {
               status: mapStatus(payment.status),
               description: serviceName,
               payment_method: payment.currency?.toUpperCase(),
+              payment_recovery_reason: derivePatientPaymentRecoveryReason(intake?.checkout_error),
+              payment_retry_blocked: isPaymentSafetyLock(intake?.checkout_error),
+              request_href: intake ? buildPatientIntakeHref(intake.id) : null,
             }
           }),
         })
@@ -82,6 +88,9 @@ export async function GET(_request: Request) {
         status: mapStatus(invoice.status),
         description: invoice.description || undefined,
         payment_method: invoice.currency?.toUpperCase(),
+        payment_recovery_reason: null,
+        payment_retry_blocked: false,
+        request_href: null,
       })),
     })
   } catch (_error) {

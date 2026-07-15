@@ -4,7 +4,10 @@ import { ChevronRight,FileText, Pill } from "lucide-react"
 import Link from "next/link"
 import type { MouseEvent } from "react"
 
-import { type Intake, resolveStatusConfig } from "@/components/patient/intake-types"
+import {
+  type Intake,
+  resolvePatientIntakeStatusConfig,
+} from "@/components/patient/intake-types"
 import { Badge } from "@/components/ui/badge"
 import { formatDate } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -18,7 +21,7 @@ export function IntakeCard({
   href: string
   onClick?: (event: MouseEvent<HTMLAnchorElement>) => void
 }) {
-  const config = resolveStatusConfig(intake.status)
+  const config = resolvePatientIntakeStatusConfig(intake)
   const Icon = config.icon
   const isReady = intake.document_ready === true
 

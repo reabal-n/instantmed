@@ -9,6 +9,7 @@ import { DashboardHero } from "@/components/patient/dashboard-hero"
 import { type Intake } from "@/components/patient/intake-types"
 import { type ProfileData, type TodoDrawerType } from "@/components/patient/profile-todo-card"
 import { capture } from "@/lib/analytics/capture"
+import { isMoreInformationRequiredPaymentRecovery } from "@/lib/patient/payment-recovery"
 import { needsRenewalSoon } from "@/lib/prescriptions"
 
 const DrawerPanel = dynamic(
@@ -172,12 +173,20 @@ export function PanelDashboard({
     [prescriptions],
   )
 
-  // Failed checkout is immediately recoverable; pending_payment becomes stale
-  // after 1 hour. Hero's "stale-payment" state owns the patient prompt.
+  const moreInformationRequiredIntakes = useMemo(
+    () => intakes.filter(isMoreInformationRequiredPaymentRecovery),
+    [intakes],
+  )
+
+  // Ordinary failed checkout is immediately recoverable; pending_payment
+  // becomes stale after 1 hour. Missing-information holds are not payment
+  // failures and have their own hero state.
   const stalePaymentIntakes = useMemo(
     () =>
       intakes.filter((r) => {
-        if (r.status === "checkout_failed") return true
+        if (r.status === "checkout_failed") {
+          return !isMoreInformationRequiredPaymentRecovery(r)
+        }
         if (r.status !== "pending_payment") return false
         const createdAt = new Date(r.created_at)
         return createdAt < new Date(Date.now() - 60 * 60 * 1000)
@@ -193,6 +202,7 @@ export function PanelDashboard({
   const hasLiveReview = intakes.some(
     (i) => i.status === "paid" || i.status === "in_review",
   )
+  const hasMoreInformationRequired = moreInformationRequiredIntakes.length > 0
   const hasStalePayment = stalePaymentIntakes.length > 0
   const hasRenewalDue = prescriptions.some(
     (p) => p.status === "active" && needsRenewalSoon(p.expiry_date),
@@ -214,6 +224,7 @@ export function PanelDashboard({
     !hasDoctorQuestion &&
     !hasReadyDoc &&
     !hasLiveReview &&
+    !hasMoreInformationRequired &&
     !hasStalePayment &&
     !hasRenewalDue &&
     isProfileIncomplete
@@ -223,10 +234,17 @@ export function PanelDashboard({
     capture("patient_dashboard_viewed", {
       total_requests: intakes.length,
       pending_requests: pendingIntakes.length,
+      information_required_requests: moreInformationRequiredIntakes.length,
       stale_payment_requests: stalePaymentIntakes.length,
       active_prescriptions: activeRxCount,
     })
-  }, [intakes.length, pendingIntakes.length, stalePaymentIntakes.length, activeRxCount])
+  }, [
+    activeRxCount,
+    intakes.length,
+    moreInformationRequiredIntakes.length,
+    pendingIntakes.length,
+    stalePaymentIntakes.length,
+  ])
 
   const handleViewIntake = (event: MouseEvent<HTMLAnchorElement>, intake: Intake) => {
     if (["approved", "completed"].includes(intake.status)) {

@@ -23,12 +23,12 @@ import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { buildPatientIntakeHref,PATIENT_INTAKES_HREF, REQUEST_HREF } from "@/lib/dashboard/routes"
+import type { PatientIntakeWithPatient } from "@/lib/data/intakes/types"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
-import type { IntakeWithPatient } from "@/types/db"
 
 interface IntakesClientProps {
-  intakes: IntakeWithPatient[]
+  intakes: PatientIntakeWithPatient[]
   patientId: string
   pagination?: {
     page: number
@@ -42,7 +42,7 @@ interface IntakesClientProps {
 export function IntakesClient({ intakes: initialIntakes, patientId, pagination }: IntakesClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [intakes, setIntakes] = useState<IntakeWithPatient[]>(initialIntakes)
+  const [intakes, setIntakes] = useState<PatientIntakeWithPatient[]>(initialIntakes)
   const [activeTab, setActiveTab] = useState("all")
   const [isRefreshing, setIsRefreshing] = useState(false)
   // Memoize Supabase client to prevent memory leak from constant recreation
@@ -77,6 +77,10 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
     return refreshIntakesRef.current?.()
   }, [])
 
+  useEffect(() => {
+    setIntakes(initialIntakes)
+  }, [initialIntakes])
+
   // Subscribe to real-time updates
   useEffect(() => {
     let channel: RealtimeChannel | null = null
@@ -93,23 +97,11 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
             filter: `patient_id=eq.${patientId}`,
           },
           (payload) => {
-            if (payload.eventType === "UPDATE") {
-              // Update the specific intake in state
-              setIntakes((prev) =>
-                prev.map((intake) =>
-                  intake.id === payload.new.id
-                    ? { ...intake, ...payload.new }
-                    : intake
-                )
-              )
-            } else if (payload.eventType === "INSERT") {
-              // Add new intake to state - refresh to get full data with relations
+            if (["UPDATE", "INSERT", "DELETE"].includes(payload.eventType)) {
+              // Re-read the server-owned patient projection. Never merge an
+              // unbounded realtime row into client state: it can contain
+              // internal payment-recovery fields that are not patient copy.
               refreshIntakesRef.current?.()
-            } else if (payload.eventType === "DELETE") {
-              // Remove deleted intake from state
-              setIntakes((prev) =>
-                prev.filter((intake) => intake.id !== payload.old.id)
-              )
             }
           }
         )
@@ -260,6 +252,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
                     date={intake.created_at}
                     refId={intake.id.slice(0, 8).toUpperCase()}
                     status={intake.status}
+                    paymentRecoveryReason={intake.payment_recovery_reason}
                     icon={isPrescription ? Pill : FileText}
                     iconClassName={isPrescription ? "w-5 h-5 text-info" : "w-5 h-5 text-primary"}
                     iconContainerClassName={isPrescription ? "bg-info-light" : "bg-primary/10"}

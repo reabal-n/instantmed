@@ -49,6 +49,10 @@ const patientIntakeDrawerSource = readFileSync(
   join(process.cwd(), "components/patient/intake-detail-drawer.tsx"),
   "utf8",
 )
+const patientIntakeTypesSource = readFileSync(
+  join(process.cwd(), "components/patient/intake-types.ts"),
+  "utf8",
+)
 
 const supportSummaryButtonSource = readFileSync(
   join(process.cwd(), "components/patient/support-summary-button.tsx"),
@@ -197,10 +201,12 @@ describe("intake status source of truth", () => {
       expect(getPatientStatusNextStep(status)?.message, status).toBeTruthy()
     }
 
-    expect(patientIntakeClientSource).toContain("getPatientStatusNextStep")
+    expect(patientIntakeClientSource).toContain("resolvePatientIntakeNextStep")
     expect(patientIntakeClientSource).toContain("What happens next")
     expect(patientIntakeClientSource).toContain("Last update")
-    expect(patientIntakeDrawerSource).toContain("getPatientStatusNextStep")
+    expect(patientIntakeDrawerSource).toContain("resolvePatientIntakeNextStep")
     expect(patientIntakeDrawerSource).not.toContain("const WHATS_NEXT")
+    expect(patientIntakeTypesSource).toContain("getPatientStatusNextStep")
+    expect(patientIntakeTypesSource).toContain("isMoreInformationRequiredPaymentRecovery")
   })
 })

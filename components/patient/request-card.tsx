@@ -1,10 +1,11 @@
 import { Calendar, ChevronRight, Download, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 
+import { resolvePatientIntakeStatusConfig } from "@/components/patient/intake-types"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { INTAKE_STATUS, type IntakeStatus } from "@/lib/data/status"
 import { formatDate } from "@/lib/format"
+import type { PatientPaymentRecoveryReason } from "@/lib/patient/payment-recovery"
 import { cn } from "@/lib/utils"
 
 interface RequestCardProps {
@@ -13,6 +14,7 @@ interface RequestCardProps {
   date: string
   refId: string
   status: string
+  paymentRecoveryReason?: PatientPaymentRecoveryReason
   icon: LucideIcon
   iconClassName?: string
   iconContainerClassName?: string
@@ -24,11 +26,15 @@ export function RequestCard({
   date,
   refId,
   status,
+  paymentRecoveryReason,
   icon: Icon,
   iconClassName = "w-5 h-5 text-primary",
   iconContainerClassName = "bg-primary/10",
 }: RequestCardProps) {
-  const config = INTAKE_STATUS[status as IntakeStatus] || INTAKE_STATUS.pending
+  const config = resolvePatientIntakeStatusConfig({
+    status,
+    payment_recovery_reason: paymentRecoveryReason ?? null,
+  })
   const StatusIcon = config.icon
   const isReady = status === "approved" || status === "completed"
 

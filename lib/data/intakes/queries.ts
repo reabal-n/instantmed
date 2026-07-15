@@ -18,6 +18,7 @@ import { QUEUE_REVIEW_STATUSES } from "@/lib/doctor/queue-utils"
 import { detectRenewalsForIntakes, type IntakeRenewalProbe } from "@/lib/doctor/renewal-detection"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
+import { derivePatientPaymentRecoveryReason } from "@/lib/patient/payment-recovery"
 import { readAnswers, readDoctorNotes, readPatientNoteContent } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type {
@@ -38,7 +39,11 @@ import {
   ADMIN_LEDGER_SELECT,
   projectAdminLedgerPatient,
 } from "./admin-ledger-projection"
-import type { DashboardIntake, DashboardPrescription } from "./types"
+import type {
+  DashboardIntake,
+  DashboardPrescription,
+  PatientIntakeWithPatient,
+} from "./types"
 
 const logger = createLogger("data-intakes")
 
@@ -133,7 +138,7 @@ async function getDoctorQueueScope(
 export function getPatientIntakes(
   patientId: string,
   options?: { status?: IntakeStatus; page?: number; pageSize?: number }
-): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number }> {
+): Promise<{ data: PatientIntakeWithPatient[]; total: number; page: number; pageSize: number }> {
   const page = Math.max(1, Math.min(options?.page ?? 1, 1000))
   const pageSize = Math.min(options?.pageSize ?? 20, 100)
   const statusKey = options?.status ?? "all"
@@ -158,13 +163,13 @@ export function getPatientIntakes(
 
       if (countError) {
         logger.error("Error fetching patient intake count", {}, countError instanceof Error ? countError : new Error(String(countError)))
-        return { data: [] as unknown as IntakeWithPatient[], total: 0, page, pageSize }
+        return { data: [] as PatientIntakeWithPatient[], total: 0, page, pageSize }
       }
 
       // Build data query with service join for UI display
       let query = supabase
         .from("intakes")
-        .select(`id, patient_id, service_id, assigned_admin_id, reference_number, status, previous_status, category, subtype, claimed_by, claimed_at, reviewing_doctor_id, reviewing_doctor_name, review_started_at, is_priority, sla_deadline, sla_warning_sent, sla_breached, risk_score, risk_tier, risk_reasons, risk_flags, triage_result, triage_reasons, requires_live_consult, live_consult_reason, payment_id, payment_status, amount_cents, refund_amount_cents, stripe_payment_intent_id, stripe_customer_id, admin_notes, doctor_notes, doctor_notes_enc, decline_reason, escalation_notes, decision, decline_reason_code, decline_reason_note, decided_at, reviewed_by, reviewed_at, flagged_for_followup, followup_reason, script_sent, script_sent_at, script_notes, parchment_reference, priority_review, submitted_at, paid_at, assigned_at, approved_at, declined_at, completed_at, cancelled_at, generated_document_url, generated_document_type, document_sent_at, client_ip, client_user_agent, created_at, updated_at, service:services!service_id(id, name, short_name, type, slug)`)
+        .select(`id, patient_id, service_id, assigned_admin_id, reference_number, status, previous_status, category, subtype, claimed_by, claimed_at, reviewing_doctor_id, reviewing_doctor_name, review_started_at, is_priority, sla_deadline, sla_warning_sent, sla_breached, risk_score, risk_tier, risk_reasons, risk_flags, triage_result, triage_reasons, requires_live_consult, live_consult_reason, payment_id, payment_status, checkout_error, amount_cents, refund_amount_cents, stripe_payment_intent_id, stripe_customer_id, admin_notes, doctor_notes, doctor_notes_enc, decline_reason, escalation_notes, decision, decline_reason_code, decline_reason_note, decided_at, reviewed_by, reviewed_at, flagged_for_followup, followup_reason, script_sent, script_sent_at, script_notes, parchment_reference, priority_review, submitted_at, paid_at, assigned_at, approved_at, declined_at, completed_at, cancelled_at, generated_document_url, generated_document_type, document_sent_at, client_ip, client_user_agent, created_at, updated_at, service:services!service_id(id, name, short_name, type, slug)`)
         .eq("patient_id", patientId)
         .order("created_at", { ascending: false })
         .range(offset, offset + pageSize - 1)
@@ -177,26 +182,31 @@ export function getPatientIntakes(
 
       if (error) {
         logger.error("Error fetching patient intakes", {}, toError(error))
-        return { data: [] as unknown as IntakeWithPatient[], total: count ?? 0, page, pageSize }
+        return { data: [] as PatientIntakeWithPatient[], total: count ?? 0, page, pageSize }
       }
 
       // Decrypt PHI fields (doctor_notes) before returning
       const unwrapped = await Promise.all(
         (data || []).map(async (row) => {
+          const {
+            checkout_error: _checkoutError,
+            ...patientRow
+          } = row as typeof row & { checkout_error?: unknown }
           const doctorNotes = await readDoctorNotes({
-            doctor_notes: row.doctor_notes,
-            doctor_notes_enc: (row as Record<string, unknown>).doctor_notes_enc as never,
+            doctor_notes: patientRow.doctor_notes,
+            doctor_notes_enc: (patientRow as Record<string, unknown>).doctor_notes_enc as never,
           })
           return {
-            ...row,
+            ...patientRow,
             doctor_notes: doctorNotes,
-            service: Array.isArray(row.service) ? row.service[0] : row.service,
+            payment_recovery_reason: derivePatientPaymentRecoveryReason(_checkoutError),
+            service: Array.isArray(patientRow.service) ? patientRow.service[0] : patientRow.service,
           }
         })
       )
 
       return {
-        data: unwrapped as unknown as IntakeWithPatient[],
+        data: unwrapped as unknown as PatientIntakeWithPatient[],
         total: count ?? 0,
         page,
         pageSize,
@@ -210,7 +220,10 @@ export function getPatientIntakes(
 /**
  * Fetch a single intake for a patient (with ownership check)
  */
-export async function getIntakeForPatient(intakeId: string, patientId: string): Promise<IntakeWithPatient | null> {
+export async function getIntakeForPatient(
+  intakeId: string,
+  patientId: string,
+): Promise<PatientIntakeWithPatient | null> {
   const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
@@ -229,12 +242,19 @@ export async function getIntakeForPatient(intakeId: string, patientId: string): 
     return null
   }
 
+  const {
+    checkout_error: _checkoutError,
+    ...patientData
+  } = data as typeof data & { checkout_error?: unknown }
   const unwrapped = {
-    ...data,
+    ...patientData,
     patient: Array.isArray(data.patient) ? data.patient[0] : data.patient,
   }
 
-  return asIntakeWithPatient(unwrapped as Record<string, unknown>)
+  return {
+    ...asIntakeWithPatient(unwrapped as Record<string, unknown>),
+    payment_recovery_reason: derivePatientPaymentRecoveryReason(_checkoutError),
+  }
 }
 
 // ============================================
@@ -946,7 +966,7 @@ export const getPatientDashboardData = (patientId: string): Promise<{
       const [intakesResult, prescriptionsResult, certificatesResult] = await Promise.all([
         supabase
           .from("intakes")
-          .select(`id, status, created_at, updated_at, service_id, service:services!service_id(id, name, short_name, type, slug)`)
+          .select(`id, status, checkout_error, created_at, updated_at, service_id, service:services!service_id(id, name, short_name, type, slug)`)
           .eq("patient_id", patientId)
           .order("created_at", { ascending: false })
           .limit(20),
@@ -986,8 +1006,13 @@ export const getPatientDashboardData = (patientId: string): Promise<{
       )
 
       const intakes = (intakesResult.data || []).map(row => ({
-        ...row,
+        id: row.id,
+        status: row.status,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        service_id: row.service_id,
         document_ready: readyCertificateIntakeIds.has(row.id),
+        payment_recovery_reason: derivePatientPaymentRecoveryReason(row.checkout_error),
         service: Array.isArray(row.service) ? row.service[0] : row.service,
       })) as DashboardIntake[]
 

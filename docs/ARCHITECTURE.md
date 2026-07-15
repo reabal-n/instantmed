@@ -146,13 +146,15 @@ Parchment linkage and demographic refresh are separate operations. If `profiles.
         └──────────┘
 ```
 
+The retry loop above is the ordinary `checkout_failed -> pending_payment` path. An exact-current successful Stripe Session may instead settle `checkout_failed -> paid` directly; a stale Session is rejected and cannot mark the intake paid.
+
 ### Transition Rules
 
 | From | Valid next states |
 |------|-----------------|
 | `draft` | `pending_payment`, `cancelled` |
 | `pending_payment` | `paid`, `checkout_failed`, `cancelled`, `expired` |
-| `checkout_failed` | `pending_payment`, `cancelled` |
+| `checkout_failed` | `pending_payment`, `paid`, `cancelled` |
 | `paid` | `in_review`, `approved`, `awaiting_script`, `declined`, `pending_info`, `escalated`, `cancelled` |
 | `in_review` | `approved`, `awaiting_script`, `declined`, `pending_info`, `escalated`, `cancelled` |
 | `pending_info` | `in_review`, `paid`, `declined`, `cancelled`, `expired` |
@@ -221,11 +223,15 @@ On Postgres 23505 (duplicate key), returns existing intake. If already paid, red
 
 **Retry payment** (`retryPaymentForIntakeAction`): auth + ownership + status guard (`pending_payment` or `checkout_failed` with unpaid/pending/failed payment state) + authoritative answer read + safety re-validation + invalidate the old session + create and exact-CAS attach an open replacement. If an encrypted answer envelope exists, payment safety must decrypt it successfully or fail closed; stale plaintext is accepted only for a legacy row with no encrypted envelope. Before expiring a current Session on a `pending_payment` row, replacement writes a durable `payment_session_replacement_in_progress` marker; the expiry webhook ignores that marker, while a successful replacement attach or terminal payment webhook clears/replaces it. This prevents an expiry event from stranding the row between Stripe invalidation and attachment, including parallel and interrupted retries. Initial authenticated checkout, initial guest checkout, authenticated retry, signed guest resume, and duplicate guest-checkout recovery share the same metadata ownership check, Session classifier, and attachment reconciler; none may hand out an expired, completed, unresolved, mismatched, stale, or confirmed-orphan Session.
 
+**Missing-information recovery hold:** Retry and signed-resume paths re-read authoritative answers before offering payment. If required safety information is missing, they write the exact `safety_missing_required_information` marker, keep the intake at `checkout_failed`, preserve its current `payment_status` and exact `payment_id`, and keep clinical triage at `request_more_info`. The app offers no Session reuse, replacement Session, payment URL, or retry CTA for that saved request. This hold is not a decline, cancellation, expiry, or refund. Patient queries derive only `payment_recovery_reason = more_information_required`; raw `checkout_error` remains server-only.
+
 Persisted Priority recovery is fail-closed across authenticated retry, duplicate guest recovery, and signed guest resume. After any high-stakes cancellation check and before referral-coupon creation or replacement-state mutation, the shared server-only preflight retrieves `STRIPE_PRICE_PRIORITY_FEE` read-only and requires an active, non-recurring, one-time AUD Price with `unit_amount = 995`. Missing, unavailable, malformed, inactive, recurring, wrong-currency, or wrong-amount configuration preserves `is_priority = true`, creates no replacement Session, and alarms with `price_role = priority_fee`; non-Priority recovery skips the lookup. After a successful preflight, the existing claim -> owned current-Session invalidation -> deterministic Session creation -> exact-CAS attach sequence remains unchanged, with exactly one base line item and one Priority line item.
 
-**Signed guest resume** (`/resume/[token]`): verifies the seven-day HMAC token, loads the intake without projecting plaintext clinical answers, then reads answers through `getIntakeAnswersForPaymentSafety()`. A current open Session may be returned; a completed/payment-in-flight Session routes to account completion; unresolved ownership routes to the no-retry recovery surface. A persisted high-stakes medical-certificate request first claims a durable safety lock that blocks every shared attach path, invalidates the captured current Session, and only then exact-CAS transitions the intake to `cancelled`. The patient receives a reason-coded, non-PHI safety page with no pay/new-request CTA. Successful or in-flight payments remain recoverable by the current-session webhook rather than being silently replaced.
+**Signed guest resume** (`/resume/[token]`): verifies the seven-day HMAC token, loads the intake without projecting plaintext clinical answers, then reads answers through `getIntakeAnswersForPaymentSafety()`. A current open Session may be returned; a completed/payment-in-flight Session routes to account completion; unresolved ownership routes to the no-retry recovery surface. A persisted high-stakes medical-certificate request first claims a durable safety lock that blocks every shared attach path, invalidates the captured current Session, and only then exact-CAS transitions the intake to `cancelled`. The patient receives a reason-coded, non-PHI safety page with no pay/new-request CTA. A missing-information hold instead redirects to `/checkout/cancelled?reason=more_information_required`, whose static URL contains no intake ID, resume token, missing-field name, clinical answer, or payment identifier and offers only a fresh `/request` and support. Successful or in-flight payments remain recoverable by the current-session webhook rather than being silently replaced.
 
-**Async payment completion:** Stripe `status=complete` with `payment_status=unpaid` is processing, not paid. `/auth/complete-account` requires the URL Session ID to exactly match the intake's current `payment_id`, then shows paid UI, clears the local draft, and fires purchase conversion only when the intake or Stripe reports `payment_status=paid`. If Stripe is the proof source before the webhook reconciles the row, conversion value comes from the owned Session's `amount_total` so referral discounts and Priority fees are accurate. Guest account CTAs in live payment emails and outbox reconstruction carry the same exact Session proof. Processing or unconfirmed states show a no-retry support surface. A persisted `checkout_failed` / `failed` state from `checkout.session.async_payment_failed` makes the otherwise complete/unpaid Session final and permits an exact-CAS replacement.
+**Distributed checkout boundary:** Supabase and Stripe cannot be changed atomically. The durable missing-information hold is written before exact-current Session invalidation. If invalidation is unresolved, InstantMed retains the `payment_id` and hold marker, alarms, and withholds every app payment/recovery path; a previously copied direct Stripe URL may remain payable until Stripe confirms invalidation or expiry. Patient copy must not claim that no charge occurred or that a Session closed without Stripe proof.
+
+**Async payment completion:** Stripe `status=complete` with `payment_status=unpaid` is processing, not paid. `/auth/complete-account` requires the URL Session ID to exactly match the intake's current `payment_id`, then shows paid UI, clears the local draft, and fires purchase conversion only when the intake or Stripe reports `payment_status=paid`. If Stripe is the proof source before the webhook reconciles the row, conversion value comes from the owned Session's `amount_total` so referral discounts and Priority fees are accurate. Guest account CTAs in live payment emails and outbox reconstruction carry the same exact Session proof. Processing or unconfirmed states show a no-retry support surface. A persisted `checkout_failed` / `failed` state from `checkout.session.async_payment_failed` makes the otherwise complete/unpaid Session final and permits an exact-CAS replacement. An exact-current success may compare-and-swap `checkout_failed -> paid` and clear only the payment lock while preserving the clinical `request_more_info` fields; stale success remains rejected. Failure, abandoned-checkout, and recovery-email paths exclude both safety-lock markers and never advertise retry for a held request.
 
 **Guest checkout failures:** after clinical answers/compliance audit are persisted, Stripe price/session failures mark the intake `checkout_failed` and keep `checkout_error` for operator recovery. The system must not hard-delete those intakes because that hides paid-flow failures from support and breaks the audit trail.
 
@@ -406,10 +412,14 @@ Static-PDF overlay config is stored as immutable JSONB in `certificate_templates
 | Intake Status | What Patient Sees |
 |---------------|-------------------|
 | `pending_payment` | "Payment Required" card with CTA |
+| `checkout_failed` without a safety lock | Ordinary payment-failure copy and retry behavior |
+| `checkout_failed` projected as `payment_recovery_reason = more_information_required` | "More information needed"; fresh request and support only |
 | `paid` | "Waiting for doctor review" |
 | `in_review` | "Doctor is reviewing" |
 | `approved` | "Approved" + download button |
 | `declined` | "Declined" + reason |
+
+`more_information_required` is a derived patient view reason, not a database status. Patient dashboard, list, detail, cancelled, and payment-history surfaces receive only that narrow projection; raw `checkout_error` is not serialized in their server read models.
 
 ---
 

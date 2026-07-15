@@ -11,6 +11,7 @@ import {
   RotateCcw,
   Search,
 } from "lucide-react"
+import Link from "next/link"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
@@ -38,6 +39,9 @@ interface Invoice {
   status: "paid" | "pending" | "failed"
   description?: string
   payment_method?: string
+  payment_recovery_reason?: "more_information_required" | null
+  payment_retry_blocked?: boolean
+  request_href?: string | null
 }
 
 interface PaymentHistoryContentProps {
@@ -48,6 +52,14 @@ interface PaymentHistoryContentProps {
 const STATUS_COLORS = Object.fromEntries(
   Object.entries(PAYMENT_STATUS).map(([key, val]) => [key, val.color])
 ) as Record<string, string>
+
+function isMoreInformationRequiredInvoice(invoice: Invoice) {
+  return invoice.payment_recovery_reason === "more_information_required"
+}
+
+function canRetryInvoice(invoice: Invoice) {
+  return invoice.status === "failed" && !invoice.payment_retry_blocked
+}
 
 export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
   const prefersReducedMotion = useReducedMotion()
@@ -140,7 +152,7 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
   const pendingAmount = invoices
     .filter((inv) => inv.status === "pending")
     .reduce((sum, inv) => sum + inv.total, 0)
-  const failedCount = invoices.filter((inv) => inv.status === "failed").length
+  const failedCount = invoices.filter(canRetryInvoice).length
 
   return (
     <div className="space-y-6">
@@ -268,11 +280,9 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <Badge
-                          className={cn(
-                            STATUS_COLORS[
-                              invoice.status as keyof typeof STATUS_COLORS
-                            ]
-                          )}
+                          className={cn(isMoreInformationRequiredInvoice(invoice)
+                            ? "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                            : STATUS_COLORS[invoice.status as keyof typeof STATUS_COLORS])}
                         >
                           {invoice.status === "paid" && (
                             <CheckCircle className="w-3 h-3 mr-1" />
@@ -283,8 +293,9 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
                           {invoice.status === "failed" && (
                             <AlertCircle className="w-3 h-3 mr-1" />
                           )}
-                          {invoice.status.charAt(0).toUpperCase() +
-                            invoice.status.slice(1)}
+                          {isMoreInformationRequiredInvoice(invoice)
+                            ? "More information needed"
+                            : invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
                         </Badge>
                       </td>
                       <td className="px-6 py-4 text-sm space-x-2">
@@ -304,7 +315,11 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
                           <Download className="w-4 h-4 mr-1" />
                           Download
                         </Button>
-                        {invoice.status === "failed" && (
+                        {invoice.payment_retry_blocked && invoice.request_href ? (
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={invoice.request_href}>View request</Link>
+                          </Button>
+                        ) : canRetryInvoice(invoice) ? (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -314,7 +329,7 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
                             <RotateCcw className="w-4 h-4 mr-1" />
                             Retry
                           </Button>
-                        )}
+                        ) : null}
                       </td>
                     </motion.tr>
                   ))}
@@ -414,11 +429,14 @@ function InvoiceDetailModal({
               <Badge
                 className={cn(
                   "mt-2",
-                  STATUS_COLORS[invoice.status as keyof typeof STATUS_COLORS]
+                  isMoreInformationRequiredInvoice(invoice)
+                    ? "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                    : STATUS_COLORS[invoice.status as keyof typeof STATUS_COLORS],
                 )}
               >
-                {invoice.status.charAt(0).toUpperCase() +
-                  invoice.status.slice(1)}
+                {isMoreInformationRequiredInvoice(invoice)
+                  ? "More information needed"
+                  : invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
               </Badge>
             </div>
             <div>
@@ -434,21 +452,37 @@ function InvoiceDetailModal({
             </div>
           )}
 
-          {invoice.status === "failed" && (
+          {isMoreInformationRequiredInvoice(invoice) ? (
+            <div className="rounded-xl border border-warning-border bg-warning-light/40 p-4">
+              <p className="text-base text-foreground">
+                This request needs more medical information before payment. Open the request for safe next steps.
+              </p>
+            </div>
+          ) : invoice.payment_retry_blocked ? (
+            <div className="rounded-xl border border-warning-border bg-warning-light/40 p-4">
+              <p className="text-base text-foreground">
+                This payment cannot be retried online. Open the request or contact support.
+              </p>
+            </div>
+          ) : invoice.status === "failed" ? (
             <div className="bg-destructive-light border border-destructive-border rounded-xl p-4">
               <p className="text-sm text-destructive">
                 This payment failed. Please try again or update your payment
                 method.
               </p>
             </div>
-          )}
+          ) : null}
 
           <div className="flex gap-2">
             <Button onClick={onDownload} className="flex-1">
               <Download className="w-4 h-4 mr-2" />
               Download Invoice
             </Button>
-            {invoice.status === "failed" && (
+            {invoice.payment_retry_blocked && invoice.request_href ? (
+              <Button variant="outline" className="flex-1" asChild>
+                <Link href={invoice.request_href}>View request</Link>
+              </Button>
+            ) : canRetryInvoice(invoice) ? (
               <Button
                 onClick={onRetry}
                 disabled={isRetrying}
@@ -458,7 +492,7 @@ function InvoiceDetailModal({
                 <RotateCcw className="w-4 h-4 mr-2" />
                 {isRetrying ? "Retrying..." : "Retry Payment"}
               </Button>
-            )}
+            ) : null}
             <Button onClick={onClose} variant="outline">
               Close
             </Button>

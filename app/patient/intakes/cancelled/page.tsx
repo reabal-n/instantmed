@@ -6,13 +6,14 @@ export const dynamic = "force-dynamic"
 export default async function PaymentCancelledPage({
   searchParams,
 }: {
-  searchParams: Promise<{ intake_id?: string; resume_token?: string }>
+  searchParams: Promise<{ intake_id?: string; reason?: string; resume_token?: string }>
 }) {
   const params = await searchParams
 
   return (
     <PaymentCancelledContent
       intakeId={params.intake_id}
+      reason={params.reason}
       resumeToken={params[CHECKOUT_RESUME_TOKEN_PARAM]}
     />
   )
