@@ -56,6 +56,17 @@ interface AnalyticsEventPayload {
   properties: Record<string, unknown>
 }
 
+interface PassiveAbandonmentBeaconInput {
+  analyticsServiceType: string
+  currentStepId: string
+  currentStepIndex: number
+  posthog: {
+    config?: { token?: string; api_host?: string }
+    get_distinct_id?: () => string
+  } | null
+  serviceType: string | null
+}
+
 const IDENTITY_KEYS = new Set([
   "firstName",
   "lastName",
@@ -163,6 +174,36 @@ export function captureIntakeEvent(
   properties?: Record<string, unknown>,
 ) {
   posthog?.capture(event, properties)
+}
+
+export function buildPassiveAbandonmentBeacon({
+  analyticsServiceType,
+  currentStepId,
+  currentStepIndex,
+  posthog,
+  serviceType,
+}: PassiveAbandonmentBeaconInput): { payload: string; url: string } | null {
+  if (currentStepIndex <= 0 || !serviceType) return null
+
+  const token = posthog?.config?.token
+  const distinctId = posthog?.get_distinct_id?.()
+  if (!token || !distinctId) return null
+
+  const apiHost = (posthog.config?.api_host ?? "https://us.i.posthog.com").replace(/\/+$/, "")
+  return {
+    url: `${apiHost}/capture/`,
+    payload: JSON.stringify({
+      api_key: token,
+      event: INTAKE_ANALYTICS_EVENTS.passiveAbandoned,
+      properties: {
+        distinct_id: distinctId,
+        service_type: analyticsServiceType,
+        step_id: currentStepId,
+        step_number: currentStepIndex + 1,
+      },
+      timestamp: new Date().toISOString(),
+    }),
+  }
 }
 
 export function buildIntakeAnswerChangedEvent(

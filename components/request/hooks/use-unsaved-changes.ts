@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react"
 
+import { buildPassiveAbandonmentBeacon } from "@/lib/analytics/intake-events"
+
 // INTENTIONAL-navigation suppression for the beforeunload handler below.
 // Without it, every successful payment fired `intake_abandoned_passive`: the
 // redirect to Stripe Checkout is a page unload at the pay step, so paying
@@ -35,49 +37,6 @@ interface UseUnsavedChangesOptions {
   currentStepId: string
   /** PostHog instance for passive abandonment beacon */
   posthog: { config?: { token?: string; api_host?: string }; get_distinct_id?: () => string } | null
-}
-
-interface PassiveAbandonmentBeaconOptions {
-  analyticsServiceType: string
-  currentStepId: string
-  currentStepIndex: number
-  posthog: UseUnsavedChangesOptions["posthog"]
-  serviceType: string | null
-}
-
-interface PassiveAbandonmentBeacon {
-  payload: string
-  url: string
-}
-
-export function buildPassiveAbandonmentBeacon({
-  analyticsServiceType,
-  currentStepId,
-  currentStepIndex,
-  posthog,
-  serviceType,
-}: PassiveAbandonmentBeaconOptions): PassiveAbandonmentBeacon | null {
-  if (currentStepIndex <= 0 || !serviceType) return null
-
-  const token = posthog?.config?.token
-  const distinctId = posthog?.get_distinct_id?.()
-  if (!token || !distinctId) return null
-
-  const apiHost = (posthog.config?.api_host ?? "https://us.i.posthog.com").replace(/\/+$/, "")
-  return {
-    url: `${apiHost}/capture/`,
-    payload: JSON.stringify({
-      api_key: token,
-      event: "intake_abandoned_passive",
-      properties: {
-        distinct_id: distinctId,
-        service_type: analyticsServiceType,
-        step_id: currentStepId,
-        step_number: currentStepIndex + 1,
-      },
-      timestamp: new Date().toISOString(),
-    }),
-  }
 }
 
 /**

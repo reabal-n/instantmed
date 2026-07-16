@@ -22,12 +22,12 @@ const localStorageMock = {
 Object.defineProperty(globalThis, "localStorage", { value: localStorageMock })
 
 import {
-  buildPassiveAbandonmentBeacon,
   isIntentionalNavigationInProgress,
   markIntentionalNavigation,
   resetIntentionalNavigationForTests,
 } from "@/components/request/hooks/use-unsaved-changes"
 import { useRequestStore } from "@/components/request/store"
+import { buildPassiveAbandonmentBeacon } from "@/lib/analytics/intake-events"
 import { clearDraftAfterPayment } from "@/lib/request/draft-storage"
 
 /**
