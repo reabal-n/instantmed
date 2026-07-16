@@ -218,7 +218,7 @@ function buildMetadata(
  * failure row of ANY kind (the health snapshot has no terminal-specific
  * timestamp), which errs toward re-paging while related failures are active.
  */
-export const GOOGLE_ADS_ADJUSTMENT_TERMINAL_REPAGE_DAYS = 7
+const GOOGLE_ADS_ADJUSTMENT_TERMINAL_REPAGE_DAYS = 7
 
 export function buildGoogleAdsAdjustmentTerminalRiskAlert(
   health: GoogleAdsAdjustmentHealth,
