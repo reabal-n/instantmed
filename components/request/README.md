@@ -5,7 +5,7 @@ The unified `/request` entry point consolidates all clinical intake flows into a
 ## Quick Start
 
 ```tsx
-import { RequestFlow } from "@/components/request"
+import { RequestFlow } from "@/components/request/request-flow"
 
 // In your page component
 <RequestFlow
@@ -96,7 +96,7 @@ const steps = getStepsForService("med-cert", {
 Uses Zustand with persistence:
 
 ```ts
-import { useRequestStore } from "@/components/request"
+import { useRequestStore } from "@/components/request/store"
 
 const { 
   serviceType,

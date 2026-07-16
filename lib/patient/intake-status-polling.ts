@@ -23,6 +23,25 @@ export interface PatientIntakePollingChange {
   current: PatientIntakePollingProjection
 }
 
+/**
+ * Stable fingerprint of the list projection. The status route compares the
+ * client-echoed value against its fresh read and skips patient-view cache
+ * invalidation when nothing changed, so the 20s poll no longer permanently
+ * defeats the 30-60s cached portal projections. FNV-1a over the serialized
+ * rows — dependency-free so the client bundle stays crypto-free.
+ */
+export function fingerprintPatientIntakeProjection(
+  rows: PatientIntakePollingProjection[],
+): string {
+  const input = JSON.stringify(rows)
+  let hash = 0x811c9dc5
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i)
+    hash = Math.imul(hash, 0x01000193)
+  }
+  return (hash >>> 0).toString(16)
+}
+
 export interface PatientSuccessVerificationState {
   status: string | undefined
   isVerifying: boolean
