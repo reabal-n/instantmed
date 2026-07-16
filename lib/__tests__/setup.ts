@@ -166,7 +166,6 @@ export const mockLogger = {
 vi.mock('@/lib/observability/logger', () => ({
   logger: mockLogger,
   createLogger: vi.fn(() => mockLogger),
-  silentLogger: mockLogger,
 }))
 
 // ============================================================================

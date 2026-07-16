@@ -19,7 +19,7 @@ export const BLOCKED_CONSULT_SUBTYPES: ReadonlySet<ConsultSubtype> = new Set([
  * `ocp_repeat` is deliberately absent — "continuing the same pill" is routed to
  * the cheaper repeat-script flow, not a parallel $49.95 path.
  */
-export const WOMENS_HEALTH_INTENT_VALUES = ["uti", "ocp_new"] as const
+const WOMENS_HEALTH_INTENT_VALUES = ["uti", "ocp_new"] as const
 export type WomensHealthIntent = (typeof WOMENS_HEALTH_INTENT_VALUES)[number]
 
 export const LIVE_WOMENS_HEALTH_OPTIONS: ReadonlySet<WomensHealthIntent> = new Set(
