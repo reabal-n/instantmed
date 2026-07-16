@@ -30,7 +30,6 @@ vi.mock("@/lib/parchment/client", async (importOriginal) => {
 
 import { ParchmentApiError } from "@/lib/parchment/client"
 import {
-  computeParchmentDemographicsHash,
   ParchmentPatientSyncError,
   syncPatientToParchment,
 } from "@/lib/parchment/sync-patient"
@@ -82,19 +81,60 @@ function createProfilesTableMock(row: {
   return { supabase, updates }
 }
 
-describe("Parchment reuse-mode staleness gate", () => {
-  const currentHash = computeParchmentDemographicsHash(PROFILE)
+/**
+ * The digest is module-private (no test-only exports), so tests learn it the
+ * way production does: run a reuse open against a linked row with no recorded
+ * digest — that refreshes once and persists the digest — then read it back
+ * from the captured profile write.
+ */
+async function captureRecordedDigest(profile: Profile): Promise<string> {
+  const { supabase, updates } = createProfilesTableMock({
+    parchment_patient_id: "parchment-1",
+    parchment_synced_demographics_hash: null,
+  })
+  mocks.createServiceRoleClient.mockReturnValue(supabase)
+  mocks.getProfileById.mockResolvedValue(profile)
 
+  await syncPatientToParchment("profile-1", "prescriber-1", undefined, {
+    existingPatientMode: "reuse",
+  })
+
+  const recorded = updates
+    .map((payload) => payload.parchment_synced_demographics_hash)
+    .find((value): value is string => typeof value === "string")
+  expect(recorded).toBeTruthy()
+  return recorded as string
+}
+
+describe("Parchment reuse-mode staleness gate", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.getProfileById.mockResolvedValue(PROFILE)
     mocks.updatePatient.mockResolvedValue({})
   })
 
-  it("skips the network refresh when the stored digest matches the current demographics", async () => {
+  it("treats a never-recorded digest as changed so pre-migration rows refresh once", async () => {
     const { supabase } = createProfilesTableMock({
       parchment_patient_id: "parchment-1",
-      parchment_synced_demographics_hash: currentHash,
+      parchment_synced_demographics_hash: null,
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    await syncPatientToParchment("profile-1", "prescriber-1", undefined, {
+      existingPatientMode: "reuse",
+    })
+
+    expect(mocks.updatePatient).toHaveBeenCalledTimes(1)
+  })
+
+  it("skips the network refresh once the recorded digest matches the current demographics", async () => {
+    const recordedDigest = await captureRecordedDigest(PROFILE)
+    mocks.updatePatient.mockClear()
+    mocks.createPatient.mockClear()
+
+    const { supabase, updates } = createProfilesTableMock({
+      parchment_patient_id: "parchment-1",
+      parchment_synced_demographics_hash: recordedDigest,
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
 
@@ -105,6 +145,7 @@ describe("Parchment reuse-mode staleness gate", () => {
     expect(id).toBe("parchment-1")
     expect(mocks.updatePatient).not.toHaveBeenCalled()
     expect(mocks.createPatient).not.toHaveBeenCalled()
+    expect(updates).toHaveLength(0)
   })
 
   it("refreshes Parchment and re-records the digest when demographics changed", async () => {
@@ -122,23 +163,11 @@ describe("Parchment reuse-mode staleness gate", () => {
     expect(mocks.updatePatient).toHaveBeenCalledTimes(1)
     expect(
       updates.some(
-        (payload) => payload.parchment_synced_demographics_hash === currentHash,
+        (payload) =>
+          typeof payload.parchment_synced_demographics_hash === "string" &&
+          payload.parchment_synced_demographics_hash !== "stale-digest",
       ),
     ).toBe(true)
-  })
-
-  it("treats a never-recorded digest as changed so pre-migration rows refresh once", async () => {
-    const { supabase } = createProfilesTableMock({
-      parchment_patient_id: "parchment-1",
-      parchment_synced_demographics_hash: null,
-    })
-    mocks.createServiceRoleClient.mockReturnValue(supabase)
-
-    await syncPatientToParchment("profile-1", "prescriber-1", undefined, {
-      existingPatientMode: "reuse",
-    })
-
-    expect(mocks.updatePatient).toHaveBeenCalledTimes(1)
   })
 
   it("blocks the handoff when demographics changed and the refresh fails", async () => {
@@ -161,19 +190,20 @@ describe("Parchment reuse-mode staleness gate", () => {
     expect(mocks.createPatient).not.toHaveBeenCalled()
   })
 
-  it("computes a stable digest that moves only when the outgoing payload moves", () => {
-    expect(computeParchmentDemographicsHash({ ...PROFILE } as Profile)).toBe(currentHash)
-    expect(
-      computeParchmentDemographicsHash({
-        ...PROFILE,
-        address_line1: "99 New Street",
-      } as Profile),
-    ).not.toBe(currentHash)
-    expect(
-      computeParchmentDemographicsHash({
-        ...PROFILE,
-        medicare_irn: 2,
-      } as Profile),
-    ).not.toBe(currentHash)
+  it("records a stable digest that moves only when the outgoing payload moves", async () => {
+    const first = await captureRecordedDigest(PROFILE)
+    const second = await captureRecordedDigest({ ...PROFILE } as Profile)
+    const moved = await captureRecordedDigest({
+      ...PROFILE,
+      address_line1: "99 New Street",
+    } as Profile)
+    const movedIrn = await captureRecordedDigest({
+      ...PROFILE,
+      medicare_irn: 2,
+    } as Profile)
+
+    expect(second).toBe(first)
+    expect(moved).not.toBe(first)
+    expect(movedIrn).not.toBe(first)
   })
 })

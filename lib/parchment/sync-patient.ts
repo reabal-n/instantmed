@@ -436,8 +436,10 @@ function stableStringify(value: unknown): string {
  * open skips the network refresh only while this digest is unchanged, so an
  * identity edit (Medicare, address, name, phone) always reaches Parchment
  * before the next eScript. Irreversible SHA-256 — no demographics readable.
+ * Module-private: tests observe it behaviorally via the persisted profile
+ * write (the dead-code ratchet forbids test-only exports).
  */
-export function computeParchmentDemographicsHash(
+function computeParchmentDemographicsHash(
   profile: PatientProfile,
   intakeAnswers?: Record<string, unknown>,
 ): string {
