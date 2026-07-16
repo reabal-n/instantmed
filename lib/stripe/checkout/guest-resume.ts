@@ -4,6 +4,10 @@ import { getIntakeAnswersForPaymentSafety } from "@/lib/data/intake-answers"
 import { createLogger } from "@/lib/observability/logger"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import { validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
+import {
+  isSupersededDuplicateCheckoutError,
+  resolvePaymentRecoveryCanonicality,
+} from "@/lib/stripe/canonical-payment-recovery"
 import { buildGuestCheckoutCancelUrl } from "@/lib/stripe/checkout-recovery-link"
 import { getPriceIdForRequest, stripe } from "@/lib/stripe/client"
 import { canRetryPaymentForIntake } from "@/lib/stripe/payment-integrity"
@@ -52,6 +56,7 @@ const SERVICE_START_URLS: Record<string, string> = {
 interface ResumeIntake {
   category: string | null
   checkout_error: string | null
+  created_at: string
   guest_email: string | null
   id: string
   is_priority: boolean | null
@@ -65,7 +70,7 @@ interface ResumeIntake {
 }
 
 const RESUME_INTAKE_SELECT =
-  "id, patient_id, status, payment_status, payment_id, checkout_error, category, subtype, stripe_price_id, is_priority, guest_email, service:services!service_id(slug, type)"
+  "id, patient_id, status, payment_status, payment_id, checkout_error, created_at, category, subtype, stripe_price_id, is_priority, guest_email, service:services!service_id(slug, type)"
 
 function accountCompletionDestination(intakeId: string, sessionId?: string | null): string {
   const destination = `/auth/complete-account?intake_id=${encodeURIComponent(intakeId)}`
@@ -303,7 +308,23 @@ export async function resolveGuestCheckoutResume(intakeId: string): Promise<stri
     return accountCompletionDestination(intake.id, intake.payment_id)
   }
 
+  if (isSupersededDuplicateCheckoutError(intake.checkout_error)) {
+    return PAYMENT_STATE_UNRESOLVED_DESTINATION
+  }
+
   if (canRetryPaymentForIntake(intake.status, intake.payment_status)) {
+    const canonicality = await resolvePaymentRecoveryCanonicality(supabase, {
+      category: intake.category,
+      createdAt: intake.created_at,
+      email: intake.guest_email,
+      id: intake.id,
+      patientId: intake.patient_id,
+      subtype: intake.subtype,
+    })
+    if (canonicality.kind !== "canonical") {
+      return PAYMENT_STATE_UNRESOLVED_DESTINATION
+    }
+
     if (isMissingSafetyInformationPaymentLock(intake.checkout_error)) {
       const hold = await holdCheckoutForMissingSafetyInformation({
         intakeId: intake.id,

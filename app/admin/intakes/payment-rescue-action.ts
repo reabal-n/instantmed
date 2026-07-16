@@ -3,6 +3,7 @@
 import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { getAppUrl } from "@/lib/config/env"
 import { buildCheckoutPaymentRecoveryUrl } from "@/lib/email/recovery-links"
+import { resolvePaymentRecoveryCanonicality } from "@/lib/stripe/canonical-payment-recovery"
 import {
   HIGH_STAKES_PAYMENT_LOCK,
   inspectCheckoutSession,
@@ -36,22 +37,33 @@ export async function buildPaymentRescueAction(
     .from("intakes")
     .select(`
       id,
+      category,
+      created_at,
       status,
       payment_status,
       payment_id,
       checkout_error,
       guest_email,
-      patient:profiles!patient_id(auth_user_id)
+      patient_id,
+      subtype,
+      patient:profiles!patient_id(auth_user_id, email, normalized_email)
     `)
     .eq("id", intakeId)
     .maybeSingle<{
+      category: string | null
       checkout_error: string | null
+      created_at: string
       guest_email: string | null
       id: string
+      patient_id: string | null
       payment_id: string | null
       payment_status: string | null
-      patient: { auth_user_id: string | null } | { auth_user_id: string | null }[] | null
+      patient:
+        | { auth_user_id: string | null; email: string | null; normalized_email: string | null }
+        | { auth_user_id: string | null; email: string | null; normalized_email: string | null }[]
+        | null
       status: string | null
+      subtype: string | null
     }>()
 
   if (error || !intake) {
@@ -67,6 +79,28 @@ export async function buildPaymentRescueAction(
     return {
       success: false,
       error: "This request is already paid or is no longer awaiting payment.",
+    }
+  }
+
+  const patient = Array.isArray(intake.patient) ? intake.patient[0] : intake.patient
+  const canonicality = await resolvePaymentRecoveryCanonicality(supabase, {
+    category: intake.category,
+    createdAt: intake.created_at,
+    email: intake.guest_email || patient?.normalized_email || patient?.email,
+    id: intake.id,
+    patientId: intake.patient_id,
+    subtype: intake.subtype,
+  })
+  if (canonicality.kind === "unresolved") {
+    return {
+      success: false,
+      error: "Could not confirm the latest saved request. Refresh the ledger and try again.",
+    }
+  }
+  if (canonicality.kind === "superseded") {
+    return {
+      success: false,
+      error: "This is an older duplicate. Use the newest request in this service lane.",
     }
   }
 
@@ -90,7 +124,6 @@ export async function buildPaymentRescueAction(
     }
   }
 
-  const patient = Array.isArray(intake.patient) ? intake.patient[0] : intake.patient
   const recoveryUrl = buildCheckoutPaymentRecoveryUrl({
     appUrl: getAppUrl(),
     campaign: "support_payment_recovery",

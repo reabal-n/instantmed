@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, type Mock,vi } from "vitest"
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest"
 
 // ---------------------------------------------------------------------------
 // CLAUDE.md invariant (checkout safety enforcement):
@@ -59,6 +59,9 @@ vi.mock("@/lib/dashboard/revalidate-staff", () => ({
 }))
 vi.mock("@/lib/stripe/checkout/missing-safety-payment-hold", () => ({
   holdCheckoutForMissingSafetyInformation: vi.fn(async () => "held"),
+}))
+vi.mock("@/lib/stripe/canonical-payment-recovery", () => ({
+  resolvePaymentRecoveryCanonicality: vi.fn(async () => ({ kind: "canonical" })),
 }))
 
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
@@ -195,6 +198,8 @@ describe("retry-payment path (retryPaymentForIntakeAction)", () => {
     status: "pending_payment",
     payment_status: "unpaid",
     category: "medical_certificate",
+    created_at: "2026-07-14T21:30:00.000Z",
+    patient_id: "pat-1",
     subtype: "1_day",
     payment_id: null,
     amount_cents: 2495,

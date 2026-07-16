@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   recordSafetyEvaluationForOperators: vi.fn(),
   revalidatePatient: vi.fn(),
   revalidateStaff: vi.fn(),
+  resolvePaymentRecoveryCanonicality: vi.fn(),
   stripeSessionCreate: vi.fn(),
   stripeSessionExpire: vi.fn(),
   stripeSessionRetrieve: vi.fn(),
@@ -50,6 +51,12 @@ vi.mock("@/lib/safety/evaluate", () => ({
 vi.mock("@/lib/stripe/checkout-recovery-link", () => ({
   buildGuestCheckoutCancelUrl: ({ intakeId }: { intakeId: string }) =>
     `https://instantmed.example/checkout/cancelled?intake_id=${intakeId}`,
+}))
+
+vi.mock("@/lib/stripe/canonical-payment-recovery", () => ({
+  isSupersededDuplicateCheckoutError: (value: string | null | undefined) =>
+    value?.includes("superseded_duplicate_unpaid") ?? false,
+  resolvePaymentRecoveryCanonicality: mocks.resolvePaymentRecoveryCanonicality,
 }))
 
 vi.mock("@/lib/stripe/client", () => ({
@@ -90,6 +97,7 @@ interface UpdateRecord {
 type ResumeIntake = {
   category: string | null
   checkout_error: string | null
+  created_at: string
   guest_email: string | null
   id: string
   is_priority: boolean | null
@@ -118,6 +126,7 @@ function createResumeSupabaseMock(
   const intake: ResumeIntake = {
     category: "medical_certificate",
     checkout_error: null,
+    created_at: "2026-07-14T21:30:00.000Z",
     guest_email: "patient@example.test",
     id: "intake-1",
     is_priority: false,
@@ -220,6 +229,7 @@ describe("signed guest checkout resume payment safety", () => {
       type: "one_time",
       unit_amount: 995,
     })
+    mocks.resolvePaymentRecoveryCanonicality.mockResolvedValue({ kind: "canonical" })
     mocks.stripeSessionCreate.mockResolvedValue({
       id: "cs_resumed",
       metadata: { intake_id: "intake-1" },
@@ -368,6 +378,22 @@ describe("signed guest checkout resume payment safety", () => {
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
     expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
     expect(updateRecords).toHaveLength(0)
+  })
+
+  it("does not revive an older duplicate through its signed resume link", async () => {
+    const { supabase } = createResumeSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.resolvePaymentRecoveryCanonicality.mockResolvedValueOnce({
+      canonicalIntakeId: "intake-newer",
+      kind: "superseded",
+    })
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe("/checkout/cancelled?reason=payment_state_unresolved")
+    expect(mocks.getIntakeAnswersForPaymentSafety).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
   it("allows a metadata-less legacy Session only when it is the exact stored id", async () => {
