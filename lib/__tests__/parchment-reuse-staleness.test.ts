@@ -28,12 +28,12 @@ vi.mock("@/lib/parchment/client", async (importOriginal) => {
   }
 })
 
+import { ParchmentApiError } from "@/lib/parchment/client"
 import {
   computeParchmentDemographicsHash,
   ParchmentPatientSyncError,
   syncPatientToParchment,
 } from "@/lib/parchment/sync-patient"
-import { ParchmentApiError } from "@/lib/parchment/client"
 import type { Profile } from "@/types/db"
 
 const PROFILE = {
@@ -148,7 +148,9 @@ describe("Parchment reuse-mode staleness gate", () => {
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     mocks.updatePatient.mockRejectedValue(
-      new ParchmentApiError("Parchment update patient failed: 500", 500, {}),
+      new ParchmentApiError("Parchment update patient failed: 500", 500, {
+        reason: "unknown",
+      }),
     )
 
     await expect(

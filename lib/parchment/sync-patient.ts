@@ -7,9 +7,8 @@
 
 import "server-only"
 
-import { createHash } from "crypto"
-
 import * as Sentry from "@sentry/nextjs"
+import { createHash } from "crypto"
 
 import { getProfileById } from "@/lib/data/profiles"
 import { createLogger } from "@/lib/observability/logger"
