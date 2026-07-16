@@ -21,11 +21,11 @@ describe("canSendMarketingEmail", () => {
     vi.clearAllMocks()
   })
 
-  it("fails closed when no explicit preference row exists", async () => {
+  it("treats a missing preference row as default-on consent (operator decision 2026-07-17)", async () => {
     mocks.maybeSingle.mockResolvedValueOnce({ data: null, error: null })
     const { canSendMarketingEmail } = await import("@/lib/email/preferences")
 
-    await expect(canSendMarketingEmail("profile-1")).resolves.toBe(false)
+    await expect(canSendMarketingEmail("profile-1")).resolves.toBe(true)
   })
 
   it("fails closed when the preference read errors", async () => {
