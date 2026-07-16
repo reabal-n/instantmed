@@ -248,6 +248,39 @@ describe("Google Ads purchase import health", () => {
     expect(alert?.detail).toContain("not paging")
   })
 
+  it("ages out a stale low-volume orphan after the warning trail instead of re-warning forever", () => {
+    const alert = buildGoogleAdsUploadAuditSourceAnomalyAlert(snapshot({
+      generatedAt: "2026-07-08T11:00:00.000Z",
+      uploadAuditReconciliation: {
+        byRequestPath: { "/api/cron/google-ads-conversions": 1 },
+        byRuntimeSource: { vercel: 1 },
+        bySource: { cron_backfill: 1 },
+        byVercelEnv: { production: 1 },
+        orphanRows: {
+          invalidIntakeJoin: 0,
+          missingIntakeId: 1,
+          samples: [
+            {
+              // ~146h old — past the 96h trail window; the same aged orphan
+              // must stop re-warning every cron run (265 events, Jul 2026).
+              at: "2026-07-02T09:00:00.000Z",
+              deploymentId: "dpl_live",
+              requestPath: "/api/cron/google-ads-conversions",
+              runtimeSource: "vercel",
+              source: "cron_backfill",
+              status: "success",
+              uploadJobId: null,
+              vercelEnv: "production",
+            },
+          ],
+          total: 1,
+        },
+      },
+    }))
+
+    expect(alert).toBeNull()
+  })
+
   it("keeps the production cron and PostHog metric wired to the guard", () => {
     const cron = read("app/api/cron/business-alerts/route.ts")
     const posthog = read("lib/analytics/posthog-server.ts")
@@ -314,6 +347,30 @@ describe("Google Ads adjustment terminal-risk detector", () => {
         }),
       ),
     ).toBeNull()
+  })
+
+  it("stops re-paging a terminal failure once the latest failure row ages past the re-page window", () => {
+    expect(
+      buildGoogleAdsAdjustmentTerminalRiskAlert(
+        adjustmentHealth({
+          // 13 days old vs the 7-day re-page window; the per-intake
+          // fingerprinted Sentry error remains the durable record.
+          latestFailureAt: "2026-06-25T08:00:00.000Z",
+          terminalClickAttributedFailures: 1,
+        }),
+      ),
+    ).toBeNull()
+  })
+
+  it("keeps paging a terminal failure when the failure timestamp is unavailable", () => {
+    expect(
+      buildGoogleAdsAdjustmentTerminalRiskAlert(
+        adjustmentHealth({
+          latestFailureAt: null,
+          terminalClickAttributedFailures: 1,
+        }),
+      ),
+    ).not.toBeNull()
   })
 
   it("pages only when terminal adjustment failures are click-attributed", () => {

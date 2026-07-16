@@ -117,6 +117,15 @@ export type GoogleAdsAdjustmentTerminalRiskAlert = {
 
 const GOOGLE_ADS_UPLOAD_AUDIT_SOURCE_ANOMALY_FRESH_HOURS = 2
 const GOOGLE_ADS_UPLOAD_AUDIT_SOURCE_ANOMALY_CRITICAL_ROWS = 5
+/**
+ * How long a stale low-volume orphan keeps its Sentry-warning trail. At the
+ * ~4h business-alerts cadence this is ~24 warnings — enough to survive a long
+ * weekend unseen — after which the SAME aged orphan goes quiet instead of
+ * re-warning forever (a single Jul-2026 orphan re-fired 265 times over 10+
+ * days). High-volume anomalies stay critical regardless of age, and any NEW
+ * orphan restarts the trail because the newest-row age drops.
+ */
+const GOOGLE_ADS_UPLOAD_AUDIT_SOURCE_ANOMALY_TRAIL_HOURS = 96
 
 function getNewestOrphanAt(snapshot: GoogleAdsPurchaseImportHealthSnapshot): string | null {
   const samples = snapshot.uploadAuditReconciliation?.orphanRows.samples ?? []
@@ -199,11 +208,36 @@ function buildMetadata(
   }
 }
 
+/**
+ * Re-page window for terminal click-attributed adjustment failures. The health
+ * lookback is 90d, so without a freshness gate one terminal failure pages
+ * every ~4h for three months (the Jul-2026 refunded-ED failure re-fired 234
+ * times). The per-intake fingerprinted Sentry error from the adjustment module
+ * already records each failure durably; this alert exists to get eyes on it,
+ * which a week of pages either achieves or never will. Gated on the latest
+ * failure row of ANY kind (the health snapshot has no terminal-specific
+ * timestamp), which errs toward re-paging while related failures are active.
+ */
+const GOOGLE_ADS_ADJUSTMENT_TERMINAL_REPAGE_DAYS = 7
+
 export function buildGoogleAdsAdjustmentTerminalRiskAlert(
   health: GoogleAdsAdjustmentHealth,
 ): GoogleAdsAdjustmentTerminalRiskAlert | null {
   if (health.queryFailed) return null
   if (health.terminalClickAttributedFailures <= 0) return null
+
+  if (health.latestFailureAt) {
+    const generatedMs = Date.parse(health.generatedAt)
+    const latestFailureMs = Date.parse(health.latestFailureAt)
+    if (
+      Number.isFinite(generatedMs) &&
+      Number.isFinite(latestFailureMs) &&
+      generatedMs - latestFailureMs >
+        GOOGLE_ADS_ADJUSTMENT_TERMINAL_REPAGE_DAYS * 24 * 60 * 60 * 1000
+    ) {
+      return null
+    }
+  }
 
   return {
     count: health.terminalClickAttributedFailures,
@@ -237,6 +271,13 @@ export function buildGoogleAdsUploadAuditSourceAnomalyAlert(
   if (orphanRows <= 0) return null
 
   const classification = classifyUploadAuditSourceAnomaly(snapshot)
+  if (
+    classification.reason === "stale_low_volume" &&
+    classification.newestAgeHours !== null &&
+    classification.newestAgeHours > GOOGLE_ADS_UPLOAD_AUDIT_SOURCE_ANOMALY_TRAIL_HOURS
+  ) {
+    return null
+  }
   return {
     count: orphanRows,
     detail:
