@@ -107,6 +107,24 @@ export const PRICING = {
   PRIORITY_FEE: 9.95,    // Priority review fee
 } as const
 
+// Currency-free decimal strings for structured data and payment-provider APIs.
+// Human-facing copy must use PRICING_DISPLAY instead.
+export const PRICING_SCHEMA = {
+  MED_CERT: PRICING.MED_CERT.toFixed(2),
+  MED_CERT_2DAY: PRICING.MED_CERT_2DAY.toFixed(2),
+  MED_CERT_3DAY: PRICING.MED_CERT_3DAY.toFixed(2),
+  REPEAT_SCRIPT: PRICING.REPEAT_SCRIPT.toFixed(2),
+  NEW_SCRIPT: PRICING.NEW_SCRIPT.toFixed(2),
+  CONSULT: PRICING.CONSULT.toFixed(2),
+  MENS_HEALTH: PRICING.MENS_HEALTH.toFixed(2),
+  WOMENS_HEALTH: PRICING.WOMENS_HEALTH.toFixed(2),
+  HAIR_LOSS: PRICING.HAIR_LOSS.toFixed(2),
+  WEIGHT_LOSS: PRICING.WEIGHT_LOSS.toFixed(2),
+  REFERRAL: PRICING.REFERRAL.toFixed(2),
+  PATHOLOGY: PRICING.PATHOLOGY.toFixed(2),
+  PRIORITY_FEE: PRICING.PRIORITY_FEE.toFixed(2),
+} as const
+
 // Formatted pricing strings for display - use these everywhere in UI/SEO/marketing
 export const PRICING_DISPLAY = {
   MED_CERT: `$${PRICING.MED_CERT.toFixed(2)}`,

@@ -34,7 +34,7 @@ import { EmergencyDisclaimer } from '@/components/shared/emergency-disclaimer'
 import { Navbar } from '@/components/shared/navbar'
 import { Button } from '@/components/ui/button'
 import { useReducedMotion } from '@/components/ui/motion'
-import { CONTACT_EMAIL, PRICING } from '@/lib/constants'
+import { CONTACT_EMAIL, PRICING_DISPLAY } from '@/lib/constants'
 import { getDailyStats } from '@/lib/marketing/daily-stats'
 import { MED_CERT_SLUG_CERT_TYPE, type MedCertIntentConfig } from '@/lib/marketing/med-cert-intent-config'
 import { buildMedCertRequestHref } from '@/lib/marketing/med-cert-selector'
@@ -174,7 +174,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                       className={cn(isDisabled ? '' : 'px-8 h-12 font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-[transform,box-shadow]')}
                     >
                       <Link href={ctaHref}>
-                        {isDisabled ? 'Contact us' : `${config.ctaButtonText} - $${PRICING.MED_CERT.toFixed(2)}`}
+                        {isDisabled ? 'Contact us' : `${config.ctaButtonText} - ${PRICING_DISPLAY.MED_CERT}`}
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>
@@ -268,7 +268,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 animate={{ y: 0 }}
                 transition={{ duration: 0.3, delay: 0.5 }}
               >
-                <span className="font-semibold text-foreground">From ${PRICING.MED_CERT.toFixed(2)}</span>
+                <span className="font-semibold text-foreground">From {PRICING_DISPLAY.MED_CERT}</span>
                 <span className="hidden sm:inline text-border">·</span>
                 <span>100% online</span>
                 <span className="hidden sm:inline text-border">·</span>
@@ -544,7 +544,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
           <div className="bg-background/95 backdrop-blur-lg border-t border-border/50 px-4 py-3 safe-area-pb">
             <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">From ${PRICING.MED_CERT.toFixed(2)}</p>
+                <p className="text-sm font-semibold text-foreground">From {PRICING_DISPLAY.MED_CERT}</p>
                 <p className="text-xs text-muted-foreground truncate">Doctor-reviewed certificate</p>
               </div>
               <Button

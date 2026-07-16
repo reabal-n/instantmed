@@ -1,146 +1,162 @@
-import { ArrowDown, ArrowRight, ClipboardCheck, Send, Stethoscope } from "lucide-react"
+"use client"
+
+import { AlertCircle, ArrowRight, Check, Stethoscope } from "lucide-react"
 import Link from "next/link"
 
 import { ServiceIconTile } from "@/components/icons/service-icons"
+import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { Heading } from "@/components/ui/heading"
-import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { FORM_FIRST_WEDGE } from "@/lib/marketing/voice"
 import {
   getActiveServices,
   getServiceMarketingHref,
+  getServiceRequestHref,
+  type ServiceDef,
 } from "@/lib/services/service-catalog"
+import { cn } from "@/lib/utils"
 
-const CLINICAL_SPINE = [
-  {
-    icon: ClipboardCheck,
-    title: "Secure clinical form",
-    body: "Questions change with the service and its safety rules.",
+const SERVICE_DETAILS: Record<
+  ServiceDef["id"],
+  { benefits: readonly [string, string]; cta: string }
+> = {
+  "med-cert": {
+    benefits: ["Work, study or carer's leave", "No Medicare card needed"],
+    cta: "Get a certificate",
   },
-  {
-    icon: Stethoscope,
-    title: "Clinical review path",
-    body: "Prescribing requests receive doctor review before any prescription is issued.",
+  "repeat-rx": {
+    benefits: ["For your regular medication", "Doctor review before prescribing"],
+    cta: "Renew medication",
   },
-  {
-    icon: Send,
-    title: "Digital outcome",
-    body: "If appropriate, the result is delivered digitally with the next step.",
+  ed: {
+    benefits: ["Private, focused assessment", "eScript if clinically appropriate"],
+    cta: "View ED assessment",
   },
-] as const
+  "hair-loss": {
+    benefits: ["Doctor-assessed options", "eScript if clinically appropriate"],
+    cta: "View hair loss assessment",
+  },
+  "womens-health": {
+    benefits: ["UTI symptoms or start/switch pill", "Doctor-reviewed safety screen"],
+    cta: "View women's health",
+  },
+  "weight-loss": {
+    benefits: ["Not taking requests", "Launch readiness still gated"],
+    cta: "Planned",
+  },
+}
 
-const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+function getHomepageServiceHref(service: ServiceDef): string {
+  return service.id === "med-cert" || service.id === "repeat-rx"
+    ? getServiceRequestHref(service)
+    : getServiceMarketingHref(service)
+}
 
-/**
- * Homepage portfolio map: five bounded service doorways feeding one shared
- * clinical system. This replaces generic lifestyle photography with a useful
- * model of how the active portfolio actually works.
- */
+function ServiceCard({ service, index }: { service: ServiceDef; index: number }) {
+  const { isServiceDisabled } = useServiceAvailability()
+  const disabled = isServiceDisabled(service.id)
+  const detail = SERVICE_DETAILS[service.id]
+  const isCoreService = index < 2
+
+  return (
+    <li
+      className={cn(
+        "min-w-0",
+        isCoreService ? "lg:col-span-3" : "lg:col-span-2",
+        index === 4 && "sm:col-span-2 lg:col-span-2",
+      )}
+    >
+      <Link
+        href={getHomepageServiceHref(service)}
+        aria-disabled={disabled || undefined}
+        tabIndex={disabled ? -1 : undefined}
+        className={cn(
+          "group relative flex h-full min-h-64 flex-col rounded-2xl border border-border/60 bg-white p-5 shadow-sm shadow-primary/[0.04] outline-none transition-[transform,box-shadow,border-color] duration-200 motion-reduce:transform-none motion-reduce:transition-none dark:border-white/15 dark:bg-card dark:shadow-none sm:p-6",
+          disabled
+            ? "pointer-events-none opacity-60"
+            : "hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md hover:shadow-primary/[0.06] focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25",
+        )}
+      >
+        {disabled ? (
+          <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-lg bg-warning-light px-2.5 py-1 text-xs font-medium text-warning">
+            <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
+            Unavailable
+          </span>
+        ) : null}
+
+        <div className="flex items-start justify-between gap-4">
+          <ServiceIconTile
+            iconKey={service.iconKey}
+            color={service.colorToken}
+            size="lg"
+            variant="sticker"
+            stickerLoading="eager"
+          />
+          <p className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+            {service.pricePrefix ? `${service.pricePrefix} ` : null}
+            {service.price}
+          </p>
+        </div>
+
+        <Heading level="h3" className="mt-5 text-xl sm:text-2xl">
+          {service.title}
+        </Heading>
+        <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+          {service.subtitle}
+        </p>
+
+        <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+          {detail.benefits.map((benefit) => (
+            <li key={benefit} className="flex items-start gap-2">
+              <Check className="mt-1 h-3.5 w-3.5 shrink-0 text-success" aria-hidden="true" />
+              <span>{benefit}</span>
+            </li>
+          ))}
+        </ul>
+
+        <span className="mt-auto flex items-center gap-2 pt-6 text-sm font-semibold text-primary">
+          {detail.cta}
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </span>
+      </Link>
+    </li>
+  )
+}
+
+/** Homepage service chooser: five distinct cards with the shared safety model secondary. */
 export function PortfolioRouteMap() {
   const services = getActiveServices()
 
   return (
-    <section aria-labelledby="portfolio-route-map-title" className="px-4 py-12 sm:px-6 sm:py-16 lg:py-24">
-      <div className="mx-auto max-w-6xl overflow-hidden rounded-2xl bg-primary text-primary-foreground">
-        <div className="grid lg:grid-cols-[minmax(0,0.86fr)_auto_minmax(0,1.14fr)]">
-          <div className="p-6 sm:p-10 lg:p-12">
-            <p className="text-sm font-medium text-primary-foreground">
-              The active InstantMed portfolio
-            </p>
-            <Heading
-              id="portfolio-route-map-title"
-              level="h1"
-              as="h2"
-              className="mt-3 max-w-xl text-primary-foreground"
-            >
-              Five doorways. One clinical system.
-            </Heading>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-primary-foreground sm:text-base sm:leading-7">
-              Choose the focused service that fits. Each route starts with its own secure form and follows service-specific safety rules.
-            </p>
+    <section
+      id="pricing"
+      aria-labelledby="portfolio-route-map-title"
+      className="scroll-mt-20 px-4 py-12 sm:px-6 sm:py-16 lg:py-24"
+    >
+      <div className="mx-auto max-w-6xl">
+        <div className="max-w-2xl">
+          <p className="text-sm font-medium text-primary">Services and pricing</p>
+          <Heading id="portfolio-route-map-title" level="h1" as="h2" className="mt-2">
+            What do you need?
+          </Heading>
+          <p className="mt-3 text-base leading-7 text-muted-foreground sm:text-lg">
+            Choose the focused service that fits. The fee is shown before you start.
+          </p>
+        </div>
 
-            <nav aria-label="Active service pathways" className="mt-8">
-              <ul className="divide-y divide-primary-foreground/15 border-y border-primary-foreground/15">
-                {services.map((service) => (
-                  <li key={service.id}>
-                    <Link
-                      href={getServiceMarketingHref(service)}
-                      className="flex min-h-14 items-center gap-3 py-3 text-primary-foreground outline-none hover:bg-primary-foreground/[0.06] focus-visible:bg-primary-foreground/[0.1] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-foreground"
-                    >
-                      <ServiceIconTile
-                        iconKey={service.iconKey}
-                        color={service.colorToken}
-                        size="sm"
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-semibold sm:text-base">
-                          {service.title}
-                        </span>
-                        {service.id === "womens-health" ? (
-                          <span className="mt-0.5 block text-xs text-primary-foreground">
-                            UTI symptoms + start/switch pill
-                          </span>
-                        ) : null}
-                      </span>
-                      <span className="text-xs text-primary-foreground">
-                        {service.pricePrefix ? `${service.pricePrefix} ` : null}
-                        {service.price}
-                      </span>
-                      <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </div>
+        <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-6">
+          {services.map((service, index) => (
+            <ServiceCard key={service.id} service={service} index={index} />
+          ))}
+        </ul>
 
-          <div className="hidden items-center lg:flex" aria-hidden="true">
-            <div className="h-px w-12 bg-primary-foreground/35" />
-            <ArrowRight className="h-5 w-5 text-primary-foreground/70" />
-          </div>
-
-          <div className="relative bg-background p-6 text-foreground sm:p-10 lg:p-12">
-            <div className="mb-7 flex items-center gap-3 lg:hidden" aria-hidden="true">
-              <div className="h-px flex-1 bg-border" />
-              <ArrowDown className="h-5 w-5 text-primary" />
-              <div className="h-px flex-1 bg-border" />
-            </div>
-            <p className="text-sm font-medium text-primary">The shared clinical spine</p>
-            <ol className="mt-7">
-              {CLINICAL_SPINE.map((step, index) => {
-                const Icon = step.icon
-
-                return (
-                  <li
-                    key={step.title}
-                    className="relative grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 pb-8 last:pb-0"
-                  >
-                    {index < CLINICAL_SPINE.length - 1 ? (
-                      <span
-                        className="absolute bottom-1 left-5 top-10 w-px bg-border"
-                        aria-hidden="true"
-                      />
-                    ) : null}
-                    <span className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                      <Icon className="h-4 w-4" aria-hidden="true" />
-                    </span>
-                    <div className="min-w-0 pt-0.5">
-                      <span className="text-xs font-medium text-muted-foreground">
-                        Step {index + 1}
-                      </span>
-                      <Heading level="h3" className="mt-1">
-                        {step.title}
-                      </Heading>
-                      <p className="mt-1.5 max-w-md text-sm leading-6 text-muted-foreground">
-                        {step.body}
-                      </p>
-                    </div>
-                  </li>
-                )
-              })}
-            </ol>
-
-            <p className="mt-8 border-t border-border pt-5 text-xs leading-5 text-muted-foreground">
-              {CLINICAL_REVIEW_SEQUENCE} {FORM_FIRST_WEDGE}
+        <div className="mt-8 flex max-w-4xl items-start gap-3 border-t border-border/60 pt-6 dark:border-white/15">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Stethoscope className="h-4 w-4" aria-hidden="true" />
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Doctor-owned clinical pathways</p>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Each service has its own secure form and safety rules. {FORM_FIRST_WEDGE}
             </p>
           </div>
         </div>

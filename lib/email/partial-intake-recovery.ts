@@ -119,7 +119,7 @@ async function markRecoverySent(sessionId: string): Promise<void> {
     .eq("session_id", sessionId)
 
   if (error) {
-    logger.warn("Failed to mark recovery_email_sent_at", { sessionId, error: error.message })
+    logger.warn("Failed to mark recovery_email_sent_at", { error: error.message })
   }
 }
 
@@ -146,7 +146,7 @@ export async function processPartialIntakeRecoveries(): Promise<{
   for (const draft of drafts) {
     if (suppressed.has(draft.email.trim().toLowerCase())) {
       await markRecoverySent(draft.session_id)
-      logger.info("Skipping recovery email - suppressed/opted out", { sessionId: draft.session_id })
+      logger.info("Skipping recovery email - suppressed/opted out")
     } else {
       sendable.push(draft)
     }
@@ -171,6 +171,17 @@ export async function processPartialIntakeRecoveries(): Promise<{
       },
     })
 
+    if (!resumeUrl) {
+      // Bare, retired, invalid, or gated consult drafts have no safe flow to
+      // resume. Mark them handled so the cron does not repeatedly reconsider
+      // them, without putting the bearer session id in logs or email metadata.
+      await markRecoverySent(draft.session_id)
+      logger.info("Skipping recovery email - draft cannot be safely resumed", {
+        serviceType: draft.service_type,
+      })
+      continue
+    }
+
     try {
       const result = await sendEmail({
         to: draft.email,
@@ -187,7 +198,6 @@ export async function processPartialIntakeRecoveries(): Promise<{
         // without this the recipient has no working opt-out (Spam Act s18).
         unsubscribeEmail: draft.email,
         metadata: {
-          draft_session_id: draft.session_id,
           service_type: draft.service_type,
         },
       })
@@ -198,14 +208,12 @@ export async function processPartialIntakeRecoveries(): Promise<{
       } else {
         failed += 1
         logger.warn("Recovery email failed", {
-          sessionId: draft.session_id,
           error: result.error,
         })
       }
     } catch (err) {
       failed += 1
       logger.error("Recovery email threw", {
-        sessionId: draft.session_id,
         error: err instanceof Error ? err.message : String(err),
       })
     }

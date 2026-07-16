@@ -61,7 +61,7 @@ export type DashboardHeroState =
  * skipping the clinical intake (which we won't, for safety).
  */
 interface LastServiceShortcut {
-  serviceParam: "med-cert" | "prescription" | "consult"
+  serviceParam: "med-cert" | "repeat-script" | "consult"
   subtype?: string
   label: string
 }
@@ -233,7 +233,7 @@ function resolveLastServiceShortcut(intakes: Intake[]): LastServiceShortcut | un
   }
 
   if (serviceType === "common_scripts") {
-    return { serviceParam: "prescription", label: "Repeat a prescription" }
+    return { serviceParam: "repeat-script", label: "Repeat a prescription" }
   }
 
   if (serviceType === "consult") {

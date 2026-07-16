@@ -1,8 +1,12 @@
 import { isValidCertCategory, isValidCertDuration } from "@/lib/marketing/med-cert-selector"
-import { isConsultSubtypeAvailable, isConsultSubtypeKey } from "@/lib/request/consult-subtypes"
+import {
+  isConsultSubtypeAvailable,
+  isConsultSubtypeKey,
+  isWomensHealthOptionLive,
+} from "@/lib/request/consult-subtypes"
 import type { UnifiedServiceType } from "@/types/services"
 
-type InitialAnswerSeedKey = "consultSubtype" | "certType" | "duration"
+type InitialAnswerSeedKey = "consultSubtype" | "womensHealthOption" | "certType" | "duration"
 
 export interface InitialAnswerSeed {
   key: InitialAnswerSeedKey
@@ -12,9 +16,11 @@ export interface InitialAnswerSeed {
 export interface InitialRequestUrlContext {
   initialService: UnifiedServiceType | null
   initialSubtype?: string
+  initialIntent?: string
   initialCertType?: string
   initialDuration?: string
   storedConsultSubtype?: unknown
+  storedWomensHealthOption?: unknown
   storedCertType?: unknown
   storedDuration?: unknown
   lastSavedAt?: string | null
@@ -36,9 +42,11 @@ const COMING_SOON_SUBTYPE_REDIRECTS: Record<string, string> = {
 export function getInitialRequestUrlDecision({
   initialService,
   initialSubtype,
+  initialIntent,
   initialCertType,
   initialDuration,
   storedConsultSubtype,
+  storedWomensHealthOption,
   storedCertType,
   storedDuration,
   lastSavedAt,
@@ -47,10 +55,23 @@ export function getInitialRequestUrlDecision({
   const decision: InitialRequestUrlDecision = { answerSeeds }
 
   if (initialService === "consult" && initialSubtype) {
-    if (typeof storedConsultSubtype === "string" && storedConsultSubtype !== initialSubtype && lastSavedAt) {
+    const hasSubtypeMismatch =
+      typeof storedConsultSubtype === "string" &&
+      storedConsultSubtype !== initialSubtype &&
+      Boolean(lastSavedAt)
+
+    if (hasSubtypeMismatch) {
       decision.subtypeMismatch = { draftSubtype: storedConsultSubtype }
     } else {
       answerSeeds.push({ key: "consultSubtype", value: initialSubtype })
+
+      if (
+        initialSubtype === "womens_health" &&
+        !storedWomensHealthOption &&
+        isWomensHealthOptionLive(initialIntent)
+      ) {
+        answerSeeds.push({ key: "womensHealthOption", value: initialIntent })
+      }
     }
 
     if (isConsultSubtypeKey(initialSubtype) && !isConsultSubtypeAvailable(initialSubtype)) {

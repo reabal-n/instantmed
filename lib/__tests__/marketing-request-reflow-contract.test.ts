@@ -96,15 +96,15 @@ describe("marketing and request reflow contract", () => {
     expect(skipLink.match(/activateSkipTarget\(event,/g)).toHaveLength(2)
   })
 
-  it("keeps dense comparisons and the homepage route map shrinkable", () => {
+  it("keeps dense comparisons and the homepage card chooser shrinkable", () => {
     const comparisonTable = read("components/sections/comparison-table.tsx")
     const routeMap = read("components/marketing/portfolio-route-map.tsx")
 
     expect(comparisonTable.match(/grid-cols-3 sm:grid-cols-\[1fr_120px_120px\]/g)).toHaveLength(2)
     expect(comparisonTable.match(/px-2 min-\[241px\]:px-6/g)).toHaveLength(2)
-    expect(routeMap).toContain("lg:grid-cols-[minmax(0,0.86fr)_auto_minmax(0,1.14fr)]")
-    expect(routeMap).toContain('className="min-w-0 flex-1"')
-    expect(routeMap).toContain("grid-cols-[auto_minmax(0,1fr)]")
+    expect(routeMap).toContain("grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-6")
+    expect(routeMap).toContain('"min-w-0"')
+    expect(routeMap).toContain('index === 4 && "sm:col-span-2 lg:col-span-2"')
   })
 
   it("moves each compact commercial link as one reflowable unit", () => {

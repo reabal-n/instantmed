@@ -20,8 +20,16 @@ import {
   migrateLegacyDraft,
   saveDraft,
 } from '@/lib/request/draft-storage'
+import type { ServerDraftRecord } from '@/lib/request/server-draft'
+import { deriveRequestStepProgress } from '@/lib/request/step-progress'
 import type { UnifiedServiceType, UnifiedStepId } from '@/lib/request/step-registry'
-import { getNextStepId, getPreviousStepId,getStepsForService as _getStepsForService } from '@/lib/request/step-registry'
+import {
+  getNextStepId,
+  getPreviousStepId,
+  getStepDefinitionById,
+  getStepsForService as _getStepsForService,
+  isRequestStepId,
+} from '@/lib/request/step-registry'
 
 export interface RequestState {
   // Service
@@ -30,6 +38,8 @@ export interface RequestState {
   // Navigation
   currentStepId: UnifiedStepId
   direction: 1 | -1
+  furthestVisitedStepId: UnifiedStepId | null
+  stepsNeedingRevalidation: UnifiedStepId[]
   
   // Safety
   safetyConfirmed: boolean
@@ -115,6 +125,13 @@ export interface RequestActions {
   
   // Auth context for step navigation
   setAuthContext: (ctx: AuthContext) => void
+
+  // Explicit cross-device recovery. Replaces local clinical answers atomically;
+  // the caller must validate the bearer record and route before invoking it.
+  restoreServerDraft: (
+    record: ServerDraftRecord,
+    serviceType: 'med-cert' | 'repeat-script' | 'consult',
+  ) => void
   
   // Consents
   setConsent: (key: 'agreedToTerms' | 'confirmedAccuracy' | 'telehealthConsent', value: boolean) => void
@@ -131,6 +148,8 @@ const initialState: RequestState = {
   serviceType: null,
   currentStepId: 'certificate', // First step for med-cert (default)
   direction: 1,
+  furthestVisitedStepId: null,
+  stepsNeedingRevalidation: [],
   safetyConfirmed: false,
   safetyTimestamp: null,
   answers: {},
@@ -163,6 +182,39 @@ const invalidatedAttestationState = {
 } as const
 
 const identityFields = ['firstName', 'lastName', 'email', 'phone', 'dob'] as const
+
+// UTI and new/switch-pill answers are mutually exclusive. When the patient
+// changes pathway, remove every hidden branch field so stale clinical answers
+// cannot be submitted or evaluated against the newly visible assessment.
+const WOMENS_HEALTH_BRANCH_ANSWER_KEYS = [
+  'utiSymptoms',
+  'utiRedFlags',
+  'utiPregnant',
+  'utiDetails',
+  'contraceptionType',
+  'contraceptionCurrent',
+  'pregnancyStatus',
+  'lastPeriod',
+  'contraceptionDetails',
+  'womens_migraine_aura',
+  'womens_blood_clot_history',
+  'womens_smoker',
+] as const
+
+function applyAnswerChange(
+  answers: Record<string, unknown>,
+  key: string,
+  value: unknown,
+): Record<string, unknown> {
+  const nextAnswers = { ...answers }
+  if (key === 'womensHealthOption') {
+    for (const branchKey of WOMENS_HEALTH_BRANCH_ANSWER_KEYS) {
+      delete nextAnswers[branchKey]
+    }
+  }
+  nextAnswers[key] = value
+  return nextAnswers
+}
 
 function draftIdentityMatchesCurrentState(draft: DraftData, state: RequestState): boolean {
   return identityFields.every((field) => (draft[field] ?? '') === state[field])
@@ -198,6 +250,7 @@ type ServerDraftFlush = (payload: {
     firstName?: string
     lastName?: string
     phone?: string
+    dob?: string
   }
 }) => void
 
@@ -232,6 +285,8 @@ function writeDraftToStorage(name: string, value: StorageValue<Partial<RequestSt
     if (canonical) {
       saveDraft(canonical, {
         currentStepId: state.currentStepId || 'certificate',
+        furthestVisitedStepId: state.furthestVisitedStepId,
+        stepsNeedingRevalidation: state.stepsNeedingRevalidation,
         answers: state.answers || {},
         firstName: state.firstName,
         lastName: state.lastName,
@@ -276,6 +331,8 @@ function persistedRequestState(state: Partial<RequestState>): Partial<RequestSta
   return {
     serviceType: state.serviceType,
     currentStepId: state.currentStepId,
+    furthestVisitedStepId: state.furthestVisitedStepId,
+    stepsNeedingRevalidation: state.stepsNeedingRevalidation,
     safetyConfirmed: state.safetyConfirmed,
     safetyTimestamp: state.safetyTimestamp,
     answers: state.answers,
@@ -338,6 +395,7 @@ function flushDraftImmediately(): void {
         firstName: state.firstName,
         lastName: state.lastName,
         phone: state.phone,
+        dob: state.dob,
       },
     })
   } catch {
@@ -385,6 +443,8 @@ function draftToPersistedState(draft: DraftData): Partial<RequestState> {
   return {
     serviceType: draft.serviceType,
     currentStepId: draft.currentStepId,
+    furthestVisitedStepId: draft.furthestVisitedStepId ?? draft.currentStepId,
+    stepsNeedingRevalidation: draft.stepsNeedingRevalidation ?? [],
     safetyConfirmed: draft.safetyConfirmed,
     safetyTimestamp: draft.safetyTimestamp,
     answers: draft.answers,
@@ -444,6 +504,12 @@ function normalizePersistedState(state: Partial<RequestState> | undefined): Part
     dob: typeof state.dob === 'string' ? state.dob : '',
     safetyConfirmed: typeof state.safetyConfirmed === 'boolean' ? state.safetyConfirmed : false,
     safetyTimestamp: typeof state.safetyTimestamp === 'string' ? state.safetyTimestamp : null,
+    furthestVisitedStepId: isRequestStepId(state.furthestVisitedStepId)
+      ? state.furthestVisitedStepId
+      : state.currentStepId ?? null,
+    stepsNeedingRevalidation: Array.isArray(state.stepsNeedingRevalidation)
+      ? state.stepsNeedingRevalidation.filter(isRequestStepId)
+      : [],
     agreedToTerms: typeof state.agreedToTerms === 'boolean' ? state.agreedToTerms : false,
     confirmedAccuracy: typeof state.confirmedAccuracy === 'boolean' ? state.confirmedAccuracy : false,
     telehealthConsent: typeof state.telehealthConsent === 'boolean' ? state.telehealthConsent : false,
@@ -518,6 +584,10 @@ export const useRequestStore = create<RequestState & RequestActions>()(
             currentStepId: (stepExists
               ? restoredStepId
               : steps[0]?.id || 'certificate') as UnifiedStepId,
+            furthestVisitedStepId: isRequestStepId(scopedDraft?.furthestVisitedStepId)
+              ? scopedDraft.furthestVisitedStepId
+              : restoredStepId ?? (steps[0]?.id || 'certificate') as UnifiedStepId,
+            stepsNeedingRevalidation: (scopedDraft?.stepsNeedingRevalidation ?? []).filter(isRequestStepId),
             safetyConfirmed: restoreConfirmedAttestation,
             safetyTimestamp: restoreConfirmedAttestation ? scopedDraft?.safetyTimestamp ?? null : null,
             agreedToTerms: restoreConfirmedAttestation,
@@ -547,7 +617,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
       },
 
       nextStep: () => {
-        const { serviceType, currentStepId, authContext, answers } = get()
+        const { serviceType, currentStepId, authContext, answers, stepsNeedingRevalidation } = get()
         if (!serviceType) return
 
         const context = {
@@ -558,7 +628,15 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
         const nextId = getNextStepId(serviceType, currentStepId, context)
         if (nextId) {
-          set({ currentStepId: nextId, direction: 1 })
+          const steps = _getStepsForService(serviceType, context)
+          const furthestVisitedIndex = steps.findIndex((step) => step.id === get().furthestVisitedStepId)
+          const nextIndex = steps.findIndex((step) => step.id === nextId)
+          set({
+            currentStepId: nextId,
+            direction: 1,
+            stepsNeedingRevalidation: stepsNeedingRevalidation.filter((stepId) => stepId !== currentStepId),
+            ...(nextIndex > furthestVisitedIndex ? { furthestVisitedStepId: nextId } : {}),
+          })
           flushPendingDraftWrite()
           return
         }
@@ -570,13 +648,17 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         // of payment. Return the patient to the final review/pay step instead.
         const lastActiveId = getLastActiveStepId(serviceType, currentStepId, context)
         if (lastActiveId) {
-          set({ currentStepId: lastActiveId, direction: 1 })
+          set({
+            currentStepId: lastActiveId,
+            direction: 1,
+            stepsNeedingRevalidation: stepsNeedingRevalidation.filter((stepId) => stepId !== currentStepId),
+          })
           flushPendingDraftWrite()
         }
       },
 
       prevStep: () => {
-        const { serviceType, currentStepId, authContext, answers } = get()
+        const { serviceType, currentStepId, authContext, answers, stepsNeedingRevalidation } = get()
         if (!serviceType) return
 
         const context = {
@@ -596,17 +678,25 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         // to the review/pay step the patient came from (not a dead button).
         const lastActiveId = getLastActiveStepId(serviceType, currentStepId, context)
         if (lastActiveId) {
+          if (stepsNeedingRevalidation.includes(currentStepId)) return
           set({ currentStepId: lastActiveId, direction: -1 })
           flushPendingDraftWrite()
         }
       },
 
       goToStep: (stepId) => {
-        const { currentStepId, serviceType, authContext, answers } = get()
+        const {
+          currentStepId,
+          serviceType,
+          authContext,
+          answers,
+          furthestVisitedStepId,
+          stepsNeedingRevalidation,
+        } = get()
 
         // Use the step registry to get the actual active steps for this service
         // This ensures subtype-specific steps (ed-assessment, hair-loss-assessment, etc.) are included
-        let activeSteps: string[]
+        let activeSteps: UnifiedStepId[]
         try {
           const context = { ...authContext, serviceType: serviceType || 'med-cert', answers }
           activeSteps = _getStepsForService(serviceType || 'med-cert', context).map(s => s.id)
@@ -618,6 +708,14 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         const currentIndex = activeSteps.indexOf(currentStepId)
         const targetIndex = activeSteps.indexOf(stepId)
 
+        // An authenticated patient can explicitly edit Details even when that
+        // step is skipped by the active sequence. Once its identity changes,
+        // only the step's validated Continue path may clear the work and
+        // return to review; progress clicks must not bypass that validation.
+        if (currentIndex === -1 && stepsNeedingRevalidation.includes(currentStepId)) {
+          return
+        }
+
         // If target step isn't in active steps, allow navigation (step may be transitioning)
         if (targetIndex === -1) {
           set({ currentStepId: stepId, direction: 1 })
@@ -626,6 +724,17 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
         // Block jumping to checkout without required data
         if (targetIndex > currentIndex) {
+          const progress = deriveRequestStepProgress({
+            stepIds: activeSteps,
+            currentStepId,
+            furthestVisitedStepId,
+            stepsNeedingRevalidation,
+          })
+
+          if (targetIndex > progress.maxReachableIndex) {
+            return
+          }
+
           if (stepId === 'checkout' || stepId === 'review') {
             const hasRequiredAnswers = Object.keys(answers).length > 0
             if (!hasRequiredAnswers) {
@@ -649,10 +758,34 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         const answers = isPlainRecord(state.answers) ? state.answers : {}
         const previousValue = answers[key]
         if (Object.is(previousValue, value)) return
+        const nextAnswers = applyAnswerChange(answers, key, value)
+        const tracksProgress = options?.touch !== false
+        const resetsConsultBranch = tracksProgress && key === 'consultSubtype'
+        const invalidatedDependentSteps = state.serviceType
+          ? getStepDefinitionById(state.serviceType, state.currentStepId, {
+              ...state.authContext,
+              serviceType: state.serviceType,
+              answers: nextAnswers,
+            })?.invalidatesSteps ?? []
+          : []
 
         set({
-          answers: { ...answers, [key]: value },
+          answers: nextAnswers,
           ...(options?.touch === false ? {} : { lastSavedAt: new Date().toISOString() }),
+          ...(tracksProgress
+            ? resetsConsultBranch
+              ? {
+                  furthestVisitedStepId: null,
+                  stepsNeedingRevalidation: [],
+                }
+              : {
+                  stepsNeedingRevalidation: Array.from(new Set([
+                    ...state.stepsNeedingRevalidation,
+                    state.currentStepId,
+                    ...invalidatedDependentSteps,
+                  ])),
+                }
+            : {}),
           ...invalidatedAttestationState,
         })
         queueLatestDraftSnapshotAfterMutation(get)
@@ -678,9 +811,22 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           }
 
           changed = true
+          const mergedAnswers = { ...answers, ...nextAnswers }
+          const invalidatedDependentSteps = state.serviceType
+            ? getStepDefinitionById(state.serviceType, state.currentStepId, {
+                ...state.authContext,
+                serviceType: state.serviceType,
+                answers: mergedAnswers,
+              })?.invalidatesSteps ?? []
+            : []
           return {
-            answers: { ...answers, ...nextAnswers },
+            answers: mergedAnswers,
             lastSavedAt: new Date().toISOString(),
+            stepsNeedingRevalidation: Array.from(new Set([
+              ...state.stepsNeedingRevalidation,
+              state.currentStepId,
+              ...invalidatedDependentSteps,
+            ])),
             ...invalidatedAttestationState,
           }
         })
@@ -697,6 +843,12 @@ export const useRequestStore = create<RequestState & RequestActions>()(
             ...data,
             ...(options?.touch === false ? {} : { lastSavedAt: new Date().toISOString() }),
             ...(changed ? invalidatedAttestationState : {}),
+            ...(changed && options?.touch !== false ? {
+              stepsNeedingRevalidation: Array.from(new Set([
+                ...state.stepsNeedingRevalidation,
+                state.currentStepId,
+              ])),
+            } : {}),
           }
         })
         queueLatestDraftSnapshotAfterMutation(get)
@@ -713,6 +865,57 @@ export const useRequestStore = create<RequestState & RequestActions>()(
       },
 
       setAuthContext: (ctx) => set({ authContext: ctx }),
+
+      restoreServerDraft: (record, serviceType) => {
+        const state = get()
+        const answers = isPlainRecord(record.answers) ? record.answers : {}
+        const context = {
+          ...state.authContext,
+          serviceType,
+          answers,
+        }
+        let steps: { id: UnifiedStepId }[]
+        try {
+          steps = _getStepsForService(serviceType, context)
+        } catch {
+          steps = []
+        }
+
+        const requestedStep = isRequestStepId(record.currentStepId)
+          ? record.currentStepId
+          : null
+        const currentStepId = (
+          requestedStep && steps.some((step) => step.id === requestedStep)
+            ? requestedStep
+            : steps[0]?.id ?? 'certificate'
+        ) as UnifiedStepId
+        const identity = record.identity ?? {
+          email: null,
+          firstName: null,
+          lastName: null,
+          phone: null,
+          dob: null,
+        }
+
+        set({
+          serviceType,
+          currentStepId,
+          direction: 1,
+          furthestVisitedStepId: currentStepId,
+          stepsNeedingRevalidation: [],
+          answers,
+          firstName: typeof identity.firstName === 'string' ? identity.firstName : '',
+          lastName: typeof identity.lastName === 'string' ? identity.lastName : '',
+          email: typeof identity.email === 'string' ? identity.email : '',
+          phone: typeof identity.phone === 'string' ? identity.phone : '',
+          dob: typeof identity.dob === 'string' ? identity.dob : '',
+          lastSavedAt: Number.isFinite(Date.parse(record.updatedAt)) ? record.updatedAt : null,
+          draftId: null,
+          error: null,
+          ...invalidatedAttestationState,
+        })
+        queueLatestDraftSnapshotAfterMutation(get)
+      },
 
       setConsent: (key, value) => set({ [key]: value }),
 

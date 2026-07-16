@@ -8,14 +8,14 @@ import {
   MedicalServiceSchema,
   SpeakableSchema,
 } from "@/components/seo"
-import { PRICING } from "@/lib/constants"
+import { PRICING_DISPLAY, PRICING_SCHEMA } from "@/lib/constants"
 import { HAIR_LOSS_LANDING_FAQ } from "@/lib/data/hair-loss-faq"
 
 export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: { absolute: "Hair Loss Assessment | Doctor Review | InstantMed" },
-  description: `Hair loss assessment from an Australian doctor. Fill out a secure form, no booked appointment or clinic visit. From $${PRICING.HAIR_LOSS.toFixed(2)}.`,
+  description: `Hair loss assessment from an Australian doctor. Fill out a secure form, no booked appointment or clinic visit. From ${PRICING_DISPLAY.HAIR_LOSS}.`,
   keywords: [
     "hair loss assessment australia",
     "hair loss assessment online",
@@ -48,7 +48,7 @@ export default function HairLossPage() {
     <>
       <SpeakableSchema
         name="Hair Loss Assessment Online Australia"
-        description={`Discreet, doctor-led hair loss assessment from an AHPRA-registered Australian doctor. From $${PRICING.HAIR_LOSS.toFixed(2)}. Start with a private online form. A doctor reviews it and may call you briefly before prescribing.`}
+        description={`Discreet, doctor-led hair loss assessment from an AHPRA-registered Australian doctor. From ${PRICING_DISPLAY.HAIR_LOSS}. Start with a private online form. A doctor reviews it and may call you briefly before prescribing.`}
         url="/hair-loss"
       />
       <FAQSchema faqs={[...HAIR_LOSS_LANDING_FAQ]} />
@@ -61,11 +61,11 @@ export default function HairLossPage() {
       <MedicalServiceSchema
         name="Online Hair Loss Assessment"
         description="Discreet hair loss assessment from an AHPRA-registered Australian doctor. Next steps are decided after clinical review."
-        price={PRICING.HAIR_LOSS.toFixed(2)}
+        price={PRICING_SCHEMA.HAIR_LOSS}
       />
       <HealthArticleSchema
         title="Hair Loss Assessment Online Australia"
-        description={`Doctor-led hair loss assessment from an AHPRA-registered Australian doctor. Discreet form-first review. From $${PRICING.HAIR_LOSS.toFixed(2)}.`}
+        description={`Doctor-led hair loss assessment from an AHPRA-registered Australian doctor. Discreet form-first review. From ${PRICING_DISPLAY.HAIR_LOSS}.`}
         url="/hair-loss"
       />
       <HairLossLanding />

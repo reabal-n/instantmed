@@ -19,10 +19,26 @@ export const BLOCKED_CONSULT_SUBTYPES: ReadonlySet<ConsultSubtype> = new Set([
  * `ocp_repeat` is deliberately absent — "continuing the same pill" is routed to
  * the cheaper repeat-script flow, not a parallel $49.95 path.
  */
-export const LIVE_WOMENS_HEALTH_OPTIONS: ReadonlySet<string> = new Set(["uti", "ocp_new"])
+const WOMENS_HEALTH_INTENT_VALUES = ["uti", "ocp_new"] as const
+export type WomensHealthIntent = (typeof WOMENS_HEALTH_INTENT_VALUES)[number]
 
-export function isWomensHealthOptionLive(option: string | undefined | null): boolean {
-  return typeof option === "string" && LIVE_WOMENS_HEALTH_OPTIONS.has(option)
+export const LIVE_WOMENS_HEALTH_OPTIONS: ReadonlySet<WomensHealthIntent> = new Set(
+  WOMENS_HEALTH_INTENT_VALUES,
+)
+
+export function isWomensHealthOptionLive(option: unknown): option is WomensHealthIntent {
+  return (
+    typeof option === "string" &&
+    LIVE_WOMENS_HEALTH_OPTIONS.has(option as WomensHealthIntent)
+  )
+}
+
+/**
+ * Accept only the two canonical child-page intent tokens. This is a UI seed
+ * for the existing women's-health consult flow, never a service/subtype alias.
+ */
+export function normalizeWomensHealthIntentParam(value: unknown): WomensHealthIntent | undefined {
+  return isWomensHealthOptionLive(value) ? value : undefined
 }
 
 export const CONSULT_SUBTYPE_LABELS: Record<ConsultSubtype, string> = {

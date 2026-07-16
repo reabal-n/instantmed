@@ -2,7 +2,7 @@
  * Service Catalog — Single Source of Truth
  *
  * One canonical definition per service. Consumed by:
- *   - Home route map (components/marketing/portfolio-route-map.tsx)
+ *   - Homepage service cards (components/marketing/portfolio-route-map.tsx)
  *   - Intake service hub (components/request/service-hub-screen.tsx)
  *   - Pricing page (app/pricing/pricing-content.tsx)
  *   - Services dropdown (components/shared/navbar/services-dropdown.tsx)
@@ -13,7 +13,7 @@
  * See: docs/plans/archive/2026-04-20-design-system-95-sprint.md (Task 1.2)
  * See: DESIGN.md §1 (colour tokens), §7 (service icon tiles)
  */
-import { PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -89,7 +89,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
     slug: "medical-certificate",
     price: PRICING_DISPLAY.MED_CERT,
     pricePrefix: "From",
-    priceFrom: 24.95,
+    priceFrom: PRICING.MED_CERT,
     effort: "~3 min",
     iconKey: "FileText",
     colorToken: "emerald",
@@ -102,7 +102,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
     subtitle: "Form-first medication review",
     slug: "prescriptions",
     price: PRICING_DISPLAY.REPEAT_SCRIPT,
-    priceFrom: 29.95,
+    priceFrom: PRICING.REPEAT_SCRIPT,
     effort: "~3 min",
     iconKey: "Pill",
     colorToken: "cyan",
@@ -114,7 +114,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
     subtitle: "Discreet form-first assessment",
     slug: "erectile-dysfunction",
     price: PRICING_DISPLAY.MENS_HEALTH,
-    priceFrom: 49.95,
+    priceFrom: PRICING.MENS_HEALTH,
     effort: "~4 min",
     iconKey: "Lightning",
     colorToken: "blue",
@@ -127,7 +127,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
     subtitle: "Private form-first assessment",
     slug: "hair-loss",
     price: PRICING_DISPLAY.HAIR_LOSS,
-    priceFrom: 49.95,
+    priceFrom: PRICING.HAIR_LOSS,
     effort: "~3 min",
     iconKey: "Sparkles",
     colorToken: "amber", // was 'violet'; fixed per audit C1/C2
@@ -140,7 +140,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
     subtitle: "UTI treatment & the contraceptive pill",
     slug: "womens-health",
     price: PRICING_DISPLAY.WOMENS_HEALTH,
-    priceFrom: 49.95,
+    priceFrom: PRICING.WOMENS_HEALTH,
     effort: "~3 min",
     iconKey: "Heart",
     colorToken: "pink",

@@ -18,6 +18,8 @@
 import { canonicalizeServiceType, type CanonicalServiceType } from "./draft-storage"
 
 const SERVER_SESSION_KEY_PREFIX = "instantmed-server-draft-"
+const SERVER_DRAFT_SESSION_ID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 interface ServerDraftPayload {
   serviceType: CanonicalServiceType
@@ -28,6 +30,7 @@ interface ServerDraftPayload {
     firstName?: string
     lastName?: string
     phone?: string
+    dob?: string
   }
 }
 
@@ -37,7 +40,7 @@ interface ServerDraftResponse {
   updatedAt: string
 }
 
-interface ServerDraftRecord {
+export interface ServerDraftRecord {
   sessionId: string
   serviceType: CanonicalServiceType
   currentStepId: string | null
@@ -47,6 +50,7 @@ interface ServerDraftRecord {
     firstName: string | null
     lastName: string | null
     phone: string | null
+    dob: string | null
   }
   updatedAt: string
   expiresAt: string
@@ -75,13 +79,34 @@ export function getActiveServerDraftSessionId(
   return getStoredSessionId(canonicalService)
 }
 
-function setStoredSessionId(service: CanonicalServiceType, sessionId: string): void {
-  if (typeof window === "undefined") return
+function setStoredSessionId(service: CanonicalServiceType, sessionId: string): boolean {
+  if (typeof window === "undefined") return false
   try {
     localStorage.setItem(`${SERVER_SESSION_KEY_PREFIX}${service}`, sessionId)
+    return true
   } catch {
     // Storage blocked - fall through, save still worked server-side.
+    return false
   }
+}
+
+/**
+ * Adopt a server draft after it has been fetched and validated by the API.
+ * Later saves then upsert the same bearer-token session instead of forking it.
+ */
+export function adoptServerDraftSession(
+  record: Pick<ServerDraftRecord, "sessionId" | "serviceType">,
+): boolean {
+  const canonicalService = canonicalizeServiceType(record.serviceType)
+  if (
+    !SERVER_DRAFT_SESSION_ID_REGEX.test(record.sessionId) ||
+    !canonicalService ||
+    canonicalService !== record.serviceType
+  ) {
+    return false
+  }
+
+  return setStoredSessionId(canonicalService, record.sessionId)
 }
 
 function clearStoredSessionId(service: CanonicalServiceType): void {

@@ -142,6 +142,13 @@ export function sanitizeUrl(url: string): string {
       }
     })
 
+    // Cross-device intake recovery uses the exact short key `d` for a bearer
+    // token. Redact that key explicitly without treating every key containing
+    // the letter "d" (for example `id`, `duration`, or `utm_medium`) as secret.
+    if (parsed.searchParams.has("d")) {
+      parsed.searchParams.set("d", REDACTED)
+    }
+
     // Also check for params containing these as substrings
     const paramsToRedact: string[] = []
     parsed.searchParams.forEach((_, key) => {

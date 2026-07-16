@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest"
 
 import { isConsultServiceType, isKnownDoctorServiceType } from "@/lib/doctor/service-types"
 import {
-  getConsultDraftResumeHref,
   getConsultSubtypeFirstStep,
   getConsultSubtypeResetKeys,
   normalizeConsultSubtypeParam,
 } from "@/lib/request/consult-flow"
+import { buildDraftResumePath } from "@/lib/request/draft-resume-route"
 import { getStepsForService, type StepContext } from "@/lib/request/step-registry"
 import {
   resolveCheckoutSubtype,
@@ -341,13 +341,18 @@ describe("unified intake regressions", () => {
 
   it("resumes consult drafts with their saved subtype and resets stale subtype answers", () => {
     expect(
-      getConsultDraftResumeHref({
+      buildDraftResumePath({
         serviceType: "consult",
-        currentStepId: "medical-history",
-        answers: { consultSubtype: "hair_loss" },
-        lastSavedAt: "2026-04-29T00:00:00.000Z",
+        consultSubtype: "hair_loss",
       }),
     ).toBe("/request?service=consult&subtype=hair_loss")
+    expect(buildDraftResumePath({ serviceType: "prescription" })).toBe(
+      "/request?service=repeat-script",
+    )
+    expect(buildDraftResumePath({ serviceType: "consult" })).toBeNull()
+    expect(
+      buildDraftResumePath({ serviceType: "consult", consultSubtype: "weight_loss" }),
+    ).toBeNull()
 
     expect(getConsultSubtypeFirstStep("ed")).toBe("ed-goals")
     expect(getConsultSubtypeFirstStep("hair_loss")).toBe("hair-loss-goals")

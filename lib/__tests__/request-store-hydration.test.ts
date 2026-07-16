@@ -155,6 +155,51 @@ describe("request store draft hydration", () => {
     expect(scopedDraft.currentStepId).toBe("womens-health-assessment")
   })
 
+  it("persists the furthest visited step and unresolved revalidation work", async () => {
+    await useRequestStore.persist.rehydrate()
+    useRequestStore.setState({
+      serviceType: "repeat-script",
+      currentStepId: "medication",
+      furthestVisitedStepId: "review",
+      stepsNeedingRevalidation: ["medication", "medication-history"],
+      answers: {
+        medications: [{ name: "Updated medicine" }],
+        consultSubtype: undefined,
+      },
+    })
+
+    useRequestStore.getState().nextStep()
+
+    const legacyDraft = JSON.parse(localStorage.getItem("instantmed-request-draft") || "{}")
+    const scopedDraft = JSON.parse(localStorage.getItem("instantmed-draft-prescription") || "{}")
+    expect(legacyDraft.state.furthestVisitedStepId).toBe("review")
+    expect(legacyDraft.state.stepsNeedingRevalidation).toEqual(["medication-history"])
+    expect(scopedDraft.furthestVisitedStepId).toBe("review")
+    expect(scopedDraft.stepsNeedingRevalidation).toEqual(["medication-history"])
+  })
+
+  it("sanitizes unknown persisted progress step ids", async () => {
+    localStorage.setItem(
+      "instantmed-request-draft",
+      JSON.stringify({
+        state: {
+          serviceType: "med-cert",
+          currentStepId: "symptoms",
+          furthestVisitedStepId: "not-a-request-step",
+          stepsNeedingRevalidation: ["symptoms", "not-a-request-step"],
+          answers: { symptomDetails: "A mild headache since this morning" },
+          lastSavedAt: new Date().toISOString(),
+        },
+        version: 0,
+      }),
+    )
+
+    await useRequestStore.persist.rehydrate()
+
+    expect(useRequestStore.getState().furthestVisitedStepId).toBe("symptoms")
+    expect(useRequestStore.getState().stepsNeedingRevalidation).toEqual(["symptoms"])
+  })
+
   it("does not hydrate a same-step shorter draft over live assessment answers", async () => {
     useRequestStore.setState({
       serviceType: "consult",

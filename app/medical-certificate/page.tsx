@@ -2,14 +2,14 @@ import type { Metadata } from "next"
 
 import { MedCertLanding } from "@/components/marketing/med-cert-landing"
 import { BreadcrumbSchema, FAQSchema, HealthArticleSchema,MedCertHowToSchema, MedicalServiceSchema, SpeakableSchema } from "@/components/seo"
-import { PRICING } from "@/lib/constants"
+import { PRICING_DISPLAY, PRICING_SCHEMA } from "@/lib/constants"
 import { MED_CERT_LANDING_FAQ } from "@/lib/data/med-cert-faq"
 
 export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: { absolute: "Medical Certificate Online Australia | Doctor Review | InstantMed" },
-  description: `Get a medical certificate for work or study online. Fill out a secure form, no appointment. From $${PRICING.MED_CERT.toFixed(2)}.`,
+  description: `Get a medical certificate for work or study online. Fill out a secure form, no appointment. From ${PRICING_DISPLAY.MED_CERT}.`,
   keywords: [
     "medical certificate online australia",
     "sick note online",
@@ -43,7 +43,7 @@ export default function Page() {
     <>
       <SpeakableSchema
         name="Online Medical Certificate Australia"
-        description={`Get a medical certificate for work or study online. Reviewed by an AHPRA-registered Australian doctor. From $${PRICING.MED_CERT.toFixed(2)}. No appointment needed.`}
+        description={`Get a medical certificate for work or study online. Reviewed by an AHPRA-registered Australian doctor. From ${PRICING_DISPLAY.MED_CERT}. No appointment needed.`}
         url="/medical-certificate"
       />
       <MedCertHowToSchema />
@@ -57,7 +57,7 @@ export default function Page() {
       <MedicalServiceSchema
         name="Online Medical Certificate"
         description="Get routine sick-leave or study-absence evidence reviewed by an Australian registered doctor. Employer and institution policies may vary."
-        price={PRICING.MED_CERT.toFixed(2)}
+        price={PRICING_SCHEMA.MED_CERT}
       />
       <HealthArticleSchema
         title="Online Medical Certificate Australia"
