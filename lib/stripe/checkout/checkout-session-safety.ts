@@ -12,7 +12,7 @@ import {
 import {
   HIGH_STAKES_PAYMENT_LOCK,
   isPaymentSafetyLock,
-  PAYMENT_SAFETY_LOCK_EXCLUSION_FILTER,
+  PAYMENT_SAFETY_LOCKS,
 } from "../payment-safety-lock"
 
 const logger = createLogger("checkout-session-safety")
@@ -245,27 +245,44 @@ export async function attachCheckoutSession({
       : { outcome: "session_not_open", sessionState: inspection.state }
   }
 
-  let attachQuery = supabase
-    .from("intakes")
-    .update({
-      payment_id: sessionId,
-      payment_status: "pending",
-      status: "pending_payment",
-      checkout_error: null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", intakeId)
-    .in("status", ["pending_payment", "checkout_failed"])
-    .in("payment_status", ["pending", "unpaid", "failed"])
-    .or(PAYMENT_SAFETY_LOCK_EXCLUSION_FILTER)
+  // PostgREST rejects a PATCH that combines these nullable guards with `.or()`
+  // (42703 on intakes.checkout_error). Preserve the same union as two guarded
+  // compare-and-swap attempts so neither payment-safety lock can be cleared.
+  const paymentSafetyLocksFilter = `(${PAYMENT_SAFETY_LOCKS.join(",")})`
+  const runAttach = async (checkoutErrorGuard: "null" | "not_safety_locked") => {
+    let attachQuery = supabase
+      .from("intakes")
+      .update({
+        payment_id: sessionId,
+        payment_status: "pending",
+        status: "pending_payment",
+        checkout_error: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", intakeId)
+      .in("status", ["pending_payment", "checkout_failed"])
+      .in("payment_status", ["pending", "unpaid", "failed"])
 
-  if (patientId) attachQuery = attachQuery.eq("patient_id", patientId)
+    attachQuery = checkoutErrorGuard === "null"
+      ? attachQuery.is("checkout_error", null)
+      : attachQuery.not("checkout_error", "in", paymentSafetyLocksFilter)
 
-  attachQuery = expectedPaymentId
-    ? attachQuery.eq("payment_id", expectedPaymentId)
-    : attachQuery.is("payment_id", null)
+    if (patientId) attachQuery = attachQuery.eq("patient_id", patientId)
 
-  const { data: attachedRows, error: attachError } = await attachQuery.select("id")
+    attachQuery = expectedPaymentId
+      ? attachQuery.eq("payment_id", expectedPaymentId)
+      : attachQuery.is("payment_id", null)
+
+    return attachQuery.select("id")
+  }
+
+  let { data: attachedRows, error: attachError } = await runAttach("null")
+  if (!attachError && (!attachedRows || attachedRows.length === 0)) {
+    const fallbackAttach = await runAttach("not_safety_locked")
+    attachedRows = fallbackAttach.data
+    attachError = fallbackAttach.error
+  }
+
   if (!attachError && attachedRows && attachedRows.length > 0) {
     return { outcome: "attached" }
   }

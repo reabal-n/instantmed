@@ -20,7 +20,6 @@ export {
   type DashboardCardProps,
   type DashboardCardTier,
 } from "./dashboard-card"
-export { DashboardEmpty, type DashboardEmptyProps } from "./dashboard-empty"
 export { DashboardGrid, type DashboardGridProps } from "./dashboard-grid"
 export {
   DashboardPageHeader,

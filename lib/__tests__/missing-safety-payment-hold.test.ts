@@ -67,6 +67,10 @@ function createHoldSupabaseMock({
       filters.push({ column, method: "is", value })
       return updateChain
     }),
+    not: vi.fn((column: string, operator: string, value: unknown) => {
+      filters.push({ column, method: `not:${operator}`, value })
+      return updateChain
+    }),
     or: vi.fn((value: string) => {
       filters.push({ method: "or", value })
       return updateChain

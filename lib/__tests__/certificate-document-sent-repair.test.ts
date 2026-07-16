@@ -142,6 +142,18 @@ describe("certificate document_sent_at repair", () => {
     expect(helperSource).not.toMatch(/to_email|patient_email|patient_name|storage_path|pdf_storage_path|signed_url/i)
   })
 
+  it("keeps the nullable reporting guard out of the PostgREST PATCH or filter", () => {
+    const updateLoopStart = helperSource.indexOf("for (const candidate of plan.candidates)")
+    const updateLoopEnd = helperSource.indexOf("return summary", updateLoopStart)
+    const updateLoopSource = helperSource.slice(updateLoopStart, updateLoopEnd)
+
+    expect(updateLoopSource).not.toContain(
+      '.or("exclude_from_reporting.is.null,exclude_from_reporting.eq.false")',
+    )
+    expect(updateLoopSource).toContain('.is("exclude_from_reporting", null)')
+    expect(updateLoopSource).toContain('.eq("exclude_from_reporting", false)')
+  })
+
   it("keeps the repair action admin-only, rate-limited, audited, and staff-revalidated", () => {
     expect(actionSource).toContain('requireRoleOrNull(["admin"])')
     expect(actionSource).toContain("checkServerActionRateLimit")

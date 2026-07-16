@@ -259,10 +259,18 @@ describe("abandoned checkout payment safety", () => {
 
   it("finds ordinary null-error and unpaid first nudges while rejecting null payment and recovery locks", async () => {
     const harness = createHarness([
-      row({ id: "pending-null-error" }),
-      row({ id: "unpaid", payment_status: "unpaid" }),
+      row({
+        id: "pending-null-error",
+        patient: { email: "pending@example.test", first_name: "Ada" },
+      }),
+      row({
+        id: "unpaid",
+        patient: { email: "unpaid@example.test", first_name: "Ada" },
+        payment_status: "unpaid",
+      }),
       row({
         id: "ordinary-failure",
+        patient: { email: "failed@example.test", first_name: "Ada" },
         status: "checkout_failed",
         payment_status: "failed",
         checkout_error: "Payment failed",
@@ -290,10 +298,21 @@ describe("abandoned checkout payment safety", () => {
   it("finds ordinary followups with canonical payment states while excluding every recovery lock", async () => {
     const firstSentAt = "2026-07-14T00:00:00.000Z"
     const harness = createHarness([
-      row({ id: "failed-null-error", payment_status: "failed", abandoned_email_sent_at: firstSentAt }),
-      row({ id: "unpaid", payment_status: "unpaid", abandoned_email_sent_at: firstSentAt }),
+      row({
+        id: "failed-null-error",
+        patient: { email: "failed-null@example.test", first_name: "Ada" },
+        payment_status: "failed",
+        abandoned_email_sent_at: firstSentAt,
+      }),
+      row({
+        id: "unpaid",
+        patient: { email: "unpaid@example.test", first_name: "Ada" },
+        payment_status: "unpaid",
+        abandoned_email_sent_at: firstSentAt,
+      }),
       row({
         id: "ordinary-failure",
+        patient: { email: "ordinary-failure@example.test", first_name: "Ada" },
         status: "checkout_failed",
         payment_status: "failed",
         checkout_error: "Payment failed",

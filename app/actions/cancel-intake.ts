@@ -11,7 +11,7 @@ import {
 } from "@/lib/stripe/payment-integrity"
 import {
   isMissingSafetyInformationPaymentLock,
-  PAYMENT_SAFETY_LOCK_EXCLUSION_FILTER,
+  PAYMENT_SAFETY_LOCKS,
 } from "@/lib/stripe/payment-safety-lock"
 import type { ActionResult } from "@/types/shared"
 
@@ -81,18 +81,57 @@ export const cancelIntake = withServerAction<string>(
     // the paid webhook can land between the fetch and this write, and the DB
     // trigger allows paid -> cancelled, so the write itself must re-assert the
     // unpaid-cancellable state or we mint a paid+cancelled chargeback row.
-    const { data: cancelledRows, error: updateError } = await supabase
-      .from("intakes")
-      .update({
-        status: "cancelled",
-        cancelled_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", intakeId)
-      .in("status", Array.from(CANCELLABLE_UNPAID_INTAKE_STATUSES))
-      .or(`payment_status.is.null,payment_status.not.in.(${Array.from(TERMINAL_PAID_PAYMENT_STATUSES).join(",")})`)
-      .or(PAYMENT_SAFETY_LOCK_EXCLUSION_FILTER)
-      .select("id")
+    // PostgREST rejects nullable `.or()` filters on this PATCH path (42703).
+    // Keep the payment and safety-lock unions as explicit guarded writes so a
+    // concurrent paid webhook or either safety lock always wins the race.
+    const cancelledAt = new Date().toISOString()
+    const terminalPaidPaymentStatusesFilter = `(${Array.from(TERMINAL_PAID_PAYMENT_STATUSES).join(",")})`
+    const paymentSafetyLocksFilter = `(${PAYMENT_SAFETY_LOCKS.join(",")})`
+    const cancelWithGuards = (
+      paymentGuard: "null" | "not_terminal_paid",
+      checkoutErrorGuard: "null" | "not_safety_locked",
+    ) => {
+      let cancelQuery = supabase
+        .from("intakes")
+        .update({
+          status: "cancelled",
+          cancelled_at: cancelledAt,
+          updated_at: cancelledAt,
+        })
+        .eq("id", intakeId)
+        .in("status", Array.from(CANCELLABLE_UNPAID_INTAKE_STATUSES))
+
+      cancelQuery = paymentGuard === "null"
+        ? cancelQuery.is("payment_status", null)
+        : cancelQuery.not("payment_status", "in", terminalPaidPaymentStatusesFilter)
+
+      cancelQuery = checkoutErrorGuard === "null"
+        ? cancelQuery.is("checkout_error", null)
+        : cancelQuery.not("checkout_error", "in", paymentSafetyLocksFilter)
+
+      return cancelQuery.select("id")
+    }
+
+    const paymentGuards = intake.payment_status === null
+      ? (["null", "not_terminal_paid"] as const)
+      : (["not_terminal_paid", "null"] as const)
+    const checkoutErrorGuards = intake.checkout_error === null
+      ? (["null", "not_safety_locked"] as const)
+      : (["not_safety_locked", "null"] as const)
+
+    let cancelledRows: Array<{ id: string }> | null = null
+    let updateError: { message?: string } | null = null
+
+    for (const paymentGuard of paymentGuards) {
+      for (const checkoutErrorGuard of checkoutErrorGuards) {
+        const cancellation = await cancelWithGuards(paymentGuard, checkoutErrorGuard)
+        cancelledRows = cancellation.data
+        updateError = cancellation.error
+
+        if (updateError || (cancelledRows && cancelledRows.length > 0)) break
+      }
+      if (updateError || (cancelledRows && cancelledRows.length > 0)) break
+    }
 
     if (updateError) {
       log.error("Cancel intake: update failed", { intakeId, error: updateError })

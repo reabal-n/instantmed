@@ -55,6 +55,8 @@ export const SUPPORTED_EMAIL_TYPES = [
   "payment-received",
   "refund-processed",
   "payment_failed",
+  "session_expired",
+  "dispute_alert",
   "payment_confirmed",
   "refund_issued",
   // Lifecycle

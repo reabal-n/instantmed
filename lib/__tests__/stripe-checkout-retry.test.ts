@@ -175,7 +175,8 @@ const retryPaymentSource = readFileSync(
 interface UpdateRecord {
   filters: Array<{
     column?: string
-    method: "eq" | "in" | "is" | "or"
+    method: "eq" | "in" | "is" | "neq" | "not" | "or"
+    operator?: string
     value: unknown
   }>
   payload: Record<string, unknown> | null
@@ -261,6 +262,14 @@ function createRetrySupabaseMock(
       }),
       is: vi.fn((column: string, value: unknown) => {
         updateRecord.filters.push({ column, method: "is", value })
+        return updateChain
+      }),
+      neq: vi.fn((column: string, value: unknown) => {
+        updateRecord.filters.push({ column, method: "neq", value })
+        return updateChain
+      }),
+      not: vi.fn((column: string, operator: string, value: unknown) => {
+        updateRecord.filters.push({ column, method: "not", operator, value })
         return updateChain
       }),
       or: vi.fn((value: string) => {
@@ -354,11 +363,10 @@ describe("retryPaymentForIntakeAction", () => {
       { column: "payment_id", method: "eq", value: "cs_previous" },
       { column: "status", method: "in", value: ["pending_payment", "checkout_failed"] },
       { column: "payment_status", method: "in", value: ["pending", "unpaid", "failed"] },
-      {
-        method: "or",
-        value:
-          "checkout_error.is.null,and(checkout_error.neq.safety_blocked_high_stakes,checkout_error.neq.safety_missing_required_information)",
-      },
+      { column: "checkout_error", method: "is", value: null },
+    ]))
+    expect(updateRecord.filters).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ method: "or" }),
     ]))
     expect(mocks.stripeSessionCreate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -368,7 +376,43 @@ describe("retryPaymentForIntakeAction", () => {
           is_retry: "true",
         }),
       }),
-      { idempotencyKey: "retry_intake-1_cs_previous" },
+      { idempotencyKey: "authenticated-retry-v2_intake-1_cs_previous" },
+    )
+  })
+
+  it("attaches through a separate non-locking error guard when checkout_error is non-null", async () => {
+    const { supabase, updateRecords } = createRetrySupabaseMock(
+      { checkout_error: "Payment failed" },
+      {
+        updateResults: [
+          { data: [], error: null },
+          { data: [{ id: "intake-1", payment_id: "cs_retry" }], error: null },
+        ],
+      },
+    )
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+    const attachUpdates = updateRecords.filter(
+      (record) => record.payload?.payment_id === "cs_retry",
+    )
+
+    expect(result).toMatchObject({ success: true })
+    expect(attachUpdates).toHaveLength(2)
+    expect(attachUpdates[0].filters).toEqual(expect.arrayContaining([
+      { column: "checkout_error", method: "is", value: null },
+    ]))
+    expect(attachUpdates[1].filters).toEqual(expect.arrayContaining([
+      {
+        column: "checkout_error",
+        method: "not",
+        operator: "in",
+        value:
+          "(safety_blocked_high_stakes,safety_missing_required_information)",
+      },
+    ]))
+    expect(attachUpdates.flatMap((record) => record.filters)).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ method: "or" })]),
     )
     expect(mocks.getOptionalStripePriceEnv).not.toHaveBeenCalled()
     expect(mocks.stripePriceRetrieve).not.toHaveBeenCalled()
@@ -626,7 +670,10 @@ describe("retryPaymentForIntakeAction", () => {
   it("reuses the same idempotent retry session when a parallel request already attached it", async () => {
     const { supabase } = createRetrySupabaseMock({}, {
       refetchedIntakes: [{ payment_id: "cs_retry" }],
-      updateResults: [{ data: [], error: null }],
+      updateResults: [
+        { data: [], error: null },
+        { data: [], error: null },
+      ],
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
 
@@ -675,7 +722,10 @@ describe("retryPaymentForIntakeAction", () => {
   it("invalidates the new retry session when another payment id wins the attach CAS", async () => {
     const { supabase } = createRetrySupabaseMock({}, {
       refetchedIntakes: [{ payment_id: "cs_other" }],
-      updateResults: [{ data: [], error: null }],
+      updateResults: [
+        { data: [], error: null },
+        { data: [], error: null },
+      ],
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
 
@@ -728,7 +778,10 @@ describe("retryPaymentForIntakeAction", () => {
         checkout_error: "safety_blocked_high_stakes",
         payment_id: "cs_retry",
       }],
-      updateResults: [{ data: [], error: null }],
+      updateResults: [
+        { data: [], error: null },
+        { data: [], error: null },
+      ],
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
 

@@ -10,6 +10,10 @@ import {
   ABANDONED_CHECKOUT_FOLLOWUP_LOOKBACK_HOURS,
   formatAbandonedCheckoutStartedAgo,
 } from "@/lib/email/abandoned-checkout-timing"
+import {
+  type CheckoutReminderIdentity,
+  keepCanonicalCheckoutReminderCandidates,
+} from "@/lib/email/checkout-reminder-dedupe"
 import { AbandonedCheckoutEmail, abandonedCheckoutSubject } from "@/lib/email/components/templates/abandoned-checkout"
 import { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "@/lib/email/components/templates/abandoned-checkout-followup"
 import { canSendMarketingEmail } from "@/lib/email/preferences"
@@ -34,6 +38,7 @@ interface AbandonedIntake {
   id: string
   patient_id: string
   payment_id: string | null
+  checkout_error: string | null
   category: string | null
   subtype: string | null
   created_at: string
@@ -48,6 +53,7 @@ interface AbandonedIntakeRecord {
   id: string
   patient_id: string
   payment_id: string | null
+  checkout_error?: string | null
   category: string | null
   subtype: string | null
   created_at: string
@@ -59,6 +65,74 @@ interface AbandonedIntakeRecord {
 }
 
 type AbandonedEmailStage = "first" | "followup"
+
+function unwrapAbandonedIntakes(data: Record<string, unknown>[]): AbandonedIntake[] {
+  return data.map((item) => normalizeAbandonedIntake(item as unknown as AbandonedIntakeRecord))
+}
+
+function reminderIdentity(intake: AbandonedIntake): CheckoutReminderIdentity {
+  return {
+    category: intake.category,
+    createdAt: intake.created_at,
+    email: intake.patient?.email ?? null,
+    id: intake.id,
+    subtype: intake.subtype,
+  }
+}
+
+async function loadRecentCheckoutReminderSiblings(
+  createdAfter: string,
+): Promise<CheckoutReminderIdentity[] | null> {
+  const supabase = createServiceRoleClient()
+  const { data, error } = await supabase
+    .from("intakes")
+    .select(`
+      id,
+      patient_id,
+      payment_id,
+      checkout_error,
+      category,
+      subtype,
+      created_at,
+      guest_email,
+      patient:profiles!patient_id(email, first_name)
+    `)
+    .gte("created_at", createdAfter)
+
+  if (error) {
+    logger.error("Failed to load checkout siblings before recovery email", {
+      error: error.message,
+    })
+    return null
+  }
+
+  return unwrapAbandonedIntakes((data ?? []) as unknown as Record<string, unknown>[])
+    .map(reminderIdentity)
+}
+
+async function suppressSupersededReminders(
+  candidates: AbandonedIntake[],
+  createdAfter: string,
+): Promise<AbandonedIntake[]> {
+  if (candidates.length === 0) return candidates
+
+  const siblingFloor = candidates.reduce((earliest, candidate) => (
+    candidate.created_at < earliest ? candidate.created_at : earliest
+  ), createdAfter)
+  const siblings = await loadRecentCheckoutReminderSiblings(siblingFloor)
+  // Fail closed for this cron run: delaying a nudge is safer than telling a
+  // person to pay an old request after a newer request may already be paid.
+  if (siblings === null) return []
+
+  const canonicalIds = new Set(
+    keepCanonicalCheckoutReminderCandidates(
+      candidates.map(reminderIdentity),
+      siblings,
+    ).map((candidate) => candidate.id),
+  )
+
+  return candidates.filter((candidate) => canonicalIds.has(candidate.id))
+}
 
 const SERVICE_NAMES: Record<string, string> = {
   medical_certificate: "Medical Certificate",
@@ -74,6 +148,7 @@ function normalizeAbandonedIntake(item: AbandonedIntakeRecord): AbandonedIntake 
     id: item.id,
     patient_id: item.patient_id,
     payment_id: item.payment_id,
+    checkout_error: item.checkout_error ?? null,
     category: item.category,
     subtype: item.subtype,
     created_at: item.created_at,
@@ -95,6 +170,7 @@ async function readCurrentAbandonedIntake(
       id,
       patient_id,
       payment_id,
+      checkout_error,
       category,
       subtype,
       created_at,
@@ -111,7 +187,12 @@ async function readCurrentAbandonedIntake(
   query = query
     .in("status", ["pending_payment", "checkout_failed"])
     .in("payment_status", ["pending", "unpaid", "failed"])
-    .or(ABANDONED_CHECKOUT_LOCK_EXCLUSION_FILTER)
+
+  // Exact-match the checkout state captured by the candidate scan. Any safety
+  // lock or other checkout-state change before this re-read suppresses send.
+  query = intake.checkout_error === null
+    ? query.is("checkout_error", null)
+    : query.eq("checkout_error", intake.checkout_error)
 
   query = stage === "first"
     ? query.is("abandoned_email_sent_at", null)
@@ -152,7 +233,13 @@ async function markCurrentAbandonedEmailSent(
   query = query
     .in("status", ["pending_payment", "checkout_failed"])
     .in("payment_status", ["pending", "unpaid", "failed"])
-    .or(ABANDONED_CHECKOUT_LOCK_EXCLUSION_FILTER)
+
+  // Exact-CAS the checkout error verified immediately before send. This keeps
+  // the PATCH free of the nullable `.or()` shape rejected by PostgREST and
+  // prevents either payment-safety lock from being overwritten.
+  query = intake.checkout_error === null
+    ? query.is("checkout_error", null)
+    : query.eq("checkout_error", intake.checkout_error)
 
   query = stage === "first"
     ? query.is("abandoned_email_sent_at", null)
@@ -203,6 +290,7 @@ export async function findAbandonedCheckouts(): Promise<AbandonedIntake[]> {
       id,
       patient_id,
       payment_id,
+      checkout_error,
       category,
       subtype,
       created_at,
@@ -221,7 +309,13 @@ export async function findAbandonedCheckouts(): Promise<AbandonedIntake[]> {
     return []
   }
   
-  return (data || []).map((item) => normalizeAbandonedIntake(item as AbandonedIntakeRecord))
+  // Transform data - Supabase returns joined tables as arrays. Then keep only
+  // the newest request for each email/service lane, including when a newer
+  // sibling has already paid and is not itself a reminder candidate.
+  const candidates = unwrapAbandonedIntakes(
+    (data ?? []) as unknown as Record<string, unknown>[],
+  )
+  return suppressSupersededReminders(candidates, firstNudgeWindowFloor)
 }
 
 /**
@@ -308,6 +402,7 @@ export async function findAbandonedFollowups(): Promise<AbandonedIntake[]> {
       id,
       patient_id,
       payment_id,
+      checkout_error,
       category,
       subtype,
       created_at,
@@ -327,7 +422,10 @@ export async function findAbandonedFollowups(): Promise<AbandonedIntake[]> {
     return []
   }
 
-  return (data || []).map((item) => normalizeAbandonedIntake(item as AbandonedIntakeRecord))
+  const candidates = unwrapAbandonedIntakes(
+    (data ?? []) as unknown as Record<string, unknown>[],
+  )
+  return suppressSupersededReminders(candidates, followupWindowFloor)
 }
 
 /**

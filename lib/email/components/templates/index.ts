@@ -29,6 +29,12 @@ export { PaymentConfirmedEmail, paymentConfirmedSubject } from "./payment-confir
 export type { PaymentFailedEmailProps } from "./payment-failed"
 export { PaymentFailedEmail, paymentFailedSubject } from "./payment-failed"
 
+// --- Session Expired ---
+export { SessionExpiredEmail, sessionExpiredSubject } from "./session-expired"
+
+// --- Stripe Dispute Alert ---
+export { DisputeAlertEmail, disputeAlertSubject } from "./dispute-alert"
+
 // --- Needs More Info ---
 export type { NeedsMoreInfoEmailProps } from "./needs-more-info"
 export { NeedsMoreInfoEmail, needsMoreInfoSubject } from "./needs-more-info"

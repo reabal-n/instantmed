@@ -179,7 +179,7 @@ function ExpandableValue({ value }: { value: string }) {
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
-        className="ml-1 inline-flex items-center gap-0.5 text-xs text-primary hover:text-primary/80 font-normal"
+        className="ml-1 inline-flex min-h-11 items-center gap-0.5 text-base text-primary hover:text-primary/80 font-normal"
         aria-expanded={expanded}
         aria-label={expanded ? "Show less" : "Show more"}
       >
@@ -218,23 +218,23 @@ function ReviewSummaryCard({
       {visibleSections.map((section) => (
         <div key={section.title} className="px-5 py-3.5">
           <div className="flex items-center justify-between gap-3 pb-2">
-            <h3 className="min-w-0 text-[13px] font-medium text-foreground">{section.title}</h3>
+            <h3 className="min-w-0 text-base font-medium text-foreground">{section.title}</h3>
             {section.stepId && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onEditStep(section.stepId as string)}
-                className="-my-2 -mr-2 h-12 shrink-0 gap-1 rounded-lg px-2 text-xs hover:bg-muted/50 dark:hover:bg-white/10"
+                className="-mr-2 h-11 min-w-11 shrink-0 gap-1 rounded-lg px-3 text-sm hover:bg-muted/50 dark:hover:bg-white/10"
                 aria-label={`Edit ${section.title}`}
               >
-                <Edit2 className="h-3 w-3" />
+                <Edit2 className="h-4 w-4" />
                 Edit
               </Button>
             )}
           </div>
           <dl className="space-y-2">
             {section.items.map((item, i) => (
-              <div key={i} className="flex justify-between gap-3 text-sm">
+              <div key={i} className="flex justify-between gap-3 text-base">
                 <dt className="min-w-0 text-muted-foreground">{item.label}</dt>
                 <dd className="flex max-w-[64%] flex-col items-end gap-1 text-right font-medium">
                   {item.value ? <span><ExpandableValue value={item.value} /></span> : null}
@@ -973,7 +973,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
       {/* Compact header */}
       <div className="text-center mb-2">
         <h2 className="text-lg font-semibold">One last check</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">
+        <p className="text-base text-muted-foreground mt-0.5">
           Make sure everything looks right. Doctor review follows after payment.
         </p>
       </div>
@@ -989,7 +989,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         {/* Price summary - show before CTA so there's no payment surprise */}
         <div className="px-4 py-3 rounded-2xl border border-border/50 bg-white dark:bg-card dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">{isPrescriptionCheckout ? "Due today" : "Total today"}</span>
+            <span className="text-base text-muted-foreground">{isPrescriptionCheckout ? "Due today" : "Total today"}</span>
             <span className="text-base font-semibold text-foreground">
               ${totalDue.toFixed(2)}
             </span>
@@ -1007,7 +1007,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
 
         {repeatsExpectation && (
           <div className="px-4 py-3 rounded-2xl border border-border/50 bg-muted/30 dark:bg-white/5">
-            <p className="text-xs leading-snug text-muted-foreground">
+            <p className="text-base leading-snug text-muted-foreground">
               <span className="font-medium text-foreground">What to expect: </span>
               {repeatsExpectation}
             </p>
@@ -1027,7 +1027,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
             boxClassName="mt-0.5 h-5 w-5 rounded-lg border-2"
             aria-label="Confirm request and payment terms"
           >
-            <span className="block text-sm leading-relaxed text-foreground">
+            <span className="block text-base leading-relaxed text-foreground">
               I confirm this is not a medical emergency, my information is accurate, and I agree to the{" "}
               <a href="/terms" className="text-primary underline" target="_blank" onClick={(event) => event.stopPropagation()}>
                 Terms
@@ -1040,7 +1040,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
             </span>
           </Checkbox>
           {!safetyConfirmed && (
-            <p id="safety-consent-warning" className="mt-2 text-center text-xs text-warning" aria-live="polite">
+            <p id="safety-consent-warning" className="mt-2 text-center text-base text-warning" aria-live="polite">
               Please confirm above to continue
             </p>
           )}
@@ -1098,7 +1098,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
             <Alert variant="destructive" role="alert">
               <AlertDescription className="space-y-1">
                 <p>{error}</p>
-                <p className="text-xs opacity-90">
+                <p className="text-base opacity-90">
                   Your card hasn&apos;t been charged. Try again, or email{" "}
                   <a href="mailto:support@instantmed.com.au" className="font-medium underline">
                     support@instantmed.com.au
@@ -1114,7 +1114,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         {/* One quiet trust cluster (no boxed badges) — accepted cards + the
             highest-value pay-moment reassurance. Replaces the old boxed trust
             footer as part of the 2026-06-28 trust dedup. */}
-        <div className="flex flex-col items-center justify-center gap-1.5 pt-1 text-xs text-muted-foreground">
+        <div className="flex flex-col items-center justify-center gap-1.5 pt-1 text-sm text-muted-foreground">
           <PaymentLogos />
           <span className="flex items-center gap-1.5">
             <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />

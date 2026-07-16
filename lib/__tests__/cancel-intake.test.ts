@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
   MISSING_SAFETY_INFORMATION_PAYMENT_LOCK,
-  PAYMENT_SAFETY_LOCK_EXCLUSION_FILTER,
+  PAYMENT_SAFETY_LOCKS,
 } from "@/lib/stripe/payment-safety-lock"
 
 const mocks = vi.hoisted(() => ({
@@ -87,6 +87,14 @@ function createCancelSupabaseMock(
       updateFilters.push({ method: `in:${column}`, value })
       return updateChain
     }),
+    is: vi.fn((column: string, value: unknown) => {
+      updateFilters.push({ method: `is:${column}`, value })
+      return updateChain
+    }),
+    not: vi.fn((column: string, operator: string, value: unknown) => {
+      updateFilters.push({ method: `not:${column}:${operator}`, value })
+      return updateChain
+    }),
     or: vi.fn((value: string) => {
       updateFilters.push({ method: "or", value })
       return updateChain
@@ -154,13 +162,12 @@ describe("cancelIntake", () => {
     expect(result).toEqual({ success: true })
     expect(updatePayloads).toHaveLength(1)
     expect(updateFilters).toContainEqual({
-      method: "or",
-      value:
-        "payment_status.is.null,payment_status.not.in.(paid,refunded,partially_refunded,disputed)",
+      method: "not:payment_status:in",
+      value: "(paid,refunded,partially_refunded,disputed)",
     })
     expect(updateFilters).toContainEqual({
-      method: "or",
-      value: PAYMENT_SAFETY_LOCK_EXCLUSION_FILTER,
+      method: "not:checkout_error:in",
+      value: `(${PAYMENT_SAFETY_LOCKS.join(",")})`,
     })
     expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_current")
   })

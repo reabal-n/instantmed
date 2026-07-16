@@ -52,7 +52,6 @@ import {
   STAFF_LEDGER_HREF,
   STAFF_PATIENTS_HREF,
   STAFF_QUEUE_HREF,
-  STAFF_SCRIPTS_HREF,
 } from "@/lib/dashboard/routes"
 
 const root = process.cwd()
@@ -106,7 +105,10 @@ describe("dashboard route contracts", () => {
 
   it("uses the staff dashboard for doctor queue deep links", () => {
     expect(STAFF_QUEUE_HREF).toBe("/dashboard?status=review#doctor-queue")
-    expect(STAFF_SCRIPTS_HREF).toBe("/dashboard?status=scripts#doctor-queue")
+    expect(STAFF_DOCTOR_SCRIPTS_HREF).toBe("/dashboard?status=scripts#doctor-queue")
+    expect(read("lib/dashboard/routes.ts")).not.toContain(
+      "export const STAFF_SCRIPTS_HREF",
+    )
   })
 
   it("protects the canonical staff dashboard at the middleware boundary", () => {
@@ -159,7 +161,6 @@ describe("dashboard route contracts", () => {
     expect(ADMIN_PATIENT_MERGE_AUDIT_HREF).toBe("/admin/ops/patient-merge-audit")
     expect(ADMIN_PRESCRIBING_IDENTITY_HREF).toBe("/admin/ops/prescribing-identity")
     expect(STAFF_DOCTOR_PATIENTS_HREF).toBe("/doctor/patients")
-    expect(STAFF_DOCTOR_SCRIPTS_HREF).toBe(STAFF_SCRIPTS_HREF)
     expect(STAFF_DOCTOR_SETTINGS_HREF).toBe("/doctor/settings")
     expect(STAFF_IDENTITY_HREF).toBe("/doctor/settings/identity")
   })

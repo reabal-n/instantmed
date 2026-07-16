@@ -107,11 +107,17 @@ export async function capture(opts: CaptureOptions): Promise<CaptureResult> {
     try {
       await journey.run(page, baseUrl)
     } finally {
-      domEvidencePath = await captureDomEvidence(page, outDir)
-      stopFrameLoop()
-      stopFrameLoop = undefined
-      await page.close().catch(() => {})
-      await context.close().catch(() => {})
+      try {
+        domEvidencePath = await captureDomEvidence(page, outDir)
+        if (journey.postCapture) {
+          await journey.postCapture(page, baseUrl)
+        }
+      } finally {
+        stopFrameLoop()
+        stopFrameLoop = undefined
+        await page.close().catch(() => {})
+        await context.close().catch(() => {})
+      }
     }
   } finally {
     if (stopFrameLoop) stopFrameLoop()

@@ -224,11 +224,10 @@ async function completeReviewStep(page: Page) {
 }
 
 /**
- * Verify we've reached the Checkout step.
+ * Verify the Review & pay step is ready to hand off to Stripe.
  *
  * Checks:
- * - "Request Summary" heading is visible
- * - Service label shows "Prescription Request"
+ * - The visible medication summary is present
  * - Price displays $29.95 (PRICING.REPEAT_SCRIPT)
  * - Consent toggle enables the checkout button
  *
@@ -238,15 +237,25 @@ async function completeReviewStep(page: Page) {
 async function verifyCheckoutStep(page: Page) {
   await waitForStep(page, /One last check/i)
 
-  // Verify correct service label
-  await expect(page.getByText(/Medication/i).first()).toBeVisible()
+  // Scope this to the visible summary heading. The progress nav carries a
+  // separate mobile-hidden "Medication" label by design.
+  await expect(
+    page.getByRole("heading", { level: 3, name: "Medication", exact: true }),
+  ).toBeVisible()
 
   // Verify correct Stripe price ($29.95 for repeat prescription)
   await expect(page.getByText("$29.95", { exact: true }).first()).toBeVisible()
 
-  const checkoutBtn = page.getByRole("button", { name: /^Pay \$/ }).last()
+  const checkoutBtn = page
+    .getByRole("button", { name: /^Pay \$/ })
+    .filter({ visible: true })
+  await expect(checkoutBtn).toHaveCount(1)
   await expect(checkoutBtn).toBeEnabled({ timeout: 5000 })
-  await expect(checkoutBtn).toHaveAttribute("aria-disabled", "false")
+  const checkoutReady = await checkoutBtn.evaluate((button) => (
+    button.getAttribute("data-intake-primary-ready") ??
+    button.getAttribute("data-intake-mobile-action-ready")
+  ))
+  expect(checkoutReady).toBe("true")
 }
 
 // ---------------------------------------------------------------------------
@@ -276,7 +285,7 @@ test.describe("Prescription: full flow - start to checkout", () => {
     // ── Step 5: Review (with embedded safety consent) ──
     await completeReviewStep(page)
 
-    // ── Step 6: Checkout - verify price and consent ──
+    // ── Review & pay: verify price and enabled Stripe handoff ──
     await verifyCheckoutStep(page)
   })
 

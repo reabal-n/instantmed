@@ -34,7 +34,7 @@ jobs:
         run: pnpm dedupe --check
 
       - name: Security audit
-        run: pnpm audit --audit-level=high
+        run: pnpm security:audit
 
       - name: Dependency drift report
         run: |

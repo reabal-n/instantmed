@@ -49,6 +49,7 @@ ACTUAL=$(find . -name "*.md" \
   -not -path "./.next/*" \
   -not -path "./.next-stale-*/*" \
   -not -path "./.git/*" \
+  -not -path "./.worktrees/*" \
   -not -path "./output/*" \
   -not -path "./playwright-report/*" \
   -not -path "./test-results/*" \

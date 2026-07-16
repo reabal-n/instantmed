@@ -33,4 +33,15 @@ describe("email template slug contract", () => {
     expect(reconstructSource).not.toContain('renderDatabaseTemplate("payment_received"')
     expect(reconstructSource).not.toContain('renderDatabaseTemplate("refund_processed"')
   })
+
+  it("renders checkout-expiry recovery from the React template registry", () => {
+    expect(templateSenderSource).toContain("SessionExpiredEmail")
+    expect(templateSenderSource).toContain('emailType: "session_expired"')
+    expect(templateSenderSource).not.toContain('templateSlug: "session_expired"')
+  })
+
+  it("renders Stripe dispute alerts without an unseeded database template", () => {
+    expect(templateSenderSource).toContain("DisputeAlertEmail")
+    expect(templateSenderSource).not.toContain('templateSlug: "dispute_alert"')
+  })
 })

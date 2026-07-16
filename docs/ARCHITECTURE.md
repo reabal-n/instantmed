@@ -535,7 +535,7 @@ export async function getSystemHealth(): Promise<SystemHealth> { ... }
 
 ### UIX Component Library
 
-> **Status:** Compatibility layer in retreat. Do not add new APIs here. Prefer canonical components from `@/components/ui` and domain-specific primitives first. This subsection absorbed the previous `components/uix/README.md` on 2026-05-23 doc cleanup so the doc surface stays in one place.
+> **Status:** Compatibility layer in retreat. Do not add new APIs here. Prefer canonical components from `@/components/ui` and domain-specific primitives first. This subsection is the sole owner of the remaining UIX inventory.
 
 Custom abstraction layer at `components/uix/`. Import everything from `@/components/uix`.
 
@@ -543,8 +543,6 @@ Custom abstraction layer at `components/uix/`. Import everything from `@/compone
 
 ```tsx
 import {
-  Accordion,
-  AccordionItem,
   Badge,
   Button,
   Card,
@@ -554,23 +552,16 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-  CompactStepper,
   DatePickerField,
   Input,
-  Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
   PageBreadcrumbs,
   Pagination,
   ScrollShadow,
   Skeleton,
   Snippet,
   Spinner,
-  Stepper,
   Tooltip,
   UserCard,
-  useDisclosure,
 } from "@/components/uix"
 ```
 
@@ -584,10 +575,8 @@ import {
 | `Snippet` | Copyable code/text display | `symbol`, `size`, children |
 | `Pagination` | Shared pagination control | `page`, `totalPages`, `onPageChange` |
 | `ScrollShadow` | Scroll container with edge affordance | children |
-| `CompactStepper` / `Stepper` | Stepper variants | step-state props |
-| `Modal` (+ `ModalBody`, `ModalFooter`, `ModalHeader`) | Modal primitives | `useDisclosure` hook for open state |
 
-Also re-exports selected shadcn/Radix primitives: `Button`, `Card` (+ sub-parts), `Input`, `Badge`, `Skeleton`, `Spinner`, `Tooltip`, `Accordion` (+ `AccordionItem`).
+Also re-exports selected shadcn/Radix primitives: `Button`, `Card` (+ sub-parts), `Input`, `Badge`, `Skeleton`, `Spinner`, and `Tooltip`.
 
 **Usage examples:**
 
@@ -611,7 +600,7 @@ import { PageBreadcrumbs, Snippet, UserCard } from "@/components/uix"
 
 **Component decision tree:** See CLAUDE.md for quick-reference selection guide (shadcn vs UIX vs solid-depth components).
 
-**File organization:** core primitives in `components/ui/`, shared cross-surface components in `components/shared/`, UIX wrappers in `components/uix/`, staff cockpit shell/page/split-pane/action palettes in `components/operator/`, plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
+**File organization:** core primitives in `components/ui/`, shared cross-surface components in `components/shared/`, UIX wrappers in `components/uix/`, staff cockpit shell/page/split-pane primitives in `components/operator/`, plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
 
 ### Operator Components
 
@@ -624,7 +613,6 @@ Use `components/operator/` for staff pages that combine admin and clinical work.
 | `OperatorScrollArea` | Internal scroll region for secondary content inside a bounded staff page |
 | `OperatorPanel` | Solid-depth portal panel using the canonical dashboard card pattern |
 | `OperatorSplitPane` | Recovery queue/list plus detail layout for ops pages |
-| `StaffCommandPalette` | Keyboard-accessible staff search/jump surface |
 
 Do not build new bespoke admin shells or mode-switching pages. If a staff page needs a new layout primitive, add it under `components/operator/` and document it here in the same commit.
 
@@ -757,7 +745,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 549 files, 235 route files
+### `app/` — 550 files, 235 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 

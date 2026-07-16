@@ -41,7 +41,7 @@ declare -a CHECKS=(
   'glow-badge|legacy neon glow. Use <StatusBadge> from components/dashboard.'
   'dashboard-spotlight|deleted in v2.0.0 (cursor-following effect, banned).'
   'dashboard-grid|deleted in v2.0.0 (CSS stagger). Use Framer stagger from lib/motion.'
-  'dashboard-empty|legacy class. Use <DashboardEmpty> primitive.'
+  'dashboard-empty|legacy class. Use a semantic local empty state or the active CaseTable emptyState API.'
   'dashboard-header|legacy class. Use <DashboardPageHeader> or <DashboardHeader> primitives.'
   'dashboard-sidebar|deleted in v2.0.0 (frosted-glass sidebar pattern).'
   'dashboard-nav-item|deleted in v2.0.0.'

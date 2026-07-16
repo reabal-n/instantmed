@@ -56,4 +56,14 @@ describe("address metadata", () => {
       providerLabel: "Addressfinder",
     })
   })
+
+  it("does not repeat locality fields already present in a manual address line", () => {
+    expect(getAddressReviewSummary({
+      addressLine1: "1 Martin Place Sydney NSW 2000",
+      addressVerified: false,
+      postcode: "2000",
+      state: "NSW",
+      suburb: "Sydney",
+    })?.compact).toBe("1 Martin Place Sydney NSW 2000")
+  })
 })

@@ -7,19 +7,23 @@
  * Handles both authenticated and guest checkout flows.
  */
 
-import crypto from "crypto"
-
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { getAppUrl } from "@/lib/config/env"
 import { updateProfile } from "@/lib/data/profiles"
+import { buildSignedCheckoutResumeUrl } from "@/lib/email/recovery-links"
+import { findConvertedPartialIntakeForCheckout } from "@/lib/request/server-draft-conversion"
 import {
   resolveCheckoutSubtype,
   transformAnswersForUnifiedCheckout,
   validateAnswersServerSide,
 } from "@/lib/request/unified-checkout"
-import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
+import { createIntakeAndCheckoutAction, retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
+import { buildAuthenticatedCheckoutSubmissionKey, buildGuestCheckoutSubmissionKey } from "@/lib/stripe/checkout-submission-key"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
+import { canRetryPaymentForIntake } from "@/lib/stripe/payment-integrity"
 import { buildCheckoutIdentityProfileUpdates } from "@/lib/stripe/prescribing-profile-fields"
-import type { ServiceCategory,UnifiedServiceType } from "@/types/services"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import type { ServiceCategory, UnifiedServiceType } from "@/types/services"
 
 interface UnifiedCheckoutInput {
   serviceType: UnifiedServiceType
@@ -117,6 +121,57 @@ export async function createCheckoutFromUnifiedFlow(
 
   // Check if user is authenticated
   const authResult = await getAuthenticatedUserWithProfile()
+  const convertedDraft = await findConvertedPartialIntakeForCheckout(
+    createServiceRoleClient(),
+    {
+      category,
+      email: authResult?.user.email ?? identity.email,
+      sessionId: serverDraftSessionId,
+      subtype: finalSubtype,
+    },
+  )
+
+  if (convertedDraft.kind === "blocked") {
+    return {
+      success: false,
+      error: convertedDraft.reason === "identity_mismatch"
+        ? "This saved request belongs to a different email. Use the email from the request or contact support."
+        : "This saved request does not match the service you are trying to pay for. Please start again.",
+    }
+  }
+
+  let activeServerDraftSessionId = serverDraftSessionId
+  if (convertedDraft.kind === "reusable") {
+    const { intake } = convertedDraft
+    const isOwnedByAuthenticatedPatient = Boolean(
+      authResult?.profile && intake.patientId === authResult.profile.id,
+    )
+
+    if (intake.paymentStatus === "paid") {
+      return {
+        success: true,
+        intakeId: intake.id,
+        checkoutUrl: isOwnedByAuthenticatedPatient
+          ? `${getAppUrl().replace(/\/$/, "")}/patient/intakes/${intake.id}`
+          : buildSignedCheckoutResumeUrl({ appUrl: getAppUrl(), intakeId: intake.id }),
+      }
+    }
+
+    if (canRetryPaymentForIntake(intake.status, intake.paymentStatus)) {
+      if (isOwnedByAuthenticatedPatient) {
+        return retryPaymentForIntakeAction(intake.id)
+      }
+      return {
+        success: true,
+        intakeId: intake.id,
+        checkoutUrl: buildSignedCheckoutResumeUrl({ appUrl: getAppUrl(), intakeId: intake.id }),
+      }
+    }
+
+    // A terminal request should not permanently pin this browser to an old
+    // draft. Let a genuinely fresh submission use the normal time bucket.
+    activeServerDraftSessionId = undefined
+  }
   
   if (authResult?.user && authResult?.profile) {
     const identityUpdates = buildCheckoutIdentityProfileUpdates(authResult.profile, identity)
@@ -133,18 +188,20 @@ export async function createCheckoutFromUnifiedFlow(
       subtype: finalSubtype,
       type: serviceType,
       answers: transformedAnswers,
-      // Idempotency key prevents duplicate intakes from double-clicks/retries.
-      // Uses a 10-minute time bucket so:
-      //   - Rapid double-clicks (same bucket) → deduplicated ✓
-      //   - Legitimate repeat requests (different bucket) → new intake ✓
-      idempotencyKey: crypto
-        .createHash("sha256")
-        .update(`${authResult.profile.id}:${serviceType}:${finalSubtype}:${Math.floor(Date.now() / 600_000)}:${JSON.stringify(transformedAnswers)}`)
-        .digest("hex")
-        .slice(0, 32),
+      // A saved server draft is the canonical submission identity across guest
+      // and authenticated checkout. Without one, preserve the 10-minute
+      // double-click bucket so legitimate later requests still create a new row.
+      idempotencyKey: buildAuthenticatedCheckoutSubmissionKey({
+        answers: transformedAnswers,
+        category,
+        patientId: authResult.profile.id,
+        serverDraftSessionId: activeServerDraftSessionId,
+        serviceType,
+        subtype: finalSubtype,
+      }),
       attribution,
       posthogDistinctId,
-      serverDraftSessionId,
+      serverDraftSessionId: activeServerDraftSessionId,
     })
   } else {
     // Guest checkout - requires identity info
@@ -176,7 +233,14 @@ export async function createCheckoutFromUnifiedFlow(
       guestPhone: identity.phone,
       attribution,
       posthogDistinctId,
-      serverDraftSessionId,
+      checkoutSubmissionKey: buildGuestCheckoutSubmissionKey({
+        answers: transformedAnswers,
+        category,
+        email: identity.email,
+        serverDraftSessionId: activeServerDraftSessionId,
+        subtype: finalSubtype,
+      }),
+      serverDraftSessionId: activeServerDraftSessionId,
     })
   }
 }

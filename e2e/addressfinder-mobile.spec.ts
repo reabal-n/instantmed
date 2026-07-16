@@ -68,7 +68,10 @@ async function completeToDetails(page: import("@playwright/test").Page) {
 
 test.describe("Addressfinder mobile path", () => {
   test("selects an Addressfinder result and stores verified provider metadata", async ({ page }) => {
+    let autocompleteRequests = 0
+
     await page.route("**/api/places/autocomplete**", async (route) => {
+      autocompleteRequests += 1
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -115,6 +118,13 @@ test.describe("Addressfinder mobile path", () => {
 
     await expect(page.locator("input#suburb")).toHaveValue("DAPTO")
     await expect(page.locator("input#postcode")).toHaveValue("2530")
+
+    // Selecting a verified result must settle the combobox. The selected text
+    // is written back into the input, but that write must not trigger the same
+    // autocomplete request and reopen the result menu.
+    await page.waitForTimeout(500)
+    expect(autocompleteRequests).toBe(1)
+    await expect(page.getByRole("listbox")).toHaveCount(0)
 
     await expect.poll(async () => page.evaluate(() => {
       const raw = window.localStorage.getItem("instantmed-request-draft")

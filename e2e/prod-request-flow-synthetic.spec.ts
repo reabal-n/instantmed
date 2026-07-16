@@ -113,6 +113,55 @@ test.describe("Production request-flow synthetic", () => {
     await expectNoRequestCrash(page)
   })
 
+  test("selected Work choice stays fully readable on mobile", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 844 })
+    await openRequest(page, "/request?service=med-cert")
+
+    const workRadio = page.getByRole("radiogroup", { name: /Certificate type/i })
+      .getByRole("radio", { name: /^Work$/i })
+    await expect(workRadio).toHaveAttribute("aria-checked", "true", { timeout: 5000 })
+
+    const label = workRadio.getByText("Work", { exact: true })
+    const dimensions = await label.evaluate((element) => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+    }))
+
+    expect(
+      dimensions.scrollWidth,
+      "The selected Work label should not be truncated by its inline checkmark",
+    ).toBeLessThanOrEqual(dimensions.clientWidth + 1)
+  })
+
+  test("cookie notice stays out of the mobile request flow", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 })
+    await page.addInitScript(() => {
+      localStorage.removeItem("instantmed_cookie_consent")
+    })
+
+    const response = await page.goto("/request?service=med-cert", {
+      waitUntil: "networkidle",
+    })
+    expect(response?.status(), "request page should return 200").toBe(200)
+    await expect(page.getByRole("main")).toBeVisible()
+    await page.waitForTimeout(1500)
+
+    // The cookie client is intentionally deferred until first interaction.
+    // Trigger it deterministically on the intake route, then verify consent is
+    // still initialised without placing a late overlay over clinical questions.
+    await page.keyboard.press("Tab")
+    await expect.poll(
+      () => page.evaluate(() => localStorage.getItem("instantmed_cookie_consent")),
+      { timeout: 8000 },
+    ).not.toBeNull()
+    await page.waitForTimeout(4000)
+
+    expect(
+      await page.getByRole("status", { name: "Cookie notice" }).count(),
+      "Cookie notice must never overlay the intake flow",
+    ).toBe(0)
+  })
+
   test("active request pathways render their first actionable step", async ({ page }) => {
     const pathways = [
       { path: "/request?service=repeat-script", text: /Which medication do you need/i },

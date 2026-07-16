@@ -3,9 +3,9 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
-import { formatIntakeStatus } from "@/lib/data/intakes/format"
 import { getPatientStatusNextStep, INTAKE_STATUS, PATIENT_STATUS_NEXT_STEP } from "@/lib/data/status"
 import { PAYMENT_STATUS } from "@/lib/data/status"
+import { formatIntakeStatus } from "@/lib/format/intake"
 
 const CANONICAL_INTAKE_STATUSES = [
   "draft",
@@ -101,7 +101,7 @@ describe("intake status source of truth", () => {
     for (const status of CANONICAL_INTAKE_STATUSES) {
       expect(INTAKE_STATUS[status], status).toBeDefined()
       expect(INTAKE_STATUS[status]?.label, status).toBeTruthy()
-      expect(formatIntakeStatus(status), status).not.toBe("Unknown")
+      expect(formatIntakeStatus(status), status).not.toBe(status)
     }
   })
 

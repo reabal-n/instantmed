@@ -78,6 +78,34 @@ describe("video review multi-model contract", () => {
     expect(doctorDashboard).not.toContain("process.env.E2E_SECRET ||")
   })
 
+  it("allows captured journeys to clean up synthetic state before the page closes", () => {
+    const journeyTypes = read("scripts/video-review/journeys/index.ts")
+    const capture = read("scripts/video-review/capture.ts")
+    const paidFunnel = read("scripts/video-review/journeys/paid-funnel.ts")
+
+    expect(journeyTypes).toContain("postCapture?:")
+    expect(capture).toContain("await journey.postCapture(page, baseUrl)")
+    expect(paidFunnel).toContain("window.__instantmedFlushServerDraft = undefined")
+    expect(paidFunnel).toContain('page.request.delete(draftUrl.toString())')
+    expect(paidFunnel).toContain("Synthetic draft still exists after cleanup")
+  })
+
+  it("waits for paid-funnel controls before interacting with each step", () => {
+    const paidFunnel = read("scripts/video-review/journeys/paid-funnel.ts")
+
+    expect(paidFunnel).toContain('getByRole("heading", { name: /Certificate details/i })')
+    expect(paidFunnel).toContain('getByRole("heading", { name: /What is stopping you today/i })')
+    expect(paidFunnel).toContain('getByRole("heading", { name: /Your details/i })\n      .last()')
+    expect(paidFunnel).toContain('getByRole("button", { name: /^Cold or flu$/i })')
+    expect(paidFunnel).toContain('await symptomStarter.waitFor({ state: "visible"')
+    expect(paidFunnel).not.toContain("if (await symptomsField.isVisible().catch(() => false))")
+    expect(paidFunnel).toContain('getByRole("heading", { name: /One last check/i })')
+    expect(paidFunnel).toContain('getByRole("checkbox", { name: /Confirm request and payment terms/i })')
+    expect(paidFunnel).toContain('getByRole("button", { name: /Pay \\$24\\.95/i })')
+    expect(paidFunnel).toContain('getByRole("textbox", { name: /First name/i })')
+    expect(paidFunnel).not.toContain('getByRole("button", { name: /Pay \\$24\\.95/i }).click()')
+  })
+
   it("retries local dev readiness before failing capture preflight", () => {
     const preflight = read("scripts/video-review/preflight.ts")
 

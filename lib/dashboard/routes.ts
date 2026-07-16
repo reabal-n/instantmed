@@ -5,7 +5,6 @@
 export const STAFF_DASHBOARD_HREF = "/dashboard" as const
 export const STAFF_LEDGER_HREF = "/admin/intakes" as const
 export const STAFF_PATIENTS_HREF = "/admin/patients" as const
-export const STAFF_SCRIPTS_HREF = "/dashboard?status=scripts#doctor-queue" as const
 export const STAFF_QUEUE_HREF = "/dashboard?status=review#doctor-queue" as const
 export const STAFF_OPS_HREF = "/admin/ops" as const
 export const STAFF_ANALYTICS_HREF = "/admin/analytics" as const
@@ -13,7 +12,7 @@ export const STAFF_EMAILS_HREF = "/admin/emails/hub" as const
 export const STAFF_SETTINGS_HREF = "/admin/settings" as const
 export const STAFF_IDENTITY_HREF = "/doctor/settings/identity" as const
 export const STAFF_DOCTOR_SETTINGS_HREF = "/doctor/settings" as const
-export const STAFF_DOCTOR_SCRIPTS_HREF = STAFF_SCRIPTS_HREF
+export const STAFF_DOCTOR_SCRIPTS_HREF = "/dashboard?status=scripts#doctor-queue" as const
 export const STAFF_DOCTOR_PATIENTS_HREF = "/doctor/patients" as const
 export const STAFF_PATIENT_DETAIL_BASE_HREF = "/doctor/patients" as const
 

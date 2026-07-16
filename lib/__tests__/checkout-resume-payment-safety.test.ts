@@ -77,7 +77,8 @@ import { resolveGuestCheckoutResume } from "@/lib/stripe/checkout/guest-resume"
 
 interface QueryFilter {
   column?: string
-  method: "eq" | "in" | "is" | "or"
+  method: "eq" | "in" | "is" | "neq" | "not" | "or"
+  operator?: string
   value: unknown
 }
 
@@ -164,6 +165,14 @@ function createResumeSupabaseMock(
           }),
           is: vi.fn((column: string, value: unknown) => {
             record.filters.push({ column, method: "is", value })
+            return updateChain
+          }),
+          neq: vi.fn((column: string, value: unknown) => {
+            record.filters.push({ column, method: "neq", value })
+            return updateChain
+          }),
+          not: vi.fn((column: string, operator: string, value: unknown) => {
+            record.filters.push({ column, method: "not", operator, value })
             return updateChain
           }),
           or: vi.fn((value: string) => {
@@ -639,14 +648,17 @@ describe("signed guest checkout resume payment safety", () => {
 
     expect(destination).toBe("https://checkout.stripe.test/pay/cs_resumed")
     expect(mocks.stripeSessionCreate).toHaveBeenCalledTimes(1)
+    expect(mocks.stripeSessionCreate).toHaveBeenCalledWith(
+      expect.any(Object),
+      { idempotencyKey: "signed-guest-resume-v2_intake-1_cs_previous" },
+    )
     const attachRecord = updateRecords.find((record) => record.payload.payment_id === "cs_resumed")
     expect(attachRecord?.filters).toEqual(expect.arrayContaining([
       { column: "payment_id", method: "eq", value: "cs_previous" },
-      {
-        method: "or",
-        value:
-          "checkout_error.is.null,and(checkout_error.neq.safety_blocked_high_stakes,checkout_error.neq.safety_missing_required_information)",
-      },
+      { column: "checkout_error", method: "is", value: null },
+    ]))
+    expect(attachRecord?.filters).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ method: "or" }),
     ]))
     expect(mocks.stripeSessionExpire).not.toHaveBeenCalledWith("cs_resumed")
     expect(mocks.stripePriceRetrieve).not.toHaveBeenCalled()
@@ -806,7 +818,10 @@ describe("signed guest checkout resume payment safety", () => {
         checkout_error: "safety_blocked_high_stakes",
         payment_id: "cs_resumed",
       }],
-      updateResults: [{ data: [], error: null }],
+      updateResults: [
+        { data: [], error: null },
+        { data: [], error: null },
+      ],
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     mocks.stripeSessionRetrieve
@@ -833,7 +848,10 @@ describe("signed guest checkout resume payment safety", () => {
   it("invalidates only a confirmed orphan after the exact attach loses", async () => {
     const { supabase } = createResumeSupabaseMock({}, {
       refetchedIntakes: [{ payment_id: "cs_other" }],
-      updateResults: [{ data: [], error: null }],
+      updateResults: [
+        { data: [], error: null },
+        { data: [], error: null },
+      ],
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     mocks.stripeSessionRetrieve

@@ -14,7 +14,7 @@ import {
   validateAnswersServerSide,
 } from "@/lib/request/unified-checkout"
 import { validateMedicationHistoryStep } from "@/lib/request/validation"
-import { checkSafetyForServer } from "@/lib/safety"
+import { checkSafetyForServer } from "@/lib/safety/evaluate"
 
 const identity = {
   email: "patient@example.com",

@@ -10,7 +10,8 @@ import { describe, expect,it } from "vitest"
  * These must never appear in user-facing UI — only in doctor-facing
  * clinical summaries and internal store keys.
  *
- * Mirrors the pattern in hair-loss-hook-quiz.test.ts.
+ * Scans the live intake components directly so retired marketing experiments
+ * cannot become the accidental owner of this compliance boundary.
  */
 
 const SCHEDULE_4_DRUG_RE =

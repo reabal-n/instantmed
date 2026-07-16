@@ -3,6 +3,7 @@ import type Stripe from "stripe"
 
 import { env } from "@/lib/config/env"
 import { buildExpiredCheckoutStartUrl } from "@/lib/email/recovery-links"
+import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { sendSessionExpiredEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import { PAYMENT_REPLACEMENT_LOCK } from "@/lib/stripe/payment-integrity"
@@ -12,9 +13,8 @@ import type { HandlerResult, WebhookContext } from "./types"
 import { tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:checkout-expired")
-const EXPIRY_LOCK_EXCLUSION_FILTER = [PAYMENT_REPLACEMENT_LOCK, ...PAYMENT_SAFETY_LOCKS]
-  .map((lock) => `checkout_error.neq.${lock}`)
-  .join(",")
+const EXPIRY_LOCKED_CHECKOUT_ERRORS_FILTER =
+  `(${[PAYMENT_REPLACEMENT_LOCK, ...PAYMENT_SAFETY_LOCKS].join(",")})`
 
 export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise<HandlerResult> {
   const { event, supabase } = ctx
@@ -44,19 +44,37 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
   if (intakeId) {
     try {
       // Update intake status and payment_status to expired if still pending payment
-      const { data: expiredIntake, error: expireError } = await supabase
-        .from("intakes")
-        .update({
-          status: "expired",
-          payment_status: "expired",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", intakeId)
-        .eq("payment_id", session.id)
-        .eq("status", "pending_payment")
-        .or(`checkout_error.is.null,and(${EXPIRY_LOCK_EXCLUSION_FILTER})`)
-        .select("id")
-        .maybeSingle()
+      // Keep nullable checkout_error guards as separate PATCHes. Combining
+      // them with PostgREST `.or()` produces a 42703 error on this update path.
+      const expireWithGuard = (checkoutErrorGuard: "null" | "not_locked") => {
+        let expireQuery = supabase
+          .from("intakes")
+          .update({
+            status: "expired",
+            payment_status: "expired",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", intakeId)
+          .eq("payment_id", session.id)
+          .eq("status", "pending_payment")
+
+        expireQuery = checkoutErrorGuard === "null"
+          ? expireQuery.is("checkout_error", null)
+          : expireQuery.not(
+              "checkout_error",
+              "in",
+              EXPIRY_LOCKED_CHECKOUT_ERRORS_FILTER,
+            )
+
+        return expireQuery.select("id").maybeSingle()
+      }
+
+      let { data: expiredIntake, error: expireError } = await expireWithGuard("null")
+      if (!expireError && !expiredIntake) {
+        const fallbackExpiry = await expireWithGuard("not_locked")
+        expiredIntake = fallbackExpiry.data
+        expireError = fallbackExpiry.error
+      }
 
       if (expireError) {
         log.error("Error expiring intake", { sessionId: session.id }, expireError)
@@ -85,11 +103,11 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
 
         const patient = (intake?.patient as unknown) as { email: string; full_name: string } | null
         if (patient?.email) {
-          await sendSessionExpiredEmail({
+          const emailResult = await sendSessionExpiredEmail({
             to: patient.email,
             patientName: patient.full_name || "there",
-            serviceName: intake?.category || "your request",
-            resumeUrl: buildExpiredCheckoutStartUrl({
+            serviceName: emailRequestTypeLabel(intake?.category, intake?.subtype),
+            startUrl: buildExpiredCheckoutStartUrl({
               appUrl: env.appUrl,
               campaign: "checkout_expired",
               category: intake?.category,
@@ -97,7 +115,14 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
             }),
             intakeId,
           })
-          log.info("Session expired email sent", { intakeId })
+          if (emailResult.success) {
+            log.info("Session expired email sent", { intakeId })
+          } else {
+            log.error("Failed to send session expired email", {
+              intakeId,
+              error: emailResult.error,
+            })
+          }
         }
       } catch (emailError) {
         log.error("Failed to send session expired email", { intakeId }, emailError)
