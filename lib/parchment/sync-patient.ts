@@ -8,6 +8,7 @@
 import "server-only"
 
 import * as Sentry from "@sentry/nextjs"
+import { createHash } from "crypto"
 
 import { getProfileById } from "@/lib/data/profiles"
 import { createLogger } from "@/lib/observability/logger"
@@ -417,6 +418,56 @@ export function buildUpdatePatientRequest(
   }
 }
 
+function stableStringify(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>
+    return `{${Object.keys(record)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableStringify(record[key])}`)
+      .join(",")}}`
+  }
+  return JSON.stringify(value) ?? "null"
+}
+
+/**
+ * Digest of exactly what a Parchment refresh would send for this patient.
+ * Stored on the profile at each successful sync; a reuse-mode prescribing
+ * open skips the network refresh only while this digest is unchanged, so an
+ * identity edit (Medicare, address, name, phone) always reaches Parchment
+ * before the next eScript. Irreversible SHA-256 — no demographics readable.
+ * Module-private: tests observe it behaviorally via the persisted profile
+ * write (the dead-code ratchet forbids test-only exports).
+ */
+function computeParchmentDemographicsHash(
+  profile: PatientProfile,
+  intakeAnswers?: Record<string, unknown>,
+): string {
+  return createHash("sha256")
+    .update(stableStringify(buildUpdatePatientRequest(profile, intakeAnswers)))
+    .digest("hex")
+}
+
+async function persistDemographicsHash(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  patientProfileId: string,
+  demographicsHash: string,
+): Promise<void> {
+  // Bookkeeping only — a failed write must never block prescribing; the next
+  // reuse open just refreshes once more.
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      parchment_synced_demographics_hash: demographicsHash,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", patientProfileId)
+
+  if (error) {
+    log.warn("Failed to persist Parchment demographics hash; next open will refresh again")
+  }
+}
+
 /**
  * Ensure a patient exists in Parchment. Returns the parchment_patient_id.
  *
@@ -440,7 +491,7 @@ export async function syncPatientToParchment(
   // Check if already synced.
   const { data: existing } = await supabase
     .from("profiles")
-    .select("parchment_patient_id")
+    .select("parchment_patient_id, parchment_synced_demographics_hash")
     .eq("id", patientProfileId)
     .single()
 
@@ -464,11 +515,18 @@ export async function syncPatientToParchment(
 
   let staleParchmentPatientId: string | null = null
   const existingPatientMode = options.existingPatientMode ?? "refresh"
+  const demographicsHash = computeParchmentDemographicsHash(profile, intakeAnswers)
 
   if (existing?.parchment_patient_id) {
     if (existingPatientMode === "reuse") {
-      log.info("Reusing existing Parchment patient for prescribing handoff")
-      return existing.parchment_patient_id
+      if (existing.parchment_synced_demographics_hash === demographicsHash) {
+        log.info("Reusing existing Parchment patient for prescribing handoff")
+        return existing.parchment_patient_id
+      }
+      // Demographics changed since the last successful sync (or predate hash
+      // tracking): fall through to the refresh so the eScript never carries
+      // stale identity. Known-changed + refresh-failed still blocks below.
+      log.info("Patient demographics changed since last Parchment sync; refreshing before handoff")
     }
 
     try {
@@ -513,6 +571,7 @@ export async function syncPatientToParchment(
     }
 
     if (!staleParchmentPatientId) {
+      await persistDemographicsHash(supabase, patientProfileId, demographicsHash)
       log.info("Patient already synced to Parchment; using existing record")
       return existing.parchment_patient_id
     }
@@ -529,6 +588,7 @@ export async function syncPatientToParchment(
       .from("profiles")
       .update({
         parchment_patient_id: result.parchment_patient_id,
+        parchment_synced_demographics_hash: demographicsHash,
         updated_at: new Date().toISOString(),
       })
       .eq("id", patientProfileId)

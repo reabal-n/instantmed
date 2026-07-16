@@ -15,15 +15,22 @@ function functionBody(source: string, name: string): string {
 }
 
 describe("existing Parchment patient handoff", () => {
-  it("reuses a linked patient before attempting a demographic refresh", () => {
+  it("reuses a linked patient without a refresh only while the demographics digest matches", () => {
     const source = read("lib/parchment/sync-patient.ts")
     const body = functionBody(source, "syncPatientToParchment")
     const reuseGuard = body.indexOf('existingPatientMode === "reuse"')
+    const hashGate = body.indexOf(
+      "existing.parchment_synced_demographics_hash === demographicsHash",
+    )
     const updateCall = body.indexOf("await updatePatient(")
 
     expect(reuseGuard).toBeGreaterThanOrEqual(0)
-    expect(reuseGuard).toBeLessThan(updateCall)
-    expect(body.slice(reuseGuard, updateCall)).toContain("return existing.parchment_patient_id")
+    // The no-network fast path exists, but only behind the digest comparison —
+    // a changed (or never-recorded) digest must fall through to updatePatient
+    // so an identity edit always reaches Parchment before the next eScript.
+    expect(hashGate).toBeGreaterThan(reuseGuard)
+    expect(hashGate).toBeLessThan(updateCall)
+    expect(body.slice(hashGate, updateCall)).toContain("return existing.parchment_patient_id")
   })
 
   it("uses reuse mode for normal prescribing opens but not explicit identity sync", () => {
