@@ -48,7 +48,7 @@ export const TAGLINE_PAID_SAFE = getApprovedClaim("tagline_paid_safe")
  * secure clinical form. It does not promise that prescription pathways never
  * need doctor contact.
  */
-export const WEDGE = getApprovedClaim("platform_wedge")
+const WEDGE = getApprovedClaim("platform_wedge")
 
 /**
  * Med-cert-specific wedge. Safe to use only on medical certificate surfaces

@@ -79,7 +79,6 @@
     "smoke:stripe": "npx tsx scripts/stripe-smoke-test.ts",
     "keys:rotate": "npx tsx scripts/rotate-keys.ts",
     "test:templates": "npx tsx scripts/test-all-templates.ts",
-    "seo:generate": "npx tsx scripts/seo-generator.ts",
     "seo:gsc-index-audit": "node tools/gsc-mcp-server/gsc-index-audit.mjs",
     "seo:semrush-pulse": "node --env-file-if-exists=.env.local tools/semrush/semrush-pulse.mjs",
     "seo:submit-indexing": "node tools/gsc-mcp-server/gsc-submit-indexing.mjs",

@@ -690,7 +690,7 @@ Use when: the page is not a standard service funnel — it has a unique layout, 
 /intent/[slug]          High-intent search query landing pages
 ```
 
-**Data layer:** `lib/seo/pages/` -- typed page definitions, shared interfaces, and lookup helpers. Template: `components/seo/seo-page-template.tsx`. Each page requires: unique title (50-60 chars), description (120-150 chars), 5+ symptoms, 3+ red flags, 3+ FAQs, 2+ disclaimers.
+**Data layer:** Route-specific registries under `lib/seo/data/` and `lib/seo/intents.ts` are consumed directly by their dynamic routes. There is no shared programmatic page template; each route owns its layout, metadata, and structured data.
 
 **Metadata:** Auto-generated `<title>`, `<meta description>`, Open Graph tags, canonical URLs. JSON-LD `FAQPage` structured data via `lib/seo/safe-json-ld.ts` and `components/seo/healthcare-schema.tsx`.
 

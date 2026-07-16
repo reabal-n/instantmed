@@ -3,10 +3,7 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
-import {
-  derivePatientPaymentRecoveryReason,
-  MORE_INFORMATION_REQUIRED_RECOVERY,
-} from "@/lib/patient/payment-recovery"
+import { derivePatientPaymentRecoveryReason } from "@/lib/patient/payment-recovery"
 
 const queriesSource = readFileSync(
   join(process.cwd(), "lib/data/intakes/queries.ts"),
@@ -31,7 +28,7 @@ const patientDetailProjectionSource = queriesSource.slice(
 describe("patient payment recovery projection", () => {
   it("projects only the exact missing-safety marker", () => {
     expect(derivePatientPaymentRecoveryReason("safety_missing_required_information"))
-      .toBe(MORE_INFORMATION_REQUIRED_RECOVERY)
+      .toBe("more_information_required")
 
     for (const value of [
       null,

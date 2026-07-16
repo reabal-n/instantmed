@@ -94,11 +94,8 @@ const COST_FAQ = {
   answer: `Our flat fee is ${PRICING_DISPLAY.WOMENS_HEALTH} for the doctor review. Pharmacy costs, if relevant, are separate. There are no subscriptions or ongoing fees.`,
 } as const
 
-// Intent-scoped FAQ sets so each entry page emits unique on-page FAQ + FAQPage
-// schema (avoids duplicate structured data across the 3 women's-health URLs).
-// The /womens-health hub keeps the combined set (same order/content as before).
-export const UTI_FAQ = [...UTI_FAQ_ITEMS, DECLINE_FAQ, COST_FAQ] as const
-export const PILL_FAQ = [...PILL_FAQ_ITEMS, DECLINE_FAQ, COST_FAQ] as const
+// Intent-scoped FAQ sets keep each entry page's on-page FAQ + FAQPage schema
+// distinct across the three women's-health URLs.
 export const UTI_LANDING_FAQ = [
   UTI_FAQ_ITEMS[0],
   UTI_FAQ_ITEMS[2],
@@ -116,13 +113,6 @@ export const PILL_LANDING_FAQ = [
   DECLINE_FAQ,
   COST_FAQ,
 ] as const
-export const WOMENS_HEALTH_FAQ = [
-  ...UTI_FAQ_ITEMS,
-  DECLINE_FAQ,
-  ...PILL_FAQ_ITEMS,
-  COST_FAQ,
-] as const
-
 // The hub is a chooser, not a second copy of either child landing page.
 export const WOMENS_HEALTH_HUB_FAQ = [
   UTI_FAQ_ITEMS[0],

@@ -96,15 +96,10 @@ describe("marketing and request reflow contract", () => {
     expect(skipLink.match(/activateSkipTarget\(event,/g)).toHaveLength(2)
   })
 
-  it("stacks dense comparisons and keeps the homepage route map shrinkable", () => {
-    const timeComparison = read("components/marketing/sections/time-comparison-viz.tsx")
+  it("keeps dense comparisons and the homepage route map shrinkable", () => {
     const comparisonTable = read("components/sections/comparison-table.tsx")
     const routeMap = read("components/marketing/portfolio-route-map.tsx")
 
-    expect(timeComparison).toContain(
-      "flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between",
-    )
-    expect(timeComparison).toContain("text-left sm:text-right")
     expect(comparisonTable.match(/grid-cols-3 sm:grid-cols-\[1fr_120px_120px\]/g)).toHaveLength(2)
     expect(comparisonTable.match(/px-2 min-\[241px\]:px-6/g)).toHaveLength(2)
     expect(routeMap).toContain("lg:grid-cols-[minmax(0,0.86fr)_auto_minmax(0,1.14fr)]")

@@ -1,5 +1,3 @@
 export { ContentHubLinks } from "./content-hub-links"
 export * from "./healthcare-schema"
 export { MedicalDisclaimer } from "./medical-disclaimer"
-export { NearMeBanner } from "./near-me-banner"
-export { SEOPageTemplate } from "./seo-page-template"

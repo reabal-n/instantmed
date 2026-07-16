@@ -108,7 +108,7 @@ export type PaymentFailureIntakeEmailContext = {
   patient?: { email?: string | null; full_name?: string | null } | Array<{ email?: string | null; full_name?: string | null }> | null
 }
 
-export type ExactCurrentPaymentFailureEmailContext =
+type ExactCurrentPaymentFailureEmailContext =
   PaymentFailureIntakeEmailContext & {
     abandoned_email_sent_at: null
     checkout_error: string | null

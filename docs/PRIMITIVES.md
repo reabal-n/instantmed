@@ -11,10 +11,9 @@ Single source of truth for all platform metrics shown on marketing pages.
 | Export | Type | What it provides |
 |--------|------|-----------------|
 | `SOCIAL_PROOF` | `const object` | Raw operational metrics: `certTurnaroundMinutes`, `averageResponseMinutes`, `refundPercent`, `operatingDays`, and internal historical counters. NO operating-hours window fields (service is 24/7; removed 2026-07-10). Review counts, testimonials, public numeric ratings, employer acceptance rates, approval rates, and fulfilment-rate claims are not public primitives. |
-| `SOCIAL_PROOF_DISPLAY` | `const object` | Pre-formatted strings: `responseTime`, `certTurnaround`, `operatingSchedule`, `refundGuarantee`, and non-outcome trust phrasing. `operatingHours` was removed 2026-07-10 (computed a retired review-hours window). |
 | `GOOGLE_REVIEWS` | `object` | Google Business Profile star-badge config. Gates the visual Google mark + stars badge only; do not expose review counts, numeric rating text, testimonial copy, or aggregate-rating schema. |
 
-**Rule:** Never hardcode a social proof number on a marketing page. Import from `SOCIAL_PROOF` or `SOCIAL_PROOF_DISPLAY`.
+**Rule:** Never hardcode a social proof number on a marketing page. Import the canonical metric from `SOCIAL_PROOF` and format it at the consumer.
 
 There is no patient-count primitive or public patient-count API. The synthetic interpolation and all of its plumbing were retired on 2026-07-14. Any future count claim requires a verified persisted source and a fresh compliance review.
 
@@ -83,7 +82,6 @@ Core PR5 claims include `availability_24_7`, `clinical_decision_model`, `clinica
 | Export | Type | What it provides |
 |--------|------|-----------------|
 | `TAGLINE` | `string` | Logo-adjacent promise: "Faster than your GP." |
-| `WEDGE` | `string` | Default platform wedge: no appointment, no waiting room, secure clinical form. |
 | `MED_CERT_WEDGE` | `string` | Med-cert-only wedge: "No video. No call. No appointment." |
 | `FORM_FIRST_WEDGE` | `string` | Prescribing/specialty wedge: doctor reviews the form and may call briefly before prescribing. |
 | `GUARANTEE` | `string` | Outcome guarantee: "Full refund if the doctor declines." |
@@ -91,7 +89,7 @@ Core PR5 claims include `availability_24_7`, `clinical_decision_model`, `clinica
 | `BANNED_PHRASES` | `readonly string[]` | Brand voice banned phrases enforced by tests. |
 | `containsBannedPhrase()` / `containsEmDash()` | `functions` | Reusable voice-policy guards. |
 
-**Rule:** `voice.ts` owns stable brand aliases and voice-policy APIs. Its factual aliases resolve through `getApprovedClaim()` so evidence remains attached to the registry. Healthcare advertising rules live in `docs/ADVERTISING_COMPLIANCE.md`; SEO rules live in `docs/SEO_CONTENT_POLICY.md`.
+**Rule:** `voice.ts` owns stable public brand aliases and voice-policy APIs. Its factual aliases resolve through `getApprovedClaim()` so evidence remains attached to the registry. The default platform mechanism remains the `platform_wedge` approved claim rather than a public voice alias. Healthcare advertising rules live in `docs/ADVERTISING_COMPLIANCE.md`; SEO rules live in `docs/SEO_CONTENT_POLICY.md`.
 
 ---
 

@@ -196,7 +196,6 @@ const PUBLIC_FIXED_TURNAROUND_SURFACES = [
   "lib/seo/data/deep-city-content",
   "lib/seo/data/guides",
   "lib/seo/data/states.ts",
-  "lib/seo/pages",
   "lib/seo/symptoms.ts",
 ]
 

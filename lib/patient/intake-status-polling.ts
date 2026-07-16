@@ -11,7 +11,7 @@ export interface PatientIntakePollingProjection {
   payment_recovery_reason: PatientPaymentRecoveryReason
 }
 
-export interface PatientIntakePollingState {
+interface PatientIntakePollingState {
   status: string
   payment_recovery_reason: PatientPaymentRecoveryReason
 }

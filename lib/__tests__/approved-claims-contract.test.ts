@@ -14,7 +14,6 @@ import {
   PROP_PHRASE,
   TAGLINE,
   TAGLINE_PAID_SAFE,
-  WEDGE,
 } from "@/lib/marketing/voice"
 
 const root = process.cwd()
@@ -24,7 +23,6 @@ describe("approved claims registry", () => {
     expect(BRAND_THESIS).toBe(getApprovedClaim("brand_thesis"))
     expect(TAGLINE).toBe(getApprovedClaim("tagline"))
     expect(TAGLINE_PAID_SAFE).toBe(getApprovedClaim("tagline_paid_safe"))
-    expect(WEDGE).toBe(getApprovedClaim("platform_wedge"))
     expect(MED_CERT_WEDGE).toBe(getApprovedClaim("med_cert_wedge"))
     expect(FORM_FIRST_WEDGE).toBe(getApprovedClaim("form_first_wedge"))
     expect(PROP_PHRASE).toBe(getApprovedClaim("prop_phrase"))

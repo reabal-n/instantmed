@@ -154,12 +154,17 @@ describe("code-clean retirement contracts", () => {
 
   it("keeps obsolete analytics, blog-image, and SEO engines retired", () => {
     const retiredContentHelpers = [
+      "components/seo/near-me-banner.tsx",
+      "components/seo/seo-page-template.tsx",
+      "components/seo/schemas/local-business.tsx",
       "lib/analytics/ab-test.ts",
       "lib/blog/images.ts",
       "lib/data/analytics.ts",
       "lib/seo/comparisons.ts",
       "lib/seo/linking.ts",
       "lib/seo/metadata.ts",
+      "lib/seo/pages",
+      "scripts/seo-generator.ts",
     ]
     const orphanCheck = read("scripts/check-orphaned-files.sh")
 
@@ -172,6 +177,7 @@ describe("code-clean retirement contracts", () => {
     expect(read("app/admin/analytics/page.tsx")).toContain("getRevenueDashboard")
     expect(read("app/compare/[slug]/page.tsx")).toContain("export async function generateMetadata")
     expect(read("app/compare/sitemap.ts")).toContain("@/lib/seo/data/comparisons")
+    expect(read("package.json")).not.toContain('"seo:generate"')
   })
 
   it("keeps superseded marketing mockups and wrappers retired", () => {

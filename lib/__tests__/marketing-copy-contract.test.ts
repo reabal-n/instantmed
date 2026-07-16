@@ -67,7 +67,6 @@ const staleCommercialPolicySources = [
   "docs/TESTING.md",
   "lib/data/general-faq.ts",
   "lib/seo/data/competitor-comparisons.ts",
-  "lib/seo/pages/definitions.ts",
 ].map((file) => readFileSync(join(root, file), "utf8")).join("\n")
 
 const eligibilityAndAutomationSources = [

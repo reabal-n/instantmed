@@ -2,7 +2,7 @@
  * Single source of truth for prescription FAQ data.
  * Used by both the landing page accordion and the structured data schema.
  */
-export const PRESCRIPTION_FAQ = [
+const PRESCRIPTION_FAQ = [
   {
     question: "What can the doctor review?",
     answer:

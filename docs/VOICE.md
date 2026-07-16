@@ -142,7 +142,7 @@ Deeper rules: `docs/ADVERTISING_COMPLIANCE.md` and `docs/SEO_CONTENT_POLICY.md`.
 
 | Surface | Uses |
 |---|---|
-| Homepage hero | `TAGLINE` (H1) + `PROP_PHRASE` (H2) + `WEDGE` (subhead) + `ICONIC_HOOK` (CTA-adjacent) + `GUARANTEE` (above CTA) |
+| Homepage hero | `TAGLINE` (H1) + `PROP_PHRASE` (H2) + the focused five-service boundary (subhead) |
 | `/medical-certificate` | `TAGLINE` + `MED_CERT_WEDGE`, `ICONIC_HOOK` + `GUARANTEE` above CTA |
 | `/prescriptions` | `TAGLINE` + `FORM_FIRST_WEDGE`, `ICONIC_HOOK` + `GUARANTEE` above CTA |
 | `/erectile-dysfunction` | subtype-specific form-first copy, `GUARANTEE` above CTA |

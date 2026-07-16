@@ -12,10 +12,9 @@
  * Canonical social proof metrics - SINGLE SOURCE OF TRUTH.
  *
  * All marketing pages, SEO data objects, and structured data must
- * reference these constants (or SOCIAL_PROOF_DISPLAY) instead of
- * hardcoding numbers. Prose copy (blog articles, meta descriptions)
- * must avoid fixed public review-time promises; internal
- * numbers here are the source for operational monitoring.
+ * reference these constants instead of hardcoding numbers. Prose copy (blog
+ * articles, meta descriptions) must avoid fixed public review-time promises;
+ * internal numbers here are the source for operational monitoring.
  *
  * Update here when real analytics data becomes available.
  */
@@ -62,30 +61,6 @@ export const SOCIAL_PROOF = {
   // ── GP Comparison (for context, not exact) ──
   gpPriceStandard: "~$72",
   gpPriceComplex: "~$100",
-} as const
-
-/**
- * Pre-formatted display strings - use these in UI, like PRICING_DISPLAY.
- * Avoids scattering template literals and `.toFixed()` calls everywhere.
- */
-export const SOCIAL_PROOF_DISPLAY = {
-  // Drop the tilde — at the small grey font size used in the sticky bar
-  // ticker, "~44 min" reads as "-44 min" to both human eyes and the video
-  // review rubric. The number is already approximate (rounded median) so
-  // we don't need the precision modifier. See Tier 1 review 2026-05-25
-  // (/prescriptions + /medical-certificate).
-  responseTime: `${SOCIAL_PROOF.averageResponseMinutes} min`,
-  certTurnaround: `${SOCIAL_PROOF.certTurnaroundMinutes} min`,
-  operatingSchedule: `${SOCIAL_PROOF.operatingDays} days a week`,
-  refundGuarantee: `${SOCIAL_PROOF.refundPercent}% refund guarantee`,
-  adminFee: `$${SOCIAL_PROOF.adminFee.toFixed(2)}`,
-  gpComparison: `Typically ${SOCIAL_PROOF.gpPriceStandard} at a GP`,
-  gpComparisonComplex: `Typically ${SOCIAL_PROOF.gpPriceComplex} at a GP`,
-  doctorExperience: "AHPRA-registered doctors",
-  sameDayDelivery: "Digital delivery after approval",
-  certApproval: "Doctor-owned issue pathway",
-  scriptFulfillment: "eScript after doctor approval",
-  patientReturn: "Secure follow-up messages",
 } as const
 
 // ─── Google Reviews ────────────────────────────────────────────────

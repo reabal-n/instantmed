@@ -11,8 +11,8 @@
 # Intentional exceptions (do not "fix" these):
 #   - AnimatePresence initial={false}  ← valid boolean API prop, not a violation
 #   - useSpring() in stat-strip.tsx    ← animated counter MotionValue, not a transition
-#   - stiffness/damping in perspective-tilt-card.tsx and interactive-product-mockup.tsx
-#     ← mouse-tracking physics, not entrance transitions
+#   - stiffness/damping in perspective-tilt-card.tsx
+#     ← mouse-tracking physics, not an entrance transition
 #
 # Exit 1 if any violation is found.
 
@@ -66,12 +66,11 @@ fi
 echo ""
 echo "── Spring physics (transition) check ──"
 # Look for stiffness: or type: "spring" / type: 'spring'
-# Exclude the known-intentional files: perspective-tilt-card, interactive-product-mockup, stat-strip.
+# Exclude the known-intentional files: perspective-tilt-card and stat-strip.
 spring_hits=$(grep -rn -E "(stiffness:|type:[[:space:]]*['\"]spring['\"])" $SEARCH_DIRS \
   --include="*.tsx" --include="*.ts" \
   2>/dev/null \
   | grep -v 'perspective-tilt-card' \
-  | grep -v 'interactive-product-mockup' \
   | grep -v 'stat-strip' \
   || true)
 

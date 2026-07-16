@@ -1,6 +1,6 @@
 import { isMissingSafetyInformationPaymentLock } from "@/lib/stripe/payment-safety-lock"
 
-export const MORE_INFORMATION_REQUIRED_RECOVERY = "more_information_required" as const
+const MORE_INFORMATION_REQUIRED_RECOVERY = "more_information_required" as const
 
 export type PatientPaymentRecoveryReason =
   | typeof MORE_INFORMATION_REQUIRED_RECOVERY

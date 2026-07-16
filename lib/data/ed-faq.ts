@@ -1,7 +1,7 @@
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { GUARANTEE } from "@/lib/marketing/voice"
 
-export const ED_FAQ = [
+const ED_FAQ = [
   {
     question: "Can I get an ED assessment online in Australia?",
     answer: "Yes, if the problem is suitable for remote doctor review. You complete a structured safety form and an AHPRA-registered Australian doctor reviews your answers before deciding the next step. Online care is not suitable for urgent symptoms, unstable heart symptoms, prolonged painful erection, injury, or unclear medicine history.",
@@ -53,7 +53,6 @@ export const ED_FAQ = [
 ] as const
 
 // The service landing keeps only the questions needed to choose this pathway.
-// The full set remains available to broader FAQ/search surfaces.
 export const ED_LANDING_FAQ = [
   ED_FAQ[0],
   ED_FAQ[1],

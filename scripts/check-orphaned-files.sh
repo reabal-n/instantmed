@@ -476,12 +476,17 @@ done
 
 # ── 15. Obsolete analytics, blog-image, and SEO engines ─────────────────
 for retired_content_helper in \
+  "components/seo/near-me-banner.tsx" \
+  "components/seo/seo-page-template.tsx" \
+  "components/seo/schemas/local-business.tsx" \
   "lib/analytics/ab-test.ts" \
   "lib/blog/images.ts" \
   "lib/data/analytics.ts" \
   "lib/seo/comparisons.ts" \
   "lib/seo/linking.ts" \
-  "lib/seo/metadata.ts"
+  "lib/seo/metadata.ts" \
+  "lib/seo/pages" \
+  "scripts/seo-generator.ts"
 do
   if [[ -e "$retired_content_helper" ]]; then
     echo "ORPHAN: $retired_content_helper still exists (obsolete analytics, blog-image, or SEO engine)"

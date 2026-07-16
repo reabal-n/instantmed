@@ -22,7 +22,7 @@ export interface Intake {
 }
 
 /** Resolve status config from lib/data/status.ts - single source of truth */
-export function resolveStatusConfig(status: string) {
+function resolveStatusConfig(status: string) {
   return INTAKE_STATUS[status as IntakeStatus] ?? INTAKE_STATUS.pending
 }
 
