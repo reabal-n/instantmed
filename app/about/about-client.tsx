@@ -61,12 +61,12 @@ const ABOUT_FAQS = [
   {
     question: "What services does InstantMed offer?",
     answer:
-      "We offer medical certificates, repeat prescriptions, and specialised pathways for ED and hair loss. Women's health and weight management are planned for later. We keep our scope deliberately narrow, so anything outside these services is best handled by your regular GP or in-person care.",
+      "We offer medical certificates, repeat prescriptions, and specialised pathways for ED, hair loss, UTI assessment, and starting or switching the contraceptive pill. Weight management is not taking requests yet. We keep our scope deliberately narrow, so anything outside these services is best handled by your regular GP or in-person care.",
   },
   {
     question: "How does InstantMed protect my privacy?",
     answer:
-      "All personal health information is encrypted using AES-256-GCM encryption and stored on Australian servers. We comply with the Privacy Act 1988 and all 13 Australian Privacy Principles. We don't sell or share your data with third parties.",
+      "Personal health information is protected with AES-256-GCM field-level encryption at rest and TLS in transit, with primary health records on Australian-hosted infrastructure. We comply with the Privacy Act 1988 and all 13 Australian Privacy Principles. We don't sell personal information or share it with marketers; trusted service providers process only what is needed to deliver care and meet legal obligations.",
   },
 ]
 
@@ -87,7 +87,7 @@ const VALUES = [
     icon: <StickerIcon name="accessibility" size={48} />,
     title: "Accessible care",
     description:
-      "24/7 medical certificate requests, plus form-first prescription and specialty pathways. A doctor reviews the form and may call briefly before deciding.",
+      "Requests and doctor review are available 24/7 across launched pathways. Timing varies, and a doctor may call briefly before deciding.",
   },
   {
     icon: <StickerIcon name="eye" size={48} />,
@@ -114,7 +114,7 @@ export function AboutClient() {
 
   return (
     <InformationalPageShell config={ABOUT_CONFIG}>
-      {({ analytics }) => (
+      {({ analytics, heroCTARef }) => (
         <>
           <FAQSchema faqs={faqSchemaItems} />
 
@@ -138,7 +138,7 @@ export function AboutClient() {
                 We handle medical certificates, repeat medication, and online
                 doctor consults.
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <div ref={heroCTARef} className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Button
                   asChild
                   size="lg"
@@ -171,8 +171,8 @@ export function AboutClient() {
               },
               {
                 type: "stat-callout",
-                value: "7 days a week",
-                label: "Doctor review availability",
+                value: "24/7",
+                label: "Request and review availability",
               },
               {
                 type: "paragraph",

@@ -21,6 +21,8 @@ const DRAFT_EXPIRY_HOURS = 24
 export interface DraftData {
   serviceType: CanonicalServiceType
   currentStepId: UnifiedStepId
+  furthestVisitedStepId?: UnifiedStepId | null
+  stepsNeedingRevalidation?: UnifiedStepId[]
   answers: Record<string, unknown>
   lastSavedAt: string
   // Identity fields
@@ -168,6 +170,7 @@ export function saveDraft(service: CanonicalServiceType, data: Omit<DraftData, '
           firstName: data.firstName,
           lastName: data.lastName,
           phone: data.phone,
+          dob: data.dob,
         },
       })
     }).catch(() => {
@@ -307,6 +310,10 @@ export function migrateLegacyDraft(): DraftData | null {
     const draft: DraftData = {
       serviceType: canonical,
       currentStepId: legacyState.currentStepId || 'review',
+      furthestVisitedStepId: legacyState.furthestVisitedStepId ?? legacyState.currentStepId ?? 'review',
+      stepsNeedingRevalidation: Array.isArray(legacyState.stepsNeedingRevalidation)
+        ? legacyState.stepsNeedingRevalidation
+        : [],
       answers: isPlainRecord(legacyState.answers) ? legacyState.answers : {},
       lastSavedAt: legacyState.lastSavedAt,
       firstName: legacyState.firstName,

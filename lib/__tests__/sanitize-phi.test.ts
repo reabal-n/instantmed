@@ -78,4 +78,15 @@ describe("sanitize-phi PHI scrubber", () => {
     expect(sanitizeUrl("https://instantmed.com.au/patient/settings#account-security"))
       .toBe("https://instantmed.com.au/patient/settings#account-security")
   })
+
+  it("redacts only the exact draft bearer-token query key d", () => {
+    const sanitized = new URL(sanitizeUrl(
+      "https://instantmed.com.au/request?service=consult&d=11111111-1111-4111-8111-111111111111&id=keep-id&duration=2&utm_medium=email",
+    ))
+
+    expect(sanitized.searchParams.get("d")).toBe(REDACTED)
+    expect(sanitized.searchParams.get("id")).toBe("keep-id")
+    expect(sanitized.searchParams.get("duration")).toBe("2")
+    expect(sanitized.searchParams.get("utm_medium")).toBe("email")
+  })
 })

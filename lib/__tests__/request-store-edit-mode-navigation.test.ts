@@ -70,4 +70,50 @@ describe("request store edit-mode navigation escape", () => {
     // handled by onComplete, not nextStep).
     expect(useRequestStore.getState().currentStepId).toBe("checkout")
   })
+
+  it("clears skipped Details revalidation only after Continue returns to review", () => {
+    useRequestStore.setState({
+      currentStepId: "checkout",
+      furthestVisitedStepId: "checkout",
+      stepsNeedingRevalidation: [],
+    })
+    useRequestStore.getState().goToStep("details")
+    useRequestStore.getState().setIdentity({ firstName: "Updated" })
+    expect(useRequestStore.getState().stepsNeedingRevalidation).toContain("details")
+
+    useRequestStore.getState().nextStep()
+
+    expect(useRequestStore.getState().currentStepId).toBe("checkout")
+    expect(useRequestStore.getState().stepsNeedingRevalidation).not.toContain("details")
+  })
+
+  it("keeps a dirty skipped Details step open when Back cannot safely validate it", () => {
+    useRequestStore.setState({
+      currentStepId: "checkout",
+      furthestVisitedStepId: "checkout",
+      stepsNeedingRevalidation: [],
+    })
+    useRequestStore.getState().goToStep("details")
+    useRequestStore.getState().setIdentity({ firstName: "Updated" })
+
+    useRequestStore.getState().prevStep()
+
+    expect(useRequestStore.getState().currentStepId).toBe("details")
+    expect(useRequestStore.getState().stepsNeedingRevalidation).toContain("details")
+  })
+
+  it("does not let progress navigation bypass validation on a dirty skipped Details step", () => {
+    useRequestStore.setState({
+      currentStepId: "checkout",
+      furthestVisitedStepId: "checkout",
+      stepsNeedingRevalidation: [],
+    })
+    useRequestStore.getState().goToStep("details")
+    useRequestStore.getState().setIdentity({ firstName: "Updated" })
+
+    useRequestStore.getState().goToStep("checkout")
+
+    expect(useRequestStore.getState().currentStepId).toBe("details")
+    expect(useRequestStore.getState().stepsNeedingRevalidation).toContain("details")
+  })
 })

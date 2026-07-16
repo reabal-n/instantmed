@@ -114,9 +114,16 @@ describe("women's-health child-page narrative compression", () => {
     expect(faqData).not.toContain("The doctor may ask for a pregnancy test, contact you")
   })
 
-  it("keeps both generic routes honest and removes newly touched hover motion", () => {
+  it("preserves each child-page intent without inventing pseudo-service aliases", () => {
+    expect(uti).toContain(
+      'const ASSESSMENT_HREF = "/request?service=consult&subtype=womens_health&intent=uti"',
+    )
+    expect(pill).toContain(
+      'const ASSESSMENT_HREF = "/request?service=consult&subtype=womens_health&intent=ocp_new"',
+    )
+
     for (const source of [uti, pill]) {
-      expect(source).toContain('const ASSESSMENT_HREF = "/request?service=consult&subtype=womens_health"')
+      expect(source).not.toMatch(/service=(?:uti|ocp_new|pill)/)
       expect(source).not.toContain("hover:-translate")
       expect(source).not.toContain("group-hover:translate")
       expect(source).not.toContain("transition-[border-color,box-shadow,transform]")

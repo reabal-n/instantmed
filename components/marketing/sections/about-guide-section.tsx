@@ -50,7 +50,7 @@ const GUIDE_SECTIONS: Array<{
     title: "Privacy and data protection",
     paragraphs: [
       "Your health information is sensitive, and we treat it that way. InstantMed complies with the Privacy Act 1988 and all 13 Australian Privacy Principles (APPs). We collect only the information necessary to provide clinical care, and we're transparent about what that includes: your identity details, contact information, medical history, symptoms, and payment information.",
-      "All personal health information is encrypted using AES-256-GCM - the same standard used by banks and government agencies. Your data is stored on Australian-hosted servers, which means it's subject to Australian law and never leaves the country. We don't sell your data, we don't share it with marketers, and we don't use it for anything beyond providing you with healthcare and meeting our legal obligations.",
+      "Personal health information is protected with field-level AES-256-GCM encryption at rest and TLS in transit. Primary health records use Australian-hosted infrastructure and trusted service providers process only what is needed to deliver care and meet legal obligations. We don't sell your data, we don't share it with marketers, and the Privacy Policy explains each provider and purpose.",
       "We retain medical records for the minimum period required by Australian healthcare regulations (seven years for adults, until age 25 for minors). You have the right to access your records at any time, and you can request corrections if anything is inaccurate. If you want to know exactly what we hold, just ask - we'll provide it within 30 days, as required by the APPs.",
     ],
   },

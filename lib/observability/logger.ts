@@ -46,7 +46,7 @@ function shouldLog(level: LogLevel): boolean {
 // Allow disabling sanitization in development for debugging (set LOG_SANITIZE_DEV=false)
 const SANITIZE_IN_DEV = process.env.LOG_SANITIZE_DEV !== 'false'
 
-export function sanitizeLogContext(context: LogContext): LogContext {
+function sanitizeLogContext(context: LogContext): LogContext {
   // Skip sanitization in development when explicitly disabled
   if (process.env.NODE_ENV === 'development' && !SANITIZE_IN_DEV) {
     return context
@@ -100,7 +100,7 @@ export function sanitizeLogContext(context: LogContext): LogContext {
   return sanitized
 }
 
-export function sanitizeLogMessage(message: string): string {
+function sanitizeLogMessage(message: string): string {
   return scrubPHI(message)
 }
 
@@ -230,16 +230,6 @@ export function createLogger(module: string, baseContext?: LogContext) {
     error: (message: string, context?: LogContext, error?: unknown) => 
       log('error', `[${module}] ${message}`, { ...baseContext, ...context }, error instanceof Error ? error : undefined),
   }
-}
-
-// No-op logger for silencing logs in specific contexts
-export const silentLogger = {
-  debug: () => {},
-  info: () => {},
-  warn: () => {},
-  error: () => {},
-  captureError: () => {},
-  child: () => silentLogger,
 }
 
 // Re-export for convenience

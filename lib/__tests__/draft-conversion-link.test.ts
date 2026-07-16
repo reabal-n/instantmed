@@ -39,4 +39,21 @@ describe("draft conversion link contract", () => {
     expect(guestCheckoutSource).toContain("markPartialIntakeConverted")
     expect(guestCheckoutSource).toContain("input.serverDraftSessionId")
   })
+
+  it("adopts a validated recovery session before the restored flow can reach checkout", () => {
+    const requestPageSource = read("app/request/page.tsx")
+    const requestFlowSource = read("components/request/request-flow.tsx")
+
+    expect(requestPageSource).toContain("isValidDraftSessionId(params.d)")
+    expect(requestPageSource).toContain("initialDraftId=")
+    expect(requestPageSource).toContain("DraftSessionUrlScrubber")
+    expect(requestPageSource).toContain("withDraftSessionScrubber")
+    expect(requestFlowSource).toContain("getServerDraftById(initialDraftId)")
+    expect(requestFlowSource).toContain("getServerDraftRecoveryDecision")
+    expect(requestFlowSource).toContain("if (!adoptServerDraftSession(record))")
+    expect(requestFlowSource).toContain("restoredState.restoreServerDraft(record, decision.serviceType)")
+    expect(requestFlowSource.indexOf("if (!adoptServerDraftSession(record))")).toBeLessThan(
+      requestFlowSource.indexOf("restoredState.restoreServerDraft(record, decision.serviceType)"),
+    )
+  })
 })

@@ -61,7 +61,7 @@ describe("flushServerDraft (pagehide beacon)", () => {
       serviceType: "med-cert",
       currentStepId: "certificate",
       answers: { certType: "work" },
-      identity: { email: "patient@example.com" },
+      identity: { email: "patient@example.com", dob: "1990-05-15" },
     })
 
     expect(beaconCalls).toHaveLength(1)
@@ -69,6 +69,7 @@ describe("flushServerDraft (pagehide beacon)", () => {
     const body = JSON.parse(beaconCalls[0].body)
     expect(body.serviceType).toBe("med-cert")
     expect(body.identity.email).toBe("patient@example.com")
+    expect(body.identity.dob).toBe("1990-05-15")
     expect(body.sessionId).toBe(GENERATED_SESSION_ID)
     expect(sessionStore["instantmed-server-draft-med-cert"]).toBe(GENERATED_SESSION_ID)
     // sendBeacon path succeeded → no keepalive-fetch fallback.

@@ -8,7 +8,7 @@ import {
   ServiceSchema,
   SpeakableSchema,
 } from "@/components/seo"
-import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING_DISPLAY, PRICING_SCHEMA } from "@/lib/constants"
 import { ED_LANDING_FAQ } from "@/lib/data/ed-faq"
 
 export const revalidate = 86400
@@ -66,7 +66,7 @@ export default function Page() {
       <ServiceSchema
         name="Online Erectile Dysfunction Assessment"
         description="Private erectile dysfunction assessment from an AHPRA-registered Australian doctor. Next steps are decided after clinical review."
-        price={PRICING.MENS_HEALTH.toFixed(2)}
+        price={PRICING_SCHEMA.MENS_HEALTH}
         url="/erectile-dysfunction"
       />
       <HealthArticleSchema

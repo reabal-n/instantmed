@@ -1,4 +1,5 @@
 import { signCheckoutResumeToken } from "@/lib/crypto/checkout-resume-token"
+import { buildDraftResumePath } from "@/lib/request/draft-resume-route"
 
 export interface PartialIntakeRecoveryUrlDraft {
   consultSubtype?: "ed" | "hair_loss" | "womens_health" | null
@@ -12,24 +13,21 @@ export function buildPartialIntakeRecoveryUrl({
 }: {
   appUrl: string
   draft: PartialIntakeRecoveryUrlDraft
-}): string {
+}): string | null {
   const baseUrl = appUrl.replace(/\/$/, "")
-  const url = new URL(draft.serviceType === "consult" && !draft.consultSubtype ? "/consult" : "/request", baseUrl)
+  const resumePath = buildDraftResumePath({
+    serviceType: draft.serviceType,
+    consultSubtype: draft.consultSubtype,
+    sessionId: draft.sessionId,
+  })
+  if (!resumePath) return null
 
-  if (draft.serviceType !== "consult" || draft.consultSubtype) {
-    url.searchParams.set("service", draft.serviceType)
-  }
-  if (draft.consultSubtype) {
-    url.searchParams.set("subtype", draft.consultSubtype)
-  }
-  url.searchParams.set("d", draft.sessionId)
+  const url = new URL(resumePath, baseUrl)
   url.searchParams.set("utm_source", "recovery_email")
   url.searchParams.set("utm_medium", "email")
   url.searchParams.set("utm_campaign", "partial_intake_recovery")
   url.searchParams.set("utm_content", draft.serviceType)
 
-  // Retired bare consult drafts cannot safely resume into checkout. Send them
-  // to the services overview instead of a dead `/request?service=consult` URL.
   return url.toString()
 }
 

@@ -16,7 +16,7 @@ import { RequestButton } from "@/components/request/request-button"
 import { requestCx } from "@/components/request/request-cx"
 import { Heading } from "@/components/ui/heading"
 import { usePostHog } from "@/lib/analytics/posthog-context"
-import { getConsultDraftResumeHref } from "@/lib/request/consult-flow"
+import { buildDraftResumePath } from "@/lib/request/draft-resume-route"
 import {
   type CanonicalServiceType,
   clearDraft,
@@ -56,6 +56,16 @@ const CONSULT_SUBTYPE_NAMES: Record<string, string> = {
   weight_loss: "weight management consultation",
 }
 
+function getDraftResumePath(draft: DraftData): string | null {
+  const consultSubtype = typeof draft.answers.consultSubtype === "string"
+    ? draft.answers.consultSubtype
+    : undefined
+  return buildDraftResumePath({
+    serviceType: draft.serviceType,
+    consultSubtype,
+  })
+}
+
 // ─── Component ────────────────────────────────────────────────────────────
 
 interface ServiceHubScreenProps {
@@ -70,8 +80,8 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
   const [lastConsultSubtype, setLastConsultSubtype] = useState<string | null>(null)
 
   useEffect(() => {
-    const allDrafts = getAllDrafts()
-    setDrafts(allDrafts)
+    const resumableDrafts = getAllDrafts().filter((draft) => getDraftResumePath(draft))
+    setDrafts(resumableDrafts)
     const prefs = getPreferences()
     if (prefs.lastServiceType) {
       setLastServiceType(prefs.lastServiceType)
@@ -79,7 +89,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
       posthog?.capture("returning_user", {
         last_service: prefs.lastServiceType,
         last_subtype: prefs.lastConsultSubtype,
-        has_drafts: allDrafts.length > 0,
+        has_drafts: resumableDrafts.length > 0,
       })
     }
   }, [posthog])
@@ -87,12 +97,14 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
   const handleResumeDraft = useCallback(
     (draftToResume: DraftData) => {
       const consultSubtype = draftToResume.answers.consultSubtype as string | undefined
+      const href = getDraftResumePath(draftToResume)
+      if (!href) return
       posthog?.capture("draft_resumed", {
         service_type: draftToResume.serviceType,
         step_id: draftToResume.currentStepId,
         consult_subtype: consultSubtype,
       })
-      router.push(getConsultDraftResumeHref(draftToResume))
+      router.push(href)
     },
     [router, posthog],
   )

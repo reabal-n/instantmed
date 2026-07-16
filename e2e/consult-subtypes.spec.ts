@@ -411,6 +411,41 @@ test.describe("Consult Sub-Services", () => {
     await expect(comingSoonStrip.getByText("Weight management")).toBeVisible()
   })
 
+  for (const { intent, selectedLabel, neutralLabel } of [
+    { intent: "uti", selectedLabel: /UTI symptoms/i, neutralLabel: /Start or switch pill/i },
+    { intent: "ocp_new", selectedLabel: /Start or switch pill/i, neutralLabel: /UTI symptoms/i },
+  ]) {
+    test(`women's-health intent=${intent} preselects the matching first-step option`, async ({ page }) => {
+      await page.goto(`/request?service=consult&subtype=womens_health&intent=${intent}`)
+      await waitForPageLoad(page)
+
+      await expect(page.getByText(/What do you need today/i)).toBeVisible({ timeout: 10000 })
+      const optionGroup = page.getByRole("radiogroup", { name: /Women's health option/i })
+      await expect(optionGroup.getByRole("radio", { name: selectedLabel })).toHaveAttribute(
+        "aria-checked",
+        "true",
+      )
+      await expect(optionGroup.getByRole("radio", { name: neutralLabel })).toHaveAttribute(
+        "aria-checked",
+        "false",
+      )
+    })
+  }
+
+  test("generic women's-health entry keeps the first-step options neutral", async ({ page }) => {
+    await page.goto("/request?service=consult&subtype=womens_health")
+    await waitForPageLoad(page)
+
+    await expect(page.getByText(/What do you need today/i)).toBeVisible({ timeout: 10000 })
+    const optionGroup = page.getByRole("radiogroup", { name: /Women's health option/i })
+    for (const optionName of [/UTI symptoms/i, /Start or switch pill/i, /Continue my current pill/i]) {
+      await expect(optionGroup.getByRole("radio", { name: optionName })).toHaveAttribute(
+        "aria-checked",
+        "false",
+      )
+    }
+  })
+
   test("women's health UTI clean case advances past the safety screen", async ({ page }) => {
     await page.goto("/request?service=consult&subtype=womens_health")
     await waitForPageLoad(page)

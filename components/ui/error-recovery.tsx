@@ -23,6 +23,15 @@ export function NetworkStatus() {
   const [showBanner, setShowBanner] = useState(false)
 
   useEffect(() => {
+    // The retired request-specific replay queue never had a real network
+    // consumer and may contain legacy clinical answer payloads. Remove it
+    // once rather than retaining unencrypted PHI in localStorage.
+    try {
+      window.localStorage.removeItem("flow_offline_queue")
+    } catch {
+      // Storage can be blocked in private browsing; connectivity still works.
+    }
+
     const handleOnline = () => {
       setIsOnline(true)
       // Show "back online" briefly
@@ -68,7 +77,7 @@ export function NetworkStatus() {
       ) : (
         <span className="flex items-center justify-center gap-2">
           <WifiOff className="w-4 h-4" />
-          No internet connection - your changes will be saved when you reconnect
+          No internet connection. Reconnect to continue.
         </span>
       )}
     </div>

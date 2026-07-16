@@ -65,7 +65,7 @@ describe("returning-patient shortcut contract", () => {
       prescriptions: [],
     })
     expect(resolved.state).toBe("default")
-    expect(resolved.lastService?.serviceParam).toBe("prescription")
+    expect(resolved.lastService?.serviceParam).toBe("repeat-script")
   })
 
   it("preserves consult subtype (ED) so the deep link skips the picker", () => {
@@ -123,7 +123,7 @@ describe("returning-patient shortcut contract", () => {
       ],
       prescriptions: [],
     })
-    expect(resolved.lastService?.serviceParam).toBe("prescription")
+    expect(resolved.lastService?.serviceParam).toBe("repeat-script")
   })
 
   it("does NOT override a higher-priority hero state with the shortcut", () => {

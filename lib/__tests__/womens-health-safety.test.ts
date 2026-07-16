@@ -25,6 +25,25 @@ describe("women's health — UTI server safety (keep-list, server-enforced)", ()
     const result = checkSafetyForServer("consult", { ...utiBase, utiRedFlags: "no", utiPregnant: "no" })
     expect(result.isAllowed).toBe(true)
   })
+
+  it("does not apply stale UTI red flags to the new-pill pathway", () => {
+    const result = checkSafetyForServer("consult", {
+      consultSubtype: "womens_health",
+      womensHealthOption: "ocp_new",
+      pregnancyStatus: "no",
+      womens_migraine_aura: "no",
+      womens_blood_clot_history: "no",
+      womens_smoker: "no",
+      utiRedFlags: "yes",
+      utiPregnant: "not_sure",
+      emergency_symptoms: [],
+    })
+
+    expect(result.isAllowed).toBe(true)
+    expect(result.triggeredRuleIds).not.toEqual(
+      expect.arrayContaining(["uti_red_flags_decline", "uti_pregnancy_decline"]),
+    )
+  })
 })
 
 describe("women's health — OCP redirects are blocked before payment", () => {
