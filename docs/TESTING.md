@@ -260,6 +260,8 @@ steps:
 
 **Lighthouse gates** (commit `99fc1c843`, updated 2026-06-05): PR CI blocks on accessibility, SEO, FCP, and CLS. LCP and TBT are warning-only in the general PR Lighthouse config because simulated throttling on GitHub runners is too noisy for untouched marketing pages. The dedicated mobile `/request` Lighthouse gate hard-gates stable paid-intake metrics (FCP ≤2s, TBT ≤300ms, CLS ≤0.05) while keeping composite performance score and simulated LCP warning-only.
 
+**Opt-in money-page performance profile:** `lighthouserc.money-pages.json` covers the 10 public decision pages plus `/request` at 390x844/DPR3, runs each route three times, and asserts LCP ≤2.5s plus CLS ≤0.1. It is intentionally not wired into the general CI job: build the production app, ensure `lhci` is installed, then run `lhci autorun --config=./lighthouserc.money-pages.json`. Results stay local under `.lighthouseci/money-pages/`. Treat this as production-build performance proof; do not use `next dev` timing as a release claim.
+
 ---
 
 ## Debugging Failing Tests

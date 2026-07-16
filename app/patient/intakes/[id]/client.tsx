@@ -33,8 +33,11 @@ import { CertificateDownloadButton } from "@/components/patient/certificate-down
 import { CrossSellCard } from "@/components/patient/cross-sell-card"
 import { DocumentReadyReveal } from "@/components/patient/document-ready-reveal"
 import { EmailVerificationGate } from "@/components/patient/email-verification-gate"
-import { IntakeStatusListener } from "@/components/patient/intake-status-listener"
 import { IntakeStatusTracker } from "@/components/patient/intake-status-tracker"
+import {
+  resolvePatientIntakeNextStep,
+  resolvePatientIntakeStatusConfig,
+} from "@/components/patient/intake-types"
 import { ReviewAskCard } from "@/components/patient/review-ask-card"
 import { SendToEmployerDialog } from "@/components/patient/send-to-employer-dialog"
 import { CopySupportSummaryButton } from "@/components/patient/support-summary-button"
@@ -53,17 +56,22 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { capture } from "@/lib/analytics/capture"
-import { buildPatientMessagesHref,PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import { CONTACT_EMAIL } from "@/lib/constants"
+import {
+  buildPatientMessagesHref,
+  PATIENT_DASHBOARD_HREF,
+  REQUEST_HREF,
+} from "@/lib/dashboard/routes"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
-import { getPatientStatusNextStep, INTAKE_STATUS, type IntakeStatus as StatusKey } from "@/lib/data/status"
-import { formatIntakeStatus } from "@/lib/format/intake"
+import type { PatientIntakeWithPatient } from "@/lib/data/intakes/types"
 import { COPY } from "@/lib/microcopy/universal"
+import { isMoreInformationRequiredPaymentRecovery } from "@/lib/patient/payment-recovery"
 import { retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
 import { cn } from "@/lib/utils"
 import type { GeneratedDocument, IntakeDocument, IntakeWithPatient } from "@/types/db"
 
 interface IntakeDetailClientProps {
-  intake: IntakeWithPatient
+  intake: PatientIntakeWithPatient
   document?: GeneratedDocument | null
   intakeDocument?: IntakeDocument | null
   retryPayment?: boolean
@@ -360,15 +368,17 @@ export function IntakeDetailClient({
   const [resendQueued, setResendQueued] = useState(false)
   const hasAutoRetriedPayment = useRef(false)
 
+  useEffect(() => {
+    setIntake(initialIntake)
+  }, [initialIntake])
+
   const service = intake.service as { name?: string; short_name?: string; type?: string } | undefined
   const isMedCert = (service?.type || "").toLowerCase().includes("cert")
   const serviceLabel = service?.short_name || service?.name || "Request"
-  const statusNextStep = getPatientStatusNextStep(intake.status)
-
-  const handleStatusChange = (newStatus: IntakeStatus) => {
-    setIntake((prev) => ({ ...prev, status: newStatus }))
-    router.refresh()
-  }
+  const isMoreInformationRequiredRecovery = isMoreInformationRequiredPaymentRecovery(intake)
+  const statusConfig = resolvePatientIntakeStatusConfig(intake)
+  const statusNextStep = resolvePatientIntakeNextStep(intake)
+  const StatusIcon = statusConfig.icon
 
   const handleCancel = () => {
     setActionError(null)
@@ -402,7 +412,15 @@ export function IntakeDetailClient({
     setActionError(null)
     startTransition(async () => {
       const result = await retryPaymentForIntakeAction(intake.id)
-      if (!result.success) {
+      if (result.paymentRecoveryReason === "more_information_required") {
+        setIntake((previous) => ({
+          ...previous,
+          payment_recovery_reason: "more_information_required",
+          status: "checkout_failed",
+        }))
+        setActionError(null)
+        router.refresh()
+      } else if (!result.success) {
         setActionError(result.error || "We couldn't open secure checkout. Please try again in a moment or contact support.")
       } else if (!result.checkoutUrl) {
         setActionError("We couldn't open secure checkout. Please try again in a moment or contact support.")
@@ -410,12 +428,13 @@ export function IntakeDetailClient({
         window.location.href = result.checkoutUrl
       }
     })
-  }, [intake.id])
+  }, [intake.id, router])
 
   useEffect(() => {
     if (
       !retryPayment ||
       hasAutoRetriedPayment.current ||
+      isMoreInformationRequiredRecovery ||
       !["pending_payment", "checkout_failed"].includes(intake.status)
     ) {
       return
@@ -423,7 +442,7 @@ export function IntakeDetailClient({
 
     hasAutoRetriedPayment.current = true
     handleRetryPayment()
-  }, [handleRetryPayment, intake.status, retryPayment])
+  }, [handleRetryPayment, intake.status, isMoreInformationRequiredRecovery, retryPayment])
 
   const [showDateCorrection, setShowDateCorrection] = useState(false)
   const [correctionStartDate, setCorrectionStartDate] = useState("")
@@ -455,7 +474,9 @@ export function IntakeDetailClient({
     })
   }
 
-  const canCancel = ["draft", "pending_payment", "checkout_failed"].includes(intake.status)
+  const canCancel =
+    !isMoreInformationRequiredRecovery &&
+    ["draft", "pending_payment", "checkout_failed"].includes(intake.status)
   const canResend = ["approved", "completed"].includes(intake.status) && intakeDocument
   const canRequestCorrection =
     ["approved", "completed"].includes(intake.status) &&
@@ -477,27 +498,12 @@ export function IntakeDetailClient({
       !document?.pdf_url)
   const showLiveTracker = ["paid", "in_review", "pending_info", "awaiting_script", "escalated"].includes(intake.status)
   const showSupportSummary =
-    intake.status === "checkout_failed" ||
-    ["refunded", "partially_refunded", "refund_processing", "refund_failed"].includes(intake.payment_status || "")
-
-  const getStatusIcon = (status: string) => {
-    const config = INTAKE_STATUS[status as StatusKey]
-    if (config) {
-      const Icon = config.icon
-      return <Icon className="h-5 w-5" />
-    }
-    return <Clock className="h-5 w-5 text-info" />
-  }
-
-  const getStatusColor = (status: string) => {
-    const config = INTAKE_STATUS[status as StatusKey]
-    return config?.color ?? "bg-muted text-muted-foreground"
-  }
+    !isMoreInformationRequiredRecovery &&
+    (intake.status === "checkout_failed" ||
+      ["refunded", "partially_refunded", "refund_processing", "refund_failed"].includes(intake.payment_status || ""))
 
   return (
     <div className="space-y-6">
-      <IntakeStatusListener intakeId={intake.id} currentStatus={intake.status} />
-
       <Button variant="ghost" asChild className="-ml-3">
         <Link href={PATIENT_DASHBOARD_HREF}>
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -514,9 +520,9 @@ export function IntakeDetailClient({
               {service?.name || service?.short_name || "Request"}
             </Heading>
           </div>
-          <Badge className={cn("shrink-0", getStatusColor(intake.status))}>
-            {getStatusIcon(intake.status)}
-            <span className="ml-1">{formatIntakeStatus(intake.status)}</span>
+          <Badge className={cn("shrink-0", statusConfig.color)}>
+            <StatusIcon className="h-5 w-5" aria-hidden="true" />
+            <span className="ml-1">{statusConfig.label}</span>
           </Badge>
         </div>
 
@@ -567,8 +573,40 @@ export function IntakeDetailClient({
           </div>
         )}
 
+        {/* Missing information hold */}
+        {isMoreInformationRequiredRecovery && (
+          <div className="rounded-xl border border-warning-border bg-warning-light/40 p-4 sm:p-5">
+            <div className="flex flex-col items-start gap-4 sm:flex-row">
+              <div className="shrink-0 rounded-full bg-warning-light p-3">
+                <AlertCircle className="h-6 w-6 text-warning" aria-hidden="true" />
+              </div>
+              <div className="min-w-0 flex-1 space-y-4">
+                <div>
+                  <Heading level="h3" className="text-warning">
+                    More information needed
+                  </Heading>
+                  <p className="mt-1 text-base text-muted-foreground">
+                    This saved request is missing a required medical answer, so it can’t continue to payment. Start a fresh secure form and answer every medical question again.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                  <Button asChild size="lg" className="h-12 w-full sm:w-auto">
+                    <Link href={REQUEST_HREF}>Start a fresh request</Link>
+                  </Button>
+                  <Button variant="outline" asChild size="lg" className="h-12 w-full bg-transparent sm:w-auto">
+                    <a href={`mailto:${CONTACT_EMAIL}`}>
+                      <Mail className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Contact support
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Checkout failed retry */}
-        {intake.status === "checkout_failed" && (
+        {intake.status === "checkout_failed" && !isMoreInformationRequiredRecovery && (
           <div className="rounded-xl border border-destructive/30 bg-destructive/[0.04] p-4 sm:p-5">
             <div className="flex flex-col sm:flex-row items-start gap-4">
               <div className="rounded-full bg-destructive/10 p-3 shrink-0">
@@ -760,9 +798,7 @@ export function IntakeDetailClient({
         {/* Live status tracker */}
         {showLiveTracker && (
           <IntakeStatusTracker
-            intakeId={intake.id}
             initialStatus={intake.status as IntakeStatus}
-            onStatusChange={handleStatusChange}
           />
         )}
 

@@ -77,10 +77,13 @@ import { handleAsyncPaymentSucceeded } from "@/app/api/stripe/webhook/handlers/c
 import { handleCheckoutSessionCompleted } from "@/app/api/stripe/webhook/handlers/checkout-session-completed"
 
 type IntakeState = {
+  checkout_error?: string | null
   id: string
   payment_id?: string | null
   payment_status: string
   status: string
+  triage_reason?: string | null
+  triage_result?: string | null
 }
 
 function makeEvent(type: string, object: Record<string, unknown>): Stripe.Event {
@@ -244,6 +247,67 @@ describe("Stripe paid-state webhook guards", () => {
     expect(mocks.startPostPaymentReviewWork).not.toHaveBeenCalled()
   })
 
+  it.each([
+    ["checkout.session.completed", "safety_blocked_high_stakes"],
+    ["checkout.session.completed", "safety_missing_required_information"],
+    ["checkout.session.async_payment_succeeded", "safety_blocked_high_stakes"],
+    ["checkout.session.async_payment_succeeded", "safety_missing_required_information"],
+  ])("settles exact-current %s from %s without overwriting triage", async (eventType, marker) => {
+    const intakeId = "55555555-5555-4555-8555-555555555555"
+    const { supabase, updates } = createSupabaseMock({
+      checkout_error: marker,
+      id: intakeId,
+      payment_id: "cs_current",
+      payment_status: "failed",
+      status: "checkout_failed",
+      triage_reason: "Persist this clinical context",
+      triage_result: "request_more_info",
+    })
+    const session = {
+      amount_total: 1995,
+      customer: "cus_test",
+      id: "cs_current",
+      metadata: {
+        category: "medical_certificate",
+        intake_id: intakeId,
+        patient_id: "patient-1",
+        service_slug: "med-cert-sick",
+      },
+      payment_intent: "pi_paid",
+      payment_status: "paid",
+    }
+
+    if (eventType === "checkout.session.completed") {
+      await handleCheckoutSessionCompleted({
+        event: makeEvent(eventType, session),
+        startTime: Date.now(),
+        supabase: supabase as never,
+      })
+    } else {
+      await handleAsyncPaymentSucceeded({
+        event: makeEvent(eventType, session),
+        startTime: Date.now(),
+        supabase: supabase as never,
+      })
+    }
+
+    const paidUpdate = updates.find(({ payload }) => payload.payment_status === "paid")
+    expect(paidUpdate).toBeDefined()
+    expect(paidUpdate?.payload).toMatchObject({
+      checkout_error: null,
+      payment_status: "paid",
+      status: "paid",
+    })
+    expect(paidUpdate?.payload).not.toHaveProperty("triage_result")
+    expect(paidUpdate?.payload).not.toHaveProperty("triage_reason")
+    expect(paidUpdate?.filters).toEqual(expect.arrayContaining([
+      { column: "id", method: "eq", value: intakeId },
+      { column: "payment_id", method: "eq", value: "cs_current" },
+      { column: "status", method: "in", value: ["pending_payment", "checkout_failed"] },
+      { column: "payment_status", method: "in", value: ["pending", "unpaid", "failed"] },
+    ]))
+  })
+
   it("sends stale completed checkout sessions to the webhook DLQ", async () => {
     const intakeId = "33333333-3333-4333-8333-333333333333"
     const { deadLetters, supabase, updates } = createSupabaseMock({
@@ -335,7 +399,7 @@ describe("Stripe paid-state webhook guards", () => {
 
   it("does not mark async payment succeeded when the checkout session is stale", async () => {
     const intakeId = "22222222-2222-4222-8222-222222222222"
-    const { supabase, updates } = createSupabaseMock({
+    const { deadLetters, supabase, updates } = createSupabaseMock({
       id: intakeId,
       payment_id: "cs_newer",
       payment_status: "pending",
@@ -366,5 +430,10 @@ describe("Stripe paid-state webhook guards", () => {
       }),
     }))
     expect(mocks.startPostPaymentReviewWork).not.toHaveBeenCalled()
+    expect(deadLetters).toContainEqual(expect.objectContaining({
+      error_code: "stale_async_payment_success",
+      intake_id: intakeId,
+      session_id: "cs_old",
+    }))
   })
 })

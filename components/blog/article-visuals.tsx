@@ -132,7 +132,9 @@ function ArticleVisualPanel({
   const imageAspectClass =
     visualLayout === "wide" ? "aspect-video" : visualLayout === "square" ? "aspect-square" : "aspect-[4/5]"
   const imageSizes =
-    visualLayout === "wide" ? "(max-width: 640px) 100vw, 768px" : "(max-width: 640px) 100vw, 620px"
+    visualLayout === "wide"
+      ? "(max-width: 640px) calc(100vw - 2rem), 768px"
+      : "(max-width: 640px) calc(100vw - 2rem), 620px"
 
   if (visual.assetPath) {
     const imageAlt = `${visual.title}: ${visual.summary}`
@@ -178,13 +180,17 @@ function ArticleVisualPanel({
               <DialogDescription className="leading-relaxed">{visual.summary}</DialogDescription>
             </DialogHeader>
             <div className="max-h-[calc(100dvh-9rem)] overflow-auto bg-muted/40 p-3 dark:bg-white/[0.04] sm:p-5">
-              <div className="mx-auto w-full max-w-[960px] overflow-hidden rounded-xl border border-border/50 bg-white shadow-sm shadow-primary/[0.04] dark:bg-card dark:shadow-none">
+              <div
+                className={cn(
+                  "relative mx-auto w-full max-w-[960px] overflow-hidden rounded-xl border border-border/50 bg-white shadow-sm shadow-primary/[0.04] dark:bg-card dark:shadow-none",
+                  imageAspectClass,
+                )}
+              >
                 <Image
                   src={visual.assetPath}
                   alt={imageAlt}
-                  width={1280}
-                  height={1600}
-                  className="h-auto w-full"
+                  fill
+                  className="object-contain"
                   sizes="(max-width: 1024px) 92vw, 960px"
                 />
               </div>

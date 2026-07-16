@@ -11,17 +11,18 @@ import { stripe } from "@/lib/stripe/client"
 
 import {
   markCheckoutRecoveryNudgeSent,
-  type PaymentFailureIntakeEmailContext,
+  readExactCurrentPaymentFailureEmailContext,
+  recordExactCurrentPaymentFailure,
   resolvePaymentFailureRecipient,
 } from "./payment-failure-recovery"
 import type { HandlerResult, WebhookContext } from "./types"
-import { tryClaimEvent } from "./utils"
+import { addToDeadLetterQueue, tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:payment-failed")
 
 type CheckoutSessionResolution =
-  | { success: true; checkoutSessionId: string | null }
-  | { success: false; error: unknown }
+  | { success: true; checkoutSessionId: string }
+  | { success: false; reason: "lookup_failed" | "session_not_found" }
 
 async function resolveCheckoutSessionIdForPaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise<CheckoutSessionResolution> {
   const metadataSessionId = paymentIntent.metadata?.checkout_session_id || paymentIntent.metadata?.session_id
@@ -32,12 +33,12 @@ async function resolveCheckoutSessionIdForPaymentIntent(paymentIntent: Stripe.Pa
       limit: 1,
       payment_intent: paymentIntent.id,
     })
-    return { success: true, checkoutSessionId: sessions.data[0]?.id ?? null }
-  } catch (error) {
-    log.warn("Could not resolve Checkout Session for failed PaymentIntent", {
-      paymentIntentId: paymentIntent.id,
-    }, error instanceof Error ? error : undefined)
-    return { success: false, error }
+    const checkoutSessionId = sessions.data[0]?.id
+    return checkoutSessionId
+      ? { success: true, checkoutSessionId }
+      : { success: false, reason: "session_not_found" }
+  } catch {
+    return { success: false, reason: "lookup_failed" }
   }
 }
 
@@ -47,54 +48,63 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
   const intakeId = paymentIntent.metadata?.intake_id || paymentIntent.metadata?.request_id
 
   log.warn("payment_intent.payment_failed received", {
+    declineCode: paymentIntent.last_payment_error?.decline_code,
     eventId: event.id,
+    failureCode: paymentIntent.last_payment_error?.code,
     paymentIntentId: paymentIntent.id,
     intakeId,
-    failureMessage: paymentIntent.last_payment_error?.message,
   })
+
+  let checkoutSessionId: string | null = null
+  if (intakeId) {
+    const checkoutSessionResolution = await resolveCheckoutSessionIdForPaymentIntent(paymentIntent)
+    if (!checkoutSessionResolution.success) {
+      log.error("Payment failure Checkout Session resolution unavailable", {
+        eventId: event.id,
+        intakeId,
+        paymentIntentId: paymentIntent.id,
+        resolution: checkoutSessionResolution.reason,
+      })
+      return NextResponse.json({ error: "Failed to verify checkout session" }, { status: 500 })
+    }
+    checkoutSessionId = checkoutSessionResolution.checkoutSessionId
+  }
 
   const shouldProcess = ctx.adminReplay || await tryClaimEvent(supabase, event.id, event.type, intakeId, paymentIntent.id)
   if (!shouldProcess) {
     return NextResponse.json({ received: true, skipped: true })
   }
 
-  if (intakeId) {
-    const checkoutSessionResolution = await resolveCheckoutSessionIdForPaymentIntent(paymentIntent)
-    if (!checkoutSessionResolution.success) {
-      return NextResponse.json({ error: "Failed to verify checkout session" }, { status: 500 })
-    }
+  if (intakeId && checkoutSessionId) {
+    const failureUpdate = await recordExactCurrentPaymentFailure({
+      checkoutSessionId,
+      intakeId,
+      ordinaryError: "Payment failed",
+      source: "payment_intent.payment_failed",
+      supabase,
+    })
 
-    const checkoutSessionId = checkoutSessionResolution.checkoutSessionId
-    if (!checkoutSessionId) {
-      log.warn("Payment failure ignored because current checkout session could not be verified", {
+    if (failureUpdate.outcome === "database_error") {
+      log.error("Failed to record exact-current payment intent failure", {
+        checkoutSessionId,
         eventId: event.id,
-        intakeId,
         paymentIntentId: paymentIntent.id,
+        stage: failureUpdate.stage,
       })
-      return NextResponse.json({ received: true, skipped: true, reason: "missing_checkout_session" })
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        checkoutSessionId,
+        intakeId,
+        `Exact-current payment failure update failed at ${failureUpdate.stage}`,
+        "DB_UPDATE_FAILED",
+        { stage: failureUpdate.stage },
+      )
+      return NextResponse.json({ error: "Failed to record payment failure" }, { status: 500 })
     }
 
-    const { data: failedIntake, error: updateError } = await supabase
-      .from("intakes")
-      .update({
-        checkout_error: "Payment failed",
-        payment_status: "failed",
-        status: "checkout_failed",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", intakeId)
-      .eq("payment_id", checkoutSessionId)
-      .in("status", ["pending_payment", "checkout_failed"])
-      .in("payment_status", ["pending", "unpaid", "failed"])
-      .select("id")
-      .maybeSingle()
-
-    if (updateError) {
-      log.error("Failed to mark payment intent failure", { eventId: event.id, paymentIntentId: paymentIntent.id }, updateError)
-      return NextResponse.json({ received: true })
-    }
-
-    if (!failedIntake) {
+    if (failureUpdate.outcome === "state_changed") {
       log.info("Payment failure ignored because intake is no longer retryable", {
         checkoutSessionId,
         eventId: event.id,
@@ -103,17 +113,32 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
       return NextResponse.json({ received: true, skipped: true })
     }
 
-    // Track business metric: payment failed
+    // A true exact-current Stripe failure counts even when a clinical safety lock
+    // suppresses recovery. Keep provider failure prose out of analytics.
     trackBusinessMetric({
       metric: "payment_failed",
       severity: "warning",
       userId: paymentIntent.metadata?.patient_id,
       metadata: {
+        decline_code: paymentIntent.last_payment_error?.decline_code,
+        event_type: event.type,
+        failure_code: paymentIntent.last_payment_error?.code,
+        failure_state: failureUpdate.outcome,
         intake_id: intakeId,
-        failure_message: paymentIntent.last_payment_error?.message,
         payment_intent_id: paymentIntent.id,
       },
     })
+
+    if (failureUpdate.outcome === "locked_failure") {
+      log.info("Recorded payment failure while preserving recovery suppression", {
+        checkoutSessionId,
+        eventId: event.id,
+        intakeId,
+        paymentIntentId: paymentIntent.id,
+        state: failureUpdate.outcome,
+      })
+      return NextResponse.json({ received: true })
+    }
 
     // Send payment failure notification (non-blocking to respect Stripe 3s timeout).
     // If this fails, the email-dispatcher cron will retry from the outbox.
@@ -122,13 +147,33 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
     const failureMessage = paymentIntent.last_payment_error?.message || "Your payment could not be processed"
     after(async () => {
       try {
-        const { data: intake } = await supabase
-          .from("intakes")
-          .select("category, guest_email, patient:profiles!patient_id(email, full_name)")
-          .eq("id", failedIntakeId)
-          .single()
+        const eligibility = await readExactCurrentPaymentFailureEmailContext({
+          checkoutSessionId,
+          intakeId: failedIntakeId,
+          supabase,
+        })
 
-        const { email, name } = resolvePaymentFailureRecipient(intake as PaymentFailureIntakeEmailContext | null)
+        if (eligibility.outcome === "database_error") {
+          log.error("Failed to verify payment failure recovery eligibility", {
+            checkoutSessionId,
+            intakeId: failedIntakeId,
+            paymentIntentId: paymentIntent.id,
+          })
+          await addToDeadLetterQueue(
+            supabase,
+            event.id,
+            event.type,
+            checkoutSessionId,
+            failedIntakeId,
+            "Failed to verify exact-current payment failure email eligibility",
+            "DB_READ_FAILED",
+          )
+          return
+        }
+        if (eligibility.outcome === "ineligible") return
+
+        const intake = eligibility.context
+        const { email, name } = resolvePaymentFailureRecipient(intake)
 
         if (email) {
           const emailResult = await sendPaymentFailedEmail({
@@ -146,12 +191,29 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
             checkoutSessionId,
           })
           if (emailResult.success) {
-            await markCheckoutRecoveryNudgeSent(supabase, failedIntakeId, "payment_intent.payment_failed")
-            log.info("Sent payment failure notification", { intakeId: failedIntakeId })
+            const marked = await markCheckoutRecoveryNudgeSent(
+              supabase,
+              failedIntakeId,
+              checkoutSessionId,
+              "payment_intent.payment_failed",
+            )
+            if (marked) {
+              log.info("Sent payment failure notification", { intakeId: failedIntakeId })
+            } else {
+              log.warn("Payment failure notification sent but nudge state changed before marking", {
+                checkoutSessionId,
+                intakeId: failedIntakeId,
+                paymentIntentId: paymentIntent.id,
+              })
+            }
           }
         }
-      } catch (emailError) {
-        log.error("Failed to send payment failure notification", { intakeId: failedIntakeId }, emailError)
+      } catch {
+        log.error("Failed to send payment failure notification", {
+          checkoutSessionId,
+          intakeId: failedIntakeId,
+          paymentIntentId: paymentIntent.id,
+        })
       }
     })
   }

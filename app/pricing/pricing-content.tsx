@@ -1,283 +1,143 @@
-import { ArrowRight, Check, Gift, Zap } from "lucide-react"
+import { CheckCircle2, ReceiptText, RotateCcw } from "lucide-react"
 import Link from "next/link"
 
-import { StatsHero } from "@/components/heroes"
-import { ServiceIconTile } from "@/components/icons/service-icons"
-import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
-import { GoogleReviewsBadge } from "@/components/marketing/google-reviews-badge"
+import { CenteredHero } from "@/components/heroes"
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
-import { RegulatoryPartners } from "@/components/marketing/regulatory-partners"
-import { CommercialIntentLinksSection } from "@/components/marketing/sections/commercial-intent-links-section"
-import { CompetitorLinksSection } from "@/components/marketing/sections/competitor-links-section"
-import { PricingGuideSection } from "@/components/marketing/sections/pricing-guide-section"
-import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
-import { ComparisonBar } from "@/components/marketing/shared/data-viz"
+import { ServiceDecisionBoard } from "@/components/marketing/service-decision-board"
 import { ComparisonTable } from "@/components/sections/comparison-table"
 import { CTABanner } from "@/components/sections/cta-banner"
 import { FAQSection } from "@/components/sections/faq-section"
 import { FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
-import { TrustBadgeRow } from "@/components/shared/trust-badge"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
-import { GUARANTEE, GUARANTEE_LABEL } from "@/lib/marketing/voice"
-import { priorityCommercialLinks } from "@/lib/seo/commercial-links"
-import { getService, getServiceMarketingHref } from "@/lib/services/service-catalog"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
-import { cn } from "@/lib/utils"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 import { PricingStickyCta } from "./pricing-sticky-cta"
 
 /* ────────────────────────────── Data ────────────────────────────── */
 
-const medCertService = getService("med-cert")
-const repeatRxService = getService("repeat-rx")
-const consultPriceSource = getService("hair-loss")
+const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 
-// Pricing card services. Icon, colour tokens, hrefs, and display prices are
-// sourced from canonical service primitives; only page-specific feature copy
-// stays local.
-const services = [
-  {
-    name: "Medical Certificate",
-    priceLabel: `${medCertService.pricePrefix} ${medCertService.price}`,
-    priceSubtext: `1 day: ${PRICING_DISPLAY.MED_CERT} · 2 days: ${PRICING_DISPLAY.MED_CERT_2DAY}`,
-    description: "Work, uni, or carer's leave",
-    features: [
-      "Digital delivery if approved",
-      "Standard workplace evidence",
-      "AHPRA-registered doctor",
-      "PDF via email",
-    ],
-    popular: true,
-    href: getServiceMarketingHref(medCertService),
-    iconKey: medCertService.iconKey,
-    colorToken: medCertService.colorToken,
-    checkClass: "text-emerald-600 dark:text-emerald-400",
-    buttonClass: "border-emerald-600/30 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 dark:border-emerald-500/30 dark:text-emerald-400 dark:hover:bg-emerald-950",
-    cta: `Get your certificate - ${medCertService.price}`,
-  },
-  {
-    name: "Prescription",
-    priceLabel: repeatRxService.price,
-    description: "Repeat scripts for ongoing meds",
-    features: [
-      "E-script to your phone",
-      "Any pharmacy Australia-wide",
-      "Doctor review",
-      "SMS token delivery",
-    ],
-    popular: false,
-    href: getServiceMarketingHref(repeatRxService),
-    iconKey: repeatRxService.iconKey,
-    colorToken: repeatRxService.colorToken,
-    checkClass: "text-sky-600 dark:text-sky-400",
-    buttonClass: "border-border hover:bg-muted",
-    cta: `Renew medication - ${repeatRxService.price}`,
-  },
-  {
-    name: "Consultation",
-    priceLabel: PRICING_DISPLAY.FROM_CONSULT,
-    priceSubtext: `ED and hair loss assessments: ${consultPriceSource.price}`,
-    description: "ED and hair loss assessments",
-    features: [
-      "Hair loss and ED assessments",
-      "Structured safety screening",
-      "Doctor-led treatment advice",
-      "No subscription",
-    ],
-    popular: false,
-    href: "/consult",
-    iconKey: "Stethoscope",
-    colorToken: "sky",
-    checkClass: "text-sky-600 dark:text-sky-400",
-    buttonClass: "border-border hover:bg-muted",
-    cta: `Start assessment - from ${consultPriceSource.price}`,
-  },
-]
-
-const comparisonItems = [
-  { label: "No appointment needed", us: true, them: false },
-  { label: "Available 7 days a week", us: true, them: false },
-  { label: "AHPRA-registered doctors", us: true, them: true },
-  { label: "Digital delivery if approved", us: true, them: false },
-  { label: GUARANTEE, us: true, them: false },
-  { label: "No lock-in contracts", us: true, them: false },
-  { label: "Standard workplace evidence", us: true, them: true },
-  { label: "E-scripts to any pharmacy", us: true, them: false },
-]
-
-const pricingEvidenceLinks = [
-  {
-    href: "/blog/is-telehealth-bulk-billed-australia",
-    title: "Bulk billing and private telehealth",
-    body: "Why private telehealth fees sit outside Medicare bulk billing.",
-  },
-  {
-    href: "/blog/pbs-pharmaceutical-benefits-scheme",
-    title: "PBS pharmacy costs",
-    body: "How PBS subsidies can affect the medication price paid at the pharmacy.",
-  },
-  {
-    href: "/compare/online-medical-certificate-options",
-    title: "Compare online certificate services",
-    body: "A dated comparison of Australian online medical certificate providers.",
-  },
-  {
-    href: "/refund-policy",
-    title: "Refund policy",
-    body: "What happens when a doctor declines a request after review.",
-  },
+const FEE_LEDGER_ITEMS = [
+  "Secure service-specific form",
+  "Clinical assessment and decision",
+  "Follow-up questions needed for the decision",
+  "Digital document or eScript delivery, if approved",
 ] as const
 
-const pricingFaqs = [
-      {
-        question: "Are there any hidden fees?",
-        answer:
-          "Nope. The price you see is the price you pay. No subscriptions, no memberships, no surprises.",
-      },
-      {
-        question: "What if my request is declined?",
-        answer:
-          `${GUARANTEE} We only charge when the request can proceed clinically.`,
-      },
-      {
-        question: "What payment methods do you accept?",
-        answer:
-          "All major credit and debit cards (Visa, Mastercard, American Express), Apple Pay, and Google Pay. All payments are processed securely through Stripe with full encryption.",
-      },
-      {
-        question: "Can I get a receipt for my health insurance?",
-        answer:
-          "Yes. You\u2019ll receive a tax invoice via email after payment. Whether your health insurer reimburses telehealth consultations depends on your policy and fund - check with your insurer directly. We provide the documentation either way.",
-      },
-      {
-        question: "Is InstantMed bulk billed?",
-        answer:
-          "No. InstantMed is a private telehealth service, so we do not claim Medicare rebates or bulk-bill. Medical certificates can be requested without a Medicare card. Prescriptions and consultations require Medicare details for identity, prescribing records, and pharmacy continuity.",
-      },
-      {
-        question: "Do I need a Medicare card to use InstantMed?",
-        answer:
-          "Not for medical certificates. For prescriptions and consultations, a Medicare card is required so we can verify your identity and ensure continuity of care. If you hold an international student visa or don\u2019t have Medicare, you can still access medical certificates.",
-      },
-      {
-        question: "How much do prescriptions cost at the pharmacy?",
-        answer:
-          "Our fee covers the doctor\u2019s review and eScript generation only. Medication costs are separate and paid at your pharmacy. From 1 January 2026, PBS medications cost up to $25.00 for general patients ($7.70 for concession card holders, frozen until 2030). Without Medicare, you\u2019ll pay the full retail price. Your pharmacist can confirm the exact cost before you purchase. Source: pbs.gov.au/info/healthpro/explanatory-notes/front/fee",
-      },
-      {
-        question: "Is there a fee for follow-up questions?",
-        answer:
-          "No. If the reviewing doctor needs more information to make a clinical decision about your request, that follow-up is included in your original consultation fee. You won\u2019t be charged extra for the doctor doing their job properly.",
-      },
-      {
-        question: "Do you offer discounts for students or concession card holders?",
-        answer:
-          "Our pricing is already designed to be accessible, significantly less than the average out-of-pocket cost of a private GP visit. We don\u2019t currently offer tiered pricing by concession status, but we\u2019re exploring this for the future. If cost is a barrier, reach out to us at support@instantmed.com.au.",
-      },
-      {
-        question: "What if I need a longer medical certificate?",
-        answer:
-          "We offer 1-day, 2-day, and 3-day medical certificates at different price points. For absences beyond 3 days, we\u2019d generally recommend seeing a GP in person for a more thorough assessment. If your situation requires an extended certificate, start a request and the reviewing doctor will advise on the best path forward.",
-      },
-      {
-        question: "How long does it take to get my refund?",
-        answer:
-          "Refunds are processed automatically when a doctor declines a request. The funds typically appear back in your account within 3\u20135 business days, depending on your bank or card provider.",
-      },
-      {
-        question: "Can I use InstantMed for my family members?",
-        answer:
-          "Each patient must be 18 or older and submit a request through their own profile. You can\u2019t use one account to request care for another adult or for a child. If a minor needs medical care or school documentation, contact their GP or another paediatric-capable service.",
-      },
+const comparisonItems = [
+  { label: "No scheduled appointment for active pathways", us: true, them: false },
+  { label: "AHPRA-registered doctors", us: true, them: true },
+  { label: GUARANTEE, us: true, them: false },
+  { label: "No subscription or membership", us: true, them: true },
+  { label: "Physical examination available", us: false, them: true },
+  { label: "Ongoing comprehensive care", us: false, them: true },
 ]
 
-function PricingEvidenceLinks() {
+const pricingFaqs = [
+  {
+    question: "What payment methods do you accept?",
+    answer: "We accept major credit and debit cards, Apple Pay, and Google Pay through Stripe.",
+  },
+  {
+    question: "Can I get a receipt for my health insurance?",
+    answer:
+      "Yes. We email a tax invoice after payment. Reimbursement depends on your insurer and policy.",
+  },
+  {
+    question: "Is InstantMed bulk billed, and do I need Medicare?",
+    answer:
+      "InstantMed is a private service and does not bulk bill or claim Medicare rebates. Medical certificates do not require Medicare. Prescribing requests require Medicare details for identity, prescribing records, and pharmacy continuity.",
+  },
+  {
+    question: "How much do prescriptions cost at the pharmacy?",
+    answer:
+      "The request fee covers the doctor review and eScript, if approved. Medication is paid for separately at the pharmacy, where PBS rules may affect the price.",
+  },
+  {
+    question: "How long does a refund take?",
+    answer:
+      "A recorded clinical decline starts the refund automatically. Your bank or card issuer controls when it appears on your statement.",
+  },
+  {
+    question: "Can I use InstantMed for a family member?",
+    answer:
+      "No. Each patient must be 18 or older and submit through their own profile. InstantMed does not accept requests for children.",
+  },
+]
+
+function FeeCoverageLedger() {
   return (
-    <section aria-labelledby="pricing-evidence-links" className="px-4 py-10 sm:px-6">
-      <div className="mx-auto max-w-5xl rounded-2xl border border-border/50 bg-white p-5 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-              Pricing evidence
-            </p>
-            <Heading
-              id="pricing-evidence-links"
-              level="h2"
-              className="mt-2 text-xl sm:text-2xl"
-            >
-              Read the details behind the fees.
-            </Heading>
-          </div>
-          <p className="max-w-md text-sm leading-6 text-muted-foreground">
-            Medicare, PBS, comparison, and refund boundaries in one place.
+    <section
+      aria-labelledby="fee-coverage-title"
+      data-fee-coverage-ledger="request-fee"
+      className="px-4 py-12 sm:px-6 sm:py-16"
+    >
+      <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[minmax(0,0.76fr)_minmax(0,1.24fr)] lg:items-center">
+        <div>
+          <SectionPill>Fee anatomy</SectionPill>
+          <Heading id="fee-coverage-title" level="h2" className="mt-4 text-balance">
+            What your fee covers.
+          </Heading>
+          <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">
+            Choose the service above. Its listed price covers the request pathway from secure intake to a documented outcome. Optional priority review and pharmacy costs stay separate.
+          </p>
+          <p className="mt-5 max-w-xl border-t border-border/50 pt-5 text-sm leading-6 text-muted-foreground dark:border-white/10">
+            {CLINICAL_REVIEW_SEQUENCE}
           </p>
         </div>
 
-        <nav aria-label="Pricing evidence links" className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {pricingEvidenceLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="group rounded-xl border border-border/50 bg-muted/25 p-4 text-sm transition-colors hover:border-primary/30 dark:border-white/10 dark:bg-white/[0.04]"
-            >
-              <span className="flex items-start justify-between gap-3 font-semibold text-foreground">
-                {link.title}
-                <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-primary transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+        <div className="overflow-hidden rounded-2xl border border-border/50 bg-white shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none">
+          <div className="flex flex-col items-start gap-4 border-b border-border/50 px-5 py-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <ReceiptText className="h-5 w-5" aria-hidden="true" />
               </span>
-              <span className="mt-2 block leading-6 text-muted-foreground">
-                {link.body}
-              </span>
-            </Link>
-          ))}
-        </nav>
-      </div>
-    </section>
-  )
-}
-
-function PricingFactsBlock() {
-  const facts = [
-    {
-      term: "Service fees",
-      detail: `Medical certificates start at ${PRICING_DISPLAY.MED_CERT}. Repeat prescription review is ${PRICING_DISPLAY.REPEAT_SCRIPT}. ED, hair-loss, and women's health assessments are ${PRICING_DISPLAY.CONSULT}.`,
-    },
-    {
-      term: "Medicare and bulk billing",
-      detail: "InstantMed is a private telehealth service and does not bulk bill or claim Medicare rebates for the review fee.",
-    },
-    {
-      term: "Pharmacy costs",
-      detail: "Prescription review fees do not include medicine costs. If a prescription is approved, the pharmacy charges separately and PBS rules may affect the amount paid.",
-    },
-    {
-      term: "Declined requests",
-      detail: "If a doctor declines a refundable request after review, the request is refunded according to the refund policy.",
-    },
-  ] as const
-
-  return (
-    <section aria-labelledby="pricing-facts" className="px-4 py-12 sm:px-6">
-      <div className="mx-auto max-w-5xl">
-        <h2 id="pricing-facts" className="text-2xl font-semibold tracking-tight text-foreground">
-          Key pricing facts
-        </h2>
-        <dl className="mt-6 grid gap-4 sm:grid-cols-2">
-          {facts.map((fact) => (
-            <div
-              key={fact.term}
-              className="rounded-xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
-            >
-              <dt className="font-medium text-foreground">{fact.term}</dt>
-              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{fact.detail}</dd>
+              <div>
+                <p className="font-semibold text-foreground">InstantMed request</p>
+                <p className="text-sm text-muted-foreground">One-off fee in AUD</p>
+              </div>
             </div>
-          ))}
-        </dl>
+            <span className="text-sm font-medium text-foreground">Price shown above</span>
+          </div>
+
+          <dl className="divide-y divide-border/50 px-5 dark:divide-white/10 sm:px-6">
+            {FEE_LEDGER_ITEMS.map((item) => (
+              <div key={item} className="flex items-start justify-between gap-3 py-4 sm:gap-5">
+                <dt className="flex min-w-0 items-start gap-2.5 text-base leading-6 text-foreground">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden="true" />
+                  {item}
+                </dt>
+                <dd className="shrink-0 text-sm font-medium text-foreground">Included</dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="border-t border-border/50 bg-muted/30 px-5 py-4 dark:border-white/10 dark:bg-white/[0.03] sm:px-6">
+            <p className="text-sm font-semibold text-foreground">Kept separate</p>
+            <dl className="mt-3 space-y-3 text-sm">
+              <div className="flex items-start justify-between gap-3 sm:gap-5">
+                <dt className="text-muted-foreground">Optional priority review</dt>
+                <dd className="shrink-0 font-medium text-foreground">{PRICING_DISPLAY.PRIORITY_FEE}</dd>
+              </div>
+              <div className="flex items-start justify-between gap-3 sm:gap-5">
+                <dt className="text-muted-foreground">Medication at the pharmacy</dt>
+                <dd className="shrink-0 font-medium text-foreground">Paid separately</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div className="flex items-start gap-3 border-t border-primary/15 bg-primary/5 px-5 py-4 sm:px-6">
+            <RotateCcw className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+            <p className="text-sm leading-6 text-muted-foreground">{REFUND_PAYMENT_PROCESS}</p>
+          </div>
+        </div>
       </div>
     </section>
   )
@@ -295,206 +155,47 @@ export function PricingContent() {
           <FAQSchema faqs={pricingFaqs} />
 
         {/* Hero */}
-        <StatsHero
+        <CenteredHero
           pill="Simple pricing"
-          title="Pay per consult. No hidden fees."
-          highlightWords={["hidden fees"]}
-          subtitle={`Transparent pricing with no hidden fees. Doctor review first. ${GUARANTEE}`}
-          stats={[
-            { value: SOCIAL_PROOF.refundPercent, suffix: "%", label: GUARANTEE_LABEL },
-            { value: 0, prefix: "$", label: "Hidden fees" },
-            { value: SOCIAL_PROOF.operatingDays, label: "Days a week" },
-          ]}
-        />
-
-        <div className="mx-auto -mt-10 flex max-w-5xl justify-center px-4 sm:px-6 lg:-mt-12">
-          <GoogleReviewsBadge />
-        </div>
-
-        <p className="mx-auto mt-4 max-w-2xl px-4 text-center text-xs leading-relaxed text-muted-foreground sm:text-sm">
-          Not for medical certificates: no Medicare needed there. For prescriptions and consultations, Medicare details are required for identity, prescribing records, and pharmacy continuity.
-        </p>
-
-        {/* Page superpower — transparent flat-fee positioning anchored against
-            the typical $80-$120 GP gap fee. Same Morning Canvas elevation
-            pattern as the service-page claim sections. */}
-        <ServiceClaimSection
-          eyebrow="No surprises at the counter"
-          headline={
-            <>
-              <span className="text-primary">One flat fee</span>, doctor-reviewed before issue.
-            </>
-          }
-          body="No subscription. No gap fee. No surprise add-ons. If the doctor declines your request, the system refunds you automatically. The same care a clinic GP would deliver, priced like software."
-        />
-
-        {/* Pricing Cards */}
-        <section id="pricing-cards" className="px-4 py-16 sm:px-6">
-          <div className="mx-auto max-w-5xl">
-            <div className="grid min-w-0 grid-cols-1 gap-6 md:grid-cols-3">
-              {services.map((service) => (
-                <div
-                  key={service.name}
-                  className={cn(
-                    "relative min-w-0 rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card p-5 lg:p-6 hover:-translate-y-1 transition-[transform,box-shadow] duration-300",
-                    service.popular
-                      ? "ring-2 ring-primary shadow-lg shadow-primary/[0.1] hover:shadow-xl hover:shadow-primary/[0.15]"
-                      : "shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08]"
-                  )}
-                >
-                  {service.popular && (
-                    // Coral pill matching the rest of the UI palette. The
-                    // earlier Star-icon variant read as a generic SaaS
-                    // template badge against InstantMed chrome (Tier 1
-                    // review 2026-05-25 /pricing #2). Plain coral pill,
-                    // tight tracking, no icon.
-                    <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground shadow-md shadow-primary/25 rounded-full px-2.5 py-0.5 font-semibold text-[11px] tracking-wide uppercase">
-                      Most Popular
-                    </Badge>
-                  )}
-
-                  <div className="flex justify-center mb-3">
-                    <ServiceIconTile iconKey={service.iconKey} color={service.colorToken} size="lg" variant="sticker" stickerLoading="eager" />
-                  </div>
-
-                  <div className="text-center mb-4">
-                    <Heading level="h3">
-                      {service.name}
-                    </Heading>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {service.description}
-                    </p>
-                  </div>
-
-                  <div className="text-center mb-4">
-                    <span className="text-3xl font-semibold">
-                      {service.priceLabel}
-                    </span>
-                    <span className="text-muted-foreground ml-1 text-sm">
-                      AUD
-                    </span>
-                    {service.priceSubtext && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {service.priceSubtext}
-                      </p>
-                    )}
-                  </div>
-
-                  <ul className="space-y-2 mb-6">
-                    {service.features.map((feature) => (
-                      <li
-                        key={feature}
-                        className="flex items-start gap-2 text-xs"
-                      >
-                        <Check
-                          className={cn("w-3.5 h-3.5 mt-0.5 shrink-0", service.checkClass)}
-                        />
-                        <span className="text-muted-foreground">
-                          {feature}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Button
-                    asChild
-                    variant={service.popular ? "default" : "outline"}
-                    className={cn(
-                      "w-full h-auto min-h-12 whitespace-normal rounded-xl py-3 text-center font-medium",
-                      service.popular
-                        ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
-                        : service.buttonClass
-                    )}
-                  >
-                    <Link href={service.href}>
-                      {service.cta}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              ))}
+          title="Choose the service. See the fee upfront."
+          highlightWords={["fee upfront."]}
+          subtitle={`No subscription or membership. ${REFUND_PAYMENT_PROCESS}`}
+          className="pb-16 pt-14 sm:pb-20 sm:pt-20 lg:py-24"
+        >
+          <div className="mx-auto flex max-w-3xl flex-col items-center gap-5">
+            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
+              <span>Australia only</span>
+              <span aria-hidden="true">·</span>
+              <span>18+</span>
+              <span aria-hidden="true">·</span>
+              <span>{`Fees from ${PRICING_DISPLAY.MED_CERT} AUD`}</span>
             </div>
-
-            {/* Trust badges */}
-            <TrustBadgeRow
-              badges={["ahpra", "form_only", "refund"]}
-              className="mt-8"
-            />
-
-            {/* Priority review callout */}
-            <div className="mt-6 text-center space-y-2">
-              <p className="text-sm text-muted-foreground">
-                <Zap className="inline w-3.5 h-3.5 text-amber-500 mr-1 -mt-0.5" />
-                Need it sooner? Add <span className="font-medium text-foreground">Priority review</span> at checkout for{" "}
-                <span className="font-medium text-foreground">{PRICING_DISPLAY.PRIORITY_FEE}</span>
-              </p>
-              <p className="text-sm text-muted-foreground">
-                <Gift className="inline w-3.5 h-3.5 text-primary mr-1 -mt-0.5" />
-                Refer a friend and you both get <span className="font-medium text-foreground">$5 credit</span>
-              </p>
-            </div>
+            <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+              {CLINICAL_REVIEW_SEQUENCE} Medical certificates do not require Medicare; prescribing
+              requests do. Medication costs are separate.
+            </p>
+            <Button asChild size="lg" className="rounded-full">
+              <Link href="#pricing-cards">Choose a service</Link>
+            </Button>
           </div>
-        </section>
+        </CenteredHero>
 
-        <CommercialIntentLinksSection
-          title="Compare common request types"
-          body="Quick links into the highest-intent certificate, repeat prescription, and comparison pages with price and review boundaries stated before checkout."
-          links={priorityCommercialLinks.slice(0, 6)}
-          compactLinks={priorityCommercialLinks.slice(6)}
-        />
+        <ServiceDecisionBoard id="pricing-cards" className="pb-14 pt-2 sm:pb-20 sm:pt-4" />
 
-        {/* Doctor Credibility */}
-        <DoctorCredibility
-          variant="inline"
-          stats={["experience", "approval", "sameDay"]}
-          className="max-w-3xl mx-auto px-4 sm:px-6 pb-8"
-        />
-
-        {/* Cost Comparison Viz */}
-        <div className="bg-muted/30 dark:bg-white/[0.02]">
-          <section className="py-12 lg:py-16 px-4 sm:px-6">
-            <div className="mx-auto max-w-xl">
-              <div className="text-center mb-6">
-                <SectionPill>Why go online?</SectionPill>
-              </div>
-              <div className="rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none p-6">
-                <ComparisonBar
-                  us={{
-                    label: "InstantMed",
-                    value: PRICING_DISPLAY.FROM_MED_CERT,
-                    subtext: "All-inclusive, no extra charges",
-                  }}
-                  them={{
-                    label: "GP clinic visit",
-                    value: SOCIAL_PROOF.gpPriceStandard,
-                    subtext: "Plus travel, wait time, and time off work",
-                  }}
-                  ratio={0.3}
-                />
-              </div>
-            </div>
-          </section>
-        </div>
+        <FeeCoverageLedger />
 
         {/* Comparison Table */}
         <div className="bg-muted/30 dark:bg-white/[0.02]">
           <ComparisonTable
-            pill="Why InstantMed?"
-            title="How we compare to a GP visit"
-            highlightWords={["compare"]}
-            subtitle="Same quality care, without the waiting room."
+            pill="Choose the right setting"
+            title="Focused online requests or a GP visit"
+            highlightWords={["right setting"]}
+            subtitle="InstantMed handles a narrow set of remote requests. GP clinics provide broader and in-person care."
             usLabel="InstantMed"
             themLabel="GP clinic"
             items={comparisonItems}
           />
         </div>
-
-        {/* Pricing Guide */}
-        <PricingGuideSection />
-
-        <PricingFactsBlock />
-
-        <PricingEvidenceLinks />
 
         {/* FAQ */}
         <div className="bg-muted/30 dark:bg-white/[0.02]">
@@ -506,18 +207,12 @@ export function PricingContent() {
           />
         </div>
 
-        {/* Competitor comparisons */}
-        <CompetitorLinksSection />
-
-        {/* Regulatory Partners */}
-        <RegulatoryPartners className="py-12" />
-
         {/* CTA */}
         <CTABanner
-          title="Ready to get started?"
-          subtitle={`Get started in under 2 minutes. ${GUARANTEE}`}
-          ctaText="Start a consult"
-          ctaHref="/medical-certificate"
+          title="Choose the request that fits."
+          subtitle={`Five focused services, with the fee shown before checkout. ${GUARANTEE}`}
+          ctaText="Choose a service"
+          ctaHref="/request"
         />
         </main>
 

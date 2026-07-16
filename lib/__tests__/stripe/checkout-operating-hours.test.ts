@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
@@ -108,7 +109,26 @@ vi.mock("@/lib/validation/repeat-script-schema", () => ({
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 
-function createGuestCheckoutSupabaseMock() {
+interface DuplicateGuestIntake {
+  category: string
+  checkout_error:
+    | "safety_blocked_high_stakes"
+    | "safety_missing_required_information"
+  guest_email: string
+  id: string
+  is_priority: boolean
+  payment_id: string
+  payment_status: string
+  status: string
+  stripe_price_id: string
+  subtype: string
+}
+
+function createGuestCheckoutSupabaseMock({
+  duplicateIntake,
+}: {
+  duplicateIntake?: DuplicateGuestIntake
+} = {}) {
   const inserts: Array<{ table: string; payload: Record<string, unknown> }> = []
   const updates: Array<{ table: string; payload: Record<string, unknown> }> = []
   const deletes: string[] = []
@@ -148,10 +168,16 @@ function createGuestCheckoutSupabaseMock() {
         if (table === "profiles" && operation === "insert") return { data: { id: "guest-profile-1" }, error: null }
         if (table === "profiles") return { data: null, error: null }
         if (table === "services") return { data: { id: "service-1", price_cents: 1995 }, error: null }
+        if (table === "intakes" && operation === "insert" && duplicateIntake) {
+          return { data: null, error: { code: "23505", message: "duplicate" } }
+        }
         if (table === "intakes" && operation === "insert") return { data: { id: "intake-1" }, error: null }
         return { data: null, error: null }
       }),
-      maybeSingle: vi.fn(async () => ({ data: null, error: null })),
+      maybeSingle: vi.fn(async () => ({
+        data: table === "intakes" && operation === "select" ? duplicateIntake || null : null,
+        error: null,
+      })),
       then: (resolve: (value: { data?: unknown; error: null }) => void) => {
         if (table === "profiles" && operation === "select" && selectCount > 1) {
           return Promise.resolve({ data: [], error: null }).then(resolve)
@@ -277,6 +303,79 @@ describe("checkout operating hours", () => {
     expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
+
+  it.each([
+    ["safety_blocked_high_stakes", "open"],
+    ["safety_blocked_high_stakes", "paid"],
+    ["safety_blocked_high_stakes", "processing"],
+    ["safety_missing_required_information", "open"],
+    ["safety_missing_required_information", "paid"],
+    ["safety_missing_required_information", "processing"],
+  ] as const)(
+    "reconciles a duplicate guest checkout under %s when its exact-current Session is %s",
+    async (checkoutError, sessionState) => {
+      const duplicateIntake: DuplicateGuestIntake = {
+        category: "medical_certificate",
+        checkout_error: checkoutError,
+        guest_email: "patient@example.test",
+        id: "intake-existing",
+        is_priority: false,
+        payment_id: "cs_current",
+        payment_status: sessionState === "paid" ? "paid" : "pending",
+        status: sessionState === "paid" ? "paid" : "checkout_failed",
+        stripe_price_id: "price_med_cert",
+        subtype: "work",
+      }
+      const { supabase } = createGuestCheckoutSupabaseMock({ duplicateIntake })
+      mocks.createServiceRoleClient.mockReturnValue(supabase)
+      mocks.stripeSessionRetrieve.mockResolvedValue({
+        id: "cs_current",
+        metadata: { intake_id: "intake-existing" },
+        payment_status: "unpaid",
+        status: sessionState === "processing" ? "complete" : "open",
+        url:
+          sessionState === "open"
+            ? "https://checkout.stripe.test/pay/cs_current"
+            : null,
+      })
+
+      const result = await createGuestCheckoutAction({
+        answers: {
+          accuracy_confirmed: true,
+          terms_agreed: true,
+        },
+        category: "medical_certificate",
+        guestDateOfBirth: "1985-04-01",
+        guestEmail: "patient@example.test",
+        guestName: "Test Patient",
+        subtype: "work",
+        type: "med-cert",
+      })
+
+      if (sessionState === "open") {
+        expect(result).toEqual({
+          error:
+            "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
+          success: false,
+        })
+      } else {
+        expect(result).toEqual({
+          checkoutUrl:
+            "http://localhost:3000/auth/complete-account?intake_id=intake-existing&session_id=cs_current",
+          intakeId: "intake-existing",
+          success: true,
+        })
+      }
+
+      if (sessionState === "paid") {
+        expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+      } else {
+        expect(mocks.stripeSessionRetrieve).toHaveBeenCalledWith("cs_current")
+      }
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    },
+  )
 
   it("blocks authenticated prescribing checkout without valid Medicare details", async () => {
     mocks.getAuthenticatedUserWithProfile.mockResolvedValue({
@@ -456,6 +555,69 @@ describe("checkout operating hours", () => {
           status: "checkout_failed",
         }),
       })
+    } finally {
+      if (previousPriorityPrice === undefined) {
+        delete process.env.STRIPE_PRICE_PRIORITY_FEE
+      } else {
+        process.env.STRIPE_PRICE_PRIORITY_FEE = previousPriorityPrice
+      }
+    }
+  })
+
+  it("persists a recoverable guest intake when the Priority price env is missing", async () => {
+    const { deletes, inserts, supabase, updates } = createGuestCheckoutSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    const previousPriorityPrice = process.env.STRIPE_PRICE_PRIORITY_FEE
+    delete process.env.STRIPE_PRICE_PRIORITY_FEE
+
+    try {
+      const result = await createGuestCheckoutAction({
+        answers: {
+          terms_agreed: true,
+          accuracy_confirmed: true,
+          is_priority: true,
+        },
+        category: "medical_certificate",
+        guestDateOfBirth: "1985-04-01",
+        guestEmail: "patient@example.test",
+        guestName: "Test Patient",
+        subtype: "work",
+        type: "med-cert",
+      })
+
+      expect(result).toEqual({
+        success: false,
+        error: "Priority review is temporarily unavailable. Please try again without it or contact support.",
+      })
+      expect(inserts).toContainEqual({
+        table: "intakes",
+        payload: expect.objectContaining({ is_priority: true }),
+      })
+      expect(inserts).toContainEqual({
+        table: "intake_answers",
+        payload: expect.objectContaining({ intake_id: "intake-1" }),
+      })
+      expect(deletes).not.toContain("intakes")
+      expect(updates).toContainEqual({
+        table: "intakes",
+        payload: expect.objectContaining({
+          checkout_error: "Missing STRIPE_PRICE_PRIORITY_FEE environment variable",
+          status: "checkout_failed",
+        }),
+      })
+      expect(Sentry.captureException).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Missing STRIPE_PRICE_PRIORITY_FEE environment variable",
+        }),
+        expect.objectContaining({
+          level: "fatal",
+          tags: expect.objectContaining({
+            checkout_error: "missing_price_env",
+            price_role: "priority_fee",
+          }),
+        }),
+      )
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
     } finally {
       if (previousPriorityPrice === undefined) {
         delete process.env.STRIPE_PRICE_PRIORITY_FEE

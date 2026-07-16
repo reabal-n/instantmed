@@ -19,6 +19,11 @@ import { trackPurchase } from "@/lib/analytics/conversion-tracking"
 import type { WaitState } from "@/lib/brand/wait-counter"
 import { PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
+import {
+  derivePatientSuccessVerificationState,
+  PATIENT_SUCCESS_VERIFICATION_DEADLINE_MS,
+  type PatientSuccessVerificationState,
+} from "@/lib/patient/intake-status-polling"
 import { clearDraftAfterPayment } from "@/lib/request/draft-storage"
 import { fetchWithCsrf } from "@/lib/security/csrf-client"
 
@@ -58,27 +63,39 @@ export function SuccessClient({
 }: SuccessClientProps) {
   const prefersReducedMotion = useReducedMotion()
   const posthog = usePostHog()
-  const [status, setStatus] = useState(initialStatus)
-  const [isVerifying, setIsVerifying] = useState(initialStatus === "pending_payment")
-  const [verificationFailed, setVerificationFailed] = useState(false)
-  const [pollingError, setPollingError] = useState(false)
+  const [verificationState, setVerificationState] =
+    useState<PatientSuccessVerificationState>({
+      isVerifying: initialStatus === "pending_payment",
+      pollingError: false,
+      resolvedAmountCents: amountCents,
+      status: initialStatus,
+      verificationFailed: false,
+    })
+  const {
+    isVerifying,
+    pollingError,
+    resolvedAmountCents,
+    status,
+    verificationFailed,
+  } = verificationState
   const [resendingEmail, setResendingEmail] = useState(false)
   const [emailResent, setEmailResent] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
   const [resendError, setResendError] = useState<string | null>(null)
-  // Track amountCents in state so polling can update it when the server
-  // value lands after the page mounts. Conversion firing reads this state
-  // (NOT the initial prop) so payments that resolve during the polling
-  // window report the real $ value to Google Ads instead of the legacy
-  // $1 fallback.
-  const [resolvedAmountCents, setResolvedAmountCents] = useState<number | undefined>(
-    amountCents,
-  )
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const purchaseTrackedRef = useRef(false)
   // Separate latch for the PostHog purchase event so it can wait for posthog to
   // hydrate without blocking (or being blocked by) the one-shot gtag fire.
   const posthogPurchaseFiredRef = useRef(false)
+
+  useEffect(() => {
+    setVerificationState((current) =>
+      derivePatientSuccessVerificationState(current, {
+        amountCents,
+        initialStatus,
+      }),
+    )
+  }, [amountCents, initialStatus])
 
   // Cleanup cooldown timer
   useEffect(() => {
@@ -144,27 +161,101 @@ export function SuccessClient({
   useEffect(() => {
     if (!intakeId || initialStatus !== "pending_payment") return
 
-    // Poll for status update if still pending_payment
-    // Extended to 90 seconds to handle webhook delays from Stripe
+    // Poll for status update if still pending_payment. The attempt ceiling
+    // bounds completed requests; the independent wall deadline below also
+    // bounds a request that never settles.
     let attempts = 0
-    const maxAttempts = 30 // 30 attempts * 3s = 90 seconds max wait
+    const maxAttempts = 30
+    let disposed = false
+    let verificationFinished = false
+    let activeController: AbortController | null = null
+    let intervalId: ReturnType<typeof setInterval> | null = null
+    let deadlineId: ReturnType<typeof setTimeout> | null = null
 
-    const checkStatus = async () => {
+    const clearVerificationTimers = () => {
+      if (intervalId) {
+        clearInterval(intervalId)
+        intervalId = null
+      }
+      if (deadlineId) {
+        clearTimeout(deadlineId)
+        deadlineId = null
+      }
+    }
+
+    const finishVerification = (): boolean => {
+      if (disposed || verificationFinished) return false
+      verificationFinished = true
+      clearVerificationTimers()
+      return true
+    }
+
+    const finishWithVerificationTimeout = (): boolean => {
+      if (!finishVerification()) return false
+      activeController?.abort()
+      activeController = null
+      setVerificationState((current) => ({
+        ...current,
+        isVerifying: false,
+        pollingError: false,
+        verificationFailed: true,
+      }))
+      posthog?.capture('payment_verification_timeout', {
+        intake_id: intakeId,
+        service_name: serviceName,
+        poll_attempts: attempts,
+      })
+      return true
+    }
+
+    const finishWithPollingError = (): boolean => {
+      if (!finishVerification()) return false
+      setVerificationState((current) => ({
+        ...current,
+        isVerifying: false,
+        pollingError: true,
+        verificationFailed: false,
+      }))
+      posthog?.capture('payment_verification_error', {
+        intake_id: intakeId,
+        service_name: serviceName,
+        poll_attempts: attempts,
+      })
+      return true
+    }
+
+    const checkStatus = async (): Promise<boolean> => {
+      if (disposed || activeController) return false
+      if (verificationFinished) return false
+
+      const controller = new AbortController()
+      activeController = controller
+
       try {
-        const res = await fetch(`/api/patient/intake-status?id=${intakeId}`)
+        const res = await fetch(`/api/patient/intake-status?id=${intakeId}`, {
+          signal: controller.signal,
+        })
+        if (disposed || controller.signal.aborted) return false
         const data = res.ok ? await res.json() : null
+        if (disposed || controller.signal.aborted) return false
 
         // Refresh resolved amountCents whenever the API returns it,
         // regardless of status. Webhook updates `amount_cents` either at
         // the same time as status flips OR a beat later; capturing it
         // here keeps the conversion-value source current.
-        if (typeof data?.amount_cents === "number") {
-          setResolvedAmountCents(data.amount_cents)
-        }
+        setVerificationState((current) =>
+          derivePatientSuccessVerificationState(current, {
+            amountCents:
+              typeof data?.amount_cents === "number"
+                ? data.amount_cents
+                : undefined,
+            initialStatus:
+              typeof data?.status === "string" ? data.status : undefined,
+          }),
+        )
 
         if (data?.status && data.status !== "pending_payment") {
-          setStatus(data.status)
-          setIsVerifying(false)
+          if (!finishVerification()) return true
           posthog?.capture('payment_verified', {
             intake_id: intakeId,
             status: data.status,
@@ -184,54 +275,80 @@ export function SuccessClient({
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ intakeId, sessionId }),
+              signal: controller.signal,
             })
+            if (disposed || controller.signal.aborted) return false
             const verifyData = await verifyRes.json()
+            if (disposed || controller.signal.aborted) return false
             if (verifyData.success && verifyData.status === "paid") {
-              setStatus("paid")
-              setIsVerifying(false)
+              if (!finishVerification()) return true
+              setVerificationState((current) =>
+                derivePatientSuccessVerificationState(current, {
+                  initialStatus: "paid",
+                }),
+              )
               return true
             }
-          } catch {
+          } catch (error) {
+            if (
+              disposed ||
+              controller.signal.aborted ||
+              (error instanceof DOMException && error.name === "AbortError")
+            ) {
+              return false
+            }
             // Verification fallback failed, continue to show error
           }
-          posthog?.capture('payment_verification_timeout', {
-            intake_id: intakeId,
-            service_name: serviceName,
-            poll_attempts: attempts,
-          })
-          setVerificationFailed(true)
-          setIsVerifying(false)
+          finishWithVerificationTimeout()
           return true
         }
 
         return false
-      } catch {
+      } catch (error) {
+        if (
+          disposed ||
+          controller.signal.aborted ||
+          (error instanceof DOMException && error.name === "AbortError")
+        ) {
+          return false
+        }
         attempts++
         if (attempts >= maxAttempts) {
-          posthog?.capture('payment_verification_error', {
-            intake_id: intakeId,
-            service_name: serviceName,
-            poll_attempts: attempts,
-          })
-          setPollingError(true)
-          setIsVerifying(false)
+          finishWithPollingError()
           return true
         }
         return false
+      } finally {
+        if (activeController === controller) activeController = null
       }
     }
 
-    const intervalId = setInterval(async () => {
+    const runStatusCheck = async () => {
       const done = await checkStatus()
-      if (done) {
+      if (disposed) return
+      if (done && intervalId) {
         clearInterval(intervalId)
+        intervalId = null
       }
+    }
+
+    intervalId = setInterval(() => {
+      void runStatusCheck()
     }, 3000)
+    deadlineId = setTimeout(() => {
+      finishWithVerificationTimeout()
+    }, PATIENT_SUCCESS_VERIFICATION_DEADLINE_MS)
 
     // Initial check
-    checkStatus()
+    void runStatusCheck()
 
-    return () => clearInterval(intervalId)
+    return () => {
+      disposed = true
+      verificationFinished = true
+      clearVerificationTimers()
+      activeController?.abort()
+      activeController = null
+    }
   }, [intakeId, initialStatus, posthog, serviceName])
 
   useEffect(() => {

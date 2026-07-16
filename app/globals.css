@@ -1096,17 +1096,17 @@ body {
 
 /* Fade + slide up — mockup (larger y travel) */
 @keyframes hero-fade-up-lg {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.hero-availability-enter  { animation: hero-fade-down 0.4s ease-out both; }
-.hero-subheadline-enter   { animation: hero-fade-up  0.4s ease-out 0.10s both; }
-.hero-cta-enter           { animation: hero-fade-up  0.4s ease-out 0.12s both; }
-.hero-trust-enter         { animation: hero-fade-up  0.5s ease-out 0.15s both; }
-.hero-count-enter         { animation: hero-fade-up  0.4s ease-out 0.30s both; }
-.hero-mockup-enter        { animation: hero-fade-up-lg 0.5s ease-out 0.20s both; }
-.hero-mobile-mockup-enter { animation: hero-fade-up-lg 0.4s ease-out 0.35s both; }
+.hero-availability-enter  { animation: hero-fade-down 0.22s cubic-bezier(0.23, 1, 0.32, 1) both; }
+.hero-subheadline-enter   { animation: hero-fade-up 0.22s cubic-bezier(0.23, 1, 0.32, 1) 0.05s both; }
+.hero-cta-enter           { animation: hero-fade-up 0.22s cubic-bezier(0.23, 1, 0.32, 1) 0.10s both; }
+.hero-trust-enter         { animation: hero-fade-up 0.22s cubic-bezier(0.23, 1, 0.32, 1) 0.15s both; }
+.hero-count-enter         { animation: hero-fade-up 0.22s cubic-bezier(0.23, 1, 0.32, 1) 0.20s both; }
+.hero-mockup-enter        { animation: hero-fade-up-lg 0.25s cubic-bezier(0.23, 1, 0.32, 1) 0.10s both; }
+.hero-mobile-mockup-enter { animation: hero-fade-up-lg 0.25s cubic-bezier(0.23, 1, 0.32, 1) 0.15s both; }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-availability-enter,
@@ -1128,7 +1128,7 @@ body {
 }
 
 .reveal-visible {
-  animation: reveal-fade-up 0.5s ease-out both;
+  animation: reveal-fade-up 0.25s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 @keyframes reveal-fade-up {
@@ -1765,8 +1765,8 @@ body {
   animation: marquee-scroll 40s linear infinite;
 }
 
-/* animate-marquee-* utility classes (used by ComplianceMarquee,
-   EmployerLogoMarquee, ScrollingLogoMarquee).
+/* animate-marquee-* utility classes used by EmployerLogoMarquee and
+   ScrollingLogoMarquee.
    Doubled the durations on 2026-05-26 per Tier 1 review (paid-funnel
    kkq2): the previous 25s/15s cadences made the cards visibly overlap
    on devices with 120Hz displays and felt like a frantic ticker.

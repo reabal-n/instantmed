@@ -146,13 +146,15 @@ Parchment linkage and demographic refresh are separate operations. If `profiles.
         └──────────┘
 ```
 
+The retry loop above is the ordinary `checkout_failed -> pending_payment` path. An exact-current successful Stripe Session may instead settle `checkout_failed -> paid` directly; a stale Session is rejected and cannot mark the intake paid.
+
 ### Transition Rules
 
 | From | Valid next states |
 |------|-----------------|
 | `draft` | `pending_payment`, `cancelled` |
 | `pending_payment` | `paid`, `checkout_failed`, `cancelled`, `expired` |
-| `checkout_failed` | `pending_payment`, `cancelled` |
+| `checkout_failed` | `pending_payment`, `paid`, `cancelled` |
 | `paid` | `in_review`, `approved`, `awaiting_script`, `declined`, `pending_info`, `escalated`, `cancelled` |
 | `in_review` | `approved`, `awaiting_script`, `declined`, `pending_info`, `escalated`, `cancelled` |
 | `pending_info` | `in_review`, `paid`, `declined`, `cancelled`, `expired` |
@@ -221,9 +223,15 @@ On Postgres 23505 (duplicate key), returns existing intake. If already paid, red
 
 **Retry payment** (`retryPaymentForIntakeAction`): auth + ownership + status guard (`pending_payment` or `checkout_failed` with unpaid/pending/failed payment state) + authoritative answer read + safety re-validation + invalidate the old session + create and exact-CAS attach an open replacement. If an encrypted answer envelope exists, payment safety must decrypt it successfully or fail closed; stale plaintext is accepted only for a legacy row with no encrypted envelope. Before expiring a current Session on a `pending_payment` row, replacement writes a durable `payment_session_replacement_in_progress` marker; the expiry webhook ignores that marker, while a successful replacement attach or terminal payment webhook clears/replaces it. This prevents an expiry event from stranding the row between Stripe invalidation and attachment, including parallel and interrupted retries. Initial authenticated checkout, initial guest checkout, authenticated retry, signed guest resume, and duplicate guest-checkout recovery share the same metadata ownership check, Session classifier, and attachment reconciler; none may hand out an expired, completed, unresolved, mismatched, stale, or confirmed-orphan Session.
 
-**Signed guest resume** (`/resume/[token]`): verifies the seven-day HMAC token, loads the intake without projecting plaintext clinical answers, then reads answers through `getIntakeAnswersForPaymentSafety()`. A current open Session may be returned; a completed/payment-in-flight Session routes to account completion; unresolved ownership routes to the no-retry recovery surface. A persisted high-stakes medical-certificate request first claims a durable safety lock that blocks every shared attach path, invalidates the captured current Session, and only then exact-CAS transitions the intake to `cancelled`. The patient receives a reason-coded, non-PHI safety page with no pay/new-request CTA. Successful or in-flight payments remain recoverable by the current-session webhook rather than being silently replaced.
+**Missing-information recovery hold:** Retry and signed-resume paths re-read authoritative answers before offering payment. If required safety information is missing, they write the exact `safety_missing_required_information` marker, keep the intake at `checkout_failed`, preserve its current `payment_status` and exact `payment_id`, and keep clinical triage at `request_more_info`. The app offers no Session reuse, replacement Session, payment URL, retry CTA, or cancellation action for that saved request; the patient cancel action also reads the marker and excludes both payment-safety locks in its final conditional write. This binding hold is not a decline, cancellation, expiry, or refund. Patient queries and authenticated retry derive only `payment_recovery_reason = more_information_required`; raw `checkout_error` remains server-only. Retry projects that reason both after confirmed invalidation and when the database hold is known durable but exact-current Session invalidation is unresolved, while a genuinely unknown hold write/read, changed state, or payment in flight never receives it. Signed guest resume keeps known-held unresolved invalidation on the honest `payment_state_unresolved` surface. When an ordinary detail-page retry first discovers the hold, the structured reason replaces the stale local retry state immediately and a server refresh reconciles the full patient-safe projection even though the lifecycle status is unchanged.
 
-**Async payment completion:** Stripe `status=complete` with `payment_status=unpaid` is processing, not paid. `/auth/complete-account` requires the URL Session ID to exactly match the intake's current `payment_id`, then shows paid UI, clears the local draft, and fires purchase conversion only when the intake or Stripe reports `payment_status=paid`. If Stripe is the proof source before the webhook reconciles the row, conversion value comes from the owned Session's `amount_total` so referral discounts and Priority fees are accurate. Guest account CTAs in live payment emails and outbox reconstruction carry the same exact Session proof. Processing or unconfirmed states show a no-retry support surface. A persisted `checkout_failed` / `failed` state from `checkout.session.async_payment_failed` makes the otherwise complete/unpaid Session final and permits an exact-CAS replacement.
+Persisted Priority recovery is fail-closed across authenticated retry, duplicate guest recovery, and signed guest resume. After any high-stakes cancellation check and before referral-coupon creation or replacement-state mutation, the shared server-only preflight retrieves `STRIPE_PRICE_PRIORITY_FEE` read-only and requires an active, non-recurring, one-time AUD Price with `unit_amount = 995`. Missing, unavailable, malformed, inactive, recurring, wrong-currency, or wrong-amount configuration preserves `is_priority = true`, creates no replacement Session, and alarms with `price_role = priority_fee`; non-Priority recovery skips the lookup. After a successful preflight, the existing claim -> owned current-Session invalidation -> deterministic Session creation -> exact-CAS attach sequence remains unchanged, with exactly one base line item and one Priority line item.
+
+**Signed guest resume** (`/resume/[token]`): verifies the seven-day HMAC token, loads the intake without projecting plaintext clinical answers, then reads answers through `getIntakeAnswersForPaymentSafety()`. A current open Session may be returned; a completed/payment-in-flight Session routes to account completion; unresolved ownership routes to the no-retry recovery surface. A persisted high-stakes medical-certificate request first claims a durable safety lock that blocks every shared attach path, invalidates the captured current Session, and only then exact-CAS transitions the intake to `cancelled`. The patient receives a reason-coded, non-PHI safety page with no pay/new-request CTA. A missing-information hold instead redirects to `/checkout/cancelled?reason=more_information_required`, whose static URL contains no intake ID, resume token, missing-field name, clinical answer, or payment identifier and offers only a fresh `/request` and support. Successful or in-flight payments remain recoverable by the current-session webhook rather than being silently replaced.
+
+**Distributed checkout boundary:** Supabase and Stripe cannot be changed atomically. The durable missing-information hold is written before exact-current Session invalidation. If invalidation is unresolved, InstantMed retains the `payment_id` and hold marker, alarms, and withholds every app payment/recovery path; a previously copied direct Stripe URL may remain payable until Stripe confirms invalidation or expiry. Patient copy must not claim that no charge occurred or that a Session closed without Stripe proof.
+
+**Async payment completion:** Stripe `status=complete` with `payment_status=unpaid` is processing, not paid. `/auth/complete-account` requires the URL Session ID to exactly match the intake's current `payment_id`, then shows paid UI, clears the local draft, and fires purchase conversion only when the intake or Stripe reports `payment_status=paid`. If Stripe is the proof source before the webhook reconciles the row, conversion value comes from the owned Session's `amount_total` so referral discounts and Priority fees are accurate. Guest account CTAs in live payment emails and outbox reconstruction carry the same exact Session proof. Processing or unconfirmed states show a no-retry support surface. A persisted `checkout_failed` / `failed` state from `checkout.session.async_payment_failed` makes the otherwise complete/unpaid Session final and permits an exact-CAS replacement. An exact-current success may compare-and-swap `checkout_failed -> paid` and clear only the payment lock while preserving the clinical `request_more_info` fields; stale success remains rejected. Failure, abandoned-checkout, and recovery-email paths exclude both safety-lock markers and never advertise retry for a held request.
 
 **Guest checkout failures:** after clinical answers/compliance audit are persisted, Stripe price/session failures mark the intake `checkout_failed` and keep `checkout_error` for operator recovery. The system must not hard-delete those intakes because that hides paid-flow failures from support and breaks the audit trail.
 
@@ -393,7 +401,7 @@ Static-PDF overlay config is stored as immutable JSONB in `certificate_templates
 
 **Access control:** Double-layer -- RLS policies on every table (patient isolation via `auth.uid()` subquery) plus application-level ownership checks (`.eq("patient_id", patientId)`). Cross-patient access risk: LOW.
 
-**Real-time:** Messaging and request-status trackers use Supabase Realtime with polling fallbacks where needed. The old standalone patient notification feed is retired; patient-visible updates should land in requests, messages, documents, prescriptions, or payment history.
+**Patient updates:** Messaging may use Supabase Realtime for its bounded message rows. Request status never subscribes to `public.intakes` or queries `intake_status_history` from a patient browser, because a Realtime change payload transports the complete owned database row before client code can discard internal fields. One shell-level poller calls the authenticated `/api/patient/intake-status?scope=list` server projection every 20 seconds while visible and once on focus/visible return. The route derives ownership solely from `getApiAuth()`, reads at most the 100 newest owned rows, serializes only `{ id, status, updated_at, payment_recovery_reason }`, and invalidates only `patient-dashboard-${patientId}` plus `patient-intakes-${patientId}` before a changed client snapshot refreshes the server render. The recovery reason is derived server-side only for the exact missing-information marker. Its first successful response seeds silently; later responses compare `status + payment_recovery_reason`, same-status reason changes refresh the open detail route, and ID additions/removals trigger a structural refresh without a fabricated toast. In-flight requests are aborted and timers/listeners are removed while hidden or unmounted. The success page keeps the endpoint's separate exact-ID mode with its existing `{ status, amount_cents, is_priority }` response for payment verification and conversion value; fresh server props atomically clear stale verification/error state and adopt a newly numeric amount before conversion tracking. The old standalone patient notification feed is retired; patient-visible updates should land in requests, messages, documents, prescriptions, or payment history.
 
 **Guest → Authenticated flow:** Guest checkout creates profile without `auth_user_id` → Stripe redirect → success URL `/auth/complete-account?intake_id={id}` → post-signin page links the exact paid checkout profile when possible, otherwise one deterministic unlinked email match with paid history before newest guest fallback → sets `email_verified: true` → checks `onboarding_completed` → routes to `/patient/onboarding` or `/patient`. Closed profiles (`account_closed_at is not null`) are excluded from relinking.
 
@@ -404,10 +412,14 @@ Static-PDF overlay config is stored as immutable JSONB in `certificate_templates
 | Intake Status | What Patient Sees |
 |---------------|-------------------|
 | `pending_payment` | "Payment Required" card with CTA |
+| `checkout_failed` without a safety lock | Ordinary payment-failure copy and retry behavior |
+| `checkout_failed` projected as `payment_recovery_reason = more_information_required` | "More information needed"; fresh request and support only |
 | `paid` | "Waiting for doctor review" |
 | `in_review` | "Doctor is reviewing" |
 | `approved` | "Approved" + download button |
 | `declined` | "Declined" + reason |
+
+`more_information_required` is a derived patient view reason, not a database status. Patient dashboard, list, detail, cancelled, and payment-history surfaces receive only that narrow projection; raw `checkout_error` is not serialized in their server read models.
 
 ---
 
@@ -678,7 +690,7 @@ Use when: the page is not a standard service funnel — it has a unique layout, 
 /intent/[slug]          High-intent search query landing pages
 ```
 
-**Data layer:** `lib/seo/pages/` -- typed page definitions, shared interfaces, and lookup helpers. Template: `components/seo/seo-page-template.tsx`. Each page requires: unique title (50-60 chars), description (120-150 chars), 5+ symptoms, 3+ red flags, 3+ FAQs, 2+ disclaimers.
+**Data layer:** Route-specific registries under `lib/seo/data/` and `lib/seo/intents.ts` are consumed directly by their dynamic routes. There is no shared programmatic page template; each route owns its layout, metadata, and structured data.
 
 **Metadata:** Auto-generated `<title>`, `<meta description>`, Open Graph tags, canonical URLs. JSON-LD `FAQPage` structured data via `lib/seo/safe-json-ld.ts` and `components/seo/healthcare-schema.tsx`.
 
@@ -819,7 +831,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/db.ts` | Supabase generated types + custom interfaces |
 | `types/certificate-template.ts` | PDF template field definitions |
 | `hooks/` | 5 custom hooks (use-connection-status, use-debounce, use-doctor-shortcuts, use-keyboard-navigation, use-landing-analytics) |
-| `e2e/` | 75 TypeScript files, including 67 specs and `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
+| `e2e/` | 76 TypeScript files, including 68 specs and `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
 | `supabase/migrations/` | 95 SQL migration files (1 squashed baseline + 94 incremental). Most recent: `20260713085920_lock_down_security_definer_rpc_acls.sql`. |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
@@ -948,7 +960,7 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 | `/prescriptions` | Repeat medication landing (one-off eScript review workflow). Subscription language is dormant/future strategy unless reactivated in `docs/BUSINESS_PLAN.md`. |
 | `/erectile-dysfunction` | Bespoke ED specialty landing (`ErectileDysfunctionLanding`). Routes into `/request?service=consult&subtype=ed`. Form-first doctor review; doctor may call/message if clinically needed. Short URL `/ed` 301s here. |
 | `/hair-loss` | Bespoke hair loss specialty landing (`HairLossLanding`). Routes into `/request?service=consult&subtype=hair_loss`. Form-first doctor review; doctor may call/message if clinically needed. |
-| `/consult` | Services overview page (no intake funnel). General Consult was retired on 2026-05-20; the URL preserves the SEO surface for "online doctor" queries and routes visitors to the 4 active services (med-cert, repeat Rx, ED, hair loss). `/general-consult` 301s here. |
+| `/consult` | Services overview page (no intake funnel). General Consult was retired on 2026-05-20; the URL preserves the SEO surface for "online doctor" queries and routes visitors to the 5 active services (med-cert, repeat Rx, ED, hair loss, and narrow women's health). `/general-consult` 301s here. |
 | `/blog` | Doctor-reviewed, guide-only health articles (12h ISR revalidation) |
 | `/resources` | Source-backed authority resources for journalists, search engines, and answer engines. Individual assets cover telehealth safety, employer policy, secure prescription requests, GP access, complaints, and governance. |
 | `/faq` | 34 FAQs across 7 categories |

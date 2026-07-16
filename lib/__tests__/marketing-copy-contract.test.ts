@@ -10,7 +10,6 @@ const root = process.cwd()
 const voiceSource = readFileSync(join(root, "lib/marketing/voice.ts"), "utf8")
 const homePageSource = readFileSync(join(root, "app/(marketing)/page.tsx"), "utf8")
 const homepageMarketingSource = readFileSync(join(root, "lib/marketing/homepage.ts"), "utf8")
-const homeServiceCardsSource = readFileSync(join(root, "components/marketing/service-cards.tsx"), "utf8")
 const heroSource = readFileSync(join(root, "components/marketing/hero.tsx"), "utf8")
 const stickyCtaSource = readFileSync(join(root, "components/marketing/shared/sticky-cta.tsx"), "utf8")
 const waitCounterSource = readFileSync(join(root, "components/marketing/wait-counter.tsx"), "utf8")
@@ -68,7 +67,6 @@ const staleCommercialPolicySources = [
   "docs/TESTING.md",
   "lib/data/general-faq.ts",
   "lib/seo/data/competitor-comparisons.ts",
-  "lib/seo/pages/definitions.ts",
 ].map((file) => readFileSync(join(root, file), "utf8")).join("\n")
 
 const eligibilityAndAutomationSources = [
@@ -87,8 +85,6 @@ const eligibilityAndAutomationSources = [
   "components/marketing/how-it-works-content.tsx",
   "components/marketing/medical-certificate-online-landing.tsx",
   "components/marketing/sections/how-we-decide-guide-section.tsx",
-  "components/marketing/sections/prescription-limitations-section.tsx",
-  "components/marketing/sections/pricing-guide-section.tsx",
   "content/blog/same-day-medical-certificate-fast.mdx",
   "content/blog/same-day-medical-certificate.mdx",
   "docs/VOICE.md",
@@ -109,11 +105,11 @@ describe("marketing copy contracts", () => {
     expect(readFileSync(join(root, "lib/marketing/approved-claims.ts"), "utf8")).toContain(
       'text: "Start with a secure form. Takes about 3 minutes."',
     )
-    expect(homePageSource).toContain("text-foreground/70")
+    expect(homePageSource).toContain("text-foreground/85")
     expect(homePageSource).not.toContain("text-[color:var(--brand-coral)]")
   })
 
-  it("keeps homepage FAQs and coming-soon services compact", () => {
+  it("keeps the homepage narrative compressed around one service selector", () => {
     expect(faqItems.map((item) => item.question)).toEqual([
       "What if the doctor says no?",
       "How fast is it really?",
@@ -123,11 +119,11 @@ describe("marketing copy contracts", () => {
       "How do prescriptions work?",
     ])
     expect(homepageMarketingSource).not.toContain('cta: "Notify me"')
-    expect(homeServiceCardsSource).not.toContain("WaitlistForm")
-    expect(homeServiceCardsSource).not.toContain("Join the waitlist")
-    expect(homeServiceCardsSource).not.toContain("Notify me")
-    expect(homeServiceCardsSource).toContain("Coming next")
-    expect(homeServiceCardsSource).toContain("Not taking requests yet")
+    expect(homePageSource).toContain("<PortfolioRouteMap />")
+    expect(homePageSource).not.toContain("ServiceCards")
+    expect(homePageSource).not.toContain("HomeFactsBlock")
+    expect(homePageSource).not.toContain("<HowItWorks")
+    expect(homePageSource).not.toContain("ComplianceMarquee")
     expect(existsSync(join(root, "components/marketing/waitlist-form.tsx"))).toBe(false)
     expect(existsSync(join(root, "app/actions/waitlist.ts"))).toBe(false)
   })
@@ -142,7 +138,8 @@ describe("marketing copy contracts", () => {
   })
 
   it("does not imply prescribing requests are guaranteed to be approved", () => {
-    expect(doctorProfileSource).toContain("Every request is reviewed by an experienced")
+    expect(doctorProfileSource).toContain('getApprovedClaim("doctor_registration")')
+    expect(doctorProfileSource).toContain('getApprovedClaim("clinical_decision_model")')
     expect(doctorProfileSource).not.toContain("reviewed and approved")
     expect(doctorProfileSource).not.toContain("med-cert page only")
   })
@@ -179,7 +176,8 @@ describe("marketing copy contracts", () => {
   })
 
   it("keeps shared doctor trust copy to review, not approval outcome language", () => {
-    expect(doctorProfileSectionSource).toContain("Every request is reviewed by an experienced")
+    expect(doctorProfileSectionSource).toContain('getApprovedClaim("doctor_registration")')
+    expect(doctorProfileSectionSource).toContain('getApprovedClaim("clinical_decision_model")')
     expect(doctorProfileSectionSource).not.toContain("reviewed and approved")
     expect(doctorProfileSectionSource).not.toContain("med-cert page only")
   })
@@ -190,10 +188,10 @@ describe("marketing copy contracts", () => {
     // CertificateTypeSelector was retired from this surface on 2026-05-26
     // (Tier 1 review /medical-certificate #5). The wizard owns the
     // duration choice now. WorkplaceProofPanel must still come before
-    // the comparison viz so the trust block lands above the fold.
+    // the process section so the employer-policy context lands early.
     expect(medCertLandingSource).not.toContain("CertificateTypeSelector")
     expect(medCertLandingSource.indexOf("<WorkplaceProofPanel")).toBeLessThan(
-      medCertLandingSource.indexOf("<CertComparisonViz"),
+      medCertLandingSource.indexOf("<HowItWorksInline"),
     )
   })
 
@@ -224,7 +222,7 @@ describe("marketing copy contracts", () => {
     expect(workplaceClaimSources).not.toContain("legal validity")
     expect(workplaceClaimSources).not.toContain("identical legal")
     expect(workplaceClaimSources).not.toContain("Tamper-Proof")
-    expect(trustBadgesSource).toContain("AHPRA doctor review")
+    expect(trustBadgesSource).toContain('getApprovedClaim("clinical_decision_model")')
   })
 
   it("routes employer guidance to the canonical employer verification hub", () => {

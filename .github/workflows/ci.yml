@@ -390,6 +390,10 @@ jobs:
           NEXT_PUBLIC_PLAYWRIGHT: '1'
           E2E_SECRET: ${{ secrets.E2E_SECRET }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          PHI_ENCRYPTION_ENABLED: 'true'
+          PHI_ENCRYPTION_READ_ENABLED: 'true'
+          PHI_ENCRYPTION_WRITE_ENABLED: 'true'
+          PHI_MASTER_KEY: ${{ secrets.ENCRYPTION_KEY }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -406,6 +410,10 @@ jobs:
           NEXT_PUBLIC_PLAYWRIGHT: '1'
           E2E_SECRET: ${{ secrets.E2E_SECRET }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          PHI_ENCRYPTION_ENABLED: 'true'
+          PHI_ENCRYPTION_READ_ENABLED: 'true'
+          PHI_ENCRYPTION_WRITE_ENABLED: 'true'
+          PHI_MASTER_KEY: ${{ secrets.ENCRYPTION_KEY }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

@@ -51,5 +51,7 @@ describe("checkout price-config failures always alarm", () => {
     expect(src).toContain('errorMessage.includes("No such price")')
     expect(src).toContain("isMissingPriceEnv")
     expect(src).toContain("missing_price_env")
+    expect(src).toContain("isInvalidPriceConfiguration")
+    expect(src).toContain("invalid_price_config")
   })
 })

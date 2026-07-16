@@ -27,6 +27,7 @@ import {
   resetIntentionalNavigationForTests,
 } from "@/components/request/hooks/use-unsaved-changes"
 import { useRequestStore } from "@/components/request/store"
+import { buildPassiveAbandonmentBeacon } from "@/lib/analytics/intake-events"
 import { clearDraftAfterPayment } from "@/lib/request/draft-storage"
 
 /**
@@ -209,6 +210,41 @@ describe("intake draft lifecycle", () => {
         reviewStep.indexOf("window.location.href = result.checkoutUrl!"),
       )
       expect(flowNav).toContain("markIntentionalNavigation()")
+    })
+
+    it("does not emit passive analytics without an initialized PostHog client", () => {
+      expect(buildPassiveAbandonmentBeacon({
+        analyticsServiceType: "consult",
+        currentStepId: "womens-health-assessment",
+        currentStepIndex: 2,
+        posthog: null,
+        serviceType: "consult",
+      })).toBeNull()
+    })
+
+    it("builds the passive analytics beacon only with a valid token and identity", () => {
+      const beacon = buildPassiveAbandonmentBeacon({
+        analyticsServiceType: "consult",
+        currentStepId: "womens-health-assessment",
+        currentStepIndex: 2,
+        posthog: {
+          config: { api_host: "/ingest", token: "ph_test" },
+          get_distinct_id: () => "e2e-user",
+        },
+        serviceType: "consult",
+      })
+
+      expect(beacon?.url).toBe("/ingest/capture/")
+      expect(JSON.parse(beacon?.payload ?? "{}")).toMatchObject({
+        api_key: "ph_test",
+        event: "intake_abandoned_passive",
+        properties: {
+          distinct_id: "e2e-user",
+          service_type: "consult",
+          step_id: "womens-health-assessment",
+          step_number: 3,
+        },
+      })
     })
   })
 

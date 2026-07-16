@@ -1,147 +1,158 @@
 "use client"
 
-import { ArrowRight, CheckCircle2, ClipboardCheck, Sparkles } from "lucide-react"
+import {
+  ArrowDown,
+  ArrowRight,
+  CalendarRange,
+  CheckCircle2,
+  HeartPulse,
+  MessageCircle,
+  ScanSearch,
+  ShieldCheck,
+  Sparkles,
+  Stethoscope,
+  WalletCards,
+} from "lucide-react"
 import dynamic from "next/dynamic"
-import Image from "next/image"
 import Link from "next/link"
 
-import { StickerIcon } from "@/components/icons/stickers"
 import { Hero } from "@/components/marketing/hero"
-import { LiveWaitTime } from "@/components/marketing/live-wait-time"
-import { HairLossHeroMockup } from "@/components/marketing/mockups/hair-loss-hero-mockup"
-import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
-import { TimeComparisonViz } from "@/components/marketing/sections/time-comparison-viz"
 import {
   type LandingPageConfig,
   LandingPageShell,
 } from "@/components/marketing/shared/landing-page-shell"
-import { ReferralStrip } from "@/components/marketing/shared/referral-strip"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
-import { PRICING } from "@/lib/constants"
-import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { HAIR_LOSS_LANDING_FAQ } from "@/lib/data/hair-loss-faq"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 
-// Below-fold lazy loads
 const HowItWorksInline = dynamic(
-  () => import("@/components/marketing/sections/how-it-works-inline").then((m) => m.HowItWorksInline),
+  () => import("@/components/marketing/sections/how-it-works-inline").then((module) => module.HowItWorksInline),
   { loading: () => <div className="min-h-[400px]" /> },
 )
 const DoctorProfileSection = dynamic(
-  () => import("@/components/marketing/sections/doctor-profile-section").then((m) => m.DoctorProfileSection),
+  () => import("@/components/marketing/sections/doctor-profile-section").then((module) => module.DoctorProfileSection),
   { loading: () => <div className="min-h-[200px]" /> },
 )
 const RegulatoryPartners = dynamic(
-  () => import("@/components/marketing/regulatory-partners").then((m) => m.RegulatoryPartners),
+  () => import("@/components/marketing/regulatory-partners").then((module) => module.RegulatoryPartners),
   { loading: () => <div className="min-h-[120px]" /> },
 )
 const FAQSection = dynamic(
-  () => import("@/components/sections/faq-section").then((m) => ({ default: m.FAQSection })),
-  { loading: () => <div className="min-h-[400px]" /> },
+  () => import("@/components/sections/faq-section").then((module) => module.FAQSection),
+  { loading: () => <div className="min-h-[300px]" /> },
 )
 const CTABanner = dynamic(
-  () => import("@/components/sections/cta-banner").then((m) => ({ default: m.CTABanner })),
+  () => import("@/components/sections/cta-banner").then((module) => module.CTABanner),
   { loading: () => <div className="min-h-[300px]" /> },
 )
 const ContentHubLinks = dynamic(
-  () => import("@/components/seo/content-hub-links").then((m) => m.ContentHubLinks),
+  () => import("@/components/seo/content-hub-links").then((module) => module.ContentHubLinks),
   { loading: () => <div className="min-h-[320px]" /> },
 )
 
-// =============================================================================
-// DATA
-// =============================================================================
+const ASSESSMENT_HREF = "/request?service=consult&subtype=hair_loss"
 
 const HOW_IT_WORKS_STEPS = [
   {
     sticker: "medical-history" as const,
     step: 1,
-    title: "Fill a short health form",
-    description: "Quick assessment covering your hair loss pattern and health history. Takes about 2 minutes.",
-    time: "~2 minutes",
+    title: "Complete the private form",
+    description: "Describe the hair-loss pattern, timing, scalp symptoms, medicines, and relevant health history.",
+    time: "~3 minutes",
   },
   {
     sticker: "stethoscope" as const,
     step: 2,
-    title: "A real doctor reviews it",
-    description: "An AHPRA-registered doctor reviews your assessment and decides the next step.",
-    time: "Reviewed when available",
+    title: "A doctor reviews it",
+    description: "An AHPRA-registered Australian doctor reviews the full assessment and may contact you for clarification.",
+    time: "Review operates 24/7",
   },
   {
-    sticker: "pill-bottle" as const,
+    sticker: "sent" as const,
     step: 3,
-    title: "Outcome sent to you",
-    description: "Once approved, your eScript is sent by SMS and can be used at an Australian pharmacy.",
+    title: "Receive the next step",
+    description: "The doctor may approve if clinically appropriate, ask for more detail, or recommend in-person care.",
     time: "After review",
   },
 ]
 
-const PRICING_BULLETS = [
-  "AHPRA-registered Australian doctor reviews your form",
-  "eScript sent to your phone once approved",
-  "Collect from any Australian pharmacy",
-  "A doctor may call you briefly before prescribing",
-  GUARANTEE,
-]
-
-const ASSESSMENT_AREAS = [
+const HAIR_HERO_FACTS = [
   {
-    id: "pattern",
-    name: "Hair-loss pattern",
-    brand: "Assessment factor",
-    description:
-      "The doctor reviews where thinning started, how quickly it has changed, and whether the pattern fits online assessment.",
-    type: "Pattern",
-    frequency: "Timing",
-    results: "Photos",
-    bestFor: "Next step",
-    popular: false,
+    icon: ShieldCheck,
+    label: "Eligibility",
+    value: "Australia only · Ages 18+",
+    body: "Medicare details required for the consultation and prescribing record.",
   },
   {
-    id: "history",
-    name: "Health history",
-    brand: "Safety check",
-    description:
-      "Your answers help the doctor check medical history, current medications, and reasons online care may not be suitable.",
-    type: "History",
-    frequency: "Current meds",
-    results: "Suitability",
-    bestFor: "Safety",
-    popular: false,
+    icon: WalletCards,
+    label: "Review fee",
+    value: PRICING_DISPLAY.HAIR_LOSS,
+    body: "One-off doctor review. Full refund if the doctor declines.",
   },
   {
-    id: "preference",
-    name: "Your preference",
-    brand: "Shared decision",
-    description:
-      "You can explain what you want help with. The doctor decides what is clinically appropriate after review.",
-    type: "Goals",
-    frequency: "Questions",
-    results: "Advice",
-    bestFor: "Clarity",
-    popular: false,
+    icon: ScanSearch,
+    label: "Assessment",
+    value: "3-min form",
+    body: "Pattern, timing, scalp symptoms, medicines, and health context are reviewed together.",
+  },
+  {
+    icon: Stethoscope,
+    label: "Boundary",
+    value: "Doctor decides",
+    body: "Pattern alone is not a diagnosis, and a prescription is never guaranteed.",
   },
 ] as const
 
-const HAIR_LOSS_FACTS = [
+const HAIR_ASSESSMENT_SIGNALS = [
   {
-    term: "Review model",
-    detail: "Hair loss requests start with a private assessment form and are reviewed by an AHPRA-registered doctor.",
+    id: "pattern",
+    icon: ScanSearch,
+    label: "Pattern",
+    prompt: "Where is it changing?",
+    detail: "Hairline, crown, or more general thinning, described through the pattern and history answers you provide.",
   },
   {
-    term: "Safety screening",
-    detail: "The doctor reviews the pattern of hair loss, medical history, current medicines, photos, and whether online assessment is suitable.",
+    id: "tempo",
+    icon: CalendarRange,
+    label: "Tempo",
+    prompt: "When did it start?",
+    detail: "Recent, six to twelve months, or longer-running change helps the doctor understand the timeline.",
   },
   {
-    term: "Doctor contact",
-    detail: "The doctor may call or message if a safety detail needs clarification before any decision.",
+    id: "scalp",
+    icon: Sparkles,
+    label: "Scalp symptoms",
+    prompt: "What else is happening?",
+    detail: "Dandruff, psoriasis, persistent irritation, or infected follicles can change whether an examination is needed.",
   },
   {
-    term: "Cost boundary",
-    detail: `The review fee is $${PRICING.HAIR_LOSS.toFixed(2)}. If a prescription is approved, pharmacy costs are separate and may depend on PBS status, brand, and pharmacy pricing.`,
+    id: "safety",
+    icon: HeartPulse,
+    label: "Health context",
+    prompt: "Is remote care suitable?",
+    detail: "Current medicines, allergies, conditions, blood pressure, heart history, and reproductive context complete the safety picture.",
+  },
+] as const
+
+const HAIR_SUITABILITY_OUTCOMES = [
+  {
+    icon: CheckCircle2,
+    title: "Online review may continue",
+    body: "The history and pattern give the doctor enough information to assess the request remotely.",
+  },
+  {
+    icon: MessageCircle,
+    title: "More detail may be needed",
+    body: "The doctor may call or message to clarify the pattern, scalp symptoms, medicines, or health history.",
+  },
+  {
+    icon: Stethoscope,
+    title: "In-person review may be safer",
+    body: "A GP or skin examination may be more appropriate when the pattern or symptoms cannot be assessed safely online.",
   },
 ] as const
 
@@ -149,173 +160,180 @@ const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "hair-loss",
   analyticsId: "hair-loss",
   sticky: {
-    ctaText: `Start assessment · $${PRICING.HAIR_LOSS.toFixed(2)}`,
-    ctaHref: "/request?service=consult&subtype=hair_loss",
-    mobileSummary: "2-min form · Doctor-reviewed · No waiting room",
+    ctaText: `Start assessment · ${PRICING_DISPLAY.HAIR_LOSS}`,
+    ctaHref: ASSESSMENT_HREF,
+    mobileSummary: "3-min form",
     responseTime: "Doctor-reviewed after submission",
   },
 }
 
-// =============================================================================
-// UNIQUE SECTIONS
-// =============================================================================
-
-function TreatmentOptions() {
+function HairHeroFacts() {
   return (
-    <section id="assessment" aria-label="Hair loss assessment focus" className="py-16 lg:py-20">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="text-center mb-8">
-          <SectionPill>Assessment</SectionPill>
-          <Heading level="h2" className="mt-4 mb-2">
-            What the doctor checks
+    <aside aria-label="Hair loss assessment facts" className="w-[320px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-border/50 bg-white shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:w-[360px]">
+      <div className="border-b border-border/50 bg-muted/35 px-5 py-4 dark:border-white/10 dark:bg-white/[0.04]">
+        <p className="text-xs font-medium text-primary">Before you start</p>
+        <Heading level="h3" as="h2" className="mt-1">The practical facts</Heading>
+      </div>
+      <dl className="divide-y divide-border/50 px-5 dark:divide-white/10">
+        {HAIR_HERO_FACTS.map((fact) => (
+          <div key={fact.label} className="py-3.5">
+            <dt className="flex items-center gap-3 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[color:var(--service-hair)]/10 text-[color:var(--service-hair)]">
+                <fact.icon className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <span>{fact.label}</span>
+            </dt>
+            <dd className="ml-12 mt-1 text-sm font-semibold text-foreground">{fact.value}</dd>
+            <dd className="ml-12 mt-1 text-xs leading-5 text-muted-foreground">{fact.body}</dd>
+          </div>
+        ))}
+      </dl>
+    </aside>
+  )
+}
+
+function HairAssessmentModel() {
+  return (
+    <section
+      id="assessment-model"
+      aria-labelledby="hair-assessment-model-title"
+      className="bg-muted/30 py-14 dark:bg-white/[0.02] sm:py-16 lg:py-20"
+    >
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <Reveal instant className="mx-auto max-w-3xl text-center">
+          <SectionPill>Assessment model</SectionPill>
+          <Heading id="hair-assessment-model-title" level="h2" className="mt-4">
+            Pattern is only one part of the picture
           </Heading>
-          <p className="text-sm text-muted-foreground">
-            The service starts with clinical review, not a menu of medicines.
+          <p className="mt-3 text-base leading-7 text-muted-foreground">
+            The doctor combines where hair is changing, how quickly it changed, scalp symptoms, and your health context. It is not a pattern-only assessment or a medicine menu.
           </p>
         </Reveal>
 
-        <div className="space-y-4">
-          {ASSESSMENT_AREAS.map((treatment, i) => (
-            <Reveal
-              key={treatment.id}
-              delay={i * 0.1}
-              className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/[0.08] transition-[transform,box-shadow] duration-300"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <Heading level="h3">{treatment.name}</Heading>
-                    {treatment.popular && (
-                      <Badge className="bg-primary/10 text-primary hover:bg-primary/10 text-xs border-0">
-                        Popular
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">{treatment.brand}</p>
+        <figure
+          data-art-direction="hair-pattern-tempo-assessment"
+          className="mt-9 overflow-hidden rounded-2xl border border-border/50 bg-white shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none"
+        >
+          <div className="grid min-w-0 lg:grid-cols-[minmax(0,1.12fr)_minmax(18rem,0.88fr)]">
+            <dl className="min-w-0 divide-y divide-border/50 p-5 sm:p-6">
+              {HAIR_ASSESSMENT_SIGNALS.map((signal) => (
+                <div
+                  key={signal.id}
+                  className="min-w-0 py-4 first:pt-0 last:pb-0"
+                >
+                  <dt className="flex items-center gap-3 text-sm font-semibold text-foreground">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--service-hair)]/10 text-[color:var(--service-hair)]">
+                      <signal.icon className="h-5 w-5" aria-hidden="true" />
+                    </span>
+                    <span>{signal.label}</span>
+                  </dt>
+                  <dd className="ml-[3.25rem] mt-2 text-sm font-medium text-foreground">{signal.prompt}</dd>
+                  <dd className="ml-[3.25rem] mt-1 text-sm leading-6 text-muted-foreground">
+                    {signal.detail}
+                  </dd>
                 </div>
-                <ClipboardCheck className="h-5 w-5 text-primary/60 shrink-0" aria-hidden="true" />
+              ))}
+            </dl>
+
+            <div className="flex min-w-0 flex-col justify-center border-t border-border/50 bg-[color:var(--morning-ivory)]/70 p-5 dark:border-white/10 dark:bg-white/[0.04] sm:p-6 lg:border-l lg:border-t-0">
+              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[color:var(--service-hair)] text-[color:var(--warning-foreground)] shadow-sm shadow-primary/[0.04]">
+                <ShieldCheck className="h-6 w-6" aria-hidden="true" />
+              </span>
+              <Heading level="h3" className="mt-4">The combination matters</Heading>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Pattern does not decide suitability on its own. The doctor reviews all four signals before recommending the next step.
+              </p>
+              <div className="mt-5 flex flex-wrap items-center gap-2 text-xs font-medium text-foreground">
+                <span className="rounded-full border border-border/50 bg-white px-3 py-1.5 dark:border-white/15 dark:bg-card">Pattern</span>
+                <span aria-hidden="true">+</span>
+                <span className="rounded-full border border-border/50 bg-white px-3 py-1.5 dark:border-white/15 dark:bg-card">Tempo</span>
+                <span aria-hidden="true">+</span>
+                <span className="rounded-full border border-border/50 bg-white px-3 py-1.5 dark:border-white/15 dark:bg-card">Scalp</span>
+                <span aria-hidden="true">+</span>
+                <span className="rounded-full border border-border/50 bg-white px-3 py-1.5 dark:border-white/15 dark:bg-card">Health</span>
               </div>
-
-              <p className="text-sm text-muted-foreground mb-4">{treatment.description}</p>
-
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                {[
-                  { label: "Type", value: treatment.type },
-                  { label: "Frequency", value: treatment.frequency },
-                  { label: "Results", value: treatment.results },
-                  { label: "Best for", value: treatment.bestFor },
-                ].map((field) => (
-                  <div
-                    key={field.label}
-                    className="rounded-lg border border-border/50 bg-muted/30 p-3"
-                  >
-                    <p className="text-muted-foreground text-xs">{field.label}</p>
-                    <p className="font-medium text-foreground">{field.value}</p>
-                  </div>
-                ))}
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function HairLossFactsBlock() {
-  return (
-    <section aria-labelledby="hair-loss-facts" className="px-4 py-12 sm:px-6">
-      <div className="mx-auto max-w-5xl">
-        <h2 id="hair-loss-facts" className="text-2xl font-semibold tracking-tight text-foreground">
-          Key facts about hair loss assessment
-        </h2>
-        <dl className="mt-6 grid gap-4 sm:grid-cols-2">
-          {HAIR_LOSS_FACTS.map((fact) => (
-            <div
-              key={fact.term}
-              className="rounded-xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
-            >
-              <dt className="font-medium text-foreground">{fact.term}</dt>
-              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{fact.detail}</dd>
+              <ArrowDown className="mt-5 h-5 w-5 text-[color:var(--service-hair)]" aria-hidden="true" />
             </div>
-          ))}
-        </dl>
+          </div>
+
+          <div className="border-t border-border/50 p-5 dark:border-white/10 sm:p-6">
+            <Heading level="h3">What the review can lead to</Heading>
+            <ul className="mt-4 grid min-w-0 divide-y divide-border/50 md:grid-cols-3 md:divide-x md:divide-y-0">
+              {HAIR_SUITABILITY_OUTCOMES.map((outcome) => (
+                <li key={outcome.title} className="min-w-0 py-4 first:pt-0 last:pb-0 md:px-5 md:py-0 md:first:pl-0 md:last:pr-0">
+                  <outcome.icon className="h-5 w-5 text-[color:var(--service-hair)]" aria-hidden="true" />
+                  <p className="mt-3 text-sm font-semibold text-foreground">{outcome.title}</p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{outcome.body}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <figcaption className="border-t border-border/50 bg-muted/30 px-5 py-3 text-sm leading-6 text-muted-foreground dark:border-white/10 dark:bg-white/[0.03] sm:px-6">
+            This model explains the information reviewed. It does not diagnose the cause of hair loss or guarantee a prescription.
+          </figcaption>
+        </figure>
       </div>
     </section>
   )
 }
 
-/** Time comparison — thin wrapper around the shared TimeComparisonViz primitive. */
-function HairLossComparisonViz() {
+function HairLossPricingSection({ isDisabled }: { isDisabled: boolean }) {
   return (
-    <div className="bg-muted/30 dark:bg-white/[0.02]">
-      <TimeComparisonViz
-        pill="Why go online?"
-        heading="Start the review from home."
-        ours={{ label: "InstantMed", value: "Form", unit: "first" }}
-        theirs={{ label: "GP clinic", value: "2", valueSuffix: "+", unit: "hrs" }}
-        ourSteps={["2-min health form", "Doctor reviews privately", "Outcome by SMS"]}
-        theirSteps={["Book appointment", "Travel + wait in clinic", "Face-to-face consult"]}
-        primaryFillPercent={30}
-      />
-    </div>
-  )
-}
-
-function HairLossPricingSection({ isDisabled }: { isDisabled?: boolean }) {
-  return (
-    <section id="pricing" aria-label="Pricing" className="py-16 lg:py-20">
+    <section id="pricing" aria-label="Hair loss assessment pricing" className="py-14 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="text-center mb-10">
-          <SectionPill>Pricing</SectionPill>
-          <Heading level="h2" className="mt-4 mb-3">
-            One flat fee. No hidden costs.
-          </Heading>
-          <p className="text-muted-foreground max-w-xl mx-auto text-balance">
-            Doctor review first. {GUARANTEE}
+        <Reveal instant className="mx-auto max-w-2xl text-center">
+          <SectionPill>Fee and dispensing</SectionPill>
+          <Heading level="h2" className="mt-4">One review fee. Clear pharmacy boundary.</Heading>
+          <p className="mt-3 text-base leading-7 text-muted-foreground">
+            Doctor review comes first. A prescription is issued only when clinically appropriate.
           </p>
         </Reveal>
 
-        <Reveal className="max-w-sm mx-auto">
-          <div className="relative rounded-2xl border flex flex-col overflow-hidden bg-white dark:bg-card border-primary/30 shadow-xl shadow-primary/[0.12]">
-            <div className="p-6 flex flex-col flex-1">
-              <div className="flex items-start justify-between mb-4">
-                <StickerIcon name="pill-bottle" size={56} />
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary-strong border border-primary/20">
-                  One-time
-                </span>
+        <Reveal instant className="mx-auto mt-8 max-w-2xl overflow-hidden rounded-2xl border border-primary/30 bg-white shadow-xl shadow-primary/[0.1] dark:border-white/15 dark:bg-card dark:shadow-none">
+          <div className="grid divide-y divide-border/50 sm:grid-cols-[0.72fr_1.28fr] sm:divide-x sm:divide-y-0">
+            <div className="p-6">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Doctor review</p>
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary-strong border border-primary/20">One-time</span>
               </div>
-
-              <Heading level="h3" className="mb-1">Hair Loss Assessment</Heading>
-              <p className="text-sm text-muted-foreground mb-5">Private online consult + eScript if appropriate</p>
-
-              <div className="mb-5">
-                <span className="text-4xl font-semibold tracking-tight text-foreground">
-                  ${PRICING.HAIR_LOSS.toFixed(2)}
-                </span>
-                <span className="text-sm text-muted-foreground ml-2">one-off doctor review</span>
-              </div>
-
-              <ul className="space-y-2 mb-6 flex-1">
-                {PRICING_BULLETS.map((bullet) => (
-                  <li key={bullet} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    {bullet}
-                  </li>
-                ))}
+              <p className="mt-3 text-4xl font-semibold tracking-tight text-foreground">{PRICING_DISPLAY.HAIR_LOSS}</p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">No subscription or ongoing InstantMed fee.</p>
+            </div>
+            <div className="p-6">
+              <ul className="space-y-3">
+                <li className="flex gap-2 text-sm leading-6 text-muted-foreground"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />AHPRA-registered Australian doctor review</li>
+                <li className="flex gap-2 text-sm leading-6 text-muted-foreground"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />{GUARANTEE}</li>
+                <li className="flex gap-2 text-sm leading-6 text-muted-foreground"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />Medicine cost is separate and paid to the pharmacy if a prescription is approved.</li>
               </ul>
-
-              <Button
-                asChild
-                size="lg"
-                className="w-full h-11 font-semibold shadow-md shadow-primary/20"
-                disabled={isDisabled}
-              >
-                <Link href={isDisabled ? "/contact" : "/request?service=consult&subtype=hair_loss"}>
+              <Button asChild size="lg" className="mt-6 w-full" disabled={isDisabled}>
+                <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
                   {isDisabled ? "Contact us" : "Start assessment"}
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </Button>
+            </div>
+          </div>
+        </Reveal>
+
+        <RegulatoryPartners className="mt-8 border-t border-border/50 pb-0 pt-7 dark:border-white/10" />
+      </div>
+    </section>
+  )
+}
+
+function HairLossLimitationsSection() {
+  return (
+    <section aria-labelledby="hair-loss-limits-title" className="bg-muted/30 py-12 dark:bg-white/[0.02] sm:py-14">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <Reveal instant className="rounded-2xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-950/20 sm:p-6">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400" aria-hidden="true" />
+            <div>
+              <Heading id="hair-loss-limits-title" level="h2" className="text-lg">What this online review cannot settle on its own</Heading>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                A hair pattern does not diagnose the cause of hair loss. Sudden or patchy loss, painful or infected scalp symptoms, wider body-hair changes, an unclear history, or other signs that need examination may be safer to assess in person. The doctor may ask for more detail, recommend tests or GP review, or decline online care. A prescription is never guaranteed.
+              </p>
             </div>
           </div>
         </Reveal>
@@ -323,10 +341,6 @@ function HairLossPricingSection({ isDisabled }: { isDisabled?: boolean }) {
     </section>
   )
 }
-
-// =============================================================================
-// MAIN PAGE COMPONENT
-// =============================================================================
 
 export function HairLossLanding() {
   return (
@@ -336,136 +350,64 @@ export function HairLossLanding() {
     >
       {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
-          {/* 1. Hero — canonical <Hero> with hair-loss-specific title, CTA,
-              evidence-based reassurance line, and the hair-loss product mockup.
-              Bespoke HairLossHeroSection retired in Pass 2. */}
           <Hero
-            title="Hair loss assessment, without the waiting room."
+            title="Hair loss assessment, reviewed from home."
             primaryCta={{
-              text: `Start assessment · $${PRICING.HAIR_LOSS.toFixed(2)}`,
-              href: "/request?service=consult&subtype=hair_loss",
+              text: isDisabled ? "Contact us" : `Start assessment · ${PRICING_DISPLAY.HAIR_LOSS}`,
+              href: isDisabled ? "/contact" : ASSESSMENT_HREF,
               onClick: handleHeroCTA,
               ref: heroCTARef,
             }}
             secondaryCta={null}
             beforeCta={
-              <p className="inline-flex items-start sm:items-center gap-2 text-[13px] text-foreground max-w-xl mx-auto lg:mx-0 leading-snug text-left sm:text-center lg:text-left">
-                <Sparkles className="w-4 h-4 text-success shrink-0 mt-px sm:mt-0" aria-hidden="true" />
-                <span>
-                  Evidence-based assessment.
-                  <span className="text-muted-foreground"> Your doctor decides what is clinically appropriate.</span>
-                </span>
+              <p className="mx-auto inline-flex max-w-xl items-start gap-2 text-left text-[13px] leading-snug text-foreground lg:mx-0">
+                <Sparkles className="mt-px h-4 w-4 shrink-0 text-success" aria-hidden="true" />
+                <span>Clinical assessment.<span className="text-muted-foreground"> Your doctor decides what is clinically appropriate.</span></span>
               </p>
             }
-            mockup={<HairLossHeroMockup />}
+            mockup={<HairHeroFacts />}
           >
-            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
-              {FORM_FIRST_WEDGE} A doctor reviews the pattern, history, and next step. {GUARANTEE}
+            <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-relaxed text-muted-foreground sm:text-base lg:mx-0 lg:text-lg">
+              {FORM_FIRST_WEDGE} Pattern, timing, scalp symptoms, and health context are reviewed together. {GUARANTEE}
             </p>
           </Hero>
 
-          {/* Live wait time */}
-          <LiveWaitTime variant="strip" services={["consult-hair-loss"]} />
+          <HairAssessmentModel />
 
-          {/* Service claim — clinical legitimacy without drug-led promotion. */}
-          <ServiceClaimSection
-            eyebrow="Clinical, not cosmetic"
-            headline={
-              <>
-                Clinical hair loss assessment. <span className="text-primary">Reviewed by a doctor.</span>
-              </>
-            }
-            body="A structured doctor review for hair loss concerns. Once approved, your eScript is sent by SMS and can be used at any Australian pharmacy."
-          />
-
-          <HairLossFactsBlock />
-
-          {/* Editorial lifestyle photo, primary. A calm "at home"
-              moment between the service claim and the how-it-works block. */}
-          <section aria-hidden="true" className="py-8 sm:py-12">
-            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border/40 shadow-md shadow-primary/[0.06]">
-                <Image
-                  src="/images/hairloss-1.webp"
-                  alt="Person at home, candid moment relevant to a hair loss review"
-                  fill
-                  className="object-cover"
-                  loading="lazy"
-                  sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* 2. How It Works */}
           <HowItWorksInline
             steps={HOW_IT_WORKS_STEPS}
-            ctaHref="/request?service=consult&subtype=hair_loss"
+            ctaHref={ASSESSMENT_HREF}
             onCTAClick={handleHowItWorksCTA}
             isDisabled={isDisabled}
+            subheading="A private form first, then an Australian doctor reviews the complete picture and decides the safest next step."
+            revealInstant
           />
 
-          {/* 3. Time comparison */}
-          <HairLossComparisonViz />
-
-          {/* 4. Assessment focus - unique to hair loss */}
-          <TreatmentOptions />
-
-          {/* 5. Doctor profile */}
-          <DoctorProfileSection />
-
-          {/* Editorial lifestyle photo, secondary. Sits between doctor
-              profile and pricing as a quiet trust moment. */}
-          <section aria-hidden="true" className="py-8 sm:py-12">
-            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border/40 shadow-md shadow-primary/[0.06]">
-                <Image
-                  src="/images/hairloss-2.webp"
-                  alt="Daylight Australian interior, reinforcing unhurried at-home care"
-                  fill
-                  className="object-cover"
-                  loading="lazy"
-                  sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* 6. Pricing */}
+          <DoctorProfileSection instant />
           <HairLossPricingSection isDisabled={isDisabled} />
+          <HairLossLimitationsSection />
 
-          {/* Regulatory Partners */}
-          <RegulatoryPartners className="py-12" />
-
-          {/* 7. FAQ — shared <FAQSection> primitive (was bespoke
-              HairLossFAQSection, retired in Pass 2). */}
           <FAQSection
             pill="FAQ"
-            title="Frequently asked questions"
-            subtitle="Everything you need to know before starting."
-            items={HAIR_LOSS_FAQ}
-            initialCount={4}
+            title="Hair loss assessment questions"
+            subtitle="The key assessment, cost, privacy, and suitability answers before you start."
+            items={HAIR_LOSS_LANDING_FAQ}
+            initialCount={5}
             onFAQOpen={handleFAQOpen}
             viewAllHref="/faq"
-            className="bg-muted/30 dark:bg-white/[0.02]"
+            className="bg-background"
           />
 
-          {/* Referral strip */}
-          <ReferralStrip contextText="dealing with hair loss" />
-
-          {/* 8. Final CTA — shared <CTABanner> primitive (was bespoke
-              ServiceFinalCTA, retired in Pass 2). With hair-loss being the
-              last consumer of ServiceFinalCTA, the bespoke component can
-              now be deleted. */}
           <CTABanner
             title="Start a hair loss assessment."
-            subtitle="A doctor reviews your assessment and prescribes only when it is appropriate."
+            subtitle="A doctor reviews your assessment and prescribes only when it is clinically appropriate."
             ctaText="Start assessment"
-            ctaHref="/request?service=consult&subtype=hair_loss"
+            ctaHref={ASSESSMENT_HREF}
             onCtaClick={handleFinalCTA}
             isDisabled={isDisabled}
             price={PRICING.HAIR_LOSS}
-            microcopy="Takes about 2 minutes."
+            microcopy="Takes about 3 minutes."
+            revealInstant
           />
         </>
       )}

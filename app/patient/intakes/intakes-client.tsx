@@ -1,6 +1,5 @@
 "use client"
 
-import type { RealtimeChannel } from "@supabase/supabase-js"
 import {
   CheckCircle,
   Clock,
@@ -13,7 +12,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useMemo,useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { DashboardPageHeader } from "@/components/dashboard"
@@ -23,13 +22,11 @@ import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { buildPatientIntakeHref,PATIENT_INTAKES_HREF, REQUEST_HREF } from "@/lib/dashboard/routes"
-import { createClient } from "@/lib/supabase/client"
+import type { PatientIntakeWithPatient } from "@/lib/data/intakes/types"
 import { cn } from "@/lib/utils"
-import type { IntakeWithPatient } from "@/types/db"
 
 interface IntakesClientProps {
-  intakes: IntakeWithPatient[]
-  patientId: string
+  intakes: PatientIntakeWithPatient[]
   pagination?: {
     page: number
     total: number
@@ -39,15 +36,12 @@ interface IntakesClientProps {
 
 // Use shared status config - single source of truth
 
-export function IntakesClient({ intakes: initialIntakes, patientId, pagination }: IntakesClientProps) {
+export function IntakesClient({ intakes: initialIntakes, pagination }: IntakesClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [intakes, setIntakes] = useState<IntakeWithPatient[]>(initialIntakes)
+  const [intakes, setIntakes] = useState<PatientIntakeWithPatient[]>(initialIntakes)
   const [activeTab, setActiveTab] = useState("all")
   const [isRefreshing, setIsRefreshing] = useState(false)
-  // Memoize Supabase client to prevent memory leak from constant recreation
-  const supabase = useMemo(() => createClient(), [])
-  
   // Server-side pagination
   const currentPage = pagination?.page ?? 1
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1
@@ -77,55 +71,10 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
     return refreshIntakesRef.current?.()
   }, [])
 
-  // Subscribe to real-time updates
   useEffect(() => {
-    let channel: RealtimeChannel | null = null
+    setIntakes(initialIntakes)
+  }, [initialIntakes])
 
-    const setupRealtimeSubscription = () => {
-      channel = supabase
-        .channel(`patient-intakes-${patientId}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "intakes",
-            filter: `patient_id=eq.${patientId}`,
-          },
-          (payload) => {
-            if (payload.eventType === "UPDATE") {
-              // Update the specific intake in state
-              setIntakes((prev) =>
-                prev.map((intake) =>
-                  intake.id === payload.new.id
-                    ? { ...intake, ...payload.new }
-                    : intake
-                )
-              )
-            } else if (payload.eventType === "INSERT") {
-              // Add new intake to state - refresh to get full data with relations
-              refreshIntakesRef.current?.()
-            } else if (payload.eventType === "DELETE") {
-              // Remove deleted intake from state
-              setIntakes((prev) =>
-                prev.filter((intake) => intake.id !== payload.old.id)
-              )
-            }
-          }
-        )
-        .subscribe()
-    }
-
-    setupRealtimeSubscription()
-
-    // Cleanup on unmount
-    return () => {
-      if (channel) {
-        supabase.removeChannel(channel)
-      }
-    }
-  }, [supabase, patientId])
-  
   // Filter intakes by status
   const upcomingIntakes = intakes.filter(i => 
     ["paid", "in_review", "pending", "pending_info"].includes(i.status)
@@ -260,6 +209,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
                     date={intake.created_at}
                     refId={intake.id.slice(0, 8).toUpperCase()}
                     status={intake.status}
+                    paymentRecoveryReason={intake.payment_recovery_reason}
                     icon={isPrescription ? Pill : FileText}
                     iconClassName={isPrescription ? "w-5 h-5 text-info" : "w-5 h-5 text-primary"}
                     iconContainerClassName={isPrescription ? "bg-info-light" : "bg-primary/10"}

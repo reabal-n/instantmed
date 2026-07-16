@@ -6,7 +6,6 @@ import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
-import { useScrollDirection } from "@/lib/hooks/use-scroll-direction"
 
 interface StickyCTAProps {
   /** Whether the sticky CTA is visible */
@@ -38,14 +37,7 @@ export function StickyCTA({
   responseTime,
 }: StickyCTAProps) {
   const prefersReducedMotion = useReducedMotion()
-  // Collapse the summary line when the user is actively scrolling DOWN -
-  // they're reading, not deciding. Restore it on any upward scroll because
-  // upward scroll usually precedes a click. Tier 1 review 2026-05-25
-  // (/erectile-dysfunction #3): "sticky mobile footer eats ~20% of the
-  // viewport". Reduced-motion users skip the collapse and keep the
-  // canonical single-line layout (no surprise height changes).
-  const scrollDirection = useScrollDirection({ threshold: 12, topPadding: 200 })
-  const isCollapsed = !prefersReducedMotion && scrollDirection === "down"
+  const motionDuration = prefersReducedMotion ? 0 : show ? 0.18 : 0.14
 
   const resolvedHref = isDisabled ? "/contact" : ctaHref
   const resolvedCtaText = isDisabled ? "Contact us" : ctaText
@@ -62,9 +54,16 @@ export function StickyCTA({
         role="region"
         aria-label="Quick purchase"
         className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
-        initial={{ y: show ? 0 : "100%" }}
-        animate={{ y: show ? 0 : "100%" }}
-        transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeOut" }}
+        initial={{}}
+        style={{ visibility: "hidden" }}
+        animate={{
+          y: show ? 0 : "100%",
+          visibility: show ? "visible" : "hidden",
+        }}
+        transition={{
+          y: { duration: motionDuration, ease: [0.16, 1, 0.3, 1] },
+          visibility: { duration: 0, delay: show ? 0 : motionDuration },
+        }}
         inert={!show ? true : undefined}
       >
         {/*
@@ -72,28 +71,14 @@ export function StickyCTA({
           bar as "eating 20% of the viewport". Tighter padding (pt-1.5 pb-2),
           summary line compact, response time bumped to text-[13px] on
           solid surface so the number actually reads.
-
-          Plus a scroll-direction collapse: while scrolling down the
-          summary line clips out (max-h transitions to 0) so the bar is
-          just the button. Scroll up restores it. Tier 1 review
-          2026-05-25 (/erectile-dysfunction #3).
         */}
         <div className="bg-white dark:bg-card border-t border-border/50 px-4 pt-1.5 pb-2 safe-area-pb">
-          <div
-            className={`grid overflow-hidden transition-[grid-template-rows,opacity,margin] duration-200 ease-out ${
-              isCollapsed
-                ? "grid-rows-[0fr] opacity-0 mb-0"
-                : "grid-rows-[1fr] opacity-100 mb-1.5"
-            }`}
-            aria-hidden={isCollapsed}
-          >
-            <p className="min-h-0 min-w-0 break-words text-center text-[11px] leading-tight text-muted-foreground">
-              {mobileSummary}
-              {responseTime && (
-                <span className="text-foreground/80 font-medium"> &middot; {responseTime}</span>
-              )}
-            </p>
-          </div>
+          <p className="mb-1.5 min-w-0 break-words text-center text-[11px] leading-tight text-muted-foreground">
+            {mobileSummary}
+            {responseTime && (
+              <span className="text-foreground/80 font-medium"> &middot; {responseTime}</span>
+            )}
+          </p>
           <Button
             asChild
             size="lg"

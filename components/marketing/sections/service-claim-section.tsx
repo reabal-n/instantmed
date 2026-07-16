@@ -30,10 +30,8 @@ interface ServiceClaimSectionProps {
  * Service-page "superpower" claim section.
  *
  * One per service page, anchoring the page's strongest trust signal in a
- * Morning Canvas warm card. Used by:
- *   - /medical-certificate -> EmployerCalloutStrip (workplace evidence, policy varies)
- *   - /prescriptions → PBSCalloutStrip (PBS subsidies apply)
- *   - future service pages get a consistent superpower-section pattern.
+ * Morning Canvas warm card. Used by the medical-certificate evidence panel
+ * and supporting brand, trust, and education pages.
  *
  * Visual treatment:
  *   - Soft peach radial backdrop (Morning Canvas warmth)

@@ -28,7 +28,13 @@ describe("legacy prescription routes", () => {
     const nextConfig = readFileSync(path.join(root, "next.config.mjs"), "utf8")
 
     expect(prescriptionsLanding).not.toContain("/request?service=consult")
-    expect(prescriptionsLanding).toContain('href: "/consult"')
+    expect(prescriptionsLanding).toContain('ctaHref: "/request?service=repeat-script"')
+    expect(prescriptionsLanding).toContain(
+      'href: isDisabled ? "/contact" : "/request?service=repeat-script"',
+    )
+    expect(prescriptionsLanding).toContain(
+      "For new medicines or complex care, see your regular GP.",
+    )
     expect(nextConfig).not.toContain('destination: "/request?service=consult"')
   })
 

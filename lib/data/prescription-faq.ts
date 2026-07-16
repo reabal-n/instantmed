@@ -2,7 +2,7 @@
  * Single source of truth for prescription FAQ data.
  * Used by both the landing page accordion and the structured data schema.
  */
-export const PRESCRIPTION_FAQ = [
+const PRESCRIPTION_FAQ = [
   {
     question: "What can the doctor review?",
     answer:
@@ -38,4 +38,11 @@ export const PRESCRIPTION_FAQ = [
     answer:
       "Yes. Where clinically appropriate, the doctor will include repeats on your prescription. The number of repeats depends on the medication and your situation.",
   },
+] as const
+
+/** Short decision-support subset for the commercial landing page. */
+export const PRESCRIPTION_LANDING_FAQ = [
+  PRESCRIPTION_FAQ[1],
+  PRESCRIPTION_FAQ[4],
+  PRESCRIPTION_FAQ[6],
 ] as const

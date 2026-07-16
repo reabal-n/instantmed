@@ -23,20 +23,12 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
     url: baseUrl,
     logo: `${baseUrl}/branding/logo.png`,
     image: `${baseUrl}/branding/logo.png`,
-    description: "Australian telehealth service providing medical certificates and prescription requests reviewed by AHPRA-registered doctors under documented clinical governance.",
+    description: "Australian telehealth service providing medical certificates and focused prescription pathways under AHPRA-registered, doctor-owned clinical governance.",
     slogan: "Healthcare that fits your schedule",
     foundingDate: "2025",
     taxID: "64694559334",
     medicalSpecialty: "PrimaryCare",
     hasCredential: [
-      {
-        "@type": "EducationalOccupationalCredential",
-        credentialCategory: "AHPRA Registration",
-        recognizedBy: {
-          "@type": "Organization",
-          name: "Australian Health Practitioner Regulation Agency"
-        }
-      },
       {
         "@type": "EducationalOccupationalCredential",
         credentialCategory: "LegitScript Certified Healthcare Merchant",
@@ -46,15 +38,6 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
           url: "https://www.legitscript.com"
         },
         url: "https://www.legitscript.com/websites/?checker_keywords=instantmed.com.au"
-      },
-      {
-        "@type": "EducationalOccupationalCredential",
-        credentialCategory: "Google Ads Online Pharmacy Certification",
-        recognizedBy: {
-          "@type": "Organization",
-          name: "Google",
-          url: "https://www.google.com"
-        }
       }
     ],
     address: {

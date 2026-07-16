@@ -19,7 +19,6 @@ import { cn } from '@/lib/utils'
 interface PatientShellProps {
   children: ReactNode
   user: {
-    id: string
     name: string
     email: string
     avatar?: string
@@ -31,10 +30,10 @@ const GlobalIntakeNotifications = dynamic(
   { ssr: false },
 )
 
-function PatientShellContent({ children, patientId }: { children: ReactNode; patientId: string }) {
+function PatientShellContent({ children }: { children: ReactNode }) {
   return (
     <>
-      <GlobalIntakeNotifications patientId={patientId} />
+      <GlobalIntakeNotifications />
       {/* Session timeout warning removed - Supabase Auth handles session refresh automatically */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:pb-8">
         {children}
@@ -65,7 +64,7 @@ export function PatientShell({ children, user }: PatientShellProps) {
             isRailExpanded ? "lg:ml-60" : "lg:ml-16",
           )}
         >
-          <PatientShellContent patientId={user.id}>
+          <PatientShellContent>
             {children}
           </PatientShellContent>
         </main>

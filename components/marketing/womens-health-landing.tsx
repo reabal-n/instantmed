@@ -1,579 +1,342 @@
 "use client"
 
-import { ArrowRight, CheckCircle2, Lock, ShieldCheck } from "lucide-react"
+import {
+  AlertTriangle,
+  ArrowRight,
+  BadgeCheck,
+  CheckCircle2,
+  Droplets,
+  HeartPulse,
+  Lock,
+  RefreshCw,
+  ShieldCheck,
+  Stethoscope,
+  WalletCards,
+} from "lucide-react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 
-import { StickerIcon } from "@/components/icons/stickers"
 import { Hero } from "@/components/marketing/hero"
-import { LiveWaitTime } from "@/components/marketing/live-wait-time"
-import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
-import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
-import { TimeComparisonViz } from "@/components/marketing/sections/time-comparison-viz"
 import {
   type LandingPageConfig,
   LandingPageShell,
 } from "@/components/marketing/shared/landing-page-shell"
-import { ReferralStrip } from "@/components/marketing/shared/referral-strip"
+import { WomensHealthDecisionFork } from "@/components/marketing/womens-health-decision-fork"
 import { ContentHubLinks } from "@/components/seo"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
-import { PRICING } from "@/lib/constants"
-import { PILL_FAQ, UTI_FAQ, WOMENS_HEALTH_FAQ } from "@/lib/data/womens-health-faq"
+import { PRICING_DISPLAY } from "@/lib/constants"
+import { WOMENS_HEALTH_HUB_FAQ } from "@/lib/data/womens-health-faq"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 
-type WomensHealthIntent = "overview" | "uti" | "pill"
-
-interface WomensHealthIntentCopy {
-  analyticsId: string
-  stickyCta: string
-  stickySummary: string
-  heroTitle: string
-  heroBody: string
-  claimEyebrow: string
-  claimHeadlineLead: string
-  claimHeadlineAccent: string
-  claimBody: string
-  safetyTitle: string
-  safetyBody: string
-  pricingDescription: string
-  faqSubtitle: string
-  faq: ReadonlyArray<{ question: string; answer: string }>
-  referralContext: string
-  finalTitle: string
-  finalSubtitle: string
-  finalCta: string
-  howItWorksSubheading: string
-  pillSectionMode: "primary" | "secondary"
-}
-
-// Below-fold lazy loads
-const HowItWorksInline = dynamic(
-  () => import("@/components/marketing/sections/how-it-works-inline").then((m) => m.HowItWorksInline),
-  { loading: () => <div className="min-h-[400px]" /> },
-)
-const DoctorProfileSection = dynamic(
-  () => import("@/components/marketing/sections/doctor-profile-section").then((m) => m.DoctorProfileSection),
-  { loading: () => <div className="min-h-[200px]" /> },
-)
 const RegulatoryPartners = dynamic(
-  () => import("@/components/marketing/regulatory-partners").then((m) => m.RegulatoryPartners),
+  () => import("@/components/marketing/regulatory-partners").then((module) => module.RegulatoryPartners),
   { loading: () => <div className="min-h-[120px]" /> },
 )
 const FAQSection = dynamic(
-  () => import("@/components/sections/faq-section").then((m) => ({ default: m.FAQSection })),
-  { loading: () => <div className="min-h-[400px]" /> },
-)
-const CTABanner = dynamic(
-  () => import("@/components/sections/cta-banner").then((m) => ({ default: m.CTABanner })),
+  () => import("@/components/sections/faq-section").then((module) => module.FAQSection),
   { loading: () => <div className="min-h-[300px]" /> },
 )
 
-// =============================================================================
-// DATA
-// =============================================================================
+const DOCTOR_REGISTRATION_CLAIM = getApprovedClaim("doctor_registration")
 
-const WOMENS_HEALTH_HREF = "/request?service=consult&subtype=womens_health"
-
-const INTENT_COPY: Record<WomensHealthIntent, WomensHealthIntentCopy> = {
-  overview: {
-    analyticsId: "womens-health",
-    stickyCta: `Start assessment · $${PRICING.WOMENS_HEALTH.toFixed(2)}`,
-    stickySummary: "2-min form · Doctor-reviewed · No waiting room",
-    // Hub-level H1: targets the broad "women's health assessment online" term and
-    // leaves the "UTI assessment online" head term to the /uti-assessment-online
-    // child page, so the hub and child don't cannibalise the same query.
-    heroTitle: "Women's health assessment online, without the waiting room.",
-    heroBody: `${FORM_FIRST_WEDGE} A doctor reviews your symptoms and history and decides what is clinically appropriate. ${GUARANTEE}`,
-    claimEyebrow: "Private and clinical",
-    claimHeadlineLead: "Women's health, reviewed by a doctor.",
-    claimHeadlineAccent: "Without the waiting room.",
-    claimBody:
-      "A structured doctor review for urinary symptoms. If online care is appropriate, your outcome is sent to your phone and can be actioned at any Australian pharmacy.",
-    safetyTitle: "When you should be seen in person",
-    safetyBody:
-      "A fever, pain in your back or side, blood in your urine, symptoms during pregnancy, or a UTI that keeps returning are signs you need an in-person review. If your answers raise any of these, the doctor will recommend a face-to-face visit and may decline online care.",
-    pricingDescription: "Private online review for UTI and contraceptive pill concerns",
-    faqSubtitle: "Everything you need to know before starting a women's health assessment online.",
-    faq: WOMENS_HEALTH_FAQ,
-    referralContext: "dealing with a UTI",
-    finalTitle: "Women's health, reviewed by a real doctor.",
-    finalSubtitle: "Fill a short form. A doctor reviews it privately and decides what is clinically appropriate.",
-    finalCta: "Start assessment",
-    howItWorksSubheading:
-      "No booked appointment or waiting room. A doctor reviews your assessment and may call you briefly before deciding.",
-    pillSectionMode: "secondary",
-  },
-  uti: {
-    analyticsId: "womens-health-uti",
-    stickyCta: `Start UTI assessment · $${PRICING.WOMENS_HEALTH.toFixed(2)}`,
-    stickySummary: "UTI form · Doctor-reviewed · No waiting room",
-    heroTitle: "UTI assessment online, without the waiting room.",
-    heroBody: `${FORM_FIRST_WEDGE} A doctor reviews your urinary symptoms and safety screen before deciding what is clinically appropriate. ${GUARANTEE}`,
-    claimEyebrow: "UTI assessment",
-    claimHeadlineLead: "Urinary symptoms, reviewed by a doctor.",
-    claimHeadlineAccent: "Clear safety boundaries.",
-    claimBody:
-      "A structured review for common UTI symptoms. If your answers suggest pregnancy risk, kidney symptoms, fever, blood in urine, or recurring infections, the doctor will redirect you to in-person care.",
-    safetyTitle: "When online UTI care is not suitable",
-    safetyBody:
-      "Fever, back or side pain, blood in your urine, pregnancy or possible pregnancy, STI risk, pelvic pain, or repeated UTIs need in-person assessment. The intake asks about these before payment.",
-    pricingDescription: "Private online review for UTI symptoms and safety boundaries",
-    faqSubtitle: "Everything you need to know before starting a UTI assessment online.",
-    faq: UTI_FAQ,
-    referralContext: "dealing with UTI symptoms",
-    finalTitle: "UTI symptoms? Start with a secure form.",
-    finalSubtitle: "A doctor reviews your symptoms and safety answers before deciding what is clinically appropriate.",
-    finalCta: "Start UTI assessment",
-    howItWorksSubheading:
-      "No booked appointment or waiting room. A doctor reviews your UTI safety screen and may call you briefly before deciding.",
-    pillSectionMode: "secondary",
-  },
-  pill: {
-    analyticsId: "womens-health-pill",
-    stickyCta: `Start pill assessment · $${PRICING.WOMENS_HEALTH.toFixed(2)}`,
-    stickySummary: "Pill form · Doctor-reviewed · No waiting room",
-    heroTitle: "Contraceptive pill assessment online.",
-    heroBody: `${FORM_FIRST_WEDGE} A doctor reviews your health history, safety screen, and pill request before deciding what is clinically appropriate. ${GUARANTEE}`,
-    claimEyebrow: "Contraceptive pill assessment",
-    claimHeadlineLead: "Starting or switching the pill.",
-    claimHeadlineAccent: "Doctor-reviewed online.",
-    claimBody:
-      "A structured review for starting or switching the contraceptive pill. If you are continuing the same pill, the repeat-prescription pathway is usually the better fit.",
-    safetyTitle: "What the doctor needs to check",
-    safetyBody:
-      "Pregnancy or possible pregnancy, migraine with aura, clot history, smoking risk, high blood pressure, pelvic pain, heavy bleeding, STI risk, or safety uncertainty can require a call, in-person review, or a different pathway.",
-    pricingDescription: "Private online review to start or switch the contraceptive pill",
-    faqSubtitle: "Everything you need to know before starting a contraceptive pill assessment online.",
-    faq: PILL_FAQ,
-    referralContext: "reviewing contraception options",
-    finalTitle: "Start or switch the pill with doctor review.",
-    finalSubtitle: "Fill a short form. A doctor reviews your safety screen and decides what is clinically appropriate.",
-    finalCta: "Start pill assessment",
-    howItWorksSubheading:
-      "No booked appointment or waiting room. A doctor reviews your contraception safety screen and may call you briefly before deciding.",
-    pillSectionMode: "primary",
+const LANDING_CONFIG: LandingPageConfig = {
+  serviceId: "consult",
+  analyticsId: "womens-health",
+  sticky: {
+    ctaText: "Choose UTI or pill assessment",
+    ctaHref: "#choose-care",
+    mobileSummary: "Two focused women's-health pathways",
+    responseTime: "Doctor-reviewed after submission",
   },
 }
 
-const HOW_IT_WORKS_STEPS = [
+const COMMON_FACTS = [
   {
-    sticker: "medical-history" as const,
-    step: 1,
-    title: "Fill a short health form",
-    description: "Private assessment covering your symptoms and health history. Takes about 2 minutes.",
-    time: "~2 minutes",
+    icon: ShieldCheck,
+    label: "Eligibility",
+    value: "Australia only · Ages 18+",
+    body: "Both pathways are for adults in Australia.",
   },
   {
-    sticker: "stethoscope" as const,
-    step: 2,
-    title: "A real doctor reviews it",
-    description: "An AHPRA-registered doctor reviews your assessment and decides the next step.",
-    time: "Reviewed when available",
+    icon: BadgeCheck,
+    label: "Clinical record",
+    value: "Medicare details required",
+    body: "Required for consultation records and electronic prescribing.",
   },
   {
-    sticker: "sent" as const,
-    step: 3,
-    title: "Outcome sent to your phone",
-    description: "Once approved, your outcome is sent to your phone and can be actioned at an Australian pharmacy.",
-    time: "After review",
+    icon: WalletCards,
+    label: "Doctor review",
+    value: PRICING_DISPLAY.WOMENS_HEALTH,
+    body: "One-off fee. Pharmacy cost is separate if a prescription is approved.",
   },
-]
+  {
+    icon: CheckCircle2,
+    label: "If declined",
+    value: "Full refund",
+    body: "Full refund if the doctor declines the request.",
+  },
+] as const
 
-const PRICING_BULLETS = [
-  "AHPRA-registered Australian doctor reviews your form",
-  "Outcome sent to your phone once approved",
-  "Collect from any Australian pharmacy if relevant",
-  "A doctor may call you briefly before deciding",
-  GUARANTEE,
-]
-
-function getLandingConfig(copy: WomensHealthIntentCopy): LandingPageConfig {
-  return {
-    serviceId: "consult",
-    analyticsId: copy.analyticsId,
-    sticky: {
-      ctaText: copy.stickyCta,
-      ctaHref: WOMENS_HEALTH_HREF,
-      mobileSummary: copy.stickySummary,
-      responseTime: "Doctor-reviewed after submission",
-    },
-  }
-}
-
-// =============================================================================
-// UNIQUE SECTIONS
-// =============================================================================
-
-/** Time comparison wrapper around the shared TimeComparisonViz primitive. */
-function WomensHealthComparisonViz() {
+function WomensHealthCommonFacts() {
   return (
-    <div className="bg-muted/30 dark:bg-white/[0.02]">
-      <TimeComparisonViz
-        pill="Why go online?"
-        heading="Doctor-reviewed without the waiting room."
-        ours={{ label: "InstantMed", value: "Form", unit: "first" }}
-        theirs={{ label: "GP clinic", value: "2", valueSuffix: "+", unit: "hrs" }}
-        ourSteps={["2-min health form", "Doctor reviews privately", "Outcome sent to your phone"]}
-        theirSteps={["Book appointment", "Travel + wait in clinic", "Face-to-face consult"]}
-        primaryFillPercent={30}
-      />
-    </div>
+    <section aria-label="Women's health assessment facts" className="border-y border-border/50 bg-muted/25 py-8 dark:border-white/10 dark:bg-white/[0.02]">
+      <dl className="mx-auto grid max-w-6xl divide-y divide-border/50 px-4 sm:grid-cols-2 sm:divide-x sm:divide-y-0 sm:px-6 lg:grid-cols-4 lg:px-8">
+        {COMMON_FACTS.map((fact) => (
+          <div key={fact.label} className="px-4 py-4 first:pl-0 last:pr-0 sm:first:pl-4 sm:last:pr-4">
+            <dt className="flex items-center gap-3 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <fact.icon className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <span>{fact.label}</span>
+            </dt>
+            <dd className="ml-12 mt-1 text-sm font-semibold text-foreground">{fact.value}</dd>
+            <dd className="ml-12 mt-1 text-xs leading-5 text-muted-foreground">{fact.body}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   )
 }
 
-function UtiAssessmentSection({ isDisabled }: { isDisabled?: boolean }) {
+function WomensHealthPathwaysSection() {
   return (
-    <section id="uti-assessment" aria-label="UTI symptom assessment" className="bg-muted/30 py-16 dark:bg-white/[0.02] lg:py-20">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <Reveal instant className="mb-8 text-center">
-          <SectionPill>UTI symptoms</SectionPill>
-          <Heading level="h2" className="mb-2 mt-4">
-            UTI symptom assessment, with clear safety boundaries
-          </Heading>
-          <p className="mx-auto max-w-xl text-balance text-sm text-muted-foreground">
-            Start with a symptom and red-flag screen for possible uncomplicated UTI. Fever, back or side pain, pregnancy risk, blood in urine, or recurring symptoms may need in-person care.
+    <section id="pathways" className="py-14 sm:py-16 lg:py-20">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <Reveal instant className="mx-auto max-w-3xl text-center">
+          <SectionPill>Choose the right screen</SectionPill>
+          <Heading level="h2" className="mt-4">Two focused pathways, not a general consultation</Heading>
+          <p className="mt-3 text-base leading-7 text-muted-foreground">
+            Each child page explains its own form and safety checks before you start. Choose the concern that matches today.
           </p>
         </Reveal>
 
-        <div className="grid gap-4 sm:grid-cols-3">
-          {[
-            {
-              sticker: "medical-history" as const,
-              title: "Symptom fit",
-              body: "Burning, frequency, urgency, and cloudy urine are checked against the full safety context.",
-            },
-            {
-              sticker: "security-shield" as const,
-              title: "Red flags first",
-              body: "Pregnancy risk, kidney symptoms, systemic illness, and complex history change the route.",
-            },
-            {
-              sticker: "stethoscope" as const,
-              title: "Doctor decides",
-              body: "An AHPRA-registered doctor reviews your answers and decides whether online care is suitable.",
-            },
-          ].map((card, i) => (
-            <Reveal
-              key={card.title}
-              instant
-              delay={i * 0.1}
-              className="rounded-2xl border border-border/50 bg-white p-5 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none"
-            >
-              <StickerIcon name={card.sticker} size={40} className="mb-3" />
-              <Heading level="h3" className="mb-1.5 text-base">{card.title}</Heading>
-              <p className="text-sm text-muted-foreground">{card.body}</p>
-            </Reveal>
-          ))}
-        </div>
-
-        <Reveal instant className="mt-8 text-center">
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-11 font-semibold"
-              disabled={isDisabled}
-            >
-              <Link href={isDisabled ? "/contact" : WOMENS_HEALTH_HREF}>
-                {isDisabled ? "Contact us" : "Start UTI assessment"}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="ghost" className="h-11 font-semibold">
+        <div className="mt-8 grid gap-5 md:grid-cols-2">
+          <Reveal instant className="flex h-full flex-col rounded-2xl border border-sky-200 bg-sky-50/70 p-6 shadow-md shadow-primary/[0.04] dark:border-sky-800 dark:bg-sky-950/20 dark:shadow-none">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-600 text-white dark:bg-sky-400 dark:text-sky-950">
+              <Droplets className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <SectionPill className="mt-5 w-fit">UTI symptoms</SectionPill>
+            <Heading level="h3" className="mt-3">Possible uncomplicated UTI</Heading>
+            <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">
+              For common urinary symptoms when the red-flag screen does not point to pregnancy, kidney involvement, recurrent infection, or another condition needing examination.
+            </p>
+            <Button asChild size="lg" className="mt-6 w-full">
               <Link href="/uti-assessment-online">
-                Read the UTI assessment guide
-                <ArrowRight className="ml-2 h-4 w-4" />
+                View UTI assessment
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-          </div>
-        </Reveal>
-      </div>
-    </section>
-  )
-}
+          </Reveal>
 
-/** Contraceptive pill section. Primary on the pill route, secondary elsewhere. */
-function ContraceptivePillSection({
-  isDisabled,
-  mode,
-}: {
-  isDisabled?: boolean
-  mode: WomensHealthIntentCopy["pillSectionMode"]
-}) {
-  const isPrimary = mode === "primary"
-
-  return (
-    <section id="contraceptive-pill" aria-label="Contraceptive pill assessment" className="py-16 lg:py-20">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <Reveal instant className="text-center mb-8">
-          <SectionPill>{isPrimary ? "What doctors check" : "Also available"}</SectionPill>
-          <Heading level="h2" className="mt-4 mb-2">
-            Starting or switching the contraceptive pill
-          </Heading>
-          <p className="text-sm text-muted-foreground max-w-xl mx-auto text-balance">
-            Request an assessment to start a new pill or switch from your current one. The doctor reviews your history, safety screen, and what is clinically appropriate.
-          </p>
-        </Reveal>
-
-        <div className="grid gap-4 sm:grid-cols-3">
-          {[
-            {
-              sticker: "medical-history" as const,
-              title: "Routine safety screen",
-              body: "Standard health-history questions a doctor would normally cover. Nothing complicated, just the basics of safe prescribing.",
-            },
-            {
-              sticker: "stethoscope" as const,
-              title: "Doctor decides suitability",
-              body: "An AHPRA-registered doctor reviews your answers and decides what, if anything, is appropriate for you.",
-            },
-            {
-              sticker: "synchronize" as const,
-              title: "Already on the pill?",
-              body: "If your medication and dose are unchanged, a repeat prescription is the faster path. Start there instead.",
-            },
-          ].map((card, i) => (
-            <Reveal
-              key={card.title}
-              instant
-              delay={i * 0.1}
-              className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-5"
-            >
-              <StickerIcon name={card.sticker} size={40} className="mb-3" />
-              <Heading level="h3" className="mb-1.5 text-base">{card.title}</Heading>
-              <p className="text-sm text-muted-foreground">{card.body}</p>
-            </Reveal>
-          ))}
+          <Reveal instant className="flex h-full flex-col rounded-2xl border border-pink-200 bg-pink-50/70 p-6 shadow-md shadow-primary/[0.04] dark:border-pink-800 dark:bg-pink-950/20 dark:shadow-none">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-pink-600 text-white dark:bg-pink-400 dark:text-pink-950">
+              <HeartPulse className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <SectionPill className="mt-5 w-fit">Contraceptive pill</SectionPill>
+            <Heading level="h3" className="mt-3">Start a new pill or switch</Heading>
+            <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">
+              For a doctor review of your health history and prescribing safety when starting a pill or switching from your current option.
+            </p>
+            <Button asChild size="lg" className="mt-6 w-full">
+              <Link href="/contraceptive-pill-assessment-online">
+                View pill assessment
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
+            <Link href="/prescriptions" className="mt-4 inline-flex items-center justify-center gap-2 text-sm font-medium text-primary hover:underline">
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
+              Continuing the same pill? Use repeat prescriptions.
+            </Link>
+          </Reveal>
         </div>
-
-        <Reveal instant className="mt-8 text-center">
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-11 font-semibold"
-              disabled={isDisabled}
-            >
-              <Link href={isDisabled ? "/contact" : WOMENS_HEALTH_HREF}>
-                {isDisabled ? "Contact us" : "Start pill assessment"}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            {!isPrimary && (
-              <Button asChild size="lg" variant="ghost" className="h-11 font-semibold">
-                <Link href="/contraceptive-pill-assessment-online">
-                  Read the pill assessment guide
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            )}
-          </div>
-        </Reveal>
       </div>
     </section>
   )
 }
 
-function WomensHealthPricingSection({
-  isDisabled,
-  description,
-}: {
-  isDisabled?: boolean
-  description: string
-}) {
+function WomensHealthBoundarySection() {
   return (
-    <section id="pricing" aria-label="Pricing" className="py-16 lg:py-20">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <Reveal instant className="text-center mb-10">
-          <SectionPill>Pricing</SectionPill>
-          <Heading level="h2" className="mt-4 mb-3">
-            One flat fee. No hidden costs.
-          </Heading>
-          <p className="text-muted-foreground max-w-xl mx-auto text-balance">
-            Doctor review first. {GUARANTEE}
+    <section aria-labelledby="womens-health-boundary-title" className="bg-muted/30 py-14 dark:bg-white/[0.02] sm:py-16 lg:py-20">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <Reveal instant className="mx-auto max-w-3xl text-center">
+          <SectionPill>Safety boundary</SectionPill>
+          <Heading id="womens-health-boundary-title" level="h2" className="mt-4">Check what takes you out of online care</Heading>
+          <p className="mt-3 text-base leading-7 text-muted-foreground">
+            The forms screen these issues before payment where possible. Do not start with an online pathway when the safer route is already clear.
           </p>
         </Reveal>
 
-        <Reveal instant className="max-w-sm mx-auto">
-          <div className="relative rounded-2xl border flex flex-col overflow-hidden bg-white dark:bg-card border-primary/30 shadow-xl shadow-primary/[0.12]">
-            <div className="p-6 flex flex-col flex-1">
-              <div className="flex items-start justify-between mb-4">
-                <StickerIcon name="stethoscope" size={56} />
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary-strong border border-primary/20">
-                  One-time
-                </span>
+        <Reveal instant className="mt-8 overflow-hidden rounded-2xl border border-rose-200 bg-white shadow-md shadow-primary/[0.05] dark:border-rose-900 dark:bg-card dark:shadow-none">
+          <div className="grid divide-y divide-border/50 md:grid-cols-2 md:divide-x md:divide-y-0">
+            <div className="p-5 sm:p-6">
+              <div className="flex items-center gap-3">
+                <Droplets className="h-5 w-5 text-sky-700 dark:text-sky-300" aria-hidden="true" />
+                <Heading level="h3">UTI symptoms</Heading>
               </div>
-
-              <Heading level="h3" className="mb-1">Women&apos;s Health Assessment</Heading>
-              <p className="text-sm text-muted-foreground mb-5">{description}</p>
-
-              <div className="mb-5">
-                <span className="text-4xl font-semibold tracking-tight text-foreground">
-                  ${PRICING.WOMENS_HEALTH.toFixed(2)}
-                </span>
-                <span className="text-sm text-muted-foreground ml-2">one-off doctor review</span>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                Fever or chills, pain in your back or side, vomiting, blood in your urine, pregnancy or possible pregnancy, recurrent infections, pelvic pain, STI concerns, or symptoms that do not fit a simple lower-urinary pattern need in-person assessment. Call 000 for an emergency.
+              </p>
+            </div>
+            <div className="p-5 sm:p-6">
+              <div className="flex items-center gap-3">
+                <HeartPulse className="h-5 w-5 text-pink-700 dark:text-pink-300" aria-hidden="true" />
+                <Heading level="h3">Starting or switching the pill</Heading>
               </div>
-
-              <ul className="space-y-2 mb-6 flex-1">
-                {PRICING_BULLETS.map((bullet) => (
-                  <li key={bullet} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    {bullet}
-                  </li>
-                ))}
-              </ul>
-
-              <Button
-                asChild
-                size="lg"
-                className="w-full h-11 font-semibold shadow-md shadow-primary/20"
-                disabled={isDisabled}
-              >
-                <Link href={isDisabled ? "/contact" : WOMENS_HEALTH_HREF}>
-                  {isDisabled ? "Contact us" : "Start assessment"}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                Possible pregnancy, migraine with aura, clot history, or smoking route you away from this online start-or-switch pathway before payment. Missing blood pressure context, pelvic pain, heavy bleeding, STI concerns, or other safety uncertainty may also require in-person review or a different pathway.
+              </p>
             </div>
           </div>
+          <div className="flex items-start gap-3 border-t border-rose-200 bg-rose-50 px-5 py-4 text-sm leading-6 text-rose-950 dark:border-rose-900 dark:bg-rose-950/20 dark:text-rose-100 sm:px-6">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+            <p><span className="font-semibold">Prescription is never guaranteed.</span> The reviewing doctor decides whether online care is clinically appropriate after the complete safety screen.</p>
+          </div>
         </Reveal>
       </div>
     </section>
   )
 }
 
-// =============================================================================
-// MAIN PAGE COMPONENT
-// =============================================================================
+function WomensHealthReviewAndPriceSection() {
+  return (
+    <section id="review-and-price" aria-labelledby="womens-health-review-title" className="py-14 sm:py-16 lg:py-20">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <Reveal instant className="mx-auto max-w-3xl text-center">
+          <SectionPill>Doctor review and fee</SectionPill>
+          <Heading id="womens-health-review-title" level="h2" className="mt-4">One fee across either focused pathway</Heading>
+          <p className="mt-3 text-base leading-7 text-muted-foreground">
+            The UTI and pill pathways use different safety screens, but the review, refund, and pharmacy-cost boundaries are the same.
+          </p>
+        </Reveal>
 
-export function WomensHealthLanding({ intent = "overview" }: { intent?: WomensHealthIntent }) {
-  const copy = INTENT_COPY[intent]
+        <div className="mt-8 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+          <Reveal instant className="rounded-2xl border border-primary/30 bg-white p-6 shadow-xl shadow-primary/[0.1] dark:border-white/15 dark:bg-card dark:shadow-none">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Doctor review</p>
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary-strong border border-primary/20">One-time</span>
+            </div>
+            <p className="mt-3 text-4xl font-semibold tracking-tight text-foreground">{PRICING_DISPLAY.WOMENS_HEALTH}</p>
+            <ul className="mt-5 space-y-3">
+              <li className="flex gap-2 text-sm leading-6 text-muted-foreground"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />{GUARANTEE}</li>
+              <li className="flex gap-2 text-sm leading-6 text-muted-foreground"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />Pharmacy and medicine costs are separate if a prescription is approved.</li>
+              <li className="flex gap-2 text-sm leading-6 text-muted-foreground"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />No subscription or recurring InstantMed fee.</li>
+            </ul>
+          </Reveal>
+
+          <Reveal instant className="rounded-2xl border border-border/50 bg-muted/25 p-6 dark:border-white/15 dark:bg-white/[0.03]">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Stethoscope className="h-6 w-6" aria-hidden="true" />
+            </span>
+            <Heading level="h3" className="mt-4">AHPRA-registered doctor review</Heading>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              {DOCTOR_REGISTRATION_CLAIM} The doctor may call or message if a safety detail needs clarification, approve when clinically appropriate, decline, or recommend a safer in-person route.
+            </p>
+            <a
+              href="https://www.ahpra.gov.au/Registration/Registers-of-Practitioners.aspx"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center text-sm font-medium text-primary hover:underline"
+            >
+              Check the AHPRA public register
+              <ArrowRight className="ml-1.5 h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+          </Reveal>
+        </div>
+
+        <RegulatoryPartners className="mt-8 border-t border-border/50 pb-0 pt-7 dark:border-white/10" />
+      </div>
+    </section>
+  )
+}
+
+function WomensHealthFinalChoice({ isDisabled, onChoose }: { isDisabled: boolean; onChoose: () => void }) {
+  const utiHref = isDisabled ? "/contact" : "/uti-assessment-online"
+  const pillHref = isDisabled ? "/contact" : "/contraceptive-pill-assessment-online"
 
   return (
+    <section id="choose-care" className="py-14 sm:py-16 lg:py-20">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <Reveal instant className="rounded-3xl border border-border/50 bg-[color:var(--morning-ivory)]/65 p-7 text-center shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-9">
+          <SectionPill>Choose your pathway</SectionPill>
+          <Heading level="h2" className="mt-4">What do you need reviewed?</Heading>
+          <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
+            Read the focused child page, check its safety boundary, then start the form that matches your concern.
+          </p>
+          <div className="mt-7 grid gap-3 sm:grid-cols-2">
+            <Button asChild size="lg" className="h-auto min-h-12 whitespace-normal py-3" disabled={isDisabled} onClick={onChoose}>
+              <Link href={utiHref}>
+                {isDisabled ? "Contact us" : "UTI symptom assessment"}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="h-auto min-h-12 whitespace-normal py-3" disabled={isDisabled} onClick={onChoose}>
+              <Link href={pillHref}>
+                {isDisabled ? "Contact us" : "Start or switch the pill"}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
+          </div>
+          <Link href="/prescriptions" className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            Continuing the same pill? Use repeat prescriptions.
+          </Link>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
+export function WomensHealthLanding() {
+  return (
     <LandingPageShell
-      config={getLandingConfig(copy)}
+      config={LANDING_CONFIG}
       afterFooter={<ContentHubLinks service="womens-health" />}
     >
-      {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
+      {({ isDisabled, heroCTARef, handleHeroCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
-          {/* 1. Hero: UTI-led headline + CTA, with the generic eScript hero
-              mockup standing in for the prescribing outcome. */}
           <Hero
-            title={copy.heroTitle}
+            title="Women's health: choose the right online assessment."
             primaryCta={{
-              text: copy.stickyCta,
-              href: WOMENS_HEALTH_HREF,
+              text: isDisabled ? "Contact us" : "Choose UTI or pill assessment",
+              href: isDisabled ? "/contact" : "#choose-care",
               onClick: handleHeroCTA,
               ref: heroCTARef,
             }}
             secondaryCta={null}
             beforeCta={
-              <p className="inline-flex items-start sm:items-center gap-2 text-[13px] text-foreground max-w-xl mx-auto lg:mx-0 leading-snug text-left sm:text-center lg:text-left">
-                <Lock className="w-4 h-4 text-success shrink-0 mt-px sm:mt-0" aria-hidden="true" />
-                <span>
-                  Private and discreet.
-                  <span className="text-muted-foreground"> Your request is reviewed securely by an Australian doctor.</span>
-                </span>
+              <p className="mx-auto inline-flex max-w-xl items-start gap-2 text-left text-[13px] leading-snug text-foreground lg:mx-0">
+                <Lock className="mt-px h-4 w-4 shrink-0 text-success" aria-hidden="true" />
+                <span>Private and secure.<span className="text-muted-foreground"> Each focused form is reviewed by an Australian doctor.</span></span>
               </p>
             }
-            mockup={<EScriptHeroMockup />}
+            mockup={<WomensHealthDecisionFork />}
           >
-            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
-              {copy.heroBody}
+            <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-relaxed text-muted-foreground sm:text-base lg:mx-0 lg:text-lg">
+              {FORM_FIRST_WEDGE} Choose UTI symptoms or starting and switching the pill, then review the pathway-specific safety boundary before you begin.
             </p>
           </Hero>
 
-          {/* Live wait time */}
-          <LiveWaitTime variant="strip" services={["consult"]} />
+          <WomensHealthCommonFacts />
+          <WomensHealthPathwaysSection />
+          <WomensHealthBoundarySection />
+          <WomensHealthReviewAndPriceSection />
 
-          {/* Service claim: UTI-led clinical legitimacy without drug-led copy. */}
-          <ServiceClaimSection
-            eyebrow={copy.claimEyebrow}
-            headline={
-              <>
-                {copy.claimHeadlineLead} <span className="text-primary">{copy.claimHeadlineAccent}</span>
-              </>
-            }
-            body={copy.claimBody}
-          />
-
-          {/* Red-flag honesty strip: when online care is not suitable. */}
-          <section aria-label="When to be seen in person" className="py-8 sm:py-12">
-            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-              <Reveal instant className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-6">
-                <div className="flex items-start gap-3">
-                  <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <Heading level="h3" className="mb-1.5 text-base">{copy.safetyTitle}</Heading>
-                    <p className="text-sm text-muted-foreground">
-                      {copy.safetyBody}
-                    </p>
-                  </div>
-                </div>
-              </Reveal>
-            </div>
-          </section>
-
-          {/* 2. How It Works */}
-          <HowItWorksInline
-            steps={HOW_IT_WORKS_STEPS}
-            ctaHref={WOMENS_HEALTH_HREF}
-            onCTAClick={handleHowItWorksCTA}
-            isDisabled={isDisabled}
-            subheading={copy.howItWorksSubheading}
-            revealInstant
-          />
-
-          {/* 3. Time comparison */}
-          <WomensHealthComparisonViz />
-
-          {/* 4. UTI assessment section. */}
-          <UtiAssessmentSection isDisabled={isDisabled} />
-
-          {/* 5. Contraceptive pill section. */}
-          <ContraceptivePillSection isDisabled={isDisabled} mode={copy.pillSectionMode} />
-
-          {/* 6. Doctor profile */}
-          <DoctorProfileSection instant />
-
-          {/* 7. Pricing */}
-          <WomensHealthPricingSection isDisabled={isDisabled} description={copy.pricingDescription} />
-
-          {/* Regulatory Partners */}
-          <RegulatoryPartners className="py-12" />
-
-          {/* 8. FAQ via the shared <FAQSection> primitive. */}
           <FAQSection
             pill="FAQ"
-            title="Frequently asked questions"
-            subtitle={copy.faqSubtitle}
-            items={copy.faq}
-            initialCount={4}
+            title="Women's health assessment questions"
+            subtitle="The essentials before choosing the UTI or pill pathway."
+            items={WOMENS_HEALTH_HUB_FAQ}
+            initialCount={6}
             onFAQOpen={handleFAQOpen}
             viewAllHref="/faq"
             className="bg-muted/30 dark:bg-white/[0.02]"
           />
 
-          {/* Referral strip */}
-          <ReferralStrip contextText={copy.referralContext} />
-
-          {/* 9. Final CTA via the shared <CTABanner> primitive. */}
-          <CTABanner
-            title={copy.finalTitle}
-            subtitle={copy.finalSubtitle}
-            ctaText={copy.finalCta}
-            ctaHref={WOMENS_HEALTH_HREF}
-            onCtaClick={handleFinalCTA}
-            isDisabled={isDisabled}
-            price={PRICING.WOMENS_HEALTH}
-            microcopy="Takes about 2 minutes."
-            revealInstant
-          />
+          <WomensHealthFinalChoice isDisabled={isDisabled} onChoose={handleFinalCTA} />
         </>
       )}
     </LandingPageShell>

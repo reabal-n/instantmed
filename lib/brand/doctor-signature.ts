@@ -42,9 +42,9 @@ export const MEDICAL_DIRECTOR_SIGNATURE: DoctorSignatureData = {
   fullName: "Medical Director",
   credentials: "AHPRA-registered",
   signatureAssetPath: "/branding/eSignature.png",
-  // Asset native dimensions: 1024 x 250 (rough). Renders are scaled by CSS.
-  signatureAssetWidth: 1024,
-  signatureAssetHeight: 250,
+  // Exact source dimensions. The view reserves its compact display box separately.
+  signatureAssetWidth: 2000,
+  signatureAssetHeight: 1400,
 }
 
 /**

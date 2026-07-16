@@ -4,7 +4,11 @@ import type React from "react"
 
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { Navbar } from "@/components/shared/navbar"
-import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS, PRICING_DISPLAY } from "@/lib/constants"
+import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+
+const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
+const COMPLAINTS_TIMING = getApprovedClaim("complaints_timing")
 
 export const metadata: Metadata = {
   title: "Refund Policy",
@@ -33,7 +37,7 @@ export default function RefundPolicyPage() {
             <h1 className="text-3xl font-semibold tracking-tight text-foreground">
               Refund Policy
             </h1>
-            <p className="mt-2 text-sm text-muted-foreground">Last updated: March 2026</p>
+            <p className="mt-2 text-sm text-muted-foreground">Last updated: July 2026</p>
           </div>
         </section>
 
@@ -44,32 +48,30 @@ export default function RefundPolicyPage() {
 
               <S n="1" title="Overview">
                 <p>
-                  InstantMed is committed to fair and transparent pricing. Payment is collected at
-                  the time you submit your request. If your request cannot be fulfilled, we provide a
-                  full refund. This policy outlines when refunds apply and how they are processed.
+                  {REFUND_PAYMENT_PROCESS} This policy explains when that guarantee applies, how
+                  other refund requests are assessed, and what happens after a refund starts.
                 </p>
               </S>
 
               <S n="2" title="When You Are Eligible for a Refund">
                 <ul>
                   <li>
-                    <strong>Request declined by a doctor</strong> - If a doctor determines your
-                    request is not appropriate for telehealth or requires an in-person examination,
-                    you will receive an automatic full refund. This applies to medical certificates
-                    (from {PRICING_DISPLAY.MED_CERT}) and prescriptions ({PRICING_DISPLAY.REPEAT_SCRIPT}).
+                    <strong>Clinical decline</strong> - If a doctor declines your medical certificate,
+                    prescription, or specialty request, the full request fee and any priority fee are
+                    automatically refunded.
                   </li>
                   <li>
-                    <strong>Cancellation before review</strong> - If you cancel your request before a
-                    doctor begins reviewing it, you will receive a full refund.
+                    <strong>In-person care recommended</strong> - A recorded decline because online
+                    care is not suitable receives the same automatic full refund.
                   </li>
                   <li>
-                    <strong>Review not completed within 24 hours</strong> - If a doctor is unable to
-                    review your request within 24 hours of submission, you may request a full refund.
+                    <strong>Duplicate or incorrect charge</strong> - Contact support so we can verify
+                    the payment and return any amount charged in error.
                   </li>
                   <li>
-                    <strong>Technical issues</strong> - If a system error prevents delivery of your
-                    medical certificate, prescription, or consultation outcome, you are entitled to a
-                    full refund.
+                    <strong>Confirmed service failure</strong> - If a technical problem prevents us
+                    from providing an approved outcome and we cannot correct it, support will arrange
+                    the appropriate refund.
                   </li>
                 </ul>
               </S>
@@ -77,14 +79,14 @@ export default function RefundPolicyPage() {
               <S n="3" title="When Refunds Do Not Apply">
                 <ul>
                   <li>
-                    <strong>Approved requests</strong> - Once a doctor has approved your request and
-                    delivered your medical certificate or prescription, a refund is not available. The
-                    service has been provided.
+                    <strong>Completed service</strong> - Once an approved certificate, eScript, or
+                    clinical outcome has been delivered, a change-of-mind refund is generally not
+                    available. Your rights under Australian Consumer Law are not excluded.
                   </li>
                   <li>
-                    <strong>Consultations</strong> - Telehealth consultations are non-refundable once
-                    a doctor has reviewed your information and provided clinical advice, regardless of
-                    the clinical outcome.
+                    <strong>Change of mind after review begins</strong> - Contact support as soon as
+                    possible. Eligibility depends on whether clinical work or delivery has already
+                    occurred.
                   </li>
                   <li>
                     <strong>Inaccurate information</strong> - If a request is declined because you
@@ -98,19 +100,19 @@ export default function RefundPolicyPage() {
               <S n="4" title="How Refunds Are Processed">
                 <ul>
                   <li>
-                    Eligible refunds are processed automatically when a doctor declines your request.
-                    No action is required on your part.
+                    A recorded clinical decline starts the full refund automatically. No separate
+                    refund form is required.
                   </li>
                   <li>
                     Refunds are returned to your original payment method (the card or account used at
                     checkout).
                   </li>
                   <li>
-                    Refunds typically appear within <strong>3–5 business days</strong>, though your
-                    bank may take longer to process.
+                    Your bank or card issuer controls when the credit appears on your statement, so
+                    timing varies after the refund is started.
                   </li>
                   <li>
-                    You will receive an email confirmation when your refund has been issued.
+                    Support can verify the refund status if a confirmation message is delayed or missing.
                   </li>
                 </ul>
               </S>
@@ -132,7 +134,7 @@ export default function RefundPolicyPage() {
                     </a>
                   </li>
                   <li>Include your name, email address, and the date of your request.</li>
-                  <li>We aim to respond to refund enquiries within 2 business days.</li>
+                  <li>We will verify the payment record and tell you what happens next.</li>
                 </ul>
               </S>
 
@@ -146,14 +148,18 @@ export default function RefundPolicyPage() {
                   >
                     {CONTACT_EMAIL_COMPLAINTS}
                   </a>
-                  . We will respond within 14 business days. You may also contact your bank or
-                  payment provider to dispute a charge, or escalate to the relevant state health
-                  complaints commissioner.
+                  . {COMPLAINTS_TIMING} You may also contact your bank or payment provider to dispute
+                  a charge, or escalate to the relevant state health complaints body.
                 </p>
               </S>
 
               <S n="7" title="Related Policies">
                 <ul>
+                  <li>
+                    <Link href="/guarantee" className="text-primary hover:underline">
+                      Refund-on-decline guarantee
+                    </Link>
+                  </li>
                   <li>
                     <Link href="/terms#fees" className="text-primary hover:underline">
                       Terms of Service - Fees, Payment, and Refunds

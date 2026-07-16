@@ -35,6 +35,13 @@ vi.mock("@/lib/analytics/posthog-server", () => ({
 vi.mock("@/lib/safety/audit-log", () => ({
   recordSafetyEvaluationForOperators: vi.fn(async () => {}),
 }))
+vi.mock("@/lib/validation/repeat-script-schema", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/validation/repeat-script-schema")>()
+  return {
+    ...actual,
+    validateRepeatScriptPayload: vi.fn(actual.validateRepeatScriptPayload),
+  }
+})
 // retry-payment.ts collaborators (only reached after the safety gate; mocked so
 // the module loads and the post-safety path is inert for these tests).
 vi.mock("@/lib/auth/helpers", () => ({
@@ -46,12 +53,23 @@ vi.mock("@/lib/rate-limit/redis", () => ({
 vi.mock("@/lib/data/intake-answers", () => ({
   getIntakeAnswersForPaymentSafety: vi.fn(),
 }))
+vi.mock("@/lib/dashboard/revalidate-staff", () => ({
+  revalidatePatient: vi.fn(),
+  revalidateStaff: vi.fn(),
+}))
+vi.mock("@/lib/stripe/checkout/missing-safety-payment-hold", () => ({
+  holdCheckoutForMissingSafetyInformation: vi.fn(async () => "held"),
+}))
 
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { getIntakeAnswersForPaymentSafety } from "@/lib/data/intake-answers"
+import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { runClinicalValidation } from "@/lib/stripe/checkout/clinical-validation"
+import { holdCheckoutForMissingSafetyInformation } from "@/lib/stripe/checkout/missing-safety-payment-hold"
 import { retryPaymentForIntakeAction } from "@/lib/stripe/checkout/retry-payment"
+import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 
 import { mockSupabaseSingle, resetAllMocks } from "./setup"
 
@@ -79,10 +97,35 @@ function medCertInput() {
   } as never
 }
 
+function repeatScriptInput(sideEffectAnswers: Record<string, unknown>) {
+  return {
+    category: "prescription",
+    subtype: "repeat",
+    type: "repeat_rx",
+    idempotencyKey: "idem-key-1234567890",
+    answers: {
+      pbs_code: "MANUAL",
+      medication_name: "Rosuvastatin",
+      medication_display: "Rosuvastatin",
+      medication_strength: "10 mg",
+      medication_form: "tablet",
+      prescribed_before: true,
+      doseChanged: false,
+      dose_changed: false,
+      last_prescribed: "6_to_12_months",
+      current_dose: "10 mg nightly",
+      emergency_symptoms: [],
+      ...sideEffectAnswers,
+    },
+  } as never
+}
+
 beforeEach(() => {
   resetAllMocks()
   mock(validateSafetyFieldsPresent).mockClear()
   mock(checkSafetyForServer).mockClear()
+  mock(validateRepeatScriptPayload).mockClear()
+  mock(recordSafetyEvaluationForOperators).mockClear()
 })
 
 describe("shared checkout path (authenticated + guest via runClinicalValidation)", () => {
@@ -110,6 +153,38 @@ describe("shared checkout path (authenticated + guest via runClinicalValidation)
 
     expect(result.ok).toBe(false)
     expect("error" in result ? result.error : "").toMatch(/missing/i)
+    expect(checkSafetyForServer).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ["a missing yes/no answer", {}],
+    ["a true answer with blank details", { hasSideEffects: true, sideEffects: "   " }],
+  ])("uses canonical repeat completeness for %s before auth/guest safety evaluation", async (
+    _case,
+    sideEffectAnswers,
+  ) => {
+    const result = await runClinicalValidation(repeatScriptInput(sideEffectAnswers))
+
+    expect(result.ok).toBe(false)
+    expect("error" in result ? result.error : "").toMatch(/required medical information is missing/i)
+    expect(validateRepeatScriptPayload).not.toHaveBeenCalled()
+    expect(validateSafetyFieldsPresent).toHaveBeenCalledWith(
+      "common-scripts",
+      expect.objectContaining(sideEffectAnswers),
+    )
+    expect(recordSafetyEvaluationForOperators).toHaveBeenCalledWith({
+      answers: expect.objectContaining(sideEffectAnswers),
+      context: "checkout",
+      result: {
+        isAllowed: false,
+        outcome: "REQUEST_MORE_INFO",
+        riskTier: "high",
+        blockReason: "Required medical information is missing.",
+        requiresCall: false,
+        triggeredRuleIds: ["missing_safety_fields"],
+      },
+      serviceSlug: "common-scripts",
+    })
     expect(checkSafetyForServer).not.toHaveBeenCalled()
   })
 })
@@ -149,10 +224,68 @@ describe("retry-payment path (retryPaymentForIntakeAction)", () => {
 
     expect(result.success).toBe(false)
     expect(result.error).toMatch(/missing/i)
+    expect(result.paymentRecoveryReason).toBe("more_information_required")
     // The safety engine must not run, and we must not have reached Stripe.
     expect(validateSafetyFieldsPresent).toHaveBeenCalledTimes(1)
+    expect(holdCheckoutForMissingSafetyInformation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        intakeId: "intake-1",
+        missingFields: ["symptom_duration"],
+        patientId: "pat-1",
+        source: "retry_payment",
+      }),
+    )
     expect(checkSafetyForServer).not.toHaveBeenCalled()
   })
+
+  it("projects a known persisted hold when exact-Session invalidation remains unresolved", async () => {
+    mockSupabaseSingle.mockResolvedValue({
+      data: {
+        ...retryableIntake,
+        checkout_error: "safety_missing_required_information",
+      },
+      error: null,
+    })
+    mock(holdCheckoutForMissingSafetyInformation).mockResolvedValueOnce(
+      "held_invalidation_unresolved",
+    )
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result.success).toBe(false)
+    expect(result.paymentRecoveryReason).toBe("more_information_required")
+    expect(getIntakeAnswersForPaymentSafety).not.toHaveBeenCalled()
+    expect(checkSafetyForServer).not.toHaveBeenCalled()
+    expect(revalidatePatient).toHaveBeenCalledWith({
+      intakeId: "intake-1",
+      patientId: "pat-1",
+    })
+    expect(revalidateStaff).toHaveBeenCalledWith({
+      intakeId: "intake-1",
+      patientId: "pat-1",
+    })
+  })
+
+  it.each(["state_changed", "unresolved", "payment_in_flight"] as const)(
+    "does not project a held recovery reason for %s reconciliation",
+    async (holdResult) => {
+    mockSupabaseSingle.mockResolvedValue({
+      data: {
+        ...retryableIntake,
+        checkout_error: "safety_missing_required_information",
+      },
+      error: null,
+    })
+    mock(holdCheckoutForMissingSafetyInformation).mockResolvedValueOnce(holdResult)
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result.success).toBe(false)
+    expect(result.paymentRecoveryReason).toBeUndefined()
+    expect(getIntakeAnswersForPaymentSafety).not.toHaveBeenCalled()
+    expect(checkSafetyForServer).not.toHaveBeenCalled()
+    },
+  )
 
   it("runs field presence BEFORE the safety engine on a complete intake", async () => {
     mock(validateSafetyFieldsPresent).mockReturnValueOnce({ valid: true, missingFields: [] })

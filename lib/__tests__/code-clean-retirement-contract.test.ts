@@ -154,12 +154,17 @@ describe("code-clean retirement contracts", () => {
 
   it("keeps obsolete analytics, blog-image, and SEO engines retired", () => {
     const retiredContentHelpers = [
+      "components/seo/near-me-banner.tsx",
+      "components/seo/seo-page-template.tsx",
+      "components/seo/schemas/local-business.tsx",
       "lib/analytics/ab-test.ts",
       "lib/blog/images.ts",
       "lib/data/analytics.ts",
       "lib/seo/comparisons.ts",
       "lib/seo/linking.ts",
       "lib/seo/metadata.ts",
+      "lib/seo/pages",
+      "scripts/seo-generator.ts",
     ]
     const orphanCheck = read("scripts/check-orphaned-files.sh")
 
@@ -172,6 +177,7 @@ describe("code-clean retirement contracts", () => {
     expect(read("app/admin/analytics/page.tsx")).toContain("getRevenueDashboard")
     expect(read("app/compare/[slug]/page.tsx")).toContain("export async function generateMetadata")
     expect(read("app/compare/sitemap.ts")).toContain("@/lib/seo/data/comparisons")
+    expect(read("package.json")).not.toContain('"seo:generate"')
   })
 
   it("keeps superseded marketing mockups and wrappers retired", () => {
@@ -183,6 +189,11 @@ describe("code-clean retirement contracts", () => {
       "components/marketing/mockups/ed-hero-mockup.tsx",
       "components/marketing/mockups/escript.tsx",
       "components/marketing/mockups/how-it-works-steps.tsx",
+      "components/marketing/compliance-marquee.tsx",
+      "components/marketing/floating-card.tsx",
+      "components/marketing/how-it-works.tsx",
+      "components/marketing/mockups/hair-loss-hero-mockup.tsx",
+      "components/marketing/service-cards.tsx",
       "components/marketing/sections/certificate-preview-section.tsx",
       "components/marketing/sections/how-it-works-section.tsx",
     ]
@@ -195,8 +206,10 @@ describe("code-clean retirement contracts", () => {
 
     expect(read("components/marketing/med-cert-landing.tsx")).toContain("MedCertHeroMockup")
     expect(read("components/marketing/prescriptions-landing.tsx")).toContain("EScriptHeroMockup")
-    expect(read("components/marketing/hair-loss-landing.tsx")).toContain("HairLossHeroMockup")
-    expect(read("app/(marketing)/page.tsx")).toContain("@/components/marketing/how-it-works")
+    expect(read("components/marketing/hair-loss-landing.tsx")).toContain("HairAssessmentModel")
+    expect(read("components/marketing/hair-loss-landing.tsx")).not.toContain("HairLossHeroMockup")
+    expect(read("app/(marketing)/page.tsx")).toContain("@/components/marketing/portfolio-route-map")
+    expect(read("app/(marketing)/page.tsx")).not.toContain("@/components/marketing/how-it-works")
     expect(read("app/for/universities/page.tsx")).toContain("SampleCertificate")
   })
 
@@ -223,10 +236,10 @@ describe("code-clean retirement contracts", () => {
     )
     expect(read("app/hair-loss/page.tsx")).toContain("HairLossLanding")
     expect(read("components/marketing/erectile-dysfunction-landing.tsx")).toContain(
-      "SAFETY_CHECKS",
+      "EdSafetyDecisionMap",
     )
     expect(read("components/marketing/hair-loss-landing.tsx")).toContain(
-      "HairLossHeroMockup",
+      "HairAssessmentModel",
     )
     expect(read("components/request/steps/ed-assessment-step.tsx")).toContain(
       "@/lib/marketing/ed-hook-quiz",
@@ -239,10 +252,14 @@ describe("code-clean retirement contracts", () => {
       "components/marketing/sections/common-concerns-section.tsx",
       "components/marketing/sections/consult-guide-section.tsx",
       "components/marketing/sections/consult-limitations-section.tsx",
+      "components/marketing/sections/escript-explainer-section.tsx",
       "components/marketing/sections/expect-call-strip.tsx",
       "components/marketing/sections/final-cta-section.tsx",
       "components/marketing/sections/med-cert-guide-section.tsx",
+      "components/marketing/sections/competitor-links-section.tsx",
+      "components/marketing/sections/pricing-guide-section.tsx",
       "components/marketing/sections/pricing-section.tsx",
+      "components/marketing/sections/prescription-limitations-section.tsx",
       "components/marketing/sections/specialised-consults-section.tsx",
     ]
     const orphanCheck = read("scripts/check-orphaned-files.sh")
@@ -252,12 +269,16 @@ describe("code-clean retirement contracts", () => {
       expect(orphanCheck).toContain(path)
     }
 
-    expect(read("app/consult/page.tsx")).toContain("canonical detailed services index")
+    expect(read("app/consult/page.tsx")).toContain("getActiveServiceDecisions")
+    expect(read("app/consult/page.tsx")).toContain("ServiceDecisionBoard")
     expect(read("app/pricing/page.tsx")).toContain("<PricingContent />")
     expect(read("components/marketing/med-cert-landing.tsx")).toContain(
       "WorkplaceProofPanel",
     )
-    expect(read("components/marketing/med-cert-landing.tsx")).toContain("CertComparisonViz")
+    expect(read("components/marketing/med-cert-landing.tsx")).not.toContain("CertComparisonViz")
+    expect(read("components/marketing/prescriptions-landing.tsx")).toContain(
+      "PrescriptionLifecycleGraphic",
+    )
     expect(read("components/sections/cta-banner.tsx")).toContain("export function CTABanner")
 
     expect(read("lib/__tests__/marketing-copy-contract.test.ts")).toContain(
@@ -265,9 +286,6 @@ describe("code-clean retirement contracts", () => {
     )
     expect(read("lib/__tests__/paid-claims-contract.test.ts")).toContain(
       '"components/sections/cta-banner.tsx"',
-    )
-    expect(read("lib/__tests__/dashboard-simplicity-performance-contract.test.ts")).toContain(
-      '"components/marketing/sections/pricing-guide-section.tsx"',
     )
     expect(read("CLAUDE.md")).not.toContain("certificate-type-selector.tsx")
     expect(read("AGENTS.md")).not.toContain("certificate-type-selector.tsx")

@@ -47,14 +47,18 @@ describe("women's-health intent entry pages", () => {
     }
   })
 
-  it("keeps both entry pages on the existing women's-health intake contract", () => {
+  it("keeps the hub as a chooser while child pages own the intake entry", () => {
     const landing = read("components/marketing/womens-health-landing.tsx")
     const contentHubLinks = read("components/seo/content-hub-links.tsx")
 
-    expect(landing).toContain('const WOMENS_HEALTH_HREF = "/request?service=consult&subtype=womens_health"')
-    expect(landing).toContain('intent = "overview"')
-    expect(landing).toContain('analyticsId: "womens-health-uti"')
-    expect(landing).toContain('analyticsId: "womens-health-pill"')
+    expect(landing).toContain('analyticsId: "womens-health"')
+    expect(landing).toContain('ctaHref: "#choose-care"')
+    expect(landing).toContain('href="/uti-assessment-online"')
+    expect(landing).toContain('href="/contraceptive-pill-assessment-online"')
+    expect(landing).toContain('href="/prescriptions"')
+    expect(landing).not.toContain("WomensHealthIntent")
+    expect(landing).not.toContain("INTENT_COPY")
+    expect(landing).not.toContain("service=consult&subtype=womens_health")
     expect(contentHubLinks).toContain("/uti-assessment-online")
     expect(contentHubLinks).toContain("/contraceptive-pill-assessment-online")
 
@@ -82,8 +86,8 @@ describe("women's-health intent entry pages", () => {
 
     expect(combinedSource).toContain("pregnancy or possible pregnancy")
     expect(combinedSource).toContain("migraine with aura")
-    expect(combinedSource).toContain("repeat-prescription pathway")
-    expect(combinedSource).toContain("may call you briefly")
+    expect(combinedSource).toContain("Continuing the same pill? Use repeat prescriptions.")
+    expect(combinedSource).toContain("may call or message if a safety detail needs clarification")
     expect(combinedSource).not.toMatch(/\b(antibiotics?|same[- ]day|no call needed|no phone call)\b/i)
     expect(combinedSource).not.toMatch(/\b(guaranteed prescription|guaranteed treatment|treatment guaranteed|prescription guaranteed|guaranteed outcome)\b/i)
     expect(combinedSource).not.toMatch(/\b(sildenafil|tadalafil|finasteride|dutasteride|semaglutide|tirzepatide)\b/i)

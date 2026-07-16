@@ -92,16 +92,35 @@ describe("OCP (new/switch pill) checkout clinical path", () => {
     expect(result.ok).toBe(false)
   })
 
-  it("blocks a possibly-pregnant new-pill request before payment", async () => {
-    const result = await runClinicalValidation(ocpInput({ pregnancyStatus: "not_sure" }))
-    expect(result.ok).toBe(false)
-  })
+  it.each([
+    [
+      "possible pregnancy",
+      { pregnancyStatus: "not_sure" },
+      "Pregnancy needs to be ruled out before starting or switching the pill",
+    ],
+    [
+      "migraine with aura",
+      { womens_migraine_aura: "yes" },
+      "Some contraceptive pills may be unsafe if you have migraines with aura",
+    ],
+    [
+      "blood-clot history",
+      { womens_blood_clot_history: "yes" },
+      "Some contraceptive pills may be unsafe if you or a close family member have had a blood clot",
+    ],
+    [
+      "smoking",
+      { womens_smoker: "yes" },
+      "Smoking changes which contraceptive pills may be safe, especially from age 35",
+    ],
+  ])("blocks crafted %s answers before payment with truthful redirection", async (_label, overrides, expectedMessage) => {
+    const result = await runClinicalValidation(ocpInput(overrides))
 
-  it("routes combined-pill contraindications (migraine-aura / clot / smoker) to a call before payment", async () => {
-    for (const field of ["womens_migraine_aura", "womens_blood_clot_history", "womens_smoker"]) {
-      const result = await runClinicalValidation(ocpInput({ [field]: "yes" }))
-      expect(result.ok, field).toBe(false)
-    }
+    expect(result.ok).toBe(false)
+    if (result.ok) throw new Error("Expected clinical validation to block checkout")
+    expect(result.error).toContain(expectedMessage)
+    expect(result.error).toMatch(/GP or sexual health clinic/i)
+    expect(result.error).not.toMatch(/call|contact|progestogen|mini-pill|implant|IUD/i)
   })
 
   it("blocks checkout when the OCP safety fields are missing (crafted payload)", async () => {

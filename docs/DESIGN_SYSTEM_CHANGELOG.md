@@ -6,9 +6,17 @@
 
 ### Added
 - `--primary-strong` / `text-primary-strong` for AA-safe small primary text on primary tints. Light mode uses `#1D4ED8`; dark mode maps to the existing primary. This is additive and does not require a version bump.
+- The canonical marketing `Hero` now accepts a `reassuranceRow` slot plus section and mockup class overrides so a multi-service page can use truthful portfolio-wide reassurance, clear floating navigation, and prioritize decisions over decorative mobile art. Existing heroes retain their default row and responsive mockup; this is additive and does not require a version bump.
 
 ### Changed
 - Set the dark `--primary-foreground` to `#0B1120` so text and icons on the unchanged teal primary clear AA contrast. Raised low-contrast medical-certificate mockup metadata and its decorative "Specimen" watermark to legible dark-mode treatments. No design-system version bump is required.
+- Corrected `GoogleAdsCert` to the exact label `Google Ads Online Pharmacy Certification`, with copy explaining that it is advertising eligibility rather than a clinical endorsement. The superseded label recorded under 1.1.0 remains below as historical release history; it is not current implementation or copy guidance.
+- Documented `lib/marketing/approved-claims.ts` as the owner of high-risk factual strings and evidence receipts. `lib/marketing/voice.ts` remains the stable brand-alias and voice-policy API.
+- Compressed marketing hero/reveal motion to 220-250ms strong ease-out timing with 50ms sequencing. The mobile drawer is transform-only at 220ms in / 160ms out, sticky purchase bars use 180ms in / 140ms out, and request progress uses `scaleX()` instead of width animation.
+- Tightened money-page image policy: regulatory marks use the Next optimizer, below-fold educational visuals remain lazy with padded-viewport `sizes`, brand-logo priority is caller-scoped, and the doctor signature reserves a fixed display box backed by exact source dimensions.
+
+### Removed
+- The unmounted hair-loss hero mockup, which had survived only through a source-inspection test after the live page moved to its assessment-model art direction.
 
 ## [2.0.3] — 2026-07-14
 

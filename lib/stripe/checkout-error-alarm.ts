@@ -35,17 +35,33 @@ export async function reportCheckoutSessionFailure(
   ctx: CheckoutFailureContext,
 ): Promise<CheckoutFailureReport> {
   const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError)
-  // Two distinct price-config catastrophes, both fatal. (1) A STRIPE_PRICE_* env
+  // Three distinct price-config catastrophes, all fatal. (1) A STRIPE_PRICE_* env
   // points at a deleted/wrong Stripe price → Stripe returns "No such price".
   // (2) A STRIPE_PRICE_* env is missing entirely → our own getRequiredStripePriceEnv
   // throws "Missing STRIPE_PRICE_* environment variable" before Stripe is even
   // called. Either way every checkout for that tier dies until a human fixes the
   // env, and the static price-config health check can't catch a well-formed but
-  // wrong value. Both must alarm loudly.
+  // wrong value. (3) Stripe retrieves a Price whose immutable billing contract
+  // is wrong for its configured role. All must alarm loudly.
   const isNoSuchPrice = errorMessage.includes("No such price")
   const isMissingPriceEnv = /Missing\s+STRIPE_PRICE/i.test(errorMessage)
-  const isMisconfiguredPrice = isNoSuchPrice || isMissingPriceEnv
+  const isInvalidPriceConfiguration =
+    /Invalid\s+STRIPE_PRICE_[A-Z0-9_]+\s+configuration/i.test(errorMessage)
+  const isMisconfiguredPrice =
+    isNoSuchPrice || isMissingPriceEnv || isInvalidPriceConfiguration
   const err = stripeError instanceof Error ? stripeError : new Error(errorMessage)
+  const checkoutError = isNoSuchPrice
+    ? "no_such_price"
+    : isMissingPriceEnv
+      ? "missing_price_env"
+      : isInvalidPriceConfiguration
+        ? "invalid_price_config"
+        : "session_create_failed"
+  const configFingerprint = isNoSuchPrice
+    ? "stripe-no-such-price"
+    : isMissingPriceEnv
+      ? "stripe-missing-price-env"
+      : "stripe-invalid-price-config"
 
   // Console only here (no Error arg) so we don't double-capture; the explicit
   // Sentry call below carries the rich tags / level / fingerprint.
@@ -62,16 +78,12 @@ export async function reportCheckoutSessionFailure(
       level: isMisconfiguredPrice ? "fatal" : "error",
       tags: {
         source: "checkout",
-        checkout_error: isNoSuchPrice
-          ? "no_such_price"
-          : isMissingPriceEnv
-            ? "missing_price_env"
-            : "session_create_failed",
+        checkout_error: checkoutError,
         price_role: ctx.failedPriceRole ?? "unknown",
       },
       fingerprint: isMisconfiguredPrice
         ? [
-            isNoSuchPrice ? "stripe-no-such-price" : "stripe-missing-price-env",
+            configFingerprint,
             ctx.failedPriceRole ?? "unknown",
           ]
         : undefined,

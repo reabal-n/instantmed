@@ -23,11 +23,18 @@ import { StatStrip } from "@/components/sections/stat-strip"
 import { Timeline } from "@/components/sections/timeline"
 import { Navbar } from "@/components/shared/navbar"
 import { Heading } from "@/components/ui/heading"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE, GUARANTEE_LABEL } from "@/lib/marketing/voice"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // ─── Data ──────────────────────────────────────────────────────────
+
+const CLINICAL_ACCESS_SCOPE = getApprovedClaim("clinical_access_scope")
+const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+const COMPLAINTS_TIMING = getApprovedClaim("complaints_timing")
+const DOCTOR_REGISTRATION = getApprovedClaim("doctor_registration")
 
 const trustFAQs = [
   {
@@ -40,43 +47,43 @@ const trustFAQs = [
   },
   {
     question: "What happens to my personal health information?",
-    answer: "Your data is protected with AES-256 encryption and stored exclusively on Australian servers. We comply with the Privacy Act 1988 and all thirteen Australian Privacy Principles.",
+    answer: "Health records use Australian-hosted primary storage. Data is encrypted in transit and sensitive fields are encrypted at rest. The privacy policy explains service-provider processing, retention, access, and correction rights.",
   },
   {
     question: "Is this actually reviewed by a doctor, or is it automated?",
-    answer: "Prescribing decisions are made by AHPRA-registered doctors. Eligible low-risk medical-certificate requests may be issued under a doctor-owned protocol and each is individually reviewed afterward. AI does not prescribe or make independent clinical decisions.",
+    answer: CLINICAL_DECISION_MODEL,
   },
   {
     question: "What if I'm not happy with the service?",
-    answer: "General complaints are responded to within 48 hours. Formal clinical complaints are reviewed by our Medical Director within 14 days. You can also escalate concerns to the Health Complaints Commissioner in your state.",
+    answer: `${COMPLAINTS_TIMING} You can also use the external escalation options listed on our complaints page.`,
   },
   {
     question: "Are electronic prescriptions legitimate?",
-    answer: "Yes. Our eScripts are generated through official PBS channels and work at any Australian pharmacy. Electronic prescriptions are the national standard and fully compliant with the Therapeutic Goods Act.",
+    answer: "If approved, an electronic prescription token is sent through Australia's electronic-prescribing infrastructure. Present the token to an Australian pharmacy, which applies its usual dispensing checks.",
   },
   {
     question: "How is my data stored and protected?",
-    answer: "All personal health information is encrypted with AES-256-GCM - the same standard used by banks and government agencies. We apply field-level encryption, meaning individual data fields are encrypted separately in our database. All data is stored on Australian-hosted servers and never leaves the country. Transport encryption (TLS) protects data in transit between your browser and our servers.",
+    answer: "Health records use Australian-hosted primary storage. Transport encryption protects data in transit, and sensitive health fields use AES-256-GCM encryption at rest. Some service providers process the minimum data needed to deliver the service; the privacy policy lists those provider categories and safeguards.",
   },
   {
     question: "Can I delete my account and data?",
-    answer: "Yes. Under the Australian Privacy Principles, you have the right to request deletion of your personal information. Contact support@instantmed.com.au and we will process your request. Note that we are required by law to retain certain clinical records for a minimum period (typically 7 years for adults, or until a minor turns 25), but all other personal data can be deleted on request.",
+    answer: "You can ask to close your account and request access to or correction of your personal information. Some clinical, audit, financial, and legal records must be retained. Our privacy policy explains what can be removed and what must be kept.",
   },
   {
     question: "Who has access to my health information?",
-    answer: "Only the AHPRA-registered doctor reviewing your specific request has access to your clinical information during the consultation. Our systems enforce strict access controls - administrative staff cannot view your health data. After your request is completed, your records are accessible only to you through your secure patient dashboard.",
+    answer: CLINICAL_ACCESS_SCOPE,
   },
   {
     question: "How do I verify a certificate is genuine?",
-    answer: "Every certificate issued by InstantMed includes a unique verification ID. Employers, universities, and other institutions can verify any certificate at instantmed.com.au/verify by entering the certificate ID. This confirms the certificate was genuinely issued by our practice, the date it was issued, and the period of the certificate. This provides a level of verification that paper certificates from traditional clinics typically cannot offer.",
+    answer: "InstantMed certificates include a verification reference. The verification page confirms issuance details without displaying a diagnosis. Employer and institution policies may vary.",
   },
   {
     question: "What qualifications does the reviewing doctor hold?",
-    answer: "Every clinician on InstantMed is a registered medical practitioner with the Medical Board of Australia via AHPRA. They hold a recognised medical degree from an Australian or internationally accredited university, have completed supervised training, and maintain ongoing professional development. Every clinician carries professional indemnity insurance that meets Medical Board requirements.",
+    answer: `${DOCTOR_REGISTRATION} Current registration can be checked independently on the AHPRA public register.`,
   },
   {
     question: "Are telehealth certificates accepted by universities?",
-    answer: "Yes. Australian universities accept medical certificates from any AHPRA-registered doctor, regardless of whether the consultation was conducted in person or via telehealth. Our certificates include all the information universities require: the doctor's name and registration number, date of assessment, and the certified period of unfitness. Many universities also accept our online verification system as additional proof of authenticity.",
+    answer: "A doctor-issued certificate can support a university or TAFE evidence request, but each institution sets its own policy. Check the relevant special-consideration or attendance rules before relying on any certificate.",
   },
 ]
 
@@ -119,14 +126,14 @@ export default function TrustPage() {
           pill="Trust & Safety"
           title="Your health. Our responsibility."
           highlightWords={["responsibility"]}
-          subtitle="Real doctors. Transparent process. Every request reviewed by a qualified, AHPRA-registered clinician."
+          subtitle={DOCTOR_REGISTRATION}
           imageSrc="/images/trust-hero.webp"
           imageAlt="Patient requesting a medical certificate from home"
         >
           <div className="flex flex-col gap-4">
             <p className="inline-flex items-center gap-2 text-xs text-muted-foreground tracking-wide uppercase">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              100% Australian-based · AHPRA registered · Privacy Act compliant
+              AHPRA-registered doctors · documented clinical governance · role-scoped access
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <LegitScriptSeal size="md" />
@@ -184,13 +191,13 @@ export default function TrustPage() {
         {/* Page superpower — anchors human-decision accountability above the
             stats so the stats reinforce the claim rather than carry it alone. */}
         <ServiceClaimSection
-          eyebrow="No algorithm at the wheel"
+          eyebrow="Doctor-owned clinical pathways"
           headline={
             <>
-              Every decision, <span className="text-primary">a real doctor</span>.
+              Clear limits. <span className="text-primary">Named accountability</span>.
             </>
           }
-          body="No AI prescribes. No algorithm declines. An AHPRA-registered Australian doctor reads your full request and makes the call, with full clinical accountability and a name on every certificate."
+          body={CLINICAL_DECISION_MODEL}
         />
 
         {/* ── Stats Counter Strip ───────────────────────────── */}
@@ -198,8 +205,8 @@ export default function TrustPage() {
           stats={[
             { value: SOCIAL_PROOF.ahpraVerifiedPercent, suffix: "%", label: "AHPRA-registered doctors" },
             { value: SOCIAL_PROOF.refundPercent, suffix: "%", label: GUARANTEE_LABEL },
-            { value: 3, suffix: " min", label: "Typical form time" },
-            { value: SOCIAL_PROOF.operatingDays, suffix: " days/wk", label: "Available" },
+            { value: 3, suffix: " min", label: "Approximate form time" },
+            { value: 24, suffix: "/7", label: "Requests and review" },
           ]}
         />
 
@@ -207,7 +214,7 @@ export default function TrustPage() {
         <ImageTextSplit
           title="AHPRA-registered doctors. No exceptions."
           highlightWords={["AHPRA-registered"]}
-          description="Every doctor on InstantMed holds current registration with the Australian Health Practitioner Regulation Agency. We verify credentials before they join and monitor registration status continuously."
+          description="Clinical access requires current AHPRA registration and is scoped by service-line capabilities. Registration can be checked independently on the public register."
           imageSrc="/images/trust-doctor.webp"
           imageAlt="Doctor reviewing a patient request at their desk"
           imagePosition="right"
@@ -215,9 +222,9 @@ export default function TrustPage() {
           <ul className="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-3">
             {[
               "All doctors hold current AHPRA registration",
-              "Professional indemnity insurance required",
-              "Regular clinical decision audits",
-              "Doctors make independent clinical decisions",
+              "Service-line access is capability-scoped",
+              "Treating clinician recorded in the clinical record",
+              "Prescribing decisions stay with doctors",
             ].map((point) => (
               <li
                 key={point}
@@ -241,19 +248,19 @@ export default function TrustPage() {
 
         {/* ── Data Protection ──────────────────────────────── */}
         <ImageTextSplit
-          title="Your data stays in Australia. Always encrypted."
-          highlightWords={["encrypted"]}
-          description="Your health information is protected with AES-256 encryption - the same standard used by banks. All data stored on Australian servers, fully compliant with the Privacy Act 1988."
+          title="Australian health-record storage. Layered protection."
+          highlightWords={["Layered protection."]}
+          description="Health records use Australian-hosted primary storage. Data is encrypted in transit and sensitive fields are encrypted at rest. Our privacy policy explains the providers needed to deliver care."
           imageSrc="/images/trust-security.webp"
           imageAlt="Secure data center with blue lighting"
           imagePosition="left"
         >
           <ul className="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-3">
             {[
-              "AES-256 encryption for all health data",
-              "Stored exclusively on Australian servers",
-              "Compliant with all 13 Australian Privacy Principles",
-              "Regular security audits and penetration testing",
+              "Sensitive fields encrypted with AES-256-GCM at rest",
+              "Australian-hosted primary health-record storage",
+              "Privacy controls mapped to the Australian Privacy Principles",
+              "Role-scoped clinical and operational access",
             ].map((point) => (
               <li
                 key={point}
@@ -279,38 +286,38 @@ export default function TrustPage() {
         <FeatureGrid
           pill="Security"
           title="Built for trust at every layer"
-          subtitle="Enterprise-grade security protecting your health information."
+          subtitle="Layered controls protect your health information."
           highlightWords={["trust"]}
           features={[
             {
               icon: <StickerIcon name="lock" size={48} />,
-              title: "AES-256 Encryption",
-              description: "Bank-grade encryption for all personal health information at rest and in transit.",
+              title: "Layered Encryption",
+              description: "Transport encryption in transit and AES-256-GCM protection for sensitive fields at rest.",
             },
             {
               icon: <StickerIcon name="security-shield" size={48} />,
-              title: "Privacy Act Compliant",
-              description: "Full compliance with the Privacy Act 1988 and all 13 Australian Privacy Principles.",
+              title: "Privacy Controls",
+              description: "Documented controls for collection, use, access, correction, retention, and disclosure.",
             },
             {
               icon: <StickerIcon name="fingerprint" size={48} />,
               title: "AHPRA Verified",
-              description: "Every doctor's registration is verified and continuously monitored.",
+              description: "Current registration is checked and independently verifiable on the AHPRA public register.",
             },
             {
               icon: <StickerIcon name="server" size={48} />,
-              title: "Australian Servers",
-              description: "All health data stored exclusively on Australian-based servers.",
+              title: "Australian Health Records",
+              description: "Primary health-record storage is Australian-hosted; provider processing is disclosed in the privacy policy.",
             },
             {
               icon: <StickerIcon name="eye" size={48} />,
               title: "Clinical Audits",
-              description: "Regular audits of clinical decisions to maintain the highest standards.",
+              description: "Documented protocols, decision records, incident handling, and complaint review support governance.",
             },
             {
               icon: <StickerIcon name="scales" size={48} />,
               title: "Complaints Process",
-              description: "48-hour response for general complaints; 14-day Medical Director review for clinical complaints.",
+              description: COMPLAINTS_TIMING,
             },
           ]}
           columns={3}
@@ -329,7 +336,7 @@ export default function TrustPage() {
             <ul className="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-3">
               {[
                 "Every certificate is individually reviewed",
-                "General complaints responded to within 48 hours",
+                COMPLAINTS_TIMING,
                 GUARANTEE,
                 "Escalation to Health Complaints Commissioner",
               ].map((point) => (
@@ -363,17 +370,17 @@ export default function TrustPage() {
           steps={[
             {
               title: "You submit your request",
-              description: "Answer a few questions about your situation. Takes about 2 minutes.",
+              description: "Answer the service-specific questions in a secure form. Takes about 3 minutes.",
               icon: <StickerIcon name="medical-history" size={48} />,
             },
             {
-              title: "Request enters review queue",
-              description: "Securely transmitted and queued for doctor review.",
+              title: "Request enters its service pathway",
+              description: CLINICAL_REVIEW_SEQUENCE,
               icon: <StickerIcon name="sent" size={48} />,
             },
             {
-              title: "Doctor reviews your case",
-              description: "An AHPRA-registered doctor reviews your full submission. Average ~34 min.",
+              title: "Outcome or doctor follow-up",
+              description: "A prescribing doctor may ask for more information before deciding. Certificate requests outside protocol criteria go to a doctor before any outcome.",
               icon: <StickerIcon name="user-check" size={48} />,
             },
             {
@@ -406,7 +413,7 @@ export default function TrustPage() {
         {/* ── CTA ───────────────────────────────────────────── */}
         <CTABanner
           title="Confident in the process?"
-          subtitle="One secure form, reviewed by an AHPRA-registered doctor."
+          subtitle={CLINICAL_DECISION_MODEL}
           ctaText="Start a request"
           ctaHref="/request"
           secondaryText={`No account required · ${GUARANTEE}`}

@@ -8,6 +8,10 @@ import {
   STAFF_EMAILS_HREF,
   STAFF_LEDGER_HREF,
 } from "@/lib/dashboard/routes"
+import {
+  HIGH_STAKES_PAYMENT_LOCK,
+  MISSING_SAFETY_INFORMATION_PAYMENT_LOCK,
+} from "@/lib/stripe/payment-safety-lock"
 
 type Severity = "critical" | "warning"
 
@@ -129,6 +133,18 @@ function sortByOccurredAtDesc(items: OperationalFailureItem[]): OperationalFailu
   return [...items].sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime())
 }
 
+function checkoutFailureDetail(row: CheckoutFailureRow): string {
+  if (row.checkout_error === HIGH_STAKES_PAYMENT_LOCK) {
+    return "High-stakes request blocked before payment"
+  }
+  if (row.checkout_error === MISSING_SAFETY_INFORMATION_PAYMENT_LOCK) {
+    return "More medical information required before payment"
+  }
+  return row.checkout_error
+    || [row.category, row.subtype].filter(Boolean).join(" / ")
+    || "Payment session failed"
+}
+
 export function buildOperationalFailureOverview(input: OperationalFailureOverviewInput): OperationalFailureOverview {
   const incompleteRequests = input.incompleteRequests ?? []
   const categories: OperationalFailureCategory[] = [
@@ -221,7 +237,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       id: row.id,
       categoryId: "checkout" as const,
       title: "Checkout failed",
-      detail: row.checkout_error || [row.category, row.subtype].filter(Boolean).join(" / ") || "Payment session failed",
+      detail: checkoutFailureDetail(row),
       occurredAt: row.updated_at || row.created_at,
       href: buildAdminIntakeHref(row.id),
       severity: "critical" as const,

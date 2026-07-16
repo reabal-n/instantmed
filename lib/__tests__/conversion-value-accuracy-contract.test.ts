@@ -33,7 +33,8 @@ describe("Google Ads conversion-value accuracy contract", () => {
 
   it("success-client refreshes resolvedAmountCents from the polling endpoint", () => {
     const source = read("app/patient/intakes/success/success-client.tsx")
-    expect(source).toContain("setResolvedAmountCents")
+    expect(source).toContain("derivePatientSuccessVerificationState")
+    expect(source).toContain("setVerificationState((current)")
     expect(source).toMatch(/typeof data\?\.amount_cents === ['"]number['"]/)
   })
 

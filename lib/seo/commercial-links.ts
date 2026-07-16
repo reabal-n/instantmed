@@ -57,15 +57,6 @@ export const commercialCertificateLinks: CommercialInternalLink[] = [
   },
 ]
 
-export const commercialLocationLinks: CommercialInternalLink[] = [
-  { label: "Sydney", href: "/intent/medical-certificate-online-sydney" },
-  { label: "Melbourne", href: "/intent/medical-certificate-online-melbourne" },
-  { label: "Brisbane", href: "/intent/medical-certificate-online-brisbane" },
-  { label: "Perth", href: "/intent/medical-certificate-online-perth" },
-  { label: "Adelaide", href: "/intent/medical-certificate-online-adelaide" },
-  { label: "Gold Coast", href: "/intent/medical-certificate-online-gold-coast" },
-]
-
 export const commercialPrescriptionLinks: CommercialInternalLink[] = [
   {
     label: "Repeat prescription online",
@@ -115,10 +106,4 @@ export const commercialComparisonLinks: CommercialInternalLink[] = [
     href: "/intent/bulk-billed-telehealth-vs-instantmed",
     description: "Compare cost, availability, and service fit.",
   },
-]
-
-export const priorityCommercialLinks = [
-  ...commercialCertificateLinks.slice(0, 5),
-  ...commercialPrescriptionLinks.slice(0, 2),
-  ...commercialComparisonLinks.slice(0, 3),
 ]

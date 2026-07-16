@@ -3,7 +3,7 @@ import Link from "next/link"
 
 import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
-import { GUARANTEE } from "@/lib/marketing/voice"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 
 // =============================================================================
 // DATA
@@ -20,9 +20,9 @@ const GUIDE_SECTIONS: Array<{
     sticker: "security-shield",
     title: "How we verify our doctors",
     paragraphs: [
-      "Every doctor practising on InstantMed holds current registration with the Australian Health Practitioner Regulation Agency (AHPRA). Before a doctor can review a single request, we verify their registration status, specialty endorsements, and any conditions or undertakings on their practice. This isn't a one-time check - we monitor registration status on an ongoing basis and are notified immediately if anything changes.",
-      "All doctors are required to hold professional indemnity insurance that meets Medical Board of Australia standards. This protects both the practitioner and you as a patient. Our credentialing process follows the same standards used by hospitals and major health organisations: primary source verification of qualifications, reference checks, and confirmation of right to practise in Australia.",
-      "If a doctor's registration lapses, is suspended, or has conditions imposed, they are immediately removed from the platform. There is no grace period and no workaround. We treat this the same way a hospital would - because that's the standard your healthcare should meet, whether it's delivered in a clinic or online.",
+      getApprovedClaim("doctor_registration"),
+      "AHPRA maintains a public register showing a practitioner's registration status, registration type, and any published conditions or undertakings.",
+      "InstantMed checks registration before clinical access is enabled and uses separate capability controls for certificate, prescription, specialty, and prescribing work.",
     ],
   },
   {
@@ -30,9 +30,9 @@ const GUIDE_SECTIONS: Array<{
     sticker: "lock",
     title: "Protecting your health information",
     paragraphs: [
-      "Your health information is encrypted with AES-256-GCM - the same encryption standard used by banks and government agencies. We encrypt your data with the same standard banks use, though your medical certificate is considerably less interesting to hackers than your bank account. This isn't just transport encryption (protecting data while it moves between your browser and our servers). We apply field-level encryption to your personal health information, meaning individual data fields are encrypted at rest in our database.",
-      "All data is stored exclusively on Australian-hosted servers. Your health information never leaves the country. We comply with the Privacy Act 1988 and all thirteen Australian Privacy Principles (APPs), which govern how personal information is collected, used, disclosed, and stored. APP 11 requires us to take reasonable steps to protect personal information from misuse, interference, loss, and unauthorised access - and we go well beyond 'reasonable.'",
-      "During a consultation, only the reviewing doctor has access to your clinical information. After your request is completed, your data remains encrypted and accessible only to you through your patient dashboard. We don't sell, share, or use your health data for marketing purposes. If you want to understand exactly what we collect and why, our privacy policy spells it out in plain language - not legalese.",
+      "Personal health information is protected with field-level AES-256-GCM encryption at rest and TLS in transit. Primary health records are stored on Australian-hosted infrastructure.",
+      "The Privacy Act 1988 and Australian Privacy Principles govern how personal information is collected, used, disclosed, secured, accessed, and corrected.",
+      getApprovedClaim("clinical_access_scope"),
     ],
   },
   {
@@ -40,9 +40,9 @@ const GUIDE_SECTIONS: Array<{
     sticker: "stethoscope",
     title: "Our clinical governance framework",
     paragraphs: [
-      "Clinical governance isn't a buzzword we put on our website and forget about. Clinical protocols, adverse events, complaints, and edge cases are reviewed through a documented governance framework so clinical decisions stay accountable.",
+      "Clinical protocols, decision records, incidents, complaints, and edge cases sit within a documented governance framework.",
       "We maintain clear scope-of-practice limitations: we don't prescribe Schedule 8 medications, we don't issue certificates for workers' compensation claims requiring physical examination, and we don't treat conditions that require hands-on assessment. Knowing what we shouldn't do is as important as knowing what we can.",
-      "When a patient's condition falls outside our scope - or when a doctor identifies something that warrants further investigation - we refer to in-person care. We provide clear guidance on where to seek help, whether that's a GP clinic, emergency department, or specialist. Adverse events are documented, reviewed by the Medical Director, and used to improve our processes. We treat mistakes as system problems to solve, not individual failures to hide.",
+      getApprovedClaim("clinical_decision_model"),
     ],
   },
   {
@@ -50,9 +50,9 @@ const GUIDE_SECTIONS: Array<{
     sticker: "scales",
     title: "Your rights and our complaints process",
     paragraphs: [
-      "We respond to all complaints within 48 hours. Not 'up to 14 business days,' not 'we'll get back to you when we can.' If you're unhappy with any aspect of our service, email complaints@instantmed.com.au and a real person will respond within two working days. If we can't resolve your concern directly, we'll explain your options for escalation.",
+      `${getApprovedClaim("complaints_timing")} Email complaints@instantmed.com.au to start the process.`,
       "You have the right to escalate any complaint to the Health Complaints Commissioner in your state or territory. We won't make this difficult or bury the information - here it is, upfront. You also have the right to lodge a notification with AHPRA if you believe a doctor has behaved unprofessionally. We support your right to do both of these things, because accountability is how trust is built.",
-      `Our pricing is transparent and published on our website. There are no hidden fees, no surprise charges, and no upselling during your consultation. ${GUARANTEE} You also have the right to access any records we hold about you, request corrections, and understand how your information has been used. These aren't concessions; they're your rights under Australian law.`,
+      `${getApprovedClaim("refund_payment_process")} You can also request access to records we hold about you, ask for corrections, and understand how your information has been used.`,
     ],
   },
   {
@@ -60,9 +60,9 @@ const GUIDE_SECTIONS: Array<{
     sticker: "certificate",
     title: "Regulatory compliance and standards",
     paragraphs: [
-      "Electronic prescriptions issued through InstantMed use Australia's electronic prescribing infrastructure and comply with Therapeutic Goods Administration requirements. Once approved, an eScript can be dispensed by an Australian pharmacy using the token sent to the patient.",
+      "Approved electronic prescriptions use Australia's electronic-prescribing infrastructure. The patient presents the token to an Australian pharmacy, which applies its normal dispensing checks.",
       "Medical certificates issued through InstantMed include the doctor's name, AHPRA registration number, date of assessment, and a unique verification ID that employers can check online. Employer and institution policies can vary, so we keep the document clear and verifiable rather than promising universal acceptance.",
-      "We operate under Australian telehealth regulations, which require that consultations be conducted by practitioners registered in Australia, that appropriate clinical records are maintained, and that patients are informed about the nature and limitations of telehealth. Medicare-eligible services are billed through proper Medicare channels where applicable. We don't cut corners on compliance because the consequences - for you and for us - aren't worth it.",
+      "InstantMed is a private-pay service. Clinical records, informed consent, practitioner registration, prescribing rules, privacy obligations, and the limitations of remote assessment still apply.",
     ],
   },
 ]
@@ -125,14 +125,14 @@ export function TrustGuideSection() {
         {/* Clinical governance link */}
         <div className="mt-12 pt-8 border-t border-border/40 text-center">
           <p className="text-xs text-muted-foreground">
-            All clinical decisions are made by AHPRA-registered doctors following{" "}
+            {getApprovedClaim("clinical_decision_model")} Read{" "}
             <Link
               href="/clinical-governance"
               className="text-primary underline underline-offset-2 hover:text-primary/80"
             >
               our clinical governance framework
             </Link>
-            . We never automate clinical decisions.
+            .
           </p>
         </div>
       </div>

@@ -8,6 +8,13 @@ import { CTABanner } from "@/components/sections/cta-banner"
 import { LegalSection } from "@/components/shared/legal-section"
 import { Navbar } from "@/components/shared/navbar"
 import { CONTACT_EMAIL_COMPLAINTS, CONTACT_EMAIL_LEGAL } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+
+const AVAILABILITY_24_7 = getApprovedClaim("availability_24_7")
+const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
+const COMPLAINTS_TIMING = getApprovedClaim("complaints_timing")
+const DOCTOR_REGISTRATION = getApprovedClaim("doctor_registration")
+const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -32,7 +39,7 @@ export default function TermsPage() {
           <CenteredHero
             pill="Legal"
             title="Terms of Service"
-            subtitle="Last updated: February 2026"
+            subtitle="Last updated: July 2026"
           />
 
           {/* Content card */}
@@ -112,21 +119,16 @@ export default function TermsPage() {
 
                 <LegalSection number="5" title="Clinical Governance Model" id="governance">
                   <p>
-                    InstantMed clinical reviews are performed by AHPRA-registered Australian doctors working
-                    under documented clinical governance. You are reviewed by a named, registered, identifiable
-                    clinician whose AHPRA status you can verify independently on the public register.
+                    {DOCTOR_REGISTRATION} Registration can be checked independently on the AHPRA public
+                    register.
                   </p>
                   <p>
-                    Our clinical leadership holds current, unrestricted AHPRA registration, maintains
-                    professional indemnity insurance, and is subject to the same regulatory oversight and
-                    professional obligations as any other registered GP in Australia. The treating practitioner&apos;s
-                    name and AHPRA registration number are disclosed on every medical certificate and prescription
-                    issued, and are available on request for any consultation via{" "}
-                    <a href={`mailto:${CONTACT_EMAIL_COMPLAINTS}`}>{CONTACT_EMAIL_COMPLAINTS}</a>.
+                    {CLINICAL_DECISION_MODEL} Prescribing requests require a doctor&apos;s decision before an
+                    eScript is issued.
                   </p>
                   <p>
-                    Our clinical governance framework, including protocol design, audit cadence, and scope
-                    boundaries, is documented at{" "}
+                    Our clinical governance framework, including protocol design, recorded outcomes,
+                    incidents, complaints, and scope boundaries, is documented at{" "}
                     <Link href="/clinical-governance">/clinical-governance</Link>. The framework is designed
                     to scale as additional clinicians are onboarded.
                   </p>
@@ -135,30 +137,29 @@ export default function TermsPage() {
                 <LegalSection number="6" title="Fees, Payment, and Refunds" id="fees">
                   <p>
                     Service fees are displayed before you submit a request. Payment is required at the time
-                    of submission.
+                    of submission. {REFUND_PAYMENT_PROCESS}
                   </p>
                   <p className="font-medium text-foreground/80 mt-3">Refund Policy:</p>
                   <ul>
                     <li>
                       If your request is <strong>declined</strong> for clinical reasons (e.g., not
-                      appropriate for telehealth, requires in-person examination), you will receive a full
-                      refund within 3–5 business days.
+                      appropriate for telehealth, requires in-person examination), the full request fee,
+                      including any priority fee, is refunded to the original payment method. Your bank
+                      controls when it appears.
                     </li>
                     <li>
-                      If your request is <strong>approved</strong>, no refund is available.
+                      Once an approved certificate, eScript, or clinical outcome is delivered, a
+                      change-of-mind refund is generally not available. Confirmed service failures and
+                      your rights under Australian Consumer Law are not excluded.
                     </li>
                     <li>
-                      If you <strong>cancel</strong> your request before a doctor reviews it, you will
-                      receive a full refund.
-                    </li>
-                    <li>
-                      If a doctor is unable to review your request within 24 hours, you may request a full
-                      refund.
+                      If you want to <strong>cancel</strong>, contact support promptly. Cancellation may not
+                      be possible after clinical review or fulfilment has started.
                     </li>
                   </ul>
                   <p className="mt-3">
-                    Some services may be eligible for Medicare rebates - this will be indicated during
-                    checkout.
+                    InstantMed is a private-pay service. We do not advertise a Medicare rebate for these
+                    request pathways.
                   </p>
                 </LegalSection>
 
@@ -200,9 +201,7 @@ export default function TermsPage() {
                     <li>Improving the intake experience through smart suggestions</li>
                   </ul>
                   <p className="mt-3">
-                    <strong>Important:</strong> AI does not make any clinical decisions. All medical
-                    decisions are made by registered Australian doctors. AI-generated content is always
-                    reviewed and approved by a clinician before being finalized or sent to you.
+                    <strong>Important:</strong> {CLINICAL_DECISION_MODEL}
                   </p>
                 </LegalSection>
 
@@ -215,10 +214,7 @@ export default function TermsPage() {
                 </LegalSection>
 
                 <LegalSection number="11" title="Service Availability">
-                  <p>
-                    The service operates 24 hours a day, 7 days a week. Requests may be submitted at any
-                    time, and review times may vary depending on demand and case complexity.
-                  </p>
+                  <p>{AVAILABILITY_24_7}</p>
                   <p className="mt-3">
                     We do not guarantee specific response times. Our services are available to users located
                     in Australia only.
@@ -240,9 +236,9 @@ export default function TermsPage() {
                     <a href={`mailto:${CONTACT_EMAIL_COMPLAINTS}`} className="text-primary hover:underline">
                       {CONTACT_EMAIL_COMPLAINTS}
                     </a>
-                    . We will endeavour to resolve your complaint within 14 business days. Our full complaints
-                    process, including escalation pathways to AHPRA and state health complaints commissioners,
-                    is documented at <Link href="/complaints" className="text-primary hover:underline">/complaints</Link>.
+                    . {COMPLAINTS_TIMING} Our full complaints process, including escalation pathways to AHPRA
+                    and state health complaints bodies, is documented at{" "}
+                    <Link href="/complaints" className="text-primary hover:underline">/complaints</Link>.
                   </p>
                   <p className="mt-3">
                     If we cannot resolve your complaint to your satisfaction, you may lodge a complaint with

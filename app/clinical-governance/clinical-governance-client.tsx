@@ -20,6 +20,12 @@ import { FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+
+const CLINICAL_ACCESS_SCOPE = getApprovedClaim("clinical_access_scope")
+const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
+const COMPLAINTS_TIMING = getApprovedClaim("complaints_timing")
+const DOCTOR_REGISTRATION = getApprovedClaim("doctor_registration")
 
 /* ────────────────────────────── Data ────────────────────────────── */
 
@@ -31,27 +37,26 @@ const heroStats: StatItem[] = [
 
 const standardsChecklist: ChecklistItem[] = [
   { text: "AHPRA registration and technology-based consultation guidance" },
-  { text: "Therapeutic Goods Administration (TGA) prescribing regulations" },
-  { text: "Pharmaceutical Benefits Scheme (PBS) guidelines" },
+  { text: "Medicines scheduling and prescribing requirements" },
   { text: "Australian Privacy Principles (APP)" },
   { text: "Documented scope-of-practice and escalation rules" },
 ]
 
 const reviewProcess: TimelineStep[] = [
   {
-    title: "Clinical Leadership",
+    title: "Clinical ownership",
     description:
-      "AHPRA-registered Medical Director designs and maintains every clinical protocol. Complex or out-of-scope cases are declined with a documented pathway back to in-person care.",
+      "AHPRA-registered medical leadership owns the protocols and service boundaries. Complex or out-of-scope cases move to a documented alternative-care pathway.",
   },
   {
-    title: "Quality Assurance",
+    title: "Recorded outcomes",
     description:
-      "Structured self-audit against written protocols, random sampling of approved and declined cases, incident reporting framework, and patient feedback integration.",
+      "Clinical outcomes, follow-up, and declines are recorded so decisions can be reviewed and complaints can be investigated.",
   },
   {
-    title: "Continuous Improvement",
+    title: "Feedback and incidents",
     description:
-      "Quarterly protocol reviews, post-incident reviews and process updates, relevant regulatory updates, and ongoing CPD in line with AHPRA requirements.",
+      "Complaint records, clinical incidents, and relevant regulatory changes can trigger review of a pathway or protocol.",
   },
 ]
 
@@ -60,7 +65,7 @@ const safeguards: FeatureItem[] = [
     icon: <StickerIcon name="medical-doctor" size={44} />,
     title: "Clinical Leadership",
     description:
-      "AHPRA-registered Medical Director maintains every clinical protocol with a documented review cycle and escalation pathway.",
+      "AHPRA-registered medical leadership owns documented protocols, scope boundaries, and escalation pathways.",
   },
   {
     icon: <StickerIcon name="scales" size={44} />,
@@ -72,25 +77,25 @@ const safeguards: FeatureItem[] = [
     icon: <StickerIcon name="checklist" size={44} />,
     title: "Quality Assurance",
     description:
-      "Structured self-audit, random sampling of approved and declined cases, incident reporting framework, and patient feedback integration.",
+      "Clinical outcomes, incidents, and complaints create records that can be reviewed and used to improve a pathway.",
   },
   {
     icon: <StickerIcon name="warning" size={44} />,
     title: "Safety Boundaries",
     description:
-      "No controlled substances (S8). No treatments requiring physical examination. Automatic escalation for red-flag symptoms.",
+      "No Schedule 8 prescribing. Requests needing examination, testing, or urgent care are outside the online pathway.",
   },
   {
     icon: <StickerIcon name="synchronize" size={44} />,
     title: "Continuous Improvement",
     description:
-      "Quarterly protocol reviews, post-incident reviews, regulatory updates, and ongoing CPD.",
+      "Relevant complaints, incidents, evidence, and regulatory changes can prompt protocol review.",
   },
   {
     icon: <StickerIcon name="medical-history" size={44} />,
     title: "Evidence-Based Protocols",
     description:
-      "Clinical processes align with AHPRA guidance, TGA regulations, PBS requirements, privacy law, and documented service boundaries.",
+      "Clinical processes use Australian practitioner guidance, medicines rules, privacy law, and documented service boundaries.",
   },
 ]
 
@@ -102,9 +107,9 @@ const guideSections: GuideSectionData[] = [
     icon: "security-shield",
     title: "What clinical governance means in telehealth",
     paragraphs: [
-      "Clinical governance is the framework that ensures healthcare organisations deliver safe, effective, and accountable care. In a traditional GP clinic, governance happens partly by proximity - doctors work alongside colleagues, practice managers observe workflows, and patients interact face-to-face with their care team. Telehealth removes that proximity, which means governance has to be more deliberate, more structured, and more transparent.",
-      "At InstantMed, patients submit health information through structured intake forms rather than describing symptoms in a consulting room. A doctor reviews that information asynchronously - there is no physical examination, no visual cues from body language, and no opportunity to ask follow-up questions in real time. This makes the quality of the intake process, the clinical decision-making framework, and the audit trail significantly more important than they might be in a face-to-face setting.",
-      "Our governance framework exists to answer a straightforward question: how do we ensure that every clinical decision made on this platform is consistent, documented, and inside scope? The answer involves structured protocols, audit trails, defined boundaries, and continuous improvement - none of which are optional, and all of which are documented here.",
+      "Clinical governance is the framework for keeping care accountable: who owns a pathway, what sits inside its scope, how outcomes are recorded, and what happens when a request needs different care.",
+      `InstantMed starts with structured health information rather than a physical examination. A doctor may call or message before deciding, and the pathway must stop when examination, testing, ongoing monitoring, or urgent care is needed. ${CLINICAL_DECISION_MODEL}`,
+      "The governance framework joins those limits to documented protocols, staff access boundaries, incident handling, and a complaints pathway.",
     ],
   },
   {
@@ -112,10 +117,10 @@ const guideSections: GuideSectionData[] = [
     icon: "scales",
     title: "How doctor decisions are reviewed",
     paragraphs: [
-      "Every clinical decision at InstantMed is traceable. When a doctor approves, declines, or escalates a patient request, that decision is recorded with the clinical reasoning, the information reviewed, and the outcome. This audit trail is not optional - it is built into the platform architecture and cannot be bypassed.",
-      "Our Medical Director conducts structured audits of clinical decisions across all service types. This includes random sampling of approved certificates and prescriptions, targeted review of declined or escalated cases, and thematic analysis of decision patterns over time. The goal is ensuring consistency, identifying protocol gaps, and catching systemic issues before they affect patients.",
-      "We maintain a structured incident reporting framework. Any adverse outcome, clinical near-miss, patient complaint, or process failure is logged, investigated, and reviewed. Post-incident reviews result in documented process changes where warranted. This is standard practice in hospital settings and accredited general practices - we apply the same rigour to telehealth.",
-      "Patient feedback is integrated into our quality cycle. Every interaction generates an opportunity for the patient to report concerns, and those reports feed directly into clinical review processes. A complaint about a declined request is treated differently from a complaint about communication - both are investigated, but through different pathways with different clinical oversight.",
+      "Approved, declined, and follow-up outcomes are recorded with the relevant request information. Eligible protocol-issued certificates also require an individual doctor review afterward.",
+      "Those records support clinical follow-up, complaint investigation, and review of whether the service boundary or protocol needs to change. We do not publish an audit cadence or sampling claim that cannot be independently substantiated.",
+      "Clinical incidents and reported adverse outcomes follow the documented incident process. They are recorded, investigated, and reported externally when a legal or professional duty applies.",
+      COMPLAINTS_TIMING,
     ],
   },
   {
@@ -123,10 +128,10 @@ const guideSections: GuideSectionData[] = [
     icon: "warning",
     title: "Our prescribing boundaries",
     paragraphs: [
-      "InstantMed maintains strict prescribing boundaries that go beyond minimum regulatory requirements. We do not prescribe Schedule 8 (controlled) substances under any circumstances. This is a hard boundary enforced at the platform level - our intake system will not accept requests for these medications, and the restriction cannot be clinician-overridden. There is no clinical scenario in which an asynchronous telehealth consultation is the appropriate channel for initiating or continuing controlled substance therapy.",
-      "We focus on repeat prescriptions for medications that the patient is already established on, prescribed by their regular GP or specialist. We do not initiate new medications for complex conditions, adjust doses for medications with narrow therapeutic indices, or prescribe medications that require monitoring through blood tests or other investigations that we cannot facilitate remotely.",
-      "Every prescription request is validated against our clinical protocols before it reaches a doctor. The system checks for known contraindications, flags medications that require specific monitoring, and identifies requests that fall outside our defined scope of practice. The reviewing doctor makes the final clinical decision - the system supports that decision with structured information, but does not replace clinical judgement.",
-      "If a prescribing request falls outside our scope, we decline it with a clear explanation and a recommendation that the patient consult their regular GP or an appropriate specialist. Declining a request is not a failure of service - it is the governance framework working as designed. A platform that approves everything is not practising medicine; it is dispensing.",
+      "InstantMed does not prescribe Schedule 8 controlled substances. Requests that need physical examination, diagnostic testing, or monitoring that cannot be established remotely are also outside scope.",
+      "Repeat-prescription pathways are for medicines the patient is already established on. Selected specialty pathways may assess a new treatment only within their structured screener and documented exclusions; they are not a general-prescribing back channel.",
+      "The form organises contraindications, current medicines, and pathway-specific safety answers for the reviewing doctor. Automated checks can flag or block scope issues, but they do not prescribe or make the clinical decision.",
+      "If a prescribing request falls outside scope, the outcome should explain that the online pathway is not suitable and direct the patient to appropriate care.",
     ],
   },
   {
@@ -134,10 +139,10 @@ const guideSections: GuideSectionData[] = [
     icon: "heart",
     title: "Patient safety and escalation",
     paragraphs: [
-      "Patient safety in telehealth depends on knowing what you can and cannot assess remotely. Our intake forms are designed to identify red-flag symptoms - clinical indicators that suggest the patient needs in-person assessment rather than telehealth management. Chest pain, sudden neurological symptoms, signs of serious infection, and other emergency presentations are flagged automatically, and the patient is directed to call 000 or attend their nearest emergency department.",
-      "When a doctor reviews a request and identifies concerns that do not require emergency care but do require further assessment, they decline the request with specific guidance. This might include recommending the patient see their regular GP for examination, attend a pathology service for blood tests, or consult a specialist. The doctor documents their reasoning, and the patient receives a clear explanation - not a generic rejection.",
-      "Our escalation pathways are tiered. Emergency presentations are redirected immediately with clear instructions. Non-emergency clinical concerns result in a declined request with documented reasoning and a recommendation for alternative care. Complex cases that fall within our scope but require additional oversight are escalated to our Medical Director for review before a decision is communicated to the patient.",
-      "We track escalation and decline rates as quality indicators. An unusually low decline rate would be as much cause for concern as an unusually high one - it could suggest that clinical boundaries are not being applied consistently. These metrics are reviewed quarterly by our Medical Director as part of the continuous improvement cycle.",
+      "Patient safety in telehealth depends on recognising what cannot be assessed remotely. Intake red flags can direct a patient to 000 or urgent in-person care before an online request continues.",
+      "When further assessment is needed but the situation is not an emergency, a doctor may ask follow-up questions, decline the request, and recommend an in-person doctor, testing, or another appropriate service.",
+      "Emergency guidance does not replace 000, and a patient with severe or rapidly worsening symptoms should not wait for an online review.",
+      "Declines and escalations are recorded clinical outcomes. They are part of applying the service boundary, not a promise that every presentation can be resolved online.",
     ],
   },
   {
@@ -145,10 +150,10 @@ const guideSections: GuideSectionData[] = [
     icon: "certificate",
     title: "Regulatory framework",
     paragraphs: [
-      "InstantMed operates within the regulatory framework established by several Australian bodies. The Australian Health Practitioner Regulation Agency (AHPRA) registers and regulates all health practitioners in Australia - every doctor on our platform holds current, unrestricted AHPRA registration, which can be independently verified on the public register. AHPRA's codes of conduct and guidelines for technology-based consultations inform our clinical protocols directly.",
-      "The Therapeutic Goods Administration (TGA) regulates the prescription and supply of therapeutic goods in Australia. Our prescribing protocols comply with TGA scheduling requirements, and our scope exclusions (particularly around Schedule 8 substances) reflect both TGA regulations and our own clinical risk assessment. The Pharmaceutical Benefits Scheme (PBS) guidelines inform our approach to repeat prescriptions, ensuring that subsidised medications are prescribed in accordance with PBS requirements.",
+      `${DOCTOR_REGISTRATION} AHPRA registers practitioners, not InstantMed Pty Ltd, and registration can be checked on the public register.`,
+      "Medicines supplied through the service remain subject to Australian scheduling, prescribing, and pharmacy requirements. InstantMed is a private-pay service and does not present PBS participation as a platform credential.",
       "Our clinical governance is built around Australian medical regulation, privacy law, prescribing rules, documented scope boundaries, and the realities of asynchronous telehealth. We do not claim third-party college accreditation unless it has been formally granted.",
-      "Patient privacy is governed by the Australian Privacy Principles (APPs) under the Privacy Act 1988. We collect only the health information necessary to provide the requested service, store it with field-level encryption, and do not share it with third parties except where required for clinical care or by law. Our privacy practices are documented in our Privacy Policy, and patients can request access to their health information at any time. The Fair Work Act 2009 is also relevant to our medical certificate service - certificates issued through InstantMed comply with the evidentiary requirements for workplace absence documentation.",
+      `Patient privacy is governed by the Privacy Act and Australian Privacy Principles. ${CLINICAL_ACCESS_SCOPE} The privacy policy explains service-provider processing, retention, access, and correction requests. Medical certificates are doctor-issued evidence; employer and institution policies may vary.`,
     ],
   },
 ]
@@ -158,51 +163,51 @@ const guideSections: GuideSectionData[] = [
 const clinicalGovernanceFaqs = [
   {
     question: "Who reviews clinical protocols at InstantMed?",
-    answer: "AHPRA-registered medical leadership designs and reviews the clinical protocols. Protocols are updated quarterly, or sooner when TGA, AHPRA, PBS, privacy, or other relevant requirements change. Protocol changes are version-controlled, documented with rationale, and audited for compliance.",
+    answer: "AHPRA-registered medical leadership owns the clinical protocols and service boundaries. Relevant safety, evidence, incident, and regulatory changes can trigger review; we do not promise a public review cadence.",
   },
   {
     question: "What are the practitioner qualifications?",
-    answer: "Clinical reviews are performed by Australian AHPRA-registered doctors. Registration is current, independently verifiable on the AHPRA public register, and clinical work is conducted within the doctor's scope of training and against written protocols.",
+    answer: `${DOCTOR_REGISTRATION} Registration can be checked independently on the AHPRA public register.`,
   },
   {
     question: "How are clinical decisions audited?",
-    answer: "Clinical decisions are audited through multiple mechanisms: random sampling of approved and declined requests, targeted review of escalated cases, thematic analysis of decision patterns over time, and review of all patient complaints with a clinical component. Audit findings are documented and feed into quarterly protocol reviews.",
+    answer: "Clinical outcomes and the information used to reach them are recorded. Those records support follow-up, complaint investigation, incident review, and review of whether a pathway or protocol needs to change.",
   },
   {
     question: "What happens if a doctor makes a mistake?",
-    answer: "Clinical incidents are managed through our incident reporting framework. Any adverse outcome or near-miss is logged, investigated, and reviewed by our Medical Director. Post-incident reviews identify root causes and result in documented process changes where warranted. Serious incidents are reported to AHPRA in accordance with mandatory notification requirements. We carry professional indemnity insurance covering all clinical services provided through the platform.",
+    answer: "A reported clinical incident follows the documented incident process: it is recorded, investigated, and escalated or reported externally when a legal or professional duty applies. A patient can also use the formal complaints pathway.",
   },
   {
     question: "How does InstantMed handle complaints?",
-    answer: "Complaints can be submitted to complaints@instantmed.com.au and are acknowledged within 24 hours. Clinical complaints are reviewed by our Medical Director within 14 days. We maintain a formal complaints register, track resolution outcomes, and use complaint data to identify systemic issues. If a complaint cannot be resolved internally, patients can escalate to the Health Care Complaints Commission (HCCC) in their state or territory, or to AHPRA directly.",
+    answer: `Complaints can be submitted to complaints@instantmed.com.au. ${COMPLAINTS_TIMING} The complaints page lists external escalation routes, including the relevant state or territory health complaints body, AHPRA, and the OAIC for privacy matters.`,
   },
   {
-    question: "Do you follow the same standards as regular GP clinics?",
+    question: "How does remote governance differ from a regular clinic?",
     answer: "We use clinical governance, patient-safety, privacy, escalation, and documentation standards appropriate to asynchronous telehealth. We do not claim third-party college accreditation unless it has been formally granted. The key difference is context: telehealth needs extra governance around intake quality, remote-assessment limits, and when to send someone to in-person care.",
   },
   {
     question: "How do you ensure prescribing safety?",
-    answer: "Prescribing safety is maintained through multiple layers: structured intake forms that capture medication history and contraindications, automated checks against our clinical protocols, doctor review of all prescribing decisions, and strict scope boundaries that exclude controlled substances and medications requiring physical monitoring. We only facilitate repeat prescriptions for medications the patient is already established on - we do not initiate new therapies for complex conditions.",
+    answer: `Structured forms collect relevant history, current medicines, contraindications, and pathway-specific safety answers. Scope checks can flag or block unsafe requests, and a doctor makes every prescribing decision. ${CLINICAL_DECISION_MODEL}`,
   },
   {
     question: "What clinical conditions do you NOT treat?",
-    answer: "We do not treat emergency or life-threatening presentations, conditions requiring physical examination for diagnosis, mental health crises, conditions requiring Schedule 8 (controlled) medications, complex chronic disease management requiring ongoing monitoring, and paediatric patients without appropriate parental involvement. When a request falls outside our scope, we decline it with a clear explanation and a recommendation for appropriate alternative care.",
+    answer: "We do not treat emergencies, people under 18, requests for Schedule 8 controlled medicines, or presentations needing physical examination, diagnostic testing, or complex ongoing monitoring. The active service pages describe the narrower pathway-specific exclusions.",
   },
   {
     question: "How often are your protocols updated?",
-    answer: "Clinical protocols are formally reviewed quarterly. Updates occur sooner when triggered by TGA or AHPRA changes, post-incident reviews, emerging evidence relevant to our scope of practice, or regulatory changes. All protocol changes are version-controlled and documented with rationale before implementation.",
+    answer: "Protocols can be updated when relevant evidence, incidents, complaints, or regulatory requirements change. We do not advertise a fixed public review cadence.",
   },
   {
     question: "Is there a Medical Director overseeing care?",
-    answer: "Yes. AHPRA-registered medical leadership provides clinical oversight across services. This includes protocol review, clinical audit, incident review, and alignment with AHPRA, TGA, PBS, privacy, and service-scope requirements.",
+    answer: "Yes. AHPRA-registered medical leadership owns clinical protocols, scope boundaries, incident review, and escalation. Public pages do not disclose individual doctor names or the number of doctors.",
   },
   {
     question: "How do you handle conflicts of interest?",
-    answer: "Clinicians on our platform are not incentivised to approve requests. There is no financial or performance benefit to approving rather than declining a request - the clinical decision stands on its own merits. When a request is declined for clinical reasons, the patient is refunded in full. Approval and decline rates are monitored as quality indicators, and any pattern suggesting inappropriate approval is investigated. This separation between commercial outcomes and clinical decisions is fundamental to safe telehealth practice.",
+    answer: "Business staff cannot override a clinical decline. When a doctor records a clinical decline, the patient receives a full refund, including any priority fee, so the request is not converted into a paid approved outcome.",
   },
   {
     question: "What data do you collect and how is it protected?",
-    answer: "We collect only the health information necessary to assess your request - personal details, relevant medical history, current medications, and the reason for your consultation. This information is protected with AES-256-GCM field-level encryption at rest, transmitted over TLS, and stored in Australia on infrastructure that complies with the Australian Privacy Principles. We do not sell or share health information with third parties. Full details are available in our Privacy Policy.",
+    answer: `We collect the personal and health information needed for the selected request. Data is encrypted in transit and sensitive fields are encrypted at rest. ${CLINICAL_ACCESS_SCOPE} Full provider, retention, access, and correction details are in the Privacy Policy.`,
   },
 ]
 
@@ -219,7 +224,7 @@ export default function ClinicalGovernanceClient() {
           pill="Clinical Governance"
           title="Good medicine starts with good governance"
           highlightWords={["governance"]}
-          subtitle="Our clinical processes are designed by practising GPs and reviewed regularly to ensure every patient interaction meets Australian standards."
+          subtitle="Documented clinical ownership, service boundaries, access controls, incident handling, and complaint escalation for form-first telehealth."
           stats={heroStats}
         />
 
@@ -229,10 +234,10 @@ export default function ClinicalGovernanceClient() {
           eyebrow="Doctor-led, doctor-accountable"
           headline={
             <>
-              <span className="text-primary">Clinical decisions</span> stay with the clinician.
+              <span className="text-primary">Clinical accountability</span> stays with doctors.
             </>
           }
-          body="An AHPRA-registered Medical Director sets the protocols and reviews the edge cases. No business team overrides a clinical decline. The named, registered doctor on every certificate is the one accountable for it."
+          body={CLINICAL_DECISION_MODEL}
         />
 
         <CitationFacts variant="muted" />
@@ -280,9 +285,10 @@ export default function ClinicalGovernanceClient() {
               Independent verification
             </Heading>
             <p className="text-muted-foreground mb-6">
-              The treating doctor&apos;s registration can be independently verified on
-              the AHPRA public register. Clinical governance is documented through
-              written protocols, audits, incident review, and escalation rules.
+              Doctor registration can be independently checked on the AHPRA public
+              register. InstantMed documents its clinical protocols, incident process,
+              complaints pathway, and escalation rules without implying AHPRA endorses
+              the company.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button

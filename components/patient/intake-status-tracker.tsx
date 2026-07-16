@@ -11,17 +11,13 @@ import {
   Send,
   XCircle,
 } from "lucide-react"
-import { useEffect, useMemo,useState } from "react"
 
 import { useReducedMotion } from "@/components/ui/motion"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
-import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
 
 interface IntakeStatusTrackerProps {
-  intakeId: string
   initialStatus: IntakeStatus
-  onStatusChange?: (newStatus: IntakeStatus) => void
   className?: string
 }
 
@@ -100,139 +96,14 @@ function getStatusIndex(status: IntakeStatus): number {
 }
 
 export function IntakeStatusTracker({
-  intakeId,
   initialStatus,
-  onStatusChange,
   className,
 }: IntakeStatusTrackerProps) {
   const prefersReducedMotion = useReducedMotion()
-  const [status, setStatus] = useState<IntakeStatus>(initialStatus)
-  const [timestamps, setTimestamps] = useState<Map<string, string>>(new Map())
-  const [isConnecting, setIsConnecting] = useState(true)
-  const [isDisconnected, setIsDisconnected] = useState(false)
-  const [retryCount, setRetryCount] = useState(0)
-  // Memoize Supabase client to prevent recreation on every render
-  const supabase = useMemo(() => createClient(), [])
-
-  // Fetch status history timestamps on mount
-  useEffect(() => {
-    supabase
-      .from("intake_status_history")
-      .select("new_status, created_at")
-      .eq("intake_id", intakeId)
-      .order("created_at", { ascending: true })
-      .then(({ data }) => {
-        if (data) {
-          const map = new Map<string, string>()
-          data.forEach((row: { new_status: string; created_at: string }) => {
-            if (!map.has(row.new_status)) {
-              map.set(row.new_status, row.created_at)
-            }
-          })
-          setTimestamps(map)
-        }
-      })
-  }, [intakeId, supabase])
-
-  // If Realtime never connects (e.g. intakes not in publication), stop showing "Connecting"
-  // after 8s and rely on polling fallback
-  useEffect(() => {
-    if (!isConnecting) return
-    const t = setTimeout(() => {
-      setIsConnecting(false)
-      setIsDisconnected(true)
-    }, 8000)
-    return () => clearTimeout(t)
-  }, [isConnecting])
-
-  // Subscribe to realtime status updates with reconnection logic
-  useEffect(() => {
-    let reconnectTimeout: ReturnType<typeof setTimeout> | null = null
-
-    setIsConnecting(true)
-
-    const channel = supabase
-      .channel(`intake-status-${intakeId}-${retryCount}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "intakes",
-          filter: `id=eq.${intakeId}`,
-        },
-        (payload) => {
-          const newStatus = payload.new.status as IntakeStatus
-          setStatus(newStatus)
-          // Record this transition timestamp immediately
-          setTimestamps(prev => {
-            const next = new Map(prev)
-            if (!next.has(newStatus)) {
-              next.set(newStatus, new Date().toISOString())
-            }
-            return next
-          })
-          onStatusChange?.(newStatus)
-        }
-      )
-      .subscribe((subscriptionStatus) => {
-        if (subscriptionStatus === "SUBSCRIBED") {
-          setIsConnecting(false)
-          setIsDisconnected(false)
-          if (retryCount !== 0) setRetryCount(0)
-        } else if (subscriptionStatus === "CHANNEL_ERROR" || subscriptionStatus === "TIMED_OUT") {
-          setIsDisconnected(true)
-          setIsConnecting(false)
-
-          // Exponential backoff retry (max 30 seconds). A fresh channel
-          // name per retry avoids mutating an already-subscribed Realtime
-          // channel, which Supabase rejects.
-          const delay = Math.min(1000 * Math.pow(2, retryCount), 30000)
-          reconnectTimeout = setTimeout(() => {
-            setRetryCount((prev) => prev + 1)
-          }, delay)
-        } else if (subscriptionStatus === "CLOSED") {
-          setIsDisconnected(true)
-        }
-      })
-
-    return () => {
-      if (reconnectTimeout) clearTimeout(reconnectTimeout)
-      supabase.removeChannel(channel)
-    }
-  }, [intakeId, onStatusChange, retryCount, supabase])
-
-  // Polling fallback: when Realtime is connecting or disconnected, poll every 30s
-  // so status still updates if WebSockets are blocked or Realtime is unavailable
-  useEffect(() => {
-    if (!isConnecting && !isDisconnected) return
-
-    const poll = async () => {
-      const { data } = await supabase
-        .from("intakes")
-        .select("status")
-        .eq("id", intakeId)
-        .single()
-
-      if (data?.status) {
-        setStatus(prev => {
-          if (prev === data.status) return prev
-          const newStatus = data.status as IntakeStatus
-          setTimestamps(t => {
-            const next = new Map(t)
-            if (!next.has(newStatus)) next.set(newStatus, new Date().toISOString())
-            return next
-          })
-          onStatusChange?.(newStatus)
-          return newStatus
-        })
-      }
-    }
-
-    const interval = setInterval(poll, 30000)
-    poll() // initial poll
-    return () => clearInterval(interval)
-  }, [intakeId, isConnecting, isDisconnected, onStatusChange, supabase])
+  // The shell-level authenticated poller refreshes the server projection. This
+  // tracker stays controlled by that parent prop and never fabricates a browser
+  // observation time as a persisted clinical transition timestamp.
+  const status = initialStatus
 
   const currentIndex = getStatusIndex(status)
   const isSpecialStatus = status in SPECIAL_STATUSES
@@ -247,22 +118,7 @@ export function IntakeStatusTracker({
           <h3 className="font-semibold">Request Status</h3>
         </div>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          {isConnecting ? (
-            <>
-              <Loader2 className="h-3 w-3 animate-spin" />
-              <span>Connecting...</span>
-            </>
-          ) : isDisconnected ? (
-            <>
-              <span className="h-1.5 w-1.5 rounded-full bg-warning" />
-              <span>Reconnecting...</span>
-            </>
-          ) : (
-            <>
-              <span className="h-1.5 w-1.5 rounded-full bg-success motion-safe:animate-pulse" />
-              <span>Live</span>
-            </>
-          )}
+          <span>Updates automatically</span>
         </div>
       </div>
 
@@ -366,17 +222,6 @@ export function IntakeStatusTracker({
                     >
                       {step.label}
                     </p>
-                    {(isComplete || isActive) && timestamps.get(step.id) && (
-                      <span className="text-xs text-muted-foreground tabular-nums shrink-0">
-                        {new Date(timestamps.get(step.id)!).toLocaleString("en-AU", {
-                          day: "numeric",
-                          month: "short",
-                          hour: "numeric",
-                          minute: "2-digit",
-                          hour12: true,
-                        })}
-                      </span>
-                    )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {step.description}

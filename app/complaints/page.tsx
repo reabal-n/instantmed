@@ -8,16 +8,20 @@ import { CTABanner } from "@/components/sections/cta-banner"
 import { LegalSection } from "@/components/shared/legal-section"
 import { Navbar } from "@/components/shared/navbar"
 import { CONTACT_EMAIL_COMPLAINTS, CONTACT_EMAIL_PRIVACY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+
+const COMPLAINTS_TIMING = getApprovedClaim("complaints_timing")
+const DOCTOR_REGISTRATION = getApprovedClaim("doctor_registration")
 
 export const metadata: Metadata = {
   title: "Complaints",
   description:
-    "How to raise a concern or complaint about InstantMed, our 14-day response SLA, and how to escalate to AHPRA or your state health complaints commissioner.",
+    "How to raise a concern or complaint about InstantMed, our 24-hour acknowledgement and 14-day clinical-resolution target, and external escalation options.",
   alternates: { canonical: "https://instantmed.com.au/complaints" },
   openGraph: {
     title: "Complaints | InstantMed",
     description:
-      "How to raise a concern or complaint about InstantMed, our 14-day response SLA, and how to escalate externally.",
+      "How to raise a concern, what happens next, and how to escalate externally.",
     url: "https://instantmed.com.au/complaints",
   },
 }
@@ -102,8 +106,7 @@ export default function ComplaintsPage() {
 
                 <LegalSection number="2" title="What happens next">
                   <p>
-                    We acknowledge every complaint within 24 business hours. The Medical Director triages each complaint
-                    into one of three categories:
+                    Each complaint is routed to the appropriate clinical, operations, or privacy owner:
                   </p>
                   <ul>
                     <li>
@@ -125,37 +128,33 @@ export default function ComplaintsPage() {
                 </LegalSection>
 
                 <LegalSection number="3" title="Response timeframes">
+                  <p>{COMPLAINTS_TIMING}</p>
                   <ul>
-                    <li><strong>Acknowledgement:</strong> within 24 business hours</li>
-                    <li><strong>Service complaints:</strong> resolved or substantively responded to within 48 hours where possible</li>
-                    <li><strong>Clinical complaints:</strong> resolved or substantively responded to within 14 calendar days</li>
+                    <li><strong>Service and privacy complaints:</strong> investigated by the responsible owner, with updates if more information or time is needed</li>
                     <li><strong>Complex investigations:</strong> if we need longer, we will tell you why and set a revised timeline</li>
                   </ul>
                   <p>
-                    These timeframes reflect our own service standard. They are not a guarantee of a specific outcome -
-                    only that we will respond substantively within that window.
+                    The clinical timeframe is a target, not a guarantee of a particular outcome.
                   </p>
                 </LegalSection>
 
                 <LegalSection number="4" title="Clinical governance">
                   <p>
-                    InstantMed clinical reviews are performed by AHPRA-registered Australian doctors working under
-                    documented clinical governance. A named, registered, identifiable clinician is responsible for
-                    each clinical decision, and the treating practitioner&apos;s AHPRA registration can be independently
-                    verified on the public register.
+                    {DOCTOR_REGISTRATION} The clinician responsible for a clinical decision is recorded in the
+                    patient record, and AHPRA registration can be independently verified on the public register.
                   </p>
                   <p>
                     Clinical leadership:
                   </p>
                   <ul>
-                    <li>Holds current, unrestricted AHPRA registration (independently verifiable on the AHPRA public register)</li>
-                    <li>Maintains professional indemnity insurance</li>
-                    <li>Is subject to the same professional obligations and regulatory oversight as any other registered GP in Australia</li>
-                    <li>Can be identified to you on request via <a href={`mailto:${CONTACT_EMAIL_COMPLAINTS}`}>{CONTACT_EMAIL_COMPLAINTS}</a></li>
+                    <li>Holds current AHPRA registration (independently verifiable on the AHPRA public register)</li>
+                    <li>Maintains documented clinical protocols, scope boundaries, and escalation rules</li>
+                    <li>Reviews clinical complaints and records the outcome</li>
+                    <li>Can help identify the responsible treating clinician via <a href={`mailto:${CONTACT_EMAIL_COMPLAINTS}`}>{CONTACT_EMAIL_COMPLAINTS}</a></li>
                   </ul>
                   <p>
                     See our <Link href="/clinical-governance">clinical governance framework</Link> for how protocols are
-                    designed, audited, and updated.
+                    owned, documented, and updated.
                   </p>
                   <p>
                     For a source-backed plain-English version, see our{" "}
@@ -226,13 +225,12 @@ export default function ComplaintsPage() {
 
                 <LegalSection number="8" title="Record of your complaint">
                   <p>
-                    We keep a formal register of every complaint, the investigation, the outcome, and any resulting
-                    process change. This register is reviewed by the Medical Director at least quarterly and is a
-                    structural input into our quality improvement cycle.
+                    We keep a formal record of each complaint, the investigation, the outcome, and any resulting
+                    process change. Complaint records are an input into clinical governance and service improvement.
                   </p>
                   <p>
-                    Making a complaint will never affect your access to our service or the clinical decisions made about
-                    your care. We treat complaints as information that helps us improve, not as a signal to push back.
+                    Making a good-faith complaint does not alter the clinical outcome or restrict service access by itself.
+                    We treat complaints as information for investigation and improvement.
                   </p>
                 </LegalSection>
 
@@ -243,7 +241,7 @@ export default function ComplaintsPage() {
 
         <CTABanner
           title="Something on your mind?"
-          subtitle="We read every email. Tell us what happened and we'll look into it."
+          subtitle="Tell us what happened and we'll investigate it through the appropriate pathway."
           ctaText="Email us"
           ctaHref={`mailto:${CONTACT_EMAIL_COMPLAINTS}`}
           secondaryText="Back to help"

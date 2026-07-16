@@ -1,20 +1,23 @@
 import { ExternalLink } from "lucide-react"
 import Link from "next/link"
 
-import { type Intake, resolveStatusConfig } from "@/components/patient/intake-types"
+import {
+  type Intake,
+  resolvePatientIntakeNextStep,
+  resolvePatientIntakeStatusConfig,
+} from "@/components/patient/intake-types"
 import { Button } from "@/components/ui/button"
 import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
-import { getPatientStatusNextStep } from "@/lib/data/status"
 import { formatDate, formatRelative } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 export function IntakeDetailDrawer({ intake }: { intake: Intake }) {
-  const config = resolveStatusConfig(intake.status)
+  const config = resolvePatientIntakeStatusConfig(intake)
   const Icon = config.icon
 
   const serviceName = intake.service?.name || intake.service?.short_name || "Request"
   const refId = intake.id.slice(0, 8).toUpperCase()
-  const whatsNext = getPatientStatusNextStep(intake.status)
+  const whatsNext = resolvePatientIntakeNextStep(intake)
 
   return (
     <div className="p-6 space-y-6">

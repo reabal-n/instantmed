@@ -1,6 +1,6 @@
 import { PRICING_DISPLAY } from "@/lib/constants"
 
-export const HAIR_LOSS_FAQ = [
+const HAIR_LOSS_FAQ = [
   {
     question: "What does the doctor assess?",
     answer:
@@ -40,4 +40,13 @@ export const HAIR_LOSS_FAQ = [
     question: "How much does it cost?",
     answer: `Our flat fee is ${PRICING_DISPLAY.HAIR_LOSS} for the doctor consultation. Pharmacy costs, if relevant, are separate. There are no subscriptions or ongoing fees required.`,
   },
+] as const
+
+// A compact service-page set for the active landing page.
+export const HAIR_LOSS_LANDING_FAQ = [
+  HAIR_LOSS_FAQ[0],
+  HAIR_LOSS_FAQ[2],
+  HAIR_LOSS_FAQ[3],
+  HAIR_LOSS_FAQ[4],
+  HAIR_LOSS_FAQ[7],
 ] as const

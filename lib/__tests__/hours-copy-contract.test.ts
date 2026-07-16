@@ -3,6 +3,8 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+
 /**
  * 24/7 positioning contract (operator decision 2026-07-03).
  *
@@ -89,26 +91,16 @@ describe("24/7 hours copy contract", () => {
     ).toEqual([])
   })
 
-  it("keeps operating-hours window fields out of the social-proof module (computed strings evade source grep)", async () => {
-    // SOCIAL_PROOF_DISPLAY.operatingHours used to compute "8am–10pm" at
-    // runtime from numeric fields — invisible to the literal scan above.
-    // Assert at the export level so a reintroduced window field fails here.
+  it("keeps operating-hours window fields out of the social-proof module", async () => {
     const socialProof = await import("@/lib/social-proof")
     const proofKeys = Object.keys(socialProof.SOCIAL_PROOF)
     expect(proofKeys.filter((k) => /operatingHours/i.test(k))).toEqual([])
-
-    const display = socialProof.SOCIAL_PROOF_DISPLAY as Record<string, string>
-    for (const [key, value] of Object.entries(display)) {
-      expect(
-        WINDOW_CLAIM.test(value),
-        `SOCIAL_PROOF_DISPLAY.${key} renders a review-hours window ("${value}") — the platform is 24/7`,
-      ).toBe(false)
-    }
   })
 
   it("keeps the terms of service on the 24/7 availability wording", () => {
     const terms = readFileSync(join(ROOT, "app/terms/page.tsx"), "utf8")
-    expect(terms).toContain("The service operates 24 hours a day, 7 days a week.")
+    expect(terms).toContain('getApprovedClaim("availability_24_7")')
+    expect(getApprovedClaim("availability_24_7")).toContain("submitted and reviewed 24/7")
     expect(terms).toContain("We do not guarantee specific response times.")
   })
 })

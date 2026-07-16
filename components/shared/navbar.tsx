@@ -79,6 +79,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             {/* Logo */}
             <BrandLogo
               size="md"
+              priority
               className={cn(
                 "relative z-10",
                 mobileMenuOpen && "max-md:opacity-0"

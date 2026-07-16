@@ -7,11 +7,14 @@ import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { sendSessionExpiredEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import { PAYMENT_REPLACEMENT_LOCK } from "@/lib/stripe/payment-integrity"
+import { PAYMENT_SAFETY_LOCKS } from "@/lib/stripe/payment-safety-lock"
 
 import type { HandlerResult, WebhookContext } from "./types"
 import { tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:checkout-expired")
+const EXPIRY_LOCKED_CHECKOUT_ERRORS_FILTER =
+  `(${[PAYMENT_REPLACEMENT_LOCK, ...PAYMENT_SAFETY_LOCKS].join(",")})`
 
 export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise<HandlerResult> {
   const { event, supabase } = ctx
@@ -43,7 +46,7 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
       // Update intake status and payment_status to expired if still pending payment
       // Keep nullable checkout_error guards as separate PATCHes. Combining
       // them with PostgREST `.or()` produces a 42703 error on this update path.
-      const expireWithGuard = (checkoutErrorGuard: "null" | "not_replacing") => {
+      const expireWithGuard = (checkoutErrorGuard: "null" | "not_locked") => {
         let expireQuery = supabase
           .from("intakes")
           .update({
@@ -57,14 +60,18 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
 
         expireQuery = checkoutErrorGuard === "null"
           ? expireQuery.is("checkout_error", null)
-          : expireQuery.neq("checkout_error", PAYMENT_REPLACEMENT_LOCK)
+          : expireQuery.not(
+              "checkout_error",
+              "in",
+              EXPIRY_LOCKED_CHECKOUT_ERRORS_FILTER,
+            )
 
         return expireQuery.select("id").maybeSingle()
       }
 
       let { data: expiredIntake, error: expireError } = await expireWithGuard("null")
       if (!expireError && !expiredIntake) {
-        const fallbackExpiry = await expireWithGuard("not_replacing")
+        const fallbackExpiry = await expireWithGuard("not_locked")
         expiredIntake = fallbackExpiry.data
         expireError = fallbackExpiry.error
       }

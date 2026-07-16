@@ -1,7 +1,7 @@
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { GUARANTEE } from "@/lib/marketing/voice"
 
-export const ED_FAQ = [
+const ED_FAQ = [
   {
     question: "Can I get an ED assessment online in Australia?",
     answer: "Yes, if the problem is suitable for remote doctor review. You complete a structured safety form and an AHPRA-registered Australian doctor reviews your answers before deciding the next step. Online care is not suitable for urgent symptoms, unstable heart symptoms, prolonged painful erection, injury, or unclear medicine history.",
@@ -50,4 +50,14 @@ export const ED_FAQ = [
     question: "Can I use this for low libido, fertility, or testosterone concerns?",
     answer: "Not as the main reason for the request. Those problems may need a broader history, examination, blood tests, counselling, or specialist review. This pathway is focused on erectile dysfunction assessment and safety screening.",
   },
+] as const
+
+// The service landing keeps only the questions needed to choose this pathway.
+export const ED_LANDING_FAQ = [
+  ED_FAQ[0],
+  ED_FAQ[1],
+  ED_FAQ[4],
+  ED_FAQ[8],
+  ED_FAQ[9],
+  ED_FAQ[10],
 ] as const

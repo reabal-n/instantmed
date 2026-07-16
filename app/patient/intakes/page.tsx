@@ -27,7 +27,6 @@ export default async function PatientIntakesPage({ searchParams }: PageProps) {
   return (
     <IntakesClient
       intakes={intakes}
-      patientId={authUser.profile.id}
       pagination={{ page, total, pageSize }}
     />
   )

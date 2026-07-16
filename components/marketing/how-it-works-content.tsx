@@ -15,47 +15,32 @@ import { CTABanner } from "@/components/sections/cta-banner"
 import { FAQSection } from "@/components/sections/faq-section"
 import { FeatureGrid } from "@/components/sections/feature-grid"
 import { Timeline } from "@/components/sections/timeline"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import { commercialComparisonLinks } from "@/lib/seo/commercial-links"
 
 /* ────────────────────────────── Data ────────────────────────────── */
 
-const processSteps = [
-  {
-    title: "Tell us what you need",
-    description:
-      "Pick your service and answer a few quick questions. Takes about 2 minutes. No account needed to get started.",
-  },
-  {
-    title: "A real doctor reviews it",
-    description:
-      "An AHPRA-registered doctor reviews your request and medical history. If they need more info, they\u2019ll reach out directly. Review follows when a doctor is available.",
-  },
-  {
-    title: "Get your document",
-    description:
-      `If approved: med cert emailed as PDF, medication sent to your phone for any pharmacy. ${GUARANTEE}`,
-  },
-]
+const CLINICAL_ACCESS_SCOPE = getApprovedClaim("clinical_access_scope")
+const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
+const DOCTOR_REGISTRATION = getApprovedClaim("doctor_registration")
 
 const features = [
   {
     icon: <StickerIcon name="clock" size={44} />,
-    title: "Fast turnaround",
+    title: "24/7 service",
     description:
-      `Doctor review follows when available. ${GUARANTEE}`,
+      getApprovedClaim("availability_24_7"),
   },
   {
     icon: <StickerIcon name="security-shield" size={44} />,
     title: "AHPRA registered",
-    description:
-      "All our doctors are registered with AHPRA. We checked.",
+    description: DOCTOR_REGISTRATION,
   },
   {
     icon: <StickerIcon name="wallet" size={44} />,
     title: "No subscriptions",
-    description:
-      "Pay per consult. No monthly fees, no hidden charges, no surprises.",
+    description: "Pay per request. No monthly fees or subscription.",
   },
   {
     icon: <StickerIcon name="sent" size={44} />,
@@ -69,7 +54,7 @@ const servicePathways = [
   {
     title: "Medical certificates",
     href: "/medical-certificate",
-    summary: "For short-term illness, carer's leave, work, study, or employer evidence when a doctor can assess the request safely online.",
+    summary: "For short-term illness, carer's leave, work, study, or employer evidence when the request fits the online certificate pathway.",
     doctorChecks: "Symptoms, dates, red flags, whether the request fits telehealth, and whether the period requested is clinically reasonable.",
     outcome: `PDF certificate by email and dashboard if approved. ${GUARANTEE}`,
   },
@@ -83,9 +68,9 @@ const servicePathways = [
   {
     title: "Specialty assessments",
     href: "/consult",
-    summary: "For active ED and hair-loss pathways that need structured doctor judgement but do not obviously require urgent examination, imaging, or emergency care.",
+    summary: "For active ED, hair-loss, UTI, and contraceptive-pill pathways that use structured screening and doctor judgement.",
     doctorChecks: "Symptoms, duration, medical history, risk factors, photos if relevant, and whether written advice, prescription, referral, or in-person review is safest.",
-    outcome: "A written doctor response, prescription or referral if clinically appropriate, or clear guidance to seek in-person care.",
+    outcome: "A written outcome or eScript if approved, or clear guidance to seek in-person care.",
   },
 ]
 
@@ -95,8 +80,8 @@ const howItWorksGuide: GuideSectionData[] = [
     icon: "checklist",
     title: "What happens when you submit a request",
     paragraphs: [
-      "When you fill in our questionnaire, you're providing the same information you'd give a GP in a face-to-face consultation: your symptoms, how long you've had them, relevant medical history, and any medications you're taking. The form is structured to capture the clinical details a doctor needs to make an informed assessment.",
-      `This isn't a rubber-stamp process. The doctor reads your responses, reviews your history if you've used the service before, and applies the same clinical judgement they would in a consulting room. If something doesn't add up, we'll ask for the missing detail through the platform. If your situation needs in-person care, we'll say so. ${GUARANTEE}`,
+      "The questionnaire collects the symptoms, timing, relevant history, medicines, and pathway-specific safety answers needed for the selected request. It cannot replace a physical examination or diagnostic testing.",
+      `${CLINICAL_DECISION_MODEL} A doctor may call or message before deciding, and the pathway stops when in-person care is safer. ${GUARANTEE}`,
     ],
   },
   {
@@ -104,8 +89,8 @@ const howItWorksGuide: GuideSectionData[] = [
     icon: "stethoscope",
     title: "The clinical standards behind the screen",
     paragraphs: [
-      "Every doctor on InstantMed is registered with the Australian Health Practitioner Regulation Agency (AHPRA) and holds current medical registration. Telehealth changes the channel, not the professional duty: the doctor still needs enough information to make a safe decision, keep appropriate records, and decline requests that are not suitable for online care.",
-      "Our clinical governance framework includes structured audit, documented service limits, and clear escalation rules. Doctors can decline to issue a certificate or prescription if it is not clinically appropriate, and they do. A real decline path is a feature, not a bug. It means the clinical judgement is genuine.",
+      DOCTOR_REGISTRATION,
+      "Our clinical governance framework documents service limits, decision records, incident handling, complaint escalation, and when a request must move to another care setting. Prescribing requests can be declined when they are not clinically appropriate.",
     ],
   },
   {
@@ -113,8 +98,8 @@ const howItWorksGuide: GuideSectionData[] = [
     icon: "medical-history",
     title: "Medical certificates vs prescriptions vs consultations",
     paragraphs: [
-      "We offer specialised one-off services, each with a different clinical pathway. Medical certificates are for short-term illness; the doctor assesses whether your reported symptoms justify time off work or study. Repeat prescriptions are for medications you already take; the doctor confirms it's safe to continue and sends an eScript to your phone. ED and hair-loss requests use structured specialty assessment pathways.",
-      "The clinical rigour scales with the complexity. A medical certificate for a one-day cold is relatively straightforward. A specialty assessment about ongoing symptoms requires more structured screening and may involve follow-up questions through the platform. A prescription for a medication you've been taking for years requires different checks than one for a new concern. The process adapts. The standard doesn't.",
+      "We offer specialised one-off services, each with a different clinical pathway. Medical certificates cover short absences when the reported history fits the certificate protocol. Repeat prescriptions are for medicines you already take. ED, hair-loss, UTI, and contraceptive-pill requests use structured specialty screeners.",
+      "The information and review sequence vary by pathway. Specialty and prescribing requests require a doctor decision and may need follow-up contact. Eligible low-risk certificate requests may use the logged doctor-owned protocol, followed by individual doctor review.",
     ],
   },
   {
@@ -122,8 +107,8 @@ const howItWorksGuide: GuideSectionData[] = [
     icon: "laptop",
     title: "What we can and can't do online",
     paragraphs: [
-      "Telehealth works well for conditions where the diagnosis is primarily history-based: cold and flu, gastro, back pain, mental health concerns, medication renewals, skin conditions (with photos), UTIs, and similar. These are conditions where a GP's assessment relies on what you describe rather than what they can physically examine.",
-      "We're upfront about what falls outside our scope. We can't prescribe Schedule 8 medications (opioids, stimulants, benzodiazepines). We won't issue medical certificates for WorkCover claims. Those require in-person examination. Conditions requiring blood tests, imaging, or physical examination (suspicious lumps, joint injuries, chest pain) should be seen face-to-face. If your situation needs in-person care, we'll tell you, and refund you.",
+      "InstantMed is limited to focused one-off pathways: short medical certificates, repeat-prescription requests, and the active ED, hair-loss, UTI, and contraceptive-pill assessments. It is not a general or ongoing-care service.",
+      "We do not prescribe Schedule 8 controlled medicines or issue WorkCover certificates. Presentations requiring blood tests, imaging, physical examination, urgent care, or complex ongoing monitoring sit outside these pathways. If the doctor declines, the full request fee and any priority fee are refunded.",
     ],
   },
   {
@@ -131,25 +116,10 @@ const howItWorksGuide: GuideSectionData[] = [
     icon: "lock",
     title: "Your privacy and data security",
     paragraphs: [
-      "Doctor-patient confidentiality applies fully to telehealth consultations. Your health information is encrypted with AES-256, the same standard used by banks, and is never shared with employers, insurers, or third parties without your explicit consent. Because this is a private service (not billed to Medicare), there's no record on your Medicare claims history.",
-      "We comply with the Australian Privacy Principles (APPs 1-13) and the Privacy Act 1988. Your data is stored on Australian servers. You can request access to or deletion of your health records at any time.",
+      `Health records use Australian-hosted primary storage. Data is encrypted in transit and sensitive fields are encrypted at rest. ${CLINICAL_ACCESS_SCOPE}`,
+      "The privacy policy explains service-provider processing, retention, and access or correction requests. InstantMed is a private-pay service and does not claim a Medicare rebate for the review fee.",
     ],
   },
-]
-
-const HOW_IT_WORKS_FAQ = [
-  { question: "Is this a real doctor?", answer: "Yes. Every request is reviewed by an AHPRA-registered Australian doctor. They're real doctors with real medical degrees and current registration, the same doctors who work in clinics and hospitals." },
-  { question: "How long does it take?", answer: "Requests can be submitted any time. Medical certificates are typically issued quickly, and prescriptions or consultations are reviewed when a doctor is available." },
-  { question: "Will my employer accept an online medical certificate?", answer: "Certificates from AHPRA-registered doctors can support workplace evidence requirements. Employer policies and individual circumstances may vary." },
-  { question: "Do I need to be available for a call?", answer: "Usually no booked appointment is needed. You submit your form and the doctor reviews it. For prescription and specialty requests, the doctor may call briefly before deciding." },
-  { question: "Do I need a Medicare card?", answer: "For medical certificates, no. For prescriptions and consultations, Medicare details are requested for identity and prescribing history verification, but this is a private service." },
-  { question: "What if my request is declined?", answer: `${GUARANTEE} If your situation requires in-person care or falls outside telehealth scope, the doctor will recommend appropriate next steps.` },
-  { question: "Is my information private?", answer: "Completely. Your health data is encrypted with bank-level security and never shared with employers, insurers, or anyone else without your consent." },
-  { question: "Can I use this for my kids?", answer: "No. InstantMed currently accepts patients aged 18 and over only. Contact your child's GP or another paediatric-capable service for assessment or school documentation." },
-  { question: "How do I receive my documents?", answer: "Medical certificates are emailed as PDFs and available in your patient dashboard. Prescriptions are sent as eScripts via SMS. Take your phone to any pharmacy." },
-  { question: "Is this available outside major cities?", answer: "Yes. InstantMed works anywhere in Australia with internet access. Regional, rural, and remote patients use our service regularly." },
-  { question: "What hours are you open?", answer: "The online request flow is open 24/7. Submit when it suits you, including weekends and public holidays. Doctor review follows when a doctor is available." },
-  { question: "How is this different from calling a GP clinic?", answer: "No appointments, no waiting rooms, no phone queues. You submit when it suits you, and a doctor reviews it without you needing to be available at a specific time." },
 ]
 
 const HIW_CONFIG = {
@@ -159,7 +129,12 @@ const HIW_CONFIG = {
 
 /* ────────────────────────────── Component ────────────────────────────── */
 
-export function HowItWorksContent() {
+interface HowItWorksContentProps {
+  faqs: Array<{ question: string; answer: string }>
+  processSteps: Array<{ title: string; description: string }>
+}
+
+export function HowItWorksContent({ faqs, processSteps }: HowItWorksContentProps) {
   return (
     <InformationalPageShell config={HIW_CONFIG}>
       {() => (
@@ -169,7 +144,7 @@ export function HowItWorksContent() {
           pill="How It Works"
           title="Healthcare that fits your life"
           highlightWords={["your life"]}
-          subtitle="Submit your request online. A real Australian doctor reviews it and determines the best way to help you. Convenient, but still thorough."
+          subtitle="Submit a focused request online through a doctor-owned clinical pathway. A doctor may call or message if more information is needed."
         />
 
         {/* Page superpower — a clear accountability promise across both the
@@ -181,7 +156,7 @@ export function HowItWorksContent() {
               <span className="text-primary">Form-first</span>, with clear accountability.
             </>
           }
-          body="AHPRA-registered doctors make prescribing decisions. Eligible low-risk medical certificates may be issued under a logged doctor-owned protocol and each is individually reviewed afterward. AI does not prescribe."
+          body={CLINICAL_DECISION_MODEL}
         />
 
         {/* Process Steps */}
@@ -292,7 +267,7 @@ export function HowItWorksContent() {
             pill="FAQ"
             title="Common questions"
             subtitle="Everything you need to know about using InstantMed."
-            items={HOW_IT_WORKS_FAQ}
+            items={faqs}
           />
         </div>
 

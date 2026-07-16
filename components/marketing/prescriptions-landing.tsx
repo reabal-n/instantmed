@@ -2,61 +2,31 @@
 
 import {
   ArrowRight,
+  Building2,
   CheckCircle2,
+  ClipboardList,
+  PhoneCall,
+  ShieldAlert,
+  ShieldCheck,
+  Smartphone,
+  Stethoscope,
 } from "lucide-react"
 import dynamic from "next/dynamic"
-import Image from "next/image"
 import Link from "next/link"
-import type { ReactNode } from "react"
 
-import { StickerIcon } from "@/components/icons/stickers"
 import { Hero } from "@/components/marketing/hero"
-import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
-import { CommercialIntentLinksSection } from "@/components/marketing/sections/commercial-intent-links-section"
-import { TimeComparisonViz } from "@/components/marketing/sections/time-comparison-viz"
 import {
   type LandingPageConfig,
   LandingPageShell,
 } from "@/components/marketing/shared/landing-page-shell"
-import { ReferralStrip } from "@/components/marketing/shared/referral-strip"
-import { RelatedArticles } from "@/components/marketing/shared/related-articles"
-import { TrustBadgeRow } from "@/components/shared/trust-badge"
-import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
-import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
-import { PRICING } from "@/lib/constants"
-import { PRESCRIPTION_FAQ } from "@/lib/data/prescription-faq"
-import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
-import { commercialPrescriptionLinks } from "@/lib/seo/commercial-links"
-import { cn } from "@/lib/utils"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { PRESCRIPTION_LANDING_FAQ } from "@/lib/data/prescription-faq"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+import { FORM_FIRST_WEDGE } from "@/lib/marketing/voice"
 
-// Below-fold lazy loads
-const HowItWorksInline = dynamic(
-  () => import("@/components/marketing/sections/how-it-works-inline").then((m) => m.HowItWorksInline),
-  { loading: () => <div className="min-h-[300px]" /> },
-)
-const PBSCalloutStrip = dynamic(
-  () => import("@/components/marketing/sections/pbs-callout-strip").then((m) => m.PBSCalloutStrip),
-  { loading: () => <div className="min-h-[60px]" /> },
-)
-const EScriptExplainerSection = dynamic(
-  () => import("@/components/marketing/sections/escript-explainer-section").then((m) => m.EScriptExplainerSection),
-  { loading: () => <div className="min-h-[400px]" /> },
-)
-const SupportedMedicationsSection = dynamic(
-  () => import("@/components/marketing/sections/supported-medications-section").then((m) => m.SupportedMedicationsSection),
-  { loading: () => <div className="min-h-[350px]" /> },
-)
-const DoctorProfileSection = dynamic(
-  () => import("@/components/marketing/sections/doctor-profile-section").then((m) => m.DoctorProfileSection),
-  { loading: () => <div className="min-h-[200px]" /> },
-)
-const PrescriptionLimitationsSection = dynamic(
-  () => import("@/components/marketing/sections/prescription-limitations-section").then((m) => m.PrescriptionLimitationsSection),
-  { loading: () => <div className="min-h-[150px]" /> },
-)
 const RegulatoryPartners = dynamic(
   () => import("@/components/marketing/regulatory-partners").then((m) => m.RegulatoryPartners),
   { loading: () => <div className="min-h-[120px]" /> },
@@ -69,417 +39,321 @@ const CTABanner = dynamic(
   () => import("@/components/sections/cta-banner").then((m) => ({ default: m.CTABanner })),
   { loading: () => <div className="min-h-[300px]" /> },
 )
-const ContentHubLinks = dynamic(
-  () => import("@/components/seo/content-hub-links").then((m) => m.ContentHubLinks),
-  { loading: () => <div className="min-h-[320px]" /> },
-)
 
-// =============================================================================
-// DATA
-// =============================================================================
+const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
 
-const RELATED_ARTICLES_DATA = [
-  { title: "Understanding eScripts in Australia", href: "/blog/how-escripts-work" },
-  { title: "How to Get a Repeat Prescription Online", href: "/blog/repeat-prescription-online" },
-  { title: "PBS Subsidies: What You Need to Know", href: "/blog/pbs-pharmaceutical-benefits-scheme" },
-]
-
-const HOW_IT_WORKS_STEPS = [
+const PRESCRIPTION_LIFECYCLE_STEPS = [
   {
-    sticker: "medical-history" as const,
-    step: 1,
-    title: "Enter your medication",
-    description: "Tell us what you need renewed. Takes about five minutes.",
-    time: "~5 minutes",
+    icon: ClipboardList,
+    title: "Medication details",
+    description: "Tell us about the regular medication you already take.",
   },
   {
-    sticker: "stethoscope" as const,
-    step: 2,
-    title: "A real doctor reviews it",
-    description: "An AHPRA-registered doctor checks your request and medical history.",
-    time: "Reviewed when available",
+    icon: ShieldCheck,
+    title: "Identity and safety review",
+    description: "Confirm your Medicare details, current dose, directions, and safety answers.",
   },
   {
-    sticker: "sent" as const,
-    step: 3,
-    title: "eScript sent to your phone",
-    description: "Once approved, your electronic prescription is sent by SMS. Take it to any pharmacy.",
-    time: "Instant",
+    icon: Stethoscope,
+    title: "Doctor decision",
+    description: "A doctor reviews the request before deciding whether a prescription is appropriate.",
+    callout: "Brief call if needed",
   },
-]
+  {
+    icon: Smartphone,
+    title: "Token to your phone",
+    description: "If approved, the eScript token is sent to you by SMS.",
+  },
+  {
+    icon: Building2,
+    title: "Your pharmacy",
+    description: "Show the token at an Australian pharmacy. Medicine costs are paid there.",
+  },
+] as const
+
+const SUITABLE_REQUESTS = [
+  "Previously prescribed",
+  "Stable medication and dose",
+  "One regular medicine per request",
+  "Current safety and medical details available",
+] as const
+
+const OUT_OF_SCOPE_REQUESTS = [
+  "A medicine you have not taken before",
+  "Controlled or dependence-forming medicines",
+  "Care that needs examination, pathology, or close monitoring",
+  "Urgent symptoms or a medical emergency",
+] as const
+
+const PRESCRIPTION_RESOURCES = [
+  {
+    href: "/resources/secure-online-prescription-requests",
+    label: "How secure requests work",
+  },
+  {
+    href: "/resources/repeat-prescription-safety-checklist",
+    label: "Repeat prescription safety checklist",
+  },
+  {
+    href: "/online-prescriptions",
+    label: "Online prescriptions in Australia",
+  },
+] as const
 
 const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "scripts",
   analyticsId: "prescription",
   sticky: {
-    ctaText: `Renew your medication · $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
+    ctaText: `Renew your medication - ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
     ctaHref: "/request?service=repeat-script",
-    mobileSummary: "Need your medication? Doctor-reviewed, 7 days a week.",
+    mobileSummary: "Repeat medication request",
     responseTime: "Doctor-reviewed after submission",
   },
 }
 
-// =============================================================================
-// UNIQUE SECTIONS
-// =============================================================================
-
-
-/** Service differentiation - repeat prescription vs active specialty pathways */
-function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
-  const services = [
-    {
-      sticker: "synchronize" as const,
-      title: "Repeat prescription",
-      subtitle: "Renewing a medication you already take",
-      price: PRICING.REPEAT_SCRIPT,
-      href: "/request?service=repeat-script",
-      badge: "Most common",
-      highlight: true,
-      bullets: [
-        "Medication you've been prescribed before",
-        "eScript via SMS to any Australian pharmacy",
-        "PBS pricing applies at the counter",
-      ],
-      ctaText: "Renew medication",
-    },
-    {
-      sticker: "stethoscope" as const,
-      title: "Specialty pathways",
-      subtitle: "Structured ED or hair loss assessment",
-      price: PRICING.CONSULT,
-      href: "/consult",
-      badge: null,
-      highlight: false,
-      bullets: [
-        "Use a dedicated safety screener",
-        "Doctor contacts you if clinically needed",
-        "General new medicines stay with your GP",
-      ],
-      ctaText: "See specialty options",
-    },
-  ]
-
+function RepeatEligibilitySection() {
   return (
-    <section id="pricing" aria-label="Service options" className="py-16 lg:py-20">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="text-center mb-10">
-          <SectionPill>Pricing</SectionPill>
-          <Heading level="h2" className="mt-4 mb-3">
-            Renewals first. Specialty care when it fits.
+    <section aria-labelledby="repeat-eligibility-title" className="py-12 sm:py-16 lg:py-20">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl">
+          <SectionPill>Check the fit</SectionPill>
+          <Heading id="repeat-eligibility-title" level="h2" className="mt-4 text-balance">
+            For one regular medicine you already take.
           </Heading>
-          <p className="text-muted-foreground max-w-xl mx-auto text-balance">
-            Repeat prescription requests are active here. New medicine starts only through supported specialty pathways.
+          <p className="mt-3 text-base leading-7 text-muted-foreground">
+            This pathway is deliberately narrow. The doctor checks that a repeat remains safe and appropriate before making a prescribing decision.
           </p>
-        </Reveal>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          {services.map((service, i) => (
-            <Reveal
-              key={service.title}
-              delay={i * 0.1}
-              className={cn(
-                "relative rounded-2xl border flex flex-col overflow-hidden",
-                service.highlight
-                  ? "bg-white dark:bg-card border-primary/30 shadow-xl shadow-primary/[0.12]"
-                  : "bg-white dark:bg-card border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none"
-              )}
-            >
-              <div className="p-6 flex flex-col flex-1">
-                {/* Sticker + badge row */}
-                <div className="flex items-start justify-between mb-4">
-                  <StickerIcon name={service.sticker} size={56} />
-                  {service.badge && (
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary-strong border border-primary/20">
-                      <span
-                        className="w-1.5 h-1.5 rounded-full bg-primary mr-1.5"
-                        style={{ animation: "pulse 3s ease-in-out infinite" }}
-                        aria-hidden="true"
-                      />
-                      {service.badge}
-                    </span>
-                  )}
-                </div>
-
-                {/* Title + subtitle */}
-                <Heading level="h3" className="mb-1">{service.title}</Heading>
-                <p className="text-sm text-muted-foreground mb-5">{service.subtitle}</p>
-
-                {/* Price */}
-                <div className="mb-5">
-                  <span className="text-4xl font-semibold tracking-tight text-foreground">
-                    ${service.price.toFixed(2)}
-                  </span>
-                  <span className="text-sm text-muted-foreground ml-2">one-time</span>
-                </div>
-
-                {/* Bullets */}
-                <ul className="space-y-2 mb-6 flex-1">
-                  {service.bullets.map((bullet) => (
-                    <li key={bullet} className="flex items-start gap-2 text-sm text-muted-foreground">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                      {bullet}
-                    </li>
-                  ))}
-                </ul>
-
-                {/*
-                  Both cards must read as actionable. The outline variant on
-                  the non-highlight card was so quiet the Tier 1 review missed
-                  it entirely - "the New Prescription card has no button". Beef
-                  up the outline so it can't disappear: primary-tinted border,
-                  primary text, soft hover wash. Keeps visual hierarchy
-                  (highlight is still the filled primary) without leaving the
-                  second tier visually orphaned.
-                */}
-                <Button
-                  asChild
-                  size="lg"
-                  variant={service.highlight ? "default" : "outline"}
-                  className={cn(
-                    "w-full h-11 font-semibold",
-                    service.highlight && "shadow-md shadow-primary/20",
-                    !service.highlight &&
-                      "border-2 border-primary/40 text-primary hover:bg-primary/5 hover:border-primary/60"
-                  )}
-                  disabled={isDisabled}
-                >
-                  <Link href={isDisabled ? "/contact" : service.href}>
-                    {isDisabled ? "Contact us" : service.ctaText}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </Reveal>
-          ))}
         </div>
 
-        {/* Repeat prescription clarity */}
-        <Reveal className="mt-8 rounded-xl border border-primary/20 bg-primary/5 dark:bg-primary/10 p-4 sm:p-5" delay={0.2}>
-          <div className="flex items-start gap-3">
-            <StickerIcon name="synchronize" size={36} className="shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-foreground mb-0.5">
-                Need repeat scripts every month?
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Use the repeat prescription pathway when you need a doctor review for medication you already take. Each request is reviewed separately and charged once.
-              </p>
+        <div className="mt-8 overflow-hidden rounded-2xl border border-border/50 bg-white shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none md:grid md:grid-cols-2 md:divide-x md:divide-border/50 dark:md:divide-white/10">
+          <div className="p-6 sm:p-8">
+            <div className="flex items-center gap-2 text-foreground">
+              <CheckCircle2 className="h-5 w-5 text-success" aria-hidden="true" />
+              <Heading level="h3" className="text-lg">This pathway may fit when</Heading>
             </div>
+            <ul className="mt-5 space-y-3">
+              {SUITABLE_REQUESTS.map((item) => (
+                <li key={item} className="flex items-start gap-2.5 text-sm leading-6 text-muted-foreground">
+                  <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-success" aria-hidden="true" />
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
-        </Reveal>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          Not sure which you need?{" "}
-          <span className="font-medium text-foreground">
-            Repeat means medication you already take. New medicines need your regular GP unless they match an active specialty pathway.
-          </span>
-        </p>
-        <p className="mt-3 text-center text-xs text-muted-foreground">
-          Starting or switching the pill?{" "}
-          <Link href="/contraceptive-pill-assessment-online" className="font-medium text-primary hover:text-primary/80">
-            Read the contraceptive pill assessment guide
-          </Link>
-          .
-        </p>
+          <div className="border-t border-border/50 p-6 dark:border-white/10 sm:p-8 md:border-t-0">
+            <div className="flex items-center gap-2 text-foreground">
+              <ShieldAlert className="h-5 w-5 text-primary" aria-hidden="true" />
+              <Heading level="h3" className="text-lg">Use another care pathway when</Heading>
+            </div>
+            <ul className="mt-5 space-y-3">
+              {OUT_OF_SCOPE_REQUESTS.map((item) => (
+                <li key={item} className="flex items-start gap-2.5 text-sm leading-6 text-muted-foreground">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-5 text-sm leading-6 text-muted-foreground">
+              For new medicines or complex care, see your regular GP. For urgent symptoms, seek urgent or emergency care.
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   )
 }
 
-/** Data viz: prescription turnaround vs GP visit. Thin wrapper around the
- *  shared TimeComparisonViz primitive. */
-function PrescriptionComparisonViz() {
+function PrescriptionLifecycleGraphic() {
   return (
-    <TimeComparisonViz
-      heading="Your medication. Without the appointment."
-      ours={{ label: "InstantMed", value: "~45", unit: "min" }}
-      theirs={{ label: "GP visit", value: "3", valueSuffix: "+", unit: "hrs" }}
-      ourSteps={["5 min form", "Doctor reviews your request", "eScript sent to your phone"]}
-      theirSteps={["Call for appointment", "Travel to clinic", "Wait room + consult + pharmacy"]}
-      primaryFillPercent={25}
-    />
+    <section
+      aria-labelledby="prescription-lifecycle-title"
+      className="bg-muted/30 py-12 dark:bg-white/[0.02] sm:py-16 lg:py-20"
+    >
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:items-end">
+          <div>
+            <SectionPill>The eScript lifecycle</SectionPill>
+            <Heading id="prescription-lifecycle-title" level="h2" className="mt-4 text-balance">
+              From medication details to pharmacy pickup.
+            </Heading>
+          </div>
+          <p className="max-w-2xl text-base leading-7 text-muted-foreground lg:justify-self-end">
+            One repeat request follows a clear clinical path. The doctor may pause for a brief call before deciding, and an eScript is sent only if approved.
+          </p>
+        </div>
+
+        <ol
+          data-prescription-lifecycle="escript"
+          className="mt-8 divide-y divide-border/50 overflow-hidden rounded-2xl border border-border/50 bg-white shadow-md shadow-primary/[0.06] dark:divide-white/10 dark:border-white/15 dark:bg-card dark:shadow-none lg:grid lg:grid-cols-5 lg:divide-x lg:divide-y-0"
+        >
+          {PRESCRIPTION_LIFECYCLE_STEPS.map((step, index) => (
+            <li key={step.title} className="min-w-0 p-5 lg:p-6">
+              <div className="flex items-center justify-between gap-3">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <step.icon className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span className="text-xs font-semibold text-primary" aria-hidden="true">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+              </div>
+              <Heading level="h3" className="mt-5">
+                {step.title}
+              </Heading>
+              <p className="mt-2 text-base leading-6 text-muted-foreground">
+                {step.description}
+              </p>
+              {"callout" in step && (
+                <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary-strong">
+                  <PhoneCall className="h-3.5 w-3.5" aria-hidden="true" />
+                  {step.callout}
+                </span>
+              )}
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
   )
 }
 
-// =============================================================================
-// MAIN PAGE COMPONENT
-// =============================================================================
+function PrescriptionFeePanel() {
+  const feeFacts = [
+    {
+      term: "Doctor review fee",
+      detail: `${PRICING_DISPLAY.REPEAT_SCRIPT} once per request. No subscription.`,
+    },
+    {
+      term: "At the pharmacy",
+      detail: "Medicine cost is separate and is paid directly to the pharmacy.",
+    },
+    {
+      term: "PBS and private pricing",
+      detail: "PBS eligibility, brand premiums, and the final medicine price are confirmed by your pharmacy.",
+    },
+    {
+      term: "If the doctor declines",
+      detail: REFUND_PAYMENT_PROCESS,
+    },
+  ] as const
 
-interface PrescriptionsLandingProps {
-  children?: ReactNode
+  return (
+    <section aria-labelledby="prescription-fee-title" className="py-12 sm:py-16 lg:py-20">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:items-start">
+          <div>
+            <SectionPill>Fee and pharmacy costs</SectionPill>
+            <Heading id="prescription-fee-title" level="h2" className="mt-4 text-balance">
+              One review fee. Medicine paid separately.
+            </Heading>
+            <p className="mt-3 text-base leading-7 text-muted-foreground">
+              The request fee covers the online doctor review and, if approved, secure eScript delivery.
+            </p>
+          </div>
+
+          <dl className="divide-y divide-border/50 overflow-hidden rounded-2xl border border-border/50 bg-white shadow-md shadow-primary/[0.06] dark:divide-white/10 dark:border-white/15 dark:bg-card dark:shadow-none">
+            {feeFacts.map((fact) => (
+              <div key={fact.term} className="grid gap-1 p-5 sm:grid-cols-[10rem_1fr] sm:gap-6 sm:p-6">
+                <dt className="text-sm font-semibold text-foreground">{fact.term}</dt>
+                <dd className="text-sm leading-6 text-muted-foreground">{fact.detail}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+    </section>
+  )
 }
 
-export function PrescriptionsLanding({ children }: PrescriptionsLandingProps) {
+function PrescriptionResourceNav() {
   return (
-    <LandingPageShell
-      config={LANDING_CONFIG}
-      afterFooter={
+    <nav aria-label="Repeat prescription resources" className="border-t border-border/50 py-8 dark:border-white/10">
+      <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 sm:px-6 lg:flex-row lg:items-center lg:gap-6 lg:px-8">
+        <p className="shrink-0 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Learn more
+        </p>
+        <ul className="flex flex-wrap gap-x-5 gap-y-2">
+          {PRESCRIPTION_RESOURCES.map((resource) => (
+            <li key={resource.href}>
+              <Link
+                href={resource.href}
+                className="group inline-flex items-center gap-1.5 text-sm font-medium text-foreground transition-colors hover:text-primary"
+              >
+                {resource.label}
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </nav>
+  )
+}
+
+export function PrescriptionsLanding() {
+  return (
+    <LandingPageShell config={LANDING_CONFIG}>
+      {({ isDisabled, heroCTARef, handleHeroCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
-          <ContentHubLinks service="prescriptions" />
-          <RelatedArticles articles={RELATED_ARTICLES_DATA} />
-        </>
-      }
-    >
-      {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
-        <>
-          {/* 1. Hero - canonical <Hero> with prescription-specific CTAs and
-              the eScript hero mockup. Bespoke PrescriptionsHeroSection retired
-              in Pass 2; lifestyle photo relocated to EScriptExplainerSection. */}
           <Hero
-            title="Your prescription, without the waiting room."
+            title="Repeat prescription, reviewed from home."
             primaryCta={{
               text: isDisabled
                 ? "Contact us"
-                : `Renew medication · $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
+                : `Renew medication - ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
               href: isDisabled ? "/contact" : "/request?service=repeat-script",
               onClick: handleHeroCTA,
               ref: heroCTARef,
             }}
-            secondaryCta={{
-              text: "Specialty options",
-              href: isDisabled ? "/contact" : "/consult",
-            }}
+            secondaryCta={null}
+            beforeCta={(
+              <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-foreground/75 lg:justify-start sm:text-sm">
+                <li>Australia only</li>
+                <li>Ages 18+</li>
+                <li>Medicare details required</li>
+              </ul>
+            )}
+            reassuranceRow={(
+              <p className="text-center text-xs leading-5 text-muted-foreground lg:text-left">
+                Takes about 3 minutes. Every request is reviewed before a prescribing decision.
+              </p>
+            )}
             mockup={<EScriptHeroMockup />}
           >
-            <p className="text-sm sm:text-base lg:text-lg leading-[1.5rem] sm:leading-relaxed text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 text-balance">
-              {FORM_FIRST_WEDGE} Tell us what you already take. Once approved, your eScript is sent to your phone for any Australian pharmacy. {GUARANTEE}
+            <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-6 text-muted-foreground sm:mb-7 sm:text-base sm:leading-7 lg:mx-0 lg:text-lg">
+              {FORM_FIRST_WEDGE} This pathway is for one regular medication you have taken before. If approved, your eScript token is sent by SMS for an Australian pharmacy.
             </p>
           </Hero>
 
-          {children}
+          <RepeatEligibilitySection />
+          <PrescriptionLifecycleGraphic />
+          <PrescriptionFeePanel />
 
-          {/* Live wait time */}
-          <LiveWaitTime variant="strip" services={["scripts"]} />
-
-          {/*
-            Trust strip below the hero. Switched from `variant: "styled"`
-            (saturated coloured-background pills with heavy borders that
-            read as clickable links) to the no-pill plain entries
-            (no_face_to_face, fast_form, privacy, ssl) so the strip reads
-            as quiet credentials. The Google + LegitScript "verify" cards
-            already live in the hero trust row above. Tier 1 review
-            2026-05-25 (/prescriptions id3x): "trust pills wear heavy
-            borders, making them look clickable when they aren't".
-          */}
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-5">
-            <TrustBadgeRow
-              badges={[
-                "no_face_to_face",
-                "fast_form",
-                "privacy",
-                "ssl",
-              ]}
-              className="gap-x-5 gap-y-2"
-            />
-          </div>
-
-          {/* 2. Service comparison - repeat Rx plus active specialty pathways */}
-          <ServiceComparisonSection isDisabled={isDisabled} />
-
-          {/* PBS callout strip - addresses pharmacy cost anxiety right after pricing */}
-          <PBSCalloutStrip />
-
-          <CommercialIntentLinksSection
-            title="Repeat prescription routes"
-            body="Service-level information for repeat requests, after-hours timing, weekend access, and urgent-but-not-emergency prescription review."
-            links={commercialPrescriptionLinks}
-            className="bg-muted/30 dark:bg-white/[0.02]"
-          />
-
-          {/* 3. How It Works */}
-          <HowItWorksInline
-            steps={HOW_IT_WORKS_STEPS}
-            ctaHref="/request?service=repeat-script"
-            ctaText="Renew your medication"
-            onCTAClick={handleHowItWorksCTA}
-            isDisabled={isDisabled}
-            heading="Three steps. No waiting room."
-            subheading="From your couch to your pharmacy. Scripts are sent digitally if approved."
-          />
-
-          {/* 3. eScript explainer - muted bg for rhythm.
-              Lifestyle photo relocated here from the hero (was a 16:7 scroll-
-              break). Renders as a framed banner below the mockup + facts split.
-              Updated 2026-05-26 to use the root /images/rx-1.webp asset
-              produced by the latest photography brief. */}
-          <div className="bg-muted/30 dark:bg-white/[0.02]">
-            <EScriptExplainerSection
-              accentImage={{
-                src: "/images/rx-1.webp",
-                alt: "Person collecting medication at an Australian pharmacy counter",
-              }}
-            />
-          </div>
-
-          {/* 4. Supported medications */}
-          <SupportedMedicationsSection />
-
-          {/* Data viz: turnaround comparison */}
-          <div className="bg-muted/30 dark:bg-white/[0.02]">
-            <PrescriptionComparisonViz />
-          </div>
-
-          {/* Doctor profile */}
-          <DoctorProfileSection />
-
-          {/* Editorial lifestyle photo, secondary. Sits between doctor
-              profile and the pre-qualify block as a quiet visual beat. */}
-          <section aria-hidden="true" className="py-8 sm:py-12">
-            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border/40 shadow-md shadow-primary/[0.06]">
-                <Image
-                  src="/images/rx-2.webp"
-                  alt="At-home moment with regular medication, reinforcing routine care"
-                  fill
-                  className="object-cover"
-                  loading="lazy"
-                  sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Pre-qualify */}
-          <PrescriptionLimitationsSection />
-
-          {/* Regulatory Partners - Medicare excluded */}
-          <RegulatoryPartners className="py-12" exclude={["Medicare"]} />
-
-          {/* FAQ - shared <FAQSection> primitive (was bespoke
-              PrescriptionFAQSection, retired in Pass 2). */}
           <FAQSection
             pill="FAQ"
             title="Before you start"
-            subtitle="Everything you need to know about renewing your medication."
-            items={PRESCRIPTION_FAQ}
-            initialCount={4}
+            subtitle="Short answers about approval, eScripts, and repeats."
+            items={PRESCRIPTION_LANDING_FAQ}
+            initialCount={PRESCRIPTION_LANDING_FAQ.length}
             onFAQOpen={handleFAQOpen}
             viewAllHref="/faq"
             className="bg-muted/30 dark:bg-white/[0.02]"
           />
 
-          {/* Clinical references */}
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 pb-4">
-            <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-              Electronic prescribing reduces dispensing errors by 48% compared to handwritten scripts (Westbrook et al., <em>PLoS Med</em>, 2012). Telehealth prescription management achieves equivalent clinical outcomes to face-to-face for stable chronic medications (Snoswell et al., <em>J Telemed Telecare</em>, 2023). All prescribers are AHPRA-registered and comply with TGA scheduling requirements.
-            </p>
-          </div>
+          <RegulatoryPartners className="py-12" exclude={["Medicare"]} />
 
-          {/* Referral strip */}
-          <ReferralStrip contextText="who needs their medication renewed" />
-
-          {/* Final CTA - shared <CTABanner> with extended price + microcopy
-              props (was bespoke ServiceFinalCTA, retired in Pass 2). */}
           <CTABanner
-            title="Your regular medication, renewed from home."
-            subtitle="Answer a few questions, a doctor reviews it, and your eScript is sent once approved."
+            title="Ready to request your repeat?"
+            subtitle="Share your current medication and safety details for doctor review. An eScript is sent only if approved."
             ctaText="Renew your medication"
             ctaHref="/request?service=repeat-script"
             onCtaClick={handleFinalCTA}
             isDisabled={isDisabled}
             price={PRICING.REPEAT_SCRIPT}
-            microcopy="Takes about 5 minutes."
+            microcopy="Takes about 3 minutes."
           />
+
+          <PrescriptionResourceNav />
         </>
       )}
     </LandingPageShell>

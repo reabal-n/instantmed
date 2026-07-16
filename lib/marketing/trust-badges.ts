@@ -1,9 +1,24 @@
 import type { LucideIcon } from 'lucide-react'
 import {
-  BadgeCheck,   CalendarX, CreditCard, DoorOpen,
-Eye,
-FileCheck, FileText,   Lock, MessageSquareOff, PhoneOff, Send, Server, ShieldCheck, Smartphone, Timer, UserCheck, Users,
-VideoOff, } from 'lucide-react'
+  BadgeCheck,
+  CalendarX,
+  CreditCard,
+  DoorOpen,
+  Eye,
+  FileCheck,
+  FileText,
+  Lock,
+  MessageSquare,
+  PhoneOff,
+  Send,
+  Server,
+  ShieldCheck,
+  Smartphone,
+  Timer,
+  UserCheck,
+  Users,
+  VideoOff,
+} from 'lucide-react'
 
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 
@@ -77,24 +92,24 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     iconColor: 'text-[#635BFF]',
     pillClass: 'bg-white border-[#635BFF]/20 text-slate-700 dark:bg-card dark:border-[#635BFF]/30',
     hasStyledTier: true,
-    tooltip: "Payments processed by Stripe - world's leading payment infrastructure",
+    tooltip: "Payments are handled by Stripe. InstantMed does not store your card details",
   },
   ssl: {
-    id: 'ssl', label: '256-bit encrypted', icon: Lock,
+    id: 'ssl', label: 'Encrypted connection', icon: Lock,
     iconColor: 'text-teal-600', pillClass: null, hasStyledTier: false,
-    tooltip: 'All data encrypted in transit with 256-bit TLS',
+    tooltip: 'TLS protects information while it travels between your browser and InstantMed',
   },
   pci: {
-    id: 'pci', label: 'PCI compliant', icon: ShieldCheck,
+    id: 'pci', label: 'Stripe-hosted payment', icon: ShieldCheck,
     iconColor: 'text-teal-600', pillClass: null, hasStyledTier: false,
-    tooltip: 'Payment Card Industry Data Security Standard compliant',
+    tooltip: 'Card details are handled by Stripe rather than stored by InstantMed',
   },
   au_data: {
-    id: 'au_data', label: 'Data stored in Australia', icon: Server,
+    id: 'au_data', label: 'Australian health-record storage', icon: Server,
     iconColor: 'text-blue-600',
     pillClass: 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300',
     hasStyledTier: true,
-    tooltip: 'Your health records never leave Australian servers',
+    tooltip: 'Primary health records are stored on Australian-hosted infrastructure',
   },
 
   // ── Friction-free ─────────────────────────────────────────────────────
@@ -106,7 +121,7 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     tooltip: getApprovedClaim("trust_simple_cert_tooltip"),
   },
   no_speaking: {
-    id: 'no_speaking', label: getApprovedClaim("trust_talk_if_needed_label"), icon: MessageSquareOff,
+    id: 'no_speaking', label: getApprovedClaim("trust_talk_if_needed_label"), icon: MessageSquare,
     iconColor: 'text-green-600',
     pillClass: 'bg-green-50 border-green-200 text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300',
     hasStyledTier: true,
@@ -134,21 +149,21 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     tooltip: getApprovedClaim("trust_no_appointment_tooltip"),
   },
   from_your_phone: {
-    id: 'from_your_phone', label: 'Done from your phone', icon: Smartphone,
+    id: 'from_your_phone', label: 'Start from your phone', icon: Smartphone,
     iconColor: 'text-primary',
     pillClass: 'bg-primary/5 border-primary/20 text-primary dark:bg-primary/10 dark:border-primary/30',
     hasStyledTier: true,
-    tooltip: 'Complete the entire process from your phone in minutes',
+    tooltip: 'Start the secure form from your phone; the doctor may contact you if needed',
   },
   no_face_to_face: {
-    id: 'no_face_to_face', label: 'No video appointment', icon: VideoOff,
+    id: 'no_face_to_face', label: 'No booked video appointment', icon: VideoOff,
     iconColor: 'text-slate-500', pillClass: null, hasStyledTier: false,
-    tooltip: 'No video consultation required - all assessments are text-based',
+    tooltip: getApprovedClaim("form_first_wedge"),
   },
   fast_form: {
-    id: 'fast_form', label: '2-minute form', icon: Timer,
+    id: 'fast_form', label: 'About 3-minute form', icon: Timer,
     iconColor: 'text-teal-600', pillClass: null, hasStyledTier: false,
-    tooltip: 'Most intake forms take under 2 minutes to complete',
+    tooltip: 'The secure intake form is designed to take about 3 minutes',
   },
   same_day: {
     id: 'same_day', label: getApprovedClaim("trust_digital_delivery_label"), icon: Send,
@@ -174,50 +189,50 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     tooltip: 'Medicare card optional for medical certificates - pay privately',
   },
   real_gp: {
-    id: 'real_gp', label: 'AHPRA doctor review', icon: BadgeCheck,
+    id: 'real_gp', label: 'Doctor-owned clinical pathway', icon: BadgeCheck,
     iconColor: 'text-teal-600',
     pillClass: 'bg-teal-50 border-teal-200 text-teal-800 dark:bg-teal-950/40 dark:border-teal-800 dark:text-teal-300',
     hasStyledTier: true,
-    tooltip: 'Every request is assessed by a human AHPRA-registered doctor - no AI makes clinical decisions',
+    tooltip: getApprovedClaim("clinical_decision_model"),
   },
   instant_pdf: {
-    id: 'instant_pdf', label: 'Instant PDF to your inbox', icon: Send,
+    id: 'instant_pdf', label: 'PDF if approved', icon: Send,
     iconColor: 'text-sky-600',
     pillClass: 'bg-sky-50 border-sky-200 text-sky-800 dark:bg-sky-950/40 dark:border-sky-800 dark:text-sky-300',
     hasStyledTier: true,
-    tooltip: 'Certificate delivered as a PDF to your email and stored in your account',
+    tooltip: 'If approved, the certificate is delivered as a PDF to your email and dashboard',
   },
 
   // ── Social proof ──────────────────────────────────────────────────────
   social_proof: {
     id: 'social_proof',
-    label: 'Australians helped',
+    label: 'Australia-wide service',
     icon: Users,
     iconColor: 'text-primary',
     pillClass: 'bg-primary/5 border-primary/20 text-primary dark:bg-primary/10 dark:border-primary/30',
     hasStyledTier: true,
-    tooltip: 'Real patients across Australia - number grows daily',
+    tooltip: 'Available to eligible adults located in Australia',
   },
 
   // ── Third-party certifications ────────────────────────────────────────
   legitscript: {
     id: 'legitscript',
-    label: 'LegitScript certified',
+    label: getApprovedClaim("legitscript_label"),
     icon: BadgeCheck,
     iconColor: 'text-[#00A651]',
     pillClass: 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300',
     hasStyledTier: true,
-    tooltip: 'Independent healthcare merchant certification used for advertising and payment platform eligibility, not a clinical endorsement',
+    tooltip: getApprovedClaim("legitscript_tooltip"),
     tooltipHref: 'https://www.legitscript.com/websites/?checker_keywords=instantmed.com.au',
   },
   google_pharmacy: {
     id: 'google_pharmacy',
-    label: 'Google healthcare ads certified',
+    label: getApprovedClaim("google_healthcare_ads_label"),
     icon: ShieldCheck,
     iconColor: 'text-[#4285F4]',
     pillClass: 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300',
     hasStyledTier: true,
-    tooltip: 'Google healthcare advertising certification for ad eligibility. It is not a clinical endorsement',
+    tooltip: getApprovedClaim("google_healthcare_ads_tooltip"),
   },
 }
 

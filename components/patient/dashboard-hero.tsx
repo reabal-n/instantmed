@@ -7,6 +7,7 @@ import {
   Clock,
   Download,
   FileText,
+  Mail,
   MessageCircle,
 } from "lucide-react"
 import dynamic from "next/dynamic"
@@ -18,14 +19,17 @@ import { type Intake } from "@/components/patient/intake-types"
 import { type ProfileData } from "@/components/patient/profile-todo-card"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
+import { CONTACT_EMAIL } from "@/lib/constants"
 import {
   buildPatientIntakeHref,
   buildPatientMessagesHref,
   buildPatientSettingsHref,
   buildRequestServiceHref,
   PATIENT_DOCUMENTS_HREF,
+  REQUEST_HREF,
   REQUEST_REPEAT_SCRIPT_HREF,
 } from "@/lib/dashboard/routes"
+import { isMoreInformationRequiredPaymentRecovery } from "@/lib/patient/payment-recovery"
 import { needsRenewalSoon } from "@/lib/prescriptions"
 import { cn } from "@/lib/utils"
 
@@ -43,6 +47,7 @@ export type DashboardHeroState =
   | "documents-ready"
   | "document-processing"
   | "live-review"
+  | "more-information-required"
   | "stale-payment"
   | "renewal-due"
   | "profile-incomplete"
@@ -83,12 +88,13 @@ const CopySupportSummaryButton = dynamic(
  * Priority order (anxious-patient-first):
  *   1. Doctor needs a reply  → Highest priority. Block the patient's flow.
  *   2. Documents ready       → Confirmation of success; high-stakes moment.
- *   3. Live review           → Reassurance during waiting.
- *   4. Stale payment         → Recovery prompt for abandoned checkout.
- *   5. Renewal due           → Active prescription renewal reminder.
- *   6. Profile incomplete    → Only when blocking future requests.
- *   7. Empty state           → First-time user, surface the catalog.
- *   8. Default (caught up)   → Service grid + reassurance + optional
+ *   3. More info required    → Patient action needed; fresh form/support only.
+ *   4. Live review           → Reassurance during waiting.
+ *   5. Stale payment         → Recovery prompt for abandoned checkout.
+ *   6. Renewal due           → Active prescription renewal reminder.
+ *   7. Profile incomplete    → Only when blocking future requests.
+ *   8. Empty state           → First-time user, surface the catalog.
+ *   9. Default (caught up)   → Service grid + reassurance + optional
  *                              "Start another [last service]" shortcut for
  *                              returning patients (PR5, 2026-05-25).
  */
@@ -150,7 +156,15 @@ export function resolveHeroState({
     return { state: "document-processing", intake: documentProcessing }
   }
 
-  // 4. Live review: most recent paid / in_review intake
+  // 4. A missing-information safety hold needs patient action, so it outranks
+  //    reassurance for a separate request already under review. It is never a
+  //    payment-retry state.
+  const moreInformationRequired = intakes.find(isMoreInformationRequiredPaymentRecovery)
+  if (moreInformationRequired) {
+    return { state: "more-information-required", intake: moreInformationRequired }
+  }
+
+  // 5. Live review: most recent paid / in_review intake
   const inReview = intakes
     .filter((i) => i.status === "paid" || i.status === "in_review")
     .sort(
@@ -159,7 +173,7 @@ export function resolveHeroState({
     )[0]
   if (inReview) return { state: "live-review", intake: inReview }
 
-  // 5. Payment recovery: failed checkout immediately; stale pending_payment over 1 hour.
+  // 6. Payment recovery: failed checkout immediately; stale pending_payment over 1 hour.
   const failedPayment = intakes.find((i) => i.status === "checkout_failed")
   if (failedPayment) return { state: "stale-payment", intake: failedPayment }
 
@@ -169,13 +183,13 @@ export function resolveHeroState({
   })
   if (stalePayment) return { state: "stale-payment", intake: stalePayment }
 
-  // 6. Renewal due: active prescription expiring soon
+  // 7. Renewal due: active prescription expiring soon
   const renewal = prescriptions.find(
     (p) => p.status === "active" && needsRenewalSoon(p.expiry_date),
   )
   if (renewal) return { state: "renewal-due", prescription: renewal }
 
-  // 7. Profile incomplete + has-request: missing required fields and has activity
+  // 8. Profile incomplete + has-request: missing required fields and has activity
   if (profileData && intakes.length > 0) {
     const missingPhone = !profileData.phone
     const missingAddress =
@@ -188,12 +202,12 @@ export function resolveHeroState({
     }
   }
 
-  // 8. Empty state: zero intakes, fresh patient
+  // 9. Empty state: zero intakes, fresh patient
   if (intakes.length === 0 && prescriptions.length === 0) {
     return { state: "empty" }
   }
 
-  // 9. Default: caught up. If we know what the patient did last, attach a
+  // 10. Default: caught up. If we know what the patient did last, attach a
   //    "Start another [service]" shortcut so the dashboard becomes a 2-tap
   //    return-visit experience for the common case (one service per patient).
   return { state: "default", lastService: resolveLastServiceShortcut(intakes) }
@@ -401,6 +415,31 @@ export function DashboardHero({
                 </Link>
               </Button>
             )
+          }
+        />
+      )
+
+    case "more-information-required":
+      return (
+        <HeroShell
+          pill={{ icon: <AlertCircle className="h-3 w-3" />, label: "More information needed", tone: "warning" }}
+          title="We need a little more medical information before payment."
+          subtitle="We won’t open payment for this saved request. Start a fresh secure form with complete answers, or contact support if something looks wrong."
+          primaryCta={
+            <Button asChild size="lg" className="h-12 w-full sm:w-auto">
+              <Link href={REQUEST_HREF}>
+                Start a fresh request
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          }
+          secondaryCta={
+            <Button variant="outline" asChild size="lg" className="h-12 w-full bg-transparent sm:w-auto">
+              <a href={`mailto:${CONTACT_EMAIL}`}>
+                <Mail className="mr-2 h-4 w-4" />
+                Contact support
+              </a>
+            </Button>
           }
         />
       )

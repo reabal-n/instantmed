@@ -1,6 +1,13 @@
 import { CheckCircle2 } from "lucide-react"
 
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+import { getActiveServices } from "@/lib/services/service-catalog"
 import { cn } from "@/lib/utils"
+
+const activeServiceNames = new Intl.ListFormat("en-AU", {
+  style: "long",
+  type: "conjunction",
+}).format(getActiveServices().map(({ title }) => title))
 
 const DEFAULT_FACTS = [
   {
@@ -13,11 +20,11 @@ const DEFAULT_FACTS = [
   },
   {
     label: "Clinical model",
-    value: "Prescribing is clinician-decided. Eligible low-risk medical certificates may use a doctor-owned protocol with individual review afterward.",
+    value: getApprovedClaim("clinical_decision_model"),
   },
   {
     label: "Active services",
-    value: "Medical certificates, repeat prescriptions, ED, and hair loss requests.",
+    value: `${activeServiceNames}.`,
   },
   {
     label: "Clinical boundary",
@@ -29,11 +36,11 @@ const DEFAULT_FACTS = [
   },
   {
     label: "Complaints",
-    value: "Clinical complaints go to complaints@instantmed.com.au, with 24h acknowledgement and 14-day clinical review.",
+    value: getApprovedClaim("complaints_timing"),
   },
   {
     label: "Privacy",
-    value: "Personal health information is encrypted and handled under the Australian Privacy Principles.",
+    value: getApprovedClaim("clinical_access_scope"),
   },
 ] as const
 

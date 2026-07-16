@@ -7,7 +7,6 @@ import {
   commercialCertificateLinks,
   commercialComparisonLinks,
   commercialPrescriptionLinks,
-  priorityCommercialLinks,
 } from "@/lib/seo/commercial-links"
 import { commercialSeoVisualList } from "@/lib/seo/commercial-visuals"
 import { intentPages } from "@/lib/seo/intents"
@@ -171,7 +170,6 @@ describe("commercial SEO contract", () => {
       ...commercialCertificateLinks,
       ...commercialPrescriptionLinks,
       ...commercialComparisonLinks,
-      ...priorityCommercialLinks,
     ])
 
     for (const slug of [

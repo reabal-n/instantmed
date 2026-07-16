@@ -12,23 +12,28 @@ import { ProcessSteps } from "@/components/sections/process-steps"
 import type { FeatureItem } from "@/components/sections/types"
 import { FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE, ICONIC_HOOK } from "@/lib/marketing/voice"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // =============================================================================
 // METADATA
 // =============================================================================
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
+const AVAILABILITY_24_7 = getApprovedClaim("availability_24_7")
+const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+const DOCTOR_REGISTRATION = getApprovedClaim("doctor_registration")
+const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
 
 export const metadata: Metadata = {
-  title: { absolute: "Why InstantMed is faster than your GP | The math behind the brand line" },
+  title: { absolute: "Why InstantMed can be faster than waiting for a GP" },
   description:
-    "Faster than your GP. Substantiation page: median GP wait time vs InstantMed median delivery time, with sources.",
+    "How focused online requests remove booking and waiting-room friction, with GP-wait sources and clear clinical limits.",
   alternates: { canonical: "/why-instant" },
   openGraph: {
-    title: "Why InstantMed is faster than your GP",
-    description: "The math behind the brand line. Sources: RACGP Health of the Nation 2024, ABS Patient Experience Survey 2022-23.",
+    title: "Why InstantMed can be faster than waiting for a GP",
+    description: "The access comparison behind the brand line, with sources and clinical limits.",
     url: `${SITE_URL}/why-instant`,
     siteName: "InstantMed",
     type: "website",
@@ -61,7 +66,7 @@ const whyInstantFaqs = [
   {
     question: "Will my GP appointment ever be replaced by InstantMed?",
     answer:
-      `No, and that is not the goal. InstantMed handles a specific set of common requests that do not require a physical exam (medical certificates, repeat medication, straightforward consults). For anything that needs an in-person assessment, our doctor will tell you so. ${GUARANTEE}`,
+      `No, and that is not the goal. InstantMed handles a focused set of form-first requests: medical certificates, repeat prescriptions, and selected ED, hair-loss, and women's-health assessments. For anything that needs an in-person assessment, the doctor will tell you so. ${GUARANTEE}`,
   },
   {
     question: "What if my request is more complicated than your form covers?",
@@ -83,20 +88,18 @@ const honestFastFeatures: FeatureItem[] = [
   {
     icon: <StickerIcon name="user-check" size={48} />,
     title: "Doctor-owned clinical process",
-    description:
-      "AHPRA-registered doctors make prescribing decisions. Eligible low-risk medical certificates may follow a logged doctor-owned protocol and are individually reviewed afterward. AI does not prescribe.",
+    description: CLINICAL_DECISION_MODEL,
   },
   {
     icon: <StickerIcon name="clock" size={48} />,
-    title: "Median, not best-case",
-    description:
-      `Our published delivery time (~${SOCIAL_PROOF.averageResponseMinutes} min) is the median across recent requests, not a marketing minimum. Half are faster, half are slower.`,
+    title: "No fixed turnaround promise",
+    description: AVAILABILITY_24_7,
   },
   {
     icon: <StickerIcon name="security-shield" size={48} />,
-    title: "Same standard of care",
+    title: "Registered and accountable",
     description:
-      "AHPRA registration, evidence-based protocols, full clinical accountability. Speed comes from the absence of booking friction, not the absence of rigour.",
+      `${DOCTOR_REGISTRATION} Speed comes from removing booking friction, not clinical boundaries.`,
   },
   {
     icon: <StickerIcon name="speech-bubble" size={48} />,
@@ -111,19 +114,17 @@ const timingSteps = [
     number: 1,
     title: "You complete a structured form",
     description:
-      "Three to five minutes for most patients. The form is built to capture what a doctor needs to make a clinical decision, in your own words and at your own pace.",
+      "About 3 minutes for most patients. The form is built to capture what the clinical pathway needs, in your own words and at your own pace.",
   },
   {
     number: 2,
-    title: "An AHPRA-registered doctor reviews it",
-    description:
-      "Requests can be submitted 24/7. A doctor reviews when available, and you get an email as soon as there is an update.",
+    title: "Your request follows its clinical pathway",
+    description: `${CLINICAL_REVIEW_SEQUENCE} ${AVAILABILITY_24_7}`,
   },
   {
     number: 3,
     title: "Outcome lands in your inbox",
-    description:
-      "Issued, declined, or follow-up question. If declined, the refund fires automatically the same instant the doctor records the decision.",
+    description: `Issued, declined, or a follow-up question. ${REFUND_PAYMENT_PROCESS}`,
   },
 ]
 
@@ -136,10 +137,10 @@ export default function WhyInstantPage() {
 
         <main className="flex-1">
           <CenteredHero
-            pill="The math behind the brand line"
+            pill="The access comparison"
             title="Faster than your GP."
             highlightWords={["GP."]}
-            subtitle="We say it because it's true and substantiable. Below, the sources, the comparison, and the honest caveats. No fine print."
+            subtitle="We mean faster than waiting for a non-urgent appointment, not faster clinical care. Here are the sources, comparison, and limits."
           />
 
           {/* Comparison: GP wait vs InstantMed delivery */}
@@ -147,13 +148,13 @@ export default function WhyInstantPage() {
             <div className="mx-auto max-w-2xl">
               <div className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8 shadow-md shadow-primary/[0.06]">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-                  Median wait, like for like
+                  Access path compared with booking wait
                 </p>
                 <ComparisonBar
                   us={{
                     label: "InstantMed: form to outcome",
-                    value: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
-                    subtext: "Median across recent medical certificate requests, 24/7.",
+                    value: "No booking",
+                    subtext: AVAILABILITY_24_7,
                   }}
                   them={{
                     label: "Wait for a non-urgent GP appointment",
@@ -190,7 +191,7 @@ export default function WhyInstantPage() {
                   >
                     Cleanbill 2024 Blue Report
                   </a>
-                  . InstantMed median sourced from internal request telemetry, recalculated quarterly.
+                  . These sources describe GP access waits; InstantMed does not use them to promise a review time.
                 </p>
               </div>
             </div>
@@ -201,15 +202,15 @@ export default function WhyInstantPage() {
             eyebrow="What 'faster' means here"
             headline={
               <>
-                Faster than the <span className="text-primary">wait</span>. Same standard of care.
+                Faster than the <span className="text-primary">wait</span>. Clear about the limits.
               </>
             }
-            body="We're not a faster doctor. We're a faster path to the same kind of doctor. AHPRA-registered, evidence-based, fully accountable. The speed comes from removing booking friction, not from cutting clinical corners."
+            body="We're not a faster doctor. We're a faster path into a focused, doctor-owned service. The speed comes from removing booking friction while keeping remote-assessment limits visible."
           />
 
           <ProcessSteps
             title="How the timing actually works"
-            subtitle="Three steps. The form does the heavy lifting so the doctor can review it efficiently."
+            subtitle="Three steps. The structured form captures relevant details before the request follows its service-specific pathway."
             steps={timingSteps}
           />
 
@@ -222,7 +223,7 @@ export default function WhyInstantPage() {
 
           <AccordionSection
             title="Reasonable questions about the brand line"
-            subtitle="Straight answers on the comparison, the methodology, and the limits."
+            subtitle="Straight answers on the comparison, the sources, and the limits."
             groups={[{ items: whyInstantFaqs }]}
           />
 

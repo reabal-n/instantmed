@@ -2,7 +2,7 @@
 
 > **Version: 1.0.0** · Created 2026-04-29 · Single source of truth for brand identity, voice, signature devices, and brand-stretch rules.
 >
-> **Load every brand or marketing session.** This doc is the spine. It points to the supporting docs that own the deeper layers (voice, design, photography). Copy lives in code (`lib/marketing/voice.ts`); rules and rationale live here.
+> **Load every brand or marketing session.** This doc is the spine. It points to the supporting docs that own the deeper layers (voice, design, photography). High-risk factual claims and their evidence receipts live in `lib/marketing/approved-claims.ts`; brand aliases and banned-phrase APIs live in `lib/marketing/voice.ts`. Rules and rationale live here.
 
 ---
 
@@ -26,13 +26,13 @@ This anchor archetype shapes voice, photography, headline tone, and which featur
 |---|---|---|
 | **Direct** | "Got the flu? You'll need a cert. Start here." | "Are you feeling unwell and require documentation for your employer?" |
 | **Warm but not cute** | "Start with a secure form. Takes about 3 minutes." | "Hey friend! Let's get you sorted!" |
-| **Confidently fast** | "Faster than your GP. Same training." | "Lightning-fast medical solutions powered by AI!" |
+| **Confidently fast** | "Requests can be submitted and reviewed 24/7." | "Lightning-fast medical solutions powered by AI!" |
 | **Quietly clever** | "Skip the waiting room. Keep the chair." | Puns about pills, winks about ED, jokes about being sick. |
 | **Of-Australia, of-now** | Australian English. Real cities. Tuesday-arvo references. | Generic "global telehealth" copy that could be from anywhere. |
 
 The dial: **Mosh's warmth with Pilot's CTA confidence.** Two competitors who've each owned half of what we want. We sit between them.
 
-Deeper rules — sentence-length, dos/don'ts, voice-by-surface, banned phrases, healthcare compliance copy — live in [`docs/VOICE.md`](VOICE.md). Brand thesis lives there too. The code constants live in [`lib/marketing/voice.ts`](../lib/marketing/voice.ts) and are scanned in CI by `lib/__tests__/voice-guard.test.ts`.
+Deeper rules — sentence-length, dos/don'ts, voice-by-surface, banned phrases, healthcare compliance copy — live in [`docs/VOICE.md`](VOICE.md). Brand thesis lives there too. Evidence-backed public facts come from [`lib/marketing/approved-claims.ts`](../lib/marketing/approved-claims.ts); [`lib/marketing/voice.ts`](../lib/marketing/voice.ts) exposes brand aliases and banned-phrase helpers. CI scans those rules via `lib/__tests__/approved-claims-contract.test.ts` and `lib/__tests__/voice-guard.test.ts`.
 
 ## 4. Tagline system
 
@@ -86,14 +86,14 @@ A small live counter on hero pages: *"Average med cert today: 14 minutes from fo
 
 ### 6.2 Doctor's handwritten signature
 
-Real signature from the Medical Director. The image asset already exists at `public/branding/eSignature.png`.
+A stylised governance signature mark. The image asset already exists at `public/branding/eSignature.png`.
 
-**Surface rules** (compliant with CLAUDE.md "no individual doctor names on marketing pages"):
+**Surface rules** (compliant with AGENTS.md "no individual doctor names on marketing pages"):
 - Marketing pages, homepage footer: stylised signature mark only, no readable name. Acts as a logo-adjacent device.
-- Cert PDFs, decline emails, dashboard messages, email signoff: full *Dr. [Name]* + signature.
-- Decline messages: full name OK (patient-facing).
+- Patient-specific cert PDFs, decline emails, dashboard messages, and email signoff: the treating doctor's full name and signature are appropriate.
+- Public surfaces use "AHPRA-registered doctors" without a doctor count or individual names.
 
-**Multi-doctor scaling:** When the second clinician onboards, the signature becomes per-doctor. Architect now: `<DoctorSignature doctorId={...} />` component pulling from `doctors` table, falling back to the Medical Director's mark on marketing surfaces. Don't paint into the corner of a single-doctor identity.
+**Multi-doctor model:** Patient-specific documents use the responsible doctor's signature. Architect with `<DoctorSignature doctorId={...} />` pulling from the doctor profile and keep the public fallback as an unnamed governance mark. Do not encode or advertise a clinician count.
 
 ### 6.3 "What we won't do" page
 
@@ -102,9 +102,9 @@ A short, plainspoken page (`/what-we-wont-do` or merged into `/guarantee`) listi
 Examples:
 - We won't issue a cert if you should see a doctor in person.
 - We won't prescribe controlled drugs.
-- We won't pretend AI is a doctor.
+- AI never prescribes or makes clinical decisions. Eligible low-risk certificate requests may be approved under a doctor-owned protocol and are individually reviewed afterward.
 - We won't write a cert for high-stakes use cases (court, exam deferral, fitness-to-drive, fitness-to-fly, custody, NDIS).
-- We won't ghost you. Every request gets a real-doctor outcome, even when the answer is no.
+- We won't hide when a pathway needs doctor contact or in-person care.
 
 Linked from footer + homepage trust strip + decline messages.
 
@@ -166,7 +166,8 @@ Illustration system: 12-piece set, soft hand-drawn line-and-fill, warm coral as 
 
 - **TGA / AHPRA on `Faster than your GP.`** — comparative health-service advertising. Defensible because it compares process speed (booking + appointment time) not clinical outcome and is substantiable. May trigger Google Ads healthcare review — switch paid creative to `TAGLINE_PAID_SAFE` ("Faster than the wait at your GP.") which is lower-risk. **Active complaint? Use the runbook:** [`docs/runbooks/comparative-tagline-complaint.md`](runbooks/comparative-tagline-complaint.md).
 - **Substantiation page** — `/why-instant` (or merged into `/about`) shows the math: median GP wait per ABS / RACGP source vs. our median delivery time. Required if we keep the comparative tagline as the brand spine.
-- **Identity rule** — no individual doctor name on marketing pages (CLAUDE.md). Cert PDFs, decline messages, dashboard, and email signoff use the full name; marketing pages use the stylised signature mark only.
+- **Identity rule** — public surfaces use "AHPRA-registered doctors" and disclose neither doctor count nor individual names. Use "AHPRA-registered Medical Director" only where the governance role matters. Patient-specific documents and messages may identify the responsible doctor; marketing pages use the stylised signature mark only.
+- **Clinical model** — public copy uses the approved claim: "AI never prescribes or makes clinical decisions. Eligible low-risk certificate requests may be approved under a doctor-owned protocol and are individually reviewed afterward." Do not replace this with a broad claim that all work is manual or that automation makes clinical decisions.
 
 Deeper compliance rules in [`docs/ADVERTISING_COMPLIANCE.md`](ADVERTISING_COMPLIANCE.md) and [`docs/SEO_CONTENT_POLICY.md`](SEO_CONTENT_POLICY.md).
 
@@ -174,15 +175,16 @@ Deeper compliance rules in [`docs/ADVERTISING_COMPLIANCE.md`](ADVERTISING_COMPLI
 
 | You want to change | You edit |
 |---|---|
-| The tagline / prop phrase / iconic hook / brand thesis / paid-safe variant | `lib/marketing/voice.ts` (one place, every surface re-renders next deploy) |
+| A high-risk factual claim about clinical decisions, access, timing, refunds, complaints, doctors, or certifications | `lib/marketing/approved-claims.ts` (copy + risk + contexts + evidence receipts) |
+| A tagline / prop phrase / iconic hook / brand thesis / paid-safe alias | `lib/marketing/approved-claims.ts`, then expose the stable alias through `lib/marketing/voice.ts` |
 | The voice rules, banned phrases, voice-by-surface rendering | `docs/VOICE.md` + `lib/marketing/voice.ts` (BANNED_PHRASES list) |
 | The visual system (colour, type, spacing, motion) | `DESIGN.md` + `app/globals.css` |
 | Photography brief / shot list / generative prompts | `docs/PHOTOGRAPHY_BRIEF.md` |
 | The brand thesis, archetype, signature devices, brand-stretch rules | this doc (`docs/BRAND.md`) |
 
-If a brand string is hardcoded in a component, that's a bug. Import the constant from `lib/marketing/voice.ts` and render it.
+If an approved claim is hardcoded in a component, that's a bug. Read it with `getApprovedClaim()` or through a deliberate `lib/marketing/voice.ts` alias. Do not bypass the registry and its evidence receipts.
 
 ---
 
 **Maintained by:** Rey + Anthropic Opus collaborative.
-**Last reviewed:** 2026-04-29 (initial version).
+**Last reviewed:** 2026-07-15.

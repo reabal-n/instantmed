@@ -66,29 +66,26 @@ describe("marketing theme and serious-contrast contract", () => {
   })
 
   it("uses primary-strong for the shared AHPRA badge and repeated pricing badges", () => {
-    const sources = [
-      "components/marketing/sections/doctor-profile-section.tsx",
-      "components/marketing/womens-health-landing.tsx",
-      "components/marketing/prescriptions-landing.tsx",
-      "components/marketing/hair-loss-landing.tsx",
-    ].map(read)
+    const doctorProfile = read("components/marketing/sections/doctor-profile-section.tsx")
+    const pricingSources = [
+      read("components/marketing/womens-health-landing.tsx"),
+      read("components/marketing/hair-loss-landing.tsx"),
+    ]
+    const prescription = read("components/marketing/prescriptions-landing.tsx")
 
-    for (const source of sources) {
-      expect(source).toContain("text-primary-strong")
-    }
-
-    expect(sources[0]).toContain('className="text-xs font-medium text-primary-strong"')
-    for (const pricingSource of sources.slice(1)) {
+    expect(doctorProfile).toContain('className="text-xs font-medium text-primary-strong"')
+    for (const pricingSource of pricingSources) {
       expect(pricingSource).toMatch(/text-\[11px\][^"\n]*bg-primary\/10 text-primary-strong border border-primary\/20/)
     }
+    expect(prescription).toContain("text-xs font-medium text-primary-strong")
   })
 
-  it("keeps the consult coming-soon treatment muted without fading its text", () => {
-    const consult = read("app/consult/page.tsx")
+  it("keeps the active consult decision board legible without fading its text", () => {
+    const decisions = read("components/marketing/service-decision-board.tsx")
 
-    expect(consult).toContain("border-dashed border-border/60 bg-muted/20")
-    expect(consult).toContain("min-[241px]:p-5")
-    expect(consult).not.toMatch(/bg-muted\/20[^"\n]*opacity-/)
+    expect(decisions).toContain("bg-muted/35")
+    expect(decisions).toContain("text-muted-foreground")
+    expect(decisions).not.toMatch(/bg-muted\/35[^"\n]*opacity-/)
   })
 
   it("keeps the hero doctor primary card entrance transform-only", () => {

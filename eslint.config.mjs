@@ -206,7 +206,6 @@ const eslintConfig = [
   {
     files: [
       "components/ui/morning/perspective-tilt-card.tsx",
-      "components/marketing/shared/interactive-product-mockup.tsx",
       "components/sections/stat-strip.tsx",
     ],
     rules: {

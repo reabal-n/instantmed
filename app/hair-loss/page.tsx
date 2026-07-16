@@ -9,7 +9,7 @@ import {
   SpeakableSchema,
 } from "@/components/seo"
 import { PRICING } from "@/lib/constants"
-import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
+import { HAIR_LOSS_LANDING_FAQ } from "@/lib/data/hair-loss-faq"
 
 export const revalidate = 86400
 
@@ -51,7 +51,7 @@ export default function HairLossPage() {
         description={`Discreet, doctor-led hair loss assessment from an AHPRA-registered Australian doctor. From $${PRICING.HAIR_LOSS.toFixed(2)}. Start with a private online form. A doctor reviews it and may call you briefly before prescribing.`}
         url="/hair-loss"
       />
-      <FAQSchema faqs={[...HAIR_LOSS_FAQ]} />
+      <FAQSchema faqs={[...HAIR_LOSS_LANDING_FAQ]} />
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },

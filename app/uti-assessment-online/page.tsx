@@ -10,7 +10,7 @@ import {
 } from "@/components/seo"
 import { getArticleVisualsForRender } from "@/lib/blog/visuals"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
-import { UTI_FAQ } from "@/lib/data/womens-health-faq"
+import { UTI_LANDING_FAQ } from "@/lib/data/womens-health-faq"
 
 export const revalidate = 86400
 
@@ -58,7 +58,7 @@ export default function Page() {
         url="/uti-assessment-online"
         speakableSelectors={["h1", "[data-speakable]"]}
       />
-      <FAQSchema faqs={[...UTI_FAQ]} />
+      <FAQSchema faqs={[...UTI_LANDING_FAQ]} />
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },

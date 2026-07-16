@@ -3,6 +3,7 @@ import Link from "next/link"
 
 import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
 
 // =============================================================================
@@ -21,28 +22,28 @@ const GUIDE_SECTIONS: Array<{
     title: "What AHPRA registration means",
     paragraphs: [
       "AHPRA - the Australian Health Practitioner Regulation Agency - is the national body that regulates all health practitioners in Australia. If a doctor isn't registered with AHPRA, they cannot legally practise medicine in this country. It's not optional, and there's no alternative pathway.",
-      "Registration means the doctor has completed an accredited medical degree, a supervised internship, and further supervised practice before being granted general or specialist registration. AHPRA also requires ongoing compliance: continuing professional development, recency of practice, professional indemnity insurance, and adherence to the Medical Board of Australia's codes and guidelines.",
-      "AHPRA maintains a public register that anyone can search. You can look up any doctor's name and confirm their registration status, registration type, and whether any conditions or undertakings apply. If a doctor's registration lapses, they stop seeing patients that day - not after a grace period, not after a review. That day.",
+      "AHPRA maintains a public register that anyone can search. It shows a practitioner's registration status, registration type, and any published conditions or undertakings.",
+      "InstantMed does not use public marketing pages to disclose individual doctor names or doctor count. The responsible treating clinician is recorded in the clinical record and on issued documents where applicable.",
     ],
   },
   {
     id: "credentialing-process",
     sticker: "checklist",
-    title: "Our credentialing process",
+    title: "How access is scoped",
     paragraphs: [
-      "Before a doctor reviews a single request on InstantMed, they go through a credentialing process that mirrors what you'd expect from a quality general practice. We verify current AHPRA registration directly against the public register, confirm professional indemnity insurance, and check minimum clinical experience requirements. Background checks are completed before onboarding begins.",
-      "We also require telehealth-specific training. General practice experience is essential, but telehealth is a different modality - doctors need to understand the limitations of remote assessment, when to escalate, and how to communicate effectively without a physical examination. Not every experienced GP is automatically suited to telehealth, and we screen for this.",
-      "Registration status is monitored on an ongoing basis, not just checked once at onboarding. If a doctor's registration status changes, their access to the platform is suspended immediately. Professional indemnity insurance is verified annually. This isn't a one-and-done credentialing exercise - it's continuous.",
+      "Before clinical access is enabled, current medical registration is checked against the AHPRA public register.",
+      "Service-line capability flags then control which request types a clinician can review. Certificate, repeat-prescription, specialty, and prescribing permissions are scoped separately rather than granted as one broad role.",
+      "The platform records the responsible treating clinician and applies role-aware access controls to clinical and operational data.",
     ],
   },
   {
     id: "telehealth-qualifications",
     sticker: "laptop",
-    title: "Telehealth-specific judgement",
+    title: "Remote-assessment judgement",
     paragraphs: [
-      "Telehealth is a specific clinical skillset, not just general practice conducted over the internet. Remote assessment techniques differ from in-person consultations - doctors need to gather clinical information differently, ask more targeted questions, and make careful judgements about when a condition can be safely managed remotely versus when it requires a physical examination.",
+      "Remote assessment differs from an in-person consultation. The doctor must decide whether the information supplied is sufficient, whether follow-up is needed, and whether a physical examination or testing is the safer next step.",
       "Our telehealth model is built around patient identification, informed consent, clinical documentation, and the appropriate scope of remote consultations. Asynchronous review requires particular attention to thorough history-taking because there is no real-time back-and-forth unless the doctor needs more information.",
-      "Communication skills for asynchronous consultations are genuinely different from face-to-face medicine. Doctors need to be clear about what information they need, explain their reasoning when declining a request, and know when a situation warrants picking up the phone rather than relying on written communication alone.",
+      "Prescription and specialty requests begin with a secure form, and the doctor may message or call before deciding. We do not promise a no-contact prescribing pathway.",
     ],
   },
   {
@@ -50,9 +51,9 @@ const GUIDE_SECTIONS: Array<{
     sticker: "stethoscope",
     title: "Clinical governance and oversight",
     paragraphs: [
-      "Clinical governance isn't a buzzword we use to sound impressive. It is the framework that keeps clinical decisions consistent, documented, and inside the service scope. Protocols are reviewed on a regular cadence and updated when evidence, regulations, or operating risk changes.",
-      "Clinical decisions are audited through structured review of approvals, declines, escalations, complaints, and outcome patterns. If a pattern emerges - too many declines for a particular condition, or approvals that should have been escalated - it is identified and addressed.",
-      "We maintain an incident reporting system where doctors can flag clinical concerns, near-misses, or situations where protocols didn't adequately cover a clinical scenario. These reports feed into protocol improvements. The goal is a learning system, not a punitive one - we want doctors to report freely so the whole team benefits.",
+      "Clinical governance is the framework that keeps service scope, safety checks, decisions, and escalation pathways documented.",
+      "Prescribing decisions remain clinician-made. Eligible low-risk certificate requests may use a logged doctor-owned protocol and are individually reviewed afterward.",
+      "Decision records, complaints, incidents, and protocol changes create an audit trail for clinical leadership without turning an operational process into an unsupported marketing claim.",
     ],
   },
   {
@@ -60,7 +61,7 @@ const GUIDE_SECTIONS: Array<{
     sticker: "medical-doctor",
     title: "Scope of practice and referrals",
     paragraphs: [
-      "We're transparent about what our doctors can and can't do via telehealth. Conditions suitable for remote assessment include straightforward, self-limiting illnesses, repeat prescriptions for stable medications, and medical certificates for short-term absences. These are situations where the clinical decision is based primarily on patient-reported history - the same information available remotely as in person.",
+      "InstantMed offers focused one-off pathways rather than general or ongoing care: short medical certificates, repeat-prescription requests, and structured specialty assessments.",
       "Conditions requiring a physical examination - suspicious skin lesions, acute joint injuries, chest pain, abdominal pain requiring palpation - are outside the scope of what we can safely assess remotely. WorkCover certificates have specific requirements that typically require an in-person examination. Extended absences beyond a few days generally benefit from face-to-face assessment, and we'll recommend this.",
       `We'd rather refer you to the right care than pretend we can handle everything. If a doctor reviews your request and determines it's not appropriate for telehealth, they'll let you know and suggest the right next step - whether that's your regular GP, an emergency department, or a specialist. ${GUARANTEE} Getting it right matters more than getting the sale.`,
     ],
@@ -89,7 +90,7 @@ export function DoctorsGuideSection() {
             How we credential and support our doctors
           </h2>
           <p className="text-muted-foreground text-sm max-w-xl mx-auto">
-            AHPRA registration, telehealth training, clinical governance, and
+            AHPRA registration, service-line scope, clinical governance, and
             when we refer you elsewhere.
           </p>
         </Reveal>
@@ -125,14 +126,14 @@ export function DoctorsGuideSection() {
         {/* Clinical governance link */}
         <div className="mt-12 pt-8 border-t border-border/40 text-center">
           <p className="text-xs text-muted-foreground">
-            All clinical decisions are made by AHPRA-registered doctors following{" "}
+            {getApprovedClaim("clinical_decision_model")} Read{" "}
             <Link
               href="/clinical-governance"
               className="text-primary underline underline-offset-2 hover:text-primary/80"
             >
               our clinical governance framework
             </Link>
-            . We never automate clinical decisions.
+            .
           </p>
         </div>
       </div>

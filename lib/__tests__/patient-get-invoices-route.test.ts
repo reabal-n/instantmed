@@ -17,7 +17,7 @@ import { GET } from "@/app/api/patient/get-invoices/route"
 
 const PATIENT_ID = "22222222-2222-4222-8222-222222222222"
 
-function createGetInvoicesSupabaseMock() {
+function createGetInvoicesSupabaseMock(checkoutError: string | null = null) {
   const invoiceSelect = vi.fn()
   const intakesQuery = {
     eq: vi.fn(async () => ({
@@ -25,6 +25,7 @@ function createGetInvoicesSupabaseMock() {
         {
           id: "intake-1",
           category: "medical_certificate",
+          checkout_error: checkoutError,
           reference_number: "IM-123",
           service: { name: "Medical Certificate", short_name: "Med Cert" },
           subtype: "work",
@@ -99,11 +100,44 @@ describe("GET /api/patient/get-invoices", () => {
         id: "pay-1",
         number: "IM-123",
         payment_method: "AUD",
+        payment_recovery_reason: null,
+        payment_retry_blocked: false,
+        request_href: "/patient/intakes/intake-1",
         status: "failed",
         total: 1995,
       },
     ])
     expect(paymentsQuery.in).toHaveBeenCalledWith("intake_id", ["intake-1"])
     expect(invoiceSelect).not.toHaveBeenCalled()
+  })
+
+  it("projects a missing-information hold without exposing the raw marker", async () => {
+    const { supabase } = createGetInvoicesSupabaseMock("safety_missing_required_information")
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const response = await GET(new Request("https://instantmed.example/api/patient/get-invoices"))
+    const body = await response.json()
+
+    expect(body.invoices[0]).toMatchObject({
+      payment_recovery_reason: "more_information_required",
+      payment_retry_blocked: true,
+      request_href: "/patient/intakes/intake-1",
+    })
+    expect(body.invoices[0]).not.toHaveProperty("checkout_error")
+  })
+
+  it("suppresses payment-history retry for the high-stakes safety lock", async () => {
+    const { supabase } = createGetInvoicesSupabaseMock("safety_blocked_high_stakes")
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const response = await GET(new Request("https://instantmed.example/api/patient/get-invoices"))
+    const body = await response.json()
+
+    expect(body.invoices[0]).toMatchObject({
+      payment_recovery_reason: null,
+      payment_retry_blocked: true,
+      request_href: "/patient/intakes/intake-1",
+    })
+    expect(body.invoices[0]).not.toHaveProperty("checkout_error")
   })
 })

@@ -206,6 +206,23 @@ describe("DashboardHero · resolveHeroState", () => {
       expect(result.intake?.id).toBe("i-review")
     })
 
+    it("more-information-required wins over an unrelated live review", () => {
+      const result = resolveHeroState({
+        intakes: [
+          mkIntake({ id: "i-review", status: "in_review" }),
+          mkIntake({
+            id: "i-more-information",
+            status: "checkout_failed",
+            payment_recovery_reason: "more_information_required",
+          }),
+        ],
+        prescriptions: [],
+      })
+
+      expect(result.state).toBe("more-information-required")
+      expect(result.intake?.id).toBe("i-more-information")
+    })
+
     it("stale-payment wins over renewal-due + profile-incomplete", () => {
       const result = resolveHeroState({
         intakes: [
@@ -234,6 +251,42 @@ describe("DashboardHero · resolveHeroState", () => {
 
       expect(result.state).toBe("stale-payment")
       expect(result.intake?.id).toBe("i-failed")
+    })
+
+    it("projects a held checkout failure before ordinary payment recovery", () => {
+      const result = resolveHeroState({
+        intakes: [
+          mkIntake({
+            id: "i-ordinary-failure",
+            status: "checkout_failed",
+            payment_recovery_reason: null,
+          }),
+          mkIntake({
+            id: "i-more-information",
+            status: "checkout_failed",
+            payment_recovery_reason: "more_information_required",
+          }),
+        ],
+        prescriptions: [],
+      })
+
+      expect(result.state).toBe("more-information-required")
+      expect(result.intake?.id).toBe("i-more-information")
+    })
+
+    it("keeps ordinary checkout failures on the existing retry state", () => {
+      const result = resolveHeroState({
+        intakes: [
+          mkIntake({
+            id: "i-ordinary-failure",
+            status: "checkout_failed",
+            payment_recovery_reason: null,
+          }),
+        ],
+        prescriptions: [],
+      })
+
+      expect(result.state).toBe("stale-payment")
     })
 
     it("uses one copyable support summary from the hero and request detail", () => {

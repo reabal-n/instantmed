@@ -14,6 +14,7 @@ import type { ChecklistItem, FeatureItem } from "@/components/sections/types"
 import { FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
 
 // =============================================================================
@@ -21,6 +22,8 @@ import { GUARANTEE } from "@/lib/marketing/voice"
 // =============================================================================
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
+const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
+const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
 
 export const metadata: Metadata = {
   title: "Our Guarantee | Full Refund If Declined",
@@ -53,7 +56,7 @@ const guaranteeFaqs = [
   {
     question: "What does a doctor decline mean exactly?",
     answer:
-      "Two cases. (1) Our doctor reviews your request and decides they cannot safely issue what you asked for, given your symptoms or history. That is a clinical decline. (2) Our doctor needs you to see someone in person instead, and tells you so. Either way, you pay nothing.",
+      `A clinical decline means the doctor decides the requested service cannot be provided safely online, or that you need in-person care instead. ${REFUND_PAYMENT_PROCESS}`,
   },
   {
     question: "How long until I know the doctor's decision?",
@@ -63,12 +66,12 @@ const guaranteeFaqs = [
   {
     question: "What if the doctor needs more information from me?",
     answer:
-      "If the doctor messages you with a follow-up question, the request stays open until you reply. The guarantee still applies. The only thing that ends the request without a refund is the doctor approving and issuing what you asked for.",
+      "If the doctor messages you with a follow-up question, the request stays open until you reply. The guarantee applies if the request later ends in a recorded clinical decline. Cancellations, expired requests, and completed services follow the refund policy.",
   },
   {
-    question: "What about partial outcomes? Can I get a partial refund?",
+    question: "Do I pay before the doctor reviews my request?",
     answer:
-      "If the doctor issues part of what you asked for and declines part of it (rare, but possible on consults with multiple medications), you keep the issued part and get a full refund on the rest. No bookkeeping on your end.",
+      REFUND_PAYMENT_PROCESS,
   },
   {
     question: "What about the priority fee?",
@@ -77,17 +80,17 @@ const guaranteeFaqs = [
   {
     question: "Does the guarantee apply if I change my mind?",
     answer:
-      "If a doctor has not yet reviewed your request, yes. Email support@instantmed.com.au and we will cancel and refund. Once a doctor has reviewed and issued, the clinical work is complete and standard refund terms apply, not this guarantee.",
+      "The guarantee covers a clinical decline, not a change of mind. Contact support@instantmed.com.au as soon as possible. Cancellation and refund eligibility depends on whether payment, clinical review, or delivery has already occurred.",
   },
   {
     question: "How is the refund paid back?",
     answer:
-      "To the original payment method, processed within one business day on our end. Stripe typically shows the reversal on your statement within 5 to 10 business days depending on your bank.",
+      "We start the refund automatically to the original payment method. Your bank or card issuer controls when it appears on your statement, so timing can vary.",
   },
   {
     question: "Do I need to ask for the refund?",
     answer:
-      "No. Declines and 'see someone in person' outcomes are auto-refunded the moment the doctor records the decision. The refund email comes within minutes. If you believe a refund is missing, email support@instantmed.com.au with your request ID and we will sort it.",
+      "No. A recorded clinical decline starts the refund automatically. If you believe a refund is missing, email support@instantmed.com.au with your request ID so we can investigate.",
   },
 ]
 
@@ -98,21 +101,20 @@ const guaranteeFaqs = [
 const qualifyingFeatures: FeatureItem[] = [
   {
     icon: <StickerIcon name="user-check" size={48} />,
-    title: "Real AHPRA-registered doctors",
-    description:
-      "Every review is a human clinical decision, not an algorithm. That is what makes the outcome promise possible.",
+    title: "Doctor-owned clinical model",
+    description: CLINICAL_DECISION_MODEL,
   },
   {
     icon: <StickerIcon name="security-shield" size={48} />,
     title: "Full refund, original payment method",
     description:
-      "No restocking fee, no partial refund, no hoops. Original payment method, one business day on our end.",
+      "The full request payment, including any priority fee, goes back to the original payment method after a clinical decline.",
   },
   {
     icon: <StickerIcon name="speech-bubble" size={48} />,
-    title: "Auto-refunded, no email needed",
+    title: "Automatic refund start",
     description:
-      "Declines refund automatically the moment the doctor records the decision. You will see the email within minutes.",
+      "A recorded clinical decline starts the refund automatically. Contact support if the confirmation or refund does not arrive.",
   },
   {
     icon: <StickerIcon name="clock" size={48} />,
@@ -126,43 +128,43 @@ const whatYouGet: ChecklistItem[] = [
   {
     text: "If the doctor declines, full refund",
     subtext:
-      "Clinical declines, 'see someone in person' outcomes, and partial-issue cases all trigger the full refund automatically.",
+      "Clinical declines and recommendations for in-person care trigger the full refund automatically.",
   },
   {
-    text: "Refund hits your statement same way you paid",
+    text: "Refund returns the same way you paid",
     subtext:
-      "Card, Apple Pay, Google Pay, all original method. Processed within one business day on our end.",
+      "The refund goes to the original payment method. Your bank or card issuer controls statement timing.",
   },
   {
-    text: "You only pay when a doctor can actually help",
+    text: "Payment is collected before review",
     subtext:
-      "This is the whole point. Money does not stay with us unless our clinical work meets your need.",
+      REFUND_PAYMENT_PROCESS,
   },
   {
-    text: "No chasing, no paperwork, no friction to claim it",
+    text: "No separate claim form for a clinical decline",
     subtext:
-      "Auto-refunded by default. If anything looks wrong, one email to support@instantmed.com.au with your request ID and we sort it.",
+      "The refund starts automatically. If anything looks wrong, email support@instantmed.com.au with your request ID.",
   },
 ]
 
 const refundSteps = [
   {
     number: 1,
-    title: "Doctor reviews your request",
+    title: "A clinical outcome is recorded",
     description:
-      "An AHPRA-registered doctor looks at your symptoms, history, and what you have asked for. Outcome is one of three: issue, decline, or follow-up question.",
+      "The pathway may issue, ask a follow-up question, or record a clinical decline. Prescribing decisions are always made by a doctor.",
   },
   {
     number: 2,
     title: "Decline triggers an automatic refund",
     description:
-      "If the doctor declines or recommends in-person care, the system fires the refund the moment the decision is recorded. No human in the loop on your end.",
+      "If the doctor declines or recommends in-person care, the recorded decision starts a full refund. You do not need to submit a separate claim.",
   },
   {
     number: 3,
     title: "Refund goes back the way you paid",
     description:
-      "Processed within one business day on our end. Your bank or card issuer usually shows the reversal in 5 to 10 business days.",
+      "The refund returns to the original payment method. Your bank or card issuer controls when it appears on your statement.",
   },
 ]
 
@@ -178,7 +180,7 @@ export default function GuaranteePage() {
             pill="Our Guarantee"
             title={GUARANTEE}
             highlightWords={["doctor declines."]}
-            subtitle="No fine print, no asterisks. If the doctor declines your request, you pay nothing. Refunds are automatic."
+            subtitle={REFUND_PAYMENT_PROCESS}
           >
             <div className="mt-8 flex justify-center">
               <GuaranteeBadge size="lg" linked={false} />
@@ -189,13 +191,13 @@ export default function GuaranteePage() {
               differentiates this guarantee from competitor "money-back"
               promises requiring email + ticket + 30-day waits. */}
           <ServiceClaimSection
-            eyebrow="No email, no ticket, no wait"
+            eyebrow="No separate refund claim"
             headline={
               <>
-                Refunds fire <span className="text-primary">automatically</span>.
+                Declines start a <span className="text-primary">full refund</span>.
               </>
             }
-            body="When the doctor records a decline, the system processes the refund the same instant. The email lands within minutes. You don't have to ask, escalate, or send a request ID. Built that way on purpose."
+            body="When the doctor records a clinical decline, the system starts a full refund to the original payment method. Your bank controls when the credit appears."
           />
 
           <FeatureGrid
@@ -213,23 +215,23 @@ export default function GuaranteePage() {
 
           <ProcessSteps
             title="How the refund works"
-            subtitle="Three steps. Most refunds fire automatically with no action from you."
+            subtitle="Three steps. A recorded clinical decline starts the refund automatically."
             steps={refundSteps}
           />
 
           <AccordionSection
             title="Guarantee FAQ"
-            subtitle="Straight answers on declines, partial outcomes, and refund timing."
+            subtitle="Straight answers on clinical declines and refund timing."
             groups={[{ items: guaranteeFaqs }]}
           />
 
           <CTABanner
             title="Ready to see a doctor?"
-            subtitle="Start a request. If the doctor declines, you pay nothing."
+            subtitle={REFUND_PAYMENT_PROCESS}
             ctaText="Start a request"
             ctaHref="/request"
             secondaryText="Read the full terms"
-            secondaryHref="/terms#refunds"
+            secondaryHref="/terms#fees"
           />
         </main>
 

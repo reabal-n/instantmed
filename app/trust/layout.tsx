@@ -1,14 +1,16 @@
 import type { Metadata } from "next"
 
 import { BreadcrumbSchema } from "@/components/seo"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+
+const DOCTOR_REGISTRATION = getApprovedClaim("doctor_registration")
 
 // Revalidate every 24 hours - trust content is mostly static
 export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: { absolute: "Why Trust InstantMed? | AHPRA Registered Doctors" },
-  description:
-    "Doctor verification, data security and privacy controls. 100% Australian-based with AHPRA-registered doctors. Bank-level encryption.",
+  description: `${DOCTOR_REGISTRATION} Read how clinical access, privacy, and verification work.`,
   keywords: [
     "AHPRA registered telehealth",
     "Australian online doctor",
@@ -20,15 +22,14 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Why Trust InstantMed? | AHPRA Registered Doctors",
-    description:
-      "Learn about our doctor verification process, data security, and privacy controls. 100% Australian-based with AHPRA registered doctors.",
+    description: `${DOCTOR_REGISTRATION} Read how clinical access, privacy, and verification work.`,
     type: "website",
     url: "https://instantmed.com.au/trust",
   },
   twitter: {
     card: "summary_large_image",
     title: "Why Trust InstantMed? | AHPRA Registered Doctors",
-    description: "100% Australian-based with AHPRA registered doctors. Bank-level security. Full transparency.",
+    description: `${DOCTOR_REGISTRATION} Read how clinical access, privacy, and verification work.`,
   },
   alternates: {
     canonical: "https://instantmed.com.au/trust",

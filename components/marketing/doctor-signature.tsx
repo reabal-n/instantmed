@@ -28,10 +28,13 @@ interface DoctorSignatureProps {
   className?: string
 }
 
-const SIZE_CLASS: Record<NonNullable<DoctorSignatureProps["size"]>, string> = {
-  sm: "h-8",
-  md: "h-12",
-  lg: "h-16",
+const SIZE_CONFIG: Record<
+  NonNullable<DoctorSignatureProps["size"]>,
+  { className: string; sizes: string }
+> = {
+  sm: { className: "h-8 w-[8.25rem]", sizes: "132px" },
+  md: { className: "h-12 w-[12.25rem]", sizes: "196px" },
+  lg: { className: "h-16 w-[16.375rem]", sizes: "262px" },
 }
 
 /**
@@ -73,7 +76,7 @@ export function DoctorSignatureView({
   className,
 }: DoctorSignatureViewProps) {
   const showName = variant === "mark-and-name"
-  const sizeClass = SIZE_CLASS[size]
+  const sizeConfig = SIZE_CONFIG[size]
 
   return (
     <figure
@@ -82,24 +85,25 @@ export function DoctorSignatureView({
         className,
       )}
     >
-      <Image
-        src={data.signatureAssetPath}
-        alt={showName ? `Signature of ${data.fullName}` : ""}
-        width={data.signatureAssetWidth}
-        height={data.signatureAssetHeight}
-        priority={false}
-        className={cn(
-          "w-auto select-none",
-          sizeClass,
-          // Marketing variant treats the image as a decorative mark; soften
-          // it slightly so it reads as a brand device rather than evidence
-          // of a specific person.
-          showName ? "" : "opacity-90",
-        )}
-        // The signature is functionally non-interactive; suppress browser
-        // dragging which would expose the file path on save.
-        draggable={false}
-      />
+      <span className={cn("relative block shrink-0", sizeConfig.className)}>
+        <Image
+          src={data.signatureAssetPath}
+          alt={showName ? `Signature of ${data.fullName}` : ""}
+          fill
+          sizes={sizeConfig.sizes}
+          priority={false}
+          className={cn(
+            "select-none object-fill",
+            // Marketing variant treats the image as a decorative mark; soften
+            // it slightly so it reads as a brand device rather than evidence
+            // of a specific person.
+            showName ? "" : "opacity-90",
+          )}
+          // The signature is functionally non-interactive; suppress browser
+          // dragging which would expose the file path on save.
+          draggable={false}
+        />
+      </span>
       {showName ? (
         <figcaption className="text-xs text-muted-foreground">
           <span className="font-semibold text-foreground">{data.fullName}</span>

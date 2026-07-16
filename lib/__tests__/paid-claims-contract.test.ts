@@ -20,20 +20,17 @@ const PAID_CLAIM_FILES = [
   "app/pricing/pricing-content.tsx",
   "app/trust/trust-client.tsx",
   "app/why-instant/page.tsx",
-  "components/seo/seo-page-template.tsx",
   "components/marketing/erectile-dysfunction-landing.tsx",
   "components/marketing/hair-loss-landing.tsx",
   "components/marketing/hero.tsx",
   "components/marketing/how-it-works-content.tsx",
   "components/marketing/prescriptions-landing.tsx",
   "components/sections/cta-banner.tsx",
-  "components/marketing/sections/pricing-guide-section.tsx",
   "components/request/steps/review-step.tsx",
   "lib/data/general-faq.ts",
   "lib/data/med-cert-faq.ts",
   "lib/marketing/approved-claims.ts",
   "lib/marketing/homepage.ts",
-  "lib/seo/pages/definitions.ts",
 ]
 
 const LEGACY_PAID_CLAIM_PATTERNS = [

@@ -12,6 +12,7 @@
 import {
   PILL_CONTRACEPTION_TYPE_VALUES,
   PILL_CURRENT_CONTRACEPTION_VALUES,
+  PILL_POSSIBLE_PREGNANCY_REDIRECT_REASON,
   PILL_PREGNANCY_DECLINE_REASON,
   PILL_PREGNANCY_STATUS_VALUES,
 } from "@/lib/clinical/womens-health-pill"
@@ -377,11 +378,11 @@ export function validateContraceptionConsult(answers: Answers): ConsultValidatio
 
   if (pregnancy === "not_sure") {
     flags.push({
-      type: "requires_call",
+      type: "safety_block",
       reason: "pregnancy_uncertain",
-      details: "Patient unsure about pregnancy status. Exclude pregnancy before prescribing contraception.",
+      details: "Patient unsure about pregnancy status. Stop the paid pathway and redirect before prescribing contraception.",
     })
-    warnings.push("If you're unsure about pregnancy, the doctor may recommend a test before prescribing contraception.")
+    errors.push(PILL_POSSIBLE_PREGNANCY_REDIRECT_REASON)
   }
 
   return { valid: errors.length === 0, errors, warnings, flags }

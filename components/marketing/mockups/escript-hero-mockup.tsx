@@ -144,7 +144,7 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
         <>
           <div
             className="absolute -top-3 -right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
-            style={{ animation: "hero-fade-up 0.4s ease-out 0.50s both" }}
+            style={{ animation: "hero-fade-up 0.22s cubic-bezier(0.23, 1, 0.32, 1) 0.15s both" }}
           >
             <Smartphone className="w-3.5 h-3.5 text-primary" />
             Sent via SMS
@@ -152,7 +152,7 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
 
           <div
             className="absolute -top-3 -left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
-            style={{ animation: "hero-fade-up 0.4s ease-out 0.65s both" }}
+            style={{ animation: "hero-fade-up 0.22s cubic-bezier(0.23, 1, 0.32, 1) 0.20s both" }}
           >
             <MapPin className="w-3.5 h-3.5 text-primary" />
             Any pharmacy
@@ -167,12 +167,12 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
       {!compact && (
         <div
           className="hidden lg:block absolute -bottom-8 -right-4 xl:-right-8 rounded-xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none p-3 min-w-[210px]"
-          style={{ animation: "hero-fade-up 0.5s ease-out 0.6s both" }}
+          style={{ animation: "hero-fade-up 0.22s cubic-bezier(0.23, 1, 0.32, 1) 0.15s both" }}
         >
           <div className="space-y-2">
             <div
               className="flex items-center gap-2"
-              style={{ animation: "hero-fade-up 0.3s ease-out 0.9s both" }}
+              style={{ animation: "hero-fade-up 0.22s cubic-bezier(0.23, 1, 0.32, 1) 0.20s both" }}
             >
               <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
               <span className="text-[11px] text-foreground/60">Request submitted</span>
@@ -180,7 +180,7 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
             </div>
             <div
               className="flex items-center gap-2"
-              style={{ animation: "hero-fade-up 0.3s ease-out 1.1s both" }}
+              style={{ animation: "hero-fade-up 0.22s cubic-bezier(0.23, 1, 0.32, 1) 0.25s both" }}
             >
               <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
               <span className="text-[11px] text-foreground/60">Doctor reviewed</span>
@@ -188,7 +188,7 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
             </div>
             <div
               className="flex items-center gap-2"
-              style={{ animation: "hero-fade-up 0.3s ease-out 1.3s both" }}
+              style={{ animation: "hero-fade-up 0.22s cubic-bezier(0.23, 1, 0.32, 1) 0.30s both" }}
             >
               <Smartphone className="w-3.5 h-3.5 text-primary shrink-0" />
               <span className="text-[11px] font-medium text-foreground">eScript sent</span>

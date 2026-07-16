@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import type { WaitState } from '@/lib/brand/wait-counter'
 import { GUARANTEE, ICONIC_HOOK } from '@/lib/marketing/voice'
+import { cn } from '@/lib/utils'
 
 interface CtaConfig {
   text: string
@@ -31,6 +32,8 @@ interface SecondaryCtaConfig {
 }
 
 interface HeroProps {
+  /** Optional page-level spacing/layout overrides for the hero section. */
+  className?: string
   /**
    * H1 text. Defaults to the home headline. Service pages override with
    * their own positioning line.
@@ -61,11 +64,18 @@ interface HeroProps {
    */
   beforeCta?: ReactNode
   /**
+   * Optional content in the reassurance row directly below the primary CTA.
+   * Pass `null` to suppress the default brand hook + last-reviewed signal.
+   */
+  reassuranceRow?: ReactNode | null
+  /**
    * Optional mockup override. Pass a custom mockup for service-page heroes.
    * Defaults to `HeroDoctorReviewMockup`. Pass `null` to suppress entirely
    * (rare — usually a service has its own mockup).
    */
   mockup?: ReactNode | null
+  /** Optional responsive/layout classes for the canonical mockup wrapper. */
+  mockupClassName?: string
   /**
    * Optional trust-row override. Defaults to GoogleAdsCert + LegitScript +
    * LastReviewedSignal. Pass `null` to suppress entirely when a page renders
@@ -137,13 +147,16 @@ const DEFAULT_TRUST_ROW = (
 )
 
 export function Hero({
+  className,
   title = DEFAULT_TITLE,
   pill,
   children,
   primaryCta = DEFAULT_PRIMARY,
   secondaryCta,
   beforeCta,
+  reassuranceRow,
   mockup,
+  mockupClassName,
   trustRow,
   liveWait,
 }: HeroProps) {
@@ -151,12 +164,22 @@ export function Hero({
   const resolvedSecondary = secondaryCta === undefined ? DEFAULT_SECONDARY : secondaryCta
   const resolvedMockup = mockup === undefined ? <HeroDoctorReviewMockup /> : mockup
   const resolvedTrustRow = trustRow === undefined ? DEFAULT_TRUST_ROW : trustRow
+  const resolvedReassuranceRow = reassuranceRow === undefined
+    ? (
+        <>
+          <p className="text-xs text-muted-foreground text-center lg:text-left">
+            {ICONIC_HOOK} {GUARANTEE}
+          </p>
+          <LastReviewedSignal className="justify-center lg:justify-start" />
+        </>
+      )
+    : reassuranceRow
 
   return (
     // overflow-x-clip (not overflow-hidden) so the mockup's floating cards
     // can extend slightly outside the section without horizontal scrollbars
     // on iOS.
-    <section className="relative overflow-x-clip pt-6 pb-12 sm:pt-14 sm:pb-20 lg:pt-20 lg:pb-24">
+    <section className={cn("relative overflow-x-clip pt-6 pb-12 sm:pt-14 sm:pb-20 lg:pt-20 lg:pb-24", className)}>
       <div className="mx-auto max-w-5xl px-4 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center lg:items-start lg:gap-12 xl:gap-14">
           {/* ── Text column ───────────────────────────────────────── */}
@@ -242,12 +265,11 @@ export function Hero({
                 as they're about to click. The signal was previously
                 stranded at the end of the trust row, which buried it.
                 Tier 1 video-review fix 2026-05-26 (homepage-clkf). */}
-            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-3 gap-y-1 mb-6 sm:mb-7 justify-center lg:justify-start">
-              <p className="text-xs text-muted-foreground text-center lg:text-left">
-                {ICONIC_HOOK} {GUARANTEE}
-              </p>
-              <LastReviewedSignal className="justify-center lg:justify-start" />
-            </div>
+            {resolvedReassuranceRow && (
+              <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-3 gap-y-1 mb-6 sm:mb-7 justify-center lg:justify-start">
+                {resolvedReassuranceRow}
+              </div>
+            )}
 
             {/* Trust row: Google + LegitScript. Constant across pages so
                 users learn the pattern. Pages with their own trust badges
@@ -270,7 +292,7 @@ export function Hero({
 
           {/* ── Mockup column ─────────────────────────────────────── */}
           {resolvedMockup && (
-            <div className="relative shrink-0 mt-12 max-[240px]:hidden lg:mt-0 self-center">
+            <div className={cn("relative shrink-0 mt-12 max-[240px]:hidden lg:mt-0 self-center", mockupClassName)}>
               {resolvedMockup}
             </div>
           )}

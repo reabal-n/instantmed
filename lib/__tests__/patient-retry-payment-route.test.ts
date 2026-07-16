@@ -58,7 +58,13 @@ function postRetryPayment(invoiceId = "pay-1") {
   }) as never)
 }
 
-function createPaymentFallbackSupabaseMock({ ownsIntake = true }: { ownsIntake?: boolean } = {}) {
+function createPaymentFallbackSupabaseMock({
+  checkoutError = null,
+  ownsIntake = true,
+}: {
+  checkoutError?: string | null
+  ownsIntake?: boolean
+} = {}) {
   const invoiceQuery = {
     eq: vi.fn(() => invoiceQuery),
     single: vi.fn(async () => ({ data: null, error: { code: "PGRST205" } })),
@@ -70,7 +76,7 @@ function createPaymentFallbackSupabaseMock({ ownsIntake = true }: { ownsIntake?:
   const intakeQuery = {
     eq: vi.fn(() => intakeQuery),
     maybeSingle: vi.fn(async () => ({
-      data: ownsIntake ? { id: "intake-1" } : null,
+      data: ownsIntake ? { checkout_error: checkoutError, id: "intake-1" } : null,
       error: null,
     })),
   }
@@ -133,9 +139,38 @@ describe("POST /api/patient/retry-payment", () => {
     expect(response.status).toBe(404)
   })
 
+  it("does not issue a retry redirect for a missing-information hold", async () => {
+    const { supabase } = createPaymentFallbackSupabaseMock({
+      checkoutError: "safety_missing_required_information",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const response = await postRetryPayment()
+    const body = await response.json()
+
+    expect(response.status).toBe(409)
+    expect(body.paymentUrl).toBeUndefined()
+    expect(body.error).toContain("more medical information")
+  })
+
+  it("does not issue a retry redirect for any payment safety lock", async () => {
+    const { supabase } = createPaymentFallbackSupabaseMock({
+      checkoutError: "safety_blocked_high_stakes",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const response = await postRetryPayment()
+    const body = await response.json()
+
+    expect(response.status).toBe(409)
+    expect(body.paymentUrl).toBeUndefined()
+    expect(body.error).toContain("cannot be retried online")
+  })
+
   it("keeps the intake detail retry query wired to the canonical checkout retry action", () => {
     expect(retryPaymentRouteSource).not.toContain("/checkout?invoiceId=")
-    expect(retryPaymentRouteSource).toContain("/patient/intakes/${intakeId}?retry=true")
+    expect(retryPaymentRouteSource).toContain("/patient/intakes/${intakeRecovery.intakeId}?retry=true")
+    expect(retryPaymentRouteSource).toContain("isPaymentSafetyLock")
     expect(intakeDetailClientSource).toContain("retryPayment = false")
     expect(intakeDetailClientSource).toContain("hasAutoRetriedPayment")
     expect(intakeDetailClientSource).toContain("retryPaymentForIntakeAction(intake.id)")

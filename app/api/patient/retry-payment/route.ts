@@ -8,6 +8,10 @@ import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import {
+  isMissingSafetyInformationPaymentLock,
+  isPaymentSafetyLock,
+} from "@/lib/stripe/payment-safety-lock"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("api-retry-payment")
@@ -33,7 +37,7 @@ async function getRetryablePaymentIntakeId(
 
   const { data: intake, error: intakeError } = await supabase
     .from("intakes")
-    .select("id")
+    .select("id, checkout_error")
     .eq("id", payment.intake_id)
     .eq("patient_id", patientId)
     .maybeSingle()
@@ -42,7 +46,22 @@ async function getRetryablePaymentIntakeId(
     return null
   }
 
-  return intake.id
+  return {
+    intakeId: intake.id,
+    moreInformationRequired: isMissingSafetyInformationPaymentLock(intake.checkout_error),
+    paymentSafetyLocked: isPaymentSafetyLock(intake.checkout_error),
+  }
+}
+
+function paymentSafetyLockResponse(moreInformationRequired: boolean) {
+  return NextResponse.json(
+    {
+      error: moreInformationRequired
+        ? "This request needs more medical information before payment. Start a fresh request or contact support."
+        : "This request cannot be retried online. Open the original request or contact support.",
+    },
+    { status: 409 },
+  )
 }
 
 export async function POST(request: NextRequest) {
@@ -88,19 +107,27 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (invoiceError || !invoice) {
-      const intakeId = await getRetryablePaymentIntakeId(supabase, invoiceId, authResult.profile.id)
-      if (!intakeId) {
+      const intakeRecovery = await getRetryablePaymentIntakeId(
+        supabase,
+        invoiceId,
+        authResult.profile.id,
+      )
+      if (!intakeRecovery) {
         return NextResponse.json(
           { error: "Payment not found" },
           { status: 404 }
         )
       }
 
+      if (intakeRecovery.paymentSafetyLocked) {
+        return paymentSafetyLockResponse(intakeRecovery.moreInformationRequired)
+      }
+
       return NextResponse.json(
         {
           success: true,
           message: "Payment retry initiated. Redirecting you to checkout.",
-          paymentUrl: `${env.appUrl}/patient/intakes/${intakeId}?retry=true`,
+          paymentUrl: `${env.appUrl}/patient/intakes/${intakeRecovery.intakeId}?retry=true`,
         },
         { status: 200 }
       )
@@ -115,19 +142,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const intakeId = await getRetryablePaymentIntakeId(supabase, invoiceId, authResult.profile.id)
-    if (!intakeId) {
+    const intakeRecovery = await getRetryablePaymentIntakeId(
+      supabase,
+      invoiceId,
+      authResult.profile.id,
+    )
+    if (!intakeRecovery) {
       return NextResponse.json(
         { error: "This payment cannot be retried online. Please open the original request or contact support." },
         { status: 400 }
       )
+    }
+    if (intakeRecovery.paymentSafetyLocked) {
+      return paymentSafetyLockResponse(intakeRecovery.moreInformationRequired)
     }
 
     return NextResponse.json(
       {
         success: true,
         message: "Payment retry initiated. Redirecting you to checkout.",
-        paymentUrl: `${env.appUrl}/patient/intakes/${intakeId}?retry=true`,
+        paymentUrl: `${env.appUrl}/patient/intakes/${intakeRecovery.intakeId}?retry=true`,
       },
       { status: 200 }
     )

@@ -10,7 +10,7 @@ import {
 } from "@/components/seo"
 import { getArticleVisualsForRender } from "@/lib/blog/visuals"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
-import { PILL_FAQ } from "@/lib/data/womens-health-faq"
+import { PILL_LANDING_FAQ } from "@/lib/data/womens-health-faq"
 
 export const revalidate = 86400
 
@@ -58,7 +58,7 @@ export default function Page() {
         url="/contraceptive-pill-assessment-online"
         speakableSelectors={["h1", "[data-speakable]"]}
       />
-      <FAQSchema faqs={[...PILL_FAQ]} />
+      <FAQSchema faqs={[...PILL_LANDING_FAQ]} />
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },

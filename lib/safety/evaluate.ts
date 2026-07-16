@@ -515,7 +515,7 @@ export function validateSafetyFieldsPresent(
   const config = getSafetyConfig(serviceSlug)
   if (!config) return { valid: true, missingFields: [] }
 
-  const missingFields = getRequiredSafetyFields(serviceSlug, answers).filter(
+  const missingFields = getRequiredSafetyFields(config.serviceSlug, answers).filter(
     (fieldId) => !hasAnsweredSafetyField(fieldId, answers[fieldId]),
   )
 
@@ -526,6 +526,10 @@ export function validateSafetyFieldsPresent(
 }
 
 function hasAnsweredSafetyField(fieldId: string, value: unknown): boolean {
+  if (fieldId === 'hasSideEffects') {
+    return typeof value === 'boolean'
+  }
+
   if (fieldId === 'pregnancyStatus') {
     return isExactStringValue(value, PILL_PREGNANCY_STATUS_VALUES)
   }
@@ -577,12 +581,19 @@ function getRequiredSafetyFields(
         fields.add('utiPregnant')
       }
       if (option === 'ocp_new') {
-        // New/switch pill safety screen (drives the REQUIRES_CALL contraindication rules).
+        // New/switch pill safety screen (drives the pre-payment redirect rules).
         fields.add('pregnancyStatus')
         fields.add('womens_migraine_aura')
         fields.add('womens_blood_clot_history')
         fields.add('womens_smoker')
       }
+    }
+  }
+
+  if (serviceSlug === 'prescription') {
+    fields.add('hasSideEffects')
+    if (answers.hasSideEffects === true) {
+      fields.add('sideEffects')
     }
   }
 

@@ -71,7 +71,7 @@ const PILL_FAQ_ITEMS = [
   },
   {
     question: "Can I use this if I might be pregnant?",
-    answer: "If you are pregnant or could be pregnant, online pill assessment may not be the right pathway. The doctor may ask for a pregnancy test, contact you for more detail, or recommend in-person care depending on the situation.",
+    answer: "If you are pregnant or could be pregnant, this paid pathway stops before checkout. Arrange a pregnancy test and speak with your GP, sexual health clinic, or another appropriate clinician before starting or switching contraception.",
   },
   {
     question: "Can I request a specific pill brand?",
@@ -94,14 +94,31 @@ const COST_FAQ = {
   answer: `Our flat fee is ${PRICING_DISPLAY.WOMENS_HEALTH} for the doctor review. Pharmacy costs, if relevant, are separate. There are no subscriptions or ongoing fees.`,
 } as const
 
-// Intent-scoped FAQ sets so each entry page emits unique on-page FAQ + FAQPage
-// schema (avoids duplicate structured data across the 3 women's-health URLs).
-// The /womens-health hub keeps the combined set (same order/content as before).
-export const UTI_FAQ = [...UTI_FAQ_ITEMS, DECLINE_FAQ, COST_FAQ] as const
-export const PILL_FAQ = [...PILL_FAQ_ITEMS, DECLINE_FAQ, COST_FAQ] as const
-export const WOMENS_HEALTH_FAQ = [
-  ...UTI_FAQ_ITEMS,
+// Intent-scoped FAQ sets keep each entry page's on-page FAQ + FAQPage schema
+// distinct across the three women's-health URLs.
+export const UTI_LANDING_FAQ = [
+  UTI_FAQ_ITEMS[0],
+  UTI_FAQ_ITEMS[2],
+  UTI_FAQ_ITEMS[4],
+  UTI_FAQ_ITEMS[5],
   DECLINE_FAQ,
-  ...PILL_FAQ_ITEMS,
   COST_FAQ,
+] as const
+export const PILL_LANDING_FAQ = [
+  PILL_FAQ_ITEMS[0],
+  PILL_FAQ_ITEMS[2],
+  PILL_FAQ_ITEMS[3],
+  PILL_FAQ_ITEMS[5],
+  PILL_FAQ_ITEMS[7],
+  DECLINE_FAQ,
+  COST_FAQ,
+] as const
+// The hub is a chooser, not a second copy of either child landing page.
+export const WOMENS_HEALTH_HUB_FAQ = [
+  UTI_FAQ_ITEMS[0],
+  UTI_FAQ_ITEMS[2],
+  PILL_FAQ_ITEMS[0],
+  PILL_FAQ_ITEMS[2],
+  COST_FAQ,
+  DECLINE_FAQ,
 ] as const

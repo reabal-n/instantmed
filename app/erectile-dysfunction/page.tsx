@@ -8,9 +8,8 @@ import {
   ServiceSchema,
   SpeakableSchema,
 } from "@/components/seo"
-import { getArticleVisualsForRender } from "@/lib/blog/visuals"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
-import { ED_FAQ } from "@/lib/data/ed-faq"
+import { ED_LANDING_FAQ } from "@/lib/data/ed-faq"
 
 export const revalidate = 86400
 
@@ -49,8 +48,6 @@ export const metadata: Metadata = {
 }
 
 export default function Page() {
-  const visuals = getArticleVisualsForRender("erectile-dysfunction")
-
   return (
     <>
       <SpeakableSchema
@@ -59,7 +56,7 @@ export default function Page() {
         url="/erectile-dysfunction"
         speakableSelectors={["h1", "[data-speakable]"]}
       />
-      <FAQSchema faqs={[...ED_FAQ]} />
+      <FAQSchema faqs={[...ED_LANDING_FAQ]} />
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },
@@ -78,7 +75,7 @@ export default function Page() {
         url="/erectile-dysfunction"
         lastReviewed="2026-06"
       />
-      <ErectileDysfunctionLanding visuals={visuals} />
+      <ErectileDysfunctionLanding />
     </>
   )
 }

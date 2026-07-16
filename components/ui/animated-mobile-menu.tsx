@@ -9,52 +9,31 @@ import { useEffect, useRef } from "react"
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
-// Hook to get container dimensions
-const useDimensions = (ref: React.RefObject<HTMLDivElement | null>) => {
-  const [dimensions, setDimensions] = React.useState({ width: 0, height: 0 })
-
-  useEffect(() => {
-    if (ref.current) {
-      setDimensions({
-        width: ref.current.offsetWidth,
-        height: ref.current.offsetHeight,
-      })
-    }
-  }, [ref])
-
-  return dimensions
-}
-
-// Sidebar background animation variants.
-// Curve is the iOS sheet feel (cubic-bezier 0.16, 1, 0.3, 1) at 350ms —
-// Tier 1 reviews across /prescriptions and /erectile-dysfunction flagged
-// the prior `ease: "easeOut"` as reading like a 2014 dropdown. The new
-// curve has a soft landing without a thud and lifts perceived polish on
-// every marketing surface that uses this drawer.
+// Transform-only drawer motion keeps the panel on the compositor and avoids
+// the paint cost of animating a full-height clip path.
 const DRAWER_EASE = [0.16, 1, 0.3, 1] as const
 
 const sidebarVariants: Variants = {
-  open: (height = 1000) => ({
-    clipPath: `circle(${height * 2 + 200}px at calc(100% - 44px) 44px)`,
+  open: {
+    x: 0,
     transition: {
-      duration: 0.35,
+      duration: 0.22,
       ease: DRAWER_EASE,
     },
-  }),
+  },
   closed: {
-    clipPath: "circle(0px at calc(100% - 44px) 44px)",
+    x: "100%",
     transition: {
-      delay: 0.1,
-      duration: 0.3,
+      duration: 0.16,
       ease: DRAWER_EASE,
     },
   },
   reducedOpen: {
-    clipPath: "none",
+    x: 0,
     transition: { duration: 0, delay: 0 },
   },
   reducedClosed: {
-    clipPath: "circle(0px at calc(100% - 44px) 44px)",
+    x: "100%",
     transition: { duration: 0, delay: 0 },
   },
 }
@@ -62,10 +41,10 @@ const sidebarVariants: Variants = {
 // Navigation list animation variants
 const navVariants: Variants = {
   open: {
-    transition: { staggerChildren: 0.06, delayChildren: 0.15 },
+    transition: { staggerChildren: 0.05, delayChildren: 0.04 },
   },
   closed: {
-    transition: { staggerChildren: 0.05, staggerDirection: -1 },
+    transition: { staggerChildren: 0.04, staggerDirection: -1 },
   },
   reducedOpen: {
     transition: { duration: 0, delayChildren: 0, staggerChildren: 0 },
@@ -100,14 +79,18 @@ const itemVariants: Variants = {
     y: 0,
     opacity: 1,
     transition: {
-      y: { duration: 0.2, ease: 'easeOut' },
+      type: "tween",
+      duration: 0.18,
+      ease: DRAWER_EASE,
     },
   },
   closed: {
-    y: 50,
+    y: 12,
     opacity: 0,
     transition: {
-      y: { duration: 0.15, ease: 'easeOut' },
+      type: "tween",
+      duration: 0.12,
+      ease: DRAWER_EASE,
     },
   },
   reducedOpen: {
@@ -151,19 +134,23 @@ function getVisibleDrawerControls(root: HTMLElement | null) {
 
 // Path component for animated hamburger icon
 interface PathProps {
-  d?: string
+  d: string
   variants: Variants
-  transition?: { duration: number }
   className?: string
   stroke?: string
+  isOpen: boolean
+  prefersReducedMotion: boolean
 }
 
-const Path = ({ className, ...props }: PathProps) => (
+const Path = ({ className, isOpen, prefersReducedMotion, ...props }: PathProps) => (
   <motion.path
     fill="transparent"
     strokeWidth="2.5"
     strokeLinecap="round"
     className={className}
+    initial="closed"
+    animate={isOpen ? "open" : "closed"}
+    transition={{ type: "tween", duration: prefersReducedMotion ? 0 : 0.15, ease: DRAWER_EASE }}
     {...props}
   />
 )
@@ -175,6 +162,7 @@ interface MenuToggleProps {
 }
 
 export const MenuToggle = ({ toggle, isOpen }: MenuToggleProps) => {
+  const prefersReducedMotion = useReducedMotion()
 
   return (
     <button
@@ -201,6 +189,9 @@ export const MenuToggle = ({ toggle, isOpen }: MenuToggleProps) => {
         aria-hidden="true"
       >
         <Path
+          d="M 2 2.5 L 20 2.5"
+          isOpen={isOpen}
+          prefersReducedMotion={prefersReducedMotion}
           variants={{
             closed: { d: "M 2 2.5 L 20 2.5" },
             open: { d: "M 3 16.5 L 17 2.5" },
@@ -209,14 +200,18 @@ export const MenuToggle = ({ toggle, isOpen }: MenuToggleProps) => {
         />
         <Path
           d="M 2 9.423 L 20 9.423"
+          isOpen={isOpen}
+          prefersReducedMotion={prefersReducedMotion}
           variants={{
             closed: { opacity: 1 },
             open: { opacity: 0 },
           }}
-          transition={{ duration: 0.1 }}
           stroke="currentColor"
         />
         <Path
+          d="M 2 16.346 L 20 16.346"
+          isOpen={isOpen}
+          prefersReducedMotion={prefersReducedMotion}
           variants={{
             closed: { d: "M 2 16.346 L 20 16.346" },
             open: { d: "M 3 2.5 L 17 16.346" },
@@ -302,8 +297,8 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
   return (
     <motion.li
       variants={itemVariants}
-      whileHover={item.disabled || prefersReducedMotion ? undefined : { y: -2, x: 8 }}
-      whileTap={item.disabled || prefersReducedMotion ? undefined : { scale: 0.98 }}
+      whileHover={item.disabled || prefersReducedMotion ? undefined : { y: -1, x: 4, transition: { type: "tween", duration: 0.16, ease: DRAWER_EASE } }}
+      whileTap={item.disabled || prefersReducedMotion ? undefined : { scale: 0.98, transition: { type: "tween", duration: 0.12, ease: DRAWER_EASE } }}
       tabIndex={-1}
       className="list-none"
     >
@@ -325,7 +320,7 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
         onKeyDown={(event) => event.stopPropagation()}
         className={cn(
           "flex items-center gap-4 px-4 py-3.5 rounded-2xl",
-          "transition-[transform,box-shadow] duration-300",
+          "transition-[background-color,box-shadow] duration-200",
           // Glass hover effect
           "hover:bg-card/70 dark:hover:bg-white/15",
           "hover:shadow-md hover:shadow-primary/10",
@@ -382,11 +377,10 @@ export function AnimatedMobileMenu({
 }: AnimatedMobileMenuProps) {
   const prefersReducedMotion = useReducedMotion()
   const [isHydrated, setIsHydrated] = React.useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const returnFocusRef = useRef<HTMLElement | null>(null)
   const wasOpenRef = useRef(false)
-  const { height } = useDimensions(containerRef)
   const openMotionState = prefersReducedMotion ? "reducedOpen" : "open"
   const closedMotionState = prefersReducedMotion ? "reducedClosed" : "closed"
 
@@ -485,7 +479,6 @@ export function AnimatedMobileMenu({
       aria-label="Mobile navigation"
       initial={{}}
       animate={isOpen ? openMotionState : closedMotionState}
-      custom={height}
       ref={containerRef}
       className="md:hidden"
     >

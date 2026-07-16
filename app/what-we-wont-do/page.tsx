@@ -9,6 +9,11 @@ import { IconChecklist } from "@/components/sections/icon-checklist"
 import type { ChecklistItem } from "@/components/sections/types"
 import { FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+
+const CLINICAL_ACCESS_SCOPE = getApprovedClaim("clinical_access_scope")
+const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
+const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
 
 // =============================================================================
 // METADATA
@@ -68,8 +73,7 @@ const clinicalLimits: ChecklistItem[] = [
 const honestyLimits: ChecklistItem[] = [
   {
     text: "We won't pretend AI is a doctor.",
-    subtext:
-      "An AHPRA-registered doctor reads every request and records the clinical decision. AI tools assist with administrative work behind the scenes. They never approve or decline a request.",
+    subtext: CLINICAL_DECISION_MODEL,
   },
   {
     text: "We won't promise a specific minute-by-minute timeline.",
@@ -77,9 +81,9 @@ const honestyLimits: ChecklistItem[] = [
       "We publish a median delivery time and we update you as your request moves. We do not guarantee a specific number of minutes, because clinical follow-up legitimately takes longer on some days. We guarantee an outcome, not a clock.",
   },
   {
-    text: "We won't auto-approve to look fast.",
+    text: "We won't blur protocol with prescribing.",
     subtext:
-      "Speed is a side effect of removing booking friction, not of removing review. Every outcome is a human decision recorded in the patient record.",
+      "The doctor-owned protocol is limited to eligible low-risk certificate requests. Prescribing decisions stay with an AHPRA-registered doctor.",
   },
   {
     text: "We won't fake trust signals.",
@@ -92,22 +96,21 @@ const treatmentLimits: ChecklistItem[] = [
   {
     text: "We won't ghost you.",
     subtext:
-      "Every request gets a real-doctor outcome, even when the answer is no. Declines come with a written explanation and an automatic refund. You don't have to chase us.",
+      "Each request reaches a documented clinical outcome. Eligible protocol-issued certificates receive individual doctor review afterward, and recorded clinical declines start the refund process automatically.",
   },
   {
-    text: "We won't sell or share your health data.",
+    text: "We won't sell your health data.",
     subtext:
-      "Your records are encrypted at rest, hosted in Australia, and never shared with advertisers, brokers, or third parties beyond what is required to deliver care. Full detail in our privacy policy.",
+      `We do not sell health information to advertisers or data brokers. ${CLINICAL_ACCESS_SCOPE} Our privacy policy explains the service providers needed to deliver care.`,
   },
   {
     text: "We won't dark-pattern your refund.",
-    subtext:
-      "Declines auto-refund the moment the doctor records the decision. There is no support form to fill out, no hold music, no escalation tier. The email lands within minutes.",
+    subtext: REFUND_PAYMENT_PROCESS,
   },
   {
     text: "We won't lock you out of your records.",
     subtext:
-      "You own your medical record. You can export your certificates, prescriptions, and clinical notes from your dashboard at any time. No subscription required, no fee, no hoops.",
+      "Delivered documents remain available in your patient dashboard. You can also request access to or correction of your health information, subject to legal record-retention requirements.",
   },
 ]
 
@@ -130,12 +133,12 @@ const faqs = [
   {
     question: "Is the refund automatic in every case on this list?",
     answer:
-      "If the doctor records a clinical decline or recommends in-person care, yes. If the intake form blocks the request before payment, you are never charged. Detail in /guarantee.",
+      `${REFUND_PAYMENT_PROCESS} If the intake blocks an out-of-scope request before payment, no payment is collected. See the guarantee for detail.`,
   },
   {
     question: "What about the things you do that are not on this list?",
     answer:
-      "Our scope is documented across the service pages (medical-certificate, prescriptions, consult, erectile-dysfunction, hair-loss) and the clinical-governance page. This page is the inverse: the things we choose not to do.",
+      "Our scope is documented across the medical-certificate, prescriptions, erectile-dysfunction, hair-loss, and women's-health service pages, plus the specialty overview and clinical-governance page. This page is the inverse: the things we choose not to do.",
   },
 ]
 
@@ -194,7 +197,7 @@ export default function WhatWeWontDoPage() {
 
           <CTABanner
             title="Ready when you are."
-            subtitle="Start with a secure form. Takes about 3 minutes. If the doctor declines, you pay nothing."
+            subtitle={`Start with a secure form. Takes about 3 minutes. ${REFUND_PAYMENT_PROCESS}`}
             ctaText="Get started"
             ctaHref="/request"
             secondaryText="Read the guarantee"

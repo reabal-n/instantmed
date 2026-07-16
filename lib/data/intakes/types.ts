@@ -1,3 +1,6 @@
+import type { PatientPaymentRecoveryProjection } from "@/lib/patient/payment-recovery"
+import type { IntakeWithPatient } from "@/types/db"
+
 /**
  * Shared types for intake data module.
  * Re-exports DB types and defines module-internal interfaces.
@@ -18,8 +21,11 @@ export interface DashboardIntake {
   updated_at: string
   service_id: string
   document_ready: boolean
+  payment_recovery_reason: PatientPaymentRecoveryProjection["payment_recovery_reason"]
   service: { id: string; name?: string; short_name?: string; type?: string; slug?: string } | null
 }
+
+export type PatientIntakeWithPatient = IntakeWithPatient & PatientPaymentRecoveryProjection
 
 export interface DashboardPrescription {
   id: string

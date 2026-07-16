@@ -8,7 +8,7 @@
 
 > Surface philosophy: **Solid depth, not frosted glass.** Real white cards with real shadows on warm backgrounds. Inspired by dub.co — each card has weight, lifts on hover, casts a sky-toned shadow. No backdrop-blur on content surfaces.
 
-> Voice: Calm, experienced GP explaining their service. Dry wit. Never stiff, never slangy.
+> Voice: Calm, experienced doctor explaining the service. Dry wit. Never stiff, never slangy.
 
 ---
 
@@ -550,10 +550,10 @@ import { fadeUp, stagger, spring, easing } from '@/lib/motion'
 </motion.div>
 
 // Card hover - subtle lift (CSS-only preferred for simple lifts)
-className="hover:-translate-y-0.5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+className="hover:-translate-y-0.5 transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
 
 // Button press depth
-<motion.button whileTap={{ scale: 0.97 }} transition={spring.snappy} />
+<motion.button whileTap={{ scale: 0.98 }} transition={spring.snappy} />
 
 // Icon spring on hover (inside a parent group)
 // Parent: className="group"
@@ -567,7 +567,7 @@ import { type Variants } from 'framer-motion'
 
 const myVariants: Variants = {
   hidden: { opacity: 0, y: 8 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }, // compiles
+  visible: { opacity: 1, y: 0, transition: { duration: duration.slow, ease: easing.strongOut } }, // compiles
 }
 
 // Without annotation: TS2322 error on the transition property
@@ -589,13 +589,13 @@ import { backdropVariants, drawerVariants, sheetVariants } from '@/lib/motion/pa
 
 Root-level page transitions are intentionally not mounted. The root layout renders route children directly, while `NavigationProgress` provides navigation feedback after deferred client startup. Keep motion local to the component that owns it rather than wrapping the entire application.
 
-**Asymmetric timing rule:** Enter slower than exit. If an element enters over 200ms, it exits in 100ms or less.
+**Asymmetric timing rule:** Enter slower than exit. The marketing drawer uses 220ms in / 160ms out; sticky purchase bars use 180ms in / 140ms out. Reduced motion resolves directly to the endpoint.
 
 ### Scroll & Reveal
 
 - **Stagger rise** is the default scroll-entry for lists, grids, card groups. Use `stagger.container` + `stagger.item` from `lib/motion/index.ts`. Hard cap: 8 items per stagger group.
 - **Emergence** for hero/feature sections: `initial={{ opacity: 0, filter: 'blur(8px)', scale: 0.98 }}` with `will-change: filter`. Add `@supports` fallback (opacity + scale only).
-- **Product fly-in:** `translateY(40px to 0)` + opacity, 60ms stagger, IntersectionObserver at 15%.
+- **Product fly-in:** `translateY(12px to 0)` + opacity, 40-60ms stagger, IntersectionObserver at 15%.
 - **Shimmer skeleton:** Gradient sweep left to right, 30% element width, soft edges, 1.5s repeat.
 - `scroll-behavior: smooth` on html for anchor navigation.
 - `overscroll-behavior: none` on modals/panels; `overscroll-behavior: contain` on overflow containers.
@@ -657,6 +657,9 @@ All ambient and scroll-triggered animations fully disabled under reduced motion.
 - **Composite-only (always safe):** `transform` (translate, scale, rotate), `opacity`. GPU compositor, no layout/paint.
 - **Expensive (use carefully):** `filter: blur()`, `backdrop-filter`, `box-shadow` during animation. Add `will-change: filter` before blur animations. Test on throttled hardware.
 - **Never animate:** `width`, `height`, `top`, `left`, `margin`, `padding`, `font-size`. Full layout recalculation.
+- **Progress fills:** Render at full width and animate `scaleX()` from `transform-origin: left`; never transition width.
+- **Below-fold educational images:** Keep `loading="lazy"`, reserve an aspect-ratio box, and set `sizes` to the padded content width rather than `100vw`.
+- **Small raster trust marks:** Keep them on the Next image optimizer with an exact `sizes` value. Do not use `unoptimized` as a default.
 - **`will-change`:** Declare immediately before animation, remove after. Never on more than 6-8 elements simultaneously.
 - **Frame budget:** 60fps = 16ms per frame. If any animation causes frame time to exceed 12ms on a mid-range device with 4x CPU throttle in DevTools, it ships without that animation.
 
@@ -795,8 +798,8 @@ Reject and regenerate anything that looks like:
 
 | Write this | Not this |
 |------------|----------|
-| "Get a medical certificate in 10 minutes." | "Revolutionising access to healthcare." |
-| "A GP reviews your case. You get the cert." | "Our comprehensive platform leverages AI." |
+| "Start with a secure form. Takes about 3 minutes." | "Revolutionising access to healthcare." |
+| "Clinical reviews are performed by AHPRA-registered doctors under documented clinical governance." | "Our comprehensive platform leverages AI." |
 | "Something wrong? We'll sort it." | "Our dedicated support team is here to help!" |
 | "No hidden fees. No subscription." | "Transparent, seamless, patient-first care." |
 

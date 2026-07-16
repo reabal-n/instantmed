@@ -9,6 +9,10 @@ import {
   CANCELLABLE_UNPAID_INTAKE_STATUSES,
   TERMINAL_PAID_PAYMENT_STATUSES,
 } from "@/lib/stripe/payment-integrity"
+import {
+  isMissingSafetyInformationPaymentLock,
+  PAYMENT_SAFETY_LOCKS,
+} from "@/lib/stripe/payment-safety-lock"
 import type { ActionResult } from "@/types/shared"
 
 /**
@@ -27,7 +31,7 @@ export const cancelIntake = withServerAction<string>(
     // Fetch the intake to verify ownership and status
     const { data: intake, error: fetchError } = await supabase
       .from("intakes")
-      .select("id, patient_id, status, payment_status, payment_id")
+      .select("id, patient_id, status, payment_status, payment_id, checkout_error")
       .eq("id", intakeId)
       .single()
 
@@ -44,6 +48,14 @@ export const cancelIntake = withServerAction<string>(
         userId: profile.id,
       })
       return { success: false, error: "You can only cancel your own requests" }
+    }
+
+    if (isMissingSafetyInformationPaymentLock(intake.checkout_error)) {
+      log.warn("Cancel intake: missing-information hold is binding", { intakeId })
+      return {
+        success: false,
+        error: "This request cannot be cancelled while more information is required.",
+      }
     }
 
     // Verify status allows cancellation
@@ -70,11 +82,15 @@ export const cancelIntake = withServerAction<string>(
     // trigger allows paid -> cancelled, so the write itself must re-assert the
     // unpaid-cancellable state or we mint a paid+cancelled chargeback row.
     // PostgREST rejects nullable `.or()` filters on this PATCH path (42703).
-    // Keep the same union as two guarded writes so a concurrent paid webhook
-    // still wins before either cancellation attempt can match.
+    // Keep the payment and safety-lock unions as explicit guarded writes so a
+    // concurrent paid webhook or either safety lock always wins the race.
     const cancelledAt = new Date().toISOString()
     const terminalPaidPaymentStatusesFilter = `(${Array.from(TERMINAL_PAID_PAYMENT_STATUSES).join(",")})`
-    const cancelWithPaymentGuard = (paymentGuard: "null" | "not_terminal_paid") => {
+    const paymentSafetyLocksFilter = `(${PAYMENT_SAFETY_LOCKS.join(",")})`
+    const cancelWithGuards = (
+      paymentGuard: "null" | "not_terminal_paid",
+      checkoutErrorGuard: "null" | "not_safety_locked",
+    ) => {
       let cancelQuery = supabase
         .from("intakes")
         .update({
@@ -89,14 +105,32 @@ export const cancelIntake = withServerAction<string>(
         ? cancelQuery.is("payment_status", null)
         : cancelQuery.not("payment_status", "in", terminalPaidPaymentStatusesFilter)
 
+      cancelQuery = checkoutErrorGuard === "null"
+        ? cancelQuery.is("checkout_error", null)
+        : cancelQuery.not("checkout_error", "in", paymentSafetyLocksFilter)
+
       return cancelQuery.select("id")
     }
 
-    let { data: cancelledRows, error: updateError } = await cancelWithPaymentGuard("null")
-    if (!updateError && (!cancelledRows || cancelledRows.length === 0)) {
-      const fallbackCancellation = await cancelWithPaymentGuard("not_terminal_paid")
-      cancelledRows = fallbackCancellation.data
-      updateError = fallbackCancellation.error
+    const paymentGuards = intake.payment_status === null
+      ? (["null", "not_terminal_paid"] as const)
+      : (["not_terminal_paid", "null"] as const)
+    const checkoutErrorGuards = intake.checkout_error === null
+      ? (["null", "not_safety_locked"] as const)
+      : (["not_safety_locked", "null"] as const)
+
+    let cancelledRows: Array<{ id: string }> | null = null
+    let updateError: { message?: string } | null = null
+
+    for (const paymentGuard of paymentGuards) {
+      for (const checkoutErrorGuard of checkoutErrorGuards) {
+        const cancellation = await cancelWithGuards(paymentGuard, checkoutErrorGuard)
+        cancelledRows = cancellation.data
+        updateError = cancellation.error
+
+        if (updateError || (cancelledRows && cancelledRows.length > 0)) break
+      }
+      if (updateError || (cancelledRows && cancelledRows.length > 0)) break
     }
 
     if (updateError) {
