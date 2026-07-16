@@ -472,6 +472,7 @@ export interface Profile {
   // Parchment ePrescribing
   parchment_user_id?: string | null // Parchment user ID (doctors)
   parchment_patient_id?: string | null // Parchment patient ID (patients)
+  parchment_synced_demographics_hash?: string | null // SHA-256 of last-synced Parchment payload; gates reuse-mode refresh skip
   // Patient profile merge state
   normalized_email?: string | null
   normalized_phone?: string | null
