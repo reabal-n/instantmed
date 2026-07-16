@@ -2,7 +2,10 @@ import { revalidateTag } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
 
 import { getApiAuth } from "@/lib/auth/helpers"
-import { PATIENT_INTAKE_POLL_LIMIT } from "@/lib/patient/intake-status-polling"
+import {
+  fingerprintPatientIntakeProjection,
+  PATIENT_INTAKE_POLL_LIMIT,
+} from "@/lib/patient/intake-status-polling"
 import { derivePatientPaymentRecoveryReason } from "@/lib/patient/payment-recovery"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -38,22 +41,30 @@ export async function GET(req: NextRequest) {
       )
     }
 
+    const projected = (intakes ?? []).map((intake) => ({
+      id: intake.id,
+      status: intake.status,
+      updated_at: intake.updated_at,
+      payment_recovery_reason: derivePatientPaymentRecoveryReason(
+        intake.checkout_error,
+      ),
+    }))
+
     // The shell refresh that follows a changed polling snapshot must not reread
-    // the authenticated patient's 30-60s cached dashboard/list projections.
-    // Keep invalidation patient-specific; no public or staff cache is touched.
-    revalidateTag(`patient-dashboard-${authResult.profile.id}`)
-    revalidateTag(`patient-intakes-${authResult.profile.id}`)
+    // the authenticated patient's 30-60s cached dashboard/list projections —
+    // but an UNCHANGED poll must not invalidate them either, or the 20s cadence
+    // permanently defeats the cache. The client echoes the last fingerprint;
+    // invalidate (patient-specific only) when the fresh read differs.
+    const fingerprint = fingerprintPatientIntakeProjection(projected)
+    if (req.nextUrl.searchParams.get("snapshot") !== fingerprint) {
+      revalidateTag(`patient-dashboard-${authResult.profile.id}`)
+      revalidateTag(`patient-intakes-${authResult.profile.id}`)
+    }
 
     return NextResponse.json(
       {
-        intakes: (intakes ?? []).map((intake) => ({
-          id: intake.id,
-          status: intake.status,
-          updated_at: intake.updated_at,
-          payment_recovery_reason: derivePatientPaymentRecoveryReason(
-            intake.checkout_error,
-          ),
-        })),
+        intakes: projected,
+        snapshot: fingerprint,
       },
       {
         headers: {

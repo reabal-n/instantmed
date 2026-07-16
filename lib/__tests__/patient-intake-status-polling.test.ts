@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
   derivePatientSuccessVerificationState,
+  fingerprintPatientIntakeProjection,
   PATIENT_SUCCESS_VERIFICATION_DEADLINE_MS,
   type PatientIntakePollingProjection,
   reconcilePatientIntakePollingSnapshot,
@@ -199,6 +200,27 @@ describe("patient intake polling projection", () => {
     })
   })
 
+  it("fingerprints identical projections identically and any row change differently", () => {
+    const rows: PatientIntakePollingProjection[] = [
+      {
+        id: "intake-1",
+        payment_recovery_reason: null,
+        status: "paid",
+        updated_at: "2026-07-15T01:00:00.000Z",
+      },
+    ]
+
+    expect(fingerprintPatientIntakeProjection(rows)).toBe(
+      fingerprintPatientIntakeProjection(rows.map((row) => ({ ...row }))),
+    )
+    expect(fingerprintPatientIntakeProjection(rows)).not.toBe(
+      fingerprintPatientIntakeProjection([{ ...rows[0], status: "approved" }]),
+    )
+    expect(fingerprintPatientIntakeProjection(rows)).not.toBe(
+      fingerprintPatientIntakeProjection([]),
+    )
+  })
+
   it("detects a same-status recovery-reason change but ignores updated_at alone", () => {
     const seeded = reconcilePatientIntakePollingSnapshot(null, [{
       id: "intake-1",
@@ -288,6 +310,7 @@ describe("patient intake polling projection", () => {
           updated_at: "2026-07-15T00:00:00.000Z",
         },
       ],
+      snapshot: expect.any(String),
     })
     expect(JSON.stringify(body)).not.toContain("checkout_error")
     expect(JSON.stringify(body)).not.toContain("payment_id")
@@ -296,6 +319,69 @@ describe("patient intake polling projection", () => {
     expect(query.eq).toHaveBeenCalledWith("patient_id", PATIENT_ID)
     expect(query.order).toHaveBeenCalledWith("updated_at", { ascending: false })
     expect(query.limit).toHaveBeenCalledWith(100)
+    expect(mocks.revalidateTag.mock.calls).toEqual([
+      [`patient-dashboard-${PATIENT_ID}`],
+      [`patient-intakes-${PATIENT_ID}`],
+    ])
+  })
+
+  it("skips patient-view invalidation when the echoed snapshot matches the fresh read", async () => {
+    const listData = [
+      {
+        checkout_error: null,
+        id: "intake-1",
+        status: "approved",
+        updated_at: "2026-07-15T01:00:00.000Z",
+      },
+    ]
+    mocks.createServiceRoleClient.mockReturnValue(
+      createStatusQueryMock({ listData }).supabase,
+    )
+    const first = await (await GET(listRequest())).json()
+    expect(mocks.revalidateTag).toHaveBeenCalledTimes(2)
+
+    mocks.revalidateTag.mockClear()
+    mocks.createServiceRoleClient.mockReturnValue(
+      createStatusQueryMock({ listData }).supabase,
+    )
+    const second = await GET(
+      new NextRequest(
+        `https://instantmed.example/api/patient/intake-status?scope=list&snapshot=${first.snapshot}`,
+      ),
+    )
+
+    expect((await second.json()).snapshot).toBe(first.snapshot)
+    expect(mocks.revalidateTag).not.toHaveBeenCalled()
+  })
+
+  it("invalidates patient views again once the projection actually changes", async () => {
+    const row = {
+      checkout_error: null,
+      id: "intake-1",
+      status: "paid",
+      updated_at: "2026-07-15T01:00:00.000Z",
+    }
+    mocks.createServiceRoleClient.mockReturnValue(
+      createStatusQueryMock({ listData: [row] }).supabase,
+    )
+    const first = await (await GET(listRequest())).json()
+
+    mocks.revalidateTag.mockClear()
+    mocks.createServiceRoleClient.mockReturnValue(
+      createStatusQueryMock({
+        listData: [
+          { ...row, status: "approved", updated_at: "2026-07-15T02:00:00.000Z" },
+        ],
+      }).supabase,
+    )
+    const second = await GET(
+      new NextRequest(
+        `https://instantmed.example/api/patient/intake-status?scope=list&snapshot=${first.snapshot}`,
+      ),
+    )
+    const secondBody = await second.json()
+
+    expect(secondBody.snapshot).not.toBe(first.snapshot)
     expect(mocks.revalidateTag.mock.calls).toEqual([
       [`patient-dashboard-${PATIENT_ID}`],
       [`patient-intakes-${PATIENT_ID}`],

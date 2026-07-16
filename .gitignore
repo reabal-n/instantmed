@@ -115,3 +115,6 @@ docs/RELEASE_LOG.md
 
 # Supabase CLI local link artifacts
 supabase/.temp/
+
+# pnpm content-addressable store (created by the pinned pnpm-11 security:audit run)
+.pnpm-store/
