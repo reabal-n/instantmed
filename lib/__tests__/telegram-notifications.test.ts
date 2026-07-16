@@ -275,6 +275,58 @@ describe("Telegram request notifications", () => {
     expect(body.text).not.toContain("2 days")
   })
 
+  it("sends an hourly waiting-queue reminder with count and oldest wait only", async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({}) })
+    const { sendQueueWaitingReminderViaTelegram } = await import("@/lib/notifications/telegram")
+
+    const sent = await sendQueueWaitingReminderViaTelegram({
+      waitingCount: 2,
+      oldestWaitingMinutes: 84,
+    })
+
+    expect(sent).toBe(true)
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body)
+    expect(body.parse_mode).toBe("MarkdownV2")
+    expect(body.text).toContain("*⏳ 2 requests waiting for review*")
+    expect(body.text).toContain("Oldest has waited 1\\.4h")
+    expect(body.text).toContain("(https://instantmed.com.au/dashboard)")
+    // Count-only by construction: no identity, service, or clinical fields exist.
+    expect(body.text).not.toContain("Patient")
+  })
+
+  it("waiting-queue reminder fails soft when Telegram is not configured", async () => {
+    delete process.env.TELEGRAM_BOT_TOKEN
+    const { sendQueueWaitingReminderViaTelegram } = await import("@/lib/notifications/telegram")
+
+    await expect(
+      sendQueueWaitingReminderViaTelegram({ waitingCount: 1, oldestWaitingMinutes: 45 }),
+    ).resolves.toBe(false)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it("waiting-queue reminder fails soft on a Telegram API error instead of throwing", async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 502, text: async () => "bad gateway" })
+    const { sendQueueWaitingReminderViaTelegram } = await import("@/lib/notifications/telegram")
+
+    await expect(
+      sendQueueWaitingReminderViaTelegram({ waitingCount: 3, oldestWaitingMinutes: 30 }),
+    ).resolves.toBe(false)
+  })
+
+  it("sends critical business alerts with the escaped aggregate detail string", async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({}) })
+    const { sendCriticalBusinessAlertViaTelegram } = await import("@/lib/notifications/telegram")
+
+    const sent = await sendCriticalBusinessAlertViaTelegram(
+      "5 failed payments in the last hour. Investigate immediately",
+    )
+
+    expect(sent).toBe(true)
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body)
+    expect(body.text).toContain("*🚨 Critical business alert*")
+    expect(body.text).toContain("5 failed payments in the last hour\\. Investigate immediately")
+  })
+
   it("does not expose a generic automatic system-alert sender", async () => {
     const telegram = await import("@/lib/notifications/telegram")
     expect("sendTelegramAlert" in telegram).toBe(false)

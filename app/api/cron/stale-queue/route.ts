@@ -7,12 +7,22 @@ import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
+import { sendQueueWaitingReminderViaTelegram } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("stale-queue")
 
 export const maxDuration = 60
+
+/**
+ * Telegram waiting-line reminder floor (operator decision 2026-07-17:
+ * "hourly reminders if a request is waiting in line"). Cadence is this
+ * cron's hourly schedule; the 30-minute floor keeps a just-arrived request
+ * (or a med cert still inside the ~10-min auto-approval window) from paging
+ * before anyone could plausibly need to act. Count-only and PHI-free.
+ */
+const QUEUE_WAITING_TELEGRAM_REMINDER_MIN_MINUTES = 30
 
 /**
  * Sentry paging threshold, decoupled from `patient_delay_email_hours` (2h).
@@ -98,6 +108,34 @@ export async function GET(request: NextRequest) {
           extra: { stale_count: totalSentryStale },
         },
       )
+    }
+
+    // ── Hourly Telegram waiting-line reminder (see the constant above) ──────
+    const reminderThreshold = new Date(
+      now.getTime() - QUEUE_WAITING_TELEGRAM_REMINDER_MIN_MINUTES * 60 * 1000,
+    )
+    const { count: waitingReminderCount, data: oldestWaitingRows } =
+      await filterSeededE2EIntakes(
+        supabase
+          .from("intakes")
+          .select("paid_at", { count: "exact" })
+          .eq("status", "paid")
+          .eq("payment_status", "paid")
+          .lt("paid_at", reminderThreshold.toISOString())
+          .order("paid_at", { ascending: true })
+          .limit(1),
+      )
+    const waitingForReminder = waitingReminderCount ?? 0
+    if (waitingForReminder > 0) {
+      const oldestPaidAtRaw = oldestWaitingRows?.[0]?.paid_at
+      const oldestPaidAtMs = oldestPaidAtRaw ? Date.parse(oldestPaidAtRaw) : Number.NaN
+      const oldestWaitingMinutes = Number.isFinite(oldestPaidAtMs)
+        ? Math.max(0, Math.floor((now.getTime() - oldestPaidAtMs) / 60_000))
+        : QUEUE_WAITING_TELEGRAM_REMINDER_MIN_MINUTES
+      await sendQueueWaitingReminderViaTelegram({
+        waitingCount: waitingForReminder,
+        oldestWaitingMinutes,
+      })
     }
 
     // ── Patient delay emails ─────────────────────────────────────────────────
