@@ -3,7 +3,7 @@ import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-s
 import { getIntakeAnswersForPaymentSafety } from "@/lib/data/intake-answers"
 import { createLogger } from "@/lib/observability/logger"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
-import { validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
+import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import {
   isSupersededDuplicateCheckoutError,
   resolvePaymentRecoveryCanonicality,
@@ -406,6 +406,28 @@ export async function resolveGuestCheckoutResume(intakeId: string): Promise<stri
       })
       if (hold !== "state_changed") revalidateHeldIntake(intake)
       return missingInformationDestination(supabase, hold, intake)
+    }
+
+    // Re-evaluate the safety rules so a signed resume link (7-day TTL) cannot
+    // pay under rules that tightened after the original submission — parity
+    // with the authenticated retry path. Runs before the open-session reuse
+    // branch so a blocked intake never receives a payable URL of either kind.
+    const safetyCheck = checkSafetyForServer(serviceSlugForSafety, answers)
+    if (!safetyCheck.isAllowed) {
+      logger.warn("Safety rules blocked guest checkout resume", {
+        intakeId: intake.id,
+        outcome: safetyCheck.outcome,
+        serviceSlug: serviceSlugForSafety,
+        triggeredRules: safetyCheck.triggeredRuleIds,
+      })
+      await recordSafetyEvaluationForOperators({
+        answers,
+        context: "guest_resume",
+        requestId: intake.id,
+        result: safetyCheck,
+        serviceSlug: serviceSlugForSafety,
+      })
+      return SAFETY_BLOCKED_DESTINATION
     }
 
     let canRebuild = !intake.payment_id
