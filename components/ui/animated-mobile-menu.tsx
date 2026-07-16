@@ -148,7 +148,7 @@ const Path = ({ className, isOpen, prefersReducedMotion, ...props }: PathProps) 
     strokeWidth="2.5"
     strokeLinecap="round"
     className={className}
-    initial={false}
+    initial={{}}
     animate={isOpen ? "open" : "closed"}
     transition={{ type: "tween", duration: prefersReducedMotion ? 0 : 0.15, ease: DRAWER_EASE }}
     {...props}
