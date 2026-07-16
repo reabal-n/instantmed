@@ -22,6 +22,7 @@ import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ServiceCategory } from "@/types/services"
 
+import { resolvePaymentRecoveryCanonicality } from "../canonical-payment-recovery"
 import { reportCheckoutSessionFailure } from "../checkout-error-alarm"
 import { getPriceIdForRequest, normalizeStripePriceId, stripe } from "../client"
 import { buildPaymentIntentMetadata, canRetryPaymentForIntake } from "../payment-integrity"
@@ -90,6 +91,24 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
 
     if (!canRetryPaymentForIntake(intake.status, intake.payment_status)) {
       return { success: false, error: "This request has already been paid or is not awaiting payment" }
+    }
+
+    const canonicality = await resolvePaymentRecoveryCanonicality(supabase, {
+      category: intake.category,
+      createdAt: intake.created_at,
+      email: patientEmail,
+      id: intake.id,
+      patientId,
+      subtype: intake.subtype,
+    })
+    if (canonicality.kind === "unresolved") {
+      return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
+    }
+    if (canonicality.kind === "superseded") {
+      return {
+        success: false,
+        error: "A newer saved request exists for this service. Open your latest request to finish payment.",
+      }
     }
 
     // Re-evaluate safety so a saved-then-retried intake cannot bypass new

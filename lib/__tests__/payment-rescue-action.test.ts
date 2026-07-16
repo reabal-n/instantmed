@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   inspectCheckoutSession: vi.fn(),
   maybeSingle: vi.fn(),
   requireRoleOrNull: vi.fn(),
+  resolvePaymentRecoveryCanonicality: vi.fn(),
 }))
 
 vi.mock("@/lib/auth/helpers", () => ({
@@ -22,6 +23,10 @@ vi.mock("@/lib/email/recovery-links", () => ({
 vi.mock("@/lib/stripe/checkout/checkout-session-safety", () => ({
   HIGH_STAKES_PAYMENT_LOCK: "high_stakes_payment_state_unresolved",
   inspectCheckoutSession: mocks.inspectCheckoutSession,
+}))
+
+vi.mock("@/lib/stripe/canonical-payment-recovery", () => ({
+  resolvePaymentRecoveryCanonicality: mocks.resolvePaymentRecoveryCanonicality,
 }))
 
 vi.mock("@/lib/supabase/service-role", () => ({
@@ -46,13 +51,18 @@ describe("staff payment rescue action", () => {
       profile: { id: "support-1", role: "support" },
       user: { id: "auth-1" },
     })
+    mocks.resolvePaymentRecoveryCanonicality.mockResolvedValue({ kind: "canonical" })
     mocks.maybeSingle.mockResolvedValue({
       data: {
+        category: "prescription",
+        created_at: "2026-07-14T21:30:00.000Z",
         guest_email: "patient@example.com",
         id: INTAKE_ID,
+        patient_id: "patient-1",
         payment_id: null,
         payment_status: "pending",
         status: "pending_payment",
+        subtype: "repeat",
       },
       error: null,
     })
@@ -99,6 +109,21 @@ describe("staff payment rescue action", () => {
     expect(result).toEqual({
       success: false,
       error: "Payment is already complete or processing. Refresh the ledger before sending anything.",
+    })
+    expect(mocks.buildRecoveryUrl).not.toHaveBeenCalled()
+  })
+
+  it("does not produce a rescue link for an older duplicate", async () => {
+    mocks.resolvePaymentRecoveryCanonicality.mockResolvedValueOnce({
+      canonicalIntakeId: "bbbbbbbb-cccc-4ddd-8eee-ffffffffffff",
+      kind: "superseded",
+    })
+
+    const result = await buildPaymentRescueAction(INTAKE_ID)
+
+    expect(result).toEqual({
+      success: false,
+      error: "This is an older duplicate. Use the newest request in this service lane.",
     })
     expect(mocks.buildRecoveryUrl).not.toHaveBeenCalled()
   })

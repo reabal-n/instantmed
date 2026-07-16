@@ -24,6 +24,7 @@ const mocks = vi.hoisted(() => ({
   revalidatePatient: vi.fn(),
   revalidateStaff: vi.fn(),
   recordSafetyEvaluationForOperators: vi.fn(),
+  resolvePaymentRecoveryCanonicality: vi.fn(),
   stripeSessionCreate: vi.fn(),
   stripeSessionExpire: vi.fn(),
   stripeSessionRetrieve: vi.fn(),
@@ -157,6 +158,10 @@ vi.mock("@/lib/stripe/referral-coupon", () => ({
   createReferralCouponIfEligible: mocks.createReferralCouponIfEligible,
 }))
 
+vi.mock("@/lib/stripe/canonical-payment-recovery", () => ({
+  resolvePaymentRecoveryCanonicality: mocks.resolvePaymentRecoveryCanonicality,
+}))
+
 import { retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
 
 const successPageSource = readFileSync(
@@ -186,7 +191,9 @@ type RetryIntake = {
   answers: Array<{ answers: Record<string, unknown> }>
   category: string | null
   checkout_error: string | null
+  created_at: string
   is_priority: boolean | null
+  patient_id: string | null
   payment_id: string | null
   payment_status: string | null
   service: { id: string; name: string; price_cents: number; slug: string; type: string } | null
@@ -216,7 +223,9 @@ function createRetrySupabaseMock(
     answers: [{ answers: { symptom: "test" } }],
     category: "medical_certificate",
     checkout_error: null,
+    created_at: "2026-07-14T21:30:00.000Z",
     is_priority: false,
+    patient_id: "patient-1",
     payment_id: "cs_previous",
     payment_status: "failed",
     service: { id: "svc-1", name: "Medical certificate", price_cents: 1995, slug: "med-cert-sick", type: "medical_certificate" },
@@ -321,6 +330,7 @@ describe("retryPaymentForIntakeAction", () => {
       type: "one_time",
       unit_amount: 995,
     })
+    mocks.resolvePaymentRecoveryCanonicality.mockResolvedValue({ kind: "canonical" })
     mocks.stripeSessionCreate.mockResolvedValue({
       id: "cs_retry",
       metadata: { intake_id: "intake-1" },
@@ -378,6 +388,24 @@ describe("retryPaymentForIntakeAction", () => {
       }),
       { idempotencyKey: "authenticated-retry-v2_intake-1_cs_previous" },
     )
+  })
+
+  it("does not revive an older duplicate unpaid request", async () => {
+    const { supabase } = createRetrySupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.resolvePaymentRecoveryCanonicality.mockResolvedValueOnce({
+      canonicalIntakeId: "intake-newer",
+      kind: "superseded",
+    })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toEqual({
+      success: false,
+      error: "A newer saved request exists for this service. Open your latest request to finish payment.",
+    })
+    expect(mocks.getIntakeAnswersForPaymentSafety).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
   it("attaches through a separate non-locking error guard when checkout_error is non-null", async () => {
