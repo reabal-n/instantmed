@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
+  checkSafetyForServer: vi.fn(),
   createServiceRoleClient: vi.fn(),
   getAppUrl: vi.fn(),
   getIntakeAnswersForPaymentSafety: vi.fn(),
@@ -45,6 +46,7 @@ vi.mock("@/lib/safety/audit-log", () => ({
 }))
 
 vi.mock("@/lib/safety/evaluate", () => ({
+  checkSafetyForServer: mocks.checkSafetyForServer,
   validateSafetyFieldsPresent: mocks.validateSafetyFieldsPresent,
 }))
 
@@ -221,6 +223,13 @@ describe("signed guest checkout resume payment safety", () => {
     mocks.getOptionalStripePriceEnv.mockReturnValue(null)
     mocks.getPriceIdForRequest.mockReturnValue("price_med_cert")
     mocks.validateSafetyFieldsPresent.mockReturnValue({ missingFields: [], valid: true })
+    mocks.checkSafetyForServer.mockReturnValue({
+      isAllowed: true,
+      outcome: "ALLOW",
+      riskTier: "low",
+      requiresCall: false,
+      triggeredRuleIds: [],
+    })
     mocks.stripePriceRetrieve.mockResolvedValue({
       active: true,
       currency: "aud",
@@ -378,6 +387,65 @@ describe("signed guest checkout resume payment safety", () => {
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
     expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
     expect(updateRecords).toHaveLength(0)
+  })
+
+  it("withholds even a live open Session when the safety rules engine now blocks the answers", async () => {
+    // Identical fixture to the safe-open-session test above; ONLY the rules
+    // verdict differs — pins that the re-evaluation runs before the
+    // open-session reuse branch, so tightened rules beat a 7-day resume link.
+    const { supabase, updateRecords } = createResumeSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.checkSafetyForServer.mockReturnValue({
+      isAllowed: false,
+      outcome: "DECLINE",
+      riskTier: "high",
+      blockReason: "This request cannot be completed online.",
+      requiresCall: false,
+      triggeredRuleIds: ["emergency_symptoms"],
+    })
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe("/checkout/cancelled?reason=safety_blocked")
+    expect(mocks.recordSafetyEvaluationForOperators).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: "guest_resume",
+        requestId: "intake-1",
+        result: expect.objectContaining({
+          isAllowed: false,
+          triggeredRuleIds: ["emergency_symptoms"],
+        }),
+      }),
+    )
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(updateRecords).toHaveLength(0)
+  })
+
+  it("validates field presence before running the safety rules engine", async () => {
+    const { supabase } = createResumeSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    await resolveGuestCheckoutResume("intake-1")
+
+    expect(mocks.validateSafetyFieldsPresent).toHaveBeenCalled()
+    expect(mocks.checkSafetyForServer).toHaveBeenCalled()
+    expect(mocks.validateSafetyFieldsPresent.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.checkSafetyForServer.mock.invocationCallOrder[0],
+    )
+  })
+
+  it("does not reach the safety rules engine when required fields are missing", async () => {
+    const { supabase } = createResumeSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.validateSafetyFieldsPresent.mockReturnValue({
+      missingFields: ["symptomDetails"],
+      valid: false,
+    })
+
+    await resolveGuestCheckoutResume("intake-1")
+
+    expect(mocks.checkSafetyForServer).not.toHaveBeenCalled()
   })
 
   it("does not revive an older duplicate through its signed resume link", async () => {
