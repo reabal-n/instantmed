@@ -59,6 +59,7 @@ export function usePatientIntakeStatusPolling({
 
   useEffect(() => {
     let snapshot: ReturnType<typeof reconcilePatientIntakePollingSnapshot>["snapshot"] | null = null
+    let serverFingerprint: string | null = null
     let intervalId: ReturnType<typeof setInterval> | null = null
     let activeController: AbortController | null = null
     let disposed = false
@@ -70,15 +71,24 @@ export function usePatientIntakeStatusPolling({
       activeController = controller
 
       try {
-        const response = await fetch("/api/patient/intake-status?scope=list", {
+        // Echo the server's last fingerprint so an unchanged poll doesn't
+        // invalidate the patient's cached portal projections every 20s.
+        const url = serverFingerprint
+          ? `/api/patient/intake-status?scope=list&snapshot=${encodeURIComponent(serverFingerprint)}`
+          : "/api/patient/intake-status?scope=list"
+        const response = await fetch(url, {
           cache: "no-store",
           headers: { Accept: "application/json" },
           signal: controller.signal,
         })
         if (!response.ok) return
 
-        const currentRows = parsePollingProjection(await response.json())
+        const body: unknown = await response.json()
+        const currentRows = parsePollingProjection(body)
         if (disposed || controller.signal.aborted || !currentRows) return
+
+        const nextFingerprint = (body as { snapshot?: unknown }).snapshot
+        if (typeof nextFingerprint === "string") serverFingerprint = nextFingerprint
 
         const reconciled = reconcilePatientIntakePollingSnapshot(snapshot, currentRows)
         snapshot = reconciled.snapshot

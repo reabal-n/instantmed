@@ -79,6 +79,7 @@ export interface Intake {
   stripe_customer_id: string | null // Customer ID at time of payment
   stripe_price_id: string | null // Stripe price ID used for checkout
   idempotency_key: string | null // Idempotency key for payment dedup
+  checkout_error: string | null // Payment-recovery marker (safety locks, session-bind failures)
   // First-touch attribution captured before checkout
   utm_source: string | null
   utm_medium: string | null
