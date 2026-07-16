@@ -15,6 +15,16 @@ const logger = createLogger("stale-queue")
 export const maxDuration = 60
 
 /**
+ * Sentry paging threshold, decoupled from `patient_delay_email_hours` (2h).
+ * The 2h mark is a PRODUCT behavior (the "still reviewing" reassurance email);
+ * paging ops at the same mark warned on the routine case forever — Rx reviews
+ * run ~2.6h median / ~12.6h P95, so the 2h page fired 95 times in a month of
+ * healthy operation. 6h flags the genuine slow tail while staying far inside
+ * the 24h internal maximum. The patient email timing is unchanged.
+ */
+const STALE_QUEUE_SENTRY_ALERT_MIN_HOURS = 6
+
+/**
  * Stale Queue Monitor
  *
  * Runs every hour via Vercel Cron (configured in vercel.json).
@@ -60,16 +70,32 @@ export async function GET(request: NextRequest) {
         metadata: { stale_count: totalStale },
       })
       logger.warn("Stale intakes detected", { stale_count: totalStale })
+    }
 
-      // Sentry alert so ops get a real-time notification, not just PostHog metrics
+    // Sentry paging runs on its own, higher threshold (see the constant above):
+    // the PostHog metric keeps the email-threshold denominator for dashboard
+    // continuity, but ops only get paged for the genuine slow tail.
+    const sentryAlertHours = Math.max(STALE_QUEUE_SENTRY_ALERT_MIN_HOURS, patientDelayEmailHours)
+    const sentryAlertThreshold = new Date(now.getTime() - sentryAlertHours * 60 * 60 * 1000)
+    const { count: sentryStaleCount } = await filterSeededE2EIntakes(
+      supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "paid")
+        .eq("payment_status", "paid")
+        .lt("paid_at", sentryAlertThreshold.toISOString()),
+    )
+    const totalSentryStale = sentryStaleCount ?? 0
+
+    if (totalSentryStale > 0) {
       Sentry.captureMessage(
-        totalStale >= 5
-          ? `Critical: ${totalStale} intakes waiting ${patientDelayEmailHours}h+ without review`
-          : `Warning: ${totalStale} intake(s) waiting ${patientDelayEmailHours}h+ without review`,
+        totalSentryStale >= 5
+          ? `Critical: ${totalSentryStale} intakes waiting ${sentryAlertHours}h+ without review`
+          : `Warning: ${totalSentryStale} intake(s) waiting ${sentryAlertHours}h+ without review`,
         {
-          level: totalStale >= 5 ? "error" : "warning",
-          tags: { alert_type: "stale_queue", severity: totalStale >= 5 ? "critical" : "warning" },
-          extra: { stale_count: totalStale },
+          level: totalSentryStale >= 5 ? "error" : "warning",
+          tags: { alert_type: "stale_queue", severity: totalSentryStale >= 5 ? "critical" : "warning" },
+          extra: { stale_count: totalSentryStale },
         },
       )
     }
