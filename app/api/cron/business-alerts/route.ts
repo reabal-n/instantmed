@@ -39,6 +39,7 @@ import {
   STALE_HUMAN_QUEUE_CATEGORIES,
   STALE_HUMAN_QUEUE_THRESHOLD_HOURS,
 } from "@/lib/monitoring/stale-human-queue"
+import { sendCriticalBusinessAlertViaTelegram } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -606,6 +607,14 @@ export async function GET(request: NextRequest) {
             checked_at: now.toISOString(),
           },
         }
+      )
+
+      // Essential criticals also reach the operator's Telegram (operator
+      // decision 2026-07-17). Criticals ONLY — warnings stay Sentry-side, so
+      // Telegram never becomes a general second alerting channel. Detail
+      // strings are the same aggregate PHI-free text the Sentry capture uses.
+      await sendCriticalBusinessAlertViaTelegram(
+        criticalAlerts.map((a) => a.detail).join("; "),
       )
     }
 

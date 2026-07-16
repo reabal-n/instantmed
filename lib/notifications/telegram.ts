@@ -359,6 +359,94 @@ export async function editTelegramMessage(
   }
 }
 
+// --- Operational notifications (operator decision 2026-07-17) ---
+// Beyond per-request pings, Telegram carries exactly two operational sends:
+// an hourly count-only reminder while paid requests wait for review, and
+// essential CRITICAL-severity business alerts. It is deliberately NOT a
+// general second alerting channel — warnings, routine metrics, and cron
+// watchdog noise stay in Sentry/PostHog. Content is aggregate counts and
+// pre-built PHI-free detail strings only; patient identity, medicines, and
+// clinical detail must never enter Telegram.
+
+/** Fail-soft send for operational messages — a Telegram outage or missing
+ * configuration must never fail the cron doing the real work. */
+async function postOperationalTelegramMessage(
+  message: string,
+  context: string,
+): Promise<boolean> {
+  const token = getToken()
+  const chatId = getChatId()
+  if (!token || !chatId) {
+    log.warn("Telegram operational send skipped: not configured", { context })
+    return false
+  }
+
+  try {
+    const response = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: "MarkdownV2",
+        disable_web_page_preview: true,
+      }),
+    })
+    if (!response.ok) {
+      const body = await response.text()
+      log.error("Telegram operational send failed", { context, status: response.status, body })
+      return false
+    }
+    return true
+  } catch (error) {
+    log.error(
+      "Telegram operational send errored",
+      { context },
+      error instanceof Error ? error : new Error(String(error)),
+    )
+    return false
+  }
+}
+
+function formatWaitDuration(minutes: number): string {
+  if (minutes < 60) return `${Math.max(1, Math.round(minutes))} min`
+  return `${(minutes / 60).toFixed(1)}h`
+}
+
+export interface QueueWaitingReminderOptions {
+  waitingCount: number
+  oldestWaitingMinutes: number
+  appUrl?: string
+}
+
+/**
+ * Hourly "requests are waiting in line" nudge (operator decision 2026-07-17).
+ * Cadence is the caller's cron schedule; content is count + oldest wait only.
+ */
+export async function sendQueueWaitingReminderViaTelegram(
+  opts: QueueWaitingReminderOptions,
+): Promise<boolean> {
+  const appUrl = getNotificationAppUrl(opts.appUrl)
+  const noun = opts.waitingCount === 1 ? "request" : "requests"
+  const title = `*⏳ ${opts.waitingCount} ${noun} waiting for review*`
+  const detail = escapeMarkdown(
+    `Oldest has waited ${formatWaitDuration(opts.oldestWaitingMinutes)}.`,
+  )
+  const message = [title, ``, detail, ``, `[Open queue →](${appUrl}/dashboard)`].join("\n")
+  return postOperationalTelegramMessage(message, "queue_waiting_reminder")
+}
+
+/**
+ * Essential critical-severity business alert. Callers pass the already
+ * PHI-free aggregate detail string the Sentry critical capture uses.
+ */
+export async function sendCriticalBusinessAlertViaTelegram(
+  detail: string,
+): Promise<boolean> {
+  const message = [`*🚨 Critical business alert*`, ``, escapeMarkdown(detail)].join("\n")
+  return postOperationalTelegramMessage(message, "critical_business_alert")
+}
+
 /**
  * Answer a Telegram callback query (dismisses the loading spinner on the button)
  */
