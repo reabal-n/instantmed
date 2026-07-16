@@ -1,8 +1,12 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import type { ReactNode } from "react"
 
-import { RequestFlow } from "@/components/request/request-flow"
+import {
+  DraftSessionUrlScrubber,
+  RequestFlow,
+} from "@/components/request/request-flow"
 import { trackOperationalBlock } from "@/lib/analytics/posthog-server"
 import { getCurrentUser, getUserProfile } from "@/lib/auth/helpers"
 import { CONTACT_EMAIL_HELLO, PRICING_DISPLAY } from "@/lib/constants"
@@ -10,6 +14,8 @@ import { decryptProfilePhi } from "@/lib/data/profiles"
 import { isMaintenanceMode, isServiceDisabled } from "@/lib/feature-flags"
 import { isAtCapacity } from "@/lib/operational-controls/config"
 import { normalizeConsultSubtypeParam } from "@/lib/request/consult-flow"
+import { normalizeWomensHealthIntentParam } from "@/lib/request/consult-subtypes"
+import { isValidDraftSessionId } from "@/lib/request/draft-resume-route"
 import { mapServiceParam } from "@/lib/request/step-registry"
 import { validateMedicareNumber } from "@/lib/validation/medicare"
 import { normalizeValidIhiNumber } from "@/lib/validation/prescribing-identifier"
@@ -53,8 +59,10 @@ export default async function RequestPage({
   searchParams: Promise<{
     service?: string
     subtype?: string
+    intent?: string
     certType?: string
     duration?: string
+    d?: string
   }>
 }) {
   const params = await searchParams
@@ -62,6 +70,15 @@ export default async function RequestPage({
   const initialSubtype = initialService === "consult"
     ? normalizeConsultSubtypeParam(params.subtype)
     : params.subtype
+  const initialIntent = initialService === "consult" && initialSubtype === "womens_health"
+    ? normalizeWomensHealthIntentParam(params.intent)
+    : undefined
+  const withDraftSessionScrubber = (content: ReactNode) => (
+    <>
+      <DraftSessionUrlScrubber active={params.d !== undefined} />
+      {content}
+    </>
+  )
 
   // Consult REQUIRES a valid specialty subtype (ED, hair loss, women's health,
   // weight loss). Bare /request?service=consult or an unknown subtype goes to
@@ -78,7 +95,7 @@ export default async function RequestPage({
   ])
 
   if (maintenance.enabled) {
-    return (
+    return withDraftSessionScrubber(
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="max-w-md mx-auto text-center space-y-6">
           <div className="w-16 h-16 mx-auto rounded-full bg-warning-light/30 flex items-center justify-center">
@@ -121,7 +138,7 @@ export default async function RequestPage({
   // At capacity
   if (atCapacity) {
     trackOperationalBlock({ blockType: "capacity_limit", source: "request_page" })
-    return (
+    return withDraftSessionScrubber(
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="max-w-md mx-auto text-center space-y-6">
           <div className="w-16 h-16 mx-auto rounded-full bg-warning-light/30 flex items-center justify-center">
@@ -179,7 +196,7 @@ export default async function RequestPage({
           : "other"
     const serviceDisabled = await isServiceDisabled(category)
     if (serviceDisabled) {
-      return (
+      return withDraftSessionScrubber(
         <div className="min-h-[60vh] flex items-center justify-center px-4">
           <div className="max-w-md mx-auto text-center space-y-6">
             <div className="w-16 h-16 mx-auto rounded-full bg-warning-light/30 flex items-center justify-center">
@@ -240,13 +257,21 @@ export default async function RequestPage({
   const hasValidMedicare = (hasValidMedicareNumber && !!profile?.medicare_irn) || hasValidIhi
   const hasSex = !!profile?.sex
 
-  return (
+  return withDraftSessionScrubber(
     <RequestFlow
       initialService={initialService}
       rawServiceParam={params.service}
       initialSubtype={initialSubtype}
+      initialIntent={initialIntent}
       initialCertType={params.certType}
       initialDuration={params.duration}
+      initialDraftId={
+        params.d === undefined
+          ? undefined
+          : isValidDraftSessionId(params.d)
+            ? params.d
+            : null
+      }
       isAuthenticated={!!user}
       hasProfile={!!profile}
       hasCompleteIdentity={hasCompleteIdentity}

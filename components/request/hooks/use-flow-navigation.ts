@@ -143,7 +143,13 @@ export function useFlowNavigation({
       from_step: currentStepId,
       step_index: currentStepIndex,
     })
-    if (currentStepIndex > 0) {
+    const isEditingSkippedStep = !activeSteps.some((step) => step.id === currentStepId)
+    if (isEditingSkippedStep) {
+      // The skipped-step store guard keeps a materially edited Details screen
+      // open until its validated Continue succeeds. An unchanged edit can
+      // safely return to review without leaving the request flow.
+      prevStep()
+    } else if (currentStepIndex > 0) {
       prevStep()
       // Pop the matching history entry to keep the browser stack in sync.
       // Set the skip flag so the resulting popstate doesn't call prevStep() again.
@@ -155,7 +161,7 @@ export function useFlowNavigation({
     } else {
       router.back()
     }
-  }, [currentStepIndex, currentStepId, analyticsServiceType, prevStep, router, posthog])
+  }, [currentStepIndex, currentStepId, analyticsServiceType, activeSteps, prevStep, router, posthog])
 
   const handleNext = useCallback(async () => {
     captureIntakeEvent(

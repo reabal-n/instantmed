@@ -258,6 +258,64 @@ test.describe("Unified Request Flow - Draft Persistence", () => {
     await expect(page.getByRole("radio", { name: /Work/i })).toBeChecked({ timeout: 10000 })
     await expect(page.getByRole("radio", { name: /2 days/i })).toBeChecked({ timeout: 10000 })
   })
+
+  test("lets unchanged review edits jump back to Pay but revalidates material edits first", async ({ page }) => {
+    await page.addInitScript(() => {
+      const today = new Date().toISOString().slice(0, 10)
+      window.localStorage.setItem(
+        "instantmed-request-draft",
+        JSON.stringify({
+          state: {
+            serviceType: "med-cert",
+            currentStepId: "checkout",
+            furthestVisitedStepId: "checkout",
+            stepsNeedingRevalidation: [],
+            answers: {
+              certType: "work",
+              duration: "1",
+              startDate: today,
+              symptomDetails: "Mild headache since this morning",
+            },
+            firstName: "Test",
+            lastName: "Patient",
+            email: "test@example.com",
+            dob: "1990-01-01",
+            lastSavedAt: new Date(Date.now() - 1000).toISOString(),
+          },
+          version: 0,
+        }),
+      )
+    })
+
+    await page.goto("/request?service=med-cert")
+    await waitForPageLoad(page)
+    await expect(page.getByRole("heading", { name: "One last check" })).toBeVisible({ timeout: 15000 })
+
+    const progress = page.getByRole("navigation", { name: "Request progress" })
+    await progress.getByRole("button", { name: "Symptoms completed" }).click()
+    await expect(page.getByRole("heading", { name: /Your symptoms/i })).toBeVisible()
+
+    const unchangedPay = progress.getByRole("button", { name: "Pay completed" })
+    await expect(unchangedPay).toBeEnabled()
+    await unchangedPay.click()
+    await expect(page.getByRole("heading", { name: "One last check" })).toBeVisible()
+
+    await progress.getByRole("button", { name: "Symptoms completed" }).click()
+    await page.locator("#symptom-details").fill("Mild headache and fatigue since this morning")
+
+    await expect(progress.getByRole("button", { name: "Symptoms needs review" })).toBeEnabled()
+    await expect(progress.getByRole("button", { name: "Pay", exact: true })).toBeDisabled()
+
+    const continueButton = page.locator('button[data-intake-primary-action="true"]').last()
+    await expect(continueButton).toHaveAttribute("data-intake-primary-ready", "true")
+    await continueButton.click()
+    await expect(page.getByRole("heading", { name: "Your details" })).toBeVisible()
+
+    const revalidatedPay = progress.getByRole("button", { name: "Pay completed" })
+    await expect(revalidatedPay).toBeEnabled()
+    await revalidatedPay.click()
+    await expect(page.getByRole("heading", { name: "One last check" })).toBeVisible()
+  })
 })
 
 test.describe("Unified Request Flow - Error Handling", () => {

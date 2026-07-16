@@ -10,7 +10,7 @@ function read(relativePath: string): string {
 }
 
 describe("portfolio money-page art direction", () => {
-  it("replaces homepage lifestyle photography with one catalog-derived route map", () => {
+  it("uses a catalog-derived card chooser instead of the split-panel route diagram", () => {
     const homepage = read("app/(marketing)/page.tsx")
     const homeLinks = read("components/marketing/home-service-links.tsx")
     const map = read("components/marketing/portfolio-route-map.tsx")
@@ -39,12 +39,15 @@ describe("portfolio money-page art direction", () => {
     expect(homeLinks).not.toContain('href: "/prescriptions"')
     expect(map).toContain("getActiveServices()")
     expect(map).toContain("getServiceMarketingHref(service)")
-    expect(map).toContain("Five doorways. One clinical system.")
-    expect(map).toContain("UTI symptoms + start/switch pill")
-    expect(map).toContain("CLINICAL_REVIEW_SEQUENCE")
+    expect(map).toContain("getServiceRequestHref(service)")
+    expect(map).toContain("function ServiceCard")
+    expect(map).toContain("What do you need?")
+    expect(map).toContain("UTI symptoms or start/switch pill")
     expect(map).toContain("FORM_FIRST_WEDGE")
-    expect(map).toContain("lg:grid-cols-[minmax(0,0.86fr)_auto_minmax(0,1.14fr)]")
-    expect(map).toContain("focus-visible:ring-primary-foreground")
+    expect(map).toContain("sm:grid-cols-2 lg:grid-cols-6")
+    expect(map).toContain('isCoreService ? "lg:col-span-3" : "lg:col-span-2"')
+    expect(map).toContain("useServiceAvailability()")
+    expect(map).toContain("focus-visible:ring-2")
     expect(map).not.toContain("group-hover:translate")
     expect(map).not.toContain("transition-transform")
     expect(map).not.toMatch(/(?:linear|radial)-gradient/)

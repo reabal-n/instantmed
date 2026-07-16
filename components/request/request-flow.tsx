@@ -35,6 +35,15 @@ import {
   getInitialRequestUrlDecision,
 } from "@/lib/request/initial-url-seeding"
 import {
+  adoptServerDraftSession,
+  getServerDraftById,
+} from "@/lib/request/server-draft"
+import {
+  getServerDraftRecoveryDecision,
+  stripDraftSessionFromUrl,
+} from "@/lib/request/server-draft-recovery"
+import { deriveRequestStepProgress } from "@/lib/request/step-progress"
+import {
   getStepDefinitionById,
   getStepsForService,
   type StepContext,
@@ -99,6 +108,19 @@ if (typeof window !== "undefined") {
   })
 }
 
+export function DraftSessionUrlScrubber({ active }: { active: boolean }) {
+  useEffect(() => {
+    if (!active || typeof window === "undefined") return
+    window.history.replaceState(
+      window.history.state,
+      "",
+      stripDraftSessionFromUrl(window.location.href),
+    )
+  }, [active])
+
+  return null
+}
+
 
 interface HealthProfilePrefill {
   allergies?: string[]
@@ -131,8 +153,6 @@ type SafetyBlockDialogComponent = ComponentType<{
   onReturnHome: () => void
   onContactUs: () => void
 }>
-
-type ConnectionBannerComponent = ComponentType
 
 function ServiceHubLoading() {
   return (
@@ -174,38 +194,6 @@ function LazyServiceHub({ onSelectService }: { onSelectService: (service: Unifie
 
   if (!ServiceHubScreen) return <ServiceHubLoading />
   return <ServiceHubScreen onSelectService={onSelectService} />
-}
-
-function LazyConnectionBanner() {
-  const [ConnectionBanner, setConnectionBanner] = useState<ConnectionBannerComponent | null>(null)
-
-  useEffect(() => {
-    let mounted = true
-    const load = () => {
-      import("./connection-banner")
-        .then((mod) => {
-          if (mounted) setConnectionBanner(() => mod.ConnectionBanner)
-        })
-        .catch(() => {})
-    }
-
-    if (typeof requestIdleCallback !== "undefined") {
-      const id = requestIdleCallback(load, { timeout: 1200 })
-      return () => {
-        mounted = false
-        cancelIdleCallback(id)
-      }
-    }
-
-    const id = setTimeout(load, 0)
-    return () => {
-      mounted = false
-      clearTimeout(id)
-    }
-  }, [])
-
-  if (!ConnectionBanner) return null
-  return <ConnectionBanner />
 }
 
 function LazyExitConfirmDialog({
@@ -342,10 +330,14 @@ interface RequestFlowProps {
   rawServiceParam?: string
   /** Canonical consult subtype from URL, already normalized by app/request/page.tsx */
   initialSubtype?: string
+  /** Validated women’s-health child-page intent; preselects but never skips the type step */
+  initialIntent?: string
   /** Certificate type from URL (pre-seeded from landing page selector) */
   initialCertType?: string
   /** Certificate duration from URL (pre-seeded from landing page selector) */
   initialDuration?: string
+  /** Validated explicit server-draft token. null means a malformed token was supplied. */
+  initialDraftId?: string | null
   isAuthenticated: boolean
   hasProfile: boolean
   /** Profile has complete identity (incl. date_of_birth) - details step can be skipped */
@@ -383,8 +375,10 @@ export function RequestFlow({
   initialService,
   rawServiceParam,
   initialSubtype,
+  initialIntent,
   initialCertType,
   initialDuration,
+  initialDraftId,
   isAuthenticated,
   hasProfile,
   hasCompleteIdentity,
@@ -407,6 +401,7 @@ export function RequestFlow({
   const [showDraftBanner, setShowDraftBanner] = useState(false)
   const [showSubtypeMismatch, setShowSubtypeMismatch] = useState(false)
   const [draftSubtype, setDraftSubtype] = useState<string | null>(null)
+  const [recoveryUnavailable, setRecoveryUnavailable] = useState(false)
   const [safetyBlock, setSafetyBlock] = useState<SafetyEvaluationResult | null>(null)
   const [mobilePrimaryAction, setMobilePrimaryAction] = useState<MobilePrimaryActionState>({
     available: false,
@@ -419,6 +414,8 @@ export function RequestFlow({
   const {
     serviceType,
     currentStepId,
+    furthestVisitedStepId,
+    stepsNeedingRevalidation,
     setServiceType,
     prevStep,
     goToStep,
@@ -428,6 +425,7 @@ export function RequestFlow({
     setAuthContext,
     lastSavedAt,
   } = useRequestStore()
+  const hasExplicitRecovery = initialDraftId !== undefined
 
   // Hydration status for effects that must read the RESTORED store, not the
   // empty pre-hydration snapshot. The store uses skipHydration:true, so any
@@ -488,9 +486,11 @@ export function RequestFlow({
       const decision = getInitialRequestUrlDecision({
         initialService,
         initialSubtype,
+        initialIntent,
         initialCertType,
         initialDuration,
         storedConsultSubtype: hydratedState.answers?.consultSubtype,
+        storedWomensHealthOption: hydratedState.answers?.womensHealthOption,
         storedCertType: hydratedState.answers?.certType,
         storedDuration: hydratedState.answers?.duration,
         lastSavedAt: hydratedState.lastSavedAt,
@@ -512,8 +512,53 @@ export function RequestFlow({
       }
     }
 
-    const finishHydration = () => {
+    const finishHydration = async () => {
       clearRequestDraftHydrationCutoff(hydrationCutoffToken)
+
+      if (hasExplicitRecovery) {
+        if (!initialDraftId) {
+          if (!cancelled) setRecoveryUnavailable(true)
+          return
+        }
+
+        const record = await getServerDraftById(initialDraftId)
+        if (cancelled) return
+        if (!record) {
+          setRecoveryUnavailable(true)
+          return
+        }
+
+        const decision = getServerDraftRecoveryDecision({
+          draft: record,
+          initialService,
+          initialSubtype,
+        })
+        if (!decision.ok) {
+          setRecoveryUnavailable(true)
+          return
+        }
+
+        if (!adoptServerDraftSession(record)) {
+          setRecoveryUnavailable(true)
+          return
+        }
+
+        const restoredState = useRequestStore.getState()
+        restoredState.setAuthContext({
+          isAuthenticated,
+          hasProfile,
+          hasCompleteIdentity: hasCompleteIdentity ?? hasProfile,
+          hasMedicare,
+          hasAddress,
+          hasPhone,
+          hasSex,
+        })
+        restoredState.restoreServerDraft(record, decision.serviceType)
+        setShowDraftBanner(false)
+        setHydrated(true)
+        return
+      }
+
       applyUrlDecision()
       setHydrated(true)
       offerExistingDraft()
@@ -521,19 +566,31 @@ export function RequestFlow({
 
     const rehydrateResult = useRequestStore.persist.rehydrate()
     if (rehydrateResult && typeof rehydrateResult.then === "function") {
-      void rehydrateResult.then(finishHydration, () => {
+      void rehydrateResult.then(
+        () => finishHydration(),
+        () => finishHydration(),
+      ).catch(() => {
         clearRequestDraftHydrationCutoff(hydrationCutoffToken)
-        // Hydration failed → treat as a fresh flow, but still unblock the
-        // hydration-gated effects (URL decision, prefill, service sync).
+        if (cancelled) return
+        if (hasExplicitRecovery) {
+          setRecoveryUnavailable(true)
+          return
+        }
+        // Local hydration failed: unblock a fresh flow without pretending a
+        // stale or unrelated draft was restored.
         applyUrlDecision()
         setHydrated(true)
       })
     } else {
-      finishHydration()
+      void finishHydration().catch(() => {
+        clearRequestDraftHydrationCutoff(hydrationCutoffToken)
+        if (!cancelled) setRecoveryUnavailable(true)
+      })
     }
 
     return () => {
       cancelled = true
+      clearRequestDraftHydrationCutoff(hydrationCutoffToken)
     }
     // Mount-only by design: URL params are re-checked by the hydration-gated
     // sync effect below; re-running rehydrate on prop change would re-fight
@@ -555,7 +612,7 @@ export function RequestFlow({
   // Parchment patient sync. Prefill is a seed, not a leash.
   const prefillAppliedRef = useRef(false)
   useEffect(() => {
-    if (!hydrated || prefillAppliedRef.current) return
+    if (!hydrated || hasExplicitRecovery || prefillAppliedRef.current) return
     prefillAppliedRef.current = true
 
     const state = useRequestStore.getState()
@@ -593,13 +650,13 @@ export function RequestFlow({
       setAnswer('state', profileAddress.state, { touch: false })
       setAnswer('postcode', profileAddress.postcode, { touch: false })
     }
-  }, [hydrated, userEmail, userName, userPhone, profileDateOfBirth, profileMedicare, profileMedicareIrn, profileIhi, profileSex, profileAddress, setIdentity, setAnswer])
+  }, [hydrated, hasExplicitRecovery, userEmail, userName, userPhone, profileDateOfBirth, profileMedicare, profileMedicareIrn, profileIhi, profileSex, profileAddress, setIdentity, setAnswer])
 
   // Pre-fill medical history from health profile (post-hydration, blanks
   // only, non-stamping — same rules as identity prefill above).
   const healthPrefillAppliedRef = useRef(false)
   useEffect(() => {
-    if (!hydrated || !healthProfile || healthPrefillAppliedRef.current) return
+    if (!hydrated || hasExplicitRecovery || !healthProfile || healthPrefillAppliedRef.current) return
     healthPrefillAppliedRef.current = true
     const storedAnswers = useRequestStore.getState().answers ?? {}
     if (healthProfile.allergies?.length && !storedAnswers.known_allergies) {
@@ -624,11 +681,11 @@ export function RequestFlow({
   // meant setServiceType's scoped-draft switch ran against pre-draft state.
   // Switching now loads the target service's OWN scoped draft (see store).
   useEffect(() => {
-    if (!hydrated) return
+    if (!hydrated || hasExplicitRecovery) return
     if (initialService && serviceType !== initialService) {
       setServiceType(initialService)
     }
-  }, [hydrated, initialService, serviceType, setServiceType])
+  }, [hydrated, hasExplicitRecovery, initialService, serviceType, setServiceType])
 
   // (URL answer seeds + subtype-mismatch detection now run post-hydration in
   // applyUrlDecision inside the rehydrate effect above.)
@@ -655,11 +712,13 @@ export function RequestFlow({
     return getStepsForService(effectiveService, stepContext)
   }, [effectiveService, stepContext])
 
-  // Find current step index - default to first step if current step not found
-  const currentStepIndex = useMemo(() => {
-    const index = activeSteps.findIndex(s => s.id === currentStepId)
-    return index >= 0 ? index : 0
-  }, [activeSteps, currentStepId])
+  const stepProgress = useMemo(() => deriveRequestStepProgress({
+    stepIds: activeSteps.map((step) => step.id),
+    currentStepId,
+    furthestVisitedStepId,
+    stepsNeedingRevalidation,
+  }), [activeSteps, currentStepId, furthestVisitedStepId, stepsNeedingRevalidation])
+  const currentStepIndex = stepProgress.currentIndex
 
   // When currentStepId is not in activeSteps, check if it's a skipped step we can render for editing
   // (e.g. user clicked "Edit" on Your Details when details was skipped)
@@ -899,6 +958,35 @@ export function RequestFlow({
     return serviceType ? names[serviceType] : 'request'
   }, [serviceType])
 
+  if (recoveryUnavailable) {
+    return (
+      <main className="min-h-screen bg-background px-4 flex items-center justify-center">
+        <div className="w-full max-w-md rounded-2xl border border-border/50 bg-white p-6 text-center shadow-md shadow-primary/[0.06] dark:bg-card sm:p-8">
+          <h1 className="font-display text-2xl font-semibold text-foreground">
+            Saved request unavailable
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            This link may have expired or the request may already have been completed. Start a new request to continue.
+          </p>
+          <a
+            href="/request"
+            className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            Start a new request
+          </a>
+        </div>
+      </main>
+    )
+  }
+
+  if (hasExplicitRecovery && !hydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Restoring saved request">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    )
+  }
+
   // No service param provided - show service hub
   if (initialService === null && !rawServiceParam) {
     return <LazyServiceHub onSelectService={handleSelectService} />
@@ -930,9 +1018,6 @@ export function RequestFlow({
 
   return (
     <div data-patient-flow="true" className="min-h-screen bg-background">
-      {/* Connection status banner */}
-      <LazyConnectionBanner />
-
       {/* Exit confirmation dialog */}
       <LazyExitConfirmDialog
         open={showExitConfirm}
@@ -1005,6 +1090,9 @@ export function RequestFlow({
           <ProgressBar 
             steps={activeSteps.map(s => ({ id: s.id, shortLabel: s.shortLabel }))} 
             currentIndex={currentStepIndex}
+            furthestVisitedIndex={stepProgress.furthestVisitedIndex}
+            maxReachableIndex={stepProgress.maxReachableIndex}
+            stepsNeedingRevalidation={stepsNeedingRevalidation}
             onStepClick={handleStepClick}
           />
         </div>

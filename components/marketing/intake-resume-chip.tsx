@@ -5,8 +5,8 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { buildDraftResumePath } from '@/lib/request/draft-resume-route'
 import { type DraftData, getAllDrafts } from '@/lib/request/draft-storage'
-import { getServerDraftById } from '@/lib/request/server-draft'
 import { cn } from '@/lib/utils'
 
 type ServiceKey = DraftData['serviceType']
@@ -15,12 +15,6 @@ const SERVICE_LABELS: Record<ServiceKey, string> = {
   'med-cert': 'medical certificate',
   'prescription': 'repeat prescription',
   'consult': 'consult',
-}
-
-const SERVICE_ROUTES: Record<ServiceKey, string> = {
-  'med-cert': '/request?service=med-cert',
-  'prescription': '/request?service=repeat-script',
-  'consult': '/consult',
 }
 
 const DISMISS_KEY = 'intake_resume_chip_dismissed_at'
@@ -46,19 +40,10 @@ function isValidServiceType(value: string): value is ServiceKey {
   return value === 'med-cert' || value === 'prescription' || value === 'consult'
 }
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
 /**
  * Shows a resume chip above the hero if the visitor has an unfinished /request
- * draft. Two source paths:
- *
- * 1. URL `?d=<sessionId>` - if present, fetch the server draft. Used for
- *    cross-device "continue here" links sent from the recovery email or
- *    shared by the user with themselves on another device. Server draft wins
- *    because it represents an explicit cross-device intent.
- *
- * 2. localStorage draft - the existing single-device path. Picks the most
- *    recently saved draft (drafts are sorted descending by lastSavedAt).
+ * draft stored on this device. Explicit cross-device `d=` links are consumed
+ * only by /request, where the recovered state can be atomically restored.
  *
  * Self-dismisses for 6 hours.
  */
@@ -75,30 +60,26 @@ export function IntakeResumeChip({ className }: { className?: string }) {
           return
         }
 
-        // Path 1: explicit cross-device link via ?d=<sessionId>
         const params = new URLSearchParams(window.location.search)
-        const sessionId = params.get('d')
-        if (sessionId && UUID_REGEX.test(sessionId)) {
-          const serverDraft = await getServerDraftById(sessionId)
-          if (cancelled) return
-          if (serverDraft && isValidServiceType(serverDraft.serviceType)) {
-            setTarget({
-              serviceType: serverDraft.serviceType,
-              lastSavedAt: serverDraft.updatedAt,
-              href: `${SERVICE_ROUTES[serverDraft.serviceType]}&d=${encodeURIComponent(sessionId)}`,
-            })
-            return
-          }
-        }
+        if (params.has('d')) return
 
-        // Path 2: localStorage fallback
-        const [most_recent] = getAllDrafts()
-        if (cancelled || !most_recent) return
-        setTarget({
-          serviceType: most_recent.serviceType,
-          lastSavedAt: most_recent.lastSavedAt,
-          href: SERVICE_ROUTES[most_recent.serviceType],
-        })
+        for (const draft of getAllDrafts()) {
+          if (!isValidServiceType(draft.serviceType)) continue
+          const consultSubtype = typeof draft.answers.consultSubtype === 'string'
+            ? draft.answers.consultSubtype
+            : undefined
+          const href = buildDraftResumePath({
+            serviceType: draft.serviceType,
+            consultSubtype,
+          })
+          if (!href || cancelled) continue
+          setTarget({
+            serviceType: draft.serviceType,
+            lastSavedAt: draft.lastSavedAt,
+            href,
+          })
+          return
+        }
       } catch {
         // localStorage / fetch unavailable - render nothing
       }

@@ -9,7 +9,7 @@ import {
   SpeakableSchema,
 } from "@/components/seo"
 import { getArticleVisualsForRender } from "@/lib/blog/visuals"
-import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING_DISPLAY, PRICING_SCHEMA } from "@/lib/constants"
 import { UTI_LANDING_FAQ } from "@/lib/data/womens-health-faq"
 
 export const revalidate = 86400
@@ -69,7 +69,7 @@ export default function Page() {
       <ServiceSchema
         name="Online UTI Assessment"
         description="UTI symptom assessment from an AHPRA-registered Australian doctor. Next steps are decided after clinical review."
-        price={PRICING.WOMENS_HEALTH.toFixed(2)}
+        price={PRICING_SCHEMA.WOMENS_HEALTH}
         url="/uti-assessment-online"
       />
       <HealthArticleSchema

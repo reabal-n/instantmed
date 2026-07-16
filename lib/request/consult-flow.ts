@@ -1,7 +1,6 @@
 import type { ConsultSubtype, UnifiedStepId } from "@/types/services"
 
 import { isConsultSubtypeKey } from "./consult-subtypes"
-import type { DraftData } from "./draft-storage"
 
 export {
   isConsultSubtypeKey,
@@ -96,19 +95,4 @@ export function getConsultSubtypeFirstStep(subtype: unknown): UnifiedStepId {
 
 export function getConsultSubtypeResetKeys(): readonly string[] {
   return CONSULT_SUBTYPE_RESET_KEYS
-}
-
-export function getConsultDraftResumeHref(
-  draft: Pick<DraftData, "serviceType" | "currentStepId" | "answers" | "lastSavedAt">
-): string {
-  if (draft.serviceType !== "consult") {
-    return `/request?service=${draft.serviceType}`
-  }
-
-  const subtype = draft.answers.consultSubtype
-  if (isConsultSubtypeKey(subtype)) {
-    return `/request?service=consult&subtype=${encodeURIComponent(subtype)}`
-  }
-
-  return "/consult"
 }

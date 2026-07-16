@@ -72,8 +72,9 @@ describe("email sequence ownership contract", () => {
     expect(partialRecoverySource).toContain("review/checkout drafts that have not created an intake")
     expect(partialRecoverySource).toContain("answers.consultSubtype")
     expect(partialRecoverySource).toContain("buildPartialIntakeRecoveryUrl")
-    expect(recoveryLinksSource).toContain('new URL(draft.serviceType === "consult" && !draft.consultSubtype ? "/consult" : "/request"')
-    expect(recoveryLinksSource).toContain('url.searchParams.set("d", draft.sessionId)')
+    expect(recoveryLinksSource).toContain("buildDraftResumePath")
+    expect(recoveryLinksSource).toContain("if (!resumePath) return null")
+    expect(partialRecoverySource).toContain("draft cannot be safely resumed")
     expect(partialRecoverySource).not.toContain(
       "`${appUrl}/request?service=${encodeURIComponent(draft.service_type)}&d=${encodeURIComponent(draft.session_id)}",
     )

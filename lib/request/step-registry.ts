@@ -31,6 +31,8 @@ export interface StepDefinition {
   canSkip?: (context: StepContext) => boolean
   // Is this step required for the service?
   required: boolean
+  // Previously completed steps whose answers depend on this step's answers.
+  invalidatesSteps?: UnifiedStepId[]
 }
 
 export interface StepContext {
@@ -96,6 +98,7 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       shortLabel: 'Medication',
       componentPath: 'medication-step',
       validateFn: 'validateMedicationStep',
+      invalidatesSteps: ['medication-history'],
       required: true,
     },
     {
@@ -274,6 +277,7 @@ const CONSULT_SUBTYPE_STEPS: Record<ConsultSubtype, StepDefinition[]> = {
       shortLabel: 'Type',
       componentPath: 'womens-health-type-step',
       validateFn: 'validateWomensHealthTypeStep',
+      invalidatesSteps: ['womens-health-assessment'],
       required: true,
     },
     {
@@ -306,6 +310,15 @@ const CONSULT_SUBTYPE_STEPS: Record<ConsultSubtype, StepDefinition[]> = {
     },
     ...CONSULT_COMMON_TAIL,
   ],
+}
+
+const REQUEST_STEP_IDS = new Set<UnifiedStepId>([
+  ...Object.values(STEP_REGISTRY).flatMap((steps) => steps.map((step) => step.id)),
+  ...Object.values(CONSULT_SUBTYPE_STEPS).flatMap((steps) => steps.map((step) => step.id)),
+])
+
+export function isRequestStepId(value: unknown): value is UnifiedStepId {
+  return typeof value === 'string' && REQUEST_STEP_IDS.has(value as UnifiedStepId)
 }
 
 /**

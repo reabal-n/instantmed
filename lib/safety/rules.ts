@@ -749,6 +749,7 @@ const consultRules: SafetyRule[] = [
     description: 'Patient reports systemic UTI red flags (fever, flank/back pain, feeling very unwell) - needs in-person assessment',
     conditions: [
       { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'womensHealthOption', operator: 'equals', value: 'uti' },
       { fieldId: 'utiRedFlags', operator: 'is_not_empty' },
       { fieldId: 'utiRedFlags', operator: 'not_equals', value: 'no' },
     ],
@@ -771,6 +772,7 @@ const consultRules: SafetyRule[] = [
     description: 'Patient with UTI is pregnant or might be - needs in-person assessment for safe treatment',
     conditions: [
       { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'womensHealthOption', operator: 'equals', value: 'uti' },
       { fieldId: 'utiPregnant', operator: 'is_not_empty' },
       { fieldId: 'utiPregnant', operator: 'not_equals', value: 'no' },
     ],

@@ -32,6 +32,17 @@ const GUARDED_FILES = [
   "lib/seo/data/states.ts",
 ]
 
+const MONEY_PAGE_FILES = [
+  "app/medical-certificate/page.tsx",
+  "app/prescriptions/page.tsx",
+  "app/erectile-dysfunction/page.tsx",
+  "app/hair-loss/page.tsx",
+  "app/womens-health/page.tsx",
+  "app/uti-assessment-online/page.tsx",
+  "app/contraceptive-pill-assessment-online/page.tsx",
+  "components/marketing/med-cert-intent-page.tsx",
+]
+
 describe("pricing-display centralisation guard", () => {
   for (const rel of GUARDED_FILES) {
     it(`${rel} hardcodes no own-service SKU price (use PRICING_DISPLAY)`, () => {
@@ -61,5 +72,29 @@ describe("pricing-display centralisation guard", () => {
     expect(page).toBe(
       'import { PricingContent } from "./pricing-content"\n\nexport default function PricingPage() {\n  return <PricingContent />\n}\n',
     )
+  })
+
+  it.each(MONEY_PAGE_FILES)(
+    "%s uses canonical display and schema price strings",
+    (rel) => {
+      const source = readFileSync(join(process.cwd(), rel), "utf-8")
+
+      expect(source).not.toMatch(/PRICING\.[A-Z_]+\.toFixed\(2\)/)
+    },
+  )
+
+  it("keeps service catalog numeric prices tied to PRICING", () => {
+    const source = readFileSync(
+      join(process.cwd(), "lib/services/service-catalog.ts"),
+      "utf-8",
+    )
+
+    expect(source).toContain('import { PRICING, PRICING_DISPLAY } from "@/lib/constants"')
+    expect(source).not.toMatch(/priceFrom: (?:24|29|39|49|59|89|9)\.95/)
+    expect(source).toContain("priceFrom: PRICING.MED_CERT")
+    expect(source).toContain("priceFrom: PRICING.REPEAT_SCRIPT")
+    expect(source).toContain("priceFrom: PRICING.MENS_HEALTH")
+    expect(source).toContain("priceFrom: PRICING.HAIR_LOSS")
+    expect(source).toContain("priceFrom: PRICING.WOMENS_HEALTH")
   })
 })

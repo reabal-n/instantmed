@@ -29,6 +29,7 @@ export interface InformationalPageChildrenProps {
   analytics: ReturnType<typeof useLandingAnalytics>
   prefersReducedMotion: boolean
   handleFAQOpen: (question: string, index: number) => void
+  heroCTARef: React.RefObject<HTMLDivElement>
 }
 
 interface InformationalPageShellProps {
@@ -72,11 +73,8 @@ export function InformationalPageShell({ config, children, afterFooter }: Inform
       <div className="min-h-screen overflow-x-hidden">
         <Navbar variant="marketing" />
 
-        {/* Invisible anchor for sticky CTA intersection observer */}
-        {hasSticky && <div ref={heroCTARef} />}
-
         <main className="relative">
-          {children({ analytics, prefersReducedMotion, handleFAQOpen })}
+          {children({ analytics, prefersReducedMotion, handleFAQOpen, heroCTARef })}
         </main>
 
         <MarketingFooter />

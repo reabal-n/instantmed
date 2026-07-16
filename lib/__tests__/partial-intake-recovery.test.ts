@@ -20,17 +20,19 @@ describe("partial intake recovery URL builder", () => {
       appUrl: APP_URL,
       draft: { serviceType: "med-cert", sessionId: SESSION_ID },
     })
-    expect(new URL(medCert).pathname).toBe("/request")
-    expect(new URL(medCert).searchParams.get("service")).toBe("med-cert")
-    expectRecoveryParams(medCert, "med-cert")
+    expect(medCert).not.toBeNull()
+    expect(new URL(medCert!).pathname).toBe("/request")
+    expect(new URL(medCert!).searchParams.get("service")).toBe("med-cert")
+    expectRecoveryParams(medCert!, "med-cert")
 
     const prescription = buildPartialIntakeRecoveryUrl({
       appUrl: APP_URL,
       draft: { serviceType: "prescription", sessionId: SESSION_ID },
     })
-    expect(new URL(prescription).pathname).toBe("/request")
-    expect(new URL(prescription).searchParams.get("service")).toBe("prescription")
-    expectRecoveryParams(prescription, "prescription")
+    expect(prescription).not.toBeNull()
+    expect(new URL(prescription!).pathname).toBe("/request")
+    expect(new URL(prescription!).searchParams.get("service")).toBe("repeat-script")
+    expectRecoveryParams(prescription!, "prescription")
   })
 
   it("preserves consult subtypes when the recovered draft has one", () => {
@@ -38,35 +40,46 @@ describe("partial intake recovery URL builder", () => {
       appUrl: APP_URL,
       draft: { consultSubtype: "ed", serviceType: "consult", sessionId: SESSION_ID },
     })
-    expect(new URL(ed).pathname).toBe("/request")
-    expect(new URL(ed).searchParams.get("service")).toBe("consult")
-    expect(new URL(ed).searchParams.get("subtype")).toBe("ed")
-    expectRecoveryParams(ed, "consult")
+    expect(ed).not.toBeNull()
+    expect(new URL(ed!).pathname).toBe("/request")
+    expect(new URL(ed!).searchParams.get("service")).toBe("consult")
+    expect(new URL(ed!).searchParams.get("subtype")).toBe("ed")
+    expectRecoveryParams(ed!, "consult")
 
     const hairLoss = buildPartialIntakeRecoveryUrl({
       appUrl: APP_URL,
       draft: { consultSubtype: "hair_loss", serviceType: "consult", sessionId: SESSION_ID },
     })
-    expect(new URL(hairLoss).pathname).toBe("/request")
-    expect(new URL(hairLoss).searchParams.get("subtype")).toBe("hair_loss")
-    expectRecoveryParams(hairLoss, "consult")
+    expect(hairLoss).not.toBeNull()
+    expect(new URL(hairLoss!).pathname).toBe("/request")
+    expect(new URL(hairLoss!).searchParams.get("subtype")).toBe("hair_loss")
+    expectRecoveryParams(hairLoss!, "consult")
 
     const womensHealth = buildPartialIntakeRecoveryUrl({
       appUrl: APP_URL,
       draft: { consultSubtype: "womens_health", serviceType: "consult", sessionId: SESSION_ID },
     })
-    expect(new URL(womensHealth).pathname).toBe("/request")
-    expect(new URL(womensHealth).searchParams.get("subtype")).toBe("womens_health")
-    expectRecoveryParams(womensHealth, "consult")
+    expect(womensHealth).not.toBeNull()
+    expect(new URL(womensHealth!).pathname).toBe("/request")
+    expect(new URL(womensHealth!).searchParams.get("subtype")).toBe("womens_health")
+    expectRecoveryParams(womensHealth!, "consult")
   })
 
-  it("sends retired bare consult drafts to the consult overview", () => {
-    const url = buildPartialIntakeRecoveryUrl({
+  it("fails closed for bare or gated consult drafts", () => {
+    const bare = buildPartialIntakeRecoveryUrl({
       appUrl: APP_URL,
       draft: { serviceType: "consult", sessionId: SESSION_ID },
     })
+    const gated = buildPartialIntakeRecoveryUrl({
+      appUrl: APP_URL,
+      draft: {
+        consultSubtype: "weight_loss" as never,
+        serviceType: "consult",
+        sessionId: SESSION_ID,
+      },
+    })
 
-    expect(new URL(url).pathname).toBe("/consult")
-    expectRecoveryParams(url, "consult")
+    expect(bare).toBeNull()
+    expect(gated).toBeNull()
   })
 })

@@ -3,8 +3,8 @@ import Link from "next/link"
 /**
  * Server-rendered, raw-HTML navigation to four supporting authority pages.
  *
- * The catalog-derived `PortfolioRouteMap` now owns the five active service links
- * in the server-rendered homepage. This quiet rail keeps only the pillar,
+ * The catalog-derived homepage card chooser owns the five active service links.
+ * This quiet rail keeps only the pillar,
  * comparison, and certificate-verification links that are not represented there.
  *
  * Compliance: neutral, descriptive anchor text only, with no drug names, prices,

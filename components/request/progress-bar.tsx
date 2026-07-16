@@ -7,12 +7,22 @@ import { requestCx } from "./request-cx"
 interface ProgressBarProps {
   steps: { id: string; shortLabel: string }[]
   currentIndex: number
+  furthestVisitedIndex: number
+  maxReachableIndex: number
+  stepsNeedingRevalidation: readonly string[]
   onStepClick: (stepId: string, index: number) => void
 }
 
-export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarProps) {
+export function ProgressBar({
+  steps,
+  currentIndex,
+  furthestVisitedIndex,
+  maxReachableIndex,
+  stepsNeedingRevalidation,
+  onStepClick,
+}: ProgressBarProps) {
   const progressPercent =
-    steps.length <= 1 ? 100 : (currentIndex / (steps.length - 1)) * 100
+    steps.length <= 1 ? 100 : (maxReachableIndex / (steps.length - 1)) * 100
 
   return (
     <nav className="w-full" aria-label="Request progress">
@@ -43,15 +53,20 @@ export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarPro
           style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}
         >
           {steps.map((step, i) => {
-            const isCompleted = i < currentIndex
             const isCurrent = i === currentIndex
-            const isClickable = i <= currentIndex
+            const needsRevalidation = stepsNeedingRevalidation.includes(step.id)
+            const isCompleted = i <= furthestVisitedIndex
+              && i <= maxReachableIndex
+              && !isCurrent
+              && !needsRevalidation
+            const isClickable = isCurrent || i <= maxReachableIndex
 
             return (
               <button
                 key={step.id}
                 data-request-progress-step="true"
                 data-request-progress-actionable={isClickable ? "true" : "false"}
+                data-request-progress-needs-review={needsRevalidation ? "true" : "false"}
                 type="button"
                 onClick={() => isClickable && onStepClick(step.id, i)}
                 disabled={!isClickable}
@@ -60,7 +75,7 @@ export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarPro
                   isClickable ? "cursor-pointer" : "cursor-default",
                 )}
                 aria-current={isCurrent ? "step" : undefined}
-                aria-label={`${step.shortLabel}${isCompleted ? " completed" : isCurrent ? " current" : ""}`}
+                aria-label={`${step.shortLabel}${needsRevalidation ? " needs review" : isCompleted ? " completed" : isCurrent ? " current" : ""}`}
               >
                 <span className="relative flex h-9 w-full items-center justify-center">
                   {isCurrent && (

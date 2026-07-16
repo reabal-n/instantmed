@@ -146,7 +146,7 @@ export default async function HomePage() {
             </p>
           </Hero>
 
-          {/* One portfolio visual explains how five services feed one clinical spine. */}
+          {/* Card-based service chooser: common requests first, then focused assessments. */}
           <PortfolioRouteMap />
 
           <RegulatoryPartners className="border-t border-b border-border/30 bg-muted/20 dark:bg-white/[0.02]" />

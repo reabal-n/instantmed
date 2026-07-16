@@ -21,6 +21,16 @@ import { decryptJSONB, type EncryptedPHI, encryptJSONB } from "@/lib/security/ph
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("api-draft")
+const DRAFT_CACHE_CONTROL = "private, no-store"
+
+function withDraftPrivacyHeaders<T extends Response>(response: T): T {
+  response.headers.set("Cache-Control", DRAFT_CACHE_CONTROL)
+  return response
+}
+
+function draftJson(body: unknown, init?: ResponseInit): NextResponse {
+  return withDraftPrivacyHeaders(NextResponse.json(body, init))
+}
 
 const VALID_SERVICE_TYPES = ["med-cert", "prescription", "consult"] as const
 type ValidServiceType = (typeof VALID_SERVICE_TYPES)[number]
@@ -41,6 +51,7 @@ interface DraftPayload {
     firstName?: string
     lastName?: string
     phone?: string
+    dob?: string
   }
 }
 
@@ -49,6 +60,7 @@ interface DraftIdentity {
   firstName?: string
   lastName?: string
   phone?: string
+  dob?: string
 }
 
 function normalizeIdentity(identity?: DraftPayload["identity"]): DraftIdentity {
@@ -57,6 +69,7 @@ function normalizeIdentity(identity?: DraftPayload["identity"]): DraftIdentity {
     firstName: identity?.firstName?.trim() || undefined,
     lastName: identity?.lastName?.trim() || undefined,
     phone: identity?.phone?.trim() || undefined,
+    dob: identity?.dob?.trim() || undefined,
   }
 }
 
@@ -123,31 +136,31 @@ async function decryptDraftJson<T extends object>(value: unknown, label: string)
 export async function POST(req: NextRequest) {
   const rateLimitResponse = await applyRateLimit(req, "standard")
   if (rateLimitResponse) {
-    return rateLimitResponse
+    return withDraftPrivacyHeaders(rateLimitResponse)
   }
 
   let body: DraftPayload
   try {
     body = (await req.json()) as DraftPayload
   } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
+    return draftJson({ error: "Invalid JSON" }, { status: 400 })
   }
 
   if (!VALID_SERVICE_TYPES.includes(body.serviceType as ValidServiceType)) {
-    return NextResponse.json(
+    return draftJson(
       { error: `serviceType must be one of: ${VALID_SERVICE_TYPES.join(", ")}` },
       { status: 400 },
     )
   }
 
   if (body.sessionId !== undefined && !isUuid(body.sessionId)) {
-    return NextResponse.json({ error: "sessionId must be a valid UUID" }, { status: 400 })
+    return draftJson({ error: "sessionId must be a valid UUID" }, { status: 400 })
   }
 
   // Sanity-cap answer payload size at 256KB to prevent abuse
   const answersJson = JSON.stringify(body.answers ?? {})
   if (answersJson.length > 256 * 1024) {
-    return NextResponse.json({ error: "Draft answers payload too large" }, { status: 413 })
+    return draftJson({ error: "Draft answers payload too large" }, { status: 413 })
   }
 
   const identity = normalizeIdentity(body.identity)
@@ -158,7 +171,7 @@ export async function POST(req: NextRequest) {
     answersEncrypted = await encryptDraftJson(body.answers ?? {}, "answers")
     identityEncrypted = await encryptDraftJson(identity, "identity")
   } catch {
-    return NextResponse.json({ error: "Failed to secure draft data" }, { status: 500 })
+    return draftJson({ error: "Failed to secure draft data" }, { status: 500 })
   }
 
   const supabase = createServiceRoleClient()
@@ -194,10 +207,10 @@ export async function POST(req: NextRequest) {
       tags: { route: "api/draft", method: "POST" },
       extra: { serviceType: body.serviceType },
     })
-    return NextResponse.json({ error: message }, { status: 500 })
+    return draftJson({ error: message }, { status: 500 })
   }
 
-  return NextResponse.json({
+  return draftJson({
     sessionId: data.session_id,
     expiresAt: data.expires_at,
     updatedAt: data.updated_at,
@@ -210,13 +223,13 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const rateLimitResponse = await applyRateLimit(req, "standard")
   if (rateLimitResponse) {
-    return rateLimitResponse
+    return withDraftPrivacyHeaders(rateLimitResponse)
   }
 
   const sessionId = req.nextUrl.searchParams.get("id")
 
   if (!sessionId || !isUuid(sessionId)) {
-    return NextResponse.json({ error: "Valid id query param required" }, { status: 400 })
+    return draftJson({ error: "Valid id query param required" }, { status: 400 })
   }
 
   const supabase = createServiceRoleClient()
@@ -235,11 +248,11 @@ export async function GET(req: NextRequest) {
     Sentry.captureException(error, {
       tags: { route: "api/draft", method: "GET" },
     })
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return draftJson({ error: error.message }, { status: 500 })
   }
 
   if (!data) {
-    return NextResponse.json({ error: "Draft not found or expired" }, { status: 404 })
+    return draftJson({ error: "Draft not found or expired" }, { status: 404 })
   }
 
   let answers = data.answers ?? {}
@@ -254,10 +267,10 @@ export async function GET(req: NextRequest) {
     answers = (await decryptDraftJson<Record<string, unknown>>(data.answers_encrypted, "answers")) ?? answers
     identity = (await decryptDraftJson<DraftIdentity>(data.identity_encrypted, "identity")) ?? identity
   } catch {
-    return NextResponse.json({ error: "Failed to read secured draft data" }, { status: 500 })
+    return draftJson({ error: "Failed to read secured draft data" }, { status: 500 })
   }
 
-  return NextResponse.json({
+  return draftJson({
     sessionId: data.session_id,
     serviceType: data.service_type,
     currentStepId: data.current_step_id,
@@ -267,6 +280,7 @@ export async function GET(req: NextRequest) {
       firstName: identity.firstName ?? null,
       lastName: identity.lastName ?? null,
       phone: identity.phone ?? null,
+      dob: identity.dob ?? null,
     },
     updatedAt: data.updated_at,
     expiresAt: data.expires_at,
@@ -282,13 +296,13 @@ export async function GET(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const rateLimitResponse = await applyRateLimit(req, "standard")
   if (rateLimitResponse) {
-    return rateLimitResponse
+    return withDraftPrivacyHeaders(rateLimitResponse)
   }
 
   const sessionId = req.nextUrl.searchParams.get("id")
 
   if (!sessionId || !isUuid(sessionId)) {
-    return NextResponse.json({ error: "Valid id query param required" }, { status: 400 })
+    return draftJson({ error: "Valid id query param required" }, { status: 400 })
   }
 
   const supabase = createServiceRoleClient()
@@ -299,8 +313,8 @@ export async function DELETE(req: NextRequest) {
     Sentry.captureException(error, {
       tags: { route: "api/draft", method: "DELETE" },
     })
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return draftJson({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ ok: true })
+  return draftJson({ ok: true })
 }

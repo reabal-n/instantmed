@@ -65,6 +65,12 @@ function makeGetRequest(sessionId = SESSION_ID) {
   })
 }
 
+function makeDeleteRequest(sessionId: string) {
+  return new NextRequest(`https://instantmed.test/api/draft?id=${sessionId}`, {
+    method: "DELETE",
+  })
+}
+
 function makeDraftSupabaseMock() {
   const single = vi.fn(async () => ({
     data: {
@@ -125,6 +131,7 @@ describe("/api/draft privacy", () => {
         firstName: "Pat",
         lastName: "Smith",
         phone: "0400000000",
+        dob: "1990-05-15",
       })
   })
 
@@ -139,11 +146,27 @@ describe("/api/draft privacy", () => {
     }))
 
     expect(response.status).toBe(429)
+    expect(response.headers.get("cache-control")).toBe("private, no-store")
     expect(mocks.applyRateLimit).toHaveBeenCalledWith(expect.any(NextRequest), "standard")
     expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
   })
 
-  it("stores draft answers and phone only in encrypted columns", async () => {
+  it("marks validation responses from every draft method private and non-cacheable", async () => {
+    const { DELETE, GET, POST } = await import("@/app/api/draft/route")
+
+    const responses = await Promise.all([
+      POST(makePostRequest({ serviceType: "unknown" })),
+      GET(makeGetRequest("invalid")),
+      DELETE(makeDeleteRequest("invalid")),
+    ])
+
+    for (const response of responses) {
+      expect(response.status).toBe(400)
+      expect(response.headers.get("cache-control")).toBe("private, no-store")
+    }
+  })
+
+  it("stores draft answers, phone, and DOB only in encrypted columns", async () => {
     const { upsert } = makeDraftSupabaseMock()
     const { POST } = await import("@/app/api/draft/route")
 
@@ -160,10 +183,12 @@ describe("/api/draft privacy", () => {
         firstName: "Pat",
         lastName: "Smith",
         phone: "0400000000",
+        dob: "1990-05-15",
       },
     }))
 
     expect(response.status).toBe(200)
+    expect(response.headers.get("cache-control")).toBe("private, no-store")
     expect(mocks.encryptJSONB).toHaveBeenNthCalledWith(1, {
       medicationName: "test medicine",
       allergies: "penicillin",
@@ -174,6 +199,7 @@ describe("/api/draft privacy", () => {
       firstName: "Pat",
       lastName: "Smith",
       phone: "0400000000",
+      dob: "1990-05-15",
     })
     expect(upsert).toHaveBeenCalledWith(expect.objectContaining({
       answers: {},
@@ -208,6 +234,7 @@ describe("/api/draft privacy", () => {
     const payload = await response.json()
 
     expect(response.status).toBe(200)
+    expect(response.headers.get("cache-control")).toBe("private, no-store")
     expect(mocks.applyRateLimit).toHaveBeenCalledWith(expect.any(NextRequest), "standard")
     expect(mocks.decryptJSONB).toHaveBeenNthCalledWith(1, encryptedAnswers)
     expect(mocks.decryptJSONB).toHaveBeenNthCalledWith(2, encryptedIdentity)
@@ -220,6 +247,7 @@ describe("/api/draft privacy", () => {
       firstName: "Pat",
       lastName: "Smith",
       phone: "0400000000",
+      dob: "1990-05-15",
     })
   })
 
@@ -252,6 +280,7 @@ describe("/api/draft privacy", () => {
       firstName: "Legacy",
       lastName: "Patient",
       phone: "0400000000",
+      dob: null,
     })
   })
 })

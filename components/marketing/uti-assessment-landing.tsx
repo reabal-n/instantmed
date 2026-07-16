@@ -30,7 +30,7 @@ import { UTI_LANDING_FAQ } from "@/lib/data/womens-health-faq"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import { cn } from "@/lib/utils"
 
-const ASSESSMENT_HREF = "/request?service=consult&subtype=womens_health"
+const ASSESSMENT_HREF = "/request?service=consult&subtype=womens_health&intent=uti"
 const WOMENS_HEALTH_HREF = "/womens-health"
 
 const LANDING_CONFIG: LandingPageConfig = {

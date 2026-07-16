@@ -18,24 +18,25 @@ const DISMISS_KEY = "intake_resume_chip_dismissed_at"
 async function seedDraft(
   page: import("@playwright/test").Page,
   serviceType: "med-cert" | "prescription" | "consult",
+  answers: Record<string, unknown> = { reason: "flu" },
 ) {
   // Seed BEFORE the homepage mount reads localStorage. We navigate to `/`,
   // then seed, then reload so the effect runs against the seeded state.
   await page.goto("/", { waitUntil: "domcontentloaded" })
   await page.evaluate(
-    ({ serviceType }) => {
+    ({ serviceType, answers }) => {
       localStorage.setItem(
         `instantmed-draft-${serviceType}`,
         JSON.stringify({
           serviceType,
           currentStepId: "details",
-          answers: { reason: "flu" },
+          answers,
           lastSavedAt: new Date().toISOString(),
         }),
       )
       localStorage.removeItem("intake_resume_chip_dismissed_at")
     },
-    { serviceType },
+    { serviceType, answers },
   )
   await page.reload({ waitUntil: "domcontentloaded" })
 }
@@ -78,5 +79,14 @@ test.describe("IntakeResumeChip", () => {
     const dismissedAt = await page.evaluate((key) => localStorage.getItem(key), DISMISS_KEY)
     expect(dismissedAt, "dismissal timestamp should be set").not.toBeNull()
     expect(Number(dismissedAt)).toBeGreaterThan(Date.now() - 5_000)
+  })
+
+  test("uses the exact canonical subtype route for a local consult draft", async ({ page }) => {
+    await seedDraft(page, "consult", { consultSubtype: "hair_loss", hairGoal: "slow loss" })
+    await expect(page.getByText("Pick up your consult request?")).toBeVisible()
+    await expect(page.getByRole("link", { name: /Continue/i }).first()).toHaveAttribute(
+      "href",
+      "/request?service=consult&subtype=hair_loss",
+    )
   })
 })

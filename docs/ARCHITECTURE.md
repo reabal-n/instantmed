@@ -56,7 +56,9 @@ app/request/page.tsx -> RequestFlow -> step-router.tsx (lazy) -> steps/*.tsx
 
 ### State Management
 
-Zustand store with `persist` middleware. Key: `instantmed-request-draft`, expiry: 24h. Partialised: `serviceType`, `currentStepId`, `safetyConfirmed`, `answers`, patient identity fields. Recovery via `DraftRestorationBanner`. Navigation guard `goToStep()` prevents forward jumps; `canCheckout` validates required fields before payment.
+Zustand store with `persist` middleware. Key: `instantmed-request-draft`, expiry: 24h. Partialised: `serviceType`, `currentStepId`, `furthestVisitedStepId`, `stepsNeedingRevalidation`, `safetyConfirmed`, `answers`, patient identity fields. Recovery via `DraftRestorationBanner`. Navigation guard `goToStep()` prevents unvisited forward jumps while allowing a patient to move directly among previously visited steps when nothing changed.
+
+Backward edits use a high-water + targeted-revalidation model. A material answer or identity change marks the current step for revalidation; `StepDefinition.invalidatesSteps` additionally marks only known dependent steps (currently medication -> medication history and women's-health type -> assessment). Later visited steps remain blocked until the earliest marked step successfully passes its normal Continue path. Back navigation never clears revalidation work, URL/profile prefills with `{ touch: false }` never create it, and changing the patient-selected consult subtype resets progress for the new branch. `canCheckout` and the server checkout gates still validate the final payload before payment.
 
 ### Attribution
 
@@ -806,7 +808,6 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `lib/data/` | Supabase queries | `intakes.ts`, `issued-certificates.ts`, `documents.ts`, `intake-answers.ts` — all use `createServiceRoleClient()` |
 | `lib/email/` | Email system | `send-email.ts` (server sender), `send/` helpers, `email-dispatcher.ts` (cron processor) |
 | `lib/safety/` | Safety & eligibility engine | `evaluate.ts`, `rules.ts`, `types.ts`, `audit-log.ts`. Used by `/request` flow + authenticated, guest, and retry-payment checkout gates. |
-| `lib/offline-queue.ts` | Client-side offline action queue | Used by `hooks/use-connection-status.ts` |
 | `lib/pdf/` | PDF generation | `template-renderer.ts` (pdf-lib overlay on static templates in `/public/templates/`) |
 | `lib/rate-limit/` | Rate limiting | `redis.ts` (Upstash), `doctor.ts` (auto-approval limits). Fallback: in-memory Map |
 | `lib/request/` | Step registry | `step-registry.ts` (step definitions), `validation.ts` (per-step Zod schemas) |
@@ -830,7 +831,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `instrumentation-client.ts` | PostHog + Sentry client init |
 | `types/db.ts` | Supabase generated types + custom interfaces |
 | `types/certificate-template.ts` | PDF template field definitions |
-| `hooks/` | 5 custom hooks (use-connection-status, use-debounce, use-doctor-shortcuts, use-keyboard-navigation, use-landing-analytics) |
+| `lib/hooks/` | Shared client hooks | Debounce, keyboard navigation, landing analytics, responsive media, section visibility, validation summaries, and staff refresh helpers |
 | `e2e/` | 76 TypeScript files, including 68 specs and `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
 | `supabase/migrations/` | 96 SQL migration files (1 squashed baseline + 95 incremental). Most recent: `20260716072502_supersede_duplicate_unpaid_intakes.sql`. |
 | `public/templates/` | Static PDF templates for certificate generation |

@@ -9,7 +9,7 @@ import {
   SpeakableSchema,
 } from "@/components/seo"
 import { getArticleVisualsForRender } from "@/lib/blog/visuals"
-import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING_DISPLAY, PRICING_SCHEMA } from "@/lib/constants"
 import { PILL_LANDING_FAQ } from "@/lib/data/womens-health-faq"
 
 export const revalidate = 86400
@@ -72,7 +72,7 @@ export default function Page() {
       <ServiceSchema
         name="Online Contraceptive Pill Assessment"
         description="Start or switch the contraceptive pill after AHPRA-registered Australian doctor review. Next steps are decided after clinical review."
-        price={PRICING.WOMENS_HEALTH.toFixed(2)}
+        price={PRICING_SCHEMA.WOMENS_HEALTH}
         url="/contraceptive-pill-assessment-online"
       />
       <HealthArticleSchema

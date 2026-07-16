@@ -19,6 +19,10 @@ function collectSourceFiles(dir: string): string[] {
 
 describe("request links", () => {
   it("sends prescription CTAs to the canonical repeat-script intake", () => {
+    const dashboardHero = readFileSync(
+      join(process.cwd(), "components/patient/dashboard-hero.tsx"),
+      "utf8",
+    )
     const source = [
       ...collectSourceFiles(join(process.cwd(), "app/patient")),
       ...collectSourceFiles(join(process.cwd(), "app/manifest.ts")),
@@ -32,5 +36,7 @@ describe("request links", () => {
     expect(REQUEST_REPEAT_SCRIPT_HREF).toBe("/request?service=repeat-script")
     expect(source).toContain(REQUEST_REPEAT_SCRIPT_HREF)
     expect(source).not.toContain("/request?service=prescription")
+    expect(dashboardHero).toContain('serviceParam: "repeat-script"')
+    expect(dashboardHero).not.toContain('serviceParam: "prescription"')
   })
 })

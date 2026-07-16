@@ -14,11 +14,84 @@ describe("getInitialRequestUrlDecision", () => {
     })
   })
 
+  it.each([
+    ["uti", "uti"],
+    ["ocp_new", "ocp_new"],
+  ])("preselects the validated women's-health %s intent", (initialIntent, expectedOption) => {
+    expect(
+      getInitialRequestUrlDecision({
+        initialService: "consult",
+        initialSubtype: "womens_health",
+        initialIntent,
+      }),
+    ).toEqual({
+      answerSeeds: [
+        { key: "consultSubtype", value: "womens_health" },
+        { key: "womensHealthOption", value: expectedOption },
+      ],
+    })
+  })
+
+  it.each([undefined, "", "ocp_repeat", "UTI", "pill"])(
+    "keeps generic or invalid women's-health intent %s neutral",
+    (initialIntent) => {
+      expect(
+        getInitialRequestUrlDecision({
+          initialService: "consult",
+          initialSubtype: "womens_health",
+          initialIntent,
+        }),
+      ).toEqual({
+        answerSeeds: [{ key: "consultSubtype", value: "womens_health" }],
+      })
+    },
+  )
+
+  it("does not apply a women's-health intent to another consult subtype", () => {
+    expect(
+      getInitialRequestUrlDecision({
+        initialService: "consult",
+        initialSubtype: "ed",
+        initialIntent: "uti",
+      }),
+    ).toEqual({
+      answerSeeds: [{ key: "consultSubtype", value: "ed" }],
+    })
+  })
+
+  it("preserves an existing women's-health option instead of overwriting patient work", () => {
+    expect(
+      getInitialRequestUrlDecision({
+        initialService: "consult",
+        initialSubtype: "womens_health",
+        initialIntent: "uti",
+        storedWomensHealthOption: "ocp_new",
+      }),
+    ).toEqual({
+      answerSeeds: [{ key: "consultSubtype", value: "womens_health" }],
+    })
+  })
+
   it("reports a saved draft subtype mismatch without overwriting the draft subtype", () => {
     expect(
       getInitialRequestUrlDecision({
         initialService: "consult",
         initialSubtype: "ed",
+        storedConsultSubtype: "hair_loss",
+        lastSavedAt: "2026-06-12T01:30:00.000Z",
+      }),
+    ).toEqual({
+      answerSeeds: [],
+      subtypeMismatch: { draftSubtype: "hair_loss" },
+    })
+  })
+
+  it("does not leak a women's-health intent into a mismatched saved consult draft", () => {
+    expect(
+      getInitialRequestUrlDecision({
+        initialService: "consult",
+        initialSubtype: "womens_health",
+        initialIntent: "uti",
         storedConsultSubtype: "hair_loss",
         lastSavedAt: "2026-06-12T01:30:00.000Z",
       }),
