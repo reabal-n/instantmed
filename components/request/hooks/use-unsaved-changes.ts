@@ -37,6 +37,49 @@ interface UseUnsavedChangesOptions {
   posthog: { config?: { token?: string; api_host?: string }; get_distinct_id?: () => string } | null
 }
 
+interface PassiveAbandonmentBeaconOptions {
+  analyticsServiceType: string
+  currentStepId: string
+  currentStepIndex: number
+  posthog: UseUnsavedChangesOptions["posthog"]
+  serviceType: string | null
+}
+
+interface PassiveAbandonmentBeacon {
+  payload: string
+  url: string
+}
+
+export function buildPassiveAbandonmentBeacon({
+  analyticsServiceType,
+  currentStepId,
+  currentStepIndex,
+  posthog,
+  serviceType,
+}: PassiveAbandonmentBeaconOptions): PassiveAbandonmentBeacon | null {
+  if (currentStepIndex <= 0 || !serviceType) return null
+
+  const token = posthog?.config?.token
+  const distinctId = posthog?.get_distinct_id?.()
+  if (!token || !distinctId) return null
+
+  const apiHost = (posthog.config?.api_host ?? "https://us.i.posthog.com").replace(/\/+$/, "")
+  return {
+    url: `${apiHost}/capture/`,
+    payload: JSON.stringify({
+      api_key: token,
+      event: "intake_abandoned_passive",
+      properties: {
+        distinct_id: distinctId,
+        service_type: analyticsServiceType,
+        step_id: currentStepId,
+        step_number: currentStepIndex + 1,
+      },
+      timestamp: new Date().toISOString(),
+    }),
+  }
+}
+
 /**
  * Tracks whether the user has unsaved answer changes and provides:
  * - `hasUnsavedChanges` / `setHasUnsavedChanges` state
@@ -75,22 +118,20 @@ export function useUnsavedChanges({
       // skip both the beacon and the leave-site warning.
       if (intentionalNavigationInProgress) return
 
-      // Track passive abandonment via sendBeacon (fires even on tab close)
-      if (currentStepIndex > 0 && serviceType) {
-        const payload = JSON.stringify({
-          api_key: posthog?.config?.token,
-          event: "intake_abandoned_passive",
-          properties: {
-            distinct_id: posthog?.get_distinct_id?.(),
-            service_type: analyticsServiceType,
-            step_id: currentStepId,
-            step_number: currentStepIndex + 1,
-          },
-          timestamp: new Date().toISOString(),
-        })
+      // Track passive abandonment via sendBeacon (fires even on tab close).
+      // PostHog is intentionally disabled in E2E and can fail to initialize in
+      // real browsers, so never send an unauthenticated fallback request.
+      const beacon = buildPassiveAbandonmentBeacon({
+        analyticsServiceType,
+        currentStepId,
+        currentStepIndex,
+        posthog,
+        serviceType,
+      })
+      if (beacon) {
         navigator.sendBeacon?.(
-          `${posthog?.config?.api_host ?? "https://us.i.posthog.com"}/capture/`,
-          new Blob([payload], { type: "application/json" }),
+          beacon.url,
+          new Blob([beacon.payload], { type: "application/json" }),
         )
       }
 
