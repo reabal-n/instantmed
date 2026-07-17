@@ -24,7 +24,7 @@ const logger = createLogger("stripe-checkout-auth")
 const AGE_REQUIREMENT_ERROR =
   "Date of birth is required to confirm you are 18 or older before payment."
 const UNDER_18_ERROR =
-  "You must be 18 or older to use this service. If you are under 18, please visit your GP with a parent or guardian."
+  "You must be 18 or older to use this service. If you are under 18, please contact a GP or another appropriate care service."
 
 export interface AuthAndProfileResult {
   patientId: string

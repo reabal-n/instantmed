@@ -42,13 +42,16 @@ const FAQSection = dynamic(
 )
 
 const DOCTOR_REGISTRATION_CLAIM = getApprovedClaim("doctor_registration")
+const REQUEST_HREF = "/request?service=consult&subtype=womens_health"
+const UTI_REQUEST_HREF = "/request?service=consult&subtype=womens_health&intent=uti"
+const PILL_REQUEST_HREF = "/request?service=consult&subtype=womens_health&intent=ocp_new"
 
 const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "consult",
   analyticsId: "womens-health",
   sticky: {
-    ctaText: "Choose UTI or pill assessment",
-    ctaHref: "#choose-care",
+    ctaText: "Start private assessment",
+    ctaHref: REQUEST_HREF,
     mobileSummary: "Two focused women's-health pathways",
     responseTime: "Doctor-reviewed after submission",
   },
@@ -254,8 +257,8 @@ function WomensHealthReviewAndPriceSection() {
 }
 
 function WomensHealthFinalChoice({ isDisabled, onChoose }: { isDisabled: boolean; onChoose: () => void }) {
-  const utiHref = isDisabled ? "/contact" : "/uti-assessment-online"
-  const pillHref = isDisabled ? "/contact" : "/contraceptive-pill-assessment-online"
+  const utiHref = isDisabled ? "/contact" : UTI_REQUEST_HREF
+  const pillHref = isDisabled ? "/contact" : PILL_REQUEST_HREF
 
   return (
     <section id="choose-care" className="py-14 sm:py-16 lg:py-20">
@@ -264,7 +267,7 @@ function WomensHealthFinalChoice({ isDisabled, onChoose }: { isDisabled: boolean
           <SectionPill>Choose your pathway</SectionPill>
           <Heading level="h2" className="mt-4">What do you need reviewed?</Heading>
           <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
-            Read the focused child page, check its safety boundary, then start the form that matches your concern.
+            Choose a pathway to begin its focused safety screen. You can review the detailed pathway pages above first if you prefer.
           </p>
           <div className="mt-7 grid gap-3 sm:grid-cols-2">
             <Button asChild size="lg" className="h-auto min-h-12 whitespace-normal py-3" disabled={isDisabled} onClick={onChoose}>
@@ -301,8 +304,8 @@ export function WomensHealthLanding() {
           <Hero
             title="Women's health: choose the right online assessment."
             primaryCta={{
-              text: isDisabled ? "Contact us" : "Choose UTI or pill assessment",
-              href: isDisabled ? "/contact" : "#choose-care",
+              text: isDisabled ? "Contact us" : "Start private assessment",
+              href: isDisabled ? "/contact" : REQUEST_HREF,
               onClick: handleHeroCTA,
               ref: heroCTARef,
             }}
@@ -316,7 +319,7 @@ export function WomensHealthLanding() {
             mockup={<WomensHealthDecisionFork />}
           >
             <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-relaxed text-muted-foreground sm:text-base lg:mx-0 lg:text-lg">
-              {FORM_FIRST_WEDGE} Choose UTI symptoms or starting and switching the pill, then review the pathway-specific safety boundary before you begin.
+              {FORM_FIRST_WEDGE} Choose UTI symptoms or starting and switching the pill, then complete the pathway-specific safety screen before payment.
             </p>
           </Hero>
 

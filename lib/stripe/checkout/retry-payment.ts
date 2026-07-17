@@ -448,6 +448,7 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       intakeId: intake.id,
       serviceSlug: service?.slug || serviceSlugForSafety || "",
       serviceType: intake.category || "",
+      subtype: intake.subtype,
     })
 
     return { success: true, checkoutUrl: session.url, intakeId: intake.id }

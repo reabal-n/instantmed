@@ -52,8 +52,7 @@ if [ "$MEDCERT_READINESS_BROWSER" = "1" ]; then
     e2e/medical-certificate.spec.ts \
     e2e/payment-smoke.spec.ts \
     e2e/stripe-webhook.spec.ts \
-    e2e/prod-request-flow-synthetic.spec.ts \
-    e2e/patient.certificate-download.spec.ts
+    e2e/prod-request-flow-synthetic.spec.ts
 else
   echo "== Med cert readiness: browser checks skipped =="
 fi

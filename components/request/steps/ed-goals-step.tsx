@@ -4,13 +4,14 @@
  * ED Goals Step - Step 1 of 4 in the ED intake flow
  *
  * Emotional entry point: low-friction goal selection + duration picker.
- * Age gate (Switch), chip grid for goals, segmented duration selector.
+ * Eligibility is enforced from date of birth before payment; this screen stays
+ * focused on the clinical goal and duration.
  */
 
 import { ArrowRight, Heart, Shield, Sparkles, Target } from "lucide-react"
 import { useCallback } from "react"
 
-import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup, ToggleList } from "@/components/request/shared/intake-step-primitives"
+import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { usePostHog } from "@/lib/analytics/posthog-context"
@@ -45,21 +46,19 @@ export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
 
-  const edAgeConfirmed = answers.edAgeConfirmed as boolean | undefined
   const edGoal = (answers.edGoal as string) || ""
   const edDuration = (answers.edDuration as string) || ""
 
-  const isComplete = edAgeConfirmed === true && !!edGoal && !!edDuration
+  const isComplete = !!edGoal && !!edDuration
 
   const { validationSummary, showBlockingReasons } = useStepValidationSummary(
     isComplete,
     useCallback(() => {
       const reasons: string[] = []
-      if (!edAgeConfirmed) reasons.push("your age confirmation")
       if (!edGoal) reasons.push("your main goal")
       if (!edDuration) reasons.push("how long this has been a concern")
       return reasons
-    }, [edAgeConfirmed, edGoal, edDuration]),
+    }, [edGoal, edDuration]),
     { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "ed-goals" },
   )
 
@@ -68,7 +67,6 @@ export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
       showBlockingReasons()
       return
     }
-    posthog?.capture('step_completed', { step: 'ed-goals', goal: edGoal, duration: edDuration })
     onNext()
   }
 
@@ -83,12 +81,6 @@ export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
       <IntakeStepIntro
         title="What matters most right now?"
         description="Discreet answers help the doctor choose a safe approach."
-      />
-
-      <ToggleList
-        items={[{ key: "edAgeConfirmed", label: "I confirm I am 18 years or older" }]}
-        values={{ edAgeConfirmed }}
-        onChange={(_, checked) => setAnswer("edAgeConfirmed", checked)}
       />
 
       {/* Goal selection - chip grid */}

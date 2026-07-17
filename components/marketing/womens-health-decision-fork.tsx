@@ -29,7 +29,7 @@ export function WomensHealthDecisionFork() {
         />
 
         <Link
-          href="/uti-assessment-online"
+          href="/request?service=consult&subtype=womens_health&intent=uti"
           className="relative mr-8 flex min-h-24 items-start gap-3 rounded-xl border border-sky-200 bg-sky-50 p-4 outline-none hover:border-sky-400 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-sky-800 dark:bg-sky-950/35"
         >
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-600 text-white dark:bg-sky-400 dark:text-sky-950">
@@ -52,7 +52,7 @@ export function WomensHealthDecisionFork() {
         </div>
 
         <Link
-          href="/contraceptive-pill-assessment-online"
+          href="/request?service=consult&subtype=womens_health&intent=ocp_new"
           className="relative ml-8 flex min-h-24 items-start gap-3 rounded-xl border border-pink-200 bg-pink-50 p-4 outline-none hover:border-pink-400 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-pink-800 dark:bg-pink-950/35"
         >
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pink-600 text-white dark:bg-pink-400 dark:text-pink-950">

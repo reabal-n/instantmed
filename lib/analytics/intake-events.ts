@@ -45,6 +45,7 @@ interface ValidationBlockedInput extends StepPropertiesInput {
 
 interface AnswerChangedInput {
   serviceType: string | null | undefined
+  subtype?: string
   stepId: string
   answerKey: string
   previousValue: unknown
@@ -240,6 +241,7 @@ export function buildIntakeAnswerChangedEvent(
     change_type: changeType,
   }
 
+  if (input.subtype) properties.subtype = input.subtype
   if (Array.isArray(input.nextValue)) {
     properties.item_count = input.nextValue.length
   }

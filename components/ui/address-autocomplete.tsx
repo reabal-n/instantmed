@@ -172,8 +172,9 @@ export function AddressAutocomplete({
       setLastSelectedPlaceId(null)
       setLookupMessage("We could not confirm that address. Enter it manually below.")
       onVerificationChange?.(false)
+      onManualEntry?.()
     },
-    [onChange, onAddressSelect, onVerificationChange]
+    [onChange, onAddressSelect, onManualEntry, onVerificationChange]
   )
 
   // Keyboard navigation

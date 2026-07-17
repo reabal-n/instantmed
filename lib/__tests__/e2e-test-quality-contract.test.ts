@@ -61,4 +61,18 @@ describe("E2E test quality contract", () => {
 
     expect(unguarded).toEqual([])
   })
+
+  it("keeps every med-cert readiness E2E path resolvable", () => {
+    const readinessScript = readFileSync(
+      join(root, "scripts/check-medcert-readiness.sh"),
+      "utf8",
+    )
+    const referencedSpecs = Array.from(
+      readinessScript.matchAll(/\b(e2e\/[\w./-]+\.spec\.ts)\b/g),
+      (match) => match[1],
+    )
+    const missing = referencedSpecs.filter((file) => !existsSync(join(root, file)))
+
+    expect(missing).toEqual([])
+  })
 })

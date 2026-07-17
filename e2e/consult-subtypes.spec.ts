@@ -233,11 +233,11 @@ async function expectEnabledConsultCheckout(page: Page) {
 async function selectEdSafePath(page: Page) {
   await expect(page.getByText(/What matters most right now/i)).toBeVisible({ timeout: 10000 })
 
-  const ageConfirmation = page.getByRole("switch", {
+  // The ED entry no longer duplicates the strict DOB age gate enforced by
+  // authenticated and guest checkout. Keep this first screen conversion-led.
+  await expect(page.getByRole("switch", {
     name: /I confirm I am 18 years or older/i,
-  })
-  await ageConfirmation.click()
-  await expect(ageConfirmation).toBeChecked()
+  })).toHaveCount(0)
 
   await ensureRadioChecked(page, /Treatment goal/i, /Improve erections/i)
   await ensureRadioChecked(page, /How long this has been a concern/i, /< 3 months/i)

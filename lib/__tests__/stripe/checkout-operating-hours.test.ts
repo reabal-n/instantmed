@@ -304,6 +304,58 @@ describe("checkout operating hours", () => {
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
+  it("keeps authenticated checkout strictly 18+ after removing duplicate intake attestations", async () => {
+    mocks.getAuthenticatedUserWithProfile.mockResolvedValue({
+      user: { id: "user-1", email: "patient@example.com" },
+      profile: {
+        id: "patient-1",
+        date_of_birth: "2010-01-01",
+        full_name: "Patient Example",
+        stripe_customer_id: null,
+      },
+    })
+
+    const result = await createIntakeAndCheckoutAction({
+      answers: {
+        terms_agreed: true,
+        accuracy_confirmed: true,
+      },
+      category: "medical_certificate",
+      idempotencyKey: "test-idempotency-key",
+      subtype: "work",
+      type: "med-cert",
+    })
+
+    expect(result).toEqual({
+      success: false,
+      error: "You must be 18 or older to use this service. If you are under 18, please contact a GP or another appropriate care service.",
+    })
+    expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("keeps guest checkout strictly 18+ after removing duplicate intake attestations", async () => {
+    const result = await createGuestCheckoutAction({
+      answers: {
+        terms_agreed: true,
+        accuracy_confirmed: true,
+      },
+      category: "medical_certificate",
+      guestDateOfBirth: "2010-01-01",
+      guestEmail: "patient@example.test",
+      guestName: "Test Patient",
+      subtype: "work",
+      type: "med-cert",
+    })
+
+    expect(result).toEqual({
+      success: false,
+      error: "You must be 18 or older to use this service. If you are under 18, please contact a GP or another appropriate care service.",
+    })
+    expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
   it.each([
     ["safety_blocked_high_stakes", "open"],
     ["safety_blocked_high_stakes", "paid"],

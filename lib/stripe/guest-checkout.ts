@@ -53,7 +53,7 @@ const logger = createLogger("guest-checkout")
 const AGE_REQUIREMENT_ERROR =
   "Date of birth is required to confirm you are 18 or older before payment."
 const UNDER_18_ERROR =
-  "You must be 18 or older to use this service. If you are under 18, please visit your GP with a parent or guardian."
+  "You must be 18 or older to use this service. If you are under 18, please contact a GP or another appropriate care service."
 
 function ageFromDateOfBirth(value: string): number | null {
   const dob = new Date(value)
@@ -888,6 +888,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       intakeId: intake.id,
       serviceSlug: serviceSlugForSafety,
       serviceType: input.category,
+      subtype: input.subtype,
       sessionId: normalizedEmail,
     })
 
@@ -1114,6 +1115,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       intakeId: intake.id,
       serviceSlug: serviceSlug,
       serviceType: input.category,
+      subtype: input.subtype,
     })
 
     return { success: true, checkoutUrl: session.url, intakeId: intake.id }
