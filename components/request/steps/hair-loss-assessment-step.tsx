@@ -183,10 +183,6 @@ export default function HairLossAssessmentStep({
       showBlockingReasons()
       return
     }
-    posthog?.capture("step_completed", {
-      step: "hair-loss-assessment",
-      pattern: hairPattern,
-    })
     onNext()
   }
 

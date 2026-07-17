@@ -127,6 +127,7 @@ export function trackIntakeFunnelStep(event: {
   intakeId: string
   serviceSlug: string
   serviceType: string
+  subtype?: string | null
   userId?: string
   sessionId?: string
   metadata?: Record<string, unknown>
@@ -143,6 +144,7 @@ export function trackIntakeFunnelStep(event: {
         intake_id: event.intakeId,
         service_slug: event.serviceSlug,
         service_type: event.serviceType,
+        subtype: event.subtype,
         funnel_step: event.step,
         ...event.metadata,
       },

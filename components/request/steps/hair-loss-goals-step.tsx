@@ -66,7 +66,6 @@ export default function HairLossGoalsStep({ serviceType, onNext }: HairLossGoals
       showBlockingReasons()
       return
     }
-    posthog?.capture('step_completed', { step: 'hair-loss-goals', goal: hairGoal, onset: hairOnset })
     onNext()
   }
 

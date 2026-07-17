@@ -167,6 +167,7 @@ export async function createIntakeWithAnswers(
       intakeId: intake.id,
       serviceSlug,
       serviceType: input.category,
+      subtype: input.subtype,
       userId: authUserId,
     })
   }

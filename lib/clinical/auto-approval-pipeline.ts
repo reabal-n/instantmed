@@ -563,22 +563,31 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     const nowIso = new Date().toISOString()
     const { data: allDoctors, error: doctorError } = await supabase
       .from("profiles")
-      .select("id, full_name, provider_number, ahpra_number, ahpra_next_review_at")
+      .select("id, full_name, provider_number, ahpra_number, ahpra_next_review_at, role, can_review_med_certs")
       .in("role", ["doctor", "admin"])
       .eq("ahpra_verified", true)
       .not("provider_number", "is", null)
       .not("ahpra_number", "is", null)
 
-    // Filter out doctors whose ahpra_next_review_at has passed
-    const doctors = (allDoctors || []).filter(d => {
+    // The owner-admin is unrestricted. Ordinary doctors explicitly disabled
+    // for med-cert review must never become the issuing doctor for an
+    // auto-approved certificate; null keeps the documented legacy default.
+    const capableDoctors = (allDoctors || []).filter(
+      (doctor) => doctor.role !== "doctor" || doctor.can_review_med_certs !== false,
+    )
+
+    // Filter out doctors whose ahpra_next_review_at has passed.
+    const doctors = capableDoctors.filter(d => {
       if (!d.ahpra_next_review_at) return true // no expiry set - allow
       return d.ahpra_next_review_at > nowIso
     })
 
     if (doctorError || doctors.length === 0) {
-      const reason = allDoctors && allDoctors.length > 0 && doctors.length === 0
-        ? "All doctors have overdue AHPRA verification"
-        : "No doctor with credentials found"
+      const reason = capableDoctors.length === 0 && allDoctors && allDoctors.length > 0
+        ? "No doctor has med-cert review capability"
+        : capableDoctors.length > 0 && doctors.length === 0
+          ? "All doctors have overdue AHPRA verification"
+          : "No doctor with credentials found"
       log.error("Auto-approval: no available doctor with valid credentials", { intakeId, error: doctorError?.message, reason })
       Sentry.captureMessage(`Auto-approval failed: ${reason}`, {
         level: "error",

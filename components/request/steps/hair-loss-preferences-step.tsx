@@ -88,10 +88,6 @@ export default function HairLossPreferencesStep({
       showBlockingReasons()
       return
     }
-    posthog?.capture("step_completed", {
-      step: "hair-loss-preferences",
-      preference: hairMedicationPreference,
-    })
     onNext()
   }
 

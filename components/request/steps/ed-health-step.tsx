@@ -228,9 +228,8 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
       showBlockingReasons()
       return
     }
-    posthog?.capture('step_completed', { step: 'ed-health' })
     onNext()
-  }, [canContinue, showBlockingReasons, posthog, onNext])
+  }, [canContinue, showBlockingReasons, onNext])
 
   // Keyboard navigation
   useKeyboardNavigation({

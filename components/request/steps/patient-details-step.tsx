@@ -22,6 +22,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { setEnhancedConversionsData } from "@/lib/analytics/conversion-tracking"
+import {
+  buildIntakeValidationBlockedProperties,
+  captureIntakeEvent,
+  INTAKE_ANALYTICS_EVENTS,
+} from "@/lib/analytics/intake-events"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { getSavedIdentity, saveIdentity } from "@/lib/request/preferences"
@@ -54,6 +59,21 @@ const IDENTITY_METHOD_OPTIONS = [
     description: "No Medicare card",
   },
 ] as const
+const DETAIL_FIELD_LABELS: Record<string, string> = {
+  firstName: "First name",
+  lastName: "Last name",
+  email: "Email",
+  dob: "Date of birth",
+  phone: "Phone",
+  sex: "Sex",
+  medicareNumber: "Medicare number",
+  medicareIrn: "Medicare IRN",
+  ihiNumber: "IHI",
+  addressLine1: "Street address",
+  suburb: "Suburb",
+  state: "State",
+  postcode: "Postcode",
+}
 
 type IdentityMethod = (typeof IDENTITY_METHOD_OPTIONS)[number]["value"]
 
@@ -150,6 +170,9 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const ihiNumber = (answers.ihiNumber as string) || ""
   const sex = (answers.sex as string) || ""
   const consultSubtype = answers.consultSubtype as string | undefined
+  const [manualAddressEntry, setManualAddressEntry] = useState(
+    () => Boolean(addressLine1.trim() && answers.addressVerified !== true),
+  )
   const identityMethodManuallyChangedRef = useRef(false)
   // Focus target for the Medicare→IRN auto-advance (P1.4).
   const irnInputRef = useRef<HTMLInputElement>(null)
@@ -212,6 +235,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         setAnswer('suburb', savedData.suburb || '')
         setAnswer('state', savedData.state || '')
         setAnswer('postcode', savedData.postcode || '')
+        setManualAddressEntry(true)
       }
       if (savedData.medicareNumber) {
         setAnswer('medicareNumber', savedData.medicareNumber)
@@ -237,6 +261,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     setAnswer("postcode", address.postcode)
     setAnswer("addressVerified", address.isVerified || false)
     setAnswer("addressProviderPlaceId", address.providerPlaceId || address.pxid || "")
+    setManualAddressEntry(false)
     setErrors((prev) => {
       const {
         addressLine1: _addressLine1,
@@ -255,6 +280,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     setAnswer("addressProviderPlaceId", "")
 
     if (!value.trim()) {
+      setManualAddressEntry(false)
       setAnswer("addressLine2", "")
       setAnswer("suburb", "")
       setAnswer("state", "")
@@ -263,6 +289,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   }
 
   const handleManualAddressEntry = () => {
+    setManualAddressEntry(true)
     setAnswer("addressVerified", false)
     setAnswer("addressProviderPlaceId", "")
     setTouched((prev) => ({
@@ -281,7 +308,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   })
   // Prescribing pathways need the structured address bundle for eScript/Parchment handoff.
   const needsAddress = needsPrescriptionDetails
-  const showManualAddressFields = needsAddress
+  const showManualAddressFields = needsAddress && manualAddressEntry
   const medicareValidation = needsPrescriptionDetails && medicareNumber.trim()
     ? validateMedicareNumber(medicareNumber)
     : null
@@ -515,14 +542,18 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     })
     const isValid = Object.keys(newErrors).length === 0
     if (!isValid) {
-      const FIELD_LABELS: Record<string, string> = {
-        firstName: "First name", lastName: "Last name", email: "Email",
-        dob: "Date of birth", phone: "Phone", sex: "Sex",
-        medicareNumber: "Medicare number", medicareIrn: "Medicare IRN",
-        ihiNumber: "IHI", addressLine1: "Street address", suburb: "Suburb",
-        state: "State", postcode: "Postcode",
-      }
-      setValidationSummary(Object.keys(newErrors).map((k) => FIELD_LABELS[k] ?? k))
+      const blockers = Object.keys(newErrors).map((key) => DETAIL_FIELD_LABELS[key] ?? key)
+      setValidationSummary(blockers)
+      captureIntakeEvent(
+        posthog,
+        INTAKE_ANALYTICS_EVENTS.validationBlocked,
+        buildIntakeValidationBlockedProperties({
+          serviceType,
+          subtype: consultSubtype,
+          stepId: "details",
+          blockers,
+        }),
+      )
       focusFirstError()
     } else {
       setValidationSummary([])
@@ -558,7 +589,6 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           name: `${firstName} ${lastName}`.trim() || undefined,
         })
       }
-      posthog?.capture('step_completed', { step: 'details', service_type: serviceType })
       onNext()
     }
   }
@@ -1003,6 +1033,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           required
           error={touched.addressLine1 ? errors.addressLine1 : undefined}
           icon={MapPin}
+          hint="Choose a suggested address, or enter it manually."
         >
           <AddressAutocomplete
             value={addressLine1}
@@ -1010,6 +1041,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             onAddressSelect={handleAddressSelect}
             onVerificationChange={(verified) => {
               setAnswer("addressVerified", verified)
+              if (verified) setManualAddressEntry(false)
               if (!verified) setAnswer("addressProviderPlaceId", "")
             }}
             onManualEntry={handleManualAddressEntry}
@@ -1093,9 +1125,9 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       {/* Height/Weight/BMI - ED subtype only */}
       {consultSubtype === "ed" && (
         <div className="space-y-3">
-          <Label className="text-sm font-medium">Height &amp; weight</Label>
+          <Label className="text-sm font-medium">Height &amp; weight (optional)</Label>
           <p className="text-xs text-muted-foreground -mt-1">
-            Helps your doctor assess your overall health profile.
+            Optional context for your doctor. You can continue without it.
           </p>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">

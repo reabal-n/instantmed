@@ -229,9 +229,8 @@ export default function HairLossHealthStep({
       showBlockingReasons()
       return
     }
-    posthog?.capture("step_completed", { step: "hair-loss-health" })
     onNext()
-  }, [canContinue, showBlockingReasons, posthog, onNext])
+  }, [canContinue, showBlockingReasons, onNext])
 
   // Keyboard navigation
   useKeyboardNavigation({

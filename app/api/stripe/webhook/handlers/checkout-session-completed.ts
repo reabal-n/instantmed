@@ -547,6 +547,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       intakeId: intakeId!,
       serviceSlug: session.metadata?.service_slug || "unknown",
       serviceType: session.metadata?.category || session.metadata?.service_type || "unknown",
+      subtype: intakeAttribution?.subtype || session.metadata?.subtype || null,
       userId: posthogDistinctId,
       metadata: { amount_cents: session.amount_total },
     })

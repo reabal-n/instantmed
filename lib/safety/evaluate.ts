@@ -571,6 +571,9 @@ function getRequiredSafetyFields(
       fields.add('edNitrates')
       fields.add('edRecentHeartEvent')
       fields.add('edSevereHeart')
+      if (answers.edRecentHeartEvent === true || answers.edSevereHeart === true) {
+        fields.add('edGpCleared')
+      }
     }
 
     if (subtype === 'womens_health') {

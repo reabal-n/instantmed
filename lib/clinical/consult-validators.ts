@@ -130,11 +130,6 @@ export function validateEdConsult(answers: Answers): ConsultValidationResult {
   const warnings: string[] = []
   const flags: ConsultFlag[] = []
 
-  // Age gate
-  if (bool(answers, "edAgeConfirmed") !== true) {
-    errors.push("Age confirmation (18+) is required for ED consultations")
-  }
-
   const usesCurrentFlow = Boolean(
     str(answers, "edGoal") ||
     str(answers, "edDuration") ||

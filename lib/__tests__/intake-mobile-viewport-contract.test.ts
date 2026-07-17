@@ -262,17 +262,16 @@ describe("intake mobile viewport contract", () => {
     expect(source).not.toContain("Maintain what I have")
   })
 
-  it("keeps the ED age confirmation below the step intro", () => {
+  it("keeps the ED first screen focused on clinical choices while checkout owns the 18+ DOB gate", () => {
     const source = readProjectFile("components/request/steps/ed-goals-step.tsx")
-    const introIndex = source.indexOf("<IntakeStepIntro")
-    const ageGateIndex = source.indexOf("<ToggleList")
-    const goalPromptIndex = source.indexOf('<QuestionPrompt label="What\'s your main goal?" required />')
+    const authenticatedCheckout = readProjectFile("lib/stripe/checkout/auth-and-profile.ts")
+    const guestCheckout = readProjectFile("lib/stripe/guest-checkout.ts")
 
-    expect(source).toContain('key: "edAgeConfirmed"')
-    expect(source).toContain("your age confirmation")
-    expect(introIndex).toBeGreaterThan(-1)
-    expect(ageGateIndex).toBeGreaterThan(introIndex)
-    expect(goalPromptIndex).toBeGreaterThan(ageGateIndex)
+    expect(source).not.toContain("edAgeConfirmed")
+    expect(source).not.toContain("<ToggleList")
+    expect(source).toContain('<QuestionPrompt label="What\'s your main goal?" required />')
+    expect(authenticatedCheckout).toContain("if (age < 18)")
+    expect(guestCheckout).toContain("if (guestAge < 18)")
   })
 
   it("keeps hair-loss onset selection as a balanced four-option grid", () => {

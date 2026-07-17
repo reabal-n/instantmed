@@ -17,7 +17,6 @@ import {
 
 describe("validateEdConsult", () => {
   const validEd = {
-    edAgeConfirmed: true,
     edOnset: "gradual",
     edFrequency: "sometimes",
     edMorningErections: "sometimes",
@@ -30,16 +29,16 @@ describe("validateEdConsult", () => {
     expect(result.errors).toHaveLength(0)
   })
 
-  it("fails without age confirmation", () => {
-    const result = validateEdConsult({ ...validEd, edAgeConfirmed: false })
-    expect(result.valid).toBe(false)
-    expect(result.errors[0]).toContain("Age confirmation")
+  it("leaves age enforcement to the checkout DOB gate", () => {
+    const result = validateEdConsult(validEd)
+    expect(result.valid).toBe(true)
+    expect(result.errors).not.toContainEqual(expect.stringContaining("Age confirmation"))
   })
 
   it("fails without required fields", () => {
-    const result = validateEdConsult({ edAgeConfirmed: true })
+    const result = validateEdConsult({})
     expect(result.valid).toBe(false)
-    expect(result.errors.length).toBeGreaterThanOrEqual(4)
+    expect(result.errors.length).toBeGreaterThanOrEqual(3)
   })
 
   it("blocks on nitrate use", () => {
@@ -52,7 +51,6 @@ describe("validateEdConsult", () => {
 
   it("recognizes current boolean ED safety fields", () => {
     const result = validateEdConsult({
-      edAgeConfirmed: true,
       edGoal: "improve_erections",
       edDuration: "6_12_months",
       iief1: 3,
