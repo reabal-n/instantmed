@@ -1,8 +1,8 @@
 "use client"
 
-import { AlertCircle, ArrowRight, ShieldCheck, XCircle } from "lucide-react"
+import { ArrowRight, ShieldCheck, XCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useCallback, useState } from "react"
+import { useCallback } from "react"
 
 import { ChipToggleGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup, StringBinaryChoice } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -36,21 +36,9 @@ interface WomensHealthAssessmentStepProps {
   onComplete: () => void
 }
 
-function FieldError({ message }: { message?: string }) {
-  if (!message) return null
-
-  return (
-    <p className="flex items-center gap-1 text-xs text-destructive">
-      <AlertCircle className="h-3 w-3" aria-hidden="true" />
-      {message}
-    </p>
-  )
-}
-
 export default function WomensHealthAssessmentStep({ serviceType, onNext, onBack }: WomensHealthAssessmentStepProps) {
   const router = useRouter()
   const { answers, setAnswer, setAnswers } = useRequestStore()
-  const [errors, setErrors] = useState<Record<string, string>>({})
 
   const womensHealthOption = answers.womensHealthOption as string | undefined
 
@@ -69,8 +57,6 @@ export default function WomensHealthAssessmentStep({ serviceType, onNext, onBack
           answers={answers}
           setAnswer={setAnswer}
           setAnswers={setAnswers}
-          errors={errors}
-          setErrors={setErrors}
           router={router}
         />
       )
@@ -83,8 +69,6 @@ export default function WomensHealthAssessmentStep({ serviceType, onNext, onBack
           answers={answers}
           setAnswer={setAnswer}
           setAnswers={setAnswers}
-          errors={errors}
-          setErrors={setErrors}
           router={router}
         />
       )
@@ -94,15 +78,13 @@ export default function WomensHealthAssessmentStep({ serviceType, onNext, onBack
 }
 
 // Contraception assessment
-function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAnswers, errors, setErrors, router }: {
+function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAnswers, router }: {
   serviceType: UnifiedServiceType
   onNext: () => void
   onBack: () => void
   answers: Record<string, unknown>
   setAnswer: (key: string, value: unknown) => void
   setAnswers: (answers: Record<string, unknown>) => void
-  errors: Record<string, string>
-  setErrors: (errors: Record<string, string>) => void
   router: ReturnType<typeof useRouter>
 }) {
   const posthog = usePostHog()
@@ -125,38 +107,8 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
   )
   const terminalBlock = derivePillTerminalBlock(answers)
 
-  const clearError = (key: string) => {
-    if (!errors[key]) return
-    const nextErrors = { ...errors }
-    delete nextErrors[key]
-    setErrors(nextErrors)
-  }
-
-  const handlePregnancyChange = (value: string) => {
-    setAnswer("pregnancyStatus", value)
-    clearError("pregnancyStatus")
-  }
-
-  const validate = () => {
-    const newErrors: Record<string, string> = {}
-    if (!contraceptionType) {
-      newErrors.contraceptionType = "Please select an option"
-    } else if (!["start", "switch"].includes(contraceptionType)) {
-      newErrors.contraceptionType = "Current-pill repeats go through repeat prescriptions."
-    }
-    if (!contraceptionCurrent) newErrors.contraceptionCurrent = "Please select an option"
-    if (!pregnancyStatus) newErrors.pregnancyStatus = "Please answer this question"
-    if (needsPillSafetyScreen) {
-      if (!migraineAura) newErrors.womens_migraine_aura = "Please answer this question"
-      if (!bloodClotHistory) newErrors.womens_blood_clot_history = "Please answer this question"
-      if (!smoker) newErrors.womens_smoker = "Please answer this question"
-    }
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
   const handleNext = () => {
-    if (!validate()) {
+    if (!isComplete) {
       showBlockingReasons()
       return
     }
@@ -167,7 +119,9 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
     isComplete,
     useCallback(() => {
       const reasons: string[] = []
-      if (!contraceptionType || !["start", "switch"].includes(contraceptionType)) reasons.push("start or switch")
+      // exactStringValue already narrows contraceptionType to "start" | "switch"
+      // | undefined, so a truthy value is always a live option.
+      if (!contraceptionType) reasons.push("start or switch")
       if (!contraceptionCurrent) reasons.push("current contraception")
       if (!pregnancyStatus) reasons.push("pregnancy status")
       if (needsPillSafetyScreen) {
@@ -196,9 +150,6 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
             variant="ghost"
             onClick={() => {
               setAnswers(buildPillTerminalBlockCorrection(terminalBlock))
-              const nextErrors = { ...errors }
-              terminalBlock.answerKeysToClear.forEach((key) => delete nextErrors[key])
-              setErrors(nextErrors)
             }}
             className="h-12 w-full"
           >
@@ -235,14 +186,10 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
               { value: "switch", label: "Switch" },
             ]}
             value={contraceptionType}
-            onChange={(value) => {
-              setAnswer("contraceptionType", value)
-              clearError("contraceptionType")
-            }}
+            onChange={(value) => setAnswer("contraceptionType", value)}
             ariaLabel="What would you like?"
             columns="two"
           />
-          <FieldError message={errors.contraceptionType} />
         </div>
       </QuestionCard>
 
@@ -261,14 +208,10 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
               { value: "none", label: "None" },
             ]}
             value={contraceptionCurrent}
-            onChange={(value) => {
-              setAnswer("contraceptionCurrent", value)
-              clearError("contraceptionCurrent")
-            }}
+            onChange={(value) => setAnswer("contraceptionCurrent", value)}
             ariaLabel="Are you currently using contraception?"
             columns="auto"
           />
-          <FieldError message={errors.contraceptionCurrent} />
         </div>
       </QuestionCard>
 
@@ -286,11 +229,10 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
               { value: "yes", label: "Yes" },
             ]}
             value={pregnancyStatus}
-            onChange={handlePregnancyChange}
+            onChange={(value) => setAnswer("pregnancyStatus", value)}
             ariaLabel="Are you pregnant or could you be pregnant?"
             columns="three"
           />
-          <FieldError message={errors.pregnancyStatus} />
           {pregnancyStatus === "not_sure" && (
             <p className="text-xs leading-relaxed text-muted-foreground">
               Consider taking a pregnancy test before starting contraception.
@@ -321,13 +263,9 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
                 value={q.value as "no" | "yes" | undefined}
                 noValue="no"
                 yesValue="yes"
-                onChange={(value) => {
-                  setAnswer(q.key, value)
-                  clearError(q.key)
-                }}
+                onChange={(value) => setAnswer(q.key, value)}
                 ariaLabel={q.label}
               />
-              <FieldError message={errors[q.key]} />
             </div>
           ))}
         </QuestionCard>
@@ -392,15 +330,13 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
 }
 
 // UTI assessment
-function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAnswers, errors, setErrors, router }: {
+function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAnswers, router }: {
   serviceType: UnifiedServiceType
   onNext: () => void
   onBack: () => void
   answers: Record<string, unknown>
   setAnswer: (key: string, value: unknown) => void
   setAnswers: (answers: Record<string, unknown>) => void
-  errors: Record<string, string>
-  setErrors: (errors: Record<string, string>) => void
   router: ReturnType<typeof useRouter>
 }) {
   const posthog = usePostHog()
@@ -411,34 +347,17 @@ function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAns
   const isComplete = Boolean(utiSymptoms && utiSymptoms.length > 0 && utiRedFlags === 'no' && utiPregnant === 'no')
   const terminalBlock = deriveUtiTerminalBlock(answers)
 
-  const clearError = (key: string) => {
-    if (!errors[key]) return
-    const nextErrors = { ...errors }
-    delete nextErrors[key]
-    setErrors(nextErrors)
-  }
+  const handlePregnancyChange = (value: string) => setAnswer("utiPregnant", value)
 
-  const handlePregnancyChange = (value: string) => {
-    setAnswer("utiPregnant", value)
-    clearError("utiPregnant")
-  }
+  const handleRedFlagsChange = (value: string) => setAnswer("utiRedFlags", value)
 
-  const handleRedFlagsChange = (value: string) => {
-    setAnswer("utiRedFlags", value)
-    clearError("utiRedFlags")
-  }
-
-  const validate = () => {
-    const newErrors: Record<string, string> = {}
-    if (!utiSymptoms || utiSymptoms.length === 0) newErrors.utiSymptoms = "Please select your symptoms"
-    if (!utiRedFlags) newErrors.utiRedFlags = "Please answer this question"
-    if (!utiPregnant) newErrors.utiPregnant = "Please answer this question"
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
+  // Gates on isComplete, which (unlike the removed validate()) requires an
+  // explicit "no" to the red-flag and pregnancy checks rather than merely an
+  // answer. deriveUtiTerminalBlock already intercepts a "yes" before this
+  // button renders; keying the gate to the same value the terminal block reads
+  // means the two can no longer disagree.
   const handleNext = () => {
-    if (!validate()) {
+    if (!isComplete) {
       showBlockingReasons()
       return
     }
@@ -447,7 +366,6 @@ function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAns
 
   const toggleSymptom = (symptom: string) => {
     const current = utiSymptoms || []
-    clearError("utiSymptoms")
     if (current.includes(symptom)) {
       setAnswer("utiSymptoms", current.filter(s => s !== symptom))
     } else {
@@ -481,9 +399,6 @@ function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAns
             variant="ghost"
             onClick={() => {
               setAnswers(buildUtiTerminalBlockCorrection(terminalBlock))
-              const nextErrors = { ...errors }
-              terminalBlock.answerKeysToClear.forEach((key) => delete nextErrors[key])
-              setErrors(nextErrors)
             }}
             className="h-12 w-full"
           >
@@ -529,7 +444,6 @@ function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAns
           onChange={(key) => toggleSymptom(key)}
           ariaLabel="UTI symptoms"
         />
-        <FieldError message={errors.utiSymptoms} />
       </QuestionCard>
 
       <QuestionCard compact className="space-y-3">
@@ -549,7 +463,6 @@ function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAns
             onChange={handleRedFlagsChange}
             ariaLabel="Fever, flank or back pain, vomiting, or very unwell?"
           />
-          <FieldError message={errors.utiRedFlags} />
         </div>
 
         <div className="space-y-2">
@@ -569,7 +482,6 @@ function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAns
             ariaLabel="Pregnant or possibly pregnant?"
             columns="three"
           />
-          <FieldError message={errors.utiPregnant} />
         </div>
       </QuestionCard>
 

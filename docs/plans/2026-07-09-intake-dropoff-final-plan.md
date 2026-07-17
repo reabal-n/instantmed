@@ -2,7 +2,7 @@
 
 > **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
 
-**Status: P0 shipped. P1.1, P1.2, P1.4, and P1.5 shipped. P1.3 is implemented in this change. P2 remains queued.**
+**Status: COMPLETE — every P0, P1, and P2 item shipped. Retained as the record of what was decided and why; there is no queued work left here.**
 
 Produced by a three-source audit, reconciled 2026-07-09:
 
@@ -17,6 +17,13 @@ Produced by a three-source audit, reconciled 2026-07-09:
 - The adjacent intake state-lifecycle repair shipped in PR #308; do not rebuild its draft scoping, hydration, prefill, payment-clear, or abandonment-beacon work here.
 - P1.1 shipped in #309, P1.2 in #310, P1.4 in #311, and P1.5 in #312.
 - P1.3 is the only P1 item implemented by this change. It is layout-only: every answer key, hard block, GP-clearance gate, persistence path, and server rule remains unchanged.
+
+### Final reconciliation (2026-07-17)
+
+- **P2.1 shipped in #367.** `medication` + `medication-history` merged into one "Your medication" screen (5 steps → 4). Answer keys unchanged; checkout still validates through both `validateMedicationStep` and `validateMedicationHistoryStep`. Dropped only `lastPrescribedBy`. Retired step ids now resolve through `RETIRED_STEP_ID_ALIASES` so in-flight drafts resume on the merged step.
+- **P2.2 shipped in #368.** The legacy parallel `validate()`/`errors` systems are gone from `hair-loss-assessment` and both women's-health branches; `useStepValidationSummary` is the single gate. Removing them deleted two latent divergences: an unreachable current-pill rule, and a UTI validator that accepted any answer to the red-flag/pregnancy checks where `isComplete` required an explicit "no". Pinned by `intake-validation-single-source-contract.test.ts`.
+- P2.2's parts (a) and (c) needed no work: the hand-rolled selectors were already replaced by P1.3 (ED effectiveness) and P1.4 (IRN grid), and working shared-primitive usage was left alone.
+- **Weight-loss assessment remains the known anti-pattern** (raw RadioGroup, disabled-CTA gate, no validation summary, no keyboard nav). It is gated and NOT live; it was explicitly out of scope here and must be rebuilt on shared primitives before any launch.
 - Overview readouts (#313) and the auto-approval counter/E2E bucket fix (#314) are shipped adjacent work, not tasks to repeat from this plan.
 - Day-0 public-copy, synthetic-counter, and attribution containment shipped separately in #307 and is not reopened here.
 
