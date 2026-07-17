@@ -3,6 +3,7 @@ import "server-only"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { REVENUE_ACTIVE_MILESTONE_CENTS } from "@/lib/business/revenue-milestones"
+import { buildNetRetainedPurchaseValue } from "@/lib/data/net-retained-purchase-value"
 import { getRefundStatsRead } from "@/lib/data/refunds"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import {
@@ -335,9 +336,17 @@ export function buildRevenueDashboard(input: RevenueDashboardInput): RevenueDash
   const staleCheckoutCutoff = new Date(input.now.getTime() - 20 * 60 * 1000)
 
   const windows: RevenueDashboardWindow[] = [
-    buildRevenueWindow("today", "Today", input.paidRows, input.refundRows, todayStart, null),
-    buildRevenueWindow("last7Days", "7 days", input.paidRows, input.refundRows, last7DaysStart, null),
-    buildRevenueWindow("last30Days", "30 days", input.paidRows, input.refundRows, last30DaysStart, REVENUE_ACTIVE_MILESTONE_CENTS),
+    buildRevenueWindow("today", "Today", input.paidRows, input.refundRows, todayStart, input.now, null),
+    buildRevenueWindow("last7Days", "7 days", input.paidRows, input.refundRows, last7DaysStart, input.now, null),
+    buildRevenueWindow(
+      "last30Days",
+      "30 days",
+      input.paidRows,
+      input.refundRows,
+      last30DaysStart,
+      input.now,
+      REVENUE_ACTIVE_MILESTONE_CENTS,
+    ),
   ]
   const daily = buildDailyRevenue(input.paidRows, input.refundRows, todayStart)
   const status = resolveDashboardStatus(noPurchaseAlert, warningWindow.paidIntakes, hoursSinceLastPayment)
@@ -399,23 +408,20 @@ function buildRevenueWindow(
   paidRows: PaidRevenueRow[],
   refundRows: RefundRevenueRow[],
   since: Date,
+  until: Date,
   targetCents: number | null,
 ): RevenueDashboardWindow {
-  const paidInWindow = paidRows.filter((row) => isAtOrAfter(row.paid_at, since))
-  const grossCents = sumAmounts(paidInWindow)
-  const refundCents = sumRefunds(refundRows.filter((row) => isAtOrAfter(row.refunded_at, since)))
-  const orderCount = paidInWindow.length
+  const value = buildNetRetainedPurchaseValue({
+    paidRows,
+    refundRows,
+    since,
+    until,
+  })
 
   return {
     key,
     label,
-    grossCents,
-    refundCents,
-    netCents: grossCents - refundCents,
-    orderCount,
-    // AOV reports net-of-refunds revenue so it matches the net headline on the
-    // same card. Using gross/count silently disagreed with the displayed net.
-    averageOrderCents: orderCount > 0 ? Math.round((grossCents - refundCents) / orderCount) : null,
+    ...value,
     targetCents,
   }
 }

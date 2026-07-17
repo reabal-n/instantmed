@@ -138,7 +138,7 @@ export function buildCustomerGrowthBaselineSummary(input: CustomerGrowthBaseline
     `- 30-day paid rate from saved intakes: ${formatRate(supabase30d.intakes.paidRate)}`,
     `- 30-day gross revenue: ${formatMoney(supabase30d.intakes.grossRevenueAud)}`,
     `- 30-day net revenue: ${formatMoney(supabase30d.intakes.netRevenueAud)}`,
-    `- 30-day AOV: ${formatMoney(supabase30d.intakes.averageOrderValueAud)}`,
+    `- 30-day net AOV: ${formatMoney(supabase30d.intakes.averageOrderValueAud)}`,
     "",
     "## Recovery",
     "",

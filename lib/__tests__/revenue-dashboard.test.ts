@@ -206,6 +206,39 @@ describe("revenue dashboard read model", () => {
     })
   })
 
+  it("keeps future payment and refund events out of revenue windows", () => {
+    const dashboard = buildRevenueDashboard({
+      now: NOW,
+      paidRows: [
+        paidRow({ id: "current-payment" }),
+        paidRow({
+          id: "future-payment",
+          amount_cents: 9995,
+          paid_at: "2026-06-19T01:00:00.000Z",
+        }),
+      ],
+      refundRows: [
+        refundRow({}),
+        refundRow({
+          refund_amount_cents: 9995,
+          refunded_at: "2026-06-19T01:30:00.000Z",
+        }),
+      ],
+      createdRows: [],
+      checkoutRows: [],
+      partialDraftRows: [],
+      refundStats: { eligible: 0, failed: 0, totalRefunded: 2495 },
+    })
+
+    expect(dashboard.windows.find((window) => window.key === "last30Days")).toMatchObject({
+      averageOrderCents: 2500,
+      grossCents: 4995,
+      netCents: 2500,
+      orderCount: 1,
+      refundCents: 2495,
+    })
+  })
+
   it("surfaces no-purchase risk when demand exists without paid intakes", () => {
     const dashboard = buildRevenueDashboard({
       now: NOW,
