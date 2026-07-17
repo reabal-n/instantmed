@@ -74,7 +74,6 @@ export default function EdPreferencesStep({ serviceType, onNext }: EdPreferences
       showBlockingReasons()
       return
     }
-    posthog?.capture('step_completed', { step: 'ed-preferences', preference: edPreference })
     onNext()
   }
 

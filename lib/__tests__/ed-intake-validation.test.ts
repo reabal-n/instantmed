@@ -18,7 +18,6 @@ describe("edGoalsStepSchema", () => {
     const result = edGoalsStepSchema.safeParse({
       edGoal: "improve_erections",
       edDuration: "3_to_12_months",
-      edAgeConfirmed: true,
     })
     expect(result.success).toBe(true)
   })
@@ -26,7 +25,6 @@ describe("edGoalsStepSchema", () => {
   it("fails when edGoal is missing", () => {
     const result = validateEdGoalsStep({
       edDuration: "3_to_12_months",
-      edAgeConfirmed: true,
     })
     expect(result.isValid).toBe(false)
     expect(result.errors.edGoal).toBeDefined()
@@ -35,27 +33,24 @@ describe("edGoalsStepSchema", () => {
   it("fails when edDuration is missing", () => {
     const result = validateEdGoalsStep({
       edGoal: "improve_erections",
-      edAgeConfirmed: true,
     })
     expect(result.isValid).toBe(false)
     expect(result.errors.edDuration).toBeDefined()
   })
 
-  it("fails when age not confirmed (false)", () => {
+  it("does not duplicate the checkout DOB age gate on the first clinical step", () => {
     const result = validateEdGoalsStep({
       edGoal: "improve_erections",
       edDuration: "less_than_3_months",
-      edAgeConfirmed: false,
     })
-    expect(result.isValid).toBe(false)
-    expect(result.errors.edAgeConfirmed).toBeDefined()
+    expect(result.isValid).toBe(true)
+    expect(result.errors.edAgeConfirmed).toBeUndefined()
   })
 
   it("fails when edGoal is empty string", () => {
     const result = validateEdGoalsStep({
       edGoal: "",
       edDuration: "less_than_3_months",
-      edAgeConfirmed: true,
     })
     expect(result.isValid).toBe(false)
     expect(result.errors.edGoal).toBeDefined()

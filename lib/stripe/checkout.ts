@@ -297,6 +297,7 @@ export async function createIntakeAndCheckoutAction(
       intakeId: intake.id,
       serviceSlug,
       serviceType: input.category,
+      subtype: input.subtype,
       userId: authUserId,
     })
 

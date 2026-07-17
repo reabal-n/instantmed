@@ -35,7 +35,6 @@ import { Navbar } from '@/components/shared/navbar'
 import { Button } from '@/components/ui/button'
 import { useReducedMotion } from '@/components/ui/motion'
 import { CONTACT_EMAIL, PRICING_DISPLAY } from '@/lib/constants'
-import { getDailyStats } from '@/lib/marketing/daily-stats'
 import { MED_CERT_SLUG_CERT_TYPE, type MedCertIntentConfig } from '@/lib/marketing/med-cert-intent-config'
 import { buildMedCertRequestHref } from '@/lib/marketing/med-cert-selector'
 import { cn } from '@/lib/utils'
@@ -103,7 +102,6 @@ interface MedCertIntentPageProps {
 export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
   const prefersReducedMotion = useReducedMotion()
   const isDisabled = useServiceAvailability().isServiceDisabled('med-cert')
-  const liveStats = getDailyStats()
 
   // Prefill the wizard's cert type + duration so step 1 arrives as a
   // confirmation rather than a cold pick. This page already knows the intent
@@ -394,12 +392,12 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 </div>
                 <div className="h-4 w-px bg-border hidden sm:block" />
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Users className="w-3.5 h-3.5 text-primary" />
-                  <span><strong className="text-foreground">{liveStats.reviewedToday}</strong> reviewed today</span>
+                  <Clock className="w-3.5 h-3.5 text-primary" />
+                  <span>Available 24/7</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Clock className="w-3.5 h-3.5 text-primary" />
-                  <span>Avg <strong className="text-foreground">{liveStats.avgReviewTime} min</strong></span>
+                  <BadgeCheck className="w-3.5 h-3.5 text-success" />
+                  <span>Full refund if declined</span>
                 </div>
               </motion.div>
             </div>

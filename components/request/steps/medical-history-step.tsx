@@ -21,6 +21,11 @@ import { useCallback, useEffect, useState } from "react"
 import { IntakeStepIntro, QuestionCard, YesNoDetailQuestion } from "@/components/request/shared/intake-step-primitives"
 import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
 import { Button } from "@/components/ui/button"
+import {
+  buildIntakeValidationBlockedProperties,
+  captureIntakeEvent,
+  INTAKE_ANALYTICS_EVENTS,
+} from "@/lib/analytics/intake-events"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
@@ -100,15 +105,33 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
       otherMedications: true,
       isPregnantOrBreastfeeding: true,
     })
+    const blockerLabels: Record<string, string> = {
+      allergies: "allergy history",
+      conditions: "medical conditions",
+      otherMedications: "other medications",
+      isPregnantOrBreastfeeding: "pregnancy or breastfeeding status",
+    }
+    const blockers = Object.keys(newErrors).map((key) => blockerLabels[key] ?? key)
+    if (blockers.length > 0) {
+      captureIntakeEvent(
+        posthog,
+        INTAKE_ANALYTICS_EVENTS.validationBlocked,
+        buildIntakeValidationBlockedProperties({
+          serviceType,
+          subtype: answers.consultSubtype as string | undefined,
+          stepId: "medical-history",
+          blockers,
+        }),
+      )
+    }
     return Object.keys(newErrors).length === 0
-  }, [hasAllergies, allergies, hasConditions, conditions, hasOtherMedications, otherMedications, requiresMedicationSafety, isPregnantOrBreastfeeding])
+  }, [answers.consultSubtype, hasAllergies, allergies, hasConditions, conditions, hasOtherMedications, otherMedications, posthog, requiresMedicationSafety, isPregnantOrBreastfeeding, serviceType])
 
   const handleNext = useCallback(() => {
     if (validate()) {
-      posthog?.capture('step_completed', { step: 'medical-history', service_type: serviceType, has_allergies: hasAllergies, has_conditions: hasConditions, has_other_meds: hasOtherMedications })
       onNext()
     }
-  }, [validate, serviceType, posthog, hasAllergies, hasConditions, hasOtherMedications, onNext])
+  }, [validate, onNext])
 
   const isComplete =
     hasAllergies !== undefined && (!hasAllergies || allergies.trim()) &&

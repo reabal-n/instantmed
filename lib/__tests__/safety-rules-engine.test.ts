@@ -173,6 +173,22 @@ describe("Safety Rules Engine", () => {
       ).toBe(false)
     })
 
+    it("does not misclassify +4 to +14 day requests as backdated", () => {
+      const result = evaluateSafety("medical-certificate", {
+        emergency_symptoms: [],
+        start_date: offsetDate(7),
+      })
+
+      expect(result.outcome).toBe("ALLOW")
+      expect(
+        result.triggeredRules.some(
+          (rule) =>
+            rule.ruleId === "medcert_backdated_excessive" ||
+            rule.ruleId === "medcert_backdated_long",
+        ),
+      ).toBe(false)
+    })
+
     it("should DECLINE certificates more than 14 days in the future", () => {
       const result = evaluateSafety("medical-certificate", {
         emergency_symptoms: [],
@@ -746,6 +762,30 @@ describe("Safety Rules Engine", () => {
       })
       expect(result.valid).toBe(false)
       expect(result.missingFields).toEqual(["edNitrates", "edRecentHeartEvent", "edSevereHeart"])
+    })
+
+    it("requires GP clearance only when an ED cardiac answer makes it relevant", () => {
+      expect(validateSafetyFieldsPresent("consult", {
+        consultSubtype: "ed",
+        emergency_symptoms: [],
+        edNitrates: false,
+        edRecentHeartEvent: true,
+        edSevereHeart: false,
+      })).toEqual({
+        valid: false,
+        missingFields: ["edGpCleared"],
+      })
+
+      expect(validateSafetyFieldsPresent("consult", {
+        consultSubtype: "ed",
+        emergency_symptoms: [],
+        edNitrates: false,
+        edRecentHeartEvent: false,
+        edSevereHeart: false,
+      })).toEqual({
+        valid: true,
+        missingFields: [],
+      })
     })
   })
 

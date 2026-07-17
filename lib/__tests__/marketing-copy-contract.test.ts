@@ -225,6 +225,19 @@ describe("marketing copy contracts", () => {
     expect(trustBadgesSource).toContain('getApprovedClaim("clinical_decision_model")')
   })
 
+  it("uses truthful static trust signals instead of fabricated daily activity", () => {
+    const intentPage = readFileSync(
+      join(root, "components/marketing/med-cert-intent-page.tsx"),
+      "utf8",
+    )
+
+    expect(existsSync(join(root, "lib/marketing/daily-stats.ts"))).toBe(false)
+    expect(intentPage).not.toContain("getDailyStats")
+    expect(intentPage).not.toContain("reviewed today")
+    expect(intentPage).not.toMatch(/Avg.*min/)
+    expect(intentPage).toContain("Full refund if declined")
+  })
+
   it("routes employer guidance to the canonical employer verification hub", () => {
     expect(nextConfigSource).toContain('source: "/for/employers"')
     expect(nextConfigSource).toContain('destination: "/employers"')
