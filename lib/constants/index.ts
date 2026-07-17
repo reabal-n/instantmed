@@ -51,10 +51,10 @@ export const CONTACT_PHONE = "0450 722 549"
 export const GOOGLE_REVIEW_URL = "https://g.page/r/CWqy3A7IKcX6EAE/review"
 
 /**
- * Off-site review destination (GEO keystone). Every review CTA — the day-2
- * review email AND the inline approval-email CTA — routes through
- * /api/review-redirect to ProductReview.com.au, the AU surface answer-engines
- * (ChatGPT/Perplexity) cite and which we already entity-link from `sameAs`.
+ * Off-site review destination (GEO keystone). The dedicated review email and
+ * patient-dashboard review cards route through /api/review-redirect. The email
+ * medium is pinned to ProductReview.com.au, the AU surface answer-engines cite
+ * and which we already entity-link from `sameAs`.
  *
  * Prod sets PRODUCTREVIEW_REVIEW_URL in Vercel (the operator's param'd
  * write-review link; ProductReview-first since 2026-06-22, with a 30-email

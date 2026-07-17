@@ -94,6 +94,8 @@ export interface SendEmailResult {
   error?: string
   /** Whether an outbox-backed failure should be retried by the dispatcher. */
   retryable?: boolean
+  /** Expected policy suppression, not a provider or infrastructure failure. */
+  suppressed?: boolean
   skipped?: boolean  // True if skipped due to E2E mode
 }
 

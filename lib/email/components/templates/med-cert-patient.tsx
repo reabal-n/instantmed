@@ -29,15 +29,6 @@ export interface MedCertPatientEmailProps {
    * explain why there's no password to reset.
    */
   isGuest?: boolean
-  /**
-   * Signed heard-about-us token. When present, renders the one-click
-   * "how did you find us?" attribution question below the review CTA.
-   */
-  heardToken?: string
-  /**
-   * Retained for send-path compatibility. Review click tracking is aggregate-only.
-   */
-  intakeId?: string
 }
 
 export function MedCertPatientEmail({
@@ -47,8 +38,6 @@ export function MedCertPatientEmail({
   certType: _certType = "work",
   appUrl = APP_URL,
   isGuest = false,
-  heardToken,
-  intakeId,
 }: MedCertPatientEmailProps) {
   const firstName = patientName.split(" ")[0]
 
@@ -56,10 +45,6 @@ export function MedCertPatientEmail({
     <BaseEmail
       previewText="Your medical certificate is approved and ready to download 🎉"
       appUrl={appUrl}
-      showReviewCTA
-      showReferral
-      heardToken={heardToken}
-      intakeId={intakeId}
     >
       <HeroBlock
         icon="🎉"

@@ -290,15 +290,12 @@ const templates: Record<string, {
     ),
   },
   "review-request": {
-    name: "Review Request (Day 2)",
-    subject: "Quick favour? ⭐",
+    name: "Review Request (48h after fulfilment)",
+    subject: "How did InstantMed go?",
     render: () => (
       <ReviewRequestEmail
         patientName={mock.patientName}
-        serviceName="Medical Certificate"
         appUrl={mock.appUrl}
-        intakeId="preview-intake-id"
-        heardToken="preview-token"
       />
     ),
   },
@@ -411,8 +408,7 @@ export default async function EmailPreviewPage({ params }: PageProps) {
             {/* Email content iframe */}
             <iframe
               srcDoc={html}
-              className="w-full border-0"
-              style={{ height: "800px" }}
+              className="h-[920px] w-full border-0 sm:h-[800px]"
               title="Email preview"
             />
           </div>

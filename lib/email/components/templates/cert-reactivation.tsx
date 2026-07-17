@@ -32,7 +32,6 @@ export function CertReactivationEmail({
     <BaseEmail
       previewText="If you need a medical certificate again, it only takes a few minutes."
       appUrl={appUrl}
-      showReferral={false}
     >
       <Text>Hi {firstName},</Text>
 

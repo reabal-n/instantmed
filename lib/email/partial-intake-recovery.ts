@@ -1,5 +1,7 @@
 "use server"
 
+import { createHash } from "node:crypto"
+
 import * as React from "react"
 
 import { getAppUrl } from "@/lib/config/env"
@@ -11,6 +13,7 @@ import {
   PartialIntakeRecoveryEmail,
   partialIntakeRecoverySubject,
 } from "./components/templates/partial-intake-recovery"
+import { isEmailSendDeliveryConfirmed } from "./outbox-delivery"
 import { buildPartialIntakeRecoveryUrl } from "./recovery-links"
 import { sendEmail } from "./send-email"
 import { getSuppressedEmails } from "./suppression"
@@ -51,6 +54,10 @@ function isEncryptedPHI(value: unknown): value is EncryptedPHI {
     typeof candidate.keyId === "string" &&
     typeof candidate.version === "number"
   )
+}
+
+function draftIdempotencyHash(sessionId: string): string {
+  return createHash("sha256").update(sessionId).digest("hex")
 }
 
 async function getRecoveryConsultSubtype(draft: PartialDraft): Promise<"ed" | "hair_loss" | "womens_health" | null> {
@@ -131,11 +138,13 @@ async function markRecoverySent(sessionId: string): Promise<void> {
 export async function processPartialIntakeRecoveries(): Promise<{
   found: number
   sent: number
+  suppressed: number
+  pending: number
   failed: number
 }> {
   const drafts = await findEligibleDrafts()
   if (drafts.length === 0) {
-    return { found: 0, sent: 0, failed: 0 }
+    return { found: 0, sent: 0, suppressed: 0, pending: 0, failed: 0 }
   }
 
   // Spam Act gate: drop drafts whose address is on the account-less
@@ -154,6 +163,8 @@ export async function processPartialIntakeRecoveries(): Promise<{
 
   const appUrl = getAppUrl()
   let sent = 0
+  let suppressedAfterQueue = 0
+  let pending = 0
   let failed = 0
 
   for (const draft of sendable) {
@@ -198,13 +209,22 @@ export async function processPartialIntakeRecoveries(): Promise<{
         // without this the recipient has no working opt-out (Spam Act s18).
         unsubscribeEmail: draft.email,
         metadata: {
+          draft_idempotency_hash: draftIdempotencyHash(draft.session_id),
           service_type: draft.service_type,
         },
       })
 
-      if (result.success) {
+      if (await isEmailSendDeliveryConfirmed(result)) {
         await markRecoverySent(draft.session_id)
         sent += 1
+      } else if (result.suppressed) {
+        await markRecoverySent(draft.session_id)
+        suppressedAfterQueue += 1
+      } else if (result.success) {
+        pending += 1
+        logger.info("Recovery email already queued; awaiting durable delivery", {
+          outboxId: result.outboxId,
+        })
       } else {
         failed += 1
         logger.warn("Recovery email failed", {
@@ -219,5 +239,11 @@ export async function processPartialIntakeRecoveries(): Promise<{
     }
   }
 
-  return { found: drafts.length, sent, failed }
+  return {
+    found: drafts.length,
+    sent,
+    suppressed: suppressed.size + suppressedAfterQueue,
+    pending,
+    failed,
+  }
 }

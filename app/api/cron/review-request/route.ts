@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { processReviewRequests } from "@/lib/email/review-request"
+import { isSydneyReviewRequestHour } from "@/lib/email/review-request-timing"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
@@ -10,12 +11,22 @@ import { captureCronError } from "@/lib/observability/sentry"
 const logger = createLogger("cron-review-request")
 
 /**
- * Cron endpoint to send the single day-2 review request email.
- * Runs daily via Vercel Cron (configured in vercel.json)
+ * Cron endpoint for the single review request. Vercel invokes at the two UTC
+ * hours that can map to 10:00 Sydney; the timezone guard handles AEST/AEDT.
  */
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
+
+  const now = new Date()
+  if (!isSydneyReviewRequestHour(now)) {
+    return NextResponse.json({
+      success: true,
+      skipped: true,
+      reason: "Outside the 10:00 Australia/Sydney send hour",
+      timestamp: now.toISOString(),
+    })
+  }
 
   try {
     const result = await processReviewRequests()
@@ -25,7 +36,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       ...result,
-      timestamp: new Date().toISOString(),
+      timestamp: now.toISOString(),
     })
   } catch (error) {
     Sentry.captureException(error)
