@@ -72,7 +72,7 @@ export type { AbandonedCheckoutFollowupProps } from "./abandoned-checkout-follow
 export { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "./abandoned-checkout-followup"
 
 
-// --- Review Request (day-2 post-approval) ---
+// --- Review Request (once, 48h post-fulfilment) ---
 export type { ReviewRequestEmailProps } from "./review-request"
 export { ReviewRequestEmail, reviewRequestSubject } from "./review-request"
 

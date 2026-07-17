@@ -23,8 +23,10 @@ export const colors = {
   // Typography
   text: "#1E293B",          // Slate-800 - headings (matches --text)
   textBody: "#475569",      // Slate-600 - body text (matches --muted)
-  textSecondary: "#64748B", // Slate-500 - secondary
-  textMuted: "#94A3B8",     // Slate-400 - footer, fine print
+  // Email-safe muted tone: darkened from the web palette so 11-13px footer
+  // and fine-print copy remains WCAG AA on the warm email surface.
+  textSecondary: "#5F6F85",
+  textMuted: "#5F6F85",
 
   // Borders
   border: "#E2E8F0",        // Slate-200

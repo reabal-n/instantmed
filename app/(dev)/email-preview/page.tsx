@@ -127,8 +127,8 @@ const templates = [
   },
   {
     slug: "review-request",
-    name: "Review Request (Day 2)",
-    description: "Warm Google review ask sent 2 days after approval",
+    name: "Review Request (48h after fulfilment)",
+    description: "One honest-feedback ask routed to ProductReview",
     category: "engagement",
   },
   {

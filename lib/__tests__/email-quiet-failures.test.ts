@@ -8,7 +8,8 @@ import {
 
 describe("email quiet-failure classification", () => {
   it("recognizes cron-owned non-reconstructable email types", () => {
-    expect(isCronOwnedNonReconstructableEmailType("partial_intake_recovery")).toBe(true)
+    expect(isCronOwnedNonReconstructableEmailType("partial_intake_recovery")).toBe(false)
+    expect(isCronOwnedNonReconstructableEmailType("review_request")).toBe(false)
     expect(isCronOwnedNonReconstructableEmailType("abandoned_checkout")).toBe(true)
     expect(isCronOwnedNonReconstructableEmailType("med_cert_patient")).toBe(false)
     expect(isCronOwnedNonReconstructableEmailType(null)).toBe(false)
@@ -21,7 +22,15 @@ describe("email quiet-failure classification", () => {
         status: "failed",
         error_message: "Unsupported email_type: partial_intake_recovery",
       }),
-    ).toBe(true)
+    ).toBe(false)
+
+    expect(
+      isQuietCronOwnedEmailFailure({
+        email_type: "review_request",
+        status: "failed",
+        error_message: "Unsupported email_type: review_request",
+      }),
+    ).toBe(false)
 
     expect(
       isQuietCronOwnedEmailFailure({
@@ -51,10 +60,22 @@ describe("email quiet-failure classification", () => {
   it("filters quiet failures while retaining provider failures and pending work", () => {
     const rows = [
       {
-        id: "quiet",
+        id: "retryable-partial",
         email_type: "partial_intake_recovery",
         status: "failed",
         error_message: "Unsupported email_type: partial_intake_recovery",
+      },
+      {
+        id: "retryable-review",
+        email_type: "review_request",
+        status: "failed",
+        error_message: "Unsupported email_type: review_request",
+      },
+      {
+        id: "quiet",
+        email_type: "abandoned_checkout",
+        status: "failed",
+        error_message: "Unsupported email_type: abandoned_checkout",
       },
       {
         id: "provider-failure",
@@ -71,6 +92,8 @@ describe("email quiet-failure classification", () => {
     ]
 
     expect(filterQuietCronOwnedEmailFailures(rows).map((row) => row.id)).toEqual([
+      "retryable-partial",
+      "retryable-review",
       "provider-failure",
       "pending",
     ])

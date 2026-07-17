@@ -2,10 +2,8 @@ export const CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES = [
   "refill_reminder",
   "cert_reactivation",
   "heard_about_us_backfill",
-  "partial_intake_recovery",
   "abandoned_checkout",
   "abandoned_checkout_followup",
-  "review_request",
 ] as const
 
 const CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPE_SET = new Set<string>(

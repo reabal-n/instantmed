@@ -54,7 +54,7 @@ This is the merchandised promise. It lives above checkout CTAs, inline on hero C
 
 ## 5 Don'ts
 
-1. **Never use em-dashes** (`—`). Use commas, periods, colons, or parens. The em-dash is an AI-writing tell. Zero exceptions. The voice-guard test fails the build if one slips in.
+1. **Never use em-dashes** (`—`). Use commas, periods, colons, or parens. The sole pinned exception is the operator-approved public-review privacy warning, *Please leave out personal or medical details — reviews are public.*, in `ReviewRequestEmail` (exact copy decision 2026-07-17). The voice guard allowlists that exact path and line only; no variant or second exception is permitted.
 2. **Never use hype words.** `cutting-edge`, `world-class`, `revolutionary`, `game-changer`, `transformative`, `seamless`, `empower`, `holistic`, `wellness journey`, `synergy`, `at the end of the day`. Banned list enforced in code.
 3. **Never say "our platform" or "our solution."** You are a doctor. Patients don't want a platform, they want a doctor.
 4. **Never write a sentence a real doctor wouldn't say out loud.** If you can't imagine a doctor saying it during a consult, cut it.

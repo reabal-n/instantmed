@@ -91,6 +91,7 @@
 - Complaints: https://instantmed.com.au/complaints
 - Privacy policy: https://instantmed.com.au/privacy
 - Terms of service: https://instantmed.com.au/terms
+- Independent customer reviews (ProductReview): https://www.productreview.com.au/listings/instantmed
 
 ## Medical Certificates by Reason
 
@@ -117,4 +118,4 @@ For a longer AI-readable service reference, see: https://instantmed.com.au/llms-
 
 ---
 
-Last reviewed: 2026-07-10
+Last reviewed: 2026-07-17

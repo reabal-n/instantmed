@@ -3,15 +3,18 @@
  *
  * Tracks review link clicks via PostHog, then redirects to the off-site review
  * destination (ProductReview by default; Google is the ultimate fallback).
- * Used by both the day-2 review email and the inline approval-email CTA.
+ * Used by the dedicated review email and patient-dashboard review cards.
  */
 
 import { NextRequest, NextResponse } from "next/server"
 
-import { getRotatingReviewUrl } from "@/lib/constants"
+import {
+  getRotatingReviewUrl,
+  PRODUCTREVIEW_REVIEW_URL,
+} from "@/lib/constants"
 
 const REVIEW_SOURCES = new Set(["email", "patient_dashboard"])
-const REVIEW_MEDIA = new Set(["inline_cta", "review_hero", "review_card", "review_cta"])
+const REVIEW_MEDIA = new Set(["review_request", "review_card", "review_cta"])
 const REVIEW_CAMPAIGNS = new Set(["review"])
 
 function allowedDimension(value: string | null, allowed: Set<string>, fallback: string): string {
@@ -46,5 +49,9 @@ export async function GET(req: NextRequest) {
     }).catch(() => {}) // Swallow errors - tracking should never block
   }
 
-  return NextResponse.redirect(getRotatingReviewUrl(new Date().getUTCMonth()), { status: 302 })
+  const destination = medium === "review_request"
+    ? PRODUCTREVIEW_REVIEW_URL
+    : getRotatingReviewUrl(new Date().getUTCMonth())
+
+  return NextResponse.redirect(destination, { status: 302 })
 }

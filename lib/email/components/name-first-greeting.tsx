@@ -28,7 +28,7 @@ export function NameFirstGreeting({ name }: NameFirstGreetingProps) {
     <p
       style={{
         margin: "0 0 12px 0",
-        fontSize: "15px",
+        fontSize: "16px",
         color: colors.textBody,
         lineHeight: "1.6",
       }}

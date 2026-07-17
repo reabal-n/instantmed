@@ -22,11 +22,6 @@ export interface ConsultApprovedEmailProps {
   requestId: string
   doctorNotes?: string
   appUrl?: string
-  /**
-   * Signed heard-about-us token. When present, renders the one-click
-   * "how did you find us?" attribution question below the Google review CTA.
-   */
-  heardToken?: string
 }
 
 export function ConsultApprovedEmail({
@@ -34,7 +29,6 @@ export function ConsultApprovedEmail({
   requestId,
   doctorNotes,
   appUrl = APP_URL,
-  heardToken,
 }: ConsultApprovedEmailProps) {
   const firstName = patientName.split(" ")[0]
 
@@ -42,9 +36,6 @@ export function ConsultApprovedEmail({
     <BaseEmail
       previewText={`${firstName}, your consultation is complete. Here's what's next ✅`}
       appUrl={appUrl}
-      showReviewCTA
-      heardToken={heardToken}
-      showReferral
     >
       <HeroBlock
         icon="✓"
@@ -57,7 +48,7 @@ export function ConsultApprovedEmail({
 
       <Text>
         Your doctor has reviewed your consultation. If a prescription was issued,
-        your eScript will arrive via SMS. If a referral was provided, it&apos;ll be in your account.
+        your eScript will arrive via SMS. You can view the completed request in your account.
       </Text>
 
       {doctorNotes && (
