@@ -357,6 +357,17 @@ describe("project docs drift contract", () => {
     expect(requestReadme).not.toContain("Import and register it in `step-router.tsx`")
   })
 
+  it("keeps the merged-away medication-history step out of active flow docs", () => {
+    // P2.1 (2026-07-17): merged into medication-step.tsx. Same retirement
+    // convention as checkout-step above — the file is gone, and no doc may
+    // describe repeat-Rx as a two-screen medication flow.
+    expect(existsSync(join(root, "components/request/steps/medication-history-step.tsx"))).toBe(false)
+
+    for (const source of [architecture, requestReadme, claude, agents]) {
+      expect(source).not.toContain("medication-history-step.tsx")
+    }
+  })
+
   it("documents individual post-auto-approval medical-certificate review as an InstantMed governance control", () => {
     const clinical = readProjectFile("docs/CLINICAL.md")
     const operations = readProjectFile("docs/OPERATIONS.md")

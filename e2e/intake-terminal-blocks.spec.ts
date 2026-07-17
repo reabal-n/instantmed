@@ -375,6 +375,9 @@ test.describe("persisted intake terminal blocks", () => {
   }
 
   test("restores a controlled repeat-medication block and removes it after a safe edit", async ({ page }) => {
+    // P2.1 merged the prescription-history questions into this step, so the
+    // draft seeds a complete repeat. That keeps the controlled-substance block
+    // the ONLY thing gating readiness, which is what this test isolates.
     await seedScopedDraft(page, "instantmed-draft-prescription", {
       serviceType: "prescription",
       currentStepId: "medication",
@@ -382,6 +385,11 @@ test.describe("persisted intake terminal blocks", () => {
         medications: [{ name: "Oxycodone", strength: "5 mg", pbsCode: "MANUAL" }],
         medicationName: "Oxycodone",
         medicationStrength: "5 mg",
+        prescriptionHistory: "less_than_3_months",
+        currentDose: "1 tablet daily",
+        indication: "pain",
+        doseChanged: false,
+        hasSideEffects: false,
       },
     })
 
@@ -399,6 +407,16 @@ test.describe("persisted intake terminal blocks", () => {
     await page.locator("#medication-name-0").fill("Atorvastatin")
 
     await expect(page.getByText("This medication cannot be prescribed online")).toHaveCount(0)
+
+    // Changing the medicine deliberately clears the unchanged-regimen
+    // attestation — it belonged to the medicine that was just replaced — so the
+    // step is not ready until the patient answers it again for the new one.
+    await expect(page.locator('button[data-intake-primary-action="true"]')).toHaveAttribute("data-intake-primary-ready", "false")
+    await page
+      .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
+      .getByRole("radio", { name: /No, unchanged/i })
+      .click()
+
     await expect(page.locator('button[data-intake-primary-action="true"]')).toHaveAttribute("data-intake-primary-ready", "true")
   })
 })

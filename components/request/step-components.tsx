@@ -158,9 +158,6 @@ export const stepComponents: Record<string, ComponentType<StepComponentProps>> =
   "medication-step": dynamic<StepComponentProps>(() => import("./steps/medication-step"), {
     loading: stepLoadingFallback("medication-step", true),
   }),
-  "medication-history-step": dynamic<StepComponentProps>(() => import("./steps/medication-history-step"), {
-    loading: stepLoadingFallback("medication-history-step", true),
-  }),
   "medical-history-step": dynamic<StepComponentProps>(() => import("./steps/medical-history-step"), {
     loading: stepLoadingFallback("medical-history-step", true),
   }),

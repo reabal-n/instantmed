@@ -34,13 +34,12 @@ async function completeToDetails(page: import("@playwright/test").Page) {
     await page.getByRole("button", { name: /^Continue$/i }).last().click()
   }
 
-  await expect(page.getByRole("heading", { name: /Which medication do you need/i })).toBeVisible({ timeout: 20000 })
-  // Medication is a free-text name box since #208 (PBS combobox retired).
+  await expect(page.getByRole("heading", { name: /Your medication/i })).toBeVisible({ timeout: 20000 })
+  // Medication is a free-text name box since #208 (PBS combobox retired), and
+  // P2.1 put the prescription-history questions on this same screen.
   await page.locator("#medication-name-0").fill("Atorvastatin")
   await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
-  await clickPrimary()
 
-  await expect(page.getByText(/When were you last prescribed/i).first()).toBeVisible()
   await page.getByRole("radio", { name: /Under 3 months/i }).click()
   await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
   await page

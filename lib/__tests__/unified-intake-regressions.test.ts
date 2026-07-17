@@ -307,6 +307,63 @@ describe("unified intake regressions", () => {
     expect(steps.at(-1)).toBe("review")
   })
 
+  // P2.1 (2026-07-17): the medicine and the questions asked about that medicine
+  // are one screen. Pinned by equality because nothing else locks the
+  // prescription sequence, and `repeat-script` aliases the same array.
+  it("asks for the repeat medication and its history on a single step", () => {
+    const context: StepContext = {
+      isAuthenticated: false,
+      hasProfile: false,
+      hasCompleteIdentity: false,
+      hasMedicare: false,
+      hasAddress: false,
+      serviceType: "repeat-script",
+      answers: {},
+    }
+
+    for (const service of ["prescription", "repeat-script"] as const) {
+      const steps = getStepsForService(service, { ...context, serviceType: service }).map((step) => step.id)
+      expect(steps, service).toEqual(["medication", "medical-history", "details", "review"])
+      expect(steps, service).not.toContain("medication-history")
+    }
+  })
+
+  // Checkout re-validates the merged step's answers through BOTH schemas. The
+  // merge was composition-only: dropping either call would silently stop
+  // enforcing dose/indication/attestation/side-effects on the server.
+  it("still enforces medication and prescription-history answers at checkout after the step merge", () => {
+    const completeRepeat = {
+      medicationName: "Rosuvastatin",
+      prescriptionHistory: "6_to_12_months",
+      currentDose: "One tablet daily",
+      indication: "Cholesterol",
+      doseChanged: false,
+      hasSideEffects: false,
+      ...sharedMedicalHistory,
+      ...sharedPrescribingIdentity,
+    }
+
+    expect(validateAnswersServerSide("repeat-script", completeRepeat, identity)).toBeNull()
+
+    // Medicine missing -> medication schema still fires.
+    expect(validateAnswersServerSide("repeat-script", {
+      ...completeRepeat,
+      medicationName: "",
+    }, identity)).toMatch(/medication/i)
+
+    // History answers missing -> medication-history schema still fires.
+    for (const missing of ["prescriptionHistory", "currentDose", "indication"] as const) {
+      expect(
+        validateAnswersServerSide("repeat-script", { ...completeRepeat, [missing]: "" }, identity),
+        missing,
+      ).not.toBeNull()
+    }
+    expect(validateAnswersServerSide("repeat-script", {
+      ...completeRepeat,
+      doseChanged: undefined,
+    }, identity)).not.toBeNull()
+  })
+
   it("maps medical certificate emergency free text into server safety rules", () => {
     const transformed = transformAnswersForUnifiedCheckout("med-cert", {
       certType: "work",

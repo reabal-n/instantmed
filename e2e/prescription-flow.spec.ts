@@ -6,18 +6,18 @@ import { enterManualTestAddress, waitForPageLoad } from "./helpers/test-utils"
  * Prescription Flow E2E Tests
  *
  * Exercises the full repeat prescription intake flow from start to checkout:
- *   1. Medication (free-text name + optional strength/form)
- *   2. Medication history (last prescribed, side effects)
- *   3. Medical history (allergies, conditions, other meds)
- *   4. Patient details (name, email, DOB, phone)
- *   5. Review (summary + safety consent)
- *   6. Checkout (price verification, consent, Stripe button)
+ *   1. Medication (name + strength/form, last prescribed, dose, indication,
+ *      unchanged-regimen attestation, side effects — one screen since P2.1)
+ *   2. Medical history (allergies, conditions, other meds)
+ *   3. Patient details (name, email, DOB, phone)
+ *   4. Review (summary + safety consent)
+ *   5. Checkout (price verification, consent, Stripe button)
  *
  * These tests run as a guest (no auth) and stop at the Stripe redirect.
  * The goal is to prove every step renders, validates, and advances correctly.
  *
  * Step sequence from lib/request/step-registry.ts:
- *   medication → medication-history → medical-history → details → review → checkout
+ *   medication → medical-history → details → review
  */
 
 // ---------------------------------------------------------------------------
@@ -105,34 +105,24 @@ async function waitForStep(page: Page, text: string | RegExp, timeout = 15000) {
 // ---------------------------------------------------------------------------
 
 /**
- * Complete the medication step.
+ * Complete the merged medication step.
  *
- * Since #208 the PBS combobox is retired — the medication step is a plain
- * free-text name box (`#medication-name-0`). Optional strength/form fields
- * (`#medication-strength-0` / `#medication-form-0`) reveal once a name is typed.
+ * P2.1 merged the old `medication-history` step in here, so ONE screen and one
+ * Continue now cover the medicine and everything asked about it. Since #208 the
+ * PBS combobox is retired — the name is a plain free-text box
+ * (`#medication-name-0`). Every field below is always mounted (the #209
+ * no-phased-reveal rule), so nothing has to be filled in a set order.
  */
 async function completeMedicationStep(page: Page) {
-  await waitForStep(page, /Which medication do you need\?/i)
+  await waitForStep(page, /Your medication/i)
 
   await page.locator("#medication-name-0").fill("E2E test medication")
 
-  // Strength + form are optional; they appear once the name is entered.
+  // Strength + form are optional but always visible.
   await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
   await page.locator("#medication-strength-0").fill("500 mg")
   await page.locator("#medication-form-0").fill("capsule")
 
-  await clickContinue(page)
-  await page.waitForTimeout(500)
-}
-
-/**
- * Complete the medication history step.
- *
- * Selects "Under 3 months" for when last prescribed, confirms the dose and
- * directions are unchanged, and reports no side effects.
- */
-async function completeMedicationHistoryStep(page: Page) {
-  await waitForStep(page, /When were you last prescribed/i)
   await clickChip(page, /Under 3 months/i)
   await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
   await page
@@ -140,9 +130,10 @@ async function completeMedicationHistoryStep(page: Page) {
     .getByRole("radio", { name: /No, unchanged/i })
     .click()
   await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
-  // Side effects question appears after entering the current dose + indication.
   await clickChip(page, /No side effects/i)
+
   await clickContinue(page)
+  await page.waitForTimeout(500)
 }
 
 /**
@@ -273,8 +264,6 @@ test.describe("Prescription: full flow - start to checkout", () => {
     // ── Step 1: Medication (free-text name + optional strength/form) ──
     await completeMedicationStep(page)
 
-    // ── Step 2: Medication history ──
-    await completeMedicationHistoryStep(page)
 
     // ── Step 3: Medical history ──
     await completeMedicalHistoryStep(page)
@@ -297,7 +286,6 @@ test.describe("Prescription: full flow - start to checkout", () => {
     await dismissOverlays(page)
 
     await completeMedicationStep(page)
-    await completeMedicationHistoryStep(page)
     await completeMedicalHistoryStep(page)
     await completeDetailsStep(page)
 
@@ -315,7 +303,10 @@ test.describe("Prescription: full flow - start to checkout", () => {
     await expect(editPrescriptionDetails).toBeVisible()
     await editPrescriptionDetails.click()
 
-    await expect(page.getByRole("heading", { name: "Your prescription history", level: 2 })).toBeVisible()
+    // Both review sections now edit the one merged screen, so the medicine and
+    // its history round-trip together.
+    await expect(page.getByRole("heading", { name: "Your medication", level: 2 })).toBeVisible()
+    await expect(page.locator("#medication-name-0")).toHaveValue("E2E test medication")
     await expect(page.getByPlaceholder(/2 puffs twice daily/i)).toHaveValue("1 tablet daily")
     await expect(page.getByPlaceholder(/e\.g\., asthma/i)).toHaveValue("asthma")
     await expect(
@@ -341,17 +332,17 @@ test.describe("Prescription: repeat-script alias loads same flow", () => {
     await waitForPageLoad(page)
 
     // Should land on medication search step (same as ?service=repeat-script)
-    await waitForStep(page, /Which medication do you need\?/i)
+    await waitForStep(page, /Your medication/i)
     // Progress nav should be visible
     await expect(page.getByRole("navigation", { name: /Request progress/i })).toBeVisible()
   })
 })
 
 // ---------------------------------------------------------------------------
-// 3 · MEDICATION HISTORY - "Never prescribed" blocks flow
+// 3 · PRESCRIPTION HISTORY - "Never prescribed" blocks flow
 // ---------------------------------------------------------------------------
 
-test.describe("Prescription: medication-history gating", () => {
+test.describe("Prescription: prescription-history gating", () => {
   test.setTimeout(60000)
 
   test("'never prescribed' shows repeat-only warning with consult CTA", async ({ page }) => {
@@ -359,17 +350,31 @@ test.describe("Prescription: medication-history gating", () => {
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    // Complete medication step
-    await completeMedicationStep(page)
+    await waitForStep(page, /Your medication/i)
+    await page.locator("#medication-name-0").fill("E2E test medication")
 
-    // On medication history step - take the "never prescribed" escape (#210
-    // renamed the "Never" chip to "I have not been prescribed this before").
-    await waitForStep(page, /When were you last prescribed/i)
+    // Take the "never prescribed" escape (#210 renamed the "Never" chip to
+    // "I have not been prescribed this before"). P2.1 keeps this route-out on
+    // the merged screen.
     await clickChip(page, /I have not been prescribed this before/i)
 
     // Warning should appear with "Browse other services" CTA
-    await expect(page.getByText(/This service is for repeat prescriptions only/i)).toBeVisible()
+    await expect(page.getByText(/Not a repeat prescription/i).first()).toBeVisible()
+    await expect(
+      page.getByText(/Repeat prescriptions are only for medicines another doctor has prescribed before/i),
+    ).toBeVisible()
     await expect(page.getByRole("link", { name: /Browse other services/i })).toBeVisible()
+
+    // The route-out is terminal: the repeat-only questions are gone and
+    // Continue must not advance.
+    await expect(page.getByPlaceholder(/2 puffs twice daily/i)).toBeHidden()
+    await expect(page.getByText(/Any side effects with this medication\?/i)).toBeHidden()
+
+    // "Change medication" clears the escape and restores the repeat questions
+    // in place — no step navigation, the medicine box is on this screen.
+    await page.getByRole("button", { name: /Change medication/i }).click()
+    await expect(page.getByPlaceholder(/2 puffs twice daily/i)).toBeVisible()
+    await expect(page.locator("#medication-name-0")).toHaveValue("E2E test medication")
   })
 })
 
@@ -386,12 +391,12 @@ test.describe("Prescription: step validation", () => {
     await dismissOverlays(page)
 
     // Continue stays clickable so the mobile sticky action can explain what is missing.
-    await waitForStep(page, /Which medication do you need\?/i)
+    await waitForStep(page, /Your medication/i)
     const btn = page.getByRole("button", { name: /^Continue$/i }).last()
     await expect(btn).toBeEnabled()
     await btn.click()
     await expect(page.getByText(/Enter the name of the medication you need/i).first()).toBeVisible()
-    await expect(page.getByRole("heading", { name: /Which medication do you need/i })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /Your medication/i })).toBeVisible()
   })
 
   test("medication step proceeds with a blank strength (A3 soften → doctor flag)", async ({ page }) => {
@@ -399,16 +404,26 @@ test.describe("Prescription: step validation", () => {
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    await waitForStep(page, /Which medication do you need\?/i)
+    await waitForStep(page, /Your medication/i)
     await page.locator("#medication-name-0").fill("E2E blank strength med")
 
     // Leave strength blank; fill only form.
     await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
     await page.locator("#medication-form-0").fill("capsule")
 
+    // Answer the rest of the merged screen.
+    await clickChip(page, /Under 3 months/i)
+    await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
+    await page
+      .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
+      .getByRole("radio", { name: /No, unchanged/i })
+      .click()
+    await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
+    await clickChip(page, /No side effects/i)
+
     // Continue advances despite the blank strength (doctor sees a missing-strength flag).
     await clickContinue(page)
-    await waitForStep(page, /When were you last prescribed/i)
+    await waitForStep(page, /Anything the doctor should know/i)
   })
 
   test("medication step proceeds with a name only — no strength, no form (A3 boundary 2)", async ({ page }) => {
@@ -416,22 +431,31 @@ test.describe("Prescription: step validation", () => {
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    await waitForStep(page, /Which medication do you need\?/i)
+    await waitForStep(page, /Your medication/i)
     await page.locator("#medication-name-0").fill("E2E name only med")
 
-    // A name alone is enough to advance; strength/form stay optional.
+    // A name alone is enough for the medicine itself; strength/form stay optional.
     await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
+    await clickChip(page, /Under 3 months/i)
+    await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
+    await page
+      .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
+      .getByRole("radio", { name: /No, unchanged/i })
+      .click()
+    await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
+    await clickChip(page, /No side effects/i)
+
     await clickContinue(page)
-    await waitForStep(page, /When were you last prescribed/i)
+    await waitForStep(page, /Anything the doctor should know/i)
   })
 
-  test("medication history requires an unchanged dose-and-directions confirmation", async ({ page }) => {
+  test("medication step requires an unchanged dose-and-directions confirmation", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    await completeMedicationStep(page)
-    await waitForStep(page, /When were you last prescribed/i)
+    await waitForStep(page, /Your medication/i)
+    await page.locator("#medication-name-0").fill("E2E test medication")
     await clickChip(page, /Under 3 months/i)
     await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
     await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
@@ -445,7 +469,7 @@ test.describe("Prescription: step validation", () => {
     })
     await regimenQuestion.getByRole("radio", { name: /Yes, changed/i }).click()
     await expect(page.getByText(/needs review by your regular GP or specialist/i).first()).toBeVisible()
-    await expect(page.getByText(/Your prescription history/i).first()).toBeVisible()
+    await expect(page.getByText(/Your medication/i).first()).toBeVisible()
 
     await regimenQuestion.getByRole("radio", { name: /No, unchanged/i }).click()
     await clickContinue(page)
@@ -457,30 +481,29 @@ test.describe("Prescription: step validation", () => {
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    await completeMedicationStep(page)
-    await waitForStep(page, /When were you last prescribed/i)
+    // The attestation belongs to the exact regimen the patient reviewed, so
+    // editing the medicine or the dose must clear it. P2.1 put both on the
+    // same screen as the question, so this now happens in place — no step
+    // navigation involved.
+    await waitForStep(page, /Your medication/i)
+    await page.locator("#medication-name-0").fill("E2E test medication")
     await clickChip(page, /Under 3 months/i)
     await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
     await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
     await clickChip(page, /No side effects/i)
-    const regimenQuestion = page.getByRole("radiogroup", {
-      name: /dose or the way you take this medicine changed/i,
-    })
-    await regimenQuestion.getByRole("radio", { name: /No, unchanged/i }).click()
-
-    await page.getByRole("button", { name: /Go back/i }).click()
-    await waitForStep(page, /Which medication do you need/i)
-    await page.locator("#medication-name-0").fill("E2E changed medication")
-    await clickContinue(page)
-    await waitForStep(page, /When were you last prescribed/i)
-
     const unchangedOption = page
       .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
       .getByRole("radio", { name: /No, unchanged/i })
+    await unchangedOption.click()
+    await expect(unchangedOption).toHaveAttribute("aria-checked", "true")
+
+    // Editing the medicine name clears the attestation.
+    await page.locator("#medication-name-0").fill("E2E changed medication")
     await expect(unchangedOption).toHaveAttribute("aria-checked", "false")
     await clickContinue(page)
     await expect(page.getByText(/Please confirm whether the dose or the way you take this medicine has changed/i).first()).toBeVisible()
 
+    // Re-attesting, then editing the dose text, clears it again.
     await unchangedOption.click()
     await page.getByPlaceholder(/2 puffs twice daily/i).fill("2 tablets daily")
     await expect(unchangedOption).toHaveAttribute("aria-checked", "false")
@@ -494,7 +517,6 @@ test.describe("Prescription: step validation", () => {
 
     // Fast-forward through steps to reach details
     await completeMedicationStep(page)
-    await completeMedicationHistoryStep(page)
     await completeMedicalHistoryStep(page)
 
     // On details step - enter invalid email
@@ -522,7 +544,6 @@ test.describe("Prescription: step validation", () => {
 
     // Complete all steps up to review
     await completeMedicationStep(page)
-    await completeMedicationHistoryStep(page)
     await completeMedicalHistoryStep(page)
     await completeDetailsStep(page)
 
@@ -545,7 +566,6 @@ test.describe("Prescription: checkout price verification", () => {
     await dismissOverlays(page)
 
     await completeMedicationStep(page)
-    await completeMedicationHistoryStep(page)
     await completeMedicalHistoryStep(page)
     await completeDetailsStep(page)
     await completeReviewStep(page)
@@ -566,7 +586,6 @@ test.describe("Prescription: checkout price verification", () => {
     await dismissOverlays(page)
 
     await completeMedicationStep(page)
-    await completeMedicationHistoryStep(page)
     await completeMedicalHistoryStep(page)
     await completeDetailsStep(page)
     await waitForStep(page, /One last check/i)
