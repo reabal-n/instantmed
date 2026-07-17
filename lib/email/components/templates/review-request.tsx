@@ -1,51 +1,53 @@
-/**
- * Review Request Email Template - Day 2 post-approval
- *
- * Uses ReviewHero as the prominent CTA, preceded by an optional one-click
- * "how did you hear about us?" attribution question (the email is the highest-
- * intent reachable moment for the marketing-consented cohort).
- */
+/** Review request email - the only email template that asks for a review. */
 
 import * as React from "react"
 
-import { APP_URL, BaseEmail, ReviewHero, Text } from "../base-email"
-import { HeardAboutUsLinks } from "../heard-about-us-links"
+import { resolveConfiguredUrl } from "@/lib/constants/resolve-configured-url"
+
+import {
+  APP_URL,
+  BaseEmail,
+  Button,
+  Heading,
+  NameFirstGreeting,
+  Text,
+} from "../base-email"
 
 export interface ReviewRequestEmailProps {
   patientName: string
-  serviceName: string
   appUrl?: string
-  /** Intake ID is retained for compatibility; the signed token powers attribution links. */
-  intakeId?: string
-  heardToken?: string
 }
 
-export const reviewRequestSubject = "Quick favour? ⭐"
+export const reviewRequestSubject = "How did InstantMed go?"
 
 export function ReviewRequestEmail({
   patientName,
-  serviceName,
   appUrl = APP_URL,
-  intakeId,
-  heardToken,
 }: ReviewRequestEmailProps) {
-  const firstName = patientName.split(" ")[0]
+  const firstName = patientName.trim().split(/\s+/)[0]
+  const baseUrl = resolveConfiguredUrl(appUrl, APP_URL).replace(/\/$/, "")
+  const reviewUrl = `${baseUrl}/api/review-redirect?utm_source=email&utm_medium=review_request&utm_campaign=review`
 
   return (
-    <BaseEmail previewText="If you've got a minute, a review would mean the world" appUrl={appUrl}>
-      <Text>Hey {firstName},</Text>
+    <BaseEmail previewText="Honest feedback is useful, good or bad." appUrl={appUrl}>
+      <NameFirstGreeting name={firstName} />
+
+      <Heading as="h1">How did InstantMed go?</Heading>
 
       <Text>
-        Glad we could help with your <strong>{serviceName}</strong>. We have a small favour to ask.
+        Hope everything went smoothly. If you have a minute, would you mind sharing how
+        InstantMed felt to use? Honest feedback is useful, good or bad.
       </Text>
 
-      {heardToken && <HeardAboutUsLinks appUrl={appUrl} token={heardToken} />}
+      <Text>
+        Please leave out personal or medical details — reviews are public.
+      </Text>
 
-      <ReviewHero
-        appUrl={appUrl}
-        intakeId={intakeId}
-        serviceCopy={`If we saved you a trip to the GP for your ${serviceName.toLowerCase()}, a quick review helps other Aussies skip the waiting room. A couple of sentences is plenty.`}
-      />
+      <Button href={reviewUrl}>Share an honest review</Button>
+
+      <Text style={{ marginBottom: 0 }}>
+        No pressure. This is the only review email we&apos;ll send for this request.
+      </Text>
     </BaseEmail>
   )
 }

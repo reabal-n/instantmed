@@ -10,7 +10,15 @@ import {
   ABANDONED_CHECKOUT_FOLLOWUP_LOOKBACK_HOURS,
   formatAbandonedCheckoutStartedAgo,
 } from "@/lib/email/abandoned-checkout-timing"
-import { buildEmailOutboxIdempotencyKey,DB_IDEMPOTENT_EMAIL_TYPES } from "@/lib/email/send/idempotency"
+import {
+  REVIEW_REQUEST_CATCH_UP_DAYS,
+  REVIEW_REQUEST_DELAY_HOURS,
+  REVIEW_REQUEST_PATIENT_COOLDOWN_DAYS,
+} from "@/lib/email/review-request-timing"
+import {
+  buildEmailOutboxIdempotencyKey,
+  DB_IDEMPOTENT_EMAIL_TYPES,
+} from "@/lib/email/send/idempotency"
 import { EMAIL_SEQUENCES } from "@/lib/email/sequence-registry"
 
 const partialRecoverySource = readFileSync(
@@ -27,6 +35,10 @@ const recoveryLinksSource = readFileSync(
 )
 const reviewRequestSource = readFileSync(
   join(process.cwd(), "lib/email/review-request.ts"),
+  "utf8",
+)
+const reviewRequestRouteSource = readFileSync(
+  join(process.cwd(), "app/api/cron/review-request/route.ts"),
   "utf8",
 )
 const sendEmailSource = readFileSync(
@@ -153,16 +165,19 @@ describe("email sequence ownership contract", () => {
     const first = buildEmailOutboxIdempotencyKey({
       email_type: "partial_intake_recovery",
       to_email: "Patient@Example.com",
-      metadata: { draft_session_id: "draft-123" },
+      metadata: { draft_idempotency_hash: "safe-hash-123" },
     })
     const second = buildEmailOutboxIdempotencyKey({
       email_type: "partial_intake_recovery",
       to_email: "patient@example.com",
-      metadata: { draft_session_id: "draft-123" },
+      metadata: { draft_idempotency_hash: "safe-hash-123" },
     })
 
     expect(first).toBe(second)
     expect(first).toMatch(/^email:partial_intake_recovery:/)
+    expect(partialRecoverySource).toContain("draftIdempotencyHash(draft.session_id)")
+    expect(partialRecoverySource).toContain("draft_idempotency_hash:")
+    expect(partialRecoverySource).not.toContain("draft_session_id:")
   })
 
   it("keeps internal digest emails retired in favor of dashboard-led operations", () => {
@@ -210,10 +225,24 @@ describe("email sequence ownership contract", () => {
     const sequence = EMAIL_SEQUENCES.find((item) => item.id === "review_request")
     const schedules = new Map(vercelConfig.crons.map((cron) => [cron.path, cron.schedule]))
 
-    expect(schedules.has("/api/cron/review-request")).toBe(true)
+    expect(schedules.get("/api/cron/review-request")).toBe("0 0,23 * * *")
     expect(sequence?.status).toBe("active")
-    expect(sequence?.cadence).toBe("Day 2 only")
+    expect(sequence?.owner).toBe("Post-fulfilment lifecycle")
+    expect(sequence?.trigger).toBe("Confirmed document or eScript delivery")
+    expect(sequence?.cadence).toBe("Once, 48h after fulfilment")
+    expect(sequence?.guard).toBe("One per request plus 30-day patient cooldown")
+    expect(REVIEW_REQUEST_DELAY_HOURS).toBe(48)
+    expect(REVIEW_REQUEST_CATCH_UP_DAYS).toBeGreaterThan(72 / 24)
+    expect(REVIEW_REQUEST_PATIENT_COOLDOWN_DAYS).toBe(30)
+    expect(reviewRequestRouteSource).toContain("isSydneyReviewRequestHour(now)")
+    expect(reviewRequestRouteSource).toContain("Outside the 10:00 Australia/Sydney send hour")
     expect(reviewRequestSource).toContain("findReviewRequestCandidates")
+    expect(reviewRequestSource).toContain('"document_sent_at"')
+    expect(reviewRequestSource).toContain('"script_sent_at"')
+    expect(reviewRequestSource).toContain('.eq("payment_status", "paid")')
+    expect(reviewRequestSource).toContain("REVIEW_REQUEST_CATCH_UP_DAYS")
+    expect(reviewRequestSource).toContain("REVIEW_REQUEST_PATIENT_COOLDOWN_DAYS")
+    expect(reviewRequestSource).not.toContain("seventyTwoHoursAgo")
     expect(reviewRequestSource).not.toContain("findReviewFollowupCandidates")
     expect(reviewRequestSource).not.toContain("sendReviewFollowupEmail")
     expect(reviewRequestSource).not.toContain("review_followup")
@@ -222,6 +251,51 @@ describe("email sequence ownership contract", () => {
     expect(readFileSync(join(process.cwd(), "app/(dev)/email-preview/page.tsx"), "utf8")).not.toContain("review-followup")
     expect(readFileSync(join(process.cwd(), "scripts/check-orphaned-files.sh"), "utf8")).toContain(
       "lib/email/components/templates/review-followup.tsx",
+    )
+  })
+
+  it("deduplicates review asks per request while allowing a later request after cooldown", () => {
+    const first = buildEmailOutboxIdempotencyKey({
+      email_type: "review_request",
+      to_email: "Patient@Example.com",
+      intake_id: "intake-123",
+      patient_id: "patient-123",
+    })
+    const sameRequest = buildEmailOutboxIdempotencyKey({
+      email_type: "review_request",
+      to_email: "patient@example.com",
+      intake_id: "intake-123",
+      patient_id: "patient-123",
+    })
+    const laterRequest = buildEmailOutboxIdempotencyKey({
+      email_type: "review_request",
+      to_email: "patient@example.com",
+      intake_id: "intake-456",
+      patient_id: "patient-123",
+    })
+
+    expect(DB_IDEMPOTENT_EMAIL_TYPES.has("review_request")).toBe(true)
+    expect(first).toBe(sameRequest)
+    expect(laterRequest).not.toBe(first)
+    expect(reviewRequestSource).toContain('.neq("intake_id", intakeId)')
+    expect(reviewRequestSource).toContain('.neq("id", intakeId)')
+  })
+
+  it("re-checks marketing consent immediately before the review send", () => {
+    const finalPreferenceCheck = reviewRequestSource.indexOf(
+      "if (!await canSendMarketingEmail(candidate.patient_id))",
+    )
+    const send = reviewRequestSource.indexOf("const result = await sendEmail({")
+
+    expect(finalPreferenceCheck).toBeGreaterThan(-1)
+    expect(send).toBeGreaterThan(finalPreferenceCheck)
+    expect(
+      reviewRequestSource.slice(finalPreferenceCheck, send).match(/\bawait\b/g) ?? [],
+    ).toHaveLength(1)
+    expect(sendEmailSource).toContain("This is intentionally the final asynchronous policy check")
+    expect(sendEmailSource).toContain("return canSendMarketingEmail(patientId)")
+    expect(sendEmailSource).toContain(
+      "if (!await isMarketingDeliveryAllowed(row.email_type, row.patient_id, row.to_email))",
     )
   })
 

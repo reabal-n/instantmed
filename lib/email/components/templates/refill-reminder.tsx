@@ -36,7 +36,6 @@ export function RefillReminderEmail({
     <BaseEmail
       previewText="Your repeat script may be running low. Reorder in a couple of minutes."
       appUrl={appUrl}
-      showReferral
     >
       <Text>Hi {firstName},</Text>
 

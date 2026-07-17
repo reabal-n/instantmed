@@ -27,7 +27,7 @@ export const EMAIL_SEQUENCES: readonly EmailSequenceDefinition[] = [
     owner: "Pre-checkout draft",
     trigger: "Captured email, no submitted intake",
     cadence: "Hourly at :15",
-    guard: "Excludes review and checkout steps",
+    guard: "One per draft; encrypted outbox payload is dispatcher-retryable",
   },
   {
     id: "abandoned_checkout",
@@ -51,10 +51,10 @@ export const EMAIL_SEQUENCES: readonly EmailSequenceDefinition[] = [
     id: "review_request",
     name: "Review request",
     status: "active",
-    owner: "Post-approval lifecycle",
-    trigger: "Approved or completed request",
-    cadence: "Day 2 only",
-    guard: "review_email_sent_at timestamp on intake",
+    owner: "Post-fulfilment lifecycle",
+    trigger: "Confirmed document or eScript delivery",
+    cadence: "Once, 48h after fulfilment",
+    guard: "One per request plus 30-day patient cooldown",
   },
   {
     id: "treatment_followup",

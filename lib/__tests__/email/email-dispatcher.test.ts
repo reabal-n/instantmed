@@ -39,6 +39,11 @@ vi.mock("@/lib/email/send-email", () => ({
   sendFromOutboxRow: (...args: unknown[]) => mockSendFromOutboxRow(...args),
 }))
 
+const mockRecoverLegacyQuietFailures = vi.fn()
+vi.mock("@/lib/email/recover-legacy-quiet-failures", () => ({
+  recoverLegacyQuietFailures: (...args: unknown[]) => mockRecoverLegacyQuietFailures(...args),
+}))
+
 // Import after mocks
 import {
   getEmailDispatcherStats,
@@ -103,16 +108,18 @@ function mockOutboxSelect(
   // so we need a mock that supports both select (the fetch query) and update.
   const updateChain: Record<string, unknown> = {}
   updateChain.eq = vi.fn(() => updateChain)
+  updateChain.is = vi.fn(() => updateChain)
   updateChain.lt = vi.fn(() => updateChain)
   updateChain.select = vi.fn().mockResolvedValue({ data: [], error: null })
-  updateChain.update = vi.fn(() => updateChain)
+  const updateMock = vi.fn(() => updateChain)
+  updateChain.update = updateMock
 
   mockSupabaseFrom.mockImplementation(() => ({
     select: selectMock,
     update: updateChain.update,
   }))
 
-  return { selectMock, inMock, ltMock, orMock, orderMock, limitMock }
+  return { selectMock, inMock, ltMock, orMock, orderMock, limitMock, updateMock }
 }
 
 /**
@@ -126,7 +133,15 @@ function mockStatsQueries(
   quietExhausted = 0,
 ) {
   let callCount = 0
-  const counts = [pending, failed, exhausted, quietFailed, quietExhausted]
+  const counts = [
+    pending,
+    failed,
+    exhausted,
+    quietFailed,
+    quietExhausted,
+    0,
+    0,
+  ]
 
   mockSupabaseFrom.mockImplementation(() => {
     const idx = callCount++
@@ -163,6 +178,7 @@ describe("email-dispatcher", () => {
     // Default: warmup allows sends
     mockCheckDailySendLimit.mockResolvedValue({ allowed: true, current: 5, limit: 200 })
     mockIncrementDailySendCount.mockResolvedValue(undefined)
+    mockRecoverLegacyQuietFailures.mockResolvedValue(0)
   })
 
   // -----------------------------------------------------------------------
@@ -507,22 +523,59 @@ describe("email-dispatcher", () => {
       )
     })
 
-    it("quietly fails cron-owned partial_intake_recovery without a Sentry warning", async () => {
-      const candidate = makeCandidate({ email_type: "partial_intake_recovery", certificate_id: null })
-      mockOutboxSelect([candidate])
-      mockClaimOutboxRow.mockResolvedValue({ claimed: true, row: candidate })
+    it("retries partial-intake and review rows instead of quiet-failing them", async () => {
+      const partial = makeCandidate({
+        id: "partial",
+        email_type: "partial_intake_recovery",
+        certificate_id: null,
+      })
+      const review = makeCandidate({
+        id: "review",
+        email_type: "review_request",
+        certificate_id: null,
+      })
+      mockOutboxSelect([partial, review])
+      mockClaimOutboxRow
+        .mockResolvedValueOnce({ claimed: true, row: partial })
+        .mockResolvedValueOnce({ claimed: true, row: review })
+      mockSendFromOutboxRow.mockResolvedValue({ success: true })
 
       const result = await processEmailDispatch()
 
-      expect(result.failed).toBe(1)
-      expect(result.results[0]).toMatchObject({
-        success: false,
-        error: "Unsupported email_type: partial_intake_recovery",
-      })
-      expect(mockSendFromOutboxRow).not.toHaveBeenCalled()
-      // Cron owns the resend, so the dispatcher must NOT raise a Sentry alarm
+      expect(result.sent).toBe(2)
+      expect(result.failed).toBe(0)
+      expect(mockSendFromOutboxRow).toHaveBeenCalledWith(partial)
+      expect(mockSendFromOutboxRow).toHaveBeenCalledWith(review)
       expect(Sentry.captureMessage).not.toHaveBeenCalledWith(
         expect.stringContaining("permanently failed"),
+        expect.anything(),
+      )
+    })
+
+    it("terminally handles a suppressed review row without counting a delivery", async () => {
+      const review = makeCandidate({
+        id: "review-suppressed",
+        email_type: "review_request",
+        certificate_id: null,
+      })
+      const { updateMock } = mockOutboxSelect([review])
+      mockClaimOutboxRow.mockResolvedValue({ claimed: true, row: review })
+      mockSendFromOutboxRow.mockResolvedValue({
+        success: false,
+        suppressed: true,
+        error: "Suppressed before delivery",
+      })
+
+      const result = await processEmailDispatch()
+
+      expect(result.sent).toBe(0)
+      expect(result.failed).toBe(0)
+      expect(result.skipped).toBe(1)
+      expect(updateMock).toHaveBeenCalledWith({
+        review_email_sent_at: expect.any(String),
+      })
+      expect(Sentry.captureMessage).not.toHaveBeenCalledWith(
+        expect.stringContaining("exhausted all"),
         expect.anything(),
       )
     })

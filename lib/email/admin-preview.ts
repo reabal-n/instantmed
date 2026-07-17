@@ -114,8 +114,6 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       verificationCode: d.verificationCode,
       certType: (d.certType as "work" | "study" | "carer") || "work",
       appUrl: APP_URL,
-      // Sample token so the "how did you find us?" attribution MCQ renders in preview.
-      heardToken: "PREVIEW_SAMPLE_TOKEN",
     }),
   },
   {
@@ -148,7 +146,6 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       requestId: "abc-123",
       doctorNotes: d.doctorNotes,
       appUrl: APP_URL,
-      heardToken: "PREVIEW_SAMPLE_TOKEN",
     }),
   },
   {
@@ -162,7 +159,6 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       requestId: "abc-123",
       escriptReference: d.escriptReference,
       appUrl: APP_URL,
-      heardToken: "PREVIEW_SAMPLE_TOKEN",
     }),
   },
   {

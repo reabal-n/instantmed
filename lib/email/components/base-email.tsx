@@ -14,8 +14,6 @@ import { ABN, APP_URL, COMPANY_ADDRESS_SHORT, COMPANY_NAME } from "@/lib/constan
 import { resolveConfiguredUrl } from "@/lib/constants/resolve-configured-url"
 
 import { colors, fontFamily } from "./email-primitives"
-import { HeardAboutUsLinks } from "./heard-about-us-links"
-import { GoogleReviewCTA, ReferralCTA } from "./review-cta"
 
 /* eslint-disable @next/next/no-head-element -- Email templates, not Next.js pages */
 
@@ -29,23 +27,9 @@ interface BaseEmailProps {
   children: React.ReactNode
   previewText?: string
   appUrl?: string
-  /** Show the Google Review CTA after content. Default false. */
-  showReviewCTA?: boolean
-  /** Show the referral CTA after content. Default false. */
-  showReferral?: boolean
-  /** Deprecated compatibility input. Review tracking is aggregate-only. */
-  intakeId?: string
-  /** Deprecated compatibility input. Review tracking is aggregate-only. */
-  userId?: string
-  /**
-   * Signed heard-about-us token. When present, renders the one-click
-   * "how did you find us?" attribution MCQ below the review CTA. Generated in
-   * the send path (e.g. reconstruct.ts) via signHeardAboutUsToken(intakeId).
-   */
-  heardToken?: string
 }
 
-export function BaseEmail({ children, previewText, appUrl = APP_URL, showReviewCTA = false, showReferral = false, heardToken }: BaseEmailProps) {
+export function BaseEmail({ children, previewText, appUrl = APP_URL }: BaseEmailProps) {
   const resolvedAppUrl = resolveConfiguredUrl(appUrl, APP_URL).replace(/\/$/, "")
   return (
     <html lang="en-AU" style={{ colorScheme: "light dark" }}>
@@ -89,10 +73,15 @@ export function BaseEmail({ children, previewText, appUrl = APP_URL, showReviewC
               color: #e5e5e5 !important;
             }
             .email-card a { color: #60A5FA !important; }
-            .google-review-pill { background-color: #262626 !important; border-color: #404040 !important; }
-            .google-review-pill p { color: #d4d4d4 !important; }
-            .google-review-pill .g-muted { color: #a3a3a3 !important; }
-            .google-review-btn { background-color: #3B82F6 !important; color: #ffffff !important; }
+            .email-card .email-button-primary {
+              background-color: #2563EB !important;
+              color: #ffffff !important;
+            }
+            .email-card .email-button-secondary {
+              background-color: transparent !important;
+              border-color: #475569 !important;
+              color: #e5e5e5 !important;
+            }
             .email-box { background-color: #1f1f1f !important; border-color: #333 !important; }
             .email-code-block { background-color: #1f1f1f !important; border-color: #333 !important; }
           }
@@ -239,9 +228,6 @@ export function BaseEmail({ children, previewText, appUrl = APP_URL, showReviewC
                         }}
                       >
                         {children}
-                        {showReviewCTA && <GoogleReviewCTA appUrl={resolvedAppUrl} />}
-                        {heardToken && <HeardAboutUsLinks appUrl={resolvedAppUrl} token={heardToken} />}
-                        {showReferral && <ReferralCTA appUrl={resolvedAppUrl} />}
                       </td>
                     </tr>
 
@@ -360,7 +346,7 @@ export function Text({ children, muted, small, style }: TextProps) {
     <p
       style={{
         margin: "0 0 12px 0",
-        fontSize: small ? "13px" : "15px",
+        fontSize: small ? "13px" : "16px",
         color: muted ? colors.textMuted : colors.textBody,
         lineHeight: "1.6",
         ...style,
@@ -386,11 +372,15 @@ export function Button({ href, children, variant = "primary" }: ButtonProps) {
           <td style={{ textAlign: "center" as const }}>
             <a
               href={href}
+              className={`email-button ${isPrimary ? "email-button-primary" : "email-button-secondary"}`}
               style={{
                 display: "inline-block",
                 padding: isPrimary ? "14px 32px" : "12px 28px",
-                fontSize: "15px",
+                boxSizing: "border-box",
+                minHeight: "48px",
+                fontSize: "16px",
                 fontWeight: "600",
+                lineHeight: isPrimary ? "20px" : "22px",
                 textDecoration: "none",
                 borderRadius: "12px",
                 letterSpacing: "0.01em",
@@ -632,5 +622,4 @@ export function HeroBlock({ icon, headline, subtitle, variant = "info" }: HeroBl
 // Re-export extracted modules so existing `import { X } from "…/base-email"` still works
 export { colors, fontFamily } from "./email-primitives"
 export { NameFirstGreeting } from "./name-first-greeting"
-export { GoogleReviewCTA, ReferralCTA, ReviewHero } from "./review-cta"
 export { VerificationCode } from "./verification-code"

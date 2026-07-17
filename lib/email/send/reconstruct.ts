@@ -10,7 +10,6 @@ import * as Sentry from "@sentry/nextjs"
 import { buildVerifiedCompleteAccountHref } from "@/lib/auth/complete-account-handoff"
 import { env } from "@/lib/config/env"
 import { getEmployerCertificateDownloadHref } from "@/lib/crypto/employer-certificate-token"
-import { signHeardAboutUsToken } from "@/lib/crypto/heard-about-us-token"
 import {
   getCertificateById,
   getCertificateForIntake,
@@ -25,16 +24,6 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { renderEmailToHtml } from "../react-renderer-server"
 import type { OutboxRow } from "./types"
-
-/** Best-effort heard-about-us token; never throws (a missing INTERNAL_API_SECRET must not break an approval email). */
-function safeHeardToken(intakeId: string | null | undefined): string | undefined {
-  if (!intakeId) return undefined
-  try {
-    return signHeardAboutUsToken(intakeId)
-  } catch {
-    return undefined
-  }
-}
 
 /**
  * Reconstruct email HTML from intake/certificate data based on email_type.
@@ -98,11 +87,6 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       ? `${env.appUrl}${getGuestCertificateAccessHref(cert.intake_id)}`
       : `${env.appUrl}${getPatientIntakeDetailHref(cert.intake_id)}`
 
-    // One-click "how did you find us?" attribution MCQ, shown below the Google
-    // review CTA in the approval email. Best-effort: a missing INTERNAL_API_SECRET
-    // must not break the cert email.
-    const heardToken = safeHeardToken(cert.intake_id)
-
     const template = MedCertPatientEmail({
       patientName: cert.patient_name,
       dashboardUrl,
@@ -110,8 +94,6 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       certType: cert.certificate_type as "work" | "study" | "carer",
       appUrl: env.appUrl,
       isGuest,
-      heardToken,
-      intakeId: cert.intake_id,
     })
 
     const html = await renderEmailToHtml(template)
@@ -224,7 +206,6 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       requestId: ctx.intake.id,
       escriptReference: ctx.intake.parchment_reference || undefined,
       appUrl: env.appUrl,
-      heardToken: safeHeardToken(ctx.intake.id),
     })
 
     const html = await renderEmailToHtml(template)
@@ -515,11 +496,52 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       requestId: ctx.intake.id,
       doctorNotes: metadata?.doctorNotes || undefined,
       appUrl: env.appUrl,
-      heardToken: safeHeardToken(ctx.intake.id),
     })
 
     const html = await renderEmailToHtml(template)
     return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // review_request - current neutral review template. Used by legacy rows
+  // whose old frozen payload is discarded during quiet-failure recovery.
+  // ----------------------------------------------------------------
+  if (row.email_type === "review_request") {
+    if (!row.intake_id) {
+      return {
+        success: false,
+        error: "review_request requires intake_id for reconstruction",
+        terminal: true,
+      }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const { ReviewRequestEmail } = await import(
+      "@/lib/email/components/templates/review-request"
+    )
+    const template = ReviewRequestEmail({
+      patientName: ctx.patient.full_name || row.to_name || "",
+      appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // partial_intake_recovery - current rows store an encrypted provider payload
+  // containing the bearer resume link. Reconstructing that link from plaintext
+  // outbox metadata would weaken draft security, so a genuinely legacy row
+  // without the frozen payload fails loudly and terminally.
+  // ----------------------------------------------------------------
+  if (row.email_type === "partial_intake_recovery") {
+    return {
+      success: false,
+      error: "Partial-intake recovery row has no encrypted provider payload; secure reconstruction is unavailable",
+      terminal: true,
+    }
   }
 
   // ----------------------------------------------------------------

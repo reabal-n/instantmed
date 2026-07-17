@@ -58,6 +58,9 @@ export function htmlToPlainText(html: string): string {
     // Remove style and script blocks entirely
     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+    // Remove the hidden preview/preheader and its invisible padding. It helps
+    // visual inbox clients but must not pollute the real text/plain part.
+    .replace(/<div[^>]*style="[^"]*display:\s*none[^"]*"[^>]*>[\s\S]*?<\/div>/gi, "")
     // Replace common block elements with newlines
     .replace(/<\/?(div|p|h[1-6]|br|hr|li|tr)[^>]*>/gi, "\n")
     // Replace links with text + URL
@@ -72,6 +75,14 @@ export function htmlToPlainText(html: string): string {
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&apos;/g, "'")
+    .replace(/&#x([0-9a-f]+);/gi, (entity, hex: string) => {
+      const codePoint = Number.parseInt(hex, 16)
+      return codePoint <= 0x10ffff ? String.fromCodePoint(codePoint) : entity
+    })
+    .replace(/&#(\d+);/g, (entity, decimal: string) => {
+      const codePoint = Number.parseInt(decimal, 10)
+      return codePoint <= 0x10ffff ? String.fromCodePoint(codePoint) : entity
+    })
     // Normalize whitespace
     .replace(/\n\s*\n\s*\n/g, "\n\n")
     .replace(/[ \t]+/g, " ")

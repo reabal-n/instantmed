@@ -6,6 +6,7 @@ import {
   CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES,
   isCronOwnedNonReconstructableEmailType,
 } from "@/lib/email/quiet-failures"
+import { recoverLegacyQuietFailures } from "@/lib/email/recover-legacy-quiet-failures"
 import { EMAIL_DISPATCHER_MAX_RETRIES } from "@/lib/email/retry-policy"
 import { claimOutboxRow } from "@/lib/email/send/outbox"
 import { MARKETING_EMAIL_TYPES } from "@/lib/email/send/types"
@@ -64,17 +65,18 @@ export const SUPPORTED_EMAIL_TYPES = [
   "request_received",
   "request_approved",
   "still_reviewing",
+  "partial_intake_recovery",
+  "review_request",
 ] as const
 
 function isSupportedEmailType(emailType: string): boolean {
   return SUPPORTED_EMAIL_TYPES.includes(emailType as typeof SUPPORTED_EMAIL_TYPES[number])
 }
 
-// One-off marketing/recovery emails owned by their own cron/route. They are NOT
-// reconstructable by the generic dispatcher and must NOT be retried here — the
-// owning cron self-heals on its next eligible run. The shared type list lives in
-// quiet-failures.ts because operator-facing stats also need to suppress this
-// expected dispatcher bookkeeping row without hiding real provider failures.
+// Remaining one-off marketing emails that are not reconstructable stay in the
+// shared quiet-failure list. Review requests and partial-intake recovery are
+// deliberately supported above: current rows replay their encrypted provider
+// payload and legacy anomalies alert instead of disappearing.
 
 /**
  * Permanently fail an outbox row so it won't be retried.
@@ -109,8 +111,8 @@ async function permanentlyFailOutboxRow(outboxId: string, errorMessage: string, 
 
 /**
  * Permanently fail an outbox row WITHOUT a Sentry warning. For cron-owned one-off
- * emails the generic dispatcher cannot reconstruct (refill reminder, heard-about-us,
- * partial-intake recovery): their owning cron handles the resend, so an
+ * emails the generic dispatcher cannot reconstruct (refill reminder,
+ * heard-about-us): their owning cron handles the resend, so an
  * unreconstructable outbox copy is expected — not a reconstruct anomaly worth alerting.
  */
 async function quietlyFailOutboxRow(outboxId: string, errorMessage: string): Promise<void> {
@@ -195,6 +197,7 @@ export interface DispatcherResult {
  */
 export async function processEmailDispatch(): Promise<DispatcherResult> {
   await recoverStaleSendingRows()
+  await recoverLegacyQuietFailures()
 
   // Respect domain warmup for marketing only. Transactional clinical/payment
   // delivery must continue even when launch warmup is capped.
@@ -311,11 +314,47 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
 
     if (result.success) {
       sent++
+    } else if (result.suppressed) {
+      skipped++
+    } else {
+      failed++
+    }
+
+    if (
+      (result.success || result.suppressed) &&
+      claimedRow.email_type === "review_request" &&
+      claimedRow.intake_id
+    ) {
+      const { error } = await supabase
+        .from("intakes")
+        .update({ review_email_sent_at: new Date().toISOString() })
+        .eq("id", claimedRow.intake_id)
+        .is("review_email_sent_at", null)
+
+      if (error) {
+        logger.error("[Email Dispatcher] Review request handled marker failed", {
+          intakeId: claimedRow.intake_id,
+          outboxId: claimedRow.id,
+          disposition: result.success ? "sent" : "suppressed",
+          error: error.message,
+        })
+        Sentry.captureMessage("Review request handled marker failed after dispatcher attempt", {
+          level: "error",
+          tags: { subsystem: "email-dispatcher", email_type: "review_request" },
+          extra: {
+            intakeId: claimedRow.intake_id,
+            outboxId: claimedRow.id,
+            disposition: result.success ? "sent" : "suppressed",
+          },
+        })
+      }
+    }
+
+    if (result.success) {
       if (isMarketingEmailType(claimedRow.email_type)) {
         incrementDailySendCount().catch(() => {})
       }
-    } else {
-      failed++
+    } else if (!result.suppressed) {
       // Alert if this failure just exhausted all retries
       if (claimedRow.retry_count + 1 >= MAX_RETRIES) {
         Sentry.captureMessage(`Email exhausted all ${MAX_RETRIES} retries`, {
@@ -332,7 +371,12 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
       }
     }
 
-    results.push({ id: row.id, success: result.success, error: result.error })
+    results.push({
+      id: row.id,
+      success: result.success,
+      error: result.error,
+      skipped: result.suppressed,
+    })
   }
 
   logger.info("[Email Dispatcher] Batch complete", { sent, failed, skipped })
@@ -357,7 +401,15 @@ export async function getEmailDispatcherStats(): Promise<{
 }> {
   const supabase = createServiceRoleClient()
 
-  const [pendingRes, failedRes, exhaustedRes, quietFailedRes, quietExhaustedRes] = await Promise.all([
+  const [
+    pendingRes,
+    failedRes,
+    exhaustedRes,
+    quietFailedRes,
+    quietExhaustedRes,
+    suppressedFailedRes,
+    suppressedExhaustedRes,
+  ] = await Promise.all([
     supabase
       .from("email_outbox")
       .select("id", { count: "exact", head: true })
@@ -386,11 +438,33 @@ export async function getEmailDispatcherStats(): Promise<{
       .gte("retry_count", MAX_RETRIES)
       .in("email_type", [...CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES])
       .like("error_message", "Unsupported email_type:%"),
+    supabase
+      .from("email_outbox")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "failed")
+      .lt("retry_count", MAX_RETRIES)
+      .like("error_message", "Suppressed before delivery:%"),
+    supabase
+      .from("email_outbox")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "failed")
+      .gte("retry_count", MAX_RETRIES)
+      .like("error_message", "Suppressed before delivery:%"),
   ])
 
   const pending = pendingRes.count || 0
-  const failed = Math.max((failedRes.count || 0) - (quietFailedRes.count || 0), 0)
-  const exhausted = Math.max((exhaustedRes.count || 0) - (quietExhaustedRes.count || 0), 0)
+  const failed = Math.max(
+    (failedRes.count || 0) -
+      (quietFailedRes.count || 0) -
+      (suppressedFailedRes.count || 0),
+    0,
+  )
+  const exhausted = Math.max(
+    (exhaustedRes.count || 0) -
+      (quietExhaustedRes.count || 0) -
+      (suppressedExhaustedRes.count || 0),
+    0,
+  )
 
   return {
     pending,

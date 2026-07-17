@@ -1,9 +1,9 @@
 /**
  * Review-CTA destination contract.
  *
- * The review CTAs in our emails redirect through /api/review-redirect to a
- * rotating OFF-SITE destination — ProductReview.com.au by default — never
- * directly to a single named platform.
+ * The dedicated review email redirects through /api/review-redirect to the
+ * OFF-SITE ProductReview.com.au destination, never directly to a named
+ * platform from the template.
  *
  * Regression guard (2026-06-23): `PRODUCTREVIEW_REVIEW_URL` was an unset env
  * with a `|| ""` fallback, so getRotatingReviewUrl silently resolved to Google
@@ -16,19 +16,19 @@
  * counting, rating, quoting, or schema-marking any review on our own surfaces
  * is the s133 line (ADVERTISING_COMPLIANCE.md §6) — out of scope for this file.
  */
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
 import { getRotatingReviewUrl } from "@/lib/constants"
 
-const reviewCtaSource = readFileSync(
-  join(process.cwd(), "lib/email/components/review-cta.tsx"),
-  "utf8",
-)
 const reviewRequestTemplateSource = readFileSync(
   join(process.cwd(), "lib/email/components/templates/review-request.tsx"),
+  "utf8",
+)
+const reviewRedirectSource = readFileSync(
+  join(process.cwd(), "app/api/review-redirect/route.ts"),
   "utf8",
 )
 const reviewAskCardSource = readFileSync(
@@ -42,12 +42,23 @@ describe("review CTA destination contract", () => {
     // naming Google in the button/body is misleading + reads as single-platform
     // solicitation. Keep the copy destination-neutral ("Leave a review").
     for (const [label, source] of [
-      ["review CTA", reviewCtaSource],
       ["review request template", reviewRequestTemplateSource],
       ["review ask card", reviewAskCardSource],
     ] as const) {
       expect(source, label).not.toMatch(/Google review/i)
     }
+  })
+
+  it("keeps the reusable email review/referral block deleted", () => {
+    expect(
+      existsSync(join(process.cwd(), "lib/email/components/review-cta.tsx")),
+    ).toBe(false)
+  })
+
+  it("pins the dedicated review email medium to ProductReview", () => {
+    expect(reviewRequestTemplateSource).toContain("utm_medium=review_request")
+    expect(reviewRedirectSource).toContain('medium === "review_request"')
+    expect(reviewRedirectSource).toContain("PRODUCTREVIEW_REVIEW_URL")
   })
 
   it("routes the on-site review ask through the rotating redirect, never a hardcoded platform", () => {

@@ -9,6 +9,9 @@
  * 5. Snapshot stability (catches unintentional visual regressions)
  */
 
+import { existsSync, readdirSync,readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import * as React from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -54,6 +57,10 @@ import {
   StillReviewingEmail,
   stillReviewingSubject,
 } from "@/lib/email/components/templates"
+import { CertReactivationEmail } from "@/lib/email/components/templates/cert-reactivation"
+import { HeardAboutUsAskEmail } from "@/lib/email/components/templates/heard-about-us-ask"
+import { RefillReminderEmail } from "@/lib/email/components/templates/refill-reminder"
+import { htmlToPlainText } from "@/lib/email/utils"
 
 // ============================================================================
 // HELPERS
@@ -79,6 +86,30 @@ function expectContains(html: string, ...substrings: string[]) {
   for (const s of substrings) {
     expect(html).toContain(s)
   }
+}
+
+function contrastRatio(foreground: string, background: string): number {
+  const luminance = (hex: string) => {
+    const channels = hex
+      .replace("#", "")
+      .match(/.{2}/g)!
+      .map((channel) => Number.parseInt(channel, 16) / 255)
+      .map((channel) => (
+        channel <= 0.04045
+          ? channel / 12.92
+          : ((channel + 0.055) / 1.055) ** 2.4
+      ))
+
+    return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+  }
+
+  const foregroundLuminance = luminance(foreground)
+  const backgroundLuminance = luminance(background)
+  return (
+    Math.max(foregroundLuminance, backgroundLuminance) + 0.05
+  ) / (
+    Math.min(foregroundLuminance, backgroundLuminance) + 0.05
+  )
 }
 
 // ============================================================================
@@ -695,16 +726,56 @@ describe("Email Templates", () => {
   })
 
   describe("ReviewRequestEmail", () => {
-    it("renders content", () => {
+    it("renders the approved neutral ask with accessible structure", () => {
       const html = render(
-        <ReviewRequestEmail patientName="Test Patient" serviceName="Medical Certificate" appUrl={APP_URL} />
+        <ReviewRequestEmail patientName="Sarah Parker" appUrl={APP_URL} />
       )
+
       expectBaseEmailStructure(html)
-      expectContains(html, "Test")
+      expect(reviewRequestSubject).toBe("How did InstantMed go?")
+      expectContains(
+        html,
+        "Sarah,",
+        "How did InstantMed go?",
+        "Hope everything went smoothly. If you have a minute, would you mind sharing how InstantMed felt to use? Honest feedback is useful, good or bad.",
+        "Please leave out personal or medical details — reviews are public.",
+        "Share an honest review",
+        "No pressure. This is the only review email we&#x27;ll send for this request.",
+      )
+      expect(html.match(/<h1\b/g)).toHaveLength(1)
+      expect(html).toContain("font-size:16px")
+      expect(html).toContain("min-height:48px")
+      expect(html.match(/\/api\/review-redirect\?/g)).toHaveLength(1)
+      expect(html).not.toContain("Medical Certificate")
+      expect(html).not.toContain("★★★★★")
+      expect(html.toLowerCase()).not.toContain("quick favour")
+      expect(html.toLowerCase()).not.toContain("means the world")
     })
 
-    it("subject is non-empty", () => {
-      expect(reviewRequestSubject).toBeTruthy()
+    it("produces a readable plain-text alternative with the review URL", () => {
+      const html = render(
+        <ReviewRequestEmail patientName="Sarah Parker" appUrl={APP_URL} />
+      )
+      const text = htmlToPlainText(html)
+
+      expect(text).toContain("Sarah,")
+      expect(text).toContain("Hope everything went smoothly.")
+      expect(text).toContain("Please leave out personal or medical details — reviews are public.")
+      expect(text).toContain("Share an honest review (https://instantmed.com.au/api/review-redirect?")
+      expect(text).toContain("No pressure. This is the only review email we'll send for this request.")
+      expect(text).not.toContain("\u200c")
+    })
+
+    it("uses AA contrast tokens in light and dark mode", () => {
+      const html = render(
+        <ReviewRequestEmail patientName="Sarah Parker" appUrl={APP_URL} />
+      )
+
+      expect(contrastRatio("#475569", "#FFFFFF")).toBeGreaterThanOrEqual(4.5)
+      expect(contrastRatio("#FFFFFF", "#2563EB")).toBeGreaterThanOrEqual(4.5)
+      expect(contrastRatio("#5F6F85", "#F8F7F4")).toBeGreaterThanOrEqual(4.5)
+      expect(html).toContain("background-color:#2563EB")
+      expect(html).toContain("color:#5F6F85")
     })
   })
 
@@ -820,7 +891,7 @@ describe("Email Template Cross-Checks", () => {
       <RequestReceivedEmail key="22" patientName="Test" requestType="Med Cert" amount="$19.95" requestId="R11" appUrl={APP_URL} />,
       <RefundIssuedEmail key="23" patientName="Test" requestType="Med Cert" requestId="R12" appUrl={APP_URL} />,
       <StillReviewingEmail key="25" patientName="Test" requestType="Med Cert" requestId="R13" appUrl={APP_URL} />,
-      <ReviewRequestEmail key="31" patientName="Test" serviceName="Medical Certificate" appUrl={APP_URL} />,
+      <ReviewRequestEmail key="31" patientName="Test" appUrl={APP_URL} />,
       <AbandonedCheckoutFollowupEmail key="33" patientName="Test" serviceName="Medical Certificate" resumeUrl="https://instantmed.com.au/request?resume=abc" appUrl={APP_URL} />,
       <MagicLinkEmail key="35" loginUrl="https://example.com/auth/confirm#token_hash=abc&type=magiclink" appUrl={APP_URL} />,
     ]
@@ -1022,7 +1093,7 @@ describe("Link validation", () => {
       />
     ),
     ReviewRequestEmail: (
-      <ReviewRequestEmail patientName="Test Patient" serviceName="Medical Certificate" appUrl={APP_URL} />
+      <ReviewRequestEmail patientName="Test Patient" appUrl={APP_URL} />
     ),
     AbandonedCheckoutFollowupEmail: (
       <AbandonedCheckoutFollowupEmail patientName="Test Patient" serviceName="Medical Certificate" resumeUrl="https://instantmed.com.au/request?resume=abc" appUrl={APP_URL} />
@@ -1087,51 +1158,59 @@ describe("Link validation", () => {
 })
 
 // =============================================
-// Google Review UTM tracking
+// Review request ownership
 // =============================================
 
-describe("Google Review UTM tracking", () => {
-  // Templates that include Google review links (footer or inline)
-  const reviewTemplates: Record<string, React.ReactElement> = {
-    MedCertPatientEmail: (
-      <MedCertPatientEmail
-        patientName="Test"
-        dashboardUrl="https://instantmed.com.au/patient/intakes/123"
-        verificationCode="ABC-1234"
-        appUrl={APP_URL}
-      />
-    ),
-    ScriptSentEmail: (
-      <ScriptSentEmail
-        patientName="Test"
-        requestId="REQ-001"
-        escriptReference="ES-001"
-        appUrl={APP_URL}
-      />
-    ),
-    ReviewRequestEmail: (
-      <ReviewRequestEmail
-        patientName="Test"
-        serviceName="Medical Certificate"
-        appUrl={APP_URL}
-      />
-    ),
-  }
+describe("Review request ownership", () => {
+  it("keeps the review redirect in ReviewRequestEmail only", () => {
+    const templates: Record<string, React.ReactElement> = {
+      MedCertPatientEmail: (
+        <MedCertPatientEmail
+          patientName="Test"
+          dashboardUrl="https://instantmed.com.au/patient/intakes/123"
+          verificationCode="ABC-1234"
+          appUrl={APP_URL}
+        />
+      ),
+      ScriptSentEmail: (
+        <ScriptSentEmail
+          patientName="Test"
+          requestId="REQ-001"
+          escriptReference="ES-001"
+          appUrl={APP_URL}
+        />
+      ),
+      ConsultApprovedEmail: (
+        <ConsultApprovedEmail
+          patientName="Test"
+          requestId="REQ-002"
+          appUrl={APP_URL}
+        />
+      ),
+      ReviewRequestEmail: (
+        <ReviewRequestEmail
+          patientName="Test"
+          appUrl={APP_URL}
+        />
+      ),
+    }
 
-  for (const [name, element] of Object.entries(reviewTemplates)) {
-    it(`${name} - review redirect links include utm_source=email`, () => {
+    for (const [name, element] of Object.entries(templates)) {
       const html = renderToStaticMarkup(element)
-      // Review links now go through /api/review-redirect with UTM params
-      const reviewUrls = html.match(/\/api\/review-redirect\?[^"]+/g)
-      expect(reviewUrls?.length, `${name} should have at least one review redirect link`).toBeGreaterThan(0)
-      // Every review link must have UTM tracking
-      expect(html).toContain("utm_source=email")
-    })
-  }
+      const reviewUrls = html.match(/\/api\/review-redirect\?/g) ?? []
+
+      expect(reviewUrls, name).toHaveLength(name === "ReviewRequestEmail" ? 1 : 0)
+    }
+
+    const reviewHtml = renderToStaticMarkup(templates.ReviewRequestEmail)
+    expect(reviewHtml).toContain("utm_source=email")
+    expect(reviewHtml).toContain("utm_medium=review_request")
+    expect(reviewHtml).toContain("utm_campaign=review")
+  })
 
   it("falls back from a placeholder appUrl before rendering review links", () => {
     const html = renderToStaticMarkup(
-      <ReviewRequestEmail patientName="Test" serviceName="Medical Certificate" appUrl="https://example.com" />,
+      <ReviewRequestEmail patientName="Test" appUrl="https://example.com" />,
     )
 
     expect(html).toContain("/api/review-redirect")
@@ -1171,29 +1250,220 @@ describe("Preheader length validation", () => {
 })
 
 // =============================================
-// Referral CTA UTM tracking
+// Patient-email content ownership
 // =============================================
 
-describe("Referral CTA UTM tracking", () => {
-  const referralTemplates: Record<string, React.ReactElement> = {
+describe("Patient-email content ownership", () => {
+  const patientTemplates: Record<string, React.ReactElement> = {
     MedCertPatientEmail: (
-      <MedCertPatientEmail patientName="Test" dashboardUrl="https://example.com" appUrl={APP_URL} />
+      <MedCertPatientEmail
+        patientName="Test Patient"
+        dashboardUrl="https://instantmed.com.au/patient/intakes/123"
+        appUrl={APP_URL}
+      />
     ),
     ScriptSentEmail: (
-      <ScriptSentEmail patientName="Test" requestId="R1" appUrl={APP_URL} />
+      <ScriptSentEmail patientName="Test Patient" requestId="REQ-001" appUrl={APP_URL} />
+    ),
+    RequestDeclinedEmail: (
+      <RequestDeclinedEmail
+        patientName="Test Patient"
+        requestType="Medical Certificate"
+        requestId="REQ-002"
+        appUrl={APP_URL}
+      />
+    ),
+    PaymentConfirmedEmail: (
+      <PaymentConfirmedEmail
+        patientName="Test Patient"
+        requestType="Medical Certificate"
+        amount="$24.95"
+        requestId="REQ-003"
+        appUrl={APP_URL}
+      />
+    ),
+    PaymentFailedEmail: (
+      <PaymentFailedEmail
+        patientName="Test Patient"
+        serviceName="Medical Certificate"
+        failureReason="Card declined"
+        retryUrl="https://instantmed.com.au/retry/123"
+        appUrl={APP_URL}
+      />
+    ),
+    SessionExpiredEmail: (
+      <SessionExpiredEmail
+        patientName="Test Patient"
+        serviceName="Medical Certificate"
+        startUrl="https://instantmed.com.au/request?service=med-cert"
+        appUrl={APP_URL}
+      />
+    ),
+    NeedsMoreInfoEmail: (
+      <NeedsMoreInfoEmail
+        patientName="Test Patient"
+        requestType="Medical Certificate"
+        requestId="REQ-004"
+        doctorMessage="Please add the requested details."
+        appUrl={APP_URL}
+      />
+    ),
+    GuestCompleteAccountEmail: (
+      <GuestCompleteAccountEmail
+        patientName="Test Patient"
+        requestType="Medical Certificate"
+        intakeId="intake-123"
+        completeAccountUrl="https://instantmed.com.au/auth/complete-account?intake_id=intake-123"
+        appUrl={APP_URL}
+      />
+    ),
+    PartialIntakeRecoveryEmail: (
+      <PartialIntakeRecoveryEmail
+        firstName="Test"
+        serviceName="Medical Certificate"
+        resumeUrl="https://instantmed.com.au/request?service=med-cert&d=opaque"
+        appUrl={APP_URL}
+      />
+    ),
+    AbandonedCheckoutEmail: (
+      <AbandonedCheckoutEmail
+        patientName="Test Patient"
+        serviceName="Medical Certificate"
+        resumeUrl="https://instantmed.com.au/request?resume=opaque"
+        startedAgoLabel="about 20 minutes ago"
+        appUrl={APP_URL}
+      />
+    ),
+    ConsultApprovedEmail: (
+      <ConsultApprovedEmail patientName="Test Patient" requestId="REQ-005" appUrl={APP_URL} />
+    ),
+    RequestReceivedEmail: (
+      <RequestReceivedEmail
+        patientName="Test Patient"
+        requestType="Medical Certificate"
+        amount="$24.95"
+        requestId="REQ-006"
+        appUrl={APP_URL}
+      />
+    ),
+    RefundIssuedEmail: (
+      <RefundIssuedEmail
+        patientName="Test Patient"
+        requestType="Medical Certificate"
+        requestId="REQ-007"
+        appUrl={APP_URL}
+      />
+    ),
+    StillReviewingEmail: (
+      <StillReviewingEmail
+        patientName="Test Patient"
+        requestType="Medical Certificate"
+        requestId="REQ-008"
+        appUrl={APP_URL}
+      />
+    ),
+    ReviewRequestEmail: (
+      <ReviewRequestEmail patientName="Test Patient" appUrl={APP_URL} />
+    ),
+    AbandonedCheckoutFollowupEmail: (
+      <AbandonedCheckoutFollowupEmail
+        patientName="Test Patient"
+        serviceName="Medical Certificate"
+        resumeUrl="https://instantmed.com.au/request?resume=opaque"
+        appUrl={APP_URL}
+      />
+    ),
+    MagicLinkEmail: (
+      <MagicLinkEmail
+        loginUrl="https://instantmed.com.au/auth/confirm#token_hash=opaque&type=magiclink"
+        appUrl={APP_URL}
+      />
+    ),
+    CertReactivationEmail: (
+      <CertReactivationEmail
+        patientName="Test Patient"
+        requestUrl="https://instantmed.com.au/request?service=med-cert"
+        appUrl={APP_URL}
+      />
+    ),
+    RefillReminderEmail: (
+      <RefillReminderEmail
+        patientName="Test Patient"
+        medicationName="Example medicine"
+        reorderUrl="https://instantmed.com.au/request?service=repeat-script"
+        appUrl={APP_URL}
+      />
+    ),
+    HeardAboutUsAskEmail: (
+      <HeardAboutUsAskEmail
+        patientName="Test Patient"
+        heardToken="opaque"
+        appUrl={APP_URL}
+      />
     ),
   }
 
-  for (const [name, element] of Object.entries(referralTemplates)) {
-    it(`${name} - referral links include utm_source=email`, () => {
+  it("renders every patient email without referral copy, stars, or banned review phrases", () => {
+    const bannedReferralFragments = [
+      "tab=referrals",
+      "utm_campaign=referral",
+      "refer a friend",
+      "referral credit",
+      "$5 off",
+      "give $5",
+      "get $5",
+    ]
+
+    for (const [name, element] of Object.entries(patientTemplates)) {
       const html = renderToStaticMarkup(element)
-      // Find referral link
-      const referralMatch = html.match(/href="[^"]*tab=referrals[^"]*"/)
-      expect(referralMatch, `${name} should have a referral link`).toBeTruthy()
-      expect(html).toContain("utm_source=email")
-      expect(html).toContain("utm_campaign=referral")
-    })
-  }
+      const lowerHtml = html.toLowerCase()
+
+      expectBaseEmailStructure(html)
+      for (const fragment of bannedReferralFragments) {
+        expect(lowerHtml, `${name} contains ${fragment}`).not.toContain(fragment)
+      }
+      expect(html, `${name} contains a star row`).not.toMatch(/[★☆]/)
+      expect(lowerHtml, `${name} contains quick favour`).not.toContain("quick favour")
+      expect(lowerHtml, `${name} contains means the world`).not.toContain("means the world")
+
+      const reviewLinks = html.match(/\/api\/review-redirect\?/g) ?? []
+      expect(reviewLinks, `${name} review CTA ownership`).toHaveLength(
+        name === "ReviewRequestEmail" ? 1 : 0,
+      )
+    }
+  })
+
+  it("keeps clinical outcome emails purely transactional", () => {
+    const outcomeEmails = [
+      patientTemplates.MedCertPatientEmail,
+      patientTemplates.ScriptSentEmail,
+      patientTemplates.ConsultApprovedEmail,
+    ]
+
+    for (const email of outcomeEmails) {
+      const html = renderToStaticMarkup(email)
+      expect(html).not.toContain("/api/review-redirect")
+      expect(html).not.toContain("/api/heard-about-us")
+      expect(html.toLowerCase()).not.toContain("how did you hear")
+      expect(html.toLowerCase()).not.toContain("referral")
+    }
+  })
+
+  it("uses BaseEmail as the only shell and keeps the retired referral block deleted", () => {
+    const templatesDirectory = join(process.cwd(), "lib/email/components/templates")
+    const templateFiles = readdirSync(templatesDirectory)
+      .filter((file) => file.endsWith(".tsx"))
+
+    for (const file of templateFiles) {
+      const source = readFileSync(join(templatesDirectory, file), "utf8")
+      expect(source, `${file} must use BaseEmail`).toContain("<BaseEmail")
+      expect(source, `${file} must not own an HTML shell`).not.toMatch(/<html[\s>]/i)
+    }
+
+    expect(
+      existsSync(join(process.cwd(), "lib/email/components/review-cta.tsx")),
+    ).toBe(false)
+  })
 })
 
 // =============================================
@@ -1223,7 +1493,7 @@ describe("font-family regression", () => {
   const templatesToCheck = [
     { name: "MedCertPatientEmail", html: render(<MedCertPatientEmail patientName="Test User" dashboardUrl="https://example.com" appUrl={APP_URL} />) },
     { name: "RequestReceivedEmail", html: render(<RequestReceivedEmail patientName="Test User" requestType="Medical Certificate" amount="$19.95" requestId="abc12345" appUrl={APP_URL} />) },
-    { name: "ReviewRequestEmail", html: render(<ReviewRequestEmail patientName="Test User" serviceName="Medical Certificate" appUrl={APP_URL} />) },
+    { name: "ReviewRequestEmail", html: render(<ReviewRequestEmail patientName="Test User" appUrl={APP_URL} />) },
     { name: "MagicLinkEmail", html: render(<MagicLinkEmail loginUrl="https://example.com/auth/confirm#token_hash=abc&type=magiclink" appUrl={APP_URL} />) },
   ]
 

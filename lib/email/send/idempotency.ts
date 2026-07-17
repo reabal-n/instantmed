@@ -21,7 +21,7 @@ export function buildResendEmailIdempotencyKey(outboxId: string): string {
 }
 
 const METADATA_SCOPE_KEYS = [
-  "draft_session_id",
+  "draft_idempotency_hash",
   "followup_id",
   "reminder_number",
   "milestone",

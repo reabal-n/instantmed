@@ -46,6 +46,16 @@ const EXCLUDE_RELATIVE = new Set<string>([
   'lib/__tests__/voice-guard.test.ts',
 ])
 
+// Exact operator-approved review privacy warning (2026-07-17). This is the
+// sole documented exception in docs/VOICE.md; path + full line are pinned so
+// the exception cannot silently widen to other copy.
+const APPROVED_EM_DASH_LINES = new Map<string, string>([
+  [
+    'lib/email/components/templates/review-request.tsx',
+    'Please leave out personal or medical details — reviews are public.',
+  ],
+])
+
 /**
  * Path segments anywhere in the app/ tree that mean "internal surface"
  * (operator portals, API routes, server actions, auth plumbing, dev tools).
@@ -177,8 +187,12 @@ describe('voice guard — marketing surfaces', () => {
 
       for (let i = 0; i < lines.length; i++) {
         if (lines[i].includes(EM_DASH)) {
+          const relative = path.relative(ROOT, file)
+          if (APPROVED_EM_DASH_LINES.get(relative) === lines[i].trim()) {
+            continue
+          }
           hits.push({
-            file: path.relative(ROOT, file),
+            file: relative,
             line: i + 1,
             snippet: lines[i].trim().slice(0, 120),
           })
