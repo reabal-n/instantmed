@@ -286,13 +286,24 @@ async function verifyCheckoutStep(page: Page) {
  * / `#medication-form-0`) are optional and reveal once a name is typed.
  */
 async function completeMedicationStep(page: Page) {
-  await waitForStep(page, /Which medication do you need\?/i)
+  await waitForStep(page, /Your medication/i)
 
   await page.locator("#medication-name-0").fill("E2E test medication")
 
   await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
   await page.locator("#medication-strength-0").fill("500 mg")
   await page.locator("#medication-form-0").fill("capsule")
+
+  // P2.1 merged the old `medication-history` step in here — one screen, one
+  // Continue, every field always mounted.
+  await clickChip(page, /Under 3 months/i)
+  await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
+  await page
+    .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
+    .getByRole("radio", { name: /No, unchanged/i })
+    .click()
+  await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
+  await clickChip(page, /No side effects/i)
 
   await clickContinue(page)
   await page.waitForTimeout(500)
@@ -427,26 +438,13 @@ test.describe("Intake: Repeat Prescription - full flow", () => {
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    // ── Step 1: Medication search ──
+    // ── Step 1: Medication (medicine + prescription history, one screen) ──
     await completeMedicationStep(page)
 
-    // ── Step 2: Medication history ──
-    await waitForStep(page, /When were you last prescribed/i)
-    await clickChip(page, /Under 3 months/i)
-    await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
-    await page
-      .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
-      .getByRole("radio", { name: /No, unchanged/i })
-      .click()
-    await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
-    // Side effects question appears after entering the current dose + indication.
-    await clickChip(page, /No side effects/i)
-    await clickContinue(page)
-
-    // ── Step 3: Medical history ──
+    // ── Step 2: Medical history ──
     await completeMedicalHistoryStep(page)
 
-    // ── Step 4: Patient details ──
+    // ── Step 3: Patient details ──
     // Prescription requires sex + medicare + address in addition to core fields
     await completeDetailsStep(page, { needsPhone: true, needsPrescriptionDetails: true })
 
@@ -546,21 +544,21 @@ test.describe("Intake: Validation & edge cases", () => {
     await waitForStep(page, /Your details/i)
   })
 
-  test("prescription medication-history 'never prescribed' shows warning", async ({ page }) => {
+  test("prescription 'never prescribed' shows warning", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    // Complete medication step using the robust helper
-    await completeMedicationStep(page)
+    await waitForStep(page, /Your medication/i)
+    await page.locator("#medication-name-0").fill("E2E test medication")
 
-    // On medication history step - take the "never prescribed" escape (#210
-    // renamed the "Never" chip to "I have not been prescribed this before").
-    await waitForStep(page, /When were you last prescribed/i)
+    // Take the "never prescribed" escape (#210 renamed the "Never" chip to
+    // "I have not been prescribed this before"). P2.1 keeps this route-out on
+    // the merged screen.
     await clickChip(page, /I have not been prescribed this before/i)
 
     // Warning should appear with "Browse other services" CTA (rendered as a link)
-    await expect(page.getByText(/This service is for repeat prescriptions only/i)).toBeVisible()
+    await expect(page.getByText(/Not a repeat prescription/i).first()).toBeVisible()
     await expect(page.getByRole("link", { name: /Browse other services/i })).toBeVisible()
   })
 
@@ -612,8 +610,8 @@ test.describe("Intake: repeat-script alias", () => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
 
-    // Should land on medication search step
-    await waitForStep(page, /Which medication do you need\?/i)
+    // Should land on the merged medication step
+    await waitForStep(page, /Your medication/i)
     // Progress nav should be visible
     await expect(page.getByRole("navigation", { name: /Request progress/i })).toBeVisible()
   })

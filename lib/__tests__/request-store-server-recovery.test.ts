@@ -25,7 +25,7 @@ function record(overrides: Partial<ServerDraftRecord> = {}): ServerDraftRecord {
   return {
     sessionId: SESSION_ID,
     serviceType: "prescription",
-    currentStepId: "medication-history",
+    currentStepId: "medication",
     answers: { medications: [{ name: "Recovered medicine" }] },
     identity: {
       email: "patient@example.com",
@@ -63,8 +63,8 @@ describe("request store server-draft recovery", () => {
 
     expect(useRequestStore.getState()).toMatchObject({
       serviceType: "repeat-script",
-      currentStepId: "medication-history",
-      furthestVisitedStepId: "medication-history",
+      currentStepId: "medication",
+      furthestVisitedStepId: "medication",
       stepsNeedingRevalidation: [],
       answers: { medications: [{ name: "Recovered medicine" }] },
       firstName: "Pat",
@@ -75,6 +75,23 @@ describe("request store server-draft recovery", () => {
       lastSavedAt: "2026-07-16T01:00:00.000Z",
     })
     expect(useRequestStore.getState().answers).not.toHaveProperty("staleLocalAnswer")
+  })
+
+  // A server draft is the cross-device recovery path, so it can be older than
+  // the deploy that merged `medication-history` into `medication` (P2.1). It
+  // must resume on the merged step, NOT be silently bounced to step 1 by the
+  // unknown-step fallback the next test covers.
+  it("resumes a pre-merge server draft saved on the retired medication-history step", () => {
+    useRequestStore.getState().restoreServerDraft(
+      record({ currentStepId: "medication-history" }),
+      "repeat-script",
+    )
+
+    expect(useRequestStore.getState()).toMatchObject({
+      currentStepId: "medication",
+      furthestVisitedStepId: "medication",
+      answers: { medications: [{ name: "Recovered medicine" }] },
+    })
   })
 
   it("resets every safety attestation and falls back from an invalid step", () => {

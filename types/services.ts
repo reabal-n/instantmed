@@ -31,8 +31,7 @@ export type UnifiedStepId =
   | 'safety'            // Safety consent (merged into review step)
   | 'certificate'       // Med cert type + duration
   | 'symptoms'          // Symptom selection + details
-  | 'medication'        // PBS medication search
-  | 'medication-history'// Previous prescriptions + side effects
+  | 'medication'        // Repeat-Rx: medicine + prescription history + dose/indication/side effects
   | 'medical-history'   // Allergies, conditions, other meds
   | 'ed-goals'          // ED goals and duration
   | 'ed-assessment'     // ED-specific assessment (IIEF-5)

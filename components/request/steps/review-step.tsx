@@ -501,7 +501,9 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     sections.push({
       title: 'Prescription details',
       items: prescriptionDetailItems,
-      stepId: 'medication-history',
+      // Same screen as the Medication section since P2.1 merged the medicine
+      // and its history into one step; both Edit links land there.
+      stepId: 'medication',
     })
   }
 

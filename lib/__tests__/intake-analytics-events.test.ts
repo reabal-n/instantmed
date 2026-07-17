@@ -69,16 +69,16 @@ describe("intake analytics events", () => {
     expect(
       buildIntakeContinueClickedProperties({
         serviceType: "repeat-script",
-        stepId: "medication-history",
-        stepIndex: 2,
-        totalSteps: 5,
+        stepId: "medical-history",
+        stepIndex: 1,
+        totalSteps: 4,
       }),
     ).toEqual({
       service_type: "prescription",
-      step_id: "medication-history",
-      step_number: 3,
-      step_index: 2,
-      total_steps: 5,
+      step_id: "medical-history",
+      step_number: 2,
+      step_index: 1,
+      total_steps: 4,
     })
   })
 
@@ -212,13 +212,22 @@ describe("intake analytics events", () => {
     expect(womensAssessmentSource.match(/subtype: answers\.consultSubtype/g)).toHaveLength(2)
   })
 
-  it("keeps medication-history completion on the centralized PHI-safe funnel hook", () => {
-    const medicationHistorySource = readProjectFile("components/request/steps/medication-history-step.tsx")
+  // P2.1 merged medication-history into medication-step. The merged step now
+  // owns the prescription-history, dose, indication, and side-effect answers,
+  // so its completion payload is the surface that could leak them. It may fire
+  // the legacy local `step_completed` (every other step does), but the payload
+  // stays a count — the centralized hook owns the PHI-safe funnel properties.
+  it("keeps the merged medication step's completion payload free of clinical answers", () => {
+    const medicationSource = readProjectFile("components/request/steps/medication-step.tsx")
 
-    expect(medicationHistorySource).not.toContain("usePostHog")
-    expect(medicationHistorySource).not.toContain("posthog?.capture('step_completed'")
-    expect(medicationHistorySource).not.toContain("prescription_history")
-    expect(medicationHistorySource).not.toContain("has_side_effects")
+    // Pinned as the whole payload, so ANY added property fails this test
+    // rather than only the clinical names we thought to grep for.
+    expect(medicationSource).toContain(
+      "posthog?.capture('step_completed', { step: 'medication', medication_count: medications.filter((m) => m.name.trim()).length })",
+    )
+    expect(medicationSource).not.toContain("prescription_history")
+    expect(medicationSource).not.toContain("has_side_effects")
+    expect(medicationSource).not.toContain("current_dose")
   })
 
   it("keeps specialty completion on the centralized subtype-aware funnel hook", () => {

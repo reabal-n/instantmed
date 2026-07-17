@@ -161,7 +161,7 @@ describe("request store draft hydration", () => {
       serviceType: "repeat-script",
       currentStepId: "medication",
       furthestVisitedStepId: "review",
-      stepsNeedingRevalidation: ["medication", "medication-history"],
+      stepsNeedingRevalidation: ["medication", "medical-history"],
       answers: {
         medications: [{ name: "Updated medicine" }],
         consultSubtype: undefined,
@@ -173,9 +173,55 @@ describe("request store draft hydration", () => {
     const legacyDraft = JSON.parse(localStorage.getItem("instantmed-request-draft") || "{}")
     const scopedDraft = JSON.parse(localStorage.getItem("instantmed-draft-prescription") || "{}")
     expect(legacyDraft.state.furthestVisitedStepId).toBe("review")
-    expect(legacyDraft.state.stepsNeedingRevalidation).toEqual(["medication-history"])
+    expect(legacyDraft.state.stepsNeedingRevalidation).toEqual(["medical-history"])
     expect(scopedDraft.furthestVisitedStepId).toBe("review")
-    expect(scopedDraft.stepsNeedingRevalidation).toEqual(["medication-history"])
+    expect(scopedDraft.stepsNeedingRevalidation).toEqual(["medical-history"])
+  })
+
+  // P2.1 merged `medication-history` into `medication`. A draft written before
+  // that deploy names a step the registry no longer has; without the retired-id
+  // alias every restore path treats it as unknown, so the patient's place (and
+  // their pending revalidation work) is silently thrown away mid-request.
+  it("resumes a pre-merge draft saved on the retired medication-history step", async () => {
+    localStorage.setItem(
+      "instantmed-request-draft",
+      JSON.stringify({
+        state: {
+          serviceType: "repeat-script",
+          currentStepId: "medication-history",
+          furthestVisitedStepId: "medication-history",
+          stepsNeedingRevalidation: ["medication-history"],
+          answers: {
+            medications: [{ name: "Existing medicine" }],
+            medicationName: "Existing medicine",
+            prescriptionHistory: "less_than_3_months",
+            currentDose: "One tablet daily",
+            indication: "Blood pressure",
+            doseChanged: false,
+            hasSideEffects: false,
+          },
+          lastSavedAt: new Date().toISOString(),
+        },
+        version: 0,
+      }),
+    )
+
+    await useRequestStore.persist.rehydrate()
+
+    const state = useRequestStore.getState()
+    expect(state.currentStepId).toBe("medication")
+    expect(state.furthestVisitedStepId).toBe("medication")
+    expect(state.stepsNeedingRevalidation).toEqual(["medication"])
+    // Answers are a flat blob keyed by field, never by step — the merge must
+    // not cost the patient a single one.
+    expect(state.answers).toMatchObject({
+      medicationName: "Existing medicine",
+      prescriptionHistory: "less_than_3_months",
+      currentDose: "One tablet daily",
+      indication: "Blood pressure",
+      doseChanged: false,
+      hasSideEffects: false,
+    })
   })
 
   it("sanitizes unknown persisted progress step ids", async () => {

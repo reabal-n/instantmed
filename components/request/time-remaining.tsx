@@ -8,8 +8,9 @@ export const STEP_TIME_ESTIMATES: Record<string, number> = {
   'safety': 15,
   'certificate': 30,
   'symptoms': 45,
-  'medication': 60,
-  'medication-history': 45,
+  // One screen since P2.1: medicine + prescription history + dose/indication/
+  // side effects. Slightly under the 60+45 the two separate steps carried.
+  'medication': 90,
   'medical-history': 60,
   'ed-goals': 30,
   'ed-assessment': 60,

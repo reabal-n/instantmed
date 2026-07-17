@@ -50,7 +50,13 @@ describe("request progress navigation", () => {
     expect(useRequestStore.getState().currentStepId).toBe("checkout")
   })
 
-  it("revalidates medication history after a medicine edit without invalidating unrelated steps", () => {
+  // P2.1 merged `medication-history` into `medication`, so the medicine ->
+  // dose/attestation dependency became intra-step and the registry's
+  // `invalidatesSteps` hop is gone. The guarantee it bought must survive: a
+  // patient who edits their medicine at review cannot get back to pay without
+  // passing the merged step's own validated Continue (which re-demands the
+  // unchanged-regimen attestation that syncToStore clears on a medicine edit).
+  it("blocks the pay step after a medicine edit until the merged medication step revalidates", () => {
     useRequestStore.setState({
       serviceType: "repeat-script",
       currentStepId: "medication",
@@ -78,20 +84,25 @@ describe("request progress navigation", () => {
       hasPhone: true,
       hasSex: true,
     })
-    useRequestStore.getState().nextStep()
+    // medication -> medical-history -> review (details is skipped for a
+    // complete authenticated profile).
     useRequestStore.getState().nextStep()
     useRequestStore.getState().nextStep()
     expect(useRequestStore.getState().currentStepId).toBe("review")
 
     useRequestStore.getState().goToStep("medication")
     useRequestStore.getState().setAnswer("medications", [{ name: "Updated medicine" }])
-    useRequestStore.getState().nextStep()
-    expect(useRequestStore.getState().currentStepId).toBe("medication-history")
+    expect(useRequestStore.getState().stepsNeedingRevalidation).toEqual(["medication"])
 
+    // The edit pins the reachable ceiling to the merged step itself.
     useRequestStore.getState().goToStep("review")
-    expect(useRequestStore.getState().currentStepId).toBe("medication-history")
+    expect(useRequestStore.getState().currentStepId).toBe("medication")
 
+    // Unrelated later work is untouched — only the edited step is re-gated.
     useRequestStore.getState().nextStep()
+    expect(useRequestStore.getState().currentStepId).toBe("medical-history")
+    expect(useRequestStore.getState().stepsNeedingRevalidation).toEqual([])
+
     useRequestStore.getState().goToStep("review")
     expect(useRequestStore.getState().currentStepId).toBe("review")
   })

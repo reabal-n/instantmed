@@ -18,7 +18,6 @@ const intakeStepFiles = [
   "components/request/steps/certificate-step.tsx",
   "components/request/steps/symptoms-step.tsx",
   "components/request/steps/medication-step.tsx",
-  "components/request/steps/medication-history-step.tsx",
   "components/request/steps/medical-history-step.tsx",
   "components/request/steps/patient-details-step.tsx",
   "components/request/steps/review-step.tsx",
@@ -155,7 +154,7 @@ describe("intake mobile viewport contract", () => {
   })
 
   it("uses compact repeat-prescription history labels on mobile", () => {
-    const source = readProjectFile("components/request/steps/medication-history-step.tsx")
+    const source = readProjectFile("components/request/steps/medication-step.tsx")
     expect(source).toContain('{ value: "less_than_3_months", label: "Under 3 months" }')
     expect(source).not.toContain('{ value: "never", label: "Never" }')
     expect(source).toContain("I have not been prescribed this before")
@@ -165,12 +164,37 @@ describe("intake mobile viewport contract", () => {
   })
 
   it("keeps the repeat-prescription new-medication handoff aligned to live specialty services", () => {
-    const source = readProjectFile("components/request/steps/medication-history-step.tsx")
+    const source = readProjectFile("components/request/steps/medication-step.tsx")
     expect(source).toContain("ED, hair loss, and women&apos;s health")
     expect(source).toContain("Not a repeat prescription")
     expect(source).toContain("Repeat prescriptions are only for medicines another doctor has prescribed before.")
     expect(source).not.toContain("friendly upsell to consult flow")
     expect(source).not.toContain("ED and hair loss treatment.")
+  })
+
+  // P2.1: the medicine and every question asked about it live on ONE screen.
+  // Repeat-Rx was the weakest paid path and the split step was a pure page
+  // turn. Everything below the medicine stays mounted (the #209 no-phased-
+  // reveal rule); only the terminal "never prescribed" route-out removes it.
+  it("keeps repeat-Rx medication + prescription history on one always-mounted screen", () => {
+    const source = readProjectFile("components/request/steps/medication-step.tsx")
+
+    // Every question the merged screen owns.
+    expect(source).toContain("When were you last prescribed this medication?")
+    expect(source).toContain("What dose do you currently take?")
+    expect(source).toContain("What is this medication for?")
+    expect(source).toContain("Has the dose or the way you take this medicine changed since it was last prescribed?")
+    expect(source).toContain("Any side effects with this medication?")
+
+    // The dropped field stays dropped — optional, desktop-only, unused clinically.
+    expect(source).not.toContain("Who prescribed it last?")
+    expect(source).not.toContain("lastPrescribedBy")
+
+    // No phased reveal: the repeat details are gated only by the terminal
+    // not-a-repeat branch, never by "have you answered the question above".
+    expect(source).toContain("const showRepeatDetails = !isNeverPrescribed")
+    expect(source).not.toContain("needsDose")
+    expect(source).not.toContain("hasPrescriptionHistory")
   })
 
   it("keeps ED assessment score copy doctor-review framed instead of outcome-led", () => {
@@ -209,7 +233,6 @@ describe("intake mobile viewport contract", () => {
     const sources = [
       "components/request/steps/certificate-step.tsx",
       "components/request/steps/medication-step.tsx",
-      "components/request/steps/medication-history-step.tsx",
       "components/request/steps/medical-history-step.tsx",
       "components/request/steps/review-step.tsx",
     ].map((path) => readProjectFile(path))
