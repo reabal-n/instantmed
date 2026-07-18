@@ -28,10 +28,21 @@ function makeSupabaseStub(row: Record<string, unknown> | null, errored = false) 
   const maybeSingle = vi.fn().mockResolvedValue(
     errored ? { data: null, error: { message: "boom" } } : { data: row, error: null },
   )
-  const eq = vi.fn().mockReturnValue({ maybeSingle })
+  const query = {
+    abortSignal: vi.fn(),
+    maybeSingle,
+  }
+  query.abortSignal.mockReturnValue(query)
+  const eq = vi.fn().mockReturnValue(query)
   const select = vi.fn().mockReturnValue({ eq })
   const from = vi.fn().mockReturnValue({ select })
-  return { from, _select: select, _eq: eq, _maybeSingle: maybeSingle }
+  return {
+    from,
+    _select: select,
+    _eq: eq,
+    _abortSignal: query.abortSignal,
+    _maybeSingle: maybeSingle,
+  }
 }
 
 describe("editPaidRequestTelegramMessageToApproved", () => {
@@ -65,16 +76,16 @@ describe("editPaidRequestTelegramMessageToApproved", () => {
   })
 
   it("calls the Telegram editor without reading or forwarding intake answers", async () => {
-    mocks.createServiceRoleClient.mockReturnValue(
-      makeSupabaseStub({
-        paid_request_telegram_message_id: 99,
-        category: "med_certs",
-        subtype: null,
-      }),
-    )
+    const supabase = makeSupabaseStub({
+      paid_request_telegram_message_id: 99,
+      category: "med_certs",
+      subtype: null,
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
     const { editPaidRequestTelegramMessageToApproved } = await import("@/lib/notifications/edit-paid-request-telegram")
     await editPaidRequestTelegramMessageToApproved(INTAKE_ID)
 
+    expect(supabase._abortSignal).toHaveBeenCalledWith(expect.any(AbortSignal))
     expect(mocks.editTelegramMessageToApproved).toHaveBeenCalledWith(99, {
       serviceSlug: "med-cert-sick",
       subtype: undefined,
@@ -144,7 +155,7 @@ describe("editPaidRequestTelegramMessageToNeedsManualReview", () => {
     vi.clearAllMocks()
   })
 
-  it("flips an auto med-cert chat message to the needs-manual editor with the same service context", async () => {
+  it("changes a neutral med-cert chat message to the needs-manual editor with the same service context", async () => {
     mocks.createServiceRoleClient.mockReturnValue(
       makeSupabaseStub({
         paid_request_telegram_message_id: 21,

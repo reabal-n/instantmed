@@ -216,7 +216,6 @@ export async function sendPaidRequestTelegramNotification(
   if (!flags.telegram_notifications_enabled) {
     return { sent: false, skipped: "disabled" }
   }
-  const autoApproveFlagOn = Boolean(flags.ai_auto_approve_enabled)
 
   const now = new Date()
   const staleClaimBefore = new Date(now.getTime() - 5 * 60 * 1000)
@@ -300,9 +299,6 @@ export async function sendPaidRequestTelegramNotification(
     return { sent: false, skipped: "e2e" }
   }
 
-  const isMedCert = serviceSlug.startsWith("med-cert")
-  const autoApprovalCandidate = autoApproveFlagOn && isMedCert
-
   // Track whether the external Telegram call succeeded so the catch block
   // can distinguish "Telegram failed → allow cron retry" from "Telegram
   // sent but DB write failed → do NOT allow cron retry via markFailed".
@@ -314,7 +310,6 @@ export async function sendPaidRequestTelegramNotification(
       subtype: subtype ?? undefined,
       serviceDetail: undefined,
       isPriority,
-      autoApprovalCandidate,
     })
     telegramSent = true
 

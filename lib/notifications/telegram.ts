@@ -10,6 +10,7 @@ import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("telegram")
 
 const TELEGRAM_API = "https://api.telegram.org"
+const TELEGRAM_EDIT_TIMEOUT_MS = 5_000
 
 function getToken() { return process.env.TELEGRAM_BOT_TOKEN }
 function getChatId() { return process.env.TELEGRAM_CHAT_ID }
@@ -73,15 +74,6 @@ interface TelegramNotifyOptions {
   serviceDetail?: string
   appUrl?: string
   isPriority?: boolean
-  /**
-   * The system will attempt auto-approval (med cert + ai_auto_approve_enabled).
-   * Med cert renders ✅ when true, ❌ when false (needs your manual review).
-   * Ignored for non-med-cert services (which always need manual review and
-   * render with their service-specific emoji instead).
-   * Actual eligibility runs later against AI drafts; this is a routing signal —
-   * the auto-approval pipeline edits the message to its true outcome.
-   */
-  autoApprovalCandidate?: boolean
 }
 
 interface TitleOptions {
@@ -89,18 +81,17 @@ interface TitleOptions {
   subtype?: string
   serviceDetail?: string
   isPriority?: boolean
-  autoApprovalCandidate?: boolean
 }
 
 /**
  * Per-service emoji so the operator can tell what kind of work landed at a
- * glance. Med cert is the only auto-approval candidate: ✅ when the system
- * will try, ❌ when the operator needs to handle it manually.
+ * glance. New med certs stay neutral until the real protocol outcome edits the
+ * message to Approved or Manual review needed.
  */
-function getServiceEmoji(opts: Pick<TitleOptions, "serviceSlug" | "autoApprovalCandidate">): string {
-  const { serviceSlug, autoApprovalCandidate } = opts
+function getServiceEmoji(opts: Pick<TitleOptions, "serviceSlug">): string {
+  const { serviceSlug } = opts
   if (serviceSlug?.startsWith("med-cert")) {
-    return autoApprovalCandidate ? "✅" : "❌"
+    return "📄"
   }
   if (serviceSlug === "common-scripts") return "💊"
   if (serviceSlug === "consult") return "🩺"
@@ -190,7 +181,6 @@ async function sendGenericNotification(
     subtype: opts.subtype,
     serviceDetail: opts.serviceDetail,
     isPriority: opts.isPriority,
-    autoApprovalCandidate: opts.autoApprovalCandidate,
   })
 
   const message = [title, ``, `[Review now →](${reviewUrl})`].join("\n")
@@ -234,7 +224,7 @@ async function sendMedCertNotification(
   ]
 
   if (areTelegramApprovalActionsEnabled()) {
-    // 👍 (not ✅) so the button stays distinct from the title's ✅ auto-approval marker.
+    // 👍 keeps the action distinct from the neutral new-request title.
     buttons.unshift({ text: "👍 Approve", callback_data: `approve:${opts.intakeId}:${signIntakeAction(opts.intakeId, "approve")}` })
   }
 
@@ -243,7 +233,6 @@ async function sendMedCertNotification(
     subtype: opts.subtype,
     serviceDetail: opts.serviceDetail,
     isPriority: opts.isPriority,
-    autoApprovalCandidate: opts.autoApprovalCandidate,
   })
 
   const inlineKeyboard = {
@@ -287,8 +276,9 @@ export interface EditTelegramMessageOptions {
  * Edit the original new-request notification to show that the intake has been
  * approved (by the operator OR by the auto-approval pipeline). Caller passes
  * the message_id that was captured on send plus the service context so chat
- * history stays scannable. No-op when chat is not configured. Errors propagate
- * to the caller for logging.
+ * history stays scannable. No-op when chat is not configured. The underlying
+ * edit is bounded and fail-soft so it can be awaited by clinical workflows
+ * without changing their outcome.
  */
 export async function editTelegramMessageToApproved(
   messageId: number,
@@ -316,8 +306,7 @@ export async function editTelegramMessageToDeclined(
  * Edit the original new-request notification to show that the auto-approval
  * pipeline declined to auto-approve (eligibility check failed) so the operator
  * needs to review it manually. Only relevant for med-cert intakes that were
- * sent with ✅ but turned out to be ineligible (mental-health keyword, duration
- * out of range, repeat-request cooldown, etc.).
+ * sent with the neutral pending marker and then proved ineligible.
  */
 export async function editTelegramMessageToNeedsManualReview(
   messageId: number,
@@ -343,6 +332,7 @@ export async function editTelegramMessage(
     const response = await fetch(`${TELEGRAM_API}/bot${token}/editMessageText`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(TELEGRAM_EDIT_TIMEOUT_MS),
       body: JSON.stringify({
         chat_id: chatId,
         message_id: messageId,
@@ -353,7 +343,9 @@ export async function editTelegramMessage(
     if (!response.ok) {
       const body = await response.text()
       log.error("Failed to edit Telegram message", { status: response.status, body })
+      return
     }
+    log.info("Telegram message edited", { messageId })
   } catch (error) {
     log.error("Failed to edit Telegram message", {}, error instanceof Error ? error : new Error(String(error)))
   }

@@ -17,6 +17,7 @@ describe("support inbox alert ownership contract", () => {
     const env = read("lib/config/env.ts")
     const architecture = read("docs/ARCHITECTURE.md")
     const operations = read("docs/OPERATIONS.md")
+    const security = read("docs/SECURITY.md")
     const roadmap = read("docs/ROADMAP.md")
     const fileDirectory = read("wiki/file-directory.md")
 
@@ -42,6 +43,12 @@ describe("support inbox alert ownership contract", () => {
       "Telegram carries request notifications plus two operational sends",
     )
     expect(operations).toContain("not a general second alerting channel")
+    expect(security).toContain("request notifications plus two operational sends")
+    expect(operations).toContain("New medical-certificate titles stay neutral")
+    expect(security).toContain("New medical-certificate titles stay neutral")
+    expect(operations).not.toContain("new paid request notifications only")
+    expect(operations).not.toContain("Automatic Telegram is limited to paid-request")
+    expect(security).not.toContain("Automatic messages are limited to newly paid requests")
     expect(architecture).not.toContain("support-inbox-alert/` (Gmail label aggregate only)")
     expect(architecture).toContain("manual aggregate-only support count diagnostics")
     expect(roadmap).not.toContain("support Inbox unread counts through the active aggregate-only Telegram bridge")

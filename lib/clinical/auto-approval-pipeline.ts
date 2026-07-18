@@ -534,17 +534,18 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       // State machine decides: needs_doctor (deterministic) vs failed_retrying (transient)
       await markIneligible(supabase, intakeId, eligibility.reason,
         eligibility.disqualifyingFlags, (intake as Record<string, unknown>).auto_approval_attempts as number ?? 0)
-      // Flip the original ✅ "auto" Telegram message to ❌ "manual review needed"
-      // so the operator knows the routing signal in their chat is now stale.
+      // Reconcile the neutral new-request Telegram message to "manual review
+      // needed" so the operator can trust the status shown in chat.
       // Defense in depth: skip for `service_type_mismatch` — non-med-cert
       // intakes never had a ✅ title (they ship with 💊/💙/etc.) so editing
       // would misleadingly imply their default state had changed. In practice
       // the early `service.type !== "med_certs"` guard above returns before we
       // ever get here; this check protects against future refactors that
       // might let non-med-cert intakes reach the eligibility engine.
-      // Fail-soft via the helper — never block the pipeline on a chat edit.
+      // Await the bounded, fail-soft helper so serverless shutdown cannot drop
+      // the edit; a Telegram failure still never changes the clinical result.
       if (!eligibility.disqualifyingFlags.includes("service_type_mismatch")) {
-        void editPaidRequestTelegramMessageToNeedsManualReview(intakeId)
+        await editPaidRequestTelegramMessageToNeedsManualReview(intakeId)
       }
       trackOutcome("not_eligible", eligibility.reason, { flags: eligibility.disqualifyingFlags })
       return { success: true, autoApproved: false, reason: eligibility.reason }

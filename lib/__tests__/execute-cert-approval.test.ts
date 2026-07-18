@@ -137,6 +137,7 @@ import {
 import { MedCertPatientEmail } from "@/lib/email/components/templates"
 import { sendEmail } from "@/lib/email/send-email"
 import { reconcileCertificateEmailDelivery } from "@/lib/medical-certificates/email-delivery-reconciliation"
+import { editPaidRequestTelegramMessageToApproved } from "@/lib/notifications/edit-paid-request-telegram"
 import { generateCertificateNumber, generateCertificateRef, generateVerificationCode } from "@/lib/pdf/cert-identifiers"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { getAbsenceDays } from "@/lib/stripe/price-mapping"
@@ -432,6 +433,31 @@ describe("executeCertApproval — atomic approval + delivery", () => {
       source: "initial_approval",
     }))
     expect(h.state.updateCalls.some((c) => c.ai_approved === true)).toBe(true)
+  })
+
+  it("waits for the Telegram status edit before reporting approval complete", async () => {
+    let releaseEdit!: () => void
+    const editPending = new Promise<void>((resolve) => {
+      releaseEdit = resolve
+    })
+    mock(editPaidRequestTelegramMessageToApproved).mockReturnValueOnce(editPending)
+
+    const resultPromise = run({ skipClaim: true, aiApproved: true })
+
+    await vi.waitFor(() => {
+      expect(editPaidRequestTelegramMessageToApproved).toHaveBeenCalledWith("intake-1")
+    })
+
+    let approvalSettled = false
+    void resultPromise.then(() => {
+      approvalSettled = true
+    })
+    await new Promise<void>((resolve) => setImmediate(resolve))
+
+    expect(approvalSettled).toBe(false)
+
+    releaseEdit()
+    await expect(resultPromise).resolves.toMatchObject({ success: true })
   })
 
   it("still reports success when the email send fails (cert already issued)", async () => {

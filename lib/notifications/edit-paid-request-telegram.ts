@@ -11,6 +11,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("edit-paid-request-telegram")
+const TELEGRAM_EDIT_LOOKUP_TIMEOUT_MS = 5_000
 
 type IntakeForEdit = {
   paid_request_telegram_message_id: number | null
@@ -26,6 +27,7 @@ async function loadIntakeForEdit(
     .from("intakes")
     .select("paid_request_telegram_message_id, category, subtype")
     .eq("id", intakeId)
+    .abortSignal(AbortSignal.timeout(TELEGRAM_EDIT_LOOKUP_TIMEOUT_MS))
     .maybeSingle()
 
   if (error || !data) return null
@@ -82,10 +84,9 @@ export async function editPaidRequestTelegramMessageToDeclined(intakeId: string)
 }
 
 /**
- * Flip the original ✅ "auto" message to ❌ "needs manual review" when the
- * auto-approval pipeline decides the intake is ineligible (mental-health
- * keyword, repeat-request cooldown, duration > 3 days, etc.). Only meaningful
- * for med-cert intakes that were originally sent as auto candidates.
+ * Change the original neutral med-cert message to "needs manual review" when
+ * the auto-approval pipeline decides the intake is ineligible. Only meaningful
+ * for med-cert intakes that entered the auto-approval routing pipeline.
  */
 export async function editPaidRequestTelegramMessageToNeedsManualReview(
   intakeId: string,

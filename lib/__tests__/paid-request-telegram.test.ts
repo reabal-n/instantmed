@@ -142,7 +142,6 @@ describe("paid request Telegram notification ledger", () => {
       subtype: undefined,
       serviceDetail: undefined,
       isPriority: false,
-      autoApprovalCandidate: false,
     })
     expect(mockGetIntakeAnswers).not.toHaveBeenCalled()
     expect(profileMaybeSingle).not.toHaveBeenCalled()
@@ -192,7 +191,6 @@ describe("paid request Telegram notification ledger", () => {
       subtype: undefined,
       serviceDetail: undefined,
       isPriority: true,
-      autoApprovalCandidate: false,
     })
     expect(mockGetIntakeAnswers).not.toHaveBeenCalled()
   })
@@ -364,7 +362,7 @@ describe("paid request Telegram notification ledger", () => {
     expect(notifyNewIntakeViaTelegram).not.toHaveBeenCalled()
   })
 
-  it("sets autoApprovalCandidate=true for med cert when ai_auto_approve_enabled is on", async () => {
+  it("does not infer a med-cert outcome from the auto-approval feature flag", async () => {
     mockGetFeatureFlags.mockResolvedValueOnce({
       telegram_notifications_enabled: true,
       ai_auto_approve_enabled: true,
@@ -393,12 +391,11 @@ describe("paid request Telegram notification ledger", () => {
       subtype: null,
     })
 
-    expect(notifyNewIntakeViaTelegram).toHaveBeenCalledWith(
-      expect.objectContaining({ autoApprovalCandidate: true }),
-    )
+    const notification = vi.mocked(notifyNewIntakeViaTelegram).mock.calls[0]?.[0]
+    expect(notification).not.toHaveProperty("autoApprovalCandidate")
   })
 
-  it("keeps autoApprovalCandidate=false for non-med-cert services even when the flag is on", async () => {
+  it("does not add an auto-approval outcome to non-med-cert notifications", async () => {
     mockGetFeatureFlags.mockResolvedValueOnce({
       telegram_notifications_enabled: true,
       ai_auto_approve_enabled: true,
@@ -427,9 +424,8 @@ describe("paid request Telegram notification ledger", () => {
       subtype: "ed",
     })
 
-    expect(notifyNewIntakeViaTelegram).toHaveBeenCalledWith(
-      expect.objectContaining({ autoApprovalCandidate: false }),
-    )
+    const notification = vi.mocked(notifyNewIntakeViaTelegram).mock.calls[0]?.[0]
+    expect(notification).not.toHaveProperty("autoApprovalCandidate")
   })
 
   // 2026-07-02 operator complaint: E2E/CI test checkouts (fresh guest profiles
