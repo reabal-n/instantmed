@@ -106,94 +106,87 @@ function isValidFlagValue(key: FlagKey, value: boolean | string | string[] | num
 async function fetchFlagsFromDB(): Promise<FeatureFlags> {
   const supabase = getServiceClient()
   if (!supabase) {
-    logger.warn("No service client, using defaults")
-    return DEFAULT_FLAGS
+    throw new Error("Feature flag database client is unavailable")
   }
 
-  try {
-    const { data, error } = await supabase
-      .from("feature_flags")
-      .select("key, value")
+  const { data, error } = await supabase
+    .from("feature_flags")
+    .select("key, value")
 
-    if (error) {
-      logger.error("DB error", {}, new Error(error.message))
-      return DEFAULT_FLAGS
-    }
-
-    if (!data || data.length === 0) {
-      return DEFAULT_FLAGS
-    }
-
-    // Build flags object from DB rows
-    const flags: FeatureFlags = { ...DEFAULT_FLAGS }
-    for (const row of data) {
-      if (row.key === FLAG_KEYS.MAINTENANCE_MODE) {
-        flags.maintenance_mode = row.value === true
-      } else if (row.key === FLAG_KEYS.MAINTENANCE_MESSAGE) {
-        flags.maintenance_message = typeof row.value === "string" ? row.value : DEFAULT_FLAGS.maintenance_message
-      } else if (row.key === FLAG_KEYS.DISABLE_MED_CERT) {
-        flags.disable_med_cert = row.value === true
-      } else if (row.key === FLAG_KEYS.DISABLE_REPEAT_SCRIPTS) {
-        flags.disable_repeat_scripts = row.value === true
-      } else if (row.key === FLAG_KEYS.DISABLE_CONSULTS) {
-        flags.disable_consults = row.value === true
-      } else if (row.key === FLAG_KEYS.BLOCKED_MEDICATION_TERMS) {
-        flags.blocked_medication_terms = Array.isArray(row.value) ? row.value : []
-      } else if (row.key === FLAG_KEYS.SAFETY_SCREENING_SYMPTOMS) {
-        flags.safety_screening_symptoms = Array.isArray(row.value) ? row.value : DEFAULT_SAFETY_SYMPTOMS
-      } else if (row.key === FLAG_KEYS.BUSINESS_HOURS_ENABLED) {
-        flags.business_hours_enabled = row.value === true
-      } else if (row.key === FLAG_KEYS.BUSINESS_HOURS_OPEN) {
-        flags.business_hours_open = typeof row.value === "number" ? row.value : 8
-      } else if (row.key === FLAG_KEYS.BUSINESS_HOURS_CLOSE) {
-        flags.business_hours_close = typeof row.value === "number" ? row.value : 22
-      } else if (row.key === FLAG_KEYS.BUSINESS_HOURS_TIMEZONE) {
-        flags.business_hours_timezone = typeof row.value === "string" ? row.value : "Australia/Sydney"
-      } else if (row.key === FLAG_KEYS.CAPACITY_LIMIT_ENABLED) {
-        flags.capacity_limit_enabled = row.value === true
-      } else if (row.key === FLAG_KEYS.CAPACITY_LIMIT_MAX) {
-        flags.capacity_limit_max = typeof row.value === "number" ? row.value : 100
-      } else if (row.key === FLAG_KEYS.URGENT_NOTICE_ENABLED) {
-        flags.urgent_notice_enabled = row.value === true
-      } else if (row.key === FLAG_KEYS.URGENT_NOTICE_MESSAGE) {
-        flags.urgent_notice_message = typeof row.value === "string" ? row.value : ""
-      } else if (row.key === FLAG_KEYS.MAINTENANCE_SCHEDULED_START) {
-        flags.maintenance_scheduled_start = typeof row.value === "string" && row.value ? row.value : null
-      } else if (row.key === FLAG_KEYS.MAINTENANCE_SCHEDULED_END) {
-        flags.maintenance_scheduled_end = typeof row.value === "string" && row.value ? row.value : null
-      } else if (row.key === FLAG_KEYS.AI_AUTO_APPROVE_ENABLED) {
-        flags.ai_auto_approve_enabled = row.value === true
-      } else if (row.key === FLAG_KEYS.AUTO_APPROVE_DELAY_MINUTES) {
-        flags.auto_approve_delay_minutes = normalizeAutoApproveDelayMinutes(row.value)
-      } else if (row.key === FLAG_KEYS.AUTO_APPROVE_RATE_LIMIT_5MIN) {
-        flags.auto_approve_rate_limit_5min = typeof row.value === "number" ? row.value : 10
-      } else if (row.key === FLAG_KEYS.AUTO_APPROVE_DAILY_CAP) {
-        flags.auto_approve_daily_cap = typeof row.value === "number" ? row.value : 50
-      } else if (row.key === FLAG_KEYS.AUTO_APPROVE_MAX_DURATION_DAYS) {
-        flags.auto_approve_max_duration_days = typeof row.value === "number" ? Math.min(row.value, 3) : 3
-      } else if (row.key === FLAG_KEYS.AUTO_APPROVE_DRY_RUN) {
-        flags.auto_approve_dry_run = row.value === true
-      } else if (row.key === FLAG_KEYS.TELEGRAM_NOTIFICATIONS_ENABLED) {
-        flags.telegram_notifications_enabled = row.value === true
-      } else if (row.key === FLAG_KEYS.PATIENT_DELAY_EMAIL_HOURS) {
-        flags.patient_delay_email_hours = typeof row.value === "number" ? row.value : 2
-      } else if (row.key === FLAG_KEYS.PARCHMENT_EMBEDDED_PRESCRIBING) {
-        flags.parchment_embedded_prescribing = row.value === true
-      }
-    }
-
-    return flags
-  } catch (error) {
-    logger.error("Unexpected error", {}, toError(error))
-    return DEFAULT_FLAGS
+  if (error) {
+    throw new Error(error.message)
   }
+
+  if (!data || data.length === 0) {
+    throw new Error("Feature flag database returned no rows")
+  }
+
+  // Build flags object from DB rows
+  const flags: FeatureFlags = { ...DEFAULT_FLAGS }
+  for (const row of data) {
+    if (row.key === FLAG_KEYS.MAINTENANCE_MODE) {
+      flags.maintenance_mode = row.value === true
+    } else if (row.key === FLAG_KEYS.MAINTENANCE_MESSAGE) {
+      flags.maintenance_message = typeof row.value === "string" ? row.value : DEFAULT_FLAGS.maintenance_message
+    } else if (row.key === FLAG_KEYS.DISABLE_MED_CERT) {
+      flags.disable_med_cert = row.value === true
+    } else if (row.key === FLAG_KEYS.DISABLE_REPEAT_SCRIPTS) {
+      flags.disable_repeat_scripts = row.value === true
+    } else if (row.key === FLAG_KEYS.DISABLE_CONSULTS) {
+      flags.disable_consults = row.value === true
+    } else if (row.key === FLAG_KEYS.BLOCKED_MEDICATION_TERMS) {
+      flags.blocked_medication_terms = Array.isArray(row.value) ? row.value : []
+    } else if (row.key === FLAG_KEYS.SAFETY_SCREENING_SYMPTOMS) {
+      flags.safety_screening_symptoms = Array.isArray(row.value) ? row.value : DEFAULT_SAFETY_SYMPTOMS
+    } else if (row.key === FLAG_KEYS.BUSINESS_HOURS_ENABLED) {
+      flags.business_hours_enabled = row.value === true
+    } else if (row.key === FLAG_KEYS.BUSINESS_HOURS_OPEN) {
+      flags.business_hours_open = typeof row.value === "number" ? row.value : 8
+    } else if (row.key === FLAG_KEYS.BUSINESS_HOURS_CLOSE) {
+      flags.business_hours_close = typeof row.value === "number" ? row.value : 22
+    } else if (row.key === FLAG_KEYS.BUSINESS_HOURS_TIMEZONE) {
+      flags.business_hours_timezone = typeof row.value === "string" ? row.value : "Australia/Sydney"
+    } else if (row.key === FLAG_KEYS.CAPACITY_LIMIT_ENABLED) {
+      flags.capacity_limit_enabled = row.value === true
+    } else if (row.key === FLAG_KEYS.CAPACITY_LIMIT_MAX) {
+      flags.capacity_limit_max = typeof row.value === "number" ? row.value : 100
+    } else if (row.key === FLAG_KEYS.URGENT_NOTICE_ENABLED) {
+      flags.urgent_notice_enabled = row.value === true
+    } else if (row.key === FLAG_KEYS.URGENT_NOTICE_MESSAGE) {
+      flags.urgent_notice_message = typeof row.value === "string" ? row.value : ""
+    } else if (row.key === FLAG_KEYS.MAINTENANCE_SCHEDULED_START) {
+      flags.maintenance_scheduled_start = typeof row.value === "string" && row.value ? row.value : null
+    } else if (row.key === FLAG_KEYS.MAINTENANCE_SCHEDULED_END) {
+      flags.maintenance_scheduled_end = typeof row.value === "string" && row.value ? row.value : null
+    } else if (row.key === FLAG_KEYS.AI_AUTO_APPROVE_ENABLED) {
+      flags.ai_auto_approve_enabled = row.value === true
+    } else if (row.key === FLAG_KEYS.AUTO_APPROVE_DELAY_MINUTES) {
+      flags.auto_approve_delay_minutes = normalizeAutoApproveDelayMinutes(row.value)
+    } else if (row.key === FLAG_KEYS.AUTO_APPROVE_RATE_LIMIT_5MIN) {
+      flags.auto_approve_rate_limit_5min = typeof row.value === "number" ? row.value : 10
+    } else if (row.key === FLAG_KEYS.AUTO_APPROVE_DAILY_CAP) {
+      flags.auto_approve_daily_cap = typeof row.value === "number" ? row.value : 50
+    } else if (row.key === FLAG_KEYS.AUTO_APPROVE_MAX_DURATION_DAYS) {
+      flags.auto_approve_max_duration_days = typeof row.value === "number" ? Math.min(row.value, 3) : 3
+    } else if (row.key === FLAG_KEYS.AUTO_APPROVE_DRY_RUN) {
+      flags.auto_approve_dry_run = row.value === true
+    } else if (row.key === FLAG_KEYS.TELEGRAM_NOTIFICATIONS_ENABLED) {
+      flags.telegram_notifications_enabled = row.value === true
+    } else if (row.key === FLAG_KEYS.PATIENT_DELAY_EMAIL_HOURS) {
+      flags.patient_delay_email_hours = typeof row.value === "number" ? row.value : 2
+    } else if (row.key === FLAG_KEYS.PARCHMENT_EMBEDDED_PRESCRIBING) {
+      flags.parchment_embedded_prescribing = row.value === true
+    }
+  }
+
+  return flags
 }
 
 /**
- * Get feature flags with aggressive caching (30s TTL)
- * Safe for Vercel - uses Next.js unstable_cache with revalidation
+ * Cache only confirmed database values. A transient read failure must not turn
+ * request-scoped fallback defaults into shared cache truth.
  */
-export const getFeatureFlags = unstable_cache(
+const getCachedFeatureFlags = unstable_cache(
   async (): Promise<FeatureFlags> => {
     return fetchFlagsFromDB()
   },
@@ -204,12 +197,30 @@ export const getFeatureFlags = unstable_cache(
   }
 )
 
+export async function getFeatureFlags(): Promise<FeatureFlags> {
+  try {
+    return await getCachedFeatureFlags()
+  } catch (error) {
+    logger.error(
+      "Feature flag read failed; using uncached defaults for this request",
+      {},
+      toError(error),
+    )
+    return DEFAULT_FLAGS
+  }
+}
+
 /**
  * Force refresh feature flags (bypass cache)
  * Use after admin updates a flag
  */
 export async function refreshFeatureFlags(): Promise<FeatureFlags> {
-  return fetchFlagsFromDB()
+  try {
+    return await fetchFlagsFromDB()
+  } catch (error) {
+    logger.error("Feature flag refresh failed; using defaults", {}, toError(error))
+    return DEFAULT_FLAGS
+  }
 }
 
 /**

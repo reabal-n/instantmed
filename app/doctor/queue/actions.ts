@@ -480,10 +480,11 @@ export async function updateStatusAction(
 
     revalidateStaff({ intakeId, scripts: true })
 
-    // Edit the original Telegram notification to Approved when the doctor
-    // moves the case into a reviewed state. Fire-and-forget; fail-soft helper.
+    // Reconcile the original Telegram notification before this server action
+    // completes. The helper remains fail-soft, so chat delivery never changes
+    // the clinical outcome.
     if (status === "approved" || status === "awaiting_script") {
-      void editPaidRequestTelegramMessageToApproved(intakeId)
+      await editPaidRequestTelegramMessageToApproved(intakeId)
     }
 
     return { success: true }
@@ -608,8 +609,9 @@ export async function declineIntakeAction(
   revalidateStaff({ intakeId })
   revalidatePatient({ intakeId })
 
-  // Edit the original Telegram notification to Declined. Fire-and-forget.
-  void editPaidRequestTelegramMessageToDeclined(intakeId)
+  // Reconcile the original Telegram notification before this server action
+  // completes. The helper remains fail-soft.
+  await editPaidRequestTelegramMessageToDeclined(intakeId)
 
   return {
     success: true,
@@ -959,7 +961,7 @@ export async function approvePrescribedScriptAction(
 
   revalidateStaff({ intakeId, scripts: true })
   revalidatePatient({ intakeId })
-  void editPaidRequestTelegramMessageToApproved(intakeId)
+  await editPaidRequestTelegramMessageToApproved(intakeId)
 
   return { success: true, emailNotification }
 }
@@ -1567,7 +1569,7 @@ export async function quickPrescribeRenewalAction(
     throw error
   }
 
-  void editPaidRequestTelegramMessageToApproved(intakeId)
+  await editPaidRequestTelegramMessageToApproved(intakeId)
   revalidateStaff({ intakeId, scripts: true })
 
   logger.info("[QuickPrescribe] Moved to awaiting_script", {

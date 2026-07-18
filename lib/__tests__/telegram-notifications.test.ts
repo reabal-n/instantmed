@@ -20,7 +20,7 @@ describe("Telegram request notifications", () => {
     process.env = { ...originalEnv }
   })
 
-  it("renders the title as a single compact line with no payment / PHI noise", async () => {
+  it("renders a new med cert as neutral pending work with no payment / PHI noise", async () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => ({ result: { message_id: 42 } }) })
 
     const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
@@ -33,7 +33,7 @@ describe("Telegram request notifications", () => {
 
     const requestBody = JSON.parse(fetchMock.mock.calls[0][1].body)
     expect(requestBody.parse_mode).toBe("MarkdownV2")
-    expect(requestBody.text).toBe("*❌ New med cert*")
+    expect(requestBody.text).toBe("*📄 New med cert*")
     expect(requestBody.text).not.toContain("1 day")
     expect(requestBody.text).not.toContain("$29")
     expect(requestBody.text).not.toContain("💰")
@@ -88,7 +88,7 @@ describe("Telegram request notifications", () => {
     })
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body)
-    expect(body.text).toBe("*⚡ ❌ New med cert*")
+    expect(body.text).toBe("*⚡ 📄 New med cert*")
     expect(body.text).not.toContain("3 days")
   })
 
@@ -111,7 +111,7 @@ describe("Telegram request notifications", () => {
     expect(body.text).toContain("[Review now →]")
   })
 
-  it("uses 👍 (not ✅) on the Approve button so it stays distinct from the title's auto-approval ✅", async () => {
+  it("uses a distinct 👍 marker on the optional clinical Approve button", async () => {
     process.env.TELEGRAM_APPROVAL_ACTIONS_ENABLED = "true"
     process.env.TELEGRAM_ACTION_SIGNING_SECRET = "test-action-signing-secret"
     fetchMock.mockResolvedValue({ ok: true, json: async () => ({ result: { message_id: 42 } }) })
@@ -121,7 +121,6 @@ describe("Telegram request notifications", () => {
     await notifyNewIntakeViaTelegram({
       intakeId: "12345678-1234-1234-1234-123456789abc",
       serviceSlug: "med-cert-sick",
-      autoApprovalCandidate: true,
     })
 
     const requestBody = JSON.parse(fetchMock.mock.calls[0][1].body)
@@ -150,7 +149,7 @@ describe("Telegram request notifications", () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it("uses ✅ when the med cert is an auto-approval candidate", async () => {
+  it("stays neutral even when the med cert may enter auto-approval", async () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => ({ result: { message_id: 42 } }) })
 
     const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
@@ -159,16 +158,16 @@ describe("Telegram request notifications", () => {
       intakeId: "12345678-1234-1234-1234-123456789abc",
       serviceSlug: "med-cert-sick",
       serviceDetail: "1 day",
-      autoApprovalCandidate: true,
     })
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body)
-    expect(body.text).toBe("*✅ New med cert*")
+    expect(body.text).toBe("*📄 New med cert*")
     expect(body.text).not.toContain("1 day")
     expect(body.text).not.toContain("❌")
+    expect(body.text).not.toContain("✅")
   })
 
-  it("stacks priority + auto markers in a stable order", async () => {
+  it("stacks priority with the neutral med-cert marker in a stable order", async () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => ({ result: { message_id: 42 } }) })
 
     const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
@@ -178,11 +177,10 @@ describe("Telegram request notifications", () => {
       serviceSlug: "med-cert-sick",
       serviceDetail: "2 days",
       isPriority: true,
-      autoApprovalCandidate: true,
     })
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body)
-    expect(body.text).toBe("*⚡ ✅ New med cert*")
+    expect(body.text).toBe("*⚡ 📄 New med cert*")
     expect(body.text).not.toContain("2 days")
   })
 
@@ -226,6 +224,18 @@ describe("Telegram request notifications", () => {
     expect(body.message_id).toBe(99)
     expect(body.text).toBe("*✓ Approved · 💊 prescription*")
     expect(body.text).not.toContain("Atorvastatin")
+  })
+
+  it("bounds Telegram status edits so an awaited chat request cannot hang a clinical action", async () => {
+    fetchMock.mockResolvedValue({ ok: true })
+
+    const { editTelegramMessageToApproved } = await import("@/lib/notifications/telegram")
+
+    await editTelegramMessageToApproved(99, {
+      serviceSlug: "med-cert-sick",
+    })
+
+    expect(fetchMock.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal)
   })
 
   it("drops the routing emoji from the med-cert edited title to avoid stacking ✓ + ✅/❌", async () => {

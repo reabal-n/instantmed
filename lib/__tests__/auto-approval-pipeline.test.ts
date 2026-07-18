@@ -416,12 +416,12 @@ describe("attemptAutoApproval orchestrator", () => {
     expect(result.autoApproved).toBe(false)
     // Should be ineligible due to emergency/mental health keywords
     expect(result.reason).toBeTruthy()
-    // The original ✅ Telegram title should flip to ❌ "manual review needed"
-    // so the operator's chat reflects that the auto path is no longer viable.
+    // The original neutral Telegram title should change to "manual review
+    // needed" so the operator's chat reflects the real routing outcome.
     expect(mockEditTelegramToNeedsManualReview).toHaveBeenCalledWith(TEST_INTAKE_ID)
   })
 
-  it("does NOT edit the Telegram message when the early service-type check rejects (the title was never ✅)", async () => {
+  it("does NOT edit the Telegram message when the early service-type check rejects a non-med-cert", async () => {
     mockFeatureFlags.ai_auto_approve_enabled = true
     supabaseQueryResults["intakes"] = makeIntakeChain({
       intakeData: {

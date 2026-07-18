@@ -946,7 +946,7 @@ Partial index on actionable states only: `idx_intakes_auto_approval_active` on `
 | Doctor acts while auto-approval is `attempting` | Manual med-cert approval force-takes only the `System (Auto-Approve)` claim, parks `auto_approval_state='needs_doctor'` with `manual_doctor_override`, then continues through the normal certificate approval pipeline |
 | Pipeline succeeds, no release needed | `markApproved()` is atomic — no release step |
 
-**Alerting:** Sentry records `warning` on exhausted retries and stale recovery, and `info` on approval and deterministic `needs_doctor`. These state changes do not create Telegram messages; the original paid-request message may be edited when its review status changes.
+**Alerting:** Sentry records `warning` on exhausted retries and stale recovery, and `info` on approval and deterministic `needs_doctor`. These state changes do not create another Telegram message. A new medical-certificate paid-request title starts neutral; approval or deterministic `needs_doctor` routing edits the original message. Lifecycle edits are awaited, use five-second timeouts for the intake lookup and outbound Telegram call, and remain fail-soft so serverless shutdown cannot silently drop them and Telegram cannot change the clinical outcome.
 
 ---
 

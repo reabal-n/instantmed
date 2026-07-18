@@ -666,9 +666,11 @@ export async function executeCertApproval(
   revalidateStaff({ intakeId, patientId: patient.id })
   revalidatePatient({ intakeId, patientId: patient.id, documents: true })
 
-  // 12. Edit the original Telegram notification to "Approved". Fire and forget;
-  // the helper is fail-soft and must never block the approval response.
-  void editPaidRequestTelegramMessageToApproved(intakeId)
+  // 12. Reconcile the original Telegram notification before this invocation
+  // completes. The helper is fail-soft, so a Telegram failure never rolls back
+  // the issued certificate, but awaiting it prevents serverless shutdown from
+  // dropping the status edit.
+  await editPaidRequestTelegramMessageToApproved(intakeId)
 
   return {
     success: true,
