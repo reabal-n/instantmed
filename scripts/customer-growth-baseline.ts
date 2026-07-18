@@ -12,7 +12,9 @@ import {
   type CustomerGrowthPostHogBaseline,
   type CustomerGrowthSupabaseBaseline,
 } from "@/lib/data/customer-growth-baseline"
+import { buildNetRetainedPurchaseValue } from "@/lib/data/net-retained-purchase-value"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
+import { REVENUE_PURCHASE_PAYMENT_STATUSES } from "@/lib/monitoring/revenue-safety"
 
 import { hydrateLocalEnv } from "./video-review/local-env"
 
@@ -24,7 +26,6 @@ const POSTHOG_EVENTS = [
   "purchase_completed_server",
   "google_ads_server_conversion",
 ] as const
-const RECOVERED_PAYMENT_STATUSES = ["paid", "partially_refunded", "refunded"] as const
 const DAY_MS = 24 * 60 * 60 * 1000
 
 type CliOptions = {
@@ -37,9 +38,14 @@ type IntakeAggregateRow = {
   category: string | null
   paid_at: string | null
   payment_status: string | null
-  refund_amount_cents: number | null
   status: string | null
   subtype: string | null
+}
+
+type RefundAggregateRow = {
+  refund_amount_cents: number | null
+  refund_status: string | null
+  refunded_at: string | null
 }
 
 type RecoveryPaidAttributionRow = {
@@ -139,29 +145,66 @@ async function querySupabaseBaseline(
   const sinceIso = since.toISOString()
   const nowIso = now.toISOString()
 
-  const { data, error } = await filterReportableIntakes(
-    supabase
-      .from("intakes")
-      .select("category, subtype, status, payment_status, paid_at, amount_cents, refund_amount_cents")
-      .gte("created_at", sinceIso)
-      .lte("created_at", nowIso),
-  )
-  if (error) throw new Error(`Supabase intake baseline query failed: ${error.message}`)
+  const [createdResult, paidResult, refundResult] = await Promise.all([
+    filterReportableIntakes(
+      supabase
+        .from("intakes")
+        .select("category, subtype, status, payment_status, paid_at, amount_cents")
+        .gte("created_at", sinceIso)
+        .lte("created_at", nowIso),
+    ),
+    filterReportableIntakes(
+      supabase
+        .from("intakes")
+        .select("category, subtype, status, payment_status, paid_at, amount_cents")
+        .in("payment_status", [...REVENUE_PURCHASE_PAYMENT_STATUSES])
+        .not("paid_at", "is", null)
+        .gte("paid_at", sinceIso)
+        .lte("paid_at", nowIso),
+    ),
+    filterReportableIntakes(
+      supabase
+        .from("intakes")
+        .select("refund_amount_cents, refund_status, refunded_at")
+        .not("refunded_at", "is", null)
+        .gte("refunded_at", sinceIso)
+        .lte("refunded_at", nowIso),
+    ),
+  ])
+  if (createdResult.error) {
+    throw new Error(`Supabase intake baseline query failed: ${createdResult.error.message}`)
+  }
+  if (paidResult.error) {
+    throw new Error(`Supabase paid revenue query failed: ${paidResult.error.message}`)
+  }
+  if (refundResult.error) {
+    throw new Error(`Supabase refund revenue query failed: ${refundResult.error.message}`)
+  }
 
-  const intakes = (data ?? []) as IntakeAggregateRow[]
-  const paidRows = intakes.filter((row) => Boolean(row.paid_at))
-  const grossRevenueCents = paidRows.reduce((sum, row) => sum + Number(row.amount_cents ?? 0), 0)
-  const refundedCents = paidRows.reduce((sum, row) => sum + Number(row.refund_amount_cents ?? 0), 0)
+  const intakes = (createdResult.data ?? []) as IntakeAggregateRow[]
+  const paidRows = (paidResult.data ?? []) as IntakeAggregateRow[]
+  const refundRows = (refundResult.data ?? []) as RefundAggregateRow[]
+  const revenue = buildNetRetainedPurchaseValue({
+    paidRows,
+    refundRows,
+    since,
+    until: now,
+  })
+  // Saved-intake demand is a created-at cohort. Revenue and paid-order volume
+  // are event-window metrics, so they come from the canonical paid-at read.
   const byService = new Map<string, { grossRevenueCents: number; intakes: number; paid: number }>()
 
   for (const row of intakes) {
     const service = serviceFromIntake(row)
     const bucket = byService.get(service) ?? { grossRevenueCents: 0, intakes: 0, paid: 0 }
     bucket.intakes += 1
-    if (row.paid_at) {
-      bucket.paid += 1
-      bucket.grossRevenueCents += Number(row.amount_cents ?? 0)
-    }
+    byService.set(service, bucket)
+  }
+  for (const row of paidRows) {
+    const service = serviceFromIntake(row)
+    const bucket = byService.get(service) ?? { grossRevenueCents: 0, intakes: 0, paid: 0 }
+    bucket.paid += 1
+    bucket.grossRevenueCents += Number(row.amount_cents ?? 0)
     byService.set(service, bucket)
   }
 
@@ -230,7 +273,10 @@ async function querySupabaseBaseline(
     dateTo: nowIso,
     days,
     intakes: {
-      averageOrderValueAud: paidRows.length > 0 ? roundMoney(grossRevenueCents / paidRows.length / 100) : null,
+      averageOrderValueAud:
+        revenue.averageOrderCents === null
+          ? null
+          : roundMoney(revenue.averageOrderCents / 100),
       byService: Array.from(byService.entries())
         .map(([service, bucket]) => ({
           grossRevenueAud: roundMoney(bucket.grossRevenueCents / 100),
@@ -239,12 +285,12 @@ async function querySupabaseBaseline(
           service,
         }))
         .sort((a, b) => b.grossRevenueAud - a.grossRevenueAud),
-      grossRevenueAud: roundMoney(grossRevenueCents / 100),
+      grossRevenueAud: roundMoney(revenue.grossCents / 100),
       intakes: intakes.length,
-      netRevenueAud: roundMoney((grossRevenueCents - refundedCents) / 100),
-      paid: paidRows.length,
-      paidRate: roundRate(paidRows.length, intakes.length),
-      refundedAud: roundMoney(refundedCents / 100),
+      netRevenueAud: roundMoney(revenue.netCents / 100),
+      paid: revenue.orderCount,
+      paidRate: roundRate(revenue.orderCount, intakes.length),
+      refundedAud: roundMoney(revenue.refundCents / 100),
     },
     recovery: {
       abandonedCheckoutSent,
@@ -270,7 +316,7 @@ async function queryRecoveredPaidRows(
     supabase
       .from("intakes")
       .select("amount_cents, refund_amount_cents, utm_source, utm_medium, utm_campaign, referrer, gclid, gbraid, wbraid, campaignid")
-      .in("payment_status", [...RECOVERED_PAYMENT_STATUSES])
+      .in("payment_status", [...REVENUE_PURCHASE_PAYMENT_STATUSES])
       .not("paid_at", "is", null)
       .gte("paid_at", sinceIso)
       .lte("paid_at", nowIso),

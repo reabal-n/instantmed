@@ -70,6 +70,7 @@ describe("customer growth baseline", () => {
     })
 
     expect(summary).toContain("30-day paid intakes: 33")
+    expect(summary).toContain("30-day net AOV: $29.34")
     expect(summary).toContain("30-day Google Ads local CAC: $72.33")
     expect(summary).toContain("Phase 1 gate: blocked")
     expect(summary).toContain("partial-intake converted marker is zero")
