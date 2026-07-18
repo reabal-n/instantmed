@@ -310,6 +310,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     const attribution = getAttribution()
     capture("checkout_initiated", {
       service_type: serviceType,
+      consult_subtype: answers.consultSubtype,
       price_dollars: totalDue,
       is_priority: isPriority,
       ...buildCheckoutInitiatedAttributionProps(attribution),
@@ -338,6 +339,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
       if (!result.success) {
         posthog?.capture("checkout_failed", {
           service_type: serviceType,
+          consult_subtype: answers.consultSubtype,
           stage: "session_creation",
           // Real reason ("No such price", "Phone number is required", ...) so the
           // failure breakdown is actionable. System message, not patient input.
@@ -350,6 +352,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
       if (!result.checkoutUrl) {
         posthog?.capture("checkout_failed", {
           service_type: serviceType,
+          consult_subtype: answers.consultSubtype,
           stage: "missing_checkout_url",
           reason: "missing_checkout_url",
         })
@@ -359,6 +362,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
 
       posthog?.capture("checkout_redirecting", {
         service_type: serviceType,
+        consult_subtype: answers.consultSubtype,
         price_dollars: totalDue,
       })
       setShowCheckmark(true)
@@ -371,6 +375,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     } catch (e) {
       posthog?.capture("checkout_failed", {
         service_type: serviceType,
+        consult_subtype: answers.consultSubtype,
         stage: "exception",
         reason: e instanceof Error ? e.message.slice(0, 200) : "exception",
       })
@@ -496,7 +501,9 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     sections.push({
       title: 'Prescription details',
       items: prescriptionDetailItems,
-      stepId: 'medication-history',
+      // Same screen as the Medication section since P2.1 merged the medicine
+      // and its history into one step; both Edit links land there.
+      stepId: 'medication',
     })
   }
 

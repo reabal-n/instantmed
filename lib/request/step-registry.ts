@@ -93,20 +93,20 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
 
   'prescription': [
     {
+      // P2.1 (2026-07-17): the separate `medication-history` step was merged in
+      // here. One medicine, one screen: name/strength/form + when it was last
+      // prescribed + dose & frequency + indication + unchanged-regimen
+      // attestation + side effects. Every answer key is unchanged — checkout
+      // (validateMedicationStep + validateMedicationHistoryStep in
+      // unified-checkout.ts) and the doctor packet read exactly what they did
+      // before. The medicine and the questions asked ABOUT that medicine were
+      // never independently answerable, so the split step only cost a screen.
+      // Retired-id restore for in-flight drafts: RETIRED_STEP_ID_ALIASES below.
       id: 'medication',
       label: 'Your medication',
       shortLabel: 'Medication',
       componentPath: 'medication-step',
       validateFn: 'validateMedicationStep',
-      invalidatesSteps: ['medication-history'],
-      required: true,
-    },
-    {
-      id: 'medication-history',
-      label: 'Prescription history',
-      shortLabel: 'History',
-      componentPath: 'medication-history-step',
-      validateFn: 'validateMedicationHistoryStep',
       required: true,
     },
     {
@@ -317,8 +317,43 @@ const REQUEST_STEP_IDS = new Set<UnifiedStepId>([
   ...Object.values(CONSULT_SUBTYPE_STEPS).flatMap((steps) => steps.map((step) => step.id)),
 ])
 
-export function isRequestStepId(value: unknown): value is UnifiedStepId {
+function isRequestStepId(value: unknown): value is UnifiedStepId {
   return typeof value === 'string' && REQUEST_STEP_IDS.has(value as UnifiedStepId)
+}
+
+/**
+ * Step ids that a previous registry shape persisted, mapped onto the step that
+ * now owns those answers.
+ *
+ * A draft outlives a deploy: an in-flight patient's `currentStepId` lives in
+ * localStorage (24h expiry) and in the server draft used for cross-device
+ * recovery. `isRequestStepId` is derived from the live registry, so a retired
+ * id fails it — and every restore path then falls back to step 1 and filters
+ * the id out of `stepsNeedingRevalidation`. For a patient who was ON the
+ * retired step that reads as "the form threw my place away". Resolving the
+ * alias first lands them on the merged step with their answers intact.
+ *
+ * Answers themselves are a flat key-value blob and are never keyed by step, so
+ * only the navigation ids need mapping.
+ */
+const RETIRED_STEP_ID_ALIASES: Record<string, UnifiedStepId> = {
+  // P2.1 (2026-07-17): `medication-history` merged into `medication`.
+  'medication-history': 'medication',
+}
+
+/**
+ * Resolve a persisted step id (which may predate the current registry) to a
+ * live step id, or null when it names no step we still have.
+ *
+ * This is the ONLY exported way to validate a persisted step id — a bare
+ * "is this a live id" check would answer `false` for a retired one and send
+ * callers down their reset-to-step-1 fallback, which is the bug this exists
+ * to prevent. Keep it that way.
+ */
+export function resolveStepId(value: unknown): UnifiedStepId | null {
+  if (typeof value !== 'string') return null
+  const resolved = RETIRED_STEP_ID_ALIASES[value] ?? value
+  return isRequestStepId(resolved) ? resolved : null
 }
 
 /**

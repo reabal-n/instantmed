@@ -1,8 +1,8 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { AlertCircle, ArrowRight } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { ArrowRight } from "lucide-react"
+import { useCallback, useEffect, useRef } from "react"
 
 import {
   ChipToggleGroup,
@@ -124,7 +124,6 @@ export default function HairLossAssessmentStep({
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
   const prefersReducedMotion = useReducedMotion()
-  const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Store values
   const hairPattern = (answers.hairPattern as string) || ""
@@ -150,21 +149,6 @@ export default function HairLossAssessmentStep({
     }
   }, [showTreatments])
 
-  // Validation
-  const validate = () => {
-    const newErrors: Record<string, string> = {}
-
-    if (!hairPattern) {
-      newErrors.hairPattern = "Please select your hair loss pattern"
-    }
-    if (!hairFamilyHistory) {
-      newErrors.hairFamilyHistory = "Please select your family history"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
   const isComplete = !!hairPattern && !!hairFamilyHistory
 
   const { validationSummary, showBlockingReasons } = useStepValidationSummary(
@@ -179,14 +163,10 @@ export default function HairLossAssessmentStep({
   )
 
   const handleNext = () => {
-    if (!validate()) {
+    if (!isComplete) {
       showBlockingReasons()
       return
     }
-    posthog?.capture("step_completed", {
-      step: "hair-loss-assessment",
-      pattern: hairPattern,
-    })
     onNext()
   }
 
@@ -231,16 +211,6 @@ export default function HairLossAssessmentStep({
           hideChipsOnMobile
           compact
         />
-        {errors.hairPattern && (
-          <p
-            className="text-xs text-destructive flex items-center gap-1"
-            role="alert"
-            aria-live="polite"
-          >
-            <AlertCircle className="w-3 h-3" />
-            {errors.hairPattern}
-          </p>
-        )}
       </QuestionCard>
 
       {/* Family history -- visible after pattern selected */}
@@ -261,16 +231,6 @@ export default function HairLossAssessmentStep({
               ariaLabel="Do you have a family history of hair loss"
               columns="two"
             />
-            {errors.hairFamilyHistory && (
-              <p
-                className="text-xs text-destructive flex items-center gap-1"
-                role="alert"
-                aria-live="polite"
-              >
-                <AlertCircle className="w-3 h-3" />
-                {errors.hairFamilyHistory}
-              </p>
-            )}
           </QuestionCard>
         </motion.div>
       )}

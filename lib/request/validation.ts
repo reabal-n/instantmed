@@ -324,9 +324,6 @@ export const prescriptionMedicalHistoryStepSchema = z
 export const edGoalsStepSchema = z.object({
   edGoal: nonEmptyString("Please select your main goal"),
   edDuration: nonEmptyString("Please indicate how long this has been a concern"),
-  edAgeConfirmed: z.literal(true, {
-    error: "Please confirm you are 18 or older",
-  }),
 })
 
 export const edAssessmentStepSchema = z.object({

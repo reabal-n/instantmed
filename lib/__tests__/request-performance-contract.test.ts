@@ -20,7 +20,11 @@ describe("request conversion performance contract", () => {
   it("registers every step as a next/dynamic component so the first step SSRs + preloads from <head>", () => {
     // Parse the loader registry: it is the canonical list of step chunks.
     const loaderEntries = [...stepLoadersSource.matchAll(/'([a-z-]+)': \(\) => import\("\.\/steps\/([a-z-]+)"\)/g)]
-    expect(loaderEntries.length).toBeGreaterThanOrEqual(19)
+    // Floor re-baselined 19 -> 18 on 2026-07-17: P2.1 merged
+    // medication-history-step into medication-step. This guards against
+    // silently LOSING a registration, so it only moves with a deliberate
+    // step-count change.
+    expect(loaderEntries.length).toBeGreaterThanOrEqual(18)
 
     for (const [, key, file] of loaderEntries) {
       // Each loader key must have a matching dynamic() entry with a LITERAL

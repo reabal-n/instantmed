@@ -113,7 +113,7 @@ const medCertRules: SafetyRule[] = [
         operator: 'gt',
         value: 7,
         derivedFrom: {
-          type: 'duration_days',
+          type: 'signed_days',
           fields: ['start_date', 'today'],
         },
       },
@@ -135,7 +135,7 @@ const medCertRules: SafetyRule[] = [
         operator: 'gt',
         value: 3,
         derivedFrom: {
-          type: 'duration_days',
+          type: 'signed_days',
           fields: ['start_date', 'today'],
         },
       },

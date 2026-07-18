@@ -493,6 +493,40 @@ describe("attemptAutoApproval orchestrator", () => {
     expect(result.reason).toBe("No doctor available")
   })
 
+  it("does not issue under a doctor explicitly disabled for med-cert review", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = true
+
+    supabaseQueryResults["intakes"] = makeIntakeChain()
+    supabaseQueryResults["document_drafts"] = makeDraftsChain([
+      { id: "draft-1", type: "clinical_note", status: "ready", content: { presentingComplaint: "Cold", flags: { requiresReview: false, flagReason: null } } },
+    ])
+    supabaseQueryResults["ai_audit_log"] = makeAuditChain()
+    supabaseQueryResults["issued_certificates"] = makeIssuedCertsChain([])
+    supabaseQueryResults["profiles"] = makeDoctorsChain([
+      {
+        id: TEST_DOCTOR_ID,
+        role: "doctor",
+        can_review_med_certs: false,
+        full_name: "Dr Test Doctor",
+        provider_number: "1234567A",
+        ahpra_number: "MED0000000001",
+        ahpra_next_review_at: null,
+      },
+    ])
+    mockExecuteCertApproval.mockResolvedValue({
+      success: true,
+      certificateId: "cert-should-not-exist",
+      emailSent: true,
+    })
+
+    const attemptAutoApproval = await getAttemptAutoApproval()
+    const result = await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(result.autoApproved).toBe(false)
+    expect(result.reason).toBe("No doctor available")
+    expect(mockExecuteCertApproval).not.toHaveBeenCalled()
+  })
+
   // --------------------------------------------------------------------------
   // 7. Successful approval
   // --------------------------------------------------------------------------

@@ -51,8 +51,7 @@ components/request/
 └── steps/                # Individual step components
     ├── certificate-step.tsx
     ├── symptoms-step.tsx
-    ├── medication-step.tsx
-    ├── medication-history-step.tsx
+    ├── medication-step.tsx   # repeat-Rx: medicine + prescription history + dose/indication/side effects
     ├── medical-history-step.tsx
     ├── ed-*-step.tsx
     ├── hair-loss-*-step.tsx

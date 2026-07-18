@@ -15,7 +15,6 @@ const stepLoaders = {
   'certificate-step': () => import("./steps/certificate-step").then((mod) => mod.default),
   'symptoms-step': () => import("./steps/symptoms-step").then((mod) => mod.default),
   'medication-step': () => import("./steps/medication-step").then((mod) => mod.default),
-  'medication-history-step': () => import("./steps/medication-history-step").then((mod) => mod.default),
   'medical-history-step': () => import("./steps/medical-history-step").then((mod) => mod.default),
   'patient-details-step': () => import("./steps/patient-details-step").then((mod) => mod.default),
   'review-step': () => import("./steps/review-step").then((mod) => mod.default),

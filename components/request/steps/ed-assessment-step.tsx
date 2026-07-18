@@ -232,9 +232,8 @@ export default function EdAssessmentStep({ serviceType, onNext, onBack }: EdAsse
       showBlockingReasons()
       return
     }
-    posthog?.capture('step_completed', { step: 'ed-assessment', iief_total: iiefTotal, severity: interpretation?.label })
     onNext()
-  }, [allAnswered, showBlockingReasons, iiefTotal, interpretation, posthog, onNext])
+  }, [allAnswered, showBlockingReasons, onNext])
 
   useKeyboardNavigation({
     onNext: allAnswered ? handleNext : undefined,

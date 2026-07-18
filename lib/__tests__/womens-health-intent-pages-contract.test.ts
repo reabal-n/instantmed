@@ -47,18 +47,32 @@ describe("women's-health intent entry pages", () => {
     }
   })
 
-  it("keeps the hub as a chooser while child pages own the intake entry", () => {
+  it("lets high-intent hub CTAs start the intake while retaining focused child pages", () => {
     const landing = read("components/marketing/womens-health-landing.tsx")
+    const fork = read("components/marketing/womens-health-decision-fork.tsx")
     const contentHubLinks = read("components/seo/content-hub-links.tsx")
 
     expect(landing).toContain('analyticsId: "womens-health"')
-    expect(landing).toContain('ctaHref: "#choose-care"')
+    expect(landing).toContain(
+      '"/request?service=consult&subtype=womens_health"',
+    )
+    expect(landing).toContain(
+      '"/request?service=consult&subtype=womens_health&intent=uti"',
+    )
+    expect(landing).toContain(
+      '"/request?service=consult&subtype=womens_health&intent=ocp_new"',
+    )
+    expect(fork).toContain(
+      'href="/request?service=consult&subtype=womens_health&intent=uti"',
+    )
+    expect(fork).toContain(
+      'href="/request?service=consult&subtype=womens_health&intent=ocp_new"',
+    )
     expect(landing).toContain('href="/uti-assessment-online"')
     expect(landing).toContain('href="/contraceptive-pill-assessment-online"')
     expect(landing).toContain('href="/prescriptions"')
     expect(landing).not.toContain("WomensHealthIntent")
     expect(landing).not.toContain("INTENT_COPY")
-    expect(landing).not.toContain("service=consult&subtype=womens_health")
     expect(contentHubLinks).toContain("/uti-assessment-online")
     expect(contentHubLinks).toContain("/contraceptive-pill-assessment-online")
 
@@ -69,7 +83,7 @@ describe("women's-health intent entry pages", () => {
     const womensHealthHub = contentHubLinks.slice(contentHubLinks.indexOf('"womens-health": {'))
     expect(womensHealthHub).not.toMatch(/\bantibiotics?\b/i)
 
-    const combinedSource = [landing, ...pages.map((page) => read(page.file))].join("\n")
+    const combinedSource = [landing, fork, ...pages.map((page) => read(page.file))].join("\n")
     expect(combinedSource).not.toContain("womens_health_uti")
     expect(combinedSource).not.toContain("womens_health_pill")
     expect(combinedSource).not.toContain("service=uti")

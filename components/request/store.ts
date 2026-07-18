@@ -28,7 +28,7 @@ import {
   getPreviousStepId,
   getStepDefinitionById,
   getStepsForService as _getStepsForService,
-  isRequestStepId,
+  resolveStepId,
 } from '@/lib/request/step-registry'
 
 export interface RequestState {
@@ -494,8 +494,15 @@ function normalizePersistedState(state: Partial<RequestState> | undefined): Part
 
   const persisted = state as PersistedRequestState
 
+  // A draft written before a registry change can name a step that no longer
+  // exists. resolveStepId maps a retired id onto its successor (see
+  // RETIRED_STEP_ID_ALIASES) so the patient resumes where they left off; only
+  // a genuinely unknown id falls back.
+  const resolvedCurrentStepId = resolveStepId(state.currentStepId)
+
   return {
     ...state,
+    ...(resolvedCurrentStepId ? { currentStepId: resolvedCurrentStepId } : {}),
     answers: isPlainRecord(persisted.answers) ? persisted.answers : {},
     firstName: typeof state.firstName === 'string' ? state.firstName : '',
     lastName: typeof state.lastName === 'string' ? state.lastName : '',
@@ -504,11 +511,16 @@ function normalizePersistedState(state: Partial<RequestState> | undefined): Part
     dob: typeof state.dob === 'string' ? state.dob : '',
     safetyConfirmed: typeof state.safetyConfirmed === 'boolean' ? state.safetyConfirmed : false,
     safetyTimestamp: typeof state.safetyTimestamp === 'string' ? state.safetyTimestamp : null,
-    furthestVisitedStepId: isRequestStepId(state.furthestVisitedStepId)
-      ? state.furthestVisitedStepId
-      : state.currentStepId ?? null,
+    furthestVisitedStepId: resolveStepId(state.furthestVisitedStepId)
+      ?? resolvedCurrentStepId
+      ?? state.currentStepId
+      ?? null,
     stepsNeedingRevalidation: Array.isArray(state.stepsNeedingRevalidation)
-      ? state.stepsNeedingRevalidation.filter(isRequestStepId)
+      ? Array.from(new Set(
+          state.stepsNeedingRevalidation
+            .map(resolveStepId)
+            .filter((stepId): stepId is UnifiedStepId => stepId !== null),
+        ))
       : [],
     agreedToTerms: typeof state.agreedToTerms === 'boolean' ? state.agreedToTerms : false,
     confirmedAccuracy: typeof state.confirmedAccuracy === 'boolean' ? state.confirmedAccuracy : false,
@@ -575,7 +587,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           } catch {
             steps = []
           }
-          const restoredStepId = scopedDraft?.currentStepId
+          const restoredStepId = resolveStepId(scopedDraft?.currentStepId)
           const stepExists = restoredStepId ? steps.some(s => s.id === restoredStepId) : false
 
           set({
@@ -584,10 +596,14 @@ export const useRequestStore = create<RequestState & RequestActions>()(
             currentStepId: (stepExists
               ? restoredStepId
               : steps[0]?.id || 'certificate') as UnifiedStepId,
-            furthestVisitedStepId: isRequestStepId(scopedDraft?.furthestVisitedStepId)
-              ? scopedDraft.furthestVisitedStepId
-              : restoredStepId ?? (steps[0]?.id || 'certificate') as UnifiedStepId,
-            stepsNeedingRevalidation: (scopedDraft?.stepsNeedingRevalidation ?? []).filter(isRequestStepId),
+            furthestVisitedStepId: resolveStepId(scopedDraft?.furthestVisitedStepId)
+              ?? restoredStepId
+              ?? (steps[0]?.id || 'certificate') as UnifiedStepId,
+            stepsNeedingRevalidation: Array.from(new Set(
+              (scopedDraft?.stepsNeedingRevalidation ?? [])
+                .map(resolveStepId)
+                .filter((stepId): stepId is UnifiedStepId => stepId !== null),
+            )),
             safetyConfirmed: restoreConfirmedAttestation,
             safetyTimestamp: restoreConfirmedAttestation ? scopedDraft?.safetyTimestamp ?? null : null,
             agreedToTerms: restoreConfirmedAttestation,
@@ -792,6 +808,9 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
         const event = buildIntakeAnswerChangedEvent({
           serviceType: state.serviceType,
+          subtype: typeof nextAnswers.consultSubtype === "string"
+            ? nextAnswers.consultSubtype
+            : undefined,
           stepId: state.currentStepId,
           answerKey: key,
           previousValue,
@@ -881,9 +900,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           steps = []
         }
 
-        const requestedStep = isRequestStepId(record.currentStepId)
-          ? record.currentStepId
-          : null
+        const requestedStep = resolveStepId(record.currentStepId)
         const currentStepId = (
           requestedStep && steps.some((step) => step.id === requestedStep)
             ? requestedStep
