@@ -275,12 +275,13 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   }
 
   const handleAddressLineChange = (value: string) => {
+    const wasVerified = answers.addressVerified === true
     setAnswer("addressLine1", value)
     setAnswer("addressVerified", false)
     setAnswer("addressProviderPlaceId", "")
 
-    if (!value.trim()) {
-      setManualAddressEntry(false)
+    if (wasVerified || !value.trim()) {
+      setManualAddressEntry(wasVerified && Boolean(value.trim()))
       setAnswer("addressLine2", "")
       setAnswer("suburb", "")
       setAnswer("state", "")

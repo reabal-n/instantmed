@@ -27,6 +27,7 @@ async function dismissOverlays(page: import("@playwright/test").Page) {
 async function completeToDetails(page: import("@playwright/test").Page) {
   await page.goto("/request?service=repeat-script")
   await dismissOverlays(page)
+  const main = page.getByRole("main")
 
   const clickPrimary = async () => {
     // Mobile (390px): the in-step primary action is `max-sm:hidden`; the sticky
@@ -34,7 +35,9 @@ async function completeToDetails(page: import("@playwright/test").Page) {
     await page.getByRole("button", { name: /^Continue$/i }).last().click()
   }
 
-  await expect(page.getByRole("heading", { name: /Your medication/i })).toBeVisible({ timeout: 20000 })
+  await expect(
+    main.getByRole("heading", { name: "Your medication", level: 2, exact: true }),
+  ).toBeVisible({ timeout: 20000 })
   // Medication is a free-text name box since #208 (PBS combobox retired), and
   // P2.1 put the prescription-history questions on this same screen.
   await page.locator("#medication-name-0").fill("Atorvastatin")
@@ -50,7 +53,13 @@ async function completeToDetails(page: import("@playwright/test").Page) {
   await page.getByRole("radio", { name: /No side effects/i }).click()
   await clickPrimary()
 
-  await expect(page.getByRole("heading", { name: /Anything the doctor should know/i })).toBeVisible()
+  await expect(
+    main.getByRole("heading", {
+      name: "Anything the doctor should know?",
+      level: 2,
+      exact: true,
+    }),
+  ).toBeVisible()
   // #209: each question is a radiogroup with a question-specific "no" label;
   // the separate "Medication safety" / "No reactions" question was folded in.
   await page.getByRole("radiogroup", { name: /allerg/i }).getByRole("radio", { name: /^None$/i }).click()
@@ -62,11 +71,13 @@ async function completeToDetails(page: import("@playwright/test").Page) {
   }
   await clickPrimary()
 
-  await expect(page.getByRole("heading", { name: /^Your details$/i }).first()).toBeVisible({ timeout: 20000 })
+  await expect(
+    main.getByRole("heading", { name: "Your details", level: 2, exact: true }),
+  ).toBeVisible({ timeout: 20000 })
 }
 
 test.describe("Addressfinder mobile path", () => {
-  test("selects an Addressfinder result and stores verified provider metadata", async ({ page }) => {
+  test("clears verified locality when the selected street address is edited", async ({ page }) => {
     let autocompleteRequests = 0
 
     await page.route("**/api/places/autocomplete**", async (route) => {
@@ -115,9 +126,6 @@ test.describe("Addressfinder mobile path", () => {
     await page.locator("input[placeholder='Start typing your address...']").fill("21 Kent")
     await page.getByRole("option", { name: /Unit 2, 21 Kent Road/i }).click()
 
-    await expect(page.locator("input#suburb")).toHaveValue("DAPTO")
-    await expect(page.locator("input#postcode")).toHaveValue("2530")
-
     // Selecting a verified result must settle the combobox. The selected text
     // is written back into the input, but that write must not trigger the same
     // autocomplete request and reopen the result menu.
@@ -126,9 +134,9 @@ test.describe("Addressfinder mobile path", () => {
     await expect(page.getByRole("listbox")).toHaveCount(0)
 
     await expect.poll(async () => page.evaluate(() => {
-      const raw = window.localStorage.getItem("instantmed-request-draft")
+      const raw = window.localStorage.getItem("instantmed-draft-prescription")
       const draft = raw ? JSON.parse(raw) : null
-      return draft?.state?.answers ?? null
+      return draft?.answers ?? null
     }), { timeout: 5000 }).toMatchObject({
       addressLine1: "Unit 2, 21 Kent Road",
       suburb: "DAPTO",
@@ -136,6 +144,25 @@ test.describe("Addressfinder mobile path", () => {
       postcode: "2530",
       addressVerified: true,
       addressProviderPlaceId: "af:address-id",
+    })
+
+    // Once the patient edits a provider-verified street line, the old locality
+    // must not remain hidden in the prescribing/Parchment address bundle.
+    const addressInput = page.locator("input[placeholder='Start typing your address...']")
+    await addressInput.fill("Unit 3, 21 Kent Road")
+    await expect(page.locator("input#suburb")).toBeVisible()
+    await expect.poll(async () => page.evaluate(() => {
+      const raw = window.localStorage.getItem("instantmed-draft-prescription")
+      const draft = raw ? JSON.parse(raw) : null
+      return draft?.answers ?? null
+    }), { timeout: 5000 }).toMatchObject({
+      addressLine1: "Unit 3, 21 Kent Road",
+      addressLine2: "",
+      suburb: "",
+      state: "",
+      postcode: "",
+      addressVerified: false,
+      addressProviderPlaceId: "",
     })
   })
 
@@ -157,15 +184,25 @@ test.describe("Addressfinder mobile path", () => {
 
     await expect(page.locator("input#suburb")).toBeVisible()
     await expect(page.locator("input#postcode")).toBeVisible()
+    await page.locator("input#suburb").fill("DAPTO")
+    await page.locator("#state-select-trigger").click()
+    await page.getByRole("option", { name: "NSW", exact: true }).click()
+    await page.locator("input#postcode").fill("2530")
     await addressInput.fill("No Match Avenue Unit 2")
     await expect(addressInput).toHaveValue("No Match Avenue Unit 2")
+    await expect(page.locator("input#suburb")).toHaveValue("DAPTO")
+    await expect(page.locator("#state-select-trigger")).toHaveText("NSW")
+    await expect(page.locator("input#postcode")).toHaveValue("2530")
     await expect(page.getByRole("button", { name: /Use manual address/i })).toHaveCount(0)
 
     await expect.poll(async () => page.evaluate(() => {
-      const raw = window.localStorage.getItem("instantmed-request-draft")
+      const raw = window.localStorage.getItem("instantmed-draft-prescription")
       const draft = raw ? JSON.parse(raw) : null
-      return draft?.state?.answers ?? null
+      return draft?.answers ?? null
     }), { timeout: 5000 }).toMatchObject({
+      suburb: "DAPTO",
+      state: "NSW",
+      postcode: "2530",
       addressVerified: false,
       addressProviderPlaceId: "",
     })
