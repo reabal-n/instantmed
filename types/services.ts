@@ -33,8 +33,7 @@ export type UnifiedStepId =
   | 'symptoms'          // Symptom selection + details
   | 'medication'        // Repeat-Rx: medicine + prescription history + dose/indication/side effects
   | 'medical-history'   // Allergies, conditions, other meds
-  | 'ed-goals'          // ED goals and duration
-  | 'ed-assessment'     // ED-specific assessment (IIEF-5)
+  | 'ed-goals'          // ED duration + severity (absorbed the IIEF-5 step 2026-07-19)
   | 'ed-health'         // ED health screening (nitrates, cardiac, medical history)
   | 'ed-preferences'    // ED treatment preferences
   | 'hair-loss-goals'      // Hair loss goals and onset

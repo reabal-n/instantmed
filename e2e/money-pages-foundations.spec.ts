@@ -1333,7 +1333,7 @@ test("patient entry controls retain the 48px internal target", async ({ browser 
     { path: "/request", ready: /What brings you in today/i },
     { path: "/request?service=med-cert", ready: /Certificate type/i },
     { path: "/request?service=repeat-script", ready: /Medication name/i },
-    { path: "/request?service=consult&subtype=ed", ready: /What matters most right now/i },
+    { path: "/request?service=consult&subtype=ed", ready: /Tell us what's going on/i },
   ] as const
 
   for (const entry of entries) {

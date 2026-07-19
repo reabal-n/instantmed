@@ -19,7 +19,6 @@ const stepLoaders = {
   'patient-details-step': () => import("./steps/patient-details-step").then((mod) => mod.default),
   'review-step': () => import("./steps/review-step").then((mod) => mod.default),
   'ed-goals-step': () => import("./steps/ed-goals-step").then((mod) => mod.default),
-  'ed-assessment-step': () => import("./steps/ed-assessment-step").then((mod) => mod.default),
   'ed-health-step': () => import("./steps/ed-health-step").then((mod) => mod.default),
   'ed-preferences-step': () => import("./steps/ed-preferences-step").then((mod) => mod.default),
   'hair-loss-goals-step': () => import("./steps/hair-loss-goals-step").then((mod) => mod.default),

@@ -1,22 +1,45 @@
 "use client"
 
 /**
- * ED Goals Step - Step 1 of 4 in the ED intake flow
+ * ED opening step — the only screen before the safety check.
  *
- * Emotional entry point: low-friction goal selection + duration picker.
- * Eligibility is enforced from date of birth before payment; this screen stays
- * focused on the clinical goal and duration.
+ * 2026-07-19: absorbed the severity assessment and dropped the goal chips.
+ *
+ * The separate IIEF-5 step asked five scale questions to produce a score the
+ * doctor used as context, not as a gate — ED is never auto-approved. It cost a
+ * whole step on the flow's advertised length while losing only 2 of 41 patients
+ * itself. One frequency item (the erection-firmness question, the item that
+ * tracks the total score most closely) carries the same severity signal in one
+ * tap. `iiefTotal` is no longer produced; every doctor surface renders it
+ * conditionally so historical intakes still show their score.
+ *
+ * The goal chips ("Improve erections" / "More spontaneity" / ...) were removed:
+ * no doctor surface acted on the answer.
+ *
+ * Question order is deliberate. Duration is clinical but not intimate, so it
+ * opens; the frequency question follows. This screen loses 57% of patients on
+ * arrival, so it must not lead with the most confronting question in the form.
+ *
+ * Eligibility is enforced from date of birth before payment; this screen does
+ * not duplicate the age gate.
  */
 
-import { ArrowRight, Heart, Shield, Sparkles, Target } from "lucide-react"
-import { useCallback } from "react"
+import { ArrowRight, Info } from "lucide-react"
+import { useCallback, useEffect, useRef } from "react"
 
-import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
+import {
+  IntakeStepIntro,
+  QuestionCard,
+  QuestionPrompt,
+  ScaleChoiceGroup,
+  SegmentedChoiceGroup,
+} from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
+import { ED_HOOK_QUIZ_KEY, type EdHookQuizResult } from "@/lib/marketing/ed-hook-quiz"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 import { useRequestStore } from "../store"
@@ -28,37 +51,55 @@ interface EdGoalsStepProps {
   onComplete: () => void
 }
 
-const GOAL_OPTIONS = [
-  { value: "improve_erections", label: "Improve erections", icon: Target },
-  { value: "more_spontaneity", label: "More spontaneity", icon: Sparkles },
-  { value: "boost_confidence", label: "Boost confidence", icon: Shield },
-  { value: "better_stamina", label: "Better stamina", icon: Heart },
-] as const
-
 const DURATION_OPTIONS = [
   { value: "less_than_3_months", label: "< 3 months" },
-  { value: "3_to_12_months", label: "3\u201312 months" },
-  { value: "1_to_3_years", label: "1\u20133 years" },
+  { value: "3_to_12_months", label: "3–12 months" },
+  { value: "1_to_3_years", label: "1–3 years" },
   { value: "3_plus_years", label: "3+ years" },
 ] as const
+
+const FREQUENCY_VALUES = [1, 2, 3, 4, 5] as const
 
 export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
+  const preSeeded = useRef(false)
 
-  const edGoal = (answers.edGoal as string) || ""
   const edDuration = (answers.edDuration as string) || ""
+  const edErectionFrequency = (answers.edErectionFrequency as number | undefined) ?? null
 
-  const isComplete = !!edGoal && !!edDuration
+  /**
+   * Pre-seed from the landing-page hook quiz. Its first question is the same
+   * erection-frequency item on the same 1-5 scale, so a patient who answered it
+   * on the way in is not asked it twice.
+   */
+  useEffect(() => {
+    if (preSeeded.current) return
+    preSeeded.current = true
+    try {
+      const raw = typeof window !== "undefined"
+        ? sessionStorage.getItem(ED_HOOK_QUIZ_KEY)
+        : null
+      if (!raw) return
+      const quiz: EdHookQuizResult = JSON.parse(raw)
+      if (answers.edErectionFrequency === undefined && quiz.answers?.[0] != null) {
+        setAnswer("edErectionFrequency", quiz.answers[0])
+      }
+    } catch {
+      // sessionStorage unavailable or corrupt - silently skip
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- one-time mount seed
+
+  const isComplete = !!edDuration && edErectionFrequency !== null
 
   const { validationSummary, showBlockingReasons } = useStepValidationSummary(
     isComplete,
     useCallback(() => {
       const reasons: string[] = []
-      if (!edGoal) reasons.push("your main goal")
       if (!edDuration) reasons.push("how long this has been a concern")
+      if (edErectionFrequency === null) reasons.push("how often this happens")
       return reasons
-    }, [edGoal, edDuration]),
+    }, [edDuration, edErectionFrequency]),
     { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "ed-goals" },
   )
 
@@ -77,27 +118,11 @@ export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <IntakeStepIntro
-        title="What matters most right now?"
-        description="Discreet answers help the doctor choose a safe approach."
+        title="Tell us what's going on"
+        description="Two quick questions. Only the doctor reviewing your request sees your answers."
       />
 
-      {/* Goal selection - chip grid */}
-      <QuestionCard compact>
-        <QuestionPrompt label="What's your main goal?" required />
-        <ChoiceCardGroup
-          options={GOAL_OPTIONS}
-          value={edGoal}
-          onChange={(value) => setAnswer("edGoal", value)}
-          ariaLabel="Treatment goal"
-          columns="two"
-          mobileColumns="two"
-          compact
-        />
-      </QuestionCard>
-
-      {/* Duration - segmented selector */}
       <QuestionCard compact>
         <QuestionPrompt label="How long has this been a concern?" required />
         <SegmentedChoiceGroup
@@ -108,6 +133,29 @@ export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
           columns="two"
         />
       </QuestionCard>
+
+      <QuestionCard compact className="space-y-3">
+        <QuestionPrompt
+          label="How often can you get and keep an erection firm enough for sex?"
+          required
+        />
+        <ScaleChoiceGroup
+          values={FREQUENCY_VALUES}
+          value={edErectionFrequency}
+          onChange={(value) => setAnswer("edErectionFrequency", value)}
+          lowLabel="Almost never"
+          highLabel="Almost always"
+          ariaLabel="How often you can get and keep an erection firm enough for sex"
+        />
+      </QuestionCard>
+
+      <div className="flex items-start gap-2 px-1">
+        <Info className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          There are no wrong answers. Your doctor reviews your full health
+          profile before deciding what is appropriate.
+        </p>
+      </div>
 
       {/* Validation summary — announced to screen readers on first Continue tap */}
       {validationSummary.length > 0 && (
@@ -130,7 +178,7 @@ export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
       >
         {isComplete ? (
           <>
-            Continue to assessment
+            Continue to health screening
             <ArrowRight className="w-4 h-4" />
           </>
         ) : (

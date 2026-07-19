@@ -527,9 +527,17 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         '3_plus_years': '3+ years',
       }
       const ED_PREF_LABELS: Record<string, string> = {
-        daily: 'Daily (always ready)',
-        prn: 'As-needed',
+        daily: 'Every day',
+        prn: 'Only when I need it',
+        // Retired from the UI 2026-07-19; stored drafts still render it.
         doctor_decides: 'Doctor\u2019s recommendation',
+      }
+      const ED_FREQUENCY_LABELS: Record<number, string> = {
+        1: 'Almost never',
+        2: 'Much less than half the time',
+        3: 'About half the time',
+        4: 'Much more than half the time',
+        5: 'Almost always',
       }
 
       const edGoal = stringAnswer(answers.edGoal)
@@ -537,31 +545,36 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
       const edPreference = stringAnswer(answers.edPreference)
       const edAdditionalInfo = stringAnswer(answers.edAdditionalInfo)
 
-      sections.push({
-        title: 'Your concern',
-        items: [
-          {
-            label: 'Main goal',
-            value: edGoal ? ED_GOAL_LABELS[edGoal] || edGoal : '',
-          },
-          {
-            label: 'Duration of concern',
-            value: edDuration ? ED_DURATION_LABELS[edDuration] || edDuration : '',
-          },
-        ],
-        stepId: 'ed-goals',
+      const edConcernItems: ReviewItem[] = []
+      // `edGoal` stopped being collected on 2026-07-19; a restored draft may
+      // still carry one.
+      if (edGoal) {
+        edConcernItems.push({
+          label: 'Main goal',
+          value: ED_GOAL_LABELS[edGoal] || edGoal,
+        })
+      }
+      edConcernItems.push({
+        label: 'Duration of concern',
+        value: edDuration ? ED_DURATION_LABELS[edDuration] || edDuration : '',
       })
-
-      const edAssessmentItems: ReviewItem[] = []
+      if (answers.edErectionFrequency !== undefined) {
+        const frequency = answers.edErectionFrequency as number
+        edConcernItems.push({
+          label: 'How often it happens',
+          value: `${frequency}/5 \u2014 ${ED_FREQUENCY_LABELS[frequency] || 'Not answered'}`,
+        })
+      }
+      // Only pre-2026-07-19 intakes carry an IIEF-5 total.
       if (answers.iiefTotal !== undefined) {
         const score = answers.iiefTotal as number
         const severity = score >= 22 ? 'Mild' : score >= 17 ? 'Mild\u2013moderate' : score >= 12 ? 'Moderate' : 'Significant'
-        edAssessmentItems.push({ label: 'IIEF-5 score', value: `${score}/25 \u2014 ${severity}` })
+        edConcernItems.push({ label: 'IIEF-5 score', value: `${score}/25 \u2014 ${severity}` })
       }
       sections.push({
-        title: 'ED assessment',
-        items: edAssessmentItems,
-        stepId: 'ed-assessment',
+        title: 'Your concern',
+        items: edConcernItems,
+        stepId: 'ed-goals',
       })
 
       const edSafetyItems: ReviewItem[] = [
