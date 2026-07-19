@@ -21,6 +21,11 @@ import { env } from "@/lib/config/env"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { getEmployerCertificateStorageVersion } from "@/lib/crypto/employer-certificate-token"
 import { signEmailUnsubscribeToken, signUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
+import {
+  evaluatePartialIntakeRecoveryPolicy,
+  markPartialIntakeRecoveryCommunicationOutcome,
+  type PartialIntakeRecoveryPolicyDraft,
+} from "@/lib/email/partial-intake-recovery-policy"
 import { getMarketingEmailDecision } from "@/lib/email/preferences"
 import { EMAIL_DISPATCHER_MAX_RETRIES } from "@/lib/email/retry-policy"
 import {
@@ -169,26 +174,258 @@ function transientOutcome(input: {
   }
 }
 
-async function deferReviewInfrastructureFailure(
-  row: OutboxRow,
+function isLifecycleOutcomeEmailType(
+  emailType: EmailType,
+): emailType is "partial_intake_recovery" | "review_request" {
+  return emailType === "partial_intake_recovery" ||
+    emailType === "review_request"
+}
+
+function partialRecoveryTrackingId(
+  metadata: Record<string, unknown> | null | undefined,
+): string | null {
+  const value = metadata?.recovery_tracking_id
+  return typeof value === "string" && value.length > 0 ? value : null
+}
+
+function partialRecoveryPayloadMismatch(
+  payload: ResendProviderPayload,
+  draft: PartialIntakeRecoveryPolicyDraft,
+): "recovery_payload_recipient_changed" |
+  "recovery_payload_route_changed" |
+  null {
+  const recipients = Array.isArray(payload.to)
+    ? payload.to.filter((recipient): recipient is string =>
+        typeof recipient === "string"
+      )
+    : []
+  if (
+    recipients.length !== 1 ||
+    recipients[0].trim().toLowerCase() !== draft.email.trim().toLowerCase()
+  ) {
+    return "recovery_payload_recipient_changed"
+  }
+
+  const text = typeof payload.text === "string" ? payload.text : ""
+  if (!text.includes(draft.resumeUrl)) {
+    return "recovery_payload_route_changed"
+  }
+
+  return null
+}
+
+async function deferLifecycleOutbox(
+  outboxId: string,
   reason: string,
   error: string,
-): Promise<{
-  success: false
-  error: string
-  outcome: CommunicationOutcome
-} | null> {
-  if (row.email_type !== "review_request") return null
-
+): Promise<SendEmailResult> {
   const retryAt = transientRetryAt()
-  const deferred = await deferOutboxRow(row.id, retryAt, error)
+  const deferred = await deferOutboxRow(outboxId, retryAt, error)
   return {
     success: false,
-    error: deferred ? error : "Failed to defer review request",
+    error: deferred ? error : "Failed to defer lifecycle email",
+    outboxId,
+    retryable: true,
     outcome: transientOutcome({
       reason: deferred ? reason : "outbox_deferral_failed",
       ...(deferred ? { retryAt } : {}),
     }),
+  }
+}
+
+async function deferReviewInfrastructureFailure(
+  row: OutboxRow,
+  reason: string,
+  error: string,
+): Promise<SendEmailResult | null> {
+  if (row.email_type !== "review_request") return null
+
+  return deferLifecycleOutbox(row.id, reason, error)
+}
+
+async function deferPartialRecoveryInfrastructureFailure(
+  row: OutboxRow,
+  reason: string,
+  error: string,
+): Promise<SendEmailResult | null> {
+  if (row.email_type !== "partial_intake_recovery") return null
+  return deferLifecycleOutbox(row.id, reason, error)
+}
+
+async function finalizePartialRecoverySuppression(input: {
+  outboxId: string
+  recoveryTrackingId: string
+  outcome: Extract<CommunicationOutcome, { kind: "policy_suppressed" }>
+}): Promise<SendEmailResult> {
+  let marked: CommunicationOutcome
+  try {
+    marked = await markPartialIntakeRecoveryCommunicationOutcome(
+      input.recoveryTrackingId,
+      input.outcome,
+    )
+  } catch (error) {
+    logger.error("[Email] Partial recovery suppression marker threw", {
+      outboxId: input.outboxId,
+      recoveryTrackingId: input.recoveryTrackingId,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return deferLifecycleOutbox(
+      input.outboxId,
+      "recovery_marker_write_failed",
+      "Partial recovery suppression marker failed",
+    )
+  }
+
+  if (marked.kind === "transiently_blocked") {
+    return deferLifecycleOutbox(
+      input.outboxId,
+      marked.reason,
+      marked.reason,
+    )
+  }
+
+  const error = `Suppressed before delivery: ${input.outcome.reason}`
+  await updateOutboxStatus(input.outboxId, "failed", {
+    error_message: error,
+    attempts: EMAIL_DISPATCHER_MAX_RETRIES,
+  })
+  return {
+    success: false,
+    error,
+    outboxId: input.outboxId,
+    retryable: false,
+    suppressed: true,
+    outcome: input.outcome,
+  }
+}
+
+async function finalizePartialRecoverySent(input: {
+  outboxId: string
+  recoveryTrackingId: string
+  messageId?: string
+  sentPersisted: boolean
+}): Promise<SendEmailResult> {
+  const outcome: CommunicationOutcome = {
+    kind: "sent",
+    ...(input.messageId ? { messageId: input.messageId } : {}),
+    outboxId: input.outboxId,
+  }
+
+  if (!input.sentPersisted) {
+    Sentry.captureMessage(
+      "Partial recovery outbox sent state needs reconciliation",
+      {
+        level: "error",
+        tags: {
+          subsystem: "partial-intake-recovery",
+          email_type: "partial_intake_recovery",
+        },
+        extra: {
+          outboxId: input.outboxId,
+          recoveryTrackingId: input.recoveryTrackingId,
+        },
+      },
+    )
+    return {
+      success: true,
+      ...(input.messageId ? { messageId: input.messageId } : {}),
+      outboxId: input.outboxId,
+      outcome,
+      finalizationError: "outbox_sent_persistence_failed",
+    }
+  }
+
+  try {
+    const marked = await markPartialIntakeRecoveryCommunicationOutcome(
+      input.recoveryTrackingId,
+      outcome,
+    )
+    if (marked.kind === "transiently_blocked") {
+      Sentry.captureMessage(
+        "Partial recovery sent marker needs reconciliation",
+        {
+          level: "error",
+          tags: {
+            subsystem: "partial-intake-recovery",
+            email_type: "partial_intake_recovery",
+          },
+          extra: {
+            outboxId: input.outboxId,
+            recoveryTrackingId: input.recoveryTrackingId,
+            reason: marked.reason,
+          },
+        },
+      )
+      return {
+        success: true,
+        ...(input.messageId ? { messageId: input.messageId } : {}),
+        outboxId: input.outboxId,
+        outcome,
+        finalizationError: marked.reason,
+      }
+    }
+  } catch (error) {
+    logger.error("[Email] Partial recovery sent marker threw", {
+      outboxId: input.outboxId,
+      recoveryTrackingId: input.recoveryTrackingId,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    Sentry.captureException(error, {
+      tags: {
+        subsystem: "partial-intake-recovery",
+        email_type: "partial_intake_recovery",
+      },
+      extra: {
+        outboxId: input.outboxId,
+        recoveryTrackingId: input.recoveryTrackingId,
+      },
+    })
+    return {
+      success: true,
+      ...(input.messageId ? { messageId: input.messageId } : {}),
+      outboxId: input.outboxId,
+      outcome,
+      finalizationError: "recovery_marker_write_failed",
+    }
+  }
+
+  return {
+    success: true,
+    ...(input.messageId ? { messageId: input.messageId } : {}),
+    outboxId: input.outboxId,
+    outcome,
+  }
+}
+
+async function rejectPartialRecoveryWithoutTracking(
+  outboxId: string,
+): Promise<SendEmailResult> {
+  const outcome: CommunicationOutcome = {
+    kind: "policy_suppressed",
+    reason: "recovery_tracking_missing",
+  }
+  const error = "Partial recovery delivery has no recovery tracking ID"
+
+  await updateOutboxStatus(outboxId, "failed", {
+    error_message: error,
+    attempts: EMAIL_DISPATCHER_MAX_RETRIES,
+  })
+  Sentry.captureMessage(error, {
+    level: "warning",
+    tags: {
+      subsystem: "partial-intake-recovery",
+      email_type: "partial_intake_recovery",
+    },
+    extra: { outboxId },
+  })
+
+  return {
+    success: false,
+    error,
+    outboxId,
+    retryable: false,
+    suppressed: true,
+    outcome,
   }
 }
 
@@ -215,6 +452,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     attachments,
     idempotencyKey,
     scheduledFor,
+    partialRecoverySnapshot,
   } = params
 
   // Add Sentry context
@@ -245,7 +483,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       success: false,
       error,
       suppressed: MARKETING_EMAIL_TYPES.has(emailType),
-      ...(emailType === "review_request"
+      ...(isLifecycleOutcomeEmailType(emailType)
         ? {
             outcome: {
               kind: "policy_suppressed",
@@ -282,7 +520,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     return {
       success: false,
       error,
-      ...(emailType === "review_request"
+      ...(isLifecycleOutcomeEmailType(emailType)
         ? {
             outcome: transientOutcome({
               reason: "template_render_failed",
@@ -311,7 +549,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       patient_id: patientId,
       certificate_id: certificateId,
       metadata: { ...metadata, e2e_mode: true },
-      ...(emailType === "review_request"
+      ...(isLifecycleOutcomeEmailType(emailType)
         ? {}
         : { sent_at: new Date().toISOString() }),
     })
@@ -321,7 +559,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       messageId: `e2e-${Date.now()}`,
       outboxId: outboxId || undefined,
       skipped: true,
-      ...(emailType === "review_request"
+      ...(isLifecycleOutcomeEmailType(emailType)
         ? {
             outcome: {
               kind: "pending",
@@ -332,10 +570,10 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     }
   }
 
-  // DEV MODE: non-review mail keeps the legacy log-only behavior. Review
-  // requests need a durable pending row so a restored provider key can retry.
+  // DEV MODE: non-lifecycle mail keeps the legacy log-only behavior. Review
+  // requests and partial recovery need a durable row for provider-key recovery.
   const apiKey = env.resendApiKey
-  if (!apiKey && emailType !== "review_request") {
+  if (!apiKey && !isLifecycleOutcomeEmailType(emailType)) {
     logger.debug(`[Email Dev Mode] Would send to: ${sanitizeEmailForLog(to)}`, { subject, emailType })
 
     const outboxId = await logToOutbox({
@@ -395,7 +633,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
   const warmupCheck = isMarketingEmail
     ? await checkDailySendLimit()
     : { allowed: true, current: 0, limit: 0 }
-  if (!warmupCheck.allowed) {
+  if (!warmupCheck.allowed && !isLifecycleOutcomeEmailType(emailType)) {
     const error = `Daily marketing email limit reached (${warmupCheck.current}/${warmupCheck.limit})`
     logger.warn("[Email] " + error, { emailType })
 
@@ -417,15 +655,6 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     return {
       success: false,
       error,
-      ...(emailType === "review_request"
-        ? {
-            outcome: {
-              kind: "transiently_blocked",
-              reason: "marketing_warmup_limit",
-              retryAt: transientRetryAt(60),
-            } satisfies CommunicationOutcome,
-          }
-        : {}),
     }
   }
 
@@ -488,7 +717,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       success: false,
       error: "Failed to secure the email delivery record; please retry.",
       retryable: false,
-      ...(emailType === "review_request"
+      ...(isLifecycleOutcomeEmailType(emailType)
         ? {
             outcome: transientOutcome({
               reason: "provider_payload_freeze_failed",
@@ -553,7 +782,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       return {
         success: false,
         error: "Failed to queue the deferred email; please retry.",
-        ...(emailType === "review_request"
+        ...(isLifecycleOutcomeEmailType(emailType)
           ? {
               outcome: transientOutcome({
                 reason: "outbox_write_failed",
@@ -573,7 +802,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       success: true,
       messageId: `deferred-${outboxId}`,
       outboxId,
-      ...(emailType === "review_request"
+      ...(isLifecycleOutcomeEmailType(emailType)
         ? {
             outcome: {
               kind: "pending",
@@ -603,7 +832,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         hasIntakeId: Boolean(intakeId),
       },
     })
-    const reviewDuplicateOutcome = emailType === "review_request"
+    const lifecycleDuplicateOutcome = isLifecycleOutcomeEmailType(emailType)
       ? outboxResult.existingStatus === "sent"
         ? {
             kind: "sent" as const,
@@ -611,7 +840,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
           }
         : outboxResult.existingStatus === "failed"
           ? providerFailureOutcome({
-              error: "Existing review request delivery exhausted retries",
+              error: "Existing lifecycle email delivery exhausted retries",
               retryable: false,
               outboxId,
             })
@@ -622,13 +851,15 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       : undefined
     return {
       success: !(
-        emailType === "review_request" &&
+        isLifecycleOutcomeEmailType(emailType) &&
         outboxResult.existingStatus === "failed"
       ),
       messageId: outboxId ? `duplicate-outbox-${outboxId}` : undefined,
       outboxId: outboxId || undefined,
       skipped: true,
-      ...(reviewDuplicateOutcome ? { outcome: reviewDuplicateOutcome } : {}),
+      ...(lifecycleDuplicateOutcome
+        ? { outcome: lifecycleDuplicateOutcome }
+        : {}),
     }
   }
 
@@ -644,7 +875,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     return {
       success: false,
       error: "Failed to create the email delivery record; please retry.",
-      ...(emailType === "review_request"
+      ...(isLifecycleOutcomeEmailType(emailType)
         ? {
             outcome: transientOutcome({ reason: "outbox_write_failed" }),
           }
@@ -652,22 +883,20 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     }
   }
 
-  if (!apiKey) {
-    const error = "No Resend API key configured"
-    const retryAt = transientRetryAt()
-    const deferred = await deferOutboxRow(outboxId, retryAt, error)
-    return {
-      success: false,
-      error: deferred ? error : "Failed to defer review request",
+  if (!warmupCheck.allowed) {
+    return deferLifecycleOutbox(
       outboxId,
-      retryable: true,
-      outcome: transientOutcome({
-        reason: deferred
-          ? "provider_configuration_missing"
-          : "outbox_deferral_failed",
-        ...(deferred ? { retryAt } : {}),
-      }),
-    }
+      "marketing_warmup_limit",
+      `Daily marketing email limit reached (${warmupCheck.current}/${warmupCheck.limit})`,
+    )
+  }
+
+  if (!apiKey) {
+    return deferLifecycleOutbox(
+      outboxId,
+      "provider_configuration_missing",
+      "No Resend API key configured",
+    )
   }
 
   const providerIdempotencyKey = buildResendEmailIdempotencyKey(outboxId)
@@ -676,21 +905,12 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
   })
   if (!providerBody) {
     const error = "Encrypted provider payload could not be read"
-    if (emailType === "review_request") {
-      const retryAt = transientRetryAt()
-      const deferred = await deferOutboxRow(outboxId, retryAt, error)
-      return {
-        success: false,
-        error: deferred ? error : "Failed to defer review request",
+    if (isLifecycleOutcomeEmailType(emailType)) {
+      return deferLifecycleOutbox(
         outboxId,
-        retryable: true,
-        outcome: transientOutcome({
-          reason: deferred
-            ? "provider_payload_read_failed"
-            : "outbox_deferral_failed",
-          ...(deferred ? { retryAt } : {}),
-        }),
-      }
+        "provider_payload_read_failed",
+        error,
+      )
     }
     await updateOutboxStatus(outboxId, "failed", {
       error_message: error,
@@ -748,6 +968,68 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
           error: lastError,
           outboxId,
           retryable,
+        }
+      }
+
+      if (emailType === "partial_intake_recovery") {
+        const recoveryTrackingId = partialRecoveryTrackingId(metadata)
+        if (!recoveryTrackingId) {
+          return rejectPartialRecoveryWithoutTracking(outboxId)
+        }
+        if (
+          !partialRecoverySnapshot?.expectedUpdatedAt ||
+          !partialRecoverySnapshot.evaluatedAt
+        ) {
+          return deferLifecycleOutbox(
+            outboxId,
+            "recovery_snapshot_missing",
+            "Partial recovery candidate snapshot is missing",
+          )
+        }
+
+        const evaluatedAt = new Date(partialRecoverySnapshot.evaluatedAt)
+        if (!Number.isFinite(evaluatedAt.getTime())) {
+          return deferLifecycleOutbox(
+            outboxId,
+            "recovery_snapshot_invalid",
+            "Partial recovery candidate snapshot is invalid",
+          )
+        }
+
+        const recoveryDecision = await evaluatePartialIntakeRecoveryPolicy({
+          recoveryTrackingId,
+          expectedRecipient: to,
+          expectedUpdatedAt: partialRecoverySnapshot.expectedUpdatedAt,
+          mode: "initial",
+          now: evaluatedAt,
+        })
+        if (recoveryDecision.kind === "transiently_blocked") {
+          return deferLifecycleOutbox(
+            outboxId,
+            recoveryDecision.reason,
+            recoveryDecision.reason,
+          )
+        }
+        if (recoveryDecision.kind === "policy_suppressed") {
+          return finalizePartialRecoverySuppression({
+            outboxId,
+            recoveryTrackingId,
+            outcome: recoveryDecision,
+          })
+        }
+        const payloadMismatch = partialRecoveryPayloadMismatch(
+          providerBody,
+          recoveryDecision.draft,
+        )
+        if (payloadMismatch) {
+          return finalizePartialRecoverySuppression({
+            outboxId,
+            recoveryTrackingId,
+            outcome: {
+              kind: "policy_suppressed",
+              reason: payloadMismatch,
+            },
+          })
         }
       }
 
@@ -825,7 +1107,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
 
       // Address suppression runs before profile consent on every provider
       // attempt, including a dispatcher replay.
-      const marketingDecision = emailType === "review_request"
+      const marketingDecision = isLifecycleOutcomeEmailType(emailType)
         ? { kind: "allowed" as const }
         : await getMarketingDeliveryDecision(emailType, patientId, to)
       if (marketingDecision.kind === "transiently_blocked") {
@@ -910,7 +1192,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
           error: lastError,
           outboxId: outboxId || undefined,
           retryable,
-          ...(emailType === "review_request"
+          ...(isLifecycleOutcomeEmailType(emailType)
             ? {
                 outcome: providerFailureOutcome({
                   error: lastError,
@@ -964,17 +1246,40 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       }
 
       // TWO-PHASE WRITE: Update existing row to sent
-      if (outboxId) {
-        await updateOutboxStatus(outboxId, "sent", {
+      const sentPersisted = outboxId
+        ? await updateOutboxStatus(outboxId, "sent", {
           provider_message_id: data.id,
           attempts: attempt + 1,
         })
-      }
+        : false
 
       // Increment daily warmup counter for marketing sends only.
       if (isMarketingEmail) {
         incrementDailySendCount().catch((err) => {
           logger.warn("[Email] incrementDailySendCount failed, warmup counter may under-count", {}, err)
+        })
+      }
+
+      if (emailType === "partial_intake_recovery") {
+        const recoveryTrackingId = partialRecoveryTrackingId(metadata)
+        if (!recoveryTrackingId) {
+          return {
+            success: true,
+            messageId: data.id,
+            outboxId,
+            outcome: {
+              kind: "sent",
+              messageId: data.id,
+              outboxId,
+            },
+            finalizationError: "recovery_tracking_missing",
+          }
+        }
+        return finalizePartialRecoverySent({
+          outboxId,
+          recoveryTrackingId,
+          messageId: data.id,
+          sentPersisted: sentPersisted !== false,
         })
       }
 
@@ -995,25 +1300,12 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
 
     } catch (err) {
       lastError = err instanceof Error ? err.message : "Unknown error"
-      if (emailType === "review_request" && !providerAttempted) {
-        const retryAt = transientRetryAt()
-        const deferred = await deferOutboxRow(
+      if (isLifecycleOutcomeEmailType(emailType) && !providerAttempted) {
+        return deferLifecycleOutbox(
           outboxId,
-          retryAt,
+          "pre_provider_infrastructure_failed",
           lastError,
         )
-        return {
-          success: false,
-          error: lastError,
-          outboxId,
-          retryable: true,
-          outcome: transientOutcome({
-            reason: deferred
-              ? "pre_provider_infrastructure_failed"
-              : "outbox_deferral_failed",
-            ...(deferred ? { retryAt } : {}),
-          }),
-        }
       }
       const retryable = isRetryableError(undefined, lastError)
 
@@ -1042,7 +1334,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         error: lastError,
         outboxId: outboxId || undefined,
         retryable,
-        ...(emailType === "review_request"
+        ...(isLifecycleOutcomeEmailType(emailType)
           ? {
               outcome: providerFailureOutcome({
                 error: lastError,
@@ -1068,7 +1360,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     error: lastError || "Max retries exceeded",
     outboxId: outboxId || undefined,
     retryable: true,
-    ...(emailType === "review_request"
+    ...(isLifecycleOutcomeEmailType(emailType)
       ? {
           outcome: providerFailureOutcome({
             error: lastError || "Max retries exceeded",
@@ -1270,9 +1562,25 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
   outcome?: CommunicationOutcome
   finalizationError?: string
 }> {
+  const recoveryTrackingId = row.email_type === "partial_intake_recovery"
+    ? partialRecoveryTrackingId(row.metadata)
+    : null
+  if (
+    row.email_type === "partial_intake_recovery" &&
+    !recoveryTrackingId
+  ) {
+    return rejectPartialRecoveryWithoutTracking(row.id)
+  }
+
   const apiKey = env.resendApiKey
   if (!apiKey) {
     logger.warn("[Email Dispatcher] No API key, skipping", { outboxId: row.id })
+    const partialFailure = await deferPartialRecoveryInfrastructureFailure(
+      row,
+      "provider_configuration_missing",
+      "No API key configured",
+    )
+    if (partialFailure) return partialFailure
     const reviewFailure = await deferReviewInfrastructureFailure(
       row,
       "provider_configuration_missing",
@@ -1322,6 +1630,12 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
     const frozenPayload = readFrozenResendProviderPayload(row.metadata)
     if (!frozenPayload) {
       const error = "Encrypted provider payload could not be read"
+      const partialFailure = await deferPartialRecoveryInfrastructureFailure(
+        row,
+        "provider_payload_read_failed",
+        error,
+      )
+      if (partialFailure) return partialFailure
       const reviewFailure = await deferReviewInfrastructureFailure(
         row,
         "provider_payload_read_failed",
@@ -1506,6 +1820,45 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
       return { success: false, error }
     }
 
+    if (
+      row.email_type === "partial_intake_recovery" &&
+      recoveryTrackingId
+    ) {
+      const recoveryDecision = await evaluatePartialIntakeRecoveryPolicy({
+        recoveryTrackingId,
+        expectedRecipient: row.to_email,
+        mode: "dispatcher",
+      })
+      if (recoveryDecision.kind === "transiently_blocked") {
+        return deferLifecycleOutbox(
+          row.id,
+          recoveryDecision.reason,
+          recoveryDecision.reason,
+        )
+      }
+      if (recoveryDecision.kind === "policy_suppressed") {
+        return finalizePartialRecoverySuppression({
+          outboxId: row.id,
+          recoveryTrackingId,
+          outcome: recoveryDecision,
+        })
+      }
+      const payloadMismatch = partialRecoveryPayloadMismatch(
+        sendBody,
+        recoveryDecision.draft,
+      )
+      if (payloadMismatch) {
+        return finalizePartialRecoverySuppression({
+          outboxId: row.id,
+          recoveryTrackingId,
+          outcome: {
+            kind: "policy_suppressed",
+            reason: payloadMismatch,
+          },
+        })
+      }
+    }
+
     if (row.email_type === "review_request") {
       const reviewDecision = row.intake_id
         ? await evaluateReviewRequestPolicy({
@@ -1567,7 +1920,7 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
 
     // This is intentionally the final asynchronous policy check before the
     // provider call. It catches an unsubscribe made after the row was queued.
-    const marketingDecision = row.email_type === "review_request"
+    const marketingDecision = isLifecycleOutcomeEmailType(row.email_type)
       ? { kind: "allowed" as const }
       : await getMarketingDeliveryDecision(
           row.email_type,
@@ -1646,7 +1999,7 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
       return {
         success: false,
         error,
-        ...(row.email_type === "review_request"
+        ...(isLifecycleOutcomeEmailType(row.email_type)
           ? {
               outcome: providerFailureOutcome({
                 error,
@@ -1687,6 +2040,18 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
         outcome: sentOutcome,
         finalizationError: "outbox_sent_persistence_failed",
       }
+    }
+
+    if (
+      row.email_type === "partial_intake_recovery" &&
+      recoveryTrackingId
+    ) {
+      return finalizePartialRecoverySent({
+        outboxId: row.id,
+        recoveryTrackingId,
+        messageId: data.id,
+        sentPersisted: sentPersisted !== false,
+      })
     }
 
     if (row.email_type === "review_request" && row.intake_id) {
@@ -1777,12 +2142,23 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
 
     return {
       success: true,
-      ...(row.email_type === "review_request"
+      ...(isLifecycleOutcomeEmailType(row.email_type)
         ? { outcome: sentOutcome }
         : {}),
     }
   } catch (err) {
     const error = err instanceof Error ? err.message : "Unknown error"
+    if (
+      row.email_type === "partial_intake_recovery" &&
+      !providerAttempted
+    ) {
+      const partialFailure = await deferPartialRecoveryInfrastructureFailure(
+        row,
+        "pre_provider_infrastructure_failed",
+        error,
+      )
+      if (partialFailure) return partialFailure
+    }
     if (row.email_type === "review_request" && !providerAttempted) {
       const reviewFailure = await deferReviewInfrastructureFailure(
         row,
@@ -1812,7 +2188,7 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
     return {
       success: false,
       error,
-      ...(row.email_type === "review_request"
+      ...(isLifecycleOutcomeEmailType(row.email_type)
         ? {
             outcome: providerFailureOutcome({
               error,

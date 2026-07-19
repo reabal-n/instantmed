@@ -45,4 +45,47 @@ describe("communication lifecycle migration", () => {
       migration.indexOf(uniqueIndex),
     )
   })
+
+  it("filters sent outbox proof before bounding marker reconciliation", () => {
+    const functionStart = migration.indexOf(
+      "create or replace function public.get_unmarked_sent_partial_recoveries",
+    )
+    const functionBody = migration.slice(functionStart)
+    const sentProof = functionBody.indexOf(
+      "outbox.status = 'sent'",
+    )
+    const unmarked = functionBody.indexOf(
+      "partial.recovery_email_sent_at is null",
+    )
+    const limit = functionBody.indexOf(
+      "limit greatest(1, least(coalesce(p_limit, 50), 50))",
+    )
+
+    expect(functionStart).toBeGreaterThan(-1)
+    expect(sentProof).toBeGreaterThan(-1)
+    expect(unmarked).toBeGreaterThan(-1)
+    expect(limit).toBeGreaterThan(sentProof)
+    expect(limit).toBeGreaterThan(unmarked)
+    expect(functionBody).toContain(
+      "revoke execute on function public.get_unmarked_sent_partial_recoveries(integer) from public, anon, authenticated",
+    )
+    expect(functionBody).toContain(
+      "grant execute on function public.get_unmarked_sent_partial_recoveries(integer) to service_role",
+    )
+  })
+
+  it("scrubs legacy partial-recovery plaintext bearer context", () => {
+    expect(migration).toContain(
+      "where email_type = 'partial_intake_recovery'",
+    )
+    for (const key of [
+      "draft_idempotency_hash",
+      "service_type",
+      "draft_session_id",
+      "session_id",
+      "resume_url",
+    ]) {
+      expect(migration).toContain(`- '${key}'`)
+    }
+  })
 })

@@ -107,7 +107,7 @@ import {
 
 const NOW = new Date("2026-07-19T08:00:00.000Z")
 const TRACKING_ID = "a6bd50f7-ad78-4fba-9822-a89580b58bf7"
-const SESSION_ID = "partial-session-123"
+const SESSION_ID = "11111111-1111-4111-8111-111111111111"
 const EMAIL = "patient@example.com"
 
 function draftRow(
@@ -158,7 +158,9 @@ beforeEach(() => {
   mocks.getEmailBounceSuppressionDecision.mockResolvedValue({
     kind: "allowed",
   })
-  mocks.getEmailSuppressionDecisions.mockResolvedValue(new Map())
+  mocks.getEmailSuppressionDecisions.mockResolvedValue(
+    new Map([[EMAIL, { kind: "allowed" }]]),
+  )
 })
 
 describe("evaluatePartialIntakeRecoveryPolicy", () => {
@@ -370,12 +372,15 @@ describe("markPartialIntakeRecoveryCommunicationOutcome", () => {
   it.each([
     [
       "sent",
-      { kind: "sent", providerId: "email-123" },
+      { kind: "sent", messageId: "email-123" } as const,
       "recovery_email_sent_at",
     ],
     [
       "policy suppressed",
-      { kind: "policy_suppressed", reason: "email_suppressed" },
+      {
+        kind: "policy_suppressed",
+        reason: "email_suppressed",
+      } as const,
       "recovery_email_suppressed_at",
     ],
   ])(
@@ -413,7 +418,7 @@ describe("markPartialIntakeRecoveryCommunicationOutcome", () => {
   )
 
   it("treats a zero-row CAS as idempotent when the requested marker is already set", async () => {
-    const outcome = { kind: "sent" as const, providerId: "email-123" }
+    const outcome = { kind: "sent" as const, messageId: "email-123" }
     mocks.updateResults.push({ data: null, error: null })
     mocks.selectResults.push({
       data: draftRow({
@@ -433,7 +438,7 @@ describe("markPartialIntakeRecoveryCommunicationOutcome", () => {
   })
 
   it("reports a zero-row CAS conflict when the opposite terminal marker won", async () => {
-    const outcome = { kind: "sent" as const, providerId: "email-123" }
+    const outcome = { kind: "sent" as const, messageId: "email-123" }
     mocks.updateResults.push({ data: null, error: null })
     mocks.selectResults.push({
       data: draftRow({
@@ -448,10 +453,33 @@ describe("markPartialIntakeRecoveryCommunicationOutcome", () => {
         outcome
       )
 
-    expect(result).toEqual(outcome)
+    expect(result).toEqual({
+      kind: "transiently_blocked",
+      reason: "recovery_marker_invariant_conflict",
+    })
     expect(mocks.captureMessage).toHaveBeenCalledWith(
       expect.stringContaining("recovery"),
       expect.objectContaining({ level: "error" })
+    )
+  })
+
+  it("returns a transient outcome when the marker target disappears", async () => {
+    mocks.updateResults.push({ data: null, error: null })
+    mocks.selectResults.push({ data: null, error: null })
+
+    const result =
+      await markPartialIntakeRecoveryCommunicationOutcome(TRACKING_ID, {
+        kind: "sent",
+        messageId: "email-123",
+      })
+
+    expect(result).toEqual({
+      kind: "transiently_blocked",
+      reason: "recovery_marker_write_failed",
+    })
+    expect(mocks.captureMessage).toHaveBeenCalledWith(
+      expect.stringContaining("disappeared"),
+      expect.objectContaining({ level: "error" }),
     )
   })
 
@@ -464,7 +492,7 @@ describe("markPartialIntakeRecoveryCommunicationOutcome", () => {
     const result =
       await markPartialIntakeRecoveryCommunicationOutcome(TRACKING_ID, {
         kind: "sent",
-        providerId: "email-123",
+        messageId: "email-123",
       })
 
     expect(result).toMatchObject({ kind: "transiently_blocked" })

@@ -54,7 +54,8 @@ describe("review and partial-recovery reliability contract", () => {
   })
 
   it("replays secure partial-intake payloads or fails loudly without the bearer context", () => {
-    expect(partialRecoverySource).toContain("draft_idempotency_hash")
+    expect(partialRecoverySource).toContain("recovery_tracking_id")
+    expect(partialRecoverySource).not.toContain("draft_idempotency_hash")
     expect(partialRecoverySource).not.toContain("draft_session_id:")
     expect(partialRecoverySource).toContain("isEmailSendDeliveryConfirmed")
     expect(reconstructSource).toContain('row.email_type === "partial_intake_recovery"')
@@ -109,44 +110,35 @@ describe("review and partial-recovery reliability contract", () => {
     const reviewValidation = sendEmailSource.lastIndexOf(
       "evaluateReviewRequestPolicy({",
     )
-    const reviewGate = sendEmailSource.indexOf(
-      'const marketingDecision = row.email_type === "review_request"',
-      reviewValidation,
-    )
     const providerCall = sendEmailSource.lastIndexOf(
       'await fetch("https://api.resend.com/emails"',
     )
 
     expect(reviewValidation).toBeGreaterThan(-1)
-    expect(reviewGate).toBeGreaterThan(reviewValidation)
-    expect(providerCall).toBeGreaterThan(reviewGate)
-    expect(sendEmailSource.slice(reviewGate, providerCall)).toContain(
-      ': await getMarketingDeliveryDecision(',
-    )
-    expect(sendEmailSource.slice(reviewGate, providerCall)).not.toContain("await sleep")
-    expect(sendEmailSource).toContain("getEmailSuppressionDecisions([toEmail])")
-    expect(sendEmailSource).toContain("getMarketingEmailDecision(patientId)")
+    expect(providerCall).toBeGreaterThan(reviewValidation)
+    expect(
+      sendEmailSource.slice(reviewValidation, providerCall),
+    ).not.toContain("await sleep")
+    expect(reviewPolicySource).toContain("getEmailSuppressionDecisions([email])")
+    expect(reviewPolicySource).toContain("getMarketingEmailDecision(patientId)")
   })
 
   it("revalidates request state and consent before the initial provider send", () => {
     const reviewValidation = sendEmailSource.indexOf(
       "evaluateReviewRequestPolicy({",
     )
-    const reviewGate = sendEmailSource.indexOf(
-      'const marketingDecision = emailType === "review_request"',
-      reviewValidation,
-    )
     const providerCall = sendEmailSource.indexOf(
       'await fetch("https://api.resend.com/emails"',
+      reviewValidation,
     )
 
     expect(reviewValidation).toBeGreaterThan(-1)
-    expect(reviewGate).toBeGreaterThan(reviewValidation)
-    expect(providerCall).toBeGreaterThan(reviewGate)
-    expect(sendEmailSource.slice(reviewGate, providerCall)).toContain(
-      ": await getMarketingDeliveryDecision(emailType, patientId, to)",
-    )
-    expect(sendEmailSource.slice(reviewGate, providerCall)).not.toContain("await sleep")
+    expect(providerCall).toBeGreaterThan(reviewValidation)
+    expect(
+      sendEmailSource.slice(reviewValidation, providerCall),
+    ).not.toContain("await sleep")
+    expect(reviewPolicySource).toContain("getEmailBounceSuppressionDecision(email)")
+    expect(reviewPolicySource).toContain("getMarketingEmailDecision(patientId)")
   })
 
   it("uses one intake-scoped idempotency key regardless of recipient changes", () => {

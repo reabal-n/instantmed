@@ -91,6 +91,14 @@ export interface SendEmailParams {
   attachments?: { filename: string; content: string; contentType?: string }[]
   idempotencyKey?: string
   /**
+   * In-memory candidate snapshot for the initial partial-intake recovery gate.
+   * This is never persisted to outbox metadata.
+   */
+  partialRecoverySnapshot?: {
+    evaluatedAt: string
+    expectedUpdatedAt: string
+  }
+  /**
    * Optional ISO timestamp. When set, the email is queued in pending state
    * (no immediate Resend call) and the dispatcher waits until
    * `now() >= scheduledFor` before claiming it. NULL means send immediately.
@@ -110,6 +118,8 @@ export interface SendEmailResult {
   retryable?: boolean
   /** Expected policy suppression, not a provider or infrastructure failure. */
   suppressed?: boolean
+  /** Provider delivery succeeded but a durable lifecycle finalizer still needs healing. */
+  finalizationError?: string
   skipped?: boolean  // True if skipped due to E2E mode
 }
 
