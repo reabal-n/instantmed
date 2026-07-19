@@ -81,7 +81,7 @@ export async function createIntakeAndCheckoutAction(
     // 3. Auth, profile, age, baseUrl, consent.
     const authResult = await runAuthAndProfile(input)
     if (!authResult.ok) return { success: false, error: authResult.error }
-    const { patientId, patientEmail, stripeCustomerId, authUserId, baseUrl } = authResult.data
+    const { patientId, patientEmail, stripeCustomerId, baseUrl } = authResult.data
 
     const supabase = createServiceRoleClient()
 
@@ -185,7 +185,6 @@ export async function createIntakeAndCheckoutAction(
     const persistResult = await createIntakeWithAnswers(supabase, {
       input,
       patientId,
-      authUserId,
       serviceId: service.id,
       serviceSlug,
       isPriority,
@@ -298,7 +297,7 @@ export async function createIntakeAndCheckoutAction(
       serviceSlug,
       serviceType: input.category,
       subtype: input.subtype,
-      userId: authUserId,
+      anonymousId: input.posthogDistinctId,
     })
 
     if (latencyMs > 5000) {

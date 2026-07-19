@@ -58,15 +58,16 @@ function reportMetric(metric: WebVitalMetric, config: WebVitalsConfig) {
     )
   }
 
-  // PostHog autocapture (autocapture: true in instrumentation-client.ts) already fires
-  // $web_vitals for all 6 metrics natively - no manual capture needed here.
+  // PostHog's dedicated capture_performance integration fires $web_vitals for
+  // all metrics. Generic DOM autocapture remains disabled.
 }
 
 /**
  * Initialize Web Vitals monitoring
  *
  * Uses the PerformanceObserver API directly to avoid the web-vitals package dependency.
- * Provides dev-mode console logging only - PostHog autocapture handles production $web_vitals.
+ * Provides dev-mode console logging only. PostHog capture_performance handles
+ * production $web_vitals without generic DOM autocapture.
  */
 export function initWebVitals(config: WebVitalsConfig = defaultConfig) {
   if (typeof window === "undefined") return

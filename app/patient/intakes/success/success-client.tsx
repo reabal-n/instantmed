@@ -201,7 +201,6 @@ export function SuccessClient({
         verificationFailed: true,
       }))
       posthog?.capture('payment_verification_timeout', {
-        intake_id: intakeId,
         service_name: serviceName,
         poll_attempts: attempts,
       })
@@ -217,7 +216,6 @@ export function SuccessClient({
         verificationFailed: false,
       }))
       posthog?.capture('payment_verification_error', {
-        intake_id: intakeId,
         service_name: serviceName,
         poll_attempts: attempts,
       })
@@ -257,7 +255,6 @@ export function SuccessClient({
         if (data?.status && data.status !== "pending_payment") {
           if (!finishVerification()) return true
           posthog?.capture('payment_verified', {
-            intake_id: intakeId,
             status: data.status,
             service_name: serviceName,
             poll_attempts: attempts,
@@ -395,8 +392,7 @@ export function SuccessClient({
         const cameFromRecoveryEmail = attribution.utm_source === 'recovery_email'
 
         posthog.capture('purchase_completed', {
-          $insert_id: getBrowserPurchaseCompletedInsertId(intakeId),
-          intake_id: intakeId,
+          $insert_id: getBrowserPurchaseCompletedInsertId(),
           service: serviceName || "unknown",
           value: valueDollars,
           currency: 'AUD',
@@ -405,12 +401,7 @@ export function SuccessClient({
           utm_medium: attribution.utm_medium,
           utm_campaign: attribution.utm_campaign,
           utm_content: attribution.utm_content,
-          gclid: attribution.gclid,
-          gbraid: attribution.gbraid,
-          wbraid: attribution.wbraid,
           campaignid: attribution.campaignid,
-          keyword: attribution.keyword,
-          landing_page: attribution.landing_page,
           has_gclid: Boolean(attribution.gclid),
           has_utm_source: Boolean(attribution.utm_source),
           has_campaignid: Boolean(attribution.campaignid),
@@ -421,7 +412,6 @@ export function SuccessClient({
         // separate "purchases that came from recovery emails" insight.
         if (cameFromRecoveryEmail) {
           posthog.capture('purchase_came_from_recovery_email', {
-            intake_id: intakeId,
             service: serviceName || "unknown",
             value: valueDollars,
             currency: 'AUD',

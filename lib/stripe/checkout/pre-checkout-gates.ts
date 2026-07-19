@@ -44,7 +44,7 @@ export async function runPreCheckoutGates(input: CreateCheckoutInput): Promise<S
   // Capacity guard. Fails closed when the underlying RPC throws (per CLAUDE.md
   // operational-controls invariant) so this returns true on count-RPC failure.
   if (await isAtCapacity()) {
-    trackOperationalBlock({ blockType: "capacity_limit", source: "checkout", userId: input.patientId })
+    trackOperationalBlock({ blockType: "capacity_limit", source: "checkout" })
     return stepFail("We're experiencing high demand today. Please try again tomorrow.")
   }
 

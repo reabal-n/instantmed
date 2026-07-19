@@ -30,10 +30,10 @@ beforeEach(() => {
 })
 
 describe("browser purchase deduplication", () => {
-  it("uses a deterministic PostHog insert id per intake", () => {
-    expect(getBrowserPurchaseCompletedInsertId("intake_123")).toBe(
-      "purchase_completed:intake_123",
-    )
+  it("uses an opaque PostHog insert id without exposing the intake id", () => {
+    const insertId = getBrowserPurchaseCompletedInsertId()
+    expect(insertId).toMatch(/^ph_evt_[a-z0-9]+$/)
+    expect(insertId).not.toContain("intake_123")
   })
 
   it("claims a browser purchase only once inside the deduplication window", () => {

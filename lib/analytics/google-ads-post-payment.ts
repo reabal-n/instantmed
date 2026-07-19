@@ -19,7 +19,11 @@ import {
   hasGoogleAdsUploadClickId,
   isNonRetryableGoogleAdsUploadError,
 } from "@/lib/analytics/google-ads-upload-audit"
-import { getPostHogBaselineProperties, getPostHogClient } from "@/lib/analytics/posthog-server"
+import { capturePersonlessPostHogEvent } from "@/lib/analytics/posthog-server"
+import {
+  getOpaquePostHogEventId,
+  getOpaquePostHogRequestId,
+} from "@/lib/analytics/posthog-server-privacy"
 import { createLogger } from "@/lib/observability/logger"
 import { decryptField } from "@/lib/security/encryption"
 import { sanitizeAuditMetadata } from "@/lib/security/sanitize-audit"
@@ -429,10 +433,9 @@ function trackGoogleAdsPostHogEvent({
   clickIdentifierAgeDays,
   clickIdentifierExpired,
   droppedExpiredClickIdentifier,
-  error,
   hasUserData,
   intakeId,
-  posthogDistinctId,
+  posthogAnonymousId,
   result,
   row,
   source,
@@ -442,28 +445,26 @@ function trackGoogleAdsPostHogEvent({
   clickIdentifierAgeDays?: number | null
   clickIdentifierExpired?: boolean
   droppedExpiredClickIdentifier?: boolean
-  error?: string | null
   hasUserData: boolean
   intakeId: string
-  posthogDistinctId: string
+  posthogAnonymousId?: string
   result: GoogleAdsConversionUploadResult
   row: GoogleAdsAttributionRow
   source: GoogleAdsConversionSource
   status: GoogleAdsConversionStatus
 }) {
   try {
-    const posthog = getPostHogClient()
-    const attemptInsertId = [
-      "google_ads_server_conversion_attempt",
+    const attemptInsertId = getOpaquePostHogEventId(
+      `google_ads_server_conversion_attempt:${source}:${status}`,
       intakeId,
-      source,
-      status,
-      error || "no_error",
-    ].join(":")
-    const successInsertId = ["google_ads_server_conversion", intakeId].join(":")
+    )
+    const successInsertId = getOpaquePostHogEventId(
+      "google_ads_server_conversion",
+      intakeId,
+    )
     const properties = {
-      ...getPostHogBaselineProperties(),
       $insert_id: attemptInsertId,
+      analytics_request_id: getOpaquePostHogRequestId(intakeId),
       adgroupid: row.adgroupid || null,
       amount_cents: amountCents,
       attempted: result.attempted,
@@ -475,36 +476,32 @@ function trackGoogleAdsPostHogEvent({
       creative: row.creative || null,
       device: row.device || null,
       dropped_expired_click_identifier: Boolean(droppedExpiredClickIdentifier),
-      error: error || null,
       has_gbraid: Boolean(row.gbraid),
       has_gclid: Boolean(row.gclid),
       has_user_data: hasUserData,
       has_wbraid: Boolean(row.wbraid),
-      intake_id: intakeId,
-      keyword: row.keyword || null,
       likely_google_attributed: isLikelyGoogleAttributed(row),
       matchtype: row.matchtype || null,
       network: row.network || null,
       ok: result.ok ?? false,
-      request_id: result.requestId ?? null,
       service_category: row.category || null,
       source,
       status,
       upload_api: result.uploadApi || (isGoogleDataManagerConversionsEnabled() ? "data_manager_api" : "google_ads_api"),
-      upload_identifier: result.uploadIdentifier || result.requestId || (result.jobId != null ? String(result.jobId) : null),
-      upload_job_id: result.jobId ?? null,
     }
 
-    posthog.capture({
-      distinctId: posthogDistinctId,
+    capturePersonlessPostHogEvent({
+      anonymousId: posthogAnonymousId,
       event: "google_ads_server_conversion_attempt",
+      requestId: intakeId,
       properties,
     })
 
     if (status === "success") {
-      posthog.capture({
-        distinctId: posthogDistinctId,
+      capturePersonlessPostHogEvent({
+        anonymousId: posthogAnonymousId,
         event: "google_ads_server_conversion",
+        requestId: intakeId,
         properties: {
           ...properties,
           $insert_id: successInsertId,
@@ -566,7 +563,7 @@ export async function runGoogleAdsPostPaymentAttribution({
   amountCents,
   conversionDateTime,
   intakeId,
-  posthogDistinctId,
+  posthogAnonymousId,
   requestPath,
   row,
   source,
@@ -576,7 +573,7 @@ export async function runGoogleAdsPostPaymentAttribution({
   amountCents?: number | null
   conversionDateTime?: Date | null
   intakeId: string
-  posthogDistinctId: string
+  posthogAnonymousId?: string
   requestPath?: string | null
   row: GoogleAdsAttributionRow
   source: GoogleAdsConversionSource
@@ -654,10 +651,9 @@ export async function runGoogleAdsPostPaymentAttribution({
       clickIdentifierAgeDays: null,
       clickIdentifierExpired: false,
       droppedExpiredClickIdentifier: false,
-      error: result.error,
       hasUserData: false,
       intakeId,
-      posthogDistinctId,
+      posthogAnonymousId,
       result,
       row,
       source,
@@ -732,10 +728,9 @@ export async function runGoogleAdsPostPaymentAttribution({
     clickIdentifierAgeDays,
     clickIdentifierExpired,
     droppedExpiredClickIdentifier,
-    error,
     hasUserData,
     intakeId,
-    posthogDistinctId,
+    posthogAnonymousId,
     result,
     row,
     source,

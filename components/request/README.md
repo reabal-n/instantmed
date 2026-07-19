@@ -67,7 +67,7 @@ components/request/
 - **Dynamic steps** - Steps configured per service type via `step-registry.ts`
 - **Auth-aware navigation** - Skip steps based on auth/profile state
 - **Draft persistence** - Auto-save to localStorage with restoration UI
-- **PostHog tracking** - Analytics events for all step transitions
+- **Personless PostHog tracking** - Service/subtype/step events for funnel analysis, without patient identity or clinical answers
 - **Error boundaries** - Graceful error handling per step
 - **Loading states** - Skeleton UI during step transitions
 - **Review step** - Summary before checkout

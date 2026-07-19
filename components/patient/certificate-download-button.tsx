@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils"
 
 export function CertificateDownloadButton({
   href,
-  intakeId,
   serviceType,
   fileName = "instantmed-certificate.pdf",
   label = "Download PDF",
@@ -19,7 +18,6 @@ export function CertificateDownloadButton({
   className,
 }: {
   href: string
-  intakeId?: string | null
   serviceType?: string | null
   fileName?: string
   label?: string
@@ -58,7 +56,6 @@ export function CertificateDownloadButton({
     window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
 
     capture("certificate_downloaded", {
-      intake_id: intakeId,
       service_type: serviceType,
     })
     setIsDownloading(false)

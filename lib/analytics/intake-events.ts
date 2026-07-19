@@ -198,6 +198,8 @@ export function buildPassiveAbandonmentBeacon({
       event: INTAKE_ANALYTICS_EVENTS.passiveAbandoned,
       properties: {
         distinct_id: distinctId,
+        $process_person_profile: false,
+        $geoip_disable: true,
         service_type: analyticsServiceType,
         step_id: currentStepId,
         step_number: currentStepIndex + 1,

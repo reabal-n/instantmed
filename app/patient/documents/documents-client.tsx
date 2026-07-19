@@ -113,7 +113,6 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                         {cert.url ? (
                           <CertificateDownloadButton
                             href={cert.url}
-                            intakeId={cert.intakeId}
                             serviceType={cert.serviceType}
                             label="Download"
                             size="sm"

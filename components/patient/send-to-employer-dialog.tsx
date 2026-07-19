@@ -69,7 +69,7 @@ export function SendToEmployerDialog({
         setSuccess(true)
         setQueued(Boolean(result.queued))
         setRemainingSends(result.remainingSends ?? null)
-        capture("certificate_emailed_employer", { intake_id: intakeId })
+        capture("certificate_emailed_employer")
         onSuccess?.()
       } else {
         setError(result.error || "Failed to send email")

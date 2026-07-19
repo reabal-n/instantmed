@@ -429,7 +429,19 @@ Auto-redacted (30+ keys): `password`, `token`, `secret`, `key`, `medicare`, `irn
 - CSP violations (any)
 - 5xx error rate > 1%
 
-Monitoring: Sentry (errors, CSP), PostHog (behavior), Supabase (DB audit logs).
+Monitoring: Sentry (errors, CSP), personless PostHog events (aggregate funnel behavior), Supabase (DB audit logs).
+
+### Product Analytics Boundary
+
+PostHog is an event-only, pseudonymous product analytics surface. Client and
+server events set `$process_person_profile: false` and disable GeoIP enrichment.
+The application does not call `identify`, `alias`, or person-property APIs.
+Generic DOM autocapture and session recording are disabled. Direct identity,
+clinical answers, production patient/request/staff identifiers, raw search terms,
+raw Google click identifiers, free-text failure detail, and full URL queries are
+removed before capture. The anonymous browser id is passed through Stripe only
+to join pre-checkout events to the paid event; Google Ads enhanced conversions
+remain a separate hashed server-side boundary.
 
 ---
 

@@ -1,8 +1,13 @@
 const PURCHASE_COMPLETED_DEDUP_PREFIX = "instantmed_purchase_completed"
 const PURCHASE_COMPLETED_DEDUP_TTL_MS = 24 * 60 * 60 * 1000
 
-export function getBrowserPurchaseCompletedInsertId(intakeId: string): string {
-  return `purchase_completed:${intakeId}`
+export function getBrowserPurchaseCompletedInsertId(): string {
+  const randomId =
+    typeof globalThis.crypto?.randomUUID === "function"
+      ? globalThis.crypto.randomUUID().replaceAll("-", "")
+      : `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`
+
+  return `ph_evt_${randomId}`
 }
 
 export function claimBrowserPurchaseCompleted(

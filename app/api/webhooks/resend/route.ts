@@ -419,7 +419,7 @@ export async function POST(request: NextRequest) {
 
     // 7b. PostHog email lifecycle events (fire-and-forget)
     try {
-      const { getPostHogClient } = await import("@/lib/analytics/posthog-server")
+      const { capturePersonlessPostHogEvent } = await import("@/lib/analytics/posthog-server")
       const posthogEvent = eventType === "email.delivered" ? "email_delivered"
         : eventType === "email.bounced" ? "email_bounced"
         : eventType === "email.complained" ? "email_complained"
@@ -428,16 +428,12 @@ export async function POST(request: NextRequest) {
         : null
 
       if (posthogEvent) {
-        const patientId = existingRow?.patient_id
-          || ((existingRow?.metadata as Record<string, unknown> | null)?.patient_id as string | undefined)
-        getPostHogClient().capture({
-          distinctId: patientId || `email-message:${data.email_id}`,
+        capturePersonlessPostHogEvent({
           event: posthogEvent,
+          requestId: data.email_id,
           properties: {
-            provider_message_id: data.email_id,
             email_type: emailLog ? (emailLog as Record<string, unknown>).email_type : undefined,
             ...(eventType === "email.bounced" && data.bounce ? { bounce_type: data.bounce.type } : {}),
-            ...(eventType === "email.clicked" && data.click ? { click_link: data.click.link } : {}),
           },
         })
       }

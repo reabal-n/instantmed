@@ -112,7 +112,7 @@ vi.mock("@/lib/notifications/edit-paid-request-telegram", () => ({
   editPaidRequestTelegramMessageToApproved: vi.fn(async () => {}),
 }))
 vi.mock("@/lib/analytics/posthog-server", () => ({
-  getPostHogClient: vi.fn(() => ({ capture: vi.fn() })),
+  capturePersonlessPostHogEvent: vi.fn(),
   trackIntakeFunnelStep: vi.fn(),
 }))
 vi.mock("@/lib/dashboard/revalidate-staff", () => ({

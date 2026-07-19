@@ -10,7 +10,7 @@
 
 import * as Sentry from "@sentry/nextjs"
 
-import { getPostHogClient } from "@/lib/analytics/posthog-server"
+import { capturePersonlessPostHogEvent } from "@/lib/analytics/posthog-server"
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -186,14 +186,11 @@ export async function markApproved(
       fingerprint: ["cert-pipeline", "auto-approved"],
     })
 
-    try {
-      const posthog = getPostHogClient()
-      posthog.capture({
-        distinctId: "system-auto-approve",
-        event: "auto_approval_state_transition",
-        properties: { intake_id: intakeId, to_state: "approved" },
-      })
-    } catch { /* non-blocking */ }
+    capturePersonlessPostHogEvent({
+      event: "auto_approval_state_transition",
+      requestId: intakeId,
+      properties: { to_state: "approved" },
+    })
   }
 
   return result

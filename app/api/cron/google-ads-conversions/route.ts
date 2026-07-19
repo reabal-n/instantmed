@@ -213,7 +213,6 @@ export async function GET(request: NextRequest) {
         amountCents: row.amount_cents,
         conversionDateTime: parsePaidAtConversionDateTime(row.paid_at),
         intakeId: row.id,
-        posthogDistinctId: row.patient_id || row.id,
         requestPath: request.nextUrl.pathname,
         row,
         source: "cron_backfill",

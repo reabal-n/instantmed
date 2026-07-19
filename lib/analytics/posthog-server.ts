@@ -1,15 +1,22 @@
 import { PostHog } from 'posthog-node';
 
+import { sanitizePostHogProperties } from "@/lib/analytics/posthog-privacy"
+import {
+  getOpaquePostHogEventId,
+  getOpaquePostHogRequestId,
+  resolvePersonlessPostHogDistinctId,
+} from "@/lib/analytics/posthog-server-privacy"
 import { shouldIncludeSeededE2EData } from "@/lib/data/seeded-e2e-data"
 
 let posthogClient: PostHog | null = null;
 
-export function getPostHogClient() {
+function getPostHogClient() {
   if (!posthogClient) {
     posthogClient = new PostHog(
       process.env.NEXT_PUBLIC_POSTHOG_KEY!,
       {
         host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+        disableGeoip: true,
         flushAt: 1,
         flushInterval: 0
       }
@@ -33,8 +40,53 @@ export async function shutdownPostHog() {
  * equivalent filter. CI runs were inflating webhook_payment_confirmed by
  * ~3x and showing up as production paid intakes in the funnel.
  */
-export function getPostHogBaselineProperties(): { is_e2e: boolean } {
-  return { is_e2e: shouldIncludeSeededE2EData() }
+function getPostHogBaselineProperties(): {
+  is_e2e: boolean
+  $process_person_profile: false
+  $geoip_disable: true
+} {
+  return {
+    is_e2e: shouldIncludeSeededE2EData(),
+    $process_person_profile: false,
+    $geoip_disable: true,
+  }
+}
+
+/**
+ * One server capture boundary for product analytics. Callers supply the
+ * anonymous browser id when they have it, otherwise a one-way request id is
+ * used. Production patient, staff, and intake identifiers never leave here.
+ */
+export function capturePersonlessPostHogEvent({
+  anonymousId,
+  event,
+  properties,
+  requestId,
+}: {
+  anonymousId?: string | null
+  event: string
+  properties?: Record<string, unknown>
+  requestId?: string | null
+}): string {
+  const distinctId = resolvePersonlessPostHogDistinctId({
+    anonymousId,
+    requestId,
+  })
+
+  try {
+    getPostHogClient().capture({
+      distinctId,
+      event,
+      properties: sanitizePostHogProperties({
+        ...getPostHogBaselineProperties(),
+        ...properties,
+      }),
+    })
+  } catch {
+    // Analytics must never block patient care, checkout, or operations.
+  }
+
+  return distinctId
 }
 
 // ============================================
@@ -48,8 +100,6 @@ export interface SafetyOutcomeEvent {
   triggeredRuleIds: string[]
   triggeredRuleCount: number
   evaluationDurationMs: number
-  sessionId?: string
-  userId?: string
 }
 
 /**
@@ -57,29 +107,20 @@ export interface SafetyOutcomeEvent {
  * Call this after evaluateSafety() to record the result
  */
 export function trackSafetyOutcome(event: SafetyOutcomeEvent) {
-  try {
-    const client = getPostHogClient()
-    const distinctId = event.userId || event.sessionId || 'anonymous'
-    
-    client.capture({
-      distinctId,
-      event: 'safety_evaluation_completed',
-      properties: {
-        ...getPostHogBaselineProperties(),
-        service_slug: event.serviceSlug,
-        outcome: event.outcome,
-        risk_tier: event.riskTier,
-        triggered_rule_ids: event.triggeredRuleIds,
-        triggered_rule_count: event.triggeredRuleCount,
-        evaluation_duration_ms: event.evaluationDurationMs,
-        is_blocked: event.outcome !== 'ALLOW',
-        requires_call: event.outcome === 'REQUIRES_CALL',
-        is_declined: event.outcome === 'DECLINE',
-      },
-    })
-  } catch {
-    // Non-blocking - don't fail the flow if analytics fails
-  }
+  capturePersonlessPostHogEvent({
+    event: 'safety_evaluation_completed',
+    properties: {
+      service_slug: event.serviceSlug,
+      outcome: event.outcome,
+      risk_tier: event.riskTier,
+      triggered_rule_ids: event.triggeredRuleIds,
+      triggered_rule_count: event.triggeredRuleCount,
+      evaluation_duration_ms: event.evaluationDurationMs,
+      is_blocked: event.outcome !== 'ALLOW',
+      requires_call: event.outcome === 'REQUIRES_CALL',
+      is_declined: event.outcome === 'DECLINE',
+    },
+  })
 }
 
 /**
@@ -88,30 +129,17 @@ export function trackSafetyOutcome(event: SafetyOutcomeEvent) {
 export function trackSafetyBlock(event: {
   serviceSlug: string
   outcome: string
-  blockReason: string
   triggeredRuleIds: string[]
-  sessionId?: string
-  userId?: string
 }) {
-  try {
-    const client = getPostHogClient()
-    const distinctId = event.userId || event.sessionId || 'anonymous'
-
-    client.capture({
-      distinctId,
-      event: 'safety_block',
-      properties: {
-        ...getPostHogBaselineProperties(),
-        service_slug: event.serviceSlug,
-        outcome: event.outcome,
-        block_reason: event.blockReason,
-        triggered_rule_ids: event.triggeredRuleIds,
-        triggered_rule_count: event.triggeredRuleIds.length,
-      },
-    })
-  } catch {
-    // Non-blocking
-  }
+  capturePersonlessPostHogEvent({
+    event: 'safety_block',
+    properties: {
+      service_slug: event.serviceSlug,
+      outcome: event.outcome,
+      triggered_rule_ids: event.triggeredRuleIds,
+      triggered_rule_count: event.triggeredRuleIds.length,
+    },
+  })
 }
 
 // ============================================
@@ -128,30 +156,24 @@ export function trackIntakeFunnelStep(event: {
   serviceSlug: string
   serviceType: string
   subtype?: string | null
-  userId?: string
-  sessionId?: string
+  anonymousId?: string
   metadata?: Record<string, unknown>
 }) {
-  try {
-    const client = getPostHogClient()
-    const distinctId = event.userId || event.sessionId || 'anonymous'
-
-    client.capture({
-      distinctId,
-      event: `intake_funnel_${event.step}`,
-      properties: {
-        ...getPostHogBaselineProperties(),
-        intake_id: event.intakeId,
-        service_slug: event.serviceSlug,
-        service_type: event.serviceType,
-        subtype: event.subtype,
-        funnel_step: event.step,
-        ...event.metadata,
-      },
-    })
-  } catch {
-    // Non-blocking
-  }
+  const eventName = `intake_funnel_${event.step}`
+  capturePersonlessPostHogEvent({
+    anonymousId: event.anonymousId,
+    event: eventName,
+    requestId: event.intakeId,
+    properties: {
+      service_slug: event.serviceSlug,
+      service_type: event.serviceType,
+      subtype: event.subtype,
+      funnel_step: event.step,
+      analytics_request_id: getOpaquePostHogRequestId(event.intakeId),
+      ...event.metadata,
+      $insert_id: getOpaquePostHogEventId(eventName, event.intakeId),
+    },
+  })
 }
 
 /**
@@ -161,27 +183,16 @@ export function trackIntakeFunnelStep(event: {
 export function trackOperationalBlock(event: {
   blockType: "business_hours" | "capacity_limit"
   source?: "request_page" | "checkout"
-  userId?: string
-  sessionId?: string
   metadata?: Record<string, unknown>
 }) {
-  try {
-    const client = getPostHogClient()
-    const distinctId = event.userId || event.sessionId || "anonymous"
-
-    client.capture({
-      distinctId,
-      event: "operational_block",
-      properties: {
-        ...getPostHogBaselineProperties(),
-        block_type: event.blockType,
-        source: event.source ?? "request_page",
-        ...event.metadata,
-      },
-    })
-  } catch {
-    // Non-blocking
-  }
+  capturePersonlessPostHogEvent({
+    event: "operational_block",
+    properties: {
+      block_type: event.blockType,
+      source: event.source ?? "request_page",
+      ...event.metadata,
+    },
+  })
 }
 
 /**
@@ -190,24 +201,14 @@ export function trackOperationalBlock(event: {
 export function trackBusinessMetric(event: {
   metric: 'payment_failed' | 'no_purchase_window' | 'queue_backup' | 'sla_breach' | 'certificate_error' | 'email_delivery_failed' | 'auth_email_delivery_failed' | 'high_risk_intake' | 'ahpra_reverification_overdue' | 'email_bounced' | 'email_stuck_pending' | 'daily_reconciliation' | 'stuck_awaiting_script' | 'ops_sla_breach_backlog' | 'ops_cert_refund_orphans' | 'ops_refund_record_anomalies' | 'ops_paid_but_cancelled' | 'ops_approved_certificate_missing_record' | 'ops_certificate_sent_missing_timestamp' | 'ops_invariant_query_failed' | 'rx_consult_queue_stalled' | 'prescription_fulfilment_approved_not_prescribed_sla_breach' | 'prescription_fulfilment_parchment_opened_sla_breach' | 'prescription_fulfilment_webhook_received_sla_breach' | 'med_cert_batch_review_overdue' | 'google_ads_purchase_enhanced_conversions_setup_incomplete' | 'google_ads_purchase_import_health_unavailable' | 'google_ads_purchase_imports_zero' | 'google_ads_purchase_primary_conversions_zero' | 'google_ads_upload_audit_source_anomaly' | 'google_ads_purchase_import_health_failed' | 'google_ads_conversion_uploads_stalled' | 'google_ads_conversion_upload_partial_failures' | 'google_ads_adjustment_terminal_click_attributed_failures' | 'business_alert_section_failed'
   severity: 'info' | 'warning' | 'critical'
-  userId?: string
   metadata?: Record<string, unknown>
 }) {
-  try {
-    const client = getPostHogClient()
-    const distinctId = event.userId || 'system'
-
-    client.capture({
-      distinctId,
-      event: `business_alert_${event.metric}`,
-      properties: {
-        ...getPostHogBaselineProperties(),
-        metric: event.metric,
-        severity: event.severity,
-        ...event.metadata,
-      },
-    })
-  } catch {
-    // Non-blocking
-  }
+  capturePersonlessPostHogEvent({
+    event: `business_alert_${event.metric}`,
+    properties: {
+      metric: event.metric,
+      severity: event.severity,
+      ...event.metadata,
+    },
+  })
 }

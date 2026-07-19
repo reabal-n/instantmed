@@ -16,7 +16,6 @@ export function PaymentCancelledTracker({
   useEffect(() => {
     capture("payment_cancelled", {
       has_resume_token: hasResumeToken,
-      intake_id: intakeId,
     })
   }, [hasResumeToken, intakeId])
 

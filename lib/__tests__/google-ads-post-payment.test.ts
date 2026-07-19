@@ -19,10 +19,7 @@ vi.mock("@/lib/analytics/google-ads-conversion-api", async (importActual) => ({
 }))
 
 vi.mock("@/lib/analytics/posthog-server", () => ({
-  getPostHogBaselineProperties: vi.fn(() => ({ environment: "test" })),
-  getPostHogClient: vi.fn(() => ({
-    capture: mocks.capture,
-  })),
+  capturePersonlessPostHogEvent: mocks.capture,
 }))
 
 function googleAdsSupabaseMock(options: { validIntake?: boolean } = {}) {
@@ -93,7 +90,7 @@ describe("Google Ads post-payment attribution", () => {
     const result = await runGoogleAdsPostPaymentAttribution({
       amountCents: 1995,
       intakeId: "intake_google_1",
-      posthogDistinctId: "patient_google_1",
+      posthogAnonymousId: "ph_test_google_1",
       row: {
         amount_cents: 1995,
         category: "medical_certificate",
@@ -147,7 +144,7 @@ describe("Google Ads post-payment attribution", () => {
       const result = await runGoogleAdsPostPaymentAttribution({
         amountCents: 2495,
         intakeId: "intake_local_dev",
-        posthogDistinctId: "patient_local_dev",
+        posthogAnonymousId: "ph_test_local_dev",
         row: {
           amount_cents: 2495,
           category: "medical_certificate",
@@ -164,7 +161,7 @@ describe("Google Ads post-payment attribution", () => {
         expect.objectContaining({
           event: "google_ads_server_conversion_attempt",
           properties: expect.objectContaining({
-            intake_id: "intake_local_dev",
+            analytics_request_id: expect.stringMatching(/^ph_req_/),
             status: "success",
           }),
         }),
@@ -188,7 +185,7 @@ describe("Google Ads post-payment attribution", () => {
     const result = await runGoogleAdsPostPaymentAttribution({
       amountCents: 1995,
       intakeId: "intake_google_failed",
-      posthogDistinctId: "patient_google_failed",
+      posthogAnonymousId: "ph_test_google_failed",
       row: {
         amount_cents: 1995,
         category: "medical_certificate",
@@ -204,7 +201,7 @@ describe("Google Ads post-payment attribution", () => {
       expect.objectContaining({
         event: "google_ads_server_conversion_attempt",
         properties: expect.objectContaining({
-          $insert_id: "google_ads_server_conversion_attempt:intake_google_failed:cron_backfill:failed:conversionUploadError:TOO_RECENT_CONVERSION_ACTION",
+          $insert_id: expect.stringMatching(/^ph_evt_/),
           status: "failed",
         }),
       }),
@@ -227,7 +224,7 @@ describe("Google Ads post-payment attribution", () => {
     await runGoogleAdsPostPaymentAttribution({
       amountCents: 2995,
       intakeId: "intake_google_success",
-      posthogDistinctId: "patient_google_success",
+      posthogAnonymousId: "ph_test_google_success",
       row: {
         amount_cents: 2995,
         category: "prescription",
@@ -243,12 +240,12 @@ describe("Google Ads post-payment attribution", () => {
     )
     expect(conversionEvents).toHaveLength(1)
     expect(conversionEvents[0]?.[0]).toMatchObject({
-      distinctId: "patient_google_success",
+      anonymousId: "ph_test_google_success",
       event: "google_ads_server_conversion",
       properties: expect.objectContaining({
-        $insert_id: "google_ads_server_conversion:intake_google_success",
+        $insert_id: expect.stringMatching(/^ph_evt_/),
         amount_cents: 2995,
-        intake_id: "intake_google_success",
+        analytics_request_id: expect.stringMatching(/^ph_req_/),
         status: "success",
       }),
     })
@@ -258,7 +255,7 @@ describe("Google Ads post-payment attribution", () => {
     )
     expect(attemptEvents[0]?.[0]).toMatchObject({
       properties: expect.objectContaining({
-        $insert_id: "google_ads_server_conversion_attempt:intake_google_success:checkout_session_completed:success:no_error",
+        $insert_id: expect.stringMatching(/^ph_evt_/),
       }),
     })
   })
@@ -275,7 +272,7 @@ describe("Google Ads post-payment attribution", () => {
       amountCents: 4995,
       conversionDateTime: paidAt,
       intakeId: "intake_ec",
-      posthogDistinctId: "patient_ec",
+      posthogAnonymousId: "ph_test_ec",
       row: {
         amount_cents: 4995,
         category: "consult",
@@ -326,7 +323,7 @@ describe("Google Ads post-payment attribution", () => {
       amountCents: 2495,
       conversionDateTime: paidAt,
       intakeId: "intake_data_manager",
-      posthogDistinctId: "patient_data_manager",
+      posthogAnonymousId: "ph_test_data_manager",
       row: {
         amount_cents: 2495,
         category: "medical_certificate",
@@ -375,7 +372,7 @@ describe("Google Ads post-payment attribution", () => {
     const result = await runGoogleAdsPostPaymentAttribution({
       amountCents: 4995,
       intakeId: "intake_ec_no_click",
-      posthogDistinctId: "patient_ec_no_click",
+      posthogAnonymousId: "ph_test_ec_no_click",
       row: {
         amount_cents: 4995,
         category: "consult",
@@ -421,7 +418,7 @@ describe("Google Ads post-payment attribution", () => {
       amountCents: 2995,
       conversionDateTime: paidAt,
       intakeId: "intake_stale_click_with_user_data",
-      posthogDistinctId: "patient_stale_click_with_user_data",
+      posthogAnonymousId: "ph_test_stale_click_with_user_data",
       row: {
         amount_cents: 2995,
         attribution_captured_at: "2026-03-20T00:00:00.000Z",
@@ -468,7 +465,7 @@ describe("Google Ads post-payment attribution", () => {
       amountCents: 2995,
       conversionDateTime: new Date("2026-06-30T01:00:00.000Z"),
       intakeId: "intake_stale_click_no_user_data",
-      posthogDistinctId: "patient_stale_click_no_user_data",
+      posthogAnonymousId: "ph_test_stale_click_no_user_data",
       row: {
         amount_cents: 2995,
         attribution_captured_at: "2026-03-20T00:00:00.000Z",
@@ -536,7 +533,7 @@ describe("Google Ads post-payment attribution", () => {
       await runGoogleAdsPostPaymentAttribution({
         amountCents: 2495,
         intakeId: "orphan_intake",
-        posthogDistinctId: "patient_orphan_intake",
+        posthogAnonymousId: "ph_test_orphan_intake",
         requestPath: "/api/stripe/webhook",
         row: {
           amount_cents: 2495,
@@ -590,7 +587,7 @@ describe("Google Ads post-payment attribution", () => {
     const result = await runGoogleAdsPostPaymentAttribution({
       amountCents: 1995,
       intakeId: "intake_google_no_click",
-      posthogDistinctId: "patient_google_no_click",
+      posthogAnonymousId: "ph_test_google_no_click",
       row: {
         amount_cents: 1995,
         campaignid: "123",

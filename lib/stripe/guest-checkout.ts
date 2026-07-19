@@ -118,7 +118,7 @@ interface GuestCheckoutInput {
     landing_page?: string
     captured_at?: string
   }
-  posthogDistinctId?: string // Client-side PostHog distinct ID for identity stitching
+  posthogDistinctId?: string // Anonymous browser ID for personless funnel continuity
   serverDraftSessionId?: string
   checkoutSubmissionKey?: string
 }
@@ -889,7 +889,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       serviceSlug: serviceSlugForSafety,
       serviceType: input.category,
       subtype: input.subtype,
-      sessionId: normalizedEmail,
+      anonymousId: input.posthogDistinctId,
     })
 
     // 4. Insert the answers (ATOMIC - fail if answers cannot be saved)
@@ -1116,6 +1116,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       serviceSlug: serviceSlug,
       serviceType: input.category,
       subtype: input.subtype,
+      anonymousId: input.posthogDistinctId,
     })
 
     return { success: true, checkoutUrl: session.url, intakeId: intake.id }

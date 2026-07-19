@@ -32,7 +32,7 @@ export default function PrivacyPage() {
           <CenteredHero
             pill="Legal"
             title="Privacy Policy"
-            subtitle="Last updated: February 2026"
+            subtitle="Last updated: July 2026"
           />
 
           {/* Content card */}
@@ -168,7 +168,8 @@ export default function PrivacyPage() {
                       <strong>Parchment:</strong> Electronic prescription generation
                     </li>
                     <li>
-                      <strong>PostHog:</strong> Product analytics (anonymised usage data)
+                      <strong>PostHog:</strong> Pseudonymous product analytics processed in the
+                      United States
                     </li>
                     <li>
                       <strong>Sentry:</strong> Error monitoring (no PHI in error reports)
@@ -248,8 +249,12 @@ export default function PrivacyPage() {
                       functionality
                     </li>
                     <li>
-                      <strong>Analytics:</strong> PostHog collects anonymised usage data to help us improve
-                      our services
+                      <strong>Analytics:</strong> PostHog uses a random browser identifier to measure
+                      page, form-step, checkout, and purchase events. We do not send names, email
+                      addresses, phone numbers, clinical answers, raw search terms, Google click
+                      identifiers, or production request IDs to PostHog. We do not create or update
+                      PostHog person profiles, and generic element autocapture and session recordings
+                      are disabled.
                     </li>
                     <li>
                       <strong>Error monitoring:</strong> Sentry captures technical error information (no
@@ -271,7 +276,10 @@ export default function PrivacyPage() {
                     <li>Health records: minimum 7 years from last consultation (as required by law)</li>
                     <li>Account data: until you request deletion (subject to health record retention)</li>
                     <li>Payment records: 7 years (as required by Australian tax law)</li>
-                    <li>Analytics data: anonymised and retained indefinitely for service improvement</li>
+                    <li>
+                      Pseudonymous analytics events: retained for service improvement and deleted
+                      or aggregated when no longer required
+                    </li>
                   </ul>
                 </LegalSection>
 

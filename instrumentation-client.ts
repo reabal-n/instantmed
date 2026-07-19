@@ -5,9 +5,9 @@
 import type { BeforeSendFn } from "posthog-js";
 
 import { resolvePostHogClient } from "@/lib/analytics/posthog-client-resolver";
+import { sanitizePostHogEvent } from "@/lib/analytics/posthog-privacy";
 import { onFirstInteraction } from "@/lib/browser/first-interaction";
 import { isPostConversionPath } from "@/lib/browser/post-conversion-path";
-import { sanitizeUrl } from "@/lib/observability/sanitize-phi";
 import { scrubSentryBreadcrumb, scrubSentryEvent } from "@/lib/observability/scrub-phi";
 
 /**
@@ -64,64 +64,12 @@ const sentryEnvironment = getClientSentryEnvironment()
 const sentryRelease = getClientSentryRelease()
 const isPlaywrightMode = sentryEnvironment === "e2e"
 const sentryEnabled = !isPlaywrightMode && (sentryEnvironment === "production" || sentryEnvironment === "preview")
-const POSTHOG_RAW_CLICK_ID_KEYS = [
-  "gclid",
-  "gbraid",
-  "wbraid",
-  "$initial_gclid",
-  "$initial_gbraid",
-  "$initial_wbraid",
-]
-const POSTHOG_URL_PROPERTY_KEYS = [
-  "$current_url",
-  "$initial_current_url",
-  "$referrer",
-  "$initial_referrer",
-] as const
-
-type PostHogBeforeSendPayload = {
-  $set?: Record<string, unknown>
-  $set_once?: Record<string, unknown>
-  properties?: Record<string, unknown>
-}
-
-function deleteRawClickIds(target: unknown): void {
-  if (typeof target !== "object" || target === null) return
-
-  const record = target as Record<string, unknown>
-  for (const key of POSTHOG_RAW_CLICK_ID_KEYS) {
-    delete record[key]
-  }
-}
-
-function sanitizePostHogUrls(target: unknown): void {
-  if (typeof target !== "object" || target === null) return
-
-  const record = target as Record<string, unknown>
-  for (const key of POSTHOG_URL_PROPERTY_KEYS) {
-    const value = record[key]
-    if (typeof value === "string") {
-      record[key] = sanitizeUrl(value)
-    }
-  }
-}
+const POSTHOG_PERSONLESS_MIGRATION_KEY = "instantmed_posthog_personless_v1"
 
 const scrubPostHogSensitiveTelemetry: BeforeSendFn = (event) => {
-  if (!event) return event
-
-  const payload = event as PostHogBeforeSendPayload
-  const targets = [
-    payload.properties,
-    payload.$set,
-    payload.$set_once,
-    payload.properties?.$set,
-    payload.properties?.$set_once,
-  ]
-  for (const target of targets) {
-    deleteRawClickIds(target)
-    sanitizePostHogUrls(target)
-  }
-  return event
+  return sanitizePostHogEvent(
+    event as unknown as Record<string, unknown>,
+  ) as typeof event
 }
 
 if (!sentryDsn && sentryEnabled) {
@@ -143,7 +91,7 @@ async function loadAndInitSentry() {
     environment: sentryEnvironment,
     release: sentryRelease,
 
-    // No replay integration here — loaded lazily after idle (below)
+    // No replay integration.
     integrations: [],
 
     // Performance Monitoring
@@ -152,8 +100,7 @@ async function loadAndInitSentry() {
     // Enable logs to be sent to Sentry
     enableLogs: true,
 
-    // No session replay — PostHog already records sessions with PHI masking.
-    // Two session recorders is waste; we keep Sentry for errors + traces only.
+    // No session replay. Product analytics stays event-only and personless.
 
     // Filter out common non-actionable errors
     ignoreErrors: [
@@ -183,7 +130,7 @@ async function loadAndInitSentry() {
 }
 
 // Gate telemetry behind first user interaction. Passive bounces should not pay
-// the parse/compile cost for Sentry, PostHog, or session replay on /request —
+// the parse/compile cost for Sentry or PostHog on /request —
 // except on post-conversion pages, where measurement must not wait for a click.
 startTelemetryWhenReady(() => loadAndInitSentry());
 
@@ -205,22 +152,35 @@ if (!isPlaywrightMode && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       // Sentry already captures exceptions + has PHI scrubbing; posthog duplicating
       // this just adds network chatter and an extra module.
       capture_exceptions: false,
-      autocapture: true,
+      // Manual route, intake, checkout, and purchase events provide the
+      // decision-grade funnel. Generic DOM autocapture can collect labels and
+      // element text without improving conversion measurement.
+      autocapture: false,
+      capture_heatmaps: false,
       // Native Web Vitals capture — fires $web_vitals events for LCP, FCP,
       // CLS, INP, TTFB, FID. Real-user metric (CrUX-equivalent), measured
       // from actual browsers. Zero LCP impact because posthog-js itself
       // loads after first interaction.
       capture_performance: { web_vitals: true, network_timing: false },
-      disable_session_recording: true,  // Deferred - starts after idle to avoid blocking LCP
+      disable_session_recording: true,
       // Surveys module is ~25KB and we have no surveys live. Skip loading it.
       disable_surveys: true,
       before_send: scrubPostHogSensitiveTelemetry,
-      session_recording: {
-        maskAllInputs: true,          // PHI protection - mask all form inputs
-        maskTextSelector: "[data-phi]", // Extra masking for PHI-tagged elements
-      },
       debug: process.env.NODE_ENV === "development",
     });
+
+    // Rotate legacy browser identities once. Older builds identified guests by
+    // email and signed-in users by account id; a reset gives every returning
+    // browser a fresh anonymous id before any new funnel event is captured.
+    try {
+      if (window.localStorage.getItem(POSTHOG_PERSONLESS_MIGRATION_KEY) !== "1") {
+        posthog.reset()
+        window.localStorage.setItem(POSTHOG_PERSONLESS_MIGRATION_KEY, "1")
+      }
+    } catch {
+      // Storage-restricted browsers are still protected by before_send, which
+      // drops any event whose distinct id resembles a direct identifier.
+    }
 
     // Tag every client capture with `is_e2e: false` so dashboards can filter
     // out test traffic the same way `lib/analytics/posthog-server.ts` already
@@ -229,18 +189,11 @@ if (!isPlaywrightMode && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
     // unconditionally here is correct for real-user sessions.
     // Without this, the only way to exclude E2E noise was on server events,
     // and any client-side funnel chart silently mixed seed traffic with real.
-    posthog.register({ is_e2e: false });
-
-    // Defer session recording until after first interaction and browser idle.
-    // Saves ~51KB + 550ms from the critical path (posthog-recorder.js).
-    const startRecording = () => {
-      posthog.startSessionRecording();
-    };
-    if ("requestIdleCallback" in window) {
-      requestIdleCallback(startRecording, { timeout: 5000 });
-    } else {
-      setTimeout(startRecording, 3000);
-    }
+    posthog.register({
+      is_e2e: false,
+      $process_person_profile: false,
+      $geoip_disable: true,
+    });
   }).catch(() => {
     // PostHog not available - skip silently
   });
