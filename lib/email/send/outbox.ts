@@ -265,6 +265,68 @@ export async function persistFrozenProviderPayload(
 }
 
 /**
+ * Map an inherited frozen partial-recovery row onto the non-bearer tracking
+ * key. The bearer session and resume URL remain only inside the encrypted
+ * provider payload; this is the sole new plaintext correlation field.
+ */
+export async function persistPartialRecoveryTrackingId(
+  outboxId: string,
+  metadata: Record<string, unknown> | null | undefined,
+  recoveryTrackingId: string,
+): Promise<boolean> {
+  try {
+    const legacyPlaintextKeys = new Set([
+      "draft_idempotency_hash",
+      "draft_session_id",
+      "draftSessionId",
+      "resume_url",
+      "resumeUrl",
+      "service_type",
+      "serviceType",
+      "session_id",
+      "sessionId",
+    ])
+    const sanitizedMetadata = Object.fromEntries(
+      Object.entries(metadata ?? {}).filter(
+        ([key]) => !legacyPlaintextKeys.has(key),
+      ),
+    )
+    sanitizedMetadata.recovery_tracking_id = recoveryTrackingId
+
+    const supabase = createServiceRoleClient()
+    const { data, error } = await supabase
+      .from("email_outbox")
+      .update({
+        metadata: sanitizedMetadata,
+      })
+      .eq("id", outboxId)
+      .eq("status", "sending")
+      .select("id")
+      .maybeSingle()
+
+    if (error || !data) {
+      logger.error("[Email] Failed to persist partial recovery tracking ID", {
+        outboxId,
+        error: error?.message,
+      })
+      return false
+    }
+
+    if (metadata) {
+      for (const key of legacyPlaintextKeys) delete metadata[key]
+      metadata.recovery_tracking_id = recoveryTrackingId
+    }
+    return true
+  } catch (error) {
+    logger.error("[Email] Partial recovery tracking persistence error", {
+      outboxId,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return false
+  }
+}
+
+/**
  * Atomically claim an outbox row for processing.
  * Uses UPDATE with WHERE to prevent duplicate processing by concurrent dispatchers.
  *

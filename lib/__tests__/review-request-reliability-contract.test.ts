@@ -9,6 +9,9 @@ const dispatcherSource = read("lib/email/email-dispatcher.ts")
 const legacyRecoverySource = read("lib/email/recover-legacy-quiet-failures.ts")
 const outboxDispositionSource = read("lib/email/outbox-disposition.ts")
 const partialRecoverySource = read("lib/email/partial-intake-recovery.ts")
+const partialRecoveryPolicySource = read(
+  "lib/email/partial-intake-recovery-policy.ts",
+)
 const quietFailureSource = read("lib/email/quiet-failures.ts")
 const reconstructSource = read("lib/email/send/reconstruct.ts")
 const reviewBackfillRouteSource = read(
@@ -59,9 +62,15 @@ describe("review and partial-recovery reliability contract", () => {
   })
 
   it("replays secure partial-intake payloads or fails loudly without the bearer context", () => {
-    expect(partialRecoverySource).toContain("draft_idempotency_hash")
+    expect(partialRecoverySource).toContain("recovery_tracking_id")
+    expect(partialRecoverySource).not.toContain("draft_idempotency_hash")
     expect(partialRecoverySource).not.toContain("draft_session_id:")
     expect(partialRecoverySource).toContain("isEmailSendDeliveryConfirmed")
+    expect(partialRecoveryPolicySource).toContain(
+      "validatePartialIntakeRecoveryProviderPayload",
+    )
+    expect(partialRecoveryPolicySource).toContain("htmlLinkUrls(payload.html)")
+    expect(partialRecoveryPolicySource).toContain("urlsIn(payload.text)")
     expect(reconstructSource).toContain('row.email_type === "partial_intake_recovery"')
     expect(reconstructSource).toContain(
       "Partial-intake recovery row has no encrypted provider payload; secure reconstruction is unavailable",

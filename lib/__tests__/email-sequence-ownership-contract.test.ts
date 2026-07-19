@@ -25,6 +25,17 @@ const partialRecoverySource = readFileSync(
   join(process.cwd(), "lib/email/partial-intake-recovery.ts"),
   "utf8",
 )
+const partialRecoveryPolicySource = readFileSync(
+  join(process.cwd(), "lib/email/partial-intake-recovery-policy.ts"),
+  "utf8",
+)
+const partialRecoveryCandidateMigrationSource = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20260719113000_partial_recovery_candidate_anti_join.sql",
+  ),
+  "utf8",
+)
 const abandonedCheckoutSource = readFileSync(
   join(process.cwd(), "lib/email/abandoned-checkout.ts"),
   "utf8",
@@ -92,12 +103,14 @@ describe("email sequence ownership contract", () => {
     expect(partialRecoverySource).toContain('emailType: "partial_intake_recovery"')
     expect(partialRecoverySource).not.toContain('emailType: "abandoned_checkout"')
 
-    expect(partialRecoverySource).toContain("review/checkout drafts that have not created an intake")
-    expect(partialRecoverySource).toContain("answers.consultSubtype")
-    expect(partialRecoverySource).toContain("buildPartialIntakeRecoveryUrl")
+    expect(partialRecoveryCandidateMigrationSource).toContain(
+      "partial.converted_to_intake_id is null",
+    )
+    expect(partialRecoveryPolicySource).toContain("answers.consultSubtype")
+    expect(partialRecoveryPolicySource).toContain("buildPartialIntakeRecoveryUrl")
     expect(recoveryLinksSource).toContain("buildDraftResumePath")
     expect(recoveryLinksSource).toContain("if (!resumePath) return null")
-    expect(partialRecoverySource).toContain("draft cannot be safely resumed")
+    expect(partialRecoveryPolicySource).toContain("draft_not_resumable")
     expect(partialRecoverySource).not.toContain(
       "`${appUrl}/request?service=${encodeURIComponent(draft.service_type)}&d=${encodeURIComponent(draft.session_id)}",
     )
@@ -123,7 +136,9 @@ describe("email sequence ownership contract", () => {
     expect(ABANDONED_CHECKOUT_FIRST_NUDGE_LOOKBACK_HOURS).toBe(24)
     expect(ABANDONED_CHECKOUT_FOLLOWUP_DELAY_HOURS).toBe(24)
     expect(ABANDONED_CHECKOUT_FOLLOWUP_LOOKBACK_HOURS).toBe(72)
-    expect(partialRecoverySource).toContain("const MIN_IDLE_MINUTES = 60")
+    expect(partialRecoveryPolicySource).toContain(
+      "PARTIAL_RECOVERY_MIN_IDLE_MINUTES = 60",
+    )
     expect(checkoutSequence?.cadence).toBe("20-40m nudge, 24h follow-up")
     expect(abandonedCheckoutSource).toContain("firstNudgeReadyAt")
     expect(abandonedCheckoutSource).toContain("firstNudgeWindowFloor")
@@ -176,9 +191,14 @@ describe("email sequence ownership contract", () => {
     const first = buildEmailOutboxIdempotencyKey({
       email_type: "partial_intake_recovery",
       to_email: "Patient@Example.com",
-      metadata: { draft_idempotency_hash: "safe-hash-123" },
+      metadata: { recovery_tracking_id: "tracking-123" },
     })
     const second = buildEmailOutboxIdempotencyKey({
+      email_type: "partial_intake_recovery",
+      to_email: "patient@example.com",
+      metadata: { recovery_tracking_id: "tracking-123" },
+    })
+    const legacy = buildEmailOutboxIdempotencyKey({
       email_type: "partial_intake_recovery",
       to_email: "patient@example.com",
       metadata: { draft_idempotency_hash: "safe-hash-123" },
@@ -186,8 +206,9 @@ describe("email sequence ownership contract", () => {
 
     expect(first).toBe(second)
     expect(first).toMatch(/^email:partial_intake_recovery:/)
-    expect(partialRecoverySource).toContain("draftIdempotencyHash(draft.session_id)")
-    expect(partialRecoverySource).toContain("draft_idempotency_hash:")
+    expect(legacy).toMatch(/^email:partial_intake_recovery:/)
+    expect(partialRecoverySource).toContain("recovery_tracking_id:")
+    expect(partialRecoverySource).not.toContain("draft_idempotency_hash:")
     expect(partialRecoverySource).not.toContain("draft_session_id:")
   })
 
