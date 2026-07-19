@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   },
   evaluateReviewRequestPolicy: vi.fn(),
   fetch: vi.fn(),
+  finalizeOutboxSequenceDisposition: vi.fn(),
   updateOutboxStatus: vi.fn(),
 }))
 
@@ -18,6 +19,11 @@ vi.mock("@/lib/config/env", () => ({
 
 vi.mock("@/lib/email/review-request-policy", () => ({
   evaluateReviewRequestPolicy: mocks.evaluateReviewRequestPolicy,
+}))
+
+vi.mock("@/lib/email/outbox-disposition", () => ({
+  finalizeOutboxSequenceDisposition:
+    mocks.finalizeOutboxSequenceDisposition,
 }))
 
 vi.mock("@/lib/email/send/outbox", () => ({
@@ -90,6 +96,9 @@ describe("review request dispatcher delivery truth", () => {
     vi.stubGlobal("fetch", mocks.fetch)
     mocks.env.resendApiKey = "re_test_key"
     mocks.evaluateReviewRequestPolicy.mockResolvedValue({ kind: "allowed" })
+    mocks.finalizeOutboxSequenceDisposition.mockResolvedValue({
+      finalized: true,
+    })
     mocks.updateOutboxStatus.mockResolvedValue(true)
     mocks.deferOutboxRow.mockResolvedValue(true)
     mocks.fetch.mockResolvedValue(new Response(

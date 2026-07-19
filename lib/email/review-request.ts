@@ -96,25 +96,24 @@ async function findCandidatesInFulfilmentWindow(opts: {
     now.getTime() - boundedSinceDays * 24 * 60 * 60 * 1000,
   ).toISOString()
 
-  const { data: activeReservations, error: reservationError } = await supabase
+  const { data: durableOwners, error: ownerError } = await supabase
     .from("email_outbox")
     .select("intake_id")
     .eq("email_type", "review_request")
-    .in("status", ["pending", "sending"])
     .not("intake_id", "is", null)
 
-  if (reservationError) {
+  if (ownerError) {
     throw new Error(
-      `Failed to fetch active review request reservations: ${reservationError.message}`,
+      `Failed to fetch durable review request owners: ${ownerError.message}`,
     )
   }
 
-  const activeIntakeIds = Array.from(new Set(
-    (activeReservations ?? [])
+  const ownedIntakeIds = Array.from(new Set(
+    (durableOwners ?? [])
       .map((row) => typeof row.intake_id === "string" ? row.intake_id : null)
       .filter((id): id is string => Boolean(id)),
   ))
-  const activeIntakeFilter = `(${activeIntakeIds.join(",")})`
+  const ownedIntakeFilter = `(${ownedIntakeIds.join(",")})`
 
   let certificateQuery = supabase
     .from("intakes")
@@ -138,9 +137,9 @@ async function findCandidatesInFulfilmentWindow(opts: {
     .not("patient_id", "is", null)
     .neq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
 
-  if (activeIntakeIds.length > 0) {
-    certificateQuery = certificateQuery.not("id", "in", activeIntakeFilter)
-    prescribingQuery = prescribingQuery.not("id", "in", activeIntakeFilter)
+  if (ownedIntakeIds.length > 0) {
+    certificateQuery = certificateQuery.not("id", "in", ownedIntakeFilter)
+    prescribingQuery = prescribingQuery.not("id", "in", ownedIntakeFilter)
   }
 
   const [certificateResult, prescribingResult] = await Promise.all([
@@ -167,8 +166,10 @@ async function findCandidatesInFulfilmentWindow(opts: {
   ]
     .map((row) => normalizeCandidate(row as Record<string, unknown>))
     // Keep terminally suppressible recipients in the batch so the provider
-    // gate can finalize review_email_suppressed_at. Active reservations are
-    // excluded in SQL so they cannot monopolise an oldest-first batch.
+    // gate can finalize review_email_suppressed_at. Every existing outbox row
+    // remains the durable owner of that request, including failed rows.
+    // Exhausted rows cannot monopolise an oldest-first batch; the dispatcher
+    // and reconciliation own retries.
     .filter((row) => isReviewFulfilmentWithinCatchUpWindow(row, now))
     .sort((a, b) => {
       const aTime = new Date(getReviewFulfilmentAt(a) || 0).getTime()
@@ -295,7 +296,11 @@ export async function sendReviewRequestEmail(
 
   const outcome = result.outcome ?? fallbackSendOutcome(result)
   if (outcome.kind === "policy_suppressed") {
-    if (outcome.reason === "review_request_already_handled") {
+    if ([
+      "missing_request_reference",
+      "request_missing",
+      "review_request_already_handled",
+    ].includes(outcome.reason)) {
       return outcome
     }
     const finalized = await finalizeReviewRequestDisposition({
@@ -438,13 +443,14 @@ export async function processReviewRequestBackfill(
   provider_failed: number
   dryRun: boolean
 }> {
+  const dryRun = opts.dryRun !== false
   const candidates = await findReviewRequestBackfillCandidates({
     sinceDays: opts.sinceDays,
     limit: opts.limit,
   })
 
   const counts = emptyCounts()
-  if (!opts.dryRun) {
+  if (!dryRun) {
     for (const intake of candidates) {
       const outcome = await sendReviewRequestEmail(intake)
       counts[outcome.kind] += 1
@@ -455,7 +461,7 @@ export async function processReviewRequestBackfill(
   const result = {
     candidates: candidates.length,
     ...counts,
-    dryRun: opts.dryRun === true,
+    dryRun,
   }
   logger.info("Processed review backfill", result)
   return result

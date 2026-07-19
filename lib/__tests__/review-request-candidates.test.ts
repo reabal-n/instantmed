@@ -10,7 +10,10 @@ vi.mock("@/lib/supabase/service-role", () => ({
   createServiceRoleClient: mocks.createServiceRoleClient,
 }))
 
-import { findReviewRequestCandidates } from "@/lib/email/review-request"
+import {
+  findReviewRequestCandidates,
+  processReviewRequestBackfill,
+} from "@/lib/email/review-request"
 
 type Row = Record<string, unknown>
 type QueryResult = {
@@ -138,17 +141,21 @@ describe("findReviewRequestCandidates", () => {
     vi.setSystemTime(new Date("2026-07-20T00:00:00.000Z"))
   })
 
-  it("does not let active outbox-owned rows monopolize the initial batch", async () => {
-    const activeRows = Array.from(
+  it("does not let any durable outbox-owned rows monopolize the initial batch", async () => {
+    const ownedRows = Array.from(
       { length: REVIEW_REQUEST_BATCH_SIZE },
       (_, index) => ({
         intake_id: `intake-owned-${index}`,
         email_type: "review_request",
-        status: index % 2 === 0 ? "pending" : "sending",
+        status: index % 3 === 0
+          ? "pending"
+          : index % 3 === 1
+            ? "sending"
+            : "failed",
       }),
     )
     const intakes = [
-      ...activeRows.map((row, index) => reviewCandidate(
+      ...ownedRows.map((row, index) => reviewCandidate(
         String(row.intake_id),
         new Date(Date.UTC(2026, 6, 1, 0, index)).toISOString(),
       )),
@@ -157,7 +164,7 @@ describe("findReviewRequestCandidates", () => {
 
     mocks.createServiceRoleClient.mockReturnValue({
       from: (table: string) => table === "email_outbox"
-        ? new FakeQuery(activeRows)
+        ? new FakeQuery(ownedRows)
         : new FakeQuery(intakes),
     })
 
@@ -168,7 +175,7 @@ describe("findReviewRequestCandidates", () => {
     ])
   })
 
-  it("fails closed when active reservations cannot be read", async () => {
+  it("fails closed when durable owners cannot be read", async () => {
     mocks.createServiceRoleClient.mockReturnValue({
       from: (table: string) => table === "email_outbox"
         ? new FakeQuery([], { message: "reservation read unavailable" })
@@ -178,7 +185,19 @@ describe("findReviewRequestCandidates", () => {
     })
 
     await expect(findReviewRequestCandidates()).rejects.toThrow(
-      "Failed to fetch active review request reservations",
+      "Failed to fetch durable review request owners",
     )
+  })
+
+  it("keeps the exported backfill processor dry-run by default", async () => {
+    mocks.createServiceRoleClient.mockReturnValue({
+      from: () => new FakeQuery([]),
+    })
+
+    await expect(processReviewRequestBackfill()).resolves.toMatchObject({
+      candidates: 0,
+      sent: 0,
+      dryRun: true,
+    })
   })
 })

@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   deferOutboxRow: vi.fn(),
   evaluateReviewRequestPolicy: vi.fn(),
   fetch: vi.fn(),
+  finalizeOutboxSequenceDisposition: vi.fn(),
   getEmailBounceSuppressionDecision: vi.fn(),
   getEmailSuppressionDecisions: vi.fn(),
   getMarketingEmailDecision: vi.fn(),
@@ -27,6 +28,11 @@ vi.mock("@/lib/email/react-renderer-server", () => ({
 
 vi.mock("@/lib/email/review-request-policy", () => ({
   evaluateReviewRequestPolicy: mocks.evaluateReviewRequestPolicy,
+}))
+
+vi.mock("@/lib/email/outbox-disposition", () => ({
+  finalizeOutboxSequenceDisposition:
+    mocks.finalizeOutboxSequenceDisposition,
 }))
 
 vi.mock("@/lib/email/send/outbox", () => ({
@@ -87,6 +93,9 @@ describe("review request provider gate", () => {
     vi.stubGlobal("fetch", mocks.fetch)
     mocks.renderEmailToHtml.mockResolvedValue("<p>Review request</p>")
     mocks.evaluateReviewRequestPolicy.mockResolvedValue({ kind: "allowed" })
+    mocks.finalizeOutboxSequenceDisposition.mockResolvedValue({
+      finalized: true,
+    })
     mocks.getEmailBounceSuppressionDecision.mockResolvedValue({
       kind: "allowed",
     })
@@ -150,6 +159,14 @@ describe("review request provider gate", () => {
         expect.stringContaining(decision.reason),
       )
     } else {
+      expect(mocks.finalizeOutboxSequenceDisposition).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: "outbox-review",
+          intake_id: "intake-1",
+          email_type: "review_request",
+        }),
+        "suppressed",
+      )
       expect(mocks.updateOutboxStatus).toHaveBeenCalledWith(
         "outbox-review",
         "failed",
@@ -178,6 +195,35 @@ describe("review request provider gate", () => {
       },
     })
     expect(result.suppressed).not.toBe(true)
+    expect(mocks.fetch).not.toHaveBeenCalled()
+  })
+
+  it("keeps suppression retryable until the source marker is durable", async () => {
+    mocks.evaluateReviewRequestPolicy.mockResolvedValueOnce({
+      kind: "policy_suppressed",
+      reason: "marketing_opt_out",
+    })
+    mocks.finalizeOutboxSequenceDisposition.mockResolvedValueOnce({
+      finalized: false,
+      reason: "marker_write_failed",
+    })
+
+    const result = await sendReviewRequest()
+
+    expect(result).toMatchObject({
+      success: false,
+      retryable: true,
+      outcome: {
+        kind: "transiently_blocked",
+        reason: "suppressed_marker_write_failed",
+      },
+    })
+    expect(mocks.deferOutboxRow).toHaveBeenCalledWith(
+      "outbox-review",
+      expect.any(String),
+      "Review suppression marker could not be persisted",
+    )
+    expect(mocks.updateOutboxStatus).not.toHaveBeenCalled()
     expect(mocks.fetch).not.toHaveBeenCalled()
   })
 

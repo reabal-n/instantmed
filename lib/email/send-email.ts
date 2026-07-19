@@ -21,6 +21,7 @@ import { env } from "@/lib/config/env"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { getEmployerCertificateStorageVersion } from "@/lib/crypto/employer-certificate-token"
 import { signEmailUnsubscribeToken, signUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
+import { finalizeOutboxSequenceDisposition } from "@/lib/email/outbox-disposition"
 import { canSendMarketingEmail } from "@/lib/email/preferences"
 import { EMAIL_DISPATCHER_MAX_RETRIES } from "@/lib/email/retry-policy"
 import {
@@ -1156,6 +1157,46 @@ async function gateReviewRequestProviderDelivery(input: {
         retryable: true,
         outcome,
       },
+    }
+  }
+
+  const sourceAlreadyTerminal = [
+    "missing_request_reference",
+    "request_missing",
+    "review_request_already_handled",
+  ].includes(decision.reason)
+  if (!sourceAlreadyTerminal && input.intakeId) {
+    const sourceFinalization = await finalizeOutboxSequenceDisposition({
+      id: input.outboxId,
+      email_type: "review_request",
+      intake_id: input.intakeId,
+      metadata: null,
+    }, "suppressed")
+    if (!sourceFinalization.finalized) {
+      const retryAt = getNextSydneyReviewRequestRetryAt(new Date())
+      const deferred = await deferOutboxRow(
+        input.outboxId,
+        retryAt,
+        "Review suppression marker could not be persisted",
+      )
+      return {
+        allowed: false,
+        result: {
+          success: false,
+          error: deferred
+            ? "Review suppression marker could not be persisted"
+            : "Review suppression marker and deferral could not be persisted",
+          outboxId: input.outboxId,
+          retryable: true,
+          outcome: {
+            kind: "transiently_blocked",
+            reason: deferred
+              ? "suppressed_marker_write_failed"
+              : "outbox_deferral_failed",
+            retryAt,
+          },
+        },
+      }
     }
   }
 

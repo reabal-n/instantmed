@@ -156,7 +156,11 @@ export type OutboxSequenceFinalizationResult =
   | { finalized: true }
   | {
       finalized: false
-      reason: "missing_record_id" | "marker_write_failed"
+      reason:
+        | "missing_record_id"
+        | "record_missing"
+        | "marker_conflict"
+        | "marker_write_failed"
     }
 
 /**
@@ -202,7 +206,9 @@ export async function finalizeOutboxSequenceDisposition(
     markerWrite = markerWrite.is(oppositeMarker, null)
   }
 
-  const { error } = await markerWrite
+  const { data, error } = await markerWrite
+    .select("id")
+    .maybeSingle()
 
   if (error) {
     reportMarkerFailure({
@@ -214,6 +220,54 @@ export async function finalizeOutboxSequenceDisposition(
     })
     return { finalized: false, reason: "marker_write_failed" }
   }
+  if (data) return { finalized: true }
 
-  return { finalized: true }
+  // A zero-row update is not an error in PostgREST. Read the terminal columns
+  // to distinguish an idempotent retry from a missing record or a lost
+  // mutually-exclusive CAS.
+  const { data: currentRecord, error: readError } = await supabase
+    .from(definition.table)
+    .select(`${markerColumn}, ${oppositeMarker}`)
+    .eq("id", recordId)
+    .maybeSingle()
+
+  if (readError) {
+    reportMarkerFailure({
+      row,
+      disposition,
+      markerColumn,
+      recordId,
+      error: readError.message,
+    })
+    return { finalized: false, reason: "marker_write_failed" }
+  }
+  if (!currentRecord) {
+    reportMarkerFailure({
+      row,
+      disposition,
+      markerColumn,
+      recordId,
+      error: "Sequence marker record no longer exists",
+    })
+    return { finalized: false, reason: "record_missing" }
+  }
+
+  const currentMarkers = currentRecord as unknown as Record<string, unknown>
+  if (currentMarkers[markerColumn]) return { finalized: true }
+
+  const conflict = oppositeMarker !== markerColumn &&
+    Boolean(currentMarkers[oppositeMarker])
+  reportMarkerFailure({
+    row,
+    disposition,
+    markerColumn,
+    recordId,
+    error: conflict
+      ? `Opposite terminal marker ${oppositeMarker} already won`
+      : "Sequence marker CAS matched no row",
+  })
+  return {
+    finalized: false,
+    reason: conflict ? "marker_conflict" : "marker_write_failed",
+  }
 }

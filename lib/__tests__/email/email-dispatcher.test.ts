@@ -119,7 +119,16 @@ function mockOutboxSelect(
   updateChain.eq = eqMock
   updateChain.is = isMock
   updateChain.lt = vi.fn(() => updateChain)
-  updateChain.select = vi.fn().mockResolvedValue({ data: [], error: null })
+  const selectTerminal = {
+    maybeSingle: vi.fn().mockResolvedValue({
+      data: { id: "sequence-owner" },
+      error: null,
+    }),
+    then: (
+      resolve: (value: { data: unknown[]; error: null }) => void,
+    ) => resolve({ data: [], error: null }),
+  }
+  updateChain.select = vi.fn(() => selectTerminal)
   const updateMock = vi.fn(() => updateChain)
   updateChain.update = updateMock
 

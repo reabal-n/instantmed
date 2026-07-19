@@ -5,6 +5,8 @@ const mocks = vi.hoisted(() => ({
   update: vi.fn(),
   eq: vi.fn(),
   is: vi.fn(),
+  select: vi.fn(),
+  maybeSingle: vi.fn(),
 }))
 
 vi.mock("@/lib/supabase/service-role", () => ({
@@ -21,14 +23,21 @@ describe("review request sequence finalization", () => {
     const chain = {
       eq: mocks.eq,
       is: mocks.is,
-      then: (
-        resolve: (value: { error: null }) => void,
-      ) => resolve({ error: null }),
+      select: mocks.select,
+      maybeSingle: mocks.maybeSingle,
     }
-    mocks.from.mockReturnValue({ update: mocks.update })
+    mocks.from.mockReturnValue({
+      update: mocks.update,
+      select: mocks.select,
+    })
     mocks.update.mockReturnValue(chain)
     mocks.eq.mockReturnValue(chain)
     mocks.is.mockReturnValue(chain)
+    mocks.select.mockReturnValue(chain)
+    mocks.maybeSingle.mockResolvedValue({
+      data: { id: "intake-1" },
+      error: null,
+    })
   })
 
   it.each([
@@ -54,16 +63,10 @@ describe("review request sequence finalization", () => {
   )
 
   it("reports a marker persistence failure without changing disposition truth", async () => {
-    const failingChain = {
-      eq: mocks.eq,
-      is: mocks.is,
-      then: (
-        resolve: (value: { error: { message: string } }) => void,
-      ) => resolve({ error: { message: "db unavailable" } }),
-    }
-    mocks.update.mockReturnValue(failingChain)
-    mocks.eq.mockReturnValue(failingChain)
-    mocks.is.mockReturnValue(failingChain)
+    mocks.maybeSingle.mockResolvedValueOnce({
+      data: null,
+      error: { message: "db unavailable" },
+    })
 
     await expect(finalizeOutboxSequenceDisposition({
       id: "outbox-1",
@@ -73,6 +76,63 @@ describe("review request sequence finalization", () => {
     }, "sent")).resolves.toEqual({
       finalized: false,
       reason: "marker_write_failed",
+    })
+  })
+
+  it("treats an already-written same marker as idempotently finalized", async () => {
+    mocks.maybeSingle
+      .mockResolvedValueOnce({ data: null, error: null })
+      .mockResolvedValueOnce({
+        data: {
+          review_email_sent_at: "2026-07-19T00:00:00.000Z",
+          review_email_suppressed_at: null,
+        },
+        error: null,
+      })
+
+    await expect(finalizeOutboxSequenceDisposition({
+      id: "outbox-1",
+      email_type: "review_request",
+      intake_id: "intake-1",
+      metadata: {},
+    }, "sent")).resolves.toEqual({ finalized: true })
+  })
+
+  it("reports when the opposite terminal marker won the CAS", async () => {
+    mocks.maybeSingle
+      .mockResolvedValueOnce({ data: null, error: null })
+      .mockResolvedValueOnce({
+        data: {
+          review_email_sent_at: null,
+          review_email_suppressed_at: "2026-07-19T00:00:00.000Z",
+        },
+        error: null,
+      })
+
+    await expect(finalizeOutboxSequenceDisposition({
+      id: "outbox-1",
+      email_type: "review_request",
+      intake_id: "intake-1",
+      metadata: {},
+    }, "sent")).resolves.toEqual({
+      finalized: false,
+      reason: "marker_conflict",
+    })
+  })
+
+  it("reports a missing source record after a zero-row marker write", async () => {
+    mocks.maybeSingle
+      .mockResolvedValueOnce({ data: null, error: null })
+      .mockResolvedValueOnce({ data: null, error: null })
+
+    await expect(finalizeOutboxSequenceDisposition({
+      id: "outbox-1",
+      email_type: "review_request",
+      intake_id: "intake-1",
+      metadata: {},
+    }, "sent")).resolves.toEqual({
+      finalized: false,
+      reason: "record_missing",
     })
   })
 })
