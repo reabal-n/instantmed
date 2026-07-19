@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
@@ -10,7 +11,54 @@ const ciWorkflowSource = readFileSync(
 const testingDocsSource = readFileSync(join(process.cwd(), "docs/TESTING.md"), "utf8")
 const claudeSource = readFileSync(join(process.cwd(), "CLAUDE.md"), "utf8")
 
+function classifyE2EScope(eventName: string, changedFiles: string[]): string {
+  const result = spawnSync(
+    "bash",
+    [join(process.cwd(), "scripts/ci-e2e-required.sh"), eventName],
+    {
+      encoding: "utf8",
+      input: `${changedFiles.join("\n")}\n`,
+    },
+  )
+
+  expect(result.stderr).toBe("")
+  expect(result.status).toBe(0)
+  return result.stdout.trim()
+}
+
 describe("CI workflow contract", () => {
+  it.each(["pull_request", "push"])(
+    "skips the shared-fixture E2E gate for a Markdown-only %s",
+    (eventName) => {
+      expect(classifyE2EScope(eventName, [
+        "docs/ROADMAP.md",
+        "wiki/architecture.md",
+      ])).toBe("false")
+    },
+  )
+
+  it("fails closed for an unsupported event", () => {
+    expect(classifyE2EScope("workflow_dispatch", ["docs/ROADMAP.md"])).toBe("true")
+  })
+
+  it.each([
+    ["runtime TypeScript", "pull_request", ["lib/email/send-email.ts"]],
+    ["runtime MDX", "pull_request", ["content/blog/medical-certificates.mdx"]],
+    ["workflow configuration", "pull_request", [".github/workflows/ci.yml"]],
+    ["an empty file list", "pull_request", []],
+  ])("keeps E2E required for %s", (_label, eventName, changedFiles) => {
+    expect(classifyE2EScope(eventName, changedFiles)).toBe("true")
+  })
+
+  it("wires the fail-safe scope decision into the shared-fixture E2E job", () => {
+    expect(ciWorkflowSource).toContain("e2e-required: ${{ steps.e2e_scope.outputs.required }}")
+    expect(ciWorkflowSource).toContain("Classify blocking E2E scope")
+    expect(ciWorkflowSource).toContain("bash scripts/ci-e2e-required.sh")
+    expect(ciWorkflowSource).toContain(
+      "if: ${{ needs.build.result == 'success' && needs.build.outputs.e2e-required == 'true' }}",
+    )
+  })
+
   it("cancels stale same-branch runs before E2E fixtures can race", () => {
     expect(ciWorkflowSource).toContain("concurrency:")
     expect(ciWorkflowSource).toContain("group: ci-${{ github.ref }}")

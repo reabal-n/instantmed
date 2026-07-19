@@ -11,9 +11,11 @@
 # on branches that auto-merge on the CI `build` check, not on the preview).
 #
 # This is SAFE because the required CI gate `build` in .github/workflows/ci.yml
-# (lint + typecheck + unit tests + Playwright E2E + Lighthouse, all against
-# localhost) validates every PR and does NOT depend on a Vercel preview URL.
-# Branch protection on `main` requires only that `build` check.
+# validates every PR with lint, typecheck, unit tests, and a production build
+# without depending on a Vercel preview URL. Lighthouse is a separate local
+# gate; shared-fixture Playwright E2E runs for every non-Markdown change and
+# fails closed when change scope is unknown. Branch protection on `main`
+# requires only the `build` check.
 #
 # Need a real preview deployment for a specific PR (e.g. to exercise the
 # preview-only `e2e-preview.yml` gate against the live URL, or to eyeball a
