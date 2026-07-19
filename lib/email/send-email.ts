@@ -311,7 +311,9 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       patient_id: patientId,
       certificate_id: certificateId,
       metadata: { ...metadata, e2e_mode: true },
-      sent_at: new Date().toISOString(),
+      ...(emailType === "review_request"
+        ? {}
+        : { sent_at: new Date().toISOString() }),
     })
 
     return {
@@ -330,39 +332,31 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     }
   }
 
-  // DEV MODE: No API key, just log
+  // DEV MODE: non-review mail keeps the legacy log-only behavior. Review
+  // requests need a durable pending row so a restored provider key can retry.
   const apiKey = env.resendApiKey
-  if (!apiKey) {
+  if (!apiKey && emailType !== "review_request") {
     logger.debug(`[Email Dev Mode] Would send to: ${sanitizeEmailForLog(to)}`, { subject, emailType })
 
-    const isReviewRequest = emailType === "review_request"
     const outboxId = await logToOutbox({
       email_type: emailType,
       to_email: to,
       to_name: toName,
       subject,
-      status: isReviewRequest ? "skipped_e2e" : "sent",
+      status: "sent",
       provider: "resend",
       provider_message_id: `dev-${Date.now()}`,
       intake_id: intakeId,
       patient_id: patientId,
       certificate_id: certificateId,
       metadata: { ...metadata, dev_mode: true },
-      ...(isReviewRequest ? {} : { sent_at: new Date().toISOString() }),
+      sent_at: new Date().toISOString(),
     })
 
     return {
       success: true,
       messageId: `dev-${Date.now()}`,
       outboxId: outboxId || undefined,
-      ...(isReviewRequest
-        ? {
-            outcome: {
-              kind: "pending",
-              ...(outboxId ? { outboxId } : {}),
-            } satisfies CommunicationOutcome,
-          }
-        : {}),
     }
   }
 
@@ -658,13 +652,48 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     }
   }
 
+  if (!apiKey) {
+    const error = "No Resend API key configured"
+    const retryAt = transientRetryAt()
+    const deferred = await deferOutboxRow(outboxId, retryAt, error)
+    return {
+      success: false,
+      error: deferred ? error : "Failed to defer review request",
+      outboxId,
+      retryable: true,
+      outcome: transientOutcome({
+        reason: deferred
+          ? "provider_configuration_missing"
+          : "outbox_deferral_failed",
+        ...(deferred ? { retryAt } : {}),
+      }),
+    }
+  }
+
   const providerIdempotencyKey = buildResendEmailIdempotencyKey(outboxId)
   const providerBody = readFrozenResendProviderPayload({
     [FROZEN_PROVIDER_PAYLOAD_KEY]: outboxResult.providerPayloadEnc ?? frozenProviderPayload,
   })
   if (!providerBody) {
+    const error = "Encrypted provider payload could not be read"
+    if (emailType === "review_request") {
+      const retryAt = transientRetryAt()
+      const deferred = await deferOutboxRow(outboxId, retryAt, error)
+      return {
+        success: false,
+        error: deferred ? error : "Failed to defer review request",
+        outboxId,
+        retryable: true,
+        outcome: transientOutcome({
+          reason: deferred
+            ? "provider_payload_read_failed"
+            : "outbox_deferral_failed",
+          ...(deferred ? { retryAt } : {}),
+        }),
+      }
+    }
     await updateOutboxStatus(outboxId, "failed", {
-      error_message: "Encrypted provider payload could not be read",
+      error_message: error,
       attempts: EMAIL_DISPATCHER_MAX_RETRIES,
     })
     return {
@@ -672,13 +701,6 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       error: "The email delivery record could not be opened safely.",
       outboxId,
       retryable: false,
-      ...(emailType === "review_request"
-        ? {
-            outcome: transientOutcome({
-              reason: "provider_payload_read_failed",
-            }),
-          }
-        : {}),
     }
   }
 
@@ -760,6 +782,31 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
           }
         }
         if (reviewDecision.kind === "policy_suppressed") {
+          const marked = intakeId
+            ? await markReviewRequestCommunicationOutcome(
+                intakeId,
+                reviewDecision,
+              )
+            : reviewDecision
+          if (marked.kind === "transiently_blocked") {
+            const retryAt = marked.retryAt ?? transientRetryAt()
+            const deferred = await deferOutboxRow(
+              outboxId,
+              retryAt,
+              marked.reason,
+            )
+            return {
+              success: false,
+              error: deferred ? undefined : "Failed to defer review request",
+              outboxId,
+              retryable: true,
+              outcome: deferred
+                ? { ...marked, retryAt }
+                : transientOutcome({
+                    reason: "outbox_deferral_failed",
+                  }),
+            }
+          }
           const error = `Suppressed before delivery: ${reviewDecision.reason}`
           await updateOutboxStatus(outboxId, "failed", {
             error_message: error,
@@ -778,11 +825,9 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
 
       // Address suppression runs before profile consent on every provider
       // attempt, including a dispatcher replay.
-      const marketingDecision = await getMarketingDeliveryDecision(
-        emailType,
-        patientId,
-        to,
-      )
+      const marketingDecision = emailType === "review_request"
+        ? { kind: "allowed" as const }
+        : await getMarketingDeliveryDecision(emailType, patientId, to)
       if (marketingDecision.kind === "transiently_blocked") {
         const retryAt = transientRetryAt()
         const deferred = await deferOutboxRow(
@@ -1228,6 +1273,12 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
   const apiKey = env.resendApiKey
   if (!apiKey) {
     logger.warn("[Email Dispatcher] No API key, skipping", { outboxId: row.id })
+    const reviewFailure = await deferReviewInfrastructureFailure(
+      row,
+      "provider_configuration_missing",
+      "No API key configured",
+    )
+    if (reviewFailure) return reviewFailure
     return { success: false, error: "No API key configured" }
   }
 
@@ -1516,11 +1567,13 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
 
     // This is intentionally the final asynchronous policy check before the
     // provider call. It catches an unsubscribe made after the row was queued.
-    const marketingDecision = await getMarketingDeliveryDecision(
-      row.email_type,
-      row.patient_id,
-      row.to_email,
-    )
+    const marketingDecision = row.email_type === "review_request"
+      ? { kind: "allowed" as const }
+      : await getMarketingDeliveryDecision(
+          row.email_type,
+          row.patient_id,
+          row.to_email,
+        )
     if (marketingDecision.kind === "transiently_blocked") {
       const retryAt = transientRetryAt()
       const deferred = await deferOutboxRow(
@@ -1615,17 +1668,39 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
       messageId: data.id,
       outboxId: row.id,
     }
-    await updateOutboxStatus(row.id, "sent", {
+    const sentPersisted = await updateOutboxStatus(row.id, "sent", {
       provider_message_id: data.id,
       attempts: row.retry_count + 1,
     })
 
+    if (sentPersisted === false && row.email_type === "review_request") {
+      Sentry.captureMessage("Review request outbox sent state needs reconciliation", {
+        level: "error",
+        tags: {
+          subsystem: "email-dispatcher",
+          email_type: row.email_type,
+        },
+        extra: { outboxId: row.id, intakeId: row.intake_id },
+      })
+      return {
+        success: true,
+        outcome: sentOutcome,
+        finalizationError: "outbox_sent_persistence_failed",
+      }
+    }
+
     if (row.email_type === "review_request" && row.intake_id) {
-      const marked = await markReviewRequestCommunicationOutcome(
-        row.intake_id,
-        sentOutcome,
-      )
-      if (marked.kind === "transiently_blocked") {
+      try {
+        const marked = await markReviewRequestCommunicationOutcome(
+          row.intake_id,
+          sentOutcome,
+        )
+        if (marked.kind !== "transiently_blocked") {
+          return {
+            success: true,
+            outcome: sentOutcome,
+          }
+        }
         Sentry.captureMessage("Review request sent marker needs reconciliation", {
           level: "error",
           tags: {
@@ -1642,6 +1717,24 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
           success: true,
           outcome: sentOutcome,
           finalizationError: marked.reason,
+        }
+      } catch (error) {
+        logger.error("[Email Dispatcher] Review request sent marker threw", {
+          outboxId: row.id,
+          intakeId: row.intake_id,
+          error: error instanceof Error ? error.message : String(error),
+        })
+        Sentry.captureException(error, {
+          tags: {
+            subsystem: "email-dispatcher",
+            email_type: "review_request",
+          },
+          extra: { outboxId: row.id, intakeId: row.intake_id },
+        })
+        return {
+          success: true,
+          outcome: sentOutcome,
+          finalizationError: "review_marker_write_failed",
         }
       }
     }

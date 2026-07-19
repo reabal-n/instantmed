@@ -163,7 +163,15 @@ describe("classifyReviewRequestPolicy", () => {
     ["intake", eligibleFacts({ readErrors: { intake: "db unavailable" } })],
     ["cooldown outbox", eligibleFacts({ readErrors: { cooldownOutbox: "db unavailable" } })],
     ["cooldown marker", eligibleFacts({ readErrors: { cooldownMarker: "db unavailable" } })],
-    ["bounce lookup", eligibleFacts({ bounceDecision: { kind: "transiently_blocked" } })],
+    [
+      "bounce lookup",
+      eligibleFacts({
+        bounceDecision: {
+          kind: "transiently_blocked",
+          reason: "lookup_failed",
+        },
+      }),
+    ],
     ["address lookup", eligibleFacts({ addressDecision: { kind: "transiently_blocked" } })],
     ["preference lookup", eligibleFacts({ preferenceDecision: { kind: "transiently_blocked" } })],
   ])("keeps a %s read error retryable", (_name, facts) => {
@@ -192,6 +200,14 @@ describe("hasReviewRequestCooldownReservation", () => {
       activeRows: rows,
       currentIntakeId: "intake-a",
       currentOutboxId: "outbox-a",
+      hasOtherSentMarker: false,
+    })).toBe(false)
+  })
+
+  it("recognizes the current intake's earliest reservation without an outbox id", () => {
+    expect(hasReviewRequestCooldownReservation({
+      activeRows: rows,
+      currentIntakeId: "intake-a",
       hasOtherSentMarker: false,
     })).toBe(false)
   })

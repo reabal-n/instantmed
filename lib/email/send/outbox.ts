@@ -331,7 +331,7 @@ export async function updateOutboxStatus(
     error_message?: string
     attempts?: number
   }
-): Promise<void> {
+): Promise<boolean> {
   try {
     const supabase = createServiceRoleClient()
     const updateData: Record<string, unknown> = {
@@ -351,16 +351,24 @@ export async function updateOutboxStatus(
       updateData.retry_count = details.attempts
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("email_outbox")
       .update(updateData)
       .eq("id", outboxId)
+      .select("id")
+      .maybeSingle()
 
-    if (error) {
-      logger.error("[Email] Failed to update outbox status", { outboxId, error: error.message })
+    if (error || !data) {
+      logger.error("[Email] Failed to update outbox status", {
+        outboxId,
+        error: error?.message,
+      })
+      return false
     }
+    return true
   } catch (err) {
     logger.error("[Email] Outbox update error", { outboxId, error: err })
+    return false
   }
 }
 
@@ -375,7 +383,7 @@ export async function deferOutboxRow(
 ): Promise<boolean> {
   try {
     const supabase = createServiceRoleClient()
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("email_outbox")
       .update({
         status: "pending",
@@ -385,11 +393,13 @@ export async function deferOutboxRow(
       })
       .eq("id", outboxId)
       .eq("status", "sending")
+      .select("id")
+      .maybeSingle()
 
-    if (error) {
+    if (error || !data) {
       logger.error("[Email] Failed to defer outbox row", {
         outboxId,
-        error: error.message,
+        error: error?.message,
       })
       return false
     }

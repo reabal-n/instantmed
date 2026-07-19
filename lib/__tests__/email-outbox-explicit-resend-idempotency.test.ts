@@ -95,7 +95,11 @@ describe("explicit certificate resend outbox idempotency", () => {
       idempotency_key: "certificate-resend:attempt-2",
     })
 
-    expect(result).toEqual({ id: "same-explicit-resend", duplicate: true })
+    expect(result).toEqual({
+      id: "same-explicit-resend",
+      duplicate: true,
+      existingStatus: "sent",
+    })
     expect(state.genericLookupCalled).toBe(false)
     expect(state.insertCalled).toBe(false)
   })

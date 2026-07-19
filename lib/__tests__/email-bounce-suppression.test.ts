@@ -41,7 +41,10 @@ vi.mock("@/lib/supabase/service-role", () => ({
   }),
 }))
 
-import { getEmailBounceSuppressionDecision } from "@/lib/email/utils"
+import {
+  getEmailBounceSuppressionDecision,
+  isEmailSuppressed,
+} from "@/lib/email/utils"
 
 describe("getEmailBounceSuppressionDecision", () => {
   beforeEach(() => {
@@ -62,7 +65,10 @@ describe("getEmailBounceSuppressionDecision", () => {
 
     await expect(
       getEmailBounceSuppressionDecision("patient@example.com"),
-    ).resolves.toEqual({ kind: "transiently_blocked" })
+    ).resolves.toEqual({
+      kind: "transiently_blocked",
+      reason: "soft_bounce_threshold",
+    })
   })
 
   it.each(["hard", "soft"] as const)(
@@ -76,7 +82,26 @@ describe("getEmailBounceSuppressionDecision", () => {
 
       await expect(
         getEmailBounceSuppressionDecision("patient@example.com"),
-      ).resolves.toEqual({ kind: "transiently_blocked" })
+      ).resolves.toEqual({
+        kind: "transiently_blocked",
+        reason: "lookup_failed",
+      })
     },
   )
+
+  it("does not terminally suppress transactional mail on a transient bounce lookup", async () => {
+    mocks.hardResult = { data: null, error: { message: "db unavailable" } }
+
+    await expect(
+      isEmailSuppressed("patient@example.com"),
+    ).resolves.toBe(false)
+  })
+
+  it("still suppresses transactional mail after the soft-bounce threshold", async () => {
+    mocks.softResult = { count: 3, error: null }
+
+    await expect(
+      isEmailSuppressed("patient@example.com"),
+    ).resolves.toBe(true)
+  })
 })

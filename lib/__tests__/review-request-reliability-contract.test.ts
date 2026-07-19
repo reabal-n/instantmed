@@ -72,7 +72,8 @@ describe("review and partial-recovery reliability contract", () => {
     )
     const marker = reviewRequestSource.indexOf("await markReviewRequestSent(candidate.id)")
     const lifecycleMarker = reviewRequestSource.indexOf(
-      "await markReviewRequestCommunicationOutcome(candidate.id, sent)",
+      "await markReviewRequestCommunicationOutcome(intake.id, sent)",
+      confirmation,
     )
 
     expect(confirmation).toBeGreaterThan(-1)
@@ -108,8 +109,8 @@ describe("review and partial-recovery reliability contract", () => {
     const reviewValidation = sendEmailSource.lastIndexOf(
       "evaluateReviewRequestPolicy({",
     )
-    const preferenceCheck = sendEmailSource.indexOf(
-      "const marketingDecision = await getMarketingDeliveryDecision(",
+    const reviewGate = sendEmailSource.indexOf(
+      'const marketingDecision = row.email_type === "review_request"',
       reviewValidation,
     )
     const providerCall = sendEmailSource.lastIndexOf(
@@ -117,9 +118,12 @@ describe("review and partial-recovery reliability contract", () => {
     )
 
     expect(reviewValidation).toBeGreaterThan(-1)
-    expect(preferenceCheck).toBeGreaterThan(reviewValidation)
-    expect(providerCall).toBeGreaterThan(preferenceCheck)
-    expect(sendEmailSource.slice(preferenceCheck, providerCall)).not.toContain("await sleep")
+    expect(reviewGate).toBeGreaterThan(reviewValidation)
+    expect(providerCall).toBeGreaterThan(reviewGate)
+    expect(sendEmailSource.slice(reviewGate, providerCall)).toContain(
+      ': await getMarketingDeliveryDecision(',
+    )
+    expect(sendEmailSource.slice(reviewGate, providerCall)).not.toContain("await sleep")
     expect(sendEmailSource).toContain("getEmailSuppressionDecisions([toEmail])")
     expect(sendEmailSource).toContain("getMarketingEmailDecision(patientId)")
   })
@@ -128,8 +132,8 @@ describe("review and partial-recovery reliability contract", () => {
     const reviewValidation = sendEmailSource.indexOf(
       "evaluateReviewRequestPolicy({",
     )
-    const preferenceCheck = sendEmailSource.indexOf(
-      "const marketingDecision = await getMarketingDeliveryDecision(",
+    const reviewGate = sendEmailSource.indexOf(
+      'const marketingDecision = emailType === "review_request"',
       reviewValidation,
     )
     const providerCall = sendEmailSource.indexOf(
@@ -137,14 +141,17 @@ describe("review and partial-recovery reliability contract", () => {
     )
 
     expect(reviewValidation).toBeGreaterThan(-1)
-    expect(preferenceCheck).toBeGreaterThan(reviewValidation)
-    expect(providerCall).toBeGreaterThan(preferenceCheck)
-    expect(sendEmailSource.slice(preferenceCheck, providerCall)).not.toContain("await sleep")
+    expect(reviewGate).toBeGreaterThan(reviewValidation)
+    expect(providerCall).toBeGreaterThan(reviewGate)
+    expect(sendEmailSource.slice(reviewGate, providerCall)).toContain(
+      ": await getMarketingDeliveryDecision(emailType, patientId, to)",
+    )
+    expect(sendEmailSource.slice(reviewGate, providerCall)).not.toContain("await sleep")
   })
 
   it("uses one intake-scoped idempotency key regardless of recipient changes", () => {
     expect(reviewRequestSource).toContain(
-      'idempotencyKey: `review-request:${candidate.id}`',
+      'idempotencyKey: `review-request:${intake.id}`',
     )
   })
 

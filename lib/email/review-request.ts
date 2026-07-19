@@ -1,5 +1,6 @@
 import "server-only"
 
+import * as Sentry from "@sentry/nextjs"
 import * as React from "react"
 
 import { getAppUrl } from "@/lib/config/env"
@@ -10,7 +11,6 @@ import {
 } from "@/lib/email/components/templates/review-request"
 import { isEmailSendDeliveryConfirmed } from "@/lib/email/outbox-delivery"
 import {
-  evaluateReviewRequestPolicy,
   markReviewRequestCommunicationOutcome,
   type ReviewRequestPatient,
 } from "@/lib/email/review-request-policy"
@@ -170,18 +170,8 @@ function fallbackSendOutcome(
 export async function sendReviewRequestEmail(
   intake: ReviewRequestCandidate,
 ): Promise<CommunicationOutcome> {
-  const policy = await evaluateReviewRequestPolicy({
-    intakeId: intake.id,
-    expectedRecipient: intake.patient?.email ?? undefined,
-  })
-  if (policy.kind === "policy_suppressed") {
-    return markReviewRequestCommunicationOutcome(intake.id, policy)
-  }
-  if (policy.kind === "transiently_blocked") return policy
-
-  const candidate = policy.intake
-  const patient = candidate?.patient
-  if (!candidate || !candidate.patient_id || !patient?.email) {
+  const patient = intake.patient
+  if (!intake.patient_id || !patient?.email) {
     return markReviewRequestCommunicationOutcome(intake.id, {
       kind: "policy_suppressed",
       reason: "missing_recipient",
@@ -197,15 +187,15 @@ export async function sendReviewRequestEmail(
       appUrl: getAppUrl(),
     }),
     emailType: "review_request",
-    intakeId: candidate.id,
-    patientId: candidate.patient_id,
-    idempotencyKey: `review-request:${candidate.id}`,
+    intakeId: intake.id,
+    patientId: intake.patient_id,
+    idempotencyKey: `review-request:${intake.id}`,
     metadata: {
-      fulfilment_at: getReviewFulfilmentAt(candidate),
+      fulfilment_at: getReviewFulfilmentAt(intake),
     },
     tags: [
       { name: "category", value: "review_request" },
-      { name: "intake_id", value: candidate.id },
+      { name: "intake_id", value: intake.id },
     ],
   })
 
@@ -215,17 +205,25 @@ export async function sendReviewRequestEmail(
       ...(result.messageId ? { messageId: result.messageId } : {}),
       ...(result.outboxId ? { outboxId: result.outboxId } : {}),
     }
-    const marked = await markReviewRequestCommunicationOutcome(candidate.id, sent)
+    const marked = await markReviewRequestCommunicationOutcome(intake.id, sent)
     logger.info("Review request delivery confirmed", {
-      intakeId: candidate.id,
+      intakeId: intake.id,
       outboxId: result.outboxId,
     })
+    if (marked.kind === "transiently_blocked") {
+      Sentry.captureMessage("Review request sent marker needs reconciliation", {
+        level: "error",
+        tags: { subsystem: "review-request" },
+        extra: { intakeId: intake.id, outboxId: result.outboxId },
+      })
+      return sent
+    }
     return marked
   }
 
   const outcome = result.outcome ?? fallbackSendOutcome(result)
   if (outcome.kind === "policy_suppressed") {
-    return markReviewRequestCommunicationOutcome(candidate.id, outcome)
+    return outcome
   }
   if (outcome.kind === "sent") {
     return {
@@ -234,6 +232,42 @@ export async function sendReviewRequestEmail(
     }
   }
   return outcome
+}
+
+export async function reconcileSentReviewRequestMarkers(
+  limit = REVIEW_REQUEST_BATCH_SIZE,
+): Promise<{ reconciled: number; failed: number }> {
+  const supabase = createServiceRoleClient()
+  const { data, error } = await supabase
+    .from("intakes")
+    .select("id, email_outbox!inner(id)")
+    .is("review_email_sent_at", null)
+    .is("review_email_suppressed_at", null)
+    .eq("email_outbox.email_type", "review_request")
+    .eq("email_outbox.status", "sent")
+    .limit(limit)
+
+  if (error) {
+    throw new Error(`Failed to reconcile sent review request markers: ${error.message}`)
+  }
+
+  let reconciled = 0
+  let failed = 0
+  const intakeIds = new Set(
+    (data ?? [])
+      .map((row) => typeof row.id === "string" ? row.id : null)
+      .filter((id): id is string => Boolean(id)),
+  )
+  for (const intakeId of intakeIds) {
+    const outcome = await markReviewRequestCommunicationOutcome(
+      intakeId,
+      { kind: "sent" },
+    )
+    if (outcome.kind === "sent") reconciled += 1
+    else failed += 1
+  }
+
+  return { reconciled, failed }
 }
 
 type ReviewRequestCounts = {
@@ -255,12 +289,15 @@ function emptyCounts(): ReviewRequestCounts {
 }
 
 export async function processReviewRequests(): Promise<{
+  requestReconciled: number
+  requestReconciliationFailed: number
   requestSent: number
   requestPolicySuppressed: number
   requestTransientlyBlocked: number
   requestPending: number
   requestProviderFailed: number
 }> {
+  const reconciliation = await reconcileSentReviewRequestMarkers()
   const candidates = await findReviewRequestCandidates()
   const counts = emptyCounts()
 
@@ -271,6 +308,8 @@ export async function processReviewRequests(): Promise<{
   }
 
   const result = {
+    requestReconciled: reconciliation.reconciled,
+    requestReconciliationFailed: reconciliation.failed,
     requestSent: counts.sent,
     requestPolicySuppressed: counts.policy_suppressed,
     requestTransientlyBlocked: counts.transiently_blocked,

@@ -10,7 +10,10 @@ const logger = createLogger("email-utils")
 export type EmailBounceSuppressionDecision =
   | { kind: "allowed" }
   | { kind: "policy_suppressed" }
-  | { kind: "transiently_blocked" }
+  | {
+      kind: "transiently_blocked"
+      reason: "lookup_failed" | "soft_bounce_threshold"
+    }
 
 /**
  * Resolve provider delivery history without collapsing a read failure into a
@@ -41,7 +44,7 @@ export async function getEmailBounceSuppressionDecision(
         email: email.replace(/(.{2}).*@/, "$1***@"),
         error: hardError.message,
       })
-      return { kind: "transiently_blocked" }
+      return { kind: "transiently_blocked", reason: "lookup_failed" }
     }
     if (hardSuppress) return { kind: "policy_suppressed" }
 
@@ -58,14 +61,19 @@ export async function getEmailBounceSuppressionDecision(
         email: email.replace(/(.{2}).*@/, "$1***@"),
         error: softError.message,
       })
-      return { kind: "transiently_blocked" }
+      return { kind: "transiently_blocked", reason: "lookup_failed" }
     }
-    if ((count || 0) >= 3) return { kind: "transiently_blocked" }
+    if ((count || 0) >= 3) {
+      return {
+        kind: "transiently_blocked",
+        reason: "soft_bounce_threshold",
+      }
+    }
 
     return { kind: "allowed" }
   } catch (error) {
     logger.warn("Failed to check email suppression", { email: email.replace(/(.{2}).*@/, "$1***@"), error })
-    return { kind: "transiently_blocked" }
+    return { kind: "transiently_blocked", reason: "lookup_failed" }
   }
 }
 
@@ -75,7 +83,11 @@ export async function getEmailBounceSuppressionDecision(
  */
 export async function isEmailSuppressed(email: string): Promise<boolean> {
   const decision = await getEmailBounceSuppressionDecision(email)
-  return decision.kind !== "allowed"
+  return decision.kind === "policy_suppressed" ||
+    (
+      decision.kind === "transiently_blocked" &&
+      decision.reason === "soft_bounce_threshold"
+    )
 }
 
 /**

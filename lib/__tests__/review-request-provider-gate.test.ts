@@ -5,6 +5,10 @@ const mocks = vi.hoisted(() => ({
   deferOutboxRow: vi.fn(),
   evaluateReviewRequestPolicy: vi.fn(),
   fetch: vi.fn(),
+  getEmailBounceSuppressionDecision: vi.fn(),
+  getEmailSuppressionDecisions: vi.fn(),
+  getMarketingEmailDecision: vi.fn(),
+  markReviewRequestCommunicationOutcome: vi.fn(),
   renderEmailToHtml: vi.fn(),
   updateOutboxStatus: vi.fn(),
 }))
@@ -24,6 +28,8 @@ vi.mock("@/lib/email/react-renderer-server", () => ({
 
 vi.mock("@/lib/email/review-request-policy", () => ({
   evaluateReviewRequestPolicy: mocks.evaluateReviewRequestPolicy,
+  markReviewRequestCommunicationOutcome:
+    mocks.markReviewRequestCommunicationOutcome,
 }))
 
 vi.mock("@/lib/email/send/outbox", () => ({
@@ -34,21 +40,17 @@ vi.mock("@/lib/email/send/outbox", () => ({
 }))
 
 vi.mock("@/lib/email/utils", () => ({
-  getEmailBounceSuppressionDecision: vi.fn().mockResolvedValue({
-    kind: "allowed",
-  }),
+  getEmailBounceSuppressionDecision: mocks.getEmailBounceSuppressionDecision,
   htmlToPlainText: vi.fn(() => "Review request"),
   isEmailSuppressed: vi.fn().mockResolvedValue(false),
 }))
 
 vi.mock("@/lib/email/suppression", () => ({
-  getEmailSuppressionDecisions: vi.fn().mockResolvedValue(
-    new Map([["patient@example.com", { kind: "allowed" }]]),
-  ),
+  getEmailSuppressionDecisions: mocks.getEmailSuppressionDecisions,
 }))
 
 vi.mock("@/lib/email/preferences", () => ({
-  getMarketingEmailDecision: vi.fn().mockResolvedValue({ kind: "allowed" }),
+  getMarketingEmailDecision: mocks.getMarketingEmailDecision,
 }))
 
 vi.mock("@/lib/email/warmup", () => ({
@@ -71,6 +73,15 @@ describe("review request provider gate", () => {
     vi.clearAllMocks()
     vi.stubGlobal("fetch", mocks.fetch)
     mocks.renderEmailToHtml.mockResolvedValue("<p>Review request</p>")
+    mocks.evaluateReviewRequestPolicy.mockResolvedValue({ kind: "allowed" })
+    mocks.getEmailBounceSuppressionDecision.mockResolvedValue({ kind: "allowed" })
+    mocks.getEmailSuppressionDecisions.mockResolvedValue(
+      new Map([["patient@example.com", { kind: "allowed" }]]),
+    )
+    mocks.getMarketingEmailDecision.mockResolvedValue({ kind: "allowed" })
+    mocks.markReviewRequestCommunicationOutcome.mockImplementation(
+      async (_intakeId: string, outcome: unknown) => outcome,
+    )
     mocks.createPendingOutbox.mockImplementation(async (entry: {
       metadata?: Record<string, unknown>
     }) => ({
@@ -162,6 +173,42 @@ describe("review request provider gate", () => {
     expect(mocks.fetch).not.toHaveBeenCalled()
   })
 
+  it("keeps a suppressed row retryable until its terminal marker is durable", async () => {
+    mocks.evaluateReviewRequestPolicy.mockResolvedValueOnce({
+      kind: "policy_suppressed",
+      reason: "marketing_opt_out",
+    })
+    mocks.markReviewRequestCommunicationOutcome.mockResolvedValueOnce({
+      kind: "transiently_blocked",
+      reason: "review_marker_write_failed",
+    })
+
+    const result = await sendEmail({
+      to: "patient@example.com",
+      subject: "How did InstantMed go?",
+      template: {} as React.ReactElement,
+      emailType: "review_request",
+      intakeId: "intake-1",
+      idempotencyKey: "review-request:intake-1",
+    })
+
+    expect(mocks.deferOutboxRow).toHaveBeenCalledWith(
+      "outbox-review",
+      expect.any(String),
+      "review_marker_write_failed",
+    )
+    expect(mocks.updateOutboxStatus).not.toHaveBeenCalledWith(
+      "outbox-review",
+      "failed",
+      expect.anything(),
+    )
+    expect(result.outcome).toMatchObject({
+      kind: "transiently_blocked",
+      reason: "review_marker_write_failed",
+    })
+    expect(mocks.fetch).not.toHaveBeenCalled()
+  })
+
   it("uses provider_failed only after a real provider attempt", async () => {
     mocks.evaluateReviewRequestPolicy.mockResolvedValue({
       kind: "allowed",
@@ -188,6 +235,59 @@ describe("review request provider gate", () => {
       error: "provider rejected request",
       retryable: false,
     })
+  })
+
+  it("defers the same row when its frozen provider payload cannot be read", async () => {
+    mocks.createPendingOutbox.mockResolvedValueOnce({
+      id: "outbox-review",
+      duplicate: false,
+      providerPayloadEnc: "not-valid-ciphertext",
+    })
+
+    const result = await sendEmail({
+      to: "patient@example.com",
+      subject: "How did InstantMed go?",
+      template: {} as React.ReactElement,
+      emailType: "review_request",
+      intakeId: "intake-1",
+      idempotencyKey: "review-request:intake-1",
+    })
+
+    expect(mocks.deferOutboxRow).toHaveBeenCalledWith(
+      "outbox-review",
+      expect.any(String),
+      "Encrypted provider payload could not be read",
+    )
+    expect(mocks.updateOutboxStatus).not.toHaveBeenCalledWith(
+      "outbox-review",
+      "failed",
+      expect.anything(),
+    )
+    expect(result.outcome).toMatchObject({
+      kind: "transiently_blocked",
+      reason: "provider_payload_read_failed",
+    })
+    expect(mocks.fetch).not.toHaveBeenCalled()
+  })
+
+  it("uses only the consolidated review policy gate before provider contact", async () => {
+    mocks.evaluateReviewRequestPolicy.mockResolvedValue({ kind: "allowed" })
+
+    await sendEmail({
+      to: "patient@example.com",
+      subject: "How did InstantMed go?",
+      template: {} as React.ReactElement,
+      emailType: "review_request",
+      intakeId: "intake-1",
+      patientId: "patient-1",
+      idempotencyKey: "review-request:intake-1",
+    })
+
+    expect(mocks.evaluateReviewRequestPolicy).toHaveBeenCalledTimes(1)
+    expect(mocks.getEmailBounceSuppressionDecision).not.toHaveBeenCalled()
+    expect(mocks.getEmailSuppressionDecisions).not.toHaveBeenCalled()
+    expect(mocks.getMarketingEmailDecision).not.toHaveBeenCalled()
+    expect(mocks.fetch).toHaveBeenCalledTimes(1)
   })
 
   it.each([

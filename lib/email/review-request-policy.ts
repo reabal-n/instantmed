@@ -1,5 +1,7 @@
 import "server-only"
 
+import * as Sentry from "@sentry/nextjs"
+
 import type { MarketingEmailDecision } from "@/lib/email/preferences"
 import { getMarketingEmailDecision } from "@/lib/email/preferences"
 import {
@@ -94,11 +96,9 @@ export function hasReviewRequestCooldownReservation(input: {
     a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id)
   ))[0]
 
-  return !(
-    input.currentOutboxId &&
-    earliest.id === input.currentOutboxId &&
-    earliest.intake_id === input.currentIntakeId
-  )
+  const currentIntakeOwnsEarliest = earliest.intake_id === input.currentIntakeId &&
+    (!input.currentOutboxId || earliest.id === input.currentOutboxId)
+  return !currentIntakeOwnsEarliest
 }
 
 export function classifyReviewRequestPolicy(
@@ -300,14 +300,16 @@ export async function evaluateReviewRequestPolicy(input: {
     hasOtherSentMarker: Boolean(markerResult.data),
     now,
   })
-  const blockingTimes = [
-    ...activeRows.map((row) => new Date(row.created_at).getTime()),
-    ...(markerResult.data?.review_email_sent_at
-      ? [new Date(markerResult.data.review_email_sent_at).getTime()]
-      : []),
-  ].filter(Number.isFinite)
-  const cooldownExpiresAt = blockingTimes.length > 0
-    ? Math.max(...blockingTimes) +
+  const winningReservation = [...activeRows].sort((a, b) => (
+    a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id)
+  ))[0]
+  const blockingTime = markerResult.data?.review_email_sent_at
+    ? new Date(markerResult.data.review_email_sent_at).getTime()
+    : winningReservation
+      ? new Date(winningReservation.created_at).getTime()
+      : null
+  const cooldownExpiresAt = blockingTime !== null && Number.isFinite(blockingTime)
+    ? blockingTime +
       REVIEW_REQUEST_PATIENT_COOLDOWN_DAYS * 24 * 60 * 60 * 1000
     : null
   const cooldownRetryAt = cooldownExpiresAt === null
@@ -359,16 +361,78 @@ export async function markReviewRequestCommunicationOutcome(
     .select("id")
     .maybeSingle()
 
-  if (error || !data) {
+  if (error) {
     logger.error("Review request marker write failed", {
       intakeId,
       outcome: outcome.kind,
-      error: error?.message,
+      error: error.message,
     })
     return {
       kind: "transiently_blocked",
       reason: "review_marker_write_failed",
     }
   }
-  return outcome
+  if (data) return outcome
+
+  const { data: current, error: readError } = await supabase
+    .from("intakes")
+    .select("id, review_email_sent_at, review_email_suppressed_at")
+    .eq("id", intakeId)
+    .maybeSingle()
+
+  if (readError) {
+    logger.error("Review request marker reconciliation read failed", {
+      intakeId,
+      outcome: outcome.kind,
+      error: readError.message,
+    })
+    return {
+      kind: "transiently_blocked",
+      reason: "review_marker_write_failed",
+    }
+  }
+
+  if (!current) {
+    logger.warn("Review request marker target no longer exists", {
+      intakeId,
+      outcome: outcome.kind,
+    })
+    return outcome
+  }
+
+  const targetAlreadyWritten = outcome.kind === "sent"
+    ? Boolean(current.review_email_sent_at)
+    : Boolean(current.review_email_suppressed_at)
+  if (targetAlreadyWritten) return outcome
+
+  const oppositeMarkerWritten = outcome.kind === "sent"
+    ? Boolean(current.review_email_suppressed_at)
+    : Boolean(current.review_email_sent_at)
+  if (oppositeMarkerWritten) {
+    if (
+      outcome.kind === "policy_suppressed" &&
+      outcome.reason === "review_request_already_handled"
+    ) {
+      return outcome
+    }
+    logger.error("Review request marker invariant conflict", {
+      intakeId,
+      outcome: outcome.kind,
+    })
+    Sentry.captureMessage("Review request marker invariant conflict", {
+      level: "error",
+      tags: { subsystem: "review-request" },
+      extra: { intakeId, outcome: outcome.kind },
+    })
+    return outcome
+  }
+
+  logger.error("Review request marker CAS matched no row", {
+    intakeId,
+    outcome: outcome.kind,
+  })
+  return {
+    kind: "transiently_blocked",
+    reason: "review_marker_write_failed",
+  }
 }

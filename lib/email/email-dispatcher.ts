@@ -190,7 +190,6 @@ export interface DispatcherResult {
   failed: number
   skipped: number
   pending?: number
-  outcomes: Record<CommunicationOutcome["kind"], number>
   message?: string
   results: Array<{
     id: string
@@ -199,16 +198,6 @@ export interface DispatcherResult {
     skipped?: boolean
     outcome?: CommunicationOutcome
   }>
-}
-
-function emptyOutcomeCounts(): DispatcherResult["outcomes"] {
-  return {
-    sent: 0,
-    policy_suppressed: 0,
-    transiently_blocked: 0,
-    pending: 0,
-    provider_failed: 0,
-  }
 }
 
 /**
@@ -259,7 +248,6 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
       sent: 0,
       failed: 0,
       skipped: 0,
-      outcomes: emptyOutcomeCounts(),
       results: [],
     }
   }
@@ -277,7 +265,6 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
       failed: 0,
       skipped: 0,
       pending: candidates.length,
-      outcomes: emptyOutcomeCounts(),
       message: marketingPaused
         ? `Daily marketing email limit reached (${warmup.current}/${warmup.limit}); no transactional emails eligible`
         : "All pending emails are in backoff",
@@ -295,7 +282,6 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
   let sent = 0
   let failed = 0
   let skipped = 0
-  const outcomes = emptyOutcomeCounts()
   const results: DispatcherResult["results"] = []
 
   for (const row of eligible) {
@@ -341,7 +327,6 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
     // STEP 4: Send the email
     const result = await sendFromOutboxRow(claimedRow)
     const outcome = result.outcome
-    if (outcome) outcomes[outcome.kind] += 1
 
     if (outcome?.kind === "sent" || (!outcome && result.success)) {
       sent++
@@ -396,7 +381,6 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
     sent,
     failed,
     skipped,
-    outcomes,
     results,
   }
 }

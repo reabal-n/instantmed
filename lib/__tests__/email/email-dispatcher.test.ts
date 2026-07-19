@@ -598,7 +598,6 @@ describe("email-dispatcher", () => {
       expect(result.sent).toBe(sent)
       expect(result.failed).toBe(failed)
       expect(result.skipped).toBe(skipped)
-      expect(result.outcomes[outcome.kind]).toBe(1)
       expect(expectedMarker).toMatch(/^review_email_(sent|suppressed)_at$/)
       expect(Sentry.captureMessage).not.toHaveBeenCalledWith(
         expect.stringContaining("exhausted all"),
