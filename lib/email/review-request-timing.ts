@@ -44,6 +44,29 @@ export function isReviewFulfilmentOldEnough(
 }
 
 /**
+ * Review asks remain eligible from 48 hours after fulfilment through the
+ * inclusive 120-day catch-up boundary.
+ */
+export function isReviewFulfilmentWithinCatchUpWindow(
+  intake: ReviewFulfilmentFields,
+  now = new Date(),
+): boolean {
+  const fulfilledAt = getReviewFulfilmentAt(intake)
+  if (!fulfilledAt) return false
+
+  const fulfilledAtMs = new Date(fulfilledAt).getTime()
+  const nowMs = now.getTime()
+  if (!Number.isFinite(fulfilledAtMs) || !Number.isFinite(nowMs)) return false
+
+  const ageMs = nowMs - fulfilledAtMs
+  const hourMs = 60 * 60 * 1000
+  return (
+    ageMs >= REVIEW_REQUEST_DELAY_HOURS * hourMs &&
+    ageMs <= REVIEW_REQUEST_CATCH_UP_DAYS * 24 * hourMs
+  )
+}
+
+/**
  * Vercel cron schedules are UTC. The route is invoked at both possible UTC
  * equivalents and this guard selects 10:00 in Sydney across AEST and AEDT.
  */
@@ -58,4 +81,27 @@ export function isSydneyReviewRequestHour(now = new Date()): boolean {
     ?.value
 
   return hour === "10"
+}
+
+/**
+ * Find the next UTC hour that maps to 10:00 in Sydney. Scanning a bounded set
+ * of UTC hours keeps this correct across AEST/AEDT transitions.
+ */
+export function getNextSydneyReviewRequestRetryAt(now = new Date()): string {
+  const nowMs = now.getTime()
+  if (!Number.isFinite(nowMs)) {
+    throw new Error("Cannot schedule a review request retry from an invalid date")
+  }
+
+  const hourMs = 60 * 60 * 1000
+  const firstCandidateMs = (Math.floor(nowMs / hourMs) + 1) * hourMs
+
+  for (let offsetHours = 0; offsetHours < 48; offsetHours += 1) {
+    const candidate = new Date(firstCandidateMs + offsetHours * hourMs)
+    if (isSydneyReviewRequestHour(candidate)) {
+      return candidate.toISOString()
+    }
+  }
+
+  throw new Error("Could not find the next Sydney review request hour")
 }

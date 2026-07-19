@@ -16,7 +16,7 @@ vi.mock("@/lib/supabase/service-role", () => ({
   }),
 }))
 
-describe("canSendMarketingEmail", () => {
+describe("marketing email preference decisions", () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -30,9 +30,19 @@ describe("canSendMarketingEmail", () => {
 
   it("fails closed when the preference read errors", async () => {
     mocks.maybeSingle.mockResolvedValueOnce({ data: null, error: { message: "db unavailable" } })
-    const { canSendMarketingEmail } = await import("@/lib/email/preferences")
+    const {
+      canSendMarketingEmail,
+      getMarketingEmailDecision,
+    } = await import("@/lib/email/preferences")
 
     await expect(canSendMarketingEmail("profile-1")).resolves.toBe(false)
+    mocks.maybeSingle.mockResolvedValueOnce({
+      data: null,
+      error: { message: "db unavailable" },
+    })
+    await expect(getMarketingEmailDecision("profile-1")).resolves.toEqual({
+      kind: "transiently_blocked",
+    })
   })
 
   it("allows marketing only when both explicit preference flags are enabled", async () => {
@@ -49,5 +59,17 @@ describe("canSendMarketingEmail", () => {
       error: null,
     })
     await expect(canSendMarketingEmail("profile-1")).resolves.toBe(false)
+  })
+
+  it("distinguishes an explicit opt-out from a transient read failure", async () => {
+    mocks.maybeSingle.mockResolvedValueOnce({
+      data: { marketing_emails: false, abandoned_checkout_emails: true },
+      error: null,
+    })
+    const { getMarketingEmailDecision } = await import("@/lib/email/preferences")
+
+    await expect(getMarketingEmailDecision("profile-1")).resolves.toEqual({
+      kind: "policy_suppressed",
+    })
   })
 })

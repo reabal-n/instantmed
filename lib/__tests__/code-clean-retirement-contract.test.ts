@@ -241,7 +241,10 @@ describe("code-clean retirement contracts", () => {
     expect(read("components/marketing/hair-loss-landing.tsx")).toContain(
       "HairAssessmentModel",
     )
-    expect(read("components/request/steps/ed-assessment-step.tsx")).toContain(
+    // The landing hook quiz seeds the intake's severity question. That moved
+    // from ed-assessment-step to ed-goals-step when the IIEF-5 step was
+    // retired on 2026-07-19.
+    expect(read("components/request/steps/ed-goals-step.tsx")).toContain(
       "@/lib/marketing/ed-hook-quiz",
     )
   })

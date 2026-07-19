@@ -130,15 +130,31 @@ export function validateEdConsult(answers: Answers): ConsultValidationResult {
   const warnings: string[] = []
   const flags: ConsultFlag[] = []
 
-  const usesCurrentFlow = Boolean(
-    str(answers, "edGoal") ||
-    str(answers, "edDuration") ||
-    num(answers, "iief1") ||
-    num(answers, "iiefTotal"),
-  )
+  /**
+   * Three generations of ED intake can reach this validator: the current
+   * duration + single-severity flow, the IIEF-5 flow it replaced on
+   * 2026-07-19, and the original onset/frequency/morning flow. Each is
+   * validated against the instrument it was actually collected with — an
+   * in-flight draft or a historical intake must never fail because a newer
+   * field is absent.
+   */
+  const hasIiefAssessment =
+    num(answers, "iief1") !== undefined || num(answers, "iiefTotal") !== undefined
+  const hasCurrentSeverity = num(answers, "edErectionFrequency") !== undefined
+  const usesLegacyOnsetFlow =
+    !hasIiefAssessment &&
+    !hasCurrentSeverity &&
+    Boolean(
+      str(answers, "edOnset") ||
+      str(answers, "edFrequency") ||
+      str(answers, "edMorningErections"),
+    )
 
-  if (usesCurrentFlow) {
-    requireField(answers, "edGoal", "ED goal", errors)
+  if (usesLegacyOnsetFlow) {
+    requireOneOf(answers, "edOnset", "Symptom onset", ED_ONSET_VALUES, errors)
+    requireOneOf(answers, "edFrequency", "Difficulty frequency", ED_FREQUENCY_VALUES, errors)
+    requireOneOf(answers, "edMorningErections", "Morning erection status", ED_MORNING_VALUES, errors)
+  } else if (hasIiefAssessment) {
     requireField(answers, "edDuration", "Duration of concern", errors)
     for (const key of ["iief1", "iief2", "iief3", "iief4", "iief5"]) {
       const score = num(answers, key)
@@ -147,9 +163,11 @@ export function validateEdConsult(answers: Answers): ConsultValidationResult {
       }
     }
   } else {
-    requireOneOf(answers, "edOnset", "Symptom onset", ED_ONSET_VALUES, errors)
-    requireOneOf(answers, "edFrequency", "Difficulty frequency", ED_FREQUENCY_VALUES, errors)
-    requireOneOf(answers, "edMorningErections", "Morning erection status", ED_MORNING_VALUES, errors)
+    requireField(answers, "edDuration", "Duration of concern", errors)
+    const frequency = num(answers, "edErectionFrequency")
+    if (frequency === undefined || frequency < 1 || frequency > 5) {
+      errors.push("Erection frequency rating is required")
+    }
   }
   requireOneOf(answers, "edPreference", "Medication preference", ED_PREFERENCE_VALUES, errors)
 

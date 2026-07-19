@@ -21,7 +21,6 @@ const PATIENT_FACING_STEPS = [
   "components/request/steps/hair-loss-assessment-step.tsx",
   "components/request/steps/ed-preferences-step.tsx",
   "components/request/steps/ed-goals-step.tsx",
-  "components/request/steps/ed-assessment-step.tsx",
   "components/request/steps/ed-health-step.tsx",
   "components/request/steps/medical-history-step.tsx",
   "components/request/steps/medication-step.tsx",

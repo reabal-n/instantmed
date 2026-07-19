@@ -21,12 +21,14 @@ export function buildResendEmailIdempotencyKey(outboxId: string): string {
 }
 
 const METADATA_SCOPE_KEYS = [
-  "draft_idempotency_hash",
+  "recovery_tracking_id",
   "followup_id",
   "reminder_number",
   "milestone",
   "subtype",
 ] as const
+
+const LEGACY_PARTIAL_RECOVERY_SCOPE_KEY = "draft_idempotency_hash" as const
 
 type IdempotencyInput = Pick<
   OutboxEntry,
@@ -36,11 +38,28 @@ type IdempotencyInput = Pick<
 function stableMetadataScope(metadata: Record<string, unknown> | undefined): Record<string, unknown> {
   if (!metadata) return {}
 
-  return Object.fromEntries(
+  const currentScope = Object.fromEntries(
     METADATA_SCOPE_KEYS
       .filter((key) => metadata[key] !== undefined && metadata[key] !== null)
       .map((key) => [key, metadata[key]]),
   )
+
+  // Existing callers/rows may still be evaluated before the communication
+  // lifecycle migration has scrubbed the legacy digest. Preserve their old
+  // scope only when the new non-bearer tracking ID is unavailable.
+  if (
+    metadata.recovery_tracking_id === undefined &&
+    metadata[LEGACY_PARTIAL_RECOVERY_SCOPE_KEY] !== undefined &&
+    metadata[LEGACY_PARTIAL_RECOVERY_SCOPE_KEY] !== null
+  ) {
+    return {
+      ...currentScope,
+      [LEGACY_PARTIAL_RECOVERY_SCOPE_KEY]:
+        metadata[LEGACY_PARTIAL_RECOVERY_SCOPE_KEY],
+    }
+  }
+
+  return currentScope
 }
 
 export function buildEmailOutboxIdempotencyKey(entry: IdempotencyInput): string | null {

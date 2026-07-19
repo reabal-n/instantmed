@@ -25,6 +25,17 @@ const partialRecoverySource = readFileSync(
   join(process.cwd(), "lib/email/partial-intake-recovery.ts"),
   "utf8",
 )
+const partialRecoveryPolicySource = readFileSync(
+  join(process.cwd(), "lib/email/partial-intake-recovery-policy.ts"),
+  "utf8",
+)
+const partialRecoveryCandidateMigrationSource = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20260719113000_partial_recovery_candidate_anti_join.sql",
+  ),
+  "utf8",
+)
 const abandonedCheckoutSource = readFileSync(
   join(process.cwd(), "lib/email/abandoned-checkout.ts"),
   "utf8",
@@ -35,6 +46,17 @@ const recoveryLinksSource = readFileSync(
 )
 const reviewRequestSource = readFileSync(
   join(process.cwd(), "lib/email/review-request.ts"),
+  "utf8",
+)
+const reviewRequestCandidateMigrationSource = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20260719101500_review_request_candidate_anti_join.sql",
+  ),
+  "utf8",
+)
+const reviewRequestPolicySource = readFileSync(
+  join(process.cwd(), "lib/email/review-request-policy.ts"),
   "utf8",
 )
 const reviewRequestRouteSource = readFileSync(
@@ -81,12 +103,14 @@ describe("email sequence ownership contract", () => {
     expect(partialRecoverySource).toContain('emailType: "partial_intake_recovery"')
     expect(partialRecoverySource).not.toContain('emailType: "abandoned_checkout"')
 
-    expect(partialRecoverySource).toContain("review/checkout drafts that have not created an intake")
-    expect(partialRecoverySource).toContain("answers.consultSubtype")
-    expect(partialRecoverySource).toContain("buildPartialIntakeRecoveryUrl")
+    expect(partialRecoveryCandidateMigrationSource).toContain(
+      "partial.converted_to_intake_id is null",
+    )
+    expect(partialRecoveryPolicySource).toContain("answers.consultSubtype")
+    expect(partialRecoveryPolicySource).toContain("buildPartialIntakeRecoveryUrl")
     expect(recoveryLinksSource).toContain("buildDraftResumePath")
     expect(recoveryLinksSource).toContain("if (!resumePath) return null")
-    expect(partialRecoverySource).toContain("draft cannot be safely resumed")
+    expect(partialRecoveryPolicySource).toContain("draft_not_resumable")
     expect(partialRecoverySource).not.toContain(
       "`${appUrl}/request?service=${encodeURIComponent(draft.service_type)}&d=${encodeURIComponent(draft.session_id)}",
     )
@@ -112,7 +136,9 @@ describe("email sequence ownership contract", () => {
     expect(ABANDONED_CHECKOUT_FIRST_NUDGE_LOOKBACK_HOURS).toBe(24)
     expect(ABANDONED_CHECKOUT_FOLLOWUP_DELAY_HOURS).toBe(24)
     expect(ABANDONED_CHECKOUT_FOLLOWUP_LOOKBACK_HOURS).toBe(72)
-    expect(partialRecoverySource).toContain("const MIN_IDLE_MINUTES = 60")
+    expect(partialRecoveryPolicySource).toContain(
+      "PARTIAL_RECOVERY_MIN_IDLE_MINUTES = 60",
+    )
     expect(checkoutSequence?.cadence).toBe("20-40m nudge, 24h follow-up")
     expect(abandonedCheckoutSource).toContain("firstNudgeReadyAt")
     expect(abandonedCheckoutSource).toContain("firstNudgeWindowFloor")
@@ -165,9 +191,14 @@ describe("email sequence ownership contract", () => {
     const first = buildEmailOutboxIdempotencyKey({
       email_type: "partial_intake_recovery",
       to_email: "Patient@Example.com",
-      metadata: { draft_idempotency_hash: "safe-hash-123" },
+      metadata: { recovery_tracking_id: "tracking-123" },
     })
     const second = buildEmailOutboxIdempotencyKey({
+      email_type: "partial_intake_recovery",
+      to_email: "patient@example.com",
+      metadata: { recovery_tracking_id: "tracking-123" },
+    })
+    const legacy = buildEmailOutboxIdempotencyKey({
       email_type: "partial_intake_recovery",
       to_email: "patient@example.com",
       metadata: { draft_idempotency_hash: "safe-hash-123" },
@@ -175,8 +206,9 @@ describe("email sequence ownership contract", () => {
 
     expect(first).toBe(second)
     expect(first).toMatch(/^email:partial_intake_recovery:/)
-    expect(partialRecoverySource).toContain("draftIdempotencyHash(draft.session_id)")
-    expect(partialRecoverySource).toContain("draft_idempotency_hash:")
+    expect(legacy).toMatch(/^email:partial_intake_recovery:/)
+    expect(partialRecoverySource).toContain("recovery_tracking_id:")
+    expect(partialRecoverySource).not.toContain("draft_idempotency_hash:")
     expect(partialRecoverySource).not.toContain("draft_session_id:")
   })
 
@@ -237,11 +269,24 @@ describe("email sequence ownership contract", () => {
     expect(reviewRequestRouteSource).toContain("isSydneyReviewRequestHour(now)")
     expect(reviewRequestRouteSource).toContain("Outside the 10:00 Australia/Sydney send hour")
     expect(reviewRequestSource).toContain("findReviewRequestCandidates")
-    expect(reviewRequestSource).toContain('"document_sent_at"')
-    expect(reviewRequestSource).toContain('"script_sent_at"')
-    expect(reviewRequestSource).toContain('.eq("payment_status", "paid")')
+    expect(reviewRequestSource).toContain('"get_review_request_candidates"')
+    expect(reviewRequestCandidateMigrationSource).toContain(
+      "intake.document_sent_at",
+    )
+    expect(reviewRequestCandidateMigrationSource).toContain(
+      "intake.script_sent_at",
+    )
+    expect(reviewRequestCandidateMigrationSource).toContain(
+      "intake.payment_status = 'paid'",
+    )
+    expect(reviewRequestCandidateMigrationSource).toContain("and not exists (")
+    expect(reviewRequestCandidateMigrationSource).not.toContain(
+      "outbox.status in",
+    )
     expect(reviewRequestSource).toContain("REVIEW_REQUEST_CATCH_UP_DAYS")
-    expect(reviewRequestSource).toContain("REVIEW_REQUEST_PATIENT_COOLDOWN_DAYS")
+    expect(reviewRequestPolicySource).toContain(
+      "REVIEW_REQUEST_PATIENT_COOLDOWN_DAYS",
+    )
     expect(reviewRequestSource).not.toContain("seventyTwoHoursAgo")
     expect(reviewRequestSource).not.toContain("findReviewFollowupCandidates")
     expect(reviewRequestSource).not.toContain("sendReviewFollowupEmail")
@@ -277,25 +322,34 @@ describe("email sequence ownership contract", () => {
     expect(DB_IDEMPOTENT_EMAIL_TYPES.has("review_request")).toBe(true)
     expect(first).toBe(sameRequest)
     expect(laterRequest).not.toBe(first)
-    expect(reviewRequestSource).toContain('.neq("intake_id", intakeId)')
-    expect(reviewRequestSource).toContain('.neq("id", intakeId)')
+    expect(reviewRequestPolicySource).toContain(
+      "hasReviewRequestCooldownReservation",
+    )
+    expect(reviewRequestPolicySource).toContain(
+      "currentOutboxId: input.currentOutboxId",
+    )
+    expect(reviewRequestPolicySource).toContain('.neq("id", input.intakeId)')
   })
 
   it("re-checks marketing consent immediately before the review send", () => {
-    const finalPreferenceCheck = reviewRequestSource.indexOf(
-      "if (!await canSendMarketingEmail(candidate.patient_id))",
+    const finalPolicyGate = sendEmailSource.indexOf(
+      "const reviewGate = await gateReviewRequestProviderDelivery({",
     )
-    const send = reviewRequestSource.indexOf("const result = await sendEmail({")
+    const providerSend = sendEmailSource.indexOf(
+      'await fetch("https://api.resend.com/emails"',
+      finalPolicyGate,
+    )
 
-    expect(finalPreferenceCheck).toBeGreaterThan(-1)
-    expect(send).toBeGreaterThan(finalPreferenceCheck)
+    expect(reviewRequestPolicySource).toContain(
+      "getMarketingEmailDecision(patientId)",
+    )
+    expect(finalPolicyGate).toBeGreaterThan(-1)
+    expect(providerSend).toBeGreaterThan(finalPolicyGate)
     expect(
-      reviewRequestSource.slice(finalPreferenceCheck, send).match(/\bawait\b/g) ?? [],
-    ).toHaveLength(1)
-    expect(sendEmailSource).toContain("This is intentionally the final asynchronous policy check")
-    expect(sendEmailSource).toContain("return canSendMarketingEmail(patientId)")
+      sendEmailSource.slice(finalPolicyGate, providerSend),
+    ).not.toContain("await sleep")
     expect(sendEmailSource).toContain(
-      "if (!await isMarketingDeliveryAllowed(row.email_type, row.patient_id, row.to_email))",
+      'emailType !== "review_request"',
     )
   })
 

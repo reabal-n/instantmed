@@ -41,6 +41,71 @@ describe("validateEdConsult", () => {
     expect(result.errors.length).toBeGreaterThanOrEqual(3)
   })
 
+  // Three generations of ED intake reach this validator. Each must be checked
+  // against the instrument it was actually collected with, so an in-flight
+  // draft or a historical intake never fails on a field that did not exist yet.
+  describe("intake generations", () => {
+    const currentEd = {
+      edDuration: "3_to_12_months",
+      edErectionFrequency: 3,
+      edPreference: "prn",
+    }
+
+    it("passes the current duration + severity flow", () => {
+      const result = validateEdConsult(currentEd)
+      expect(result.valid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+    })
+
+    it("requires the severity rating in the current flow", () => {
+      const result = validateEdConsult({ edDuration: "3_to_12_months", edPreference: "prn" })
+      expect(result.valid).toBe(false)
+      expect(result.errors).toContainEqual(expect.stringContaining("Erection frequency"))
+    })
+
+    it("rejects an out-of-range severity rating", () => {
+      const result = validateEdConsult({ ...currentEd, edErectionFrequency: 9 })
+      expect(result.valid).toBe(false)
+    })
+
+    it("no longer requires edGoal", () => {
+      const result = validateEdConsult(currentEd)
+      expect(result.valid).toBe(true)
+      expect(result.errors).not.toContainEqual(expect.stringContaining("ED goal"))
+    })
+
+    it("still validates a stored IIEF-5 intake against the IIEF-5 rules", () => {
+      const result = validateEdConsult({
+        edGoal: "improve_erections",
+        edDuration: "3_to_12_months",
+        iief1: 3, iief2: 3, iief3: 3, iief4: 3, iief5: 3, iiefTotal: 15,
+        edPreference: "prn",
+      })
+      expect(result.valid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+    })
+
+    it("fails a stored IIEF-5 intake that is missing part of the set", () => {
+      const result = validateEdConsult({
+        edDuration: "3_to_12_months",
+        iief1: 3, iief2: 3, iiefTotal: 15,
+        edPreference: "prn",
+      })
+      expect(result.valid).toBe(false)
+      expect(result.errors).toContainEqual(expect.stringContaining("IIEF3"))
+    })
+
+    it("does not demand the new severity field from a stored IIEF-5 intake", () => {
+      const result = validateEdConsult({
+        edDuration: "3_to_12_months",
+        iief1: 4, iief2: 4, iief3: 4, iief4: 4, iief5: 4, iiefTotal: 20,
+        edPreference: "daily",
+      })
+      expect(result.valid).toBe(true)
+      expect(result.errors).not.toContainEqual(expect.stringContaining("Erection frequency"))
+    })
+  })
+
   it("blocks on nitrate use", () => {
     const result = validateEdConsult({ ...validEd, edNitrates: "yes" })
     expect(result.valid).toBe(false)

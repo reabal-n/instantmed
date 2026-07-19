@@ -138,6 +138,16 @@ function str(answers: Answers, key: string): string | undefined {
   return undefined
 }
 
+function numeric(answers: Answers, key: string): number | undefined {
+  const value = raw(answers, key)
+  if (typeof value === "number" && Number.isFinite(value)) return value
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : undefined
+  }
+  return undefined
+}
+
 function firstStr(answers: Answers, keys: string[]): string | undefined {
   for (const key of keys) {
     const value = str(answers, key)
@@ -288,6 +298,18 @@ const ED_PREFERENCE_LABELS: Record<string, string> = {
   daily: "Daily",
   prn: "As-needed",
   doctor_decides: "Doctor to decide",
+}
+
+/**
+ * Severity read for the single erection-frequency item that replaced the
+ * IIEF-5 on 2026-07-19. 1 = almost never, 5 = almost always.
+ */
+const ED_FREQUENCY_SEVERITY_LABELS: Record<number, string> = {
+  1: "almost never",
+  2: "much less than half the time",
+  3: "about half the time",
+  4: "much more than half the time",
+  5: "almost always",
 }
 
 function hairOnsetLabel(value: string): string {
@@ -503,7 +525,13 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const durationLabel = mappedLabel(ED_DURATION_LABELS, duration, "Unspecified duration")
   const preference = str(answers, "edPreference") || "doctor_decides"
   const preferenceLabel = mappedLabel(ED_PREFERENCE_LABELS, preference, "Doctor to decide")
+  // Only intakes from before 2026-07-19 carry an IIEF-5 total; newer ones carry
+  // the single frequency item instead. Both render conditionally.
   const score = str(answers, "iiefTotal")
+  const erectionFrequency = numeric(answers, "edErectionFrequency")
+  const erectionFrequencyLabel = erectionFrequency !== undefined
+    ? `${erectionFrequency}/5 (${ED_FREQUENCY_SEVERITY_LABELS[erectionFrequency] ?? "unspecified"})`
+    : undefined
 
   const safetyItems: ClinicalSafetyItem[] = [
     hasNitrates
@@ -546,8 +574,11 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   ].filter(Boolean) as ClinicalSafetyItem[]
 
   const keyFacts = compactFacts([
-    { label: "Main goal", value: goalLabel },
+    // `edGoal` stopped being collected on 2026-07-19; historical intakes still
+    // carry one, so the fact renders only when it is actually present.
+    str(answers, "edGoal") ? { label: "Main goal", value: goalLabel } : null,
     { label: "Duration", value: durationLabel },
+    fact("Erection frequency", erectionFrequencyLabel),
     fact("IIEF-5 score", score),
     { label: "Treatment preference", value: preferenceLabel },
     { label: "Nitrate use", value: yesNo(raw(answers, "edNitrates")) },

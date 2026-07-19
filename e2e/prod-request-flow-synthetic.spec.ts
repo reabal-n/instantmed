@@ -173,7 +173,7 @@ test.describe("Production request-flow synthetic", () => {
   test("active request pathways render their first actionable step", async ({ page }) => {
     const pathways = [
       { path: "/request?service=repeat-script", text: /Your medication/i },
-      { path: "/request?service=consult&subtype=ed", text: /What matters most right now/i },
+      { path: "/request?service=consult&subtype=ed", text: /Tell us what's going on/i },
       { path: "/request?service=consult&subtype=hair_loss", text: /What's your main goal|Hair loss goal/i },
       { path: "/request?service=consult&subtype=womens_health", text: /What do you need today/i },
     ]
@@ -191,7 +191,7 @@ test.describe("Production request-flow synthetic", () => {
     const pathways = [
       { path: "/request?service=med-cert", text: /Certificate details/i },
       { path: "/request?service=repeat-script", text: /Your medication/i },
-      { path: "/request?service=consult&subtype=ed", text: /What matters most right now/i },
+      { path: "/request?service=consult&subtype=ed", text: /Tell us what's going on/i },
       { path: "/request?service=consult&subtype=hair_loss", text: /What's your main goal|Hair loss goal/i },
       { path: "/request?service=consult&subtype=womens_health", text: /What do you need today/i },
     ]

@@ -15,18 +15,38 @@ type SequenceDispositionDefinition =
   | {
       kind: "marker"
       table: "intakes"
-      markerColumn:
-        | "abandoned_email_sent_at"
-        | "abandoned_followup_sent_at"
-        | "reactivation_email_sent_at"
-        | "review_email_sent_at"
+      markerColumns: Readonly<{
+        sent:
+          | "abandoned_email_sent_at"
+          | "abandoned_followup_sent_at"
+          | "reactivation_email_sent_at"
+          | "review_email_sent_at"
+        suppressed:
+          | "abandoned_email_sent_at"
+          | "abandoned_followup_sent_at"
+          | "reactivation_email_sent_at"
+          | "review_email_suppressed_at"
+      }>
       idSource: "intake_id" | { metadataKey: "intake_id" }
     }
   | {
       kind: "marker"
       table: "prescriptions"
-      markerColumn: "refill_reminder_sent_at"
+      markerColumns: Readonly<{
+        sent: "refill_reminder_sent_at"
+        suppressed: "refill_reminder_sent_at"
+      }>
       idSource: { metadataKey: "prescription_id" }
+    }
+  | {
+      kind: "marker"
+      table: "partial_intakes"
+      markerColumns: Readonly<{
+        sent: "recovery_email_sent_at"
+        suppressed: "recovery_email_suppressed_at"
+      }>
+      idSource: { metadataKey: "recovery_tracking_id" }
+      idColumn: "recovery_tracking_id"
     }
   | {
       kind: "outbox"
@@ -44,32 +64,57 @@ const OUTBOX_SEQUENCE_DISPOSITIONS: Readonly<
   refill_reminder: {
     kind: "marker",
     table: "prescriptions",
-    markerColumn: "refill_reminder_sent_at",
+    markerColumns: {
+      sent: "refill_reminder_sent_at",
+      suppressed: "refill_reminder_sent_at",
+    },
     idSource: { metadataKey: "prescription_id" },
   },
   cert_reactivation: {
     kind: "marker",
     table: "intakes",
-    markerColumn: "reactivation_email_sent_at",
+    markerColumns: {
+      sent: "reactivation_email_sent_at",
+      suppressed: "reactivation_email_sent_at",
+    },
     idSource: { metadataKey: "intake_id" },
   },
   abandoned_checkout: {
     kind: "marker",
     table: "intakes",
-    markerColumn: "abandoned_email_sent_at",
+    markerColumns: {
+      sent: "abandoned_email_sent_at",
+      suppressed: "abandoned_email_sent_at",
+    },
     idSource: "intake_id",
   },
   abandoned_checkout_followup: {
     kind: "marker",
     table: "intakes",
-    markerColumn: "abandoned_followup_sent_at",
+    markerColumns: {
+      sent: "abandoned_followup_sent_at",
+      suppressed: "abandoned_followup_sent_at",
+    },
     idSource: "intake_id",
   },
   review_request: {
     kind: "marker",
     table: "intakes",
-    markerColumn: "review_email_sent_at",
+    markerColumns: {
+      sent: "review_email_sent_at",
+      suppressed: "review_email_suppressed_at",
+    },
     idSource: "intake_id",
+  },
+  partial_intake_recovery: {
+    kind: "marker",
+    table: "partial_intakes",
+    markerColumns: {
+      sent: "recovery_email_sent_at",
+      suppressed: "recovery_email_suppressed_at",
+    },
+    idSource: { metadataKey: "recovery_tracking_id" },
+    idColumn: "recovery_tracking_id",
   },
   heard_about_us_backfill: {
     kind: "outbox",
@@ -84,8 +129,13 @@ function metadataString(
   return typeof value === "string" && value ? value : null
 }
 
+type OutboxSequenceContext = Pick<
+  OutboxRow,
+  "id" | "email_type" | "intake_id" | "metadata"
+>
+
 function markerRecordId(
-  row: OutboxRow,
+  row: OutboxSequenceContext,
   definition: Extract<SequenceDispositionDefinition, { kind: "marker" }>,
 ): string | null {
   if (definition.idSource === "intake_id") return row.intake_id
@@ -93,7 +143,7 @@ function markerRecordId(
 }
 
 function reportMarkerFailure(input: {
-  row: OutboxRow
+  row: OutboxSequenceContext
   disposition: OutboxDispatchDisposition
   markerColumn: string
   recordId: string | null
@@ -122,6 +172,17 @@ function reportMarkerFailure(input: {
   })
 }
 
+export type OutboxSequenceFinalizationResult =
+  | { finalized: true }
+  | {
+      finalized: false
+      reason:
+        | "missing_record_id"
+        | "record_missing"
+        | "marker_conflict"
+        | "marker_write_failed"
+    }
+
 /**
  * Finalize the owning sequence after a provider-confirmed send or terminal
  * policy suppression. Failures are surfaced without changing the provider
@@ -129,46 +190,105 @@ function reportMarkerFailure(input: {
  * than letting the sequence owner recover its marker.
  */
 export async function finalizeOutboxSequenceDisposition(
-  row: OutboxRow,
+  row: OutboxSequenceContext,
   disposition: OutboxDispatchDisposition,
-): Promise<void> {
+): Promise<OutboxSequenceFinalizationResult> {
   const definition = OUTBOX_SEQUENCE_DISPOSITIONS[row.email_type]
-  if (!definition || definition.kind === "outbox") return
-  if (row.metadata?.test === true) return
+  if (!definition || definition.kind === "outbox") {
+    return { finalized: true }
+  }
+  if (row.metadata?.test === true) return { finalized: true }
 
   const recordId = markerRecordId(row, definition)
+  const markerColumn = definition.markerColumns[disposition]
   if (!recordId) {
     reportMarkerFailure({
       row,
       disposition,
-      markerColumn: definition.markerColumn,
+      markerColumn,
       recordId: null,
       error: "Missing sequence marker record id",
     })
-    return
+    return { finalized: false, reason: "missing_record_id" }
   }
 
   const timestamp = new Date().toISOString()
   const supabase = createServiceRoleClient()
-  const { error } = definition.table === "prescriptions"
-    ? await supabase
-        .from("prescriptions")
-        .update({ refill_reminder_sent_at: timestamp })
-        .eq("id", recordId)
-        .is("refill_reminder_sent_at", null)
-    : await supabase
-        .from("intakes")
-        .update({ [definition.markerColumn]: timestamp })
-        .eq("id", recordId)
-        .is(definition.markerColumn, null)
+  const recordIdColumn = "idColumn" in definition ? definition.idColumn : "id"
+  let markerWrite = supabase
+    .from(definition.table)
+    .update({ [markerColumn]: timestamp })
+    .eq(recordIdColumn, recordId)
+    .is(markerColumn, null)
+
+  const oppositeDisposition = disposition === "sent" ? "suppressed" : "sent"
+  const oppositeMarker = definition.markerColumns[oppositeDisposition]
+  if (oppositeMarker !== markerColumn) {
+    markerWrite = markerWrite.is(oppositeMarker, null)
+  }
+
+  const { data, error } = await markerWrite
+    .select(recordIdColumn)
+    .maybeSingle()
 
   if (error) {
     reportMarkerFailure({
       row,
       disposition,
-      markerColumn: definition.markerColumn,
+      markerColumn,
       recordId,
       error: error.message,
     })
+    return { finalized: false, reason: "marker_write_failed" }
+  }
+  if (data) return { finalized: true }
+
+  // A zero-row update is not an error in PostgREST. Read the terminal columns
+  // to distinguish an idempotent retry from a missing record or a lost
+  // mutually-exclusive CAS.
+  const { data: currentRecord, error: readError } = await supabase
+    .from(definition.table)
+    .select(`${markerColumn}, ${oppositeMarker}`)
+    .eq(recordIdColumn, recordId)
+    .maybeSingle()
+
+  if (readError) {
+    reportMarkerFailure({
+      row,
+      disposition,
+      markerColumn,
+      recordId,
+      error: readError.message,
+    })
+    return { finalized: false, reason: "marker_write_failed" }
+  }
+  if (!currentRecord) {
+    reportMarkerFailure({
+      row,
+      disposition,
+      markerColumn,
+      recordId,
+      error: "Sequence marker record no longer exists",
+    })
+    return { finalized: false, reason: "record_missing" }
+  }
+
+  const currentMarkers = currentRecord as unknown as Record<string, unknown>
+  if (currentMarkers[markerColumn]) return { finalized: true }
+
+  const conflict = oppositeMarker !== markerColumn &&
+    Boolean(currentMarkers[oppositeMarker])
+  reportMarkerFailure({
+    row,
+    disposition,
+    markerColumn,
+    recordId,
+    error: conflict
+      ? `Opposite terminal marker ${oppositeMarker} already won`
+      : "Sequence marker CAS matched no row",
+  })
+  return {
+    finalized: false,
+    reason: conflict ? "marker_conflict" : "marker_write_failed",
   }
 }

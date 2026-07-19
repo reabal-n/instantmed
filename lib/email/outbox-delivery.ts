@@ -6,7 +6,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 /**
  * A duplicate guard is not proof that the earlier attempt was delivered.
  * Callers may stamp their one-shot marker only after the durable outbox row is
- * actually sent (or intentionally skipped in E2E).
+ * actually sent. E2E skips prove orchestration only, not provider delivery.
  */
 export async function isEmailSendDeliveryConfirmed(
   result: SendEmailResult,
@@ -21,5 +21,5 @@ export async function isEmailSendDeliveryConfirmed(
     .maybeSingle()
 
   if (error || !data) return false
-  return data.status === "sent" || data.status === "skipped_e2e"
+  return data.status === "sent"
 }
