@@ -124,6 +124,7 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 | [docs/plans/2026-06-10-content-mimic-map.md](../plans/2026-06-10-content-mimic-map.md) | Reference content map; no independent execution authority |
 | [docs/plans/2026-07-09-intake-dropoff-final-plan.md](../plans/2026-07-09-intake-dropoff-final-plan.md) | Reference intake-dropoff implementation plan; no independent execution authority |
 | [docs/plans/2026-07-14-doctor-review-patient-record-consolidation-design.md](../plans/2026-07-14-doctor-review-patient-record-consolidation-design.md) | Implemented no-bloat design for one canonical request packet, targeted fulfilment refresh, and clinically useful patient profile surfaces |
+| [docs/plans/2026-07-19-lifecycle-dashboard-execution-plan.md](../plans/2026-07-19-lifecycle-dashboard-execution-plan.md) | Reference execution record for the staged communication-lifecycle and staff-dashboard fix train; ROADMAP remains authoritative |
 
 Root plan files preserve implementation detail only. They are not active merely because they remain outside the archive; `docs/ROADMAP.md` is the sole queue.
 

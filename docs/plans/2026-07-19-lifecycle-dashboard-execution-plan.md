@@ -2,6 +2,10 @@
 
 > **For Claude (Opus executor):** REQUIRED SUB-SKILL: use `superpowers:executing-plans` to implement this plan task-by-task. Load the repo skill named in each task before touching its files. This plan was authored by Fable 5 after a verified review of PRs #364–#374 and live-DB investigation; do not re-derive the findings — they are settled. `docs/ROADMAP.md` remains the sole active queue; this plan executes the 2026-07-19 fix train it activates.
 
+**Authority:** Reference only. `docs/ROADMAP.md` remains the sole active priority queue.
+
+**Execution status (2026-07-19):** Schema PR #374 is merged, applied, and verified. PR #372 is not being merged wholesale; its enforcement is landing as separately verified review-request and partial-recovery tranches so the encrypted frozen-payload and outbox-disposition invariants already on `main` are preserved.
+
 **Goal:** Merge the review-lifecycle draft pair safely (with three pre-merge tweaks), recover the two stranded Jul-14 customers, kill the remaining compliance copy gap, and rebuild the staff-dashboard truth layer so health signals stop lying — in revenue order, with no feature bloat.
 
 **Architecture:** Three independent workstreams. (A) Email-lifecycle: land schema PR #374 → apply migration → land enforcement PR #372 with tweaks. (B) Ops truth: one `getOpsSignals()` module consumed by the pill, `/admin/ops`, and the ledger, then recompose those surfaces on existing primitives. (C) Two one-off tasks: stranded-customer recovery and the hours-copy sweep.
