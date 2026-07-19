@@ -486,7 +486,7 @@ Role assignment methods: SQL update on `profiles` table (production) via Supabas
 | `document_drafts` | Certificate/document draft editing | `intakes.id` via `request_id` |
 | `issued_certificates` | Issued certs with template snapshots | `intakes.id` |
 | `certificate_audit_log` | Issuance/download/verify events | `issued_certificates.id` |
-| `partial_intakes` | Anonymous abandoned-intake recovery drafts; answers and non-recovery identity fields encrypted | `session_id` bearer token |
+| `partial_intakes` | Anonymous abandoned-intake recovery drafts; answers and non-recovery identity fields encrypted. `session_id` is the resume bearer; `recovery_tracking_id` is the random non-bearer delivery correlation key. | `session_id` bearer token |
 | `subscriptions` | Retired Repeat Rx subscription history table. No runtime app surface or webhook handler depends on it while the one-off model is active. | `profiles.id` via `profile_id` |
 | `intake_followups` | Historical rows for old ED/hair-loss check-ins, shown staff-side only. Current one-off model does not create new automated follow-ups, and patient follow-up routes are redirected to request history. | `intakes.id` via `intake_id`, `profiles.id` via `patient_id` |
 | `followup_email_log` | Legacy log of retired treatment follow-up reminder emails | `intake_followups.id` via `followup_id` |
@@ -841,7 +841,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/certificate-template.ts` | PDF template field definitions |
 | `lib/hooks/` | Shared client hooks | Debounce, keyboard navigation, landing analytics, responsive media, section visibility, validation summaries, and staff refresh helpers |
 | `e2e/` | 77 TypeScript files, including 68 specs and `helpers/` (seed/teardown, auth bypass, production-synthetic side-effect isolation). Focused paid-flow and ops smoke specs are the blocking CI gate. |
-| `supabase/migrations/` | 97 SQL migration files (1 squashed baseline + 96 incremental). Most recent: `20260716100500_add_parchment_demographics_hash.sql`. |
+| `supabase/migrations/` | 98 SQL migration files (1 squashed baseline + 97 incremental). Most recent: `20260719090000_communication_lifecycle_truth.sql`. |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
 | `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |

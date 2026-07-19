@@ -99,7 +99,7 @@ Wrapper functions in `lib/security/phi-field-wrappers.ts`:
 - `read*()` — prefers encrypted, falls back to plaintext
 - All async, all graceful-fallback on error (log + continue)
 
-**Anonymous partial-intake drafts:** `/api/draft` is service-role-only and treats `session_id` as a bearer token. New writes rate-limit anonymous callers and encrypt draft answers plus surname/phone in `partial_intakes.answers_encrypted` and `partial_intakes.identity_encrypted`; the plaintext `answers`, `last_name`, and `phone` fields are left empty for new rows. `email` and `first_name` remain plaintext because the recovery email cron needs them. Reads prefer encrypted columns and fall back to legacy plaintext rows until the 7-day draft expiry window clears.
+**Anonymous partial-intake drafts:** `/api/draft` is service-role-only and treats `session_id` as a bearer token. New writes rate-limit anonymous callers and encrypt draft answers plus surname/phone in `partial_intakes.answers_encrypted` and `partial_intakes.identity_encrypted`; the plaintext `answers`, `last_name`, and `phone` fields are left empty for new rows. `email` and `first_name` remain plaintext because the recovery email cron needs them. `recovery_tracking_id` is a random non-bearer correlation key for durable recovery delivery records; the bearer session ID and resume URL must remain only in memory and the encrypted frozen provider body, never plaintext outbox metadata, logs, Sentry, or analytics. Reads prefer encrypted columns and fall back to legacy plaintext rows until the 7-day draft expiry window clears.
 
 **In transit:** TLS 1.2+ only, Vercel-managed, Let's Encrypt auto-renewed certificates.
 
