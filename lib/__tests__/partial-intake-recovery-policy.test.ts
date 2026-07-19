@@ -414,6 +414,18 @@ describe("partial-intake recovery frozen payload policy", () => {
       kind: "policy_suppressed",
       reason: "recovery_payload_route_changed",
     })
+
+    expect(validatePartialIntakeRecoveryProviderPayload(
+      payload({
+        html:
+          `<a href="${resumeUrl.replaceAll("&", "&amp;")}">Continue</a>` +
+          `<p>Old link: ${staleResumeUrl.replaceAll("&", "&amp;")}</p>`,
+      }),
+      { email: EMAIL, resumeUrl },
+    )).toEqual({
+      kind: "policy_suppressed",
+      reason: "recovery_payload_route_changed",
+    })
   })
 
   it("requires one frozen recipient matching the authoritative draft", () => {

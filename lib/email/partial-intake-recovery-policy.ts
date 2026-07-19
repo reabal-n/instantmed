@@ -413,11 +413,11 @@ function htmlLinkUrls(value: unknown): string[] {
   ).filter((url): url is string => Boolean(url))
 }
 
-function recoveryResumeUrls(urls: string[]): string[] {
+function draftBearerUrls(urls: string[]): string[] {
   return urls.filter((candidate) => {
     try {
       const url = new URL(candidate)
-      return url.pathname === "/request" && url.searchParams.has("d")
+      return isValidDraftSessionId(url.searchParams.get("d"))
     } catch {
       return false
     }
@@ -456,14 +456,22 @@ export function validatePartialIntakeRecoveryProviderPayload(
   }
 
   const expectedUrl = canonicalUrl(draft.resumeUrl)
-  const htmlUrls = recoveryResumeUrls(htmlLinkUrls(payload.html))
-  const textUrls = recoveryResumeUrls(urlsIn(payload.text))
+  const htmlLinkBearers = draftBearerUrls(htmlLinkUrls(payload.html))
+  const htmlBearers = draftBearerUrls(
+    urlsIn(
+      typeof payload.html === "string"
+        ? decodeHtmlEntities(payload.html)
+        : payload.html,
+    ),
+  )
+  const textBearers = draftBearerUrls(urlsIn(payload.text))
   if (
     !expectedUrl ||
-    htmlUrls.length === 0 ||
-    textUrls.length === 0 ||
-    htmlUrls.some((url) => url !== expectedUrl) ||
-    textUrls.some((url) => url !== expectedUrl)
+    htmlLinkBearers.length === 0 ||
+    textBearers.length === 0 ||
+    htmlLinkBearers.some((url) => url !== expectedUrl) ||
+    htmlBearers.some((url) => url !== expectedUrl) ||
+    textBearers.some((url) => url !== expectedUrl)
   ) {
     return {
       kind: "policy_suppressed",
