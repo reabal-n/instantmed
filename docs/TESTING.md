@@ -137,6 +137,8 @@ E2E tests auto-seed and teardown test data. Seed/teardown scripts in `scripts/e2
 
 Always clean up in `afterEach` or `afterAll`. Do not leave test records in the database.
 
+Production request-flow synthetics are route/interaction probes, not persistence tests. They must install `e2e/helpers/production-synthetic-isolation.ts` before navigation so `/api/draft` and `/ingest` are fulfilled inside Playwright; a scheduled production check must never create `partial_intakes`, recovery emails, or PostHog funnel events.
+
 ### E2E Seams
 
 When `PLAYWRIGHT=1` is set:
