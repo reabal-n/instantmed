@@ -963,13 +963,26 @@ Required env vars validated at startup via Zod in `lib/config/env.ts`:
 ### PostHog Production Settings
 
 The code boundary is authoritative, but the PostHog project must also keep these
-defence-in-depth settings:
+defence-in-depth settings. Live project state was verified on 2026-07-19:
 
-- discard or anonymise client IP data
-- session recording disabled
-- console-log capture disabled
-- heatmaps and generic autocapture disabled
-- event retention set to 24 months
+| Control | Required state | Verified state |
+|---------|----------------|----------------|
+| Client IP data | Anonymised | Enabled |
+| Generic autocapture | Disabled | Disabled |
+| Session recording | Disabled | Disabled |
+| Console-log capture | Disabled | Disabled |
+| Heatmaps | Disabled | Disabled |
+| Event retention | Prefer 24 months | PostHog reports 84 months and enforcement off |
+
+The retention fields are read-only project state reconciled from PostHog billing
+entitlements and cloud rollout cohorts. A normal project API update cannot set
+the preferred 24-month window. Keep the vendor escalation open and do not claim
+a shorter retention period publicly until PostHog confirms it is enforced.
+
+`POSTHOG_PROJECT_API_KEY` is a server-only reconciliation credential. Restrict
+it to the InstantMed project with `query:read` only; never use an all-access
+personal key. The browser and server event-capture clients use the separate
+public `NEXT_PUBLIC_POSTHOG_KEY`.
 
 Quarterly, verify these settings and confirm no person properties named `email`,
 `name`, `phone`, `patient_id`, `intake_id`, or staff identifiers have reappeared.
