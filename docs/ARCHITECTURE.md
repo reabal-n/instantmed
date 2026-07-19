@@ -841,7 +841,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/certificate-template.ts` | PDF template field definitions |
 | `lib/hooks/` | Shared client hooks | Debounce, keyboard navigation, landing analytics, responsive media, section visibility, validation summaries, and staff refresh helpers |
 | `e2e/` | 77 TypeScript files, including 68 specs and `helpers/` (seed/teardown, auth bypass, production-synthetic side-effect isolation). Focused paid-flow and ops smoke specs are the blocking CI gate. |
-| `supabase/migrations/` | 98 SQL migration files (1 squashed baseline + 97 incremental). Most recent: `20260719090000_communication_lifecycle_truth.sql`. |
+| `supabase/migrations/` | 99 SQL migration files (1 squashed baseline + 98 incremental). Most recent: `20260719101500_review_request_candidate_anti_join.sql` (pending production apply with this release; moves durable-owner exclusion into a bounded service-role RPC so PostgREST row and URL limits cannot recycle owned review requests). |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
 | `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |

@@ -16,7 +16,11 @@ const reviewBackfillRouteSource = read(
 )
 const reviewRequestSource = read("lib/email/review-request.ts")
 const reviewPolicySource = read("lib/email/review-request-policy.ts")
+const reviewPolicyCoreSource = read("lib/email/review-request-policy-core.ts")
 const sendEmailSource = read("lib/email/send-email.ts")
+const reviewCandidateMigrationSource = read(
+  "supabase/migrations/20260719101500_review_request_candidate_anti_join.sql",
+)
 
 describe("review and partial-recovery reliability contract", () => {
   it("routes both types through dispatcher retry rather than quiet failure", () => {
@@ -88,13 +92,19 @@ describe("review and partial-recovery reliability contract", () => {
   })
 
   it("suppresses declined, refunded, bounced, complained, unsubscribed, and already-asked requests", () => {
-    expect(reviewRequestSource).toContain('.in("status", ["approved", "completed"])')
-    expect(reviewRequestSource).toContain('.eq("payment_status", "paid")')
-    expect(reviewRequestSource).toContain('.is("review_email_sent_at", null)')
-    expect(reviewRequestSource).toContain(
-      '.is("review_email_suppressed_at", null)',
+    expect(reviewCandidateMigrationSource).toContain(
+      "intake.status in ('approved', 'completed')",
     )
-    expect(reviewPolicySource).toContain("patient.email_bounced === true")
+    expect(reviewCandidateMigrationSource).toContain(
+      "intake.payment_status = 'paid'",
+    )
+    expect(reviewCandidateMigrationSource).toContain(
+      "intake.review_email_sent_at is null",
+    )
+    expect(reviewCandidateMigrationSource).toContain(
+      "intake.review_email_suppressed_at is null",
+    )
+    expect(reviewPolicyCoreSource).toContain("patient.email_bounced === true")
     expect(reviewPolicySource).toContain("getEmailSuppressionDecisions")
     expect(reviewPolicySource).toContain("getEmailBounceSuppressionDecision")
     expect(reviewPolicySource).toContain("getMarketingEmailDecision")
@@ -102,7 +112,7 @@ describe("review and partial-recovery reliability contract", () => {
 
   it("terminally marks suppressed requests so they cannot starve the catch-up queue", () => {
     expect(reviewRequestSource).toContain(
-      "cannot monopolise an oldest-first batch",
+      "including exhausted failures",
     )
     expect(reviewRequestSource).toContain(
       "review_email_suppressed_at",
@@ -111,6 +121,24 @@ describe("review and partial-recovery reliability contract", () => {
     expect(dispatcherSource).toContain(
       'result.success ? "sent" : "suppressed"',
     )
+  })
+
+  it("excludes every durable review owner with a server-side anti-join", () => {
+    expect(reviewRequestSource).toContain(
+      '.rpc(\n    "get_review_request_candidates"',
+    )
+    expect(reviewRequestSource).not.toContain('.not("id", "in"')
+    expect(reviewCandidateMigrationSource).toContain("and not exists (")
+    expect(reviewCandidateMigrationSource).toContain(
+      "outbox.email_type = 'review_request'",
+    )
+    expect(reviewCandidateMigrationSource).toContain(
+      "outbox.intake_id = intake.id",
+    )
+    expect(reviewCandidateMigrationSource).toContain(
+      "from public, anon, authenticated",
+    )
+    expect(reviewCandidateMigrationSource).toContain("to service_role")
   })
 
   it("revalidates request state and consent before dispatcher retries reach the provider", () => {

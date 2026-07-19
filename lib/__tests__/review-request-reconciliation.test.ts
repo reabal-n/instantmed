@@ -20,7 +20,7 @@ vi.mock("@/lib/supabase/service-role", () => ({
   }),
 }))
 
-import { reconcileSentReviewRequestMarkers } from "@/lib/email/review-request"
+import { reconcileSentReviewRequestMarkers } from "@/lib/email/review-request-reconciliation"
 
 describe("reconcileSentReviewRequestMarkers", () => {
   beforeEach(() => {

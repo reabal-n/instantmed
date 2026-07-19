@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { REVIEW_REQUEST_BATCH_SIZE } from "@/lib/email/review-request-timing"
-
 const mocks = vi.hoisted(() => ({
   createServiceRoleClient: vi.fn(),
 }))
@@ -16,105 +14,6 @@ import {
 } from "@/lib/email/review-request"
 
 type Row = Record<string, unknown>
-type QueryResult = {
-  data: Row[]
-  error: { message: string } | null
-}
-
-class FakeQuery implements PromiseLike<QueryResult> {
-  private rows: Row[]
-  private limitCount: number | null = null
-  private error: { message: string } | null
-
-  constructor(
-    rows: Row[],
-    error: { message: string } | null = null,
-  ) {
-    this.rows = [...rows]
-    this.error = error
-  }
-
-  select(): this {
-    return this
-  }
-
-  eq(column: string, value: unknown): this {
-    this.rows = this.rows.filter((row) => row[column] === value)
-    return this
-  }
-
-  neq(column: string, value: unknown): this {
-    this.rows = this.rows.filter((row) => row[column] !== value)
-    return this
-  }
-
-  in(column: string, values: unknown[]): this {
-    this.rows = this.rows.filter((row) => values.includes(row[column]))
-    return this
-  }
-
-  is(column: string, value: unknown): this {
-    this.rows = this.rows.filter((row) => row[column] === value)
-    return this
-  }
-
-  not(column: string, operator: string, value: unknown): this {
-    if (operator === "is") {
-      this.rows = this.rows.filter((row) => row[column] !== value)
-    } else if (
-      operator === "in" &&
-      typeof value === "string" &&
-      value.startsWith("(") &&
-      value.endsWith(")")
-    ) {
-      const excluded = new Set(value.slice(1, -1).split(","))
-      this.rows = this.rows.filter(
-        (row) => !excluded.has(String(row[column])),
-      )
-    }
-    return this
-  }
-
-  gte(column: string, value: string): this {
-    this.rows = this.rows.filter((row) => String(row[column]) >= value)
-    return this
-  }
-
-  lte(column: string, value: string): this {
-    this.rows = this.rows.filter((row) => String(row[column]) <= value)
-    return this
-  }
-
-  order(column: string, opts: { ascending: boolean }): this {
-    const direction = opts.ascending ? 1 : -1
-    this.rows.sort((a, b) => (
-      String(a[column]).localeCompare(String(b[column])) * direction
-    ))
-    return this
-  }
-
-  limit(count: number): this {
-    this.limitCount = count
-    return this
-  }
-
-  then<TResult1 = QueryResult, TResult2 = never>(
-    onfulfilled?:
-      | ((value: QueryResult) => TResult1 | PromiseLike<TResult1>)
-      | null,
-    onrejected?:
-      | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
-      | null,
-  ): PromiseLike<TResult1 | TResult2> {
-    const data = this.limitCount === null
-      ? this.rows
-      : this.rows.slice(0, this.limitCount)
-    return Promise.resolve({ data, error: this.error }).then(
-      onfulfilled,
-      onrejected,
-    )
-  }
-}
 
 function reviewCandidate(id: string, fulfilledAt: string): Row {
   return {
@@ -127,45 +26,28 @@ function reviewCandidate(id: string, fulfilledAt: string): Row {
     script_sent_at: null,
     review_email_sent_at: null,
     review_email_suppressed_at: null,
-    patient: {
-      email: `${id}@example.com`,
-      first_name: "Patient",
-      email_bounced: false,
-    },
+    patient_email: `${id}@example.com`,
+    patient_first_name: "Patient",
+    patient_email_bounced: false,
   }
 }
 
 describe("findReviewRequestCandidates", () => {
   beforeEach(() => {
+    vi.clearAllMocks()
     vi.useFakeTimers()
     vi.setSystemTime(new Date("2026-07-20T00:00:00.000Z"))
   })
 
-  it("does not let any durable outbox-owned rows monopolize the initial batch", async () => {
-    const ownedRows = Array.from(
-      { length: REVIEW_REQUEST_BATCH_SIZE },
-      (_, index) => ({
-        intake_id: `intake-owned-${index}`,
-        email_type: "review_request",
-        status: index % 3 === 0
-          ? "pending"
-          : index % 3 === 1
-            ? "sending"
-            : "failed",
-      }),
-    )
-    const intakes = [
-      ...ownedRows.map((row, index) => reviewCandidate(
-        String(row.intake_id),
-        new Date(Date.UTC(2026, 6, 1, 0, index)).toISOString(),
-      )),
-      reviewCandidate("intake-unowned", "2026-07-02T00:00:00.000Z"),
-    ]
-
+  it("delegates durable ownership exclusion to the bounded database query", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: [
+        reviewCandidate("intake-unowned", "2026-07-02T00:00:00.000Z"),
+      ],
+      error: null,
+    })
     mocks.createServiceRoleClient.mockReturnValue({
-      from: (table: string) => table === "email_outbox"
-        ? new FakeQuery(ownedRows)
-        : new FakeQuery(intakes),
+      rpc,
     })
 
     const candidates = await findReviewRequestCandidates()
@@ -173,25 +55,30 @@ describe("findReviewRequestCandidates", () => {
     expect(candidates.map((candidate) => candidate.id)).toEqual([
       "intake-unowned",
     ])
+    expect(rpc).toHaveBeenCalledWith("get_review_request_candidates", {
+      p_catch_up_floor: "2026-03-22T00:00:00.000Z",
+      p_eligible_before: "2026-07-18T00:00:00.000Z",
+      p_limit: 50,
+      p_excluded_patient_id: "e2e00000-0000-0000-0000-000000000002",
+    })
   })
 
-  it("fails closed when durable owners cannot be read", async () => {
+  it("fails closed when the database candidate query cannot be read", async () => {
     mocks.createServiceRoleClient.mockReturnValue({
-      from: (table: string) => table === "email_outbox"
-        ? new FakeQuery([], { message: "reservation read unavailable" })
-        : new FakeQuery([
-            reviewCandidate("intake-unowned", "2026-07-02T00:00:00.000Z"),
-          ]),
+      rpc: vi.fn().mockResolvedValue({
+        data: null,
+        error: { message: "reservation read unavailable" },
+      }),
     })
 
     await expect(findReviewRequestCandidates()).rejects.toThrow(
-      "Failed to fetch durable review request owners",
+      "Failed to fetch review request candidates",
     )
   })
 
   it("keeps the exported backfill processor dry-run by default", async () => {
     mocks.createServiceRoleClient.mockReturnValue({
-      from: () => new FakeQuery([]),
+      rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
     })
 
     await expect(processReviewRequestBackfill()).resolves.toMatchObject({

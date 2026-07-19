@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   classifyReviewRequestPolicy,
   hasReviewRequestCooldownReservation,
-} from "@/lib/email/review-request-policy"
+} from "@/lib/email/review-request-policy-core"
 
 type ReviewRequestPolicyFacts = Parameters<
   typeof classifyReviewRequestPolicy

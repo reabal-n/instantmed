@@ -11,7 +11,8 @@ import {
 } from "@/lib/email/components/templates/review-request"
 import { isEmailSendDeliveryConfirmed } from "@/lib/email/outbox-delivery"
 import { finalizeOutboxSequenceDisposition } from "@/lib/email/outbox-disposition"
-import type { ReviewRequestPatient } from "@/lib/email/review-request-policy"
+import type { ReviewRequestPatient } from "@/lib/email/review-request-policy-core"
+import { reconcileSentReviewRequestMarkers } from "@/lib/email/review-request-reconciliation"
 import {
   getReviewFulfilmentAt,
   isReviewFulfilmentWithinCatchUpWindow,
@@ -39,22 +40,22 @@ interface ReviewRequestCandidate {
   patient: ReviewRequestPatient | null
 }
 
-const REVIEW_CANDIDATE_SELECT = `
-  id,
-  patient_id,
-  category,
-  status,
-  payment_status,
-  document_sent_at,
-  script_sent_at,
-  review_email_sent_at,
-  review_email_suppressed_at,
-  patient:profiles!patient_id(email, first_name, email_bounced)
-`
-
 function normalizeCandidate(row: Record<string, unknown>): ReviewRequestCandidate {
   const relation = row.patient
-  const patient = Array.isArray(relation) ? relation[0] : relation
+  const relatedPatient = Array.isArray(relation) ? relation[0] : relation
+  const patient = relatedPatient && typeof relatedPatient === "object"
+    ? relatedPatient as ReviewRequestPatient
+    : typeof row.patient_email === "string"
+      ? {
+          email: row.patient_email,
+          first_name: typeof row.patient_first_name === "string"
+            ? row.patient_first_name
+            : null,
+          email_bounced: typeof row.patient_email_bounced === "boolean"
+            ? row.patient_email_bounced
+            : null,
+        }
+      : null
 
   return {
     id: String(row.id),
@@ -71,9 +72,7 @@ function normalizeCandidate(row: Record<string, unknown>): ReviewRequestCandidat
       typeof row.review_email_suppressed_at === "string"
         ? row.review_email_suppressed_at
         : null,
-    patient: patient && typeof patient === "object"
-      ? patient as ReviewRequestPatient
-      : null,
+    patient,
   }
 }
 
@@ -96,87 +95,29 @@ async function findCandidatesInFulfilmentWindow(opts: {
     now.getTime() - boundedSinceDays * 24 * 60 * 60 * 1000,
   ).toISOString()
 
-  const { data: durableOwners, error: ownerError } = await supabase
-    .from("email_outbox")
-    .select("intake_id")
-    .eq("email_type", "review_request")
-    .not("intake_id", "is", null)
+  const { data, error } = await supabase.rpc(
+    "get_review_request_candidates",
+    {
+      p_catch_up_floor: catchUpFloor,
+      p_eligible_before: eligibleBefore,
+      p_limit: opts.limit,
+      p_excluded_patient_id: SEEDED_E2E_PATIENT_PROFILE_ID,
+    },
+  )
 
-  if (ownerError) {
-    throw new Error(
-      `Failed to fetch durable review request owners: ${ownerError.message}`,
-    )
+  if (error) {
+    throw new Error(`Failed to fetch review request candidates: ${error.message}`)
   }
 
-  const ownedIntakeIds = Array.from(new Set(
-    (durableOwners ?? [])
-      .map((row) => typeof row.intake_id === "string" ? row.intake_id : null)
-      .filter((id): id is string => Boolean(id)),
-  ))
-  const ownedIntakeFilter = `(${ownedIntakeIds.join(",")})`
-
-  let certificateQuery = supabase
-    .from("intakes")
-    .select(REVIEW_CANDIDATE_SELECT)
-    .eq("category", "medical_certificate")
-    .in("status", ["approved", "completed"])
-    .eq("payment_status", "paid")
-    .is("review_email_sent_at", null)
-    .is("review_email_suppressed_at", null)
-    .not("patient_id", "is", null)
-    .neq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
-
-  let prescribingQuery = supabase
-    .from("intakes")
-    .select(REVIEW_CANDIDATE_SELECT)
-    .in("category", ["prescription", "consult"])
-    .in("status", ["approved", "completed"])
-    .eq("payment_status", "paid")
-    .is("review_email_sent_at", null)
-    .is("review_email_suppressed_at", null)
-    .not("patient_id", "is", null)
-    .neq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
-
-  if (ownedIntakeIds.length > 0) {
-    certificateQuery = certificateQuery.not("id", "in", ownedIntakeFilter)
-    prescribingQuery = prescribingQuery.not("id", "in", ownedIntakeFilter)
-  }
-
-  const [certificateResult, prescribingResult] = await Promise.all([
-    certificateQuery
-      .gte("document_sent_at", catchUpFloor)
-      .lte("document_sent_at", eligibleBefore)
-      .order("document_sent_at", { ascending: true })
-      .limit(opts.limit),
-    prescribingQuery
-      .gte("script_sent_at", catchUpFloor)
-      .lte("script_sent_at", eligibleBefore)
-      .order("script_sent_at", { ascending: true })
-      .limit(opts.limit),
-  ])
-
-  const queryError = certificateResult.error || prescribingResult.error
-  if (queryError) {
-    throw new Error(`Failed to fetch review request candidates: ${queryError.message}`)
-  }
-
-  return [
-    ...(certificateResult.data ?? []),
-    ...(prescribingResult.data ?? []),
-  ]
-    .map((row) => normalizeCandidate(row as Record<string, unknown>))
-    // Keep terminally suppressible recipients in the batch so the provider
-    // gate can finalize review_email_suppressed_at. Every existing outbox row
-    // remains the durable owner of that request, including failed rows.
-    // Exhausted rows cannot monopolise an oldest-first batch; the dispatcher
-    // and reconciliation own retries.
-    .filter((row) => isReviewFulfilmentWithinCatchUpWindow(row, now))
-    .sort((a, b) => {
-      const aTime = new Date(getReviewFulfilmentAt(a) || 0).getTime()
-      const bTime = new Date(getReviewFulfilmentAt(b) || 0).getTime()
-      return aTime - bTime
-    })
-    .slice(0, opts.limit)
+  return (data ?? [])
+    .map((row: unknown) => normalizeCandidate(row as Record<string, unknown>))
+    // The RPC keeps terminally suppressible recipients in the batch so the
+    // provider gate can finalize review_email_suppressed_at. Its NOT EXISTS
+    // anti-join excludes every durable outbox owner without PostgREST row or
+    // URL-size limits, including exhausted failures.
+    .filter((row: ReviewRequestCandidate) => (
+      isReviewFulfilmentWithinCatchUpWindow(row, now)
+    ))
 }
 
 /**
@@ -327,47 +268,6 @@ export async function sendReviewRequestEmail(
     }
   }
   return outcome
-}
-
-export async function reconcileSentReviewRequestMarkers(
-  limit = REVIEW_REQUEST_BATCH_SIZE,
-): Promise<{ reconciled: number; failed: number }> {
-  const supabase = createServiceRoleClient()
-  const { data, error } = await supabase
-    .from("intakes")
-    .select("id, email_outbox!inner(id, email_type, metadata)")
-    .is("review_email_sent_at", null)
-    .is("review_email_suppressed_at", null)
-    .eq("email_outbox.email_type", "review_request")
-    .eq("email_outbox.status", "sent")
-    .limit(limit)
-
-  if (error) {
-    throw new Error(`Failed to reconcile sent review request markers: ${error.message}`)
-  }
-
-  let reconciled = 0
-  let failed = 0
-  const seen = new Set<string>()
-  for (const row of data ?? []) {
-    const intakeId = typeof row.id === "string" ? row.id : null
-    if (!intakeId || seen.has(intakeId)) continue
-    seen.add(intakeId)
-    const relation = row.email_outbox
-    const outboxRows = Array.isArray(relation) ? relation : [relation]
-    const outbox = outboxRows.find(
-      (item) => Boolean(item) && typeof item === "object",
-    ) as { id?: unknown } | undefined
-    const finalized = await finalizeReviewRequestDisposition({
-      intakeId,
-      outboxId: typeof outbox?.id === "string" ? outbox.id : undefined,
-      disposition: "sent",
-    })
-    if (finalized) reconciled += 1
-    else failed += 1
-  }
-
-  return { reconciled, failed }
 }
 
 type ReviewRequestCounts = {
