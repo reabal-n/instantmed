@@ -84,7 +84,33 @@ describe("communication lifecycle migration", () => {
     )
   })
 
-  it("scrubs legacy plaintext recovery correlation and bearer context", () => {
+  it("maps legacy recovery rows before creating tracking readers", () => {
+    const compatibilityUpdate = migration.indexOf(
+      "update public.email_outbox as outbox",
+    )
+    const activeRowAssertion = migration.indexOf(
+      "active partial-intake recovery outbox rows could not be mapped to recovery_tracking_id",
+    )
+    const trackingIndex = migration.indexOf(
+      "create index if not exists idx_email_outbox_partial_recovery_tracking",
+    )
+    const reconciliationFunction = migration.indexOf(
+      "create or replace function public.get_unmarked_sent_partial_recoveries",
+    )
+
+    expect(compatibilityUpdate).toBeGreaterThan(-1)
+    expect(migration).toContain(
+      "extensions.digest(partial.session_id::text, 'sha256')",
+    )
+    expect(migration).toContain(
+      "'recovery_tracking_id', partial.recovery_tracking_id::text",
+    )
+    expect(activeRowAssertion).toBeGreaterThan(compatibilityUpdate)
+    expect(trackingIndex).toBeGreaterThan(activeRowAssertion)
+    expect(reconciliationFunction).toBeGreaterThan(trackingIndex)
+  })
+
+  it("defers destructive legacy metadata cleanup", () => {
     expect(migration).toContain(
       "where email_type = 'partial_intake_recovery'",
     )
@@ -95,7 +121,7 @@ describe("communication lifecycle migration", () => {
       "session_id",
       "resume_url",
     ]) {
-      expect(migration).toContain(`- '${key}'`)
+      expect(migration).not.toContain(`- '${key}'`)
     }
   })
 })
