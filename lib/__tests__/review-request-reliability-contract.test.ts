@@ -5,8 +5,10 @@ import { describe, expect, it } from "vitest"
 
 const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8")
 
+const architectureSource = read("docs/ARCHITECTURE.md")
 const dispatcherSource = read("lib/email/email-dispatcher.ts")
 const legacyRecoverySource = read("lib/email/recover-legacy-quiet-failures.ts")
+const operationsSource = read("docs/OPERATIONS.md")
 const partialRecoverySource = read("lib/email/partial-intake-recovery.ts")
 const quietFailureSource = read("lib/email/quiet-failures.ts")
 const reconstructSource = read("lib/email/send/reconstruct.ts")
@@ -15,6 +17,7 @@ const reviewBackfillRouteSource = read(
 )
 const reviewRequestSource = read("lib/email/review-request.ts")
 const reviewPolicySource = read("lib/email/review-request-policy.ts")
+const securitySource = read("docs/SECURITY.md")
 const sendEmailSource = read("lib/email/send-email.ts")
 
 describe("review and partial-recovery reliability contract", () => {
@@ -65,6 +68,21 @@ describe("review and partial-recovery reliability contract", () => {
     expect(reconstructSource).toContain("terminal: true")
     expect(sendEmailSource).toContain("hasFrozenResendProviderPayload(row.metadata)")
     expect(sendEmailSource).toContain('Sentry.captureMessage("Email reconstruction failed terminally"')
+  })
+
+  it("keeps canonical docs aligned with partial-recovery ownership and bearer safety", () => {
+    expect(operationsSource).toContain(
+      "including review/checkout-step drafts",
+    )
+    expect(operationsSource).not.toContain(
+      "excludes review/checkout drafts",
+    )
+    expect(architectureSource).toContain(
+      "Plaintext outbox business metadata contains only that tracking ID",
+    )
+    expect(securitySource).toContain(
+      "the bearer `session_id` and full resume URL are prohibited from plaintext `email_outbox` metadata",
+    )
   })
 
   it("marks review delivery only after durable provider confirmation", () => {

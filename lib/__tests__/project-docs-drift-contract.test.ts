@@ -416,7 +416,7 @@ describe("project docs drift contract", () => {
     expect(roadmap).toContain("Controlled demand validation")
     expect(roadmap).toContain("Last refreshed:")
     expect(roadmap).not.toContain("Last 90 days shipped")
-    expect(roadmap).toContain("Complete 2026-07-12")
+    expect(roadmap).toContain("Complete 2026-07-19")
     expect(roadmap).toContain("Manual support handling restored 2026-07-14")
 
     expect(clinical).not.toContain("No automated clinical decisions are made")

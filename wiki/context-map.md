@@ -22,7 +22,7 @@ This map names the main domains, entry points, and files to open first.
 | Medical certificate | Doctor approval -> PDF render -> private storage -> patient email/dashboard | `lib/clinical/execute-cert-approval.ts`, `lib/pdf/template-renderer.ts`, `lib/data/issued-certificates.ts`, `app/doctor/intakes/[id]/document/*` |
 | Auto-approval | Paid med cert -> draft readiness -> cron -> CAS state transition -> cert or doctor queue | `lib/clinical/auto-approval-state.ts`, `lib/clinical/auto-approval-pipeline.ts`, `app/api/cron/retry-auto-approval/route.ts` |
 | Prescribing | Doctor approval -> identity gate -> Parchment panel -> webhook -> patient notification | `lib/parchment/*`, `components/doctor/parchment-prescribe-panel.tsx`, `app/actions/parchment.ts`, `app/api/webhooks/parchment/route.ts` |
-| Email outbox | Template render -> outbox row -> dispatcher cron -> Resend webhook | `lib/email/*`, `app/api/cron/email-dispatcher/route.ts`, `app/api/webhooks/resend/route.ts` |
+| Email outbox | Template render -> encrypted frozen body -> provider-boundary policy -> dispatcher retry -> Resend webhook -> lifecycle-marker reconciliation | `lib/email/send-email.ts`, `lib/email/review-request-policy.ts`, `lib/email/partial-intake-recovery-policy.ts`, `lib/email/send/*`, `app/api/cron/email-dispatcher/route.ts`, `app/api/webhooks/resend/route.ts` |
 | Attribution | URL/cookie/session capture -> intake columns -> client and server conversion uploads | `lib/analytics/attribution.ts`, `lib/analytics/server-attribution.ts`, `lib/analytics/google-ads-post-payment.ts`, `app/api/cron/google-ads-conversions/route.ts` |
 
 ## Data And Enforcement
