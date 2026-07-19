@@ -79,7 +79,6 @@ interface NormalizedAttribution {
 export interface CreateIntakeRowInput {
   input: CreateCheckoutInput
   patientId: string
-  authUserId: string
   serviceId: string
   serviceSlug: string
   isPriority: boolean
@@ -112,7 +111,7 @@ export async function createIntakeWithAnswers(
   supabase: SupabaseClient,
   args: CreateIntakeRowInput,
 ): Promise<StepResult<IntakeInsertOutcome>> {
-  const { input, patientId, authUserId, serviceId, serviceSlug, isPriority, amountCents, priceId, attribution, baseUrl } = args
+  const { input, patientId, serviceId, serviceSlug, isPriority, amountCents, priceId, attribution, baseUrl } = args
 
   const intakeData: Record<string, unknown> = {
     patient_id: patientId,
@@ -168,7 +167,7 @@ export async function createIntakeWithAnswers(
       serviceSlug,
       serviceType: input.category,
       subtype: input.subtype,
-      userId: authUserId,
+      anonymousId: input.posthogDistinctId,
     })
   }
 

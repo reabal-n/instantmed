@@ -426,7 +426,7 @@ Patients must be informed at intake of:
 | Supabase Auth | Email, name | Sydney, AU | Signed |
 | Resend | Email, patient name | US | Signed |
 | Sentry | Error context (sanitized) | US | Signed |
-| PostHog | Analytics (anonymized) | EU | Signed |
+| PostHog | Pseudonymous product events only; no direct identity, clinical answers, raw search terms, click identifiers, or production request IDs | US | Signed |
 | Anthropic | Clinical notes (no identifiers) | US | DPA (data processing agreement) |
 
 ---
@@ -442,7 +442,7 @@ Patients must be informed at intake of:
 | Payment records | 7 years | Tax Act (ATO requirement) |
 | Profile data | Indefinite while active; deleted 1 year after account closure | Service delivery |
 | Session/auth tokens | 30 days (auto-purged by Supabase Auth) | Security best practice |
-| Analytics events | 2 years (anonymized after 90 days) | Business analytics |
+| Analytics events | Provider-controlled; 24-month production target must be enforced in PostHog before it is stated as a public maximum. Person profiles and replay are disabled in code. | Business analytics |
 | Email logs | 2 years | Communication audit |
 | Error/debug logs | 90 days (no PHI) | Operational needs |
 

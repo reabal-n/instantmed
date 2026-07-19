@@ -16,9 +16,7 @@ vi.mock("@/lib/monitoring/delivery-tracking", () => ({
 }))
 
 vi.mock("@/lib/analytics/posthog-server", () => ({
-  getPostHogClient: () => ({
-    capture: mocks.posthogCapture,
-  }),
+  capturePersonlessPostHogEvent: mocks.posthogCapture,
 }))
 
 type ResendEventType = "email.delivered" | "email.bounced" | "email.complained"
@@ -193,8 +191,8 @@ describe("Resend webhook contract", () => {
     }))
     expect(mocks.updateDeliveryStatus).toHaveBeenCalledWith(PROVIDER_ID, "delivered")
     expect(mocks.posthogCapture).toHaveBeenCalledWith(expect.objectContaining({
-      distinctId: PATIENT_ID,
       event: "email_delivered",
+      requestId: PROVIDER_ID,
     }))
   })
 

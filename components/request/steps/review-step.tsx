@@ -18,6 +18,7 @@ import { type AttributionData, getAttribution } from "@/lib/analytics/attributio
 import { capture } from "@/lib/analytics/capture"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { usePostHog } from "@/lib/analytics/posthog-context"
+import { classifyCheckoutFailure } from "@/lib/analytics/posthog-privacy"
 import { capturePriorityReviewOptedIn, capturePriorityReviewOptedOut } from "@/lib/analytics/priority-review-events"
 import { classifyAttributionSource } from "@/lib/analytics/source-classification"
 import { getRepeatsExpectation } from "@/lib/clinical/repeats-policy"
@@ -341,9 +342,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
           service_type: serviceType,
           consult_subtype: answers.consultSubtype,
           stage: "session_creation",
-          // Real reason ("No such price", "Phone number is required", ...) so the
-          // failure breakdown is actionable. System message, not patient input.
-          reason: result.error?.slice(0, 200),
+          failure_category: classifyCheckoutFailure(result.error),
         })
         setError(result.error || "Unable to create payment session. Please try again.")
         return

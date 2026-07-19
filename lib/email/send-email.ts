@@ -626,15 +626,13 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
 
       // Track in PostHog for email->conversion funnels
       try {
-        const { getPostHogClient } = await import("@/lib/analytics/posthog-server")
-        getPostHogClient().capture({
-          distinctId: patientId || "system",
+        const { capturePersonlessPostHogEvent } = await import("@/lib/analytics/posthog-server")
+        capturePersonlessPostHogEvent({
           event: "email_sent",
+          requestId: intakeId,
           properties: {
             email_type: emailType,
-            intake_id: intakeId,
             is_marketing: MARKETING_EMAIL_TYPES.has(emailType),
-            provider_message_id: data.id,
           },
         })
       } catch {

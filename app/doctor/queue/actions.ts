@@ -1044,7 +1044,6 @@ export async function claimIntakeAction(
       intakeId,
       serviceSlug: "unknown",
       serviceType: "unknown",
-      userId: profile.id,
     })
 
     return { success: true }

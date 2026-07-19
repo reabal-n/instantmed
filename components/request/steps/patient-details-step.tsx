@@ -581,15 +581,6 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       })
       // Send hashed user data to Google for Enhanced Conversions
       setEnhancedConversionsData({ email, phone, firstName, lastName })
-      // Identify user in PostHog as soon as we have their email - stitches
-      // all prior anonymous events (page views, step completions) to this person.
-      // Safe to call even if already identified (PostHog deduplicates).
-      if (email) {
-        posthog?.identify(email, {
-          email,
-          name: `${firstName} ${lastName}`.trim() || undefined,
-        })
-      }
       onNext()
     }
   }

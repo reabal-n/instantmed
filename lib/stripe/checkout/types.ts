@@ -36,7 +36,7 @@ export interface CreateCheckoutInput {
     landing_page?: string
     captured_at?: string
   }
-  /** Client-side PostHog distinct ID for identity stitching. */
+  /** Anonymous browser PostHog ID for personless funnel continuity. */
   posthogDistinctId?: string
   /** Server draft session id used to mark a recovered partial intake converted. */
   serverDraftSessionId?: string

@@ -1,7 +1,14 @@
 import * as Sentry from "@sentry/nextjs"
 import crypto from "crypto"
 
-import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
+import {
+  capturePersonlessPostHogEvent,
+  trackIntakeFunnelStep,
+} from "@/lib/analytics/posthog-server"
+import {
+  getOpaquePostHogEventId,
+  getOpaquePostHogRequestId,
+} from "@/lib/analytics/posthog-server-privacy"
 import { claimIntakeForManualCertApproval } from "@/lib/clinical/manual-cert-claim"
 import { UNDO_CERT_WINDOW_SECONDS } from "@/lib/clinical/undo-cert-window"
 import { env } from "@/lib/config/env"
@@ -622,35 +629,28 @@ export async function executeCertApproval(
     metadata: { intakeId, certificateType, certificateId },
   })
 
-  // 10. PostHog tracking
-  try {
-    const posthog = getPostHogClient()
-    posthog.capture({
-      distinctId: patient.id,
-      event: 'certificate_approved',
-      properties: {
-        intake_id: intakeId,
-        certificate_type: certificateType,
-        doctor_id: doctorProfile.id,
-        approval_method: aiApproved ? 'ai_assisted' : 'manual',
-      },
-    })
-  } catch { /* non-blocking */ }
-
-  const { data: phPatient } = await supabase
-    .from("profiles")
-    .select("auth_user_id")
-    .eq("id", patient.id)
-    .maybeSingle()
-  const phDistinctId = phPatient?.auth_user_id || patient.id
+  // 10. Personless PostHog tracking. Production patient, doctor, certificate,
+  // and intake identifiers stay out of product analytics.
+  capturePersonlessPostHogEvent({
+    event: "certificate_approved",
+    requestId: intakeId,
+    properties: {
+      $insert_id: getOpaquePostHogEventId("certificate_approved", intakeId),
+      analytics_request_id: getOpaquePostHogRequestId(intakeId),
+      certificate_type: certificateType,
+      approval_method: aiApproved ? "ai_assisted" : "manual",
+    },
+  })
 
   trackIntakeFunnelStep({
     step: 'approved',
     intakeId,
     serviceSlug: service.slug,
     serviceType: 'med_certs',
-    userId: phDistinctId,
-    metadata: { certificate_type: certificateType, doctor_id: doctorProfile.id, approval_method: aiApproved ? 'ai_assisted' : 'manual' },
+    metadata: {
+      certificate_type: certificateType,
+      approval_method: aiApproved ? "ai_assisted" : "manual",
+    },
   })
   if (emailResult.success) {
     trackIntakeFunnelStep({
@@ -658,7 +658,6 @@ export async function executeCertApproval(
       intakeId,
       serviceSlug: service.slug,
       serviceType: 'med_certs',
-      userId: phDistinctId,
     })
   }
 

@@ -8,7 +8,7 @@
  * Supports both intakes (new) and legacy requests.
  */
 
-import { getPostHogClient } from "@/lib/analytics/posthog-server"
+import { capturePersonlessPostHogEvent } from "@/lib/analytics/posthog-server"
 import { getApiAuth } from "@/lib/auth/helpers"
 import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { getCertificateForIntake, logCertificateEvent } from "@/lib/data/issued-certificates"
@@ -150,18 +150,14 @@ export async function GET(
 
     // Count the download only after the durable clinical access audit accepts
     // it. This keeps analytics aligned with what the patient actually received.
-    try {
-      const posthog = getPostHogClient()
-      posthog.capture({
-        distinctId: profile.id,
-        event: 'document_downloaded',
-        properties: {
-          intake_id: intakeId,
-          document_type: 'med_cert',
-          file_size_bytes: pdfBuffer.byteLength,
-        },
-      })
-    } catch { /* non-blocking */ }
+    capturePersonlessPostHogEvent({
+      event: "document_downloaded",
+      requestId: intakeId,
+      properties: {
+        document_type: "med_cert",
+        file_size_bytes: pdfBuffer.byteLength,
+      },
+    })
 
     log.info(`[document-download] Successfully released ${intakeId} (${pdfBuffer.byteLength} bytes)`)
 

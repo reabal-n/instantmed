@@ -188,7 +188,6 @@ export async function runClinicalValidation(
     trackSafetyBlock({
       serviceSlug: serviceSlugForSafety,
       outcome: safetyCheck.outcome,
-      blockReason: safetyCheck.blockReason || "Unknown reason",
       triggeredRuleIds: safetyCheck.triggeredRuleIds,
     })
     await recordSafetyEvaluationForOperators({

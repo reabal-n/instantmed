@@ -195,7 +195,6 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
       intakeId,
       serviceSlug: intake.category || "unknown",
       serviceType: intake.category || "unknown",
-      userId: actorId,
     })
 
     // 4. PROCESS REFUND

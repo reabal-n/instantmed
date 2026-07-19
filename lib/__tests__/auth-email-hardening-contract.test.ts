@@ -45,9 +45,17 @@ describe("auth email hardening contract", () => {
 
   it("sanitizes browser analytics URLs before any auth-confirmation click is captured", () => {
     const instrumentation = readFileSync(repoPath("instrumentation-client.ts"), "utf8")
+    const postHogPrivacy = readFileSync(
+      repoPath("lib/analytics/posthog-privacy.ts"),
+      "utf8",
+    )
 
-    expect(instrumentation).toContain('import { sanitizeUrl } from "@/lib/observability/sanitize-phi"')
-    expect(instrumentation).toContain('"$current_url"')
-    expect(instrumentation).toContain("sanitizeUrl(value)")
+    expect(instrumentation).toContain(
+      'import { sanitizePostHogEvent } from "@/lib/analytics/posthog-privacy"',
+    )
+    expect(instrumentation).toContain("before_send: scrubPostHogSensitiveTelemetry")
+    expect(postHogPrivacy).toContain('"$current_url"')
+    expect(postHogPrivacy).toContain("parsed.pathname")
+    expect(postHogPrivacy).toContain("value.split(/[?#]/")
   })
 })

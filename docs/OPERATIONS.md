@@ -252,7 +252,7 @@ Operational rules:
 | **Vercel Logs** (Deployments > Functions) | Server action errors, API route failures, build errors | Filter by route (`/api/stripe`), status (500), `x-request-id` |
 | **Sentry** (Issues tab) | Client + server errors with breadcrumbs, stack traces, tags | `is:unresolved environment:production`, search `x-request-id:<uuid>` |
 | **Browser DevTools** (Console/Network) | React errors, failed API calls, Stripe redirects | Red entries in Network tab, hydration errors in Console |
-| **PostHog** (Recordings/Events) | User behavior before error, funnel drop-offs, session recordings | Session recordings with console logs |
+| **PostHog** (Events/Funnels) | Aggregate page, intake-step, checkout, and purchase drop-offs | Personless events only; no replay, person profiles, raw search/click IDs, or console capture |
 
 ### Common Error Scenarios
 
@@ -286,7 +286,7 @@ To trace a request end-to-end:
 1. Get `x-request-id` from: Browser Network tab response headers, Sentry breadcrumbs, or Vercel logs
 2. Search Vercel logs for that ID
 3. Search Sentry breadcrumbs for that ID
-4. Check PostHog session for that timestamp
+4. Check aggregate PostHog events for that route, service, step, and timestamp
 
 Available correlation IDs:
 
@@ -959,6 +959,22 @@ Required env vars validated at startup via Zod in `lib/config/env.ts`:
 - **Parchment smoke test**: `PARCHMENT_SMOKE_USER_ID` (sandbox/linked prescriber user ID required for `pnpm smoke:parchment`)
 - **Address search**: `ADDRESSFINDER_KEY` or existing `NEXT_PUBLIC_ADDRESSFINDER_KEY`, `ADDRESSFINDER_SECRET` (primary AU address provider), `GOOGLE_PLACES_API_KEY` (fallback + server-side geocoding). Prefer `ADDRESSFINDER_KEY` for new deployments because the key is only used server-side.
 - **Other**: `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SITE_URL`, `ADMIN_EMAILS`, `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`
+
+### PostHog Production Settings
+
+The code boundary is authoritative, but the PostHog project must also keep these
+defence-in-depth settings:
+
+- discard or anonymise client IP data
+- session recording disabled
+- console-log capture disabled
+- heatmaps and generic autocapture disabled
+- event retention set to 24 months
+
+Quarterly, verify these settings and confirm no person properties named `email`,
+`name`, `phone`, `patient_id`, `intake_id`, or staff identifiers have reappeared.
+Historical person-property deletion is a controlled privacy operation: export an
+aggregate baseline first, then delete only after operator approval.
 
 ---
 

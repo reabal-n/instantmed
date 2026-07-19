@@ -7,7 +7,7 @@ import { upsertDraft } from "@/lib/ai/drafts"
 import { CLINICAL_SAFETY_PREAMBLE } from "@/lib/ai/prompts"
 import { getModelWithConfig } from "@/lib/ai/provider"
 import { safeParseRepeatRxDraftOutput } from "@/lib/ai/schemas"
-import { getPostHogClient } from "@/lib/analytics/posthog-server"
+import { capturePersonlessPostHogEvent } from "@/lib/analytics/posthog-server"
 
 import { getUsage,log } from "./shared"
 
@@ -82,19 +82,11 @@ export async function generateRepeatRxDraft(
         validationErrors: parseResult.zodErrors,
       })
 
-      // Track failure in PostHog
-      try {
-        const posthog = getPostHogClient()
-        posthog.capture({
-          distinctId: intakeId,
-          event: 'ai_draft_failed',
-          properties: {
-            intake_id: intakeId,
-            draft_type: 'repeat_rx',
-            error: parseResult.error,
-          },
-        })
-      } catch { /* non-blocking */ }
+      capturePersonlessPostHogEvent({
+        event: "ai_draft_failed",
+        requestId: intakeId,
+        properties: { draft_type: "repeat_rx" },
+      })
 
       // Capture to Sentry with intake_id and service_type as tags for traceability
       Sentry.captureMessage("AI draft generation failed: repeat_rx", {
@@ -132,21 +124,16 @@ export async function generateRepeatRxDraft(
       completionTokens: getUsage(result.usage).completionTokens,
     })
 
-    // Track in PostHog
-    try {
-      const posthog = getPostHogClient()
-      posthog.capture({
-        distinctId: intakeId,
-        event: 'ai_draft_generated',
-        properties: {
-          intake_id: intakeId,
-          draft_type: 'repeat_rx',
-          duration_ms: durationMs,
-          prompt_tokens: getUsage(result.usage).promptTokens,
-          completion_tokens: getUsage(result.usage).completionTokens,
-        },
-      })
-    } catch { /* non-blocking */ }
+    capturePersonlessPostHogEvent({
+      event: "ai_draft_generated",
+      requestId: intakeId,
+      properties: {
+        draft_type: "repeat_rx",
+        duration_ms: durationMs,
+        prompt_tokens: getUsage(result.usage).promptTokens,
+        completion_tokens: getUsage(result.usage).completionTokens,
+      },
+    })
 
     return { status: "ready" }
 

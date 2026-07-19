@@ -1,6 +1,6 @@
 "use server"
 
-import { getPostHogClient } from "@/lib/analytics/posthog-server"
+import { capturePersonlessPostHogEvent } from "@/lib/analytics/posthog-server"
 import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
 import { sendRequestDeclinedEmail } from "@/lib/email/senders"
 import { toError } from "@/lib/errors"
@@ -104,15 +104,11 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
         // - Scripts: repeat-prescription action
         // No duplicate email is sent here - only the in-app notification.
 
-        // Track approval in PostHog
-        try {
-          const posthog = getPostHogClient()
-          posthog.capture({
-            distinctId: patientId,
-            event: 'request_approved',
-            properties: { request_type: requestType, intake_id: intakeId },
-          })
-        } catch { /* non-blocking */ }
+        capturePersonlessPostHogEvent({
+          event: "request_approved",
+          requestId: intakeId,
+          properties: { request_type: requestType },
+        })
         break
       }
 
@@ -139,15 +135,11 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
         })
         logger.info("Decline email sent", { intakeId, patientEmail })
 
-        // Track email sent in PostHog
-        try {
-          const posthog = getPostHogClient()
-          posthog.capture({
-            distinctId: patientId,
-            event: 'email_sent',
-            properties: { template: 'decline', intake_id: intakeId },
-          })
-        } catch { /* non-blocking */ }
+        capturePersonlessPostHogEvent({
+          event: "email_sent",
+          requestId: intakeId,
+          properties: { template: "decline" },
+        })
         break
       }
 

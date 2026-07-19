@@ -23,7 +23,6 @@ export function ConfirmedClient({ intakeId, email, serviceName: _serviceName }: 
   useEffect(() => {
     // Track guest confirmation view
     capture("guest_confirmation_viewed", {
-      intake_id: intakeId,
       has_email: !!email,
     })
   }, [intakeId, email])

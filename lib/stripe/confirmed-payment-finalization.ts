@@ -10,10 +10,14 @@ import {
   runGoogleAdsPostPaymentAttribution,
 } from "@/lib/analytics/google-ads-post-payment"
 import {
-  getPostHogBaselineProperties,
-  getPostHogClient,
+  capturePersonlessPostHogEvent,
   trackIntakeFunnelStep,
 } from "@/lib/analytics/posthog-server"
+import {
+  getOpaquePostHogEventId,
+  getOpaquePostHogRequestId,
+  resolvePersonlessPostHogDistinctId,
+} from "@/lib/analytics/posthog-server-privacy"
 import { buildVerifiedCompleteAccountHref } from "@/lib/auth/complete-account-handoff"
 import { env } from "@/lib/config/env"
 import { sendPaidRequestTelegramNotification } from "@/lib/notifications/paid-request-telegram"
@@ -541,19 +545,19 @@ function scheduleRequestReceivedEmail({
 function trackConfirmedPayment({
   attribution,
   intakeId,
-  patientId,
-  patientProfile,
   session,
   source,
 }: {
   attribution: GoogleAdsAttributionRow | null
   intakeId: string
-  patientId?: string | null
-  patientProfile: PatientProfile | null
   session: Stripe.Checkout.Session
   source: Exclude<GoogleAdsConversionSource, "cron_backfill">
 }): string {
-  const distinctId = patientProfile?.auth_user_id || patientId || intakeId
+  const browserAnonymousId = session.metadata?.ph_distinct_id
+  const distinctId = resolvePersonlessPostHogDistinctId({
+    anonymousId: browserAnonymousId,
+    requestId: intakeId,
+  })
   const serviceType =
     attribution?.category ||
     session.metadata?.category ||
@@ -571,41 +575,28 @@ function trackConfirmedPayment({
     serviceSlug: session.metadata?.service_slug || "unknown",
     serviceType,
     subtype: serviceSubtype,
-    userId: distinctId,
+    anonymousId: distinctId,
     metadata: {
-      $insert_id: `intake-payment-completed:${intakeId}`,
       amount_cents: session.amount_total,
       finalization_source: source,
     },
   })
 
   try {
-    const posthog = getPostHogClient()
-    const browserDistinctId = session.metadata?.ph_distinct_id
-    if (browserDistinctId && browserDistinctId !== distinctId) {
-      posthog.alias({ distinctId, alias: browserDistinctId })
-    }
-    if (patientProfile?.auth_user_id && patientId && patientProfile.auth_user_id !== patientId) {
-      posthog.alias({ distinctId: patientProfile.auth_user_id, alias: patientId })
-    }
-
     const attributionProperties = {
       utm_source: attribution?.utm_source || null,
       utm_medium: attribution?.utm_medium || null,
       utm_id: attribution?.utm_id || null,
       utm_campaign: attribution?.utm_campaign || null,
       utm_content: attribution?.utm_content || null,
-      utm_term: attribution?.utm_term || null,
       campaignid: attribution?.campaignid || null,
       adgroupid: attribution?.adgroupid || null,
-      keyword: attribution?.keyword || null,
       creative: attribution?.creative || null,
       matchtype: attribution?.matchtype || null,
       device: attribution?.device || null,
       network: attribution?.network || null,
       referrer: attribution?.referrer || null,
       landing_page: attribution?.landing_page || null,
-      attribution_captured_at: attribution?.attribution_captured_at || null,
       has_gclid: Boolean(attribution?.gclid),
       has_gbraid: Boolean(attribution?.gbraid),
       has_wbraid: Boolean(attribution?.wbraid),
@@ -622,54 +613,35 @@ function trackConfirmedPayment({
       ),
     }
 
-    posthog.capture({
-      distinctId,
+    capturePersonlessPostHogEvent({
+      anonymousId: distinctId,
       event: "webhook_payment_confirmed",
+      requestId: intakeId,
       properties: {
-        ...getPostHogBaselineProperties(),
         ...attributionProperties,
-        $insert_id: `webhook-payment-confirmed:${intakeId}`,
-        intake_id: intakeId,
+        $insert_id: getOpaquePostHogEventId("webhook_payment_confirmed", intakeId),
+        analytics_request_id: getOpaquePostHogRequestId(intakeId),
         amount_cents: session.amount_total,
         payment_method: session.payment_method_types?.[0],
         service_category: serviceType,
         service_subtype: serviceSubtype,
         finalization_source: source,
-        $set_once: {
-          initial_utm_source: attribution?.utm_source || undefined,
-          initial_utm_medium: attribution?.utm_medium || undefined,
-          initial_utm_campaign: attribution?.utm_campaign || undefined,
-          initial_utm_content: attribution?.utm_content || undefined,
-          initial_utm_term: attribution?.utm_term || undefined,
-          initial_referrer: attribution?.referrer || undefined,
-          initial_landing_page: attribution?.landing_page || undefined,
-          first_payment_at: new Date().toISOString(),
-        },
-        $set: {
-          last_payment_at: new Date().toISOString(),
-          last_referrer: attribution?.referrer || undefined,
-          last_landing_page: attribution?.landing_page || undefined,
-          last_service: serviceType,
-        },
       },
     })
 
-    posthog.capture({
-      distinctId,
+    capturePersonlessPostHogEvent({
+      anonymousId: distinctId,
       event: "purchase_completed_server",
+      requestId: intakeId,
       properties: {
-        ...getPostHogBaselineProperties(),
         ...attributionProperties,
-        $insert_id: `purchase-completed-server:${intakeId}`,
-        intake_id: intakeId,
+        $insert_id: getOpaquePostHogEventId("purchase_completed_server", intakeId),
+        analytics_request_id: getOpaquePostHogRequestId(intakeId),
         value: session.amount_total != null ? session.amount_total / 100 : null,
         amount_cents: session.amount_total,
         currency: (session.currency || "aud").toUpperCase(),
         service_category: serviceType,
         service_subtype: serviceSubtype,
-        gclid: attribution?.gclid || null,
-        gbraid: attribution?.gbraid || null,
-        wbraid: attribution?.wbraid || null,
         source: "confirmed_payment_finalizer",
         finalization_source: source,
       },
@@ -762,8 +734,6 @@ export async function completeConfirmedPaymentWork({
   const distinctId = trackConfirmedPayment({
     attribution,
     intakeId,
-    patientId,
-    patientProfile,
     session,
     source,
   })
@@ -774,7 +744,7 @@ export async function completeConfirmedPaymentWork({
         await runGoogleAdsPostPaymentAttribution({
           amountCents: session.amount_total,
           intakeId,
-          posthogDistinctId: distinctId,
+          posthogAnonymousId: distinctId,
           requestPath,
           row: attribution,
           source,

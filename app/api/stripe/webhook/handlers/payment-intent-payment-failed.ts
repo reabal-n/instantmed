@@ -118,7 +118,6 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
     trackBusinessMetric({
       metric: "payment_failed",
       severity: "warning",
-      userId: paymentIntent.metadata?.patient_id,
       metadata: {
         decline_code: paymentIntent.last_payment_error?.decline_code,
         event_type: event.type,

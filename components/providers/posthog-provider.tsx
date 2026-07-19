@@ -15,7 +15,6 @@ import { PostHogContext, usePostHog } from "@/lib/analytics/posthog-context"
 import { onFirstInteraction } from "@/lib/browser/first-interaction"
 import { isPostConversionPath } from "@/lib/browser/post-conversion-path"
 import { sanitizeUrl } from "@/lib/observability/sanitize-phi"
-import { useAuth } from "@/lib/supabase/auth-provider"
 
 /**
  * Local PostHog React Context - replaces `posthog-js/react`'s provider.
@@ -65,36 +64,6 @@ function PostHogPageView() {
       trackAIReferral()
     }
   }, [pathname, posthog])
-
-  return null
-}
-
-/**
- * Identify users in PostHog when they sign in. Reset on sign-out.
- */
-function PostHogIdentify() {
-  const { user, isLoaded, isSignedIn } = useAuth()
-  const posthog = usePostHog()
-  const identifiedRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    if (!isLoaded || !posthog) return
-
-    if (isSignedIn && user) {
-      if (identifiedRef.current === user.id) return
-      identifiedRef.current = user.id
-
-      posthog.identify(user.id, {
-        email: user.email,
-        name: user.user_metadata?.full_name || user.email?.split("@")[0],
-        created_at: user.created_at,
-        is_internal: user.email?.endsWith("@instantmed.com.au") ?? false,
-      })
-    } else if (!isSignedIn && identifiedRef.current) {
-      posthog.reset()
-      identifiedRef.current = null
-    }
-  }, [isLoaded, isSignedIn, user, posthog])
 
   return null
 }
@@ -167,7 +136,6 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
   return (
     <PostHogContext.Provider value={client}>
       <PostHogPageView />
-      <PostHogIdentify />
       {children}
     </PostHogContext.Provider>
   )

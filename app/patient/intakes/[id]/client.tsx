@@ -313,7 +313,7 @@ function CopyRequestIdButton({ requestId }: { requestId: string }) {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(requestId)
-      capture("request_id_copied", { intake_id: requestId })
+      capture("request_id_copied")
     } catch {
       const input = document.createElement("input")
       input.value = requestId
@@ -872,7 +872,6 @@ export function IntakeDetailClient({
 
               <CertificateDownloadButton
                 href={document.pdf_url}
-                intakeId={intake.id}
                 serviceType={intake.service?.type}
               />
 

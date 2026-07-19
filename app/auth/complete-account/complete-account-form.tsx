@@ -121,8 +121,7 @@ export function CompleteAccountForm({
       if (claimBrowserPurchaseCompleted(intakeId)) {
         const attribution = getAttribution()
         posthog.capture('purchase_completed', {
-          $insert_id: getBrowserPurchaseCompletedInsertId(intakeId),
-          intake_id: intakeId,
+          $insert_id: getBrowserPurchaseCompletedInsertId(),
           service: serviceSlug || "unknown",
           value: valueDollars,
           currency: 'AUD',
@@ -131,12 +130,7 @@ export function CompleteAccountForm({
           utm_medium: attribution.utm_medium,
           utm_campaign: attribution.utm_campaign,
           utm_content: attribution.utm_content,
-          gclid: attribution.gclid,
-          gbraid: attribution.gbraid,
-          wbraid: attribution.wbraid,
           campaignid: attribution.campaignid,
-          keyword: attribution.keyword,
-          landing_page: attribution.landing_page,
           has_gclid: Boolean(attribution.gclid),
           has_utm_source: Boolean(attribution.utm_source),
           has_campaignid: Boolean(attribution.campaignid),

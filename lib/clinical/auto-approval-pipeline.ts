@@ -10,7 +10,7 @@
 
 import * as Sentry from "@sentry/nextjs"
 
-import { getPostHogClient } from "@/lib/analytics/posthog-server"
+import { capturePersonlessPostHogEvent } from "@/lib/analytics/posthog-server"
 import { executeCertApproval } from "@/lib/clinical/execute-cert-approval"
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import { shouldIncludeSeededE2EData } from "@/lib/data/seeded-e2e-data"
@@ -216,26 +216,18 @@ async function logAutoApprovalAudit(
 export async function attemptAutoApproval(intakeId: string): Promise<AutoApprovalResult> {
   const startTime = Date.now()
 
-  // doctorId is set after round-robin selection; trackOutcome uses it when available
-  let selectedDoctorId: string | null = null
-
   const trackOutcome = (outcome: string, reason: string, extra?: Record<string, unknown>) => {
-    try {
-      const posthog = getPostHogClient()
-      posthog.capture({
-        // Use real doctor as distinctId when available, system fallback for pre-selection failures
-        distinctId: selectedDoctorId || "system-auto-approve",
-        event: "cert_approval_pipeline",
-        properties: {
-          intake_id: intakeId,
-          outcome, // "approved", "skipped", "failed", "rate_limited", "not_eligible", "dry_run"
-          reason,
-          approval_method: "ai_assisted",
-          duration_ms: Date.now() - startTime,
-          ...extra,
-        },
-      })
-    } catch { /* non-blocking */ }
+    capturePersonlessPostHogEvent({
+      event: "cert_approval_pipeline",
+      requestId: intakeId,
+      properties: {
+        outcome,
+        reason_code: reason,
+        approval_method: "ai_assisted",
+        duration_ms: Date.now() - startTime,
+        ...extra,
+      },
+    })
   }
 
   // 1. Feature flag check (DB-backed, togglable from admin dashboard)
@@ -617,9 +609,6 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       doctorCounts.sort((a, b) => a.count - b.count)
       doctor = doctorCounts[0].doctor
     }
-
-    // Set selectedDoctorId so PostHog events attribute to the real doctor
-    selectedDoctorId = doctor.id
 
     // 9. Build review data from answers
     const reviewData = buildReviewDataFromAnswers(answersData, doctor.full_name)

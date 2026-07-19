@@ -74,8 +74,5 @@ export function trackAIReferral(): void {
       referrer: document.referrer,
       utm_source: new URLSearchParams(window.location.search).get("utm_source"),
     })
-
-    // Set person property so we can segment AI-referred users
-    posthog.setPersonPropertiesForFlags({ ai_referred: true, ai_source: source })
   }).catch(() => {})
 }

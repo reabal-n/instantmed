@@ -52,17 +52,29 @@ describe("attribution persistence contract", () => {
     const confirmedPaymentFinalizer = read(
       "lib/stripe/confirmed-payment-finalization.ts",
     )
+    const googleAdsPostPayment = read(
+      "lib/analytics/google-ads-post-payment.ts",
+    )
     const migrations = readdirSync("supabase/migrations")
       .filter((file) => file.endsWith(".sql"))
       .map((file) => read(join("supabase/migrations", file)))
       .join("\n")
     const dbTypes = read("types/db.ts")
 
+    expect(confirmedPaymentFinalizer).toContain("GOOGLE_ADS_ATTRIBUTION_SELECT")
+    expect(confirmedPaymentFinalizer).toContain("runGoogleAdsPostPaymentAttribution")
+
     for (const column of ATTRIBUTION_COLUMNS) {
-      expect(confirmedPaymentFinalizer).toContain(column)
+      expect(googleAdsPostPayment).toContain(column)
       expect(dbTypes).toContain(`${column}: string | null`)
       expect(migrations).toContain(column)
     }
+
+    // Raw search terms remain available only to the Google Ads attribution
+    // boundary; PostHog receives campaign dimensions and click-id booleans.
+    expect(confirmedPaymentFinalizer).not.toContain("utm_term:")
+    expect(confirmedPaymentFinalizer).not.toContain("keyword:")
+    expect(confirmedPaymentFinalizer).toContain("has_gclid:")
   })
 
   it("sends PHI-safe attribution dimensions with checkout_initiated", () => {

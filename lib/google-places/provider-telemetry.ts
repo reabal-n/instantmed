@@ -1,4 +1,4 @@
-import { getPostHogClient } from "@/lib/analytics/posthog-server"
+import { capturePersonlessPostHogEvent } from "@/lib/analytics/posthog-server"
 
 export type AddressProviderTelemetryProvider = "addressfinder" | "google" | "none"
 export type AddressProviderTelemetryOutcome =
@@ -30,27 +30,21 @@ export function getPlaceIdProvider(placeId: string | null | undefined): "address
 }
 
 export function trackAddressProviderLookup(event: AddressProviderTelemetryEvent) {
-  try {
-    const client = getPostHogClient()
-    client.capture({
-      distinctId: "system:address-provider",
-      event: "address_provider_lookup",
-      properties: {
-        operation: event.operation,
-        provider: event.provider,
-        outcome: event.outcome,
-        duration_ms: event.durationMs,
-        input_length: event.inputLength,
-        result_count: event.resultCount,
-        status_code: event.statusCode,
-        used_google_fallback: event.usedGoogleFallback === true,
-        is_zero_result: event.outcome === "zero_results",
-        is_details_failure: event.detailsFailed === true || event.outcome === "details_failure",
-        place_id_provider: event.placeIdProvider,
-        reason: event.reason,
-      },
-    })
-  } catch {
-    // Non-blocking: address lookup must not fail because analytics failed.
-  }
+  capturePersonlessPostHogEvent({
+    event: "address_provider_lookup",
+    properties: {
+      operation: event.operation,
+      provider: event.provider,
+      outcome: event.outcome,
+      duration_ms: event.durationMs,
+      input_length: event.inputLength,
+      result_count: event.resultCount,
+      status_code: event.statusCode,
+      used_google_fallback: event.usedGoogleFallback === true,
+      is_zero_result: event.outcome === "zero_results",
+      is_details_failure: event.detailsFailed === true || event.outcome === "details_failure",
+      place_id_provider: event.placeIdProvider,
+      reason_code: event.reason,
+    },
+  })
 }

@@ -64,7 +64,7 @@ describe("Google Ads conversion-value accuracy contract", () => {
 
     for (const source of [successSource, completeAccountSource]) {
       expect(source).toContain("claimBrowserPurchaseCompleted")
-      expect(source).toContain("$insert_id: getBrowserPurchaseCompletedInsertId(intakeId)")
+      expect(source).toContain("$insert_id: getBrowserPurchaseCompletedInsertId()")
     }
   })
 
