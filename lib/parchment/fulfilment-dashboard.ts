@@ -119,6 +119,18 @@ export interface PrescriptionFulfilmentDashboard {
   webhookConfirmationCount: number
 }
 
+export interface PrescriptionFulfilmentSlaAlert {
+  count: number
+  detail: string
+  metadata: {
+    oldest_minutes: number | null
+    sla_minutes: number
+    stage: Exclude<PrescriptionFulfilmentStage, "patient_notified">
+  }
+  metric: `prescription_fulfilment_${Exclude<PrescriptionFulfilmentStage, "patient_notified">}_sla_breach`
+  severity: "critical"
+}
+
 export const EMPTY_PRESCRIPTION_FULFILMENT_DASHBOARD: PrescriptionFulfilmentDashboard = {
   firstNotificationIssueIntakeId: null,
   firstNotificationIssueStatus: null,
@@ -142,6 +154,33 @@ export const EMPTY_PRESCRIPTION_FULFILMENT_DASHBOARD: PrescriptionFulfilmentDash
   })),
   total: 0,
   webhookConfirmationCount: 0,
+}
+
+export function buildPrescriptionFulfilmentSlaAlerts(
+  dashboard: PrescriptionFulfilmentDashboard,
+): PrescriptionFulfilmentSlaAlert[] {
+  return dashboard.stages.flatMap((stage) => {
+    if (
+      stage.key === "patient_notified" ||
+      stage.slaMinutes == null ||
+      stage.slaBreachedCount === 0
+    ) {
+      return []
+    }
+
+    const requestLabel = stage.slaBreachedCount === 1 ? "request has" : "requests have"
+    return [{
+      count: stage.slaBreachedCount,
+      detail: `${stage.slaBreachedCount} paid prescribing ${requestLabel} exceeded the ${stage.slaMinutes}-minute ${stage.label.toLowerCase()} SLA`,
+      metadata: {
+        oldest_minutes: stage.oldestMinutes,
+        sla_minutes: stage.slaMinutes,
+        stage: stage.key,
+      },
+      metric: `prescription_fulfilment_${stage.key}_sla_breach`,
+      severity: "critical",
+    }]
+  })
 }
 
 function metadataString(metadata: Record<string, unknown> | null, key: string): string | null {

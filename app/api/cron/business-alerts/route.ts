@@ -42,6 +42,11 @@ import {
 import { sendCriticalBusinessAlertViaTelegram } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
+import {
+  buildPrescriptionFulfilmentSlaAlerts,
+  getPrescriptionFulfilmentDashboard,
+  type PrescriptionFulfilmentDashboard,
+} from "@/lib/parchment/fulfilment-dashboard"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("cron-business-alerts")
@@ -156,6 +161,7 @@ export async function GET(request: NextRequest) {
     let operationalInvariants: OperationalInvariants | null = null
     let staleHumanCount: number | null = null
     let batchReviewHealth: BatchReviewHealth | null = null
+    let prescriptionFulfilment: PrescriptionFulfilmentDashboard | null = null
 
     // 1. Failed payments in last hour
     await runAlertSection({
@@ -558,7 +564,31 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // 11. Every auto-approved medical certificate must receive one individual
+    // 11. Paid prescribing fulfilment is never allowed to disappear between
+    // doctor approval, Parchment handoff, script evidence, and patient
+    // notification. Alerts remain aggregate-only and contain no intake IDs.
+    await runAlertSection({
+      section: "prescription_fulfilment",
+      alerts,
+      onFailure: onSectionFailure,
+      run: async () => {
+        prescriptionFulfilment = await getPrescriptionFulfilmentDashboard(supabase)
+        const fulfilmentAlerts = buildPrescriptionFulfilmentSlaAlerts(
+          prescriptionFulfilment,
+        )
+
+        for (const alert of fulfilmentAlerts) {
+          alerts.push(alert)
+          trackBusinessMetric({
+            metric: alert.metric,
+            severity: alert.severity,
+            metadata: alert.metadata,
+          })
+        }
+      },
+    })
+
+    // 12. Every auto-approved medical certificate must receive one individual
     // doctor outcome within InstantMed's 24-hour governance window. This check
     // is aggregate-only: alert payloads never include intake or patient IDs.
     await runAlertSection({
@@ -651,6 +681,7 @@ export async function GET(request: NextRequest) {
     const invariants = operationalInvariants as OperationalInvariants | null
     const noPurchase = noPurchaseWindow as NoPurchaseRevenueWindow | null
     const batchReviews = batchReviewHealth as BatchReviewHealth | null
+    const fulfilment = prescriptionFulfilment as PrescriptionFulfilmentDashboard | null
 
     return NextResponse.json({
       success: true,
@@ -676,6 +707,18 @@ export async function GET(request: NextRequest) {
         google_ads_upload_stream: googleAdsUploadStreamHealth,
         google_ads_adjustment_health: googleAdsAdjustmentHealth,
         rx_consult_queue_stalled: staleHumanCount ?? 0,
+        prescription_fulfilment: fulfilment
+          ? {
+              total: fulfilment.total,
+              stages: fulfilment.stages.map((stage) => ({
+                stage: stage.key,
+                count: stage.count,
+                sla_minutes: stage.slaMinutes,
+                sla_breached: stage.slaBreachedCount,
+                oldest_minutes: stage.oldestMinutes,
+              })),
+            }
+          : null,
         med_cert_batch_review: batchReviews
           ? {
               pending: batchReviews.pending,

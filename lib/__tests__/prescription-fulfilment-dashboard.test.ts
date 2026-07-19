@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   buildPrescriptionFulfilmentDashboard,
+  buildPrescriptionFulfilmentSlaAlerts,
   classifyPrescriptionFulfilment,
 } from "@/lib/parchment/fulfilment-dashboard"
 
@@ -204,5 +205,151 @@ describe("prescription fulfilment dashboard", () => {
       serviceLabel: "Women's health consult",
       stage: "approved_not_prescribed",
     })
+  })
+
+  it("keeps every paid prescribing service visible until script and notification evidence exist", () => {
+    const prescribingCases = [
+      intake({
+        category: "prescription",
+        id: "repeat-rx-approved",
+        status: "approved",
+        subtype: "repeat",
+      }),
+      intake({
+        category: "consult",
+        id: "ed-approved",
+        status: "approved",
+        subtype: "ed",
+      }),
+      intake({
+        category: "consult",
+        id: "hair-loss-approved",
+        status: "approved",
+        subtype: "hair_loss",
+      }),
+      intake({
+        category: "consult",
+        id: "womens-health-approved",
+        status: "approved",
+        subtype: "womens_health",
+      }),
+    ]
+
+    for (const prescribingCase of prescribingCases) {
+      const dashboard = buildPrescriptionFulfilmentDashboard({
+        auditEvents: [],
+        complianceEvents: [],
+        emails: [],
+        intakes: [prescribingCase],
+        now,
+      })
+
+      expect(dashboard.total).toBe(1)
+      expect(
+        dashboard.stages.find((stage) => stage.key === "approved_not_prescribed"),
+      ).toMatchObject({
+        count: 1,
+        slaBreachedCount: 1,
+      })
+    }
+
+    const scriptRecordedButUnnotified = buildPrescriptionFulfilmentDashboard({
+      auditEvents: [],
+      complianceEvents: [],
+      emails: [],
+      intakes: [
+        intake({
+          category: "consult",
+          id: "script-recorded-but-unnotified",
+          parchment_reference: "external-ref",
+          script_sent: true,
+          script_sent_at: "2026-05-19T08:45:00.000Z",
+          status: "completed",
+          subtype: "ed",
+        }),
+      ],
+      now,
+    })
+
+    expect(
+      scriptRecordedButUnnotified.stages.find((stage) => stage.key === "webhook_received"),
+    ).toMatchObject({
+      count: 1,
+      slaBreachedCount: 1,
+    })
+  })
+
+  it("turns every breached prescribing stage SLA into a critical aggregate alert", () => {
+    const dashboard = buildPrescriptionFulfilmentDashboard({
+      auditEvents: [
+        {
+          created_at: "2026-05-19T11:40:00.000Z",
+          intake_id: "webhook",
+          metadata: { action_type: "parchment_webhook_script_sent" },
+        },
+      ],
+      complianceEvents: [
+        {
+          created_at: "2026-05-19T11:20:00.000Z",
+          event_type: "no_prescribing_in_platform",
+          intake_id: "opened",
+        },
+      ],
+      emails: [],
+      intakes: [
+        intake({ id: "approved", reference_number: "IM-PRIVATE-A" }),
+        intake({ id: "opened", reference_number: "IM-PRIVATE-B" }),
+        intake({ id: "webhook", reference_number: "IM-PRIVATE-C", script_sent: true }),
+      ],
+      now,
+    })
+
+    const alerts = buildPrescriptionFulfilmentSlaAlerts(dashboard)
+
+    expect(alerts.map((alert) => ({
+      count: alert.count,
+      metric: alert.metric,
+      severity: alert.severity,
+      stage: alert.metadata.stage,
+    }))).toEqual([
+      {
+        count: 1,
+        metric: "prescription_fulfilment_approved_not_prescribed_sla_breach",
+        severity: "critical",
+        stage: "approved_not_prescribed",
+      },
+      {
+        count: 1,
+        metric: "prescription_fulfilment_parchment_opened_sla_breach",
+        severity: "critical",
+        stage: "parchment_opened",
+      },
+      {
+        count: 1,
+        metric: "prescription_fulfilment_webhook_received_sla_breach",
+        severity: "critical",
+        stage: "webhook_received",
+      },
+    ])
+    expect(alerts.map((alert) => alert.metadata.sla_minutes)).toEqual([120, 30, 10])
+    expect(JSON.stringify(alerts)).not.toContain("IM-PRIVATE")
+  })
+
+  it("does not alert for prescribing stages that remain inside their SLA", () => {
+    const dashboard = buildPrescriptionFulfilmentDashboard({
+      auditEvents: [],
+      complianceEvents: [],
+      emails: [],
+      intakes: [
+        intake({
+          approved_at: "2026-05-19T11:00:00.000Z",
+          id: "inside-sla",
+          updated_at: "2026-05-19T11:00:00.000Z",
+        }),
+      ],
+      now,
+    })
+
+    expect(buildPrescriptionFulfilmentSlaAlerts(dashboard)).toEqual([])
   })
 })
