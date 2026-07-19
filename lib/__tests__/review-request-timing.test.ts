@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  getNextSydneyReviewRequestRetryAt,
   getReviewFulfilmentAt,
   isReviewFulfilmentOldEnough,
+  isReviewFulfilmentWithinCatchUpWindow,
   isSydneyReviewRequestHour,
+  REVIEW_REQUEST_CATCH_UP_DAYS,
   REVIEW_REQUEST_DELAY_HOURS,
 } from "@/lib/email/review-request-timing"
 
@@ -63,6 +66,61 @@ describe("review request timing", () => {
     expect(isSydneyReviewRequestHour(new Date("2026-01-16T23:00:00.000Z"))).toBe(true)
     expect(isSydneyReviewRequestHour(new Date("2026-07-16T23:00:00.000Z"))).toBe(false)
     expect(isSydneyReviewRequestHour(new Date("2026-01-17T00:00:00.000Z"))).toBe(false)
+  })
+
+  it("keeps fulfilled requests eligible only from 48 hours through the 120-day catch-up boundary", () => {
+    const now = new Date("2026-07-17T10:00:00.000Z")
+    const baseIntake = {
+      category: "medical_certificate",
+      document_sent_at: new Date(
+        now.getTime() - REVIEW_REQUEST_CATCH_UP_DAYS * 24 * 60 * 60 * 1000,
+      ).toISOString(),
+      script_sent_at: null,
+    }
+
+    expect(isReviewFulfilmentWithinCatchUpWindow(baseIntake, now)).toBe(true)
+    expect(
+      isReviewFulfilmentWithinCatchUpWindow(
+        {
+          ...baseIntake,
+          document_sent_at: new Date(
+            now.getTime() -
+              REVIEW_REQUEST_CATCH_UP_DAYS * 24 * 60 * 60 * 1000 -
+              1,
+          ).toISOString(),
+        },
+        now,
+      ),
+    ).toBe(false)
+    expect(
+      isReviewFulfilmentWithinCatchUpWindow(
+        {
+          ...baseIntake,
+          document_sent_at: new Date(
+            now.getTime() - REVIEW_REQUEST_DELAY_HOURS * 60 * 60 * 1000 + 1,
+          ).toISOString(),
+        },
+        now,
+      ),
+    ).toBe(false)
+  })
+
+  it("finds the next exact Sydney 10:00 retry timestamp across AEST and AEDT", () => {
+    expect(
+      getNextSydneyReviewRequestRetryAt(
+        new Date("2026-07-16T23:30:00.000Z"),
+      ),
+    ).toBe("2026-07-17T00:00:00.000Z")
+    expect(
+      getNextSydneyReviewRequestRetryAt(
+        new Date("2026-07-17T00:15:00.000Z"),
+      ),
+    ).toBe("2026-07-18T00:00:00.000Z")
+    expect(
+      getNextSydneyReviewRequestRetryAt(
+        new Date("2026-01-17T00:00:00.000Z"),
+      ),
+    ).toBe("2026-01-17T23:00:00.000Z")
   })
 
   it("rejects missing or invalid fulfilment timestamps", () => {

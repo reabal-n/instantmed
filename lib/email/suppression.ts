@@ -5,6 +5,28 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("email-suppression")
 
+export type EmailSuppressionDecision =
+  | { kind: "allowed" }
+  | { kind: "policy_suppressed" }
+  | { kind: "transiently_blocked" }
+
+function buildDecisions(
+  emails: string[],
+  suppressed: Set<string>,
+  lookupUnavailable: boolean,
+): Map<string, EmailSuppressionDecision> {
+  return new Map(
+    emails.map((email) => [
+      email,
+      suppressed.has(email)
+        ? { kind: "policy_suppressed" as const }
+        : lookupUnavailable
+          ? { kind: "transiently_blocked" as const }
+          : { kind: "allowed" as const },
+    ]),
+  )
+}
+
 /**
  * Batch suppression check for marketing sends to bare email addresses
  * (recipients who may have no profile, e.g. partial-intake drafts).
@@ -16,13 +38,15 @@ const logger = createLogger("email-suppression")
  *     email_preferences — an existing patient who unsubscribed must not be
  *     reachable again just because they started a fresh draft.
  *
- * Fails CLOSED on query errors: a suppression lookup failure treats every
- * address in that batch as suppressed. Missing one send is recoverable;
- * emailing an opted-out person is a Spam Act breach.
+ * Each normalized address receives one of three decisions. A lookup failure is
+ * transiently blocked, never misclassified as a definitive policy suppression.
+ * Suppressions confirmed before a later query fails remain definitive.
  */
-export async function getSuppressedEmails(emails: string[]): Promise<Set<string>> {
+export async function getEmailSuppressionDecisions(
+  emails: string[],
+): Promise<Map<string, EmailSuppressionDecision>> {
   const normalized = Array.from(new Set(emails.map((e) => e.trim().toLowerCase()).filter(Boolean)))
-  if (normalized.length === 0) return new Set()
+  if (normalized.length === 0) return new Map()
 
   const supabase = createServiceRoleClient()
   const suppressed = new Set<string>()
@@ -33,10 +57,12 @@ export async function getSuppressedEmails(emails: string[]): Promise<Set<string>
     .in("email_lower", normalized)
 
   if (suppressionError) {
-    logger.error("Suppression list lookup failed, failing closed", { error: suppressionError.message })
-    return new Set(normalized)
+    logger.error("Suppression list lookup failed", { error: suppressionError.message })
+    return buildDecisions(normalized, suppressed, true)
   }
-  for (const row of suppressions ?? []) suppressed.add(row.email_lower)
+  for (const row of suppressions ?? []) {
+    suppressed.add(row.email_lower.trim().toLowerCase())
+  }
 
   // Profiles that match these addresses and have opted out of marketing.
   const { data: profiles, error: profileError } = await supabase
@@ -45,8 +71,8 @@ export async function getSuppressedEmails(emails: string[]): Promise<Set<string>
     .in("email", normalized)
 
   if (profileError) {
-    logger.error("Profile lookup for suppression failed, failing closed", { error: profileError.message })
-    return new Set(normalized)
+    logger.error("Profile lookup for suppression failed", { error: profileError.message })
+    return buildDecisions(normalized, suppressed, true)
   }
 
   const profileIdToEmail = new Map<string, string>()
@@ -61,8 +87,8 @@ export async function getSuppressedEmails(emails: string[]): Promise<Set<string>
       .in("profile_id", Array.from(profileIdToEmail.keys()))
 
     if (prefsError) {
-      logger.error("Email preferences lookup for suppression failed, failing closed", { error: prefsError.message })
-      return new Set(normalized)
+      logger.error("Email preferences lookup for suppression failed", { error: prefsError.message })
+      return buildDecisions(normalized, suppressed, true)
     }
 
     for (const pref of prefs ?? []) {
@@ -73,7 +99,21 @@ export async function getSuppressedEmails(emails: string[]): Promise<Set<string>
     }
   }
 
-  return suppressed
+  return buildDecisions(normalized, suppressed, false)
+}
+
+/**
+ * Backward-compatible fail-closed suppression set for existing callers.
+ * Detailed callers should use getEmailSuppressionDecisions so transient
+ * lookup failures remain retryable.
+ */
+export async function getSuppressedEmails(emails: string[]): Promise<Set<string>> {
+  const decisions = await getEmailSuppressionDecisions(emails)
+  return new Set(
+    Array.from(decisions)
+      .filter(([, decision]) => decision.kind !== "allowed")
+      .map(([email]) => email),
+  )
 }
 
 /**
