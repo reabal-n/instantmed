@@ -255,17 +255,19 @@ async function selectEdSafePath(page: Page) {
     /Do you take alpha-blockers/i,
     /Heart attack, stroke, or unstable angina/i,
     /Severe heart disease, very low blood pressure, or HOCM/i,
-    /Taking any medications/i,
+    /Any other medications/i,
     /Any allergies/i,
     /Any other medical conditions/i,
-    /Have you tried ED treatment before/i,
   ]) {
     await ensureRadioChecked(page, groupName, /^No$/i)
   }
   await clickContinue(page)
 
-  await expect(page.getByText(/How should treatment fit your life/i)).toBeVisible({ timeout: 10000 })
-  await ensureRadioChecked(page, /Treatment preference/i, /Let the doctor decide/i)
+  // Treatment step: preference + the prior-treatment question that moved here
+  // off the safety screen. "Let the doctor decide" was retired.
+  await expect(page.getByText(/How would you prefer to take it/i)).toBeVisible({ timeout: 10000 })
+  await ensureRadioChecked(page, /Treatment preference/i, /Only when I need it/i)
+  await ensureRadioChecked(page, /Have you tried ED treatment before/i, /^No$/i)
   await clickContinue(page)
 }
 
@@ -760,7 +762,10 @@ test.describe("Consult review summary: persisted health details", () => {
               known_allergies: "Penicillin rash",
               has_conditions: "yes",
               existing_conditions: "Managed hypertension",
+              // Retired UI value kept deliberately: this fixture proves a
+              // stored draft from before the 2026-07-19 trim still validates.
               edPreference: "doctor_decides",
+              previousEdMeds: false,
               bmi: "24.2",
             },
             firstName: "Test",

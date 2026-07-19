@@ -365,9 +365,6 @@ export const edHealthStepSchema = z
     if (data.edAlphaBlockers === undefined) {
       ctx.addIssue({ code: "custom", path: ["edAlphaBlockers"], message: "Please answer this safety question" })
     }
-    if (data.previousEdMeds === undefined) {
-      ctx.addIssue({ code: "custom", path: ["previousEdMeds"], message: "Please answer previous treatment question" })
-    }
     if (data.edRecentHeartEvent === true && !data.edGpCleared) {
       ctx.addIssue({
         code: "custom",
@@ -412,6 +409,25 @@ export const edHealthStepSchema = z
         message: "Please list your medications",
       })
     }
+  })
+
+/**
+ * Treatment step. Owns the preference plus the prior-treatment history that
+ * moved off the safety screen on 2026-07-19.
+ *
+ * `edPreviousEffectiveness` stays declared but is no longer collected — the
+ * free-text answer captures "and how did it go" in one field. Legacy drafts and
+ * historical intakes that carry the old chip value still validate.
+ */
+export const edPreferencesStepSchema = z
+  .object({
+    edPreference: nonEmptyString("Please select a treatment preference"),
+    previousEdMeds: z.boolean({ error: "Please answer previous treatment question" }),
+    edPreviousTreatment: z.string().optional(),
+    edPreviousEffectiveness: z.string().optional(),
+    edAdditionalInfo: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
     if (data.previousEdMeds === true && !data.edPreviousTreatment?.trim()) {
       ctx.addIssue({
         code: "custom",
@@ -419,18 +435,7 @@ export const edHealthStepSchema = z
         message: "Please tell us what you have used before",
       })
     }
-    if (data.previousEdMeds === true && !data.edPreviousEffectiveness?.trim()) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["edPreviousEffectiveness"],
-        message: "Please tell us how well it worked",
-      })
-    }
   })
-
-export const edPreferencesStepSchema = z.object({
-  edPreference: nonEmptyString("Please select a treatment preference"),
-})
 
 // Hair loss - Step 1: Goals
 export const hairLossGoalsStepSchema = z.object({

@@ -557,6 +557,12 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     { label: "Alpha blockers", value: yesNo(raw(answers, "edAlphaBlockers")) },
     hasRecentHeartEvent || hasSevereHeart || hasAlphaBlockers ? { label: "GP clearance reported", value: yesNo(raw(answers, "edGpCleared")) } : null,
     { label: "Previous ED medication", value: yesNo(raw(answers, "previousEdMeds")) },
+    // Patient's own words. Carries the medicine/dose they are already
+    // established on, so the doctor sees it before applying a starting-dose
+    // preset.
+    fact("Previous treatment detail", str(answers, "edPreviousTreatment")),
+    fact("Previous treatment response", str(answers, "edPreviousEffectiveness")),
+    fact("Patient notes", str(answers, "edAdditionalInfo")),
     fact("Allergies", str(answers, "known_allergies")),
     fact("Conditions", str(answers, "existing_conditions")),
     fact("Current medications", str(answers, "current_medications")),
