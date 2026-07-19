@@ -24,6 +24,7 @@ describe("personless PostHog analytics", () => {
   it("keeps decision-grade funnel and campaign dimensions while dropping identity and raw search data", () => {
     const result = sanitizePostHogProperties({
       service_type: "consult",
+      flow_instance_id: "11111111-1111-4111-8111-111111111111",
       service_subtype: "ed",
       step_id: "details",
       amount_cents: 4995,
@@ -61,6 +62,7 @@ describe("personless PostHog analytics", () => {
 
     expect(result).toMatchObject({
       service_type: "consult",
+      flow_instance_id: "11111111-1111-4111-8111-111111111111",
       service_subtype: "ed",
       step_id: "details",
       amount_cents: 4995,
@@ -94,6 +96,22 @@ describe("personless PostHog analytics", () => {
     expect(result).not.toHaveProperty("$set")
     expect(result).not.toHaveProperty("$set_once")
     expect(result.nested).not.toHaveProperty("email")
+  })
+
+  it("keeps only validated opaque flow ids", () => {
+    expect(
+      sanitizePostHogProperties({
+        flow_instance_id: "11111111-1111-4111-8111-111111111111",
+      }),
+    ).toMatchObject({
+      flow_instance_id: "11111111-1111-4111-8111-111111111111",
+    })
+
+    expect(
+      sanitizePostHogProperties({
+        flow_instance_id: "patient@example.com",
+      }),
+    ).not.toHaveProperty("flow_instance_id")
   })
 
   it("rejects captures whose distinct id is a direct identifier", () => {

@@ -1,5 +1,6 @@
 import { PostHog } from 'posthog-node';
 
+import { normalizeFlowInstanceId } from "@/lib/analytics/flow-instance"
 import { sanitizePostHogProperties } from "@/lib/analytics/posthog-privacy"
 import {
   getOpaquePostHogEventId,
@@ -153,6 +154,7 @@ export function trackSafetyBlock(event: {
 export function trackIntakeFunnelStep(event: {
   step: 'intake_started' | 'questionnaire_completed' | 'payment_initiated' | 'payment_completed' | 'review_started' | 'approved' | 'declined' | 'document_delivered'
   intakeId: string
+  flowInstanceId?: string | null
   serviceSlug: string
   serviceType: string
   subtype?: string | null
@@ -169,6 +171,7 @@ export function trackIntakeFunnelStep(event: {
       service_type: event.serviceType,
       subtype: event.subtype,
       funnel_step: event.step,
+      flow_instance_id: normalizeFlowInstanceId(event.flowInstanceId),
       analytics_request_id: getOpaquePostHogRequestId(event.intakeId),
       ...event.metadata,
       $insert_id: getOpaquePostHogEventId(eventName, event.intakeId),

@@ -7,6 +7,7 @@
  * Handles both authenticated and guest checkout flows.
  */
 
+import { normalizeFlowInstanceId } from "@/lib/analytics/flow-instance"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getAppUrl } from "@/lib/config/env"
 import { updateProfile } from "@/lib/data/profiles"
@@ -56,6 +57,7 @@ interface UnifiedCheckoutInput {
     captured_at?: string
   }
   posthogDistinctId?: string
+  flowInstanceId?: string
   serverDraftSessionId?: string
 }
 
@@ -105,7 +107,15 @@ function mapServiceToCategory(serviceType: UnifiedServiceType): { category: Serv
 export async function createCheckoutFromUnifiedFlow(
   input: UnifiedCheckoutInput
 ): Promise<CheckoutResult> {
-  const { serviceType, answers, identity, attribution, posthogDistinctId, serverDraftSessionId } = input
+  const {
+    serviceType,
+    answers,
+    identity,
+    attribution,
+    posthogDistinctId,
+    serverDraftSessionId,
+  } = input
+  const flowInstanceId = normalizeFlowInstanceId(input.flowInstanceId) ?? undefined
   const { category, subtype } = mapServiceToCategory(serviceType)
   
   // Update subtype based on answers
@@ -200,6 +210,7 @@ export async function createCheckoutFromUnifiedFlow(
         subtype: finalSubtype,
       }),
       attribution,
+      flowInstanceId,
       posthogDistinctId,
       serverDraftSessionId: activeServerDraftSessionId,
     })
@@ -232,6 +243,7 @@ export async function createCheckoutFromUnifiedFlow(
       guestDateOfBirth: identity.dateOfBirth,
       guestPhone: identity.phone,
       attribution,
+      flowInstanceId,
       posthogDistinctId,
       checkoutSubmissionKey: buildGuestCheckoutSubmissionKey({
         answers: transformedAnswers,

@@ -42,7 +42,7 @@ const ONSET_OPTIONS = [
 ] as const
 
 export default function HairLossGoalsStep({ serviceType, onNext }: HairLossGoalsStepProps) {
-  const { answers, setAnswer } = useRequestStore()
+  const { answers, flowInstanceId, setAnswer } = useRequestStore()
   const posthog = usePostHog()
 
   const hairGoal = (answers.hairGoal as string) || ""
@@ -58,7 +58,7 @@ export default function HairLossGoalsStep({ serviceType, onNext }: HairLossGoals
       if (!hairOnset) reasons.push("when you first noticed changes")
       return reasons
     }, [hairGoal, hairOnset]),
-    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "hair-loss-goals" },
+    { flowInstanceId, posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "hair-loss-goals" },
   )
 
   const handleNext = () => {

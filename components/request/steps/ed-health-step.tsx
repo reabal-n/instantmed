@@ -78,7 +78,7 @@ function SectionComplete({ complete }: { complete: boolean }) {
 export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthStepProps) {
   const router = useRouter()
   const posthog = usePostHog()
-  const { answers, setAnswer } = useRequestStore()
+  const { answers, flowInstanceId, setAnswer } = useRequestStore()
   const terminalBlock = deriveEdNitrateTerminalBlock(answers)
 
   // ---------------------------------------------------------------------------
@@ -198,7 +198,7 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
       }
       return reasons
     }, [edNitrates, gpClearanceRequired, heartComplete, medicationsComplete, allergiesComplete, conditionsComplete]),
-    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "ed-health" },
+    { flowInstanceId, posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "ed-health" },
   )
 
   const handleNext = useCallback(() => {

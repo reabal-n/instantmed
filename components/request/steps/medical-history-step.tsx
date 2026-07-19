@@ -40,7 +40,7 @@ interface MedicalHistoryStepProps {
 }
 
 export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHistoryStepProps) {
-  const { answers, setAnswer } = useRequestStore()
+  const { answers, flowInstanceId, setAnswer } = useRequestStore()
   const posthog = usePostHog()
 
   const hasAllergies = answers.hasAllergies as boolean | undefined
@@ -117,6 +117,7 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
         posthog,
         INTAKE_ANALYTICS_EVENTS.validationBlocked,
         buildIntakeValidationBlockedProperties({
+          flowInstanceId,
           serviceType,
           subtype: answers.consultSubtype as string | undefined,
           stepId: "medical-history",
@@ -125,7 +126,7 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
       )
     }
     return Object.keys(newErrors).length === 0
-  }, [answers.consultSubtype, hasAllergies, allergies, hasConditions, conditions, hasOtherMedications, otherMedications, posthog, requiresMedicationSafety, isPregnantOrBreastfeeding, serviceType])
+  }, [answers.consultSubtype, hasAllergies, allergies, hasConditions, conditions, hasOtherMedications, otherMedications, posthog, requiresMedicationSafety, isPregnantOrBreastfeeding, serviceType, flowInstanceId])
 
   const handleNext = useCallback(() => {
     if (validate()) {

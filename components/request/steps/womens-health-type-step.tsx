@@ -45,7 +45,7 @@ const WOMENS_HEALTH_OPTIONS = [
 ] as const
 
 export default function WomensHealthTypeStep({ serviceType, onNext }: WomensHealthTypeStepProps) {
-  const { answers, setAnswer } = useRequestStore()
+  const { answers, flowInstanceId, setAnswer } = useRequestStore()
   const router = useRouter()
   const searchParams = useSearchParams()
   const posthog = usePostHog()
@@ -55,7 +55,7 @@ export default function WomensHealthTypeStep({ serviceType, onNext }: WomensHeal
   const { validationSummary, showBlockingReasons } = useStepValidationSummary(
     hasSelection,
     useCallback(() => ["what you need today"], []),
-    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "womens-health-type" },
+    { flowInstanceId, posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "womens-health-type" },
   )
 
   const handleSelect = (value: string) => {

@@ -10,6 +10,7 @@ import {
 } from "@/lib/analytics/intake-events"
 
 interface ValidationSummaryAnalytics {
+  flowInstanceId?: string | null
   posthog?: PostHogCaptureLike | null
   serviceType?: string | null
   /**
@@ -89,6 +90,7 @@ export function useStepValidationSummary(
         analytics.posthog,
         INTAKE_ANALYTICS_EVENTS.validationBlocked,
         buildIntakeValidationBlockedProperties({
+          flowInstanceId: analytics.flowInstanceId,
           serviceType: analytics.serviceType,
           subtype: analytics.subtype,
           stepId: analytics.stepId,

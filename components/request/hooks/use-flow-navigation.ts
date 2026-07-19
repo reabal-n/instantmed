@@ -103,7 +103,16 @@ export function useFlowNavigation({
   setShowSubtypeMismatch,
 }: UseFlowNavigationOptions) {
   const router = useRouter()
-  const { nextStep, prevStep, goToStep, setServiceType, setAnswer, reset } = useRequestStore()
+  const {
+    flowInstanceId,
+    nextStep,
+    prevStep,
+    goToStep,
+    setServiceType,
+    startFreshFlowInstance,
+    setAnswer,
+    reset,
+  } = useRequestStore()
 
   // Tracks how many history.pushState entries we've added for step advances so the
   // popstate handler knows whether Back is "previous step" or "leave the flow".
@@ -140,6 +149,7 @@ export function useFlowNavigation({
   const handleBack = useCallback(() => {
     posthog?.capture('request_step_back', {
       service_type: analyticsServiceType,
+      flow_instance_id: flowInstanceId,
       from_step: currentStepId,
       step_index: currentStepIndex,
     })
@@ -161,13 +171,14 @@ export function useFlowNavigation({
     } else {
       router.back()
     }
-  }, [currentStepIndex, currentStepId, analyticsServiceType, activeSteps, prevStep, router, posthog])
+  }, [currentStepIndex, currentStepId, analyticsServiceType, activeSteps, prevStep, router, posthog, flowInstanceId])
 
   const handleNext = useCallback(async () => {
     captureIntakeEvent(
       posthog,
       INTAKE_ANALYTICS_EVENTS.continueClicked,
       buildIntakeContinueClickedProperties({
+        flowInstanceId,
         serviceType: analyticsServiceType,
         stepId: currentStepId,
         stepIndex: currentStepIndex,
@@ -189,6 +200,7 @@ export function useFlowNavigation({
         if (result.outcome === 'DECLINE' || result.outcome === 'REQUIRES_CALL') {
           captureIntakeEvent(posthog, INTAKE_ANALYTICS_EVENTS.safetyPrecheckBlocked, {
             service_type: analyticsServiceType,
+            flow_instance_id: flowInstanceId,
             step_id: currentStepId,
             outcome: result.outcome,
             risk_tier: result.riskTier,
@@ -216,11 +228,12 @@ export function useFlowNavigation({
     // to sync Zustand when the browser pops this entry.
     history.pushState({ instantmedFlow: true }, '')
     flowHistoryDepth.current++
-  }, [trackStepCompleted, analyticsServiceType, currentStepId, currentStepIndex, activeSteps.length, nextStep, posthog, effectiveService, answers, setSafetyBlock])
+  }, [trackStepCompleted, analyticsServiceType, currentStepId, currentStepIndex, activeSteps.length, nextStep, posthog, effectiveService, answers, setSafetyBlock, flowInstanceId])
 
   const handleComplete = useCallback(() => {
     posthog?.capture('request_flow_completed', {
       service_type: analyticsServiceType,
+      flow_instance_id: flowInstanceId,
       total_steps: activeSteps.length,
       is_authenticated: isAuthenticated,
     })
@@ -228,12 +241,13 @@ export function useFlowNavigation({
       void trackFunnelStep('intake_complete', analyticsServiceType, patientEmail)
     })
     router.push('/patient/intakes/success')
-  }, [analyticsServiceType, activeSteps.length, isAuthenticated, router, posthog, patientEmail])
+  }, [analyticsServiceType, activeSteps.length, isAuthenticated, router, posthog, patientEmail, flowInstanceId])
 
   const handleExit = useCallback(() => {
     const subtype = (answers.consultSubtype as string | undefined) ?? undefined
     posthog?.capture('intake_abandoned', {
       service_type: analyticsServiceType,
+      flow_instance_id: flowInstanceId,
       step_id: currentStepId,
       step_number: currentStepIndex + 1,
       subtype,
@@ -243,12 +257,15 @@ export function useFlowNavigation({
     markIntentionalNavigation()
     // Full page navigation to avoid white-page from layout mismatch
     window.location.href = '/'
-  }, [analyticsServiceType, currentStepId, currentStepIndex, answers.consultSubtype, posthog])
+  }, [analyticsServiceType, currentStepId, currentStepIndex, answers.consultSubtype, posthog, flowInstanceId])
 
   const handleRestoreDraft = useCallback(() => {
     setShowDraftBanner(false)
-    posthog?.capture('request_draft_restored', { service_type: analyticsServiceType })
-  }, [analyticsServiceType, posthog, setShowDraftBanner])
+    posthog?.capture('request_draft_restored', {
+      service_type: analyticsServiceType,
+      flow_instance_id: flowInstanceId,
+    })
+  }, [analyticsServiceType, posthog, setShowDraftBanner, flowInstanceId])
 
   const handleDiscardDraft = useCallback(() => {
     setShowDraftBanner(false)
@@ -262,8 +279,11 @@ export function useFlowNavigation({
       setAnswer('consultSubtype', initialSubtype, { touch: false })
       goToStep(getConsultSubtypeFirstStep(initialSubtype))
     }
-    posthog?.capture('request_draft_discarded', { service_type: analyticsServiceType })
-  }, [reset, initialService, initialSubtype, setServiceType, setAnswer, goToStep, analyticsServiceType, posthog, setShowDraftBanner])
+    posthog?.capture('request_draft_discarded', {
+      service_type: analyticsServiceType,
+      flow_instance_id: flowInstanceId,
+    })
+  }, [reset, initialService, initialSubtype, setServiceType, setAnswer, goToStep, analyticsServiceType, posthog, setShowDraftBanner, flowInstanceId])
 
   const handleResumeDraft = useCallback(() => {
     setShowSubtypeMismatch(false)
@@ -272,18 +292,21 @@ export function useFlowNavigation({
     }
     posthog?.capture('consult_draft_resumed', {
       service_type: analyticsServiceType,
+      flow_instance_id: flowInstanceId,
       draft_subtype: draftSubtype,
       url_subtype: initialSubtype,
     })
-  }, [draftSubtype, initialSubtype, analyticsServiceType, router, posthog, setShowSubtypeMismatch])
+  }, [draftSubtype, initialSubtype, analyticsServiceType, router, posthog, setShowSubtypeMismatch, flowInstanceId])
 
   const handleStartFreshSubtype = useCallback(() => {
     setShowSubtypeMismatch(false)
+    startFreshFlowInstance()
     clearConsultSubtypeAnswers()
     setAnswer('consultSubtype', initialSubtype)
     goToStep(getConsultSubtypeFirstStep(initialSubtype))
     posthog?.capture('consult_draft_cleared_for_new_subtype', {
       service_type: analyticsServiceType,
+      flow_instance_id: flowInstanceId,
       old_subtype: draftSubtype,
       new_subtype: initialSubtype,
     })
@@ -296,19 +319,22 @@ export function useFlowNavigation({
     goToStep,
     posthog,
     setShowSubtypeMismatch,
+    flowInstanceId,
+    startFreshFlowInstance,
   ])
 
   const handleStepClick = useCallback((stepId: string, stepIndex: number) => {
     if (stepIndex === currentStepIndex) return
     posthog?.capture('request_step_jumped', {
       service_type: analyticsServiceType,
+      flow_instance_id: flowInstanceId,
       from_step: currentStepId,
       to_step: stepId,
       from_index: currentStepIndex,
       to_index: stepIndex,
     })
     goToStep(stepId as Parameters<typeof goToStep>[0])
-  }, [currentStepIndex, currentStepId, analyticsServiceType, goToStep, posthog])
+  }, [currentStepIndex, currentStepId, analyticsServiceType, goToStep, posthog, flowInstanceId])
 
   const handleExitWithConfirm = useCallback(() => {
     if (hasUnsavedChanges && currentStepIndex > 0) {
@@ -328,8 +354,12 @@ export function useFlowNavigation({
     // Set consultSubtype so step registry branches correctly on client-side hub navigation.
     // (The mount-only effect handles direct URL navigation; hub navigation doesn't remount.)
     if (service === 'consult' && consultSubtype) {
-      const currentSubtype = answers.consultSubtype as string | undefined
-      if (currentSubtype !== consultSubtype) {
+      const restoredSubtype = useRequestStore.getState().answers.consultSubtype as string | undefined
+      if (restoredSubtype !== consultSubtype) {
+        // setServiceType may have restored a target-service draft. If the
+        // patient chose a different subtype, that is a genuinely fresh
+        // attempt and must not inherit the restored draft's flow identifier.
+        if (restoredSubtype || effectiveService === service) startFreshFlowInstance()
         clearConsultSubtypeAnswers()
       }
       setAnswer('consultSubtype', consultSubtype)
@@ -338,7 +368,7 @@ export function useFlowNavigation({
     } else {
       router.push(`/request?service=${service}`)
     }
-  }, [answers.consultSubtype, clearConsultSubtypeAnswers, setServiceType, setAnswer, goToStep, router])
+  }, [clearConsultSubtypeAnswers, effectiveService, setServiceType, setAnswer, goToStep, router, startFreshFlowInstance])
 
   return {
     handleBack,

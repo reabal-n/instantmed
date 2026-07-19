@@ -150,6 +150,7 @@ describe("intake funnel summary", () => {
         continueClicked: 52,
         dropOffCount: 35,
         frictionScore: 55,
+        retryOccurrences: 0,
         serviceLabel: "Medical certificate",
         serviceType: "med-cert",
         stepId: "symptoms",
@@ -165,6 +166,7 @@ describe("intake funnel summary", () => {
         continueClicked: 18,
         dropOffCount: 8,
         frictionScore: 20,
+        retryOccurrences: 0,
         serviceLabel: "ED",
         serviceType: "consult",
         stepId: "ed-health",
@@ -173,6 +175,62 @@ describe("intake funnel summary", () => {
         viewed: 24,
       },
     ])
+  })
+
+  it("uses unique attempts for friction and reports repeated interactions separately", () => {
+    const summary = buildIntakeFunnelSummary({
+      dateFrom: "2026-06-01T00:00:00.000Z",
+      dateTo: "2026-06-15T00:00:00.000Z",
+      days: 14,
+      rows: [
+        {
+          count: 5,
+          occurrences: 8,
+          event: "step_viewed",
+          serviceType: "consult",
+          subtype: "ed",
+          stepId: "ed-health",
+          stepIndex: 3,
+        },
+        {
+          count: 4,
+          occurrences: 10,
+          event: "intake_continue_clicked",
+          serviceType: "consult",
+          subtype: "ed",
+          stepId: "ed-health",
+          stepIndex: 3,
+        },
+        {
+          count: 2,
+          occurrences: 7,
+          event: "intake_validation_blocked",
+          serviceType: "consult",
+          subtype: "ed",
+          stepId: "ed-health",
+          stepIndex: 3,
+        },
+        {
+          count: 3,
+          occurrences: 3,
+          event: "step_completed",
+          serviceType: "consult",
+          subtype: "ed",
+          stepId: "ed-health",
+          stepIndex: 3,
+        },
+      ],
+    })
+
+    expect(summary.stepFriction[0]).toMatchObject({
+      blocked: 2,
+      completed: 3,
+      continueClicked: 4,
+      dropOffCount: 2,
+      frictionScore: 4,
+      retryOccurrences: 14,
+      viewed: 5,
+    })
   })
 
   it("keeps service slices separate when one parent service has multiple subtypes", () => {

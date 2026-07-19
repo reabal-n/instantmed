@@ -5,6 +5,8 @@
  * Each service type has its own storage key to prevent cross-service interference.
  */
 
+import { normalizeFlowInstanceId } from '@/lib/analytics/flow-instance'
+
 import type { UnifiedServiceType, UnifiedStepId } from './step-registry'
 
 // Canonical service types (all aliases resolve to these)
@@ -20,6 +22,7 @@ const DRAFT_EXPIRY_HOURS = 24
  */
 export interface DraftData {
   serviceType: CanonicalServiceType
+  flowInstanceId?: string
   currentStepId: UnifiedStepId
   furthestVisitedStepId?: UnifiedStepId | null
   stepsNeedingRevalidation?: UnifiedStepId[]
@@ -118,6 +121,7 @@ export function getDraft(service: CanonicalServiceType): DraftData | null {
     }
 
     draft.answers = isPlainRecord(draft.answers) ? draft.answers : {}
+    draft.flowInstanceId = normalizeFlowInstanceId(draft.flowInstanceId) ?? undefined
     
     // Check expiry
     if (isExpired(draft.lastSavedAt)) {
@@ -163,6 +167,7 @@ export function saveDraft(service: CanonicalServiceType, data: Omit<DraftData, '
     void import('./server-draft').then(({ saveServerDraftDebounced }) => {
       saveServerDraftDebounced({
         serviceType: service,
+        flowInstanceId: normalizeFlowInstanceId(data.flowInstanceId) ?? undefined,
         currentStepId: data.currentStepId,
         answers: isPlainRecord(data.answers) ? data.answers : {},
         identity: {
@@ -309,6 +314,7 @@ export function migrateLegacyDraft(): DraftData | null {
     // Build draft data
     const draft: DraftData = {
       serviceType: canonical,
+      flowInstanceId: normalizeFlowInstanceId(legacyState.flowInstanceId) ?? undefined,
       currentStepId: legacyState.currentStepId || 'review',
       furthestVisitedStepId: legacyState.furthestVisitedStepId ?? legacyState.currentStepId ?? 'review',
       stepsNeedingRevalidation: Array.isArray(legacyState.stepsNeedingRevalidation)

@@ -1,3 +1,4 @@
+import { normalizeFlowInstanceId } from "@/lib/analytics/flow-instance"
 import { scrubPHI } from "@/lib/observability/scrub-phi"
 
 const DIRECT_IDENTIFIER_RE =
@@ -146,6 +147,11 @@ function sanitizePostHogObject(
 
   for (const [key, value] of Object.entries(properties)) {
     if (shouldDropProperty(key)) continue
+    if (normalizePropertyKey(key) === "flowinstanceid") {
+      const flowInstanceId = normalizeFlowInstanceId(value)
+      if (flowInstanceId) sanitized[key] = flowInstanceId
+      continue
+    }
     sanitized[key] = sanitizeValue(value, key)
   }
 

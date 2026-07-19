@@ -35,6 +35,8 @@ interface UseUnsavedChangesOptions {
   analyticsServiceType: string
   /** Current step ID for abandonment tracking */
   currentStepId: string
+  /** Opaque identifier for this intake attempt. */
+  flowInstanceId: string | null
   /** PostHog instance for passive abandonment beacon */
   posthog: { config?: { token?: string; api_host?: string }; get_distinct_id?: () => string } | null
 }
@@ -52,6 +54,7 @@ export function useUnsavedChanges({
   serviceType,
   analyticsServiceType,
   currentStepId,
+  flowInstanceId,
   posthog,
 }: UseUnsavedChangesOptions) {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
@@ -84,6 +87,7 @@ export function useUnsavedChanges({
         analyticsServiceType,
         currentStepId,
         currentStepIndex,
+        flowInstanceId,
         posthog,
         serviceType,
       })
@@ -103,7 +107,7 @@ export function useUnsavedChanges({
 
     window.addEventListener("beforeunload", handleBeforeUnload)
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
-  }, [hasUnsavedChanges, currentStepIndex, serviceType, analyticsServiceType, currentStepId, posthog])
+  }, [hasUnsavedChanges, currentStepIndex, serviceType, analyticsServiceType, currentStepId, posthog, flowInstanceId])
 
   return {
     hasUnsavedChanges,

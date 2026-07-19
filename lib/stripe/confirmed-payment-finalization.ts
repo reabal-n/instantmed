@@ -3,6 +3,7 @@ import "server-only"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type Stripe from "stripe"
 
+import { normalizeFlowInstanceId } from "@/lib/analytics/flow-instance"
 import {
   GOOGLE_ADS_ATTRIBUTION_SELECT,
   type GoogleAdsAttributionRow,
@@ -228,12 +229,16 @@ type PatientProfile = {
   stripe_customer_id?: string | null
 }
 
+type CompletionAttributionRow = GoogleAdsAttributionRow & {
+  flow_instance_id?: string | null
+}
+
 async function loadCompletionContext(
   supabase: SupabaseClient,
   intakeId: string,
   patientId?: string | null,
 ): Promise<{
-  attribution: GoogleAdsAttributionRow | null
+  attribution: CompletionAttributionRow | null
   patientProfile: PatientProfile | null
 }> {
   const [profileResult, attributionResult] = await Promise.all([
@@ -246,13 +251,13 @@ async function loadCompletionContext(
       : Promise.resolve({ data: null }),
     supabase
       .from("intakes")
-      .select(GOOGLE_ADS_ATTRIBUTION_SELECT)
+      .select(`${GOOGLE_ADS_ATTRIBUTION_SELECT}, flow_instance_id`)
       .eq("id", intakeId)
       .maybeSingle(),
   ])
 
   return {
-    attribution: (attributionResult.data as GoogleAdsAttributionRow | null) ?? null,
+    attribution: (attributionResult.data as CompletionAttributionRow | null) ?? null,
     patientProfile: (profileResult.data as PatientProfile | null) ?? null,
   }
 }
@@ -548,7 +553,7 @@ function trackConfirmedPayment({
   session,
   source,
 }: {
-  attribution: GoogleAdsAttributionRow | null
+  attribution: CompletionAttributionRow | null
   intakeId: string
   session: Stripe.Checkout.Session
   source: Exclude<GoogleAdsConversionSource, "cron_backfill">
@@ -568,6 +573,9 @@ function trackConfirmedPayment({
     session.metadata?.subtype ||
     session.metadata?.service_slug ||
     null
+  const flowInstanceId =
+    normalizeFlowInstanceId(attribution?.flow_instance_id) ??
+    normalizeFlowInstanceId(session.metadata?.flow_instance_id)
 
   trackIntakeFunnelStep({
     step: "payment_completed",
@@ -576,6 +584,7 @@ function trackConfirmedPayment({
     serviceType,
     subtype: serviceSubtype,
     anonymousId: distinctId,
+    flowInstanceId,
     metadata: {
       amount_cents: session.amount_total,
       finalization_source: source,
@@ -626,6 +635,7 @@ function trackConfirmedPayment({
         service_category: serviceType,
         service_subtype: serviceSubtype,
         finalization_source: source,
+        flow_instance_id: flowInstanceId,
       },
     })
 
@@ -644,6 +654,7 @@ function trackConfirmedPayment({
         service_subtype: serviceSubtype,
         source: "confirmed_payment_finalizer",
         finalization_source: source,
+        flow_instance_id: flowInstanceId,
       },
     })
   } catch {

@@ -135,6 +135,7 @@ describe('saveDraft', () => {
     saveDraft('med-cert', {
       currentStepId: 'symptoms',
       answers: { certType: 'work' },
+      flowInstanceId: "11111111-1111-4111-8111-111111111111",
     })
 
     const stored = localStorageMock.getItem('instantmed-draft-med-cert')
@@ -143,6 +144,7 @@ describe('saveDraft', () => {
     const parsed = JSON.parse(stored!) as DraftData
     expect(parsed.serviceType).toBe('med-cert')
     expect(parsed.currentStepId).toBe('symptoms')
+    expect(parsed.flowInstanceId).toBe("11111111-1111-4111-8111-111111111111")
     expect(parsed.lastSavedAt).toBeDefined()
   })
 
