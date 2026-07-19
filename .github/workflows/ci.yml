@@ -36,7 +36,7 @@ jobs:
               if changed_files="$(gh api \
                 --paginate \
                 "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files?per_page=100" \
-                --jq '.[].filename')"; then
+                --jq '.[] | .filename, (.previous_filename // empty)')"; then
                 scope_known="true"
               else
                 echo "::warning::Could not enumerate pull-request files; keeping blocking E2E enabled."
@@ -46,7 +46,7 @@ jobs:
               if [ -n "$BASE_SHA" ] && [ "$BASE_SHA" != "0000000000000000000000000000000000000000" ]; then
                 if git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null ||
                   git fetch --no-tags --depth=1 origin "$BASE_SHA"; then
-                  if changed_files="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")"; then
+                  if changed_files="$(git diff --no-renames --name-only "$BASE_SHA" "$HEAD_SHA")"; then
                     scope_known="true"
                   fi
                 fi

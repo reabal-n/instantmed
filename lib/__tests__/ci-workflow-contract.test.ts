@@ -55,6 +55,10 @@ describe("CI workflow contract", () => {
     expect(ciWorkflowSource).toContain("Classify blocking E2E scope")
     expect(ciWorkflowSource).toContain("bash scripts/ci-e2e-required.sh")
     expect(ciWorkflowSource).toContain(
+      "--jq '.[] | .filename, (.previous_filename // empty)'",
+    )
+    expect(ciWorkflowSource).toContain("git diff --no-renames --name-only")
+    expect(ciWorkflowSource).toContain(
       "if: ${{ needs.build.result == 'success' && needs.build.outputs.e2e-required == 'true' }}",
     )
   })
