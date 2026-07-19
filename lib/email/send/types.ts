@@ -52,6 +52,18 @@ export const MARKETING_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
   "heard_about_us_backfill",
 ])
 
+export type CommunicationOutcome =
+  | { kind: "sent"; messageId?: string; outboxId?: string }
+  | { kind: "policy_suppressed"; reason: string }
+  | { kind: "transiently_blocked"; reason: string; retryAt?: string }
+  | { kind: "pending"; outboxId?: string; scheduledFor?: string }
+  | {
+      kind: "provider_failed"
+      error: string
+      retryable: boolean
+      outboxId?: string
+    }
+
 export interface SendEmailParams {
   to: string
   toName?: string
@@ -89,6 +101,8 @@ export interface SendEmailParams {
 
 export interface SendEmailResult {
   success: boolean
+  /** Lifecycle truth for optional communications such as review requests. */
+  outcome?: CommunicationOutcome
   messageId?: string
   outboxId?: string
   error?: string

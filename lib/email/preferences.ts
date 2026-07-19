@@ -2,14 +2,18 @@ import "server-only"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
+export type MarketingEmailDecision =
+  | { kind: "allowed" }
+  | { kind: "policy_suppressed" }
+  | { kind: "transiently_blocked" }
+
 /**
- * Check if a patient has opted out of marketing emails.
- * Used before sending marketing emails like abandoned checkout, review requests, etc.
- *
- * Extracted from app/actions/email-preferences.ts so lib/email/ senders
- * can call it without crossing the lib/ -> app/ import boundary.
+ * Resolve a patient's marketing preference without turning an unavailable
+ * preference store into a permanent opt-out.
  */
-export async function canSendMarketingEmail(profileId: string): Promise<boolean> {
+export async function getMarketingEmailDecision(
+  profileId: string,
+): Promise<MarketingEmailDecision> {
   const serviceClient = createServiceRoleClient()
 
   const { data, error } = await serviceClient
@@ -18,8 +22,7 @@ export async function canSendMarketingEmail(profileId: string): Promise<boolean>
     .eq("profile_id", profileId)
     .maybeSingle()
 
-  // Unreadable preferences fail closed — never send on an infra error.
-  if (error) return false
+  if (error) return { kind: "transiently_blocked" }
 
   // Consent is ON by default (operator decision 2026-07-17): a missing row
   // means the patient never touched email settings, which is the schema
@@ -27,8 +30,24 @@ export async function canSendMarketingEmail(profileId: string): Promise<boolean>
   // the unsubscribe flow, so absence = "never opted out", not "never agreed".
   // Every optional send still passes the one-click unsubscribe and the
   // account-less email_suppressions list at dispatch time.
-  if (!data) return true
+  if (!data) return { kind: "allowed" }
 
   // Any explicit opt-out on a stored row silences all marketing sends.
-  return data.marketing_emails === true && data.abandoned_checkout_emails === true
+  if (
+    data.marketing_emails !== true ||
+    data.abandoned_checkout_emails !== true
+  ) {
+    return { kind: "policy_suppressed" }
+  }
+
+  return { kind: "allowed" }
+}
+
+/**
+ * Backward-compatible boolean gate. Existing callers remain fail-closed on
+ * transient errors; lifecycle-aware callers can preserve retryability.
+ */
+export async function canSendMarketingEmail(profileId: string): Promise<boolean> {
+  const decision = await getMarketingEmailDecision(profileId)
+  return decision.kind === "allowed"
 }

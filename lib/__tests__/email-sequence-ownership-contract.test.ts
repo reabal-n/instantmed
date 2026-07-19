@@ -37,6 +37,10 @@ const reviewRequestSource = readFileSync(
   join(process.cwd(), "lib/email/review-request.ts"),
   "utf8",
 )
+const reviewRequestPolicySource = readFileSync(
+  join(process.cwd(), "lib/email/review-request-policy.ts"),
+  "utf8",
+)
 const reviewRequestRouteSource = readFileSync(
   join(process.cwd(), "app/api/cron/review-request/route.ts"),
   "utf8",
@@ -241,7 +245,9 @@ describe("email sequence ownership contract", () => {
     expect(reviewRequestSource).toContain('"script_sent_at"')
     expect(reviewRequestSource).toContain('.eq("payment_status", "paid")')
     expect(reviewRequestSource).toContain("REVIEW_REQUEST_CATCH_UP_DAYS")
-    expect(reviewRequestSource).toContain("REVIEW_REQUEST_PATIENT_COOLDOWN_DAYS")
+    expect(reviewRequestPolicySource).toContain(
+      "REVIEW_REQUEST_PATIENT_COOLDOWN_DAYS",
+    )
     expect(reviewRequestSource).not.toContain("seventyTwoHoursAgo")
     expect(reviewRequestSource).not.toContain("findReviewFollowupCandidates")
     expect(reviewRequestSource).not.toContain("sendReviewFollowupEmail")
@@ -277,25 +283,34 @@ describe("email sequence ownership contract", () => {
     expect(DB_IDEMPOTENT_EMAIL_TYPES.has("review_request")).toBe(true)
     expect(first).toBe(sameRequest)
     expect(laterRequest).not.toBe(first)
-    expect(reviewRequestSource).toContain('.neq("intake_id", intakeId)')
-    expect(reviewRequestSource).toContain('.neq("id", intakeId)')
+    expect(reviewRequestPolicySource).toContain(
+      "hasReviewRequestCooldownReservation",
+    )
+    expect(reviewRequestPolicySource).toContain(
+      "currentOutboxId: input.currentOutboxId",
+    )
+    expect(reviewRequestPolicySource).toContain('.neq("id", input.intakeId)')
   })
 
   it("re-checks marketing consent immediately before the review send", () => {
-    const finalPreferenceCheck = reviewRequestSource.indexOf(
-      "if (!await canSendMarketingEmail(candidate.patient_id))",
+    const finalPolicyGate = sendEmailSource.indexOf(
+      "const reviewGate = await gateReviewRequestProviderDelivery({",
     )
-    const send = reviewRequestSource.indexOf("const result = await sendEmail({")
+    const providerSend = sendEmailSource.indexOf(
+      'await fetch("https://api.resend.com/emails"',
+      finalPolicyGate,
+    )
 
-    expect(finalPreferenceCheck).toBeGreaterThan(-1)
-    expect(send).toBeGreaterThan(finalPreferenceCheck)
+    expect(reviewRequestPolicySource).toContain(
+      "getMarketingEmailDecision(patientId)",
+    )
+    expect(finalPolicyGate).toBeGreaterThan(-1)
+    expect(providerSend).toBeGreaterThan(finalPolicyGate)
     expect(
-      reviewRequestSource.slice(finalPreferenceCheck, send).match(/\bawait\b/g) ?? [],
-    ).toHaveLength(1)
-    expect(sendEmailSource).toContain("This is intentionally the final asynchronous policy check")
-    expect(sendEmailSource).toContain("return canSendMarketingEmail(patientId)")
+      sendEmailSource.slice(finalPolicyGate, providerSend),
+    ).not.toContain("await sleep")
     expect(sendEmailSource).toContain(
-      "if (!await isMarketingDeliveryAllowed(row.email_type, row.patient_id, row.to_email))",
+      'emailType !== "review_request"',
     )
   })
 

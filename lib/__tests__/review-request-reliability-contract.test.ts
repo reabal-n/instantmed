@@ -11,7 +11,11 @@ const outboxDispositionSource = read("lib/email/outbox-disposition.ts")
 const partialRecoverySource = read("lib/email/partial-intake-recovery.ts")
 const quietFailureSource = read("lib/email/quiet-failures.ts")
 const reconstructSource = read("lib/email/send/reconstruct.ts")
+const reviewBackfillRouteSource = read(
+  "app/api/cron/review-request-backfill/route.ts",
+)
 const reviewRequestSource = read("lib/email/review-request.ts")
+const reviewPolicySource = read("lib/email/review-request-policy.ts")
 const sendEmailSource = read("lib/email/send-email.ts")
 
 describe("review and partial-recovery reliability contract", () => {
@@ -67,32 +71,41 @@ describe("review and partial-recovery reliability contract", () => {
     const confirmation = reviewRequestSource.indexOf(
       "if (await isEmailSendDeliveryConfirmed(result))",
     )
-    const marker = reviewRequestSource.indexOf("await markReviewRequestSent(candidate.id)")
+    const marker = reviewRequestSource.indexOf(
+      "await finalizeReviewRequestDisposition({",
+      confirmation,
+    )
 
     expect(confirmation).toBeGreaterThan(-1)
     expect(marker).toBeGreaterThan(confirmation)
     expect(dispatcherSource).toContain("await finalizeOutboxSequenceDisposition(")
     expect(outboxDispositionSource).toContain("review_request: {")
-    expect(outboxDispositionSource).toContain('markerColumn: "review_email_sent_at"')
-    expect(outboxDispositionSource).toContain(".is(definition.markerColumn, null)")
+    expect(outboxDispositionSource).toContain('sent: "review_email_sent_at"')
+    expect(outboxDispositionSource).toContain(
+      'suppressed: "review_email_suppressed_at"',
+    )
+    expect(outboxDispositionSource).toContain(".is(markerColumn, null)")
   })
 
   it("suppresses declined, refunded, bounced, complained, unsubscribed, and already-asked requests", () => {
     expect(reviewRequestSource).toContain('.in("status", ["approved", "completed"])')
     expect(reviewRequestSource).toContain('.eq("payment_status", "paid")')
     expect(reviewRequestSource).toContain('.is("review_email_sent_at", null)')
-    expect(reviewRequestSource).toContain("patient.email_bounced === true")
-    expect(reviewRequestSource).toContain("await getSuppressedEmails([email])")
-    expect(reviewRequestSource).toContain("await isEmailSuppressed(email)")
-    expect(reviewRequestSource).toContain("await canSendMarketingEmail(candidate.patient_id)")
+    expect(reviewRequestSource).toContain(
+      '.is("review_email_suppressed_at", null)',
+    )
+    expect(reviewPolicySource).toContain("patient.email_bounced === true")
+    expect(reviewPolicySource).toContain("getEmailSuppressionDecisions")
+    expect(reviewPolicySource).toContain("getEmailBounceSuppressionDecision")
+    expect(reviewPolicySource).toContain("getMarketingEmailDecision")
   })
 
   it("terminally marks suppressed requests so they cannot starve the catch-up queue", () => {
     expect(reviewRequestSource).toContain(
-      "Filtering them here would let the same",
+      "cannot monopolise an oldest-first batch",
     )
     expect(reviewRequestSource).toContain(
-      'await markReviewRequestHandled(intakeId, "suppressed")',
+      "review_email_suppressed_at",
     )
     expect(dispatcherSource).toContain("(result.success || result.suppressed)")
     expect(dispatcherSource).toContain(
@@ -102,39 +115,65 @@ describe("review and partial-recovery reliability contract", () => {
 
   it("revalidates request state and consent before dispatcher retries reach the provider", () => {
     const reviewValidation = sendEmailSource.lastIndexOf(
-      "const reviewValidation = await validateReviewRequestOutboxRow(row)",
-    )
-    const preferenceCheck = sendEmailSource.lastIndexOf(
-      "if (!await isMarketingDeliveryAllowed(row.email_type, row.patient_id, row.to_email))",
+      "const reviewGate = await gateReviewRequestProviderDelivery({",
     )
     const providerCall = sendEmailSource.lastIndexOf(
       'await fetch("https://api.resend.com/emails"',
     )
 
     expect(reviewValidation).toBeGreaterThan(-1)
-    expect(preferenceCheck).toBeGreaterThan(reviewValidation)
-    expect(providerCall).toBeGreaterThan(preferenceCheck)
-    expect(sendEmailSource.slice(preferenceCheck, providerCall)).not.toContain("await sleep")
-    expect(sendEmailSource).toContain("return canSendMarketingEmail(patientId)")
-    expect(sendEmailSource).toContain(
-      "Suppressed before delivery: marketing preference does not allow send",
+    expect(providerCall).toBeGreaterThan(reviewValidation)
+    expect(
+      sendEmailSource.slice(reviewValidation, providerCall),
+    ).not.toContain("await sleep")
+    expect(reviewPolicySource).toContain(
+      "getEmailSuppressionDecisions([email])",
+    )
+    expect(reviewPolicySource).toContain(
+      "getMarketingEmailDecision(patientId)",
     )
   })
 
   it("revalidates request state and consent before the initial provider send", () => {
     const reviewValidation = sendEmailSource.indexOf(
-      "const reviewValidation = await validateReviewRequestOutboxRow({",
-    )
-    const preferenceCheck = sendEmailSource.indexOf(
-      "if (!await isMarketingDeliveryAllowed(emailType, patientId, to))",
+      "const reviewGate = await gateReviewRequestProviderDelivery({",
     )
     const providerCall = sendEmailSource.indexOf(
       'await fetch("https://api.resend.com/emails"',
+      reviewValidation,
     )
 
     expect(reviewValidation).toBeGreaterThan(-1)
-    expect(preferenceCheck).toBeGreaterThan(reviewValidation)
-    expect(providerCall).toBeGreaterThan(preferenceCheck)
-    expect(sendEmailSource.slice(preferenceCheck, providerCall)).not.toContain("await sleep")
+    expect(providerCall).toBeGreaterThan(reviewValidation)
+    expect(
+      sendEmailSource.slice(reviewValidation, providerCall),
+    ).not.toContain("await sleep")
+    expect(reviewPolicySource).toContain(
+      "getEmailBounceSuppressionDecision(email)",
+    )
+    expect(reviewPolicySource).toContain(
+      "getMarketingEmailDecision(patientId)",
+    )
+  })
+
+  it("uses one intake-scoped idempotency key regardless of recipient changes", () => {
+    expect(reviewRequestSource).toContain(
+      'idempotencyKey: `review-request:${intake.id}`',
+    )
+  })
+
+  it("keeps transient review blocks pending without burning a retry", () => {
+    expect(sendEmailSource).toContain("await deferOutboxRow(")
+    expect(reviewPolicySource).toContain("getNextSydneyReviewRequestRetryAt")
+  })
+
+  it("rejects backfill windows beyond the audited 120-day boundary", () => {
+    expect(reviewBackfillRouteSource).toContain(
+      "sinceDays > REVIEW_REQUEST_CATCH_UP_DAYS",
+    )
+    expect(reviewBackfillRouteSource).toContain(
+      '{ error: "invalid sinceDays" }',
+    )
+    expect(reviewBackfillRouteSource).toContain("{ status: 400 }")
   })
 })

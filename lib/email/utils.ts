@@ -7,21 +7,32 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("email-utils")
 
+export type EmailBounceSuppressionDecision =
+  | { kind: "allowed" }
+  | { kind: "policy_suppressed" }
+  | {
+      kind: "transiently_blocked"
+      reason: "lookup_failed" | "soft_bounce_threshold"
+    }
+
 /**
- * Check if an email address should be suppressed.
+ * Resolve provider delivery history without turning a read failure into
+ * permanent suppression.
  *
  * Suppression rules:
  * - Complaint → always suppress (spam report = permanent)
  * - Hard bounce → suppress after 1 occurrence
- * - Soft bounce → suppress only if 3+ soft bounces in last 24 hours
- *                 (allows retry after transient mailbox-full etc.)
+ * - 3+ soft bounces in 24h → transient block
+ * - Query failure → transient block
  */
-export async function isEmailSuppressed(email: string): Promise<boolean> {
+export async function getEmailBounceSuppressionDecision(
+  email: string,
+): Promise<EmailBounceSuppressionDecision> {
   const supabase = createServiceRoleClient()
 
   try {
     // Check for complaint or hard bounce (permanent suppress)
-    const { data: hardSuppress } = await supabase
+    const { data: hardSuppress, error: hardError } = await supabase
       .from("email_outbox")
       .select("id")
       .eq("to_email", email)
@@ -29,24 +40,56 @@ export async function isEmailSuppressed(email: string): Promise<boolean> {
       .limit(1)
       .maybeSingle()
 
-    if (hardSuppress) return true
+    if (hardError) {
+      logger.warn("Failed to check hard-bounce suppression", {
+        email: email.replace(/(.{2}).*@/, "$1***@"),
+        error: hardError.message,
+      })
+      return { kind: "transiently_blocked", reason: "lookup_failed" }
+    }
+    if (hardSuppress) return { kind: "policy_suppressed" }
 
     // Check for repeated soft bounces (3+ in last 24h = temporary suppress)
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-    const { count } = await supabase
+    const { count, error: softError } = await supabase
       .from("email_outbox")
       .select("id", { count: "exact", head: true })
       .eq("to_email", email)
       .eq("delivery_status", "bounced")
       .gte("created_at", oneDayAgo)
 
-    if ((count || 0) >= 3) return true
+    if (softError) {
+      logger.warn("Failed to check soft-bounce suppression", {
+        email: email.replace(/(.{2}).*@/, "$1***@"),
+        error: softError.message,
+      })
+      return { kind: "transiently_blocked", reason: "lookup_failed" }
+    }
+    if ((count || 0) >= 3) {
+      return {
+        kind: "transiently_blocked",
+        reason: "soft_bounce_threshold",
+      }
+    }
 
-    return false
+    return { kind: "allowed" }
   } catch (error) {
     logger.warn("Failed to check email suppression", { email: email.replace(/(.{2}).*@/, "$1***@"), error })
-    return false // Fail open
+    return { kind: "transiently_blocked", reason: "lookup_failed" }
   }
+}
+
+/**
+ * Backward-compatible gate. Legacy transactional callers still suppress at
+ * the soft-bounce threshold and fail open only for lookup failures.
+ */
+export async function isEmailSuppressed(email: string): Promise<boolean> {
+  const decision = await getEmailBounceSuppressionDecision(email)
+  return decision.kind === "policy_suppressed" ||
+    (
+      decision.kind === "transiently_blocked" &&
+      decision.reason === "soft_bounce_threshold"
+    )
 }
 
 /**
