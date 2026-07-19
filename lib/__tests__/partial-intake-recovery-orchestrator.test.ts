@@ -181,9 +181,9 @@ function candidate(
   return {
     answers_encrypted: null,
     converted_to_intake_id: null,
-    email: "patient@example.com",
+    email: "alex.taylor@patientmail.com.au",
     expires_at: "2026-07-25T00:00:00.000Z",
-    first_name: "Patient",
+    first_name: "Alex",
     recovery_email_sent_at: null,
     recovery_email_suppressed_at: null,
     recovery_tracking_id: trackingId,
@@ -411,7 +411,35 @@ describe("partial-intake recovery orchestration truth", () => {
       transiently_blocked: 1,
       pending: 1,
       provider_failed: 1,
+      testSkipped: 0,
     })
+  })
+
+  it("durably suppresses synthetic identities without provider contact", async () => {
+    state.candidateResult.data = [
+      candidate("tracking-1", {
+        email: "patient@example.com",
+        first_name: "E2E Test Patient",
+      }),
+    ]
+
+    await expect(recovery.processPartialIntakeRecoveries()).resolves.toEqual({
+      found: 1,
+      sent: 0,
+      policy_suppressed: 1,
+      transiently_blocked: 0,
+      pending: 0,
+      provider_failed: 0,
+      testSkipped: 1,
+    })
+
+    expect(
+      mocks.markPartialIntakeRecoveryCommunicationOutcome,
+    ).toHaveBeenCalledWith("tracking-1", {
+      kind: "policy_suppressed",
+      reason: "test_identity",
+    })
+    expect(mocks.sendEmail).not.toHaveBeenCalled()
   })
 
   it("writes sent only after durable confirmation and keeps suppression separate", async () => {

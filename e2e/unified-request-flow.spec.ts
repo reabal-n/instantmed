@@ -309,7 +309,9 @@ test.describe("Unified Request Flow - Draft Persistence", () => {
     const continueButton = page.locator('button[data-intake-primary-action="true"]').last()
     await expect(continueButton).toHaveAttribute("data-intake-primary-ready", "true")
     await continueButton.click()
-    await expect(page.getByRole("heading", { name: "Your details" })).toBeVisible()
+    await expect(
+      page.getByRole("heading", { name: "Your details", level: 2 }),
+    ).toBeVisible()
 
     const revalidatedPay = progress.getByRole("button", { name: "Pay completed" })
     await expect(revalidatedPay).toBeEnabled()

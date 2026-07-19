@@ -1,5 +1,6 @@
 import { expect, type Page, test } from "@playwright/test"
 
+import { installProductionSyntheticIsolation } from "./helpers/production-synthetic-isolation"
 import { waitForPageLoad } from "./helpers/test-utils"
 
 async function dismissOverlays(page: Page) {
@@ -26,6 +27,9 @@ async function openRequest(page: Page, path: string) {
     localStorage.removeItem("instantmed-draft-med-cert")
     localStorage.removeItem("instantmed-draft-prescription")
     localStorage.removeItem("instantmed-draft-consult")
+    localStorage.removeItem("instantmed-server-draft-med-cert")
+    localStorage.removeItem("instantmed-server-draft-prescription")
+    localStorage.removeItem("instantmed-server-draft-consult")
   })
 
   const response = await page.goto(path)
@@ -52,6 +56,10 @@ async function expectNoHorizontalOverflow(page: Page, label: string) {
 
 test.describe("Production request-flow synthetic", () => {
   test.describe.configure({ mode: "serial" })
+
+  test.beforeEach(async ({ page }) => {
+    await installProductionSyntheticIsolation(page)
+  })
 
   test("med-cert first step can select certificate type, duration, and start date", async ({ page }) => {
     await openRequest(page, "/request?service=med-cert")

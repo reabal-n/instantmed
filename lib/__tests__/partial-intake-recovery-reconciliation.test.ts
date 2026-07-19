@@ -128,6 +128,7 @@ describe("partial-intake recovery sent-marker reconciliation", () => {
       transiently_blocked: 0,
       pending: 0,
       provider_failed: 0,
+      testSkipped: 0,
     })
 
     expect(state.fromCalls).toEqual(["partial_intakes"])

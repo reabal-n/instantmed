@@ -2,6 +2,7 @@
 
 import * as React from "react"
 
+import { isLikelyTestPatientIdentity } from "@/lib/data/seeded-e2e-data"
 import {
   PartialIntakeRecoveryEmail,
   partialIntakeRecoverySubject,
@@ -197,7 +198,7 @@ async function finalizeSendOutcome(
 }
 
 export async function processPartialIntakeRecoveries(): Promise<
-  { found: number } & PartialRecoveryCounts
+  { found: number; testSkipped: number } & PartialRecoveryCounts
 > {
   const now = new Date()
   const reconciliation = await reconcileSentPartialIntakeRecoveryMarkers()
@@ -206,6 +207,7 @@ export async function processPartialIntakeRecoveries(): Promise<
   }
   const candidates = await findPartialIntakeRecoveryCandidates(now)
   const counts = emptyCounts()
+  let testSkipped = 0
 
   for (const candidate of candidates) {
     const decision = await evaluatePartialIntakeRecoveryPolicy({
@@ -230,6 +232,27 @@ export async function processPartialIntakeRecoveries(): Promise<
     }
 
     const draft = decision.draft
+    if (
+      isLikelyTestPatientIdentity({
+        email: draft.email,
+        fullName: draft.firstName,
+      })
+    ) {
+      const marked = await markPartialIntakeRecoveryCommunicationOutcome(
+        candidate.recovery_tracking_id,
+        {
+          kind: "policy_suppressed",
+          reason: "test_identity",
+        },
+      )
+      countOutcome(counts, marked)
+      if (marked.kind === "policy_suppressed") {
+        testSkipped += 1
+        logger.info("Skipping recovery email - test identity")
+      }
+      continue
+    }
+
     const serviceName = SERVICE_NAMES[draft.serviceType] ?? "request"
     try {
       const result = await sendEmail({
@@ -273,5 +296,6 @@ export async function processPartialIntakeRecoveries(): Promise<
   return {
     found: candidates.length,
     ...counts,
+    testSkipped,
   }
 }
