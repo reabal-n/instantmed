@@ -37,6 +37,13 @@ const reviewRequestSource = readFileSync(
   join(process.cwd(), "lib/email/review-request.ts"),
   "utf8",
 )
+const reviewRequestCandidateMigrationSource = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20260719101500_review_request_candidate_anti_join.sql",
+  ),
+  "utf8",
+)
 const reviewRequestPolicySource = readFileSync(
   join(process.cwd(), "lib/email/review-request-policy.ts"),
   "utf8",
@@ -241,9 +248,20 @@ describe("email sequence ownership contract", () => {
     expect(reviewRequestRouteSource).toContain("isSydneyReviewRequestHour(now)")
     expect(reviewRequestRouteSource).toContain("Outside the 10:00 Australia/Sydney send hour")
     expect(reviewRequestSource).toContain("findReviewRequestCandidates")
-    expect(reviewRequestSource).toContain('"document_sent_at"')
-    expect(reviewRequestSource).toContain('"script_sent_at"')
-    expect(reviewRequestSource).toContain('.eq("payment_status", "paid")')
+    expect(reviewRequestSource).toContain('"get_review_request_candidates"')
+    expect(reviewRequestCandidateMigrationSource).toContain(
+      "intake.document_sent_at",
+    )
+    expect(reviewRequestCandidateMigrationSource).toContain(
+      "intake.script_sent_at",
+    )
+    expect(reviewRequestCandidateMigrationSource).toContain(
+      "intake.payment_status = 'paid'",
+    )
+    expect(reviewRequestCandidateMigrationSource).toContain("and not exists (")
+    expect(reviewRequestCandidateMigrationSource).not.toContain(
+      "outbox.status in",
+    )
     expect(reviewRequestSource).toContain("REVIEW_REQUEST_CATCH_UP_DAYS")
     expect(reviewRequestPolicySource).toContain(
       "REVIEW_REQUEST_PATIENT_COOLDOWN_DAYS",
