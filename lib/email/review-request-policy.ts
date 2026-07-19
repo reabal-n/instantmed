@@ -47,7 +47,7 @@ interface ReviewRequestCooldownRow {
   created_at: string
 }
 
-export interface ReviewRequestPolicyFacts {
+interface ReviewRequestPolicyFacts {
   now: Date
   intake: ReviewRequestPolicyIntake | null
   expectedRecipient?: string

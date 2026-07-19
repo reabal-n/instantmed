@@ -105,20 +105,6 @@ export async function getEmailSuppressionDecisions(
 }
 
 /**
- * Backward-compatible fail-closed suppression set for existing callers.
- * Detailed callers should use getEmailSuppressionDecisions so transient
- * lookup failures remain retryable.
- */
-export async function getSuppressedEmails(emails: string[]): Promise<Set<string>> {
-  const decisions = await getEmailSuppressionDecisions(emails)
-  return new Set(
-    Array.from(decisions)
-      .filter(([, decision]) => decision.kind !== "allowed")
-      .map(([email]) => email),
-  )
-}
-
-/**
  * Add an address to the account-less suppression list (idempotent).
  */
 export async function suppressEmail(email: string, reason = "unsubscribe_link"): Promise<boolean> {

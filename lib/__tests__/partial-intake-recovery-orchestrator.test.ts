@@ -36,7 +36,6 @@ const state = vi.hoisted(() => ({
 const mocks = vi.hoisted(() => ({
   decryptJSONB: vi.fn(),
   evaluatePartialIntakeRecoveryPolicy: vi.fn(),
-  getSuppressedEmails: vi.fn(),
   isEmailSendDeliveryConfirmed: vi.fn(),
   markPartialIntakeRecoveryCommunicationOutcome: vi.fn(),
   sendEmail: vi.fn(),
@@ -61,10 +60,6 @@ vi.mock("@/lib/email/partial-intake-recovery-policy", () => ({
     mocks.markPartialIntakeRecoveryCommunicationOutcome,
   PARTIAL_RECOVERY_MAX_IDLE_HOURS: 6,
   PARTIAL_RECOVERY_MIN_IDLE_MINUTES: 60,
-}))
-
-vi.mock("@/lib/email/suppression", () => ({
-  getSuppressedEmails: mocks.getSuppressedEmails,
 }))
 
 vi.mock("@/lib/security/phi-encryption", () => ({
@@ -234,7 +229,6 @@ describe("partial-intake recovery candidate truth", () => {
     state.filters = []
     state.limits = []
     state.updates = []
-    mocks.getSuppressedEmails.mockResolvedValue(new Set())
     mocks.decryptJSONB.mockResolvedValue({})
     mocks.evaluatePartialIntakeRecoveryPolicy.mockImplementation(
       async ({ recoveryTrackingId }: { recoveryTrackingId: string }) => {
@@ -315,7 +309,6 @@ describe("partial-intake recovery orchestration truth", () => {
     state.filters = []
     state.limits = []
     state.updates = []
-    mocks.getSuppressedEmails.mockResolvedValue(new Set())
     mocks.decryptJSONB.mockResolvedValue({})
     mocks.evaluatePartialIntakeRecoveryPolicy.mockImplementation(
       async ({ recoveryTrackingId }: { recoveryTrackingId: string }) => {

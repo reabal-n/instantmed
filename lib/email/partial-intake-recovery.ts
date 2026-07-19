@@ -29,7 +29,7 @@ const SERVICE_NAMES: Record<string, string> = {
   consult: "Doctor Consultation",
 }
 
-export interface PartialIntakeRecoveryCandidate {
+interface PartialIntakeRecoveryCandidate {
   recovery_tracking_id: string
   session_id: string
   service_type: string

@@ -122,7 +122,7 @@ describe("getEmailSuppressionDecisions", () => {
         error: { message: "db unavailable" },
       },
     })
-    const { getEmailSuppressionDecisions, getSuppressedEmails } = await import(
+    const { getEmailSuppressionDecisions } = await import(
       "@/lib/email/suppression"
     )
 
@@ -133,9 +133,6 @@ describe("getEmailSuppressionDecisions", () => {
     expect(decisions.get("patient@example.com")).toEqual({
       kind: "transiently_blocked",
     })
-    await expect(getSuppressedEmails(["patient@example.com"])).resolves.toEqual(
-      new Set(["patient@example.com"]),
-    )
   })
 
   it("preserves confirmed suppression while marking unresolved addresses transient", async () => {

@@ -30,19 +30,6 @@ export function getReviewFulfilmentAt(
   return null
 }
 
-export function isReviewFulfilmentOldEnough(
-  intake: ReviewFulfilmentFields,
-  now = new Date(),
-): boolean {
-  const fulfilledAt = getReviewFulfilmentAt(intake)
-  if (!fulfilledAt) return false
-
-  const fulfilledAtMs = new Date(fulfilledAt).getTime()
-  if (!Number.isFinite(fulfilledAtMs)) return false
-
-  return fulfilledAtMs <= now.getTime() - REVIEW_REQUEST_DELAY_HOURS * 60 * 60 * 1000
-}
-
 /**
  * A review request is retryable from 48 hours after fulfilment through the
  * inclusive 120-day catch-up boundary.

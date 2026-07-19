@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest"
 import {
   getNextSydneyReviewRequestRetryAt,
   getReviewFulfilmentAt,
-  isReviewFulfilmentOldEnough,
   isReviewFulfilmentWithinCatchUpWindow,
   isSydneyReviewRequestHour,
   REVIEW_REQUEST_CATCH_UP_DAYS,
@@ -46,15 +45,15 @@ describe("review request timing", () => {
     }
 
     expect(REVIEW_REQUEST_DELAY_HOURS).toBe(48)
-    expect(isReviewFulfilmentOldEnough(intake, now)).toBe(true)
+    expect(isReviewFulfilmentWithinCatchUpWindow(intake, now)).toBe(true)
     expect(
-      isReviewFulfilmentOldEnough(
+      isReviewFulfilmentWithinCatchUpWindow(
         { ...intake, document_sent_at: "2026-07-14T09:59:59.000Z" },
         now,
       ),
     ).toBe(true)
     expect(
-      isReviewFulfilmentOldEnough(
+      isReviewFulfilmentWithinCatchUpWindow(
         { ...intake, document_sent_at: "2026-07-15T10:00:01.000Z" },
         now,
       ),
@@ -125,14 +124,14 @@ describe("review request timing", () => {
 
   it("rejects missing or invalid fulfilment timestamps", () => {
     expect(
-      isReviewFulfilmentOldEnough({
+      isReviewFulfilmentWithinCatchUpWindow({
         category: "medical_certificate",
         document_sent_at: null,
         script_sent_at: null,
       }),
     ).toBe(false)
     expect(
-      isReviewFulfilmentOldEnough({
+      isReviewFulfilmentWithinCatchUpWindow({
         category: "prescription",
         document_sent_at: null,
         script_sent_at: "not-a-date",

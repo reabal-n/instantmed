@@ -3,8 +3,11 @@ import { describe, expect, it } from "vitest"
 import {
   classifyReviewRequestPolicy,
   hasReviewRequestCooldownReservation,
-  type ReviewRequestPolicyFacts,
 } from "@/lib/email/review-request-policy"
+
+type ReviewRequestPolicyFacts = Parameters<
+  typeof classifyReviewRequestPolicy
+>[0]
 
 const SYDNEY_TEN = new Date("2026-07-20T00:15:00.000Z")
 
