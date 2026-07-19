@@ -21,7 +21,7 @@
 
 Prior to these, the canonical refund code had **zero unit coverage** — only the e2e suite exercised it, which gave slow feedback and no per-branch visibility.
 
-**CI pipeline:** `pnpm ci` runs `install → lint → typecheck → test → build` in sequence. The blocking PR E2E gate always runs the current ops/navigation/clinical-input smoke (`e2e/admin.ops-index.spec.ts`, `e2e/marketing-dashboard-nav.spec.ts`, `e2e/dashboard.keyboard-safety.spec.ts`) plus focused paid-flow smoke coverage (`pnpm medcert:readiness:e2e`, `e2e/unified-request-flow.spec.ts`, `e2e/consult-subtypes.spec.ts`, `e2e/intake-terminal-blocks.spec.ts`, `e2e/parchment-webhook.spec.ts`) after a fail-fast required-secret check, then runs `e2e/checkout-resume.spec.ts` as a separate encrypted-answer safety gate with isolated Playwright artifacts. The older broad Playwright suite is not a reliable blocking signal right now; it contains stale routes and product-state assumptions and should be repaired as a dedicated E2E cleanup pass before being restored as a merge gate. Preview deployments run `e2e/preview-smoke.spec.ts`.
+**CI pipeline:** `pnpm ci` runs `install → lint → typecheck → test → build` in sequence. For every push/PR whose changed-file set contains at least one non-Markdown path, the blocking E2E gate runs the current ops/navigation/clinical-input smoke (`e2e/admin.ops-index.spec.ts`, `e2e/marketing-dashboard-nav.spec.ts`, `e2e/dashboard.keyboard-safety.spec.ts`) plus focused paid-flow smoke coverage (`pnpm medcert:readiness:e2e`, `e2e/unified-request-flow.spec.ts`, `e2e/consult-subtypes.spec.ts`, `e2e/intake-terminal-blocks.spec.ts`, `e2e/parchment-webhook.spec.ts`) after a fail-fast required-secret check, then runs `e2e/checkout-resume.spec.ts` as a separate encrypted-answer safety gate with isolated Playwright artifacts. Markdown-only changes skip this shared-fixture job because they cannot alter the built application; file enumeration and classifier failures keep E2E enabled. The older broad Playwright suite is not a reliable blocking signal right now; it contains stale routes and product-state assumptions and should be repaired as a dedicated E2E cleanup pass before being restored as a merge gate. Preview deployments run `e2e/preview-smoke.spec.ts`.
 
 **Required CI secrets:** `E2E_SECRET`, `ENCRYPTION_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are required for ops/admin E2E pages and seeded auth. The paid-flow E2E gate also requires `STRIPE_WEBHOOK_SECRET` (test-mode `whsec_...`) and `PARCHMENT_WEBHOOK_SECRET`; CI fails fast if any required secret is missing so payment/prescribing specs cannot silently skip. The signed guest-resume E2E runs in its own step and derives test-only `INTERNAL_API_SECRET` and `PHI_MASTER_KEY` values from `E2E_SECRET` and `ENCRYPTION_KEY`; it deliberately seeds stale benign plaintext beside encrypted high-stakes truth to prove the route reads authoritative encrypted answers. Focused unit coverage separately proves decrypt failure, disabled reads, malformed envelopes, invalid payloads, Session-replacement/expiry interleaving, exact guest email completion links, and redirect-before-webhook conversion values.
 
@@ -130,7 +130,7 @@ Do not use public inboxes such as Mailinator for staff, admin, privileged, or PH
 
 ### Test Data
 
-E2E tests auto-seed and teardown test data. Seed/teardown scripts in `scripts/e2e/`, invoked by `e2e/global-setup.ts` and `e2e/global-teardown.ts`. Paid-flow fixtures use deterministic patient IDs registered in `lib/data/seeded-e2e-data.ts`, and every direct E2E intake insert must set `exclude_from_reporting: true`. The canonical auth/profile/intake fixtures are preserved by default during teardown; only transient child records are cleared unless `E2E_TEARDOWN_RESET_FIXTURES=1` is set for a deliberate full fixture reset. CI serializes the blocking E2E job across branches because those shared fixtures point at the same Supabase project. Helpers in `e2e/helpers/`:
+E2E tests auto-seed and teardown test data. Seed/teardown scripts in `scripts/e2e/`, invoked by `e2e/global-setup.ts` and `e2e/global-teardown.ts`. Paid-flow fixtures use deterministic patient IDs registered in `lib/data/seeded-e2e-data.ts`, and every direct E2E intake insert must set `exclude_from_reporting: true`. The canonical auth/profile/intake fixtures are preserved by default during teardown; only transient child records are cleared unless `E2E_TEARDOWN_RESET_FIXTURES=1` is set for a deliberate full fixture reset. CI serializes the blocking E2E job across branches because those shared fixtures point at the same Supabase project. `scripts/ci-e2e-required.sh` keeps Markdown-only changes out of that shared queue while failing closed to E2E for runtime/MDX/workflow changes, empty file sets, and unsupported events. Helpers in `e2e/helpers/`:
 - `auth.ts` — `loginAsTestUser()` / `logoutTestUser()` via `/api/test/login` endpoint
 - `db.ts` — database helpers for test data
 - `test-utils.ts` — shared test utilities
@@ -224,6 +224,8 @@ The certificate pipeline has strict idempotency and security requirements. These
 # .github/workflows/ci.yml
 jobs:
   build:
+    outputs:
+      e2e-required: changed-file policy result
     steps:
       - official GitHub actions pinned to Node 24-compatible releases
       - actions/setup-node with node-version-file: .nvmrc
@@ -244,6 +246,7 @@ jobs:
       - lhci autorun                      # Category-score assertions only (no recommended preset)
   e2e:
     needs: build
+    if: build passed and e2e-required is true
     steps:
       - verify E2E_SECRET + Supabase + ENCRYPTION_KEY + STRIPE_WEBHOOK_SECRET + PARCHMENT_WEBHOOK_SECRET are present
       - playwright test --project=chromium e2e/admin.ops-index.spec.ts e2e/marketing-dashboard-nav.spec.ts e2e/dashboard.keyboard-safety.spec.ts
@@ -257,7 +260,7 @@ steps:
   - playwright test --config=playwright.preview.config.ts e2e/preview-smoke.spec.ts
 ```
 
-**E2E runs in two places:** (1) `ci.yml` on push/PR to main as required Chromium ops/navigation/clinical-input smoke plus blocking paid critical flows; (2) `e2e-preview.yml` against Vercel preview deployments for deploy health plus an active `/request` route smoke. Protected Vercel preview E2E requires the GitHub secret `VERCEL_AUTOMATION_BYPASS_SECRET`; without it, the preview readiness check fails fast on the expected `401`. Preview smoke requires `410 Gone` from `/api/test/login` because `/api/test/*` is always blocked on Vercel production and preview deployments, including when `PLAYWRIGHT=1` is accidentally configured. Unit tests and lint run on every push to main and all PRs.
+**E2E runs in two places:** (1) `ci.yml` on push/PR to main as required Chromium ops/navigation/clinical-input smoke plus blocking paid critical flows whenever at least one changed path is not Markdown; (2) `e2e-preview.yml` against explicitly requested Vercel preview deployments for deploy health plus an active `/request` route smoke. Markdown-only pushes/PRs still run the full `build` and Lighthouse jobs but skip the serialized shared-fixture E2E job; an unknown or unreadable change scope runs E2E. Protected Vercel preview E2E requires the GitHub secret `VERCEL_AUTOMATION_BYPASS_SECRET`; without it, the preview readiness check fails fast on the expected `401`. Preview smoke requires `410 Gone` from `/api/test/login` because `/api/test/*` is always blocked on Vercel production and preview deployments, including when `PLAYWRIGHT=1` is accidentally configured. Unit tests and lint run on every push to main and all PRs.
 
 **Monthly stack health:** `.github/workflows/stack-drift.yml` runs on the first day of each month and can be triggered manually. It verifies active Node 24, stack pins, lockfile dedupe, high-severity audit, and writes a non-blocking outdated-package report to the workflow summary. Framework upgrades remain separate planned windows, not opportunistic dependency bumps.
 

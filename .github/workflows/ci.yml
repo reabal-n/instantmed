@@ -13,8 +13,65 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      e2e-required: ${{ steps.e2e_scope.outputs.required }}
     steps:
       - uses: actions/checkout@v6.0.2
+
+      - name: Classify blocking E2E scope
+        id: e2e_scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          required="true"
+          changed_files=""
+          scope_known="false"
+
+          case "$EVENT_NAME" in
+            pull_request)
+              if changed_files="$(gh api \
+                --paginate \
+                "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files?per_page=100" \
+                --jq '.[] | .filename, (.previous_filename // empty)')"; then
+                scope_known="true"
+              else
+                echo "::warning::Could not enumerate pull-request files; keeping blocking E2E enabled."
+              fi
+              ;;
+            push)
+              if [ -n "$BASE_SHA" ] && [ "$BASE_SHA" != "0000000000000000000000000000000000000000" ]; then
+                if git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null ||
+                  git fetch --no-tags --depth=1 origin "$BASE_SHA"; then
+                  if changed_files="$(git diff --no-renames --name-only "$BASE_SHA" "$HEAD_SHA")"; then
+                    scope_known="true"
+                  fi
+                fi
+              fi
+
+              if [ "$scope_known" != "true" ]; then
+                echo "::warning::Could not compute the pushed file set; keeping blocking E2E enabled."
+              fi
+              ;;
+          esac
+
+          if [ "$scope_known" = "true" ]; then
+            required="$(printf '%s\n' "$changed_files" | bash scripts/ci-e2e-required.sh "$EVENT_NAME")"
+          fi
+
+          case "$required" in
+            true | false) ;;
+            *)
+              echo "::warning::Invalid E2E scope result; keeping blocking E2E enabled."
+              required="true"
+              ;;
+          esac
+
+          echo "required=$required" >> "$GITHUB_OUTPUT"
+          echo "Blocking E2E required: $required"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6.0.5
@@ -320,6 +377,7 @@ jobs:
 
   e2e:
     needs: build
+    if: ${{ needs.build.result == 'success' && needs.build.outputs.e2e-required == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # The blocking E2E suite reuses a deterministic Supabase fixture set.
