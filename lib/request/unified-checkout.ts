@@ -9,7 +9,6 @@ import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing
 import {
   validateCertificateStep,
   validateDetailsStep,
-  validateEdAssessmentStep,
   validateEdGoalsStep,
   validateEdHealthStep,
   validateEdPreferencesStep,
@@ -420,7 +419,6 @@ export function validateAnswersServerSide(
     if (consultSubtype === "ed") {
       return firstValidationError(
         validateEdGoalsStep(answers),
-        validateEdAssessmentStep(answers),
         validateEdHealthStep(answers),
         validateEdPreferencesStep(answers),
       )

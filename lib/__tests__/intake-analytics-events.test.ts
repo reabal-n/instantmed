@@ -233,7 +233,6 @@ describe("intake analytics events", () => {
   it("keeps specialty completion on the centralized subtype-aware funnel hook", () => {
     for (const path of [
       "components/request/steps/ed-goals-step.tsx",
-      "components/request/steps/ed-assessment-step.tsx",
       "components/request/steps/ed-health-step.tsx",
       "components/request/steps/ed-preferences-step.tsx",
       "components/request/steps/hair-loss-goals-step.tsx",

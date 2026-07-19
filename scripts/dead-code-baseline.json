@@ -1757,7 +1757,6 @@
     "production|exports|lib/request/step-registry.ts|isConsultSubtypeAvailable",
     "production|exports|lib/request/validation.ts|certificateStepSchema",
     "production|exports|lib/request/validation.ts|checkoutStepSchema",
-    "production|exports|lib/request/validation.ts|edAssessmentStepSchema",
     "production|exports|lib/request/validation.ts|edGoalsStepSchema",
     "production|exports|lib/request/validation.ts|edHealthStepSchema",
     "production|exports|lib/request/validation.ts|edPreferencesStepSchema",

@@ -1,5 +1,5 @@
-import { readFileSync } from "node:fs"
-import { join } from "node:path"
+import { existsSync,readFileSync } from "node:fs"
+import { join, resolve } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
@@ -22,7 +22,6 @@ const intakeStepFiles = [
   "components/request/steps/patient-details-step.tsx",
   "components/request/steps/review-step.tsx",
   "components/request/steps/ed-goals-step.tsx",
-  "components/request/steps/ed-assessment-step.tsx",
   "components/request/steps/ed-health-step.tsx",
   "components/request/steps/ed-preferences-step.tsx",
   "components/request/steps/hair-loss-goals-step.tsx",
@@ -123,18 +122,23 @@ describe("intake mobile viewport contract", () => {
     expect(certificateSource).toContain('aria-labelledby="certificate-start-date-label"')
   })
 
-  it("keeps the ED assessment to one visible IIEF question at a time", () => {
-    const source = readProjectFile("components/request/steps/ed-assessment-step.tsx")
-    expect(source).toContain("activeQuestionIndex")
-    expect(source).toContain("Question {activeQuestionIndex + 1} of")
-    expect(source).toContain("handleScaleChange")
+  // The one-question-at-a-time IIEF-5 step was a deliberate mobile
+  // optimisation, but the whole step was retired on 2026-07-19: five scale
+  // questions produced context the doctor reviews rather than a gate, at the
+  // cost of a step on the flow's advertised length. One frequency item on the
+  // opening screen replaces it.
+  it("no longer ships a separate ED assessment step", () => {
+    expect(
+      existsSync(resolve(process.cwd(), "components/request/steps/ed-assessment-step.tsx")),
+    ).toBe(false)
   })
 
-  it("keeps ED assessment progress visually slim inside touch-sized buttons", () => {
-    const source = readProjectFile("components/request/steps/ed-assessment-step.tsx")
-    expect(source).toContain('data-ed-assessment-progress-button="true"')
-    expect(source).toContain('data-ed-assessment-progress-bar="true"')
-    expect(source).not.toContain('"h-1.5 flex-1 rounded-full transition-colors"')
+  it("opens ED with duration plus a single severity item, not a goal grid", () => {
+    const source = readProjectFile("components/request/steps/ed-goals-step.tsx")
+    expect(source).toContain("edErectionFrequency")
+    expect(source).toContain("ScaleChoiceGroup")
+    expect(source).not.toContain("iief1")
+    expect(source).not.toContain("GOAL_OPTIONS")
   })
 
   it("uses compact chips for UTI symptom multi-select instead of full toggle rows", () => {
@@ -197,9 +201,12 @@ describe("intake mobile viewport contract", () => {
     expect(source).not.toContain("hasPrescriptionHistory")
   })
 
-  it("keeps ED assessment score copy doctor-review framed instead of outcome-led", () => {
-    const source = readProjectFile("components/request/steps/ed-assessment-step.tsx")
-    expect(source).toContain("A doctor will review your answers")
+  // Retargeted to ed-goals-step on 2026-07-19: the severity question (and the
+  // outcome-claim risk that comes with reflecting a score back at the patient)
+  // now lives on the opening screen.
+  it("keeps ED severity copy doctor-review framed instead of outcome-led", () => {
+    const source = readProjectFile("components/request/steps/ed-goals-step.tsx")
+    expect(source).toContain("Your doctor reviews your full health")
     expect(source).not.toContain("respond well to treatment")
     expect(source).not.toContain("Treatment is very effective")
     expect(source).not.toContain("Our doctors regularly help patients")
@@ -253,13 +260,17 @@ describe("intake mobile viewport contract", () => {
     expect(source).not.toContain("opacity-60")
   })
 
-  it("keeps ED goal selection as a balanced four-option grid", () => {
+  // The goal grid was removed on 2026-07-19 — no doctor surface acted on the
+  // answer, and it sat on the screen that loses 57% of ED patients. Duration
+  // stays a balanced four-option grid.
+  it("keeps ED duration selection as a balanced four-option grid", () => {
     const source = readProjectFile("components/request/steps/ed-goals-step.tsx")
-    const goalOptionsMatch = source.match(/const GOAL_OPTIONS = \[([\s\S]*?)\] as const/)
-    expect(goalOptionsMatch).toBeTruthy()
-    const optionRows = goalOptionsMatch?.[1].match(/value:/g) ?? []
-    expect(optionRows).toHaveLength(4)
+    expect(source).not.toContain("GOAL_OPTIONS")
     expect(source).not.toContain("Maintain what I have")
+    const durationOptionsMatch = source.match(/const DURATION_OPTIONS = \[([\s\S]*?)\] as const/)
+    expect(durationOptionsMatch).toBeTruthy()
+    const optionRows = durationOptionsMatch?.[1].match(/value:/g) ?? []
+    expect(optionRows).toHaveLength(4)
   })
 
   it("keeps the ED first screen focused on clinical choices while checkout owns the 18+ DOB gate", () => {
@@ -269,7 +280,7 @@ describe("intake mobile viewport contract", () => {
 
     expect(source).not.toContain("edAgeConfirmed")
     expect(source).not.toContain("<ToggleList")
-    expect(source).toContain('<QuestionPrompt label="What\'s your main goal?" required />')
+    expect(source).toContain('<QuestionPrompt label="How long has this been a concern?" required />')
     expect(authenticatedCheckout).toContain("if (age < 18)")
     expect(guestCheckout).toContain("if (guestAge < 18)")
   })
