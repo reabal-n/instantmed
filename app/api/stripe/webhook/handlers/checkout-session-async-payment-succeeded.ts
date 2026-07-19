@@ -112,6 +112,7 @@ export async function handleAsyncPaymentSucceeded(
           supabase,
         })
         return NextResponse.json({
+          already_paid: finalization.kind !== "settled",
           received: true,
           skipped: true,
           completion_healed: true,
@@ -182,6 +183,7 @@ export async function handleAsyncPaymentSucceeded(
         },
       )
       return NextResponse.json({
+        already_paid: finalization.intake.payment_status === "paid",
         received: true,
         skipped: true,
         reason: "stale_checkout_session",

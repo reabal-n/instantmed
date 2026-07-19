@@ -358,19 +358,17 @@ describe("Stripe paid-state webhook guards", () => {
       payment_status: "paid",
     }
 
-    if (eventType === "checkout.session.completed") {
-      await handleCheckoutSessionCompleted({
+    const response = eventType === "checkout.session.completed"
+      ? await handleCheckoutSessionCompleted({
         event: makeEvent(eventType, session),
         startTime: Date.now(),
         supabase: supabase as never,
       })
-    } else {
-      await handleAsyncPaymentSucceeded({
+      : await handleAsyncPaymentSucceeded({
         event: makeEvent(eventType, session),
         startTime: Date.now(),
         supabase: supabase as never,
       })
-    }
 
     expect(mocks.completeConfirmedPaymentWork).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -379,6 +377,12 @@ describe("Stripe paid-state webhook guards", () => {
         session,
       }),
     )
+    await expect((response as Response).json()).resolves.toMatchObject({
+      already_paid: true,
+      completion_healed: true,
+      received: true,
+      skipped: true,
+    })
   })
 
   it("sends stale completed checkout sessions to the webhook DLQ", async () => {
@@ -424,6 +428,58 @@ describe("Stripe paid-state webhook guards", () => {
       intake_id: intakeId,
       session_id: "cs_old",
     }))
+  })
+
+  it.each([
+    "checkout.session.completed",
+    "checkout.session.async_payment_succeeded",
+  ])("reports an already-paid intake without trusting stale %s", async (eventType) => {
+    const intakeId = "77777777-7777-4777-8777-777777777777"
+    const { supabase, updates } = createSupabaseMock({
+      id: intakeId,
+      payment_id: "cs_current",
+      payment_status: "paid",
+      status: "paid",
+    })
+    const session = {
+      amount_total: 2995,
+      customer: "cus_test",
+      id: "cs_stale",
+      metadata: {
+        category: "medical_certificate",
+        intake_id: intakeId,
+        patient_id: "patient-1",
+        service_slug: "med-cert-sick",
+      },
+      payment_intent: "pi_stale",
+      payment_status: "paid",
+    }
+
+    const response = eventType === "checkout.session.completed"
+      ? await handleCheckoutSessionCompleted({
+        event: makeEvent(eventType, session),
+        startTime: Date.now(),
+        supabase: supabase as never,
+      })
+      : await handleAsyncPaymentSucceeded({
+        event: makeEvent(eventType, session),
+        startTime: Date.now(),
+        supabase: supabase as never,
+      })
+
+    await expect((response as Response).json()).resolves.toMatchObject({
+      already_paid: true,
+      reason: "stale_checkout_session",
+      received: true,
+      skipped: true,
+    })
+    expect(updates).not.toContainEqual(expect.objectContaining({
+      payload: expect.objectContaining({
+        payment_status: "paid",
+        status: "paid",
+      }),
+    }))
+    expect(mocks.completeConfirmedPaymentWork).not.toHaveBeenCalled()
   })
 
   it("does not treat a zero-row force update as concurrent success unless the intake is paid", async () => {
