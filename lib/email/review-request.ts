@@ -10,28 +10,22 @@ import {
   reviewRequestSubject,
 } from "@/lib/email/components/templates/review-request"
 import { isEmailSendDeliveryConfirmed } from "@/lib/email/outbox-delivery"
-import { canSendMarketingEmail } from "@/lib/email/preferences"
+import { finalizeOutboxSequenceDisposition } from "@/lib/email/outbox-disposition"
+import type { ReviewRequestPatient } from "@/lib/email/review-request-policy-core"
+import { reconcileSentReviewRequestMarkers } from "@/lib/email/review-request-reconciliation"
 import {
   getReviewFulfilmentAt,
-  isReviewFulfilmentOldEnough,
+  isReviewFulfilmentWithinCatchUpWindow,
   REVIEW_REQUEST_BATCH_SIZE,
   REVIEW_REQUEST_CATCH_UP_DAYS,
   REVIEW_REQUEST_DELAY_HOURS,
-  REVIEW_REQUEST_PATIENT_COOLDOWN_DAYS,
 } from "@/lib/email/review-request-timing"
+import type { CommunicationOutcome } from "@/lib/email/send/types"
 import { sendEmail } from "@/lib/email/send-email"
-import { getSuppressedEmails } from "@/lib/email/suppression"
-import { isEmailSuppressed } from "@/lib/email/utils"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("review-request")
-
-interface ReviewPatient {
-  email: string | null
-  email_bounced: boolean | null
-  first_name: string | null
-}
 
 interface ReviewRequestCandidate {
   id: string
@@ -42,26 +36,26 @@ interface ReviewRequestCandidate {
   document_sent_at: string | null
   script_sent_at: string | null
   review_email_sent_at: string | null
-  patient: ReviewPatient | null
+  review_email_suppressed_at: string | null
+  patient: ReviewRequestPatient | null
 }
-
-type ReviewSendOutcome = "sent" | "suppressed" | "pending" | "failed"
-
-const REVIEW_CANDIDATE_SELECT = `
-  id,
-  patient_id,
-  category,
-  status,
-  payment_status,
-  document_sent_at,
-  script_sent_at,
-  review_email_sent_at,
-  patient:profiles!patient_id(email, first_name, email_bounced)
-`
 
 function normalizeCandidate(row: Record<string, unknown>): ReviewRequestCandidate {
   const relation = row.patient
-  const patient = Array.isArray(relation) ? relation[0] : relation
+  const relatedPatient = Array.isArray(relation) ? relation[0] : relation
+  const patient = relatedPatient && typeof relatedPatient === "object"
+    ? relatedPatient as ReviewRequestPatient
+    : typeof row.patient_email === "string"
+      ? {
+          email: row.patient_email,
+          first_name: typeof row.patient_first_name === "string"
+            ? row.patient_first_name
+            : null,
+          email_bounced: typeof row.patient_email_bounced === "boolean"
+            ? row.patient_email_bounced
+            : null,
+        }
+      : null
 
   return {
     id: String(row.id),
@@ -74,9 +68,11 @@ function normalizeCandidate(row: Record<string, unknown>): ReviewRequestCandidat
     review_email_sent_at: typeof row.review_email_sent_at === "string"
       ? row.review_email_sent_at
       : null,
-    patient: patient && typeof patient === "object"
-      ? patient as ReviewPatient
-      : null,
+    review_email_suppressed_at:
+      typeof row.review_email_suppressed_at === "string"
+        ? row.review_email_suppressed_at
+        : null,
+    patient,
   }
 }
 
@@ -87,63 +83,41 @@ async function findCandidatesInFulfilmentWindow(opts: {
   if (opts.limit <= 0) return []
 
   const supabase = createServiceRoleClient()
-  const now = Date.now()
+  const now = new Date()
+  const boundedSinceDays = Math.min(
+    Math.max(opts.sinceDays, 0),
+    REVIEW_REQUEST_CATCH_UP_DAYS,
+  )
   const eligibleBefore = new Date(
-    now - REVIEW_REQUEST_DELAY_HOURS * 60 * 60 * 1000,
+    now.getTime() - REVIEW_REQUEST_DELAY_HOURS * 60 * 60 * 1000,
   ).toISOString()
   const catchUpFloor = new Date(
-    now - opts.sinceDays * 24 * 60 * 60 * 1000,
+    now.getTime() - boundedSinceDays * 24 * 60 * 60 * 1000,
   ).toISOString()
 
-  const [certificateResult, prescribingResult] = await Promise.all([
-    supabase
-      .from("intakes")
-      .select(REVIEW_CANDIDATE_SELECT)
-      .eq("category", "medical_certificate")
-      .in("status", ["approved", "completed"])
-      .eq("payment_status", "paid")
-      .is("review_email_sent_at", null)
-      .not("patient_id", "is", null)
-      .neq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
-      .gte("document_sent_at", catchUpFloor)
-      .lte("document_sent_at", eligibleBefore)
-      .order("document_sent_at", { ascending: true })
-      .limit(opts.limit),
-    supabase
-      .from("intakes")
-      .select(REVIEW_CANDIDATE_SELECT)
-      .in("category", ["prescription", "consult"])
-      .in("status", ["approved", "completed"])
-      .eq("payment_status", "paid")
-      .is("review_email_sent_at", null)
-      .not("patient_id", "is", null)
-      .neq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
-      .gte("script_sent_at", catchUpFloor)
-      .lte("script_sent_at", eligibleBefore)
-      .order("script_sent_at", { ascending: true })
-      .limit(opts.limit),
-  ])
+  const { data, error } = await supabase.rpc(
+    "get_review_request_candidates",
+    {
+      p_catch_up_floor: catchUpFloor,
+      p_eligible_before: eligibleBefore,
+      p_limit: opts.limit,
+      p_excluded_patient_id: SEEDED_E2E_PATIENT_PROFILE_ID,
+    },
+  )
 
-  const queryError = certificateResult.error || prescribingResult.error
-  if (queryError) {
-    throw new Error(`Failed to fetch review request candidates: ${queryError.message}`)
+  if (error) {
+    throw new Error(`Failed to fetch review request candidates: ${error.message}`)
   }
 
-  return [
-    ...(certificateResult.data ?? []),
-    ...(prescribingResult.data ?? []),
-  ]
-    .map((row) => normalizeCandidate(row as Record<string, unknown>))
-    // Keep terminally suppressed recipients in the batch so the processor can
-    // stamp the request as handled. Filtering them here would let the same
-    // oldest rows occupy every future batch and starve eligible requests.
-    .filter((row) => isReviewFulfilmentOldEnough(row))
-    .sort((a, b) => {
-      const aTime = new Date(getReviewFulfilmentAt(a) || 0).getTime()
-      const bTime = new Date(getReviewFulfilmentAt(b) || 0).getTime()
-      return aTime - bTime
-    })
-    .slice(0, opts.limit)
+  return (data ?? [])
+    .map((row: unknown) => normalizeCandidate(row as Record<string, unknown>))
+    // The RPC keeps terminally suppressible recipients in the batch so the
+    // provider gate can finalize review_email_suppressed_at. Its NOT EXISTS
+    // anti-join excludes every durable outbox owner without PostgREST row or
+    // URL-size limits, including exhausted failures.
+    .filter((row: ReviewRequestCandidate) => (
+      isReviewFulfilmentWithinCatchUpWindow(row, now)
+    ))
 }
 
 /**
@@ -157,113 +131,35 @@ export async function findReviewRequestCandidates(): Promise<ReviewRequestCandid
   })
 }
 
-async function loadCurrentCandidate(
-  intakeId: string,
-): Promise<{ candidate: ReviewRequestCandidate | null; error?: string }> {
-  const supabase = createServiceRoleClient()
-  const { data, error } = await supabase
-    .from("intakes")
-    .select(REVIEW_CANDIDATE_SELECT)
-    .eq("id", intakeId)
-    .maybeSingle()
-
-  if (error) {
-    return { candidate: null, error: error.message }
+function fallbackSendOutcome(
+  result: Awaited<ReturnType<typeof sendEmail>>,
+): CommunicationOutcome {
+  if (result.success && result.outboxId) {
+    return { kind: "pending", outboxId: result.outboxId }
   }
-
   return {
-    candidate: data
-      ? normalizeCandidate(data as unknown as Record<string, unknown>)
-      : null,
+    kind: "provider_failed",
+    error: result.error ?? "Review request provider attempt failed",
+    retryable: result.retryable !== false,
+    ...(result.outboxId ? { outboxId: result.outboxId } : {}),
   }
 }
 
-async function hasPatientCooldown(
-  patientId: string,
-  intakeId: string,
-): Promise<{ blocked: boolean; error?: string }> {
-  const supabase = createServiceRoleClient()
-  const cooldownSince = new Date(
-    Date.now() - REVIEW_REQUEST_PATIENT_COOLDOWN_DAYS * 24 * 60 * 60 * 1000,
-  ).toISOString()
-
-  const [outboxResult, intakeResult] = await Promise.all([
-    supabase
-      .from("email_outbox")
-      .select("id")
-      .eq("email_type", "review_request")
-      .eq("patient_id", patientId)
-      .neq("intake_id", intakeId)
-      .gte("created_at", cooldownSince)
-      .in("status", ["pending", "sending", "sent", "skipped_e2e"])
-      .limit(1)
-      .maybeSingle(),
-    supabase
-      .from("intakes")
-      .select("id")
-      .eq("patient_id", patientId)
-      .neq("id", intakeId)
-      .gte("review_email_sent_at", cooldownSince)
-      .limit(1)
-      .maybeSingle(),
-  ])
-
-  const error = outboxResult.error || intakeResult.error
-  if (error) return { blocked: true, error: error.message }
-
-  return { blocked: Boolean(outboxResult.data || intakeResult.data) }
-}
-
-function isCurrentCandidateEligible(
-  candidate: ReviewRequestCandidate,
-): boolean {
-  return (
-    (candidate.status === "approved" || candidate.status === "completed") &&
-    candidate.payment_status === "paid" &&
-    candidate.review_email_sent_at === null &&
-    isReviewFulfilmentOldEnough(candidate)
+async function finalizeReviewRequestDisposition(input: {
+  intakeId: string
+  outboxId?: string
+  disposition: "sent" | "suppressed"
+}): Promise<boolean> {
+  const result = await finalizeOutboxSequenceDisposition(
+    {
+      id: input.outboxId ?? `review-request:${input.intakeId}:policy`,
+      email_type: "review_request",
+      intake_id: input.intakeId,
+      metadata: null,
+    },
+    input.disposition,
   )
-}
-
-async function markReviewRequestHandled(
-  intakeId: string,
-  disposition: "sent" | "suppressed",
-): Promise<void> {
-  const supabase = createServiceRoleClient()
-  const { error } = await supabase
-    .from("intakes")
-    .update({ review_email_sent_at: new Date().toISOString() })
-    .eq("id", intakeId)
-    .is("review_email_sent_at", null)
-
-  if (error) {
-    logger.error("Review request handled marker failed", {
-      intakeId,
-      disposition,
-      error: error.message,
-    })
-    Sentry.captureMessage("Review request handled marker failed", {
-      level: "error",
-      tags: { subsystem: "review-request" },
-      extra: { intakeId, disposition },
-    })
-  }
-}
-
-async function markReviewRequestSent(intakeId: string): Promise<void> {
-  await markReviewRequestHandled(intakeId, "sent")
-}
-
-async function suppressReviewRequest(
-  intakeId: string,
-  reason: string,
-): Promise<ReviewSendOutcome> {
-  logger.info("Suppressing review request", { intakeId, reason })
-  // `review_email_sent_at` is the established one-shot lifecycle marker. It
-  // also records terminal suppression so a bounced, opted-out, or cooldown-
-  // blocked request cannot monopolise the oldest-first catch-up queue.
-  await markReviewRequestHandled(intakeId, "suppressed")
-  return "suppressed"
+  return result.finalized
 }
 
 /**
@@ -273,68 +169,27 @@ async function suppressReviewRequest(
  */
 export async function sendReviewRequestEmail(
   intake: ReviewRequestCandidate,
-): Promise<ReviewSendOutcome> {
-  const current = await loadCurrentCandidate(intake.id)
-  if (current.error) {
-    logger.error("Failed to re-check review request eligibility", {
+): Promise<CommunicationOutcome> {
+  const patient = intake.patient
+  if (!intake.patient_id || !patient?.email) {
+    const suppressed: CommunicationOutcome = {
+      kind: "policy_suppressed",
+      reason: "missing_recipient",
+    }
+    const finalized = await finalizeReviewRequestDisposition({
       intakeId: intake.id,
-      error: current.error,
+      disposition: "suppressed",
     })
-    return "failed"
-  }
-  if (!current.candidate || !isCurrentCandidateEligible(current.candidate)) {
-    logger.info("Skipping review request - request is no longer eligible", {
-      intakeId: intake.id,
-    })
-    return "suppressed"
-  }
-
-  const candidate = current.candidate
-  const patient = candidate.patient
-  if (!patient?.email || patient.email_bounced === true) {
-    return suppressReviewRequest(candidate.id, "recipient is unavailable or bounced")
-  }
-  const email = patient.email
-
-  const addressSuppressed = await getSuppressedEmails([email])
-  if (
-    addressSuppressed.has(email.trim().toLowerCase()) ||
-    await isEmailSuppressed(email)
-  ) {
-    logger.info("Skipping review request - address is suppressed", {
-      intakeId: candidate.id,
-    })
-    return suppressReviewRequest(candidate.id, "address is suppressed")
-  }
-
-  const cooldown = await hasPatientCooldown(candidate.patient_id, candidate.id)
-  if (cooldown.error) {
-    logger.error("Review request cooldown check failed closed", {
-      intakeId: candidate.id,
-      error: cooldown.error,
-    })
-    Sentry.captureMessage("Review request cooldown check failed closed", {
-      level: "warning",
-      tags: { subsystem: "review-request" },
-      extra: { intakeId: candidate.id },
-    })
-    return "failed"
-  }
-  if (cooldown.blocked) {
-    return suppressReviewRequest(candidate.id, "patient cooldown is active")
-  }
-
-  // Keep this as the final asynchronous policy check before sendEmail. A
-  // preference change after candidate selection must still stop the message.
-  if (!await canSendMarketingEmail(candidate.patient_id)) {
-    return suppressReviewRequest(
-      candidate.id,
-      "marketing preference does not allow send",
-    )
+    return finalized
+      ? suppressed
+      : {
+          kind: "transiently_blocked",
+          reason: "suppressed_marker_write_failed",
+        }
   }
 
   const result = await sendEmail({
-    to: email,
+    to: patient.email,
     toName: patient.first_name || undefined,
     subject: reviewRequestSubject,
     template: React.createElement(ReviewRequestEmail, {
@@ -342,72 +197,130 @@ export async function sendReviewRequestEmail(
       appUrl: getAppUrl(),
     }),
     emailType: "review_request",
-    intakeId: candidate.id,
-    patientId: candidate.patient_id,
+    intakeId: intake.id,
+    patientId: intake.patient_id,
+    idempotencyKey: `review-request:${intake.id}`,
     metadata: {
-      fulfilment_at: getReviewFulfilmentAt(candidate),
+      fulfilment_at: getReviewFulfilmentAt(intake),
     },
     tags: [
       { name: "category", value: "review_request" },
-      { name: "intake_id", value: candidate.id },
+      { name: "intake_id", value: intake.id },
     ],
   })
 
   if (await isEmailSendDeliveryConfirmed(result)) {
-    await markReviewRequestSent(candidate.id)
-    logger.info("Sent review request email", { intakeId: candidate.id })
-    return "sent"
-  }
-
-  if (result.suppressed) {
-    return suppressReviewRequest(candidate.id, "suppressed immediately before delivery")
-  }
-
-  if (result.success) {
-    logger.info("Review request already queued; awaiting durable delivery", {
-      intakeId: candidate.id,
+    const sent: CommunicationOutcome = {
+      kind: "sent",
+      ...(result.messageId ? { messageId: result.messageId } : {}),
+      ...(result.outboxId ? { outboxId: result.outboxId } : {}),
+    }
+    const finalized = await finalizeReviewRequestDisposition({
+      intakeId: intake.id,
       outboxId: result.outboxId,
+      disposition: "sent",
     })
-    return "pending"
+    logger.info("Review request delivery confirmed", {
+      intakeId: intake.id,
+      outboxId: result.outboxId,
+      markerFinalized: finalized,
+    })
+    if (!finalized) {
+      Sentry.captureMessage("Review request sent marker needs reconciliation", {
+        level: "error",
+        tags: { subsystem: "review-request" },
+        extra: { intakeId: intake.id, outboxId: result.outboxId },
+      })
+    }
+    return sent
   }
 
-  logger.error("Failed to send review request email", {
-    intakeId: candidate.id,
-    error: result.error,
-  })
-  return "failed"
+  const outcome = result.outcome ?? fallbackSendOutcome(result)
+  if (outcome.kind === "policy_suppressed") {
+    if ([
+      "missing_request_reference",
+      "request_missing",
+      "review_request_already_handled",
+    ].includes(outcome.reason)) {
+      return outcome
+    }
+    const finalized = await finalizeReviewRequestDisposition({
+      intakeId: intake.id,
+      outboxId: result.outboxId,
+      disposition: "suppressed",
+    })
+    if (!finalized) {
+      return {
+        kind: "transiently_blocked",
+        reason: "suppressed_marker_write_failed",
+      }
+    }
+    logger.info("Review request terminally suppressed", {
+      intakeId: intake.id,
+      reason: outcome.reason,
+    })
+    return outcome
+  }
+  if (outcome.kind === "sent") {
+    return {
+      kind: "pending",
+      ...(outcome.outboxId ? { outboxId: outcome.outboxId } : {}),
+    }
+  }
+  return outcome
+}
+
+type ReviewRequestCounts = {
+  sent: number
+  policy_suppressed: number
+  transiently_blocked: number
+  pending: number
+  provider_failed: number
+}
+
+function emptyCounts(): ReviewRequestCounts {
+  return {
+    sent: 0,
+    policy_suppressed: 0,
+    transiently_blocked: 0,
+    pending: 0,
+    provider_failed: 0,
+  }
 }
 
 export async function processReviewRequests(): Promise<{
+  requestReconciled: number
+  requestReconciliationFailed: number
   requestSent: number
-  requestSuppressed: number
+  requestPolicySuppressed: number
+  requestTransientlyBlocked: number
   requestPending: number
-  requestFailed: number
+  requestProviderFailed: number
 }> {
+  const reconciliation = await reconcileSentReviewRequestMarkers()
   const candidates = await findReviewRequestCandidates()
-  const counts = {
-    requestSent: 0,
-    requestSuppressed: 0,
-    requestPending: 0,
-    requestFailed: 0,
-  }
+  const counts = emptyCounts()
 
   for (const intake of candidates) {
     const outcome = await sendReviewRequestEmail(intake)
-    if (outcome === "sent") counts.requestSent += 1
-    else if (outcome === "suppressed") counts.requestSuppressed += 1
-    else if (outcome === "pending") counts.requestPending += 1
-    else counts.requestFailed += 1
-
+    counts[outcome.kind] += 1
     await new Promise((resolve) => setTimeout(resolve, 100))
   }
 
+  const result = {
+    requestReconciled: reconciliation.reconciled,
+    requestReconciliationFailed: reconciliation.failed,
+    requestSent: counts.sent,
+    requestPolicySuppressed: counts.policy_suppressed,
+    requestTransientlyBlocked: counts.transiently_blocked,
+    requestPending: counts.pending,
+    requestProviderFailed: counts.provider_failed,
+  }
   logger.info("Processed review requests", {
-    ...counts,
+    ...result,
     total: candidates.length,
   })
-
-  return counts
+  return result
 }
 
 export async function findReviewRequestBackfillCandidates(
@@ -424,42 +337,32 @@ export async function processReviewRequestBackfill(
 ): Promise<{
   candidates: number
   sent: number
-  suppressed: number
+  policy_suppressed: number
+  transiently_blocked: number
   pending: number
-  failed: number
+  provider_failed: number
   dryRun: boolean
 }> {
+  const dryRun = opts.dryRun !== false
   const candidates = await findReviewRequestBackfillCandidates({
     sinceDays: opts.sinceDays,
     limit: opts.limit,
   })
 
-  if (opts.dryRun) {
-    return {
-      candidates: candidates.length,
-      sent: 0,
-      suppressed: 0,
-      pending: 0,
-      failed: 0,
-      dryRun: true,
+  const counts = emptyCounts()
+  if (!dryRun) {
+    for (const intake of candidates) {
+      const outcome = await sendReviewRequestEmail(intake)
+      counts[outcome.kind] += 1
+      await new Promise((resolve) => setTimeout(resolve, 150))
     }
   }
 
-  const counts = { sent: 0, suppressed: 0, pending: 0, failed: 0 }
-  for (const intake of candidates) {
-    const outcome = await sendReviewRequestEmail(intake)
-    counts[outcome] += 1
-    await new Promise((resolve) => setTimeout(resolve, 150))
-  }
-
-  logger.info("Processed review backfill", {
-    ...counts,
-    candidates: candidates.length,
-  })
-
-  return {
+  const result = {
     candidates: candidates.length,
     ...counts,
-    dryRun: false,
+    dryRun,
   }
+  logger.info("Processed review backfill", result)
+  return result
 }

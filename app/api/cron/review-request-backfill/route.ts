@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { processReviewRequestBackfill } from "@/lib/email/review-request"
+import { REVIEW_REQUEST_CATCH_UP_DAYS } from "@/lib/email/review-request-timing"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
@@ -34,7 +35,14 @@ export async function GET(request: NextRequest) {
   if (limit !== undefined && (!Number.isFinite(limit) || limit < 0)) {
     return NextResponse.json({ error: "invalid limit" }, { status: 400 })
   }
-  if (sinceDays !== undefined && (!Number.isFinite(sinceDays) || sinceDays < 0)) {
+  if (
+    sinceDays !== undefined &&
+    (
+      !Number.isFinite(sinceDays) ||
+      sinceDays < 0 ||
+      sinceDays > REVIEW_REQUEST_CATCH_UP_DAYS
+    )
+  ) {
     return NextResponse.json({ error: "invalid sinceDays" }, { status: 400 })
   }
 

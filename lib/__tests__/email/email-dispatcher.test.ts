@@ -119,7 +119,16 @@ function mockOutboxSelect(
   updateChain.eq = eqMock
   updateChain.is = isMock
   updateChain.lt = vi.fn(() => updateChain)
-  updateChain.select = vi.fn().mockResolvedValue({ data: [], error: null })
+  const selectTerminal = {
+    maybeSingle: vi.fn().mockResolvedValue({
+      data: { id: "sequence-owner" },
+      error: null,
+    }),
+    then: (
+      resolve: (value: { data: unknown[]; error: null }) => void,
+    ) => resolve({ data: [], error: null }),
+  }
+  updateChain.select = vi.fn(() => selectTerminal)
   const updateMock = vi.fn(() => updateChain)
   updateChain.update = updateMock
 
@@ -591,12 +600,43 @@ describe("email-dispatcher", () => {
       expect(result.failed).toBe(0)
       expect(result.skipped).toBe(1)
       expect(updateMock).toHaveBeenCalledWith({
-        review_email_sent_at: expect.any(String),
+        review_email_suppressed_at: expect.any(String),
       })
       expect(Sentry.captureMessage).not.toHaveBeenCalledWith(
         expect.stringContaining("exhausted all"),
         expect.anything(),
       )
+    })
+
+    it("does not finalize a review marker for a transient delivery block", async () => {
+      const review = makeCandidate({
+        id: "review-transient",
+        email_type: "review_request",
+        certificate_id: null,
+      })
+      const { updateMock } = mockOutboxSelect([review])
+      mockClaimOutboxRow.mockResolvedValue({ claimed: true, row: review })
+      mockSendFromOutboxRow.mockResolvedValue({
+        success: false,
+        retryable: true,
+        error: "Deferred before delivery: policy_read_failed",
+        outcome: {
+          kind: "transiently_blocked",
+          reason: "policy_read_failed",
+        },
+      })
+
+      const result = await processEmailDispatch()
+
+      expect(result.sent).toBe(0)
+      expect(result.failed).toBe(1)
+      expect(result.skipped).toBe(0)
+      expect(updateMock).not.toHaveBeenCalledWith({
+        review_email_sent_at: expect.any(String),
+      })
+      expect(updateMock).not.toHaveBeenCalledWith({
+        review_email_suppressed_at: expect.any(String),
+      })
     })
 
     it("dispatches current frozen sequence payloads without legacy reconstruction support", async () => {
