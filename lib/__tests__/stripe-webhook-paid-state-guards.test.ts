@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   addBreadcrumb: vi.fn(),
   captureException: vi.fn(),
   captureMessage: vi.fn(),
+  completeConfirmedPaymentWork: vi.fn(),
   generateDraftsForIntake: vi.fn(),
   getPostHogClient: vi.fn(() => ({
     alias: vi.fn(),
@@ -53,10 +54,6 @@ vi.mock("@/lib/email/components/templates/request-received", () => ({
   requestReceivedSubject: () => "Request received",
 }))
 
-vi.mock("@/lib/email/template-sender", () => ({
-  sendGuestCompleteAccountEmail: vi.fn(),
-}))
-
 vi.mock("@/lib/notifications/paid-request-telegram", () => ({
   sendPaidRequestTelegramNotification: mocks.sendPaidRequestTelegramNotification,
 }))
@@ -72,6 +69,17 @@ vi.mock("@/lib/observability/logger", () => ({
 vi.mock("@/lib/stripe/post-payment", () => ({
   startPostPaymentReviewWork: mocks.startPostPaymentReviewWork,
 }))
+
+vi.mock("@/lib/stripe/confirmed-payment-finalization", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/lib/stripe/confirmed-payment-finalization")
+  >("@/lib/stripe/confirmed-payment-finalization")
+
+  return {
+    ...actual,
+    completeConfirmedPaymentWork: mocks.completeConfirmedPaymentWork,
+  }
+})
 
 import { handleAsyncPaymentSucceeded } from "@/app/api/stripe/webhook/handlers/checkout-session-async-payment-succeeded"
 import { handleCheckoutSessionCompleted } from "@/app/api/stripe/webhook/handlers/checkout-session-completed"
@@ -103,7 +111,15 @@ function createSupabaseMock(intake: IntakeState) {
     const record = { filters: [] as Array<{ column: string; method: string; value: unknown }>, payload }
     updates.push(record)
 
-    const result = updateResults.shift() ?? { data: [{ id: intake.id, status: "paid" }], error: null }
+    const result = updateResults.shift() ?? {
+      data: {
+        id: intake.id,
+        payment_id: intake.payment_id,
+        payment_status: "paid",
+        status: "paid",
+      },
+      error: null,
+    }
     const chain = {
       eq: vi.fn((column: string, value: unknown) => {
         record.filters.push({ column, method: "eq", value })
@@ -119,6 +135,7 @@ function createSupabaseMock(intake: IntakeState) {
       }),
       select: vi.fn(() => {
         const selectResult = {
+          maybeSingle: vi.fn(async () => result),
           single: vi.fn(async () => result),
           then: (resolve: (value: typeof result) => void) => Promise.resolve(result).then(resolve),
         }
@@ -130,10 +147,16 @@ function createSupabaseMock(intake: IntakeState) {
     return chain
   }
 
-  function makeIntakeSelectChain() {
+  function makeIntakeSelectChain(selected?: string) {
     const chain = {
       eq: vi.fn(() => chain),
-      maybeSingle: vi.fn(async () => ({ data: null, error: null })),
+      maybeSingle: vi.fn(async () => ({
+        data:
+          selected?.includes("payment_status") || selected?.includes("payment_id")
+            ? intake
+            : null,
+        error: null,
+      })),
       single: vi.fn(async () => ({ data: intake, error: null })),
     }
     return chain
@@ -143,7 +166,7 @@ function createSupabaseMock(intake: IntakeState) {
     from: vi.fn((table: string) => {
       if (table === "intakes") {
         return {
-          select: vi.fn(() => makeIntakeSelectChain()),
+          select: vi.fn((selected?: string) => makeIntakeSelectChain(selected)),
           update: vi.fn((payload: Record<string, unknown>) => makeUpdateChain(payload)),
         }
       }
@@ -208,6 +231,7 @@ describe("Stripe paid-state webhook guards", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.generateDraftsForIntake.mockResolvedValue({ success: true })
+    mocks.completeConfirmedPaymentWork.mockResolvedValue(undefined)
     mocks.startPostPaymentReviewWork.mockResolvedValue(undefined)
   })
 
@@ -308,6 +332,59 @@ describe("Stripe paid-state webhook guards", () => {
     ]))
   })
 
+  it.each([
+    "checkout.session.completed",
+    "checkout.session.async_payment_succeeded",
+  ])("heals idempotent completion work when Stripe redelivers claimed %s", async (eventType) => {
+    const intakeId = "66666666-6666-4666-8666-666666666666"
+    const { supabase } = createSupabaseMock({
+      id: intakeId,
+      payment_id: "cs_current",
+      payment_status: "paid",
+      status: "paid",
+    })
+    supabase.rpc.mockResolvedValueOnce({ data: false, error: null })
+    const session = {
+      amount_total: 2995,
+      customer: "cus_test",
+      id: "cs_current",
+      metadata: {
+        category: "medical_certificate",
+        intake_id: intakeId,
+        patient_id: "patient-1",
+        service_slug: "med-cert-sick",
+      },
+      payment_intent: "pi_paid",
+      payment_status: "paid",
+    }
+
+    const response = eventType === "checkout.session.completed"
+      ? await handleCheckoutSessionCompleted({
+        event: makeEvent(eventType, session),
+        startTime: Date.now(),
+        supabase: supabase as never,
+      })
+      : await handleAsyncPaymentSucceeded({
+        event: makeEvent(eventType, session),
+        startTime: Date.now(),
+        supabase: supabase as never,
+      })
+
+    expect(mocks.completeConfirmedPaymentWork).toHaveBeenCalledWith(
+      expect.objectContaining({
+        finalizationKind: "already_paid",
+        intakeId,
+        session,
+      }),
+    )
+    await expect((response as Response).json()).resolves.toMatchObject({
+      already_paid: true,
+      completion_healed: true,
+      received: true,
+      skipped: true,
+    })
+  })
+
   it("sends stale completed checkout sessions to the webhook DLQ", async () => {
     const intakeId = "33333333-3333-4333-8333-333333333333"
     const { deadLetters, supabase, updates } = createSupabaseMock({
@@ -353,6 +430,58 @@ describe("Stripe paid-state webhook guards", () => {
     }))
   })
 
+  it.each([
+    "checkout.session.completed",
+    "checkout.session.async_payment_succeeded",
+  ])("reports an already-paid intake without trusting stale %s", async (eventType) => {
+    const intakeId = "77777777-7777-4777-8777-777777777777"
+    const { supabase, updates } = createSupabaseMock({
+      id: intakeId,
+      payment_id: "cs_current",
+      payment_status: "paid",
+      status: "paid",
+    })
+    const session = {
+      amount_total: 2995,
+      customer: "cus_test",
+      id: "cs_stale",
+      metadata: {
+        category: "medical_certificate",
+        intake_id: intakeId,
+        patient_id: "patient-1",
+        service_slug: "med-cert-sick",
+      },
+      payment_intent: "pi_stale",
+      payment_status: "paid",
+    }
+
+    const response = eventType === "checkout.session.completed"
+      ? await handleCheckoutSessionCompleted({
+        event: makeEvent(eventType, session),
+        startTime: Date.now(),
+        supabase: supabase as never,
+      })
+      : await handleAsyncPaymentSucceeded({
+        event: makeEvent(eventType, session),
+        startTime: Date.now(),
+        supabase: supabase as never,
+      })
+
+    await expect((response as Response).json()).resolves.toMatchObject({
+      already_paid: true,
+      reason: "stale_checkout_session",
+      received: true,
+      skipped: true,
+    })
+    expect(updates).not.toContainEqual(expect.objectContaining({
+      payload: expect.objectContaining({
+        payment_status: "paid",
+        status: "paid",
+      }),
+    }))
+    expect(mocks.completeConfirmedPaymentWork).not.toHaveBeenCalled()
+  })
+
   it("does not treat a zero-row force update as concurrent success unless the intake is paid", async () => {
     const intakeId = "44444444-4444-4444-8444-444444444444"
     const { deadLetters, supabase, updateResults } = createSupabaseMock({
@@ -361,10 +490,7 @@ describe("Stripe paid-state webhook guards", () => {
       payment_status: "pending",
       status: "pending_payment",
     })
-    updateResults.push(
-      { data: null, error: { code: "PGRST116", message: "No rows returned" } },
-      { data: [], error: null },
-    )
+    updateResults.push({ data: null, error: null })
 
     const response = await handleCheckoutSessionCompleted({
       event: makeEvent("checkout.session.completed", {
@@ -418,6 +544,7 @@ describe("Stripe paid-state webhook guards", () => {
           service_slug: "med-cert-sick",
         },
         payment_intent: "pi_old",
+        payment_status: "paid",
       }),
       startTime: Date.now(),
       supabase: supabase as never,

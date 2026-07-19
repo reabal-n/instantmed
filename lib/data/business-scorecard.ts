@@ -20,14 +20,24 @@ export type BusinessScorecardMetric = {
   target: string
 }
 
+type BusinessContributionReadiness = {
+  label: string
+  status: "blocked"
+  display: string
+  decision: "not_ready_to_scale"
+  blockers: string[]
+}
+
 export type BusinessOperatingScorecard = {
   rolling30DayNetRetainedCents: BusinessScorecardMetric
   paidOrderVolume: BusinessScorecardMetric
   refundRate: BusinessScorecardMetric
   chargebackRate: BusinessScorecardMetric
   supportTicketsPer100Orders: BusinessScorecardMetric
+  paidToDecisionMinutes: BusinessScorecardMetric
   doctorMinutesPerOrder: BusinessScorecardMetric
   queueP95Minutes: BusinessScorecardMetric
+  contributionReadiness: BusinessContributionReadiness
   capacityReviewState: {
     label: string
     status: ScorecardStatus
@@ -64,6 +74,11 @@ const SUPPORT_TICKETS_PER_100_TARGET = 5
 const QUEUE_P95_TARGET_MINUTES = 120
 const REFUND_RATE_TARGET = 10
 const CHARGEBACK_RATE_TARGET = 0.5
+const CONTRIBUTION_READINESS_BLOCKERS = [
+  "Measure hands-on doctor minutes by service",
+  "Measure hands-on support/admin minutes by service",
+  "Record operator-approved hourly labour rates",
+]
 
 export function buildBusinessOperatingScorecard(input: BusinessScorecardInput): BusinessOperatingScorecard {
   const paidOrderCount = input.paidIntakes.length
@@ -74,8 +89,8 @@ export function buildBusinessOperatingScorecard(input: BusinessScorecardInput): 
     return status === "refunded" || status === "partially_refunded" || Boolean(row.refunded_at) || Number(row.refund_amount_cents ?? 0) > 0
   }).length
   const disputeCount = input.paidIntakes.filter((row) => row.payment_status === "disputed" || Boolean(row.dispute_id)).length
-  const reviewedMinuteSamples = input.paidIntakes
-    .map((row) => reviewMinutes(row))
+  const paidToDecisionMinuteSamples = input.paidIntakes
+    .map((row) => elapsedPaidToDecisionMinutes(row))
     .filter((value): value is number => typeof value === "number" && Number.isFinite(value) && value >= 0)
 
   const refundRate = percent(refundedCount, paidOrderCount)
@@ -83,8 +98,8 @@ export function buildBusinessOperatingScorecard(input: BusinessScorecardInput): 
   const supportTicketsPer100Orders = paidOrderCount > 0
     ? round1((input.supportMessageCount / paidOrderCount) * 100)
     : null
-  const doctorMinutesPerOrder = reviewedMinuteSamples.length > 0
-    ? Math.round(sum(reviewedMinuteSamples) / reviewedMinuteSamples.length)
+  const paidToDecisionMinutes = paidToDecisionMinuteSamples.length > 0
+    ? Math.round(sum(paidToDecisionMinuteSamples) / paidToDecisionMinuteSamples.length)
     : null
   const queueP95Minutes = percentile(input.queueWaitMinutes, 95)
   const triggeredBy: string[] = []
@@ -132,12 +147,23 @@ export function buildBusinessOperatingScorecard(input: BusinessScorecardInput): 
       status: rateStatus(supportTicketsPer100Orders, SUPPORT_TICKETS_PER_100_TARGET),
       target: "Below 5 per 100",
     }),
+    paidToDecisionMinutes: metric({
+      label: "Average paid-to-decision time",
+      value: paidToDecisionMinutes,
+      display: paidToDecisionMinutes == null ? "No decided cases" : `${paidToDecisionMinutes} min`,
+      status: paidToDecisionMinutes == null
+        ? "unknown"
+        : paidToDecisionMinutes > QUEUE_P95_TARGET_MINUTES
+          ? "watch"
+          : "healthy",
+      target: "Operational latency only; not an active-labour input",
+    }),
     doctorMinutesPerOrder: metric({
-      label: "Doctor minutes per order",
-      value: doctorMinutesPerOrder,
-      display: doctorMinutesPerOrder == null ? "Not enough decided cases" : `${doctorMinutesPerOrder} min`,
-      status: doctorMinutesPerOrder == null ? "unknown" : doctorMinutesPerOrder > 15 ? "watch" : "healthy",
-      target: "Stable or falling as volume rises",
+      label: "Active doctor minutes per order",
+      value: null,
+      display: "Not measured",
+      status: "unknown",
+      target: "Requires sampled hands-on review time by service",
     }),
     queueP95Minutes: metric({
       label: "Queue P95",
@@ -146,6 +172,13 @@ export function buildBusinessOperatingScorecard(input: BusinessScorecardInput): 
       status: queueP95Minutes == null ? "healthy" : queueP95Minutes > QUEUE_P95_TARGET_MINUTES ? "triggered" : "healthy",
       target: "Below 2h during operating hours",
     }),
+    contributionReadiness: {
+      label: "First-order contribution readiness",
+      status: "blocked",
+      display: "Inputs missing",
+      decision: "not_ready_to_scale",
+      blockers: [...CONTRIBUTION_READINESS_BLOCKERS],
+    },
     capacityReviewState: {
       label: "Capacity review state",
       status: triggeredBy.length > 0 ? "triggered" : "healthy",
@@ -208,7 +241,7 @@ function metric(input: BusinessScorecardMetric): BusinessScorecardMetric {
   return input
 }
 
-function reviewMinutes(row: BusinessScorecardPaidIntake): number | null {
+function elapsedPaidToDecisionMinutes(row: BusinessScorecardPaidIntake): number | null {
   const end = row.approved_at ?? row.declined_at
   if (!row.paid_at || !end) return null
   return Math.round((new Date(end).getTime() - new Date(row.paid_at).getTime()) / 60000)

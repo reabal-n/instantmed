@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const mocks = vi.hoisted(() => ({
   addToDeadLetterQueue: vi.fn(),
   after: vi.fn(),
+  completeConfirmedPaymentWork: vi.fn(),
   generateDraftsForIntake: vi.fn(),
   getPostHogClient: vi.fn(() => ({
     alias: vi.fn(),
@@ -80,6 +81,17 @@ vi.mock("@/lib/stripe/client", () => ({
 vi.mock("@/lib/stripe/post-payment", () => ({
   startPostPaymentReviewWork: mocks.startPostPaymentReviewWork,
 }))
+
+vi.mock("@/lib/stripe/confirmed-payment-finalization", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/lib/stripe/confirmed-payment-finalization")
+  >("@/lib/stripe/confirmed-payment-finalization")
+
+  return {
+    ...actual,
+    completeConfirmedPaymentWork: mocks.completeConfirmedPaymentWork,
+  }
+})
 
 vi.mock("@/app/api/stripe/webhook/handlers/utils", async () => {
   const actual = await vi.importActual<typeof import("@/app/api/stripe/webhook/handlers/utils")>(
@@ -193,6 +205,17 @@ function createPaymentSuccessSupabaseMock() {
           single: vi.fn(async () => ({ data: null, error: null })),
         })),
         maybeSingle: vi.fn(async () => {
+          if (table === "intakes" && (selected?.includes("payment_id") || selected?.includes("payment_status"))) {
+            return {
+              data: {
+                id: intakeId,
+                payment_id: "cs_current",
+                payment_status: "pending",
+                status: "pending_payment",
+              },
+              error: null,
+            }
+          }
           if (table === "intakes" && selected?.includes("utm_source")) {
             return {
               data: {
@@ -235,7 +258,15 @@ function createPaymentSuccessSupabaseMock() {
       update: vi.fn((payload: Record<string, unknown>) => {
         const record: UpdateRecord = { filters: [], payload, table }
         updates.push(record)
-        return createUpdateChain(record, { data: { id: "intake-1" }, error: null })
+        return createUpdateChain(record, {
+          data: {
+            id: intakeId,
+            payment_id: "cs_current",
+            payment_status: "paid",
+            status: "paid",
+          },
+          error: null,
+        })
       }),
     })),
     rpc: vi.fn(async () => ({ data: true, error: null })),
@@ -343,6 +374,7 @@ async function runAfterCallbacks() {
 describe("Stripe webhook payment state transitions", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.completeConfirmedPaymentWork.mockResolvedValue(undefined)
     mocks.listCheckoutSessions.mockResolvedValue({ data: [{ id: "cs_current" }] })
     mocks.sendSessionExpiredEmail.mockResolvedValue({ success: true, emailId: "email-1" })
   })
@@ -1398,6 +1430,7 @@ describe("Stripe webhook payment state transitions", () => {
           service_slug: "med-cert-sick",
         },
         payment_intent: "pi_current",
+        payment_status: "paid",
       }),
       startTime: Date.now(),
       supabase: supabase as never,
@@ -1470,6 +1503,7 @@ describe("Stripe webhook payment state transitions", () => {
           service_slug: "med-cert-sick",
         },
         payment_intent: "pi_current",
+        payment_status: "paid",
       }),
       startTime: Date.now(),
       supabase: supabase as never,

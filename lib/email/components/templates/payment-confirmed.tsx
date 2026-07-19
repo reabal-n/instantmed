@@ -18,10 +18,6 @@ export interface PaymentConfirmedEmailProps {
   appUrl?: string
 }
 
-export function paymentConfirmedSubject(requestType: string) {
-  return `Payment received for your ${requestType} ✅`
-}
-
 export function PaymentConfirmedEmail({
   patientName,
   requestType,

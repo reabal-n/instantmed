@@ -1602,7 +1602,6 @@
     "production|exports|lib/email/components/templates/index.ts|magicLinkEmailSubject",
     "production|exports|lib/email/components/templates/index.ts|needsMoreInfoSubject",
     "production|exports|lib/email/components/templates/index.ts|partialIntakeRecoverySubject",
-    "production|exports|lib/email/components/templates/index.ts|paymentConfirmedSubject",
     "production|exports|lib/email/components/templates/index.ts|paymentFailedSubject",
     "production|exports|lib/email/components/templates/index.ts|requestReceivedSubject",
     "production|exports|lib/email/components/templates/index.ts|reviewRequestSubject",

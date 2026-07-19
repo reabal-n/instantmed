@@ -256,7 +256,7 @@ describe("intake analytics events", () => {
     const authenticatedPersistence = readProjectFile("lib/stripe/checkout/persistence.ts")
     const guestCheckout = readProjectFile("lib/stripe/guest-checkout.ts")
     const retryCheckout = readProjectFile("lib/stripe/checkout/retry-payment.ts")
-    const webhook = readProjectFile("app/api/stripe/webhook/handlers/checkout-session-completed.ts")
+    const paymentFinalizer = readProjectFile("lib/stripe/confirmed-payment-finalization.ts")
 
     expect(reviewStep.match(/consult_subtype: answers\.consultSubtype/g)?.length).toBeGreaterThanOrEqual(5)
     expect(posthogServer).toContain("subtype?: string | null")
@@ -265,7 +265,7 @@ describe("intake analytics events", () => {
     expect(authenticatedPersistence).toContain("subtype: input.subtype")
     expect(guestCheckout.match(/subtype: input\.subtype/g)?.length).toBeGreaterThanOrEqual(2)
     expect(retryCheckout).toContain("subtype: intake.subtype")
-    expect(webhook).toContain("subtype: intakeAttribution?.subtype")
+    expect(paymentFinalizer).toContain("attribution?.subtype")
   })
 
   it("progressively discloses manual address fields and labels ED body metrics optional", () => {

@@ -725,7 +725,7 @@ export function AnalyticsDashboardClient({
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h3 id="operating-scorecard-heading" className="text-sm font-semibold text-foreground">Operating scorecard</h3>
-                    <p className="mt-1 text-xs text-muted-foreground">Live 30-day commercial and capacity gates before paid-ramp decisions.</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Live 30-day operations. Contribution stays blocked until active labour inputs are measured.</p>
                   </div>
                   <StatusBadge status={scorecardBadgeStatus(businessScorecard.capacityReviewState.status)} size="sm">
                     {businessScorecard.capacityReviewState.display}
@@ -738,9 +738,35 @@ export function AnalyticsDashboardClient({
                   <StatCard label="Refund rate" value={businessScorecard.refundRate.display} icon={<Receipt className="h-5 w-5" />} status={scorecardStatus(businessScorecard.refundRate.status)} />
                   <StatCard label="Chargeback rate" value={businessScorecard.chargebackRate.display} icon={<AlertCircle className="h-5 w-5" />} status={scorecardStatus(businessScorecard.chargebackRate.status)} />
                   <StatCard label="Support tickets/100 orders" value={businessScorecard.supportTicketsPer100Orders.display} icon={<Headphones className="h-5 w-5" />} status={scorecardStatus(businessScorecard.supportTicketsPer100Orders.status)} />
-                  <StatCard label="Doctor minutes/order" value={businessScorecard.doctorMinutesPerOrder.display} icon={<Timer className="h-5 w-5" />} status={scorecardStatus(businessScorecard.doctorMinutesPerOrder.status)} />
+                  <StatCard label="Paid-to-decision average" value={businessScorecard.paidToDecisionMinutes.display} icon={<Clock className="h-5 w-5" />} status={scorecardStatus(businessScorecard.paidToDecisionMinutes.status)} />
+                  <StatCard label="Doctor time per order" value={businessScorecard.doctorMinutesPerOrder.display} icon={<Timer className="h-5 w-5" />} status={scorecardStatus(businessScorecard.doctorMinutesPerOrder.status)} />
                   <StatCard label="Queue P95" value={businessScorecard.queueP95Minutes.display} icon={<Gauge className="h-5 w-5" />} status={scorecardStatus(businessScorecard.queueP95Minutes.status)} />
                 </DashboardGrid>
+
+                <DashboardCard padding="md">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <h4 className="text-sm font-semibold text-foreground">Contribution margin readiness</h4>
+                      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                        Paid-to-decision is elapsed clock time, including queue and waiting. It cannot stand in for hands-on doctor time.
+                      </p>
+                    </div>
+                    <StatusBadge status="warning" size="sm">
+                      {businessScorecard.contributionReadiness.display}
+                    </StatusBadge>
+                  </div>
+                  <p className="mt-3 text-xs font-medium text-foreground">
+                    Do not scale paid acquisition from this metric yet.
+                  </p>
+                  <ul className="mt-2 grid gap-x-6 text-xs text-muted-foreground md:grid-cols-3">
+                    {businessScorecard.contributionReadiness.blockers.map((blocker) => (
+                      <li key={blocker} className="flex gap-2 border-t border-border/60 py-2">
+                        <AlertCircle aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                        <span>{blocker}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </DashboardCard>
 
                 <DashboardCard padding="md">
                   <div className="flex flex-wrap items-start justify-between gap-4">
@@ -750,7 +776,7 @@ export function AnalyticsDashboardClient({
                         <h4 className="text-sm font-semibold text-foreground">Capacity review</h4>
                       </div>
                       <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                        Tracks the net-retained revenue, queue, support, and workload conditions that require an operator capacity decision before scaling.
+                        Tracks net-retained revenue, queue, and support conditions that require an operator capacity decision. Capacity state does not override the contribution block.
                       </p>
                     </div>
                     <StatusBadge status={scorecardBadgeStatus(businessScorecard.capacityReviewState.status)} size="sm">

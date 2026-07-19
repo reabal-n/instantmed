@@ -239,8 +239,8 @@ describe("patient email CTA safety contract", () => {
       join(process.cwd(), "app/api/stripe/webhook/handlers/checkout-session-async-payment-succeeded.ts"),
       "utf8",
     )
-    const senderSource = readFileSync(
-      join(process.cwd(), "lib/email/template-sender.ts"),
+    const finalizerSource = readFileSync(
+      join(process.cwd(), "lib/stripe/confirmed-payment-finalization.ts"),
       "utf8",
     )
     const reconstructSource = readFileSync(
@@ -248,10 +248,10 @@ describe("patient email CTA safety contract", () => {
       "utf8",
     )
 
-    expect(completedSource).toContain("sessionId: session.id")
-    expect(asyncSucceededSource).toContain("sessionId: session.id")
-    expect(senderSource).toContain("buildVerifiedCompleteAccountHref")
-    expect(senderSource).toContain("sessionId: params.sessionId")
+    expect(completedSource).toContain("completeConfirmedPaymentWork")
+    expect(asyncSucceededSource).toContain("completeConfirmedPaymentWork")
+    expect(finalizerSource).toContain("buildVerifiedCompleteAccountHref")
+    expect(finalizerSource).toContain("sessionId: session.id")
     expect(reconstructSource).toContain("payment_id")
     expect(reconstructSource).toContain("sessionId: ctx.intake.payment_id")
   })

@@ -3,19 +3,19 @@ import { after, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
-import { GOOGLE_ADS_ATTRIBUTION_SELECT, runGoogleAdsPostPaymentAttribution } from "@/lib/analytics/google-ads-post-payment"
-import { sendGuestCompleteAccountEmail } from "@/lib/email/template-sender"
 import { sendPaidRequestTelegramNotification } from "@/lib/notifications/paid-request-telegram"
 import { createLogger } from "@/lib/observability/logger"
-import { canRetryPaymentForIntake } from "@/lib/stripe/payment-integrity"
-import { startPostPaymentReviewWork } from "@/lib/stripe/post-payment"
+import {
+  completeConfirmedPaymentWork,
+  finalizeConfirmedCheckoutPayment,
+} from "@/lib/stripe/confirmed-payment-finalization"
 
 import type { HandlerResult, WebhookContext } from "./types"
 import { addToDeadLetterQueue, recordEventError, tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:async-payment-succeeded")
 
-async function notifyPaidRequestTelegramForAsyncSession(
+async function retryPaidRequestTelegramForClaimedEvent(
   supabase: WebhookContext["supabase"],
   session: Stripe.Checkout.Session,
   intakeId: string | null | undefined,
@@ -32,13 +32,31 @@ async function notifyPaidRequestTelegramForAsyncSession(
       category: session.metadata?.category,
       subtype: session.metadata?.subtype,
     })
-  } catch (err) {
-    log.error("Telegram notification error (non-fatal)", { intakeId }, err)
-    Sentry.captureException(err, { tags: { source: "telegram-notification-async" }, extra: { intakeId } })
+  } catch (error) {
+    log.error("Telegram retry failed for claimed async event", { intakeId }, error)
   }
 }
 
-export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<HandlerResult> {
+function paymentDiagnosticMetadata(
+  session: Stripe.Checkout.Session,
+  intake?: {
+    payment_id?: string | null
+    payment_status?: string | null
+    status?: string | null
+  } | null,
+) {
+  return {
+    amount: session.amount_total,
+    current_payment_id: intake?.payment_id,
+    current_payment_status: intake?.payment_status,
+    current_status: intake?.status,
+    payment_intent: session.payment_intent,
+  }
+}
+
+export async function handleAsyncPaymentSucceeded(
+  ctx: WebhookContext,
+): Promise<HandlerResult> {
   const { event, supabase } = ctx
   const session = event.data.object as Stripe.Checkout.Session
   const intakeId = session.metadata?.intake_id
@@ -52,297 +70,230 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
     amount: session.amount_total,
   })
 
-  const shouldProcess = ctx.adminReplay || await tryClaimEvent(supabase, event.id, event.type, intakeId, session.id, {
-    amount: session.amount_total,
-    payment_intent: session.payment_intent,
-    customer: session.customer,
-  })
+  const shouldProcess =
+    ctx.adminReplay ||
+    (await tryClaimEvent(
+      supabase,
+      event.id,
+      event.type,
+      intakeId,
+      session.id,
+      {
+        amount: session.amount_total,
+        payment_intent: session.payment_intent,
+        customer: session.customer,
+      },
+    ))
+
   if (!shouldProcess) {
-    await notifyPaidRequestTelegramForAsyncSession(supabase, session, intakeId, patientId)
+    if (intakeId) {
+      const finalization = await finalizeConfirmedCheckoutPayment({
+        intakeId,
+        session,
+        supabase,
+      })
+
+      if (
+        finalization.kind === "settled" ||
+        finalization.kind === "already_paid" ||
+        finalization.kind === "concurrent_paid"
+      ) {
+        await completeConfirmedPaymentWork({
+          finalizationKind: finalization.kind,
+          generateDraftsForIntake,
+          intakeId,
+          patientId: patientId || finalization.intake.patient_id,
+          requestPath: ctx.requestPath,
+          schedule: (task) => after(task),
+          serviceCategory:
+            session.metadata?.category || session.metadata?.service_type,
+          session,
+          source: "checkout_session_async_payment_succeeded",
+          supabase,
+        })
+        return NextResponse.json({
+          already_paid: finalization.kind !== "settled",
+          received: true,
+          skipped: true,
+          completion_healed: true,
+        })
+      }
+
+      if (
+        finalization.kind === "not_found" ||
+        finalization.kind === "invalid_session" ||
+        finalization.kind === "update_conflict" ||
+        finalization.kind === "update_failed"
+      ) {
+        return NextResponse.json(
+          { error: "Claimed async payment event could not be reconciled" },
+          { status: 500 },
+        )
+      }
+    }
+
+    await retryPaidRequestTelegramForClaimedEvent(
+      supabase,
+      session,
+      intakeId,
+      patientId,
+    )
     return NextResponse.json({ received: true, skipped: true })
   }
 
   if (!intakeId) {
-    log.error("CRITICAL: Missing intake_id in async_payment_succeeded metadata", {
-      eventId: event.id,
-      sessionId: session.id,
-    })
     return NextResponse.json({ error: "Missing intake_id" }, { status: 200 })
   }
 
   try {
-    const { data: currentIntake } = await supabase
-      .from("intakes")
-      .select("id, status, payment_status, payment_id")
-      .eq("id", intakeId)
-      .single()
-
-    if (!currentIntake) {
-      log.error("Intake not found for async payment", { intakeId })
-      return NextResponse.json({ error: "Intake not found" }, { status: 500 })
-    }
-
-    if (currentIntake.payment_id && currentIntake.payment_id !== session.id) {
-      // A STALE async success is not routine noise: with delayed payment
-      // methods (e.g. BECS) the customer's money HAS been captured by Stripe
-      // for the superseded session, while the intake stays unpaid because the
-      // current-session invariant (correctly) refuses to mark it. That's a
-      // charged-but-unserviced patient — it must reach the operator (DLQ card
-      // on /admin/ops) and Sentry, not vanish into a log line.
-      log.warn("checkout.session.async_payment_succeeded ignored because session is no longer current", {
-        currentPaymentId: currentIntake.payment_id,
-        eventId: event.id,
-        intakeId,
-        sessionId: session.id,
-      })
-      await addToDeadLetterQueue(
-        supabase,
-        event.id,
-        event.type,
-        session.id,
-        intakeId,
-        "Async payment succeeded for a superseded checkout session — money captured, intake not marked paid. Reconcile/refund manually.",
-        "stale_async_payment_success",
-        { current_payment_id: currentIntake.payment_id },
-      )
-      Sentry.captureMessage("Stale async payment success — captured payment on superseded session", {
-        level: "warning",
-        tags: { subsystem: "stripe-webhook", event_type: event.type },
-        fingerprint: ["stale-async-payment-success", intakeId],
-        extra: { intakeId, sessionId: session.id, currentPaymentId: currentIntake.payment_id },
-      })
-      return NextResponse.json({ received: true, skipped: true, reason: "stale_checkout_session" })
-    }
-
-    if (currentIntake.payment_status === "paid") {
-      log.info("Intake already paid, skipping async payment update", { intakeId })
-      await startPostPaymentReviewWork({
-        generateDraftsForIntake,
-        intakeId,
-        schedule: (task) => after(task),
-        serviceCategory: session.metadata?.category || session.metadata?.service_type,
-        serviceSlug: session.metadata?.service_slug,
-        supabase,
-      })
-      await notifyPaidRequestTelegramForAsyncSession(supabase, session, intakeId, patientId)
-      return NextResponse.json({ received: true, already_paid: true })
-    }
-
-    if (
-      !canRetryPaymentForIntake(currentIntake.status, currentIntake.payment_status) ||
-      currentIntake.payment_id !== session.id
-    ) {
-      const errorMsg = currentIntake.payment_id !== session.id
-        ? `Async payment success received for stale checkout session: ${session.id}`
-        : `Async payment success received for non-retryable intake state: ${currentIntake.status}/${currentIntake.payment_status}`
-      log.error("Async payment success refused", {
-        currentPaymentId: currentIntake.payment_id,
-        eventId: event.id,
-        intakeId,
-        paymentStatus: currentIntake.payment_status,
-        sessionId: session.id,
-        status: currentIntake.status,
-      })
-      await recordEventError(supabase, event.id, errorMsg)
-      await addToDeadLetterQueue(
-        supabase,
-        event.id,
-        event.type,
-        session.id,
-        intakeId,
-        errorMsg,
-        currentIntake.payment_id !== session.id
-          ? "STALE_ASYNC_PAYMENT_SUCCESS"
-          : "NON_RETRYABLE_ASYNC_PAYMENT_SUCCESS",
-        {
-          amount: session.amount_total,
-          current_payment_id: currentIntake.payment_id,
-          current_payment_status: currentIntake.payment_status,
-          current_status: currentIntake.status,
-          payment_intent: session.payment_intent,
-        },
-      )
-      return NextResponse.json({ received: true, skipped: true, dlq: true })
-    }
-
-    const paymentIntentId = typeof session.payment_intent === "string"
-      ? session.payment_intent
-      : session.payment_intent?.id || null
-    const stripeCustomerId = typeof session.customer === "string"
-      ? session.customer
-      : session.customer?.id || null
-
-    const { data: updatedIntake, error: updateError } = await supabase
-      .from("intakes")
-      .update({
-        checkout_error: null,
-        payment_status: "paid",
-        status: "paid",
-        paid_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        // Reconcile the stored amount to what Stripe actually charged (coupon /
-        // Priority review line item) so refunds match the charge. See checkout-session-
-        // completed.ts for the full rationale.
-        amount_cents: session.amount_total,
-        stripe_payment_intent_id: paymentIntentId,
-        stripe_customer_id: stripeCustomerId,
-      })
-      .eq("id", intakeId)
-      .eq("payment_id", session.id)
-      .in("status", ["pending_payment", "checkout_failed"])
-      .in("payment_status", ["pending", "unpaid", "failed"])
-      .select("id")
-      .maybeSingle()
-
-    if (updateError) {
-      log.error("Failed to update intake for async payment", { intakeId, error: updateError.message })
-      return NextResponse.json({ error: "Update failed" }, { status: 500 })
-    }
-
-    if (!updatedIntake) {
-      const errorMsg = "Async payment success update matched no current retryable intake"
-      log.error(errorMsg, { eventId: event.id, intakeId, sessionId: session.id })
-      await recordEventError(supabase, event.id, errorMsg)
-      await addToDeadLetterQueue(
-        supabase,
-        event.id,
-        event.type,
-        session.id,
-        intakeId,
-        errorMsg,
-        "ASYNC_PAYMENT_SUCCESS_UPDATE_MISSED",
-        { amount: session.amount_total, payment_intent: session.payment_intent },
-      )
-      return NextResponse.json({ received: true, skipped: true, dlq: true })
-    }
-
-    const [{ data: phProfile }, { data: intakeAttribution }] = await Promise.all([
-      patientId
-        ? supabase
-            .from("profiles")
-            .select("auth_user_id")
-            .eq("id", patientId)
-            .maybeSingle()
-        : Promise.resolve({ data: null }),
-      supabase
-        .from("intakes")
-        .select(GOOGLE_ADS_ATTRIBUTION_SELECT)
-        .eq("id", intakeId)
-        .maybeSingle(),
-    ])
-
-    if (intakeAttribution) {
-      const posthogDistinctId = phProfile?.auth_user_id || patientId || intakeId
-      after(async () => {
-        try {
-          await runGoogleAdsPostPaymentAttribution({
-            amountCents: session.amount_total,
-            intakeId,
-            posthogDistinctId,
-            requestPath: ctx.requestPath,
-            row: intakeAttribution,
-            source: "checkout_session_async_payment_succeeded",
-            supabase,
-          })
-        } catch (err) {
-          log.warn("Async server-side Google Ads conversion fire failed", {
-            error: err instanceof Error ? err.message : String(err),
-            intakeId,
-          })
-        }
-      })
-    }
-
-    // Save Stripe customer ID to profile
-    if (stripeCustomerId && patientId) {
-      await supabase
-        .from("profiles")
-        .update({ stripe_customer_id: stripeCustomerId })
-        .eq("id", patientId)
-        .is("stripe_customer_id", null)
-    }
-
-    // Send payment confirmation email (non-blocking to avoid Stripe timeout).
-    // If this fails, the email-dispatcher cron will retry from the outbox.
-    if (patientId) {
-      const asyncEmailIntakeId = intakeId
-      const asyncEmailPatientId = patientId
-      const asyncEmailSessionMetadata = session.metadata
-      const asyncEmailAmountTotal = session.amount_total
-
-      // Uses after() to keep the serverless function alive until email completes.
-      after(async () => {
-        try {
-          const { data: patientProfile } = await supabase
-            .from("profiles")
-            .select("email, full_name, auth_user_id")
-            .eq("id", asyncEmailPatientId)
-            .single()
-
-          if (!patientProfile?.email) return
-
-          const React = await import("react")
-          const { sendEmail } = await import("@/lib/email/send-email")
-          const { PaymentConfirmedEmail, paymentConfirmedSubject } = await import("@/lib/email/components/templates/payment-confirmed")
-
-          const serviceName = asyncEmailSessionMetadata?.service_slug
-            ?.replace(/-/g, " ")
-            ?.replace(/\b\w/g, (c: string) => c.toUpperCase())
-            || "medical request"
-          const amountFormatted = `$${((asyncEmailAmountTotal || 0) / 100).toFixed(2)}`
-
-          await sendEmail({
-            to: patientProfile.email,
-            toName: patientProfile.full_name || "Patient",
-            subject: paymentConfirmedSubject(serviceName),
-            template: React.createElement(PaymentConfirmedEmail, {
-              patientName: patientProfile.full_name || "there",
-              requestType: serviceName,
-              amount: amountFormatted,
-              requestId: asyncEmailIntakeId,
-            }),
-            emailType: "payment_confirmed",
-            intakeId: asyncEmailIntakeId,
-            patientId: asyncEmailPatientId,
-            metadata: { amount_cents: asyncEmailAmountTotal },
-          })
-
-          // Send guest account completion email if this was a guest checkout
-          const isGuestCheckout = asyncEmailSessionMetadata?.guest_checkout === "true" || !patientProfile.auth_user_id
-          if (isGuestCheckout) {
-            const guestServiceName = asyncEmailSessionMetadata?.service_slug || "medical certificate"
-            sendGuestCompleteAccountEmail({
-              to: patientProfile.email,
-              patientName: patientProfile.full_name || "there",
-              serviceName: guestServiceName,
-              intakeId: asyncEmailIntakeId,
-              sessionId: session.id,
-              patientId: asyncEmailPatientId,
-            }).catch((err: unknown) => {
-              log.error("Guest account email error in async payment (non-fatal)", { intakeId: asyncEmailIntakeId }, err)
-            })
-            log.info("Guest account completion email queued (async payment)", { intakeId: asyncEmailIntakeId })
-          }
-        } catch (emailErr) {
-          log.warn("Async payment confirmation email error (non-fatal)", { intakeId: asyncEmailIntakeId }, emailErr)
-        }
-      })
-    }
-
-    await notifyPaidRequestTelegramForAsyncSession(supabase, session, intakeId, patientId)
-
-    await startPostPaymentReviewWork({
-      generateDraftsForIntake,
+    const finalization = await finalizeConfirmedCheckoutPayment({
       intakeId,
-      schedule: (task) => after(task),
-      serviceCategory: session.metadata?.category || session.metadata?.service_type,
-      serviceSlug: session.metadata?.service_slug,
+      session,
       supabase,
     })
 
-    log.info("Async payment confirmed - intake marked as paid", { intakeId, paymentIntentId })
+    if (finalization.kind === "not_found") {
+      return NextResponse.json({ error: "Intake not found" }, { status: 500 })
+    }
+
+    if (finalization.kind === "stale_session") {
+      const errorMessage =
+        "Async payment succeeded for a superseded checkout session — money captured, intake not marked paid. Reconcile/refund manually."
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        session.id,
+        intakeId,
+        errorMessage,
+        "stale_async_payment_success",
+        paymentDiagnosticMetadata(session, finalization.intake),
+      )
+      Sentry.captureMessage(
+        "Stale async payment success — captured payment on superseded session",
+        {
+          level: "warning",
+          tags: { subsystem: "stripe-webhook", event_type: event.type },
+          fingerprint: ["stale-async-payment-success", intakeId],
+          extra: {
+            intakeId,
+            sessionId: session.id,
+            currentPaymentId: finalization.intake.payment_id,
+          },
+        },
+      )
+      return NextResponse.json({
+        already_paid: finalization.intake.payment_status === "paid",
+        received: true,
+        skipped: true,
+        reason: "stale_checkout_session",
+      })
+    }
+
+    if (finalization.kind === "non_retryable") {
+      const errorMessage = `Async payment success received for non-retryable intake state: ${finalization.intake.status}/${finalization.intake.payment_status}`
+      await recordEventError(supabase, event.id, errorMessage)
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        session.id,
+        intakeId,
+        errorMessage,
+        "NON_RETRYABLE_ASYNC_PAYMENT_SUCCESS",
+        paymentDiagnosticMetadata(session, finalization.intake),
+      )
+      return NextResponse.json({ received: true, skipped: true, dlq: true })
+    }
+
+    if (finalization.kind === "invalid_session") {
+      const errorMessage = `Async payment success payload was incomplete: ${finalization.reason}`
+      await recordEventError(supabase, event.id, errorMessage)
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        session.id,
+        intakeId,
+        errorMessage,
+        "INVALID_ASYNC_PAYMENT_SUCCESS",
+        paymentDiagnosticMetadata(session),
+      )
+      return NextResponse.json(
+        { error: "Invalid payment confirmation" },
+        { status: 500 },
+      )
+    }
+
+    if (finalization.kind === "update_failed") {
+      const errorMessage = `Async payment update failed: ${finalization.error.message}`
+      await recordEventError(supabase, event.id, errorMessage)
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        session.id,
+        intakeId,
+        errorMessage,
+        "ASYNC_PAYMENT_SUCCESS_UPDATE_FAILED",
+        paymentDiagnosticMetadata(session, finalization.intake),
+      )
+      return NextResponse.json({ error: "Update failed" }, { status: 500 })
+    }
+
+    if (finalization.kind === "update_conflict") {
+      const errorMessage =
+        "Async payment success update matched no current retryable intake"
+      await recordEventError(supabase, event.id, errorMessage)
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        session.id,
+        intakeId,
+        errorMessage,
+        "ASYNC_PAYMENT_SUCCESS_UPDATE_MISSED",
+        paymentDiagnosticMetadata(session, finalization.intake),
+      )
+      return NextResponse.json({ received: true, skipped: true, dlq: true })
+    }
+
+    await completeConfirmedPaymentWork({
+      finalizationKind: finalization.kind,
+      generateDraftsForIntake,
+      intakeId,
+      patientId: patientId || finalization.intake.patient_id,
+      requestPath: ctx.requestPath,
+      schedule: (task) => after(task),
+      serviceCategory:
+        session.metadata?.category || session.metadata?.service_type,
+      session,
+      source: "checkout_session_async_payment_succeeded",
+      supabase,
+    })
+
+    log.info("Async payment confirmed", {
+      finalization: finalization.kind,
+      intakeId,
+      paymentIntentId:
+        typeof session.payment_intent === "string"
+          ? session.payment_intent
+          : session.payment_intent?.id || null,
+    })
+
+    if (finalization.kind !== "settled") {
+      return NextResponse.json({
+        received: true,
+        already_paid: true,
+        concurrent_update: finalization.kind === "concurrent_paid",
+      })
+    }
   } catch (error) {
-    log.error("Error processing async_payment_succeeded", { intakeId, eventId: event.id }, error)
+    log.error(
+      "Error processing async_payment_succeeded",
+      { intakeId, eventId: event.id },
+      error,
+    )
     return NextResponse.json({ error: "Processing failed" }, { status: 500 })
   }
 }

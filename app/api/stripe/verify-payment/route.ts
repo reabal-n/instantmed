@@ -6,7 +6,11 @@ import { getApiAuth } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { stripe } from "@/lib/stripe/client"
-import { canRetryPaymentForIntake, validateCheckoutSessionIntakeMatch } from "@/lib/stripe/payment-integrity"
+import {
+  completeConfirmedPaymentWork,
+  finalizeConfirmedCheckoutPayment,
+} from "@/lib/stripe/confirmed-payment-finalization"
+import { validateCheckoutSessionIntakeMatch } from "@/lib/stripe/payment-integrity"
 import { startPostPaymentReviewWork } from "@/lib/stripe/post-payment"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -127,80 +131,86 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    if (!canRetryPaymentForIntake(intake.status, intake.payment_status)) {
-      log.warn("Payment verification refused for non-retryable intake state", {
-        intakeId,
-        paymentStatus: intake.payment_status,
-        status: intake.status,
-      })
-      return NextResponse.json({
-        success: false,
-        status: intake.status,
-        error: "This request is not awaiting payment",
-      }, { status: 409 })
+    // 6. Payment confirmed - delegate the exact-current paid transition to the
+    // shared finalizer used by both Stripe webhook success paths.
+    const finalization = await finalizeConfirmedCheckoutPayment({
+      intakeId,
+      session,
+      supabase,
+    })
+
+    if (finalization.kind === "not_found") {
+      log.error("Intake disappeared during payment verification", { intakeId })
+      return NextResponse.json({ error: "Intake not found" }, { status: 404 })
     }
 
-    // 6. Payment confirmed - update intake status (webhook fallback)
-    log.info("Webhook fallback: Marking intake as paid", { intakeId })
-
-    const paymentIntentId = typeof session.payment_intent === "string" 
-      ? session.payment_intent 
-      : session.payment_intent?.id || null
-    const stripeCustomerId = typeof session.customer === "string"
-      ? session.customer
-      : session.customer?.id || null
-
-    const { data: updatedIntake, error: updateError } = await supabase
-      .from("intakes")
-      .update({
-        payment_status: "paid",
-        status: "paid",
-        paid_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        stripe_payment_intent_id: paymentIntentId,
-        stripe_customer_id: stripeCustomerId,
-      })
-      .eq("id", intakeId)
-      .eq("payment_id", session.id)
-      .in("status", ["pending_payment", "checkout_failed"])
-      .in("payment_status", ["pending", "unpaid", "failed"])
-      .select("id")
-      .maybeSingle()
-
-    if (updateError) {
-      log.error("Failed to update intake via fallback", { intakeId }, updateError)
-      return NextResponse.json({ 
-        success: false, 
-        error: "Failed to update intake status" 
-      }, { status: 500 })
-    }
-
-    if (!updatedIntake) {
+    if (finalization.kind === "stale_session" || finalization.kind === "update_conflict") {
       log.warn("Payment verification skipped because checkout session is no longer current", {
         intakeId,
         sessionId: session.id,
       })
       return NextResponse.json({
         success: false,
-        status: intake.status,
+        status: finalization.intake?.status || intake.status,
         error: "Payment session is no longer current",
       }, { status: 409 })
     }
 
+    if (finalization.kind === "non_retryable") {
+      log.warn("Payment verification refused for non-retryable intake state", {
+        intakeId,
+        paymentStatus: finalization.intake.payment_status,
+        status: finalization.intake.status,
+      })
+      return NextResponse.json({
+        success: false,
+        status: finalization.intake.status,
+        error: "This request is not awaiting payment",
+      }, { status: 409 })
+    }
+
+    if (finalization.kind === "invalid_session") {
+      log.error("Paid payment verification session was incomplete", {
+        intakeId,
+        reason: finalization.reason,
+        sessionId: session.id,
+      })
+      return NextResponse.json({
+        success: false,
+        status: intake.status,
+        error: "Payment confirmation was incomplete",
+      }, { status: 409 })
+    }
+
+    if (finalization.kind === "update_failed") {
+      log.error("Failed to update intake via fallback", { intakeId }, finalization.error)
+      return NextResponse.json({
+        success: false,
+        error: "Failed to update intake status",
+      }, { status: 500 })
+    }
+
     log.info("Intake marked as paid via fallback verification", { intakeId })
 
-    await startPostPaymentReviewWork({
+    await completeConfirmedPaymentWork({
+      finalizationKind: finalization.kind,
       generateDraftsForIntake,
       intakeId,
+      patientId: authResult.profile.id,
+      requestPath: "/api/stripe/verify-payment",
       schedule: (task) => after(task),
       serviceCategory: intake.category,
+      session,
+      source: "verify_payment_fallback",
       supabase,
     })
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       status: "paid",
-      fallback_applied: true 
+      ...(finalization.kind === "settled"
+        ? { fallback_applied: true }
+        : { already_paid: true }),
     })
 
   } catch (error) {

@@ -7,6 +7,7 @@ const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8")
 
 const dispatcherSource = read("lib/email/email-dispatcher.ts")
 const legacyRecoverySource = read("lib/email/recover-legacy-quiet-failures.ts")
+const outboxDispositionSource = read("lib/email/outbox-disposition.ts")
 const partialRecoverySource = read("lib/email/partial-intake-recovery.ts")
 const quietFailureSource = read("lib/email/quiet-failures.ts")
 const reconstructSource = read("lib/email/send/reconstruct.ts")
@@ -70,8 +71,10 @@ describe("review and partial-recovery reliability contract", () => {
 
     expect(confirmation).toBeGreaterThan(-1)
     expect(marker).toBeGreaterThan(confirmation)
-    expect(dispatcherSource).toContain('claimedRow.email_type === "review_request"')
-    expect(dispatcherSource).toContain(".is(\"review_email_sent_at\", null)")
+    expect(dispatcherSource).toContain("await finalizeOutboxSequenceDisposition(")
+    expect(outboxDispositionSource).toContain("review_request: {")
+    expect(outboxDispositionSource).toContain('markerColumn: "review_email_sent_at"')
+    expect(outboxDispositionSource).toContain(".is(definition.markerColumn, null)")
   })
 
   it("suppresses declined, refunded, bounced, complained, unsubscribed, and already-asked requests", () => {
@@ -93,7 +96,7 @@ describe("review and partial-recovery reliability contract", () => {
     )
     expect(dispatcherSource).toContain("(result.success || result.suppressed)")
     expect(dispatcherSource).toContain(
-      'disposition: result.success ? "sent" : "suppressed"',
+      'result.success ? "sent" : "suppressed"',
     )
   })
 

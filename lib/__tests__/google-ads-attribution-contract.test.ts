@@ -16,14 +16,18 @@ describe("Google Ads attribution contract", () => {
   it("runs the durable Google Ads post-payment uploader from every paid Stripe path", () => {
     const completed = read("app/api/stripe/webhook/handlers/checkout-session-completed.ts")
     const asyncSucceeded = read("app/api/stripe/webhook/handlers/checkout-session-async-payment-succeeded.ts")
+    const fallback = read("app/api/stripe/verify-payment/route.ts")
+    const finalizer = read("lib/stripe/confirmed-payment-finalization.ts")
 
-    for (const source of [completed, asyncSucceeded]) {
-      expect(source).toContain("GOOGLE_ADS_ATTRIBUTION_SELECT")
-      expect(source).toContain("runGoogleAdsPostPaymentAttribution")
+    for (const source of [completed, asyncSucceeded, fallback]) {
+      expect(source).toContain("completeConfirmedPaymentWork")
     }
 
+    expect(finalizer).toContain("GOOGLE_ADS_ATTRIBUTION_SELECT")
+    expect(finalizer).toContain("runGoogleAdsPostPaymentAttribution")
     expect(completed).toContain('source: "checkout_session_completed"')
     expect(asyncSucceeded).toContain('source: "checkout_session_async_payment_succeeded"')
+    expect(fallback).toContain('source: "verify_payment_fallback"')
   })
 
   it("keeps failed Google Ads uploads retryable from cron and visible in audit logs", () => {
