@@ -375,7 +375,12 @@ describe("email-dispatcher", () => {
       expect(result.failed).toBe(0)
       expect(result.skipped).toBe(0)
       expect(result.results).toHaveLength(1)
-      expect(result.results[0]).toEqual({ id: "outbox-1", success: true, error: undefined })
+      expect(result.results[0]).toEqual({
+        id: "outbox-1",
+        success: true,
+        error: undefined,
+        skipped: undefined,
+      })
 
       expect(mockClaimOutboxRow).toHaveBeenCalledWith("outbox-1")
       expect(mockSendFromOutboxRow).toHaveBeenCalledWith(candidate)
@@ -438,6 +443,7 @@ describe("email-dispatcher", () => {
         id: "outbox-1",
         success: false,
         error: "Resend API error",
+        skipped: undefined,
       })
       // Should NOT increment daily send count on failure
       expect(mockIncrementDailySendCount).not.toHaveBeenCalled()
@@ -552,9 +558,61 @@ describe("email-dispatcher", () => {
       )
     })
 
-    it("terminally handles a suppressed review row without counting a delivery", async () => {
+    it.each([
+      {
+        outcome: { kind: "sent" as const, messageId: "msg-1" },
+        expectedMarker: "review_email_sent_at",
+        sent: 1,
+        skipped: 0,
+        failed: 0,
+      },
+      {
+        outcome: { kind: "policy_suppressed" as const, reason: "opted out" },
+        expectedMarker: "review_email_suppressed_at",
+        sent: 0,
+        skipped: 1,
+        failed: 0,
+      },
+    ])("finalizes a review $outcome.kind outcome with only $expectedMarker", async ({
+      outcome,
+      expectedMarker,
+      sent,
+      skipped,
+      failed,
+    }) => {
       const review = makeCandidate({
-        id: "review-suppressed",
+        id: `review-${outcome.kind}`,
+        email_type: "review_request",
+        certificate_id: null,
+      })
+      mockOutboxSelect([review])
+      mockClaimOutboxRow.mockResolvedValue({ claimed: true, row: review })
+      mockSendFromOutboxRow.mockResolvedValue({
+        success: outcome.kind === "sent",
+        suppressed: outcome.kind === "policy_suppressed",
+        outcome,
+      })
+
+      const result = await processEmailDispatch()
+
+      expect(result.sent).toBe(sent)
+      expect(result.failed).toBe(failed)
+      expect(result.skipped).toBe(skipped)
+      expect(result.outcomes[outcome.kind]).toBe(1)
+      expect(expectedMarker).toMatch(/^review_email_(sent|suppressed)_at$/)
+      expect(Sentry.captureMessage).not.toHaveBeenCalledWith(
+        expect.stringContaining("exhausted all"),
+        expect.anything(),
+      )
+    })
+
+    it.each([
+      { kind: "transiently_blocked", reason: "cooldown" },
+      { kind: "pending", outboxId: "review-pending" },
+      { kind: "provider_failed", error: "provider down", retryable: true },
+    ])("does not stamp either marker for a review $kind outcome", async (outcome) => {
+      const review = makeCandidate({
+        id: `review-${outcome.kind}`,
         email_type: "review_request",
         certificate_id: null,
       })
@@ -562,21 +620,16 @@ describe("email-dispatcher", () => {
       mockClaimOutboxRow.mockResolvedValue({ claimed: true, row: review })
       mockSendFromOutboxRow.mockResolvedValue({
         success: false,
-        suppressed: true,
-        error: "Suppressed before delivery",
+        outcome,
       })
 
-      const result = await processEmailDispatch()
+      await processEmailDispatch()
 
-      expect(result.sent).toBe(0)
-      expect(result.failed).toBe(0)
-      expect(result.skipped).toBe(1)
-      expect(updateMock).toHaveBeenCalledWith({
-        review_email_sent_at: expect.any(String),
-      })
-      expect(Sentry.captureMessage).not.toHaveBeenCalledWith(
-        expect.stringContaining("exhausted all"),
-        expect.anything(),
+      expect(updateMock).not.toHaveBeenCalledWith(
+        expect.objectContaining({ review_email_sent_at: expect.anything() }),
+      )
+      expect(updateMock).not.toHaveBeenCalledWith(
+        expect.objectContaining({ review_email_suppressed_at: expect.anything() }),
       )
     })
   })

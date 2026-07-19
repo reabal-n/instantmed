@@ -9,7 +9,10 @@ import {
 import { recoverLegacyQuietFailures } from "@/lib/email/recover-legacy-quiet-failures"
 import { EMAIL_DISPATCHER_MAX_RETRIES } from "@/lib/email/retry-policy"
 import { claimOutboxRow } from "@/lib/email/send/outbox"
-import { MARKETING_EMAIL_TYPES } from "@/lib/email/send/types"
+import {
+  type CommunicationOutcome,
+  MARKETING_EMAIL_TYPES,
+} from "@/lib/email/send/types"
 import { sendFromOutboxRow } from "@/lib/email/send-email"
 import { checkDailySendLimit, incrementDailySendCount } from "@/lib/email/warmup"
 import { createLogger } from "@/lib/observability/logger"
@@ -187,8 +190,25 @@ export interface DispatcherResult {
   failed: number
   skipped: number
   pending?: number
+  outcomes: Record<CommunicationOutcome["kind"], number>
   message?: string
-  results: Array<{ id: string; success: boolean; error?: string; skipped?: boolean }>
+  results: Array<{
+    id: string
+    success: boolean
+    error?: string
+    skipped?: boolean
+    outcome?: CommunicationOutcome
+  }>
+}
+
+function emptyOutcomeCounts(): DispatcherResult["outcomes"] {
+  return {
+    sent: 0,
+    policy_suppressed: 0,
+    transiently_blocked: 0,
+    pending: 0,
+    provider_failed: 0,
+  }
 }
 
 /**
@@ -234,7 +254,14 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
   }
 
   if (!candidates || candidates.length === 0) {
-    return { processed: 0, sent: 0, failed: 0, skipped: 0, results: [] }
+    return {
+      processed: 0,
+      sent: 0,
+      failed: 0,
+      skipped: 0,
+      outcomes: emptyOutcomeCounts(),
+      results: [],
+    }
   }
 
   // Filter by backoff eligibility
@@ -250,6 +277,7 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
       failed: 0,
       skipped: 0,
       pending: candidates.length,
+      outcomes: emptyOutcomeCounts(),
       message: marketingPaused
         ? `Daily marketing email limit reached (${warmup.current}/${warmup.limit}); no transactional emails eligible`
         : "All pending emails are in backoff",
@@ -267,6 +295,7 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
   let sent = 0
   let failed = 0
   let skipped = 0
+  const outcomes = emptyOutcomeCounts()
   const results: DispatcherResult["results"] = []
 
   for (const row of eligible) {
@@ -311,50 +340,28 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
 
     // STEP 4: Send the email
     const result = await sendFromOutboxRow(claimedRow)
+    const outcome = result.outcome
+    if (outcome) outcomes[outcome.kind] += 1
 
-    if (result.success) {
+    if (outcome?.kind === "sent" || (!outcome && result.success)) {
       sent++
-    } else if (result.suppressed) {
+    } else if (
+      outcome?.kind === "policy_suppressed" ||
+      (!outcome && result.suppressed)
+    ) {
       skipped++
-    } else {
+    } else if (outcome?.kind === "provider_failed" || !outcome) {
       failed++
     }
 
-    if (
-      (result.success || result.suppressed) &&
-      claimedRow.email_type === "review_request" &&
-      claimedRow.intake_id
-    ) {
-      const { error } = await supabase
-        .from("intakes")
-        .update({ review_email_sent_at: new Date().toISOString() })
-        .eq("id", claimedRow.intake_id)
-        .is("review_email_sent_at", null)
-
-      if (error) {
-        logger.error("[Email Dispatcher] Review request handled marker failed", {
-          intakeId: claimedRow.intake_id,
-          outboxId: claimedRow.id,
-          disposition: result.success ? "sent" : "suppressed",
-          error: error.message,
-        })
-        Sentry.captureMessage("Review request handled marker failed after dispatcher attempt", {
-          level: "error",
-          tags: { subsystem: "email-dispatcher", email_type: "review_request" },
-          extra: {
-            intakeId: claimedRow.intake_id,
-            outboxId: claimedRow.id,
-            disposition: result.success ? "sent" : "suppressed",
-          },
-        })
-      }
-    }
-
-    if (result.success) {
+    if (outcome?.kind === "sent" || (!outcome && result.success)) {
       if (isMarketingEmailType(claimedRow.email_type)) {
         incrementDailySendCount().catch(() => {})
       }
-    } else if (!result.suppressed) {
+    } else if (
+      outcome?.kind === "provider_failed" ||
+      (!outcome && !result.suppressed)
+    ) {
       // Alert if this failure just exhausted all retries
       if (claimedRow.retry_count + 1 >= MAX_RETRIES) {
         Sentry.captureMessage(`Email exhausted all ${MAX_RETRIES} retries`, {
@@ -375,7 +382,10 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
       id: row.id,
       success: result.success,
       error: result.error,
-      skipped: result.suppressed,
+      skipped: outcome
+        ? outcome.kind === "policy_suppressed"
+        : result.suppressed,
+      ...(outcome ? { outcome } : {}),
     })
   }
 
@@ -386,6 +396,7 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
     sent,
     failed,
     skipped,
+    outcomes,
     results,
   }
 }

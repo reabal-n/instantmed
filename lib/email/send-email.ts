@@ -21,10 +21,13 @@ import { env } from "@/lib/config/env"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { getEmployerCertificateStorageVersion } from "@/lib/crypto/employer-certificate-token"
 import { signEmailUnsubscribeToken, signUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
-import { canSendMarketingEmail } from "@/lib/email/preferences"
+import { getMarketingEmailDecision } from "@/lib/email/preferences"
 import { EMAIL_DISPATCHER_MAX_RETRIES } from "@/lib/email/retry-policy"
-import { isReviewFulfilmentOldEnough } from "@/lib/email/review-request-timing"
-import { getSuppressedEmails } from "@/lib/email/suppression"
+import {
+  evaluateReviewRequestPolicy,
+  markReviewRequestCommunicationOutcome,
+} from "@/lib/email/review-request-policy"
+import { getEmailSuppressionDecisions } from "@/lib/email/suppression"
 import { reconcileCertificateEmailDelivery } from "@/lib/medical-certificates/email-delivery-reconciliation"
 import { recordDeliverySent } from "@/lib/monitoring/delivery-tracking"
 import { logger } from "@/lib/observability/logger"
@@ -32,7 +35,11 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { renderEmailToHtml } from "./react-renderer-server"
 import { reconstructEmailContent } from "./send/reconstruct"
-import { htmlToPlainText, isEmailSuppressed } from "./utils"
+import {
+  getEmailBounceSuppressionDecision,
+  htmlToPlainText,
+  isEmailSuppressed,
+} from "./utils"
 import { checkDailySendLimit, incrementDailySendCount } from "./warmup"
 
 // Re-export types for backwards compatibility
@@ -57,6 +64,7 @@ import {
 import { buildResendEmailIdempotencyKey } from "./send/idempotency"
 import {
   createPendingOutbox,
+  deferOutboxRow,
   logToOutbox,
   persistFrozenProviderPayload,
   updateOutboxStatus,
@@ -69,6 +77,7 @@ import {
   type ResendProviderPayload,
 } from "./send/provider-payload"
 import type {
+  CommunicationOutcome,
   EmailType,
   OutboxRow,
   SendEmailParams,
@@ -86,6 +95,101 @@ interface ResendResponseData {
 async function readResendResponseData(response: Response): Promise<ResendResponseData> {
   const data: unknown = await response.json().catch(() => null)
   return data && typeof data === "object" ? data as ResendResponseData : {}
+}
+
+type MarketingDeliveryDecision =
+  | { kind: "allowed" }
+  | { kind: "policy_suppressed"; reason: string }
+  | { kind: "transiently_blocked"; reason: string }
+
+async function getMarketingDeliveryDecision(
+  emailType: EmailType,
+  patientId: string | undefined | null,
+  toEmail: string,
+): Promise<MarketingDeliveryDecision> {
+  if (!MARKETING_EMAIL_TYPES.has(emailType)) return { kind: "allowed" }
+
+  const bounceDecision = await getEmailBounceSuppressionDecision(toEmail)
+  if (bounceDecision.kind === "policy_suppressed") {
+    return { kind: "policy_suppressed", reason: "address_bounced_or_complained" }
+  }
+  if (bounceDecision.kind === "transiently_blocked") {
+    return { kind: "transiently_blocked", reason: "bounce_lookup_or_soft_bounce" }
+  }
+
+  // Address-level suppression always runs even when a patient profile exists.
+  const normalizedEmail = toEmail.trim().toLowerCase()
+  const addressDecision = (await getEmailSuppressionDecisions([toEmail]))
+    .get(normalizedEmail) ?? { kind: "transiently_blocked" as const }
+  if (addressDecision.kind === "policy_suppressed") {
+    return { kind: "policy_suppressed", reason: "address_suppressed" }
+  }
+  if (addressDecision.kind === "transiently_blocked") {
+    return { kind: "transiently_blocked", reason: "address_suppression_read_failed" }
+  }
+
+  if (patientId) {
+    const preferenceDecision = await getMarketingEmailDecision(patientId)
+    if (preferenceDecision.kind === "policy_suppressed") {
+      return { kind: "policy_suppressed", reason: "marketing_opt_out" }
+    }
+    if (preferenceDecision.kind === "transiently_blocked") {
+      return { kind: "transiently_blocked", reason: "preference_read_failed" }
+    }
+  }
+
+  return { kind: "allowed" }
+}
+
+function providerFailureOutcome(input: {
+  error: string
+  retryable: boolean
+  outboxId?: string | null
+}): CommunicationOutcome {
+  return {
+    kind: "provider_failed",
+    error: input.error,
+    retryable: input.retryable,
+    ...(input.outboxId ? { outboxId: input.outboxId } : {}),
+  }
+}
+
+function transientRetryAt(minutes = 5): string {
+  return new Date(Date.now() + minutes * 60 * 1000).toISOString()
+}
+
+function transientOutcome(input: {
+  reason: string
+  retryAt?: string
+}): CommunicationOutcome {
+  return {
+    kind: "transiently_blocked",
+    reason: input.reason,
+    ...(input.retryAt ? { retryAt: input.retryAt } : {}),
+  }
+}
+
+async function deferReviewInfrastructureFailure(
+  row: OutboxRow,
+  reason: string,
+  error: string,
+): Promise<{
+  success: false
+  error: string
+  outcome: CommunicationOutcome
+} | null> {
+  if (row.email_type !== "review_request") return null
+
+  const retryAt = transientRetryAt()
+  const deferred = await deferOutboxRow(row.id, retryAt, error)
+  return {
+    success: false,
+    error: deferred ? error : "Failed to defer review request",
+    outcome: transientOutcome({
+      reason: deferred ? reason : "outbox_deferral_failed",
+      ...(deferred ? { retryAt } : {}),
+    }),
+  }
 }
 
 // ============================================
@@ -141,6 +245,14 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       success: false,
       error,
       suppressed: MARKETING_EMAIL_TYPES.has(emailType),
+      ...(emailType === "review_request"
+        ? {
+            outcome: {
+              kind: "policy_suppressed",
+              reason: "invalid_recipient",
+            } satisfies CommunicationOutcome,
+          }
+        : {}),
     }
   }
 
@@ -167,7 +279,17 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       metadata,
     })
 
-    return { success: false, error }
+    return {
+      success: false,
+      error,
+      ...(emailType === "review_request"
+        ? {
+            outcome: transientOutcome({
+              reason: "template_render_failed",
+            }),
+          }
+        : {}),
+    }
   }
 
   // E2E MODE: Skip actual sending, log as skipped
@@ -197,6 +319,14 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       messageId: `e2e-${Date.now()}`,
       outboxId: outboxId || undefined,
       skipped: true,
+      ...(emailType === "review_request"
+        ? {
+            outcome: {
+              kind: "pending",
+              ...(outboxId ? { outboxId } : {}),
+            } satisfies CommunicationOutcome,
+          }
+        : {}),
     }
   }
 
@@ -205,26 +335,41 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
   if (!apiKey) {
     logger.debug(`[Email Dev Mode] Would send to: ${sanitizeEmailForLog(to)}`, { subject, emailType })
 
+    const isReviewRequest = emailType === "review_request"
     const outboxId = await logToOutbox({
       email_type: emailType,
       to_email: to,
       to_name: toName,
       subject,
-      status: "sent",
+      status: isReviewRequest ? "skipped_e2e" : "sent",
       provider: "resend",
       provider_message_id: `dev-${Date.now()}`,
       intake_id: intakeId,
       patient_id: patientId,
       certificate_id: certificateId,
       metadata: { ...metadata, dev_mode: true },
-      sent_at: new Date().toISOString(),
+      ...(isReviewRequest ? {} : { sent_at: new Date().toISOString() }),
     })
 
-    return { success: true, messageId: `dev-${Date.now()}`, outboxId: outboxId || undefined }
+    return {
+      success: true,
+      messageId: `dev-${Date.now()}`,
+      outboxId: outboxId || undefined,
+      ...(isReviewRequest
+        ? {
+            outcome: {
+              kind: "pending",
+              ...(outboxId ? { outboxId } : {}),
+            } satisfies CommunicationOutcome,
+          }
+        : {}),
+    }
   }
 
-  // Check bounce suppression
-  const suppressed = await isEmailSuppressed(to)
+  // Transactional sends keep the legacy boolean bounce gate. Marketing sends
+  // use the detailed final policy decision after their durable row exists.
+  const suppressed = !MARKETING_EMAIL_TYPES.has(emailType) &&
+    await isEmailSuppressed(to)
   if (suppressed) {
     const error = "Email address previously bounced or complained"
     logger.warn("[Email] Suppressed", { to: sanitizeEmailForLog(to) })
@@ -275,7 +420,19 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       metadata: { ...metadata, warmup_limited: true, warmup_scope: "marketing" },
     })
 
-    return { success: false, error }
+    return {
+      success: false,
+      error,
+      ...(emailType === "review_request"
+        ? {
+            outcome: {
+              kind: "transiently_blocked",
+              reason: "marketing_warmup_limit",
+              retryAt: transientRetryAt(60),
+            } satisfies CommunicationOutcome,
+          }
+        : {}),
+    }
   }
 
   // Build request body
@@ -337,6 +494,13 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       success: false,
       error: "Failed to secure the email delivery record; please retry.",
       retryable: false,
+      ...(emailType === "review_request"
+        ? {
+            outcome: transientOutcome({
+              reason: "provider_payload_freeze_failed",
+            }),
+          }
+        : {}),
     }
   }
 
@@ -395,6 +559,13 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       return {
         success: false,
         error: "Failed to queue the deferred email; please retry.",
+        ...(emailType === "review_request"
+          ? {
+              outcome: transientOutcome({
+                reason: "outbox_write_failed",
+              }),
+            }
+          : {}),
       }
     }
     logger.info("[Email] Queued for deferred send", {
@@ -408,6 +579,15 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       success: true,
       messageId: `deferred-${outboxId}`,
       outboxId,
+      ...(emailType === "review_request"
+        ? {
+            outcome: {
+              kind: "pending",
+              outboxId,
+              scheduledFor,
+            } satisfies CommunicationOutcome,
+          }
+        : {}),
     }
   }
 
@@ -429,11 +609,32 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         hasIntakeId: Boolean(intakeId),
       },
     })
+    const reviewDuplicateOutcome = emailType === "review_request"
+      ? outboxResult.existingStatus === "sent"
+        ? {
+            kind: "sent" as const,
+            ...(outboxId ? { outboxId } : {}),
+          }
+        : outboxResult.existingStatus === "failed"
+          ? providerFailureOutcome({
+              error: "Existing review request delivery exhausted retries",
+              retryable: false,
+              outboxId,
+            })
+          : {
+              kind: "pending" as const,
+              ...(outboxId ? { outboxId } : {}),
+            }
+      : undefined
     return {
-      success: true,
+      success: !(
+        emailType === "review_request" &&
+        outboxResult.existingStatus === "failed"
+      ),
       messageId: outboxId ? `duplicate-outbox-${outboxId}` : undefined,
       outboxId: outboxId || undefined,
       skipped: true,
+      ...(reviewDuplicateOutcome ? { outcome: reviewDuplicateOutcome } : {}),
     }
   }
 
@@ -449,6 +650,11 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     return {
       success: false,
       error: "Failed to create the email delivery record; please retry.",
+      ...(emailType === "review_request"
+        ? {
+            outcome: transientOutcome({ reason: "outbox_write_failed" }),
+          }
+        : {}),
     }
   }
 
@@ -466,6 +672,13 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       error: "The email delivery record could not be opened safely.",
       outboxId,
       retryable: false,
+      ...(emailType === "review_request"
+        ? {
+            outcome: transientOutcome({
+              reason: "provider_payload_read_failed",
+            }),
+          }
+        : {}),
     }
   }
 
@@ -481,6 +694,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
   )
 
   for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
+    let providerAttempted = false
     try {
       if (attempt > 0) {
         const delay = getRetryDelay(attempt - 1)
@@ -515,28 +729,81 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         }
       }
 
-      const reviewValidation = await validateReviewRequestOutboxRow({
-        email_type: emailType,
-        intake_id: intakeId ?? null,
-      })
-      if (!reviewValidation.success) {
-        lastError = reviewValidation.error || "Review request eligibility check failed"
-        if (attempt < RETRY_CONFIG.maxRetries) {
-          continue
+      if (emailType === "review_request") {
+        const reviewDecision = intakeId
+          ? await evaluateReviewRequestPolicy({
+              intakeId,
+              expectedRecipient: to,
+              currentOutboxId: outboxId,
+            })
+          : {
+              kind: "policy_suppressed" as const,
+              reason: "request_missing",
+            }
+        if (reviewDecision.kind === "transiently_blocked") {
+          const retryAt = reviewDecision.retryAt ?? transientRetryAt()
+          const deferred = await deferOutboxRow(
+            outboxId,
+            retryAt,
+            reviewDecision.reason,
+          )
+          return {
+            success: false,
+            error: deferred ? undefined : "Failed to defer review request",
+            outboxId,
+            retryable: true,
+            outcome: deferred
+              ? reviewDecision
+              : transientOutcome({
+                  reason: "outbox_deferral_failed",
+                }),
+          }
         }
-        await updateOutboxStatus(outboxId, "failed", {
-          error_message: lastError,
-          attempts: attempt + 1,
-        })
+        if (reviewDecision.kind === "policy_suppressed") {
+          const error = `Suppressed before delivery: ${reviewDecision.reason}`
+          await updateOutboxStatus(outboxId, "failed", {
+            error_message: error,
+            attempts: EMAIL_DISPATCHER_MAX_RETRIES,
+          })
+          return {
+            success: false,
+            error,
+            outboxId,
+            retryable: false,
+            suppressed: true,
+            outcome: reviewDecision,
+          }
+        }
+      }
+
+      // Address suppression runs before profile consent on every provider
+      // attempt, including a dispatcher replay.
+      const marketingDecision = await getMarketingDeliveryDecision(
+        emailType,
+        patientId,
+        to,
+      )
+      if (marketingDecision.kind === "transiently_blocked") {
+        const retryAt = transientRetryAt()
+        const deferred = await deferOutboxRow(
+          outboxId,
+          retryAt,
+          marketingDecision.reason,
+        )
         return {
           success: false,
-          error: lastError,
+          error: deferred ? undefined : "Failed to defer marketing email",
           outboxId,
           retryable: true,
+          outcome: deferred
+            ? { ...marketingDecision, retryAt }
+            : transientOutcome({
+                reason: "outbox_deferral_failed",
+              }),
         }
       }
-      if (reviewValidation.eligible === false) {
-        const error = `Suppressed before delivery: ${reviewValidation.error || "review request is no longer eligible"}`
+      if (marketingDecision.kind === "policy_suppressed") {
+        const error = `Suppressed before delivery: ${marketingDecision.reason}`
         await updateOutboxStatus(outboxId, "failed", {
           error_message: error,
           attempts: EMAIL_DISPATCHER_MAX_RETRIES,
@@ -547,26 +814,11 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
           outboxId,
           retryable: false,
           suppressed: true,
+          outcome: marketingDecision,
         }
       }
 
-      // Final policy check before each provider attempt. A preference change
-      // during rendering, outbox creation, or retry backoff must still stop it.
-      if (!await isMarketingDeliveryAllowed(emailType, patientId, to)) {
-        const error = "Suppressed before delivery: marketing preference does not allow send"
-        await updateOutboxStatus(outboxId, "failed", {
-          error_message: error,
-          attempts: EMAIL_DISPATCHER_MAX_RETRIES,
-        })
-        return {
-          success: false,
-          error,
-          outboxId,
-          retryable: false,
-          suppressed: true,
-        }
-      }
-
+      providerAttempted = true
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -613,6 +865,15 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
           error: lastError,
           outboxId: outboxId || undefined,
           retryable,
+          ...(emailType === "review_request"
+            ? {
+                outcome: providerFailureOutcome({
+                  error: lastError,
+                  retryable,
+                  outboxId,
+                }),
+              }
+            : {}),
         }
       }
 
@@ -672,10 +933,43 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         })
       }
 
-      return { success: true, messageId: data.id, outboxId: outboxId || undefined }
+      return {
+        success: true,
+        messageId: data.id,
+        outboxId: outboxId || undefined,
+        ...(emailType === "review_request"
+          ? {
+              outcome: {
+                kind: "sent",
+                messageId: data.id,
+                outboxId,
+              } satisfies CommunicationOutcome,
+            }
+          : {}),
+      }
 
     } catch (err) {
       lastError = err instanceof Error ? err.message : "Unknown error"
+      if (emailType === "review_request" && !providerAttempted) {
+        const retryAt = transientRetryAt()
+        const deferred = await deferOutboxRow(
+          outboxId,
+          retryAt,
+          lastError,
+        )
+        return {
+          success: false,
+          error: lastError,
+          outboxId,
+          retryable: true,
+          outcome: transientOutcome({
+            reason: deferred
+              ? "pre_provider_infrastructure_failed"
+              : "outbox_deferral_failed",
+            ...(deferred ? { retryAt } : {}),
+          }),
+        }
+      }
       const retryable = isRetryableError(undefined, lastError)
 
       if (retryable && attempt < RETRY_CONFIG.maxRetries) {
@@ -703,6 +997,15 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         error: lastError,
         outboxId: outboxId || undefined,
         retryable,
+        ...(emailType === "review_request"
+          ? {
+              outcome: providerFailureOutcome({
+                error: lastError,
+                retryable,
+                outboxId,
+              }),
+            }
+          : {}),
       }
     }
   }
@@ -720,6 +1023,15 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     error: lastError || "Max retries exceeded",
     outboxId: outboxId || undefined,
     retryable: true,
+    ...(emailType === "review_request"
+      ? {
+          outcome: providerFailureOutcome({
+            error: lastError || "Max retries exceeded",
+            retryable: true,
+            outboxId,
+          }),
+        }
+      : {}),
   }
 }
 
@@ -901,71 +1213,6 @@ async function validateCertificateOutboxRow(
   })
 }
 
-interface ReviewRequestDispatchValidation {
-  success: boolean
-  eligible?: boolean
-  error?: string
-}
-
-async function validateReviewRequestOutboxRow(
-  row: Pick<OutboxRow, "email_type" | "intake_id">,
-): Promise<ReviewRequestDispatchValidation> {
-  if (row.email_type !== "review_request") {
-    return { success: true, eligible: true }
-  }
-  if (!row.intake_id) {
-    return {
-      success: true,
-      eligible: false,
-      error: "Review request has no intake",
-    }
-  }
-
-  const supabase = createServiceRoleClient()
-  const { data, error } = await supabase
-    .from("intakes")
-    .select("category, status, payment_status, document_sent_at, script_sent_at, review_email_sent_at")
-    .eq("id", row.intake_id)
-    .maybeSingle()
-
-  if (error) {
-    return {
-      success: false,
-      error: "Review request eligibility could not be checked before delivery",
-    }
-  }
-
-  const eligible = Boolean(
-    data &&
-    (data.status === "approved" || data.status === "completed") &&
-    data.payment_status === "paid" &&
-    data.review_email_sent_at === null &&
-    isReviewFulfilmentOldEnough({
-      category: data.category,
-      document_sent_at: data.document_sent_at,
-      script_sent_at: data.script_sent_at,
-    }),
-  )
-
-  return {
-    success: true,
-    eligible,
-    ...(!eligible ? { error: "Review request is no longer eligible" } : {}),
-  }
-}
-
-async function isMarketingDeliveryAllowed(
-  emailType: EmailType,
-  patientId: string | undefined | null,
-  toEmail: string,
-): Promise<boolean> {
-  if (!MARKETING_EMAIL_TYPES.has(emailType)) return true
-  if (patientId) return canSendMarketingEmail(patientId)
-
-  return !(await getSuppressedEmails([toEmail]))
-    .has(toEmail.trim().toLowerCase())
-}
-
 /**
  * Reconstruct and send an email from an outbox row (used by dispatcher).
  * Fetches intake/certificate data to re-render the template.
@@ -975,6 +1222,8 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
   success: boolean
   error?: string
   suppressed?: boolean
+  outcome?: CommunicationOutcome
+  finalizationError?: string
 }> {
   const apiKey = env.resendApiKey
   if (!apiKey) {
@@ -993,8 +1242,10 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
     return { success: false, error }
   }
 
-  // Check suppression
-  const suppressed = await isEmailSuppressed(row.to_email)
+  // Transactional rows keep the legacy boolean bounce gate. Marketing rows
+  // use the detailed final policy check immediately before the provider.
+  const suppressed = !MARKETING_EMAIL_TYPES.has(row.email_type) &&
+    await isEmailSuppressed(row.to_email)
   if (suppressed) {
     const attempts = EMAIL_DISPATCHER_MAX_RETRIES
     await updateOutboxStatus(row.id, "failed", {
@@ -1020,6 +1271,12 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
     const frozenPayload = readFrozenResendProviderPayload(row.metadata)
     if (!frozenPayload) {
       const error = "Encrypted provider payload could not be read"
+      const reviewFailure = await deferReviewInfrastructureFailure(
+        row,
+        "provider_payload_read_failed",
+        error,
+      )
+      if (reviewFailure) return reviewFailure
       await updateOutboxStatus(row.id, "failed", {
         error_message: error,
         attempts: EMAIL_DISPATCHER_MAX_RETRIES,
@@ -1039,6 +1296,12 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
       const reconstructed = await reconstructEmailContent(row)
       if (!reconstructed.success) {
         const error = reconstructed.error || "Failed to reconstruct email"
+        const reviewFailure = await deferReviewInfrastructureFailure(
+          row,
+          "email_reconstruction_failed",
+          error,
+        )
+        if (reviewFailure) return reviewFailure
         const attempts = reconstructed.terminal
           ? EMAIL_DISPATCHER_MAX_RETRIES
           : row.retry_count + 1
@@ -1103,6 +1366,12 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
         encryptedPayload = freezeResendProviderPayload(sendBody)
       } catch {
         const error = "Could not secure reconstructed email for retry"
+        const reviewFailure = await deferReviewInfrastructureFailure(
+          row,
+          "provider_payload_freeze_failed",
+          error,
+        )
+        if (reviewFailure) return reviewFailure
         const attempts = row.retry_count + 1
         await updateOutboxStatus(row.id, "failed", { error_message: error, attempts })
         await finalizeOutboxFailure(
@@ -1127,6 +1396,12 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
       )
       if (!payloadPersisted) {
         const error = "Could not freeze reconstructed email before delivery"
+        const reviewFailure = await deferReviewInfrastructureFailure(
+          row,
+          "provider_payload_write_failed",
+          error,
+        )
+        if (reviewFailure) return reviewFailure
         const attempts = row.retry_count + 1
         await updateOutboxStatus(row.id, "failed", { error_message: error, attempts })
         await finalizeOutboxFailure(
@@ -1140,6 +1415,12 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
       }
     } catch (err) {
       const error = err instanceof Error ? err.message : "Reconstruction failed"
+      const reviewFailure = await deferReviewInfrastructureFailure(
+        row,
+        "email_reconstruction_failed",
+        error,
+      )
+      if (reviewFailure) return reviewFailure
       const attempts = row.retry_count + 1
       logger.error("[Email Dispatcher] Failed to reconstruct email", { outboxId: row.id, error })
       await updateOutboxStatus(row.id, "failed", { error_message: error, attempts })
@@ -1154,6 +1435,7 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
     }
   }
 
+  let providerAttempted = false
   try {
     const providerIdempotencyKey = buildResendEmailIdempotencyKey(row.id)
     const preProviderCertificateValidation = await validateCertificateEmailReference({
@@ -1173,30 +1455,91 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
       return { success: false, error }
     }
 
-    const reviewValidation = await validateReviewRequestOutboxRow(row)
-    if (!reviewValidation.success) {
-      const error = reviewValidation.error || "Review request eligibility check failed"
-      const attempts = row.retry_count + 1
-      await updateOutboxStatus(row.id, "failed", { error_message: error, attempts })
-      return { success: false, error }
-    }
-    if (reviewValidation.eligible === false) {
-      const error = `Suppressed before delivery: ${reviewValidation.error || "review request is no longer eligible"}`
-      await updateOutboxStatus(row.id, "failed", {
-        error_message: error,
-        attempts: EMAIL_DISPATCHER_MAX_RETRIES,
-      })
-      logger.info("[Email Dispatcher] Review request suppressed before retry", {
-        outboxId: row.id,
-        intakeId: row.intake_id,
-      })
-      return { success: false, error, suppressed: true }
+    if (row.email_type === "review_request") {
+      const reviewDecision = row.intake_id
+        ? await evaluateReviewRequestPolicy({
+            intakeId: row.intake_id,
+            expectedRecipient: row.to_email,
+            currentOutboxId: row.id,
+          })
+        : {
+            kind: "policy_suppressed" as const,
+            reason: "request_missing",
+          }
+      if (reviewDecision.kind === "transiently_blocked") {
+        const retryAt = reviewDecision.retryAt ?? transientRetryAt()
+        const deferred = await deferOutboxRow(
+          row.id,
+          retryAt,
+          reviewDecision.reason,
+        )
+        return {
+          success: false,
+          error: deferred ? undefined : "Failed to defer review request",
+          suppressed: false,
+          outcome: deferred
+            ? reviewDecision
+            : transientOutcome({
+                reason: "outbox_deferral_failed",
+              }),
+        }
+      }
+      if (reviewDecision.kind === "policy_suppressed") {
+        const marked = row.intake_id
+          ? await markReviewRequestCommunicationOutcome(
+              row.intake_id,
+              reviewDecision,
+            )
+          : reviewDecision
+        if (marked.kind === "transiently_blocked") {
+          const retryAt = marked.retryAt ?? transientRetryAt()
+          await deferOutboxRow(row.id, retryAt, marked.reason)
+          return { success: false, outcome: { ...marked, retryAt } }
+        }
+        const error = `Suppressed before delivery: ${reviewDecision.reason}`
+        await updateOutboxStatus(row.id, "failed", {
+          error_message: error,
+          attempts: EMAIL_DISPATCHER_MAX_RETRIES,
+        })
+        logger.info("[Email Dispatcher] Review request suppressed before retry", {
+          outboxId: row.id,
+          intakeId: row.intake_id,
+        })
+        return {
+          success: false,
+          error,
+          suppressed: true,
+          outcome: reviewDecision,
+        }
+      }
     }
 
     // This is intentionally the final asynchronous policy check before the
     // provider call. It catches an unsubscribe made after the row was queued.
-    if (!await isMarketingDeliveryAllowed(row.email_type, row.patient_id, row.to_email)) {
-      const error = "Suppressed before delivery: marketing preference does not allow send"
+    const marketingDecision = await getMarketingDeliveryDecision(
+      row.email_type,
+      row.patient_id,
+      row.to_email,
+    )
+    if (marketingDecision.kind === "transiently_blocked") {
+      const retryAt = transientRetryAt()
+      const deferred = await deferOutboxRow(
+        row.id,
+        retryAt,
+        marketingDecision.reason,
+      )
+      return {
+        success: false,
+        error: deferred ? undefined : "Failed to defer marketing email",
+        outcome: deferred
+          ? { ...marketingDecision, retryAt }
+          : transientOutcome({
+              reason: "outbox_deferral_failed",
+            }),
+      }
+    }
+    if (marketingDecision.kind === "policy_suppressed") {
+      const error = `Suppressed before delivery: ${marketingDecision.reason}`
       await updateOutboxStatus(row.id, "failed", {
         error_message: error,
         attempts: EMAIL_DISPATCHER_MAX_RETRIES,
@@ -1205,9 +1548,15 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
         outboxId: row.id,
         emailType: row.email_type,
       })
-      return { success: false, error, suppressed: true }
+      return {
+        success: false,
+        error,
+        suppressed: true,
+        outcome: marketingDecision,
+      }
     }
 
+    providerAttempted = true
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -1241,7 +1590,19 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
         preProviderCertificateValidation.certificateStorageVersion,
       )
 
-      return { success: false, error }
+      return {
+        success: false,
+        error,
+        ...(row.email_type === "review_request"
+          ? {
+              outcome: providerFailureOutcome({
+                error,
+                retryable,
+                outboxId: row.id,
+              }),
+            }
+          : {}),
+      }
     }
 
     logger.info("[Email Dispatcher] Sent successfully", {
@@ -1249,10 +1610,41 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
       messageId: data.id,
     })
 
+    const sentOutcome: CommunicationOutcome = {
+      kind: "sent",
+      messageId: data.id,
+      outboxId: row.id,
+    }
     await updateOutboxStatus(row.id, "sent", {
       provider_message_id: data.id,
       attempts: row.retry_count + 1,
     })
+
+    if (row.email_type === "review_request" && row.intake_id) {
+      const marked = await markReviewRequestCommunicationOutcome(
+        row.intake_id,
+        sentOutcome,
+      )
+      if (marked.kind === "transiently_blocked") {
+        Sentry.captureMessage("Review request sent marker needs reconciliation", {
+          level: "error",
+          tags: {
+            subsystem: "email-dispatcher",
+            email_type: "review_request",
+          },
+          extra: {
+            intakeId: row.intake_id,
+            outboxId: row.id,
+            reason: marked.reason,
+          },
+        })
+        return {
+          success: true,
+          outcome: sentOutcome,
+          finalizationError: marked.reason,
+        }
+      }
+    }
 
     // Mirror the dispatcher send onto the cert delivery state so the
     // CertHealthChip and patient timeline stay accurate for deferred sends
@@ -1290,9 +1682,22 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
       }
     }
 
-    return { success: true }
+    return {
+      success: true,
+      ...(row.email_type === "review_request"
+        ? { outcome: sentOutcome }
+        : {}),
+    }
   } catch (err) {
     const error = err instanceof Error ? err.message : "Unknown error"
+    if (row.email_type === "review_request" && !providerAttempted) {
+      const reviewFailure = await deferReviewInfrastructureFailure(
+        row,
+        "pre_provider_infrastructure_failed",
+        error,
+      )
+      if (reviewFailure) return reviewFailure
+    }
     const retryable = isRetryableError(undefined, error)
     const attempts = retryable
       ? row.retry_count + 1
@@ -1311,7 +1716,19 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
       certificateValidation.certificateStorageVersion,
     )
 
-    return { success: false, error }
+    return {
+      success: false,
+      error,
+      ...(row.email_type === "review_request"
+        ? {
+            outcome: providerFailureOutcome({
+              error,
+              retryable,
+              outboxId: row.id,
+            }),
+          }
+        : {}),
+    }
   }
 }
 

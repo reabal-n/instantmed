@@ -15,6 +15,7 @@ import type { OutboxEntry, OutboxRow } from "./types"
 export interface CreatePendingOutboxResult {
   id: string | null
   duplicate: boolean
+  existingStatus?: string
   providerPayloadEnc?: string
   certificateStorageVersion?: string
 }
@@ -29,6 +30,7 @@ function pendingOutboxResult(
   id: string | null,
   duplicate: boolean,
   metadata?: unknown,
+  existingStatus?: unknown,
 ): CreatePendingOutboxResult {
   const encryptedPayload = providerPayloadEnc(metadata)
   const certificateStorageVersion = metadata && typeof metadata === "object" && !Array.isArray(metadata)
@@ -37,6 +39,7 @@ function pendingOutboxResult(
   return {
     id,
     duplicate,
+    ...(typeof existingStatus === "string" ? { existingStatus } : {}),
     ...(encryptedPayload ? { providerPayloadEnc: encryptedPayload } : {}),
     ...(typeof certificateStorageVersion === "string" && certificateStorageVersion
       ? { certificateStorageVersion }
@@ -129,7 +132,12 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
           existingId: existing.id,
           emailType: entry.email_type,
         })
-        return pendingOutboxResult(existing.id, true, existingMetadata)
+        return pendingOutboxResult(
+          existing.id,
+          true,
+          existingMetadata,
+          existing.status,
+        )
       }
     }
 
@@ -198,7 +206,7 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
       if (error.code === "23505" && idempotencyKey) {
         const { data: existing } = await supabase
           .from("email_outbox")
-          .select("id, metadata")
+          .select("id, status, metadata")
           .eq("idempotency_key", idempotencyKey)
           .limit(1)
           .maybeSingle()
@@ -208,7 +216,12 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
             existingId: existing.id,
             emailType: entry.email_type,
           })
-          return pendingOutboxResult(existing.id, true, existing.metadata)
+          return pendingOutboxResult(
+            existing.id,
+            true,
+            existing.metadata,
+            existing.status,
+          )
         }
       }
       logger.error("[Email] Failed to create pending outbox", { error: error.message })
@@ -348,6 +361,42 @@ export async function updateOutboxStatus(
     }
   } catch (err) {
     logger.error("[Email] Outbox update error", { outboxId, error: err })
+  }
+}
+
+/**
+ * Release a claimed row for a policy retry without changing its retry budget,
+ * idempotency key, or encrypted provider payload.
+ */
+export async function deferOutboxRow(
+  outboxId: string,
+  scheduledFor: string,
+  reason: string,
+): Promise<boolean> {
+  try {
+    const supabase = createServiceRoleClient()
+    const { error } = await supabase
+      .from("email_outbox")
+      .update({
+        status: "pending",
+        scheduled_for: scheduledFor,
+        error_message: reason,
+        last_attempt_at: new Date().toISOString(),
+      })
+      .eq("id", outboxId)
+      .eq("status", "sending")
+
+    if (error) {
+      logger.error("[Email] Failed to defer outbox row", {
+        outboxId,
+        error: error.message,
+      })
+      return false
+    }
+    return true
+  } catch (error) {
+    logger.error("[Email] Outbox deferral error", { outboxId, error })
+    return false
   }
 }
 

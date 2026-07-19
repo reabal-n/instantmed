@@ -168,7 +168,11 @@ describe("createPendingOutbox failed-row reclaim", () => {
 
     const result = await createPendingOutbox(RECOVERY_ENTRY)
 
-    expect(result).toEqual({ id: "row-2", duplicate: true })
+    expect(result).toEqual({
+      id: "row-2",
+      duplicate: true,
+      existingStatus: "sent",
+    })
     expect(state.updatePayload).toBeNull()
   })
 
@@ -177,7 +181,11 @@ describe("createPendingOutbox failed-row reclaim", () => {
 
     const result = await createPendingOutbox(RECOVERY_ENTRY)
 
-    expect(result).toEqual({ id: "row-3", duplicate: true })
+    expect(result).toEqual({
+      id: "row-3",
+      duplicate: true,
+      existingStatus: "failed",
+    })
     expect(state.updatePayload).toBeNull()
   })
 
@@ -187,6 +195,10 @@ describe("createPendingOutbox failed-row reclaim", () => {
 
     const result = await createPendingOutbox(RECOVERY_ENTRY)
 
-    expect(result).toEqual({ id: "row-4", duplicate: true })
+    expect(result).toEqual({
+      id: "row-4",
+      duplicate: true,
+      existingStatus: "failed",
+    })
   })
 })

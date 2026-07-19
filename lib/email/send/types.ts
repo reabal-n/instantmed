@@ -101,6 +101,8 @@ export interface SendEmailParams {
 
 export interface SendEmailResult {
   success: boolean
+  /** Detailed lifecycle truth for callers that own optional communication markers. */
+  outcome?: CommunicationOutcome
   messageId?: string
   outboxId?: string
   error?: string
