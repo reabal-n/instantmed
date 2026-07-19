@@ -5,6 +5,7 @@ import { createHash } from "node:crypto"
 import * as React from "react"
 
 import { getAppUrl } from "@/lib/config/env"
+import { isLikelyTestPatientIdentity } from "@/lib/data/seeded-e2e-data"
 import { createLogger } from "@/lib/observability/logger"
 import { decryptJSONB, type EncryptedPHI } from "@/lib/security/phi-encryption"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -89,6 +90,7 @@ async function getRecoveryConsultSubtype(draft: PartialDraft): Promise<"ed" | "h
  *   - includes review/checkout drafts that have not created an intake yet
  *   - recovery_email_sent_at is null (one email per draft, ever)
  *   - updated_at is between MIN_IDLE_MINUTES and MAX_IDLE_HOURS old
+ *   - known machine-test identities are handled without sending
  *
  * Real payment-stage abandoned checkout remains owned by
  * lib/email/abandoned-checkout.ts once a pending_payment intake exists.
@@ -139,20 +141,51 @@ export async function processPartialIntakeRecoveries(): Promise<{
   found: number
   sent: number
   suppressed: number
+  testSkipped: number
   pending: number
   failed: number
 }> {
   const drafts = await findEligibleDrafts()
   if (drafts.length === 0) {
-    return { found: 0, sent: 0, suppressed: 0, pending: 0, failed: 0 }
+    return {
+      found: 0,
+      sent: 0,
+      suppressed: 0,
+      testSkipped: 0,
+      pending: 0,
+      failed: 0,
+    }
+  }
+
+  // Production browser checks previously persisted ordinary-looking server
+  // drafts. Some audit paths also captured example/test addresses, which made
+  // the recovery cron repeatedly hand fake sends to Resend. Stamp known
+  // machine identities as handled before suppression/provider work.
+  const recoveryCandidates: PartialDraft[] = []
+  let testSkipped = 0
+  for (const draft of drafts) {
+    if (
+      isLikelyTestPatientIdentity({
+        email: draft.email,
+        fullName: draft.first_name,
+      })
+    ) {
+      await markRecoverySent(draft.session_id)
+      testSkipped += 1
+      logger.info("Skipping recovery email - test identity")
+    } else {
+      recoveryCandidates.push(draft)
+    }
   }
 
   // Spam Act gate: drop drafts whose address is on the account-less
   // suppression list OR belongs to a profile that opted out of marketing.
   // Stamp them so the cron stops re-evaluating an opted-out address daily.
-  const suppressed = await getSuppressedEmails(drafts.map((d) => d.email))
+  const suppressed = await getSuppressedEmails(
+    recoveryCandidates.map((draft) => draft.email),
+  )
   const sendable: PartialDraft[] = []
-  for (const draft of drafts) {
+  for (const draft of recoveryCandidates) {
     if (suppressed.has(draft.email.trim().toLowerCase())) {
       await markRecoverySent(draft.session_id)
       logger.info("Skipping recovery email - suppressed/opted out")
@@ -243,6 +276,7 @@ export async function processPartialIntakeRecoveries(): Promise<{
     found: drafts.length,
     sent,
     suppressed: suppressed.size + suppressedAfterQueue,
+    testSkipped,
     pending,
     failed,
   }
