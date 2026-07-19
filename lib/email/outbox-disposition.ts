@@ -39,6 +39,16 @@ type SequenceDispositionDefinition =
       idSource: { metadataKey: "prescription_id" }
     }
   | {
+      kind: "marker"
+      table: "partial_intakes"
+      markerColumns: Readonly<{
+        sent: "recovery_email_sent_at"
+        suppressed: "recovery_email_suppressed_at"
+      }>
+      idSource: { metadataKey: "recovery_tracking_id" }
+      idColumn: "recovery_tracking_id"
+    }
+  | {
       kind: "outbox"
     }
 
@@ -95,6 +105,16 @@ const OUTBOX_SEQUENCE_DISPOSITIONS: Readonly<
       suppressed: "review_email_suppressed_at",
     },
     idSource: "intake_id",
+  },
+  partial_intake_recovery: {
+    kind: "marker",
+    table: "partial_intakes",
+    markerColumns: {
+      sent: "recovery_email_sent_at",
+      suppressed: "recovery_email_suppressed_at",
+    },
+    idSource: { metadataKey: "recovery_tracking_id" },
+    idColumn: "recovery_tracking_id",
   },
   heard_about_us_backfill: {
     kind: "outbox",
@@ -194,10 +214,11 @@ export async function finalizeOutboxSequenceDisposition(
 
   const timestamp = new Date().toISOString()
   const supabase = createServiceRoleClient()
+  const recordIdColumn = "idColumn" in definition ? definition.idColumn : "id"
   let markerWrite = supabase
     .from(definition.table)
     .update({ [markerColumn]: timestamp })
-    .eq("id", recordId)
+    .eq(recordIdColumn, recordId)
     .is(markerColumn, null)
 
   const oppositeDisposition = disposition === "sent" ? "suppressed" : "sent"
@@ -207,7 +228,7 @@ export async function finalizeOutboxSequenceDisposition(
   }
 
   const { data, error } = await markerWrite
-    .select("id")
+    .select(recordIdColumn)
     .maybeSingle()
 
   if (error) {
@@ -228,7 +249,7 @@ export async function finalizeOutboxSequenceDisposition(
   const { data: currentRecord, error: readError } = await supabase
     .from(definition.table)
     .select(`${markerColumn}, ${oppositeMarker}`)
-    .eq("id", recordId)
+    .eq(recordIdColumn, recordId)
     .maybeSingle()
 
   if (readError) {

@@ -91,6 +91,11 @@ export interface SendEmailParams {
   attachments?: { filename: string; content: string; contentType?: string }[]
   idempotencyKey?: string
   /**
+   * In-memory snapshot used only by the initial partial-recovery provider
+   * gate. It is deliberately not copied into plaintext outbox metadata.
+   */
+  partialRecoveryExpectedUpdatedAt?: string
+  /**
    * Optional ISO timestamp. When set, the email is queued in pending state
    * (no immediate Resend call) and the dispatcher waits until
    * `now() >= scheduledFor` before claiming it. NULL means send immediately.

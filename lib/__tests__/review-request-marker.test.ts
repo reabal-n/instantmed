@@ -17,7 +17,7 @@ vi.mock("@/lib/supabase/service-role", () => ({
 
 import { finalizeOutboxSequenceDisposition } from "@/lib/email/outbox-disposition"
 
-describe("review request sequence finalization", () => {
+describe("lifecycle sequence finalization", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     const chain = {
@@ -135,4 +135,36 @@ describe("review request sequence finalization", () => {
       reason: "record_missing",
     })
   })
+
+  it.each([
+    ["sent", "recovery_email_sent_at", "recovery_email_suppressed_at"],
+    [
+      "suppressed",
+      "recovery_email_suppressed_at",
+      "recovery_email_sent_at",
+    ],
+  ] as const)(
+    "writes only the partial-recovery %s marker by non-bearer tracking ID",
+    async (disposition, marker, oppositeMarker) => {
+      await expect(finalizeOutboxSequenceDisposition({
+        id: "outbox-recovery",
+        email_type: "partial_intake_recovery",
+        intake_id: null,
+        metadata: {
+          recovery_tracking_id: "tracking-1",
+        },
+      }, disposition)).resolves.toEqual({ finalized: true })
+
+      expect(mocks.from).toHaveBeenCalledWith("partial_intakes")
+      expect(mocks.update).toHaveBeenCalledWith({
+        [marker]: expect.any(String),
+      })
+      expect(mocks.eq).toHaveBeenCalledWith(
+        "recovery_tracking_id",
+        "tracking-1",
+      )
+      expect(mocks.is).toHaveBeenCalledWith(marker, null)
+      expect(mocks.is).toHaveBeenCalledWith(oppositeMarker, null)
+    },
+  )
 })
