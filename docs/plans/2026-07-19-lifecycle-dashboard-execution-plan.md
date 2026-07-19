@@ -1,5 +1,7 @@
 # Lifecycle + Dashboard Execution Plan (2026-07-19)
 
+> **Authority:** Reference only. `docs/ROADMAP.md` remains the sole active priority queue.
+
 > **For Claude (Opus executor):** REQUIRED SUB-SKILL: use `superpowers:executing-plans` to implement this plan task-by-task. Load the repo skill named in each task before touching its files. This plan was authored by Fable 5 after a verified review of PRs #364–#374 and live-DB investigation; do not re-derive the findings — they are settled. `docs/ROADMAP.md` remains the sole active queue; this plan executes the 2026-07-19 fix train it activates.
 
 **Goal:** Merge the review-lifecycle draft pair safely (with three pre-merge tweaks), recover the two stranded Jul-14 customers, kill the remaining compliance copy gap, and rebuild the staff-dashboard truth layer so health signals stop lying — in revenue order, with no feature bloat.
