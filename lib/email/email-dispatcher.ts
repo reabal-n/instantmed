@@ -2,6 +2,7 @@ import "server-only"
 
 import * as Sentry from "@sentry/nextjs"
 
+import { finalizeOutboxSequenceDisposition } from "@/lib/email/outbox-disposition"
 import {
   CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES,
   isCronOwnedNonReconstructableEmailType,
@@ -9,6 +10,7 @@ import {
 import { recoverLegacyQuietFailures } from "@/lib/email/recover-legacy-quiet-failures"
 import { EMAIL_DISPATCHER_MAX_RETRIES } from "@/lib/email/retry-policy"
 import { claimOutboxRow } from "@/lib/email/send/outbox"
+import { hasFrozenResendProviderPayload } from "@/lib/email/send/provider-payload"
 import { MARKETING_EMAIL_TYPES } from "@/lib/email/send/types"
 import { sendFromOutboxRow } from "@/lib/email/send-email"
 import { checkDailySendLimit, incrementDailySendCount } from "@/lib/email/warmup"
@@ -34,7 +36,8 @@ export const MAX_RETRIES = EMAIL_DISPATCHER_MAX_RETRIES
 const BACKOFF_MINUTES = [0, 1, 2, 5, 10, 30, 60, 60, 60, 60]
 const STALE_SENDING_MINUTES = 15
 
-// Email types that the dispatcher can reconstruct and resend.
+// Legacy email types that the dispatcher can reconstruct and resend when a row
+// predates frozen provider payloads.
 // MUST match the types handled by reconstructEmailContent() in send/reconstruct.ts
 // — parity is pinned by email-dispatcher-reconstruct-parity-contract.test.ts so a
 // type can't be claimed "supported" here without a reconstruct branch (the bug
@@ -74,9 +77,8 @@ function isSupportedEmailType(emailType: string): boolean {
 }
 
 // Remaining one-off marketing emails that are not reconstructable stay in the
-// shared quiet-failure list. Review requests and partial-intake recovery are
-// deliberately supported above: current rows replay their encrypted provider
-// payload and legacy anomalies alert instead of disappearing.
+// shared legacy quiet-failure list. Current rows replay their encrypted provider
+// payload before this allowlist is considered.
 
 /**
  * Permanently fail an outbox row so it won't be retried.
@@ -110,10 +112,9 @@ async function permanentlyFailOutboxRow(outboxId: string, errorMessage: string, 
 }
 
 /**
- * Permanently fail an outbox row WITHOUT a Sentry warning. For cron-owned one-off
- * emails the generic dispatcher cannot reconstruct (refill reminder,
- * heard-about-us): their owning cron handles the resend, so an
- * unreconstructable outbox copy is expected — not a reconstruct anomaly worth alerting.
+ * Permanently fail an outbox row WITHOUT a Sentry warning. This is only for
+ * genuinely legacy cron-owned rows that predate the frozen provider payload and
+ * therefore cannot be reconstructed safely.
  */
 async function quietlyFailOutboxRow(outboxId: string, errorMessage: string): Promise<void> {
   const supabase = createServiceRoleClient()
@@ -291,14 +292,18 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
       continue
     }
 
-    // STEP 3: Check for unsupported email types
-    if (!isSupportedEmailType(claimedRow.email_type)) {
+    // STEP 3: Current rows replay their exact encrypted provider request and do
+    // not need a reconstruction branch. Only genuinely legacy rows without a
+    // frozen payload are constrained by the reconstruction allowlist.
+    if (
+      !hasFrozenResendProviderPayload(claimedRow.metadata) &&
+      !isSupportedEmailType(claimedRow.email_type)
+    ) {
       const cronOwned = isCronOwnedNonReconstructableEmailType(claimedRow.email_type)
-      // Cron-owned one-off marketing emails are expected-unsupported: their cron
-      // owns the resend, so fail the row quietly (info, no Sentry). Everything
-      // else is a genuine reconstruct anomaly that keeps the Sentry-warning path.
+      // Legacy cron-owned one-off rows have no safe reconstruction path. Keep
+      // the historical quiet terminal treatment for those rows only.
       if (cronOwned) {
-        logger.info("[Email Dispatcher] Cron-owned email_type not reconstructable - permanent fail (expected)", { id: row.id, type: claimedRow.email_type })
+        logger.info("[Email Dispatcher] Legacy cron-owned email_type is not reconstructable - permanent fail", { id: row.id, type: claimedRow.email_type })
         await quietlyFailOutboxRow(row.id, `Unsupported email_type: ${claimedRow.email_type}`)
       } else {
         logger.warn("[Email Dispatcher] Unsupported email_type - permanent fail", { id: row.id, type: claimedRow.email_type })
@@ -320,34 +325,11 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
       failed++
     }
 
-    if (
-      (result.success || result.suppressed) &&
-      claimedRow.email_type === "review_request" &&
-      claimedRow.intake_id
-    ) {
-      const { error } = await supabase
-        .from("intakes")
-        .update({ review_email_sent_at: new Date().toISOString() })
-        .eq("id", claimedRow.intake_id)
-        .is("review_email_sent_at", null)
-
-      if (error) {
-        logger.error("[Email Dispatcher] Review request handled marker failed", {
-          intakeId: claimedRow.intake_id,
-          outboxId: claimedRow.id,
-          disposition: result.success ? "sent" : "suppressed",
-          error: error.message,
-        })
-        Sentry.captureMessage("Review request handled marker failed after dispatcher attempt", {
-          level: "error",
-          tags: { subsystem: "email-dispatcher", email_type: "review_request" },
-          extra: {
-            intakeId: claimedRow.intake_id,
-            outboxId: claimedRow.id,
-            disposition: result.success ? "sent" : "suppressed",
-          },
-        })
-      }
+    if (result.success || result.suppressed) {
+      await finalizeOutboxSequenceDisposition(
+        claimedRow,
+        result.success ? "sent" : "suppressed",
+      )
     }
 
     if (result.success) {

@@ -48,8 +48,10 @@ describe("attribution persistence contract", () => {
     }
   })
 
-  it("keeps webhook attribution select and schema migration aligned with stored checkout fields", () => {
-    const webhook = read("app/api/stripe/webhook/handlers/checkout-session-completed.ts")
+  it("keeps confirmed-payment attribution and schema migration aligned with stored checkout fields", () => {
+    const confirmedPaymentFinalizer = read(
+      "lib/stripe/confirmed-payment-finalization.ts",
+    )
     const migrations = readdirSync("supabase/migrations")
       .filter((file) => file.endsWith(".sql"))
       .map((file) => read(join("supabase/migrations", file)))
@@ -57,7 +59,7 @@ describe("attribution persistence contract", () => {
     const dbTypes = read("types/db.ts")
 
     for (const column of ATTRIBUTION_COLUMNS) {
-      expect(webhook).toContain(column)
+      expect(confirmedPaymentFinalizer).toContain(column)
       expect(dbTypes).toContain(`${column}: string | null`)
       expect(migrations).toContain(column)
     }

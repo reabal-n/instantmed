@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const mocks = vi.hoisted(() => ({
   applyRateLimit: vi.fn(),
   captureException: vi.fn(),
+  completeConfirmedPaymentWork: vi.fn(),
   createServiceRoleClient: vi.fn(),
   getApiAuth: vi.fn(),
   logger: {
@@ -42,6 +43,17 @@ vi.mock("@/lib/stripe/post-payment", () => ({
   startPostPaymentReviewWork: mocks.startPostPaymentReviewWork,
 }))
 
+vi.mock("@/lib/stripe/confirmed-payment-finalization", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/lib/stripe/confirmed-payment-finalization")
+  >("@/lib/stripe/confirmed-payment-finalization")
+
+  return {
+    ...actual,
+    completeConfirmedPaymentWork: mocks.completeConfirmedPaymentWork,
+  }
+})
+
 vi.mock("@/lib/supabase/service-role", () => ({
   createServiceRoleClient: mocks.createServiceRoleClient,
 }))
@@ -76,6 +88,7 @@ function setupSupabase(overrides: {
 
   const intakeSelect = {
     eq: vi.fn(() => intakeSelect),
+    maybeSingle: vi.fn(async () => ({ data: intake, error: null })),
     single: vi.fn(async () => ({ data: intake, error: null })),
   }
   const intakeUpdate = {
@@ -114,6 +127,7 @@ describe("POST /api/stripe/verify-payment", () => {
       userId: "auth-user-1",
       profile: { id: "profile-1", role: "patient" },
     })
+    mocks.completeConfirmedPaymentWork.mockResolvedValue(undefined)
     mocks.startPostPaymentReviewWork.mockResolvedValue(undefined)
   })
 
@@ -146,6 +160,7 @@ describe("POST /api/stripe/verify-payment", () => {
   it("marks an owned intake paid when the paid Stripe session metadata matches", async () => {
     const { intakeUpdate, updates } = setupSupabase()
     mocks.retrieveCheckoutSession.mockResolvedValue({
+      amount_total: 2995,
       id: "cs_stored",
       customer: "cus_test",
       metadata: { intake_id: "intake-1" },
@@ -166,13 +181,16 @@ describe("POST /api/stripe/verify-payment", () => {
       success: true,
     })
     expect(updates[0]).toMatchObject({
+      amount_cents: 2995,
+      checkout_error: null,
       payment_status: "paid",
       status: "paid",
       stripe_payment_intent_id: "pi_paid",
       stripe_customer_id: "cus_test",
     })
     expect(intakeUpdate.in).toHaveBeenCalledWith("payment_status", ["pending", "unpaid", "failed"])
-    expect(mocks.startPostPaymentReviewWork).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mocks.completeConfirmedPaymentWork).toHaveBeenCalledWith(expect.objectContaining({
+      finalizationKind: "settled",
       intakeId: "intake-1",
       supabase: expect.any(Object),
     }))
@@ -189,6 +207,7 @@ describe("POST /api/stripe/verify-payment", () => {
       },
     })
     mocks.retrieveCheckoutSession.mockResolvedValue({
+      amount_total: 2995,
       id: "cs_retry",
       customer: "cus_test",
       metadata: { intake_id: "intake-1" },
@@ -221,6 +240,7 @@ describe("POST /api/stripe/verify-payment", () => {
       updateResult: { data: null, error: null },
     })
     mocks.retrieveCheckoutSession.mockResolvedValue({
+      amount_total: 2995,
       id: "cs_stored",
       customer: "cus_test",
       metadata: { intake_id: "intake-1" },
@@ -240,7 +260,7 @@ describe("POST /api/stripe/verify-payment", () => {
       status: "pending_payment",
       success: false,
     })
-    expect(mocks.startPostPaymentReviewWork).not.toHaveBeenCalled()
+    expect(mocks.completeConfirmedPaymentWork).not.toHaveBeenCalled()
   })
 
   it("does not resurrect a cancelled intake during fallback verification", async () => {
@@ -254,6 +274,7 @@ describe("POST /api/stripe/verify-payment", () => {
       },
     })
     mocks.retrieveCheckoutSession.mockResolvedValue({
+      amount_total: 2995,
       id: "cs_stored",
       customer: "cus_test",
       metadata: { intake_id: "intake-1" },
@@ -274,6 +295,6 @@ describe("POST /api/stripe/verify-payment", () => {
       success: false,
     })
     expect(updates).toHaveLength(0)
-    expect(mocks.startPostPaymentReviewWork).not.toHaveBeenCalled()
+    expect(mocks.completeConfirmedPaymentWork).not.toHaveBeenCalled()
   })
 })

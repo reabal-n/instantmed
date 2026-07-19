@@ -39,7 +39,6 @@ import {
   PartialIntakeRecoveryEmail,
   partialIntakeRecoverySubject,
   PaymentConfirmedEmail,
-  paymentConfirmedSubject,
   PaymentFailedEmail,
   paymentFailedSubject,
   RefundIssuedEmail,
@@ -322,11 +321,6 @@ describe("Email Templates", () => {
       )
       expectBaseEmailStructure(html)
       expectContains(html, "Casey", "$19.95")
-    })
-
-    it("subject factory works", () => {
-      const subject = paymentConfirmedSubject("Medical Certificate")
-      expect(subject).toBeTruthy()
     })
 
     it("matches snapshot", () => {

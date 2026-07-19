@@ -80,6 +80,13 @@ function makeCandidate(overrides: Record<string, unknown> = {}) {
   }
 }
 
+function frozenMetadata(metadata: Record<string, unknown> = {}) {
+  return {
+    _provider_payload_enc: "encrypted-provider-payload",
+    ...metadata,
+  }
+}
+
 /**
  * Wire up the chainable Supabase mock so the dispatcher's SELECT query
  * resolves with the given candidate rows (or an error).
@@ -107,8 +114,10 @@ function mockOutboxSelect(
   // permanentlyFailOutboxRow also calls from("email_outbox").update(...)
   // so we need a mock that supports both select (the fetch query) and update.
   const updateChain: Record<string, unknown> = {}
-  updateChain.eq = vi.fn(() => updateChain)
-  updateChain.is = vi.fn(() => updateChain)
+  const eqMock = vi.fn(() => updateChain)
+  const isMock = vi.fn(() => updateChain)
+  updateChain.eq = eqMock
+  updateChain.is = isMock
   updateChain.lt = vi.fn(() => updateChain)
   updateChain.select = vi.fn().mockResolvedValue({ data: [], error: null })
   const updateMock = vi.fn(() => updateChain)
@@ -119,7 +128,17 @@ function mockOutboxSelect(
     update: updateChain.update,
   }))
 
-  return { selectMock, inMock, ltMock, orMock, orderMock, limitMock, updateMock }
+  return {
+    selectMock,
+    inMock,
+    ltMock,
+    orMock,
+    orderMock,
+    limitMock,
+    updateMock,
+    eqMock,
+    isMock,
+  }
 }
 
 /**
@@ -576,6 +595,216 @@ describe("email-dispatcher", () => {
       })
       expect(Sentry.captureMessage).not.toHaveBeenCalledWith(
         expect.stringContaining("exhausted all"),
+        expect.anything(),
+      )
+    })
+
+    it("dispatches current frozen sequence payloads without legacy reconstruction support", async () => {
+      const currentRows = [
+        makeCandidate({
+          id: "refill",
+          email_type: "refill_reminder",
+          intake_id: null,
+          certificate_id: null,
+          metadata: frozenMetadata({ prescription_id: "prescription-1" }),
+        }),
+        makeCandidate({
+          id: "reactivation",
+          email_type: "cert_reactivation",
+          intake_id: null,
+          certificate_id: null,
+          metadata: frozenMetadata({ intake_id: "intake-reactivation" }),
+        }),
+        makeCandidate({
+          id: "abandoned",
+          email_type: "abandoned_checkout",
+          intake_id: "intake-abandoned",
+          certificate_id: null,
+          metadata: frozenMetadata(),
+        }),
+        makeCandidate({
+          id: "abandoned-followup",
+          email_type: "abandoned_checkout_followup",
+          intake_id: "intake-abandoned-followup",
+          certificate_id: null,
+          metadata: frozenMetadata(),
+        }),
+        makeCandidate({
+          id: "heard-backfill",
+          email_type: "heard_about_us_backfill",
+          intake_id: "intake-heard",
+          certificate_id: null,
+          metadata: frozenMetadata({ backfill: true }),
+        }),
+      ]
+      const { eqMock, updateMock } = mockOutboxSelect(currentRows)
+      for (const row of currentRows) {
+        mockClaimOutboxRow.mockResolvedValueOnce({ claimed: true, row })
+      }
+      mockSendFromOutboxRow.mockResolvedValue({ success: true })
+
+      const result = await processEmailDispatch()
+
+      expect(result.sent).toBe(currentRows.length)
+      expect(result.failed).toBe(0)
+      expect(mockSendFromOutboxRow).toHaveBeenCalledTimes(currentRows.length)
+      expect(updateMock).toHaveBeenCalledWith({
+        refill_reminder_sent_at: expect.any(String),
+      })
+      expect(updateMock).toHaveBeenCalledWith({
+        reactivation_email_sent_at: expect.any(String),
+      })
+      expect(updateMock).toHaveBeenCalledWith({
+        abandoned_email_sent_at: expect.any(String),
+      })
+      expect(updateMock).toHaveBeenCalledWith({
+        abandoned_followup_sent_at: expect.any(String),
+      })
+      expect(eqMock).toHaveBeenCalledWith("id", "prescription-1")
+      expect(eqMock).toHaveBeenCalledWith("id", "intake-reactivation")
+      expect(eqMock).toHaveBeenCalledWith("id", "intake-abandoned")
+      expect(eqMock).toHaveBeenCalledWith("id", "intake-abandoned-followup")
+    })
+
+    it("finalizes sequence markers when a frozen retry is policy-suppressed", async () => {
+      const rows = [
+        makeCandidate({
+          id: "refill-suppressed",
+          email_type: "refill_reminder",
+          intake_id: null,
+          certificate_id: null,
+          metadata: frozenMetadata({ prescription_id: "prescription-suppressed" }),
+        }),
+        makeCandidate({
+          id: "reactivation-suppressed",
+          email_type: "cert_reactivation",
+          intake_id: null,
+          certificate_id: null,
+          metadata: frozenMetadata({ intake_id: "intake-reactivation-suppressed" }),
+        }),
+        makeCandidate({
+          id: "abandoned-suppressed",
+          email_type: "abandoned_checkout",
+          intake_id: "intake-abandoned-suppressed",
+          certificate_id: null,
+          metadata: frozenMetadata(),
+        }),
+        makeCandidate({
+          id: "abandoned-followup-suppressed",
+          email_type: "abandoned_checkout_followup",
+          intake_id: "intake-followup-suppressed",
+          certificate_id: null,
+          metadata: frozenMetadata(),
+        }),
+      ]
+      const { updateMock } = mockOutboxSelect(rows)
+      for (const row of rows) {
+        mockClaimOutboxRow.mockResolvedValueOnce({ claimed: true, row })
+      }
+      mockSendFromOutboxRow.mockResolvedValue({
+        success: false,
+        suppressed: true,
+        error: "Suppressed before delivery",
+      })
+
+      const result = await processEmailDispatch()
+
+      expect(result.sent).toBe(0)
+      expect(result.failed).toBe(0)
+      expect(result.skipped).toBe(rows.length)
+      expect(updateMock).toHaveBeenCalledWith({
+        refill_reminder_sent_at: expect.any(String),
+      })
+      expect(updateMock).toHaveBeenCalledWith({
+        reactivation_email_sent_at: expect.any(String),
+      })
+      expect(updateMock).toHaveBeenCalledWith({
+        abandoned_email_sent_at: expect.any(String),
+      })
+      expect(updateMock).toHaveBeenCalledWith({
+        abandoned_followup_sent_at: expect.any(String),
+      })
+    })
+
+    it("uses the outbox row itself as heard-about-us backfill dedupe", async () => {
+      const heardBackfill = makeCandidate({
+        id: "heard-backfill",
+        email_type: "heard_about_us_backfill",
+        intake_id: "intake-heard",
+        certificate_id: null,
+        metadata: frozenMetadata({ backfill: true }),
+      })
+      const { updateMock } = mockOutboxSelect([heardBackfill])
+      mockClaimOutboxRow.mockResolvedValue({ claimed: true, row: heardBackfill })
+      mockSendFromOutboxRow.mockResolvedValue({ success: true })
+
+      const result = await processEmailDispatch()
+
+      expect(result.sent).toBe(1)
+      // The only update is the dispatcher's stale-claim recovery query.
+      // findHeardAboutUsBackfillCandidates() already treats any durable outbox
+      // row as the one-time "asked" marker, so no intake column is mutated.
+      expect(updateMock).toHaveBeenCalledTimes(1)
+    })
+
+    it("keeps genuinely legacy cron-owned rows terminal when no frozen payload exists", async () => {
+      const legacy = makeCandidate({
+        id: "legacy-refill",
+        email_type: "refill_reminder",
+        intake_id: null,
+        certificate_id: null,
+        metadata: { prescription_id: "legacy-prescription" },
+      })
+      mockOutboxSelect([legacy])
+      mockClaimOutboxRow.mockResolvedValue({ claimed: true, row: legacy })
+
+      const result = await processEmailDispatch()
+
+      expect(result.failed).toBe(1)
+      expect(result.results[0]).toMatchObject({
+        id: "legacy-refill",
+        success: false,
+        error: "Unsupported email_type: refill_reminder",
+      })
+      expect(mockSendFromOutboxRow).not.toHaveBeenCalled()
+      expect(Sentry.captureMessage).not.toHaveBeenCalledWith(
+        expect.stringContaining("permanently failed"),
+        expect.anything(),
+      )
+    })
+
+    it("does not require lifecycle markers for explicit sequence test sends", async () => {
+      const testRows = [
+        makeCandidate({
+          id: "test-refill",
+          email_type: "refill_reminder",
+          intake_id: null,
+          patient_id: null,
+          certificate_id: null,
+          metadata: frozenMetadata({ test: true }),
+        }),
+        makeCandidate({
+          id: "test-reactivation",
+          email_type: "cert_reactivation",
+          intake_id: null,
+          patient_id: null,
+          certificate_id: null,
+          metadata: frozenMetadata({ test: true }),
+        }),
+      ]
+      const { updateMock } = mockOutboxSelect(testRows)
+      for (const row of testRows) {
+        mockClaimOutboxRow.mockResolvedValueOnce({ claimed: true, row })
+      }
+      mockSendFromOutboxRow.mockResolvedValue({ success: true })
+
+      const result = await processEmailDispatch()
+
+      expect(result.sent).toBe(testRows.length)
+      // The only update is the dispatcher's stale-claim recovery query.
+      expect(updateMock).toHaveBeenCalledTimes(1)
+      expect(Sentry.captureMessage).not.toHaveBeenCalledWith(
+        "Email sequence handled marker failed after dispatcher attempt",
         expect.anything(),
       )
     })

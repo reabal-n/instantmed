@@ -3,7 +3,7 @@
 > **Authority:** revenue milestones, economic definitions, paid-scaling gates, and hiring/capacity thresholds.
 > Live values come from the admin dashboard. Durable strategy lives in `docs/BUSINESS_PLAN.md`. Current priorities and status live in `docs/ROADMAP.md`.
 
-**Last updated:** 2026-07-12
+**Last updated:** 2026-07-19
 
 ---
 
@@ -75,6 +75,8 @@ Fixed software, insurance, accounting, and general business overhead stay outsid
 
 Doctor and support labour must use explicit operator-approved hourly rates multiplied by sampled active minutes. Until those rates are recorded, contribution is **unknown** and no campaign can be described as ready to scale. Do not substitute zero-cost owner labour.
 
+Paid-to-decision elapsed time (`paid_at` to `approved_at` or `declined_at`) is an operational latency measure. It includes queue and waiting time, so it is not active doctor labour and must not be used as the labour input in the contribution formula.
+
 Do not use assumed lifetime value, hoped-for repeat orders, approval rate, or gross AOV to justify first-order losses.
 
 ## 5. Operating scorecard
@@ -85,11 +87,12 @@ Review these metrics by service before increasing paid demand:
 |--------|------------|---------------|
 | Rolling 30-day net-retained revenue | Captured revenue less refunds and disputes in the rolling window. | Track against the active `$2k -> $5k -> $10k` milestone. |
 | Paid order volume | Real paid intakes, excluding seeded E2E and failed checkout rows. | Growth must not overload clinical or support capacity. |
-| First-order contribution after acquisition | Formula in section 4, by service and channel. | Must be positive for scaling. |
+| First-order contribution after acquisition | Formula in section 4, by service and channel. Current state is unknown because active labour minutes and operator-approved rates are not recorded. | Must be positive for scaling; unknown inputs block a scaling decision. |
 | Refund rate | Refunded or partially refunded paid intakes by service. | Stay below 8-10%; a spike pauses scaling and triggers eligibility/copy review. |
 | Chargeback rate | Stripe disputes divided by paid orders. | Stay below 0.5%; any cluster gets same-week review. |
 | Support tickets per 100 orders | Patient support contacts per 100 paid orders. | Stay below 5 per 100; above target means fix friction before adding demand. |
-| Doctor minutes per order | Sample active review time by service. | Stable or falling without weaker clinical QA or more complaints. |
+| Paid-to-decision elapsed time | Time from payment to approval or decline, including queue and waiting time. | Track operational responsiveness only; this is not an active-labour input. |
+| Active doctor minutes per order | Sampled hands-on review time by service. Current state: not measured. | Stable or falling without weaker clinical QA or more complaints; absence blocks contribution readiness. |
 | Queue P95 | Paid-to-review wait by service. | Keep below 2 hours and below the 24-hour hard ceiling. |
 | Clinical/fulfilment health | Safety escalations, unsuitable cases, Parchment completion, delivery failures. | Any unsafe or unreliable pattern blocks scaling. |
 | Capacity review state | Section 8 thresholds. | A triggered state requires an operating decision before further ramp. |
@@ -132,7 +135,7 @@ When the budget, time, or kill threshold is reached, stop and present the result
 | Encourage appropriate one-off repeat requests | Expands revenue from existing trust without assuming subscription LTV. |
 | Improve service-level paid intent | Better keywords and negatives reduce unsuitable and refund-heavy traffic. |
 | Reduce support contacts | Protects margin and owner capacity. |
-| Reduce doctor minutes safely | Improves contribution only when clinical quality and complaints remain stable. |
+| Reduce sampled active doctor minutes safely | Improves contribution only when clinical quality and complaints remain stable. |
 | Compound compliant organic and external authority | Reduces dependence on paid acquisition over time. |
 
 ## 8. Hiring And Capacity Triggers

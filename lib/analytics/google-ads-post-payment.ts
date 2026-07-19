@@ -62,6 +62,7 @@ export type GoogleAdsAttributionRow = {
 export type GoogleAdsConversionSource =
   | "checkout_session_completed"
   | "checkout_session_async_payment_succeeded"
+  | "verify_payment_fallback"
   | "cron_backfill"
 
 type GoogleAdsConversionStatus =

@@ -42,9 +42,13 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 **Key files:**
 - Dispatcher: `app/api/stripe/webhook/route.ts`
 - Handlers: `app/api/stripe/webhook/handlers/*.ts` (one per event type)
+- Shared paid transition and completion owner: `lib/stripe/confirmed-payment-finalization.ts`
+- Authenticated browser reconciliation fallback: `app/api/stripe/verify-payment/route.ts`
 - DLQ admin: `app/api/admin/webhook-dlq/route.ts`
 - Replay auth: `INTERNAL_API_SECRET` env var (required for admin retry)
 - e2e: `e2e/stripe-webhook.spec.ts` (signature, idempotency, refund paths)
+
+The two paid webhook handlers and `/api/stripe/verify-payment` share the same exact-current finalizer. If the browser fallback settles a confirmed current Session before Stripe delivers the webhook, it also runs the canonical post-payment completion work. A later webhook is an idempotent healing pass rather than a second paid transition. For a "paid but nothing happened" report, verify the intake's current `payment_id`, `payment_status`, `amount_cents`, and Stripe payment intent together; do not repair one field in isolation.
 
 ### Email Delivery Failures
 
@@ -647,7 +651,7 @@ ROLLBACK  ROLLBACK    ROLLBACK
 5. **Bulk replay** — for > 10 entries, use the admin "Retry all" button. This processes sequentially with rate limiting to avoid overwhelming the downstream.
 6. **Verify** — DLQ depth returns to 0, Sentry alert clears, and the affected intakes show the expected state transitions in `intake_events` log.
 
-**Idempotency guarantee:** `tryClaimEvent` is a Supabase RPC that uses `INSERT ... ON CONFLICT` on `stripe_event_id`. A double-replay of the same event is a no-op.
+**Idempotency guarantee:** `tryClaimEvent` is a Supabase RPC that uses `INSERT ... ON CONFLICT` on `stripe_event_id`. A double-replay of the same event is a no-op. Paid-session replay additionally delegates to `lib/stripe/confirmed-payment-finalization.ts`, whose exact `payment_id` and retryable-state compare-and-swap prevents a stale Session or a second transport from overwriting the current payment.
 
 ---
 

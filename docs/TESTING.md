@@ -13,10 +13,11 @@
 
 **Coverage threshold:** 80% statements / 70% branches / 80% functions / 80% lines (enforced by Vitest config, scoped to `lib/clinical/`, `lib/security/`, the `lib/stripe/` payment-safety surface, and `lib/data/intake-lifecycle.ts`). The E2E-only Stripe orchestrators (`checkout.ts`, `guest-checkout.ts`, `checkout/stripe-session.ts`, `checkout/persistence.ts`, `checkout/auth-and-profile.ts`, `checkout/retry-payment.ts`, `client.ts`, `referral-coupon.ts`, `post-payment.ts`) are excluded — they're exercised by `e2e/unified-request-flow.spec.ts` / `consult-subtypes.spec.ts` / payment-smoke, not units. **Note:** `lib/state-machine/` was removed from the include list 2026-04-08 because the directory no longer exists — the state-machine logic was consolidated into `lib/clinical/auto-approval-state.ts`.
 
-**Recent additions (2026-04-08 audit sweep):**
+**Notable safety coverage:**
 - `lib/__tests__/decline-intake.test.ts` — coverage for `app/actions/decline-intake.ts` (actor gate, idempotency, **refund amount math per category** including full refund on declined refundable categories, E2E short-circuit, skipRefund flag)
 - `lib/__tests__/doctor-queue-contract.test.ts` — contract coverage for canonical doctor queue actions and retired duplicate doctor decision APIs.
 - `e2e/operator.viewport.spec.ts` and `e2e/operator.visual.spec.ts` — compact staff cockpit visual/viewport guardrails for `/admin`, `/admin/ops`, `/admin/intakes`, and the intake review panel at 1440x900.
+- `lib/__tests__/confirmed-payment-finalization-contract.test.ts` — pins both paid Stripe webhook adapters and `/api/stripe/verify-payment` to the shared exact-current paid-transition owner, including Stripe charged-amount reconciliation and atomic referral-event claiming.
 
 Prior to these, the canonical refund code had **zero unit coverage** — only the e2e suite exercised it, which gave slow feedback and no per-branch visibility.
 

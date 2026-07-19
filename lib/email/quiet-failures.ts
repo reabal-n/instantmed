@@ -1,3 +1,9 @@
+/**
+ * Cron-owned sequence types that have no safe plaintext reconstruction path.
+ * Current rows carry a frozen encrypted provider payload and bypass this list;
+ * it remains the terminal/quiet classification for genuinely legacy rows and
+ * the historical unsupported bookkeeping they produced.
+ */
 export const CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES = [
   "refill_reminder",
   "cert_reactivation",

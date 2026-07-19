@@ -7,8 +7,6 @@ import "server-only"
 
 import * as React from "react"
 
-import { buildVerifiedCompleteAccountHref } from "@/lib/auth/complete-account-handoff"
-import { env } from "@/lib/config/env"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -533,36 +531,4 @@ export async function sendSessionExpiredEmail(params: {
   })
 
   return { success: result.success, emailId: result.outboxId, error: result.error }
-}
-
-/**
- * Send guest account completion reminder
- * Sent after successful guest checkout to encourage account creation
- */
-export async function sendGuestCompleteAccountEmail(params: {
-  to: string
-  patientName: string
-  serviceName: string
-  intakeId: string
-  sessionId: string
-  patientId?: string
-}): Promise<SendResult> {
-  const completeAccountUrl = buildVerifiedCompleteAccountHref({
-    appUrl: env.appUrl,
-    intakeId: params.intakeId,
-    sessionId: params.sessionId,
-  })
-  
-  return sendTemplateEmail({
-    to: params.to,
-    templateSlug: "guest_complete_account",
-    data: {
-      patient_name: params.patientName,
-      service_name: params.serviceName,
-      intake_id: params.intakeId,
-      complete_account_url: completeAccountUrl,
-    },
-    intakeId: params.intakeId,
-    patientId: params.patientId,
-  })
 }

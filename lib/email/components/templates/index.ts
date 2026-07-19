@@ -23,7 +23,7 @@ export { RequestDeclinedEmail, requestDeclinedEmailSubject } from "./request-dec
 
 // --- Payment Confirmed ---
 export type { PaymentConfirmedEmailProps } from "./payment-confirmed"
-export { PaymentConfirmedEmail, paymentConfirmedSubject } from "./payment-confirmed"
+export { PaymentConfirmedEmail } from "./payment-confirmed"
 
 // --- Payment Failed ---
 export type { PaymentFailedEmailProps } from "./payment-failed"

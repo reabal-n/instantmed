@@ -3,15 +3,12 @@ import { after, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
-import { GOOGLE_ADS_ATTRIBUTION_SELECT, runGoogleAdsPostPaymentAttribution } from "@/lib/analytics/google-ads-post-payment"
-import { getPostHogBaselineProperties, getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
-import { buildVerifiedCompleteAccountHref } from "@/lib/auth/complete-account-handoff"
-import { env } from "@/lib/config/env"
 import { sendPaidRequestTelegramNotification } from "@/lib/notifications/paid-request-telegram"
-import { notifyPaymentReceived } from "@/lib/notifications/service"
 import { createLogger } from "@/lib/observability/logger"
-import { canRetryPaymentForIntake } from "@/lib/stripe/payment-integrity"
-import { startPostPaymentReviewWork } from "@/lib/stripe/post-payment"
+import {
+  completeConfirmedPaymentWork,
+  finalizeConfirmedCheckoutPayment,
+} from "@/lib/stripe/confirmed-payment-finalization"
 
 import type { HandlerResult, WebhookContext } from "./types"
 import { addToDeadLetterQueue, recordEventError, tryClaimEvent } from "./utils"
@@ -20,7 +17,7 @@ export { shouldSendPaidRequestTelegramNotification } from "@/lib/notifications/p
 
 const log = createLogger("stripe-webhook:checkout-completed")
 
-async function notifyPaidRequestTelegramForSession(
+async function retryPaidRequestTelegramForClaimedEvent(
   supabase: WebhookContext["supabase"],
   session: Stripe.Checkout.Session,
   intakeId: string | null | undefined,
@@ -37,16 +34,37 @@ async function notifyPaidRequestTelegramForSession(
       category: session.metadata?.category,
       subtype: session.metadata?.subtype,
     })
-  } catch (err) {
-    log.error("Telegram notification error (non-fatal)", { intakeId }, err)
-    Sentry.captureException(err, { tags: { source: "telegram-notification" }, extra: { intakeId } })
+  } catch (error) {
+    log.error("Telegram retry failed for claimed event", { intakeId }, error)
+    Sentry.captureException(error, {
+      tags: { source: "telegram-notification" },
+      extra: { intakeId },
+    })
   }
 }
 
-export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promise<HandlerResult> {
+function paymentDiagnosticMetadata(
+  session: Stripe.Checkout.Session,
+  intake?: {
+    payment_id?: string | null
+    payment_status?: string | null
+    status?: string | null
+  } | null,
+) {
+  return {
+    amount: session.amount_total,
+    current_payment_id: intake?.payment_id,
+    current_payment_status: intake?.payment_status,
+    current_status: intake?.status,
+    payment_intent: session.payment_intent,
+  }
+}
+
+export async function handleCheckoutSessionCompleted(
+  ctx: WebhookContext,
+): Promise<HandlerResult> {
   const { event, supabase, startTime } = ctx
   const session = event.data.object as Stripe.Checkout.Session
-  // Support both intake_id (new) and request_id (legacy) in metadata
   const intakeId = session.metadata?.intake_id || session.metadata?.request_id
   const patientId = session.metadata?.patient_id
 
@@ -59,17 +77,14 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     paymentStatus: session.payment_status,
   })
 
-  // BECS Direct Debit (AU bank transfers) fire checkout.session.completed with
-  // payment_status="unpaid". The real confirmation arrives via
-  // checkout.session.async_payment_succeeded. Skip processing here to avoid
-  // marking the intake as paid before the money actually moves.
+  // Delayed methods first complete Checkout with an unpaid state. Only the
+  // later async success event is confirmation that money moved.
   if (session.payment_status !== "paid") {
-    log.info("Skipping checkout.session.completed - payment not yet confirmed (async payment method)", {
-      eventId: event.id,
-      sessionId: session.id,
-      paymentStatus: session.payment_status,
+    return NextResponse.json({
+      received: true,
+      skipped: true,
+      reason: "async_payment_pending",
     })
-    return NextResponse.json({ received: true, skipped: true, reason: "async_payment_pending" })
   }
 
   Sentry.addBreadcrumb({
@@ -79,771 +94,258 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     data: { eventId: event.id, intakeId, sessionId: session.id },
   })
 
-  // ATOMIC IDEMPOTENCY CHECK - claim this event for processing
-  const shouldProcess = ctx.adminReplay || await tryClaimEvent(
-    supabase,
-    event.id,
-    event.type,
-    intakeId,
-    session.id,
-    {
-      amount: session.amount_total,
-      payment_intent: session.payment_intent,
-      customer: session.customer,
-    }
-  )
+  const shouldProcess =
+    ctx.adminReplay ||
+    (await tryClaimEvent(
+      supabase,
+      event.id,
+      event.type,
+      intakeId,
+      session.id,
+      {
+        amount: session.amount_total,
+        payment_intent: session.payment_intent,
+        customer: session.customer,
+      },
+    ))
 
   if (!shouldProcess) {
     log.info("Event already processed, skipping", { eventId: event.id })
-    await notifyPaidRequestTelegramForSession(supabase, session, intakeId, patientId)
+    if (intakeId) {
+      const finalization = await finalizeConfirmedCheckoutPayment({
+        intakeId,
+        session,
+        supabase,
+      })
+
+      if (
+        finalization.kind === "settled" ||
+        finalization.kind === "already_paid" ||
+        finalization.kind === "concurrent_paid"
+      ) {
+        await completeConfirmedPaymentWork({
+          finalizationKind: finalization.kind,
+          generateDraftsForIntake,
+          intakeId,
+          patientId: patientId || finalization.intake.patient_id,
+          requestPath: ctx.requestPath,
+          schedule: (task) => after(task),
+          serviceCategory:
+            session.metadata?.category || session.metadata?.service_type,
+          session,
+          source: "checkout_session_completed",
+          supabase,
+        })
+        return NextResponse.json({
+          received: true,
+          skipped: true,
+          completion_healed: true,
+        })
+      }
+
+      if (
+        finalization.kind === "not_found" ||
+        finalization.kind === "invalid_session" ||
+        finalization.kind === "update_conflict" ||
+        finalization.kind === "update_failed"
+      ) {
+        return NextResponse.json(
+          { error: "Claimed payment event could not be reconciled" },
+          { status: 500 },
+        )
+      }
+    }
+
+    await retryPaidRequestTelegramForClaimedEvent(
+      supabase,
+      session,
+      intakeId,
+      patientId,
+    )
     return NextResponse.json({ received: true, skipped: true })
   }
 
   if (!intakeId) {
-    log.error("CRITICAL: Missing intake_id in metadata", {
-      eventId: event.id,
-      sessionId: session.id,
-      allMetadata: JSON.stringify(session.metadata),
-    })
-    await recordEventError(supabase, event.id, "Missing intake_id in session metadata")
-    return NextResponse.json({ error: "Missing intake_id", processed: true }, { status: 200 })
+    await recordEventError(
+      supabase,
+      event.id,
+      "Missing intake_id in session metadata",
+    )
+    return NextResponse.json(
+      { error: "Missing intake_id", processed: true },
+      { status: 200 },
+    )
   }
 
-  // Validate intake_id is a valid UUID
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-  if (!uuidRegex.test(intakeId)) {
-    log.error("CRITICAL: Invalid intake_id format in metadata", {
-      eventId: event.id,
-      sessionId: session.id,
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
       intakeId,
-      intakeIdType: typeof intakeId,
-    })
-    await recordEventError(supabase, event.id, `Invalid intake_id format: ${intakeId}`)
-    return NextResponse.json({ error: "Invalid intake_id format", processed: true }, { status: 200 })
+    )
+  ) {
+    await recordEventError(
+      supabase,
+      event.id,
+      `Invalid intake_id format: ${intakeId}`,
+    )
+    return NextResponse.json(
+      { error: "Invalid intake_id format", processed: true },
+      { status: 200 },
+    )
   }
 
   try {
-    // STEP 1: Check current intake state BEFORE updating
-    const { data: currentIntake, error: fetchError } = await supabase
-      .from("intakes")
-      .select("id, status, payment_status, payment_id")
-      .eq("id", intakeId)
-      .single()
+    const finalization = await finalizeConfirmedCheckoutPayment({
+      intakeId,
+      session,
+      supabase,
+    })
 
-    if (fetchError || !currentIntake) {
-      const errorMsg = `Intake not found: ${intakeId}`
-      log.error("CRITICAL: Intake not found - adding to dead letter queue", {
-        intakeId,
-        fetchErrorCode: fetchError?.code,
-        fetchErrorMessage: fetchError?.message,
-        fetchErrorDetails: fetchError?.details,
-      }, fetchError)
-      await recordEventError(supabase, event.id, errorMsg)
+    if (finalization.kind === "not_found") {
+      const errorMessage = `Intake not found: ${intakeId}`
+      await recordEventError(supabase, event.id, errorMessage)
 
-      // Check if we've already retried this event multiple times
       const { count } = await supabase
         .from("stripe_webhook_dead_letter")
         .select("id", { count: "exact", head: true })
         .eq("event_id", event.id)
-
       const retryCount = count || 0
-      const MAX_RETRIES = 3
 
-      // Add to dead letter queue for manual resolution
       await addToDeadLetterQueue(
         supabase,
         event.id,
         event.type,
         session.id,
         intakeId,
-        errorMsg,
+        errorMessage,
         "INTAKE_NOT_FOUND",
-        { amount: session.amount_total, payment_intent: session.payment_intent, retry_count: retryCount }
+        {
+          amount: session.amount_total,
+          payment_intent: session.payment_intent,
+          retry_count: retryCount,
+        },
       )
 
-      // After MAX_RETRIES, stop asking Stripe to retry to prevent 72-hour retry storm
-      if (retryCount >= MAX_RETRIES) {
-        log.error("Max retries reached for missing intake - stopping retries", {
-          intakeId,
-          eventId: event.id,
-          retryCount,
-        })
-        return NextResponse.json({
-          error: "Intake not found after max retries",
-          processed: true,
-          dlq: true,
-        }, { status: 200 })
-      }
-
-      // Return 500 to force Stripe retry - intake might be created by a slow concurrent request
-      return NextResponse.json({ error: "Intake not found" }, { status: 500 })
+      return retryCount >= 3
+        ? NextResponse.json(
+            {
+              error: "Intake not found after max retries",
+              processed: true,
+              dlq: true,
+            },
+            { status: 200 },
+          )
+        : NextResponse.json({ error: "Intake not found" }, { status: 500 })
     }
 
-    if (currentIntake.payment_id && currentIntake.payment_id !== session.id) {
-      const errorMsg = `Payment success received for stale checkout session: ${session.id}`
-      log.warn("checkout.session.completed ignored because session is no longer current", {
-        currentPaymentId: currentIntake.payment_id,
-        eventId: event.id,
-        intakeId,
-        sessionId: session.id,
-      })
-      await recordEventError(supabase, event.id, errorMsg)
+    if (finalization.kind === "stale_session") {
+      const errorMessage = `Payment success received for stale checkout session: ${session.id}`
+      await recordEventError(supabase, event.id, errorMessage)
       await addToDeadLetterQueue(
         supabase,
         event.id,
         event.type,
         session.id,
         intakeId,
-        errorMsg,
+        errorMessage,
         "STALE_PAYMENT_SUCCESS",
-        {
-          amount: session.amount_total,
-          current_payment_id: currentIntake.payment_id,
-          current_payment_status: currentIntake.payment_status,
-          current_status: currentIntake.status,
-          payment_intent: session.payment_intent,
-        },
+        paymentDiagnosticMetadata(session, finalization.intake),
       )
-      return NextResponse.json({ received: true, skipped: true, reason: "stale_checkout_session", dlq: true })
+      return NextResponse.json({
+        received: true,
+        skipped: true,
+        reason: "stale_checkout_session",
+        dlq: true,
+      })
     }
 
-    // STEP 2: Guard against double-marking as paid
-    if (currentIntake.payment_status === "paid") {
-      log.info("Intake already marked as paid, skipping update", {
-        intakeId,
-        currentStatus: currentIntake.status,
-      })
-      await startPostPaymentReviewWork({
-        generateDraftsForIntake,
-        intakeId,
-        schedule: (task) => after(task),
-        serviceCategory: session.metadata?.category || session.metadata?.service_type,
-        serviceSlug: session.metadata?.service_slug,
-        supabase,
-      })
-      await notifyPaidRequestTelegramForSession(supabase, session, intakeId, patientId)
-      return NextResponse.json({ received: true, already_paid: true })
-    }
-
-    if (!canRetryPaymentForIntake(currentIntake.status, currentIntake.payment_status)) {
-      const errorMsg = `Payment success received for non-retryable intake state: ${currentIntake.status}/${currentIntake.payment_status}`
-      log.error("Payment success refused for non-retryable intake state", {
-        eventId: event.id,
-        intakeId,
-        paymentStatus: currentIntake.payment_status,
-        sessionId: session.id,
-        status: currentIntake.status,
-      })
-      await recordEventError(supabase, event.id, errorMsg)
+    if (finalization.kind === "non_retryable") {
+      const errorMessage = `Payment success received for non-retryable intake state: ${finalization.intake.status}/${finalization.intake.payment_status}`
+      await recordEventError(supabase, event.id, errorMessage)
       await addToDeadLetterQueue(
         supabase,
         event.id,
         event.type,
         session.id,
         intakeId,
-        errorMsg,
+        errorMessage,
         "NON_RETRYABLE_PAYMENT_SUCCESS",
-        {
-          amount: session.amount_total,
-          current_payment_id: currentIntake.payment_id,
-          current_payment_status: currentIntake.payment_status,
-          current_status: currentIntake.status,
-          payment_intent: session.payment_intent,
-        },
+        paymentDiagnosticMetadata(session, finalization.intake),
       )
       return NextResponse.json({ received: true, skipped: true, dlq: true })
     }
 
-    // STEP 3: Update intake to paid status with Stripe identifiers for refund traceability
-    const paymentIntentId = typeof session.payment_intent === "string"
-      ? session.payment_intent
-      : session.payment_intent?.id || null
-    const stripeCustomerId = typeof session.customer === "string"
-      ? session.customer
-      : session.customer?.id || null
-
-    Sentry.addBreadcrumb({
-      category: "stripe-webhook",
-      message: "Updating intake to paid",
-      level: "info",
-      data: { intakeId, paymentIntentId, stripeCustomerId },
-    })
-
-    const { error: intakeError, data: intakeData } = await supabase
-      .from("intakes")
-      .update({
-        checkout_error: null,
-        payment_status: "paid",
-        status: "paid", // Now visible to doctor in queue
-        paid_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        // Reconcile the stored amount to what Stripe actually charged. Referral
-        // credits apply as a coupon and the Priority fee adds a line item, so the
-        // list price seeded at checkout differs from amount_total. Refunds are
-        // computed from this column — storing the list price made coupon refunds
-        // exceed the charge and Priority review refunds short by $9.95.
-        amount_cents: session.amount_total,
-        // Store Stripe identifiers for refund traceability
-        stripe_payment_intent_id: paymentIntentId,
-        stripe_customer_id: stripeCustomerId,
-      })
-      .eq("id", intakeId)
-      .eq("payment_id", session.id)
-      .in("status", ["pending_payment", "checkout_failed"])
-      .in("payment_status", ["pending", "unpaid", "failed"]) // Allow successful retries after failed attempts
-      .select("id, status")
-      .single()
-
-    if (intakeError) {
-      // Check current intake state for diagnosis
-      const { data: recheckIntake, error: recheckError } = await supabase
-        .from("intakes")
-        .select("id, status, payment_status, paid_at, payment_id, stripe_payment_intent_id")
-        .eq("id", intakeId)
-        .single()
-
-      log.error("Intake update FAILED - diagnosing", {
+    if (finalization.kind === "invalid_session") {
+      const errorMessage = `Confirmed Checkout Session was incomplete: ${finalization.reason}`
+      await recordEventError(supabase, event.id, errorMessage)
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        session.id,
         intakeId,
-        sessionId: session.id,
-        updateErrorCode: intakeError.code,
-        updateErrorMessage: intakeError.message,
-        updateErrorDetails: intakeError.details,
-        updateErrorHint: intakeError.hint,
-        currentIntakeState: recheckIntake,
-        recheckError: recheckError?.message,
-      }, intakeError)
-
-      if (recheckIntake?.payment_status === "paid") {
-        log.info("Intake was updated by concurrent webhook", { intakeId })
-        await notifyPaidRequestTelegramForSession(supabase, session, intakeId, patientId)
-        return NextResponse.json({ received: true, concurrent_update: true })
-      }
-
-      if (recheckIntake?.payment_id && recheckIntake.payment_id !== session.id) {
-        const errorMsg = `Payment success update skipped because checkout session is no longer current: ${session.id}`
-        log.error("Payment success refused after checkout session recheck", {
-          currentPaymentId: recheckIntake.payment_id,
-          eventId: event.id,
-          intakeId,
-          sessionId: session.id,
-        })
-        await recordEventError(supabase, event.id, errorMsg)
-        await addToDeadLetterQueue(
-          supabase,
-          event.id,
-          event.type,
-          session.id,
-          intakeId,
-          errorMsg,
-          "STALE_PAYMENT_SUCCESS",
-          { amount: session.amount_total, payment_intent: session.payment_intent },
-        )
-        return NextResponse.json({ received: true, skipped: true, dlq: true })
-      }
-
-      if (recheckIntake && !canRetryPaymentForIntake(recheckIntake.status, recheckIntake.payment_status)) {
-        const errorMsg = `Payment success update skipped after state changed to ${recheckIntake.status}/${recheckIntake.payment_status}`
-        log.error("Payment success refused after state recheck", {
-          intakeId,
-          paymentStatus: recheckIntake.payment_status,
-          sessionId: session.id,
-          status: recheckIntake.status,
-        })
-        await recordEventError(supabase, event.id, errorMsg)
-        await addToDeadLetterQueue(
-          supabase,
-          event.id,
-          event.type,
-          session.id,
-          intakeId,
-          errorMsg,
-          "NON_RETRYABLE_PAYMENT_SUCCESS",
-          { amount: session.amount_total, payment_intent: session.payment_intent },
-        )
-        return NextResponse.json({ received: true, skipped: true, dlq: true })
-      }
-
-      // If the update failed but intake exists with wrong status, try force update
-      // Uses .neq("payment_status", "paid") as optimistic lock to prevent double-processing
-      if (recheckIntake && recheckIntake.payment_status !== "paid") {
-        log.warn("Attempting force update with optimistic lock", {
-          intakeId,
-          currentPaymentStatus: recheckIntake.payment_status,
-        })
-
-        const { error: forceError, data: forceRows } = await supabase
-          .from("intakes")
-          .update({
-            checkout_error: null,
-            payment_status: "paid",
-            status: "paid",
-            paid_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            // Mirror the primary paid update: refunds compute from this column,
-            // so a coupon/Priority intake recovered via force update must store
-            // what Stripe actually charged, not the seeded list price.
-            amount_cents: session.amount_total,
-            stripe_payment_intent_id: paymentIntentId,
-            stripe_customer_id: stripeCustomerId,
-          })
-          .eq("id", intakeId)
-          .eq("payment_id", session.id)
-          .in("status", ["pending_payment", "checkout_failed"])
-          .in("payment_status", ["pending", "unpaid", "failed"])
-          .neq("payment_status", "paid")
-          .select("id, status")
-
-        const rowsUpdated = forceRows?.length ?? 0
-
-        if (rowsUpdated > 1) {
-          log.error("CRITICAL: Force update affected multiple rows", {
-            intakeId,
-            rowsUpdated,
-            affectedIds: forceRows?.map((r) => r.id),
-          })
-        }
-
-        if (!forceError && rowsUpdated === 1) {
-          log.info("Force update succeeded", { intakeId, newStatus: forceRows![0].status })
-          // Don't return early - fall through to continue webhook flow
-        } else if (!forceError && rowsUpdated === 0) {
-          const { data: finalRecheckIntake, error: finalRecheckError } = await supabase
-            .from("intakes")
-            .select("id, status, payment_status, paid_at, payment_id, stripe_payment_intent_id")
-            .eq("id", intakeId)
-            .single()
-
-          if (finalRecheckIntake?.payment_status === "paid") {
-            log.info("Force update matched 0 rows - concurrent webhook already processed", { intakeId })
-            await notifyPaidRequestTelegramForSession(supabase, session, intakeId, patientId)
-            return NextResponse.json({ received: true, concurrent_update: true })
-          }
-
-          const errorMsg = `Payment success force update matched 0 rows and intake is still unpaid: ${finalRecheckIntake?.status || "unknown"}/${finalRecheckIntake?.payment_status || "unknown"}`
-          log.error("Force update matched 0 rows without paid confirmation", {
-            eventId: event.id,
-            finalRecheckError: finalRecheckError?.message,
-            finalRecheckState: finalRecheckIntake,
-            intakeId,
-            sessionId: session.id,
-          })
-          await recordEventError(supabase, event.id, errorMsg)
-          await addToDeadLetterQueue(
-            supabase,
-            event.id,
-            event.type,
-            session.id,
-            intakeId,
-            errorMsg,
-            "ZERO_ROW_PAYMENT_UPDATE",
-            {
-              amount: session.amount_total,
-              current_payment_id: finalRecheckIntake?.payment_id || recheckIntake.payment_id,
-              current_payment_status: finalRecheckIntake?.payment_status || recheckIntake.payment_status,
-              current_status: finalRecheckIntake?.status || recheckIntake.status,
-              payment_intent: session.payment_intent,
-            },
-          )
-          return NextResponse.json({ received: true, skipped: true, dlq: true, reason: "zero_row_payment_update" })
-        } else {
-          log.error("Force update also failed", {
-            intakeId,
-            forceErrorCode: forceError?.code,
-            forceErrorMessage: forceError?.message,
-            rowsUpdated,
-          }, forceError)
-          await recordEventError(supabase, event.id, `Intake update failed: ${intakeError.message}`)
-          await addToDeadLetterQueue(
-            supabase,
-            event.id,
-            event.type,
-            session.id,
-            intakeId,
-            `Intake update failed: ${intakeError.message}`,
-            "UPDATE_FAILED",
-            { amount: session.amount_total, payment_intent: session.payment_intent }
-          )
-          return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
-        }
-      } else {
-        // Intake doesn't exist or couldn't be recovered - add to DLQ
-        await recordEventError(supabase, event.id, `Intake update failed: ${intakeError.message}`)
-        await addToDeadLetterQueue(
-          supabase,
-          event.id,
-          event.type,
-          session.id,
-          intakeId,
-          `Intake update failed: ${intakeError.message}`,
-          "UPDATE_FAILED",
-          { amount: session.amount_total, payment_intent: session.payment_intent }
-        )
-        return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
-      }
+        errorMessage,
+        "INVALID_CONFIRMED_PAYMENT",
+        paymentDiagnosticMetadata(session),
+      )
+      return NextResponse.json(
+        { error: "Invalid payment confirmation" },
+        { status: 500 },
+      )
     }
 
-    log.info("Intake updated to paid", {
-      intakeId,
-      newStatus: intakeData?.status,
-      sessionId: session.id,
-      stripePaymentIntentId: paymentIntentId,
-      stripeCustomerId: stripeCustomerId,
-    })
+    if (finalization.kind === "update_failed") {
+      const errorMessage = `Intake update failed: ${finalization.error.message}`
+      await recordEventError(supabase, event.id, errorMessage)
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        session.id,
+        intakeId,
+        errorMessage,
+        "UPDATE_FAILED",
+        paymentDiagnosticMetadata(session, finalization.intake),
+      )
+      return NextResponse.json(
+        { error: "Failed to update intake" },
+        { status: 500 },
+      )
+    }
 
-    await startPostPaymentReviewWork({
+    if (finalization.kind === "update_conflict") {
+      const errorMessage = `Payment success update matched 0 rows and intake is still unpaid: ${finalization.intake?.status || "unknown"}/${finalization.intake?.payment_status || "unknown"}`
+      await recordEventError(supabase, event.id, errorMessage)
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        session.id,
+        intakeId,
+        errorMessage,
+        "ZERO_ROW_PAYMENT_UPDATE",
+        paymentDiagnosticMetadata(session, finalization.intake),
+      )
+      return NextResponse.json({
+        received: true,
+        skipped: true,
+        dlq: true,
+        reason: "zero_row_payment_update",
+      })
+    }
+
+    await completeConfirmedPaymentWork({
+      finalizationKind: finalization.kind,
       generateDraftsForIntake,
       intakeId,
+      patientId: patientId || finalization.intake.patient_id,
+      requestPath: ctx.requestPath,
       schedule: (task) => after(task),
-      serviceCategory: session.metadata?.category || session.metadata?.service_type,
-      serviceSlug: session.metadata?.service_slug,
+      serviceCategory:
+        session.metadata?.category || session.metadata?.service_type,
+      session,
+      source: "checkout_session_completed",
       supabase,
     })
-
-    // Track funnel: payment completed
-    // Fetch auth_user_id so server-side PostHog distinctId matches client-side identify()
-    const { data: phProfile } = await supabase
-      .from("profiles")
-      .select("auth_user_id")
-      .eq("id", patientId)
-      .maybeSingle()
-
-    // Fetch attribution data stored on the intake at checkout time
-    const { data: intakeAttribution } = await supabase
-      .from("intakes")
-      .select(GOOGLE_ADS_ATTRIBUTION_SELECT)
-      .eq("id", intakeId)
-      .maybeSingle()
-
-    // Use auth_user_id as primary distinctId (matches client-side posthog.identify)
-    // Fall back to patientId for guest checkouts without authenticated accounts
-    const posthogDistinctId = phProfile?.auth_user_id || patientId || intakeId
-
-    // Server-side Google Ads Conversion API. Recovers attribution lost to
-    // iOS Safari ITP. Browser-side gtag also fires from /patient/intakes/success
-    // - Google deduplicates on orderId (intakeId) so duplicates are safe. The
-    // shared runner writes a PHI-safe audit row so failures are retryable.
-    if (intakeId && intakeAttribution) {
-      after(async () => {
-        try {
-          await runGoogleAdsPostPaymentAttribution({
-            amountCents: session.amount_total,
-            intakeId,
-            posthogDistinctId,
-            requestPath: ctx.requestPath,
-            row: intakeAttribution,
-            source: "checkout_session_completed",
-            supabase,
-          })
-        } catch (err) {
-          log.warn("Server-side Google Ads conversion fire failed", {
-            error: err instanceof Error ? err.message : String(err),
-          })
-        }
-      })
-    }
-
-    trackIntakeFunnelStep({
-      step: "payment_completed",
-      intakeId: intakeId!,
-      serviceSlug: session.metadata?.service_slug || "unknown",
-      serviceType: session.metadata?.category || session.metadata?.service_type || "unknown",
-      subtype: intakeAttribution?.subtype || session.metadata?.subtype || null,
-      userId: posthogDistinctId,
-      metadata: { amount_cents: session.amount_total },
-    })
-
-    Sentry.addBreadcrumb({
-      category: "stripe-webhook",
-      message: "Intake marked as paid",
-      level: "info",
-      data: { intakeId, paymentIntentId, stripeCustomerId },
-    })
-
-    // Track payment confirmed in PostHog with full attribution
-    try {
-      const posthog = getPostHogClient()
-
-      // Identity stitching: connect the browser's anonymous PostHog ID to the resolved user
-      // ph_distinct_id is the client-side PostHog distinct ID passed through Stripe metadata
-      const browserDistinctId = session.metadata?.ph_distinct_id
-      if (browserDistinctId && browserDistinctId !== posthogDistinctId) {
-        posthog.alias({
-          distinctId: posthogDistinctId,
-          alias: browserDistinctId,
-        })
-      }
-
-      // Alias patientId (Supabase UUID) → auth_user_id so PostHog merges person records
-      if (phProfile?.auth_user_id && patientId && phProfile.auth_user_id !== patientId) {
-        posthog.alias({
-          distinctId: phProfile.auth_user_id,
-          alias: patientId,
-        })
-      }
-
-      posthog.capture({
-        distinctId: posthogDistinctId,
-        event: "webhook_payment_confirmed",
-        properties: {
-          ...getPostHogBaselineProperties(),
-          intake_id: intakeId,
-          amount_cents: session.amount_total,
-          payment_method: session.payment_method_types?.[0],
-          service_category: intakeAttribution?.category || session.metadata?.category,
-          service_subtype: intakeAttribution?.subtype || session.metadata?.service_slug,
-          // Attribution - how this customer found us
-          utm_source: intakeAttribution?.utm_source || null,
-          utm_medium: intakeAttribution?.utm_medium || null,
-          utm_id: intakeAttribution?.utm_id || null,
-          utm_campaign: intakeAttribution?.utm_campaign || null,
-          utm_content: intakeAttribution?.utm_content || null,
-          utm_term: intakeAttribution?.utm_term || null,
-          campaignid: intakeAttribution?.campaignid || null,
-          adgroupid: intakeAttribution?.adgroupid || null,
-          keyword: intakeAttribution?.keyword || null,
-          creative: intakeAttribution?.creative || null,
-          matchtype: intakeAttribution?.matchtype || null,
-          device: intakeAttribution?.device || null,
-          network: intakeAttribution?.network || null,
-          referrer: intakeAttribution?.referrer || null,
-          landing_page: intakeAttribution?.landing_page || null,
-          attribution_captured_at: intakeAttribution?.attribution_captured_at || null,
-          // Capture-rate telemetry so we can detect attribution drops fast
-          // without having to grep through optional fields. has_gclid being
-          // false on a `google` utm_source is a strong signal that auto-
-          // tagging is off in the Ads account.
-          has_gclid: Boolean(intakeAttribution?.gclid),
-          has_gbraid: Boolean(intakeAttribution?.gbraid),
-          has_wbraid: Boolean(intakeAttribution?.wbraid),
-          has_utm_source: Boolean(intakeAttribution?.utm_source),
-          has_utm_campaign: Boolean(intakeAttribution?.utm_campaign),
-          has_campaignid: Boolean(intakeAttribution?.campaignid),
-          has_any_attribution: Boolean(
-            intakeAttribution?.gclid ||
-            intakeAttribution?.gbraid ||
-            intakeAttribution?.wbraid ||
-            intakeAttribution?.utm_source ||
-            intakeAttribution?.campaignid ||
-            intakeAttribution?.referrer
-          ),
-          // Person properties: $set_once for first-touch, $set for last-touch
-          $set_once: {
-            initial_utm_source: intakeAttribution?.utm_source || undefined,
-            initial_utm_medium: intakeAttribution?.utm_medium || undefined,
-            initial_utm_campaign: intakeAttribution?.utm_campaign || undefined,
-            initial_utm_content: intakeAttribution?.utm_content || undefined,
-            initial_utm_term: intakeAttribution?.utm_term || undefined,
-            initial_referrer: intakeAttribution?.referrer || undefined,
-            initial_landing_page: intakeAttribution?.landing_page || undefined,
-            first_payment_at: new Date().toISOString(),
-          },
-          $set: {
-            last_payment_at: new Date().toISOString(),
-            last_referrer: intakeAttribution?.referrer || undefined,
-            last_landing_page: intakeAttribution?.landing_page || undefined,
-            last_service: intakeAttribution?.category || session.metadata?.category,
-          },
-        },
-      })
-
-      // Server-side mirror of the client `purchase_completed` event. Client
-      // captures are blocked by adblockers and privacy browsers on roughly
-      // 70-80% of real purchases (see 2026-05-12 PostHog audit: 6 client
-      // purchase_completed vs 28 paid intakes in 30d). This fires from the
-      // Stripe webhook so the ground-truth conversion line is always
-      // captured, regardless of client tracker state.
-      //
-      // Naming: matches the client event name so a single PostHog insight
-      // can union the two streams via `purchase_completed OR
-      // purchase_completed_server` and dedupe on `intake_id`. AUD value
-      // mirrors the client capture for revenue dashboards.
-      posthog.capture({
-        distinctId: posthogDistinctId,
-        event: "purchase_completed_server",
-        properties: {
-          ...getPostHogBaselineProperties(),
-          intake_id: intakeId,
-          value: session.amount_total != null ? session.amount_total / 100 : null,
-          amount_cents: session.amount_total,
-          currency: (session.currency || "aud").toUpperCase(),
-          service_category: intakeAttribution?.category || session.metadata?.category,
-          service_subtype: intakeAttribution?.subtype || session.metadata?.service_slug,
-          utm_source: intakeAttribution?.utm_source || null,
-          utm_medium: intakeAttribution?.utm_medium || null,
-          utm_campaign: intakeAttribution?.utm_campaign || null,
-          utm_content: intakeAttribution?.utm_content || null,
-          gclid: intakeAttribution?.gclid || null,
-          gbraid: intakeAttribution?.gbraid || null,
-          wbraid: intakeAttribution?.wbraid || null,
-          campaignid: intakeAttribution?.campaignid || null,
-          has_gclid: Boolean(intakeAttribution?.gclid),
-          source: "stripe_webhook",
-        },
-      })
-    } catch { /* non-blocking */ }
-
-    // STEP 4: Save Stripe customer ID to profile (non-critical)
-    if (session.customer && patientId) {
-      const customerId = typeof session.customer === "string" ? session.customer : session.customer.id
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("stripe_customer_id")
-        .eq("id", patientId)
-        .single()
-
-      if (profile && !profile.stripe_customer_id) {
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .update({
-            stripe_customer_id: customerId,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", patientId)
-
-        if (profileError) {
-          log.error("Profile customer ID save error (non-fatal)", { patientId }, profileError)
-        } else {
-          log.info("Customer ID saved to profile", { patientId, customerId })
-        }
-      }
-    }
-
-    // STEP 4b: Award referral credits on first payment (non-critical)
-    // If this checkout included a referral_code, check if this is the referred user's first payment.
-    // If so: mark referral_event completed + award $5 to both referrer and referred.
-    try {
-      const referralCode = session.metadata?.referral_code
-      if (referralCode && patientId) {
-        // Is this the referred user's first payment?
-        const { count: priorPayments } = await supabase
-          .from("intakes")
-          .select("id", { count: "exact", head: true })
-          .eq("patient_id", patientId)
-          .eq("payment_status", "paid")
-          .neq("id", intakeId) // exclude the current one
-
-        const isFirstPayment = (priorPayments ?? 0) === 0
-
-        if (isFirstPayment) {
-          // Look up referrer by code
-          const { data: referrer } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("referral_code", referralCode)
-            .maybeSingle()
-
-          if (referrer && referrer.id !== patientId) {
-            // Create or find the referral_event (upsert - idempotent if webhook retries)
-            const { data: existingEvent } = await supabase
-              .from("referral_events")
-              .select("id, status")
-              .eq("referrer_id", referrer.id)
-              .eq("referred_id", patientId)
-              .maybeSingle()
-
-            if (!existingEvent) {
-              // First time we've seen this pair - create event + award credits
-              const { data: newEvent } = await supabase
-                .from("referral_events")
-                .insert({
-                  referrer_id: referrer.id,
-                  referred_id: patientId,
-                  status: "credited",
-                  completed_at: new Date().toISOString(),
-                  credited_at: new Date().toISOString(),
-                  intake_id: intakeId,
-                })
-                .select("id")
-                .single()
-
-              if (newEvent) {
-                // Award $5 to referrer
-                await supabase.from("referral_credits").insert({
-                  profile_id: referrer.id,
-                  referral_event_id: newEvent.id,
-                  credit_cents: 500,
-                  credit_type: "referrer",
-                })
-                // Award $5 to referred patient
-                await supabase.from("referral_credits").insert({
-                  profile_id: patientId,
-                  referral_event_id: newEvent.id,
-                  credit_cents: 500,
-                  credit_type: "referred",
-                })
-                log.info("Referral credits awarded", {
-                  referrerId: referrer.id,
-                  referredId: patientId,
-                  intakeId,
-                })
-              }
-            } else if (existingEvent.status === "pending") {
-              // Referral event exists but not yet credited - complete it
-              await supabase
-                .from("referral_events")
-                .update({
-                  status: "credited",
-                  completed_at: new Date().toISOString(),
-                  credited_at: new Date().toISOString(),
-                  intake_id: intakeId,
-                })
-                .eq("id", existingEvent.id)
-
-              await Promise.all([
-                supabase.from("referral_credits").insert({
-                  profile_id: referrer.id,
-                  referral_event_id: existingEvent.id,
-                  credit_cents: 500,
-                  credit_type: "referrer",
-                }),
-                supabase.from("referral_credits").insert({
-                  profile_id: patientId,
-                  referral_event_id: existingEvent.id,
-                  credit_cents: 500,
-                  credit_type: "referred",
-                }),
-              ])
-              log.info("Referral credits awarded (existing event)", {
-                referrerId: referrer.id,
-                referredId: patientId,
-                intakeId,
-              })
-            }
-            // If status is already 'credited', idempotent - do nothing
-          }
-        }
-      }
-    } catch (referralErr) {
-      // Never fail the payment flow over referral logic
-      log.error("Referral credit error (non-fatal)", { intakeId }, referralErr as Error)
-    }
-
-    // STEP 4b2: Mark referral credits as redeemed if a coupon was applied (non-critical)
-    // The checkout flow creates a Stripe coupon from unspent credits and stores the
-    // coupon ID + credit IDs in session metadata. Now that payment succeeded, mark
-    // those credits as applied so they aren't double-spent on the next checkout.
-    try {
-      const couponId = session.metadata?.referral_coupon_id
-      if (couponId && patientId) {
-        const { error: creditErr } = await supabase
-          .from("referral_credits")
-          .update({
-            applied_at: new Date().toISOString(),
-            applied_intake_id: intakeId,
-          })
-          .eq("profile_id", patientId)
-          .is("applied_at", null)
-
-        if (!creditErr) {
-          log.info("Referral credits marked as applied", { couponId, intakeId, patientId })
-        } else {
-          log.warn("Failed to mark referral credits as applied", { couponId, intakeId, error: creditErr.message })
-        }
-      }
-    } catch {
-      // Non-blocking - credit marking is best-effort, credits can be reconciled later
-    }
 
     if (session.metadata?.is_subscription === "true") {
       log.warn("Ignored dormant subscription checkout completion", {
@@ -853,111 +355,32 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       })
     }
 
-    // STEP 5: Send payment notification + confirmation email (non-critical)
-    let patientProfile: { email: string | null; full_name: string | null; auth_user_id: string | null } | null = null
-    if (patientId) {
-      const { data } = await supabase
-        .from("profiles")
-        .select("email, full_name, auth_user_id")
-        .eq("id", patientId)
-        .maybeSingle()
-      patientProfile = data
-
-      if (patientProfile?.email && typeof session.amount_total === "number") {
-        // 5a: In-app notification
-        notifyPaymentReceived({
-          intakeId,
-          patientId,
-          patientEmail: patientProfile.email,
-          patientName: patientProfile.full_name || "Patient",
-          amount: session.amount_total,
-        }).catch((err) => {
-          log.error("Notification error (non-fatal)", { intakeId }, err)
-        })
-
-        // 5b: Send merged "request received" email (payment receipt + review status)
-        try {
-          const React = await import("react")
-          const { sendEmail } = await import("@/lib/email/send-email")
-          const { RequestReceivedEmail, requestReceivedSubject } = await import("@/lib/email/components/templates/request-received")
-          const { emailRequestTypeLabelFromStripeMetadata } = await import("@/lib/email/request-type-label")
-
-          // Privacy-safe label: this string lands in the SUBJECT line, which
-          // renders on lock screens, so sensitive consult subtypes are masked
-          // to plain "consultation".
-          const serviceName = emailRequestTypeLabelFromStripeMetadata({
-            serviceSlug: session.metadata?.service_slug,
-            category: session.metadata?.category,
-            subtype: session.metadata?.subtype,
-          })
-
-          const amountFormatted = `$${(session.amount_total / 100).toFixed(2)}`
-          const isGuest = session.metadata?.guest_checkout === "true" || !patientProfile.auth_user_id
-
-          const emailResult = await sendEmail({
-            to: patientProfile.email,
-            toName: patientProfile.full_name || "Patient",
-            subject: requestReceivedSubject(serviceName),
-            template: React.createElement(RequestReceivedEmail, {
-              patientName: patientProfile.full_name || "there",
-              requestType: serviceName,
-              amount: amountFormatted,
-              requestId: intakeId,
-              isGuest,
-              completeAccountUrl: isGuest
-                ? buildVerifiedCompleteAccountHref({
-                    appUrl: env.appUrl,
-                    intakeId,
-                    sessionId: session.id,
-                  })
-                : undefined,
-              paidAt: new Date().toLocaleDateString("en-AU", {
-                timeZone: "Australia/Sydney",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              }),
-            }),
-            emailType: "request_received",
-            intakeId,
-            patientId,
-            metadata: {
-              amount_cents: session.amount_total,
-              service_slug: session.metadata?.service_slug,
-            },
-          })
-
-          if (emailResult?.success === false) {
-            log.error("Request received email failed", { intakeId, error: emailResult.error })
-          } else {
-            log.info("Request received email sent", { intakeId })
-          }
-        } catch (emailErr) {
-          log.error("Request received email error (non-fatal)", { intakeId }, emailErr)
-        }
-      }
-    }
-
-    // 5c: Telegram notification to doctor. This is ledgered separately from
-    // email so webhook retries can recover a paid request that was marked paid
-    // before the external Telegram API call completed.
-    await notifyPaidRequestTelegramForSession(supabase, session, intakeId, patientId)
-
-    const duration = Date.now() - startTime
     log.info("Payment processed successfully", {
       eventId: event.id,
+      finalization: finalization.kind,
       intakeId,
       sessionId: session.id,
-      durationMs: duration,
+      durationMs: Date.now() - startTime,
     })
 
+    if (finalization.kind !== "settled") {
+      return NextResponse.json({
+        received: true,
+        already_paid: true,
+        concurrent_update: finalization.kind === "concurrent_paid",
+      })
+    }
   } catch (error) {
     Sentry.captureException(error, {
       tags: { source: "stripe-webhook", event_type: event.type },
       extra: { eventId: event.id, intakeId },
     })
     log.error("Unexpected error", { intakeId }, error)
-    await recordEventError(supabase, event.id, error instanceof Error ? error.message : "Unknown error")
+    await recordEventError(
+      supabase,
+      event.id,
+      error instanceof Error ? error.message : "Unknown error",
+    )
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

@@ -79,12 +79,12 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
         .maybeSingle()
 
       if (existing) {
-        // A FAILED row must not phantom-dedup the retry. For the cron-owned
-        // types the dispatcher cannot reconstruct ("Unsupported email_type"
-        // quiet-fail), the owning cron's next sendEmail IS the only retry
-        // path — treating its failed row as "already sent" permanently drops
-        // the email. Reclaim the failed row for this attempt instead. The
-        // status filter keeps the reclaim atomic against concurrent senders.
+        // A FAILED row must not phantom-dedup the retry. Current rows retain an
+        // encrypted provider payload for dispatcher replay, while an owning
+        // cron may also encounter the same failed lifecycle item before that
+        // retry succeeds. Reclaim the same durable row instead of treating it
+        // as "already sent". The status filter keeps this atomic against a
+        // concurrent dispatcher or cron sender.
         // reclaim_count lives in metadata (retry_count is a per-send-attempt
         // counter that resets each send) and caps how many cron cycles a
         // permanently broken send can burn before going terminal-duplicate.
