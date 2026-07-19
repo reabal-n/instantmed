@@ -224,9 +224,11 @@ const CONSULT_SUBTYPE_STEPS: Record<ConsultSubtype, StepDefinition[]> = {
       required: true,
     },
     {
+      // Owns treatment preference AND prior-treatment history since 2026-07-19.
+      // The step id stays `ed-preferences` for funnel-analytics continuity.
       id: 'ed-preferences',
-      label: 'Your preferences',
-      shortLabel: 'Preferences',
+      label: 'Your treatment',
+      shortLabel: 'Treatment',
       componentPath: 'ed-preferences-step',
       validateFn: 'validateEdPreferencesStep',
       required: true,

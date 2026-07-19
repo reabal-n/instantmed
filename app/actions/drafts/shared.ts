@@ -253,6 +253,9 @@ export function formatIntakeContext(
       if (answers.edPreviousEffectiveness) {
         parts.push(`Previous treatment effectiveness: ${sanitizeAnswerValue(answers.edPreviousEffectiveness, intakeId)}`)
       }
+      if (answers.edAdditionalInfo) {
+        parts.push(`Patient notes: ${sanitizeAnswerValue(answers.edAdditionalInfo, intakeId)}`)
+      }
       if (answers.symptom_severity) {
         parts.push(`Severity: ${sanitizeAnswerValue(answers.symptom_severity, intakeId)}`)
       }

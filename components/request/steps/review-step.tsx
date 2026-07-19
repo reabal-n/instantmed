@@ -606,6 +606,14 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
             label: 'Preference',
             value: edPreference ? ED_PREF_LABELS[edPreference] || edPreference : '',
           },
+          {
+            label: 'Tried treatment before',
+            value: answers.previousEdMeds === true
+              ? stringAnswer(answers.edPreviousTreatment) || 'Yes'
+              : answers.previousEdMeds === false
+                ? 'No'
+                : '',
+          },
           { label: 'Additional information', value: edAdditionalInfo },
         ],
         stepId: 'ed-preferences',

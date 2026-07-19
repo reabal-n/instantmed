@@ -13,7 +13,9 @@
  * Sections (all always visible):
  * 1. Heart & blood pressure (nitrate hard block, cardiac soft blocks + GP clearance)
  * 2. Current medications, allergies, and conditions
- * 3. Previous ED treatment
+ *
+ * Previous ED treatment moved to the treatment step on 2026-07-19 — it belongs
+ * next to "how would you prefer to take it", not buried under safety history.
  */
 
 import {
@@ -32,7 +34,6 @@ import {
   CompactChoiceRow,
   IntakeStepIntro,
   QuestionCard,
-  SegmentedChoiceGroup,
   StringBinaryChoice,
 } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -57,12 +58,6 @@ interface EdHealthStepProps {
   onBack: () => void
   onComplete: () => void
 }
-
-const ED_EFFECTIVENESS_OPTIONS = [
-  { value: "worked_well", label: "Worked well" },
-  { value: "somewhat", label: "Somewhat" },
-  { value: "didnt_work", label: "Didn’t work" },
-] as const
 
 // ---------------------------------------------------------------------------
 // Helper components
@@ -108,11 +103,6 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
   // Section 2: Other conditions
   const hasConditions = answers.has_conditions as "yes" | "no" | undefined
   const existingConditions = (answers.existing_conditions as string) || ""
-
-  // Section 3: Previous ED treatment
-  const previousEdMeds = answers.previousEdMeds as boolean | undefined
-  const edPreviousTreatment = (answers.edPreviousTreatment as string) || ""
-  const edPreviousEffectiveness = answers.edPreviousEffectiveness as string | undefined
 
   // ---------------------------------------------------------------------------
   // Nitrate hard block handler
@@ -165,15 +155,6 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
     return true
   }, [hasConditions, existingConditions])
 
-  const previousTreatmentComplete = useMemo(() => {
-    if (previousEdMeds === undefined) return false
-    if (previousEdMeds === true) {
-      if (!edPreviousTreatment.trim()) return false
-      if (!edPreviousEffectiveness) return false
-    }
-    return true
-  }, [previousEdMeds, edPreviousTreatment, edPreviousEffectiveness])
-
   const coreHistoryComplete = medicationsComplete && allergiesComplete && conditionsComplete
 
   // ---------------------------------------------------------------------------
@@ -191,8 +172,7 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
     return heartComplete &&
       medicationsComplete &&
       allergiesComplete &&
-      conditionsComplete &&
-      previousTreatmentComplete
+      conditionsComplete
   }, [
     edNitrates,
     gpClearanceRequired,
@@ -200,7 +180,6 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
     medicationsComplete,
     allergiesComplete,
     conditionsComplete,
-    previousTreatmentComplete,
   ])
 
   const { validationSummary, showBlockingReasons } = useStepValidationSummary(
@@ -216,10 +195,9 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
         if (!medicationsComplete) reasons.push("the medications section")
         if (!allergiesComplete) reasons.push("the allergies section")
         if (!conditionsComplete) reasons.push("the other conditions section")
-        if (!previousTreatmentComplete) reasons.push("the previous treatment section")
       }
       return reasons
-    }, [edNitrates, gpClearanceRequired, heartComplete, medicationsComplete, allergiesComplete, conditionsComplete, previousTreatmentComplete]),
+    }, [edNitrates, gpClearanceRequired, heartComplete, medicationsComplete, allergiesComplete, conditionsComplete]),
     { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "ed-health" },
   )
 
@@ -395,11 +373,11 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
         <div className="flex items-center gap-2 pb-2">
           <Pill className="h-4 w-4 shrink-0 text-primary" />
           <p className="text-sm font-medium">Doctor notes</p>
-          <SectionComplete complete={coreHistoryComplete && previousTreatmentComplete} />
+          <SectionComplete complete={coreHistoryComplete} />
         </div>
 
         <CompactChoiceRow
-          label="Taking any medications?"
+          label="Any other medications?"
           hint="Prescriptions, over-the-counter medicines, vitamins, or supplements"
           required
           detail={takesMedications === "yes" ? (
@@ -416,7 +394,7 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
             noValue="no"
             yesValue="yes"
             onChange={(value) => setAnswer("takes_medications", value)}
-            ariaLabel="Taking any medications?"
+            ariaLabel="Any other medications?"
             className="gap-1.5"
           />
         </CompactChoiceRow>
@@ -463,38 +441,6 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
             yesValue="yes"
             onChange={(value) => setAnswer("has_conditions", value)}
             ariaLabel="Any other medical conditions?"
-            className="gap-1.5"
-          />
-        </CompactChoiceRow>
-
-        <CompactChoiceRow
-          label="Have you tried ED treatment before?"
-          detail={previousEdMeds === true ? (
-            <div className="space-y-3">
-              <Textarea
-                id="ed-previous-treatment"
-                value={edPreviousTreatment}
-                onChange={(event) => setAnswer("edPreviousTreatment", event.target.value)}
-                placeholder="What did you try?"
-                className="min-h-[60px] text-sm"
-              />
-              <div className="space-y-2">
-                <p className="text-sm font-medium">How effective was it?</p>
-                <SegmentedChoiceGroup
-                  options={ED_EFFECTIVENESS_OPTIONS}
-                  value={edPreviousEffectiveness}
-                  onChange={(value) => setAnswer("edPreviousEffectiveness", value)}
-                  ariaLabel="Previous treatment effectiveness"
-                  columns="three"
-                />
-              </div>
-            </div>
-          ) : undefined}
-        >
-          <BinaryChoice
-            value={previousEdMeds}
-            onChange={(checked) => setAnswer("previousEdMeds", checked)}
-            ariaLabel="Have you tried ED treatment before?"
             className="gap-1.5"
           />
         </CompactChoiceRow>

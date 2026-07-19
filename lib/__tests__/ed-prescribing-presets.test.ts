@@ -24,6 +24,17 @@ describe("ED Parchment handoff presets", () => {
     expect(preset.directionsTemplate).toMatch(/maximum 1 tablet per 24 hours/i)
   })
 
+  // 50mg is the starting dose, not the only as-needed option. The note carries
+  // the escalation rule and the longer-acting alternative so the doctor is not
+  // nudged into re-prescribing a starting dose to someone already established
+  // on something stronger.
+  it("prn preference carries the escalation and longer-acting alternative for the doctor", () => {
+    const preset = getEdPreset("prn")
+    expect(preset.alternativeNote).toMatch(/100mg/i)
+    expect(preset.alternativeNote).toMatch(/tadalafil 20mg/i)
+    expect(preset.alternativeNote).toMatch(/prior treatment/i)
+  })
+
   it("doctor_decides preference defaults to Sildenafil 50mg PRN with Tadalafil alternative note", () => {
     const preset = getEdPreset("doctor_decides")
     expect(preset.medicationName).toBe("Sildenafil")

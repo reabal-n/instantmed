@@ -1,19 +1,37 @@
 "use client"
 
 /**
- * ED Preferences Step - Step 4 of 4 in the ED intake flow
+ * ED Treatment Step - final clinical step in the ED intake flow.
  *
- * Lifestyle-framed treatment preference selection (daily vs as-needed vs doctor decides).
- * TGA-compliant: NO drug names anywhere in this component.
- * Uses Tier 2 elevated cards with ring selection (Tier 3).
+ * Owns the treatment preference plus the prior-treatment history that used to
+ * sit at the bottom of the safety screen. Keeping "what you have taken before"
+ * next to "how you want to take it" is what lets a patient who is already
+ * established on a medicine say so once, in their own words, instead of
+ * answering it as disconnected history a screen earlier.
+ *
+ * "Let the doctor decide" was removed 2026-07-19 (operator decision): it read
+ * as a non-answer, and every intake is doctor-reviewed anyway, so it bought the
+ * patient nothing while adding a third card to the highest-intent screen.
+ * Legacy intakes that stored it still render and still map to a preset.
+ *
+ * TGA-compliant: NO drug names anywhere in patient-facing copy. A patient may
+ * type a medicine name themselves; we never print one.
  */
 
-import { ArrowRight,CalendarDays, Clock, ShieldCheck, Stethoscope } from "lucide-react"
+import { ArrowRight, CalendarDays, Clock, ShieldCheck } from "lucide-react"
 import { useCallback } from "react"
 
-import { ChoiceCardGroup, IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
+import {
+  BinaryChoice,
+  ChoiceCardGroup,
+  CompactChoiceRow,
+  IntakeStepIntro,
+  QuestionCard,
+  QuestionPrompt,
+} from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
@@ -30,42 +48,47 @@ interface EdPreferencesStepProps {
 
 const PREFERENCE_OPTIONS = [
   {
-    value: "daily",
-    label: "Daily routine",
-    icon: CalendarDays,
-    description:
-      "A daily option with less timing around activity.",
-    chips: ["Routine", "Less planning", "Regular activity"],
-  },
-  {
     value: "prn",
-    label: "As-needed",
+    label: "Only when I need it",
     icon: Clock,
-    description:
-      "A planned-use option. The doctor will confirm whether it suits your health profile.",
+    description: "Taken ahead of sex rather than every day.",
     chips: ["Flexible", "Occasional use"],
   },
   {
-    value: "doctor_decides",
-    label: "Let the doctor decide",
-    icon: Stethoscope,
-    description:
-      "Your doctor will recommend the best option based on your assessment.",
-    chips: ["Expert guidance", "Personalised"],
+    value: "daily",
+    label: "Every day",
+    icon: CalendarDays,
+    description: "A low daily dose, so there is no timing to plan around.",
+    chips: ["Routine", "Less planning"],
   },
 ] as const
 
-export default function EdPreferencesStep({ serviceType, onNext }: EdPreferencesStepProps) {
+export default function EdPreferencesStep({ serviceType, onNext, onBack }: EdPreferencesStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
 
   const edPreference = (answers.edPreference as string) || ""
+  const previousEdMeds = answers.previousEdMeds as boolean | undefined
+  const edPreviousTreatment = (answers.edPreviousTreatment as string) || ""
+  const edAdditionalInfo = (answers.edAdditionalInfo as string) || ""
 
-  const isComplete = !!edPreference
+  const previousTreatmentComplete =
+    previousEdMeds === false || (previousEdMeds === true && edPreviousTreatment.trim().length > 0)
+
+  const isComplete = !!edPreference && previousTreatmentComplete
 
   const { validationSummary, showBlockingReasons } = useStepValidationSummary(
     isComplete,
-    useCallback(() => ["a treatment preference"], []),
+    useCallback(() => {
+      const reasons: string[] = []
+      if (!edPreference) reasons.push("how you would prefer to take it")
+      if (previousEdMeds === undefined) {
+        reasons.push("whether you have tried treatment before")
+      } else if (previousEdMeds === true && !edPreviousTreatment.trim()) {
+        reasons.push("what you have taken before")
+      }
+      return reasons
+    }, [edPreference, previousEdMeds, edPreviousTreatment]),
     { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "ed-preferences" },
   )
 
@@ -79,15 +102,15 @@ export default function EdPreferencesStep({ serviceType, onNext }: EdPreferences
 
   useKeyboardNavigation({
     onNext: isComplete ? handleNext : undefined,
-    enabled: isComplete,
+    onBack,
+    enabled: true,
   })
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <IntakeStepIntro
-        title="How should treatment fit your life?"
-        description="Tell the doctor your preference. They will prescribe only if it is clinically appropriate."
+        title="How would you prefer to take it?"
+        description="The doctor prescribes only what is clinically appropriate for you."
       />
 
       <ChoiceCardGroup
@@ -99,7 +122,45 @@ export default function EdPreferencesStep({ serviceType, onNext }: EdPreferences
         hideChipsOnMobile
       />
 
-      {/* Trust text */}
+      <QuestionCard compact className="space-y-0">
+        <CompactChoiceRow
+          label="Have you tried ED treatment before?"
+          required
+          detail={previousEdMeds === true ? (
+            <Textarea
+              id="ed-previous-treatment"
+              value={edPreviousTreatment}
+              onChange={(event) => setAnswer("edPreviousTreatment", event.target.value)}
+              placeholder="Name it if you know it, plus the dose and whether it worked"
+              className="min-h-[72px] text-sm"
+            />
+          ) : undefined}
+        >
+          <BinaryChoice
+            value={previousEdMeds}
+            onChange={(checked) => setAnswer("previousEdMeds", checked)}
+            ariaLabel="Have you tried ED treatment before?"
+            className="gap-1.5"
+          />
+        </CompactChoiceRow>
+      </QuestionCard>
+
+      <QuestionCard compact>
+        <QuestionPrompt
+          label="Anything else for the doctor?"
+          hint="Optional"
+          id="ed-additional-info-label"
+        />
+        <Textarea
+          id="ed-additional-info"
+          aria-labelledby="ed-additional-info-label"
+          value={edAdditionalInfo}
+          onChange={(event) => setAnswer("edAdditionalInfo", event.target.value)}
+          placeholder="If there is a particular medicine or dose you would prefer, say so here."
+          className="min-h-[72px] text-sm"
+        />
+      </QuestionCard>
+
       <QuestionCard compact className="flex flex-row items-start gap-2">
         <ShieldCheck className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground">
@@ -112,7 +173,8 @@ export default function EdPreferencesStep({ serviceType, onNext }: EdPreferences
       {validationSummary.length > 0 && (
         <Alert variant="destructive" role="alert" aria-live="assertive">
           <AlertDescription>
-            Select a treatment preference to continue.
+            {validationSummary.length === 1 ? "Add this to continue: " : "Add these to continue: "}
+            {validationSummary.join(", ")}.
           </AlertDescription>
         </Alert>
       )}

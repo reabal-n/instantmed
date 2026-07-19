@@ -45,7 +45,11 @@ export const ED_PRESCRIBING_PRESETS: Record<"daily" | "prn" | "doctor_decides", 
     repeatsTemplate: "2",
     directionsTemplate: "Take 1 tablet 1 hour before sexual activity. Maximum 1 tablet per 24 hours.",
     medicationSearchHint: "Sildenafil 50mg tablet",
+    alternativeNote: "Escalate to Sildenafil 100mg only after an adequate 50mg trial. Tadalafil 20mg PRN is an alternative when the patient wants a longer window of effect. Check the patient's stated prior treatment before defaulting to the starting dose.",
   },
+  // Legacy only since 2026-07-19: the "let the doctor decide" card was removed
+  // from the intake. Kept as the fallback preset for historical intakes and for
+  // any answer we do not recognise.
   doctor_decides: {
     medicationName: "Sildenafil",
     strength: "50mg",

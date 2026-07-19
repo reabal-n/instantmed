@@ -21,8 +21,11 @@ describe("P1.3 compact specialty safety screens", () => {
   })
 
   it("keeps explicit safety choices while replacing the remaining bespoke selectors", () => {
-    expect(edHealth).toContain("SegmentedChoiceGroup")
-    expect(edHealth).toContain('ariaLabel="Previous treatment effectiveness"')
+    // Previous-treatment history moved to the treatment step on 2026-07-19, so
+    // the effectiveness selector is no longer this screen's to own. The cardiac
+    // safety questions below are the pins that actually matter here.
+    expect(edHealth).not.toContain('ariaLabel="Previous treatment effectiveness"')
+    expect(edHealth).not.toContain("Have you tried ED treatment before?")
     expect(edHealth).toContain('ariaLabel="Do you take nitrates?"')
     expect(edHealth).toContain('ariaLabel="Heart attack, stroke, or unstable angina in the last 6 months?"')
     expect(edHealth).toContain('ariaLabel="Severe heart disease, very low blood pressure, or HOCM?"')

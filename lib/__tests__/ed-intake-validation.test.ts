@@ -115,7 +115,6 @@ describe("edHealthStepSchema", () => {
     takes_medications: "no",
     has_allergies: "no",
     has_conditions: "no",
-    previousEdMeds: false,
   }
 
   it("passes when the consolidated health screen is complete", () => {
@@ -136,7 +135,13 @@ describe("edHealthStepSchema", () => {
     expect(result.errors.takes_medications).toBeDefined()
     expect(result.errors.has_allergies).toBeDefined()
     expect(result.errors.has_conditions).toBeDefined()
-    expect(result.errors.previousEdMeds).toBeDefined()
+  })
+
+  it("no longer owns previous ED treatment — that moved to the treatment step", () => {
+    const result = validateEdHealthStep(validMinimum)
+    expect(result.isValid).toBe(true)
+    expect(result.errors.previousEdMeds).toBeUndefined()
+    expect(result.errors.edPreviousTreatment).toBeUndefined()
   })
 
   it("fails (hard block) when nitrates is true", () => {
@@ -227,17 +232,6 @@ describe("edHealthStepSchema", () => {
     expect(result.isValid).toBe(true)
   })
 
-  it("requires previous ED treatment details when the patient has used ED medication before", () => {
-    const result = validateEdHealthStep({
-      ...validMinimum,
-      previousEdMeds: true,
-    })
-
-    expect(result.isValid).toBe(false)
-    expect(result.errors.edPreviousTreatment).toBeDefined()
-    expect(result.errors.edPreviousEffectiveness).toBeDefined()
-  })
-
   it("requires condition details when has_conditions is 'yes'", () => {
     const result = validateEdHealthStep({
       ...validMinimum,
@@ -265,9 +259,6 @@ describe("edHealthStepSchema", () => {
       has_allergies: "no",
       has_conditions: "no",
       takes_medications: "no",
-      previousEdMeds: true,
-      edPreviousTreatment: "Sildenafil",
-      edPreviousEffectiveness: "effective",
     })
     expect(result.isValid).toBe(true)
   })
@@ -278,18 +269,22 @@ describe("edHealthStepSchema", () => {
 // ============================================================================
 
 describe("edPreferencesStepSchema", () => {
-  it("passes with 'daily'", () => {
-    const result = validateEdPreferencesStep({ edPreference: "daily" })
-    expect(result.isValid).toBe(true)
-  })
+  const validMinimum = { edPreference: "prn", previousEdMeds: false }
 
-  it("passes with 'doctor_decides'", () => {
-    const result = validateEdPreferencesStep({ edPreference: "doctor_decides" })
+  it("passes with 'daily'", () => {
+    const result = validateEdPreferencesStep({ ...validMinimum, edPreference: "daily" })
     expect(result.isValid).toBe(true)
   })
 
   it("passes with 'prn'", () => {
-    const result = validateEdPreferencesStep({ edPreference: "prn" })
+    const result = validateEdPreferencesStep(validMinimum)
+    expect(result.isValid).toBe(true)
+  })
+
+  // The card was removed from the UI on 2026-07-19, but historical intakes and
+  // in-flight drafts still carry the value and must keep validating.
+  it("still accepts the retired 'doctor_decides' value from stored drafts", () => {
+    const result = validateEdPreferencesStep({ ...validMinimum, edPreference: "doctor_decides" })
     expect(result.isValid).toBe(true)
   })
 
@@ -300,8 +295,40 @@ describe("edPreferencesStepSchema", () => {
   })
 
   it("fails when empty string", () => {
-    const result = validateEdPreferencesStep({ edPreference: "" })
+    const result = validateEdPreferencesStep({ ...validMinimum, edPreference: "" })
     expect(result.isValid).toBe(false)
     expect(result.errors.edPreference).toBeDefined()
+  })
+
+  it("requires the previous-treatment question that moved off the health screen", () => {
+    const result = validateEdPreferencesStep({ edPreference: "prn" })
+    expect(result.isValid).toBe(false)
+    expect(result.errors.previousEdMeds).toBeDefined()
+  })
+
+  it("requires the free-text detail when previous treatment is reported", () => {
+    const result = validateEdPreferencesStep({ edPreference: "prn", previousEdMeds: true })
+    expect(result.isValid).toBe(false)
+    expect(result.errors.edPreviousTreatment).toBeDefined()
+  })
+
+  it("passes when previous treatment is described in the patient's own words", () => {
+    const result = validateEdPreferencesStep({
+      edPreference: "prn",
+      previousEdMeds: true,
+      edPreviousTreatment: "50mg, worked but wore off too fast",
+      edAdditionalInfo: "Would prefer the longer-lasting one",
+    })
+    expect(result.isValid).toBe(true)
+  })
+
+  it("does not require the retired effectiveness chip", () => {
+    const result = validateEdPreferencesStep({
+      edPreference: "prn",
+      previousEdMeds: true,
+      edPreviousTreatment: "Tried one tablet, no effect",
+    })
+    expect(result.isValid).toBe(true)
+    expect(result.errors.edPreviousEffectiveness).toBeUndefined()
   })
 })
