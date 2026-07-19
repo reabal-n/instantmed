@@ -396,7 +396,11 @@ test.describe("Prescription: step validation", () => {
     await expect(btn).toBeEnabled()
     await btn.click()
     await expect(page.getByText(/Enter the name of the medication you need/i).first()).toBeVisible()
-    await expect(page.getByRole("heading", { name: /Your medication/i })).toBeVisible()
+    await expect(
+      page
+        .getByRole("main")
+        .getByRole("heading", { name: "Your medication", level: 2, exact: true }),
+    ).toBeVisible()
   })
 
   test("medication step proceeds with a blank strength (A3 soften → doctor flag)", async ({ page }) => {
@@ -497,6 +501,11 @@ test.describe("Prescription: step validation", () => {
     await unchangedOption.click()
     await expect(unchangedOption).toHaveAttribute("aria-checked", "true")
 
+    // Re-entering identical details is not an edit and must preserve the
+    // attestation.
+    await page.locator("#medication-name-0").fill("E2E test medication")
+    await expect(unchangedOption).toHaveAttribute("aria-checked", "true")
+
     // Editing the medicine name clears the attestation.
     await page.locator("#medication-name-0").fill("E2E changed medication")
     await expect(unchangedOption).toHaveAttribute("aria-checked", "false")
@@ -505,9 +514,33 @@ test.describe("Prescription: step validation", () => {
 
     // Re-attesting, then editing the dose text, clears it again.
     await unchangedOption.click()
-    await page.getByPlaceholder(/2 puffs twice daily/i).fill("2 tablets daily")
+    const doseInput = page.locator("#current-dose")
+    await doseInput.fill("1 tablet daily")
+    await expect(unchangedOption).toHaveAttribute("aria-checked", "true")
+    await doseInput.fill("2 tablets daily")
     await expect(unchangedOption).toHaveAttribute("aria-checked", "false")
     await expect(page.getByText(/Please confirm whether the dose or the way you take this medicine has changed/i).first()).toBeVisible()
+  })
+
+  test("frequency starters do not treat words inside patient-entered dose text as selected", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await waitForStep(page, /Your medication/i)
+    await page.locator("#medication-name-0").fill("E2E test medication")
+    await clickChip(page, /Under 3 months/i)
+
+    const doseInput = page.locator("#current-dose")
+    await doseInput.fill("In the mornings I take one")
+
+    const morningStarter = page
+      .getByRole("group", { name: "Common dose frequencies" })
+      .getByRole("button", { name: "In the morning", exact: true })
+    await expect(morningStarter).toHaveAttribute("aria-pressed", "false")
+    await morningStarter.click()
+
+    await expect(doseInput).toHaveValue("In the mornings I take one, In the morning")
   })
 
   test("patient details validates email format", async ({ page }) => {

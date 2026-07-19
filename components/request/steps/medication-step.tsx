@@ -66,6 +66,11 @@ import {
   stringAnswer,
 } from "@/lib/request/intake-answer-normalizers"
 import { addRecentMedication, getSmartDefaults } from "@/lib/request/preferences"
+import {
+  areRepeatRxMedicationDetailsEqual,
+  hasDoseFrequencyStarter,
+  toggleDoseFrequencyStarter,
+} from "@/lib/request/repeat-rx-regimen"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { deriveRepeatMedicationTerminalBlock } from "@/lib/request/terminal-safety-blocks"
 
@@ -120,10 +125,6 @@ const COMMON_FREQUENCY_STARTERS = [
 
 const DOSE_CONFIRMATION_REQUIRED = "Please confirm whether the dose or the way you take this medicine has changed"
 const DOSE_CHANGE_REQUIRES_REVIEW = "A dose or directions change needs review by your regular GP or specialist"
-
-function escapeForRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-}
 
 export default function MedicationStep({ serviceType, onNext }: MedicationStepProps) {
   const { answers, setAnswers, setAnswer } = useRequestStore()
@@ -196,6 +197,8 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   // Sync medications to store
   const syncToStore = useCallback((meds: MedicationEntry[]) => {
     const primary = meds[0] ?? { name: "" }
+    const previousPrimary = medications[0] ?? { name: "" }
+    const medicationChanged = !areRepeatRxMedicationDetailsEqual(previousPrimary, primary)
     const next = [primary]
     setMedications(next)
     // Always keep medications[] in answers; one request covers one medicine.
@@ -209,13 +212,17 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         medicationStrength: primary.strength || "",
         medicationForm: primary.form || "",
         pbsCode: primary.pbsCode || "",
-        // The unchanged-regimen attestation belongs to the exact medication
-        // details the patient reviewed. Any edit requires a fresh answer.
-        doseChanged: undefined,
-        dose_changed: undefined,
+        ...(medicationChanged
+          ? {
+              // The unchanged-regimen attestation belongs to the exact
+              // medication details the patient reviewed.
+              doseChanged: undefined,
+              dose_changed: undefined,
+            }
+          : {}),
       })
     }
-  }, [setAnswer, setAnswers])
+  }, [medications, setAnswer, setAnswers])
 
   const handleMedicationNameChange = (index: number, value: string) => {
     const updated = [...medications]
@@ -296,6 +303,8 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   // Editing the regimen text invalidates an attestation the patient already
   // gave against the previous wording.
   const updateCurrentDose = useCallback((nextDose: string) => {
+    if (nextDose === currentDose) return
+
     const hadRegimenAttestation = doseChanged !== undefined
     setAnswer("currentDose", nextDose)
     setAnswer("dosageInstructions", nextDose)
@@ -310,23 +319,12 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         DOSE_CONFIRMATION_REQUIRED,
       ])
     }
-  }, [doseChanged, setAnswer])
+  }, [currentDose, doseChanged, setAnswer])
 
   // Tap a starter to seed/clear the frequency wording. The textarea remains the
   // source of truth, so checkout validation and the doctor's view are unchanged.
   const toggleFrequencyStarter = useCallback((phrase: string) => {
-    const alreadyPresent = currentDose.toLowerCase().includes(phrase.toLowerCase())
-    let next: string
-    if (alreadyPresent) {
-      next = currentDose
-        .replace(new RegExp(`(^|,\\s*)${escapeForRegExp(phrase)}`, "i"), "")
-        .replace(/^[,\s]+/, "")
-        .replace(/\s*,\s*,/g, ", ")
-        .trim()
-    } else {
-      next = currentDose.trim() ? `${currentDose.trim()}, ${phrase}` : phrase
-    }
-    updateCurrentDose(next)
+    updateCurrentDose(toggleDoseFrequencyStarter(currentDose, phrase))
     setTouched((prev) => ({ ...prev, currentDose: true }))
   }, [currentDose, updateCurrentDose])
 
@@ -438,7 +436,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   const frequencyValues = Object.fromEntries(
     COMMON_FREQUENCY_STARTERS.map((starter) => [
       starter.key,
-      currentDose.toLowerCase().includes(starter.label.toLowerCase()),
+      hasDoseFrequencyStarter(currentDose, starter.label),
     ]),
   )
 
