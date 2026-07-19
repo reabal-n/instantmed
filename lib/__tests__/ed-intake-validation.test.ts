@@ -4,7 +4,6 @@ import {
   edGoalsStepSchema,
   validateEdGoalsStep,
   validateEdHealthStep,
-  validateEdLegacyAssessment,
   validateEdPreferencesStep,
 } from "@/lib/request/validation"
 
@@ -57,23 +56,39 @@ describe("edGoalsStepSchema", () => {
 })
 
 // ============================================================================
-// LEGACY IIEF-5 (retired 2026-07-19, still readable on stored intakes)
+// LEGACY IIEF-5 DRAFTS (step retired 2026-07-19)
 // ============================================================================
 
-describe("edLegacyAssessmentSchema", () => {
-  it("accepts a stored IIEF-5 set", () => {
-    const result = validateEdLegacyAssessment({
-      iief1: 3, iief2: 4, iief3: 2, iief4: 5, iief5: 1, iiefTotal: 15,
+/**
+ * `unified-checkout` runs these step validators server-side, so a draft saved
+ * before the IIEF-5 step was retired would be blocked at checkout on a question
+ * the patient was never shown unless the stored assessment satisfies step 1.
+ */
+describe("edGoalsStepSchema — pre-2026-07-19 drafts", () => {
+  it("accepts a stored IIEF-5 draft that has no edErectionFrequency", () => {
+    const result = validateEdGoalsStep({
+      edGoal: "improve_erections",
+      edDuration: "3_to_12_months",
+      iief1: 3,
+      iiefTotal: 15,
     })
     expect(result.isValid).toBe(true)
   })
 
-  it("accepts intakes with no IIEF data at all — it is no longer collected", () => {
-    expect(validateEdLegacyAssessment({}).isValid).toBe(true)
+  it("accepts a stored draft carrying only the IIEF total", () => {
+    const result = validateEdGoalsStep({ edDuration: "3_to_12_months", iiefTotal: 15 })
+    expect(result.isValid).toBe(true)
   })
 
-  it("still rejects an out-of-range stored score", () => {
-    expect(validateEdLegacyAssessment({ iief1: 9 }).isValid).toBe(false)
+  it("still requires duration even on a legacy draft", () => {
+    const result = validateEdGoalsStep({ iiefTotal: 15 })
+    expect(result.isValid).toBe(false)
+    expect(result.errors.edDuration).toBeDefined()
+  })
+
+  it("rejects an out-of-range stored IIEF total rather than trusting it blindly", () => {
+    const result = validateEdGoalsStep({ edDuration: "3_to_12_months", iiefTotal: 99 })
+    expect(result.isValid).toBe(false)
   })
 })
 

@@ -231,7 +231,7 @@ async function expectEnabledConsultCheckout(page: Page) {
 }
 
 async function selectEdSafePath(page: Page) {
-  await expect(page.getByText(/What matters most right now/i)).toBeVisible({ timeout: 10000 })
+  await expect(page.getByText(/Tell us what's going on/i)).toBeVisible({ timeout: 10000 })
 
   // The ED entry no longer duplicates the strict DOB age gate enforced by
   // authenticated and guest checkout. Keep this first screen conversion-led.
@@ -825,7 +825,7 @@ test.describe("Consult review summary: persisted health details", () => {
     ).toBe(true)
 
     await concernSection.getByRole("button", { name: "Edit Your concern", exact: true }).click()
-    await expect(page.getByRole("heading", { name: "What matters most right now?" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Tell us what's going on" })).toBeVisible()
     await expect(
       page
         .getByRole("radiogroup", { name: /How long this has been a concern/i })

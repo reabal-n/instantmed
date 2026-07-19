@@ -355,19 +355,6 @@ export const edGoalsStepSchema = z
     }
   })
 
-/**
- * Legacy: drafts and historical intakes created before 2026-07-19 carry a full
- * IIEF-5 set. Nothing collects these now, so the step schema only validates
- * them when they are present.
- */
-export const edLegacyAssessmentSchema = z.object({
-  iief1: z.number().min(1).max(5).optional(),
-  iief2: z.number().min(1).max(5).optional(),
-  iief3: z.number().min(1).max(5).optional(),
-  iief4: z.number().min(1).max(5).optional(),
-  iief5: z.number().min(1).max(5).optional(),
-  iiefTotal: z.number().min(5).max(25).optional(),
-})
 
 export const edHealthStepSchema = z
   .object({
@@ -644,13 +631,6 @@ export function validateEdGoalsStep(answers: Record<string, unknown>): Validatio
   return runSchema(edGoalsStepSchema, answers)
 }
 
-/**
- * Retained so a stored IIEF-5 set from before 2026-07-19 is still checked for
- * shape when present. It no longer gates any step — nothing collects these.
- */
-export function validateEdLegacyAssessment(answers: Record<string, unknown>): ValidationResult {
-  return runSchema(edLegacyAssessmentSchema, answers)
-}
 
 export function validateEdHealthStep(answers: Record<string, unknown>): ValidationResult {
   return runSchema(edHealthStepSchema, answers)
