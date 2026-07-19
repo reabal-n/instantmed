@@ -214,6 +214,20 @@ function partialRecoveryPayloadMismatch(
   return null
 }
 
+function reviewRequestPayloadRecipientChanged(
+  payload: ResendProviderPayload,
+  authoritativeRecipient: string | null | undefined,
+): boolean {
+  const recipients = Array.isArray(payload.to) ? payload.to : []
+  return (
+    !authoritativeRecipient ||
+    recipients.length !== 1 ||
+    typeof recipients[0] !== "string" ||
+    recipients[0].trim().toLowerCase() !==
+      authoritativeRecipient.trim().toLowerCase()
+  )
+}
+
 async function deferLifecycleOutbox(
   outboxId: string,
   reason: string,
@@ -1034,7 +1048,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       }
 
       if (emailType === "review_request") {
-        const reviewDecision = intakeId
+        let reviewDecision = intakeId
           ? await evaluateReviewRequestPolicy({
               intakeId,
               expectedRecipient: to,
@@ -1044,6 +1058,18 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
               kind: "policy_suppressed" as const,
               reason: "request_missing",
             }
+        if (
+          reviewDecision.kind === "allowed" &&
+          reviewRequestPayloadRecipientChanged(
+            providerBody,
+            to,
+          )
+        ) {
+          reviewDecision = {
+            kind: "policy_suppressed",
+            reason: "review_payload_recipient_changed",
+          }
+        }
         if (reviewDecision.kind === "transiently_blocked") {
           const retryAt = reviewDecision.retryAt ?? transientRetryAt()
           const deferred = await deferOutboxRow(
@@ -1860,7 +1886,7 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
     }
 
     if (row.email_type === "review_request") {
-      const reviewDecision = row.intake_id
+      let reviewDecision = row.intake_id
         ? await evaluateReviewRequestPolicy({
             intakeId: row.intake_id,
             expectedRecipient: row.to_email,
@@ -1870,6 +1896,18 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
             kind: "policy_suppressed" as const,
             reason: "request_missing",
           }
+      if (
+        reviewDecision.kind === "allowed" &&
+        reviewRequestPayloadRecipientChanged(
+          sendBody,
+          row.to_email,
+        )
+      ) {
+        reviewDecision = {
+          kind: "policy_suppressed",
+          reason: "review_payload_recipient_changed",
+        }
+      }
       if (reviewDecision.kind === "transiently_blocked") {
         const retryAt = reviewDecision.retryAt ?? transientRetryAt()
         const deferred = await deferOutboxRow(

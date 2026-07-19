@@ -190,6 +190,46 @@ describe("review request dispatcher delivery truth", () => {
     })
   })
 
+  it("terminally suppresses a frozen body that targets a stale recipient", async () => {
+    const row = reviewRow()
+    row.metadata = {
+      [FROZEN_PROVIDER_PAYLOAD_KEY]: freezeResendProviderPayload({
+        from: "InstantMed <support@instantmed.example>",
+        to: ["stale@example.com"],
+        subject: "How did InstantMed go?",
+        html: "<p>Review request</p>",
+        text: "Review request",
+      }),
+    }
+
+    const result = await sendFromOutboxRow(row)
+
+    expect(mocks.markReviewRequestCommunicationOutcome).toHaveBeenCalledWith(
+      "intake-1",
+      {
+        kind: "policy_suppressed",
+        reason: "review_payload_recipient_changed",
+      },
+    )
+    expect(mocks.updateOutboxStatus).toHaveBeenCalledWith(
+      "outbox-review",
+      "failed",
+      expect.objectContaining({
+        error_message:
+          "Suppressed before delivery: review_payload_recipient_changed",
+      }),
+    )
+    expect(result).toMatchObject({
+      success: false,
+      suppressed: true,
+      outcome: {
+        kind: "policy_suppressed",
+        reason: "review_payload_recipient_changed",
+      },
+    })
+    expect(mocks.fetch).not.toHaveBeenCalled()
+  })
+
   it("defers a review row when the dispatcher has no Resend API key", async () => {
     mocks.env.resendApiKey = undefined
 

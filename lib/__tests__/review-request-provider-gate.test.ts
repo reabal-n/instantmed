@@ -66,6 +66,7 @@ vi.mock("@/lib/monitoring/delivery-tracking", () => ({
   recordDeliverySent: vi.fn(),
 }))
 
+import { freezeResendProviderPayload } from "@/lib/email/send/provider-payload"
 import { sendEmail } from "@/lib/email/send-email"
 
 describe("review request provider gate", () => {
@@ -267,6 +268,47 @@ describe("review request provider gate", () => {
       kind: "transiently_blocked",
       reason: "provider_payload_read_failed",
     })
+    expect(mocks.fetch).not.toHaveBeenCalled()
+  })
+
+  it("terminally suppresses a reclaimed row whose frozen body targets a stale recipient", async () => {
+    mocks.createPendingOutbox.mockResolvedValueOnce({
+      id: "outbox-review",
+      duplicate: false,
+      providerPayloadEnc: freezeResendProviderPayload({
+        from: "InstantMed <support@instantmed.example>",
+        to: ["stale@example.com"],
+        subject: "How did InstantMed go?",
+        html: "<p>Review request</p>",
+        text: "Review request",
+      }),
+    })
+    mocks.evaluateReviewRequestPolicy.mockResolvedValueOnce({ kind: "allowed" })
+
+    const result = await sendEmail({
+      to: "patient@example.com",
+      subject: "How did InstantMed go?",
+      template: {} as React.ReactElement,
+      emailType: "review_request",
+      intakeId: "intake-1",
+      idempotencyKey: "review-request:intake-1",
+    })
+
+    expect(result).toMatchObject({
+      success: false,
+      suppressed: true,
+      outcome: {
+        kind: "policy_suppressed",
+        reason: "review_payload_recipient_changed",
+      },
+    })
+    expect(mocks.markReviewRequestCommunicationOutcome).toHaveBeenCalledWith(
+      "intake-1",
+      {
+        kind: "policy_suppressed",
+        reason: "review_payload_recipient_changed",
+      },
+    )
     expect(mocks.fetch).not.toHaveBeenCalled()
   })
 

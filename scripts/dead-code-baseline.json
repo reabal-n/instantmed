@@ -421,7 +421,6 @@
     "full|exports|lib/email/refill-reminder.ts|findRefillReminderCandidates",
     "full|exports|lib/email/refill-reminder.ts|sendRefillReminderEmail",
     "full|exports|lib/email/review-request.ts|findReviewRequestBackfillCandidates",
-    "full|exports|lib/email/review-request.ts|findReviewRequestCandidates",
     "full|exports|lib/email/sequence-registry.ts|ACTIVE_EMAIL_SEQUENCES",
     "full|exports|lib/email/sequence-registry.ts|INACTIVE_EMAIL_SEQUENCES",
     "full|exports|lib/email/template-sender.ts|sendTemplateEmail",

@@ -51,7 +51,8 @@ const REVIEW_CANDIDATE_SELECT = `
   script_sent_at,
   review_email_sent_at,
   review_email_suppressed_at,
-  patient:profiles!patient_id(email, first_name, email_bounced)
+  patient:profiles!patient_id(email, first_name, email_bounced),
+  active_review_outbox:email_outbox()
 `
 
 function normalizeCandidate(row: Record<string, unknown>): ReviewRequestCandidate {
@@ -104,6 +105,9 @@ async function findCandidatesInFulfilmentWindow(opts: {
     .is("review_email_suppressed_at", null)
     .not("patient_id", "is", null)
     .neq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
+    .eq("active_review_outbox.email_type", "review_request")
+    .in("active_review_outbox.status", ["pending", "sending"])
+    .is("active_review_outbox", null)
 
   const [certificateResult, prescribingResult] = await Promise.all([
     commonFilters(supabase.from("intakes"))
