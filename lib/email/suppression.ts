@@ -67,8 +67,8 @@ export async function getEmailSuppressionDecisions(
   // Profiles that match these addresses and have opted out of marketing.
   const { data: profiles, error: profileError } = await supabase
     .from("profiles")
-    .select("id, email")
-    .in("email", normalized)
+    .select("id, normalized_email")
+    .in("normalized_email", normalized)
 
   if (profileError) {
     logger.error("Profile lookup for suppression failed", { error: profileError.message })
@@ -77,7 +77,9 @@ export async function getEmailSuppressionDecisions(
 
   const profileIdToEmail = new Map<string, string>()
   for (const p of profiles ?? []) {
-    if (p.email) profileIdToEmail.set(p.id, p.email.trim().toLowerCase())
+    if (p.normalized_email) {
+      profileIdToEmail.set(p.id, p.normalized_email.trim().toLowerCase())
+    }
   }
 
   if (profileIdToEmail.size > 0) {

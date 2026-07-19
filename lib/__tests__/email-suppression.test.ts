@@ -2,6 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
   from: vi.fn(),
+  queries: [] as Array<{
+    table: string
+    selected: string
+    column: string
+    values: string[]
+  }>,
   logger: {
     error: vi.fn(),
   },
@@ -19,7 +25,10 @@ vi.mock("@/lib/observability/logger", () => ({
 
 function configureLookup(results: {
   suppressions?: { data: Array<{ email_lower: string }> | null; error: { message: string } | null }
-  profiles?: { data: Array<{ id: string; email: string | null }> | null; error: { message: string } | null }
+  profiles?: {
+    data: Array<{ id: string; normalized_email: string | null }> | null
+    error: { message: string } | null
+  }
   preferences?: {
     data: Array<{
       profile_id: string
@@ -30,8 +39,9 @@ function configureLookup(results: {
   }
 }): void {
   mocks.from.mockImplementation((table: string) => ({
-    select: () => ({
-      in: async () => {
+    select: (selected: string) => ({
+      in: async (column: string, values: string[]) => {
+        mocks.queries.push({ table, selected, column, values })
         if (table === "email_suppressions") {
           return results.suppressions ?? { data: [], error: null }
         }
@@ -47,6 +57,7 @@ function configureLookup(results: {
 describe("getEmailSuppressionDecisions", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.queries.length = 0
   })
 
   it("returns allowed and definitive policy-suppressed decisions when lookups are available", async () => {
@@ -56,7 +67,12 @@ describe("getEmailSuppressionDecisions", () => {
         error: null,
       },
       profiles: {
-        data: [{ id: "profile-1", email: "opted-out@example.com" }],
+        data: [
+          {
+            id: "profile-1",
+            normalized_email: " OPTED-OUT@EXAMPLE.COM ",
+          },
+        ],
         error: null,
       },
       preferences: {
@@ -75,9 +91,21 @@ describe("getEmailSuppressionDecisions", () => {
     const decisions = await getEmailSuppressionDecisions([
       " Allowed@example.com ",
       "blocked@example.com",
-      "opted-out@example.com",
+      " Opted-Out@Example.com ",
     ])
 
+    expect(
+      mocks.queries.find((query) => query.table === "profiles"),
+    ).toEqual({
+      table: "profiles",
+      selected: "id, normalized_email",
+      column: "normalized_email",
+      values: [
+        "allowed@example.com",
+        "blocked@example.com",
+        "opted-out@example.com",
+      ],
+    })
     expect(decisions.get("allowed@example.com")).toEqual({ kind: "allowed" })
     expect(decisions.get("blocked@example.com")).toEqual({
       kind: "policy_suppressed",
