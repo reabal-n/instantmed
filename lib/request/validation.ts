@@ -318,20 +318,55 @@ export const prescriptionMedicalHistoryStepSchema = z
   })
 
 // ---------------------------------------------------------------------------
-// ED Intake - 4-step validation
+// ED Intake - 3-step validation (goals+severity, health, treatment)
 // ---------------------------------------------------------------------------
 
-export const edGoalsStepSchema = z.object({
-  edGoal: nonEmptyString("Please select your main goal"),
-  edDuration: nonEmptyString("Please indicate how long this has been a concern"),
-})
+/**
+ * Opening step. Owns duration plus the single severity item that replaced the
+ * five-question IIEF-5 step on 2026-07-19.
+ *
+ * `edGoal` is no longer collected (no doctor surface acted on it) and the IIEF
+ * fields are no longer produced, but both stay optional here so a draft saved
+ * before the change still validates instead of bouncing the patient back.
+ */
+export const edGoalsStepSchema = z
+  .object({
+    edDuration: nonEmptyString("Please indicate how long this has been a concern"),
+    edErectionFrequency: z.number().min(1).max(5).optional(),
+    edGoal: z.string().optional(),
+    // Present only on drafts/intakes created before 2026-07-19.
+    iief1: z.number().min(1).max(5).optional(),
+    iiefTotal: z.number().min(5).max(25).optional(),
+  })
+  .superRefine((data, ctx) => {
+    // A draft saved before the IIEF-5 step was retired already carries a
+    // severity answer — it is just recorded with the old instrument. Demanding
+    // the new field would block that patient at checkout on a question they
+    // were never shown, so the stored assessment satisfies this step.
+    const hasLegacyAssessment = data.iief1 !== undefined || data.iiefTotal !== undefined
+    if (hasLegacyAssessment) return
 
-export const edAssessmentStepSchema = z.object({
-  iief1: z.number({ error: "Please rate your confidence" }).min(1).max(5),
-  iief2: z.number({ error: "Please answer this question" }).min(1).max(5),
-  iief3: z.number({ error: "Please answer this question" }).min(1).max(5),
-  iief4: z.number({ error: "Please answer this question" }).min(1).max(5),
-  iief5: z.number({ error: "Please answer this question" }).min(1).max(5),
+    if (data.edErectionFrequency === undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["edErectionFrequency"],
+        message: "Please answer how often this happens",
+      })
+    }
+  })
+
+/**
+ * Legacy: drafts and historical intakes created before 2026-07-19 carry a full
+ * IIEF-5 set. Nothing collects these now, so the step schema only validates
+ * them when they are present.
+ */
+export const edLegacyAssessmentSchema = z.object({
+  iief1: z.number().min(1).max(5).optional(),
+  iief2: z.number().min(1).max(5).optional(),
+  iief3: z.number().min(1).max(5).optional(),
+  iief4: z.number().min(1).max(5).optional(),
+  iief5: z.number().min(1).max(5).optional(),
+  iiefTotal: z.number().min(5).max(25).optional(),
 })
 
 export const edHealthStepSchema = z
@@ -609,8 +644,12 @@ export function validateEdGoalsStep(answers: Record<string, unknown>): Validatio
   return runSchema(edGoalsStepSchema, answers)
 }
 
-export function validateEdAssessmentStep(answers: Record<string, unknown>): ValidationResult {
-  return runSchema(edAssessmentStepSchema, answers)
+/**
+ * Retained so a stored IIEF-5 set from before 2026-07-19 is still checked for
+ * shape when present. It no longer gates any step — nothing collects these.
+ */
+export function validateEdLegacyAssessment(answers: Record<string, unknown>): ValidationResult {
+  return runSchema(edLegacyAssessmentSchema, answers)
 }
 
 export function validateEdHealthStep(answers: Record<string, unknown>): ValidationResult {

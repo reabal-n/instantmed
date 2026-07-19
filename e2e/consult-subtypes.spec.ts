@@ -239,14 +239,14 @@ async function selectEdSafePath(page: Page) {
     name: /I confirm I am 18 years or older/i,
   })).toHaveCount(0)
 
-  await ensureRadioChecked(page, /Treatment goal/i, /Improve erections/i)
+  // Opening screen: duration + one severity item. The five-question IIEF-5
+  // step and the goal chips were retired on 2026-07-19.
   await ensureRadioChecked(page, /How long this has been a concern/i, /< 3 months/i)
-  await clickContinue(page)
-
-  await expect(page.getByText(/A few questions about your experience/i)).toBeVisible({ timeout: 10000 })
-  for (let question = 1; question <= 5; question += 1) {
-    await ensureRadioChecked(page, new RegExp(`^iief${question}$`, "i"), /^3 out of 5$/i)
-  }
+  await ensureRadioChecked(
+    page,
+    /How often you can get and keep an erection firm enough for sex/i,
+    /^3 out of 5$/i,
+  )
   await clickContinue(page)
 
   await expect(page.getByText(/A quick safety check/i)).toBeVisible({ timeout: 10000 })
@@ -575,7 +575,9 @@ test.describe("Consult Sub-Services", () => {
 
     await expect(page.locator("html")).not.toHaveClass(/dark/)
     await expect(page.getByRole("heading", { name: "Your concern", level: 3 })).toBeVisible()
-    await expect(page.getByRole("heading", { name: "ED assessment", level: 3 })).toBeVisible()
+    // The separate "ED assessment" section went away with the IIEF-5 step on
+    // 2026-07-19; severity now renders inside "Your concern".
+    await expect(page.getByRole("heading", { name: "ED assessment", level: 3 })).toHaveCount(0)
     await expect(page.getByRole("heading", { name: "Treatment preference", level: 3 })).toBeVisible()
 
     const safetySection = page
@@ -706,6 +708,9 @@ test.describe("Consult Sub-Services", () => {
     // docs/BUSINESS_PLAN.md and the service hub copy.
   })
 
+  // Also covers the retired-step alias: `ed-assessment` was removed from the
+  // registry on 2026-07-19 and resolves to `ed-goals`, so a draft saved on the
+  // old step must restore rather than crash or silently reset.
   test("subtype mismatch draft path does not crash", async ({ page }) => {
     await page.goto("/request?service=consult&subtype=ed")
     await waitForPageLoad(page)
@@ -792,10 +797,10 @@ test.describe("Consult review summary: persisted health details", () => {
       .locator("../..")
     await expectSummaryRow(concernSection, "Duration of concern", "Less than 3 months")
 
-    const assessmentSection = page
-      .getByRole("heading", { name: "ED assessment", level: 3 })
-      .locator("../..")
-    await expect(assessmentSection.getByText("Duration of concern", { exact: true })).toHaveCount(0)
+    // Duration belongs to exactly one section. The old separate "ED assessment"
+    // group was merged into "Your concern" with the IIEF-5 retirement.
+    await expect(page.getByRole("heading", { name: "ED assessment", level: 3 })).toHaveCount(0)
+    await expect(page.getByText("Duration of concern", { exact: true })).toHaveCount(1)
 
     const safetySection = page
       .getByRole("heading", { name: "Safety & health", level: 3 })

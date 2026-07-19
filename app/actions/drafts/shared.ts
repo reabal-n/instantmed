@@ -238,6 +238,10 @@ export function formatIntakeContext(
       if (answers.edDuration) {
         parts.push(`Duration: ${String(answers.edDuration).replace(/_/g, "-")}`)
       }
+      if (answers.edErectionFrequency != null && answers.edErectionFrequency !== "") {
+        parts.push(`Erection frequency: ${sanitizeAnswerValue(answers.edErectionFrequency, intakeId)}/5 (1 = almost never, 5 = almost always)`)
+      }
+      // Pre-2026-07-19 intakes only.
       if (answers.iiefTotal != null && answers.iiefTotal !== "") {
         parts.push(`IIEF-5 score: ${sanitizeAnswerValue(answers.iiefTotal, intakeId)}/25`)
       }

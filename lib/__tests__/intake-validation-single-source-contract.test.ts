@@ -45,7 +45,9 @@ const hookSteps = stepFiles.filter((file) => readStep(file).includes("useStepVal
 describe("intake validation single-source contract", () => {
   it("finds the steps that own their gating through the shared hook", () => {
     // Sanity: if this drops to zero the greps below would vacuously pass.
-    expect(hookSteps.length).toBeGreaterThanOrEqual(10)
+    // Floor 10 -> 9 on 2026-07-19: ed-assessment-step was absorbed into
+    // ed-goals-step.
+    expect(hookSteps.length).toBeGreaterThanOrEqual(9)
     expect(hookSteps).toContain("hair-loss-assessment-step.tsx")
     expect(hookSteps).toContain("womens-health-assessment-step.tsx")
   })

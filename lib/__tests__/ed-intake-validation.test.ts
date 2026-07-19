@@ -1,104 +1,79 @@
 import { describe, expect,it } from "vitest"
 
 import {
-  edAssessmentStepSchema,
   edGoalsStepSchema,
-  validateEdAssessmentStep,
   validateEdGoalsStep,
   validateEdHealthStep,
+  validateEdLegacyAssessment,
   validateEdPreferencesStep,
 } from "@/lib/request/validation"
 
 // ============================================================================
-// ED GOALS STEP
+// ED OPENING STEP (duration + single severity item)
 // ============================================================================
 
 describe("edGoalsStepSchema", () => {
-  it("passes with valid data", () => {
-    const result = edGoalsStepSchema.safeParse({
-      edGoal: "improve_erections",
-      edDuration: "3_to_12_months",
-    })
+  const valid = { edDuration: "3_to_12_months", edErectionFrequency: 3 }
+
+  it("passes with duration and a severity rating", () => {
+    const result = edGoalsStepSchema.safeParse(valid)
     expect(result.success).toBe(true)
   })
 
-  it("fails when edGoal is missing", () => {
-    const result = validateEdGoalsStep({
-      edDuration: "3_to_12_months",
-    })
-    expect(result.isValid).toBe(false)
-    expect(result.errors.edGoal).toBeDefined()
-  })
-
   it("fails when edDuration is missing", () => {
-    const result = validateEdGoalsStep({
-      edGoal: "improve_erections",
-    })
+    const result = validateEdGoalsStep({ edErectionFrequency: 3 })
     expect(result.isValid).toBe(false)
     expect(result.errors.edDuration).toBeDefined()
   })
 
-  it("does not duplicate the checkout DOB age gate on the first clinical step", () => {
-    const result = validateEdGoalsStep({
-      edGoal: "improve_erections",
-      edDuration: "less_than_3_months",
-    })
-    expect(result.isValid).toBe(true)
-    expect(result.errors.edAgeConfirmed).toBeUndefined()
+  it("fails when the severity rating is missing", () => {
+    const result = validateEdGoalsStep({ edDuration: "3_to_12_months" })
+    expect(result.isValid).toBe(false)
+    expect(result.errors.edErectionFrequency).toBeDefined()
   })
 
-  it("fails when edGoal is empty string", () => {
-    const result = validateEdGoalsStep({
-      edGoal: "",
-      edDuration: "less_than_3_months",
-    })
-    expect(result.isValid).toBe(false)
-    expect(result.errors.edGoal).toBeDefined()
+  it("rejects severity ratings outside 1-5", () => {
+    expect(validateEdGoalsStep({ ...valid, edErectionFrequency: 0 }).isValid).toBe(false)
+    expect(validateEdGoalsStep({ ...valid, edErectionFrequency: 6 }).isValid).toBe(false)
+  })
+
+  it("accepts boundary severity ratings 1 and 5", () => {
+    expect(validateEdGoalsStep({ ...valid, edErectionFrequency: 1 }).isValid).toBe(true)
+    expect(validateEdGoalsStep({ ...valid, edErectionFrequency: 5 }).isValid).toBe(true)
+  })
+
+  // The goal chips were dropped on 2026-07-19 — no doctor surface used them.
+  // A draft saved before that still carries one and must not be rejected.
+  it("no longer requires edGoal but still accepts a stored one", () => {
+    expect(validateEdGoalsStep(valid).isValid).toBe(true)
+    expect(validateEdGoalsStep({ ...valid, edGoal: "improve_erections" }).isValid).toBe(true)
+  })
+
+  it("does not duplicate the checkout DOB age gate on the first clinical step", () => {
+    const result = validateEdGoalsStep(valid)
+    expect(result.isValid).toBe(true)
+    expect(result.errors.edAgeConfirmed).toBeUndefined()
   })
 })
 
 // ============================================================================
-// ED ASSESSMENT STEP (IIEF-5)
+// LEGACY IIEF-5 (retired 2026-07-19, still readable on stored intakes)
 // ============================================================================
 
-describe("edAssessmentStepSchema", () => {
-  const validScores = { iief1: 3, iief2: 4, iief3: 2, iief4: 5, iief5: 1 }
-
-  it("passes with all 5 scores (1-5 each)", () => {
-    const result = edAssessmentStepSchema.safeParse(validScores)
-    expect(result.success).toBe(true)
-  })
-
-  it("fails when any score is missing", () => {
-    const { iief3: _, ...missingOne } = validScores
-    const result = validateEdAssessmentStep(missingOne)
-    expect(result.isValid).toBe(false)
-    expect(result.errors.iief3).toBeDefined()
-  })
-
-  it("fails when score < 1", () => {
-    const result = validateEdAssessmentStep({ ...validScores, iief1: 0 })
-    expect(result.isValid).toBe(false)
-    expect(result.errors.iief1).toBeDefined()
-  })
-
-  it("fails when score > 5", () => {
-    const result = validateEdAssessmentStep({ ...validScores, iief2: 6 })
-    expect(result.isValid).toBe(false)
-    expect(result.errors.iief2).toBeDefined()
-  })
-
-  it("accepts boundary values 1 and 5", () => {
-    const result = edAssessmentStepSchema.safeParse({
-      iief1: 1, iief2: 5, iief3: 1, iief4: 5, iief5: 1,
+describe("edLegacyAssessmentSchema", () => {
+  it("accepts a stored IIEF-5 set", () => {
+    const result = validateEdLegacyAssessment({
+      iief1: 3, iief2: 4, iief3: 2, iief4: 5, iief5: 1, iiefTotal: 15,
     })
-    expect(result.success).toBe(true)
+    expect(result.isValid).toBe(true)
   })
 
-  it("fails when all scores missing", () => {
-    const result = validateEdAssessmentStep({})
-    expect(result.isValid).toBe(false)
-    expect(Object.keys(result.errors).length).toBe(5)
+  it("accepts intakes with no IIEF data at all — it is no longer collected", () => {
+    expect(validateEdLegacyAssessment({}).isValid).toBe(true)
+  })
+
+  it("still rejects an out-of-range stored score", () => {
+    expect(validateEdLegacyAssessment({ iief1: 9 }).isValid).toBe(false)
   })
 })
 

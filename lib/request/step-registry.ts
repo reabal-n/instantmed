@@ -200,19 +200,13 @@ const CONSULT_COMMON_TAIL: StepDefinition[] = [
 const CONSULT_SUBTYPE_STEPS: Record<ConsultSubtype, StepDefinition[]> = {
   ed: [
     {
+      // Absorbed the IIEF-5 assessment step on 2026-07-19: duration + a single
+      // severity item now open the flow. See ed-goals-step.tsx.
       id: 'ed-goals',
       label: "What's going on",
-      shortLabel: 'Goals',
+      shortLabel: 'About',
       componentPath: 'ed-goals-step',
       validateFn: 'validateEdGoalsStep',
-      required: true,
-    },
-    {
-      id: 'ed-assessment',
-      label: "How it's affecting you",
-      shortLabel: 'Assessment',
-      componentPath: 'ed-assessment-step',
-      validateFn: 'validateEdAssessmentStep',
       required: true,
     },
     {
@@ -341,6 +335,8 @@ function isRequestStepId(value: unknown): value is UnifiedStepId {
 const RETIRED_STEP_ID_ALIASES: Record<string, UnifiedStepId> = {
   // P2.1 (2026-07-17): `medication-history` merged into `medication`.
   'medication-history': 'medication',
+  // 2026-07-19: the IIEF-5 `ed-assessment` step was absorbed into `ed-goals`.
+  'ed-assessment': 'ed-goals',
 }
 
 /**
