@@ -3,6 +3,7 @@ import "server-only"
 import * as Sentry from "@sentry/nextjs"
 
 import { getAppUrl } from "@/lib/config/env"
+import { isLikelyTestPatientIdentity } from "@/lib/data/seeded-e2e-data"
 import { buildPartialIntakeRecoveryUrl } from "@/lib/email/recovery-links"
 import type { CommunicationOutcome } from "@/lib/email/send/types"
 import type { EmailSuppressionDecision } from "@/lib/email/suppression"
@@ -196,6 +197,14 @@ export async function evaluatePartialIntakeRecoveryPolicy(
   if (!draft.email) return suppressed("missing_recipient")
   if (normalizedEmail(draft.email) !== normalizedEmail(input.expectedRecipient)) {
     return suppressed("recipient_changed")
+  }
+  if (
+    isLikelyTestPatientIdentity({
+      email: draft.email,
+      fullName: draft.first_name,
+    })
+  ) {
+    return suppressed("test_identity")
   }
 
   if (input.mode === "initial") {

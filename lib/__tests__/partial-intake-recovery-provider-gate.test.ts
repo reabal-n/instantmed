@@ -243,6 +243,35 @@ describe("partial-intake recovery provider gate", () => {
     },
   )
 
+  it.each(["initial", "dispatcher"] as const)(
+    "blocks a synthetic identity immediately before the %s provider call",
+    async (mode) => {
+      mocks.evaluatePartialIntakeRecoveryPolicy.mockResolvedValueOnce({
+        kind: "policy_suppressed",
+        reason: "test_identity",
+      })
+
+      const result = mode === "initial"
+        ? await sendInitial()
+        : await sendFromOutboxRow(partialRow())
+
+      expect(mocks.fetch).not.toHaveBeenCalled()
+      expect(
+        mocks.markPartialIntakeRecoveryCommunicationOutcome,
+      ).toHaveBeenCalledWith(
+        TRACKING_ID,
+        {
+          kind: "policy_suppressed",
+          reason: "test_identity",
+        },
+      )
+      expect(result.outcome).toEqual({
+        kind: "policy_suppressed",
+        reason: "test_identity",
+      })
+    },
+  )
+
   it("defers the initial row when the authoritative policy read is transient", async () => {
     mocks.evaluatePartialIntakeRecoveryPolicy.mockResolvedValueOnce({
       kind: "transiently_blocked",

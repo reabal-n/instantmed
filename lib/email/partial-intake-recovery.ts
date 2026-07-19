@@ -2,7 +2,6 @@
 
 import * as React from "react"
 
-import { isLikelyTestPatientIdentity } from "@/lib/data/seeded-e2e-data"
 import {
   PartialIntakeRecoveryEmail,
   partialIntakeRecoverySubject,
@@ -228,31 +227,17 @@ export async function processPartialIntakeRecoveries(): Promise<
         decision,
       )
       countOutcome(counts, marked)
-      continue
-    }
-
-    const draft = decision.draft
-    if (
-      isLikelyTestPatientIdentity({
-        email: draft.email,
-        fullName: draft.firstName,
-      })
-    ) {
-      const marked = await markPartialIntakeRecoveryCommunicationOutcome(
-        candidate.recovery_tracking_id,
-        {
-          kind: "policy_suppressed",
-          reason: "test_identity",
-        },
-      )
-      countOutcome(counts, marked)
-      if (marked.kind === "policy_suppressed") {
+      if (
+        decision.reason === "test_identity" &&
+        marked.kind === "policy_suppressed"
+      ) {
         testSkipped += 1
         logger.info("Skipping recovery email - test identity")
       }
       continue
     }
 
+    const draft = decision.draft
     const serviceName = SERVICE_NAMES[draft.serviceType] ?? "request"
     try {
       const result = await sendEmail({

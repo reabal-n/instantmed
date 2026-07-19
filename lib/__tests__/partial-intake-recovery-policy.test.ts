@@ -108,7 +108,7 @@ import {
 const NOW = new Date("2026-07-19T08:00:00.000Z")
 const TRACKING_ID = "a6bd50f7-ad78-4fba-9822-a89580b58bf7"
 const SESSION_ID = "11111111-1111-4111-8111-111111111111"
-const EMAIL = "patient@example.com"
+const EMAIL = "alex.taylor@patientmail.com.au"
 
 function draftRow(
   overrides: Record<string, unknown> = {}
@@ -143,6 +143,20 @@ function evaluateInitial(
     expectedUpdatedAt: row.updated_at as string,
     expectedRecipient: EMAIL,
     mode: "initial",
+    now: NOW,
+    ...inputOverrides,
+  })
+}
+
+function evaluateDispatcher(
+  row: Record<string, unknown>,
+  inputOverrides: Record<string, unknown> = {}
+) {
+  queueDraft(row)
+  return evaluatePartialIntakeRecoveryPolicy({
+    recoveryTrackingId: TRACKING_ID,
+    expectedRecipient: row.email as string,
+    mode: "dispatcher",
     now: NOW,
     ...inputOverrides,
   })
@@ -214,17 +228,31 @@ describe("evaluatePartialIntakeRecoveryPolicy", () => {
 
   it("allows dispatcher retries beyond 6 hours when the draft remains eligible", async () => {
     const row = draftRow({ updated_at: "2026-07-18T08:00:00.000Z" })
-    queueDraft(row)
-
-    const result = await evaluatePartialIntakeRecoveryPolicy({
-      recoveryTrackingId: TRACKING_ID,
-      expectedRecipient: EMAIL,
-      mode: "dispatcher",
-      now: NOW,
-    })
+    const result = await evaluateDispatcher(row)
 
     expect(result).toMatchObject({ kind: "allowed" })
   })
+
+  it.each(["initial", "dispatcher"] as const)(
+    "terminally suppresses a synthetic identity in %s mode before suppression lookups",
+    async (mode) => {
+      const email = "patient@example.com"
+      const row = draftRow({ email })
+      const result = mode === "initial"
+        ? await evaluateInitial(row, { expectedRecipient: email })
+        : await evaluateDispatcher(row)
+
+      expect(result).toEqual({
+        kind: "policy_suppressed",
+        reason: "test_identity",
+      })
+      expect(mocks.decryptJSONB).not.toHaveBeenCalled()
+      expect(
+        mocks.getEmailBounceSuppressionDecision,
+      ).not.toHaveBeenCalled()
+      expect(mocks.getEmailSuppressionDecisions).not.toHaveBeenCalled()
+    },
+  )
 
   it("transiently blocks an initial send when the draft snapshot changed", async () => {
     const result = await evaluateInitial(draftRow(), {

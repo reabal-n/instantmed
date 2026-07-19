@@ -422,6 +422,10 @@ describe("partial-intake recovery orchestration truth", () => {
         first_name: "E2E Test Patient",
       }),
     ]
+    mocks.evaluatePartialIntakeRecoveryPolicy.mockResolvedValueOnce({
+      kind: "policy_suppressed",
+      reason: "test_identity",
+    })
 
     await expect(recovery.processPartialIntakeRecoveries()).resolves.toEqual({
       found: 1,

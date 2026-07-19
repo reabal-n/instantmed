@@ -10,6 +10,10 @@ const isolationHelperPath = join(
 )
 const syntheticSpecPath = join(root, "e2e/prod-request-flow-synthetic.spec.ts")
 const recoverySourcePath = join(root, "lib/email/partial-intake-recovery.ts")
+const recoveryPolicySourcePath = join(
+  root,
+  "lib/email/partial-intake-recovery-policy.ts",
+)
 
 describe("production request-flow synthetic isolation", () => {
   it("keeps browser checks from writing server drafts or analytics", () => {
@@ -31,8 +35,10 @@ describe("production request-flow synthetic isolation", () => {
 
   it("keeps known test identities out of partial-intake recovery", () => {
     const recoverySource = readFileSync(recoverySourcePath, "utf8")
+    const recoveryPolicySource = readFileSync(recoveryPolicySourcePath, "utf8")
 
-    expect(recoverySource).toContain("isLikelyTestPatientIdentity")
+    expect(recoveryPolicySource).toContain("isLikelyTestPatientIdentity")
+    expect(recoveryPolicySource).toContain('suppressed("test_identity")')
     expect(recoverySource).toContain("Skipping recovery email - test identity")
     expect(recoverySource).toContain("testSkipped")
   })
