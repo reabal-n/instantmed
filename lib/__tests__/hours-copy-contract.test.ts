@@ -21,10 +21,24 @@ const ROOT = process.cwd()
 const SCAN_DIRS = ["app", "components", "lib/seo", "lib/marketing", "lib/microcopy", "lib/data", "content"]
 const SCAN_EXTENSIONS = new Set([".ts", ".tsx", ".mdx", ".md"])
 
+// Operator-console strings, never rendered to a patient. `business_hours_*` is
+// a real internal control (review-timing reference only, never a checkout
+// blocker — CLAUDE.md Operational controls), and its admin label already states
+// that requests are accepted 24/7. Renaming it would make the operator surface
+// describe the flag less accurately, so exclude the file instead of the phrase.
+const INTERNAL_OPERATOR_FILES = new Set(["lib/data/types/feature-flags.ts"])
+
 // Review-window claim shapes. Deliberately narrow: scenario copy may still
 // mention clock times ("submit at 5am before school", "clinics close at 6pm"),
 // but a WINDOW claim shaped like our retired operating-hours framing fails.
-const WINDOW_CLAIM = /8\s?am\s*(?:–|-|—|to)\s*10\s?pm|08:00\s*(?:–|-|—)\s*22:00|7\s?am\s*(?:–|-|—|to)\s*10\s?pm|first review at \d{1,2}(?::\d{2})?\s?(?:am|pm)|review hours \(|clinical review hours/i
+// `review hours` is matched bare, not just as `review hours (` or `clinical
+// review hours`. Those two shapes let the plain phrase ("Doctor review follows
+// when available during review hours") survive on 13 indexed /for and
+// deep-city surfaces while this contract reported green — the copy sweep in
+// #252 removed the clock-shaped windows and left the framing behind. The
+// review-hours framing is retired outright (CLAUDE.md Hours row), so any
+// mention is a failure; there is no compliant use of the phrase.
+const WINDOW_CLAIM = /8\s?am\s*(?:–|-|—|to)\s*10\s?pm|08:00\s*(?:–|-|—)\s*22:00|7\s?am\s*(?:–|-|—|to)\s*10\s?pm|first review at \d{1,2}(?::\d{2})?\s?(?:am|pm)|review hours/i
 
 function collectFiles(dir: string): string[] {
   const absolute = join(ROOT, dir)
@@ -54,6 +68,7 @@ describe("24/7 hours copy contract", () => {
     const offenders: string[] = []
     for (const dir of SCAN_DIRS) {
       for (const file of collectFiles(dir)) {
+        if (INTERNAL_OPERATOR_FILES.has(file)) continue
         const source = readFileSync(join(ROOT, file), "utf8")
         const match = source.match(WINDOW_CLAIM)
         if (match) offenders.push(`${file} :: ${match[0]}`)
