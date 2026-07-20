@@ -14,7 +14,11 @@ import {
   type CheckoutReminderIdentity,
   keepCanonicalCheckoutReminderCandidates,
 } from "@/lib/email/checkout-reminder-dedupe"
-import { AbandonedCheckoutEmail, abandonedCheckoutSubject } from "@/lib/email/components/templates/abandoned-checkout"
+import {
+  AbandonedCheckoutEmail,
+  abandonedCheckoutSubject,
+  type AbandonedCheckoutVariant,
+} from "@/lib/email/components/templates/abandoned-checkout"
 import { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "@/lib/email/components/templates/abandoned-checkout-followup"
 import { canSendMarketingEmail } from "@/lib/email/preferences"
 import { buildAbandonedCheckoutResumeUrl } from "@/lib/email/recovery-links"
@@ -321,7 +325,12 @@ export async function findAbandonedCheckouts(): Promise<AbandonedIntake[]> {
 /**
  * Send abandoned checkout recovery email
  */
-export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promise<boolean> {
+export async function sendAbandonedCheckoutEmail(
+  intake: AbandonedIntake,
+  options: { variant?: AbandonedCheckoutVariant } = {},
+): Promise<boolean> {
+  const variant = options.variant ?? "abandoned"
+
   // Check if patient has opted out of marketing emails
   if (intake.patient_id) {
     const canSend = await canSendMarketingEmail(intake.patient_id)
@@ -339,33 +348,40 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
     logger.warn("Skipping abandoned checkout email - no patient email", { intakeId: intake.id })
     return false
   }
-  
+
   const appUrl = getAppUrl()
   const patientName = patient.first_name || "there"
   const serviceName = SERVICE_NAMES[currentIntake.category || ""] || "your request"
   const startedAgoLabel = formatAbandonedCheckoutStartedAgo(currentIntake.created_at)
+  const campaign = variant === "service_fault"
+    ? "stranded_checkout_recovery"
+    : "abandoned_checkout"
   const resumeUrl = buildAbandonedCheckoutResumeUrl({
     appUrl,
-    campaign: "abandoned_checkout",
+    campaign,
     intakeId: currentIntake.id,
     isGuest: currentIntake.isGuest,
   })
-  
+
   const result = await sendEmail({
     to: patient.email,
-    subject: abandonedCheckoutSubject(serviceName),
+    subject: abandonedCheckoutSubject(serviceName, variant),
     template: React.createElement(AbandonedCheckoutEmail, {
       patientName,
       serviceName,
       resumeUrl,
       appUrl,
       startedAgoLabel,
+      variant,
     }),
     emailType: "abandoned_checkout",
     intakeId: currentIntake.id,
     patientId: currentIntake.patient_id,
+    idempotencyKey: variant === "service_fault"
+      ? `stranded_recovery_${currentIntake.id}`
+      : undefined,
     tags: [
-      { name: "category", value: "abandoned_checkout" },
+      { name: "category", value: campaign },
       { name: "intake_id", value: currentIntake.id },
     ],
   })
@@ -378,6 +394,62 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
   }
   
   return result.success
+}
+
+/**
+ * Recover ONE checkout that our own platform stranded, by id.
+ *
+ * `findAbandonedCheckouts` windows candidates on `created_at` within
+ * ABANDONED_CHECKOUT_FIRST_NUDGE_LOOKBACK_HOURS. An intake only moved into
+ * `checkout_failed` after that window closed (e.g. retroactively, during
+ * incident remediation) is therefore invisible to the cron forever. This is the
+ * deliberate operator escape hatch for that class: it skips only the discovery
+ * window, and keeps every safety guard the cron relies on — marketing consent,
+ * the exact-state re-read, and the one-shot `abandoned_email_sent_at` CAS that
+ * makes a repeat send impossible.
+ *
+ * Payment state is never mutated here.
+ */
+export async function sendStrandedCheckoutRecoveryEmail(
+  intakeId: string,
+): Promise<{ sent: boolean; reason: string }> {
+  const supabase = createServiceRoleClient()
+  const { data, error } = await supabase
+    .from("intakes")
+    .select(`
+      id,
+      patient_id,
+      payment_id,
+      checkout_error,
+      category,
+      subtype,
+      created_at,
+      guest_email,
+      patient:profiles!patient_id(email, first_name)
+    `)
+    .eq("id", intakeId)
+    .in("status", ["pending_payment", "checkout_failed"])
+    .in("payment_status", ["pending", "unpaid", "failed"])
+    .is("abandoned_email_sent_at", null)
+    .maybeSingle()
+
+  if (error) {
+    logger.error("Failed to load stranded checkout for recovery", {
+      intakeId,
+      errorCode: error.code,
+    })
+    return { sent: false, reason: "load_failed" }
+  }
+
+  if (!data) {
+    // Already recovered, already paid, or no longer in a recoverable state.
+    return { sent: false, reason: "not_eligible" }
+  }
+
+  const intake = normalizeAbandonedIntake(data as unknown as AbandonedIntakeRecord)
+  const sent = await sendAbandonedCheckoutEmail(intake, { variant: "service_fault" })
+
+  return { sent, reason: sent ? "sent" : "send_declined" }
 }
 
 /**
