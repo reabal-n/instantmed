@@ -7,7 +7,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("critical-alert-cooldown")
 
-export const CRITICAL_ALERT_COOLDOWN_ACTION = "critical_business_alert_telegram"
+const CRITICAL_ALERT_COOLDOWN_ACTION = "critical_business_alert_telegram"
 
 /**
  * Minimum gap between two Telegram pages carrying the SAME critical detail.
@@ -23,7 +23,7 @@ export const CRITICAL_ALERT_COOLDOWN_ACTION = "critical_business_alert_telegram"
  * detail text, so any change in the alert set — a new alert type, a different
  * count — is a different fingerprint and pages immediately.
  */
-export const CRITICAL_ALERT_COOLDOWN_HOURS = 4
+const CRITICAL_ALERT_COOLDOWN_HOURS = 4
 
 /**
  * Fingerprint the alert content, not just its type.
@@ -32,7 +32,7 @@ export const CRITICAL_ALERT_COOLDOWN_HOURS = 4
  * situation. Anything else — a count moving 1 → 5, a second alert joining the
  * set — is new information and must page.
  */
-export function fingerprintCriticalAlert(detail: string): string {
+function fingerprintCriticalAlert(detail: string): string {
   return createHash("sha256").update(detail.trim()).digest("hex").slice(0, 32)
 }
 

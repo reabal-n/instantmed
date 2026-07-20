@@ -43,7 +43,7 @@ const FULFILMENT_STAGE_SLA_MINUTES = {
  * breach whose stage timestamp is inside this window — is pageable. Matches the
  * 7-day re-page convention in lib/monitoring/google-ads-purchase-import-health.
  */
-export const FULFILMENT_SLA_ALERT_MAX_AGE_DAYS = 7
+const FULFILMENT_SLA_ALERT_MAX_AGE_DAYS = 7
 
 export type PrescriptionFulfilmentStage = keyof typeof FULFILMENT_STAGE_LABELS
 export type PrescriptionFulfilmentConfirmationSource = "manual_or_pms" | "parchment_webhook" | null

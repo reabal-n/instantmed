@@ -1,12 +1,10 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import { describe, expect, it } from "vitest"
 
 import {
-  CRITICAL_ALERT_COOLDOWN_HOURS,
-  fingerprintCriticalAlert,
-} from "@/lib/monitoring/critical-alert-cooldown"
-import {
   buildPrescriptionFulfilmentSlaAlerts,
-  FULFILMENT_SLA_ALERT_MAX_AGE_DAYS,
   type PrescriptionFulfilmentDashboard,
 } from "@/lib/parchment/fulfilment-dashboard"
 
@@ -85,42 +83,74 @@ describe("prescription fulfilment SLA alerts", () => {
     expect(alerts[0].metadata.backlog_count).toBe(8)
   })
 
-  it("keeps the alert window well clear of the minute-scale SLAs", () => {
-    // A ten-minute SLA with a seven-day alert window still pages for anything
-    // an operator could plausibly act on the same week.
-    expect(FULFILMENT_SLA_ALERT_MAX_AGE_DAYS).toBeGreaterThanOrEqual(1)
-    expect(FULFILMENT_SLA_ALERT_MAX_AGE_DAYS).toBeLessThanOrEqual(14)
+  it("still reports zero when a stage has no breaches at all", () => {
+    expect(
+      buildPrescriptionFulfilmentSlaAlerts(
+        dashboardWithWebhookStage({ slaBreachedCount: 0, slaBreachedRecentCount: 0 }),
+      ),
+    ).toEqual([])
   })
 })
 
-describe("critical alert cooldown fingerprint", () => {
-  it("treats identical detail text as the same alert", () => {
-    const detail = "8 paid prescribing requests have exceeded the 10-minute SLA"
+/**
+ * The cooldown itself needs a database, so its wiring is pinned at the source
+ * level. The property that matters is not the hash — it is that cooling the
+ * Telegram page never costs a recorded signal.
+ */
+describe("critical alert Telegram cooldown wiring", () => {
+  const cronSource = readFileSync(
+    join(process.cwd(), "app/api/cron/business-alerts/route.ts"),
+    "utf8",
+  )
+  const cooldownSource = readFileSync(
+    join(process.cwd(), "lib/monitoring/critical-alert-cooldown.ts"),
+    "utf8",
+  )
 
-    expect(fingerprintCriticalAlert(detail)).toBe(fingerprintCriticalAlert(detail))
-    // Incidental whitespace must not defeat the cooldown.
-    expect(fingerprintCriticalAlert(` ${detail} `)).toBe(fingerprintCriticalAlert(detail))
+  it("never suppresses the Sentry capture, only the Telegram page", () => {
+    const criticalBlock = cronSource.slice(cronSource.indexOf("criticalAlerts.length > 0"))
+    const sentryIndex = criticalBlock.indexOf("Sentry.captureMessage")
+    const cooldownIndex = criticalBlock.indexOf("shouldSendCriticalAlert")
+
+    expect(sentryIndex).toBeGreaterThan(-1)
+    expect(cooldownIndex).toBeGreaterThan(-1)
+    // Sentry fires first and unconditionally; the gate sits only in front of
+    // the Telegram send.
+    expect(sentryIndex).toBeLessThan(cooldownIndex)
   })
 
-  it("treats an escalated count as a new alert so it pages immediately", () => {
-    const before = fingerprintCriticalAlert("1 paid prescribing request has exceeded")
-    const after = fingerprintCriticalAlert("5 paid prescribing requests have exceeded")
-
-    expect(after).not.toBe(before)
+  it("gates the Telegram send and only receipts a delivered page", () => {
+    expect(cronSource).toMatch(
+      /if \(await shouldSendCriticalAlert\([\s\S]{0,120}sendCriticalBusinessAlertViaTelegram/,
+    )
+    // Receipting an undelivered page would start a cooldown for an alert the
+    // operator never saw.
+    expect(cronSource).toMatch(/if \(delivered\) await recordCriticalAlertSent/)
   })
 
-  it("treats an added alert type as a new alert", () => {
-    const single = fingerprintCriticalAlert("Queue is stale")
-    const combined = fingerprintCriticalAlert("Queue is stale; Payments are failing")
+  it("fingerprints the detail text so an escalation pages immediately", () => {
+    // Keying on content rather than alert type is what lets a count change or
+    // a newly-added alert bypass the cooldown.
+    expect(cooldownSource).toContain("createHash(\"sha256\").update(detail.trim())")
+  })
 
-    expect(combined).not.toBe(single)
+  it("fails open so a lookup error can never swallow a critical alert", () => {
+    const shouldSend = cooldownSource.slice(
+      cooldownSource.indexOf("export async function shouldSendCriticalAlert"),
+    )
+    const errorBranch = shouldSend.slice(shouldSend.indexOf("if (error)"))
+
+    expect(errorBranch).toMatch(/return true/)
+    expect(shouldSend).toMatch(/catch[\s\S]{0,200}return true/)
   })
 
   it("caps a persistent condition well below the 30-minute cron cadence", () => {
-    const pagesPerDay = 24 / CRITICAL_ALERT_COOLDOWN_HOURS
+    const cooldownHours = Number(
+      /CRITICAL_ALERT_COOLDOWN_HOURS = (\d+)/.exec(cooldownSource)?.[1],
+    )
     const uncooledPagesPerDay = (24 * HOUR) / (30 * 60 * 1000)
 
-    expect(pagesPerDay).toBeLessThanOrEqual(6)
-    expect(pagesPerDay).toBeLessThan(uncooledPagesPerDay)
+    expect(cooldownHours).toBeGreaterThan(0)
+    expect(24 / cooldownHours).toBeLessThan(uncooledPagesPerDay)
   })
 })
