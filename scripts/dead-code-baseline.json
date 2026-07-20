@@ -96,7 +96,6 @@
     "full|exports|components/request/help-tooltip.tsx|MEDICAL_TERMS",
     "full|exports|components/request/help-tooltip.tsx|MedicalTermTooltip",
     "full|exports|components/request/shared/medical-history-toggles.tsx|SwitchField",
-    "full|exports|components/request/step-components.tsx|StepLoading",
     "full|exports|components/request/step-loaders.ts|loadStepComponent",
     "full|exports|components/request/time-remaining.tsx|STEP_TIME_ESTIMATES",
     "full|exports|components/shared/emergency-disclaimer.tsx|SAFETY_COPY",
