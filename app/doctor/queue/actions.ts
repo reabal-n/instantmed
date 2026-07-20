@@ -649,7 +649,12 @@ export async function markScriptSentAction(
   intakeId: string,
   scriptNotes?: string,
   parchmentReference?: string,
-): Promise<{ success: boolean; error?: string; code?: string }> {
+): Promise<{
+  success: boolean
+  error?: string
+  code?: string
+  emailNotification?: "sent" | "already_sent" | "skipped_no_patient" | "failed"
+}> {
   const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
@@ -815,10 +820,37 @@ export async function markScriptSentAction(
     )
   }
 
+  // Tell the patient their script is ready.
+  //
+  // The Parchment webhook deliberately does NOT email here: it fires on a
+  // machine event, so the notification waits for the doctor's explicit
+  // approval in approvePrescribedScriptAction. This path is the opposite —
+  // the doctor has already prescribed externally and is clicking the button
+  // themselves, so the click IS the explicit human confirmation and no second
+  // automated event is coming to trigger the email.
+  //
+  // Before this, three patients (26 May, 28 May, 31 May 2026) paid, had a real
+  // script written, and were never told by us; one received no email from
+  // InstantMed at all. sendScriptSentEmailIfNeeded checks the outbox first, so
+  // a later approval cannot double-send.
+  let emailNotification: "sent" | "already_sent" | "skipped_no_patient" | "failed" = "failed"
+  try {
+    emailNotification = await sendScriptSentEmailIfNeeded(supabase, intakeId)
+  } catch (emailErr) {
+    emailNotification = "failed"
+    // Non-fatal: the script evidence is already recorded and must not be lost
+    // to an email outage. Sentry carries the miss so it can be resent.
+    Sentry.captureException(emailErr, {
+      tags: { email_type: "script_sent", intake_id: intakeId },
+      level: "warning",
+    })
+    logger.warn("Failed to send script_sent email after manual mark", { intakeId, error: emailErr })
+  }
+
   revalidateStaff({ intakeId, scripts: true })
   revalidatePatient({ intakeId })
 
-  return { success: true }
+  return { success: true, emailNotification }
 }
 
 export async function approvePrescribedScriptAction(
