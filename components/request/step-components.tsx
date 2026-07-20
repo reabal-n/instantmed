@@ -24,11 +24,10 @@
 
 import dynamic from "next/dynamic"
 import type { ComponentType } from "react"
-import { useEffect, useState } from "react"
 
 import type { StepComponentProps } from "./step-loaders"
 
-const loadingCopy: Partial<Record<string, { title: string; description: string }>> = {
+const loadingCopy: Partial<Record<string, { eyebrow?: string; title: string; description: string }>> = {
   "certificate-step": {
     title: "What do you need covered?",
     description: "Pick the certificate type, dates, and duration.",
@@ -37,25 +36,131 @@ const loadingCopy: Partial<Record<string, { title: string; description: string }
     title: "What is stopping you today?",
     description: "A short, specific sentence is enough for the doctor to review.",
   },
+  "medication-step": {
+    title: "Your medication",
+    description: "Request one regular medicine at a time. Type the name, or describe it if you're not sure.",
+  },
+  "ed-goals-step": {
+    title: "Tell us what's going on",
+    description: "Two quick questions. Only the doctor reviewing your request sees your answers.",
+  },
+  "hair-loss-goals-step": {
+    title: "What matters most right now?",
+    description: "A few discreet answers help the doctor understand your pattern.",
+  },
+  "womens-health-type-step": {
+    eyebrow: "Women's health",
+    title: "What do you need today?",
+    description: "Choose one. Current-pill repeats go through repeat prescriptions.",
+  },
 }
 
 const loadingControlLabels: Partial<Record<string, readonly string[]>> = {
   "certificate-step": ["Certificate type", "How many days?", "Starting from?"],
   "symptoms-step": ["What symptoms are you having?", "How long have you felt unwell?"],
+  "medication-step": [
+    "Medication",
+    "Prescription history",
+    "Dose and frequency",
+    "Reason for taking it",
+    "Current regimen",
+    "Side effects",
+  ],
+  "ed-goals-step": [
+    "How long has this been a concern?",
+    "How often does this happen?",
+  ],
+  "hair-loss-goals-step": [
+    "What's your main goal?",
+    "When did you first notice changes?",
+  ],
+  "womens-health-type-step": ["Select one"],
+}
+
+interface LoadingCardGeometry {
+  columns: 1 | 2 | 3 | 4 | 5
+  heightClass: string
+  optionCount: number
+}
+
+interface StepLoadingGeometry {
+  cardGeometry: readonly LoadingCardGeometry[]
+  minHeightClass: string
+}
+
+/**
+ * Measured against the settled first steps at 390px and 1440px.
+ *
+ * The first-step HTML is already server rendered, but next/dynamic briefly
+ * swaps to its loading component while the client chunk attaches. The old
+ * loading component rendered no controls for 150ms, collapsing a full form
+ * to its intro before expanding again. These geometry shells keep the same
+ * card count and approximately the same occupied height during that handoff.
+ */
+const stepLoadingGeometry: Partial<Record<string, StepLoadingGeometry>> = {
+  "certificate-step": {
+    minHeightClass: "min-h-[525px] sm:min-h-[598px]",
+    cardGeometry: [
+      { columns: 3, heightClass: "h-[141px] sm:h-[131px]", optionCount: 3 },
+      { columns: 3, heightClass: "h-[122px]", optionCount: 3 },
+      { columns: 4, heightClass: "h-[105px]", optionCount: 4 },
+    ],
+  },
+  "medication-step": {
+    minHeightClass: "min-h-[1457px] sm:min-h-[1348px]",
+    cardGeometry: [
+      { columns: 1, heightClass: "h-[212px] sm:h-[181px]", optionCount: 1 },
+      { columns: 2, heightClass: "h-[221px] sm:h-[215px]", optionCount: 4 },
+      { columns: 1, heightClass: "h-[371px] sm:h-[321px]", optionCount: 3 },
+      { columns: 2, heightClass: "h-[166px] sm:h-[146px]", optionCount: 2 },
+      { columns: 2, heightClass: "h-[162px] sm:h-[118px]", optionCount: 2 },
+      { columns: 2, heightClass: "h-[127px]", optionCount: 2 },
+    ],
+  },
+  "ed-goals-step": {
+    minHeightClass: "min-h-[472px] sm:min-h-[490px]",
+    cardGeometry: [
+      { columns: 2, heightClass: "h-[161px]", optionCount: 4 },
+      { columns: 5, heightClass: "h-[144px] sm:h-[121px]", optionCount: 5 },
+    ],
+  },
+  "hair-loss-goals-step": {
+    minHeightClass: "min-h-[459px] sm:min-h-[480px]",
+    cardGeometry: [
+      { columns: 2, heightClass: "h-[186px] sm:h-[165px]", optionCount: 4 },
+      { columns: 2, heightClass: "h-[161px]", optionCount: 4 },
+    ],
+  },
+  "womens-health-type-step": {
+    minHeightClass: "min-h-[409px] sm:min-h-[451px]",
+    cardGeometry: [
+      { columns: 1, heightClass: "h-[292px]", optionCount: 3 },
+    ],
+  },
+}
+
+const defaultLoadingGeometry: StepLoadingGeometry = {
+  minHeightClass: "min-h-96",
+  cardGeometry: [
+    { columns: 3, heightClass: "h-24", optionCount: 3 },
+  ],
+}
+
+const loadingGridColumns: Record<LoadingCardGeometry["columns"], string> = {
+  1: "grid-cols-1",
+  2: "grid-cols-2",
+  3: "grid-cols-3",
+  4: "grid-cols-4",
+  5: "grid-cols-5",
 }
 
 /**
  * StepLoading — perceived-speed first.
  *
- * Most step chunks resolve in well under 150ms, so flashing a pulsing grey
- * skeleton in the meantime makes a fast form feel slow. The product is
- * called InstantMed — the loading state IS the brand promise.
- *
- * Strategy:
- *   1. Render the step intro immediately. On mobile Lighthouse, hiding this
- *      copy behind opacity made the real step intro a late LCP candidate.
- *   2. Delay only the lower placeholder controls for 150ms. Fast chunk loads
- *      avoid the skeleton flash, while the above-fold copy still paints early.
+ * Render the real step intro and its measured card geometry immediately.
+ * Neutral controls avoid implying selectable defaults, while reserving the
+ * destination's space prevents the hydration fallback from collapsing and
+ * rebuilding the form.
  */
 export function StepIntroShell({
   componentPath,
@@ -77,6 +182,9 @@ export function StepIntroShell({
 
   return (
     <div className="space-y-1.5" data-intake-step-intro="true">
+      {copy.eyebrow && (
+        <p className="text-xs font-medium text-muted-foreground">{copy.eyebrow}</p>
+      )}
       <h2 className="text-lg font-semibold tracking-tight text-foreground">
         {titleOverride ?? copy.title}
       </h2>
@@ -92,43 +200,41 @@ export function StepLoading({
   componentPath: string
   showIntro?: boolean
 }) {
-  const [showControls, setShowControls] = useState(false)
   const controlLabels = loadingControlLabels[componentPath]
-
-  useEffect(() => {
-    const handle = setTimeout(() => setShowControls(true), 150)
-    return () => clearTimeout(handle)
-  }, [])
+  const geometry = stepLoadingGeometry[componentPath] ?? defaultLoadingGeometry
 
   return (
     <div
-      className="space-y-4"
+      className={`space-y-4 ${geometry.minHeightClass}`}
       aria-live="polite"
       aria-busy="true"
+      data-intake-loading-geometry={componentPath}
     >
       <span className="sr-only">Loading this step</span>
       {showIntro && <StepIntroShell componentPath={componentPath} />}
-      {showControls && (
-        <div className="space-y-3" aria-hidden="true">
-          {(controlLabels ?? ["Preparing your form"]).map((label, index) => (
+      <div className="space-y-3" aria-hidden="true">
+        {geometry.cardGeometry.map((card, index) => {
+          const label = controlLabels?.[index] ?? "Preparing your form"
+
+          return (
             <div
-              key={label}
-              className="rounded-2xl border border-border/40 bg-white p-4 shadow-sm shadow-primary/[0.03] dark:bg-card"
+              key={`${label}-${index}`}
+              data-intake-loading-card={index}
+              className={`rounded-2xl border border-border/40 bg-white p-4 shadow-sm shadow-primary/[0.03] dark:bg-card dark:shadow-none ${card.heightClass}`}
             >
               <p className="text-xs font-medium text-muted-foreground">{label}</p>
-              <div className="mt-2 grid grid-cols-3 gap-2">
-                <div className="h-9 rounded-xl border border-border/30 bg-muted/20" />
-                <div className="h-9 rounded-xl border border-border/30 bg-muted/15" />
-                <div
-                  className={`h-9 rounded-xl border border-border/30 bg-muted/10 ${
-                    index === (controlLabels?.length ?? 1) - 1 ? "max-sm:hidden" : ""
-                  }`}
-                />
+              <div className={`mt-3 grid gap-2 ${loadingGridColumns[card.columns]}`}>
+                {Array.from({ length: card.optionCount }, (_, optionIndex) => (
+                  <div
+                    key={optionIndex}
+                    className="h-11 rounded-xl border border-border/30 bg-muted/15"
+                  />
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          )
+        })}
+      </div>
     </div>
   )
 }
