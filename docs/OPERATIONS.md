@@ -345,20 +345,28 @@ WHERE status IN ('pending_payment','checkout_failed')
 ORDER BY created_at DESC;
 ```
 
-Recover them via `POST /api/admin/stranded-checkout-recovery` (admin session, or
-`CRON_SECRET` bearer from a terminal). It **defaults to a dry run** — only an
-explicit `"dryRun": false` sends:
+Recover them via `POST /api/admin/stranded-checkout-recovery`. It **defaults to
+a dry run** — only an explicit `"dryRun": false` sends.
 
-```bash
-# Dry run: reports would_send / would_skip per intake, sends nothing.
-curl -sX POST https://instantmed.com.au/api/admin/stranded-checkout-recovery \
-  -H "Authorization: Bearer $CRON_SECRET" -H "Content-Type: application/json" \
-  -d '{"intakeIds":["<intakeId>"]}'
+**Auth is an admin session, not `CRON_SECRET`.** Middleware protects
+`/^\/api\/admin/` and returns 401 before the route runs, so curl with a bearer
+token cannot reach it. Run it from the browser console while signed in as admin
+on `instantmed.com.au` (same as `/api/admin/heard-about-us-backfill`):
 
-# Live send.
-curl -sX POST https://instantmed.com.au/api/admin/stranded-checkout-recovery \
-  -H "Authorization: Bearer $CRON_SECRET" -H "Content-Type: application/json" \
-  -d '{"intakeIds":["<intakeId>"],"dryRun":false}'
+```js
+// Dry run: reports would_send / would_skip per intake, sends nothing.
+await fetch("/api/admin/stranded-checkout-recovery", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ intakeIds: ["<intakeId>"] }),
+}).then((r) => r.json())
+
+// Live send: add dryRun false.
+await fetch("/api/admin/stranded-checkout-recovery", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ intakeIds: ["<intakeId>"], dryRun: false }),
+}).then((r) => r.json())
 ```
 
 It sends the `service_fault` variant of the abandoned-checkout email, which

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { getApiAuth } from "@/lib/auth/helpers"
 import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { sendStrandedCheckoutRecoveryEmail } from "@/lib/email/abandoned-checkout"
@@ -26,6 +25,11 @@ const MAX_INTAKES_PER_RUN = 25
  * Use ONLY where the platform was at fault. Ordinary abandonment belongs to the
  * cron, which sends copy that assumes the patient chose to stop.
  *
+ * Admin session only. A CRON_SECRET bearer cannot reach this handler:
+ * middleware gates `/^\/api\/admin/` on a Supabase session and returns 401
+ * before the route runs, so a bearer-token branch here would be dead code.
+ * Trigger it from an authenticated admin browser session (see OPERATIONS.md).
+ *
  * Defaults to DRY RUN. To send:
  *   POST { "intakeIds": ["..."], "dryRun": false }
  *
@@ -33,10 +37,8 @@ const MAX_INTAKES_PER_RUN = 25
  * one-shot via the shared `abandoned_email_sent_at` CAS, and audit-logged.
  */
 export async function POST(req: NextRequest) {
-  // Admin session (operator in a browser) or CRON_SECRET bearer (terminal).
   const auth = await getApiAuth()
-  const isAdmin = Boolean(auth && hasAdminAccess(auth.profile))
-  if (!isAdmin && verifyCronRequest(req) !== null) {
+  if (!auth || !hasAdminAccess(auth.profile)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -102,8 +104,8 @@ export async function POST(req: NextRequest) {
 
     await logAuditEvent({
       action: "stranded_checkout_recovery_email",
-      actorType: isAdmin ? "admin" : "system",
-      actorId: auth?.userId,
+      actorType: "admin",
+      actorId: auth.userId,
       intakeId,
       metadata: { outcome: result.reason, sent: result.sent },
     })
