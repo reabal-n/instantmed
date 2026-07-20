@@ -345,12 +345,20 @@ WHERE status IN ('pending_payment','checkout_failed')
 ORDER BY created_at DESC;
 ```
 
-Recover them with the operator script (dry run by default; `--send` is required
-to actually deliver):
+Recover them via `POST /api/admin/stranded-checkout-recovery` (admin session, or
+`CRON_SECRET` bearer from a terminal). It **defaults to a dry run** — only an
+explicit `"dryRun": false` sends:
 
 ```bash
-pnpm tsx scripts/recover-stranded-checkouts.ts <intakeId> [<intakeId> ...]
-pnpm tsx scripts/recover-stranded-checkouts.ts <intakeId> --send
+# Dry run: reports would_send / would_skip per intake, sends nothing.
+curl -sX POST https://instantmed.com.au/api/admin/stranded-checkout-recovery \
+  -H "Authorization: Bearer $CRON_SECRET" -H "Content-Type: application/json" \
+  -d '{"intakeIds":["<intakeId>"]}'
+
+# Live send.
+curl -sX POST https://instantmed.com.au/api/admin/stranded-checkout-recovery \
+  -H "Authorization: Bearer $CRON_SECRET" -H "Content-Type: application/json" \
+  -d '{"intakeIds":["<intakeId>"],"dryRun":false}'
 ```
 
 It sends the `service_fault` variant of the abandoned-checkout email, which
