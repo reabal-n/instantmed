@@ -516,7 +516,6 @@
     "full|exports|lib/request/step-registry.ts|CONSULT_SUBTYPE_LABELS",
     "full|exports|lib/request/step-registry.ts|STEP_REGISTRY",
     "full|exports|lib/request/step-registry.ts|isConsultSubtypeAvailable",
-    "full|exports|lib/request/validation.ts|certificateStepSchema",
     "full|exports|lib/request/validation.ts|checkoutStepSchema",
     "full|exports|lib/request/validation.ts|edHealthStepSchema",
     "full|exports|lib/request/validation.ts|edPreferencesStepSchema",

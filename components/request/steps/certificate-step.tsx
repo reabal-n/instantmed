@@ -149,6 +149,28 @@ export function getCertChipRangeState(
   return "unselected"
 }
 
+/**
+ * The answers this step owns, built from the live selection.
+ *
+ * Exported pure so the contract test can assert that what the step persists on
+ * advance is exactly what `certificateStepSchema` — and therefore checkout —
+ * demands. Returns null when the selection is incomplete; `validate()` already
+ * blocks that case before this is reached.
+ */
+export function buildCertificateStepAnswers(
+  certType: unknown,
+  selectedDays: number | null,
+  startOffset: number | null,
+): { certType: CertType; duration: string; startDate: string } | null {
+  if (!isCertType(certType)) return null
+  if (selectedDays === null || startOffset === null) return null
+  return {
+    certType,
+    duration: String(selectedDays),
+    startDate: offsetToISO(startOffset),
+  }
+}
+
 function summaryLabel(offset: number): string {
   if (offset === -1) return "Yesterday"
   if (offset === 0) return "Today"
@@ -371,6 +393,31 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
 
   const handleNext = useCallback(() => {
     if (validate()) {
+      // Persist the selection in the same event as advancing.
+      //
+      // The selection→store sync effect is gated behind `canSyncSelection`,
+      // which only opens once the persisted draft has hydrated. But
+      // `canContinue` is computed from LOCAL state whose defaults (1 day,
+      // today) are non-null on mount, and `certType` can arrive straight from
+      // URL seeding (lib/request/initial-url-seeding.ts) without waiting for
+      // hydration — so the button is ready before the gate opens. A patient who
+      // taps Continue inside that window (or whose rehydrate never completes,
+      // e.g. a corrupt or blocked draft store) advanced with `duration` and
+      // `startDate` never written, sailed through the rest of the flow, and was
+      // rejected at the pay step by `certificateStepSchema`, which is where
+      // checkout re-validates them: "Please select duration" + "Please select
+      // start date", on a screen with no way back to fix it.
+      //
+      // Writing here cannot stomp a restored draft: it only ever persists the
+      // selection the patient is looking at as they confirm it. The gate itself
+      // is deliberately left alone — see certificate-step-hydration-contract.
+      const advanceAnswers = buildCertificateStepAnswers(certType, selectedDays, startOffset)
+      if (advanceAnswers) {
+        setAnswer("certType", advanceAnswers.certType)
+        setAnswer("duration", advanceAnswers.duration)
+        setAnswer("startDate", advanceAnswers.startDate)
+      }
+
       savePreferences({ preferredCertType: certType })
       recordStepCompletion("certificate", { certType, duration: String(selectedDays) })
       posthog?.capture("step_completed", {
@@ -380,7 +427,7 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
       })
       onNext()
     }
-  }, [validate, certType, selectedDays, posthog, onNext])
+  }, [validate, certType, selectedDays, startOffset, setAnswer, posthog, onNext])
 
   // Live-computed from the selections, NOT the `errors` object (which would stay
   // stale after the patient fixes a field, leaving the button looking not-ready).
