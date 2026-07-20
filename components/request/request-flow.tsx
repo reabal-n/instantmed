@@ -137,6 +137,37 @@ interface MobilePrimaryActionState {
 
 const PRIMARY_ACTION_SELECTOR = "[data-intake-primary-action='true']"
 
+/**
+ * Let a validated specialty URL resolve its first step in the server render.
+ *
+ * The persisted store deliberately hydrates after mount. Before hydration it
+ * has no consultSubtype, even though app/request/page.tsx has already
+ * normalised the subtype from the URL. Waiting for the store seed left every
+ * paid specialty entry on a full-page spinner for one hydration cycle.
+ *
+ * This is render-only context: it never writes the URL subtype into storage
+ * and it never overrides a restored draft. The existing post-hydration URL
+ * decision remains the authority for subtype mismatch handling.
+ */
+function resolveInitialStepAnswers(
+  serviceType: UnifiedServiceType | null,
+  initialSubtype: string | undefined,
+  answers: Record<string, unknown>,
+): Record<string, unknown> {
+  if (
+    serviceType !== "consult" ||
+    !initialSubtype ||
+    typeof answers.consultSubtype === "string"
+  ) {
+    return answers
+  }
+
+  return {
+    ...answers,
+    consultSubtype: initialSubtype,
+  }
+}
+
 type ServiceHubComponent = ComponentType<{
   onSelectService: (service: UnifiedServiceType, consultSubtype?: string) => void
 }>
@@ -693,7 +724,12 @@ export function RequestFlow({
 
   // Use initialService as fallback during hydration
   const effectiveService = serviceType || initialService
-  
+
+  const resolvedStepAnswers = useMemo(
+    () => resolveInitialStepAnswers(effectiveService, initialSubtype, answers),
+    [effectiveService, initialSubtype, answers],
+  )
+
   // Build step context with auth state
   const stepContext: StepContext = useMemo(() => ({
     isAuthenticated,
@@ -704,8 +740,8 @@ export function RequestFlow({
     hasPhone,
     hasSex,
     serviceType: effectiveService || 'med-cert',
-    answers,
-  }), [isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, hasAddress, hasPhone, hasSex, effectiveService, answers])
+    answers: resolvedStepAnswers,
+  }), [isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, hasAddress, hasPhone, hasSex, effectiveService, resolvedStepAnswers])
 
   // Get active steps for current service
   const activeSteps = useMemo(() => {
@@ -753,16 +789,17 @@ export function RequestFlow({
 
   // Get current step definition - use editModeStep when editing a skipped step
   const currentStep = editModeStep ?? (activeSteps.length > 0 ? activeSteps[currentStepIndex] : null)
+  const visibleStepId = currentStep?.id ?? currentStepId
 
   // --- Extracted hooks ---
 
   const { analyticsServiceType, patientEmail, posthog, trackStepCompleted } = useFlowAnalytics({
     serviceType,
     currentStep,
-    currentStepId,
+    currentStepId: visibleStepId,
     currentStepIndex,
     totalSteps: activeSteps.length,
-    answers,
+    answers: resolvedStepAnswers,
     userEmail,
   })
 
@@ -879,7 +916,7 @@ export function RequestFlow({
       window.removeEventListener(INTAKE_PRIMARY_ACTION_CHANGE_EVENT, schedulePrimaryActionSync)
       if (frameId !== null) window.cancelAnimationFrame(frameId)
     }
-  }, [currentStepId])
+  }, [visibleStepId])
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.visualViewport) return
@@ -939,7 +976,7 @@ export function RequestFlow({
       heading.setAttribute("tabindex", "-1")
       heading.focus({ preventScroll: true })
     }
-  }, [currentStepId])
+  }, [visibleStepId])
 
   const handleMobilePrimaryAction = useCallback(() => {
     getMobilePrimaryAction()?.click()
@@ -1131,10 +1168,10 @@ export function RequestFlow({
         )}
 
         {/* Step content */}
-        <div key={currentStepId}>
+        <div key={visibleStepId}>
           <StepRouter
             serviceType={effectiveService}
-            currentStepId={currentStepId}
+            currentStepId={visibleStepId}
             componentPath={currentStep.componentPath}
             nextComponentPath={activeSteps[currentStepIndex + 1]?.componentPath}
             initialDuration={initialDuration}
