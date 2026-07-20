@@ -62,7 +62,7 @@ const audienceFaqs = [
   },
   {
     question: "Is the service available outside business hours?",
-    answer: "Yes. The request flow is available 24/7 for every pathway. Prescription and consultation reviews usually happen during review hours, but you can submit the request at any time, including weekends and public holidays.",
+    answer: "Yes. Requests can be submitted and reviewed 24/7 for every service, including weekends and public holidays. Review timing varies with clinical complexity, follow-up questions, and queue volume.",
   },
   {
     question: "Can my company set up a corporate account?",
