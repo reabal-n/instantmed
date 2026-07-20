@@ -442,6 +442,12 @@ export function useIntakeActions({
       const result = await markScriptSentAction(intake.id, undefined, dialogs.parchmentReference.trim() || undefined)
       if (result.success) {
         dialogs.closeScriptDialog()
+        // The script is sent either way, but a patient who was not emailed
+        // does not know their medicine is ready. Surface that so the doctor
+        // can contact them instead of assuming delivery.
+        if (result.emailNotification === "failed" || result.emailNotification === "skipped_no_patient") {
+          toast.warning("Script marked sent, but the patient could not be emailed. Contact them directly.")
+        }
         const refreshed = await reloadReviewData({ background: true })
         if (!refreshed) {
           toast.success("Prescription recorded. Retry the status refresh to unlock completion.")
