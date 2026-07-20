@@ -649,7 +649,12 @@ export async function markScriptSentAction(
   intakeId: string,
   scriptNotes?: string,
   parchmentReference?: string,
-): Promise<{ success: boolean; error?: string; code?: string }> {
+): Promise<{
+  success: boolean
+  error?: string
+  code?: string
+  emailNotification?: "sent" | "already_sent" | "skipped_no_patient" | "failed"
+}> {
   const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
@@ -815,10 +820,33 @@ export async function markScriptSentAction(
     )
   }
 
+  // Tell the patient their script is ready. Both Parchment-evidence paths do
+  // this; this manual fallback did not, so a doctor who prescribed externally
+  // completed the request and the patient was never notified — they had paid,
+  // the medicine was waiting, and the product went silent. Worse, script_sent
+  // then made them eligible for a review-request email about a fulfilment they
+  // had never been told about.
+  //
+  // sendScriptSentEmailIfNeeded is idempotent (it checks email_outbox for an
+  // existing script_sent row), so this cannot double-send when a Parchment
+  // path already notified. Email failure must not fail the action: the script
+  // genuinely is sent, so surface it to Sentry and report it back instead.
+  let emailNotification: "sent" | "already_sent" | "skipped_no_patient" | "failed" = "failed"
+  try {
+    emailNotification = await sendScriptSentEmailIfNeeded(supabase, intakeId)
+  } catch (emailErr) {
+    emailNotification = "failed"
+    Sentry.captureException(emailErr, {
+      tags: { email_type: "script_sent", intake_id: intakeId },
+      level: "warning",
+    })
+    logger.warn("Failed to send script_sent email", { intakeId, error: emailErr })
+  }
+
   revalidateStaff({ intakeId, scripts: true })
   revalidatePatient({ intakeId })
 
-  return { success: true }
+  return { success: true, emailNotification }
 }
 
 export async function approvePrescribedScriptAction(
