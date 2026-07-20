@@ -325,6 +325,50 @@ ORDER BY i.created_at DESC LIMIT 5;
 | No Sentry error, no Stripe event | Checkout never initiated | Check client-side console/network |
 | Intake `paid` but patient says "failed" | Redirect issue | Check success/cancel URL configuration |
 
+### Recovering a checkout the platform stranded
+
+The abandoned-checkout cron only discovers candidates whose `created_at` is
+inside `ABANDONED_CHECKOUT_FIRST_NUDGE_LOOKBACK_HOURS` (24h). An intake that
+enters `checkout_failed` **after** that window closes — typically when incident
+remediation marks older rows retroactively — is invisible to the cron
+permanently. Those customers are never contacted by automation.
+
+Find them:
+
+```sql
+SELECT id, category, status, payment_status, created_at
+FROM intakes
+WHERE status IN ('pending_payment','checkout_failed')
+  AND payment_status IN ('pending','unpaid','failed')
+  AND abandoned_email_sent_at IS NULL
+  AND created_at < now() - interval '24 hours'
+ORDER BY created_at DESC;
+```
+
+Recover them via `POST /api/admin/stranded-checkout-recovery` (admin session, or
+`CRON_SECRET` bearer from a terminal). It **defaults to a dry run** — only an
+explicit `"dryRun": false` sends:
+
+```bash
+# Dry run: reports would_send / would_skip per intake, sends nothing.
+curl -sX POST https://instantmed.com.au/api/admin/stranded-checkout-recovery \
+  -H "Authorization: Bearer $CRON_SECRET" -H "Content-Type: application/json" \
+  -d '{"intakeIds":["<intakeId>"]}'
+
+# Live send.
+curl -sX POST https://instantmed.com.au/api/admin/stranded-checkout-recovery \
+  -H "Authorization: Bearer $CRON_SECRET" -H "Content-Type: application/json" \
+  -d '{"intakeIds":["<intakeId>"],"dryRun":false}'
+```
+
+It sends the `service_fault` variant of the abandoned-checkout email, which
+tells the patient our checkout failed rather than accusing them of abandoning.
+Use it **only** where the platform was at fault; ordinary abandonment belongs to
+the cron. The send reuses the cron's guards — marketing consent, an exact-state
+re-read, and the one-shot `abandoned_email_sent_at` CAS, so a duplicate send is
+impossible. Payment state is never mutated, and each attempt writes a
+`stranded_checkout_recovery_email` audit row.
+
 ---
 
 ## Sentry Configuration

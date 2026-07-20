@@ -37,6 +37,10 @@ export type CheckoutPaymentRecoveryCampaign =
   | "payment_failed"
   | "async_payment_failed"
   | "support_payment_recovery"
+  // Operator recovery for checkouts our own platform stranded. Kept distinct
+  // from `abandoned_checkout` so the return rate on a fault apology is
+  // measurable separately from an ordinary abandonment nudge.
+  | "stranded_checkout_recovery"
 
 export type ExpiredCheckoutRecoveryCampaign = "checkout_expired"
 
@@ -92,6 +96,7 @@ export function buildCheckoutPaymentRecoveryUrl({
 export type AbandonedCheckoutRecoveryCampaign =
   | "abandoned_checkout"
   | "abandoned_checkout_followup"
+  | "stranded_checkout_recovery"
 
 export function buildAbandonedCheckoutResumeUrl(input: {
   appUrl: string
