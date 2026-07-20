@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest"
 
 import { getMedicationBlocklistCandidate } from "@/lib/operational-controls/medication-blocklist"
 import { validateMedicationStep } from "@/lib/request/validation"
+import {
+  isUnidentifiedRepeatMedication,
+  resolveRepeatMedicationCode,
+} from "@/lib/validation/repeat-script-medications"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 
 const validRepeatScriptAnswers = {
@@ -274,5 +278,93 @@ describe("A3 softening — unknown medication passes only with a useful descript
       medications: [{ ...unknown, description: "small white blood pressure tablet, prescribed by Dr Smith" }],
     })
     expect(result.valid).toBe(true)
+  })
+})
+
+describe("legacy UNKNOWN sentinel — a real typed name is identified (2026-07-20)", () => {
+  // The PBS reference search was retired in #211, so the current intake is
+  // free-text-only: every entry is a patient-typed name with code MANUAL, and
+  // no description field renders anywhere. But the retired UNKNOWN sentinel
+  // survives in saved recent-medication preferences (no expiry) and restored
+  // drafts, and both validators used to treat the code ALONE as unidentified —
+  // demanding a description the UI cannot supply. One patient hit that wall 16
+  // times at the pay step. These pins make a real name sufficient while
+  // keeping every genuinely-unidentified and controlled-substance block.
+  const base = {
+    prescribed_before: true,
+    doseChanged: false,
+    dose_changed: false,
+    hasSideEffects: false,
+    last_prescribed: "6_to_12_months",
+    current_dose: "one daily",
+  }
+
+  it("server: a real name with the stale UNKNOWN code passes without a description", () => {
+    const result = validateRepeatScriptPayload({
+      ...base,
+      medications: [{ name: "Rosuvastatin", strength: "10 mg", form: "tablet", pbsCode: "UNKNOWN" }],
+    })
+    expect(result.valid).toBe(true)
+  })
+
+  it("client: a real name with the stale UNKNOWN code passes the step validator", () => {
+    const result = validateMedicationStep({
+      medications: [{ name: "Rosuvastatin", strength: "10 mg", form: "tablet", pbsCode: "UNKNOWN" }],
+    })
+    expect(result.isValid).toBe(true)
+  })
+
+  it("both layers still block the placeholder name with no description", () => {
+    const placeholder = { name: "Unknown - doctor will confirm", pbsCode: "UNKNOWN" }
+    expect(validateMedicationStep({ medications: [placeholder] }).isValid).toBe(false)
+    expect(validateRepeatScriptPayload({ ...base, medications: [placeholder] }).valid).toBe(false)
+  })
+
+  it("still blocks a nameless UNKNOWN entry with no description", () => {
+    const result = validateRepeatScriptPayload({
+      ...base,
+      medications: [{ name: "", pbsCode: "UNKNOWN" }],
+    })
+    expect(result.valid).toBe(false)
+  })
+
+  it("a controlled substance cannot sneak through on the stale code", () => {
+    const result = validateRepeatScriptPayload({
+      ...base,
+      medications: [{ name: "Diazepam", form: "tablet", pbsCode: "UNKNOWN" }],
+    })
+    expect(result.valid).toBe(false)
+    expect(result.error).toMatch(/controlled substances/i)
+  })
+})
+
+describe("repeat medication identity helpers", () => {
+  it("isUnidentifiedRepeatMedication: stale code with a real name is identified", () => {
+    expect(isUnidentifiedRepeatMedication({ name: "Rosuvastatin", pbsCode: "UNKNOWN" })).toBe(false)
+    expect(isUnidentifiedRepeatMedication({ name: "Rosuvastatin", pbsCode: "unknown" })).toBe(false)
+  })
+
+  it("isUnidentifiedRepeatMedication: no usable name stays unidentified", () => {
+    expect(isUnidentifiedRepeatMedication({ name: "", pbsCode: "UNKNOWN" })).toBe(true)
+    expect(isUnidentifiedRepeatMedication({ name: "Unknown - doctor will confirm", pbsCode: "UNKNOWN" })).toBe(true)
+    expect(isUnidentifiedRepeatMedication({ name: "Unknown - doctor will confirm" })).toBe(true)
+  })
+
+  it("isUnidentifiedRepeatMedication: ordinary manual entries are untouched", () => {
+    expect(isUnidentifiedRepeatMedication({ name: "Rosuvastatin", pbsCode: "MANUAL" })).toBe(false)
+    expect(isUnidentifiedRepeatMedication({ name: "Rosuvastatin" })).toBe(false)
+  })
+
+  it("resolveRepeatMedicationCode: maps the stale sentinel to MANUAL only for named medicines", () => {
+    expect(resolveRepeatMedicationCode("Rosuvastatin", "UNKNOWN")).toBe("MANUAL")
+    expect(resolveRepeatMedicationCode("Unknown - doctor will confirm", "UNKNOWN")).toBe("UNKNOWN")
+    expect(resolveRepeatMedicationCode("", "UNKNOWN")).toBe("UNKNOWN")
+  })
+
+  it("resolveRepeatMedicationCode: leaves real codes alone and defaults empty to MANUAL", () => {
+    expect(resolveRepeatMedicationCode("Rosuvastatin", "MANUAL")).toBe("MANUAL")
+    expect(resolveRepeatMedicationCode("Rosuvastatin", "1234K")).toBe("1234K")
+    expect(resolveRepeatMedicationCode("Rosuvastatin", undefined)).toBe("MANUAL")
+    expect(resolveRepeatMedicationCode("Rosuvastatin", "  ")).toBe("MANUAL")
   })
 })

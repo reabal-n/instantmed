@@ -875,6 +875,16 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
             }
           }
 
+          // The dead-end branch: payable intake, no live URL, rebuild didn't
+          // produce one. The patient sees the try-once-then-support message,
+          // so this log is the only trail that says WHY recovery failed —
+          // without it a repeat-visitor loop here is invisible to ops.
+          logger.warn("Guest duplicate checkout recovery hit terminal fallback", {
+            intakeId: existingIntake.id,
+            intakeStatus: existingIntake.status,
+            paymentStatus: existingIntake.payment_status,
+            hasStoredPaymentId: !!existingIntake.payment_id,
+          })
           return { success: false, error: recovery.error }
         }
       }

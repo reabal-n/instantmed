@@ -8,6 +8,7 @@ import { getRepeatRxAttestationStatus } from "@/lib/clinical/repeat-rx-attestati
 import {
   buildRepeatScriptMedicationValidationText,
   extractRepeatScriptMedications,
+  isUnidentifiedRepeatMedication,
   isUsefulMedicationDescription,
   MAX_REPEAT_SCRIPT_MEDICATIONS,
 } from "@/lib/validation/repeat-script-medications"
@@ -234,14 +235,17 @@ export function validateRepeatScriptPayload(
   for (const medication of medications) {
     const medicationCode = medication.pbsCode
     const isManualEntry = medicationCode === "MANUAL"
-    const isUnknownEntry = typeof medicationCode === "string" && medicationCode.toUpperCase() === "UNKNOWN"
 
-    // A3 softening (boundary 3): an unknown medicine may pass ONLY with a useful
-    // free-text description; the doctor then sees a medication_needs_identification
-    // flag carrying that description. Without one, it stays a hard block. The
-    // controlled-substance scan below still runs (the description feeds it).
-    const isUnknown = isUnknownEntry || medication.name.toLowerCase().includes("unknown - doctor")
-    if (isUnknown && !isUsefulMedicationDescription(medication.description)) {
+    // A3 softening (boundary 3): a genuinely unidentified medicine (no real
+    // name — the retired PBS-search "can't find it" state) may pass ONLY with
+    // a useful free-text description; the doctor then sees a
+    // medication_needs_identification flag carrying that description. Without
+    // one, it stays a hard block. A real typed name carrying a stale legacy
+    // UNKNOWN code is NOT unidentified (see isUnidentifiedRepeatMedication) —
+    // the post-#211 UI has no description field, so blocking on the code alone
+    // was an unsatisfiable wall at the pay step. The controlled-substance scan
+    // below still runs (name + description both feed it).
+    if (isUnidentifiedRepeatMedication(medication) && !isUsefulMedicationDescription(medication.description)) {
       return {
         valid: false,
         error: "Tell us what you can about this medicine (what it's for, the name on the box, or how it looks) so the doctor can identify it.",
