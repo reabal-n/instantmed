@@ -97,4 +97,14 @@ describe("request conversion performance contract", () => {
     expect(requestFlowSource).toContain("<div key={visibleStepId}>")
     expect(requestFlowSource).toContain("currentStepId={visibleStepId}")
   })
+
+  it("does not let pre-hydration step repair displace a restored draft", () => {
+    // Specialty URLs now resolve an active first step in the initial render.
+    // The invalid-step repair effect must still wait for hydration: otherwise
+    // its stale first-render closure can run after rehydrate() merges a saved
+    // ED/hair/women's-health step and reset that draft back to step one.
+    expect(requestFlowSource).toContain(
+      "if (!hydrated || editModeStep) return",
+    )
+  })
 })

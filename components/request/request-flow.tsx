@@ -765,13 +765,16 @@ export function RequestFlow({
   }, [activeSteps, currentStepId, effectiveService, stepContext])
 
   // Sync store's currentStepId when it doesn't exist in the active steps list.
-  // Exception: when editModeStep exists, user explicitly navigated to edit a skipped step - don't redirect
+  // Wait for hydration: specialty URLs now resolve their first step during the
+  // initial render, and that render's effect must not overwrite a draft step
+  // after rehydrate() restores it. When editModeStep exists, the user
+  // explicitly navigated to edit a skipped step, so don't redirect either.
   useEffect(() => {
-    if (editModeStep) return
+    if (!hydrated || editModeStep) return
     if (activeSteps.length > 0 && !activeSteps.some(s => s.id === currentStepId)) {
       goToStep(activeSteps[0].id as UnifiedStepId)
     }
-  }, [activeSteps, currentStepId, goToStep, editModeStep])
+  }, [activeSteps, currentStepId, goToStep, editModeStep, hydrated])
 
   // Structural dead-end escape: a consult flow with no resolvable subtype has
   // ZERO steps, so the render below falls into the spinner branch forever
