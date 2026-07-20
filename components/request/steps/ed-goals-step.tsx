@@ -61,7 +61,7 @@ const DURATION_OPTIONS = [
 const FREQUENCY_VALUES = [1, 2, 3, 4, 5] as const
 
 export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
-  const { answers, setAnswer } = useRequestStore()
+  const { answers, flowInstanceId, setAnswer } = useRequestStore()
   const posthog = usePostHog()
   const preSeeded = useRef(false)
 
@@ -100,7 +100,7 @@ export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
       if (edErectionFrequency === null) reasons.push("how often this happens")
       return reasons
     }, [edDuration, edErectionFrequency]),
-    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "ed-goals" },
+    { flowInstanceId, posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "ed-goals" },
   )
 
   const handleNext = () => {

@@ -9,7 +9,7 @@ import {
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const DEFAULT_DAYS = 30
-const POSTHOG_QUERY_TIMEOUT_MS = 3500
+const POSTHOG_QUERY_TIMEOUT_MS = 6500
 
 export type PostHogIntakeFunnelSnapshot =
   | {
@@ -169,7 +169,8 @@ export async function getPostHogIntakeFunnelSnapshot(
       ) AS subtype,
       properties.step_id AS step_id,
       properties.step_index AS step_index,
-      count() AS count
+      uniq(coalesce(properties.flow_instance_id, properties.$session_id, distinct_id)) AS count,
+      count() AS occurrences
     FROM events
     WHERE timestamp >= toDateTime('${dateFrom}')
       AND timestamp <= toDateTime('${dateTo}')
@@ -213,11 +214,12 @@ export async function getPostHogIntakeFunnelSnapshot(
     const rows: IntakeFunnelAggregateRow[] = []
 
     for (const row of payload.results ?? []) {
-      const [event, serviceType, subtype, stepId, stepIndex, count] = row
+      const [event, serviceType, subtype, stepId, stepIndex, count, occurrences] = row
       if (typeof event !== "string") continue
       rows.push({
         count: parseCount(count),
         event,
+        occurrences: parseCount(occurrences),
         serviceType: parseNullableString(serviceType),
         stepId: parseNullableString(stepId),
         stepIndex: parseStepIndex(stepIndex),

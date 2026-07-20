@@ -29,6 +29,7 @@ type IntakeFunnelEventName = (typeof POSTHOG_INTAKE_FUNNEL_EVENT_NAMES)[number]
 export interface IntakeFunnelAggregateRow {
   count: number
   event: string
+  occurrences?: number
   serviceType?: string | null
   stepId?: string | null
   stepIndex?: number | null
@@ -87,6 +88,7 @@ export interface IntakeStepFrictionSummary {
   continueClicked: number
   dropOffCount: number
   frictionScore: number
+  retryOccurrences: number
   serviceLabel: string
   serviceType: string
   stepId: string
@@ -187,7 +189,13 @@ export function buildIntakeFunnelSummary(
 ): IntakeFunnelSummary {
   const totalsByEvent = new Map<string, number>()
   const serviceBuckets = new Map<string, ServiceKey & Record<typeof INTAKE_FUNNEL_EVENT_NAMES[number], number>>()
-  const stepBuckets = new Map<string, StepKey & Record<typeof INTAKE_STEP_FRICTION_EVENT_NAMES[number], number>>()
+  const stepBuckets = new Map<
+    string,
+    StepKey &
+      Record<typeof INTAKE_STEP_FRICTION_EVENT_NAMES[number], number> & {
+        occurrences: Record<typeof INTAKE_STEP_FRICTION_EVENT_NAMES[number], number>
+      }
+  >()
 
   for (const row of input.rows) {
     if (!isFunnelEventName(row.event)) continue
@@ -232,8 +240,16 @@ export function buildIntakeFunnelSummary(
         stepIndex: step.stepIndex,
         step_viewed: 0,
         subtype,
+        occurrences: {
+          intake_continue_clicked: 0,
+          intake_validation_blocked: 0,
+          step_completed: 0,
+          step_viewed: 0,
+        },
       }
-      existing[row.event as typeof INTAKE_STEP_FRICTION_EVENT_NAMES[number]] += count
+      const event = row.event as typeof INTAKE_STEP_FRICTION_EVENT_NAMES[number]
+      existing[event] += count
+      existing.occurrences[event] += safeCount(row.occurrences ?? row.count)
       stepBuckets.set(key, existing)
     }
   }
@@ -305,6 +321,11 @@ export function buildIntakeFunnelSummary(
       const completed = bucket.step_completed
       const blocked = bucket.intake_validation_blocked
       const dropOffCount = Math.max(viewed - completed, 0)
+      const retryOccurrences = INTAKE_STEP_FRICTION_EVENT_NAMES.reduce(
+        (total, event) =>
+          total + Math.max(bucket.occurrences[event] - bucket[event], 0),
+        0,
+      )
 
       return {
         blocked,
@@ -314,6 +335,7 @@ export function buildIntakeFunnelSummary(
         continueClicked: bucket.intake_continue_clicked,
         dropOffCount,
         frictionScore: dropOffCount + blocked,
+        retryOccurrences,
         serviceLabel: serviceLabel(bucket),
         serviceType: bucket.serviceType,
         stepId: bucket.stepId,

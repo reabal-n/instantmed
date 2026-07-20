@@ -10,6 +10,10 @@ import { create } from 'zustand'
 import { persist, type StorageValue } from 'zustand/middleware'
 
 import { capture } from '@/lib/analytics/capture'
+import {
+  ensureFlowInstanceId,
+  normalizeFlowInstanceId,
+} from '@/lib/analytics/flow-instance'
 import { buildIntakeAnswerChangedEvent } from '@/lib/analytics/intake-events'
 import {
   canonicalizeServiceType,
@@ -34,6 +38,7 @@ import {
 export interface RequestState {
   // Service
   serviceType: UnifiedServiceType | null
+  flowInstanceId: string | null
   
   // Navigation
   currentStepId: UnifiedStepId
@@ -101,6 +106,7 @@ export interface AuthContext {
 export interface RequestActions {
   // Service
   setServiceType: (type: UnifiedServiceType) => void
+  startFreshFlowInstance: () => void
   
   // Navigation
   nextStep: () => void
@@ -146,6 +152,7 @@ export interface RequestActions {
 
 const initialState: RequestState = {
   serviceType: null,
+  flowInstanceId: null,
   currentStepId: 'certificate', // First step for med-cert (default)
   direction: 1,
   furthestVisitedStepId: null,
@@ -243,6 +250,7 @@ let draftHydrationCutoffToken = 0
 
 type ServerDraftFlush = (payload: {
   serviceType: CanonicalServiceType
+  flowInstanceId?: string
   currentStepId?: string
   answers?: Record<string, unknown>
   identity?: {
@@ -284,6 +292,7 @@ function writeDraftToStorage(name: string, value: StorageValue<Partial<RequestSt
     const canonical = canonicalizeServiceType(state.serviceType)
     if (canonical) {
       saveDraft(canonical, {
+        flowInstanceId: normalizeFlowInstanceId(state.flowInstanceId) ?? undefined,
         currentStepId: state.currentStepId || 'certificate',
         furthestVisitedStepId: state.furthestVisitedStepId,
         stepsNeedingRevalidation: state.stepsNeedingRevalidation,
@@ -330,6 +339,7 @@ function queueDraftStorageWrite(
 function persistedRequestState(state: Partial<RequestState>): Partial<RequestState> {
   return {
     serviceType: state.serviceType,
+    flowInstanceId: normalizeFlowInstanceId(state.flowInstanceId),
     currentStepId: state.currentStepId,
     furthestVisitedStepId: state.furthestVisitedStepId,
     stepsNeedingRevalidation: state.stepsNeedingRevalidation,
@@ -388,6 +398,9 @@ function flushDraftImmediately(): void {
   try {
     flush({
       serviceType: canonical,
+      ...(normalizeFlowInstanceId(state.flowInstanceId)
+        ? { flowInstanceId: normalizeFlowInstanceId(state.flowInstanceId) ?? undefined }
+        : {}),
       currentStepId: state.currentStepId || undefined,
       answers: isPlainRecord(state.answers) ? state.answers : {},
       identity: {
@@ -442,6 +455,7 @@ function getLastActiveStepId(
 function draftToPersistedState(draft: DraftData): Partial<RequestState> {
   return {
     serviceType: draft.serviceType,
+    flowInstanceId: ensureFlowInstanceId(draft.flowInstanceId),
     currentStepId: draft.currentStepId,
     furthestVisitedStepId: draft.furthestVisitedStepId ?? draft.currentStepId,
     stepsNeedingRevalidation: draft.stepsNeedingRevalidation ?? [],
@@ -502,6 +516,9 @@ function normalizePersistedState(state: Partial<RequestState> | undefined): Part
 
   return {
     ...state,
+    flowInstanceId: state.serviceType
+      ? ensureFlowInstanceId(state.flowInstanceId)
+      : null,
     ...(resolvedCurrentStepId ? { currentStepId: resolvedCurrentStepId } : {}),
     answers: isPlainRecord(persisted.answers) ? persisted.answers : {},
     firstName: typeof state.firstName === 'string' ? state.firstName : '',
@@ -592,6 +609,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
           set({
             serviceType: type,
+            flowInstanceId: ensureFlowInstanceId(scopedDraft?.flowInstanceId),
             answers: restoredAnswers,
             currentStepId: (stepExists
               ? restoredStepId
@@ -625,11 +643,21 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           steps = []
         }
         const stepExists = steps.some(s => s.id === currentStepId)
+        const flowInstanceId = ensureFlowInstanceId(currentState.flowInstanceId)
         if (stepExists) {
-          set({ serviceType: type })
+          set({ serviceType: type, flowInstanceId })
         } else {
-          set({ serviceType: type, currentStepId: (steps[0]?.id || 'certificate') as UnifiedStepId })
+          set({
+            serviceType: type,
+            flowInstanceId,
+            currentStepId: (steps[0]?.id || 'certificate') as UnifiedStepId,
+          })
         }
+      },
+
+      startFreshFlowInstance: () => {
+        set({ flowInstanceId: ensureFlowInstanceId(null) })
+        queueLatestDraftSnapshotAfterMutation(get)
       },
 
       nextStep: () => {
@@ -807,6 +835,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         queueLatestDraftSnapshotAfterMutation(get)
 
         const event = buildIntakeAnswerChangedEvent({
+          flowInstanceId: state.flowInstanceId,
           serviceType: state.serviceType,
           subtype: typeof nextAnswers.consultSubtype === "string"
             ? nextAnswers.consultSubtype
@@ -916,6 +945,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
         set({
           serviceType,
+          flowInstanceId: ensureFlowInstanceId(record.flowInstanceId),
           currentStepId,
           direction: 1,
           furthestVisitedStepId: currentStepId,

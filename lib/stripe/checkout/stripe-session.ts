@@ -46,6 +46,7 @@ export interface BuildSessionParamsInput {
   refCode: string
   referralCoupon: ReferralCoupon | null
   posthogDistinctId: string | undefined
+  flowInstanceId: string | undefined
   attribution: {
     gclid: string | null
     gbraid: string | null
@@ -87,6 +88,7 @@ export function buildCheckoutSessionParams(args: BuildSessionParamsInput) {
         }
       : {}),
     ...(args.posthogDistinctId ? { ph_distinct_id: args.posthogDistinctId } : {}),
+    ...(args.flowInstanceId ? { flow_instance_id: args.flowInstanceId } : {}),
     ...(args.isPriority ? { is_priority: "true" } : {}),
     ...(args.attribution.gclid ? { gclid: args.attribution.gclid } : {}),
     ...(args.attribution.gbraid ? { gbraid: args.attribution.gbraid } : {}),

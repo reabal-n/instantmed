@@ -88,6 +88,7 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
   router: ReturnType<typeof useRouter>
 }) {
   const posthog = usePostHog()
+  const flowInstanceId = useRequestStore((state) => state.flowInstanceId)
   // This component now serves only the live new/switch pill (ocp_new).
   const contraceptionType = exactStringValue(answers.contraceptionType, PILL_CONTRACEPTION_TYPE_VALUES)
   const contraceptionCurrent = exactStringValue(answers.contraceptionCurrent, PILL_CURRENT_CONTRACEPTION_VALUES)
@@ -131,7 +132,7 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
       }
       return reasons
     }, [bloodClotHistory, contraceptionCurrent, contraceptionType, migraineAura, needsPillSafetyScreen, pregnancyStatus, smoker]),
-    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "womens-health-assessment" },
+    { flowInstanceId, posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "womens-health-assessment" },
   )
 
   if (terminalBlock) {
@@ -340,6 +341,7 @@ function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAns
   router: ReturnType<typeof useRouter>
 }) {
   const posthog = usePostHog()
+  const flowInstanceId = useRequestStore((state) => state.flowInstanceId)
   const utiSymptoms = answers.utiSymptoms as string[] | undefined
   const utiRedFlags = answers.utiRedFlags as "no" | "yes" | undefined
   const utiPregnant = (answers.utiPregnant as string) || ""
@@ -382,7 +384,7 @@ function UTIAssessment({ serviceType, onNext, onBack, answers, setAnswer, setAns
       if (!utiPregnant) reasons.push("pregnancy check")
       return reasons
     }, [utiPregnant, utiRedFlags, utiSymptoms]),
-    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "womens-health-assessment" },
+    { flowInstanceId, posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "womens-health-assessment" },
   )
 
   if (terminalBlock) {

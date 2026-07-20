@@ -1,3 +1,4 @@
+import { normalizeFlowInstanceId } from "@/lib/analytics/flow-instance"
 import { canonicalizeServiceType } from "@/lib/request/draft-storage"
 
 export const INTAKE_ANALYTICS_EVENTS = {
@@ -28,6 +29,7 @@ export interface PostHogCaptureLike {
 }
 
 interface StepPropertiesInput {
+  flowInstanceId?: string | null
   serviceType: string | null | undefined
   stepId: string
   stepIndex?: number
@@ -44,6 +46,7 @@ interface ValidationBlockedInput extends StepPropertiesInput {
 }
 
 interface AnswerChangedInput {
+  flowInstanceId?: string | null
   serviceType: string | null | undefined
   subtype?: string
   stepId: string
@@ -61,6 +64,7 @@ interface PassiveAbandonmentBeaconInput {
   analyticsServiceType: string
   currentStepId: string
   currentStepIndex: number
+  flowInstanceId?: string | null
   posthog: {
     config?: { token?: string; api_host?: string }
     get_distinct_id?: () => string
@@ -136,6 +140,8 @@ function baseStepProperties(input: StepPropertiesInput) {
     step_id: input.stepId,
   }
 
+  const flowInstanceId = normalizeFlowInstanceId(input.flowInstanceId)
+  if (flowInstanceId) properties.flow_instance_id = flowInstanceId
   if (typeof input.stepIndex === "number") {
     properties.step_number = input.stepIndex + 1
     properties.step_index = input.stepIndex
@@ -181,6 +187,7 @@ export function buildPassiveAbandonmentBeacon({
   analyticsServiceType,
   currentStepId,
   currentStepIndex,
+  flowInstanceId,
   posthog,
   serviceType,
 }: PassiveAbandonmentBeaconInput): { payload: string; url: string } | null {
@@ -201,6 +208,9 @@ export function buildPassiveAbandonmentBeacon({
         $process_person_profile: false,
         $geoip_disable: true,
         service_type: analyticsServiceType,
+        ...(normalizeFlowInstanceId(flowInstanceId)
+          ? { flow_instance_id: normalizeFlowInstanceId(flowInstanceId) }
+          : {}),
         step_id: currentStepId,
         step_number: currentStepIndex + 1,
       },
@@ -243,6 +253,8 @@ export function buildIntakeAnswerChangedEvent(
     change_type: changeType,
   }
 
+  const flowInstanceId = normalizeFlowInstanceId(input.flowInstanceId)
+  if (flowInstanceId) properties.flow_instance_id = flowInstanceId
   if (input.subtype) properties.subtype = input.subtype
   if (Array.isArray(input.nextValue)) {
     properties.item_count = input.nextValue.length

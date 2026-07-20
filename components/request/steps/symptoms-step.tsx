@@ -62,7 +62,7 @@ function escapeForRegExp(value: string): string {
 }
 
 export default function SymptomsStep({ serviceType, onNext, hideIntro = false }: SymptomsStepProps) {
-  const { answers, setAnswer } = useRequestStore()
+  const { answers, flowInstanceId, setAnswer } = useRequestStore()
   const posthog = usePostHog()
 
   const symptomDetails = (answers.symptomDetails as string) || ""
@@ -147,6 +147,7 @@ export default function SymptomsStep({ serviceType, onNext, hideIntro = false }:
         posthog,
         INTAKE_ANALYTICS_EVENTS.validationBlocked,
         buildIntakeValidationBlockedProperties({
+          flowInstanceId,
           serviceType,
           stepId: "symptoms",
           blockers,
@@ -154,7 +155,7 @@ export default function SymptomsStep({ serviceType, onNext, hideIntro = false }:
       )
     }
     return Object.keys(newErrors).length === 0 && !emergencyRequiresAck && !highStakes.isHighStakes
-  }, [symptomDetails, emergencyRequiresAck, highStakes.isHighStakes, buildBlockingReasons, posthog, serviceType])
+  }, [symptomDetails, emergencyRequiresAck, highStakes.isHighStakes, buildBlockingReasons, posthog, serviceType, flowInstanceId])
 
   // Tap a starter to seed/clear the textarea. Source of truth stays the textarea
   // so downstream validation, AI notes, and the doctor view are unchanged.

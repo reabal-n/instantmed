@@ -107,7 +107,7 @@ export default function HairLossHealthStep({
 }: HairLossHealthStepProps) {
   const router = useRouter()
   const posthog = usePostHog()
-  const { answers, setAnswer } = useRequestStore()
+  const { answers, flowInstanceId, setAnswer } = useRequestStore()
 
   // ---------------------------------------------------------------------------
   // Read answers from store
@@ -221,7 +221,7 @@ export default function HairLossHealthStep({
       if (!medicalComplete) reasons.push("the medical history section")
       return reasons
     }, [reproductiveComplete, scalpComplete, bpComplete, medicalComplete]),
-    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "hair-loss-health" },
+    { flowInstanceId, posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "hair-loss-health" },
   )
 
   const handleNext = useCallback(() => {

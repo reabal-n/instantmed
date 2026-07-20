@@ -121,7 +121,7 @@ export default function HairLossAssessmentStep({
   serviceType,
   onNext,
 }: HairLossAssessmentStepProps) {
-  const { answers, setAnswer } = useRequestStore()
+  const { answers, flowInstanceId, setAnswer } = useRequestStore()
   const posthog = usePostHog()
   const prefersReducedMotion = useReducedMotion()
 
@@ -159,7 +159,7 @@ export default function HairLossAssessmentStep({
       if (!hairFamilyHistory) reasons.push("your family history")
       return reasons
     }, [hairPattern, hairFamilyHistory]),
-    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "hair-loss-assessment" },
+    { flowInstanceId, posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "hair-loss-assessment" },
   )
 
   const handleNext = () => {

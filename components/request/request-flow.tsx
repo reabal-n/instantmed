@@ -413,6 +413,7 @@ export function RequestFlow({
   
   const {
     serviceType,
+    flowInstanceId,
     currentStepId,
     furthestVisitedStepId,
     stepsNeedingRevalidation,
@@ -781,6 +782,7 @@ export function RequestFlow({
     serviceType,
     analyticsServiceType,
     currentStepId,
+    flowInstanceId,
     posthog,
   })
 

@@ -119,6 +119,7 @@ interface GuestCheckoutInput {
     captured_at?: string
   }
   posthogDistinctId?: string // Anonymous browser ID for personless funnel continuity
+  flowInstanceId?: string
   serverDraftSessionId?: string
   checkoutSubmissionKey?: string
 }
@@ -235,6 +236,7 @@ async function rebuildExpiredGuestSession(
     payment_id: string | null
     payment_status: string | null
     status: string | null
+    flow_instance_id: string | null
   },
   fallbackGuestEmail: string,
   baseUrl: string,
@@ -308,6 +310,9 @@ async function rebuildExpiredGuestSession(
         customer_creation: "always",
         metadata: {
           intake_id: intake.id,
+          ...(intake.flow_instance_id
+            ? { flow_instance_id: intake.flow_instance_id }
+            : {}),
           is_retry: "true",
           category: intake.category || "",
           subtype: intake.subtype || "",
@@ -696,6 +701,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         subtype: input.subtype || null,
         is_priority: isPriority,
         idempotency_key: guestIdempotencyKey,
+        flow_instance_id: input.flowInstanceId ?? null,
         guest_email: normalizedEmail, // P1 FIX: Store for abandoned checkout recovery
         stripe_price_id: priceId || null, // P3 FIX: Store for retry pricing consistency
         // Attribution: store UTM params for payment attribution in PostHog
@@ -731,7 +737,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       if (intakeError?.code === "23505") {
         const { data: existingIntake } = await supabase
           .from("intakes")
-          .select("id, status, payment_status, payment_id, checkout_error, category, subtype, stripe_price_id, is_priority, guest_email")
+          .select("id, status, payment_status, payment_id, checkout_error, category, subtype, stripe_price_id, is_priority, guest_email, flow_instance_id")
           .eq("idempotency_key", guestIdempotencyKey)
           .eq("patient_id", guestProfileId)
           .maybeSingle()
@@ -886,6 +892,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     trackIntakeFunnelStep({
       step: "intake_started",
       intakeId: intake.id,
+      flowInstanceId: input.flowInstanceId,
       serviceSlug: serviceSlugForSafety,
       serviceType: input.category,
       subtype: input.subtype,
@@ -1003,6 +1010,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         guest_checkout: "true",
         ...(isPriority ? { is_priority: "true" } : {}),
         ...(input.posthogDistinctId ? { ph_distinct_id: input.posthogDistinctId } : {}),
+        ...(input.flowInstanceId ? { flow_instance_id: input.flowInstanceId } : {}),
         // Google Ads click IDs for Enhanced Conversions attribution
         ...(attribution.gclid ? { gclid: attribution.gclid } : {}),
         ...(attribution.gbraid ? { gbraid: attribution.gbraid } : {}),
@@ -1113,6 +1121,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     trackIntakeFunnelStep({
       step: "payment_initiated",
       intakeId: intake.id,
+      flowInstanceId: input.flowInstanceId,
       serviceSlug: serviceSlug,
       serviceType: input.category,
       subtype: input.subtype,

@@ -67,7 +67,7 @@ export default function HairLossPreferencesStep({
   serviceType,
   onNext,
 }: HairLossPreferencesStepProps) {
-  const { answers, setAnswer } = useRequestStore()
+  const { answers, flowInstanceId, setAnswer } = useRequestStore()
   const posthog = usePostHog()
 
   const hairMedicationPreference =
@@ -80,7 +80,7 @@ export default function HairLossPreferencesStep({
   const { validationSummary, showBlockingReasons } = useStepValidationSummary(
     isComplete,
     useCallback(() => ["a treatment preference"], []),
-    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "hair-loss-preferences" },
+    { flowInstanceId, posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "hair-loss-preferences" },
   )
 
   const handleNext = () => {

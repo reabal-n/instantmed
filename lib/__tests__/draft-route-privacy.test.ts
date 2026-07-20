@@ -34,6 +34,7 @@ vi.mock("@sentry/nextjs", () => ({
 }))
 
 const SESSION_ID = "11111111-1111-4111-8111-111111111111"
+const FLOW_INSTANCE_ID = "22222222-2222-4222-8222-222222222222"
 const encryptedAnswers = {
   ciphertext: "answers-ciphertext",
   encryptedDataKey: "answers-key",
@@ -142,6 +143,7 @@ describe("/api/draft privacy", () => {
 
     const response = await POST(makePostRequest({
       serviceType: "prescription",
+      flowInstanceId: FLOW_INSTANCE_ID,
       answers: { medicationName: "test medicine" },
     }))
 
@@ -173,6 +175,7 @@ describe("/api/draft privacy", () => {
     const response = await POST(makePostRequest({
       serviceType: "prescription",
       currentStepId: "medical-history",
+      flowInstanceId: FLOW_INSTANCE_ID,
       answers: {
         medicationName: "test medicine",
         allergies: "penicillin",
@@ -206,6 +209,7 @@ describe("/api/draft privacy", () => {
       answers_encrypted: encryptedAnswers,
       email: "patient@example.test",
       first_name: "Pat",
+      flow_instance_id: FLOW_INSTANCE_ID,
       last_name: null,
       phone: null,
       identity_encrypted: encryptedIdentity,
@@ -215,6 +219,7 @@ describe("/api/draft privacy", () => {
   it("reads encrypted draft answers and identity before plaintext fallbacks", async () => {
     makeFetchDraftSupabaseMock({
       session_id: SESSION_ID,
+      flow_instance_id: FLOW_INSTANCE_ID,
       service_type: "prescription",
       current_step_id: "medical-history",
       answers: {},
@@ -242,6 +247,7 @@ describe("/api/draft privacy", () => {
       medicationName: "test medicine",
       allergies: "penicillin",
     })
+    expect(payload.flowInstanceId).toBe(FLOW_INSTANCE_ID)
     expect(payload.identity).toEqual({
       email: "patient@example.test",
       firstName: "Pat",

@@ -322,6 +322,9 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       category: intake.category || "",
       subtype: intake.subtype || "",
       service_slug: serviceSlugForSafety || "",
+      ...(intake.flow_instance_id
+        ? { flow_instance_id: String(intake.flow_instance_id) }
+        : {}),
       ...(refCode ? { referral_code: refCode } : {}),
       ...(referralCoupon
         ? {
@@ -449,6 +452,7 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       serviceSlug: service?.slug || serviceSlugForSafety || "",
       serviceType: intake.category || "",
       subtype: intake.subtype,
+      flowInstanceId: intake.flow_instance_id,
     })
 
     return { success: true, checkoutUrl: session.url, intakeId: intake.id }

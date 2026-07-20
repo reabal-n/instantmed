@@ -390,7 +390,7 @@ export function AnalyticsDashboardClient({
                   <h3 className="text-sm font-semibold text-foreground">Biggest drop-off</h3>
                 </div>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  Where the most intakes stall, from live PostHog step events.
+                  Where the most unique intake attempts stall, from live PostHog step events.
                 </p>
               </div>
               <StatusBadge status={intakeFunnelBadge} size="sm">
@@ -413,7 +413,7 @@ export function AnalyticsDashboardClient({
                     {formatPercentValue(worstStep.completionRate)}
                   </span>{" "}
                   <span className="text-muted-foreground">
-                    of {worstStep.viewed} who viewed it continue
+                    of {worstStep.viewed} attempts that viewed it continue
                   </span>
                 </div>
                 {serverPayRate != null ? (
@@ -859,7 +859,8 @@ export function AnalyticsDashboardClient({
                 <div>
                   <h3 id="intake-friction-heading" className="text-sm font-semibold text-foreground">Intake friction</h3>
                   <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                    Aggregate PostHog events over {intakeFunnelSummary.days} days.
+                    Unique intake attempts over {intakeFunnelSummary.days} days. Repeated actions are shown separately as retries.
+                    {" "}Historical events without a flow ID use an approximate session fallback.
                     {intakeFunnelSummary.totals.serverCheckoutToPaidRate != null ? (
                       <>
                         {" "}Trust <span className="font-medium text-foreground">Payment started (server) → Paid</span>{" "}
@@ -884,7 +885,7 @@ export function AnalyticsDashboardClient({
                       </div>
                       <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">{stage.count}</p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {stage.dropOffFromPrevious == null ? "First recorded event." : `${stage.dropOffFromPrevious} drop-off from previous stage.`}
+                        {stage.dropOffFromPrevious == null ? "Unique attempts recorded." : `${stage.dropOffFromPrevious} attempt drop-off from previous stage.`}
                       </p>
                     </div>
                   ))}
@@ -902,7 +903,7 @@ export function AnalyticsDashboardClient({
                           <div key={`${service.serviceType}-${service.subtype ?? "base"}`} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-md bg-background/70 px-3 py-2 text-xs">
                             <div className="min-w-0">
                               <p className="truncate font-medium text-foreground">{service.serviceLabel}</p>
-                              <p className="mt-0.5 text-muted-foreground">{service.started} started, {service.checkoutViewed} checkout</p>
+                              <p className="mt-0.5 text-muted-foreground">{service.started} attempts started, {service.checkoutViewed} reached checkout</p>
                             </div>
                             <p className="font-semibold tabular-nums text-foreground">{formatPercentValue(service.startToCheckoutRate)}</p>
                           </div>
@@ -921,14 +922,15 @@ export function AnalyticsDashboardClient({
                     <div className="grid gap-2">
                       {intakeFunnelSummary.stepFriction.slice(0, 5).length > 0 ? (
                         intakeFunnelSummary.stepFriction.slice(0, 5).map((step) => (
-                          <div key={`${step.serviceType}-${step.subtype ?? "base"}-${step.stepId}-${step.stepIndex ?? "x"}`} className="grid gap-2 rounded-md bg-background/70 px-3 py-2 text-xs md:grid-cols-[minmax(0,1fr)_repeat(4,minmax(62px,auto))]">
-                            <div className="min-w-0">
+                          <div key={`${step.serviceType}-${step.subtype ?? "base"}-${step.stepId}-${step.stepIndex ?? "x"}`} className="grid grid-cols-2 gap-x-3 gap-y-2 rounded-md bg-background/70 px-3 py-2 text-xs sm:grid-cols-3 md:grid-cols-[minmax(112px,1.35fr)_repeat(5,minmax(50px,0.65fr))]">
+                            <div className="col-span-2 min-w-0 sm:col-span-3 md:col-span-1">
                               <p className="truncate font-medium text-foreground">{formatStepId(step.stepId)}</p>
                               <p className="mt-0.5 truncate text-muted-foreground">{step.serviceLabel}</p>
                             </div>
                             <div><p className="text-muted-foreground">Viewed</p><p className="font-medium tabular-nums text-foreground">{step.viewed}</p></div>
-                            <div><p className="text-muted-foreground">Continue</p><p className="font-medium tabular-nums text-foreground">{step.continueClicked}</p></div>
+                            <div><p className="text-muted-foreground">Continued</p><p className="font-medium tabular-nums text-foreground">{step.continueClicked}</p></div>
                             <div><p className="text-muted-foreground">Blocked</p><p className="font-medium tabular-nums text-foreground">{step.blocked}</p></div>
+                            <div><p className="text-muted-foreground">Retries</p><p className="font-medium tabular-nums text-foreground">{step.retryOccurrences}</p></div>
                             <div><p className="text-muted-foreground">Complete</p><p className="font-medium tabular-nums text-foreground">{formatPercentValue(step.completionRate)}</p></div>
                           </div>
                         ))

@@ -23,6 +23,7 @@ const SERVER_DRAFT_SESSION_ID_REGEX =
 
 interface ServerDraftPayload {
   serviceType: CanonicalServiceType
+  flowInstanceId?: string
   currentStepId?: string
   answers?: Record<string, unknown>
   identity?: {
@@ -43,6 +44,7 @@ interface ServerDraftResponse {
 export interface ServerDraftRecord {
   sessionId: string
   serviceType: CanonicalServiceType
+  flowInstanceId?: string | null
   currentStepId: string | null
   answers: Record<string, unknown>
   identity: {

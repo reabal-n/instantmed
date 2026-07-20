@@ -161,7 +161,7 @@ function summaryLabel(offset: number): string {
 // ─── Component ────────────────────────────────────────────────────────────
 
 export default function CertificateStep({ serviceType, onNext, initialDuration, hideIntro = false }: CertificateStepProps) {
-  const { answers, setAnswer } = useRequestStore()
+  const { answers, flowInstanceId, setAnswer } = useRequestStore()
   const posthog = usePostHog()
   const initialUrlDurationRef = useRef<Duration | null>(parseDuration(initialDuration))
   const urlDurationAppliedRef = useRef(false)
@@ -359,6 +359,7 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
         posthog,
         INTAKE_ANALYTICS_EVENTS.validationBlocked,
         buildIntakeValidationBlockedProperties({
+          flowInstanceId,
           serviceType,
           stepId: "certificate",
           blockers,
@@ -366,7 +367,7 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
       )
     }
     return Object.keys(newErrors).length === 0
-  }, [certType, selectedDays, serviceType, startOffset, posthog])
+  }, [certType, selectedDays, serviceType, startOffset, posthog, flowInstanceId])
 
   const handleNext = useCallback(() => {
     if (validate()) {

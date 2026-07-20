@@ -261,7 +261,20 @@ function ReviewSummaryCard({
 }
 
 export default function ReviewStep({ serviceType }: ReviewStepProps) {
-  const { answers, firstName, lastName, email, phone, dob, goToStep, safetyConfirmed, setSafetyConfirmed, getIdentity, setConsent } = useRequestStore()
+  const {
+    answers,
+    firstName,
+    lastName,
+    email,
+    phone,
+    dob,
+    flowInstanceId,
+    goToStep,
+    safetyConfirmed,
+    setSafetyConfirmed,
+    getIdentity,
+    setConsent,
+  } = useRequestStore()
   const posthog = usePostHog()
   const consentRef = useRef<HTMLDivElement>(null)
   const errorRef = useRef<HTMLDivElement>(null)
@@ -280,9 +293,10 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   useEffect(() => {
     posthog?.capture("checkout_viewed", {
       service_type: serviceType,
+      flow_instance_id: flowInstanceId,
       consult_subtype: answers.consultSubtype,
     })
-  }, [posthog, serviceType, answers.consultSubtype])
+  }, [posthog, serviceType, answers.consultSubtype, flowInstanceId])
 
   // Pull a checkout error into view so it isn't missed below the fold / pay CTA.
   useEffect(() => {
@@ -311,6 +325,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     const attribution = getAttribution()
     capture("checkout_initiated", {
       service_type: serviceType,
+      flow_instance_id: flowInstanceId,
       consult_subtype: answers.consultSubtype,
       price_dollars: totalDue,
       is_priority: isPriority,
@@ -334,12 +349,14 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         identity,
         attribution,
         posthogDistinctId: posthog?.get_distinct_id() || undefined,
+        flowInstanceId: flowInstanceId ?? undefined,
         serverDraftSessionId: getActiveServerDraftSessionId(serviceType) ?? undefined,
       })
 
       if (!result.success) {
         posthog?.capture("checkout_failed", {
           service_type: serviceType,
+          flow_instance_id: flowInstanceId,
           consult_subtype: answers.consultSubtype,
           stage: "session_creation",
           failure_category: classifyCheckoutFailure(result.error),
@@ -351,6 +368,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
       if (!result.checkoutUrl) {
         posthog?.capture("checkout_failed", {
           service_type: serviceType,
+          flow_instance_id: flowInstanceId,
           consult_subtype: answers.consultSubtype,
           stage: "missing_checkout_url",
           reason: "missing_checkout_url",
@@ -361,6 +379,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
 
       posthog?.capture("checkout_redirecting", {
         service_type: serviceType,
+        flow_instance_id: flowInstanceId,
         consult_subtype: answers.consultSubtype,
         price_dollars: totalDue,
       })
@@ -374,6 +393,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     } catch (e) {
       posthog?.capture("checkout_failed", {
         service_type: serviceType,
+        flow_instance_id: flowInstanceId,
         consult_subtype: answers.consultSubtype,
         stage: "exception",
         reason: e instanceof Error ? e.message.slice(0, 200) : "exception",

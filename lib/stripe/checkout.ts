@@ -248,6 +248,7 @@ export async function createIntakeAndCheckoutAction(
       refCode,
       referralCoupon,
       posthogDistinctId: input.posthogDistinctId,
+      flowInstanceId: input.flowInstanceId,
       attribution,
     })
 

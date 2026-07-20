@@ -123,6 +123,7 @@ export async function createIntakeWithAnswers(
     subtype: input.subtype,
     is_priority: isPriority,
     idempotency_key: input.idempotencyKey,
+    flow_instance_id: input.flowInstanceId ?? null,
     stripe_price_id: priceId || null,
     utm_source: attribution.utm_source,
     utm_medium: attribution.utm_medium,
@@ -154,6 +155,7 @@ export async function createIntakeWithAnswers(
   if (intake) {
     logger.debug("Intake created", {
       intakeId: intake.id,
+      flowInstanceId: input.flowInstanceId,
       serviceId,
       serviceSlug,
       category: input.category,
@@ -164,6 +166,7 @@ export async function createIntakeWithAnswers(
     trackIntakeFunnelStep({
       step: "intake_started",
       intakeId: intake.id,
+      flowInstanceId: input.flowInstanceId,
       serviceSlug,
       serviceType: input.category,
       subtype: input.subtype,

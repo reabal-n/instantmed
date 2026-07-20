@@ -137,7 +137,17 @@ interface PatientDetailsStepProps {
 }
 
 export default function PatientDetailsStep({ serviceType, onNext }: PatientDetailsStepProps) {
-  const { firstName, lastName, email, phone, dob, answers, setIdentity, setAnswer } = useRequestStore()
+  const {
+    firstName,
+    lastName,
+    email,
+    phone,
+    dob,
+    answers,
+    flowInstanceId,
+    setIdentity,
+    setAnswer,
+  } = useRequestStore()
   const posthog = usePostHog()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
@@ -549,6 +559,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         posthog,
         INTAKE_ANALYTICS_EVENTS.validationBlocked,
         buildIntakeValidationBlockedProperties({
+          flowInstanceId,
           serviceType,
           subtype: consultSubtype,
           stepId: "details",

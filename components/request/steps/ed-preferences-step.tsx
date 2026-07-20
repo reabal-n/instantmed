@@ -64,7 +64,7 @@ const PREFERENCE_OPTIONS = [
 ] as const
 
 export default function EdPreferencesStep({ serviceType, onNext, onBack }: EdPreferencesStepProps) {
-  const { answers, setAnswer } = useRequestStore()
+  const { answers, flowInstanceId, setAnswer } = useRequestStore()
   const posthog = usePostHog()
 
   const edPreference = (answers.edPreference as string) || ""
@@ -89,7 +89,7 @@ export default function EdPreferencesStep({ serviceType, onNext, onBack }: EdPre
       }
       return reasons
     }, [edPreference, previousEdMeds, edPreviousTreatment]),
-    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "ed-preferences" },
+    { flowInstanceId, posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "ed-preferences" },
   )
 
   const handleNext = () => {

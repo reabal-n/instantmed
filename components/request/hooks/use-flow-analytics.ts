@@ -73,7 +73,7 @@ export function useFlowAnalytics({
   userEmail,
 }: UseFlowAnalyticsOptions) {
   const posthog = usePostHog()
-  const { email: storeEmail } = useRequestStore()
+  const { email: storeEmail, flowInstanceId } = useRequestStore()
 
   const trackedFunnelEventsRef = useRef<Set<string>>(new Set())
   // Latches intake_started to once per flow so back-navigation to step 1 does
@@ -92,7 +92,7 @@ export function useFlowAnalytics({
   useEffect(() => {
     trackedFunnelEventsRef.current = new Set()
     startedFiredRef.current = false
-  }, [serviceType])
+  }, [flowInstanceId, serviceType])
 
   // Track step views in PostHog + generic gtag funnel_step analytics.
   useEffect(() => {
@@ -110,6 +110,7 @@ export function useFlowAnalytics({
         startedFiredRef.current = true
         captureIntakeEvent(posthog, INTAKE_ANALYTICS_EVENTS.started, {
           service_type: analyticsServiceType,
+          flow_instance_id: flowInstanceId,
           subtype,
         })
       }
@@ -118,6 +119,7 @@ export function useFlowAnalytics({
         posthog,
         INTAKE_ANALYTICS_EVENTS.stepViewed,
         buildIntakeStepViewedProperties({
+          flowInstanceId,
           serviceType: analyticsServiceType,
           stepId: currentStep.id,
           stepIndex: currentStepIndex,
@@ -137,7 +139,7 @@ export function useFlowAnalytics({
     }
     // answers.consultSubtype intentionally excluded - only track on step/service change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep, serviceType, analyticsServiceType, currentStepIndex, totalSteps, posthog])
+  }, [currentStep, serviceType, analyticsServiceType, currentStepIndex, totalSteps, posthog, flowInstanceId])
 
   // Track Google Ads funnel milestones once per flow.
   // Pass email (from store or auth pre-fill) for Enhanced Conversions cross-device attribution.
@@ -175,6 +177,7 @@ export function useFlowAnalytics({
       posthog,
       INTAKE_ANALYTICS_EVENTS.stepCompleted,
       buildIntakeStepCompletedProperties({
+        flowInstanceId,
         serviceType: analyticsServiceType,
         stepId: currentStepId,
         stepIndex: currentStepIndex,

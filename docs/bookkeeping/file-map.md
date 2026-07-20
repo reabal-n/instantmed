@@ -1,9 +1,9 @@
 # Doc File Map
 
-> **Last updated:** 2026-07-19.
+> **Last updated:** 2026-07-20.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
 >
-> **Doc-surface count:** 106 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below; ignored `.superpowers/**` execution briefs, reports, and ledgers are excluded). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans; 110 -> 112 on 2026-07-01 after adding the root context glossary and first ADR for Google Ads retained-value bidding; reconciled to 115 on 2026-07-08 after excluding generated verification artifacts from `scripts/doc-audit.sh` and adding the GEO citation execution record; reconciled to 116 on 2026-07-09 after adding the intake drop-off final plan; reconciled to 118 on 2026-07-10 after adding the audit-remediation implementation program and the comparison-surface submission kit; reconciled to 119 on 2026-07-12 after adding the cleanup-and-scale roadmap; reconciled to 105 on 2026-07-14 after retiring 13 superseded plans and the obsolete load-test README; reconciled to 106 on 2026-07-19 after adding the lifecycle and dashboard execution plan.
+> **Doc-surface count:** 108 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, `docs/superpowers/specs/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below; ignored `.superpowers/**` execution briefs, reports, and ledgers are excluded). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans; 110 -> 112 on 2026-07-01 after adding the root context glossary and first ADR for Google Ads retained-value bidding; reconciled to 115 on 2026-07-08 after excluding generated verification artifacts from `scripts/doc-audit.sh` and adding the GEO citation execution record; reconciled to 116 on 2026-07-09 after adding the intake drop-off final plan; reconciled to 118 on 2026-07-10 after adding the audit-remediation implementation program and the comparison-surface submission kit; reconciled to 119 on 2026-07-12 after adding the cleanup-and-scale roadmap; reconciled to 105 on 2026-07-14 after retiring 13 superseded plans and the obsolete load-test README; reconciled to 106 on 2026-07-19 after adding the lifecycle and dashboard execution plan; reconciled to 108 on 2026-07-20 after adding the privacy-safe flow-attribution design and implementation plan.
 >
 > **Owner:** Operator. Update on every doc add, move, or delete. Bump the timestamp.
 
@@ -128,7 +128,7 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 
 Root plan files preserve implementation detail only. They are not active merely because they remain outside the archive; `docs/ROADMAP.md` is the sole queue.
 
-## docs/superpowers/plans/ — 10
+## docs/superpowers/plans/ — 11
 
 | File | Purpose |
 |------|---------|
@@ -142,6 +142,13 @@ Root plan files preserve implementation detail only. They are not active merely 
 | [docs/superpowers/plans/2026-06-26-07-med-cert-wording.md](../superpowers/plans/2026-06-26-07-med-cert-wording.md) | Prescribing rebuild 07: warmer medical-certificate body wording (third locked support paragraph) |
 | [docs/superpowers/plans/2026-07-08-seo-geo-llm-task5-plan.md](../superpowers/plans/2026-07-08-seo-geo-llm-task5-plan.md) | Task 5 SEO/GEO/LLM growth plan: page-template contracts, contextual evidence links, CTR fixes, condition-template hardening, GEO answer blocks, and citation-surface workflow |
 | [docs/superpowers/plans/2026-07-10-audit-remediation-program.md](../superpowers/plans/2026-07-10-audit-remediation-program.md) | Reconciled implementation program for PHI key-rotation containment, AI med-cert batch review, service-worker retirement, repository artifact cleanup, dead-code ratcheting, and documentation consolidation |
+| [docs/superpowers/plans/2026-07-20-privacy-safe-flow-attribution.md](../superpowers/plans/2026-07-20-privacy-safe-flow-attribution.md) | Approved implementation sequence for one opaque intake-attempt identifier, retry-safe payment propagation, and unique-attempt PostHog reporting |
+
+## docs/superpowers/specs/ — 1
+
+| File | Purpose |
+|------|---------|
+| [docs/superpowers/specs/2026-07-20-privacy-safe-flow-attribution-design.md](../superpowers/specs/2026-07-20-privacy-safe-flow-attribution-design.md) | Approved design contract for privacy-safe attempt-level conversion attribution without new patient-facing restrictions |
 
 ## docs/plans/archive/ — completed/superseded plans (90-day retention)
 

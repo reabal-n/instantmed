@@ -30,6 +30,7 @@ describe("intake analytics events", () => {
   it("builds step view and completion payloads without patient-entered values", () => {
     expect(
       buildIntakeStepViewedProperties({
+        flowInstanceId: "11111111-1111-4111-8111-111111111111",
         serviceType: "consult",
         stepId: "ed-goals",
         stepIndex: 0,
@@ -38,6 +39,7 @@ describe("intake analytics events", () => {
       }),
     ).toEqual({
       service_type: "consult",
+      flow_instance_id: "11111111-1111-4111-8111-111111111111",
       step_id: "ed-goals",
       step_number: 1,
       step_index: 0,
@@ -47,6 +49,7 @@ describe("intake analytics events", () => {
 
     expect(
       buildIntakeStepCompletedProperties({
+        flowInstanceId: "11111111-1111-4111-8111-111111111111",
         serviceType: "consult",
         stepId: "ed-goals",
         stepIndex: 0,
@@ -56,6 +59,7 @@ describe("intake analytics events", () => {
       }),
     ).toEqual({
       service_type: "consult",
+      flow_instance_id: "11111111-1111-4111-8111-111111111111",
       step_id: "ed-goals",
       step_number: 1,
       step_index: 0,
@@ -84,6 +88,7 @@ describe("intake analytics events", () => {
 
   it("tracks answer changes as safe metadata only", () => {
     const event = buildIntakeAnswerChangedEvent({
+      flowInstanceId: "11111111-1111-4111-8111-111111111111",
       serviceType: "consult",
       subtype: "womens_health",
       stepId: "womens-health-assessment",
@@ -96,6 +101,7 @@ describe("intake analytics events", () => {
       event: "intake_answer_changed",
       properties: {
         service_type: "consult",
+        flow_instance_id: "11111111-1111-4111-8111-111111111111",
         subtype: "womens_health",
         step_id: "womens-health-assessment",
         answer_key: "utiSymptoms",
