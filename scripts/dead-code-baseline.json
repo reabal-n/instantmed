@@ -1,10 +1,6 @@
 {
   "version": 1,
   "keys": [
-    "full|duplicates|scripts/e2e/seed.ts|DOCTOR_AUTH_USER_ID,DOCTOR_PROFILE_ID",
-    "full|duplicates|scripts/e2e/seed.ts|OPERATOR_AUTH_USER_ID,OPERATOR_PROFILE_ID",
-    "full|duplicates|scripts/e2e/seed.ts|PATIENT_AUTH_USER_ID,PATIENT_PROFILE_ID",
-    "full|duplicates|scripts/e2e/seed.ts|SUPPORT_AUTH_USER_ID,SUPPORT_PROFILE_ID",
     "full|exports|app/actions/account.ts|updateNotificationPreferences",
     "full|exports|app/actions/admin-config.ts|createEmailTemplateAction",
     "full|exports|app/actions/admin-config.ts|getEligibleRefundsAction",
