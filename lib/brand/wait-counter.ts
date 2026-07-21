@@ -25,9 +25,47 @@ const MED_CERT_QUEUE_STATUSES = [
   "awaiting_script",
 ] as const
 
-type CompletedMedCertRow = {
+export type WaitService = "med-cert" | "rx" | "consult"
+
+/**
+ * Per-service wait sourcing.
+ *
+ * Med certs finish at `approved_at` (approval generates the certificate).
+ * Prescriptions and consults finish when the script actually reaches the
+ * patient, which is `script_sent_at` — approval only moves them to
+ * `awaiting_script`, so measuring to `approved_at` would report a wait the
+ * patient never experiences the end of.
+ *
+ * Rx and consult run materially slower than med certs (median ~2.4h vs ~11min
+ * over the 30 days to 2026-07-20), which is exactly why a single med-cert
+ * median must not be shown on a prescription.
+ */
+const SERVICE_SOURCES: Record<WaitService, {
+  category: string
+  completedAtColumn: "approved_at" | "script_sent_at"
+  completedStatuses: readonly string[]
+}> = {
+  "med-cert": {
+    category: "medical_certificate",
+    completedAtColumn: "approved_at",
+    completedStatuses: ["approved"],
+  },
+  rx: {
+    category: "prescription",
+    completedAtColumn: "script_sent_at",
+    completedStatuses: ["completed"],
+  },
+  consult: {
+    category: "consult",
+    completedAtColumn: "script_sent_at",
+    completedStatuses: ["completed"],
+  },
+}
+
+type CompletedRow = {
   paid_at: string | null
-  approved_at: string | null
+  approved_at?: string | null
+  script_sent_at?: string | null
 }
 
 type QueueMedCertRow = {
@@ -42,7 +80,11 @@ type QueueMedCertRow = {
  * Med certs run 24/7, so the `standby` branch never fires here.
  * Service-specific heroes can pass their own service hours when wired.
  */
-export async function getWaitState(now = new Date()): Promise<WaitState> {
+export async function getWaitState(
+  now = new Date(),
+  service: WaitService = "med-cert",
+): Promise<WaitState> {
+  const source = SERVICE_SOURCES[service]
   try {
     const supabase = createServiceRoleClient()
     const since = new Date(now.getTime() - RECENT_COMPLETION_WINDOW_HOURS * 60 * 60 * 1000).toISOString()
@@ -50,36 +92,39 @@ export async function getWaitState(now = new Date()): Promise<WaitState> {
     const [completedResult, queueResult] = await Promise.all([
       supabase
         .from("intakes")
-        .select("paid_at, approved_at")
-        .eq("category", "medical_certificate")
-        .eq("status", "approved")
+        .select(`paid_at, ${source.completedAtColumn}`)
+        .eq("category", source.category)
+        .in("status", source.completedStatuses)
         .not("paid_at", "is", null)
-        .not("approved_at", "is", null)
-        .gte("approved_at", since)
-        .order("approved_at", { ascending: false })
+        .not(source.completedAtColumn, "is", null)
+        .gte(source.completedAtColumn, since)
+        .order(source.completedAtColumn, { ascending: false })
         .limit(100),
       supabase
         .from("intakes")
         .select("paid_at, submitted_at, created_at")
-        .eq("category", "medical_certificate")
+        .eq("category", source.category)
         .eq("payment_status", "paid")
         .in("status", MED_CERT_QUEUE_STATUSES),
     ])
 
     if (completedResult.error || queueResult.error) {
       log.warn("Failed to load wait-counter metrics", {
+        service,
         completedError: completedResult.error?.message,
         queueError: queueResult.error?.message,
       })
-      return { variant: "reviewing", service: "med-cert" }
+      return { variant: "reviewing", service }
     }
 
-    const completedRows = (completedResult.data ?? []) as CompletedMedCertRow[]
+    const completedRows = (completedResult.data ?? []) as unknown as CompletedRow[]
+    const completedAt = (row: CompletedRow): string | null =>
+      (row[source.completedAtColumn] as string | null | undefined) ?? null
     const samples = completedRows
-      .map((row) => reviewMinutes(row.paid_at, row.approved_at))
+      .map((row) => reviewMinutes(row.paid_at, completedAt(row)))
       .filter((value): value is number => typeof value === "number" && value >= 0)
     const newestApprovedAt = completedRows
-      .map((row) => row.approved_at ? new Date(row.approved_at).getTime() : null)
+      .map((row) => { const t = completedAt(row); return t ? new Date(t).getTime() : null })
       .filter((value): value is number => typeof value === "number" && Number.isFinite(value))
       .sort((a, b) => b - a)[0]
     const newestSampleAgeMinutes = typeof newestApprovedAt === "number"
@@ -94,8 +139,8 @@ export async function getWaitState(now = new Date()): Promise<WaitState> {
 
     if (samples.length === 0) {
       return queueRows.length > 0
-        ? { variant: "queued", queueLength: queueRows.length, queueP95Minutes, service: "med-cert" }
-        : { variant: "reviewing", service: "med-cert" }
+        ? { variant: "queued", queueLength: queueRows.length, queueP95Minutes, service }
+        : { variant: "reviewing", service }
     }
 
     return {
@@ -104,13 +149,13 @@ export async function getWaitState(now = new Date()): Promise<WaitState> {
       sampleSize: samples.length,
       newestSampleAgeMinutes: newestSampleAgeMinutes ?? undefined,
       queueP95Minutes,
-      service: "med-cert",
+      service,
     }
   } catch (error) {
     log.warn("Wait-counter metrics unavailable", {
       error: error instanceof Error ? error.message : String(error),
     })
-    return { variant: "reviewing", service: "med-cert" }
+    return { variant: "reviewing", service }
   }
 }
 

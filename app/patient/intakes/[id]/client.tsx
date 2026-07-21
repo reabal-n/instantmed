@@ -38,6 +38,7 @@ import {
   resolvePatientIntakeNextStep,
   resolvePatientIntakeStatusConfig,
 } from "@/components/patient/intake-types"
+import { RequestWaitNote } from "@/components/patient/request-wait-note"
 import { ReviewAskCard } from "@/components/patient/review-ask-card"
 import { SendToEmployerDialog } from "@/components/patient/send-to-employer-dialog"
 import { CopySupportSummaryButton } from "@/components/patient/support-summary-button"
@@ -56,6 +57,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { capture } from "@/lib/analytics/capture"
+import type { WaitState } from "@/lib/brand/wait-counter-types"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import {
   buildPatientMessagesHref,
@@ -78,6 +80,8 @@ interface IntakeDetailClientProps {
   isEmailVerified?: boolean
   userEmail?: string
   dateCorrectionState?: PatientDateCorrectionState
+  /** Live per-service wait signal; null when the request is no longer waiting. */
+  waitState?: WaitState | null
 }
 
 // ─── Submitted answer helpers ──────────────────────────────────────────────
@@ -359,6 +363,7 @@ export function IntakeDetailClient({
   isEmailVerified = true,
   userEmail,
   dateCorrectionState = "none",
+  waitState = null,
 }: IntakeDetailClientProps) {
   const router = useRouter()
   const [intake, setIntake] = useState(initialIntake)
@@ -647,13 +652,24 @@ export function IntakeDetailClient({
           {intake.status === "paid" && (
             <div className="text-sm space-y-1">
               <p>Your request has been received and is waiting for doctor review.</p>
-              <p className="text-muted-foreground">{COPY.global.slaPendingMessage}</p>
+              {/* Specificity replaces the vague line rather than stacking on it:
+                  two sentences saying the same thing is clutter. Falls back to
+                  the static copy whenever there is no real median to quote. */}
+              <RequestWaitNote
+                waitState={waitState}
+                paidAt={intake.paid_at}
+                fallback={<p className="text-muted-foreground">{COPY.global.slaPendingMessage}</p>}
+              />
             </div>
           )}
           {intake.status === "in_review" && (
             <div className="text-sm space-y-1">
               <p>A doctor is currently reviewing your request.</p>
-              <p className="text-muted-foreground">{COPY.global.slaInReviewMessage}</p>
+              <RequestWaitNote
+                waitState={waitState}
+                paidAt={intake.paid_at}
+                fallback={<p className="text-muted-foreground">{COPY.global.slaInReviewMessage}</p>}
+              />
             </div>
           )}
           {intake.status === "approved" && (
