@@ -95,11 +95,24 @@ test.describe("Email Delivery Hub", () => {
       const searchInput = page.getByPlaceholder(/search recipient, subject, intake/i)
       await searchInput.fill(seeded.subject)
 
-      await expect(page.getByText("Medical Certificate - Patient")).toBeVisible({ timeout: 10000 })
-      await expect(page.getByText(seeded.subject)).toBeVisible()
-      await expect(page.getByText("sent (test)")).toBeVisible()
-      await expect(page.getByText(`Intake ${INTAKE_ID.slice(0, 8)}`)).toBeVisible()
-      await expect(page.getByRole("link", { name: /open/i })).toBeVisible()
+      // Gate on the seeded subject, which is the only text here guaranteed to
+      // match exactly one row. Everything below is a generic label that also
+      // describes real production email, so asserting one of those first races
+      // the debounced search: until the filter applies the ledger is still
+      // showing every row, and this spec then fails strict mode rather than
+      // finding nothing. That stayed invisible while the ledger was small and
+      // started failing at 425 med_cert_patient rows, with no code change and
+      // no leaked fixtures (the afterEach delete works). Growth broke it, so
+      // do not "fix" a recurrence by widening the timeout.
+      await expect(page.getByText(seeded.subject)).toBeVisible({ timeout: 10000 })
+
+      // Now that the filter has demonstrably applied, the generic labels
+      // describe the seeded row. first() keeps them stable if the hub ever
+      // renders a row plus a detail pane for the same record.
+      await expect(page.getByText("Medical Certificate - Patient").first()).toBeVisible()
+      await expect(page.getByText("sent (test)").first()).toBeVisible()
+      await expect(page.getByText(`Intake ${INTAKE_ID.slice(0, 8)}`).first()).toBeVisible()
+      await expect(page.getByRole("link", { name: /open/i }).first()).toBeVisible()
     } finally {
       await deleteOutboxRow(seeded.id)
     }
