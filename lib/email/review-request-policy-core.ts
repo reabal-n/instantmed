@@ -109,6 +109,16 @@ export function classifyReviewRequestPolicy(
     return { kind: "policy_suppressed", reason: "request_missing" }
   }
   if (!["approved", "completed"].includes(intake.status)) {
+    // `approved -> in_review` is the guarded revoked-certificate reopen (DB
+    // trigger, migration 20260711193000). It is reversible: the intake gets
+    // re-approved with a fresh certificate and then genuinely deserves its
+    // ask. Suppression here is a one-shot marker, so treating a reopen as
+    // terminal would burn the ask permanently for a patient we are actively
+    // making whole. Defer instead; every other non-terminal state stays
+    // terminal.
+    if (intake.status === "in_review") {
+      return transientRetry(facts.now, "request_reopened")
+    }
     return { kind: "policy_suppressed", reason: "invalid_request_state" }
   }
   if (intake.payment_status !== "paid") {
