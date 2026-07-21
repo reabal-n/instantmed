@@ -39,8 +39,20 @@ export function ReviewRequestEmail({
         InstantMed felt to use? Honest feedback is useful, good or bad.
       </Text>
 
+      {/* Naming the friction before the click is the point. The ask itself was
+          never the problem: 131 sends produced 2 reviews (1.5%). ProductReview is
+          a separate site with its own sign-in step and rejects very short reviews,
+          so a patient who clicks expecting a quick star rating hits a wall partway
+          through and abandons effort already spent. Setting the length and time
+          expectation up front turns a surprise into a known, one-minute task.
+
+          Deliberately does NOT describe where in their flow the sign-in lands:
+          ProductReview sits behind Cloudflare, so we cannot verify that ordering
+          and will not assert third-party mechanics we have not observed. */}
       <Text>
-        Please leave out personal or medical details — reviews are public.
+        A sentence or two is plenty. ProductReview has its own sign-in step, so allow
+        about a minute. Please leave out personal or medical details: reviews are
+        public.
       </Text>
 
       <Button href={reviewUrl}>Share an honest review</Button>
