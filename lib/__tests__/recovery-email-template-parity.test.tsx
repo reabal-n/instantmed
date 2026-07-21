@@ -55,6 +55,61 @@ function expectRecoveryCopyCompliance(html: string) {
   expect(html).toContain("ignore this email")
 }
 
+describe("service-fault checkout recovery variant", () => {
+  const faultHtml = render(
+    <AbandonedCheckoutEmail
+      patientName="Sam Patient"
+      serviceName="Repeat Prescription"
+      resumeUrl={RESUME_URL}
+      startedAgoLabel="about 140 hours ago"
+      appUrl={APP_URL}
+      variant="service_fault"
+    />,
+  )
+
+  it("never tells a patient they stopped, because our checkout is what failed", () => {
+    expect(faultHtml).not.toContain("stopped before payment")
+    expect(faultHtml).toContain("fault on our side")
+    expect(faultHtml).toContain("we are sorry")
+  })
+
+  it("omits the elapsed-time label, which reads absurdly on a days-old fault", () => {
+    expect(faultHtml).not.toContain("140 hours")
+  })
+
+  it("keeps the default variant byte-identical so the live cron is unchanged", () => {
+    const withExplicitDefault = render(
+      <AbandonedCheckoutEmail
+        patientName="Sam Patient"
+        serviceName="Repeat Prescription"
+        resumeUrl={RESUME_URL}
+        startedAgoLabel="about 35 minutes ago"
+        appUrl={APP_URL}
+        variant="abandoned"
+      />,
+    )
+    const withoutVariantProp = render(
+      <AbandonedCheckoutEmail
+        patientName="Sam Patient"
+        serviceName="Repeat Prescription"
+        resumeUrl={RESUME_URL}
+        startedAgoLabel="about 35 minutes ago"
+        appUrl={APP_URL}
+      />,
+    )
+
+    expect(withExplicitDefault).toBe(withoutVariantProp)
+    expect(withoutVariantProp).toContain("stopped before payment")
+    expect(abandonedCheckoutSubject("Repeat Prescription")).toBe("Complete your request")
+  })
+
+  it("uses a distinct subject so the fault notice is not read as a nudge", () => {
+    expect(abandonedCheckoutSubject("Repeat Prescription", "service_fault")).toBe(
+      "Sorry, our checkout failed on your request",
+    )
+  })
+})
+
 describe("recovery email template parity", () => {
   it("exports and previews partial-intake recovery like other lifecycle emails", () => {
     const indexSource = readFileSync(join(process.cwd(), "lib/email/components/templates/index.ts"), "utf8")
@@ -84,6 +139,16 @@ describe("recovery email template parity", () => {
           resumeUrl={RESUME_URL}
           startedAgoLabel="about 35 minutes ago"
           appUrl={APP_URL}
+        />,
+      ),
+      render(
+        <AbandonedCheckoutEmail
+          patientName="Sam Patient"
+          serviceName="Medical Certificate"
+          resumeUrl={RESUME_URL}
+          startedAgoLabel="about 35 minutes ago"
+          appUrl={APP_URL}
+          variant="service_fault"
         />,
       ),
       render(

@@ -93,6 +93,29 @@ describe("Stripe payment integrity helpers", () => {
     })
   })
 
+  it("gives the terminal recovery fallback a support exit instead of promising a retry", () => {
+    // Reached when the intake is payable but there is no live checkout URL and
+    // no rebuilt one. Sometimes transient, sometimes not — the caller can't
+    // tell. The old copy ("wait a few seconds and try again") read as
+    // guaranteed-transient: one patient retried it 9 times with no way out.
+    const result = resolveGuestDuplicateCheckoutRecovery({
+      baseUrl: "https://instantmed.example",
+      checkoutUrl: null,
+      intake: {
+        id: "intake-3",
+        payment_id: "cs_limbo",
+        payment_status: "pending",
+        status: "pending_payment",
+      },
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error).toContain("support@instantmed.com.au")
+      expect(result.error).toMatch(/already paid/i)
+      expect(result.error).not.toMatch(/few seconds/i)
+    }
+  })
+
   it("keeps complete-but-unpaid guest payments in processing until payment is confirmed", () => {
     expect(resolveCompleteAccountPaymentState({
       intakePaymentStatus: "pending",

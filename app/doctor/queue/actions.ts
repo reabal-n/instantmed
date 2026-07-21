@@ -831,8 +831,10 @@ export async function markScriptSentAction(
   //
   // Before this, three patients (26 May, 28 May, 31 May 2026) paid, had a real
   // script written, and were never told by us; one received no email from
-  // InstantMed at all. sendScriptSentEmailIfNeeded checks the outbox first, so
-  // a later approval cannot double-send.
+  // InstantMed at all. Worse, script_sent then made them eligible for a
+  // review-request email about a fulfilment they were never notified of.
+  // sendScriptSentEmailIfNeeded checks the outbox first, so a later approval
+  // cannot double-send.
   let emailNotification: "sent" | "already_sent" | "skipped_no_patient" | "failed" = "failed"
   try {
     emailNotification = await sendScriptSentEmailIfNeeded(supabase, intakeId)

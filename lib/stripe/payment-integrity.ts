@@ -163,8 +163,17 @@ export function resolveGuestDuplicateCheckoutRecovery({
     }
   }
 
+  // Terminal fallback: the intake is still payable but we have no live
+  // checkout URL and could not rebuild one. That is sometimes transient (a
+  // Stripe blip on rebuild) and sometimes not (a session state the rebuild
+  // path doesn't cover) — the caller cannot tell which. The old copy here
+  // promised "wait a few seconds and try again", which read as guaranteed-
+  // transient: one patient retried it 9 times in a row (30d to 2026-07-19)
+  // with no exit. Say what to do when retrying doesn't work, without claiming
+  // anything about payment state we haven't verified.
   return {
     success: false,
-    error: "Checkout is already being prepared. Please wait a few seconds and try again.",
+    error:
+      "We couldn't open your payment session. Wait a moment and try once more — if it still fails, or you think you may have already paid, email support@instantmed.com.au and we'll finish it for you.",
   }
 }

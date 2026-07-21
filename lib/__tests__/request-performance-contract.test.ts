@@ -77,4 +77,34 @@ describe("request conversion performance contract", () => {
     expect(requestFlowSource).toContain("queueMicrotask")
     expect(requestFlowSource).toContain("preloadStepComponent(firstStepComponent)")
   })
+
+  it("resolves a specialty URL into the first consult step before draft hydration", () => {
+    // The server already validated initialSubtype. It must participate in the
+    // first render instead of waiting for the post-mount URL-seeding effect;
+    // otherwise ED, hair-loss, and women's-health entries paint a full-page
+    // spinner before their real first step.
+    expect(requestFlowSource).toContain("resolveInitialStepAnswers")
+    expect(requestFlowSource).toContain("const resolvedStepAnswers = useMemo(")
+    expect(requestFlowSource.match(/answers: resolvedStepAnswers/g) ?? []).toHaveLength(2)
+    expect(requestFlowSource).toContain("currentStepId: visibleStepId")
+  })
+
+  it("keeps the rendered specialty step mounted while the store normalises its step id", () => {
+    expect(requestFlowSource).toContain(
+      "const visibleStepId = currentStep?.id ?? currentStepId",
+    )
+    expect(requestFlowSource).toContain("}, [visibleStepId])")
+    expect(requestFlowSource).toContain("<div key={visibleStepId}>")
+    expect(requestFlowSource).toContain("currentStepId={visibleStepId}")
+  })
+
+  it("does not let pre-hydration step repair displace a restored draft", () => {
+    // Specialty URLs now resolve an active first step in the initial render.
+    // The invalid-step repair effect must still wait for hydration: otherwise
+    // its stale first-render closure can run after rehydrate() merges a saved
+    // ED/hair/women's-health step and reset that draft back to step one.
+    expect(requestFlowSource).toContain(
+      "if (!hydrated || editModeStep) return",
+    )
+  })
 })

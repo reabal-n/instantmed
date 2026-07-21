@@ -28,6 +28,73 @@ export function isUsefulMedicationDescription(description: string | undefined | 
   return true
 }
 
+/** The old PBS-search placeholder shown when the patient couldn't find their medicine. */
+const UNKNOWN_MEDICATION_PLACEHOLDER = "unknown - doctor"
+
+/** The retired PBS-search sentinel code. Nothing in the current UI produces it. */
+const UNKNOWN_MEDICATION_CODE = "UNKNOWN"
+
+function hasUsableRepeatMedicationName(entry: {
+  name?: string
+  displayName?: string
+}): boolean {
+  const name = (entry.name || entry.displayName || "").trim()
+  if (name.length < 2) return false
+  return !name.toLowerCase().includes(UNKNOWN_MEDICATION_PLACEHOLDER)
+}
+
+/**
+ * True when the request genuinely lacks a medicine the doctor could look up:
+ * the retired PBS-search era's "can't find it" state (placeholder name and/or
+ * `UNKNOWN` code) with no real name typed.
+ *
+ * The retired `UNKNOWN` code alone does NOT make an entry unidentified. The
+ * PBS reference search was removed in #211, so the intake is free-text-only:
+ * every current entry is just a patient-typed name with code `MANUAL`, and the
+ * doctor identifies the medicine in Parchment regardless. But the old code
+ * survives in saved "recent medication" preferences (no expiry) and restored
+ * drafts, and both checkout validators used to treat the code itself as
+ * unidentified — demanding a free-text description field the post-#211 UI no
+ * longer renders. One patient hit that unsatisfiable wall 16 times at the pay
+ * step (30d to 2026-07-19). A stale code on a real typed name is legacy
+ * debris, not a clinical gap.
+ */
+export function isUnidentifiedRepeatMedication(entry: {
+  name?: string
+  displayName?: string
+  pbsCode?: string
+}): boolean {
+  const hasSentinelCode =
+    typeof entry.pbsCode === "string" && entry.pbsCode.toUpperCase() === UNKNOWN_MEDICATION_CODE
+  const hasPlaceholderName = `${entry.name || ""} ${entry.displayName || ""}`
+    .toLowerCase()
+    .includes(UNKNOWN_MEDICATION_PLACEHOLDER)
+
+  if (!hasSentinelCode && !hasPlaceholderName) return false
+  return !hasUsableRepeatMedicationName(entry)
+}
+
+/**
+ * Normalise a medication code being restored from a saved draft or recent-
+ * medication preference. Maps the retired `UNKNOWN` sentinel to `MANUAL` when
+ * a real name is present, so the dead code cannot re-enter fresh requests;
+ * genuinely unidentified entries keep it (and stay blocked at the validators).
+ */
+export function resolveRepeatMedicationCode(
+  name: string | undefined,
+  pbsCode: string | undefined,
+): string {
+  const code = (pbsCode || "").trim()
+  if (!code) return "MANUAL"
+  if (
+    code.toUpperCase() === UNKNOWN_MEDICATION_CODE &&
+    hasUsableRepeatMedicationName({ name })
+  ) {
+    return "MANUAL"
+  }
+  return code
+}
+
 export interface RepeatScriptMedicationDisplayParts {
   name: string
   strength?: string

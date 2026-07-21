@@ -20,8 +20,8 @@ import {
 import { validateCertificateStartDate } from "@/lib/medical-certificates/date-policy"
 import { isWomensHealthOptionLive } from "@/lib/request/consult-subtypes"
 import {
-  buildRepeatScriptMedicationValidationText,
   extractRepeatScriptMedications,
+  isUnidentifiedRepeatMedication,
   isUsefulMedicationDescription,
 } from "@/lib/validation/repeat-script-medications"
 
@@ -190,13 +190,12 @@ export const medicationStepSchema = z
     }
 
     medications.forEach((medication, index) => {
-      const pbsCode = medication.pbsCode || ""
-      const medicationText = buildRepeatScriptMedicationValidationText(medication).toLowerCase()
-
-      // A3 softening (boundary 3): an unknown medicine may pass only with a useful
-      // free-text description; otherwise it stays a hard block at the step.
-      const isUnknown = pbsCode.toUpperCase() === "UNKNOWN" || medicationText.includes("unknown - doctor")
-      if (isUnknown && !isUsefulMedicationDescription(medication.description)) {
+      // A3 softening (boundary 3): a genuinely unidentified medicine (no real
+      // name — the retired PBS-search "can't find it" state) may pass only
+      // with a useful free-text description; otherwise it stays a hard block
+      // at the step. A real typed name with a stale legacy code is NOT
+      // unidentified — see isUnidentifiedRepeatMedication.
+      if (isUnidentifiedRepeatMedication(medication) && !isUsefulMedicationDescription(medication.description)) {
         ctx.addIssue({
           code: "custom",
           path: index === 0 ? ["medicationName"] : ["medications", index, "name"],

@@ -219,11 +219,20 @@ describe("manual script-sent patient notification", () => {
   it("notifies the patient when the doctor records an external script", () => {
     const body = queueActionBody("markScriptSentAction")
 
-    expect(body).toContain("sendScriptSentEmailIfNeeded")
+    // Match the call, not a bare mention: the rationale comment above this
+    // code names the helper, so `toContain("sendScriptSentEmailIfNeeded")`
+    // alone would pass on a comment with the call deleted.
+    expect(body).toContain("await sendScriptSentEmailIfNeeded(")
     // Evidence is already durable at this point; an email outage must not
     // discard it by failing the action.
     expect(body).toMatch(/try\s*{[\s\S]*sendScriptSentEmailIfNeeded[\s\S]*catch/)
-    expect(body).toContain("emailNotification")
+    expect(body).toContain("Sentry.captureException")
+    expect(body).toContain("return { success: true, emailNotification }")
+  })
+
+  it("notifies on the approval path too, so no fulfilment route stays silent", () => {
+    const body = queueActionBody("approvePrescribedScriptAction")
+    expect(body).toContain("await sendScriptSentEmailIfNeeded(")
   })
 
   it("keeps the send idempotent so approval cannot double-notify", () => {

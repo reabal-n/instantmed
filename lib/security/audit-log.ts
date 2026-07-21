@@ -40,6 +40,7 @@ export type AuditAction =
   | "account_closed"
   | "permission_change"
   | "doctor_capabilities_updated"
+  | "stranded_checkout_recovery_email"
 
 interface AuditLogEntry {
   action: AuditAction

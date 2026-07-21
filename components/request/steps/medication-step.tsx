@@ -73,6 +73,7 @@ import {
 } from "@/lib/request/repeat-rx-regimen"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { deriveRepeatMedicationTerminalBlock } from "@/lib/request/terminal-safety-blocks"
+import { resolveRepeatMedicationCode } from "@/lib/validation/repeat-script-medications"
 
 import { FormField } from "../form-field"
 import { useRequestStore } from "../store"
@@ -157,7 +158,11 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         name: med.name || "",
         strength: med.strength,
         form: med.form,
-        pbsCode: med.pbsCode,
+        // A restored draft can carry the retired PBS-search UNKNOWN sentinel,
+        // which the checkout validators treat as unidentified. Normalise it
+        // away when a real name exists so a resumed request isn't blocked at
+        // Pay on a description field this UI no longer renders.
+        pbsCode: resolveRepeatMedicationCode(med.name, med.pbsCode),
       }]
     }
     const seededName = medicationName || legacyProduct?.drug_name || ""
@@ -259,7 +264,10 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       name: med.name,
       strength: med.strength || "",
       form: med.form || "",
-      pbsCode: med.pbsCode || "MANUAL",
+      // Saved recent-medication preferences have no expiry, so a pre-#211 save
+      // can still carry the retired UNKNOWN sentinel — normalise it so one tap
+      // on a saved medicine can't seed an entry checkout will reject.
+      pbsCode: resolveRepeatMedicationCode(med.name, med.pbsCode),
     }
     syncToStore(updated)
   }

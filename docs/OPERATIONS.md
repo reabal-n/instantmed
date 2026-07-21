@@ -325,6 +325,58 @@ ORDER BY i.created_at DESC LIMIT 5;
 | No Sentry error, no Stripe event | Checkout never initiated | Check client-side console/network |
 | Intake `paid` but patient says "failed" | Redirect issue | Check success/cancel URL configuration |
 
+### Recovering a checkout the platform stranded
+
+The abandoned-checkout cron only discovers candidates whose `created_at` is
+inside `ABANDONED_CHECKOUT_FIRST_NUDGE_LOOKBACK_HOURS` (24h). An intake that
+enters `checkout_failed` **after** that window closes — typically when incident
+remediation marks older rows retroactively — is invisible to the cron
+permanently. Those customers are never contacted by automation.
+
+Find them:
+
+```sql
+SELECT id, category, status, payment_status, created_at
+FROM intakes
+WHERE status IN ('pending_payment','checkout_failed')
+  AND payment_status IN ('pending','unpaid','failed')
+  AND abandoned_email_sent_at IS NULL
+  AND created_at < now() - interval '24 hours'
+ORDER BY created_at DESC;
+```
+
+Recover them via `POST /api/admin/stranded-checkout-recovery`. It **defaults to
+a dry run** — only an explicit `"dryRun": false` sends.
+
+**Auth is an admin session, not `CRON_SECRET`.** Middleware protects
+`/^\/api\/admin/` and returns 401 before the route runs, so curl with a bearer
+token cannot reach it. Run it from the browser console while signed in as admin
+on `instantmed.com.au` (same as `/api/admin/heard-about-us-backfill`):
+
+```js
+// Dry run: reports would_send / would_skip per intake, sends nothing.
+await fetch("/api/admin/stranded-checkout-recovery", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ intakeIds: ["<intakeId>"] }),
+}).then((r) => r.json())
+
+// Live send: add dryRun false.
+await fetch("/api/admin/stranded-checkout-recovery", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ intakeIds: ["<intakeId>"], dryRun: false }),
+}).then((r) => r.json())
+```
+
+It sends the `service_fault` variant of the abandoned-checkout email, which
+tells the patient our checkout failed rather than accusing them of abandoning.
+Use it **only** where the platform was at fault; ordinary abandonment belongs to
+the cron. The send reuses the cron's guards — marketing consent, an exact-state
+re-read, and the one-shot `abandoned_email_sent_at` CAS, so a duplicate send is
+impossible. Payment state is never mutated, and each attempt writes a
+`stranded_checkout_recovery_email` audit row.
+
 ---
 
 ## Sentry Configuration
