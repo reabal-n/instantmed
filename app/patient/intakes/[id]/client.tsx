@@ -385,6 +385,13 @@ export function IntakeDetailClient({
   const statusNextStep = resolvePatientIntakeNextStep(intake)
   const StatusIcon = statusConfig.icon
 
+  // While the patient is waiting, the status block below already states the
+  // status AND quotes the real median. The generic next-step line says the
+  // same thing with less information, so rendering both leaves a waiting
+  // patient reading two sentences that make the same promise before they
+  // reach the tracker that makes it a third time.
+  const hasDedicatedWaitCopy = intake.status === "paid" || intake.status === "in_review"
+
   const handleCancel = () => {
     setActionError(null)
     startTransition(async () => {
@@ -531,7 +538,7 @@ export function IntakeDetailClient({
           </Badge>
         </div>
 
-        {statusNextStep && (
+        {statusNextStep && !hasDedicatedWaitCopy && (
           <div className="rounded-xl border border-border/50 bg-muted/30 p-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div>

@@ -732,7 +732,7 @@ describe("Email Templates", () => {
         "Sarah,",
         "How did InstantMed go?",
         "Hope everything went smoothly. If you have a minute, would you mind sharing how InstantMed felt to use? Honest feedback is useful, good or bad.",
-        "Please leave out personal or medical details — reviews are public.",
+        "A sentence or two is plenty. ProductReview has its own sign-in step, so allow about a minute. Please leave out personal or medical details: reviews are public.",
         "Share an honest review",
         "No pressure. This is the only review email we&#x27;ll send for this request.",
       )
@@ -746,6 +746,45 @@ describe("Email Templates", () => {
       expect(html.toLowerCase()).not.toContain("means the world")
     })
 
+    // 131 sends produced 2 reviews. The ask was never the problem; the
+    // destination asks for an account after the review is written and rejects
+    // very short ones, so effort already spent is what gets lost. These three
+    // expectations are the fix, and dropping any one of them silently restores
+    // the surprise that caused the abandonment.
+    it("sets expectations for the off-site review wall before the click", () => {
+      const html = render(
+        <ReviewRequestEmail patientName="Sarah Parker" appUrl={APP_URL} />
+      )
+
+      expect(html).toContain("A sentence or two is plenty")
+      expect(html).toContain("its own sign-in step")
+      expect(html).toContain("allow about a minute")
+      // The expectation-setting must arrive before the button, or it is advice
+      // the patient reads only after they have already committed.
+      expect(html.indexOf("its own sign-in step")).toBeLessThan(
+        html.indexOf("Share an honest review"),
+      )
+    })
+
+    it("keeps the ask neutral rather than steering to positive reviews", () => {
+      const html = render(
+        <ReviewRequestEmail patientName="Sarah Parker" appUrl={APP_URL} />
+      ).toLowerCase()
+
+      // Review-gating (soliciting only happy customers) breaches ACCC guidance
+      // and ProductReview's own terms. "good or bad" is the neutrality anchor.
+      expect(html).toContain("good or bad")
+      for (const steer of [
+        "if you were happy",
+        "if you had a good",
+        "5-star",
+        "five star",
+        "positive review",
+      ]) {
+        expect(html).not.toContain(steer)
+      }
+    })
+
     it("produces a readable plain-text alternative with the review URL", () => {
       const html = render(
         <ReviewRequestEmail patientName="Sarah Parker" appUrl={APP_URL} />
@@ -754,7 +793,8 @@ describe("Email Templates", () => {
 
       expect(text).toContain("Sarah,")
       expect(text).toContain("Hope everything went smoothly.")
-      expect(text).toContain("Please leave out personal or medical details — reviews are public.")
+      expect(text).toContain("Please leave out personal or medical details: reviews are public.")
+      expect(text).toContain("its own sign-in step")
       expect(text).toContain("Share an honest review (https://instantmed.com.au/api/review-redirect?")
       expect(text).toContain("No pressure. This is the only review email we'll send for this request.")
       expect(text).not.toContain("\u200c")
