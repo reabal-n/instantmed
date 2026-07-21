@@ -820,27 +820,33 @@ export async function markScriptSentAction(
     )
   }
 
-  // Tell the patient their script is ready. Both Parchment-evidence paths do
-  // this; this manual fallback did not, so a doctor who prescribed externally
-  // completed the request and the patient was never notified — they had paid,
-  // the medicine was waiting, and the product went silent. Worse, script_sent
-  // then made them eligible for a review-request email about a fulfilment they
-  // had never been told about.
+  // Tell the patient their script is ready.
   //
-  // sendScriptSentEmailIfNeeded is idempotent (it checks email_outbox for an
-  // existing script_sent row), so this cannot double-send when a Parchment
-  // path already notified. Email failure must not fail the action: the script
-  // genuinely is sent, so surface it to Sentry and report it back instead.
+  // The Parchment webhook deliberately does NOT email here: it fires on a
+  // machine event, so the notification waits for the doctor's explicit
+  // approval in approvePrescribedScriptAction. This path is the opposite —
+  // the doctor has already prescribed externally and is clicking the button
+  // themselves, so the click IS the explicit human confirmation and no second
+  // automated event is coming to trigger the email.
+  //
+  // Before this, three patients (26 May, 28 May, 31 May 2026) paid, had a real
+  // script written, and were never told by us; one received no email from
+  // InstantMed at all. Worse, script_sent then made them eligible for a
+  // review-request email about a fulfilment they were never notified of.
+  // sendScriptSentEmailIfNeeded checks the outbox first, so a later approval
+  // cannot double-send.
   let emailNotification: "sent" | "already_sent" | "skipped_no_patient" | "failed" = "failed"
   try {
     emailNotification = await sendScriptSentEmailIfNeeded(supabase, intakeId)
   } catch (emailErr) {
     emailNotification = "failed"
+    // Non-fatal: the script evidence is already recorded and must not be lost
+    // to an email outage. Sentry carries the miss so it can be resent.
     Sentry.captureException(emailErr, {
       tags: { email_type: "script_sent", intake_id: intakeId },
       level: "warning",
     })
-    logger.warn("Failed to send script_sent email", { intakeId, error: emailErr })
+    logger.warn("Failed to send script_sent email after manual mark", { intakeId, error: emailErr })
   }
 
   revalidateStaff({ intakeId, scripts: true })

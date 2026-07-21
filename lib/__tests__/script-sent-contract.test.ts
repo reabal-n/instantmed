@@ -203,3 +203,54 @@ describe("script sent mutation production contract", () => {
     expect(parchmentWebhookSource).toContain("externalEvidenceAlreadyIssued: true")
   })
 })
+
+/**
+ * 2026-07-19: the manual "Mark Sent Manually" fallback recorded external
+ * prescribing evidence and told the patient nothing. Three patients (26 May,
+ * 28 May, 31 May 2026) paid, had a real script written, and heard nothing from
+ * us — one received no InstantMed email at all.
+ *
+ * The webhook path stays silent on purpose: it fires on a machine event, so the
+ * notification waits for the doctor's explicit approval. The manual path is the
+ * doctor's own click after prescribing externally, and no second automated
+ * event is coming, so it must notify.
+ */
+describe("manual script-sent patient notification", () => {
+  it("notifies the patient when the doctor records an external script", () => {
+    const body = queueActionBody("markScriptSentAction")
+
+    // Match the call, not a bare mention: the rationale comment above this
+    // code names the helper, so `toContain("sendScriptSentEmailIfNeeded")`
+    // alone would pass on a comment with the call deleted.
+    expect(body).toContain("await sendScriptSentEmailIfNeeded(")
+    // Evidence is already durable at this point; an email outage must not
+    // discard it by failing the action.
+    expect(body).toMatch(/try\s*{[\s\S]*sendScriptSentEmailIfNeeded[\s\S]*catch/)
+    expect(body).toContain("Sentry.captureException")
+    expect(body).toContain("return { success: true, emailNotification }")
+  })
+
+  it("notifies on the approval path too, so no fulfilment route stays silent", () => {
+    const body = queueActionBody("approvePrescribedScriptAction")
+    expect(body).toContain("await sendScriptSentEmailIfNeeded(")
+  })
+
+  it("keeps the send idempotent so approval cannot double-notify", () => {
+    const helperStart = queueActionSource.indexOf(
+      "async function sendScriptSentEmailIfNeeded",
+    )
+    expect(helperStart).toBeGreaterThanOrEqual(0)
+    const helper = queueActionSource.slice(helperStart, helperStart + 1200)
+
+    // Both the manual mark and a later approval call this helper; the outbox
+    // lookup is the only thing stopping the patient getting two emails.
+    expect(helper).toContain('.eq("email_type", "script_sent")')
+    expect(helper).toContain("already_sent")
+  })
+
+  it("leaves the webhook path notifying only via explicit approval", () => {
+    // Guards the two-step prescribing workflow: a machine event must not email
+    // the patient before a doctor has confirmed.
+    expect(parchmentWebhookSource).not.toContain("sendScriptSentEmailIfNeeded")
+  })
+})

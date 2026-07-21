@@ -17,6 +17,10 @@ import {
   buildBatchReviewOverdueAlert,
   getBatchReviewHealth,
 } from "@/lib/monitoring/batch-review-health"
+import {
+  recordCriticalAlertSent,
+  shouldSendCriticalAlert,
+} from "@/lib/monitoring/critical-alert-cooldown"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import {
   buildGoogleAdsAdjustmentTerminalRiskAlert,
@@ -643,9 +647,16 @@ export async function GET(request: NextRequest) {
       // decision 2026-07-17). Criticals ONLY — warnings stay Sentry-side, so
       // Telegram never becomes a general second alerting channel. Detail
       // strings are the same aggregate PHI-free text the Sentry capture uses.
-      await sendCriticalBusinessAlertViaTelegram(
-        criticalAlerts.map((a) => a.detail).join("; "),
-      )
+      //
+      // Sentry above always fires; only the Telegram page is cooled down, so an
+      // unchanged condition stops paging every 30 minutes without any loss of
+      // recorded signal. A changed detail string is a new fingerprint and pages
+      // immediately — escalation is never delayed.
+      const criticalDetail = criticalAlerts.map((a) => a.detail).join("; ")
+      if (await shouldSendCriticalAlert(criticalDetail)) {
+        const delivered = await sendCriticalBusinessAlertViaTelegram(criticalDetail)
+        if (delivered) await recordCriticalAlertSent(criticalDetail)
+      }
     }
 
     const warningAlerts = alerts.filter((a) => a.severity === "warning")

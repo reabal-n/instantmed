@@ -81,6 +81,14 @@ describe("classifyReviewRequestPolicy", () => {
       reason: "invalid_request_state",
     },
     {
+      name: "after a cancellation",
+      facts: eligibleFacts({
+        intake: { ...eligibleFacts().intake!, status: "cancelled" },
+      }),
+      kind: "policy_suppressed",
+      reason: "invalid_request_state",
+    },
+    {
       name: "after a refund",
       facts: eligibleFacts({
         intake: {
@@ -160,6 +168,28 @@ describe("classifyReviewRequestPolicy", () => {
     expect(classifyReviewRequestPolicy(facts)).toMatchObject({
       kind: "transiently_blocked",
     })
+  })
+
+  // `approved -> in_review` is the guarded revoked-certificate reopen (DB
+  // trigger, migration 20260711193000). Suppression writes a one-shot marker,
+  // so classifying a reversible reopen as terminal destroys the ask for a
+  // patient we are actively re-issuing a certificate to.
+  it("defers rather than suppresses while a request is reopened for reissue", () => {
+    const decision = classifyReviewRequestPolicy(eligibleFacts({
+      intake: { ...eligibleFacts().intake!, status: "in_review" },
+    }))
+
+    expect(decision).toMatchObject({
+      kind: "transiently_blocked",
+      reason: "request_reopened",
+    })
+    expect((decision as { retryAt?: string }).retryAt).toBeTruthy()
+  })
+
+  it("still becomes eligible once the reopened request is approved again", () => {
+    expect(classifyReviewRequestPolicy(eligibleFacts({
+      intake: { ...eligibleFacts().intake!, status: "approved" },
+    }))).toMatchObject({ kind: "allowed" })
   })
 })
 
