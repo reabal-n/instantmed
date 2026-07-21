@@ -29,6 +29,22 @@ const FULFILMENT_STAGE_SLA_MINUTES = {
   patient_notified: null,
 } as const
 
+/**
+ * How recent a breach must be to PAGE the operator.
+ *
+ * The SLAs above are minutes, so a request that stalled months ago breaches
+ * them by orders of magnitude and can never clear by ageing. Before this, the
+ * critical Telegram alert re-fired every 30 minutes (the business-alerts cron
+ * cadence) for a backlog whose newest member was five weeks old — which trains
+ * the operator to ignore the channel, and a genuine stall looks identical.
+ *
+ * The dashboard still counts and renders every breach: `slaBreachedCount` is
+ * the full backlog for `/admin/analytics`. Only `slaBreachedRecentCount` — a
+ * breach whose stage timestamp is inside this window — is pageable. Matches the
+ * 7-day re-page convention in lib/monitoring/google-ads-purchase-import-health.
+ */
+const FULFILMENT_SLA_ALERT_MAX_AGE_DAYS = 7
+
 export type PrescriptionFulfilmentStage = keyof typeof FULFILMENT_STAGE_LABELS
 export type PrescriptionFulfilmentConfirmationSource = "manual_or_pms" | "parchment_webhook" | null
 export type ScriptSentNotificationStatus = "failed" | "pending" | "sent" | null
@@ -40,12 +56,24 @@ export const PRESCRIPTION_FULFILMENT_STAGES: PrescriptionFulfilmentStage[] = [
   "patient_notified",
 ]
 
+/**
+ * Payment states that still carry a prescribing obligation.
+ *
+ * A refunded request has been commercially cancelled: the doctor owes no
+ * script, so it must not sit in the fulfilment funnel forever breaching a
+ * 120-minute SLA. Excluding it here (rather than forcing the intake to a
+ * terminal status) keeps the payment record and the clinical record honest —
+ * `approved` + `refunded` is exactly what happened.
+ */
+const FULFILMENT_OBLIGATION_PAYMENT_STATUSES = ["paid", "partially_refunded"] as const
+
 type FulfilmentIntakeRow = {
   approved_at: string | null
   category: string | null
   created_at: string | null
   id: string
   paid_at: string | null
+  payment_status?: string | null
   parchment_reference: string | null
   reference_number: string | null
   script_sent: boolean | null
@@ -103,6 +131,8 @@ export interface PrescriptionFulfilmentStageSummary {
   manualConfirmedCount: number
   oldestMinutes: number | null
   slaBreachedCount: number
+  /** Breaches inside FULFILMENT_SLA_ALERT_MAX_AGE_DAYS — the pageable subset. */
+  slaBreachedRecentCount: number
   slaMinutes: number | null
   webhookConfirmedCount: number
 }
@@ -123,6 +153,8 @@ export interface PrescriptionFulfilmentSlaAlert {
   count: number
   detail: string
   metadata: {
+    /** Full breach backlog for this stage, including items too old to page. */
+    backlog_count: number
     oldest_minutes: number | null
     sla_minutes: number
     stage: Exclude<PrescriptionFulfilmentStage, "patient_notified">
@@ -149,6 +181,7 @@ export const EMPTY_PRESCRIPTION_FULFILMENT_DASHBOARD: PrescriptionFulfilmentDash
     manualConfirmedCount: 0,
     oldestMinutes: null,
     slaBreachedCount: 0,
+    slaBreachedRecentCount: 0,
     slaMinutes: FULFILMENT_STAGE_SLA_MINUTES[stage],
     webhookConfirmedCount: 0,
   })),
@@ -160,19 +193,22 @@ export function buildPrescriptionFulfilmentSlaAlerts(
   dashboard: PrescriptionFulfilmentDashboard,
 ): PrescriptionFulfilmentSlaAlert[] {
   return dashboard.stages.flatMap((stage) => {
+    // Page on the RECENT breach count only. stage.slaBreachedCount stays the
+    // full backlog for the dashboard — see FULFILMENT_SLA_ALERT_MAX_AGE_DAYS.
     if (
       stage.key === "patient_notified" ||
       stage.slaMinutes == null ||
-      stage.slaBreachedCount === 0
+      stage.slaBreachedRecentCount === 0
     ) {
       return []
     }
 
-    const requestLabel = stage.slaBreachedCount === 1 ? "request has" : "requests have"
+    const requestLabel = stage.slaBreachedRecentCount === 1 ? "request has" : "requests have"
     return [{
-      count: stage.slaBreachedCount,
-      detail: `${stage.slaBreachedCount} paid prescribing ${requestLabel} exceeded the ${stage.slaMinutes}-minute ${stage.label.toLowerCase()} SLA`,
+      count: stage.slaBreachedRecentCount,
+      detail: `${stage.slaBreachedRecentCount} paid prescribing ${requestLabel} exceeded the ${stage.slaMinutes}-minute ${stage.label.toLowerCase()} SLA`,
       metadata: {
+        backlog_count: stage.slaBreachedCount,
         oldest_minutes: stage.oldestMinutes,
         sla_minutes: stage.slaMinutes,
         stage: stage.key,
@@ -298,6 +334,14 @@ function resolveConfirmationSource(
   return null
 }
 
+function isWithinAlertWindow(stageAt: string | null, now: number): boolean {
+  const age = minutesSince(stageAt, now)
+  // An item with no stage timestamp cannot be aged out; keep it pageable rather
+  // than silently dropping a request we know nothing about.
+  if (age == null) return true
+  return age <= FULFILMENT_SLA_ALERT_MAX_AGE_DAYS * 24 * 60
+}
+
 function isSlaBreached(
   item: Pick<PrescriptionFulfilmentItem, "stage" | "stageAt">,
   now: number,
@@ -398,6 +442,9 @@ export function buildPrescriptionFulfilmentDashboard({
       manualConfirmedCount: stageItems.filter((item) => item.confirmationSource === "manual_or_pms").length,
       oldestMinutes: oldest,
       slaBreachedCount: stageItems.filter((item) => isSlaBreached(item, now)).length,
+      slaBreachedRecentCount: stageItems.filter(
+        (item) => isSlaBreached(item, now) && isWithinAlertWindow(item.stageAt, now),
+      ).length,
       slaMinutes: FULFILMENT_STAGE_SLA_MINUTES[stage],
       webhookConfirmedCount: stageItems.filter((item) => item.confirmationSource === "parchment_webhook").length,
     }
@@ -432,8 +479,9 @@ export async function getPrescriptionFulfilmentDashboard(
 
   const intakesQuery = supabase
     .from("intakes")
-    .select("id, reference_number, status, category, subtype, paid_at, approved_at, script_sent, script_sent_at, parchment_reference, updated_at, created_at")
+    .select("id, reference_number, status, category, subtype, paid_at, payment_status, approved_at, script_sent, script_sent_at, parchment_reference, updated_at, created_at")
     .not("paid_at", "is", null)
+    .in("payment_status", [...FULFILMENT_OBLIGATION_PAYMENT_STATUSES])
     .gte("paid_at", since)
     .in("category", ["prescription", "consult"])
     .order("updated_at", { ascending: false })

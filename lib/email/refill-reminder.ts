@@ -52,6 +52,9 @@ function dateNDaysAgoISO(days: number): string {
  * Active repeatable scripts issued ~10-11 weeks ago that have never had a refill
  * reminder. Excludes bounced emails and any script the patient has already
  * superseded with a newer script for the same medication (they reordered).
+ *
+ * Scripts with no originating request are excluded — see
+ * PLATFORM_ORIGINATED_SCRIPT_FILTER below.
  */
 export async function findRefillReminderCandidates(): Promise<RefillCandidate[]> {
   const supabase = createServiceRoleClient()
@@ -71,6 +74,12 @@ export async function findRefillReminderCandidates(): Promise<RefillCandidate[]>
       patient:profiles!patient_id(email, first_name, email_bounced)
     `)
     .eq("status", "active")
+    // A script with no intake never came from a paid request. The owner-doctor
+    // writes these directly in Parchment for people they know personally, and
+    // this email is a commercial reorder nudge for a service those recipients
+    // never bought. Before this filter the cron had already emailed four of
+    // them (2026-06-28 and 2026-07-13). See docs/OPERATIONS.md.
+    .not("intake_id", "is", null)
     .is("refill_reminder_sent_at", null)
     .gte("issued_date", windowStart)
     .lte("issued_date", windowEnd)

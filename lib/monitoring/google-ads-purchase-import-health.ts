@@ -86,6 +86,13 @@ export type GoogleAdsAdjustmentHealth = {
   failedIntakesWithoutSuccessfulUpload: number
   generatedAt: string
   latestFailureAt: string | null
+  /**
+   * Latest failure that is BOTH terminal and click-attributed — the only class
+   * this module pages on. Kept separate from `latestFailureAt` (a max across
+   * every adjustment failure) because the re-page window must not be re-armed
+   * by an unrelated failure. See buildGoogleAdsAdjustmentTerminalRiskAlert.
+   */
+  latestPageableFailureAt: string | null
   lookbackDays: number
   queryFailed: boolean
   terminalClickAttributedFailures: number
@@ -104,6 +111,7 @@ export type GoogleAdsAdjustmentTerminalRiskAlert = {
     failed_intakes_without_successful_upload: number
     generated_at: string
     latest_failure_at: string | null
+    latest_pageable_failure_at: string | null
     terminal_click_attributed_failures: number
     terminal_failures: number
     terminal_non_click_attributed_failures: number
@@ -226,9 +234,13 @@ export function buildGoogleAdsAdjustmentTerminalRiskAlert(
   if (health.queryFailed) return null
   if (health.terminalClickAttributedFailures <= 0) return null
 
-  if (health.latestFailureAt) {
+  // Age out against the latest PAGEABLE (terminal + click-attributed) failure.
+  // Using the global latestFailureAt let any unrelated adjustment failure — for
+  // example a user-data-only retraction on a different order — re-arm this
+  // window and resurface a finding that had already gone quiet.
+  if (health.latestPageableFailureAt) {
     const generatedMs = Date.parse(health.generatedAt)
-    const latestFailureMs = Date.parse(health.latestFailureAt)
+    const latestFailureMs = Date.parse(health.latestPageableFailureAt)
     if (
       Number.isFinite(generatedMs) &&
       Number.isFinite(latestFailureMs) &&
@@ -252,6 +264,7 @@ export function buildGoogleAdsAdjustmentTerminalRiskAlert(
       failed_intakes_without_successful_upload: health.failedIntakesWithoutSuccessfulUpload,
       generated_at: health.generatedAt,
       latest_failure_at: health.latestFailureAt,
+      latest_pageable_failure_at: health.latestPageableFailureAt,
       terminal_click_attributed_failures: health.terminalClickAttributedFailures,
       terminal_failures: health.terminalFailures,
       terminal_non_click_attributed_failures: health.terminalNonClickAttributedFailures,
