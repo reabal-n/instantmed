@@ -256,6 +256,8 @@ export function summarizeGoogleAdsAdjustmentHealth({
   let failedIntakesWithoutSuccessfulUpload = 0
   let latestFailureAt: string | null = null
   let latestFailureMs = -1
+  let latestPageableFailureAt: string | null = null
+  let latestPageableFailureMs = -1
   let terminalClickAttributedFailures = 0
   let terminalFailures = 0
   let terminalNonClickAttributedFailures = 0
@@ -282,6 +284,12 @@ export function summarizeGoogleAdsAdjustmentHealth({
       // poisoning signal); they stay in terminalFailures for observability.
       if (clickAttributed && failure.metadata?.terminal_reason !== DM_REQUEST_REJECTED_TERMINAL_REASON) {
         terminalClickAttributedFailures += 1
+        // Track the pageable class separately so an unrelated failure cannot
+        // re-arm the re-page window for a stale finding.
+        if (at > latestPageableFailureMs) {
+          latestPageableFailureMs = at
+          latestPageableFailureAt = failure.created_at ?? null
+        }
       } else if (!clickAttributed) {
         terminalNonClickAttributedFailures += 1
       }
@@ -298,6 +306,7 @@ export function summarizeGoogleAdsAdjustmentHealth({
     failedIntakesWithoutSuccessfulUpload,
     generatedAt,
     latestFailureAt,
+    latestPageableFailureAt,
     lookbackDays,
     queryFailed: false,
     terminalClickAttributedFailures,
@@ -323,6 +332,7 @@ function emptyGoogleAdsAdjustmentHealth({
     failedIntakesWithoutSuccessfulUpload: 0,
     generatedAt,
     latestFailureAt: null,
+    latestPageableFailureAt: null,
     lookbackDays,
     queryFailed,
     terminalClickAttributedFailures: 0,

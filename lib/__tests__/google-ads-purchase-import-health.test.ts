@@ -316,6 +316,7 @@ describe("Google Ads adjustment terminal-risk detector", () => {
       failedIntakesWithoutSuccessfulUpload: 0,
       generatedAt: "2026-07-08T09:00:00.000Z",
       latestFailureAt: "2026-07-03T08:45:26.732Z",
+      latestPageableFailureAt: "2026-07-03T08:45:26.732Z",
       lookbackDays: 90,
       queryFailed: false,
       terminalClickAttributedFailures: 0,
@@ -356,7 +357,26 @@ describe("Google Ads adjustment terminal-risk detector", () => {
           // 13 days old vs the 7-day re-page window; the per-intake
           // fingerprinted Sentry error remains the durable record.
           latestFailureAt: "2026-06-25T08:00:00.000Z",
+          latestPageableFailureAt: "2026-06-25T08:00:00.000Z",
           terminalClickAttributedFailures: 1,
+        }),
+      ),
+    ).toBeNull()
+  })
+
+  it("does not let an unrelated newer failure re-arm the re-page window", () => {
+    // 2026-07-19 incident: a user-data-only retraction failed terminally that
+    // morning on a different order. It is not pageable (nothing was ever
+    // counted, so nothing can be poisoned), but it advanced the shared
+    // latestFailureAt and resurfaced a click-attributed finding from 17 days
+    // earlier that had already gone quiet.
+    expect(
+      buildGoogleAdsAdjustmentTerminalRiskAlert(
+        adjustmentHealth({
+          latestFailureAt: "2026-07-08T07:37:58.180Z",
+          latestPageableFailureAt: "2026-06-25T08:00:00.000Z",
+          terminalClickAttributedFailures: 1,
+          terminalNonClickAttributedFailures: 1,
         }),
       ),
     ).toBeNull()
