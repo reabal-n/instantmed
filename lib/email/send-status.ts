@@ -2,6 +2,8 @@ import "server-only"
 
 import * as React from "react"
 
+import { env } from "@/lib/config/env"
+import { buildPatientRequestAccessUrl } from "@/lib/email/request-access-url"
 import { logger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -30,6 +32,7 @@ async function buildTemplateElement(
         element: React.createElement(ConsultApprovedEmail, {
           patientName: String(data.patientName || "there"),
           requestId: String(data.requestId || ""),
+          requestAccessUrl: String(data.requestAccessUrl || ""),
           doctorNotes: data.doctorName ? `Reviewed by Dr ${data.doctorName}` : undefined,
         }),
         subject: data.requestType
@@ -48,6 +51,7 @@ async function buildTemplateElement(
           patientName: String(data.patientName || "there"),
           requestType,
           requestId: String(data.requestId || ""),
+          requestAccessUrl: String(data.requestAccessUrl || ""),
           reason: data.reason ? String(data.reason) : undefined,
         }),
         subject: requestDeclinedEmailSubject(requestType),
@@ -64,6 +68,7 @@ async function buildTemplateElement(
           patientName: String(data.patientName || "there"),
           requestType,
           requestId: String(data.requestId || ""),
+          requestAccessUrl: String(data.requestAccessUrl || ""),
           doctorMessage: String(
             data.message || "Please provide additional details about your request.",
           ),
@@ -112,10 +117,14 @@ export async function sendStatusTransitionEmail(
   }
 
   const baseData = {
+    ...additionalData,
     patientName: patient.full_name || "there",
     requestType: emailRequestTypeLabel(intake.category, intake.subtype),
     requestId: intake.id,
-    ...additionalData,
+    requestAccessUrl: buildPatientRequestAccessUrl({
+      appUrl: env.appUrl,
+      intakeId: intake.id,
+    }),
   }
 
   const { element, subject } = await buildTemplateElement(templateType, baseData)
@@ -137,4 +146,3 @@ export async function sendStatusTransitionEmail(
     patientId: intake.patient_id,
   })
 }
-

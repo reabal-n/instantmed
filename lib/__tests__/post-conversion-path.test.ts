@@ -19,9 +19,9 @@ describe("isPostConversionPath", () => {
     expect(isPostConversionPath()).toBe(true)
   })
 
-  it("is true on the guest complete-account page (where guest purchase fires)", () => {
+  it("is false on guest complete-account because payment truth is captured server-side", () => {
     setPath("/auth/complete-account")
-    expect(isPostConversionPath()).toBe(true)
+    expect(isPostConversionPath()).toBe(false)
   })
 
   it("is false on the request/intake flow", () => {

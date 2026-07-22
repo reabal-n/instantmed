@@ -13,7 +13,8 @@ import { trackAIReferral } from "@/lib/analytics/ai-referral"
 import { resolvePostHogClient } from "@/lib/analytics/posthog-client-resolver"
 import { PostHogContext, usePostHog } from "@/lib/analytics/posthog-context"
 import { onFirstInteraction } from "@/lib/browser/first-interaction"
-import { isPostConversionPath } from "@/lib/browser/post-conversion-path"
+import { isPostConversionPathname } from "@/lib/browser/post-conversion-path"
+import { isExternalAnalyticsExcludedPathname } from "@/lib/browser/sensitive-capability-path"
 import { sanitizeUrl } from "@/lib/observability/sanitize-phi"
 
 /**
@@ -55,6 +56,7 @@ function PostHogPageView() {
 
   useEffect(() => {
     if (!pathname || !posthog) return
+    if (isExternalAnalyticsExcludedPathname(pathname)) return
     const url = window.location.origin + pathname + window.location.search
     posthog.capture("$pageview", { $current_url: sanitizeUrl(url) })
 
@@ -69,9 +71,14 @@ function PostHogPageView() {
 }
 
 export function PostHogProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname()
+  const allowPostHog = !isExternalAnalyticsExcludedPathname(pathname) ||
+    isPostConversionPathname(pathname)
   const [client, setClient] = useState<PostHog | null>(null)
 
   useEffect(() => {
+    if (!allowPostHog) return
+
     let mounted = true
     let retryCount = 0
     let retryTimer: ReturnType<typeof setTimeout> | null = null
@@ -115,7 +122,7 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
 
     // Post-conversion pages initialise analytics without waiting for a click so
     // a no-interaction bounce can still flush the completed-funnel event.
-    if (isPostConversionPath()) {
+    if (isPostConversionPathname(pathname)) {
       exposeClient({ requireLoaded: true })
     }
 
@@ -131,10 +138,10 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
       clearRetry()
       cancelFirstInteraction()
     }
-  }, [])
+  }, [allowPostHog, pathname])
 
   return (
-    <PostHogContext.Provider value={client}>
+    <PostHogContext.Provider value={allowPostHog ? client : null}>
       <PostHogPageView />
       {children}
     </PostHogContext.Provider>

@@ -26,6 +26,7 @@ export interface RequestReceivedEmailProps {
   requestType: string
   amount: string
   requestId: string
+  requestAccessUrl: string
   isGuest?: boolean
   completeAccountUrl?: string
   paidAt?: string
@@ -41,6 +42,7 @@ export function RequestReceivedEmail({
   requestType,
   amount,
   requestId,
+  requestAccessUrl,
   isGuest,
   completeAccountUrl,
   paidAt,
@@ -74,7 +76,7 @@ export function RequestReceivedEmail({
         We&apos;ll email you once review is complete and your request has been approved.
       </Text>
 
-      <Button href={`${appUrl}/track/${requestId}`}>
+      <Button href={requestAccessUrl}>
         Track your request
       </Button>
 

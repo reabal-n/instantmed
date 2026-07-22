@@ -18,6 +18,7 @@ import {
   buildCheckoutPaymentRecoveryUrl,
   buildExpiredCheckoutStartUrl,
 } from "@/lib/email/recovery-links"
+import { buildPatientRequestAccessUrl } from "@/lib/email/request-access-url"
 import { logger } from "@/lib/observability/logger"
 import { getGuestCertificateAccessHref, getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -204,6 +205,10 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
     const template = ScriptSentEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       requestId: ctx.intake.id,
+      requestAccessUrl: buildPatientRequestAccessUrl({
+        appUrl: env.appUrl,
+        intakeId: ctx.intake.id,
+      }),
       escriptReference: ctx.intake.parchment_reference || undefined,
       appUrl: env.appUrl,
     })
@@ -232,6 +237,10 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       patientName: ctx.patient.full_name || row.to_name || "there",
       requestType,
       requestId: ctx.intake.id,
+      requestAccessUrl: buildPatientRequestAccessUrl({
+        appUrl: env.appUrl,
+        intakeId: ctx.intake.id,
+      }),
       reason,
       reasonCode,
       appUrl: env.appUrl,
@@ -444,6 +453,10 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       patientName: ctx.patient.full_name || row.to_name || "there",
       requestType: ctx.service.short_name || ctx.service.name || "request",
       requestId: ctx.intake.id,
+      requestAccessUrl: buildPatientRequestAccessUrl({
+        appUrl: env.appUrl,
+        intakeId: ctx.intake.id,
+      }),
       appUrl: env.appUrl,
     })
 
@@ -470,6 +483,10 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       patientName: ctx.patient.full_name || row.to_name || "there",
       requestType: ctx.service.short_name || ctx.service.name,
       requestId: ctx.intake.id,
+      requestAccessUrl: buildPatientRequestAccessUrl({
+        appUrl: env.appUrl,
+        intakeId: ctx.intake.id,
+      }),
       doctorMessage,
     })
 
@@ -494,6 +511,10 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
     const template = ConsultApprovedEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       requestId: ctx.intake.id,
+      requestAccessUrl: buildPatientRequestAccessUrl({
+        appUrl: env.appUrl,
+        intakeId: ctx.intake.id,
+      }),
       doctorNotes: metadata?.doctorNotes || undefined,
       appUrl: env.appUrl,
     })
@@ -629,6 +650,10 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       requestType: serviceName,
       amount: amountFormatted,
       requestId: ctx.intake.id,
+      requestAccessUrl: buildPatientRequestAccessUrl({
+        appUrl: env.appUrl,
+        intakeId: ctx.intake.id,
+      }),
     })
 
     const html = await renderEmailToHtml(template)
@@ -674,6 +699,10 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       requestType: serviceName,
       amount: amountFormatted,
       requestId: ctx.intake.id,
+      requestAccessUrl: buildPatientRequestAccessUrl({
+        appUrl: env.appUrl,
+        intakeId: ctx.intake.id,
+      }),
       isGuest,
       completeAccountUrl,
     })

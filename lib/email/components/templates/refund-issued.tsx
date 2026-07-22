@@ -21,6 +21,7 @@ export interface RefundIssuedEmailProps {
   patientName: string
   requestType: string
   requestId: string
+  requestAccessUrl: string
   amountFormatted?: string
   appUrl?: string
 }
@@ -28,7 +29,7 @@ export interface RefundIssuedEmailProps {
 export function RefundIssuedEmail({
   patientName,
   requestType,
-  requestId,
+  requestAccessUrl,
   amountFormatted,
   appUrl = APP_URL,
 }: RefundIssuedEmailProps) {
@@ -65,7 +66,7 @@ export function RefundIssuedEmail({
         </Text>
       </Box>
 
-      <Button href={`${appUrl}/track/${requestId}`} variant="secondary">
+      <Button href={requestAccessUrl} variant="secondary">
         View Request Details
       </Button>
 

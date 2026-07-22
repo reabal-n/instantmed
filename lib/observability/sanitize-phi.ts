@@ -8,6 +8,8 @@
  * - APPs (Australian Privacy Principles)
  */
 
+import { redactExternalAnalyticsPathname } from "@/lib/browser/sensitive-capability-path"
+
 // Patterns that may contain PHI
 const PHI_PATTERNS = {
   // Medicare number: 10-11 digits
@@ -129,11 +131,17 @@ export function sanitizeUrl(url: string): string {
 
   try {
     const parsed = new URL(url)
+
+    // Request-access and checkout-resume paths carry bearer capabilities.
+    // Analytics must retain only the route family, never the path segment.
+    parsed.pathname = redactExternalAnalyticsPathname(parsed.pathname)
     
     // Remove sensitive query params
     const sensitiveParams = [
       "email", "phone", "name", "medicare", "dob", "address",
-      "token", "code", "secret", "password",
+      "token", "code", "secret", "password", "session_id",
+      "intake_id", "request_id", "patient_id", "profile_id", "user_id",
+      "certificate_id",
     ]
     
     sensitiveParams.forEach(param => {

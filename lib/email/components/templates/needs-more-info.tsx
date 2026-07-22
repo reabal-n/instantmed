@@ -18,6 +18,7 @@ export interface NeedsMoreInfoEmailProps {
   patientName: string
   requestType: string
   requestId: string
+  requestAccessUrl: string
   doctorMessage: string
   appUrl?: string
 }
@@ -29,7 +30,7 @@ export function needsMoreInfoSubject(requestType: string) {
 export function NeedsMoreInfoEmail({
   patientName,
   requestType,
-  requestId,
+  requestAccessUrl,
   doctorMessage,
   appUrl = APP_URL,
 }: NeedsMoreInfoEmailProps) {
@@ -62,7 +63,7 @@ export function NeedsMoreInfoEmail({
         </table>
       </Box>
 
-      <Button href={`${appUrl}/track/${requestId}`}>Respond Now</Button>
+      <Button href={requestAccessUrl}>Respond Now</Button>
 
       <Text muted small>
         No rush, but responding soon helps us process your request faster.

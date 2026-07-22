@@ -13,6 +13,7 @@
  */
 
 import { deriveChannelFromClickIds } from "@/lib/analytics/click-id-channels"
+import { isExternalAnalyticsExcludedPathname } from "@/lib/browser/sensitive-capability-path"
 
 const CLICK_IDS = ["gclid", "gbraid", "wbraid"] as const
 const UTM_PARAMS = [
@@ -203,6 +204,7 @@ function hasPaidOrCampaignData(data: AttributionData): boolean {
  */
 export function captureAttribution(): void {
   if (typeof window === "undefined") return
+  if (isExternalAnalyticsExcludedPathname(window.location.pathname)) return
 
   const params = new URLSearchParams(window.location.search)
   const current: AttributionData = {}

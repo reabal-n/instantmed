@@ -6,11 +6,13 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
 import {
+  ConsultApprovedEmail,
   GuestCompleteAccountEmail,
   MedCertPatientEmail,
   NeedsMoreInfoEmail,
   PaymentConfirmedEmail,
   PaymentFailedEmail,
+  RefundIssuedEmail,
   RequestDeclinedEmail,
   RequestReceivedEmail,
   ScriptSentEmail,
@@ -22,8 +24,9 @@ import {
 } from "@/lib/patient/certificate-download"
 
 const APP_URL = "https://instantmed.com.au"
-const INTAKE_ID = "intake_123"
+const INTAKE_ID = "11111111-1111-4111-8111-111111111111"
 const REQUEST_REF = "REQ-123"
+const REQUEST_ACCESS_URL = `${APP_URL}/track/signed-request-access`
 const SESSION_ID = "cs_test_current"
 
 function render(element: React.ReactElement): string {
@@ -70,10 +73,11 @@ const patientEmailCases: Array<{
         requestType="Medical Certificate"
         amount="$24.95"
         requestId={REQUEST_REF}
+        requestAccessUrl={REQUEST_ACCESS_URL}
         appUrl={APP_URL}
       />,
     ),
-    expectedHref: `${APP_URL}/track/${REQUEST_REF}`,
+    expectedHref: REQUEST_ACCESS_URL,
   },
   {
     name: "guest request received account link",
@@ -83,6 +87,7 @@ const patientEmailCases: Array<{
         requestType="Medical Certificate"
         amount="$24.95"
         requestId={INTAKE_ID}
+        requestAccessUrl={REQUEST_ACCESS_URL}
         isGuest
         completeAccountUrl={`${APP_URL}/auth/complete-account?intake_id=${INTAKE_ID}&session_id=${SESSION_ID}`}
         appUrl={APP_URL}
@@ -98,10 +103,11 @@ const patientEmailCases: Array<{
         requestType="Medical Certificate"
         amount="$24.95"
         requestId={INTAKE_ID}
+        requestAccessUrl={REQUEST_ACCESS_URL}
         appUrl={APP_URL}
       />,
     ),
-    expectedHref: `${APP_URL}/track/${INTAKE_ID}`,
+    expectedHref: REQUEST_ACCESS_URL,
   },
   {
     name: "payment failed",
@@ -123,11 +129,12 @@ const patientEmailCases: Array<{
         patientName="Test Patient"
         requestType="Medical Certificate"
         requestId={INTAKE_ID}
+        requestAccessUrl={REQUEST_ACCESS_URL}
         doctorMessage="Please add one more detail."
         appUrl={APP_URL}
       />,
     ),
-    expectedHref: `${APP_URL}/track/${INTAKE_ID}`,
+    expectedHref: REQUEST_ACCESS_URL,
   },
   {
     name: "still reviewing",
@@ -136,10 +143,11 @@ const patientEmailCases: Array<{
         patientName="Test Patient"
         requestType="Medical Certificate"
         requestId={INTAKE_ID}
+        requestAccessUrl={REQUEST_ACCESS_URL}
         appUrl={APP_URL}
       />,
     ),
-    expectedHref: `${APP_URL}/track/${INTAKE_ID}`,
+    expectedHref: REQUEST_ACCESS_URL,
   },
   {
     name: "request declined",
@@ -148,10 +156,11 @@ const patientEmailCases: Array<{
         patientName="Test Patient"
         requestType="Medical Certificate"
         requestId={INTAKE_ID}
+        requestAccessUrl={REQUEST_ACCESS_URL}
         appUrl={APP_URL}
       />,
     ),
-    expectedHref: `${APP_URL}/track/${INTAKE_ID}`,
+    expectedHref: REQUEST_ACCESS_URL,
   },
   {
     name: "script sent",
@@ -159,10 +168,36 @@ const patientEmailCases: Array<{
       <ScriptSentEmail
         patientName="Test Patient"
         requestId={INTAKE_ID}
+        requestAccessUrl={REQUEST_ACCESS_URL}
         appUrl={APP_URL}
       />,
     ),
-    expectedHref: `${APP_URL}/track/${INTAKE_ID}`,
+    expectedHref: REQUEST_ACCESS_URL,
+  },
+  {
+    name: "consult approved",
+    html: render(
+      <ConsultApprovedEmail
+        patientName="Test Patient"
+        requestId={INTAKE_ID}
+        requestAccessUrl={REQUEST_ACCESS_URL}
+        appUrl={APP_URL}
+      />,
+    ),
+    expectedHref: REQUEST_ACCESS_URL,
+  },
+  {
+    name: "refund issued",
+    html: render(
+      <RefundIssuedEmail
+        patientName="Test Patient"
+        requestType="Medical Certificate"
+        requestId={INTAKE_ID}
+        requestAccessUrl={REQUEST_ACCESS_URL}
+        appUrl={APP_URL}
+      />,
+    ),
+    expectedHref: REQUEST_ACCESS_URL,
   },
   {
     name: "guest complete account",
@@ -208,7 +243,8 @@ describe("patient email CTA safety contract", () => {
     expectRenderedEmailSafety(signedInHtml)
     expectRenderedEmailSafety(guestHtml)
     expectHref(signedInHtml, signedInUrl)
-    expectHref(guestHtml, `${APP_URL}/auth/complete-account?intake_id=${INTAKE_ID}&access=certificate`)
+    expectHref(guestHtml, guestUrl)
+    expect(guestUrl).toMatch(new RegExp(`^${APP_URL}/track/[A-Za-z0-9_-]+$`))
     expect(guestHtml).toContain("Set up access &amp; view certificate")
   })
 

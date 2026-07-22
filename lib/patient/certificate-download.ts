@@ -1,3 +1,6 @@
+import "server-only"
+
+import { signPatientRequestAccessToken } from "@/lib/crypto/patient-request-access-token"
 import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
 
 export function getPatientCertificateDownloadHref(certificateId: string): string {
@@ -10,12 +13,10 @@ export function getPatientIntakeDetailHref(intakeId: string): string {
 
 /**
  * Login-free entry point for guest patients (profiles with no linked auth
- * account). Routes to the account-completion flow, which links the guest
- * profile by intake/email and then shows the audited certificate download —
- * instead of the auth-walled portal a guest can never sign into.
+ * account). Exchanges a short-lived signed capability for an HttpOnly cookie,
+ * then offers the audited account handoff from a clean URL.
  */
 export function getGuestCertificateAccessHref(intakeId: string, _email?: string | null): string {
-  const params = new URLSearchParams({ intake_id: intakeId })
-  params.set("access", "certificate")
-  return `/auth/complete-account?${params.toString()}`
+  const token = signPatientRequestAccessToken(intakeId)
+  return `/track/${encodeURIComponent(token)}`
 }

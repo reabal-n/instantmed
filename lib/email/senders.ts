@@ -14,6 +14,7 @@ import {
   RequestDeclinedEmail,
   requestDeclinedEmailSubject,
 } from "@/lib/email/components/templates"
+import { buildPatientRequestAccessUrl } from "@/lib/email/request-access-url"
 
 import { sendEmail } from "./send-email"
 
@@ -43,6 +44,7 @@ export async function sendRequestDeclinedEmail(params: SendRequestDeclinedEmailP
       patientName,
       requestType,
       requestId: intakeId,
+      requestAccessUrl: buildPatientRequestAccessUrl({ appUrl: env.appUrl, intakeId }),
       reason,
       reasonCode,
       appUrl: env.appUrl,
@@ -86,6 +88,7 @@ export async function sendRefundIssuedEmail(params: SendRefundIssuedEmailParams)
       patientName,
       requestType,
       requestId: intakeId,
+      requestAccessUrl: buildPatientRequestAccessUrl({ appUrl: env.appUrl, intakeId }),
       amountFormatted,
       appUrl: env.appUrl,
     }),

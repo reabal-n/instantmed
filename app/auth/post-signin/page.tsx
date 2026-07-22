@@ -91,6 +91,7 @@ type GuestProfileCandidateRow = {
   onboarding_completed: boolean | null
   auth_user_id: string | null
   created_at: string | null
+  merged_into_profile_id: string | null
 }
 
 type GuestProfileLinkCandidate = GuestProfileCandidateRow & {
@@ -99,7 +100,7 @@ type GuestProfileLinkCandidate = GuestProfileCandidateRow & {
 
 type PostSignInProfile = Pick<
   Profile,
-  "id" | "role" | "onboarding_completed" | "account_closed_at" | "email"
+  "id" | "role" | "onboarding_completed" | "account_closed_at" | "email" | "merged_into_profile_id"
 >
 
 async function getPreferredGuestProfileIdForIntake(
@@ -111,14 +112,14 @@ async function getPreferredGuestProfileIdForIntake(
 
   const { data: intake } = await supabase
     .from("intakes")
-    .select("patient_id, patient:profiles!patient_id(id, email, role, auth_user_id)")
+    .select("patient_id, patient:profiles!patient_id(id, email, role, auth_user_id, account_closed_at, merged_into_profile_id)")
     .eq("id", intakeId)
     .eq("payment_status", "paid")
     .maybeSingle()
 
   const patientRaw = intake?.patient as
-    | { id: string; email: string | null; role: string | null; auth_user_id: string | null }
-    | { id: string; email: string | null; role: string | null; auth_user_id: string | null }[]
+    | { id: string; email: string | null; role: string | null; auth_user_id: string | null; account_closed_at: string | null; merged_into_profile_id: string | null }
+    | { id: string; email: string | null; role: string | null; auth_user_id: string | null; account_closed_at: string | null; merged_into_profile_id: string | null }[]
     | null
     | undefined
   const patient = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
@@ -126,6 +127,8 @@ async function getPreferredGuestProfileIdForIntake(
     patient?.id &&
     patient.role === "patient" &&
     !patient.auth_user_id &&
+    !patient.account_closed_at &&
+    !patient.merged_into_profile_id &&
     patient.email?.toLowerCase() === primaryEmail
   ) {
     return patient.id
@@ -141,11 +144,12 @@ async function getGuestProfileLinkCandidates(
 ): Promise<GuestProfileLinkCandidate[]> {
   const { data: guestProfiles } = await supabase
     .from("profiles")
-    .select("id, role, onboarding_completed, auth_user_id, created_at")
+    .select("id, role, onboarding_completed, auth_user_id, created_at, merged_into_profile_id")
     .ilike("email", escapeIlike(primaryEmail))
     .eq("role", "patient")
     .is("auth_user_id", null)
     .is("account_closed_at", null)
+    .is("merged_into_profile_id", null)
     .order("created_at", { ascending: false })
     .limit(10)
 
@@ -195,6 +199,7 @@ export default async function PostSignInPage({
       onboarding_completed: authenticated.profile.onboarding_completed,
       account_closed_at: authenticated.profile.account_closed_at,
       email: authenticated.profile.email,
+      merged_into_profile_id: authenticated.profile.merged_into_profile_id,
     }
     : null
   let primaryEmail = authenticated?.user.email?.toLowerCase() ?? null
@@ -246,8 +251,9 @@ export default async function PostSignInPage({
     // Check by auth_user_id
     const { data: existingProfile, error: lookupError } = await supabase
       .from("profiles")
-      .select("id, role, onboarding_completed, account_closed_at, email")
+      .select("id, role, onboarding_completed, account_closed_at, email, merged_into_profile_id")
       .eq("auth_user_id", userId)
+      .is("merged_into_profile_id", null)
       .maybeSingle()
 
     if (lookupError) {
@@ -270,6 +276,7 @@ export default async function PostSignInPage({
           .eq("id", existingProfile.id)
           .eq("auth_user_id", userId)
           .is("account_closed_at", null)
+          .is("merged_into_profile_id", null)
 
         if (emailSyncError) {
           log.warn("Failed to sync confirmed auth email to profile", {
@@ -307,7 +314,8 @@ export default async function PostSignInPage({
           .eq("role", "patient")
           .is("auth_user_id", null)
           .is("account_closed_at", null)
-          .select("id, role, onboarding_completed, account_closed_at, email")
+          .is("merged_into_profile_id", null)
+          .select("id, role, onboarding_completed, account_closed_at, email, merged_into_profile_id")
           .maybeSingle()
 
         if (linkedProfile) {
@@ -321,8 +329,9 @@ export default async function PostSignInPage({
         // Check if another process already linked it
         const { data: nowLinkedProfile } = await supabase
           .from("profiles")
-          .select("id, role, onboarding_completed, account_closed_at, email")
+          .select("id, role, onboarding_completed, account_closed_at, email, merged_into_profile_id")
           .eq("auth_user_id", userId)
+          .is("merged_into_profile_id", null)
           .maybeSingle()
 
         if (nowLinkedProfile) {
@@ -364,7 +373,7 @@ export default async function PostSignInPage({
         email_verified: true,
         email_verified_at: new Date().toISOString(),
       })
-      .select("id, role, onboarding_completed, account_closed_at, email")
+      .select("id, role, onboarding_completed, account_closed_at, email, merged_into_profile_id")
       .single()
 
     if (!createError && newProfile) {
@@ -374,8 +383,9 @@ export default async function PostSignInPage({
       // Race condition - trigger created it
       const { data: raceProfile } = await supabase
         .from("profiles")
-        .select("id, role, onboarding_completed, account_closed_at, email")
+        .select("id, role, onboarding_completed, account_closed_at, email, merged_into_profile_id")
         .eq("auth_user_id", userId)
+        .is("merged_into_profile_id", null)
         .maybeSingle()
       if (raceProfile) {
         profile = raceProfile

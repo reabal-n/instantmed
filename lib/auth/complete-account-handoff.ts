@@ -19,10 +19,8 @@ export function buildVerifiedCompleteAccountHref({
 
 export function buildCompleteAccountPostSignInHref({
   intakeId,
-  certificateAccess,
 }: {
   intakeId?: string
-  certificateAccess: boolean
 }): string {
   if (!intakeId) {
     return buildPostSignInHref()
@@ -30,6 +28,5 @@ export function buildCompleteAccountPostSignInHref({
 
   return buildPostSignInHref({
     intake_id: intakeId,
-    redirect: certificateAccess ? `/patient/intakes/${intakeId}` : undefined,
   })
 }

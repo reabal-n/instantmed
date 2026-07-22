@@ -71,6 +71,28 @@ beforeEach(() => {
 })
 
 describe("attribution capture", () => {
+  it.each([
+    "/track/signed-request-access",
+    "/track/request",
+    "/resume/signed-checkout-resume",
+    "/patient/intakes/11111111-1111-4111-8111-111111111111",
+    "/doctor/intakes/11111111-1111-4111-8111-111111111111",
+    "/auth/post-signin",
+    "/sign-in",
+  ])("never persists a capability or private-app route (%s)", (pathname) => {
+    locationState = {
+      search: "?utm_source=email&utm_campaign=transactional",
+      pathname,
+      protocol: "https:",
+    }
+
+    captureAttribution()
+
+    expect(sessionStorageState).toEqual({})
+    expect(localStorageState).toEqual({})
+    expect(cookieJar).toBe("")
+  })
+
   it("persists Google click IDs to session storage and a first-party cookie", () => {
     locationState = {
       search: "?gclid=test-click&utm_source=google&utm_id=123456&utm_campaign=med-cert&campaignid=111&adgroupid=222&keyword=medical%20certificate&creative=333&matchtype=e&device=m&network=g",

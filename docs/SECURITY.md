@@ -82,6 +82,8 @@ The Phase 2 PHI fields (added March 2026) are in dual-write mode — plaintext a
 
 **Guest payment completion proof:** public account-completion pages and guest account email CTAs require the high-entropy Checkout Session ID to exactly match the intake's current `payment_id`. A bare intake UUID never exposes paid order details or renders payment-success UI.
 
+**Guest request-access proof:** lifecycle email links use a purpose-scoped, seven-day HMAC capability that is exchanged server-side for an HttpOnly cookie scoped to `/track`, followed by a redirect to a clean URL. The cookie authorizes only a read-only request-status projection and service label for an open patient profile. Clinical questions, replies, documents, payment actions, and general patient access remain behind authenticated ownership. Sign-in and sign-up receive only the fixed `/track/request` return path, never the request UUID or access bearer. Bare request UUIDs are identifiers, not authorization; retired query-string certificate/account-completion access modes fail closed.
+
 ### Dual-Write Pattern
 
 During migration, all writes store **both** plaintext and encrypted values. Reads prefer encrypted, fall back to plaintext. This allows:
@@ -327,6 +329,8 @@ Production Telegram is an operator pager, not a clinical record or general monit
 | `/api/health` | None (health check) |
 | `/api/cron/*` | Vercel cron auth |
 | `/api/webhooks/*` | Signature verification |
+| `/track/[token]` | Purpose-scoped signed capability exchange; legacy UUID accepted only for the signed-in exact owner |
+| `/track/request` | Valid request-access HttpOnly cookie or canonical authenticated patient ownership |
 
 ### Staff Roles (Phase 1 of dashboard remaster, 2026-05-11)
 
@@ -443,6 +447,8 @@ removed before capture. The anonymous browser id is passed through Stripe only
 to join pre-checkout events to the paid event; Google Ads enhanced conversions
 remain a separate hashed server-side boundary.
 
+Capability-bearing routes such as `/track/*`, `/resume/*`, and `/auth/complete-account`, auth handoffs, and authenticated `/account`, `/admin`, `/dashboard`, `/doctor`, and `/patient` surfaces are excluded from external URL analytics. Vercel Analytics, referral attribution, and external web-vitals collection remain off there. The guest account-completion route also sends `no-referrer`; confirmed-payment finalization owns its personless PostHog purchase event and Google Ads conversion server-side. Browser conversion measurement remains only on the fixed authenticated patient-success route, with automatic Google pageviews and PostHog pageleave capture disabled. Application Sentry remains available on non-capability authenticated surfaces behind PHI/identifier scrubbing. Any capability or private dynamic path that reaches sanitization is reduced to a fixed redacted route family before logging.
+
 ---
 
 ## Secret Management
@@ -466,7 +472,7 @@ remain a separate hashed server-side boundary.
 | `questionnaire_flow` | Track auth redirect source | After profile created |
 | `rx_form_data` | Preserve form during auth | After form restored |
 
-**Never store:** Medicare numbers, medical history, payment card details, auth tokens.
+**Never store:** Medicare numbers, medical history, payment card details, auth tokens, or request-access capabilities in JavaScript-readable browser storage. Request-access capabilities live only in their path-scoped HttpOnly cookie and are never analytics input.
 
 ---
 

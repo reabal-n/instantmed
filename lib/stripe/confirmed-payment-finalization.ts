@@ -21,6 +21,7 @@ import {
 } from "@/lib/analytics/posthog-server-privacy"
 import { buildVerifiedCompleteAccountHref } from "@/lib/auth/complete-account-handoff"
 import { env } from "@/lib/config/env"
+import { buildPatientRequestAccessUrl } from "@/lib/email/request-access-url"
 import { sendPaidRequestTelegramNotification } from "@/lib/notifications/paid-request-telegram"
 import { notifyPaymentReceived } from "@/lib/notifications/service"
 import { createLogger } from "@/lib/observability/logger"
@@ -511,6 +512,10 @@ function scheduleRequestReceivedEmail({
           requestType: serviceName,
           amount: `$${(session.amount_total! / 100).toFixed(2)}`,
           requestId: intakeId,
+          requestAccessUrl: buildPatientRequestAccessUrl({
+            appUrl: env.appUrl,
+            intakeId,
+          }),
           isGuest,
           completeAccountUrl: isGuest
             ? buildVerifiedCompleteAccountHref({

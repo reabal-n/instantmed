@@ -21,13 +21,14 @@ export interface StillReviewingEmailProps {
   patientName: string
   requestType: string
   requestId: string
+  requestAccessUrl: string
   appUrl?: string
 }
 
 export function StillReviewingEmail({
   patientName,
   requestType,
-  requestId,
+  requestAccessUrl,
   appUrl = APP_URL,
 }: StillReviewingEmailProps) {
   const firstName = patientName.split(" ")[0]
@@ -58,7 +59,7 @@ export function StillReviewingEmail({
         </Text>
       </Box>
 
-      <Button href={`${appUrl}/track/${requestId}`} variant="secondary">
+      <Button href={requestAccessUrl} variant="secondary">
         Check your request
       </Button>
 

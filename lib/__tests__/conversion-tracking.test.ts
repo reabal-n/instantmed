@@ -30,6 +30,11 @@ beforeEach(() => {
     value: {
       gtag: gtagMock,
       crypto: globalThis.crypto,
+      location: {
+        origin: "https://instantmed.com.au",
+        pathname: "/auth/complete-account",
+        search: "?intake_id=sensitive&session_id=cs_sensitive",
+      },
     },
     writable: true,
   })
@@ -79,6 +84,11 @@ describe("conversion tracking", () => {
     const calls = gtagMock.mock.calls as GtagCall[]
     const conversionCall = calls.find(([kind, event]) => kind === "event" && event === "conversion")
     expect(conversionCall?.[2].send_to).toBe("AW-17795889471/SqypCNva94YcEL_y3qVC")
+    expect(conversionCall?.[2]).toMatchObject({
+      page_location: "https://instantmed.com.au/auth/complete-account",
+      page_path: "/auth/complete-account",
+    })
+    expect(JSON.stringify(conversionCall?.[2])).not.toContain("cs_sensitive")
   })
 
   it("queues fallback gtag calls in the same arguments shape as the Google tag shim", () => {

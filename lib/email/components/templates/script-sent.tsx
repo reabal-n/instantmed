@@ -21,13 +21,14 @@ import {
 export interface ScriptSentEmailProps {
   patientName: string
   requestId: string
+  requestAccessUrl: string
   escriptReference?: string
   appUrl?: string
 }
 
 export function ScriptSentEmail({
   patientName,
-  requestId,
+  requestAccessUrl,
   escriptReference,
   appUrl = APP_URL,
 }: ScriptSentEmailProps) {
@@ -71,7 +72,7 @@ export function ScriptSentEmail({
         </Box>
       )}
 
-      <Button href={`${appUrl}/track/${requestId}`} variant="secondary">
+      <Button href={requestAccessUrl} variant="secondary">
         View request
       </Button>
 

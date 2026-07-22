@@ -592,7 +592,7 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(globalClientsSource).toContain('"/admin"')
     expect(globalClientsSource).toContain('"/doctor"')
     expect(globalClientsSource).toContain("isAuthenticatedAppPath")
-    expect(globalClientsSource).toContain("isPostConversionPath() || isAuthenticatedAppPath()")
+    expect(globalClientsSource).toContain("allowConversionMeasurement || isAuthenticatedAppPath()")
     expect(globalClientsSource).toContain("shouldLoadCookieBanner")
     expect(globalClientsSource).toContain("if (allowCookieBanner)")
   })

@@ -1,11 +1,13 @@
 "use client"
 
+import { usePathname } from "next/navigation"
 import Script from "next/script"
 import { useEffect, useState } from "react"
 
 import { GOOGLE_ADS_ID, GOOGLE_ANALYTICS_ID } from "@/lib/analytics/google-tag-ids"
 import { onFirstInteraction } from "@/lib/browser/first-interaction"
-import { isPostConversionPath } from "@/lib/browser/post-conversion-path"
+import { isPostConversionPathname } from "@/lib/browser/post-conversion-path"
+import { isExternalAnalyticsExcludedPathname } from "@/lib/browser/sensitive-capability-path"
 
 // Only load Google tags on Vercel production - skip preview deployments and local dev.
 // NEXT_PUBLIC_VERCEL_ENV is set automatically by Vercel: 'production' | 'preview' | 'development'
@@ -35,15 +37,21 @@ gtag("consent","default",{
  * AttributionCapture so it can stay tiny and critical.
  */
 export function GoogleTags() {
+  const pathname = usePathname()
   const [canLoadTags, setCanLoadTags] = useState(false)
+  const [scriptReady, setScriptReady] = useState(false)
+  const allowPageView = !isExternalAnalyticsExcludedPathname(pathname)
+  const allowConversionMeasurement = isPostConversionPathname(pathname)
+  const allowGoogleTags = allowPageView || allowConversionMeasurement
 
   useEffect(() => {
     if (!IS_PROD) return
+    if (!allowGoogleTags) return
 
     // On post-conversion pages we cannot afford to wait for user interaction.
     // Drop straight into the tag load so the purchase fire reaches Google
     // before a fast bouncer kills the tab.
-    if (isPostConversionPath()) {
+    if (allowConversionMeasurement) {
       setCanLoadTags(true)
       return
     }
@@ -66,9 +74,17 @@ export function GoogleTags() {
       cancelInteraction()
       cancelIdleLoad?.()
     }
-  }, [])
+  }, [allowConversionMeasurement, allowGoogleTags])
 
-  if (!IS_PROD || !canLoadTags) return null
+  useEffect(() => {
+    if (!scriptReady || !allowPageView) return
+    window.gtag?.("event", "page_view", {
+      page_location: `${window.location.origin}${pathname}`,
+      page_path: pathname,
+    })
+  }, [allowPageView, pathname, scriptReady])
+
+  if (!IS_PROD || !canLoadTags || !allowGoogleTags) return null
 
   return (
     <>
@@ -80,10 +96,14 @@ export function GoogleTags() {
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
         strategy="afterInteractive"
-        onLoad={() => {
+        onReady={() => {
           window.gtag?.("js", new Date())
-          window.gtag?.("config", GOOGLE_ADS_ID, { allow_enhanced_conversions: true })
-          window.gtag?.("config", GOOGLE_ANALYTICS_ID)
+          window.gtag?.("config", GOOGLE_ADS_ID, {
+            allow_enhanced_conversions: true,
+            send_page_view: false,
+          })
+          window.gtag?.("config", GOOGLE_ANALYTICS_ID, { send_page_view: false })
+          setScriptReady(true)
         }}
       />
     </>

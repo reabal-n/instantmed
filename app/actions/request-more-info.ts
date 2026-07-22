@@ -1,9 +1,11 @@
 "use server"
 
 import { requireRole } from "@/lib/auth/helpers"
+import { env } from "@/lib/config/env"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { getDoctorCaseActionError } from "@/lib/doctor/case-action-guard"
 import { NeedsMoreInfoEmail, needsMoreInfoSubject } from "@/lib/email/components/templates/needs-more-info"
+import { buildPatientRequestAccessUrl } from "@/lib/email/request-access-url"
 import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { sendEmail } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
@@ -157,6 +159,10 @@ export async function requestMoreInfoAction(
           patientName: patient.full_name?.split(" ")[0] || "there",
           requestType: requestTypeLabel,
           requestId: intakeId,
+          requestAccessUrl: buildPatientRequestAccessUrl({
+            appUrl: env.appUrl,
+            intakeId,
+          }),
           doctorMessage: trimmedMessage,
         }),
         emailType: "needs_more_info",

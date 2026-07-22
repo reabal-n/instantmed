@@ -671,9 +671,7 @@ describe("certificate reissue clinical authorization", () => {
 
     expect(result).toEqual({ success: true, certificateId: CERTIFICATE_ID })
     expect(mocks.medCertPatientEmail).toHaveBeenCalledWith(expect.objectContaining({
-      dashboardUrl: expect.stringContaining(
-        `/auth/complete-account?intake_id=${INTAKE_ID}&access=certificate`,
-      ),
+      dashboardUrl: expect.stringMatching(/\/track\/[A-Za-z0-9_-]+$/),
       isGuest: true,
     }))
     expect(mocks.reconcileCertificateEmailDelivery).toHaveBeenCalledWith(

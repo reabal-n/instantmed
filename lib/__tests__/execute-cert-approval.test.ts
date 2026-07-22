@@ -170,9 +170,11 @@ const doctorProfile = {
   ahpra_number: "MED0001234567",
 }
 
+const INTAKE_ID = "11111111-1111-4111-8111-111111111111"
+
 function baseIntake(overrides: Record<string, unknown> = {}) {
   return {
-    id: "intake-1",
+    id: INTAKE_ID,
     status: "paid",
     subtype: "work",
     service: { id: "svc-1", slug: "med-certs", name: "Medical Certificate", type: "med_certs" },
@@ -191,7 +193,7 @@ function baseIntake(overrides: Record<string, unknown> = {}) {
 
 function run(input: Partial<Parameters<typeof executeCertApproval>[0]> = {}) {
   return executeCertApproval({
-    intakeId: "intake-1",
+    intakeId: INTAKE_ID,
     reviewData: reviewData(),
     doctorProfile,
     ...input,
@@ -425,7 +427,7 @@ describe("executeCertApproval — atomic approval + delivery", () => {
     expect(result.emailScheduledFor).toBeUndefined()
     expect(result.emailSentTo).toBe("jane@example.com")
     expect(reconcileCertificateEmailDelivery).toHaveBeenCalledWith(expect.objectContaining({
-      intakeId: "intake-1",
+      intakeId: INTAKE_ID,
       certificateId: "cert-1",
       outcome: "sent",
       providerMessageId: "msg-1",
@@ -445,7 +447,7 @@ describe("executeCertApproval — atomic approval + delivery", () => {
     const resultPromise = run({ skipClaim: true, aiApproved: true })
 
     await vi.waitFor(() => {
-      expect(editPaidRequestTelegramMessageToApproved).toHaveBeenCalledWith("intake-1")
+      expect(editPaidRequestTelegramMessageToApproved).toHaveBeenCalledWith(INTAKE_ID)
     })
 
     let approvalSettled = false
@@ -468,7 +470,7 @@ describe("executeCertApproval — atomic approval + delivery", () => {
     expect(result.success).toBe(true)
     expect(result.emailSent).toBe(false)
     expect(reconcileCertificateEmailDelivery).toHaveBeenCalledWith(expect.objectContaining({
-      intakeId: "intake-1",
+      intakeId: INTAKE_ID,
       certificateId: "cert-1",
       outcome: "failed",
       failureReason: "mailbox unavailable",

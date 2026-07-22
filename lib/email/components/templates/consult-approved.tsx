@@ -20,13 +20,14 @@ import {
 export interface ConsultApprovedEmailProps {
   patientName: string
   requestId: string
+  requestAccessUrl: string
   doctorNotes?: string
   appUrl?: string
 }
 
 export function ConsultApprovedEmail({
   patientName,
-  requestId,
+  requestAccessUrl,
   doctorNotes,
   appUrl = APP_URL,
 }: ConsultApprovedEmailProps) {
@@ -58,7 +59,7 @@ export function ConsultApprovedEmail({
         </Box>
       )}
 
-      <Button href={`${appUrl}/track/${requestId}`}>
+      <Button href={requestAccessUrl}>
         View details
       </Button>
 

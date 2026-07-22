@@ -22,9 +22,9 @@ describe("PostHog provider tree stability", () => {
       "utf8",
     )
 
-    expect(source).toContain('import { isPostConversionPath } from "@/lib/browser/post-conversion-path"')
+    expect(source).toContain('import { isPostConversionPathname } from "@/lib/browser/post-conversion-path"')
     expect(source).toMatch(
-      /if \(isPostConversionPath\(\)\) \{\s+exposeClient\(\{ requireLoaded: true \}\)\s+\}/,
+      /if \(isPostConversionPathname\(pathname\)\) \{\s+exposeClient\(\{ requireLoaded: true \}\)\s+\}/,
     )
     expect(source).toContain("const cancelFirstInteraction = onFirstInteraction")
     expect(source).not.toContain("exposeClient({ requireLoaded: false })")

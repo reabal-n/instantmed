@@ -11,6 +11,7 @@ import {
 import { resolveInitialPatientConversation } from "@/lib/patient/messages"
 
 const readProjectFile = (path: string) => readFileSync(join(process.cwd(), path), "utf8")
+const INTAKE_ID = "11111111-1111-4111-8111-111111111111"
 
 describe("patient dashboard and certificate delivery contracts", () => {
   it("routes patient certificate downloads through the audited app endpoint", () => {
@@ -27,27 +28,28 @@ describe("patient dashboard and certificate delivery contracts", () => {
   })
 
   it("routes guest certificate CTAs through certificate-ready account access", () => {
-    const href = getGuestCertificateAccessHref("intake_123")
-    const hrefWithEmail = getGuestCertificateAccessHref("intake_123", "patient@example.test")
+    const href = getGuestCertificateAccessHref(INTAKE_ID)
+    const hrefWithEmail = getGuestCertificateAccessHref(INTAKE_ID, "patient@example.test")
 
-    expect(href).toBe("/auth/complete-account?intake_id=intake_123&access=certificate")
-    expect(hrefWithEmail).toBe(href)
+    expect(href).toMatch(/^\/track\/[A-Za-z0-9_-]+$/)
+    expect(hrefWithEmail).toMatch(/^\/track\/[A-Za-z0-9_-]+$/)
     expect(href).not.toContain("supabase.co/storage")
     expect(href).not.toContain("token=")
     expect(hrefWithEmail).not.toContain("email=")
     expect(hrefWithEmail).not.toContain("patient@example.test")
   })
 
-  it("keeps public tracking approved-state access actionable and non-spinning", () => {
-    const trackingClient = readProjectFile("app/track/[intakeId]/tracking-client.tsx")
-    const trackingPage = readProjectFile("app/track/[intakeId]/page.tsx")
+  it("keeps public request access actionable without exposing the bearer to React", () => {
+    const tokenExchange = readProjectFile("app/track/[intakeId]/route.ts")
+    const trackingPage = readProjectFile("app/track/request/page.tsx")
 
-    expect(trackingClient).toContain('status: currentStep >= 4 ? "complete" : "upcoming"')
-    expect(trackingClient).toContain('const canViewCertificate = intake.status === "approved" || intake.status === "completed"')
-    expect(trackingClient).toContain("approvedAccessHref")
-    expect(trackingClient).toContain("View certificate")
-    expect(trackingPage).toContain("getGuestCertificateAccessHref(intake.id)")
+    expect(tokenExchange).toContain("PATIENT_REQUEST_ACCESS_COOKIE")
+    expect(tokenExchange).toContain('httpOnly: true')
+    expect(tokenExchange).toContain('new URL("/track/request", request.url)')
+    expect(trackingPage).toContain('case "approved"')
+    expect(trackingPage).toContain("Create account and open request")
     expect(trackingPage).toContain("buildPatientIntakeHref(intake.id)")
+    expect(trackingPage).not.toContain("requestAccessToken")
   })
 
   it("does not promise guests a raw emailed certificate attachment", () => {
@@ -58,10 +60,12 @@ describe("patient dashboard and certificate delivery contracts", () => {
     expect(completeAccount).not.toContain('params.set("email"')
     expect(completeAccount).not.toContain("&email=")
     expect(confirmed).not.toContain("We'll email your certificate once it's ready")
-    expect(completeAccount).toContain("Certificate downloads open through a secure account link")
     expect(completeAccount).toContain("Create Account & Track Request")
-    expect(completeAccount).toContain("!certificateAccess && heardToken")
-    expect(completeAccount).toContain("!certificateAccess && (")
+    expect(completeAccount).not.toContain("certificateAccess")
+    expect(completeAccount).toContain("heardToken &&")
+    expect(readProjectFile("app/auth/complete-account/page.tsx")).toContain(
+      'if (intakeId && paymentState === "paid")',
+    )
     expect(confirmed).toContain("We'll email you when the doctor has finished.")
   })
 

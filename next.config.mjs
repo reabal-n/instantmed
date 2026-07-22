@@ -597,6 +597,28 @@ const nextConfig = {
           ].join("; ")
         }])]
       },
+      // Transactional capability routes must never be cached or leak their
+      // bearer path through a referrer. These override the global defaults for
+      // both the one-hop token exchange and the clean request surface.
+      {
+        source: "/track/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store, max-age=0" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      // Checkout Session ids are short-lived bearer capabilities. The account
+      // completion page verifies exact session ownership server-side and must
+      // not forward its query string to same-origin telemetry or later routes.
+      {
+        source: "/auth/complete-account",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store, max-age=0" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
       // Cache static assets for 1 year (immutable)
       {
         source: "/_next/static/:path*",

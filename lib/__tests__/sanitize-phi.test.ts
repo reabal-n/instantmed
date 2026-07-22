@@ -89,4 +89,35 @@ describe("sanitize-phi PHI scrubber", () => {
     expect(sanitized.searchParams.get("duration")).toBe("2")
     expect(sanitized.searchParams.get("utm_medium")).toBe("email")
   })
+
+  it("redacts request-access and checkout-resume bearer path segments", () => {
+    const requestAccess = sanitizeUrl(
+      "https://instantmed.com.au/track/signed-patient-request-token",
+    )
+    const checkoutResume = sanitizeUrl(
+      "https://instantmed.com.au/resume/signed-checkout-resume-token",
+    )
+
+    expect(requestAccess).toBe("https://instantmed.com.au/track/[REDACTED]")
+    expect(checkoutResume).toBe("https://instantmed.com.au/resume/[REDACTED]")
+  })
+
+  it("redacts dynamic authenticated app paths before external logging", () => {
+    expect(sanitizeUrl(
+      "https://instantmed.com.au/patient/intakes/11111111-1111-4111-8111-111111111111?tab=messages",
+    )).toBe("https://instantmed.com.au/patient/[REDACTED]?tab=messages")
+    expect(sanitizeUrl(
+      "https://instantmed.com.au/admin/intakes/22222222-2222-4222-8222-222222222222",
+    )).toBe("https://instantmed.com.au/admin/[REDACTED]")
+  })
+
+  it("redacts checkout capabilities and request identifiers from query strings", () => {
+    const sanitized = new URL(sanitizeUrl(
+      "https://instantmed.com.au/auth/complete-account?intake_id=11111111-1111-4111-8111-111111111111&session_id=cs_sensitive&duration=2",
+    ))
+
+    expect(sanitized.searchParams.get("intake_id")).toBe("[REDACTED]")
+    expect(sanitized.searchParams.get("session_id")).toBe("[REDACTED]")
+    expect(sanitized.searchParams.get("duration")).toBe("2")
+  })
 })
