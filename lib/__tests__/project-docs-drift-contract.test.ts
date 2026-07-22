@@ -368,14 +368,18 @@ describe("project docs drift contract", () => {
     }
   })
 
-  it("documents individual post-auto-approval medical-certificate review as an InstantMed governance control", () => {
+  it("documents post-auto-approval medical-certificate governance review with the cohort attestation policy", () => {
     const clinical = readProjectFile("docs/CLINICAL.md")
     const operations = readProjectFile("docs/OPERATIONS.md")
 
     expect(clinical).toContain("InstantMed governance control, not a statutory AHPRA requirement")
     expect(clinical).toContain("reviewed with no change needed")
     expect(clinical).toContain("revoked and returned to manual review")
-    expect(clinical).toContain("Bulk acknowledgement is prohibited")
+    // Operator decision 2026-07-22: cohort attestation replaced the
+    // per-certificate-only rule; revocation stays individual with a reason.
+    expect(clinical).toContain("cohort attestation")
+    expect(clinical).toContain("post_auto_approval_cohort_review")
+    expect(clinical).toContain("Revocation is always individual")
     expect(architecture).toContain("getPendingBatchReviews")
     expect(architecture).toContain("med_cert_batch_review_overdue")
     expect(operations).toContain("Post-auto-approval doctor review")
