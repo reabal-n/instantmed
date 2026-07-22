@@ -18,6 +18,7 @@ import { QUEUE_REVIEW_STATUSES } from "@/lib/doctor/queue-utils"
 import { detectRenewalsForIntakes, type IntakeRenewalProbe } from "@/lib/doctor/renewal-detection"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
+import { startOfDayAEST } from "@/lib/operator/cases/time-grouping"
 import { derivePatientPaymentRecoveryReason } from "@/lib/patient/payment-recovery"
 import { readAnswers, readDoctorNotes, readPatientNoteContent } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -766,10 +767,11 @@ export async function getIntakeMonitoringStats(): Promise<{
 }> {
   const supabase = createServiceRoleClient()
 
-  // Get start of today in UTC (server time)
-  const todayStart = new Date()
-  todayStart.setUTCHours(0, 0, 0, 0)
-  const todayStartISO = todayStart.toISOString()
+  // Start of today in AEST, not UTC or server-local time — this is an
+  // AU-only platform and staff read "today" on the AEST wall clock.
+  // See lib/operator/cases/time-grouping.ts for why the naive UTC/local
+  // boundary is wrong (it silently drops anything approved before 10am AEST).
+  const todayStartISO = startOfDayAEST(new Date()).toISOString()
 
   try {
     // Run count queries in parallel
@@ -1141,8 +1143,8 @@ export async function getFormToInboxStats(opts: {
 export async function getRecentlyCompletedIntakes(opts: { limit?: number } = {}): Promise<RecentlyCompletedIntake[]> {
   const supabase = createServiceRoleClient()
   const limit = opts.limit || 8
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
+  // AEST day boundary, not server-local/UTC — see startOfDayAEST for why.
+  const todayStartISO = startOfDayAEST(new Date()).toISOString()
 
   const { data, error } = await supabase
     .from("intakes")
@@ -1156,7 +1158,7 @@ export async function getRecentlyCompletedIntakes(opts: { limit?: number } = {})
       service:services!service_id(name, type, short_name)
     `)
     .in("status", ["approved", "declined", "completed"])
-    .gte("reviewed_at", todayStart.toISOString())
+    .gte("reviewed_at", todayStartISO)
     .order("reviewed_at", { ascending: false })
     .limit(limit)
 
