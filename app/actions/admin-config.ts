@@ -35,6 +35,7 @@ import {
   updateFeatureFlag,
 } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
+import { startOfDayAEST } from "@/lib/operator/cases/time-grouping"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { logAuditEvent } from "@/lib/security/audit-log"
 import { stripe } from "@/lib/stripe/client"
@@ -191,9 +192,8 @@ export async function getAutoApproveStatsAction(): Promise<AutoApproveStats> {
   const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
   const supabase = createServiceRoleClient()
 
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
-  const todayISO = todayStart.toISOString()
+  // AEST day boundary, not server-local/UTC — see startOfDayAEST for why.
+  const todayISO = startOfDayAEST(new Date()).toISOString()
 
   const sevenDaysAgo = new Date()
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)

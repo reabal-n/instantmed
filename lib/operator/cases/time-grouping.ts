@@ -34,7 +34,7 @@ const TIME_GROUP_ORDER: TimeGroupLabel[] = [
 const AEST_OFFSET_MS = 10 * 60 * 60 * 1000
 const DAY_MS = 24 * 60 * 60 * 1000
 
-function startOfDayAEST(d: Date): Date {
+export function startOfDayAEST(d: Date): Date {
   // Shift to AEST wall clock, floor to UTC day boundary in shifted frame,
   // shift back. Net result: midnight AEST as a UTC timestamp, independent
   // of the system timezone.

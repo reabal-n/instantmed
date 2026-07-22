@@ -83,4 +83,25 @@ describe("getRecentlyCompletedIntakes", () => {
       ["limit", 50],
     ]))
   })
+
+  it("scopes 'today' to AEST midnight, not UTC or server-local midnight", async () => {
+    // 2026-07-21T15:00:00Z = 1am AEST on July 22. A UTC-midnight boundary
+    // (the bug fixed here — see startOfDayAEST) would compute
+    // 2026-07-21T00:00:00Z: 14 hours too early, silently dropping every
+    // intake reviewed in the first 14 hours of the AEST day from this
+    // dashboard widget, permanently — the window never revisits that gap.
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-07-21T15:00:00.000Z"))
+
+    const harness = createHarness([])
+    mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
+
+    const { getRecentlyCompletedIntakes } = await import("@/lib/data/intakes/queries")
+    await getRecentlyCompletedIntakes({ limit: 8 })
+
+    const gteCall = harness.calls.find(([method]) => method === "gte")
+    expect(gteCall?.[2]).toBe("2026-07-21T14:00:00.000Z")
+
+    vi.useRealTimers()
+  })
 })
