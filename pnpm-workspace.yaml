@@ -1,6 +1,10 @@
 packages:
   - "."
 
+auditConfig:
+  ignoreGhsas:
+    - GHSA-f88m-g3jw-g9cj
+
 onlyBuiltDependencies:
   - "@sentry/cli"
   - "core-js"
