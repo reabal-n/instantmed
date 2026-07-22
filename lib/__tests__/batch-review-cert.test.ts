@@ -49,6 +49,10 @@ function createHarness(options: HarnessOptions = {}) {
       constraints.push(["is", column, value])
       return updateChain
     }),
+    gte: vi.fn((column: string, value: unknown) => {
+      constraints.push(["gte", column, value])
+      return updateChain
+    }),
     select: vi.fn(async () => ({
       data: options.updateData ?? [{ id: INTAKE_ID, batch_reviewed_at: REVIEWED_AT }],
       error: options.updateError ?? null,
@@ -202,11 +206,123 @@ describe("markBatchReviewed", () => {
     expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
   })
 
-  it("does not export a bulk acknowledgement action", () => {
+  it("keeps revocation out of the cohort path", () => {
     const source = readFileSync(
       join(process.cwd(), "app/actions/batch-review-cert.ts"),
       "utf8",
     )
-    expect(source).not.toContain("markAllBatchReviewed")
+    // The cohort action can only stamp reviewed-no-change receipts; revocation
+    // stays an individual action with a recorded reason.
+    expect(source).not.toContain("revokeAIApproval")
+  })
+})
+
+describe("markBatchReviewedCohort", () => {
+  const SECOND_INTAKE_ID = "33333333-3333-4333-8333-333333333333"
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(REVIEWED_AT))
+    mocks.requireRoleOrNull.mockResolvedValue({
+      user: { id: "auth-user" },
+      profile: doctorProfile(),
+    })
+  })
+
+  it("rejects callers without doctor access", async () => {
+    mocks.requireRoleOrNull.mockResolvedValue(null)
+    const { markBatchReviewedCohort } = await import("@/app/actions/batch-review-cert")
+
+    await expect(markBatchReviewedCohort([INTAKE_ID])).resolves.toEqual({
+      success: false,
+      error: "Unauthorized",
+      reviewedIds: [],
+      skippedIds: [],
+    })
+    expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+  })
+
+  it("rejects doctors without review_med_certs capability", async () => {
+    mocks.requireRoleOrNull.mockResolvedValue({
+      user: { id: "auth-user" },
+      profile: doctorProfile({ can_review_med_certs: false }),
+    })
+    const { markBatchReviewedCohort } = await import("@/app/actions/batch-review-cert")
+
+    const result = await markBatchReviewedCohort([INTAKE_ID])
+    expect(result.success).toBe(false)
+    expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+  })
+
+  it("rejects malformed or empty id lists before querying", async () => {
+    const { markBatchReviewedCohort } = await import("@/app/actions/batch-review-cert")
+
+    await expect(markBatchReviewedCohort([])).resolves.toMatchObject({ success: false })
+    await expect(markBatchReviewedCohort(["not-a-uuid"])).resolves.toMatchObject({ success: false })
+    expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+  })
+
+  it("CAS-updates only eligible post-cutover certs and writes one honest cohort audit row per cert", async () => {
+    const harness = createHarness({
+      updateData: [
+        { id: INTAKE_ID, batch_reviewed_at: REVIEWED_AT },
+        { id: SECOND_INTAKE_ID, batch_reviewed_at: REVIEWED_AT },
+      ],
+    })
+    mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
+    const { markBatchReviewedCohort } = await import("@/app/actions/batch-review-cert")
+
+    await expect(markBatchReviewedCohort([INTAKE_ID, SECOND_INTAKE_ID])).resolves.toEqual({
+      success: true,
+      reviewedIds: [INTAKE_ID, SECOND_INTAKE_ID],
+      skippedIds: [],
+    })
+    expect(harness.updatePayloads).toEqual([{
+      batch_reviewed_at: REVIEWED_AT,
+      batch_reviewed_by: DOCTOR_ID,
+    }])
+    expect(harness.constraints).toEqual([
+      ["in", "id", [INTAKE_ID, SECOND_INTAKE_ID]],
+      ["eq", "ai_approved", true],
+      ["eq", "category", "medical_certificate"],
+      ["in", "status", ["approved"]],
+      ["gte", "ai_approved_at", "2026-07-11T07:15:06Z"],
+      ["is", "batch_reviewed_at", null],
+    ])
+    expect(harness.auditRows).toEqual([
+      [
+        expect.objectContaining({
+          intake_id: INTAKE_ID,
+          action: "approve",
+          actor_id: DOCTOR_ID,
+          actor_type: "doctor",
+          metadata: {
+            review_type: "post_auto_approval_cohort_review",
+            outcome: "reviewed_no_change",
+            cohort_size: 2,
+          },
+        }),
+        expect.objectContaining({
+          intake_id: SECOND_INTAKE_ID,
+          metadata: expect.objectContaining({
+            review_type: "post_auto_approval_cohort_review",
+          }),
+        }),
+      ],
+    ])
+  })
+
+  it("reports skipped ids and stays an idempotent success when nothing remains eligible", async () => {
+    const harness = createHarness({ updateData: [] })
+    mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
+    const { markBatchReviewedCohort } = await import("@/app/actions/batch-review-cert")
+
+    await expect(markBatchReviewedCohort([INTAKE_ID])).resolves.toEqual({
+      success: true,
+      reviewedIds: [],
+      skippedIds: [INTAKE_ID],
+    })
+    expect(harness.auditRows).toEqual([])
   })
 })

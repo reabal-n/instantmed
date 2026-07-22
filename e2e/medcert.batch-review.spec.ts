@@ -181,8 +181,55 @@ test.describe.serial("Medical certificate batch review", () => {
     }
   })
 
+  test("cohort attestation stamps every visible pending certificate", async ({ page }) => {
+    const fixture = await seedPendingBatchReview(10)
+    cleanupFixtures.push(fixture)
+    const { intakeId } = fixture
+
+    const login = await loginAsOperator(page)
+    expect(login.success, login.error).toBe(true)
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto("/dashboard")
+    await waitForPageLoad(page)
+
+    const banner = page
+      .getByRole("region", { name: "Doctor request queue" })
+      .getByTestId("batch-review-banner")
+    await expect(banner).toBeVisible({ timeout: 15_000 })
+
+    // Scan affordance: the cohort list expands with patient rows.
+    await banner.getByRole("button", { name: /Show certificates/ }).click()
+    await expect(banner.getByTestId("batch-review-cohort-list")).toBeVisible()
+
+    await banner.getByTestId("batch-review-attest-all").click()
+    const dialog = page.getByRole("alertdialog")
+    await expect(dialog).toContainText("cohort-level review, not a per-patient clinical")
+    await dialog.getByRole("button", { name: /^Attest \d+ certificate/ }).click()
+
+    // Assert on the seeded row, not banner disappearance: a shared E2E DB can
+    // hold pending rows beyond this fixture, so the banner may legitimately stay.
+    await expect
+      .poll(async () => {
+        const { data } = await getSupabaseClient()
+          .from("intakes")
+          .select("batch_reviewed_at")
+          .eq("id", intakeId)
+          .single()
+        return data?.batch_reviewed_at ?? null
+      }, { timeout: 10_000 })
+      .not.toBeNull()
+
+    const { data, error } = await getSupabaseClient()
+      .from("intakes")
+      .select("batch_reviewed_by")
+      .eq("id", intakeId)
+      .single()
+    expect(error).toBeNull()
+    expect(data?.batch_reviewed_by).toBe(OPERATOR_ID)
+  })
+
   test("doctor and admin see the oldest pending review and acknowledge it", async ({ page }) => {
-    const fixture = await seedPendingBatchReview(10_000)
+    const fixture = await seedPendingBatchReview(30)
     cleanupFixtures.push(fixture)
     const { intakeId } = fixture
 
@@ -212,7 +259,7 @@ test.describe.serial("Medical certificate batch review", () => {
   })
 
   test("revocation stamps review completion and returns the case to manual assessment", async ({ page }) => {
-    const fixture = await seedPendingBatchReview(10_000)
+    const fixture = await seedPendingBatchReview(30)
     cleanupFixtures.push(fixture)
     const { intakeId } = fixture
     const login = await loginAsOperator(page)
@@ -248,7 +295,7 @@ test.describe.serial("Medical certificate batch review", () => {
   })
 
   test("patient and support roles cannot access the clinical oversight queue", async ({ page }) => {
-    const fixture = await seedPendingBatchReview(10_000)
+    const fixture = await seedPendingBatchReview(30)
     cleanupFixtures.push(fixture)
 
     const patientLogin = await loginAsPatient(page)

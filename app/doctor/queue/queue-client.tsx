@@ -616,6 +616,21 @@ export function QueueClient({
     refreshQueue(true)
   }, [isDesktop, refreshQueue])
 
+  const handleBatchReviewCohortResolved = useCallback((intakeIds: string[]) => {
+    const resolved = new Set(intakeIds)
+    const current = pendingBatchReviewsRef.current
+    const remaining = current.data.filter((intake) => !resolved.has(intake.id))
+    const next = {
+      ...current,
+      data: remaining,
+      total: Math.max(remaining.length, current.total - resolved.size),
+      oldestApprovedAt: remaining[0]?.ai_approved_at ?? null,
+    }
+    pendingBatchReviewsRef.current = next
+    setPendingBatchReviews(next)
+    refreshQueue(true)
+  }, [refreshQueue])
+
   // Click / Enter handler. In compactShell mode this is a NO-SHEET path
   // on desktop: it just sets selection (`expandedId`), which drives the
   // inline right pane. On mobile (`!isDesktop`) compactShell falls back
@@ -1065,6 +1080,7 @@ export function QueueClient({
       <BatchReviewBanner
         result={pendingBatchReviews}
         onOpenOldest={openReviewPanel}
+        onCohortResolved={handleBatchReviewCohortResolved}
       />
 
       <div
