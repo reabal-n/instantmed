@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { SEEDED_E2E_PATIENT_PROFILE_IDS } from "@/lib/data/seeded-e2e-data"
 
-export const REVIEW_REQUEST_FUNNEL_WINDOW_DAYS = 30
+const REVIEW_REQUEST_FUNNEL_WINDOW_DAYS = 30
 export const PRODUCT_REVIEW_TOTAL_METRIC_NAME = "productreview_review_total"
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -13,7 +13,7 @@ const EXTERNAL_SNAPSHOT_STALE_DAYS = 14
 export type ReviewRequestFunnelStatus = "degraded" | "no_sends" | "baseline" | "live"
 export type ProductReviewSnapshotStatus = "due" | "baseline" | "live" | "stale" | "degraded"
 
-export interface ReviewRequestFunnelAxis {
+interface ReviewRequestFunnelAxis {
   status: ReviewRequestFunnelStatus
   eligible: number | null
   sent: number | null
@@ -24,7 +24,7 @@ export interface ReviewRequestFunnelAxis {
   traversalRate: number | null
 }
 
-export interface ProductReviewSnapshotAxis {
+interface ProductReviewSnapshotAxis {
   status: ProductReviewSnapshotStatus
   total: number | null
   delta: number | null
