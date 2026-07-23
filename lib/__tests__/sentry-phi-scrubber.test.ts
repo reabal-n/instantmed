@@ -145,6 +145,27 @@ describe("Sentry PHI scrubber", () => {
     expect(event.request?.url).toContain("session_id=[REDACTED]")
   })
 
+  it("redacts the one-use review traversal capability from Sentry URLs and query objects", () => {
+    const clickKey = "A".repeat(43)
+    const event = scrubSentryEvent({
+      request: {
+        url: `https://instantmed.test/api/review-redirect?review_click_key=${clickKey}&utm_source=email`,
+        query_string: {
+          review_click_key: clickKey,
+          utm_source: "email",
+        },
+      },
+    })
+
+    const serialized = JSON.stringify(event)
+    expect(serialized).not.toContain(clickKey)
+    expect(event.request?.url).toContain("review_click_key=[REDACTED]")
+    expect(event.request?.query_string).toEqual({
+      review_click_key: "[REDACTED]",
+      utm_source: "email",
+    })
+  })
+
   it("redacts role and clinician identifiers from tags and extras", () => {
     const event = scrubSentryEvent({
       tags: {

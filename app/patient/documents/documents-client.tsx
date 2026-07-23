@@ -124,10 +124,7 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                       </CardContent>
                     </Card>
                   ))}
-                  <ReviewAskCard
-                    source="patient_documents"
-                    intakeId={certificates[0]?.intakeId ?? undefined}
-                  />
+                  <ReviewAskCard source="patient_documents" />
                   </>
                 )}
               </TabsContent>

@@ -50,9 +50,12 @@ describe("business operating scorecard contract", () => {
     expect(revenueModel).toContain("Support tickets per 100 orders")
     expect(revenueModel).toContain("Paid-to-decision elapsed time")
     expect(revenueModel).toContain("not active doctor labour")
-    expect(revenueModel).toContain("Active doctor minutes per order")
+    expect(revenueModel).toContain("Do not invent a contractor rate or sample active minutes")
+    expect(revenueModel).not.toContain("Active doctor minutes per order")
     expect(revenueModel).toContain("Queue P95")
     expect(revenueModel).toContain("Capacity review state")
+    expect(revenueModel).toContain("sole automatic trigger")
+    expect(revenueModel).toContain("20 or more prescription requests per hour")
     expect(revenueModel).toContain("Every launched service remains a low-budget pilot")
     expect(revenueModel).not.toContain("CAC ceiling")
   })
@@ -104,19 +107,30 @@ describe("business operating scorecard contract", () => {
     expect(scorecard.supportTicketsPer100Orders.value).toBe(66.7)
     expect(scorecard.paidToDecisionMinutes.value).toBe(14)
     expect(scorecard.paidToDecisionMinutes.label).toBe("Average paid-to-decision time")
-    expect(scorecard.doctorMinutesPerOrder.value).toBeNull()
-    expect(scorecard.doctorMinutesPerOrder.display).toBe("Not measured")
-    expect(scorecard.doctorMinutesPerOrder.status).toBe("unknown")
-    expect(scorecard.contributionReadiness.status).toBe("blocked")
-    expect(scorecard.contributionReadiness.display).toBe("Inputs missing")
-    expect(scorecard.contributionReadiness.blockers).toEqual([
-      "Measure hands-on doctor minutes by service",
-      "Measure hands-on support/admin minutes by service",
-      "Record operator-approved hourly labour rates",
+    expect(scorecard).not.toHaveProperty("doctorMinutesPerOrder")
+    expect(scorecard.contributionReadiness).toMatchObject({
+      label: "Below-capacity first-order contribution",
+      status: "inputs_required",
+      display: "Fees + acquisition needed",
+      decision: "complete_and_positive_before_scaling",
+      formula: "Net-retained order revenue - Stripe/payment fees - attributable acquisition cost",
+      ownerDoctorLabour: {
+        marginalCashCostCents: 0,
+        capacityBounded: true,
+        display: "Owner-doctor cash labour is $0 while demand stays within current capacity.",
+      },
+    })
+    expect(scorecard.contributionReadiness.requiredInputs).toEqual([
+      "Stripe/payment fees",
+      "Attributable acquisition cost",
     ])
     expect(scorecard.queueP95Minutes.value).toBe(180)
+    expect(scorecard.queueP95Minutes.target).toBe("Below 2h; never beyond 24h")
     expect(scorecard.capacityReviewState.status).toBe("triggered")
     expect(scorecard.capacityReviewState.triggeredBy).toContain("support load above 5/100 orders")
+    expect(scorecard.capacityReviewState.automaticExtraDoctorTrigger).toBe(
+      "Sustained 20+ prescription requests/hour",
+    )
   })
 
   it("rejects an incomplete scorecard source instead of converting it to zero", async () => {
@@ -138,10 +152,18 @@ describe("business operating scorecard contract", () => {
     expect(clientSource).toContain("30d net retained")
     expect(clientSource).toContain("Support tickets/100 orders")
     expect(clientSource).toContain("Paid-to-decision average")
-    expect(clientSource).toContain("Doctor time per order")
-    expect(clientSource).toContain("Contribution margin readiness")
-    expect(clientSource).toContain("Do not scale paid acquisition from this metric yet")
+    expect(clientSource).toContain("Below-capacity contribution")
+    expect(clientSource).toContain("businessScorecard.contributionReadiness.formula")
+    expect(clientSource).toContain("businessScorecard.contributionReadiness.requiredInputs")
+    expect(clientSource).toContain("businessScorecard.contributionReadiness.ownerDoctorLabour.display")
+    expect(clientSource).toContain("businessScorecard.capacityReviewState.automaticExtraDoctorTrigger")
+    expect(clientSource).toContain("Only sustained 20+ prescription requests/hour automatically requires extra verified doctor coverage.")
     expect(clientSource).toContain("Capacity review")
+    expect(clientSource).not.toContain("Doctor time per order")
+    expect(clientSource).not.toContain("active labour inputs are measured")
+    expect(clientSource).not.toContain("hands-on doctor time")
+    expect(clientSource).not.toContain("operator-approved hourly labour rates")
+    expect(clientSource).not.toContain("Capacity state does not override the contribution block")
     expect(clientSource).not.toContain('label="Doctor minutes/order"')
     expect(clientSource).not.toContain("Max CAC @30%")
   })

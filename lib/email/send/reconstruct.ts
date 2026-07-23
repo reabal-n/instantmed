@@ -528,6 +528,18 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   // whose old frozen payload is discarded during quiet-failure recovery.
   // ----------------------------------------------------------------
   if (row.email_type === "review_request") {
+    const reviewMetadata = row.metadata as Record<string, unknown> | null
+    if (
+      reviewMetadata &&
+      Object.prototype.hasOwnProperty.call(reviewMetadata, "review_click_key_hash")
+    ) {
+      return {
+        success: false,
+        error: "Keyed review request has no encrypted provider payload; secure reconstruction is unavailable",
+        terminal: true,
+      }
+    }
+
     if (!row.intake_id) {
       return {
         success: false,

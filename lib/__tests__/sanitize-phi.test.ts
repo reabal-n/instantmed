@@ -120,4 +120,16 @@ describe("sanitize-phi PHI scrubber", () => {
     expect(sanitized.searchParams.get("session_id")).toBe("[REDACTED]")
     expect(sanitized.searchParams.get("duration")).toBe("2")
   })
+
+  it("redacts the one-use review traversal capability without removing attribution", () => {
+    const clickKey = "A".repeat(43)
+    const sanitized = new URL(sanitizeUrl(
+      `https://instantmed.com.au/api/review-redirect?review_click_key=${clickKey}&utm_source=email&utm_medium=review_request`,
+    ))
+
+    expect(sanitized.searchParams.get("review_click_key")).toBe(REDACTED)
+    expect(sanitized.searchParams.get("utm_source")).toBe("email")
+    expect(sanitized.searchParams.get("utm_medium")).toBe("review_request")
+    expect(sanitized.toString()).not.toContain(clickKey)
+  })
 })

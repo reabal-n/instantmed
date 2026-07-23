@@ -5,6 +5,7 @@
  * Two-phase write pattern: create pending row before send, update after.
  */
 
+import { REVIEW_CLICK_KEY_HASH_METADATA_KEY } from "@/lib/email/review-click-key"
 import { logger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -23,6 +24,14 @@ function providerPayloadEnc(metadata: unknown): string | undefined {
   if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return undefined
   const value = (metadata as Record<string, unknown>)[FROZEN_PROVIDER_PAYLOAD_KEY]
   return typeof value === "string" ? value : undefined
+}
+
+function reviewClickKeyHash(metadata: unknown): string | undefined {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return undefined
+  const value = (metadata as Record<string, unknown>)[REVIEW_CLICK_KEY_HASH_METADATA_KEY]
+  return typeof value === "string" && /^[0-9a-f]{64}$/.test(value)
+    ? value
+    : undefined
 }
 
 function pendingOutboxResult(
@@ -95,11 +104,22 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
         if (existing.status === "failed" && reclaimCount < MAX_IDEMPOTENT_RECLAIMS) {
           const existingProviderPayload = providerPayloadEnc(existingMetadata)
           const incomingProviderPayload = providerPayloadEnc(entry.metadata)
+          const incomingReviewClickKeyHash = reviewClickKeyHash(entry.metadata)
+          // A newly adopted review provider payload may contain the raw click
+          // capability, so its persisted hash must be adopted in the same
+          // atomic metadata write. Once a payload exists, preserve its
+          // original hash/payload pair rather than mixing retry generations.
+          const adoptedProviderMetadata = !existingProviderPayload && incomingProviderPayload
+            ? {
+                [FROZEN_PROVIDER_PAYLOAD_KEY]: incomingProviderPayload,
+                ...(entry.email_type === "review_request" && incomingReviewClickKeyHash
+                  ? { [REVIEW_CLICK_KEY_HASH_METADATA_KEY]: incomingReviewClickKeyHash }
+                  : {}),
+              }
+            : {}
           const reclaimedMetadata = {
             ...existingMetadata,
-            ...(!existingProviderPayload && incomingProviderPayload
-              ? { [FROZEN_PROVIDER_PAYLOAD_KEY]: incomingProviderPayload }
-              : {}),
+            ...adoptedProviderMetadata,
             reclaim_count: reclaimCount + 1,
           }
           const { data: reclaimed } = await supabase

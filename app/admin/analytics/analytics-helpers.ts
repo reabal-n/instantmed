@@ -1,6 +1,7 @@
 import { type AiAttributionBreakdown } from "@/lib/admin/ai-attribution-breakdown"
 import { type HeardAboutUsBreakdown } from "@/lib/admin/heard-about-us-breakdown"
 import type { OperatorBrief } from "@/lib/admin/operator-brief"
+import type { ReviewRequestFunnelSnapshot } from "@/lib/admin/review-request-funnel"
 import { type GoogleAdsHealth } from "@/lib/analytics/google-ads-health"
 import { type GoogleAdsReturnSnapshot } from "@/lib/analytics/google-ads-return-summary"
 import { type PostHogIntakeFunnelSnapshot } from "@/lib/analytics/posthog-intake-funnel"
@@ -34,4 +35,5 @@ export interface AnalyticsData {
   prescriptionFulfilment: PrescriptionFulfilmentDashboard
   businessScorecard: BusinessOperatingScorecard | null
   operatorBrief: OperatorBrief
+  reviewRequestFunnel: ReviewRequestFunnelSnapshot
 }

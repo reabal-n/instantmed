@@ -35,6 +35,14 @@ const reviewAskCardSource = readFileSync(
   join(process.cwd(), "components/patient/review-ask-card.tsx"),
   "utf8",
 )
+const patientIntakeSource = readFileSync(
+  join(process.cwd(), "app/patient/intakes/[id]/client.tsx"),
+  "utf8",
+)
+const patientDocumentsSource = readFileSync(
+  join(process.cwd(), "app/patient/documents/documents-client.tsx"),
+  "utf8",
+)
 
 describe("review CTA destination contract", () => {
   it("does not hardcode platform-specific 'Google review' copy in review email surfaces", () => {
@@ -56,7 +64,7 @@ describe("review CTA destination contract", () => {
   })
 
   it("pins the dedicated review email medium to ProductReview", () => {
-    expect(reviewRequestTemplateSource).toContain("utm_medium=review_request")
+    expect(reviewRequestTemplateSource).toContain('utm_medium: "review_request"')
     expect(reviewRedirectSource).toContain('medium === "review_request"')
     expect(reviewRedirectSource).toContain("PRODUCTREVIEW_REVIEW_URL")
   })
@@ -70,6 +78,13 @@ describe("review CTA destination contract", () => {
     expect(reviewAskCardSource).not.toMatch(/productreview\.com\.au|g\.page|trustpilot/i)
     expect(reviewAskCardSource).not.toContain("★")
     expect(reviewAskCardSource).not.toContain("⭐")
+  })
+
+  it("never threads an intake identifier into an off-site review redirect", () => {
+    expect(reviewAskCardSource).not.toContain("intakeId")
+    expect(reviewAskCardSource).not.toContain("intake_id")
+    expect(patientIntakeSource).not.toMatch(/<ReviewAskCard[^>]*intakeId=/)
+    expect(patientDocumentsSource).not.toMatch(/<ReviewAskCard[^>]*intakeId=/)
   })
 
   it("defaults the off-site review destination to ProductReview, not Google", () => {

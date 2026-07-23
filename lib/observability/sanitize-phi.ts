@@ -47,12 +47,14 @@ const SENSITIVE_FIELDS = new Set([
   "first_name", "last_name", "patientname", "patient_name",
   "address", "streetaddress", "street_address",
   "ihi", "dva", "dvanumber", "dva_number",
+  "reviewclickkey", "review_click_key",
   "password", "token", "secret", "apikey", "api_key",
 ])
 
 // Fields never logged at all (not even sanitized). Lowercase for the same reason.
 const FORBIDDEN_FIELDS = new Set([
   "password", "token", "secret", "apikey", "api_key", "authorization",
+  "reviewclickkey", "review_click_key",
 ])
 
 /**
@@ -140,6 +142,7 @@ export function sanitizeUrl(url: string): string {
     const sensitiveParams = [
       "email", "phone", "name", "medicare", "dob", "address",
       "token", "code", "secret", "password", "session_id",
+      "review_click_key",
       "intake_id", "request_id", "patient_id", "profile_id", "user_id",
       "certificate_id",
     ]

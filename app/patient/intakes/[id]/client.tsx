@@ -972,7 +972,7 @@ export function IntakeDetailClient({
       )}
 
       {/* ─── Review ask (right after delivery) ─────────────────────────── */}
-      {isReady && <ReviewAskCard source="patient_intake_detail" intakeId={intake.id} />}
+      {isReady && <ReviewAskCard source="patient_intake_detail" />}
 
       {/* ─── Cross-sell (after approval) ───────────────────────────────── */}
       {(intake.status === "approved" || intake.status === "completed") && (

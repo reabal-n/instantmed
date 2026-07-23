@@ -24,7 +24,7 @@ const NAMED_ID_RE = /\b(?:actor|certificate|doctor|intake|patient|profile|reques
 
 /** Route/query locations that often carry patient/request identifiers */
 const SENSITIVE_QUERY_ID_RE = /([?&](?:certificate_id|intake_id|patient_id|profile_id|request_id|user_id|id)=)[^&#]+/gi
-const SENSITIVE_AUTH_PARAM_RE = /([?&#](?:access_token|refresh_token|token(?:_hash)?|code|secret|password|session_id)=)[^&#\s]+/gi
+const SENSITIVE_AUTH_PARAM_RE = /([?&#](?:access_token|refresh_token|review_click_key|token(?:_hash)?|code|secret|password|session_id)=)[^&#\s]+/gi
 const SENSITIVE_PATH_ID_RE = /(\/(?:api\/certificates|api\/doctor\/certificates|api\/patient\/documents|certificates|doctor\/intakes|doctor\/patients|patient\/documents|patient\/followups|patient\/intakes|track|verify)\/)[^/?#]+/gi
 
 const REDACTED = "[REDACTED]"
@@ -69,6 +69,7 @@ const SENSITIVE_KEY_EXACT = new Set([
   "phonenumber",
   "recipientemail",
   "recipientname",
+  "reviewclickkey",
   "subject",
   "symptoms",
   "title",

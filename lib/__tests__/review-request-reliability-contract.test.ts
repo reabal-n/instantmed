@@ -199,6 +199,26 @@ describe("review and partial-recovery reliability contract", () => {
     )
   })
 
+  it("never reconstructs a keyed review request without its frozen payload", () => {
+    const reviewBranchStart = reconstructSource.indexOf(
+      'row.email_type === "review_request"',
+    )
+    const nextBranchStart = reconstructSource.indexOf(
+      'row.email_type === "partial_intake_recovery"',
+      reviewBranchStart,
+    )
+    const reviewBranch = reconstructSource.slice(reviewBranchStart, nextBranchStart)
+
+    expect(reviewBranchStart).toBeGreaterThan(-1)
+    expect(nextBranchStart).toBeGreaterThan(reviewBranchStart)
+    expect(reviewBranch).toContain("review_click_key_hash")
+    expect(reviewBranch).toContain(
+      "Keyed review request has no encrypted provider payload; secure reconstruction is unavailable",
+    )
+    expect(reviewBranch).toContain("terminal: true")
+    expect(reviewBranch).toContain("ReviewRequestEmail")
+  })
+
   it("keeps transient review blocks pending without burning a retry", () => {
     expect(sendEmailSource).toContain("await deferOutboxRow(")
     expect(reviewPolicySource).toContain("getNextSydneyReviewRequestRetryAt")

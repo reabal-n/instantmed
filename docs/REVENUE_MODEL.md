@@ -3,7 +3,7 @@
 > **Authority:** revenue milestones, economic definitions, paid-scaling gates, and hiring/capacity thresholds.
 > Live values come from the admin dashboard. Durable strategy lives in `docs/BUSINESS_PLAN.md`. Current priorities and status live in `docs/ROADMAP.md`.
 
-**Last updated:** 2026-07-19
+**Last updated:** 2026-07-23
 
 ---
 
@@ -63,17 +63,17 @@ Scaled paid acquisition must be first-order contribution-positive until repeat p
 For each service and paid channel:
 
 ```text
-First-order contribution after acquisition
+Below-capacity first-order contribution after acquisition
   = net-retained order revenue
   - Stripe/payment fees
-  - incremental doctor labour
-  - incremental support/admin labour
-  - advertising cost
+  - attributable acquisition cost
 ```
 
 Fixed software, insurance, accounting, and general business overhead stay outside this channel-level calculation. They remain business costs, but they do not determine whether one extra paid order contributes positively.
 
-Doctor and support labour must use explicit operator-approved hourly rates multiplied by sampled active minutes. Until those rates are recorded, contribution is **unknown** and no campaign can be described as ready to scale. Do not substitute zero-cost owner labour.
+This is the decision formula while the owner-doctor fulfils demand within existing capacity. Owner-doctor time has zero marginal cash cost in that phase, but it is still a capacity constraint: growth must stay inside the queue, safety, fulfilment, and support guardrails below. Do not invent a contractor rate or sample active minutes to create a hypothetical cash expense.
+
+If an order actually incurs paid incremental doctor or support labour, subtract that realised cost. It is then no longer below-capacity owner volume.
 
 Paid-to-decision elapsed time (`paid_at` to `approved_at` or `declined_at`) is an operational latency measure. It includes queue and waiting time, so it is not active doctor labour and must not be used as the labour input in the contribution formula.
 
@@ -87,12 +87,11 @@ Review these metrics by service before increasing paid demand:
 |--------|------------|---------------|
 | Rolling 30-day net-retained revenue | Captured revenue less refunds and disputes in the rolling window. | Track against the active `$2k -> $5k -> $10k` milestone. |
 | Paid order volume | Real paid intakes, excluding seeded E2E and failed checkout rows. | Growth must not overload clinical or support capacity. |
-| First-order contribution after acquisition | Formula in section 4, by service and channel. Current state is unknown because active labour minutes and operator-approved rates are not recorded. | Must be positive for scaling; unknown inputs block a scaling decision. |
+| First-order contribution after acquisition | Formula in section 4, by service and channel, using retained revenue, payment fees, and attributable acquisition cost. | Must be positive for scaling; untrusted revenue, fee, or acquisition inputs block a scaling decision. |
 | Refund rate | Refunded or partially refunded paid intakes by service. | Stay below 8-10%; a spike pauses scaling and triggers eligibility/copy review. |
 | Chargeback rate | Stripe disputes divided by paid orders. | Stay below 0.5%; any cluster gets same-week review. |
 | Support tickets per 100 orders | Patient support contacts per 100 paid orders. | Stay below 5 per 100; above target means fix friction before adding demand. |
 | Paid-to-decision elapsed time | Time from payment to approval or decline, including queue and waiting time. | Track operational responsiveness only; this is not an active-labour input. |
-| Active doctor minutes per order | Sampled hands-on review time by service. Current state: not measured. | Stable or falling without weaker clinical QA or more complaints; absence blocks contribution readiness. |
 | Queue P95 | Paid-to-review wait by service. | Keep below 2 hours and below the 24-hour hard ceiling. |
 | Clinical/fulfilment health | Safety escalations, unsuitable cases, Parchment completion, delivery failures. | Any unsafe or unreliable pattern blocks scaling. |
 | Capacity review state | Section 8 thresholds. | A triggered state requires an operating decision before further ramp. |
@@ -105,7 +104,7 @@ Material budget increases require:
 
 - compliant ads and destinations under `docs/ADVERTISING_COMPLIANCE.md`
 - trustworthy purchase and refund/dispute measurement
-- a complete contribution calculation using explicit labour rates
+- a complete contribution calculation using retained revenue, payment fees, and attributable acquisition cost
 - positive first-order contribution for the service being scaled
 - stable refund, chargeback, clinical, queue, fulfilment, and support metrics
 - explicit operator approval for the exact change
@@ -135,22 +134,21 @@ When the budget, time, or kill threshold is reached, stop and present the result
 | Encourage appropriate one-off repeat requests | Expands revenue from existing trust without assuming subscription LTV. |
 | Improve service-level paid intent | Better keywords and negatives reduce unsuitable and refund-heavy traffic. |
 | Reduce support contacts | Protects margin and owner capacity. |
-| Reduce sampled active doctor minutes safely | Improves contribution only when clinical quality and complaints remain stable. |
+| Reduce avoidable owner handling safely | Releases constrained capacity without inventing a hypothetical labour expense; clinical quality and complaints must remain stable. |
 | Compound compliant organic and external authority | Reduces dependence on paid acquisition over time. |
 
 ## 8. Hiring And Capacity Triggers
 
-Revenue alone does not decide staffing. Use the earliest triggered operational constraint.
+Revenue alone does not decide staffing. The `$10,000` rung triggers a capacity review only. The sole automatic trigger for adding doctor coverage is sustained demand of 20 or more prescription requests per hour; every other signal below triggers diagnosis, demand control, or an operating decision rather than an automatic doctor hire.
 
 | Trigger | Required decision |
 |---------|-------------------|
-| `$10k/month` rolling net-retained run-rate | Formal capacity and staffing review. |
-| 30-50 paid orders/day or 10+ support contacts/day | Plan admin/support capacity first. |
+| `$10k/month` rolling net-retained run-rate | Formal capacity and staffing review only; no automatic hire. |
+| Sustained 20+ prescription requests/hour | Add verified doctor coverage before further ramp. This is the only automatic extra-doctor trigger. |
 | Support contacts above 5 per 100 orders | Fix product friction or add bounded support capacity before scaling. |
-| Queue P95 above 2 hours or any work approaching the 24-hour ceiling | Review doctor coverage and service mix. |
-| Clinical QA sampling falls behind | Pause growth that worsens the gap; add clinical capacity or reduce load. |
-| Prescribing-service complexity rises faster than retained revenue | Rebalance service mix or add doctor coverage. |
-| Weight-loss launch is reconsidered | Add monitoring and support capacity before accepting paid requests. |
+| Queue P95 above 2 hours or any work approaching the 24-hour ceiling | Pause the growth that worsens the queue and diagnose workflow, service mix, and coverage; this is not an automatic hire. |
+| Clinical QA sampling falls behind | Pause growth that worsens the gap and restore QA capacity before resuming. |
+| Weight-loss launch is reconsidered | Approve monitoring and support capacity as part of the launch decision before accepting paid requests. |
 
 Future clinicians use `doctor` accounts with verified capability flags. Future non-clinical operators use `support`. The owner remains the sole human admin.
 
@@ -160,6 +158,6 @@ Future clinicians use `doctor` accounts with verified capability flags. Future n
 - Do not add pharmacy fulfilment, dispensing, delivery, or inventory.
 - Do not promise ongoing monitoring without staff to deliver it.
 - Do not launch or advertise weight loss as an automated or high-volume service.
-- Do not treat owner labour as free.
+- Do not confuse zero marginal owner-labour cash cost below capacity with unlimited owner capacity.
 - Do not optimise approval rate at the expense of clinical defensibility.
 - Do not increase Ads spend without the operator approving the exact mutation.

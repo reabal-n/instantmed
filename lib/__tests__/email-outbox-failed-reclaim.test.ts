@@ -137,6 +137,29 @@ describe("createPendingOutbox failed-row reclaim", () => {
     })
   })
 
+  it("adopts the incoming review payload and click hash as one legacy-reclaim pair", async () => {
+    state.existingRow = {
+      id: "row-review-legacy",
+      status: "failed",
+      metadata: { reclaim_count: 1 },
+    }
+
+    await createPendingOutbox({
+      ...RECOVERY_ENTRY,
+      email_type: "review_request",
+      metadata: {
+        _provider_payload_enc: "incoming-review-body",
+        review_click_key_hash: "a".repeat(64),
+      },
+    })
+
+    expect(state.updatePayload?.metadata).toMatchObject({
+      reclaim_count: 2,
+      _provider_payload_enc: "incoming-review-body",
+      review_click_key_hash: "a".repeat(64),
+    })
+  })
+
   it("keeps the original frozen body when reclaiming a failed row", async () => {
     state.existingRow = {
       id: "row-frozen",
@@ -160,6 +183,33 @@ describe("createPendingOutbox failed-row reclaim", () => {
     expect(state.updatePayload?.metadata).toMatchObject({
       reclaim_count: 2,
       _provider_payload_enc: "original-encrypted-body",
+    })
+  })
+
+  it("preserves the original review payload and click hash as one reclaim pair", async () => {
+    state.existingRow = {
+      id: "row-review-frozen",
+      status: "failed",
+      metadata: {
+        reclaim_count: 1,
+        _provider_payload_enc: "original-review-body",
+        review_click_key_hash: "b".repeat(64),
+      },
+    }
+
+    await createPendingOutbox({
+      ...RECOVERY_ENTRY,
+      email_type: "review_request",
+      metadata: {
+        _provider_payload_enc: "different-review-body",
+        review_click_key_hash: "c".repeat(64),
+      },
+    })
+
+    expect(state.updatePayload?.metadata).toMatchObject({
+      reclaim_count: 2,
+      _provider_payload_enc: "original-review-body",
+      review_click_key_hash: "b".repeat(64),
     })
   })
 

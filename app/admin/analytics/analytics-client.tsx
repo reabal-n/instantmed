@@ -19,7 +19,6 @@ import {
   Receipt,
   Send,
   SkipForward,
-  Timer,
   TrendingDown,
   TrendingUp,
   UploadCloud,
@@ -31,6 +30,7 @@ import Link from "next/link"
 
 import { GeographicBreakdownCard } from "@/components/admin/geographic-breakdown-card"
 import { OperatorBriefPanel } from "@/components/admin/operator-brief"
+import { ReviewRequestFunnelCard } from "@/components/admin/review-request-funnel-card"
 import {
   DashboardCard,
   DashboardGrid,
@@ -200,6 +200,7 @@ export function AnalyticsDashboardClient({
     prescriptionFulfilment,
     revenue,
     queueHealth,
+    reviewRequestFunnel,
   } = analytics
 
   const payRate = funnel.started > 0 ? Math.round((funnel.paid / funnel.started) * 100) : 0
@@ -526,6 +527,18 @@ export function AnalyticsDashboardClient({
           </div>
         </section>
 
+        <section aria-labelledby="reputation-heading" className="space-y-3">
+          <div>
+            <h2 id="reputation-heading" className="text-sm font-semibold text-foreground">
+              Reputation
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Delivery evidence and manually verified external review movement.
+            </p>
+          </div>
+          <ReviewRequestFunnelCard snapshot={reviewRequestFunnel} />
+        </section>
+
         {/* Paid ads: compact + calm at trivial spend. Detail lives below. */}
         {googleAdsReturn ? (
           <section aria-labelledby="paid-ads-heading" className="space-y-3">
@@ -725,7 +738,7 @@ export function AnalyticsDashboardClient({
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h3 id="operating-scorecard-heading" className="text-sm font-semibold text-foreground">Operating scorecard</h3>
-                    <p className="mt-1 text-xs text-muted-foreground">Live 30-day operations. Contribution stays blocked until active labour inputs are measured.</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Live 30-day operations. Below-capacity contribution uses retained revenue less payment fees and attributable acquisition.</p>
                   </div>
                   <StatusBadge status={scorecardBadgeStatus(businessScorecard.capacityReviewState.status)} size="sm">
                     {businessScorecard.capacityReviewState.display}
@@ -739,33 +752,52 @@ export function AnalyticsDashboardClient({
                   <StatCard label="Chargeback rate" value={businessScorecard.chargebackRate.display} icon={<AlertCircle className="h-5 w-5" />} status={scorecardStatus(businessScorecard.chargebackRate.status)} />
                   <StatCard label="Support tickets/100 orders" value={businessScorecard.supportTicketsPer100Orders.display} icon={<Headphones className="h-5 w-5" />} status={scorecardStatus(businessScorecard.supportTicketsPer100Orders.status)} />
                   <StatCard label="Paid-to-decision average" value={businessScorecard.paidToDecisionMinutes.display} icon={<Clock className="h-5 w-5" />} status={scorecardStatus(businessScorecard.paidToDecisionMinutes.status)} />
-                  <StatCard label="Doctor time per order" value={businessScorecard.doctorMinutesPerOrder.display} icon={<Timer className="h-5 w-5" />} status={scorecardStatus(businessScorecard.doctorMinutesPerOrder.status)} />
                   <StatCard label="Queue P95" value={businessScorecard.queueP95Minutes.display} icon={<Gauge className="h-5 w-5" />} status={scorecardStatus(businessScorecard.queueP95Minutes.status)} />
                 </DashboardGrid>
 
                 <DashboardCard padding="md">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                      <h4 className="text-sm font-semibold text-foreground">Contribution margin readiness</h4>
+                      <h4 className="text-sm font-semibold text-foreground">Below-capacity contribution</h4>
                       <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                        Paid-to-decision is elapsed clock time, including queue and waiting. It cannot stand in for hands-on doctor time.
+                        Calculate this by service and channel before materially increasing acquisition.
                       </p>
                     </div>
                     <StatusBadge status="warning" size="sm">
                       {businessScorecard.contributionReadiness.display}
                     </StatusBadge>
                   </div>
+                  <div className="mt-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.10em] text-muted-foreground">Formula</p>
+                    <p className="mt-1 text-sm font-medium text-foreground">
+                      {businessScorecard.contributionReadiness.formula}
+                    </p>
+                  </div>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <div className="rounded-lg border border-border/60 px-3 py-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.10em] text-muted-foreground">Inputs still needed</p>
+                      <ul className="mt-2 space-y-1.5 text-xs text-foreground">
+                        {businessScorecard.contributionReadiness.requiredInputs.map((input) => (
+                          <li key={input} className="flex items-center gap-2">
+                            <AlertCircle aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                            <span>{input}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="rounded-lg border border-border/60 px-3 py-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.10em] text-muted-foreground">Owner capacity</p>
+                      <p className="mt-2 text-xs leading-relaxed text-foreground">
+                        {businessScorecard.contributionReadiness.ownerDoctorLabour.display}
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                        {businessScorecard.contributionReadiness.realisedIncrementalLabourRule}
+                      </p>
+                    </div>
+                  </div>
                   <p className="mt-3 text-xs font-medium text-foreground">
-                    Do not scale paid acquisition from this metric yet.
+                    {businessScorecard.contributionReadiness.scaleRule}
                   </p>
-                  <ul className="mt-2 grid gap-x-6 text-xs text-muted-foreground md:grid-cols-3">
-                    {businessScorecard.contributionReadiness.blockers.map((blocker) => (
-                      <li key={blocker} className="flex gap-2 border-t border-border/60 py-2">
-                        <AlertCircle aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
-                        <span>{blocker}</span>
-                      </li>
-                    ))}
-                  </ul>
                 </DashboardCard>
 
                 <DashboardCard padding="md">
@@ -776,7 +808,7 @@ export function AnalyticsDashboardClient({
                         <h4 className="text-sm font-semibold text-foreground">Capacity review</h4>
                       </div>
                       <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                        Tracks net-retained revenue, queue, and support conditions that require an operator capacity decision. Capacity state does not override the contribution block.
+                        Revenue, queue, and support signals require diagnosis and an operator capacity decision; they do not automatically add a doctor.
                       </p>
                     </div>
                     <StatusBadge status={scorecardBadgeStatus(businessScorecard.capacityReviewState.status)} size="sm">
@@ -790,8 +822,13 @@ export function AnalyticsDashboardClient({
                       ))}
                     </ul>
                   ) : (
-                    <p className="mt-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs text-muted-foreground">No capacity-review triggers active.</p>
+                    <p className="mt-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs text-muted-foreground">No operator capacity-review signals active.</p>
                   )}
+                  <div className="mt-3 rounded-lg border border-border/60 px-3 py-3 text-xs">
+                    <p className="font-medium text-foreground">Automatic doctor trigger</p>
+                    <p className="mt-1 text-muted-foreground">{businessScorecard.capacityReviewState.automaticExtraDoctorTrigger}</p>
+                    <p className="mt-2 leading-relaxed text-muted-foreground">Only sustained 20+ prescription requests/hour automatically requires extra verified doctor coverage.</p>
+                  </div>
                 </DashboardCard>
               </section>
             ) : null}
