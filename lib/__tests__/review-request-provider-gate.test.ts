@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
+  checkDailySendLimit: vi.fn(),
   createPendingOutbox: vi.fn(),
   deferOutboxRow: vi.fn(),
   evaluateReviewRequestPolicy: vi.fn(),
@@ -9,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   getEmailBounceSuppressionDecision: vi.fn(),
   getEmailSuppressionDecisions: vi.fn(),
   getMarketingEmailDecision: vi.fn(),
+  logToOutbox: vi.fn(),
   renderEmailToHtml: vi.fn(),
   updateOutboxStatus: vi.fn(),
 }))
@@ -38,7 +40,7 @@ vi.mock("@/lib/email/outbox-disposition", () => ({
 vi.mock("@/lib/email/send/outbox", () => ({
   createPendingOutbox: mocks.createPendingOutbox,
   deferOutboxRow: mocks.deferOutboxRow,
-  logToOutbox: vi.fn(),
+  logToOutbox: mocks.logToOutbox,
   persistFrozenProviderPayload: vi.fn(),
   updateOutboxStatus: mocks.updateOutboxStatus,
 }))
@@ -60,11 +62,7 @@ vi.mock("@/lib/email/preferences", () => ({
 }))
 
 vi.mock("@/lib/email/warmup", () => ({
-  checkDailySendLimit: vi.fn().mockResolvedValue({
-    allowed: true,
-    current: 0,
-    limit: 200,
-  }),
+  checkDailySendLimit: mocks.checkDailySendLimit,
   incrementDailySendCount: vi.fn(),
 }))
 
@@ -87,11 +85,31 @@ function sendReviewRequest() {
   })
 }
 
+function sendKeyedReviewRequest(to = "patient@example.com") {
+  return sendEmail({
+    to,
+    subject: "How did InstantMed go?",
+    template: {} as React.ReactElement,
+    emailType: "review_request",
+    intakeId: "intake-1",
+    patientId: "patient-1",
+    idempotencyKey: "review-request:intake-1",
+    metadata: {
+      review_click_key_hash: "a".repeat(64),
+    },
+  })
+}
+
 describe("review request provider gate", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.stubGlobal("fetch", mocks.fetch)
     mocks.renderEmailToHtml.mockResolvedValue("<p>Review request</p>")
+    mocks.checkDailySendLimit.mockResolvedValue({
+      allowed: true,
+      current: 0,
+      limit: 200,
+    })
     mocks.evaluateReviewRequestPolicy.mockResolvedValue({ kind: "allowed" })
     mocks.finalizeOutboxSequenceDisposition.mockResolvedValue({
       finalized: true,
@@ -119,6 +137,62 @@ describe("review request provider gate", () => {
         headers: { "Content-Type": "application/json" },
       },
     ))
+  })
+
+  it("keeps a keyed review candidate-owned when template rendering fails before payload freeze", async () => {
+    mocks.renderEmailToHtml.mockRejectedValueOnce(new Error("render unavailable"))
+
+    const result = await sendKeyedReviewRequest()
+
+    expect(result).toMatchObject({
+      success: false,
+      retryable: true,
+      outcome: {
+        kind: "transiently_blocked",
+        reason: "template_render_failed",
+      },
+    })
+    expect(mocks.logToOutbox).not.toHaveBeenCalled()
+    expect(mocks.createPendingOutbox).not.toHaveBeenCalled()
+    expect(mocks.fetch).not.toHaveBeenCalled()
+  })
+
+  it("keeps a keyed review candidate-owned when the warmup cap blocks before payload freeze", async () => {
+    mocks.checkDailySendLimit.mockResolvedValueOnce({
+      allowed: false,
+      current: 200,
+      limit: 200,
+    })
+
+    const result = await sendKeyedReviewRequest()
+
+    expect(result).toMatchObject({
+      success: false,
+      retryable: true,
+      outcome: {
+        kind: "transiently_blocked",
+        reason: "marketing_warmup_limited",
+      },
+    })
+    expect(mocks.logToOutbox).not.toHaveBeenCalled()
+    expect(mocks.createPendingOutbox).not.toHaveBeenCalled()
+    expect(mocks.fetch).not.toHaveBeenCalled()
+  })
+
+  it("keeps a keyed review candidate-owned until invalid-recipient suppression is durable", async () => {
+    const result = await sendKeyedReviewRequest("not-an-email")
+
+    expect(result).toMatchObject({
+      success: false,
+      suppressed: true,
+      outcome: {
+        kind: "policy_suppressed",
+        reason: "invalid_recipient",
+      },
+    })
+    expect(mocks.logToOutbox).not.toHaveBeenCalled()
+    expect(mocks.createPendingOutbox).not.toHaveBeenCalled()
+    expect(mocks.fetch).not.toHaveBeenCalled()
   })
 
   it.each([

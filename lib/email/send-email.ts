@@ -150,7 +150,10 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     const error = "Invalid email address format"
     logger.warn("[Email] " + error, { to: sanitizeEmailForLog(to), emailType })
 
-    if (emailType !== "partial_intake_recovery") {
+    // Lifecycle callers persist terminal suppression on their source record.
+    // Do not let an unreplayable pre-freeze row steal candidate ownership if
+    // that marker write needs another cron attempt.
+    if (!isLifecyclePolicyEmailType(emailType)) {
       await logToOutbox({
         email_type: emailType,
         to_email: to,
@@ -190,7 +193,10 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     logger.error("[Email] " + error, { emailType })
     Sentry.captureException(err, { tags: { action: "render_email_template" } })
 
-    if (emailType !== "partial_intake_recovery") {
+    // Lifecycle emails can carry one-use capabilities in their rendered body.
+    // Until that body is frozen and encrypted, the candidate must remain the
+    // durable retry owner; a hash-only outbox row cannot be replayed safely.
+    if (!isLifecyclePolicyEmailType(emailType)) {
       await logToOutbox({
         email_type: emailType,
         to_email: to,
@@ -332,9 +338,10 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     const error = `Daily marketing email limit reached (${warmupCheck.current}/${warmupCheck.limit})`
     logger.warn("[Email] " + error, { emailType })
 
-    // Partial recovery has not frozen its bearer payload yet, so it must stay
-    // candidate-owned instead of creating a dispatcher row that cannot replay.
-    if (emailType !== "partial_intake_recovery") {
+    // Lifecycle emails have not frozen their capability-bearing payload yet,
+    // so they must stay candidate-owned instead of creating an unreplayable
+    // dispatcher row containing only non-secret metadata.
+    if (!isLifecyclePolicyEmailType(emailType)) {
       await logToOutbox({
         email_type: emailType,
         to_email: to,
