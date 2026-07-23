@@ -16,6 +16,7 @@ import * as Sentry from "@sentry/nextjs"
 import { type NextRequest, NextResponse } from "next/server"
 
 import { normalizeFlowInstanceId } from "@/lib/analytics/flow-instance"
+import { isMaintenanceMode } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { decryptJSONB, type EncryptedPHI, encryptJSONB } from "@/lib/security/phi-encryption"
@@ -31,6 +32,20 @@ function withDraftPrivacyHeaders<T extends Response>(response: T): T {
 
 function draftJson(body: unknown, init?: ResponseInit): NextResponse {
   return withDraftPrivacyHeaders(NextResponse.json(body, init))
+}
+
+async function draftMutationMaintenanceResponse(): Promise<NextResponse | null> {
+  const maintenance = await isMaintenanceMode()
+  if (!maintenance.enabled) return null
+
+  const response = draftJson(
+    {
+      error: "Draft changes are briefly paused. Your progress remains on this device; please retry shortly.",
+    },
+    { status: 503 },
+  )
+  response.headers.set("Retry-After", "30")
+  return response
 }
 
 const VALID_SERVICE_TYPES = ["med-cert", "prescription", "consult"] as const
@@ -140,6 +155,8 @@ export async function POST(req: NextRequest) {
   if (rateLimitResponse) {
     return withDraftPrivacyHeaders(rateLimitResponse)
   }
+  const maintenanceResponse = await draftMutationMaintenanceResponse()
+  if (maintenanceResponse) return maintenanceResponse
 
   let body: DraftPayload
   try {
@@ -307,6 +324,8 @@ export async function DELETE(req: NextRequest) {
   if (rateLimitResponse) {
     return withDraftPrivacyHeaders(rateLimitResponse)
   }
+  const maintenanceResponse = await draftMutationMaintenanceResponse()
+  if (maintenanceResponse) return maintenanceResponse
 
   const sessionId = req.nextUrl.searchParams.get("id")
 
