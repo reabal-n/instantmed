@@ -15,9 +15,11 @@ import {
   normalizeFlowInstanceId,
 } from '@/lib/analytics/flow-instance'
 import { buildIntakeAnswerChangedEvent } from '@/lib/analytics/intake-events'
+import { isDraftFlowRetired } from '@/lib/request/draft-retirement'
 import {
   canonicalizeServiceType,
   type CanonicalServiceType,
+  clearDraft,
   type DraftData,
   getAllDrafts,
   getDraft,
@@ -64,8 +66,12 @@ export interface RequestState {
   authContext: {
     isAuthenticated: boolean
     hasProfile: boolean
+    /** True when profile has complete identity (incl. date_of_birth). */
+    hasCompleteIdentity?: boolean
     hasMedicare: boolean // Medicare+IRN or IHI is available for prescribing
     hasAddress: boolean
+    /** True when profile has the phone required by prescribing flows. */
+    hasPhone?: boolean
     hasSex?: boolean
   }
   
@@ -103,10 +109,14 @@ export interface AuthContext {
   hasSex?: boolean
 }
 
+export interface RequestProfilePrefill {
+  identity: Partial<Pick<RequestState, 'firstName' | 'lastName' | 'email' | 'phone' | 'dob'>>
+  answers: Record<string, unknown>
+}
+
 export interface RequestActions {
   // Service
   setServiceType: (type: UnifiedServiceType) => void
-  startFreshFlowInstance: () => void
   
   // Navigation
   nextStep: () => void
@@ -128,6 +138,7 @@ export interface RequestActions {
     options?: { touch?: boolean },
   ) => void
   getIdentity: () => IdentityData
+  applyProfilePrefill: (prefill: RequestProfilePrefill) => void
   
   // Auth context for step navigation
   setAuthContext: (ctx: AuthContext) => void
@@ -138,6 +149,9 @@ export interface RequestActions {
     record: ServerDraftRecord,
     serviceType: 'med-cert' | 'repeat-script' | 'consult',
   ) => void
+
+  /** Discard only the active service draft and reset its in-memory flow. */
+  discardCurrentDraft: (profilePrefill?: RequestProfilePrefill) => void
   
   // Consents
   setConsent: (key: 'agreedToTerms' | 'confirmedAccuracy' | 'telehealthConsent', value: boolean) => void
@@ -146,7 +160,7 @@ export interface RequestActions {
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
   
-  // Reset
+  // Full reset (test/maintenance seam; patient "Start over" uses the scoped action above)
   reset: () => void
 }
 
@@ -223,6 +237,36 @@ function applyAnswerChange(
   return nextAnswers
 }
 
+function profilePrefillUpdate(
+  state: RequestState,
+  prefill: RequestProfilePrefill | undefined,
+): Partial<RequestState> | null {
+  if (!prefill) return null
+
+  const identityUpdate: Partial<RequestState> = {}
+  for (const field of identityFields) {
+    const value = prefill.identity[field]
+    if (!state[field] && typeof value === 'string' && value) {
+      identityUpdate[field] = value
+    }
+  }
+
+  const nextAnswers = { ...state.answers }
+  let answersChanged = false
+  for (const [key, value] of Object.entries(prefill.answers)) {
+    if (!hasMeaningfulAnswerValue(nextAnswers[key]) && hasMeaningfulAnswerValue(value)) {
+      nextAnswers[key] = value
+      answersChanged = true
+    }
+  }
+
+  if (Object.keys(identityUpdate).length === 0 && !answersChanged) return null
+  return {
+    ...identityUpdate,
+    ...(answersChanged ? { answers: nextAnswers } : {}),
+  }
+}
+
 function draftIdentityMatchesCurrentState(draft: DraftData, state: RequestState): boolean {
   return identityFields.every((field) => (draft[field] ?? '') === state[field])
 }
@@ -278,6 +322,13 @@ export function clearRequestDraftHydrationCutoff(token: number): void {
 }
 
 function writeDraftToStorage(name: string, value: StorageValue<Partial<RequestState>>): void {
+  const state = value.state
+  // A persisted draft represents patient work, not route selection, auth
+  // context, or account-profile prefill. Leaving the old legacy envelope in
+  // place here also made an explicit Start over look restorable again.
+  if (!state?.serviceType || !state.lastSavedAt) return
+  if (isDraftFlowRetired(state.flowInstanceId)) return
+
   try {
     // Write to legacy key (for backward compatibility)
     localStorage.setItem(name, JSON.stringify(value))
@@ -286,26 +337,25 @@ function writeDraftToStorage(name: string, value: StorageValue<Partial<RequestSt
     return
   }
 
-  // Dual-write to new service-scoped key
-  const state = value.state
-  if (state?.serviceType) {
-    const canonical = canonicalizeServiceType(state.serviceType)
-    if (canonical) {
-      saveDraft(canonical, {
-        flowInstanceId: normalizeFlowInstanceId(state.flowInstanceId) ?? undefined,
-        currentStepId: state.currentStepId || 'certificate',
-        furthestVisitedStepId: state.furthestVisitedStepId,
-        stepsNeedingRevalidation: state.stepsNeedingRevalidation,
-        answers: state.answers || {},
-        firstName: state.firstName,
-        lastName: state.lastName,
-        email: state.email,
-        phone: state.phone,
-        dob: state.dob,
-        safetyConfirmed: state.safetyConfirmed,
-        safetyTimestamp: state.safetyTimestamp,
-      })
-    }
+  // Dual-write to the service-scoped key only after patient work has stamped
+  // the store. Service selection and profile prefill alone must not mint a
+  // restorable draft or a partial_intakes server row.
+  const canonical = canonicalizeServiceType(state.serviceType)
+  if (canonical) {
+    saveDraft(canonical, {
+      flowInstanceId: normalizeFlowInstanceId(state.flowInstanceId) ?? undefined,
+      currentStepId: state.currentStepId || 'certificate',
+      furthestVisitedStepId: state.furthestVisitedStepId,
+      stepsNeedingRevalidation: state.stepsNeedingRevalidation,
+      answers: state.answers || {},
+      firstName: state.firstName,
+      lastName: state.lastName,
+      email: state.email,
+      phone: state.phone,
+      dob: state.dob,
+      safetyConfirmed: state.safetyConfirmed,
+      safetyTimestamp: state.safetyTimestamp,
+    })
   }
 }
 
@@ -318,6 +368,15 @@ function flushPendingDraftWrite(): void {
   const { name, value } = pendingDraftWrite
   pendingDraftWrite = null
   writeDraftToStorage(name, value)
+}
+
+function cancelPendingDraftWrite(): void {
+  pendingDraftWrite = null
+  latestPersistedDraftState = null
+  if (draftWriteTimer !== null) {
+    clearTimeout(draftWriteTimer)
+    draftWriteTimer = null
+  }
 }
 
 function queueDraftStorageWrite(
@@ -386,10 +445,11 @@ function flushDraftImmediately(): void {
 
   const state = latestPersistedDraftState
   if (!state?.serviceType) return
-  // Never mirror a zero-answer "draft" to the server: it creates a
-  // partial_intakes row (and eventually a recovery email) for a visitor who
-  // opened the flow and left without answering anything.
-  if (countMeaningfulAnswers(state.answers) === 0) return
+  // Only patient work earns a draft stamp. Passive consult-subtype routing or
+  // signed-in profile prefill may contain answers, but must never create a
+  // partial_intakes row (including via pagehide/sendBeacon after Start over).
+  if (!state.lastSavedAt) return
+  if (isDraftFlowRetired(state.flowInstanceId)) return
   const canonical = canonicalizeServiceType(state.serviceType)
   if (!canonical) return
   const flush = (window as RequestWindow).__instantmedFlushServerDraft
@@ -655,11 +715,6 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         }
       },
 
-      startFreshFlowInstance: () => {
-        set({ flowInstanceId: ensureFlowInstanceId(null) })
-        queueLatestDraftSnapshotAfterMutation(get)
-      },
-
       nextStep: () => {
         const { serviceType, currentStepId, authContext, answers, stepsNeedingRevalidation } = get()
         if (!serviceType) return
@@ -678,6 +733,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           set({
             currentStepId: nextId,
             direction: 1,
+            lastSavedAt: new Date().toISOString(),
             stepsNeedingRevalidation: stepsNeedingRevalidation.filter((stepId) => stepId !== currentStepId),
             ...(nextIndex > furthestVisitedIndex ? { furthestVisitedStepId: nextId } : {}),
           })
@@ -695,6 +751,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           set({
             currentStepId: lastActiveId,
             direction: 1,
+            lastSavedAt: new Date().toISOString(),
             stepsNeedingRevalidation: stepsNeedingRevalidation.filter((stepId) => stepId !== currentStepId),
           })
           flushPendingDraftWrite()
@@ -713,7 +770,11 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
         const prevId = getPreviousStepId(serviceType, currentStepId, context)
         if (prevId) {
-          set({ currentStepId: prevId, direction: -1 })
+          set({
+            currentStepId: prevId,
+            direction: -1,
+            lastSavedAt: new Date().toISOString(),
+          })
           flushPendingDraftWrite()
           return
         }
@@ -723,7 +784,11 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         const lastActiveId = getLastActiveStepId(serviceType, currentStepId, context)
         if (lastActiveId) {
           if (stepsNeedingRevalidation.includes(currentStepId)) return
-          set({ currentStepId: lastActiveId, direction: -1 })
+          set({
+            currentStepId: lastActiveId,
+            direction: -1,
+            lastSavedAt: new Date().toISOString(),
+          })
           flushPendingDraftWrite()
         }
       },
@@ -762,7 +827,11 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
         // If target step isn't in active steps, allow navigation (step may be transitioning)
         if (targetIndex === -1) {
-          set({ currentStepId: stepId, direction: 1 })
+          set({
+            currentStepId: stepId,
+            direction: 1,
+            lastSavedAt: new Date().toISOString(),
+          })
           return
         }
 
@@ -788,7 +857,11 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         }
 
         const direction = targetIndex > currentIndex ? 1 : -1
-        set({ currentStepId: stepId, direction: direction as 1 | -1 })
+        set({
+          currentStepId: stepId,
+          direction: direction as 1 | -1,
+          lastSavedAt: new Date().toISOString(),
+        })
         flushPendingDraftWrite()
       },
 
@@ -912,9 +985,16 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         }
       },
 
+      applyProfilePrefill: (prefill) => {
+        set((state) => profilePrefillUpdate(state, prefill) ?? state)
+        queueLatestDraftSnapshotAfterMutation(get)
+      },
+
       setAuthContext: (ctx) => set({ authContext: ctx }),
 
       restoreServerDraft: (record, serviceType) => {
+        if (isDraftFlowRetired(record.flowInstanceId)) return
+
         const state = get()
         const answers = isPlainRecord(record.answers) ? record.answers : {}
         const context = {
@@ -970,6 +1050,30 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
       setError: (error) => set({ error }),
 
+      discardCurrentDraft: (profilePrefill) => {
+        const currentState = get()
+        const canonical = canonicalizeServiceType(currentState.serviceType)
+
+        // Do this before set(): a trailing debounced snapshot must never
+        // resurrect an explicitly discarded draft. clearDraft removes only
+        // the active service locally and retires its server mirror.
+        cancelPendingDraftWrite()
+        if (canonical) clearDraft(canonical, currentState.flowInstanceId)
+
+        const resetState: RequestState = {
+          ...initialState,
+          authContext: currentState.authContext,
+        }
+        // A draft may contain patient-edited or stale identity. Start over
+        // must discard that identity with the clinical answers, then seed the
+        // new attempt from the signed-in profile bundle below.
+        const prefillUpdate = currentState.authContext.isAuthenticated
+          ? profilePrefillUpdate(resetState, profilePrefill)
+          : null
+
+        set({ ...resetState, ...prefillUpdate })
+      },
+
       reset: () => {
         // Clear service-scoped draft storage keys
         if (typeof window !== 'undefined') {
@@ -1016,6 +1120,10 @@ export const useRequestStore = create<RequestState & RequestActions>()(
               ? { state: draftToPersistedState(sourceDraft) }
               : (JSON.parse(stored as string) as StorageValue<Partial<RequestState>>)
             parsed.state = normalizePersistedState(parsed.state)
+            if (isDraftFlowRetired(parsed.state.flowInstanceId)) {
+              localStorage.removeItem(name)
+              return null
+            }
 
             // Enforce 24h expiry before hydration — mirrors request-flow.tsx banner logic.
             // If the draft is stale, discard it so the form starts fresh rather than
@@ -1076,11 +1184,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           if (typeof localStorage === 'undefined') return
           // Cancel any trailing write so a reset cannot be resurrected by a
           // stale pending flush.
-          pendingDraftWrite = null
-          if (draftWriteTimer !== null) {
-            clearTimeout(draftWriteTimer)
-            draftWriteTimer = null
-          }
+          cancelPendingDraftWrite()
           try {
             localStorage.removeItem(name)
           } catch {

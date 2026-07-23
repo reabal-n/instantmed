@@ -53,7 +53,7 @@ test.describe("Unified Request Flow - Medical Certificate", () => {
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
     
     // Select work certificate type
-    await page.getByRole("radio", { name: /Work/i }).click()
+    await page.getByRole("radio", { name: /Study/i }).click()
 
     // Length + start date collapse to a summary by default — expand to reach duration
     const changeDates = page.getByRole("button", { name: /Change length or start date/i })
@@ -234,6 +234,41 @@ test.describe("Unified Request Flow - Draft Persistence", () => {
   })
 
   test("restores from the service-scoped draft when the legacy key is gone", async ({ page }) => {
+    // This is a client lifecycle test, not a linked-database migration test.
+    // Keep draft traffic local so a pending migration cannot mutate or depend
+    // on the shared E2E project while still proving POST/DELETE/beacon intent.
+    let deleteAttempts = 0
+    await page.route("**/api/draft**", async (route) => {
+      const method = route.request().method()
+      if (method === "POST") {
+        const body = route.request().postDataJSON() as { sessionId?: string }
+        await route.fulfill({
+          contentType: "application/json",
+          status: 200,
+          body: JSON.stringify({
+            sessionId: body.sessionId,
+            expiresAt: "2026-07-30T00:00:00.000Z",
+            updatedAt: "2026-07-22T00:00:00.000Z",
+          }),
+        })
+        return
+      }
+      if (method === "DELETE") {
+        deleteAttempts += 1
+        if (deleteAttempts === 1) {
+          await route.fulfill({
+            contentType: "application/json",
+            status: 503,
+            body: '{"error":"Temporarily unavailable"}',
+          })
+          return
+        }
+        await route.fulfill({ contentType: "application/json", status: 200, body: '{"ok":true}' })
+        return
+      }
+      await route.fulfill({ contentType: "application/json", status: 404, body: '{"error":"Not found"}' })
+    })
+
     // Phase 2.3 read fallback: patients who hit the pre-fix migration bug
     // have their draft ONLY in instantmed-draft-<service> (the migration
     // deleted the legacy key). Hydration must recover it. Seeded via
@@ -248,6 +283,10 @@ test.describe("Unified Request Flow - Draft Persistence", () => {
           lastSavedAt: new Date().toISOString(),
         }),
       )
+      window.localStorage.setItem(
+        "instantmed-server-draft-med-cert",
+        "11111111-1111-4111-8111-111111111111",
+      )
       window.localStorage.removeItem("instantmed-request-draft")
     })
 
@@ -257,6 +296,242 @@ test.describe("Unified Request Flow - Draft Persistence", () => {
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
     await expect(page.getByRole("radio", { name: /Work/i })).toBeChecked({ timeout: 10000 })
     await expect(page.getByRole("radio", { name: /2 days/i })).toBeChecked({ timeout: 10000 })
+    await expect(page.getByText("Progress restored", { exact: true })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Start this request over" })).toBeVisible()
+    await expect(page.getByText(/Continue where you left off/i)).not.toBeVisible()
+
+    await page.getByRole("button", { name: "Start this request over" }).click()
+    await expect(page.getByText("Progress restored", { exact: true })).not.toBeVisible()
+
+    await expect.poll(async () => page.evaluate(() => ({
+      legacy: window.localStorage.getItem("instantmed-request-draft"),
+      scoped: window.localStorage.getItem("instantmed-draft-med-cert"),
+      activeServerBearer: window.localStorage.getItem("instantmed-server-draft-med-cert"),
+      pendingDiscard: window.localStorage.getItem(
+        "instantmed-server-draft-discard-pending-v1:11111111-1111-4111-8111-111111111111",
+      ) !== null,
+    }))).toEqual({
+      legacy: null,
+      scoped: null,
+      activeServerBearer: null,
+      pendingDiscard: true,
+    })
+
+    await page.evaluate(() => window.dispatchEvent(new Event("online")))
+    await expect.poll(async () => page.evaluate(() => window.localStorage.getItem(
+      "instantmed-server-draft-discard-pending-v1:11111111-1111-4111-8111-111111111111",
+    ))).toBeNull()
+    expect(deleteAttempts).toBeGreaterThanOrEqual(2)
+
+    // Route/profile seeds after Start over are passive context. Even unload
+    // must not reinterpret them as patient work and recreate server recovery.
+    const beaconUrls = await page.evaluate(() => {
+      const urls: string[] = []
+      Object.defineProperty(window.navigator, "sendBeacon", {
+        configurable: true,
+        value: (url: string | URL) => {
+          urls.push(String(url))
+          return true
+        },
+      })
+      window.dispatchEvent(new Event("pagehide"))
+      return urls
+    })
+    expect(beaconUrls).not.toContain("/api/draft")
+  })
+
+  test("blocks a stale tab after the same flow is retired elsewhere", async ({ page }) => {
+    const context = page.context()
+    await context.addInitScript(() => {
+      const flowInstanceId = "44444444-4444-4444-8444-444444444444"
+      if (
+        window.localStorage.getItem(
+          `instantmed-draft-retired-flow-v1:${flowInstanceId}`,
+        ) ||
+        window.localStorage.getItem("instantmed-draft-med-cert")
+      ) {
+        return
+      }
+      const draft = {
+        serviceType: "med-cert",
+        flowInstanceId,
+        currentStepId: "certificate",
+        answers: { certType: "work", duration: "1" },
+        lastSavedAt: new Date().toISOString(),
+      }
+      window.localStorage.setItem(
+        "instantmed-draft-med-cert",
+        JSON.stringify(draft),
+      )
+      window.localStorage.setItem(
+        "instantmed-request-draft",
+        JSON.stringify({ state: draft, version: 0 }),
+      )
+    })
+    await context.route("**/api/draft**", async (route) => {
+      if (route.request().method() === "POST") {
+        const body = route.request().postDataJSON() as { sessionId?: string }
+        await route.fulfill({
+          contentType: "application/json",
+          status: 200,
+          body: JSON.stringify({
+            sessionId: body.sessionId,
+            expiresAt: "2026-07-30T00:00:00.000Z",
+            updatedAt: "2026-07-23T00:00:00.000Z",
+          }),
+        })
+        return
+      }
+      await route.fulfill({
+        contentType: "application/json",
+        status: 200,
+        body: '{"ok":true}',
+      })
+    })
+
+    await page.goto("/request?service=med-cert")
+    await waitForPageLoad(page)
+    await expect(page.getByText("Progress restored", { exact: true })).toBeVisible({ timeout: 15000 })
+
+    const secondTab = await context.newPage()
+    try {
+      await secondTab.goto("/request?service=med-cert")
+      await waitForPageLoad(secondTab)
+      await expect(secondTab.getByText("Progress restored", { exact: true })).toBeVisible({ timeout: 15000 })
+      await secondTab.getByRole("button", { name: "Start this request over" }).click()
+
+      await expect(page.getByRole("heading", {
+        name: "This request is no longer active",
+      })).toBeVisible({ timeout: 15000 })
+      await expect(page.getByRole("button", { name: "Start a new request" })).toBeVisible()
+      await expect(page.getByRole("radio", { name: /Work/i })).toHaveCount(0)
+
+      await page.getByRole("button", { name: "Start a new request" }).click()
+      await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible()
+    } finally {
+      await secondTab.close()
+    }
+  })
+
+  test("blocks the mounted request when its own draft save is rejected as discarded", async ({ page }) => {
+    await page.route("**/api/draft**", async (route) => {
+      if (route.request().method() === "POST") {
+        await route.fulfill({
+          contentType: "application/json",
+          status: 410,
+          body: '{"error":"Draft was discarded"}',
+        })
+        return
+      }
+      await route.fulfill({
+        contentType: "application/json",
+        status: 200,
+        body: '{"ok":true}',
+      })
+    })
+
+    await page.goto("/request?service=med-cert")
+    await waitForPageLoad(page)
+    await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
+
+    await page.getByRole("radio", { name: /Study/i }).click()
+
+    await expect(page.getByRole("heading", {
+      name: "This request is no longer active",
+    })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole("radio", { name: /Study/i })).toHaveCount(0)
+
+    await page.getByRole("button", { name: "Start a new request" }).click()
+    await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible()
+  })
+
+  test("rechecks the active flow when a request returns from the back-forward cache", async ({ page }) => {
+    await page.route("**/api/draft**", async (route) => {
+      if (route.request().method() === "POST") {
+        const body = route.request().postDataJSON() as { sessionId?: string }
+        await route.fulfill({
+          contentType: "application/json",
+          status: 200,
+          body: JSON.stringify({
+            sessionId: body.sessionId,
+            expiresAt: "2026-07-30T00:00:00.000Z",
+            updatedAt: "2026-07-23T00:00:00.000Z",
+          }),
+        })
+        return
+      }
+      await route.fulfill({ contentType: "application/json", status: 200, body: '{"ok":true}' })
+    })
+
+    await page.goto("/request?service=med-cert")
+    await waitForPageLoad(page)
+    await page.getByRole("radio", { name: /Study/i }).click()
+
+    await expect.poll(async () => page.evaluate(() => Boolean(
+      window.localStorage.getItem("instantmed-draft-med-cert"),
+    ))).toBe(true)
+    const flowInstanceId = await page.evaluate(() => {
+      const raw = window.localStorage.getItem("instantmed-draft-med-cert")
+      return raw ? (JSON.parse(raw) as { flowInstanceId?: string }).flowInstanceId : undefined
+    })
+    expect(flowInstanceId).toBeTruthy()
+
+    await page.evaluate((retiredFlowInstanceId) => {
+      window.localStorage.setItem(
+        `instantmed-draft-retired-flow-v1:${retiredFlowInstanceId}`,
+        JSON.stringify({
+          v: 1,
+          serviceType: "med-cert",
+          retiredAt: new Date().toISOString(),
+        }),
+      )
+      window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }))
+    }, flowInstanceId)
+
+    await expect(page.getByRole("heading", {
+      name: "This request is no longer active",
+    })).toBeVisible()
+  })
+
+  test("shows Start over after an explicit recovery-link restore", async ({ page }) => {
+    const sessionId = "77777777-7777-4777-8777-777777777777"
+    const flowInstanceId = "88888888-8888-4888-8888-888888888888"
+    await page.route("**/api/draft**", async (route) => {
+      if (route.request().method() === "GET") {
+        await route.fulfill({
+          contentType: "application/json",
+          status: 200,
+          body: JSON.stringify({
+            sessionId,
+            serviceType: "med-cert",
+            flowInstanceId,
+            currentStepId: "certificate",
+            answers: { certType: "work", duration: "2" },
+            identity: {
+              email: null,
+              firstName: null,
+              lastName: null,
+              phone: null,
+              dob: null,
+            },
+            updatedAt: "2026-07-23T00:00:00.000Z",
+            expiresAt: "2026-07-30T00:00:00.000Z",
+          }),
+        })
+        return
+      }
+      await route.fulfill({ contentType: "application/json", status: 200, body: '{"ok":true}' })
+    })
+
+    await page.goto(`/request?service=med-cert&d=${sessionId}`)
+    await waitForPageLoad(page)
+
+    await expect(page.getByText("Progress restored", { exact: true })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole("button", { name: "Start this request over" })).toBeVisible()
+    await page.getByRole("button", { name: "Start this request over" }).click()
+
+    await expect(page.getByText("Progress restored", { exact: true })).not.toBeVisible()
+    await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible()
   })
 
   test("lets unchanged review edits jump back to Pay but revalidates material edits first", async ({ page }) => {

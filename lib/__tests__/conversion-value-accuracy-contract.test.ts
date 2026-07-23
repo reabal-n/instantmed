@@ -38,12 +38,24 @@ describe("Google Ads conversion-value accuracy contract", () => {
     expect(source).toMatch(/typeof data\?\.amount_cents === ['"]number['"]/)
   })
 
-  it("intake-status API returns amount_cents + is_priority alongside status", () => {
+  it("keeps payment draft cleanup retryable until payment is truly paid", () => {
+    const source = read("app/patient/intakes/success/success-client.tsx")
+    const paidGate = source.indexOf('paymentStatus !== "paid"')
+    const cleanupLatch = source.indexOf("draftClearedRef.current = true")
+
+    expect(paidGate).toBeGreaterThanOrEqual(0)
+    expect(cleanupLatch).toBeGreaterThan(paidGate)
+  })
+
+  it("intake-status API returns payment and conversion fields alongside status", () => {
     const source = read("app/api/patient/intake-status/route.ts")
     // The select clause must include amount_cents so the polling client
     // can update its conversion-value source.
-    expect(source).toMatch(/\.select\("status, amount_cents, is_priority"\)/)
+    expect(source).toMatch(
+      /\.select\("status, payment_status, amount_cents, is_priority"\)/,
+    )
     // Response payload exposes the new fields.
+    expect(source).toContain("payment_status: intake.payment_status")
     expect(source).toContain("amount_cents: intake.amount_cents")
     expect(source).toContain("is_priority: intake.is_priority")
   })

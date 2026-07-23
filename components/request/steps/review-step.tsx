@@ -274,6 +274,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     setSafetyConfirmed,
     getIdentity,
     setConsent,
+    discardCurrentDraft,
   } = useRequestStore()
   const posthog = usePostHog()
   const consentRef = useRef<HTMLDivElement>(null)
@@ -282,6 +283,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   const price = getDisplayPrice(serviceType, answers)
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [requiresFreshRequest, setRequiresFreshRequest] = useState(false)
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [isPriority, setIsPriority] = useState(false)
   const totalDue = price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)
@@ -320,6 +322,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
 
     setIsProcessing(true)
     setError(null)
+    setRequiresFreshRequest(false)
 
     const identity = getIdentity()
     const attribution = getAttribution()
@@ -350,7 +353,8 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         attribution,
         posthogDistinctId: posthog?.get_distinct_id() || undefined,
         flowInstanceId: flowInstanceId ?? undefined,
-        serverDraftSessionId: getActiveServerDraftSessionId(serviceType) ?? undefined,
+        serverDraftSessionId:
+          getActiveServerDraftSessionId(serviceType, flowInstanceId) ?? undefined,
       })
 
       if (!result.success) {
@@ -361,6 +365,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
           stage: "session_creation",
           failure_category: classifyCheckoutFailure(result.error),
         })
+        setRequiresFreshRequest(Boolean(result.requiresFreshRequest))
         setError(result.error || "Unable to create payment session. Please try again.")
         return
       }
@@ -402,6 +407,17 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     } finally {
       setIsProcessing(false)
     }
+  }
+
+  const handleStartFreshRequest = () => {
+    const subtype = typeof answers.consultSubtype === "string"
+      ? answers.consultSubtype
+      : null
+    discardCurrentDraft()
+    markIntentionalNavigation()
+    const params = new URLSearchParams({ service: serviceType })
+    if (serviceType === "consult" && subtype) params.set("subtype", subtype)
+    window.location.assign(`/request?${params.toString()}`)
   }
 
   const handleDisabledClick = () => {
@@ -1124,7 +1140,21 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
 
         <div ref={errorRef} aria-live="polite">
         {error && (
-          error.toLowerCase().includes("account already exists") ? (
+          requiresFreshRequest ? (
+            <Alert variant="destructive" role="alert">
+              <AlertDescription className="space-y-3">
+                <p>{error}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="min-h-11 w-full"
+                  onClick={handleStartFreshRequest}
+                >
+                  Start this request over
+                </Button>
+              </AlertDescription>
+            </Alert>
+          ) : error.toLowerCase().includes("account already exists") ? (
             // Mirror checkout-step.tsx: an account-owning email is intentionally
             // bounced to sign-in; without the inline CTA this reads as
             // "nothing happened". Keep the matcher byte-identical to that surface.

@@ -6,6 +6,10 @@
  */
 
 import { normalizeFlowInstanceId } from '@/lib/analytics/flow-instance'
+import {
+  isDraftFlowRetired,
+  retireDraftFlow,
+} from '@/lib/request/draft-retirement'
 
 import type { UnifiedServiceType, UnifiedStepId } from './step-registry'
 
@@ -122,6 +126,10 @@ export function getDraft(service: CanonicalServiceType): DraftData | null {
 
     draft.answers = isPlainRecord(draft.answers) ? draft.answers : {}
     draft.flowInstanceId = normalizeFlowInstanceId(draft.flowInstanceId) ?? undefined
+    if (isDraftFlowRetired(draft.flowInstanceId)) {
+      localStorage.removeItem(key)
+      return null
+    }
     
     // Check expiry
     if (isExpired(draft.lastSavedAt)) {
@@ -147,6 +155,7 @@ export function getDraft(service: CanonicalServiceType): DraftData | null {
  */
 export function saveDraft(service: CanonicalServiceType, data: Omit<DraftData, 'serviceType' | 'lastSavedAt'>): void {
   if (!isStorageAvailable()) return
+  if (isDraftFlowRetired(data.flowInstanceId)) return
 
   try {
     const key = getStorageKey(service)
@@ -186,23 +195,86 @@ export function saveDraft(service: CanonicalServiceType, data: Omit<DraftData, '
 
 /**
  * Clear draft for a specific service type.
- * Only clears the draft for the specified service. Also deletes the server
+ * Only clears the draft for the specified service, including the legacy
+ * envelope when it represents that same service. Also deletes the server
  * mirror (fire-and-forget) so the recovery cron does not email a user whose
  * intake has actually been completed or explicitly abandoned.
  */
-export function clearDraft(service: CanonicalServiceType): void {
+export function clearDraft(
+  service: CanonicalServiceType,
+  flowInstanceIdOverride?: string | null,
+): void {
   if (!isStorageAvailable()) return
 
+  const explicitFlowInstanceId = normalizeFlowInstanceId(flowInstanceIdOverride) ?? undefined
+  let flowInstanceId = explicitFlowInstanceId
+  if (flowInstanceId) retireDraftFlow(service, flowInstanceId)
+
+  const key = getStorageKey(service)
   try {
-    const key = getStorageKey(service)
-    localStorage.removeItem(key)
+    const scopedRaw = localStorage.getItem(key)
+    if (scopedRaw) {
+      let parsed = false
+      let scopedFlowInstanceId: string | undefined
+      try {
+        const scoped = JSON.parse(scopedRaw) as Partial<DraftData>
+        parsed = true
+        scopedFlowInstanceId = normalizeFlowInstanceId(scoped.flowInstanceId) ?? undefined
+        flowInstanceId ??= scopedFlowInstanceId
+        if (flowInstanceId) retireDraftFlow(service, flowInstanceId)
+      } catch {
+        // A malformed known service key can clear only when no authoritative
+        // flow override could make it another tab's fresh work.
+      }
+
+      if (
+        (!parsed && !explicitFlowInstanceId) ||
+        (parsed && (
+          !flowInstanceId ||
+          !scopedFlowInstanceId ||
+          scopedFlowInstanceId === flowInstanceId
+        ))
+      ) {
+        localStorage.removeItem(key)
+      }
+    }
+  } catch {
+    // Silently fail
+  }
+
+  try {
+    const legacyRaw = localStorage.getItem(LEGACY_KEY)
+    if (legacyRaw) {
+      const legacy = JSON.parse(legacyRaw) as {
+        state?: { serviceType?: string | null; flowInstanceId?: string }
+      }
+      if (canonicalizeServiceType(legacy?.state?.serviceType ?? null) === service) {
+        const legacyFlowInstanceId = normalizeFlowInstanceId(
+          legacy.state?.flowInstanceId,
+        ) ?? undefined
+        flowInstanceId ??= legacyFlowInstanceId
+        if (flowInstanceId) retireDraftFlow(service, flowInstanceId)
+        if (
+          !flowInstanceId ||
+          !legacyFlowInstanceId ||
+          legacyFlowInstanceId === flowInstanceId
+        ) {
+          localStorage.removeItem(LEGACY_KEY)
+        }
+      }
+    }
   } catch {
     // Silently fail
   }
 
   if (typeof window !== 'undefined') {
     void import('./server-draft').then(({ deleteServerDraft }) => {
-      void deleteServerDraft(service)
+      // The server helper independently binds its bearer to the requested
+      // flow. Always give it the captured flow even when another tab has
+      // already written a fresher local draft: it will delete the old bearer
+      // when they match and safely no-op when the server bearer belongs to the
+      // fresh tab.
+      void deleteServerDraft(service, flowInstanceId)
     }).catch(() => {
       // ignore - row will eventually expire server-side anyway
     })
@@ -221,7 +293,11 @@ export function clearDraft(service: CanonicalServiceType): void {
  * key only when it actually holds THIS service's draft, so paying for a
  * med-cert never wipes an unrelated in-progress consult draft.
  */
-export function clearDraftAfterPayment(serviceCategory: string | null | undefined): void {
+export function clearDraftAfterPayment(
+  serviceCategory: string | null | undefined,
+  paidFlowInstanceId: string | null | undefined,
+  paymentStatus: string | null | undefined,
+): void {
   // Accept BOTH vocabularies: client service types ('med-cert') and the DB
   // `intakes.category` values ('medical_certificate') the payment surfaces
   // actually have in hand.
@@ -235,21 +311,14 @@ export function clearDraftAfterPayment(serviceCategory: string | null | undefine
   const canonical =
     DB_CATEGORY_TO_CANONICAL[(serviceCategory ?? '').toLowerCase()] ??
     canonicalizeServiceType(serviceCategory ?? null)
-  if (!canonical) return
+  const normalizedPaidFlowInstanceId = normalizeFlowInstanceId(paidFlowInstanceId)
+  if (
+    paymentStatus !== 'paid' ||
+    !canonical ||
+    !normalizedPaidFlowInstanceId
+  ) return
 
-  clearDraft(canonical)
-
-  if (!isStorageAvailable()) return
-  try {
-    const legacyRaw = localStorage.getItem(LEGACY_KEY)
-    if (!legacyRaw) return
-    const legacy = JSON.parse(legacyRaw) as { state?: { serviceType?: string | null } }
-    if (canonicalizeServiceType(legacy?.state?.serviceType ?? null) === canonical) {
-      localStorage.removeItem(LEGACY_KEY)
-    }
-  } catch {
-    // Silently fail — the 24h expiry remains the backstop.
-  }
+  clearDraft(canonical, normalizedPaidFlowInstanceId)
 }
 
 /**
@@ -307,6 +376,11 @@ export function migrateLegacyDraft(): DraftData | null {
     // Canonicalize the service type
     const canonical = canonicalizeServiceType(legacyState.serviceType)
     if (!canonical) {
+      localStorage.removeItem(LEGACY_KEY)
+      return null
+    }
+
+    if (isDraftFlowRetired(legacyState.flowInstanceId)) {
       localStorage.removeItem(LEGACY_KEY)
       return null
     }

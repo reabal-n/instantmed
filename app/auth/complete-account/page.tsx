@@ -49,6 +49,7 @@ export default async function CompleteAccountPage({
   // Set ONLY when payment is server-confirmed below — the client uses it as
   // the signal to retire the local draft for that service.
   let paidServiceCategory: string | undefined
+  let paidFlowInstanceId: string | undefined
   let paymentState: CompleteAccountPaymentState = "unconfirmed"
   if (intakeId) {
     try {
@@ -56,7 +57,7 @@ export default async function CompleteAccountPage({
       const { data: intake } = await supabase
         .from("intakes")
         .select(
-          "payment_id, payment_status, status, category, patient:profiles!patient_id(email)",
+          "payment_id, payment_status, status, category, flow_instance_id, patient:profiles!patient_id(email)",
         )
         .eq("id", intakeId)
         .single()
@@ -81,6 +82,7 @@ export default async function CompleteAccountPage({
         const patient = intake.patient as { email?: string } | null
         email = patient?.email || undefined
         paidServiceCategory = (intake.category as string | undefined) ?? undefined
+        paidFlowInstanceId = (intake.flow_instance_id as string | undefined) ?? undefined
       }
     } catch {
       // Fail closed: without verified ownership and payment state, the public
@@ -118,6 +120,7 @@ export default async function CompleteAccountPage({
               intakeId={intakeId}
               email={email}
               paidServiceCategory={paidServiceCategory}
+              paidFlowInstanceId={paidFlowInstanceId}
               paymentState={paymentState}
               heardToken={heardToken}
             />

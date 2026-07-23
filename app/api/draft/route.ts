@@ -16,6 +16,7 @@ import * as Sentry from "@sentry/nextjs"
 import { type NextRequest, NextResponse } from "next/server"
 
 import { normalizeFlowInstanceId } from "@/lib/analytics/flow-instance"
+import { isMaintenanceModeStrict } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { decryptJSONB, type EncryptedPHI, encryptJSONB } from "@/lib/security/phi-encryption"
@@ -31,6 +32,35 @@ function withDraftPrivacyHeaders<T extends Response>(response: T): T {
 
 function draftJson(body: unknown, init?: ResponseInit): NextResponse {
   return withDraftPrivacyHeaders(NextResponse.json(body, init))
+}
+
+async function draftMutationMaintenanceResponse(): Promise<NextResponse | null> {
+  let mutationPaused = true
+  try {
+    const maintenance = await isMaintenanceModeStrict()
+    mutationPaused = maintenance.enabled
+  } catch (error) {
+    // The migration safety gate must fail closed. Ordinary feature consumers
+    // may use defaults during a transient read failure; PHI draft mutations
+    // cannot distinguish that fallback from a confirmed maintenance-off value.
+    logger.error("Draft maintenance gate read failed; pausing mutation", {
+      error: error instanceof Error ? error.message : "Unknown feature flag error",
+    })
+    Sentry.captureException(error, {
+      tags: { route: "api/draft", operation: "maintenance_gate" },
+    })
+  }
+
+  if (!mutationPaused) return null
+
+  const response = draftJson(
+    {
+      error: "Draft changes are briefly paused. Your progress remains on this device; please retry shortly.",
+    },
+    { status: 503 },
+  )
+  response.headers.set("Retry-After", "30")
+  return response
 }
 
 const VALID_SERVICE_TYPES = ["med-cert", "prescription", "consult"] as const
@@ -140,6 +170,8 @@ export async function POST(req: NextRequest) {
   if (rateLimitResponse) {
     return withDraftPrivacyHeaders(rateLimitResponse)
   }
+  const maintenanceResponse = await draftMutationMaintenanceResponse()
+  if (maintenanceResponse) return maintenanceResponse
 
   let body: DraftPayload
   try {
@@ -206,16 +238,31 @@ export async function POST(req: NextRequest) {
     .from("partial_intakes")
     .upsert(row, { onConflict: "session_id" })
     .select("session_id, expires_at, updated_at")
-    .single()
+    .maybeSingle()
 
-  if (error || !data) {
-    const message = error?.message || "Failed to save draft"
+  if (error) {
+    const message = error.message || "Failed to save draft"
+    if (
+      error.code === "23514" &&
+      /draft_session_(?:flow|service)_mismatch/.test(message)
+    ) {
+      return draftJson(
+        { error: "Draft session belongs to another flow or service" },
+        { status: 409 },
+      )
+    }
     logger.error("Failed to upsert intake draft", { error: message })
-    Sentry.captureException(error || new Error(message), {
+    Sentry.captureException(error, {
       tags: { route: "api/draft", method: "POST" },
       extra: { serviceType: body.serviceType },
     })
     return draftJson({ error: message }, { status: 500 })
+  }
+
+  // The database discard fence deliberately cancels a stale POST by returning
+  // no row. This is an expected terminal lifecycle result, not an incident.
+  if (!data) {
+    return draftJson({ error: "Draft was discarded" }, { status: 410 })
   }
 
   return draftJson({
@@ -307,17 +354,33 @@ export async function DELETE(req: NextRequest) {
   if (rateLimitResponse) {
     return withDraftPrivacyHeaders(rateLimitResponse)
   }
+  const maintenanceResponse = await draftMutationMaintenanceResponse()
+  if (maintenanceResponse) return maintenanceResponse
 
   const sessionId = req.nextUrl.searchParams.get("id")
+  const flowInstanceIdParam = req.nextUrl.searchParams.get("flow")
+  const flowInstanceId = normalizeFlowInstanceId(flowInstanceIdParam)
 
   if (!sessionId || !isUuid(sessionId)) {
     return draftJson({ error: "Valid id query param required" }, { status: 400 })
   }
+  if (flowInstanceIdParam !== null && !flowInstanceId) {
+    return draftJson({ error: "flow must be a valid UUID v4" }, { status: 400 })
+  }
 
   const supabase = createServiceRoleClient()
-  const { error } = await supabase.from("partial_intakes").delete().eq("session_id", sessionId)
+  const { error } = await supabase.rpc("discard_partial_intake_draft", {
+    p_session_id: sessionId,
+    p_flow_instance_id: flowInstanceId,
+  })
 
   if (error) {
+    if (
+      error.code === "23514" &&
+      error.message.includes("draft_session_flow_mismatch")
+    ) {
+      return draftJson({ error: "Draft session belongs to another flow" }, { status: 409 })
+    }
     logger.error("Failed to delete intake draft", { error: error.message })
     Sentry.captureException(error, {
       tags: { route: "api/draft", method: "DELETE" },

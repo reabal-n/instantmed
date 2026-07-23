@@ -66,6 +66,7 @@ interface CheckoutResult {
   checkoutUrl?: string
   intakeId?: string
   error?: string
+  requiresFreshRequest?: boolean
 }
 
 /**
@@ -117,6 +118,9 @@ export async function createCheckoutFromUnifiedFlow(
   } = input
   const flowInstanceId = normalizeFlowInstanceId(input.flowInstanceId) ?? undefined
   const { category, subtype } = mapServiceToCategory(serviceType)
+  const draftServiceType = serviceType === "repeat-script"
+    ? "prescription"
+    : serviceType
   
   // Update subtype based on answers
   const finalSubtype = resolveCheckoutSubtype(serviceType, answers, subtype)
@@ -136,21 +140,39 @@ export async function createCheckoutFromUnifiedFlow(
     {
       category,
       email: authResult?.user.email ?? identity.email,
+      flowInstanceId,
+      serviceType: draftServiceType,
       sessionId: serverDraftSessionId,
       subtype: finalSubtype,
     },
   )
 
   if (convertedDraft.kind === "blocked") {
+    const blockedMessages = {
+      discarded:
+        "This saved request was discarded. Start a new request to continue.",
+      identity_mismatch:
+        "This saved request belongs to a different email. Use the email from the request or contact support.",
+      query_error:
+        "We couldn’t safely verify this saved request. Please try again shortly.",
+      request_mismatch:
+        "This saved request does not match the service you are trying to pay for. Please start again.",
+    } as const
     return {
       success: false,
-      error: convertedDraft.reason === "identity_mismatch"
-        ? "This saved request belongs to a different email. Use the email from the request or contact support."
-        : "This saved request does not match the service you are trying to pay for. Please start again.",
+      error: blockedMessages[convertedDraft.reason],
     }
   }
 
-  let activeServerDraftSessionId = serverDraftSessionId
+  // A draft bearer is useful for submission identity only after the service
+  // role has verified that it belongs to this exact flow. Only missing,
+  // expired, or malformed bearer inputs fall back to ordinary checkout;
+  // verification errors and explicit discard fail closed above.
+  const activeServerDraftSessionId =
+    convertedDraft.kind === "reusable" ||
+    (convertedDraft.kind === "none" && convertedDraft.reason === "not_converted")
+      ? serverDraftSessionId
+      : undefined
   if (convertedDraft.kind === "reusable") {
     const { intake } = convertedDraft
     const isOwnedByAuthenticatedPatient = Boolean(
@@ -178,9 +200,14 @@ export async function createCheckoutFromUnifiedFlow(
       }
     }
 
-    // A terminal request should not permanently pin this browser to an old
-    // draft. Let a genuinely fresh submission use the normal time bucket.
-    activeServerDraftSessionId = undefined
+    // The realized flow is unique in PostgreSQL. Rotating only in this server
+    // action would strand the browser/local draft on the old flow and defeat
+    // paid-success cleanup, so require an explicit client lifecycle reset.
+    return {
+      success: false,
+      error: "This saved request has already been used. Start this request over to continue.",
+      requiresFreshRequest: true,
+    }
   }
   
   if (authResult?.user && authResult?.profile) {

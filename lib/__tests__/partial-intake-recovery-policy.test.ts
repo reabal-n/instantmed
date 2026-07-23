@@ -44,6 +44,10 @@ vi.mock("@/lib/supabase/service-role", () => ({
           mocks.queryCalls.push({ method: "eq", args })
           return chain
         },
+        limit(...args: unknown[]) {
+          mocks.queryCalls.push({ method: "limit", args })
+          return chain
+        },
         maybeSingle() {
           mocks.queryCalls.push({ method: "maybeSingle", args: [] })
           return Promise.resolve(
@@ -65,6 +69,7 @@ import {
 const NOW = new Date("2026-07-19T08:00:00.000Z")
 const TRACKING_ID = "a6bd50f7-ad78-4fba-9822-a89580b58bf7"
 const SESSION_ID = "11111111-1111-4111-8111-111111111111"
+const FLOW_INSTANCE_ID = "22222222-2222-4222-8222-222222222222"
 const EMAIL = "alex.taylor@patientmail.com.au"
 
 function draftRow(
@@ -73,6 +78,7 @@ function draftRow(
   return {
     recovery_tracking_id: TRACKING_ID,
     session_id: SESSION_ID,
+    flow_instance_id: null,
     service_type: "med-cert",
     current_step_id: "details",
     email: EMAIL,
@@ -178,6 +184,44 @@ describe("partial-intake recovery authoritative policy", () => {
     expect(result).toEqual({
       kind: "policy_suppressed",
       reason: "recipient_changed",
+    })
+  })
+
+  it("suppresses when the flow already created an intake despite a missing marker", async () => {
+    const row = draftRow({ flow_instance_id: FLOW_INSTANCE_ID })
+    queueSelect(row)
+    queueSelect({ id: "intake-1" })
+
+    await expect(evaluatePartialIntakeRecoveryPolicy({
+      recoveryTrackingId: TRACKING_ID,
+      expectedRecipient: EMAIL,
+      expectedUpdatedAt: row.updated_at as string,
+      mode: "initial",
+      now: NOW,
+    })).resolves.toEqual({
+      kind: "policy_suppressed",
+      reason: "intake_already_created",
+    })
+    expect(mocks.queryCalls).toContainEqual({
+      method: "eq",
+      args: ["flow_instance_id", FLOW_INSTANCE_ID],
+    })
+  })
+
+  it("fails closed when the authoritative intake-link read fails", async () => {
+    const row = draftRow({ flow_instance_id: FLOW_INSTANCE_ID })
+    queueSelect(row)
+    queueSelect(null, { message: "database unavailable" })
+
+    await expect(evaluatePartialIntakeRecoveryPolicy({
+      recoveryTrackingId: TRACKING_ID,
+      expectedRecipient: EMAIL,
+      expectedUpdatedAt: row.updated_at as string,
+      mode: "dispatcher",
+      now: NOW,
+    })).resolves.toEqual({
+      kind: "transiently_blocked",
+      reason: "intake_link_read_failed",
     })
   })
 

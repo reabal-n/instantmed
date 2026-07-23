@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
   // fallback instead of the real $24.95-$89.95 price.
   const { data: intake } = await supabase
     .from("intakes")
-    .select("status, amount_cents, is_priority")
+    .select("status, payment_status, amount_cents, is_priority")
     .eq("id", intakeId)
     .eq("patient_id", authResult.profile.id)
     .maybeSingle()
@@ -97,6 +97,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     status: intake.status,
+    payment_status: intake.payment_status,
     amount_cents: intake.amount_cents ?? null,
     is_priority: intake.is_priority ?? false,
   })

@@ -256,7 +256,7 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
 
         if (certTypeDefault) {
           certTypeHydrationDefaultAppliedRef.current = true
-          setAnswer("certType", certTypeDefault)
+          setAnswer("certType", certTypeDefault, { touch: false })
         }
       }
 
@@ -298,10 +298,10 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
       const nextStartDate = offsetToISO(startOffset)
       const nextDuration = String(selectedDays)
       if (answers.startDate !== nextStartDate) {
-        setAnswer("startDate", nextStartDate)
+        setAnswer("startDate", nextStartDate, { touch: false })
       }
       if (answers.duration !== nextDuration) {
-        setAnswer("duration", nextDuration)
+        setAnswer("duration", nextDuration, { touch: false })
       }
     }
   }, [answers.duration, answers.startDate, canSyncSelection, startOffset, selectedDays, setAnswer])

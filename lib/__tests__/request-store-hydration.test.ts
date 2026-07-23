@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 // Mock localStorage before the store module's functions run (module import is
 // safe — the store only touches localStorage inside storage callbacks).
@@ -20,6 +20,10 @@ const localStorageMock = {
 Object.defineProperty(globalThis, "localStorage", { value: localStorageMock })
 
 import { useRequestStore } from "@/components/request/store"
+import { retireDraftFlow } from "@/lib/request/draft-retirement"
+import { validateAnswersServerSide } from "@/lib/request/unified-checkout"
+
+const RETIRED_FLOW_INSTANCE_ID = "55555555-5555-4555-8555-555555555555"
 
 /**
  * Regression guard for the reload draft-loss bug (2026-07-02): the persist
@@ -37,11 +41,244 @@ describe("request store draft hydration", () => {
     useRequestStore.setState(useRequestStore.getInitialState(), true)
   })
 
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it("marks hydration complete when there is no persisted draft", async () => {
     await useRequestStore.persist.rehydrate()
 
     expect(useRequestStore.persist.hasHydrated()).toBe(true)
     expect(useRequestStore.getState().answers).toEqual({})
+  })
+
+  it("does not mint a scoped draft when the patient only opens a service", async () => {
+    await useRequestStore.persist.rehydrate()
+
+    useRequestStore.getState().setServiceType("med-cert")
+    await new Promise((resolve) => setTimeout(resolve, 450))
+
+    expect(localStorage.getItem("instantmed-request-draft")).toBeNull()
+    expect(localStorage.getItem("instantmed-draft-med-cert")).toBeNull()
+  })
+
+  it("starts a consult over without minting a new draft from passive route and profile seeds", async () => {
+    const savedAt = new Date().toISOString()
+    vi.stubGlobal("window", {})
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true })))
+    useRequestStore.setState({
+      serviceType: "consult",
+      currentStepId: "ed-health",
+      answers: { consultSubtype: "ed", edGoal: "improve_erections" },
+      firstName: "Draft",
+      lastName: "Identity",
+      email: "stale@example.com",
+      phone: "0499999999",
+      dob: "1970-01-01",
+      lastSavedAt: savedAt,
+      authContext: {
+        isAuthenticated: true,
+        hasProfile: true,
+        hasCompleteIdentity: true,
+        hasMedicare: true,
+        hasAddress: true,
+        hasPhone: true,
+        hasSex: true,
+      },
+    })
+    localStorage.setItem("instantmed-draft-consult", JSON.stringify({
+      serviceType: "consult",
+      currentStepId: "ed-health",
+      answers: { consultSubtype: "ed", edGoal: "improve_erections" },
+      lastSavedAt: savedAt,
+    }))
+
+    const profilePrefill = {
+      identity: {
+        email: "patient@example.com",
+        firstName: "Pat",
+        lastName: "Example",
+        phone: "0412345678",
+        dob: "1985-04-01",
+      },
+      answers: {
+        ihiNumber: "8003600000000000",
+        addressLine1: "12 Manual Entry Road",
+        suburb: "Sydney",
+        state: "NSW",
+        postcode: "2000",
+        sex: "M",
+      },
+    }
+
+    useRequestStore.getState().discardCurrentDraft(profilePrefill)
+    useRequestStore.getState().setAnswer("consultSubtype", "ed", { touch: false })
+    useRequestStore.getState().setServiceType("consult")
+    await new Promise((resolve) => setTimeout(resolve, 450))
+
+    const state = useRequestStore.getState()
+    expect(state.currentStepId).toBe("ed-goals")
+    expect(state.lastSavedAt).toBeNull()
+    expect(state.answers).toMatchObject({
+      consultSubtype: "ed",
+      ihiNumber: "8003600000000000",
+      addressLine1: "12 Manual Entry Road",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+      sex: "M",
+    })
+    expect(state.firstName).toBe("Pat")
+    expect(state.lastName).toBe("Example")
+    expect(state.email).toBe("patient@example.com")
+    expect(state.phone).toBe("0412345678")
+    expect(state.dob).toBe("1985-04-01")
+    expect(localStorage.getItem("instantmed-request-draft")).toBeNull()
+    expect(localStorage.getItem("instantmed-draft-consult")).toBeNull()
+    expect(fetch).not.toHaveBeenCalledWith(
+      "/api/draft",
+      expect.objectContaining({ method: "POST" }),
+    )
+
+    const completeEdAnswers = {
+      ...state.answers,
+      edGoal: "improve_erections",
+      edDuration: "months",
+      edAgeConfirmed: true,
+      iief1: 3,
+      iief2: 3,
+      iief3: 3,
+      iief4: 3,
+      iief5: 3,
+      edNitrates: false,
+      edAlphaBlockers: false,
+      edRecentHeartEvent: false,
+      edSevereHeart: false,
+      takes_medications: "no",
+      has_allergies: "no",
+      has_conditions: "no",
+      previousEdMeds: false,
+      edPreference: "doctor_recommendation",
+    }
+    expect(validateAnswersServerSide("consult", completeEdAnswers, {
+      email: state.email,
+      fullName: `${state.firstName} ${state.lastName}`,
+      dateOfBirth: state.dob,
+      phone: state.phone,
+    })).toBeNull()
+  })
+
+  it("discards only the active service draft and preserves unrelated work", async () => {
+    const savedAt = new Date().toISOString()
+    const medCertSessionId = "11111111-1111-4111-8111-111111111111"
+    const consultSessionId = "22222222-2222-4222-8222-222222222222"
+    vi.stubGlobal("window", {})
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true })))
+    localStorage.setItem(
+      "instantmed-request-draft",
+      JSON.stringify({
+        state: {
+          serviceType: "med-cert",
+          currentStepId: "symptoms",
+          answers: { certType: "work" },
+          lastSavedAt: savedAt,
+        },
+        version: 0,
+      }),
+    )
+    localStorage.setItem(
+      "instantmed-draft-med-cert",
+      JSON.stringify({
+        serviceType: "med-cert",
+        currentStepId: "symptoms",
+        answers: { certType: "work" },
+        lastSavedAt: savedAt,
+      }),
+    )
+    localStorage.setItem(
+      "instantmed-draft-consult",
+      JSON.stringify({
+        serviceType: "consult",
+        currentStepId: "ed-goals",
+        answers: { consultSubtype: "ed", edGoal: "confidence" },
+        lastSavedAt: savedAt,
+      }),
+    )
+    localStorage.setItem("instantmed-server-draft-med-cert", medCertSessionId)
+    localStorage.setItem("instantmed-server-draft-consult", consultSessionId)
+    useRequestStore.setState({
+      serviceType: "med-cert",
+      currentStepId: "symptoms",
+      answers: { certType: "work" },
+      lastSavedAt: savedAt,
+    })
+
+    useRequestStore.getState().discardCurrentDraft()
+
+    expect(localStorage.getItem("instantmed-request-draft")).toBeNull()
+    expect(localStorage.getItem("instantmed-draft-med-cert")).toBeNull()
+    expect(localStorage.getItem("instantmed-draft-consult")).not.toBeNull()
+    expect(useRequestStore.getState().serviceType).toBeNull()
+    expect(useRequestStore.getState().answers).toEqual({})
+    await vi.waitFor(() => {
+      expect(localStorage.getItem("instantmed-server-draft-med-cert")).toBeNull()
+    })
+    expect(localStorage.getItem("instantmed-server-draft-consult")).toBe(consultSessionId)
+    expect(fetch).toHaveBeenCalledWith(
+      `/api/draft?id=${medCertSessionId}`,
+      expect.objectContaining({ method: "DELETE", keepalive: true }),
+    )
+  })
+
+  it("deletes the stale tab's server bearer while preserving a fresh same-service local flow", async () => {
+    const staleFlowInstanceId = "11111111-1111-4111-8111-111111111111"
+    const freshFlowInstanceId = "22222222-2222-4222-8222-222222222222"
+    const staleSessionId = "33333333-3333-4333-8333-333333333333"
+    const savedAt = new Date().toISOString()
+    vi.stubGlobal("window", {})
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true })))
+
+    useRequestStore.setState({
+      serviceType: "med-cert",
+      flowInstanceId: staleFlowInstanceId,
+      currentStepId: "symptoms",
+      answers: { certType: "work" },
+      lastSavedAt: savedAt,
+    })
+    const freshDraft = {
+      serviceType: "med-cert",
+      flowInstanceId: freshFlowInstanceId,
+      currentStepId: "certificate",
+      answers: { certType: "carer" },
+      lastSavedAt: savedAt,
+    }
+    localStorage.setItem(
+      "instantmed-draft-med-cert",
+      JSON.stringify(freshDraft),
+    )
+    localStorage.setItem(
+      "instantmed-request-draft",
+      JSON.stringify({ state: freshDraft, version: 0 }),
+    )
+    localStorage.setItem("instantmed-server-draft-med-cert", staleSessionId)
+    localStorage.setItem(
+      "instantmed-server-draft-flow-med-cert",
+      staleFlowInstanceId,
+    )
+
+    useRequestStore.getState().discardCurrentDraft()
+
+    expect(JSON.parse(localStorage.getItem("instantmed-draft-med-cert")!))
+      .toMatchObject({ flowInstanceId: freshFlowInstanceId })
+    expect(JSON.parse(localStorage.getItem("instantmed-request-draft")!))
+      .toMatchObject({ state: { flowInstanceId: freshFlowInstanceId } })
+    await vi.waitFor(() => {
+      expect(localStorage.getItem("instantmed-server-draft-med-cert")).toBeNull()
+    })
+    expect(fetch).toHaveBeenCalledWith(
+      `/api/draft?id=${staleSessionId}&flow=${staleFlowInstanceId}`,
+      expect.objectContaining({ method: "DELETE", keepalive: true }),
+    )
   })
 
   it("hydrates the draft that the legacy-key migration just moved", async () => {
@@ -66,6 +303,47 @@ describe("request store draft hydration", () => {
     expect(state.answers.duration).toBe("3")
     // The migration still ran: the service-scoped copy exists for Phase 2.3.
     expect(localStorage.getItem("instantmed-draft-med-cert")).toBeTruthy()
+  })
+
+  it("does not hydrate local PHI from an explicitly retired flow", async () => {
+    expect(retireDraftFlow("med-cert", RETIRED_FLOW_INSTANCE_ID)).toBe(true)
+    const draft = {
+      serviceType: "med-cert",
+      flowInstanceId: RETIRED_FLOW_INSTANCE_ID,
+      currentStepId: "certificate",
+      answers: { certType: "work", duration: "3" },
+      lastSavedAt: new Date().toISOString(),
+    }
+    localStorage.setItem(
+      "instantmed-request-draft",
+      JSON.stringify({ state: draft, version: 0 }),
+    )
+    localStorage.setItem("instantmed-draft-med-cert", JSON.stringify(draft))
+
+    await useRequestStore.persist.rehydrate()
+
+    expect(useRequestStore.getState().serviceType).toBeNull()
+    expect(useRequestStore.getState().answers).toEqual({})
+    expect(localStorage.getItem("instantmed-request-draft")).toBeNull()
+    expect(localStorage.getItem("instantmed-draft-med-cert")).toBeNull()
+  })
+
+  it("does not let a stale tab rewrite a retired flow after discard", async () => {
+    expect(retireDraftFlow("med-cert", RETIRED_FLOW_INSTANCE_ID)).toBe(true)
+    await useRequestStore.persist.rehydrate()
+    useRequestStore.setState({
+      serviceType: "med-cert",
+      flowInstanceId: RETIRED_FLOW_INSTANCE_ID,
+      currentStepId: "certificate",
+      answers: { certType: "work" },
+      lastSavedAt: new Date().toISOString(),
+    })
+
+    useRequestStore.getState().setAnswer("duration", "2")
+    await new Promise((resolve) => setTimeout(resolve, 450))
+
+    expect(localStorage.getItem("instantmed-request-draft")).toBeNull()
+    expect(localStorage.getItem("instantmed-draft-med-cert")).toBeNull()
   })
 
   it("falls back to the service-scoped key when the legacy key is missing", async () => {

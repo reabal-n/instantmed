@@ -247,6 +247,15 @@ export async function isMaintenanceMode(): Promise<{ enabled: boolean; message: 
 }
 
 /**
+ * Critical mutation gates must distinguish a confirmed "maintenance off"
+ * value from the ordinary request fallback defaults. This reader deliberately
+ * propagates database/cache failures so the caller can fail closed.
+ */
+export async function isMaintenanceModeStrict(): Promise<{ enabled: boolean; message: string }> {
+  return resolveMaintenanceMode(await getCachedFeatureFlags())
+}
+
+/**
  * Check if a service category is disabled
  */
 export async function isServiceDisabled(

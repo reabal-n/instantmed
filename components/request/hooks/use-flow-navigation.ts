@@ -8,11 +8,11 @@ import {
   captureIntakeEvent,
   INTAKE_ANALYTICS_EVENTS,
 } from "@/lib/analytics/intake-events"
-import { getConsultSubtypeFirstStep, getConsultSubtypeResetKeys } from "@/lib/request/consult-flow"
+import { getConsultSubtypeResetKeys } from "@/lib/request/consult-flow"
 import type { StepDefinition, UnifiedServiceType } from "@/lib/request/step-registry"
 import type { SafetyEvaluationResult } from "@/lib/safety/types"
 
-import { useRequestStore } from "../store"
+import { type RequestProfilePrefill, useRequestStore } from "../store"
 import { markIntentionalNavigation } from "./use-unsaved-changes"
 
 // Map UnifiedServiceType → safety config slug for client-side pre-check.
@@ -70,8 +70,10 @@ interface UseFlowNavigationOptions {
   setShowExitConfirm: (v: boolean) => void
   setSafetyBlock: (v: SafetyEvaluationResult | null) => void
   draftSubtype: string | null
-  setShowDraftBanner: (v: boolean) => void
+  dismissDraftNotice: () => void
   setShowSubtypeMismatch: (v: boolean) => void
+  profilePrefill: RequestProfilePrefill
+  onDraftDiscarded: () => void
 }
 
 /**
@@ -99,8 +101,10 @@ export function useFlowNavigation({
   setShowExitConfirm,
   setSafetyBlock,
   draftSubtype,
-  setShowDraftBanner,
+  dismissDraftNotice,
   setShowSubtypeMismatch,
+  profilePrefill,
+  onDraftDiscarded,
 }: UseFlowNavigationOptions) {
   const router = useRouter()
   const {
@@ -109,9 +113,8 @@ export function useFlowNavigation({
     prevStep,
     goToStep,
     setServiceType,
-    startFreshFlowInstance,
     setAnswer,
-    reset,
+    discardCurrentDraft,
   } = useRequestStore()
 
   // Tracks how many history.pushState entries we've added for step advances so the
@@ -259,31 +262,25 @@ export function useFlowNavigation({
     window.location.href = '/'
   }, [analyticsServiceType, currentStepId, currentStepIndex, answers.consultSubtype, posthog, flowInstanceId])
 
-  const handleRestoreDraft = useCallback(() => {
-    setShowDraftBanner(false)
-    posthog?.capture('request_draft_restored', {
-      service_type: analyticsServiceType,
-      flow_instance_id: flowInstanceId,
-    })
-  }, [analyticsServiceType, posthog, setShowDraftBanner, flowInstanceId])
-
   const handleDiscardDraft = useCallback(() => {
-    setShowDraftBanner(false)
-    reset()
-    if (initialService) setServiceType(initialService)
-    // reset() wipes consultSubtype, and for a consult the step list is EMPTY
+    dismissDraftNotice()
+    discardCurrentDraft(profilePrefill)
+    // Discard wipes consultSubtype, and for a consult the step list is EMPTY
     // without one — before this re-seed, Discard on any consult deep link
     // (/request?service=consult&subtype=ed) stranded the patient on a
-    // permanent spinner at a $49.95 entry. Mirror handleStartFreshSubtype.
+    // permanent spinner at a $49.95 entry. Seed it BEFORE selecting the
+    // service so setServiceType can resolve the first step without a
+    // patient-work navigation stamp.
     if (initialService === 'consult' && initialSubtype) {
       setAnswer('consultSubtype', initialSubtype, { touch: false })
-      goToStep(getConsultSubtypeFirstStep(initialSubtype))
     }
+    if (initialService) setServiceType(initialService)
+    onDraftDiscarded()
     posthog?.capture('request_draft_discarded', {
       service_type: analyticsServiceType,
       flow_instance_id: flowInstanceId,
     })
-  }, [reset, initialService, initialSubtype, setServiceType, setAnswer, goToStep, analyticsServiceType, posthog, setShowDraftBanner, flowInstanceId])
+  }, [dismissDraftNotice, discardCurrentDraft, profilePrefill, initialService, initialSubtype, setServiceType, setAnswer, onDraftDiscarded, analyticsServiceType, posthog, flowInstanceId])
 
   const handleResumeDraft = useCallback(() => {
     setShowSubtypeMismatch(false)
@@ -300,10 +297,9 @@ export function useFlowNavigation({
 
   const handleStartFreshSubtype = useCallback(() => {
     setShowSubtypeMismatch(false)
-    startFreshFlowInstance()
-    clearConsultSubtypeAnswers()
-    setAnswer('consultSubtype', initialSubtype)
-    goToStep(getConsultSubtypeFirstStep(initialSubtype))
+    discardCurrentDraft(profilePrefill)
+    setAnswer('consultSubtype', initialSubtype, { touch: false })
+    setServiceType('consult')
     posthog?.capture('consult_draft_cleared_for_new_subtype', {
       service_type: analyticsServiceType,
       flow_instance_id: flowInstanceId,
@@ -314,13 +310,13 @@ export function useFlowNavigation({
     initialSubtype,
     draftSubtype,
     analyticsServiceType,
-    clearConsultSubtypeAnswers,
+    discardCurrentDraft,
+    profilePrefill,
+    setServiceType,
     setAnswer,
-    goToStep,
     posthog,
     setShowSubtypeMismatch,
     flowInstanceId,
-    startFreshFlowInstance,
   ])
 
   const handleStepClick = useCallback((stepId: string, stepIndex: number) => {
@@ -358,24 +354,29 @@ export function useFlowNavigation({
       if (restoredSubtype !== consultSubtype) {
         // setServiceType may have restored a target-service draft. If the
         // patient chose a different subtype, that is a genuinely fresh
-        // attempt and must not inherit the restored draft's flow identifier.
-        if (restoredSubtype || effectiveService === service) startFreshFlowInstance()
-        clearConsultSubtypeAnswers()
+        // attempt: retire the old local/server flow before seeding the new one.
+        if (restoredSubtype || effectiveService === service) {
+          discardCurrentDraft(profilePrefill)
+        } else {
+          clearConsultSubtypeAnswers()
+        }
+        setAnswer('consultSubtype', consultSubtype, { touch: false })
+        // Re-run same-service resolution now that the subtype exists. This
+        // selects the first subtype step without stamping passive route state
+        // as patient work or creating an email-eligible empty draft.
+        setServiceType(service)
       }
-      setAnswer('consultSubtype', consultSubtype)
-      goToStep(getConsultSubtypeFirstStep(consultSubtype))
       router.push(`/request?service=${service}&subtype=${consultSubtype}`)
     } else {
       router.push(`/request?service=${service}`)
     }
-  }, [clearConsultSubtypeAnswers, effectiveService, setServiceType, setAnswer, goToStep, router, startFreshFlowInstance])
+  }, [clearConsultSubtypeAnswers, discardCurrentDraft, effectiveService, profilePrefill, setServiceType, setAnswer, router])
 
   return {
     handleBack,
     handleNext,
     handleComplete,
     handleExit,
-    handleRestoreDraft,
     handleDiscardDraft,
     handleResumeDraft,
     handleStartFreshSubtype,

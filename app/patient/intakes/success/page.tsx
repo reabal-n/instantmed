@@ -59,6 +59,8 @@ export default async function PaymentSuccessPage({
   let initialStatus: string | undefined
   let serviceName: string | undefined
   let serviceCategory: string | undefined
+  let paidFlowInstanceId: string | undefined
+  let initialPaymentStatus: string | undefined
   let amountCents: number | undefined
   let isPriority = false
   let patientEmail: string | undefined
@@ -82,6 +84,8 @@ export default async function PaymentSuccessPage({
           amount_cents,
           subtype,
           category,
+          flow_instance_id,
+          payment_status,
           service:services(name, short_name)
         `)
         .eq("id", intakeId)
@@ -109,6 +113,8 @@ export default async function PaymentSuccessPage({
     const serviceData = data?.service as { name?: string; short_name?: string } | null
     serviceName = serviceData?.short_name || serviceData?.name || undefined
     serviceCategory = data?.category ?? undefined
+    paidFlowInstanceId = data?.flow_instance_id ?? undefined
+    initialPaymentStatus = data?.payment_status ?? undefined
     intakeSubtype = data?.subtype ?? undefined
 
     // Determine new_customer for Google Ads conversion optimization.
@@ -160,6 +166,8 @@ export default async function PaymentSuccessPage({
           initialStatus={initialStatus}
           serviceName={serviceName}
           serviceCategory={serviceCategory}
+          paidFlowInstanceId={paidFlowInstanceId}
+          initialPaymentStatus={initialPaymentStatus}
           amountCents={amountCents}
           isPriority={isPriority}
           patientEmail={patientEmail}

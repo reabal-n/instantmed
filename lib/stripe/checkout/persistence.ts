@@ -46,9 +46,10 @@ async function markDraftConvertedIfPresent(
   input: CreateCheckoutInput,
   intakeId: string,
 ): Promise<void> {
-  if (!input.serverDraftSessionId) return
+  if (!input.serverDraftSessionId || !input.flowInstanceId) return
 
   await markPartialIntakeConverted(supabase, {
+    flowInstanceId: input.flowInstanceId,
     intakeId,
     sessionId: input.serverDraftSessionId,
   })
@@ -183,6 +184,19 @@ export async function createIntakeWithAnswers(
         .single<{ id: string; status: string; payment_status: string }>()
 
       if (existingIntake) {
+        const { data: existingAnswers, error: existingAnswersError } =
+          await supabase
+            .from("intake_answers")
+            .select("intake_id")
+            .eq("intake_id", existingIntake.id)
+            .maybeSingle<{ intake_id: string }>()
+
+        if (existingAnswersError || !existingAnswers) {
+          return stepFail(
+            "This request is still being prepared. Please wait a moment and try again.",
+          )
+        }
+
         await markDraftConvertedIfPresent(supabase, input, existingIntake.id)
         logger.info("Returning existing intake for idempotency key", {
           intakeId: existingIntake.id,
@@ -202,6 +216,12 @@ export async function createIntakeWithAnswers(
         }
         return stepOk({ kind: "retry_existing", intakeId: existingIntake.id })
       }
+    }
+
+    if (intakeError?.code === "23505") {
+      return stepFail(
+        "This request is already being submitted. Please wait a moment and try again.",
+      )
     }
 
     logger.error("Failed to create intake", {

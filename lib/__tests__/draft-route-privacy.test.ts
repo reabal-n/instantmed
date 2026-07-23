@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   createServiceRoleClient: vi.fn(),
   encryptJSONB: vi.fn(),
   decryptJSONB: vi.fn(),
+  isMaintenanceModeStrict: vi.fn(),
   logger: {
     error: vi.fn(),
     warn: vi.fn(),
@@ -14,6 +15,10 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/rate-limit/redis", () => ({
   applyRateLimit: mocks.applyRateLimit,
+}))
+
+vi.mock("@/lib/feature-flags", () => ({
+  isMaintenanceModeStrict: mocks.isMaintenanceModeStrict,
 }))
 
 vi.mock("@/lib/supabase/service-role", () => ({
@@ -66,22 +71,26 @@ function makeGetRequest(sessionId = SESSION_ID) {
   })
 }
 
-function makeDeleteRequest(sessionId: string) {
-  return new NextRequest(`https://instantmed.test/api/draft?id=${sessionId}`, {
+function makeDeleteRequest(sessionId: string, flowInstanceId?: string) {
+  const params = new URLSearchParams({ id: sessionId })
+  if (flowInstanceId) params.set("flow", flowInstanceId)
+  return new NextRequest(`https://instantmed.test/api/draft?${params.toString()}`, {
     method: "DELETE",
   })
 }
 
-function makeDraftSupabaseMock() {
-  const single = vi.fn(async () => ({
-    data: {
+function makeDraftSupabaseMock(
+  data: Record<string, unknown> | null = {
       session_id: SESSION_ID,
       expires_at: "2026-05-03T00:00:00.000Z",
       updated_at: "2026-05-02T00:00:00.000Z",
-    },
+  },
+) {
+  const maybeSingle = vi.fn(async () => ({
+    data,
     error: null,
   }))
-  const select = vi.fn(() => ({ single }))
+  const select = vi.fn(() => ({ maybeSingle }))
   const upsert = vi.fn(() => ({ select }))
   const supabase = {
     from: vi.fn((table: string) => {
@@ -93,7 +102,7 @@ function makeDraftSupabaseMock() {
   }
 
   mocks.createServiceRoleClient.mockReturnValue(supabase)
-  return { upsert }
+  return { maybeSingle, upsert }
 }
 
 function makeFetchDraftSupabaseMock(data: Record<string, unknown>) {
@@ -119,6 +128,7 @@ describe("/api/draft privacy", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.applyRateLimit.mockResolvedValue(null)
+    mocks.isMaintenanceModeStrict.mockResolvedValue({ enabled: false, message: "" })
     mocks.encryptJSONB
       .mockResolvedValueOnce(encryptedAnswers)
       .mockResolvedValueOnce(encryptedIdentity)
@@ -151,6 +161,57 @@ describe("/api/draft privacy", () => {
     expect(response.headers.get("cache-control")).toBe("private, no-store")
     expect(mocks.applyRateLimit).toHaveBeenCalledWith(expect.any(NextRequest), "standard")
     expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+  })
+
+  it("pauses draft writes and discards during an active maintenance release gate", async () => {
+    mocks.isMaintenanceModeStrict.mockResolvedValue({
+      enabled: true,
+      message: "Back shortly",
+    })
+    const { DELETE, POST } = await import("@/app/api/draft/route")
+
+    const [postResponse, deleteResponse] = await Promise.all([
+      POST(makePostRequest({
+        serviceType: "med-cert",
+        flowInstanceId: FLOW_INSTANCE_ID,
+        answers: { certType: "work" },
+      })),
+      DELETE(makeDeleteRequest(SESSION_ID, FLOW_INSTANCE_ID)),
+    ])
+
+    for (const response of [postResponse, deleteResponse]) {
+      expect(response.status).toBe(503)
+      expect(response.headers.get("cache-control")).toBe("private, no-store")
+      expect(response.headers.get("retry-after")).toBe("30")
+    }
+    expect(mocks.encryptJSONB).not.toHaveBeenCalled()
+    expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+  })
+
+  it("fails draft mutations closed when maintenance state cannot be confirmed", async () => {
+    mocks.isMaintenanceModeStrict.mockRejectedValue(new Error("Feature flag database unavailable"))
+    const { DELETE, POST } = await import("@/app/api/draft/route")
+
+    const [postResponse, deleteResponse] = await Promise.all([
+      POST(makePostRequest({
+        serviceType: "med-cert",
+        flowInstanceId: FLOW_INSTANCE_ID,
+        answers: { certType: "work" },
+      })),
+      DELETE(makeDeleteRequest(SESSION_ID, FLOW_INSTANCE_ID)),
+    ])
+
+    for (const response of [postResponse, deleteResponse]) {
+      expect(response.status).toBe(503)
+      expect(response.headers.get("cache-control")).toBe("private, no-store")
+      expect(response.headers.get("retry-after")).toBe("30")
+    }
+    expect(mocks.encryptJSONB).not.toHaveBeenCalled()
+    expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+    expect(mocks.logger.error).toHaveBeenCalledWith(
+      "Draft maintenance gate read failed; pausing mutation",
+      { error: "Feature flag database unavailable" },
+    )
   })
 
   it("marks validation responses from every draft method private and non-cacheable", async () => {
@@ -214,6 +275,113 @@ describe("/api/draft privacy", () => {
       phone: null,
       identity_encrypted: encryptedIdentity,
     }), { onConflict: "session_id" })
+  })
+
+  it("treats a discard-fenced stale write as a private terminal response", async () => {
+    makeDraftSupabaseMock(null)
+    const { POST } = await import("@/app/api/draft/route")
+
+    const response = await POST(makePostRequest({
+      sessionId: SESSION_ID,
+      serviceType: "med-cert",
+      answers: { certType: "work" },
+    }))
+
+    expect(response.status).toBe(410)
+    expect(response.headers.get("cache-control")).toBe("private, no-store")
+    await expect(response.json()).resolves.toEqual({ error: "Draft was discarded" })
+    expect(mocks.logger.error).not.toHaveBeenCalled()
+  })
+
+  it("treats cross-flow bearer reuse as a private conflict without incident noise", async () => {
+    const maybeSingle = vi.fn(async () => ({
+      data: null,
+      error: { code: "23514", message: "draft_session_flow_mismatch" },
+    }))
+    const select = vi.fn(() => ({ maybeSingle }))
+    const upsert = vi.fn(() => ({ select }))
+    mocks.createServiceRoleClient.mockReturnValue({
+      from: vi.fn(() => ({ upsert })),
+    })
+    const { POST } = await import("@/app/api/draft/route")
+
+    const response = await POST(makePostRequest({
+      sessionId: SESSION_ID,
+      flowInstanceId: FLOW_INSTANCE_ID,
+      serviceType: "med-cert",
+      answers: { certType: "work" },
+    }))
+
+    expect(response.status).toBe(409)
+    expect(response.headers.get("cache-control")).toBe("private, no-store")
+    expect(mocks.logger.error).not.toHaveBeenCalled()
+  })
+
+  it("treats cross-service bearer reuse as a private conflict without incident noise", async () => {
+    const maybeSingle = vi.fn(async () => ({
+      data: null,
+      error: { code: "23514", message: "draft_session_service_mismatch" },
+    }))
+    const select = vi.fn(() => ({ maybeSingle }))
+    const upsert = vi.fn(() => ({ select }))
+    mocks.createServiceRoleClient.mockReturnValue({
+      from: vi.fn(() => ({ upsert })),
+    })
+    const { POST } = await import("@/app/api/draft/route")
+
+    const response = await POST(makePostRequest({
+      sessionId: SESSION_ID,
+      flowInstanceId: FLOW_INSTANCE_ID,
+      serviceType: "med-cert",
+      answers: { certType: "work" },
+    }))
+
+    expect(response.status).toBe(409)
+    expect(response.headers.get("cache-control")).toBe("private, no-store")
+    await expect(response.json()).resolves.toEqual({
+      error: "Draft session belongs to another flow or service",
+    })
+    expect(mocks.logger.error).not.toHaveBeenCalled()
+  })
+
+  it("discards through the transaction-fenced RPC instead of a direct delete", async () => {
+    const rpc = vi.fn(async () => ({ data: true, error: null }))
+    mocks.createServiceRoleClient.mockReturnValue({ rpc })
+    const { DELETE } = await import("@/app/api/draft/route")
+
+    const response = await DELETE(makeDeleteRequest(SESSION_ID, FLOW_INSTANCE_ID))
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get("cache-control")).toBe("private, no-store")
+    expect(rpc).toHaveBeenCalledWith("discard_partial_intake_draft", {
+      p_session_id: SESSION_ID,
+      p_flow_instance_id: FLOW_INSTANCE_ID,
+    })
+  })
+
+  it("rejects a malformed discard flow fence before touching storage", async () => {
+    const { DELETE } = await import("@/app/api/draft/route")
+
+    const response = await DELETE(makeDeleteRequest(SESSION_ID, "not-a-flow-id"))
+
+    expect(response.status).toBe(400)
+    expect(response.headers.get("cache-control")).toBe("private, no-store")
+    expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+  })
+
+  it("treats a cross-flow discard as a private terminal conflict", async () => {
+    const rpc = vi.fn(async () => ({
+      data: null,
+      error: { code: "23514", message: "draft_session_flow_mismatch" },
+    }))
+    mocks.createServiceRoleClient.mockReturnValue({ rpc })
+    const { DELETE } = await import("@/app/api/draft/route")
+
+    const response = await DELETE(makeDeleteRequest(SESSION_ID, FLOW_INSTANCE_ID))
+
+    expect(response.status).toBe(409)
+    expect(response.headers.get("cache-control")).toBe("private, no-store")
+    expect(mocks.logger.error).not.toHaveBeenCalled()
   })
 
   it("reads encrypted draft answers and identity before plaintext fallbacks", async () => {

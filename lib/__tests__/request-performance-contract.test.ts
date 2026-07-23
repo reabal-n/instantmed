@@ -16,6 +16,26 @@ describe("request conversion performance contract", () => {
     join(root, "components/request/request-flow.tsx"),
     "utf8",
   )
+  const rootLayoutSource = readFileSync(join(root, "app/layout.tsx"), "utf8")
+  const discardRetrySource = readFileSync(
+    join(root, "components/providers/draft-discard-retry.tsx"),
+    "utf8",
+  )
+
+  it("mounts pending draft-discard retries at the root and on reconnect", () => {
+    expect(rootLayoutSource).toContain('from "@/components/providers/draft-discard-retry"')
+    expect(rootLayoutSource).toContain("<DraftDiscardRetry />")
+    expect(discardRetrySource).toContain("retryPendingServerDraftDiscards()")
+    expect(discardRetrySource).toContain('window.addEventListener("online", retry)')
+    expect(discardRetrySource).toContain('window.addEventListener("pagehide", retry)')
+    expect(discardRetrySource).toContain('window.removeEventListener("online", retry)')
+    expect(discardRetrySource).toContain(
+      'document.addEventListener("visibilitychange", retryWhenVisible)',
+    )
+    expect(discardRetrySource).toContain(
+      'window.addEventListener("storage", retryFromAnotherTab)',
+    )
+  })
 
   it("registers every step as a next/dynamic component so the first step SSRs + preloads from <head>", () => {
     // Parse the loader registry: it is the canonical list of step chunks.
@@ -94,7 +114,11 @@ describe("request conversion performance contract", () => {
       "const visibleStepId = currentStep?.id ?? currentStepId",
     )
     expect(requestFlowSource).toContain("}, [visibleStepId])")
-    expect(requestFlowSource).toContain("<div key={visibleStepId}>")
+    // Keep the step mounted while URL/store step ids normalise, but allow the
+    // explicit Start over action to remount local component defaults cleanly.
+    expect(requestFlowSource).toContain(
+      '<div key={`${visibleStepId}:${draftResetRevision}`}>',
+    )
     expect(requestFlowSource).toContain("currentStepId={visibleStepId}")
   })
 

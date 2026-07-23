@@ -405,6 +405,7 @@ describe("patient intake polling projection", () => {
       singleData: {
         amount_cents: 2995,
         is_priority: true,
+        payment_status: "paid",
         status: "paid",
       },
     })
@@ -416,9 +417,12 @@ describe("patient intake polling projection", () => {
     expect(await response.json()).toEqual({
       amount_cents: 2995,
       is_priority: true,
+      payment_status: "paid",
       status: "paid",
     })
-    expect(query.select).toHaveBeenCalledWith("status, amount_cents, is_priority")
+    expect(query.select).toHaveBeenCalledWith(
+      "status, payment_status, amount_cents, is_priority",
+    )
     expect(query.eq).toHaveBeenCalledWith("patient_id", PATIENT_ID)
     expect(mocks.revalidateTag).not.toHaveBeenCalled()
   })

@@ -48,6 +48,7 @@ export type PartialIntakeRecoveryTrackingDecision =
 interface RawPartialIntakeRecoveryDraft {
   recovery_tracking_id: string
   session_id: string
+  flow_instance_id: string | null
   service_type: string
   current_step_id: string | null
   email: string | null
@@ -280,6 +281,7 @@ async function evaluatePartialIntakeRecoveryPolicyUnchecked(
     .select(`
       recovery_tracking_id,
       session_id,
+      flow_instance_id,
       service_type,
       current_step_id,
       email,
@@ -303,6 +305,21 @@ async function evaluatePartialIntakeRecoveryPolicyUnchecked(
     return suppressed("recovery_already_handled")
   }
   if (draft.converted_to_intake_id) return suppressed("draft_converted")
+
+  // The conversion marker is best effort after intake creation. Re-check the
+  // privacy-safe attempt ID at provider time so a transient marker failure can
+  // never email a patient to resume a request that already became an intake.
+  if (draft.flow_instance_id) {
+    const { data: realizedIntake, error: realizedIntakeError } = await supabase
+      .from("intakes")
+      .select("id")
+      .eq("flow_instance_id", draft.flow_instance_id)
+      .limit(1)
+      .maybeSingle()
+
+    if (realizedIntakeError) return transient("intake_link_read_failed")
+    if (realizedIntake) return suppressed("intake_already_created")
+  }
 
   const expiresAtMs = new Date(draft.expires_at).getTime()
   if (!Number.isFinite(expiresAtMs) || expiresAtMs <= now.getTime()) {

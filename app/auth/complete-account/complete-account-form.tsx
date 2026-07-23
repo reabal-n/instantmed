@@ -22,6 +22,7 @@ export function CompleteAccountForm({
   intakeId,
   email,
   paidServiceCategory,
+  paidFlowInstanceId,
   paymentState = "unconfirmed",
   heardToken,
 }: {
@@ -29,6 +30,8 @@ export function CompleteAccountForm({
   email?: string
   /** Set by the page ONLY when payment was server-confirmed (session match + paid). */
   paidServiceCategory?: string
+  /** Flow id paired with the paid service so stale success tabs cannot clear fresh work. */
+  paidFlowInstanceId?: string
   /** Public-route payment proof. Non-paid states must never render success UI. */
   paymentState?: CompleteAccountPaymentState
   heardToken?: string
@@ -48,10 +51,19 @@ export function CompleteAccountForm({
   // only passes paidServiceCategory after server-confirming payment.
   const draftClearedRef = useRef(false)
   useEffect(() => {
-    if (draftClearedRef.current || !paidServiceCategory) return
+    if (
+      draftClearedRef.current ||
+      paymentState !== "paid" ||
+      !paidServiceCategory ||
+      !paidFlowInstanceId
+    ) return
     draftClearedRef.current = true
-    clearDraftAfterPayment(paidServiceCategory)
-  }, [paidServiceCategory])
+    clearDraftAfterPayment(
+      paidServiceCategory,
+      paidFlowInstanceId,
+      paymentState,
+    )
+  }, [paidFlowInstanceId, paidServiceCategory, paymentState])
 
   useEffect(() => {
     if (paymentState !== "paid") return

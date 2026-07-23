@@ -125,9 +125,13 @@ interface DuplicateGuestIntake {
 }
 
 function createGuestCheckoutSupabaseMock({
+  duplicateAnswers = true,
   duplicateIntake,
+  forceDuplicate = false,
 }: {
+  duplicateAnswers?: boolean
   duplicateIntake?: DuplicateGuestIntake
+  forceDuplicate?: boolean
 } = {}) {
   const inserts: Array<{ table: string; payload: Record<string, unknown> }> = []
   const updates: Array<{ table: string; payload: Record<string, unknown> }> = []
@@ -168,14 +172,26 @@ function createGuestCheckoutSupabaseMock({
         if (table === "profiles" && operation === "insert") return { data: { id: "guest-profile-1" }, error: null }
         if (table === "profiles") return { data: null, error: null }
         if (table === "services") return { data: { id: "service-1", price_cents: 1995 }, error: null }
-        if (table === "intakes" && operation === "insert" && duplicateIntake) {
+        if (
+          table === "intakes" &&
+          operation === "insert" &&
+          (duplicateIntake || forceDuplicate)
+        ) {
           return { data: null, error: { code: "23505", message: "duplicate" } }
         }
         if (table === "intakes" && operation === "insert") return { data: { id: "intake-1" }, error: null }
         return { data: null, error: null }
       }),
       maybeSingle: vi.fn(async () => ({
-        data: table === "intakes" && operation === "select" ? duplicateIntake || null : null,
+        data:
+          table === "intakes" && operation === "select"
+            ? duplicateIntake || null
+            : table === "intake_answers" &&
+                operation === "select" &&
+                duplicateIntake &&
+                duplicateAnswers
+              ? { intake_id: duplicateIntake.id }
+              : null,
         error: null,
       })),
       then: (resolve: (value: { data?: unknown; error: null }) => void) => {
@@ -428,6 +444,68 @@ describe("checkout operating hours", () => {
       expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
     },
   )
+
+  it("does not rebuild a concurrent duplicate before its clinical answers exist", async () => {
+    const duplicateIntake: DuplicateGuestIntake = {
+      category: "medical_certificate",
+      checkout_error: "safety_blocked_high_stakes",
+      guest_email: "patient@example.test",
+      id: "intake-existing",
+      is_priority: false,
+      payment_id: "cs_current",
+      payment_status: "pending",
+      status: "checkout_failed",
+      stripe_price_id: "price_med_cert",
+      subtype: "work",
+    }
+    const { supabase } = createGuestCheckoutSupabaseMock({
+      duplicateAnswers: false,
+      duplicateIntake,
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    await expect(createGuestCheckoutAction({
+      answers: {
+        accuracy_confirmed: true,
+        terms_agreed: true,
+      },
+      category: "medical_certificate",
+      guestDateOfBirth: "1985-04-01",
+      guestEmail: "patient@example.test",
+      guestName: "Test Patient",
+      subtype: "work",
+      type: "med-cert",
+    })).resolves.toEqual({
+      error:
+        "This request is still being prepared. Please wait a moment and try again.",
+      success: false,
+    })
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("fails safely when the unique flow guard wins outside the old idempotency key", async () => {
+    const { supabase } = createGuestCheckoutSupabaseMock({ forceDuplicate: true })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    await expect(createGuestCheckoutAction({
+      answers: {
+        accuracy_confirmed: true,
+        terms_agreed: true,
+      },
+      category: "medical_certificate",
+      guestDateOfBirth: "1985-04-01",
+      guestEmail: "patient@example.test",
+      guestName: "Test Patient",
+      subtype: "work",
+      type: "med-cert",
+    })).resolves.toEqual({
+      error:
+        "This request is already being submitted. Please wait a moment and try again.",
+      success: false,
+    })
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
 
   it("blocks authenticated prescribing checkout without valid Medicare details", async () => {
     mocks.getAuthenticatedUserWithProfile.mockResolvedValue({
