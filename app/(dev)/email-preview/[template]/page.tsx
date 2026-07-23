@@ -121,6 +121,7 @@ const templates: Record<string, {
         requestType="medical certificate"
         amount="$29.95"
         requestId={mock.requestId}
+        requestAccessUrl={`${mock.appUrl}/track/preview-request-access`}
         isGuest={false}
         appUrl={mock.appUrl}
       />
@@ -134,6 +135,7 @@ const templates: Record<string, {
         patientName={mock.patientName}
         requestType="medical certificate"
         requestId={mock.requestId}
+        requestAccessUrl={`${mock.appUrl}/track/preview-request-access`}
         appUrl={mock.appUrl}
       />
     ),
@@ -146,6 +148,7 @@ const templates: Record<string, {
         patientName={mock.patientName}
         requestType="medical certificate"
         requestId={mock.requestId}
+        requestAccessUrl={`${mock.appUrl}/track/preview-request-access`}
         doctorMessage={mock.doctorMessage}
         appUrl={mock.appUrl}
       />
@@ -191,6 +194,7 @@ const templates: Record<string, {
       <ConsultApprovedEmail
         patientName={mock.patientName}
         requestId={mock.requestId}
+        requestAccessUrl={`${mock.appUrl}/track/preview-request-access`}
         doctorNotes={mock.doctorNotes}
         appUrl={mock.appUrl}
       />
@@ -203,6 +207,7 @@ const templates: Record<string, {
       <ScriptSentEmail
         patientName={mock.patientName}
         requestId={mock.requestId}
+        requestAccessUrl={`${mock.appUrl}/track/preview-request-access`}
         escriptReference={mock.escriptReference}
         appUrl={mock.appUrl}
       />
@@ -216,6 +221,7 @@ const templates: Record<string, {
         patientName={mock.patientName}
         requestType="Medical Certificate"
         requestId={mock.requestId}
+        requestAccessUrl={`${mock.appUrl}/track/preview-request-access`}
         reason={mock.declineReason}
         appUrl={mock.appUrl}
       />
@@ -232,6 +238,7 @@ const templates: Record<string, {
         requestType="medical certificate"
         amount="$29.95"
         requestId={mock.requestId}
+        requestAccessUrl={`${mock.appUrl}/track/preview-request-access`}
         appUrl={mock.appUrl}
       />
     ),
@@ -257,6 +264,7 @@ const templates: Record<string, {
         patientName={mock.patientName}
         requestType="medical certificate"
         requestId={mock.requestId}
+        requestAccessUrl={`${mock.appUrl}/track/preview-request-access`}
         amountFormatted="$29.95"
         appUrl={mock.appUrl}
       />

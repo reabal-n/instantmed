@@ -12,11 +12,13 @@
  */
 export const POST_CONVERSION_PATH_PREFIXES = [
   "/patient/intakes/success",
-  "/auth/complete-account",
 ] as const
+
+export function isPostConversionPathname(pathname: string): boolean {
+  return POST_CONVERSION_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+}
 
 export function isPostConversionPath(): boolean {
   if (typeof window === "undefined") return false
-  const path = window.location.pathname
-  return POST_CONVERSION_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
+  return isPostConversionPathname(window.location.pathname)
 }

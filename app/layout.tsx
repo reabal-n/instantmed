@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes"
 import type React from "react"
 
 import { AttributionCapture } from "@/components/providers/attribution-capture"
+import { DraftDiscardRetry } from "@/components/providers/draft-discard-retry"
 import { GlobalDeferredClients } from "@/components/providers/global-deferred-clients"
 import { PostHogLoader } from "@/components/providers/posthog-loader"
 import { ServiceAvailabilityProvider } from "@/components/providers/service-availability-provider"
@@ -177,6 +178,7 @@ export default function RootLayout({
           <OrganizationSchema />
           <WebSiteSchema />
           <AttributionCapture />
+          <DraftDiscardRetry />
           <PostHogLoader>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
                 <ServiceAvailabilityProvider>

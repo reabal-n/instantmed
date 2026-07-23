@@ -27,6 +27,7 @@ import { StillReviewingEmail } from "@/lib/email/components/templates/still-revi
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("admin-email-preview")
+const PREVIEW_REQUEST_ACCESS_URL = `${APP_URL}/track/preview-request-access`
 
 // ============================================================================
 // TEMPLATE REGISTRY
@@ -70,6 +71,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       requestType: d.requestType,
       amount: d.amount,
       requestId: d.requestId,
+      requestAccessUrl: PREVIEW_REQUEST_ACCESS_URL,
       appUrl: APP_URL,
     }),
   },
@@ -83,6 +85,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       patientName: d.patientName,
       requestType: d.requestType,
       requestId: d.requestId,
+      requestAccessUrl: PREVIEW_REQUEST_ACCESS_URL,
       appUrl: APP_URL,
     }),
   },
@@ -96,6 +99,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       patientName: d.patientName,
       requestType: d.requestType,
       requestId: d.requestId,
+      requestAccessUrl: PREVIEW_REQUEST_ACCESS_URL,
       doctorMessage: d.doctorMessage,
       appUrl: APP_URL,
     }),
@@ -144,6 +148,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
     render: (d) => React.createElement(ConsultApprovedEmail, {
       patientName: d.patientName,
       requestId: "abc-123",
+      requestAccessUrl: PREVIEW_REQUEST_ACCESS_URL,
       doctorNotes: d.doctorNotes,
       appUrl: APP_URL,
     }),
@@ -157,6 +162,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
     render: (d) => React.createElement(ScriptSentEmail, {
       patientName: d.patientName,
       requestId: "abc-123",
+      requestAccessUrl: PREVIEW_REQUEST_ACCESS_URL,
       escriptReference: d.escriptReference,
       appUrl: APP_URL,
     }),
@@ -171,6 +177,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       patientName: d.patientName,
       requestType: d.requestType,
       requestId: "abc-123",
+      requestAccessUrl: PREVIEW_REQUEST_ACCESS_URL,
       reason: d.reason,
       appUrl: APP_URL,
     }),
@@ -188,6 +195,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       requestType: d.requestType,
       amount: d.amount,
       requestId: "abc-123",
+      requestAccessUrl: PREVIEW_REQUEST_ACCESS_URL,
       appUrl: APP_URL,
     }),
   },
@@ -215,6 +223,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       patientName: d.patientName,
       requestType: d.requestType,
       requestId: "abc-123",
+      requestAccessUrl: PREVIEW_REQUEST_ACCESS_URL,
       amountFormatted: d.amountFormatted,
       appUrl: APP_URL,
     }),

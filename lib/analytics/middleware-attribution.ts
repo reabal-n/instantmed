@@ -1,6 +1,7 @@
 import type { NextRequest, NextResponse } from "next/server"
 
 import { deriveChannelFromClickIds } from "@/lib/analytics/click-id-channels"
+import { isExternalAnalyticsExcludedPathname } from "@/lib/browser/sensitive-capability-path"
 
 /**
  * Server-side attribution capture, called from middleware so the
@@ -49,6 +50,11 @@ export function captureAttributionToCookie<R extends NextResponse>(
   req: NextRequest,
   response: R,
 ): R {
+  // Capability URLs are transactional access paths, never acquisition
+  // landings. Do not persist their bearer path into a 30-day cookie even when
+  // a mail client or forwarder appends UTM parameters.
+  if (isExternalAnalyticsExcludedPathname(req.nextUrl.pathname)) return response
+
   const params = req.nextUrl.searchParams
   const captured: Record<string, string> = {}
 

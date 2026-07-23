@@ -35,6 +35,10 @@ interface SuccessClientProps {
   serviceName?: string
   /** DB intakes.category — used to clear the local draft after verified payment */
   serviceCategory?: string
+  /** Opaque flow id for the paid intake; prevents an old success tab clearing newer work. */
+  paidFlowInstanceId?: string
+  /** Authoritative DB payment status; draft cleanup requires exactly `paid`. */
+  initialPaymentStatus?: string
   amountCents?: number
   isPriority?: boolean
   patientEmail?: string
@@ -52,6 +56,8 @@ export function SuccessClient({
   initialStatus,
   serviceName,
   serviceCategory,
+  paidFlowInstanceId,
+  initialPaymentStatus,
   amountCents,
   isPriority = false,
   patientEmail,
@@ -87,6 +93,7 @@ export function SuccessClient({
   // Separate latch for the PostHog purchase event so it can wait for posthog to
   // hydrate without blocking (or being blocked by) the one-shot gtag fire.
   const posthogPurchaseFiredRef = useRef(false)
+  const [paymentStatus, setPaymentStatus] = useState(initialPaymentStatus)
 
   useEffect(() => {
     setVerificationState((current) =>
@@ -96,6 +103,12 @@ export function SuccessClient({
       }),
     )
   }, [amountCents, initialStatus])
+
+  useEffect(() => {
+    setPaymentStatus((current) =>
+      current === "paid" ? current : initialPaymentStatus,
+    )
+  }, [initialPaymentStatus])
 
   // Cleanup cooldown timer
   useEffect(() => {
@@ -110,10 +123,18 @@ export function SuccessClient({
   const draftClearedRef = useRef(false)
   useEffect(() => {
     if (draftClearedRef.current) return
-    if (!status || status === "pending_payment") return
+    if (
+      paymentStatus !== "paid" ||
+      !serviceCategory ||
+      !paidFlowInstanceId
+    ) return
     draftClearedRef.current = true
-    clearDraftAfterPayment(serviceCategory)
-  }, [status, serviceCategory])
+    clearDraftAfterPayment(
+      serviceCategory,
+      paidFlowInstanceId,
+      paymentStatus,
+    )
+  }, [paidFlowInstanceId, paymentStatus, serviceCategory])
 
   // P0 FIX: Fallback to resend confirmation email if not received (with cooldown)
   const handleResendConfirmation = useCallback(async () => {
@@ -251,6 +272,9 @@ export function SuccessClient({
               typeof data?.status === "string" ? data.status : undefined,
           }),
         )
+        if (typeof data?.payment_status === "string") {
+          setPaymentStatus(data.payment_status)
+        }
 
         if (data?.status && data.status !== "pending_payment") {
           if (!finishVerification()) return true
@@ -284,6 +308,7 @@ export function SuccessClient({
                   initialStatus: "paid",
                 }),
               )
+              setPaymentStatus("paid")
               return true
             }
           } catch (error) {

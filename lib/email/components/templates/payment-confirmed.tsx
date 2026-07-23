@@ -15,6 +15,7 @@ export interface PaymentConfirmedEmailProps {
   requestType: string
   amount: string
   requestId: string
+  requestAccessUrl: string
   appUrl?: string
 }
 
@@ -23,6 +24,7 @@ export function PaymentConfirmedEmail({
   requestType,
   amount,
   requestId,
+  requestAccessUrl,
   appUrl = APP_URL,
 }: PaymentConfirmedEmailProps) {
   const firstName = patientName.split(" ")[0]
@@ -42,7 +44,7 @@ export function PaymentConfirmedEmail({
         <DetailRow label="Amount" value={amount} />
       </Box>
 
-      <Button href={`${appUrl}/track/${requestId}`}>Track your request</Button>
+      <Button href={requestAccessUrl}>Track your request</Button>
 
       <Text muted small style={{ fontFamily }}>
         Need a tax invoice? Grab it from your{" "}

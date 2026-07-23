@@ -5,6 +5,8 @@
  * and fires PostHog events for tracking AI-sourced traffic.
  */
 
+import { isExternalAnalyticsExcludedPathname } from "@/lib/browser/sensitive-capability-path"
+
 const AI_REFERRER_PATTERNS: Record<string, string> = {
   "chatgpt.com": "ChatGPT",
   "chat.openai.com": "ChatGPT",
@@ -62,6 +64,9 @@ export function detectAIReferral(): AIReferralResult {
  * Should be called once per session (on first pageview).
  */
 export function trackAIReferral(): void {
+  if (typeof window === "undefined") return
+  if (isExternalAnalyticsExcludedPathname(window.location.pathname)) return
+
   const { isAIReferral, source } = detectAIReferral()
   if (!isAIReferral || !source) return
 

@@ -186,12 +186,18 @@ export function trackConversion(event: ConversionEvent, data?: ConversionData) {
 
   const conversionId = CONVERSION_IDS[event]
   const value = data?.value
+  // Conversion pages may carry short-lived checkout capabilities in their
+  // query string. Keep browser measurement, but pin every event to the fixed
+  // route path so Google never receives the raw URL or fragment.
+  const pageLocation = `${window.location.origin}${window.location.pathname}`
 
   const conversionPayload: Record<string, unknown> = {
     send_to: conversionId,
     value,
     currency: data?.currency || 'AUD',
     transaction_id: data?.transaction_id,
+    page_location: pageLocation,
+    page_path: window.location.pathname,
   }
   if (data?.new_customer !== undefined) {
     conversionPayload.new_customer = data.new_customer
@@ -206,6 +212,8 @@ export function trackConversion(event: ConversionEvent, data?: ConversionData) {
       currency: data?.currency || 'AUD',
       transaction_id: data?.transaction_id,
       items: data?.items,
+      page_location: pageLocation,
+      page_path: window.location.pathname,
     })
   }
 

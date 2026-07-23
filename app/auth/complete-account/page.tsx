@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
 import { Footer } from "@/components/shared/footer"
@@ -7,7 +8,6 @@ import { signHeardAboutUsToken } from "@/lib/crypto/heard-about-us-token"
 import { inspectCheckoutSession } from "@/lib/stripe/checkout/checkout-session-safety"
 import {
   type CompleteAccountPaymentState,
-  resolveCompleteAccountAmountCents,
   resolveCompleteAccountPaymentState,
 } from "@/lib/stripe/payment-integrity"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -25,38 +25,39 @@ export const metadata = {
 export default async function CompleteAccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ request_id?: string; intake_id?: string; email?: string; session_id?: string; access?: string }>
+  searchParams: Promise<{ request_id?: string; intake_id?: string; session_id?: string; access?: string }>
 }) {
   const params = await searchParams
   // Support both intake_id (guest checkout) and request_id (legacy)
   const intakeId = params.intake_id || params.request_id
 
-  // Fetch email + amount + service so the form can fire trackPurchase on mount.
-  // Guest checkouts land here (not /patient/intakes/success), so without firing
-  // the gtag conversion here we lose browser-side attribution for ~all guests.
-  //
+  // Raw-id certificate/request access was a legacy public capability. New
+  // lifecycle emails exchange a signed token on /track before any patient
+  // projection is rendered. Fail old or hand-crafted access modes closed
+  // without querying the supplied intake id, and remove that id from the URL.
+  if (params.access) {
+    redirect("/track/invalid")
+  }
+
   // The URL session_id must exactly match the intake's stored payment_id before
   // this public route can inspect or expose any order data. Payment is confirmed
   // only by the persisted paid state or an owned Stripe Session whose
   // payment_status is paid. A complete/unpaid Session remains processing, and
   // no conversion or draft-retirement data is exposed until confirmation.
   const sessionId = params.session_id
-  let email = params.email
-  let amountCents: number | undefined
-  let serviceSlug: string | undefined
-  let serviceName: string | undefined
+  let email: string | undefined
   // Set ONLY when payment is server-confirmed below — the client uses it as
   // the signal to retire the local draft for that service.
   let paidServiceCategory: string | undefined
+  let paidFlowInstanceId: string | undefined
   let paymentState: CompleteAccountPaymentState = "unconfirmed"
-  let isNewCustomer = true
   if (intakeId) {
     try {
       const supabase = createServiceRoleClient()
       const { data: intake } = await supabase
         .from("intakes")
         .select(
-          "amount_cents, patient_id, payment_id, payment_status, status, category, patient:profiles!patient_id(email), service:services!service_id(slug, name)",
+          "payment_id, payment_status, status, category, flow_instance_id, patient:profiles!patient_id(email)",
         )
         .eq("id", intakeId)
         .single()
@@ -79,30 +80,13 @@ export default async function CompleteAccountPage({
 
       if (intake && paymentState === "paid") {
         const patient = intake.patient as { email?: string } | null
-        const service = intake.service as { slug?: string; name?: string } | null
-        if (!email) email = patient?.email || undefined
-        amountCents = resolveCompleteAccountAmountCents({
-          intakeAmountCents: intake.amount_cents as number | null | undefined,
-          sessionAmountTotal: inspection?.session?.amount_total,
-          sessionState: inspection?.state ?? null,
-        })
-        serviceSlug = service?.slug
-        serviceName = service?.name
+        email = patient?.email || undefined
         paidServiceCategory = (intake.category as string | undefined) ?? undefined
-
-        if (intake.patient_id) {
-          const { count } = await supabase
-            .from("intakes")
-            .select("id", { count: "exact", head: true })
-            .eq("patient_id", intake.patient_id)
-            .not("paid_at", "is", null)
-            .neq("id", intakeId)
-
-          isNewCustomer = (count ?? 0) === 0
-        }
+        paidFlowInstanceId = (intake.flow_instance_id as string | undefined) ?? undefined
       }
     } catch {
-      // Silently fail - tracking is best-effort
+      // Fail closed: without verified ownership and payment state, the public
+      // surface must render the unconfirmed recovery state.
     }
   }
 
@@ -110,7 +94,7 @@ export default async function CompleteAccountPage({
   // checkouts land here (not the success page) and are the Direct/Unknown cohort
   // we most need to attribute, so the survey must render on this surface too.
   let heardToken: string | undefined
-  if (intakeId) {
+  if (intakeId && paymentState === "paid") {
     try {
       heardToken = signHeardAboutUsToken(intakeId)
     } catch {
@@ -135,14 +119,10 @@ export default async function CompleteAccountPage({
             <CompleteAccountForm
               intakeId={intakeId}
               email={email}
-              amountCents={amountCents}
-              serviceSlug={serviceSlug}
-              serviceName={serviceName}
               paidServiceCategory={paidServiceCategory}
+              paidFlowInstanceId={paidFlowInstanceId}
               paymentState={paymentState}
-              isNewCustomer={isNewCustomer}
               heardToken={heardToken}
-              certificateAccess={params.access === "certificate"}
             />
           </Suspense>
         </div>

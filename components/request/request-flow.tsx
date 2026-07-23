@@ -26,11 +26,17 @@ import { ProgressBar } from "@/components/request/progress-bar"
 import { INTAKE_PRIMARY_ACTION_CHANGE_EVENT, RequestButton } from "@/components/request/request-button"
 import { requestCx } from "@/components/request/request-cx"
 import { TimeRemaining } from "@/components/request/time-remaining"
+import { ensureFlowInstanceId } from "@/lib/analytics/flow-instance"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import {
   getStoredDraftRestoreCandidate,
   shouldOfferDraftRestore,
 } from "@/lib/request/draft-restore"
+import {
+  DRAFT_FLOW_RETIRED_EVENT,
+  getRetiredDraftFlowIdFromStorageKey,
+  isDraftFlowRetired,
+} from "@/lib/request/draft-retirement"
 import {
   getInitialRequestUrlDecision,
 } from "@/lib/request/initial-url-seeding"
@@ -61,14 +67,15 @@ import { StepRouter } from "./step-router"
 import {
   beginRequestDraftHydrationCutoff,
   clearRequestDraftHydrationCutoff,
+  type RequestProfilePrefill,
   useRequestStore,
 } from "./store"
 
 const FlowErrorScreen = lazy(() =>
   import("./flow-error-screen").then(({ FlowErrorScreen: component }) => ({ default: component }))
 )
-const DraftRestorationBanner = lazy(() =>
-  import("./draft-restoration-banner").then(({ DraftRestorationBanner: component }) => ({ default: component }))
+const DraftRestorationNotice = lazy(() =>
+  import("./draft-restoration-notice").then(({ DraftRestorationNotice: component }) => ({ default: component }))
 )
 const SubtypeMismatchBanner = lazy(() =>
   import("./subtype-mismatch-banner").then(({ SubtypeMismatchBanner: component }) => ({ default: component }))
@@ -429,10 +436,12 @@ export function RequestFlow({
   healthProfile,
 }: RequestFlowProps) {
   const router = useRouter()
-  const [showDraftBanner, setShowDraftBanner] = useState(false)
+  const [restoredDraftStepId, setRestoredDraftStepId] = useState<UnifiedStepId | null>(null)
+  const [draftResetRevision, setDraftResetRevision] = useState(0)
   const [showSubtypeMismatch, setShowSubtypeMismatch] = useState(false)
   const [draftSubtype, setDraftSubtype] = useState<string | null>(null)
   const [recoveryUnavailable, setRecoveryUnavailable] = useState(false)
+  const [draftRetiredElsewhere, setDraftRetiredElsewhere] = useState(false)
   const [safetyBlock, setSafetyBlock] = useState<SafetyEvaluationResult | null>(null)
   const [mobilePrimaryAction, setMobilePrimaryAction] = useState<MobilePrimaryActionState>({
     available: false,
@@ -453,7 +462,7 @@ export function RequestFlow({
     goToStep,
     answers,
     setAnswer,
-    setIdentity,
+    applyProfilePrefill,
     setAuthContext,
     lastSavedAt,
   } = useRequestStore()
@@ -505,7 +514,7 @@ export function RequestFlow({
           savedBefore,
         })
       ) {
-        setShowDraftBanner(true)
+        setRestoredDraftStepId(hydratedState.currentStepId)
       }
     }
 
@@ -542,6 +551,8 @@ export function RequestFlow({
       if (decision.redirectPath) {
         router.replace(decision.redirectPath)
       }
+
+      return Boolean(decision.subtypeMismatch)
     }
 
     const finishHydration = async () => {
@@ -570,7 +581,15 @@ export function RequestFlow({
           return
         }
 
-        if (!adoptServerDraftSession(record)) {
+        // Legacy recovery rows predate flow_instance_id. Generate one client
+        // identity exactly once and pass the same coordinated record to both
+        // the bearer store and Zustand; checkout then atomically claims it in
+        // PostgreSQL before using the bearer.
+        const coordinatedRecord = record.flowInstanceId
+          ? record
+          : { ...record, flowInstanceId: ensureFlowInstanceId(null) }
+
+        if (!adoptServerDraftSession(coordinatedRecord)) {
           setRecoveryUnavailable(true)
           return
         }
@@ -585,15 +604,15 @@ export function RequestFlow({
           hasPhone,
           hasSex,
         })
-        restoredState.restoreServerDraft(record, decision.serviceType)
-        setShowDraftBanner(false)
+        restoredState.restoreServerDraft(coordinatedRecord, decision.serviceType)
+        setRestoredDraftStepId(useRequestStore.getState().currentStepId)
         setHydrated(true)
         return
       }
 
-      applyUrlDecision()
+      const hasSubtypeMismatch = applyUrlDecision()
       setHydrated(true)
-      offerExistingDraft()
+      if (!hasSubtypeMismatch) offerExistingDraft()
     }
 
     const rehydrateResult = useRequestStore.persist.rehydrate()
@@ -635,7 +654,86 @@ export function RequestFlow({
     setAuthContext({ isAuthenticated, hasProfile, hasCompleteIdentity: hasCompleteIdentity ?? hasProfile, hasMedicare, hasAddress, hasPhone, hasSex })
   }, [isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, hasAddress, hasPhone, hasSex, setAuthContext])
 
-  // Pre-fill identity from the profile: ONCE, post-hydration, blanks only.
+  // If this exact flow is retired in another tab, by a same-document 410, or
+  // while this page sits in the back-forward cache, persistence correctly
+  // rejects future writes. Block the stale UI too so the patient is never
+  // invited to enter clinical details that cannot be saved.
+  useEffect(() => {
+    const blockIfCurrentFlowIsRetired = () => {
+      const activeFlowInstanceId = useRequestStore.getState().flowInstanceId
+      if (isDraftFlowRetired(activeFlowInstanceId)) {
+        setDraftRetiredElsewhere(true)
+      }
+    }
+    const handleRetiredFlow = (event: StorageEvent) => {
+      const retiredFlowInstanceId = getRetiredDraftFlowIdFromStorageKey(event.key)
+      if (
+        retiredFlowInstanceId &&
+        retiredFlowInstanceId === useRequestStore.getState().flowInstanceId
+      ) {
+        setDraftRetiredElsewhere(true)
+      }
+    }
+    const handleVisibilityRestore = () => {
+      if (document.visibilityState === "visible") {
+        blockIfCurrentFlowIsRetired()
+      }
+    }
+
+    window.addEventListener("storage", handleRetiredFlow)
+    window.addEventListener(DRAFT_FLOW_RETIRED_EVENT, blockIfCurrentFlowIsRetired)
+    window.addEventListener("pageshow", blockIfCurrentFlowIsRetired)
+    window.addEventListener("focus", blockIfCurrentFlowIsRetired)
+    document.addEventListener("visibilitychange", handleVisibilityRestore)
+    blockIfCurrentFlowIsRetired()
+    return () => {
+      window.removeEventListener("storage", handleRetiredFlow)
+      window.removeEventListener(DRAFT_FLOW_RETIRED_EVENT, blockIfCurrentFlowIsRetired)
+      window.removeEventListener("pageshow", blockIfCurrentFlowIsRetired)
+      window.removeEventListener("focus", blockIfCurrentFlowIsRetired)
+      document.removeEventListener("visibilitychange", handleVisibilityRestore)
+    }
+  }, [])
+
+  const profilePrefill = useMemo<RequestProfilePrefill>(() => {
+    const identity: RequestProfilePrefill['identity'] = {}
+    const profileAnswers: Record<string, unknown> = {}
+
+    if (userEmail) identity.email = userEmail
+    if (userName) {
+      const [firstName, ...lastParts] = userName.split(' ')
+      identity.firstName = firstName || ''
+      identity.lastName = lastParts.join(' ') || ''
+    }
+    if (userPhone) identity.phone = userPhone
+    if (profileDateOfBirth) identity.dob = profileDateOfBirth
+    if (profileMedicare) profileAnswers.medicareNumber = profileMedicare
+    if (profileMedicareIrn) profileAnswers.medicareIrn = String(profileMedicareIrn)
+    if (profileIhi) profileAnswers.ihiNumber = profileIhi
+    if (profileSex) profileAnswers.sex = profileSex
+    if (profileAddress) {
+      profileAnswers.addressLine1 = profileAddress.addressLine1
+      profileAnswers.suburb = profileAddress.suburb
+      profileAnswers.state = profileAddress.state
+      profileAnswers.postcode = profileAddress.postcode
+    }
+    if (healthProfile?.allergies?.length) {
+      profileAnswers.known_allergies = healthProfile.allergies.join(', ')
+      profileAnswers.has_allergies = 'yes'
+    }
+    if (healthProfile?.conditions?.length) {
+      profileAnswers.existing_conditions = healthProfile.conditions.join(', ')
+      profileAnswers.has_conditions = 'yes'
+    }
+    if (healthProfile?.current_medications?.length) {
+      profileAnswers.current_medications = healthProfile.current_medications.join(', ')
+      profileAnswers.takes_medications = 'yes'
+    }
+
+    return { identity, answers: profileAnswers }
+  }, [healthProfile, profileAddress, profileDateOfBirth, profileIhi, profileMedicare, profileMedicareIrn, profileSex, userEmail, userName, userPhone])
+
+  // Pre-fill identity and account health context ONCE, post-hydration, blanks only.
   // The previous version re-ran on every answers.* keystroke (deps included
   // medicareNumber etc.) and had no already-set guards on name/dob — so a
   // signed-in patient who corrected their name or DOB on the details step had
@@ -646,65 +744,11 @@ export function RequestFlow({
   useEffect(() => {
     if (!hydrated || hasExplicitRecovery || prefillAppliedRef.current) return
     prefillAppliedRef.current = true
-
-    const state = useRequestStore.getState()
-    const prefillIdentity: Parameters<typeof setIdentity>[0] = {}
-    if (userEmail && !state.email) prefillIdentity.email = userEmail
-    if (userName && !state.firstName && !state.lastName) {
-      const [firstName, ...lastParts] = userName.split(' ')
-      prefillIdentity.firstName = firstName || ''
-      prefillIdentity.lastName = lastParts.join(' ') || ''
-    }
-    if (userPhone && !state.phone) prefillIdentity.phone = userPhone
-    if (profileDateOfBirth && !state.dob) prefillIdentity.dob = profileDateOfBirth
-    if (Object.keys(prefillIdentity).length > 0) {
-      // touch:false — opening the flow signed-in is not patient work and must
-      // not create a restorable "draft".
-      setIdentity(prefillIdentity, { touch: false })
-    }
-
-    const storedAnswers = state.answers ?? {}
-    if (profileMedicare && !storedAnswers.medicareNumber) {
-      setAnswer('medicareNumber', profileMedicare, { touch: false })
-    }
-    if (profileMedicareIrn && !storedAnswers.medicareIrn) {
-      setAnswer('medicareIrn', String(profileMedicareIrn), { touch: false })
-    }
-    if (profileIhi && !storedAnswers.ihiNumber) {
-      setAnswer('ihiNumber', profileIhi, { touch: false })
-    }
-    if (profileSex && !storedAnswers.sex) {
-      setAnswer('sex', profileSex, { touch: false })
-    }
-    if (profileAddress && !storedAnswers.addressLine1) {
-      setAnswer('addressLine1', profileAddress.addressLine1, { touch: false })
-      setAnswer('suburb', profileAddress.suburb, { touch: false })
-      setAnswer('state', profileAddress.state, { touch: false })
-      setAnswer('postcode', profileAddress.postcode, { touch: false })
-    }
-  }, [hydrated, hasExplicitRecovery, userEmail, userName, userPhone, profileDateOfBirth, profileMedicare, profileMedicareIrn, profileIhi, profileSex, profileAddress, setIdentity, setAnswer])
-
-  // Pre-fill medical history from health profile (post-hydration, blanks
-  // only, non-stamping — same rules as identity prefill above).
-  const healthPrefillAppliedRef = useRef(false)
-  useEffect(() => {
-    if (!hydrated || hasExplicitRecovery || !healthProfile || healthPrefillAppliedRef.current) return
-    healthPrefillAppliedRef.current = true
-    const storedAnswers = useRequestStore.getState().answers ?? {}
-    if (healthProfile.allergies?.length && !storedAnswers.known_allergies) {
-      setAnswer('known_allergies', healthProfile.allergies.join(', '), { touch: false })
-      setAnswer('has_allergies', 'yes', { touch: false })
-    }
-    if (healthProfile.conditions?.length && !storedAnswers.existing_conditions) {
-      setAnswer('existing_conditions', healthProfile.conditions.join(', '), { touch: false })
-      setAnswer('has_conditions', 'yes', { touch: false })
-    }
-    if (healthProfile.current_medications?.length && !storedAnswers.current_medications) {
-      setAnswer('current_medications', healthProfile.current_medications.join(', '), { touch: false })
-      setAnswer('takes_medications', 'yes', { touch: false })
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, healthProfile])
+    // Profile prefill is account context, not patient work: the store merges
+    // blanks without stamping lastSavedAt. The same bundle is reapplied
+    // atomically when a signed-in patient chooses Start over.
+    applyProfilePrefill(profilePrefill)
+  }, [applyProfilePrefill, hasExplicitRecovery, hydrated, profilePrefill])
 
   // Initialize service type from URL param
   // IMPORTANT: URL param is the source of truth for which service to show.
@@ -833,12 +877,19 @@ export function RequestFlow({
     canGoBack: currentStepIndex > 0,
   })
 
+  const dismissDraftNotice = useCallback(() => {
+    setRestoredDraftStepId(null)
+  }, [])
+
+  const remountFreshDraftStep = useCallback(() => {
+    setDraftResetRevision((revision) => revision + 1)
+  }, [])
+
   const {
     handleBack,
     handleNext,
     handleComplete,
     handleExit: _handleExit,
-    handleRestoreDraft,
     handleDiscardDraft,
     handleResumeDraft,
     handleStartFreshSubtype,
@@ -863,9 +914,35 @@ export function RequestFlow({
     setShowExitConfirm,
     setSafetyBlock,
     draftSubtype,
-    setShowDraftBanner,
+    dismissDraftNotice,
     setShowSubtypeMismatch,
+    profilePrefill,
+    onDraftDiscarded: remountFreshDraftStep,
   })
+
+  const handleRestartAfterCrossTabRetirement = useCallback(() => {
+    setDraftRetiredElsewhere(false)
+    handleDiscardDraft()
+  }, [handleDiscardDraft])
+
+  // The store has already restored the draft before the notice appears. Keep
+  // the acknowledgement only on that landing step; advancing is an implicit
+  // acceptance and should return the patient to an uninterrupted form.
+  useEffect(() => {
+    if (restoredDraftStepId && restoredDraftStepId !== currentStepId) {
+      setRestoredDraftStepId(null)
+    }
+  }, [currentStepId, restoredDraftStepId])
+
+  const restoredDraftCapturedRef = useRef(false)
+  useEffect(() => {
+    if (!restoredDraftStepId || restoredDraftCapturedRef.current || !posthog) return
+    restoredDraftCapturedRef.current = true
+    posthog.capture('request_draft_restored', {
+      service_type: analyticsServiceType,
+      flow_instance_id: flowInstanceId,
+    })
+  }, [analyticsServiceType, flowInstanceId, posthog, restoredDraftStepId])
 
   // Keyboard navigation: Escape to go back
   // Note: Enter to continue is handled by individual step components
@@ -989,16 +1066,30 @@ export function RequestFlow({
   const mobileActionReady = mobileActionClickable && mobilePrimaryAction.ready
   const showMobileSavedCue = mobileActionReady && Boolean(lastSavedAt) && !hasUnsavedChanges
 
-  // Service name for display
-  const serviceName = useMemo(() => {
-    const names: Record<UnifiedServiceType, string> = {
-      'med-cert': 'medical certificate',
-      'prescription': 'prescription',
-      'repeat-script': 'repeat prescription',
-      'consult': 'consultation',
-    }
-    return serviceType ? names[serviceType] : 'request'
-  }, [serviceType])
+  if (draftRetiredElsewhere) {
+    return (
+      <main className="min-h-screen bg-background px-4 flex items-center justify-center">
+        <div
+          className="w-full max-w-md rounded-2xl border border-border/50 bg-white p-6 text-center shadow-md shadow-primary/[0.06] dark:bg-card sm:p-8"
+          role="alert"
+          aria-live="assertive"
+        >
+          <h1 className="font-display text-2xl font-semibold text-foreground">
+            This request is no longer active
+          </h1>
+          <p className="mt-3 text-base leading-6 text-muted-foreground">
+            This request was started over or completed, so it can no longer save safely. Start a new request to continue.
+          </p>
+          <RequestButton
+            className="mt-6 min-h-12 w-full"
+            onClick={handleRestartAfterCrossTabRetirement}
+          >
+            Start a new request
+          </RequestButton>
+        </div>
+      </main>
+    )
+  }
 
   if (recoveryUnavailable) {
     return (
@@ -1007,7 +1098,7 @@ export function RequestFlow({
           <h1 className="font-display text-2xl font-semibold text-foreground">
             Saved request unavailable
           </h1>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+          <p className="mt-3 text-base leading-6 text-muted-foreground">
             This link may have expired or the request may already have been completed. Start a new request to continue.
           </p>
           <a
@@ -1147,13 +1238,12 @@ export function RequestFlow({
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Draft restoration banner */}
-        {showDraftBanner && (
+        {/* The draft is already restored; acknowledge it without adding a
+            confirmation gate, and retire the notice after the first step. */}
+        {restoredDraftStepId === currentStepId && (
           <Suspense fallback={null}>
-            <DraftRestorationBanner
-              serviceName={serviceName}
-              onRestore={handleRestoreDraft}
-              onDiscard={handleDiscardDraft}
+            <DraftRestorationNotice
+              onStartOver={handleDiscardDraft}
             />
           </Suspense>
         )}
@@ -1171,7 +1261,7 @@ export function RequestFlow({
         )}
 
         {/* Step content */}
-        <div key={visibleStepId}>
+        <div key={`${visibleStepId}:${draftResetRevision}`}>
           <StepRouter
             serviceType={effectiveService}
             currentStepId={visibleStepId}

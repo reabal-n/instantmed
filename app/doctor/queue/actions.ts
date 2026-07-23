@@ -22,6 +22,7 @@ import {
   hasLegacyRepeatRxReconciliationNote,
   isRepeatRxIntake,
 } from "@/lib/clinical/repeat-rx-attestation"
+import { env } from "@/lib/config/env"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
 import { formatClaimWarning } from "@/lib/data/intake-lock-warning"
@@ -42,6 +43,7 @@ import {
   isParchmentClaimSatisfied,
 } from "@/lib/doctor/parchment-claim"
 import { isPrescribingServiceRequest, isPrescribingServiceType } from "@/lib/doctor/service-types"
+import { buildPatientRequestAccessUrl } from "@/lib/email/request-access-url"
 import {
   editPaidRequestTelegramMessageToApproved,
   editPaidRequestTelegramMessageToDeclined,
@@ -215,6 +217,10 @@ async function sendScriptSentEmailIfNeeded(
     template: React.createElement(ScriptSentEmail, {
       patientName,
       requestId: intakeId,
+      requestAccessUrl: buildPatientRequestAccessUrl({
+        appUrl: env.appUrl,
+        intakeId,
+      }),
       escriptReference: intake.parchment_reference ?? undefined,
     }),
     emailType: "script_sent",

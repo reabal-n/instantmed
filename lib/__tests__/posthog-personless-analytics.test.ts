@@ -21,6 +21,43 @@ function readSource(path: string): string {
 }
 
 describe("personless PostHog analytics", () => {
+  it("redacts capability path segments from automatic URL properties", () => {
+    const sanitized = sanitizePostHogProperties({
+      $current_url: "https://instantmed.com.au/track/request-token?page=1",
+      $initial_current_url: "https://instantmed.com.au/resume/checkout-token",
+      url: "https://instantmed.com.au/track/another-token#status",
+    })
+
+    expect(sanitized).toMatchObject({
+      $current_url: "https://instantmed.com.au/track/[REDACTED]",
+      $initial_current_url: "https://instantmed.com.au/resume/[REDACTED]",
+      url: "https://instantmed.com.au/track/[REDACTED]",
+    })
+
+    const pageleave = sanitizePostHogEvent({
+      event: "$pageleave",
+      properties: {
+        distinct_id: "019f-browser-anonymous-id",
+        $current_url: "https://instantmed.com.au/track/request-token",
+      },
+    })
+    expect(pageleave?.properties).toMatchObject({
+      $current_url: "https://instantmed.com.au/track/[REDACTED]",
+    })
+  })
+
+  it("redacts dynamic patient and staff path segments as a final external-analytics defense", () => {
+    const sanitized = sanitizePostHogProperties({
+      $current_url: "https://instantmed.com.au/patient/intakes/11111111-1111-4111-8111-111111111111?tab=messages",
+      url: "https://instantmed.com.au/doctor/patients/22222222-2222-4222-8222-222222222222",
+    })
+
+    expect(sanitized).toMatchObject({
+      $current_url: "https://instantmed.com.au/patient/[REDACTED]",
+      url: "https://instantmed.com.au/doctor/[REDACTED]",
+    })
+  })
+
   it("keeps decision-grade funnel and campaign dimensions while dropping identity and raw search data", () => {
     const result = sanitizePostHogProperties({
       service_type: "consult",

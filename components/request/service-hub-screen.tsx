@@ -112,10 +112,11 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
   const handleClearDraft = useCallback(
     (serviceType: CanonicalServiceType) => {
       posthog?.capture("draft_cleared", { service_type: serviceType })
-      clearDraft(serviceType)
+      const draftToClear = drafts.find((draft) => draft.serviceType === serviceType)
+      clearDraft(serviceType, draftToClear?.flowInstanceId)
       setDrafts((prev) => prev.filter((d) => d.serviceType !== serviceType))
     },
-    [posthog],
+    [drafts, posthog],
   )
 
   const handleSelectService = useCallback(

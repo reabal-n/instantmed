@@ -1,9 +1,11 @@
 "use client"
 
+import { usePathname } from "next/navigation"
 import { type ComponentType, useEffect, useState } from "react"
 
 import { onFirstInteraction } from "@/lib/browser/first-interaction"
-import { isPostConversionPath } from "@/lib/browser/post-conversion-path"
+import { isPostConversionPathname } from "@/lib/browser/post-conversion-path"
+import { isExternalAnalyticsExcludedPathname } from "@/lib/browser/sensitive-capability-path"
 
 type ToasterProps = {
   position?: "top-center"
@@ -69,6 +71,9 @@ function shouldLoadCookieBanner() {
  * patient first interacts.
  */
 export function GlobalDeferredClients() {
+  const pathname = usePathname()
+  const allowExternalTelemetry = !isExternalAnalyticsExcludedPathname(pathname)
+  const allowConversionMeasurement = isPostConversionPathname(pathname)
   const [clients, setClients] = useState<LoadedClients>({})
 
   useEffect(() => {
@@ -87,14 +92,16 @@ export function GlobalDeferredClients() {
     const loadClients = () => {
       cleanup.push(
         scheduleIdle(() => {
-          if (shouldLoadVercelAnalytics()) {
+          if (allowExternalTelemetry && shouldLoadVercelAnalytics()) {
             void import("@vercel/analytics/next").then((mod) => {
               setClient("Analytics", mod.Analytics)
             })
           }
-          void import("@/components/providers/google-tags").then((mod) => {
-            setClient("GoogleTags", mod.GoogleTags)
-          })
+          if (allowExternalTelemetry || allowConversionMeasurement) {
+            void import("@/components/providers/google-tags").then((mod) => {
+              setClient("GoogleTags", mod.GoogleTags)
+            })
+          }
           void import("@/components/pwa/service-worker-registration").then((mod) => {
             setClient("ServiceWorkerRegistration", mod.ServiceWorkerRegistration)
           })
@@ -103,9 +110,11 @@ export function GlobalDeferredClients() {
               setClient("CookieBanner", mod.CookieBanner)
             })
           }
-          void import("@/components/shared/referral-capture").then((mod) => {
-            setClient("ReferralCapture", mod.ReferralCapture)
-          })
+          if (allowExternalTelemetry) {
+            void import("@/components/shared/referral-capture").then((mod) => {
+              setClient("ReferralCapture", mod.ReferralCapture)
+            })
+          }
           void import("@/components/shared/urgent-notice-banner").then((mod) => {
             setClient("UrgentNoticeBanner", mod.UrgentNoticeBanner)
           })
@@ -118,9 +127,11 @@ export function GlobalDeferredClients() {
           void import("@/components/ui/sonner").then((mod) => {
             setClient("Toaster", mod.Toaster as ComponentType<ToasterProps>)
           })
-          void import("@/lib/analytics/web-vitals").then((mod) => {
-            setClient("WebVitalsReporter", mod.WebVitalsReporter)
-          })
+          if (allowExternalTelemetry) {
+            void import("@/lib/analytics/web-vitals").then((mod) => {
+              setClient("WebVitalsReporter", mod.WebVitalsReporter)
+            })
+          }
         })
       )
     }
@@ -128,7 +139,7 @@ export function GlobalDeferredClients() {
     // Post-conversion and authenticated app shells bypass the first-interaction
     // gate. Staff/patient clinical actions should not be the trigger that loads
     // global deferred clients and remounts late overlays.
-    if (isPostConversionPath() || isAuthenticatedAppPath()) {
+    if (allowConversionMeasurement || isAuthenticatedAppPath()) {
       loadClients()
     } else {
       cleanup.push(onFirstInteraction(loadClients))
@@ -138,7 +149,7 @@ export function GlobalDeferredClients() {
       cancelled = true
       cleanup.forEach((cancel) => cancel())
     }
-  }, [])
+  }, [allowConversionMeasurement, allowExternalTelemetry])
 
   const {
     Analytics,
@@ -158,11 +169,11 @@ export function GlobalDeferredClients() {
       {UrgentNoticeBanner ? <UrgentNoticeBanner /> : null}
       {NavigationProgress ? <NavigationProgress /> : null}
       {NetworkStatus ? <NetworkStatus /> : null}
-      {GoogleTags ? <GoogleTags /> : null}
-      {Analytics ? <Analytics /> : null}
-      {WebVitalsReporter ? <WebVitalsReporter /> : null}
+      {(allowExternalTelemetry || allowConversionMeasurement) && GoogleTags ? <GoogleTags /> : null}
+      {allowExternalTelemetry && Analytics ? <Analytics /> : null}
+      {allowExternalTelemetry && WebVitalsReporter ? <WebVitalsReporter /> : null}
       {ServiceWorkerRegistration ? <ServiceWorkerRegistration /> : null}
-      {ReferralCapture ? <ReferralCapture /> : null}
+      {allowExternalTelemetry && ReferralCapture ? <ReferralCapture /> : null}
       {Toaster ? <Toaster position="top-center" richColors /> : null}
       {CookieBanner ? <CookieBanner /> : null}
     </>

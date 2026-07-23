@@ -133,6 +133,18 @@ describe("Sentry PHI scrubber", () => {
     expect(event.request?.url).toContain("token_hash=[REDACTED]")
   })
 
+  it("redacts Stripe Checkout Session capabilities from URLs", () => {
+    const event = scrubSentryEvent({
+      request: {
+        url: "https://instantmed.test/auth/complete-account?intake_id=11111111-1111-4111-8111-111111111111&session_id=cs_sensitive",
+      },
+    })
+
+    const serialized = JSON.stringify(event)
+    expect(serialized).not.toContain("cs_sensitive")
+    expect(event.request?.url).toContain("session_id=[REDACTED]")
+  })
+
   it("redacts role and clinician identifiers from tags and extras", () => {
     const event = scrubSentryEvent({
       tags: {

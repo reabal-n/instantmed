@@ -40,6 +40,10 @@ describe("feature flag cache resilience", () => {
         error: { message: "TypeError: fetch failed" },
       })
       .mockResolvedValueOnce({
+        data: null,
+        error: { message: "TypeError: strict read failed" },
+      })
+      .mockResolvedValueOnce({
         data: [
           { key: "ai_auto_approve_enabled", value: true },
           { key: "telegram_notifications_enabled", value: true },
@@ -51,13 +55,16 @@ describe("feature flag cache resilience", () => {
       from: vi.fn(() => ({ select })),
     })
 
-    const { getFeatureFlags } = await import("@/lib/feature-flags")
+    const { getFeatureFlags, isMaintenanceModeStrict } = await import("@/lib/feature-flags")
 
     const fallback = await getFeatureFlags()
+    await expect(isMaintenanceModeStrict()).rejects.toThrow("TypeError: strict read failed")
     const recovered = await getFeatureFlags()
+    const strictRecovered = await isMaintenanceModeStrict()
 
     expect(fallback.ai_auto_approve_enabled).toBe(false)
     expect(recovered.ai_auto_approve_enabled).toBe(true)
-    expect(select).toHaveBeenCalledTimes(2)
+    expect(strictRecovered.enabled).toBe(false)
+    expect(select).toHaveBeenCalledTimes(3)
   })
 })

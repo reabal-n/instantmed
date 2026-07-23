@@ -3,7 +3,9 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { env } from "@/lib/config/env"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
+import { buildPatientRequestAccessUrl } from "@/lib/email/request-access-url"
 import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
@@ -189,6 +191,10 @@ export async function GET(request: NextRequest) {
                   patientName: patient.full_name || "there",
                   requestType,
                   requestId: intake.id,
+                  requestAccessUrl: buildPatientRequestAccessUrl({
+                    appUrl: env.appUrl,
+                    intakeId: intake.id,
+                  }),
                 }),
                 emailType: "still_reviewing",
                 intakeId: intake.id,

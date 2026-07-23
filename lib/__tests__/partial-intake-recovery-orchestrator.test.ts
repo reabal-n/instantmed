@@ -82,6 +82,13 @@ const candidateMigration = readFileSync(
   ),
   "utf8",
 )
+const intakeAntiJoinMigration = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20260723063000_suppress_recovery_after_intake_creation.sql",
+  ),
+  "utf8",
+)
 
 function candidate(trackingId = "tracking-1") {
   return {
@@ -163,6 +170,23 @@ describe("partial-intake recovery candidate ownership", () => {
       "from public, anon, authenticated",
     )
     expect(candidateMigration).toContain("to service_role")
+  })
+
+  it("excludes a partial draft when its flow already created a real intake", () => {
+    expect(intakeAntiJoinMigration).toContain(
+      "from public.intakes as realized",
+    )
+    expect(intakeAntiJoinMigration).toContain(
+      "realized.flow_instance_id = partial.flow_instance_id",
+    )
+    expect(intakeAntiJoinMigration).toContain(
+      "idx_intakes_flow_instance_id",
+    )
+    expect(intakeAntiJoinMigration).toContain(
+      "create unique index if not exists idx_intakes_flow_instance_id",
+    )
+    expect(intakeAntiJoinMigration).toContain("from public, anon, authenticated")
+    expect(intakeAntiJoinMigration).toContain("to service_role")
   })
 
   it("fails closed when the database candidate read fails", async () => {

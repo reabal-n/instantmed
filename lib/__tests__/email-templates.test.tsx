@@ -66,6 +66,7 @@ import { htmlToPlainText } from "@/lib/email/utils"
 // ============================================================================
 
 const APP_URL = "https://instantmed.com.au"
+const REQUEST_ACCESS_URL = `${APP_URL}/track/test-request-access`
 
 function render(element: React.ReactElement): string {
   return renderToStaticMarkup(element)
@@ -229,6 +230,7 @@ describe("Email Templates", () => {
         <ScriptSentEmail
           patientName="Sam Wilson"
           requestId="REQ-001"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           escriptReference="ESCRIPT-ABC123"
           appUrl={APP_URL}
         />
@@ -242,6 +244,7 @@ describe("Email Templates", () => {
         <ScriptSentEmail
           patientName="Sam Wilson"
           requestId="REQ-001"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           appUrl={APP_URL}
         />
       )
@@ -255,7 +258,7 @@ describe("Email Templates", () => {
 
     it("matches snapshot", () => {
       const html = render(
-        <ScriptSentEmail patientName="Test Patient" requestId="REQ-TEST" appUrl={APP_URL} />
+        <ScriptSentEmail patientName="Test Patient" requestId="REQ-TEST" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />
       )
       expect(html).toMatchSnapshot()
     })
@@ -268,6 +271,7 @@ describe("Email Templates", () => {
           patientName="Taylor Brown"
           requestType="Medical Certificate"
           requestId="REQ-002"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           reason="Insufficient clinical information"
           appUrl={APP_URL}
         />
@@ -282,6 +286,7 @@ describe("Email Templates", () => {
           patientName="Taylor Brown"
           requestType="Medical Certificate"
           requestId="REQ-002"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           appUrl={APP_URL}
         />
       )
@@ -301,6 +306,7 @@ describe("Email Templates", () => {
           patientName="Test Patient"
           requestType="Medical Certificate"
           requestId="REQ-TEST"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           appUrl={APP_URL}
         />
       )
@@ -316,6 +322,7 @@ describe("Email Templates", () => {
           requestType="Medical Certificate"
           amount="$19.95"
           requestId="REQ-003"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           appUrl={APP_URL}
         />
       )
@@ -330,6 +337,7 @@ describe("Email Templates", () => {
           requestType="Medical Certificate"
           amount="$19.95"
           requestId="REQ-TEST"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           appUrl={APP_URL}
         />
       )
@@ -440,6 +448,7 @@ describe("Email Templates", () => {
           patientName="Avery Clark"
           requestType="Prescription"
           requestId="REQ-004"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           doctorMessage="Please provide more details about your symptoms."
           appUrl={APP_URL}
         />
@@ -459,6 +468,7 @@ describe("Email Templates", () => {
           patientName="Test Patient"
           requestType="Medical Certificate"
           requestId="REQ-TEST"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           doctorMessage="Need more info."
           appUrl={APP_URL}
         />
@@ -572,6 +582,7 @@ describe("Email Templates", () => {
         <ConsultApprovedEmail
           patientName="Quinn Nguyen"
           requestId="REQ-005"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           doctorNotes="Recommend follow-up in 2 weeks."
           appUrl={APP_URL}
         />
@@ -585,6 +596,7 @@ describe("Email Templates", () => {
         <ConsultApprovedEmail
           patientName="Quinn Nguyen"
           requestId="REQ-005"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           appUrl={APP_URL}
         />
       )
@@ -597,7 +609,7 @@ describe("Email Templates", () => {
 
     it("matches snapshot", () => {
       const html = render(
-        <ConsultApprovedEmail patientName="Test Patient" requestId="REQ-TEST" appUrl={APP_URL} />
+        <ConsultApprovedEmail patientName="Test Patient" requestId="REQ-TEST" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />
       )
       expect(html).toMatchSnapshot()
     })
@@ -611,6 +623,7 @@ describe("Email Templates", () => {
           requestType="Medical Certificate"
           amount="$19.95"
           requestId="REQ-011"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           appUrl={APP_URL}
         />
       )
@@ -625,6 +638,7 @@ describe("Email Templates", () => {
           requestType="Medical Certificate"
           amount="$19.95"
           requestId="REQ-011"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           isGuest={true}
           completeAccountUrl={`${APP_URL}/auth/complete-account?intake_id=REQ-011&session_id=cs_test`}
           appUrl={APP_URL}
@@ -646,6 +660,7 @@ describe("Email Templates", () => {
           requestType="Medical Certificate"
           amount="$19.95"
           requestId="REQ-TEST"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           paidAt="21 April 2026"
           appUrl={APP_URL}
         />
@@ -661,6 +676,7 @@ describe("Email Templates", () => {
           patientName="Parker Stone"
           requestType="Medical Certificate"
           requestId="REQ-012"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           amountFormatted="$19.95"
           appUrl={APP_URL}
         />
@@ -675,6 +691,7 @@ describe("Email Templates", () => {
           patientName="Parker Stone"
           requestType="Medical Certificate"
           requestId="REQ-012"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           appUrl={APP_URL}
         />
       )
@@ -687,7 +704,7 @@ describe("Email Templates", () => {
 
     it("matches snapshot", () => {
       const html = render(
-        <RefundIssuedEmail patientName="Test Patient" requestType="Medical Certificate" requestId="REQ-TEST" appUrl={APP_URL} />
+        <RefundIssuedEmail patientName="Test Patient" requestType="Medical Certificate" requestId="REQ-TEST" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />
       )
       expect(html).toMatchSnapshot()
     })
@@ -700,6 +717,7 @@ describe("Email Templates", () => {
           patientName="Phoenix Ray"
           requestType="Medical Certificate"
           requestId="REQ-013"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           appUrl={APP_URL}
         />
       )
@@ -713,7 +731,7 @@ describe("Email Templates", () => {
 
     it("matches snapshot", () => {
       const html = render(
-        <StillReviewingEmail patientName="Test Patient" requestType="Medical Certificate" requestId="REQ-TEST" appUrl={APP_URL} />
+        <StillReviewingEmail patientName="Test Patient" requestType="Medical Certificate" requestId="REQ-TEST" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />
       )
       expect(html).toMatchSnapshot()
     })
@@ -911,20 +929,20 @@ describe("Email Template Cross-Checks", () => {
     const templates = [
       <MedCertPatientEmail key="2" patientName="Test" dashboardUrl="https://example.com" appUrl={APP_URL} />,
       <MedCertEmployerEmail key="3" patientName="Test" downloadUrl="https://example.com" appUrl={APP_URL} />,
-      <ScriptSentEmail key="4" patientName="Test" requestId="R1" appUrl={APP_URL} />,
-      <RequestDeclinedEmail key="5" patientName="Test" requestType="Med Cert" requestId="R2" appUrl={APP_URL} />,
-      <PaymentConfirmedEmail key="7" patientName="Test" requestType="Med Cert" amount="$19.95" requestId="R3" appUrl={APP_URL} />,
+      <ScriptSentEmail key="4" patientName="Test" requestId="R1" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />,
+      <RequestDeclinedEmail key="5" patientName="Test" requestType="Med Cert" requestId="R2" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />,
+      <PaymentConfirmedEmail key="7" patientName="Test" requestType="Med Cert" amount="$19.95" requestId="R3" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />,
       <PaymentFailedEmail key="8" patientName="Test" serviceName="Med Cert" failureReason="Declined" retryUrl="https://example.com" appUrl={APP_URL} />,
       <SessionExpiredEmail key="9" patientName="Test" serviceName="Med Cert" startUrl="https://example.com" appUrl={APP_URL} />,
       <DisputeAlertEmail key="9b" disputeId="dp_test" chargeId="ch_test" amount="AUD 29.95" reason="fraudulent" stripeDashboardUrl="https://dashboard.stripe.com/disputes/dp_test" appUrl={APP_URL} />,
-      <NeedsMoreInfoEmail key="10" patientName="Test" requestType="Med Cert" requestId="R4" doctorMessage="More info needed" appUrl={APP_URL} />,
+      <NeedsMoreInfoEmail key="10" patientName="Test" requestType="Med Cert" requestId="R4" requestAccessUrl={REQUEST_ACCESS_URL} doctorMessage="More info needed" appUrl={APP_URL} />,
       <GuestCompleteAccountEmail key="11" patientName="Test" requestType="Med Cert" intakeId="i1" completeAccountUrl="https://example.com" appUrl={APP_URL} />,
       <PartialIntakeRecoveryEmail key="12" firstName="Test" serviceName="Med Cert" resumeUrl="https://example.com" appUrl={APP_URL} />,
       <AbandonedCheckoutEmail key="12b" patientName="Test" serviceName="Med Cert" resumeUrl="https://example.com" startedAgoLabel="about 2 hours ago" appUrl={APP_URL} />,
-      <ConsultApprovedEmail key="13" patientName="Test" requestId="R5" appUrl={APP_URL} />,
-      <RequestReceivedEmail key="22" patientName="Test" requestType="Med Cert" amount="$19.95" requestId="R11" appUrl={APP_URL} />,
-      <RefundIssuedEmail key="23" patientName="Test" requestType="Med Cert" requestId="R12" appUrl={APP_URL} />,
-      <StillReviewingEmail key="25" patientName="Test" requestType="Med Cert" requestId="R13" appUrl={APP_URL} />,
+      <ConsultApprovedEmail key="13" patientName="Test" requestId="R5" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />,
+      <RequestReceivedEmail key="22" patientName="Test" requestType="Med Cert" amount="$19.95" requestId="R11" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />,
+      <RefundIssuedEmail key="23" patientName="Test" requestType="Med Cert" requestId="R12" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />,
+      <StillReviewingEmail key="25" patientName="Test" requestType="Med Cert" requestId="R13" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />,
       <ReviewRequestEmail key="31" patientName="Test" appUrl={APP_URL} />,
       <AbandonedCheckoutFollowupEmail key="33" patientName="Test" serviceName="Medical Certificate" resumeUrl="https://instantmed.com.au/request?resume=abc" appUrl={APP_URL} />,
       <MagicLinkEmail key="35" loginUrl="https://example.com/auth/confirm#token_hash=abc&type=magiclink" appUrl={APP_URL} />,
@@ -946,7 +964,7 @@ describe("Email Template Cross-Checks", () => {
       <PaymentFailedEmail key="2" patientName="Test" serviceName="Med Cert" failureReason="Declined" retryUrl="https://example.com" appUrl={APP_URL} />,
       <SessionExpiredEmail key="3" patientName="Test" serviceName="Med Cert" startUrl="https://example.com" appUrl={APP_URL} />,
       <DisputeAlertEmail key="3b" disputeId="dp_test" chargeId="ch_test" amount="AUD 29.95" reason="fraudulent" stripeDashboardUrl="https://dashboard.stripe.com/disputes/dp_test" appUrl={APP_URL} />,
-      <StillReviewingEmail key="4" patientName="Test" requestType="Med Cert" requestId="R1" appUrl={APP_URL} />,
+      <StillReviewingEmail key="4" patientName="Test" requestType="Med Cert" requestId="R1" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />,
       <PartialIntakeRecoveryEmail key="5" firstName="Test" serviceName="Med Cert" resumeUrl="https://example.com" appUrl={APP_URL} />,
       <AbandonedCheckoutEmail key="6" patientName="Test" serviceName="Med Cert" resumeUrl="https://example.com" startedAgoLabel="about 2 hours ago" appUrl={APP_URL} />,
     ]
@@ -1008,6 +1026,7 @@ describe("Link validation", () => {
       <ScriptSentEmail
         patientName="Test Patient"
         requestId="REQ-001"
+        requestAccessUrl={REQUEST_ACCESS_URL}
         escriptReference="ESCRIPT-ABC123"
         appUrl={APP_URL}
       />
@@ -1017,6 +1036,7 @@ describe("Link validation", () => {
         patientName="Test Patient"
         requestType="Medical Certificate"
         requestId="REQ-002"
+        requestAccessUrl={REQUEST_ACCESS_URL}
         reason="Insufficient clinical information"
         appUrl={APP_URL}
       />
@@ -1027,6 +1047,7 @@ describe("Link validation", () => {
         requestType="Medical Certificate"
         amount="$19.95"
         requestId="REQ-003"
+        requestAccessUrl={REQUEST_ACCESS_URL}
         appUrl={APP_URL}
       />
     ),
@@ -1062,6 +1083,7 @@ describe("Link validation", () => {
         patientName="Test Patient"
         requestType="Prescription"
         requestId="REQ-004"
+        requestAccessUrl={REQUEST_ACCESS_URL}
         doctorMessage="Please provide more details about your symptoms."
         appUrl={APP_URL}
       />
@@ -1096,6 +1118,7 @@ describe("Link validation", () => {
       <ConsultApprovedEmail
         patientName="Test Patient"
         requestId="REQ-005"
+        requestAccessUrl={REQUEST_ACCESS_URL}
         doctorNotes="Recommend follow-up in 2 weeks."
         appUrl={APP_URL}
       />
@@ -1106,6 +1129,7 @@ describe("Link validation", () => {
         requestType="Medical Certificate"
         amount="$19.95"
         requestId="REQ-011"
+        requestAccessUrl={REQUEST_ACCESS_URL}
         appUrl={APP_URL}
       />
     ),
@@ -1114,6 +1138,7 @@ describe("Link validation", () => {
         patientName="Test Patient"
         requestType="Medical Certificate"
         requestId="REQ-012"
+        requestAccessUrl={REQUEST_ACCESS_URL}
         amountFormatted="$19.95"
         appUrl={APP_URL}
       />
@@ -1123,6 +1148,7 @@ describe("Link validation", () => {
         patientName="Test Patient"
         requestType="Medical Certificate"
         requestId="REQ-013"
+        requestAccessUrl={REQUEST_ACCESS_URL}
         appUrl={APP_URL}
       />
     ),
@@ -1210,6 +1236,7 @@ describe("Review request ownership", () => {
         <ScriptSentEmail
           patientName="Test"
           requestId="REQ-001"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           escriptReference="ES-001"
           appUrl={APP_URL}
         />
@@ -1218,6 +1245,7 @@ describe("Review request ownership", () => {
         <ConsultApprovedEmail
           patientName="Test"
           requestId="REQ-002"
+          requestAccessUrl={REQUEST_ACCESS_URL}
           appUrl={APP_URL}
         />
       ),
@@ -1261,10 +1289,10 @@ describe("Preheader length validation", () => {
   // This prevents email clients from appending body text to the subject line
   const allTemplates: Record<string, React.ReactElement> = {
     MedCertPatientEmail: <MedCertPatientEmail patientName="Test" dashboardUrl="https://example.com" appUrl={APP_URL} />,
-    ScriptSentEmail: <ScriptSentEmail patientName="Test" requestId="R1" appUrl={APP_URL} />,
-    ConsultApprovedEmail: <ConsultApprovedEmail patientName="Test" requestId="R1" appUrl={APP_URL} />,
-    RequestDeclinedEmail: <RequestDeclinedEmail patientName="Test" requestType="Medical Certificate" requestId="R1" appUrl={APP_URL} />,
-    StillReviewingEmail: <StillReviewingEmail patientName="Test" requestType="Medical Certificate" requestId="R1" appUrl={APP_URL} />,
+    ScriptSentEmail: <ScriptSentEmail patientName="Test" requestId="R1" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />,
+    ConsultApprovedEmail: <ConsultApprovedEmail patientName="Test" requestId="R1" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />,
+    RequestDeclinedEmail: <RequestDeclinedEmail patientName="Test" requestType="Medical Certificate" requestId="R1" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />,
+    StillReviewingEmail: <StillReviewingEmail patientName="Test" requestType="Medical Certificate" requestId="R1" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />,
     SessionExpiredEmail: <SessionExpiredEmail patientName="Test" serviceName="Medical Certificate" startUrl="https://instantmed.com.au/request?service=med-cert" appUrl={APP_URL} />,
     DisputeAlertEmail: <DisputeAlertEmail disputeId="dp_test" chargeId="ch_test" amount="AUD 29.95" reason="fraudulent" stripeDashboardUrl="https://dashboard.stripe.com/disputes/dp_test" appUrl={APP_URL} />,
   }
@@ -1297,13 +1325,14 @@ describe("Patient-email content ownership", () => {
       />
     ),
     ScriptSentEmail: (
-      <ScriptSentEmail patientName="Test Patient" requestId="REQ-001" appUrl={APP_URL} />
+      <ScriptSentEmail patientName="Test Patient" requestId="REQ-001" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />
     ),
     RequestDeclinedEmail: (
       <RequestDeclinedEmail
         patientName="Test Patient"
         requestType="Medical Certificate"
         requestId="REQ-002"
+        requestAccessUrl={REQUEST_ACCESS_URL}
         appUrl={APP_URL}
       />
     ),
@@ -1313,6 +1342,7 @@ describe("Patient-email content ownership", () => {
         requestType="Medical Certificate"
         amount="$24.95"
         requestId="REQ-003"
+        requestAccessUrl={REQUEST_ACCESS_URL}
         appUrl={APP_URL}
       />
     ),
@@ -1338,6 +1368,7 @@ describe("Patient-email content ownership", () => {
         patientName="Test Patient"
         requestType="Medical Certificate"
         requestId="REQ-004"
+        requestAccessUrl={REQUEST_ACCESS_URL}
         doctorMessage="Please add the requested details."
         appUrl={APP_URL}
       />
@@ -1369,7 +1400,7 @@ describe("Patient-email content ownership", () => {
       />
     ),
     ConsultApprovedEmail: (
-      <ConsultApprovedEmail patientName="Test Patient" requestId="REQ-005" appUrl={APP_URL} />
+      <ConsultApprovedEmail patientName="Test Patient" requestId="REQ-005" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />
     ),
     RequestReceivedEmail: (
       <RequestReceivedEmail
@@ -1377,6 +1408,7 @@ describe("Patient-email content ownership", () => {
         requestType="Medical Certificate"
         amount="$24.95"
         requestId="REQ-006"
+        requestAccessUrl={REQUEST_ACCESS_URL}
         appUrl={APP_URL}
       />
     ),
@@ -1385,6 +1417,7 @@ describe("Patient-email content ownership", () => {
         patientName="Test Patient"
         requestType="Medical Certificate"
         requestId="REQ-007"
+        requestAccessUrl={REQUEST_ACCESS_URL}
         appUrl={APP_URL}
       />
     ),
@@ -1393,6 +1426,7 @@ describe("Patient-email content ownership", () => {
         patientName="Test Patient"
         requestType="Medical Certificate"
         requestId="REQ-008"
+        requestAccessUrl={REQUEST_ACCESS_URL}
         appUrl={APP_URL}
       />
     ),
@@ -1526,7 +1560,7 @@ describe("From-domain alignment", () => {
 describe("font-family regression", () => {
   const templatesToCheck = [
     { name: "MedCertPatientEmail", html: render(<MedCertPatientEmail patientName="Test User" dashboardUrl="https://example.com" appUrl={APP_URL} />) },
-    { name: "RequestReceivedEmail", html: render(<RequestReceivedEmail patientName="Test User" requestType="Medical Certificate" amount="$19.95" requestId="abc12345" appUrl={APP_URL} />) },
+    { name: "RequestReceivedEmail", html: render(<RequestReceivedEmail patientName="Test User" requestType="Medical Certificate" amount="$19.95" requestId="abc12345" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} />) },
     { name: "ReviewRequestEmail", html: render(<ReviewRequestEmail patientName="Test User" appUrl={APP_URL} />) },
     { name: "MagicLinkEmail", html: render(<MagicLinkEmail loginUrl="https://example.com/auth/confirm#token_hash=abc&type=magiclink" appUrl={APP_URL} />) },
   ]

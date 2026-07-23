@@ -38,34 +38,45 @@ describe("Google Ads conversion-value accuracy contract", () => {
     expect(source).toMatch(/typeof data\?\.amount_cents === ['"]number['"]/)
   })
 
-  it("intake-status API returns amount_cents + is_priority alongside status", () => {
+  it("keeps payment draft cleanup retryable until payment is truly paid", () => {
+    const source = read("app/patient/intakes/success/success-client.tsx")
+    const paidGate = source.indexOf('paymentStatus !== "paid"')
+    const cleanupLatch = source.indexOf("draftClearedRef.current = true")
+
+    expect(paidGate).toBeGreaterThanOrEqual(0)
+    expect(cleanupLatch).toBeGreaterThan(paidGate)
+  })
+
+  it("intake-status API returns payment and conversion fields alongside status", () => {
     const source = read("app/api/patient/intake-status/route.ts")
     // The select clause must include amount_cents so the polling client
     // can update its conversion-value source.
-    expect(source).toMatch(/\.select\("status, amount_cents, is_priority"\)/)
+    expect(source).toMatch(
+      /\.select\("status, payment_status, amount_cents, is_priority"\)/,
+    )
     // Response payload exposes the new fields.
+    expect(source).toContain("payment_status: intake.payment_status")
     expect(source).toContain("amount_cents: intake.amount_cents")
     expect(source).toContain("is_priority: intake.is_priority")
   })
 
-  it("guest complete-account form skips Google Ads conversion when amount is unknown", () => {
+  it("keeps guest complete-account capabilities out of browser conversion telemetry", () => {
     const source = read("app/auth/complete-account/complete-account-form.tsx")
+    const serverFinalization = read("lib/stripe/confirmed-payment-finalization.ts")
 
-    // The legacy $1 fallback expression must not be reintroduced.
-    expect(source).not.toMatch(/amountCents != null \? amountCents \/ 100 : 1/)
-
-    // Conversion gated on a real amount_cents being present.
-    expect(source).toContain("if (amountCents == null) return")
+    expect(source).not.toContain("trackPurchase")
+    expect(source).not.toContain("purchase_completed")
+    expect(serverFinalization).toContain('event: "purchase_completed_server"')
+    expect(serverFinalization).toContain("runGoogleAdsPostPaymentAttribution")
   })
 
-  it("browser PostHog purchase events are deduped by intake across success surfaces", () => {
+  it("browser PostHog purchase events are deduped on the authenticated success surface", () => {
     const successSource = read("app/patient/intakes/success/success-client.tsx")
     const completeAccountSource = read("app/auth/complete-account/complete-account-form.tsx")
 
-    for (const source of [successSource, completeAccountSource]) {
-      expect(source).toContain("claimBrowserPurchaseCompleted")
-      expect(source).toContain("$insert_id: getBrowserPurchaseCompletedInsertId()")
-    }
+    expect(successSource).toContain("claimBrowserPurchaseCompleted")
+    expect(successSource).toContain("$insert_id: getBrowserPurchaseCompletedInsertId()")
+    expect(completeAccountSource).not.toContain("claimBrowserPurchaseCompleted")
   })
 
   it("advertising docs make the offline purchase import primary and funnel actions secondary", () => {

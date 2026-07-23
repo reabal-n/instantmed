@@ -30,6 +30,9 @@ import { useRequestStore } from "@/components/request/store"
 import { buildPassiveAbandonmentBeacon } from "@/lib/analytics/intake-events"
 import { clearDraftAfterPayment } from "@/lib/request/draft-storage"
 
+const PAID_FLOW_INSTANCE_ID = "11111111-1111-4111-8111-111111111111"
+const FRESH_FLOW_INSTANCE_ID = "22222222-2222-4222-8222-222222222222"
+
 /**
  * Intake state-lifecycle contract (2026-07-10 audit fix package).
  *
@@ -116,6 +119,22 @@ describe("intake draft lifecycle", () => {
 
       expect(useRequestStore.getState().answers.certType).toBe("work")
     })
+
+    it("does not turn a consult subtype route seed into patient work", () => {
+      useRequestStore.getState().setServiceType("consult")
+      useRequestStore.getState().setAnswer(
+        "consultSubtype",
+        "hair_loss",
+        { touch: false },
+      )
+      useRequestStore.getState().setServiceType("consult")
+
+      const state = useRequestStore.getState()
+      expect(state.currentStepId).toBe("hair-loss-goals")
+      expect(state.lastSavedAt).toBeNull()
+      expect(localStorage.getItem("instantmed-request-draft")).toBeNull()
+      expect(localStorage.getItem("instantmed-draft-consult")).toBeNull()
+    })
   })
 
   describe("lastSavedAt means patient work", () => {
@@ -156,15 +175,15 @@ describe("intake draft lifecycle", () => {
     it("clears the paid service's scoped key and a matching legacy key", () => {
       localStorage.setItem(
         "instantmed-draft-med-cert",
-        JSON.stringify({ serviceType: "med-cert", currentStepId: "checkout", answers: {}, lastSavedAt: new Date().toISOString() }),
+        JSON.stringify({ serviceType: "med-cert", flowInstanceId: PAID_FLOW_INSTANCE_ID, currentStepId: "checkout", answers: {}, lastSavedAt: new Date().toISOString() }),
       )
       localStorage.setItem(
         "instantmed-request-draft",
-        JSON.stringify({ state: { serviceType: "med-cert" }, version: 0 }),
+        JSON.stringify({ state: { serviceType: "med-cert", flowInstanceId: PAID_FLOW_INSTANCE_ID }, version: 0 }),
       )
 
       // DB category vocabulary must work — the payment surfaces pass it.
-      clearDraftAfterPayment("medical_certificate")
+      clearDraftAfterPayment("medical_certificate", PAID_FLOW_INSTANCE_ID, "paid")
 
       expect(localStorage.getItem("instantmed-draft-med-cert")).toBeNull()
       expect(localStorage.getItem("instantmed-request-draft")).toBeNull()
@@ -176,7 +195,7 @@ describe("intake draft lifecycle", () => {
         JSON.stringify({ state: { serviceType: "consult" }, version: 0 }),
       )
 
-      clearDraftAfterPayment("medical_certificate")
+      clearDraftAfterPayment("medical_certificate", PAID_FLOW_INSTANCE_ID, "paid")
 
       expect(localStorage.getItem("instantmed-request-draft")).not.toBeNull()
     })
@@ -186,9 +205,72 @@ describe("intake draft lifecycle", () => {
         "instantmed-request-draft",
         JSON.stringify({ state: { serviceType: "med-cert" }, version: 0 }),
       )
-      clearDraftAfterPayment("mystery_service")
+      clearDraftAfterPayment("mystery_service", PAID_FLOW_INSTANCE_ID, "paid")
       expect(localStorage.getItem("instantmed-request-draft")).not.toBeNull()
     })
+
+    it("does not let a delayed paid-flow tab clear fresh same-service work", () => {
+      const freshDraft = {
+        serviceType: "med-cert",
+        flowInstanceId: FRESH_FLOW_INSTANCE_ID,
+        currentStepId: "symptoms",
+        answers: { certType: "carer" },
+        lastSavedAt: new Date().toISOString(),
+      }
+      localStorage.setItem("instantmed-draft-med-cert", JSON.stringify(freshDraft))
+      localStorage.setItem(
+        "instantmed-request-draft",
+        JSON.stringify({ state: freshDraft, version: 0 }),
+      )
+
+      clearDraftAfterPayment("medical_certificate", PAID_FLOW_INSTANCE_ID, "paid")
+
+      expect(JSON.parse(localStorage.getItem("instantmed-draft-med-cert")!))
+        .toMatchObject({ flowInstanceId: FRESH_FLOW_INSTANCE_ID })
+      expect(JSON.parse(localStorage.getItem("instantmed-request-draft")!))
+        .toMatchObject({ state: { flowInstanceId: FRESH_FLOW_INSTANCE_ID } })
+    })
+
+    it("fails closed when an old paid intake has no flow identity", () => {
+      localStorage.setItem(
+        "instantmed-draft-med-cert",
+        JSON.stringify({
+          serviceType: "med-cert",
+          flowInstanceId: FRESH_FLOW_INSTANCE_ID,
+          currentStepId: "symptoms",
+          answers: {},
+          lastSavedAt: new Date().toISOString(),
+        }),
+      )
+
+      clearDraftAfterPayment("medical_certificate", undefined, "paid")
+
+      expect(localStorage.getItem("instantmed-draft-med-cert")).not.toBeNull()
+    })
+
+    it.each(["failed", "expired", "unpaid", "pending"])(
+      "does not clear a draft for %s payment status",
+      (paymentStatus) => {
+        localStorage.setItem(
+          "instantmed-draft-med-cert",
+          JSON.stringify({
+            serviceType: "med-cert",
+            flowInstanceId: PAID_FLOW_INSTANCE_ID,
+            currentStepId: "checkout",
+            answers: {},
+            lastSavedAt: new Date().toISOString(),
+          }),
+        )
+
+        clearDraftAfterPayment(
+          "medical_certificate",
+          PAID_FLOW_INSTANCE_ID,
+          paymentStatus,
+        )
+
+        expect(localStorage.getItem("instantmed-draft-med-cert")).not.toBeNull()
+      },
+    )
   })
 
   describe("intentional-navigation beacon suppression", () => {

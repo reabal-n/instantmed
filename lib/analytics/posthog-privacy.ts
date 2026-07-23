@@ -1,4 +1,5 @@
 import { normalizeFlowInstanceId } from "@/lib/analytics/flow-instance"
+import { redactExternalAnalyticsPathname } from "@/lib/browser/sensitive-capability-path"
 import { scrubPHI } from "@/lib/observability/scrub-phi"
 
 const DIRECT_IDENTIFIER_RE =
@@ -103,9 +104,11 @@ function shouldDropProperty(key: string): boolean {
 function sanitizePostHogUrl(value: string): string {
   try {
     const parsed = new URL(value)
-    return `${parsed.origin}${parsed.pathname}`
+    return `${parsed.origin}${redactExternalAnalyticsPathname(parsed.pathname)}`
   } catch {
-    return scrubPHI(value.split(/[?#]/, 1)[0] ?? "")
+    return scrubPHI(
+      redactExternalAnalyticsPathname(value.split(/[?#]/, 1)[0] ?? ""),
+    )
   }
 }
 
@@ -228,7 +231,6 @@ type PostHogEventLike = {
   $set?: Record<string, unknown>
   $set_once?: Record<string, unknown>
   properties?: Record<string, unknown>
-  [key: string]: unknown
 }
 
 /**

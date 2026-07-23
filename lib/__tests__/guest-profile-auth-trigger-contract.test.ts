@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest"
 
 const MIGRATION_PATH = join(
   process.cwd(),
-  "supabase/migrations/20260502010000_link_single_guest_profile_on_auth.sql",
+  "supabase/migrations/20260722223000_exclude_merged_profiles_from_auth_link.sql",
 )
 
 describe("guest profile auth trigger contract", () => {
@@ -16,6 +16,8 @@ describe("guest profile auth trigger contract", () => {
     expect(sql).toContain("v_guest_profile_id")
     expect(sql).toContain("LIMIT 1")
     expect(sql).toContain("p.id = v_guest_profile_id")
+    expect(sql.match(/p\.merged_into_profile_id is null/gi)).toHaveLength(2)
+    expect(sql).toContain("closed_auth_accounts")
     expect(sql).not.toMatch(/WHERE\s+LOWER\(email\)\s*=\s*LOWER\(NEW\.email\)\s+AND\s+auth_user_id\s+IS\s+NULL;/i)
   })
 })

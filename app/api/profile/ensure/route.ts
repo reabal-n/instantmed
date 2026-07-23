@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
       .from("profiles")
       .select("id")
       .eq("auth_user_id", user.id)
+      .is("merged_into_profile_id", null)
       .single()
 
     // If no profile, deterministically link one guest profile by email.
@@ -61,6 +62,7 @@ export async function POST(request: NextRequest) {
         .eq("role", "patient")
         .is("auth_user_id", null)
         .is("account_closed_at", null)
+        .is("merged_into_profile_id", null)
         .limit(10)
 
       const guestProfileIds = (guestProfiles || []).map((candidate) => candidate.id)
@@ -94,6 +96,7 @@ export async function POST(request: NextRequest) {
           .eq("role", "patient")
           .is("auth_user_id", null)
           .is("account_closed_at", null)
+          .is("merged_into_profile_id", null)
           .select("id")
           .maybeSingle()
 
@@ -131,6 +134,7 @@ export async function POST(request: NextRequest) {
             .from("profiles")
             .select("id")
             .eq("auth_user_id", user.id)
+            .is("merged_into_profile_id", null)
             .single()
           if (raceProfile) {
             profile = raceProfile

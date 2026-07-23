@@ -110,24 +110,6 @@ export function resolveCompleteAccountPaymentState({
   return "unconfirmed"
 }
 
-export function resolveCompleteAccountAmountCents({
-  intakeAmountCents,
-  sessionAmountTotal,
-  sessionState,
-}: {
-  intakeAmountCents?: number | null
-  sessionAmountTotal?: number | null
-  sessionState: CompleteAccountSessionState | null
-}): number | undefined {
-  // During the redirect-before-webhook race, the intake still carries its
-  // seeded list/base amount. Stripe's owned paid Session is authoritative for
-  // the actual charge after referral discounts and the Priority line item.
-  if (sessionState === "paid" && typeof sessionAmountTotal === "number") {
-    return sessionAmountTotal
-  }
-  return typeof intakeAmountCents === "number" ? intakeAmountCents : undefined
-}
-
 export function resolveGuestDuplicateCheckoutRecovery({
   baseUrl,
   checkoutUrl,

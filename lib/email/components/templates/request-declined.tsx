@@ -64,6 +64,8 @@ export interface RequestDeclinedEmailProps {
   serviceLabel?: string
   /** Intake id, used for the deep link to the request detail in the portal. */
   requestId?: string
+  /** Purpose-scoped, short-lived link to the narrow request-access surface. */
+  requestAccessUrl: string
   /** Doctor's note. Rendered verbatim in the highlighted block. */
   reason?: string
   /** Structured decline-reason code. Drives the next-step paragraph. */
@@ -184,16 +186,13 @@ export function RequestDeclinedEmail({
   patientFirstName,
   requestType,
   serviceLabel,
-  requestId,
+  requestAccessUrl,
   reason,
   reasonCode,
   appUrl = APP_URL,
-  portalUrl,
 }: RequestDeclinedEmailProps) {
   const firstName = resolveFirstName(patientFirstName, patientName)
   const displayService = (serviceLabel || humanizeRequestType(requestType)).trim() || "request"
-  const baseUrl = portalUrl || appUrl
-  const trackUrl = requestId ? `${appUrl}/track/${requestId}` : `${baseUrl}`
   const nextStep = getNextStepCopy(reasonCode)
 
   return (
@@ -276,7 +275,7 @@ export function RequestDeclinedEmail({
         }}
       />
 
-      <Button href={trackUrl} variant="secondary">
+      <Button href={requestAccessUrl} variant="secondary">
         View request details
       </Button>
     </BaseEmail>

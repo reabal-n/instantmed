@@ -15,6 +15,7 @@ describe("RequestDeclinedEmail empathy wrapping", () => {
     reason: "Symptoms warrant in-person review.",
     reasonCode: "requires_in_person" as const,
     portalUrl: "https://instantmed.com.au/patient",
+    requestAccessUrl: "https://instantmed.com.au/track/signed-request-access",
   }
 
   it("includes an empathetic preamble before the reason", () => {

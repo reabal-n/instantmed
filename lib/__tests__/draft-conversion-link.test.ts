@@ -19,7 +19,9 @@ describe("draft conversion link contract", () => {
     expect(unifiedCheckoutSource).toContain("serverDraftSessionId")
 
     expect(reviewStepSource).toContain("getActiveServerDraftSessionId")
-    expect(reviewStepSource).toContain("serverDraftSessionId: getActiveServerDraftSessionId")
+    expect(reviewStepSource).toContain(
+      "getActiveServerDraftSessionId(serviceType, flowInstanceId)",
+    )
   })
 
   it("keeps the draft session id available to authenticated and guest checkout persistence", () => {
@@ -40,6 +42,23 @@ describe("draft conversion link contract", () => {
     expect(guestCheckoutSource).toContain("input.serverDraftSessionId")
   })
 
+  it("requires a full client reset before reusing a terminal converted draft", () => {
+    const unifiedCheckoutSource = read("app/actions/unified-checkout.ts")
+    const reviewStepSource = read("components/request/steps/review-step.tsx")
+    const terminalBranch = unifiedCheckoutSource.indexOf(
+      "The realized flow is unique in PostgreSQL",
+    )
+    const resetSignal = unifiedCheckoutSource.indexOf(
+      "requiresFreshRequest: true",
+    )
+
+    expect(terminalBranch).toBeGreaterThanOrEqual(0)
+    expect(resetSignal).toBeGreaterThan(terminalBranch)
+    expect(reviewStepSource).toContain("result.requiresFreshRequest")
+    expect(reviewStepSource).toContain("discardCurrentDraft()")
+    expect(reviewStepSource).toContain("window.location.assign")
+  })
+
   it("adopts a validated recovery session before the restored flow can reach checkout", () => {
     const requestPageSource = read("app/request/page.tsx")
     const requestFlowSource = read("components/request/request-flow.tsx")
@@ -50,10 +69,21 @@ describe("draft conversion link contract", () => {
     expect(requestPageSource).toContain("withDraftSessionScrubber")
     expect(requestFlowSource).toContain("getServerDraftById(initialDraftId)")
     expect(requestFlowSource).toContain("getServerDraftRecoveryDecision")
-    expect(requestFlowSource).toContain("if (!adoptServerDraftSession(record))")
-    expect(requestFlowSource).toContain("restoredState.restoreServerDraft(record, decision.serviceType)")
-    expect(requestFlowSource.indexOf("if (!adoptServerDraftSession(record))")).toBeLessThan(
-      requestFlowSource.indexOf("restoredState.restoreServerDraft(record, decision.serviceType)"),
+    expect(requestFlowSource).toContain("const coordinatedRecord =")
+    expect(requestFlowSource).toContain(
+      "if (!adoptServerDraftSession(coordinatedRecord))",
+    )
+    expect(requestFlowSource).toContain(
+      "restoredState.restoreServerDraft(coordinatedRecord, decision.serviceType)",
+    )
+    expect(
+      requestFlowSource.indexOf(
+        "if (!adoptServerDraftSession(coordinatedRecord))",
+      ),
+    ).toBeLessThan(
+      requestFlowSource.indexOf(
+        "restoredState.restoreServerDraft(coordinatedRecord, decision.serviceType)",
+      ),
     )
   })
 })

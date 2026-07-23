@@ -37,6 +37,7 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 | `intakes` | `client_ip`, `doctor_notes`, `decline_reason` | `doctor_notes` ✅ Phase 2 | Yes |
 | `intake_answers` | `answers` (JSONB), `allergy_details`, `medical_conditions`, symptom fields | All 3 ✅ Phase 2 | Yes |
 | `partial_intakes` | `answers` (JSONB), `identity_encrypted` (surname/phone/email/name envelope) | `answers_encrypted`, `identity_encrypted` ✅ 2026-05-02 | Service role only |
+| `partial_intake_discard_tombstones` | None — bearer UUID and lifecycle timestamps only | N/A (PHI-free) | Service role only; RLS enabled with no patient-facing policy |
 | `intake_drafts` | `data` (JSONB) | `data_encrypted` ✅ Phase 3 | Yes |
 | `ai_chat_transcripts` | `messages` (JSONB -- full conversation) | `messages_enc` ✅ Phase 3 | Yes |
 | `ai_chat_audit_log` | `user_input_preview`, `ai_output_preview` | Truncated 50 chars | Yes |
@@ -82,6 +83,8 @@ The Phase 2 PHI fields (added March 2026) are in dual-write mode — plaintext a
 
 **Guest payment completion proof:** public account-completion pages and guest account email CTAs require the high-entropy Checkout Session ID to exactly match the intake's current `payment_id`. A bare intake UUID never exposes paid order details or renders payment-success UI.
 
+**Guest request-access proof:** lifecycle email links use a purpose-scoped, seven-day HMAC capability that is exchanged server-side for an HttpOnly cookie scoped to `/track`, followed by a redirect to a clean URL. The cookie authorizes only a read-only request-status projection and service label for an open patient profile. Clinical questions, replies, documents, payment actions, and general patient access remain behind authenticated ownership. Sign-in and sign-up receive only the fixed `/track/request` return path, never the request UUID or access bearer. Bare request UUIDs are identifiers, not authorization; retired query-string certificate/account-completion access modes fail closed.
+
 ### Dual-Write Pattern
 
 During migration, all writes store **both** plaintext and encrypted values. Reads prefer encrypted, fall back to plaintext. This allows:
@@ -99,7 +102,7 @@ Wrapper functions in `lib/security/phi-field-wrappers.ts`:
 - `read*()` — prefers encrypted, falls back to plaintext
 - All async, all graceful-fallback on error (log + continue)
 
-**Anonymous partial-intake drafts:** `/api/draft` is service-role-only and treats `session_id` as a bearer token. New writes rate-limit anonymous callers and encrypt draft answers plus surname/phone in `partial_intakes.answers_encrypted` and `partial_intakes.identity_encrypted`; the plaintext `answers`, `last_name`, and `phone` fields are left empty for new rows. `email` and `first_name` remain plaintext because the recovery email cron needs them. `recovery_tracking_id` is a random non-bearer correlation key for durable recovery delivery records; the bearer session ID and resume URL must remain only in memory and the encrypted frozen provider body, never plaintext outbox metadata, logs, Sentry, or analytics. Reads prefer encrypted columns and fall back to legacy plaintext rows until the 7-day draft expiry window clears.
+**Anonymous partial-intake drafts:** `/api/draft` is service-role-only and treats `session_id` as the secret bearer; the opaque `flow_instance_id` is consistency metadata, not cross-bearer authority. New writes rate-limit anonymous callers and encrypt draft answers plus surname/phone in `partial_intakes.answers_encrypted` and `partial_intakes.identity_encrypted`; the plaintext `answers`, `last_name`, and `phone` fields are left empty for new rows. `email` and `first_name` remain plaintext because the recovery email cron needs them. `recovery_tracking_id` is a random non-bearer correlation key for durable recovery delivery records; the bearer session ID and resume URL must remain only in memory and the encrypted frozen provider body, never plaintext outbox metadata, logs, Sentry, or analytics. Explicit discard calls a service-role-only transaction-fenced RPC: it records only that session bearer, its already-proven flow metadata, and lifecycle timestamps in `partial_intake_discard_tombstones`, then physically deletes only the matching PHI row. Saves take a shared compatibility lock and then the session lock; every legacy or RPC delete takes the exclusive compatibility lock at statement time, before any row lock, and writes an eight-day session tombstone. This DB-first bridge rejects delayed fetch/beacon replays without serialising unrelated saves or trusting a caller-supplied flow to affect another bearer. The paired delete triggers and shared/exclusive gate must be retired together in a later migration only after the RPC deployment and rollback window have drained. The client retires the exact flow immediately, keeps only bounded PHI-free bearer/flow markers, and retries through a ladder ending just before recovery eligibility plus root-load, visible, online, storage, and pagehide events; 2xx and same-bearer flow conflicts are terminal. Checkout verification and paid-success cleanup require the same flow binding, with a one-time compatibility claim only for legacy null-flow rows; verification errors fail closed, and the unique real-intake flow guard prevents concurrent materialisation. Recovery selection and its provider-time policy both anti-join `flow_instance_id` against real intakes, preventing recovery outreach if the post-creation conversion marker transiently failed. Reads prefer encrypted columns and fall back to legacy plaintext rows until the 7-day draft expiry window clears.
 
 **In transit:** TLS 1.2+ only, Vercel-managed, Let's Encrypt auto-renewed certificates.
 
@@ -327,6 +330,8 @@ Production Telegram is an operator pager, not a clinical record or general monit
 | `/api/health` | None (health check) |
 | `/api/cron/*` | Vercel cron auth |
 | `/api/webhooks/*` | Signature verification |
+| `/track/[token]` | Purpose-scoped signed capability exchange; legacy UUID accepted only for the signed-in exact owner |
+| `/track/request` | Valid request-access HttpOnly cookie or canonical authenticated patient ownership |
 
 ### Staff Roles (Phase 1 of dashboard remaster, 2026-05-11)
 
@@ -443,6 +448,8 @@ removed before capture. The anonymous browser id is passed through Stripe only
 to join pre-checkout events to the paid event; Google Ads enhanced conversions
 remain a separate hashed server-side boundary.
 
+Capability-bearing routes such as `/track/*`, `/resume/*`, and `/auth/complete-account`, auth handoffs, and authenticated `/account`, `/admin`, `/dashboard`, `/doctor`, and `/patient` surfaces are excluded from external URL analytics. Vercel Analytics, referral attribution, and external web-vitals collection remain off there. The guest account-completion route also sends `no-referrer`; confirmed-payment finalization owns its personless PostHog purchase event and Google Ads conversion server-side. Browser conversion measurement remains only on the fixed authenticated patient-success route, with automatic Google pageviews and PostHog pageleave capture disabled. Application Sentry remains available on non-capability authenticated surfaces behind PHI/identifier scrubbing. Any capability or private dynamic path that reaches sanitization is reduced to a fixed redacted route family before logging.
+
 ---
 
 ## Secret Management
@@ -466,7 +473,7 @@ remain a separate hashed server-side boundary.
 | `questionnaire_flow` | Track auth redirect source | After profile created |
 | `rx_form_data` | Preserve form during auth | After form restored |
 
-**Never store:** Medicare numbers, medical history, payment card details, auth tokens.
+**Never store:** Medicare numbers, medical history, payment card details, auth tokens, or request-access capabilities in JavaScript-readable browser storage. Request-access capabilities live only in their path-scoped HttpOnly cookie and are never analytics input.
 
 ---
 

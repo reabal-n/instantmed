@@ -8,6 +8,10 @@ import { resolvePostHogClient } from "@/lib/analytics/posthog-client-resolver";
 import { sanitizePostHogEvent } from "@/lib/analytics/posthog-privacy";
 import { onFirstInteraction } from "@/lib/browser/first-interaction";
 import { isPostConversionPath } from "@/lib/browser/post-conversion-path";
+import {
+  isExternalAnalyticsExcludedPath,
+  isSensitiveCapabilityPath,
+} from "@/lib/browser/sensitive-capability-path";
 import { scrubSentryBreadcrumb, scrubSentryEvent } from "@/lib/observability/scrub-phi";
 
 /**
@@ -17,7 +21,16 @@ import { scrubSentryBreadcrumb, scrubSentryEvent } from "@/lib/observability/scr
  * and bounces without clicking must still be measured. This is the fix for the
  * client-pixel decay where PostHog never initialized on the success page.
  */
-function startTelemetryWhenReady(callback: () => void) {
+function startTelemetryWhenReady(
+  callback: () => void,
+  { external = false }: { external?: boolean } = {},
+) {
+  if (external) {
+    if (isExternalAnalyticsExcludedPath() && !isPostConversionPath()) return;
+  } else if (isSensitiveCapabilityPath()) {
+    return;
+  }
+
   if (isPostConversionPath()) {
     callback();
   } else {
@@ -67,9 +80,9 @@ const sentryEnabled = !isPlaywrightMode && (sentryEnvironment === "production" |
 const POSTHOG_PERSONLESS_MIGRATION_KEY = "instantmed_posthog_personless_v1"
 
 const scrubPostHogSensitiveTelemetry: BeforeSendFn = (event) => {
-  return sanitizePostHogEvent(
-    event as unknown as Record<string, unknown>,
-  ) as typeof event
+  if (!event) return null
+  if (isExternalAnalyticsExcludedPath() && !isPostConversionPath()) return null
+  return sanitizePostHogEvent(event)
 }
 
 if (!sentryDsn && sentryEnabled) {
@@ -139,63 +152,63 @@ startTelemetryWhenReady(() => loadAndInitSentry());
 if (!isPlaywrightMode && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
   const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
   startTelemetryWhenReady(() => {
-  import("posthog-js").then((module) => {
-    const posthog = resolvePostHogClient(module);
-    if (!posthog) return;
+    import("posthog-js").then((module) => {
+      const posthog = resolvePostHogClient(module);
+      if (!posthog) return;
 
-    posthog.init(posthogKey, {
-      api_host: "/ingest",
-      ui_host: "https://us.posthog.com",
-      person_profiles: "identified_only",
-      capture_pageview: false,   // Manual pageview tracking in PostHogProvider for SPA
-      capture_pageleave: true,
-      // Sentry already captures exceptions + has PHI scrubbing; posthog duplicating
-      // this just adds network chatter and an extra module.
-      capture_exceptions: false,
-      // Manual route, intake, checkout, and purchase events provide the
-      // decision-grade funnel. Generic DOM autocapture can collect labels and
-      // element text without improving conversion measurement.
-      autocapture: false,
-      capture_heatmaps: false,
-      // Native Web Vitals capture — fires $web_vitals events for LCP, FCP,
-      // CLS, INP, TTFB, FID. Real-user metric (CrUX-equivalent), measured
-      // from actual browsers. Zero LCP impact because posthog-js itself
-      // loads after first interaction.
-      capture_performance: { web_vitals: true, network_timing: false },
-      disable_session_recording: true,
-      // Surveys module is ~25KB and we have no surveys live. Skip loading it.
-      disable_surveys: true,
-      before_send: scrubPostHogSensitiveTelemetry,
-      debug: process.env.NODE_ENV === "development",
-    });
+      posthog.init(posthogKey, {
+        api_host: "/ingest",
+        ui_host: "https://us.posthog.com",
+        person_profiles: "identified_only",
+        capture_pageview: false,   // Manual pageview tracking in PostHogProvider for SPA
+        capture_pageleave: false,
+        // Sentry already captures exceptions + has PHI scrubbing; posthog duplicating
+        // this just adds network chatter and an extra module.
+        capture_exceptions: false,
+        // Manual route, intake, checkout, and purchase events provide the
+        // decision-grade funnel. Generic DOM autocapture can collect labels and
+        // element text without improving conversion measurement.
+        autocapture: false,
+        capture_heatmaps: false,
+        // Native Web Vitals capture — fires $web_vitals events for LCP, FCP,
+        // CLS, INP, TTFB, FID. Real-user metric (CrUX-equivalent), measured
+        // from actual browsers. Zero LCP impact because posthog-js itself
+        // loads after first interaction.
+        capture_performance: { web_vitals: true, network_timing: false },
+        disable_session_recording: true,
+        // Surveys module is ~25KB and we have no surveys live. Skip loading it.
+        disable_surveys: true,
+        before_send: scrubPostHogSensitiveTelemetry,
+        debug: process.env.NODE_ENV === "development",
+      });
 
     // Rotate legacy browser identities once. Older builds identified guests by
     // email and signed-in users by account id; a reset gives every returning
     // browser a fresh anonymous id before any new funnel event is captured.
-    try {
-      if (window.localStorage.getItem(POSTHOG_PERSONLESS_MIGRATION_KEY) !== "1") {
-        posthog.reset()
-        window.localStorage.setItem(POSTHOG_PERSONLESS_MIGRATION_KEY, "1")
+      try {
+        if (window.localStorage.getItem(POSTHOG_PERSONLESS_MIGRATION_KEY) !== "1") {
+          posthog.reset()
+          window.localStorage.setItem(POSTHOG_PERSONLESS_MIGRATION_KEY, "1")
+        }
+      } catch {
+        // Storage-restricted browsers are still protected by before_send, which
+        // drops any event whose distinct id resembles a direct identifier.
       }
-    } catch {
-      // Storage-restricted browsers are still protected by before_send, which
-      // drops any event whose distinct id resembles a direct identifier.
-    }
 
-    // Tag every client capture with `is_e2e: false` so dashboards can filter
-    // out test traffic the same way `lib/analytics/posthog-server.ts` already
-    // does for server captures. Playwright runs never reach this branch
-    // (init is gated on `!isPlaywrightMode` above), so registering `false`
-    // unconditionally here is correct for real-user sessions.
-    // Without this, the only way to exclude E2E noise was on server events,
-    // and any client-side funnel chart silently mixed seed traffic with real.
-    posthog.register({
-      is_e2e: false,
-      $process_person_profile: false,
-      $geoip_disable: true,
+      // Tag every client capture with `is_e2e: false` so dashboards can filter
+      // out test traffic the same way `lib/analytics/posthog-server.ts` already
+      // does for server captures. Playwright runs never reach this branch
+      // (init is gated on `!isPlaywrightMode` above), so registering `false`
+      // unconditionally here is correct for real-user sessions.
+      // Without this, the only way to exclude E2E noise was on server events,
+      // and any client-side funnel chart silently mixed seed traffic with real.
+      posthog.register({
+        is_e2e: false,
+        $process_person_profile: false,
+        $geoip_disable: true,
+      });
+    }).catch(() => {
+      // PostHog not available - skip silently
     });
-  }).catch(() => {
-    // PostHog not available - skip silently
-  });
-  });
+  }, { external: true });
 }

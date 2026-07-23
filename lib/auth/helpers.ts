@@ -52,7 +52,7 @@ const PROFILE_COLUMNS = `
   can_review_med_certs, can_review_repeat_rx, can_review_consults,
   can_review_ed, can_review_hair_loss, can_prescribe_s4, can_prescribe_s8,
   consent_myhr, onboarding_completed,
-  account_closed_at, account_closure_reason,
+  account_closed_at, account_closure_reason, merged_into_profile_id,
   email_verified, email_verified_at, email_bounced, email_bounced_at,
   email_bounce_reason, email_delivery_failures,
   avatar_url, stripe_customer_id, parchment_user_id, parchment_patient_id, certificate_identity_complete,
@@ -146,6 +146,7 @@ async function fetchProfileByColumn(
       .from("profiles")
       .select(PROFILE_COLUMNS)
       .eq(column, value)
+      .is("merged_into_profile_id", null)
       .maybeSingle()
 
     if (!error) {
@@ -331,6 +332,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
     .from("profiles")
     .select(PROFILE_COLUMNS)
     .eq("auth_user_id", user.id)
+    .is("merged_into_profile_id", null)
     .single()
 
   // If no profile found, check for a deterministic guest profile to link by email.
@@ -342,6 +344,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
       .eq("role", "patient")
       .is("auth_user_id", null)
       .is("account_closed_at", null)
+      .is("merged_into_profile_id", null)
       .limit(10)
 
     const guestProfileIds = (guestProfiles || []).map((candidate) => candidate.id)
@@ -376,6 +379,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
         .eq("role", "patient")
         .is("auth_user_id", null)
         .is("account_closed_at", null)
+        .is("merged_into_profile_id", null)
         .select(PROFILE_COLUMNS)
         .maybeSingle()
 
@@ -387,6 +391,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
           .from("profiles")
           .select(PROFILE_COLUMNS)
           .eq("auth_user_id", user.id)
+          .is("merged_into_profile_id", null)
           .single()
 
         if (nowLinkedProfile) {

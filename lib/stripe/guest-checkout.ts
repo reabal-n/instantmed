@@ -73,9 +73,10 @@ async function markGuestDraftConvertedIfPresent(
   input: GuestCheckoutInput,
   intakeId: string,
 ): Promise<void> {
-  if (!input.serverDraftSessionId) return
+  if (!input.serverDraftSessionId || !input.flowInstanceId) return
 
   await markPartialIntakeConverted(supabase, {
+    flowInstanceId: input.flowInstanceId,
     intakeId,
     sessionId: input.serverDraftSessionId,
   })
@@ -743,6 +744,21 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           .maybeSingle()
 
         if (existingIntake) {
+          const { data: existingAnswers, error: existingAnswersError } =
+            await supabase
+              .from("intake_answers")
+              .select("intake_id")
+              .eq("intake_id", existingIntake.id)
+              .maybeSingle()
+
+          if (existingAnswersError || !existingAnswers) {
+            return {
+              success: false,
+              error:
+                "This request is still being prepared. Please wait a moment and try again.",
+            }
+          }
+
           if (isPaymentSafetyLock(existingIntake.checkout_error)) {
             const completionUrl =
               await resolveGuestPaymentCompletionAfterStateChange({
@@ -886,6 +902,14 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
             hasStoredPaymentId: !!existingIntake.payment_id,
           })
           return { success: false, error: recovery.error }
+        }
+      }
+
+      if (intakeError?.code === "23505") {
+        return {
+          success: false,
+          error:
+            "This request is already being submitted. Please wait a moment and try again.",
         }
       }
 

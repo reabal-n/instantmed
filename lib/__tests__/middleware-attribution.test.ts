@@ -23,6 +23,22 @@ function decodeAttributionCookie(value: string): Record<string, unknown> {
 }
 
 describe("captureAttributionToCookie", () => {
+  it.each([
+    "/track/signed-request-access",
+    "/track/request",
+    "/resume/signed-checkout-resume",
+    "/patient/intakes/11111111-1111-4111-8111-111111111111",
+    "/admin/intakes/11111111-1111-4111-8111-111111111111",
+    "/auth/post-signin",
+  ])("does not persist a capability or private pathname even when UTMs are appended (%s)", (pathname) => {
+    const req = buildRequest(
+      `https://instantmed.com.au${pathname}?utm_source=email&utm_campaign=transactional`,
+    )
+    const response = captureAttributionToCookie(req, NextResponse.next())
+
+    expect(response.cookies.get(ATTRIBUTION_COOKIE_KEY)).toBeUndefined()
+  })
+
   it("is a no-op when the URL has no attribution params", () => {
     const req = buildRequest("https://instantmed.com.au/medical-certificate")
     const res = NextResponse.next()

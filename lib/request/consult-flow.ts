@@ -1,18 +1,7 @@
-import type { ConsultSubtype, UnifiedStepId } from "@/types/services"
-
-import { isConsultSubtypeKey } from "./consult-subtypes"
-
 export {
   isConsultSubtypeKey,
   normalizeConsultSubtypeParam,
 } from "./consult-subtypes"
-
-const CONSULT_SUBTYPE_FIRST_STEPS: Record<ConsultSubtype, UnifiedStepId> = {
-  ed: "ed-goals",
-  hair_loss: "hair-loss-goals",
-  womens_health: "womens-health-type",
-  weight_loss: "weight-loss-assessment",
-}
 
 const CONSULT_SUBTYPE_RESET_KEYS = [
   "consultCategory",
@@ -86,12 +75,6 @@ const CONSULT_SUBTYPE_RESET_KEYS = [
   "preferredTimeSlot",
   "callbackPhone",
 ] as const
-
-export function getConsultSubtypeFirstStep(subtype: unknown): UnifiedStepId {
-  return isConsultSubtypeKey(subtype)
-    ? CONSULT_SUBTYPE_FIRST_STEPS[subtype]
-    : CONSULT_SUBTYPE_FIRST_STEPS.ed
-}
 
 export function getConsultSubtypeResetKeys(): readonly string[] {
   return CONSULT_SUBTYPE_RESET_KEYS
