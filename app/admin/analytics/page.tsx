@@ -1,6 +1,10 @@
 import { getAiAttributionBreakdown } from "@/lib/admin/ai-attribution-breakdown"
 import { getHeardAboutUsBreakdown } from "@/lib/admin/heard-about-us-breakdown"
 import { buildOperatorBrief } from "@/lib/admin/operator-brief"
+import {
+  buildDegradedReviewRequestFunnelSnapshot,
+  getReviewRequestFunnelSnapshot,
+} from "@/lib/admin/review-request-funnel"
 import { EMPTY_GOOGLE_ADS_HEALTH, getGoogleAdsHealth } from "@/lib/analytics/google-ads-health"
 import { getGoogleAdsSpendAuditReport } from "@/lib/analytics/google-ads-report"
 import { buildGoogleAdsReturnSnapshot } from "@/lib/analytics/google-ads-return-summary"
@@ -94,6 +98,9 @@ export default async function AnalyticsDashboardPage() {
 
     // [13] Canonical revenue dashboard (windows, daily trend, service mix, pressure)
     getRevenueDashboard(supabase, now),
+
+    // [14] Aggregate-only review request funnel + manual external total snapshots
+    getReviewRequestFunnelSnapshot(supabase, now),
   ])
 
   const startedIntakesResult = results[0].status === "fulfilled" ? results[0].value : { count: 0 }
@@ -140,6 +147,9 @@ export default async function AnalyticsDashboardPage() {
   if (!revenueDashboard) {
     throw new Error("Revenue dashboard unavailable")
   }
+  const reviewRequestFunnel = results[14].status === "fulfilled"
+    ? results[14].value
+    : buildDegradedReviewRequestFunnelSnapshot(now)
   const rolling30DayWindow = revenueDashboard.windows.find(
     (window) => window.key === "last30Days",
   )
@@ -232,6 +242,7 @@ export default async function AnalyticsDashboardPage() {
     prescriptionFulfilment,
     businessScorecard,
     operatorBrief,
+    reviewRequestFunnel,
   }
 
   return (

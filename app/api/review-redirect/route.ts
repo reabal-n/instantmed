@@ -8,12 +8,23 @@
 
 import { NextRequest, NextResponse } from "next/server"
 
+import { capturePersonlessPostHogEvent } from "@/lib/analytics/posthog-server"
 import {
   getRotatingReviewUrl,
   PRODUCTREVIEW_REVIEW_URL,
 } from "@/lib/constants"
+import { consumeReviewClickKey } from "@/lib/email/review-click-consumption"
+import { hashReviewClickKey } from "@/lib/email/review-click-key"
+import { createLogger } from "@/lib/observability/logger"
 
-const REVIEW_SOURCES = new Set(["email", "patient_dashboard"])
+const logger = createLogger("review-redirect")
+
+const REVIEW_SOURCES = new Set([
+  "email",
+  "patient_dashboard",
+  "patient_documents",
+  "patient_intake_detail",
+])
 const REVIEW_MEDIA = new Set(["review_request", "review_card", "review_cta"])
 const REVIEW_CAMPAIGNS = new Set(["review"])
 
@@ -25,33 +36,44 @@ export async function GET(req: NextRequest) {
   const source = allowedDimension(req.nextUrl.searchParams.get("utm_source"), REVIEW_SOURCES, "email")
   const medium = allowedDimension(req.nextUrl.searchParams.get("utm_medium"), REVIEW_MEDIA, "review_cta")
   const campaign = allowedDimension(req.nextUrl.searchParams.get("utm_campaign"), REVIEW_CAMPAIGNS, "review")
+  const clickKey = req.nextUrl.searchParams.get("review_click_key")
+  const isKeyedReviewRequest = hashReviewClickKey(clickKey) !== null
 
-  // Fire PostHog event server-side if API key available
-  const phKey = process.env.NEXT_PUBLIC_POSTHOG_KEY
-  const phHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com"
-
-  if (phKey) {
-    // Fire and forget - don't block the redirect
-    fetch(`${phHost}/capture/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        api_key: phKey,
-        event: "review_cta_clicked",
-        properties: {
-          source,
-          medium,
-          campaign,
-        },
-        distinct_id: "review_cta_aggregate",
-        timestamp: new Date().toISOString(),
-      }),
-    }).catch(() => {}) // Swallow errors - tracking should never block
+  if (isKeyedReviewRequest && clickKey) {
+    try {
+      const consumed = await consumeReviewClickKey(clickKey)
+      if (consumed) {
+        capturePersonlessPostHogEvent({
+          event: "review_request_unique_traversal",
+          properties: {
+            source: "email",
+            medium: "review_request",
+            campaign: "review",
+            measurement: "unique_redirect_traversal",
+          },
+        })
+      }
+    } catch {
+      // The redirect remains available even when measurement is degraded.
+      logger.error("Review click measurement failed")
+    }
+  } else if (medium !== "review_request") {
+    capturePersonlessPostHogEvent({
+      event: "review_cta_clicked",
+      properties: {
+        source,
+        medium,
+        campaign,
+      },
+    })
   }
 
-  const destination = medium === "review_request"
+  const destination = isKeyedReviewRequest || medium === "review_request"
     ? PRODUCTREVIEW_REVIEW_URL
     : getRotatingReviewUrl(new Date().getUTCMonth())
 
-  return NextResponse.redirect(destination, { status: 302 })
+  const response = NextResponse.redirect(destination, { status: 302 })
+  response.headers.set("Cache-Control", "private, no-store")
+  response.headers.set("Referrer-Policy", "no-referrer")
+  return response
 }

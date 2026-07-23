@@ -138,4 +138,32 @@ describe("review request marker healing", () => {
     })
     expect(mocks.finalizeOutboxSequenceDisposition).not.toHaveBeenCalled()
   })
+
+  it("binds a raw click key to the frozen email while persisting only its hash", async () => {
+    mocks.sendEmail.mockResolvedValue({
+      success: false,
+      retryable: true,
+      outcome: {
+        kind: "transiently_blocked",
+        reason: "provider_configuration_missing",
+      },
+    })
+
+    await sendReviewRequestEmail(candidate)
+
+    const input = mocks.sendEmail.mock.calls[0]?.[0] as {
+      metadata: Record<string, unknown>
+      tags: Array<{ name: string; value: string }>
+      template: { props: { reviewClickKey?: string } }
+    }
+    const rawKey = input.template.props.reviewClickKey
+
+    expect(rawKey).toMatch(/^[A-Za-z0-9_-]{43}$/)
+    expect(input.metadata.review_click_key_hash).toMatch(/^[a-f0-9]{64}$/)
+    expect(input.metadata.review_click_key_hash).not.toBe(rawKey)
+    expect(JSON.stringify(input.metadata)).not.toContain(String(rawKey))
+    expect(input.tags).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "intake_id" }),
+    ]))
+  })
 })

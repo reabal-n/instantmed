@@ -22,10 +22,18 @@ export type BusinessScorecardMetric = {
 
 type BusinessContributionReadiness = {
   label: string
-  status: "blocked"
+  status: "inputs_required"
   display: string
-  decision: "not_ready_to_scale"
-  blockers: string[]
+  decision: "complete_and_positive_before_scaling"
+  formula: string
+  requiredInputs: string[]
+  ownerDoctorLabour: {
+    marginalCashCostCents: 0
+    capacityBounded: true
+    display: string
+  }
+  realisedIncrementalLabourRule: string
+  scaleRule: string
 }
 
 export type BusinessOperatingScorecard = {
@@ -35,7 +43,6 @@ export type BusinessOperatingScorecard = {
   chargebackRate: BusinessScorecardMetric
   supportTicketsPer100Orders: BusinessScorecardMetric
   paidToDecisionMinutes: BusinessScorecardMetric
-  doctorMinutesPerOrder: BusinessScorecardMetric
   queueP95Minutes: BusinessScorecardMetric
   contributionReadiness: BusinessContributionReadiness
   capacityReviewState: {
@@ -43,6 +50,7 @@ export type BusinessOperatingScorecard = {
     status: ScorecardStatus
     display: string
     triggeredBy: string[]
+    automaticExtraDoctorTrigger: string
   }
 }
 
@@ -74,11 +82,11 @@ const SUPPORT_TICKETS_PER_100_TARGET = 5
 const QUEUE_P95_TARGET_MINUTES = 120
 const REFUND_RATE_TARGET = 10
 const CHARGEBACK_RATE_TARGET = 0.5
-const CONTRIBUTION_READINESS_BLOCKERS = [
-  "Measure hands-on doctor minutes by service",
-  "Measure hands-on support/admin minutes by service",
-  "Record operator-approved hourly labour rates",
+const BELOW_CAPACITY_CONTRIBUTION_INPUTS = [
+  "Stripe/payment fees",
+  "Attributable acquisition cost",
 ]
+const AUTOMATIC_EXTRA_DOCTOR_TRIGGER = "Sustained 20+ prescription requests/hour"
 
 export function buildBusinessOperatingScorecard(input: BusinessScorecardInput): BusinessOperatingScorecard {
   const paidOrderCount = input.paidIntakes.length
@@ -117,7 +125,7 @@ export function buildBusinessOperatingScorecard(input: BusinessScorecardInput): 
         : rolling30DayNetRetainedCents >= REVENUE_ACTIVE_MILESTONE_CENTS
           ? "healthy"
           : "watch",
-      target: "$2k active milestone; $10k triggers a capacity review",
+      target: "Track the next unmet $2k -> $5k -> $10k rung; $10k triggers a capacity review",
     }),
     paidOrderVolume: metric({
       label: "Paid order volume",
@@ -158,32 +166,34 @@ export function buildBusinessOperatingScorecard(input: BusinessScorecardInput): 
           : "healthy",
       target: "Operational latency only; not an active-labour input",
     }),
-    doctorMinutesPerOrder: metric({
-      label: "Active doctor minutes per order",
-      value: null,
-      display: "Not measured",
-      status: "unknown",
-      target: "Requires sampled hands-on review time by service",
-    }),
     queueP95Minutes: metric({
       label: "Queue P95",
       value: queueP95Minutes,
       display: queueP95Minutes == null ? "No active queue" : `${queueP95Minutes} min`,
       status: queueP95Minutes == null ? "healthy" : queueP95Minutes > QUEUE_P95_TARGET_MINUTES ? "triggered" : "healthy",
-      target: "Below 2h during operating hours",
+      target: "Below 2h; never beyond 24h",
     }),
     contributionReadiness: {
-      label: "First-order contribution readiness",
-      status: "blocked",
-      display: "Inputs missing",
-      decision: "not_ready_to_scale",
-      blockers: [...CONTRIBUTION_READINESS_BLOCKERS],
+      label: "Below-capacity first-order contribution",
+      status: "inputs_required",
+      display: "Fees + acquisition needed",
+      decision: "complete_and_positive_before_scaling",
+      formula: "Net-retained order revenue - Stripe/payment fees - attributable acquisition cost",
+      requiredInputs: [...BELOW_CAPACITY_CONTRIBUTION_INPUTS],
+      ownerDoctorLabour: {
+        marginalCashCostCents: 0,
+        capacityBounded: true,
+        display: "Owner-doctor cash labour is $0 while demand stays within current capacity.",
+      },
+      realisedIncrementalLabourRule: "Deduct realised paid doctor or support labour when incurred.",
+      scaleRule: "Scale only with complete trusted inputs and positive first-order contribution.",
     },
     capacityReviewState: {
       label: "Capacity review state",
       status: triggeredBy.length > 0 ? "triggered" : "healthy",
       display: triggeredBy.length > 0 ? "Review needed" : "Within current capacity",
       triggeredBy,
+      automaticExtraDoctorTrigger: AUTOMATIC_EXTRA_DOCTOR_TRIGGER,
     },
   }
 }

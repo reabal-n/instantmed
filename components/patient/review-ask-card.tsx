@@ -8,8 +8,6 @@ import { cn } from "@/lib/utils"
 interface ReviewAskCardProps {
   /** Which surface is asking. Becomes utm_source on the review redirect. */
   source: "patient_intake_detail" | "patient_documents"
-  /** Intake ID threaded into the redirect for PostHog attribution. */
-  intakeId?: string
   className?: string
 }
 
@@ -25,13 +23,12 @@ interface ReviewAskCardProps {
  * Compliance: ask-only. No incentive, no star imagery, no review counts or
  * ratings rendered on our own surface (ADVERTISING_COMPLIANCE.md §6).
  */
-export function ReviewAskCard({ source, intakeId, className }: ReviewAskCardProps) {
+export function ReviewAskCard({ source, className }: ReviewAskCardProps) {
   const params = new URLSearchParams({
     utm_source: source,
     utm_medium: "post_delivery",
     utm_campaign: "review",
   })
-  if (intakeId) params.set("intake_id", intakeId)
   const href = `/api/review-redirect?${params.toString()}`
 
   return (

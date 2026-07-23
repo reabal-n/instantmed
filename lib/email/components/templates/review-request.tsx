@@ -16,6 +16,8 @@ import {
 export interface ReviewRequestEmailProps {
   patientName: string
   appUrl?: string
+  /** Raw one-use review traversal key. Omitted only for legacy reconstruction. */
+  reviewClickKey?: string
 }
 
 export const reviewRequestSubject = "How did InstantMed go?"
@@ -23,10 +25,17 @@ export const reviewRequestSubject = "How did InstantMed go?"
 export function ReviewRequestEmail({
   patientName,
   appUrl = APP_URL,
+  reviewClickKey,
 }: ReviewRequestEmailProps) {
   const firstName = patientName.trim().split(/\s+/)[0]
   const baseUrl = resolveConfiguredUrl(appUrl, APP_URL).replace(/\/$/, "")
-  const reviewUrl = `${baseUrl}/api/review-redirect?utm_source=email&utm_medium=review_request&utm_campaign=review`
+  const reviewParams = new URLSearchParams({
+    utm_source: "email",
+    utm_medium: "review_request",
+    utm_campaign: "review",
+  })
+  if (reviewClickKey) reviewParams.set("review_click_key", reviewClickKey)
+  const reviewUrl = `${baseUrl}/api/review-redirect?${reviewParams.toString()}`
 
   return (
     <BaseEmail previewText="Honest feedback is useful, good or bad." appUrl={appUrl}>

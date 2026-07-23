@@ -11,6 +11,10 @@ import {
 } from "@/lib/email/components/templates/review-request"
 import { isEmailSendDeliveryConfirmed } from "@/lib/email/outbox-delivery"
 import { finalizeOutboxSequenceDisposition } from "@/lib/email/outbox-disposition"
+import {
+  createReviewClickKey,
+  REVIEW_CLICK_KEY_HASH_METADATA_KEY,
+} from "@/lib/email/review-click-key"
 import type { ReviewRequestPatient } from "@/lib/email/review-request-policy-core"
 import { reconcileSentReviewRequestMarkers } from "@/lib/email/review-request-reconciliation"
 import {
@@ -185,9 +189,10 @@ export async function sendReviewRequestEmail(
       : {
           kind: "transiently_blocked",
           reason: "suppressed_marker_write_failed",
-        }
+      }
   }
 
+  const reviewClickKey = createReviewClickKey()
   const result = await sendEmail({
     to: patient.email,
     toName: patient.first_name || undefined,
@@ -195,6 +200,7 @@ export async function sendReviewRequestEmail(
     template: React.createElement(ReviewRequestEmail, {
       patientName: patient.first_name || "",
       appUrl: getAppUrl(),
+      reviewClickKey: reviewClickKey.raw,
     }),
     emailType: "review_request",
     intakeId: intake.id,
@@ -202,10 +208,10 @@ export async function sendReviewRequestEmail(
     idempotencyKey: `review-request:${intake.id}`,
     metadata: {
       fulfilment_at: getReviewFulfilmentAt(intake),
+      [REVIEW_CLICK_KEY_HASH_METADATA_KEY]: reviewClickKey.hash,
     },
     tags: [
       { name: "category", value: "review_request" },
-      { name: "intake_id", value: intake.id },
     ],
   })
 

@@ -3,7 +3,7 @@
 > **Authority:** the sole source of truth for the current operating phase, ordered active work, status, and checkpoints.
 > `docs/BUSINESS_PLAN.md` owns durable strategy. `docs/REVENUE_MODEL.md` owns milestones and economic gates. Implementation plans may elaborate one item but may not redefine this queue.
 >
-> **Last refreshed:** 2026-07-20. Refresh whenever priority or status changes; perform a deliberate review at least monthly.
+> **Last refreshed:** 2026-07-23. Refresh whenever priority or status changes; perform a deliberate review at least monthly.
 
 ---
 
@@ -17,9 +17,11 @@ This phase does not authorise new services, subscriptions, weight-loss launch, b
 
 ## 2. Active Revenue Rung
 
-**Target:** `$2,000/month` rolling net-retained revenue run-rate within 30 days.
+**Active target:** `$5,000/month` rolling net-retained revenue run-rate within 90 days.
 
-The complete `$2k -> $5k -> $10k` ladder, definitions, contribution formula, and hiring thresholds live only in `docs/REVENUE_MODEL.md`. Current values come from the admin dashboard, not this document.
+The `$2,000` rung was crossed with 71 real paid orders and `$2,066.30` rolling 30-day net-retained revenue as of 2026-07-22. At the same snapshot, `$29.10` net AOV implies approximately 172 monthly orders for the active `$5,000` rung.
+
+The complete `$2k -> $5k -> $10k` ladder, definitions, contribution formula, and capacity thresholds live only in `docs/REVENUE_MODEL.md`. Live values continue to come from the admin dashboard; the figures above are a dated rung-attainment checkpoint.
 
 ## 3. Standing Operator Rhythm
 
@@ -53,8 +55,8 @@ Review channel/service contribution, refund and chargeback trends, queue/support
 |------|----------|----------------|---------------------------|
 | 1 | **Truth and measurement gate** - reconcile canonical docs; repair public 24/7, automation, and 18+ contradictions; close the batch-review and synthetic-E2E boundaries; correct Google Ads dollar units; make optional-email lifecycle truth explicit and tracking aggregate-only. | **Complete 2026-07-12; communication lifecycle and analytics privacy follow-ups completed 2026-07-19.** The additive truth schema, review-request lifecycle, and partial-recovery candidate RPC are applied and verified. Partial-intake recovery has authoritative policy gates, encrypted bearer-only replay, durable ownership before candidate limits, marker-first terminal suppression, and sent-only reconciliation. PostHog capture is personless and replay-free while Google Ads enhanced conversions remain intact. Live PostHog IP anonymisation is enabled; generic autocapture, console capture, heatmaps, and session recording are disabled. PostHog still reports 84-month, unenforced event retention because that field is vendor-controlled and read-only through the project API; vendor escalation remains open, and public disclosures do not promise a shorter window. | Complete only when each named boundary has implementation plus focused proof. Re-open any closed sub-boundary when production evidence or an operator decision exposes drift. |
 | 2 | **Operator brief and support approval surface** - keep the Overview brief actionable, preserve the approval boundary for Ads changes and customer replies, and keep support conversations in Gmail. | **Manual support handling restored 2026-07-14.** Overview shows the milestone, exceptions, and Ads performance. Automatic Gmail polling and support-inbox Telegram paging are retired; support conversations stay in Gmail and are handled manually. The aggregate-only internal diagnostic receiver remains off in production. Identifiable Gmail summaries/drafts remain blocked by the privacy-processor gate. | One calm decision surface, no copied mailbox, no support-email Telegram spam, no PHI in analytics, and no send or Ads mutation without approval. |
-| 3 | **External reputation and distribution** - accrue genuine ProductReview evidence, submit selected Australian comparison/directories, and distribute the existing employer verification workflow to HR, payroll, and employment-law publishers. | Operator distribution sprint pending. | Completed submissions/outreach receipts plus attributable traffic/orders; no unsupported review or acceptance claims. |
-| 4 | **Prove paid contribution by service** - keep launched services live at low budgets, review performance daily, improve keywords/negatives/assets/sitelinks with approval, and scale only a service that passes the first-order contribution gate. | Live bounded pilots; not approved to scale. | Explicit labour rates, trusted measurement, positive first-order contribution, stable safety/refund/queue metrics, and operator approval for the exact change. |
+| 3 | **External reputation and distribution** - accrue genuine ProductReview evidence, submit selected Australian comparison/directories, and distribute the existing employer verification workflow to HR, payroll, and employment-law publishers. | **Sprint started 2026-07-23.** ProductReview baseline: 2 public reviews against 131 review-request sends (1.5% directional send-to-posted proxy, not attributable conversion). Keep the current request workflow through the mid-August decision checkpoint while the measurable funnel accrues. | Completed submissions/outreach receipts plus attributable traffic/orders; no unsupported review or acceptance claims. |
+| 4 | **Prove paid contribution by service** - keep launched services live at low budgets, review performance daily, improve keywords/negatives/assets/sitelinks with approval, and scale only a service that passes the first-order contribution gate. | Live bounded pilots; not approved to scale. | Trusted measurement, positive first-order contribution, stable safety/refund/queue metrics, and operator approval for the exact change. |
 | 5 | **Reactivation checkpoint** - assess repeat-Rx refill reminders after three real weekly waves; keep certificate reactivation bounded. | Measurement window open. Default-on email consent (2026-07-17) unblocked send volume for ~87% of patients; restart the three-wave clock from the first post-change wave. | Continue only if delivery and paid reorder conversion justify more work. Stop or rework a near-zero lever. |
 | 6 | **Compounding work** - deepen only fresh GSC-proven winners; profile before performance changes; run bounded repository cleanup quarterly. | Evidence-led backlog. | A specific query/page or measured hotspot justifies each session. No broad speculative sweep. |
 
