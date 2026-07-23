@@ -1,9 +1,9 @@
-export const SENSITIVE_CAPABILITY_PATH_PREFIXES = [
+const SENSITIVE_CAPABILITY_PATH_PREFIXES = [
   "/auth/complete-account",
   "/track",
   "/resume",
 ] as const
-export const PRIVATE_APP_PATH_PREFIXES = [
+const PRIVATE_APP_PATH_PREFIXES = [
   "/account",
   "/admin",
   "/auth",
@@ -20,7 +20,7 @@ function matchesPathPrefix(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`)
 }
 
-export function isSensitiveCapabilityPathname(pathname: string): boolean {
+function isSensitiveCapabilityPathname(pathname: string): boolean {
   return SENSITIVE_CAPABILITY_PATH_PREFIXES.some(
     (prefix) => matchesPathPrefix(pathname, prefix),
   )
@@ -31,7 +31,7 @@ export function isExternalAnalyticsExcludedPathname(pathname: string): boolean {
     PRIVATE_APP_PATH_PREFIXES.some((prefix) => matchesPathPrefix(pathname, prefix))
 }
 
-export function redactSensitiveCapabilityPathname(pathname: string): string {
+function redactSensitiveCapabilityPathname(pathname: string): string {
   for (const prefix of SENSITIVE_CAPABILITY_PATH_PREFIXES) {
     if (pathname.startsWith(`${prefix}/`)) return `${prefix}/[REDACTED]`
   }

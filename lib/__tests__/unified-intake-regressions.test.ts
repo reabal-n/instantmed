@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest"
 
 import { isConsultServiceType, isKnownDoctorServiceType } from "@/lib/doctor/service-types"
 import {
-  getConsultSubtypeFirstStep,
   getConsultSubtypeResetKeys,
   normalizeConsultSubtypeParam,
 } from "@/lib/request/consult-flow"
@@ -411,8 +410,6 @@ describe("unified intake regressions", () => {
       buildDraftResumePath({ serviceType: "consult", consultSubtype: "weight_loss" }),
     ).toBeNull()
 
-    expect(getConsultSubtypeFirstStep("ed")).toBe("ed-goals")
-    expect(getConsultSubtypeFirstStep("hair_loss")).toBe("hair-loss-goals")
     expect(normalizeConsultSubtypeParam("womens-health")).toBe("womens_health")
     expect(normalizeConsultSubtypeParam("weight-loss")).toBe("weight_loss")
     expect(getConsultSubtypeResetKeys()).toEqual(

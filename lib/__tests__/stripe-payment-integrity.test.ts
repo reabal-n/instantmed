@@ -4,7 +4,6 @@ import {
   buildPaymentIntentMetadata,
   canCancelUnpaidCheckoutIntake,
   canRetryPaymentForIntake,
-  resolveCompleteAccountAmountCents,
   resolveCompleteAccountPaymentState,
   resolveGuestDuplicateCheckoutRecovery,
   validateCheckoutSessionIntakeMatch,
@@ -144,23 +143,4 @@ describe("Stripe payment integrity helpers", () => {
     })).toBe("unconfirmed")
   })
 
-  it("uses Stripe's charged total while the paid webhook is still reconciling the intake", () => {
-    expect(resolveCompleteAccountAmountCents({
-      intakeAmountCents: 4995,
-      sessionAmountTotal: 4000,
-      sessionState: "paid",
-    })).toBe(4000)
-
-    expect(resolveCompleteAccountAmountCents({
-      intakeAmountCents: 4995,
-      sessionAmountTotal: 5990,
-      sessionState: "paid",
-    })).toBe(5990)
-
-    expect(resolveCompleteAccountAmountCents({
-      intakeAmountCents: 4995,
-      sessionAmountTotal: 4000,
-      sessionState: "payment_in_flight",
-    })).toBe(4995)
-  })
 })
