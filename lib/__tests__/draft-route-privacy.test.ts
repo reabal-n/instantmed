@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   createServiceRoleClient: vi.fn(),
   encryptJSONB: vi.fn(),
   decryptJSONB: vi.fn(),
+  isMaintenanceMode: vi.fn(),
   logger: {
     error: vi.fn(),
     warn: vi.fn(),
@@ -14,6 +15,10 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/rate-limit/redis", () => ({
   applyRateLimit: mocks.applyRateLimit,
+}))
+
+vi.mock("@/lib/feature-flags", () => ({
+  isMaintenanceMode: mocks.isMaintenanceMode,
 }))
 
 vi.mock("@/lib/supabase/service-role", () => ({
@@ -119,6 +124,7 @@ describe("/api/draft privacy", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.applyRateLimit.mockResolvedValue(null)
+    mocks.isMaintenanceMode.mockResolvedValue({ enabled: false, message: "" })
     mocks.encryptJSONB
       .mockResolvedValueOnce(encryptedAnswers)
       .mockResolvedValueOnce(encryptedIdentity)
@@ -150,6 +156,31 @@ describe("/api/draft privacy", () => {
     expect(response.status).toBe(429)
     expect(response.headers.get("cache-control")).toBe("private, no-store")
     expect(mocks.applyRateLimit).toHaveBeenCalledWith(expect.any(NextRequest), "standard")
+    expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+  })
+
+  it("pauses draft writes and discards during an active maintenance release gate", async () => {
+    mocks.isMaintenanceMode.mockResolvedValue({
+      enabled: true,
+      message: "Back shortly",
+    })
+    const { DELETE, POST } = await import("@/app/api/draft/route")
+
+    const [postResponse, deleteResponse] = await Promise.all([
+      POST(makePostRequest({
+        serviceType: "med-cert",
+        flowInstanceId: FLOW_INSTANCE_ID,
+        answers: { certType: "work" },
+      })),
+      DELETE(makeDeleteRequest(SESSION_ID)),
+    ])
+
+    for (const response of [postResponse, deleteResponse]) {
+      expect(response.status).toBe(503)
+      expect(response.headers.get("cache-control")).toBe("private, no-store")
+      expect(response.headers.get("retry-after")).toBe("30")
+    }
+    expect(mocks.encryptJSONB).not.toHaveBeenCalled()
     expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
   })
 
