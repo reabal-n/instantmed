@@ -110,8 +110,8 @@ The following versions are **hard-pinned** in `package.json` (exact versions, no
 
 | Package | Pinned | Why this version |
 |---|---|---|
-| `next` | **15.5.18** | Next 16 forced Turbopack, renamed `middleware.ts` → `proxy.ts`, changed `revalidateTag` signature, and shipped CVE-2025-66478. Caused recurring dev-server crashes. Patch bump from 15.5.15 for the high-severity Next 15 advisory set reported by `pnpm audit` while staying on the stable 15.5 patch line. |
-| `@next/bundle-analyzer` / `@next/eslint-plugin-next` | **15.5.18** | Next-adjacent tooling must stay on the same patch as `next`; CI enforces this to avoid silent analyzer/lint drift. |
+| `next` | **15.5.21** | Next 16 forced Turbopack, renamed `middleware.ts` → `proxy.ts`, changed `revalidateTag` signature, and shipped CVE-2025-66478. Caused recurring dev-server crashes. Patch bump from 15.5.18 for the July 2026 high-severity Server Actions DoS/SSRF and rewrite SSRF advisory set reported by `pnpm audit`, while staying on the stable 15.5 patch line. |
+| `@next/bundle-analyzer` / `@next/eslint-plugin-next` | **15.5.21** | Next-adjacent tooling must stay on the same patch as `next`; CI enforces this to avoid silent analyzer/lint drift. |
 | `react` / `react-dom` | **18.3.1** | React 19 nullable `RefObject<T \| null>` typing breaks third-party libs (Framer Motion 12). Wait until Next 17 makes React 19 the default. |
 | `framer-motion` | **11.18.2** | v12 requires React 19. |
 | `tailwindcss` / `@tailwindcss/postcss` | **4.2.2** | CSS-first config is working; don't risk a re-migration. |
