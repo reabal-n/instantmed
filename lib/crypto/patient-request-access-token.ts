@@ -5,7 +5,10 @@ import crypto from "crypto"
 const TOKEN_PURPOSE = "patient-request-access-v1"
 const TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000
 const TOKEN_RE = /^[A-Za-z0-9_-]{1,512}$/
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+// Intake ids are PostgreSQL UUID values. Existing deterministic E2E fixtures
+// use valid UUID text without RFC version/variant bits, so validate the
+// database shape here rather than imposing a narrower generation policy.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export const PATIENT_REQUEST_ACCESS_COOKIE = "instantmed_patient_request_access"
 export const PATIENT_REQUEST_ACCESS_MAX_AGE_SECONDS = 7 * 24 * 60 * 60

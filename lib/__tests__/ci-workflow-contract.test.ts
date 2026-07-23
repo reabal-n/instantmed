@@ -116,6 +116,16 @@ describe("CI workflow contract", () => {
     }
   })
 
+  it("passes the signing secret into the med-cert readiness app", () => {
+    const medCertStepStart = ciWorkflowSource.indexOf("Run med cert readiness E2E gate (Chromium)")
+    const paidStepStart = ciWorkflowSource.indexOf("Run non-medcert paid critical E2E flows (Chromium)")
+    const medCertStep = ciWorkflowSource.slice(medCertStepStart, paidStepStart)
+
+    expect(medCertStepStart).toBeGreaterThan(-1)
+    expect(paidStepStart).toBeGreaterThan(medCertStepStart)
+    expect(medCertStep).toContain("INTERNAL_API_SECRET: ${{ secrets.E2E_SECRET }}")
+  })
+
   it("uses focused E2E gates instead of the stale broad Playwright suite", () => {
     expect(ciWorkflowSource).toContain("e2e/admin.ops-index.spec.ts")
     expect(ciWorkflowSource).toContain("e2e/marketing-dashboard-nav.spec.ts")

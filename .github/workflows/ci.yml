@@ -447,6 +447,7 @@ jobs:
           PLAYWRIGHT: '1'
           NEXT_PUBLIC_PLAYWRIGHT: '1'
           E2E_SECRET: ${{ secrets.E2E_SECRET }}
+          INTERNAL_API_SECRET: ${{ secrets.E2E_SECRET }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
           PHI_ENCRYPTION_ENABLED: 'true'
           PHI_ENCRYPTION_READ_ENABLED: 'true'

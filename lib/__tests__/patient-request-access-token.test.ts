@@ -14,6 +14,7 @@ import {
 } from "@/lib/crypto/patient-request-access-token"
 
 const INTAKE_ID = "11111111-1111-4111-8111-111111111111"
+const SEEDED_E2E_INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
 
 describe("patient request access token", () => {
   beforeEach(() => {
@@ -30,6 +31,14 @@ describe("patient request access token", () => {
 
     expect(token).not.toMatch(/[+/=]/)
     expect(verifyPatientRequestAccessToken(token)).toEqual({ intakeId: INTAKE_ID })
+  })
+
+  it("accepts the canonical PostgreSQL UUID-shaped E2E intake id", () => {
+    const token = signPatientRequestAccessToken(SEEDED_E2E_INTAKE_ID)
+
+    expect(verifyPatientRequestAccessToken(token)).toEqual({
+      intakeId: SEEDED_E2E_INTAKE_ID,
+    })
   })
 
   it("rejects a tampered token", () => {
