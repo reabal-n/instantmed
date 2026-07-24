@@ -14,6 +14,7 @@ import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 
 import { decryptPHI, type EncryptedPHI,encryptPHI, isEncryptedPHI } from "./phi-encryption"
+import { PhiEncryptionWriteError, reportPhiEncryptionFailure } from "./phi-encryption-alarm"
 
 const logger = createLogger("phi-field-wrappers")
 
@@ -58,10 +59,9 @@ export async function prepareDoctorNotesWrite(
         doctor_notes_enc: encrypted,
       }
     } catch (error) {
-      logger.error("Failed to encrypt doctor_notes, falling back to plaintext", {}, 
-        toError(error))
-      // Fallback to plaintext on encryption failure
-      return { doctor_notes: notes, doctor_notes_enc: null }
+      // FAIL-CLOSED: never silently store plaintext-only when encryption is on.
+      await reportPhiEncryptionFailure(error, { field: "intakes.doctor_notes", operation: "encrypt" })
+      throw new PhiEncryptionWriteError("intakes.doctor_notes")
     }
   }
 
@@ -85,9 +85,8 @@ export async function readDoctorNotes(record: {
       try {
         return await decryptPHI(record.doctor_notes_enc)
       } catch (error) {
-        logger.error("Failed to decrypt doctor_notes, falling back to plaintext", {},
-          toError(error))
-        // Fall through to plaintext
+        await reportPhiEncryptionFailure(error, { field: "intakes.doctor_notes", operation: "decrypt" })
+        // Fall through to plaintext (availability during dual-write migration)
       }
     }
   }
@@ -126,9 +125,8 @@ export async function prepareAnswersWrite(
         answers_enc: encrypted,
       }
     } catch (error) {
-      logger.error("Failed to encrypt answers, falling back to plaintext", {},
-        toError(error))
-      return { answers: answers, answers_enc: null }
+      await reportPhiEncryptionFailure(error, { field: "intake_answers.answers_enc", operation: "encrypt" })
+      throw new PhiEncryptionWriteError("intake_answers.answers_enc")
     }
   }
 
@@ -148,8 +146,7 @@ export async function readAnswers(record: {
         const plaintext = await decryptPHI(record.answers_enc)
         return JSON.parse(plaintext) as Record<string, unknown>
       } catch (error) {
-        logger.error("Failed to decrypt answers, falling back to plaintext", {},
-          toError(error))
+        await reportPhiEncryptionFailure(error, { field: "intake_answers.answers_enc", operation: "decrypt" })
       }
     }
   }
@@ -187,9 +184,8 @@ export async function prepareMessagesWrite(
         messages_enc: encrypted,
       }
     } catch (error) {
-      logger.error("Failed to encrypt messages, falling back to plaintext", {},
-        toError(error))
-      return { messages: messages, messages_enc: null }
+      await reportPhiEncryptionFailure(error, { field: "ai_chat.messages", operation: "encrypt" })
+      throw new PhiEncryptionWriteError("ai_chat.messages")
     }
   }
 
@@ -209,8 +205,7 @@ export async function readMessages(record: {
         const plaintext = await decryptPHI(record.messages_enc)
         return JSON.parse(plaintext) as unknown[]
       } catch (error) {
-        logger.error("Failed to decrypt messages, falling back to plaintext", {},
-          toError(error))
+        await reportPhiEncryptionFailure(error, { field: "ai_chat.messages", operation: "decrypt" })
       }
     }
   }
@@ -247,9 +242,8 @@ export async function preparePatientNoteContentWrite(
         content_enc: encrypted,
       }
     } catch (error) {
-      logger.error("Failed to encrypt patient_notes.content, falling back to plaintext", {},
-        toError(error))
-      return { content: content, content_enc: null }
+      await reportPhiEncryptionFailure(error, { field: "patient_notes.content", operation: "encrypt" })
+      throw new PhiEncryptionWriteError("patient_notes.content")
     }
   }
 
@@ -268,8 +262,7 @@ export async function readPatientNoteContent(record: {
       try {
         return await decryptPHI(record.content_enc)
       } catch (error) {
-        logger.error("Failed to decrypt patient_notes.content, falling back to plaintext", {},
-          toError(error))
+        await reportPhiEncryptionFailure(error, { field: "patient_notes.content", operation: "decrypt" })
       }
     }
   }
@@ -302,9 +295,8 @@ export async function prepareCertificatePatientNameWrite(
         patient_name_enc: encrypted,
       }
     } catch (error) {
-      logger.error("Failed to encrypt issued_certificates.patient_name, falling back to plaintext", {},
-        toError(error))
-      return { patient_name: patientName, patient_name_enc: null }
+      await reportPhiEncryptionFailure(error, { field: "issued_certificates.patient_name", operation: "encrypt" })
+      throw new PhiEncryptionWriteError("issued_certificates.patient_name")
     }
   }
 
@@ -323,8 +315,7 @@ export async function readCertificatePatientName(record: {
       try {
         return await decryptPHI(record.patient_name_enc)
       } catch (error) {
-        logger.error("Failed to decrypt issued_certificates.patient_name, falling back to plaintext", {},
-          toError(error))
+        await reportPhiEncryptionFailure(error, { field: "issued_certificates.patient_name", operation: "decrypt" })
       }
     }
   }
@@ -363,9 +354,8 @@ export async function prepareDocumentDraftDataWrite(
         data_enc: encrypted,
       }
     } catch (error) {
-      logger.error("Failed to encrypt document_drafts.data, falling back to plaintext", {},
-        toError(error))
-      return { data: data, data_enc: null }
+      await reportPhiEncryptionFailure(error, { field: "document_drafts.data", operation: "encrypt" })
+      throw new PhiEncryptionWriteError("document_drafts.data")
     }
   }
 
@@ -385,8 +375,7 @@ export async function readDocumentDraftData(record: {
         const plaintext = await decryptPHI(record.data_enc)
         return JSON.parse(plaintext) as Record<string, unknown>
       } catch (error) {
-        logger.error("Failed to decrypt document_drafts.data, falling back to plaintext", {},
-          toError(error))
+        await reportPhiEncryptionFailure(error, { field: "document_drafts.data", operation: "decrypt" })
       }
     }
   }
@@ -424,9 +413,8 @@ export async function prepareDocumentDraftEditedContentWrite(
         edited_content_enc: encrypted,
       }
     } catch (error) {
-      logger.error("Failed to encrypt document_drafts.edited_content, falling back to plaintext", {},
-        toError(error))
-      return { edited_content: editedContent, edited_content_enc: null }
+      await reportPhiEncryptionFailure(error, { field: "document_drafts.edited_content", operation: "encrypt" })
+      throw new PhiEncryptionWriteError("document_drafts.edited_content")
     }
   }
 
@@ -446,8 +434,7 @@ export async function readDocumentDraftEditedContent(record: {
         const plaintext = await decryptPHI(record.edited_content_enc)
         return JSON.parse(plaintext) as Record<string, unknown>
       } catch (error) {
-        logger.error("Failed to decrypt document_drafts.edited_content, falling back to plaintext", {},
-          toError(error))
+        await reportPhiEncryptionFailure(error, { field: "document_drafts.edited_content", operation: "decrypt" })
       }
     }
   }
@@ -484,9 +471,8 @@ export async function prepareAllergyDetailsWrite(
         allergy_details_enc: encrypted,
       }
     } catch (error) {
-      logger.error("Failed to encrypt intake_answers.allergy_details, falling back to plaintext", {},
-        toError(error))
-      return { allergy_details: allergyDetails, allergy_details_enc: null }
+      await reportPhiEncryptionFailure(error, { field: "intake_answers.allergy_details", operation: "encrypt" })
+      throw new PhiEncryptionWriteError("intake_answers.allergy_details")
     }
   }
 
@@ -523,9 +509,8 @@ export async function prepareMedicalConditionsWrite(
         medical_conditions_enc: encrypted,
       }
     } catch (error) {
-      logger.error("Failed to encrypt intake_answers.medical_conditions, falling back to plaintext", {},
-        toError(error))
-      return { medical_conditions: conditions, medical_conditions_enc: null }
+      await reportPhiEncryptionFailure(error, { field: "intake_answers.medical_conditions", operation: "encrypt" })
+      throw new PhiEncryptionWriteError("intake_answers.medical_conditions")
     }
   }
 
@@ -562,9 +547,8 @@ export async function prepareIntakeDraftDataWrite(
         data_encrypted: encrypted,
       }
     } catch (error) {
-      logger.error("Failed to encrypt intake_drafts.data, falling back to plaintext", {},
-        toError(error))
-      return { data: data, data_encrypted: null }
+      await reportPhiEncryptionFailure(error, { field: "intake_drafts.data", operation: "encrypt" })
+      throw new PhiEncryptionWriteError("intake_drafts.data")
     }
   }
 
@@ -584,8 +568,7 @@ export async function readIntakeDraftData(record: {
         const plaintext = await decryptPHI(record.data_encrypted)
         return JSON.parse(plaintext) as Record<string, unknown>
       } catch (error) {
-        logger.error("Failed to decrypt intake_drafts.data, falling back to plaintext", {},
-          toError(error))
+        await reportPhiEncryptionFailure(error, { field: "intake_drafts.data", operation: "decrypt" })
       }
     }
   }
@@ -657,7 +640,8 @@ export async function prepareHealthAllergiesWrite(
       const encrypted = await encryptPHI(JSON.stringify(allergies))
       return { allergies, allergies_enc: encrypted }
     } catch (error) {
-      logger.error("Failed to encrypt health allergies, falling back to plaintext", {}, toError(error))
+      await reportPhiEncryptionFailure(error, { field: "health_profile.allergies", operation: "encrypt" })
+      throw new PhiEncryptionWriteError("health_profile.allergies")
     }
   }
 
@@ -703,7 +687,8 @@ export async function prepareHealthConditionsWrite(
       const encrypted = await encryptPHI(JSON.stringify(conditions))
       return { conditions, conditions_enc: encrypted }
     } catch (error) {
-      logger.error("Failed to encrypt health conditions, falling back to plaintext", {}, toError(error))
+      await reportPhiEncryptionFailure(error, { field: "health_profile.conditions", operation: "encrypt" })
+      throw new PhiEncryptionWriteError("health_profile.conditions")
     }
   }
 
@@ -749,7 +734,8 @@ export async function prepareHealthMedicationsWrite(
       const encrypted = await encryptPHI(JSON.stringify(medications))
       return { current_medications: medications, current_medications_enc: encrypted }
     } catch (error) {
-      logger.error("Failed to encrypt health medications, falling back to plaintext", {}, toError(error))
+      await reportPhiEncryptionFailure(error, { field: "health_profile.current_medications", operation: "encrypt" })
+      throw new PhiEncryptionWriteError("health_profile.current_medications")
     }
   }
 
@@ -795,7 +781,8 @@ export async function prepareHealthNotesWrite(
       const encrypted = await encryptPHI(notes)
       return { notes, notes_enc: encrypted }
     } catch (error) {
-      logger.error("Failed to encrypt health notes, falling back to plaintext", {}, toError(error))
+      await reportPhiEncryptionFailure(error, { field: "health_profile.notes", operation: "encrypt" })
+      throw new PhiEncryptionWriteError("health_profile.notes")
     }
   }
 
