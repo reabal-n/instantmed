@@ -8,7 +8,7 @@ import {
   Users,
 } from "lucide-react"
 import Link from "next/link"
-import { useEffect,useState } from "react"
+import { type ReactNode,useEffect,useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -40,6 +40,14 @@ interface WhatHappensNextProps {
    * promise" rule (docs/BRAND.md §6.5).
    */
   waitState?: WaitState
+  /**
+   * Optional one-tap prompt rendered inside the confirmation beat, between the
+   * success header and the primary CTAs. Used for the attribution survey: the
+   * header ends with "you can close this tab", so anything below the status
+   * tracker is effectively unseen (7 of 87 shown buyers answered in 30d at the
+   * old page-bottom placement).
+   */
+  attributionSlot?: ReactNode
 }
 
 const FAQ_ITEMS = [
@@ -70,6 +78,7 @@ export function WhatHappensNext({
   showConfetti = false,
   initialQueuePosition,
   waitState,
+  attributionSlot,
 }: WhatHappensNextProps) {
   const prefersReducedMotion = useReducedMotion()
   const [confettiTrigger, setConfettiTrigger] = useState(false)
@@ -179,6 +188,17 @@ export function WhatHappensNext({
             </Link>
           </Button>
         </motion.div>
+
+        {attributionSlot && (
+          <motion.div
+            initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: prefersReducedMotion ? 0 : 0.32 }}
+            className="rounded-xl border border-border/40 bg-muted/30 px-4 py-3.5"
+          >
+            {attributionSlot}
+          </motion.div>
+        )}
 
         {/* Live status tracker */}
         <motion.div
