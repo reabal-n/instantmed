@@ -203,6 +203,15 @@ export function CompleteAccountForm({
           </p>
         </div>
 
+        {/* Attribution survey lives inside the payment-confirmed card: both
+            CTAs above navigate away, so the old below-card placement was never
+            reached (guests are the dark-traffic cohort this survey exists for). */}
+        {heardToken && (
+          <div className="mt-6 border-t border-border/40 pt-5">
+            <HeardAboutUsCard token={heardToken} variant="inline" />
+          </div>
+        )}
+
         <p className="text-xs text-center text-muted-foreground mt-4">
           Already have an account?{" "}
           <a href={`/sign-in?redirect=${encodeURIComponent(postSignInHref)}`} className="text-primary hover:underline">
@@ -210,7 +219,6 @@ export function CompleteAccountForm({
           </a>
         </p>
       </div>
-      {heardToken && <HeardAboutUsCard token={heardToken} />}
       <div className="mx-auto mt-4 w-full max-w-md px-4">
         {/* Cross-sell to the guest majority (most checkouts are guests who land
             here, not on /patient/intakes/success). 2026-06-11 review: the probe

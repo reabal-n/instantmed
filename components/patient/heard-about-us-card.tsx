@@ -21,9 +21,18 @@ type CardState = "idle" | "submitting" | "done" | "dismissed"
 export function HeardAboutUsCard({
   token,
   className,
+  variant = "card",
 }: {
   token: string
   className?: string
+  /**
+   * "card" is the standalone bordered surface; "inline" drops the chrome so the
+   * question can sit inside a confirmation moment (success header, guest
+   * payment-confirmed card) where it is actually seen. Placement change driven
+   * by measurement: at the old page-bottom position only 7 of 87 shown buyers
+   * answered in 30d.
+   */
+  variant?: "card" | "inline"
 }) {
   const posthog = usePostHog()
   const [state, setState] = useState<CardState>("idle")
@@ -60,6 +69,53 @@ export function HeardAboutUsCard({
     setState("done")
   }
 
+  const inline = variant === "inline"
+
+  const chips = (
+    <div className={cn("flex flex-wrap gap-2", inline && "justify-center")}>
+      {HEARD_ABOUT_US_OPTIONS.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          disabled={state === "submitting"}
+          aria-pressed={selected === option.value}
+          onClick={() => choose(option.value)}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors",
+            "border-border/60 bg-background hover:border-primary/40 hover:bg-primary/5",
+            "disabled:cursor-not-allowed disabled:opacity-60",
+            selected === option.value && "border-primary/50 bg-primary/10 text-foreground",
+          )}
+        >
+          <span aria-hidden>{option.emoji}</span>
+          {option.label}
+        </button>
+      ))}
+    </div>
+  )
+
+  if (inline) {
+    return (
+      <div className={cn("text-center", className)}>
+        {state === "done" ? (
+          <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-success-light text-success">
+              <Check className="h-3.5 w-3.5" />
+            </span>
+            Thanks — that really helps us reach more people.
+          </div>
+        ) : (
+          <>
+            <p className="mb-2.5 text-sm font-medium text-foreground">
+              How did you find us?
+            </p>
+            {chips}
+          </>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div
       className={cn(
@@ -94,26 +150,7 @@ export function HeardAboutUsCard({
               <X className="h-4 w-4" />
             </button>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {HEARD_ABOUT_US_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                disabled={state === "submitting"}
-                aria-pressed={selected === option.value}
-                onClick={() => choose(option.value)}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors",
-                  "border-border/60 bg-background hover:border-primary/40 hover:bg-primary/5",
-                  "disabled:cursor-not-allowed disabled:opacity-60",
-                  selected === option.value && "border-primary/50 bg-primary/10 text-foreground",
-                )}
-              >
-                <span aria-hidden>{option.emoji}</span>
-                {option.label}
-              </button>
-            ))}
-          </div>
+          {chips}
         </>
       )}
     </div>
