@@ -194,10 +194,12 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       rows: [
         { provider: "MedCertify", singleDayFrom: "$12", ahpraDoctors: true, notable: "Issued in roughly 15–30 minutes; available 24/7." },
         { provider: "Doccy", singleDayFrom: "$12.90", ahpraDoctors: true, notable: "Available 24/7; a 2–5 day certificate is a flat $28." },
+        { provider: "Hola Health", singleDayFrom: "$14.90", ahpraDoctors: true, notable: "Work certificates from $16.90; available 24/7; issued by AHPRA-registered doctors or nurse practitioners." },
         { provider: "Qoctor", singleDayFrom: "$14.99", ahpraDoctors: true, notable: "Same-day from $14.99; optional priority queue; also offers referral letters." },
         { provider: "MIDOC", singleDayFrom: "$18", ahpraDoctors: true, notable: "Advertises certificates issued in about 15 minutes." },
+        { provider: "InstantScripts", singleDayFrom: "$19", ahpraDoctors: true, notable: "Open 24/7; a multi-day certificate consult is $49; certificates carry a QR code for employer validation." },
         { provider: "NextClinic", singleDayFrom: "$19.90", ahpraDoctors: true, notable: "You pay only if the certificate is approved; 60-minute review target." },
-        { provider: "InstantMed", singleDayFrom: PRICING_DISPLAY.MED_CERT, ahpraDoctors: true, isInstantMed: true, notable: `One-off, no subscription. ${GUARANTEE} Also covers repeat prescriptions, ED and hair loss.` },
+        { provider: "InstantMed", singleDayFrom: PRICING_DISPLAY.MED_CERT, ahpraDoctors: true, isInstantMed: true, notable: `One-off, no subscription, 24/7. ${GUARANTEE} Employers can verify every certificate at instantmed.com.au/verify. Also covers repeat prescriptions, ED and hair loss.` },
         { provider: "Updoc", singleDayFrom: "$39.95", ahpraDoctors: true, notable: "One-off certificate consult is $39.95; the Updoc Plus subscription is $19.95/month with certificates included." },
       ],
     },
@@ -214,7 +216,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       "You have a specific service you've used before and trust",
       "You want video consultation rather than asynchronous"
     ],
-    verdict: "When choosing an online medical certificate service, prioritise: (1) AHPRA-registered doctors, (2) clear pricing, (3) reasonable response times, and (4) a proper clinical assessment. Avoid services that seem to guarantee approval or don't involve a real doctor reviewing your case.",
+    verdict: "When choosing an online medical certificate service, prioritise: (1) AHPRA-registered doctors, (2) clear pricing, (3) reasonable response times, (4) a proper clinical assessment, (5) a refund if the doctor declines, and (6) a way for your employer to verify the certificate. Avoid services that seem to guarantee approval or don't involve a real doctor reviewing your case.",
     faqs: [
       {
         q: "Are all online medical certificates legitimate?",
@@ -230,7 +232,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       },
       {
         q: "Can my employer tell if my certificate is from a telehealth service?",
-        a: "Certificates show the doctor's details and the issuing practice. Employers assess evidence under their workplace policy, so the safest wording is simple: the document is issued by an AHPRA-registered doctor and includes verification details."
+        a: "Certificates show the doctor's details and the issuing practice. Employers assess evidence under their workplace policy, so the safest wording is simple: the document is issued by an AHPRA-registered doctor and includes verification details. InstantMed certificates carry a unique reference code an employer can check at instantmed.com.au/verify in seconds."
       },
       {
         q: "Are online medical certificates accepted under the Fair Work Act?",
@@ -292,7 +294,8 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
           paragraphs: [
             "Some employers raise eyebrows at online medical certificates. The Fair Work Ombudsman frames the test as evidence that would satisfy a reasonable person, and employer policies can still matter. A certificate from an AHPRA-registered doctor with clear dates and verification details is designed to support that review.",
             "Some enterprise agreements or company policies have specific wording about acceptable evidence. If your employer requires something more specific than a routine sick-leave certificate, check that before you apply.",
-            "If an employer questions a certificate, start by using the verification link and the AHPRA registration details on the document. For workplace disputes, use the Fair Work Ombudsman or appropriate workplace advice channels."
+            "If an employer questions a certificate, start by using the verification link and the AHPRA registration details on the document. For workplace disputes, use the Fair Work Ombudsman or appropriate workplace advice channels.",
+            "Verification is moving from phone calls to instant checks. Every InstantMed certificate carries a unique reference code that an employer or HR team can confirm at instantmed.com.au/verify in seconds, and several other providers now print QR codes for the same purpose. If a service offers no way for an employer to confirm its certificates are genuine, weigh that in your choice."
           ]
         },
         {
