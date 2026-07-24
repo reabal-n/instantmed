@@ -570,8 +570,10 @@ export function SuccessClient({
     )
   }
 
-  // Payment confirmed - show the clinical handoff first. Secondary prompts stay
-  // below the request-detail CTA and status tracker.
+  // Payment confirmed - show the clinical handoff first. The attribution
+  // survey rides inside the confirmation beat (via attributionSlot): the header
+  // ends with "you can close this tab", so a page-bottom card was effectively
+  // invisible (7 of 87 shown buyers answered in the 30d before this change).
   return (
     <div className="space-y-6">
       <WhatHappensNext
@@ -583,6 +585,9 @@ export function SuccessClient({
         showConfetti={status === "paid"}
         initialQueuePosition={initialQueuePosition}
         waitState={waitState}
+        attributionSlot={
+          heardToken ? <HeardAboutUsCard token={heardToken} variant="inline" /> : undefined
+        }
       />
       {paymentRetry && (
         <div className="rounded-xl border border-success-border bg-success-light/40 px-4 py-3 text-sm text-success">
@@ -592,9 +597,6 @@ export function SuccessClient({
           </p>
         </div>
       )}
-      {/* Self-reported attribution survey. Keep it post-confirmation and below
-          the primary status/CTA so it does not compete with request tracking. */}
-      {heardToken && <HeardAboutUsCard token={heardToken} />}
     </div>
   )
 }
