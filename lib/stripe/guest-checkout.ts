@@ -14,6 +14,7 @@ import { getAppUrl } from "@/lib/config/env"
 import { checkCheckoutBlocked } from "@/lib/config/kill-switches"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { TELEHEALTH_CONSENT_VERSION,TERMS_VERSION } from "@/lib/constants"
+import { buildAnswersInsertColumns } from "@/lib/data/intake-answers"
 import { decryptProfilePhi, updateProfile } from "@/lib/data/profiles"
 import { isServiceDisabled, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
@@ -935,11 +936,23 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     // 4. Insert the answers (ATOMIC - fail if answers cannot be saved)
     // Answers must be saved BEFORE audit logs to avoid orphaned compliance records
-    // if this step fails and the intake is rolled back.
-    const { error: answersError } = await supabase.from("intake_answers").insert({
-      intake_id: intake.id,
-      answers: input.answers,
-    })
+    // if this step fails and the intake is rolled back. Columns come from the
+    // single encryption seam (dual-write plaintext + answers_encrypted); an
+    // encryption failure throws there (fail-closed, fatal Sentry alarm).
+    let answersInsert: Record<string, unknown>
+    try {
+      answersInsert = await buildAnswersInsertColumns(intake.id, input.answers)
+    } catch (encryptionError) {
+      logger.error(
+        "Failed to encrypt answers, rolling back intake",
+        { intakeId: intake.id },
+        encryptionError instanceof Error ? encryptionError : new Error(String(encryptionError)),
+      )
+      await supabase.from("intakes").delete().eq("id", intake.id)
+      return { success: false, error: "Failed to save your clinical information. Please try again." }
+    }
+
+    const { error: answersError } = await supabase.from("intake_answers").insert(answersInsert)
 
     if (answersError) {
       logger.error("Failed to save answers, rolling back intake", { intakeId: intake.id }, new Error(answersError.message))

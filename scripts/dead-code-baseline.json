@@ -700,6 +700,7 @@
     "full|exports|types/certificate-template.ts|FONT_SIZE_VALUES",
     "full|exports|types/certificate-template.ts|MARGIN_VALUES",
     "full|exports|types/db.ts|STAFF_ROLES",
+    "full|files|scripts/encrypt-phi-backfill-envelope.ts|scripts/encrypt-phi-backfill-envelope.ts",
     "full|types|app/actions/contact-form.ts|ContactFormData",
     "full|types|app/actions/decline-intake.ts|RefundStatus",
     "full|types|app/actions/draft-approval.ts|AuditEventParams",

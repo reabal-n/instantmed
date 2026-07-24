@@ -16,6 +16,10 @@ import {
   isEncryptedPHI,
 } from "@/lib/security/phi-encryption"
 import {
+  PhiEncryptionWriteError,
+  reportPhiEncryptionFailure,
+} from "@/lib/security/phi-encryption-alarm"
+import {
   prepareAllergyDetailsWrite,
   prepareMedicalConditionsWrite,
 } from "@/lib/security/phi-field-wrappers"
@@ -63,6 +67,50 @@ export interface IntakeAnswersRow {
 // ============================================================================
 
 /**
+ * Build the column set for an intake_answers insert, encrypting when the PHI
+ * flags are enabled. This is the SINGLE encryption seam for answers writes —
+ * the live checkout paths (lib/stripe/checkout/persistence.ts and
+ * lib/stripe/guest-checkout.ts) insert through it, as does saveIntakeAnswers.
+ *
+ * FAIL-CLOSED: with encryption enabled, an encrypt failure throws
+ * PhiEncryptionWriteError (after firing the fatal Sentry alarm) rather than
+ * silently storing plaintext-only. Instrumentation.ts verifies the key at boot,
+ * so a runtime throw here means key material changed underneath a live deploy.
+ */
+export async function buildAnswersInsertColumns(
+  intakeId: string,
+  answers: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const columns: Record<string, unknown> = {
+    intake_id: intakeId,
+    // Dual-write: plaintext stays until the reader audit + backfill parity
+    // check allow the plaintext column to be retired.
+    answers,
+  }
+
+  if (isEncryptionEnabled() && isWriteEnabled()) {
+    try {
+      const encrypted = await encryptJSONB(answers)
+      columns.answers_encrypted = encrypted
+      columns.encryption_metadata = {
+        keyId: encrypted.keyId,
+        version: encrypted.version,
+        encryptedAt: new Date().toISOString(),
+      }
+    } catch (encryptError) {
+      await reportPhiEncryptionFailure(encryptError, {
+        field: "intake_answers.answers",
+        operation: "encrypt",
+        recordId: intakeId,
+      })
+      throw new PhiEncryptionWriteError("intake_answers.answers")
+    }
+  }
+
+  return columns
+}
+
+/**
  * Save intake answers with optional encryption
  * 
  * When encryption is enabled:
@@ -81,10 +129,17 @@ export async function saveIntakeAnswers(
     const allergyFields = await prepareAllergyDetailsWrite(input.allergy_details ?? null)
     const conditionsFields = await prepareMedicalConditionsWrite(input.medical_conditions ?? null)
 
-    // Base insert data
-    const insertData: Record<string, unknown> = {
-      intake_id: input.intake_id,
-      answers: input.answers,
+    // Answers columns (plaintext + encrypted) via the single encryption seam.
+    // The helper throws (after alarming) rather than storing plaintext-only.
+    let insertData: Record<string, unknown>
+    try {
+      insertData = await buildAnswersInsertColumns(input.intake_id, input.answers)
+    } catch {
+      // Fatal Sentry alarm already fired inside buildAnswersInsertColumns.
+      return { success: false, error: "Encryption failed - please try again" }
+    }
+
+    Object.assign(insertData, {
       // Extracted fields
       has_allergies: input.has_allergies,
       has_current_medications: input.has_current_medications,
@@ -95,31 +150,7 @@ export async function saveIntakeAnswers(
       // Dual-write: plaintext + encrypted PHI columns
       ...allergyFields,
       ...conditionsFields,
-    }
-
-    // Encrypt if enabled
-    if (isEncryptionEnabled() && isWriteEnabled()) {
-      try {
-        const encrypted = await encryptJSONB(input.answers)
-        insertData.answers_encrypted = encrypted
-        insertData.encryption_metadata = {
-          keyId: encrypted.keyId,
-          version: encrypted.version,
-          encryptedAt: new Date().toISOString(),
-        }
-        logger.debug("Encrypted intake answers", { 
-          intakeId: input.intake_id,
-          keyId: encrypted.keyId 
-        })
-      } catch (encryptError) {
-        // CRITICAL: Fail the operation - do NOT store PHI unencrypted
-        logger.error("CRITICAL: Failed to encrypt intake answers - aborting to prevent plaintext PHI storage", 
-          { intakeId: input.intake_id },
-          encryptError instanceof Error ? encryptError : new Error(String(encryptError))
-        )
-        return { success: false, error: "Encryption failed - please try again" }
-      }
-    }
+    })
 
     const { data, error } = await supabase
       .from("intake_answers")
@@ -174,10 +205,11 @@ async function updateIntakeAnswers(
         }
       } catch (encryptError) {
         // CRITICAL: Fail the update if encryption fails - never write plaintext PHI
-        logger.error("Failed to encrypt intake answers on update - aborting to prevent plaintext PHI", 
-          { id },
-          encryptError instanceof Error ? encryptError : new Error(String(encryptError))
-        )
+        await reportPhiEncryptionFailure(encryptError, {
+          field: "intake_answers.answers",
+          operation: "encrypt",
+          recordId: id,
+        })
         return { success: false, error: "Failed to secure data. Please try again." }
       }
     }
