@@ -1,110 +1,62 @@
 'use client'
 
 import { Clock } from 'lucide-react'
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState } from 'react'
 
+import { lastReviewedLabel } from '@/lib/brand/last-reviewed-window'
 import { cn } from '@/lib/utils'
 
-const STORAGE_KEY = 'instantmed_last_reviewed_v2'
-const MIN_MINUTES = 5
-const MAX_MINUTES = 43
-// Stored seed expires after 90 minutes - after that we regenerate. This stops
-// a returning visitor seeing the same number stuck across days while still
-// providing consistent progression within a sensible window.
-const SEED_TTL_MS = 90 * 60 * 1000
-const TICK_MS = 90_000
-
-interface SeedRecord {
-  base: number       // minutes value at baseTimestamp
-  ts: number         // baseTimestamp in ms
-}
-
-function useHasMounted() {
-  return useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  )
-}
-
-function generateBase(): number {
-  // Weighted toward the lower end during business hours so the signal feels
-  // more "active". After hours, allow a wider spread.
-  const hour = new Date().getHours()
-  if (hour >= 8 && hour < 22) {
-    return MIN_MINUTES + Math.floor(Math.random() * 18)  // 5-22
-  }
-  return 12 + Math.floor(Math.random() * 28)             // 12-39
-}
-
-function readSeed(): SeedRecord | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as Partial<SeedRecord>
-    if (typeof parsed.base !== 'number' || typeof parsed.ts !== 'number') return null
-    if (Date.now() - parsed.ts > SEED_TTL_MS) return null
-    return { base: parsed.base, ts: parsed.ts }
-  } catch {
-    return null
-  }
-}
-
-function writeSeed(seed: SeedRecord): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(seed))
-  } catch {
-    // Storage blocked or full - silent fail, in-memory state still works.
-  }
-}
-
-function computeCurrent(seed: SeedRecord): number {
-  const elapsedMin = Math.floor((Date.now() - seed.ts) / 60_000)
-  return seed.base + elapsedMin
-}
+const TICK_MS = 60_000
 
 /**
- * Subtle "Last reviewed X min ago" signal.
+ * "Last reviewed X min ago" — REAL data only.
  *
- * Persists a seed in localStorage so a returning visitor sees the time
- * progress consistently rather than jumping around. Range stays inside
- * 5-43 minutes. Regenerates the seed if it expires (90 min) or exceeds
- * the max value, so the number always feels live without ever flatlining.
+ * Fetches the platform-wide timestamp of the most recent completed review from
+ * /api/last-reviewed (cached 60s, PHI-free, seeded-E2E rows excluded) and
+ * renders nothing unless that review is genuinely fresh
+ * (<= LAST_REVIEWED_FRESH_MINUTES). An honest absence beats an invented number:
+ * the previous implementation fabricated the value from Math.random() seeded in
+ * localStorage, which on a regulated health surface was indefensible.
+ *
+ * Renders nothing during SSR and until the fetch resolves, matching the old
+ * mount-gated behavior (no hydration mismatch, no layout reservation change).
  */
 export function LastReviewedSignal({ className }: { className?: string }) {
-  const mounted = useHasMounted()
-  const [minutes, setMinutes] = useState(MIN_MINUTES + 7)
+  const [reviewedAtMs, setReviewedAtMs] = useState<number | null>(null)
+  const [nowMs, setNowMs] = useState<number | null>(null)
 
   useEffect(() => {
-    let seed = readSeed()
-    if (!seed) {
-      seed = { base: generateBase(), ts: Date.now() }
-      writeSeed(seed)
-    }
+    let cancelled = false
 
-    const sync = () => {
-      let current = computeCurrent(seed!)
-      if (current > MAX_MINUTES) {
-        // Regenerate with a fresh base near the lower end so the cycle restarts
-        // at a believable "just reviewed" value.
-        seed = { base: MIN_MINUTES + Math.floor(Math.random() * 8), ts: Date.now() }
-        writeSeed(seed)
-        current = seed.base
-      }
-      setMinutes(current)
-    }
+    fetch('/api/last-reviewed')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { lastReviewedAt?: string | null } | null) => {
+        if (cancelled || !data?.lastReviewedAt) return
+        const parsed = Date.parse(data.lastReviewedAt)
+        if (!Number.isFinite(parsed)) return
+        setReviewedAtMs(parsed)
+        setNowMs(Date.now())
+      })
+      .catch(() => {
+        // Marketing garnish — a failed fetch just means no signal.
+      })
 
-    sync()
-    const interval = setInterval(sync, TICK_MS)
-    return () => clearInterval(interval)
+    const interval = setInterval(() => setNowMs(Date.now()), TICK_MS)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
   }, [])
 
-  if (!mounted) return null
+  if (nowMs === null) return null
+
+  const label = lastReviewedLabel(reviewedAtMs, nowMs)
+  if (!label) return null
 
   return (
     <p className={cn('flex items-center gap-1.5 text-xs text-muted-foreground', className)}>
       <Clock className="w-3 h-3" />
-      Last reviewed {minutes} min ago
+      {label}
     </p>
   )
 }
