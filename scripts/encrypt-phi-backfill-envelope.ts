@@ -31,6 +31,7 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
+import { SEEDED_E2E_PATIENT_PROFILE_ID } from "../lib/data/seeded-e2e-data"
 import {
   decryptJSONB,
   decryptPHI,
@@ -39,6 +40,27 @@ import {
   encryptPHI,
   isEncryptedPHI,
 } from "../lib/security/phi-encryption"
+
+/**
+ * Seeded E2E fixture intakes are synthetic, not PHI, and CI runs with a
+ * different PHI_MASTER_KEY: a production-key envelope on a fixture makes every
+ * CI read log a decrypt failure (broke the checkout-resume spec's
+ * zero-console-errors guard on 2026-07-24). Resolved as an explicit id set
+ * because PostgREST cannot pattern-match uuid columns.
+ */
+async function getSeededIntakeIds(supabase: SupabaseClient): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("intakes")
+    .select("id")
+    .eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
+  if (error) {
+    log(`Failed to resolve seeded fixture intakes: ${error.message}`, "error")
+    process.exit(1)
+  }
+  return (data ?? []).map((row) => row.id as string)
+}
+
+const notInSeeded = (ids: string[]) => `(${ids.join(",")})`
 
 const args = process.argv.slice(2)
 const isDryRun = args.includes("--dry") || args.includes("--dry-run")
@@ -82,17 +104,19 @@ async function keyMatchPreflight(supabase: SupabaseClient): Promise<void> {
   }
 }
 
-async function backfillAnswers(supabase: SupabaseClient): Promise<void> {
+async function backfillAnswers(supabase: SupabaseClient, seededIds: string[]): Promise<void> {
   let done = 0
   let failed = 0
   for (;;) {
-    const { data, error } = await supabase
+    let pageQuery = supabase
       .from("intake_answers")
       .select("id, answers")
       .not("answers", "is", null)
       .is("answers_encrypted", null)
       .order("id")
       .limit(BATCH)
+    if (seededIds.length) pageQuery = pageQuery.not("intake_id", "in", notInSeeded(seededIds))
+    const { data, error } = await pageQuery
     if (error) {
       log(`intake_answers page fetch failed: ${error.message}`, "error")
       process.exit(1)
@@ -130,25 +154,29 @@ async function backfillAnswers(supabase: SupabaseClient): Promise<void> {
   }
 
   if (isDryRun) {
-    const { count } = await supabase
+    let countQuery = supabase
       .from("intake_answers")
       .select("id", { count: "exact", head: true })
       .not("answers", "is", null)
       .is("answers_encrypted", null)
+    if (seededIds.length) countQuery = countQuery.not("intake_id", "in", notInSeeded(seededIds))
+    const { count } = await countQuery
     log(`DRY RUN: intake_answers rows needing encryption: ${count ?? "?"}`, "info")
   } else {
     log(`intake_answers backfill: ${done} encrypted, ${failed} failed`, failed ? "warn" : "success")
   }
 }
 
-async function backfillDoctorNotes(supabase: SupabaseClient): Promise<void> {
-  const { data, error } = await supabase
+async function backfillDoctorNotes(supabase: SupabaseClient, seededIds: string[]): Promise<void> {
+  let dnQuery = supabase
     .from("intakes")
     .select("id, doctor_notes")
     .not("doctor_notes", "is", null)
     .is("doctor_notes_enc", null)
     .order("id")
     .limit(500)
+  if (seededIds.length) dnQuery = dnQuery.not("id", "in", notInSeeded(seededIds))
+  const { data, error } = await dnQuery
   if (error) {
     log(`intakes fetch failed: ${error.message}`, "error")
     process.exit(1)
@@ -182,7 +210,7 @@ async function backfillDoctorNotes(supabase: SupabaseClient): Promise<void> {
   log(`doctor_notes backfill: ${done} encrypted, ${failed} failed`, failed ? "warn" : "success")
 }
 
-async function verifyParity(supabase: SupabaseClient): Promise<void> {
+async function verifyParity(supabase: SupabaseClient, seededIds: string[]): Promise<void> {
   // intake_answers: decrypt every envelope, deep-compare to plaintext.
   let ansChecked = 0
   let ansMismatch = 0
@@ -196,6 +224,7 @@ async function verifyParity(supabase: SupabaseClient): Promise<void> {
       .not("answers_encrypted", "is", null)
       .order("id")
       .limit(BATCH)
+    if (seededIds.length) query = query.not("intake_id", "in", notInSeeded(seededIds))
     if (lastId) query = query.gt("id", lastId)
     const { data, error } = await query
     if (error) {
@@ -222,12 +251,14 @@ async function verifyParity(supabase: SupabaseClient): Promise<void> {
   let dnMismatch = 0
   let dnUndecryptable = 0
   let dnRepaired = 0
-  const { data: dnRows, error: dnError } = await supabase
+  let dnVerifyQuery = supabase
     .from("intakes")
     .select("id, doctor_notes, doctor_notes_enc")
     .not("doctor_notes", "is", null)
     .not("doctor_notes_enc", "is", null)
     .limit(1000)
+  if (seededIds.length) dnVerifyQuery = dnVerifyQuery.not("id", "in", notInSeeded(seededIds))
+  const { data: dnRows, error: dnError } = await dnVerifyQuery
   if (dnError) {
     log(`doctor_notes verify fetch failed: ${dnError.message}`, "error")
     process.exit(1)
@@ -258,16 +289,20 @@ async function verifyParity(supabase: SupabaseClient): Promise<void> {
   }
   if (isRepair) log(`doctor_notes repaired: ${dnRepaired}/${dnMismatch}`, dnRepaired === dnMismatch ? "success" : "warn")
 
-  const { count: ansRemaining } = await supabase
+  let ansRemainingQuery = supabase
     .from("intake_answers")
     .select("id", { count: "exact", head: true })
     .not("answers", "is", null)
     .is("answers_encrypted", null)
-  const { count: dnRemaining } = await supabase
+  if (seededIds.length) ansRemainingQuery = ansRemainingQuery.not("intake_id", "in", notInSeeded(seededIds))
+  const { count: ansRemaining } = await ansRemainingQuery
+  let dnRemainingQuery = supabase
     .from("intakes")
     .select("id", { count: "exact", head: true })
     .not("doctor_notes", "is", null)
     .is("doctor_notes_enc", null)
+  if (seededIds.length) dnRemainingQuery = dnRemainingQuery.not("id", "in", notInSeeded(seededIds))
+  const { count: dnRemaining } = await dnRemainingQuery
 
   log(`PARITY intake_answers: checked=${ansChecked} mismatch=${ansMismatch} undecryptable=${ansUndecryptable} still_unencrypted=${ansRemaining ?? "?"}`,
     ansMismatch || ansUndecryptable || (ansRemaining ?? 1) ? "warn" : "success")
@@ -308,13 +343,16 @@ async function main() {
 
   await keyMatchPreflight(supabase)
 
+  const seededIds = await getSeededIntakeIds(supabase)
+  log(`Excluding ${seededIds.length} seeded E2E fixture intake(s)`, "info")
+
   if (isVerify || isRepair) {
-    await verifyParity(supabase)
+    await verifyParity(supabase, seededIds)
     return
   }
 
-  await backfillAnswers(supabase)
-  await backfillDoctorNotes(supabase)
+  await backfillAnswers(supabase, seededIds)
+  await backfillDoctorNotes(supabase, seededIds)
   log("Done. Run with --verify for the parity report.", "info")
 }
 
