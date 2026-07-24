@@ -16,8 +16,6 @@ import "server-only"
 import { SEEDED_E2E_PATIENT_PROFILE_ID } from "@/lib/data/seeded-e2e-data"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
-export { LAST_REVIEWED_FRESH_MINUTES } from "./last-reviewed-window"
-
 export async function getLastReviewedAt(): Promise<string | null> {
   try {
     const supabase = createServiceRoleClient()

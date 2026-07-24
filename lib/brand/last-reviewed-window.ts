@@ -8,7 +8,7 @@
  * outside the window it renders nothing. An honest absence beats a stale
  * "N min ago".
  */
-export const LAST_REVIEWED_FRESH_MINUTES = 60
+const LAST_REVIEWED_FRESH_MINUTES = 60
 
 /**
  * Pure label derivation so the truth rules are unit-testable in the Node test

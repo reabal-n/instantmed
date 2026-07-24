@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest"
 
-import {
-  LAST_REVIEWED_FRESH_MINUTES,
-  lastReviewedLabel,
-} from "@/lib/brand/last-reviewed-window"
+import { lastReviewedLabel } from "@/lib/brand/last-reviewed-window"
+
+// The freshness window is pinned as a literal on purpose: widening it past an
+// hour changes what the homepage may honestly claim, so it must show up here.
+const WINDOW_MINUTES = 60
 
 const NOW = Date.parse("2026-07-24T10:00:00Z")
 const minutesAgo = (m: number) => NOW - m * 60_000
@@ -26,13 +27,13 @@ describe("lastReviewedLabel — the signal renders real freshness or nothing", (
   it("reports real minutes inside the freshness window", () => {
     expect(lastReviewedLabel(minutesAgo(5), NOW)).toBe("Last reviewed 5 min ago")
     expect(lastReviewedLabel(minutesAgo(44), NOW)).toBe("Last reviewed 44 min ago")
-    expect(lastReviewedLabel(minutesAgo(LAST_REVIEWED_FRESH_MINUTES), NOW)).toBe(
-      `Last reviewed ${LAST_REVIEWED_FRESH_MINUTES} min ago`,
+    expect(lastReviewedLabel(minutesAgo(WINDOW_MINUTES), NOW)).toBe(
+      `Last reviewed ${WINDOW_MINUTES} min ago`,
     )
   })
 
   it("renders nothing once the latest review is older than the window", () => {
-    expect(lastReviewedLabel(minutesAgo(LAST_REVIEWED_FRESH_MINUTES + 1), NOW)).toBeNull()
+    expect(lastReviewedLabel(minutesAgo(WINDOW_MINUTES + 1), NOW)).toBeNull()
     expect(lastReviewedLabel(minutesAgo(600), NOW)).toBeNull()
   })
 
