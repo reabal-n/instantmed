@@ -24,6 +24,7 @@ import { logStatusChange } from "@/lib/data/intake-events"
 import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { sendRequestDeclinedEmail } from "@/lib/email/senders"
 import { createLogger } from "@/lib/observability/logger"
+import { prepareDoctorNotesWrite } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import {
@@ -153,6 +154,10 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
 
     // 3. ATOMIC STATUS UPDATE
     const declineNotes = reason ? `Declined: ${reason}` : "Declined"
+    // Dual-write (plaintext + doctor_notes_enc) through the PHI wrapper; a raw
+    // { doctor_notes } update here was one of the writers leaking
+    // plaintext-only rows past the encryption migration.
+    const declineNotesColumns = await prepareDoctorNotesWrite(declineNotes)
 
     const { data: updated, error: updateError } = await supabase
       .from("intakes")
@@ -163,7 +168,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
         decline_reason: reason || null,
         decline_reason_code: reasonCode || null,
         decline_reason_note: reason || null,
-        doctor_notes: declineNotes,
+        ...declineNotesColumns,
         reviewed_by: actorId,
         reviewed_at: timestamp,
         decided_at: timestamp,

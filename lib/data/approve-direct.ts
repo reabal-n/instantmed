@@ -2,6 +2,7 @@ import "server-only"
 
 import { executeCertApproval } from "@/lib/clinical/execute-cert-approval"
 import { createLogger } from "@/lib/observability/logger"
+import { prepareDoctorNotesWrite } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { CertReviewData } from "@/types/db"
 
@@ -75,10 +76,10 @@ export async function approveMedCertDirect({
     })
 
     if (result.success) {
-      // Save Telegram approval note
+      // Save Telegram approval note - dual-write through the PHI wrapper.
       await supabase
         .from("intakes")
-        .update({ doctor_notes: `Approved via Telegram. Reason: ${medicalReason}` })
+        .update(await prepareDoctorNotesWrite(`Approved via Telegram. Reason: ${medicalReason}`))
         .eq("id", intakeId)
 
       log.info("Med cert approved via Telegram", { intakeId, certificateId: result.certificateId })

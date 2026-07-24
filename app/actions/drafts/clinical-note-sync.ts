@@ -12,6 +12,7 @@ import * as Sentry from "@sentry/nextjs"
 
 import { formatClinicalNoteBullets } from "@/lib/doctor/clinical-notes"
 import { createLogger } from "@/lib/observability/logger"
+import { prepareDoctorNotesWrite } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import type { ClinicalNoteContent } from "./types"
@@ -173,10 +174,12 @@ export async function syncClinicalNoteToIntake(
 
     // Update intake with synced clinical notes
     // Store draft reference separately - NO footer mutation
+    // Dual-write (plaintext + doctor_notes_enc) through the PHI wrapper.
+    const notesColumns = await prepareDoctorNotesWrite(formattedNotes)
     const { error: updateError } = await supabase
       .from("intakes")
       .update({
-        doctor_notes: formattedNotes,
+        ...notesColumns,
         synced_clinical_note_draft_id: draftId,
       })
       .eq("id", intakeId)

@@ -26,6 +26,7 @@ import {
 } from "@/lib/audit/compliance-audit"
 import type { IntakeFlag } from "@/lib/clinical/intake-flags"
 import { TELEHEALTH_CONSENT_VERSION,TERMS_VERSION } from "@/lib/constants"
+import { buildAnswersInsertColumns } from "@/lib/data/intake-answers"
 import { createLogger } from "@/lib/observability/logger"
 import { buildAddressAuditMetadata } from "@/lib/request/address-metadata"
 import { markPartialIntakeConverted } from "@/lib/request/server-draft-conversion"
@@ -242,11 +243,24 @@ export async function createIntakeWithAnswers(
   }
 
   // Atomic answers insert. If this fails the intake is rolled back so we never
-  // leave an intake with no clinical answers and no audit trail.
-  const { error: answersError } = await supabase.from("intake_answers").insert({
-    intake_id: intake.id,
-    answers: input.answers,
-  })
+  // leave an intake with no clinical answers and no audit trail. Columns come
+  // from the single encryption seam (dual-write plaintext + answers_encrypted);
+  // an encryption failure throws there (fail-closed, fatal Sentry alarm) and is
+  // handled like any other failed answers save.
+  let answersInsert: Record<string, unknown>
+  try {
+    answersInsert = await buildAnswersInsertColumns(intake.id, input.answers)
+  } catch (encryptionError) {
+    logger.error(
+      "[Stripe Checkout] Failed to encrypt answers, rolling back intake",
+      { intakeId: intake.id },
+      encryptionError instanceof Error ? encryptionError : new Error(String(encryptionError)),
+    )
+    await supabase.from("intakes").delete().eq("id", intake.id)
+    return stepFail("Failed to save your clinical information. Please try again.")
+  }
+
+  const { error: answersError } = await supabase.from("intake_answers").insert(answersInsert)
 
   if (answersError) {
     logger.error(
