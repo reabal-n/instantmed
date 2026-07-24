@@ -2,7 +2,7 @@
 
 Status: prepared only. Do not submit to MediCompare, Finder, or any other third party without operator confirmation.
 
-InstantMed fact-sheet terminology refreshed 2026-07-13. Third-party surface research remains dated 2026-07-09 and must be rechecked before submission.
+InstantMed fact-sheet terminology refreshed 2026-07-13. Third-party surface research rechecked 2026-07-24 (see the research table and the 2026-07-24 recheck receipt below); the kit is submission-ready pending operator confirmation.
 
 Purpose: get InstantMed into the Australian third-party comparison surfaces that answer engines cite for telehealth, online medical certificates, and online doctor comparisons.
 
@@ -36,8 +36,19 @@ Current factual baseline:
 | --- | --- | --- | --- |
 | MediCompare | The live page is `Compare Online Medical Certificate Providers in Australia (2026)` at `https://medicompare.com.au/online-medical-certificates/`. The table captures provider, price, bulk billing, hours, certificate type, special conditions, turnaround, and ease of use. InstantMed is absent. | Email `info@medicompare.com.au` from `https://medicompare.com.au/contact-us/`. | No public self-service provider submission form found. Their editorial page says writers research providers from official sources, analyse pricing, review user experience, and then editorial/medical fact-check before publication. |
 | Finder | Finder's online doctor page at `https://www.finder.com.au/health-insurance/online-doctor` has a provider table and the line "Does your company belong in this list?" linking to Partner with Finder. InstantMed is absent. | Partner form at `https://www.finder.com.au/partner-with-us#form`. The rendered page embeds the partner intake with `data-tf-live="01JDGQPRJQJRNE8R82E8T4VGXS"` and a Pipedrive webforms loader. | If the partner form fails, use Finder contact fallback `https://www.finder.com.au/contact-us#hs-chat-open`. The contact page also links back to Partner with us. |
+| Trustpilot | The `medical_certificate_service` category at `https://au.trustpilot.com/categories/medical_certificate_service` ranks providers by TrustScore and review count. No InstantMed business profile exists on Trustpilot at all (checked 2026-07-24). | Standard free Trustpilot business-profile claim (operator account action). | Opening the profile is a prerequisite for appearing in the category; review accrual strategy stays ProductReview-first, so treat Trustpilot as a secondary claim-and-hold surface, not a second active review destination. |
 
 ProductReview caveat: this should be prepared now, but it will land better once the ProductReview listing has a few genuine reviews. MediCompare and similar surfaces use public review signals as part of their quality judgement. InstantMed already routes off-site review asks to ProductReview by default. Do not include review counts or star ratings in any submission copy.
+
+### 2026-07-24 recheck receipt
+
+Fourteen third-party surfaces were swept on 2026-07-24 (MediCompare med-cert/prescriptions/GP-consult categories and its NextClinic profile, OnCare and NewDoc and Doccy and ConsultNow competitor listicles, Finder, ProductReview category, Trustpilot category, Similarweb/Sitelike programmatic alternatives pages, NextClinic's own blog, and Reddit community threads). Durable findings:
+
+- InstantMed appears on zero third-party comparison, review, or directory surfaces. `https://medicompare.com.au/instantmed/` returns 404 while roughly 34 other providers, including very small ones, have staff-written profiles with an author byline and a medical-reviewer credit. Inclusion bar is clearly low; absence is the anomaly.
+- MediCompare rank order tracks public star ratings, and the ProductReview and Trustpilot categories rank on review volume. Review mass is the upstream input for every downstream listing outcome; the submission ask is inclusion and factual correctness, never ranking.
+- Attributes these surfaces actually compare, for framing any submission: entry price, review score and volume, bulk-billing availability, wait-time claim, 24/7 availability, app availability, certificate-type breadth, and legitimacy signals (AHPRA, Fair Work validity, employer verification). InstantMed's strongest honest differentiators for a pitch: genuine 24/7 operation, full refund when the doctor declines, and instant employer verification at `/verify` (no comparison surface currently has a refund-on-decline column; it can be offered to MediCompare as a data point).
+- Community threads (Reddit) turn on two axes: cheapness and "will my employer accept it". The employer-acceptance axis is the one InstantMed can win; cheapness is deliberately conceded per settled pricing policy.
+- Competitor-authored listicles (OnCare, NewDoc, Doccy, ConsultNow, NextClinic blog) rank for comparison queries while listing themselves first; they are not realistic listing targets, but they are evidence that InstantMed's own indexed comparison surface can rank for the same queries.
 
 ## Asset checklist before submission
 
