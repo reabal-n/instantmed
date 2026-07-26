@@ -3,7 +3,16 @@ packages:
 
 auditConfig:
   ignoreGhsas:
+    # sharp inherited libvips CVEs (<0.35.0). Revisit trigger + rationale in
+    # CLAUDE.md Gotchas.
     - GHSA-f88m-g3jw-g9cj
+    # brace-expansion DoS. Advertised range is "<=5.0.7", which numerically
+    # catches the 1.x line too. Every PRODUCTION path resolves to the patched
+    # 5.0.8 (verified via `pnpm why brace-expansion --prod`); the only match
+    # left is 1.1.16, dev-only under eslint > minimatch@3, and 1.1.16 is the
+    # newest 1.x ever published, so there is no patch-only path. Revisit
+    # trigger + rationale in CLAUDE.md Gotchas.
+    - GHSA-mh99-v99m-4gvg
 
 onlyBuiltDependencies:
   - "@sentry/cli"
