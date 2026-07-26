@@ -1371,12 +1371,14 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Complete the health form so a doctor can assess whether routine certificate evidence is appropriate.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: `Medical Certificate for Migraine | Sick Note Online ${PRICING_DISPLAY.MED_CERT}`,
+      title: "Medical Certificate for Migraine or Headache",
       description:
-        `Request a medical certificate for migraine absence. AHPRA-registered doctors review your answers online. From ${PRICING_DISPLAY.MED_CERT}. Employer policies vary.`,
+        `Request a medical certificate for a migraine or severe headache, reviewed online by AHPRA-registered doctors 24/7. From ${PRICING_DISPLAY.MED_CERT}. Employer policies vary.`,
       keywords: [
         "medical certificate for migraine",
         "migraine sick certificate",
+        "headache medical certificate",
+        "medical certificate for headache",
         "medical certificate headache australia",
         "sick note migraine online",
         "migraine work certificate",
@@ -1622,7 +1624,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "For short back-pain absences where routine certificate evidence is clinically appropriate.",
     ctaButtonText: "Start certificate request",
     metadata: {
-      title: `Medical Certificate for Back Pain | Sick Note Online ${PRICING_DISPLAY.MED_CERT}`,
+      title: "Online Medical Certificate for Back Pain",
       description:
         `Request a medical certificate for back pain absence. AHPRA-registered doctors review symptoms, work impact, and red flags. From ${PRICING_DISPLAY.MED_CERT}. Employer policies vary.`,
       keywords: [
