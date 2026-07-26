@@ -2,7 +2,7 @@
 
 > **Authority linkage (ROADMAP §7):** this plan elaborates ROADMAP rank 3 (external reputation and distribution) and rank 6 (compounding work), and inherits their checkpoints. It does not reorder the queue. Ads economics stay in rank 4 and are out of scope here.
 >
-> **Written:** 2026-07-24, from live Supabase + GSC pulls the same day. Re-derive live numbers before quoting; they move fast.
+> **Written:** 2026-07-24 from live Supabase + GSC pulls. **Index baseline and wave 1 re-derived 2026-07-26** from a 60-URL GSC URL-Inspection audit + 90d page/query performance. Re-derive live numbers before quoting; they move fast.
 
 ---
 
@@ -33,9 +33,10 @@ The math:
 | — Organic search | 0 → 3 → 12 → 15 (Apr→Jul) | |
 | — Direct/dark + other | ~5/mo (most old dark traffic now resolves to AI via landing-page UTMs) | |
 | GSC clicks / impressions (monthly) | 21 → 52 → 58 → 104 → 131* (Mar→Jul, *through 21st) | GSC API |
-| Top organic assets | parents-sick-child (47 clicks/28d, pos 6.7), antibiotics-OTC cluster (34 clicks, pos 6–9 on 5.9k impr), `/medical-certificate` pos 28.6 on 2.4k impr | GSC API |
+| Top organic assets (90d) | antibiotics-OTC 8,850 impr @ pos 9.2; parents-sick-child 6,065 @ pos 7.2 (75 clicks, best converter); `/medical-certificate` 3,476 @ pos 33.2 | GSC API |
 | Advertised sitemap URLs | 151 | live curl |
-| Indexed pages | ~40–45 (last verified late June — **re-baseline at kickoff**) | GSC |
+| Indexed pages (earning impressions, 90d) | **103**, of which **64 of the 151 advertised**; 87 advertised URLs dark | GSC audit 2026-07-26 |
+| Pages earning clicks (90d) | 34 | GSC audit 2026-07-26 |
 | ProductReview reviews | 2 (131 asks sent, 1.5%) | listing |
 | Third-party comparison/directory presence | **zero** (MediCompare 404, Finder absent, no Trustpilot profile); NHSD/PCA .gov.au listing live; LegitScript live | 07-24 sweep |
 | Semrush AI visibility | 14/100, ChatGPT only engine citing (Jun 20) | Semrush UI (API cannot pull this) |
@@ -103,9 +104,38 @@ Reframe of the June "stop deepening" verdict, which was correct *then*: money pa
 | Employer/HR verification cluster | Feeds W2 outreach; the winnable "will my employer accept it" axis | Doubles as the linked asset for the B2B packet |
 | Conditions re-index (38 held) | Only with per-page GSC evidence | Already deep; re-index is cheap when justified |
 
-- **Monthly CTR pass** (proven method): title/meta rewrites only on pages ranking pos ≤10 with ≥300 impressions and weak CTR. Never on pos >10 pages — that's an authority problem.
-- **Targets (indexed pages, the real KPI):** ≥60 by Sep 1 · ≥85 by Oct 15 · ≥110 by Dec 1 · **≥140 by Jan 31** (from ~40–45).
+- **Monthly CTR pass** (proven method): title/meta rewrites only on pages ranking pos ≤10 with meaningful impressions and weak CTR. Never on pos >10 pages — that's an authority problem.
+- **Targets — KPI is `advertised URLs earning impressions`, currently 64 of 151:** ≥80 by Sep 1 · ≥100 by Oct 15 · ≥120 by Dec 1 · **≥140 by Jan 31**. Track total indexed (103 today) as the secondary line. Do not let the sitemap outrun indexation: cap advertised URLs at ≤210.
 - **Kill rule:** two consecutive failed wave gates = stop publishing, return to authority work only, re-audit with the operator.
+
+#### Wave 1 (built from the 2026-07-26 audit — execute in this order)
+
+Evidence-led, and deliberately *not* impressions-ranked: query intent decides. Group A is cheap and needs no authority; group B is where depth compounds.
+
+**Group A — CTR repair on pages already ranking page 1 with ~zero clicks** (title/meta only, minimal blast radius):
+
+| Page | 90d impr | pos | CTR | The gap |
+|---|---|---|---|---|
+| `/blog/work-from-home-sick-certificate` | 2,308 | 6.7 | 0.9% | Wins long "can an employee work while on sick leave" queries at pos 3–9 with 0 clicks on every one; title doesn't match that question |
+| `/medical-certificate/migraine` | 126 | 8.4 | 0.8% | Intent page, page-1, barely clicked |
+| `/verify` | 103 | 13.7 | 1.0% | Employer-verification asset; snippet likely doesn't say "check if a certificate is genuine". Strategic: the W2 outreach landing |
+| `/employers` | 44 | 10.1 | **0%** | Same lane, page 1, zero clicks — fix alongside `/verify` |
+| `/why-instant` | 98 | 9.2 | **0%** | Page 1, zero clicks |
+| `/medical-certificate/back-pain` | 67 | 4.0 | 1.5% | pos 4 underperforming |
+
+**Group B — deepen where intent is proven and commercially adjacent:**
+
+1. `/blog/parents-sick-child-certificate` — 6,065 impr, pos 7.2, 75 clicks (best converter on site). Carer/child-certificate intent maps to a real service. Push pos 7.2 → top 5 with sub-intent coverage (casual employees, notice periods, childcare vs school evidence rules, multi-day absences).
+2. `/blog/can-you-get-antibiotics-online-australia` — 8,850 impr, pos 9.2, the single biggest asset. **Caveat: CTR is AI-Overview-capped** for "over the counter antibiotics"-class queries, so judge it on position and citations, not clicks. Its real job is GEO anchor + topical hub for the Rx lane.
+3. The med-cert situational cluster around parents-sick-child (`carers-leave`, `medical-certificate-for-work`, `sick-leave-rights`) — already interlinked; deepen the weakest node.
+
+**Group C — do NOT invest (evidence says no), despite looking attractive:**
+
+- `/blog/ahpra-registered-doctor-meaning` (1,946 impr, pos 9.2, 0.2% CTR) — **`docs/ARTICLE_TEMPLATE.md` §9 nominates this as the next rollout PR; the query data says skip it.** It ranks for *navigational* intent ("ahpra", "ahpra doctor register") where searchers want ahpra.gov.au. CTR cannot be fixed by us. Keep it as a trust/E-E-A-T and LLM-citation asset; don't spend a wave slot. Re-point the §9 queue at Group A/B.
+- `/blog/pbs-pharmaceutical-benefits-scheme` (2,292 impr, pos 10.4) — impressions are spread across incoherent drug-cost long tail ("crestor 5mg chemist warehouse", "amox clav", "biologics for asthma cost"). No conversion path, and much of it is drug-specific where policy limits what we may say. Impression farm; deprioritise.
+- The 39 **discovered-not-indexed** URLs (`/prescriptions`, `/online-prescriptions`, `/uti-assessment-online`, `/online-doctor-australia`, `/compare/online-medical-certificate-options`, 9 `/resources/*`, city/location pages, and 5 blog articles incl. **both money-line pillars**). 44 of 54 inspected URLs have **never been crawled** — on-page edits there are invisible to Google. Confirmed dead end this audit: the dark blog pillars are *already* linked as related reading from the trusted articles (`finasteride-vs-minoxidil` → hair-loss pillar; `sildenafil-vs-tadalafil` → ED pillar; antibiotics → amoxicillin) and remain uncrawled after 6+ weeks. **Internal linking to dark pages is exhausted as a lever — they need W2/W5 authority.**
+
+**What changed since June (worth noting):** `/medical-certificate` is now **indexed** (was "Discovered – not indexed"), holding 3,476 impressions at pos 33.2, and ranks pos 37.4 for the head term "medical certificate online". `/telehealth-australia`, `/erectile-dysfunction`, `/hair-loss`, `/womens-health`, `/contraceptive-pill-assessment-online` and `/pricing` are all indexed too. The money-page crawl blockade has partially broken. `/medical-certificate` at pos 33 is now the clearest single measure of whether W2/W5 authority work is landing — **it is not a wave-1 content target** (pos >10 = authority, not copy).
 
 ### W4 — GEO maintenance + LLM answer measurement
 
@@ -124,7 +154,7 @@ The one earned-media link play that works with company-only attribution (binding
 - **Nov:** re-run the aggregate viability counts; build the report (schema notes + build steps already in `docs/audits/2026-06-04-data-asset-spec.md` — note `intakes.category` not `service_type`, exclude the seeded patient).
 - **Dec:** produce the page + 2–3 chart visuals; pre-pitch list of AU HR/workplace/news outlets (agent drafts, company-attributed).
 - **Jan:** pitch into the back-to-work window ("what Australia's sick days look like, from real telehealth data"). This is timed to hit exactly when the $20k month needs its authority step-change.
-- **Target:** 8–15 referring domains from the cycle. This is the single play most likely to move `/medical-certificate` (pos ~29, 44k-vol head query) onto page 1.
+- **Target:** 8–15 referring domains from the cycle. This is the single play most likely to move `/medical-certificate` (pos 33.2 overall, pos 37.4 on the 44k-vol head query "medical certificate online") toward page 1.
 - **Gate:** re-confirm with operator before build (privacy posture unchanged, numbers credible).
 
 ### W6 — Owned reorder loop (free-revenue thickener; existing checkpoints only)
