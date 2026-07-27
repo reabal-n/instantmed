@@ -1,6 +1,12 @@
 #!/usr/bin/env npx tsx
 
 import {
+  checkExperiment,
+  createExperimentFromProposal,
+  evaluateExperiment,
+  stopExperiment,
+} from "@/lib/ads-agent/experiments"
+import {
   applyProposal,
   validateProposal,
   verifyProposal,
@@ -21,6 +27,10 @@ type Command =
   | "reject"
   | "apply"
   | "verify"
+  | "experiment:create"
+  | "experiment:check"
+  | "experiment:stop"
+  | "experiment:evaluate"
 
 const USAGE = [
   "pnpm ads:agent -- snapshot",
@@ -31,6 +41,10 @@ const USAGE = [
   "pnpm ads:agent -- reject --proposal=<proposal-key> --reference=codex-task:<task-id>",
   "pnpm ads:agent -- apply --proposal=<proposal-key>",
   "pnpm ads:agent -- verify --proposal=<proposal-key>",
+  "pnpm ads:agent -- experiment:create --proposal=<proposal-key>",
+  "pnpm ads:agent -- experiment:check --experiment=<experiment-key>",
+  "pnpm ads:agent -- experiment:stop --experiment=<experiment-key>",
+  "pnpm ads:agent -- experiment:evaluate --experiment=<experiment-key>",
 ].join("\n")
 
 function option(name: string): string | null {
@@ -81,6 +95,23 @@ async function run(command: Command): Promise<void> {
     process.stdout.write(
       "Run evidence loaded. Create only one exact restricted operation packet.\n",
     )
+    return
+  }
+
+  if (command === "experiment:create") {
+    writeJson(await createExperimentFromProposal(requiredOption("proposal")))
+    return
+  }
+  if (command === "experiment:check") {
+    writeJson(await checkExperiment(requiredOption("experiment")))
+    return
+  }
+  if (command === "experiment:stop") {
+    writeJson(await stopExperiment(requiredOption("experiment")))
+    return
+  }
+  if (command === "experiment:evaluate") {
+    writeJson(await evaluateExperiment(requiredOption("experiment")))
     return
   }
 
@@ -141,6 +172,10 @@ async function main(): Promise<void> {
     "reject",
     "apply",
     "verify",
+    "experiment:create",
+    "experiment:check",
+    "experiment:stop",
+    "experiment:evaluate",
   ]
   if (!command || !commands.includes(command)) {
     throw new Error(USAGE)

@@ -129,13 +129,22 @@ describe("Telegram Ads approval security", () => {
   })
 
   it("renders the complete PHI-free approval packet", () => {
-    const card = formatTelegramAdsProposalCard(proposal())
+    const card = formatTelegramAdsProposalCard(proposal(), {
+      durationDays: 14,
+      maxLossCents: 15_000,
+      methodology: "versioned_sequential",
+      minimumOrdersPerArm: 10,
+      variable: "schedules",
+    })
     expect(card).toContain("ADS-20260730-01 · expires")
     expect(card).toContain("ED · ED: ENABLED → PAUSED")
     expect(card).toContain("Bounded impact: up to A$7/day avoided")
     expect(card).toContain("Why: Specialty loss cap reached")
     expect(card).toContain("Validation: PASSED")
     expect(card).toContain("Rollback: PAUSED → ENABLED")
+    expect(card).toContain(
+      "Experiment: schedules · sequential · 14 days · minimum 10 retained orders/arm · A$150.00 max loss",
+    )
   })
 
   it("records an exact one-time approval without raw Telegram identity or payload", async () => {

@@ -193,6 +193,10 @@ function proposal(
 function fakeRepository(
   initial: AdsChangeProposal,
   trackingState: "GREEN" | "AMBER" | "RED" = "GREEN",
+  experimentLock: {
+    launchProposalKey: string
+    stopProposalKey: string | null
+  } | null = null,
 ): {
   audits: AdsMutationAuditReceipt[]
   getCurrent(): AdsChangeProposal
@@ -241,6 +245,7 @@ function fakeRepository(
       fresh: true,
       state: trackingState,
     })),
+    getMaterialExperimentLock: vi.fn(async () => experimentLock),
     getProposalByKey: vi.fn(async (proposalKey) =>
       proposalKey === current.proposalKey ? structuredClone(current) : null),
     recordApplyOutcome: vi.fn(async (args) => {
@@ -296,10 +301,18 @@ function gateway(args: {
   initial?: AdsChangeProposal
   mutate?: ReturnType<typeof vi.fn>
   mutationsEnabled?: boolean
+  experimentLock?: {
+    launchProposalKey: string
+    stopProposalKey: string | null
+  } | null
   trackingState?: "GREEN" | "AMBER" | "RED"
 }) {
   const initial = args.initial ?? proposal(args.accountReads[0])
-  const store = fakeRepository(initial, args.trackingState)
+  const store = fakeRepository(
+    initial,
+    args.trackingState,
+    args.experimentLock,
+  )
   const getAccountState = vi.fn()
   for (const state of args.accountReads) {
     getAccountState.mockResolvedValueOnce(state)
@@ -488,6 +501,35 @@ describe("Google Ads mutation gateway", () => {
       outcome: "aborted",
     })
     expect(harness.mutate).not.toHaveBeenCalled()
+  })
+
+  it("locks a sequential campaign against unrelated material packets", async () => {
+    const state = accountState()
+    const blocked = gateway({
+      accountReads: [state],
+      experimentLock: {
+        launchProposalKey: "ADS-20260729-01",
+        stopProposalKey: "ADS-20260731-01",
+      },
+    })
+    await expect(
+      blocked.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({
+      errorCode: "experiment_material_change_locked",
+      outcome: "aborted",
+    })
+    expect(blocked.mutate).not.toHaveBeenCalled()
+
+    const launch = gateway({
+      accountReads: [state, stateWithBudget(state, 48_000_000)],
+      experimentLock: {
+        launchProposalKey: "ADS-20260730-01",
+        stopProposalKey: null,
+      },
+    })
+    await expect(
+      launch.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({ outcome: "applied" })
   })
 
   it("rejects account-budget overflow", () => {

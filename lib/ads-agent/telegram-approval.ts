@@ -34,6 +34,14 @@ export interface TelegramAdsApprovalRepository {
   getProposalByKey(proposalKey: string): Promise<AdsChangeProposal | null>
 }
 
+export interface AdsExperimentApprovalSummary {
+  durationDays: number
+  maxLossCents: number
+  methodology: "google_custom" | "versioned_sequential"
+  minimumOrdersPerArm: number
+  variable: string
+}
+
 export type TelegramAdsDecisionResult =
   | {
       decision: TelegramAdsDecision
@@ -146,6 +154,7 @@ export function buildTelegramAdsCallbackData(
 
 export function formatTelegramAdsProposalCard(
   proposal: AdsChangeProposal,
+  experiment?: AdsExperimentApprovalSummary | null,
 ): string {
   const expiresAt = new Date(proposal.expiresAt)
   if (!Number.isFinite(expiresAt.getTime())) {
@@ -158,14 +167,83 @@ export function formatTelegramAdsProposalCard(
     timeZone: "Australia/Sydney",
   }).format(expiresAt)
 
-  return [
+  const lines = [
     `${proposal.proposalKey} · expires ${expiry} Sydney`,
     `${SERVICE_LABELS[proposal.rationale.service]} · ${proposal.rationale.campaign}: ${proposal.rationale.currentValue} → ${proposal.rationale.requestedValue}`,
     `Bounded impact: ${proposal.rationale.boundedImpact}`,
+    ...(experiment
+      ? [
+          `Experiment: ${experiment.variable} · ${
+            experiment.methodology === "google_custom"
+              ? "Google custom"
+              : "sequential"
+          } · ${experiment.durationDays} days · minimum ${experiment.minimumOrdersPerArm} retained orders/arm · A$${(
+            experiment.maxLossCents / 100
+          ).toFixed(2)} max loss`,
+        ]
+      : []),
     `Why: ${proposal.rationale.reason}`,
     `Validation: ${proposal.validationReceipt?.ok ? "PASSED" : "NOT PASSED"}`,
     `Rollback: ${proposal.rationale.requestedValue} → ${proposal.rollbackPlan.value}`,
-  ].join("\n")
+  ]
+  return lines.join("\n")
+}
+
+async function getExperimentApprovalSummary(args: {
+  proposalKey: string
+  supabase: Parameters<
+    typeof markAdsProposalAwaitingTelegramApproval
+  >[0]["supabase"]
+}): Promise<AdsExperimentApprovalSummary | null> {
+  const result = await args.supabase
+    .from("google_ads_experiments")
+    .select(
+      "variable, max_loss_cents, minimum_orders_per_arm, starts_at, ends_at, result",
+    )
+    .in("status", ["draft", "approved"])
+    .contains("result", { launchProposalKey: args.proposalKey })
+    .limit(2)
+  if (result.error) {
+    throw new Error(
+      `google_ads_experiment_approval_read_failed:${result.error.code || "unknown"}`,
+    )
+  }
+  if ((result.data?.length ?? 0) > 1) {
+    throw new Error("multiple_experiments_for_proposal")
+  }
+  const row = result.data?.[0]
+  if (!row) return null
+  const value = row.result && typeof row.result === "object"
+    ? row.result as Record<string, unknown>
+    : null
+  const methodology = value?.methodology
+  const startsAt = Date.parse(String(row.starts_at ?? ""))
+  const endsAt = Date.parse(String(row.ends_at ?? ""))
+  const durationDays = Math.round(
+    (endsAt - startsAt) / (24 * 60 * 60 * 1000),
+  )
+  if (
+    (methodology !== "google_custom"
+      && methodology !== "versioned_sequential")
+    || !Number.isInteger(durationDays)
+    || durationDays <= 0
+    || durationDays > 30
+    || !Number.isInteger(row.max_loss_cents)
+    || row.max_loss_cents <= 0
+    || !Number.isInteger(row.minimum_orders_per_arm)
+    || row.minimum_orders_per_arm < 10
+    || typeof row.variable !== "string"
+    || !row.variable.trim()
+  ) {
+    throw new Error("invalid_experiment_approval_summary")
+  }
+  return {
+    durationDays,
+    maxLossCents: row.max_loss_cents,
+    methodology,
+    minimumOrdersPerArm: row.minimum_orders_per_arm,
+    variable: row.variable,
+  }
 }
 
 export async function sendAdsProposalForTelegramApproval(args: {
@@ -186,6 +264,10 @@ export async function sendAdsProposalForTelegramApproval(args: {
     throw new Error("Ads proposal is not validated")
   }
   assertAdsProposalOperationsUnchanged(args.proposal)
+  const experiment = await getExperimentApprovalSummary({
+    proposalKey: args.proposal.proposalKey,
+    supabase: args.supabase,
+  })
 
   const result = await sendGoogleAdsProposalCardViaTelegram({
     approveCallbackData: buildTelegramAdsCallbackData(
@@ -193,7 +275,7 @@ export async function sendAdsProposalForTelegramApproval(args: {
       args.proposal,
       signingSecret,
     ),
-    message: formatTelegramAdsProposalCard(args.proposal),
+    message: formatTelegramAdsProposalCard(args.proposal, experiment),
     proposalKey: args.proposal.proposalKey,
     rejectCallbackData: buildTelegramAdsCallbackData(
       "reject",

@@ -73,6 +73,12 @@ export interface AdsMutationGatewayRepository {
     now: Date
     runId: string | null
   }): Promise<AdsTrackingGateReceipt>
+  getMaterialExperimentLock(args: {
+    campaign: string
+  }): Promise<{
+    launchProposalKey: string
+    stopProposalKey: string | null
+  } | null>
   getProposalByKey(proposalKey: string): Promise<AdsChangeProposal | null>
   recordApplyOutcome(args: {
     expectedStatus: "approved" | "applying"
@@ -1038,6 +1044,22 @@ function verifiedDecisionReceipt(proposal: AdsChangeProposal): boolean {
   )
 }
 
+async function assertExperimentChangeUnlocked(args: {
+  proposal: AdsChangeProposal
+  repository: AdsMutationGatewayRepository
+}): Promise<void> {
+  const lock = await args.repository.getMaterialExperimentLock({
+    campaign: args.proposal.rationale.campaign,
+  })
+  if (
+    lock
+    && args.proposal.proposalKey !== lock.launchProposalKey
+    && args.proposal.proposalKey !== lock.stopProposalKey
+  ) {
+    throw new Error("experiment_material_change_locked")
+  }
+}
+
 function errorCode(error: unknown): string {
   const message = error instanceof Error ? error.message : "unknown_error"
   const normalized = message
@@ -1230,6 +1252,7 @@ export function createAdsMutationGateway(
 
     let receipt: ValidationReceipt
     try {
+      await assertExperimentChangeUnlocked({ proposal, repository })
       const state = await dependencies.getAccountState({ now })
       const baselineHash = hashGoogleAdsAccountState(state)
       if (baselineHash !== proposal.baselineHash) {
@@ -1318,6 +1341,7 @@ export function createAdsMutationGateway(
     let googleOperations: GoogleAdsMutateOperation[]
     let googleOperationsHash = fallbackGoogleOperationsHash(proposal)
     try {
+      await assertExperimentChangeUnlocked({ proposal, repository })
       state = await dependencies.getAccountState({ now })
       operations = validateAdsMutationPolicy({
         operations: proposal.operations,
@@ -1750,6 +1774,52 @@ export function createSupabaseAdsMutationRepository(args: {
         checkedAt: now.toISOString(),
         fresh,
         state,
+      }
+    },
+    async getMaterialExperimentLock({ campaign }) {
+      const result = await supabase
+        .from("google_ads_experiments")
+        .select("control, result")
+        .in("status", [
+          "draft",
+          "approved",
+          "running",
+          "won",
+          "lost",
+          "inconclusive",
+        ])
+      if (result.error) {
+        throw new Error(
+          `google_ads_experiment_lock_read_failed:${result.error.code || "unknown"}`,
+        )
+      }
+      const normalize = (value: string) =>
+        value
+          .normalize("NFKD")
+          .replace(/[’']/g, "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .toLowerCase()
+      const matches = (result.data ?? []).filter((value) => {
+        const control = asRecord(value.control)
+        return (
+          typeof control?.campaign === "string"
+          && normalize(control.campaign) === normalize(campaign)
+        )
+      })
+      if (matches.length > 1) {
+        throw new Error("multiple_experiment_locks")
+      }
+      const match = matches[0]
+      if (!match) return null
+      const value = asRecord(match.result)
+      const launchProposalKey = asString(value?.launchProposalKey)
+      if (!launchProposalKey) {
+        throw new Error("experiment_launch_packet_missing")
+      }
+      return {
+        launchProposalKey,
+        stopProposalKey: asString(value?.stopProposalKey),
       }
     },
     getProposalByKey: (proposalKey) =>

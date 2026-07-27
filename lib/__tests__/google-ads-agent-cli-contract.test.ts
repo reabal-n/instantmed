@@ -32,6 +32,10 @@ describe("Google Ads Agent CLI contract", () => {
       "reject",
       "apply",
       "verify",
+      "experiment:create",
+      "experiment:check",
+      "experiment:stop",
+      "experiment:evaluate",
     ]) {
       expect(source).toContain(`"${command}"`)
     }
@@ -46,6 +50,21 @@ describe("Google Ads Agent CLI contract", () => {
     expect(source).toContain("--reference")
     expect(source).not.toContain("mutateGoogleAds({ operations: JSON.parse")
     expect(source).not.toContain("gateway is not available yet")
+  })
+
+  it("keeps experiment launch and stop tied to exact proposal packets", () => {
+    expect(source).toContain(
+      "createExperimentFromProposal(requiredOption(\"proposal\"))",
+    )
+    expect(source).toContain(
+      "stopExperiment(requiredOption(\"experiment\"))",
+    )
+    expect(source).toContain(
+      "experiment:create --proposal=<proposal-key>",
+    )
+    expect(source).toContain(
+      "experiment:stop --experiment=<experiment-key>",
+    )
   })
 
   it("never prints or accepts secret values", () => {
