@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -8,6 +8,13 @@ const migrationPath = join(
   "supabase/migrations/20260727180000_google_ads_agent_control_plane.sql",
 )
 const sql = existsSync(migrationPath) ? readFileSync(migrationPath, "utf8") : ""
+const migrationDirectory = join(process.cwd(), "supabase/migrations")
+const intakeFeeMigrationName = readdirSync(migrationDirectory).find((name) =>
+  name.endsWith("_google_ads_fee_cache_on_intakes.sql"),
+)
+const intakeFeeSql = intakeFeeMigrationName
+  ? readFileSync(join(migrationDirectory, intakeFeeMigrationName), "utf8")
+  : ""
 
 describe("Google Ads Agent control-plane migration", () => {
   it("creates service-role-only Ads Agent state", () => {
@@ -34,5 +41,13 @@ describe("Google Ads Agent control-plane migration", () => {
     expect(sql).not.toMatch(
       /\b(patient_id|search_query|clinical_answers?|medication_name|gclid|gbraid|wbraid)\b/i,
     )
+  })
+
+  it("caches fee truth on the intake that owns the current PaymentIntent", () => {
+    expect(intakeFeeSql).toContain("alter table public.intakes")
+    expect(intakeFeeSql).toContain("stripe_balance_transaction_id text")
+    expect(intakeFeeSql).toContain("stripe_fee_cents integer")
+    expect(intakeFeeSql).toContain("stripe_fee_synced_at timestamptz")
+    expect(intakeFeeSql).not.toMatch(/drop\s+(column|table)/i)
   })
 })

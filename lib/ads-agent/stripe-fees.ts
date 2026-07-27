@@ -11,9 +11,8 @@ interface StripeFeeIntake {
   stripePaymentIntentId: string | null
 }
 
-interface PaymentFeeCacheRow {
+interface IntakeFeeCacheRow {
   id: string
-  intake_id: string | null
   stripe_balance_transaction_id: string | null
   stripe_fee_cents: number | null
   stripe_fee_synced_at: string | null
@@ -22,7 +21,6 @@ interface PaymentFeeCacheRow {
 
 interface FeeLookupWork {
   intake: StripeFeeIntake
-  paymentRowId: string
 }
 
 export type StripeFeeResult =
@@ -33,7 +31,7 @@ function unavailable(reason: string): StripeFeeResult {
   return { status: "unavailable", reason }
 }
 
-function hasDurableCachedFee(row: PaymentFeeCacheRow): boolean {
+function hasDurableCachedFee(row: IntakeFeeCacheRow): boolean {
   return (
     Number.isSafeInteger(row.stripe_fee_cents) &&
     (row.stripe_fee_cents ?? -1) >= 0 &&
@@ -99,13 +97,13 @@ async function fetchAndCacheStripeFee(args: {
 
     const syncedAt = new Date().toISOString()
     const { data, error } = await args.supabase
-      .from("payments")
+      .from("intakes")
       .update({
         stripe_balance_transaction_id: balanceTransaction.id,
         stripe_fee_cents: balanceTransaction.fee,
         stripe_fee_synced_at: syncedAt,
       })
-      .eq("id", args.work.paymentRowId)
+      .eq("id", intake.id)
       .eq("stripe_payment_intent_id", paymentIntentId)
       .select("id")
       .maybeSingle()
@@ -154,11 +152,11 @@ export async function getStripeFeeMap(args: {
   }
 
   const { data, error } = await args.supabase
-    .from("payments")
+    .from("intakes")
     .select(
-      "id, intake_id, stripe_payment_intent_id, stripe_balance_transaction_id, stripe_fee_cents, stripe_fee_synced_at",
+      "id, stripe_payment_intent_id, stripe_balance_transaction_id, stripe_fee_cents, stripe_fee_synced_at",
     )
-    .in("intake_id", withPaymentIntents.map((intake) => intake.id))
+    .in("id", withPaymentIntents.map((intake) => intake.id))
 
   if (error) {
     for (const intake of withPaymentIntents) {
@@ -167,39 +165,30 @@ export async function getStripeFeeMap(args: {
     return result
   }
 
-  const rows = (data ?? []) as PaymentFeeCacheRow[]
+  const rows = (data ?? []) as IntakeFeeCacheRow[]
   const work: FeeLookupWork[] = []
 
   for (const intake of withPaymentIntents) {
-    const matchingRows = rows.filter(
-      (row) =>
-        row.intake_id === intake.id &&
-        row.stripe_payment_intent_id === intake.stripePaymentIntentId,
-    )
-
-    if (matchingRows.length === 0) {
-      result.set(intake.id, unavailable("payment_cache_row_missing"))
+    const intakeRow = rows.find((row) => row.id === intake.id)
+    if (!intakeRow) {
+      result.set(intake.id, unavailable("intake_cache_row_missing"))
       continue
     }
-    if (matchingRows.length > 1) {
-      result.set(intake.id, unavailable("payment_cache_row_ambiguous"))
+    if (intakeRow.stripe_payment_intent_id !== intake.stripePaymentIntentId) {
+      result.set(intake.id, unavailable("payment_intent_mismatch"))
       continue
     }
 
-    const [paymentRow] = matchingRows
-    if (hasDurableCachedFee(paymentRow)) {
+    if (hasDurableCachedFee(intakeRow)) {
       result.set(intake.id, {
         status: "available",
-        feeCents: paymentRow.stripe_fee_cents as number,
+        feeCents: intakeRow.stripe_fee_cents as number,
         source: "cache",
       })
       continue
     }
 
-    work.push({
-      intake,
-      paymentRowId: paymentRow.id,
-    })
+    work.push({ intake })
   }
 
   await runWithConcurrency(

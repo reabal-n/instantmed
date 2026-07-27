@@ -4,9 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { getStripeFeeMap } from "@/lib/ads-agent/stripe-fees"
 import { stripe } from "@/lib/stripe/client"
 
-interface PaymentCacheRow {
+interface IntakeFeeCacheRow {
   id: string
-  intake_id: string
   stripe_balance_transaction_id: string | null
   stripe_fee_cents: number | null
   stripe_fee_synced_at: string | null
@@ -14,7 +13,7 @@ interface PaymentCacheRow {
 }
 
 function makeSupabase(options: {
-  rows?: PaymentCacheRow[]
+  rows?: IntakeFeeCacheRow[]
   selectError?: { message: string } | null
   updateError?: { message: string } | null
 }) {
@@ -84,8 +83,7 @@ describe("Google Ads Agent Stripe fee truth", () => {
   it("uses a durable cached fee without calling Stripe", async () => {
     const supabase = makeSupabase({
       rows: [{
-        id: "payment-cached",
-        intake_id: "intake-cached",
+        id: "intake-cached",
         stripe_balance_transaction_id: "txn_cached",
         stripe_fee_cents: 103,
         stripe_fee_synced_at: "2026-07-27T00:00:00.000Z",
@@ -110,8 +108,7 @@ describe("Google Ads Agent Stripe fee truth", () => {
   it("fetches an expanded balance transaction and durably caches the fee", async () => {
     const supabase = makeSupabase({
       rows: [{
-        id: "payment-live",
-        intake_id: "intake-live",
+        id: "intake-live",
         stripe_balance_transaction_id: null,
         stripe_fee_cents: null,
         stripe_fee_synced_at: null,
@@ -132,7 +129,7 @@ describe("Google Ads Agent Stripe fee truth", () => {
     })
     expect(supabase.updates).toHaveLength(1)
     expect(supabase.updates[0]).toMatchObject({
-      intakeId: "payment-live",
+      intakeId: "intake-live",
       values: {
         stripe_balance_transaction_id: "txn_live",
         stripe_fee_cents: 174,
@@ -161,7 +158,7 @@ describe("Google Ads Agent Stripe fee truth", () => {
     expect(stripe.paymentIntents.retrieve).not.toHaveBeenCalled()
   })
 
-  it("does not call Stripe when there is no durable payment row to cache", async () => {
+  it("does not call Stripe when there is no authoritative intake row to cache", async () => {
     const supabase = makeSupabase({ rows: [] })
 
     const result = await getStripeFeeMap({
@@ -171,16 +168,39 @@ describe("Google Ads Agent Stripe fee truth", () => {
 
     expect(result.get("intake-no-row")).toEqual({
       status: "unavailable",
-      reason: "payment_cache_row_missing",
+      reason: "intake_cache_row_missing",
     })
     expect(stripe.paymentIntents.retrieve).not.toHaveBeenCalled()
+  })
+
+  it("rejects a cache row for a stale PaymentIntent", async () => {
+    const supabase = makeSupabase({
+      rows: [{
+        id: "intake-stale",
+        stripe_balance_transaction_id: null,
+        stripe_fee_cents: null,
+        stripe_fee_synced_at: null,
+        stripe_payment_intent_id: "pi_replaced",
+      }],
+    })
+
+    const result = await getStripeFeeMap({
+      intakes: [{ id: "intake-stale", stripePaymentIntentId: "pi_current" }],
+      supabase: supabase.client,
+    })
+
+    expect(result.get("intake-stale")).toEqual({
+      status: "unavailable",
+      reason: "payment_intent_mismatch",
+    })
+    expect(stripe.paymentIntents.retrieve).not.toHaveBeenCalled()
+    expect(supabase.updates).toEqual([])
   })
 
   it("marks Stripe retrieval failures as unavailable instead of zero", async () => {
     const supabase = makeSupabase({
       rows: [{
-        id: "payment-failed",
-        intake_id: "intake-failed",
+        id: "intake-failed",
         stripe_balance_transaction_id: null,
         stripe_fee_cents: null,
         stripe_fee_synced_at: null,
@@ -205,8 +225,7 @@ describe("Google Ads Agent Stripe fee truth", () => {
   it("requires the expanded balance transaction and a durable cache write", async () => {
     const missingExpansion = makeSupabase({
       rows: [{
-        id: "payment-unexpanded",
-        intake_id: "intake-unexpanded",
+        id: "intake-unexpanded",
         stripe_balance_transaction_id: null,
         stripe_fee_cents: null,
         stripe_fee_synced_at: null,
@@ -230,8 +249,7 @@ describe("Google Ads Agent Stripe fee truth", () => {
 
     const failedWrite = makeSupabase({
       rows: [{
-        id: "payment-write",
-        intake_id: "intake-write",
+        id: "intake-write",
         stripe_balance_transaction_id: null,
         stripe_fee_cents: null,
         stripe_fee_synced_at: null,
@@ -274,8 +292,7 @@ describe("Google Ads Agent Stripe fee truth", () => {
   it("limits live Stripe reads to five concurrent requests", async () => {
     const supabase = makeSupabase({
       rows: Array.from({ length: 12 }, (_, index) => ({
-        id: `payment-${index}`,
-        intake_id: `intake-${index}`,
+        id: `intake-${index}`,
         stripe_balance_transaction_id: null,
         stripe_fee_cents: null,
         stripe_fee_synced_at: null,
