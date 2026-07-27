@@ -140,6 +140,8 @@ Always clean up in `afterEach` or `afterAll`. Do not leave test records in the d
 
 Production request-flow synthetics are route/interaction probes, not persistence tests. They must install `e2e/helpers/production-synthetic-isolation.ts` before navigation so `/api/draft` and `/ingest` are fulfilled inside Playwright; a scheduled production check must never create `partial_intakes`, recovery emails, or PostHog funnel events.
 
+**CI PHI keys differ from production — seeded fixtures stay plaintext (load-bearing, 2026-07-24).** The CI secrets carry a different `PHI_MASTER_KEY` than production, so CI can encrypt/decrypt only its own writes. Anything a spec reads that was encrypted with the production key logs a `[phi-encryption] Failed to decrypt PHI` server error, and specs that assert zero console errors (e.g. `checkout-resume.spec.ts`) fail on it. Two rules keep this stable: (1) seeded E2E fixture rows are synthetic, not PHI, and are deliberately left plaintext — never encrypt them; (2) `scripts/encrypt-phi-backfill-envelope.ts` excludes the seeded patient's intakes for exactly this reason. If a fixture ever acquires a production-key envelope, strip it rather than aligning the CI key by reflex — a shared key would also mean a leaked CI secret unlocks production PHI.
+
 ### E2E Seams
 
 When `PLAYWRIGHT=1` is set:

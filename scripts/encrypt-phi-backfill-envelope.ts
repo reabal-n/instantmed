@@ -167,12 +167,23 @@ async function backfillAnswers(supabase: SupabaseClient, seededIds: string[]): P
   }
 }
 
+/**
+ * Documented permanent exception (see docs/SECURITY.md backfill receipt):
+ * this legacy general-consult intake rejects EVERY update because the
+ * retired-subtype check constraint `intakes_consult_subtype_not_general`
+ * validates the whole row on write. Its doctor_notes stays plaintext rather
+ * than rewriting a historical clinical subtype; skipping it here keeps
+ * routine sweep runs failure-free.
+ */
+const KNOWN_UNENCRYPTABLE_INTAKE_IDS = ["98ab74f5-9244-4c63-83a4-cf37d023df80"]
+
 async function backfillDoctorNotes(supabase: SupabaseClient, seededIds: string[]): Promise<void> {
   let dnQuery = supabase
     .from("intakes")
     .select("id, doctor_notes")
     .not("doctor_notes", "is", null)
     .is("doctor_notes_enc", null)
+    .not("id", "in", notInSeeded(KNOWN_UNENCRYPTABLE_INTAKE_IDS))
     .order("id")
     .limit(500)
   if (seededIds.length) dnQuery = dnQuery.not("id", "in", notInSeeded(seededIds))
@@ -301,6 +312,9 @@ async function verifyParity(supabase: SupabaseClient, seededIds: string[]): Prom
     .select("id", { count: "exact", head: true })
     .not("doctor_notes", "is", null)
     .is("doctor_notes_enc", null)
+    // Exclude the documented constraint-blocked exception so a non-zero count
+    // here always means a NEW unencrypted row worth investigating.
+    .not("id", "in", notInSeeded(KNOWN_UNENCRYPTABLE_INTAKE_IDS))
   if (seededIds.length) dnRemainingQuery = dnRemainingQuery.not("id", "in", notInSeeded(seededIds))
   const { count: dnRemaining } = await dnRemainingQuery
 

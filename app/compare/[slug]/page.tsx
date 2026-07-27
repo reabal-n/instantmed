@@ -173,6 +173,10 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       type: "alternative"
     },
     heroText: "Several telehealth services in Australia offer online medical certificates. Here's what to look for and how the options compare.",
+    // NOTE: this comparisonTable is NOT rendered for this slug — the render
+    // ternary below replaces it with providerPriceTable when one exists.
+    // Edit providerPriceTable (and the verdict/FAQ/guide copy) to change what
+    // visitors see here; rows added to this array are dead data.
     comparisonTable: [
       { feature: "AHPRA registered doctors", instantmed: true, competitor: "Varies - always check", winner: "tie" },
       { feature: "Review timing", instantmed: "Fast doctor review", competitor: "1-24 hours", winner: "instantmed" },
