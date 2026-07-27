@@ -514,19 +514,34 @@ InstantMed has Google Ads API access and an authenticated `@instantmed.com.au` a
 
 Launched services remain live at low budgets to gather data. That standing approval does not authorise an unreviewed mutation.
 
+### Google Ads Agent reports and approvals
+
+The control plane sends one PHI-free **Daily Ads Brief** at **09:00 Australia/Sydney**. It uses the previous closed Sydney calendar day and a rolling 30-day window ending on that same day. The brief is aggregate-only and contains tracking state, service economics, breached guardrails, and the next decision. It must not contain patient data, medicine data, click IDs, raw search terms, or long account dumps.
+
+Telegram has exactly two PHI-free Google Ads message classes:
+
+1. The scheduled Daily Ads Brief.
+2. An immutable proposal card with signed **Approve** and **Reject** buttons for one exact change packet.
+
+**Telegram Ads approval requires an immutable proposal** tied to the configured chat, recorded message ID, operation hash, expiry, dedicated Ads signing secret, and **authorised Telegram user ID**. The existing Telegram webhook secret header must also verify. Free text, replies, reactions, forwarded messages, silence, an unauthorised user, or a button detached from the recorded proposal message never count as approval.
+
+Every mutation requires either the exact authenticated Telegram button action from the configured approver or an exact Codex-task approval for the same immutable proposal. Both channels share one replay-safe proposal state machine; a duplicate, expired, already-consumed, or drifted approval aborts without mutation.
+
+Keep `GOOGLE_ADS_AGENT_MUTATIONS_ENABLED=false` and `TELEGRAM_ADS_APPROVALS_ENABLED=false` until the reporting, tracking, proposal-security, and guarded mutation path have completed shadow proof. No implementation-plan approval or broad instruction to manage Ads enables live changes.
+
 ### Daily loop
 
 1. Read the live account through the Google Ads API and use the authenticated browser only when the API cannot prove or perform the required operation.
 2. Reconcile Ads spend and conversions with local paid-order and net-retained revenue truth. State the reporting window and service/campaign scope.
 3. Present each proposed change with: campaign/ad group, current value, proposed value, reason, expected bounded impact, economic/safety evidence, and rollback.
-4. Wait for the operator to approve or decline the exact batch. Read-only inspection does not need approval. Every mutation does.
-5. For an approved API mutation, run `validateOnly` first when Google supports it. Apply only after validation succeeds. Use the authenticated CDP/browser path for UI-only changes.
-6. Re-read the changed object and record a PHI-free receipt with timestamp, before/after state, validation result, and rollback path.
+4. Store the exact proposal immutably, validate it, and wait for the operator to approve or reject that proposal through an authorised channel. Read-only inspection does not need approval. Every mutation does.
+5. After approval, fresh-read every governed resource, compare it with the proposal baseline, and run `validateOnly` again. Any validation failure, baseline drift, attribution failure, expired proposal, duplicate decision, or disabled kill switch aborts without mutation.
+6. Apply only the validated byte-equivalent operations with partial failure disabled. Re-read every changed object and append a PHI-free Mutation Receipt containing the baseline, validation, apply result, read-back verification, actor, timestamps, and rollback state.
 7. Return the result in the next daily brief. Do not silently extend a test, raise a budget again, or compensate for a weak result with another mutation.
 
 Approval is required for budgets, bids, bid strategies, keywords, negative keywords, match types, ads, assets, sitelinks, callouts, targeting, schedules, pauses, enables, experiments, and campaign creation/removal. No unattended Ads mutation is authorised by this workflow.
 
-Paid scaling remains governed by the first-order contribution and bounded-learning rules in `docs/REVENUE_MODEL.md`. Compliance failures follow `docs/ADVERTISING_COMPLIANCE.md` and the incident process; they do not widen mutation authority.
+Paid scaling remains governed by the fee-aware, service-level first-order contribution and bounded-learning rules in `docs/REVENUE_MODEL.md`. Attribution or tracking failures fail closed and block scaling. Compliance failures follow `docs/ADVERTISING_COMPLIANCE.md` and the incident process; they do not widen mutation authority.
 
 ---
 

@@ -23,7 +23,7 @@ _Avoid_: Primary purchase import, canonical purchase signal
 ## Advertising Operations
 
 **Google Ads Agent**:
-The approval-gated operating system that combines deterministic account and financial evidence with Codex analysis. It cannot mutate Google Ads without a fresh operator approval for an exact packet.
+The combined deterministic control plane and Codex manager for Google Ads. It cannot mutate the account without a fresh operator approval for an exact packet.
 _Avoid_: Autonomous bidder, unrestricted Ads bot
 
 **Daily Ads Brief**:
@@ -35,5 +35,5 @@ An immutable, expiring proposal that names exact current and requested Google Ad
 _Avoid_: Recommendation, general approval, change idea
 
 **Mutation Receipt**:
-The durable evidence that an approved Ads change was validated, applied, read back, and either verified or aborted.
+The append-only evidence that an approved Ads change had its baseline read, validation, apply result, read-back verification, actor, timestamps, and rollback state recorded.
 _Avoid_: Success message, mutation log
