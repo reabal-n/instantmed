@@ -35,6 +35,36 @@ describe("Telegram webhook hardening", () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
+  it.each(["", "wrong-webhook-secret"])(
+    "rejects a missing or invalid webhook secret header",
+    async (secretHeader) => {
+      const { POST } = await import("@/app/api/webhooks/telegram/route")
+      const headers: Record<string, string> = {
+        "content-type": "application/json",
+      }
+      if (secretHeader) {
+        headers["x-telegram-bot-api-secret-token"] = secretHeader
+      }
+
+      const response = await POST(new Request(
+        "https://instantmed.com.au/api/webhooks/telegram",
+        {
+          body: JSON.stringify({
+            callback_query: {
+              data: "ads:a:ADS-20260730-01:0123456789abcdef",
+              id: "callback-1",
+            },
+          }),
+          headers,
+          method: "POST",
+        },
+      ))
+
+      expect(response.status).toBe(401)
+      expect(fetchMock).not.toHaveBeenCalled()
+    },
+  )
+
   it("rejects Telegram approval callbacks unless approval actions are explicitly enabled", async () => {
     fetchMock.mockResolvedValue({ ok: true })
 

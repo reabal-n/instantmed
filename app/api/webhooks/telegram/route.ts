@@ -1,6 +1,10 @@
-import { timingSafeEqual } from "crypto"
 import { NextResponse } from "next/server"
 
+import {
+  createTelegramAdsApprovalRepository,
+  handleTelegramAdsDecision,
+  verifyTelegramWebhookSecret,
+} from "@/lib/ads-agent/telegram-approval"
 import { answerCallbackQuery, areTelegramApprovalActionsEnabled, editTelegramMessage, escapeMarkdown, verifyIntakeAction } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -8,7 +12,7 @@ const log = createLogger("telegram-webhook")
 
 /**
  * Telegram Bot Webhook - handles inline button callbacks.
- * Only processes "approve" actions for med cert intakes.
+ * Processes governed Ads decisions and optional med-cert approval actions.
  *
  * Security:
  * 1. X-Telegram-Bot-Api-Secret-Token header verified against TELEGRAM_WEBHOOK_SECRET
@@ -31,15 +35,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  let valid = false
-  try {
-    valid =
-      secretHeader.length === webhookSecret.length &&
-      timingSafeEqual(Buffer.from(secretHeader), Buffer.from(webhookSecret))
-  } catch {
-    valid = false
-  }
-  if (!valid) {
+  if (!verifyTelegramWebhookSecret(secretHeader, webhookSecret)) {
     log.warn("Telegram webhook secret mismatch")
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
@@ -61,6 +57,34 @@ export async function POST(req: Request) {
 
   if (!callbackQuery?.data) {
     return NextResponse.json({ ok: true })
+  }
+
+  if (callbackQuery.data.startsWith("ads:")) {
+    try {
+      const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
+      const supabase = createServiceRoleClient()
+      const decision = await handleTelegramAdsDecision({
+        body,
+        repository: createTelegramAdsApprovalRepository({ supabase }),
+      })
+      const callbackText = decision.ok && "decision" in decision
+        ? decision.decision === "approve"
+          ? "Approval recorded"
+          : "Proposal rejected"
+        : decision.ok
+          ? "No Ads action"
+          : "Ads action rejected"
+      await answerCallbackQuery(callbackQuery.id, callbackText)
+      return NextResponse.json({ ok: true })
+    } catch (error) {
+      log.error(
+        "Telegram Ads decision failed",
+        {},
+        error instanceof Error ? error : new Error(String(error)),
+      )
+      await answerCallbackQuery(callbackQuery.id, "Ads action failed")
+      return NextResponse.json({ ok: true })
+    }
   }
 
   // 2. Verify the callback is from the authorized chat (fail-closed: reject if TELEGRAM_CHAT_ID unset)

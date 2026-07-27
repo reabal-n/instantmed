@@ -135,6 +135,13 @@ export interface SendGoogleAdsDailyBriefResult {
   messageId: number
 }
 
+export interface SendGoogleAdsProposalCardOptions {
+  approveCallbackData: string
+  message: string
+  proposalKey: string
+  rejectCallbackData: string
+}
+
 function parseMessageId(json: unknown): number | null {
   if (!json || typeof json !== "object") return null
   const result = (json as { result?: { message_id?: unknown } }).result
@@ -496,6 +503,57 @@ export async function sendGoogleAdsDailyBriefViaTelegram(
   }
 
   log.info("Telegram Ads brief delivered", { hasMessageId: true })
+  return { messageId }
+}
+
+export async function sendGoogleAdsProposalCardViaTelegram(
+  options: SendGoogleAdsProposalCardOptions,
+): Promise<SendGoogleAdsDailyBriefResult> {
+  const token = getToken()
+  const chatId = getChatId()
+  if (!token || !chatId) {
+    throw new TelegramSendError(
+      "Telegram Ads proposal is not configured: missing bot token or chat id",
+    )
+  }
+
+  const response = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      disable_web_page_preview: true,
+      reply_markup: {
+        inline_keyboard: [[
+          {
+            callback_data: options.approveCallbackData,
+            text: `Approve ${options.proposalKey}`,
+          },
+          {
+            callback_data: options.rejectCallbackData,
+            text: "Reject",
+          },
+        ]],
+      },
+      text: options.message,
+    }),
+  })
+  if (!response.ok) {
+    log.error("Telegram Ads proposal send failed", {
+      status: response.status,
+    })
+    throw new TelegramSendError(
+      `Telegram Ads proposal send failed: ${response.status}`,
+    )
+  }
+
+  const json = await response.json().catch(() => null)
+  const messageId = parseMessageId(json)
+  if (messageId == null) {
+    throw new TelegramSendError(
+      "Telegram Ads proposal response missing message_id",
+    )
+  }
   return { messageId }
 }
 
