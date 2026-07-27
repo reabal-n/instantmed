@@ -223,11 +223,18 @@ export async function GET(request: NextRequest) {
   }
 
   const now = new Date()
-  if (!isSydneyDailyAdsBriefHour(now)) {
+  const { reportDate } = resolveSydneyClosedDay(now)
+  const shadowRequested = request.nextUrl.searchParams.get("shadow") === "1"
+  const shadowAuthorized =
+    shadowRequested
+    && process.env.GOOGLE_ADS_AGENT_SHADOW_DRY_RUN_REPORT_DATE === reportDate
+  if (!isSydneyDailyAdsBriefHour(now) && !shadowAuthorized) {
     return NextResponse.json({
       success: true,
       skipped: true,
-      reason: "outside_sydney_0900",
+      reason: shadowRequested
+        ? "shadow_date_not_authorized"
+        : "outside_sydney_0900",
       timestamp: now.toISOString(),
     })
   }
@@ -235,7 +242,6 @@ export async function GET(request: NextRequest) {
   await recordCronHeartbeat("google-ads-daily-brief")
 
   const supabase = createServiceRoleClient()
-  const { reportDate } = resolveSydneyClosedDay(now)
   let runId: string | null = null
   let stage:
     | "claim"

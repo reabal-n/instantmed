@@ -78,6 +78,9 @@ const originalEnv = { ...process.env }
 const request = new NextRequest(
   "https://instantmed.test/api/cron/google-ads-daily-brief",
 )
+const shadowRequest = new NextRequest(
+  "https://instantmed.test/api/cron/google-ads-daily-brief?shadow=1",
+)
 
 const snapshot = {
   account: {
@@ -174,6 +177,7 @@ describe("Google Ads Agent cron timing and idempotency", () => {
     vi.clearAllMocks()
     process.env.VERCEL_ENV = "production"
     process.env.GOOGLE_ADS_AGENT_DAILY_BRIEF_ENABLED = "true"
+    delete process.env.GOOGLE_ADS_AGENT_SHADOW_DRY_RUN_REPORT_DATE
     process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE = "111"
     mocks.verifyCronRequest.mockReturnValue(null)
     mocks.claimDailyAdsAgentRun.mockResolvedValue({
@@ -379,6 +383,32 @@ describe("Google Ads Agent cron timing and idempotency", () => {
     expect(await response.json()).toMatchObject({
       skipped: true,
       reason: "outside_sydney_0900",
+    })
+    expect(mocks.claimDailyAdsAgentRun).not.toHaveBeenCalled()
+  })
+
+  it("allows one date-bound shadow run outside 09:00 without a reusable force switch", async () => {
+    vi.setSystemTime(new Date("2026-07-27T04:00:00.000Z"))
+    process.env.GOOGLE_ADS_AGENT_SHADOW_DRY_RUN_REPORT_DATE = "2026-07-26"
+
+    const response = await GET(shadowRequest)
+
+    expect(await response.json()).toMatchObject({
+      delivered: true,
+      reportDate: "2026-07-26",
+      success: true,
+    })
+    expect(mocks.claimDailyAdsAgentRun).toHaveBeenCalledWith(
+      expect.objectContaining({ reportDate: "2026-07-26" }),
+    )
+    expect(mocks.sendGoogleAdsDailyBriefViaTelegram).toHaveBeenCalledOnce()
+
+    vi.clearAllMocks()
+    process.env.GOOGLE_ADS_AGENT_SHADOW_DRY_RUN_REPORT_DATE = "2026-07-25"
+    const denied = await GET(shadowRequest)
+    expect(await denied.json()).toMatchObject({
+      reason: "shadow_date_not_authorized",
+      skipped: true,
     })
     expect(mocks.claimDailyAdsAgentRun).not.toHaveBeenCalled()
   })

@@ -110,6 +110,10 @@ const serverEnvSchema = z.object({
   // explicit production gate and no gate defaults to enabled.
   GOOGLE_ADS_AGENT_DAILY_BRIEF_ENABLED: z.enum(["true", "false"]).optional(),
   GOOGLE_ADS_AGENT_MUTATIONS_ENABLED: z.enum(["true", "false"]).optional(),
+  GOOGLE_ADS_AGENT_SHADOW_DRY_RUN_REPORT_DATE: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
 
   // Reactivation: master kill-switch for the refill-reminder cron. Ships OFF.
   // Set to "true" in production only after the email copy has been reviewed.
