@@ -39,6 +39,8 @@ describe("Google Ads Agent CLI contract", () => {
     ]) {
       expect(source).toContain(`"${command}"`)
     }
+    expect(source).toContain("pnpm ads:agent snapshot")
+    expect(source).not.toContain("pnpm ads:agent -- ")
   })
 
   it("keeps apply behind the mutation kill switch and exact proposal input", () => {

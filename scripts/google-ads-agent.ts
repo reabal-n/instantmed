@@ -33,18 +33,18 @@ type Command =
   | "experiment:evaluate"
 
 const USAGE = [
-  "pnpm ads:agent -- snapshot",
-  "pnpm ads:agent -- propose --run=<run-id>",
-  "pnpm ads:agent -- show --proposal=<proposal-key>",
-  "pnpm ads:agent -- validate --proposal=<proposal-key>",
-  "pnpm ads:agent -- approve --proposal=<proposal-key> --reference=codex-task:<task-id>",
-  "pnpm ads:agent -- reject --proposal=<proposal-key> --reference=codex-task:<task-id>",
-  "pnpm ads:agent -- apply --proposal=<proposal-key>",
-  "pnpm ads:agent -- verify --proposal=<proposal-key>",
-  "pnpm ads:agent -- experiment:create --proposal=<proposal-key>",
-  "pnpm ads:agent -- experiment:check --experiment=<experiment-key>",
-  "pnpm ads:agent -- experiment:stop --experiment=<experiment-key>",
-  "pnpm ads:agent -- experiment:evaluate --experiment=<experiment-key>",
+  "pnpm ads:agent snapshot",
+  "pnpm ads:agent propose --run=<run-id>",
+  "pnpm ads:agent show --proposal=<proposal-key>",
+  "pnpm ads:agent validate --proposal=<proposal-key>",
+  "pnpm ads:agent approve --proposal=<proposal-key> --reference=codex-task:<task-id>",
+  "pnpm ads:agent reject --proposal=<proposal-key> --reference=codex-task:<task-id>",
+  "pnpm ads:agent apply --proposal=<proposal-key>",
+  "pnpm ads:agent verify --proposal=<proposal-key>",
+  "pnpm ads:agent experiment:create --proposal=<proposal-key>",
+  "pnpm ads:agent experiment:check --experiment=<experiment-key>",
+  "pnpm ads:agent experiment:stop --experiment=<experiment-key>",
+  "pnpm ads:agent experiment:evaluate --experiment=<experiment-key>",
 ].join("\n")
 
 function option(name: string): string | null {
