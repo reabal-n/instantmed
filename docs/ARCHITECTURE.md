@@ -78,6 +78,8 @@ The canonical intake funnel uses `purchase_completed_server` as the only paid-st
 
 The Google Ads upload action is deliberately separate from the browser website purchase action: Google Ads offline click uploads require an `UPLOAD_CLICKS` conversion action. Data Manager uploads do not use a Google Ads developer token, but the destination still maps to the same offline purchase action and request-status diagnostics use the Data Manager `requestId`. Google Ads API remains useful for reporting and conversion-action preflight. If the configured conversion action returns `INVALID_CONVERSION_ACTION_TYPE`, the cron treats it as non-retryable until the env var is updated; call `/api/cron/google-ads-conversions?force=1` after updating the action ID. `EXPIRED_EVENT` failures are also terminal for that click/conversion pair and should not be forced through another historical backfill. The local click-identifier max age defaults to 90 days (`GOOGLE_ADS_CLICK_IDENTIFIER_MAX_AGE_DAYS`) and can be lowered if the purchase action's configured click-through window is shorter.
 
+`lib/google-ads/client.ts` is the shared Google Ads API transport owner: v24 endpoint construction, OAuth token caching, developer/manager/quota headers, paginated GAQL search, and all-or-nothing generic mutates (`partialFailure: false`, `MUTABLE_RESOURCE`, explicit `validateOnly`). Conversion-specific upload and adjustment payloads remain in `lib/analytics/google-ads-conversion-api.ts`. The Ads Agent's fresh account read lives in `lib/ads-agent/account-state.ts`; it reads aggregate configuration for tagging, conversion goals, Search campaigns/budgets/bidding, targeting, keywords/negative lists, RSAs/policy topics, assets, access links, and recent change events. It never queries search-query views or patient data, hashes change actors before returning state, normalises resource names, and fails the entire read when a critical section fails. The v24 GAQL set is validated read-only against the configured account without emitting account content.
+
 ### AI Assistance
 
 AI is bounded to clinician-support documentation helpers. There is no parallel chat-intake path and no public AI validation endpoint in the current product: patients use the canonical `/request` form, and doctors review the submitted answers before any clinical decision. Do not reintroduce conversational intake without an explicit product and clinical-governance decision.
@@ -841,6 +843,8 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `lib/feature-flags.ts` | Feature flags | DB-backed via `feature_flags` table, `getFeatureFlags()` |
 | `lib/operational-controls/` | Runtime controls | Capacity fail-closed checks and medication-blocklist answer extraction |
 | `lib/analytics/posthog-server.ts` | Server analytics | `getPostHogClient()`, funnel tracking, safety outcome tracking |
+| `lib/google-ads/` | Shared Google Ads transport | `client.ts` owns v24 OAuth, GAQL search, and atomic generic mutate requests |
+| `lib/ads-agent/` | Google Ads control plane | Sydney reporting windows, actual Stripe-fee truth, and PHI-free account-state reads |
 | `lib/validation/` | Validation schemas | `med-cert-schema.ts`, `repeat-script-schema.ts` |
 
 ### Other top-level

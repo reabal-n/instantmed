@@ -7,6 +7,10 @@ const source = readFileSync(
   join(process.cwd(), "lib/analytics/google-ads-conversion-api.ts"),
   "utf8",
 )
+const clientSource = readFileSync(
+  join(process.cwd(), "lib/google-ads/client.ts"),
+  "utf8",
+)
 
 describe("Google Ads conversion upload contract", () => {
   it("uses a supported configurable API version instead of the sunset v18 endpoint", () => {
@@ -16,7 +20,11 @@ describe("Google Ads conversion upload contract", () => {
   })
 
   it("passes quota project and manager-account headers when configured", () => {
-    expect(source).toContain('headers["login-customer-id"] = config.loginCustomerId')
-    expect(source).toContain('headers["x-goog-user-project"] = config.quotaProjectId')
+    expect(clientSource).toContain(
+      'headers["login-customer-id"] = config.loginCustomerId',
+    )
+    expect(clientSource).toContain(
+      'headers["x-goog-user-project"] = config.quotaProjectId',
+    )
   })
 })
