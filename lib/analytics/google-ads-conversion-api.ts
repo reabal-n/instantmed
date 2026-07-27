@@ -5,8 +5,8 @@ import { createHash } from "node:crypto"
 import * as Sentry from "@sentry/nextjs"
 
 import {
-  DEFAULT_GOOGLE_ADS_API_VERSION,
   buildGoogleAdsAuthHeaders,
+  DEFAULT_GOOGLE_ADS_API_VERSION,
   extractGoogleAdsErrorCode,
   getGoogleAdsAccessToken,
   getGoogleAdsClientConfig,
@@ -17,13 +17,13 @@ import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("google-ads-conversion-api")
 
+export type { GoogleAdsSearchRow } from "@/lib/google-ads/client"
 export {
   extractGoogleAdsErrorCode,
   getGoogleAdsSearchUrl,
   resetGoogleAdsAccessTokenCacheForTests,
   searchGoogleAds,
 } from "@/lib/google-ads/client"
-export type { GoogleAdsSearchRow } from "@/lib/google-ads/client"
 
 /**
  * Server-side Google Ads Conversion API client.

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
-import { describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
   buildGoogleAdsCampaignPerformanceQuery,
@@ -11,6 +11,7 @@ import {
   buildGoogleAdsOfflineConversionActionSummaryQuery,
   buildGoogleAdsPurchaseConversionQuery,
   getGoogleAdsUploadAuditReconciliation,
+  getLocalGoogleAdsPurchasesForRange,
   type GoogleAdsSpendAuditReport,
   summarizeGoogleAdsCampaignRows,
   summarizeGoogleAdsCustomerConversionTrackingSettings,
@@ -19,6 +20,10 @@ import {
 } from "@/lib/analytics/google-ads-report"
 
 describe("google ads spend report", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
   it("builds a campaign performance query with spend, click, conversion, and device fields", () => {
     expect(buildGoogleAdsCampaignPerformanceQuery({
       endDate: "2026-06-02",
@@ -43,6 +48,75 @@ describe("google ads spend report", () => {
       "WHERE segments.date BETWEEN '2026-05-03' AND '2026-06-02'",
       "ORDER BY metrics.cost_micros DESC",
     ].join(" "))
+  })
+
+  it("uses explicit end-exclusive UTC boundaries and excludes seeded reporting rows", async () => {
+    vi.stubEnv("NODE_ENV", "production")
+    const calls: Array<[string, ...unknown[]]> = []
+    const result = {
+      data: [{
+        amount_cents: 2995,
+        campaignid: "123",
+        id: "intake-1",
+        stripe_payment_intent_id: "pi_1",
+      }],
+      error: null,
+    }
+    const chain: Record<string, unknown> = {
+      then: (
+        resolve: (value: typeof result) => unknown,
+        reject: (reason?: unknown) => unknown,
+      ) => Promise.resolve(result).then(resolve, reject),
+    }
+    for (const method of [
+      "select",
+      "in",
+      "not",
+      "gte",
+      "lt",
+      "or",
+    ]) {
+      chain[method] = (...args: unknown[]) => {
+        calls.push([method, ...args])
+        return chain
+      }
+    }
+    const supabase = {
+      from: vi.fn(() => chain),
+    }
+
+    await expect(getLocalGoogleAdsPurchasesForRange(
+      supabase as never,
+      {
+        endDate: "2026-07-27",
+        endUtcExclusive: "2026-07-27T14:00:00.000Z",
+        startDate: "2026-07-27",
+        startUtc: "2026-07-26T14:00:00.000Z",
+      },
+    )).resolves.toEqual(result.data)
+
+    expect(calls).toContainEqual([
+      "gte",
+      "paid_at",
+      "2026-07-26T14:00:00.000Z",
+    ])
+    expect(calls).toContainEqual([
+      "lt",
+      "paid_at",
+      "2026-07-27T14:00:00.000Z",
+    ])
+    expect(calls).not.toContainEqual([
+      "lte",
+      "paid_at",
+      expect.anything(),
+    ])
+    expect(calls).toContainEqual([
+      "or",
+      "exclude_from_reporting.is.null,exclude_from_reporting.eq.false",
+    ])
+    expect(calls.some(
+      ([method, column]) => method === "not" && column === "patient_id",
+    )).toBe(true)
   })
 
   it("builds a purchase conversion query scoped to the configured conversion action", () => {

@@ -80,6 +80,8 @@ The Google Ads upload action is deliberately separate from the browser website p
 
 `lib/google-ads/client.ts` is the shared Google Ads API transport owner: v24 endpoint construction, OAuth token caching, developer/manager/quota headers, paginated GAQL search, and all-or-nothing generic mutates (`partialFailure: false`, `MUTABLE_RESOURCE`, explicit `validateOnly`). Conversion-specific upload and adjustment payloads remain in `lib/analytics/google-ads-conversion-api.ts`. The Ads Agent's fresh account read lives in `lib/ads-agent/account-state.ts`; it reads aggregate configuration for tagging, conversion goals, all campaign types/budgets/bidding, targeting, keywords/negative lists, RSAs/policy topics, assets, access links, and recent change events. Economics later filter to governed Search campaigns, while the broader baseline preserves visibility of paused/retired Display resources needed for hygiene proposals. It never queries search-query views or patient data, hashes change actors before returning state, normalises resource names, and fails the entire read when a critical section fails. The v24 GAQL set is validated read-only against the configured account without emitting account content.
 
+`lib/ads-agent/snapshot.ts` reconciles the previous closed Sydney day and the rolling 30 closed days ending there. Google spend uses account-local `segments.date`; Supabase orders use the matching explicit UTC start/end-exclusive boundaries and the canonical reportable-intake/E2E exclusions. Local economics join only by numeric `campaignid`/`utm_id`, subtract recorded refunds, retrieve actual Stripe BalanceTransaction fees through the durable payments cache, and compute first-order contribution in cents. A failed spend, revenue, or fee input becomes `null` plus an unavailable reason—not zero—and keeps enabled, paused, and unmapped campaign totals separate.
+
 ### AI Assistance
 
 AI is bounded to clinician-support documentation helpers. There is no parallel chat-intake path and no public AI validation endpoint in the current product: patients use the canonical `/request` form, and doctors review the submitted answers before any clinical decision. Do not reintroduce conversational intake without an explicit product and clinical-governance decision.
@@ -844,7 +846,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `lib/operational-controls/` | Runtime controls | Capacity fail-closed checks and medication-blocklist answer extraction |
 | `lib/analytics/posthog-server.ts` | Server analytics | `getPostHogClient()`, funnel tracking, safety outcome tracking |
 | `lib/google-ads/` | Shared Google Ads transport | `client.ts` owns v24 OAuth, GAQL search, and atomic generic mutate requests |
-| `lib/ads-agent/` | Google Ads control plane | Sydney reporting windows, actual Stripe-fee truth, and PHI-free account-state reads |
+| `lib/ads-agent/` | Google Ads control plane | Sydney reporting windows, actual Stripe-fee truth, PHI-free account state, and fee-aware closed-day snapshots |
 | `lib/validation/` | Validation schemas | `med-cert-schema.ts`, `repeat-script-schema.ts` |
 
 ### Other top-level
