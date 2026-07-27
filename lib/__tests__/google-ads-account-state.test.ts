@@ -91,6 +91,9 @@ describe("Google Ads account state", () => {
     expect(joined).not.toContain("search_term_view")
     expect(joined).not.toContain("search_term_view.search_term")
     expect(joined).not.toContain("patient")
+    expect(queries.campaigns).not.toContain(
+      "campaign.advertising_channel_type = 'SEARCH'",
+    )
   })
 
   it("reads normalized resources and hashes the change actor", async () => {

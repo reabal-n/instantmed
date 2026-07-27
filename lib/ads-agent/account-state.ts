@@ -158,8 +158,7 @@ export function buildGoogleAdsAccountStateQueries(): GoogleAdsAccountStateQuerie
         "bidding_strategy.type",
       ],
       from: "campaign",
-      suffix:
-        "WHERE campaign.advertising_channel_type = 'SEARCH' ORDER BY campaign.id",
+      suffix: "ORDER BY campaign.id",
     }),
     campaignBudgets: gaql({
       fields: [
