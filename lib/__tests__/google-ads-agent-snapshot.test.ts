@@ -5,10 +5,12 @@ const mocks = vi.hoisted(() => ({
   getGoogleAdsCampaignRowsForRange: vi.fn(),
   getLocalGoogleAdsPurchasesForRange: vi.fn(),
   getStripeFeeMap: vi.fn(),
+  hashGoogleAdsAccountState: vi.fn(() => "a".repeat(64)),
 }))
 
 vi.mock("@/lib/ads-agent/account-state", () => ({
   getAdsAccountState: mocks.getAdsAccountState,
+  hashGoogleAdsAccountState: mocks.hashGoogleAdsAccountState,
 }))
 
 vi.mock("@/lib/ads-agent/stripe-fees", () => ({

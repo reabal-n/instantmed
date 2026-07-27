@@ -1,5 +1,10 @@
 #!/usr/bin/env npx tsx
 
+import {
+  applyProposal,
+  validateProposal,
+  verifyProposal,
+} from "@/lib/ads-agent/mutations"
 import { buildAdsAgentSnapshot } from "@/lib/ads-agent/snapshot"
 import {
   getAdsProposalByKey,
@@ -108,14 +113,20 @@ async function run(command: Command): Promise<void> {
     if (process.env.GOOGLE_ADS_AGENT_MUTATIONS_ENABLED !== "true") {
       throw new Error("Ads Agent mutations are disabled")
     }
-    throw new Error("Guarded mutation gateway is not available yet")
+    writeJson(await applyProposal(proposalKey))
+    return
   }
 
   if (command === "validate") {
-    throw new Error("Proposal validation gateway is not available yet")
+    const receipt = await validateProposal(proposalKey)
+    writeJson(receipt)
+    if (!receipt.ok) process.exitCode = 1
+    return
   }
   if (command === "verify") {
-    throw new Error("Proposal verification gateway is not available yet")
+    const receipt = await verifyProposal(proposalKey)
+    writeJson(receipt)
+    if (receipt.outcome !== "verified") process.exitCode = 1
   }
 }
 

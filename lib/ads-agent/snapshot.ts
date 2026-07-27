@@ -1,12 +1,11 @@
 import "server-only"
 
-import { createHash } from "node:crypto"
-
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import {
   getAdsAccountState,
   type GoogleAdsAccountState,
+  hashGoogleAdsAccountState,
 } from "@/lib/ads-agent/account-state"
 import {
   getStripeFeeMap,
@@ -105,24 +104,6 @@ function roundRatio(value: number): number {
   return Math.round((value + Number.EPSILON) * 10_000) / 10_000
 }
 
-function stableValue(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(stableValue)
-  const record = asRecord(value)
-  if (!record) return value
-
-  return Object.fromEntries(
-    Object.keys(record)
-      .sort()
-      .map((key) => [key, stableValue(record[key])]),
-  )
-}
-
-function hashAccountState(state: GoogleAdsAccountState): string {
-  return createHash("sha256")
-    .update(JSON.stringify(stableValue(state)), "utf8")
-    .digest("hex")
-}
-
 function normalizeCampaignId(value: unknown): string | null {
   const candidate = asString(value)?.replace(/-/g, "")
   return candidate && /^\d+$/.test(candidate) ? candidate : null
@@ -216,7 +197,7 @@ function buildAccountSummary(
   }
 
   return {
-    accountHash: hashAccountState(state),
+    accountHash: hashGoogleAdsAccountState(state),
     asOf: state.readAt,
     autoTaggingEnabled: state.customer?.autoTaggingEnabled ?? null,
     dailyBudgetTotalCents: budgetsComplete

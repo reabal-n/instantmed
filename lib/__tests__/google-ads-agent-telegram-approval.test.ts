@@ -25,8 +25,11 @@ function proposal(
   overrides: Partial<AdsChangeProposal> = {},
 ): AdsChangeProposal {
   return {
+    approvalActorHash: null,
     approvalChannel: null,
     approvalReference: null,
+    approvedAt: null,
+    applyReceipt: null,
     baselineHash: "a".repeat(64),
     expiresAt: "2026-07-30T10:42:00.000Z",
     id: "proposal-id",
@@ -42,9 +45,13 @@ function proposal(
       requestedValue: "PAUSED",
       service: "ed",
     },
+    rejectedAt: null,
     rollbackPlan: { value: "ENABLED" },
+    runId: "run-id",
     status: "awaiting_approval",
+    telegramCallbackQueryHash: null,
     telegramMessageId: 9042,
+    telegramUpdateId: null,
     validationReceipt: {
       baselineHash: "a".repeat(64),
       ok: true,
@@ -53,6 +60,7 @@ function proposal(
       requestId: "request-1",
       validatedAt: "2026-07-30T09:45:00.000Z",
     },
+    verificationReceipt: null,
     ...overrides,
   }
 }

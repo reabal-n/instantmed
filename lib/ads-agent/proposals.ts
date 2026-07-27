@@ -4,6 +4,7 @@ import { createHash } from "node:crypto"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 
+import { containsProhibitedPaidMedicineTerm } from "@/lib/ads-agent/policy"
 import type {
   AdsMutationFamily,
   AdsService,
@@ -118,6 +119,8 @@ export interface AdsProposalRollbackPlan {
 
 export interface AdsProposalValidationReceipt {
   baselineHash: string
+  errorCode?: string | null
+  googleOperationsHash?: string | null
   ok: boolean
   operationHash: string
   proposalKey: string
@@ -125,9 +128,28 @@ export interface AdsProposalValidationReceipt {
   validatedAt: string
 }
 
+export interface AdsProposalApplyReceipt {
+  appliedAt: string
+  errorCode: string | null
+  googleOperationsHash: string
+  outcome: "applied" | "aborted" | "ambiguous" | "failed"
+  proposalKey: string
+  requestId: string | null
+}
+
+export interface AdsProposalVerificationReceipt {
+  outcome: "verified" | "mismatch" | "not_applied"
+  proposalKey: string
+  resourceHashes: Record<string, string>
+  verifiedAt: string
+}
+
 export interface AdsChangeProposal {
+  approvalActorHash: string | null
   approvalChannel: "telegram" | "codex" | null
   approvalReference: string | null
+  approvedAt: string | null
+  applyReceipt: AdsProposalApplyReceipt | null
   baselineHash: string
   expiresAt: string
   id: string
@@ -136,10 +158,15 @@ export interface AdsChangeProposal {
   operationHash: string
   proposalKey: string
   rationale: AdsProposalPresentation
+  rejectedAt: string | null
   rollbackPlan: AdsProposalRollbackPlan
+  runId: string | null
   status: AdsProposalStatus
+  telegramCallbackQueryHash: string | null
   telegramMessageId: number | null
+  telegramUpdateId: number | null
   validationReceipt: AdsProposalValidationReceipt | null
+  verificationReceipt: AdsProposalVerificationReceipt | null
 }
 
 type UnknownRecord = Record<string, unknown>
@@ -270,7 +297,10 @@ function normalizeBiddingConfig(value: unknown): BiddingConfig {
   ) {
     throw new Error("Invalid targetRoas")
   }
-  if (strategy === "MANUAL_CPC" && (targetCpaMicros || targetRoas)) {
+  if (
+    strategy === "MANUAL_CPC"
+    && (targetCpaMicros !== undefined || targetRoas !== undefined)
+  ) {
     throw new Error("Manual CPC cannot carry an automated target")
   }
   if (strategy === "MAXIMIZE_CONVERSIONS" && targetRoas !== undefined) {
@@ -306,13 +336,19 @@ function normalizeSchedule(value: unknown): AdSchedule[] {
     ], "ad schedule")
     const startHour = nonNegativeInteger(record.startHour, "startHour")
     const endHour = nonNegativeInteger(record.endHour, "endHour")
-    if (startHour > 23 || endHour > 24 || endHour < startHour) {
+    const endMinute = enumValue(record.endMinute, MINUTE_VALUES, "endMinute")
+    if (
+      startHour > 23
+      || endHour > 24
+      || endHour < startHour
+      || endHour === 24 && endMinute !== "ZERO"
+    ) {
       throw new Error("Invalid ad schedule hour")
     }
     return {
       dayOfWeek: enumValue(record.dayOfWeek, DAY_VALUES, "dayOfWeek"),
       endHour,
-      endMinute: enumValue(record.endMinute, MINUTE_VALUES, "endMinute"),
+      endMinute,
       startHour,
       startMinute: enumValue(
         record.startMinute,
@@ -432,11 +468,21 @@ function normalizeOperation(value: unknown): AdsMutationOperation {
     )
     const next = enumValue(record.next, CRITERION_STATUS_VALUES, "next")
     if (expected === next) throw new Error("Keyword status must change")
+    const criterionResourceName = requiredString(
+      record.resourceName,
+      "resourceName",
+    )
+    if (
+      !/^customers\/\d+\/(?:adGroupCriteria|campaignCriteria)\/[A-Za-z0-9_~.-]+$/
+        .test(criterionResourceName)
+    ) {
+      throw new Error("Invalid resourceName")
+    }
     return {
       expected,
       kind: "keyword_status",
       next,
-      resourceName: resourceName(record.resourceName, "adGroupCriteria"),
+      resourceName: criterionResourceName,
     }
   }
   if (record.kind === "negative_keyword") {
@@ -447,6 +493,9 @@ function normalizeOperation(value: unknown): AdsMutationOperation {
     )
     const text = requiredString(record.text, "negative keyword")
     if (text.length > 80) throw new Error("Negative keyword is too long")
+    if (containsProhibitedPaidMedicineTerm(text)) {
+      throw new Error("Medicine-name keywords are prohibited")
+    }
     return {
       campaignResourceName: resourceName(
         record.campaignResourceName,
@@ -633,11 +682,62 @@ function asValidationReceipt(
   if (!record) throw new Error("Invalid proposal validation receipt")
   return {
     baselineHash: requiredString(record.baselineHash, "baselineHash"),
+    errorCode: asNullableString(record.errorCode),
+    googleOperationsHash: asNullableString(record.googleOperationsHash),
     ok: record.ok === true,
     operationHash: requiredString(record.operationHash, "operationHash"),
     proposalKey: requiredString(record.proposalKey, "proposalKey"),
     requestId: asNullableString(record.requestId),
     validatedAt: requiredString(record.validatedAt, "validatedAt"),
+  }
+}
+
+function asApplyReceipt(value: unknown): AdsProposalApplyReceipt | null {
+  if (value == null) return null
+  const record = asRecord(value)
+  if (!record) throw new Error("Invalid proposal apply receipt")
+  const outcome = enumValue(
+    record.outcome,
+    ["applied", "aborted", "ambiguous", "failed"] as const,
+    "apply outcome",
+  )
+  return {
+    appliedAt: requiredString(record.appliedAt, "appliedAt"),
+    errorCode: asNullableString(record.errorCode),
+    googleOperationsHash: requiredString(
+      record.googleOperationsHash,
+      "googleOperationsHash",
+    ),
+    outcome,
+    proposalKey: requiredString(record.proposalKey, "proposalKey"),
+    requestId: asNullableString(record.requestId),
+  }
+}
+
+function asVerificationReceipt(
+  value: unknown,
+): AdsProposalVerificationReceipt | null {
+  if (value == null) return null
+  const record = asRecord(value)
+  if (!record) throw new Error("Invalid proposal verification receipt")
+  const resourceHashes = asRecord(record.resourceHashes)
+  if (!resourceHashes) {
+    throw new Error("Invalid proposal verification resource hashes")
+  }
+  return {
+    outcome: enumValue(
+      record.outcome,
+      ["verified", "mismatch", "not_applied"] as const,
+      "verification outcome",
+    ),
+    proposalKey: requiredString(record.proposalKey, "proposalKey"),
+    resourceHashes: Object.fromEntries(
+      Object.entries(resourceHashes).map(([key, hash]) => [
+        key,
+        requiredString(hash, "resource hash"),
+      ]),
+    ),
+    verifiedAt: requiredString(record.verifiedAt, "verifiedAt"),
   }
 }
 
@@ -647,11 +747,14 @@ function proposalFromRow(row: UnknownRecord): AdsChangeProposal {
   const rollback = asRecord(row.rollback_plan)
   const operationHash = hashAdsMutationOperations(operations)
   return {
+    approvalActorHash: asNullableString(row.approval_actor_hash),
     approvalChannel:
       row.approval_channel === "telegram" || row.approval_channel === "codex"
         ? row.approval_channel
         : null,
     approvalReference: asNullableString(row.approval_reference),
+    approvedAt: asNullableString(row.approved_at),
+    applyReceipt: asApplyReceipt(row.apply_receipt),
     baselineHash: requiredString(row.baseline_hash, "baseline_hash"),
     expiresAt: requiredString(row.expires_at, "expires_at"),
     id: requiredString(row.id, "id"),
@@ -663,15 +766,25 @@ function proposalFromRow(row: UnknownRecord): AdsChangeProposal {
     operations,
     proposalKey: requiredString(row.proposal_key, "proposal_key"),
     rationale,
+    rejectedAt: asNullableString(row.rejected_at),
     rollbackPlan: {
       value: requiredString(rollback?.value, "rollback value"),
     },
+    runId: asNullableString(row.run_id),
     status: requiredString(row.status, "status") as AdsProposalStatus,
+    telegramCallbackQueryHash: asNullableString(
+      row.telegram_callback_query_hash,
+    ),
     telegramMessageId:
       typeof row.telegram_message_id === "number"
         ? row.telegram_message_id
         : null,
+    telegramUpdateId:
+      typeof row.telegram_update_id === "number"
+        ? row.telegram_update_id
+        : null,
     validationReceipt: asValidationReceipt(row.validation_receipt),
+    verificationReceipt: asVerificationReceipt(row.verification_receipt),
   }
 }
 
@@ -685,10 +798,18 @@ const PROPOSAL_SELECT = [
   "baseline_hash",
   "rollback_plan",
   "expires_at",
+  "run_id",
   "approval_reference",
   "approval_channel",
+  "approval_actor_hash",
+  "approved_at",
+  "rejected_at",
   "telegram_message_id",
+  "telegram_update_id",
+  "telegram_callback_query_hash",
   "validation_receipt",
+  "apply_receipt",
+  "verification_receipt",
 ].join(", ")
 
 function sydneyProposalDate(now: Date): string {
@@ -724,6 +845,16 @@ export async function createAdsProposalDraft(args: {
   const now = args.now ?? new Date()
   if (!/^[a-f0-9]{64}$/.test(args.baselineHash)) {
     throw new Error("invalid_proposal_baseline_hash")
+  }
+  if ([
+    args.rationale.boundedImpact,
+    args.rationale.campaign,
+    args.rationale.currentValue,
+    args.rationale.reason,
+    args.rationale.requestedValue,
+    args.rollbackPlan.value,
+  ].some(containsProhibitedPaidMedicineTerm)) {
+    throw new Error("proposal_contains_prohibited_medicine_term")
   }
   const expiresAt = args.expiresAt
     ?? new Date(now.getTime() + 24 * 60 * 60 * 1000)

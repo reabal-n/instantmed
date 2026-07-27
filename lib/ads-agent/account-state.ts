@@ -142,6 +142,7 @@ export function buildGoogleAdsAccountStateQueries(): GoogleAdsAccountStateQuerie
         "campaign.bidding_strategy_type",
         "campaign.campaign_budget",
         "campaign.maximize_conversions.target_cpa_micros",
+        "campaign.maximize_conversion_value.target_roas",
         "campaign.network_settings.target_google_search",
         "campaign.network_settings.target_search_network",
         "campaign.network_settings.target_content_network",
@@ -233,6 +234,7 @@ export function buildGoogleAdsAccountStateQueries(): GoogleAdsAccountStateQuerie
         "ad_group_criterion.status",
         "ad_group_criterion.type",
         "ad_group_criterion.negative",
+        "ad_group_criterion.cpc_bid_micros",
         "ad_group_criterion.keyword.text",
         "ad_group_criterion.keyword.match_type",
         "ad_group_criterion.final_urls",
@@ -391,6 +393,21 @@ function normalizeValue(value: unknown): unknown {
       .sort()
       .map((key) => [key, normalizeValue(record[key])]),
   )
+}
+
+/**
+ * Hashes mutable account configuration only. Read timestamps and the rolling
+ * change-event window are evidence about the read, not mutable resource state;
+ * including them would make every fresh pre-apply read drift by construction.
+ */
+export function hashGoogleAdsAccountState(
+  state: GoogleAdsAccountState,
+): string {
+  const { changeEvents: _changeEvents, readAt: _readAt, ...configuration } =
+    state
+  return createHash("sha256")
+    .update(JSON.stringify(normalizeValue(configuration)), "utf8")
+    .digest("hex")
 }
 
 function findResourceName(row: Record<string, unknown>): string | null {

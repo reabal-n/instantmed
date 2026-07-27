@@ -571,6 +571,7 @@ export async function answerCallbackQuery(
     const response = await fetch(`${TELEGRAM_API}/bot${token}/answerCallbackQuery`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(TELEGRAM_EDIT_TIMEOUT_MS),
       body: JSON.stringify({
         callback_query_id: callbackQueryId,
         text,

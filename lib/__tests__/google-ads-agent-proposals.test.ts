@@ -26,8 +26,11 @@ function proposal(
 ): AdsChangeProposal {
   const operationHash = hashAdsMutationOperations(operations)
   return {
+    approvalActorHash: "b".repeat(64),
     approvalChannel: "telegram",
     approvalReference: "telegram-button",
+    approvedAt: "2026-07-30T09:50:00.000Z",
+    applyReceipt: null,
     baselineHash: "a".repeat(64),
     expiresAt: "2026-07-30T10:42:00.000Z",
     id: "proposal-id",
@@ -43,11 +46,15 @@ function proposal(
       requestedValue: "A$48/day",
       service: "scripts",
     },
+    rejectedAt: null,
     rollbackPlan: {
       value: "A$40/day",
     },
+    runId: "run-id",
     status: "approved",
+    telegramCallbackQueryHash: "c".repeat(64),
     telegramMessageId: 9042,
+    telegramUpdateId: 88001,
     validationReceipt: {
       baselineHash: "a".repeat(64),
       ok: true,
@@ -56,6 +63,7 @@ function proposal(
       requestId: "request-1",
       validatedAt: "2026-07-30T09:45:00.000Z",
     },
+    verificationReceipt: null,
     ...overrides,
   }
 }
@@ -138,6 +146,15 @@ describe("Google Ads proposal operation boundary", () => {
       ...operations[0],
       partialFailure: true,
     }])).toThrow("Unexpected campaign_budget field")
+  })
+
+  it("rejects medicine terms before a keyword packet can be persisted", () => {
+    expect(() => normalizeAdsMutationOperations([{
+      campaignResourceName: "customers/123/campaigns/789",
+      kind: "negative_keyword",
+      matchType: "EXACT",
+      text: "sildenafil",
+    }])).toThrow("Medicine-name keywords are prohibited")
   })
 
   it("hashes normalized operations deterministically", () => {

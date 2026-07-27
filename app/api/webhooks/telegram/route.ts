@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 
+import { applyProposal } from "@/lib/ads-agent/mutations"
+import { getAdsProposalByKey } from "@/lib/ads-agent/proposals"
 import {
   createTelegramAdsApprovalRepository,
   handleTelegramAdsDecision,
@@ -69,12 +71,57 @@ export async function POST(req: Request) {
       })
       const callbackText = decision.ok && "decision" in decision
         ? decision.decision === "approve"
-          ? "Approval recorded"
+          ? "Approved; running guarded validation"
           : "Proposal rejected"
         : decision.ok
           ? "No Ads action"
           : "Ads action rejected"
       await answerCallbackQuery(callbackQuery.id, callbackText)
+
+      if (decision.ok && "decision" in decision) {
+        if (decision.decision === "reject") {
+          await editTelegramMessage(
+            callbackQuery.message.chat.id,
+            callbackQuery.message.message_id,
+            `*REJECTED*\n\n${escapeMarkdown(decision.proposalKey)}\nNo Google Ads change was made\\.`,
+          )
+          return NextResponse.json({ ok: true })
+        }
+
+        try {
+          const receipt = await applyProposal(decision.proposalKey)
+          const refreshed = await getAdsProposalByKey(
+            supabase,
+            decision.proposalKey,
+          )
+          if (refreshed?.status === "verified") {
+            await editTelegramMessage(
+              callbackQuery.message.chat.id,
+              callbackQuery.message.message_id,
+              `*VERIFIED*\n\n${escapeMarkdown(decision.proposalKey)}\nGoogle Ads read\\-back matched the immutable packet\\.`,
+            )
+          } else {
+            const abortState =
+              receipt.errorCode || refreshed?.status || receipt.outcome
+            await editTelegramMessage(
+              callbackQuery.message.chat.id,
+              callbackQuery.message.message_id,
+              `*APPROVED · NOT APPLIED*\n\n${escapeMarkdown(decision.proposalKey)}\nGuard state: ${escapeMarkdown(abortState)}\\.`,
+            )
+          }
+        } catch (error) {
+          const abortState = (
+            error instanceof Error ? error.message : "unknown_error"
+          )
+            .replace(/[^a-zA-Z0-9_:-]+/g, "_")
+            .slice(0, 64) || "unknown_error"
+          await editTelegramMessage(
+            callbackQuery.message.chat.id,
+            callbackQuery.message.message_id,
+            `*APPROVED · NOT APPLIED*\n\n${escapeMarkdown(decision.proposalKey)}\nGuard state: ${escapeMarkdown(abortState)}\\.`,
+          )
+        }
+      }
       return NextResponse.json({ ok: true })
     } catch (error) {
       log.error(

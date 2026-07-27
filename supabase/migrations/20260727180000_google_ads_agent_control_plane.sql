@@ -157,11 +157,23 @@ begin
     new.approval_channel is distinct from old.approval_channel
     or new.approval_reference is distinct from old.approval_reference
     or new.approval_actor_hash is distinct from old.approval_actor_hash
+    or new.approved_at is distinct from old.approved_at
+    or new.rejected_at is distinct from old.rejected_at
     or new.telegram_update_id is distinct from old.telegram_update_id
     or new.telegram_callback_query_hash
       is distinct from old.telegram_callback_query_hash
   ) then
     raise exception 'Google Ads proposal decision receipt is immutable';
+  end if;
+
+  if old.apply_receipt is not null
+    and new.apply_receipt is distinct from old.apply_receipt then
+    raise exception 'Google Ads proposal apply receipt is immutable';
+  end if;
+
+  if old.verification_receipt is not null
+    and new.verification_receipt is distinct from old.verification_receipt then
+    raise exception 'Google Ads proposal verification receipt is immutable';
   end if;
 
   return new;

@@ -72,6 +72,13 @@ export const POLICY = {
   },
 } as const
 
+const PROHIBITED_PAID_MEDICINE_TERM_PATTERN =
+  /\b(?:amlodipine|atorvastatin|cialis|duromine|dutasteride|finasteride|minoxidil|mounjaro|nitrofurantoin|ozempic|perindopril|phentermine|ramipril|rosuvastatin|semaglutide|seretide|sildenafil|symbicort|tadalafil|tirzepatide|trimethoprim|valium|ventolin|viagra|wegovy|xanax)\b/i
+
+export function containsProhibitedPaidMedicineTerm(value: string): boolean {
+  return PROHIBITED_PAID_MEDICINE_TERM_PATTERN.test(value)
+}
+
 function hold(
   service: AdsService,
   ...reasonCodes: string[]
