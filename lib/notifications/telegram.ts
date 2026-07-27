@@ -131,6 +131,10 @@ export interface NotifyNewIntakeResult {
   messageId: number | null
 }
 
+export interface SendGoogleAdsDailyBriefResult {
+  messageId: number
+}
+
 function parseMessageId(json: unknown): number | null {
   if (!json || typeof json !== "object") return null
   const result = (json as { result?: { message_id?: unknown } }).result
@@ -437,6 +441,62 @@ export async function sendCriticalBusinessAlertViaTelegram(
 ): Promise<boolean> {
   const message = [`*🚨 Critical business alert*`, ``, escapeMarkdown(detail)].join("\n")
   return postOperationalTelegramMessage(message, "critical_business_alert")
+}
+
+/**
+ * Send the PHI-free aggregate Daily Ads Brief through the already-configured
+ * operator bot/chat. Unlike fail-soft operational alerts, this requires a
+ * Telegram message_id so the Ads Agent can durably prove exactly which brief
+ * was delivered and safely retry a failed send.
+ */
+export async function sendGoogleAdsDailyBriefViaTelegram(
+  message: string,
+): Promise<SendGoogleAdsDailyBriefResult> {
+  const token = getToken()
+  const chatId = getChatId()
+  if (!token || !chatId) {
+    throw new TelegramSendError(
+      "Telegram Ads brief is not configured: missing bot token or chat id",
+    )
+  }
+
+  let response: Response
+  try {
+    response = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        disable_web_page_preview: true,
+      }),
+    })
+  } catch (error) {
+    log.error(
+      "Telegram Ads brief send errored",
+      {},
+      error instanceof Error ? error : new Error(String(error)),
+    )
+    throw error
+  }
+
+  if (!response.ok) {
+    log.error("Telegram Ads brief send failed", { status: response.status })
+    throw new TelegramSendError(
+      `Telegram Ads brief send failed: ${response.status}`,
+    )
+  }
+
+  const json = await response.json().catch(() => null)
+  const messageId = parseMessageId(json)
+  if (messageId == null) {
+    throw new TelegramSendError(
+      "Telegram Ads brief response missing message_id",
+    )
+  }
+
+  log.info("Telegram Ads brief delivered", { hasMessageId: true })
+  return { messageId }
 }
 
 /**

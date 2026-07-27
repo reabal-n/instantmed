@@ -105,6 +105,10 @@
       "schedule": "50 * * * *"
     },
     {
+      "path": "/api/cron/google-ads-daily-brief",
+      "schedule": "0 22,23 * * *"
+    },
+    {
       "path": "/api/cron/qa-sampling",
       "schedule": "0 6 * * 1"
     },

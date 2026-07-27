@@ -103,7 +103,9 @@ function normalizedCampaignName(campaign: CampaignEconomics): string {
     .toLowerCase()
 }
 
-function campaignService(campaign: CampaignEconomics): AdsService | null {
+export function resolveAdsCampaignService(
+  campaign: CampaignEconomics,
+): AdsService | null {
   const name = normalizedCampaignName(campaign)
 
   if (name.includes("med cert") || name.includes("medical cert")) {
@@ -146,7 +148,7 @@ function groupedCampaigns(
     if (campaign.channel !== "SEARCH" || campaign.campaignStatus === "REMOVED") {
       continue
     }
-    const service = campaignService(campaign)
+    const service = resolveAdsCampaignService(campaign)
     if (!service || service === "account") continue
     const existing = campaigns.get(service) ?? []
     existing.push(campaign)
@@ -305,7 +307,7 @@ export function evaluateAdsPolicy(
     (campaign) =>
       campaign.channel === "SEARCH"
       && campaign.campaignStatus === "ENABLED"
-      && campaignService(campaign) == null,
+      && resolveAdsCampaignService(campaign) == null,
   )
   if (hasUnmappedEnabledCampaign) {
     recommendations.unshift(
