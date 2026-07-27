@@ -31,10 +31,18 @@ export function listLocalMigrationVersions(migrationsDir) {
 export function compareMigrationHistory(rows, localVersions) {
   const listedLocal = new Set(rows.map((row) => row.local).filter(Boolean))
   const listedRemote = new Set(rows.map((row) => row.remote).filter(Boolean))
+  const newestRemote = [...listedRemote].sort().at(-1) ?? ""
+  const localOnlyRows = rows.filter((row) => row.local && !row.remote)
+  const pendingLocal = localOnlyRows
+    .filter((row) => row.local > newestRemote && localVersions.includes(row.local))
+    .map((row) => row.local)
 
   return {
     remoteOnly: rows.filter((row) => !row.local && row.remote).map((row) => row.remote),
-    localOnlyInTracker: rows.filter((row) => row.local && !row.remote).map((row) => row.local),
+    pendingLocal,
+    localOnlyInTracker: localOnlyRows
+      .filter((row) => !pendingLocal.includes(row.local))
+      .map((row) => row.local),
     localFilesMissingFromTracker: localVersions.filter((version) => !listedLocal.has(version)),
     remoteMissingLocalFile: [...listedRemote].filter((version) => !localVersions.includes(version)),
   }
@@ -49,7 +57,10 @@ function main() {
     stdio: ["ignore", "pipe", "inherit"],
   })
 
-  const drift = compareMigrationHistory(parseMigrationList(output), listLocalMigrationVersions(migrationsDir))
+  const { pendingLocal, ...drift } = compareMigrationHistory(
+    parseMigrationList(output),
+    listLocalMigrationVersions(migrationsDir),
+  )
   const problems = Object.entries(drift).filter(([, versions]) => versions.length > 0)
 
   if (problems.length > 0) {
@@ -58,6 +69,11 @@ function main() {
       console.error(`- ${kind}: ${versions.join(", ")}`)
     }
     process.exit(1)
+  }
+
+  if (pendingLocal.length > 0) {
+    console.log(`Supabase migration history is aligned; pending local: ${pendingLocal.join(", ")}.`)
+    return
   }
 
   console.log("Supabase migration history is aligned.")
