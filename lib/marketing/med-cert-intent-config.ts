@@ -1373,7 +1373,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     metadata: {
       title: "Medical Certificate for Migraine or Headache",
       description:
-        `Request a medical certificate for a migraine or severe headache, reviewed online by AHPRA-registered doctors 24/7. From ${PRICING_DISPLAY.MED_CERT}. Employer policies vary.`,
+        `Request a medical certificate for a migraine or severe headache, reviewed online by AHPRA-registered doctors. From ${PRICING_DISPLAY.MED_CERT}. Employer policies vary.`,
       keywords: [
         "medical certificate for migraine",
         "migraine sick certificate",
