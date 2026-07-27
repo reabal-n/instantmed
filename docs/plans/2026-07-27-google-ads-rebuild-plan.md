@@ -6,7 +6,7 @@
 
 **Goal:** Build a production-grade, approval-gated Google Ads manager that sends a PHI-free essential brief to Telegram at 09:00 Australia/Sydney, proposes revenue-led changes, and can validate, apply, verify, and roll back only the exact mutations the operator approves.
 
-**Architecture:** A deterministic Vercel control plane owns time windows, Google Ads/Supabase/Stripe reconciliation, tracking health, policy gates, persistent run state, Telegram delivery, and mutation receipts. Codex 5.6 Sol Max owns interpretation and proposal review; it never performs arithmetic from prose and never mutates the account without a fresh, exact operator approval in the Codex task. Google Ads remains the serving system, Supabase/Stripe remain the financial truth, and PostHog remains a secondary funnel diagnostic.
+**Architecture:** A deterministic Vercel control plane owns time windows, Google Ads/Supabase/Stripe reconciliation, tracking health, policy gates, persistent run state, Telegram delivery and signed approval callbacks, and mutation receipts. Codex 5.6 Sol Max owns interpretation and proposal review; it never performs arithmetic from prose and no mutation can run without a fresh, exact operator approval from the authorised Telegram account or, as a fallback, the Codex task. Google Ads remains the serving system, Supabase/Stripe remain the financial truth, and PostHog remains a secondary funnel diagnostic.
 
 **Tech Stack:** Next.js 15.5 App Router on Node 24, TypeScript 5.9, Supabase PostgreSQL, Stripe v22, Google Ads API v24, Vercel Cron, Telegram Bot API, Vitest, Codex 5.6 Sol Max.
 
@@ -14,7 +14,7 @@
 
 - This plan elaborates `docs/ROADMAP.md` rank 4, “Prove paid contribution by service.” It does not reorder the roadmap.
 - Every Ads mutation requires a fresh operator approval for a named proposal. A general “manage Ads” instruction is not mutation approval.
-- Telegram is report and critical-alert delivery only in v1. Mutation approvals stay in the Codex task; there are no Telegram approval buttons.
+- Telegram is the primary v1 approval surface. Only an HMAC-signed Approve or Reject button attached to the immutable proposal message counts; free text, reactions, forwarded messages, and replies do not.
 - The agent is read-only by default. `validateOnly` is mandatory before every apply call.
 - No autonomous emergency pause, budget change, keyword change, creative change, asset change, schedule change, targeting change, or campaign creation.
 - Medicine-name and active-ingredient keywords are OFF by operator policy. Service and condition vocabulary such as “prescription,” “repeat script,” “ED assessment,” and “hair loss assessment” remains allowed.
@@ -40,7 +40,7 @@
 
 **Daily Ads Brief:** The six-to-eight-line aggregate Telegram message delivered at 09:00 Sydney. It reports only tracking state, service economics, breached guardrails, and the next decision.
 
-**Approval Packet:** One immutable proposal containing the exact Google Ads resource names, expected current values, requested new values, rationale, risk, expiry, validation result, and rollback recipe.
+**Approval Packet:** One immutable proposal containing the exact Google Ads resource names, expected current values, requested new values, rationale, risk, expiry, validation result, and rollback recipe. Telegram renders its summary with one-time Approve and Reject actions; Codex provides the same evidence as a fallback.
 
 **Mutation Receipt:** The append-only record of baseline read, `validateOnly` result, apply result, read-back verification, actor, timestamps, and rollback state.
 
@@ -51,12 +51,13 @@
 1. The 09:00 control plane computes and stores a trusted snapshot.
 2. Telegram receives the essential brief whether the recommendation is `HOLD`, `INVESTIGATE`, or `APPROVAL_NEEDED`.
 3. Codex reads the stored snapshot and live account state, explains the evidence, and prepares at most one material change packet at a time.
-4. The operator approves by replying with the exact proposal key, for example `APPROVE ADS-20260730-01`.
-5. Codex re-reads live state. Any baseline drift aborts the proposal.
-6. The mutation gateway runs `validateOnly`, applies the same operations, reads the resources back, and records the receipt.
-7. Telegram receives a short mutation result only after verified apply or verified abort.
+4. The control plane validates the immutable packet and sends its exact summary to Telegram with HMAC-signed **Approve** and **Reject** buttons.
+5. The operator taps a button. The webhook verifies Telegram's secret header, authorised chat, authorised user ID, recorded message ID, callback signature, proposal state, expiry, and operation hash before recording the decision.
+6. For approval, the gateway re-reads live state and runs `validateOnly` again. Any baseline drift, failed validation, duplicate callback, expired packet, or disabled kill switch aborts without mutation.
+7. The gateway atomically applies the same operations, reads the resources back, records the receipt, and edits the Telegram proposal message with the verified result. Rejection moves the packet to a terminal `rejected` state.
+8. An exact Codex-task approval remains a fallback when Telegram is unavailable and uses the same state machine and apply gates.
 
-No approval can be inferred from silence, a previous proposal, a plan approval, a Telegram reaction, or a broad instruction to improve performance.
+No approval can be inferred from silence, a previous proposal, a plan approval, Telegram free text or reactions, a forwarded button, or a broad instruction to improve performance.
 
 ---
 
@@ -113,8 +114,10 @@ flowchart LR
     R --> T["09:00 Telegram brief"]
     R --> X["Codex 5.6 manager"]
     X --> Q["Immutable approval packet"]
-    Q --> U["Operator exact approval"]
-    U --> V["Fresh read and validateOnly"]
+    Q --> T
+    T --> U["Signed Telegram Approve or Reject"]
+    U --> W["Authenticated Telegram webhook"]
+    W --> V["Fresh read and validateOnly"]
     V --> M["Atomic Google Ads mutation"]
     M --> Y["Read-back and mutation receipt"]
     Y --> T
@@ -135,9 +138,11 @@ flowchart LR
 | `lib/ads-agent/brief.ts` | Essential Telegram formatting and delivery contract |
 | `lib/ads-agent/runs.ts` | Exactly-once daily run state and delivery receipt |
 | `lib/ads-agent/proposals.ts` | Immutable proposal creation, expiry, approval state, and baseline hashing |
+| `lib/ads-agent/telegram-approval.ts` | Proposal-card formatting, HMAC callbacks, authorised-operator checks, and one-time decision handling |
 | `lib/ads-agent/mutations.ts` | Restricted operation builders, validate, atomic apply, read-back, and rollback receipts |
 | `lib/ads-agent/experiments.ts` | One-variable experiment registry, checkpoints, and evaluation |
 | `app/api/cron/google-ads-daily-brief/route.ts` | Production 09:00 Sydney orchestration |
+| `app/api/webhooks/telegram/route.ts` | Existing Telegram callback endpoint, extended with a separate fail-closed Ads proposal action namespace |
 | `scripts/google-ads-agent.ts` | Codex-facing read/propose/validate/apply/verify CLI; read-only unless all apply gates pass |
 | `supabase/migrations/20260727180000_google_ads_agent_control_plane.sql` | Run, proposal, experiment, and fee-cache persistence with service-role-only access |
 
@@ -230,7 +235,8 @@ it("pins the approval-gated Ads Agent policy", () => {
   expect(advertising).toContain("Medicine-name and active-ingredient keywords are OFF")
   expect(advertising).toContain("Eligible (Limited) is compatible with certified healthcare serving")
   expect(operations).toContain("09:00 Australia/Sydney")
-  expect(operations).toContain("Mutation approvals stay in the Codex task")
+  expect(operations).toContain("Telegram Ads approval requires an immutable proposal")
+  expect(operations).toContain("authorised Telegram user ID")
   expect(revenue).toContain("maximum 20% budget step")
   expect(revenue).not.toContain("tCPA cap")
 })
@@ -251,8 +257,8 @@ Make these exact policy corrections:
 - `APPROVED_LIMITED` is expected for certified healthcare inventory; the unacceptable live states are `PROHIBITED`, disapproved, misleading-price, or unsubstantiated variants.
 - tCPA is an average acquisition target, never a CPC or per-conversion cap.
 - Negative keywords have three layers: account hard exclusions, service-specific exclusions, and dated experimental exclusions.
-- Telegram gains one explicit aggregate-only send class: the 09:00 Daily Ads Brief.
-- Every mutation requires exact approval in the Codex task.
+- Telegram gains two explicit PHI-free Ads classes: the 09:00 Daily Ads Brief and immutable proposal cards with signed Approve/Reject actions.
+- Every mutation requires an exact action from the configured Telegram approver or an exact Codex-task approval. Telegram free text, replies, reactions, forwards, and unauthorised users never count.
 
 - [ ] **Step 4: Add glossary entries to `CONTEXT.md`**
 
@@ -325,7 +331,7 @@ create table public.google_ads_change_proposals (
   id uuid primary key default gen_random_uuid(),
   proposal_key text not null unique,
   run_id uuid references public.google_ads_agent_runs(id) on delete set null,
-  status text not null check (status in ('draft','validated','awaiting_approval','approved','applying','applied','verified','aborted','failed','rolled_back','expired')),
+  status text not null check (status in ('draft','validated','awaiting_approval','approved','rejected','applying','applied','verified','aborted','failed','rolled_back','expired')),
   mutation_family text not null,
   operations jsonb not null,
   rationale jsonb not null,
@@ -333,7 +339,13 @@ create table public.google_ads_change_proposals (
   rollback_plan jsonb not null,
   expires_at timestamptz not null,
   approval_reference text,
+  approval_channel text check (approval_channel in ('telegram','codex')),
+  approval_actor_hash text,
   approved_at timestamptz,
+  rejected_at timestamptz,
+  telegram_message_id bigint,
+  telegram_update_id bigint unique,
+  telegram_callback_query_hash text unique,
   validation_receipt jsonb,
   apply_receipt jsonb,
   verification_receipt jsonb,
@@ -771,17 +783,22 @@ git add lib/ads-agent/brief.ts lib/ads-agent/runs.ts app/api/cron/google-ads-dai
 git commit -m "feat: send the daily Google Ads brief"
 ```
 
-### Task 9: Create immutable approval packets and a Codex-facing CLI
+### Task 9: Create immutable approval packets, Telegram decisions, and a Codex-facing CLI
 
 **Files:**
 - Create: `lib/ads-agent/proposals.ts`
+- Create: `lib/ads-agent/telegram-approval.ts`
 - Create: `scripts/google-ads-agent.ts`
+- Modify: `app/api/webhooks/telegram/route.ts`
+- Modify: `lib/notifications/telegram.ts`
+- Modify: `lib/config/env.ts`
 - Modify: `package.json`
 - Create: `lib/__tests__/google-ads-agent-proposals.test.ts`
+- Create: `lib/__tests__/google-ads-agent-telegram-approval.test.ts`
 - Create: `lib/__tests__/google-ads-agent-cli-contract.test.ts`
 
 **Interfaces:**
-- Produces: proposal state machine and `pnpm ads:agent` commands.
+- Produces: proposal state machine, authenticated Telegram Approve/Reject callbacks, and `pnpm ads:agent` commands.
 
 - [ ] **Step 1: Define the restricted operation union**
 
@@ -814,17 +831,58 @@ export interface AdSchedule {
 
 Do not accept raw caller-supplied Google Ads mutate JSON.
 
-- [ ] **Step 2: Write state-machine tests**
+- [ ] **Step 2: Write state-machine and Telegram security tests**
 
-Cover draft, validation, awaiting approval, exact approval reference, 24-hour expiry, immutable operations after validation, baseline hash, drift abort, apply eligibility, and terminal states.
+Cover draft, validation, awaiting approval, exact approval reference, rejection, 24-hour expiry, immutable operations after validation, baseline hash, drift abort, apply eligibility, and terminal states.
+
+For Telegram, cover:
+
+- missing or invalid `X-Telegram-Bot-Api-Secret-Token` rejected
+- `TELEGRAM_ADS_APPROVALS_ENABLED` absent or false rejected
+- chat ID mismatch rejected
+- `from.id` mismatch against `TELEGRAM_ADS_APPROVER_USER_ID` rejected even inside the correct group/chat
+- missing `TELEGRAM_ADS_APPROVAL_SIGNING_SECRET` rejected
+- callback namespace restricted to `ads:a:` and `ads:r:`
+- HMAC signature verified with constant-time comparison
+- callback `message_id` must equal the proposal's recorded Telegram message
+- expired, changed, terminal, forwarded, or already-consumed proposal rejected
+- Telegram `update_id` and hashed `callback_query.id` are one-time/idempotent
+- approval compare-and-set changes only `awaiting_approval` to `approved`; rejection changes it only to `rejected`
+- usernames, message text, raw user IDs, and callback payloads are not stored
 
 - [ ] **Step 3: Run tests and confirm failure**
 
-Run: `pnpm test -- google-ads-agent-proposals google-ads-agent-cli-contract`
+Run: `pnpm test -- google-ads-agent-proposals google-ads-agent-telegram-approval google-ads-agent-cli-contract`
 
-Expected: FAIL because the proposal system is absent.
+Expected: FAIL because the proposal and Telegram Ads decision systems are absent.
 
-- [ ] **Step 4: Implement CLI commands**
+- [ ] **Step 4: Implement the Telegram proposal card and callback actions**
+
+Send one PHI-free message per proposal with the exact proposal key, expiry, service/campaign, current value, requested value, bounded daily impact, reason, validation state, and rollback value. Attach exactly two inline buttons:
+
+```text
+ADS-20260730-01 · expires 10:42 Sydney
+Scripts budget: A$40/day → A$48/day
+Bounded impact: up to +A$8/day
+Why: tracking GREEN; mature cohort gate passed
+Rollback: A$48/day → A$40/day
+
+[Approve ADS-20260730-01] [Reject]
+```
+
+Use compact callback data under Telegram's 64-byte limit: `ads:a:<proposal-key>:<truncated-hmac>` and `ads:r:<proposal-key>:<truncated-hmac>`. Sign with the dedicated `TELEGRAM_ADS_APPROVAL_SIGNING_SECRET`; do not reuse the medical-certificate action secret. Record the returned Telegram `message_id` before moving the proposal to `awaiting_approval`.
+
+Extend the existing `/api/webhooks/telegram` route rather than creating a second Telegram webhook. Preserve the existing med-cert callback path. Ads actions must additionally require:
+
+```text
+TELEGRAM_ADS_APPROVALS_ENABLED=true
+TELEGRAM_ADS_APPROVER_USER_ID=<exact Telegram numeric user id>
+TELEGRAM_ADS_APPROVAL_SIGNING_SECRET=<independent secret>
+```
+
+The route answers the callback promptly, records the one-time decision with compare-and-set, then invokes the guarded mutation pipeline for an approval. That pipeline fresh-reads the account, repeats `validateOnly`, aborts on drift, applies atomically, verifies by read-back, and edits the original Telegram message with `VERIFIED` or the precise abort state. Reject never invokes the mutation gateway.
+
+- [ ] **Step 5: Implement CLI fallback commands**
 
 ```text
 pnpm ads:agent -- snapshot
@@ -832,23 +890,24 @@ pnpm ads:agent -- propose --run=<run-id>
 pnpm ads:agent -- show --proposal=ADS-20260730-01
 pnpm ads:agent -- validate --proposal=ADS-20260730-01
 pnpm ads:agent -- approve --proposal=ADS-20260730-01 --reference=codex-task:<task-id>
+pnpm ads:agent -- reject --proposal=ADS-20260730-01 --reference=codex-task:<task-id>
 pnpm ads:agent -- apply --proposal=ADS-20260730-01
 pnpm ads:agent -- verify --proposal=ADS-20260730-01
 ```
 
-`snapshot`, `propose`, `show`, and `validate` are read-only. `approve` records an approval only after Codex has received the exact operator response. `apply` exits non-zero unless `GOOGLE_ADS_AGENT_MUTATIONS_ENABLED=true`, the proposal is approved/unexpired, validation passed, and the live baseline hash still matches.
+`snapshot`, `propose`, `show`, and `validate` are read-only. CLI `approve`/`reject` are the Codex-task fallback and record a decision only after Codex has received the exact operator response. `apply` exits non-zero unless `GOOGLE_ADS_AGENT_MUTATIONS_ENABLED=true`, the proposal is approved/unexpired, validation passed, and the live baseline hash still matches. Telegram and CLI decisions share the same state transitions and cannot both consume one proposal.
 
-- [ ] **Step 5: Verify**
+- [ ] **Step 6: Verify**
 
-Run: `pnpm test -- google-ads-agent-proposals google-ads-agent-cli-contract`
+Run: `pnpm test -- google-ads-agent-proposals google-ads-agent-telegram-approval google-ads-agent-cli-contract telegram-webhook-hardening`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add lib/ads-agent/proposals.ts scripts/google-ads-agent.ts package.json lib/__tests__/google-ads-agent-proposals.test.ts lib/__tests__/google-ads-agent-cli-contract.test.ts
-git commit -m "feat: add approval-gated Ads proposals"
+git add lib/ads-agent/proposals.ts lib/ads-agent/telegram-approval.ts scripts/google-ads-agent.ts app/api/webhooks/telegram/route.ts lib/notifications/telegram.ts lib/config/env.ts package.json lib/__tests__/google-ads-agent-proposals.test.ts lib/__tests__/google-ads-agent-telegram-approval.test.ts lib/__tests__/google-ads-agent-cli-contract.test.ts
+git commit -m "feat: add Telegram-gated Ads proposals"
 ```
 
 ### Task 10: Validate, atomically apply, verify, and receipt mutations
@@ -869,6 +928,7 @@ Cover:
 - validation and apply use byte-equivalent normalized operations
 - `partialFailure: false`
 - expired or unapproved proposal rejected
+- approval lacks a verified `telegram` or `codex` decision receipt rejected
 - live-state drift rejected
 - account budget envelope rejected
 - Manual CPC specialty proposal rejected when an ad-group or keyword CPC bid exceeds the approved ceiling
@@ -1009,9 +1069,10 @@ Set:
 ```text
 GOOGLE_ADS_AGENT_DAILY_BRIEF_ENABLED=true
 GOOGLE_ADS_AGENT_MUTATIONS_ENABLED=false
+TELEGRAM_ADS_APPROVALS_ENABLED=false
 ```
 
-Reuse existing `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`. Do not create a second bot or chat unless the operator later requests channel separation.
+Reuse existing `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET`, and `/api/webhooks/telegram`. Add the dedicated Ads approver user ID and Ads signing secret, but keep Ads buttons disabled throughout report shadow mode. Do not create a second bot or chat unless the operator later requests channel separation.
 
 - [ ] **Step 3: Run a production dry run before the first scheduled send**
 
@@ -1095,19 +1156,19 @@ Only after the mature post-change gate passes, propose tROAS 135% at A$40. Obser
 
 - [ ] **Step 1: Create a daily Codex heartbeat after production shadow proof**
 
-Schedule it shortly after the 09:00 Telegram delivery in Australia/Sydney. Use Codex 5.6 Sol Max at Max reasoning. The prompt instructs the agent to read the stored run, inspect live state only when needed, prepare at most one exact proposal, and never mutate without a new operator approval.
+Schedule it shortly after the 09:00 Telegram delivery in Australia/Sydney. Use Codex 5.6 Sol Max at Max reasoning. The prompt instructs the agent to read the stored run, inspect live state only when needed, prepare at most one exact proposal, send its immutable approval card to Telegram, and never mutate without a new authenticated Telegram or exact Codex-task approval.
 
 - [ ] **Step 2: Create a weekly deep-audit heartbeat**
 
-The weekly task reviews search terms, keyword cohorts, Quality Score components, RSA/asset exposure, schedules, location/device performance, policy status, manager access, and change history. It writes the detailed analysis in the Codex task; Telegram receives only a short exception or approval-needed line.
+The weekly task reviews search terms, keyword cohorts, Quality Score components, RSA/asset exposure, schedules, location/device performance, policy status, manager access, and change history. It writes the detailed analysis in the Codex task; Telegram receives only a short exception or, when action is warranted, the immutable proposal card with Approve/Reject buttons.
 
 - [ ] **Step 3: Prove the approval boundary**
 
-Run one harmless proposal through snapshot, proposal, `validateOnly`, explicit approval, apply, read-back, and receipt. Confirm the same proposal cannot apply twice and an expired or drifted proposal aborts.
+Run one harmless proposal through snapshot, proposal, Telegram delivery, authorised-button approval, fresh `validateOnly`, apply, read-back, message edit, and receipt. Confirm the same proposal cannot apply twice; wrong-user, forwarded, duplicate, expired, and drifted callbacks abort. Separately prove that Reject is terminal and never calls Google Ads mutate.
 
 - [ ] **Step 4: Enable mutation execution only after proof**
 
-Set `GOOGLE_ADS_AGENT_MUTATIONS_ENABLED=true`. This enables the guarded CLI path; it does not authorize any mutation by itself.
+Set `GOOGLE_ADS_AGENT_MUTATIONS_ENABLED=true` and `TELEGRAM_ADS_APPROVALS_ENABLED=true`. The first enables the guarded gateway and the second renders/accepts Ads decision buttons; neither authorises a mutation without a fresh immutable proposal action.
 
 - [ ] **Step 5: Record the operational handoff**
 
@@ -1167,6 +1228,8 @@ git commit -m "feat: harden Google Ads agent monitoring"
 | False profit | Actual Stripe fee reconciliation and cent-level spot check |
 | Tracking blindness | Primary action, upload stream, adjustments, suffix, auto-tagging, and freshness classifier tests |
 | Duplicate Telegram brief | Unique report date, dual-UTC cron test, delivered receipt |
+| Forged Telegram approval | Secret-header, chat-ID, user-ID, message-ID, HMAC, expiry, and operation-hash tests |
+| Replayed Telegram approval | Unique update/callback receipt and compare-and-set terminal-state tests |
 | PHI leakage | Static contract tests and payload fixture review |
 | Unapproved mutation | Proposal state-machine and disabled-by-default CLI tests |
 | Stale approval | 24-hour expiry and baseline hash mismatch test |
@@ -1197,9 +1260,9 @@ Run production mutation proof only after CI passes and the operator approves the
 
 1. **Docs and policy:** Repair canonical language and pin it with tests.
 2. **Read-only data plane:** Deploy fee-aware snapshot, tracking health, and persistent runs.
-3. **Telegram shadow:** Deliver seven daily briefs with mutations disabled.
-4. **Proposal shadow:** Generate packets without apply authority for at least three real recommendations.
-5. **Mutation proof:** Apply one low-risk approved packet and verify duplicate/drift protection.
+3. **Telegram report shadow:** Deliver seven daily briefs with mutations and Ads approval buttons disabled.
+4. **Proposal shadow:** Generate at least three real Telegram proposal cards with apply authority disabled; test Reject and expiry against non-live packets.
+5. **Mutation proof:** Apply one low-risk packet through an authorised Telegram button and verify wrong-user, replay, duplicate, expiry, and drift protection.
 6. **Account foundation:** Execute packets 1–9 one at a time.
 7. **Steady state:** Daily essential brief, weekly deep audit, proposal-by-exception.
 
@@ -1207,6 +1270,7 @@ Run production mutation proof only after CI passes and the operator approves the
 
 - `GOOGLE_ADS_AGENT_DAILY_BRIEF_ENABLED=false`: stop routine brief delivery while leaving existing critical alerts intact.
 - `GOOGLE_ADS_AGENT_MUTATIONS_ENABLED=false`: make every CLI command read-only except `validate`.
+- `TELEGRAM_ADS_APPROVALS_ENABLED=false`: hide and reject Ads Approve/Reject actions while leaving reports, clinical callbacks, and Codex fallback review intact.
 - Disable the Codex heartbeat through the Codex automation tool if its reasoning becomes noisy; Vercel reporting continues independently.
 
 ### Mutation rollback
@@ -1224,7 +1288,8 @@ The Google Ads Agent is complete when:
 - Tracking health fails closed and existing critical conversion alerts still work.
 - Each launched service has one governed Search campaign; retired/gated services cannot serve.
 - The agent can prepare immutable, one-variable approval packets.
-- No proposal can apply without exact approval, current baseline, successful `validateOnly`, enabled mutation gate, atomic apply, and verified read-back.
+- The authorised operator can approve or reject an exact proposal from Telegram; unauthorised, forwarded, free-text, reacted, stale, or replayed actions cannot mutate anything.
+- No proposal can apply without authenticated Telegram or exact Codex-task approval, current baseline, successful fresh `validateOnly`, enabled mutation gate, atomic apply, and verified read-back.
 - Every apply and rollback has a durable receipt.
 - Experiments have hypotheses, fixed loss/time/sample gates, and cannot overlap materially.
 - Codex 5.6 can run the daily/weekly operating loop without being the sole scheduler or financial calculator.

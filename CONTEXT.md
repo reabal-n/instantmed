@@ -31,7 +31,7 @@ The aggregate, PHI-free Google Ads decision summary delivered to Telegram at 09:
 _Avoid_: Dashboard dump, daily audit report
 
 **Approval Packet**:
-An immutable, expiring proposal that names exact current and requested Google Ads resource values, validation evidence, risk, and rollback state.
+An immutable, expiring proposal that names exact current and requested Google Ads resource values, validation evidence, risk, and rollback state. It may be approved through its authenticated Telegram action or by an exact Codex-task approval.
 _Avoid_: Recommendation, general approval, change idea
 
 **Mutation Receipt**:
