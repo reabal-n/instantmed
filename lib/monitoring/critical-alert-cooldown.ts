@@ -8,6 +8,8 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 const logger = createLogger("critical-alert-cooldown")
 
 const CRITICAL_ALERT_COOLDOWN_ACTION = "critical_business_alert_telegram"
+const GOOGLE_ADS_TERMINAL_ALERT_METRIC =
+  "google_ads_adjustment_terminal_click_attributed_failures"
 
 /**
  * Minimum gap between two Telegram pages carrying the SAME critical detail.
@@ -24,6 +26,19 @@ const CRITICAL_ALERT_COOLDOWN_ACTION = "critical_business_alert_telegram"
  * count — is a different fingerprint and pages immediately.
  */
 const CRITICAL_ALERT_COOLDOWN_HOURS = 4
+const GOOGLE_ADS_TERMINAL_ALERT_COOLDOWN_HOURS = 7 * 24
+
+/**
+ * Most live incidents repeat every four hours. A terminal Ads adjustment is
+ * immutable and already remains visible as RED in the daily brief, so the same
+ * failure set pages once across its seven-day freshness window. A changed
+ * count changes the detail fingerprint and still pages immediately.
+ */
+export function resolveCriticalAlertCooldownHours(metric: string): number {
+  return metric === GOOGLE_ADS_TERMINAL_ALERT_METRIC
+    ? GOOGLE_ADS_TERMINAL_ALERT_COOLDOWN_HOURS
+    : CRITICAL_ALERT_COOLDOWN_HOURS
+}
 
 /**
  * Fingerprint the alert content, not just its type.
@@ -43,10 +58,15 @@ function fingerprintCriticalAlert(detail: string): string {
  * annoyance; a silently swallowed critical alert is the failure mode this whole
  * module exists to protect against.
  */
-export async function shouldSendCriticalAlert(detail: string): Promise<boolean> {
+export async function shouldSendCriticalAlert(
+  detail: string,
+  options: { cooldownHours?: number } = {},
+): Promise<boolean> {
   const fingerprint = fingerprintCriticalAlert(detail)
+  const cooldownHours =
+    options.cooldownHours ?? CRITICAL_ALERT_COOLDOWN_HOURS
   const since = new Date(
-    Date.now() - CRITICAL_ALERT_COOLDOWN_HOURS * 60 * 60 * 1000,
+    Date.now() - cooldownHours * 60 * 60 * 1000,
   ).toISOString()
 
   try {
@@ -78,14 +98,19 @@ export async function shouldSendCriticalAlert(detail: string): Promise<boolean> 
  * Record that this detail paged, starting its cooldown. Fail-soft: a missing
  * receipt only costs one duplicate page on the next run.
  */
-export async function recordCriticalAlertSent(detail: string): Promise<void> {
+export async function recordCriticalAlertSent(
+  detail: string,
+  options: { cooldownHours?: number } = {},
+): Promise<void> {
+  const cooldownHours =
+    options.cooldownHours ?? CRITICAL_ALERT_COOLDOWN_HOURS
   try {
     const supabase = createServiceRoleClient()
     const { error } = await supabase.from("audit_logs").insert({
       action: CRITICAL_ALERT_COOLDOWN_ACTION,
       actor_type: "system",
       metadata: {
-        cooldown_hours: CRITICAL_ALERT_COOLDOWN_HOURS,
+        cooldown_hours: cooldownHours,
         fingerprint: fingerprintCriticalAlert(detail),
       },
     })

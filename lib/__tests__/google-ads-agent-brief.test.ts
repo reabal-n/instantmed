@@ -129,6 +129,34 @@ function briefFixture(): {
     }),
   ]
   const empty = emptyPortfolio()
+  const dailyEnabled: CampaignPortfolioEconomics = {
+    campaignCount: 4,
+    contributionCents: 4800,
+    contributionMargin: 4800 / 11500,
+    grossRevenueCents: 12000,
+    netRetainedRevenueCents: 11500,
+    orders: 3,
+    refundCents: 500,
+    refundedOrders: 1,
+    refundRate: 1 / 3,
+    spendCents: 2600,
+    stripeFeeCents: 4100,
+    unavailableReasonCodes: [],
+  }
+  const rolling30Enabled: CampaignPortfolioEconomics = {
+    campaignCount: 4,
+    contributionCents: 4000,
+    contributionMargin: 4000 / 101320,
+    grossRevenueCents: 106320,
+    netRetainedRevenueCents: 101320,
+    orders: 36,
+    refundCents: 5000,
+    refundedOrders: 3,
+    refundRate: 3 / 36,
+    spendCents: 93307,
+    stripeFeeCents: 3927,
+    unavailableReasonCodes: [],
+  }
 
   return {
     recommendations: [
@@ -161,8 +189,12 @@ function briefFixture(): {
       reportDate: "2026-07-27",
       rolling30,
       totals: {
-        daily: { enabled: empty, other: empty, paused: empty },
-        rolling30: { enabled: empty, other: empty, paused: empty },
+        daily: { enabled: dailyEnabled, other: empty, paused: empty },
+        rolling30: {
+          enabled: rolling30Enabled,
+          other: empty,
+          paused: empty,
+        },
       },
       tracking: {
         evidenceAsOf: "2026-07-28T00:00:00.000Z",
@@ -189,21 +221,20 @@ function briefFixture(): {
 }
 
 describe("Google Ads Agent daily brief", () => {
-  it("renders the essential aggregate report in at most eight lines", () => {
+  it("renders a scan-friendly aggregate report in at most six lines", () => {
     const { recommendations, snapshot } = briefFixture()
 
     const message = formatDailyAdsBrief(snapshot, recommendations)
 
     expect(message).toBe([
-      "Ads · Mon 27 Jul · yesterday / 30d",
-      "Tracking GREEN",
-      "Scripts: A$12 / 2 orders / +A$38 · 30d +A$188 · HOLD",
-      "Med: A$14 / 1 order / +A$10 · 30d −A$11",
-      "Hair: A$0 · 30d −A$106 | ED: A$0 · 30d −A$31 | Women: paused",
-      "Guardrail: Scripts refund cohort still immature",
-      "Decision: HOLD — no changes requested",
+      "Ads · Mon 27 Jul · after ad spend + Stripe fees",
+      "Yesterday: +A$48 · 3 orders · A$26 spent",
+      "30 days: +A$40 · 36 orders · A$933 spent",
+      "Services, 30 days: Scripts +A$188 · Med −A$11",
+      "Pilots, 30 days: Hair −A$106 · ED −A$31 · Women paused",
+      "GREEN tracking · HOLD · Scripts refund data still immature · No changes",
     ].join("\n"))
-    expect(message.split("\n").length).toBeLessThanOrEqual(8)
+    expect(message.split("\n").length).toBeLessThanOrEqual(6)
   })
 
   it("never formats routine diagnostics or sensitive attribution payloads", () => {

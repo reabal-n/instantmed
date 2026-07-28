@@ -219,12 +219,11 @@ function buildMetadata(
 /**
  * Re-page window for terminal click-attributed adjustment failures. The health
  * lookback is 90d, so without a freshness gate one terminal failure pages
- * every ~4h for three months (the Jul-2026 refunded-ED failure re-fired 234
- * times). The per-intake fingerprinted Sentry error from the adjustment module
- * already records each failure durably; this alert exists to get eyes on it,
- * which a week of pages either achieves or never will. Gated on the latest
- * failure row of ANY kind (the health snapshot has no terminal-specific
- * timestamp), which errs toward re-paging while related failures are active.
+ * for three months. The per-intake fingerprinted Sentry error from the
+ * adjustment module already records each failure durably; Telegram pages the
+ * unchanged incident once during this freshness window while the daily brief
+ * continues to show RED tracking. Only the latest pageable failure can re-arm
+ * the window.
  */
 const GOOGLE_ADS_ADJUSTMENT_TERMINAL_REPAGE_DAYS = 7
 
@@ -254,9 +253,9 @@ export function buildGoogleAdsAdjustmentTerminalRiskAlert(
   return {
     count: health.terminalClickAttributedFailures,
     detail:
-      `Google Ads has ${health.terminalClickAttributedFailures} terminal refunded-order adjustment failure` +
-      `${health.terminalClickAttributedFailures === 1 ? "" : "s"} tied to a click-attributed purchase import; ` +
-      "Smart Bidding may still be counting refunded ad-click revenue.",
+      `Google Ads may still count ${health.terminalClickAttributedFailures} refunded ` +
+      `${health.terminalClickAttributedFailures === 1 ? "order" : "orders"} as revenue. ` +
+      "Scaling is blocked until this is reconciled.",
     metadata: {
       adjustment_failure_rows: health.adjustmentFailureRows,
       click_attributed_failures: health.clickAttributedFailures,
