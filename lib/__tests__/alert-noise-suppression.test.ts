@@ -147,6 +147,36 @@ describe("critical alert Telegram cooldown wiring", () => {
     expect(resolveCooldown("prescription_fulfilment_sla_breach")).toBe(4)
   })
 
+  it("treats the previous Ads warning copy as the same cooldown incident", async () => {
+    const cooldownModule = await import(
+      "@/lib/monitoring/critical-alert-cooldown"
+    )
+    const resolveEquivalentDetails = (
+      cooldownModule as unknown as Record<string, unknown>
+    ).resolveEquivalentCriticalAlertDetails
+
+    expect(typeof resolveEquivalentDetails).toBe("function")
+    if (typeof resolveEquivalentDetails !== "function") return
+
+    expect(
+      resolveEquivalentDetails({
+        count: 2,
+        metric: "google_ads_adjustment_terminal_click_attributed_failures",
+      }),
+    ).toEqual([
+      "Google Ads has 2 terminal refunded-order adjustment failures tied to a click-attributed purchase import; Smart Bidding may still be counting refunded ad-click revenue.",
+    ])
+    expect(
+      resolveEquivalentDetails({ count: 2, metric: "payment_failed" }),
+    ).toEqual([])
+  })
+
+  it("checks equivalent historical wording before paging Telegram", () => {
+    expect(cronSource).toMatch(
+      /equivalentDetails: resolveEquivalentCriticalAlertDetails\(alert\)/,
+    )
+  })
+
   it("fingerprints the detail text so an escalation pages immediately", () => {
     // Keying on content rather than alert type is what lets a count change or
     // a newly-added alert bypass the cooldown.

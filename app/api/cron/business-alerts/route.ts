@@ -20,6 +20,7 @@ import {
 import {
   recordCriticalAlertSent,
   resolveCriticalAlertCooldownHours,
+  resolveEquivalentCriticalAlertDetails,
   shouldSendCriticalAlert,
 } from "@/lib/monitoring/critical-alert-cooldown"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
@@ -655,7 +656,10 @@ export async function GET(request: NextRequest) {
       const pageableCriticalAlerts: BusinessAlert[] = []
       for (const alert of criticalAlerts) {
         const cooldownHours = resolveCriticalAlertCooldownHours(alert.metric)
-        if (await shouldSendCriticalAlert(alert.detail, { cooldownHours })) {
+        if (await shouldSendCriticalAlert(alert.detail, {
+          cooldownHours,
+          equivalentDetails: resolveEquivalentCriticalAlertDetails(alert),
+        })) {
           pageableCriticalAlerts.push(alert)
         }
       }

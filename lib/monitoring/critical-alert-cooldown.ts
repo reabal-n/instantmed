@@ -41,6 +41,31 @@ export function resolveCriticalAlertCooldownHours(metric: string): number {
 }
 
 /**
+ * Copy changes must not turn an unchanged incident into a fresh page. Keep the
+ * previous Ads warning only as a fingerprint alias during this incident's
+ * seven-day window; it is never sent to Telegram again.
+ */
+export function resolveEquivalentCriticalAlertDetails(alert: {
+  count?: number
+  metric: string
+}): string[] {
+  if (
+    alert.metric !== GOOGLE_ADS_TERMINAL_ALERT_METRIC
+    || !Number.isInteger(alert.count)
+    || (alert.count ?? 0) <= 0
+  ) {
+    return []
+  }
+
+  const count = alert.count as number
+  return [
+    `Google Ads has ${count} terminal refunded-order adjustment failure` +
+      `${count === 1 ? "" : "s"} tied to a click-attributed purchase import; ` +
+      "Smart Bidding may still be counting refunded ad-click revenue.",
+  ]
+}
+
+/**
  * Fingerprint the alert content, not just its type.
  *
  * Two runs that produce byte-identical detail text describe the same unchanged
@@ -60,9 +85,17 @@ function fingerprintCriticalAlert(detail: string): string {
  */
 export async function shouldSendCriticalAlert(
   detail: string,
-  options: { cooldownHours?: number } = {},
+  options: {
+    cooldownHours?: number
+    equivalentDetails?: string[]
+  } = {},
 ): Promise<boolean> {
-  const fingerprint = fingerprintCriticalAlert(detail)
+  const fingerprints = Array.from(
+    new Set(
+      [detail, ...(options.equivalentDetails ?? [])]
+        .map(fingerprintCriticalAlert),
+    ),
+  )
   const cooldownHours =
     options.cooldownHours ?? CRITICAL_ALERT_COOLDOWN_HOURS
   const since = new Date(
@@ -75,7 +108,7 @@ export async function shouldSendCriticalAlert(
       .from("audit_logs")
       .select("id")
       .eq("action", CRITICAL_ALERT_COOLDOWN_ACTION)
-      .eq("metadata->>fingerprint", fingerprint)
+      .in("metadata->>fingerprint", fingerprints)
       .gte("created_at", since)
       .limit(1)
       .maybeSingle()
