@@ -221,20 +221,76 @@ function briefFixture(): {
 }
 
 describe("Google Ads Agent daily brief", () => {
-  it("renders a scan-friendly aggregate report in at most six lines", () => {
+  it("keeps a quiet HOLD to the verdict and headline economics", () => {
     const { recommendations, snapshot } = briefFixture()
 
     const message = formatDailyAdsBrief(snapshot, recommendations)
 
     expect(message).toBe([
-      "Ads · Mon 27 Jul · after ad spend + Stripe fees",
-      "Yesterday: +A$48 · 3 orders · A$26 spent",
-      "30 days: +A$40 · 36 orders · A$933 spent",
-      "Services, 30 days: Scripts +A$188 · Med −A$11",
-      "Pilots, 30 days: Hair −A$106 · ED −A$31 · Women paused",
-      "GREEN tracking · HOLD · Scripts refund data still immature · No changes",
+      "Ads · Mon 27 Jul · after Ads + fees",
+      "HOLD · GREEN tracking · No changes",
+      "Yesterday: +A$48 · 3 orders",
+      "30 days: +A$40 · 36 orders",
     ].join("\n"))
-    expect(message.split("\n").length).toBeLessThanOrEqual(6)
+    expect(message.split("\n").length).toBe(4)
+  })
+
+  it("adds mutation-family detail only when an action needs approval", () => {
+    const { snapshot } = briefFixture()
+    const recommendations: AdsRecommendation[] = [
+      {
+        kind: "APPROVAL_NEEDED",
+        proposedMutationFamily: "campaign_bidding",
+        reasonCodes: ["SCRIPTS_SCALE_GATES_PASSED"],
+        service: "scripts",
+      },
+      {
+        kind: "APPROVAL_NEEDED",
+        proposedMutationFamily: "keyword_status",
+        reasonCodes: ["KEYWORD_CHANGE_RECOMMENDED"],
+        service: "med_certs",
+      },
+      {
+        kind: "APPROVAL_NEEDED",
+        proposedMutationFamily: "asset_link_status",
+        reasonCodes: ["ASSET_CHANGE_RECOMMENDED"],
+        service: "ed",
+      },
+    ]
+
+    const message = formatDailyAdsBrief(snapshot, recommendations)
+
+    expect(message).toBe([
+      "Ads · Mon 27 Jul · after Ads + fees",
+      "ACTION · GREEN tracking · Approval required",
+      "Action: Scripts · scaling/bid change",
+      "Action: Med certs · keyword change",
+      "Action: ED · asset/sitelink change",
+      "Yesterday: +A$48 · 3 orders",
+      "30 days: +A$40 · 36 orders",
+    ].join("\n"))
+  })
+
+  it("adds the reason only when an investigation is recommended", () => {
+    const { snapshot } = briefFixture()
+    const recommendations: AdsRecommendation[] = [
+      {
+        kind: "INVESTIGATE",
+        proposedMutationFamily: null,
+        reasonCodes: ["MULTIPLE_SERVICE_CAMPAIGNS"],
+        service: "account",
+      },
+    ]
+
+    const message = formatDailyAdsBrief(snapshot, recommendations)
+
+    expect(message).toBe([
+      "Ads · Mon 27 Jul · after Ads + fees",
+      "CHECK · GREEN tracking · No Ads change yet",
+      "Check: Account · More than one campaign owns a service",
+      "Yesterday: +A$48 · 3 orders",
+      "30 days: +A$40 · 36 orders",
+    ].join("\n"))
   })
 
   it("never formats routine diagnostics or sensitive attribution payloads", () => {

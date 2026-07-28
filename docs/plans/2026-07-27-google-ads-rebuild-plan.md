@@ -38,7 +38,7 @@
 
 **Google Ads Agent:** The combined deterministic control plane and Codex manager. It is not an LLM with unrestricted account credentials.
 
-**Daily Ads Brief:** The six-to-eight-line aggregate Telegram message delivered at 09:00 Sydney. It reports only tracking state, service economics, breached guardrails, and the next decision.
+**Daily Ads Brief:** The aggregate Telegram message delivered at 09:00 Sydney. A quiet `HOLD` is four lines: date/scope, decision plus tracking, yesterday, and rolling 30 days. Service, keyword, negative-keyword, sitelink/asset, schedule, bid, budget, or scaling detail appears only when the agent recommends a check or approval-gated action; exact values remain in the immutable Approval Packet.
 
 **Approval Packet:** One immutable proposal containing the exact Google Ads resource names, expected current values, requested new values, rationale, risk, expiry, validation result, and rollback recipe. Telegram renders its summary with one-time Approve and Reject actions; Codex provides the same evidence as a fallback.
 
@@ -729,19 +729,16 @@ git commit -m "feat: encode Google Ads operating policy"
 
 - [ ] **Step 1: Write formatter tests**
 
-Pin a maximum eight-line PHI-free output:
+Pin the four-line quiet `HOLD` output:
 
 ```text
-Ads · Mon 27 Jul · yesterday / 30d
-Tracking GREEN
-Scripts: A$12 / 2 orders / +A$38 · 30d +A$188 · HOLD
-Med: A$14 / 1 order / +A$10 · 30d −A$11
-Hair: A$0 · 30d −A$106 | ED: A$0 · 30d −A$31 | Women: paused
-Guardrail: Scripts refund cohort still immature
-Decision: HOLD — no changes requested
+Ads · Mon 27 Jul · after Ads + fees
+HOLD · GREEN tracking · No changes
+Yesterday: +A$48 · 3 orders
+30 days: +A$40 · 36 orders
 ```
 
-The daily message excludes routine impressions, CTR, Quality Score, raw search terms, patient data, medication data, click IDs, and long explanations.
+When deterministic policy returns `INVESTIGATE` or `APPROVAL_NEEDED`, insert concise `Check:` or `Action:` lines naming the service and investigation reason or mutation family. Do not include routine campaign/service breakdowns on a `HOLD`. The daily message always excludes routine impressions, CTR, Quality Score, raw search terms, patient data, medication data, click IDs, and long explanations.
 
 - [ ] **Step 2: Write cron tests**
 

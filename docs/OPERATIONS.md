@@ -517,7 +517,7 @@ Launched services remain live at low budgets to gather data. That standing appro
 
 ### Google Ads Agent reports and approvals
 
-The control plane sends one PHI-free **Daily Ads Brief** at **09:00 Australia/Sydney**. It uses the previous closed Sydney calendar day and a rolling 30-day window ending on that same day. The brief is aggregate-only and contains tracking state, service economics, breached guardrails, and the next decision. It must not contain patient data, medicine data, click IDs, raw search terms, or long account dumps.
+The control plane sends one PHI-free **Daily Ads Brief** at **09:00 Australia/Sydney**. It uses the previous closed Sydney calendar day and a rolling 30-day window ending on that same day. A quiet `HOLD` is four lines only: date/economic scope, decision plus tracking state, yesterday's fee-aware contribution and orders, and the matching rolling-30-day totals. It omits campaign/service breakdowns, spend repetition, and guardrail explanations. Extra `Action:` or `Check:` lines appear only when the deterministic policy recommends an approval-gated mutation or an investigation; those lines name only the affected service and mutation family or investigation reason. The immutable proposal card remains the only place for exact current/new values and Approve/Reject buttons. The brief must not contain patient data, medicine data, click IDs, raw search terms, or long account dumps.
 
 The delivery cron ships off and becomes active only with `GOOGLE_ADS_AGENT_DAILY_BRIEF_ENABLED=true` in production. This reporting flag does not enable proposals, approvals, or mutations.
 
