@@ -94,6 +94,35 @@ Secondary (where multi-category allowed): Medical certificate service · Online 
 ### Explicitly SKIP (per the plan)
 - **HealthEngine, HotDoc, Whitecoat** — appointment-booking directories for physical clinics. InstantMed's form-first async model doesn't fit and won't benefit; a half-built listing there hurts NAP consistency more than it helps.
 - Any "submit to 500 directories" paid blast — link-spam risk on a young YMYL domain.
+- **Clinical Advisors ANZ Healthtech Directory** (`clinicaladvisors.com.au/healthtech-directory`) — assessed 2026-07-27. A B2B industry research dataset of ~2,258 ANZ healthtech companies (including a "Graveyard" of ~189 defunct firms), aimed at industry/investor researchers, with the richer data reserved for "clients and research partners". No public submission form exists, and it does not feed patient-facing answers. Not an acquisition surface; revisit only if industry/investor visibility becomes a goal.
+
+---
+
+## Health-specific + Tier 2 additions assessed 2026-07-27
+
+### GPScout — BLOCKED pending an operator decision
+
+`https://gpscout.com.au/telehealth/submit/` — an Australian **telehealth-specific** GP directory. Free to list and free to stay listed (optional Featured $29/mo and Premium $99/mo upgrades — **decline both**). Editorial review takes about 5 business days, and they verify claims about bulk billing, doctor counts, and registration status against the public site.
+
+Strategically this is the highest-value surface of the 2026-07-27 batch: health-specific and comparison-shaped, which is the kind of page answer engines cite for "best online doctor Australia". **But its submission form makes `Named clinicians (AHPRA-registered)` a required field with no practice-only option.** That collides directly with the standing rule that public surfaces must not disclose doctor count or individual doctor names, and with the operator's binding name-off-public-surfaces privacy position.
+
+Do not fill that field on the operator's behalf. The three honest paths, all operator decisions:
+
+1. Ask GPScout whether they will publish with a practice-level entry ("AHPRA-registered Medical Director", registration number supplied privately for verification). Directories usually need verifiability, not publication.
+2. Consciously waive the name rule for this one surface — a real change to the privacy position, not a copy tweak.
+3. Skip GPScout and accept the lost citation.
+
+Note the form separates the **submitter** (`Your name`, `Your role`, `Your email` — an internal contact, not published) from the **published** clinician field. Being the submitter does not breach the public-name rule; only the clinician field does.
+
+### Tier 2 confirmations (all free, verified 2026-07-27)
+
+| ✓ | Directory | Submit at | Status |
+|---|-----------|-----------|--------|
+| ☐ | **Yellow (Yellow Pages AU)** | `view.yellow.com.au/online-signup` | Free listing confirmed, operated by Thryv. Expect upsell contact for paid products — decline. Already the anchor AU citation in Tier 2 above. |
+| ☐ | **Localsearch** | `localsearch.com.au` → "Add a Business" (top-right) | Basic profile free and stays free, ~3 min. The bare homepage URL is not the submission path. |
+| ☐ | **AussieWeb** | `mylisting.aussieweb.com.au/add-listing.aspx` | Working form, explicitly "no costs involved". Email verification link, then they may phone to confirm the business is genuine. Low value, but free and quick. |
+
+**Fill values for all three:** business name `InstantMed`; the canonical NAP above verbatim; category **Telehealth / Telemedicine** (never "Medical Clinic" — it implies a physical practice and invites the booking-model mismatch); the medium description; `https://instantmed.com.au`. Never enter payment details or accept a paid tier.
 
 ---
 

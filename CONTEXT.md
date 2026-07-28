@@ -19,3 +19,17 @@ _Avoid_: Purchase conversion, revenue goal, bidding action
 **Browser Purchase Diagnostic**:
 A browser-fired purchase event used only to diagnose client-side tracking gaps and compare against server truth. It must be Secondary/non-bidding and deduped by `transaction_id`.
 _Avoid_: Primary purchase import, canonical purchase signal
+
+## Advertising Operations
+
+**Ads Manager**:
+The delegated analysis role that monitors paid acquisition, prepares evidence-based recommendations, and executes only changes approved by the Operator. It never changes live Ads state autonomously, including during emergencies.
+_Avoid_: Autonomous bidder, account owner
+
+**Operator**:
+The human decision authority who approves or rejects each exact Live Ads Mutation before execution.
+_Avoid_: Reviewer, observer
+
+**Live Ads Mutation**:
+Any action that changes the live advertising account, including a pause made in response to an emergency. Every mutation requires current Operator approval.
+_Avoid_: Routine adjustment, automatic optimisation
