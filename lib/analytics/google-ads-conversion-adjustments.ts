@@ -1,6 +1,5 @@
 import "server-only"
 
-import * as Sentry from "@sentry/nextjs"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import {
@@ -26,7 +25,8 @@ export const GOOGLE_ADS_CONVERSION_ADJUSTMENT_AUDIT_ACTION = "google_ads_convers
  * fires before the conversion is queryable. Treating that first
  * CONVERSION_NOT_FOUND as terminal would permanently skip the retraction and
  * leave a real ad-click conversion counted in Google. Past this window the
- * error is truthful ("never imported, or imported but discarded") and final.
+ * error is truthful ("never imported, or imported but discarded") and is
+ * durably resolved as not counted rather than treated as a mutation failure.
  */
 export const GOOGLE_ADS_ADJUSTMENT_CONVERSION_MATCH_GRACE_HOURS = 72
 
@@ -41,6 +41,7 @@ type GoogleAdsConversionAdjustmentSource =
 
 type GoogleAdsConversionAdjustmentStatus =
   | "failed"
+  | "resolved_not_counted"
   | "skipped_already_adjusted"
   | "skipped_terminal_error"
   | "skipped_invalid_adjustment"
@@ -60,6 +61,7 @@ type GoogleAdsConversionAdjustmentAuditRow = {
     has_gbraid?: boolean | null
     has_gclid?: boolean | null
     has_wbraid?: boolean | null
+    resolution_reason?: string | null
     status?: string | null
     target_net_value_cents?: number | null
     terminal?: boolean | null
@@ -189,10 +191,52 @@ function isUploadPastConversionMatchGrace(
   return nowMs - createdAtMs > GOOGLE_ADS_ADJUSTMENT_CONVERSION_MATCH_GRACE_HOURS * 60 * 60 * 1000
 }
 
+function conversionNotFoundOccurredPastGrace(
+  failure: GoogleAdsConversionAdjustmentAuditRow,
+  successfulUpload: GoogleAdsConversionAdjustmentAuditRow,
+): boolean {
+  const failureAtMs = Date.parse(failure.created_at || "")
+  const uploadAtMs = Date.parse(successfulUpload.created_at || "")
+  if (!Number.isFinite(failureAtMs) || !Number.isFinite(uploadAtMs)) return false
+  return failureAtMs - uploadAtMs >
+    GOOGLE_ADS_ADJUSTMENT_CONVERSION_MATCH_GRACE_HOURS * 60 * 60 * 1000
+}
+
+function matchingPostGraceConversionNotFound(
+  rows: GoogleAdsConversionAdjustmentAuditRow[],
+  intent: GoogleAdsConversionAdjustmentIntent,
+  successfulUpload: GoogleAdsConversionAdjustmentAuditRow,
+): GoogleAdsConversionAdjustmentAuditRow | null {
+  return rows.find((row) => {
+    const metadata = row.metadata
+    if (
+      metadata?.adjustment_type !== intent.adjustmentType ||
+      metadata?.target_net_value_cents !== intent.targetNetValueCents
+    ) return false
+
+    const errorCode = typeof metadata.error_code === "string" ? metadata.error_code : null
+    const reason =
+      (typeof metadata.terminal_reason === "string" ? metadata.terminal_reason : null) ||
+      getTerminalGoogleAdsAdjustmentReason(errorCode)
+    return reason === CONVERSION_NOT_FOUND_TERMINAL_REASON &&
+      conversionNotFoundOccurredPastGrace(row, successfulUpload)
+  }) ?? null
+}
+
+function hasMatchingResolvedNotCounted(
+  rows: GoogleAdsConversionAdjustmentAuditRow[],
+  intent: GoogleAdsConversionAdjustmentIntent,
+): boolean {
+  return rows.some((row) =>
+    row.metadata?.status === "resolved_not_counted" &&
+    row.metadata?.adjustment_type === intent.adjustmentType &&
+    row.metadata?.target_net_value_cents === intent.targetNetValueCents,
+  )
+}
+
 function hasMatchingTerminalAdjustmentFailure(
   rows: GoogleAdsConversionAdjustmentAuditRow[],
   intent: GoogleAdsConversionAdjustmentIntent,
-  uploadPastGrace: boolean,
 ): boolean {
   return rows.some((row) => {
     const metadata = row.metadata
@@ -205,64 +249,16 @@ function hasMatchingTerminalAdjustmentFailure(
     const reason =
       (typeof metadata.terminal_reason === "string" ? metadata.terminal_reason : null) ||
       getTerminalGoogleAdsAdjustmentReason(errorCode)
+
+    // CONVERSION_NOT_FOUND has its own time-aware outcome: before grace it
+    // must retry; after grace it confirms that Google did not count a
+    // conversion under this order/action. It is never a permanent mutation
+    // failure by itself.
+    if (reason === CONVERSION_NOT_FOUND_TERMINAL_REASON) return false
+
     const isExplicitTerminal =
       metadata.status === "terminal_failed" || (metadata.terminal === true && Boolean(metadata.terminal_reason))
-    const isLegacyConversionNotFoundFailure =
-      metadata.status === "failed" && reason === CONVERSION_NOT_FOUND_TERMINAL_REASON
-
-    if (!isExplicitTerminal && !isLegacyConversionNotFoundFailure) return false
-
-    // CONVERSION_NOT_FOUND only becomes final once Google has had the full
-    // grace window to process the original upload; inside the window a prior
-    // failure (even one recorded as terminal) must not block the retry.
-    if (reason === CONVERSION_NOT_FOUND_TERMINAL_REASON) return uploadPastGrace
-    return true
-  })
-}
-
-function uploadHadClickIdentifier(
-  successfulUpload: GoogleAdsConversionAdjustmentAuditRow | null | undefined,
-): boolean {
-  const metadata = successfulUpload?.metadata
-  return metadata?.has_gclid === true || metadata?.has_gbraid === true || metadata?.has_wbraid === true
-}
-
-/**
- * A terminal retraction failure on a click-attributed upload is the one
- * signature of "a refunded order may still be counted as a Google Ads
- * conversion" — exactly what poisons a paid-ads validation read. Fires once
- * per intake (the terminal audit row stops further attempts). User-data-only
- * uploads terminal silently: if the hashed identifiers never matched an ad
- * interaction, no conversion ever counted and there is nothing to retract.
- */
-function reportTerminalRetractionFailure({
-  error,
-  intakeId,
-  intent,
-  source,
-  successfulUpload,
-}: {
-  error?: string | null
-  intakeId: string
-  intent: GoogleAdsConversionAdjustmentIntent
-  source: GoogleAdsConversionAdjustmentSource
-  successfulUpload?: GoogleAdsConversionAdjustmentAuditRow | null
-}) {
-  if (!uploadHadClickIdentifier(successfulUpload)) return
-
-  Sentry.captureMessage("Google Ads retraction permanently failed for a click-attributed conversion", {
-    level: "error",
-    fingerprint: ["google-ads-retraction-terminal", intakeId],
-    tags: {
-      adjustment_type: intent.adjustmentType,
-      source,
-    },
-    extra: {
-      intakeId,
-      error: error || null,
-      uploadApi: successfulUpload?.metadata?.upload_api ?? null,
-      uploadIdentifier: successfulUpload?.metadata?.upload_identifier ?? null,
-    },
+    return isExplicitTerminal
   })
 }
 
@@ -345,6 +341,9 @@ async function recordGoogleAdsConversionAdjustmentAudit({
     ok: result?.ok ?? false,
     order_id: intakeId,
     refund_amount_cents: refundAmountCents,
+    resolution_reason: status === "resolved_not_counted"
+      ? CONVERSION_NOT_FOUND_TERMINAL_REASON
+      : null,
     source,
     status,
     target_net_value_cents: intent?.targetNetValueCents ?? null,
@@ -458,8 +457,33 @@ export async function runGoogleAdsConversionAdjustment({
     return { attempted: false, status: "skipped_already_adjusted" }
   }
 
-  const uploadPastGrace = isUploadPastConversionMatchGrace(successfulUpload)
-  if (hasMatchingTerminalAdjustmentFailure(adjustmentAudits, intent, uploadPastGrace)) {
+  if (hasMatchingResolvedNotCounted(adjustmentAudits, intent)) {
+    return { attempted: false, status: "resolved_not_counted" }
+  }
+
+  const priorPostGraceNotFound = matchingPostGraceConversionNotFound(
+    adjustmentAudits,
+    intent,
+    successfulUpload,
+  )
+  if (priorPostGraceNotFound) {
+    await recordGoogleAdsConversionAdjustmentAudit({
+      amountCents,
+      error: priorPostGraceNotFound.metadata?.error_code,
+      hasSuccessfulPurchaseUpload: true,
+      intakeId,
+      intent,
+      refundAmountCents,
+      requestPath,
+      source,
+      status: "resolved_not_counted",
+      successfulUpload,
+      supabase,
+    })
+    return { attempted: false, status: "resolved_not_counted" }
+  }
+
+  if (hasMatchingTerminalAdjustmentFailure(adjustmentAudits, intent)) {
     return { attempted: false, status: "skipped_terminal_error" }
   }
 
@@ -505,14 +529,16 @@ export async function runGoogleAdsConversionAdjustment({
     adjustmentType: intent.adjustmentType,
     orderId: intakeId,
   })
+  const uploadPastGrace = isUploadPastConversionMatchGrace(successfulUpload)
   const terminalReason = getTerminalGoogleAdsAdjustmentReason(result.error)
-  const status: GoogleAdsConversionAdjustmentStatus = result.ok
-    ? "success"
-    : terminalReason === CONVERSION_NOT_FOUND_TERMINAL_REASON && !uploadPastGrace
-      ? "failed"
-      : terminalReason
-        ? "terminal_failed"
-        : "failed"
+  let status: GoogleAdsConversionAdjustmentStatus = "failed"
+  if (result.ok) {
+    status = "success"
+  } else if (terminalReason === CONVERSION_NOT_FOUND_TERMINAL_REASON) {
+    status = uploadPastGrace ? "resolved_not_counted" : "failed"
+  } else if (terminalReason) {
+    status = "terminal_failed"
+  }
 
   await recordGoogleAdsConversionAdjustmentAudit({
     amountCents,
@@ -527,16 +553,6 @@ export async function runGoogleAdsConversionAdjustment({
     successfulUpload,
     supabase,
   })
-
-  if (status === "terminal_failed") {
-    reportTerminalRetractionFailure({
-      error: result.error,
-      intakeId,
-      intent,
-      source,
-      successfulUpload,
-    })
-  }
 
   return {
     attempted: result.attempted,

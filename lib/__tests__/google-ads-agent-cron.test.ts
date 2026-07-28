@@ -234,6 +234,7 @@ describe("Google Ads Agent cron timing and idempotency", () => {
     mocks.getGoogleAdsAdjustmentHealth.mockResolvedValue({
       adjustmentFailureRows: 0,
       clickAttributedFailures: 0,
+      confirmedNotCounted: 0,
       dedupedFailedIntakes: 0,
       failedIntakesWithoutSuccessfulUpload: 0,
       generatedAt: "2026-07-27T23:00:00.000Z",

@@ -312,6 +312,7 @@ describe("Google Ads adjustment terminal-risk detector", () => {
     return {
       adjustmentFailureRows: 219,
       clickAttributedFailures: 1,
+      confirmedNotCounted: 0,
       dedupedFailedIntakes: 7,
       failedIntakesWithoutSuccessfulUpload: 0,
       generatedAt: "2026-07-08T09:00:00.000Z",

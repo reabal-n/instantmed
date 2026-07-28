@@ -195,7 +195,7 @@ describe("Google Ads adjustment health", () => {
       purchaseUploadRows: [
         {
           intake_id: "click-refund",
-          created_at: "2026-06-20T23:24:43.356Z",
+          created_at: "2026-07-02T23:24:43.356Z",
           metadata: {
             has_gclid: true,
             has_user_data: true,
@@ -204,7 +204,7 @@ describe("Google Ads adjustment health", () => {
         },
         {
           intake_id: "user-data-refund",
-          created_at: "2026-06-24T05:46:00.244Z",
+          created_at: "2026-07-02T23:30:00.000Z",
           metadata: {
             has_gclid: false,
             has_user_data: true,
@@ -233,6 +233,7 @@ describe("Google Ads adjustment health", () => {
     expect(health).toMatchObject({
       adjustmentFailureRows: 5,
       clickAttributedFailures: 1,
+      confirmedNotCounted: 0,
       dedupedFailedIntakes: 4,
       failedIntakesWithoutSuccessfulUpload: 0,
       latestFailureAt: "2026-07-08T08:35:00.000Z",
@@ -278,5 +279,84 @@ describe("Google Ads adjustment health", () => {
     expect(health.terminalFailures).toBe(1)
     expect(health.clickAttributedFailures).toBe(1)
     expect(health.terminalNonClickAttributedFailures).toBe(0)
+  })
+
+  it("treats a post-grace conversion-not-found as confirmed not counted", () => {
+    const health = summarizeGoogleAdsAdjustmentHealth({
+      adjustmentRows: [
+        {
+          intake_id: "post-grace-not-found",
+          created_at: "2026-07-04T01:00:00.000Z",
+          metadata: {
+            error_code: "conversionAdjustmentUploadError:CONVERSION_NOT_FOUND:The conversion was not found",
+            status: "failed",
+          },
+        },
+      ],
+      generatedAt: "2026-07-08T09:00:00.000Z",
+      lookbackDays: 90,
+      now: new Date("2026-07-08T09:00:00.000Z"),
+      purchaseUploadRows: [
+        {
+          intake_id: "post-grace-not-found",
+          created_at: "2026-07-01T00:00:00.000Z",
+          metadata: {
+            has_gclid: true,
+            status: "success",
+          },
+        },
+      ],
+    })
+
+    expect(health).toMatchObject({
+      confirmedNotCounted: 1,
+      dedupedFailedIntakes: 0,
+      terminalClickAttributedFailures: 0,
+      terminalFailures: 0,
+      transientFailures: 0,
+    })
+  })
+
+  it("clears an earlier adjustment failure after a durable success receipt", () => {
+    const health = summarizeGoogleAdsAdjustmentHealth({
+      adjustmentRows: [
+        {
+          intake_id: "recovered-refund",
+          created_at: "2026-07-05T01:00:00.000Z",
+          metadata: {
+            status: "success",
+          },
+        },
+        {
+          intake_id: "recovered-refund",
+          created_at: "2026-07-04T01:00:00.000Z",
+          metadata: {
+            error_code: "conversionAdjustmentUploadError:CONVERSION_NOT_FOUND:The conversion was not found",
+            status: "failed",
+          },
+        },
+      ],
+      generatedAt: "2026-07-08T09:00:00.000Z",
+      lookbackDays: 90,
+      now: new Date("2026-07-08T09:00:00.000Z"),
+      purchaseUploadRows: [
+        {
+          intake_id: "recovered-refund",
+          created_at: "2026-07-01T00:00:00.000Z",
+          metadata: {
+            has_gclid: true,
+            status: "success",
+          },
+        },
+      ],
+    })
+
+    expect(health).toMatchObject({
+      confirmedNotCounted: 0,
+      dedupedFailedIntakes: 0,
+      terminalClickAttributedFailures: 0,
+      terminalFailures: 0,
+      transientFailures: 0,
+    })
   })
 })
