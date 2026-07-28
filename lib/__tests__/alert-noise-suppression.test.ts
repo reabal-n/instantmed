@@ -119,13 +119,62 @@ describe("critical alert Telegram cooldown wiring", () => {
     expect(sentryIndex).toBeLessThan(cooldownIndex)
   })
 
-  it("gates the Telegram send and only receipts a delivered page", () => {
+  it("cools each critical signal independently and receipts only delivered signals", () => {
     expect(cronSource).toMatch(
-      /if \(await shouldSendCriticalAlert\([\s\S]{0,120}sendCriticalBusinessAlertViaTelegram/,
+      /for \(const alert of criticalAlerts\)[\s\S]{0,240}shouldSendCriticalAlert\(alert\.detail/,
     )
-    // Receipting an undelivered page would start a cooldown for an alert the
-    // operator never saw.
-    expect(cronSource).toMatch(/if \(delivered\) await recordCriticalAlertSent/)
+    expect(cronSource).toMatch(
+      /if \(delivered\)[\s\S]{0,240}recordCriticalAlertSent\(alert\.detail/,
+    )
+  })
+
+  it("holds the terminal Google Ads incident for its full seven-day freshness window", async () => {
+    const cooldownModule = await import(
+      "@/lib/monitoring/critical-alert-cooldown"
+    )
+    const resolveCooldown = (
+      cooldownModule as unknown as Record<string, unknown>
+    ).resolveCriticalAlertCooldownHours
+
+    expect(typeof resolveCooldown).toBe("function")
+    if (typeof resolveCooldown !== "function") return
+
+    expect(
+      resolveCooldown(
+        "google_ads_adjustment_terminal_click_attributed_failures",
+      ),
+    ).toBe(7 * 24)
+    expect(resolveCooldown("prescription_fulfilment_sla_breach")).toBe(4)
+  })
+
+  it("treats the previous Ads warning copy as the same cooldown incident", async () => {
+    const cooldownModule = await import(
+      "@/lib/monitoring/critical-alert-cooldown"
+    )
+    const resolveEquivalentDetails = (
+      cooldownModule as unknown as Record<string, unknown>
+    ).resolveEquivalentCriticalAlertDetails
+
+    expect(typeof resolveEquivalentDetails).toBe("function")
+    if (typeof resolveEquivalentDetails !== "function") return
+
+    expect(
+      resolveEquivalentDetails({
+        count: 2,
+        metric: "google_ads_adjustment_terminal_click_attributed_failures",
+      }),
+    ).toEqual([
+      "Google Ads has 2 terminal refunded-order adjustment failures tied to a click-attributed purchase import; Smart Bidding may still be counting refunded ad-click revenue.",
+    ])
+    expect(
+      resolveEquivalentDetails({ count: 2, metric: "payment_failed" }),
+    ).toEqual([])
+  })
+
+  it("checks equivalent historical wording before paging Telegram", () => {
+    expect(cronSource).toMatch(
+      /equivalentDetails: resolveEquivalentCriticalAlertDetails\(alert\)/,
+    )
   })
 
   it("fingerprints the detail text so an escalation pages immediately", () => {

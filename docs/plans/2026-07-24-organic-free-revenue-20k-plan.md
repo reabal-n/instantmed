@@ -1,5 +1,7 @@
 # Organic + GEO free-revenue plan — $20k/month by 31 Jan 2027
 
+> **Authority:** Reference only. `docs/ROADMAP.md` is the sole active priority queue.
+>
 > **Authority linkage (ROADMAP §7):** this plan elaborates ROADMAP rank 3 (external reputation and distribution) and rank 6 (compounding work), and inherits their checkpoints. It does not reorder the queue. Ads economics stay in rank 4 and are out of scope here.
 >
 > **Written:** 2026-07-24 from live Supabase + GSC pulls. **Index baseline and wave 1 re-derived 2026-07-26** from a 60-URL GSC URL-Inspection audit + 90d page/query performance. Re-derive live numbers before quoting; they move fast.

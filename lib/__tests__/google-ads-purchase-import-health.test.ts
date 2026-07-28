@@ -415,7 +415,11 @@ describe("Google Ads adjustment terminal-risk detector", () => {
         window: "90d",
       },
     })
-    expect(alert?.detail).toContain("click-attributed purchase import")
+    expect(alert?.detail).toBe(
+      "Google Ads may still count 1 refunded order as revenue. Scaling is blocked until this is reconciled.",
+    )
+    expect(alert?.detail).not.toContain("Smart Bidding")
+    expect(alert?.detail).not.toContain("click-attributed")
   })
 })
 

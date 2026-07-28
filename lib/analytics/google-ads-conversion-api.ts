@@ -4,10 +4,26 @@ import { createHash } from "node:crypto"
 
 import * as Sentry from "@sentry/nextjs"
 
+import {
+  buildGoogleAdsAuthHeaders,
+  DEFAULT_GOOGLE_ADS_API_VERSION,
+  extractGoogleAdsErrorCode,
+  getGoogleAdsAccessToken,
+  getGoogleAdsClientConfig,
+  getGoogleAdsSearchUrl,
+  normalizeGoogleAdsNumericId,
+} from "@/lib/google-ads/client"
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("google-ads-conversion-api")
-const DEFAULT_GOOGLE_ADS_API_VERSION = "v24"
+
+export type { GoogleAdsSearchRow } from "@/lib/google-ads/client"
+export {
+  extractGoogleAdsErrorCode,
+  getGoogleAdsSearchUrl,
+  resetGoogleAdsAccessTokenCacheForTests,
+  searchGoogleAds,
+} from "@/lib/google-ads/client"
 
 /**
  * Server-side Google Ads Conversion API client.
@@ -168,29 +184,7 @@ export interface GoogleAdsConversionActionPreflightResult {
   severity: GoogleAdsConversionActionPreflightSeverity
 }
 
-interface AccessTokenCache {
-  token: string
-  expiresAt: number
-}
-
-export type GoogleAdsSearchRow = Record<string, unknown>
-
-let tokenCache: AccessTokenCache | null = null
-
 const REQUIRED_UPLOAD_CLICK_CONVERSION_ACTION_TYPE = "UPLOAD_CLICKS"
-
-export function resetGoogleAdsAccessTokenCacheForTests(): void {
-  tokenCache = null
-}
-
-function normalizeGoogleAdsNumericId(value?: string | null): string | null {
-  const trimmed = value?.trim()
-  if (!trimmed) return null
-
-  const resourceId = trimmed.match(/\/(\d+)$/)?.[1]
-  const normalized = (resourceId || trimmed).replace(/-/g, "")
-  return /^\d+$/.test(normalized) ? normalized : null
-}
 
 function getConfiguredPurchaseConversionActionId(): string | null {
   return normalizeGoogleAdsNumericId(process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE)
@@ -204,78 +198,14 @@ function getGoogleAdsPurchaseConversionConfig(): {
   loginCustomerId?: string
   quotaProjectId?: string
 } | null {
-  const customerId = normalizeGoogleAdsNumericId(process.env.GOOGLE_ADS_CUSTOMER_ID)
-  const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN
+  const clientConfig = getGoogleAdsClientConfig()
   const conversionActionId = getConfiguredPurchaseConversionActionId()
 
-  if (!customerId || !developerToken || !conversionActionId) return null
+  if (!clientConfig || !conversionActionId) return null
 
   return {
-    apiVersion: process.env.GOOGLE_ADS_API_VERSION || DEFAULT_GOOGLE_ADS_API_VERSION,
+    ...clientConfig,
     conversionActionId,
-    customerId,
-    developerToken,
-    loginCustomerId: normalizeGoogleAdsNumericId(process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID) || undefined,
-    quotaProjectId: process.env.GOOGLE_ADS_QUOTA_PROJECT_ID?.trim() || undefined,
-  }
-}
-
-function buildGoogleAdsAuthHeaders(
-  config: NonNullable<ReturnType<typeof getGoogleAdsPurchaseConversionConfig>>,
-  accessToken: string,
-): Record<string, string> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${accessToken}`,
-    "developer-token": config.developerToken,
-  }
-  if (config.loginCustomerId) headers["login-customer-id"] = config.loginCustomerId
-  if (config.quotaProjectId) headers["x-goog-user-project"] = config.quotaProjectId
-  return headers
-}
-
-async function fetchAccessToken(): Promise<string | null> {
-  const clientId = process.env.GOOGLE_ADS_CLIENT_ID
-  const clientSecret = process.env.GOOGLE_ADS_CLIENT_SECRET
-  const refreshToken = process.env.GOOGLE_ADS_REFRESH_TOKEN
-
-  if (!clientId || !clientSecret || !refreshToken) return null
-
-  // Reuse cached token while it has more than 60s of validity
-  if (tokenCache && tokenCache.expiresAt > Date.now() + 60_000) {
-    return tokenCache.token
-  }
-
-  try {
-    const res = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id: clientId,
-        client_secret: clientSecret,
-        refresh_token: refreshToken,
-        grant_type: "refresh_token",
-      }),
-    })
-
-    if (!res.ok) {
-      logger.error("OAuth token refresh failed", { status: res.status })
-      return null
-    }
-
-    const json = (await res.json()) as { access_token?: string; expires_in?: number }
-    if (!json.access_token) return null
-
-    tokenCache = {
-      token: json.access_token,
-      expiresAt: Date.now() + (json.expires_in ?? 3600) * 1000,
-    }
-    return tokenCache.token
-  } catch (err) {
-    logger.error("OAuth token refresh threw", {
-      error: err instanceof Error ? err.message : String(err),
-    })
-    return null
   }
 }
 
@@ -308,52 +238,6 @@ function compactError(value: string, fallback: string): string {
     .slice(0, 96)
 
   return normalized || fallback
-}
-
-export function extractGoogleAdsErrorCode(responseBody: string, status: number): string {
-  try {
-    const parsed = JSON.parse(responseBody) as {
-      error?: {
-        details?: Array<{
-          errors?: Array<{
-            errorCode?: Record<string, string>
-            message?: string
-          }>
-        }>
-        message?: string
-      }
-      partialFailureError?: {
-        details?: Array<{
-          errors?: Array<{
-            errorCode?: Record<string, string>
-            message?: string
-          }>
-        }>
-        message?: string
-      }
-    }
-
-    const errorSource = parsed.error || parsed.partialFailureError
-    const googleAdsError = errorSource?.details
-      ?.flatMap((detail) => detail.errors || [])
-      ?.find((error) => error.errorCode)
-
-    if (googleAdsError?.errorCode) {
-      const [namespace, code] = Object.entries(googleAdsError.errorCode)[0] || []
-      const detail = [namespace, code, googleAdsError.message]
-        .filter(Boolean)
-        .join(":")
-      return compactError(detail, `http_${status}`)
-    }
-
-    if (errorSource?.message) {
-      return compactError(errorSource.message, `http_${status}`)
-    }
-  } catch {
-    // Fall back below.
-  }
-
-  return `http_${status}`
 }
 
 export function selectGoogleAdsClickIdentifier(input: {
@@ -467,13 +351,6 @@ export function getGoogleAdsUploadConversionAdjustmentsUrl(
   apiVersion = process.env.GOOGLE_ADS_API_VERSION || DEFAULT_GOOGLE_ADS_API_VERSION,
 ): string {
   return `https://googleads.googleapis.com/${apiVersion}/customers/${customerId}:uploadConversionAdjustments`
-}
-
-export function getGoogleAdsSearchUrl(
-  customerId: string,
-  apiVersion = process.env.GOOGLE_ADS_API_VERSION || DEFAULT_GOOGLE_ADS_API_VERSION,
-): string {
-  return `https://googleads.googleapis.com/${apiVersion}/customers/${customerId}/googleAds:search`
 }
 
 export function buildGoogleAdsConversionActionPreflightQuery(conversionActionId: string): string {
@@ -684,7 +561,7 @@ export async function preflightGoogleAdsPurchaseConversionAction(): Promise<Goog
   const config = getGoogleAdsPurchaseConversionConfig()
   if (!config) return getMissingEnvPreflight()
 
-  const accessToken = await fetchAccessToken()
+  const accessToken = await getGoogleAdsAccessToken()
   if (!accessToken) return getMissingAccessTokenPreflight()
 
   try {
@@ -714,31 +591,6 @@ export async function preflightGoogleAdsPurchaseConversionAction(): Promise<Goog
   } catch (error) {
     return getUnknownPreflightError(error)
   }
-}
-
-export async function searchGoogleAds<T extends GoogleAdsSearchRow = GoogleAdsSearchRow>(
-  query: string,
-): Promise<T[]> {
-  const config = getGoogleAdsPurchaseConversionConfig()
-  if (!config) throw new Error("missing_env")
-
-  const accessToken = await fetchAccessToken()
-  if (!accessToken) throw new Error("no_access_token")
-
-  const response = await fetch(getGoogleAdsSearchUrl(config.customerId, config.apiVersion), {
-    method: "POST",
-    headers: buildGoogleAdsAuthHeaders(config, accessToken),
-    body: JSON.stringify({ query }),
-  })
-
-  const responseBody = await response.text()
-  const payload = responseBody ? JSON.parse(responseBody) as { results?: T[] } : {}
-
-  if (!response.ok) {
-    throw new Error(extractGoogleAdsErrorCode(responseBody, response.status))
-  }
-
-  return Array.isArray(payload.results) ? payload.results : []
 }
 
 function extractGoogleAdsUploadJobId(payload: unknown, fallback?: number): number | string | undefined {
@@ -776,7 +628,7 @@ export async function fireGoogleAdsPurchaseConversion(
     return { attempted: false, error: "missing_click_id" }
   }
 
-  const accessToken = await fetchAccessToken()
+  const accessToken = await getGoogleAdsAccessToken()
   if (!accessToken) {
     logger.warn("Google Ads Conversion API skipped - failed to get access token")
     return { attempted: false, error: "no_access_token" }
@@ -875,7 +727,7 @@ export async function fireGoogleAdsConversionAdjustment(
     return { attempted: false, error: "invalid_adjustment" }
   }
 
-  const accessToken = await fetchAccessToken()
+  const accessToken = await getGoogleAdsAccessToken()
   if (!accessToken) {
     logger.warn("Google Ads conversion adjustment skipped - failed to get access token")
     return { attempted: false, error: "no_access_token" }

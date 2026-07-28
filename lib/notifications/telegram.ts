@@ -131,6 +131,17 @@ export interface NotifyNewIntakeResult {
   messageId: number | null
 }
 
+export interface SendGoogleAdsDailyBriefResult {
+  messageId: number
+}
+
+export interface SendGoogleAdsProposalCardOptions {
+  approveCallbackData: string
+  message: string
+  proposalKey: string
+  rejectCallbackData: string
+}
+
 function parseMessageId(json: unknown): number | null {
   if (!json || typeof json !== "object") return null
   const result = (json as { result?: { message_id?: unknown } }).result
@@ -440,6 +451,113 @@ export async function sendCriticalBusinessAlertViaTelegram(
 }
 
 /**
+ * Send the PHI-free aggregate Daily Ads Brief through the already-configured
+ * operator bot/chat. Unlike fail-soft operational alerts, this requires a
+ * Telegram message_id so the Ads Agent can durably prove exactly which brief
+ * was delivered and safely retry a failed send.
+ */
+export async function sendGoogleAdsDailyBriefViaTelegram(
+  message: string,
+): Promise<SendGoogleAdsDailyBriefResult> {
+  const token = getToken()
+  const chatId = getChatId()
+  if (!token || !chatId) {
+    throw new TelegramSendError(
+      "Telegram Ads brief is not configured: missing bot token or chat id",
+    )
+  }
+
+  let response: Response
+  try {
+    response = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        disable_web_page_preview: true,
+      }),
+    })
+  } catch (error) {
+    log.error(
+      "Telegram Ads brief send errored",
+      {},
+      error instanceof Error ? error : new Error(String(error)),
+    )
+    throw error
+  }
+
+  if (!response.ok) {
+    log.error("Telegram Ads brief send failed", { status: response.status })
+    throw new TelegramSendError(
+      `Telegram Ads brief send failed: ${response.status}`,
+    )
+  }
+
+  const json = await response.json().catch(() => null)
+  const messageId = parseMessageId(json)
+  if (messageId == null) {
+    throw new TelegramSendError(
+      "Telegram Ads brief response missing message_id",
+    )
+  }
+
+  log.info("Telegram Ads brief delivered", { hasMessageId: true })
+  return { messageId }
+}
+
+export async function sendGoogleAdsProposalCardViaTelegram(
+  options: SendGoogleAdsProposalCardOptions,
+): Promise<SendGoogleAdsDailyBriefResult> {
+  const token = getToken()
+  const chatId = getChatId()
+  if (!token || !chatId) {
+    throw new TelegramSendError(
+      "Telegram Ads proposal is not configured: missing bot token or chat id",
+    )
+  }
+
+  const response = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      disable_web_page_preview: true,
+      reply_markup: {
+        inline_keyboard: [[
+          {
+            callback_data: options.approveCallbackData,
+            text: `Approve ${options.proposalKey}`,
+          },
+          {
+            callback_data: options.rejectCallbackData,
+            text: "Reject",
+          },
+        ]],
+      },
+      text: options.message,
+    }),
+  })
+  if (!response.ok) {
+    log.error("Telegram Ads proposal send failed", {
+      status: response.status,
+    })
+    throw new TelegramSendError(
+      `Telegram Ads proposal send failed: ${response.status}`,
+    )
+  }
+
+  const json = await response.json().catch(() => null)
+  const messageId = parseMessageId(json)
+  if (messageId == null) {
+    throw new TelegramSendError(
+      "Telegram Ads proposal response missing message_id",
+    )
+  }
+  return { messageId }
+}
+
+/**
  * Answer a Telegram callback query (dismisses the loading spinner on the button)
  */
 export async function answerCallbackQuery(
@@ -453,6 +571,7 @@ export async function answerCallbackQuery(
     const response = await fetch(`${TELEGRAM_API}/bot${token}/answerCallbackQuery`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(TELEGRAM_EDIT_TIMEOUT_MS),
       body: JSON.stringify({
         callback_query_id: callbackQueryId,
         text,

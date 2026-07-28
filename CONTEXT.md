@@ -22,14 +22,26 @@ _Avoid_: Primary purchase import, canonical purchase signal
 
 ## Advertising Operations
 
-**Ads Manager**:
-The delegated analysis role that monitors paid acquisition, prepares evidence-based recommendations, and executes only changes approved by the Operator. It never changes live Ads state autonomously, including during emergencies.
-_Avoid_: Autonomous bidder, account owner
+**Google Ads Agent**:
+The combined deterministic control plane and Codex manager for Google Ads. It cannot mutate the account without a fresh Operator approval for an exact Approval Packet.
+_Avoid_: Ads Manager, autonomous bidder, unrestricted Ads bot
 
 **Operator**:
 The human decision authority who approves or rejects each exact Live Ads Mutation before execution.
 _Avoid_: Reviewer, observer
 
+**Daily Ads Brief**:
+The aggregate, PHI-free Google Ads decision summary delivered to Telegram at 09:00 Australia/Sydney.
+_Avoid_: Dashboard dump, daily audit report
+
+**Approval Packet**:
+An immutable, expiring proposal that names exact current and requested Google Ads resource values, validation evidence, risk, and rollback state. It may be approved through its authenticated Telegram action or by an exact Codex-task approval.
+_Avoid_: Recommendation, general approval, change idea
+
 **Live Ads Mutation**:
-Any action that changes the live advertising account, including a pause made in response to an emergency. Every mutation requires current Operator approval.
+Any action that changes the live advertising account, including a pause made in response to an emergency. Every mutation requires current Operator approval for the exact Approval Packet.
 _Avoid_: Routine adjustment, automatic optimisation
+
+**Mutation Receipt**:
+The append-only evidence that an approved Ads change had its baseline read, validation, apply result, read-back verification, actor, timestamps, and rollback state recorded.
+_Avoid_: Success message, mutation log

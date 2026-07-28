@@ -3,7 +3,7 @@
 > Canonical advertising rules for InstantMed marketing, Google Ads, landing pages, metadata, schema, and reusable copy.
 > Read this before changing any public acquisition surface.
 
-**Last updated:** 2026-07-08
+**Last updated:** 2026-07-27
 
 > **In an active complaint?** Stop and load the runbook before doing anything else: [`docs/runbooks/comparative-tagline-complaint.md`](runbooks/comparative-tagline-complaint.md). It covers AHPRA notifications, TGA notices, Medical Board letters, Google Ads disapprovals, competitor cease-and-desists, patient complaints about ad copy, and media inquiries.
 
@@ -18,10 +18,13 @@
 | Google Ads customer ID | 920-501-0513 |
 | Google support ticket | 4-3698000041178 |
 | Google support note | Certification approved and previous restrictions lifted. Ads may need manual resubmission or editing to trigger review. |
+| Australia — prescription drug services | Service promotion allowed with limitations when certification and local-law requirements are satisfied |
+
+Google certification makes InstantMed eligible to promote certified telemedicine services in Australia under Google's platform limits. **Google certification eligibility is not TGA clearance.** Australian health-service advertising must still avoid directly or indirectly referring to prescription medicines. InstantMed therefore applies a stricter operator rule: **Medicine-name and active-ingredient keywords are OFF.** Service and condition vocabulary remains allowed subject to the rules below.
 
 Certification is not blanket approval for all wording. Every ad, asset, keyword, landing page, destination URL, schema field, and audience setting still needs to comply with Google, AHPRA/Medical Board, TGA, privacy, and consumer-law rules.
 
-`Eligible (Limited)` can still appear after certification. The certification label allows certified healthcare/pharmacy promotion in approved markets; it does not remove Google's healthcare inventory restrictions, prescription-drug-service classification, or the need to resubmit/edit ads and assets so Google reruns policy review after the account label changes.
+**Eligible (Limited) is compatible with certified healthcare serving.** The Google Ads API equivalent, `APPROVED_LIMITED`, is expected for certified healthcare inventory and is not by itself a reason to pause a compliant ad. The unacceptable live states are `PROHIBITED`, disapproved, misleading-price, or unsubstantiated variants. The certification label does not remove Google's healthcare inventory restrictions, prescription-drug-service classification, or the need to resubmit or edit assets when a fresh policy review is required.
 
 ## 2. Measurement Requirements
 
@@ -53,13 +56,38 @@ This applies to:
 - paid campaign destinations
 - remarketing and audience setup
 
+### What "prescription drug terms" actually means
+
+A **prescription drug term** is a medicine name or active ingredient on Google's [Restricted drug terms](https://support.google.com/adspolicy/answer/15595717?hl=en) list — `sildenafil`, `tadalafil`, `Viagra`, `Cialis`, `finasteride`, `dutasteride`, `semaglutide`, `Ozempic`, and so on.
+
+The words **"prescription", "script", "eScript", "repeat prescription", and "medication"** are **not** prescription drug terms. They are service vocabulary and are permitted on every surface. Do not treat a Google policy flag on a phrase like "online prescription for hair loss" as evidence that the phrase is prohibited — Google's automated classifier is inconsistent here (it has passed "buy prescription online" while flagging "hair loss prescription online"), and an inconsistent classifier is not a rule.
+
+### Surface matrix
+
+The restriction is **surface-specific**, but InstantMed's operator policy is deliberately stricter than any technical keyword eligibility:
+
+| Surface | Medicine names / active ingredients | Service words ("prescription", "script") |
+|---|---|---|
+| **Keywords (what we bid on)** | **OFF by operator policy** | Allowed |
+| **Ad copy** (headlines, descriptions, assets) | **Prohibited in Australia** | Allowed |
+| **Paid landing page / destination** | **Prohibited in Australia** | Allowed |
+| **Organic educational page** | **Allowed** under `docs/SEO_CONTENT_POLICY.md` | Allowed |
+
+Two rules govern that table:
+
+1. In Australia, Google does not allow prescription drug terms in a telemedicine ad or its destination, and TGA guidance separately prohibits direct or indirect public advertising of prescription medicines through a health service.
+2. Google platform eligibility never overrides Australian advertising law or InstantMed's stricter keyword policy.
+
+**An organic educational page that names medicines must never become a paid destination.** That single boundary is what lets InstantMed publish real medicine and condition education while advertising only services. It is a routing rule, not a content rule — see §7.
+
 ## 4. Source Policies
 
 | Source | Operational rule |
 |--------|------------------|
 | [Google healthcare and medicines policy](https://support.google.com/adspolicy/answer/176031?hl=en-AU) | Certified telemedicine can advertise in Australia with limits. Ads and destinations must still comply with healthcare and restricted-drug policies. |
-| [Google prescription drug services policy](https://support.google.com/adspolicy/answer/15598647?hl=en-AU) | Google restricts online prescribing, dispensation, and sale of prescription drugs. Certified advertisers can run only in approved locations and under policy limits. |
-| [Google personalized advertising policy](https://support.google.com/adspolicy/answer/143465) | Health is sensitive. Do not use advertiser-curated health audiences, Customer Match, remarketing lists, lookalikes, or custom segments that target sensitive health conditions. |
+| [Google prescription drug services policy](https://support.google.com/adspolicy/answer/15598647?hl=en-AU) | Google restricts online prescribing, dispensation, and sale of prescription drugs. Certified telemedicine advertisers can run in Australia only under Google's location limits, and ads targeting Australia cannot use prescription drug terms in the ad or destination. |
+| [Google restricted drug terms policy](https://support.google.com/adspolicy/answer/15595717?hl=en) | Google restricts monitored medicine names and active ingredients across ads, landing pages, and keywords. InstantMed does not rely on possible platform keyword eligibility: medicine-name and active-ingredient keywords remain off by operator policy. |
+| [Google personalized advertising policy](https://support.google.com/adspolicy/answer/143465) | **Audience-scoped, not keyword-scoped.** Sensitive health categories may not use advertiser-curated audiences: Customer Match, your-data segments, remarketing lists, audience expansion, lookalikes, custom segments. Predefined Google audiences (in-market, affinity, demographics, life events) and location targeting remain permitted. This policy does **not** restrict search keywords; a `HEALTH_IN_PERSONALIZED_ADS` flag on a keyword is a classifier artefact, and the compliance question to ask is "are any advertiser-curated audiences attached to this campaign?" |
 | [Medical Board advertising guidance](https://www.medicalboard.gov.au/Codes-Guidelines-Policies/Advertising-a-regulated-health-service/) | Health advertising must not be misleading, use testimonials, create unreasonable expectations, or encourage unnecessary use. |
 | [TGA health service advertising guidance](https://www.tga.gov.au/resources/guidance/advertising-health-service) | Do not directly or indirectly promote prescription-only medicines. Health-service ads should focus on consultations, not medicine access. |
 
@@ -162,11 +190,21 @@ Examples to avoid on paid destinations:
 - Mounjaro
 - weight loss injections
 
+The same medicine names and active ingredients are also OFF as keywords under the operator rule below.
+
+### Keywords
+
+**Medicine-name and active-ingredient keywords are OFF.** This is InstantMed operator policy, not a statement that every service or condition term is prohibited.
+
+- Service and condition keywords such as "online prescription", "repeat script online", "ED assessment", and "hair loss assessment" remain allowed when the ad and destination stay service-level and compliant.
+- Before adding health keywords in bulk, validate them one at a time with the Google Ads API `validateOnly` flag. The classifier is order-sensitive and inconsistent (it passes "online doctor hair loss" and blocks "hair loss doctor online"), so a batch add fails opaquely on the first violation and hides the rest.
+- `HEALTH_IN_PERSONALIZED_ADS` and `PRESCRIPTION_DRUG_SALE` both return `isExemptible: true`. An exemption is legitimate where the underlying policy is genuinely satisfied — no advertiser-curated audiences attached (§10), certification current (§1), no medicine name in ad or destination (§7). Record the reason when exempting. Do not exempt to work around a rule that actually applies.
+
 ### Organic Educational Pages
 
 Educational prescription SEO pages may mention medicine names if they follow `docs/SEO_CONTENT_POLICY.md`.
 
-They must not be used as paid ad destinations.
+They must not be used as paid ad destinations. This is the boundary that lets InstantMed publish genuine medicine and condition education without putting the Ads account at risk: the constraint is on **where paid traffic lands**, not on what the education may say.
 
 ## 8. URL Rules
 
@@ -191,6 +229,8 @@ Medication details should be collected inside the secure intake, not in URL para
 
 Rows labelled future/gated are planning guidance only. They do not authorise campaign creation or paid traffic before the canonical service boundary is explicitly changed.
 
+**tCPA is an average acquisition target, never a CPC or per-conversion cap.** Individual conversions can cost more or less than the target. Do not describe tCPA as limiting the price of a click or guaranteeing the cost of each conversion.
+
 | Campaign type | Allowed approach |
 |---------------|------------------|
 | Medical certificate search | Service terms, price, speed, no appointment, doctor-reviewed. Avoid unsupported employer/university acceptance claims. |
@@ -199,6 +239,16 @@ Rows labelled future/gated are planning guidance only. They do not authorise cam
 | Hair loss search | Hair loss assessment. Avoid drug names and outcome guarantees. |
 | Weight loss search (future/gated) | No campaign may run while weight loss remains gated. If a future launch is explicitly approved, use weight-management assessment framing and avoid injection/drug references, guaranteed weight loss, and body-shaming language. |
 | Women's health search | Narrow condition/service terms. Avoid sensitive targeting and guaranteed outcomes. |
+
+### Negative-keyword governance
+
+Keep negative keywords in three explicit layers: account hard exclusions, service-specific exclusions, and dated experimental exclusions.
+
+1. **Account hard exclusions** for terms that must never serve anywhere, including controlled-substance, high-stakes, gated-service, and clearly unsafe intent.
+2. **Service-specific exclusions** that protect one campaign from irrelevant or unsuitable intent without suppressing valid demand for another launched service.
+3. **Dated experimental exclusions** tied to a named test window and evidence receipt, so temporary learning controls do not silently become permanent account policy.
+
+Adding, removing, or moving a negative keyword between layers is a Google Ads mutation and requires the exact approval workflow in `docs/OPERATIONS.md`.
 
 ## 10. Audience Rules
 

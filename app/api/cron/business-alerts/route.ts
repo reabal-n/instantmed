@@ -19,6 +19,8 @@ import {
 } from "@/lib/monitoring/batch-review-health"
 import {
   recordCriticalAlertSent,
+  resolveCriticalAlertCooldownHours,
+  resolveEquivalentCriticalAlertDetails,
   shouldSendCriticalAlert,
 } from "@/lib/monitoring/critical-alert-cooldown"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
@@ -648,14 +650,32 @@ export async function GET(request: NextRequest) {
       // Telegram never becomes a general second alerting channel. Detail
       // strings are the same aggregate PHI-free text the Sentry capture uses.
       //
-      // Sentry above always fires; only the Telegram page is cooled down, so an
-      // unchanged condition stops paging every 30 minutes without any loss of
-      // recorded signal. A changed detail string is a new fingerprint and pages
-      // immediately — escalation is never delayed.
-      const criticalDetail = criticalAlerts.map((a) => a.detail).join("; ")
-      if (await shouldSendCriticalAlert(criticalDetail)) {
+      // Sentry above always fires. Telegram cools each signal independently,
+      // so a new incident pages immediately without dragging an unchanged
+      // historical signal back into every message.
+      const pageableCriticalAlerts: BusinessAlert[] = []
+      for (const alert of criticalAlerts) {
+        const cooldownHours = resolveCriticalAlertCooldownHours(alert.metric)
+        if (await shouldSendCriticalAlert(alert.detail, {
+          cooldownHours,
+          equivalentDetails: resolveEquivalentCriticalAlertDetails(alert),
+        })) {
+          pageableCriticalAlerts.push(alert)
+        }
+      }
+
+      if (pageableCriticalAlerts.length > 0) {
+        const criticalDetail = pageableCriticalAlerts
+          .map((alert) => alert.detail)
+          .join("; ")
         const delivered = await sendCriticalBusinessAlertViaTelegram(criticalDetail)
-        if (delivered) await recordCriticalAlertSent(criticalDetail)
+        if (delivered) {
+          for (const alert of pageableCriticalAlerts) {
+            await recordCriticalAlertSent(alert.detail, {
+              cooldownHours: resolveCriticalAlertCooldownHours(alert.metric),
+            })
+          }
+        }
       }
     }
 

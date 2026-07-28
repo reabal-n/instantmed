@@ -78,6 +78,10 @@ The canonical intake funnel uses `purchase_completed_server` as the only paid-st
 
 The Google Ads upload action is deliberately separate from the browser website purchase action: Google Ads offline click uploads require an `UPLOAD_CLICKS` conversion action. Data Manager uploads do not use a Google Ads developer token, but the destination still maps to the same offline purchase action and request-status diagnostics use the Data Manager `requestId`. Google Ads API remains useful for reporting and conversion-action preflight. If the configured conversion action returns `INVALID_CONVERSION_ACTION_TYPE`, the cron treats it as non-retryable until the env var is updated; call `/api/cron/google-ads-conversions?force=1` after updating the action ID. `EXPIRED_EVENT` failures are also terminal for that click/conversion pair and should not be forced through another historical backfill. The local click-identifier max age defaults to 90 days (`GOOGLE_ADS_CLICK_IDENTIFIER_MAX_AGE_DAYS`) and can be lowered if the purchase action's configured click-through window is shorter.
 
+`lib/google-ads/client.ts` is the shared Google Ads API transport owner: v24 endpoint construction, OAuth token caching, developer/manager/quota headers, paginated GAQL search, and all-or-nothing generic mutates (`partialFailure: false`, `MUTABLE_RESOURCE`, explicit `validateOnly`). Conversion-specific upload and adjustment payloads remain in `lib/analytics/google-ads-conversion-api.ts`. The Ads Agent's fresh account read lives in `lib/ads-agent/account-state.ts`; it reads aggregate configuration for tagging, conversion goals, all campaign types/budgets/bidding, targeting, keywords/negative lists, RSAs/policy topics, assets, access links, and recent change events. Economics later filter to governed Search campaigns, while the broader baseline preserves visibility of paused/retired Display resources needed for hygiene proposals. It never queries search-query views or patient data, hashes change actors before returning state, normalises resource names, and fails the entire read when a critical section fails. The v24 GAQL set is validated read-only against the configured account without emitting account content.
+
+`lib/ads-agent/snapshot.ts` reconciles the previous closed Sydney day and the rolling 30 closed days ending there. Google spend uses account-local `segments.date`; Supabase orders use the matching explicit UTC start/end-exclusive boundaries and the canonical reportable-intake/E2E exclusions. Local economics join only by numeric `campaignid`/`utm_id`, subtract recorded refunds, retrieve actual Stripe BalanceTransaction fees through the durable authoritative-intake cache guarded by the current PaymentIntent, and compute first-order contribution in cents. A failed spend, revenue, or fee input becomes `null` plus an unavailable reason—not zero—and keeps enabled, paused, and unmapped campaign totals separate.
+
 ### AI Assistance
 
 AI is bounded to clinician-support documentation helpers. There is no parallel chat-intake path and no public AI validation endpoint in the current product: patients use the canonical `/request` form, and doctors review the submitted answers before any clinical decision. Do not reintroduce conversational intake without an explicit product and clinical-governance decision.
@@ -768,7 +772,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 551 files, 238 route files
+### `app/` — 552 files, 239 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -778,8 +782,8 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `emails/`, `features/`, `settings/`, `ops/`, `analytics/` |
 | `app/doctor/` | Doctor portal under the shared staff shell | `intakes/[id]/` (review detail), `patients/`, `settings/`; queue/scripts entry points resolve through `/dashboard` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
-| `app/api/` | API routes (88 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/`, and the count-only `internal/support-inbox-alert/` diagnostic bridge |
-| `app/api/cron/` | Scheduled jobs (27) | `stale-queue/`, `telegram-notifications/`, `email-dispatcher/`, `health-check`, `google-ads-conversions`, `google-ads-diagnostics-watch`, `cert-reactivation`, `parchment-smoke`, etc. See OPERATIONS.md |
+| `app/api/` | API routes (89 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/`, and the count-only `internal/support-inbox-alert/` diagnostic bridge |
+| `app/api/cron/` | Scheduled jobs (28) | `stale-queue/`, `telegram-notifications/`, `email-dispatcher/`, `health-check`, `google-ads-conversions`, `google-ads-diagnostics-watch`, `google-ads-daily-brief`, `cert-reactivation`, `parchment-smoke`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | 7 handlers: `checkout-session-completed`, `checkout-session-expired`, `checkout-session-async-payment-succeeded/failed`, `charge-refunded`, `charge-dispute-created`, `payment-intent-payment-failed`. Repeat Rx subscription handlers are retired; unsupported Stripe events are acknowledged and claimed by the dispatcher without running business logic. Registered in `handlers/index.ts`. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
 | `app/(dev)/` | Dev-only routes | Email preview only; retired `/cert-preview` and `/sentry-test` prefixes remain fail-closed in middleware |
@@ -841,6 +845,8 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `lib/feature-flags.ts` | Feature flags | DB-backed via `feature_flags` table, `getFeatureFlags()` |
 | `lib/operational-controls/` | Runtime controls | Capacity fail-closed checks and medication-blocklist answer extraction |
 | `lib/analytics/posthog-server.ts` | Server analytics | `getPostHogClient()`, funnel tracking, safety outcome tracking |
+| `lib/google-ads/` | Shared Google Ads transport | `client.ts` owns v24 OAuth, GAQL search, and atomic generic mutate requests |
+| `lib/ads-agent/` | Google Ads control plane | Sydney reporting windows, actual Stripe-fee truth, PHI-free account state, and fee-aware closed-day snapshots |
 | `lib/validation/` | Validation schemas | `med-cert-schema.ts`, `repeat-script-schema.ts` |
 
 ### Other top-level
@@ -854,7 +860,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/certificate-template.ts` | PDF template field definitions |
 | `lib/hooks/` | Shared client hooks | Debounce, keyboard navigation, landing analytics, responsive media, section visibility, validation summaries, and staff refresh helpers |
 | `e2e/` | 77 TypeScript files, including 68 specs and `helpers/` (seed/teardown, auth bypass, production-synthetic side-effect isolation). Focused paid-flow and ops smoke specs are the blocking CI gate. |
-| `supabase/migrations/` | 106 SQL migration files (1 squashed baseline + 105 incremental). Most recent: `20260723170000_create_operational_metrics.sql` (additive restoration of the aggregate-only metrics table omitted from the existing production database after migration squashing; applied 2026-07-24 with aligned history, clean linked schema lint, an exact five-column contract, RLS default-deny, valid indexes, service-role select/insert only, and the verified external baseline of 2 recorded through the live admin UI). |
+| `supabase/migrations/` | 108 SQL migration files (1 squashed baseline + 107 incremental). Most recent: `20260727184400_google_ads_fee_cache_on_intakes.sql`; the production-applied Ads Agent migrations add PHI-free run, proposal, and experiment state with RLS default-deny/service-role-only grants, then place actual Stripe fee cache fields on the authoritative intake PaymentIntent row. |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
 | `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |
