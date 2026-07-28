@@ -24,6 +24,7 @@ const CRITICAL_CRONS: Record<string, { schedule: string; maxDelayMinutes: number
   "business-alerts":        { schedule: "*/30 * * * *",   maxDelayMinutes: 75 },
   "google-ads-conversions": { schedule: "45 * * * *",    maxDelayMinutes: 75 },
   "google-ads-diagnostics-watch": { schedule: "50 * * * *", maxDelayMinutes: 75 },
+  "google-ads-daily-brief": { schedule: "0 22,23 * * *", maxDelayMinutes: 1500 },
 }
 
 /**

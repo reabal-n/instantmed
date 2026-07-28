@@ -337,6 +337,36 @@ describe("Telegram request notifications", () => {
     expect(body.text).toContain("5 failed payments in the last hour\\. Investigate immediately")
   })
 
+  it("sends an Ads proposal with exactly one Approve and one Reject button", async () => {
+    fetchMock.mockResolvedValue({
+      json: async () => ({ result: { message_id: 9042 } }),
+      ok: true,
+    })
+    const { sendGoogleAdsProposalCardViaTelegram } = await import(
+      "@/lib/notifications/telegram"
+    )
+
+    await expect(sendGoogleAdsProposalCardViaTelegram({
+      approveCallbackData: "ads:a:ADS-20260730-01:0123456789abcdef",
+      message: "ADS-20260730-01 · immutable proposal",
+      proposalKey: "ADS-20260730-01",
+      rejectCallbackData: "ads:r:ADS-20260730-01:fedcba9876543210",
+    })).resolves.toEqual({ messageId: 9042 })
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body)
+    expect(body.reply_markup.inline_keyboard).toEqual([[
+      {
+        callback_data: "ads:a:ADS-20260730-01:0123456789abcdef",
+        text: "Approve ADS-20260730-01",
+      },
+      {
+        callback_data: "ads:r:ADS-20260730-01:fedcba9876543210",
+        text: "Reject",
+      },
+    ]])
+    expect(body.reply_markup.inline_keyboard.flat()).toHaveLength(2)
+  })
+
   it("does not expose a generic automatic system-alert sender", async () => {
     const telegram = await import("@/lib/notifications/telegram")
     expect("sendTelegramAlert" in telegram).toBe(false)

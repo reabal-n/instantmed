@@ -106,10 +106,15 @@ Material budget increases require:
 - trustworthy purchase and refund/dispute measurement
 - a complete contribution calculation using retained revenue, payment fees, and attributable acquisition cost
 - positive first-order contribution for the service being scaled
+- `GREEN` deterministic tracking health; an attribution, spend, revenue, refund, or fee failure fails closed and blocks scaling
 - stable refund, chargeback, clinical, queue, fulfilment, and support metrics
 - explicit operator approval for the exact change
 
 Every budget, keyword, negative keyword, asset, sitelink, targeting, bid-strategy, pause, or enable recommendation follows the approval workflow in `docs/OPERATIONS.md`. No routine Google Ads mutation is autonomous.
+
+Change one material variable at a time. After a service passes every gate, hold the approved baseline for at least seven closed days before another scale decision. Any follow-on increase uses a **maximum 20% budget step**, keeps the same fee-aware service calculation, and requires a fresh exact approval.
+
+A target cost per acquisition (tCPA) is an average acquisition target. It is not a CPC limit, a guaranteed per-conversion price, or permission to ignore service-level retained contribution.
 
 ### Bounded Learning Exception
 

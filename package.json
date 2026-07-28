@@ -87,7 +87,8 @@
     "seo:commercial-inspect": "node tools/gsc-mcp-server/commercial-intent-inspect.mjs",
     "seo:generate-commercial-visuals": "tsx scripts/generate-commercial-seo-visual-images.ts",
     "authority:generate-visuals": "tsx scripts/generate-authority-resource-visuals.ts",
-    "verify:tokens": "bash scripts/verify-tokens.sh"
+    "verify:tokens": "bash scripts/verify-tokens.sh",
+    "ads:agent": "NODE_OPTIONS='--conditions=react-server' tsx --env-file-if-exists=.env.local scripts/google-ads-agent.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.79",

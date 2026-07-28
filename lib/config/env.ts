@@ -98,10 +98,22 @@ const serverEnvSchema = z.object({
   TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
   TELEGRAM_APPROVAL_ACTIONS_ENABLED: z.enum(["true", "false"]).optional(),
   TELEGRAM_ACTION_SIGNING_SECRET: z.string().optional(),
+  TELEGRAM_ADS_APPROVALS_ENABLED: z.enum(["true", "false"]).optional(),
+  TELEGRAM_ADS_APPROVER_USER_ID: z.string().regex(/^\d+$/).optional(),
+  TELEGRAM_ADS_APPROVAL_SIGNING_SECRET: z.string().min(32).optional(),
   TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED: z.enum(["0", "1"]).optional(),
 
   // Cron job authentication
   CRON_SECRET: z.string().optional(),
+
+  // Google Ads Agent ships read-only. Each write surface has an independent,
+  // explicit production gate and no gate defaults to enabled.
+  GOOGLE_ADS_AGENT_DAILY_BRIEF_ENABLED: z.enum(["true", "false"]).optional(),
+  GOOGLE_ADS_AGENT_MUTATIONS_ENABLED: z.enum(["true", "false"]).optional(),
+  GOOGLE_ADS_AGENT_SHADOW_DRY_RUN_REPORT_DATE: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
 
   // Reactivation: master kill-switch for the refill-reminder cron. Ships OFF.
   // Set to "true" in production only after the email copy has been reviewed.

@@ -33,6 +33,11 @@ export type GoogleAdsReportRange = {
   startDate: string
 }
 
+export type GoogleAdsClosedReportRange = GoogleAdsReportRange & {
+  endUtcExclusive: string
+  startUtc: string
+}
+
 export type GoogleAdsCampaignRow = {
   campaign?: {
     advertisingChannelType?: string
@@ -109,8 +114,11 @@ export type GoogleAdsCustomerConversionTrackingSettingsSummary = {
 
 export type LocalGoogleAdsPurchaseRow = GoogleAdsAttributionRow & {
   amount_cents?: number | null
+  id?: string | null
+  paid_at?: string | null
   payment_status?: string | null
   refund_amount_cents?: number | null
+  stripe_payment_intent_id?: string | null
 }
 
 export type GoogleAdsOfflineUploadJobSummary = {
@@ -944,22 +952,66 @@ async function runOptionalGoogleAdsQuery<T extends GoogleAdsSecondaryRow>(
   }
 }
 
-async function getLocalGoogleAdsPurchases(
-  supabase: SupabaseClient,
+export async function getGoogleAdsCampaignRowsForRange(
   range: GoogleAdsReportRange,
+): Promise<GoogleAdsCampaignRow[]> {
+  return searchGoogleAds<GoogleAdsCampaignRow>(
+    buildGoogleAdsCampaignPerformanceQuery(range),
+  )
+}
+
+function assertClosedUtcRange(range: GoogleAdsClosedReportRange): void {
+  const startMs = Date.parse(range.startUtc)
+  const endMs = Date.parse(range.endUtcExclusive)
+  if (
+    !Number.isFinite(startMs) ||
+    !Number.isFinite(endMs) ||
+    startMs >= endMs
+  ) {
+    throw new Error("Google Ads local report range must be valid and end-exclusive")
+  }
+}
+
+export async function getLocalGoogleAdsPurchasesForRange(
+  supabase: SupabaseClient,
+  range: GoogleAdsClosedReportRange,
 ): Promise<LocalGoogleAdsPurchaseRow[]> {
+  assertClosedUtcRange(range)
+
   const { data, error } = await filterReportableIntakes(
     supabase
       .from("intakes")
-      .select(`payment_status, refund_amount_cents, paid_at, ${GOOGLE_ADS_ATTRIBUTION_SELECT}`)
+      .select(
+        `id, stripe_payment_intent_id, payment_status, refund_amount_cents, paid_at, ${GOOGLE_ADS_ATTRIBUTION_SELECT}`,
+      )
       .in("payment_status", ["paid", "partially_refunded", "refunded"])
       .not("paid_at", "is", null)
-      .gte("paid_at", `${range.startDate}T00:00:00.000Z`)
-      .lte("paid_at", `${range.endDate}T23:59:59.999Z`),
+      .gte("paid_at", range.startUtc)
+      .lt("paid_at", range.endUtcExclusive),
   )
 
   if (error) throw new Error(`Local Google Ads purchase query failed: ${error.message}`)
   return (data || []) as LocalGoogleAdsPurchaseRow[]
+}
+
+function nextUtcDateKey(dateKey: string): string {
+  const date = new Date(`${dateKey}T00:00:00.000Z`)
+  if (!Number.isFinite(date.getTime())) {
+    throw new Error(`Invalid Google Ads report date: ${dateKey}`)
+  }
+  date.setUTCDate(date.getUTCDate() + 1)
+  return date.toISOString().slice(0, 10)
+}
+
+async function getLocalGoogleAdsPurchases(
+  supabase: SupabaseClient,
+  range: GoogleAdsReportRange,
+): Promise<LocalGoogleAdsPurchaseRow[]> {
+  return getLocalGoogleAdsPurchasesForRange(supabase, {
+    ...range,
+    startUtc: `${range.startDate}T00:00:00.000Z`,
+    endUtcExclusive: `${nextUtcDateKey(range.endDate)}T00:00:00.000Z`,
+  })
 }
 
 type GoogleAdsRawUploadAuditRow = {
