@@ -82,6 +82,7 @@ export const GOOGLE_ADS_ADJUSTMENT_HEALTH_DAYS = 90
 export type GoogleAdsAdjustmentHealth = {
   adjustmentFailureRows: number
   clickAttributedFailures: number
+  confirmedNotCounted: number
   dedupedFailedIntakes: number
   failedIntakesWithoutSuccessfulUpload: number
   generatedAt: string

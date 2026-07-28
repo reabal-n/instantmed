@@ -8,7 +8,7 @@
 
 | Layer | Framework | Location | Count |
 |-------|-----------|----------|-------|
-| Unit tests | Vitest | `**/*.test.ts` / `lib/__tests__/**/*.test.ts` | Local run 2026-07-28: **5,345 passed, 0 skipped** across 601 test files. |
+| Unit tests | Vitest | `**/*.test.ts` / `lib/__tests__/**/*.test.ts` | Local run 2026-07-28: **5,346 passed, 0 skipped** across 601 test files. |
 | E2E tests | Playwright | `e2e/**/*.spec.ts` | 67 specs — blocking CI currently runs ops/navigation/clinical-input smoke plus focused paid critical flows |
 
 **Coverage threshold:** 80% statements / 70% branches / 80% functions / 80% lines (enforced by Vitest config, scoped to `lib/clinical/`, `lib/security/`, the `lib/stripe/` payment-safety surface, and `lib/data/intake-lifecycle.ts`). The E2E-only Stripe orchestrators (`checkout.ts`, `guest-checkout.ts`, `checkout/stripe-session.ts`, `checkout/persistence.ts`, `checkout/auth-and-profile.ts`, `checkout/retry-payment.ts`, `client.ts`, `referral-coupon.ts`, `post-payment.ts`) are excluded — they're exercised by `e2e/unified-request-flow.spec.ts` / `consult-subtypes.spec.ts` / payment-smoke, not units. **Note:** `lib/state-machine/` was removed from the include list 2026-04-08 because the directory no longer exists — the state-machine logic was consolidated into `lib/clinical/auto-approval-state.ts`.
@@ -19,6 +19,7 @@
 - `e2e/operator.viewport.spec.ts` and `e2e/operator.visual.spec.ts` — compact staff cockpit visual/viewport guardrails for `/admin`, `/admin/ops`, `/admin/intakes`, and the intake review panel at 1440x900.
 - `lib/__tests__/confirmed-payment-finalization-contract.test.ts` — pins both paid Stripe webhook adapters and `/api/stripe/verify-payment` to the shared exact-current paid-transition owner, including Stripe charged-amount reconciliation and atomic referral-event claiming.
 - `lib/__tests__/google-ads-agent-brief.test.ts` — pins a quiet four-line Telegram `HOLD`, conditional service/change-family detail only for `CHECK` or approval-gated `ACTION`, PHI/raw-attribution exclusions, and durable Telegram message receipts.
+- `lib/__tests__/google-ads-conversion-adjustments.test.ts` + `lib/__tests__/google-ads-health.test.ts` — pin refund-adjustment integrity: pre-grace `CONVERSION_NOT_FOUND` retries after grace, post-grace misses become durable `resolved_not_counted` outcomes, and a later success/resolution receipt clears historical failure state before the scaling gate is evaluated.
 
 Prior to these, the canonical refund code had **zero unit coverage** — only the e2e suite exercised it, which gave slow feedback and no per-branch visibility.
 

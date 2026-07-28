@@ -280,7 +280,7 @@ describe("Google Ads conversion adjustments", () => {
     expect(inserted).toHaveLength(0)
   })
 
-  it("records conversion-not-found failures as terminal once the upload is past the match grace window", async () => {
+  it("resolves a post-grace conversion-not-found as not counted", async () => {
     mocks.fireGoogleAdsConversionAdjustment.mockResolvedValue({
       attempted: true,
       error: CONVERSION_NOT_FOUND_ERROR,
@@ -302,18 +302,20 @@ describe("Google Ads conversion adjustments", () => {
     expect(result).toMatchObject({
       attempted: true,
       ok: false,
-      status: "terminal_failed",
+      status: "resolved_not_counted",
     })
     expect(inserted[0]).toMatchObject({
       payload: {
         metadata: expect.objectContaining({
           error_code: CONVERSION_NOT_FOUND_ERROR,
-          status: "terminal_failed",
-          terminal: true,
-          terminal_reason: "conversion_not_found",
+          resolution_reason: "conversion_not_found",
+          status: "resolved_not_counted",
+          terminal: false,
+          terminal_reason: null,
         }),
       },
     })
+    expect(mocks.sentryCaptureMessage).not.toHaveBeenCalled()
   })
 
   it("keeps conversion-not-found transient while the upload is inside the match grace window", async () => {
@@ -415,12 +417,44 @@ describe("Google Ads conversion adjustments", () => {
     expect(mocks.fireGoogleAdsConversionAdjustment).toHaveBeenCalledTimes(1)
   })
 
-  it("does not retry a matching terminal adjustment failure once past the grace window", async () => {
+  it("retries a conversion-not-found recorded before grace after the upload passes grace", async () => {
+    mocks.fireGoogleAdsConversionAdjustment.mockResolvedValue({ attempted: true, ok: true })
     const { inserted, supabase } = adjustmentSupabaseMock([
       successfulPurchaseUpload("intake_123", { ageHours: PAST_GRACE_HOURS }),
       {
         action: GOOGLE_ADS_CONVERSION_ADJUSTMENT_AUDIT_ACTION,
-        created_at: "2026-07-01T02:00:00.000Z",
+        created_at: hoursAgoIso(PAST_GRACE_HOURS - 1),
+        intake_id: "intake_123",
+        metadata: {
+          adjustment_type: "RETRACTION",
+          error_code: CONVERSION_NOT_FOUND_ERROR,
+          status: "failed",
+          target_net_value_cents: 0,
+        },
+      },
+    ])
+
+    const result = await runGoogleAdsConversionAdjustment({
+      amountCents: 2495,
+      intakeId: "intake_123",
+      paymentStatus: "refunded",
+      refundAmountCents: 2495,
+      source: "cron_backfill",
+      supabase: supabase as never,
+    })
+
+    expect(result).toMatchObject({ attempted: true, ok: true, status: "success" })
+    expect(mocks.fireGoogleAdsConversionAdjustment).toHaveBeenCalledTimes(1)
+    expect(inserted).toHaveLength(1)
+  })
+
+  it("reconciles a prior post-grace conversion-not-found without another API attempt", async () => {
+    const uploadAgeHours = PAST_GRACE_HOURS + 24
+    const { inserted, supabase } = adjustmentSupabaseMock([
+      successfulPurchaseUpload("intake_123", { ageHours: uploadAgeHours }),
+      {
+        action: GOOGLE_ADS_CONVERSION_ADJUSTMENT_AUDIT_ACTION,
+        created_at: hoursAgoIso(uploadAgeHours - GOOGLE_ADS_ADJUSTMENT_CONVERSION_MATCH_GRACE_HOURS - 1),
         intake_id: "intake_123",
         metadata: {
           adjustment_type: "RETRACTION",
@@ -442,10 +476,18 @@ describe("Google Ads conversion adjustments", () => {
 
     expect(result).toMatchObject({
       attempted: false,
-      status: "skipped_terminal_error",
+      status: "resolved_not_counted",
     })
     expect(mocks.fireGoogleAdsConversionAdjustment).not.toHaveBeenCalled()
-    expect(inserted).toHaveLength(0)
+    expect(inserted).toHaveLength(1)
+    expect(inserted[0]).toMatchObject({
+      payload: {
+        metadata: expect.objectContaining({
+          resolution_reason: "conversion_not_found",
+          status: "resolved_not_counted",
+        }),
+      },
+    })
   })
 
   it("blocks non-conversion-not-found terminal rows regardless of upload age", async () => {
@@ -599,65 +641,6 @@ describe("Google Ads conversion adjustments", () => {
 
     expect(result).toMatchObject({ attempted: true, ok: true, status: "success" })
     expect(mocks.retrieveGoogleDataManagerRequestStatus).not.toHaveBeenCalled()
-  })
-
-  it("alarms once when a click-attributed retraction fails terminally", async () => {
-    mocks.fireGoogleAdsConversionAdjustment.mockResolvedValue({
-      attempted: true,
-      error: CONVERSION_NOT_FOUND_ERROR,
-      ok: false,
-    })
-    const { supabase } = adjustmentSupabaseMock([
-      successfulPurchaseUpload("intake_123", {
-        ageHours: PAST_GRACE_HOURS,
-        metadata: { has_gclid: true },
-      }),
-    ])
-
-    const result = await runGoogleAdsConversionAdjustment({
-      amountCents: 2495,
-      intakeId: "intake_123",
-      paymentStatus: "refunded",
-      refundAmountCents: 2495,
-      source: "cron_backfill",
-      supabase: supabase as never,
-    })
-
-    expect(result).toMatchObject({ status: "terminal_failed" })
-    expect(mocks.sentryCaptureMessage).toHaveBeenCalledTimes(1)
-    expect(mocks.sentryCaptureMessage).toHaveBeenCalledWith(
-      "Google Ads retraction permanently failed for a click-attributed conversion",
-      expect.objectContaining({
-        level: "error",
-        fingerprint: ["google-ads-retraction-terminal", "intake_123"],
-      }),
-    )
-  })
-
-  it("stays silent when a user-data-only retraction fails terminally", async () => {
-    mocks.fireGoogleAdsConversionAdjustment.mockResolvedValue({
-      attempted: true,
-      error: CONVERSION_NOT_FOUND_ERROR,
-      ok: false,
-    })
-    const { supabase } = adjustmentSupabaseMock([
-      successfulPurchaseUpload("intake_123", {
-        ageHours: PAST_GRACE_HOURS,
-        metadata: { has_gclid: false, has_gbraid: false, has_wbraid: false },
-      }),
-    ])
-
-    const result = await runGoogleAdsConversionAdjustment({
-      amountCents: 2495,
-      intakeId: "intake_123",
-      paymentStatus: "refunded",
-      refundAmountCents: 2495,
-      source: "cron_backfill",
-      supabase: supabase as never,
-    })
-
-    expect(result).toMatchObject({ status: "terminal_failed" })
-    expect(mocks.sentryCaptureMessage).not.toHaveBeenCalled()
   })
 
   it("skips audit writes from local development runtimes", async () => {

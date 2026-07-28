@@ -178,13 +178,13 @@ function isUploadPastAdjustmentGrace(
   return nowMs - uploadMs > GOOGLE_ADS_ADJUSTMENT_CONVERSION_MATCH_GRACE_HOURS * 60 * 60 * 1000
 }
 
-function bestLatestAdjustmentFailureByIntake(
+function bestLatestAdjustmentRowByIntake(
   rows: GoogleAdsAdjustmentAuditRow[],
 ): Map<string, GoogleAdsAdjustmentAuditRow> {
   const best = new Map<string, GoogleAdsAdjustmentAuditRow>()
 
   for (const row of rows) {
-    if (!row.intake_id || !isAdjustmentFailure(row)) continue
+    if (!row.intake_id) continue
     const current = best.get(row.intake_id)
     if (!current || auditCreatedAtMs(row) > auditCreatedAtMs(current)) {
       best.set(row.intake_id, row)
@@ -212,9 +212,9 @@ function latestSuccessfulPurchaseUploadByIntake(
 
 // A dm_request_rejected terminal means the Data Manager ingest was rejected, so
 // the conversion never landed and nothing was ever counted — there is nothing to
-// retract and it must NOT page. Only a conversion_not_found terminal is the
-// "refunded order may still be counted" poisoning signature. Mirrors the
-// deliberate no-alarm carve-out in google-ads-conversion-adjustments.ts.
+// retract and it must NOT page. A pre-grace conversion_not_found becomes
+// blocking only if it remains unresolved after the upload passes grace; a
+// post-grace conversion_not_found proves no conversion was counted.
 const DM_REQUEST_REJECTED_TERMINAL_REASON = "dm_request_rejected"
 
 function isTerminalAdjustmentFailure(
@@ -227,11 +227,29 @@ function isTerminalAdjustmentFailure(
   const explicitTerminal = status === "terminal_failed" ||
     (failure.metadata?.terminal === true && Boolean(failure.metadata.terminal_reason))
 
+  if (isConversionNotFound(errorCode)) {
+    // A pre-grace miss becomes an overdue, blocking retry once the upload
+    // itself passes grace. A post-grace miss is handled separately as proof
+    // that Google did not count a conversion under this order/action.
+    return isUploadPastAdjustmentGrace(upload, nowMs)
+  }
   if (explicitTerminal) return true
-  if (status !== "failed") return false
-  if (isDataManagerStillProcessing(errorCode)) return false
-  if (isConversionNotFound(errorCode)) return isUploadPastAdjustmentGrace(upload, nowMs)
+  if (status !== "failed" || isDataManagerStillProcessing(errorCode)) return false
   return false
+}
+
+function conversionNotFoundOccurredPastGrace(
+  failure: GoogleAdsAdjustmentAuditRow,
+  upload: GoogleAdsPurchaseUploadAuditRow | null | undefined,
+): boolean {
+  if (!isConversionNotFound(failure.metadata?.error_code) || !upload) return false
+  const failureMs = auditCreatedAtMs(failure)
+  const uploadMs = auditCreatedAtMs(upload)
+  if (!Number.isFinite(failureMs) || failureMs <= 0 || !Number.isFinite(uploadMs) || uploadMs <= 0) {
+    return false
+  }
+  return failureMs - uploadMs >
+    GOOGLE_ADS_ADJUSTMENT_CONVERSION_MATCH_GRACE_HOURS * 60 * 60 * 1000
 }
 
 export function summarizeGoogleAdsAdjustmentHealth({
@@ -248,11 +266,13 @@ export function summarizeGoogleAdsAdjustmentHealth({
   purchaseUploadRows: GoogleAdsPurchaseUploadAuditRow[]
 }): GoogleAdsAdjustmentHealth {
   const failures = adjustmentRows.filter(isAdjustmentFailure)
-  const bestFailures = bestLatestAdjustmentFailureByIntake(failures)
+  const latestRows = bestLatestAdjustmentRowByIntake(adjustmentRows)
   const uploads = latestSuccessfulPurchaseUploadByIntake(purchaseUploadRows)
   const nowMs = now.getTime()
 
   let clickAttributedFailures = 0
+  let confirmedNotCounted = 0
+  let dedupedFailedIntakes = 0
   let failedIntakesWithoutSuccessfulUpload = 0
   let latestFailureAt: string | null = null
   let latestFailureMs = -1
@@ -263,11 +283,19 @@ export function summarizeGoogleAdsAdjustmentHealth({
   let terminalNonClickAttributedFailures = 0
   let transientFailures = 0
 
-  for (const failure of bestFailures.values()) {
+  for (const failure of latestRows.values()) {
+    if (!isAdjustmentFailure(failure)) continue
     const upload = uploads.get(failure.intake_id || "")
+    const at = auditCreatedAtMs(failure)
+
+    if (conversionNotFoundOccurredPastGrace(failure, upload)) {
+      confirmedNotCounted += 1
+      continue
+    }
+
     const clickAttributed = uploadHadClickIdentifier(upload)
     const terminal = isTerminalAdjustmentFailure(failure, upload, nowMs)
-    const at = auditCreatedAtMs(failure)
+    dedupedFailedIntakes += 1
 
     if (at > latestFailureMs) {
       latestFailureMs = at
@@ -302,7 +330,8 @@ export function summarizeGoogleAdsAdjustmentHealth({
   return {
     adjustmentFailureRows: failures.length,
     clickAttributedFailures,
-    dedupedFailedIntakes: bestFailures.size,
+    confirmedNotCounted,
+    dedupedFailedIntakes,
     failedIntakesWithoutSuccessfulUpload,
     generatedAt,
     latestFailureAt,
@@ -328,6 +357,7 @@ function emptyGoogleAdsAdjustmentHealth({
   return {
     adjustmentFailureRows: 0,
     clickAttributedFailures: 0,
+    confirmedNotCounted: 0,
     dedupedFailedIntakes: 0,
     failedIntakesWithoutSuccessfulUpload: 0,
     generatedAt,
@@ -680,10 +710,10 @@ export async function getGoogleAdsUploadStreamHealth(
 
 /**
  * DB-only adjustment/retraction health for Google Ads retained-value bidding.
- * This deliberately pages only on terminal failures for purchases that had a
- * Google click identifier. User-data-only terminal misses are diagnostics noise:
- * if Google never matched the hashed identifiers to an ad interaction, there is
- * no click conversion to retract from Smart Bidding.
+ * This deliberately pages only on unresolved post-grace risk for purchases that
+ * had a Google click identifier. A later success/resolution receipt supersedes
+ * earlier attempts, and a post-grace CONVERSION_NOT_FOUND is confirmed not
+ * counted rather than a Smart Bidding poisoning signal.
  */
 export async function getGoogleAdsAdjustmentHealth(
   supabase: SupabaseClient,
