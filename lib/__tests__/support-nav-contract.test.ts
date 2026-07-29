@@ -150,6 +150,16 @@ describe("support nav contract", () => {
     expect(parchmentSource).toContain("Support view")
   })
 
+  it("selects the support-safe ledger read model before data reaches the client", () => {
+    const ledgerPageSource = readFileSync(join(root, "app/admin/intakes/page.tsx"), "utf8")
+    const ledgerQuerySource = readFileSync(join(root, "lib/data/intakes/queries.ts"), "utf8")
+
+    expect(ledgerPageSource).toContain("viewerRole: profile.role")
+    expect(ledgerQuerySource).toContain("SUPPORT_LEDGER_SELECT")
+    expect(ledgerQuerySource).toContain('options.viewerRole === "support"')
+    expect(ledgerQuerySource).toContain("projectSupportLedgerPatient")
+  })
+
   it("does not ship a global patient/intake palette search endpoint", () => {
     expect(() => readFileSync(join(root, "app/api/admin/palette-search/route.ts"), "utf8")).toThrow()
   })

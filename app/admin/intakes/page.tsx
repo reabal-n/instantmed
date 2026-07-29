@@ -75,12 +75,12 @@ export default async function AdminIntakeLedgerPage({
   // Open to support so they can see refund work + drill into a case to refund.
   // Page itself shows only ledger metadata; PHI-rich detail (clinical answers,
   // medicare) stays gated on the intake detail surface.
-  await requireRole(["admin", "support"])
+  const { profile } = await requireRole(["admin", "support"])
   const params = await searchParams
   const initialFilters = parseLedgerFilters(params)
 
   const results = await Promise.allSettled([
-    getAllIntakesForAdmin({ page: 1, pageSize: 50 }),
+    getAllIntakesForAdmin({ viewerRole: profile.role as "admin" | "support", page: 1, pageSize: 50 }),
   ])
 
   const intakesResult = results[0].status === "fulfilled"
@@ -93,9 +93,11 @@ export default async function AdminIntakeLedgerPage({
   // the exact bundle-budget class this route's gate exists to catch.
   const intakesWithAttribution = intakesResult.data.map((intake) => ({
     ...intake,
-    attribution: buildCaseRowAttribution(
-      intake as Parameters<typeof buildCaseRowAttribution>[0],
-    ),
+    attribution: profile.role === "admin"
+      ? buildCaseRowAttribution(
+          intake as Parameters<typeof buildCaseRowAttribution>[0],
+        )
+      : null,
   }))
 
   return (

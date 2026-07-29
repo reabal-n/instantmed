@@ -39,6 +39,8 @@ import {
 import {
   ADMIN_LEDGER_SELECT,
   projectAdminLedgerPatient,
+  projectSupportLedgerPatient,
+  SUPPORT_LEDGER_SELECT,
 } from "./admin-ledger-projection"
 import type {
   DashboardIntake,
@@ -631,7 +633,8 @@ export async function getIntakeWithDetails(intakeId: string): Promise<IntakeWith
  * Supports pagination and date range filtering for scalability at high volume.
  */
 export async function getAllIntakesForAdmin(
-  options?: {
+  options: {
+    viewerRole: "admin" | "support"
     page?: number
     pageSize?: number
     dateFrom?: string  // ISO date string
@@ -664,9 +667,12 @@ export async function getAllIntakesForAdmin(
   }
 
   // Fetch paginated data with only necessary fields
+  const ledgerSelect: string = options.viewerRole === "support"
+    ? SUPPORT_LEDGER_SELECT
+    : ADMIN_LEDGER_SELECT
   let dataQuery = supabase
     .from("intakes")
-    .select(ADMIN_LEDGER_SELECT)
+    .select(ledgerSelect)
 
   // Apply same filters as count query
   dataQuery = dataQuery.gte("created_at", dateFrom)
@@ -692,10 +698,29 @@ export async function getAllIntakesForAdmin(
     return { data: [], total: count ?? 0, page, pageSize }
   }
 
-  // Decrypt the phone field for client-side operator search. Do not return raw
-  // answers or encrypted fields in the admin ledger payload.
-  const unwrapped = await Promise.all((data || []).map(async (row) => {
+  // Support rows never select contact/clinical payloads in the first place.
+  // Admin rows decrypt the phone and answers only for search/renewal detection;
+  // neither raw answers nor encrypted fields are returned to the client.
+  const ledgerRows = (data ?? []) as unknown as Array<Record<string, unknown> & {
+    answers?: unknown
+    category: string | null
+    id: string
+    patient_id: string
+    patient?: unknown
+    service?: unknown
+  }>
+  const unwrapped = await Promise.all(ledgerRows.map(async (row) => {
     const rawPatient = Array.isArray(row.patient) ? row.patient[0] : row.patient
+    if (options.viewerRole === "support") {
+      return {
+        ...row,
+        answers: null,
+        risk_flags: null,
+        patient: projectSupportLedgerPatient(rawPatient as Record<string, unknown> | null),
+        service: Array.isArray(row.service) ? row.service[0] : row.service,
+      }
+    }
+
     const decryptedPatient = rawPatient ? decryptProfilePhi(rawPatient as Record<string, unknown>) : rawPatient
     const rawAnswers = Array.isArray(row.answers) ? row.answers[0] : null
     const answers = rawAnswers

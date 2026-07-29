@@ -299,6 +299,7 @@ export async function createIntakeAndCheckoutAction(
       serviceType: input.category,
       subtype: input.subtype,
       anonymousId: input.posthogDistinctId,
+      flowInstanceId: input.flowInstanceId,
     })
 
     if (latencyMs > 5000) {
