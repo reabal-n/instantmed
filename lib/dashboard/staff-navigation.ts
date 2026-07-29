@@ -76,8 +76,8 @@ export const operatorNavSections: StaffNavSection[] = [
   {
     title: "Run",
     items: [
-      { href: STAFF_ANALYTICS_HREF, label: "Overview", icon: "analytics" },
-      { href: STAFF_OPS_HREF, label: "Ops", icon: "activity" },
+      { href: STAFF_ANALYTICS_HREF, label: "Business", icon: "analytics" },
+      { href: STAFF_OPS_HREF, label: "Operations", icon: "activity" },
     ],
   },
   {

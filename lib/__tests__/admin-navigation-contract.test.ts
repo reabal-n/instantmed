@@ -157,7 +157,7 @@ describe("admin navigation contract", () => {
     )
     const labels = navLabels(operatorNavSource)
 
-    expect(labels.filter((label) => label === "Overview")).toHaveLength(1)
+    expect(labels.filter((label) => label === "Business")).toHaveLength(1)
     expect(sidebarSource).not.toContain("emailNavItems")
     expect(sidebarSource).not.toContain("analyticsNavItems")
     expect(sidebarSource).not.toContain("systemNavItems")
@@ -169,8 +169,8 @@ describe("admin navigation contract", () => {
       "Dashboard",
       "Ledger",
       "Patients",
-      "Overview",
-      "Ops",
+      "Business",
+      "Operations",
       "Setup",
     ])
     expect(operatorNavSource).not.toContain("STAFF_QUEUE_HREF")

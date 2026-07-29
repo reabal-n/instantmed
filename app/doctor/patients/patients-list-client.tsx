@@ -2,18 +2,14 @@
 
 import {
   AlertTriangle,
-  Calendar,
-  CheckCircle,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
   FileText,
   MapPin,
   Phone,
-  Pill,
   Search,
   Users,
-  XCircle,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -24,11 +20,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { UserCard } from "@/components/uix"
 import { STAFF_DOCTOR_PATIENTS_HREF } from "@/lib/dashboard/routes"
-import type { PatientDirectoryProfile, PatientDirectorySort } from "@/lib/data/patient-directory"
+import type { PatientDirectoryProfile } from "@/lib/data/patient-directory"
 import { findPotentialDuplicatePatients } from "@/lib/doctor/patient-snapshot"
 import { calculateAge, formatDate } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
@@ -43,7 +38,6 @@ interface PatientsListClientProps {
   totalPages: number
   totalPatients: number
   collapsedDuplicateProfiles: number
-  currentSort?: PatientDirectorySort
   initialSearchQuery?: string
   baseHref?: string
   patientHrefBase?: string
@@ -54,9 +48,7 @@ interface PatientsListClientProps {
   description?: string
 }
 
-type ProfileFilter = "all" | "complete" | "incomplete" | "duplicates"
-type ServiceFilter = "all" | "medical_certificate" | "repeat_script" | "consult" | "ed" | "hair_loss" | "no_request"
-type SyncFilter = "all" | "synced" | "not_synced"
+type ExceptionFilter = "all" | "needs_details" | "sync_needed" | "duplicates"
 
 const CLOSED_REQUEST_STATUSES = new Set(["completed", "declined", "cancelled", "expired"])
 
@@ -67,13 +59,11 @@ function normalizeDirectorySearchQuery(value: string): string {
 function buildPatientDirectoryHref(
   baseHref: string,
   page: number,
-  sort: PatientDirectorySort,
   searchQuery: string,
 ): string {
   const params = new URLSearchParams()
   const normalizedSearch = normalizeDirectorySearchQuery(searchQuery)
   if (page > 1) params.set("page", String(page))
-  if (sort !== "recent_request") params.set("sort", sort)
   if (normalizedSearch) params.set("q", normalizedSearch)
   const query = params.toString()
   return query ? `${baseHref}?${query}` : baseHref
@@ -90,29 +80,39 @@ function hasActivePrescribingRequest(patient: PatientDirectoryProfile): boolean 
   })
 }
 
-function getPatientServiceFilter(patient: PatientDirectoryProfile): ServiceFilter {
-  const request = patient.lastRequest
-  if (!request) return "no_request"
-
-  const markers = [
-    request.category,
-    request.subtype,
-    request.serviceType,
-    request.serviceLabel,
-    request.serviceShortLabel,
-  ]
-    .filter((value): value is string => Boolean(value))
-    .map((value) => value.toLowerCase())
-
-  if (markers.some((value) => value.includes("hair"))) return "hair_loss"
-  if (markers.some((value) => value === "ed" || value.includes("erectile"))) return "ed"
-  if (markers.some((value) => value.includes("medical_certificate") || (value.includes("med") && value.includes("cert")))) {
-    return "medical_certificate"
+function getPrescribingState(patient: PatientDirectoryProfile): {
+  label: string
+  detail: string
+  tone: "neutral" | "success" | "warning"
+} {
+  if (!hasActivePrescribingRequest(patient)) {
+    return { label: "Not needed", detail: "No active prescribing request", tone: "neutral" }
   }
-  if (markers.some((value) => value.includes("repeat") || value.includes("prescription") || value.includes("script") || value.includes("rx"))) {
-    return "repeat_script"
+  if (!patient.onboarding_completed) {
+    return { label: "Needs details", detail: "Patient identity details block prescribing", tone: "warning" }
   }
-  return "consult"
+  if (!patient.parchment_patient_id) {
+    return { label: "Sync needed", detail: "Parchment patient sync is incomplete", tone: "warning" }
+  }
+  return { label: "Ready", detail: "Parchment synced", tone: "success" }
+}
+
+function PrescribingState({ patient }: { patient: PatientDirectoryProfile }) {
+  const state = getPrescribingState(patient)
+  return (
+    <span className={cn(
+      "inline-flex items-center gap-2 text-sm",
+      state.tone === "neutral" ? "text-muted-foreground" : "text-foreground",
+    )} title={state.detail}>
+      <span className={cn(
+        "h-2 w-2 rounded-full ring-1 ring-inset ring-black/5",
+        state.tone === "success" && "bg-emerald-500",
+        state.tone === "warning" && "bg-amber-500",
+        state.tone === "neutral" && "bg-slate-400",
+      )} aria-hidden />
+      {state.label}
+    </span>
+  )
 }
 
 export function PatientsListClient({
@@ -121,27 +121,19 @@ export function PatientsListClient({
   totalPages,
   totalPatients,
   collapsedDuplicateProfiles,
-  currentSort = "recent_request",
   initialSearchQuery = "",
   baseHref = STAFF_DOCTOR_PATIENTS_HREF,
   patientHrefBase = STAFF_DOCTOR_PATIENTS_HREF,
   mergeAuditHref,
   showHeader = true,
   showAddPatientAction = true,
-  title = "Patient Directory",
-  description = "View and manage all registered patients",
+  title = "Patients",
+  description = "Find a patient and continue their care.",
 }: PatientsListClientProps) {
   const router = useRouter()
   const initialSearch = normalizeDirectorySearchQuery(initialSearchQuery)
   const [searchQuery, setSearchQuery] = useState(initialSearch)
-  const [stateFilter, setStateFilter] = useState<string>("all")
-  const [profileFilter, setProfileFilter] = useState<ProfileFilter>("all")
-  const [serviceFilter, setServiceFilter] = useState<ServiceFilter>("all")
-  const [syncFilter, setSyncFilter] = useState<SyncFilter>("all")
-
-  const buildDirectoryHref = (page: number, sort: PatientDirectorySort = currentSort) => {
-    return buildPatientDirectoryHref(baseHref, page, sort, searchQuery)
-  }
+  const [exceptionFilter, setExceptionFilter] = useState<ExceptionFilter>("all")
 
   useEffect(() => {
     setSearchQuery(initialSearch)
@@ -152,486 +144,310 @@ export function PatientsListClient({
     if (normalizedSearch === initialSearch) return
 
     const handle = window.setTimeout(() => {
-      router.replace(buildPatientDirectoryHref(baseHref, 1, currentSort, normalizedSearch), { scroll: false })
+      router.replace(buildPatientDirectoryHref(baseHref, 1, normalizedSearch), { scroll: false })
     }, 350)
 
     return () => window.clearTimeout(handle)
-  }, [baseHref, currentSort, initialSearch, router, searchQuery])
+  }, [baseHref, initialSearch, router, searchQuery])
 
-  const visibleBasePatients = useMemo(() => {
-    const normalizedSearch = normalizeDirectorySearchQuery(searchQuery).toLowerCase()
-    const phoneSearch = normalizedSearch.replace(/\D/g, "")
-
-    return patients.filter((patient) => {
-      const matchesSearch =
-        !normalizedSearch ||
-        patient.full_name.toLowerCase().includes(normalizedSearch) ||
-        patient.email?.toLowerCase().includes(normalizedSearch) ||
-        patient.suburb?.toLowerCase().includes(normalizedSearch) ||
-        (phoneSearch.length >= 3 && patient.phone?.replace(/\D/g, "").includes(phoneSearch))
-
-      const matchesState = stateFilter === "all" || patient.state === stateFilter
-      const matchesService = serviceFilter === "all" || getPatientServiceFilter(patient) === serviceFilter
-      const matchesSync = syncFilter === "all"
-        || (syncFilter === "synced"
-          ? Boolean(patient.parchment_patient_id)
-          : hasActivePrescribingRequest(patient) && !patient.parchment_patient_id)
-
-      return matchesSearch && matchesState && matchesService && matchesSync
-    })
-  }, [patients, searchQuery, stateFilter, serviceFilter, syncFilter])
-
-  const states = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
-  const activePrescribingPatients = patients.filter(hasActivePrescribingRequest)
-  const activePrescribingCount = activePrescribingPatients.length
-  const activeNeedsDetails = activePrescribingPatients.filter((p) => !p.onboarding_completed).length
-  const activeSyncedPatients = activePrescribingPatients.filter((p) => p.parchment_patient_id).length
-  const activeNotSynced = activePrescribingCount - activeSyncedPatients
-  const duplicateGroups = useMemo(() => findPotentialDuplicatePatients(visibleBasePatients), [visibleBasePatients])
+  const duplicateGroups = useMemo(
+    () => findPotentialDuplicatePatients(patients),
+    [patients],
+  )
   const duplicatePatientIds = useMemo(() => {
     const ids = new Set<string>()
+    for (const patient of patients) {
+      if ((patient.duplicate_profile_ids?.length ?? 0) > 0) ids.add(patient.id)
+    }
     duplicateGroups.forEach((group) => group.patientIds.forEach((id) => ids.add(id)))
     return ids
-  }, [duplicateGroups])
-  const filteredPatients = useMemo(() => {
-    return visibleBasePatients.filter((patient) => {
-      if (profileFilter === "complete") return patient.onboarding_completed
-      if (profileFilter === "incomplete") return hasActivePrescribingRequest(patient) && !patient.onboarding_completed
-      if (profileFilter === "duplicates") return duplicatePatientIds.has(patient.id)
-      return true
-    })
-  }, [visibleBasePatients, profileFilter, duplicatePatientIds])
-  const firstDuplicatePatient = useMemo(
-    () => filteredPatients.find((patient) => duplicatePatientIds.has(patient.id)) ?? null,
-    [filteredPatients, duplicatePatientIds],
-  )
-  const firstDuplicateHref = firstDuplicatePatient ? `${patientHrefBase}/${firstDuplicatePatient.id}` : null
-  const summaryItems = [
-    {
-      label: "Patients",
-      value: totalPatients,
-      detail: collapsedDuplicateProfiles > 0 ? `${patients.length} shown after merge view` : `${patients.length} on this page`,
-      icon: Users,
-      tone: "text-primary",
-    },
-    {
-      label: "Prescribing",
-      value: activePrescribingCount,
-      detail: "Needs prescribing identity",
-      icon: CheckCircle,
-      tone: "text-success",
-    },
-    {
-      label: "Needs details",
-      value: activeNeedsDetails,
-      detail: activeNeedsDetails > 0 ? "Blocks active prescribing" : "No active blocker",
-      icon: XCircle,
-      tone: "text-warning",
-    },
-    {
-      label: "Parchment sync",
-      value: activeSyncedPatients,
-      detail: activeNotSynced > 0 ? `${activeNotSynced} active not synced` : "No active sync blocker",
-      icon: Pill,
-      tone: "text-success",
-    },
-  ]
+  }, [duplicateGroups, patients])
+
+  const needsDetailsCount = patients.filter((patient) => (
+    hasActivePrescribingRequest(patient) && !patient.onboarding_completed
+  )).length
+  const syncNeededCount = patients.filter((patient) => (
+    hasActivePrescribingRequest(patient) && patient.onboarding_completed && !patient.parchment_patient_id
+  )).length
+
+  const filteredPatients = useMemo(() => patients.filter((patient) => {
+    if (exceptionFilter === "needs_details") {
+      return hasActivePrescribingRequest(patient) && !patient.onboarding_completed
+    }
+    if (exceptionFilter === "sync_needed") {
+      return hasActivePrescribingRequest(patient) && patient.onboarding_completed && !patient.parchment_patient_id
+    }
+    if (exceptionFilter === "duplicates") return duplicatePatientIds.has(patient.id)
+    return true
+  }), [duplicatePatientIds, exceptionFilter, patients])
+
+  const firstDuplicatePatient = patients.find((patient) => duplicatePatientIds.has(patient.id)) ?? null
+  const firstDuplicateHref = firstDuplicatePatient
+    ? `${patientHrefBase}/${firstDuplicatePatient.id}`
+    : null
+  const hasExceptions = needsDetailsCount > 0 || syncNeededCount > 0 || duplicatePatientIds.size > 0
+
+  const goToPage = (page: number) => {
+    router.push(buildPatientDirectoryHref(baseHref, page, searchQuery))
+  }
 
   return (
-    <div className="space-y-6">
-      {showHeader && (
+    <div className="space-y-4">
+      {showHeader ? (
         <DashboardPageHeader
           title={title}
           description={description}
           actions={showAddPatientAction ? <AddPatientDialog /> : undefined}
         />
-      )}
+      ) : null}
 
-      {/* Directory controls */}
       <Card className="rounded-xl border-border/50">
-        <CardContent className="p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex-1 max-w-md">
+        <CardContent className="space-y-3 p-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="w-full max-w-xl">
               <Input
-                placeholder="Search by name, suburb, or phone..."
+                placeholder="Search name, email, suburb, or phone…"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(event) => setSearchQuery(event.target.value)}
                 startContent={<Search className="h-4 w-4 text-muted-foreground" />}
+                aria-label="Search patients"
               />
             </div>
-
-            <div className="flex flex-wrap gap-3">
-              <Select value={stateFilter} onValueChange={setStateFilter}>
-                <SelectTrigger
-                  className="w-[132px] rounded-xl bg-white dark:bg-card border-border/50"
-                  aria-label="Filter patients by state"
-                >
-                  <SelectValue placeholder="State" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All states</SelectItem>
-                  {states.map((state) => (
-                    <SelectItem key={state} value={state}>
-                      {state}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={profileFilter} onValueChange={(value) => setProfileFilter(value as ProfileFilter)}>
-                <SelectTrigger
-                  className="w-[156px] rounded-xl bg-white dark:bg-card border-border/50"
-                  aria-label="Filter patients by status"
-                >
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
-                  <SelectItem value="complete">Ready</SelectItem>
-                  <SelectItem value="incomplete">Needs details</SelectItem>
-                  <SelectItem value="duplicates">Duplicates</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={serviceFilter} onValueChange={(value) => setServiceFilter(value as ServiceFilter)}>
-                <SelectTrigger
-                  className="w-[156px] rounded-xl bg-white dark:bg-card border-border/50"
-                  aria-label="Filter patients by service"
-                >
-                  <SelectValue placeholder="Service" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All services</SelectItem>
-                  <SelectItem value="medical_certificate">Med cert</SelectItem>
-                  <SelectItem value="repeat_script">Repeat Rx</SelectItem>
-                  <SelectItem value="consult">Consult</SelectItem>
-                  <SelectItem value="ed">ED</SelectItem>
-                  <SelectItem value="hair_loss">Hair loss</SelectItem>
-                  <SelectItem value="no_request">No request</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={syncFilter} onValueChange={(value) => setSyncFilter(value as SyncFilter)}>
-                <SelectTrigger
-                  className="w-[156px] rounded-xl bg-white dark:bg-card border-border/50"
-                  aria-label="Filter patients by Parchment sync"
-                >
-                  <SelectValue placeholder="Sync" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Any sync</SelectItem>
-                  <SelectItem value="synced">Synced</SelectItem>
-                  <SelectItem value="not_synced">Sync needed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <p className="shrink-0 text-sm tabular-nums text-muted-foreground">
+              {totalPatients.toLocaleString("en-AU")} {totalPatients === 1 ? "patient" : "patients"}
+            </p>
           </div>
 
-          {/* Compact stat strip (2026-05-21). Four-card 2x2 grid replaced
-              with a single horizontal row of metric+value pairs. Saves
-              ~80px vertical above the table; the detail copy now lives
-              in title attributes so the strip stays scannable. */}
-          <div
-            className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border border-border/50 bg-muted/25 px-3 py-2"
-            aria-label="Directory summary"
-          >
-            {summaryItems.map((item) => (
-              <div
-                key={item.label}
-                className="flex items-center gap-2 min-w-0"
-                title={item.detail}
+          {hasExceptions ? (
+            <div className="flex flex-wrap items-center gap-2 border-t border-border/50 pt-3" aria-label="Active patient exceptions on this page">
+              <span className="mr-1 text-xs text-muted-foreground">On this page</span>
+              <Button
+                type="button"
+                size="sm"
+                variant={exceptionFilter === "all" ? "secondary" : "outline"}
+                className="min-h-9"
+                onClick={() => setExceptionFilter("all")}
               >
-                <item.icon className={`h-3.5 w-3.5 shrink-0 ${item.tone}`} aria-hidden />
-                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                  {item.label}
-                </span>
-                <span className="text-base font-semibold tabular-nums text-foreground">
-                  {item.value}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-4 text-sm text-muted-foreground">
-            Showing {filteredPatients.length} of {patients.length} on this page ({totalPatients} total profiles)
-            {collapsedDuplicateProfiles > 0 && (
-              <span> · {collapsedDuplicateProfiles} duplicate profile {collapsedDuplicateProfiles === 1 ? "record" : "records"} collapsed on this page</span>
-            )}
-          </div>
-
-          {duplicateGroups.length > 0 && (
-            <div className="mt-3 flex flex-col gap-2 rounded-lg border border-border/50 bg-muted/25 px-3 py-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-warning" />
-                <div>
-                  <p>
-                    {duplicateGroups.length} duplicate {duplicateGroups.length === 1 ? "group" : "groups"} available for review.
-                  </p>
-                  {profileFilter === "duplicates" ? (
-                    <p className="mt-0.5">Open the flagged patient. Merge only when the patient file shows linked profiles.</p>
-                  ) : null}
-                </div>
-              </div>
-              {firstDuplicateHref ? (
-                <div className="flex flex-wrap gap-2">
-                  {profileFilter !== "duplicates" ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8 border-border/50 bg-white text-muted-foreground hover:border-warning-border hover:bg-warning-light hover:text-warning"
-                      onClick={() => setProfileFilter("duplicates")}
-                    >
-                      Show duplicate rows
-                    </Button>
-                  ) : null}
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    className="h-8 border-border/50 bg-white text-muted-foreground hover:border-warning-border hover:bg-warning-light hover:text-warning"
-                  >
-                    <Link href={firstDuplicateHref} prefetch={false}>
-                      Open flagged patient
-                      <ChevronRight className="h-4 w-4" aria-hidden />
-                    </Link>
-                  </Button>
-                  {mergeAuditHref && profileFilter === "duplicates" ? (
-                    <Button
-                      asChild
-                      variant="outline"
-                      size="sm"
-                      className="h-8 border-border/50 bg-white text-muted-foreground hover:border-warning-border hover:bg-warning-light hover:text-warning"
-                    >
-                      <Link href={mergeAuditHref} prefetch={false}>
-                        Merge audit
-                      </Link>
-                    </Button>
-                  ) : null}
-                </div>
+                All {patients.length}
+              </Button>
+              {needsDetailsCount > 0 ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={exceptionFilter === "needs_details" ? "secondary" : "outline"}
+                  className="min-h-9"
+                  onClick={() => setExceptionFilter("needs_details")}
+                >
+                  {needsDetailsCount} need details
+                </Button>
+              ) : null}
+              {syncNeededCount > 0 ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={exceptionFilter === "sync_needed" ? "secondary" : "outline"}
+                  className="min-h-9"
+                  onClick={() => setExceptionFilter("sync_needed")}
+                >
+                  {syncNeededCount} sync needed
+                </Button>
+              ) : null}
+              {duplicatePatientIds.size > 0 ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={exceptionFilter === "duplicates" ? "secondary" : "outline"}
+                  className="min-h-9"
+                  onClick={() => setExceptionFilter("duplicates")}
+                >
+                  {duplicatePatientIds.size} duplicate review
+                </Button>
               ) : null}
             </div>
-          )}
+          ) : null}
+
+          {collapsedDuplicateProfiles > 0 ? (
+            <p className="text-xs text-muted-foreground">
+              {collapsedDuplicateProfiles} linked duplicate {collapsedDuplicateProfiles === 1 ? "profile" : "profiles"} collapsed on this page.
+            </p>
+          ) : null}
+
+          {exceptionFilter === "duplicates" && firstDuplicateHref ? (
+            <div className="flex flex-col gap-2 rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between">
+              <span className="inline-flex items-center gap-2 text-warning">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                Confirm linked records inside the patient file before merging.
+              </span>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild variant="outline" size="sm" className="min-h-9 bg-white">
+                  <Link href={firstDuplicateHref} prefetch={false}>Open flagged patient</Link>
+                </Button>
+                {mergeAuditHref ? (
+                  <Button asChild variant="outline" size="sm" className="min-h-9 bg-white">
+                    <Link href={mergeAuditHref} prefetch={false}>Merge audit</Link>
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
-      {/* Table */}
-      <Card className="rounded-xl border-border/50 overflow-hidden">
-        <CardContent className="p-0 overflow-hidden">
-          <div className="overflow-x-auto">
+      <Card className="overflow-hidden rounded-xl border-border/50">
+        <CardContent className="p-0">
+          <div className="hidden md:block">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                <TableRow className="bg-muted/40 hover:bg-muted/40">
                   <TableHead scope="col">Patient</TableHead>
                   <TableHead scope="col">Contact</TableHead>
-                  <TableHead scope="col">Location</TableHead>
-                  <TableHead scope="col">Last request</TableHead>
-                  <TableHead scope="col">Last script</TableHead>
-                  <TableHead scope="col">Status</TableHead>
-                  <TableHead scope="col">Parchment</TableHead>
-                  <TableHead scope="col">Joined</TableHead>
-                  <TableHead scope="col" className="w-10"></TableHead>
+                  <TableHead scope="col">Recent work</TableHead>
+                  <TableHead scope="col">Parchment sync</TableHead>
+                  <TableHead scope="col" className="w-12"><span className="sr-only">Open</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPatients.length > 0 ? (
-                  filteredPatients.map((patient) => {
-                    const age = calculateAge(patient.date_of_birth)
-                    const linkedProfileCount = patient.duplicate_profile_ids?.length ?? 0
-                    const patientHref = `${patientHrefBase}/${patient.id}`
-                    const isDuplicateCandidate = duplicatePatientIds.has(patient.id)
-                    const isFirstDuplicateCandidate = firstDuplicatePatient?.id === patient.id
-                    const hasPrescribingWork = hasActivePrescribingRequest(patient)
-
-                    return (
-                      <TableRow
-                        key={patient.id}
-                        id={isFirstDuplicateCandidate ? "patient-duplicate-row" : undefined}
-                        className={cn(
-                          "cursor-pointer group transition-colors duration-200 hover:bg-muted/50",
-                          isDuplicateCandidate && "bg-warning-light/25",
-                        )}
-                      >
-                        <TableCell>
-                          <Link href={patientHref} className="block">
-                            <UserCard
-                              name={patient.full_name}
-                              description={age !== null ? `${age} years old` : "Age N/A"}
-                              size="sm"
-                            />
-                            {(isDuplicateCandidate || linkedProfileCount > 0) && (
-                              <Badge
-                                variant={isDuplicateCandidate ? "warning" : "secondary"}
-                                size="sm"
-                                className="mt-1"
-                              >
-                                {isDuplicateCandidate ? <AlertTriangle className="h-3 w-3" /> : null}
-                                {isDuplicateCandidate
-                                  ? `Duplicate review${linkedProfileCount > 0 ? ` · ${linkedProfileCount} linked` : ""}`
-                                  : `${linkedProfileCount} linked profile${linkedProfileCount === 1 ? "" : "s"}`}
-                              </Badge>
-                            )}
-                            {patient.parchment_patient_id && (
-                              <Badge
-                                variant="outline"
-                                size="sm"
-                                className="mt-1 bg-info-light text-info border-info-border"
-                              >
-                                Parchment synced
-                              </Badge>
-                            )}
-                          </Link>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col gap-0.5">
-                            {patient.phone ? (
-                              <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                                <Phone className="h-3 w-3" />
-                                {patient.phone}
-                              </span>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">Not provided</span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {patient.suburb && patient.state ? (
-                            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <MapPin className="h-3 w-3" />
-                              {patient.suburb}, {patient.state}
-                            </span>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">Not provided</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {patient.lastRequest ? (
-                            <div className="min-w-[150px] space-y-1">
-                              <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                                <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-                                {patient.lastRequest.serviceShortLabel}
-                              </div>
-                              <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                                <span>{formatIntakeStatus(patient.lastRequest.status)}</span>
-                                <span>·</span>
-                                <span>{formatDate(patient.lastRequest.createdAt)}</span>
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">No requests</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {patient.lastScript ? (
-                            <div className="min-w-[145px] space-y-1">
-                              <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                                <ClipboardList className="h-3.5 w-3.5 text-muted-foreground" />
-                                <span className="max-w-[130px] truncate">{patient.lastScript.label}</span>
-                              </div>
-                              <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                                <span>{patient.lastScript.status.replace("_", " ")}</span>
-                                <span>·</span>
-                                <span>{formatDate(patient.lastScript.sentAt ?? patient.lastScript.createdAt)}</span>
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">No script</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {patient.onboarding_completed ? (
-                            <span className="inline-flex items-center gap-2 text-sm text-foreground">
-                              <span className="h-2 w-2 rounded-full bg-emerald-500 ring-1 ring-inset ring-black/5" aria-hidden />
-                              Complete
-                            </span>
-                          ) : hasPrescribingWork ? (
-                            <span className="inline-flex items-center gap-2 text-sm text-foreground">
-                              <span className="h-2 w-2 rounded-full bg-amber-500 ring-1 ring-inset ring-black/5" aria-hidden />
-                              Needs details
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="h-2 w-2 rounded-full bg-slate-400 ring-1 ring-inset ring-black/5" aria-hidden />
-                              Partial
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {patient.parchment_patient_id ? (
-                            <span className="inline-flex items-center gap-2 text-sm text-foreground">
-                              <span className="h-2 w-2 rounded-full bg-emerald-500 ring-1 ring-inset ring-black/5" aria-hidden />
-                              Synced
-                            </span>
-                          ) : hasPrescribingWork ? (
-                            <span className="inline-flex items-center gap-2 text-sm text-foreground">
-                              <span className="h-2 w-2 rounded-full bg-amber-500 ring-1 ring-inset ring-black/5" aria-hidden />
-                              Sync needed
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="h-2 w-2 rounded-full bg-slate-400 ring-1 ring-inset ring-black/5" aria-hidden />
-                              Not needed
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(patient.created_at)}
+                {filteredPatients.length > 0 ? filteredPatients.map((patient) => {
+                  const age = calculateAge(patient.date_of_birth)
+                  const patientHref = `${patientHrefBase}/${patient.id}`
+                  const isDuplicate = duplicatePatientIds.has(patient.id)
+                  return (
+                    <TableRow key={patient.id} className={cn(isDuplicate && "bg-warning-light/20")}>
+                      <TableCell>
+                        <Link href={patientHref} prefetch={false} className="block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                          <UserCard
+                            name={patient.full_name}
+                            description={age !== null ? `${age} years old` : "Age not recorded"}
+                            size="sm"
+                          />
+                          {isDuplicate ? (
+                            <Badge variant="warning" size="sm" className="mt-1">Duplicate review</Badge>
+                          ) : null}
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1.5">
+                            <Phone className="h-3.5 w-3.5" aria-hidden />
+                            {patient.phone || "Not provided"}
                           </span>
-                        </TableCell>
-                        <TableCell>
-                          <Link href={patientHref}>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+                          <span className="flex items-center gap-1.5">
+                            <MapPin className="h-3.5 w-3.5" aria-hidden />
+                            {[patient.suburb, patient.state].filter(Boolean).join(", ") || "Not provided"}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1.5">
+                          {patient.lastRequest ? (
+                            <div className="flex items-start gap-1.5 text-sm">
+                              <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
+                              <span>
+                                <span className="font-medium text-foreground">{patient.lastRequest.serviceShortLabel}</span>
+                                <span className="ml-1.5 text-xs text-muted-foreground">
+                                  {formatIntakeStatus(patient.lastRequest.status)} · {formatDate(patient.lastRequest.createdAt)}
+                                </span>
+                              </span>
+                            </div>
+                          ) : <span className="text-sm text-muted-foreground">No requests</span>}
+                          {patient.lastScript ? (
+                            <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                              <ClipboardList className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+                              <span className="max-w-[260px] truncate">{patient.lastScript.label} · {formatDate(patient.lastScript.sentAt ?? patient.lastScript.createdAt)}</span>
+                            </div>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                      <TableCell><PrescribingState patient={patient} /></TableCell>
+                      <TableCell>
+                        <Button asChild variant="ghost" size="icon" className="h-11 w-11">
+                          <Link href={patientHref} prefetch={false} aria-label={`Open ${patient.full_name}`}>
+                            <ChevronRight className="h-4 w-4" />
                           </Link>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                ) : (
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )
+                }) : (
                   <TableRow>
-                    <TableCell colSpan={9} className="h-32 text-center">
-                      <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                        <Users className="h-8 w-8 opacity-50" />
-                        <p>No patients found matching your filters</p>
-                      </div>
+                    <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
+                      No patients match this view.
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
           </div>
+
+          <div className="divide-y divide-border/60 md:hidden">
+            {filteredPatients.length > 0 ? filteredPatients.map((patient) => {
+              const age = calculateAge(patient.date_of_birth)
+              const patientHref = `${patientHrefBase}/${patient.id}`
+              const isDuplicate = duplicatePatientIds.has(patient.id)
+              return (
+                <Link
+                  key={patient.id}
+                  href={patientHref}
+                  prefetch={false}
+                  className={cn(
+                    "block min-h-11 space-y-2 p-4 transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary",
+                    isDuplicate && "bg-warning-light/20",
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-foreground">{patient.full_name}</p>
+                      <p className="text-xs text-muted-foreground">{age !== null ? `${age} years old` : "Age not recorded"}</p>
+                    </div>
+                    <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    {patient.lastRequest ? (
+                      <span className="text-sm text-foreground">
+                        {patient.lastRequest.serviceShortLabel}
+                        <span className="ml-1 text-xs text-muted-foreground">{formatIntakeStatus(patient.lastRequest.status)}</span>
+                      </span>
+                    ) : <span className="text-sm text-muted-foreground">No requests</span>}
+                    <PrescribingState patient={patient} />
+                    {isDuplicate ? <Badge variant="warning" size="sm">Duplicate review</Badge> : null}
+                  </div>
+                </Link>
+              )
+            }) : (
+              <div className="flex h-32 flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
+                <Users className="h-6 w-6 opacity-60" />
+                No patients match this view.
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-2 border-t border-border/40">
-          <p className="text-sm text-muted-foreground">
-            Page {currentPage} of {totalPages}
-          </p>
+      {totalPages > 1 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/40 pt-3">
+          <p className="text-sm tabular-nums text-muted-foreground">Page {currentPage} of {totalPages}</p>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
+              className="min-h-11 sm:min-h-9"
               disabled={currentPage <= 1}
-              onClick={() => router.push(buildDirectoryHref(currentPage - 1))}
+              onClick={() => goToPage(currentPage - 1)}
             >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Previous
+              <ChevronLeft className="h-4 w-4" /> Previous
             </Button>
             <Button
               variant="outline"
               size="sm"
+              className="min-h-11 sm:min-h-9"
               disabled={currentPage >= totalPages}
-              onClick={() => router.push(buildDirectoryHref(currentPage + 1))}
+              onClick={() => goToPage(currentPage + 1)}
             >
-              Next
-              <ChevronRight className="h-4 w-4 ml-1" />
+              Next <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   )
 }

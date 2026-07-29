@@ -161,21 +161,22 @@ describe("doctor patient medication history contract", () => {
     )
 
     expect(patientsPageSource).toContain("getPatientDirectoryPage")
-    expect(patientsPageSource).toContain("parsePatientDirectorySort")
+    expect(patientsPageSource).not.toContain("parsePatientDirectorySort")
     expect(patientDirectorySource).toContain("parchment_patient_id")
     expect(patientDirectorySource).toContain("getLastRequestMap")
     expect(patientDirectorySource).toContain("getLastScriptMap")
-    expect(patientDirectorySource).toContain("compareDirectoryPatients")
-    // 2026-05-21: Status + Parchment columns calmed from loud
-    // colored-background pills to inline dot + label. Stat strip
-    // compressed from a 4-card 2x2 grid into a single horizontal row.
+    expect(patientDirectorySource).not.toContain("compareDirectoryPatients")
+    // The directory keeps prescribing readiness contextual to each patient
+    // and shows only non-zero exception filters for the current server page.
     expect(patientsListSource).toContain("Parchment sync")
-    expect(patientsListSource).toContain("Synced")
+    expect(patientsListSource).toContain("Parchment synced")
     expect(patientsListSource).toContain("Sync needed")
-    expect(patientsListSource).toContain("All services")
-    expect(patientsListSource).toContain("Last request")
-    expect(patientsListSource).toContain("Last script")
-    expect(patientsListSource).toContain("Directory summary")
+    expect(patientsListSource).toContain("Recent work")
+    expect(patientsListSource).toContain("patient.lastRequest")
+    expect(patientsListSource).toContain("patient.lastScript")
+    expect(patientsListSource).toContain("hasExceptions ? (")
+    expect(patientsListSource).not.toContain("All services")
+    expect(patientsListSource).not.toContain("Directory summary")
     expect(patientsListSource).not.toContain("{/* Overview */}")
   })
 

@@ -6,11 +6,21 @@ import { collapseDuplicatePatientProfiles } from "@/lib/doctor/patient-snapshot"
 import { createLogger } from "@/lib/observability/logger"
 import { getServicePresentation } from "@/lib/services/service-presentation"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { asProfile, type Profile } from "@/types/db"
+import { asProfile } from "@/types/db"
 
 const log = createLogger("patient-directory")
 
-export type PatientDirectoryProfile = Profile & {
+export interface PatientDirectoryProfile {
+  id: string
+  full_name: string
+  email: string | null
+  date_of_birth: string | null
+  phone: string | null
+  suburb: string | null
+  state: string | null
+  parchment_patient_id: string | null
+  onboarding_completed: boolean
+  created_at: string
   duplicate_profile_ids?: string[]
   lastRequest?: PatientDirectoryRequestSummary | null
   lastScript?: PatientDirectoryScriptSummary | null
@@ -38,23 +48,6 @@ export interface PatientDirectoryScriptSummary {
   sentAt: string | null
 }
 
-export const PATIENT_DIRECTORY_SORT_OPTIONS = [
-  "recent_request",
-  "request_type",
-  "recent_script",
-  "name",
-  "joined",
-] as const
-
-export type PatientDirectorySort = (typeof PATIENT_DIRECTORY_SORT_OPTIONS)[number]
-
-export function parsePatientDirectorySort(value?: string | string[] | null): PatientDirectorySort {
-  const candidate = Array.isArray(value) ? value[0] : value
-  return PATIENT_DIRECTORY_SORT_OPTIONS.includes(candidate as PatientDirectorySort)
-    ? (candidate as PatientDirectorySort)
-    : "recent_request"
-}
-
 export function parsePatientDirectorySearch(value?: string | string[] | null): string {
   const candidate = Array.isArray(value) ? value[0] : value
   return normalizePatientDirectorySearch(candidate)
@@ -70,13 +63,11 @@ export async function getPatientDirectoryPage({
   doctorId,
   page,
   pageSize = 50,
-  sort = "recent_request",
   search,
 }: {
   doctorId?: string
   page: number
   pageSize?: number
-  sort?: PatientDirectorySort
   search?: string
 }): Promise<PatientDirectoryPage> {
   const supabase = createServiceRoleClient()
@@ -96,24 +87,20 @@ export async function getPatientDirectoryPage({
   let query = supabase
     .from("profiles")
     .select(`
-      id, auth_user_id, email, full_name, first_name, last_name,
+      id, auth_user_id, email, full_name,
       date_of_birth, date_of_birth_encrypted, role, phone, phone_encrypted,
-      address_line1, suburb, state, postcode,
-      medicare_number, medicare_number_encrypted, medicare_irn, medicare_expiry,
-      ihi_number, ihi_number_encrypted,
-      parchment_patient_id,
-      onboarding_completed,
-      email_verified, email_verified_at,
-      avatar_url, stripe_customer_id, parchment_patient_id,
-      merged_into_profile_id, merged_at, merged_by, merge_reason,
+      suburb, state, parchment_patient_id, onboarding_completed,
+      email_verified, merged_into_profile_id,
       created_at, updated_at
     `, { count: "exact" })
     .eq("role", "patient")
     .is("merged_into_profile_id", null)
 
-  query = sort === "name"
-    ? query.order("full_name", { ascending: true })
-    : query.order("created_at", { ascending: false })
+  // Newest profiles is the only global ordering the profiles query can prove.
+  // Recent-request/script ordering used to happen after pagination and could
+  // therefore reorder only the current page while presenting itself as a
+  // directory-wide sort.
+  query = query.order("created_at", { ascending: false })
 
   if (accessiblePatientIds) {
     query = query.in("id", accessiblePatientIds)
@@ -141,7 +128,6 @@ export async function getPatientDirectoryPage({
   const collapsed = collapseDuplicatePatientProfiles(rawPatients)
   const patients = collapsed.patients
     .map((patient) => hydrateDirectoryPatient(patient, lastRequests, lastScripts))
-    .sort((a, b) => compareDirectoryPatients(a, b, sort))
   const rawTotal = count ?? rawPatients.length
 
   return {
@@ -357,47 +343,24 @@ function latestByDate<T>(
 }
 
 function hydrateDirectoryPatient(
-  patient: PatientDirectoryProfile,
+  patient: ReturnType<typeof asProfile> & { duplicate_profile_ids?: string[] },
   lastRequests: Map<string, PatientDirectoryRequestSummary>,
   lastScripts: Map<string, PatientDirectoryScriptSummary>,
 ): PatientDirectoryProfile {
   const linkedIds = [patient.id, ...(patient.duplicate_profile_ids ?? [])]
   return {
-    ...patient,
+    id: patient.id,
+    full_name: patient.full_name,
+    email: patient.email ?? null,
+    date_of_birth: patient.date_of_birth ?? null,
+    phone: patient.phone ?? null,
+    suburb: patient.suburb ?? null,
+    state: patient.state ?? null,
+    parchment_patient_id: patient.parchment_patient_id ?? null,
+    onboarding_completed: Boolean(patient.onboarding_completed),
+    created_at: patient.created_at,
+    duplicate_profile_ids: patient.duplicate_profile_ids,
     lastRequest: latestByDate(linkedIds, lastRequests, (request) => request.createdAt),
     lastScript: latestByDate(linkedIds, lastScripts, (script) => script.sentAt ?? script.createdAt),
   }
-}
-
-function compareDateDesc(a: string | null | undefined, b: string | null | undefined): number {
-  return new Date(b ?? 0).getTime() - new Date(a ?? 0).getTime()
-}
-
-function compareDirectoryPatients(
-  a: PatientDirectoryProfile,
-  b: PatientDirectoryProfile,
-  sort: PatientDirectorySort,
-): number {
-  const byName = a.full_name.localeCompare(b.full_name)
-
-  if (sort === "name") return byName
-  if (sort === "joined") return compareDateDesc(a.created_at, b.created_at) || byName
-  if (sort === "request_type") {
-    return (
-      (a.lastRequest?.serviceLabel ?? "No request").localeCompare(b.lastRequest?.serviceLabel ?? "No request") ||
-      compareDateDesc(a.lastRequest?.createdAt, b.lastRequest?.createdAt) ||
-      byName
-    )
-  }
-  if (sort === "recent_script") {
-    return (
-      compareDateDesc(a.lastScript?.sentAt ?? a.lastScript?.createdAt, b.lastScript?.sentAt ?? b.lastScript?.createdAt) ||
-      byName
-    )
-  }
-
-  return (
-    compareDateDesc(a.lastRequest?.createdAt ?? a.created_at, b.lastRequest?.createdAt ?? b.created_at) ||
-    byName
-  )
 }

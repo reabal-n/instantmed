@@ -11,7 +11,6 @@ import {
 import {
   getPatientDirectoryPage,
   parsePatientDirectorySearch,
-  parsePatientDirectorySort,
 } from "@/lib/data/patient-directory"
 
 import { AddPatientDialog } from "../../doctor/patients/add-patient-dialog"
@@ -25,7 +24,7 @@ export const dynamic = "force-dynamic"
 export default async function AdminPatientsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; q?: string | string[]; sort?: string | string[] }>
+  searchParams: Promise<{ page?: string; q?: string | string[] }>
 }) {
   // Both roles can land here without 403. Non-admin doctors are scoped
   // to patients they've touched via the doctorId param (same pattern the
@@ -34,13 +33,11 @@ export default async function AdminPatientsPage({
 
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page || "1", 10) || 1)
-  const sort = parsePatientDirectorySort(params.sort)
   const search = parsePatientDirectorySearch(params.q)
   const { patients, total, collapsedCount } = await getPatientDirectoryPage({
     doctorId: hasAdminAccess(auth.profile) ? undefined : auth.profile.id,
     page,
     pageSize: PAGE_SIZE,
-    sort,
     search,
   })
   const totalPages = Math.ceil(total / PAGE_SIZE)
@@ -63,7 +60,6 @@ export default async function AdminPatientsPage({
             totalPages={totalPages}
             totalPatients={total}
             collapsedDuplicateProfiles={collapsedCount}
-            currentSort={sort}
             initialSearchQuery={search}
             baseHref={STAFF_PATIENTS_HREF}
             patientHrefBase={STAFF_PATIENT_DETAIL_BASE_HREF}

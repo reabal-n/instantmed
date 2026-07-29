@@ -56,15 +56,15 @@ describe("support nav contract", () => {
       "Dashboard",
       "Ledger",
       "Patients",
-      "Overview",
-      "Ops",
+      "Business",
+      "Operations",
       "Setup",
     ])
     expect(doctorLabels).toEqual(["Queue", "Patients", "Identity"])
     expect(doctorLabels).not.toContain("Ledger")
-    expect(doctorLabels).not.toContain("Overview")
+    expect(doctorLabels).not.toContain("Business")
     expect(doctorLabels).not.toContain("Payments")
-    expect(doctorLabels).not.toContain("Ops")
+    expect(doctorLabels).not.toContain("Operations")
     expect(doctorLabels).not.toContain("Settings")
   })
 
