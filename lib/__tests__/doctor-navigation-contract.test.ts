@@ -151,11 +151,17 @@ describe("doctor navigation contract", () => {
       "Queue",
       "Patients",
       "Identity",
+      "Ledger",
+      "Business",
       "Operations",
+      "Setup",
     ])
-    // The admin-only "Operations" extra must open the ops cockpit — pointing
-    // it at /dashboard duplicated the Queue entry (two mobile items, one page).
+    // Admin clinicians keep the clinical queue/patients as primary tabs, while
+    // every remaining canonical admin route stays reachable from More.
+    expect(operatorNavSource).toContain('{ href: STAFF_LEDGER_HREF, label: "Ledger"')
+    expect(operatorNavSource).toContain('{ href: STAFF_ANALYTICS_HREF, label: "Business"')
     expect(operatorNavSource).toContain('{ href: STAFF_OPS_HREF, label: "Operations"')
+    expect(operatorNavSource).toContain('{ href: STAFF_SETTINGS_HREF, label: "Setup"')
     expect(mobileNavSource).toContain("isAdmin")
     expect(mobileNavSource).toContain("useSearchParams")
     expect(mobileNavSource).toContain("getStaffNavHrefStatus")
