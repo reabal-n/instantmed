@@ -211,7 +211,7 @@ export function QueueFilters({
       </div>
 
       {/* Status Filter Tabs */}
-      <div className="flex w-full gap-1.5 overflow-x-auto rounded-lg bg-muted/25 p-1 sm:w-fit sm:flex-wrap">
+      <div className="grid w-full grid-cols-4 gap-1 rounded-lg bg-muted/25 p-1 sm:flex sm:w-fit sm:flex-wrap sm:gap-1.5">
         {([
           { key: "all", label: "All" },
           { key: "review", label: compactShell ? "Review" : "Needs Review" },
@@ -233,14 +233,19 @@ export function QueueFilters({
               aria-pressed={statusFilter === tab.key}
               onClick={() => onStatusFilterChange(tab.key)}
               className={cn(
-                "shrink-0 rounded-md px-3.5 py-1.5 text-xs font-medium transition-[background-color,color,box-shadow] duration-150 ease-in-out",
+                "min-w-0 rounded-md px-1.5 py-1.5 text-[11px] font-medium transition-[background-color,color,box-shadow] duration-150 ease-in-out sm:shrink-0 sm:px-3.5 sm:text-xs",
                 statusFilter === tab.key
                   ? "bg-white text-foreground shadow-sm shadow-primary/[0.03] dark:bg-card"
                   : "text-slate-600 hover:bg-card/60 hover:text-foreground dark:text-muted-foreground"
               )}
             >
-              {tab.label}
-              <span className={cn("ml-1.5 tabular-nums", count === 0 && "text-muted-foreground/70")}>({count})</span>
+              {compactShell && tab.key === "scripts" ? (
+                <>
+                  <span className="sm:hidden">Scripts</span>
+                  <span className="hidden sm:inline">Scripts to write</span>
+                </>
+              ) : tab.label}
+              <span className={cn("ml-1 tabular-nums sm:ml-1.5", count === 0 && "text-muted-foreground/70")}>({count})</span>
             </button>
           )
         })}

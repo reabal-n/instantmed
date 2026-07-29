@@ -148,6 +148,7 @@ describe("dashboard simplicity and runtime performance contracts", () => {
 
     expect(dashboardPageSource).toContain("QueuePressureSignal")
     expect(dashboardPageSource).toContain("data-dashboard-wait-strip")
+    expect(dashboardPageSource).toContain('"hidden flex-none items-center gap-2 2xl:flex"')
     expect(dashboardPageSource).toContain("showHeaderOperationalSummary")
     expect(dashboardPageSource).toContain("data-dashboard-median-tile")
     expect(dashboardPageSource).toContain("Median time to inbox")
@@ -236,6 +237,9 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(queueFiltersSource).toContain('event.key !== "Enter"')
     expect(queueFiltersSource).toContain("data-queue-pressure")
     expect(queueFiltersSource).toContain("Today's queue")
+    expect(queueFiltersSource).toContain("grid-cols-4")
+    expect(queueFiltersSource).toContain('<span className="sm:hidden">Scripts</span>')
+    expect(queueFiltersSource).toContain('<span className="hidden sm:inline">Scripts to write</span>')
     expect(queueFiltersSource).toContain("matchLabel")
     expect(queueFiltersSource).not.toContain("formToInboxStats")
     expect(queueFiltersSource).not.toContain("Median form-to-inbox today")

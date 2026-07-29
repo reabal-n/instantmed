@@ -180,7 +180,7 @@ export default async function StaffDashboardPage({
                   <div
                     data-dashboard-wait-strip
                     className={cn(
-                      "hidden flex-none items-center gap-2 lg:flex",
+                      "hidden flex-none items-center gap-2 2xl:flex",
                       formToInboxLabel ? "min-w-[420px]" : "min-w-[220px]",
                     )}
                   >
