@@ -207,12 +207,17 @@ describe("doctor patient medication history contract", () => {
     expect(panelSource).toContain("key={iframeReloadKey}")
   })
 
-  it("keeps the embedded Parchment frame compatible with the vendor SSO contract", () => {
+  it("pins the narrow empirical Parchment iframe compatibility boundary", () => {
     expect(panelSource).toContain(
       'allow="clipboard-write; publickey-credentials-get *; publickey-credentials-create *"',
     )
     expect(panelSource).toContain('referrerPolicy="strict-origin-when-cross-origin"')
-    expect(panelSource).not.toMatch(/\bsandbox\s*=/)
+    expect(panelSource).toContain(
+      'sandbox="allow-scripts allow-same-origin allow-forms allow-storage-access-by-user-activation"',
+    )
+    expect(panelSource).not.toContain("allow-top-navigation")
+    expect(panelSource).not.toContain("allow-popups")
+    expect(panelSource).not.toContain("allow-downloads")
   })
 
   it("routes Parchment identity failures back to patient detail editing", () => {

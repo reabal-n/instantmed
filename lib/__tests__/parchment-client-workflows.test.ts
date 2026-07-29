@@ -435,7 +435,7 @@ describe("Parchment client workflows", () => {
       statusCode: 200,
       data: {
         sso_token: "sso-token",
-        redirect_url: "https://sandbox.parchmenthealth.io/sso/session",
+        redirect_url: "https://portal.sandbox.parchment.health/sso/session",
         expires_in: 300,
       },
     }), { status: 200 }))

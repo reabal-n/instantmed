@@ -35,11 +35,32 @@ export const parchmentSsoRequestSchema = z.object({
   redirect_path: z.string(),
 })
 
+export const PARCHMENT_SSO_REDIRECT_HOSTS = [
+  "portal.parchment.health",
+  "portal.sandbox.parchment.health",
+] as const
+
+const approvedParchmentSsoRedirectHosts = new Set<string>(PARCHMENT_SSO_REDIRECT_HOSTS)
+
+export const parchmentSsoRedirectUrlSchema = z.string().url().refine((value) => {
+  if (!URL.canParse(value)) return false
+
+  const url = new URL(value)
+
+  return (
+    url.protocol === "https:" &&
+    url.port === "" &&
+    url.username === "" &&
+    url.password === "" &&
+    approvedParchmentSsoRedirectHosts.has(url.hostname)
+  )
+}, "Parchment SSO redirect URL must use an approved HTTPS portal host")
+
 export const parchmentSsoResponseSchema = z.object({
   success: z.literal(true),
   data: z.object({
     sso_token: z.string(),
-    redirect_url: z.string().url(),
+    redirect_url: parchmentSsoRedirectUrlSchema,
     expires_in: z.number(),
   }),
 })
