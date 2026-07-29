@@ -222,12 +222,12 @@ export interface SentryEventLike {
   spans?: SentrySpanLike[]
 }
 
-export interface SentrySpanLike {
+interface SentrySpanLike {
   description?: string
   data?: unknown
 }
 
-export interface SentryLogLike {
+interface SentryLogLike {
   message?: unknown
   attributes?: unknown
 }
