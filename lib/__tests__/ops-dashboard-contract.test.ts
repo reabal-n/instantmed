@@ -88,6 +88,10 @@ const opsFailuresSource = readFileSync(
   join(process.cwd(), "lib/admin/ops-failures.ts"),
   "utf8",
 )
+const opsActionModelSource = readFileSync(
+  join(process.cwd(), "lib/admin/ops-action-model.ts"),
+  "utf8",
+)
 const refundsPageSource = readFileSync(
   join(process.cwd(), "app/admin/refunds/page.tsx"),
   "utf8",
@@ -146,26 +150,25 @@ describe("ops dashboard data contract", () => {
     // patient_not_found = no InstantMed profile matched (the doctor's non-InstantMed
     // Parchment scripts). They must not inflate the Parchment-unsynced counter or the
     // recent feed, regardless of the sandbox sentinel.
-    expect(opsPageSource).toContain('if (error === "patient_not_found") return true')
+    expect(opsPageSource).toContain('error === "patient_not_found"')
   })
 
-  it("uses honest counter + feed labels (Stripe-scoped DLQ, open exception feed)", () => {
-    expect(opsClientSource).toContain('label="Stripe webhook DLQ"')
-    expect(opsClientSource).toContain("Open exception feed")
-    expect(opsClientSource).not.toContain('label="Webhook DLQ"')
-    expect(opsClientSource).not.toContain("Recent (last 24h)")
+  it("renders only unresolved grouped work and one honest all-clear state", () => {
+    expect(opsClientSource).toContain("model.groups.map")
+    expect(opsClientSource).toContain("No unresolved operational work")
+    expect(opsClientSource).toContain("owner")
+    expect(opsClientSource).toContain("formatAge")
+    expect(opsClientSource).not.toContain("CounterCard")
+    expect(opsClientSource).not.toContain("Certificate delivery rescue")
+    expect(opsClientSource).not.toContain("Integrity (weekly invariants)")
   })
 
-  it("makes Parchment and prescribing identity counters action-specific", () => {
-    expect(opsClientSource).toContain('label="Parchment recovery"')
-    expect(opsClientSource).toContain('label="Prescribing identity"')
-    expect(opsClientSource).not.toContain('label="Parchment unsynced"')
-    expect(opsClientSource).not.toContain('label="Missing identity"')
-
-    expect(opsPageSource).toContain("helperTextForParchment({")
-    expect(opsPageSource).toContain("script handoff")
-    expect(opsPageSource).toContain("webhook")
-    expect(opsPageSource).toContain("blocked request")
+  it("keeps Parchment and identity work in explicit owner groups", () => {
+    expect(opsActionModelSource).toContain('group: "fulfilment"')
+    expect(opsActionModelSource).toContain('group: "identity_access"')
+    expect(opsActionModelSource).toContain("Resolve the oldest identity blocker first")
+    expect(opsActionModelSource).toContain("Inspect the Parchment webhook failures")
+    expect(opsClientSource).not.toContain("Parchment unsynced")
   })
 
   it("keeps growth attribution owned by analytics instead of ops recovery", () => {
@@ -181,9 +184,9 @@ describe("ops dashboard data contract", () => {
     expect(analyticsClientSource).toContain("never merged into recorded attribution")
   })
 
-  it("labels the ops feed as open exceptions, not a strict recent window", () => {
-    expect(opsClientSource).toContain("Open exception feed")
-    expect(opsClientSource).toContain("Stale script rows stay here until reconciled")
+  it("does not describe the action inbox as a misleading recent-event feed", () => {
+    expect(opsClientSource).toContain("Unresolved payment, fulfilment, identity, delivery, and measurement work")
+    expect(opsClientSource).not.toContain("Open exception feed")
     expect(opsClientSource).not.toContain("Recent (7 days)")
   })
 
@@ -209,7 +212,7 @@ describe("ops dashboard data contract", () => {
 
   it("keeps webhook recovery on the canonical Stripe DLQ surface", () => {
     expect(dashboardRoutesSource).toContain('ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq"')
-    expect(opsPageSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
+    expect(opsActionModelSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
     expect(adminSidebarSource).not.toContain('href: "/admin/webhooks"')
     expect(adminSidebarSource).not.toContain('href: "/admin/webhook-dlq"')
 
@@ -273,38 +276,26 @@ describe("ops dashboard data contract", () => {
     expect(opsClientSource).not.toContain("Recovery palette")
   })
 
-  it("surfaces certificate timestamp drift as a compact ops invariant linked to the rescue panel", () => {
-    expect(opsPageSource).toContain("certificateSentMissingTimestampHelper")
-    expect(opsPageSource).toContain("certificateSentMissingTimestamp")
-    expect(opsPageSource).toContain("#certificate-delivery-rescue")
-
-    expect(opsClientSource).toContain('id="certificate-delivery-rescue"')
-    expect(opsClientSource).toContain('label="Cert timestamp drift"')
-    expect(opsClientSource).toContain("invariants.certificateSentMissingTimestamp")
+  it("surfaces certificate timestamp drift only when it is unresolved", () => {
+    expect(opsActionModelSource).toContain("certificateSentMissingTimestamp")
+    expect(opsActionModelSource).toContain("Certificate timestamp drift")
+    expect(opsActionModelSource).toContain('action: isAdmin ? "repair_certificate_timestamps" : "link"')
     expect(opsClientSource).toContain("repairCertificateDocumentSentAtAction")
-    expect(opsClientSource).toContain("Repair timestamps")
-    expect(opsClientSource).toContain("canOpenEmailHub && invariants.certificateSentMissingTimestamp.count > 0")
-    expect(opsClientSource).toContain("does not resend emails or expose certificate URLs")
+    expect(opsClientSource).toContain("No email will be sent")
   })
 
   it("surfaces paid-but-cancelled intakes as a compact critical ops invariant", () => {
-    expect(opsPageSource).toContain("paidButCancelledHelper")
-    expect(opsPageSource).toContain("paidButCancelled")
-    expect(opsPageSource).toContain('buildStaffLedgerHref({ status: "cancelled" })')
-
-    expect(opsClientSource).toContain('label="Paid + cancelled"')
-    expect(opsClientSource).toContain("invariants.paidButCancelled")
+    expect(opsActionModelSource).toContain("paidButCancelled")
+    expect(opsActionModelSource).toContain('buildStaffLedgerHref({ status: "cancelled" })')
+    expect(opsActionModelSource).toContain("Paid and cancelled")
     expect(adminWorkLanesSource).toContain('{ value: "cancelled" }')
   })
 
   it("surfaces approved med-cert intakes missing certificate records as a compact ops invariant", () => {
-    expect(opsPageSource).toContain("approvedCertificateMissingRecordHelper")
-    expect(opsPageSource).toContain("approvedCertificateMissingRecord")
-    expect(opsPageSource).toContain("#certificate-delivery-rescue")
-
-    expect(opsClientSource).toContain('label="Cert missing record"')
-    expect(opsClientSource).toContain("invariants.approvedCertificateMissingRecord")
-    expect(opsClientSource).toContain("xl:grid-cols-7")
+    expect(opsActionModelSource).toContain("approvedCertificateMissingRecord")
+    expect(opsActionModelSource).toContain("Certificate record missing")
+    expect(opsActionModelSource).toContain("certificateEscalations")
+    expect(opsClientSource).not.toContain("xl:grid-cols-7")
   })
 
   it("keeps core ops pages as recovery rows instead of dense tables", () => {
@@ -332,10 +323,11 @@ describe("ops dashboard data contract", () => {
   })
 
   it("surfaces failed refunds in ops without adding a broad finance dashboard", () => {
-    expect(opsPageSource).toContain("refundFailuresResult")
+    expect(opsPageSource).toContain("refundFailures")
     expect(opsPageSource).toContain('.eq("refund_status", "failed")')
     expect(opsFailuresSource).toContain("refund_failures")
     expect(opsFailuresSource).toContain("Refund failures")
+    expect(opsActionModelSource).toContain("refund_failures")
     expect(refundsPageSource).toContain("initialStatusFilter")
     expect(refundsClientSource).toContain("Refund work")
     expect(refundsClientSource).toContain("Only showing failed refund rows")

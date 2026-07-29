@@ -1,13 +1,15 @@
 "use client"
 
 import {
-  AlertTriangle,
   ArrowRight,
+  BarChart3,
   CheckCircle2,
-  Clock,
-  FileText,
-  Mail,
+  Clock3,
+  CreditCard,
+  FileWarning,
   RefreshCw,
+  Stethoscope,
+  UserRoundCheck,
   Wrench,
 } from "lucide-react"
 import Link from "next/link"
@@ -17,240 +19,213 @@ import { toast } from "sonner"
 
 import { repairCertificateDocumentSentAtAction } from "@/app/actions/certificate-document-sent-repair"
 import { resendCertificateAsStaff } from "@/app/actions/resend-certificate"
-import {
-  CounterCard,
-  type CounterCardTone,
-  OperatorPage,
-  OperatorPageHeader,
-  OperatorScrollArea,
-  RecoveryRow,
-  type RecoverySeverity,
-} from "@/components/operator"
-import { Badge, type BadgeProps } from "@/components/ui/badge"
+import { DashboardCard, StatusBadge } from "@/components/dashboard"
+import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { Button } from "@/components/ui/button"
 import type {
-  CertificateDeliveryRescueCase,
-  CertificateDeliveryRescueOverview,
-} from "@/lib/admin/certificate-delivery-rescue"
+  OpsActionGroup,
+  OpsActionGroupKey,
+  OpsActionIssue,
+  OpsActionModel,
+} from "@/lib/admin/ops-action-model"
 import { cn } from "@/lib/utils"
 
-type CounterCellData = {
-  count: number
-  helperText: string
-  tone: CounterCardTone
-  href: string
+const GROUP_ICONS: Record<OpsActionGroupKey, typeof CreditCard> = {
+  payments: CreditCard,
+  fulfilment: Stethoscope,
+  identity_access: UserRoundCheck,
+  delivery: FileWarning,
+  measurement: BarChart3,
 }
 
-export interface OpsDashboardClientProps {
-  counters: {
-    paymentFailures: CounterCellData
-    webhookDlq: CounterCellData
-    parchmentUnsynced: CounterCellData
-    missingIdentity: CounterCellData
-    googleAdsConversions: CounterCellData
-  }
-  invariants: {
-    slaBreachBacklog: CounterCellData
-    paidButCancelled: CounterCellData
-    certRefundOrphans: CounterCellData
-    refundRecordAnomalies: CounterCellData
-    certificateSentMissingTimestamp: CounterCellData
-    approvedCertificateMissingRecord: CounterCellData
-    queryFailures: CounterCellData
-  }
-  recoveries: Array<{
-    id: string
-    title: string
-    detail: string
-    occurredAt: string
-    severity: RecoverySeverity
-    href: string
-  }>
-  certificateDelivery: CertificateDeliveryRescueOverview
-  canOpenEmailHub: boolean
+function formatAge(value: string | null, now: string): string {
+  if (!value) return "Age unavailable"
+  const valueMs = Date.parse(value)
+  const nowMs = Date.parse(now)
+  if (!Number.isFinite(valueMs) || !Number.isFinite(nowMs)) return "Age unavailable"
+  const minutes = Math.max(0, Math.round((nowMs - valueMs) / 60_000))
+  if (minutes < 1) return "Checked now"
+  if (minutes < 60) return `${minutes}m old`
+  const hours = Math.round((minutes / 60) * 10) / 10
+  if (hours < 48) return `${hours}h old`
+  return `${Math.round(hours / 24)}d old`
 }
 
-function formatDateTime(value: string | null): string {
-  if (!value) return "Not recorded"
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return "Not recorded"
-  return date.toLocaleString("en-AU", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
-
-function SignalBadge({
-  kind,
-  label,
+function IssueRow({
+  issue,
+  generatedAt,
+  isPending,
+  repairingArmed,
+  resendingIntakeId,
+  onRepair,
+  onResend,
 }: {
-  kind: CertificateDeliveryRescueCase["certificateEmail"]["kind"]
-  label: string
+  generatedAt: string
+  isPending: boolean
+  issue: OpsActionIssue
+  onRepair: () => void
+  onResend: (intakeId: string) => void
+  repairingArmed: boolean
+  resendingIntakeId: string | null
 }) {
-  const variant: BadgeProps["variant"] =
-    kind === "failed"
-      ? "destructive"
-      : kind === "delivered" || kind === "opened" || kind === "clicked"
-        ? "success"
-        : kind === "sent" || kind === "test"
-          ? "info"
-          : kind === "queued"
-            ? "warning"
-            : "outline"
+  const isResending = issue.certificateIntakeId === resendingIntakeId && isPending
+  const severityClass = issue.severity === "critical"
+    ? "bg-destructive"
+    : "bg-amber-500"
 
   return (
-    <Badge variant={variant} size="sm" className="capitalize">
-      {label}
-    </Badge>
+    <li className="grid gap-3 px-4 py-3.5 lg:grid-cols-[minmax(220px,0.82fr)_minmax(280px,1.25fr)_minmax(190px,0.72fr)_auto] lg:items-center">
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <span aria-hidden className={cn("h-2 w-2 shrink-0 rounded-full", severityClass)} />
+          <h3 className="truncate text-sm font-semibold text-foreground">{issue.title}</h3>
+          {issue.count > 1 ? (
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold tabular-nums text-muted-foreground">{issue.count}</span>
+          ) : null}
+        </div>
+        <p className="mt-1 pl-4 text-xs leading-relaxed text-muted-foreground">{issue.detail}</p>
+      </div>
+
+      <div className="rounded-lg bg-muted/30 px-3 py-2 text-xs">
+        <p className="font-medium text-foreground">Next: {issue.nextAction}</p>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground lg:block">
+        <span className="font-medium text-foreground">{issue.owner}</span>
+        <span className="lg:ml-2">{formatAge(issue.occurredAt, generatedAt)}</span>
+      </div>
+
+      <div className="flex min-w-32 justify-start lg:justify-end">
+        {issue.action === "resend_certificate" && issue.certificateIntakeId ? (
+          <Button
+            size="sm"
+            variant="outline"
+            className="min-h-11 w-full gap-1.5 sm:w-auto lg:min-h-9"
+            disabled={isResending}
+            onClick={() => onResend(issue.certificateIntakeId!)}
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", isResending && "animate-spin")} aria-hidden />
+            Resend link
+          </Button>
+        ) : issue.action === "repair_certificate_timestamps" ? (
+          <Button
+            size="sm"
+            variant={repairingArmed ? "default" : "outline"}
+            className="min-h-11 w-full gap-1.5 sm:w-auto lg:min-h-9"
+            disabled={isPending}
+            onClick={onRepair}
+          >
+            <Wrench className={cn("h-3.5 w-3.5", isPending && "animate-spin")} aria-hidden />
+            {repairingArmed ? "Confirm repair" : "Repair"}
+          </Button>
+        ) : (
+          <Button size="sm" variant="outline" className="min-h-11 w-full sm:w-auto lg:min-h-9" asChild>
+            <Link href={issue.href}>Open <ArrowRight className="h-3.5 w-3.5" aria-hidden /></Link>
+          </Button>
+        )}
+      </div>
+    </li>
   )
 }
 
-function AccessSignal({ row }: { row: CertificateDeliveryRescueCase }) {
-  if (row.accessEvidence === "downloaded") {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400">
-        <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-        Downloaded
-      </span>
-    )
-  }
-
-  if (row.accessEvidence === "email_clicked") {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400">
-        <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-        Email clicked
-      </span>
-    )
-  }
-
-  if (row.accessEvidence === "email_opened") {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-sky-700 dark:text-sky-400">
-        <Mail className="h-3.5 w-3.5" aria-hidden />
-        Email opened
-      </span>
-    )
-  }
+function IssueGroup({
+  group,
+  generatedAt,
+  isPending,
+  repairingArmed,
+  resendingIntakeId,
+  onRepair,
+  onResend,
+}: {
+  generatedAt: string
+  group: OpsActionGroup
+  isPending: boolean
+  onRepair: () => void
+  onResend: (intakeId: string) => void
+  repairingArmed: boolean
+  resendingIntakeId: string | null
+}) {
+  const Icon = GROUP_ICONS[group.key]
 
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-      <Clock className="h-3.5 w-3.5" aria-hidden />
-      Not tracked
-    </span>
+    <DashboardCard padding="none">
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border/50 px-4 py-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <Icon className="h-4 w-4 text-muted-foreground" aria-hidden />
+            <h2 className="text-sm font-semibold text-foreground">{group.label}</h2>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">{group.detail}</p>
+        </div>
+        <StatusBadge status={group.issues.some(({ severity }) => severity === "critical") ? "error" : "warning"} size="sm">
+          {group.count} open
+        </StatusBadge>
+      </header>
+      <ul className="divide-y divide-border/50">
+        {group.issues.map((issue) => (
+          <IssueRow
+            key={issue.id}
+            issue={issue}
+            generatedAt={generatedAt}
+            isPending={isPending}
+            repairingArmed={repairingArmed}
+            resendingIntakeId={resendingIntakeId}
+            onRepair={onRepair}
+            onResend={onResend}
+          />
+        ))}
+      </ul>
+    </DashboardCard>
   )
 }
 
-function RecommendationBadge({ row }: { row: CertificateDeliveryRescueCase }) {
-  const action = row.recommendation.action
-  const variant: BadgeProps["variant"] =
-    action === "escalate" || action === "resend_secure_link"
-      ? "destructive"
-      : action === "resend_receipt"
-        ? "warning"
-        : "secondary"
-
-  return (
-    <Badge variant={variant} size="sm">
-      {row.recommendation.label}
-    </Badge>
-  )
-}
-
-function CertificateWarningNote({ row }: { row: CertificateDeliveryRescueCase }) {
-  if (row.warnings.length === 0) return null
-
-  const isRescueWarning = row.recommendation.severity !== "neutral"
-  const Icon = isRescueWarning ? AlertTriangle : Clock
-
-  return (
-    <p
-      className={cn(
-        "flex items-center gap-1.5 text-xs",
-        isRescueWarning ? "text-warning" : "text-muted-foreground",
-      )}
-    >
-      <Icon className="h-3.5 w-3.5" aria-hidden />
-      {isRescueWarning ? row.warnings.join(", ") : `Timestamp note: ${row.warnings.join(", ")}`}
-    </p>
-  )
-}
-
-export function OpsDashboardClient({
-  counters,
-  invariants,
-  recoveries,
-  certificateDelivery,
-  canOpenEmailHub,
-}: OpsDashboardClientProps) {
+export function OpsDashboardClient({ model }: { model: OpsActionModel }) {
   const router = useRouter()
   const [resendingIntakeId, setResendingIntakeId] = useState<string | null>(null)
-  const [repairingTimestamps, setRepairingTimestamps] = useState(false)
-  const [timestampRepairArmed, setTimestampRepairArmed] = useState(false)
+  const [repairingArmed, setRepairingArmed] = useState(false)
   const [isPending, startTransition] = useTransition()
-  const canRepairCertificateTimestamps =
-    canOpenEmailHub && invariants.certificateSentMissingTimestamp.count > 0
-  const handleResendSecureLink = (intakeId: string) => {
+
+  function handleResendCertificate(intakeId: string) {
     setResendingIntakeId(intakeId)
     startTransition(async () => {
       try {
         const result = await resendCertificateAsStaff(intakeId)
-        if (result.success) {
-          if (result.queued) {
-            toast.info("Secure certificate email queued for delivery")
-          } else {
-            toast.success("Secure certificate link resent")
-          }
-          router.refresh()
+        if (!result.success) {
+          toast.error(result.error || "Could not resend the secure certificate link")
           return
         }
-
-        toast.error(result.error || "Could not resend secure certificate link")
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Could not resend secure certificate link")
+        toast.success(result.queued ? "Secure certificate email queued" : "Secure certificate link resent")
+        router.refresh()
+      } catch {
+        toast.error("Could not resend the secure certificate link")
       } finally {
         setResendingIntakeId(null)
       }
     })
   }
 
-  const handleRepairCertificateTimestamps = () => {
-    if (!timestampRepairArmed) {
-      setTimestampRepairArmed(true)
-      toast.info(
-        "Click Confirm repair to mirror sent-email evidence. This does not resend emails or expose certificate URLs.",
-      )
+  function handleRepairTimestamps() {
+    if (!repairingArmed) {
+      setRepairingArmed(true)
+      toast.info("Click Confirm repair to mirror durable sent-email evidence. No email will be sent.")
       return
     }
 
-    setTimestampRepairArmed(false)
-    setRepairingTimestamps(true)
+    setRepairingArmed(false)
     startTransition(async () => {
       try {
         const result = await repairCertificateDocumentSentAtAction()
-        const summary = result.data
-
         if (!result.success) {
           toast.error(result.error || "Could not repair certificate timestamps")
           return
         }
-
-        const repaired = summary?.updatedCount ?? 0
-        const failed = summary?.failedCount ?? 0
-        if (repaired === 0 && failed === 0) {
-          toast.success("No repairable certificate timestamps found")
-        } else if (failed > 0) {
-          toast.warning(`Repaired ${repaired}; ${failed} failed. Check logs before retrying.`)
-        } else {
-          toast.success(`Repaired ${repaired} certificate timestamp${repaired === 1 ? "" : "s"}`)
-        }
+        const updated = result.data?.updatedCount ?? 0
+        const failed = result.data?.failedCount ?? 0
+        if (failed > 0) toast.warning(`Repaired ${updated}; ${failed} failed. Check logs before retrying.`)
+        else toast.success(updated > 0 ? `Repaired ${updated} certificate timestamp${updated === 1 ? "" : "s"}` : "No repairable timestamps found")
         router.refresh()
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Could not repair certificate timestamps")
-      } finally {
-        setRepairingTimestamps(false)
+      } catch {
+        toast.error("Could not repair certificate timestamps")
       }
     })
   }
@@ -259,278 +234,42 @@ export function OpsDashboardClient({
     <OperatorPage>
       <OperatorPageHeader
         title="Operations"
-        description="Resolve payment, sync, and identity issues."
+        description="Unresolved payment, fulfilment, identity, delivery, and measurement work."
+        badge={model.allClear ? (
+          <StatusBadge status="success" size="sm">All clear</StatusBadge>
+        ) : (
+          <StatusBadge status="error" size="sm">{model.openCount} open</StatusBadge>
+        )}
       />
-      <OperatorScrollArea>
-        <section
-          aria-label="Recovery counters"
-          className="grid gap-3 md:grid-cols-2 xl:grid-cols-5"
-        >
-          <CounterCard
-            count={counters.paymentFailures.count}
-            label="Payment failures"
-            helperText={counters.paymentFailures.helperText}
-            tone={counters.paymentFailures.tone}
-            href={counters.paymentFailures.href}
-          />
-          <CounterCard
-            count={counters.webhookDlq.count}
-            label="Stripe webhook DLQ"
-            helperText={counters.webhookDlq.helperText}
-            tone={counters.webhookDlq.tone}
-            href={counters.webhookDlq.href}
-          />
-          <CounterCard
-            count={counters.parchmentUnsynced.count}
-            label="Parchment recovery"
-            helperText={counters.parchmentUnsynced.helperText}
-            tone={counters.parchmentUnsynced.tone}
-            href={counters.parchmentUnsynced.href}
-          />
-          <CounterCard
-            count={counters.missingIdentity.count}
-            label="Prescribing identity"
-            helperText={counters.missingIdentity.helperText}
-            tone={counters.missingIdentity.tone}
-            href={counters.missingIdentity.href}
-          />
-          <CounterCard
-            count={counters.googleAdsConversions.count}
-            label="Google Ads conversions"
-            helperText={counters.googleAdsConversions.helperText}
-            tone={counters.googleAdsConversions.tone}
-            href={counters.googleAdsConversions.href}
-          />
-        </section>
 
-        <section
-          id="certificate-delivery-rescue"
-          aria-label="Certificate delivery rescue"
-          className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04]"
-        >
-          <header className="flex flex-col gap-2 border-b border-border/40 px-4 py-3 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <h2 className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
-                <FileText className="h-4 w-4 text-muted-foreground" aria-hidden />
-                Certificate delivery rescue
-              </h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Last 14 days. Shows generation, certificate email state, document_sent_at, and access evidence without exposing document URLs.
+      <OperatorScrollArea className="space-y-3">
+        {model.allClear ? (
+          <DashboardCard padding="lg" tier="elevated" className="flex min-h-56 items-center justify-center text-center">
+            <div className="max-w-md">
+              <span className="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                <CheckCircle2 className="h-5 w-5" aria-hidden />
+              </span>
+              <h2 className="mt-3 text-base font-semibold text-foreground">No unresolved operational work</h2>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                All bounded recovery and integrity checks completed without an open exception.
+              </p>
+              <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Clock3 className="h-3.5 w-3.5" aria-hidden /> Checked now
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {canRepairCertificateTimestamps ? (
-                <Button
-                  size="sm"
-                  variant={timestampRepairArmed ? "default" : "outline"}
-                  className="h-7 gap-1.5 px-2.5 text-xs"
-                  onClick={handleRepairCertificateTimestamps}
-                  disabled={repairingTimestamps && isPending}
-                >
-                  <Wrench
-                    className={cn("h-3.5 w-3.5", repairingTimestamps && isPending && "animate-spin")}
-                    aria-hidden
-                  />
-                  {timestampRepairArmed ? "Confirm repair" : "Repair timestamps"}
-                </Button>
-              ) : null}
-              <Badge variant={certificateDelivery.actionCount > 0 ? "destructive" : "secondary"} size="sm">
-                {certificateDelivery.actionCount} action{certificateDelivery.actionCount === 1 ? "" : "s"}
-              </Badge>
-              <Badge variant={certificateDelivery.warningCount > 0 ? "warning" : "secondary"} size="sm">
-                {certificateDelivery.warningCount} warning{certificateDelivery.warningCount === 1 ? "" : "s"}
-              </Badge>
-              {certificateDelivery.queryFailed ? (
-                <Badge variant="destructive" size="sm">Query failed</Badge>
-              ) : null}
-            </div>
-          </header>
-          {certificateDelivery.cases.length === 0 ? (
-            <div className="px-4 py-6 text-sm text-muted-foreground">
-              {certificateDelivery.queryFailed
-                ? "Could not load certificate delivery state. Check server logs before assuming the queue is clear."
-                : "No recent medical certificate delivery cases to show."}
-            </div>
-          ) : (
-            <div className="divide-y divide-border/40">
-              {certificateDelivery.cases.map((row) => {
-                const canResend = row.recommendation.action === "resend_secure_link"
-                const resending = resendingIntakeId === row.intakeId && isPending
-
-                return (
-                  <div
-                    key={row.intakeId}
-                    className={cn(
-                      "grid gap-3 px-4 py-3 text-sm xl:grid-cols-[minmax(120px,0.65fr)_minmax(160px,0.85fr)_minmax(190px,1fr)_minmax(160px,0.85fr)_minmax(220px,1.15fr)] xl:items-center",
-                      row.recommendation.severity === "critical" && "bg-destructive/5",
-                    )}
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate font-medium text-foreground">
-                        {row.referenceNumber || `Request ${row.shortIntakeId}`}
-                      </p>
-                      <p className="mt-0.5 text-xs capitalize text-muted-foreground">
-                        {row.intakeStatus?.replace("_", " ") || "Unknown status"}
-                      </p>
-                    </div>
-
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <Badge variant={row.generated ? "success" : "outline"} size="sm">
-                          {row.generated ? "Generated" : "Not generated"}
-                        </Badge>
-                        {row.resendCount > 0 ? (
-                          <Badge variant="secondary" size="sm">{row.resendCount} resend{row.resendCount === 1 ? "" : "s"}</Badge>
-                        ) : null}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        document_sent_at: {row.documentSentAt ? formatDateTime(row.documentSentAt) : "Missing"}
-                      </p>
-                    </div>
-
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-xs text-muted-foreground">Certificate email</span>
-                        <SignalBadge kind={row.certificateEmail.kind} label={row.certificateEmail.label} />
-                      </div>
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-xs text-muted-foreground">Receipt</span>
-                        <SignalBadge kind={row.receiptEmail.kind} label={row.receiptEmail.label} />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <AccessSignal row={row} />
-                      <p className="text-xs text-muted-foreground">{formatDateTime(row.accessedAt)}</p>
-                      <CertificateWarningNote row={row} />
-                    </div>
-
-                    <div className="flex flex-col gap-2 xl:items-end">
-                      <div className="flex flex-wrap items-center gap-2 xl:justify-end">
-                        <RecommendationBadge row={row} />
-                        {canResend ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 gap-1.5 px-2.5 text-xs"
-                            onClick={() => handleResendSecureLink(row.intakeId)}
-                            disabled={resending}
-                          >
-                            <RefreshCw className={cn("h-3.5 w-3.5", resending && "animate-spin")} aria-hidden />
-                            Resend link
-                          </Button>
-                        ) : row.recommendation.action === "resend_receipt" && canOpenEmailHub ? (
-                          <Button size="sm" variant="outline" className="h-8 gap-1.5 px-2.5 text-xs" asChild>
-                            <Link href={row.emailHubHref}>
-                              Email ledger
-                              <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-                            </Link>
-                          </Button>
-                        ) : null}
-                      </div>
-                      <p className="max-w-sm text-xs text-muted-foreground xl:text-right">
-                        {row.recommendation.reason}
-                        {row.recommendation.action === "resend_receipt" && !canOpenEmailHub
-                          ? " Ask an admin to retry the receipt email."
-                          : ""}
-                      </p>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </section>
-
-        <section aria-label="Operational invariants">
-          <h2 className="mb-3 text-sm font-semibold tracking-tight text-foreground">
-            Integrity (weekly invariants)
-          </h2>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
-            <CounterCard
-              count={invariants.slaBreachBacklog.count}
-              label="Review SLA backlog"
-              helperText={invariants.slaBreachBacklog.helperText}
-              tone={invariants.slaBreachBacklog.tone}
-              href={invariants.slaBreachBacklog.href}
-            />
-            <CounterCard
-              count={invariants.paidButCancelled.count}
-              label="Paid + cancelled"
-              helperText={invariants.paidButCancelled.helperText}
-              tone={invariants.paidButCancelled.tone}
-              href={invariants.paidButCancelled.href}
-            />
-            <CounterCard
-              count={invariants.certRefundOrphans.count}
-              label="Cert + refund orphans"
-              helperText={invariants.certRefundOrphans.helperText}
-              tone={invariants.certRefundOrphans.tone}
-              href={invariants.certRefundOrphans.href}
-            />
-            <CounterCard
-              count={invariants.refundRecordAnomalies.count}
-              label="Refund record anomalies"
-              helperText={invariants.refundRecordAnomalies.helperText}
-              tone={invariants.refundRecordAnomalies.tone}
-              href={invariants.refundRecordAnomalies.href}
-            />
-            <CounterCard
-              count={invariants.certificateSentMissingTimestamp.count}
-              label="Cert timestamp drift"
-              helperText={invariants.certificateSentMissingTimestamp.helperText}
-              tone={invariants.certificateSentMissingTimestamp.tone}
-              href={invariants.certificateSentMissingTimestamp.href}
-            />
-            <CounterCard
-              count={invariants.approvedCertificateMissingRecord.count}
-              label="Cert missing record"
-              helperText={invariants.approvedCertificateMissingRecord.helperText}
-              tone={invariants.approvedCertificateMissingRecord.tone}
-              href={invariants.approvedCertificateMissingRecord.href}
-            />
-            <CounterCard
-              count={invariants.queryFailures.count}
-              label="Invariant query failures"
-              helperText={invariants.queryFailures.helperText}
-              tone={invariants.queryFailures.tone}
-              href={invariants.queryFailures.href}
-            />
-          </div>
-        </section>
-
-        <section
-          aria-label="Open exception feed"
-          className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04]"
-        >
-          <header className="border-b border-border/40 px-4 py-3">
-            <h2 className="text-sm font-semibold tracking-tight text-foreground">
-              Open exception feed
-            </h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Payment, delivery, Parchment, and refund recovery rows. Stale script rows stay here until reconciled.
-            </p>
-          </header>
-          {recoveries.length === 0 ? (
-            <div className="px-4 py-6 text-sm text-muted-foreground">
-              No open exception rows from recovery sources.
-            </div>
-          ) : (
-            <ul className="divide-y divide-border/40">
-              {recoveries.map((r) => (
-                <li key={r.id}>
-                  <RecoveryRow
-                    title={r.title}
-                    detail={r.detail}
-                    occurredAt={r.occurredAt}
-                    severity={r.severity}
-                    href={r.href}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+          </DashboardCard>
+        ) : model.groups.map((group) => (
+          <IssueGroup
+            key={group.key}
+            group={group}
+            generatedAt={model.generatedAt}
+            isPending={isPending}
+            repairingArmed={repairingArmed}
+            resendingIntakeId={resendingIntakeId}
+            onRepair={handleRepairTimestamps}
+            onResend={handleResendCertificate}
+          />
+        ))}
       </OperatorScrollArea>
     </OperatorPage>
   )

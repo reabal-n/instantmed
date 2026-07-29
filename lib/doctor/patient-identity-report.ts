@@ -103,7 +103,10 @@ export async function getPrescribingIdentityBlockerReport(
   )
 
   if (error || !data) {
-    return buildPrescribingIdentityBlockerReport([])
+    return {
+      ...buildPrescribingIdentityBlockerReport([]),
+      queryFailed: true,
+    }
   }
 
   // Decrypt the up-to-100 rows CONCURRENTLY rather than serially. The serial
