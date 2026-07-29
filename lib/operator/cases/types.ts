@@ -30,7 +30,8 @@ export type CaseRowData = {
   serviceLabel: string
   status: IntakeStatus
   createdAt: string
-  href: string
+  /** Primary case destination. Null for action-only, role-minimized rows. */
+  href?: string | null
   isPriority?: boolean
   isStale?: boolean
   refundIndicator?: RefundIndicator | null

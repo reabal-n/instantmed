@@ -54,7 +54,6 @@ export const ADMIN_LEDGER_SELECT = `
  */
 export const SUPPORT_LEDGER_SELECT = `
   id,
-  patient_id,
   category,
   status,
   payment_status,
@@ -66,7 +65,6 @@ export const SUPPORT_LEDGER_SELECT = `
   created_at,
   updated_at,
   patient:profiles!patient_id (
-    id,
     full_name
   ),
   service:services!service_id (name, short_name, type)
@@ -100,7 +98,6 @@ export function projectSupportLedgerPatient(
   if (!patient) return patient
 
   return {
-    id: patient.id,
     full_name: maskLedgerPatientName(patient.full_name),
   }
 }

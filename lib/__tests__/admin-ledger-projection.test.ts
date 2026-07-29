@@ -92,6 +92,7 @@ describe("admin ledger projection", () => {
     ]) {
       expect(projection).not.toMatch(new RegExp(`\\b${forbiddenField}\\b`))
     }
+    expect(projection).not.toMatch(/(?:^|,)\s*patient_id\s*,/)
   })
 
   it("serializes only a masked identity for support", () => {
@@ -105,7 +106,6 @@ describe("admin ledger projection", () => {
     })
 
     expect(patient).toEqual({
-      id: "patient-id",
       full_name: "E. P.",
     })
   })

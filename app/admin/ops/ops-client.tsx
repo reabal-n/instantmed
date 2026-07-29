@@ -246,7 +246,7 @@ export function OpsDashboardClient({ model }: { model: OpsActionModel }) {
         {model.allClear ? (
           <DashboardCard padding="lg" tier="elevated" className="flex min-h-56 items-center justify-center text-center">
             <div className="max-w-md">
-              <span className="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+              <span className="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/60 bg-background text-emerald-700 dark:text-emerald-300">
                 <CheckCircle2 className="h-5 w-5" aria-hidden />
               </span>
               <h2 className="mt-3 text-base font-semibold text-foreground">No unresolved operational work</h2>

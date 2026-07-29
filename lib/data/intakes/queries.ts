@@ -6,6 +6,19 @@ import {
   BATCH_REVIEW_ELIGIBLE_STATUSES,
   BATCH_REVIEW_ENFORCEMENT_START,
 } from "@/lib/clinical/batch-review-policy"
+import {
+  type AdminLedgerQuickFilterValue,
+  buildAdminLedgerSearchOr,
+  getAdminLedgerServiceCategory,
+  getAdminLedgerStatus,
+  getAdminLedgerWorkLaneStatuses,
+  normalizeAdminLedgerQuickFilters,
+  sanitizeAdminLedgerSearchTerm,
+} from "@/lib/dashboard/admin-ledger-filters"
+import type {
+  AdminIntakeStatusFilterValue,
+  AdminWorkLaneFilterValue,
+} from "@/lib/dashboard/admin-work-lanes"
 import { readDashboardQuery } from "@/lib/data/dashboard-read-model"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
@@ -21,6 +34,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { startOfDayAEST } from "@/lib/operator/cases/time-grouping"
 import { derivePatientPaymentRecoveryReason } from "@/lib/patient/payment-recovery"
 import { readAnswers, readDoctorNotes, readPatientNoteContent } from "@/lib/security/phi-field-wrappers"
+import type { AdminServiceFilterValue } from "@/lib/services/service-presentation"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type {
   IntakeStatus,
@@ -639,32 +653,93 @@ export async function getAllIntakesForAdmin(
     pageSize?: number
     dateFrom?: string  // ISO date string
     dateTo?: string    // ISO date string
-    status?: string[]  // Filter by status
+    q?: string
+    service?: AdminServiceFilterValue
+    status?: AdminIntakeStatusFilterValue
+    workLane?: AdminWorkLaneFilterValue
+    chips?: readonly AdminLedgerQuickFilterValue[]
   }
-): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number }> {
+): Promise<{
+  data: IntakeWithPatient[]
+  total: number | null
+  page: number
+  pageSize: number
+  degraded: boolean
+  patientSearchUnavailable: boolean
+}> {
   const supabase = createServiceRoleClient()
-  const page = options?.page ?? 1
-  const pageSize = Math.min(options?.pageSize ?? 50, 100) // Cap at 100
+  const page = Math.max(1, options.page ?? 1)
+  const pageSize = Math.min(Math.max(options.pageSize ?? 50, 10), 100)
   const offset = (page - 1) * pageSize
+  const searchTerm = sanitizeAdminLedgerSearchTerm(options.q)
+  const status = getAdminLedgerStatus(options.status)
+  const workLaneStatuses = getAdminLedgerWorkLaneStatuses(options.workLane)
+  const serviceCategory = getAdminLedgerServiceCategory(options.service)
+  const chips = normalizeAdminLedgerQuickFilters(options.chips ?? [])
+  let patientSearchUnavailable = false
+
+  // Patient contact/name search is admin-only and resolved to profile ids before
+  // the intake query. Support searches only request references/ids; no contact
+  // fields are selected or queried on its behalf.
+  let matchingPatientIds: string[] = []
+  if (searchTerm && options.viewerRole === "admin") {
+    const profileSearch = [
+      "full_name",
+      "email",
+      "phone",
+      "suburb",
+      "state",
+    ].map((field) => `${field}.ilike.*${searchTerm}*`).join(",")
+    const { data: profiles, error: profileSearchError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("role", "patient")
+      .or(profileSearch)
+      .limit(250)
+
+    if (profileSearchError) {
+      patientSearchUnavailable = true
+      logger.warn("Admin ledger patient search could not load", {
+        error: profileSearchError.message,
+      })
+    } else {
+      matchingPatientIds = (profiles ?? []).flatMap((profile) =>
+        typeof profile.id === "string" ? [profile.id] : [],
+      )
+    }
+  }
+  const searchOr = searchTerm
+    ? buildAdminLedgerSearchOr(searchTerm, matchingPatientIds)
+    : null
 
   // Build count query with filters
   let countQuery = supabase
     .from("intakes")
     .select("id", { count: "exact", head: true })
 
-  // Apply date range filter (default: last 30 days for performance)
+  // Default browsing stays bounded to 30 days. An explicit search spans the
+  // ledger so an older request/reference is still recoverable.
   const defaultFrom = new Date()
   defaultFrom.setDate(defaultFrom.getDate() - 30)
-  const dateFrom = options?.dateFrom || defaultFrom.toISOString()
-  countQuery = countQuery.gte("created_at", dateFrom)
+  const dateFrom = options.dateFrom || (searchTerm ? null : defaultFrom.toISOString())
+  if (dateFrom) countQuery = countQuery.gte("created_at", dateFrom)
 
-  if (options?.dateTo) {
+  if (options.dateTo) {
     countQuery = countQuery.lte("created_at", options.dateTo)
   }
-
-  if (options?.status && options.status.length > 0) {
-    countQuery = countQuery.in("status", options.status)
+  if (status) countQuery = countQuery.eq("status", status)
+  if (workLaneStatuses) countQuery = countQuery.in("status", [...workLaneStatuses])
+  if (serviceCategory) countQuery = countQuery.eq("category", serviceCategory)
+  if (searchOr) countQuery = countQuery.or(searchOr)
+  if (chips.includes("priority")) countQuery = countQuery.eq("is_priority", true)
+  if (chips.includes("awaiting_script")) countQuery = countQuery.eq("status", "awaiting_script")
+  if (chips.includes("failed_payment")) {
+    countQuery = countQuery.or("status.eq.checkout_failed,payment_status.eq.failed")
   }
+  if (chips.includes("refunded")) {
+    countQuery = countQuery.in("payment_status", ["refunded", "partially_refunded"])
+  }
+  if (chips.includes("refund_failed")) countQuery = countQuery.eq("refund_status", "failed")
 
   // Fetch paginated data with only necessary fields
   const ledgerSelect: string = options.viewerRole === "support"
@@ -675,13 +750,23 @@ export async function getAllIntakesForAdmin(
     .select(ledgerSelect)
 
   // Apply same filters as count query
-  dataQuery = dataQuery.gte("created_at", dateFrom)
-  if (options?.dateTo) {
+  if (dateFrom) dataQuery = dataQuery.gte("created_at", dateFrom)
+  if (options.dateTo) {
     dataQuery = dataQuery.lte("created_at", options.dateTo)
   }
-  if (options?.status && options.status.length > 0) {
-    dataQuery = dataQuery.in("status", options.status)
+  if (status) dataQuery = dataQuery.eq("status", status)
+  if (workLaneStatuses) dataQuery = dataQuery.in("status", [...workLaneStatuses])
+  if (serviceCategory) dataQuery = dataQuery.eq("category", serviceCategory)
+  if (searchOr) dataQuery = dataQuery.or(searchOr)
+  if (chips.includes("priority")) dataQuery = dataQuery.eq("is_priority", true)
+  if (chips.includes("awaiting_script")) dataQuery = dataQuery.eq("status", "awaiting_script")
+  if (chips.includes("failed_payment")) {
+    dataQuery = dataQuery.or("status.eq.checkout_failed,payment_status.eq.failed")
   }
+  if (chips.includes("refunded")) {
+    dataQuery = dataQuery.in("payment_status", ["refunded", "partially_refunded"])
+  }
+  if (chips.includes("refund_failed")) dataQuery = dataQuery.eq("refund_status", "failed")
 
   // Count and page-data share filters but are independent; run them together.
   const [{ count, error: countError }, { data, error }] = await Promise.all([
@@ -691,11 +776,17 @@ export async function getAllIntakesForAdmin(
 
   if (countError) {
     logger.error("Error fetching admin intake count", {}, countError instanceof Error ? countError : new Error(String(countError)))
-    return { data: [], total: 0, page, pageSize }
   }
   if (error) {
     logger.error("Error fetching all intakes", {}, toError(error))
-    return { data: [], total: count ?? 0, page, pageSize }
+    return {
+      data: [],
+      total: countError ? null : count ?? 0,
+      page,
+      pageSize,
+      degraded: true,
+      patientSearchUnavailable,
+    }
   }
 
   // Support rows never select contact/clinical payloads in the first place.
@@ -744,6 +835,17 @@ export async function getAllIntakesForAdmin(
   }))
   const validData = unwrapped.filter((r) => r.patient !== null)
 
+  if (options.viewerRole === "support") {
+    return {
+      data: validData as unknown as IntakeWithPatient[],
+      total: countError ? null : count ?? 0,
+      page,
+      pageSize,
+      degraded: Boolean(countError) || patientSearchUnavailable,
+      patientSearchUnavailable,
+    }
+  }
+
   // Renewal badge: one batched lookup per page against `prescriptions`.
   const renewalProbes: IntakeRenewalProbe[] = validData.map((row) => {
     const service = row.service as { type?: string } | null | undefined
@@ -771,9 +873,11 @@ export async function getAllIntakesForAdmin(
 
   return {
     data: withRenewal as unknown as IntakeWithPatient[],
-    total: count ?? 0,
+    total: countError ? null : count ?? 0,
     page,
     pageSize,
+    degraded: Boolean(countError) || patientSearchUnavailable,
+    patientSearchUnavailable,
   }
 }
 
