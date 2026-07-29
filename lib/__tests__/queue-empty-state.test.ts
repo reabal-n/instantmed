@@ -64,6 +64,25 @@ describe("buildQueueEmptyState", () => {
       summary: null,
     })
   })
+
+  it.each([
+    { searchState: "unavailable" as const, title: "Search unavailable" },
+    { searchState: "too_broad" as const, title: "Narrow your search" },
+  ])("surfaces an explicit $searchState lookup state", ({ searchState, title }) => {
+    const state = buildQueueEmptyState({
+      ...baseOptions,
+      queueDegraded: true,
+      searchQuery: "patient@example.com",
+      searchState,
+    })
+
+    expect(state).toMatchObject({
+      title,
+      tone: "warning",
+      summary: null,
+    })
+    expect(state.title).not.toBe("No matches for this filter")
+  })
 })
 
 describe("getQueueCompletionOutcome", () => {

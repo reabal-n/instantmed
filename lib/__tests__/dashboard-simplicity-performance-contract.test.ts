@@ -226,7 +226,7 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(read("lib/doctor/queue-pressure.ts")).toContain("before target")
     expect(queuePressureSource).toContain("formatRefreshAge")
     expect(dashboardPageSource).toContain(
-      "const globalWaitingCaseCount = queueResult.statusCounts?.all ?? null"
+      "const globalWaitingCaseCount = queueResult.globalStatusCounts?.all ?? null"
     )
     expect(dashboardPageSource).toContain("waitingCaseCount={globalWaitingCaseCount ?? 0}")
     expect(dashboardPageSource).not.toContain("waitingCaseCount={queueResult.total}")
@@ -252,7 +252,8 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(queueTableSource).toContain("getPlainSearchHighlight")
     expect(queueTableSource).not.toContain("getCompactPatientDescription")
     expect(queueTableSource).toContain("compactShell")
-    expect(queueClientSource).toContain("searchQuery={debouncedSearch}")
+    expect(queueClientSource).toContain("searchQuery={initialSearchQuery}")
+    expect(queueClientSource).toContain("before pagination")
     expect(userCardSource).toContain("highlightQuery")
     expect(userCardSource).toContain("descriptionClassName")
     expect(userCardSource).toContain("<mark")
@@ -269,7 +270,8 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(queueFiltersSource).not.toContain("border-border/70 bg-muted/30 text-muted-foreground")
     expect(queueFiltersSource).not.toContain("Finish or close the current case before opening the next one.")
     expect(queueFiltersSource).toContain("data-open-next-case")
-    expect(queueFiltersSource).toContain("const showSearch = !compactShell")
+    expect(queueFiltersSource).toContain('aria-label="Search active requests"')
+    expect(queueFiltersSource).toContain('isSearchPending')
     expect(queueFiltersSource).not.toContain("(statusCounts?.all ?? 0) > 5")
     expect(read("lib/doctor/queue-utils.ts")).toContain("getQueueClockTickDelayMs")
   })

@@ -194,23 +194,24 @@ test.describe("Doctor Queue - Edge Cases", () => {
     expect(validState).toBe(true)
   })
 
-  test("queue search/filter works", async ({ page }) => {
-    await page.goto("/dashboard")
-    await waitForPageLoad(page)
+  test("queue search is server-authoritative on mobile", async ({ page }) => {
+    test.skip(!SUPABASE_SERVICE_ROLE_KEY, "SUPABASE_SERVICE_ROLE_KEY required")
 
-    // Wait for queue to load
+    await resetIntakeForRetest(SEEDED_INTAKE_ID)
+    await page.setViewportSize({ width: 375, height: 812 })
+    await page.goto("/dashboard?showTestData=1&onlyTestData=1")
+    await waitForPageLoad(page)
     await expectQueueSurface(page)
 
-    // Look for search input
-    const searchInput = page.getByPlaceholder(/search/i)
-    if (await searchInput.isVisible()) {
-      // Type in search query
-      await searchInput.fill("E2E")
-      await page.waitForTimeout(500)
+    const searchInput = page.getByRole("textbox", { name: "Search active requests" })
+    await expect(searchInput).toBeVisible()
+    await searchInput.fill(SEEDED_PATIENT_NAME)
 
-      // Should filter results (either show E2E patient or show no results)
-      // No crash is the main assertion
-      expect(page.url()).toContain("/dashboard")
-    }
+    await expect(page).toHaveURL((url) => url.searchParams.get("q") === SEEDED_PATIENT_NAME)
+    await expect(page.getByText("1 match", { exact: true })).toBeVisible()
+    await expect(page.getByTestId(`queue-row-${SEEDED_INTAKE_ID}`)).toBeVisible()
+
+    await page.getByRole("button", { name: "Clear patient search" }).click()
+    await expect(page).toHaveURL((url) => !url.searchParams.has("q"))
   })
 })

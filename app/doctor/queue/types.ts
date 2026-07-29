@@ -10,6 +10,8 @@ import type { PaginationInfo } from "@/types/shared"
 
 export type { PaginationInfo }
 
+export type QueueSearchState = "idle" | "ready" | "unavailable" | "too_broad"
+
 export interface QueueClientProps {
   intakes: IntakeWithPatient[]
   doctorId: string
@@ -22,9 +24,12 @@ export interface QueueClientProps {
   recentlyCompletedDegraded?: boolean
   recentlyCompletedTruncated?: boolean
   statusCounts?: QueueStatusCounts | null
+  globalStatusCounts?: QueueStatusCounts | null
   oldestWaitingIntakeId?: string | null
   initialStatusFilter?: QueueStatusFilter
   hasExplicitStatusFilter?: boolean
+  initialSearchQuery?: string
+  searchState?: QueueSearchState
   baseHref?: string
   doctorAvailable?: boolean
   compactShell?: boolean

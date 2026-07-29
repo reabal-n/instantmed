@@ -15,6 +15,8 @@ import type { QueueStatusCounts } from "@/lib/doctor/queue-utils"
 import { isEditableOrInteractiveKeyboardTarget } from "@/lib/hooks/use-doctor-shortcuts"
 import { cn } from "@/lib/utils"
 
+import type { QueueSearchState } from "./types"
+
 const pressureClasses: Record<QueuePressureSeverity, { root: string; dot: string; value: string }> = {
   idle: {
     root: "text-muted-foreground",
@@ -49,6 +51,9 @@ export interface QueueFiltersProps {
   onStatusFilterChange: (value: QueueStatusFilter) => void
   statusCounts?: QueueStatusCounts | null
   filteredCount: number
+  searchMatchCount?: number | null
+  searchState?: QueueSearchState
+  isSearchPending?: boolean
   isStale: boolean
   isReconnecting: boolean
   isRefreshing?: boolean
@@ -73,6 +78,9 @@ export function QueueFilters({
   onStatusFilterChange,
   statusCounts = null,
   filteredCount,
+  searchMatchCount = null,
+  searchState = "idle",
+  isSearchPending = false,
   isStale,
   isReconnecting,
   isRefreshing = false,
@@ -82,15 +90,23 @@ export function QueueFilters({
 }: QueueFiltersProps) {
   const searchRef = useRef<HTMLInputElement>(null)
   const hasActiveSearch = searchQuery.trim().length > 0
-  const matchLabel = `${filteredCount} ${filteredCount === 1 ? "match" : "matches"}`
+  const matchLabel = isSearchPending
+    ? "Searching…"
+    : searchState === "unavailable"
+      ? "Search unavailable"
+      : searchState === "too_broad"
+        ? "Narrow your search"
+        : typeof searchMatchCount === "number"
+          ? `${searchMatchCount} ${searchMatchCount === 1 ? "match" : "matches"}`
+          : "Match count unavailable"
   const pressure = getQueuePressureState(oldestWaitingMinutes, QUEUE_WAIT_TARGET_MINUTES)
   const pressureClass = pressureClasses[pressure.severity]
   const openOldest = onOpenOldest ?? onOpenSingleMatch
-  const showNextCaseAction = compactShell && filteredCount > 1 && Boolean(openOldest) && !hasOpenCase
-  // The canonical dashboard always uses the compact shell. Its database page
-  // is not an authoritative patient directory, so do not expose a page-local
-  // search that can report false zeroes. Cross-page lookup belongs to Ledger.
-  const showSearch = !compactShell
+  const showNextCaseAction = compactShell
+    && filteredCount > 1
+    && Boolean(openOldest)
+    && !hasOpenCase
+    && !isSearchPending
 
   // `/` key focuses the search input (standard queue shortcut)
   useEffect(() => {
@@ -154,45 +170,44 @@ export function QueueFilters({
                 <ArrowRight className="ml-1 h-3.5 w-3.5" aria-hidden="true" />
               </Button>
             ) : null}
-            {showSearch ? (
-              <div className="relative flex flex-1 items-center sm:flex-none">
-                <Input
-                  ref={searchRef}
-                  placeholder={compactShell ? "Search patients" : "Search… or / to focus"}
-                  value={searchQuery}
-                  onChange={(e) => onSearchChange(e.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key !== "Enter") return
-                    if (!onOpenSingleMatch || filteredCount !== 1) return
-                    event.preventDefault()
-                    onOpenSingleMatch()
-                  }}
-                  className={cn(
-                    "w-full",
-                    "[&>div]:h-9 [&>div]:min-h-0 [&>div]:border-slate-300 [&>div]:bg-white [&>div]:shadow-sm [&>div]:shadow-primary/[0.03] [&>div]:focus-within:border-primary/45 [&>div]:focus-within:ring-primary/20 dark:[&>div]:bg-card",
-                    "[&_input]:h-9 [&_input]:py-0 [&_input]:text-sm [&_input]:leading-9 [&_input]:placeholder:text-slate-500",
-                    compactShell ? "sm:w-64" : "sm:w-56",
-                  )}
-                  startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
-                  endContent={
-                    searchQuery ? (
-                      <button
-                        type="button"
-                        aria-label="Clear patient search"
-                        className="rounded-full p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:hover:bg-white/10"
-                        onMouseDown={(event) => event.preventDefault()}
-                        onClick={() => {
-                          onSearchChange("")
-                          searchRef.current?.focus()
-                        }}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    ) : null
-                  }
-                />
-              </div>
-            ) : null}
+            <div className="relative flex flex-1 items-center sm:flex-none">
+              <Input
+                ref={searchRef}
+                aria-label="Search active requests"
+                placeholder={compactShell ? "Search name, email or request" : "Search… or / to focus"}
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter") return
+                  if (!onOpenSingleMatch || filteredCount !== 1 || isSearchPending) return
+                  event.preventDefault()
+                  onOpenSingleMatch()
+                }}
+                className={cn(
+                  "w-full",
+                  "[&>div]:h-11 [&>div]:min-h-0 [&>div]:border-slate-300 [&>div]:bg-white [&>div]:shadow-sm [&>div]:shadow-primary/[0.03] [&>div]:focus-within:border-primary/45 [&>div]:focus-within:ring-primary/20 dark:[&>div]:bg-card sm:[&>div]:h-9",
+                  "[&_input]:h-11 [&_input]:py-0 [&_input]:text-sm [&_input]:leading-11 [&_input]:placeholder:text-slate-500 sm:[&_input]:h-9 sm:[&_input]:leading-9",
+                  compactShell ? "sm:w-72" : "sm:w-56",
+                )}
+                startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
+                endContent={
+                  searchQuery ? (
+                    <button
+                      type="button"
+                      aria-label="Clear patient search"
+                      className="rounded-full p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:hover:bg-white/10"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => {
+                        onSearchChange("")
+                        searchRef.current?.focus()
+                      }}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null
+                }
+              />
+            </div>
             <Button
               variant="ghost"
               size="icon"

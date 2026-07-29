@@ -49,6 +49,7 @@ export function buildQueueEmptyState({
   totalCount,
   statusFilter,
   searchQuery,
+  searchState = "idle",
   baseHref,
   recentlyCompleted,
   governanceReceipt,
@@ -61,6 +62,7 @@ export function buildQueueEmptyState({
   totalCount: number
   statusFilter: QueueStatusFilter
   searchQuery: string
+  searchState?: "idle" | "ready" | "unavailable" | "too_broad"
   baseHref: string
   recentlyCompleted: RecentlyCompletedIntake[]
   governanceReceipt: GovernanceReviewReceipt | null
@@ -68,6 +70,26 @@ export function buildQueueEmptyState({
   recentlyCompletedTruncated: boolean
   now: Date
 }): QueueEmptyState {
+  if (searchQuery.trim() && searchState === "unavailable") {
+    return {
+      title: "Search unavailable",
+      description: "The active-request lookup could not be completed. Retry or clear the search before relying on this view.",
+      tone: "warning",
+      actionHref: baseHref,
+      actionLabel: "Clear search",
+      summary: null,
+    }
+  }
+
+  if (searchQuery.trim() && searchState === "too_broad") {
+    return {
+      title: "Narrow your search",
+      description: "Too many patient profiles matched to produce an authoritative request list. Add more of the name, email, or request reference.",
+      tone: "warning",
+      summary: null,
+    }
+  }
+
   if (queueDegraded) {
     return {
       title: "Queue data unavailable",

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import {
   parseQueueStatusFilter,
   type QueueStatusFilter,
+  sanitizeQueueSearchQuery,
   STAFF_DASHBOARD_HREF,
 } from "@/lib/dashboard/routes"
 import {
@@ -25,7 +26,6 @@ import { calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt, get
 import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
 import { isPrescribingConsultSubtype, SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
-import { formatServiceType } from "@/lib/format/intake"
 import { useDebounce } from "@/lib/hooks/use-debounce"
 import { isEditableOrInteractiveKeyboardTarget } from "@/lib/hooks/use-doctor-shortcuts"
 import { useIsDesktop } from "@/lib/hooks/use-media-query"
@@ -205,9 +205,12 @@ export function QueueClient({
   recentlyCompletedDegraded = false,
   recentlyCompletedTruncated = false,
   statusCounts = null,
+  globalStatusCounts = null,
   oldestWaitingIntakeId = null,
   initialStatusFilter = "all",
   hasExplicitStatusFilter = false,
+  initialSearchQuery = "",
+  searchState = "idle",
   baseHref = STAFF_DASHBOARD_HREF,
   doctorAvailable = true,
   compactShell = false,
@@ -269,12 +272,15 @@ export function QueueClient({
     setLastOpenedIntakeId(intakeId)
   }, [])
 
-  const [searchQuery, setSearchQuery] = useState("")
-  const debouncedSearch = useDebounce(searchQuery, 200)
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery)
+  const debouncedSearch = useDebounce(searchQuery, 350)
   const [statusFilter, setStatusFilter] = useState<QueueStatusFilter>(initialStatusFilter)
   const [priorityModeActive, setPriorityModeActive] = useState(false)
   const [isApprovePending, startTransition] = useTransition()
   const [isQueueRefreshPending, startQueueRefreshTransition] = useTransition()
+  const [isQueueSearchPending, startQueueSearchTransition] = useTransition()
+  const queueSearchPending = isQueueSearchPending
+    || sanitizeQueueSearchQuery(searchQuery) !== initialSearchQuery
   const lastQueueRefreshAtRef = useRef(0)
   // Mirror of useQueueRealtime's `isStale` (declared lower) so the blanket
   // safety-refresh interval can gate on realtime health without re-ordering hooks.
@@ -298,6 +304,29 @@ export function QueueClient({
     explicitStatusFilterRef.current = searchParams.has("status") && nextStatus !== "all"
     setStatusFilter(nextStatus)
   }, [searchParams])
+
+  useEffect(() => {
+    setSearchQuery(initialSearchQuery)
+  }, [initialSearchQuery])
+
+  useEffect(() => {
+    const normalizedSearch = sanitizeQueueSearchQuery(debouncedSearch)
+    if (normalizedSearch === initialSearchQuery) return
+
+    const params = new URLSearchParams(window.location.search)
+    if (normalizedSearch) {
+      params.set("q", normalizedSearch)
+    } else {
+      params.delete("q")
+    }
+    params.delete("page")
+
+    const query = params.toString()
+    const hash = window.location.hash || ""
+    startQueueSearchTransition(() => {
+      router.replace(`${query ? `${baseHref}?${query}` : baseHref}${hash}`, { scroll: false })
+    })
+  }, [baseHref, debouncedSearch, initialSearchQuery, router])
 
   const refreshQueue = useCallback((force = false) => {
     if (!force && panelOpenRef.current) return
@@ -373,7 +402,7 @@ export function QueueClient({
     )
     if (hasSlaBreaches && !priorityModeActive && !explicitStatusFilterRef.current) {
       setPriorityModeActive(true)
-      setStatusFilter("review")
+      handleStatusFilterChange("review")
     } else if (!hasSlaBreaches && priorityModeActive) {
       setPriorityModeActive(false)
     }
@@ -478,7 +507,9 @@ export function QueueClient({
       const { nextIntake } = removeCompletedIntakeFromQueue(filteredIntakesRef.current, intakeId)
       const completion = getQueueCompletionOutcome({
         hasNextVisibleCase: Boolean(nextIntake),
-        totalBeforeAction: pagination?.total ?? intakes.length,
+        globalTotalBeforeAction: globalStatusCounts?.all ?? null,
+        activeStatusFilter: statusFilter,
+        queueDegraded,
       })
       setIntakes((prev) => removeCompletedIntakeFromQueue(prev, intakeId).remaining)
       // The row is already gone optimistically and realtime will reconcile the
@@ -494,7 +525,7 @@ export function QueueClient({
       }
       toast.success(completion.message)
     },
-    [intakes.length, pagination?.total, refreshQueue, rememberOpenedCase],
+    [globalStatusCounts?.all, queueDegraded, refreshQueue, rememberOpenedCase, statusFilter],
   )
 
   const handleBatchReviewResolved = useCallback((intakeId: string) => {
@@ -676,53 +707,10 @@ export function QueueClient({
     return sortForReviewNext(intakes)
   }, [intakes])
 
-  // Memoized filter. Previously this chained `.filter` lived bare in the
-  // render body, parsing the search query and walking `rawTokens` for every
-  // row on every render — including 30s clock ticks, hover prefetches, and
-  // every `expandedId` change. The query parsing now happens ONCE per
-  // search-or-filter change, and the row callback only does cheap
-  // attribute checks. Saves the dominant slice of jank on long queues.
-  const filteredIntakes = useMemo(() => {
-    const trimmed = debouncedSearch.trim().toLowerCase()
-    const rawTokens = trimmed ? (trimmed.match(/\w+:\S+/g) ?? []) : []
-    const plainQuery = trimmed ? trimmed.replace(/\w+:\S+/g, "").trim() : ""
-    const plainQueryStripped = plainQuery.replace(/\s+/g, "")
-    return sortedIntakes.filter((r) => {
-      // Status filter
-      if (statusFilter === "review" && !["paid", "in_review"].includes(r.status)) return false
-      if (statusFilter === "pending_info" && r.status !== "pending_info") return false
-      if (statusFilter === "scripts" && r.status !== "awaiting_script") return false
-
-      if (!trimmed) return true
-      const service = r.service as { name?: string; type?: string } | undefined
-
-      for (const token of rawTokens) {
-        const [key, val] = token.split(":") as [string, string]
-        if (key === "risk" || key === "risk_tier") {
-          if ((r.risk_tier ?? "low") !== val && !(val === "high" && hasRedFlags(r))) return false
-        } else if (key === "type") {
-          if (!service?.type?.toLowerCase().includes(val)) return false
-        } else if (key === "status") {
-          if (r.status !== val) return false
-        } else if (key === "priority") {
-          if (val === "true" && !r.is_priority) return false
-          if (val === "false" && r.is_priority) return false
-        } else if (key === "flag" || key === "flags") {
-          if (!hasRedFlags(r)) return false
-        }
-      }
-
-      if (!plainQuery) return true
-      return (
-        r.patient.full_name.toLowerCase().includes(plainQuery) ||
-        r.reference_number?.toLowerCase().includes(plainQuery) ||
-        r.patient.medicare_number?.includes(plainQuery) ||
-        r.patient.email?.toLowerCase().includes(plainQuery) ||
-        r.patient.phone?.replace(/\s+/g, "").includes(plainQueryStripped) ||
-        formatServiceType(service?.type || "").toLowerCase().includes(plainQuery)
-      )
-    })
-  }, [sortedIntakes, debouncedSearch, hasRedFlags, statusFilter])
+  // Status and patient/reference search are applied by `getDoctorQueue`
+  // before pagination. Never re-filter the current page: doing so can report
+  // false zeroes when a matching case exists on another database page.
+  const filteredIntakes = sortedIntakes
 
   // Keep the ref in sync — used by panel navigation callbacks that need
   // the latest filtered list without re-rendering. Effect rather than a
@@ -749,7 +737,8 @@ export function QueueClient({
     queueDegraded,
     totalCount: pagination?.total ?? intakes.length,
     statusFilter,
-    searchQuery: debouncedSearch,
+    searchQuery: initialSearchQuery,
+    searchState,
     baseHref,
     recentlyCompleted,
     governanceReceipt,
@@ -758,7 +747,8 @@ export function QueueClient({
     now: new Date(),
   }), [
     baseHref,
-    debouncedSearch,
+    initialSearchQuery,
+    searchState,
     doctorAvailable,
     intakes.length,
     pagination?.total,
@@ -922,7 +912,10 @@ export function QueueClient({
           </p>
           <button
             className="text-xs text-destructive/70 hover:text-destructive underline underline-offset-2 shrink-0"
-            onClick={() => { setPriorityModeActive(false); setStatusFilter("all") }}
+            onClick={() => {
+              setPriorityModeActive(false)
+              handleStatusFilterChange("all")
+            }}
           >
             Show all
           </button>
@@ -996,15 +989,26 @@ export function QueueClient({
       >
         <QueueFilters
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearchChange={(value) => setSearchQuery(sanitizeQueueSearchQuery(value))}
           onRefresh={() => refreshQueue(true)}
-          onOpenSingleMatch={filteredIntakes.length === 1 ? handleReviewNext : undefined}
+          onOpenSingleMatch={
+            initialSearchQuery
+              && searchState === "ready"
+              && pagination?.total === 1
+              && filteredIntakes.length === 1
+              && !queueSearchPending
+              ? handleReviewNext
+              : undefined
+          }
           onOpenOldest={handleReviewNext}
           hasOpenCase={Boolean(expandedId)}
           statusFilter={statusFilter}
           onStatusFilterChange={handleStatusFilterChange}
           statusCounts={statusCounts}
           filteredCount={filteredIntakes.length}
+          searchMatchCount={initialSearchQuery && searchState === "ready" ? pagination?.total ?? null : null}
+          searchState={searchState}
+          isSearchPending={queueSearchPending}
           isStale={isStale}
           isReconnecting={isReconnecting}
           isRefreshing={isQueueRefreshPending}
@@ -1024,7 +1028,7 @@ export function QueueClient({
           detailClassName="min-h-0"
           list={(
             <div
-              key={`${statusFilter}:${debouncedSearch}`}
+              key={`${statusFilter}:${initialSearchQuery}`}
               className="flex h-full min-h-0 flex-col overflow-hidden"
             >
               <div className="min-h-0 flex-1 overflow-hidden">
@@ -1050,7 +1054,7 @@ export function QueueClient({
                   baseHref={baseHref}
                   emptyState={queueEmptyState}
                   compactShell={compactShell}
-                  searchQuery={debouncedSearch}
+                  searchQuery={initialSearchQuery}
                   newlyArrivedIds={newlyArrivedIds}
                 />
               </div>
@@ -1139,7 +1143,7 @@ export function QueueClient({
             baseHref={baseHref}
             emptyState={queueEmptyState}
             compactShell={compactShell}
-            searchQuery={debouncedSearch}
+            searchQuery={initialSearchQuery}
           />
           {compactShell && filteredIntakes.length === 0 ? (
             <ApprovedTodayList
