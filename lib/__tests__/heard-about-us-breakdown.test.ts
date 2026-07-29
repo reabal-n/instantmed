@@ -16,8 +16,9 @@ function stub(result: { data: unknown; error: unknown }) {
 describe("getHeardAboutUsBreakdown", () => {
   it("returns zeros on a query error", async () => {
     const out = await getHeardAboutUsBreakdown(stub({ data: null, error: { message: "boom" } }))
-    expect(out.answered).toBe(0)
-    expect(out.paidTotal).toBe(0)
+    expect(out.availability).toBe("unavailable")
+    expect(out.answered).toBeNull()
+    expect(out.paidTotal).toBeNull()
     expect(out.rows.every((r) => r.count === 0)).toBe(true)
   })
 
@@ -33,6 +34,7 @@ describe("getHeardAboutUsBreakdown", () => {
         error: null,
       }),
     )
+    expect(out.availability).toBe("available")
     expect(out.paidTotal).toBe(4) // all 4 are live paid orders
     expect(out.answered).toBe(3) // 3 carry an answer
     expect(out.rows[0]).toEqual({ value: "ai", label: "ChatGPT or other AI", count: 2 })

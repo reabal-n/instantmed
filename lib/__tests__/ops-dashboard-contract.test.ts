@@ -170,15 +170,15 @@ describe("ops dashboard data contract", () => {
 
   it("keeps growth attribution owned by analytics instead of ops recovery", () => {
     expect(opsPageSource).not.toContain("getHeardAboutUsBreakdown")
-    expect(opsPageSource).not.toContain("getAiAttributionBreakdown")
+    expect(opsPageSource).not.toContain("getRecordedAttributionBreakdown")
     expect(opsClientSource).not.toContain("How did you hear about us?")
     expect(opsClientSource).not.toContain("AI assistants")
 
     expect(analyticsPageSource).toContain("getHeardAboutUsBreakdown")
-    expect(analyticsPageSource).toContain("getAiAttributionBreakdown")
-    expect(analyticsClientSource).toContain("Where patients came from")
-    expect(analyticsClientSource).toContain("How did you hear about us? (30 days)")
-    expect(analyticsClientSource).toContain("AI assistants")
+    expect(analyticsPageSource).toContain("getRecordedAttributionBreakdown")
+    expect(analyticsClientSource).toContain("Recorded acquisition")
+    expect(analyticsClientSource).toContain("Self-reported discovery")
+    expect(analyticsClientSource).toContain("never merged into recorded attribution")
   })
 
   it("labels the ops feed as open exceptions, not a strict recent window", () => {

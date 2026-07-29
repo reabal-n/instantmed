@@ -258,8 +258,9 @@ describe("admin navigation contract", () => {
     expect(intakesQueriesSource).not.toContain("buildPatientHandoffSummary")
     expect(intakesQueriesSource).not.toContain("getPatientSnapshotOptionsForCase")
     expect(intakesQueriesSource).toContain("projectAdminLedgerPatient")
+    expect(intakesQueriesSource).toContain("projectSupportLedgerPatient")
+    expect(intakesQueriesSource).toContain("SUPPORT_LEDGER_SELECT")
     expect(intakesQueriesSource).toContain("answers: null")
-    expect(intakesQueriesSource).toContain("Do not return raw")
     expect(patientHandoffSource).toContain("Missing doctor handoff fields")
     expect(patientHandoffSource).toContain("Fix before review")
   })
@@ -488,11 +489,11 @@ describe("admin navigation contract", () => {
   })
 
   it("keeps analytics as a compact operator summary instead of a chart workspace", () => {
-    expect(analyticsClientSource).toContain("Revenue")
-    expect(analyticsClientSource).toContain("Where patients came from")
-    expect(analyticsClientSource).toContain("Conversion")
-    expect(analyticsClientSource).toContain("Queue health")
-    expect(analyticsClientSource).toContain("at a glance")
+    expect(analyticsClientSource).toContain("30d net retained")
+    expect(analyticsClientSource).toContain("First-order contribution")
+    expect(analyticsClientSource).toContain("Canonical 30-day start cohort")
+    expect(analyticsClientSource).toContain("Recorded acquisition")
+    expect(analyticsClientSource).toContain("Measurement checkpoints")
     expect(analyticsClientSource).not.toContain("Visits")
     expect(analyticsClientSource).not.toContain("Paid intakes")
     expect(analyticsClientSource).not.toContain("Approval rate")
@@ -503,9 +504,9 @@ describe("admin navigation contract", () => {
     expect(analyticsClientSource).not.toContain("ResponsiveContainer")
     expect(analyticsPageSource).not.toContain("dailyData")
     expect(analyticsPageSource).not.toContain("getDoctorDashboardStats")
-    // Payments folded in: keep the explicit payment-pressure label + refund access.
-    expect(analyticsClientSource).toContain("Failed checkout")
-    expect(analyticsClientSource).toContain("ADMIN_REFUNDS_HREF")
+    expect(analyticsPageSource).toContain("getLatestDeliveredAdsAgentRun")
+    expect(analyticsPageSource).not.toContain("getStripeFeeMap")
+    expect(analyticsPageSource).not.toContain("buildAdsAgentSnapshot")
   })
 
   it("keeps audit history as an ops-owned evidence surface, not a dashboard mode", () => {
