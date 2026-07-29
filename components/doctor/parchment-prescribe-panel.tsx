@@ -493,7 +493,8 @@ export function ParchmentPrescribePanel({
                       // overlay snaps away to a white iframe for ~1s.
                       setTimeout(() => setIframeLoaded(true), 600)
                     }}
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+                    // Parchment's embedded SSO relies on an unsandboxed cross-origin
+                    // frame for AuthSignal, Storage Access, and its Stripe-hosted flow.
                     allow="clipboard-write; publickey-credentials-get *; publickey-credentials-create *"
                     referrerPolicy="strict-origin-when-cross-origin"
                     title="Parchment Prescribing"

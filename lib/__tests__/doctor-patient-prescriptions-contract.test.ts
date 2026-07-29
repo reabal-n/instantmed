@@ -207,6 +207,14 @@ describe("doctor patient medication history contract", () => {
     expect(panelSource).toContain("key={iframeReloadKey}")
   })
 
+  it("keeps the embedded Parchment frame compatible with the vendor SSO contract", () => {
+    expect(panelSource).toContain(
+      'allow="clipboard-write; publickey-credentials-get *; publickey-credentials-create *"',
+    )
+    expect(panelSource).toContain('referrerPolicy="strict-origin-when-cross-origin"')
+    expect(panelSource).not.toMatch(/\bsandbox\s*=/)
+  })
+
   it("routes Parchment identity failures back to patient detail editing", () => {
     expect(panelSource).toContain("canFixParchmentErrorFromPatientProfile")
     expect(panelSource).toContain('error?.startsWith("Missing prescribing details:")')

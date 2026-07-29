@@ -547,6 +547,7 @@ const nextConfig = {
     // child-src: Fallback for older browsers that don't support worker-src
     // NOTE: 'unsafe-eval' is required in dev/test for Next.js HMR and React hydration
     const isDev = process.env.NODE_ENV !== 'production';
+    const parchmentFrameSources = `https://portal.parchment.health${isDev ? ' https://portal.sandbox.parchment.health' : ''}`;
     const standardCSP = [
       "default-src 'self'",
       `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://js.stripe.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://www.googleadservices.com https://www.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://challenges.cloudflare.com https://va.vercel-scripts.com`,
@@ -556,7 +557,7 @@ const nextConfig = {
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://raw.githubusercontent.com https://svgl.app https://api.dicebear.com https://*.googleusercontent.com https://*.gravatar.com https://*.stripe.com https://pagead2.googlesyndication.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.googleadservices.com https://www.google.com https://google.com https://www.google.com.au",
       `connect-src 'self'${isDev ? ' ws://localhost:* http://localhost:*' : ''} https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.google.com https://google.com https://*.google.com.au https://www.googletagmanager.com https://*.googletagmanager.com https://www.googleadservices.com https://*.googleadservices.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://*.sentry.io https://api.resend.com https://challenges.cloudflare.com https://*.posthog.com https://us.i.posthog.com https://accounts.google.com https://pagead2.googlesyndication.com https://*.vercel-insights.com https://va.vercel-scripts.com`,
-      "frame-src 'self' https://js.stripe.com https://www.googletagmanager.com https://challenges.cloudflare.com https://portal.parchment.health",
+      `frame-src 'self' https://js.stripe.com https://www.googletagmanager.com https://challenges.cloudflare.com ${parchmentFrameSources}`,
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self' https://*.supabase.co https://accounts.google.com",
@@ -591,7 +592,7 @@ const nextConfig = {
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://api.dicebear.com https://*.googleusercontent.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.googleadservices.com https://www.google.com https://google.com https://www.google.com.au",
             "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.google.com https://google.com https://*.google.com.au https://www.googletagmanager.com https://*.googletagmanager.com https://www.googleadservices.com https://*.googleadservices.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://*.sentry.io https://*.posthog.com https://us.i.posthog.com https://accounts.google.com https://pagead2.googlesyndication.com https://*.vercel-insights.com https://va.vercel-scripts.com",
-            "frame-src 'self' https://js.stripe.com https://www.googletagmanager.com https://challenges.cloudflare.com https://portal.parchment.health",
+            `frame-src 'self' https://js.stripe.com https://www.googletagmanager.com https://challenges.cloudflare.com ${parchmentFrameSources}`,
             "object-src 'none'",
             "report-uri /api/csp-report",
           ].join("; ")
