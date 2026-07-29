@@ -29,7 +29,7 @@ export function getQueueStatusesForFilter(
   return QUEUE_FILTER_STATUSES[filter]
 }
 
-export type QueueStatusTone = "review" | "info" | "script"
+type QueueStatusTone = "review" | "info" | "script"
 
 export interface QueueStatusCounts {
   all: number
@@ -49,7 +49,7 @@ export interface QueueStatusMeta {
   tone: QueueStatusTone
 }
 
-export type ReviewHistoryStatusTone = "approved" | "declined" | "completed" | "reviewed"
+type ReviewHistoryStatusTone = "approved" | "declined" | "completed" | "reviewed"
 
 export interface ReviewHistoryStatusMeta {
   label: string

@@ -93,7 +93,7 @@ export interface OperationalFailureOverviewInput {
   exactCounts?: Partial<Record<OperationalFailureCategoryId, number>>
 }
 
-export type OperationalFailureCategoryId =
+type OperationalFailureCategoryId =
   | "stripe_webhooks"
   | "email_delivery"
   | "checkout"

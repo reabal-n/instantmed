@@ -72,7 +72,7 @@ export type PatientDirectoryDegradedSource =
   | "requests"
   | "scripts"
 
-export const PATIENT_DIRECTORY_SEARCH_FIELDS = [
+const PATIENT_DIRECTORY_SEARCH_FIELDS = [
   "full_name",
   "email",
   "suburb",

@@ -4,10 +4,7 @@ import { join } from "node:path"
 import { describe, expect, it, vi } from "vitest"
 
 import { ADMIN_LEDGER_PATIENT_SEARCH_FIELDS } from "@/lib/dashboard/admin-ledger-filters"
-import {
-  getPatientDirectoryPage,
-  PATIENT_DIRECTORY_SEARCH_FIELDS,
-} from "@/lib/data/patient-directory"
+import { getPatientDirectoryPage } from "@/lib/data/patient-directory"
 import { getDoctorAccessiblePatientScope } from "@/lib/doctor/patient-access"
 
 const mocks = vi.hoisted(() => ({
@@ -66,8 +63,15 @@ describe("patient directory degraded reads", () => {
     expect(result.degraded).toBe(true)
   })
 
-  it("does not advertise phone search without a queryable encrypted-phone index", () => {
-    expect(PATIENT_DIRECTORY_SEARCH_FIELDS).toEqual(["full_name", "email", "suburb"])
+  it("does not advertise phone search without a queryable encrypted-phone index", async () => {
+    const profiles = createChain({ data: [], error: null, count: 0 })
+    mocks.createServiceRoleClient.mockReturnValue({ from: vi.fn(() => profiles) })
+
+    await getPatientDirectoryPage({ page: 1, search: "sample" })
+
+    expect(profiles.or).toHaveBeenCalledWith(
+      "full_name.ilike.%sample%,email.ilike.%sample%,suburb.ilike.%sample%",
+    )
     expect(ADMIN_LEDGER_PATIENT_SEARCH_FIELDS).toEqual([
       "full_name",
       "email",
