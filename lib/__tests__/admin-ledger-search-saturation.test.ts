@@ -174,3 +174,46 @@ describe("admin ledger patient-search saturation", () => {
     })
   })
 })
+
+describe("doctor queue patient-search boundary", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it("fails closed before querying intakes when the 250-profile cap is saturated", async () => {
+    const harness = createLedgerSearchHarness(250)
+    mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
+    const { getDoctorQueue } = await import("@/lib/data/intakes/queries")
+
+    const result = await getDoctorQueue({ q: "Smith", page: 3, pageSize: 25 })
+
+    expect(harness.tables).toEqual(["profiles"])
+    expect(result).toMatchObject({
+      data: [],
+      total: 0,
+      page: 3,
+      pageSize: 25,
+      statusCounts: null,
+      globalStatusCounts: null,
+      searchState: "too_broad",
+    })
+  })
+
+  it("fails closed without leaking the raw query when patient lookup is unavailable", async () => {
+    const harness = createLedgerSearchHarness(0, { message: "profile search timed out" })
+    mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
+    const { getDoctorQueue } = await import("@/lib/data/intakes/queries")
+
+    const result = await getDoctorQueue({ q: "Patient Smith" })
+
+    expect(harness.tables).toEqual(["profiles"])
+    expect(result).toMatchObject({
+      data: [],
+      total: 0,
+      degraded: true,
+      statusCounts: null,
+      globalStatusCounts: null,
+      searchState: "unavailable",
+    })
+  })
+})

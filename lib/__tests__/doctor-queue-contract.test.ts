@@ -208,7 +208,7 @@ describe("doctor queue production contract", () => {
   })
 
   it("keeps global queue pressure counts scoped and fail-closed", () => {
-    const countsStart = queriesSource.indexOf("const statusCountsPromise")
+    const countsStart = queriesSource.indexOf("const buildStatusCountsPromise")
     const countsEnd = queriesSource.indexOf("let oldestQuery", countsStart)
     const countsBlock = queriesSource.slice(countsStart, countsEnd)
 
@@ -220,14 +220,33 @@ describe("doctor queue production contract", () => {
     expect(countsBlock).toContain("if (onlySeeded) query = query.eq")
     expect(countsBlock).toContain("then(resolveQueueStatusCounts)")
     expect(countsBlock).not.toContain("activeStatuses")
+    expect(countsBlock).toContain("const globalStatusCountsPromise = buildStatusCountsPromise(null)")
+    expect(countsBlock).toContain("? buildStatusCountsPromise(searchOr)")
   })
 
-  it("does not advertise page-local patient search in the compact dashboard queue", () => {
-    const showSearchLine = queueFiltersSource
-      .split("\n")
-      .find((line) => line.includes("const showSearch ="))
+  it("applies the authoritative queue search predicate before count, status, and page range", () => {
+    const queueStart = queriesSource.indexOf("export async function getDoctorQueue")
+    const queueEnd = queriesSource.indexOf("export interface PendingBatchReviewResult", queueStart)
+    const queueBlock = queriesSource.slice(queueStart, queueEnd)
+    const dataStart = queueBlock.indexOf("let dataQuery")
+    const searchOnData = queueBlock.indexOf("dataQuery = dataQuery.or(searchOr)", dataStart)
+    const pageRange = queueBlock.indexOf(".range(offset, offset + pageSize - 1)", dataStart)
 
-    expect(showSearchLine?.trim()).toBe("const showSearch = !compactShell")
+    expect(queriesSource).toContain('const DOCTOR_QUEUE_PATIENT_SEARCH_FIELDS = ["full_name", "email"]')
+    expect(queueBlock).toContain("sanitizeQueueSearchQuery(options?.q)")
+    expect(queueBlock).toContain("buildAdminLedgerSearchOr(searchTerm, matchingPatientIds)")
+    expect(queueBlock).toContain("if (searchOr) {\n        query = query.or(searchOr)")
+    expect(queueBlock).toContain("if (searchPredicate) query = query.or(searchPredicate)")
+    expect(searchOnData).toBeGreaterThan(dataStart)
+    expect(pageRange).toBeGreaterThan(searchOnData)
+    expect(queueBlock).not.toContain("medicare_number.ilike")
+    expect(queueBlock).not.toContain("phone.ilike")
+  })
+
+  it("exposes queue search in the compact cockpit without page-local filtering", () => {
+    expect(queueFiltersSource).toContain('aria-label="Search active requests"')
+    expect(queueClientSource).toContain("const filteredIntakes = sortedIntakes")
+    expect(queueClientSource).toContain("sanitizeQueueSearchQuery(debouncedSearch)")
   })
 
   it("keeps primary mobile queue controls at least 44px tall", () => {

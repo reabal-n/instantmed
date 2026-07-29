@@ -48,6 +48,7 @@ import {
   REQUEST_HREF,
   REQUEST_MED_CERT_HREF,
   REQUEST_REPEAT_SCRIPT_HREF,
+  sanitizeQueueSearchQuery,
   STAFF_DOCTOR_PATIENTS_HREF,
   STAFF_DOCTOR_SCRIPTS_HREF,
   STAFF_DOCTOR_SETTINGS_HREF,
@@ -179,6 +180,9 @@ describe("dashboard route contracts", () => {
       "/dashboard?status=review&page=2&pageSize=25#doctor-queue",
     )
     expect(buildDoctorQueueRedirectHref({ status: "scripts" })).toBe("/dashboard?status=scripts#doctor-queue")
+    expect(buildDoctorQueueRedirectHref({ status: "scripts", q: "  José, Smith  " })).toBe(
+      "/dashboard?status=scripts&q=Jos%C3%A9+Smith#doctor-queue",
+    )
     expect(buildDoctorQueueRedirectHref({ status: "bad", page: "0", pageSize: "999", noise: "x" })).toBe(
       "/dashboard?status=review#doctor-queue",
     )
@@ -190,6 +194,17 @@ describe("dashboard route contracts", () => {
     expect(parseQueueStatusFilter(["scripts", "review"])).toBe("scripts")
     expect(parseQueueStatusFilter("declined")).toBe("all")
     expect(parseQueueStatusFilter(undefined)).toBe("all")
+  })
+
+  it("normalises and bounds queue search state before writing it to staff URLs", () => {
+    expect(sanitizeQueueSearchQuery(['  José (test), +61 400\\"  ', "ignored"])).toBe(
+      "José test +61 400",
+    )
+    expect(sanitizeQueueSearchQuery("a".repeat(120))).toHaveLength(96)
+    expect(buildStaffDashboardHref({ q: "  IM-20260729, ", page: 2 })).toBe(
+      "/dashboard?q=IM-20260729&page=2",
+    )
+    expect(buildStaffDashboardHref({ q: "(,)" })).toBe("/dashboard")
   })
 
   it("normalises malformed dashboard pagination instead of propagating NaN", () => {
@@ -234,12 +249,13 @@ describe("dashboard route contracts", () => {
   it("preserves queue scope when rebuilding an out-of-range dashboard URL", () => {
     expect(buildStaffDashboardHref({
       status: "scripts",
+      q: "Patient Smith",
       page: 2,
       pageSize: 25,
       showTestData: true,
       onlyTestData: true,
       anchor: "doctor-queue",
-    })).toBe("/dashboard?status=scripts&page=2&pageSize=25&showTestData=1&onlyTestData=1#doctor-queue")
+    })).toBe("/dashboard?status=scripts&q=Patient+Smith&page=2&pageSize=25&showTestData=1&onlyTestData=1#doctor-queue")
   })
 
   it("keeps the staff dashboard shell tolerant of optional data gaps", () => {

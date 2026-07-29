@@ -20,7 +20,10 @@ import type {
   AdminIntakeStatusFilterValue,
   AdminWorkLaneFilterValue,
 } from "@/lib/dashboard/admin-work-lanes"
-import type { QueueStatusFilter } from "@/lib/dashboard/routes"
+import {
+  type QueueStatusFilter,
+  sanitizeQueueSearchQuery,
+} from "@/lib/dashboard/routes"
 import { readDashboardQuery } from "@/lib/data/dashboard-read-model"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
@@ -72,6 +75,8 @@ import type {
 
 const logger = createLogger("data-intakes")
 const ADMIN_LEDGER_PATIENT_SEARCH_CANDIDATE_LIMIT = 250
+const DOCTOR_QUEUE_PATIENT_SEARCH_CANDIDATE_LIMIT = 250
+const DOCTOR_QUEUE_PATIENT_SEARCH_FIELDS = ["full_name", "email"] as const
 
 /**
  * Extract the patient's stated medication name from a decrypted intake_answers
@@ -301,17 +306,9 @@ export async function getDoctorQueue(
     allowSeeded?: boolean
     onlySeeded?: boolean
     statusFilter?: QueueStatusFilter
+    q?: string | null
   },
-): Promise<{
-  data: IntakeWithPatient[]
-  total: number
-  page: number
-  pageSize: number
-  degraded?: boolean
-  statusCounts: QueueStatusCounts | null
-  oldestWaitingEnteredAt: string | null
-  oldestWaitingIntakeId: string | null
-}> {
+): Promise<DoctorQueueResult> {
   const supabase = createServiceRoleClient()
   const page = options?.page ?? 1
   const pageSize = Math.min(options?.pageSize ?? 50, 100) // Cap at 100
@@ -320,20 +317,81 @@ export async function getDoctorQueue(
   const onlySeeded = allowSeeded && options?.onlySeeded === true
   const statusFilter = options?.statusFilter ?? "all"
   const activeStatuses = getQueueStatusesForFilter(statusFilter)
+  const searchTerm = sanitizeQueueSearchQuery(options?.q)
+  const defaultSearchState: DoctorQueueSearchState = searchTerm ? "ready" : "idle"
 
   const scope = await getDoctorQueueScope(options?.doctorId, supabase)
   if (scope.paused) {
+    const emptyCounts = { all: 0, review: 0, pending_info: 0, scripts: 0 }
     return {
       data: [],
       total: 0,
       page,
       pageSize,
       degraded: false,
-      statusCounts: { all: 0, review: 0, pending_info: 0, scripts: 0 },
+      statusCounts: emptyCounts,
+      globalStatusCounts: emptyCounts,
+      searchState: defaultSearchState,
       oldestWaitingEnteredAt: null,
       oldestWaitingIntakeId: null,
     }
   }
+
+  let matchingPatientIds: string[] = []
+  if (searchTerm) {
+    const profileSearch = DOCTOR_QUEUE_PATIENT_SEARCH_FIELDS
+      .map((field) => `${field}.ilike.*${searchTerm}*`)
+      .join(",")
+    const { data: profiles, error: profileSearchError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("role", "patient")
+      .or(profileSearch)
+      .limit(DOCTOR_QUEUE_PATIENT_SEARCH_CANDIDATE_LIMIT)
+
+    // A capped result is not an authoritative patient-id boundary. Fail
+    // closed rather than paginating a silently truncated match set.
+    if ((profiles?.length ?? 0) >= DOCTOR_QUEUE_PATIENT_SEARCH_CANDIDATE_LIMIT) {
+      return {
+        data: [],
+        total: 0,
+        page,
+        pageSize,
+        degraded: false,
+        statusCounts: null,
+        globalStatusCounts: null,
+        searchState: "too_broad",
+        oldestWaitingEnteredAt: null,
+        oldestWaitingIntakeId: null,
+      }
+    }
+
+    if (profileSearchError) {
+      logger.warn("Doctor queue patient search could not load", {
+        error: profileSearchError.message,
+      })
+      return {
+        data: [],
+        total: 0,
+        page,
+        pageSize,
+        degraded: true,
+        statusCounts: null,
+        globalStatusCounts: null,
+        searchState: "unavailable",
+        oldestWaitingEnteredAt: null,
+        oldestWaitingIntakeId: null,
+      }
+    }
+
+    matchingPatientIds = (profiles ?? []).flatMap((profile) =>
+      typeof profile.id === "string" ? [profile.id] : [],
+    )
+  }
+
+  const searchOr = searchTerm
+    ? buildAdminLedgerSearchOr(searchTerm, matchingPatientIds)
+    : null
 
   // Count and page-data are independent; build both and run them together so
   // the hottest staff path doesn't pay COUNT latency before data starts. If the
@@ -356,6 +414,9 @@ export async function getDoctorQueue(
       if (onlySeeded) {
         query = query.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
       }
+      if (searchOr) {
+        query = query.or(searchOr)
+      }
 
       const { count, error } = await query
 
@@ -363,7 +424,7 @@ export async function getDoctorQueue(
     },
   })
 
-  const statusCountsPromise = Promise.all(
+  const buildStatusCountsPromise = (searchPredicate: string | null) => Promise.all(
     (["all", "review", "pending_info", "scripts"] as const).map(async (filter) => {
       let query = filterSeededE2EIntakes(supabase
         .from("intakes")
@@ -373,11 +434,20 @@ export async function getDoctorQueue(
 
       if (scope.serviceFilter) query = query.or(scope.serviceFilter)
       if (onlySeeded) query = query.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
+      if (searchPredicate) query = query.or(searchPredicate)
 
       const { count, error } = await query
       return { filter, count: count ?? 0, error }
     }),
   ).then(resolveQueueStatusCounts)
+
+  // Header pressure remains an exact, unsearched queue total. Tabs become
+  // search-scoped while q is active so their counts describe the same result
+  // universe as the paginated rows.
+  const globalStatusCountsPromise = buildStatusCountsPromise(null)
+  const statusCountsPromise = searchOr
+    ? buildStatusCountsPromise(searchOr)
+    : globalStatusCountsPromise
 
   let oldestQuery = filterSeededE2EIntakes(supabase
     .from("intakes")
@@ -442,6 +512,9 @@ export async function getDoctorQueue(
   if (onlySeeded) {
     dataQuery = dataQuery.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
   }
+  if (searchOr) {
+    dataQuery = dataQuery.or(searchOr)
+  }
 
   const dataPromise = dataQuery
     .order("is_priority", { ascending: false })
@@ -451,9 +524,10 @@ export async function getDoctorQueue(
     .order("created_at", { ascending: true })
     .range(offset, offset + pageSize - 1)
 
-  const [countResult, statusCounts, oldestResult, { data, error }] = await Promise.all([
+  const [countResult, statusCounts, globalStatusCounts, oldestResult, { data, error }] = await Promise.all([
     countPromise,
     statusCountsPromise,
+    globalStatusCountsPromise,
     oldestPromise,
     dataPromise,
   ])
@@ -472,6 +546,8 @@ export async function getDoctorQueue(
       pageSize,
       degraded: true,
       statusCounts,
+      globalStatusCounts,
+      searchState: defaultSearchState,
       oldestWaitingEnteredAt,
       oldestWaitingIntakeId,
     }
@@ -526,9 +602,26 @@ export async function getDoctorQueue(
     pageSize,
     degraded: countFallback || scope.degraded,
     statusCounts,
+    globalStatusCounts,
+    searchState: defaultSearchState,
     oldestWaitingEnteredAt,
     oldestWaitingIntakeId,
   }
+}
+
+export type DoctorQueueSearchState = "idle" | "ready" | "unavailable" | "too_broad"
+
+export interface DoctorQueueResult {
+  data: IntakeWithPatient[]
+  total: number
+  page: number
+  pageSize: number
+  degraded?: boolean
+  statusCounts: QueueStatusCounts | null
+  globalStatusCounts: QueueStatusCounts | null
+  searchState: DoctorQueueSearchState
+  oldestWaitingEnteredAt: string | null
+  oldestWaitingIntakeId: string | null
 }
 
 export interface PendingBatchReviewResult {
