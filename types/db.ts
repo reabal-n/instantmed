@@ -338,9 +338,15 @@ export type RecentlyCompletedIntake = Pick<
   "id" | "patient_id" | "status"
 > & {
   activity_at: string
-  activity_provenance: "clinician_decision" | "governance_review"
+  activity_provenance: "clinician_decision"
   patient: Pick<Profile, "full_name">
   service?: Pick<Service, "name" | "short_name" | "type"> | null
+}
+
+/** Identity-free receipt for the signed-in doctor's post-issuance governance work. */
+export interface GovernanceReviewReceipt {
+  certificateCount: number
+  latestActivityAt: string
 }
 
 export interface IntakeWithDetails extends Intake {

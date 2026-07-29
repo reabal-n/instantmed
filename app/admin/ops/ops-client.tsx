@@ -161,7 +161,7 @@ function IssueGroup({
           <p className="mt-1 text-xs text-muted-foreground">{group.detail}</p>
         </div>
         <StatusBadge status={group.issues.some(({ severity }) => severity === "critical") ? "error" : "warning"} size="sm">
-          {group.count} open
+          {group.count} need attention
         </StatusBadge>
       </header>
       <ul className="divide-y divide-border/50">
@@ -237,11 +237,11 @@ export function OpsDashboardClient({ model }: { model: OpsActionModel }) {
     <OperatorPage>
       <OperatorPageHeader
         title="Operations"
-        description="Unresolved payment, fulfilment, identity, delivery, and measurement work."
+        description="Current-state exceptions and bounded recovery signals across payment, fulfilment, identity, delivery, and measurement."
         badge={model.allClear ? (
-          <StatusBadge status="success" size="sm">All clear</StatusBadge>
+          <StatusBadge status="success" size="sm">Scope clear</StatusBadge>
         ) : (
-          <StatusBadge status="error" size="sm">{model.openCount} open</StatusBadge>
+          <StatusBadge status="error" size="sm">{model.openCount} need attention</StatusBadge>
         )}
       />
 
@@ -257,9 +257,9 @@ export function OpsDashboardClient({ model }: { model: OpsActionModel }) {
               <span className="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/60 bg-background text-emerald-700 dark:text-emerald-300">
                 <CheckCircle2 className="h-5 w-5" aria-hidden />
               </span>
-              <h2 className="mt-3 text-base font-semibold text-foreground">No unresolved operational work</h2>
+              <h2 className="mt-3 text-base font-semibold text-foreground">No exceptions in monitored scope</h2>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                All bounded recovery and integrity checks completed without an open exception.
+                Current-state payment and script checks cover all matching records. Identity checks cover the oldest 100 active prescribing requests; email, Parchment, and Ads monitors cover 7 days; certificate delivery covers 14 days.
               </p>
               <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Clock3 className="h-3.5 w-3.5" aria-hidden /> Checked now

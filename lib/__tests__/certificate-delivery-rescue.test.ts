@@ -193,6 +193,42 @@ describe("certificate delivery rescue", () => {
     expect(overview.warningCount).toBe(1)
   })
 
+  it("keeps the full 14-day action total when the rendered case detail is capped", async () => {
+    const secondIntakeId = "12345678-1234-4000-8000-000000000002"
+    const supabase = createRescueSupabaseStub({
+      intakes: [
+        {
+          id: baseEvidence.intakeId,
+          reference_number: "IM-ONE",
+          status: "approved",
+          document_sent_at: null,
+          created_at: "2026-06-29T00:00:00Z",
+          updated_at: "2026-06-29T00:04:00Z",
+          approved_at: "2026-06-29T00:01:00Z",
+          completed_at: null,
+        },
+        {
+          id: secondIntakeId,
+          reference_number: "IM-TWO",
+          status: "approved",
+          document_sent_at: null,
+          created_at: "2026-06-29T00:00:00Z",
+          updated_at: "2026-06-29T00:03:00Z",
+          approved_at: "2026-06-29T00:01:00Z",
+          completed_at: null,
+        },
+      ],
+      issued_certificates: [],
+      email_outbox: [],
+    })
+
+    const overview = await getCertificateDeliveryRescueCases(supabase as never, { limit: 1 })
+
+    expect(overview.cases).toHaveLength(1)
+    expect(overview.actionCount).toBe(2)
+    expect(overview.escalationCount).toBe(2)
+  })
+
   it("recommends resending the secure link when a generated certificate email failed", () => {
     const recommendation = selectCertificateDeliverySupportAction({
       ...baseEvidence,

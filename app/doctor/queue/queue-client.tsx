@@ -27,7 +27,12 @@ import { useDebounce } from "@/lib/hooks/use-debounce"
 import { isEditableOrInteractiveKeyboardTarget } from "@/lib/hooks/use-doctor-shortcuts"
 import { useIsDesktop } from "@/lib/hooks/use-media-query"
 import { cn } from "@/lib/utils"
-import type { IntakeStatus, IntakeWithPatient, RecentlyCompletedIntake } from "@/types/db"
+import type {
+  GovernanceReviewReceipt,
+  IntakeStatus,
+  IntakeWithPatient,
+  RecentlyCompletedIntake,
+} from "@/types/db"
 
 import { updateStatusAction } from "./actions"
 import { QueueFilters } from "./queue-filters"
@@ -123,6 +128,7 @@ const IntakeReviewPanel = dynamic<LazyIntakeReviewPanelProps>(loadIntakeReviewPa
 
 const ApprovedTodayList = dynamic<{
   intakes: RecentlyCompletedIntake[]
+  governanceReceipt?: GovernanceReviewReceipt | null
   className?: string
   historyTruncated?: boolean
 }>(() => import("@/components/doctor/approved-today-list").then((mod) => mod.ApprovedTodayList), {
@@ -136,6 +142,7 @@ function buildQueueEmptyState({
   searchQuery,
   baseHref,
   recentlyCompleted,
+  governanceReceipt,
   recentlyCompletedDegraded,
   recentlyCompletedTruncated,
   now,
@@ -146,6 +153,7 @@ function buildQueueEmptyState({
   searchQuery: string
   baseHref: string
   recentlyCompleted: RecentlyCompletedIntake[]
+  governanceReceipt: GovernanceReviewReceipt | null
   recentlyCompletedDegraded: boolean
   recentlyCompletedTruncated: boolean
   now: Date
@@ -206,6 +214,7 @@ function buildQueueEmptyState({
     summary: buildReviewHistorySummary({
       reviews: recentlyCompleted,
       truncated: recentlyCompletedTruncated,
+      governanceReceipt,
       now,
     }),
   }
@@ -288,6 +297,7 @@ export function QueueClient({
     degraded: false,
   },
   recentlyCompleted = [],
+  governanceReceipt = null,
   recentlyCompletedDegraded = false,
   recentlyCompletedTruncated = false,
   initialStatusFilter = "all",
@@ -838,6 +848,7 @@ export function QueueClient({
     searchQuery: debouncedSearch,
     baseHref,
     recentlyCompleted,
+    governanceReceipt,
     recentlyCompletedDegraded,
     recentlyCompletedTruncated,
     now: new Date(),
@@ -848,6 +859,7 @@ export function QueueClient({
     intakes.length,
     statusFilter,
     recentlyCompleted,
+    governanceReceipt,
     recentlyCompletedDegraded,
     recentlyCompletedTruncated,
   ])
@@ -1140,6 +1152,7 @@ export function QueueClient({
               {/* Day's approved requests at a glance, no separate navigation. */}
               <ApprovedTodayList
                 intakes={recentlyCompleted}
+                governanceReceipt={governanceReceipt}
                 historyTruncated={recentlyCompletedTruncated}
               />
             </div>
@@ -1222,6 +1235,7 @@ export function QueueClient({
           {compactShell && filteredIntakes.length === 0 ? (
             <ApprovedTodayList
               intakes={recentlyCompleted}
+              governanceReceipt={governanceReceipt}
               className="max-h-[min(360px,45vh)]"
               historyTruncated={recentlyCompletedTruncated}
             />

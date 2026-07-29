@@ -129,11 +129,14 @@ function failureIssues(
   return overview.categories.flatMap((category) => {
     if (category.count <= 0) return []
     const categoryRows = overview.recent.filter((item) => item.categoryId === category.id)
+    const isSevenDayMonitor = category.id === "email_delivery" || category.id === "prescription_delivery"
     return [{
       action: "link" as const,
       certificateIntakeId: null,
       count: category.count,
-      detail: `${category.count} open ${category.label.toLowerCase()} ${category.count === 1 ? "exception" : "exceptions"}.`,
+      detail: isSevenDayMonitor
+        ? `${category.count} ${category.label.toLowerCase()} ${category.count === 1 ? "exception" : "exceptions"} in the 7-day monitor.`
+        : `${category.count} open ${category.label.toLowerCase()} ${category.count === 1 ? "exception" : "exceptions"}.`,
       group: FAILURE_GROUP[category.id],
       href: failureHref(category.id, isAdmin),
       id: `failure:${category.id}`,
@@ -270,7 +273,7 @@ function certificateIssues(
   overview: CertificateDeliveryRescueOverview,
   isAdmin: boolean,
 ): OpsActionIssue[] {
-  return overview.cases.flatMap((row) => {
+  const issues = overview.cases.flatMap((row) => {
     if (row.recommendation.action === "none") return []
     const owner: OpsActionIssue["owner"] = row.recommendation.action === "resend_secure_link"
       ? "Support"
@@ -300,6 +303,24 @@ function certificateIssues(
       title: `${row.referenceNumber || `Request ${row.shortIntakeId}`} · certificate delivery`,
     }]
   })
+  const hiddenActionCount = Math.max(0, overview.actionCount - issues.length)
+  if (hiddenActionCount > 0) {
+    issues.push({
+      action: "link",
+      certificateIntakeId: null,
+      count: hiddenActionCount,
+      detail: `${hiddenActionCount} additional certificate delivery ${hiddenActionCount === 1 ? "exception is" : "exceptions are"} outside the detail cap.`,
+      group: "delivery",
+      href: buildStaffLedgerHref({ status: "approved" }),
+      id: "delivery:certificate_detail_overflow",
+      nextAction: "Open Ledger to continue with the remaining delivery work.",
+      occurredAt: null,
+      owner: "Admin",
+      severity: "critical",
+      title: "Additional certificate delivery work",
+    })
+  }
+  return issues
 }
 
 function sortIssues(issues: OpsActionIssue[]): OpsActionIssue[] {
@@ -324,9 +345,10 @@ export function buildOpsActionModel(args: {
   const now = args.now ?? new Date()
   const generatedAt = now.toISOString()
   const certificateActions = certificateIssues(args.certificateDelivery, args.isAdmin)
-  const certificateEscalations = args.certificateDelivery.cases.filter(
-    (row) => row.recommendation.action === "escalate",
-  ).length
+  const certificateEscalations = args.certificateDelivery.escalationCount
+    ?? args.certificateDelivery.cases.filter(
+      (row) => row.recommendation.action === "escalate",
+    ).length
   const issues = [
     ...failureIssues(args.failureOverview, args.isAdmin),
     ...certificateActions,
@@ -399,6 +421,23 @@ export function buildOpsActionModel(args: {
       owner: "Admin",
       severity: "critical",
       title: "Certificate delivery check unavailable",
+    })
+  }
+
+  if (args.certificateDelivery.coverageCapped) {
+    issues.push({
+      action: "link",
+      certificateIntakeId: null,
+      count: 1,
+      detail: "The 14-day certificate delivery monitor reached its candidate cap; a clear state cannot be inferred.",
+      group: "delivery",
+      href: buildStaffLedgerHref({ status: "approved" }),
+      id: "delivery:certificate_coverage_capped",
+      nextAction: "Inspect the full approved certificate cohort in Ledger.",
+      occurredAt: generatedAt,
+      owner: "Admin",
+      severity: "critical",
+      title: "Certificate delivery coverage incomplete",
     })
   }
 

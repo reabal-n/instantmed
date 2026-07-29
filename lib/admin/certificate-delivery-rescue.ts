@@ -90,8 +90,10 @@ interface CertificateDeliveryRescueCase {
 export interface CertificateDeliveryRescueOverview {
   cases: CertificateDeliveryRescueCase[]
   actionCount: number
+  escalationCount?: number
   warningCount: number
   queryFailed: boolean
+  coverageCapped?: boolean
 }
 
 function normalize(value: string | null | undefined): string | null {
@@ -337,6 +339,7 @@ function latestBy<T>(rows: T[], key: (row: T) => string | null | undefined, date
 function summarizeCertificateDeliveryRescueCases(cases: CertificateDeliveryRescueCase[]) {
   return {
     actionCount: cases.filter((row) => row.recommendation.action !== "none").length,
+    escalationCount: cases.filter((row) => row.recommendation.action === "escalate").length,
     warningCount: cases.filter(
       (row) => row.recommendation.action === "none" && row.recommendation.severity === "warning",
     ).length,
@@ -349,6 +352,7 @@ export async function getCertificateDeliveryRescueCases(
 ): Promise<CertificateDeliveryRescueOverview> {
   const days = options.days ?? 14
   const limit = options.limit ?? 12
+  const candidateLimit = Math.max(limit * 4, 24)
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
 
   try {
@@ -375,7 +379,7 @@ export async function getCertificateDeliveryRescueCases(
         .gte("created_at", since),
     )
       .order("updated_at", { ascending: false })
-      .limit(Math.max(limit * 4, 24))
+      .limit(candidateLimit)
 
     if (intakeError) {
       log.warn("Failed to load certificate delivery rescue intakes", { error: intakeError.message })
@@ -472,7 +476,7 @@ export async function getCertificateDeliveryRescueCases(
       (row) => row.created_at,
     )
 
-    const cases = intakeRows
+    const allCases = intakeRows
       .map((intake) => {
         const cert = latestCertByIntake.get(intake.id)
         const certEmail = certEmailByIntake.get(intake.id)
@@ -514,14 +518,15 @@ export async function getCertificateDeliveryRescueCases(
         if (a.sortPriority !== b.sortPriority) return a.sortPriority - b.sortPriority
         return new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime()
       })
-      .slice(0, limit)
-    const summary = summarizeCertificateDeliveryRescueCases(cases)
+    const summary = summarizeCertificateDeliveryRescueCases(allCases)
 
     return {
-      cases,
+      cases: allCases.slice(0, limit),
       actionCount: summary.actionCount,
+      escalationCount: summary.escalationCount,
       warningCount: summary.warningCount,
       queryFailed: false,
+      coverageCapped: intakeRows.length >= candidateLimit,
     }
   } catch (error) {
     log.error(

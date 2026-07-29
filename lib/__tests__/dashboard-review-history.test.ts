@@ -11,6 +11,10 @@ const reviewHistoryUtils = queueUtils as typeof queueUtils & {
   buildReviewHistorySummary?: (input: {
     reviews: Array<{ activity_at: string }>
     truncated: boolean
+    governanceReceipt?: {
+      certificateCount: number
+      latestActivityAt: string
+    } | null
     now: Date
   }) => string
   getReviewHistoryStatusMeta?: (status: string) => ReviewHistoryStatusMeta
@@ -45,5 +49,19 @@ describe("dashboard review history", () => {
       truncated: false,
       now: new Date("2026-07-29T02:00:00.000Z"),
     })).toBe("Your reviews today: 1 · last reviewed 5m ago")
+  })
+
+  it("reports governance as a separate aggregate receipt", () => {
+    expect(reviewHistoryUtils.buildReviewHistorySummary?.({
+      reviews: [{ activity_at: "2026-07-29T01:50:00.000Z" }],
+      truncated: false,
+      governanceReceipt: {
+        certificateCount: 6,
+        latestActivityAt: "2026-07-29T01:55:00.000Z",
+      },
+      now: new Date("2026-07-29T02:00:00.000Z"),
+    })).toBe(
+      "Your reviews today: 1 · last reviewed 10m ago · Governance: 6 auto-issued certificates covered · latest receipt 5m ago",
+    )
   })
 })

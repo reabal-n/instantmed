@@ -186,7 +186,7 @@ Critical paths only — every flow that touches money, auth, or clinical data:
 | Patient portal | Dashboard, intake detail, prescription history |
 | Staff cockpit route ownership | Admin, doctor, and support receive only their canonical nav/routes; support is limited to Operations plus a masked Ledger projection |
 | Business truth | Exact-flow stages cannot produce impossible ordered rates; stage coverage is visible and rates remain withheld below the 90% gate |
-| Operations | The page renders unresolved action groups with owner/age/next action, or exactly one all-clear state—never a wall of zero counters |
+| Operations | The page renders action groups with owner/age/next action, exact totals for durable current-state sources, explicit identity/7-day/14-day labels for bounded monitors, or exactly one scope-clear state—never a wall of zero counters or a global all-clear claim derived from capped rows |
 | Ledger privacy and filtering | Search/status/service/work-lane/quick chips filter on the server; support payloads exclude clinical answers, contact fields, and admin attribution |
 | Mobile clinical review | At 375px the request remains on one page, primary actions are at least 44px tall, Parchment is full-height, and the review is restored in place after close |
 | Script completion gate | `Complete request` is visible but disabled until the server projection reports durable `script_sent`; payment, approval, and Parchment close do not unlock it |

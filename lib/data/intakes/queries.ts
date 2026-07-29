@@ -37,6 +37,7 @@ import { readAnswers, readDoctorNotes, readPatientNoteContent } from "@/lib/secu
 import type { AdminServiceFilterValue } from "@/lib/services/service-presentation"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type {
+  GovernanceReviewReceipt,
   IntakeStatus,
   IntakeWithDetails,
   IntakeWithPatient,
@@ -1283,14 +1284,19 @@ export async function getFormToInboxStats(opts: {
 }
 
 /**
- * Get recently completed intakes for the unified staff cockpit.
- * Keep this projection aligned with the client read model: broad intake or
- * profile fields would otherwise be serialized into the dashboard RSC payload.
+ * Get the signed-in clinician's decisions plus an identity-free aggregate of
+ * post-issuance governance work for the unified staff cockpit. Cohort
+ * governance must never be serialized as a per-patient clinician decision.
  */
 export async function getRecentlyCompletedIntakes(opts: {
   limit?: number
   reviewerId: string
-}): Promise<{ data: RecentlyCompletedIntake[]; degraded: boolean; truncated: boolean }> {
+}): Promise<{
+  data: RecentlyCompletedIntake[]
+  governanceReceipt: GovernanceReviewReceipt | null
+  degraded: boolean
+  truncated: boolean
+}> {
   const supabase = createServiceRoleClient()
   const limit = opts.limit || 8
   const queryLimit = limit + 1
@@ -1319,33 +1325,30 @@ export async function getRecentlyCompletedIntakes(opts: {
 
     const governanceQuery = supabase
       .from("intakes")
-      .select(`
-        id,
-        patient_id,
-        status,
-        batch_reviewed_at,
-        patient:profiles!patient_id(full_name),
-        service:services!service_id(name, type, short_name)
-      `)
+      .select("batch_reviewed_at", { count: "exact" })
       .eq("ai_approved", true)
       .eq("category", "medical_certificate")
       .eq("batch_reviewed_by", opts.reviewerId)
       .gte("batch_reviewed_at", todayStartISO)
       .order("batch_reviewed_at", { ascending: false })
-      .limit(queryLimit)
+      .limit(1)
 
     const [ordinaryResult, governanceResult] = await Promise.all([
       ordinaryQuery,
       governanceQuery,
     ])
 
-    if (ordinaryResult.error || governanceResult.error) {
+    if (
+      ordinaryResult.error ||
+      governanceResult.error ||
+      typeof governanceResult.count !== "number"
+    ) {
       logger.error("Failed to fetch actor-scoped review history", {
         ordinaryError: ordinaryResult.error?.message ?? null,
         governanceError: governanceResult.error?.message ?? null,
       })
       // A partial stream is not a truthful review history.
-      return { data: [], degraded: true, truncated: false }
+      return { data: [], governanceReceipt: null, degraded: true, truncated: false }
     }
 
     type RelatedPatient = RecentlyCompletedIntake["patient"]
@@ -1358,50 +1361,47 @@ export async function getRecentlyCompletedIntakes(opts: {
       service: RelatedService | RelatedService[] | null
     }
     type OrdinaryRow = BaseRow & { reviewed_at: string | null }
-    type GovernanceRow = BaseRow & { batch_reviewed_at: string | null }
-
-    const normalize = (
-      row: BaseRow,
-      activityAt: string | null,
-      activityProvenance: RecentlyCompletedIntake["activity_provenance"],
-    ): RecentlyCompletedIntake | null => {
+    const normalize = (row: OrdinaryRow): RecentlyCompletedIntake | null => {
       const patient = Array.isArray(row.patient) ? row.patient[0] : row.patient
       const service = Array.isArray(row.service) ? row.service[0] : row.service
-      if (!patient || !activityAt) return null
+      if (!patient || !row.reviewed_at) return null
 
       return {
         id: row.id,
         patient_id: row.patient_id,
         status: row.status,
-        activity_at: activityAt,
-        activity_provenance: activityProvenance,
+        activity_at: row.reviewed_at,
+        activity_provenance: "clinician_decision",
         patient,
         service: service ?? null,
       }
     }
 
     const ordinary = ((ordinaryResult.data || []) as unknown as OrdinaryRow[])
-      .map((row) => normalize(row, row.reviewed_at, "clinician_decision"))
+      .map((row) => normalize(row))
       .filter((row): row is RecentlyCompletedIntake => row !== null)
-    const governance = ((governanceResult.data || []) as unknown as GovernanceRow[])
-      .map((row) => normalize(row, row.batch_reviewed_at, "governance_review"))
-      .filter((row): row is RecentlyCompletedIntake => row !== null)
-
-    const merged = [...ordinary, ...governance]
-      .sort((left, right) => {
-        const timestampOrder =
-          new Date(right.activity_at).getTime() - new Date(left.activity_at).getTime()
-        if (timestampOrder !== 0) return timestampOrder
-        return left.id < right.id ? -1 : left.id > right.id ? 1 : 0
+    const governanceCount = governanceResult.count
+    const latestGovernanceAt = (governanceResult.data?.[0] as {
+      batch_reviewed_at?: string | null
+    } | undefined)?.batch_reviewed_at ?? null
+    if (governanceCount > 0 && !latestGovernanceAt) {
+      logger.error("Governance receipt count returned without a receipt timestamp", {
+        governanceCount,
       })
-    const truncated = ordinary.length > limit || governance.length > limit || merged.length > limit
-    const data = merged.slice(0, limit)
+      return { data: [], governanceReceipt: null, degraded: true, truncated: false }
+    }
 
-    return { data, degraded: false, truncated }
+    const truncated = ordinary.length > limit
+    const data = ordinary.slice(0, limit)
+    const governanceReceipt = governanceCount > 0 && latestGovernanceAt
+      ? { certificateCount: governanceCount, latestActivityAt: latestGovernanceAt }
+      : null
+
+    return { data, governanceReceipt, degraded: false, truncated }
   } catch (error) {
     logger.error("Actor-scoped review history query failed", {
       error: toError(error).message,
     })
-    return { data: [], degraded: true, truncated: false }
+    return { data: [], governanceReceipt: null, degraded: true, truncated: false }
   }
 }

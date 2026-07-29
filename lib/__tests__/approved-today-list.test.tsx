@@ -9,15 +9,34 @@ describe("ApprovedTodayList", () => {
     vi.setSystemTime(new Date("2026-07-29T02:00:00.000Z"))
   })
 
-  it("labels approvals as actor-scoped and displays the normalized activity timestamp", () => {
+  it("renders cohort governance as an identity-free aggregate receipt", () => {
+    const html = renderToStaticMarkup(
+      <ApprovedTodayList
+        intakes={[]}
+        governanceReceipt={{
+          certificateCount: 6,
+          latestActivityAt: "2026-07-29T01:55:00.000Z",
+        }}
+      />,
+    )
+
+    expect(html).toContain("Governance receipt")
+    expect(html).toContain("6 auto-issued certificates covered")
+    expect(html).toContain("Aggregate governance record")
+    expect(html).toContain("5m ago")
+    expect(html).not.toContain("Your approvals today")
+    expect(html).not.toContain("patient")
+  })
+
+  it("labels clinician approvals as actor-scoped and displays the decision timestamp", () => {
     const html = renderToStaticMarkup(
       <ApprovedTodayList
         intakes={[{
-          id: "governance-1",
+          id: "decision-1",
           patient_id: "patient-1",
           status: "approved",
           activity_at: "2026-07-29T01:55:00.000Z",
-          activity_provenance: "governance_review",
+          activity_provenance: "clinician_decision",
           patient: { full_name: "Test Patient" },
           service: { name: "Medical certificate", short_name: "Med cert", type: "med_certs" },
         }]}

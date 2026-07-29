@@ -468,7 +468,7 @@ Capability helpers in `lib/auth/staff-capabilities.ts`. Per-doctor capability fl
 |-------|---------------|-----------------|
 | `/dashboard` | Live clinical queue, review, information requests, and same-page prescribing fulfilment | Admin + doctor; actor-scoped completed-today history |
 | `/admin/analytics` | **Business**: net-retained revenue, delivered Ads economics, canonical conversion, acquisition evidence, and measurement checkpoints | Admin only; bounded read-only external analytics reads are allowed, mutations are not |
-| `/admin/ops` | **Operations**: unresolved payment, fulfilment, identity/access, delivery, and measurement action groups—or one all-clear state | Admin + support; no generic metric wall |
+| `/admin/ops` | **Operations**: exact unbounded totals for durable current-state payment/script/refund failures plus explicitly bounded identity, 7-day event/email/Ads, and 14-day certificate-delivery monitors—or one scope-clear state | Admin + support; detail rows may be capped, but caps never become totals or a global all-clear claim |
 | `/admin/intakes` | Server-filtered Ledger for source-record search, audit, and contextual recovery | Admin + support; support receives a masked projection with no clinical answers/contact payload |
 | `/admin/patients` | Compact patient directory and route into the canonical clinical record | Admin + doctor; non-admin doctors are scoped to patients they have touched |
 | `/admin/settings` | **Setup**: configuration entry point, including Doctors and Features | Admin only; recovery tools remain contextual to Operations |

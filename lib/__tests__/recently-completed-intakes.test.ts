@@ -11,6 +11,7 @@ vi.mock("@/lib/supabase/service-role", () => ({
 type QueryResponse = {
   data: Array<Record<string, unknown>>
   error?: { message: string } | null
+  count?: number | null
 }
 
 function createHarness(responses: QueryResponse[]) {
@@ -53,6 +54,7 @@ function createHarness(responses: QueryResponse[]) {
         then: (resolve: (value: unknown) => unknown) => resolve({
           data: response.data,
           error: response.error ?? null,
+          count: response.count ?? null,
         }),
       }
 
@@ -69,6 +71,7 @@ function createFilteringHarness(sourceRows: Array<Record<string, unknown>>) {
     from: vi.fn(() => {
       const calls: Array<[string, ...unknown[]]> = []
       let data = [...sourceRows]
+      let exactCount: number | null = null
       queries.push(calls)
 
       const chain = {
@@ -115,10 +118,23 @@ function createFilteringHarness(sourceRows: Array<Record<string, unknown>>) {
         }),
         limit: vi.fn((value: number) => {
           calls.push(["limit", value])
+          if (calls.some(([method, , options]) => (
+            method === "select" &&
+            typeof options === "object" &&
+            options !== null &&
+            "count" in options &&
+            (options as { count?: string }).count === "exact"
+          ))) {
+            exactCount = data.length
+          }
           data = data.slice(0, value)
           return chain
         }),
-        then: (resolve: (value: unknown) => unknown) => resolve({ data, error: null }),
+        then: (resolve: (value: unknown) => unknown) => resolve({
+          data,
+          error: null,
+          count: exactCount,
+        }),
       }
 
       return chain
@@ -164,7 +180,7 @@ describe("getRecentlyCompletedIntakes", () => {
     })
     const harness = createHarness([
       { data: [manual] },
-      { data: [] },
+      { data: [], count: 0 },
     ])
     mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
 
@@ -180,6 +196,7 @@ describe("getRecentlyCompletedIntakes", () => {
         patient: { full_name: "Patient manual" },
         service: { name: "Medical certificate", short_name: "Med cert", type: "med_certs" },
       }],
+      governanceReceipt: null,
       degraded: false,
       truncated: false,
     })
@@ -244,24 +261,23 @@ describe("getRecentlyCompletedIntakes", () => {
     const { getRecentlyCompletedIntakes } = await import("@/lib/data/intakes/queries")
     const result = await getRecentlyCompletedIntakes({ limit: 8, reviewerId: "doctor-1" })
 
-    expect(result.data.map((review) => review.id)).toEqual([
-      "governance-receipt",
-      "manual-false",
-      "manual-null",
-    ])
+    expect(result.data.map((review) => review.id)).toEqual(["manual-false", "manual-null"])
+    expect(result.governanceReceipt).toEqual({
+      certificateCount: 1,
+      latestActivityAt: "2026-07-29T01:15:00.000Z",
+    })
     expect(result.degraded).toBe(false)
     expect(result.truncated).toBe(false)
   })
 
   it("uses the governance receipt timestamp for the signed-in reviewer", async () => {
-    const governance = row("governance", {
-      reviewed_at: "2026-07-28T22:00:00.000Z",
+    const governance = {
       batch_reviewed_at: "2026-07-29T01:45:00.000Z",
-      ai_approved: true,
-    })
+      patient: { full_name: "Must not be selected" },
+    }
     const harness = createHarness([
       { data: [] },
-      { data: [governance] },
+      { data: [governance], count: 6 },
     ])
     mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
 
@@ -269,18 +285,21 @@ describe("getRecentlyCompletedIntakes", () => {
     const result = await getRecentlyCompletedIntakes({ limit: 8, reviewerId: "doctor-1" })
 
     expect(result).toEqual({
-      data: [{
-        id: "governance",
-        patient_id: "patient-governance",
-        status: "approved",
-        activity_at: "2026-07-29T01:45:00.000Z",
-        activity_provenance: "governance_review",
-        patient: { full_name: "Patient governance" },
-        service: { name: "Medical certificate", short_name: "Med cert", type: "med_certs" },
-      }],
+      data: [],
+      governanceReceipt: {
+        certificateCount: 6,
+        latestActivityAt: "2026-07-29T01:45:00.000Z",
+      },
       degraded: false,
       truncated: false,
     })
+
+    const governanceQuery = harness.queries[1]!
+    const governanceSelect = governanceQuery.find(([method]) => method === "select")
+    expect(normalizeProjection(governanceSelect?.[1])).toBe("batch_reviewed_at")
+    expect(governanceSelect?.[2]).toEqual({ count: "exact" })
+    expect(governanceQuery).toContainEqual(["limit", 1])
+    expect(JSON.stringify(governanceQuery)).not.toContain("patient")
   })
 
   it.each([
@@ -299,7 +318,7 @@ describe("getRecentlyCompletedIntakes", () => {
     vi.setSystemTime(new Date(now))
     const harness = createHarness([
       { data: [] },
-      { data: [] },
+      { data: [], count: 0 },
     ])
     mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
 
@@ -310,19 +329,19 @@ describe("getRecentlyCompletedIntakes", () => {
     expect(harness.queries[1]).toContainEqual(["gte", "batch_reviewed_at", expectedStart])
   })
 
-  it("interleaves both streams before applying the cap with a stable id tie-break", async () => {
+  it("caps clinician decisions independently while preserving the exact governance count", async () => {
     const harness = createHarness([
       {
         data: [
+          row("manual-newest", { reviewed_at: "2026-07-29T03:00:00.000Z" }),
           row("manual-z", { reviewed_at: "2026-07-29T02:00:00.000Z" }),
           row("manual-a", { reviewed_at: "2026-07-29T01:00:00.000Z" }),
+          row("manual-oldest", { reviewed_at: "2026-07-29T00:30:00.000Z" }),
         ],
       },
       {
-        data: [
-          row("governance-b", { batch_reviewed_at: "2026-07-29T02:00:00.000Z" }),
-          row("governance-newest", { batch_reviewed_at: "2026-07-29T03:00:00.000Z" }),
-        ],
+        data: [{ batch_reviewed_at: "2026-07-29T03:00:00.000Z" }],
+        count: 7,
       },
     ])
     mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
@@ -331,13 +350,17 @@ describe("getRecentlyCompletedIntakes", () => {
     const result = await getRecentlyCompletedIntakes({ limit: 3, reviewerId: "doctor-1" })
 
     expect(result.data.map((intake) => intake.id)).toEqual([
-      "governance-newest",
-      "governance-b",
+      "manual-newest",
       "manual-z",
+      "manual-a",
     ])
+    expect(result.governanceReceipt).toEqual({
+      certificateCount: 7,
+      latestActivityAt: "2026-07-29T03:00:00.000Z",
+    })
     expect(result.truncated).toBe(true)
     expect(harness.queries[0]).toContainEqual(["limit", 4])
-    expect(harness.queries[1]).toContainEqual(["limit", 4])
+    expect(harness.queries[1]).toContainEqual(["limit", 1])
   })
 
   it.each([
@@ -345,7 +368,7 @@ describe("getRecentlyCompletedIntakes", () => {
       name: "ordinary decision query",
       responses: [
         { data: [], error: { message: "ordinary failed" } },
-        { data: [row("governance", { batch_reviewed_at: "2026-07-29T03:00:00.000Z" })] },
+        { data: [{ batch_reviewed_at: "2026-07-29T03:00:00.000Z" }], count: 1 },
       ],
     },
     {
@@ -362,6 +385,7 @@ describe("getRecentlyCompletedIntakes", () => {
     const { getRecentlyCompletedIntakes } = await import("@/lib/data/intakes/queries")
     await expect(getRecentlyCompletedIntakes({ limit: 8, reviewerId: "doctor-1" })).resolves.toEqual({
       data: [],
+      governanceReceipt: null,
       degraded: true,
       truncated: false,
     })

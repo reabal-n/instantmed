@@ -73,10 +73,15 @@ export function getReviewHistoryStatusMeta(status: string): ReviewHistoryStatusM
 export function buildReviewHistorySummary({
   reviews,
   truncated,
+  governanceReceipt = null,
   now,
 }: {
   reviews: Array<{ activity_at: string }>
   truncated: boolean
+  governanceReceipt?: {
+    certificateCount: number
+    latestActivityAt: string
+  } | null
   now: Date
 }): string {
   const lastReviewed = reviews
@@ -86,10 +91,17 @@ export function buildReviewHistorySummary({
   const countSummary = truncated
     ? `${reviews.length}+ reviews recorded today · latest ${reviews.length} shown`
     : `Your reviews today: ${reviews.length}`
-  if (!lastReviewed) return countSummary
+  const reviewRelative = lastReviewed ? formatRelativeTime(lastReviewed, now) : ""
+  const reviewSummary = reviewRelative
+    ? `${countSummary} · last reviewed ${reviewRelative}`
+    : countSummary
+  if (!governanceReceipt || governanceReceipt.certificateCount <= 0) return reviewSummary
 
-  const relative = formatRelativeTime(lastReviewed, now)
-  return relative ? `${countSummary} · last reviewed ${relative}` : countSummary
+  const governanceRelative = formatRelativeTime(governanceReceipt.latestActivityAt, now)
+  const governanceSummary = `Governance: ${governanceReceipt.certificateCount} auto-issued certificate${governanceReceipt.certificateCount === 1 ? "" : "s"} covered`
+  return governanceRelative
+    ? `${reviewSummary} · ${governanceSummary} · latest receipt ${governanceRelative}`
+    : `${reviewSummary} · ${governanceSummary}`
 }
 
 /**

@@ -14,9 +14,9 @@ async function readOpenCount(group: Locator): Promise<number> {
   if (await group.count() === 0) return 0
 
   await expect(group).toHaveCount(1)
-  const label = await group.getByText(/^\d+ open$/).textContent()
-  const match = label?.match(/^(\d+) open$/)
-  expect(match, `Expected an open-count badge, received "${label ?? ""}"`).not.toBeNull()
+  const label = await group.getByText(/^\d+ need attention$/).textContent()
+  const match = label?.match(/^(\d+) need attention$/)
+  expect(match, `Expected an attention-count badge, received "${label ?? ""}"`).not.toBeNull()
   return Number(match![1])
 }
 
@@ -42,7 +42,7 @@ test.describe("Ops Index Page", () => {
     await page.waitForLoadState("networkidle")
 
     await expect(page.getByRole("heading", { name: "Operations" })).toBeVisible({ timeout: 10_000 })
-    await expect(page.getByText("Unresolved payment, fulfilment, identity, delivery, and measurement work.")).toBeVisible()
+    await expect(page.getByText("Current-state exceptions and bounded recovery signals across payment, fulfilment, identity, delivery, and measurement.")).toBeVisible()
 
     const allClearCount = await page.locator("[data-ops-all-clear]").count()
     const actionGroupCount = await page.locator("[data-ops-action-group]").count()
@@ -110,7 +110,7 @@ test.describe("Ops Index Page", () => {
 
       await expect(paymentsGroup).toBeVisible()
       await expect(
-        paymentsGroup.getByText(`${baselineOpenCount + 1} open`, { exact: true }),
+        paymentsGroup.getByText(`${baselineOpenCount + 1} need attention`, { exact: true }),
       ).toBeVisible()
 
       const recoveryLink = paymentsGroup.locator(

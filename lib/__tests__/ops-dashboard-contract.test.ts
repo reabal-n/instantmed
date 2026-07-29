@@ -155,12 +155,24 @@ describe("ops dashboard data contract", () => {
 
   it("renders only unresolved grouped work and one honest all-clear state", () => {
     expect(opsClientSource).toContain("model.groups.map")
-    expect(opsClientSource).toContain("No unresolved operational work")
+    expect(opsClientSource).toContain("No exceptions in monitored scope")
+    expect(opsClientSource).toContain("Current-state payment and script checks cover all matching records")
+    expect(opsClientSource).toContain("Identity checks cover the oldest 100 active prescribing requests")
+    expect(opsClientSource).toContain("email, Parchment, and Ads monitors cover 7 days; certificate delivery covers 14 days")
+    expect(opsClientSource).not.toContain("No unresolved operational work")
     expect(opsClientSource).toContain("owner")
     expect(opsClientSource).toContain("formatAge")
     expect(opsClientSource).not.toContain("CounterCard")
     expect(opsClientSource).not.toContain("Certificate delivery rescue")
     expect(opsClientSource).not.toContain("Integrity (weekly invariants)")
+  })
+
+  it("uses exact totals for durable unresolved states instead of detail-window lengths", () => {
+    expect(opsPageSource.match(/count: "exact"/g)?.length ?? 0).toBeGreaterThanOrEqual(8)
+    expect(opsPageSource).toContain("totalCount")
+    expect(opsPageSource).toContain("exactCounts")
+    expect(opsPageSource).not.toContain('.gte("updated_at", weekAgo.toISOString())')
+    expect(opsPageSource).not.toContain('.gte("created_at", weekAgo.toISOString())\n      .order("updated_at"')
   })
 
   it("keeps Parchment and identity work in explicit owner groups", () => {
@@ -185,7 +197,7 @@ describe("ops dashboard data contract", () => {
   })
 
   it("does not describe the action inbox as a misleading recent-event feed", () => {
-    expect(opsClientSource).toContain("Unresolved payment, fulfilment, identity, delivery, and measurement work")
+    expect(opsClientSource).toContain("Current-state exceptions and bounded recovery signals")
     expect(opsClientSource).not.toContain("Open exception feed")
     expect(opsClientSource).not.toContain("Recent (7 days)")
   })

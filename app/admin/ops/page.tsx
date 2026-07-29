@@ -67,19 +67,22 @@ type StripeDlqRow = {
 interface RowRead<T> {
   data: T[]
   queryFailure: string | null
+  totalCount: number
 }
 
 async function readRows<T>(
   label: string,
-  query: PromiseLike<{ data: T[] | null; error: unknown }>,
+  query: PromiseLike<{ count: number | null; data: T[] | null; error: unknown }>,
 ): Promise<RowRead<T>> {
   try {
     const result = await query
     return result.error
-      ? { data: [], queryFailure: label }
-      : { data: result.data ?? [], queryFailure: null }
+      ? { data: [], queryFailure: label, totalCount: 0 }
+      : result.count === null
+        ? { data: result.data ?? [], queryFailure: `${label} count`, totalCount: 0 }
+        : { data: result.data ?? [], queryFailure: null, totalCount: result.count }
   } catch {
-    return { data: [], queryFailure: label }
+    return { data: [], queryFailure: label, totalCount: 0 }
   }
 }
 
@@ -119,35 +122,37 @@ export default async function OpsDashboardPage() {
   ] = await Promise.all([
     readRows<StripeDlqRow>("Stripe webhook DLQ", supabase
       .from("stripe_webhook_dead_letter")
-      .select("id, created_at, event_type")
+      .select("id, created_at, event_type", { count: "exact" })
       .is("resolved_at", null)
       .order("created_at", { ascending: false })
       .limit(20)),
     readRows<EmailFailureRow>("email delivery", supabase
       .from("email_outbox")
-      .select("id, email_type, status, error_message, delivery_status, created_at")
+      .select("id, email_type, status, error_message, delivery_status, created_at", { count: "exact" })
       .or("status.eq.failed,delivery_status.eq.bounced,delivery_status.eq.complained")
       .gte("created_at", weekAgo.toISOString())
       .order("created_at", { ascending: false })
       .limit(50)),
     readRows<CheckoutFailureRow>("checkout failures", supabase
       .from("intakes")
-      .select("id, created_at, updated_at, category, subtype, checkout_error")
+      .select("id, created_at, updated_at, category, subtype, checkout_error", { count: "exact" })
       .eq("status", "checkout_failed")
-      .gte("updated_at", weekAgo.toISOString())
       .order("updated_at", { ascending: false })
       .limit(20)),
     readRows<AuditRow>("Parchment webhooks", supabase
       .from("audit_logs")
-      .select("id, action, created_at, metadata")
+      .select("id, action, created_at, metadata", { count: "exact" })
       .eq("action", "webhook_failed")
       .gte("created_at", weekAgo.toISOString())
+      .contains("metadata", { eventType: "parchment:prescription.created" })
+      .not("metadata", "cs", JSON.stringify({ error: "no_awaiting_script_intake" }))
+      .not("metadata", "cs", JSON.stringify({ error: "patient_not_found" }))
       .not("metadata", "cs", JSON.stringify({ parchment_patient_id: "nonexistent-parchment-patient" }))
       .order("created_at", { ascending: false })
       .limit(50)),
     readRows<StaleScriptRow>("stale script handoffs", supabase
       .from("intakes")
-      .select("id, created_at, updated_at, approved_at, category, subtype, status")
+      .select("id, created_at, updated_at, approved_at, category, subtype, status", { count: "exact" })
       .eq("status", "awaiting_script")
       .eq("payment_status", "paid")
       .lt("updated_at", fortyEightHoursAgo.toISOString())
@@ -155,7 +160,7 @@ export default async function OpsDashboardPage() {
       .limit(20)),
     readRows<StaleScriptRow>("approved prescription handoffs", supabase
       .from("intakes")
-      .select("id, created_at, updated_at, approved_at, category, subtype, status")
+      .select("id, created_at, updated_at, approved_at, category, subtype, status", { count: "exact" })
       .eq("status", "approved")
       .eq("payment_status", "paid")
       .eq("script_sent", false)
@@ -166,7 +171,7 @@ export default async function OpsDashboardPage() {
       .limit(20)),
     readRows<StaleScriptRow>("approved consult script handoffs", supabase
       .from("intakes")
-      .select("id, created_at, updated_at, approved_at, category, subtype, status")
+      .select("id, created_at, updated_at, approved_at, category, subtype, status", { count: "exact" })
       .eq("status", "approved")
       .eq("payment_status", "paid")
       .eq("script_sent", false)
@@ -178,7 +183,7 @@ export default async function OpsDashboardPage() {
       .limit(20)),
     readRows<RefundFailureRow>("refund failures", supabase
       .from("payments")
-      .select("id, intake_id, created_at, updated_at, refund_reason")
+      .select("id, intake_id, created_at, updated_at, refund_reason", { count: "exact" })
       .eq("refund_status", "failed")
       .order("updated_at", { ascending: false })
       .limit(20)),
@@ -225,7 +230,18 @@ export default async function OpsDashboardPage() {
       ...staleApprovedConsultScriptIntakes.data,
     ],
     stripeDlq: webhookDlq.data,
+    exactCounts: {
+      checkout: checkoutFailures.totalCount,
+      prescription_delivery: prescriptionWebhookFailures.totalCount,
+      refund_failures: refundFailures.totalCount,
+      stale_scripts:
+        staleScriptIntakes.totalCount
+        + staleApprovedPrescriptionIntakes.totalCount
+        + staleApprovedConsultScriptIntakes.totalCount,
+      stripe_webhooks: webhookDlq.totalCount,
+    },
   })
+  const boundedEmailDetailWasCapped = emailFailures.totalCount > emailFailures.data.length
   const sourceQueryFailures = [
     webhookDlq,
     emailFailures,
@@ -236,6 +252,9 @@ export default async function OpsDashboardPage() {
     staleApprovedConsultScriptIntakes,
     refundFailures,
   ].flatMap(({ queryFailure }) => queryFailure ? [queryFailure] : [])
+  if (boundedEmailDetailWasCapped) {
+    sourceQueryFailures.push("email delivery monitor detail cap")
+  }
   const model = buildOpsActionModel({
     certificateDelivery,
     failureOverview,

@@ -131,6 +131,31 @@ describe("operations action model", () => {
     expect(JSON.stringify(model)).not.toContain("IM-HEALTHY")
   })
 
+  it("fails closed when certificate detail or candidate coverage is capped", () => {
+    const model = buildOpsActionModel(input({
+      certificateDelivery: {
+        actionCount: 3,
+        coverageCapped: true,
+        queryFailed: false,
+        warningCount: 0,
+        cases: [{
+          intakeId: "visible",
+          shortIntakeId: "visible",
+          referenceNumber: "IM-VISIBLE",
+          recommendation: { action: "escalate", label: "Escalate", reason: "Missing certificate", severity: "critical" },
+          updatedAt: "2026-07-28T00:00:00.000Z",
+        }] as never,
+      },
+    }))
+
+    const issues = model.groups.flatMap(({ issues: groupIssues }) => groupIssues)
+    expect(model.allClear).toBe(false)
+    expect(issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: "delivery:certificate_detail_overflow", count: 2 }),
+      expect.objectContaining({ id: "delivery:certificate_coverage_capped" }),
+    ]))
+  })
+
   it("never reports all clear when a source or invariant check failed", () => {
     const model = buildOpsActionModel(input({
       invariants: {
@@ -151,6 +176,26 @@ describe("operations action model", () => {
       expect.objectContaining({ title: "Operational checks unavailable" }),
       expect.objectContaining({ title: "Operations data incomplete" }),
     ]))
+  })
+
+  it("labels bounded event monitors instead of presenting them as globally unresolved", () => {
+    const model = buildOpsActionModel(input({
+      failureOverview: failureOverview({
+        emailFailures: [{ id: "email", created_at: "2026-07-28T00:00:00.000Z" }],
+        prescriptionWebhookFailures: [{
+          id: "parchment",
+          action: "webhook_failed",
+          created_at: "2026-07-28T00:00:00.000Z",
+          metadata: { eventType: "parchment:prescription.created" },
+        }],
+      }),
+    }))
+
+    const issues = model.groups.flatMap(({ issues: groupIssues }) => groupIssues)
+    expect(issues.find(({ id }) => id === "failure:email_delivery")?.detail).toContain("7-day monitor")
+    expect(issues.find(({ id }) => id === "failure:prescription_delivery")?.detail).toContain("7-day monitor")
+    expect(issues.filter(({ id }) => id.includes("email_delivery") || id.includes("prescription_delivery")))
+      .toSatisfy((boundedIssues: typeof issues) => boundedIssues.every(({ detail }) => !detail.includes("open")))
   })
 
   it("uses support-safe links instead of admin-only request, email, and refund routes", () => {
