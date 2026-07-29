@@ -699,14 +699,10 @@ export async function getAllIntakesForAdmin(
       .or(profileSearch)
       .limit(ADMIN_LEDGER_PATIENT_SEARCH_CANDIDATE_LIMIT)
 
-    if (profileSearchError) {
-      patientSearchUnavailable = true
-      logger.warn("Admin ledger patient search could not load", {
-        error: profileSearchError.message,
-      })
-      // Hitting the query cap means more matching profiles may exist. Do not use
-      // a partial patient-id set to produce an authoritative-looking ledger.
-    } else if ((profiles?.length ?? 0) >= ADMIN_LEDGER_PATIENT_SEARCH_CANDIDATE_LIMIT) {
+    // Hitting the query cap means more matching profiles may exist. Saturation
+    // wins even if Supabase also reports an error: either signal makes the
+    // candidate set unsafe to use as an authoritative patient-id boundary.
+    if ((profiles?.length ?? 0) >= ADMIN_LEDGER_PATIENT_SEARCH_CANDIDATE_LIMIT) {
       return {
         data: [],
         total: null,
@@ -716,6 +712,11 @@ export async function getAllIntakesForAdmin(
         patientSearchUnavailable: false,
         patientSearchSaturated: true,
       }
+    } else if (profileSearchError) {
+      patientSearchUnavailable = true
+      logger.warn("Admin ledger patient search could not load", {
+        error: profileSearchError.message,
+      })
     } else {
       matchingPatientIds = (profiles ?? []).flatMap((profile) =>
         typeof profile.id === "string" ? [profile.id] : [],

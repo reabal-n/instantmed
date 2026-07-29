@@ -33,6 +33,7 @@ import { STAFF_DOCTOR_PATIENTS_HREF } from "@/lib/dashboard/routes"
 import type { PatientDirectoryProfile } from "@/lib/data/patient-directory"
 import {
   buildPatientDirectoryHref,
+  createPatientDirectoryNavigationCoordinator,
   type PatientDirectorySort,
 } from "@/lib/data/patient-directory-sort"
 import { findPotentialDuplicatePatients } from "@/lib/doctor/patient-snapshot"
@@ -133,27 +134,43 @@ export function PatientsListClient({
   const router = useRouter()
   const initialSearch = normalizeDirectorySearchQuery(initialSearchQuery)
   const [searchQuery, setSearchQuery] = useState(initialSearch)
+  const [currentSort, setCurrentSort] = useState(initialSort)
   const [exceptionFilter, setExceptionFilter] = useState<ExceptionFilter>("all")
+  const directoryNavigation = useMemo(
+    () => createPatientDirectoryNavigationCoordinator({
+      initialSort,
+      navigate: (href) => router.replace(href, { scroll: false }),
+    }),
+    [initialSort, router],
+  )
 
   useEffect(() => {
     setSearchQuery(initialSearch)
   }, [initialSearch])
 
   useEffect(() => {
+    setCurrentSort(initialSort)
+    directoryNavigation.setSort(initialSort)
+  }, [directoryNavigation, initialSort])
+
+  useEffect(() => (
+    () => directoryNavigation.cancelPendingSearch()
+  ), [directoryNavigation])
+
+  useEffect(() => {
     const normalizedSearch = normalizeDirectorySearchQuery(searchQuery)
-    if (normalizedSearch === initialSearch) return
+    if (normalizedSearch === initialSearch) {
+      directoryNavigation.cancelPendingSearch()
+      return
+    }
 
-    const handle = window.setTimeout(() => {
-      router.replace(buildPatientDirectoryHref({
-        baseHref,
-        page: 1,
-        search: normalizedSearch,
-        sort: initialSort,
-      }), { scroll: false })
-    }, 350)
+    directoryNavigation.scheduleSearch({
+      baseHref,
+      search: normalizedSearch,
+    })
 
-    return () => window.clearTimeout(handle)
-  }, [baseHref, initialSearch, initialSort, router, searchQuery])
+    return () => directoryNavigation.cancelPendingSearch()
+  }, [baseHref, directoryNavigation, initialSearch, searchQuery])
 
   const duplicateGroups = useMemo(
     () => findPotentialDuplicatePatients(patients),
@@ -197,17 +214,17 @@ export function PatientsListClient({
       baseHref,
       page,
       search: searchQuery,
-      sort: initialSort,
+      sort: currentSort,
     }))
   }
 
   const handleSortChange = (sort: PatientDirectorySort) => {
-    router.replace(buildPatientDirectoryHref({
+    setCurrentSort(sort)
+    directoryNavigation.changeSort({
       baseHref,
-      page: 1,
       search: searchQuery,
       sort,
-    }), { scroll: false })
+    })
   }
 
   return (
@@ -235,7 +252,7 @@ export function PatientsListClient({
               </div>
               <div className="w-full sm:w-44">
                 <Select
-                  value={initialSort}
+                  value={currentSort}
                   onValueChange={(value) => handleSortChange(value as PatientDirectorySort)}
                 >
                   <SelectTrigger

@@ -63,3 +63,46 @@ Complete. Patient-directory sorting is database-global and URL-mirrored for `new
 ## Concerns
 
 - None blocking. Visual/browser interaction proof remains for the integrated Task 5 verification lane.
+
+## Post-review remediation
+
+Two Important review findings were corrected on the same branch.
+
+### Debounced search versus sort race
+
+- Added a small client-safe navigation coordinator used by the patient-directory component.
+- The current sort is locally authoritative while navigation is pending.
+- Changing sort cancels the pending search timeout, includes the current search text, resets page to 1, and navigates once with the newly selected sort.
+- Pagination reads the locally current sort.
+
+RED:
+
+- `pnpm test run lib/__tests__/patient-directory-sort.test.ts`
+  - Failed with `createPatientDirectoryNavigationCoordinator is not a function`.
+
+GREEN:
+
+- The fake-timer interaction test schedules a search, changes sort before 350 ms, verifies exactly one `q=Ada+Lovelace&sort=name` navigation, advances the timer, and verifies no stale navigation fires.
+
+### Profile error plus saturated cap
+
+- The candidate-count check now runs before the profile-query error branch.
+- A response containing both an error and 250 profile rows fails closed as saturated before any intake query.
+- A separate 249-row error fixture preserves the existing degraded fallback to request-reference/ID search.
+
+RED:
+
+- `pnpm test run lib/__tests__/admin-ledger-search-saturation.test.ts`
+  - The error-plus-250 fixture failed because the query continued to `profiles, intakes, intakes`.
+
+GREEN:
+
+- Error plus 250 now queries `profiles` only and returns `patientSearchSaturated: true`.
+- Error plus 249 continues to both intake queries with `degraded: true`, `patientSearchUnavailable: true`, and `patientSearchSaturated: false`.
+
+### Post-review verification
+
+- Full focused/adjacent Task 3 matrix: 16 files, 130 tests passed.
+- `pnpm typecheck`: passed.
+- Targeted ESLint with `--max-warnings 0`: passed.
+- `git diff --check`: passed.

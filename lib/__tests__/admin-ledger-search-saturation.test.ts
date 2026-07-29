@@ -8,7 +8,10 @@ vi.mock("@/lib/supabase/service-role", () => ({
   createServiceRoleClient: mocks.createServiceRoleClient,
 }))
 
-function createLedgerSearchHarness(profileCount: number) {
+function createLedgerSearchHarness(
+  profileCount: number,
+  profileError: { message: string } | null = null,
+) {
   const tables: string[] = []
   const intakeCalls: Array<Array<[string, ...unknown[]]>> = []
   const profiles = Array.from({ length: profileCount }, (_, index) => ({
@@ -23,7 +26,7 @@ function createLedgerSearchHarness(profileCount: number) {
           select: vi.fn(() => profileQuery),
           eq: vi.fn(() => profileQuery),
           or: vi.fn(() => profileQuery),
-          limit: vi.fn(async () => ({ data: profiles, error: null })),
+          limit: vi.fn(async () => ({ data: profiles, error: profileError })),
         }
         return profileQuery
       }
@@ -103,6 +106,50 @@ describe("admin ledger patient-search saturation", () => {
       page: 4,
       pageSize: 50,
       patientSearchSaturated: true,
+    })
+  })
+
+  it("lets saturation win when the capped profile response also reports an error", async () => {
+    const harness = createLedgerSearchHarness(250, { message: "profile search timed out" })
+    mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
+    const { getAllIntakesForAdmin } = await import("@/lib/data/intakes/queries")
+
+    const result = await getAllIntakesForAdmin({
+      viewerRole: "admin",
+      q: "Smith",
+      page: 1,
+      pageSize: 50,
+    })
+
+    expect(harness.tables).toEqual(["profiles"])
+    expect(result).toMatchObject({
+      data: [],
+      total: null,
+      degraded: false,
+      patientSearchUnavailable: false,
+      patientSearchSaturated: true,
+    })
+  })
+
+  it("preserves the under-cap profile-error fallback to request reference search", async () => {
+    const harness = createLedgerSearchHarness(249, { message: "profile search timed out" })
+    mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
+    const { getAllIntakesForAdmin } = await import("@/lib/data/intakes/queries")
+
+    const result = await getAllIntakesForAdmin({
+      viewerRole: "admin",
+      q: "IM-20260729",
+      page: 1,
+      pageSize: 50,
+    })
+
+    expect(harness.tables).toEqual(["profiles", "intakes", "intakes"])
+    expect(result).toMatchObject({
+      data: [],
+      total: 0,
+      degraded: true,
+      patientSearchUnavailable: true,
+      patientSearchSaturated: false,
     })
   })
 
