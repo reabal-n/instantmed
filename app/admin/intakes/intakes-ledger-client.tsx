@@ -136,7 +136,7 @@ const IntakeReviewPanel = dynamic<LazyIntakeReviewPanelProps>(
 )
 
 const IntakeRefundDialog = dynamic<LazyIntakeRefundDialogProps>(
-  () => import("@/app/doctor/intakes/[id]/intake-refund-dialog").then(
+  () => import("@/components/doctor/intake-refund-dialog").then(
     (module) => module.IntakeRefundDialog,
   ),
 )

@@ -302,9 +302,8 @@ describe("admin navigation contract", () => {
     expect(adminRouteSources).toContain("STAFF_PATIENTS_HREF")
     expect(adminRouteSources).toContain("buildStaffPatientHref")
     // Strip import statements before checking for /doctor/* path strings.
-    // Admin pages can legitimately import shared components from app/doctor/
-    // (e.g. IntakeRefundDialog is the canonical refund button per CLAUDE.md
-    // "Easy refund (2026-05-20)" and lives at app/doctor/intakes/[id]/).
+    // Admin pages can legitimately import shared clinical components, but
+    // route-owned app/doctor files are not a shared-component boundary.
     // The intent of this assertion is to block admin pages from NAVIGATING
     // users to /doctor/* routes, not from importing shared components.
     const adminRouteSourcesNonImport = adminRouteSources
