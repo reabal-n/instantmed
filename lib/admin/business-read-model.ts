@@ -11,7 +11,7 @@ import {
 const ADS_EVIDENCE_STALE_HOURS = 36
 const HOUR_MS = 60 * 60 * 1000
 
-export type BusinessScaleDecision = "ACTION" | "CHECK" | "HOLD"
+type BusinessScaleDecision = "ACTION" | "CHECK" | "HOLD"
 
 export interface BusinessRevenueEvidence {
   availability: "available" | "unavailable"
@@ -20,7 +20,7 @@ export interface BusinessRevenueEvidence {
   paidOrders: number | null
 }
 
-export interface BusinessEconomics {
+interface BusinessEconomics {
   adsNetRetainedCents: number | null
   cpaCents: number | null
   firstOrderContributionCents: number | null

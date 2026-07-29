@@ -5,7 +5,7 @@ export const CANONICAL_INTAKE_FUNNEL_EVENTS = [
   "purchase_completed_server",
 ] as const
 
-export type CanonicalIntakeFunnelEvent = (typeof CANONICAL_INTAKE_FUNNEL_EVENTS)[number]
+type CanonicalIntakeFunnelEvent = (typeof CANONICAL_INTAKE_FUNNEL_EVENTS)[number]
 
 export interface CanonicalFunnelFlowRow {
   checkoutViewedAt: string | null
@@ -21,14 +21,14 @@ export interface CanonicalFunnelCoverageRow {
   withFlowId: number
 }
 
-export interface CanonicalFunnelCoverageStage {
+interface CanonicalFunnelCoverageStage {
   coveragePercent: number
   event: CanonicalIntakeFunnelEvent
   rawRows: number
   withFlowId: number
 }
 
-export interface CanonicalFunnelStage {
+interface CanonicalFunnelStage {
   count: number
   event: CanonicalIntakeFunnelEvent
   key: "started" | "checkoutViewed" | "paymentInitiated" | "paid"

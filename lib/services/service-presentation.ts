@@ -132,16 +132,6 @@ export function getServicePresentation(input: ServicePresentationInput): Service
   }
 }
 
-export function matchesAdminServiceFilter(
-  input: ServicePresentationInput,
-  filterValue: string,
-): boolean {
-  if (filterValue === "all") return true
-
-  const presentation = getServicePresentation(input)
-  return presentation.adminFilterValue === filterValue
-}
-
 export function isKnownServiceType(value: string): value is ServiceType {
   return Boolean(normalizeServiceType(value))
 }

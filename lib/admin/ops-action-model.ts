@@ -17,7 +17,7 @@ import {
 } from "@/lib/dashboard/routes"
 import type { PrescribingIdentityBlockerReport } from "@/lib/doctor/prescribing-identity-blockers"
 
-export const OPS_GROUP_ORDER = [
+const OPS_GROUP_ORDER = [
   "payments",
   "fulfilment",
   "identity_access",
@@ -26,7 +26,7 @@ export const OPS_GROUP_ORDER = [
 ] as const
 
 export type OpsActionGroupKey = (typeof OPS_GROUP_ORDER)[number]
-export type OpsActionSeverity = "critical" | "warning"
+type OpsActionSeverity = "critical" | "warning"
 
 export interface OpsActionIssue {
   action: "link" | "repair_certificate_timestamps" | "resend_certificate"

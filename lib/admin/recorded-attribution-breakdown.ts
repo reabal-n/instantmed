@@ -31,7 +31,7 @@ const ATTRIBUTION_SELECT = [
   "wbraid",
 ].join(", ")
 
-export interface RecordedAttributionRow {
+interface RecordedAttributionRow {
   count: number
   group: AttributionSourceGroup
   known: boolean

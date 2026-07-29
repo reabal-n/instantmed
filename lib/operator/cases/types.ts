@@ -94,8 +94,3 @@ export type SortState = {
   field: SortField
   direction: SortDirection
 }
-
-export const DEFAULT_SORT: SortState = {
-  field: "createdAt",
-  direction: "desc",
-}

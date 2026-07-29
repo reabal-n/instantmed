@@ -12,55 +12,42 @@ test.describe("Ops Index Page", () => {
     await logoutTestUser(page)
   })
 
-  test("page loads with two-block cockpit layout", async ({ page }) => {
+  test("page loads with one unresolved-action surface or one honest all-clear", async ({ page }) => {
     await page.goto("/admin/ops")
     await page.waitForLoadState("networkidle")
 
     await expect(page.getByRole("heading", { name: "Operations" })).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByText("Unresolved payment, fulfilment, identity, delivery, and measurement work.")).toBeVisible()
 
-    // 5 recovery counter cards. Operational invariants below reuse CounterCard
-    // but are a separate block with different behavior.
-    const recoveryCounters = page.getByRole("region", { name: "Recovery counters" })
-    const counterCards = recoveryCounters.getByTestId("counter-card")
-    await expect(counterCards).toHaveCount(5)
+    const allClearCount = await page.locator("[data-ops-all-clear]").count()
+    const actionGroupCount = await page.locator("[data-ops-action-group]").count()
+    expect(allClearCount + actionGroupCount).toBeGreaterThan(0)
+    expect(allClearCount).toBeLessThanOrEqual(1)
+    if (actionGroupCount > 0) {
+      expect(await page.locator("[data-ops-issue]").count()).toBeGreaterThan(0)
+    }
 
-    const invariantCounters = page.getByRole("region", { name: "Operational invariants" })
-    const invariantCards = invariantCounters.getByTestId("counter-card")
-    await expect(invariantCards).toHaveCount(7)
-
-    // Visible labels in the 5 tiles
-    await expect(page.getByText("Payment failures")).toBeVisible()
-    await expect(page.getByText("Stripe webhook DLQ")).toBeVisible()
-    await expect(page.getByText("Parchment recovery")).toBeVisible()
-    await expect(page.getByText("Prescribing identity")).toBeVisible()
-    await expect(page.getByText("Google Ads conversions")).toBeVisible()
-    await expect(page.getByText("Paid + cancelled")).toBeVisible()
-
-    // Open exception feed visible regardless of content
-    await expect(page.getByRole("heading", { name: "Open exception feed" })).toBeVisible()
-
-    // Retired headings must not appear
+    // Retired metrics-wall headings must not reappear.
     await expect(page.getByRole("heading", { name: "Needs attention" })).toHaveCount(0)
     await expect(page.getByRole("heading", { name: "System checks" })).toHaveCount(0)
     await expect(page.getByRole("heading", { name: "Recovery paths" })).toHaveCount(0)
     await expect(page.getByRole("heading", { name: "Refunds" })).toHaveCount(0)
+    await expect(page.getByRole("heading", { name: "Open exception feed" })).toHaveCount(0)
+    await expect(page.getByRole("region", { name: "Recovery counters" })).toHaveCount(0)
   })
 
-  test("counter cards deep-link to the appropriate workshop", async ({ page }) => {
+  test("each unresolved row owns one contextual next action", async ({ page }) => {
     await page.goto("/admin/ops")
     await page.waitForLoadState("networkidle")
 
-    const cards = page.getByRole("region", { name: "Recovery counters" }).getByTestId("counter-card")
-    // Order matches the page: Payment failures, Stripe webhook DLQ, Parchment recovery,
-    // Prescribing identity, Google Ads conversions
-    await expect(cards.nth(0)).toHaveAttribute(
-      "href",
-      /\/admin\/intakes\?chips=failed_payment%2Crefund_failed/,
-    )
-    await expect(cards.nth(1)).toHaveAttribute("href", "/admin/webhook-dlq")
-    await expect(cards.nth(2)).toHaveAttribute("href", "/admin/ops/parchment")
-    await expect(cards.nth(3)).toHaveAttribute("href", "/admin/ops/prescribing-identity")
-    await expect(cards.nth(4)).toHaveAttribute("href", "/admin/analytics")
+    const issues = page.locator("[data-ops-issue]")
+    for (let index = 0; index < await issues.count(); index += 1) {
+      const issue = issues.nth(index)
+      await expect(issue.getByText(/^Next:/)).toBeVisible()
+      expect(
+        await issue.getByRole("link").count() + await issue.getByRole("button").count(),
+      ).toBeGreaterThan(0)
+    }
   })
 
   test("sidebar ops navigation is visible", async ({ page, isMobile }) => {
@@ -70,11 +57,11 @@ test.describe("Ops Index Page", () => {
 
     const sidebar = page.getByRole("complementary", { name: "Staff sidebar" })
     await expect(sidebar).toBeVisible({ timeout: 10000 })
-    await expect(sidebar.getByRole("link", { name: "Overview" })).toHaveAttribute(
+    await expect(sidebar.getByRole("link", { name: "Business" })).toHaveAttribute(
       "href",
       "/admin/analytics",
     )
-    await expect(sidebar.getByRole("link", { name: "Ops" })).toBeVisible()
-    await expect(sidebar.getByRole("link", { name: "Ops" })).toHaveAttribute("href", "/admin/ops")
+    await expect(sidebar.getByRole("link", { name: "Operations" })).toBeVisible()
+    await expect(sidebar.getByRole("link", { name: "Operations" })).toHaveAttribute("href", "/admin/ops")
   })
 })

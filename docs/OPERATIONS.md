@@ -56,8 +56,8 @@ The two paid webhook handlers and `/api/stripe/verify-payment` share the same ex
 
 1. Check Resend status: https://resend-status.com
 2. Check `/admin/emails/hub` for failed or pending outbox rows, delivery status, and recent queue activity.
-3. For medical-certificate delivery tickets, check `/admin/ops` → **Certificate delivery rescue** first. It shows whether the certificate was generated, the patient certificate email state, `intakes.document_sent_at`, tracked email-open/click or certificate-download evidence, and the safest support action without exposing raw storage URLs.
-4. Manual retry: click "Retry" on individual failed rows in Email delivery. For generated certificate cases, use the ops rescue panel's **Resend link** action so the patient receives the app-routed secure certificate access link rather than a raw storage URL or attachment.
+3. For medical-certificate delivery tickets, open `/admin/ops` and follow the unresolved **Delivery** action. The row explains the evidence and safest next step without exposing raw storage URLs. If no delivery action is open, use Ledger to find the request and inspect its detail before acting.
+4. Manual retry: click "Retry" on individual failed rows in Email delivery. For a generated-certificate delivery action, use **Resend link** from Operations so the patient receives the app-routed secure certificate access link rather than a raw storage URL or attachment.
 5. If Resend is completely down: emails auto-retry via the `email-dispatcher` cron; stale `sending` claims are recovered back to retryable `failed` rows.
 
 ### Database Connection Issues
@@ -107,23 +107,37 @@ The two paid webhook handlers and `/api/stripe/verify-payment` share the same ex
 
 ### Operator Workflow Map
 
-`/dashboard` is the staff cockpit. Use it first for the live queue, scripts-to-write, recovery prompts, and today-level operations. Admins inherit doctor capabilities, so the owner-operator should not need a separate "doctor mode".
+`/dashboard` is the clinical staff cockpit. Use it first for live review, information requests, scripts-to-write, and same-page fulfilment. Admins inherit doctor capabilities, so the owner-operator should not need a separate "doctor mode". Business, Operations, Ledger, Patients, and Setup each own a different supporting job.
 
 | Workflow | Primary surface | Supporting surface |
 |----------|-----------------|--------------------|
 | Review paid clinical work | `/dashboard?status=review#doctor-queue` | `/admin/intakes` Ledger for search/source records |
 | Write or reconcile scripts | `/dashboard?status=scripts#doctor-queue` | `/admin/ops/parchment` for vendor recovery |
 | Patient lookup and duplicate review | `/admin/patients` | `/doctor/patients/[id]`, `/admin/ops/patient-merge-audit` |
-| Payment and webhook recovery | `/admin/analytics`, `/admin/refunds` | `/admin/intakes` Ledger for failed-payment/refund lookup, `/admin/webhook-dlq` for Stripe replay |
-| Email delivery recovery | `/admin/emails/hub` | Compact controls link to `/admin/emails/templates` and `/admin/emails/suppression` |
-| Revenue and conversion review | `/admin/analytics` | PostHog for deeper product analysis |
+| Payment and webhook recovery | `/admin/ops` | `/admin/intakes` Ledger for source-record lookup, `/admin/refunds` for refund action, `/admin/webhook-dlq` for Stripe replay |
+| Email delivery recovery | `/admin/ops` when an unresolved action exists | `/admin/emails/hub` for queue history/retry, with templates and suppression as contextual tools |
+| Revenue, contribution, and conversion review | `/admin/analytics` (**Business**) | PostHog only for deeper read-only product analysis |
 | Platform setup | `/admin/settings` | `/admin/features`, `/doctor/settings/identity`, `/admin/settings/templates` |
 
 Pages outside this map should either be reachable from these surfaces, redirect to them, or be treated as cleanup candidates.
 Incident-only PHI encryption coverage diagnostics live at `/admin/settings/encryption`; keep it out of routine nav and dashboard crawl. The page can inspect backfill coverage, but it cannot rotate encryption keys.
 Email delivery operations, suppression recovery, and email template editing stay under `/admin/emails/*`; do not duplicate them inside settings.
-Support staff get two bounded sidebar entries: `/admin/ops` for recovery triage and `/admin/intakes` Ledger for request/payment metadata lookup. Nested webhook, Parchment, and prescribing-identity pages stay reachable from the ops recovery cards rather than becoming separate sidebar modes.
+Support staff get two bounded sidebar entries: `/admin/ops` for recovery triage and `/admin/intakes` Ledger for request/payment metadata lookup. Nested webhook, Parchment, and prescribing-identity pages stay reachable from unresolved Operations action rows rather than becoming separate sidebar modes.
 Admin-only pages should rely on `requireRole(["admin"])` default redirects so wrong-role staff land on the role-aware staff surface instead of bouncing through `/admin`.
+
+### Business Truth Surface
+
+`/admin/analytics` is labelled **Business** in staff navigation and is a decision surface, not an operational exception feed. It owns:
+
+- rolling net-retained revenue and the active revenue-rung progress;
+- the latest delivered Google Ads Agent snapshot, including fee-aware first-order contribution where all required inputs are available;
+- canonical intake conversion, acquisition evidence, and bounded measurement checkpoints;
+- self-reported acquisition as a separate instrument from recorded UTM/referrer attribution; and
+- the review-request funnel plus the manually recorded external-review total as separate reputation evidence.
+
+The canonical 30-day intake funnel counts only attempts with a valid exact `flow_instance_id`. Its observation window ends 24 hours before the read so a still-progressing same-day cohort does not masquerade as drop-off. Stages are ordered within the same flow; a later-stage event never manufactures an earlier stage. Coverage is reported at every stage, and rates remain withheld until the relevant stages each reach at least 90% exact-flow coverage. Historical session, distinct-id, request-id, and event UUID values are never coalesced into the funnel key. Late paid recoveries outside the ordered cohort are shown separately and never inflate the conversion rate.
+
+Business may perform bounded, fail-soft, read-only external analytics reads on page load. It must never send a customer message, mutate Google Ads, approve a proposal, or otherwise change external state merely because the page rendered. Google Ads mutations and customer replies retain their explicit operator-approval boundaries.
 
 ### Solo-Doctor Operating Model
 
@@ -614,7 +628,7 @@ supabase db push --project-ref [SUPABASE_PROJECT_REF]
 1. Verify `SENTRY_DSN` set in production
 2. Uptime monitor on `/`, `/api/health`
 3. Stripe webhook failure alerts configured
-4. `/admin/ops` integrity strip has no unexplained critical cards (review SLA backlog, cert+refund orphans, refund-record anomalies)
+4. `/admin/ops` shows either one all-clear state or only explained unresolved action groups; every row has a named owner, age, next step, and contextual action
 5. Automated video review either succeeds or its failure is classified in the deploy notes
 
 ### Post-Launch Verification
@@ -835,7 +849,7 @@ After every rollback, within 24 hours:
 
 **Alert-noise suppression (added 2026-07-19).** Three rules stop a stale backlog from paging as if it were a live incident. The 2026-07-19 page bundled all three failure modes at once and re-fired every 30 minutes for a backlog whose newest member was five weeks old:
 
-1. **Fulfilment SLA alerts page on recent breaches only.** `FULFILMENT_SLA_ALERT_MAX_AGE_DAYS` (7d, `lib/parchment/fulfilment-dashboard.ts`) gates the alert on `slaBreachedRecentCount`; `slaBreachedCount` keeps the full backlog for `/admin/analytics` and rides along as `backlog_count` in the alert metadata. The stage SLAs are minutes, so a months-old row breaches by orders of magnitude and can never clear by ageing.
+1. **Fulfilment SLA alerts page on recent breaches only.** `FULFILMENT_SLA_ALERT_MAX_AGE_DAYS` (7d, `lib/parchment/fulfilment-dashboard.ts`) gates the alert on `slaBreachedRecentCount`; `slaBreachedCount` keeps the full backlog for the Operations read model and rides along as `backlog_count` in the alert metadata, with Ledger available for source-record inspection. The stage SLAs are minutes, so a months-old row breaches by orders of magnitude and can never clear by ageing.
 2. **Refunded requests carry no prescribing obligation.** The fulfilment population is filtered to `FULFILMENT_OBLIGATION_PAYMENT_STATUSES` (`paid`, `partially_refunded`). A refunded request leaves the funnel through its payment state — the intake keeps its true `approved` status rather than being forced to a misleading terminal one.
 3. **The Google Ads re-page window keys off pageable failures only.** `latestPageableFailureAt` (unresolved after grace **and** click-attributed) drives the 7-day gate instead of `latestFailureAt`, which is a max across every unresolved adjustment failure. A post-grace `CONVERSION_NOT_FOUND` is confirmed not counted and never pageable; a later success/resolution receipt clears the earlier attempt. Previously any unrelated failure — for example a user-data-only retraction on a different order — re-armed the window and resurfaced a finding that had already gone quiet.
 

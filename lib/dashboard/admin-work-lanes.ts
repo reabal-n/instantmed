@@ -61,18 +61,3 @@ export function getAdminWorkLaneForStatus(
   if (doneWorkStatusSet.has(status)) return "done"
   return "other"
 }
-
-export function matchesAdminWorkLaneFilter(
-  status: IntakeStatus | DisplayIntakeStatus | string,
-  filterValue: AdminWorkLaneFilterValue,
-): boolean {
-  if (filterValue === "all") return true
-  return getAdminWorkLaneForStatus(status) === filterValue
-}
-
-export function matchesAdminStatusFilter(
-  status: IntakeStatus | DisplayIntakeStatus | string,
-  filterValue: AdminIntakeStatusFilterValue,
-): boolean {
-  return filterValue === "all" || status === filterValue
-}

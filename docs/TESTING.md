@@ -184,9 +184,16 @@ Critical paths only — every flow that touches money, auth, or clinical data:
 | Auth flows | Sign in, sign up, guest checkout → account link |
 | Document download | Auth required, ownership verified, app-streamed PDF |
 | Patient portal | Dashboard, intake detail, prescription history |
-| Staff cockpit | Admin/doctor operator pages stay compact, navigable, and visually stable at desktop staff viewport |
+| Staff cockpit route ownership | Admin, doctor, and support receive only their canonical nav/routes; support is limited to Operations plus a masked Ledger projection |
+| Business truth | Exact-flow stages cannot produce impossible ordered rates; stage coverage is visible and rates remain withheld below the 90% gate |
+| Operations | The page renders unresolved action groups with owner/age/next action, or exactly one all-clear state—never a wall of zero counters |
+| Ledger privacy and filtering | Search/status/service/work-lane/quick chips filter on the server; support payloads exclude clinical answers, contact fields, and admin attribution |
+| Mobile clinical review | At 375px the request remains on one page, primary actions are at least 44px tall, Parchment is full-height, and the review is restored in place after close |
+| Script completion gate | `Complete request` is visible but disabled until the server projection reports durable `script_sent`; payment, approval, and Parchment close do not unlock it |
 
 The med-cert auto-approval E2E contract uses `/api/test/medcert-immediate-auto-approve` to bypass the production retry-cron delay. That route is test-only, requires `PLAYWRIGHT=1` + `E2E_SECRET`, and must not be treated as the production approval timing path.
+
+**Parchment proof boundary:** local and mocked browser checks can prove InstantMed's responsive sheet, same-page restoration, action sizing, and disabled-state contract. They cannot prove the real third-party iframe. Release proof for the vendor interaction requires an explicitly approved Parchment sandbox/test request at a 375px-class viewport, including launch, prescribe/issue, return, durable `script_sent` refresh, and completion unlock. Never use a production patient or create vendor state merely to obtain visual proof.
 
 ### What NOT to E2E Test
 

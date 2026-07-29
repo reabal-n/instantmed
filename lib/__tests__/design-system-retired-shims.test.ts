@@ -6,8 +6,8 @@ import { describe, expect, it } from "vitest"
 const root = process.cwd()
 
 describe("retired design-system shims", () => {
-  it("uses canonical dashboard primitive filenames instead of legacy glass/glow shims", () => {
-    expect(existsSync(join(root, "components/dashboard/stat-card.tsx"))).toBe(true)
+  it("removes retired dashboard stat tiles and legacy glass/glow shims", () => {
+    expect(existsSync(join(root, "components/dashboard/stat-card.tsx"))).toBe(false)
     expect(existsSync(join(root, "components/dashboard/status-badge.tsx"))).toBe(true)
 
     expect(existsSync(join(root, "components/dashboard/glass-stat-card.tsx"))).toBe(false)
@@ -68,12 +68,12 @@ describe("retired design-system shims", () => {
     expect(selectSource).not.toContain("key?: string")
   })
 
-  it("does not preserve no-op dashboard animation compatibility props", () => {
-    const gridSource = readFileSync(join(root, "components/dashboard/dashboard-grid.tsx"), "utf8")
+  it("removes the card-per-number dashboard grid after the staff-dashboard reduction", () => {
+    expect(existsSync(join(root, "components/dashboard/dashboard-grid.tsx"))).toBe(false)
 
-    expect(gridSource).not.toContain("animate?:")
-    expect(gridSource).not.toContain("animate prop")
-    expect(gridSource).not.toContain("back-compat")
+    const dashboardBarrel = readFileSync(join(root, "components/dashboard/index.ts"), "utf8")
+    expect(dashboardBarrel).not.toContain("DashboardGrid")
+    expect(dashboardBarrel).not.toContain("StatCard")
   })
 
   it("removes the legacy DashboardHeader alias in favour of DashboardPageHeader", () => {
@@ -100,9 +100,9 @@ describe("retired design-system shims", () => {
     const designSource = readFileSync(join(root, "DESIGN.md"), "utf8")
     const onboardingSource = readFileSync(join(root, "docs/AI_ONBOARDING.md"), "utf8")
 
-    expect(changelogSource).toContain("## [2.0.3]")
-    expect(versionSource).toContain('DESIGN_SYSTEM_VERSION = "2.0.3"')
-    expect(designSource).toContain("**Version: 2.0.3**")
-    expect(onboardingSource).toContain("`DESIGN_SYSTEM_VERSION` (2.0.3 as of 2026-07-14)")
+    expect(changelogSource).toContain("## [2.0.4]")
+    expect(versionSource).toContain('DESIGN_SYSTEM_VERSION = "2.0.4"')
+    expect(designSource).toContain("**Version: 2.0.4**")
+    expect(onboardingSource).toContain("`DESIGN_SYSTEM_VERSION` (2.0.4 as of 2026-07-29)")
   })
 })

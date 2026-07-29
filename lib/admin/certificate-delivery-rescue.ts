@@ -67,7 +67,7 @@ export interface CertificateDeliveryRecommendation {
   severity: CertificateDeliverySeverity
 }
 
-export interface CertificateDeliveryRescueCase {
+interface CertificateDeliveryRescueCase {
   intakeId: string
   shortIntakeId: string
   referenceNumber: string | null

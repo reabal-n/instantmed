@@ -74,7 +74,10 @@ function IssueRow({
     : "bg-amber-500"
 
   return (
-    <li className="grid gap-3 px-4 py-3.5 lg:grid-cols-[minmax(220px,0.82fr)_minmax(280px,1.25fr)_minmax(190px,0.72fr)_auto] lg:items-center">
+    <li
+      className="grid gap-3 px-4 py-3.5 lg:grid-cols-[minmax(220px,0.82fr)_minmax(280px,1.25fr)_minmax(190px,0.72fr)_auto] lg:items-center"
+      data-ops-issue
+    >
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <span aria-hidden className={cn("h-2 w-2 shrink-0 rounded-full", severityClass)} />
@@ -148,7 +151,7 @@ function IssueGroup({
   const Icon = GROUP_ICONS[group.key]
 
   return (
-    <DashboardCard padding="none">
+    <DashboardCard padding="none" data-ops-action-group={group.key}>
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border/50 px-4 py-3">
         <div>
           <div className="flex items-center gap-2">
@@ -244,7 +247,12 @@ export function OpsDashboardClient({ model }: { model: OpsActionModel }) {
 
       <OperatorScrollArea className="space-y-3">
         {model.allClear ? (
-          <DashboardCard padding="lg" tier="elevated" className="flex min-h-56 items-center justify-center text-center">
+          <DashboardCard
+            padding="lg"
+            tier="elevated"
+            className="flex min-h-56 items-center justify-center text-center"
+            data-ops-all-clear
+          >
             <div className="max-w-md">
               <span className="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/60 bg-background text-emerald-700 dark:text-emerald-300">
                 <CheckCircle2 className="h-5 w-5" aria-hidden />

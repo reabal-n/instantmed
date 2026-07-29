@@ -17,7 +17,6 @@ export {
   formatDate,
   formatDateLong,
   formatDateTime,
-  formatMinutes,
   formatRelative,
   formatShortDate,
   formatShortDateSafe,
