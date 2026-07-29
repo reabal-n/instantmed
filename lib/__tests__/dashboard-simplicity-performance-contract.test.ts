@@ -225,7 +225,11 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(queuePressureSource).toContain("getTargetTokenTone")
     expect(read("lib/doctor/queue-pressure.ts")).toContain("before target")
     expect(queuePressureSource).toContain("formatRefreshAge")
-    expect(dashboardPageSource).toContain("waitingCaseCount={queueResult.total}")
+    expect(dashboardPageSource).toContain(
+      "const globalWaitingCaseCount = queueResult.statusCounts?.all ?? null"
+    )
+    expect(dashboardPageSource).toContain("waitingCaseCount={globalWaitingCaseCount ?? 0}")
+    expect(dashboardPageSource).not.toContain("waitingCaseCount={queueResult.total}")
     expect(read("lib/doctor/queue-pressure.ts")).toContain("No one waiting")
     expect(queueClientSource).not.toContain("Open it from the row")
     expect(queueClientSource).not.toContain("One case waiting -")
@@ -265,7 +269,9 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(queueFiltersSource).not.toContain("border-border/70 bg-muted/30 text-muted-foreground")
     expect(queueFiltersSource).not.toContain("Finish or close the current case before opening the next one.")
     expect(queueFiltersSource).toContain("data-open-next-case")
-    expect(queueFiltersSource).toContain("const showSearch = !compactShell || intakes.length > 5 || hasActiveSearch")
+    expect(queueFiltersSource).toContain(
+      "const showSearch = !compactShell || (statusCounts?.all ?? 0) > 5 || hasActiveSearch"
+    )
     expect(read("lib/doctor/queue-utils.ts")).toContain("getQueueClockTickDelayMs")
   })
 

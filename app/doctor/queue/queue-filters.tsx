@@ -87,7 +87,7 @@ export function QueueFilters({
   const pressureClass = pressureClasses[pressure.severity]
   const openOldest = onOpenOldest ?? onOpenSingleMatch
   const showNextCaseAction = compactShell && filteredCount > 1 && Boolean(openOldest) && !hasOpenCase
-  const showSearch = !compactShell
+  const showSearch = !compactShell || (statusCounts?.all ?? 0) > 5 || hasActiveSearch
 
   // `/` key focuses the search input (standard queue shortcut)
   useEffect(() => {
