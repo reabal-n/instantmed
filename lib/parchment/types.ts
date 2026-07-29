@@ -35,37 +35,53 @@ export const parchmentSsoRequestSchema = z.object({
   redirect_path: z.string(),
 })
 
-export const PARCHMENT_SSO_REDIRECT_HOSTS = [
-  "portal.parchment.health",
-  "portal.sandbox.parchment.health",
-] as const
+const PARCHMENT_SSO_REDIRECT_HOST_BY_API_HOST = {
+  "api.parchmenthealth.io": "portal.parchment.health",
+  "api.sandbox.parchmenthealth.io": "portal.sandbox.parchment.health",
+} as const
 
-const approvedParchmentSsoRedirectHosts = new Set<string>(PARCHMENT_SSO_REDIRECT_HOSTS)
-
-export const parchmentSsoRedirectUrlSchema = z.string().url().refine((value) => {
-  if (!URL.canParse(value)) return false
-
-  const url = new URL(value)
-
-  return (
-    url.protocol === "https:" &&
-    url.port === "" &&
-    url.username === "" &&
-    url.password === "" &&
-    approvedParchmentSsoRedirectHosts.has(url.hostname)
-  )
-}, "Parchment SSO redirect URL must use an approved HTTPS portal host")
-
-export const parchmentSsoResponseSchema = z.object({
+const parchmentSsoResponseBaseSchema = z.object({
   success: z.literal(true),
   data: z.object({
     sso_token: z.string(),
-    redirect_url: parchmentSsoRedirectUrlSchema,
+    redirect_url: z.string().url(),
     expires_in: z.number(),
   }),
 })
 
-export type ParchmentSsoResponse = z.infer<typeof parchmentSsoResponseSchema>
+export type ParchmentSsoResponse = z.infer<typeof parchmentSsoResponseBaseSchema>
+
+function getParchmentSsoRedirectHost(apiUrl: string): string | null {
+  if (!URL.canParse(apiUrl)) return null
+  const apiHost = new URL(apiUrl).hostname.toLowerCase()
+  return PARCHMENT_SSO_REDIRECT_HOST_BY_API_HOST[
+    apiHost as keyof typeof PARCHMENT_SSO_REDIRECT_HOST_BY_API_HOST
+  ] ?? null
+}
+
+export function parseParchmentSsoResponse(
+  value: unknown,
+  apiUrl: string,
+): ParchmentSsoResponse {
+  const expectedRedirectHost = getParchmentSsoRedirectHost(apiUrl)
+  const schema = parchmentSsoResponseBaseSchema.refine(({ data }) => {
+    if (!expectedRedirectHost || !URL.canParse(data.redirect_url)) return false
+
+    const redirectUrl = new URL(data.redirect_url)
+    return (
+      redirectUrl.protocol === "https:" &&
+      redirectUrl.port === "" &&
+      redirectUrl.username === "" &&
+      redirectUrl.password === "" &&
+      redirectUrl.hostname.toLowerCase() === expectedRedirectHost
+    )
+  }, {
+    message: "Parchment SSO redirect URL must use the approved HTTPS portal host for the configured API environment",
+    path: ["data", "redirect_url"],
+  })
+
+  return schema.parse(value)
+}
 
 export const validateIntegrationResponseSchema = z.object({
   success: z.literal(true),

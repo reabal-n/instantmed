@@ -453,4 +453,21 @@ describe("Parchment client workflows", () => {
       }),
     )
   })
+
+  it("rejects a sandbox SSO redirect when the Parchment API is configured for production", async () => {
+    vi.stubEnv("PARCHMENT_API_URL", "https://api.parchmenthealth.io/external")
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      success: true,
+      statusCode: 200,
+      data: {
+        sso_token: "sso-token",
+        redirect_url: "https://portal.sandbox.parchment.health/sso/session",
+        expires_in: 300,
+      },
+    }), { status: 200 })))
+
+    await expect(
+      getSsoUrl("parchment-user-1", "/embed/patients/parchment-patient-1/prescriptions"),
+    ).rejects.toThrow(/approved HTTPS portal host/)
+  })
 })

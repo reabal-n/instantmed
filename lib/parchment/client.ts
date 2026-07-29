@@ -29,9 +29,9 @@ import {
   PARCHMENT_SCOPES,
   type ParchmentAccessRole,
   type ParchmentSsoResponse,
-  parchmentSsoResponseSchema,
   parchmentTokenResponseSchema,
   type ParchmentUser,
+  parseParchmentSsoResponse,
   type PatientPrescriptionsResponse,
   patientPrescriptionsResponseSchema,
   type UpdatePatientRequest,
@@ -470,7 +470,7 @@ export async function getSsoUrl(
   }
 
   const json = await res.json()
-  const parsed = parchmentSsoResponseSchema.parse(json)
+  const parsed = parseParchmentSsoResponse(json, config.apiUrl)
 
   log.info("SSO URL generated", { expiresIn: parsed.data.expires_in })
   return parsed.data
