@@ -778,7 +778,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 **Quick reference:**
 - Unit tests: Vitest, Node environment, `lib/__tests__/`, 80/70/80/80 coverage thresholds (scoped to `lib/clinical/` and `lib/security/` — `lib/state-machine/` was removed from the include list in 2026-04-08 since the directory no longer exists)
-- E2E tests: Playwright, `e2e/`, auth bypass via `PLAYWRIGHT=1` + `__e2e_auth_user_id` cookie. **Full suite runs in CI** as of commit `ae1c80822` (previously only 4 of 47 specs ran). Requires `STRIPE_WEBHOOK_SECRET` (test-mode) in GitHub repo secrets or webhook tests silently skip.
+- E2E tests: Playwright, 68 specs under `e2e/`, auth bypass via `PLAYWRIGHT=1` + `__e2e_auth_user_id` cookie. Blocking CI runs the focused ops/navigation/clinical-input and paid-flow smoke subset, not the full suite. `STRIPE_WEBHOOK_SECRET` (test mode) and `PARCHMENT_WEBHOOK_SECRET` are required; the CI secret check fails fast when either is absent.
 - Current local unit test count: **2,453 tests** across 258 test files as of 2026-05-19. Earlier 1,521-test and 987-test references are stale.
 - Commands: `pnpm test` · `pnpm test:coverage` · `pnpm e2e:chromium`
 
