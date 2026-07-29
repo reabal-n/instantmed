@@ -189,6 +189,7 @@ export function QueueFilters({
                   "[&_input]:h-11 [&_input]:py-0 [&_input]:text-sm [&_input]:leading-11 [&_input]:placeholder:text-slate-500 sm:[&_input]:h-9 sm:[&_input]:leading-9",
                   compactShell ? "sm:w-72" : "sm:w-56",
                 )}
+                inputClassName="queue-search-input"
                 startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
                 endContent={
                   searchQuery ? (

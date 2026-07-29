@@ -12,6 +12,8 @@ export interface InputProps
   startContent?: React.ReactNode
   /** Content rendered after the input (inside the wrapper) */
   endContent?: React.ReactNode
+  /** Classes applied to the native input rather than the outer wrapper. */
+  inputClassName?: string
   /** Floating or static label */
   label?: string
   /** Mark input as invalid */
@@ -35,6 +37,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       size = "default",
       startContent,
       endContent,
+      inputClassName,
       label,
       isInvalid,
       errorMessage,
@@ -92,7 +95,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               "disabled:cursor-not-allowed disabled:opacity-50",
               sizeClasses[size],
               startContent && "pl-2",
-              endContent && "pr-2"
+              endContent && "pr-2",
+              inputClassName,
             )}
             {...props}
           />

@@ -571,6 +571,13 @@ body {
     outline-offset: 2px !important;
     box-shadow: 0 0 0 4px var(--background) !important;
   }
+
+  /* Composite queue search owns its visible focus ring on the outer field.
+     Suppress the nested native-input ring so keyboard focus stays singular. */
+  input.queue-search-input:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
   
   /* Skip link styles */
   .skip-link {
