@@ -19,18 +19,28 @@ export interface QueueEmptyState {
 
 export function getQueueCompletionOutcome({
   hasNextVisibleCase,
-  totalBeforeAction,
+  globalTotalBeforeAction,
+  activeStatusFilter,
+  queueDegraded,
 }: {
   hasNextVisibleCase: boolean
-  totalBeforeAction: number
+  globalTotalBeforeAction: number | null
+  activeStatusFilter: QueueStatusFilter
+  queueDegraded: boolean
 }): { message: string; forceRefresh: boolean } {
   if (hasNextVisibleCase) {
     return { message: "Case done. Opening next.", forceRefresh: false }
   }
-  if (totalBeforeAction > 1) {
-    return { message: "Case done. Loading remaining queue.", forceRefresh: true }
+
+  if (
+    activeStatusFilter === "all"
+    && !queueDegraded
+    && globalTotalBeforeAction === 1
+  ) {
+    return { message: "Case done. Queue clear.", forceRefresh: false }
   }
-  return { message: "Case done. Queue clear.", forceRefresh: false }
+
+  return { message: "Case done. Loading remaining queue.", forceRefresh: true }
 }
 
 export function buildQueueEmptyState({
@@ -77,6 +87,17 @@ export function buildQueueEmptyState({
     }
   }
 
+  if (totalCount > 0) {
+    return {
+      title: "This queue page is empty",
+      description: "Cases still exist on an earlier page. Return to the first page before relying on this view.",
+      tone: "warning",
+      actionHref: baseHref,
+      actionLabel: "Open first page",
+      summary: null,
+    }
+  }
+
   if (searchQuery.trim() || statusFilter !== "all") {
     if (statusFilter === "scripts" && !searchQuery.trim()) {
       return {
@@ -104,17 +125,6 @@ export function buildQueueEmptyState({
       tone: "neutral",
       actionHref: baseHref,
       actionLabel: "Clear filters",
-    }
-  }
-
-  if (totalCount > 0) {
-    return {
-      title: "This queue page is empty",
-      description: "Cases still exist on an earlier page. Return to the first page before relying on this view.",
-      tone: "warning",
-      actionHref: baseHref,
-      actionLabel: "Open first page",
-      summary: null,
     }
   }
 

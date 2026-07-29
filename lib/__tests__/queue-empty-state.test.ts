@@ -49,20 +49,86 @@ describe("buildQueueEmptyState", () => {
     })
   })
 
-  it("forces reconciliation instead of claiming clear when cases remain off-page", () => {
-    expect(getQueueCompletionOutcome({
-      hasNextVisibleCase: false,
-      totalBeforeAction: 51,
-    })).toEqual({
-      message: "Case done. Loading remaining queue.",
-      forceRefresh: true,
+  it("prioritizes an empty-page warning over status-filter empty copy", () => {
+    const state = buildQueueEmptyState({
+      ...baseOptions,
+      totalCount: 51,
+      statusFilter: "scripts",
     })
+
+    expect(state).toMatchObject({
+      title: "This queue page is empty",
+      tone: "warning",
+      actionHref: "/dashboard",
+      actionLabel: "Open first page",
+      summary: null,
+    })
+  })
+})
+
+describe("getQueueCompletionOutcome", () => {
+  it("opens a visible next case without forcing reconciliation", () => {
+    expect(getQueueCompletionOutcome({
+      hasNextVisibleCase: true,
+      globalTotalBeforeAction: null,
+      activeStatusFilter: "scripts",
+      queueDegraded: true,
+    })).toEqual({
+      message: "Case done. Opening next.",
+      forceRefresh: false,
+    })
+  })
+
+  it("claims clear only for the exact final case in a healthy full queue", () => {
     expect(getQueueCompletionOutcome({
       hasNextVisibleCase: false,
-      totalBeforeAction: 1,
+      globalTotalBeforeAction: 1,
+      activeStatusFilter: "all",
+      queueDegraded: false,
     })).toEqual({
       message: "Case done. Queue clear.",
       forceRefresh: false,
+    })
+  })
+
+  it.each([
+    {
+      name: "other cases remain in the global queue",
+      globalTotalBeforeAction: 51,
+      activeStatusFilter: "all" as const,
+      queueDegraded: false,
+    },
+    {
+      name: "the global count is unavailable",
+      globalTotalBeforeAction: null,
+      activeStatusFilter: "all" as const,
+      queueDegraded: false,
+    },
+    {
+      name: "the active lane is filtered",
+      globalTotalBeforeAction: 1,
+      activeStatusFilter: "scripts" as const,
+      queueDegraded: false,
+    },
+    {
+      name: "the queue read is degraded",
+      globalTotalBeforeAction: 1,
+      activeStatusFilter: "all" as const,
+      queueDegraded: true,
+    },
+  ])("forces reconciliation when $name", ({
+    globalTotalBeforeAction,
+    activeStatusFilter,
+    queueDegraded,
+  }) => {
+    expect(getQueueCompletionOutcome({
+      hasNextVisibleCase: false,
+      globalTotalBeforeAction,
+      activeStatusFilter,
+      queueDegraded,
+    })).toEqual({
+      message: "Case done. Loading remaining queue.",
+      forceRefresh: true,
     })
   })
 })
