@@ -27,6 +27,10 @@ const queueClientSource = readFileSync(
   join(process.cwd(), "app/doctor/queue/queue-client.tsx"),
   "utf8",
 )
+const queueFiltersSource = readFileSync(
+  join(process.cwd(), "app/doctor/queue/queue-filters.tsx"),
+  "utf8",
+)
 const queueTableSource = readFileSync(
   join(process.cwd(), "app/doctor/queue/queue-table.tsx"),
   "utf8",
@@ -192,9 +196,21 @@ describe("doctor queue production contract", () => {
     expect(intakeReviewPanelSource).toContain("does not prefetch PHI-heavy review payloads")
   })
 
-  it("keeps status filters local-first without forcing a server navigation", () => {
-    expect(queueClientSource).toContain("window.history.replaceState")
-    expect(queueClientSource).not.toContain("router.replace")
+  it("applies status filters before database pagination through a server navigation", () => {
+    expect(queriesSource).toContain("getQueueStatusesForFilter")
+    expect(queriesSource).toContain("statusFilter")
+    expect(queueClientSource).toContain("router.replace")
+    expect(queueClientSource).not.toContain("window.history.replaceState")
+  })
+
+  it("does not advertise page-local patient search in the compact dashboard queue", () => {
+    expect(queueFiltersSource).toContain("const showSearch = !compactShell")
+  })
+
+  it("keeps primary mobile queue controls at least 44px tall", () => {
+    expect(queueFiltersSource).toContain("h-11 shrink-0")
+    expect(queueFiltersSource).toContain("h-11 w-11")
+    expect(queueFiltersSource).toContain("min-h-11 min-w-0")
   })
 
   it("does not write patient email addresses into decline logs", () => {

@@ -3,6 +3,7 @@
  * Extracted from queue-client.tsx for testability.
  */
 
+import type { QueueStatusFilter } from "@/lib/dashboard/routes"
 import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import type { IntakeStatus } from "@/types/intake"
 
@@ -15,7 +16,27 @@ export const QUEUE_REVIEW_STATUSES = [
   "awaiting_script",
 ] as const satisfies readonly IntakeStatus[]
 
+const QUEUE_FILTER_STATUSES = {
+  all: QUEUE_REVIEW_STATUSES,
+  review: ["paid", "in_review"],
+  pending_info: ["pending_info"],
+  scripts: ["awaiting_script"],
+} as const satisfies Record<QueueStatusFilter, readonly IntakeStatus[]>
+
+export function getQueueStatusesForFilter(
+  filter: QueueStatusFilter,
+): readonly IntakeStatus[] {
+  return QUEUE_FILTER_STATUSES[filter]
+}
+
 export type QueueStatusTone = "review" | "info" | "script"
+
+export interface QueueStatusCounts {
+  all: number
+  review: number
+  pending_info: number
+  scripts: number
+}
 
 export interface QueueTimestampInput {
   paid_at?: string | null

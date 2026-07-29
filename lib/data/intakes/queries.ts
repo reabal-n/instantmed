@@ -19,6 +19,7 @@ import type {
   AdminIntakeStatusFilterValue,
   AdminWorkLaneFilterValue,
 } from "@/lib/dashboard/admin-work-lanes"
+import type { QueueStatusFilter } from "@/lib/dashboard/routes"
 import { readDashboardQuery } from "@/lib/data/dashboard-read-model"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
@@ -27,7 +28,11 @@ import {
   SEEDED_E2E_PATIENT_PROFILE_ID,
 } from "@/lib/data/seeded-e2e-data"
 import { buildDoctorQueueServiceFilter, type QueueCapabilityService } from "@/lib/doctor/queue-capability-scope"
-import { QUEUE_REVIEW_STATUSES } from "@/lib/doctor/queue-utils"
+import {
+  getQueueStatusesForFilter,
+  QUEUE_REVIEW_STATUSES,
+  type QueueStatusCounts,
+} from "@/lib/doctor/queue-utils"
 import { detectRenewalsForIntakes, type IntakeRenewalProbe } from "@/lib/doctor/renewal-detection"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
@@ -287,18 +292,45 @@ export async function getIntakeForPatient(
  * so paused doctors do not see new intakes.
  */
 export async function getDoctorQueue(
-  options?: { page?: number; pageSize?: number; doctorId?: string; allowSeeded?: boolean; onlySeeded?: boolean }
-): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number; degraded?: boolean }> {
+  options?: {
+    page?: number
+    pageSize?: number
+    doctorId?: string
+    allowSeeded?: boolean
+    onlySeeded?: boolean
+    statusFilter?: QueueStatusFilter
+  },
+): Promise<{
+  data: IntakeWithPatient[]
+  total: number
+  page: number
+  pageSize: number
+  degraded?: boolean
+  statusCounts: QueueStatusCounts | null
+  oldestWaitingEnteredAt: string | null
+  oldestWaitingIntakeId: string | null
+}> {
   const supabase = createServiceRoleClient()
   const page = options?.page ?? 1
   const pageSize = Math.min(options?.pageSize ?? 50, 100) // Cap at 100
   const offset = (page - 1) * pageSize
   const allowSeeded = options?.allowSeeded ?? false
   const onlySeeded = allowSeeded && options?.onlySeeded === true
+  const statusFilter = options?.statusFilter ?? "all"
+  const activeStatuses = getQueueStatusesForFilter(statusFilter)
 
   const scope = await getDoctorQueueScope(options?.doctorId, supabase)
   if (scope.paused) {
-    return { data: [], total: 0, page, pageSize, degraded: false }
+    return {
+      data: [],
+      total: 0,
+      page,
+      pageSize,
+      degraded: false,
+      statusCounts: { all: 0, review: 0, pending_info: 0, scripts: 0 },
+      oldestWaitingEnteredAt: null,
+      oldestWaitingIntakeId: null,
+    }
   }
 
   // Count and page-data are independent; build both and run them together so
@@ -313,7 +345,7 @@ export async function getDoctorQueue(
       let query = filterSeededE2EIntakes(supabase
         .from("intakes")
         .select("id", { count: "exact", head: true })
-        .in("status", QUEUE_REVIEW_STATUSES)
+        .in("status", [...activeStatuses])
         .eq("payment_status", "paid"), { allowSeeded })
 
       if (scope.serviceFilter) {
@@ -328,6 +360,43 @@ export async function getDoctorQueue(
       return { data: error ? null : { count: count ?? 0, degraded: false }, error }
     },
   })
+
+  const statusCountsPromise = Promise.all(
+    (["all", "review", "pending_info", "scripts"] as const).map(async (filter) => {
+      let query = filterSeededE2EIntakes(supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .in("status", [...getQueueStatusesForFilter(filter)])
+        .eq("payment_status", "paid"), { allowSeeded })
+
+      if (scope.serviceFilter) query = query.or(scope.serviceFilter)
+      if (onlySeeded) query = query.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
+
+      const { count, error } = await query
+      return { filter, count: count ?? 0, error }
+    }),
+  ).then((results): QueueStatusCounts | null => {
+    if (results.some((result) => result.error)) return null
+    return Object.fromEntries(
+      results.map((result) => [result.filter, result.count]),
+    ) as unknown as QueueStatusCounts
+  })
+
+  let oldestQuery = filterSeededE2EIntakes(supabase
+    .from("intakes")
+    .select("id, paid_at, submitted_at, created_at")
+    .in("status", QUEUE_REVIEW_STATUSES)
+    .eq("payment_status", "paid"), { allowSeeded })
+
+  if (scope.serviceFilter) oldestQuery = oldestQuery.or(scope.serviceFilter)
+  if (onlySeeded) oldestQuery = oldestQuery.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
+
+  const oldestPromise = oldestQuery
+    .order("paid_at", { ascending: true, nullsFirst: false })
+    .order("submitted_at", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle()
 
   // Fetch paginated data with only necessary fields for queue view
   let dataQuery = filterSeededE2EIntakes(supabase
@@ -367,7 +436,7 @@ export async function getDoctorQueue(
       patient:profiles!patient_id (id, full_name, email, date_of_birth, sex, medicare_number, medicare_irn, medicare_expiry, ihi_number, phone, address_line1, suburb, state, postcode),
       service:services!service_id (id, name, short_name, type, slug)
     `)
-    .in("status", QUEUE_REVIEW_STATUSES)
+    .in("status", [...activeStatuses])
     .eq("payment_status", "paid"), { allowSeeded })
 
   if (scope.serviceFilter) {
@@ -385,12 +454,30 @@ export async function getDoctorQueue(
     .order("created_at", { ascending: true })
     .range(offset, offset + pageSize - 1)
 
-  const [countResult, { data, error }] = await Promise.all([countPromise, dataPromise])
+  const [countResult, statusCounts, oldestResult, { data, error }] = await Promise.all([
+    countPromise,
+    statusCountsPromise,
+    oldestPromise,
+    dataPromise,
+  ])
   const countFallback = countResult.degraded
+  const oldestWaitingEnteredAt = oldestResult.data
+    ? oldestResult.data.paid_at ?? oldestResult.data.submitted_at ?? oldestResult.data.created_at
+    : null
+  const oldestWaitingIntakeId = oldestResult.data?.id ?? null
 
   if (error) {
     logger.error("Error fetching doctor queue", {}, toError(error))
-    return { data: [], total: countResult.count, page, pageSize, degraded: true }
+    return {
+      data: [],
+      total: countResult.count,
+      page,
+      pageSize,
+      degraded: true,
+      statusCounts,
+      oldestWaitingEnteredAt,
+      oldestWaitingIntakeId,
+    }
   }
 
   const unwrapped = await Promise.all((data || []).map(async (row) => {
@@ -441,6 +528,9 @@ export async function getDoctorQueue(
     page,
     pageSize,
     degraded: countFallback || scope.degraded,
+    statusCounts,
+    oldestWaitingEnteredAt,
+    oldestWaitingIntakeId,
   }
 }
 

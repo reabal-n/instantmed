@@ -30,6 +30,7 @@ import {
   buildStaffEmailHubHref,
   buildStaffLedgerHref,
   buildStaffPatientHref,
+  parseQueuePaginationParams,
   parseQueueStatusFilter,
   PATIENT_DASHBOARD_HREF,
   PATIENT_DOCUMENTS_HREF,
@@ -187,6 +188,21 @@ describe("dashboard route contracts", () => {
     expect(parseQueueStatusFilter(["scripts", "review"])).toBe("scripts")
     expect(parseQueueStatusFilter("declined")).toBe("all")
     expect(parseQueueStatusFilter(undefined)).toBe("all")
+  })
+
+  it("normalises malformed dashboard pagination instead of propagating NaN", () => {
+    expect(parseQueuePaginationParams({ page: "bad", pageSize: "also-bad" })).toEqual({
+      page: 1,
+      pageSize: 50,
+    })
+    expect(parseQueuePaginationParams({ page: "0", pageSize: "999" })).toEqual({
+      page: 1,
+      pageSize: 50,
+    })
+    expect(parseQueuePaginationParams({ page: ["3", "7"], pageSize: "25" })).toEqual({
+      page: 3,
+      pageSize: 25,
+    })
   })
 
   it("keeps the staff dashboard shell tolerant of optional data gaps", () => {

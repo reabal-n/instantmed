@@ -11,9 +11,9 @@ import {
   QUEUE_WAIT_TARGET_MINUTES,
   type QueuePressureSeverity,
 } from "@/lib/doctor/queue-pressure"
+import type { QueueStatusCounts } from "@/lib/doctor/queue-utils"
 import { isEditableOrInteractiveKeyboardTarget } from "@/lib/hooks/use-doctor-shortcuts"
 import { cn } from "@/lib/utils"
-import type { IntakeWithPatient } from "@/types/db"
 
 const pressureClasses: Record<QueuePressureSeverity, { root: string; dot: string; value: string }> = {
   idle: {
@@ -47,7 +47,7 @@ export interface QueueFiltersProps {
   hasOpenCase?: boolean
   statusFilter: QueueStatusFilter
   onStatusFilterChange: (value: QueueStatusFilter) => void
-  intakes: IntakeWithPatient[]
+  statusCounts?: QueueStatusCounts | null
   filteredCount: number
   isStale: boolean
   isReconnecting: boolean
@@ -71,7 +71,7 @@ export function QueueFilters({
   hasOpenCase = false,
   statusFilter,
   onStatusFilterChange,
-  intakes,
+  statusCounts = null,
   filteredCount,
   isStale,
   isReconnecting,
@@ -87,7 +87,7 @@ export function QueueFilters({
   const pressureClass = pressureClasses[pressure.severity]
   const openOldest = onOpenOldest ?? onOpenSingleMatch
   const showNextCaseAction = compactShell && filteredCount > 1 && Boolean(openOldest) && !hasOpenCase
-  const showSearch = !compactShell || intakes.length > 5 || hasActiveSearch
+  const showSearch = !compactShell
 
   // `/` key focuses the search input (standard queue shortcut)
   useEffect(() => {
@@ -143,7 +143,7 @@ export function QueueFilters({
               <Button
                 type="button"
                 size="sm"
-                className="h-8 shrink-0 bg-primary px-3 text-xs text-primary-foreground shadow-sm shadow-primary/[0.12] hover:bg-primary/90"
+                className="h-11 shrink-0 bg-primary px-3 text-xs text-primary-foreground shadow-sm shadow-primary/[0.12] hover:bg-primary/90 sm:h-8"
                 onClick={openOldest}
                 data-open-next-case
               >
@@ -193,7 +193,7 @@ export function QueueFilters({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 shrink-0"
+              className="h-11 w-11 shrink-0 sm:h-8 sm:w-8"
               onClick={onRefresh}
               disabled={isRefreshing}
               title={isRefreshing ? "Refreshing queue" : "Refresh queue"}
@@ -218,14 +218,7 @@ export function QueueFilters({
           { key: "pending_info", label: compactShell ? "Info" : "Pending Info" },
           { key: "scripts", label: compactShell ? "Scripts to write" : "Scripts" },
         ] as const).map((tab) => {
-          const count =
-            tab.key === "all"
-              ? intakes.length
-              : tab.key === "review"
-              ? intakes.filter((r) => ["paid", "in_review"].includes(r.status)).length
-              : tab.key === "pending_info"
-              ? intakes.filter((r) => r.status === "pending_info").length
-              : intakes.filter((r) => r.status === "awaiting_script").length
+          const count = statusCounts?.[tab.key] ?? null
           return (
             <button
               key={tab.key}
@@ -233,7 +226,7 @@ export function QueueFilters({
               aria-pressed={statusFilter === tab.key}
               onClick={() => onStatusFilterChange(tab.key)}
               className={cn(
-                "min-w-0 rounded-md px-1.5 py-1.5 text-[11px] font-medium transition-[background-color,color,box-shadow] duration-150 ease-in-out sm:shrink-0 sm:px-3.5 sm:text-xs",
+                "min-h-11 min-w-0 rounded-md px-1.5 py-1.5 text-[11px] font-medium transition-[background-color,color,box-shadow] duration-150 ease-in-out sm:min-h-8 sm:shrink-0 sm:px-3.5 sm:text-xs",
                 statusFilter === tab.key
                   ? "bg-white text-foreground shadow-sm shadow-primary/[0.03] dark:bg-card"
                   : "text-slate-600 hover:bg-card/60 hover:text-foreground dark:text-muted-foreground"
@@ -245,7 +238,12 @@ export function QueueFilters({
                   <span className="hidden sm:inline">Scripts to write</span>
                 </>
               ) : tab.label}
-              <span className={cn("ml-1 tabular-nums sm:ml-1.5", count === 0 && "text-muted-foreground/70")}>({count})</span>
+              <span
+                className={cn("ml-1 tabular-nums sm:ml-1.5", count === 0 && "text-muted-foreground")}
+                aria-label={count === null ? "count unavailable" : undefined}
+              >
+                ({count ?? "—"})
+              </span>
             </button>
           )
         })}

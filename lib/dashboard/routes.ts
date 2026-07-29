@@ -181,6 +181,19 @@ function getPageSizeParam(value: string | string[] | number | undefined): string
   return parsed >= 10 && parsed <= 100 ? candidate : null
 }
 
+export function parseQueuePaginationParams(params: {
+  page?: string | string[] | number
+  pageSize?: string | string[] | number
+}): { page: number; pageSize: number } {
+  const page = getPositiveIntegerParam(params.page)
+  const pageSize = getPageSizeParam(params.pageSize)
+
+  return {
+    page: page ? Number(page) : 1,
+    pageSize: pageSize ? Number(pageSize) : 50,
+  }
+}
+
 /**
  * Canonical staff dashboard href builder (Phase 2 of dashboard remaster).
  */

@@ -300,6 +300,8 @@ export function QueueClient({
   governanceReceipt = null,
   recentlyCompletedDegraded = false,
   recentlyCompletedTruncated = false,
+  statusCounts = null,
+  oldestWaitingIntakeId = null,
   initialStatusFilter = "all",
   hasExplicitStatusFilter = false,
   baseHref = STAFF_DASHBOARD_HREF,
@@ -332,7 +334,6 @@ export function QueueClient({
   const [pendingBatchReviews, setPendingBatchReviews] = useState(initialPendingBatchReviews)
   // Keep a live ref to filtered intakes for use in panel callbacks
   const filteredIntakesRef = useRef<IntakeWithPatient[]>([])
-  const intakesRef = useRef<IntakeWithPatient[]>(initialIntakes)
   const pendingBatchReviewsRef = useRef(initialPendingBatchReviews)
 
   // Sync server data into local state after router.refresh() soft-refreshes the page.
@@ -346,10 +347,6 @@ export function QueueClient({
     setPendingBatchReviews(initialPendingBatchReviews)
     pendingBatchReviewsRef.current = initialPendingBatchReviews
   }, [initialPendingBatchReviews])
-
-  useEffect(() => {
-    intakesRef.current = intakes
-  }, [intakes])
 
   useEffect(() => {
     pendingBatchReviewsRef.current = pendingBatchReviews
@@ -461,8 +458,8 @@ export function QueueClient({
 
     const query = params.toString()
     const hash = window.location.hash || ""
-    window.history.replaceState(window.history.state, "", `${query ? `${baseHref}?${query}` : baseHref}${hash}`)
-  }, [baseHref])
+    router.replace(`${query ? `${baseHref}?${query}` : baseHref}${hash}`, { scroll: false })
+  }, [baseHref, router])
 
   // Auto-activate priority mode when SLA-breached cases exist
   useEffect(() => {
@@ -872,20 +869,19 @@ export function QueueClient({
   }, [openReviewPanel, rememberOpenedCase])
 
   const handleJumpToOldestWait = useCallback(() => {
-    const oldest = intakesRef.current.reduce<IntakeWithPatient | null>((current, intake) => {
-      const enteredAt = new Date(getQueueEnteredAt(intake)).getTime()
-      if (!Number.isFinite(enteredAt)) return current
-      if (!current) return intake
-      const currentEnteredAt = new Date(getQueueEnteredAt(current)).getTime()
-      return enteredAt < currentEnteredAt ? intake : current
-    }, null)
-    if (!oldest) return
+    if (!oldestWaitingIntakeId) return
 
     setSearchQuery("")
     if (statusFilter !== "all") handleStatusFilterChange("all")
-    rememberOpenedCase(oldest.id)
-    openReviewPanel(oldest.id)
-  }, [handleStatusFilterChange, openReviewPanel, rememberOpenedCase, statusFilter])
+    rememberOpenedCase(oldestWaitingIntakeId)
+    openReviewPanel(oldestWaitingIntakeId)
+  }, [
+    handleStatusFilterChange,
+    oldestWaitingIntakeId,
+    openReviewPanel,
+    rememberOpenedCase,
+    statusFilter,
+  ])
 
   useEffect(() => {
     window.addEventListener("operator-jump-to-oldest-wait", handleJumpToOldestWait)
@@ -1094,11 +1090,11 @@ export function QueueClient({
           onSearchChange={setSearchQuery}
           onRefresh={() => refreshQueue(true)}
           onOpenSingleMatch={filteredIntakes.length === 1 ? handleReviewNext : undefined}
-          onOpenOldest={handleJumpToOldestWait}
+          onOpenOldest={handleReviewNext}
           hasOpenCase={Boolean(expandedId)}
           statusFilter={statusFilter}
           onStatusFilterChange={handleStatusFilterChange}
-          intakes={intakes}
+          statusCounts={statusCounts}
           filteredCount={filteredIntakes.length}
           isStale={isStale}
           isReconnecting={isReconnecting}

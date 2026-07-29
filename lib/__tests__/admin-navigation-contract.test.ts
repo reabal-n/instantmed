@@ -100,6 +100,13 @@ function findAdminPageFiles(dir = join(process.cwd(), "app/admin")): string[] {
 }
 
 describe("admin navigation contract", () => {
+  it("keeps active sidebar labels above the WCAG AA contrast threshold", () => {
+    expect(sidebarSource).toContain("text-blue-700")
+    expect(sidebarSource).not.toContain(
+      'bg-primary/[0.08] text-primary shadow-sm',
+    )
+  })
+
   it("keeps settings focused on configuration instead of incident response", () => {
     const encryptionPageSource = readFileSync(
       join(process.cwd(), "app/admin/settings/encryption/page.tsx"),

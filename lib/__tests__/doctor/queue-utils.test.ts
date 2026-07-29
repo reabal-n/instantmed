@@ -6,11 +6,26 @@ import {
   calculateWaitTime,
   getQueueClockTickDelayMs,
   getQueueEnteredAt,
+  getQueueStatusesForFilter,
   getQueueStatusMeta,
   getWaitTimeSeverity,
   isHydratedQueueRealtimeInsert,
   QUEUE_REVIEW_STATUSES,
 } from "@/lib/doctor/queue-utils"
+
+describe("getQueueStatusesForFilter", () => {
+  it("maps each operator tab to its complete server-side status scope", () => {
+    expect(getQueueStatusesForFilter("all")).toEqual([
+      "paid",
+      "in_review",
+      "pending_info",
+      "awaiting_script",
+    ])
+    expect(getQueueStatusesForFilter("review")).toEqual(["paid", "in_review"])
+    expect(getQueueStatusesForFilter("pending_info")).toEqual(["pending_info"])
+    expect(getQueueStatusesForFilter("scripts")).toEqual(["awaiting_script"])
+  })
+})
 
 describe("calculateWaitTime", () => {
   beforeEach(() => {

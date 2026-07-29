@@ -1,5 +1,6 @@
 import type { QueueStatusFilter } from "@/lib/dashboard/routes"
 import type { PendingBatchReviewResult } from "@/lib/data/intakes"
+import type { QueueStatusCounts } from "@/lib/doctor/queue-utils"
 import type {
   GovernanceReviewReceipt,
   IntakeWithPatient,
@@ -20,6 +21,8 @@ export interface QueueClientProps {
   governanceReceipt?: GovernanceReviewReceipt | null
   recentlyCompletedDegraded?: boolean
   recentlyCompletedTruncated?: boolean
+  statusCounts?: QueueStatusCounts | null
+  oldestWaitingIntakeId?: string | null
   initialStatusFilter?: QueueStatusFilter
   hasExplicitStatusFilter?: boolean
   baseHref?: string
