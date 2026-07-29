@@ -37,7 +37,7 @@ import { resolveStaffCaseActionLabel } from "@/lib/doctor/case-action-label"
 import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
 import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
 import { LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
-import { getQueueEnteredAt, getQueueStatusMeta } from "@/lib/doctor/queue-utils"
+import { getQueueEnteredAt, getQueueStatusMeta, getReviewHistoryStatusMeta } from "@/lib/doctor/queue-utils"
 import {
   formatRenewalMatchTitle,
   RENEWAL_FALLBACK_TITLE,
@@ -135,6 +135,7 @@ export interface QueueTableProps {
 
   // Extra sections
   recentlyCompleted: RecentlyCompletedIntake[]
+  reviewHistoryTruncated?: boolean
   pagination?: PaginationInfo
   baseHref?: string
   emptyState?: {
@@ -176,6 +177,7 @@ export function QueueTable({
   onRememberOpenedCase,
   dialogs,
   recentlyCompleted,
+  reviewHistoryTruncated = false,
   pagination,
   baseHref = STAFF_DASHBOARD_HREF,
   emptyState = {
@@ -806,7 +808,9 @@ export function QueueTable({
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-success" />
                 <h3 className="text-sm font-semibold text-foreground">
-                  Your reviews today ({recentlyCompleted.length})
+                  {reviewHistoryTruncated
+                    ? `Your latest reviews (${Math.min(recentlyCompleted.length, 5)} shown)`
+                    : `Your reviews today (${recentlyCompleted.length})`}
                 </h3>
               </div>
               <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", completedExpanded && "rotate-180")} />
@@ -816,6 +820,7 @@ export function QueueTable({
           <CardContent className="space-y-1.5 border-t border-border/40 px-3 py-3">
             {recentlyCompleted.slice(0, 5).map((intake) => {
               const svc = intake.service as { short_name?: string; type?: string } | undefined
+              const statusMeta = getReviewHistoryStatusMeta(intake.status)
               return (
                 <div
                   key={intake.id}
@@ -843,12 +848,16 @@ export function QueueTable({
                     <Badge
                       className={cn(
                         "text-xs",
-                        intake.status === "approved"
+                        statusMeta.tone === "approved"
                           ? "bg-success-light text-success border-success-border"
-                          : "bg-destructive/10 text-destructive border-destructive/20"
+                          : statusMeta.tone === "declined"
+                            ? "bg-destructive/10 text-destructive border-destructive/20"
+                            : statusMeta.tone === "completed"
+                              ? "border-primary/20 bg-primary/10 text-primary"
+                              : "border-border bg-muted text-muted-foreground"
                       )}
                     >
-                      {intake.status === "approved" ? "Approved" : "Declined"}
+                      {statusMeta.label}
                     </Badge>
                   </div>
                   <span className="text-xs text-muted-foreground shrink-0">

@@ -63,6 +63,71 @@ function createHarness(responses: QueryResponse[]) {
   return { queries, supabase }
 }
 
+function createFilteringHarness(sourceRows: Array<Record<string, unknown>>) {
+  const queries: Array<Array<[string, ...unknown[]]>> = []
+  const supabase = {
+    from: vi.fn(() => {
+      const calls: Array<[string, ...unknown[]]> = []
+      let data = [...sourceRows]
+      queries.push(calls)
+
+      const chain = {
+        select: vi.fn((...args: unknown[]) => {
+          calls.push(["select", ...args])
+          return chain
+        }),
+        in: vi.fn((column: string, values: unknown[]) => {
+          calls.push(["in", column, values])
+          data = data.filter((candidate) => values.includes(candidate[column]))
+          return chain
+        }),
+        gte: vi.fn((column: string, value: string) => {
+          calls.push(["gte", column, value])
+          data = data.filter((candidate) => (
+            typeof candidate[column] === "string" && candidate[column] >= value
+          ))
+          return chain
+        }),
+        eq: vi.fn((column: string, value: unknown) => {
+          calls.push(["eq", column, value])
+          data = data.filter((candidate) => candidate[column] === value)
+          return chain
+        }),
+        or: vi.fn((expression: string) => {
+          calls.push(["or", expression])
+          if (expression === "ai_approved.is.false,ai_approved.is.null") {
+            data = data.filter((candidate) => (
+              candidate.ai_approved === false || candidate.ai_approved == null
+            ))
+          }
+          return chain
+        }),
+        order: vi.fn((column: string, options: { ascending: boolean }) => {
+          calls.push(["order", column, options])
+          data.sort((left, right) => {
+            const leftValue = String(left[column] ?? "")
+            const rightValue = String(right[column] ?? "")
+            return options.ascending
+              ? leftValue.localeCompare(rightValue)
+              : rightValue.localeCompare(leftValue)
+          })
+          return chain
+        }),
+        limit: vi.fn((value: number) => {
+          calls.push(["limit", value])
+          data = data.slice(0, value)
+          return chain
+        }),
+        then: (resolve: (value: unknown) => unknown) => resolve({ data, error: null }),
+      }
+
+      return chain
+    }),
+  }
+
+  return { queries, supabase }
+}
+
 function normalizeProjection(value: unknown): string {
   return String(value)
     .replace(/\s+/g, " ")
@@ -116,6 +181,7 @@ describe("getRecentlyCompletedIntakes", () => {
         service: { name: "Medical certificate", short_name: "Med cert", type: "med_certs" },
       }],
       degraded: false,
+      truncated: false,
     })
 
     const ordinary = harness.queries[0]!
@@ -128,34 +194,63 @@ describe("getRecentlyCompletedIntakes", () => {
       ["eq", "reviewed_by", "doctor-1"],
       ["or", "ai_approved.is.false,ai_approved.is.null"],
       ["order", "reviewed_at", { ascending: false }],
-      ["limit", 50],
+      ["limit", 51],
     ]))
   })
 
-  it("excludes protocol issuance until the signed-in clinician has a durable governance receipt", async () => {
-    const harness = createHarness([
-      { data: [] },
-      { data: [] },
+  it("applies actor, time, and protocol-governance predicates to returned history", async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-07-29T02:00:00.000Z"))
+    const harness = createFilteringHarness([
+      row("manual-null", {
+        ai_approved: null,
+        reviewed_by: "doctor-1",
+        reviewed_at: "2026-07-29T01:00:00.000Z",
+      }),
+      row("manual-false", {
+        ai_approved: false,
+        reviewed_by: "doctor-1",
+        reviewed_at: "2026-07-29T01:05:00.000Z",
+      }),
+      row("auto-without-receipt", {
+        ai_approved: true,
+        category: "medical_certificate",
+        reviewed_by: "doctor-1",
+        reviewed_at: "2026-07-29T01:10:00.000Z",
+        batch_reviewed_by: null,
+        batch_reviewed_at: null,
+      }),
+      row("governance-receipt", {
+        ai_approved: true,
+        category: "medical_certificate",
+        reviewed_by: "system",
+        reviewed_at: "2026-07-29T00:30:00.000Z",
+        batch_reviewed_by: "doctor-1",
+        batch_reviewed_at: "2026-07-29T01:15:00.000Z",
+      }),
+      row("other-actor", {
+        ai_approved: false,
+        reviewed_by: "doctor-2",
+        reviewed_at: "2026-07-29T01:20:00.000Z",
+      }),
+      row("old-manual", {
+        ai_approved: false,
+        reviewed_by: "doctor-1",
+        reviewed_at: "2026-07-28T13:59:59.000Z",
+      }),
     ])
     mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
 
     const { getRecentlyCompletedIntakes } = await import("@/lib/data/intakes/queries")
-    await expect(getRecentlyCompletedIntakes({ limit: 8, reviewerId: "doctor-1" })).resolves.toEqual({
-      data: [],
-      degraded: false,
-    })
+    const result = await getRecentlyCompletedIntakes({ limit: 8, reviewerId: "doctor-1" })
 
-    expect(harness.queries[0]).toEqual(expect.arrayContaining([
-      ["or", "ai_approved.is.false,ai_approved.is.null"],
-    ]))
-    expect(harness.queries[1]).toEqual(expect.arrayContaining([
-      ["eq", "ai_approved", true],
-      ["eq", "category", "medical_certificate"],
-      ["eq", "batch_reviewed_by", "doctor-1"],
-      ["gte", "batch_reviewed_at", expect.any(String)],
-      ["order", "batch_reviewed_at", { ascending: false }],
-      ["limit", 8],
-    ]))
+    expect(result.data.map((review) => review.id)).toEqual([
+      "governance-receipt",
+      "manual-false",
+      "manual-null",
+    ])
+    expect(result.degraded).toBe(false)
+    expect(result.truncated).toBe(false)
   })
 
   it("uses the governance receipt timestamp for the signed-in reviewer", async () => {
@@ -184,12 +279,24 @@ describe("getRecentlyCompletedIntakes", () => {
         service: { name: "Medical certificate", short_name: "Med cert", type: "med_certs" },
       }],
       degraded: false,
+      truncated: false,
     })
   })
 
-  it("applies the AEST day boundary to both decision streams", async () => {
+  it.each([
+    {
+      season: "winter AEST",
+      now: "2026-07-29T15:00:00.000Z",
+      expectedStart: "2026-07-29T14:00:00.000Z",
+    },
+    {
+      season: "summer AEDT",
+      now: "2026-01-15T15:00:00.000Z",
+      expectedStart: "2026-01-15T13:00:00.000Z",
+    },
+  ])("applies the Australia/Sydney day boundary in $season", async ({ now, expectedStart }) => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date("2026-07-29T15:00:00.000Z"))
+    vi.setSystemTime(new Date(now))
     const harness = createHarness([
       { data: [] },
       { data: [] },
@@ -199,8 +306,8 @@ describe("getRecentlyCompletedIntakes", () => {
     const { getRecentlyCompletedIntakes } = await import("@/lib/data/intakes/queries")
     await getRecentlyCompletedIntakes({ limit: 8, reviewerId: "doctor-1" })
 
-    expect(harness.queries[0]).toContainEqual(["gte", "reviewed_at", "2026-07-29T14:00:00.000Z"])
-    expect(harness.queries[1]).toContainEqual(["gte", "batch_reviewed_at", "2026-07-29T14:00:00.000Z"])
+    expect(harness.queries[0]).toContainEqual(["gte", "reviewed_at", expectedStart])
+    expect(harness.queries[1]).toContainEqual(["gte", "batch_reviewed_at", expectedStart])
   })
 
   it("interleaves both streams before applying the cap with a stable id tie-break", async () => {
@@ -228,6 +335,9 @@ describe("getRecentlyCompletedIntakes", () => {
       "governance-b",
       "manual-z",
     ])
+    expect(result.truncated).toBe(true)
+    expect(harness.queries[0]).toContainEqual(["limit", 4])
+    expect(harness.queries[1]).toContainEqual(["limit", 4])
   })
 
   it.each([
@@ -253,6 +363,7 @@ describe("getRecentlyCompletedIntakes", () => {
     await expect(getRecentlyCompletedIntakes({ limit: 8, reviewerId: "doctor-1" })).resolves.toEqual({
       data: [],
       degraded: true,
+      truncated: false,
     })
   })
 })

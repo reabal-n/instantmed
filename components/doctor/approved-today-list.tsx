@@ -8,7 +8,7 @@ import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import { cn } from "@/lib/utils"
 import type { RecentlyCompletedIntake } from "@/types/db"
 
-// `recentlyCompleted` is already actor- and AEST-day-scoped across ordinary
+// `recentlyCompleted` is already actor- and Sydney-day-scoped across ordinary
 // clinician decisions and durable post-auto-approval governance receipts.
 // This compact list shows only that actor's approved outcomes.
 const APPROVED_STATUSES = new Set(["approved", "awaiting_script", "completed", "sent"])
@@ -21,18 +21,21 @@ const APPROVED_STATUSES = new Set(["approved", "awaiting_script", "completed", "
 export function ApprovedTodayList({
   intakes,
   className,
+  historyTruncated = false,
 }: {
   intakes: RecentlyCompletedIntake[]
   className?: string
+  historyTruncated?: boolean
 }) {
   const approved = intakes.filter((intake) => APPROVED_STATUSES.has(intake.status))
   if (approved.length === 0) return null
 
   const now = new Date()
+  const heading = historyTruncated ? "Your latest approvals" : "Your approvals today"
 
   return (
     <section
-      aria-label="Your approvals today"
+      aria-label={heading}
       className={cn(
         "mt-2 flex max-h-[40%] min-h-0 shrink-0 flex-col rounded-2xl border border-border/50 bg-white shadow-sm shadow-primary/[0.04] dark:bg-card",
         className,
@@ -40,8 +43,10 @@ export function ApprovedTodayList({
     >
       <div className="flex items-center gap-2 border-b border-border/50 px-4 py-2.5">
         <span className="h-2 w-2 rounded-full bg-success" aria-hidden />
-        <span className="text-sm font-semibold text-foreground">Your approvals today</span>
-        <span className="text-xs tabular-nums text-muted-foreground">{approved.length}</span>
+        <span className="text-sm font-semibold text-foreground">{heading}</span>
+        <span className="text-xs tabular-nums text-muted-foreground">
+          {historyTruncated ? `${approved.length} shown` : approved.length}
+        </span>
       </div>
       <ul className="min-h-0 flex-1 divide-y divide-border/40 overflow-y-auto">
         {approved.map((intake) => {

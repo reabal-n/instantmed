@@ -14,6 +14,7 @@ export interface QueueClientProps {
   pendingBatchReviews?: PendingBatchReviewResult
   recentlyCompleted?: RecentlyCompletedIntake[]
   recentlyCompletedDegraded?: boolean
+  recentlyCompletedTruncated?: boolean
   initialStatusFilter?: QueueStatusFilter
   hasExplicitStatusFilter?: boolean
   baseHref?: string

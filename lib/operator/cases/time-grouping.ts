@@ -33,6 +33,17 @@ const TIME_GROUP_ORDER: TimeGroupLabel[] = [
 
 const AEST_OFFSET_MS = 10 * 60 * 60 * 1000
 const DAY_MS = 24 * 60 * 60 * 1000
+const SYDNEY_TIME_ZONE = "Australia/Sydney"
+const sydneyDateTimeFormatter = new Intl.DateTimeFormat("en-AU", {
+  day: "2-digit",
+  hour: "2-digit",
+  hourCycle: "h23",
+  minute: "2-digit",
+  month: "2-digit",
+  second: "2-digit",
+  timeZone: SYDNEY_TIME_ZONE,
+  year: "numeric",
+})
 
 export function startOfDayAEST(d: Date): Date {
   // Shift to AEST wall clock, floor to UTC day boundary in shifted frame,
@@ -41,6 +52,86 @@ export function startOfDayAEST(d: Date): Date {
   const shifted = d.getTime() + AEST_OFFSET_MS
   const aestMidnightShifted = Math.floor(shifted / DAY_MS) * DAY_MS
   return new Date(aestMidnightShifted - AEST_OFFSET_MS)
+}
+
+function getSydneyParts(date: Date) {
+  const values = new Map(
+    sydneyDateTimeFormatter
+      .formatToParts(date)
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, Number(part.value)]),
+  )
+
+  const parts = {
+    year: values.get("year"),
+    month: values.get("month"),
+    day: values.get("day"),
+    hour: values.get("hour"),
+    minute: values.get("minute"),
+    second: values.get("second"),
+  }
+
+  if (Object.values(parts).some((value) => !Number.isInteger(value))) {
+    throw new Error("Could not resolve Australia/Sydney date parts")
+  }
+
+  return parts as {
+    year: number
+    month: number
+    day: number
+    hour: number
+    minute: number
+    second: number
+  }
+}
+
+function getSydneyOffsetMs(date: Date): number {
+  const parts = getSydneyParts(date)
+  const representedAsUtc = Date.UTC(
+    parts.year,
+    parts.month - 1,
+    parts.day,
+    parts.hour,
+    parts.minute,
+    parts.second,
+  )
+  const sourceTimeAtWholeSecond = Math.trunc(date.getTime() / 1000) * 1000
+  return representedAsUtc - sourceTimeAtWholeSecond
+}
+
+/** Resolve midnight for the date currently shown in Australia/Sydney. */
+export function startOfDaySydney(date: Date): Date {
+  if (Number.isNaN(date.getTime())) {
+    throw new Error("Could not resolve Australia/Sydney midnight for an invalid date")
+  }
+
+  const local = getSydneyParts(date)
+  const localMidnightAsUtc = Date.UTC(local.year, local.month - 1, local.day)
+  let candidateMs = localMidnightAsUtc
+
+  // The first candidate may fall on the other side of a DST transition.
+  // Re-resolving its actual Sydney offset converges to local midnight.
+  for (let iteration = 0; iteration < 3; iteration += 1) {
+    const offsetMs = getSydneyOffsetMs(new Date(candidateMs))
+    const nextCandidateMs = localMidnightAsUtc - offsetMs
+    if (nextCandidateMs === candidateMs) break
+    candidateMs = nextCandidateMs
+  }
+
+  const candidate = new Date(candidateMs)
+  const resolved = getSydneyParts(candidate)
+  if (
+    resolved.year !== local.year ||
+    resolved.month !== local.month ||
+    resolved.day !== local.day ||
+    resolved.hour !== 0 ||
+    resolved.minute !== 0 ||
+    resolved.second !== 0
+  ) {
+    throw new Error("Could not resolve Australia/Sydney midnight")
+  }
+
+  return candidate
 }
 
 function toValidDate(value: unknown): Date | null {

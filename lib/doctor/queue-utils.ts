@@ -3,6 +3,7 @@
  * Extracted from queue-client.tsx for testability.
  */
 
+import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import type { IntakeStatus } from "@/types/intake"
 
 export type WaitTimeSeverity = "normal" | "warning" | "critical"
@@ -27,6 +28,13 @@ export interface QueueStatusMeta {
   tone: QueueStatusTone
 }
 
+export type ReviewHistoryStatusTone = "approved" | "declined" | "completed" | "reviewed"
+
+export interface ReviewHistoryStatusMeta {
+  label: string
+  tone: ReviewHistoryStatusTone
+}
+
 /** Use the moment the paid case truly entered the doctor queue. */
 export function getQueueEnteredAt(intake: QueueTimestampInput): string {
   return intake.paid_at ?? intake.submitted_at ?? intake.created_at
@@ -45,6 +53,43 @@ export function getQueueStatusMeta(status: string): QueueStatusMeta {
     default:
       return { label: "Needs review", tone: "review" }
   }
+}
+
+/** Truthful outcome labels for actor-scoped review history. */
+export function getReviewHistoryStatusMeta(status: string): ReviewHistoryStatusMeta {
+  switch (status) {
+    case "approved":
+      return { label: "Approved", tone: "approved" }
+    case "declined":
+      return { label: "Declined", tone: "declined" }
+    case "completed":
+      return { label: "Completed", tone: "completed" }
+    default:
+      return { label: "Reviewed", tone: "reviewed" }
+  }
+}
+
+/** Describe a complete count or, when capped, the bounded review slice. */
+export function buildReviewHistorySummary({
+  reviews,
+  truncated,
+  now,
+}: {
+  reviews: Array<{ activity_at: string }>
+  truncated: boolean
+  now: Date
+}): string {
+  const lastReviewed = reviews
+    .map((review) => review.activity_at)
+    .sort()
+    .pop() ?? null
+  const countSummary = truncated
+    ? `${reviews.length}+ reviews recorded today · latest ${reviews.length} shown`
+    : `Your reviews today: ${reviews.length}`
+  if (!lastReviewed) return countSummary
+
+  const relative = formatRelativeTime(lastReviewed, now)
+  return relative ? `${countSummary} · last reviewed ${relative}` : countSummary
 }
 
 /**

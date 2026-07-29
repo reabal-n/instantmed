@@ -18,7 +18,7 @@ import {
 } from "@/lib/dashboard/routes"
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
 import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
-import { calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
+import { buildReviewHistorySummary, calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
 import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
 import { isPrescribingConsultSubtype, SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
@@ -26,7 +26,6 @@ import { formatServiceType } from "@/lib/format/intake"
 import { useDebounce } from "@/lib/hooks/use-debounce"
 import { isEditableOrInteractiveKeyboardTarget } from "@/lib/hooks/use-doctor-shortcuts"
 import { useIsDesktop } from "@/lib/hooks/use-media-query"
-import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import { cn } from "@/lib/utils"
 import type { IntakeStatus, IntakeWithPatient, RecentlyCompletedIntake } from "@/types/db"
 
@@ -125,37 +124,10 @@ const IntakeReviewPanel = dynamic<LazyIntakeReviewPanelProps>(loadIntakeReviewPa
 const ApprovedTodayList = dynamic<{
   intakes: RecentlyCompletedIntake[]
   className?: string
+  historyTruncated?: boolean
 }>(() => import("@/components/doctor/approved-today-list").then((mod) => mod.ApprovedTodayList), {
   loading: () => null,
 })
-
-/**
- * Compose the actor-scoped review summary from data already on hand.
- */
-function buildCaughtUpSummary({
-  recentlyCompleted,
-  now,
-}: {
-  recentlyCompleted: RecentlyCompletedIntake[]
-  now: Date
-}): string {
-  // The server query already scopes this actor's rows to today's AEST
-  // boundary. Re-bucketing ISO timestamps in the browser would turn that back
-  // into a UTC-day count and drop early-morning Australian reviews.
-  const reviewedToday = recentlyCompleted.length
-
-  const lastReviewed = recentlyCompleted
-    .map((review) => review.activity_at)
-    .sort()
-    .pop() ?? null
-
-  const parts: string[] = [`Your reviews today: ${reviewedToday}`]
-  if (lastReviewed) {
-    const relative = formatRelativeTime(lastReviewed, now)
-    if (relative) parts.push(`last reviewed ${relative}`)
-  }
-  return parts.join(" · ")
-}
 
 function buildQueueEmptyState({
   doctorAvailable,
@@ -165,6 +137,7 @@ function buildQueueEmptyState({
   baseHref,
   recentlyCompleted,
   recentlyCompletedDegraded,
+  recentlyCompletedTruncated,
   now,
 }: {
   doctorAvailable: boolean
@@ -174,6 +147,7 @@ function buildQueueEmptyState({
   baseHref: string
   recentlyCompleted: RecentlyCompletedIntake[]
   recentlyCompletedDegraded: boolean
+  recentlyCompletedTruncated: boolean
   now: Date
 }): QueueEmptyState {
   if (!doctorAvailable && totalCount === 0) {
@@ -229,7 +203,11 @@ function buildQueueEmptyState({
     title: "No review cases right now",
     description: "Paid clinical work, pending replies, and scripts will appear here automatically.",
     tone: "success",
-    summary: buildCaughtUpSummary({ recentlyCompleted, now }),
+    summary: buildReviewHistorySummary({
+      reviews: recentlyCompleted,
+      truncated: recentlyCompletedTruncated,
+      now,
+    }),
   }
 }
 
@@ -311,6 +289,7 @@ export function QueueClient({
   },
   recentlyCompleted = [],
   recentlyCompletedDegraded = false,
+  recentlyCompletedTruncated = false,
   initialStatusFilter = "all",
   hasExplicitStatusFilter = false,
   baseHref = STAFF_DASHBOARD_HREF,
@@ -860,6 +839,7 @@ export function QueueClient({
     baseHref,
     recentlyCompleted,
     recentlyCompletedDegraded,
+    recentlyCompletedTruncated,
     now: new Date(),
   }), [
     baseHref,
@@ -869,6 +849,7 @@ export function QueueClient({
     statusFilter,
     recentlyCompleted,
     recentlyCompletedDegraded,
+    recentlyCompletedTruncated,
   ])
 
   const handleReviewNext = useCallback(() => {
@@ -1147,6 +1128,7 @@ export function QueueClient({
                   onPrimeReviewPanelCode={primeReviewPanelCode}
                   dialogs={dialogs}
                   recentlyCompleted={recentlyCompleted}
+                  reviewHistoryTruncated={recentlyCompletedTruncated}
                   pagination={pagination}
                   baseHref={baseHref}
                   emptyState={queueEmptyState}
@@ -1156,7 +1138,10 @@ export function QueueClient({
                 />
               </div>
               {/* Day's approved requests at a glance, no separate navigation. */}
-              <ApprovedTodayList intakes={recentlyCompleted} />
+              <ApprovedTodayList
+                intakes={recentlyCompleted}
+                historyTruncated={recentlyCompletedTruncated}
+              />
             </div>
           )}
           detail={(
@@ -1227,6 +1212,7 @@ export function QueueClient({
             onPrimeReviewPanelCode={primeReviewPanelCode}
             dialogs={dialogs}
             recentlyCompleted={recentlyCompleted}
+            reviewHistoryTruncated={recentlyCompletedTruncated}
             pagination={pagination}
             baseHref={baseHref}
             emptyState={queueEmptyState}
@@ -1234,7 +1220,11 @@ export function QueueClient({
             searchQuery={debouncedSearch}
           />
           {compactShell && filteredIntakes.length === 0 ? (
-            <ApprovedTodayList intakes={recentlyCompleted} className="max-h-[min(360px,45vh)]" />
+            <ApprovedTodayList
+              intakes={recentlyCompleted}
+              className="max-h-[min(360px,45vh)]"
+              historyTruncated={recentlyCompletedTruncated}
+            />
           ) : null}
         </div>
       )}

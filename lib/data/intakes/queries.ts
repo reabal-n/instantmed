@@ -31,7 +31,7 @@ import { QUEUE_REVIEW_STATUSES } from "@/lib/doctor/queue-utils"
 import { detectRenewalsForIntakes, type IntakeRenewalProbe } from "@/lib/doctor/renewal-detection"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
-import { startOfDayAEST } from "@/lib/operator/cases/time-grouping"
+import { startOfDayAEST, startOfDaySydney } from "@/lib/operator/cases/time-grouping"
 import { derivePatientPaymentRecoveryReason } from "@/lib/patient/payment-recovery"
 import { readAnswers, readDoctorNotes, readPatientNoteContent } from "@/lib/security/phi-field-wrappers"
 import type { AdminServiceFilterValue } from "@/lib/services/service-presentation"
@@ -1272,11 +1272,12 @@ export async function getFormToInboxStats(opts: {
 export async function getRecentlyCompletedIntakes(opts: {
   limit?: number
   reviewerId: string
-}): Promise<{ data: RecentlyCompletedIntake[]; degraded: boolean }> {
+}): Promise<{ data: RecentlyCompletedIntake[]; degraded: boolean; truncated: boolean }> {
   const supabase = createServiceRoleClient()
   const limit = opts.limit || 8
-  // AEST day boundary, not server-local/UTC — see startOfDayAEST for why.
-  const todayStartISO = startOfDayAEST(new Date()).toISOString()
+  const queryLimit = limit + 1
+  // The actor's Sydney calendar day, including AEST/AEDT transitions.
+  const todayStartISO = startOfDaySydney(new Date()).toISOString()
 
   try {
     const ordinaryQuery = supabase
@@ -1296,7 +1297,7 @@ export async function getRecentlyCompletedIntakes(opts: {
       // protocol issuance, which belongs in the governance stream below.
       .or("ai_approved.is.false,ai_approved.is.null")
       .order("reviewed_at", { ascending: false })
-      .limit(limit)
+      .limit(queryLimit)
 
     const governanceQuery = supabase
       .from("intakes")
@@ -1313,7 +1314,7 @@ export async function getRecentlyCompletedIntakes(opts: {
       .eq("batch_reviewed_by", opts.reviewerId)
       .gte("batch_reviewed_at", todayStartISO)
       .order("batch_reviewed_at", { ascending: false })
-      .limit(limit)
+      .limit(queryLimit)
 
     const [ordinaryResult, governanceResult] = await Promise.all([
       ordinaryQuery,
@@ -1326,7 +1327,7 @@ export async function getRecentlyCompletedIntakes(opts: {
         governanceError: governanceResult.error?.message ?? null,
       })
       // A partial stream is not a truthful review history.
-      return { data: [], degraded: true }
+      return { data: [], degraded: true, truncated: false }
     }
 
     type RelatedPatient = RecentlyCompletedIntake["patient"]
@@ -1368,20 +1369,21 @@ export async function getRecentlyCompletedIntakes(opts: {
       .map((row) => normalize(row, row.batch_reviewed_at, "governance_review"))
       .filter((row): row is RecentlyCompletedIntake => row !== null)
 
-    const data = [...ordinary, ...governance]
+    const merged = [...ordinary, ...governance]
       .sort((left, right) => {
         const timestampOrder =
           new Date(right.activity_at).getTime() - new Date(left.activity_at).getTime()
         if (timestampOrder !== 0) return timestampOrder
         return left.id < right.id ? -1 : left.id > right.id ? 1 : 0
       })
-      .slice(0, limit)
+    const truncated = ordinary.length > limit || governance.length > limit || merged.length > limit
+    const data = merged.slice(0, limit)
 
-    return { data, degraded: false }
+    return { data, degraded: false, truncated }
   } catch (error) {
     logger.error("Actor-scoped review history query failed", {
       error: toError(error).message,
     })
-    return { data: [], degraded: true }
+    return { data: [], degraded: true, truncated: false }
   }
 }
