@@ -130,10 +130,7 @@ const ApprovedTodayList = dynamic<{
 })
 
 /**
- * Compose the calm "All caught up." stat line from data already on hand.
- * Returns null when there's nothing meaningful to show (no reviews yet today
- * and no recent completions) so the caller can fall back to a single-line
- * "Today: 0 reviewed" message.
+ * Compose the actor-scoped review summary from data already on hand.
  */
 function buildCaughtUpSummary({
   recentlyCompleted,
@@ -147,16 +144,15 @@ function buildCaughtUpSummary({
   // into a UTC-day count and drop early-morning Australian reviews.
   const reviewedToday = recentlyCompleted.length
 
-  const lastCleared = recentlyCompleted
-    .map((r) => r.reviewed_at ?? r.completed_at ?? null)
-    .filter((s): s is string => typeof s === "string" && s.length > 0)
+  const lastReviewed = recentlyCompleted
+    .map((review) => review.activity_at)
     .sort()
     .pop() ?? null
 
-  const parts: string[] = [`Today: ${reviewedToday} reviewed`]
-  if (lastCleared) {
-    const relative = formatRelativeTime(lastCleared, now)
-    if (relative) parts.push(`last cleared ${relative}`)
+  const parts: string[] = [`Your reviews today: ${reviewedToday}`]
+  if (lastReviewed) {
+    const relative = formatRelativeTime(lastReviewed, now)
+    if (relative) parts.push(`last reviewed ${relative}`)
   }
   return parts.join(" · ")
 }
@@ -168,6 +164,7 @@ function buildQueueEmptyState({
   searchQuery,
   baseHref,
   recentlyCompleted,
+  recentlyCompletedDegraded,
   now,
 }: {
   doctorAvailable: boolean
@@ -176,6 +173,7 @@ function buildQueueEmptyState({
   searchQuery: string
   baseHref: string
   recentlyCompleted: RecentlyCompletedIntake[]
+  recentlyCompletedDegraded: boolean
   now: Date
 }): QueueEmptyState {
   if (!doctorAvailable && totalCount === 0) {
@@ -215,6 +213,15 @@ function buildQueueEmptyState({
       tone: "neutral",
       actionHref: baseHref,
       actionLabel: "Clear filters",
+    }
+  }
+
+  if (recentlyCompletedDegraded) {
+    return {
+      title: "Review history unavailable",
+      description: "The queue is empty, but today's review history could not be loaded. Refresh before relying on this view.",
+      tone: "warning",
+      summary: null,
     }
   }
 
@@ -303,6 +310,7 @@ export function QueueClient({
     degraded: false,
   },
   recentlyCompleted = [],
+  recentlyCompletedDegraded = false,
   initialStatusFilter = "all",
   hasExplicitStatusFilter = false,
   baseHref = STAFF_DASHBOARD_HREF,
@@ -851,6 +859,7 @@ export function QueueClient({
     searchQuery: debouncedSearch,
     baseHref,
     recentlyCompleted,
+    recentlyCompletedDegraded,
     now: new Date(),
   }), [
     baseHref,
@@ -859,6 +868,7 @@ export function QueueClient({
     intakes.length,
     statusFilter,
     recentlyCompleted,
+    recentlyCompletedDegraded,
   ])
 
   const handleReviewNext = useCallback(() => {

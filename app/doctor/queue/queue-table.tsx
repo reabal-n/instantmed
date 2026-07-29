@@ -794,7 +794,7 @@ export function QueueTable({
         </div>
       )}
 
-      {/* Recently Completed Today */}
+      {/* Actor-scoped reviews today */}
       {!compactShell && recentlyCompleted.length > 0 && (
         <Card className="overflow-hidden rounded-xl border-border/50 bg-card/90 shadow-none">
           <CardHeader className="p-0">
@@ -806,7 +806,7 @@ export function QueueTable({
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-success" />
                 <h3 className="text-sm font-semibold text-foreground">
-                  Completed Today ({recentlyCompleted.length})
+                  Your reviews today ({recentlyCompleted.length})
                 </h3>
               </div>
               <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", completedExpanded && "rotate-180")} />
@@ -821,7 +821,7 @@ export function QueueTable({
                   key={intake.id}
                   role="button"
                   tabIndex={0}
-                  aria-label={`View completed case for ${intake.patient.full_name}`}
+                  aria-label={`View reviewed case for ${intake.patient.full_name}`}
                   className="flex cursor-pointer flex-col justify-between gap-2 rounded-lg border border-border/40 bg-muted/20 p-2.5 transition-colors hover:bg-muted/45 sm:flex-row sm:items-center sm:gap-3"
                   onClick={() => {
                     rememberOpenedCase(intake.id)
@@ -852,8 +852,8 @@ export function QueueTable({
                     </Badge>
                   </div>
                   <span className="text-xs text-muted-foreground shrink-0">
-                    {intake.reviewed_at
-                      ? new Date(intake.reviewed_at).toLocaleTimeString("en-AU", {
+                    {intake.activity_at
+                      ? new Date(intake.activity_at).toLocaleTimeString("en-AU", {
                           hour: "2-digit",
                           minute: "2-digit",
                         })

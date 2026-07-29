@@ -8,13 +8,13 @@ import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import { cn } from "@/lib/utils"
 import type { RecentlyCompletedIntake } from "@/types/db"
 
-// `recentlyCompleted` is already today-scoped (reviewed_at >= start of today AEST)
-// and returns approved/declined/completed. The doctor asked to glance at the
-// day's APPROVED requests, so declines are filtered out here.
+// `recentlyCompleted` is already actor- and AEST-day-scoped across ordinary
+// clinician decisions and durable post-auto-approval governance receipts.
+// This compact list shows only that actor's approved outcomes.
 const APPROVED_STATUSES = new Set(["approved", "awaiting_script", "completed", "sent"])
 
 /**
- * Compact, read-only "Approved today" list for the bottom of the dashboard queue
+ * Compact, read-only "Your approvals today" list for the dashboard queue
  * column. Lets the doctor see the day's approved requests at a glance without
  * navigating to a separate page. Self-hides until the first approval of the day.
  */
@@ -32,7 +32,7 @@ export function ApprovedTodayList({
 
   return (
     <section
-      aria-label="Approved today"
+      aria-label="Your approvals today"
       className={cn(
         "mt-2 flex max-h-[40%] min-h-0 shrink-0 flex-col rounded-2xl border border-border/50 bg-white shadow-sm shadow-primary/[0.04] dark:bg-card",
         className,
@@ -40,7 +40,7 @@ export function ApprovedTodayList({
     >
       <div className="flex items-center gap-2 border-b border-border/50 px-4 py-2.5">
         <span className="h-2 w-2 rounded-full bg-success" aria-hidden />
-        <span className="text-sm font-semibold text-foreground">Approved today</span>
+        <span className="text-sm font-semibold text-foreground">Your approvals today</span>
         <span className="text-xs tabular-nums text-muted-foreground">{approved.length}</span>
       </div>
       <ul className="min-h-0 flex-1 divide-y divide-border/40 overflow-y-auto">
@@ -50,7 +50,6 @@ export function ApprovedTodayList({
             intake.service?.short_name ||
             intake.service?.name ||
             formatServiceType(intake.service?.type || "")
-          const stamp = intake.reviewed_at ?? intake.completed_at ?? null
           return (
             <li key={intake.id}>
               <Link
@@ -62,7 +61,7 @@ export function ApprovedTodayList({
                 </span>
                 <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
                   <span className="max-w-[9rem] truncate">{serviceShortLabel}</span>
-                  {stamp ? <span className="tabular-nums">{formatRelativeTime(stamp, now)}</span> : null}
+                  <span className="tabular-nums">{formatRelativeTime(intake.activity_at, now)}</span>
                 </span>
               </Link>
             </li>

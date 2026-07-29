@@ -1272,35 +1272,116 @@ export async function getFormToInboxStats(opts: {
 export async function getRecentlyCompletedIntakes(opts: {
   limit?: number
   reviewerId: string
-}): Promise<RecentlyCompletedIntake[]> {
+}): Promise<{ data: RecentlyCompletedIntake[]; degraded: boolean }> {
   const supabase = createServiceRoleClient()
   const limit = opts.limit || 8
   // AEST day boundary, not server-local/UTC — see startOfDayAEST for why.
   const todayStartISO = startOfDayAEST(new Date()).toISOString()
 
-  const query = supabase
-    .from("intakes")
-    .select(`
-      id,
-      patient_id,
-      status,
-      reviewed_at,
-      completed_at,
-      patient:profiles!patient_id(full_name),
-      service:services!service_id(name, type, short_name)
-    `)
-    .in("status", ["approved", "declined", "completed"])
-    .gte("reviewed_at", todayStartISO)
-    .eq("reviewed_by", opts.reviewerId)
-    .order("reviewed_at", { ascending: false })
-    .limit(limit)
+  try {
+    const ordinaryQuery = supabase
+      .from("intakes")
+      .select(`
+        id,
+        patient_id,
+        status,
+        reviewed_at,
+        patient:profiles!patient_id(full_name),
+        service:services!service_id(name, type, short_name)
+      `)
+      .in("status", ["approved", "declined", "completed"])
+      .gte("reviewed_at", todayStartISO)
+      .eq("reviewed_by", opts.reviewerId)
+      // Legacy manual decisions may have NULL here. Only explicit TRUE marks
+      // protocol issuance, which belongs in the governance stream below.
+      .or("ai_approved.is.false,ai_approved.is.null")
+      .order("reviewed_at", { ascending: false })
+      .limit(limit)
 
-  const { data, error } = await query
+    const governanceQuery = supabase
+      .from("intakes")
+      .select(`
+        id,
+        patient_id,
+        status,
+        batch_reviewed_at,
+        patient:profiles!patient_id(full_name),
+        service:services!service_id(name, type, short_name)
+      `)
+      .eq("ai_approved", true)
+      .eq("category", "medical_certificate")
+      .eq("batch_reviewed_by", opts.reviewerId)
+      .gte("batch_reviewed_at", todayStartISO)
+      .order("batch_reviewed_at", { ascending: false })
+      .limit(limit)
 
-  if (error) {
-    logger.error("Failed to fetch recently completed intakes", { error: error.message })
-    return []
+    const [ordinaryResult, governanceResult] = await Promise.all([
+      ordinaryQuery,
+      governanceQuery,
+    ])
+
+    if (ordinaryResult.error || governanceResult.error) {
+      logger.error("Failed to fetch actor-scoped review history", {
+        ordinaryError: ordinaryResult.error?.message ?? null,
+        governanceError: governanceResult.error?.message ?? null,
+      })
+      // A partial stream is not a truthful review history.
+      return { data: [], degraded: true }
+    }
+
+    type RelatedPatient = RecentlyCompletedIntake["patient"]
+    type RelatedService = NonNullable<RecentlyCompletedIntake["service"]>
+    type BaseRow = {
+      id: string
+      patient_id: string
+      status: IntakeStatus
+      patient: RelatedPatient | RelatedPatient[]
+      service: RelatedService | RelatedService[] | null
+    }
+    type OrdinaryRow = BaseRow & { reviewed_at: string | null }
+    type GovernanceRow = BaseRow & { batch_reviewed_at: string | null }
+
+    const normalize = (
+      row: BaseRow,
+      activityAt: string | null,
+      activityProvenance: RecentlyCompletedIntake["activity_provenance"],
+    ): RecentlyCompletedIntake | null => {
+      const patient = Array.isArray(row.patient) ? row.patient[0] : row.patient
+      const service = Array.isArray(row.service) ? row.service[0] : row.service
+      if (!patient || !activityAt) return null
+
+      return {
+        id: row.id,
+        patient_id: row.patient_id,
+        status: row.status,
+        activity_at: activityAt,
+        activity_provenance: activityProvenance,
+        patient,
+        service: service ?? null,
+      }
+    }
+
+    const ordinary = ((ordinaryResult.data || []) as unknown as OrdinaryRow[])
+      .map((row) => normalize(row, row.reviewed_at, "clinician_decision"))
+      .filter((row): row is RecentlyCompletedIntake => row !== null)
+    const governance = ((governanceResult.data || []) as unknown as GovernanceRow[])
+      .map((row) => normalize(row, row.batch_reviewed_at, "governance_review"))
+      .filter((row): row is RecentlyCompletedIntake => row !== null)
+
+    const data = [...ordinary, ...governance]
+      .sort((left, right) => {
+        const timestampOrder =
+          new Date(right.activity_at).getTime() - new Date(left.activity_at).getTime()
+        if (timestampOrder !== 0) return timestampOrder
+        return left.id < right.id ? -1 : left.id > right.id ? 1 : 0
+      })
+      .slice(0, limit)
+
+    return { data, degraded: false }
+  } catch (error) {
+    logger.error("Actor-scoped review history query failed", {
+      error: toError(error).message,
+    })
+    return { data: [], degraded: true }
   }
-
-  return (data || []) as unknown as RecentlyCompletedIntake[]
 }

@@ -86,8 +86,25 @@ describe("doctor dashboard minimalism contract", () => {
 
   it("scopes today's completed work to the signed-in clinician for every clinical role", () => {
     const source = read("app/dashboard/page.tsx")
+    const queueClient = read("app/doctor/queue/queue-client.tsx")
+
     expect(source).toContain("getRecentlyCompletedIntakes({ limit: 50, reviewerId: profile.id })")
     expect(source).not.toContain("isAdmin ? getRecentlyCompletedIntakes")
+    expect(source).toContain("recentlyCompletedDegraded={recentlyCompletedResult.degraded}")
+    expect(queueClient).toContain("recentlyCompletedDegraded")
+    expect(queueClient).toContain("Review history unavailable")
+    expect(queueClient).toContain("Refresh before relying on this view.")
+  })
+
+  it("uses actor-scoped review wording on both dashboard history layouts", () => {
+    const compactList = read("components/doctor/approved-today-list.tsx")
+    const alternateList = read("app/doctor/queue/queue-table.tsx")
+
+    expect(compactList).toContain("Your approvals today")
+    expect(alternateList).toContain("Your reviews today")
+    expect(compactList).toContain("intake.activity_at")
+    expect(alternateList).toContain("intake.activity_at")
+    expect(alternateList).not.toContain("Completed Today")
   })
 
   it("keeps the canonical dashboard inside the clinical panel and mobile-nav shell", () => {

@@ -13,6 +13,7 @@ export interface QueueClientProps {
   pagination?: PaginationInfo
   pendingBatchReviews?: PendingBatchReviewResult
   recentlyCompleted?: RecentlyCompletedIntake[]
+  recentlyCompletedDegraded?: boolean
   initialStatusFilter?: QueueStatusFilter
   hasExplicitStatusFilter?: boolean
   baseHref?: string

@@ -128,7 +128,9 @@ export default async function StaffDashboardPage({
   const pendingBatchReviews = results[1].status === "fulfilled"
     ? results[1].value
     : { data: [], total: 0, oldestApprovedAt: null, degraded: true }
-  const recentlyCompleted = results[2].status === "fulfilled" ? results[2].value : []
+  const recentlyCompletedResult = results[2].status === "fulfilled"
+    ? results[2].value
+    : { data: [], degraded: true }
   const doctorIdentity: DoctorIdentity | null = results[3].status === "fulfilled" ? results[3].value : null
   const formToInboxStats = !onlyTestData && results[4].status === "fulfilled" ? results[4].value : null
   const doctorAvailable = results[5].status === "fulfilled" ? results[5].value?.available !== false : true
@@ -248,7 +250,8 @@ export default async function StaffDashboardPage({
                 total: queueResult.total,
               }}
               pendingBatchReviews={pendingBatchReviews}
-              recentlyCompleted={recentlyCompleted}
+              recentlyCompleted={recentlyCompletedResult.data}
+              recentlyCompletedDegraded={recentlyCompletedResult.degraded}
               initialStatusFilter={initialStatusFilter}
               hasExplicitStatusFilter={hasExplicitStatusFilter}
               baseHref={STAFF_DASHBOARD_HREF}
