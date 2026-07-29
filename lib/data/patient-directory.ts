@@ -1,7 +1,7 @@
 import "server-only"
 
 import { decryptProfilePhi } from "@/lib/data/profiles"
-import { getDoctorAccessiblePatientIds } from "@/lib/doctor/patient-access"
+import { getDoctorAccessiblePatientScope } from "@/lib/doctor/patient-access"
 import { collapseDuplicatePatientProfiles } from "@/lib/doctor/patient-snapshot"
 import { createLogger } from "@/lib/observability/logger"
 import { getServicePresentation } from "@/lib/services/service-presentation"
@@ -60,9 +60,23 @@ export function parsePatientDirectorySearch(value?: string | string[] | null): s
 
 export interface PatientDirectoryPage {
   patients: PatientDirectoryProfile[]
-  total: number
+  total: number | null
   collapsedCount: number
+  degradedSources: PatientDirectoryDegradedSource[]
 }
+
+export type PatientDirectoryDegradedSource =
+  | "access"
+  | "profiles"
+  | "count"
+  | "requests"
+  | "scripts"
+
+export const PATIENT_DIRECTORY_SEARCH_FIELDS = [
+  "full_name",
+  "email",
+  "suburb",
+] as const
 
 export async function getPatientDirectoryPage({
   doctorId,
@@ -83,12 +97,25 @@ export async function getPatientDirectoryPage({
   const to = from + pageSize - 1
   const searchFilter = buildPatientDirectorySearchFilter(search)
 
-  const accessiblePatientIds = doctorId
-    ? Array.from(await getDoctorAccessiblePatientIds(doctorId, supabase))
+  const accessibleScope = doctorId
+    ? await getDoctorAccessiblePatientScope(doctorId, supabase)
+    : null
+
+  if (accessibleScope?.degraded) {
+    return {
+      patients: [],
+      total: null,
+      collapsedCount: 0,
+      degradedSources: ["access"],
+    }
+  }
+
+  const accessiblePatientIds = accessibleScope
+    ? Array.from(accessibleScope.ids)
     : null
 
   if (doctorId && accessiblePatientIds?.length === 0) {
-    return { patients: [], total: 0, collapsedCount: 0 }
+    return { patients: [], total: 0, collapsedCount: 0, degradedSources: [] }
   }
 
   let query = supabase
@@ -119,26 +146,39 @@ export async function getPatientDirectoryPage({
 
   if (error) {
     log.error("Failed to fetch patient directory", { error: error.message, page: from })
-    return { patients: [], total: 0, collapsedCount: 0 }
+    return {
+      patients: [],
+      total: null,
+      collapsedCount: 0,
+      degradedSources: ["profiles"],
+    }
   }
 
   const rawPatients = (data || []).map((row) =>
     asProfile(decryptProfilePhi(row as Record<string, unknown>)),
   )
   const patientIds = rawPatients.map((patient) => patient.id)
-  const [lastRequests, lastScripts] = await Promise.all([
+  const [lastRequestsResult, lastScriptsResult] = await Promise.all([
     getLastRequestMap(patientIds),
     getLastScriptMap(patientIds),
   ])
   const collapsed = collapseDuplicatePatientProfiles(rawPatients)
   const patients = collapsed.patients
-    .map((patient) => hydrateDirectoryPatient(patient, lastRequests, lastScripts))
-  const rawTotal = count ?? rawPatients.length
+    .map((patient) => hydrateDirectoryPatient(
+      patient,
+      lastRequestsResult.map,
+      lastScriptsResult.map,
+    ))
+  const degradedSources: PatientDirectoryDegradedSource[] = []
+  if (typeof count !== "number") degradedSources.push("count")
+  if (lastRequestsResult.degraded) degradedSources.push("requests")
+  if (lastScriptsResult.degraded) degradedSources.push("scripts")
 
   return {
     patients,
-    total: rawTotal,
+    total: typeof count === "number" ? count : null,
     collapsedCount: collapsed.collapsedCount,
+    degradedSources,
   }
 }
 
@@ -154,15 +194,9 @@ function buildPatientDirectorySearchFilter(value?: string | null): string | null
   const search = normalizePatientDirectorySearch(value)
   if (!search) return null
 
-  const filters = [
-    `full_name.ilike.%${search}%`,
-    `email.ilike.%${search}%`,
-    `suburb.ilike.%${search}%`,
-  ]
-  const phoneDigits = search.replace(/\D/g, "")
-  if (phoneDigits.length >= 3) {
-    filters.push(`phone.ilike.%${phoneDigits}%`)
-  }
+  const filters = PATIENT_DIRECTORY_SEARCH_FIELDS.map(
+    (field) => `${field}.ilike.%${search}%`,
+  )
 
   return filters.join(",")
 }
@@ -214,9 +248,12 @@ type DirectoryPrescriptionRow = {
   created_at: string
 }
 
-async function getLastRequestMap(patientIds: string[]): Promise<Map<string, PatientDirectoryRequestSummary>> {
+async function getLastRequestMap(patientIds: string[]): Promise<{
+  map: Map<string, PatientDirectoryRequestSummary>
+  degraded: boolean
+}> {
   const map = new Map<string, PatientDirectoryRequestSummary>()
-  if (patientIds.length === 0) return map
+  if (patientIds.length === 0) return { map, degraded: false }
 
   const supabase = createServiceRoleClient()
   const { data, error } = await supabase
@@ -238,7 +275,7 @@ async function getLastRequestMap(patientIds: string[]): Promise<Map<string, Pati
 
   if (error || !data) {
     log.warn("Failed to fetch patient directory request summaries", { error: error?.message })
-    return map
+    return { map, degraded: true }
   }
 
   for (const row of data as DirectoryIntakeRow[]) {
@@ -265,12 +302,15 @@ async function getLastRequestMap(patientIds: string[]): Promise<Map<string, Pati
     })
   }
 
-  return map
+  return { map, degraded: data.length >= 1000 }
 }
 
-async function getLastScriptMap(patientIds: string[]): Promise<Map<string, PatientDirectoryScriptSummary>> {
+async function getLastScriptMap(patientIds: string[]): Promise<{
+  map: Map<string, PatientDirectoryScriptSummary>
+  degraded: boolean
+}> {
   const map = new Map<string, PatientDirectoryScriptSummary>()
-  if (patientIds.length === 0) return map
+  if (patientIds.length === 0) return { map, degraded: false }
 
   const supabase = createServiceRoleClient()
   const { data: prescriptions, error: prescriptionsError } = await supabase
@@ -283,6 +323,7 @@ async function getLastScriptMap(patientIds: string[]): Promise<Map<string, Patie
   if (prescriptionsError) {
     log.warn("Failed to fetch patient directory prescription summaries", { error: prescriptionsError.message })
   }
+  let degraded = Boolean(prescriptionsError) || (prescriptions?.length ?? 0) >= 1000
 
   for (const row of (prescriptions || []) as DirectoryPrescriptionRow[]) {
     if (map.has(row.patient_id)) continue
@@ -300,12 +341,19 @@ async function getLastScriptMap(patientIds: string[]): Promise<Map<string, Patie
   // drops a patient's most recent script once 1000 newer tasks exist platform-wide,
   // corrupting the directory's "last script" column and its sort. idx_script_tasks_intake
   // covers this filter. Mirrors the patient-scoped prescriptions branch above.
-  const { data: pageIntakes } = await supabase
+  const { data: pageIntakes, error: pageIntakesError } = await supabase
     .from("intakes")
     .select("id")
     .in("patient_id", patientIds)
+  if (pageIntakesError) {
+    log.warn("Failed to scope patient directory script tasks", {
+      error: pageIntakesError.message,
+    })
+    return { map, degraded: true }
+  }
   const pageIntakeIds = (pageIntakes ?? []).map((row) => row.id)
-  if (pageIntakeIds.length === 0) return map
+  degraded = degraded || pageIntakeIds.length >= 1000
+  if (pageIntakeIds.length === 0) return { map, degraded }
 
   const { data, error } = await supabase
     .from("script_tasks")
@@ -315,7 +363,7 @@ async function getLastScriptMap(patientIds: string[]): Promise<Map<string, Patie
 
   if (error || !data) {
     log.warn("Failed to fetch patient directory script summaries", { error: error?.message })
-    return map
+    return { map, degraded: true }
   }
 
   const allowedPatientIds = new Set(patientIds)
@@ -333,7 +381,8 @@ async function getLastScriptMap(patientIds: string[]): Promise<Map<string, Patie
     })
   }
 
-  return map
+  degraded = degraded || data.length >= 1000
+  return { map, degraded }
 }
 
 function latestByDate<T>(

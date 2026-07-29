@@ -40,14 +40,14 @@ export default async function AdminPatientsPage({
   const page = Math.max(1, parseInt(params.page || "1", 10) || 1)
   const search = parsePatientDirectorySearch(params.q)
   const sort = parsePatientDirectorySort(params.sort)
-  const { patients, total, collapsedCount } = await getPatientDirectoryPage({
+  const { patients, total, collapsedCount, degradedSources } = await getPatientDirectoryPage({
     doctorId: hasAdminAccess(auth.profile) ? undefined : auth.profile.id,
     page,
     pageSize: PAGE_SIZE,
     search,
     sort,
   })
-  const totalPages = Math.ceil(total / PAGE_SIZE)
+  const totalPages = total === null ? 1 : Math.ceil(total / PAGE_SIZE)
 
   return (
     <OperatorPage>
@@ -67,6 +67,7 @@ export default async function AdminPatientsPage({
             totalPages={totalPages}
             totalPatients={total}
             collapsedDuplicateProfiles={collapsedCount}
+            degradedSources={degradedSources}
             initialSearchQuery={search}
             initialSort={sort}
             baseHref={STAFF_PATIENTS_HREF}

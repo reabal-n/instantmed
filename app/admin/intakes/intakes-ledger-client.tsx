@@ -441,7 +441,7 @@ export function AdminIntakesLedgerClient({
       {patientSearchSaturated ? (
         <div className="rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-sm text-warning" role="status">
           <p className="font-medium">Too many patient profiles match this search.</p>
-          <p>Add more of the name, email, phone, suburb, or state to narrow it.</p>
+          <p>Add more of the name, email, suburb, or state to narrow it.</p>
         </div>
       ) : degraded ? (
         <div className="rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-xs text-warning" role="status">
@@ -477,7 +477,7 @@ export function AdminIntakesLedgerClient({
           onSearchChange={setSearchQuery}
           searchInputRef={searchRef}
           searchPlaceholder={isAdmin
-            ? "Search patient, request ID, email, phone, or suburb..."
+            ? "Search patient, request ID, email, suburb, or state..."
             : "Search request ID or reference..."}
           density={density}
           onDensityChange={setDensity}

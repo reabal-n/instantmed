@@ -7,6 +7,7 @@ import {
   BATCH_REVIEW_ENFORCEMENT_START,
 } from "@/lib/clinical/batch-review-policy"
 import {
+  ADMIN_LEDGER_PATIENT_SEARCH_FIELDS,
   type AdminLedgerQuickFilterValue,
   buildAdminLedgerSearchOr,
   getAdminLedgerServiceCategory,
@@ -776,13 +777,9 @@ export async function getAllIntakesForAdmin(
   // fields are selected or queried on its behalf.
   let matchingPatientIds: string[] = []
   if (searchTerm && options.viewerRole === "admin") {
-    const profileSearch = [
-      "full_name",
-      "email",
-      "phone",
-      "suburb",
-      "state",
-    ].map((field) => `${field}.ilike.*${searchTerm}*`).join(",")
+    const profileSearch = ADMIN_LEDGER_PATIENT_SEARCH_FIELDS
+      .map((field) => `${field}.ilike.*${searchTerm}*`)
+      .join(",")
     const { data: profiles, error: profileSearchError } = await supabase
       .from("profiles")
       .select("id")

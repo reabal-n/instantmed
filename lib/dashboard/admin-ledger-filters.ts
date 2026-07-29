@@ -81,6 +81,15 @@ export function getAdminLedgerStatus(
   return !value || value === "all" ? null : value
 }
 
+// Phone is encrypted without a deterministic lookup index. Do not advertise or
+// perform plaintext phone search until a keyed, queryable search token exists.
+export const ADMIN_LEDGER_PATIENT_SEARCH_FIELDS = [
+  "full_name",
+  "email",
+  "suburb",
+  "state",
+] as const
+
 export function buildAdminLedgerSearchOr(
   searchTerm: string,
   patientIds: readonly string[] = [],

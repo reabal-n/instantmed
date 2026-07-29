@@ -30,7 +30,10 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { UserCard } from "@/components/uix"
 import { STAFF_DOCTOR_PATIENTS_HREF } from "@/lib/dashboard/routes"
-import type { PatientDirectoryProfile } from "@/lib/data/patient-directory"
+import type {
+  PatientDirectoryDegradedSource,
+  PatientDirectoryProfile,
+} from "@/lib/data/patient-directory"
 import {
   buildPatientDirectoryHref,
   createPatientDirectoryNavigationCoordinator,
@@ -48,8 +51,9 @@ interface PatientsListClientProps {
   patients: PatientDirectoryProfile[]
   currentPage: number
   totalPages: number
-  totalPatients: number
+  totalPatients: number | null
   collapsedDuplicateProfiles: number
+  degradedSources?: PatientDirectoryDegradedSource[]
   initialSearchQuery?: string
   initialSort?: PatientDirectorySort
   baseHref?: string
@@ -97,7 +101,21 @@ function getPrescribingState(patient: PatientDirectoryProfile): {
   return { label: "Ready", detail: "Parchment synced", tone: "success" }
 }
 
-function PrescribingState({ patient }: { patient: PatientDirectoryProfile }) {
+function PrescribingState({
+  patient,
+  requestHistoryUnavailable = false,
+}: {
+  patient: PatientDirectoryProfile
+  requestHistoryUnavailable?: boolean
+}) {
+  if (requestHistoryUnavailable && !patient.lastRequest) {
+    return (
+      <span className="inline-flex items-center gap-2 text-sm text-warning" title="Request history could not be loaded">
+        <span className="h-2 w-2 rounded-full bg-amber-500 ring-1 ring-inset ring-black/5" aria-hidden />
+        Unavailable
+      </span>
+    )
+  }
   const state = getPrescribingState(patient)
   return (
     <span className={cn(
@@ -121,6 +139,7 @@ export function PatientsListClient({
   totalPages,
   totalPatients,
   collapsedDuplicateProfiles,
+  degradedSources = [],
   initialSearchQuery = "",
   initialSort = "newest",
   baseHref = STAFF_DOCTOR_PATIENTS_HREF,
@@ -136,6 +155,10 @@ export function PatientsListClient({
   const [searchQuery, setSearchQuery] = useState(initialSearch)
   const [currentSort, setCurrentSort] = useState(initialSort)
   const [exceptionFilter, setExceptionFilter] = useState<ExceptionFilter>("all")
+  const directoryUnavailable = degradedSources.includes("access") || degradedSources.includes("profiles")
+  const requestHistoryUnavailable = degradedSources.includes("requests")
+  const scriptHistoryUnavailable = degradedSources.includes("scripts")
+  const countUnavailable = totalPatients === null || degradedSources.includes("count")
   const directoryNavigation = useMemo(
     () => createPatientDirectoryNavigationCoordinator({
       initialSort,
@@ -185,10 +208,10 @@ export function PatientsListClient({
     return ids
   }, [duplicateGroups, patients])
 
-  const needsDetailsCount = patients.filter((patient) => (
+  const needsDetailsCount = requestHistoryUnavailable ? 0 : patients.filter((patient) => (
     hasActivePrescribingRequest(patient) && !patient.onboarding_completed
   )).length
-  const syncNeededCount = patients.filter((patient) => (
+  const syncNeededCount = requestHistoryUnavailable ? 0 : patients.filter((patient) => (
     hasActivePrescribingRequest(patient) && patient.onboarding_completed && !patient.parchment_patient_id
   )).length
 
@@ -237,13 +260,29 @@ export function PatientsListClient({
         />
       ) : null}
 
+      {degradedSources.length > 0 ? (
+        <div
+          className="rounded-xl border border-warning-border bg-warning-light px-4 py-3 text-sm text-warning"
+          role="status"
+        >
+          <p className="font-medium">
+            {directoryUnavailable ? "Patient directory unavailable" : "Some patient evidence is unavailable"}
+          </p>
+          <p>
+            {directoryUnavailable
+              ? "The patient source or clinical access scope could not be verified. Refresh before relying on an empty result."
+              : "Visible profiles are preserved, but counts or recent request and script history may be incomplete. Refresh before relying on missing evidence."}
+          </p>
+        </div>
+      ) : null}
+
       <Card className="rounded-xl border-border/50">
         <CardContent className="space-y-3 p-4 sm:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex w-full max-w-2xl flex-col gap-2 sm:flex-row sm:items-end">
               <div className="min-w-0 flex-1">
                 <Input
-                  placeholder="Search name, email, suburb, or phone…"
+                  placeholder="Search name, email, or suburb…"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   startContent={<Search className="h-4 w-4 text-muted-foreground" />}
@@ -269,7 +308,9 @@ export function PatientsListClient({
               </div>
             </div>
             <p className="shrink-0 text-sm tabular-nums text-muted-foreground">
-              {totalPatients.toLocaleString("en-AU")} {totalPatients === 1 ? "patient" : "patients"}
+              {countUnavailable
+                ? "Patient count unavailable"
+                : `${totalPatients.toLocaleString("en-AU")} ${totalPatients === 1 ? "patient" : "patients"}`}
             </p>
           </div>
 
@@ -362,7 +403,13 @@ export function PatientsListClient({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPatients.length > 0 ? filteredPatients.map((patient) => {
+                {directoryUnavailable ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-32 text-center text-warning">
+                      Patient directory unavailable. Refresh to retry.
+                    </TableCell>
+                  </TableRow>
+                ) : filteredPatients.length > 0 ? filteredPatients.map((patient) => {
                   const age = calculateAge(patient.date_of_birth)
                   const patientHref = `${patientHrefBase}/${patient.id}`
                   const isDuplicate = duplicatePatientIds.has(patient.id)
@@ -404,16 +451,27 @@ export function PatientsListClient({
                                 </span>
                               </span>
                             </div>
-                          ) : <span className="text-sm text-muted-foreground">No requests</span>}
+                          ) : (
+                            <span className="text-sm text-muted-foreground">
+                              {requestHistoryUnavailable ? "Request history unavailable" : "No requests"}
+                            </span>
+                          )}
                           {patient.lastScript ? (
                             <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
                               <ClipboardList className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
                               <span className="max-w-[260px] truncate">{patient.lastScript.label} · {formatDate(patient.lastScript.sentAt ?? patient.lastScript.createdAt)}</span>
                             </div>
+                          ) : scriptHistoryUnavailable ? (
+                            <span className="text-xs text-muted-foreground">Script history unavailable</span>
                           ) : null}
                         </div>
                       </TableCell>
-                      <TableCell><PrescribingState patient={patient} /></TableCell>
+                      <TableCell>
+                        <PrescribingState
+                          patient={patient}
+                          requestHistoryUnavailable={requestHistoryUnavailable}
+                        />
+                      </TableCell>
                       <TableCell>
                         <Button asChild variant="ghost" size="icon" className="h-11 w-11">
                           <Link href={patientHref} prefetch={false} aria-label={`Open ${patient.full_name}`}>
@@ -435,7 +493,12 @@ export function PatientsListClient({
           </div>
 
           <div className="divide-y divide-border/60 md:hidden">
-            {filteredPatients.length > 0 ? filteredPatients.map((patient) => {
+            {directoryUnavailable ? (
+              <div className="flex h-32 flex-col items-center justify-center gap-2 px-4 text-center text-sm text-warning">
+                <AlertTriangle className="h-6 w-6" />
+                Patient directory unavailable. Refresh to retry.
+              </div>
+            ) : filteredPatients.length > 0 ? filteredPatients.map((patient) => {
               const age = calculateAge(patient.date_of_birth)
               const patientHref = `${patientHrefBase}/${patient.id}`
               const isDuplicate = duplicatePatientIds.has(patient.id)
@@ -462,8 +525,15 @@ export function PatientsListClient({
                         {patient.lastRequest.serviceShortLabel}
                         <span className="ml-1 text-xs text-muted-foreground">{formatIntakeStatus(patient.lastRequest.status)}</span>
                       </span>
-                    ) : <span className="text-sm text-muted-foreground">No requests</span>}
-                    <PrescribingState patient={patient} />
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        {requestHistoryUnavailable ? "Request history unavailable" : "No requests"}
+                      </span>
+                    )}
+                    <PrescribingState
+                      patient={patient}
+                      requestHistoryUnavailable={requestHistoryUnavailable}
+                    />
                     {isDuplicate ? <Badge variant="warning" size="sm">Duplicate review</Badge> : null}
                   </div>
                 </Link>
