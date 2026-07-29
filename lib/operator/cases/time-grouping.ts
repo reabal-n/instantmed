@@ -4,17 +4,10 @@
  * Pure functions. No DOM, no Intl-locale assumptions beyond en-AU dates.
  * Designed to be cheap enough to call inside useMemo on every render.
  *
- * Day boundaries are computed in AEST (UTC+10) regardless of the system
- * timezone. This is an AU-specific telehealth platform; doctors + admins
- * always operate on AEST wall-clock days. Previously this used the system
- * `setHours(0,0,0,0)` which produced different bucketing on UTC CI runners
- * vs local AEST macOS, breaking 4 cockpit tests deterministically.
- *
- * Known limitation: AEDT (Oct-Apr daylight saving, UTC+11) is not handled.
- * During AEDT, day boundaries shift by 1 hour. A row from 11pm AEDT may
- * bucket as the next AEST day. Acceptable for the staff cockpit use case;
- * if precision matters, refactor to use Intl.DateTimeFormat with
- * timeZone: "Australia/Sydney".
+ * The legacy `startOfDayAEST` and `groupByTime` helpers use a fixed UTC+10
+ * boundary so their historical buckets stay independent of the host timezone.
+ * They do not adjust for AEDT. `startOfDaySydney` is the DST-aware path and
+ * resolves the actual Australia/Sydney midnight through `Intl.DateTimeFormat`.
  */
 
 export type TimeGroupLabel = "TODAY" | "YESTERDAY" | "THIS WEEK" | "EARLIER"
