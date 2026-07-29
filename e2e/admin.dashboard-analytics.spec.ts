@@ -1,20 +1,19 @@
 /**
- * Admin Dashboard & Analytics E2E Tests
+ * Admin Business & Analytics E2E Tests
  *
- * Tests the admin analytics dashboard, finance page, and email management:
- * - Analytics page loads with the lean operator metric sections
- * - Finance page loads with revenue data
+ * Tests the admin Business, email, and audit surfaces:
+ * - Business page loads with the bounded decision-support sections
  * - Email hub and template editor pages load
  * - Email template management works
  */
 
-import { expect,test } from "@playwright/test"
+import { expect, test } from "@playwright/test"
 
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import { STAFF_TEST_ROUTES } from "./helpers/staff-routes"
 import { waitForPageLoad } from "./helpers/test-utils"
 
-test.describe("Admin - Analytics Dashboard", () => {
+test.describe("Admin - Business", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsOperator(page)
     expect(result.success, `Login failed: ${result.error}`).toBe(true)
@@ -24,53 +23,67 @@ test.describe("Admin - Analytics Dashboard", () => {
     await logoutTestUser(page)
   })
 
-  test("analytics page loads without errors", async ({ page }) => {
+  test("business page loads without errors", async ({ page }) => {
     await page.goto(STAFF_TEST_ROUTES.adminAnalytics)
     await waitForPageLoad(page)
 
-    await expect(page.getByRole("heading", { name: "Overview", exact: true })).toBeVisible({
+    await expect(page.getByRole("heading", { name: "Business", exact: true })).toBeVisible({
       timeout: 15000,
     })
+    await expect(
+      page.getByText("Revenue, fee-aware contribution, conversion, and acquisition truth.", {
+        exact: true,
+      }),
+    ).toBeVisible()
 
     // Should NOT show route-level error boundaries or loading failures.
     await expect(page.getByRole("heading", { name: /something went wrong/i })).not.toBeVisible()
     await expect(page.getByText(/failed to load/i)).not.toBeVisible()
   })
 
-  test("analytics page shows key metric cards", async ({ page }) => {
+  test("business page shows the scale gate and contribution metrics", async ({ page }) => {
     await page.goto(STAFF_TEST_ROUTES.adminAnalytics)
     await waitForPageLoad(page)
 
-    const brief = page.getByRole("region", { name: "Operator brief" })
-    await expect(brief.getByText("Revenue milestone", { exact: true })).toBeVisible()
+    await expect(page.getByText("Scale gate", { exact: true })).toBeVisible()
+    await expect(page.getByText(/Active milestone|Revenue milestone unavailable/).first()).toBeVisible()
+    await expect(page.getByText("30d net retained", { exact: true })).toBeVisible()
+    await expect(page.getByText("Paid orders", { exact: true })).toBeVisible()
+    await expect(page.getByText("First-order contribution", { exact: true })).toBeVisible()
+    await expect(page.getByText("Gate issues", { exact: true })).toBeVisible()
+  })
+
+  test("business page keeps conversion and acquisition evidence separate", async ({ page }) => {
+    await page.goto(STAFF_TEST_ROUTES.adminAnalytics)
+    await waitForPageLoad(page)
+
     await expect(
-      page.getByRole("region", { name: "Revenue" }).getByText("30 days", { exact: true }),
+      page.getByRole("heading", { name: "Canonical 30-day start cohort", exact: true }),
     ).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Recorded acquisition", exact: true })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Self-reported discovery", exact: true })).toBeVisible()
+
+    await page.locator("summary").filter({ hasText: "Measurement checkpoints" }).click()
+    await expect(page.getByRole("heading", { name: "Review requests", exact: true })).toBeVisible()
   })
 
-  test("analytics page keeps operator reporting source-of-truth sections", async ({ page }) => {
+  test("business page keeps operator approval explicit without restoring the retired metrics wall", async ({ page }) => {
     await page.goto(STAFF_TEST_ROUTES.adminAnalytics)
     await waitForPageLoad(page)
 
-    await expect(page.getByRole("heading", { name: "Revenue", exact: true })).toBeVisible()
-    await expect(page.getByRole("heading", { name: "Where patients came from", exact: true })).toBeVisible()
-    await expect(page.getByRole("heading", { name: "Conversion (30 days)", exact: true })).toBeVisible()
-    await page.getByText(/Detailed metrics/).click()
-    await expect(page.getByRole("heading", { name: "Queue health", exact: true })).toBeVisible()
-    await expect(page.locator(".recharts-responsive-container, .recharts-wrapper")).toHaveCount(0)
-  })
+    const approvalBoundary = page.getByText(
+      "Business is decision support only. Every Google Ads mutation still requires exact operator approval.",
+      { exact: true },
+    )
+    await approvalBoundary.scrollIntoViewIfNeeded()
+    await expect(approvalBoundary).toBeVisible()
+    await expect(
+      page.getByTestId("operator-page").getByRole("link", { name: "Operations", exact: true }),
+    ).toHaveAttribute("href", "/admin/ops")
 
-  test("overview surfaces the controlled-demand operator brief", async ({ page }) => {
-    await page.goto(STAFF_TEST_ROUTES.adminAnalytics)
-    await waitForPageLoad(page)
-
-    await expect(page.getByRole("heading", { name: "Operator brief" })).toBeVisible()
-    await expect(page.getByText("Controlled demand validation", { exact: true })).toBeVisible()
-    await expect(page.getByText("Revenue milestone", { exact: true })).toBeVisible()
-    await expect(page.getByText("Actionable exceptions", { exact: true })).toBeVisible()
-    await expect(page.getByText("Google Ads decision", { exact: true })).toBeVisible()
-    await expect(page.getByText("Approval required", { exact: true })).toBeVisible()
-    await expect(page.getByText(/Support inbox: count-only Telegram alerts/)).toBeVisible()
+    await expect(page.getByText("Operator brief", { exact: true })).toHaveCount(0)
+    await expect(page.getByText("Detailed metrics", { exact: true })).toHaveCount(0)
+    await expect(page.getByText("Queue health", { exact: true })).toHaveCount(0)
   })
 })
 

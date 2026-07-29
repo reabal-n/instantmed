@@ -493,9 +493,10 @@ export function ParchmentPrescribePanel({
                       // overlay snaps away to a white iframe for ~1s.
                       setTimeout(() => setIframeLoaded(true), 600)
                     }}
-                    // Initial least-privilege boundary. Widen only when the synthetic
-                    // sandbox browser gate witnesses a capability this flow requires.
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-storage-access-by-user-activation"
+                    // Parchment's documented print/PDF flow opens a new tab. Permit
+                    // that child context without allowing the frame to navigate this
+                    // prescribing page or download files directly.
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-storage-access-by-user-activation allow-popups allow-popups-to-escape-sandbox"
                     allow="clipboard-write; publickey-credentials-get *; publickey-credentials-create *"
                     referrerPolicy="strict-origin-when-cross-origin"
                     title="Parchment Prescribing"

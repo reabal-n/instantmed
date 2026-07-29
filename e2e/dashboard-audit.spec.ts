@@ -362,6 +362,10 @@ test.describe("Dashboard Audit - Link navigation", () => {
   })
 
   test("doctor sidebar links navigate correctly", async ({ page }) => {
+    await logoutTestUser(page)
+    const result = await loginAsDoctor(page)
+    expect(result.success, `E2E doctor login failed: ${result.error}`).toBe(true)
+
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
 
@@ -369,8 +373,9 @@ test.describe("Dashboard Audit - Link navigation", () => {
     await waitForPageLoad(page)
 
     const links = [
-      { href: STAFF_TEST_ROUTES.doctorScripts, label: /scripts/i },
+      { href: STAFF_TEST_ROUTES.dashboard, label: /queue/i },
       { href: STAFF_TEST_ROUTES.doctorPatients, label: /patients/i },
+      { href: STAFF_TEST_ROUTES.doctorIdentity, label: /identity/i },
     ]
 
     for (const { href, label } of links) {
@@ -427,7 +432,7 @@ test.describe("Dashboard Audit - Link navigation", () => {
     await page.goto(`${STAFF_TEST_ROUTES.dashboard}?status=review`)
     await waitForPageLoad(page)
 
-    await expect(page.getByRole("button", { name: /Needs Review/i })).toHaveAttribute("aria-pressed", "true")
+    await expect(page.getByRole("button", { name: /^Review/i })).toHaveAttribute("aria-pressed", "true")
     await expect(page.getByRole("button", { name: /^All/i })).toHaveAttribute("aria-pressed", "false")
 
     tracker.assertNoErrors()

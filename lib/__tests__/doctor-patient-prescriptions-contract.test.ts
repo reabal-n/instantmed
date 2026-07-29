@@ -213,10 +213,9 @@ describe("doctor patient medication history contract", () => {
     )
     expect(panelSource).toContain('referrerPolicy="strict-origin-when-cross-origin"')
     expect(panelSource).toContain(
-      'sandbox="allow-scripts allow-same-origin allow-forms allow-storage-access-by-user-activation"',
+      'sandbox="allow-scripts allow-same-origin allow-forms allow-storage-access-by-user-activation allow-popups allow-popups-to-escape-sandbox"',
     )
     expect(panelSource).not.toContain("allow-top-navigation")
-    expect(panelSource).not.toContain("allow-popups")
     expect(panelSource).not.toContain("allow-downloads")
   })
 
