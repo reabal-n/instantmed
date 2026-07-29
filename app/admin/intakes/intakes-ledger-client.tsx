@@ -6,27 +6,19 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
+import type { LedgerFilterSelectsProps } from "@/app/admin/intakes/ledger-filter-selects"
 import { buildPaymentRescueAction } from "@/app/admin/intakes/payment-rescue-action"
-import { IntakeRefundDialog } from "@/app/doctor/intakes/[id]/intake-refund-dialog"
 import { issueRefundAction } from "@/app/doctor/queue/actions"
 import { CaseTable } from "@/components/operator/cases/case-table"
 import { FilterBar, type QuickFilter } from "@/components/operator/cases/filter-bar"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { parseIntakeFlags } from "@/lib/clinical/intake-flags"
 import {
   ADMIN_LEDGER_QUICK_FILTER_OPTIONS,
   type AdminLedgerQuickFilterValue,
 } from "@/lib/dashboard/admin-ledger-filters"
 import {
-  ADMIN_INTAKE_STATUS_FILTER_OPTIONS,
   ADMIN_WORK_LANE_FILTER_OPTIONS,
   type AdminIntakeStatusFilterValue,
   type AdminWorkLaneFilterValue,
@@ -37,7 +29,6 @@ import {
   formatRenewalMatchTitle,
   type RenewalMatch,
 } from "@/lib/doctor/renewal-format"
-import { formatIntakeStatus } from "@/lib/format/intake"
 import type { CaseRowAttribution } from "@/lib/operator/cases/case-attribution"
 import { getPaymentRecoveryIndicator } from "@/lib/operator/cases/payment-recovery-indicator"
 import {
@@ -46,7 +37,6 @@ import {
 } from "@/lib/operator/cases/types"
 import { useDensity } from "@/lib/operator/cases/use-density"
 import {
-  ADMIN_SERVICE_FILTER_OPTIONS,
   type AdminServiceFilterValue,
   getServicePresentation,
 } from "@/lib/services/service-presentation"
@@ -81,6 +71,16 @@ type LazyIntakeReviewPanelProps = {
   totalCases?: number
   profileMode?: "doctor" | "admin"
   onActionComplete?: (options?: { advance?: boolean }) => void
+}
+
+type LazyIntakeRefundDialogProps = {
+  alreadyRefundedCents: number
+  isPending: boolean
+  onConfirmRefund: () => void
+  onOpenChange: (open: boolean) => void
+  open: boolean
+  paidAmountCents: number
+  patientName: string
 }
 
 function IntakeReviewPanelLoading() {
@@ -133,6 +133,33 @@ const IntakeReviewPanel = dynamic<LazyIntakeReviewPanelProps>(
     (module) => module.IntakeReviewPanel,
   ),
   { loading: () => <IntakeReviewPanelLoading /> },
+)
+
+const IntakeRefundDialog = dynamic<LazyIntakeRefundDialogProps>(
+  () => import("@/app/doctor/intakes/[id]/intake-refund-dialog").then(
+    (module) => module.IntakeRefundDialog,
+  ),
+)
+
+function LedgerFilterSelectsLoading() {
+  return (
+    <div
+      className="grid grid-cols-2 gap-2 lg:mb-[35px] lg:flex"
+      aria-label="Loading service and status filters"
+      role="status"
+    >
+      <span className="sr-only">Loading filters</span>
+      <span className="min-h-10 rounded-md border border-border bg-muted/40 motion-safe:animate-pulse lg:w-[190px]" />
+      <span className="min-h-10 rounded-md border border-border bg-muted/40 motion-safe:animate-pulse lg:w-[175px]" />
+    </div>
+  )
+}
+
+const LedgerFilterSelects = dynamic<LedgerFilterSelectsProps>(
+  () => import("@/app/admin/intakes/ledger-filter-selects").then(
+    (module) => module.LedgerFilterSelects,
+  ),
+  { loading: () => <LedgerFilterSelectsLoading />, ssr: false },
 )
 
 const QUICK_FILTERS: QuickFilter[] = ADMIN_LEDGER_QUICK_FILTER_OPTIONS.map(
@@ -451,37 +478,12 @@ export function AdminIntakesLedgerClient({
           totalLabel={totalLabel}
         />
 
-        <div className="grid grid-cols-2 gap-2 lg:mb-[35px] lg:flex">
-          <Select
-            value={initialFilters?.service ?? "all"}
-            onValueChange={(value) => replaceParams({ service: value === "all" ? null : value })}
-          >
-            <SelectTrigger className="min-h-10 min-w-0 lg:w-[190px]" aria-label="Service filter">
-              <SelectValue placeholder="All services" />
-            </SelectTrigger>
-            <SelectContent>
-              {ADMIN_SERVICE_FILTER_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={initialFilters?.status ?? "all"}
-            onValueChange={(value) => replaceParams({ status: value === "all" ? null : value })}
-          >
-            <SelectTrigger className="min-h-10 min-w-0 lg:w-[175px]" aria-label="Status filter">
-              <SelectValue placeholder="All statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              {ADMIN_INTAKE_STATUS_FILTER_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.value === "all" ? "All statuses" : formatIntakeStatus(option.value)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <LedgerFilterSelects
+          service={initialFilters?.service ?? "all"}
+          status={initialFilters?.status ?? "all"}
+          onServiceChange={(value) => replaceParams({ service: value === "all" ? null : value })}
+          onStatusChange={(value) => replaceParams({ status: value === "all" ? null : value })}
+        />
       </div>
 
       {isFilterPending ? (
@@ -581,15 +583,17 @@ export function AdminIntakesLedgerClient({
         </div>
       </div>
 
-      <IntakeRefundDialog
-        open={refundTarget !== null}
-        onOpenChange={(open) => { if (!open) setRefundTarget(null) }}
-        onConfirmRefund={handleRefund}
-        isPending={isRefundPending}
-        paidAmountCents={refundTarget?.amountCents ?? 0}
-        alreadyRefundedCents={refundTarget?.refundAmountCents ?? 0}
-        patientName={refundTarget?.patientName ?? "the patient"}
-      />
+      {refundTarget ? (
+        <IntakeRefundDialog
+          open
+          onOpenChange={(open) => { if (!open) setRefundTarget(null) }}
+          onConfirmRefund={handleRefund}
+          isPending={isRefundPending}
+          paidAmountCents={refundTarget.amountCents ?? 0}
+          alreadyRefundedCents={refundTarget.refundAmountCents ?? 0}
+          patientName={refundTarget.patientName}
+        />
+      ) : null}
     </div>
   )
 }
