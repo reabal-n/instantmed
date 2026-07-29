@@ -424,7 +424,9 @@ Logs are for compliance and defensibility only — not decision-support, analyti
 
 ### Log Sanitization (`lib/observability/logger.ts`)
 
-Auto-redacted (30+ keys): `password`, `token`, `secret`, `key`, `medicare`, `irn`, `providerNumber`, `diagnosis`, `medication`, `symptom`, `full_name`, `email`, `phone`, `address`, medical-certificate credentials (`verificationCode`, `verification_code`, `certificateRef`, `certificate_ref`, `certificateNumber`, `certificate_number`). Sentry uses the shared scrubber in `lib/observability/scrub-phi.ts`; do not send certificate credentials in analytics properties, email metadata, breadcrumbs, tags, or extras.
+Auto-redacted (30+ keys): `password`, `token`, `secret`, `key`, `medicare`, `irn`, `providerNumber`, `diagnosis`, `medication`, `symptom`, `full_name`, `email`, `phone`, `address`, raw search fields (`q`, `query`, `search`, `searchTerm`, `searchQuery` and snake-case variants), and medical-certificate credentials (`verificationCode`, `verification_code`, `certificateRef`, `certificate_ref`, `certificateNumber`, `certificate_number`). Sentry uses the shared scrubber in `lib/observability/scrub-phi.ts` across events, transactions, spans, logs, breadcrumbs, and request payloads; do not send certificate credentials or raw search values in analytics properties, email metadata, breadcrumbs, tags, or extras. Provider errors that can echo a PostgREST filter are reduced to a stable application message plus an error code before logging.
+
+The `/dashboard` active-request search keeps the staff-entered patient-search value in browser memory; the browser sends it only through the authenticated, rate-limited `searchDoctorQueueAction` POST boundary. The action necessarily forwards the normalized lookup predicate to Supabase/PostgREST. Search values are never persisted in the queue URL, history, referrer, or pagination links; an incoming legacy `q` parameter is stripped before the cockpit renders. This is a queue-specific guarantee, not a claim about every staff search surface.
 
 ### PHI in Audit Logs
 

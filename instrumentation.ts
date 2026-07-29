@@ -9,7 +9,13 @@
 
 import * as Sentry from "@sentry/nextjs";
 
-import { scrubSentryBreadcrumb, scrubSentryEvent } from "@/lib/observability/scrub-phi";
+import {
+  scrubSentryBreadcrumb,
+  scrubSentryEvent,
+  scrubSentryLog,
+  scrubSentrySpan,
+  scrubSentryTransaction,
+} from "@/lib/observability/scrub-phi";
 import {
   getSentryDsn,
   getSentryEnvironment,
@@ -132,6 +138,15 @@ export async function register() {
     ],
     beforeSend(event) {
       return scrubSentryEvent(event)
+    },
+    beforeSendTransaction(event) {
+      return scrubSentryTransaction(event)
+    },
+    beforeSendSpan(span) {
+      return scrubSentrySpan(span)
+    },
+    beforeSendLog(log) {
+      return scrubSentryLog(log)
     },
     beforeBreadcrumb(breadcrumb) {
       return scrubSentryBreadcrumb(breadcrumb)

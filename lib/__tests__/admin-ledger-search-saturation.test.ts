@@ -2,15 +2,26 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
   createServiceRoleClient: vi.fn(),
+  logger: {
+    debug: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+  },
 }))
 
 vi.mock("@/lib/supabase/service-role", () => ({
   createServiceRoleClient: mocks.createServiceRoleClient,
 }))
 
+vi.mock("@/lib/observability/logger", () => ({
+  createLogger: () => mocks.logger,
+  logger: mocks.logger,
+}))
+
 function createLedgerSearchHarness(
   profileCount: number,
-  profileError: { message: string } | null = null,
+  profileError: { message: string; code?: string } | null = null,
 ) {
   const tables: string[] = []
   const intakeCalls: Array<Array<[string, ...unknown[]]>> = []
@@ -200,7 +211,10 @@ describe("doctor queue patient-search boundary", () => {
   })
 
   it("fails closed without leaking the raw query when patient lookup is unavailable", async () => {
-    const harness = createLedgerSearchHarness(0, { message: "profile search timed out" })
+    const harness = createLedgerSearchHarness(0, {
+      code: "PGRST100",
+      message: "failed to parse logic tree (full_name.ilike.*Patient Smith*)",
+    })
     mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
     const { getDoctorQueue } = await import("@/lib/data/intakes/queries")
 
@@ -215,5 +229,11 @@ describe("doctor queue patient-search boundary", () => {
       globalStatusCounts: null,
       searchState: "unavailable",
     })
+    expect(mocks.logger.warn).toHaveBeenCalledWith(
+      "Doctor queue patient search could not load",
+      { errorCode: "PGRST100" },
+    )
+    expect(JSON.stringify(mocks.logger.warn.mock.calls)).not.toContain("Patient Smith")
+    expect(JSON.stringify(mocks.logger.warn.mock.calls)).not.toContain("full_name.ilike")
   })
 })

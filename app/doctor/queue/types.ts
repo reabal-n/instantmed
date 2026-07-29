@@ -28,9 +28,9 @@ export interface QueueClientProps {
   oldestWaitingIntakeId?: string | null
   initialStatusFilter?: QueueStatusFilter
   hasExplicitStatusFilter?: boolean
-  initialSearchQuery?: string
-  searchState?: QueueSearchState
   baseHref?: string
   doctorAvailable?: boolean
+  allowSeededSearch?: boolean
+  onlySeededSearch?: boolean
   compactShell?: boolean
 }

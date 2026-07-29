@@ -11,6 +11,7 @@ interface UseQueueRealtimeOptions {
   onInsert: (intake: IntakeWithPatient) => void
   onUpdate: (intake: Partial<IntakeWithPatient> & { id: string }) => void
   onDelete: (id: string) => void
+  onRefreshRequested?: () => void
 }
 
 interface UseQueueRealtimeResult {
@@ -26,6 +27,7 @@ export function useQueueRealtime({
   onInsert,
   onUpdate,
   onDelete,
+  onRefreshRequested,
 }: UseQueueRealtimeOptions): UseQueueRealtimeResult {
   const router = useRouter()
   const [isStale, setIsStale] = useState(false)
@@ -37,9 +39,11 @@ export function useQueueRealtime({
   const onInsertRef = useRef(onInsert)
   const onUpdateRef = useRef(onUpdate)
   const onDeleteRef = useRef(onDelete)
+  const onRefreshRequestedRef = useRef(onRefreshRequested)
   useEffect(() => { onInsertRef.current = onInsert }, [onInsert])
   useEffect(() => { onUpdateRef.current = onUpdate }, [onUpdate])
   useEffect(() => { onDeleteRef.current = onDelete }, [onDelete])
+  useEffect(() => { onRefreshRequestedRef.current = onRefreshRequested }, [onRefreshRequested])
 
   useEffect(() => {
     const supabase = createClient()
@@ -78,6 +82,8 @@ export function useQueueRealtime({
               // the source of truth for ping-when-not-looking.
               if (isHydratedQueueRealtimeInsert(newRow)) {
                 onInsertRef.current(newRow as IntakeWithPatient)
+              } else if (onRefreshRequestedRef.current) {
+                onRefreshRequestedRef.current()
               } else {
                 router.refresh()
               }

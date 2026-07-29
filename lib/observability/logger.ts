@@ -79,12 +79,17 @@ function sanitizeLogContext(context: LogContext): LogContext {
     'mentalHealth', 'mental_health', 'psychiatric',
     'hiv', 'std', 'genetic', 'pregnancy',
   ]
+  const sensitiveExactKeys = new Set([
+    'q', 'query', 'search', 'searchterm', 'search_term',
+    'searchquery', 'search_query',
+  ])
   
   const sanitized: LogContext = {}
   
   for (const [key, value] of Object.entries(context)) {
     const lowerKey = key.toLowerCase()
-    const isSensitive = sensitiveKeys.some(sk => lowerKey.includes(sk.toLowerCase()))
+    const isSensitive = sensitiveExactKeys.has(lowerKey)
+      || sensitiveKeys.some(sk => lowerKey.includes(sk.toLowerCase()))
     
     if (isSensitive) {
       sanitized[key] = '[REDACTED]'
@@ -136,8 +141,10 @@ function createLogEntry(
   if (error) {
     entry.error = {
       name: error.name,
-      message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      message: scrubPHI(error.message),
+      stack: process.env.NODE_ENV === 'development' && error.stack
+        ? scrubPHI(error.stack)
+        : undefined,
     }
   }
   

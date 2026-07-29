@@ -77,6 +77,10 @@ const queueActionsSource = readFileSync(
   join(process.cwd(), "app/doctor/queue/actions.ts"),
   "utf8",
 )
+const queueSearchActionsSource = readFileSync(
+  join(process.cwd(), "app/doctor/queue/search-actions.ts"),
+  "utf8",
+)
 const reviewActionsSource = readFileSync(
   join(process.cwd(), "components/doctor/review-actions.tsx"),
   "utf8",
@@ -243,16 +247,63 @@ describe("doctor queue production contract", () => {
     expect(queueBlock).not.toContain("phone.ilike")
   })
 
+  it("never presents a degraded page-length fallback as the authoritative search total", () => {
+    const queueStart = queriesSource.indexOf("export async function getDoctorQueue")
+    const queueEnd = queriesSource.indexOf("export interface PendingBatchReviewResult", queueStart)
+    const queueBlock = queriesSource.slice(queueStart, queueEnd)
+
+    expect(queueBlock).toContain("const searchMatchCount = searchTerm")
+    expect(queueBlock).toContain("&& !countResult.degraded")
+    expect(queueBlock).toContain("&& !scope.degraded")
+    expect(queueClientSource).toContain("visibleSearchMatchCount === 1")
+    expect(queueClientSource).not.toContain("pagination?.total === 1")
+    expect(queueClientSource).toContain("searchMatchCount={committedSearchQuery && visibleSearchState === \"ready\" ? visibleSearchMatchCount : null}")
+  })
+
   it("exposes queue search in the compact cockpit without page-local filtering", () => {
     expect(queueFiltersSource).toContain('aria-label="Search active requests"')
     expect(queueClientSource).toContain("const filteredIntakes = sortedIntakes")
     expect(queueClientSource).toContain("sanitizeQueueSearchQuery(debouncedSearch)")
   })
 
+  it("keeps patient search terms in memory and transports them through an authenticated POST action", () => {
+    expect(queueClientSource).toContain("searchDoctorQueueAction")
+    expect(queueClientSource).toContain("searchRequestSequenceRef")
+    expect(queueClientSource).toContain("desiredSearchIntentRef")
+    expect(queueClientSource).toContain("sequence !== searchRequestSequenceRef.current")
+    expect(queueClientSource).not.toContain('params.set("q"')
+    expect(queueTableSource).toContain("onPageChange?: (page: number) => void")
+    expect(realtimeSource).toContain("onRefreshRequested")
+
+    expect(queueSearchActionsSource).toContain('requireRoleOrNull(["doctor", "admin"])')
+    expect(queueSearchActionsSource).toContain("checkServerActionRateLimit")
+    expect(queueSearchActionsSource).toContain("doctorId: profile.id")
+    expect(queueSearchActionsSource).toContain("hasAdminAccess(profile)")
+    const inputContract = queueSearchActionsSource.slice(
+      queueSearchActionsSource.indexOf("interface SearchDoctorQueueInput"),
+      queueSearchActionsSource.indexOf("export type SearchDoctorQueueResult"),
+    )
+    expect(inputContract).not.toContain("doctorId")
+
+    const refreshContract = queueClientSource.slice(
+      queueClientSource.indexOf("const refreshQueue = useCallback"),
+      queueClientSource.indexOf("useEffect(() => {\n    lastQueueRefreshAtRef.current"),
+    )
+    expect(refreshContract).toContain("desiredSearchIntentRef.current")
+    expect(refreshContract).toContain("panelOpenRef.current && !desiredSearch")
+    expect(refreshContract).not.toContain("activeSearchViewRef.current")
+    expect(queueClientSource).toContain(
+      "completion.forceRefresh || Boolean(desiredSearchIntentRef.current)",
+    )
+  })
+
   it("keeps primary mobile queue controls at least 44px tall", () => {
     expect(queueFiltersSource).toContain("h-11 shrink-0")
     expect(queueFiltersSource).toContain("h-11 w-11")
     expect(queueFiltersSource).toContain("min-h-11 min-w-0")
+    expect(queueFiltersSource).toContain("[&_input]:text-base")
+    expect(queueFiltersSource).toContain("sm:[&_input]:text-sm")
+    expect(queueFiltersSource).toContain("h-8 w-8 shrink-0")
   })
 
   it("does not write patient email addresses into decline logs", () => {

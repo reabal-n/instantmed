@@ -150,11 +150,7 @@ export function buildDoctorDocumentBuilderHref(intakeId: string): string {
 export const QUEUE_STATUS_FILTERS = ["all", "review", "pending_info", "scripts"] as const
 export type QueueStatusFilter = (typeof QUEUE_STATUS_FILTERS)[number]
 
-/**
- * Keep PostgREST filter punctuation out of the queue query carried in staff
- * URLs. This intentionally mirrors the server-side ledger search policy while
- * remaining safe to import from client components.
- */
+/** Normalize and bound the in-memory staff queue search sent by POST action. */
 export function sanitizeQueueSearchQuery(
   value: string | string[] | null | undefined,
 ): string {
@@ -235,7 +231,6 @@ export function getCanonicalQueuePage({
  */
 export function buildStaffDashboardHref(options: {
   status?: string | string[] | QueueStatusFilter | null
-  q?: string | string[] | null
   page?: string | string[] | number
   pageSize?: string | string[] | number
   showTestData?: boolean
@@ -244,12 +239,10 @@ export function buildStaffDashboardHref(options: {
 } = {}): string {
   const params = new URLSearchParams()
   const status = parseQueueStatusFilter(options.status)
-  const q = sanitizeQueueSearchQuery(options.q)
   const page = getPositiveIntegerParam(options.page)
   const pageSize = getPageSizeParam(options.pageSize)
 
   if (status !== "all") params.set("status", status)
-  if (q) params.set("q", q)
   if (page) params.set("page", page)
   if (pageSize) params.set("pageSize", pageSize)
   if (options.showTestData) params.set("showTestData", "1")
@@ -270,7 +263,6 @@ export function buildDoctorQueueRedirectHref(
   const status = parseQueueStatusFilter(searchParams.status)
   return buildStaffDashboardHref({
     status: status === "all" ? "review" : status,
-    q: searchParams.q,
     page: searchParams.page,
     pageSize: searchParams.pageSize,
     anchor: "doctor-queue",

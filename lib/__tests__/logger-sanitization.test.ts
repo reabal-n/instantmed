@@ -9,6 +9,13 @@ function captureInfo(message: string, context?: Record<string, unknown>): string
   return String(infoSpy.mock.calls[0]?.[0])
 }
 
+function captureWarning(message: string, context: Record<string, unknown>, error: Error): string {
+  const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
+  loggerModule.logger.warn(message, context, error)
+  expect(warnSpy).toHaveBeenCalledOnce()
+  return String(warnSpy.mock.calls[0]?.[0])
+}
+
 describe("logger PHI sanitization", () => {
   beforeAll(async () => {
     loggerModule = await vi.importActual<typeof import("@/lib/observability/logger")>(
@@ -61,5 +68,18 @@ describe("logger PHI sanitization", () => {
     expect(line).toContain("[EMAIL_REDACTED]")
     expect(line).not.toContain("47e24318")
     expect(line).not.toContain("patient@example.test")
+  })
+
+  it("redacts queue search fields and sanitizes attached Error payloads", () => {
+    const line = captureWarning(
+      "Queue search failed",
+      { q: "Patient Smith", searchTerm: "Patient Smith", errorCode: "PGRST100" },
+      new Error("failed to parse logic tree (full_name.ilike.*Patient Smith*) for patient@example.test"),
+    )
+
+    expect(line).toContain("PGRST100")
+    expect(line).not.toContain("Patient Smith")
+    expect(line).not.toContain("patient@example.test")
+    expect(line).toContain("[EMAIL_REDACTED]")
   })
 })

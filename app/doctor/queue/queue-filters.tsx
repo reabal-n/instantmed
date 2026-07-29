@@ -175,6 +175,10 @@ export function QueueFilters({
                 ref={searchRef}
                 aria-label="Search active requests"
                 placeholder={compactShell ? "Search name, email or request" : "Search… or / to focus"}
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
+                maxLength={96}
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 onKeyDown={(event) => {
@@ -186,7 +190,7 @@ export function QueueFilters({
                 className={cn(
                   "w-full",
                   "[&>div]:h-11 [&>div]:min-h-0 [&>div]:border-slate-300 [&>div]:bg-white [&>div]:shadow-sm [&>div]:shadow-primary/[0.03] [&>div]:focus-within:border-primary/45 [&>div]:focus-within:ring-primary/20 dark:[&>div]:bg-card sm:[&>div]:h-9",
-                  "[&_input]:h-11 [&_input]:py-0 [&_input]:text-sm [&_input]:leading-11 [&_input]:placeholder:text-slate-500 sm:[&_input]:h-9 sm:[&_input]:leading-9",
+                  "[&_input]:h-11 [&_input]:py-0 [&_input]:text-base [&_input]:leading-11 [&_input]:placeholder:text-slate-500 sm:[&_input]:h-9 sm:[&_input]:text-sm sm:[&_input]:leading-9",
                   compactShell ? "sm:w-72" : "sm:w-56",
                 )}
                 inputClassName="queue-search-input"
@@ -196,7 +200,7 @@ export function QueueFilters({
                     <button
                       type="button"
                       aria-label="Clear patient search"
-                      className="rounded-full p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:hover:bg-white/10"
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:hover:bg-white/10"
                       onMouseDown={(event) => event.preventDefault()}
                       onClick={() => {
                         onSearchChange("")

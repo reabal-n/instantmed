@@ -331,6 +331,7 @@ export async function getDoctorQueue(
       degraded: false,
       statusCounts: emptyCounts,
       globalStatusCounts: emptyCounts,
+      searchMatchCount: searchTerm ? 0 : null,
       searchState: defaultSearchState,
       oldestWaitingEnteredAt: null,
       oldestWaitingIntakeId: null,
@@ -360,6 +361,7 @@ export async function getDoctorQueue(
         degraded: false,
         statusCounts: null,
         globalStatusCounts: null,
+        searchMatchCount: null,
         searchState: "too_broad",
         oldestWaitingEnteredAt: null,
         oldestWaitingIntakeId: null,
@@ -368,7 +370,7 @@ export async function getDoctorQueue(
 
     if (profileSearchError) {
       logger.warn("Doctor queue patient search could not load", {
-        error: profileSearchError.message,
+        errorCode: profileSearchError.code ?? "unknown",
       })
       return {
         data: [],
@@ -378,6 +380,7 @@ export async function getDoctorQueue(
         degraded: true,
         statusCounts: null,
         globalStatusCounts: null,
+        searchMatchCount: null,
         searchState: "unavailable",
         oldestWaitingEnteredAt: null,
         oldestWaitingIntakeId: null,
@@ -419,8 +422,11 @@ export async function getDoctorQueue(
       }
 
       const { count, error } = await query
+      const safeError = error
+        ? new Error(`Doctor queue count query failed${error.code ? ` [${error.code}]` : ""}`)
+        : null
 
-      return { data: error ? null : { count: count ?? 0, degraded: false }, error }
+      return { data: error ? null : { count: count ?? 0, degraded: false }, error: safeError }
     },
   })
 
@@ -532,13 +538,22 @@ export async function getDoctorQueue(
     dataPromise,
   ])
   const countFallback = countResult.degraded
+  const searchMatchCount = searchTerm
+    && !countResult.degraded
+    && !scope.degraded
+    ? countResult.count
+    : null
   const oldestWaitingEnteredAt = oldestResult.data
     ? oldestResult.data.paid_at ?? oldestResult.data.submitted_at ?? oldestResult.data.created_at
     : null
   const oldestWaitingIntakeId = oldestResult.data?.id ?? null
 
   if (error) {
-    logger.error("Error fetching doctor queue", {}, toError(error))
+    logger.error(
+      "Error fetching doctor queue",
+      { errorCode: error.code ?? "unknown" },
+      new Error("Doctor queue data query failed"),
+    )
     return {
       data: [],
       total: countResult.count,
@@ -547,6 +562,7 @@ export async function getDoctorQueue(
       degraded: true,
       statusCounts,
       globalStatusCounts,
+      searchMatchCount,
       searchState: defaultSearchState,
       oldestWaitingEnteredAt,
       oldestWaitingIntakeId,
@@ -603,6 +619,7 @@ export async function getDoctorQueue(
     degraded: countFallback || scope.degraded,
     statusCounts,
     globalStatusCounts,
+    searchMatchCount,
     searchState: defaultSearchState,
     oldestWaitingEnteredAt,
     oldestWaitingIntakeId,
@@ -619,6 +636,7 @@ export interface DoctorQueueResult {
   degraded?: boolean
   statusCounts: QueueStatusCounts | null
   globalStatusCounts: QueueStatusCounts | null
+  searchMatchCount: number | null
   searchState: DoctorQueueSearchState
   oldestWaitingEnteredAt: string | null
   oldestWaitingIntakeId: string | null
@@ -892,7 +910,7 @@ export async function getAllIntakesForAdmin(
     } else if (profileSearchError) {
       patientSearchUnavailable = true
       logger.warn("Admin ledger patient search could not load", {
-        error: profileSearchError.message,
+        errorCode: profileSearchError.code ?? "unknown",
       })
     } else {
       matchingPatientIds = (profiles ?? []).flatMap((profile) =>
@@ -967,10 +985,18 @@ export async function getAllIntakesForAdmin(
   ])
 
   if (countError) {
-    logger.error("Error fetching admin intake count", {}, countError instanceof Error ? countError : new Error(String(countError)))
+    logger.error(
+      "Error fetching admin intake count",
+      { errorCode: countError.code ?? "unknown" },
+      new Error("Admin ledger count query failed"),
+    )
   }
   if (error) {
-    logger.error("Error fetching all intakes", {}, toError(error))
+    logger.error(
+      "Error fetching all intakes",
+      { errorCode: error.code ?? "unknown" },
+      new Error("Admin ledger data query failed"),
+    )
     return {
       data: [],
       total: countError ? null : count ?? 0,

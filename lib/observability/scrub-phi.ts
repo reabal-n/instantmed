@@ -25,6 +25,10 @@ const NAMED_ID_RE = /\b(?:actor|certificate|doctor|intake|patient|profile|reques
 /** Route/query locations that often carry patient/request identifiers */
 const SENSITIVE_QUERY_ID_RE = /([?&](?:certificate_id|intake_id|patient_id|profile_id|request_id|user_id|id)=)[^&#]+/gi
 const SENSITIVE_AUTH_PARAM_RE = /([?&#](?:access_token|refresh_token|review_click_key|token(?:_hash)?|code|secret|password|session_id)=)[^&#\s]+/gi
+const SENSITIVE_SEARCH_PARAM_RE = /(^|[?&#\s])((?:q|query|search|searchterm|search_term|searchquery|search_query)=)[^&#\r\n]*/gi
+const SENSITIVE_SEARCH_JSON_RE = /("(?:q|query|search|searchterm|search_term|searchquery|search_query)"\s*:\s*")[^"]*(")/gi
+const SENSITIVE_SEARCH_ENCODED_JSON_RE = /(%22(?:q|query|search|searchterm|search_term|searchquery|search_query)%22%3A%22)(?:(?!%22).)*(%22)/gi
+const POSTGREST_SEARCH_FILTER_RE = /((?:full_name|email|reference_number)\.ilike\.\*)[^*]*(\*)/gi
 const SENSITIVE_PATH_ID_RE = /(\/(?:api\/certificates|api\/doctor\/certificates|api\/patient\/documents|certificates|doctor\/intakes|doctor\/patients|patient\/documents|patient\/followups|patient\/intakes|track|verify)\/)[^/?#]+/gi
 
 const REDACTED = "[REDACTED]"
@@ -67,12 +71,18 @@ const SENSITIVE_KEY_EXACT = new Set([
   "patientname",
   "phone",
   "phonenumber",
+  "q",
+  "query",
   "recipientemail",
   "recipientname",
   "reviewclickkey",
   "subject",
+  "search",
+  "searchquery",
+  "searchterm",
   "symptoms",
   "title",
+  "username",
   "verificationcode",
   "verification_code",
 ])
@@ -110,6 +120,7 @@ function shouldRedactKey(key: string): boolean {
 
   if (SENSITIVE_KEY_EXACT.has(normalized)) return true
   if (SENSITIVE_IDENTIFIER_KEYS.has(key) || SENSITIVE_IDENTIFIER_KEYS.has(normalized)) return true
+  if (normalized.startsWith("sentrymessageparameter")) return true
 
   if (normalized.includes("medicare")) return true
   if (normalized.includes("birth") && normalized.includes("date")) return true
@@ -147,6 +158,10 @@ function scrubHeaders(headers: Record<string, unknown>): Record<string, unknown>
 export function scrubPHI(text: string): string {
   return text
     .replace(SENSITIVE_AUTH_PARAM_RE, `$1${REDACTED}`)
+    .replace(SENSITIVE_SEARCH_PARAM_RE, `$1$2${REDACTED}`)
+    .replace(SENSITIVE_SEARCH_JSON_RE, `$1${REDACTED}$2`)
+    .replace(SENSITIVE_SEARCH_ENCODED_JSON_RE, `$1${REDACTED}$2`)
+    .replace(POSTGREST_SEARCH_FILTER_RE, `$1${REDACTED}$2`)
     .replace(SENSITIVE_QUERY_ID_RE, `$1${ID_REDACTED}`)
     .replace(SENSITIVE_PATH_ID_RE, `$1${ID_REDACTED}`)
     .replace(UUID_RE, ID_REDACTED)
@@ -188,6 +203,7 @@ export interface SentryEventLike {
     }>
   }
   request?: {
+    cookies?: unknown
     headers?: Record<string, unknown>
     url?: string
     data?: unknown
@@ -198,6 +214,49 @@ export interface SentryEventLike {
   extra?: Record<string, unknown>
   contexts?: Record<string, unknown>
   breadcrumbs?: SentryBreadcrumbLike[]
+  logentry?: {
+    message?: string
+    params?: unknown[]
+  }
+  transaction?: string
+  spans?: SentrySpanLike[]
+}
+
+export interface SentrySpanLike {
+  description?: string
+  data?: unknown
+}
+
+export interface SentryLogLike {
+  message?: unknown
+  attributes?: unknown
+}
+
+function isPrivateStaffRequestUrl(value: string | undefined): boolean {
+  if (!value) return false
+  try {
+    const pathname = new URL(value, "https://instantmed.invalid").pathname
+    return /^\/(?:dashboard|admin|doctor)(?:\/|$)/.test(pathname)
+  } catch {
+    return false
+  }
+}
+
+function scrubQueryString(value: unknown): unknown {
+  if (typeof value === "string") return scrubPHI(value)
+  if (Array.isArray(value)) {
+    return value.map((entry) => {
+      if (!Array.isArray(entry) || typeof entry[0] !== "string") {
+        return scrubPHIFromObject(entry)
+      }
+      return [
+        entry[0],
+        shouldRedactKey(entry[0]) ? REDACTED : scrubPHIFromObject(entry[1]),
+        ...entry.slice(2).map(scrubPHIFromObject),
+      ]
+    })
+  }
+  return scrubPHIFromObject(value)
 }
 
 export function scrubSentryBreadcrumb<T>(breadcrumb: T): T {
@@ -207,10 +266,42 @@ export function scrubSentryBreadcrumb<T>(breadcrumb: T): T {
   return breadcrumb
 }
 
+export function scrubSentrySpan<T>(span: T): T {
+  const mutable = span as SentrySpanLike
+  if (mutable.description) mutable.description = scrubPHI(mutable.description)
+  if (mutable.data) mutable.data = scrubPHIFromObject(mutable.data)
+  return span
+}
+
+export function scrubSentryLog<T>(log: T): T {
+  const mutable = log as SentryLogLike
+  if (mutable.message && typeof mutable.message === "object") {
+    const parameterized = mutable.message as Record<string, unknown>
+    const template = parameterized.__sentry_template_string__
+    mutable.message = typeof template === "string"
+      ? scrubPHI(template)
+      : Object.prototype.toString.call(mutable.message) === "[object String]"
+        ? scrubPHI(String(mutable.message))
+        : scrubPHIFromObject(mutable.message)
+  } else {
+    mutable.message = scrubPHIFromObject(mutable.message)
+  }
+  if (mutable.attributes) mutable.attributes = scrubPHIFromObject(mutable.attributes)
+  return log
+}
+
 export function scrubSentryEvent<T>(event: T): T {
   const mutable = event as SentryEventLike
+  const privateStaffRequest = isPrivateStaffRequestUrl(mutable.request?.url)
+    || isPrivateStaffRequestUrl(mutable.transaction)
   if (mutable.message) {
     mutable.message = scrubPHI(mutable.message)
+  }
+  if (mutable.logentry?.message) {
+    mutable.logentry.message = scrubPHI(mutable.logentry.message)
+  }
+  if (mutable.logentry?.params) {
+    mutable.logentry.params = mutable.logentry.params.map(() => REDACTED)
   }
   if (mutable.exception?.values) {
     mutable.exception.values = mutable.exception.values.map(value => ({
@@ -221,16 +312,19 @@ export function scrubSentryEvent<T>(event: T): T {
   if (mutable.request?.headers) {
     mutable.request.headers = scrubHeaders(mutable.request.headers)
   }
+  if (mutable.request && "cookies" in mutable.request) {
+    mutable.request.cookies = REDACTED
+  }
   if (mutable.request?.url) {
     mutable.request.url = scrubPHI(mutable.request.url)
   }
   if (mutable.request?.data) {
-    mutable.request.data = scrubPHIFromObject(mutable.request.data)
+    mutable.request.data = privateStaffRequest
+      ? REDACTED
+      : scrubPHIFromObject(mutable.request.data)
   }
   if (mutable.request?.query_string) {
-    mutable.request.query_string = typeof mutable.request.query_string === "string"
-      ? scrubPHI(mutable.request.query_string)
-      : scrubPHIFromObject(mutable.request.query_string)
+    mutable.request.query_string = scrubQueryString(mutable.request.query_string)
   }
   if (mutable.tags) {
     mutable.tags = scrubPHIFromObject(mutable.tags) as Record<string, unknown>
@@ -249,5 +343,15 @@ export function scrubSentryEvent<T>(event: T): T {
   if (mutable.breadcrumbs) {
     mutable.breadcrumbs = mutable.breadcrumbs.map(scrubSentryBreadcrumb)
   }
+  if (mutable.transaction) {
+    mutable.transaction = scrubPHI(mutable.transaction)
+  }
+  if (mutable.spans) {
+    mutable.spans = mutable.spans.map(scrubSentrySpan)
+  }
   return event
+}
+
+export function scrubSentryTransaction<T>(event: T): T {
+  return scrubSentryEvent(event)
 }

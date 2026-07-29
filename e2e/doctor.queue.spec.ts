@@ -202,16 +202,30 @@ test.describe("Doctor Queue - Edge Cases", () => {
     await page.goto("/dashboard?showTestData=1&onlyTestData=1")
     await waitForPageLoad(page)
     await expectQueueSurface(page)
+    const browserRequestUrls: string[] = []
+    page.on("request", (request) => browserRequestUrls.push(request.url()))
 
     const searchInput = page.getByRole("textbox", { name: "Search active requests" })
     await expect(searchInput).toBeVisible()
-    await searchInput.fill(SEEDED_PATIENT_NAME)
+    await searchInput.pressSequentially(SEEDED_PATIENT_NAME)
 
-    await expect(page).toHaveURL((url) => url.searchParams.get("q") === SEEDED_PATIENT_NAME)
+    await expect(page).toHaveURL((url) => !url.searchParams.has("q"))
     await expect(page.getByText("1 match", { exact: true })).toBeVisible()
     await expect(page.getByTestId(`queue-row-${SEEDED_INTAKE_ID}`)).toBeVisible()
+    expect(browserRequestUrls.every((url) => {
+      const decoded = decodeURIComponent(url.replaceAll("+", " "))
+      return !decoded.includes(SEEDED_PATIENT_NAME) && !new URL(url).searchParams.has("q")
+    })).toBe(true)
 
     await page.getByRole("button", { name: "Clear patient search" }).click()
+    await expect(page).toHaveURL((url) => !url.searchParams.has("q"))
+    await expect(searchInput).toHaveValue("")
+
+    await searchInput.pressSequentially(SEEDED_PATIENT_NAME)
+    await expect(page.getByText("1 match", { exact: true })).toBeVisible()
+    await page.reload()
+    await waitForPageLoad(page)
+    await expect(page.getByRole("textbox", { name: "Search active requests" })).toHaveValue("")
     await expect(page).toHaveURL((url) => !url.searchParams.has("q"))
   })
 })

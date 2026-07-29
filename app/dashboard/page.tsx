@@ -28,7 +28,6 @@ import {
   parseQueuePaginationParams,
   parseQueueStatusFilter,
   type QueueStatusFilter,
-  sanitizeQueueSearchQuery,
   STAFF_DASHBOARD_HREF,
   STAFF_OPS_HREF,
 } from "@/lib/dashboard/routes"
@@ -101,8 +100,6 @@ export default async function StaffDashboardPage({
   const params = await searchParams
   const { page, pageSize } = parseQueuePaginationParams(params)
   const initialStatusFilter: QueueStatusFilter = parseQueueStatusFilter(params.status)
-  const rawSearchQuery = Array.isArray(params.q) ? params.q[0] ?? "" : params.q ?? ""
-  const searchQuery = sanitizeQueueSearchQuery(rawSearchQuery)
   const hasExplicitStatusFilter = typeof params.status !== "undefined"
   // Test-data toggle (admin-only). `?showTestData=1` opts this page in to
   // seeing the seeded E2E patient in the queue. Gated on `hasAdminAccess`
@@ -115,10 +112,12 @@ export default async function StaffDashboardPage({
   // and only after the admin-gated test-data opt-in is already active.
   const onlyTestData = showTestData && params.onlyTestData === "1" && process.env.PLAYWRIGHT === "1"
 
-  if (rawSearchQuery !== searchQuery) {
+  // Queue searches are intentionally memory-only and travel through an
+  // authenticated POST action. Strip legacy q URLs before rendering so a
+  // copied/history URL cannot keep patient identifiers in the address bar.
+  if (typeof params.q !== "undefined") {
     redirect(buildStaffDashboardHref({
       status: initialStatusFilter,
-      q: searchQuery,
       page: params.page,
       pageSize: params.pageSize,
       showTestData,
@@ -135,7 +134,6 @@ export default async function StaffDashboardPage({
       allowSeeded: showTestData,
       onlySeeded: onlyTestData,
       statusFilter: initialStatusFilter,
-      q: searchQuery,
     }),
     canReviewMedicalCertificates
       ? getPendingBatchReviews({ limit: 20 })
@@ -157,7 +155,8 @@ export default async function StaffDashboardPage({
         degraded: true,
         statusCounts: null,
         globalStatusCounts: null,
-        searchState: searchQuery ? "unavailable" as const : "idle" as const,
+        searchMatchCount: null,
+        searchState: "idle" as const,
         oldestWaitingEnteredAt: null,
         oldestWaitingIntakeId: null,
       }
@@ -171,7 +170,6 @@ export default async function StaffDashboardPage({
   if (canonicalQueuePage !== null) {
     redirect(buildStaffDashboardHref({
       status: initialStatusFilter,
-      q: searchQuery,
       page: canonicalQueuePage,
       pageSize: params.pageSize,
       showTestData,
@@ -310,10 +308,10 @@ export default async function StaffDashboardPage({
               oldestWaitingIntakeId={queueResult.oldestWaitingIntakeId}
               initialStatusFilter={initialStatusFilter}
               hasExplicitStatusFilter={hasExplicitStatusFilter}
-              initialSearchQuery={searchQuery}
-              searchState={queueResult.searchState}
               baseHref={STAFF_DASHBOARD_HREF}
               doctorAvailable={doctorAvailable}
+              allowSeededSearch={showTestData}
+              onlySeededSearch={onlyTestData}
               compactShell
             />
           </section>

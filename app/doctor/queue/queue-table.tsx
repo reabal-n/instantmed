@@ -137,6 +137,7 @@ export interface QueueTableProps {
   recentlyCompleted: RecentlyCompletedIntake[]
   reviewHistoryTruncated?: boolean
   pagination?: PaginationInfo
+  onPageChange?: (page: number) => void
   baseHref?: string
   emptyState?: {
     title: string
@@ -179,6 +180,7 @@ export function QueueTable({
   recentlyCompleted,
   reviewHistoryTruncated = false,
   pagination,
+  onPageChange,
   baseHref = STAFF_DASHBOARD_HREF,
   emptyState = {
     title: "No review cases right now",
@@ -887,7 +889,12 @@ export function QueueTable({
             total={totalPages}
             page={currentPage}
             onChange={(page) => {
+              if (onPageChange) {
+                onPageChange(page)
+                return
+              }
               const params = new URLSearchParams(window.location.search)
+              params.delete("q")
               params.set("page", String(page))
               router.push(`${baseHref}?${params.toString()}`)
             }}

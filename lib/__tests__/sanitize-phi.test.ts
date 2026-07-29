@@ -51,10 +51,14 @@ describe("sanitize-phi PHI scrubber", () => {
       apiKey: "sk_live_should_never_log",
       authorization: "Bearer secret",
       intakeId: "abc-123",
+      q: "Patient Smith",
+      searchQuery: "Patient Smith",
     })
     expect(out.apiKey).toBeUndefined()
     expect(out.authorization).toBeUndefined()
     expect(out.intakeId).toBe("abc-123")
+    expect(out.q).toBe(REDACTED)
+    expect(out.searchQuery).toBe(REDACTED)
   })
 
   it("leaves non-PHI fields intact", () => {
@@ -131,5 +135,27 @@ describe("sanitize-phi PHI scrubber", () => {
     expect(sanitized.searchParams.get("utm_source")).toBe("email")
     expect(sanitized.searchParams.get("utm_medium")).toBe("review_request")
     expect(sanitized.toString()).not.toContain(clickKey)
+  })
+
+  it("redacts plain-name search fields and legacy search URL parameters", () => {
+    const name = "Patient Smith"
+    const object = sanitizeObject({
+      q: name,
+      query: name,
+      search: name,
+      searchTerm: name,
+      status: "review",
+    }) as Record<string, string>
+    const url = new URL(sanitizeUrl(
+      "https://instantmed.com.au/dashboard?q=Patient+Smith&status=review",
+    ))
+
+    expect(object.q).toBe(REDACTED)
+    expect(object.query).toBe(REDACTED)
+    expect(object.search).toBe(REDACTED)
+    expect(object.searchTerm).toBe(REDACTED)
+    expect(object.status).toBe("review")
+    expect(url.searchParams.get("q")).toBe(REDACTED)
+    expect(url.searchParams.get("status")).toBe("review")
   })
 })
