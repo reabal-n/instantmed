@@ -20,10 +20,21 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { UserCard } from "@/components/uix"
 import { STAFF_DOCTOR_PATIENTS_HREF } from "@/lib/dashboard/routes"
 import type { PatientDirectoryProfile } from "@/lib/data/patient-directory"
+import {
+  buildPatientDirectoryHref,
+  type PatientDirectorySort,
+} from "@/lib/data/patient-directory-sort"
 import { findPotentialDuplicatePatients } from "@/lib/doctor/patient-snapshot"
 import { calculateAge, formatDate } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
@@ -39,6 +50,7 @@ interface PatientsListClientProps {
   totalPatients: number
   collapsedDuplicateProfiles: number
   initialSearchQuery?: string
+  initialSort?: PatientDirectorySort
   baseHref?: string
   patientHrefBase?: string
   mergeAuditHref?: string
@@ -54,19 +66,6 @@ const CLOSED_REQUEST_STATUSES = new Set(["completed", "declined", "cancelled", "
 
 function normalizeDirectorySearchQuery(value: string): string {
   return value.replace(/\s+/g, " ").trim()
-}
-
-function buildPatientDirectoryHref(
-  baseHref: string,
-  page: number,
-  searchQuery: string,
-): string {
-  const params = new URLSearchParams()
-  const normalizedSearch = normalizeDirectorySearchQuery(searchQuery)
-  if (page > 1) params.set("page", String(page))
-  if (normalizedSearch) params.set("q", normalizedSearch)
-  const query = params.toString()
-  return query ? `${baseHref}?${query}` : baseHref
 }
 
 function hasActivePrescribingRequest(patient: PatientDirectoryProfile): boolean {
@@ -122,6 +121,7 @@ export function PatientsListClient({
   totalPatients,
   collapsedDuplicateProfiles,
   initialSearchQuery = "",
+  initialSort = "newest",
   baseHref = STAFF_DOCTOR_PATIENTS_HREF,
   patientHrefBase = STAFF_DOCTOR_PATIENTS_HREF,
   mergeAuditHref,
@@ -144,11 +144,16 @@ export function PatientsListClient({
     if (normalizedSearch === initialSearch) return
 
     const handle = window.setTimeout(() => {
-      router.replace(buildPatientDirectoryHref(baseHref, 1, normalizedSearch), { scroll: false })
+      router.replace(buildPatientDirectoryHref({
+        baseHref,
+        page: 1,
+        search: normalizedSearch,
+        sort: initialSort,
+      }), { scroll: false })
     }, 350)
 
     return () => window.clearTimeout(handle)
-  }, [baseHref, initialSearch, router, searchQuery])
+  }, [baseHref, initialSearch, initialSort, router, searchQuery])
 
   const duplicateGroups = useMemo(
     () => findPotentialDuplicatePatients(patients),
@@ -188,7 +193,21 @@ export function PatientsListClient({
   const hasExceptions = needsDetailsCount > 0 || syncNeededCount > 0 || duplicatePatientIds.size > 0
 
   const goToPage = (page: number) => {
-    router.push(buildPatientDirectoryHref(baseHref, page, searchQuery))
+    router.push(buildPatientDirectoryHref({
+      baseHref,
+      page,
+      search: searchQuery,
+      sort: initialSort,
+    }))
+  }
+
+  const handleSortChange = (sort: PatientDirectorySort) => {
+    router.replace(buildPatientDirectoryHref({
+      baseHref,
+      page: 1,
+      search: searchQuery,
+      sort,
+    }), { scroll: false })
   }
 
   return (
@@ -203,15 +222,34 @@ export function PatientsListClient({
 
       <Card className="rounded-xl border-border/50">
         <CardContent className="space-y-3 p-4 sm:p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="w-full max-w-xl">
-              <Input
-                placeholder="Search name, email, suburb, or phone…"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                startContent={<Search className="h-4 w-4 text-muted-foreground" />}
-                aria-label="Search patients"
-              />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex w-full max-w-2xl flex-col gap-2 sm:flex-row sm:items-end">
+              <div className="min-w-0 flex-1">
+                <Input
+                  placeholder="Search name, email, suburb, or phone…"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  startContent={<Search className="h-4 w-4 text-muted-foreground" />}
+                  aria-label="Search patients"
+                />
+              </div>
+              <div className="w-full sm:w-44">
+                <Select
+                  value={initialSort}
+                  onValueChange={(value) => handleSortChange(value as PatientDirectorySort)}
+                >
+                  <SelectTrigger
+                    aria-label="Sort patients"
+                    className="min-h-11 bg-card"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest first</SelectItem>
+                    <SelectItem value="name">Name A–Z</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <p className="shrink-0 text-sm tabular-nums text-muted-foreground">
               {totalPatients.toLocaleString("en-AU")} {totalPatients === 1 ? "patient" : "patients"}

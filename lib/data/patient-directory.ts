@@ -8,6 +8,11 @@ import { getServicePresentation } from "@/lib/services/service-presentation"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { asProfile } from "@/types/db"
 
+import {
+  getPatientDirectoryOrder,
+  type PatientDirectorySort,
+} from "./patient-directory-sort"
+
 const log = createLogger("patient-directory")
 
 export interface PatientDirectoryProfile {
@@ -64,11 +69,13 @@ export async function getPatientDirectoryPage({
   page,
   pageSize = 50,
   search,
+  sort = "newest",
 }: {
   doctorId?: string
   page: number
   pageSize?: number
   search?: string
+  sort?: PatientDirectorySort
 }): Promise<PatientDirectoryPage> {
   const supabase = createServiceRoleClient()
 
@@ -96,11 +103,9 @@ export async function getPatientDirectoryPage({
     .eq("role", "patient")
     .is("merged_into_profile_id", null)
 
-  // Newest profiles is the only global ordering the profiles query can prove.
-  // Recent-request/script ordering used to happen after pagination and could
-  // therefore reorder only the current page while presenting itself as a
-  // directory-wide sort.
-  query = query.order("created_at", { ascending: false })
+  for (const order of getPatientDirectoryOrder(sort)) {
+    query = query.order(order.column, { ascending: order.ascending })
+  }
 
   if (accessiblePatientIds) {
     query = query.in("id", accessiblePatientIds)

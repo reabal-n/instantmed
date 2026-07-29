@@ -11,6 +11,14 @@ const patientDirectoryDataSource = readFileSync(
   join(process.cwd(), "lib/data/patient-directory.ts"),
   "utf8",
 )
+const adminPatientsPageSource = readFileSync(
+  join(process.cwd(), "app/admin/patients/page.tsx"),
+  "utf8",
+)
+const doctorPatientsPageSource = readFileSync(
+  join(process.cwd(), "app/doctor/patients/page.tsx"),
+  "utf8",
+)
 
 describe("patient directory duplicate review UX", () => {
   it("turns duplicate warnings into the next operator action", () => {
@@ -46,12 +54,32 @@ describe("patient directory duplicate review UX", () => {
     expect(patientsListSource).toContain("totalPatients.toLocaleString")
     expect(patientsListSource).not.toContain("unique total")
     expect(patientsListSource).not.toContain("raw profiles")
-    expect(patientDirectoryDataSource).not.toContain("parsePatientDirectorySort")
+    expect(patientDirectoryDataSource).toContain("getPatientDirectoryOrder(sort)")
     expect(patientDirectoryDataSource).not.toContain("compareDirectoryPatients")
     expect(patientDirectoryDataSource).not.toContain("medicare_number")
     expect(patientDirectoryDataSource).not.toContain("ihi_number")
     expect(patientDirectoryDataSource).not.toContain("address_line1")
     expect(patientDirectoryDataSource).not.toContain("stripe_customer_id")
     expect(patientDirectoryDataSource).not.toContain("extends Profile")
+  })
+
+  it("offers only URL-mirrored global newest and name sorting", () => {
+    for (const pageSource of [adminPatientsPageSource, doctorPatientsPageSource]) {
+      expect(pageSource).toContain("parsePatientDirectorySort(params.sort)")
+      expect(pageSource).toMatch(/\n\s+sort,\n/)
+      expect(pageSource).toContain("initialSort={sort}")
+    }
+    expect(patientsListSource).toContain('from "@/components/ui/select"')
+    expect(patientsListSource).toContain('aria-label="Sort patients"')
+    expect(patientsListSource).toContain('className="min-h-11')
+    expect(patientsListSource).toContain('SelectItem value="newest"')
+    expect(patientsListSource).toContain('SelectItem value="name"')
+    expect(patientsListSource).toContain("sort: initialSort")
+    expect(patientsListSource).toMatch(/\n\s+sort,\n/)
+    expect(patientsListSource).not.toContain("Smart sort")
+    expect(patientsListSource).not.toContain("recent_request")
+    expect(patientsListSource).not.toContain("recent_script")
+    expect(patientsListSource).not.toContain("request_type")
+    expect(patientsListSource).not.toMatch(/\bpatients\.sort\(/)
   })
 })

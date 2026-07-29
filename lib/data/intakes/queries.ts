@@ -63,6 +63,7 @@ import type {
 } from "./types"
 
 const logger = createLogger("data-intakes")
+const ADMIN_LEDGER_PATIENT_SEARCH_CANDIDATE_LIMIT = 250
 
 /**
  * Extract the patient's stated medication name from a decrypted intake_answers
@@ -666,6 +667,7 @@ export async function getAllIntakesForAdmin(
   pageSize: number
   degraded: boolean
   patientSearchUnavailable: boolean
+  patientSearchSaturated: boolean
 }> {
   const supabase = createServiceRoleClient()
   const page = Math.max(1, options.page ?? 1)
@@ -695,13 +697,25 @@ export async function getAllIntakesForAdmin(
       .select("id")
       .eq("role", "patient")
       .or(profileSearch)
-      .limit(250)
+      .limit(ADMIN_LEDGER_PATIENT_SEARCH_CANDIDATE_LIMIT)
 
     if (profileSearchError) {
       patientSearchUnavailable = true
       logger.warn("Admin ledger patient search could not load", {
         error: profileSearchError.message,
       })
+      // Hitting the query cap means more matching profiles may exist. Do not use
+      // a partial patient-id set to produce an authoritative-looking ledger.
+    } else if ((profiles?.length ?? 0) >= ADMIN_LEDGER_PATIENT_SEARCH_CANDIDATE_LIMIT) {
+      return {
+        data: [],
+        total: null,
+        page,
+        pageSize,
+        degraded: false,
+        patientSearchUnavailable: false,
+        patientSearchSaturated: true,
+      }
     } else {
       matchingPatientIds = (profiles ?? []).flatMap((profile) =>
         typeof profile.id === "string" ? [profile.id] : [],
@@ -786,6 +800,7 @@ export async function getAllIntakesForAdmin(
       pageSize,
       degraded: true,
       patientSearchUnavailable,
+      patientSearchSaturated: false,
     }
   }
 
@@ -843,6 +858,7 @@ export async function getAllIntakesForAdmin(
       pageSize,
       degraded: Boolean(countError) || patientSearchUnavailable,
       patientSearchUnavailable,
+      patientSearchSaturated: false,
     }
   }
 
@@ -878,6 +894,7 @@ export async function getAllIntakesForAdmin(
     pageSize,
     degraded: Boolean(countError) || patientSearchUnavailable,
     patientSearchUnavailable,
+    patientSearchSaturated: false,
   }
 }
 

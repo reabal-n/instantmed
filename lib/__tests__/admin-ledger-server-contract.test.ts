@@ -54,4 +54,15 @@ describe("admin ledger server contract", () => {
     expect(queries).toContain('options.viewerRole === "support"')
     expect(queries).toContain('if (options.viewerRole === "support")')
   })
+
+  it("renders an explicit narrow-search state instead of a partial ledger total", () => {
+    expect(pageSource).toContain("patientSearchSaturated: false")
+    expect(pageSource).toContain("patientSearchSaturated={intakesResult.patientSearchSaturated}")
+    expect(client).toContain("patientSearchSaturated?: boolean")
+    expect(client).toContain("Too many patient profiles match this search")
+    expect(client).toContain("Add more of the name, email, phone, suburb, or state to narrow it.")
+    expect(client).toMatch(/patientSearchSaturated\s*\?\s*"Narrow search to continue"/)
+    expect(client).toContain("{!patientSearchSaturated ? (")
+    expect(queries).toContain("patientSearchSaturated: true")
+  })
 })

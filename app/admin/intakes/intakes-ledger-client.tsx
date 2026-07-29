@@ -61,6 +61,7 @@ type AdminIntakesLedgerClientProps = {
   pageSize: number
   degraded?: boolean
   patientSearchUnavailable?: boolean
+  patientSearchSaturated?: boolean
   viewerRole: "admin" | "support"
   initialFilters?: AdminIntakesLedgerInitialFilters
 }
@@ -260,6 +261,7 @@ export function AdminIntakesLedgerClient({
   pageSize,
   degraded = false,
   patientSearchUnavailable = false,
+  patientSearchSaturated = false,
   viewerRole,
   initialFilters,
 }: AdminIntakesLedgerClientProps) {
@@ -418,11 +420,13 @@ export function AdminIntakesLedgerClient({
 
   const firstVisible = rows.length > 0 ? (page - 1) * pageSize + 1 : 0
   const lastVisible = rows.length > 0 ? firstVisible + rows.length - 1 : 0
-  const totalLabel = total === null
-    ? `${rows.length.toLocaleString("en-AU")} shown · total unavailable`
-    : rows.length === 0
-      ? `${total.toLocaleString("en-AU")} requests`
-      : `${firstVisible.toLocaleString("en-AU")}–${lastVisible.toLocaleString("en-AU")} of ${total.toLocaleString("en-AU")}`
+  const totalLabel = patientSearchSaturated
+    ? "Narrow search to continue"
+    : total === null
+      ? `${rows.length.toLocaleString("en-AU")} shown · total unavailable`
+      : rows.length === 0
+        ? `${total.toLocaleString("en-AU")} requests`
+        : `${firstVisible.toLocaleString("en-AU")}–${lastVisible.toLocaleString("en-AU")} of ${total.toLocaleString("en-AU")}`
   const hasNextPage = total === null ? rows.length === pageSize : lastVisible < total
   const hasFilters = Boolean(
     initialFilters?.q ||
@@ -434,7 +438,12 @@ export function AdminIntakesLedgerClient({
 
   return (
     <div className="flex flex-col gap-3">
-      {degraded ? (
+      {patientSearchSaturated ? (
+        <div className="rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-sm text-warning" role="status">
+          <p className="font-medium">Too many patient profiles match this search.</p>
+          <p>Add more of the name, email, phone, suburb, or state to narrow it.</p>
+        </div>
+      ) : degraded ? (
         <div className="rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-xs text-warning" role="status">
           {patientSearchUnavailable
             ? "Patient search is temporarily unavailable. Request reference and ID search still work."
@@ -492,96 +501,100 @@ export function AdminIntakesLedgerClient({
         </div>
       ) : null}
 
-      <div className="overflow-x-auto rounded-xl">
-        <CaseTable
-          rows={caseRows}
-          density={density}
-          groupByTime
-          className="min-w-[760px]"
-          onRowPrimary={isAdmin ? openCaseSlideover : undefined}
-          selectedRowId={isAdmin ? selectedRowId : null}
-          rowActions={(row) => {
-            const canRefund = row.paymentStatus === "paid" || row.paymentStatus === "partially_refunded"
-            const canCopyPaymentRescue = row.paymentRecoveryIndicator === "payment_pending" || row.paymentRecoveryIndicator === "payment_retry"
-            if (!canRefund && !canCopyPaymentRescue) return null
-            return (
-              <>
-                {canCopyPaymentRescue ? (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-11 w-11 sm:h-8 sm:w-8"
-                    title="Copy payment reply"
-                    aria-label={`Copy payment recovery reply for ${row.patientName}`}
-                    disabled={isPaymentRescuePending}
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      handleCopyPaymentRescue(row)
-                    }}
-                  >
-                    {isPaymentRescuePending && paymentRescueTargetId === row.id
-                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      : <Copy className="h-3.5 w-3.5" />}
-                  </Button>
-                ) : null}
-                {canRefund ? (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-11 w-11 sm:h-8 sm:w-8"
-                    title="Issue refund"
-                    aria-label={`Issue refund for ${row.patientName}`}
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      setRefundTarget(row)
-                    }}
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                  </Button>
-                ) : null}
-              </>
-            )
-          }}
-          emptyState={{
-            title: hasFilters ? "No matching requests" : "No recent requests",
-            body: hasFilters
-              ? "Clear one or more filters to broaden the server search."
-              : "No requests were created in the last 30 days.",
-            action: hasFilters ? (
-              <Button variant="outline" size="sm" onClick={() => router.replace(STAFF_LEDGER_HREF)}>
-                Clear filters
-              </Button>
-            ) : undefined,
-          }}
-        />
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-3">
-        <span className="text-xs tabular-nums text-muted-foreground">{totalLabel}</span>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="min-h-11 sm:min-h-9"
-            disabled={page <= 1 || isFilterPending}
-            onClick={() => replaceParams({ page: String(page - 1) }, { resetPage: false })}
-          >
-            <ChevronLeft className="h-4 w-4" /> Previous
-          </Button>
-          <span className="min-w-16 text-center text-xs tabular-nums text-muted-foreground">Page {page}</span>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="min-h-11 sm:min-h-9"
-            disabled={!hasNextPage || isFilterPending}
-            onClick={() => replaceParams({ page: String(page + 1) }, { resetPage: false })}
-          >
-            Next <ChevronRight className="h-4 w-4" />
-          </Button>
+      {!patientSearchSaturated ? (
+        <div className="overflow-x-auto rounded-xl">
+          <CaseTable
+            rows={caseRows}
+            density={density}
+            groupByTime
+            className="min-w-[760px]"
+            onRowPrimary={isAdmin ? openCaseSlideover : undefined}
+            selectedRowId={isAdmin ? selectedRowId : null}
+            rowActions={(row) => {
+              const canRefund = row.paymentStatus === "paid" || row.paymentStatus === "partially_refunded"
+              const canCopyPaymentRescue = row.paymentRecoveryIndicator === "payment_pending" || row.paymentRecoveryIndicator === "payment_retry"
+              if (!canRefund && !canCopyPaymentRescue) return null
+              return (
+                <>
+                  {canCopyPaymentRescue ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-11 w-11 sm:h-8 sm:w-8"
+                      title="Copy payment reply"
+                      aria-label={`Copy payment recovery reply for ${row.patientName}`}
+                      disabled={isPaymentRescuePending}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        handleCopyPaymentRescue(row)
+                      }}
+                    >
+                      {isPaymentRescuePending && paymentRescueTargetId === row.id
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <Copy className="h-3.5 w-3.5" />}
+                    </Button>
+                  ) : null}
+                  {canRefund ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-11 w-11 sm:h-8 sm:w-8"
+                      title="Issue refund"
+                      aria-label={`Issue refund for ${row.patientName}`}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        setRefundTarget(row)
+                      }}
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                    </Button>
+                  ) : null}
+                </>
+              )
+            }}
+            emptyState={{
+              title: hasFilters ? "No matching requests" : "No recent requests",
+              body: hasFilters
+                ? "Clear one or more filters to broaden the server search."
+                : "No requests were created in the last 30 days.",
+              action: hasFilters ? (
+                <Button variant="outline" size="sm" onClick={() => router.replace(STAFF_LEDGER_HREF)}>
+                  Clear filters
+                </Button>
+              ) : undefined,
+            }}
+          />
         </div>
-      </div>
+      ) : null}
+
+      {!patientSearchSaturated ? (
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-3">
+          <span className="text-xs tabular-nums text-muted-foreground">{totalLabel}</span>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="min-h-11 sm:min-h-9"
+              disabled={page <= 1 || isFilterPending}
+              onClick={() => replaceParams({ page: String(page - 1) }, { resetPage: false })}
+            >
+              <ChevronLeft className="h-4 w-4" /> Previous
+            </Button>
+            <span className="min-w-16 text-center text-xs tabular-nums text-muted-foreground">Page {page}</span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="min-h-11 sm:min-h-9"
+              disabled={!hasNextPage || isFilterPending}
+              onClick={() => replaceParams({ page: String(page + 1) }, { resetPage: false })}
+            >
+              Next <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       {refundTarget ? (
         <IntakeRefundDialog

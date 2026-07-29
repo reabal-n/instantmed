@@ -115,6 +115,7 @@ export default async function AdminIntakeLedgerPage({
         pageSize,
         degraded: true,
         patientSearchUnavailable: false,
+        patientSearchSaturated: false,
       }
 
   // Classify acquisition source SERVER-side and ship only the tiny precomputed
@@ -137,7 +138,7 @@ export default async function AdminIntakeLedgerPage({
           title="Request ledger"
           description={
             initialFilters.q || initialFilters.status || initialFilters.service || initialFilters.workLane || initialFilters.chips?.length
-              ? "Filtered recent requests from an operator drilldown."
+              ? "Filtered request records from an operator drilldown."
               : "Search, audit, and recover request records when the cockpit is not enough."
           }
           backHref={profile.role === "support" ? STAFF_OPS_HREF : STAFF_DASHBOARD_HREF}
@@ -154,6 +155,7 @@ export default async function AdminIntakeLedgerPage({
                 pageSize={intakesResult.pageSize}
                 degraded={intakesResult.degraded}
                 patientSearchUnavailable={intakesResult.patientSearchUnavailable}
+                patientSearchSaturated={intakesResult.patientSearchSaturated}
                 viewerRole={profile.role as "admin" | "support"}
                 initialFilters={initialFilters}
               />

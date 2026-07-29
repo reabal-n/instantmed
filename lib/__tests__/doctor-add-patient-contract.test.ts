@@ -55,7 +55,7 @@ describe("doctor add patient Parchment contract", () => {
     expect(listSource).toContain("patient.lastRequest")
     expect(listSource).toContain("patient.lastScript")
     expect(pageSource).toContain("getPatientDirectoryPage")
-    expect(pageSource).not.toContain("parsePatientDirectorySort")
+    expect(pageSource).toContain("parsePatientDirectorySort(params.sort)")
     expect(patientDirectorySource).toContain("parchment_patient_id")
     expect(patientDirectorySource).toContain("lastRequest")
     expect(patientDirectorySource).toContain("lastScript")

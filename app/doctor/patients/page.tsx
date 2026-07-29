@@ -4,6 +4,7 @@ import {
   getPatientDirectoryPage,
   parsePatientDirectorySearch,
 } from "@/lib/data/patient-directory"
+import { parsePatientDirectorySort } from "@/lib/data/patient-directory-sort"
 
 import { PatientsListClient } from "./patients-list-client"
 
@@ -17,18 +18,24 @@ export const dynamic = "force-dynamic"
 export default async function PatientsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; q?: string | string[] }>
+  searchParams: Promise<{
+    page?: string
+    q?: string | string[]
+    sort?: string | string[]
+  }>
 }) {
   const auth = await requireRole(["doctor", "admin"])
 
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page || "1", 10) || 1)
   const search = parsePatientDirectorySearch(params.q)
+  const sort = parsePatientDirectorySort(params.sort)
   const { patients, total, collapsedCount } = await getPatientDirectoryPage({
     doctorId: hasAdminAccess(auth.profile) ? undefined : auth.profile.id,
     page,
     pageSize: PAGE_SIZE,
     search,
+    sort,
   })
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
@@ -40,6 +47,7 @@ export default async function PatientsPage({
       totalPatients={total}
       collapsedDuplicateProfiles={collapsedCount}
       initialSearchQuery={search}
+      initialSort={sort}
     />
   )
 }

@@ -161,7 +161,7 @@ describe("doctor patient medication history contract", () => {
     )
 
     expect(patientsPageSource).toContain("getPatientDirectoryPage")
-    expect(patientsPageSource).not.toContain("parsePatientDirectorySort")
+    expect(patientsPageSource).toContain("parsePatientDirectorySort(params.sort)")
     expect(patientDirectorySource).toContain("parchment_patient_id")
     expect(patientDirectorySource).toContain("getLastRequestMap")
     expect(patientDirectorySource).toContain("getLastScriptMap")
