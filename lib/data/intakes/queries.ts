@@ -1269,13 +1269,16 @@ export async function getFormToInboxStats(opts: {
  * Keep this projection aligned with the client read model: broad intake or
  * profile fields would otherwise be serialized into the dashboard RSC payload.
  */
-export async function getRecentlyCompletedIntakes(opts: { limit?: number } = {}): Promise<RecentlyCompletedIntake[]> {
+export async function getRecentlyCompletedIntakes(opts: {
+  limit?: number
+  reviewerId: string
+}): Promise<RecentlyCompletedIntake[]> {
   const supabase = createServiceRoleClient()
   const limit = opts.limit || 8
   // AEST day boundary, not server-local/UTC — see startOfDayAEST for why.
   const todayStartISO = startOfDayAEST(new Date()).toISOString()
 
-  const { data, error } = await supabase
+  const query = supabase
     .from("intakes")
     .select(`
       id,
@@ -1288,8 +1291,11 @@ export async function getRecentlyCompletedIntakes(opts: { limit?: number } = {})
     `)
     .in("status", ["approved", "declined", "completed"])
     .gte("reviewed_at", todayStartISO)
+    .eq("reviewed_by", opts.reviewerId)
     .order("reviewed_at", { ascending: false })
     .limit(limit)
+
+  const { data, error } = await query
 
   if (error) {
     logger.error("Failed to fetch recently completed intakes", { error: error.message })

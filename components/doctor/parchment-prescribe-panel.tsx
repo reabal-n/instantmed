@@ -23,6 +23,7 @@ type ParchmentPrescribePanelProps = {
   patientProfileHref?: string
   prescriptionContext?: ParchmentPrescriptionContext | null
   onIntakeRefresh?: ReloadReviewData
+  onClose?: () => void
   onScriptSent?: () => void
   onPrescriptionsRefresh?: () => void
   prescriptionsRefreshPending?: boolean
@@ -108,6 +109,7 @@ export function ParchmentPrescribePanel({
   patientProfileHref,
   prescriptionContext,
   onIntakeRefresh,
+  onClose,
   onScriptSent,
   onPrescriptionsRefresh,
   prescriptionsRefreshPending = false,
@@ -135,8 +137,9 @@ export function ParchmentPrescribePanel({
     if (patientId && iframeLoaded && onPrescriptionsRefresh) {
       onPrescriptionsRefresh()
     }
-    closePanel()
-  }, [closePanel, iframeLoaded, intakeId, onIntakeRefresh, onPrescriptionsRefresh, patientId])
+    if (onClose) onClose()
+    else closePanel()
+  }, [closePanel, iframeLoaded, intakeId, onClose, onIntakeRefresh, onPrescriptionsRefresh, patientId])
 
   const loadFreshParchmentUrl = useCallback(async (): Promise<{ success: boolean; error?: string; ssoUrl?: string }> => {
     if (intakeId) return getParchmentPrescribeUrlAction(intakeId)
@@ -272,26 +275,53 @@ export function ParchmentPrescribePanel({
         initial={prefersReducedMotion ? {} : "hidden"}
         animate="visible"
         exit={prefersReducedMotion ? { opacity: 0 } : "exit"}
-        className="absolute top-0 right-0 h-full bg-background shadow-2xl shadow-primary/[0.12] flex flex-col"
-        style={{ width: "800px", maxWidth: "100vw" }}
+        className="absolute inset-0 flex h-[100dvh] w-full flex-col bg-background shadow-2xl shadow-primary/[0.12] sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[min(800px,100vw)]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="parchment-sheet-title"
       >
         {/* Header */}
-        <div className="shrink-0 px-6 py-4 border-b border-border">
-          <div className="flex items-start justify-between">
+        <div className="shrink-0 border-b border-border px-3 py-3 sm:px-6 sm:py-4">
+          <div className="flex items-start justify-between gap-2 sm:gap-4">
             <div className="flex-1 min-w-0">
-              <h2 id="parchment-sheet-title" className="text-lg font-semibold text-foreground">
+              <h2 id="parchment-sheet-title" className="truncate text-base font-semibold text-foreground sm:text-lg">
                 Prescribe for {patientName}
               </h2>
-              <p className="text-sm text-muted-foreground mt-0.5">
+              <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
                 {intakeId
                   ? "Write the prescription in Parchment below. Closing this panel checks for confirmation and unlocks Complete request when it is recorded."
                   : "Write the prescription in Parchment below. It will sync back to this patient profile."}
               </p>
               {prescriptionContext && (
-                <div className="mt-3 rounded-md border border-border bg-muted/35 px-3 py-2">
+                <details className="mt-2 rounded-md border border-border bg-muted/35 px-3 py-2 sm:hidden">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-foreground">
+                    <span className="block truncate">
+                      {prescriptionContext.medicationLabel || prescriptionContext.presetLabel}
+                    </span>
+                    <span className="text-[11px] font-normal text-muted-foreground">Medicine context</span>
+                  </summary>
+                  <div className="mt-2 space-y-2 border-t border-border/60 pt-2 text-xs text-muted-foreground">
+                    {prescriptionContext.searchHint ? (
+                      <p>Search in Parchment: {prescriptionContext.searchHint}</p>
+                    ) : null}
+                    <p>Directions context: {prescriptionContext.directionsTemplate}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {prescriptionContext.searchHint ? (
+                        <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={copyPrescriptionSearchHint}>
+                          <Clipboard className="mr-1.5 h-3.5 w-3.5" /> Copy search
+                        </Button>
+                      ) : null}
+                      {prescriptionContext.copyText ? (
+                        <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={copyPrescriptionContext}>
+                          <Clipboard className="mr-1.5 h-3.5 w-3.5" /> Copy context
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+                </details>
+              )}
+              {prescriptionContext && (
+                <div className="mt-3 hidden rounded-md border border-border bg-muted/35 px-3 py-2 sm:block">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="min-w-0">
                       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -334,7 +364,7 @@ export function ParchmentPrescribePanel({
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2 ml-4">
+            <div className="flex shrink-0 items-center gap-1 sm:gap-2">
               {sessionRefreshing && !error && (
                 <span
                   className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800"
@@ -348,16 +378,17 @@ export function ParchmentPrescribePanel({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-xs text-muted-foreground"
+                  className="h-11 w-11 px-0 text-xs text-muted-foreground sm:h-9 sm:w-auto sm:px-3"
                   onClick={openInNewTab}
+                  aria-label="Open Parchment in a new tab"
                 >
-                  <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-                  Open in new tab
+                  <ExternalLink className="h-4 w-4 sm:mr-1.5 sm:h-3.5 sm:w-3.5" />
+                  <span className="hidden sm:inline">Open in new tab</span>
                 </Button>
               )}
               <button
                 onClick={closeAndRefresh}
-                className="p-2 rounded-full hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                className="flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 aria-label="Close panel"
                 type="button"
               >
@@ -491,8 +522,8 @@ export function ParchmentPrescribePanel({
         </div>
 
         {/* Footer - manual fallback */}
-        <div className="shrink-0 px-6 py-3 border-t border-border/50 bg-muted/30">
-          <div className="flex items-center justify-between">
+        <div className="shrink-0 border-t border-border/50 bg-muted/30 px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <CheckCircle className="h-3.5 w-3.5" />
               <span>
@@ -505,7 +536,7 @@ export function ParchmentPrescribePanel({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-xs text-muted-foreground hover:text-foreground"
+                className="min-h-11 self-start text-xs text-muted-foreground hover:text-foreground sm:min-h-9 sm:self-auto"
                 onClick={onScriptSent}
                 title="Use when the script was sent through a different channel and Parchment won't notify us"
               >
@@ -516,7 +547,7 @@ export function ParchmentPrescribePanel({
               <Button
                 variant="outline"
                 size="sm"
-                className="text-xs"
+                className="min-h-11 self-start text-xs sm:min-h-9 sm:self-auto"
                 disabled={prescriptionsRefreshPending}
                 onClick={onPrescriptionsRefresh}
               >

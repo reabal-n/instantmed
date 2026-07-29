@@ -142,14 +142,10 @@ function buildCaughtUpSummary({
   recentlyCompleted: RecentlyCompletedIntake[]
   now: Date
 }): string {
-  // Reviewed today = today's reviewed_at OR completed_at, AEST-naive (uses
-  // local TZ which on Vercel/Node is UTC; "today" here is whatever bucket the
-  // server thinks it is. We're displaying the count, not gating clinical work.
-  const todayKey = now.toISOString().slice(0, 10)
-  const reviewedToday = recentlyCompleted.filter((r) => {
-    const stamp = r.reviewed_at ?? r.completed_at ?? null
-    return typeof stamp === "string" && stamp.slice(0, 10) === todayKey
-  }).length
+  // The server query already scopes this actor's rows to today's AEST
+  // boundary. Re-bucketing ISO timestamps in the browser would turn that back
+  // into a UTC-day count and drop early-morning Australian reviews.
+  const reviewedToday = recentlyCompleted.length
 
   const lastCleared = recentlyCompleted
     .map((r) => r.reviewed_at ?? r.completed_at ?? null)
@@ -1110,7 +1106,7 @@ export function QueueClient({
         />
       </div>
 
-      {compactShell && isDesktop ? (
+      {compactShell && isDesktop && filteredIntakes.length > 0 ? (
         <OperatorSplitPane
           mode={expandedId ? "reviewing" : "idle"}
           className={cn(
@@ -1201,29 +1197,36 @@ export function QueueClient({
           )}
         />
       ) : (
-        <QueueTable
-          filteredIntakes={filteredIntakes}
-          expandedId={expandedId}
-          openIntakeId={openIntakeId}
-          doctorId={doctorId}
-          lastOpenedIntakeId={lastOpenedIntakeId}
-          onRememberOpenedCase={rememberOpenedCase}
-          isPending={dialogs.isPending || isApprovePending}
-          identityComplete={identityComplete}
-          onApprove={handleApprove}
-          hasRedFlags={hasRedFlags}
-          calculateWaitTime={calculateStableWaitTime}
-          getWaitTimeSeverity={getStableWaitTimeSeverity}
-          openReviewPanel={openReviewPanel}
-          onPrimeReviewPanelCode={primeReviewPanelCode}
-          dialogs={dialogs}
-          recentlyCompleted={recentlyCompleted}
-          pagination={pagination}
-          baseHref={baseHref}
-          emptyState={queueEmptyState}
-          compactShell={compactShell}
-          searchQuery={debouncedSearch}
-        />
+        <div className={cn(
+          compactShell && "flex min-h-0 flex-1 flex-col gap-2",
+        )} data-compact-caught-up={compactShell && filteredIntakes.length === 0 ? "true" : undefined}>
+          <QueueTable
+            filteredIntakes={filteredIntakes}
+            expandedId={expandedId}
+            openIntakeId={openIntakeId}
+            doctorId={doctorId}
+            lastOpenedIntakeId={lastOpenedIntakeId}
+            onRememberOpenedCase={rememberOpenedCase}
+            isPending={dialogs.isPending || isApprovePending}
+            identityComplete={identityComplete}
+            onApprove={handleApprove}
+            hasRedFlags={hasRedFlags}
+            calculateWaitTime={calculateStableWaitTime}
+            getWaitTimeSeverity={getStableWaitTimeSeverity}
+            openReviewPanel={openReviewPanel}
+            onPrimeReviewPanelCode={primeReviewPanelCode}
+            dialogs={dialogs}
+            recentlyCompleted={recentlyCompleted}
+            pagination={pagination}
+            baseHref={baseHref}
+            emptyState={queueEmptyState}
+            compactShell={compactShell}
+            searchQuery={debouncedSearch}
+          />
+          {compactShell && filteredIntakes.length === 0 ? (
+            <ApprovedTodayList intakes={recentlyCompleted} className="max-h-[min(360px,45vh)]" />
+          ) : null}
+        </div>
       )}
 
     </div>

@@ -15,7 +15,6 @@ import {
   TestDataBanner,
   TestDataToggleButton,
 } from "@/components/operator/test-data-banner"
-import { PanelProvider } from "@/components/panels/panel-provider"
 import { requireRole } from "@/lib/auth/helpers"
 import {
   doctorHasCapability,
@@ -116,7 +115,7 @@ export default async function StaffDashboardPage({
     canReviewMedicalCertificates
       ? getPendingBatchReviews({ limit: 20 })
       : Promise.resolve({ data: [], total: 0, oldestApprovedAt: null, degraded: false }),
-    isAdmin ? getRecentlyCompletedIntakes({ limit: 50 }) : Promise.resolve([]),
+    getRecentlyCompletedIntakes({ limit: 50, reviewerId: profile.id }),
     getDoctorIdentity(profile.id),
     getFormToInboxStats(),
     import("@/app/actions/doctor-availability").then((m) => m.getDoctorAvailabilityAction()),
@@ -171,7 +170,6 @@ export default async function StaffDashboardPage({
   })
 
   return (
-    <PanelProvider>
       <OperatorPage>
         <OperatorPageHeader
           title="Dashboard"
@@ -260,6 +258,5 @@ export default async function StaffDashboardPage({
           </section>
         </OperatorScrollArea>
       </OperatorPage>
-    </PanelProvider>
   )
 }

@@ -429,7 +429,7 @@ export function IntakeActionButtons({
             asChild
             variant="outline"
             size="sm"
-            className="shrink-0 border-warning-border bg-background text-warning hover:bg-background/80"
+            className="min-h-11 shrink-0 border-warning-border bg-background text-warning hover:bg-background/80 sm:min-h-0"
           >
             <Link
               href={buildStaffPatientHref(intake.patient.id)}
@@ -472,7 +472,7 @@ export function IntakeActionButtons({
             <Button
               onClick={handleMedCertApprove}
               aria-label={reviewPacket.workflow.completionLabel}
-              className="h-7 bg-[#2563EB] px-2.5 text-xs text-white transition-colors hover:bg-[#1D4ED8]"
+              className="min-h-11 bg-[#2563EB] px-3 text-sm text-white transition-colors hover:bg-[#1D4ED8] sm:h-7 sm:min-h-0 sm:px-2.5 sm:text-xs"
               disabled={isActionDisabled || isLoadingPreview || Boolean(approveDisabledReason)}
               title={approveDisabledReason || undefined}
               size="sm"
@@ -489,7 +489,7 @@ export function IntakeActionButtons({
               <Button
                 onClick={onRequestClinicalDetail}
                 variant="outline"
-                className="h-7 border-border/70 bg-background px-2.5 text-xs text-foreground hover:bg-muted/40"
+                className="min-h-11 border-border/70 bg-background px-3 text-sm text-foreground hover:bg-muted/40 sm:h-7 sm:min-h-0 sm:px-2.5 sm:text-xs"
                 disabled={isActionDisabled || isRequestingClinicalDetail || !onRequestClinicalDetail}
                 title="Ask the patient to describe symptoms before issuing a certificate."
                 size="sm"
@@ -510,7 +510,7 @@ export function IntakeActionButtons({
           {canPrescribeInParchment && intake.script_sent !== true ? (
             <Button
               onClick={handlePrescribeClick}
-              className="h-7 px-2.5 text-xs bg-blue-600 hover:bg-blue-700"
+              className="min-h-11 bg-blue-600 px-3 text-sm hover:bg-blue-700 sm:h-7 sm:min-h-0 sm:px-2.5 sm:text-xs"
               disabled={isActionDisabled || hasPrescribingIdentityBlocker || packetBlocker.blocked}
               title={packetBlocker.message ?? prescribingIdentityTitle}
               size="sm"
@@ -527,7 +527,7 @@ export function IntakeActionButtons({
           ) : null}
           <Button
             onClick={handleApprovePrescribedScript}
-            className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
+            className="min-h-11 bg-primary px-3 text-sm hover:bg-primary/90 sm:h-7 sm:min-h-0 sm:px-2.5 sm:text-xs"
             disabled={isActionDisabled || Boolean(completionDisabledReason)}
             title={completionDisabledReason ?? approveAfterPrescribeTitle}
             aria-describedby={prescribingApproveHint ? "queue-prescribing-approve-hint" : undefined}
@@ -552,7 +552,7 @@ export function IntakeActionButtons({
       {canShowConsultCompletion && !isPrescribingWorkflow && (
         <Button
           onClick={() => handleStatusChange("approved")}
-          className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
+          className="min-h-11 bg-primary px-3 text-sm hover:bg-primary/90 sm:h-7 sm:min-h-0 sm:px-2.5 sm:text-xs"
           disabled={isActionDisabled || Boolean(completionDisabledReason)}
           title={completionDisabledReason || undefined}
           size="sm"
@@ -567,7 +567,7 @@ export function IntakeActionButtons({
         intake.status === "paid" && (
             <Button
               onClick={() => handleStatusChange("approved")}
-              className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
+              className="min-h-11 bg-primary px-3 text-sm hover:bg-primary/90 sm:h-7 sm:min-h-0 sm:px-2.5 sm:text-xs"
               disabled={isActionDisabled || Boolean(approveDisabledReason)}
               title={approveDisabledReason || undefined}
               size="sm"
@@ -587,7 +587,7 @@ export function IntakeActionButtons({
           <Button
             variant="ghost"
             onClick={() => setShowDeclineDialog(true)}
-            className="h-7 bg-transparent px-2 text-[11px] font-semibold text-destructive/85 shadow-none transition-colors hover:bg-destructive/5 hover:text-destructive focus-visible:text-destructive"
+            className="min-h-11 bg-transparent px-3 text-sm font-semibold text-destructive/85 shadow-none transition-colors hover:bg-destructive/5 hover:text-destructive focus-visible:text-destructive sm:h-7 sm:min-h-0 sm:px-2 sm:text-[11px]"
             disabled={isActionDisabled}
             size="sm"
             title={showRefundOnDecline ? "Shortcut: Cmd+Shift+D. Opens confirmation before refunding the patient." : "Shortcut: Cmd+Shift+D."}
@@ -745,7 +745,7 @@ function MarkSentManuallyButton({
               onClick={closeManualPanel}
               disabled={isPending}
               aria-label="Close"
-              className="shrink-0"
+              className="min-h-11 min-w-11 shrink-0 sm:min-h-0 sm:min-w-0"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -778,13 +778,18 @@ function MarkSentManuallyButton({
             Reference or channel is required.
           </p>
           <div className="flex flex-col-reverse gap-2 border-t border-border pt-3 sm:flex-row sm:justify-end">
-            <Button variant="outline" onClick={closeManualPanel} disabled={isPending}>
+            <Button
+              variant="outline"
+              onClick={closeManualPanel}
+              disabled={isPending}
+              className="min-h-11 sm:min-h-0"
+            >
               Cancel
             </Button>
             <Button
               onClick={handleConfirm}
               disabled={isPending}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="min-h-11 bg-blue-600 hover:bg-blue-700 sm:min-h-0"
             >
               {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Confirm sent
@@ -800,6 +805,7 @@ function MarkSentManuallyButton({
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         onClick={() => setManualPanelOpen(true)}
+        className="min-h-11 w-full sm:min-h-0 sm:w-auto"
       >
         <ClipboardCheck className="h-4 w-4 mr-1.5" />
         {open ? "Recording outside Parchment" : "Sent outside Parchment"}

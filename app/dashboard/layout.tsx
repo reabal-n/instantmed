@@ -2,10 +2,12 @@ import "../staff.css"
 
 import type { Metadata } from "next"
 
+import { DoctorShell } from "@/app/doctor/doctor-shell"
 import { OperatorShell } from "@/components/operator/operator-shell"
 import { requireRole } from "@/lib/auth/helpers"
 import {
   getStaffDisplayRole,
+  hasAdminAccess,
   hasDoctorAccess,
   hasSupportAccess,
 } from "@/lib/auth/staff-capabilities"
@@ -38,6 +40,7 @@ export default async function DashboardLayout({
   const authUser = await requireRole(["admin", "doctor", "support"])
 
   const navSections = getStaffNav(authUser.profile)
+  const hasClinicalAccess = hasDoctorAccess(authUser.profile)
   const staffRoleLabel = getStaffDisplayRole(authUser.profile)
   const brandLabel = hasDoctorAccess(authUser.profile)
     ? "Doctor console"
@@ -53,8 +56,15 @@ export default async function DashboardLayout({
       navCounts={navCounts}
       navSections={navSections}
       brandLabel={brandLabel}
+      hideMobileHamburger={hasClinicalAccess}
+      mainClassName={hasClinicalAccess
+        ? "py-5 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:border-l lg:border-border/40 lg:py-5 lg:pb-5"
+        : undefined}
+      contentMaxWidth="wide"
     >
-      {children}
+      {hasClinicalAccess ? (
+        <DoctorShell isAdmin={hasAdminAccess(authUser.profile)}>{children}</DoctorShell>
+      ) : children}
     </OperatorShell>
   )
 }

@@ -232,6 +232,9 @@ describe("doctor queue production contract", () => {
     expect(queueClientSource).toContain("Next up")
     expect(queueClientSource).not.toContain("No cases finished yet. First one's queued.")
     expect(queueClientSource).not.toContain("You're ${targetUsedPercent}% into the 2h target.")
+    expect(queueClientSource).toContain("compactShell && isDesktop && filteredIntakes.length > 0")
+    expect(queueClientSource).toContain("data-compact-caught-up")
+    expect(queueClientSource).toContain("compactShell && filteredIntakes.length === 0")
 
     expect(queueTableSource).toContain("data-queue-taxonomy-chip")
     expect(queueTableSource).toContain("data-queue-action-chip")

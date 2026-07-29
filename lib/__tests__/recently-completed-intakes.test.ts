@@ -23,6 +23,10 @@ function createHarness(data: Array<Record<string, unknown>>) {
       calls.push(["gte", ...args])
       return chain
     }),
+    eq: vi.fn((...args: unknown[]) => {
+      calls.push(["eq", ...args])
+      return chain
+    }),
     order: vi.fn((...args: unknown[]) => {
       calls.push(["order", ...args])
       return chain
@@ -70,7 +74,7 @@ describe("getRecentlyCompletedIntakes", () => {
 
     const { getRecentlyCompletedIntakes } = await import("@/lib/data/intakes/queries")
 
-    await expect(getRecentlyCompletedIntakes({ limit: 50 })).resolves.toEqual([row])
+    await expect(getRecentlyCompletedIntakes({ limit: 50, reviewerId: "doctor-1" })).resolves.toEqual([row])
 
     const selectCall = harness.calls.find(([method]) => method === "select")
     expect(normalizeProjection(selectCall?.[1])).toBe(
@@ -79,6 +83,7 @@ describe("getRecentlyCompletedIntakes", () => {
     expect(harness.calls).toEqual(expect.arrayContaining([
       ["in", "status", ["approved", "declined", "completed"]],
       ["gte", "reviewed_at", expect.any(String)],
+      ["eq", "reviewed_by", "doctor-1"],
       ["order", "reviewed_at", { ascending: false }],
       ["limit", 50],
     ]))
@@ -97,7 +102,7 @@ describe("getRecentlyCompletedIntakes", () => {
     mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
 
     const { getRecentlyCompletedIntakes } = await import("@/lib/data/intakes/queries")
-    await getRecentlyCompletedIntakes({ limit: 8 })
+    await getRecentlyCompletedIntakes({ limit: 8, reviewerId: "doctor-1" })
 
     const gteCall = harness.calls.find(([method]) => method === "gte")
     expect(gteCall?.[2]).toBe("2026-07-21T14:00:00.000Z")

@@ -83,4 +83,21 @@ describe("doctor dashboard minimalism contract", () => {
     expect(source).toContain("SystemHealthPill")
     expect(source).toContain("DoctorAvailabilityToggle")
   })
+
+  it("scopes today's completed work to the signed-in clinician for every clinical role", () => {
+    const source = read("app/dashboard/page.tsx")
+    expect(source).toContain("getRecentlyCompletedIntakes({ limit: 50, reviewerId: profile.id })")
+    expect(source).not.toContain("isAdmin ? getRecentlyCompletedIntakes")
+  })
+
+  it("keeps the canonical dashboard inside the clinical panel and mobile-nav shell", () => {
+    const layout = read("app/dashboard/layout.tsx")
+    const page = read("app/dashboard/page.tsx")
+
+    expect(layout).toContain("DoctorShell")
+    expect(layout).toContain("hideMobileHamburger={hasClinicalAccess}")
+    expect(layout).toContain("pb-[calc(7rem+env(safe-area-inset-bottom))]")
+    expect(layout).toContain("isAdmin={hasAdminAccess(authUser.profile)}")
+    expect(page).not.toContain("PanelProvider")
+  })
 })
