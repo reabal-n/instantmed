@@ -33,6 +33,7 @@ import {
   getQueueStatusesForFilter,
   QUEUE_REVIEW_STATUSES,
   type QueueStatusCounts,
+  resolveQueueStatusCounts,
 } from "@/lib/doctor/queue-utils"
 import { detectRenewalsForIntakes, type IntakeRenewalProbe } from "@/lib/doctor/renewal-detection"
 import { toError } from "@/lib/errors"
@@ -376,12 +377,7 @@ export async function getDoctorQueue(
       const { count, error } = await query
       return { filter, count: count ?? 0, error }
     }),
-  ).then((results): QueueStatusCounts | null => {
-    if (results.some((result) => result.error)) return null
-    return Object.fromEntries(
-      results.map((result) => [result.filter, result.count]),
-    ) as unknown as QueueStatusCounts
-  })
+  ).then(resolveQueueStatusCounts)
 
   let oldestQuery = filterSeededE2EIntakes(supabase
     .from("intakes")

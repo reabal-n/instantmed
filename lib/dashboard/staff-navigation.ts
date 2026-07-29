@@ -107,16 +107,11 @@ export const doctorNavSections: StaffNavSection[] = [
   },
 ]
 
-// Admin-only routes in the doctor mobile shell's "More" sheet. Admins keep the
-// clinical Queue and Patients tabs as their primary mobile workflow, but the
-// hidden desktop sidebar must not strand the rest of their canonical routes.
-// Do not add Dashboard or Patients here: those would duplicate the primary
-// tabs and create two active entries for the same task.
+// Admin-only extra in the doctor mobile shell's "More" sheet. The canonical
+// role-aware mobile drawer owns the full admin navigation; this list stays a
+// task-specific clinical shortcut instead of becoming a second admin registry.
 export const doctorOperatorNavItems: StaffNavItem[] = [
-  { href: STAFF_LEDGER_HREF, label: "Ledger", icon: "intakeLedger" },
-  { href: STAFF_ANALYTICS_HREF, label: "Business", icon: "analytics" },
   { href: STAFF_OPS_HREF, label: "Operations", icon: "shield" },
-  { href: STAFF_SETTINGS_HREF, label: "Setup", icon: "settings" },
 ]
 
 // ── Canonical role-aware nav ────────────────────────────────────────────────

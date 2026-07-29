@@ -35,6 +35,10 @@ const queueTableSource = readFileSync(
   join(process.cwd(), "app/doctor/queue/queue-table.tsx"),
   "utf8",
 )
+const queueEmptyStateSource = readFileSync(
+  join(process.cwd(), "lib/doctor/queue-empty-state.ts"),
+  "utf8",
+)
 const queueFocusSource = readFileSync(
   join(process.cwd(), "lib/doctor/queue-focus.ts"),
   "utf8",
@@ -203,8 +207,27 @@ describe("doctor queue production contract", () => {
     expect(queueClientSource).not.toContain("window.history.replaceState")
   })
 
+  it("keeps global queue pressure counts scoped and fail-closed", () => {
+    const countsStart = queriesSource.indexOf("const statusCountsPromise")
+    const countsEnd = queriesSource.indexOf("let oldestQuery", countsStart)
+    const countsBlock = queriesSource.slice(countsStart, countsEnd)
+
+    expect(countsStart).toBeGreaterThan(-1)
+    expect(countsEnd).toBeGreaterThan(countsStart)
+    expect(countsBlock).toContain('["all", "review", "pending_info", "scripts"]')
+    expect(countsBlock).toContain("getQueueStatusesForFilter(filter)")
+    expect(countsBlock).toContain("if (scope.serviceFilter) query = query.or(scope.serviceFilter)")
+    expect(countsBlock).toContain("if (onlySeeded) query = query.eq")
+    expect(countsBlock).toContain("then(resolveQueueStatusCounts)")
+    expect(countsBlock).not.toContain("activeStatuses")
+  })
+
   it("does not advertise page-local patient search in the compact dashboard queue", () => {
-    expect(queueFiltersSource).toContain("const showSearch = !compactShell")
+    const showSearchLine = queueFiltersSource
+      .split("\n")
+      .find((line) => line.includes("const showSearch ="))
+
+    expect(showSearchLine?.trim()).toBe("const showSearch = !compactShell")
   })
 
   it("keeps primary mobile queue controls at least 44px tall", () => {
@@ -234,9 +257,11 @@ describe("doctor queue production contract", () => {
   it("explains why an embedded staff queue is empty instead of showing a generic success state", () => {
     expect(queueTypesSource).toContain("doctorAvailable?: boolean")
     expect(queueClientSource).toContain("buildQueueEmptyState")
-    expect(queueClientSource).toContain("Availability is paused")
-    expect(queueClientSource).toContain("No matches for this filter")
-    expect(queueClientSource).toContain("No review cases right now")
+    expect(queueEmptyStateSource).toContain("Queue data unavailable")
+    expect(queueEmptyStateSource).toContain("This queue page is empty")
+    expect(queueEmptyStateSource).toContain("Availability is paused")
+    expect(queueEmptyStateSource).toContain("No matches for this filter")
+    expect(queueEmptyStateSource).toContain("No review cases right now")
     expect(queueClientSource).toContain("doctorAvailable = true")
     expect(queueTableSource).toContain("emptyState")
     expect(queueTableSource).toContain("emptyState.actionHref")

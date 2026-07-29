@@ -14,11 +14,14 @@ import {
   parseQueueStatusFilter,
   type QueueStatusFilter,
   STAFF_DASHBOARD_HREF,
-  STAFF_IDENTITY_HREF,
 } from "@/lib/dashboard/routes"
+import {
+  buildQueueEmptyState,
+  getQueueCompletionOutcome,
+} from "@/lib/doctor/queue-empty-state"
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
 import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
-import { buildReviewHistorySummary, calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
+import { calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
 import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
 import { isPrescribingConsultSubtype, SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
@@ -45,20 +48,6 @@ import { useQueueDialogs } from "./use-queue-dialogs"
 // for the whole session — pure jank. 15s keeps the label sane without the
 // per-second re-render storm.
 const QUEUE_VISIBLE_WAIT_SECONDS_CADENCE = 15
-
-interface QueueEmptyState {
-  title: string
-  description: string
-  tone: "success" | "warning" | "neutral"
-  actionHref?: string
-  actionLabel?: string
-  /**
-   * Optional one-line stat summary rendered inside the calm "All caught up."
-   * card when the queue is genuinely empty (success tone, no filters narrowing
-   * the view). Composed in `buildQueueEmptyState` from `recentlyCompleted`.
-   */
-  summary?: string | null
-}
 
 interface LazyIntakeReviewPanelProps {
   intakeId: string
@@ -134,91 +123,6 @@ const ApprovedTodayList = dynamic<{
 }>(() => import("@/components/doctor/approved-today-list").then((mod) => mod.ApprovedTodayList), {
   loading: () => null,
 })
-
-function buildQueueEmptyState({
-  doctorAvailable,
-  totalCount,
-  statusFilter,
-  searchQuery,
-  baseHref,
-  recentlyCompleted,
-  governanceReceipt,
-  recentlyCompletedDegraded,
-  recentlyCompletedTruncated,
-  now,
-}: {
-  doctorAvailable: boolean
-  totalCount: number
-  statusFilter: QueueStatusFilter
-  searchQuery: string
-  baseHref: string
-  recentlyCompleted: RecentlyCompletedIntake[]
-  governanceReceipt: GovernanceReviewReceipt | null
-  recentlyCompletedDegraded: boolean
-  recentlyCompletedTruncated: boolean
-  now: Date
-}): QueueEmptyState {
-  if (!doctorAvailable && totalCount === 0) {
-    return {
-      title: "Availability is paused",
-      description: "Your queue can look empty while review availability is off. Turn availability back on before relying on this view.",
-      tone: "warning",
-      actionHref: STAFF_IDENTITY_HREF,
-      actionLabel: "Open availability",
-    }
-  }
-
-  if (searchQuery.trim() || statusFilter !== "all") {
-    if (statusFilter === "scripts" && !searchQuery.trim()) {
-      return {
-        title: "No scripts to write",
-        description: "No scripts waiting right now.",
-        tone: "neutral",
-        actionHref: baseHref,
-        actionLabel: "Open full queue",
-      }
-    }
-
-    if (statusFilter === "pending_info" && !searchQuery.trim()) {
-      return {
-        title: "No patient replies",
-        description: "No patient replies waiting right now.",
-        tone: "neutral",
-        actionHref: baseHref,
-        actionLabel: "Open full queue",
-      }
-    }
-
-    return {
-      title: "No matches for this filter",
-      description: "Cases may still exist in another status or outside the current search. Clear filters to see the whole queue.",
-      tone: "neutral",
-      actionHref: baseHref,
-      actionLabel: "Clear filters",
-    }
-  }
-
-  if (recentlyCompletedDegraded) {
-    return {
-      title: "Review history unavailable",
-      description: "The queue is empty, but today's review history could not be loaded. Refresh before relying on this view.",
-      tone: "warning",
-      summary: null,
-    }
-  }
-
-  return {
-    title: "No review cases right now",
-    description: "Paid clinical work, pending replies, and scripts will appear here automatically.",
-    tone: "success",
-    summary: buildReviewHistorySummary({
-      reviews: recentlyCompleted,
-      truncated: recentlyCompletedTruncated,
-      governanceReceipt,
-      now,
-    }),
-  }
-}
 
 function QueueIdlePanel({
   filteredCount,
@@ -572,23 +476,25 @@ export function QueueClient({
       }
 
       const { nextIntake } = removeCompletedIntakeFromQueue(filteredIntakesRef.current, intakeId)
+      const completion = getQueueCompletionOutcome({
+        hasNextVisibleCase: Boolean(nextIntake),
+        totalBeforeAction: pagination?.total ?? intakes.length,
+      })
       setIntakes((prev) => removeCompletedIntakeFromQueue(prev, intakeId).remaining)
       // The row is already gone optimistically and realtime will reconcile the
-      // server state, so use the THROTTLED refresh (not force) here. Forcing a
-      // full server re-render on every approve made clearing several cases in a
-      // row fire a render storm — the visible "flashes several times" on approve.
-      // The 5s throttle coalesces rapid approvals into a single background sync.
-      refreshQueue()
+      // server state, so ordinary advances use the throttled refresh. If the
+      // visible page is exhausted while the authoritative total says cases
+      // remain, force reconciliation rather than claiming the queue is clear.
+      refreshQueue(completion.forceRefresh)
       if (nextIntake) {
         rememberOpenedCase(nextIntake.id)
         setExpandedId(nextIntake.id)
-        toast.success("Case done. Opening next.")
       } else {
         setExpandedId(null)
-        toast.success("Case done. Queue clear.")
       }
+      toast.success(completion.message)
     },
-    [refreshQueue, rememberOpenedCase],
+    [intakes.length, pagination?.total, refreshQueue, rememberOpenedCase],
   )
 
   const handleBatchReviewResolved = useCallback((intakeId: string) => {
@@ -840,7 +746,8 @@ export function QueueClient({
 
   const queueEmptyState = useMemo(() => buildQueueEmptyState({
     doctorAvailable,
-    totalCount: intakes.length,
+    queueDegraded,
+    totalCount: pagination?.total ?? intakes.length,
     statusFilter,
     searchQuery: debouncedSearch,
     baseHref,
@@ -854,6 +761,8 @@ export function QueueClient({
     debouncedSearch,
     doctorAvailable,
     intakes.length,
+    pagination?.total,
+    queueDegraded,
     statusFilter,
     recentlyCompleted,
     governanceReceipt,
@@ -1203,7 +1112,11 @@ export function QueueClient({
       ) : (
         <div className={cn(
           compactShell && "flex min-h-0 flex-1 flex-col gap-2",
-        )} data-compact-caught-up={compactShell && filteredIntakes.length === 0 ? "true" : undefined}>
+        )} data-compact-caught-up={
+          compactShell && filteredIntakes.length === 0 && queueEmptyState.tone === "success"
+            ? "true"
+            : undefined
+        }>
           <QueueTable
             filteredIntakes={filteredIntakes}
             expandedId={expandedId}

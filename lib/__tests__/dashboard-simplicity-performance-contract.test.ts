@@ -269,9 +269,8 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(queueFiltersSource).not.toContain("border-border/70 bg-muted/30 text-muted-foreground")
     expect(queueFiltersSource).not.toContain("Finish or close the current case before opening the next one.")
     expect(queueFiltersSource).toContain("data-open-next-case")
-    expect(queueFiltersSource).toContain(
-      "const showSearch = !compactShell || (statusCounts?.all ?? 0) > 5 || hasActiveSearch"
-    )
+    expect(queueFiltersSource).toContain("const showSearch = !compactShell")
+    expect(queueFiltersSource).not.toContain("(statusCounts?.all ?? 0) > 5")
     expect(read("lib/doctor/queue-utils.ts")).toContain("getQueueClockTickDelayMs")
   })
 

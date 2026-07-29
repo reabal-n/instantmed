@@ -11,6 +11,7 @@ import {
   getWaitTimeSeverity,
   isHydratedQueueRealtimeInsert,
   QUEUE_REVIEW_STATUSES,
+  resolveQueueStatusCounts,
 } from "@/lib/doctor/queue-utils"
 
 describe("getQueueStatusesForFilter", () => {
@@ -24,6 +25,26 @@ describe("getQueueStatusesForFilter", () => {
     expect(getQueueStatusesForFilter("review")).toEqual(["paid", "in_review"])
     expect(getQueueStatusesForFilter("pending_info")).toEqual(["pending_info"])
     expect(getQueueStatusesForFilter("scripts")).toEqual(["awaiting_script"])
+  })
+})
+
+describe("resolveQueueStatusCounts", () => {
+  it("returns the global lane totals when every exact count succeeds", () => {
+    expect(resolveQueueStatusCounts([
+      { filter: "all", count: 9, error: null },
+      { filter: "review", count: 4, error: null },
+      { filter: "pending_info", count: 2, error: null },
+      { filter: "scripts", count: 3, error: null },
+    ])).toEqual({ all: 9, review: 4, pending_info: 2, scripts: 3 })
+  })
+
+  it("fails closed when any lane count is unavailable", () => {
+    expect(resolveQueueStatusCounts([
+      { filter: "all", count: 9, error: null },
+      { filter: "review", count: 0, error: { message: "timeout" } },
+      { filter: "pending_info", count: 2, error: null },
+      { filter: "scripts", count: 3, error: null },
+    ])).toBeNull()
   })
 })
 

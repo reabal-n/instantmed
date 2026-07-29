@@ -38,6 +38,28 @@ export interface QueueStatusCounts {
   scripts: number
 }
 
+const QUEUE_STATUS_COUNT_FILTERS = ["all", "review", "pending_info", "scripts"] as const
+
+export function resolveQueueStatusCounts(
+  results: ReadonlyArray<{
+    filter: QueueStatusFilter
+    count: number
+    error: unknown
+  }>,
+): QueueStatusCounts | null {
+  if (results.some((result) => result.error)) return null
+
+  const counts = new Map(results.map((result) => [result.filter, result.count]))
+  if (QUEUE_STATUS_COUNT_FILTERS.some((filter) => !counts.has(filter))) return null
+
+  return {
+    all: counts.get("all") ?? 0,
+    review: counts.get("review") ?? 0,
+    pending_info: counts.get("pending_info") ?? 0,
+    scripts: counts.get("scripts") ?? 0,
+  }
+}
+
 export interface QueueTimestampInput {
   paid_at?: string | null
   submitted_at?: string | null

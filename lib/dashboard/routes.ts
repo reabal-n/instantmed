@@ -194,6 +194,25 @@ export function parseQueuePaginationParams(params: {
   }
 }
 
+export function getCanonicalQueuePage({
+  page,
+  pageSize,
+  total,
+  visibleCount,
+  degraded,
+}: {
+  page: number
+  pageSize: number
+  total: number
+  visibleCount: number
+  degraded: boolean
+}): number | null {
+  if (degraded || total <= 0 || visibleCount > 0) return null
+
+  const lastPage = Math.max(1, Math.ceil(total / pageSize))
+  return page > lastPage ? lastPage : null
+}
+
 /**
  * Canonical staff dashboard href builder (Phase 2 of dashboard remaster).
  */
@@ -201,6 +220,8 @@ export function buildStaffDashboardHref(options: {
   status?: string | string[] | QueueStatusFilter | null
   page?: string | string[] | number
   pageSize?: string | string[] | number
+  showTestData?: boolean
+  onlyTestData?: boolean
   anchor?: string
 } = {}): string {
   const params = new URLSearchParams()
@@ -211,6 +232,8 @@ export function buildStaffDashboardHref(options: {
   if (status !== "all") params.set("status", status)
   if (page) params.set("page", page)
   if (pageSize) params.set("pageSize", pageSize)
+  if (options.showTestData) params.set("showTestData", "1")
+  if (options.onlyTestData) params.set("onlyTestData", "1")
 
   const query = params.toString()
   const hash = options.anchor ? `#${options.anchor}` : ""

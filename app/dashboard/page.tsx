@@ -23,6 +23,8 @@ import {
   hasSupportAccess,
 } from "@/lib/auth/staff-capabilities"
 import {
+  buildStaffDashboardHref,
+  getCanonicalQueuePage,
   parseQueuePaginationParams,
   parseQueueStatusFilter,
   type QueueStatusFilter,
@@ -140,6 +142,23 @@ export default async function StaffDashboardPage({
         oldestWaitingEnteredAt: null,
         oldestWaitingIntakeId: null,
       }
+  const canonicalQueuePage = getCanonicalQueuePage({
+    page: queueResult.page,
+    pageSize: queueResult.pageSize,
+    total: queueResult.total,
+    visibleCount: queueResult.data.length,
+    degraded: Boolean(queueResult.degraded),
+  })
+  if (canonicalQueuePage !== null) {
+    redirect(buildStaffDashboardHref({
+      status: initialStatusFilter,
+      page: canonicalQueuePage,
+      pageSize: params.pageSize,
+      showTestData,
+      onlyTestData,
+      anchor: "doctor-queue",
+    }))
+  }
   const pendingBatchReviews = results[1].status === "fulfilled"
     ? results[1].value
     : { data: [], total: 0, oldestApprovedAt: null, degraded: true }

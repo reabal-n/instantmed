@@ -361,6 +361,27 @@ test.describe("Dashboard Audit - Link navigation", () => {
     tracker.assertNoErrors()
   })
 
+  test("mobile admin can open every canonical staff route", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 })
+    await page.goto(STAFF_TEST_ROUTES.dashboard)
+    await waitForPageLoad(page)
+
+    await page.getByRole("button", { name: "Open staff navigation" }).click()
+    const nav = page.getByRole("navigation", { name: "Staff navigation" })
+    await expect(nav).toBeVisible()
+
+    for (const href of [
+      STAFF_TEST_ROUTES.dashboard,
+      STAFF_TEST_ROUTES.adminIntakes,
+      STAFF_TEST_ROUTES.adminPatients,
+      STAFF_TEST_ROUTES.adminAnalytics,
+      STAFF_TEST_ROUTES.adminOps,
+      STAFF_TEST_ROUTES.adminSettings,
+    ]) {
+      await expect(nav.locator(`a[href="${href}"]`)).toBeVisible()
+    }
+  })
+
   test("doctor sidebar links navigate correctly", async ({ page }) => {
     await logoutTestUser(page)
     const result = await loginAsDoctor(page)
@@ -434,6 +455,19 @@ test.describe("Dashboard Audit - Link navigation", () => {
 
     await expect(page.getByRole("button", { name: /^Review/i })).toHaveAttribute("aria-pressed", "true")
     await expect(page.getByRole("button", { name: /^All/i })).toHaveAttribute("aria-pressed", "false")
+
+    tracker.assertNoErrors()
+  })
+
+  test("doctor dashboard canonicalises an out-of-range queue page", async ({ page }) => {
+    const tracker = createConsoleErrorTracker()
+    tracker.attach(page)
+
+    await page.goto(`${STAFF_TEST_ROUTES.dashboard}?page=999&showTestData=1&onlyTestData=1`)
+    await waitForPageLoad(page)
+
+    await expect(page).toHaveURL(/\/dashboard\?page=1&showTestData=1&onlyTestData=1(?:#doctor-queue)?$/)
+    await expect(page.getByText("All caught up.")).toHaveCount(0)
 
     tracker.assertNoErrors()
   })

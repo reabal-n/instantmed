@@ -87,7 +87,10 @@ export function QueueFilters({
   const pressureClass = pressureClasses[pressure.severity]
   const openOldest = onOpenOldest ?? onOpenSingleMatch
   const showNextCaseAction = compactShell && filteredCount > 1 && Boolean(openOldest) && !hasOpenCase
-  const showSearch = !compactShell || (statusCounts?.all ?? 0) > 5 || hasActiveSearch
+  // The canonical dashboard always uses the compact shell. Its database page
+  // is not an authoritative patient directory, so do not expose a page-local
+  // search that can report false zeroes. Cross-page lookup belongs to Ledger.
+  const showSearch = !compactShell
 
   // `/` key focuses the search input (standard queue shortcut)
   useEffect(() => {

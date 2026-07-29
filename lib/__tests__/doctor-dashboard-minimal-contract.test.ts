@@ -87,6 +87,7 @@ describe("doctor dashboard minimalism contract", () => {
   it("scopes today's completed work to the signed-in clinician for every clinical role", () => {
     const source = read("app/dashboard/page.tsx")
     const queueClient = read("app/doctor/queue/queue-client.tsx")
+    const queueEmptyState = read("lib/doctor/queue-empty-state.ts")
 
     expect(source).toContain("getRecentlyCompletedIntakes({ limit: 50, reviewerId: profile.id })")
     expect(source).not.toContain("isAdmin ? getRecentlyCompletedIntakes")
@@ -96,8 +97,8 @@ describe("doctor dashboard minimalism contract", () => {
     expect(queueClient).toContain("recentlyCompletedDegraded")
     expect(queueClient).toContain("recentlyCompletedTruncated")
     expect(queueClient).toContain("governanceReceipt")
-    expect(queueClient).toContain("Review history unavailable")
-    expect(queueClient).toContain("Refresh before relying on this view.")
+    expect(queueEmptyState).toContain("Review history unavailable")
+    expect(queueEmptyState).toContain("Refresh before relying on this view.")
   })
 
   it("uses actor-scoped review wording on both dashboard history layouts", () => {
@@ -119,9 +120,10 @@ describe("doctor dashboard minimalism contract", () => {
     const page = read("app/dashboard/page.tsx")
 
     expect(layout).toContain("DoctorShell")
-    expect(layout).toContain("hideMobileHamburger={hasClinicalAccess}")
+    expect(layout).toContain("const isAdmin = hasAdminAccess(authUser.profile)")
+    expect(layout).toContain("hideMobileHamburger={hasClinicalAccess && !isAdmin}")
     expect(layout).toContain("pb-[calc(7rem+env(safe-area-inset-bottom))]")
-    expect(layout).toContain("isAdmin={hasAdminAccess(authUser.profile)}")
+    expect(layout).toContain("isAdmin={isAdmin}")
     expect(page).not.toContain("PanelProvider")
   })
 })

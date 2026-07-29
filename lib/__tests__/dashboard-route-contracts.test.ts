@@ -27,9 +27,11 @@ import {
   buildPatientMessagesHref,
   buildPatientSettingsHref,
   buildRequestServiceHref,
+  buildStaffDashboardHref,
   buildStaffEmailHubHref,
   buildStaffLedgerHref,
   buildStaffPatientHref,
+  getCanonicalQueuePage,
   parseQueuePaginationParams,
   parseQueueStatusFilter,
   PATIENT_DASHBOARD_HREF,
@@ -203,6 +205,41 @@ describe("dashboard route contracts", () => {
       page: 3,
       pageSize: 25,
     })
+  })
+
+  it("canonicalises only a confirmed out-of-range queue page", () => {
+    expect(getCanonicalQueuePage({
+      page: 999,
+      pageSize: 50,
+      total: 51,
+      visibleCount: 0,
+      degraded: false,
+    })).toBe(2)
+    expect(getCanonicalQueuePage({
+      page: 2,
+      pageSize: 50,
+      total: 51,
+      visibleCount: 1,
+      degraded: false,
+    })).toBeNull()
+    expect(getCanonicalQueuePage({
+      page: 999,
+      pageSize: 50,
+      total: 51,
+      visibleCount: 0,
+      degraded: true,
+    })).toBeNull()
+  })
+
+  it("preserves queue scope when rebuilding an out-of-range dashboard URL", () => {
+    expect(buildStaffDashboardHref({
+      status: "scripts",
+      page: 2,
+      pageSize: 25,
+      showTestData: true,
+      onlyTestData: true,
+      anchor: "doctor-queue",
+    })).toBe("/dashboard?status=scripts&page=2&pageSize=25&showTestData=1&onlyTestData=1#doctor-queue")
   })
 
   it("keeps the staff dashboard shell tolerant of optional data gaps", () => {
