@@ -6,7 +6,7 @@
 >
 > **Ranked item: UNRESOLVED, and this is a blocking governance gate.** ROADMAP rank 1 (truth and measurement gate) is the natural home — this is measurement-truth work — **but rank 1 is currently marked Complete (2026-07-12, follow-ups 2026-07-19)**, and a reference-only plan cannot reopen it. Rank 1's own checkpoint provides the mechanism: *"Re-open any closed sub-boundary when production evidence or an operator decision exposes drift."* **This specification therefore requests a rank-1 reopening as an operator decision, recorded in `docs/ROADMAP.md`.** Until that is recorded, this work has no ranked home and implementation cannot begin. A previous draft simply claimed rank 1, which was a canon mismatch.
 >
-> **Written 2026-07-30. Revised v2** after a gate review that was upheld on 6 standards findings and 6 specification blockers. §9 records the adjudication. **The worst finding was mine: the original zero-detection conclusion was invalid.**
+> **Written 2026-07-30. Revised v4** after three gate-review rounds (12, 14, then 15 findings, all upheld). §9 records every adjudication. **The worst finding across all rounds was mine: the original zero-detection conclusion was invalid, and the denominator that replaced it excluded positive detections.**
 
 ---
 
@@ -92,9 +92,9 @@ This is the mechanism behind the parent plan's *"detected share with unknown bia
 
 **This specification proposes adding referrer-derived capture, which that sentence forbids.** That is a policy correction, not routine documentation upkeep.
 
-**Required in the implementation gate, before any code:** the operator explicitly approves retiring the parenthetical *"(do not add more referrer/click-id capture)"* and narrowing the claim to what remains true — that referrer capture cannot recover **referrer-stripped** dark traffic, and that `heard_about_us` remains the only instrument for that cohort. The rest of the sentence stands. `AGENTS.md` regenerates via `scripts/sync-agent-doc.sh` in the same commit.
+**Required before PR 2, not before PR 1** (see §7 for the full gate ordering): the operator explicitly approves retiring the parenthetical *"(do not add more referrer/click-id capture)"* and narrowing the claim to what remains true — that referrer capture cannot recover **referrer-stripped** dark traffic, and that `heard_about_us` remains the only instrument for that cohort. The rest of the sentence stands. `AGENTS.md` regenerates via `scripts/sync-agent-doc.sh` in the same commit.
 
-**If the operator declines, this specification is void** and the Copilot question stays unanswered by code. That is an acceptable outcome and must not be worked around.
+**PR 1 does not engage this clause** — it adds no capture, only fixes classifier defects and consolidates existing behaviour. **If the operator declines, PR 2 is void** and the Copilot question stays unanswered by code, while PR 1's bug fixes stand. That is an acceptable outcome and must not be worked around. A previous draft said "before any code", which contradicted its own PR sequencing.
 
 ### 4.1 Shared classifier — pure, exact, versioned
 
@@ -129,8 +129,6 @@ classifyAiSource(input: { referrer?: string | null; utmSource?: string | null })
 
 **Registry — every entry carries a provenance receipt.** Entries without one are excluded until a receipt exists.
 
-| Host | Engine | Enum | Provenance |
-|---|---|---|---|
 **Receipt tiers, because "it was in the old list" is not evidence.** A pre-existing entry in `ai-referral.ts` or `ai-attribution-breakdown.ts` is *precedent*, not provenance — those lists were themselves unsourced, and one of them is the source of §3's bugs.
 
 | Tier | Meaning | Ships in PR 1? |
@@ -157,7 +155,17 @@ classifyAiSource(input: { referrer?: string | null; utmSource?: string | null })
 
 **Consequence for §4.2, stated plainly:** with `bing.com/chat` held at tier C, the *only* tier-A/B Copilot detector is `copilot.microsoft.com`. The instrument is narrower still than the previous draft implied, which makes §5's prohibition on ceiling conclusions more binding, not less.
 
-**UTM registry — exact values only:** `chatgpt.com` → `chatgpt`; `perplexity`, `perplexity.ai` → `perplexity`; `copilot` → `copilot`; `gemini` → `gemini`; `claude.ai` → `claude`. Anything not exactly listed is not an AI source.
+**UTM registry — exact values only, and receipt-tiered on the same rule as hosts.** The previous draft exempted UTMs from tiering, which quietly reintroduced a second Copilot detector (`utm_source=copilot`) while the prose claimed `copilot.microsoft.com` was the only one.
+
+| UTM value | Enum | Tier | Receipt |
+|---|---|---|---|
+| `chatgpt.com` | `chatgpt` | **A** | Observed on all 21 July AI orders |
+| `perplexity`, `perplexity.ai` | `perplexity` | **C** | No observed instance, no vendor doc that Perplexity appends UTMs. **Held** |
+| `copilot` | `copilot` | **C** | **No evidence Copilot appends any UTM. Held** — shipping it would contradict the §4.1 statement that `copilot.microsoft.com` is the only sourced Copilot detector |
+| `gemini` | `gemini` | **C** | No receipt. **Held** |
+| `claude.ai` | `claude` | **C** | No receipt. **Held** |
+
+**PR 1 ships one UTM value: `chatgpt.com`.** Anything not exactly listed and shipped is not an AI source. This is deliberately austere — ChatGPT is the only assistant with demonstrated UTM-appending behaviour in our own data, and inventing UTM detectors for the others would reproduce the empty-bucket failure that got `bing_ai` removed.
 
 ### 4.2 The `bing_ai` inconsistency — resolved by removal
 
@@ -169,7 +177,14 @@ The parent plan lists `bing_ai` in the enum; the previous spec draft silently dr
 
 ### 4.3 `you.com` and `kagi.com` — negative, matching the parent
 
-The parent plan requires ambiguous You.com as an **explicit negative fixture**. The previous draft contradicted it by classifying You.com as `other_ai`. **Resolution: the parent wins.** Both are search engines whose AI mode is not distinguishable from ordinary search at the referrer level, so a bare visit classifies as **organic search, not AI**, and both appear in the negative fixtures. Revisit only with a path or parameter receipt that identifies the AI mode.
+The parent plan requires ambiguous You.com as an **explicit negative fixture**. An earlier draft contradicted it by classifying You.com as `other_ai`. **Resolution: the parent wins** — neither is an AI detection.
+
+**But "organic search" is prose, not current behaviour.** `SEARCH_HOST_PATTERNS` in `source-classification.ts` is `google.`, `bing.`, `duckduckgo.`, `yahoo.`, `ecosia.`, `search.brave.` — **`you.com` and `kagi.com` are absent**, so today they fall through to the `referral` branch. Two things are therefore required, and the second is a real code change PR 1 must make:
+
+1. **`classifyAiSource` returns `none`** for both — this module's only claim.
+2. **`classifyAttributionSource` must add exact-host handling** for `you.com` and `kagi.com` so they classify as organic search rather than referral. Until that lands, the honest expectation is `referral`, and the fixture must assert whichever behaviour is actually shipped.
+
+**Suite 2 fixtures carry a single exact expected value.** No `A / B` alternatives and no "per existing logic" hedging — an assertion that accepts two outcomes tests nothing. Where the current brand/non-brand split makes the outcome input-dependent, the fixture pins a specific input that yields a deterministic result.
 
 ### 4.4 Enum, engine, and how consumers treat `other_ai`
 
@@ -185,12 +200,25 @@ The parent plan requires ambiguous You.com as an **explicit negative fixture**. 
 
 | Symbol | Definition |
 |---|---|
-| **M — request denominator** | **Every eligible landing request** per §4.8, whether or not an AI source was detected. This is detected **plus** `none`. Bot-excluded and `indeterminate` requests are counted separately and reported alongside, never folded into M |
-| **N — detections** | Eligible landing requests whose derived enum is **non-`none`**. Broken out per enum value |
-| **Intake denominator** | **Every intake with a non-`NULL` `ai_source_detected`** — i.e. every instrumented intake, including those carrying `none`. `NULL` rows are excluded and their count reported separately, because they predate instrumentation |
-| **K — orders** | Instrumented intakes that reached a **paid** state, counted on canonical `paid_at` within the reporting window, net of refunds via `refunded_at`. Windows are the **two closed, non-overlapping 30-day windows** the parent plan mandates, never overlapping rolling ones |
+| **M — request denominator** | **Every eligible landing request** per §4.8, whether or not an AI source was detected. Detected **plus** `none`. Bot-excluded and `indeterminate` requests are counted separately and reported alongside, never folded into M |
+| **N — detections** | Eligible landing requests whose **classification of that request** is non-`none`. Broken out per enum value **and per `classifier_version`** |
+| **I — intake denominator** | Every intake with non-`NULL` `ai_source_detected`, including those carrying `none`. `NULL` rows are excluded and counted separately |
+| **I_e** | Instrumented intakes carrying enum value *e* |
+| **P_e — paid orders** | Intakes in **I_e** that reached a paid state, counted on canonical `paid_at` inside the window. **A partially refunded order is still one paid order** |
+| **R_e — net-retained revenue** | `SUM(amount_cents - COALESCE(refund_amount_cents, 0))` over **P_e**, which is the only formulation that handles partial refunds correctly. Disputes/chargebacks are **excluded from R_e and reported as a separate line**, never silently netted |
 
-Reported rates: **N/M** for request-level detection, and **K-by-enum over the intake denominator** for order-level attribution. Never mix the two denominators in one figure.
+**N must be computed from the current request's classification, never from the sticky cookie.** Reading the cookie would count every subsequent page view of a returning visitor as a fresh detection, inflating N without bound. The cookie exists for *intake attribution*; the counter exists for *request detection*. They are different questions and must not share a source.
+
+**Four separate reported figures. The previous draft's "K-by-enum over the intake denominator" was neither an order share nor a conversion rate, and is withdrawn:**
+
+| Figure | Formula | Reads as |
+|---|---|---|
+| Request detection rate | `N_e / M` | Share of arrivals from engine *e* |
+| Per-engine conversion rate | `P_e / I_e` | How well engine *e*'s traffic converts |
+| Order share | `P_e / Σ P` over all instrumented intakes | Engine *e*'s share of instrumented paid orders |
+| Net-retained revenue | `R_e` | Dollars, with disputes shown separately |
+
+Windows are the **two closed, non-overlapping 30-day windows** the parent plan mandates. Never mix request-level and intake-level denominators in one figure.
 
 ### 4.5 Precedence, trust, and attribution model
 
@@ -219,8 +247,17 @@ Reported rates: **N/M** for request-level detection, and **K-by-enum over the in
 | non-`none` | anything | **immutable, no write** | First-AI-touch. A later Copilot arrival after ChatGPT is **not** represented |
 | any | derivation errors | no write, fail open | Never block on measurement |
 
-- **TTL: 30 days**, matching `ATTRIBUTION_COOKIE_MAX_AGE_SECONDS`, and **not refreshed on upgrade** — the window is anchored to first instrumented visit, so a returning visitor cannot indefinitely extend an old attribution.
-- **Classifier-version change:** the stored `version` is preserved as written. A registry change does **not** retroactively reclassify an existing cookie, and does not unlock a re-write of a non-`none` value. Reports group by `version` so a mid-window registry change is visible rather than silently blended.
+**Cookie payload — the previous draft's `{ enum, version }` could not implement its own TTL rule.** `Set-Cookie` restarts `Max-Age` on every write, so a `none → detected` upgrade would silently extend the window. Payload is therefore:
+
+```
+{ enum, version, first_seen_at, expires_at }   // ISO-8601 UTC timestamps
+```
+
+- **`first_seen_at`** is written once, on the first instrumented request, and never changed.
+- **`expires_at` = `first_seen_at` + 30 days**, computed once and **carried verbatim through every subsequent write**, including the upgrade. On each write `Max-Age` is recomputed as `expires_at - now`, so re-setting the cookie cannot extend the window. If that value is ≤ 0 the cookie is cleared and the next request starts a fresh `first_seen_at`.
+- **Consumers must honour `expires_at`, not merely the browser's expiry** — a clock-skewed or replayed cookie past `expires_at` is treated as absent.
+- **Classifier version on upgrade:** an upgrade writes **the current classifier version**, because the value being stored was produced by the current registry. `first_seen_at` still reflects the original visit. So `version` describes *the stored classification*, and `first_seen_at` describes *the visit* — the previous draft conflated them by saying version is "preserved as written", which would have mislabelled an upgraded value with the older registry.
+- A registry change never retroactively reclassifies an existing cookie and never unlocks a rewrite of a non-`none` value. Reports group by `version` so a mid-window registry change is visible rather than blended.
 - **Multiple intakes from one cookie:** every intake created while the cookie lives inherits the **same** value. This is deliberate — the question is which assistant introduced the patient, not which introduced each order. Consequence to state in reports: a patient placing three orders contributes three attributed orders from one referral event.
 - **Cookie carries no identifier** — `{ enum, version }` only. It is not a session identifier and must not be used as one.
 
@@ -232,8 +269,8 @@ Reported rates: **N/M** for request-level detection, and **K-by-enum over the in
 |---|---|---|---|
 | 1 | `lib/analytics/middleware-attribution.ts` (~L89–100) | Serialises the full `Referer` into the script-readable 30-day cookie | Sanitise to origin + path **before** serialising |
 | 2 | `lib/analytics/attribution.ts` (~L235–249) | Writes full `document.referrer` into web storage | Sanitise **before** `writeStoredAttribution` |
-| 3 | `lib/analytics/ai-referral.ts` **L79** | `posthog.capture("ai_referral", { referrer: document.referrer, ... })` — hands the **raw** referrer to the PostHog SDK, and `sanitizePostHogUrl` does not cover arbitrary event properties | **Make the event enum/engine-only.** Drop the `referrer` property entirely; emit `{ ai_source_enum, engine, landing_page }`. Also drop the raw `utm_source` property in favour of the classified value |
-| 4 | `lib/observability/scrub-phi.ts` → `SENSITIVE_HEADER_KEYS` | Set is `authorization`, `cookie`, `xforwardedfor`, `xrealip`, `xclientip`. **`referer` is absent, so a `Referer` header reaching a Sentry event passes through** (the value only gets generic PHI-pattern scrubbing, not query removal) | Add `referer` (and `referrer`) to `SENSITIVE_HEADER_KEYS`, **or** sanitise the value to origin + path. Dropping it is preferred — we have the enum, so the raw header has no diagnostic value we need |
+| 3 | `lib/analytics/ai-referral.ts` **L79** | `posthog.capture("ai_referral", { referrer: document.referrer, ... })` passes the raw value **in-process**. **This is NOT an outbound leak** — corrected: `"referrer"` is in `URL_PROPERTY_KEYS` (`lib/analytics/posthog-privacy.ts:8–16`), so `sanitizeValue` applies `sanitizePostHogUrl` to it, and `sanitizePostHogEvent` is wired as PostHog's `before_send` (`instrumentation-client.ts:85, 181`). Query and fragment are stripped before transmission. A previous draft called this a leak; that was wrong | **Still change it, as minimisation not remediation.** Drop the `referrer` property and emit `{ ai_source_enum, engine, landing_page }`. Once the enum exists the raw property has no analytical value, and not sending it is better than relying on a downstream sanitiser. Priority is low; it does not gate anything |
+| 4 | `lib/observability/scrub-phi.ts` | **Neither `referer` nor `referrer` appears anywhere in the file.** `SENSITIVE_HEADER_KEYS` is `authorization, cookie, xforwardedfor, xrealip, xclientip`, and `SENSITIVE_KEY_EXACT` (used for **breadcrumbs and extras**, not just headers) also omits both. So a `Referer` header **or** a `{ referrer: ... }` object value reaching Sentry passes through with only generic PHI-pattern scrubbing, which does not remove arbitrary query strings | Add **both** `referer` and `referrer` to `SENSITIVE_HEADER_KEYS` **and** to the object-key scrubbing set, so headers, breadcrumbs, and extras are all covered. Header-only scrubbing is insufficient. **This one is a real gap and does gate PR 2** |
 
 Sanitised form throughout is origin + path only, matching `cleanUrlOrPath`. Raw referrer exists **only** as a local variable during derivation.
 
@@ -250,7 +287,18 @@ Sanitised form throughout is origin + path only, matching `cleanUrlOrPath`. Raw 
    - **Authenticated insert** — value present at insert.
    - **Guest insert** — value present at insert; **guest reconstruction** must carry it when an intake is rebuilt after a failed first attempt.
 3. **Write-once enforced at the data layer**, not only in application code.
-4. **Idempotency collisions:** if two inserts race, the surviving row keeps the **earliest** non-`none` value.
+4. **Idempotency collisions — "earliest wins" made enforceable.** The previous draft asserted the earliest value survives without saying how, which is unenforceable: rows carry no ordering. Add a companion column **`ai_source_observed_at timestamptz`** (the cookie's `first_seen_at`, not insert time), and make every write a **guarded update**:
+
+   ```sql
+   UPDATE intakes SET ai_source_detected = $1,
+                      ai_source_classifier_version = $2,
+                      ai_source_observed_at = $3
+   WHERE id = $4
+     AND (ai_source_detected IS NULL OR ai_source_detected = 'none')
+     AND ($3 < ai_source_observed_at OR ai_source_observed_at IS NULL)
+   ```
+
+   This is atomic under concurrency, makes first-commit-wins a property of the statement rather than of application ordering, and lets a `none` row upgrade while a non-`none` row stays immutable.
 5. **Retry payment** preserves the original value and must not re-derive from the retry navigation.
 6. **Webhook and fallback finalisation read the intake and preserve the value.** They must not write it, and must not drop it while setting `paid_at`.
 7. All reporting uses canonical `paid_at` / `refunded_at` windows and the closed non-overlapping windows the parent plan mandates.
@@ -280,10 +328,12 @@ Instead:
 
 **One implementation, chosen — the previous draft offered "fire-and-forget from a route, or batched", which is not executable:**
 
-- **Mechanism: `NextFetchEvent.waitUntil()`** in middleware, wrapping a single call to an **atomic `SECURITY DEFINER` service-role RPC**. `waitUntil` runs after the response is sent, so the patient's request is never delayed by the write. No separate route, no batching layer, no queue.
-- **Fixed time bucket:** UTC hour. Bucket key `(metric_name, bucket_start, dimension_key)`.
-- **Atomic aggregation:** the RPC performs one `INSERT ... ON CONFLICT (metric_name, bucket_start, dimension_key) DO UPDATE SET count = count + 1` against a dedicated counter table. **No request-level rows, no per-request timestamps.** `dimension_key` is limited to the enum value plus the eligibility bucket.
-- **Permissions:** the counter table has RLS enabled with zero policies; `EXECUTE` on the RPC is granted to `service_role` only and **revoked from `PUBLIC`, `anon`, and `authenticated`**, then verified by `security_definer_acl_violations()` per `docs/SECURITY.md`.
+- **Mechanism: `NextFetchEvent.waitUntil()`** in middleware, wrapping a single RPC call. `waitUntil` runs after the response is sent, so the patient's request is never delayed by the write. No separate route, no batching layer, no queue.
+- **Fixed time bucket:** UTC hour. Bucket key `(metric_name, bucket_start, classifier_version, dimension_key)`.
+- **`classifier_version` is part of the key, not a dimension value.** Without it, a registry change mid-window silently blends two different classifiers into one series and the change becomes undetectable after the fact.
+- **Atomic aggregation:** one `INSERT ... ON CONFLICT (metric_name, bucket_start, classifier_version, dimension_key) DO UPDATE SET count = count + 1` against a dedicated counter table. **No request-level rows, no per-request timestamps.** `dimension_key` is limited to the enum value plus the eligibility bucket.
+- **Security posture — `SECURITY INVOKER` by default.** The RPC is called with the service-role key, which already has the privileges it needs, so `DEFINER` buys nothing and adds escalation surface. Use **`SECURITY INVOKER`**. If implementation finds a concrete reason `DEFINER` is required, that reason must be **written into the migration**, and the function must then set a **fixed `search_path` (`SET search_path = public, pg_temp`)** and reference **fully qualified objects**, per `docs/SECURITY.md` §`SECURITY DEFINER` Function ACLs.
+- **Permissions:** counter table has RLS enabled with zero policies; `EXECUTE` granted to `service_role` only and **revoked from `PUBLIC`, `anon`, and `authenticated`**; verified by `security_definer_acl_violations()` if the function ends up `DEFINER`, and by an explicit ACL assertion either way.
 - **Fail-open, tested:** any RPC or network error is swallowed after a Sentry breadcrumb. Required failure tests — RPC unavailable, RPC throws, permission denied, `waitUntil` unsupported — each must leave the response unaffected. **A dropped increment is acceptable; a delayed patient request is not.**
 - **Under-count is expected and must be disclosed** in every report using M.
 - Rolled-up hourly totals may be snapshotted into `operational_metrics` for dashboarding, which is its correct use.
@@ -330,14 +380,19 @@ The previous draft mixed them, asserting outcomes like "other paid" and "direct/
 
 **Suite 2 — `classifyAttributionSource` (the existing full classifier), regression only.** Confirms consuming this module did not change non-AI behaviour. Expectations use the existing `AttributionSourceGroup` values.
 
+Every row asserts **one** exact `AttributionSourceGroup`. Inputs are pinned so the outcome is deterministic.
+
 | Input | Expected group |
 |---|---|
-| `utm_source=bing`, referrer `https://www.bing.com/search?q=...` | `organic_nonbrand` / `organic_brand` per existing brand logic |
+| `utm_source=bing`, `landing_page=/medical-certificate`, referrer `https://www.bing.com/search?q=medical+certificate` | `organic_nonbrand` |
+| `utm_source=bing`, `landing_page=/`, referrer `https://www.bing.com/search?q=instantmed` | `organic_brand` |
 | `utm_source=youtube`, referrer `https://www.youtube.com/` | `referral` |
 | `utm_source=meta`, `utm_medium=cpc` | `other_paid` |
-| `utm_campaign=gemini_test`, no AI source or referrer | `direct` or `unknown` per existing logic — **must not be `ai_referral`** (§3.2) |
+| `utm_campaign=gemini_test`, no `utm_source`, no referrer, `landing_page=/` | `direct` — **must not be `ai_referral`** (§3.2) |
 | `gclid` present | `google_ads` |
-| referrer `https://chatgpt.com/` | `ai_referral` |
+| referrer `https://chatgpt.com/`, `landing_page=/medical-certificate` | `ai_referral` |
+| referrer `https://you.com/search?q=...`, `landing_page=/medical-certificate` | `organic_nonbrand` **after** the §4.3 exact-host change ships. Assert `referral` if the fixture is written before it |
+| referrer `https://kagi.com/search?q=...`, `landing_page=/medical-certificate` | same rule as You.com |
 
 ### 4.12 Documentation (same commit)
 
@@ -372,6 +427,14 @@ The previous draft mixed them, asserting outcomes like "other paid" and "direct/
 
 **A real ceiling claim requires a prerequisite this spec does not deliver: a controlled known-positive Copilot click** — a deliberate click from a real Copilot answer, end-to-end, confirming the detector fires. **Until that positive control passes, no zero result may be reported as a channel finding**, and Phase 2 Outcome C may not be triggered by this instrument alone.
 
+**The positive control contaminates its own measurement, so it is fenced:**
+
+- Run the control **before** the measurement window opens, never during it.
+- **Measurement starts at the next UTC-hour boundary after the last control click**, so the control cannot land in a counted bucket.
+- **The control's hourly bucket is excluded from M and N by bucket key**, and the exclusion is recorded with the bucket timestamp so the gap in the series is explained rather than mysterious.
+- Any intake accidentally created during the control is excluded from **I** and flagged, not silently deleted.
+- Without this fence a single deliberate click would appear as a genuine Copilot detection and could, on its own, satisfy the `N(copilot) ≥ 10` threshold if repeated — manufacturing the result the instrument exists to test.
+
 **Also outside scope:** Google AI Mode and AI Overviews clicks (structurally indistinguishable — negative fixture in §4.11), and referrer-stripped arrivals, which land in `none`. **`none` is not evidence of absence.**
 
 ---
@@ -385,10 +448,16 @@ Session deduplication · weakening any sanitiser · persisting raw referrers or 
 ## 7. Implementation sequencing
 
 1. **This spec passes gate review.** ← current
-2. **Three operator gates, all required before any code:**
-   - **§4.0 canon change** — approve retiring the `CLAUDE.md:380` clause. If declined, stop.
-   - **Rank-1 reopening recorded in `docs/ROADMAP.md`** — otherwise this work has no ranked home.
-   - **Middleware profile + fresh security review** (ROADMAP §5) — required before PR 2 only, not PR 1.
+2. **Gates, ordered per PR. A previous draft said "all three before any code" and then made one PR-2-only, which contradicted itself:**
+
+| Gate | Required before | Why there |
+|---|---|---|
+| Spec approval | **PR 1** | — |
+| **Rank-1 reopening recorded in `docs/ROADMAP.md`** | **PR 1** | Without a ranked home, no work under this spec is authorised at all |
+| **§4.0 canon change** (`CLAUDE.md:380`) | **PR 2** | PR 1 adds **no** referrer capture — it only fixes classifier defects and consolidates existing behaviour, so it does not engage the clause. PR 2 introduces the capture, which does |
+| **Middleware profile + fresh security review** (ROADMAP §5) | **PR 2** | PR 1 touches no middleware |
+
+   If the canon change is declined at the PR-2 gate, **PR 1 still stands on its own merits** — it fixes live misclassification bugs regardless of whether the enum is ever built.
 3. **PR 1 — shared classifier + fixtures.** Pure module, exact matching, registry with provenance, `other_ai` mapping, precedence rules, behavioural tests, three-surface parity. **No schema change.** Independently valuable: it fixes the §3 live bugs.
 4. **PR 2 — authoritative capture.** `httpOnly` cookie derivation, the §4.6 sanitisation fix in both writers, migration, full guest and authenticated persistence, aggregate collector, reporting.
 5. **Positive control:** a known-good Copilot click validating end-to-end capture. **Required before any zero result is interpreted.**
@@ -438,7 +507,7 @@ All findings verified against the code before acceptance.
 | # | Finding | Resolution |
 |---|---|---|
 | 1 | **Zero cannot establish a ceiling** — the worst finding, and mine | §5 rewritten: permitted conclusion is *"no recognised Copilot signal detected"*; a controlled known-positive Copilot click is a prerequisite before any zero is interpreted |
-| 2a | `bing_ai` in parent, dropped in spec | Removed from both; parent correction tracked as a follow-up. Instrument explicitly narrowed to identifiable Copilot traffic |
+| 2a | `bing_ai` in parent, dropped in spec | Removed from both. ~~Parent correction tracked as a follow-up~~ — **SUPERSEDED in round 2: the parent was corrected in that pass.** Instrument explicitly narrowed to identifiable Copilot traffic |
 | 2b | Bare You.com required negative, spec made it `other_ai` | Parent wins — You.com and Kagi classify as organic search, both added as negative fixtures |
 | 2c | Registry/enum collapse undefined | §4.4 defines `AiEngine` vs `AiSourceEnum`, an explicit mapping table, and the `other_ai` consumer contract |
 | 2d | `openai.com` / `edgeservices.bing.com` lacked provenance | Both removed; every registry entry now carries a receipt, and `openai.com/blog` is a negative fixture |
@@ -473,6 +542,34 @@ All findings verified against the code before acceptance.
 | P2 | Classifier API could not express its own fixtures; `engine` had no `none` value | Scope narrowed to AI-or-not; `engine` made nullable; §4.11 split into an AI suite and a full-attribution regression suite |
 | P3 | Pre-intake cookie semantics undefined | §4.5 adds a full transition table (absent/`none`/non-`none`), `none`-upgrades-allowed, non-`none` immutability, 30-day TTL not refreshed on upgrade, version preservation, multi-intake behaviour |
 | P4 | Collector offered incompatible alternatives | **One choice: `NextFetchEvent.waitUntil()` around an atomic service-role RPC**, with RLS, ACL revocation, `security_definer_acl_violations()` verification, and four named failure tests. **Plus the ROADMAP §5 middleware profiling + security-review gate**, which the previous draft missed entirely |
-| P5 | Privacy guarantee did not name every change | §4.6 now names **four** call sites, including `ai-referral.ts:79` handing raw `document.referrer` to PostHog, and `referer` being **absent** from `SENSITIVE_HEADER_KEYS` in `lib/observability/scrub-phi.ts`. The self-contradictory "sanitisers unchanged" line is corrected |
+| P5 | Privacy guarantee did not name every change | §4.6 names **four** call sites. **Round-3 correction: the `ai-referral.ts:79` item was NOT a leak** — `"referrer"` is in `URL_PROPERTY_KEYS` and `sanitizePostHogEvent` runs as `before_send`, so the query is stripped before transmission. It stays as minimisation, not remediation. The Sentry gap is real and widened to object-key scrubbing |
 | P6 | Provenance vague; "existing client list" not a receipt | §4.1 adds **receipt tiers A/B/C**; PR 1 ships tiers A and B only (five hosts). `bing.com/chat` drops to held tier C, leaving `copilot.microsoft.com` as the only tier-A/B Copilot detector — which tightens §5 further |
 | P7 | Verdict thresholds vague | §5 fixes numbers: healthy = M ≥ 20,000 **and** N(chatgpt) ≥ 100; non-trivial Copilot = N ≥ 10; a 1–9 band that permits a count but no rate |
+
+### Round 3 (2026-07-30) — 15 findings, all upheld
+
+**Specification**
+
+| # | Finding | Verification | Resolution |
+|---|---|---|---|
+| R1 | Cookie lifecycle impossible as written — `Set-Cookie` restarts `Max-Age`, so `{enum, version}` could not preserve the original expiry across a `none → detected` upgrade | HTTP cookie semantics | Payload is now `{ enum, version, first_seen_at, expires_at }`; `Max-Age` recomputed as `expires_at − now` on every write. Upgrade writes the **current** classifier version, since that registry produced the stored value |
+| R2 | Counters could manufacture the result — N read from the sticky cookie would count every repeat page view as a detection | — | **N is computed from the current request's classification only.** `classifier_version` added to the counter **key**, not as a dimension value |
+| R3 | K mathematically wrong — "net of refunds via `refunded_at`" mishandles partial refunds and disputes; `K/all instrumented` was neither share nor conversion | `partially_refunded` is a live payment state in this codebase | Split into **P_e** (paid orders; a partial refund is still one order), **R_e** (`amount_cents − refund_amount_cents`, disputes reported separately), plus four separately-defined figures: detection rate, per-engine conversion, order share, net-retained revenue |
+| R4 | Positive control contaminates Copilot N | — | Control runs **before** the window; measurement starts at the **next UTC-hour boundary**; the control's bucket is excluded by key and the gap recorded |
+| R5 | You.com/Kagi broken in executable terms — prose said organic, code returns `referral` | `SEARCH_HOST_PATTERNS` = `google. bing. duckduckgo. yahoo. ecosia. search.brave.` — **neither host present** | PR 1 adds exact-host handling to `classifyAttributionSource`; Suite 2 rows now carry **single exact** expectations with pinned inputs, no `A / B` or "per existing logic" |
+| R6a | Sentry closure incomplete — object-key scrubbing, not just headers | **Neither `referer` nor `referrer` appears anywhere in `lib/observability/scrub-phi.ts`**; `SENSITIVE_KEY_EXACT` covers breadcrumbs/extras and omits both | Both added to header **and** object-key scrubbing |
+| R6b | `SECURITY DEFINER` unjustified | Called with the service-role key, which already holds the privilege | Default is **`SECURITY INVOKER`**; `DEFINER` requires a written justification in the migration plus fixed `search_path` and fully qualified objects |
+| R7 | "Earliest wins" unenforceable — rows carry no ordering | — | Adds `ai_source_observed_at` (from the cookie's `first_seen_at`) and a **guarded atomic UPDATE**, making first-commit-wins a property of the statement |
+| R8 | UTM detections bypassed provenance tiers; `utm_source=copilot` was a second Copilot detector | Contradicted §4.1's own claim | UTM registry now tiered. **PR 1 ships one UTM value: `chatgpt.com`.** All others held |
+| R9 | **PostHog claim was wrong — my error** | `"referrer"` IS in `URL_PROPERTY_KEYS` (`posthog-privacy.ts:8–16`) and `sanitizePostHogEvent` is wired as `before_send` (`instrumentation-client.ts:85, 181`), so the query is stripped before transmission | Reclassified from "leak" to **minimisation, low priority, gates nothing**. The Sentry gap is the real one |
+
+**Standards**
+
+| # | Finding | Resolution |
+|---|---|---|
+| R10 | Parent said "zero canon changes" while the child requested two | Parent §9 rewritten to list both requests with status and gate; `file-map.md` reconciled |
+| R11 | Gate order self-contradictory | §7 gate table by PR: spec approval + rank reopening → **PR 1**; canon change + middleware profile/security review → **PR 2**. §4.0 corrected to match |
+| R12 | Referenced send-ready material still clinically wrong | Kit and NHSD runbook both assert universal pre-issue review. **Repair-or-retire blocker added to the drafts and the parent**, blocking MediCompare and Finder sends |
+| R13 | Availability/refund claims paraphrased | Bound to `availability_24_7` and `refund_guarantee` verbatim, with `refund_guarantee_label` as the approved compact alias for table cells |
+| R14 | Stale adjudication text | Round-1 `bing_ai` "follow-up" row marked **superseded**; round-2 P5 row corrected for R9 |
+| R15 | Orphan registry header, stale "v2" label, `file-map` wording | All cleaned; header now reads v4 |

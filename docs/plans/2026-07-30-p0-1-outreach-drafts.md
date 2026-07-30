@@ -21,8 +21,8 @@
 | Repeat prescription | **$29.95** | `PRICING` |
 | Specialty consults (ED, hair loss, women's health) | **$49.95** | `PRICING` |
 | Priority review add-on | **$9.95**, optional | `PRICING` |
-| Hours | Operates 24/7; requests submitted and reviewed around the clock. **No guaranteed turnaround** | `CLAUDE.md` hours policy |
-| Refund | **Full refund if the doctor declines** | `CLAUDE.md` refund policy |
+| Availability | **Use `getApprovedClaim("availability_24_7")` verbatim:** "Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume." | `lib/marketing/approved-claims.ts` |
+| Refund | **Use `getApprovedClaim("refund_guarantee")` verbatim:** "Full refund if the doctor declines." Compact alias `refund_guarantee_label` = "Refund if declined" is approved for table cells | `lib/marketing/approved-claims.ts` |
 | Clinical review sequence | **Use `getApprovedClaim("clinical_review_sequence")` verbatim** (see below) | `lib/marketing/approved-claims.ts` |
 | Certificate verification | Public verification endpoint for employers and institutions | `/verify` |
 | LegitScript certification | **Reverify status immediately before any publication** | LegitScript directory |
@@ -49,7 +49,9 @@ An earlier version of these drafts said "an AHPRA-registered doctor reviews it a
 ## Draft 1 · MediCompare listing request
 
 **Channel:** email to `info@medicompare.com.au` · **Approval required before sending.**
-**Context:** `medicompare.com.au/instantmed/` currently 404s while ~34 AU providers have staff-written profiles. Inclusion bar is low; absence is the anomaly. Kit reference: `docs/audits/2026-07-09-comparison-surface-submission-kit.md`.
+**Context:** `medicompare.com.au/instantmed/` currently 404s while ~34 AU providers have staff-written profiles. Inclusion bar is low; absence is the anomaly.
+
+> **BLOCKER before this or any Draft 2 send.** The referenced kit `docs/audits/2026-07-09-comparison-surface-submission-kit.md` and the runbook `docs/runbooks/NHSD_REGISTRATION.md` both still assert **universal pre-issue doctor review** (kit "Review model": *"Doctor review before issue"*; runbook: *"an AHPRA-registered doctor reviews"*). **That is clinically false for eligible protocol-based certificate issuance.** Repair both to the approved `clinical_review_sequence` wording, or retire them, **before** any send that draws on them. The drafts below are already corrected; the referenced source material is not.
 
 > **Subject:** Provider listing request, InstantMed (Australian telehealth, ABN 64 694 559 334)
 >
@@ -62,8 +64,8 @@ An earlier version of these drafts said "an AHPRA-registered doctor reviews it a
 > - **Entity:** InstantMed Pty Ltd, ABN 64 694 559 334, Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010
 > - **Services:** medical certificates (from $24.95, up to 3 days), repeat prescriptions ($29.95), and consultations for erectile dysfunction, hair loss, and women's health ($49.95)
 > - **Clinical process:** patients complete a structured clinical form. Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward.
-> - **Availability:** we operate 24/7, so requests can be submitted and reviewed around the clock
-> - **Refunds:** full refund if the doctor declines the request
+> - **Availability:** requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume.
+> - **Refunds:** full refund if the doctor declines.
 > - **Verification:** employers and institutions can verify any certificate we issue at https://instantmed.com.au/verify
 > - **Certification:** LegitScript certified
 > - **Directory:** listed in the national health services directory
@@ -86,7 +88,7 @@ An earlier version of these drafts said "an AHPRA-registered doctor reviews it a
 
 Short description (≈50 words):
 
-> InstantMed is an Australian telehealth service for medical certificates, repeat prescriptions, and treatment requests for erectile dysfunction, hair loss, and women's health. Patients complete a structured clinical form. Operates 24/7, Australia-wide, 18+. Full refund if the doctor declines.
+> InstantMed is an Australian telehealth service for medical certificates, repeat prescriptions, and treatment requests for erectile dysfunction, hair loss, and women's health. Patients complete a structured clinical form. Requests can be submitted and reviewed 24/7. Australia-wide, 18+. Full refund if the doctor declines.
 
 **The process claim is deliberately absent from this short description.** The approved `clinical_review_sequence` claim is two sentences and does not fit a 50-word field, and **including only its prescribing half is a false claim** because it implies universal pre-issue certificate review. The rule for every short field: **carry the complete branch-aware claim, or carry no process claim at all.** An earlier draft carried only the prescribing sentence here, and Trustpilot and GBP then reused it, propagating the error to three surfaces.
 
@@ -104,9 +106,9 @@ Structured fields:
 | Prescription | $29.95 |
 | Consultations | $49.95 |
 | Optional add-on | $9.95 priority review |
-| Availability | 24/7, Australia-wide, 18+ |
+| Availability | Requests can be submitted and reviewed 24/7. Australia-wide, 18+ |
 | Turnaround | Reviewed around the clock. **No guaranteed timeframe** |
-| Refund policy | Full refund on doctor decline |
+| Refund policy | Refund if declined (approved compact alias) |
 | Bulk billing | Not available |
 | App | No app, mobile web |
 | Certificate verification | Yes, public endpoint at /verify |

@@ -136,7 +136,11 @@ This changes the target ordering materially. Estimated competing citations, 90d:
 
 **Operator, ~1 h total, each send approved individually at the moment of sending:** MediCompare email (`info@medicompare.com.au`), Finder partner form, Trustpilot claim-and-hold. Kit is submission-ready at `docs/audits/2026-07-09-comparison-surface-submission-kit.md` — do not re-research the landscape.
 
-**Agent drafts, operator approves each publication separately:** Wikidata organisation entity (verifiable facts only — ABN, address, service area, LegitScript; **no doctor count or names**; skip Wikipedia until notability is real) · **NHSD/PCA `.gov.au` listing freshness** (the 07-08 audit found it stale; health prompts route heavily to institutional sources) · Google Business Profile confirm/refresh, with the boundary that **GBP counts and ratings never render on-site** (AHPRA s133 posture; on-site badge stays stars-only). **None of these three is an agent-autonomous edit — each is a live external property.**
+**Agent drafts, operator approves each publication separately:** **NHSD/PCA `.gov.au` listing freshness** (the 07-08 audit found it stale; health prompts route heavily to institutional sources) · Google Business Profile confirm/refresh, with the boundary that **GBP counts and ratings never render on-site** (AHPRA s133 posture; on-site badge stays stars-only). **Neither is an agent-autonomous edit — each is a live external property.**
+
+**Wikidata is HELD, not approvable.** `docs/plans/2026-07-30-p0-1-outreach-drafts.md` Draft 4 holds it behind a three-part gate (independent sources, conflict-of-interest decision, accepted deletion risk), because only the ABN carries an external receipt and `Wikidata:SELF` discourages self-created organisation items. An earlier version of this line listed it as ordinary approvable work, which contradicted the draft.
+
+**Send-ready material blocked on a clinical repair.** `docs/audits/2026-07-09-comparison-surface-submission-kit.md` and `docs/runbooks/NHSD_REGISTRATION.md` both still describe universal pre-issue doctor review (kit §"Review model": *"Doctor review before issue"*; runbook: *"an AHPRA-registered doctor reviews"*). **That is false for eligible protocol-based certificate issuance.** Both must be repaired to the approved `clinical_review_sequence` wording, or retired, **before any external send that draws on them** — including the MediCompare and Finder submissions this workstream is otherwise blocked on.
 
 **Sep–Oct · `/verify` employer outreach**: HR-software help centres (Employment Hero, Deputy, Tanda-class), payroll and bookkeeping newsletters, employment-law client updates. Company-attributed only, **no named founder**. Agent drafts 25–30; operator sends and replies.
 
@@ -343,9 +347,16 @@ Agent produces it on the 1st and 15th. One table, one verdict, one forced decisi
 
 ---
 
-## 9. Canon: no changes proposed
+## 9. Canon changes
 
-**This programme proposes zero canon changes.** Stated explicitly because earlier drafts did propose one and justified it incorrectly.
+**This programme proposes no changes to content-selection canon or to ROADMAP rank order.** Two narrower canon items are, however, requested by the P0.2 specification and are **not yet approved** — both are recorded here so the parent and child do not disagree:
+
+| Requested by | Change | Status | Gate |
+|---|---|---|---|
+| `2026-07-30-attribution-enum-spec.md` §4.0 | Retire the `CLAUDE.md:380` clause *"(do not add more referrer/click-id capture)"*, narrowing it to what stays true — that referrer capture cannot recover **referrer-stripped** traffic, and `heard_about_us` remains the only instrument for that cohort | **Pending operator approval** | Required before that spec's PR 2. Declining voids the spec, which is an acceptable outcome |
+| same, header | Record a **rank-1 reopening** in `docs/ROADMAP.md`, using rank 1's own re-open clause | **Pending operator decision** | Required before that spec's PR 1 |
+
+An earlier version of this section said "zero canon changes" while the child requested two, which was a straight contradiction. Neither is smuggled: both need an explicit operator decision, and neither is assumed anywhere in this plan.
 
 **Withdrawn: promoting BWT grounding queries to a co-equal content-selection lane.** The v2 justification was that BWT "measures a channel producing ~38% of free orders." **It does not.** That 38% is ChatGPT; BWT measures Microsoft surfaces, which have produced zero detected orders. Elevating BWT to canon on that reasoning conflated two channels. **Content lane selection stays `docs/ARTICLE_TEMPLATE.md` §8 — GSC-first, one guide per PR.** BWT may reorder priorities within that ordering; it may not replace it.
 
@@ -370,7 +381,7 @@ Causal claim demoted to a hypothesis (Microsoft states its AI data is sampled an
 | 3 | A1 under-specified; PostHog route disproven | `posthog-privacy.ts` `sanitizePostHogUrl` strips all query params and fragments; `middleware-attribution.ts` reads only `searchParams`, never `Referer` | P0.2 specifies the full path; deliverable is a count, not an adjective |
 | 4 | Experiments not decision-grade; calendar impossible | A mid-August start cannot yield a 3-week verdict by Sep 1 | §4 fully pre-registered; verdict moved to ~Sep 15; IndexNow restricted to treatment URLs; scaling needs Phase 2 **and** the answerability cohort |
 | 5a | $4k fail line orphaned from a discarded goal | `docs/ROADMAP.md` §2 owns a **$5,000/month** rolling net-retained rung | $4k gate removed; canon rung is the reference |
-| 5b | §9 promised two changes, 9.2 said nothing changes | — | §9 now states zero canon changes |
+| 5b | §9 promised two changes, 9.2 said nothing changes | — | ~~§9 now states zero canon changes~~ — **SUPERSEDED 2026-07-30 (round 3):** "zero canon changes" was itself wrong, because the P0.2 spec requests two. §9 now lists both with status and gate. No content-selection or rank-order canon changes are proposed |
 | 5c | Superseded plan outside `archive/` | `docs/ROADMAP.md` §7 requires the move | Moved via `git mv`; archive README index updated |
 | 5d | Rank-5 reorder workstream vanished despite "nothing dropped" | — | P3.5 states where it lives and why it is out of scope |
 | 5e | `/employers` at 10.1 still under a strict ≤10 rule | — | Both `/verify` and `/employers` excluded from CTR repair |
