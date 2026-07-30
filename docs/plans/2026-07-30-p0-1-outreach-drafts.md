@@ -40,7 +40,9 @@ An earlier version of these drafts said "an AHPRA-registered doctor reviews it a
 
 **Never state in any of these:** doctor count · individual doctor names · FRACGP or fellowship claims · peer-review or team-training claims · guaranteed turnaround times · review counts or star ratings · any prescription-medicine brand name · any claim that a certificate will be accepted by a specific employer or institution · any category-superiority claim (notably **not** "the only provider with verification", since Qoctor, Updoc, and Doccy all publish verification surfaces).
 
-**Em dashes are banned in all send-ready copy** (`lib/marketing/voice.ts`, CI-scanned by `voice-guard`). The copy blocks below comply; keep them compliant if edited.
+**Em dashes are banned in all send-ready copy** (`lib/marketing/voice.ts`). The copy blocks below comply; keep them compliant if edited.
+
+> **Verification status for this document is MANUAL.** Neither existing contract test covers it: `lib/__tests__/voice-guard.test.ts` scans `components/marketing`, `lib/marketing`, and `lib/email` — **not `docs/`** — and `lib/__tests__/approved-claims-contract.test.ts` reads only `docs/BUSINESS_PLAN.md`, `docs/VOICE.md`, `docs/ADVERTISING_COMPLIANCE.md`, and `docs/PRIMITIVES.md`. Their passing does **not** validate this draft. Any earlier statement that these tests verified this document was wrong. Before each approved send, the operator or an agent must manually check: em dashes, the complete branch-aware clinical claim (or none), prices against `PRICING`, and the certification/listing split. A focused draft-copy contract test is a reasonable follow-up but is not in scope here.
 
 ---
 
@@ -84,7 +86,13 @@ An earlier version of these drafts said "an AHPRA-registered doctor reviews it a
 
 Short description (≈50 words):
 
-> InstantMed is an Australian telehealth service for medical certificates, repeat prescriptions, and treatment requests for erectile dysfunction, hair loss, and women's health. Patients complete a structured clinical form. Prescribing requests receive doctor review before any prescription is issued. Operates 24/7, Australia-wide, 18+. Full refund if the doctor declines.
+> InstantMed is an Australian telehealth service for medical certificates, repeat prescriptions, and treatment requests for erectile dysfunction, hair loss, and women's health. Patients complete a structured clinical form. Operates 24/7, Australia-wide, 18+. Full refund if the doctor declines.
+
+**The process claim is deliberately absent from this short description.** The approved `clinical_review_sequence` claim is two sentences and does not fit a 50-word field, and **including only its prescribing half is a false claim** because it implies universal pre-issue certificate review. The rule for every short field: **carry the complete branch-aware claim, or carry no process claim at all.** An earlier draft carried only the prescribing sentence here, and Trustpilot and GBP then reused it, propagating the error to three surfaces.
+
+If a longer field is available, use the full claim verbatim:
+
+> Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward.
 
 Structured fields:
 
@@ -115,27 +123,34 @@ Structured fields:
 
 No business profile currently exists. This is **claim-and-hold**: ProductReview remains the active review destination until roughly 15 reviews accrue there (parent plan W-F / P0.4 sequencing). Claiming now prevents someone else holding the namespace and gives the profile time to age.
 
-Profile fields: entity **InstantMed Pty Ltd**; domain **instantmed.com.au**; category **Telehealth / Medical service**; description — reuse Draft 2's 50-word text verbatim so the two surfaces cannot contradict each other.
+Profile fields: entity **InstantMed Pty Ltd**; domain **instantmed.com.au**; category **Telehealth / Medical service**; description: reuse Draft 2's 50-word text verbatim (which deliberately carries **no** process claim) so the two surfaces cannot contradict each other. **Do not add a shortened review-sequence sentence here.**
 
 **Do not** enable review invitations on Trustpilot yet — splitting the ask across two destinations before either has mass would slow both.
 
 ---
 
-## Draft 4 · Wikidata organisation entity
+## Draft 4 · Wikidata organisation entity — **HELD, not creation-ready**
 
-**Channel:** Wikidata · **Approval required before creation. Agent must not create or edit this.**
+**Channel:** Wikidata · **HELD. Do not create. Agent must not create or edit this, and operator approval alone is not sufficient until the gate below passes.**
 
-Purpose: a machine-readable entity anchor that assistants and knowledge graphs can resolve. Verifiable facts only.
+Purpose would be a machine-readable entity anchor that assistants and knowledge graphs can resolve. **But this item is not ready and is held for two reasons:**
+
+1. **Sourcing.** Wikidata notability requires a serious, publicly available reference. Of the properties below, only the ABN has a real external receipt (the ABR). Label, description, `instance of`, `country`, and `industry` are self-asserted, and `official website` is self-referential. That is a thin item.
+2. **Conflict of interest.** [`Wikidata:SELF`](https://www.wikidata.org/wiki/Wikidata:SELF) discourages creating an item about your own organisation, and [`Help:Notability`](https://www.wikidata.org/wiki/Help:Notability) sets the reference bar. A self-created, thinly-sourced company item risks deletion and reads as promotion, which is a worse outcome than absence.
+
+**Gate before this is reconsidered — all three:** (a) at least two independent, publicly available references about InstantMed exist that are not our own site; (b) the conflict-of-interest disclosure approach is decided; (c) the operator explicitly accepts the deletion risk. **Until then this item stays held**, and the entity-anchor goal is served by the `sameAs` markup already live on-site plus the third-party listings in Drafts 1 and 2.
+
+Retained below only as a record of what *would* be asserted, with sourcing honestly marked:
 
 | Property | Value | Source |
 |---|---|---|
-| Label | InstantMed | — |
-| Description | Australian telehealth company | — |
-| instance of (P31) | business (Q4830453) | — |
-| country (P17) | Australia (Q408) | — |
-| official website (P856) | https://instantmed.com.au | — |
-| industry (P452) | telehealth (Q1191860) | — |
-| Australian Business Number (P3548) | 64694559334 | ABR |
+| Label | InstantMed | **self-asserted** |
+| Description | Australian telehealth company | **self-asserted** |
+| instance of (P31) | business (Q4830453) | **self-asserted** |
+| country (P17) | Australia (Q408) | ABR (registered in AU) |
+| official website (P856) | https://instantmed.com.au | **self-referential** |
+| industry (P452) | telehealth (Q1191860) | **self-asserted** |
+| Australian Business Number (P3548) | 64694559334 | **ABR — the only strong external receipt** |
 
 **Excluded deliberately:** headquarters location (a registered office is not a sourced headquarters; needs a direct receipt before it is asserted), inception date (not independently sourceable), employee or doctor count (**prohibited**), founder (**prohibited, no named founder**), revenue, any subjective descriptor.
 
@@ -175,7 +190,7 @@ Rationale: GBP reviews feed Gemini and AI Mode grounding, and it is an off-site 
 - [ ] Service-area business, not a storefront — **do not** present the Surry Hills address as a walk-in clinic.
 - [ ] Categories: telehealth service / medical service.
 - [ ] Hours: 24/7.
-- [ ] Description: reuse Draft 2's 50-word text verbatim.
+- [ ] Description: reuse Draft 2's 50-word text verbatim. **No shortened process claim** — either the complete branch-aware `clinical_review_sequence` text or none.
 - [ ] Website links to `https://instantmed.com.au` (apex, not www — www 301s to apex).
 
 **Binding boundary:** GBP review counts and star ratings **must never be rendered on-site**. The on-site Google badge stays stars-only. Adding GBP as a review destination is a separate decision that belongs to the W-F/P0.4 rotation sequencing, not to this refresh.
