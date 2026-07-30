@@ -1,41 +1,89 @@
 import { getCertificateDeliveryRescueCases } from "@/lib/admin/certificate-delivery-rescue"
+import { buildOpsActionModel } from "@/lib/admin/ops-action-model"
 import { buildOperationalFailureOverview } from "@/lib/admin/ops-failures"
-import {
-  approvedCertificateMissingRecordHelper,
-  certificateSentMissingTimestampHelper,
-  certOrphanHelper,
-  getOperationalInvariants,
-  invariantTone,
-  paidButCancelledHelper,
-  refundAnomalyHelper,
-  SLA_BREACH_CRITICAL,
-  slaBacklogHelper,
-} from "@/lib/admin/ops-invariants"
+import { getOperationalInvariants } from "@/lib/admin/ops-invariants"
 import { getGoogleAdsConversionUploadHealth } from "@/lib/analytics/google-ads-health"
 import { requireRole } from "@/lib/auth/helpers"
 import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
-import {
-  ADMIN_PARCHMENT_OPS_HREF,
-  ADMIN_PRESCRIBING_IDENTITY_HREF,
-  ADMIN_WEBHOOK_DLQ_HREF,
-  buildStaffLedgerHref,
-  STAFF_ANALYTICS_HREF,
-  STAFF_OPS_HREF,
-} from "@/lib/dashboard/routes"
 import { PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES } from "@/lib/doctor/parchment-claim"
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
+import { buildPrescribingIdentityBlockerReport } from "@/lib/doctor/prescribing-identity-blockers"
 import { filterQuietCronOwnedEmailFailures } from "@/lib/email/quiet-failures"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
-import { OpsDashboardClient, type OpsDashboardClientProps } from "./ops-client"
+import { OpsDashboardClient } from "./ops-client"
 
 export const dynamic = "force-dynamic"
 
 type AuditRow = {
-  id: string
   action: string
   created_at: string
+  id: string
   metadata: Record<string, unknown> | null
+}
+
+type EmailFailureRow = {
+  created_at: string
+  delivery_status: string | null
+  email_type: string | null
+  error_message: string | null
+  id: string
+  status: string | null
+}
+
+type CheckoutFailureRow = {
+  category: string | null
+  checkout_error: string | null
+  created_at: string
+  id: string
+  subtype: string | null
+  updated_at: string | null
+}
+
+type StaleScriptRow = {
+  approved_at: string | null
+  category: string | null
+  created_at: string
+  id: string
+  status: string
+  subtype: string | null
+  updated_at: string | null
+}
+
+type RefundFailureRow = {
+  created_at: string
+  id: string
+  intake_id: string | null
+  refund_reason: string | null
+  updated_at: string | null
+}
+
+type StripeDlqRow = {
+  created_at: string
+  event_type: string | null
+  id: string
+}
+
+interface RowRead<T> {
+  data: T[]
+  queryFailure: string | null
+  totalCount: number
+}
+
+async function readRows<T>(
+  label: string,
+  query: PromiseLike<{ count: number | null; data: T[] | null; error: unknown }>,
+): Promise<RowRead<T>> {
+  try {
+    const result = await query
+    return result.error
+      ? { data: [], queryFailure: label, totalCount: 0 }
+      : result.count === null
+        ? { data: result.data ?? [], queryFailure: `${label} count`, totalCount: 0 }
+        : { data: result.data ?? [], queryFailure: null, totalCount: result.count }
+  } catch {
+    return { data: [], queryFailure: label, totalCount: 0 }
+  }
 }
 
 function metadataString(metadata: Record<string, unknown> | null, key: string): string | null {
@@ -47,328 +95,176 @@ function isNonActionableParchmentSandboxError(row: AuditRow): boolean {
   if (row.action !== "webhook_failed") return false
   if (metadataString(row.metadata, "eventType") !== "parchment:prescription.created") return false
   const error = metadataString(row.metadata, "error")
-  // no_awaiting_script_intake: real patient, prescription written outside an active InstantMed intake
-  if (error === "no_awaiting_script_intake") return true
-  // patient_not_found = no InstantMed profile matched the webhook by construction.
-  // The same Parchment login is used for the doctor's non-InstantMed prescribing,
-  // so every patient_not_found is an external script, not an InstantMed delivery
-  // failure (live-verified: 0/132 matched any InstantMed patient). Exclude them all
-  // from the prescription_delivery counter + recent feed. The durable audit row is
-  // still written; the genuinely-actionable reasons (prescription_sync_failed,
-  // prescriber_not_linked, script_completion_failed) involve a matched patient and
-  // are kept.
-  if (error === "patient_not_found") return true
-  return false
-}
-
-// Counter buckets that merge two source categories (Payment = checkout +
-// refund_failures, Parchment unsynced = prescription_delivery + stale_scripts)
-// must not show a sub-count in the helper line. The big number is the story;
-// the click-through to the ledger or workshop shows the split. Showing one
-// sub-count makes the operator wonder what the other rows are.
-function helperTextForPayment(count: number): string {
-  if (count === 0) return "All clear"
-  return `${count} to resolve`
-}
-
-function helperTextForParchment({
-  scriptHandoffs,
-  webhookFailures,
-}: {
-  scriptHandoffs: number
-  webhookFailures: number
-}): string {
-  const parts: string[] = []
-  if (scriptHandoffs > 0) {
-    parts.push(`${scriptHandoffs} script handoff${scriptHandoffs === 1 ? "" : "s"}`)
-  }
-  if (webhookFailures > 0) {
-    parts.push(`${webhookFailures} webhook${webhookFailures === 1 ? "" : "s"}`)
-  }
-  return parts.length > 0 ? parts.join(", ") : "All clear"
-}
-
-function helperTextForIdentity(count: number): string {
-  if (count === 0) return "All ready"
-  return `${count} blocked request${count === 1 ? "" : "s"}`
-}
-
-function helperTextForWebhook(count: number): string {
-  if (count === 0) return "All clear"
-  return "Action needed"
-}
-
-// Failed server-side Google Ads conversion uploads in the last 7d: these are
-// paid orders whose conversion never reached Google, so Smart Bidding optimises
-// blind on wasted spend until the conversion-action env is fixed (the May–Jun
-// 2026 NO_CONVERSION_ACTION_FOUND outage). queryFailed surfaces as a warning so
-// a broken health read is never silently green.
-function helperTextForGoogleAds(notReaching: number, queryFailed: boolean): string {
-  if (queryFailed) return "Health check unavailable"
-  if (notReaching === 0) return "All reaching Google"
-  return `${notReaching} not reaching Google`
+  return error === "no_awaiting_script_intake" || error === "patient_not_found"
 }
 
 export default async function OpsDashboardPage() {
   const auth = await requireRole(["admin", "support"])
-  // Only admins can open /admin/analytics (the full Google Ads health panel);
-  // support staff are kept out of analytics, so route them to a page they can
-  // actually use instead of a 403.
   const isAdmin = hasAdminAccess(auth.profile)
-
   const supabase = createServiceRoleClient()
   const now = new Date()
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-  const fortyEightHrsAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000)
+  const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000)
 
   const [
-    webhookDlqResult,
-    emailFailuresResult,
-    checkoutFailuresResult,
-    certificateFailuresResult,
-    prescriptionWebhookFailuresResult,
-    staleScriptIntakesResult,
-    staleApprovedPrescriptionIntakesResult,
-    staleApprovedConsultScriptIntakesResult,
-    refundFailuresResult,
-    prescribingIdentityResult,
-    operationalInvariants,
+    webhookDlq,
+    emailFailures,
+    checkoutFailures,
+    prescriptionWebhookFailures,
+    staleScriptIntakes,
+    staleApprovedPrescriptionIntakes,
+    staleApprovedConsultScriptIntakes,
+    refundFailures,
+    identity,
+    invariants,
     googleAdsConversionHealth,
-    certificateDeliveryRescue,
+    certificateDelivery,
   ] = await Promise.all([
-    supabase
+    readRows<StripeDlqRow>("Stripe webhook DLQ", supabase
       .from("stripe_webhook_dead_letter")
-      .select("id, created_at, event_type")
+      .select("id, created_at, event_type", { count: "exact" })
       .is("resolved_at", null)
       .order("created_at", { ascending: false })
-      .limit(20)
-      .then((r) => (r.error ? { data: [] } : r)),
-    supabase
+      .limit(20)),
+    readRows<EmailFailureRow>("email delivery", supabase
       .from("email_outbox")
-      .select("id, email_type, status, error_message, delivery_status, created_at")
+      .select("id, email_type, status, error_message, delivery_status, created_at", { count: "exact" })
       .or("status.eq.failed,delivery_status.eq.bounced,delivery_status.eq.complained")
       .gte("created_at", weekAgo.toISOString())
       .order("created_at", { ascending: false })
-      .limit(50)
-      .then((r) => (r.error ? { data: [] } : r)),
-    supabase
+      .limit(50)),
+    readRows<CheckoutFailureRow>("checkout failures", supabase
       .from("intakes")
-      .select("id, created_at, updated_at, category, subtype, checkout_error")
+      .select("id, created_at, updated_at, category, subtype, checkout_error", { count: "exact" })
       .eq("status", "checkout_failed")
-      .gte("updated_at", weekAgo.toISOString())
       .order("updated_at", { ascending: false })
-      .limit(20)
-      .then((r) => (r.error ? { data: [] } : r)),
-    supabase
-      .from("issued_certificates")
-      .select("id, intake_id, updated_at, email_failed_at, email_failure_reason")
-      .not("email_failed_at", "is", null)
-      .gte("email_failed_at", weekAgo.toISOString())
-      .order("email_failed_at", { ascending: false })
-      .limit(20)
-      .then((r) => (r.error ? { data: [] } : r)),
-    supabase
+      .limit(20)),
+    readRows<AuditRow>("Parchment webhooks", supabase
       .from("audit_logs")
-      .select("id, action, created_at, metadata")
+      .select("id, action, created_at, metadata", { count: "exact" })
       .eq("action", "webhook_failed")
       .gte("created_at", weekAgo.toISOString())
-      // Exclude Parchment's own sandbox sentinel at DB level so it can't exhaust
-      // the 50-row cap and hide real actionable failures.
+      .contains("metadata", { eventType: "parchment:prescription.created" })
+      .not("metadata", "cs", JSON.stringify({ error: "no_awaiting_script_intake" }))
+      .not("metadata", "cs", JSON.stringify({ error: "patient_not_found" }))
       .not("metadata", "cs", JSON.stringify({ parchment_patient_id: "nonexistent-parchment-patient" }))
       .order("created_at", { ascending: false })
-      .limit(50)
-      .then((r) => (r.error ? { data: [] } : r)),
-    supabase
+      .limit(50)),
+    readRows<StaleScriptRow>("stale script handoffs", supabase
       .from("intakes")
-      .select("id, created_at, updated_at, approved_at, category, subtype, status")
+      .select("id, created_at, updated_at, approved_at, category, subtype, status", { count: "exact" })
       .eq("status", "awaiting_script")
       .eq("payment_status", "paid")
-      .lt("updated_at", fortyEightHrsAgo.toISOString())
+      .lt("updated_at", fortyEightHoursAgo.toISOString())
       .order("updated_at", { ascending: true })
-      .limit(20)
-      .then((r) => (r.error ? { data: [] } : r)),
-    supabase
+      .limit(20)),
+    readRows<StaleScriptRow>("approved prescription handoffs", supabase
       .from("intakes")
-      .select("id, created_at, updated_at, approved_at, category, subtype, status")
+      .select("id, created_at, updated_at, approved_at, category, subtype, status", { count: "exact" })
       .eq("status", "approved")
       .eq("payment_status", "paid")
       .eq("script_sent", false)
       .is("parchment_reference", null)
       .eq("category", "prescription")
-      .lt("approved_at", fortyEightHrsAgo.toISOString())
+      .lt("approved_at", fortyEightHoursAgo.toISOString())
       .order("approved_at", { ascending: true })
-      .limit(20)
-      .then((r) => (r.error ? { data: [] } : r)),
-    supabase
+      .limit(20)),
+    readRows<StaleScriptRow>("approved consult script handoffs", supabase
       .from("intakes")
-      .select("id, created_at, updated_at, approved_at, category, subtype, status")
+      .select("id, created_at, updated_at, approved_at, category, subtype, status", { count: "exact" })
       .eq("status", "approved")
       .eq("payment_status", "paid")
       .eq("script_sent", false)
       .is("parchment_reference", null)
       .eq("category", "consult")
       .in("subtype", [...PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES])
-      .lt("approved_at", fortyEightHrsAgo.toISOString())
+      .lt("approved_at", fortyEightHoursAgo.toISOString())
       .order("approved_at", { ascending: true })
-      .limit(20)
-      .then((r) => (r.error ? { data: [] } : r)),
-    supabase
+      .limit(20)),
+    readRows<RefundFailureRow>("refund failures", supabase
       .from("payments")
-      .select("id, intake_id, created_at, updated_at, refund_reason")
+      .select("id, intake_id, created_at, updated_at, refund_reason", { count: "exact" })
       .eq("refund_status", "failed")
       .order("updated_at", { ascending: false })
-      .limit(20)
-      .then((r) => (r.error ? { data: [] } : r)),
-    getPrescribingIdentityBlockerReport(supabase),
-    getOperationalInvariants(supabase),
-    getGoogleAdsConversionUploadHealth(supabase, { lookbackDays: 7 }),
-    getCertificateDeliveryRescueCases(supabase, { days: 14, limit: 12 }),
+      .limit(20)),
+    getPrescribingIdentityBlockerReport(supabase).catch(() => ({
+      ...buildPrescribingIdentityBlockerReport([]),
+      queryFailed: true,
+    })),
+    getOperationalInvariants(supabase).catch(() => ({
+      approvedCertificateMissingRecord: 0,
+      certificateSentMissingTimestamp: 0,
+      certRefundOrphans: 0,
+      paidButCancelled: 0,
+      queryFailures: ["sla_breach_backlog" as const],
+      refundRecordAnomalies: 0,
+      slaBreachBacklog: 0,
+    })),
+    getGoogleAdsConversionUploadHealth(supabase, { lookbackDays: 7 }).catch(() => ({
+      notReaching: 0,
+      queryFailed: true,
+    })),
+    getCertificateDeliveryRescueCases(supabase, { days: 14, limit: 20 }).catch(() => ({
+      actionCount: 0,
+      cases: [],
+      queryFailed: true,
+      warningCount: 0,
+    })),
   ])
 
-  const prescriptionWebhookFailures = (
-    (prescriptionWebhookFailuresResult.data || []) as AuditRow[]
-  )
+  const actionableParchmentFailures = prescriptionWebhookFailures.data
     .filter((row) => !isNonActionableParchmentSandboxError(row))
-    .filter(
-      (row) => metadataString(row.metadata, "eventType") === "parchment:prescription.created",
-    )
-
-  const staleScriptIntakes = [
-    ...(staleScriptIntakesResult.data || []),
-    ...(staleApprovedPrescriptionIntakesResult.data || []),
-    ...(staleApprovedConsultScriptIntakesResult.data || []),
-  ]
-
+    .filter((row) => metadataString(row.metadata, "eventType") === "parchment:prescription.created")
+  const nonCertificateEmailFailures = filterQuietCronOwnedEmailFailures(emailFailures.data)
+    .filter((row) => row.email_type !== "med_cert_patient")
+    .slice(0, 20)
   const failureOverview = buildOperationalFailureOverview({
-    stripeDlq: webhookDlqResult.data || [],
-    emailFailures: filterQuietCronOwnedEmailFailures(emailFailuresResult.data || []).slice(0, 20),
-    checkoutFailures: checkoutFailuresResult.data || [],
-    certificateFailures: certificateFailuresResult.data || [],
+    certificateFailures: [],
+    checkoutFailures: checkoutFailures.data,
+    emailFailures: nonCertificateEmailFailures,
+    prescriptionWebhookFailures: actionableParchmentFailures,
+    refundFailures: refundFailures.data,
+    staleScriptIntakes: [
+      ...staleScriptIntakes.data,
+      ...staleApprovedPrescriptionIntakes.data,
+      ...staleApprovedConsultScriptIntakes.data,
+    ],
+    stripeDlq: webhookDlq.data,
+    exactCounts: {
+      checkout: checkoutFailures.totalCount,
+      prescription_delivery: prescriptionWebhookFailures.totalCount,
+      refund_failures: refundFailures.totalCount,
+      stale_scripts:
+        staleScriptIntakes.totalCount
+        + staleApprovedPrescriptionIntakes.totalCount
+        + staleApprovedConsultScriptIntakes.totalCount,
+      stripe_webhooks: webhookDlq.totalCount,
+    },
+  })
+  const boundedEmailDetailWasCapped = emailFailures.totalCount > emailFailures.data.length
+  const sourceQueryFailures = [
+    webhookDlq,
+    emailFailures,
+    checkoutFailures,
     prescriptionWebhookFailures,
     staleScriptIntakes,
-    refundFailures: refundFailuresResult.data || [],
+    staleApprovedPrescriptionIntakes,
+    staleApprovedConsultScriptIntakes,
+    refundFailures,
+  ].flatMap(({ queryFailure }) => queryFailure ? [queryFailure] : [])
+  if (boundedEmailDetailWasCapped) {
+    sourceQueryFailures.push("email delivery monitor detail cap")
+  }
+  const model = buildOpsActionModel({
+    certificateDelivery,
+    failureOverview,
+    googleAdsConversionHealth,
+    identity,
+    invariants,
+    isAdmin,
+    now,
+    sourceQueryFailures,
   })
 
-  const countByCategory = new Map(failureOverview.categories.map((c) => [c.id, c.count]))
-  const checkoutCount = countByCategory.get("checkout") ?? 0
-  const refundFailedCount = countByCategory.get("refund_failures") ?? 0
-  const paymentFailuresCount = checkoutCount + refundFailedCount
-  const webhookDlqCount = countByCategory.get("stripe_webhooks") ?? 0
-  const prescriptionCount = countByCategory.get("prescription_delivery") ?? 0
-  const staleScriptCount = countByCategory.get("stale_scripts") ?? 0
-  const parchmentUnsyncedCount = prescriptionCount + staleScriptCount
-  const missingIdentityCount = prescribingIdentityResult.blockedCount
-
-  const counters: OpsDashboardClientProps["counters"] = {
-    paymentFailures: {
-      count: paymentFailuresCount,
-      tone: paymentFailuresCount > 0 ? "critical" : "neutral",
-      helperText: helperTextForPayment(paymentFailuresCount),
-      href: buildStaffLedgerHref({ chips: ["failed_payment", "refund_failed"] }),
-    },
-    webhookDlq: {
-      count: webhookDlqCount,
-      tone: webhookDlqCount > 0 ? "critical" : "neutral",
-      helperText: helperTextForWebhook(webhookDlqCount),
-      href: ADMIN_WEBHOOK_DLQ_HREF,
-    },
-    parchmentUnsynced: {
-      count: parchmentUnsyncedCount,
-      tone: parchmentUnsyncedCount > 0 ? "warning" : "neutral",
-      helperText: helperTextForParchment({
-        scriptHandoffs: staleScriptCount,
-        webhookFailures: prescriptionCount,
-      }),
-      href: ADMIN_PARCHMENT_OPS_HREF,
-    },
-    missingIdentity: {
-      count: missingIdentityCount,
-      tone: missingIdentityCount > 0 ? "warning" : "neutral",
-      helperText: helperTextForIdentity(missingIdentityCount),
-      href: ADMIN_PRESCRIBING_IDENTITY_HREF,
-    },
-    googleAdsConversions: {
-      count: googleAdsConversionHealth.notReaching,
-      tone: googleAdsConversionHealth.notReaching > 0
-        ? "critical"
-        : googleAdsConversionHealth.queryFailed
-          ? "warning"
-          : "neutral",
-      helperText: helperTextForGoogleAds(
-        googleAdsConversionHealth.notReaching,
-        googleAdsConversionHealth.queryFailed,
-      ),
-      href: isAdmin ? STAFF_ANALYTICS_HREF : STAFF_OPS_HREF,
-    },
-  }
-
-  const invariants: OpsDashboardClientProps["invariants"] = {
-    slaBreachBacklog: {
-      count: operationalInvariants.slaBreachBacklog,
-      tone: invariantTone(operationalInvariants.slaBreachBacklog, SLA_BREACH_CRITICAL),
-      helperText: slaBacklogHelper(operationalInvariants.slaBreachBacklog),
-      href: buildStaffLedgerHref({}),
-    },
-    paidButCancelled: {
-      count: operationalInvariants.paidButCancelled ?? 0,
-      tone: invariantTone(operationalInvariants.paidButCancelled ?? 0, 1),
-      helperText: paidButCancelledHelper(operationalInvariants.paidButCancelled ?? 0),
-      href: buildStaffLedgerHref({ status: "cancelled" }),
-    },
-    certRefundOrphans: {
-      count: operationalInvariants.certRefundOrphans,
-      tone: invariantTone(operationalInvariants.certRefundOrphans, 1),
-      helperText: certOrphanHelper(operationalInvariants.certRefundOrphans),
-      href: buildStaffLedgerHref({ chips: ["refunded"] }),
-    },
-    refundRecordAnomalies: {
-      count: operationalInvariants.refundRecordAnomalies,
-      tone: invariantTone(operationalInvariants.refundRecordAnomalies, Number.POSITIVE_INFINITY),
-      helperText: refundAnomalyHelper(operationalInvariants.refundRecordAnomalies),
-      href: buildStaffLedgerHref({ chips: ["refunded"] }),
-    },
-    certificateSentMissingTimestamp: {
-      count: operationalInvariants.certificateSentMissingTimestamp ?? 0,
-      tone: invariantTone(operationalInvariants.certificateSentMissingTimestamp ?? 0, Number.POSITIVE_INFINITY),
-      helperText: certificateSentMissingTimestampHelper(
-        operationalInvariants.certificateSentMissingTimestamp ?? 0,
-      ),
-      href: `${STAFF_OPS_HREF}#certificate-delivery-rescue`,
-    },
-    approvedCertificateMissingRecord: {
-      count: operationalInvariants.approvedCertificateMissingRecord ?? 0,
-      tone: invariantTone(operationalInvariants.approvedCertificateMissingRecord ?? 0, 1),
-      helperText: approvedCertificateMissingRecordHelper(
-        operationalInvariants.approvedCertificateMissingRecord ?? 0,
-      ),
-      href: `${STAFF_OPS_HREF}#certificate-delivery-rescue`,
-    },
-    queryFailures: {
-      count: operationalInvariants.queryFailures?.length ?? 0,
-      tone: (operationalInvariants.queryFailures?.length ?? 0) > 0 ? "critical" : "neutral",
-      helperText: (operationalInvariants.queryFailures?.length ?? 0) > 0 ? "Alert emitted" : "All queries healthy",
-      href: STAFF_OPS_HREF,
-    },
-  }
-
-  const recoveries: OpsDashboardClientProps["recoveries"] = failureOverview.recent
-    .slice(0, 10)
-    .map((item) => ({
-      id: item.id,
-      title: item.title,
-      detail: item.detail,
-      occurredAt: item.occurredAt,
-      severity: item.severity,
-      href: item.href,
-    }))
-
-  return (
-    <OpsDashboardClient
-      counters={counters}
-      invariants={invariants}
-      recoveries={recoveries}
-      certificateDelivery={certificateDeliveryRescue}
-      canOpenEmailHub={isAdmin}
-    />
-  )
+  return <OpsDashboardClient model={model} />
 }

@@ -26,10 +26,16 @@ function firstRelated<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value
 }
 
-function collectRows(result: PromiseSettledResult<{ data: unknown[] | null; error: { message?: string; code?: string } | null }>, source: string): unknown[] {
+function collectRows(
+  result: PromiseSettledResult<{
+    data: unknown[] | null
+    error: { message?: string; code?: string } | null
+  }>,
+  source: string,
+): { rows: unknown[]; degraded: boolean } {
   if (result.status === "rejected") {
     log.warn("Doctor patient-access query rejected", { source }, result.reason)
-    return []
+    return { rows: [], degraded: true }
   }
   if (result.value.error) {
     log.warn("Doctor patient-access query failed", {
@@ -37,21 +43,26 @@ function collectRows(result: PromiseSettledResult<{ data: unknown[] | null; erro
       code: result.value.error.code,
       message: result.value.error.message,
     })
-    return []
+    return { rows: [], degraded: true }
   }
-  return result.value.data ?? []
+  return { rows: result.value.data ?? [], degraded: false }
+}
+
+export interface DoctorAccessiblePatientScope {
+  ids: Set<string>
+  degraded: boolean
 }
 
 /**
  * Returns the patient ids a non-admin doctor has a concrete clinical
  * relationship with. This deliberately excludes the global unclaimed queue.
  */
-export async function getDoctorAccessiblePatientIds(
+export async function getDoctorAccessiblePatientScope(
   doctorId: string,
   supabase: ServiceRoleClient = createServiceRoleClient(),
-): Promise<Set<string>> {
+): Promise<DoctorAccessiblePatientScope> {
   const ids = new Set<string>()
-  if (!doctorId) return ids
+  if (!doctorId) return { ids, degraded: false }
 
   const doctorFilter = `claimed_by.eq.${doctorId},reviewing_doctor_id.eq.${doctorId},reviewed_by.eq.${doctorId}`
 
@@ -79,23 +90,42 @@ export async function getDoctorAccessiblePatientIds(
       .limit(5000),
   ])
 
-  for (const row of collectRows(intakesResult, "intakes") as PatientIdRow[]) {
+  const intakeRows = collectRows(intakesResult, "intakes")
+  const scriptTaskRows = collectRows(scriptTasksResult, "script_tasks")
+  const certificateRows = collectRows(certificatesResult, "issued_certificates")
+  const noteRows = collectRows(notesResult, "patient_notes")
+
+  for (const row of intakeRows.rows as PatientIdRow[]) {
     addPatientId(ids, row.patient_id)
   }
 
-  for (const row of collectRows(scriptTasksResult, "script_tasks") as ScriptTaskPatientRow[]) {
+  for (const row of scriptTaskRows.rows as ScriptTaskPatientRow[]) {
     addPatientId(ids, firstRelated(row.intake)?.patient_id)
   }
 
-  for (const row of collectRows(certificatesResult, "issued_certificates") as PatientIdRow[]) {
+  for (const row of certificateRows.rows as PatientIdRow[]) {
     addPatientId(ids, row.patient_id)
   }
 
-  for (const row of collectRows(notesResult, "patient_notes") as PatientIdRow[]) {
+  for (const row of noteRows.rows as PatientIdRow[]) {
     addPatientId(ids, row.patient_id)
   }
 
-  return ids
+  return {
+    ids,
+    degraded:
+      intakeRows.degraded ||
+      scriptTaskRows.degraded ||
+      certificateRows.degraded ||
+      noteRows.degraded,
+  }
+}
+
+export async function getDoctorAccessiblePatientIds(
+  doctorId: string,
+  supabase: ServiceRoleClient = createServiceRoleClient(),
+): Promise<Set<string>> {
+  return (await getDoctorAccessiblePatientScope(doctorId, supabase)).ids
 }
 
 export async function doctorCanAccessPatient(
@@ -106,7 +136,8 @@ export async function doctorCanAccessPatient(
   const requestedIds = new Set(Array.isArray(patientIds) ? patientIds : [patientIds])
   if (!doctorId || requestedIds.size === 0) return false
 
-  const accessibleIds = await getDoctorAccessiblePatientIds(doctorId, supabase)
+  const { ids: accessibleIds, degraded } = await getDoctorAccessiblePatientScope(doctorId, supabase)
+  if (degraded) return false
   for (const patientId of requestedIds) {
     if (accessibleIds.has(patientId)) return true
   }

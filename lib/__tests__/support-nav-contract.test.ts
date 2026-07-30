@@ -56,15 +56,15 @@ describe("support nav contract", () => {
       "Dashboard",
       "Ledger",
       "Patients",
-      "Overview",
-      "Ops",
+      "Business",
+      "Operations",
       "Setup",
     ])
     expect(doctorLabels).toEqual(["Queue", "Patients", "Identity"])
     expect(doctorLabels).not.toContain("Ledger")
-    expect(doctorLabels).not.toContain("Overview")
+    expect(doctorLabels).not.toContain("Business")
     expect(doctorLabels).not.toContain("Payments")
-    expect(doctorLabels).not.toContain("Ops")
+    expect(doctorLabels).not.toContain("Operations")
     expect(doctorLabels).not.toContain("Settings")
   })
 
@@ -148,6 +148,16 @@ describe("support nav contract", () => {
     expect(identitySource).toContain("isSupportOnly")
     expect(parchmentSource).toContain("isSupportOnly")
     expect(parchmentSource).toContain("Support view")
+  })
+
+  it("selects the support-safe ledger read model before data reaches the client", () => {
+    const ledgerPageSource = readFileSync(join(root, "app/admin/intakes/page.tsx"), "utf8")
+    const ledgerQuerySource = readFileSync(join(root, "lib/data/intakes/queries.ts"), "utf8")
+
+    expect(ledgerPageSource).toContain("viewerRole: profile.role")
+    expect(ledgerQuerySource).toContain("SUPPORT_LEDGER_SELECT")
+    expect(ledgerQuerySource).toContain('options.viewerRole === "support"')
+    expect(ledgerQuerySource).toContain("projectSupportLedgerPatient")
   })
 
   it("does not ship a global patient/intake palette search endpoint", () => {

@@ -89,18 +89,22 @@ export interface OperationalFailureOverviewInput {
   prescriptionWebhookFailures: AuditFailureRow[]
   staleScriptIntakes: StaleScriptIntakeRow[]
   refundFailures: RefundFailureRow[]
+  /** Exact totals from the source query, before the detail list is capped. */
+  exactCounts?: Partial<Record<OperationalFailureCategoryId, number>>
 }
 
+type OperationalFailureCategoryId =
+  | "stripe_webhooks"
+  | "email_delivery"
+  | "checkout"
+  | "incomplete_requests"
+  | "certificate_delivery"
+  | "prescription_delivery"
+  | "stale_scripts"
+  | "refund_failures"
+
 export interface OperationalFailureCategory {
-  id:
-    | "stripe_webhooks"
-    | "email_delivery"
-    | "checkout"
-    | "incomplete_requests"
-    | "certificate_delivery"
-    | "prescription_delivery"
-    | "stale_scripts"
-    | "refund_failures"
+  id: OperationalFailureCategoryId
   label: string
   count: number
   href: string
@@ -147,11 +151,15 @@ function checkoutFailureDetail(row: CheckoutFailureRow): string {
 
 export function buildOperationalFailureOverview(input: OperationalFailureOverviewInput): OperationalFailureOverview {
   const incompleteRequests = input.incompleteRequests ?? []
+  const count = (id: OperationalFailureCategoryId, fallback: number) => {
+    const exact = input.exactCounts?.[id]
+    return typeof exact === "number" && Number.isFinite(exact) && exact >= 0 ? exact : fallback
+  }
   const categories: OperationalFailureCategory[] = [
     {
       id: "stripe_webhooks",
       label: "Payment webhooks",
-      count: input.stripeDlq.length,
+      count: count("stripe_webhooks", input.stripeDlq.length),
       href: ADMIN_WEBHOOK_DLQ_HREF,
       severity: "critical",
       emptyLabel: "No open payment webhook failures",
@@ -159,7 +167,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
     {
       id: "email_delivery",
       label: "Email delivery",
-      count: input.emailFailures.length,
+      count: count("email_delivery", input.emailFailures.length),
       href: STAFF_EMAILS_HREF,
       severity: "warning",
       emptyLabel: "No failed or bounced emails",
@@ -167,7 +175,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
     {
       id: "checkout",
       label: "Checkout",
-      count: input.checkoutFailures.length,
+      count: count("checkout", input.checkoutFailures.length),
       href: STAFF_LEDGER_HREF,
       severity: "critical",
       emptyLabel: "No failed checkout sessions",
@@ -175,7 +183,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
     {
       id: "incomplete_requests",
       label: "Incomplete requests",
-      count: incompleteRequests.length,
+      count: count("incomplete_requests", incompleteRequests.length),
       href: STAFF_LEDGER_HREF,
       severity: "warning",
       emptyLabel: "No abandoned checkout requests",
@@ -183,7 +191,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
     {
       id: "certificate_delivery",
       label: "Medical certificates",
-      count: input.certificateFailures.length,
+      count: count("certificate_delivery", input.certificateFailures.length),
       href: buildStaffLedgerHref({ status: "approved" }),
       severity: "critical",
       emptyLabel: "No certificate send failures",
@@ -191,7 +199,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
     {
       id: "prescription_delivery",
       label: "Prescription delivery",
-      count: input.prescriptionWebhookFailures.length,
+      count: count("prescription_delivery", input.prescriptionWebhookFailures.length),
       href: ADMIN_PARCHMENT_OPS_HREF,
       severity: "critical",
       emptyLabel: "No prescription webhook failures",
@@ -199,7 +207,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
     {
       id: "stale_scripts",
       label: "Scripts waiting",
-      count: input.staleScriptIntakes.length,
+      count: count("stale_scripts", input.staleScriptIntakes.length),
       href: ADMIN_STALE_INTAKES_HREF,
       severity: "warning",
       emptyLabel: "No stale script tasks",
@@ -207,7 +215,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
     {
       id: "refund_failures",
       label: "Refund failures",
-      count: input.refundFailures.length,
+      count: count("refund_failures", input.refundFailures.length),
       href: `${ADMIN_REFUNDS_HREF}?status=failed`,
       severity: "critical",
       emptyLabel: "No failed refunds",

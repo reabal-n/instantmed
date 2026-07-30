@@ -39,7 +39,7 @@ interface AdminSidebarProps {
  * pane needs more width.
  */
 
-const ACTIVE_NAV = "border border-primary/15 bg-primary/[0.08] text-primary shadow-sm shadow-primary/[0.04]"
+const ACTIVE_NAV = "border border-primary/15 bg-primary/[0.08] text-blue-700 shadow-sm shadow-primary/[0.04] dark:text-primary"
 const INACTIVE_NAV = "border border-transparent text-slate-600 hover:border-border/45 hover:bg-white/65 hover:text-foreground dark:text-muted-foreground dark:hover:bg-white/[0.06]"
 const STAFF_SIDEBAR_EXPANDED_STORAGE_KEY = "instantmed.staff.sidebar.expanded"
 

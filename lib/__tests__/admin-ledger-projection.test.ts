@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest"
 import {
   ADMIN_LEDGER_SELECT,
   projectAdminLedgerPatient,
+  projectSupportLedgerPatient,
+  SUPPORT_LEDGER_SELECT,
 } from "@/lib/data/intakes/admin-ledger-projection"
 
 describe("admin ledger projection", () => {
@@ -71,6 +73,40 @@ describe("admin ledger projection", () => {
       phone: "0400000000",
       suburb: "Sydney",
       state: "NSW",
+    })
+  })
+
+  it("keeps the support query free of clinical answers and contact payloads", () => {
+    const projection = SUPPORT_LEDGER_SELECT.replace(/\s+/g, " ")
+
+    for (const forbiddenField of [
+      "answers",
+      "answers_encrypted",
+      "risk_flags",
+      "heard_about_us",
+      "gclid",
+      "email",
+      "phone",
+      "phone_encrypted",
+      "suburb",
+    ]) {
+      expect(projection).not.toMatch(new RegExp(`\\b${forbiddenField}\\b`))
+    }
+    expect(projection).not.toMatch(/(?:^|,)\s*patient_id\s*,/)
+  })
+
+  it("serializes only a masked identity for support", () => {
+    const patient = projectSupportLedgerPatient({
+      id: "patient-id",
+      full_name: "Example Patient",
+      email: "patient@example.test",
+      phone: "0400000000",
+      suburb: "Sydney",
+      state: "NSW",
+    })
+
+    expect(patient).toEqual({
+      full_name: "E. P.",
     })
   })
 })

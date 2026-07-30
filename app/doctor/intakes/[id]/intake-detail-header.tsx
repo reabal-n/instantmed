@@ -17,6 +17,7 @@ import Link from "next/link"
 import { type ReactNode } from "react"
 
 import { CertHealthChip, type CertificatePreviewData, CertificatePreviewDialog, PdfViewerDialog } from "@/components/doctor"
+import { IntakeRefundDialog } from "@/components/doctor/intake-refund-dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,7 +61,6 @@ import { formatIntakeStatus } from "@/lib/format/intake"
 import type { DeclineReasonCode, IntakeStatus, IntakeWithDetails } from "@/types/db"
 
 import { formatAutoApprovalReason } from "./intake-helpers"
-import { IntakeRefundDialog } from "./intake-refund-dialog"
 import type { IntakeDialogState } from "./use-intake-dialogs"
 
 interface PendingCorrection {

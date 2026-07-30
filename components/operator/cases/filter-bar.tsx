@@ -27,6 +27,7 @@ type FilterBarProps = {
   rightSlot?: React.ReactNode
   className?: string
   totalLabel?: string
+  searchInputRef?: React.Ref<HTMLInputElement>
 }
 
 /**
@@ -45,6 +46,7 @@ export function FilterBar({
   onDensityChange,
   rightSlot,
   totalLabel,
+  searchInputRef,
   className,
 }: FilterBarProps) {
   return (
@@ -56,6 +58,7 @@ export function FilterBar({
             aria-hidden="true"
           />
           <Input
+            ref={searchInputRef}
             type="search"
             value={searchValue}
             onChange={(e) => onSearchChange(e.currentTarget.value)}

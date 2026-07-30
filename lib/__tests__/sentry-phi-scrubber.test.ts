@@ -1,10 +1,23 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import { describe, expect, it } from "vitest"
 
 import {
   scrubPHIFromObject,
   scrubSentryBreadcrumb,
   scrubSentryEvent,
+  scrubSentryLog,
+  scrubSentrySpan,
+  scrubSentryTransaction,
 } from "@/lib/observability/scrub-phi"
+
+function createSentryFormattedLogMessage(value: string) {
+  return Object.assign(Object(`Queue search for ${value}`), {
+    __sentry_template_string__: "Queue search for %s",
+    __sentry_template_values__: [value],
+  })
+}
 
 describe("Sentry PHI scrubber", () => {
   it("redacts PHI-shaped keys, not just PHI-looking values", () => {
@@ -32,6 +45,9 @@ describe("Sentry PHI scrubber", () => {
         ],
       },
       request: {
+        cookies: {
+          "__Host-auth": "session-cookie-secret",
+        },
         headers: {
           Authorization: "Bearer secret",
           Cookie: "session=secret",
@@ -66,6 +82,7 @@ describe("Sentry PHI scrubber", () => {
     const serialized = JSON.stringify(event)
 
     expect(serialized).not.toContain("secret")
+    expect(serialized).not.toContain("session-cookie-secret")
     expect(serialized).not.toContain("patient@example.test")
     expect(serialized).not.toContain("0400000000")
     expect(serialized).not.toContain("1990-01-01")
@@ -77,6 +94,7 @@ describe("Sentry PHI scrubber", () => {
     expect(event.message).toBe("Email bounce for [EMAIL_REDACTED]")
     expect(event.exception?.values?.[0]?.value).toContain("[ID_REDACTED]")
     expect(event.request?.headers).toEqual({ "user-agent": "Vitest" })
+    expect(event.request?.cookies).toBe("[REDACTED]")
     expect(event.tags?.service_type).toBe("certificate")
   })
 
@@ -219,5 +237,105 @@ describe("Sentry PHI scrubber", () => {
     expect(event.tags?.certificate_ref).toBe("[REDACTED]")
     expect(event.tags?.certificateNumber).toBe("[REDACTED]")
     expect(event.extra?.verificationCode).toBe("[REDACTED]")
+  })
+
+  it("redacts plain-name search terms across private requests, transactions, spans, and logs", () => {
+    const encodedName = "Jos%C3%A9+Smith"
+    const encodedJsonName = "Jos%C3%A9%20Smith"
+    const plainName = "José Smith"
+    const transaction = scrubSentryTransaction({
+      type: "transaction",
+      transaction: `/dashboard?q=${encodedName}&status=review`,
+      request: {
+        url: `https://instantmed.test/dashboard?q=${encodedName}&status=review`,
+        query_string: `q=${encodedName}&status=review`,
+        data: { query: plainName, page: 1 },
+      },
+      breadcrumbs: [{ data: { to: `/dashboard?q=${encodedName}&status=review` } }],
+      spans: [{
+        description: `POST /dashboard?q=${encodedName}`,
+        data: { searchTerm: plainName, status: "review" },
+      }],
+    })
+    const span = scrubSentrySpan({
+      description: `navigation /dashboard?q=${encodedName}`,
+      data: {
+        search_query: plainName,
+        "http.request.body": `{"query":"${plainName}","status":"review"}`,
+        encodedPayload: `%7B%22query%22%3A%22${encodedJsonName}%22%7D`,
+        status: "review",
+      },
+    })
+    const log = scrubSentryLog({
+      level: "info",
+      message: `Queue search q=${encodedName}`,
+      attributes: { q: plainName, status: "review" },
+    })
+    const parameterizedLog = scrubSentryLog({
+      level: "info",
+      // Sentry.logger.fmt returns this boxed-String shape, not a plain object.
+      message: createSentryFormattedLogMessage(plainName),
+      attributes: {
+        "sentry.message.parameter.0": plainName,
+        "user.name": plainName,
+        status: "review",
+      },
+    })
+
+    const serialized = JSON.stringify({ transaction, span, log, parameterizedLog })
+    expect(serialized).not.toContain(encodedName)
+    expect(serialized).not.toContain(encodedJsonName)
+    expect(serialized).not.toContain(plainName)
+    expect(transaction.request?.data).toBe("[REDACTED]")
+    expect(parameterizedLog.message).toBe("Queue search for %s")
+    expect(serialized).toContain("status")
+    expect(serialized).toContain("review")
+  })
+
+  it("redacts decoded search text and Sentry logentry parameters", () => {
+    const event = scrubSentryEvent({
+      message: "Queue search q=Patient Smith failed",
+      logentry: {
+        message: "Queue search for %s",
+        params: ["Patient Smith"],
+      },
+      transaction: "/dashboard?q=Patient Smith&status=review",
+    })
+
+    const serialized = JSON.stringify(event)
+    expect(serialized).not.toContain("Patient Smith")
+    expect(event.message).toBe("Queue search q=[REDACTED]")
+    expect(event.logentry?.message).toBe("Queue search for %s")
+    expect(event.logentry?.params).toEqual(["[REDACTED]"])
+  })
+
+  it("redacts search values from tuple-form Sentry query strings", () => {
+    const event = scrubSentryEvent({
+      request: {
+        url: "https://instantmed.test/dashboard?status=review",
+        query_string: [
+          ["q", "Patient Smith"],
+          ["status", "review"],
+        ],
+      },
+    })
+
+    expect(event.request?.query_string).toEqual([
+      ["q", "[REDACTED]"],
+      ["status", "review"],
+    ])
+    expect(JSON.stringify(event)).not.toContain("Patient Smith")
+  })
+
+  it("wires every Sentry payload family through the shared PHI scrubber", () => {
+    for (const file of ["instrumentation.ts", "instrumentation-client.ts"]) {
+      const source = readFileSync(join(process.cwd(), file), "utf8")
+      expect(source).toContain("beforeSendTransaction")
+      expect(source).toContain("scrubSentryTransaction")
+      expect(source).toContain("beforeSendSpan")
+      expect(source).toContain("scrubSentrySpan")
+      expect(source).toContain("beforeSendLog")
+      expect(source).toContain("scrubSentryLog")
+    }
   })
 })

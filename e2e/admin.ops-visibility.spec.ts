@@ -26,7 +26,8 @@ test.describe("Ops Navigation Visibility", () => {
     // tab strip owns those filters now.
     await expect(sidebar.getByRole("link", { name: "Review" })).toHaveCount(0)
     await expect(sidebar.getByRole("link", { name: "Scripts" })).toHaveCount(0)
-    await expect(sidebar.getByRole("link", { name: "Ops" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminOps)
+    await expect(sidebar.getByRole("link", { name: "Business" })).toHaveAttribute("href", "/admin/analytics")
+    await expect(sidebar.getByRole("link", { name: "Operations" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminOps)
     await expect(sidebar.getByRole("link", { name: "Admin Panel" })).not.toBeVisible()
     await expect(sidebar.getByRole("link", { name: "Email Suppression" })).not.toBeVisible()
   })
@@ -49,11 +50,11 @@ test.describe("Ops Navigation Visibility", () => {
     await expect(sidebar.getByRole("link", { name: "Patients" })).toBeVisible()
     await expect(sidebar.getByRole("link", { name: "Identity" })).toBeVisible()
     await expect(sidebar.getByRole("link", { name: "Ledger" })).not.toBeVisible()
-    await expect(sidebar.getByRole("link", { name: "Analytics" })).not.toBeVisible()
-    await expect(sidebar.getByRole("link", { name: "Ops" })).not.toBeVisible()
+    await expect(sidebar.getByRole("link", { name: "Business" })).not.toBeVisible()
+    await expect(sidebar.getByRole("link", { name: "Operations" })).not.toBeVisible()
   })
 
-  test("ops dashboard exposes current recovery links", async ({ page }) => {
+  test("ops dashboard exposes only unresolved work or the single all-clear", async ({ page }) => {
     const loginResult = await loginAsOperator(page)
     expect(loginResult.success).toBe(true)
 
@@ -62,10 +63,9 @@ test.describe("Ops Navigation Visibility", () => {
 
     await expect(page.getByRole("heading", { name: "Operations" })).toBeVisible({ timeout: 10000 })
 
-    const cards = page.getByRole("region", { name: "Recovery counters" }).getByTestId("counter-card")
-    await expect(cards).toHaveCount(4)
-    await expect(cards.nth(1)).toHaveAttribute("href", STAFF_TEST_ROUTES.adminWebhookDlq)
-    await expect(cards.nth(2)).toHaveAttribute("href", STAFF_TEST_ROUTES.adminOpsParchment)
-    await expect(cards.nth(3)).toHaveAttribute("href", STAFF_TEST_ROUTES.adminPrescribingIdentity)
+    const allClearCount = await page.locator("[data-ops-all-clear]").count()
+    const actionGroupCount = await page.locator("[data-ops-action-group]").count()
+    expect(allClearCount + actionGroupCount).toBeGreaterThan(0)
+    await expect(page.getByRole("region", { name: "Recovery counters" })).toHaveCount(0)
   })
 })

@@ -36,6 +36,10 @@ const analyticsPageSource = readFileSync(
   join(process.cwd(), "app/admin/analytics/page.tsx"),
   "utf8",
 )
+const opsActionModelSource = readFileSync(
+  join(process.cwd(), "lib/admin/ops-action-model.ts"),
+  "utf8",
+)
 const auditClientSource = readFileSync(
   join(process.cwd(), "app/admin/audit/audit-client.tsx"),
   "utf8",
@@ -96,6 +100,13 @@ function findAdminPageFiles(dir = join(process.cwd(), "app/admin")): string[] {
 }
 
 describe("admin navigation contract", () => {
+  it("keeps active sidebar labels above the WCAG AA contrast threshold", () => {
+    expect(sidebarSource).toContain("text-blue-700")
+    expect(sidebarSource).not.toContain(
+      'bg-primary/[0.08] text-primary shadow-sm',
+    )
+  })
+
   it("keeps settings focused on configuration instead of incident response", () => {
     const encryptionPageSource = readFileSync(
       join(process.cwd(), "app/admin/settings/encryption/page.tsx"),
@@ -153,7 +164,7 @@ describe("admin navigation contract", () => {
     )
     const labels = navLabels(operatorNavSource)
 
-    expect(labels.filter((label) => label === "Overview")).toHaveLength(1)
+    expect(labels.filter((label) => label === "Business")).toHaveLength(1)
     expect(sidebarSource).not.toContain("emailNavItems")
     expect(sidebarSource).not.toContain("analyticsNavItems")
     expect(sidebarSource).not.toContain("systemNavItems")
@@ -165,8 +176,8 @@ describe("admin navigation contract", () => {
       "Dashboard",
       "Ledger",
       "Patients",
-      "Overview",
-      "Ops",
+      "Business",
+      "Operations",
       "Setup",
     ])
     expect(operatorNavSource).not.toContain("STAFF_QUEUE_HREF")
@@ -249,17 +260,19 @@ describe("admin navigation contract", () => {
   })
 
   it("keeps patient handoff gaps on detail without bloating ledger rows", () => {
-    // Ledger surfaces stale + status state via the cockpit/cases primitives
-    // (CaseTable renders StatusDot + the isStale flag on CaseRow). Full
-    // handoff copy still lives on the intake detail decision strip, not in
-    // the ledger row, so the ledger keeps each line scannable.
-    expect(adminIntakesLedgerSource).toContain("isStale")
+    // Full handoff copy lives on the intake detail decision strip, not in the
+    // ledger row. The old updated_at >4h heuristic did not describe a real
+    // lifecycle deadline and must not return as a pseudo-exception.
+    expect(adminIntakesLedgerSource).not.toContain("isStale")
+    expect(adminIntakesLedgerSource).not.toContain("Stale > 4h")
+    expect(adminIntakesLedgerSource).not.toContain('label: "Mine"')
     expect(adminIntakesLedgerSource).toContain("CaseTable")
     expect(intakesQueriesSource).not.toContain("buildPatientHandoffSummary")
     expect(intakesQueriesSource).not.toContain("getPatientSnapshotOptionsForCase")
     expect(intakesQueriesSource).toContain("projectAdminLedgerPatient")
+    expect(intakesQueriesSource).toContain("projectSupportLedgerPatient")
+    expect(intakesQueriesSource).toContain("SUPPORT_LEDGER_SELECT")
     expect(intakesQueriesSource).toContain("answers: null")
-    expect(intakesQueriesSource).toContain("Do not return raw")
     expect(patientHandoffSource).toContain("Missing doctor handoff fields")
     expect(patientHandoffSource).toContain("Fix before review")
   })
@@ -269,10 +282,6 @@ describe("admin navigation contract", () => {
       join(process.cwd(), "app/admin/ops/ops-client.tsx"),
       "utf8",
     )
-    const opsPageSource = readFileSync(
-      join(process.cwd(), "app/admin/ops/page.tsx"),
-      "utf8",
-    )
     const opsFailuresSource = readFileSync(
       join(process.cwd(), "lib/admin/ops-failures.ts"),
       "utf8",
@@ -280,7 +289,7 @@ describe("admin navigation contract", () => {
 
     expect(opsClientSource).not.toContain('href="/doctor')
     expect(opsClientSource).not.toContain("DOCTOR_QUEUE_REVIEW_HREF")
-    expect(opsPageSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
+    expect(opsActionModelSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
     expect(opsFailuresSource).toContain("ADMIN_STALE_INTAKES_HREF")
     expect(dashboardRoutesSource).toContain('ADMIN_STALE_INTAKES_HREF = "/admin/ops/intakes-stuck"')
     expect(dashboardRoutesSource).toContain('ADMIN_PATIENT_MERGE_AUDIT_HREF = "/admin/ops/patient-merge-audit"')
@@ -300,9 +309,8 @@ describe("admin navigation contract", () => {
     expect(adminRouteSources).toContain("STAFF_PATIENTS_HREF")
     expect(adminRouteSources).toContain("buildStaffPatientHref")
     // Strip import statements before checking for /doctor/* path strings.
-    // Admin pages can legitimately import shared components from app/doctor/
-    // (e.g. IntakeRefundDialog is the canonical refund button per CLAUDE.md
-    // "Easy refund (2026-05-20)" and lives at app/doctor/intakes/[id]/).
+    // Admin pages can legitimately import shared clinical components, but
+    // route-owned app/doctor files are not a shared-component boundary.
     // The intent of this assertion is to block admin pages from NAVIGATING
     // users to /doctor/* routes, not from importing shared components.
     const adminRouteSourcesNonImport = adminRouteSources
@@ -400,10 +408,10 @@ describe("admin navigation contract", () => {
       join(process.cwd(), "app/admin/ops/parchment/page.tsx"),
       join(process.cwd(), "app/admin/ops/prescribing-identity/page.tsx"),
       join(process.cwd(), "app/admin/webhook-dlq/page.tsx"),
-      // Phase 8 (2026-05-20): the intake ledger opens to support so they can
-      // see refund state + drill into a case to issue a refund. The page
-      // shows ledger metadata only — clinical answers, Medicare details, and
-      // structured address fields are never returned by `getAllIntakesForAdmin`.
+      // The intake ledger opens to support for bounded payment-recovery
+      // actions. Support receives masked metadata and cannot navigate into the
+      // clinical review panel; answers, Medicare, contact, address, and
+      // attribution fields are never returned by `getAllIntakesForAdmin`.
       join(process.cwd(), "app/admin/intakes/page.tsx"),
     ])
 
@@ -488,11 +496,11 @@ describe("admin navigation contract", () => {
   })
 
   it("keeps analytics as a compact operator summary instead of a chart workspace", () => {
-    expect(analyticsClientSource).toContain("Revenue")
-    expect(analyticsClientSource).toContain("Where patients came from")
-    expect(analyticsClientSource).toContain("Conversion")
-    expect(analyticsClientSource).toContain("Queue health")
-    expect(analyticsClientSource).toContain("at a glance")
+    expect(analyticsClientSource).toContain("30d net retained")
+    expect(analyticsClientSource).toContain("First-order contribution")
+    expect(analyticsClientSource).toContain("Canonical 30-day start cohort")
+    expect(analyticsClientSource).toContain("Recorded acquisition")
+    expect(analyticsClientSource).toContain("Measurement checkpoints")
     expect(analyticsClientSource).not.toContain("Visits")
     expect(analyticsClientSource).not.toContain("Paid intakes")
     expect(analyticsClientSource).not.toContain("Approval rate")
@@ -503,9 +511,9 @@ describe("admin navigation contract", () => {
     expect(analyticsClientSource).not.toContain("ResponsiveContainer")
     expect(analyticsPageSource).not.toContain("dailyData")
     expect(analyticsPageSource).not.toContain("getDoctorDashboardStats")
-    // Payments folded in: keep the explicit payment-pressure label + refund access.
-    expect(analyticsClientSource).toContain("Failed checkout")
-    expect(analyticsClientSource).toContain("ADMIN_REFUNDS_HREF")
+    expect(analyticsPageSource).toContain("getLatestDeliveredAdsAgentRun")
+    expect(analyticsPageSource).not.toContain("getStripeFeeMap")
+    expect(analyticsPageSource).not.toContain("buildAdsAgentSnapshot")
   })
 
   it("keeps audit history as an ops-owned evidence surface, not a dashboard mode", () => {
@@ -576,11 +584,12 @@ describe("admin navigation contract", () => {
       "utf8",
     )
 
-    expect(opsClientSource).toContain("Payment failures")
-    expect(opsClientSource).not.toContain("Payment DLQ")
-    expect(opsClientSource).not.toContain("Recent payment DLQ events")
-    expect(opsClientSource).not.toContain("Stripe Webhooks")
-    expect(opsClientSource).not.toContain("Stripe DLQ")
+    const opsSources = `${opsClientSource}\n${opsActionModelSource}`
+    expect(opsActionModelSource).toContain('payments: { label: "Payments"')
+    expect(opsSources).not.toContain("Payment DLQ")
+    expect(opsSources).not.toContain("Recent payment DLQ events")
+    expect(opsSources).not.toContain("Stripe Webhooks")
+    expect(opsSources).not.toContain("Stripe DLQ")
     expect(opsClientSource).not.toContain("animate-pulse")
   })
 

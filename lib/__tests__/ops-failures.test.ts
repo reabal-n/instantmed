@@ -121,6 +121,31 @@ describe("operational failure overview", () => {
     expect(overview.recent).toEqual([])
   })
 
+  it("uses exact source counts instead of treating capped detail rows as the total", () => {
+    const overview = buildOperationalFailureOverview({
+      stripeDlq: [{ id: "dlq-visible", created_at: "2026-05-06T01:00:00.000Z" }],
+      emailFailures: [],
+      checkoutFailures: [{ id: "checkout-visible", created_at: "2026-05-06T02:00:00.000Z" }],
+      certificateFailures: [],
+      prescriptionWebhookFailures: [],
+      staleScriptIntakes: [{ id: "script-visible", created_at: "2026-05-06T03:00:00.000Z" }],
+      refundFailures: [{ id: "refund-visible", created_at: "2026-05-06T04:00:00.000Z" }],
+      exactCounts: {
+        stripe_webhooks: 24,
+        checkout: 31,
+        stale_scripts: 27,
+        refund_failures: 22,
+      },
+    })
+
+    expect(overview.openCount).toBe(104)
+    expect(overview.categories.find(({ id }) => id === "stripe_webhooks")?.count).toBe(24)
+    expect(overview.categories.find(({ id }) => id === "checkout")?.count).toBe(31)
+    expect(overview.categories.find(({ id }) => id === "stale_scripts")?.count).toBe(27)
+    expect(overview.categories.find(({ id }) => id === "refund_failures")?.count).toBe(22)
+    expect(overview.recent).toHaveLength(4)
+  })
+
   it.each([
     ["safety_blocked_high_stakes", "High-stakes request blocked before payment"],
     ["safety_missing_required_information", "More medical information required before payment"],

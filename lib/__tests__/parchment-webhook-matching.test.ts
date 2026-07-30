@@ -8,6 +8,7 @@ import {
 const candidates: ParchmentWebhookIntakeCandidate[] = [
   {
     id: "newest-duplicate-profile",
+    reference_number: "IM-20260430-AAAAAA",
     category: "prescription",
     subtype: null,
     claimed_by: "doctor-other",
@@ -18,6 +19,7 @@ const candidates: ParchmentWebhookIntakeCandidate[] = [
   },
   {
     id: "matching-claimed-doctor",
+    reference_number: "IM-20260430-BBBBBB",
     category: "prescription",
     subtype: null,
     claimed_by: "doctor-linked",
@@ -29,6 +31,35 @@ const candidates: ParchmentWebhookIntakeCandidate[] = [
 ]
 
 describe("selectParchmentWebhookIntake", () => {
+  it("uses an exact request correlation before the legacy patient-prescriber heuristic", () => {
+    expect(selectParchmentWebhookIntake(
+      candidates,
+      ["doctor-other", "doctor-linked"],
+      "IM-20260430-BBBBBB",
+    )?.id).toBe("matching-claimed-doctor")
+  })
+
+  it("fails closed when request correlation is present but mismatched or invalid", () => {
+    expect(selectParchmentWebhookIntake(
+      candidates,
+      ["doctor-other", "doctor-linked"],
+      "IM-20260430-CCCCCC",
+    )).toBeNull()
+    expect(selectParchmentWebhookIntake(
+      candidates,
+      ["doctor-other", "doctor-linked"],
+      null,
+    )).toBeNull()
+  })
+
+  it("still requires the correlated intake to belong to the webhook prescriber", () => {
+    expect(selectParchmentWebhookIntake(
+      candidates,
+      ["doctor-linked"],
+      "IM-20260430-AAAAAA",
+    )).toBeNull()
+  })
+
   it("does not claim the newest patient intake when it belongs to a different doctor", () => {
     expect(selectParchmentWebhookIntake(candidates, ["doctor-linked"])?.id).toBe("matching-claimed-doctor")
   })

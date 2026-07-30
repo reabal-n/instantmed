@@ -153,8 +153,8 @@ describe("doctor navigation contract", () => {
       "Identity",
       "Operations",
     ])
-    // The admin-only "Operations" extra must open the ops cockpit — pointing
-    // it at /dashboard duplicated the Queue entry (two mobile items, one page).
+    // The admin-only "Operations" shortcut stays task-specific. Canonical
+    // admin navigation remains owned by the role-aware mobile drawer.
     expect(operatorNavSource).toContain('{ href: STAFF_OPS_HREF, label: "Operations"')
     expect(mobileNavSource).toContain("isAdmin")
     expect(mobileNavSource).toContain("useSearchParams")

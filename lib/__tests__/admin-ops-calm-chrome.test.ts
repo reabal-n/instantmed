@@ -13,8 +13,6 @@ const FORBIDDEN_BG_CLASS_RE = /bg-(emerald|orange|red|amber|sky)-(50|100)(?!\d)/
 const FILES_UNDER_TEST = [
   "app/admin/ops/page.tsx",
   "app/admin/ops/ops-client.tsx",
-  "components/operator/counter-card.tsx",
-  "components/operator/cases/recovery-row.tsx",
 ] as const
 
 describe("Calm-chrome contract: /admin/ops surface", () => {

@@ -11,7 +11,8 @@ describe("future doctor scope contract", () => {
     const source = read("lib/data/patient-directory.ts")
 
     expect(source).toContain("doctorId?: string")
-    expect(source).toContain("getDoctorAccessiblePatientIds(doctorId, supabase)")
+    expect(source).toContain("getDoctorAccessiblePatientScope(doctorId, supabase)")
+    expect(source).toContain("accessibleScope?.degraded")
     expect(source).toContain('query.in("id", accessiblePatientIds)')
     expect(source).toContain("accessiblePatientIds?.length === 0")
   })

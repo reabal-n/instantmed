@@ -83,4 +83,47 @@ describe("doctor dashboard minimalism contract", () => {
     expect(source).toContain("SystemHealthPill")
     expect(source).toContain("DoctorAvailabilityToggle")
   })
+
+  it("scopes today's completed work to the signed-in clinician for every clinical role", () => {
+    const source = read("app/dashboard/page.tsx")
+    const queueClient = read("app/doctor/queue/queue-client.tsx")
+    const queueEmptyState = read("lib/doctor/queue-empty-state.ts")
+
+    expect(source).toContain("getRecentlyCompletedIntakes({ limit: 50, reviewerId: profile.id })")
+    expect(source).not.toContain("isAdmin ? getRecentlyCompletedIntakes")
+    expect(source).toContain("recentlyCompletedDegraded={recentlyCompletedResult.degraded}")
+    expect(source).toContain("recentlyCompletedTruncated={recentlyCompletedResult.truncated}")
+    expect(source).toContain("governanceReceipt={recentlyCompletedResult.governanceReceipt}")
+    expect(queueClient).toContain("recentlyCompletedDegraded")
+    expect(queueClient).toContain("recentlyCompletedTruncated")
+    expect(queueClient).toContain("governanceReceipt")
+    expect(queueEmptyState).toContain("Review history unavailable")
+    expect(queueEmptyState).toContain("Refresh before relying on this view.")
+  })
+
+  it("uses actor-scoped review wording on both dashboard history layouts", () => {
+    const compactList = read("components/doctor/approved-today-list.tsx")
+    const alternateList = read("app/doctor/queue/queue-table.tsx")
+
+    expect(compactList).toContain("Your approvals today")
+    expect(alternateList).toContain("Your reviews today")
+    expect(alternateList).toContain("reviewHistoryTruncated")
+    expect(alternateList).toContain("shown")
+    expect(alternateList).toContain("getReviewHistoryStatusMeta")
+    expect(compactList).toContain("intake.activity_at")
+    expect(alternateList).toContain("intake.activity_at")
+    expect(alternateList).not.toContain("Completed Today")
+  })
+
+  it("keeps the canonical dashboard inside the clinical panel and mobile-nav shell", () => {
+    const layout = read("app/dashboard/layout.tsx")
+    const page = read("app/dashboard/page.tsx")
+
+    expect(layout).toContain("DoctorShell")
+    expect(layout).toContain("const isAdmin = hasAdminAccess(authUser.profile)")
+    expect(layout).toContain("hideMobileHamburger={hasClinicalAccess && !isAdmin}")
+    expect(layout).toContain("pb-[calc(7rem+env(safe-area-inset-bottom))]")
+    expect(layout).toContain("isAdmin={isAdmin}")
+    expect(page).not.toContain("PanelProvider")
+  })
 })

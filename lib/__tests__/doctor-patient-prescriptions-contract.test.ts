@@ -161,21 +161,22 @@ describe("doctor patient medication history contract", () => {
     )
 
     expect(patientsPageSource).toContain("getPatientDirectoryPage")
-    expect(patientsPageSource).toContain("parsePatientDirectorySort")
+    expect(patientsPageSource).toContain("parsePatientDirectorySort(params.sort)")
     expect(patientDirectorySource).toContain("parchment_patient_id")
     expect(patientDirectorySource).toContain("getLastRequestMap")
     expect(patientDirectorySource).toContain("getLastScriptMap")
-    expect(patientDirectorySource).toContain("compareDirectoryPatients")
-    // 2026-05-21: Status + Parchment columns calmed from loud
-    // colored-background pills to inline dot + label. Stat strip
-    // compressed from a 4-card 2x2 grid into a single horizontal row.
+    expect(patientDirectorySource).not.toContain("compareDirectoryPatients")
+    // The directory keeps prescribing readiness contextual to each patient
+    // and shows only non-zero exception filters for the current server page.
     expect(patientsListSource).toContain("Parchment sync")
-    expect(patientsListSource).toContain("Synced")
+    expect(patientsListSource).toContain("Parchment synced")
     expect(patientsListSource).toContain("Sync needed")
-    expect(patientsListSource).toContain("All services")
-    expect(patientsListSource).toContain("Last request")
-    expect(patientsListSource).toContain("Last script")
-    expect(patientsListSource).toContain("Directory summary")
+    expect(patientsListSource).toContain("Recent work")
+    expect(patientsListSource).toContain("patient.lastRequest")
+    expect(patientsListSource).toContain("patient.lastScript")
+    expect(patientsListSource).toContain("hasExceptions ? (")
+    expect(patientsListSource).not.toContain("All services")
+    expect(patientsListSource).not.toContain("Directory summary")
     expect(patientsListSource).not.toContain("{/* Overview */}")
   })
 
@@ -184,10 +185,12 @@ describe("doctor patient medication history contract", () => {
     expect(panelSource).toContain("onPrescriptionsRefresh()")
   })
 
-  it("keeps automatic Parchment session refreshes out of top-level doctor toasts", () => {
-    expect(panelSource).toContain("loadPrescribingUrl()")
-    expect(panelSource).not.toContain("Parchment session expiring")
-    expect(panelSource).not.toContain("toast.warning")
+  it("never replaces an in-progress Parchment session on a timer", () => {
+    expect(panelSource).toContain("void loadPrescribingUrl()")
+    expect(panelSource).not.toContain("240_000")
+    expect(panelSource).not.toContain("270_000")
+    expect(panelSource).not.toContain("sessionRefreshing")
+    expect(panelSource).not.toContain("Session refreshing")
   })
 
   it("gives doctors a slow-iframe recovery state without blocking prescribing", () => {
@@ -198,12 +201,23 @@ describe("doctor patient medication history contract", () => {
     expect(panelSource).toContain("copyPrescriptionContext")
   })
 
-  it("lets doctors retry only the embedded iframe without refreshing the SSO session", () => {
-    expect(panelSource).toContain("iframeReloadKey")
-    expect(panelSource).toContain("retryIframeOnly")
-    expect(panelSource).toContain("setIframeReloadKey((key) => key + 1)")
-    expect(panelSource).toContain("Retry iframe")
-    expect(panelSource).toContain("key={iframeReloadKey}")
+  it("mints a fresh Parchment session only after an explicit retry", () => {
+    expect(panelSource).toContain('onClick={loadPrescribingUrl}')
+    expect(panelSource).toContain("Retry session")
+    expect(panelSource).not.toContain("iframeReloadKey")
+    expect(panelSource).not.toContain("retryIframeOnly")
+  })
+
+  it("pins the narrow empirical Parchment iframe compatibility boundary", () => {
+    expect(panelSource).toContain(
+      'allow="clipboard-write; publickey-credentials-get *; publickey-credentials-create *"',
+    )
+    expect(panelSource).toContain('referrerPolicy="strict-origin-when-cross-origin"')
+    expect(panelSource).toContain(
+      'sandbox="allow-scripts allow-same-origin allow-forms allow-storage-access-by-user-activation allow-popups allow-popups-to-escape-sandbox"',
+    )
+    expect(panelSource).not.toContain("allow-top-navigation")
+    expect(panelSource).not.toContain("allow-downloads")
   })
 
   it("routes Parchment identity failures back to patient detail editing", () => {

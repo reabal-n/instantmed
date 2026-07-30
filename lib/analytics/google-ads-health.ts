@@ -8,13 +8,10 @@ import {
 } from "@/lib/analytics/google-ads-conversion-adjustments"
 import {
   type GoogleAdsConversionActionPreflightResult,
-  preflightGoogleAdsPurchaseConversionAction,
 } from "@/lib/analytics/google-ads-conversion-api"
 import {
-  GOOGLE_ADS_ATTRIBUTION_SELECT,
   GOOGLE_ADS_CONVERSION_UPLOAD_AUDIT_ACTION,
   type GoogleAdsAttributionRow,
-  isLikelyGoogleAttributed,
 } from "@/lib/analytics/google-ads-post-payment"
 import {
   bestGoogleAdsUploadAuditByIntake,
@@ -88,7 +85,7 @@ type GoogleAdsPurchaseUploadAuditRow = {
   } | null
 }
 
-export interface GoogleAdsHealth {
+interface GoogleAdsHealth {
   captured: number
   clickIdCoveragePercent: number
   configuration: GoogleAdsConfigurationDiagnosis
@@ -112,30 +109,6 @@ const OK_CONFIGURATION: GoogleAdsConfigurationDiagnosis = {
   detail: "No blocking Google Ads upload issue is visible in the current lookback window.",
   label: "Configuration looks healthy",
   severity: "ok",
-}
-
-export const EMPTY_GOOGLE_ADS_HEALTH: GoogleAdsHealth = {
-  captured: 0,
-  clickIdCoveragePercent: 0,
-  configuration: {
-    action: "No action needed until Google Ads traffic is captured.",
-    code: null,
-    detail: "No paid Google-attributed intakes are visible in the current lookback window.",
-    label: "No Google Ads signal yet",
-    severity: "ok",
-  },
-  uploaded: 0,
-  uploadable: 0,
-  skipped: 0,
-  failed: 0,
-  missingUpload: 0,
-  candidatesWithClickId: 0,
-  candidatesMissingClickId: 0,
-  latestErrorCode: null,
-  latestErrorAt: null,
-  lastSuccessfulUploadAt: null,
-  retryPaused: 0,
-  lookbackDays: DEFAULT_LOOKBACK_DAYS,
 }
 
 function getUploadStatus(row: GoogleAdsUploadAuditRow | undefined): string | null {
@@ -772,61 +745,5 @@ export async function getGoogleAdsAdjustmentHealth(
     lookbackDays,
     now,
     purchaseUploadRows,
-  })
-}
-
-export async function getGoogleAdsHealth(
-  supabase: SupabaseClient,
-  options: { lookbackDays?: number } = {},
-): Promise<GoogleAdsHealth> {
-  const lookbackDays = options.lookbackDays ?? DEFAULT_LOOKBACK_DAYS
-  const since = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000).toISOString()
-
-  const candidateQuery = supabase
-    .from("intakes")
-    .select(`id, paid_at, ${GOOGLE_ADS_ATTRIBUTION_SELECT}`)
-    .in("payment_status", [...GOOGLE_ADS_HEALTH_PAYMENT_STATUSES])
-    .not("paid_at", "is", null)
-    .gte("paid_at", since)
-    .order("paid_at", { ascending: false })
-    .limit(1000)
-
-  const [{ data, error }, conversionActionPreflight] = await Promise.all([
-    filterReportableIntakes(candidateQuery),
-    preflightGoogleAdsPurchaseConversionAction(),
-  ])
-
-  if (error) {
-    throw new Error(`Google Ads health candidate query failed: ${error.message}`)
-  }
-
-  const candidates = ((data || []) as GoogleAdsCandidateRow[]).filter(isLikelyGoogleAttributed)
-  const candidateIds = candidates.map((candidate) => candidate.id)
-
-  if (candidateIds.length === 0) {
-    return buildGoogleAdsHealth({
-      audits: [],
-      candidates: [],
-      conversionActionPreflight,
-      lookbackDays,
-    })
-  }
-
-  const { data: audits, error: auditError } = await supabase
-    .from("audit_logs")
-    .select("intake_id, created_at, metadata")
-    .eq("action", GOOGLE_ADS_CONVERSION_UPLOAD_AUDIT_ACTION)
-    .in("intake_id", candidateIds)
-    .order("created_at", { ascending: false })
-
-  if (auditError) {
-    throw new Error(`Google Ads health audit query failed: ${auditError.message}`)
-  }
-
-  return buildGoogleAdsHealth({
-    audits: (audits || []) as GoogleAdsUploadAuditRow[],
-    candidates,
-    conversionActionPreflight,
-    lookbackDays,
   })
 }

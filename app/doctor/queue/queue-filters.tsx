@@ -11,9 +11,11 @@ import {
   QUEUE_WAIT_TARGET_MINUTES,
   type QueuePressureSeverity,
 } from "@/lib/doctor/queue-pressure"
+import type { QueueStatusCounts } from "@/lib/doctor/queue-utils"
 import { isEditableOrInteractiveKeyboardTarget } from "@/lib/hooks/use-doctor-shortcuts"
 import { cn } from "@/lib/utils"
-import type { IntakeWithPatient } from "@/types/db"
+
+import type { QueueSearchState } from "./types"
 
 const pressureClasses: Record<QueuePressureSeverity, { root: string; dot: string; value: string }> = {
   idle: {
@@ -47,8 +49,11 @@ export interface QueueFiltersProps {
   hasOpenCase?: boolean
   statusFilter: QueueStatusFilter
   onStatusFilterChange: (value: QueueStatusFilter) => void
-  intakes: IntakeWithPatient[]
+  statusCounts?: QueueStatusCounts | null
   filteredCount: number
+  searchMatchCount?: number | null
+  searchState?: QueueSearchState
+  isSearchPending?: boolean
   isStale: boolean
   isReconnecting: boolean
   isRefreshing?: boolean
@@ -71,8 +76,11 @@ export function QueueFilters({
   hasOpenCase = false,
   statusFilter,
   onStatusFilterChange,
-  intakes,
+  statusCounts = null,
   filteredCount,
+  searchMatchCount = null,
+  searchState = "idle",
+  isSearchPending = false,
   isStale,
   isReconnecting,
   isRefreshing = false,
@@ -82,12 +90,23 @@ export function QueueFilters({
 }: QueueFiltersProps) {
   const searchRef = useRef<HTMLInputElement>(null)
   const hasActiveSearch = searchQuery.trim().length > 0
-  const matchLabel = `${filteredCount} ${filteredCount === 1 ? "match" : "matches"}`
+  const matchLabel = isSearchPending
+    ? "Searching…"
+    : searchState === "unavailable"
+      ? "Search unavailable"
+      : searchState === "too_broad"
+        ? "Narrow your search"
+        : typeof searchMatchCount === "number"
+          ? `${searchMatchCount} ${searchMatchCount === 1 ? "match" : "matches"}`
+          : "Match count unavailable"
   const pressure = getQueuePressureState(oldestWaitingMinutes, QUEUE_WAIT_TARGET_MINUTES)
   const pressureClass = pressureClasses[pressure.severity]
   const openOldest = onOpenOldest ?? onOpenSingleMatch
-  const showNextCaseAction = compactShell && filteredCount > 1 && Boolean(openOldest) && !hasOpenCase
-  const showSearch = !compactShell || intakes.length > 5 || hasActiveSearch
+  const showNextCaseAction = compactShell
+    && filteredCount > 1
+    && Boolean(openOldest)
+    && !hasOpenCase
+    && !isSearchPending
 
   // `/` key focuses the search input (standard queue shortcut)
   useEffect(() => {
@@ -143,7 +162,7 @@ export function QueueFilters({
               <Button
                 type="button"
                 size="sm"
-                className="h-8 shrink-0 bg-primary px-3 text-xs text-primary-foreground shadow-sm shadow-primary/[0.12] hover:bg-primary/90"
+                className="h-11 shrink-0 bg-primary px-3 text-xs text-primary-foreground shadow-sm shadow-primary/[0.12] hover:bg-primary/90 sm:h-8"
                 onClick={openOldest}
                 data-open-next-case
               >
@@ -151,49 +170,53 @@ export function QueueFilters({
                 <ArrowRight className="ml-1 h-3.5 w-3.5" aria-hidden="true" />
               </Button>
             ) : null}
-            {showSearch ? (
-              <div className="relative flex flex-1 items-center sm:flex-none">
-                <Input
-                  ref={searchRef}
-                  placeholder={compactShell ? "Search patients" : "Search… or / to focus"}
-                  value={searchQuery}
-                  onChange={(e) => onSearchChange(e.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key !== "Enter") return
-                    if (!onOpenSingleMatch || filteredCount !== 1) return
-                    event.preventDefault()
-                    onOpenSingleMatch()
-                  }}
-                  className={cn(
-                    "w-full",
-                    "[&>div]:h-9 [&>div]:min-h-0 [&>div]:border-slate-300 [&>div]:bg-white [&>div]:shadow-sm [&>div]:shadow-primary/[0.03] [&>div]:focus-within:border-primary/45 [&>div]:focus-within:ring-primary/20 dark:[&>div]:bg-card",
-                    "[&_input]:h-9 [&_input]:py-0 [&_input]:text-sm [&_input]:leading-9 [&_input]:placeholder:text-slate-500",
-                    compactShell ? "sm:w-64" : "sm:w-56",
-                  )}
-                  startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
-                  endContent={
-                    searchQuery ? (
-                      <button
-                        type="button"
-                        aria-label="Clear patient search"
-                        className="rounded-full p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:hover:bg-white/10"
-                        onMouseDown={(event) => event.preventDefault()}
-                        onClick={() => {
-                          onSearchChange("")
-                          searchRef.current?.focus()
-                        }}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    ) : null
-                  }
-                />
-              </div>
-            ) : null}
+            <div className="relative flex flex-1 items-center sm:flex-none">
+              <Input
+                ref={searchRef}
+                aria-label="Search active requests"
+                placeholder={compactShell ? "Search name, email or request" : "Search… or / to focus"}
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
+                maxLength={96}
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter") return
+                  if (!onOpenSingleMatch || filteredCount !== 1 || isSearchPending) return
+                  event.preventDefault()
+                  onOpenSingleMatch()
+                }}
+                className={cn(
+                  "w-full",
+                  "[&>div]:h-11 [&>div]:min-h-0 [&>div]:border-slate-300 [&>div]:bg-white [&>div]:shadow-sm [&>div]:shadow-primary/[0.03] [&>div]:focus-within:border-primary/45 [&>div]:focus-within:ring-primary/20 dark:[&>div]:bg-card sm:[&>div]:h-9",
+                  "[&_input]:h-11 [&_input]:py-0 [&_input]:text-base [&_input]:leading-11 [&_input]:placeholder:text-slate-500 sm:[&_input]:h-9 sm:[&_input]:text-sm sm:[&_input]:leading-9",
+                  compactShell ? "sm:w-72" : "sm:w-56",
+                )}
+                inputClassName="queue-search-input"
+                startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
+                endContent={
+                  searchQuery ? (
+                    <button
+                      type="button"
+                      aria-label="Clear patient search"
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:hover:bg-white/10"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => {
+                        onSearchChange("")
+                        searchRef.current?.focus()
+                      }}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null
+                }
+              />
+            </div>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 shrink-0"
+              className="h-11 w-11 shrink-0 sm:h-8 sm:w-8"
               onClick={onRefresh}
               disabled={isRefreshing}
               title={isRefreshing ? "Refreshing queue" : "Refresh queue"}
@@ -211,21 +234,14 @@ export function QueueFilters({
       </div>
 
       {/* Status Filter Tabs */}
-      <div className="flex w-full gap-1.5 overflow-x-auto rounded-lg bg-muted/25 p-1 sm:w-fit sm:flex-wrap">
+      <div className="grid w-full grid-cols-4 gap-1 rounded-lg bg-muted/25 p-1 sm:flex sm:w-fit sm:flex-wrap sm:gap-1.5">
         {([
           { key: "all", label: "All" },
           { key: "review", label: compactShell ? "Review" : "Needs Review" },
           { key: "pending_info", label: compactShell ? "Info" : "Pending Info" },
           { key: "scripts", label: compactShell ? "Scripts to write" : "Scripts" },
         ] as const).map((tab) => {
-          const count =
-            tab.key === "all"
-              ? intakes.length
-              : tab.key === "review"
-              ? intakes.filter((r) => ["paid", "in_review"].includes(r.status)).length
-              : tab.key === "pending_info"
-              ? intakes.filter((r) => r.status === "pending_info").length
-              : intakes.filter((r) => r.status === "awaiting_script").length
+          const count = statusCounts?.[tab.key] ?? null
           return (
             <button
               key={tab.key}
@@ -233,14 +249,24 @@ export function QueueFilters({
               aria-pressed={statusFilter === tab.key}
               onClick={() => onStatusFilterChange(tab.key)}
               className={cn(
-                "shrink-0 rounded-md px-3.5 py-1.5 text-xs font-medium transition-[background-color,color,box-shadow] duration-150 ease-in-out",
+                "min-h-11 min-w-0 rounded-md px-1.5 py-1.5 text-[11px] font-medium transition-[background-color,color,box-shadow] duration-150 ease-in-out sm:min-h-8 sm:shrink-0 sm:px-3.5 sm:text-xs",
                 statusFilter === tab.key
                   ? "bg-white text-foreground shadow-sm shadow-primary/[0.03] dark:bg-card"
                   : "text-slate-600 hover:bg-card/60 hover:text-foreground dark:text-muted-foreground"
               )}
             >
-              {tab.label}
-              <span className={cn("ml-1.5 tabular-nums", count === 0 && "text-muted-foreground/70")}>({count})</span>
+              {compactShell && tab.key === "scripts" ? (
+                <>
+                  <span className="sm:hidden">Scripts</span>
+                  <span className="hidden sm:inline">Scripts to write</span>
+                </>
+              ) : tab.label}
+              <span
+                className={cn("ml-1 tabular-nums sm:ml-1.5", count === 0 && "text-muted-foreground")}
+                aria-label={count === null ? "count unavailable" : undefined}
+              >
+                ({count ?? "—"})
+              </span>
             </button>
           )
         })}

@@ -39,6 +39,7 @@ export interface PrescribingIdentityBlockerReport {
   readyCount: number
   blockerCounts: Record<string, number>
   items: PrescribingIdentityBlockerItem[]
+  queryFailed?: boolean
 }
 
 export function buildPrescribingIdentityBlockerReport(
@@ -85,5 +86,6 @@ export function buildPrescribingIdentityBlockerReport(
     readyCount: rows.length - items.length,
     blockerCounts,
     items,
+    queryFailed: false,
   }
 }

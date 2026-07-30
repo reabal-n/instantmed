@@ -32,6 +32,34 @@ export interface AdsAgentRunRecord {
   updatedAt: string
 }
 
+export interface DeliveredAdsAgentRunEvidence {
+  deliveredAt: string
+  id: string
+  recommendations: AdsRecommendation[]
+  reportDate: string
+  snapshot: AdsAgentSnapshot
+}
+
+export type LatestDeliveredAdsAgentRunRead =
+  | {
+      availability: "available"
+      reason: null
+      run: DeliveredAdsAgentRunEvidence
+    }
+  | {
+      availability: "unavailable"
+      reason: "invalid_record" | "not_found" | "query_failed"
+      run: null
+    }
+
+interface StoredDeliveredAdsAgentRun {
+  delivered_at: unknown
+  id: unknown
+  recommendation: unknown
+  report_date: unknown
+  snapshot: unknown
+}
+
 interface StoredAdsAgentRun {
   error_code: string | null
   id: string
@@ -71,6 +99,89 @@ function toRunRecord(row: StoredAdsAgentRun): AdsAgentRunRecord {
     status: row.status,
     updatedAt: row.updated_at,
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value)
+}
+
+function isAdsRecommendation(value: unknown): value is AdsRecommendation {
+  if (!isRecord(value)) return false
+  return (
+    ["HOLD", "INVESTIGATE", "APPROVAL_NEEDED"].includes(String(value.kind)) &&
+    Array.isArray(value.reasonCodes) &&
+    value.reasonCodes.every((reason) => typeof reason === "string") &&
+    typeof value.service === "string"
+  )
+}
+
+function isAdsAgentSnapshot(value: unknown): value is AdsAgentSnapshot {
+  if (!isRecord(value) || !isRecord(value.tracking)) return false
+  return (
+    typeof value.generatedAt === "string" &&
+    Number.isFinite(Date.parse(value.generatedAt)) &&
+    typeof value.reportDate === "string" &&
+    Array.isArray(value.rolling30) &&
+    ["GREEN", "AMBER", "RED"].includes(String(value.tracking.state)) &&
+    typeof value.tracking.evidenceAsOf === "string" &&
+    Array.isArray(value.tracking.reasonCodes)
+  )
+}
+
+export function parseDeliveredAdsAgentRun(
+  value: unknown,
+): DeliveredAdsAgentRunEvidence | null {
+  if (!isRecord(value)) return null
+  const row = value as unknown as StoredDeliveredAdsAgentRun
+  if (
+    typeof row.id !== "string" ||
+    typeof row.report_date !== "string" ||
+    typeof row.delivered_at !== "string" ||
+    !Number.isFinite(Date.parse(row.delivered_at)) ||
+    !isAdsAgentSnapshot(row.snapshot) ||
+    !Array.isArray(row.recommendation) ||
+    !row.recommendation.every(isAdsRecommendation)
+  ) {
+    return null
+  }
+
+  return {
+    deliveredAt: row.delivered_at,
+    id: row.id,
+    recommendations: row.recommendation,
+    reportDate: row.report_date,
+    snapshot: row.snapshot,
+  }
+}
+
+/**
+ * Read-only evidence seam for the Business surface. The page consumes the
+ * latest report that was actually delivered to the operator; it never builds
+ * a fresh snapshot (which can refresh the Stripe fee cache) during rendering.
+ */
+export async function getLatestDeliveredAdsAgentRun(
+  supabase: SupabaseClient,
+): Promise<LatestDeliveredAdsAgentRunRead> {
+  const result = await supabase
+    .from("google_ads_agent_runs")
+    .select("id, report_date, delivered_at, snapshot, recommendation")
+    .eq("status", "delivered")
+    .not("delivered_at", "is", null)
+    .order("delivered_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (result.error) {
+    return { availability: "unavailable", reason: "query_failed", run: null }
+  }
+  if (!result.data) {
+    return { availability: "unavailable", reason: "not_found", run: null }
+  }
+
+  const run = parseDeliveredAdsAgentRun(result.data)
+  return run
+    ? { availability: "available", reason: null, run }
+    : { availability: "unavailable", reason: "invalid_record", run: null }
 }
 
 export function isSydneyDailyAdsBriefHour(now = new Date()): boolean {

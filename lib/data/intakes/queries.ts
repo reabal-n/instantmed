@@ -6,6 +6,24 @@ import {
   BATCH_REVIEW_ELIGIBLE_STATUSES,
   BATCH_REVIEW_ENFORCEMENT_START,
 } from "@/lib/clinical/batch-review-policy"
+import {
+  ADMIN_LEDGER_PATIENT_SEARCH_FIELDS,
+  type AdminLedgerQuickFilterValue,
+  buildAdminLedgerSearchOr,
+  getAdminLedgerServiceCategory,
+  getAdminLedgerStatus,
+  getAdminLedgerWorkLaneStatuses,
+  normalizeAdminLedgerQuickFilters,
+  sanitizeAdminLedgerSearchTerm,
+} from "@/lib/dashboard/admin-ledger-filters"
+import type {
+  AdminIntakeStatusFilterValue,
+  AdminWorkLaneFilterValue,
+} from "@/lib/dashboard/admin-work-lanes"
+import {
+  type QueueStatusFilter,
+  sanitizeQueueSearchQuery,
+} from "@/lib/dashboard/routes"
 import { readDashboardQuery } from "@/lib/data/dashboard-read-model"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
@@ -14,15 +32,22 @@ import {
   SEEDED_E2E_PATIENT_PROFILE_ID,
 } from "@/lib/data/seeded-e2e-data"
 import { buildDoctorQueueServiceFilter, type QueueCapabilityService } from "@/lib/doctor/queue-capability-scope"
-import { QUEUE_REVIEW_STATUSES } from "@/lib/doctor/queue-utils"
+import {
+  getQueueStatusesForFilter,
+  QUEUE_REVIEW_STATUSES,
+  type QueueStatusCounts,
+  resolveQueueStatusCounts,
+} from "@/lib/doctor/queue-utils"
 import { detectRenewalsForIntakes, type IntakeRenewalProbe } from "@/lib/doctor/renewal-detection"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
-import { startOfDayAEST } from "@/lib/operator/cases/time-grouping"
+import { startOfDayAEST, startOfDaySydney } from "@/lib/operator/cases/time-grouping"
 import { derivePatientPaymentRecoveryReason } from "@/lib/patient/payment-recovery"
 import { readAnswers, readDoctorNotes, readPatientNoteContent } from "@/lib/security/phi-field-wrappers"
+import type { AdminServiceFilterValue } from "@/lib/services/service-presentation"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type {
+  GovernanceReviewReceipt,
   IntakeStatus,
   IntakeWithDetails,
   IntakeWithPatient,
@@ -39,6 +64,8 @@ import {
 import {
   ADMIN_LEDGER_SELECT,
   projectAdminLedgerPatient,
+  projectSupportLedgerPatient,
+  SUPPORT_LEDGER_SELECT,
 } from "./admin-ledger-projection"
 import type {
   DashboardIntake,
@@ -47,6 +74,9 @@ import type {
 } from "./types"
 
 const logger = createLogger("data-intakes")
+const ADMIN_LEDGER_PATIENT_SEARCH_CANDIDATE_LIMIT = 250
+const DOCTOR_QUEUE_PATIENT_SEARCH_CANDIDATE_LIMIT = 250
+const DOCTOR_QUEUE_PATIENT_SEARCH_FIELDS = ["full_name", "email"] as const
 
 /**
  * Extract the patient's stated medication name from a decrypted intake_answers
@@ -269,19 +299,102 @@ export async function getIntakeForPatient(
  * so paused doctors do not see new intakes.
  */
 export async function getDoctorQueue(
-  options?: { page?: number; pageSize?: number; doctorId?: string; allowSeeded?: boolean; onlySeeded?: boolean }
-): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number; degraded?: boolean }> {
+  options?: {
+    page?: number
+    pageSize?: number
+    doctorId?: string
+    allowSeeded?: boolean
+    onlySeeded?: boolean
+    statusFilter?: QueueStatusFilter
+    q?: string | null
+  },
+): Promise<DoctorQueueResult> {
   const supabase = createServiceRoleClient()
   const page = options?.page ?? 1
   const pageSize = Math.min(options?.pageSize ?? 50, 100) // Cap at 100
   const offset = (page - 1) * pageSize
   const allowSeeded = options?.allowSeeded ?? false
   const onlySeeded = allowSeeded && options?.onlySeeded === true
+  const statusFilter = options?.statusFilter ?? "all"
+  const activeStatuses = getQueueStatusesForFilter(statusFilter)
+  const searchTerm = sanitizeQueueSearchQuery(options?.q)
+  const defaultSearchState: DoctorQueueSearchState = searchTerm ? "ready" : "idle"
 
   const scope = await getDoctorQueueScope(options?.doctorId, supabase)
   if (scope.paused) {
-    return { data: [], total: 0, page, pageSize, degraded: false }
+    const emptyCounts = { all: 0, review: 0, pending_info: 0, scripts: 0 }
+    return {
+      data: [],
+      total: 0,
+      page,
+      pageSize,
+      degraded: false,
+      statusCounts: emptyCounts,
+      globalStatusCounts: emptyCounts,
+      searchMatchCount: searchTerm ? 0 : null,
+      searchState: defaultSearchState,
+      oldestWaitingEnteredAt: null,
+      oldestWaitingIntakeId: null,
+    }
   }
+
+  let matchingPatientIds: string[] = []
+  if (searchTerm) {
+    const profileSearch = DOCTOR_QUEUE_PATIENT_SEARCH_FIELDS
+      .map((field) => `${field}.ilike.*${searchTerm}*`)
+      .join(",")
+    const { data: profiles, error: profileSearchError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("role", "patient")
+      .or(profileSearch)
+      .limit(DOCTOR_QUEUE_PATIENT_SEARCH_CANDIDATE_LIMIT)
+
+    // A capped result is not an authoritative patient-id boundary. Fail
+    // closed rather than paginating a silently truncated match set.
+    if ((profiles?.length ?? 0) >= DOCTOR_QUEUE_PATIENT_SEARCH_CANDIDATE_LIMIT) {
+      return {
+        data: [],
+        total: 0,
+        page,
+        pageSize,
+        degraded: false,
+        statusCounts: null,
+        globalStatusCounts: null,
+        searchMatchCount: null,
+        searchState: "too_broad",
+        oldestWaitingEnteredAt: null,
+        oldestWaitingIntakeId: null,
+      }
+    }
+
+    if (profileSearchError) {
+      logger.warn("Doctor queue patient search could not load", {
+        errorCode: profileSearchError.code ?? "unknown",
+      })
+      return {
+        data: [],
+        total: 0,
+        page,
+        pageSize,
+        degraded: true,
+        statusCounts: null,
+        globalStatusCounts: null,
+        searchMatchCount: null,
+        searchState: "unavailable",
+        oldestWaitingEnteredAt: null,
+        oldestWaitingIntakeId: null,
+      }
+    }
+
+    matchingPatientIds = (profiles ?? []).flatMap((profile) =>
+      typeof profile.id === "string" ? [profile.id] : [],
+    )
+  }
+
+  const searchOr = searchTerm
+    ? buildAdminLedgerSearchOr(searchTerm, matchingPatientIds)
+    : null
 
   // Count and page-data are independent; build both and run them together so
   // the hottest staff path doesn't pay COUNT latency before data starts. If the
@@ -295,7 +408,7 @@ export async function getDoctorQueue(
       let query = filterSeededE2EIntakes(supabase
         .from("intakes")
         .select("id", { count: "exact", head: true })
-        .in("status", QUEUE_REVIEW_STATUSES)
+        .in("status", [...activeStatuses])
         .eq("payment_status", "paid"), { allowSeeded })
 
       if (scope.serviceFilter) {
@@ -304,12 +417,59 @@ export async function getDoctorQueue(
       if (onlySeeded) {
         query = query.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
       }
+      if (searchOr) {
+        query = query.or(searchOr)
+      }
 
       const { count, error } = await query
+      const safeError = error
+        ? new Error(`Doctor queue count query failed${error.code ? ` [${error.code}]` : ""}`)
+        : null
 
-      return { data: error ? null : { count: count ?? 0, degraded: false }, error }
+      return { data: error ? null : { count: count ?? 0, degraded: false }, error: safeError }
     },
   })
+
+  const buildStatusCountsPromise = (searchPredicate: string | null) => Promise.all(
+    (["all", "review", "pending_info", "scripts"] as const).map(async (filter) => {
+      let query = filterSeededE2EIntakes(supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .in("status", [...getQueueStatusesForFilter(filter)])
+        .eq("payment_status", "paid"), { allowSeeded })
+
+      if (scope.serviceFilter) query = query.or(scope.serviceFilter)
+      if (onlySeeded) query = query.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
+      if (searchPredicate) query = query.or(searchPredicate)
+
+      const { count, error } = await query
+      return { filter, count: count ?? 0, error }
+    }),
+  ).then(resolveQueueStatusCounts)
+
+  // Header pressure remains an exact, unsearched queue total. Tabs become
+  // search-scoped while q is active so their counts describe the same result
+  // universe as the paginated rows.
+  const globalStatusCountsPromise = buildStatusCountsPromise(null)
+  const statusCountsPromise = searchOr
+    ? buildStatusCountsPromise(searchOr)
+    : globalStatusCountsPromise
+
+  let oldestQuery = filterSeededE2EIntakes(supabase
+    .from("intakes")
+    .select("id, paid_at, submitted_at, created_at")
+    .in("status", QUEUE_REVIEW_STATUSES)
+    .eq("payment_status", "paid"), { allowSeeded })
+
+  if (scope.serviceFilter) oldestQuery = oldestQuery.or(scope.serviceFilter)
+  if (onlySeeded) oldestQuery = oldestQuery.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
+
+  const oldestPromise = oldestQuery
+    .order("paid_at", { ascending: true, nullsFirst: false })
+    .order("submitted_at", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle()
 
   // Fetch paginated data with only necessary fields for queue view
   let dataQuery = filterSeededE2EIntakes(supabase
@@ -349,7 +509,7 @@ export async function getDoctorQueue(
       patient:profiles!patient_id (id, full_name, email, date_of_birth, sex, medicare_number, medicare_irn, medicare_expiry, ihi_number, phone, address_line1, suburb, state, postcode),
       service:services!service_id (id, name, short_name, type, slug)
     `)
-    .in("status", QUEUE_REVIEW_STATUSES)
+    .in("status", [...activeStatuses])
     .eq("payment_status", "paid"), { allowSeeded })
 
   if (scope.serviceFilter) {
@@ -357,6 +517,9 @@ export async function getDoctorQueue(
   }
   if (onlySeeded) {
     dataQuery = dataQuery.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
+  }
+  if (searchOr) {
+    dataQuery = dataQuery.or(searchOr)
   }
 
   const dataPromise = dataQuery
@@ -367,12 +530,43 @@ export async function getDoctorQueue(
     .order("created_at", { ascending: true })
     .range(offset, offset + pageSize - 1)
 
-  const [countResult, { data, error }] = await Promise.all([countPromise, dataPromise])
+  const [countResult, statusCounts, globalStatusCounts, oldestResult, { data, error }] = await Promise.all([
+    countPromise,
+    statusCountsPromise,
+    globalStatusCountsPromise,
+    oldestPromise,
+    dataPromise,
+  ])
   const countFallback = countResult.degraded
+  const searchMatchCount = searchTerm
+    && !countResult.degraded
+    && !scope.degraded
+    ? countResult.count
+    : null
+  const oldestWaitingEnteredAt = oldestResult.data
+    ? oldestResult.data.paid_at ?? oldestResult.data.submitted_at ?? oldestResult.data.created_at
+    : null
+  const oldestWaitingIntakeId = oldestResult.data?.id ?? null
 
   if (error) {
-    logger.error("Error fetching doctor queue", {}, toError(error))
-    return { data: [], total: countResult.count, page, pageSize, degraded: true }
+    logger.error(
+      "Error fetching doctor queue",
+      { errorCode: error.code ?? "unknown" },
+      new Error("Doctor queue data query failed"),
+    )
+    return {
+      data: [],
+      total: countResult.count,
+      page,
+      pageSize,
+      degraded: true,
+      statusCounts,
+      globalStatusCounts,
+      searchMatchCount,
+      searchState: defaultSearchState,
+      oldestWaitingEnteredAt,
+      oldestWaitingIntakeId,
+    }
   }
 
   const unwrapped = await Promise.all((data || []).map(async (row) => {
@@ -423,7 +617,29 @@ export async function getDoctorQueue(
     page,
     pageSize,
     degraded: countFallback || scope.degraded,
+    statusCounts,
+    globalStatusCounts,
+    searchMatchCount,
+    searchState: defaultSearchState,
+    oldestWaitingEnteredAt,
+    oldestWaitingIntakeId,
   }
+}
+
+export type DoctorQueueSearchState = "idle" | "ready" | "unavailable" | "too_broad"
+
+export interface DoctorQueueResult {
+  data: IntakeWithPatient[]
+  total: number
+  page: number
+  pageSize: number
+  degraded?: boolean
+  statusCounts: QueueStatusCounts | null
+  globalStatusCounts: QueueStatusCounts | null
+  searchMatchCount: number | null
+  searchState: DoctorQueueSearchState
+  oldestWaitingEnteredAt: string | null
+  oldestWaitingIntakeId: string | null
 }
 
 export interface PendingBatchReviewResult {
@@ -631,51 +847,136 @@ export async function getIntakeWithDetails(intakeId: string): Promise<IntakeWith
  * Supports pagination and date range filtering for scalability at high volume.
  */
 export async function getAllIntakesForAdmin(
-  options?: {
+  options: {
+    viewerRole: "admin" | "support"
     page?: number
     pageSize?: number
     dateFrom?: string  // ISO date string
     dateTo?: string    // ISO date string
-    status?: string[]  // Filter by status
+    q?: string
+    service?: AdminServiceFilterValue
+    status?: AdminIntakeStatusFilterValue
+    workLane?: AdminWorkLaneFilterValue
+    chips?: readonly AdminLedgerQuickFilterValue[]
   }
-): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number }> {
+): Promise<{
+  data: IntakeWithPatient[]
+  total: number | null
+  page: number
+  pageSize: number
+  degraded: boolean
+  patientSearchUnavailable: boolean
+  patientSearchSaturated: boolean
+}> {
   const supabase = createServiceRoleClient()
-  const page = options?.page ?? 1
-  const pageSize = Math.min(options?.pageSize ?? 50, 100) // Cap at 100
+  const page = Math.max(1, options.page ?? 1)
+  const pageSize = Math.min(Math.max(options.pageSize ?? 50, 10), 100)
   const offset = (page - 1) * pageSize
+  const searchTerm = sanitizeAdminLedgerSearchTerm(options.q)
+  const status = getAdminLedgerStatus(options.status)
+  const workLaneStatuses = getAdminLedgerWorkLaneStatuses(options.workLane)
+  const serviceCategory = getAdminLedgerServiceCategory(options.service)
+  const chips = normalizeAdminLedgerQuickFilters(options.chips ?? [])
+  let patientSearchUnavailable = false
+
+  // Patient contact/name search is admin-only and resolved to profile ids before
+  // the intake query. Support searches only request references/ids; no contact
+  // fields are selected or queried on its behalf.
+  let matchingPatientIds: string[] = []
+  if (searchTerm && options.viewerRole === "admin") {
+    const profileSearch = ADMIN_LEDGER_PATIENT_SEARCH_FIELDS
+      .map((field) => `${field}.ilike.*${searchTerm}*`)
+      .join(",")
+    const { data: profiles, error: profileSearchError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("role", "patient")
+      .or(profileSearch)
+      .limit(ADMIN_LEDGER_PATIENT_SEARCH_CANDIDATE_LIMIT)
+
+    // Hitting the query cap means more matching profiles may exist. Saturation
+    // wins even if Supabase also reports an error: either signal makes the
+    // candidate set unsafe to use as an authoritative patient-id boundary.
+    if ((profiles?.length ?? 0) >= ADMIN_LEDGER_PATIENT_SEARCH_CANDIDATE_LIMIT) {
+      return {
+        data: [],
+        total: null,
+        page,
+        pageSize,
+        degraded: false,
+        patientSearchUnavailable: false,
+        patientSearchSaturated: true,
+      }
+    } else if (profileSearchError) {
+      patientSearchUnavailable = true
+      logger.warn("Admin ledger patient search could not load", {
+        errorCode: profileSearchError.code ?? "unknown",
+      })
+    } else {
+      matchingPatientIds = (profiles ?? []).flatMap((profile) =>
+        typeof profile.id === "string" ? [profile.id] : [],
+      )
+    }
+  }
+  const searchOr = searchTerm
+    ? buildAdminLedgerSearchOr(searchTerm, matchingPatientIds)
+    : null
 
   // Build count query with filters
   let countQuery = supabase
     .from("intakes")
     .select("id", { count: "exact", head: true })
 
-  // Apply date range filter (default: last 30 days for performance)
+  // Default browsing stays bounded to 30 days. An explicit search spans the
+  // ledger so an older request/reference is still recoverable.
   const defaultFrom = new Date()
   defaultFrom.setDate(defaultFrom.getDate() - 30)
-  const dateFrom = options?.dateFrom || defaultFrom.toISOString()
-  countQuery = countQuery.gte("created_at", dateFrom)
+  const dateFrom = options.dateFrom || (searchTerm ? null : defaultFrom.toISOString())
+  if (dateFrom) countQuery = countQuery.gte("created_at", dateFrom)
 
-  if (options?.dateTo) {
+  if (options.dateTo) {
     countQuery = countQuery.lte("created_at", options.dateTo)
   }
-
-  if (options?.status && options.status.length > 0) {
-    countQuery = countQuery.in("status", options.status)
+  if (status) countQuery = countQuery.eq("status", status)
+  if (workLaneStatuses) countQuery = countQuery.in("status", [...workLaneStatuses])
+  if (serviceCategory) countQuery = countQuery.eq("category", serviceCategory)
+  if (searchOr) countQuery = countQuery.or(searchOr)
+  if (chips.includes("priority")) countQuery = countQuery.eq("is_priority", true)
+  if (chips.includes("awaiting_script")) countQuery = countQuery.eq("status", "awaiting_script")
+  if (chips.includes("failed_payment")) {
+    countQuery = countQuery.or("status.eq.checkout_failed,payment_status.eq.failed")
   }
+  if (chips.includes("refunded")) {
+    countQuery = countQuery.in("payment_status", ["refunded", "partially_refunded"])
+  }
+  if (chips.includes("refund_failed")) countQuery = countQuery.eq("refund_status", "failed")
 
   // Fetch paginated data with only necessary fields
+  const ledgerSelect: string = options.viewerRole === "support"
+    ? SUPPORT_LEDGER_SELECT
+    : ADMIN_LEDGER_SELECT
   let dataQuery = supabase
     .from("intakes")
-    .select(ADMIN_LEDGER_SELECT)
+    .select(ledgerSelect)
 
   // Apply same filters as count query
-  dataQuery = dataQuery.gte("created_at", dateFrom)
-  if (options?.dateTo) {
+  if (dateFrom) dataQuery = dataQuery.gte("created_at", dateFrom)
+  if (options.dateTo) {
     dataQuery = dataQuery.lte("created_at", options.dateTo)
   }
-  if (options?.status && options.status.length > 0) {
-    dataQuery = dataQuery.in("status", options.status)
+  if (status) dataQuery = dataQuery.eq("status", status)
+  if (workLaneStatuses) dataQuery = dataQuery.in("status", [...workLaneStatuses])
+  if (serviceCategory) dataQuery = dataQuery.eq("category", serviceCategory)
+  if (searchOr) dataQuery = dataQuery.or(searchOr)
+  if (chips.includes("priority")) dataQuery = dataQuery.eq("is_priority", true)
+  if (chips.includes("awaiting_script")) dataQuery = dataQuery.eq("status", "awaiting_script")
+  if (chips.includes("failed_payment")) {
+    dataQuery = dataQuery.or("status.eq.checkout_failed,payment_status.eq.failed")
   }
+  if (chips.includes("refunded")) {
+    dataQuery = dataQuery.in("payment_status", ["refunded", "partially_refunded"])
+  }
+  if (chips.includes("refund_failed")) dataQuery = dataQuery.eq("refund_status", "failed")
 
   // Count and page-data share filters but are independent; run them together.
   const [{ count, error: countError }, { data, error }] = await Promise.all([
@@ -684,18 +985,52 @@ export async function getAllIntakesForAdmin(
   ])
 
   if (countError) {
-    logger.error("Error fetching admin intake count", {}, countError instanceof Error ? countError : new Error(String(countError)))
-    return { data: [], total: 0, page, pageSize }
+    logger.error(
+      "Error fetching admin intake count",
+      { errorCode: countError.code ?? "unknown" },
+      new Error("Admin ledger count query failed"),
+    )
   }
   if (error) {
-    logger.error("Error fetching all intakes", {}, toError(error))
-    return { data: [], total: count ?? 0, page, pageSize }
+    logger.error(
+      "Error fetching all intakes",
+      { errorCode: error.code ?? "unknown" },
+      new Error("Admin ledger data query failed"),
+    )
+    return {
+      data: [],
+      total: countError ? null : count ?? 0,
+      page,
+      pageSize,
+      degraded: true,
+      patientSearchUnavailable,
+      patientSearchSaturated: false,
+    }
   }
 
-  // Decrypt the phone field for client-side operator search. Do not return raw
-  // answers or encrypted fields in the admin ledger payload.
-  const unwrapped = await Promise.all((data || []).map(async (row) => {
+  // Support rows never select contact/clinical payloads in the first place.
+  // Admin rows decrypt the phone and answers only for search/renewal detection;
+  // neither raw answers nor encrypted fields are returned to the client.
+  const ledgerRows = (data ?? []) as unknown as Array<Record<string, unknown> & {
+    answers?: unknown
+    category: string | null
+    id: string
+    patient_id: string
+    patient?: unknown
+    service?: unknown
+  }>
+  const unwrapped = await Promise.all(ledgerRows.map(async (row) => {
     const rawPatient = Array.isArray(row.patient) ? row.patient[0] : row.patient
+    if (options.viewerRole === "support") {
+      return {
+        ...row,
+        answers: null,
+        risk_flags: null,
+        patient: projectSupportLedgerPatient(rawPatient as Record<string, unknown> | null),
+        service: Array.isArray(row.service) ? row.service[0] : row.service,
+      }
+    }
+
     const decryptedPatient = rawPatient ? decryptProfilePhi(rawPatient as Record<string, unknown>) : rawPatient
     const rawAnswers = Array.isArray(row.answers) ? row.answers[0] : null
     const answers = rawAnswers
@@ -718,6 +1053,18 @@ export async function getAllIntakesForAdmin(
     }
   }))
   const validData = unwrapped.filter((r) => r.patient !== null)
+
+  if (options.viewerRole === "support") {
+    return {
+      data: validData as unknown as IntakeWithPatient[],
+      total: countError ? null : count ?? 0,
+      page,
+      pageSize,
+      degraded: Boolean(countError) || patientSearchUnavailable,
+      patientSearchUnavailable,
+      patientSearchSaturated: false,
+    }
+  }
 
   // Renewal badge: one batched lookup per page against `prescriptions`.
   const renewalProbes: IntakeRenewalProbe[] = validData.map((row) => {
@@ -746,9 +1093,12 @@ export async function getAllIntakesForAdmin(
 
   return {
     data: withRenewal as unknown as IntakeWithPatient[],
-    total: count ?? 0,
+    total: countError ? null : count ?? 0,
     page,
     pageSize,
+    degraded: Boolean(countError) || patientSearchUnavailable,
+    patientSearchUnavailable,
+    patientSearchSaturated: false,
   }
 }
 
@@ -1136,36 +1486,124 @@ export async function getFormToInboxStats(opts: {
 }
 
 /**
- * Get recently completed intakes for the unified staff cockpit.
- * Keep this projection aligned with the client read model: broad intake or
- * profile fields would otherwise be serialized into the dashboard RSC payload.
+ * Get the signed-in clinician's decisions plus an identity-free aggregate of
+ * post-issuance governance work for the unified staff cockpit. Cohort
+ * governance must never be serialized as a per-patient clinician decision.
  */
-export async function getRecentlyCompletedIntakes(opts: { limit?: number } = {}): Promise<RecentlyCompletedIntake[]> {
+export async function getRecentlyCompletedIntakes(opts: {
+  limit?: number
+  reviewerId: string
+}): Promise<{
+  data: RecentlyCompletedIntake[]
+  governanceReceipt: GovernanceReviewReceipt | null
+  degraded: boolean
+  truncated: boolean
+}> {
   const supabase = createServiceRoleClient()
   const limit = opts.limit || 8
-  // AEST day boundary, not server-local/UTC — see startOfDayAEST for why.
-  const todayStartISO = startOfDayAEST(new Date()).toISOString()
+  const queryLimit = limit + 1
+  // The actor's Sydney calendar day, including AEST/AEDT transitions.
+  const todayStartISO = startOfDaySydney(new Date()).toISOString()
 
-  const { data, error } = await supabase
-    .from("intakes")
-    .select(`
-      id,
-      patient_id,
-      status,
-      reviewed_at,
-      completed_at,
-      patient:profiles!patient_id(full_name),
-      service:services!service_id(name, type, short_name)
-    `)
-    .in("status", ["approved", "declined", "completed"])
-    .gte("reviewed_at", todayStartISO)
-    .order("reviewed_at", { ascending: false })
-    .limit(limit)
+  try {
+    const ordinaryQuery = supabase
+      .from("intakes")
+      .select(`
+        id,
+        patient_id,
+        status,
+        reviewed_at,
+        patient:profiles!patient_id(full_name),
+        service:services!service_id(name, type, short_name)
+      `)
+      .in("status", ["approved", "declined", "completed"])
+      .gte("reviewed_at", todayStartISO)
+      .eq("reviewed_by", opts.reviewerId)
+      // Legacy manual decisions may have NULL here. Only explicit TRUE marks
+      // protocol issuance, which belongs in the governance stream below.
+      .or("ai_approved.is.false,ai_approved.is.null")
+      .order("reviewed_at", { ascending: false })
+      .limit(queryLimit)
 
-  if (error) {
-    logger.error("Failed to fetch recently completed intakes", { error: error.message })
-    return []
+    const governanceQuery = supabase
+      .from("intakes")
+      .select("batch_reviewed_at", { count: "exact" })
+      .eq("ai_approved", true)
+      .eq("category", "medical_certificate")
+      .eq("batch_reviewed_by", opts.reviewerId)
+      .gte("batch_reviewed_at", todayStartISO)
+      .order("batch_reviewed_at", { ascending: false })
+      .limit(1)
+
+    const [ordinaryResult, governanceResult] = await Promise.all([
+      ordinaryQuery,
+      governanceQuery,
+    ])
+
+    if (
+      ordinaryResult.error ||
+      governanceResult.error ||
+      typeof governanceResult.count !== "number"
+    ) {
+      logger.error("Failed to fetch actor-scoped review history", {
+        ordinaryError: ordinaryResult.error?.message ?? null,
+        governanceError: governanceResult.error?.message ?? null,
+      })
+      // A partial stream is not a truthful review history.
+      return { data: [], governanceReceipt: null, degraded: true, truncated: false }
+    }
+
+    type RelatedPatient = RecentlyCompletedIntake["patient"]
+    type RelatedService = NonNullable<RecentlyCompletedIntake["service"]>
+    type BaseRow = {
+      id: string
+      patient_id: string
+      status: IntakeStatus
+      patient: RelatedPatient | RelatedPatient[]
+      service: RelatedService | RelatedService[] | null
+    }
+    type OrdinaryRow = BaseRow & { reviewed_at: string | null }
+    const normalize = (row: OrdinaryRow): RecentlyCompletedIntake | null => {
+      const patient = Array.isArray(row.patient) ? row.patient[0] : row.patient
+      const service = Array.isArray(row.service) ? row.service[0] : row.service
+      if (!patient || !row.reviewed_at) return null
+
+      return {
+        id: row.id,
+        patient_id: row.patient_id,
+        status: row.status,
+        activity_at: row.reviewed_at,
+        activity_provenance: "clinician_decision",
+        patient,
+        service: service ?? null,
+      }
+    }
+
+    const ordinary = ((ordinaryResult.data || []) as unknown as OrdinaryRow[])
+      .map((row) => normalize(row))
+      .filter((row): row is RecentlyCompletedIntake => row !== null)
+    const governanceCount = governanceResult.count
+    const latestGovernanceAt = (governanceResult.data?.[0] as {
+      batch_reviewed_at?: string | null
+    } | undefined)?.batch_reviewed_at ?? null
+    if (governanceCount > 0 && !latestGovernanceAt) {
+      logger.error("Governance receipt count returned without a receipt timestamp", {
+        governanceCount,
+      })
+      return { data: [], governanceReceipt: null, degraded: true, truncated: false }
+    }
+
+    const truncated = ordinary.length > limit
+    const data = ordinary.slice(0, limit)
+    const governanceReceipt = governanceCount > 0 && latestGovernanceAt
+      ? { certificateCount: governanceCount, latestActivityAt: latestGovernanceAt }
+      : null
+
+    return { data, governanceReceipt, degraded: false, truncated }
+  } catch (error) {
+    logger.error("Actor-scoped review history query failed", {
+      error: toError(error).message,
+    })
+    return { data: [], governanceReceipt: null, degraded: true, truncated: false }
   }
-
-  return (data || []) as unknown as RecentlyCompletedIntake[]
 }

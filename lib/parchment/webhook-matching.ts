@@ -1,5 +1,8 @@
+import { parseParchmentIntakeCorrelation } from "@/lib/parchment/intake-correlation"
+
 export interface ParchmentWebhookIntakeCandidate {
   id: string
+  reference_number?: string | null
   category?: string | null
   subtype?: string | null
   claimed_by: string | null
@@ -28,8 +31,14 @@ function isParchmentPrescribingCandidate(candidate: ParchmentWebhookIntakeCandid
 export function selectParchmentWebhookIntake(
   candidates: ParchmentWebhookIntakeCandidate[],
   prescriberProfileIds: string[] | null,
+  intakeCorrelation?: string | null,
 ): ParchmentWebhookIntakeCandidate | null {
   if (!prescriberProfileIds || prescriberProfileIds.length === 0) return null
+
+  const exactCorrelation = intakeCorrelation === undefined
+    ? undefined
+    : parseParchmentIntakeCorrelation(intakeCorrelation)
+  if (intakeCorrelation !== undefined && exactCorrelation === null) return null
 
   const matches = candidates
     .map((candidate) => ({
@@ -41,6 +50,13 @@ export function selectParchmentWebhookIntake(
     .filter((match): match is { candidate: ParchmentWebhookIntakeCandidate; prescriberId: string } => (
       match.prescriberId !== null
     ))
+
+  if (exactCorrelation !== undefined) {
+    const exactMatches = matches.filter(({ candidate }) => (
+      candidate.reference_number === exactCorrelation
+    ))
+    return exactMatches.length === 1 ? exactMatches[0].candidate : null
+  }
 
   const matchesByPrescriber = new Map<string, number>()
   for (const match of matches) {

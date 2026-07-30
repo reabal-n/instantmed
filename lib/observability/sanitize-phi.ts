@@ -45,6 +45,8 @@ const SENSITIVE_FIELDS = new Set([
   "dob", "dateofbirth", "date_of_birth", "birthdate",
   "name", "fullname", "full_name", "firstname", "lastname",
   "first_name", "last_name", "patientname", "patient_name",
+  "q", "query", "search", "searchterm", "search_term",
+  "searchquery", "search_query",
   "address", "streetaddress", "street_address",
   "ihi", "dva", "dvanumber", "dva_number",
   "reviewclickkey", "review_click_key",
@@ -146,10 +148,19 @@ export function sanitizeUrl(url: string): string {
       "intake_id", "request_id", "patient_id", "profile_id", "user_id",
       "certificate_id",
     ]
+    const exactSensitiveSearchParams = new Set([
+      "q", "query", "search", "searchterm", "search_term",
+      "searchquery", "search_query",
+    ])
     
     sensitiveParams.forEach(param => {
       if (parsed.searchParams.has(param)) {
         parsed.searchParams.set(param, REDACTED)
+      }
+    })
+    parsed.searchParams.forEach((_, key) => {
+      if (exactSensitiveSearchParams.has(key.toLowerCase())) {
+        parsed.searchParams.set(key, REDACTED)
       }
     })
 
@@ -164,7 +175,10 @@ export function sanitizeUrl(url: string): string {
     const paramsToRedact: string[] = []
     parsed.searchParams.forEach((_, key) => {
       const lowerKey = key.toLowerCase()
-      if (sensitiveParams.some(s => lowerKey.includes(s))) {
+      if (
+        exactSensitiveSearchParams.has(lowerKey)
+        || sensitiveParams.some(s => lowerKey.includes(s))
+      ) {
         paramsToRedact.push(key)
       }
     })
@@ -204,10 +218,12 @@ export function createSafeLogContext(context: Record<string, unknown>): Record<s
   const filtered: Record<string, unknown> = {}
 
   for (const [key, value] of Object.entries(context)) {
+    const lowerKey = key.toLowerCase()
     // Never log forbidden fields at all (case-insensitive)
-    if (!FORBIDDEN_FIELDS.has(key.toLowerCase())) {
-      filtered[key] = sanitizeObject(value)
-    }
+    if (FORBIDDEN_FIELDS.has(lowerKey)) continue
+    filtered[key] = SENSITIVE_FIELDS.has(lowerKey)
+      ? REDACTED
+      : sanitizeObject(value)
   }
 
   // Sanitize URL if present

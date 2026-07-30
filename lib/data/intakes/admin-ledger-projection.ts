@@ -47,6 +47,29 @@ export const ADMIN_LEDGER_SELECT = `
   service:services!service_id (name, short_name, type)
 ` as const
 
+/**
+ * Support only needs request/payment recovery metadata. Keep contact details,
+ * clinical flags/answers, and acquisition identifiers out of the database
+ * projection so they cannot leak into the RSC payload by accident.
+ */
+export const SUPPORT_LEDGER_SELECT = `
+  id,
+  category,
+  status,
+  payment_status,
+  refund_status,
+  refund_amount_cents,
+  amount_cents,
+  is_priority,
+  reference_number,
+  created_at,
+  updated_at,
+  patient:profiles!patient_id (
+    full_name
+  ),
+  service:services!service_id (name, short_name, type)
+` as const
+
 export function projectAdminLedgerPatient(
   patient: Record<string, unknown> | null | undefined,
 ) {
@@ -59,5 +82,22 @@ export function projectAdminLedgerPatient(
     phone: patient.phone,
     suburb: patient.suburb,
     state: patient.state,
+  }
+}
+
+function maskLedgerPatientName(value: unknown): string {
+  if (typeof value !== "string") return "Patient"
+  const parts = value.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return "Patient"
+  return parts.map((part) => `${part[0]?.toUpperCase() ?? ""}.`).join(" ")
+}
+
+export function projectSupportLedgerPatient(
+  patient: Record<string, unknown> | null | undefined,
+) {
+  if (!patient) return patient
+
+  return {
+    full_name: maskLedgerPatientName(patient.full_name),
   }
 }

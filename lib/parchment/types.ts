@@ -35,7 +35,12 @@ export const parchmentSsoRequestSchema = z.object({
   redirect_path: z.string(),
 })
 
-export const parchmentSsoResponseSchema = z.object({
+const PARCHMENT_SSO_REDIRECT_HOST_BY_API_HOST = {
+  "api.parchmenthealth.io": "portal.parchment.health",
+  "api.sandbox.parchmenthealth.io": "portal.sandbox.parchment.health",
+} as const
+
+const parchmentSsoResponseBaseSchema = z.object({
   success: z.literal(true),
   data: z.object({
     sso_token: z.string(),
@@ -44,7 +49,39 @@ export const parchmentSsoResponseSchema = z.object({
   }),
 })
 
-export type ParchmentSsoResponse = z.infer<typeof parchmentSsoResponseSchema>
+export type ParchmentSsoResponse = z.infer<typeof parchmentSsoResponseBaseSchema>
+
+function getParchmentSsoRedirectHost(apiUrl: string): string | null {
+  if (!URL.canParse(apiUrl)) return null
+  const apiHost = new URL(apiUrl).hostname.toLowerCase()
+  return PARCHMENT_SSO_REDIRECT_HOST_BY_API_HOST[
+    apiHost as keyof typeof PARCHMENT_SSO_REDIRECT_HOST_BY_API_HOST
+  ] ?? null
+}
+
+export function parseParchmentSsoResponse(
+  value: unknown,
+  apiUrl: string,
+): ParchmentSsoResponse {
+  const expectedRedirectHost = getParchmentSsoRedirectHost(apiUrl)
+  const schema = parchmentSsoResponseBaseSchema.refine(({ data }) => {
+    if (!expectedRedirectHost || !URL.canParse(data.redirect_url)) return false
+
+    const redirectUrl = new URL(data.redirect_url)
+    return (
+      redirectUrl.protocol === "https:" &&
+      redirectUrl.port === "" &&
+      redirectUrl.username === "" &&
+      redirectUrl.password === "" &&
+      redirectUrl.hostname.toLowerCase() === expectedRedirectHost
+    )
+  }, {
+    message: "Parchment SSO redirect URL must use the approved HTTPS portal host for the configured API environment",
+    path: ["data", "redirect_url"],
+  })
+
+  return schema.parse(value)
+}
 
 export const validateIntegrationResponseSchema = z.object({
   success: z.literal(true),
@@ -294,6 +331,11 @@ export const webhookPayloadSchema = z.object({
   timestamp: z.string(),
   partner_id: z.string(),
   organization_id: z.string(),
+  metadata: z.object({
+    reserved_1: z.string().nullish(),
+    reserved_2: z.string().nullish(),
+    reserved_3: z.string().nullish(),
+  }).passthrough().nullish(),
   data: z.object({
     patient_id: z.string(),
     partner_patient_id: z.string(),

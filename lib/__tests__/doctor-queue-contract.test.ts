@@ -27,8 +27,16 @@ const queueClientSource = readFileSync(
   join(process.cwd(), "app/doctor/queue/queue-client.tsx"),
   "utf8",
 )
+const queueFiltersSource = readFileSync(
+  join(process.cwd(), "app/doctor/queue/queue-filters.tsx"),
+  "utf8",
+)
 const queueTableSource = readFileSync(
   join(process.cwd(), "app/doctor/queue/queue-table.tsx"),
+  "utf8",
+)
+const queueEmptyStateSource = readFileSync(
+  join(process.cwd(), "lib/doctor/queue-empty-state.ts"),
   "utf8",
 )
 const queueFocusSource = readFileSync(
@@ -67,6 +75,10 @@ const queueTypesSource = readFileSync(
 
 const queueActionsSource = readFileSync(
   join(process.cwd(), "app/doctor/queue/actions.ts"),
+  "utf8",
+)
+const queueSearchActionsSource = readFileSync(
+  join(process.cwd(), "app/doctor/queue/search-actions.ts"),
   "utf8",
 )
 const reviewActionsSource = readFileSync(
@@ -192,9 +204,106 @@ describe("doctor queue production contract", () => {
     expect(intakeReviewPanelSource).toContain("does not prefetch PHI-heavy review payloads")
   })
 
-  it("keeps status filters local-first without forcing a server navigation", () => {
-    expect(queueClientSource).toContain("window.history.replaceState")
-    expect(queueClientSource).not.toContain("router.replace")
+  it("applies status filters before database pagination through a server navigation", () => {
+    expect(queriesSource).toContain("getQueueStatusesForFilter")
+    expect(queriesSource).toContain("statusFilter")
+    expect(queueClientSource).toContain("router.replace")
+    expect(queueClientSource).not.toContain("window.history.replaceState")
+  })
+
+  it("keeps global queue pressure counts scoped and fail-closed", () => {
+    const countsStart = queriesSource.indexOf("const buildStatusCountsPromise")
+    const countsEnd = queriesSource.indexOf("let oldestQuery", countsStart)
+    const countsBlock = queriesSource.slice(countsStart, countsEnd)
+
+    expect(countsStart).toBeGreaterThan(-1)
+    expect(countsEnd).toBeGreaterThan(countsStart)
+    expect(countsBlock).toContain('["all", "review", "pending_info", "scripts"]')
+    expect(countsBlock).toContain("getQueueStatusesForFilter(filter)")
+    expect(countsBlock).toContain("if (scope.serviceFilter) query = query.or(scope.serviceFilter)")
+    expect(countsBlock).toContain("if (onlySeeded) query = query.eq")
+    expect(countsBlock).toContain("then(resolveQueueStatusCounts)")
+    expect(countsBlock).not.toContain("activeStatuses")
+    expect(countsBlock).toContain("const globalStatusCountsPromise = buildStatusCountsPromise(null)")
+    expect(countsBlock).toContain("? buildStatusCountsPromise(searchOr)")
+  })
+
+  it("applies the authoritative queue search predicate before count, status, and page range", () => {
+    const queueStart = queriesSource.indexOf("export async function getDoctorQueue")
+    const queueEnd = queriesSource.indexOf("export interface PendingBatchReviewResult", queueStart)
+    const queueBlock = queriesSource.slice(queueStart, queueEnd)
+    const dataStart = queueBlock.indexOf("let dataQuery")
+    const searchOnData = queueBlock.indexOf("dataQuery = dataQuery.or(searchOr)", dataStart)
+    const pageRange = queueBlock.indexOf(".range(offset, offset + pageSize - 1)", dataStart)
+
+    expect(queriesSource).toContain('const DOCTOR_QUEUE_PATIENT_SEARCH_FIELDS = ["full_name", "email"]')
+    expect(queueBlock).toContain("sanitizeQueueSearchQuery(options?.q)")
+    expect(queueBlock).toContain("buildAdminLedgerSearchOr(searchTerm, matchingPatientIds)")
+    expect(queueBlock).toContain("if (searchOr) {\n        query = query.or(searchOr)")
+    expect(queueBlock).toContain("if (searchPredicate) query = query.or(searchPredicate)")
+    expect(searchOnData).toBeGreaterThan(dataStart)
+    expect(pageRange).toBeGreaterThan(searchOnData)
+    expect(queueBlock).not.toContain("medicare_number.ilike")
+    expect(queueBlock).not.toContain("phone.ilike")
+  })
+
+  it("never presents a degraded page-length fallback as the authoritative search total", () => {
+    const queueStart = queriesSource.indexOf("export async function getDoctorQueue")
+    const queueEnd = queriesSource.indexOf("export interface PendingBatchReviewResult", queueStart)
+    const queueBlock = queriesSource.slice(queueStart, queueEnd)
+
+    expect(queueBlock).toContain("const searchMatchCount = searchTerm")
+    expect(queueBlock).toContain("&& !countResult.degraded")
+    expect(queueBlock).toContain("&& !scope.degraded")
+    expect(queueClientSource).toContain("visibleSearchMatchCount === 1")
+    expect(queueClientSource).not.toContain("pagination?.total === 1")
+    expect(queueClientSource).toContain("searchMatchCount={committedSearchQuery && visibleSearchState === \"ready\" ? visibleSearchMatchCount : null}")
+  })
+
+  it("exposes queue search in the compact cockpit without page-local filtering", () => {
+    expect(queueFiltersSource).toContain('aria-label="Search active requests"')
+    expect(queueClientSource).toContain("const filteredIntakes = sortedIntakes")
+    expect(queueClientSource).toContain("sanitizeQueueSearchQuery(debouncedSearch)")
+  })
+
+  it("keeps patient search terms in memory and transports them through an authenticated POST action", () => {
+    expect(queueClientSource).toContain("searchDoctorQueueAction")
+    expect(queueClientSource).toContain("searchRequestSequenceRef")
+    expect(queueClientSource).toContain("desiredSearchIntentRef")
+    expect(queueClientSource).toContain("sequence !== searchRequestSequenceRef.current")
+    expect(queueClientSource).not.toContain('params.set("q"')
+    expect(queueTableSource).toContain("onPageChange?: (page: number) => void")
+    expect(realtimeSource).toContain("onRefreshRequested")
+
+    expect(queueSearchActionsSource).toContain('requireRoleOrNull(["doctor", "admin"])')
+    expect(queueSearchActionsSource).toContain("checkServerActionRateLimit")
+    expect(queueSearchActionsSource).toContain("doctorId: profile.id")
+    expect(queueSearchActionsSource).toContain("hasAdminAccess(profile)")
+    const inputContract = queueSearchActionsSource.slice(
+      queueSearchActionsSource.indexOf("interface SearchDoctorQueueInput"),
+      queueSearchActionsSource.indexOf("export type SearchDoctorQueueResult"),
+    )
+    expect(inputContract).not.toContain("doctorId")
+
+    const refreshContract = queueClientSource.slice(
+      queueClientSource.indexOf("const refreshQueue = useCallback"),
+      queueClientSource.indexOf("useEffect(() => {\n    lastQueueRefreshAtRef.current"),
+    )
+    expect(refreshContract).toContain("desiredSearchIntentRef.current")
+    expect(refreshContract).toContain("panelOpenRef.current && !desiredSearch")
+    expect(refreshContract).not.toContain("activeSearchViewRef.current")
+    expect(queueClientSource).toContain(
+      "completion.forceRefresh || Boolean(desiredSearchIntentRef.current)",
+    )
+  })
+
+  it("keeps primary mobile queue controls at least 44px tall", () => {
+    expect(queueFiltersSource).toContain("h-11 shrink-0")
+    expect(queueFiltersSource).toContain("h-11 w-11")
+    expect(queueFiltersSource).toContain("min-h-11 min-w-0")
+    expect(queueFiltersSource).toContain("[&_input]:text-base")
+    expect(queueFiltersSource).toContain("sm:[&_input]:text-sm")
+    expect(queueFiltersSource).toContain("h-8 w-8 shrink-0")
   })
 
   it("does not write patient email addresses into decline logs", () => {
@@ -218,9 +327,11 @@ describe("doctor queue production contract", () => {
   it("explains why an embedded staff queue is empty instead of showing a generic success state", () => {
     expect(queueTypesSource).toContain("doctorAvailable?: boolean")
     expect(queueClientSource).toContain("buildQueueEmptyState")
-    expect(queueClientSource).toContain("Availability is paused")
-    expect(queueClientSource).toContain("No matches for this filter")
-    expect(queueClientSource).toContain("No review cases right now")
+    expect(queueEmptyStateSource).toContain("Queue data unavailable")
+    expect(queueEmptyStateSource).toContain("This queue page is empty")
+    expect(queueEmptyStateSource).toContain("Availability is paused")
+    expect(queueEmptyStateSource).toContain("No matches for this filter")
+    expect(queueEmptyStateSource).toContain("No review cases right now")
     expect(queueClientSource).toContain("doctorAvailable = true")
     expect(queueTableSource).toContain("emptyState")
     expect(queueTableSource).toContain("emptyState.actionHref")
@@ -232,6 +343,9 @@ describe("doctor queue production contract", () => {
     expect(queueClientSource).toContain("Next up")
     expect(queueClientSource).not.toContain("No cases finished yet. First one's queued.")
     expect(queueClientSource).not.toContain("You're ${targetUsedPercent}% into the 2h target.")
+    expect(queueClientSource).toContain("compactShell && isDesktop && filteredIntakes.length > 0")
+    expect(queueClientSource).toContain("data-compact-caught-up")
+    expect(queueClientSource).toContain("compactShell && filteredIntakes.length === 0")
 
     expect(queueTableSource).toContain("data-queue-taxonomy-chip")
     expect(queueTableSource).toContain("data-queue-action-chip")

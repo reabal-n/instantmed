@@ -28,8 +28,8 @@ import Link from "next/link"
 import { memo, useCallback, useMemo, useState, useTransition } from "react"
 import { toast } from "sonner"
 
-import { IntakeRefundDialog } from "@/app/doctor/intakes/[id]/intake-refund-dialog"
 import { issueRefundAction } from "@/app/doctor/queue/actions"
+import { IntakeRefundDialog } from "@/components/doctor/intake-refund-dialog"
 import { Badge, type BadgeProps } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {

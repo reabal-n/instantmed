@@ -28,10 +28,13 @@
  *   2.0.3 (2026-07-14) — Removed verified zero-consumer CTA, trust, motion,
  *                         form, onboarding, clinical, and shell component
  *                         graphs without changing mounted UI or tokens.
+ *   2.0.4 (2026-07-29) — Removed zero-consumer staff metric-wall primitives
+ *                         and duplicate dashboard read models after the
+ *                         role-owned staff-surface rehaul.
  *
  * Consumers (plan doc, future packages) pin against this. Changelog lives
  * at docs/DESIGN_SYSTEM_CHANGELOG.md.
  */
-export const DESIGN_SYSTEM_VERSION = "2.0.3" as const
+export const DESIGN_SYSTEM_VERSION = "2.0.4" as const
 
 export type DesignSystemVersion = typeof DESIGN_SYSTEM_VERSION
