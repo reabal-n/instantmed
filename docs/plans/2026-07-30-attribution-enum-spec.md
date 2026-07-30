@@ -1,243 +1,359 @@
 # P0.2 specification — AI-source attribution enum + shared classifier
 
-> **Status: specification for review. No code, schema, or config change is authorised by this document.**
+> **Status: specification for gate review. No code, schema, config, or external action is authorised by this document.**
 >
 > **Parent:** `docs/plans/2026-07-30-ai-organic-growth-plan.md` §3 P0.2. **Authority:** Reference only. `docs/ROADMAP.md` is the sole active priority queue.
 >
-> **Purpose:** answer one question — *does Microsoft/Copilot AI citation produce any measurable arrival?* — and fix the classifier divergence that currently makes any answer untrustworthy. Written 2026-07-30 against verified code state.
+> **Inherited ranked item:** ROADMAP **rank 1 — truth and measurement gate** (this is measurement-truth work, and its checkpoint applies: *"complete only when each named boundary has implementation plus focused proof"*). It also serves rank 6 (compounding work) by making the AI channel measurable. It does **not** inherit rank 3, which owns distribution.
 >
-> **Review gate:** this specification goes to review **before** any implementation branch opens. Implementation lands in its own PR with its own review.
+> **Written 2026-07-30. Revised v2** after a gate review that was upheld on 6 standards findings and 6 specification blockers. §9 records the adjudication. **The worst finding was mine: the original zero-detection conclusion was invalid.**
 
 ---
 
 ## 1. Why this exists
 
-Bing Webmaster Tools AI Performance reports **5.5K citations / 90d** (Jul: 2,920 in 28 days, 2.4× June) across Microsoft Copilot, Bing AI summaries, and select partner integrations. Attributed Copilot orders: **zero**. Every AI-referral order ever recorded is `chatgpt.com` (3 → 4 → 11 → 21, Apr → Jul).
+BWT AI Performance reports **5.5K citations / 90d** (Jul: 2,920 in 28 days) across Microsoft Copilot, Bing AI summaries, **and unnamed partner integrations**. Attributed Copilot orders: **zero**. Every AI-referral order ever recorded is `chatgpt.com` (3 → 4 → 11 → 21, Apr → Jul).
 
-That gap has two candidate explanations — a real conversion ceiling, or a measurement hole — and the current code cannot distinguish them. It also cannot be resolved retrospectively (§2). So the deliverable is prospective instrumentation plus a trustworthy classifier, producing a **count**, not an adjective.
+The current code cannot tell a real conversion ceiling from a measurement hole, and cannot resolve it retrospectively (§2). So the deliverable is prospective instrumentation plus a trustworthy classifier.
 
-**Non-goal:** this specification does not attempt to prove that Bing citation drives revenue. That is the parent plan's Phase 2, and it is gated on Phase 1. This work only makes the measurement possible.
+**Non-goals.** This does not attempt to show that Bing citation drives revenue (parent Phase 2). And per §5 it **cannot, even in principle, establish a channel ceiling** — that was the original draft's central error.
 
 ---
 
-## 2. Verified code state (the constraints)
+## 2. Verified code state
 
-### 2.1 Both retrospective routes are closed — by deliberate privacy controls
+### 2.1 Retrospective routes are closed by deliberate privacy controls
 
-| Location | Behaviour | Consequence |
+| Location | Behaviour |
+|---|---|
+| `lib/analytics/attribution-storage.ts` → `cleanUrlOrPath` | Returns `${origin}${path}`; catch branch `.split("?")[0]`. Referrer query strings never reach persistence |
+| `lib/analytics/posthog-privacy.ts` → `sanitizePostHogUrl` | Returns `${origin}${pathname}`; docstring states it removes every query parameter and fragment. **The PostHog `$referrer` retrospective read is disproven** |
+
+These are correct controls. **This specification does not weaken either.**
+
+### 2.2 The capture gap is an early return
+
+`lib/analytics/middleware-attribution.ts` → `captureAttributionToCookie` **does** read `Referer` (`req.headers.get("referer")`), but only after `if (Object.keys(captured).length === 0) return response`. Tagged arrivals get a referrer; **untagged arrivals exit first** — exactly the Copilot and organic-assistant case.
+
+### 2.3 Raw referrers are ALREADY persisted to JavaScript-readable storage
+
+**This corrects the previous draft, which claimed the raw referrer stays in-process. It does not, today.**
+
+| Writer | What lands where |
+|---|---|
+| `lib/analytics/middleware-attribution.ts` (~L89–100) | `req.headers.get("referer")` — **full URL including query and fragment** — is JSON-serialised into the `instantmed_attribution` cookie. The cookie sets `sameSite`, `secure`, `path`, `maxAge` 30 days, and **no `httpOnly`**, so it is readable by any script on the origin |
+| `lib/analytics/attribution.ts` (~L235–249) | `document.referrer` — full URL — written via `writeStoredAttribution` into browser session/local storage |
+
+Checkout-time sanitisation (`cleanUrlOrPath`) is therefore the **only** thing preventing raw referrers reaching the database, and nothing prevents them sitting in a 30-day client-readable cookie or in web storage beforehand.
+
+### 2.4 Three divergent classifiers
+
+| Surface | Match method | Verdict |
 |---|---|---|
-| `lib/analytics/attribution-storage.ts` → `cleanUrlOrPath` | Returns `${parsed.origin}${path}` for cross-origin; catch branch does `.split("?")[0]` | Referrer query strings are **never persisted**. Any historical `showconv`-style Copilot marker is gone |
-| `lib/analytics/posthog-privacy.ts` → `sanitizePostHogUrl` | Returns `${parsed.origin}${pathname}`; docstring states it removes every query parameter and fragment | The PostHog `$referrer` retrospective read is **disproven**. Do not attempt it |
-
-**These are correct privacy controls and this specification does not weaken either.** The enum is derived *before* sanitisation and only a bounded value is kept.
-
-### 2.2 The capture gap is an early return, not missing referrer handling
-
-`lib/analytics/middleware-attribution.ts` → `captureAttributionToCookie`:
-
-```
-for (const key of ATTRIBUTION_PARAM_KEYS) { ...collect... }
-if (!captured.utm_source) { ...deriveChannelFromClickIds(params)... }
-if (Object.keys(captured).length === 0) return response   // ← the gap
-...
-const referrer = req.headers.get("referer") ?? existing.referrer
-```
-
-It **does** read `Referer` — but only after that early return. So a tagged arrival gets a referrer and an **untagged arrival exits first**. Untagged is exactly the case we need: Copilot and organic assistants that append no UTM.
-
-> An earlier draft of the parent plan claimed this function never reads `Referer`. That was wrong and is corrected here and in the plan.
-
-### 2.3 Three divergent classifiers — and the admin one is already right
-
-| Surface | Match method | List | Verdict |
-|---|---|---|---|
-| `lib/analytics/ai-referral.ts` | `utmSource.includes(pattern.split(".")[0])` — **first token of the host as a substring** | 13 hosts | **Broken — live false positives, §3** |
-| `lib/analytics/source-classification.ts` | `containsAny()` substring over `[utm_source, utm_campaign, referrer, host]` | 7 patterns | **Weak — substring + campaign-name contamination** |
-| `lib/admin/ai-attribution-breakdown.ts` | `.includes()` over **curated unambiguous tokens** | 9 tokens | **Correct by design — use as the base** |
-
-The admin surface's own docstring already states the principle: it *"deliberately EXCLUDE\[s\] ambiguous hosts (`bing`, `you.com`) that would over-count ordinary search traffic as AI."* Someone solved this problem once. The fix is to **promote that approach**, harden it, and make the other two consume it — not to invent a fourth list.
+| `lib/admin/ai-attribution-breakdown.ts` | `.includes()` over **curated unambiguous tokens** | **The best conservative starting point — not "correct".** It still substring-matches; its virtue is a deliberately safe token list, documented in its own docstring as excluding `bing` and `you.com` |
+| `lib/analytics/ai-referral.ts` | `utmSource.includes(pattern.split(".")[0])` | **Broken, live false positives — §3** |
+| `lib/analytics/source-classification.ts` | `containsAny()` substring over `[utm_source, utm_campaign, referrer, host]` | **Weak — substring plus campaign-name contamination** |
 
 ---
 
-## 3. Live defects found (fix, then measure)
-
-These are current-behaviour bugs, discovered while grounding this spec. They matter because they bias the number we are about to instrument.
+## 3. Live defects found while grounding this spec
 
 ### 3.1 `ai-referral.ts` first-token substring matching
 
-`utmSource.includes(pattern.split(".")[0])` reduces each host to its first label and substring-matches it:
+Each mapped host is reduced to its first label and substring-matched:
 
-| Host in map | Reduced token | False positive |
+| Host | Token | False positive |
 |---|---|---|
 | `bing.com/chat` | `bing` | **`utm_source=bing` — ordinary Bing organic — classifies as Copilot** |
 | `you.com` | `you` | **`utm_source=youtube` classifies as You.com** |
 | `meta.ai` | `meta` | **`utm_source=meta` — Meta ads — classifies as Meta AI** |
 | `chat.openai.com` | `chat` | Any source containing `chat` |
-| `poe.com` | `poe` | Any source containing `poe` |
-| `kagi.com` | `kagi` | Narrow, but same class |
+| `poe.com`, `kagi.com` | `poe`, `kagi` | Same class |
 
-**Blast radius is bounded but real:** this function only fires the PostHog `ai_referral` event; it does not write persisted order attribution. So it inflates an event stream, not revenue counts. It is still the exact failure mode the shared classifier must make impossible.
+**Bounded:** fires the PostHog `ai_referral` event only; does not write persisted order attribution.
 
 ### 3.2 `source-classification.ts` substring + campaign contamination
 
-`AI_PATTERNS = ["chatgpt","perplexity","claude","gemini","copilot","poe.com","you.com"]`, matched against `[utm_source, utm_campaign, referrer, host].join(" ")`.
+`AI_PATTERNS` matched against `[utm_source, utm_campaign, referrer, host].join(" ")`. **`utm_campaign` is in the token**, so a campaign named `gemini_test` classifies the order as an AI referral. This surface **does** drive operator-facing channel labels (`AttributionChip`, intake ledger).
 
-- **`utm_campaign` is in the match token**, so a campaign named `gemini_test` or `claude-launch` classifies the order as an AI referral.
-- `you.com` as a substring matches any host containing it.
-- Missing relative to the admin list: `openai`, `phind`, `meta.ai`. Missing entirely: `grok`/`x.ai`, `deepseek`, `mistral`/Le Chat, `duck.ai`.
+### 3.3 Consequence
 
-**This surface does drive operator-facing channel labels** (`AttributionChip`, the intake ledger), so its errors are visible in decisions.
-
-### 3.3 Consequence for the parent plan's honesty clause
-
-This is the concrete mechanism behind *"detected share with unknown bias"* rather than *"floor"*. Referrer stripping deflates the AI bucket; **substring matching inflates it.** Both directions are live, neither is calibrated. The parent plan's §7 wording stands and is now evidenced.
-
-*(The baseline table in the parent plan §1 is unaffected: its AI rows were verified to be literally `chatgpt.com`, and its query checked AI patterns before search patterns.)*
+This is the mechanism behind the parent plan's *"detected share with unknown bias"*: stripping deflates the AI bucket, substring matching inflates it, neither is calibrated. *(The parent's baseline table is unaffected — its AI rows were verified as literally `chatgpt.com`.)*
 
 ---
 
 ## 4. Specification
 
-### 4.1 One shared classifier — exact matching only
+### 4.0 Canon change required — operator approval, not doc maintenance
+
+`CLAUDE.md:380` currently states, of code-side referrer capture:
+
+> *"code-side referrer capture is structurally blind to it and is already maxed out (do not add more referrer/click-id capture)"*
+
+**This specification proposes adding referrer-derived capture, which that sentence forbids.** That is a policy correction, not routine documentation upkeep.
+
+**Required in the implementation gate, before any code:** the operator explicitly approves retiring the parenthetical *"(do not add more referrer/click-id capture)"* and narrowing the claim to what remains true — that referrer capture cannot recover **referrer-stripped** dark traffic, and that `heard_about_us` remains the only instrument for that cohort. The rest of the sentence stands. `AGENTS.md` regenerates via `scripts/sync-agent-doc.sh` in the same commit.
+
+**If the operator declines, this specification is void** and the Copilot question stays unanswered by code. That is an acceptable outcome and must not be worked around.
+
+### 4.1 Shared classifier — pure, exact, versioned
 
 New module, single owner, consumed by all three surfaces.
 
+**Public API (pure, no I/O, no globals):**
+
+```
+classifyAiSource(input: { referrer?: string | null; utmSource?: string | null })
+  => { engine: AiEngine; enum: AiSourceEnum; matched: "utm" | "referrer" | null; version: number }
+```
+
 **Matching rules, binding:**
 
-1. **Host matching is exact-or-suffix on a parsed hostname.** Parse the referrer with `new URL()`, take `hostname`, strip a leading `www.`, then match `host === domain || host.endsWith("." + domain)`. The existing `matchesHost` helper in `source-classification.ts` already implements this — reuse it.
-2. **UTM matching is exact on the whole normalised value**, not substring. `utm_source=chatgpt.com` matches; `utm_source=bingbot-test` does not match anything.
-3. **Never substring-match, and never reduce a host to its first label.** No `.includes()` on host or UTM fields in the new module.
-4. **`utm_campaign` is not an AI signal** and must not be part of the match token.
-5. **No short tokens, ever.** `x.ai` is registered as the exact host `x.ai` (plus `grok.com`), never as the token `x`. A token shorter than 5 characters requires an explicit comment justifying it and a negative fixture.
-6. **Path-qualified hosts are matched as host + path prefix**, not as a host substring: `bing.com/chat` becomes `{ host: "bing.com", pathPrefix: "/chat" }`, so bare `bing.com` cannot match it.
+1. **Host matching is exact-or-suffix on a parsed hostname** — `new URL()`, take `hostname`, strip leading `www.`, then `host === domain || host.endsWith("." + domain)`. Reuse the existing `matchesHost` helper in `source-classification.ts`.
+2. **UTM matching is exact equality on the whole normalised value** (trim + lowercase). No substring.
+3. **Never reduce a host to its first label. Never substring-match host or UTM.**
+4. **`utm_campaign` is not an AI signal** and is not an input to this function.
+5. **Path-qualified entries match host + path prefix**, so bare `bing.com` cannot match a `bing.com/chat` entry.
+6. **`version`** is returned and persisted alongside results so a registry change is distinguishable from a behaviour change.
 
-**Registry** (host → engine), consolidating all three lists:
+**Registry — every entry carries a provenance receipt.** Entries without one are excluded until a receipt exists.
 
-`chatgpt.com`, `chat.openai.com`, `openai.com` → ChatGPT · `perplexity.ai` → Perplexity · `gemini.google.com`, `bard.google.com` → Gemini · `copilot.microsoft.com`, `bing.com/chat`, `edgeservices.bing.com` → Copilot · `claude.ai` → Claude · `grok.com`, `x.ai` → Grok · `chat.deepseek.com` → DeepSeek · `chat.mistral.ai` → Le Chat · `duck.ai` → DuckAssist · `meta.ai` → Meta AI · `poe.com` → Poe · `phind.com` → Phind · `kagi.com` → Kagi · `you.com` → You.com
+| Host | Engine | Enum | Provenance |
+|---|---|---|---|
+| `chatgpt.com` | ChatGPT | `chatgpt` | Observed in production: all 21 July AI orders |
+| `chat.openai.com` | ChatGPT | `chatgpt` | Legacy ChatGPT host, in the existing admin + client lists |
+| `perplexity.ai` | Perplexity | `perplexity` | Perplexity bot/referrer docs |
+| `gemini.google.com` | Gemini | `gemini` | Google product host |
+| `copilot.microsoft.com` | Copilot | `copilot` | Microsoft product host |
+| `bing.com` + path prefix `/chat` | Copilot | `copilot` | Existing client list; path-qualified |
+| `claude.ai` | Claude | `claude` | Anthropic product host |
+| `grok.com` | Grok | `other_ai` | Product host |
+| `meta.ai`, `poe.com`, `phind.com`, `chat.deepseek.com`, `chat.mistral.ai`, `duck.ai` | as named | `other_ai` | Product hosts; low expected AU volume |
 
-**UTM registry:** exact values only — `chatgpt.com`, `perplexity`, `perplexity.ai`, `copilot`, `gemini`, `claude.ai`. Anything not exactly listed is not an AI source.
+**Removed from the previous draft for lack of provenance:** `openai.com` (bare — serves docs, blog, and marketing; not an assistant referrer) and `edgeservices.bing.com` (I asserted it without a receipt). Either may be added later **with** a receipt plus positive and lookalike-negative fixtures.
 
-### 4.2 Required negative fixtures
+**`bard.google.com`** is retained from the existing lists but flagged as likely dead; keep until a decision, it is harmless and exact.
 
-The contract test fails if any of these classify as AI:
+**UTM registry — exact values only:** `chatgpt.com` → `chatgpt`; `perplexity`, `perplexity.ai` → `perplexity`; `copilot` → `copilot`; `gemini` → `gemini`; `claude.ai` → `claude`. Anything not exactly listed is not an AI source.
 
-| Input | Must classify as | Guards against |
+### 4.2 The `bing_ai` inconsistency — resolved by removal
+
+The parent plan lists `bing_ai` in the enum; the previous spec draft silently dropped it and added `grok`. **Resolution: `bing_ai` is removed from both**, because no verified query or path marker for *Bing AI summaries* (as distinct from Copilot) has been identified. Inventing a value we cannot detect would guarantee a permanently empty bucket that reads as a finding.
+
+**The parent plan must be corrected to match** — a one-line change, tracked as a follow-up on this spec's approval, not smuggled in here.
+
+**Consequence, stated plainly:** the instrument is narrowed to **identifiable Copilot traffic**. Bing AI summaries and BWT's unnamed "partner integrations" are **outside its detection scope**. This is central to §5.
+
+### 4.3 `you.com` and `kagi.com` — negative, matching the parent
+
+The parent plan requires ambiguous You.com as an **explicit negative fixture**. The previous draft contradicted it by classifying You.com as `other_ai`. **Resolution: the parent wins.** Both are search engines whose AI mode is not distinguishable from ordinary search at the referrer level, so a bare visit classifies as **organic search, not AI**, and both appear in the negative fixtures. Revisit only with a path or parameter receipt that identifies the AI mode.
+
+### 4.4 Enum, engine, and how consumers treat `other_ai`
+
+- **`AiEngine`** — the display label (ChatGPT, Perplexity, Gemini, Copilot, Claude, Grok, Meta AI, Poe, Phind, DeepSeek, Le Chat, DuckAssist).
+- **`AiSourceEnum`** — the persisted, low-cardinality value: `chatgpt` · `copilot` · `perplexity` · `gemini` · `claude` · `other_ai` · `none`.
+- **Mapping is explicit in one table** (§4.1), not derived, so adding a host is a deliberate decision about which bucket it joins.
+- **Consumer contract for `other_ai`:** the admin breakdown may display the finer `engine`; the persisted enum and all revenue reporting use the coarse value. **`other_ai` is never presented as a named engine in operator revenue figures**, and never silently folded into `chatgpt`.
+- **`NULL` vs `none`:** `NULL` means *not instrumented* — the row predates the column or the derivation did not run. **`none`** means *instrumented and no AI source detected*. They must never be conflated; only `none` rows belong in the denominator.
+
+### 4.5 Precedence, trust, and attribution model
+
+**Attribution model: first-AI-touch, write-once.** The first non-`none` value observed for the intake wins and is never overwritten. Rationale: matches `heard_about_us` semantics, and the question is *"did this assistant ever bring this patient"*, not *"what was the last hop"*.
+
+**Precedence within a single derivation:**
+1. An existing persisted non-`none` value on the intake — **always wins**, no overwrite.
+2. Exact `utm_source` match.
+3. Referrer host match.
+
+**A later Copilot arrival after an earlier ChatGPT arrival** is **not** represented in this column — the first value stands. If that distinction ever matters, it needs its own event stream, not a mutable column. Documented so the limitation cannot be mistaken for a bug.
+
+**Trust boundary — do not trust the existing cookie.** `instantmed_attribution` is **not `httpOnly`** (§2.3), so any value in it is client-writable and unsuitable as an authoritative acquisition claim.
+
+- **Authoritative path:** derive server-side in middleware and write to a **separate `httpOnly`, `secure`, `sameSite=lax` cookie** carrying only `{ enum, version }`. This is what checkout persists.
+- **Non-authoritative path:** the client may call the same shared classifier for its PostHog `ai_referral` event. Clearly labelled non-authoritative; it must not feed revenue reporting.
+
+### 4.6 Privacy — sanitise both existing writers
+
+**Beyond deriving the enum, this work must fix §2.3.** Immediately after derivation, both writers sanitise the referrer before it is stored:
+
+- `middleware-attribution.ts` — sanitise before the cookie is serialised.
+- `attribution.ts` — sanitise before `writeStoredAttribution`.
+
+Sanitised form is origin + path only, matching `cleanUrlOrPath`'s existing shape. Raw referrer exists **only** as a local variable during derivation.
+
+**Proof required by test, not assertion:** no referrer query string or fragment reaches the attribution cookie, session storage, local storage, the database, **Stripe**, PostHog, application logs, or Sentry.
+
+**Also binding:** no new identifier, no PHI, no free text. The enum is low-cardinality and non-identifying. Existing sanitisers are unchanged.
+
+### 4.7 Persistence — intake only, never Stripe
+
+**The enum is not Stripe metadata.** Stripe does not need another acquisition field, and routing it through session metadata adds a surface with no benefit.
+
+1. **Migration (mandatory, not conditional):** nullable `intakes.ai_source_detected` plus `ai_source_classifier_version`. Follow `CLAUDE.md` migration discipline — apply, verify in production, record the receipt, update the migration count, regenerate `AGENTS.md`. Note the MCP `apply_migration` generated-version gotcha and reconcile `schema_migrations`.
+2. **Persist on the intake row before Checkout Session creation**, on both paths:
+   - **Authenticated insert** — value present at insert.
+   - **Guest insert** — value present at insert; **guest reconstruction** must carry it when an intake is rebuilt after a failed first attempt.
+3. **Write-once enforced at the data layer**, not only in application code.
+4. **Idempotency collisions:** if two inserts race, the surviving row keeps the **earliest** non-`none` value.
+5. **Retry payment** preserves the original value and must not re-derive from the retry navigation.
+6. **Webhook and fallback finalisation read the intake and preserve the value.** They must not write it, and must not drop it while setting `paid_at`.
+7. All reporting uses canonical `paid_at` / `refunded_at` windows and the closed non-overlapping windows the parent plan mandates.
+
+### 4.8 Denominator — executable definition
+
+"Eligible landing request" means **all** of:
+
+| Criterion | Rule |
+|---|---|
+| Request type | Top-level document navigation only — `Sec-Fetch-Mode: navigate` **and** `Sec-Fetch-Dest: document` |
+| Method | `GET` (and `HEAD` excluded) |
+| Accept | `Accept` includes `text/html` |
+| Origin | `Sec-Fetch-Site` is **not** `same-origin`. Internal navigations are excluded — the denominator counts arrivals, not page views |
+| Prefetch | Excluded when `Sec-Purpose: prefetch` or `Purpose: prefetch` is present |
+| Path exclusions | Anything matched by `isExternalAnalyticsExcludedPathname` (capability/bearer paths), plus `/api/*`, `/_next/*`, static assets, health checks, and the `Disallow` set in `app/robots.ts` |
+| Bots/crawlers | Excluded from the denominator via a conservative user-agent check, and **counted separately** so exclusion volume is visible rather than silent |
+| Missing headers | If `Sec-Fetch-*` headers are absent (older clients), fall back to `Accept: text/html` + `GET`; **count these in a distinct `indeterminate` bucket** rather than assuming eligibility |
+
+**Not "visits" and not "sessions"** — session semantics would require privacy-safe deduplication, explicitly out of scope.
+
+### 4.9 Aggregate collector — not `operational_metrics` per request
+
+**`operational_metrics` is an append-only aggregate-snapshot table** — `(metric_name, metric_value, dimensions, recorded_at)`. One row per landing request would violate its aggregate-only contract, add a per-request timestamp, and put a write on the middleware hot path. **Rejected.**
+
+Instead:
+
+- **Fixed time bucket:** UTC hour. The bucket key is `(metric_name, bucket_start)`.
+- **Atomic aggregation:** a single upsert-and-increment against a dedicated counter table with a unique key on `(metric_name, bucket_start, dimension_key)`. **No request-level rows and no per-request timestamps.** Dimensions are limited to the enum value and the eligibility bucket.
+- **Never on the request hot path.** Increments are fire-and-forget from a route that does not block the response, or batched. **Measurement failure must never delay, degrade, or fail a patient request** — this is the binding constraint, above data completeness.
+- **Fail-open:** any collector error is swallowed after a Sentry breadcrumb. A dropped increment is acceptable; a delayed patient request is not.
+- **Under-count is expected and must be disclosed** in every report that uses the denominator.
+- Rolled-up hourly totals may be snapshotted into `operational_metrics` for dashboarding — that is its correct use.
+
+### 4.10 Contract tests
+
+1. All negative fixtures in §4.11.
+2. **Three-surface parity** — identical input yields the identical engine and enum across all three consumers. This is the test that makes divergence impossible to reintroduce.
+3. **Behavioural anti-substring tests, not a source scan.** The previous draft banned every `.includes()` in the module, which is wrong — exact array membership legitimately uses `.includes()`. Replace with: type-level enforcement that the registry is a closed literal set, plus behavioural assertions that lookalike hosts and superstring UTM values do not match.
+4. Enum derivation runs on the **untagged** path (the §2.2 regression).
+5. Write-once holds across authenticated insert, guest insert, guest reconstruction, idempotency collision, and retry payment.
+6. Finalisation preserves the value while setting `paid_at`.
+7. **No referrer query string or fragment** in cookie, session storage, local storage, DB, Stripe, PostHog, logs, or Sentry.
+8. `NULL` and `none` are distinguished in every report.
+
+### 4.11 Required negative fixtures
+
+| Input | Must classify as | Guards |
 |---|---|---|
 | `utm_source=bing`, referrer `https://www.bing.com/search?q=...` | organic search | §3.1 `bing` token |
 | referrer `https://www.bing.com/` (no `/chat`) | organic search | path-prefix collapse |
 | `utm_source=youtube`, referrer `https://www.youtube.com/` | referral | §3.1 `you` token |
 | `utm_source=meta`, `utm_medium=cpc` | other paid | §3.1 `meta` token |
 | `utm_campaign=gemini_test`, no AI source or referrer | direct/unknown | §3.2 campaign contamination |
-| referrer `https://foryou.com.au/` | referral | `you.com` suffix collapse |
+| referrer `https://you.com/search?q=...` | **organic search** | §4.3 ambiguity ruling |
+| referrer `https://kagi.com/search?q=...` | **organic search** | §4.3 |
+| referrer `https://foryou.com.au/` | referral | suffix collapse |
 | referrer `https://notchatgpt.com.example/` | referral | suffix-match correctness |
+| referrer `https://openai.com/blog/...` | referral | §4.1 provenance removal |
 | `utm_source=x`, referrer empty | direct/unknown | short-token catastrophe |
-| referrer `https://www.google.com/search?q=...` | organic search | AI-Mode traffic is **not** separable — must not be guessed as AI |
+| `utm_source=chatgpt.com.evil.example` | direct/unknown | exact-equality UTM |
+| referrer `https://www.google.com/search?q=...` | organic search | **AI Mode is not separable — must not be guessed** |
 
-**Ambiguous-by-policy — decide explicitly, do not leave to chance:** `you.com` and `kagi.com` are search engines with AI answer modes, so a bare visit is not necessarily an AI referral. **Ruling for this spec: classify them as `other_ai` and keep them out of the headline AI-referral figure**, matching the admin surface's existing conservatism. Record the decision in the module docstring.
+### 4.12 Documentation (same commit)
 
-### 4.3 The enum and where it is derived
-
-**Values (closed set):** `chatgpt` · `copilot` · `perplexity` · `gemini` · `claude` · `grok` · `other_ai` · `none`.
-
-**Derivation point:** in middleware, **before** any sanitisation, and **before** the `Object.keys(captured).length === 0` early return — so untagged arrivals are covered. Inputs: the `Referer` header and the exact `utm_source` value.
-
-**Privacy, binding:**
-- The raw referrer string is used **in-process only** and discarded immediately. Only the enum value leaves the derivation.
-- **No new identifier, no PHI, no free text, no raw query string persisted anywhere.**
-- The enum is a low-cardinality, non-identifying category. It must not be combined with anything that could re-identify.
-- Existing sanitisation in `attribution-storage.ts` and `posthog-privacy.ts` is **unchanged**.
-
-### 4.4 Persistence — mandatory and complete, not conditional
-
-An earlier draft said "schema migration if a column is required". **It is required, and the full path is in scope or the enum is not built at all — there is no half version.**
-
-1. **Migration:** add a nullable enum/text column to `intakes` (e.g. `ai_source_detected`). Follow the `CLAUDE.md` migration discipline — apply, verify in production, record the receipt, update the migration count in `CLAUDE.md` and regenerate `AGENTS.md`. Note the known MCP `apply_migration` generated-version gotcha and reconcile `schema_migrations` to the file timestamp.
-2. **Both checkout paths carry it end to end:**
-   - **Guest** — cookie → guest checkout → intake row → Stripe session → payment finalisation.
-   - **Authenticated** — cookie → authenticated checkout → intake row → payment finalisation.
-   - **Retry payment** must preserve the original value and must not overwrite it with a later, session-derived one.
-3. **Write-once semantics:** first non-`none` value wins, mirroring `heard_about_us`. A later navigation must not overwrite an earlier detection.
-4. **Payment finalisation must not drop it** — the value has to survive the webhook/fallback confirmation path that sets `paid_at`.
-5. All reporting uses canonical `paid_at` / `refunded_at` windows.
-
-### 4.5 Capture-validation counter
-
-Without a denominator, "zero detections" is uninterpretable.
-
-- **Denominator: eligible landing requests** — requests that reached the derivation point and were eligible for classification. **Not "visits" and not "sessions"** — session semantics would require privacy-safe deduplication, which is explicitly out of scope here.
-- Excluded from eligibility: capability/bearer paths already excluded by `isExternalAnalyticsExcludedPathname`, and internal or health-check traffic.
-- Emit an aggregate-only counter: eligible landing requests, detections by enum value. **No identity, aggregate only** — the `operational_metrics` table is the appropriate shape.
-- Report format, fixed: **"N detections among M eligible landing requests and K orders over \[closed window\]."**
-
-### 4.6 Contract tests
-
-1. All negative fixtures in §4.2.
-2. **Parity:** all three surfaces return the same engine for the same input — the test that makes divergence impossible to reintroduce.
-3. **No-substring guard:** the module contains no `.includes()` on host or UTM fields, and no token shorter than 5 characters without a justifying comment.
-4. Enum derivation runs on the untagged path (the §2.2 regression).
-5. Write-once semantics hold across guest, authenticated, and retry-payment paths.
-6. Raw referrer query strings are absent from every persisted surface after derivation.
-
-### 4.7 Documentation (Doc Maintenance Policy — required, same commit)
-
-- `CLAUDE.md` — attribution/analytics pipeline section: the enum, its derivation point, the privacy posture, the new column, and the three-surface consolidation. Then `scripts/sync-agent-doc.sh` → `AGENTS.md` (never hand-edit `AGENTS.md`).
-- `docs/ARCHITECTURE.md` — Core Tables + the new column.
-- `docs/SECURITY.md` — confirm the enum is non-PHI and record why.
-- Migration count in `CLAUDE.md`/`AGENTS.md` with the production receipt.
+`CLAUDE.md` — the §4.0 canon correction plus the pipeline description (enum, derivation point, `httpOnly` cookie, privacy posture, new columns, three-surface consolidation), then `scripts/sync-agent-doc.sh` → `AGENTS.md` (never hand-edited) · `docs/ARCHITECTURE.md` Core Tables + the counter table · `docs/SECURITY.md` — why the enum is non-PHI, and the §4.6 sanitisation fix · migration count with production receipt.
 
 ---
 
-## 5. What this measures, and what it cannot
+## 5. What this measures — and the conclusion it cannot support
 
-**Can answer:** whether any arrival carries a Copilot/Bing-AI referrer signal at all, at what rate against a known denominator, and whether the AI channel is genuinely ChatGPT-only or merely *measured* as ChatGPT-only.
+**The previous draft's zero-result conclusion was invalid and is withdrawn.** It said that zero detections on a healthy denominator, with ChatGPT detection working, would demonstrate a real Copilot conversion ceiling. That does not follow, for three independent reasons:
 
-**Cannot answer:**
-- **Whether Bing citation causes revenue** — that is Phase 2, needs treatment/control, and this only supplies the instrument.
-- **Google AI Mode / AI Overviews clicks** — they arrive as plain `google.com` organic and are structurally indistinguishable. The classifier must **not** guess (negative fixture in §4.2).
-- **Referrer-stripped arrivals** — in-app browsers and some free-tier paths send nothing. These land in `none`, and `none` is not evidence of absence.
+1. **BWT's 5.5K aggregates surfaces this instrument cannot see** — Copilot, Bing AI summaries, and unnamed partner integrations. §4.2 narrows detection to identifiable Copilot traffic, so most of that citation volume is outside scope by construction.
+2. **ChatGPT detection working proves nothing about Copilot detection.** They are different hosts with different tagging behaviour; ChatGPT appends `utm_source=chatgpt.com`, and there is no evidence Copilot does anything equivalent. A working detector for one is not a validated detector for the other.
+3. **Microsoft states citation activity does not indicate placement or importance**, so citation volume was never a promise of click volume in the first place.
 
-**Pre-committed interpretation, so it cannot be chosen after the fact:**
+**Corrected interpretation, pre-committed:**
 
-| Result after ≥30 days | Reading |
+| Result after ≥30 days | Permitted conclusion |
 |---|---|
-| Non-trivial detections | Measurement hole was real. Re-baseline the channel mix before any Phase 2 conclusion |
-| **Zero** detections on a healthy denominator (M large, ChatGPT detections present) | Copilot citations genuinely do not produce arrivals — a real ceiling. Supports Phase 2 Outcome C |
-| Zero detections **and** a small or zero denominator | **The instrument is broken.** Fix it; conclude nothing about the channel |
+| Non-trivial Copilot detections | A measurement hole existed. Re-baseline the channel mix before any Phase 2 reasoning |
+| Zero, on a healthy denominator | **"No recognised Copilot signal detected."** Nothing more. Not a ceiling, not an absence of arrivals |
+| Zero, on a small or zero denominator | **The instrument is broken.** Fix it; conclude nothing |
 
-That third row is the one worth pre-committing: a broken collector and a real ceiling look identical in the headline number.
+**A real ceiling claim requires a prerequisite this spec does not deliver: a controlled known-positive Copilot click** — a deliberate click from a real Copilot answer, end-to-end, confirming the detector fires. **Until that positive control passes, no zero result may be reported as a channel finding**, and Phase 2 Outcome C may not be triggered by this instrument alone.
+
+**Also outside scope:** Google AI Mode and AI Overviews clicks (structurally indistinguishable — negative fixture in §4.11), and referrer-stripped arrivals, which land in `none`. **`none` is not evidence of absence.**
 
 ---
 
 ## 6. Out of scope
 
-Session-level deduplication · weakening any existing sanitiser · persisting raw referrers or query strings · any new identifier · client-side classification changes beyond consuming the shared module · Phase 1 or Phase 2 experiment work · GA4 (we are on PostHog; Google's published referrer list is used only as a reference for the registry).
+Session deduplication · weakening any sanitiser · persisting raw referrers or query strings · new identifiers · Stripe metadata changes · Phase 1 or Phase 2 experiment work · GA4 (PostHog is the stack; Google's referrer list is reference only for registry provenance).
 
 ---
 
 ## 7. Implementation sequencing
 
-1. **This specification is reviewed and approved.** ← current gate
-2. Shared classifier module + negative fixtures + parity tests. **No schema change.** Own PR, own review — independently valuable, since it fixes the §3 live bugs.
-3. Migration + derivation + full persistence path + counter. Own PR, own review, production receipt.
-4. Reporting surfaces consume the enum; scorecard row 9 goes live.
-5. Thirty days of forward data, then report the §5 count.
+1. **This spec passes gate review.** ← current
+2. **Operator approves the §4.0 canon change.** Hard gate — if declined, stop.
+3. **PR 1 — shared classifier + fixtures.** Pure module, exact matching, registry with provenance, `other_ai` mapping, precedence rules, behavioural tests, three-surface parity. **No schema change.** Independently valuable: it fixes the §3 live bugs.
+4. **PR 2 — authoritative capture.** `httpOnly` cookie derivation, the §4.6 sanitisation fix in both writers, migration, full guest and authenticated persistence, aggregate collector, reporting.
+5. **Positive control:** a known-good Copilot click validating end-to-end capture. **Required before any zero result is interpreted.**
+6. Thirty days of forward data, then report the §5 count with its permitted conclusion only.
 
-Step 2 is deliberately separable: the classifier defects are worth fixing on their own merits whether or not the enum is ever built.
+PR 1 is shippable on its own **only because** its API, precedence, mapping, and fixtures are now specified — the previous draft's version was not, and calling it independently shippable was premature.
 
 ---
 
-## Appendix A — companion Phase 0 read-only audit: AI fetcher access
+## 8. Appendix A — Phase 0 read-only audit: AI fetcher access
 
-Run 2026-07-30. **Result: clean, no action required.**
+Run 2026-07-30. **Result: clean, no action required.** Independently reproduced by the gate reviewer (24 public-fetch checks, all 200).
 
 | Check | Finding |
 |---|---|
-| `vercel.json` | No firewall, bot-management, or user-agent rules. Only region, ignoreCommand, a www→apex redirect, and crons |
-| `middleware.ts` | **No user-agent handling of any kind** — no bot detection, no crawler branching |
-| Live fetch, 8 distinct AI/crawler user agents × `/`, `/medical-certificate`, `/prescriptions` | **All 200.** ChatGPT-User, OAI-SearchBot, PerplexityBot, Perplexity-User, Claude-User, Claude-SearchBot, bingbot, DuckAssistBot — identical to the browser baseline |
+| `vercel.json` | No firewall, bot-management, or user-agent rules |
+| `middleware.ts` | **No user-agent handling of any kind** |
+| Live fetch, 8 distinct AI/crawler UAs × 3 paths | **All 200**, identical to browser baseline (ChatGPT-User, OAI-SearchBot, PerplexityBot, Perplexity-User, Claude-User, Claude-SearchBot, bingbot, DuckAssistBot) |
 
-**Conclusion:** the parent plan's concern that `ChatGPT-User` / `Perplexity-User` / `Meta-ExternalFetcher` (which ignore robots.txt by vendor documentation) might be dying at a WAF challenge is **not supported**. Nothing is challenging them.
+The concern that `ChatGPT-User` / `Perplexity-User` / `Meta-ExternalFetcher` were dying at a WAF challenge is **not supported**.
 
-**Residual limitation, stated rather than glossed:** this tested spoofed user agents from a consumer IP. A Vercel dashboard-level firewall rule keyed on something other than user agent — IP reputation, TLS fingerprint, rate — would not necessarily show up. Confirming that requires the Vercel dashboard Firewall tab, which is an operator check. Given no repo-level config and no observed challenge, the residual risk is low and this is **not** a blocker for any phase.
+**Residual limitation:** spoofed user agents from a consumer IP. A dashboard-level rule keyed on IP reputation or TLS fingerprint would not appear here; confirming that is an operator dashboard check. Residual risk low; not a blocker.
 
-**This also supports the parent plan's decision not to add robots.txt blocks** for `Claude-User`, `DuckAssistBot`, `Amzn-SearchBot`, or `MistralAI-User`: they are already served under the `User-Agent: *` allow, and the audit confirms nothing upstream is interfering.
+This also supports the parent plan's decision not to add robots.txt blocks for `Claude-User`, `DuckAssistBot`, `Amzn-SearchBot`, or `MistralAI-User` — already served under the catch-all allow.
+
+---
+
+## 9. Gate review adjudication (2026-07-30)
+
+All findings verified against the code before acceptance.
+
+### Standards
+
+| # | Finding | Verification | Resolution |
+|---|---|---|---|
+| 1 | Raw-referrer privacy claim untruthful | Both writers persist the full `Referer`/`document.referrer`; the attribution cookie has **no `httpOnly`** and a 30-day `maxAge` | §2.3 documents reality; §4.6 mandates sanitising both writers with proof tests across 8 sinks |
+| 2 | Proposal contradicts canon | `CLAUDE.md:380`: *"do not add more referrer/click-id capture"* | §4.0 names the exact clause, requires operator approval, and voids the spec if declined |
+| 3 | `operational_metrics` is not a request counter | Schema is `(metric_name, metric_value, dimensions, recorded_at)`, append-only snapshots | §4.9 rejects per-request rows; specifies hourly buckets, atomic upsert-increment, fail-open, and no hot-path blocking |
+| 4 | Drafts fork controlled claims | `clinical_review_sequence` exists at `lib/marketing/approved-claims.ts:192` with branch-aware wording | Drafts corrected to the approved text verbatim; LegitScript separated from the directory listing |
+| 5 | `file-map.md` stale timestamp | Read "Last updated: 2026-07-27" | Updated |
+| 6 | Spec not linked to a ranked item | ROADMAP §4 | Header inherits **rank 1** (truth and measurement gate) and its checkpoint |
+| — | Em dashes in public draft copy | `lib/marketing/voice.ts:164–181` bans the em dash across marketing surfaces, CI-scanned by `voice-guard` | Stripped from every send-ready copy block |
+| — | Wikidata HQ inferred | Registered office ≠ headquarters | Property removed pending a direct receipt |
+
+### Specification
+
+| # | Finding | Resolution |
+|---|---|---|
+| 1 | **Zero cannot establish a ceiling** — the worst finding, and mine | §5 rewritten: permitted conclusion is *"no recognised Copilot signal detected"*; a controlled known-positive Copilot click is a prerequisite before any zero is interpreted |
+| 2a | `bing_ai` in parent, dropped in spec | Removed from both; parent correction tracked as a follow-up. Instrument explicitly narrowed to identifiable Copilot traffic |
+| 2b | Bare You.com required negative, spec made it `other_ai` | Parent wins — You.com and Kagi classify as organic search, both added as negative fixtures |
+| 2c | Registry/enum collapse undefined | §4.4 defines `AiEngine` vs `AiSourceEnum`, an explicit mapping table, and the `other_ai` consumer contract |
+| 2d | `openai.com` / `edgeservices.bing.com` lacked provenance | Both removed; every registry entry now carries a receipt, and `openai.com/blog` is a negative fixture |
+| 2e | Admin classifier called "correct" | Downgraded to "best conservative starting point" — it still substring-matches |
+| 3 | Denominator not executable | §4.8 specifies `Sec-Fetch-*`, method, Accept, same-origin exclusion, prefetch, path exclusions, bot handling, missing-header fallback with an `indeterminate` bucket |
+| 4 | Precedence/trust/attribution model unbound | §4.5 fixes first-AI-touch write-once, precedence order, later-Copilot representation, `NULL` vs `none`, classifier versioning, and a separate `httpOnly` server-derived cookie |
+| 5 | Enum should stay out of Stripe | §4.7 persists on the intake before session creation; finalisation reads and preserves only |
+| 6 | Source-scan `.includes()` ban brittle | §4.10 replaces it with type-level and behavioural tests — exact array membership legitimately uses `.includes()` |
+| 7 | P0.1 not send-ready | Approved-claim text applied, certification split, reverify-immediately-before-publication step added |
+
+**Accepted in return:** the WAF audit within its stated scope, independently reproduced.

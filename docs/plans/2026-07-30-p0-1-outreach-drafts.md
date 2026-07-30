@@ -2,11 +2,11 @@
 
 > **Status: drafts only. Nothing here has been sent, submitted, published, or edited on any external property.**
 >
-> **Parent:** `docs/plans/2026-07-30-ai-organic-growth-plan.md` §3 P0.1. **Authority:** Reference only. `docs/ROADMAP.md` is the sole active priority queue (rank 3 — external reputation and distribution).
+> **Parent:** `docs/plans/2026-07-30-ai-organic-growth-plan.md` §3 P0.1. **Authority:** Reference only. `docs/ROADMAP.md` is the sole active priority queue (rank 3, external reputation and distribution).
 >
 > **Binding authority boundary:** Phase 0 approval covers drafting. **Each item below requires its own explicit operator approval immediately before it goes out.** Approving this document is not approval to send. Agents must not submit, publish, or edit any external property listed here.
 >
-> Source of truth for facts: `PRICING` (`lib/constants/index.ts`), `getApprovedClaim()` / `APPROVED_CLAIMS` (`lib/marketing/approved-claims.ts`), `MAX_MED_CERT_DURATION_DAYS` (`lib/clinical/intake-validation.ts`). **Re-verify every price and claim against those owners at send time** — a stale figure in an external listing becomes a source-conflict that costs citations (see the parent plan's consistency rationale).
+> Source of truth for facts: `PRICING` (`lib/constants/index.ts`), `getApprovedClaim()` / `APPROVED_CLAIMS` (`lib/marketing/approved-claims.ts`), `MAX_MED_CERT_DURATION_DAYS` (`lib/clinical/intake-validation.ts`). **Re-verify every price and claim against those owners at send time**, a stale figure in an external listing becomes a source-conflict that costs citations (see the parent plan's consistency rationale).
 
 ---
 
@@ -23,11 +23,24 @@
 | Priority review add-on | **$9.95**, optional | `PRICING` |
 | Hours | Operates 24/7; requests submitted and reviewed around the clock. **No guaranteed turnaround** | `CLAUDE.md` hours policy |
 | Refund | **Full refund if the doctor declines** | `CLAUDE.md` refund policy |
-| Clinical model | AHPRA-registered doctors make prescribing decisions. AI does not prescribe | `docs/CLINICAL.md` |
-| Certificate verification | Public verification endpoint for employers/institutions | `/verify` |
-| Certifications | LegitScript certified; listed in the national health services directory | — |
+| Clinical review sequence | **Use `getApprovedClaim("clinical_review_sequence")` verbatim** (see below) | `lib/marketing/approved-claims.ts` |
+| Certificate verification | Public verification endpoint for employers and institutions | `/verify` |
+| LegitScript certification | **Reverify status immediately before any publication** | LegitScript directory |
+| Health services directory listing | **Separate fact from certification. Reverify immediately before any publication** | NHSD/PCA portal |
 
-**Never state in any of these:** doctor count · individual doctor names · FRACGP or fellowship claims · peer-review or team-training claims · guaranteed turnaround times · review counts or star ratings · any prescription-medicine brand name · any claim that a certificate will be accepted by a specific employer or institution · any category-superiority claim (notably **not** "the only provider with verification" — Qoctor, Updoc, and Doccy all publish verification surfaces).
+### The clinical review sequence — approved text, use verbatim
+
+> "Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward."
+
+**Do not paraphrase this and do not shorten it.** The approved-claim notes are explicit: *"Do not imply every certificate is doctor-reviewed before issue or that protocol issuance applies to prescribing."*
+
+An earlier version of these drafts said "an AHPRA-registered doctor reviews it and decides what is clinically appropriate" for all services. **That is false for eligible protocol-based certificate issuance** and has been removed everywhere.
+
+**LegitScript certification and the health services directory listing are two separate facts.** Never merge them into one credential phrase, and reverify both immediately before any approved publication. A stale credential claim on an external surface is worse than no claim.
+
+**Never state in any of these:** doctor count · individual doctor names · FRACGP or fellowship claims · peer-review or team-training claims · guaranteed turnaround times · review counts or star ratings · any prescription-medicine brand name · any claim that a certificate will be accepted by a specific employer or institution · any category-superiority claim (notably **not** "the only provider with verification", since Qoctor, Updoc, and Doccy all publish verification surfaces).
+
+**Em dashes are banned in all send-ready copy** (`lib/marketing/voice.ts`, CI-scanned by `voice-guard`). The copy blocks below comply; keep them compliant if edited.
 
 ---
 
@@ -36,7 +49,7 @@
 **Channel:** email to `info@medicompare.com.au` · **Approval required before sending.**
 **Context:** `medicompare.com.au/instantmed/` currently 404s while ~34 AU providers have staff-written profiles. Inclusion bar is low; absence is the anomaly. Kit reference: `docs/audits/2026-07-09-comparison-surface-submission-kit.md`.
 
-> **Subject:** Provider listing request — InstantMed (Australian telehealth, ABN 64 694 559 334)
+> **Subject:** Provider listing request, InstantMed (Australian telehealth, ABN 64 694 559 334)
 >
 > Hello,
 >
@@ -45,12 +58,13 @@
 > The essentials:
 >
 > - **Entity:** InstantMed Pty Ltd, ABN 64 694 559 334, Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010
-> - **Services:** medical certificates (from $24.95, up to 3 days), repeat prescriptions ($29.95), and doctor-reviewed consultations for erectile dysfunction, hair loss, and women's health ($49.95)
-> - **Model:** patients complete a structured clinical form; an AHPRA-registered doctor reviews it and decides what is clinically appropriate
-> - **Availability:** we operate 24/7 — requests can be submitted and reviewed around the clock
+> - **Services:** medical certificates (from $24.95, up to 3 days), repeat prescriptions ($29.95), and consultations for erectile dysfunction, hair loss, and women's health ($49.95)
+> - **Clinical process:** patients complete a structured clinical form. Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward.
+> - **Availability:** we operate 24/7, so requests can be submitted and reviewed around the clock
 > - **Refunds:** full refund if the doctor declines the request
 > - **Verification:** employers and institutions can verify any certificate we issue at https://instantmed.com.au/verify
-> - **Credentials:** LegitScript certified; listed in the national health services directory
+> - **Certification:** LegitScript certified
+> - **Directory:** listed in the national health services directory
 >
 > Two of those may be worth columns in their own right, since I don't think your current comparisons capture them: **refund on decline**, and **whether a provider's certificates can be independently verified by an employer**. Both are objective yes/no facts across providers and both are things readers ask about. Happy to supply our data either way.
 >
@@ -70,14 +84,14 @@
 
 Short description (≈50 words):
 
-> InstantMed is an Australian telehealth service for medical certificates, repeat prescriptions, and doctor-reviewed treatment for erectile dysfunction, hair loss, and women's health. Patients complete a structured clinical form; an AHPRA-registered doctor reviews it. Operates 24/7, Australia-wide, 18+. Full refund if the doctor declines.
+> InstantMed is an Australian telehealth service for medical certificates, repeat prescriptions, and treatment requests for erectile dysfunction, hair loss, and women's health. Patients complete a structured clinical form. Prescribing requests receive doctor review before any prescription is issued. Operates 24/7, Australia-wide, 18+. Full refund if the doctor declines.
 
 Structured fields:
 
 | Field | Value |
 |---|---|
 | Legal entity / ABN | InstantMed Pty Ltd / 64 694 559 334 |
-| Category | Telehealth — medical certificates, prescriptions, men's and women's health |
+| Category | Telehealth: medical certificates, prescriptions, men's and women's health |
 | Entry price | $24.95 (medical certificate, 1 day) |
 | Prescription | $29.95 |
 | Consultations | $49.95 |
@@ -86,9 +100,10 @@ Structured fields:
 | Turnaround | Reviewed around the clock. **No guaranteed timeframe** |
 | Refund policy | Full refund on doctor decline |
 | Bulk billing | Not available |
-| App | No app — mobile web |
-| Certificate verification | Yes — public endpoint at /verify |
-| Accreditation | LegitScript certified; national health services directory listing |
+| App | No app, mobile web |
+| Certificate verification | Yes, public endpoint at /verify |
+| LegitScript certification | Certified (**reverify before submitting**) |
+| Directory listing | Listed in the national health services directory (**reverify before submitting**) |
 
 *If the form has a free-text "why choose us" field, use the description above verbatim. Do not add comparative or superlative language.*
 
@@ -118,12 +133,11 @@ Purpose: a machine-readable entity anchor that assistants and knowledge graphs c
 | Description | Australian telehealth company | — |
 | instance of (P31) | business (Q4830453) | — |
 | country (P17) | Australia (Q408) | — |
-| headquarters location (P159) | Sydney (Q3130) | registered address |
 | official website (P856) | https://instantmed.com.au | — |
 | industry (P452) | telehealth (Q1191860) | — |
 | Australian Business Number (P3548) | 64694559334 | ABR |
 
-**Excluded deliberately:** inception date (not independently sourceable), employee or doctor count (**prohibited**), founder (**prohibited — no named founder**), revenue, any subjective descriptor.
+**Excluded deliberately:** headquarters location (a registered office is not a sourced headquarters; needs a direct receipt before it is asserted), inception date (not independently sourceable), employee or doctor count (**prohibited**), founder (**prohibited, no named founder**), revenue, any subjective descriptor.
 
 **Do not create a Wikipedia article.** Notability is not established, and a deleted article is worse than no article.
 
