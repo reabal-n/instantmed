@@ -371,7 +371,7 @@ Static-PDF overlay config is stored as immutable JSONB in `certificate_templates
 
 **Repeat medication normalization:** Repeat-prescription validation, medication blocklists, AI draft context, and doctor-facing case summaries all read through the canonical repeat-medication extractors. Scalar fields (`medicationName`, `medication_strength`, etc.) and the `answers.medications[]` compatibility array stay aligned, but active repeat requests accept exactly one medication row so the single dose/history answer remains unambiguous. The medication name is required; strength/form are optional and surface as doctor attention flags when missing. `prescriptionHistory = "never"` is rejected server-side because this flow is not for new prescriptions.
 
-**Workflow:** Patient submits -> Doctor reviews in portal -> Doctor approves for prescribing after identity completeness check -> Doctor prescribes in embedded Parchment or external fallback -> Parchment webhook or manual confirmation marks script sent -> Patient notified via email.
+**Workflow:** Patient submits -> Doctor reviews in portal -> Doctor approves for prescribing after identity completeness check -> Doctor prescribes in embedded Parchment or external fallback -> Parchment webhook or manual confirmation marks script sent -> Patient notified via email. Intake-scoped Parchment SSO carries the database-generated, non-PHI `intakes.reference_number` in `reserved_1`; the webhook must exact-match that reference, patient, prescriber, paid/awaiting-script state, and still-unfulfilled request before it can record issuance. Present-but-invalid or mismatched metadata fails closed. The legacy patient/prescriber heuristic is used only when correlation metadata is entirely absent. An established embedded session is not refreshed on a timer: a fresh five-minute SSO token is requested only for the initial open, an explicit retry, or a new-tab launch.
 
 ---
 
@@ -460,7 +460,7 @@ Static-PDF overlay config is stored as immutable JSONB in `certificate_templates
 
 Capability helpers in `lib/auth/staff-capabilities.ts`. Per-doctor capability flags on `profiles` (`can_review_med_certs`, `can_review_repeat_rx`, `can_review_consults`, `can_review_ed`, `can_review_hair_loss`, `can_prescribe_s4`, `can_prescribe_s8`) scope future doctor hires before their service-line verification completes; owner-operator is unrestricted by default. Parchment prescribing actions call `checkParchmentPrescribingCapability(...)` before external handoff: `prescribe_s4` is required for every embedded prescribing launch, and `prescribe_s8` is required when repeat-script intake answers include a controlled-medication name.
 
-**Canonical clinical URL:** `/dashboard`. It is the live queue surface for admin and doctor roles; support is redirected to `/admin/ops`. The header carries only bounded live-work signals, system health for the admin, and doctor availability. Queue tabs own All / Review / Info / Scripts filtering without duplicate sidebar destinations. Completed-today rows are actor-scoped to the signed-in clinician. Active-request search is server-authoritative but memory-only on the client: the authenticated, rate-limited Server Action derives doctor scope and seeded-data permission again, while URLs retain only safe view state such as status and page. Legacy `/admin`, `/doctor`, and `/doctor/dashboard` redirect here from `next.config.mjs`; `/doctor/queue` redirects to the review-filtered cockpit at `/dashboard?status=review#doctor-queue`, and `/doctor/scripts` redirects to the scripts-filtered cockpit. New code references `STAFF_*_HREF` constants from `lib/dashboard/routes.ts`; legacy `ADMIN_*_HREF` / `DOCTOR_*_HREF` aliases stay until a later remaster phase consolidates the file tree.
+**Canonical clinical URL:** `/dashboard`. It is the live queue surface for admin and doctor roles; support is redirected to `/admin/ops`. The header carries only bounded live-work signals, system health for the admin, and doctor availability. Queue tabs own All / Review / Info / Scripts filtering without duplicate sidebar destinations. Completed-today rows are actor-scoped to the signed-in clinician. Staff search is server-authoritative but memory-only on the client across the cockpit, Ledger, and patient directory: authenticated, rate-limited Server Actions re-derive doctor, admin, or masked-support scope, while URLs retain only safe view state such as status, service, sort, and page. Incoming legacy `q` parameters are stripped before data reads. Legacy `/admin`, `/doctor`, and `/doctor/dashboard` redirect here from `next.config.mjs`; `/doctor/queue` redirects to the review-filtered cockpit at `/dashboard?status=review#doctor-queue`, and `/doctor/scripts` redirects to the scripts-filtered cockpit. New code references `STAFF_*_HREF` constants from `lib/dashboard/routes.ts`; legacy `ADMIN_*_HREF` / `DOCTOR_*_HREF` aliases stay until a later remaster phase consolidates the file tree.
 
 **Role-owned staff routes:**
 
@@ -469,8 +469,8 @@ Capability helpers in `lib/auth/staff-capabilities.ts`. Per-doctor capability fl
 | `/dashboard` | Live clinical queue, review, information requests, and same-page prescribing fulfilment | Admin + doctor; actor-scoped completed-today history |
 | `/admin/analytics` | **Business**: net-retained revenue, delivered Ads economics, canonical conversion, acquisition evidence, and measurement checkpoints | Admin only; bounded read-only external analytics reads are allowed, mutations are not |
 | `/admin/ops` | **Operations**: exact unbounded totals for durable current-state payment/script/refund failures plus explicitly bounded identity, 7-day event/email/Ads, and 14-day certificate-delivery monitors—or one scope-clear state | Admin + support; detail rows may be capped, but caps never become totals or a global all-clear claim |
-| `/admin/intakes` | Server-filtered Ledger for source-record search, audit, and contextual recovery | Admin + support; support receives a masked projection with no clinical answers/contact payload |
-| `/admin/patients` | Compact patient directory and route into the canonical clinical record | Admin + doctor; non-admin doctors are scoped to patients they have touched |
+| `/admin/intakes` | Server-filtered Ledger for source-record search, audit, and contextual recovery | Admin + support; private POST search; support receives a masked projection with no clinical answers/contact payload |
+| `/admin/patients` | Compact patient directory and route into the canonical clinical record | Admin + doctor; private POST search; non-admin doctors are scoped to patients they have touched |
 | `/admin/settings` | **Setup**: configuration entry point, including Doctors and Features | Admin only; recovery tools remain contextual to Operations |
 
 The mobile clinical surface is first-class. The selected request remains on one page, primary controls are at least 44px tall, Parchment uses a full-height sheet, and `Complete request` remains visible but disabled until the server review projection reports durable `script_sent = true`. Payment, approval, iframe close, or client-local state must never unlock completion.
@@ -786,7 +786,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 553 files, 239 route files
+### `app/` — 555 files, 239 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 

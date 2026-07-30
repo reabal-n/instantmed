@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest"
 const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8")
 const pageSource = read("app/admin/intakes/page.tsx")
 const client = read("app/admin/intakes/intakes-ledger-client.tsx")
+const searchAction = read("app/admin/intakes/search-actions.ts")
 const filterSelects = read("app/admin/intakes/ledger-filter-selects.tsx")
 const queries = read("lib/data/intakes/queries.ts")
 
@@ -15,10 +16,13 @@ describe("admin ledger server contract", () => {
       expect(pageSource).toContain(`firstParam(params.${value})`)
       expect(pageSource).toContain(`      ${value},`)
     }
-    for (const value of ["q", "service", "status", "workLane", "chips"]) {
+    for (const value of ["service", "status", "workLane", "chips"]) {
       expect(pageSource).toContain(`${value}: initialFilters.${value}`)
     }
+    expect(pageSource).not.toContain("q: initialFilters.q")
     expect(pageSource).toContain("getAllIntakesForAdmin")
+    expect(searchAction).toContain("q: query")
+    expect(searchAction).toContain("getAllIntakesForAdmin")
     expect(queries).toContain("buildAdminLedgerSearchOr")
     expect(queries).toContain('.range(offset, offset + pageSize - 1)')
     expect(queries).toContain('.eq("category", serviceCategory)')

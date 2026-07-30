@@ -185,10 +185,12 @@ describe("doctor patient medication history contract", () => {
     expect(panelSource).toContain("onPrescriptionsRefresh()")
   })
 
-  it("keeps automatic Parchment session refreshes out of top-level doctor toasts", () => {
-    expect(panelSource).toContain("loadPrescribingUrl()")
-    expect(panelSource).not.toContain("Parchment session expiring")
-    expect(panelSource).not.toContain("toast.warning")
+  it("never replaces an in-progress Parchment session on a timer", () => {
+    expect(panelSource).toContain("void loadPrescribingUrl()")
+    expect(panelSource).not.toContain("240_000")
+    expect(panelSource).not.toContain("270_000")
+    expect(panelSource).not.toContain("sessionRefreshing")
+    expect(panelSource).not.toContain("Session refreshing")
   })
 
   it("gives doctors a slow-iframe recovery state without blocking prescribing", () => {
@@ -199,12 +201,11 @@ describe("doctor patient medication history contract", () => {
     expect(panelSource).toContain("copyPrescriptionContext")
   })
 
-  it("lets doctors retry only the embedded iframe without refreshing the SSO session", () => {
-    expect(panelSource).toContain("iframeReloadKey")
-    expect(panelSource).toContain("retryIframeOnly")
-    expect(panelSource).toContain("setIframeReloadKey((key) => key + 1)")
-    expect(panelSource).toContain("Retry iframe")
-    expect(panelSource).toContain("key={iframeReloadKey}")
+  it("mints a fresh Parchment session only after an explicit retry", () => {
+    expect(panelSource).toContain('onClick={loadPrescribingUrl}')
+    expect(panelSource).toContain("Retry session")
+    expect(panelSource).not.toContain("iframeReloadKey")
+    expect(panelSource).not.toContain("retryIframeOnly")
   })
 
   it("pins the narrow empirical Parchment iframe compatibility boundary", () => {

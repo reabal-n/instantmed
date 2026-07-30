@@ -145,7 +145,12 @@ export async function getPatientDirectoryPage({
   const { data, error, count } = await query.range(from, to)
 
   if (error) {
-    log.error("Failed to fetch patient directory", { error: error.message, page: from })
+    // PostgREST errors may echo the `.or(...)` predicate, which can contain
+    // the staff-entered identity search. Record only stable diagnostics.
+    log.error("Failed to fetch patient directory", {
+      errorCode: error.code ?? "unknown",
+      page: from,
+    })
     return {
       patients: [],
       total: null,

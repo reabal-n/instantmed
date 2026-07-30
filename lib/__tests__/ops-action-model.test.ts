@@ -223,6 +223,6 @@ describe("operations action model", () => {
     expect(hrefs).not.toContain("/admin/intakes/intake-1")
     expect(hrefs).not.toContain("/admin/emails/hub?tab=queue")
     expect(hrefs).not.toContain("/admin/refunds?status=failed")
-    expect(hrefs).toContain("/admin/intakes?q=IM-ONE")
+    expect(hrefs).toContain("/admin/intakes?status=approved")
   })
 })

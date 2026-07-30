@@ -1,6 +1,14 @@
 "use client"
 
-import { ArrowUpRight, CheckCircle, ClipboardCheck, Clock, Loader2, Send, X } from "lucide-react"
+import {
+  ArrowUpRight,
+  CheckCircle,
+  ClipboardCheck,
+  Clock,
+  Loader2,
+  Send,
+  X,
+} from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -538,11 +546,18 @@ export function IntakeActionButtons({
           </Button>
           {canPrescribeInParchment && intake.script_sent !== true
             ? (
-              <MarkSentManuallyButton
-                intakeId={intake.id}
-                disabled={!isHydrated}
-                reloadReviewData={reloadReviewData}
-              />
+              <details className="group sm:contents" data-mobile-fulfilment-options="true">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-center gap-2 rounded-lg border border-border bg-background px-3 text-sm font-medium text-foreground sm:hidden [&::-webkit-details-marker]:hidden">
+                  Fulfilment options
+                </summary>
+                <div className="hidden pt-2 group-open:block sm:block sm:pt-0" data-desktop-fulfilment-fallback="true">
+                  <MarkSentManuallyButton
+                    intakeId={intake.id}
+                    disabled={!isHydrated}
+                    reloadReviewData={reloadReviewData}
+                  />
+                </div>
+              </details>
             )
             : null}
         </>

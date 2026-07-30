@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation"
+
 import { PatientsListClient } from "@/components/admin/patient-directory-client"
 import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { requireRole } from "@/lib/auth/helpers"
@@ -10,9 +12,11 @@ import {
 } from "@/lib/dashboard/routes"
 import {
   getPatientDirectoryPage,
-  parsePatientDirectorySearch,
 } from "@/lib/data/patient-directory"
-import { parsePatientDirectorySort } from "@/lib/data/patient-directory-sort"
+import {
+  buildPatientDirectoryHref,
+  parsePatientDirectorySort,
+} from "@/lib/data/patient-directory-sort"
 
 import { AddPatientDialog } from "../../doctor/patients/add-patient-dialog"
 
@@ -38,13 +42,20 @@ export default async function AdminPatientsPage({
 
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page || "1", 10) || 1)
-  const search = parsePatientDirectorySearch(params.q)
   const sort = parsePatientDirectorySort(params.sort)
+
+  if (typeof params.q !== "undefined") {
+    redirect(buildPatientDirectoryHref({
+      baseHref: STAFF_PATIENTS_HREF,
+      page,
+      sort,
+    }))
+  }
+
   const { patients, total, collapsedCount, degradedSources } = await getPatientDirectoryPage({
     doctorId: hasAdminAccess(auth.profile) ? undefined : auth.profile.id,
     page,
     pageSize: PAGE_SIZE,
-    search,
     sort,
   })
   const totalPages = total === null ? 1 : Math.ceil(total / PAGE_SIZE)
@@ -68,8 +79,8 @@ export default async function AdminPatientsPage({
             totalPatients={total}
             collapsedDuplicateProfiles={collapsedCount}
             degradedSources={degradedSources}
-            initialSearchQuery={search}
             initialSort={sort}
+            pageSize={PAGE_SIZE}
             baseHref={STAFF_PATIENTS_HREF}
             patientHrefBase={STAFF_PATIENT_DETAIL_BASE_HREF}
             mergeAuditHref={ADMIN_PATIENT_MERGE_AUDIT_HREF}

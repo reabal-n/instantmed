@@ -158,7 +158,7 @@ vi.mock("@/lib/supabase/service-role", () => ({
   }),
 }))
 
-function makeWebhookRequest() {
+function makeWebhookRequest(metadata?: Record<string, unknown> | null) {
   const payload = {
     data: {
       partner_patient_id: PATIENT_PROFILE_ID,
@@ -171,6 +171,7 @@ function makeWebhookRequest() {
     organization_id: "org-1",
     partner_id: "partner-1",
     timestamp: "2026-05-01T00:00:00.000Z",
+    ...(metadata === undefined ? {} : { metadata }),
   }
 
   return new Request("https://instantmed.example/api/webhooks/parchment", {
@@ -218,6 +219,7 @@ describe("Parchment webhook route", () => {
         claimed_by: PRESCRIBER_PROFILE_ID,
         created_at: "2026-05-01T00:00:00.000Z",
         id: INTAKE_ID,
+        reference_number: "IM-20260501-ABC123",
         reviewed_by: null,
         reviewing_doctor_id: null,
         service: { type: "repeat_rx" },
@@ -261,6 +263,91 @@ describe("Parchment webhook route", () => {
           script_sent: true,
         }),
       }),
+    )
+  })
+
+  it("claims only the intake named by webhook correlation metadata", async () => {
+    mocks.state.candidateRows = [
+      {
+        category: "prescription",
+        claimed_by: PRESCRIBER_PROFILE_ID,
+        created_at: "2026-05-01T00:01:00.000Z",
+        id: "44444444-4444-4444-8444-444444444444",
+        reference_number: "IM-20260501-DEF456",
+        reviewed_by: null,
+        reviewing_doctor_id: null,
+        service: { type: "repeat_rx" },
+        subtype: null,
+      },
+      ...mocks.state.candidateRows,
+    ]
+
+    const response = await POST(makeWebhookRequest({ reserved_1: "IM-20260501-ABC123" }))
+
+    expect(response.status).toBe(200)
+    expect(mocks.updateScriptSent).toHaveBeenCalledWith(
+      INTAKE_ID,
+      true,
+      "Webhook event: evt_route_1",
+      SCID,
+      PRESCRIBER_PROFILE_ID,
+      { externalEvidenceAlreadyIssued: true },
+    )
+  })
+
+  it("does not use the legacy fallback when correlation metadata is mismatched", async () => {
+    const response = await POST(makeWebhookRequest({ reserved_1: "IM-20260501-DEF456" }))
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body).toEqual({ received: true, warning: "No matching request correlation found" })
+    expect(mocks.updateScriptSent).not.toHaveBeenCalled()
+    expect(mocks.getPatientPrescriptions).not.toHaveBeenCalled()
+    expect(mocks.state.prescriptionUpserts).toHaveLength(0)
+    expect(mocks.logWebhookFailure).toHaveBeenCalledWith(
+      "evt_route_1",
+      "parchment:prescription.created",
+      null,
+      "intake_correlation_mismatch",
+      expect.any(Object),
+    )
+  })
+
+  it("does not use the legacy fallback when reserved metadata fields are null", async () => {
+    const response = await POST(makeWebhookRequest({
+      reserved_1: null,
+      reserved_2: null,
+      reserved_3: null,
+    }))
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body).toEqual({ received: true, warning: "Invalid request correlation" })
+    expect(mocks.updateScriptSent).not.toHaveBeenCalled()
+    expect(mocks.getPatientPrescriptions).not.toHaveBeenCalled()
+    expect(mocks.logWebhookFailure).toHaveBeenCalledWith(
+      "evt_route_1",
+      "parchment:prescription.created",
+      null,
+      "intake_correlation_invalid",
+      expect.any(Object),
+    )
+  })
+
+  it("accepts top-level null metadata but fails it closed as an invalid correlation", async () => {
+    const response = await POST(makeWebhookRequest(null))
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body).toEqual({ received: true, warning: "Invalid request correlation" })
+    expect(mocks.updateScriptSent).not.toHaveBeenCalled()
+    expect(mocks.getPatientPrescriptions).not.toHaveBeenCalled()
+    expect(mocks.logWebhookFailure).toHaveBeenCalledWith(
+      "evt_route_1",
+      "parchment:prescription.created",
+      null,
+      "intake_correlation_invalid",
+      expect.any(Object),
     )
   })
 

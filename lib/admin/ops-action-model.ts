@@ -284,9 +284,7 @@ function certificateIssues(
       ? row.recommendation.action === "resend_receipt"
         ? row.emailHubHref
         : buildAdminIntakeHref(row.intakeId)
-      : row.referenceNumber
-        ? buildStaffLedgerHref({ q: row.referenceNumber })
-        : STAFF_OPS_HREF
+      : buildStaffLedgerHref({ status: "approved" })
 
     return [{
       action: row.recommendation.action === "resend_secure_link" ? "resend_certificate" as const : "link" as const,

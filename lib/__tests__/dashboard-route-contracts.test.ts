@@ -126,17 +126,22 @@ describe("dashboard route contracts", () => {
     expect(buildStaffLedgerHref()).toBe("/admin/intakes")
     expect(buildStaffLedgerHref({ status: "approved" })).toBe("/admin/intakes?status=approved")
     expect(buildStaffLedgerHref({
-      q: "IM-20260430-61542C",
       service: "repeat_rx",
       status: "awaiting_script",
       workLane: "clinical",
+      page: 2,
+      pageSize: 25,
     })).toBe(
-      "/admin/intakes?status=awaiting_script&service=repeat_rx&workLane=clinical&q=IM-20260430-61542C",
+      "/admin/intakes?status=awaiting_script&service=repeat_rx&workLane=clinical&page=2&pageSize=25",
     )
     expect(buildStaffLedgerHref({ chips: ["failed_payment", "refund_failed"] })).toBe(
       "/admin/intakes?chips=failed_payment%2Crefund_failed",
     )
     expect(buildStaffLedgerHref({ chips: [] })).toBe("/admin/intakes")
+    expect(read("lib/dashboard/routes.ts").slice(
+      read("lib/dashboard/routes.ts").indexOf("export function buildStaffLedgerHref"),
+      read("lib/dashboard/routes.ts").indexOf("export function buildAdminIntakeHref"),
+    )).not.toContain('params.set("q"')
     expect(STAFF_PATIENTS_HREF).toBe("/admin/patients")
     expect(buildAdminIntakeHref("intake-123")).toBe("/admin/intakes/intake-123")
     expect(buildAdminIntakeHref("intake 123")).toBe("/admin/intakes/intake%20123")

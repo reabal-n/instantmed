@@ -52,6 +52,12 @@ test.describe("Doctor Patients Directory", () => {
     await page.goto(`${STAFF_TEST_ROUTES.doctorPatients}?q=E2E+Test&sort=newest`)
     await waitForPageLoad(page)
 
+    const searchInput = page.getByRole("textbox", { name: "Search patients" })
+    await expect(page).toHaveURL((url) => !url.searchParams.has("q"))
+    await expect(searchInput).toHaveValue("")
+    await searchInput.fill("E2E Test")
+    await expect(page).toHaveURL((url) => !url.searchParams.has("q"))
+
     const patientLink = page.getByRole("link", { name: new RegExp(SEEDED_PATIENT_NAME, "i") }).first()
     await expect(patientLink).toBeVisible({ timeout: 10_000 })
 
@@ -79,11 +85,13 @@ test.describe("Doctor Patients Directory", () => {
 
     const searchInput = page.getByRole("textbox", { name: "Search patients" })
     await searchInput.fill("E2E Test")
-    await expect(page).toHaveURL(/q=E2E(?:\+|%20)Test/)
-    await expect(page.getByText(SEEDED_PATIENT_NAME).first()).toBeVisible()
+    await expect(page).toHaveURL((url) => !url.searchParams.has("q"))
+    await expect(
+      page.getByRole("link", { name: new RegExp(SEEDED_PATIENT_NAME, "i") }).first(),
+    ).toBeVisible()
 
     await searchInput.fill("ZZZZNONEXISTENT12345")
-    await expect(page).toHaveURL(/q=ZZZZNONEXISTENT12345/)
+    await expect(page).toHaveURL((url) => !url.searchParams.has("q"))
     await expect(
       page.getByText("No patients match this view.", { exact: true }).filter({ visible: true }),
     ).toHaveCount(1)

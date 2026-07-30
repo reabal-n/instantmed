@@ -31,6 +31,7 @@ Do not copy panels between these routes to make a second overview. Link to the o
 | `OperatorScrollArea` | Internal scroll region inside bounded pages |
 | `OperatorPanel` | Solid-depth staff panel |
 | `OperatorSplitPane` | Bounded list plus selected-detail panel |
+| `CaseMobileList` | Touch-first case rows below `sm`; keeps recovery actions labelled, visible, and at least 44px tall without horizontal scrolling or hover |
 
 ## Rules
 
@@ -40,6 +41,7 @@ Do not copy panels between these routes to make a second overview. Link to the o
 - Refresh fulfilment through the selected request's review-data reload path; do not remount the dashboard to observe `script_sent`.
 - Treat 375px mobile review as a clinical release surface: stay on the same request page, keep primary actions at least 44px tall, and render Parchment in a full-height sheet.
 - Keep `Complete request` visible but disabled until durable server evidence reports `script_sent = true`. Approval, payment, iframe close, and client-local flags are not fulfilment evidence.
+- Keep patient/request search terms in memory and send them through the authenticated private-search Server Actions. Staff URLs may preserve view filters and pagination, never raw search terms.
 - Prefer internal scroll panes over whole-page dashboard scrolling on desktop.
 - Do not add decorative motion. Portal surfaces use state-only color transitions.
 - Gate clinical actions on `hasDoctorAccess(profile)`; gate admin actions on `hasAdminAccess(profile)`; gate ops-only actions on `hasStaffAccess(profile)`. Helpers in `lib/auth/staff-capabilities.ts`.

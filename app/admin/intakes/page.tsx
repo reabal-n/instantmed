@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
 import {
@@ -16,7 +17,11 @@ import {
   ADMIN_INTAKE_STATUS_FILTER_OPTIONS,
   ADMIN_WORK_LANE_FILTER_OPTIONS,
 } from "@/lib/dashboard/admin-work-lanes"
-import { STAFF_DASHBOARD_HREF, STAFF_OPS_HREF } from "@/lib/dashboard/routes"
+import {
+  buildStaffLedgerHref,
+  STAFF_DASHBOARD_HREF,
+  STAFF_OPS_HREF,
+} from "@/lib/dashboard/routes"
 import { getAllIntakesForAdmin } from "@/lib/data/intakes"
 import { buildCaseRowAttribution } from "@/lib/operator/cases/case-attribution"
 import {
@@ -61,13 +66,11 @@ function parseLedgerFilters(params: SearchParams): AdminIntakesLedgerInitialFilt
   const status = firstParam(params.status)
   const service = firstParam(params.service)
   const workLane = firstParam(params.workLane)
-  const q = firstParam(params.q)?.trim()
   const chips = normalizeAdminLedgerQuickFilters(
     (firstParam(params.chips) ?? "").split(",").filter(Boolean),
   )
 
   return {
-    q: q || undefined,
     service: isAdminServiceFilter(service) ? service : undefined,
     status: isAdminStatusFilter(status) ? status : undefined,
     workLane: isAdminWorkLaneFilter(workLane) ? workLane : undefined,
@@ -93,12 +96,25 @@ export default async function AdminIntakeLedgerPage({
   const page = parsePositiveInteger(firstParam(params.page), 1)
   const pageSize = Math.min(100, Math.max(10, parsePositiveInteger(firstParam(params.pageSize), 50)))
 
+  // Ledger searches are POST-only and live in client memory. Remove legacy
+  // q links before any query runs so identifiers cannot persist in history,
+  // referrers, access logs, pagination, or copied URLs.
+  if (typeof params.q !== "undefined") {
+    redirect(buildStaffLedgerHref({
+      service: initialFilters.service,
+      status: initialFilters.status,
+      workLane: initialFilters.workLane,
+      chips: initialFilters.chips,
+      page: params.page,
+      pageSize: params.pageSize,
+    }))
+  }
+
   const results = await Promise.allSettled([
     getAllIntakesForAdmin({
       viewerRole: profile.role as "admin" | "support",
       page,
       pageSize,
-      q: initialFilters.q,
       service: initialFilters.service,
       status: initialFilters.status,
       workLane: initialFilters.workLane,
@@ -137,7 +153,7 @@ export default async function AdminIntakeLedgerPage({
         <OperatorPageHeader
           title="Request ledger"
           description={
-            initialFilters.q || initialFilters.status || initialFilters.service || initialFilters.workLane || initialFilters.chips?.length
+            initialFilters.status || initialFilters.service || initialFilters.workLane || initialFilters.chips?.length
               ? "Filtered request records from an operator drilldown."
               : "Search, audit, and recover request records when the cockpit is not enough."
           }

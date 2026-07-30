@@ -8,7 +8,12 @@ import { toast } from "sonner"
 
 import type { LedgerFilterSelectsProps } from "@/app/admin/intakes/ledger-filter-selects"
 import { buildPaymentRescueAction } from "@/app/admin/intakes/payment-rescue-action"
+import {
+  type AdminLedgerSearchData,
+  searchAdminLedgerAction,
+} from "@/app/admin/intakes/search-actions"
 import { issueRefundAction } from "@/app/doctor/queue/actions"
+import { CaseMobileList } from "@/components/operator/cases/case-mobile-list"
 import { CaseTable } from "@/components/operator/cases/case-table"
 import { FilterBar, type QuickFilter } from "@/components/operator/cases/filter-bar"
 import { usePanel } from "@/components/panels/panel-provider"
@@ -17,6 +22,7 @@ import { parseIntakeFlags } from "@/lib/clinical/intake-flags"
 import {
   ADMIN_LEDGER_QUICK_FILTER_OPTIONS,
   type AdminLedgerQuickFilterValue,
+  sanitizeAdminLedgerSearchTerm,
 } from "@/lib/dashboard/admin-ledger-filters"
 import {
   ADMIN_WORK_LANE_FILTER_OPTIONS,
@@ -29,6 +35,7 @@ import {
   formatRenewalMatchTitle,
   type RenewalMatch,
 } from "@/lib/doctor/renewal-format"
+import { useDebounce } from "@/lib/hooks/use-debounce"
 import type { CaseRowAttribution } from "@/lib/operator/cases/case-attribution"
 import { getPaymentRecoveryIndicator } from "@/lib/operator/cases/payment-recovery-indicator"
 import {
@@ -43,7 +50,6 @@ import {
 import type { IntakeWithPatient } from "@/types/db"
 
 export interface AdminIntakesLedgerInitialFilters {
-  q?: string
   service?: AdminServiceFilterValue
   status?: AdminIntakeStatusFilterValue
   workLane?: AdminWorkLaneFilterValue
@@ -52,6 +58,10 @@ export interface AdminIntakesLedgerInitialFilters {
 
 type LedgerRow = IntakeWithPatient & {
   attribution?: CaseRowAttribution | null
+}
+
+type ActiveAdminLedgerSearchView = AdminLedgerSearchData & {
+  query: string
 }
 
 type AdminIntakesLedgerClientProps = {
@@ -255,13 +265,13 @@ function mapToCaseRow(
 }
 
 export function AdminIntakesLedgerClient({
-  rows,
-  total,
-  page,
-  pageSize,
-  degraded = false,
-  patientSearchUnavailable = false,
-  patientSearchSaturated = false,
+  rows: initialRows,
+  total: initialTotal,
+  page: initialPage,
+  pageSize: initialPageSize,
+  degraded: initialDegraded = false,
+  patientSearchUnavailable: initialPatientSearchUnavailable = false,
+  patientSearchSaturated: initialPatientSearchSaturated = false,
   viewerRole,
   initialFilters,
 }: AdminIntakesLedgerClientProps) {
@@ -269,7 +279,13 @@ export function AdminIntakesLedgerClient({
   const searchParams = useSearchParams()
   const { openPanel } = usePanel()
   const searchRef = useRef<HTMLInputElement>(null)
-  const [searchQuery, setSearchQuery] = useState(initialFilters?.q ?? "")
+  const [searchQuery, setSearchQuery] = useState("")
+  const debouncedSearch = useDebounce(searchQuery, 350)
+  const [activeSearchView, setActiveSearchView] = useState<ActiveAdminLedgerSearchView | null>(null)
+  const [isSearchPending, setIsSearchPending] = useState(false)
+  const searchRequestSequenceRef = useRef(0)
+  const previousDebouncedQueryRef = useRef("")
+  const lastSearchEffectKeyRef = useRef("")
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null)
   const [refundTarget, setRefundTarget] = useState<CaseRowData | null>(null)
   const [isRefundPending, startRefundTransition] = useTransition()
@@ -278,6 +294,15 @@ export function AdminIntakesLedgerClient({
   const [isFilterPending, startFilterTransition] = useTransition()
   const [density, setDensity] = useDensity()
   const isAdmin = viewerRole === "admin"
+  const rows = activeSearchView?.data ?? initialRows
+  const total = activeSearchView ? activeSearchView.total : initialTotal
+  const page = activeSearchView?.page ?? initialPage
+  const pageSize = activeSearchView?.pageSize ?? initialPageSize
+  const degraded = activeSearchView?.degraded ?? initialDegraded
+  const patientSearchUnavailable = activeSearchView?.patientSearchUnavailable
+    ?? initialPatientSearchUnavailable
+  const patientSearchSaturated = activeSearchView?.patientSearchSaturated
+    ?? initialPatientSearchSaturated
 
   const activeChips = useMemo(
     () => new Set(initialFilters?.chips ?? []),
@@ -293,6 +318,7 @@ export function AdminIntakesLedgerClient({
     options: { resetPage?: boolean } = {},
   ) => {
     const params = new URLSearchParams(searchParams.toString())
+    params.delete("q")
     for (const [key, value] of Object.entries(updates)) {
       if (value) params.set(key, value)
       else params.delete(key)
@@ -306,18 +332,105 @@ export function AdminIntakesLedgerClient({
     })
   }, [router, searchParams])
 
-  useEffect(() => {
-    setSearchQuery(initialFilters?.q ?? "")
-  }, [initialFilters?.q])
+  const runLedgerSearch = useCallback(async (query: string, requestedPage: number) => {
+    const normalizedQuery = sanitizeAdminLedgerSearchTerm(query)
+    if (!normalizedQuery) return
+
+    const sequence = ++searchRequestSequenceRef.current
+    setIsSearchPending(true)
+    try {
+      const result = await searchAdminLedgerAction({
+        query: normalizedQuery,
+        page: requestedPage,
+        pageSize: initialPageSize,
+        service: initialFilters?.service,
+        status: initialFilters?.status,
+        workLane: initialFilters?.workLane,
+        chips: initialFilters?.chips,
+      })
+      if (sequence !== searchRequestSequenceRef.current) return
+
+      if (result.success) {
+        setActiveSearchView({ ...result.data, query: normalizedQuery })
+        return
+      }
+
+      setActiveSearchView({
+        query: normalizedQuery,
+        data: [],
+        total: null,
+        page: requestedPage,
+        pageSize: initialPageSize,
+        degraded: true,
+        patientSearchUnavailable: false,
+        patientSearchSaturated: false,
+      })
+      toast.error(result.error)
+    } catch {
+      if (sequence !== searchRequestSequenceRef.current) return
+      setActiveSearchView({
+        query: normalizedQuery,
+        data: [],
+        total: null,
+        page: requestedPage,
+        pageSize: initialPageSize,
+        degraded: true,
+        patientSearchUnavailable: false,
+        patientSearchSaturated: false,
+      })
+      toast.error("The request-ledger lookup could not be completed.")
+    } finally {
+      if (sequence === searchRequestSequenceRef.current) setIsSearchPending(false)
+    }
+  }, [
+    initialFilters?.chips,
+    initialFilters?.service,
+    initialFilters?.status,
+    initialFilters?.workLane,
+    initialPageSize,
+  ])
 
   useEffect(() => {
-    const next = searchQuery.trim()
-    if (next === (initialFilters?.q ?? "")) return
-    const timer = window.setTimeout(() => {
-      replaceParams({ q: next || null })
-    }, 350)
-    return () => window.clearTimeout(timer)
-  }, [initialFilters?.q, replaceParams, searchQuery])
+    const normalizedSearch = sanitizeAdminLedgerSearchTerm(debouncedSearch)
+    const queryChanged = normalizedSearch !== previousDebouncedQueryRef.current
+    previousDebouncedQueryRef.current = normalizedSearch
+
+    if (!normalizedSearch) {
+      searchRequestSequenceRef.current += 1
+      lastSearchEffectKeyRef.current = ""
+      setIsSearchPending(false)
+      setActiveSearchView(null)
+      return
+    }
+
+    const requestedPage = queryChanged ? 1 : initialPage
+    const effectKey = [
+      normalizedSearch,
+      requestedPage,
+      initialPageSize,
+      initialFilters?.service ?? "all",
+      initialFilters?.status ?? "all",
+      initialFilters?.workLane ?? "all",
+      (initialFilters?.chips ?? []).join(","),
+    ].join("\u0000")
+    if (effectKey === lastSearchEffectKeyRef.current) return
+    lastSearchEffectKeyRef.current = effectKey
+
+    if (queryChanged && initialPage !== 1) {
+      replaceParams({ page: null }, { resetPage: false })
+    }
+    void runLedgerSearch(normalizedSearch, requestedPage)
+  }, [
+    debouncedSearch,
+    initialFilters?.chips,
+    initialFilters?.service,
+    initialFilters?.status,
+    initialFilters?.workLane,
+    initialPage,
+    initialPageSize,
+    replaceParams,
+    runLedgerSearch,
+  ])
 
   const handleRefund = useCallback(() => {
     if (!refundTarget) return
@@ -429,12 +542,20 @@ export function AdminIntakesLedgerClient({
         : `${firstVisible.toLocaleString("en-AU")}–${lastVisible.toLocaleString("en-AU")} of ${total.toLocaleString("en-AU")}`
   const hasNextPage = total === null ? rows.length === pageSize : lastVisible < total
   const hasFilters = Boolean(
-    initialFilters?.q ||
+    sanitizeAdminLedgerSearchTerm(searchQuery) ||
     (initialFilters?.service && initialFilters.service !== "all") ||
     (initialFilters?.status && initialFilters.status !== "all") ||
     (initialFilters?.workLane && initialFilters.workLane !== "all") ||
     activeChips.size > 0,
   )
+  const isLedgerPending = isFilterPending || isSearchPending
+  const clearFilters = () => {
+    searchRequestSequenceRef.current += 1
+    setSearchQuery("")
+    setActiveSearchView(null)
+    setIsSearchPending(false)
+    router.replace(STAFF_LEDGER_HREF, { scroll: false })
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -495,76 +616,142 @@ export function AdminIntakesLedgerClient({
         />
       </div>
 
-      {isFilterPending ? (
+      {isLedgerPending ? (
         <div className="inline-flex items-center gap-2 text-xs text-muted-foreground" role="status">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Updating ledger…
+          <Loader2 className="h-3.5 w-3.5 animate-spin" /> {isSearchPending ? "Searching ledger…" : "Updating ledger…"}
         </div>
       ) : null}
 
       {!patientSearchSaturated ? (
-        <div className="overflow-x-auto rounded-xl">
-          <CaseTable
-            rows={caseRows}
-            density={density}
-            groupByTime
-            className="min-w-[760px]"
-            onRowPrimary={isAdmin ? openCaseSlideover : undefined}
-            selectedRowId={isAdmin ? selectedRowId : null}
-            rowActions={(row) => {
-              const canRefund = row.paymentStatus === "paid" || row.paymentStatus === "partially_refunded"
-              const canCopyPaymentRescue = row.paymentRecoveryIndicator === "payment_pending" || row.paymentRecoveryIndicator === "payment_retry"
-              if (!canRefund && !canCopyPaymentRescue) return null
-              return (
-                <>
-                  {canCopyPaymentRescue ? (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-11 w-11 sm:h-8 sm:w-8"
-                      title="Copy payment reply"
-                      aria-label={`Copy payment recovery reply for ${row.patientName}`}
-                      disabled={isPaymentRescuePending}
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        handleCopyPaymentRescue(row)
-                      }}
-                    >
-                      {isPaymentRescuePending && paymentRescueTargetId === row.id
-                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        : <Copy className="h-3.5 w-3.5" />}
-                    </Button>
-                  ) : null}
-                  {canRefund ? (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-11 w-11 sm:h-8 sm:w-8"
-                      title="Issue refund"
-                      aria-label={`Issue refund for ${row.patientName}`}
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        setRefundTarget(row)
-                      }}
-                    >
-                      <RotateCcw className="h-3.5 w-3.5" />
-                    </Button>
-                  ) : null}
-                </>
-              )
-            }}
-            emptyState={{
-              title: hasFilters ? "No matching requests" : "No recent requests",
-              body: hasFilters
-                ? "Clear one or more filters to broaden the server search."
-                : "No requests were created in the last 30 days.",
-              action: hasFilters ? (
-                <Button variant="outline" size="sm" onClick={() => router.replace(STAFF_LEDGER_HREF)}>
-                  Clear filters
-                </Button>
-              ) : undefined,
-            }}
-          />
-        </div>
+        <>
+          <div className="sm:hidden">
+            <CaseMobileList
+              rows={caseRows}
+              groupByTime
+              onRowPrimary={isAdmin ? openCaseSlideover : undefined}
+              selectedRowId={isAdmin ? selectedRowId : null}
+              rowActions={(row) => {
+                const canRefund = row.paymentStatus === "paid" || row.paymentStatus === "partially_refunded"
+                const canCopyPaymentRescue = row.paymentRecoveryIndicator === "payment_pending" || row.paymentRecoveryIndicator === "payment_retry"
+                if (!canRefund && !canCopyPaymentRescue) return null
+                return (
+                  <>
+                    {canCopyPaymentRescue ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="min-h-11 flex-1 px-3 text-sm"
+                        aria-label={`Copy payment recovery reply for ${row.patientName}`}
+                        disabled={isPaymentRescuePending}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          handleCopyPaymentRescue(row)
+                        }}
+                      >
+                        {isPaymentRescuePending && paymentRescueTargetId === row.id
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : <Copy className="h-4 w-4" />}
+                        Copy payment reply
+                      </Button>
+                    ) : null}
+                    {canRefund ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="min-h-11 flex-1 px-3 text-sm"
+                        aria-label={`Issue refund for ${row.patientName}`}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setRefundTarget(row)
+                        }}
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                        Issue refund
+                      </Button>
+                    ) : null}
+                  </>
+                )
+              }}
+              emptyState={{
+                title: hasFilters ? "No matching requests" : "No recent requests",
+                body: hasFilters
+                  ? "Clear one or more filters to broaden the server search."
+                  : "No requests were created in the last 30 days.",
+                action: hasFilters ? (
+                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                    Clear filters
+                  </Button>
+                ) : undefined,
+              }}
+            />
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl sm:block">
+            <CaseTable
+              rows={caseRows}
+              density={density}
+              groupByTime
+              className="min-w-[760px]"
+              onRowPrimary={isAdmin ? openCaseSlideover : undefined}
+              selectedRowId={isAdmin ? selectedRowId : null}
+              rowActions={(row) => {
+                const canRefund = row.paymentStatus === "paid" || row.paymentStatus === "partially_refunded"
+                const canCopyPaymentRescue = row.paymentRecoveryIndicator === "payment_pending" || row.paymentRecoveryIndicator === "payment_retry"
+                if (!canRefund && !canCopyPaymentRescue) return null
+                return (
+                  <>
+                    {canCopyPaymentRescue ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-11 w-11 sm:h-8 sm:w-8"
+                        title="Copy payment reply"
+                        aria-label={`Copy payment recovery reply for ${row.patientName}`}
+                        disabled={isPaymentRescuePending}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          handleCopyPaymentRescue(row)
+                        }}
+                      >
+                        {isPaymentRescuePending && paymentRescueTargetId === row.id
+                          ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          : <Copy className="h-3.5 w-3.5" />}
+                      </Button>
+                    ) : null}
+                    {canRefund ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-11 w-11 sm:h-8 sm:w-8"
+                        title="Issue refund"
+                        aria-label={`Issue refund for ${row.patientName}`}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setRefundTarget(row)
+                        }}
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" />
+                      </Button>
+                    ) : null}
+                  </>
+                )
+              }}
+              emptyState={{
+                title: hasFilters ? "No matching requests" : "No recent requests",
+                body: hasFilters
+                  ? "Clear one or more filters to broaden the server search."
+                  : "No requests were created in the last 30 days.",
+                action: hasFilters ? (
+                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                    Clear filters
+                  </Button>
+                ) : undefined,
+              }}
+            />
+          </div>
+        </>
       ) : null}
 
       {!patientSearchSaturated ? (
@@ -576,7 +763,7 @@ export function AdminIntakesLedgerClient({
               variant="outline"
               size="sm"
               className="min-h-11 sm:min-h-9"
-              disabled={page <= 1 || isFilterPending}
+              disabled={page <= 1 || isLedgerPending}
               onClick={() => replaceParams({ page: String(page - 1) }, { resetPage: false })}
             >
               <ChevronLeft className="h-4 w-4" /> Previous
@@ -587,7 +774,7 @@ export function AdminIntakesLedgerClient({
               variant="outline"
               size="sm"
               className="min-h-11 sm:min-h-9"
-              disabled={!hasNextPage || isFilterPending}
+              disabled={!hasNextPage || isLedgerPending}
               onClick={() => replaceParams({ page: String(page + 1) }, { resetPage: false })}
             >
               Next <ChevronRight className="h-4 w-4" />

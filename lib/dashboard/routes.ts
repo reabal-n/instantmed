@@ -97,20 +97,24 @@ export const ADMIN_PATIENT_MERGE_AUDIT_HREF = "/admin/ops/patient-merge-audit" a
 export const ADMIN_PRESCRIBING_IDENTITY_HREF = "/admin/ops/prescribing-identity" as const
 
 export function buildStaffLedgerHref(options: {
-  q?: string | null
   service?: string | null
   status?: string | null
   workLane?: string | null
   chips?: string[] | null
+  page?: string | string[] | number
+  pageSize?: string | string[] | number
 } = {}): string {
   const params = new URLSearchParams()
   if (options.status) params.set("status", options.status)
   if (options.service) params.set("service", options.service)
   if (options.workLane) params.set("workLane", options.workLane)
-  if (options.q) params.set("q", options.q)
   if (options.chips && options.chips.length > 0) {
     params.set("chips", options.chips.join(","))
   }
+  const page = getPositiveIntegerParam(options.page)
+  const pageSize = getPageSizeParam(options.pageSize)
+  if (page) params.set("page", page)
+  if (pageSize) params.set("pageSize", pageSize)
   const query = params.toString()
   return query ? `${STAFF_LEDGER_HREF}?${query}` : STAFF_LEDGER_HREF
 }

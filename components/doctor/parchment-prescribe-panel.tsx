@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { AlertTriangle, CheckCircle, Clipboard, ExternalLink, Loader2, RefreshCw, X } from "lucide-react"
 import Link from "next/link"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import { getPatientParchmentPrescribeUrlAction } from "@/app/actions/manual-patient"
@@ -121,11 +121,7 @@ export function ParchmentPrescribePanel({
   const [error, setError] = useState<string | null>(null)
   const [iframeLoaded, setIframeLoaded] = useState(false)
   const [iframeSlowToLoad, setIframeSlowToLoad] = useState(false)
-  const [iframeReloadKey, setIframeReloadKey] = useState(0)
   const [canUseIframe, setCanUseIframe] = useState(true)
-  const [sessionRefreshing, setSessionRefreshing] = useState(false)
-  const ssoExpiryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const ssoWarningTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const errorCopy = getParchmentErrorCopy(error)
   const patientDetailsHref = patientProfileHref || (patientId ? buildStaffPatientHref(patientId) : null)
   const canEditPatientDetails = Boolean(patientDetailsHref && canFixParchmentErrorFromPatientProfile(error))
@@ -176,16 +172,9 @@ export function ParchmentPrescribePanel({
     }
   }, [prescriptionContext])
 
-  const retryIframeOnly = useCallback(() => {
-    setIframeLoaded(false)
-    setIframeSlowToLoad(false)
-    setIframeReloadKey((key) => key + 1)
-  }, [])
-
   const loadPrescribingUrl = useCallback(async () => {
     setLoading(true)
     setError(null)
-    setSessionRefreshing(false)
 
     const result = await loadFreshParchmentUrl()
 
@@ -193,18 +182,6 @@ export function ParchmentPrescribePanel({
       setSsoUrl(result.ssoUrl)
       setIframeLoaded(false)
       setIframeSlowToLoad(false)
-
-      // SSO tokens expire in 300s. Surface a subtle "Session refreshing..."
-      // banner at 240s so the doctor knows a refresh is coming before the
-      // iframe blinks. Fire the actual refresh at 270s (30s safety margin).
-      if (ssoExpiryTimer.current) clearTimeout(ssoExpiryTimer.current)
-      if (ssoWarningTimer.current) clearTimeout(ssoWarningTimer.current)
-      ssoWarningTimer.current = setTimeout(() => {
-        setSessionRefreshing(true)
-      }, 240_000) // 4 minutes
-      ssoExpiryTimer.current = setTimeout(() => {
-        loadPrescribingUrl()
-      }, 270_000) // 4.5 minutes
     } else {
       setError(result.error || "Failed to load prescribing portal")
       toast.error(result.error || "Failed to load Parchment")
@@ -213,13 +190,11 @@ export function ParchmentPrescribePanel({
     setLoading(false)
   }, [loadFreshParchmentUrl])
 
-  // Auto-load on mount + cleanup timers
+  // Mint one fresh SSO attempt when the panel opens. Once Parchment establishes
+  // its session, never replace an in-progress prescription on a timer. Doctors
+  // can explicitly retry or open a newly minted session in another tab.
   useEffect(() => {
-    loadPrescribingUrl()
-    return () => {
-      if (ssoExpiryTimer.current) clearTimeout(ssoExpiryTimer.current)
-      if (ssoWarningTimer.current) clearTimeout(ssoWarningTimer.current)
-    }
+    void loadPrescribingUrl()
   }, [loadPrescribingUrl])
 
   useEffect(() => {
@@ -365,15 +340,6 @@ export function ParchmentPrescribePanel({
               )}
             </div>
             <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-              {sessionRefreshing && !error && (
-                <span
-                  className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800"
-                  aria-live="polite"
-                >
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" aria-hidden="true" />
-                  Session refreshing
-                </span>
-              )}
               {ssoUrl && (
                 <Button
                   variant="ghost"
@@ -458,9 +424,9 @@ export function ParchmentPrescribePanel({
                             You can keep waiting, open it in a new tab, or copy the requested medicine and continue there.
                           </p>
                           <div className="flex flex-wrap justify-center gap-2">
-                            <Button type="button" variant="outline" size="sm" onClick={retryIframeOnly}>
+                            <Button type="button" variant="outline" size="sm" onClick={loadPrescribingUrl}>
                               <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-                              Retry iframe
+                              Retry session
                             </Button>
                             <Button type="button" variant="outline" size="sm" onClick={openInNewTab}>
                               <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
@@ -480,7 +446,6 @@ export function ParchmentPrescribePanel({
                     </div>
                   </div>
                   <iframe
-                    key={iframeReloadKey}
                     src={ssoUrl}
                     className={cn(
                       "w-full h-full border-0 transition-opacity duration-300",

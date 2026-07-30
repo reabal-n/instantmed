@@ -139,27 +139,16 @@ The canonical 30-day intake funnel counts only attempts with a valid exact `flow
 
 Business may perform bounded, fail-soft, read-only external analytics reads on page load. It must never send a customer message, mutate Google Ads, approve a proposal, or otherwise change external state merely because the page rendered. Google Ads mutations and customer replies retain their explicit operator-approval boundaries.
 
-### Solo-Doctor Operating Model
+### Owner-Operated Capacity And Service Boundaries
 
-**Current phase:** one AHPRA-registered GP operates as treating doctor and Medical Director. The platform must protect clinical quality and doctor capacity before it optimises volume.
+Operations does not own a parallel service-priority or staffing policy:
 
-**Service priority order:**
+- `docs/ROADMAP.md` owns the current operating phase and ordered work.
+- `docs/BUSINESS_PLAN.md` owns the durable active, gated, and retired service boundaries.
+- `docs/CLINICAL.md` owns clinical governance. Every eligible auto-approved medical certificate enters post-approval doctor governance review; it is never reduced to optional QA sampling.
+- `docs/REVENUE_MODEL.md` owns the current hiring and capacity triggers.
 
-| Priority | Service | Operating rule |
-|----------|---------|----------------|
-| 1 | Medical certificates | Primary volume engine. Suitable low-risk requests may use doctor-owned protocol automation with QA sampling. |
-| 2 | Repeat prescriptions | One-off eScript review for existing stable medications. Escalate unclear or higher-risk cases. |
-| 3 | Hair loss | One-off specialist assessment. No subscription, no pharmacy fulfilment. |
-| 4 | ED | One-off specialist assessment with strict contraindication checks. |
-| 5 | Women's health | Narrow scope only. Escalate complexity. |
-| 6 | Weight loss | Manual/high-risk review. Do not automate in the solo-doctor phase. |
-
-**Capacity guardrails:**
-
-- Admin/support should be hired before a second doctor if support becomes the bottleneck.
-- First support hire trigger: 30-50 orders/day or 10+ support tickets/day.
-- Second doctor trigger: queue P95 above 2 hours during operating hours, QA falling behind, or sustained $60k-$80k/month gross revenue.
-- Subscriptions, monthly prescribing, pharmacy fulfilment, and ongoing check-in programs remain dormant until staffing exists.
+The platform must protect clinical quality and operator capacity before it increases demand. When a threshold is reached, follow the decision required by the canonical owner rather than a copied numeric rule in this runbook.
 
 **Escalation rule:** For prescription and specialty requests, the operational default is form-first doctor review. The doctor may call or message directly when more information is clinically needed. Marketing and product copy must not hard-promise "no call needed" for prescribing pathways.
 

@@ -331,6 +331,11 @@ export const webhookPayloadSchema = z.object({
   timestamp: z.string(),
   partner_id: z.string(),
   organization_id: z.string(),
+  metadata: z.object({
+    reserved_1: z.string().nullish(),
+    reserved_2: z.string().nullish(),
+    reserved_3: z.string().nullish(),
+  }).passthrough().nullish(),
   data: z.object({
     patient_id: z.string(),
     partner_patient_id: z.string(),

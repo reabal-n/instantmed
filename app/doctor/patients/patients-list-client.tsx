@@ -13,7 +13,8 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { toast } from "sonner"
 
 import { DashboardPageHeader } from "@/components/dashboard"
 import { Badge } from "@/components/ui/badge"
@@ -36,16 +37,20 @@ import type {
 } from "@/lib/data/patient-directory"
 import {
   buildPatientDirectoryHref,
-  createPatientDirectoryNavigationCoordinator,
   type PatientDirectorySort,
 } from "@/lib/data/patient-directory-sort"
 import { findPotentialDuplicatePatients } from "@/lib/doctor/patient-snapshot"
 import { calculateAge, formatDate } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
+import { useDebounce } from "@/lib/hooks/use-debounce"
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 import { cn } from "@/lib/utils"
 
 import { AddPatientDialog } from "./add-patient-dialog"
+import {
+  type PatientDirectorySearchData,
+  searchPatientDirectoryAction,
+} from "./search-actions"
 
 interface PatientsListClientProps {
   patients: PatientDirectoryProfile[]
@@ -54,8 +59,8 @@ interface PatientsListClientProps {
   totalPatients: number | null
   collapsedDuplicateProfiles: number
   degradedSources?: PatientDirectoryDegradedSource[]
-  initialSearchQuery?: string
   initialSort?: PatientDirectorySort
+  pageSize?: number
   baseHref?: string
   patientHrefBase?: string
   mergeAuditHref?: string
@@ -66,6 +71,11 @@ interface PatientsListClientProps {
 }
 
 type ExceptionFilter = "all" | "needs_details" | "sync_needed" | "duplicates"
+
+type ActivePatientDirectorySearchView = PatientDirectorySearchData & {
+  query: string
+  sort: PatientDirectorySort
+}
 
 const CLOSED_REQUEST_STATUSES = new Set(["completed", "declined", "cancelled", "expired"])
 
@@ -134,14 +144,14 @@ function PrescribingState({
 }
 
 export function PatientsListClient({
-  patients,
-  currentPage,
-  totalPages,
-  totalPatients,
-  collapsedDuplicateProfiles,
-  degradedSources = [],
-  initialSearchQuery = "",
+  patients: initialPatients,
+  currentPage: initialPage,
+  totalPages: initialTotalPages,
+  totalPatients: initialTotalPatients,
+  collapsedDuplicateProfiles: initialCollapsedDuplicateProfiles,
+  degradedSources: initialDegradedSources = [],
   initialSort = "newest",
+  pageSize = 50,
   baseHref = STAFF_DOCTOR_PATIENTS_HREF,
   patientHrefBase = STAFF_DOCTOR_PATIENTS_HREF,
   mergeAuditHref,
@@ -151,49 +161,116 @@ export function PatientsListClient({
   description = "Find a patient and continue their care.",
 }: PatientsListClientProps) {
   const router = useRouter()
-  const initialSearch = normalizeDirectorySearchQuery(initialSearchQuery)
-  const [searchQuery, setSearchQuery] = useState(initialSearch)
-  const [currentSort, setCurrentSort] = useState(initialSort)
+  const [searchQuery, setSearchQuery] = useState("")
+  const debouncedSearch = useDebounce(searchQuery, 350)
+  const [activeSearchView, setActiveSearchView] = useState<ActivePatientDirectorySearchView | null>(null)
+  const [isSearchPending, setIsSearchPending] = useState(false)
+  const searchRequestSequenceRef = useRef(0)
+  const previousDebouncedQueryRef = useRef("")
+  const lastSearchEffectKeyRef = useRef("")
   const [exceptionFilter, setExceptionFilter] = useState<ExceptionFilter>("all")
+  const patients = activeSearchView?.patients ?? initialPatients
+  const currentPage = activeSearchView?.page ?? initialPage
+  const totalPatients = activeSearchView ? activeSearchView.total : initialTotalPatients
+  const totalPages = activeSearchView
+    ? activeSearchView.total === null
+      ? 1
+      : Math.max(1, Math.ceil(activeSearchView.total / activeSearchView.pageSize))
+    : initialTotalPages
+  const collapsedDuplicateProfiles = activeSearchView?.collapsedCount
+    ?? initialCollapsedDuplicateProfiles
+  const degradedSources = activeSearchView?.degradedSources ?? initialDegradedSources
   const directoryUnavailable = degradedSources.includes("access") || degradedSources.includes("profiles")
   const requestHistoryUnavailable = degradedSources.includes("requests")
   const scriptHistoryUnavailable = degradedSources.includes("scripts")
   const countUnavailable = totalPatients === null || degradedSources.includes("count")
-  const directoryNavigation = useMemo(
-    () => createPatientDirectoryNavigationCoordinator({
-      initialSort,
-      navigate: (href) => router.replace(href, { scroll: false }),
-    }),
-    [initialSort, router],
-  )
+  const runDirectorySearch = useCallback(async (
+    query: string,
+    options: { page: number; sort: PatientDirectorySort },
+  ) => {
+    const normalizedQuery = normalizeDirectorySearchQuery(query)
+    if (!normalizedQuery) return
+
+    const sequence = ++searchRequestSequenceRef.current
+    setIsSearchPending(true)
+    try {
+      const result = await searchPatientDirectoryAction({
+        query: normalizedQuery,
+        page: options.page,
+        pageSize,
+        sort: options.sort,
+      })
+      if (sequence !== searchRequestSequenceRef.current) return
+
+      if (result.success) {
+        setActiveSearchView({
+          ...result.data,
+          query: normalizedQuery,
+          sort: options.sort,
+        })
+        return
+      }
+
+      setActiveSearchView({
+        query: normalizedQuery,
+        sort: options.sort,
+        patients: [],
+        total: null,
+        collapsedCount: 0,
+        degradedSources: ["profiles"],
+        page: options.page,
+        pageSize,
+      })
+      toast.error(result.error)
+    } catch {
+      if (sequence !== searchRequestSequenceRef.current) return
+      setActiveSearchView({
+        query: normalizedQuery,
+        sort: options.sort,
+        patients: [],
+        total: null,
+        collapsedCount: 0,
+        degradedSources: ["profiles"],
+        page: options.page,
+        pageSize,
+      })
+      toast.error("The patient-directory lookup could not be completed.")
+    } finally {
+      if (sequence === searchRequestSequenceRef.current) setIsSearchPending(false)
+    }
+  }, [pageSize])
 
   useEffect(() => {
-    setSearchQuery(initialSearch)
-  }, [initialSearch])
+    const normalizedSearch = normalizeDirectorySearchQuery(debouncedSearch)
+    const queryChanged = normalizedSearch !== previousDebouncedQueryRef.current
+    previousDebouncedQueryRef.current = normalizedSearch
 
-  useEffect(() => {
-    setCurrentSort(initialSort)
-    directoryNavigation.setSort(initialSort)
-  }, [directoryNavigation, initialSort])
-
-  useEffect(() => (
-    () => directoryNavigation.cancelPendingSearch()
-  ), [directoryNavigation])
-
-  useEffect(() => {
-    const normalizedSearch = normalizeDirectorySearchQuery(searchQuery)
-    if (normalizedSearch === initialSearch) {
-      directoryNavigation.cancelPendingSearch()
+    if (!normalizedSearch) {
+      searchRequestSequenceRef.current += 1
+      lastSearchEffectKeyRef.current = ""
+      setIsSearchPending(false)
+      setActiveSearchView(null)
       return
     }
 
-    directoryNavigation.scheduleSearch({
-      baseHref,
-      search: normalizedSearch,
-    })
+    const requestedPage = queryChanged ? 1 : initialPage
+    const effectKey = `${normalizedSearch}\u0000${initialSort}\u0000${requestedPage}`
+    if (effectKey === lastSearchEffectKeyRef.current) return
+    lastSearchEffectKeyRef.current = effectKey
 
-    return () => directoryNavigation.cancelPendingSearch()
-  }, [baseHref, directoryNavigation, initialSearch, searchQuery])
+    if (queryChanged && initialPage !== 1) {
+      router.replace(buildPatientDirectoryHref({
+        baseHref,
+        page: 1,
+        sort: initialSort,
+      }), { scroll: false })
+    }
+
+    void runDirectorySearch(normalizedSearch, {
+      page: requestedPage,
+      sort: initialSort,
+    })
+  }, [baseHref, debouncedSearch, initialPage, initialSort, router, runDirectorySearch])
 
   const duplicateGroups = useMemo(
     () => findPotentialDuplicatePatients(patients),
@@ -236,18 +313,16 @@ export function PatientsListClient({
     router.push(buildPatientDirectoryHref({
       baseHref,
       page,
-      search: searchQuery,
-      sort: currentSort,
+      sort: initialSort,
     }))
   }
 
   const handleSortChange = (sort: PatientDirectorySort) => {
-    setCurrentSort(sort)
-    directoryNavigation.changeSort({
+    router.replace(buildPatientDirectoryHref({
       baseHref,
-      search: searchQuery,
+      page: 1,
       sort,
-    })
+    }), { scroll: false })
   }
 
   return (
@@ -287,11 +362,12 @@ export function PatientsListClient({
                   onChange={(event) => setSearchQuery(event.target.value)}
                   startContent={<Search className="h-4 w-4 text-muted-foreground" />}
                   aria-label="Search patients"
+                  aria-busy={isSearchPending}
                 />
               </div>
               <div className="w-full sm:w-44">
                 <Select
-                  value={currentSort}
+                  value={initialSort}
                   onValueChange={(value) => handleSortChange(value as PatientDirectorySort)}
                 >
                   <SelectTrigger
@@ -308,7 +384,9 @@ export function PatientsListClient({
               </div>
             </div>
             <p className="shrink-0 text-sm tabular-nums text-muted-foreground">
-              {countUnavailable
+              {isSearchPending
+                ? "Searching…"
+                : countUnavailable
                 ? "Patient count unavailable"
                 : `${totalPatients.toLocaleString("en-AU")} ${totalPatients === 1 ? "patient" : "patients"}`}
             </p>

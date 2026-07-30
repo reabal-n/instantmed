@@ -70,6 +70,16 @@ describe("Parchment action production contract", () => {
     )
   })
 
+  it("correlates intake SSO through reserved_1 without exposing the intake UUID", () => {
+    const body = functionBody("getParchmentPrescribeUrlAction")
+
+    expect(body).toContain("reference_number,")
+    expect(body).toContain("parseParchmentIntakeCorrelation(intake.reference_number)")
+    expect(body).toContain("buildParchmentIntakeRedirectPath(")
+    expect(body).toContain("getSsoUrl(")
+    expect(body).not.toContain("reserved_1: intakeId")
+  })
+
   it("validates the linked Parchment user before intake prescribing handoff", () => {
     const body = functionBody("getParchmentPrescribeUrlAction")
 

@@ -28,7 +28,11 @@ test.describe("Admin Patients Directory", () => {
     const sortControl = page.getByRole("combobox", { name: /sort patients/i })
     await expect(sortControl).toBeVisible()
     await expect(sortControl).toContainText("Newest first")
-    await expect(page.getByRole("textbox", { name: "Search patients" })).toHaveValue("E2E Test")
+    const searchInput = page.getByRole("textbox", { name: "Search patients" })
+    await expect(page).toHaveURL((url) => !url.searchParams.has("q"))
+    await expect(searchInput).toHaveValue("")
+    await searchInput.fill("E2E Test")
+    await expect(page).toHaveURL((url) => !url.searchParams.has("q"))
 
     const patientLink = page.getByRole("link", { name: new RegExp(SEEDED_PATIENT_NAME, "i") }).first()
     await expect(patientLink).toBeVisible()
@@ -62,11 +66,14 @@ test.describe("Admin Patients Directory", () => {
 
     const searchInput = page.getByRole("textbox", { name: "Search patients" })
     await searchInput.fill("E2E Test")
-    await expect(page).toHaveURL(/q=E2E(?:\+|%20)Test/)
+    await expect(page).toHaveURL((url) => !url.searchParams.has("q"))
 
     const patientLink = page.getByRole("link", { name: new RegExp(SEEDED_PATIENT_NAME, "i") }).first()
     await expect(patientLink).toBeVisible()
     await patientLink.click()
-    await expect(page).toHaveURL(/\/doctor\/patients\/e2e00000-0000-0000-0000-000000000002$/)
+    await expect(page).toHaveURL(
+      /\/doctor\/patients\/e2e00000-0000-0000-0000-000000000002$/,
+      { timeout: 15_000 },
+    )
   })
 })
