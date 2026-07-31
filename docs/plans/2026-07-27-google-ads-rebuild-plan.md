@@ -884,15 +884,17 @@ The route answers the callback promptly, records the one-time decision with comp
 ```text
 pnpm ads:agent snapshot
 pnpm ads:agent propose --run=<run-id>
+pnpm ads:agent proposal:draft --run=<run-id> --packet=<json-file>
 pnpm ads:agent show --proposal=ADS-20260730-01
 pnpm ads:agent validate --proposal=ADS-20260730-01
+pnpm ads:agent proposal:send --proposal=ADS-20260730-01
 pnpm ads:agent approve --proposal=ADS-20260730-01 --reference=codex-task:<task-id>
 pnpm ads:agent reject --proposal=ADS-20260730-01 --reference=codex-task:<task-id>
 pnpm ads:agent apply --proposal=ADS-20260730-01
 pnpm ads:agent verify --proposal=ADS-20260730-01
 ```
 
-`snapshot`, `propose`, `show`, and `validate` are read-only. CLI `approve`/`reject` are the Codex-task fallback and record a decision only after Codex has received the exact operator response. `apply` exits non-zero unless `GOOGLE_ADS_AGENT_MUTATIONS_ENABLED=true`, the proposal is approved/unexpired, validation passed, and the live baseline hash still matches. Telegram and CLI decisions share the same state transitions and cannot both consume one proposal.
+`snapshot`, `propose`, `show`, and `validate` are read-only. `proposal:draft` writes only an immutable control-plane draft after reading the live account and deriving its baseline; the packet cannot supply its own baseline, approval state, or raw Google mutate JSON. `proposal:send` accepts only a validated packet and still requires the Telegram approval kill switch and secrets. Neither command mutates Google Ads. CLI `approve`/`reject` are the Codex-task fallback and record a decision only after Codex has received the exact operator response. `apply` exits non-zero unless `GOOGLE_ADS_AGENT_MUTATIONS_ENABLED=true`, the proposal is approved/unexpired, validation passed, and the live baseline hash still matches. Telegram and CLI decisions share the same state transitions and cannot both consume one proposal.
 
 - [ ] **Step 6: Verify**
 

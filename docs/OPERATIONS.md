@@ -555,6 +555,18 @@ Google Ads API user access is included in the account read. As of 2026-07-31 the
 6. Apply only the validated byte-equivalent operations with partial failure disabled. Re-read every changed object and append a PHI-free Mutation Receipt containing the baseline, validation, apply result, read-back verification, actor, timestamps, and rollback state.
 7. Return the result in the next daily brief. Do not silently extend a test, raise a budget again, or compensate for a weak result with another mutation.
 
+After the shadow gate, the operator CLI owns the exact packet lifecycle:
+
+```bash
+pnpm ads:agent propose --run=<delivered-green-run-id>
+pnpm ads:agent proposal:draft --run=<same-run-id> --packet=<exact-packet.json>
+pnpm ads:agent validate --proposal=<proposal-key>
+pnpm ads:agent experiment:create --proposal=<proposal-key> # only for a measured test
+pnpm ads:agent proposal:send --proposal=<proposal-key>
+```
+
+`propose` only prints the selected aggregate run evidence. The JSON packet contains exactly `mutationFamily`, `operations`, `rationale`, and `rollbackPlan`; it cannot supply a baseline hash, approval state, Google mutate JSON, or a different run. `proposal:draft` fresh-reads the live account, derives the baseline hash, binds the packet to the named run, and writes only the immutable control-plane draft. It does not mutate Google Ads. `proposal:send` accepts only a validated, unexpired packet and still fails closed unless Telegram Ads approvals are enabled and correctly configured. For an experiment, create the experiment before sending so the approval card includes its duration, retained-order floor, and maximum loss.
+
 Approval is required for budgets, bids, bid strategies, keywords, negative keywords, match types, ads, assets, sitelinks, callouts, targeting, schedules, pauses, enables, experiments, and campaign creation/removal. No unattended Ads mutation is authorised by this workflow.
 
 Paid scaling remains governed by the fee-aware, service-level first-order contribution and bounded-learning rules in `docs/REVENUE_MODEL.md`. Attribution or tracking failures fail closed and block scaling. Compliance failures follow `docs/ADVERTISING_COMPLIANCE.md` and the incident process; they do not widen mutation authority.
