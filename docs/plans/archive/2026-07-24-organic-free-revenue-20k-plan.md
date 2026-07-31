@@ -1,5 +1,9 @@
 # Organic + GEO free-revenue plan — $20k/month by 31 Jan 2027
 
+> **HISTORICAL SNAPSHOT — superseded 2026-07-30.** Retained for retrospective context only. **Do not execute from this document.** Replaced by [`../2026-07-30-ai-organic-growth-plan.md`](../2026-07-30-ai-organic-growth-plan.md).
+>
+> Its `$20k/month free revenue` goal and `$4k` free-channel fail line are **not canon** — `docs/ROADMAP.md` §2 owns the active `$5,000/month` net-retained rung. Its baseline arithmetic and settled findings (§2) were accurate as at 2026-07-24 and remain useful as a dated snapshot; some were narrowed by later evidence (notably that the authority thesis is well-evidenced for Google ranking but unproven for LLM citation). Reasons for replacement, the workstream mapping, and which of this plan's conclusions survived are recorded in the successor's §0, §9, and §10 — read those rather than inferring from this header.
+>
 > **Authority:** Reference only. `docs/ROADMAP.md` is the sole active priority queue.
 >
 > **Authority linkage (ROADMAP §7):** this plan elaborates ROADMAP rank 3 (external reputation and distribution) and rank 6 (compounding work), and inherits their checkpoints. It does not reorder the queue. Ads economics stay in rank 4 and are out of scope here.

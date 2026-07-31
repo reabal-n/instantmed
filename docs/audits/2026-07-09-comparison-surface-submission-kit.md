@@ -1,8 +1,16 @@
 # Comparison surface submission kit - 2026-07-09
 
+> ## ✅ CLINICAL COPY REPAIRED 2026-07-31
+>
+> This document previously asserted **universal pre-issue doctor review**, which is false for eligible protocol-based medical-certificate issuance. **The affected process and availability blocks have been repaired in place** against `lib/marketing/approved-claims.ts` (`clinical_review_sequence`, `availability_24_7`) — a warning banner alone was insufficient because the body remained copy-pasteable.
+>
+> Still required before any send: **re-verify every price against `PRICING`**, and re-verify LegitScript and directory-listing status. The research table, price data, and surface list was research-complete as at its stated recheck date; confirm before relying on it.
+>
+> Tracked by `docs/plans/2026-07-30-p0-1-outreach-drafts.md`.
+
 Status: prepared only. Do not submit to MediCompare, Finder, or any other third party without operator confirmation.
 
-InstantMed fact-sheet terminology refreshed 2026-07-13. Third-party surface research rechecked 2026-07-24 (see the research table and the 2026-07-24 recheck receipt below); the kit is submission-ready pending operator confirmation.
+InstantMed fact-sheet terminology refreshed 2026-07-13. Third-party surface research rechecked 2026-07-24 (see the research table and the 2026-07-24 recheck receipt below). **The surface research is current; the send-ready copy in this kit is NOT.** Its clinical-process and availability blocks were repaired 2026-07-31 against `lib/marketing/approved-claims.ts`; use the repaired blocks below, and re-verify every price against `PRICING` at send time.
 
 Purpose: get InstantMed into the Australian third-party comparison surfaces that answer engines cite for telehealth, online medical certificates, and online doctor comparisons.
 
@@ -46,7 +54,7 @@ Fourteen third-party surfaces were swept on 2026-07-24 (MediCompare med-cert/pre
 
 - InstantMed appears on zero third-party comparison, review, or directory surfaces. `https://medicompare.com.au/instantmed/` returns 404 while roughly 34 other providers, including very small ones, have staff-written profiles with an author byline and a medical-reviewer credit. Inclusion bar is clearly low; absence is the anomaly.
 - MediCompare rank order tracks public star ratings, and the ProductReview and Trustpilot categories rank on review volume. Review mass is the upstream input for every downstream listing outcome; the submission ask is inclusion and factual correctness, never ranking.
-- Attributes these surfaces actually compare, for framing any submission: entry price, review score and volume, bulk-billing availability, wait-time claim, 24/7 availability, app availability, certificate-type breadth, and legitimacy signals (AHPRA, Fair Work validity, employer verification). InstantMed's strongest honest differentiators for a pitch: genuine 24/7 operation, full refund when the doctor declines, and instant employer verification at `/verify` (no comparison surface currently has a refund-on-decline column; it can be offered to MediCompare as a data point).
+- Attributes these surfaces actually compare, for framing any submission: entry price, review score and volume, bulk-billing availability, wait-time claim, 24/7 availability, app availability, certificate-type breadth, and legitimacy signals (AHPRA, Fair Work validity, employer verification). InstantMed's strongest honest differentiators for a pitch: 24/7 submission and review, full refund when the doctor declines, and instant employer verification at `/verify` (no comparison surface currently has a refund-on-decline column; it can be offered to MediCompare as a data point).
 - Community threads (Reddit) turn on two axes: cheapness and "will my employer accept it". The employer-acceptance axis is the one InstantMed can win; cheapness is deliberately conceded per settled pricing policy.
 - Competitor-authored listicles (OnCare, NewDoc, Doccy, ConsultNow, NextClinic blog) rank for comparison queries while listing themselves first; they are not realistic listing targets, but they are evidence that InstantMed's own indexed comparison surface can rank for the same queries.
 
@@ -77,7 +85,7 @@ Version date: 2026-07-13.
 
 ### Short profile copy
 
-InstantMed is an Australian telehealth service for adults seeking online doctor review for selected one-off services: medical certificates, repeat prescription requests, erectile-dysfunction assessment, hair-loss assessment, and women's health pathways for UTI and starting or switching the contraceptive pill. Requests start with a secure clinical form. An AHPRA-registered doctor reviews the information and may contact the patient if clinically needed. Approved certificates or eScript tokens are delivered digitally.
+InstantMed is an Australian telehealth service for adults seeking selected one-off services: medical certificates, repeat prescription requests, erectile-dysfunction assessment, hair-loss assessment, and women's health pathways for UTI and starting or switching the contraceptive pill. Requests start with a secure clinical form. Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward. The doctor may contact the patient if clinically needed. Approved certificates or eScript tokens are delivered digitally.
 
 InstantMed Pty Ltd, ABN 64 694 559 334. Surry Hills, NSW. LegitScript certified, ID 48400566. Australia only. 18+.
 
@@ -89,11 +97,11 @@ InstantMed Pty Ltd, ABN 64 694 559 334. Surry Hills, NSW. LegitScript certified,
 | Website | `https://instantmed.com.au` |
 | Medical certificate pricing | 1 day: $24.95. 2 days: $29.95. 3 days: $39.95. Optional Priority review: +$9.95. |
 | Bulk billing | Not advertised as bulk billed. Private fixed-fee service. |
-| Hours | Operates 24/7. |
+| Availability | Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume. |
 | Certificate types | Routine sick leave, carer's leave, and study leave certificates. |
 | Certificate duration | Up to 3 days, issued only if clinically appropriate after doctor review. |
 | Certificate exclusions | Not for high-stakes requests such as court, fitness-to-drive, fitness-to-fly, workers compensation, NDIS, or exam deferral evidence. |
-| Review model | Secure form first. Doctor review before issue. Doctor may contact the patient if clinically needed. |
+| Review model | Secure form first. Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward. Doctor may contact the patient if clinically needed. |
 | Turnaround wording | No customer-facing review-time guarantee supplied. Optional Priority review is available for +$9.95. |
 | Verification | Free certificate verification at `https://instantmed.com.au/verify`. |
 | Ease of use | Web-based secure form. No app required. |
@@ -150,7 +158,7 @@ To make fact-checking easier, here is our dated provider fact sheet:
 - Medical certificate scope: routine sick leave, carer's leave, and study leave certificates, up to 3 days, issued only if clinically appropriate after doctor review
 - Prescriptions: if approved, eScript tokens are delivered digitally and can be used at any Australian pharmacy
 - Verification: free certificate verification at `https://instantmed.com.au/verify`
-- Hours: operates 24/7
+- Availability: requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume.
 - Eligibility: Australia only, 18+
 
 We understand listing and ranking decisions are independent, and that review signals may affect where a provider appears. We are not asking for a ranking guarantee. We are asking for the correct evidence path for inclusion or correction.
@@ -185,7 +193,7 @@ Current factual details:
 - Prescriptions: if approved, eScript tokens are delivered digitally for use at any Australian pharmacy
 - Bulk billing: no
 - Dedicated mental-health service: no
-- Operates 24/7
+- Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume.
 - Australia only, 18+
 - Certificate verification: `https://instantmed.com.au/verify`
 
