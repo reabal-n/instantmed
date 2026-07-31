@@ -1,5 +1,13 @@
 # NHSD_REGISTRATION.md — National Health Services Directory listing
 
+> ## ✅ CLINICAL COPY REPAIRED 2026-07-31
+>
+> This document previously asserted **universal pre-issue doctor review**, which is false for eligible protocol-based medical-certificate issuance. **The affected process and availability blocks have been repaired in place** against `lib/marketing/approved-claims.ts` (`clinical_review_sequence`, `availability_24_7`) — a warning banner alone was insufficient because the body remained copy-pasteable.
+>
+> Still required before any send: **re-verify every price against `PRICING`**, and re-verify LegitScript and directory-listing status. The field-values sheet was research-complete as at its stated recheck date; confirm before relying on it.
+>
+> Tracked by `docs/plans/2026-07-30-p0-1-outreach-drafts.md`.
+
 > **Status: DONE (2026-06-11).** InstantMed is registered in Provider Connect
 > Australia (PCA) and **published to NHSD (Consumers + Providers), Services `1 of 1`,
 > consent accepted**. Org Publisher status = Approved/Active. Practitioners
@@ -95,14 +103,16 @@ Already registered + ABR-validated. For reference / re-entry:
 | "This service is also delivered virtually" | ✅ tick it |
 | Contact | business phone/email only (not a personal mobile) |
 
-**Service description (public, ≤500 chars — compliant version, updated 2026-07-08):**
+**Service description (public, ≤500 chars — repaired 2026-07-31 against `clinical_review_sequence` and `availability_24_7`):**
 
 > InstantMed is an Australian telehealth service for adults seeking doctor review
 > for medical certificates, repeat prescription requests, hair-loss assessment,
 > erectile-dysfunction assessment, and women's health pathways. Patients complete
-> a secure online form; an AHPRA-registered doctor reviews and may contact them if
+> a secure online form. Prescribing requests receive doctor review before any
+> prescription is issued. Eligible low-risk certificate requests may follow a
+> doctor-owned protocol and are individually reviewed afterward. The doctor may contact them if
 > clinically needed. Approved documents or eScript tokens are delivered digitally.
-> Requests open 24/7. Medicare optional for certificates; required for
+> Requests can be submitted and reviewed 24/7; review timing varies. Medicare optional for certificates; required for
 > prescriptions/consults.
 
 **Availability:** Available 7 days / requests 24-7. **Do not** enter a guaranteed
