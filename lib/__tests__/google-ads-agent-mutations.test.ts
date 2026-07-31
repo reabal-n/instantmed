@@ -27,6 +27,8 @@ const campaignResourceName = "customers/123/campaigns/456"
 const budgetResourceName = "customers/123/campaignBudgets/789"
 const adGroupResourceName = "customers/123/adGroups/111"
 const keywordResourceName = "customers/123/adGroupCriteria/111~222"
+const createdAdResourceName = "customers/123/adGroupAds/111~333"
+const createdKeywordResourceName = "customers/123/adGroupCriteria/111~444"
 
 function resource(
   resourceName: string,
@@ -137,6 +139,84 @@ const budgetOperation: AdsMutationOperation = {
   kind: "campaign_budget",
   nextMicros: 48_000_000,
   resourceName: budgetResourceName,
+}
+
+const rsaCreateOperation = {
+  adGroupResourceName,
+  descriptions: [
+    "A doctor reviews your form and may call briefly before prescribing.",
+    "Complete a secure clinical form online when it suits you.",
+  ],
+  finalUrl: "https://instantmed.com.au/prescriptions",
+  headlines: [
+    "Repeat Prescriptions Online",
+    "Doctor Review Online",
+    "Start With A Secure Form",
+  ],
+  kind: "responsive_search_ad_create",
+  path1: "repeat",
+  path2: "prescription",
+  status: "ENABLED",
+} as unknown as AdsMutationOperation
+
+const positiveKeywordCreateOperation = {
+  adGroupResourceName,
+  kind: "positive_keyword_create",
+  matchType: "EXACT",
+  status: "ENABLED",
+  text: "repeat prescription online",
+} as unknown as AdsMutationOperation
+
+function stateWithCreatedRsa(
+  state: GoogleAdsAccountState,
+): GoogleAdsAccountState {
+  const next = structuredClone(state)
+  next.responsiveSearchAds.push(resource(createdAdResourceName, {
+    adGroupAd: {
+      ad: {
+        finalUrls: ["https://instantmed.com.au/prescriptions"],
+        responsiveSearchAd: {
+          descriptions: [
+            { text: "A doctor reviews your form and may call briefly before prescribing." },
+            { text: "Complete a secure clinical form online when it suits you." },
+          ],
+          headlines: [
+            { text: "Repeat Prescriptions Online" },
+            { text: "Doctor Review Online" },
+            { text: "Start With A Secure Form" },
+          ],
+          path1: "repeat",
+          path2: "prescription",
+        },
+        resourceName: "customers/123/ads/333",
+        type: "RESPONSIVE_SEARCH_AD",
+      },
+      adGroup: adGroupResourceName,
+      resourceName: createdAdResourceName,
+      status: "ENABLED",
+    },
+  }))
+  return next
+}
+
+function stateWithCreatedKeyword(
+  state: GoogleAdsAccountState,
+): GoogleAdsAccountState {
+  const next = structuredClone(state)
+  next.adGroupCriteria.push(resource(createdKeywordResourceName, {
+    adGroupCriterion: {
+      adGroup: adGroupResourceName,
+      keyword: {
+        matchType: "EXACT",
+        text: "repeat prescription online",
+      },
+      negative: false,
+      resourceName: createdKeywordResourceName,
+      status: "ENABLED",
+      type: "KEYWORD",
+    },
+  }))
+  return next
 }
 
 function proposal(
@@ -409,6 +489,56 @@ describe("Google Ads mutation gateway", () => {
     expect(harness.store.getCurrent().status).toBe("verified")
   })
 
+  it("creates and content-verifies a responsive search ad before offering removal rollback", async () => {
+    const before = accountState()
+    const after = stateWithCreatedRsa(before)
+    const initial = proposal(before, {
+      operations: [rsaCreateOperation],
+    })
+    const harness = gateway({
+      accountReads: [before, after, after],
+      initial,
+    })
+
+    await expect(
+      harness.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({ outcome: "applied" })
+    expect(harness.store.getCurrent().status).toBe("verified")
+
+    await harness.gateway.buildRollbackProposal("ADS-20260730-01")
+    expect(harness.store.rollbacks[0].operations).toEqual([{
+      expected: "ENABLED",
+      kind: "ad_status",
+      next: "REMOVED",
+      resourceName: createdAdResourceName,
+    }])
+  })
+
+  it("creates and content-verifies an exact positive keyword before offering removal rollback", async () => {
+    const before = accountState()
+    const after = stateWithCreatedKeyword(before)
+    const initial = proposal(before, {
+      operations: [positiveKeywordCreateOperation],
+    })
+    const harness = gateway({
+      accountReads: [before, after, after],
+      initial,
+    })
+
+    await expect(
+      harness.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({ outcome: "applied" })
+    expect(harness.store.getCurrent().status).toBe("verified")
+
+    await harness.gateway.buildRollbackProposal("ADS-20260730-01")
+    expect(harness.store.rollbacks[0].operations).toEqual([{
+      expected: "ENABLED",
+      kind: "keyword_status",
+      next: "REMOVED",
+      resourceName: createdKeywordResourceName,
+    }])
+  })
+
   it("rejects disabled, expired, unapproved, and unverified proposals", async () => {
     const state = accountState()
     const cases = [
@@ -493,6 +623,26 @@ describe("Google Ads mutation gateway", () => {
     const harness = gateway({
       accountReads: [state],
       trackingState: "RED",
+    })
+
+    await expect(
+      harness.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({
+      errorCode: "tracking_not_green",
+      outcome: "aborted",
+    })
+    expect(harness.mutate).not.toHaveBeenCalled()
+  })
+
+  it("treats an enabled RSA create as scaling and blocks it without GREEN tracking", async () => {
+    const state = accountState()
+    const initial = proposal(state, {
+      operations: [rsaCreateOperation],
+    })
+    const harness = gateway({
+      accountReads: [state],
+      initial,
+      trackingState: "AMBER",
     })
 
     await expect(
@@ -680,6 +830,27 @@ describe("Google Ads mutation gateway", () => {
     })).toThrow("health_audience_operation_rejected")
   })
 
+  it("requires possible doctor contact in prescribing RSA copy and the matching paid destination", () => {
+    const state = accountState()
+    expect(() => validateAdsMutationPolicy({
+      operations: [{
+        ...rsaCreateOperation as unknown as Record<string, unknown>,
+        descriptions: [
+          "Complete a secure clinical form for online doctor review.",
+          "A repeat prescription may be issued after assessment.",
+        ],
+      }],
+      state,
+    })).toThrow("prescribing_ad_missing_possible_call")
+    expect(() => validateAdsMutationPolicy({
+      operations: [{
+        ...rsaCreateOperation as unknown as Record<string, unknown>,
+        finalUrl: "https://instantmed.com.au/hair-loss",
+      }],
+      state,
+    })).toThrow("paid_destination_service_mismatch")
+  })
+
   it("builds only the reviewed Google mutate shapes", () => {
     const state = accountState()
     expect(buildGoogleAdsMutateOperations([budgetOperation], state)).toEqual([
@@ -693,6 +864,85 @@ describe("Google Ads mutation gateway", () => {
         },
       },
     ])
+  })
+
+  it("maps RSA and exact-keyword creates to the reviewed Google shapes", () => {
+    const state = accountState()
+    expect(buildGoogleAdsMutateOperations([
+      rsaCreateOperation,
+      positiveKeywordCreateOperation,
+    ], state)).toEqual([
+      {
+        adGroupAdOperation: {
+          create: {
+            ad: {
+              finalUrls: ["https://instantmed.com.au/prescriptions"],
+              responsiveSearchAd: {
+                descriptions: [
+                  { text: "A doctor reviews your form and may call briefly before prescribing." },
+                  { text: "Complete a secure clinical form online when it suits you." },
+                ],
+                headlines: [
+                  { text: "Repeat Prescriptions Online" },
+                  { text: "Doctor Review Online" },
+                  { text: "Start With A Secure Form" },
+                ],
+                path1: "repeat",
+                path2: "prescription",
+              },
+            },
+            adGroup: adGroupResourceName,
+            status: "ENABLED",
+          },
+        },
+      },
+      {
+        adGroupCriterionOperation: {
+          create: {
+            adGroup: adGroupResourceName,
+            keyword: {
+              matchType: "EXACT",
+              text: "repeat prescription online",
+            },
+            negative: false,
+            status: "ENABLED",
+          },
+        },
+      },
+    ])
+  })
+
+  it("uses Google remove operations for approval-gated creation rollback", () => {
+    const state = stateWithCreatedKeyword(stateWithCreatedRsa(accountState()))
+    expect(buildGoogleAdsMutateOperations([{
+      expected: "ENABLED",
+      kind: "ad_status",
+      next: "REMOVED",
+      resourceName: createdAdResourceName,
+    }, {
+      expected: "ENABLED",
+      kind: "keyword_status",
+      next: "REMOVED",
+      resourceName: createdKeywordResourceName,
+    }], state)).toEqual([{
+      adGroupAdOperation: { remove: createdAdResourceName },
+    }, {
+      adGroupCriterionOperation: { remove: createdKeywordResourceName },
+    }])
+  })
+
+  it("rejects duplicate create targets in the fresh baseline", () => {
+    const rsaState = stateWithCreatedRsa(accountState())
+    expect(() => validateAdsMutationPolicy({
+      operations: [rsaCreateOperation],
+      state: rsaState,
+    })).toThrow("create_target_already_exists")
+
+    const keywordState = stateWithCreatedKeyword(accountState())
+    expect(() => validateAdsMutationPolicy({
+      operations: [positiveKeywordCreateOperation],
+      state: keywordState,
+    })).toThrow("create_target_already_exists")
   })
 
   it("maps status, bidding, negative-keyword, and schedule packets deterministically", () => {

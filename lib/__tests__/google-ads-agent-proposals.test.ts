@@ -129,7 +129,31 @@ describe("Google Ads proposal operation boundary", () => {
           startMinute: "ZERO",
         }],
       },
-    ])).toHaveLength(9)
+      {
+        adGroupResourceName: "customers/123/adGroups/12",
+        descriptions: [
+          "Request a medical certificate online. A doctor reviews your details.",
+          "Start with a secure clinical form. No booked appointment needed.",
+        ],
+        finalUrl: "https://instantmed.com.au/medical-certificate",
+        headlines: [
+          "Medical Certificates Online",
+          "Start With A Secure Form",
+          "From $24.95",
+        ],
+        kind: "responsive_search_ad_create",
+        path1: "medical",
+        path2: "certificate",
+        status: "ENABLED",
+      },
+      {
+        adGroupResourceName: "customers/123/adGroups/12",
+        kind: "positive_keyword_create",
+        matchType: "EXACT",
+        status: "ENABLED",
+        text: "online medical certificate",
+      },
+    ])).toHaveLength(11)
   })
 
   it("rejects raw Google mutate JSON and unknown operation fields", () => {
@@ -154,6 +178,81 @@ describe("Google Ads proposal operation boundary", () => {
       kind: "negative_keyword",
       matchType: "EXACT",
       text: "sildenafil",
+    }])).toThrow("Medicine-name keywords are prohibited")
+  })
+
+  it("rejects malformed or non-compliant RSA creation packets", () => {
+    const operation = {
+      adGroupResourceName: "customers/123/adGroups/12",
+      descriptions: [
+        "A doctor reviews your form and may call briefly before prescribing.",
+        "Complete a secure clinical form online when it suits you.",
+      ],
+      finalUrl: "https://instantmed.com.au/prescriptions",
+      headlines: [
+        "Repeat Prescriptions Online",
+        "Doctor Review Online",
+        "Start With A Secure Form",
+      ],
+      kind: "responsive_search_ad_create",
+      path1: "repeat",
+      path2: "prescription",
+      status: "ENABLED",
+    }
+
+    expect(() => normalizeAdsMutationOperations([{
+      ...operation,
+      headlines: operation.headlines.slice(0, 2),
+    }])).toThrow("Responsive search ads require 3 to 15 headlines")
+    expect(() => normalizeAdsMutationOperations([{
+      ...operation,
+      headlines: [operation.headlines[0], operation.headlines[0], "Third"],
+    }])).toThrow("Responsive search ad headlines must be unique")
+    expect(() => normalizeAdsMutationOperations([{
+      ...operation,
+      headlines: ["x".repeat(31), ...operation.headlines.slice(1)],
+    }])).toThrow("Responsive search ad headline is too long")
+    expect(() => normalizeAdsMutationOperations([{
+      ...operation,
+      descriptions: ["x".repeat(91), operation.descriptions[1]],
+    }])).toThrow("Responsive search ad description is too long")
+    expect(() => normalizeAdsMutationOperations([{
+      ...operation,
+      finalUrl: "https://example.com/prescriptions",
+    }])).toThrow("Invalid paid destination")
+    expect(() => normalizeAdsMutationOperations([{
+      ...operation,
+      descriptions: [
+        "Rated 4.9 stars by patients.",
+        operation.descriptions[1],
+      ],
+    }])).toThrow("Paid ad copy cannot use ratings or testimonials")
+    expect(() => normalizeAdsMutationOperations([{
+      ...operation,
+      headlines: ["Sildenafil Online", ...operation.headlines.slice(1)],
+    }])).toThrow("Medicine terms are prohibited in paid ad copy")
+  })
+
+  it("accepts only bounded exact or phrase positive keywords", () => {
+    const operation = {
+      adGroupResourceName: "customers/123/adGroups/12",
+      kind: "positive_keyword_create",
+      matchType: "EXACT",
+      status: "ENABLED",
+      text: "repeat prescription online",
+    }
+    expect(normalizeAdsMutationOperations([operation])).toEqual([operation])
+    expect(() => normalizeAdsMutationOperations([{
+      ...operation,
+      matchType: "BROAD",
+    }])).toThrow("Invalid matchType")
+    expect(() => normalizeAdsMutationOperations([{
+      ...operation,
+      text: "one two three four five six seven eight nine ten eleven",
+    }])).toThrow("Positive keyword has too many words")
+    expect(() => normalizeAdsMutationOperations([{
+      ...operation,
+      text: "sildenafil online",
     }])).toThrow("Medicine-name keywords are prohibited")
   })
 
