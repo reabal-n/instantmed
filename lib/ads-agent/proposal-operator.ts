@@ -41,6 +41,8 @@ const MUTATION_FAMILIES = new Set<AdsMutationFamily>([
   "negative_keyword",
   "asset_link_status",
   "schedule_replace",
+  "responsive_search_ad_create",
+  "positive_keyword_create",
 ])
 const SERVICES = new Set<AdsService>([
   "med_certs",

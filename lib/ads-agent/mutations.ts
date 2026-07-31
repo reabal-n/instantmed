@@ -336,6 +336,82 @@ function negativeKeywordExists(
   })
 }
 
+function adTextValues(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .map((entry) => asString(asRecord(entry)?.text))
+    .filter((entry): entry is string => entry != null)
+    .sort((left, right) => left.localeCompare(right))
+}
+
+function normalizedTexts(value: string[]): string[] {
+  return [...value].sort((left, right) => left.localeCompare(right))
+}
+
+function matchingResponsiveSearchAds(
+  state: GoogleAdsAccountState,
+  operation: Extract<
+    AdsMutationOperation,
+    { kind: "responsive_search_ad_create" }
+  >,
+): Array<{ resourceName: string; status: string | null }> {
+  return state.responsiveSearchAds.flatMap((resource) => {
+    const adGroupAd = asRecord(resource.values.adGroupAd)
+    const ad = asRecord(adGroupAd?.ad)
+    const rsa = asRecord(ad?.responsiveSearchAd)
+    const finalUrls = Array.isArray(ad?.finalUrls)
+      ? ad.finalUrls.map(asString).filter((url): url is string => url != null)
+      : []
+    if (
+      !resource.resourceName
+      || adGroupAd?.adGroup !== operation.adGroupResourceName
+      || asString(adGroupAd?.status) === "REMOVED"
+      || finalUrls.length !== 1
+      || finalUrls[0] !== operation.finalUrl
+      || asString(rsa?.path1) !== (operation.path1 || null)
+      || asString(rsa?.path2) !== (operation.path2 || null)
+      || JSON.stringify(adTextValues(rsa?.headlines))
+        !== JSON.stringify(normalizedTexts(operation.headlines))
+      || JSON.stringify(adTextValues(rsa?.descriptions))
+        !== JSON.stringify(normalizedTexts(operation.descriptions))
+    ) {
+      return []
+    }
+    return [{
+      resourceName: resource.resourceName,
+      status: asString(adGroupAd.status),
+    }]
+  }).sort((left, right) => left.resourceName.localeCompare(right.resourceName))
+}
+
+function matchingPositiveKeywords(
+  state: GoogleAdsAccountState,
+  operation: Extract<
+    AdsMutationOperation,
+    { kind: "positive_keyword_create" }
+  >,
+): Array<{ resourceName: string; status: string | null }> {
+  return state.adGroupCriteria.flatMap((resource) => {
+    const criterion = asRecord(resource.values.adGroupCriterion)
+    const keyword = asRecord(criterion?.keyword)
+    if (
+      !resource.resourceName
+      || criterion?.adGroup !== operation.adGroupResourceName
+      || criterion?.negative === true
+      || asString(criterion?.status) === "REMOVED"
+      || asString(keyword?.text)?.toLowerCase()
+        !== operation.text.toLowerCase()
+      || asString(keyword?.matchType) !== operation.matchType
+    ) {
+      return []
+    }
+    return [{
+      resourceName: resource.resourceName,
+      status: asString(criterion.status),
+    }]
+  }).sort((left, right) => left.resourceName.localeCompare(right.resourceName))
+}
+
 function operationProjection(
   operation: AdsMutationOperation,
   state: GoogleAdsAccountState,
@@ -380,6 +456,12 @@ function operationProjection(
       ),
     }
   }
+  if (operation.kind === "responsive_search_ad_create") {
+    return { matches: matchingResponsiveSearchAds(state, operation) }
+  }
+  if (operation.kind === "positive_keyword_create") {
+    return { matches: matchingPositiveKeywords(state, operation) }
+  }
   return {
     schedules: normalizeSchedules(
       campaignSchedules(state, operation.campaignResourceName)
@@ -422,10 +504,21 @@ function operationMatches(
     || operation.kind === "keyword_status"
     || operation.kind === "asset_link_status"
   ) {
-    return projection.status === operation[target]
+    const wanted = operation[target]
+    return projection.status === wanted
+      || wanted === "REMOVED" && projection.status == null
   }
   if (operation.kind === "negative_keyword") {
     return projection.exists === (target === "next")
+  }
+  if (
+    operation.kind === "responsive_search_ad_create"
+    || operation.kind === "positive_keyword_create"
+  ) {
+    const matches = projection.matches as Array<{ status: string | null }>
+    return target === "expected"
+      ? matches.length === 0
+      : matches.some(({ status }) => status === operation.status)
   }
   return JSON.stringify(projection.schedules) === JSON.stringify(
     normalizeSchedules(operation[target]),
@@ -537,6 +630,11 @@ export function buildGoogleAdsMutateOperations(
       }]
     }
     if (operation.kind === "ad_status") {
+      if (operation.next === "REMOVED") {
+        return [{
+          adGroupAdOperation: { remove: operation.resourceName },
+        }]
+      }
       return [{
         adGroupAdOperation: {
           update: {
@@ -554,7 +652,9 @@ export function buildGoogleAdsMutateOperations(
         ? "campaignCriterionOperation"
         : "adGroupCriterionOperation"
       return [{
-        [operationKey]: {
+        [operationKey]: operation.next === "REMOVED"
+          ? { remove: operation.resourceName }
+          : {
           update: {
             resourceName: operation.resourceName,
             status: operation.next,
@@ -579,6 +679,11 @@ export function buildGoogleAdsMutateOperations(
       }]
     }
     if (operation.kind === "asset_link_status") {
+      if (operation.next === "REMOVED") {
+        return [{
+          campaignAssetOperation: { remove: operation.resourceName },
+        }]
+      }
       return [{
         campaignAssetOperation: {
           update: {
@@ -586,6 +691,40 @@ export function buildGoogleAdsMutateOperations(
             status: operation.next,
           },
           updateMask: "status",
+        },
+      }]
+    }
+    if (operation.kind === "responsive_search_ad_create") {
+      return [{
+        adGroupAdOperation: {
+          create: {
+            ad: {
+              finalUrls: [operation.finalUrl],
+              responsiveSearchAd: {
+                descriptions: operation.descriptions.map((text) => ({ text })),
+                headlines: operation.headlines.map((text) => ({ text })),
+                path1: operation.path1,
+                path2: operation.path2,
+              },
+            },
+            adGroup: operation.adGroupResourceName,
+            status: operation.status,
+          },
+        },
+      }]
+    }
+    if (operation.kind === "positive_keyword_create") {
+      return [{
+        adGroupCriterionOperation: {
+          create: {
+            adGroup: operation.adGroupResourceName,
+            keyword: {
+              matchType: operation.matchType,
+              text: operation.text,
+            },
+            negative: false,
+            status: operation.status,
+          },
         },
       }]
     }
@@ -647,6 +786,90 @@ function campaignForAdGroup(
   return asString(
     adGroupValue(state, adGroupResourceName)?.campaign,
   )
+}
+
+const PAID_DESTINATION_BY_SERVICE = {
+  ed: "/erectile-dysfunction",
+  hair_loss: "/hair-loss",
+  med_certs: "/medical-certificate",
+  scripts: "/prescriptions",
+  womens_health: "/womens-health",
+} as const
+
+const ALLOWED_PAID_PRICE_CENTS = {
+  ed: new Set([4_995]),
+  hair_loss: new Set([4_995]),
+  med_certs: new Set([2_495, 2_995, 3_995]),
+  scripts: new Set([2_995]),
+  womens_health: new Set([4_995]),
+} as const
+
+function assertCreateOperationsSafe(
+  operations: AdsMutationOperation[],
+  state: GoogleAdsAccountState,
+): void {
+  const packetTargets = new Set<string>()
+  for (const operation of operations) {
+    if (
+      operation.kind !== "responsive_search_ad_create"
+      && operation.kind !== "positive_keyword_create"
+    ) continue
+
+    const adGroup = adGroupValue(state, operation.adGroupResourceName)
+    const campaignResourceName = asString(adGroup?.campaign)
+    const campaign = campaignResourceName
+      ? campaignValue(state, campaignResourceName)
+      : null
+    if (
+      !adGroup
+      || asString(adGroup.status) === "REMOVED"
+      || !campaign
+      || asString(campaign.advertisingChannelType) !== "SEARCH"
+    ) {
+      throw new Error("create_target_parent_unavailable")
+    }
+    const service = campaignNameService(asString(campaign.name))
+    if (!service) throw new Error("ungoverned_campaign_service")
+
+    const packetTarget = operation.kind === "responsive_search_ad_create"
+      ? `rsa:${operation.adGroupResourceName}:${[
+          operation.finalUrl,
+          ...normalizedTexts(operation.headlines),
+          ...normalizedTexts(operation.descriptions),
+          operation.path1,
+          operation.path2,
+        ].join("|").toLowerCase()}`
+      : `keyword:${operation.adGroupResourceName}:${operation.matchType}:${operation.text.toLowerCase()}`
+    if (packetTargets.has(packetTarget)) {
+      throw new Error("duplicate_create_target")
+    }
+    packetTargets.add(packetTarget)
+
+    const existing = operation.kind === "responsive_search_ad_create"
+      ? matchingResponsiveSearchAds(state, operation)
+      : matchingPositiveKeywords(state, operation)
+    if (existing.length > 0) throw new Error("create_target_already_exists")
+
+    if (operation.kind === "positive_keyword_create") continue
+
+    const destination = new URL(operation.finalUrl)
+    if (destination.pathname !== PAID_DESTINATION_BY_SERVICE[service]) {
+      throw new Error("paid_destination_service_mismatch")
+    }
+    if (
+      service !== "med_certs"
+      && !operation.descriptions.some((description) =>
+        /\bmay call\b/i.test(description))
+    ) {
+      throw new Error("prescribing_ad_missing_possible_call")
+    }
+    const prices = [...operation.headlines, ...operation.descriptions]
+      .flatMap((text) => Array.from(text.matchAll(/A?\$(\d+(?:\.\d{1,2})?)/g)))
+      .map((match) => Math.round(Number(match[1]) * 100))
+    if (prices.some((price) => !ALLOWED_PAID_PRICE_CENTS[service].has(price))) {
+      throw new Error("paid_copy_price_mismatch")
+    }
+  }
 }
 
 function isSpecialtyCampaign(
@@ -760,6 +983,15 @@ function assertKeywordAndAudienceSafety(
       if (campaign) affectedScalingCampaigns.add(campaign)
     } else if (operation.kind === "schedule_replace") {
       affectedScalingCampaigns.add(operation.campaignResourceName)
+    } else if (
+      operation.kind === "responsive_search_ad_create"
+      || operation.kind === "positive_keyword_create"
+    ) {
+      const campaign = campaignForAdGroup(
+        state,
+        operation.adGroupResourceName,
+      )
+      if (campaign) affectedScalingCampaigns.add(campaign)
     }
   }
 
@@ -978,6 +1210,7 @@ export function validateAdsMutationPolicy(args: {
   assertBudgetEnvelope(operations, args.state)
   assertGovernedCampaignConstitution(operations, args.state)
   assertSpecialtyCpcCeiling(operations, args.state)
+  assertCreateOperationsSafe(operations, args.state)
   assertKeywordAndAudienceSafety(operations, args.state)
   return operations
 }
@@ -1012,6 +1245,12 @@ function isScalingOperation(operation: AdsMutationOperation): boolean {
         0,
       )
     return totalMinutes(operation.next) > totalMinutes(operation.expected)
+  }
+  if (
+    operation.kind === "responsive_search_ad_create"
+    || operation.kind === "positive_keyword_create"
+  ) {
+    return operation.status === "ENABLED"
   }
   return false
 }
@@ -1141,6 +1380,32 @@ function reverseOperations(
     }
     if (operation.kind === "schedule_replace") {
       return { ...operation, expected: operation.next, next: operation.expected }
+    }
+    if (operation.kind === "responsive_search_ad_create") {
+      const matches = matchingResponsiveSearchAds(state, operation)
+        .filter(({ status }) => status === operation.status)
+      if (matches.length !== 1) {
+        throw new Error("responsive_search_ad_rollback_resource_missing")
+      }
+      return {
+        expected: operation.status,
+        kind: "ad_status",
+        next: "REMOVED",
+        resourceName: matches[0].resourceName,
+      }
+    }
+    if (operation.kind === "positive_keyword_create") {
+      const matches = matchingPositiveKeywords(state, operation)
+        .filter(({ status }) => status === operation.status)
+      if (matches.length !== 1) {
+        throw new Error("positive_keyword_rollback_resource_missing")
+      }
+      return {
+        expected: operation.status,
+        kind: "keyword_status",
+        next: "REMOVED",
+        resourceName: matches[0].resourceName,
+      }
     }
 
     const criterion = state.campaignCriteria.find((resource) => {

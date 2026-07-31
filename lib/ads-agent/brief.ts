@@ -43,6 +43,8 @@ const mutationFamilyCopy: Record<AdsMutationFamily, string> = {
   campaign_status: "campaign pause/enable",
   keyword_status: "keyword change",
   negative_keyword: "negative keyword change",
+  positive_keyword_create: "new exact/phrase keyword",
+  responsive_search_ad_create: "new responsive search ad",
   schedule_replace: "schedule change",
 }
 
