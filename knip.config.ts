@@ -5,6 +5,8 @@ const config: KnipConfig = {
     // MDX guides and the service worker are runtime-loaded rather than imported.
     "content/blog/*.mdx!",
     "public/sw.js!",
+    // Google Ads operations run through this standalone operator CLI entrypoint.
+    "scripts/google-ads-agent.ts",
     // Preview and fixture tooling belongs to the comprehensive scan only.
     "playwright.preview.config.ts",
     "scripts/e2e/{seed,teardown}.ts",

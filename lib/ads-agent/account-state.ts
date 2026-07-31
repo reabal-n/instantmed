@@ -45,6 +45,7 @@ export interface GoogleAdsAccountState {
   customer: GoogleAdsCustomerState | null
   customerClientLinks: NormalizedGoogleAdsResource[]
   customerManagerLinks: NormalizedGoogleAdsResource[]
+  customerUserAccess: NormalizedGoogleAdsResource[]
   readAt: string
   responsiveSearchAds: NormalizedGoogleAdsResource[]
   sharedCriteria: NormalizedGoogleAdsResource[]
@@ -67,6 +68,7 @@ export interface GoogleAdsAccountStateQueries {
   customer: string
   customerClientLinks: string
   customerManagerLinks: string
+  customerUserAccess: string
   responsiveSearchAds: string
   sharedCriteria: string
   sharedSets: string
@@ -346,6 +348,17 @@ export function buildGoogleAdsAccountStateQueries(): GoogleAdsAccountStateQuerie
       ],
       from: "customer_manager_link",
     }),
+    customerUserAccess: gaql({
+      fields: [
+        "customer_user_access.resource_name",
+        "customer_user_access.user_id",
+        "customer_user_access.access_role",
+        "customer_user_access.access_creation_date_time",
+        "customer_user_access.passkey_enabled",
+      ],
+      from: "customer_user_access",
+      suffix: "ORDER BY customer_user_access.user_id",
+    }),
     changeEvents: gaql({
       fields: [
         "change_event.resource_name",
@@ -530,6 +543,7 @@ export async function getAdsAccountState(args: {
     campaignAssets: normalizeRows(rows.campaignAssets),
     customerClientLinks: normalizeRows(rows.customerClientLinks),
     customerManagerLinks: normalizeRows(rows.customerManagerLinks),
+    customerUserAccess: normalizeRows(rows.customerUserAccess),
     changeEvents: normalizeChangeEvents(rows.changeEvents),
   }
 }

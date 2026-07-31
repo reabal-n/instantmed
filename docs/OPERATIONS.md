@@ -524,6 +524,14 @@ The control plane sends one PHI-free **Daily Ads Brief** at **09:00 Australia/Sy
 
 The delivery cron ships off and becomes active only with `GOOGLE_ADS_AGENT_DAILY_BRIEF_ENABLED=true` in production. This reporting flag does not enable proposals, approvals, or mutations.
 
+The Codex app automation **InstantMed Ads daily manager** runs shortly after the 09:00 delivery. During report shadow it verifies the expected closed-day run, Telegram receipt, duplicate suppression, fee reconciliation, and tracking state without changing the account. After the seven-consecutive-day proof gate, the same automation becomes the continuing daily operator. On Mondays it also runs the detailed read-only account audit:
+
+```bash
+pnpm ads:agent deep-audit --days=30
+```
+
+The deep audit covers date-segmented search terms, keyword and Quality Score diagnostics, RSA and asset exposure, device/daypart/location performance, policy status, manager and user access, passkey readiness, and change history. Its detailed output is restricted to the authorised Codex task: it is not persisted and is explicitly not Telegram-safe. Possible personal search queries are suppressed. Telegram receives only the aggregate daily brief, a short aggregate exception, or an immutable approval card. Historical rows are context and never prove that a current negative, targeting control, or asset is broken.
+
 Telegram has exactly two PHI-free Google Ads message classes:
 
 1. The scheduled Daily Ads Brief.
@@ -534,6 +542,8 @@ Telegram has exactly two PHI-free Google Ads message classes:
 Every mutation requires either the exact authenticated Telegram button action from the configured approver or an exact Codex-task approval for the same immutable proposal. Both channels share one replay-safe proposal state machine; a duplicate, expired, already-consumed, or drifted approval aborts without mutation.
 
 Keep `GOOGLE_ADS_AGENT_MUTATIONS_ENABLED=false` and `TELEGRAM_ADS_APPROVALS_ENABLED=false` until the reporting, tracking, proposal-security, and guarded mutation path have completed shadow proof. No implementation-plan approval or broad instruction to manage Ads enables live changes.
+
+Google Ads API user access is included in the account read. As of 2026-07-31 the sole direct Ads user has `passkey_enabled=true`, so the August 2026 passkey requirement does not interrupt the existing OAuth refresh token. If that refresh token must be regenerated after rollout, authenticate with the existing passkey and allow for Google's stated trust delay; never rotate a working token during a live Ads change merely to test this requirement.
 
 ### Daily loop
 
