@@ -111,7 +111,7 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 | [docs/audits/2026-06-10-comprehensive-audit.md](../audits/2026-06-10-comprehensive-audit.md) | 44-agent platform + business audit 2026-06-10; P0 anon PHI leak fix, competitor/regulatory/channel research, staged scaling plan |
 | [docs/audits/2026-06-11-hygiene-business-review.md](../audits/2026-06-11-hygiene-business-review.md) | 12-agent hygiene + business review 2026-06-11; Express-fee P0, GEO FAQ-HTML blocker, test gaps, resilience, women's-health skeleton, prioritized backlog |
 | [docs/audits/2026-07-08-geo-citation-execution.md](../audits/2026-07-08-geo-citation-execution.md) | GEO citation execution record: NHSD listing verification, drift found, profile copy, and comparison outreach draft |
-| [docs/audits/2026-07-09-comparison-surface-submission-kit.md](../audits/2026-07-09-comparison-surface-submission-kit.md) | Submission-ready comparison-surface kit for MediCompare and Finder: channels, assets, dated fact sheet, outreach drafts, and marketing-compliance review |
+| [docs/audits/2026-07-09-comparison-surface-submission-kit.md](../audits/2026-07-09-comparison-surface-submission-kit.md) | Comparison/directory surface research plus send copy. Surface research current to 2026-07-24; **clinical process and availability copy repaired 2026-07-31** against approved claims. Re-verify prices and certification status before any send |
 
 ## docs/plans/ — implementation records (non-authoritative)
 

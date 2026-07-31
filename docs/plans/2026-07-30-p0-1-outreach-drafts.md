@@ -110,7 +110,7 @@ Structured fields:
 | Optional add-on | $9.95 priority review |
 | Availability | Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume. |
 | Service area | Australia-wide, 18+ |
-| Refund policy | Refund if declined (approved compact alias) |
+| Refund policy | Refund if declined |
 | Bulk billing | Not available |
 | App | No app, mobile web |
 | Certificate verification | Yes, public endpoint at /verify |

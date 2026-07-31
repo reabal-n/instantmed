@@ -167,7 +167,7 @@ The specification must name the complete path before any code is written:
 6. Add a **capture-validation counter** whose denominator is **eligible landing requests** — not "visits" or "sessions", unless privacy-safe session deduplication is separately specified.
 7. **Update the attribution pipeline section of `CLAUDE.md`** (and regenerate `AGENTS.md` via `scripts/sync-agent-doc.sh`) in the same commit — the Doc Maintenance Policy requires it for any attribution/analytics change.
 
-**Deliverable is a count, not an adjective:** *"N detections among M eligible landing requests and K orders over the window."* Never "no signal found".
+**Deliverable is a count, not an adjective:** *"N detections among M eligible landing requests, and P paid orders, over the closed window."* Never "no signal found".
 
 ### P0.3 · Zero-risk retrieval hygiene
 

@@ -6,7 +6,7 @@
 >
 > **Ranked item: UNRESOLVED, and this is a blocking governance gate.** ROADMAP rank 1 (truth and measurement gate) is the natural home — this is measurement-truth work — **but rank 1 is currently marked Complete (2026-07-12, follow-ups 2026-07-19)**, and a reference-only plan cannot reopen it. Rank 1's own checkpoint provides the mechanism: *"Re-open any closed sub-boundary when production evidence or an operator decision exposes drift."* **This specification therefore requests a rank-1 reopening as an operator decision, recorded in `docs/ROADMAP.md`.** Until that is recorded, this work has no ranked home and implementation cannot begin. A previous draft simply claimed rank 1, which was a canon mismatch.
 >
-> **Written 2026-07-30. Revised v5 (2026-07-31)** after four gate-review rounds (12, 14, 15, then 10 findings, all upheld). §9 records every adjudication. **The three worst defects were all mine:** the original zero-detection conclusion was invalid, the denominator that replaced it excluded positive detections, and the guarded SQL that replaced *that* blocked the very `none → detected` upgrade it existed to permit.
+> **Written 2026-07-30. Revised v6 (2026-07-31)** after five gate-review rounds (12, 14, 15, 10, then 10 findings, all upheld). §9 records every adjudication. **The three worst defects were all mine:** the original zero-detection conclusion was invalid, the denominator that replaced it excluded positive detections, and the guarded SQL that replaced *that* blocked the very `none → detected` upgrade it existed to permit.
 
 ---
 
@@ -171,7 +171,7 @@ classifyAiSource(input: { referrer?: string | null; utmSource?: string | null })
 
 The parent plan lists `bing_ai` in the enum; the previous spec draft silently dropped it and added `grok`. **Resolution: `bing_ai` is removed from both**, because no verified query or path marker for *Bing AI summaries* (as distinct from Copilot) has been identified. Inventing a value we cannot detect would guarantee a permanently empty bucket that reads as a finding.
 
-**The parent plan must be corrected to match** — a one-line change, tracked as a follow-up on this spec's approval, not smuggled in here.
+**The parent plan was corrected to match in the round-2 pass (2026-07-30); no follow-up remains open.**
 
 **Consequence, stated plainly:** the instrument is narrowed to **identifiable Copilot traffic**. Bing AI summaries and BWT's unnamed "partner integrations" are **outside its detection scope**. This is central to §5.
 
@@ -202,13 +202,10 @@ The parent plan requires ambiguous You.com as an **explicit negative fixture**. 
 |---|---|
 | **M — request denominator** | **Every eligible landing request** per §4.8, whether or not an AI source was detected. Detected **plus** `none`. Bot-excluded and `indeterminate` requests are counted separately and reported alongside, never folded into M |
 | **N — detections** | Eligible landing requests whose **classification of that request** is non-`none`. Broken out per enum value **and per `classifier_version`** |
-| **I — intake denominator** | Every intake with non-`NULL` `ai_source_detected`, including those carrying `none`. `NULL` rows are excluded and counted separately |
-| **I_e** | Instrumented intakes carrying enum value *e* |
+| **I — intake denominator** | Instrumented intakes **created inside the window**, including those carrying `none`. Uninstrumented intakes are excluded and counted separately |
+| **I_e** | Intakes in **I** carrying enum value *e* |
 | **P_e — paid orders** | Intakes in **I_e** that reached a paid state, counted on canonical `paid_at` inside the window. **A partially refunded order is still one paid order** |
 | **G_e — gross paid value** | `SUM(amount_cents)` over **P_e**. Enters the window by `paid_at` |
-| **F_e — refund outflow** | Refunds whose **`refunded_at` falls inside the window**, attributed to the engine on the originating intake, **even when that intake was paid before the window**. Failed refunds never reduce. `refund_status = 'failed'` excluded |
-| **D_e — dispute outflow** | Disputes attributed by their **own event timestamp**, same rule |
-| **R_e — per-engine retained value (snapshot diagnostic, NOT the canonical rung)** | `G_e − F_e − D_e` |
 
 **N must be computed from the current request's classification, never from the sticky cookie.** Reading the cookie would count every subsequent page view of a returning visitor as a fresh detection, inflating N without bound. The cookie exists for *intake attribution*; the counter exists for *request detection*. They are different questions and must not share a source.
 
@@ -217,16 +214,22 @@ The parent plan requires ambiguous You.com as an **explicit negative fixture**. 
 | Figure | Formula | Reads as |
 |---|---|---|
 | Request detection rate | `N_e / M` | Share of arrivals from engine *e* |
-| Per-engine conversion rate | `P_e / I_e` | How well engine *e*'s traffic converts |
+| Per-engine conversion rate | `P_e / I_e` on a **matured creation cohort** | How well engine *e*'s traffic converts |
 | Order share | `P_e / Σ P` over all instrumented intakes | Engine *e*'s share of instrumented paid orders |
-| Per-engine retained value | `R_e` | **Snapshot diagnostic only** — see the constraint below |
+| Per-engine gross paid value | `G_e` | Dollars entering by `paid_at`. **Gross, not net** — no per-engine refund or dispute figure exists |
 
-**Event-based windows, matching existing canon.** `lib/data/net-retained-purchase-value.ts` already states the rule: *"Purchases enter by `paid_at`; refunds leave by `refunded_at`, even when the original purchase predates the window."* The previous draft's `SUM(amount_cents − refund_amount_cents)` over in-window paid orders violated that three ways — it missed refunds issued in-window against older orders, let a closed window change retroactively as `refund_amount_cents` accrued, and could not allocate successive partial or top-up refunds. It also omitted disputes while calling itself net-retained, which `docs/REVENUE_MODEL.md` defines as *"captured order revenue less refunds **and disputes** for the same reporting window."*
+**Per-engine refund and dispute figures are REMOVED from PR 2. Report paid count and gross only.**
 
-**R_e is explicitly a snapshot diagnostic and must never be quoted as rung attainment.** `intakes.refund_amount_cents` is a cumulative column, not an immutable refund-event log, so per-engine allocation of successive partial refunds cannot be reconstructed exactly, and there is no per-engine dispute feed. Two binding consequences:
+Two earlier attempts at a per-engine net figure were both non-executable, and the second was wrong in a way I asserted confidently:
 
-1. **The canonical `$5,000/month` rung stays with `buildNetRetainedPurchaseValue` and the admin dashboard**, all channels, including disputes. This spec produces no rung figure.
-2. **Every report carrying R_e must label it a snapshot diagnostic** and state that disputes may be incomplete. If an immutable refund-event source later exists, R_e can be promoted; until then it is directional.
+- `intakes.refund_amount_cents` is a **cumulative column, not an immutable refund-event ledger**, so successive partial and top-up refunds cannot be assigned to the correct closed window. No formulation over that column fixes this.
+- I claimed there was "no per-engine dispute feed". **That was wrong — a `stripe_disputes` table exists** and is joinable. The gap was never the dispute data; it was the refund ledger.
+
+So PR 2 reports **P_e** (paid orders) and **G_e** (gross paid value) only. A per-engine net figure is unlocked only by adding an immutable refund-event ledger and an explicit `stripe_disputes` join — **separate work, not in this spec**.
+
+**The canonical `$5,000/month` rung is untouched by this** and stays with `buildNetRetainedPurchaseValue` and the admin dashboard. **Do not claim that helper already deducts disputes** — verified 2026-07-31, it computes gross minus refunds only, while `docs/REVENUE_MODEL.md:24` defines net-retained as revenue less refunds **and** disputes. **That is a live canon/code drift, and it is a separate rank-1 repair, not this spec's to fix or to paper over.**
+
+**`I_e` must be a matured creation cohort, not a lifetime count.** An earlier draft divided a 30-day `P_e` by a lifetime `I_e`, which is not a conversion rate — the numerator and denominator covered different populations. Rule: **`I_e` counts intakes created in the window, and the window closes at least 7 days before the figure is computed**, so every intake in the cohort has had a full opportunity to pay. Intakes created inside the maturity buffer are excluded from both numerator and denominator and reported as *pending maturity*.
 
 Windows are the **two closed, non-overlapping 30-day windows** the parent plan mandates. Never mix request-level and intake-level denominators in one figure.
 
@@ -243,7 +246,9 @@ Windows are the **two closed, non-overlapping 30-day windows** the parent plan m
 
 **Trust boundary — do not trust the existing cookie.** `instantmed_attribution` is **not `httpOnly`** (§2.3), so any value in it is client-writable and unsuitable as an authoritative acquisition claim.
 
-- **Authoritative path:** derive server-side in middleware and write to a **separate `httpOnly`, `secure`, `sameSite=lax`, signed** cookie whose canonical payload is defined once below. This is what checkout persists.
+> **Naming correction, and it is not cosmetic.** Earlier drafts called this the "authoritative" path. **It is not authoritative provenance.** `utm_source` and `Referer` are both attacker-controllable, so an HMAC proves only that *our server observed this input*, never that the visit genuinely came from an assistant. The correct term, used throughout from here, is a **tamper-evident server-observed signal**. Every report carrying it must describe it that way. It is good enough to answer "does any Copilot-shaped arrival exist" and never good enough to underwrite a revenue claim about an individual order.
+
+- **Server-observed path:** derive server-side in middleware and write to a **separate `httpOnly`, `secure`, `sameSite=lax`, signed** cookie whose canonical payload is defined once below. This is what checkout persists.
 - **Non-authoritative path:** the client may call the same shared classifier for its PostHog `ai_referral` event. Clearly labelled non-authoritative; it must not feed revenue reporting.
 
 **Pre-intake cookie lifecycle — fully specified, because an unspecified upgrade rule silently decides the attribution model:**
@@ -264,7 +269,17 @@ payload = { enum, version, first_seen_hour, expires_at }   // ISO-8601 UTC
 cookie  = base64url(payload) + "." + HMAC-SHA256(payload, INTERNAL_API_SECRET)
 ```
 
-**Signed, because `httpOnly` is not authenticity.** `httpOnly` stops page scripts reading the cookie; it does nothing to stop a crafted request supplying one. An unsigned cookie would let anyone assert `enum: "copilot"` and poison the very measurement this exists to produce. Reuse the existing HMAC pattern from `lib/crypto/heard-about-us-token.ts`. **A cookie failing signature validation is treated as absent and overwritten**, never partially trusted.
+**Signed for tamper-evidence.** `httpOnly` stops page scripts reading the cookie; it does nothing to stop a crafted request supplying one. Signing makes edits detectable — it does **not** make the value authoritative provenance (see the naming note above). **A cookie failing validation is treated as absent and overwritten**, never partially trusted.
+
+**Runtime, and it is a real constraint:** `lib/crypto/heard-about-us-token.ts` imports Node `crypto`, and `middleware.ts` declares only `export const config` — **no `export const runtime`**, so it runs on the Edge runtime where Node `crypto` is unavailable. Reusing that helper as-is would fail at runtime.
+
+- **Default: implement signing with Web Crypto** (`crypto.subtle.sign`, HMAC-SHA-256), which works on Edge and needs no middleware runtime change.
+- **Alternative:** opt middleware into the Node runtime explicitly. Next 15.5 supports this, but it is a deliberate change with its own blast radius and must be profiled and security-reviewed under the ROADMAP §5 gate like any other middleware change. **Do not do this incidentally.**
+- **Canonical bytes:** sign the exact UTF-8 bytes of the JSON payload serialised with **sorted keys and no whitespace**. Never sign a re-serialised object.
+- **Encoding:** base64url for both payload and signature, joined by `.`.
+- **Verification is timing-safe** — Web Crypto `verify`, or a constant-time compare. Never `===` on signature strings.
+- **Missing or empty `INTERNAL_API_SECRET`:** derivation is **disabled entirely**, no cookie is written, and a single fingerprinted Sentry warning fires. **Never fall back to unsigned.**
+- **Key rotation:** verification accepts the current secret and one previous secret; writes always use the current one. A cookie validating only under the previous secret is accepted and rewritten under the current one.
 
 **`first_seen_hour`, not `first_seen_at`.** An exact millisecond timestamp is high-cardinality and sits uncomfortably beside "no new identifier". Truncating to the UTC hour keeps the TTL arithmetic correct to within an hour — irrelevant against a 30-day window — and removes the fingerprinting surface. **Do not store a precise first-seen timestamp anywhere.**
 
@@ -284,8 +299,9 @@ cookie  = base64url(payload) + "." + HMAC-SHA256(payload, INTERNAL_API_SECRET)
 
 - **`instantmed_attribution` cookie:** on the first request after deploy, rewrite the cookie with the referrer field sanitised to origin + path. Do not wait for natural expiry, and do not simply delete the cookie — that would discard live paid-campaign attribution.
 - **Web storage (`attribution.ts`):** on first load after deploy, read, sanitise, and rewrite the stored record. Same reasoning.
-- **External referrers are stored as origin only**, not origin + arbitrary path. A path can itself carry identifying context (`/c/<conversation-id>`-shaped URLs are common on assistant hosts), and we need only the host to classify. **Same-origin landing paths keep their path**, since that is our own routing data and already captured as `landing_page`.
-- Both rewrites are idempotent and fail-open: a malformed record is cleared rather than partially migrated.
+- **One dedicated sanitizer, used by every external-referrer writer and by the migration.** `sanitizeExternalReferrer(value) -> origin | null`. **Origin only, never origin + path** — assistant hosts commonly carry conversation identifiers in the path (`/c/<id>`-shaped). An earlier draft said origin-only in one section and origin + path in another; **the origin-only rule wins everywhere an external referrer is stored.** Same-origin landing *paths* are unaffected — that is our own routing data, already captured as `landing_page` by a different field.
+- **Migration TTL handling.** The cookie carries its own expiry, but **web storage has no inherent 30-day bound** — a record can be arbitrarily old. On migration: parse `captured_at`; if it is missing, unparseable, or **older than 30 days, clear the record entirely** rather than sanitising and keeping it. Otherwise sanitise in place and **preserve the remaining TTL** rather than restarting it.
+- Both rewrites are idempotent and fail-open: a malformed record is cleared, never partially migrated.
 
 ### 4.6 Privacy — sanitise both existing writers
 
@@ -308,7 +324,19 @@ Sanitised form throughout is origin + path only, matching `cleanUrlOrPath`. Raw 
 
 **The enum is not Stripe metadata.** Stripe does not need another acquisition field, and routing it through session metadata adds a surface with no benefit.
 
-1. **Migration (mandatory, not conditional):** nullable `intakes.ai_source_detected` plus `ai_source_classifier_version`. Follow `CLAUDE.md` migration discipline — apply, verify in production, record the receipt, update the migration count, regenerate `AGENTS.md`. Note the MCP `apply_migration` generated-version gotcha and reconcile `schema_migrations`.
+**The column-on-`intakes` design is withdrawn. It was patient-writable.**
+
+Verified 2026-07-31 against production: policy **`intakes_patient_update`** permits a patient to `UPDATE` their own intake while `status IN ('draft','pending_payment','pending_info')`, and it is **column-unrestricted** — with a table-level `UPDATE` grant to `authenticated`. A patient could therefore set `ai_source_detected` to any value directly through PostgREST, **entirely bypassing the §4.7 compare-and-set**, during exactly the window in which an intake is created and paid. The CAS would have protected nothing.
+
+**Replacement: a service-role-only side table.**
+
+1. **Migration (mandatory):** new table `intake_ai_source` — `intake_id uuid primary key references intakes(id) on delete cascade`, `ai_source ai_source_enum not null`, `classifier_version int not null`, `created_at timestamptz not null default now()`.
+   - **`ai_source_enum` is a Postgres enum type**, so the closed value set is enforced by the database, not only by application code.
+   - **RLS enabled with zero policies.** `SELECT/INSERT/UPDATE/DELETE` **revoked from `PUBLIC`, `anon`, and `authenticated`**; granted to `service_role` only. Writes go through a service-only RPC.
+   - **No patient-reachable write path exists by construction** — this is the point of the design, not a defence in depth.
+   - **Mutation is prohibited once checkout begins.** The write RPC rejects any attempt where the intake's `status` is past `pending_payment`, or `payment_id` is set, or `paid_at` is non-null. Attribution is fixed before money moves and cannot be edited afterward.
+   - Follow `CLAUDE.md` migration discipline: apply, verify in production, record the receipt, update the migration count, regenerate `AGENTS.md`, and reconcile `schema_migrations` for the MCP `apply_migration` generated-version gotcha.
+2. Reporting joins `intake_ai_source` to `intakes`. `NULL` becomes *"no row"* and `none` remains a stored row, preserving the §4.4 distinction.
 2. **Persist on the intake row before Checkout Session creation**, on both paths:
    - **Authenticated insert** — value present at insert.
    - **Guest insert** — value present at insert; **guest reconstruction** must carry it when an intake is rebuilt after a failed first attempt.
@@ -320,26 +348,28 @@ Sanitised form throughout is origin + path only, matching `cleanUrlOrPath`. Raw 
    **Model chosen: first-commit-wins**, expressed as an atomic compare-and-set with **no ordering column at all**:
 
    ```sql
-   UPDATE intakes
-      SET ai_source_detected = $1,
-          ai_source_classifier_version = $2
-    WHERE id = $3
-      AND $1 <> 'none'
-      AND (ai_source_detected IS NULL OR ai_source_detected = 'none')
+   -- inside the service-only RPC, after the pre-checkout guard
+   INSERT INTO intake_ai_source (intake_id, ai_source, classifier_version)
+   VALUES ($1, $2, $3)
+   ON CONFLICT (intake_id) DO UPDATE
+      SET ai_source = EXCLUDED.ai_source,
+          classifier_version = EXCLUDED.classifier_version
+    WHERE intake_ai_source.ai_source = 'none'
+      AND EXCLUDED.ai_source <> 'none'
    ```
 
    | Current | Incoming | Result |
    |---|---|---|
-   | `NULL` | non-`none` | writes |
+   | no row | any | inserts |
    | `none` | non-`none` | **writes — the upgrade the old SQL blocked** |
-   | non-`none` | anything | no rows matched, value immutable |
-   | any | `none` | no rows matched (guarded by `$1 <> 'none'`) |
+   | non-`none` | anything | `WHERE` fails, value immutable |
+   | non-`none` | `none` | `WHERE` fails, never downgrades |
 
    Ties are impossible by construction: the first statement to commit wins, and every later one matches zero rows. Concurrency is handled by the row lock, not by application ordering.
 
-   **`ai_source_observed_at` is dropped from the schema.** It existed only to serve the broken comparison, and removing it also removes a high-cardinality timestamp from the database — which resolves the tension with "no new identifier" rather than arguing about it.
+   **`ai_source_observed_at` is dropped.** It existed only to serve the broken comparison, and removing it also removes a high-cardinality timestamp — resolving the tension with "no new identifier" rather than arguing about it. The `ON CONFLICT` upsert is atomic under concurrency; row locking, not application ordering, decides the winner.
 
-   *(The `none` row is still written at insert so `NULL` and `none` stay distinguishable per §4.4.)*
+   *(A `none` row is still written at intake creation so "no row" and `none` stay distinguishable per §4.4.)*
 5. **Retry payment** preserves the original value and must not re-derive from the retry navigation.
 6. **Webhook and fallback finalisation read the intake and preserve the value.** They must not write it, and must not drop it while setting `paid_at`.
 7. All reporting uses canonical `paid_at` / `refunded_at` windows and the closed non-overlapping windows the parent plan mandates.
@@ -356,7 +386,7 @@ Sanitised form throughout is origin + path only, matching `cleanUrlOrPath`. Raw 
 | Origin | `Sec-Fetch-Site` is **neither `same-origin` nor `same-site`**. Both are internal navigation; counting `same-site` would include subdomain hops as arrivals. The denominator counts arrivals, not page views |
 | Prefetch | Excluded when `Sec-Purpose: prefetch` or `Purpose: prefetch` is present |
 | Path exclusions | Anything matched by `isExternalAnalyticsExcludedPathname` (capability/bearer paths), plus `/api/*`, `/_next/*`, static assets, health checks, and the `Disallow` set in `app/robots.ts` |
-| Bots/crawlers | Excluded via one **named, versioned matcher**: case-insensitive `/(bot|crawler|spider|crawling|slurp|headless|preview|monitor|probe|scan)/` on the user agent, **plus** exact matches for the documented AI fetchers in `app/robots.ts`. Required fixtures: `Googlebot`, `bingbot`, `ChatGPT-User`, `PerplexityBot`, `Claude-User` → excluded; a stock desktop Chrome UA and a stock iOS Safari UA → **counted**. Excluded volume is reported, never silently dropped |
+| Bots/crawlers | Excluded via a **closed, versioned token list** — `BOT_UA_TOKENS_V1` — matched case-insensitively as substrings of the user agent. The previous draft's regex plus "the fetchers in `app/robots.ts`" was untestable: **`Claude-User` matches neither**, since it contains none of the regex tokens and is not declared in `app/robots.ts`. The list is explicit and enumerated in code, versioned so a change is visible in the counter key. Required fixtures — excluded: `Googlebot`, `bingbot`, `ChatGPT-User`, `PerplexityBot`, `Claude-User`, `OAI-SearchBot`, `Claude-SearchBot`, `DuckAssistBot`. Counted: a stock desktop Chrome UA, a stock iOS Safari UA. Excluded volume is reported, never silently dropped |
 | Missing headers | If `Sec-Fetch-*` headers are absent (older clients), fall back to `Accept: text/html` + `GET`; **count these in a distinct `indeterminate` bucket** rather than assuming eligibility |
 
 **`dimension_key` is a closed set**, so the counter's cardinality is bounded and auditable:
@@ -366,6 +396,12 @@ dimension_key ∈ { "<enum>:eligible", "<enum>:indeterminate", "bot", "excluded_
 ```
 
 where `<enum>` is one of the seven `AiSourceEnum` values. Nothing else may be written; an unrecognised key is a bug, not a new dimension.
+
+**One-bucket precedence, evaluated in this exact order** so a request can never increment two buckets: `excluded_path` → `bot` → `indeterminate` → `<enum>:eligible`. A bot hitting an excluded path counts as `excluded_path` only.
+
+**Capture ordering and reachability, both of which change what M means:**
+- The `www` → apex redirect in `vercel.json` runs as a platform redirect. **Derivation happens on the request that reaches apex middleware, not on the redirected one**, so a `www` arrival is counted once, at apex, with its `Referer` intact.
+- Static assets, `_next` paths, and anything else never reaching middleware are **outside M entirely** — they are not "excluded", they are unobservable. Reports must not imply the denominator covers all traffic.
 
 **Not "visits" and not "sessions"** — session semantics would require privacy-safe deduplication, explicitly out of scope.
 
@@ -407,7 +443,15 @@ Instead:
 14. **Revenue:** a partial refund leaves `P_e` unchanged and reduces `R_e` · a refund whose `refunded_at` falls in the window but whose order was paid earlier still reduces `R_e` · a `failed` refund reduces nothing · `R_e` is labelled a snapshot diagnostic wherever it is rendered.
 15. **ACLs:** `EXECUTE` on the counter RPC is denied to `anon` and `authenticated` and granted to `service_role`; the counter table has RLS enabled with zero policies.
 16. **Fail-open:** RPC unavailable · RPC throws · permission denied · `waitUntil` unsupported — each leaves the HTTP response status, body, and latency unaffected.
-17. **Migration of existing values:** a pre-deploy cookie or web-storage record carrying a raw referrer is rewritten sanitised on first request, idempotently, and a malformed record is cleared rather than partially migrated.
+17. **Migration of existing values:** a pre-deploy cookie or web-storage record carrying a raw referrer is rewritten sanitised on first request, idempotently; a malformed or over-30-day record is cleared; remaining TTL is preserved, not restarted.
+18. **Pure-classifier positives:** `gemini.google.com` → `gemini`, `claude.ai` → `claude`, `perplexity.ai` → `perplexity`, `copilot.microsoft.com` → `copilot`, `chatgpt.com` → `chatgpt`, each with `isAi === true` and a non-null `engine`.
+19. **Write-boundary attempts, all must fail:** an `authenticated` role attempting `INSERT`/`UPDATE`/`SELECT` on `intake_ai_source` · an `anon` role doing the same · a direct PostgREST write while the intake is `draft`/`pending_payment` (the `intakes_patient_update` bypass this design exists to close).
+20. **Mutation after payment begins:** the write RPC rejects when the intake has `payment_id` set, `paid_at` non-null, or a status past `pending_payment`.
+21. **Enum enforcement at the database:** an out-of-set value is rejected by the `ai_source_enum` type, not merely by application validation.
+22. **External path removal:** a referrer of `https://chatgpt.com/c/abc-123` is stored as `https://chatgpt.com` with no path, in the cookie, in web storage, and after migration.
+23. **Bot precedence:** a `Googlebot` request to an excluded path increments `excluded_path` only, never both buckets.
+24. **Positive-control exclusion:** an intake accidentally created during the control is marked `exclude_from_reporting = true` and appears in neither `I` nor `P`.
+25. **Signing:** a tampered payload fails verification · a payload signed with the previous secret verifies and is rewritten under the current one · a missing `INTERNAL_API_SECRET` disables derivation and writes no cookie rather than falling back to unsigned.
 
 ### 4.11 Required fixtures — two separate suites
 
@@ -506,7 +550,7 @@ The last row is the binding one: the full classifier does not expose an engine, 
 - Run the control **before** the measurement window opens, never during it.
 - **Measurement starts at the next UTC-hour boundary after the last control click**, so the control cannot land in a counted bucket.
 - **The control's hourly bucket is excluded from M and N by bucket key**, and the exclusion is recorded with the bucket timestamp so the gap in the series is explained rather than mysterious.
-- Any intake accidentally created during the control is excluded from **I** and flagged, not silently deleted.
+- Any intake accidentally created during the control is marked **`exclude_from_reporting = true`** — the existing durable flag, not an ad-hoc note — so the exclusion survives independently of whether anyone remembers the control happened. It is never deleted.
 - Without this fence a single deliberate click would appear as a genuine Copilot detection and could, on its own, satisfy the `N(copilot) ≥ 10` threshold if repeated — manufacturing the result the instrument exists to test.
 
 **Also outside scope:** Google AI Mode and AI Overviews clicks (structurally indistinguishable — negative fixture in §4.11), and referrer-stripped arrivals, which land in `none`. **`none` is not evidence of absence.**
@@ -670,3 +714,28 @@ All findings verified against the code before acceptance.
 | Q8 | `R_e` named net-retained while excluding disputes | Renamed and constrained — see Q3 |
 | Q9 | Availability copy forked — Finder truncated `availability_24_7` and propagated it to Trustpilot and GBP; a separate "Turnaround" field was invented | Short description now carries **neither** process nor availability claim, with the truncation rule stated; structured field carries the **complete** claim; the invented Turnaround row is deleted |
 | Q10 | Clinically false source documents still advertised as ready | **Correction banners added in place** to `docs/audits/2026-07-09-comparison-surface-submission-kit.md` and `docs/runbooks/NHSD_REGISTRATION.md`; parent no longer calls the kit "submission-ready"; `file-map.md` no longer calls the runbook "paste-ready". A blocker elsewhere does not repair an active source |
+
+
+### Round 5 (2026-07-31) — 10 findings, all upheld
+
+**The worst was a database trust boundary I had not checked.**
+
+| # | Finding | Verification | Resolution |
+|---|---|---|---|
+| T1 | **[P0] The field was patient-writable.** An HMAC proves only that the server observed supplied input; and worse, RLS lets the patient write the column directly | Policy **`intakes_patient_update`** permits `UPDATE` on own intake while `status IN ('draft','pending_payment','pending_info')`, **column-unrestricted**, with a table-level `UPDATE` grant to `authenticated`. The §4.7 CAS would have protected nothing | **Column-on-`intakes` design withdrawn.** Replaced by service-role-only `intake_ai_source` (Postgres **enum type** for DB-enforced values, RLS with zero policies, all grants revoked from `PUBLIC`/`anon`/`authenticated`, writes via service-only RPC). **Mutation prohibited once checkout begins.** Renamed throughout to **"tamper-evident server-observed signal"**, never "authoritative provenance" |
+| T2 | **[P0] Revenue model still non-executable** — `refund_amount_cents` is cumulative, so successive refunds cannot be assigned to closed windows. **And my claim that no dispute feed exists was wrong** | `stripe_disputes` **does** exist and is joinable | **`F_e`, `D_e`, `R_e` removed from PR 2.** Reports **`P_e` and `G_e` only** (paid count and gross). A net figure requires an immutable refund-event ledger plus an explicit disputes join — separate work |
+| T3 | **[P0] `I_e` could not validly divide a 30-day `P_e`** — a lifetime denominator against a windowed numerator | — | `I_e` is now a **matured creation cohort**: intakes created in the window, computed at least 7 days after it closes; intakes inside the maturity buffer are excluded and reported as pending maturity |
+| T4 | **[P0] Privacy contract self-contradictory** — origin-only in one section, origin + path in another | — | **One dedicated `sanitizeExternalReferrer` → origin only**, used by every external writer and the migration. Web storage has no inherent TTL, so migration **clears malformed or over-30-day records** and **preserves remaining TTL** otherwise |
+| T5 | **[P1] Signed-cookie not runtime-complete** — the referenced helper uses Node `crypto`, but `middleware.ts` declares no `runtime` | `lib/crypto/heard-about-us-token.ts` imports Node `crypto`; `middleware.ts` has only `export const config` | **Default to Web Crypto** (works on Edge, no runtime change). Node middleware runtime is an explicit alternative subject to the ROADMAP §5 gate. Added canonical sorted-key bytes, base64url encoding, timing-safe verify, **missing-secret disables derivation rather than falling back to unsigned**, and one-previous-secret rotation |
+| T6 | **[P1] Counter/control rules untestable** — `Claude-User` matched neither the regex nor `app/robots.ts` | Confirmed both | Closed versioned **`BOT_UA_TOKENS_V1`** list with eight required fixtures; **one-bucket precedence** `excluded_path → bot → indeterminate → enum:eligible`; `www`-redirect capture ordering stated; unreachable routes declared **outside M** rather than "excluded"; control exclusion persisted via **`exclude_from_reporting = true`** |
+| T7 | **[P1] Contract matrix incomplete** | — | Expanded 17 → 25: pure-classifier positives, RLS/write-boundary attempts, post-payment mutation, DB enum enforcement, external-path removal, bot precedence, control-intake exclusion, signing and rotation |
+
+**Standards**
+
+| # | Finding | Resolution |
+|---|---|---|
+| T8 | **A banner is not a repair.** Both source docs still contained copy-pasteable false clinical and availability text, and one still called itself submission-ready | **Bodies repaired in place** against `clinical_review_sequence` and `availability_24_7`; banners rewritten to record the repair; `file-map.md` descriptor corrected |
+| T9 | Stale canon/handoff surfaces | Withdrawn `K` removed from the parent; the already-completed `bing_ai` follow-up marked done; version labels aligned to v6; `file-map.md` no longer says submission-ready |
+| T10 | **Canon and code disagree on disputes** | `REVENUE_MODEL.md:24` requires disputes deducted; `buildNetRetainedPurchaseValue` computes gross minus refunds only. **Recorded as a separate rank-1 repair.** This spec explicitly does **not** claim the dashboard includes disputes |
+
+Also: "approved compact alias" removed from the Finder send-ready field. PR body rewritten at this head.
