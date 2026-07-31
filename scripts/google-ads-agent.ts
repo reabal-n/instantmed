@@ -11,6 +11,7 @@ import {
   validateProposal,
   verifyProposal,
 } from "@/lib/ads-agent/mutations"
+import { getGoogleAdsDeepAudit } from "@/lib/ads-agent/deep-audit"
 import { buildAdsAgentSnapshot } from "@/lib/ads-agent/snapshot"
 import {
   getAdsProposalByKey,
@@ -20,6 +21,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 type Command =
   | "snapshot"
+  | "deep-audit"
   | "propose"
   | "show"
   | "validate"
@@ -34,6 +36,7 @@ type Command =
 
 const USAGE = [
   "pnpm ads:agent snapshot",
+  "pnpm ads:agent deep-audit --days=30",
   "pnpm ads:agent propose --run=<run-id>",
   "pnpm ads:agent show --proposal=<proposal-key>",
   "pnpm ads:agent validate --proposal=<proposal-key>",
@@ -87,6 +90,14 @@ async function run(command: Command): Promise<void> {
   if (command === "snapshot") {
     const supabase = createServiceRoleClient()
     writeJson(await buildAdsAgentSnapshot({ supabase }))
+    return
+  }
+
+  if (command === "deep-audit") {
+    const rawDays = option("days")
+    const days = rawDays == null ? 30 : Number(rawDays)
+    if (!Number.isFinite(days)) throw new Error("Invalid --days")
+    writeJson(await getGoogleAdsDeepAudit({ days }))
     return
   }
 
@@ -165,6 +176,7 @@ async function main(): Promise<void> {
   const command = process.argv[2] as Command | undefined
   const commands: Command[] = [
     "snapshot",
+    "deep-audit",
     "propose",
     "show",
     "validate",

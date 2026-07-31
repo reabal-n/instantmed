@@ -109,6 +109,7 @@ const accountState = {
   },
   customerClientLinks: [],
   customerManagerLinks: [],
+  customerUserAccess: [],
   readAt: REPORT_NOW.toISOString(),
   responsiveSearchAds: [],
   sharedCriteria: [],

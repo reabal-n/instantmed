@@ -108,6 +108,7 @@ function accountState(
     },
     customerClientLinks: [],
     customerManagerLinks: [],
+    customerUserAccess: [],
     readAt: "2026-07-30T09:30:00.000Z",
     responsiveSearchAds: [],
     sharedCriteria: [],
