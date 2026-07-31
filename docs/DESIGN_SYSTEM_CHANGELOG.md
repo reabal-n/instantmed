@@ -18,6 +18,14 @@
 ### Removed
 - The unmounted hair-loss hero mockup, which had survived only through a source-inspection test after the live page moved to its assessment-model art direction.
 
+## [2.0.4] — 2026-07-29
+
+### Removed
+- Zero-consumer staff metric-wall primitives: `DashboardGrid`, `StatCard`, `CounterCard`, and `RecoveryRow`, plus their barrel exports and legacy `.stat-card` CSS. Business now uses one comparison grid inside a single decision surface; Operations renders unresolved action rows or one all-clear state.
+- Retired staff-report components and helpers for the duplicate operator brief, geographic dashboard, independent AI-attribution panel, event-total funnel, business scorecard, recovery scorecard, and client-side ledger aggregate. Their truthful replacements are route-owned read models rather than reusable card-per-number APIs.
+
+This is a removal-only internal API cleanup following the staff-dashboard rehaul. Mounted patient surfaces and design tokens are unchanged.
+
 ## [2.0.3] — 2026-07-14
 
 ### Removed

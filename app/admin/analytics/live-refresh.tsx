@@ -12,7 +12,7 @@ const TICK_MS = 15_000
  * Live indicator + silent auto-refresh for the operator Overview.
  *
  * The page is a `force-dynamic` server component, so `router.refresh()` re-runs
- * every data helper (PostHog HogQL + Google Ads GAQL + Supabase) server-side and
+ * the bounded PostHog and Supabase reads server-side and
  * streams fresh values in without a full navigation. We only refresh while the
  * tab is visible so a backgrounded cockpit doesn't hammer the APIs.
  */
@@ -71,7 +71,7 @@ export function LiveRefresh({ generatedAt }: { generatedAt: string }) {
     <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
       <span
         className="inline-flex items-center gap-1.5"
-        title="Live data from PostHog, Google Ads, and Supabase. Auto-refreshes every 5 minutes and when a stale tab regains focus."
+        title="Read-only evidence from PostHog and Supabase. Auto-refreshes every 5 minutes and when a stale tab regains focus."
       >
         <span
           aria-hidden="true"

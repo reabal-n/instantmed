@@ -43,11 +43,25 @@ describe("flow instance attribution contract", () => {
     expect(posthogServer).toContain("flowInstanceId")
   })
 
-  it("queries unique attempts while retaining raw interaction occurrences", () => {
-    const funnel = source("lib/analytics/posthog-intake-funnel.ts")
+  it("threads the flow id into every payment_initiated emitter", () => {
+    const authenticatedCheckout = source("lib/stripe/checkout.ts")
+    const guestCheckout = source("lib/stripe/guest-checkout.ts")
+    const retryPayment = source("lib/stripe/checkout/retry-payment.ts")
+
+    for (const checkoutSource of [authenticatedCheckout, guestCheckout, retryPayment]) {
+      expect(checkoutSource).toMatch(
+        /trackIntakeFunnelStep\(\{[\s\S]*?step:\s*"payment_initiated"[\s\S]*?flowInstanceId:/,
+      )
+    }
+  })
+
+  it("builds the canonical funnel from one flow id without fallback identities", () => {
+    const funnel = source("lib/analytics/posthog-canonical-intake-funnel.ts")
 
     expect(funnel).toContain("properties.flow_instance_id")
-    expect(funnel).toMatch(/uniq\s*\(/)
-    expect(funnel).toContain("count() AS occurrences")
+    expect(funnel).toContain("minIf(timestamp, event = 'intake_started')")
+    expect(funnel).not.toContain("properties.$session_id")
+    expect(funnel).not.toContain("distinct_id")
+    expect(funnel).not.toMatch(/uniq\s*\(\s*coalesce/)
   })
 })

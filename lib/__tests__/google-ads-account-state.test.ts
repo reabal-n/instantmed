@@ -87,6 +87,8 @@ describe("Google Ads account state", () => {
     expect(joined).toContain("campaign_asset.resource_name")
     expect(joined).toContain("customer_client_link.resource_name")
     expect(joined).toContain("customer_manager_link.resource_name")
+    expect(joined).toContain("customer_user_access.access_role")
+    expect(joined).toContain("customer_user_access.passkey_enabled")
     expect(joined).toContain("change_event.client_type")
     expect(joined).not.toContain("search_term_view")
     expect(joined).not.toContain("search_term_view.search_term")

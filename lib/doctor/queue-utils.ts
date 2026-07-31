@@ -3,6 +3,8 @@
  * Extracted from queue-client.tsx for testability.
  */
 
+import type { QueueStatusFilter } from "@/lib/dashboard/routes"
+import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import type { IntakeStatus } from "@/types/intake"
 
 export type WaitTimeSeverity = "normal" | "warning" | "critical"
@@ -14,7 +16,49 @@ export const QUEUE_REVIEW_STATUSES = [
   "awaiting_script",
 ] as const satisfies readonly IntakeStatus[]
 
-export type QueueStatusTone = "review" | "info" | "script"
+const QUEUE_FILTER_STATUSES = {
+  all: QUEUE_REVIEW_STATUSES,
+  review: ["paid", "in_review"],
+  pending_info: ["pending_info"],
+  scripts: ["awaiting_script"],
+} as const satisfies Record<QueueStatusFilter, readonly IntakeStatus[]>
+
+export function getQueueStatusesForFilter(
+  filter: QueueStatusFilter,
+): readonly IntakeStatus[] {
+  return QUEUE_FILTER_STATUSES[filter]
+}
+
+type QueueStatusTone = "review" | "info" | "script"
+
+export interface QueueStatusCounts {
+  all: number
+  review: number
+  pending_info: number
+  scripts: number
+}
+
+const QUEUE_STATUS_COUNT_FILTERS = ["all", "review", "pending_info", "scripts"] as const
+
+export function resolveQueueStatusCounts(
+  results: ReadonlyArray<{
+    filter: QueueStatusFilter
+    count: number
+    error: unknown
+  }>,
+): QueueStatusCounts | null {
+  if (results.some((result) => result.error)) return null
+
+  const counts = new Map(results.map((result) => [result.filter, result.count]))
+  if (QUEUE_STATUS_COUNT_FILTERS.some((filter) => !counts.has(filter))) return null
+
+  return {
+    all: counts.get("all") ?? 0,
+    review: counts.get("review") ?? 0,
+    pending_info: counts.get("pending_info") ?? 0,
+    scripts: counts.get("scripts") ?? 0,
+  }
+}
 
 export interface QueueTimestampInput {
   paid_at?: string | null
@@ -25,6 +69,13 @@ export interface QueueTimestampInput {
 export interface QueueStatusMeta {
   label: string
   tone: QueueStatusTone
+}
+
+type ReviewHistoryStatusTone = "approved" | "declined" | "completed" | "reviewed"
+
+export interface ReviewHistoryStatusMeta {
+  label: string
+  tone: ReviewHistoryStatusTone
 }
 
 /** Use the moment the paid case truly entered the doctor queue. */
@@ -45,6 +96,55 @@ export function getQueueStatusMeta(status: string): QueueStatusMeta {
     default:
       return { label: "Needs review", tone: "review" }
   }
+}
+
+/** Truthful outcome labels for actor-scoped review history. */
+export function getReviewHistoryStatusMeta(status: string): ReviewHistoryStatusMeta {
+  switch (status) {
+    case "approved":
+      return { label: "Approved", tone: "approved" }
+    case "declined":
+      return { label: "Declined", tone: "declined" }
+    case "completed":
+      return { label: "Completed", tone: "completed" }
+    default:
+      return { label: "Reviewed", tone: "reviewed" }
+  }
+}
+
+/** Describe a complete count or, when capped, the bounded review slice. */
+export function buildReviewHistorySummary({
+  reviews,
+  truncated,
+  governanceReceipt = null,
+  now,
+}: {
+  reviews: Array<{ activity_at: string }>
+  truncated: boolean
+  governanceReceipt?: {
+    certificateCount: number
+    latestActivityAt: string
+  } | null
+  now: Date
+}): string {
+  const lastReviewed = reviews
+    .map((review) => review.activity_at)
+    .sort()
+    .pop() ?? null
+  const countSummary = truncated
+    ? `${reviews.length}+ reviews recorded today · latest ${reviews.length} shown`
+    : `Your reviews today: ${reviews.length}`
+  const reviewRelative = lastReviewed ? formatRelativeTime(lastReviewed, now) : ""
+  const reviewSummary = reviewRelative
+    ? `${countSummary} · last reviewed ${reviewRelative}`
+    : countSummary
+  if (!governanceReceipt || governanceReceipt.certificateCount <= 0) return reviewSummary
+
+  const governanceRelative = formatRelativeTime(governanceReceipt.latestActivityAt, now)
+  const governanceSummary = `Governance: ${governanceReceipt.certificateCount} auto-issued certificate${governanceReceipt.certificateCount === 1 ? "" : "s"} covered`
+  return governanceRelative
+    ? `${reviewSummary} · ${governanceSummary} · latest receipt ${governanceRelative}`
+    : `${reviewSummary} · ${governanceSummary}`
 }
 
 /**

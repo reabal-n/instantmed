@@ -138,7 +138,7 @@ export function AuditLogClient({ initialLogs, initialTotal }: AuditLogClientProp
         title="Audit history"
         description="Compliance and security evidence for Ops investigations."
         backHref={STAFF_OPS_HREF}
-        backLabel="Ops"
+        backLabel="Operations"
       />
 
       <OperatorScrollArea>

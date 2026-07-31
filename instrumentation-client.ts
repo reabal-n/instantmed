@@ -12,7 +12,13 @@ import {
   isExternalAnalyticsExcludedPath,
   isSensitiveCapabilityPath,
 } from "@/lib/browser/sensitive-capability-path";
-import { scrubSentryBreadcrumb, scrubSentryEvent } from "@/lib/observability/scrub-phi";
+import {
+  scrubSentryBreadcrumb,
+  scrubSentryEvent,
+  scrubSentryLog,
+  scrubSentrySpan,
+  scrubSentryTransaction,
+} from "@/lib/observability/scrub-phi";
 
 /**
  * Start telemetry immediately on post-conversion pages, otherwise defer to first
@@ -134,6 +140,17 @@ async function loadAndInitSentry() {
       scrubSentryEvent(event);
       if (isPlaywrightMode) event.tags = { ...event.tags, playwright: "1" };
       return event;
+    },
+    beforeSendTransaction(event) {
+      if (!sentryEnabled) return null;
+      return scrubSentryTransaction(event);
+    },
+    beforeSendSpan(span) {
+      return scrubSentrySpan(span);
+    },
+    beforeSendLog(log) {
+      if (!sentryEnabled) return null;
+      return scrubSentryLog(log);
     },
     beforeBreadcrumb(breadcrumb) {
       return scrubSentryBreadcrumb(breadcrumb);

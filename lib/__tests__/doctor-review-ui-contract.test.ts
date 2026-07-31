@@ -174,6 +174,31 @@ describe("doctor review prescribing controls", () => {
     expect(intakeReviewPanelSource).toContain("Showing the last confirmed request state.")
   })
 
+  it("returns mobile prescribing to the same review and keeps the sheet usable at 375px", () => {
+    expect(reviewActionsSource).toContain("const { activePanel, closePanel, openPanel } = usePanel()")
+    expect(reviewActionsSource).toContain("onClose={activePanel ? () => openPanel(activePanel) : undefined}")
+    expect(parchmentPanelSource).toContain("if (onClose) onClose()")
+    expect(parchmentPanelSource).toContain("h-[100dvh] w-full")
+    expect(parchmentPanelSource).toContain("sm:w-[min(800px,100vw)]")
+    expect(parchmentPanelSource).toContain("pb-[max(0.75rem,env(safe-area-inset-bottom))]")
+    expect(parchmentPanelSource).toContain("sm:hidden")
+    expect(parchmentPanelSource).toContain("min-h-11")
+    expect(queueSheetActionsSource).toMatch(
+      /onClick=\{handlePrescribeClick\}[\s\S]*?className="min-h-11[^"]*sm:h-7/,
+    )
+    expect(queueSheetActionsSource).toMatch(
+      /onClick=\{handleApprovePrescribedScript\}[\s\S]*?className="min-h-11[^"]*sm:h-7/,
+    )
+  })
+
+  it("keeps Complete request visible but disabled until Parchment evidence is durable", () => {
+    expect(queueSheetActionsSource).toContain("const canApproveAfterPrescribe = intake.script_sent === true")
+    expect(queueSheetActionsSource).toContain("!canApproveAfterPrescribe")
+    expect(queueSheetActionsSource).toContain("disabled={isActionDisabled || Boolean(completionDisabledReason)}")
+    expect(queueSheetActionsSource).toContain("Complete or record the prescription in Parchment first.")
+    expect(parchmentPanelSource).toContain("Confirmation unlocks Complete request automatically")
+  })
+
   it("requires durable fulfilment evidence at the server action boundary", () => {
     const actionStart = queueActionSource.indexOf("export async function approvePrescribedScriptAction")
     const actionEnd = queueActionSource.indexOf("export async function claimIntakeAction", actionStart)

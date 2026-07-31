@@ -21,7 +21,7 @@ describe("typed-confirm dialog contract", () => {
   })
 
   it("gates intake refunds behind the typed-confirm primitive", () => {
-    const source = read("app/doctor/intakes/[id]/intake-refund-dialog.tsx")
+    const source = read("components/doctor/intake-refund-dialog.tsx")
     expect(source).toContain("import { TypedConfirmDialog }")
     expect(source).toContain("<TypedConfirmDialog")
     // Refund button must require typing the REFUND token, not the

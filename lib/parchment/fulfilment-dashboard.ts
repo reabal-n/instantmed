@@ -163,32 +163,6 @@ export interface PrescriptionFulfilmentSlaAlert {
   severity: "critical"
 }
 
-export const EMPTY_PRESCRIPTION_FULFILMENT_DASHBOARD: PrescriptionFulfilmentDashboard = {
-  firstNotificationIssueIntakeId: null,
-  firstNotificationIssueStatus: null,
-  lookbackDays: DEFAULT_LOOKBACK_DAYS,
-  manualConfirmationCount: 0,
-  notificationFailedCount: 0,
-  notificationPendingCount: 0,
-  stages: PRESCRIPTION_FULFILMENT_STAGES.map((stage) => ({
-    count: 0,
-    detail: FULFILMENT_STAGE_DETAILS[stage],
-    emailFailedCount: 0,
-    emailPendingCount: 0,
-    items: [],
-    key: stage,
-    label: FULFILMENT_STAGE_LABELS[stage],
-    manualConfirmedCount: 0,
-    oldestMinutes: null,
-    slaBreachedCount: 0,
-    slaBreachedRecentCount: 0,
-    slaMinutes: FULFILMENT_STAGE_SLA_MINUTES[stage],
-    webhookConfirmedCount: 0,
-  })),
-  total: 0,
-  webhookConfirmationCount: 0,
-}
-
 export function buildPrescriptionFulfilmentSlaAlerts(
   dashboard: PrescriptionFulfilmentDashboard,
 ): PrescriptionFulfilmentSlaAlert[] {

@@ -27,9 +27,12 @@ import {
   buildPatientMessagesHref,
   buildPatientSettingsHref,
   buildRequestServiceHref,
+  buildStaffDashboardHref,
   buildStaffEmailHubHref,
   buildStaffLedgerHref,
   buildStaffPatientHref,
+  getCanonicalQueuePage,
+  parseQueuePaginationParams,
   parseQueueStatusFilter,
   PATIENT_DASHBOARD_HREF,
   PATIENT_DOCUMENTS_HREF,
@@ -45,6 +48,7 @@ import {
   REQUEST_HREF,
   REQUEST_MED_CERT_HREF,
   REQUEST_REPEAT_SCRIPT_HREF,
+  sanitizeQueueSearchQuery,
   STAFF_DOCTOR_PATIENTS_HREF,
   STAFF_DOCTOR_SCRIPTS_HREF,
   STAFF_DOCTOR_SETTINGS_HREF,
@@ -122,17 +126,22 @@ describe("dashboard route contracts", () => {
     expect(buildStaffLedgerHref()).toBe("/admin/intakes")
     expect(buildStaffLedgerHref({ status: "approved" })).toBe("/admin/intakes?status=approved")
     expect(buildStaffLedgerHref({
-      q: "IM-20260430-61542C",
       service: "repeat_rx",
       status: "awaiting_script",
       workLane: "clinical",
+      page: 2,
+      pageSize: 25,
     })).toBe(
-      "/admin/intakes?status=awaiting_script&service=repeat_rx&workLane=clinical&q=IM-20260430-61542C",
+      "/admin/intakes?status=awaiting_script&service=repeat_rx&workLane=clinical&page=2&pageSize=25",
     )
     expect(buildStaffLedgerHref({ chips: ["failed_payment", "refund_failed"] })).toBe(
       "/admin/intakes?chips=failed_payment%2Crefund_failed",
     )
     expect(buildStaffLedgerHref({ chips: [] })).toBe("/admin/intakes")
+    expect(read("lib/dashboard/routes.ts").slice(
+      read("lib/dashboard/routes.ts").indexOf("export function buildStaffLedgerHref"),
+      read("lib/dashboard/routes.ts").indexOf("export function buildAdminIntakeHref"),
+    )).not.toContain('params.set("q"')
     expect(STAFF_PATIENTS_HREF).toBe("/admin/patients")
     expect(buildAdminIntakeHref("intake-123")).toBe("/admin/intakes/intake-123")
     expect(buildAdminIntakeHref("intake 123")).toBe("/admin/intakes/intake%20123")
@@ -176,6 +185,9 @@ describe("dashboard route contracts", () => {
       "/dashboard?status=review&page=2&pageSize=25#doctor-queue",
     )
     expect(buildDoctorQueueRedirectHref({ status: "scripts" })).toBe("/dashboard?status=scripts#doctor-queue")
+    expect(buildDoctorQueueRedirectHref({ status: "scripts", q: "  José, Smith  " })).toBe(
+      "/dashboard?status=scripts#doctor-queue",
+    )
     expect(buildDoctorQueueRedirectHref({ status: "bad", page: "0", pageSize: "999", noise: "x" })).toBe(
       "/dashboard?status=review#doctor-queue",
     )
@@ -187,6 +199,70 @@ describe("dashboard route contracts", () => {
     expect(parseQueueStatusFilter(["scripts", "review"])).toBe("scripts")
     expect(parseQueueStatusFilter("declined")).toBe("all")
     expect(parseQueueStatusFilter(undefined)).toBe("all")
+  })
+
+  it("normalises and bounds in-memory queue search without writing it to staff URLs", () => {
+    expect(sanitizeQueueSearchQuery(['  José (test), +61 400\\"  ', "ignored"])).toBe(
+      "José test +61 400",
+    )
+    expect(sanitizeQueueSearchQuery("a".repeat(120))).toHaveLength(96)
+    const routesSource = read("lib/dashboard/routes.ts")
+    const dashboardBuilder = routesSource.slice(
+      routesSource.indexOf("export function buildStaffDashboardHref"),
+      routesSource.indexOf("export function buildDoctorQueueRedirectHref"),
+    )
+    expect(dashboardBuilder).not.toContain('params.set("q"')
+    expect(buildStaffDashboardHref({ page: 2 })).toBe("/dashboard?page=2")
+  })
+
+  it("normalises malformed dashboard pagination instead of propagating NaN", () => {
+    expect(parseQueuePaginationParams({ page: "bad", pageSize: "also-bad" })).toEqual({
+      page: 1,
+      pageSize: 50,
+    })
+    expect(parseQueuePaginationParams({ page: "0", pageSize: "999" })).toEqual({
+      page: 1,
+      pageSize: 50,
+    })
+    expect(parseQueuePaginationParams({ page: ["3", "7"], pageSize: "25" })).toEqual({
+      page: 3,
+      pageSize: 25,
+    })
+  })
+
+  it("canonicalises only a confirmed out-of-range queue page", () => {
+    expect(getCanonicalQueuePage({
+      page: 999,
+      pageSize: 50,
+      total: 51,
+      visibleCount: 0,
+      degraded: false,
+    })).toBe(2)
+    expect(getCanonicalQueuePage({
+      page: 2,
+      pageSize: 50,
+      total: 51,
+      visibleCount: 1,
+      degraded: false,
+    })).toBeNull()
+    expect(getCanonicalQueuePage({
+      page: 999,
+      pageSize: 50,
+      total: 51,
+      visibleCount: 0,
+      degraded: true,
+    })).toBeNull()
+  })
+
+  it("preserves queue scope when rebuilding an out-of-range dashboard URL", () => {
+    expect(buildStaffDashboardHref({
+      status: "scripts",
+      page: 2,
+      pageSize: 25,
+      showTestData: true,
+      onlyTestData: true,
+      anchor: "doctor-queue",
+    })).toBe("/dashboard?status=scripts&page=2&pageSize=25&showTestData=1&onlyTestData=1#doctor-queue")
   })
 
   it("keeps the staff dashboard shell tolerant of optional data gaps", () => {

@@ -53,8 +53,9 @@ test.describe("operator viewport contract", () => {
     await page.goto(`/admin/patients/${PATIENT_ID}`)
     await waitForPageLoad(page)
     await expect(page.getByRole("heading", { name: /e2e test patient/i })).toBeVisible()
-    await expect(page.getByLabel(/patient file status/i)).toBeVisible()
-    await expect(page.getByRole("region", { name: /patient timeline/i })).toBeVisible()
+    await expect(page.getByLabel("Saved clinical profile")).toBeVisible()
+    await page.getByRole("tab", { name: "History" }).click()
+    await expect(page.getByRole("region", { name: "Clinical history" })).toBeVisible()
     await expect(page.getByText(/switch to doctor|doctor mode|continue as doctor/i)).toHaveCount(0)
   })
 
@@ -62,11 +63,11 @@ test.describe("operator viewport contract", () => {
     test.setTimeout(120_000)
 
     const pages = [
-      { path: STAFF_TEST_ROUTES.adminIntakes, heading: /intake ledger/i },
+      { path: STAFF_TEST_ROUTES.adminIntakes, heading: /request ledger/i },
       { path: STAFF_TEST_ROUTES.adminOpsParchment, heading: /parchment ops/i },
       { path: STAFF_TEST_ROUTES.adminPatientMergeAudit, heading: /patient merge audit/i },
       { path: STAFF_TEST_ROUTES.adminPrescribingIdentity, heading: /prescribing identity blocks/i },
-      { path: `${STAFF_TEST_ROUTES.adminAnalytics}?tab=queue`, heading: /analytics/i },
+      { path: STAFF_TEST_ROUTES.adminAnalytics, heading: /^business$/i },
       { path: STAFF_TEST_ROUTES.adminWebhookDlq, heading: /payment webhooks/i },
       { path: STAFF_TEST_ROUTES.adminRefundFailures, heading: /^refunds$/i },
       { path: STAFF_TEST_ROUTES.adminEmailQueue, heading: /email delivery/i },

@@ -56,8 +56,8 @@ The two paid webhook handlers and `/api/stripe/verify-payment` share the same ex
 
 1. Check Resend status: https://resend-status.com
 2. Check `/admin/emails/hub` for failed or pending outbox rows, delivery status, and recent queue activity.
-3. For medical-certificate delivery tickets, check `/admin/ops` → **Certificate delivery rescue** first. It shows whether the certificate was generated, the patient certificate email state, `intakes.document_sent_at`, tracked email-open/click or certificate-download evidence, and the safest support action without exposing raw storage URLs.
-4. Manual retry: click "Retry" on individual failed rows in Email delivery. For generated certificate cases, use the ops rescue panel's **Resend link** action so the patient receives the app-routed secure certificate access link rather than a raw storage URL or attachment.
+3. For medical-certificate delivery tickets, open `/admin/ops` and follow the unresolved **Delivery** action. The row explains the evidence and safest next step without exposing raw storage URLs. If no delivery action is open, use Ledger to find the request and inspect its detail before acting.
+4. Manual retry: click "Retry" on individual failed rows in Email delivery. For a generated-certificate delivery action, use **Resend link** from Operations so the patient receives the app-routed secure certificate access link rather than a raw storage URL or attachment.
 5. If Resend is completely down: emails auto-retry via the `email-dispatcher` cron; stale `sending` claims are recovered back to retryable `failed` rows.
 
 ### Database Connection Issues
@@ -107,45 +107,48 @@ The two paid webhook handlers and `/api/stripe/verify-payment` share the same ex
 
 ### Operator Workflow Map
 
-`/dashboard` is the staff cockpit. Use it first for the live queue, scripts-to-write, recovery prompts, and today-level operations. Admins inherit doctor capabilities, so the owner-operator should not need a separate "doctor mode".
+`/dashboard` is the clinical staff cockpit. Use it first for live review, information requests, scripts-to-write, and same-page fulfilment. Admins inherit doctor capabilities, so the owner-operator should not need a separate "doctor mode". Business, Operations, Ledger, Patients, and Setup each own a different supporting job.
 
 | Workflow | Primary surface | Supporting surface |
 |----------|-----------------|--------------------|
 | Review paid clinical work | `/dashboard?status=review#doctor-queue` | `/admin/intakes` Ledger for search/source records |
 | Write or reconcile scripts | `/dashboard?status=scripts#doctor-queue` | `/admin/ops/parchment` for vendor recovery |
 | Patient lookup and duplicate review | `/admin/patients` | `/doctor/patients/[id]`, `/admin/ops/patient-merge-audit` |
-| Payment and webhook recovery | `/admin/analytics`, `/admin/refunds` | `/admin/intakes` Ledger for failed-payment/refund lookup, `/admin/webhook-dlq` for Stripe replay |
-| Email delivery recovery | `/admin/emails/hub` | Compact controls link to `/admin/emails/templates` and `/admin/emails/suppression` |
-| Revenue and conversion review | `/admin/analytics` | PostHog for deeper product analysis |
+| Payment and webhook recovery | `/admin/ops` | `/admin/intakes` Ledger for source-record lookup, `/admin/refunds` for refund action, `/admin/webhook-dlq` for Stripe replay |
+| Email delivery recovery | `/admin/ops` when an unresolved action exists | `/admin/emails/hub` for queue history/retry, with templates and suppression as contextual tools |
+| Revenue, contribution, and conversion review | `/admin/analytics` (**Business**) | PostHog only for deeper read-only product analysis |
 | Platform setup | `/admin/settings` | `/admin/features`, `/doctor/settings/identity`, `/admin/settings/templates` |
 
 Pages outside this map should either be reachable from these surfaces, redirect to them, or be treated as cleanup candidates.
 Incident-only PHI encryption coverage diagnostics live at `/admin/settings/encryption`; keep it out of routine nav and dashboard crawl. The page can inspect backfill coverage, but it cannot rotate encryption keys.
 Email delivery operations, suppression recovery, and email template editing stay under `/admin/emails/*`; do not duplicate them inside settings.
-Support staff get two bounded sidebar entries: `/admin/ops` for recovery triage and `/admin/intakes` Ledger for request/payment metadata lookup. Nested webhook, Parchment, and prescribing-identity pages stay reachable from the ops recovery cards rather than becoming separate sidebar modes.
+Support staff get two bounded sidebar entries: `/admin/ops` for recovery triage and `/admin/intakes` Ledger for request/payment metadata lookup. Nested webhook, Parchment, and prescribing-identity pages stay reachable from unresolved Operations action rows rather than becoming separate sidebar modes.
 Admin-only pages should rely on `requireRole(["admin"])` default redirects so wrong-role staff land on the role-aware staff surface instead of bouncing through `/admin`.
 
-### Solo-Doctor Operating Model
+### Business Truth Surface
 
-**Current phase:** one AHPRA-registered GP operates as treating doctor and Medical Director. The platform must protect clinical quality and doctor capacity before it optimises volume.
+`/admin/analytics` is labelled **Business** in staff navigation and is a decision surface, not an operational exception feed. It owns:
 
-**Service priority order:**
+- rolling net-retained revenue and the active revenue-rung progress;
+- the latest delivered Google Ads Agent snapshot, including fee-aware first-order contribution where all required inputs are available;
+- canonical intake conversion, acquisition evidence, and bounded measurement checkpoints;
+- self-reported acquisition as a separate instrument from recorded UTM/referrer attribution; and
+- the review-request funnel plus the manually recorded external-review total as separate reputation evidence.
 
-| Priority | Service | Operating rule |
-|----------|---------|----------------|
-| 1 | Medical certificates | Primary volume engine. Suitable low-risk requests may use doctor-owned protocol automation with QA sampling. |
-| 2 | Repeat prescriptions | One-off eScript review for existing stable medications. Escalate unclear or higher-risk cases. |
-| 3 | Hair loss | One-off specialist assessment. No subscription, no pharmacy fulfilment. |
-| 4 | ED | One-off specialist assessment with strict contraindication checks. |
-| 5 | Women's health | Narrow scope only. Escalate complexity. |
-| 6 | Weight loss | Manual/high-risk review. Do not automate in the solo-doctor phase. |
+The canonical 30-day intake funnel counts only attempts with a valid exact `flow_instance_id`. Its observation window ends 24 hours before the read so a still-progressing same-day cohort does not masquerade as drop-off. Stages are ordered within the same flow; a later-stage event never manufactures an earlier stage. Coverage is reported at every stage, and rates remain withheld until the relevant stages each reach at least 90% exact-flow coverage. Historical session, distinct-id, request-id, and event UUID values are never coalesced into the funnel key. Late paid recoveries outside the ordered cohort are shown separately and never inflate the conversion rate.
 
-**Capacity guardrails:**
+Business may perform bounded, fail-soft, read-only external analytics reads on page load. It must never send a customer message, mutate Google Ads, approve a proposal, or otherwise change external state merely because the page rendered. Google Ads mutations and customer replies retain their explicit operator-approval boundaries.
 
-- Admin/support should be hired before a second doctor if support becomes the bottleneck.
-- First support hire trigger: 30-50 orders/day or 10+ support tickets/day.
-- Second doctor trigger: queue P95 above 2 hours during operating hours, QA falling behind, or sustained $60k-$80k/month gross revenue.
-- Subscriptions, monthly prescribing, pharmacy fulfilment, and ongoing check-in programs remain dormant until staffing exists.
+### Owner-Operated Capacity And Service Boundaries
+
+Operations does not own a parallel service-priority or staffing policy:
+
+- `docs/ROADMAP.md` owns the current operating phase and ordered work.
+- `docs/BUSINESS_PLAN.md` owns the durable active, gated, and retired service boundaries.
+- `docs/CLINICAL.md` owns clinical governance. Every eligible auto-approved medical certificate enters post-approval doctor governance review; it is never reduced to optional QA sampling.
+- `docs/REVENUE_MODEL.md` owns the current hiring and capacity triggers.
+
+The platform must protect clinical quality and operator capacity before it increases demand. When a threshold is reached, follow the decision required by the canonical owner rather than a copied numeric rule in this runbook.
 
 **Escalation rule:** For prescription and specialty requests, the operational default is form-first doctor review. The doctor may call or message directly when more information is clinically needed. Marketing and product copy must not hard-promise "no call needed" for prescribing pathways.
 
@@ -521,6 +524,14 @@ The control plane sends one PHI-free **Daily Ads Brief** at **09:00 Australia/Sy
 
 The delivery cron ships off and becomes active only with `GOOGLE_ADS_AGENT_DAILY_BRIEF_ENABLED=true` in production. This reporting flag does not enable proposals, approvals, or mutations.
 
+The Codex app automation **InstantMed Ads daily manager** runs shortly after the 09:00 delivery. During report shadow it verifies the expected closed-day run, Telegram receipt, duplicate suppression, fee reconciliation, and tracking state without changing the account. After the seven-consecutive-day proof gate, the same automation becomes the continuing daily operator. On Mondays it also runs the detailed read-only account audit:
+
+```bash
+pnpm ads:agent deep-audit --days=30
+```
+
+The deep audit covers date-segmented search terms, keyword and Quality Score diagnostics, RSA and asset exposure, device/daypart/location performance, policy status, manager and user access, passkey readiness, and change history. Its detailed output is restricted to the authorised Codex task: it is not persisted and is explicitly not Telegram-safe. Possible personal search queries are suppressed. Telegram receives only the aggregate daily brief, a short aggregate exception, or an immutable approval card. Historical rows are context and never prove that a current negative, targeting control, or asset is broken.
+
 Telegram has exactly two PHI-free Google Ads message classes:
 
 1. The scheduled Daily Ads Brief.
@@ -532,6 +543,8 @@ Every mutation requires either the exact authenticated Telegram button action fr
 
 Keep `GOOGLE_ADS_AGENT_MUTATIONS_ENABLED=false` and `TELEGRAM_ADS_APPROVALS_ENABLED=false` until the reporting, tracking, proposal-security, and guarded mutation path have completed shadow proof. No implementation-plan approval or broad instruction to manage Ads enables live changes.
 
+Google Ads API user access is included in the account read. As of 2026-07-31 the sole direct Ads user has `passkey_enabled=true`, so the August 2026 passkey requirement does not interrupt the existing OAuth refresh token. If that refresh token must be regenerated after rollout, authenticate with the existing passkey and allow for Google's stated trust delay; never rotate a working token during a live Ads change merely to test this requirement.
+
 ### Daily loop
 
 1. Read the live account through the Google Ads API and use the authenticated browser only when the API cannot prove or perform the required operation.
@@ -541,6 +554,22 @@ Keep `GOOGLE_ADS_AGENT_MUTATIONS_ENABLED=false` and `TELEGRAM_ADS_APPROVALS_ENAB
 5. After approval, fresh-read every governed resource, compare it with the proposal baseline, and run `validateOnly` again. Any validation failure, baseline drift, attribution failure, expired proposal, duplicate decision, or disabled kill switch aborts without mutation.
 6. Apply only the validated byte-equivalent operations with partial failure disabled. Re-read every changed object and append a PHI-free Mutation Receipt containing the baseline, validation, apply result, read-back verification, actor, timestamps, and rollback state.
 7. Return the result in the next daily brief. Do not silently extend a test, raise a budget again, or compensate for a weak result with another mutation.
+
+After the shadow gate, the operator CLI owns the exact packet lifecycle:
+
+```bash
+pnpm ads:agent propose --run=<delivered-green-run-id>
+pnpm ads:agent proposal:draft --run=<same-run-id> --packet=<exact-packet.json>
+pnpm ads:agent validate --proposal=<proposal-key>
+pnpm ads:agent experiment:create --proposal=<proposal-key> # only for a measured test
+pnpm ads:agent proposal:send --proposal=<proposal-key>
+```
+
+`propose` only prints the selected aggregate run evidence. The JSON packet contains exactly `mutationFamily`, `operations`, `rationale`, and `rollbackPlan`; it cannot supply a baseline hash, approval state, Google mutate JSON, or a different run. `proposal:draft` fresh-reads the live account, derives the baseline hash, binds the packet to the named run, and writes only the immutable control-plane draft. It does not mutate Google Ads. `proposal:send` accepts only a validated, unexpired packet and still fails closed unless Telegram Ads approvals are enabled and correctly configured. For an experiment, create the experiment before sending so the approval card includes its duration, retained-order floor, and maximum loss.
+
+The restricted operation union supports creation of responsive search ads and positive exact/phrase keywords. RSA packets require 3-15 unique headlines, 2-4 unique descriptions, an allowlisted InstantMed paid destination, service-matched pricing, and possible-call wording for prescribing pathways. Positive keyword packets prohibit broad match, medicine names, more than 10 words, and duplicate live criteria. Enabled creations are scaling changes, so they also require a fresh GREEN tracking gate. Both creation types are verified from fresh account content rather than response ordering; rollback is a new approval-gated removal packet for the exact created resource.
+
+Text assets and image assets are not accepted as creation packets yet. Do not place raw image bytes, transient local paths, or an unverified public URL in a proposal. Asset creation must first define durable input storage, byte hashing, campaign-link verification, and orphan cleanup; existing asset links may still be paused, enabled, or removed through the restricted asset-link family.
 
 Approval is required for budgets, bids, bid strategies, keywords, negative keywords, match types, ads, assets, sitelinks, callouts, targeting, schedules, pauses, enables, experiments, and campaign creation/removal. No unattended Ads mutation is authorised by this workflow.
 
@@ -614,7 +643,7 @@ supabase db push --project-ref [SUPABASE_PROJECT_REF]
 1. Verify `SENTRY_DSN` set in production
 2. Uptime monitor on `/`, `/api/health`
 3. Stripe webhook failure alerts configured
-4. `/admin/ops` integrity strip has no unexplained critical cards (review SLA backlog, cert+refund orphans, refund-record anomalies)
+4. `/admin/ops` shows either one all-clear state or only explained unresolved action groups; every row has a named owner, age, next step, and contextual action
 5. Automated video review either succeeds or its failure is classified in the deploy notes
 
 ### Post-Launch Verification
@@ -835,7 +864,7 @@ After every rollback, within 24 hours:
 
 **Alert-noise suppression (added 2026-07-19).** Three rules stop a stale backlog from paging as if it were a live incident. The 2026-07-19 page bundled all three failure modes at once and re-fired every 30 minutes for a backlog whose newest member was five weeks old:
 
-1. **Fulfilment SLA alerts page on recent breaches only.** `FULFILMENT_SLA_ALERT_MAX_AGE_DAYS` (7d, `lib/parchment/fulfilment-dashboard.ts`) gates the alert on `slaBreachedRecentCount`; `slaBreachedCount` keeps the full backlog for `/admin/analytics` and rides along as `backlog_count` in the alert metadata. The stage SLAs are minutes, so a months-old row breaches by orders of magnitude and can never clear by ageing.
+1. **Fulfilment SLA alerts page on recent breaches only.** `FULFILMENT_SLA_ALERT_MAX_AGE_DAYS` (7d, `lib/parchment/fulfilment-dashboard.ts`) gates the alert on `slaBreachedRecentCount`; `slaBreachedCount` keeps the full backlog for the Operations read model and rides along as `backlog_count` in the alert metadata, with Ledger available for source-record inspection. The stage SLAs are minutes, so a months-old row breaches by orders of magnitude and can never clear by ageing.
 2. **Refunded requests carry no prescribing obligation.** The fulfilment population is filtered to `FULFILMENT_OBLIGATION_PAYMENT_STATUSES` (`paid`, `partially_refunded`). A refunded request leaves the funnel through its payment state — the intake keeps its true `approved` status rather than being forced to a misleading terminal one.
 3. **The Google Ads re-page window keys off pageable failures only.** `latestPageableFailureAt` (unresolved after grace **and** click-attributed) drives the 7-day gate instead of `latestFailureAt`, which is a max across every unresolved adjustment failure. A post-grace `CONVERSION_NOT_FOUND` is confirmed not counted and never pageable; a later success/resolution receipt clears the earlier attempt. Previously any unrelated failure — for example a user-data-only retraction on a different order — re-armed the window and resurfaced a finding that had already gone quiet.
 

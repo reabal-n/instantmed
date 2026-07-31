@@ -117,7 +117,7 @@ export function useReviewActions({
   onActionComplete,
 }: UseReviewActionsOptions): ReviewActionsState {
   const router = useRouter()
-  const { closePanel, openPanel } = usePanel()
+  const { activePanel, closePanel, openPanel } = usePanel()
   const [isPending, startTransition] = useTransition()
 
   // Doctor notes
@@ -240,10 +240,11 @@ export function useReviewActions({
           patientProfileHref={intake.patient?.id ? buildStaffPatientHref(intake.patient.id) : undefined}
           prescriptionContext={buildParchmentPrescriptionContext(getClinicalCaseSummary())}
           onIntakeRefresh={reloadReviewData}
+          onClose={activePanel ? () => openPanel(activePanel) : undefined}
         />
       ),
     })
-  }, [getClinicalCaseSummary, intake, openPanel, reloadReviewData])
+  }, [activePanel, getClinicalCaseSummary, intake, openPanel, reloadReviewData])
 
   const resolveDecisionNote = useCallback(() => {
     const caseSummary = getClinicalCaseSummary()

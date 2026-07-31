@@ -14,6 +14,8 @@ export type AdsMutationFamily =
   | "negative_keyword"
   | "asset_link_status"
   | "schedule_replace"
+  | "responsive_search_ad_create"
+  | "positive_keyword_create"
 
 export type AdsService =
   | "med_certs"

@@ -6,10 +6,11 @@ import { HEARD_ABOUT_US_OPTIONS } from "@/lib/analytics/heard-about-us"
 import { SEEDED_E2E_PATIENT_PROFILE_ID } from "@/lib/data/seeded-e2e-data"
 
 export interface HeardAboutUsBreakdown {
+  availability: "available" | "unavailable"
   /** Paid orders in the window that carry a self-reported answer. */
-  answered: number
+  answered: number | null
   /** All paid orders in the window (answer-rate denominator). */
-  paidTotal: number
+  paidTotal: number | null
   /** Per-source counts, ordered by count desc; always one row per known option. */
   rows: Array<{ value: string; label: string; count: number }>
 }
@@ -40,7 +41,12 @@ export async function getHeardAboutUsBreakdown(
     .gte("created_at", since)
 
   if (error || !data) {
-    return { answered: 0, paidTotal: 0, rows: EMPTY_ROWS() }
+    return {
+      availability: "unavailable",
+      answered: null,
+      paidTotal: null,
+      rows: EMPTY_ROWS(),
+    }
   }
 
   const live = data.filter(
@@ -62,5 +68,10 @@ export async function getHeardAboutUsBreakdown(
 
   const answered = rows.reduce((sum, r) => sum + r.count, 0)
 
-  return { answered, paidTotal: live.length, rows }
+  return {
+    availability: "available",
+    answered,
+    paidTotal: live.length,
+    rows,
+  }
 }

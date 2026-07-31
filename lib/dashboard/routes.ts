@@ -97,20 +97,24 @@ export const ADMIN_PATIENT_MERGE_AUDIT_HREF = "/admin/ops/patient-merge-audit" a
 export const ADMIN_PRESCRIBING_IDENTITY_HREF = "/admin/ops/prescribing-identity" as const
 
 export function buildStaffLedgerHref(options: {
-  q?: string | null
   service?: string | null
   status?: string | null
   workLane?: string | null
   chips?: string[] | null
+  page?: string | string[] | number
+  pageSize?: string | string[] | number
 } = {}): string {
   const params = new URLSearchParams()
   if (options.status) params.set("status", options.status)
   if (options.service) params.set("service", options.service)
   if (options.workLane) params.set("workLane", options.workLane)
-  if (options.q) params.set("q", options.q)
   if (options.chips && options.chips.length > 0) {
     params.set("chips", options.chips.join(","))
   }
+  const page = getPositiveIntegerParam(options.page)
+  const pageSize = getPageSizeParam(options.pageSize)
+  if (page) params.set("page", page)
+  if (pageSize) params.set("pageSize", pageSize)
   const query = params.toString()
   return query ? `${STAFF_LEDGER_HREF}?${query}` : STAFF_LEDGER_HREF
 }
@@ -150,6 +154,19 @@ export function buildDoctorDocumentBuilderHref(intakeId: string): string {
 export const QUEUE_STATUS_FILTERS = ["all", "review", "pending_info", "scripts"] as const
 export type QueueStatusFilter = (typeof QUEUE_STATUS_FILTERS)[number]
 
+/** Normalize and bound the in-memory staff queue search sent by POST action. */
+export function sanitizeQueueSearchQuery(
+  value: string | string[] | null | undefined,
+): string {
+  const candidate = Array.isArray(value) ? value[0] : value
+  return (candidate ?? "")
+    .normalize("NFKC")
+    .replace(/[^\p{L}\p{N}@._+\-\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 96)
+}
+
 export function parseQueueStatusFilter(
   value: string | string[] | null | undefined,
 ): QueueStatusFilter {
@@ -181,6 +198,38 @@ function getPageSizeParam(value: string | string[] | number | undefined): string
   return parsed >= 10 && parsed <= 100 ? candidate : null
 }
 
+export function parseQueuePaginationParams(params: {
+  page?: string | string[] | number
+  pageSize?: string | string[] | number
+}): { page: number; pageSize: number } {
+  const page = getPositiveIntegerParam(params.page)
+  const pageSize = getPageSizeParam(params.pageSize)
+
+  return {
+    page: page ? Number(page) : 1,
+    pageSize: pageSize ? Number(pageSize) : 50,
+  }
+}
+
+export function getCanonicalQueuePage({
+  page,
+  pageSize,
+  total,
+  visibleCount,
+  degraded,
+}: {
+  page: number
+  pageSize: number
+  total: number
+  visibleCount: number
+  degraded: boolean
+}): number | null {
+  if (degraded || total <= 0 || visibleCount > 0) return null
+
+  const lastPage = Math.max(1, Math.ceil(total / pageSize))
+  return page > lastPage ? lastPage : null
+}
+
 /**
  * Canonical staff dashboard href builder (Phase 2 of dashboard remaster).
  */
@@ -188,6 +237,8 @@ export function buildStaffDashboardHref(options: {
   status?: string | string[] | QueueStatusFilter | null
   page?: string | string[] | number
   pageSize?: string | string[] | number
+  showTestData?: boolean
+  onlyTestData?: boolean
   anchor?: string
 } = {}): string {
   const params = new URLSearchParams()
@@ -198,6 +249,8 @@ export function buildStaffDashboardHref(options: {
   if (status !== "all") params.set("status", status)
   if (page) params.set("page", page)
   if (pageSize) params.set("pageSize", pageSize)
+  if (options.showTestData) params.set("showTestData", "1")
+  if (options.onlyTestData) params.set("onlyTestData", "1")
 
   const query = params.toString()
   const hash = options.anchor ? `#${options.anchor}` : ""

@@ -10,7 +10,7 @@ This map names the main domains, entry points, and files to open first.
 | SEO content | Programmatic condition/symptom/guide/location/intent pages plus MDX health guides | `app/blog/[slug]`, `content/blog/*`, `lib/blog/*`, `lib/seo/*` |
 | Intake | One canonical `/request` flow with service-specific steps | `app/request/page.tsx`, `components/request/request-flow.tsx`, `components/request/steps/*`, `lib/request/step-registry.ts`, `lib/request/initial-url-seeding.ts` |
 | Patient portal | Patient dashboard, intakes, documents, settings, messages, prescriptions, payment history | `app/patient/*`, `components/patient/*`, `lib/data/patient-*` |
-| Staff cockpit | Unified admin, doctor, and support experience. `/dashboard` is canonical; support lands on `/admin/ops` | `app/dashboard`, `app/admin/*`, `app/doctor/*`, `components/operator/*`, `lib/dashboard/*` |
+| Staff cockpit | Role-owned surfaces: `/dashboard` clinical queue, Business, Operations, Ledger, Patients, and Setup. Support lands on action-only `/admin/ops` and receives a masked Ledger | `app/dashboard`, `app/admin/analytics`, `app/admin/ops`, `app/admin/intakes`, `app/admin/patients`, `components/operator/*`, `lib/dashboard/*` |
 
 ## Core Flows
 
@@ -21,7 +21,9 @@ This map names the main domains, entry points, and files to open first.
 | Safety gate | Answers saved -> safety completeness -> safety rules -> audit log | `lib/safety/evaluate.ts`, `lib/safety/rules.ts`, `lib/safety/audit-log.ts`, `lib/stripe/checkout/*` |
 | Medical certificate | Doctor approval -> PDF render -> private storage -> patient email/dashboard | `lib/clinical/execute-cert-approval.ts`, `lib/pdf/template-renderer.ts`, `lib/data/issued-certificates.ts`, `app/doctor/intakes/[id]/document/*` |
 | Auto-approval | Paid med cert -> draft readiness -> cron -> CAS state transition -> cert or doctor queue | `lib/clinical/auto-approval-state.ts`, `lib/clinical/auto-approval-pipeline.ts`, `app/api/cron/retry-auto-approval/route.ts` |
-| Prescribing | Doctor approval -> identity gate -> Parchment panel -> webhook -> patient notification | `lib/parchment/*`, `components/doctor/parchment-prescribe-panel.tsx`, `app/actions/parchment.ts`, `app/api/webhooks/parchment/route.ts` |
+| Prescribing | Doctor approval -> identity gate -> same-page Parchment handoff -> durable `script_sent` confirmation -> completion -> patient notification | `lib/parchment/*`, `components/doctor/parchment-prescribe-panel.tsx`, `components/doctor/intake-review-panel.tsx`, `app/actions/parchment.ts`, `app/api/webhooks/parchment/route.ts` |
+| Business funnel | Exact `flow_instance_id` events -> 24h-lagged ordered cohort -> per-stage coverage -> rates only at 90% coverage | `lib/analytics/posthog-canonical-intake-funnel.ts`, `lib/admin/business-read-model.ts`, `app/admin/analytics/*` |
+| Operational recovery | Bounded reads -> grouped unresolved issue -> owner/age/next action -> contextual recovery route, or one all-clear state | `lib/admin/ops-action-model.ts`, `app/admin/ops/page.tsx`, `app/admin/ops/ops-client.tsx` |
 | Email outbox | Template render -> outbox row -> dispatcher cron -> Resend webhook | `lib/email/*`, `app/api/cron/email-dispatcher/route.ts`, `app/api/webhooks/resend/route.ts` |
 | Attribution | URL/cookie/session capture -> intake columns -> client and server conversion uploads | `lib/analytics/attribution.ts`, `lib/analytics/server-attribution.ts`, `lib/analytics/google-ads-post-payment.ts`, `app/api/cron/google-ads-conversions/route.ts` |
 
@@ -45,6 +47,6 @@ This map names the main domains, entry points, and files to open first.
 | Docs and wiki | `pnpm doc:audit`, `git diff --check` |
 | Route/file cleanup | `bash scripts/check-route-conflicts.sh`, `bash scripts/check-orphaned-files.sh` |
 | Clinical/safety/checkout | Focused Vitest contract tests, `pnpm typecheck`, `pnpm lint` |
-| Patient/staff UI | Focused Playwright spec or browser check at port `3060` |
+| Patient/staff UI | Focused Playwright spec or browser check at port `3060`; mobile Parchment shell proof is local, real iframe proof requires an approved sandbox/test request |
 | Content | `pnpm content:audit`, `pnpm content:audit:images` |
 | Release | `pnpm release:check` |

@@ -1,18 +1,20 @@
 /**
- * Doctor Patients List E2E Test
- * 
- * Tests the doctor patients directory:
- * - Patients list loads without errors
- * - Seeded patient appears in the list
- * - Search and filter work
+ * Doctor Patients Directory E2E Tests
+ *
+ * Verifies the current compact directory contract:
+ * - Search and one truthful sort control
+ * - Recent work and contextual Parchment readiness
+ * - Responsive table-to-card presentation
+ * - No retired summary cards or broad demographic filters
  */
 
-import { expect,test } from "@playwright/test"
+import { expect, test } from "@playwright/test"
 
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
+import { isDbAvailable } from "./helpers/db"
+import { STAFF_TEST_ROUTES } from "./helpers/staff-routes"
 import { waitForPageLoad } from "./helpers/test-utils"
 
-// Seeded test data from scripts/e2e/seed.ts
 const SEEDED_PATIENT_NAME = "E2E Test Patient"
 
 test.describe("Doctor Patients Directory", () => {
@@ -25,168 +27,87 @@ test.describe("Doctor Patients Directory", () => {
     await logoutTestUser(page)
   })
 
-  test("patients list loads without errors", async ({ page }) => {
-    await page.goto("/doctor/patients")
+  test("loads the compact directory without retired summary UI", async ({ page }) => {
+    await page.goto(STAFF_TEST_ROUTES.doctorPatients)
     await waitForPageLoad(page)
 
-    // Should see Patient Directory heading
-    await expect(page.getByRole("heading", { name: /patient directory/i })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole("heading", { name: "Patients", exact: true })).toBeVisible({
+      timeout: 15_000,
+    })
+    await expect(page.getByText("Find a patient and continue their care.", { exact: true })).toBeVisible()
+    await expect(page.getByRole("textbox", { name: "Search patients" })).toBeVisible()
+    await expect(page.getByRole("combobox", { name: "Sort patients" })).toContainText("Newest first")
 
-    // Should see stats cards (Total Patients, Onboarded, etc.)
-    await expect(page.getByText(/total patients/i)).toBeVisible()
-
-    // Should NOT see error messages
-    const errorMessages = [
-      "Error loading patients",
-      "Failed to load",
-      "Something went wrong",
-    ]
-
-    for (const errorText of errorMessages) {
-      const errorElement = page.getByText(errorText, { exact: false })
-      await expect(errorElement).not.toBeVisible()
-    }
+    await expect(page.getByText("Total Patients", { exact: true })).toHaveCount(0)
+    await expect(page.getByText("Onboarded", { exact: true })).toHaveCount(0)
+    await expect(page.getByText("All states", { exact: true })).toHaveCount(0)
+    await expect(page.getByText("All statuses", { exact: true })).toHaveCount(0)
+    await expect(page.getByRole("heading", { name: /something went wrong/i })).not.toBeVisible()
+    await expect(page.getByText(/failed to load/i)).not.toBeVisible()
   })
 
-  test("seeded patient appears in list", async ({ page }) => {
-    await page.goto("/doctor/patients")
+  test("shows the seeded patient in the responsive current-work directory", async ({ page }) => {
+    test.skip(!isDbAvailable(), "DB credentials and seeded patient profile required")
+
+    await page.goto(`${STAFF_TEST_ROUTES.doctorPatients}?q=E2E+Test&sort=newest`)
     await waitForPageLoad(page)
 
-    // Wait for directory to load
-    await expect(page.getByRole("heading", { name: /patient directory/i })).toBeVisible({ timeout: 15000 })
-
-    // Look for the seeded patient
-    const patientName = page.getByText(SEEDED_PATIENT_NAME)
-    await expect(patientName.first()).toBeVisible({ timeout: 10000 })
-  })
-
-  test("search filters patients", async ({ page }) => {
-    await page.goto("/doctor/patients")
-    await waitForPageLoad(page)
-
-    // Wait for directory to load
-    await expect(page.getByRole("heading", { name: /patient directory/i })).toBeVisible({ timeout: 15000 })
-
-    // Find search input
-    const searchInput = page.getByPlaceholder(/search/i)
-    await expect(searchInput).toBeVisible()
-
-    // Search for E2E patient
+    const searchInput = page.getByRole("textbox", { name: "Search patients" })
+    await expect(page).toHaveURL((url) => !url.searchParams.has("q"))
+    await expect(searchInput).toHaveValue("")
     await searchInput.fill("E2E Test")
-    await page.waitForTimeout(500)
+    await expect(page).toHaveURL((url) => !url.searchParams.has("q"))
 
-    // Should still show the E2E patient
-    const patientName = page.getByText(SEEDED_PATIENT_NAME)
-    await expect(patientName.first()).toBeVisible()
+    const patientLink = page.getByRole("link", { name: new RegExp(SEEDED_PATIENT_NAME, "i") }).first()
+    await expect(patientLink).toBeVisible({ timeout: 10_000 })
 
-    // Search for non-existent patient
-    await searchInput.clear()
-    await searchInput.fill("ZZZZNONEXISTENT12345")
-    await page.waitForTimeout(500)
-
-    // Patient should not be visible anymore
-    await expect(patientName.first()).not.toBeVisible()
-  })
-
-  test("patient table displays correctly", async ({ page }) => {
-    await page.goto("/doctor/patients")
-    await waitForPageLoad(page)
-
-    // Wait for directory to load
-    await expect(page.getByRole("heading", { name: /patient directory/i })).toBeVisible({ timeout: 15000 })
-
-    // Should see table headers (Patient, Location, Contact, etc.)
-    const table = page.locator("table")
-    if (await table.isVisible()) {
-      // Table view
-      await expect(page.getByRole("columnheader", { name: /patient/i })).toBeVisible()
+    if ((page.viewportSize()?.width ?? 1280) >= 768) {
+      await expect(page.getByRole("columnheader", { name: "Patient", exact: true })).toBeVisible()
+      await expect(page.getByRole("columnheader", { name: "Contact", exact: true })).toBeVisible()
+      await expect(page.getByRole("columnheader", { name: "Recent work", exact: true })).toBeVisible()
+      await expect(page.getByRole("columnheader", { name: "Parchment sync", exact: true })).toBeVisible()
+      await expect(page.getByRole("columnheader", { name: /last request/i })).toHaveCount(0)
+      await expect(page.getByRole("columnheader", { name: /last script/i })).toHaveCount(0)
     } else {
-      // Card view - should at least show patient names
-      const patientCards = page.locator('[class*="card"]')
-      const cardCount = await patientCards.count()
-      expect(cardCount).toBeGreaterThan(0)
+      const patientLinkBox = await patientLink.boundingBox()
+      expect(patientLinkBox?.height ?? 0).toBeGreaterThanOrEqual(44)
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+      ).toBe(true)
     }
   })
 
-  test("state filter works", async ({ page }) => {
-    await page.goto("/doctor/patients")
+  test("searches server-side and shows an explicit empty view", async ({ page }) => {
+    test.skip(!isDbAvailable(), "DB credentials and seeded patient profile required")
+
+    await page.goto(STAFF_TEST_ROUTES.doctorPatients)
     await waitForPageLoad(page)
 
-    // Wait for directory to load
-    await expect(page.getByRole("heading", { name: /patient directory/i })).toBeVisible({ timeout: 15000 })
+    const searchInput = page.getByRole("textbox", { name: "Search patients" })
+    await searchInput.fill("E2E Test")
+    await expect(page).toHaveURL((url) => !url.searchParams.has("q"))
+    await expect(
+      page.getByRole("link", { name: new RegExp(SEEDED_PATIENT_NAME, "i") }).first(),
+    ).toBeVisible()
 
-    // Look for state filter dropdown
-    const stateFilter = page.getByRole("combobox").first()
-    if (await stateFilter.isVisible()) {
-      await stateFilter.click()
-      await page.waitForTimeout(300)
-
-      // Should see state options
-      const vicOption = page.getByRole("option", { name: /vic|victoria/i })
-      if (await vicOption.isVisible()) {
-        await vicOption.click()
-        await page.waitForTimeout(500)
-
-        // Page should still be functional (no crash)
-        await expect(page.getByRole("heading", { name: /patient directory/i })).toBeVisible()
-      }
-    }
-  })
-})
-
-test.describe("Doctor Patients - Edge Cases", () => {
-  test.beforeEach(async ({ page }) => {
-    const result = await loginAsOperator(page)
-    expect(result.success, `Login should succeed: ${result.error}`).toBe(true)
+    await searchInput.fill("ZZZZNONEXISTENT12345")
+    await expect(page).toHaveURL((url) => !url.searchParams.has("q"))
+    await expect(
+      page.getByText("No patients match this view.", { exact: true }).filter({ visible: true }),
+    ).toHaveCount(1)
   })
 
-  test.afterEach(async ({ page }) => {
-    await logoutTestUser(page)
-  })
-
-  test("handles pagination if present", async ({ page }) => {
-    await page.goto("/doctor/patients")
+  test("offers only the approved newest and name sorting", async ({ page }) => {
+    await page.goto(STAFF_TEST_ROUTES.doctorPatients)
     await waitForPageLoad(page)
 
-    // Wait for directory to load
-    await expect(page.getByRole("heading", { name: /patient directory/i })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole("combobox")).toHaveCount(1)
+    const sortControl = page.getByRole("combobox", { name: "Sort patients" })
+    await sortControl.click()
+    await expect(page.getByRole("option", { name: "Newest first", exact: true })).toBeVisible()
+    await page.getByRole("option", { name: "Name A–Z", exact: true }).click()
 
-    // Look for pagination controls
-    const nextButton = page.getByRole("button", { name: /next/i })
-    const prevButton = page.getByRole("button", { name: /prev|previous/i })
-
-    // If pagination exists, try clicking next
-    if (await nextButton.isVisible() && await nextButton.isEnabled()) {
-      await nextButton.click()
-      await page.waitForTimeout(500)
-
-      // Should still show patient directory
-      await expect(page.getByRole("heading", { name: /patient directory/i })).toBeVisible()
-
-      // Go back if possible
-      if (await prevButton.isEnabled()) {
-        await prevButton.click()
-      }
-    }
-  })
-
-  test("onboarding filter works", async ({ page }) => {
-    await page.goto("/doctor/patients")
-    await waitForPageLoad(page)
-
-    // Wait for directory to load
-    await expect(page.getByRole("heading", { name: /patient directory/i })).toBeVisible({ timeout: 15000 })
-
-    // Look for onboarding filter
-    const onboardingStats = page.getByText(/onboarded/i).first()
-    await expect(onboardingStats).toBeVisible()
-
-    // Check that the stats are numbers (not NaN or errors)
-    const totalPatientsCard = page.locator("text=/Total Patients/").locator("..").locator("text=/\\d+/")
-    if (await totalPatientsCard.isVisible()) {
-      const text = await totalPatientsCard.textContent()
-      const num = parseInt(text || "0", 10)
-      expect(num).toBeGreaterThanOrEqual(0)
-    }
+    await expect(page).toHaveURL(/\/doctor\/patients\?sort=name/)
+    await expect(sortControl).toContainText("Name A–Z")
   })
 })

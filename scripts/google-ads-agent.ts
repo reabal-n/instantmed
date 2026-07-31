@@ -1,6 +1,10 @@
 #!/usr/bin/env npx tsx
 
 import {
+  getAdsAccountState,
+  hashGoogleAdsAccountState,
+} from "@/lib/ads-agent/account-state"
+import {
   checkExperiment,
   createExperimentFromProposal,
   evaluateExperiment,
@@ -11,16 +15,23 @@ import {
   validateProposal,
   verifyProposal,
 } from "@/lib/ads-agent/mutations"
+import { getGoogleAdsDeepAudit } from "@/lib/ads-agent/deep-audit"
 import { buildAdsAgentSnapshot } from "@/lib/ads-agent/snapshot"
 import {
   getAdsProposalByKey,
+  createAdsProposalDraft,
   recordCodexProposalDecision,
 } from "@/lib/ads-agent/proposals"
+import { readAdsProposalDraftPacket } from "@/lib/ads-agent/proposal-operator"
+import { sendAdsProposalForTelegramApproval } from "@/lib/ads-agent/telegram-approval"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 type Command =
   | "snapshot"
+  | "deep-audit"
   | "propose"
+  | "proposal:draft"
+  | "proposal:send"
   | "show"
   | "validate"
   | "approve"
@@ -34,7 +45,10 @@ type Command =
 
 const USAGE = [
   "pnpm ads:agent snapshot",
+  "pnpm ads:agent deep-audit --days=30",
   "pnpm ads:agent propose --run=<run-id>",
+  "pnpm ads:agent proposal:draft --run=<run-id> --packet=<json-file>",
+  "pnpm ads:agent proposal:send --proposal=<proposal-key>",
   "pnpm ads:agent show --proposal=<proposal-key>",
   "pnpm ads:agent validate --proposal=<proposal-key>",
   "pnpm ads:agent approve --proposal=<proposal-key> --reference=codex-task:<task-id>",
@@ -90,11 +104,45 @@ async function run(command: Command): Promise<void> {
     return
   }
 
+  if (command === "deep-audit") {
+    const rawDays = option("days")
+    const days = rawDays == null ? 30 : Number(rawDays)
+    if (!Number.isFinite(days)) throw new Error("Invalid --days")
+    writeJson(await getGoogleAdsDeepAudit({ days }))
+    return
+  }
+
   if (command === "propose") {
     await showRun(requiredOption("run"))
     process.stdout.write(
-      "Run evidence loaded. Create only one exact restricted operation packet.\n",
+      "Run evidence loaded. Write one exact restricted JSON packet, then use proposal:draft.\n",
     )
+    return
+  }
+
+  if (command === "proposal:draft") {
+    const runId = requiredOption("run")
+    const packet = readAdsProposalDraftPacket(requiredOption("packet"))
+    const supabase = createServiceRoleClient()
+    const accountState = await getAdsAccountState()
+    writeJson(await createAdsProposalDraft({
+      ...packet,
+      baselineHash: hashGoogleAdsAccountState(accountState),
+      runId,
+      supabase,
+    }))
+    return
+  }
+
+  if (command === "proposal:send") {
+    const proposalKey = requiredOption("proposal")
+    const supabase = createServiceRoleClient()
+    const proposal = await getAdsProposalByKey(supabase, proposalKey)
+    if (!proposal) throw new Error("Ads proposal not found")
+    writeJson(await sendAdsProposalForTelegramApproval({
+      proposal,
+      supabase,
+    }))
     return
   }
 
@@ -165,7 +213,10 @@ async function main(): Promise<void> {
   const command = process.argv[2] as Command | undefined
   const commands: Command[] = [
     "snapshot",
+    "deep-audit",
     "propose",
+    "proposal:draft",
+    "proposal:send",
     "show",
     "validate",
     "approve",

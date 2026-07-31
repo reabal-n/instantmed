@@ -6,6 +6,8 @@
 
 // Queries (server-only)
 export {
+  type DoctorQueueResult,
+  type DoctorQueueSearchState,
   type FormToInboxStats,
   getAllIntakesForAdmin,
   getDoctorQueue,

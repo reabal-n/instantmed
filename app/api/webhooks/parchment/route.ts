@@ -6,6 +6,7 @@ import { logExternalPrescribingIndicated } from "@/lib/audit/compliance-audit"
 import { updateScriptSent } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
 import { getParchmentEnvironment, verifyWebhookSignature } from "@/lib/parchment/client"
+import { parseParchmentIntakeCorrelation } from "@/lib/parchment/intake-correlation"
 import { syncParchmentPrescriptionToPms } from "@/lib/parchment/sync-prescription"
 import { webhookPayloadSchema } from "@/lib/parchment/types"
 import { selectParchmentWebhookIntake, selectParchmentWebhookPrescriberId } from "@/lib/parchment/webhook-matching"
@@ -140,6 +141,10 @@ export async function POST(request: Request) {
   }
 
   const { patient_id, partner_patient_id, scid, user_id } = payload.data
+  const hasIntakeCorrelationMetadata = payload.metadata !== undefined
+  const intakeCorrelation = hasIntakeCorrelationMetadata
+    ? parseParchmentIntakeCorrelation(payload.metadata?.reserved_1)
+    : undefined
 
   // Defense-in-depth: Parchment sandbox fires test webhooks with a sentinel
   // patient_id even when org/partner IDs match production. Silently ack.
@@ -243,20 +248,40 @@ export async function POST(request: Request) {
       })
     }
 
+    if (hasIntakeCorrelationMetadata && !intakeCorrelation) {
+      log.warn("Parchment webhook contained invalid intake correlation metadata", {
+        eventId: payload.event_id,
+      })
+      await recordParchmentWebhookMismatch(
+        "intake_correlation_invalid",
+        payload.event_id,
+        buildParchmentWebhookFailureMetadata({
+          scid,
+          parchmentPatientId: patient_id,
+          partnerPatientId: partner_patient_id,
+          prescriberUserId: user_id,
+          patientProfileId,
+        }),
+      )
+      return NextResponse.json({ received: true, warning: "Invalid request correlation" })
+    }
+
     // PostgREST does not support UPDATE + ORDER BY + LIMIT, so we SELECT the
     // target row first, then UPDATE by ID. Only explicit awaiting_script rows
     // are eligible: opening Parchment/manual fallback moves the case there
     // before a webhook can attach SCID evidence.
-    const { data: candidates, error: selectError } = await supabase
+    const candidateQuery = supabase
       .from("intakes")
-      .select("id, status, category, subtype, claimed_by, reviewing_doctor_id, reviewed_by, created_at, service:services!service_id(type)")
+      .select("id, reference_number, status, category, subtype, claimed_by, reviewing_doctor_id, reviewed_by, created_at, service:services!service_id(type)")
       .eq("patient_id", patientProfileId)
       .eq("status", "awaiting_script")
       .eq("payment_status", "paid")
       .eq("script_sent", false)
       .is("parchment_reference", null)
-      .order("created_at", { ascending: false })
-      .limit(10)
+
+    const { data: candidates, error: selectError } = intakeCorrelation === undefined
+      ? await candidateQuery.order("created_at", { ascending: false }).limit(10)
+      : await candidateQuery.eq("reference_number", intakeCorrelation).limit(2)
 
     if (selectError) {
       const msg = selectError.message ?? JSON.stringify(selectError)
@@ -268,7 +293,11 @@ export async function POST(request: Request) {
     }
 
     const prescriberProfileIds = prescriberProfiles.map((profile) => profile.id)
-    const candidate = selectParchmentWebhookIntake(candidates ?? [], prescriberProfileIds)
+    const candidate = selectParchmentWebhookIntake(
+      candidates ?? [],
+      prescriberProfileIds,
+      intakeCorrelation,
+    )
     const webhookPrescriberId = candidate
       ? selectParchmentWebhookPrescriberId(candidate, prescriberProfileIds)
       : null
@@ -372,15 +401,38 @@ export async function POST(request: Request) {
     // Check if already processed (idempotency) or no intake found
     if (!claimed) {
       // Could be: (a) parchment_reference already set for this SCID, (b) manually marked sent, (c) no active prescribing intake
-      const { data: existing } = await supabase
+      const { data: existingRow } = await supabase
         .from("intakes")
-        .select("id, parchment_reference, script_sent, claimed_by, reviewing_doctor_id, reviewed_by, created_at")
+        .select("id, reference_number, status, payment_status, parchment_reference, script_sent, claimed_by, reviewing_doctor_id, reviewed_by, created_at")
         .eq("patient_id", patientProfileId)
         .eq("parchment_reference", scid)
         .maybeSingle()
 
+      const existing = existingRow && (
+        intakeCorrelation === undefined || existingRow.reference_number === intakeCorrelation
+      )
+        ? existingRow
+        : null
+      const existingPrescriberId = existing
+        ? selectParchmentWebhookPrescriberId(existing, prescriberProfileIds)
+        : null
+
+      if (existing && intakeCorrelation !== undefined && !existingPrescriberId) {
+        await recordParchmentWebhookMismatch(
+          "intake_correlation_prescriber_mismatch",
+          payload.event_id,
+          buildParchmentWebhookFailureMetadata({
+            scid,
+            parchmentPatientId: patient_id,
+            partnerPatientId: partner_patient_id,
+            prescriberUserId: user_id,
+            patientProfileId,
+          }),
+        )
+        return NextResponse.json({ received: true, warning: "Request correlation did not match the prescriber" })
+      }
+
       if (existing?.script_sent) {
-        const existingPrescriberId = selectParchmentWebhookPrescriberId(existing, prescriberProfileIds)
         const existingSync = await syncPrescription(existing.id, existingPrescriberId)
         if (!existingSync.success) {
           await recordParchmentWebhookSuccess({
@@ -421,9 +473,28 @@ export async function POST(request: Request) {
       }
 
       if (existing && !existing.script_sent) {
+        if (
+          intakeCorrelation !== undefined &&
+          (existing.status !== "awaiting_script" || existing.payment_status !== "paid")
+        ) {
+          await recordParchmentWebhookMismatch(
+            "intake_correlation_ineligible",
+            payload.event_id,
+            buildParchmentWebhookFailureMetadata({
+              scid,
+              parchmentPatientId: patient_id,
+              partnerPatientId: partner_patient_id,
+              prescriberUserId: user_id,
+              patientProfileId,
+              prescriberProfileId: existingPrescriberId,
+            }),
+          )
+          return NextResponse.json({ received: true, warning: "Correlated request is not awaiting a prescription" })
+        }
+
         // Claimed (parchment_reference set) but updateScriptSent failed previously - resume
         log.info("Resuming partially-processed webhook", { eventId: payload.event_id })
-        const resumePrescriberId = selectParchmentWebhookPrescriberId(existing, prescriberProfileIds)
+        const resumePrescriberId = existingPrescriberId
         const resumeSync = await syncPrescription(existing.id, resumePrescriberId)
         const resumeSuccess = await updateScriptSent(
           existing.id,
@@ -491,6 +562,25 @@ export async function POST(request: Request) {
         })
         log.info("Webhook resumed successfully", { eventId: payload.event_id })
         return NextResponse.json({ received: true, resumed: true })
+      }
+
+      if (intakeCorrelation !== undefined) {
+        log.warn("Parchment webhook intake correlation did not match an eligible request", {
+          eventId: payload.event_id,
+        })
+        await recordParchmentWebhookMismatch(
+          "intake_correlation_mismatch",
+          payload.event_id,
+          buildParchmentWebhookFailureMetadata({
+            scid,
+            parchmentPatientId: patient_id,
+            partnerPatientId: partner_patient_id,
+            prescriberUserId: user_id,
+            patientProfileId,
+            prescriberProfileId: standalonePrescriberId,
+          }),
+        )
+        return NextResponse.json({ received: true, warning: "No matching request correlation found" })
       }
 
       const standaloneSync = await syncPrescription(null, standalonePrescriberId)

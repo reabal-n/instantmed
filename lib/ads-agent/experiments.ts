@@ -504,8 +504,15 @@ function proposalPacketValidated(proposal: AdsChangeProposal): boolean {
 export function experimentVariableForMutationFamily(
   family: AdsMutationFamily,
 ): AdsExperimentVariable | null {
-  if (family === "ad_status") return "ad_copy"
-  if (family === "keyword_status" || family === "negative_keyword") {
+  if (
+    family === "ad_status"
+    || family === "responsive_search_ad_create"
+  ) return "ad_copy"
+  if (
+    family === "keyword_status"
+    || family === "negative_keyword"
+    || family === "positive_keyword_create"
+  ) {
     return "keywords"
   }
   if (family === "asset_link_status") return "assets"

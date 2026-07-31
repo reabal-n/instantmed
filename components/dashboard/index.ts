@@ -9,7 +9,6 @@
  *     DashboardCard,
  *     DashboardSection,
  *     DashboardPageHeader,
- *     StatCard,
  *     StatusBadge,
  *   } from "@/components/dashboard"
  */
@@ -20,7 +19,6 @@ export {
   type DashboardCardProps,
   type DashboardCardTier,
 } from "./dashboard-card"
-export { DashboardGrid, type DashboardGridProps } from "./dashboard-grid"
 export {
   DashboardPageHeader,
   type DashboardPageHeaderProps,
@@ -29,13 +27,6 @@ export {
   DashboardSection,
   type DashboardSectionProps,
 } from "./dashboard-section"
-
-// Stat tile.
-export {
-  StatCard,
-  type StatCardProps,
-  type StatCardStatus,
-} from "./stat-card"
 
 // Status badge.
 export {

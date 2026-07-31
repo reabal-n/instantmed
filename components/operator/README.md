@@ -6,7 +6,20 @@ Use these components when a staff screen combines operations, clinical review, r
 
 ## Canonical URL
 
-`/dashboard` is the canonical staff dashboard URL. It is the live queue cockpit for admins and doctors; support staff land on the bounded ops surface and can use the Ledger for request/payment metadata lookup. Legacy doctor queue/script aliases resolve to filtered dashboard views, not separate pages. New code should use `STAFF_*_HREF` constants from `@/lib/dashboard/routes` rather than the legacy `ADMIN_*_HREF` / `DOCTOR_*_HREF` aliases.
+`/dashboard` is the canonical clinical staff URL. It is the live queue cockpit for admins and doctors; support staff land on the bounded Operations surface and can use the masked Ledger for request/payment metadata lookup. Legacy doctor queue/script aliases resolve to filtered dashboard views, not separate pages. New code should use `STAFF_*_HREF` constants from `@/lib/dashboard/routes` rather than the legacy `ADMIN_*_HREF` / `DOCTOR_*_HREF` aliases.
+
+## Route Ownership
+
+| Route | One job |
+|-------|---------|
+| `/dashboard` | Live clinical queue and same-page fulfilment |
+| `/admin/analytics` | Business revenue, contribution, conversion, acquisition, and measurement checkpoints |
+| `/admin/ops` | Unresolved operational actions or one all-clear state |
+| `/admin/intakes` | Server-filtered source-record Ledger; masked for support |
+| `/admin/patients` | Compact patient directory and record entry |
+| `/admin/settings` | Platform setup, Doctors, and Features |
+
+Do not copy panels between these routes to make a second overview. Link to the owner when context is needed.
 
 ## Use
 
@@ -17,7 +30,8 @@ Use these components when a staff screen combines operations, clinical review, r
 | `OperatorPageHeader` | Standard staff page title/actions header |
 | `OperatorScrollArea` | Internal scroll region inside bounded pages |
 | `OperatorPanel` | Solid-depth staff panel |
-| `OperatorSplitPane` | Recovery queue list plus detail panel |
+| `OperatorSplitPane` | Bounded list plus selected-detail panel |
+| `CaseMobileList` | Touch-first case rows below `sm`; keeps recovery actions labelled, visible, and at least 44px tall without horizontal scrolling or hover |
 
 ## Rules
 
@@ -25,6 +39,9 @@ Use these components when a staff screen combines operations, clinical review, r
 - Put the next decision or recovery action first.
 - Keep the fixed patient safety band, one `RequestInfoCard` review packet, genuine safety blockers, and action controls together. Do not add parallel attention or prescribing-summary cards.
 - Refresh fulfilment through the selected request's review-data reload path; do not remount the dashboard to observe `script_sent`.
+- Treat 375px mobile review as a clinical release surface: stay on the same request page, keep primary actions at least 44px tall, and render Parchment in a full-height sheet.
+- Keep `Complete request` visible but disabled until durable server evidence reports `script_sent = true`. Approval, payment, iframe close, and client-local flags are not fulfilment evidence.
+- Keep patient/request search terms in memory and send them through the authenticated private-search Server Actions. Staff URLs may preserve view filters and pagination, never raw search terms.
 - Prefer internal scroll panes over whole-page dashboard scrolling on desktop.
 - Do not add decorative motion. Portal surfaces use state-only color transitions.
 - Gate clinical actions on `hasDoctorAccess(profile)`; gate admin actions on `hasAdminAccess(profile)`; gate ops-only actions on `hasStaffAccess(profile)`. Helpers in `lib/auth/staff-capabilities.ts`.

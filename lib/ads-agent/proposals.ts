@@ -9,6 +9,10 @@ import type {
   AdsMutationFamily,
   AdsService,
 } from "@/lib/ads-agent/types"
+import {
+  containsBannedPhrase,
+  containsEmDash,
+} from "@/lib/marketing/voice"
 
 export interface BiddingConfig {
   strategy:
@@ -62,8 +66,8 @@ export type AdsMutationOperation =
   | {
       kind: "ad_status"
       resourceName: string
-      expected: "ENABLED" | "PAUSED"
-      next: "ENABLED" | "PAUSED"
+      expected: "ENABLED" | "PAUSED" | "REMOVED"
+      next: "ENABLED" | "PAUSED" | "REMOVED"
     }
   | {
       kind: "keyword_status"
@@ -88,6 +92,23 @@ export type AdsMutationOperation =
       campaignResourceName: string
       expected: AdSchedule[]
       next: AdSchedule[]
+    }
+  | {
+      kind: "responsive_search_ad_create"
+      adGroupResourceName: string
+      descriptions: string[]
+      finalUrl: string
+      headlines: string[]
+      path1: string
+      path2: string
+      status: "ENABLED" | "PAUSED"
+    }
+  | {
+      kind: "positive_keyword_create"
+      adGroupResourceName: string
+      matchType: "EXACT" | "PHRASE"
+      status: "ENABLED" | "PAUSED"
+      text: string
     }
 
 export type AdsProposalStatus =
@@ -172,6 +193,7 @@ export interface AdsChangeProposal {
 type UnknownRecord = Record<string, unknown>
 
 const STATUS_VALUES = ["ENABLED", "PAUSED"] as const
+const AD_STATUS_VALUES = ["ENABLED", "PAUSED", "REMOVED"] as const
 const CRITERION_STATUS_VALUES = ["ENABLED", "PAUSED", "REMOVED"] as const
 const MINUTE_VALUES = ["ZERO", "FIFTEEN", "THIRTY", "FORTY_FIVE"] as const
 const DAY_VALUES = [
@@ -196,6 +218,17 @@ const SERVICE_VALUES = [
   "womens_health",
   "account",
 ] as const
+const PAID_DESTINATION_PATHS = new Set([
+  "/erectile-dysfunction",
+  "/hair-loss",
+  "/medical-certificate",
+  "/prescriptions",
+  "/womens-health",
+])
+const RATING_OR_TESTIMONIAL_PATTERN =
+  /\b(?:rated|rating|ratings|stars?|testimonials?|patient reviews?|customer reviews?|patients? say)\b/i
+const PROHIBITED_PAID_COPY_PATTERN =
+  /\b(?:guaranteed|instant approval|approved instantly|no call needed|accepted everywhere|100% approval)\b/i
 
 const transitions: Record<AdsProposalStatus, readonly AdsProposalStatus[]> = {
   aborted: [],
@@ -269,6 +302,91 @@ function resourceName(
     `^customers/\\d+/${collection}/[A-Za-z0-9_~.-]+$`,
   )
   if (!pattern.test(normalized)) throw new Error(`Invalid ${field}`)
+  return normalized
+}
+
+function normalizePaidDestination(value: unknown): string {
+  const raw = requiredString(value, "paid destination")
+  let destination: URL
+  try {
+    destination = new URL(raw)
+  } catch {
+    throw new Error("Invalid paid destination")
+  }
+  if (
+    destination.protocol !== "https:"
+    || destination.hostname !== "instantmed.com.au"
+    || destination.port
+    || destination.username
+    || destination.password
+    || destination.search
+    || destination.hash
+    || !PAID_DESTINATION_PATHS.has(destination.pathname)
+    || containsProhibitedPaidMedicineTerm(destination.pathname)
+  ) {
+    throw new Error("Invalid paid destination")
+  }
+  return destination.toString().replace(/\/$/, "")
+}
+
+function normalizeDisplayPath(value: unknown, field: string): string {
+  if (typeof value !== "string") throw new Error(`Invalid ${field}`)
+  const path = value.trim()
+  if (path.length > 15 || !/^[A-Za-z0-9-]*$/.test(path)) {
+    throw new Error(`Invalid ${field}`)
+  }
+  return path
+}
+
+function assertPaidAdCopy(value: string): void {
+  if (containsProhibitedPaidMedicineTerm(value)) {
+    throw new Error("Medicine terms are prohibited in paid ad copy")
+  }
+  if (RATING_OR_TESTIMONIAL_PATTERN.test(value)) {
+    throw new Error("Paid ad copy cannot use ratings or testimonials")
+  }
+  if (PROHIBITED_PAID_COPY_PATTERN.test(value)) {
+    throw new Error("Paid ad copy contains a prohibited claim")
+  }
+  if (containsBannedPhrase(value) || containsEmDash(value)) {
+    throw new Error("Paid ad copy violates the InstantMed voice contract")
+  }
+}
+
+function normalizeUniqueAdText(args: {
+  field: "description" | "headline"
+  maximum: number
+  maximumLength: number
+  minimum: number
+  value: unknown
+}): string[] {
+  if (
+    !Array.isArray(args.value)
+    || args.value.length < args.minimum
+    || args.value.length > args.maximum
+  ) {
+    if (args.field === "headline") {
+      throw new Error("Responsive search ads require 3 to 15 headlines")
+    }
+    throw new Error("Responsive search ads require 2 to 4 descriptions")
+  }
+  const normalized = args.value.map((entry) => {
+    const text = requiredString(
+      entry,
+      `responsive search ad ${args.field}`,
+    )
+    if (text.length > args.maximumLength) {
+      throw new Error(`Responsive search ad ${args.field} is too long`)
+    }
+    assertPaidAdCopy(text)
+    return text
+  })
+  if (new Set(normalized.map((entry) => entry.toLowerCase())).size
+    !== normalized.length) {
+    throw new Error(
+      `Responsive search ad ${args.field}s must be unique`,
+    )
+  }
   return normalized
 }
 
@@ -445,8 +563,8 @@ function normalizeOperation(value: unknown): AdsMutationOperation {
       ["kind", "resourceName", "expected", "next"],
       "ad_status",
     )
-    const expected = enumValue(record.expected, STATUS_VALUES, "expected")
-    const next = enumValue(record.next, STATUS_VALUES, "next")
+    const expected = enumValue(record.expected, AD_STATUS_VALUES, "expected")
+    const next = enumValue(record.next, AD_STATUS_VALUES, "next")
     if (expected === next) throw new Error("Ad status must change")
     return {
       expected,
@@ -551,6 +669,84 @@ function normalizeOperation(value: unknown): AdsMutationOperation {
       expected,
       kind: "schedule_replace",
       next,
+    }
+  }
+  if (record.kind === "responsive_search_ad_create") {
+    assertExactKeys(
+      record,
+      [
+        "kind",
+        "adGroupResourceName",
+        "descriptions",
+        "finalUrl",
+        "headlines",
+        "path1",
+        "path2",
+        "status",
+      ],
+      "responsive_search_ad_create",
+    )
+    return {
+      adGroupResourceName: resourceName(
+        record.adGroupResourceName,
+        "adGroups",
+        "adGroupResourceName",
+      ),
+      descriptions: normalizeUniqueAdText({
+        field: "description",
+        maximum: 4,
+        maximumLength: 90,
+        minimum: 2,
+        value: record.descriptions,
+      }),
+      finalUrl: normalizePaidDestination(record.finalUrl),
+      headlines: normalizeUniqueAdText({
+        field: "headline",
+        maximum: 15,
+        maximumLength: 30,
+        minimum: 3,
+        value: record.headlines,
+      }),
+      kind: "responsive_search_ad_create",
+      path1: normalizeDisplayPath(record.path1, "path1"),
+      path2: normalizeDisplayPath(record.path2, "path2"),
+      status: enumValue(record.status, STATUS_VALUES, "status"),
+    }
+  }
+  if (record.kind === "positive_keyword_create") {
+    assertExactKeys(
+      record,
+      [
+        "kind",
+        "adGroupResourceName",
+        "matchType",
+        "status",
+        "text",
+      ],
+      "positive_keyword_create",
+    )
+    const text = requiredString(record.text, "positive keyword")
+    if (text.length > 80) throw new Error("Positive keyword is too long")
+    if (text.split(/\s+/).length > 10) {
+      throw new Error("Positive keyword has too many words")
+    }
+    if (containsProhibitedPaidMedicineTerm(text)) {
+      throw new Error("Medicine-name keywords are prohibited")
+    }
+    return {
+      adGroupResourceName: resourceName(
+        record.adGroupResourceName,
+        "adGroups",
+        "adGroupResourceName",
+      ),
+      kind: "positive_keyword_create",
+      matchType: enumValue(
+        record.matchType,
+        ["EXACT", "PHRASE"] as const,
+        "matchType",
+      ),
+      status: enumValue(record.status, STATUS_VALUES, "status"),
+      text,
     }
   }
 

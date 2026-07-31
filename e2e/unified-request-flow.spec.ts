@@ -496,6 +496,8 @@ test.describe("Unified Request Flow - Draft Persistence", () => {
   test("shows Start over after an explicit recovery-link restore", async ({ page }) => {
     const sessionId = "77777777-7777-4777-8777-777777777777"
     const flowInstanceId = "88888888-8888-4888-8888-888888888888"
+    const updatedAt = new Date(Date.now() - 60_000).toISOString()
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
     await page.route("**/api/draft**", async (route) => {
       if (route.request().method() === "GET") {
         await route.fulfill({
@@ -514,8 +516,8 @@ test.describe("Unified Request Flow - Draft Persistence", () => {
               phone: null,
               dob: null,
             },
-            updatedAt: "2026-07-23T00:00:00.000Z",
-            expiresAt: "2026-07-30T00:00:00.000Z",
+            updatedAt,
+            expiresAt,
           }),
         })
         return

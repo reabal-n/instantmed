@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs"
+import path from "node:path"
+
 import { describe, expect, it } from "vitest"
 
 import {
@@ -6,6 +9,18 @@ import {
 } from "@/lib/parchment/embed-policy"
 
 describe("Parchment embed policy", () => {
+  it("reads the public iframe override through a statically analyzable client reference", () => {
+    const source = readFileSync(
+      path.join(process.cwd(), "lib/parchment/embed-policy.ts"),
+      "utf8",
+    )
+
+    expect(source).toContain(
+      "process.env.NEXT_PUBLIC_PARCHMENT_IFRAME_ALLOWED_HOSTS",
+    )
+    expect(source).not.toMatch(/env:\s*Record<string, string \| undefined>\s*=\s*process\.env/)
+  })
+
   it("allows local, Vercel, and whitelisted production hosts by default", () => {
     expect(canEmbedParchmentForHost("localhost")).toBe(true)
     expect(canEmbedParchmentForHost("127.0.0.1")).toBe(true)

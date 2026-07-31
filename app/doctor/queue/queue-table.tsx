@@ -37,7 +37,7 @@ import { resolveStaffCaseActionLabel } from "@/lib/doctor/case-action-label"
 import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
 import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
 import { LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
-import { getQueueEnteredAt, getQueueStatusMeta } from "@/lib/doctor/queue-utils"
+import { getQueueEnteredAt, getQueueStatusMeta, getReviewHistoryStatusMeta } from "@/lib/doctor/queue-utils"
 import {
   formatRenewalMatchTitle,
   RENEWAL_FALLBACK_TITLE,
@@ -135,7 +135,9 @@ export interface QueueTableProps {
 
   // Extra sections
   recentlyCompleted: RecentlyCompletedIntake[]
+  reviewHistoryTruncated?: boolean
   pagination?: PaginationInfo
+  onPageChange?: (page: number) => void
   baseHref?: string
   emptyState?: {
     title: string
@@ -176,7 +178,9 @@ export function QueueTable({
   onRememberOpenedCase,
   dialogs,
   recentlyCompleted,
+  reviewHistoryTruncated = false,
   pagination,
+  onPageChange,
   baseHref = STAFF_DASHBOARD_HREF,
   emptyState = {
     title: "No review cases right now",
@@ -794,7 +798,7 @@ export function QueueTable({
         </div>
       )}
 
-      {/* Recently Completed Today */}
+      {/* Actor-scoped reviews today */}
       {!compactShell && recentlyCompleted.length > 0 && (
         <Card className="overflow-hidden rounded-xl border-border/50 bg-card/90 shadow-none">
           <CardHeader className="p-0">
@@ -806,7 +810,9 @@ export function QueueTable({
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-success" />
                 <h3 className="text-sm font-semibold text-foreground">
-                  Completed Today ({recentlyCompleted.length})
+                  {reviewHistoryTruncated
+                    ? `Your latest reviews (${Math.min(recentlyCompleted.length, 5)} shown)`
+                    : `Your reviews today (${recentlyCompleted.length})`}
                 </h3>
               </div>
               <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", completedExpanded && "rotate-180")} />
@@ -816,12 +822,13 @@ export function QueueTable({
           <CardContent className="space-y-1.5 border-t border-border/40 px-3 py-3">
             {recentlyCompleted.slice(0, 5).map((intake) => {
               const svc = intake.service as { short_name?: string; type?: string } | undefined
+              const statusMeta = getReviewHistoryStatusMeta(intake.status)
               return (
                 <div
                   key={intake.id}
                   role="button"
                   tabIndex={0}
-                  aria-label={`View completed case for ${intake.patient.full_name}`}
+                  aria-label={`View reviewed case for ${intake.patient.full_name}`}
                   className="flex cursor-pointer flex-col justify-between gap-2 rounded-lg border border-border/40 bg-muted/20 p-2.5 transition-colors hover:bg-muted/45 sm:flex-row sm:items-center sm:gap-3"
                   onClick={() => {
                     rememberOpenedCase(intake.id)
@@ -843,17 +850,21 @@ export function QueueTable({
                     <Badge
                       className={cn(
                         "text-xs",
-                        intake.status === "approved"
+                        statusMeta.tone === "approved"
                           ? "bg-success-light text-success border-success-border"
-                          : "bg-destructive/10 text-destructive border-destructive/20"
+                          : statusMeta.tone === "declined"
+                            ? "bg-destructive/10 text-destructive border-destructive/20"
+                            : statusMeta.tone === "completed"
+                              ? "border-primary/20 bg-primary/10 text-primary"
+                              : "border-border bg-muted text-muted-foreground"
                       )}
                     >
-                      {intake.status === "approved" ? "Approved" : "Declined"}
+                      {statusMeta.label}
                     </Badge>
                   </div>
                   <span className="text-xs text-muted-foreground shrink-0">
-                    {intake.reviewed_at
-                      ? new Date(intake.reviewed_at).toLocaleTimeString("en-AU", {
+                    {intake.activity_at
+                      ? new Date(intake.activity_at).toLocaleTimeString("en-AU", {
                           hour: "2-digit",
                           minute: "2-digit",
                         })
@@ -878,7 +889,12 @@ export function QueueTable({
             total={totalPages}
             page={currentPage}
             onChange={(page) => {
+              if (onPageChange) {
+                onPageChange(page)
+                return
+              }
               const params = new URLSearchParams(window.location.search)
+              params.delete("q")
               params.set("page", String(page))
               router.push(`${baseHref}?${params.toString()}`)
             }}

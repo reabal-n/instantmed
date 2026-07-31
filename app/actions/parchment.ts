@@ -29,6 +29,10 @@ import {
   validateIntegration,
 } from "@/lib/parchment/client"
 import {
+  buildParchmentIntakeRedirectPath,
+  parseParchmentIntakeCorrelation,
+} from "@/lib/parchment/intake-correlation"
+import {
   formatParchmentPatientSyncError,
   getParchmentPatientIdentityIssues,
   ParchmentPatientIdentityError,
@@ -142,6 +146,7 @@ export async function getParchmentPrescribeUrlAction(
       .from("intakes")
       .select(`
         patient_id,
+        reference_number,
         status,
         payment_status,
         category,
@@ -284,6 +289,15 @@ export async function getParchmentPrescribeUrlAction(
       return { success: false, error: `Missing prescribing details: ${identityIssues.join(", ")}` }
     }
 
+    const intakeCorrelation = parseParchmentIntakeCorrelation(intake.reference_number)
+    if (!intakeCorrelation) {
+      log.warn("Parchment prescribe blocked because the request correlation is unavailable", { intakeId })
+      return {
+        success: false,
+        error: "This request cannot be safely matched to Parchment. Use manual prescribing and report the request reference to operations.",
+      }
+    }
+
     try {
       await validateIntegration(doctorProfile.parchment_user_id)
     } catch (validationError) {
@@ -307,9 +321,19 @@ export async function getParchmentPrescribeUrlAction(
     )
 
     // Generate SSO URL for embedded prescribing
+    const correlatedRedirectPath = buildParchmentIntakeRedirectPath(
+      parchmentPatientId,
+      intakeCorrelation,
+    )
+    if (!correlatedRedirectPath) {
+      return {
+        success: false,
+        error: "This request cannot be safely matched to Parchment. Use manual prescribing and report the request reference to operations.",
+      }
+    }
     const ssoData = await getSsoUrl(
       doctorProfile.parchment_user_id,
-      `/embed/patients/${parchmentPatientId}/prescriptions`,
+      correlatedRedirectPath,
     )
 
     const prescribingStarted = await startParchmentPrescribing(intakeId, authResult.profile.id)

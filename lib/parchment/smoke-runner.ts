@@ -1,7 +1,7 @@
 import {
   PARCHMENT_SCOPES,
-  parchmentSsoResponseSchema,
   parchmentTokenResponseSchema,
+  parseParchmentSsoResponse,
   validateIntegrationResponseSchema,
 } from "@/lib/parchment/types"
 
@@ -125,7 +125,7 @@ async function generateSmokeSsoUrl(config: RequiredSmokeConfig): Promise<{ expir
     throw new Error(`Parchment SSO request failed: ${response.status}`)
   }
 
-  const parsed = parchmentSsoResponseSchema.parse(await response.json())
+  const parsed = parseParchmentSsoResponse(await response.json(), config.apiUrl)
   return { expiresIn: parsed.data.expires_in }
 }
 

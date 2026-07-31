@@ -8,8 +8,8 @@
 
 | Layer | Framework | Location | Count |
 |-------|-----------|----------|-------|
-| Unit tests | Vitest | `**/*.test.ts` / `lib/__tests__/**/*.test.ts` | Local run 2026-07-28: **5,346 passed, 0 skipped** across 601 test files. |
-| E2E tests | Playwright | `e2e/**/*.spec.ts` | 67 specs — blocking CI currently runs ops/navigation/clinical-input smoke plus focused paid critical flows |
+| Unit tests | Vitest | `**/*.test.ts` / `lib/__tests__/**/*.test.ts` | Local run 2026-07-31: **5,451 passed, 0 skipped** across 618 test files. |
+| E2E tests | Playwright | `e2e/**/*.spec.ts` | 68 specs — blocking CI currently runs ops/navigation/clinical-input smoke plus focused paid critical flows |
 
 **Coverage threshold:** 80% statements / 70% branches / 80% functions / 80% lines (enforced by Vitest config, scoped to `lib/clinical/`, `lib/security/`, the `lib/stripe/` payment-safety surface, and `lib/data/intake-lifecycle.ts`). The E2E-only Stripe orchestrators (`checkout.ts`, `guest-checkout.ts`, `checkout/stripe-session.ts`, `checkout/persistence.ts`, `checkout/auth-and-profile.ts`, `checkout/retry-payment.ts`, `client.ts`, `referral-coupon.ts`, `post-payment.ts`) are excluded — they're exercised by `e2e/unified-request-flow.spec.ts` / `consult-subtypes.spec.ts` / payment-smoke, not units. **Note:** `lib/state-machine/` was removed from the include list 2026-04-08 because the directory no longer exists — the state-machine logic was consolidated into `lib/clinical/auto-approval-state.ts`.
 
@@ -19,6 +19,8 @@
 - `e2e/operator.viewport.spec.ts` and `e2e/operator.visual.spec.ts` — compact staff cockpit visual/viewport guardrails for `/admin`, `/admin/ops`, `/admin/intakes`, and the intake review panel at 1440x900.
 - `lib/__tests__/confirmed-payment-finalization-contract.test.ts` — pins both paid Stripe webhook adapters and `/api/stripe/verify-payment` to the shared exact-current paid-transition owner, including Stripe charged-amount reconciliation and atomic referral-event claiming.
 - `lib/__tests__/google-ads-agent-brief.test.ts` — pins a quiet four-line Telegram `HOLD`, conditional service/change-family detail only for `CHECK` or approval-gated `ACTION`, PHI/raw-attribution exclusions, and durable Telegram message receipts.
+- `lib/__tests__/google-ads-agent-deep-audit.test.ts` — pins closed Sydney date windows, all nine read-only Google Ads audit surfaces, enabled-parent resource joins, date-segmented search-term aggregation, stale-versus-recent evidence, and suppression of possible personal queries before report output.
+- `lib/__tests__/google-ads-agent-cli-behavior.test.ts` + `lib/__tests__/google-ads-agent-proposal-operator.test.ts` — run the real operator CLI argument boundary and packet parser, proving that drafting requires one source run plus one exact restricted JSON file, caller-supplied baselines are rejected before external work, and validated Telegram send requires one proposal key.
 - `lib/__tests__/google-ads-conversion-adjustments.test.ts` + `lib/__tests__/google-ads-health.test.ts` — pin refund-adjustment integrity: pre-grace `CONVERSION_NOT_FOUND` retries after grace, post-grace misses become durable `resolved_not_counted` outcomes, and a later success/resolution receipt clears historical failure state before the scaling gate is evaluated.
 
 Prior to these, the canonical refund code had **zero unit coverage** — only the e2e suite exercised it, which gave slow feedback and no per-branch visibility.
@@ -184,9 +186,16 @@ Critical paths only — every flow that touches money, auth, or clinical data:
 | Auth flows | Sign in, sign up, guest checkout → account link |
 | Document download | Auth required, ownership verified, app-streamed PDF |
 | Patient portal | Dashboard, intake detail, prescription history |
-| Staff cockpit | Admin/doctor operator pages stay compact, navigable, and visually stable at desktop staff viewport |
+| Staff cockpit route ownership | Admin, doctor, and support receive only their canonical nav/routes; support is limited to Operations plus a masked Ledger projection |
+| Business truth | Exact-flow stages cannot produce impossible ordered rates; stage coverage is visible and rates remain withheld below the 90% gate |
+| Operations | The page renders action groups with owner/age/next action, exact totals for durable current-state sources, explicit identity/7-day/14-day labels for bounded monitors, or exactly one scope-clear state—never a wall of zero counters or a global all-clear claim derived from capped rows |
+| Ledger privacy and filtering | Search/status/service/work-lane/quick chips filter on the server; support payloads exclude clinical answers, contact fields, and admin attribution |
+| Mobile clinical review | At 375px the request remains on one page, primary actions are at least 44px tall, Parchment is full-height, and the review is restored in place after close |
+| Script completion gate | `Complete request` is visible but disabled until the server projection reports durable `script_sent`; payment, approval, and Parchment close do not unlock it |
 
 The med-cert auto-approval E2E contract uses `/api/test/medcert-immediate-auto-approve` to bypass the production retry-cron delay. That route is test-only, requires `PLAYWRIGHT=1` + `E2E_SECRET`, and must not be treated as the production approval timing path.
+
+**Parchment proof boundary:** local and mocked browser checks can prove InstantMed's responsive sheet, same-page restoration, action sizing, and disabled-state contract. They cannot prove the real third-party iframe. Release proof for the vendor interaction requires an explicitly approved Parchment sandbox/test request at a 375px-class viewport, including launch, prescribe/issue, return, durable `script_sent` refresh, and completion unlock. Never use a production patient or create vendor state merely to obtain visual proof.
 
 ### What NOT to E2E Test
 

@@ -4,18 +4,10 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import {
-  approvedCertificateMissingRecordHelper,
   buildOperationalInvariantAlerts,
   CERTIFICATE_MISSING_RECORD_DAYS,
   CERTIFICATE_SENT_TIMESTAMP_DRIFT_DAYS,
-  certificateSentMissingTimestampHelper,
-  certOrphanHelper,
   getInvariantQueryFailures,
-  invariantTone,
-  paidButCancelledHelper,
-  refundAnomalyHelper,
-  SLA_BREACH_CRITICAL,
-  slaBacklogHelper,
 } from "@/lib/admin/ops-invariants"
 
 const opsInvariantsSource = readFileSync(
@@ -23,73 +15,10 @@ const opsInvariantsSource = readFileSync(
   "utf8",
 )
 
-describe("invariantTone", () => {
-  it("is neutral at zero regardless of threshold", () => {
-    expect(invariantTone(0, 1)).toBe("neutral")
-    expect(invariantTone(0, SLA_BREACH_CRITICAL)).toBe("neutral")
-    expect(invariantTone(0, Number.POSITIVE_INFINITY)).toBe("neutral")
-  })
-
-  it("is critical at or above the criticalAt threshold", () => {
-    // Orphans use criticalAt=1: any orphan is a medico-legal exposure.
-    expect(invariantTone(1, 1)).toBe("critical")
-    expect(invariantTone(2, 1)).toBe("critical")
-    // SLA backlog uses criticalAt=SLA_BREACH_CRITICAL.
-    expect(invariantTone(SLA_BREACH_CRITICAL, SLA_BREACH_CRITICAL)).toBe("critical")
-    expect(invariantTone(SLA_BREACH_CRITICAL + 5, SLA_BREACH_CRITICAL)).toBe("critical")
-  })
-
-  it("is warning between 1 and the threshold (exclusive)", () => {
-    expect(invariantTone(1, SLA_BREACH_CRITICAL)).toBe("warning")
-    expect(invariantTone(SLA_BREACH_CRITICAL - 1, SLA_BREACH_CRITICAL)).toBe("warning")
-    // Anomalies pass Infinity so they never escalate past warning.
-    expect(invariantTone(1, Number.POSITIVE_INFINITY)).toBe("warning")
-    expect(invariantTone(99, Number.POSITIVE_INFINITY)).toBe("warning")
-  })
-
-  it("treats negative counts as neutral (defensive)", () => {
-    expect(invariantTone(-1, 1)).toBe("neutral")
-  })
-})
-
-describe("helper text builders", () => {
-  it("slaBacklogHelper", () => {
-    expect(slaBacklogHelper(0)).toBe("Within 24h SLA")
-    expect(slaBacklogHelper(1)).toBe("1 past 24h")
-    expect(slaBacklogHelper(7)).toBe("7 past 24h")
-  })
-
-  it("certOrphanHelper", () => {
-    expect(certOrphanHelper(0)).toBe("None")
-    expect(certOrphanHelper(2)).toBe("2 need revoke decision")
-  })
-
-  it("refundAnomalyHelper", () => {
-    expect(refundAnomalyHelper(0)).toBe("None")
-    expect(refundAnomalyHelper(1)).toBe("1 to reconcile")
-  })
-
-  it("paidButCancelledHelper", () => {
-    expect(paidButCancelledHelper(0)).toBe("None")
-    expect(paidButCancelledHelper(1)).toBe("1 charged, undelivered")
-  })
-
-  it("certificateSentMissingTimestampHelper", () => {
-    expect(certificateSentMissingTimestampHelper(0)).toBe("All mirrored")
-    expect(certificateSentMissingTimestampHelper(1)).toBe("1 missing sent timestamp")
-    expect(certificateSentMissingTimestampHelper(3)).toBe("3 missing sent timestamps")
-  })
-
-  it("approvedCertificateMissingRecordHelper", () => {
-    expect(approvedCertificateMissingRecordHelper(0)).toBe("All generated")
-    expect(approvedCertificateMissingRecordHelper(2)).toBe("2 need escalation")
-  })
-})
-
 describe("buildOperationalInvariantAlerts", () => {
   it("turns non-zero ops invariants into PHI-free warning and critical alerts", () => {
     const alerts = buildOperationalInvariantAlerts({
-      slaBreachBacklog: SLA_BREACH_CRITICAL,
+      slaBreachBacklog: 10,
       certRefundOrphans: 2,
       refundRecordAnomalies: 1,
     })
@@ -98,8 +27,8 @@ describe("buildOperationalInvariantAlerts", () => {
       {
         metric: "ops_sla_breach_backlog",
         severity: "critical",
-        detail: `${SLA_BREACH_CRITICAL} paid intakes past 24h review SLA`,
-        count: SLA_BREACH_CRITICAL,
+        detail: "10 paid intakes past 24h review SLA",
+        count: 10,
       },
       {
         metric: "ops_cert_refund_orphans",
@@ -116,6 +45,19 @@ describe("buildOperationalInvariantAlerts", () => {
     ])
 
     expect(JSON.stringify(alerts)).not.toMatch(/patient|email|medicare|phone|address|intakeId/i)
+  })
+
+  it("keeps a non-zero SLA backlog below ten at warning severity", () => {
+    expect(buildOperationalInvariantAlerts({
+      slaBreachBacklog: 9,
+      certRefundOrphans: 0,
+      refundRecordAnomalies: 0,
+    })).toEqual([{
+      metric: "ops_sla_breach_backlog",
+      severity: "warning",
+      detail: "9 paid intakes past 24h review SLA",
+      count: 9,
+    }])
   })
 
   it("turns invariant query failures into PHI-free critical alerts instead of zero-count silence", () => {

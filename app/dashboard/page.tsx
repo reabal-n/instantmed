@@ -15,7 +15,6 @@ import {
   TestDataBanner,
   TestDataToggleButton,
 } from "@/components/operator/test-data-banner"
-import { PanelProvider } from "@/components/panels/panel-provider"
 import { requireRole } from "@/lib/auth/helpers"
 import {
   doctorHasCapability,
@@ -24,6 +23,9 @@ import {
   hasSupportAccess,
 } from "@/lib/auth/staff-capabilities"
 import {
+  buildStaffDashboardHref,
+  getCanonicalQueuePage,
+  parseQueuePaginationParams,
   parseQueueStatusFilter,
   type QueueStatusFilter,
   STAFF_DASHBOARD_HREF,
@@ -41,7 +43,6 @@ import {
   getRecentlyCompletedIntakes,
 } from "@/lib/data/intakes"
 import { EMPTY_SYSTEM_HEALTH, getSystemHealth } from "@/lib/data/system-health"
-import { getQueueEnteredAt } from "@/lib/doctor/queue-utils"
 import { formatMinutes } from "@/lib/format/dates"
 import { createLogger } from "@/lib/observability/logger"
 import { cn } from "@/lib/utils"
@@ -81,6 +82,7 @@ export default async function StaffDashboardPage({
     page?: string
     pageSize?: string
     status?: string | string[]
+    q?: string | string[]
     showTestData?: string
     onlyTestData?: string
   }>
@@ -96,8 +98,7 @@ export default async function StaffDashboardPage({
   const isAdmin = hasAdminAccess(profile)
   const canReviewMedicalCertificates = doctorHasCapability(profile, "review_med_certs")
   const params = await searchParams
-  const page = Math.max(1, parseInt(params.page || "1", 10))
-  const pageSize = Math.min(100, Math.max(10, parseInt(params.pageSize || "50", 10)))
+  const { page, pageSize } = parseQueuePaginationParams(params)
   const initialStatusFilter: QueueStatusFilter = parseQueueStatusFilter(params.status)
   const hasExplicitStatusFilter = typeof params.status !== "undefined"
   // Test-data toggle (admin-only). `?showTestData=1` opts this page in to
@@ -111,12 +112,33 @@ export default async function StaffDashboardPage({
   // and only after the admin-gated test-data opt-in is already active.
   const onlyTestData = showTestData && params.onlyTestData === "1" && process.env.PLAYWRIGHT === "1"
 
+  // Queue searches are intentionally memory-only and travel through an
+  // authenticated POST action. Strip legacy q URLs before rendering so a
+  // copied/history URL cannot keep patient identifiers in the address bar.
+  if (typeof params.q !== "undefined") {
+    redirect(buildStaffDashboardHref({
+      status: initialStatusFilter,
+      page: params.page,
+      pageSize: params.pageSize,
+      showTestData,
+      onlyTestData,
+      anchor: "doctor-queue",
+    }))
+  }
+
   const results = await Promise.allSettled([
-    getDoctorQueue({ page, pageSize, doctorId: profile.id, allowSeeded: showTestData, onlySeeded: onlyTestData }),
+    getDoctorQueue({
+      page,
+      pageSize,
+      doctorId: profile.id,
+      allowSeeded: showTestData,
+      onlySeeded: onlyTestData,
+      statusFilter: initialStatusFilter,
+    }),
     canReviewMedicalCertificates
       ? getPendingBatchReviews({ limit: 20 })
       : Promise.resolve({ data: [], total: 0, oldestApprovedAt: null, degraded: false }),
-    isAdmin ? getRecentlyCompletedIntakes({ limit: 50 }) : Promise.resolve([]),
+    getRecentlyCompletedIntakes({ limit: 50, reviewerId: profile.id }),
     getDoctorIdentity(profile.id),
     getFormToInboxStats(),
     import("@/app/actions/doctor-availability").then((m) => m.getDoctorAvailabilityAction()),
@@ -125,23 +147,48 @@ export default async function StaffDashboardPage({
 
   const queueResult = results[0].status === "fulfilled"
     ? results[0].value
-    : { data: [] as IntakeWithPatient[], total: 0, page: 1, pageSize, degraded: true }
+    : {
+        data: [] as IntakeWithPatient[],
+        total: 0,
+        page: 1,
+        pageSize,
+        degraded: true,
+        statusCounts: null,
+        globalStatusCounts: null,
+        searchMatchCount: null,
+        searchState: "idle" as const,
+        oldestWaitingEnteredAt: null,
+        oldestWaitingIntakeId: null,
+      }
+  const canonicalQueuePage = getCanonicalQueuePage({
+    page: queueResult.page,
+    pageSize: queueResult.pageSize,
+    total: queueResult.total,
+    visibleCount: queueResult.data.length,
+    degraded: Boolean(queueResult.degraded),
+  })
+  if (canonicalQueuePage !== null) {
+    redirect(buildStaffDashboardHref({
+      status: initialStatusFilter,
+      page: canonicalQueuePage,
+      pageSize: params.pageSize,
+      showTestData,
+      onlyTestData,
+      anchor: "doctor-queue",
+    }))
+  }
   const pendingBatchReviews = results[1].status === "fulfilled"
     ? results[1].value
     : { data: [], total: 0, oldestApprovedAt: null, degraded: true }
-  const recentlyCompleted = results[2].status === "fulfilled" ? results[2].value : []
+  const recentlyCompletedResult = results[2].status === "fulfilled"
+    ? results[2].value
+    : { data: [], governanceReceipt: null, degraded: true, truncated: false }
   const doctorIdentity: DoctorIdentity | null = results[3].status === "fulfilled" ? results[3].value : null
   const formToInboxStats = !onlyTestData && results[4].status === "fulfilled" ? results[4].value : null
   const doctorAvailable = results[5].status === "fulfilled" ? results[5].value?.available !== false : true
   const systemHealth = results[6].status === "fulfilled" ? results[6].value : EMPTY_SYSTEM_HEALTH
   const nowMs = Date.now()
-  const oldestWaitingEnteredAt = queueResult.data.reduce<string | null>((oldest, intake) => {
-    const enteredAt = new Date(getQueueEnteredAt(intake)).getTime()
-    if (!Number.isFinite(enteredAt)) return oldest
-    if (oldest == null) return getQueueEnteredAt(intake)
-    const currentOldest = new Date(oldest).getTime()
-    return enteredAt < currentOldest ? getQueueEnteredAt(intake) : oldest
-  }, null)
+  const oldestWaitingEnteredAt = queueResult.oldestWaitingEnteredAt
   const oldestWaitingMinutes = oldestWaitingEnteredAt
     ? Math.max(0, Math.floor((nowMs - new Date(oldestWaitingEnteredAt).getTime()) / 60000))
     : null
@@ -153,7 +200,10 @@ export default async function StaffDashboardPage({
       ? "Under 1m"
       : formatMinutes(formToInboxStats.medianMinutes)
     : null
-  const showHeaderOperationalSummary = queueResult.total > 1 || (queueResult.total === 0 && Boolean(formToInboxLabel))
+  const globalWaitingCaseCount = queueResult.globalStatusCounts?.all ?? null
+  const showHeaderOperationalSummary =
+    (typeof globalWaitingCaseCount === "number" && globalWaitingCaseCount > 1) ||
+    (globalWaitingCaseCount === 0 && Boolean(formToInboxLabel))
 
   results.forEach((result, index) => {
     if (result.status === "rejected") {
@@ -171,7 +221,6 @@ export default async function StaffDashboardPage({
   })
 
   return (
-    <PanelProvider>
       <OperatorPage>
         <OperatorPageHeader
           title="Dashboard"
@@ -182,7 +231,7 @@ export default async function StaffDashboardPage({
                   <div
                     data-dashboard-wait-strip
                     className={cn(
-                      "hidden flex-none items-center gap-2 lg:flex",
+                      "hidden flex-none items-center gap-2 2xl:flex",
                       formToInboxLabel ? "min-w-[420px]" : "min-w-[220px]",
                     )}
                   >
@@ -201,7 +250,7 @@ export default async function StaffDashboardPage({
                     <QueuePressureSignal
                       oldestWaitingMinutes={oldestWaitingMinutes}
                       oldestWaitingEnteredAt={oldestWaitingEnteredAt}
-                      waitingCaseCount={queueResult.total}
+                      waitingCaseCount={globalWaitingCaseCount ?? 0}
                       showIcon={false}
                       jumpToOldestOnClick
                       className="bg-white shadow-sm shadow-primary/[0.03]"
@@ -250,16 +299,23 @@ export default async function StaffDashboardPage({
                 total: queueResult.total,
               }}
               pendingBatchReviews={pendingBatchReviews}
-              recentlyCompleted={recentlyCompleted}
+              recentlyCompleted={recentlyCompletedResult.data}
+              governanceReceipt={recentlyCompletedResult.governanceReceipt}
+              recentlyCompletedDegraded={recentlyCompletedResult.degraded}
+              recentlyCompletedTruncated={recentlyCompletedResult.truncated}
+              statusCounts={queueResult.statusCounts}
+              globalStatusCounts={queueResult.globalStatusCounts}
+              oldestWaitingIntakeId={queueResult.oldestWaitingIntakeId}
               initialStatusFilter={initialStatusFilter}
               hasExplicitStatusFilter={hasExplicitStatusFilter}
               baseHref={STAFF_DASHBOARD_HREF}
               doctorAvailable={doctorAvailable}
+              allowSeededSearch={showTestData}
+              onlySeededSearch={onlyTestData}
               compactShell
             />
           </section>
         </OperatorScrollArea>
       </OperatorPage>
-    </PanelProvider>
   )
 }

@@ -33,7 +33,7 @@ export const CERTIFICATE_SENT_TIMESTAMP_DRIFT_DAYS = 14
 // Backlog at or above this many overdue cases flips the SLA card from warning
 // to critical. Tuned for a solo / small-roster clinic: one breach is a warning,
 // a pile-up is a fire.
-export const SLA_BREACH_CRITICAL = 10
+const SLA_BREACH_CRITICAL = 10
 
 export type OperationalInvariants = {
   slaBreachBacklog: number
@@ -270,48 +270,6 @@ export async function getOperationalInvariants(
   }
 }
 
-/**
- * Mirror of the components/ CounterCardTone. Declared here because lib/ must
- * not import from components/; the unions are structurally identical, so the
- * page passes an InvariantTone straight into a CounterCard `tone` prop.
- */
-export type InvariantTone = "neutral" | "warning" | "critical"
-
-/**
- * neutral at 0, critical at or above `criticalAt`, warning in between. Callers
- * pass criticalAt=1 to make any non-zero count critical, or Infinity to cap a
- * counter at warning.
- */
-export function invariantTone(count: number, criticalAt: number): InvariantTone {
-  if (count <= 0) return "neutral"
-  if (count >= criticalAt) return "critical"
-  return "warning"
-}
-
-export function slaBacklogHelper(count: number): string {
-  return count === 0 ? "Within 24h SLA" : `${count} past 24h`
-}
-
-export function certOrphanHelper(count: number): string {
-  return count === 0 ? "None" : `${count} need revoke decision`
-}
-
-export function refundAnomalyHelper(count: number): string {
-  return count === 0 ? "None" : `${count} to reconcile`
-}
-
-export function paidButCancelledHelper(count: number): string {
-  return count === 0 ? "None" : `${count} charged, undelivered`
-}
-
-export function approvedCertificateMissingRecordHelper(count: number): string {
-  return count === 0 ? "All generated" : `${count} need escalation`
-}
-
-export function certificateSentMissingTimestampHelper(count: number): string {
-  return count === 0 ? "All mirrored" : `${count} missing sent ${count === 1 ? "timestamp" : "timestamps"}`
-}
-
 export function buildOperationalInvariantAlerts(
   invariants: OperationalInvariants,
 ): OperationalInvariantAlert[] {
@@ -330,7 +288,7 @@ export function buildOperationalInvariantAlerts(
   if (invariants.slaBreachBacklog > 0) {
     alerts.push({
       metric: "ops_sla_breach_backlog",
-      severity: invariantTone(invariants.slaBreachBacklog, SLA_BREACH_CRITICAL) === "critical" ? "critical" : "warning",
+      severity: invariants.slaBreachBacklog >= SLA_BREACH_CRITICAL ? "critical" : "warning",
       detail: `${invariants.slaBreachBacklog} paid intakes past 24h review SLA`,
       count: invariants.slaBreachBacklog,
     })
