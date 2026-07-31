@@ -751,6 +751,24 @@ describe("Google Ads mutation gateway", () => {
     }])
 
     expect(buildGoogleAdsMutateOperations([{
+      expected: {
+        strategy: "MAXIMIZE_CONVERSIONS",
+        targetCpaMicros: 35_000_000,
+      },
+      kind: "campaign_bidding",
+      next: { strategy: "MANUAL_CPC" },
+      resourceName: campaignResourceName,
+    }], state)).toEqual([{
+      campaignOperation: {
+        update: {
+          manualCpc: { enhancedCpcEnabled: false },
+          resourceName: campaignResourceName,
+        },
+        updateMask: "manualCpc.enhancedCpcEnabled",
+      },
+    }])
+
+    expect(buildGoogleAdsMutateOperations([{
       campaignResourceName,
       kind: "negative_keyword",
       matchType: "PHRASE",
