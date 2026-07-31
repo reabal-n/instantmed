@@ -477,14 +477,14 @@ function biddingMutate(
         ? { targetCpaMicros: String(operation.next.targetCpaMicros) }
         : {}),
     }
-    updateMask = "maximizeConversions"
+    updateMask = "maximizeConversions.targetCpaMicros"
   } else {
     update.maximizeConversionValue = {
       ...(operation.next.targetRoas != null
         ? { targetRoas: operation.next.targetRoas }
         : {}),
     }
-    updateMask = "maximizeConversionValue"
+    updateMask = "maximizeConversionValue.targetRoas"
   }
   return {
     campaignOperation: {
