@@ -36,7 +36,7 @@ export type GoogleAdsDeepAuditRows = Record<
   Record<string, unknown>[]
 >
 
-export interface GoogleAdsDeepAuditMetric {
+interface GoogleAdsDeepAuditMetric {
   clicks: number
   conversionValueCents: number
   conversions: number
@@ -47,7 +47,7 @@ export interface GoogleAdsDeepAuditMetric {
   valueCostRatio: number | null
 }
 
-export interface GoogleAdsDeepAuditSearchTerm extends GoogleAdsDeepAuditMetric {
+interface GoogleAdsDeepAuditSearchTerm extends GoogleAdsDeepAuditMetric {
   adGroupId: string | null
   adGroupName: string | null
   campaignId: string | null
@@ -62,7 +62,7 @@ export interface GoogleAdsDeepAuditSearchTerm extends GoogleAdsDeepAuditMetric {
   targetingStatus: string | null
 }
 
-export interface GoogleAdsDeepAuditKeyword extends GoogleAdsDeepAuditMetric {
+interface GoogleAdsDeepAuditKeyword extends GoogleAdsDeepAuditMetric {
   adGroupId: string | null
   adGroupName: string | null
   adGroupStatus: string | null
@@ -81,7 +81,7 @@ export interface GoogleAdsDeepAuditKeyword extends GoogleAdsDeepAuditMetric {
   status: string | null
 }
 
-export interface GoogleAdsDeepAuditCampaign extends GoogleAdsDeepAuditMetric {
+interface GoogleAdsDeepAuditCampaign extends GoogleAdsDeepAuditMetric {
   biddingStrategyType: string | null
   budgetAmountCents: number | null
   campaignId: string | null
@@ -93,7 +93,7 @@ export interface GoogleAdsDeepAuditCampaign extends GoogleAdsDeepAuditMetric {
   status: string | null
 }
 
-export interface GoogleAdsDeepAuditAd extends GoogleAdsDeepAuditMetric {
+interface GoogleAdsDeepAuditAd extends GoogleAdsDeepAuditMetric {
   adGroupId: string | null
   adGroupName: string | null
   adGroupStatus: string | null
@@ -108,7 +108,7 @@ export interface GoogleAdsDeepAuditAd extends GoogleAdsDeepAuditMetric {
   status: string | null
 }
 
-export interface GoogleAdsDeepAuditAsset extends GoogleAdsDeepAuditMetric {
+interface GoogleAdsDeepAuditAsset extends GoogleAdsDeepAuditMetric {
   adGroupAdResourceName: string | null
   assetResourceName: string | null
   campaignId: string | null
@@ -122,14 +122,14 @@ export interface GoogleAdsDeepAuditAsset extends GoogleAdsDeepAuditMetric {
   status: string | null
 }
 
-export interface GoogleAdsDeepAuditBreakdown extends GoogleAdsDeepAuditMetric {
+interface GoogleAdsDeepAuditBreakdown extends GoogleAdsDeepAuditMetric {
   campaignId: string | null
   campaignName: string | null
   campaignStatus: string | null
   dimension: string
 }
 
-export interface GoogleAdsDeepAuditSignal {
+interface GoogleAdsDeepAuditSignal {
   campaignId: string | null
   code:
     | "BROAD_POSITIVE_KEYWORD"
