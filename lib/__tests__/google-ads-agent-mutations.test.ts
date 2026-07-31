@@ -746,7 +746,40 @@ describe("Google Ads mutation gateway", () => {
           maximizeConversionValue: { targetRoas: 1.35 },
           resourceName: campaignResourceName,
         },
-        updateMask: "maximizeConversionValue",
+        updateMask: "maximizeConversionValue.targetRoas",
+      },
+    }])
+
+    expect(buildGoogleAdsMutateOperations([{
+      expected: { strategy: "MANUAL_CPC" },
+      kind: "campaign_bidding",
+      next: { strategy: "MAXIMIZE_CONVERSIONS" },
+      resourceName: campaignResourceName,
+    }], state)).toEqual([{
+      campaignOperation: {
+        update: {
+          maximizeConversions: {},
+          resourceName: campaignResourceName,
+        },
+        updateMask: "maximizeConversions.targetCpaMicros",
+      },
+    }])
+
+    expect(buildGoogleAdsMutateOperations([{
+      expected: {
+        strategy: "MAXIMIZE_CONVERSIONS",
+        targetCpaMicros: 35_000_000,
+      },
+      kind: "campaign_bidding",
+      next: { strategy: "MANUAL_CPC" },
+      resourceName: campaignResourceName,
+    }], state)).toEqual([{
+      campaignOperation: {
+        update: {
+          manualCpc: { enhancedCpcEnabled: false },
+          resourceName: campaignResourceName,
+        },
+        updateMask: "manualCpc.enhancedCpcEnabled",
       },
     }])
 

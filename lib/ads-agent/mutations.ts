@@ -469,22 +469,22 @@ function biddingMutate(
   const update: UnknownRecord = { resourceName: operation.resourceName }
   let updateMask: string
   if (operation.next.strategy === "MANUAL_CPC") {
-    update.manualCpc = {}
-    updateMask = "manualCpc"
+    update.manualCpc = { enhancedCpcEnabled: false }
+    updateMask = "manualCpc.enhancedCpcEnabled"
   } else if (operation.next.strategy === "MAXIMIZE_CONVERSIONS") {
     update.maximizeConversions = {
       ...(operation.next.targetCpaMicros != null
         ? { targetCpaMicros: String(operation.next.targetCpaMicros) }
         : {}),
     }
-    updateMask = "maximizeConversions"
+    updateMask = "maximizeConversions.targetCpaMicros"
   } else {
     update.maximizeConversionValue = {
       ...(operation.next.targetRoas != null
         ? { targetRoas: operation.next.targetRoas }
         : {}),
     }
-    updateMask = "maximizeConversionValue"
+    updateMask = "maximizeConversionValue.targetRoas"
   }
   return {
     campaignOperation: {
