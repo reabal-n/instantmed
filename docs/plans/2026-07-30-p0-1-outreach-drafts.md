@@ -88,9 +88,11 @@ An earlier version of these drafts said "an AHPRA-registered doctor reviews it a
 
 Short description (≈50 words):
 
-> InstantMed is an Australian telehealth service for medical certificates, repeat prescriptions, and treatment requests for erectile dysfunction, hair loss, and women's health. Patients complete a structured clinical form. Requests can be submitted and reviewed 24/7. Australia-wide, 18+. Full refund if the doctor declines.
+> InstantMed is an Australian telehealth service for medical certificates, repeat prescriptions, and treatment requests for erectile dysfunction, hair loss, and women's health. Patients complete a structured clinical form. Australia-wide, 18+. Full refund if the doctor declines.
 
-**The process claim is deliberately absent from this short description.** The approved `clinical_review_sequence` claim is two sentences and does not fit a 50-word field, and **including only its prescribing half is a false claim** because it implies universal pre-issue certificate review. The rule for every short field: **carry the complete branch-aware claim, or carry no process claim at all.** An earlier draft carried only the prescribing sentence here, and Trustpilot and GBP then reused it, propagating the error to three surfaces.
+**Both the process claim and the availability claim are deliberately absent from this short description.** Same rule for each: `clinical_review_sequence` and `availability_24_7` are two-sentence controlled claims that do not fit a 50-word field, and **carrying only their first sentence is a forked claim** — a truncated `availability_24_7` drops the review-timing qualifier and reads as an implied turnaround. There is also **no separate "turnaround" field**: an earlier draft invented one ("Reviewed around the clock, no guaranteed timeframe"), which is not an approved claim and has been removed.
+
+**The original rule, restated:** The approved `clinical_review_sequence` claim is two sentences and does not fit a 50-word field, and **including only its prescribing half is a false claim** because it implies universal pre-issue certificate review. The rule for every short field: **carry the complete branch-aware claim, or carry no process claim at all.** An earlier draft carried only the prescribing sentence here, and Trustpilot and GBP then reused it, propagating the error to three surfaces.
 
 If a longer field is available, use the full claim verbatim:
 
@@ -106,8 +108,8 @@ Structured fields:
 | Prescription | $29.95 |
 | Consultations | $49.95 |
 | Optional add-on | $9.95 priority review |
-| Availability | Requests can be submitted and reviewed 24/7. Australia-wide, 18+ |
-| Turnaround | Reviewed around the clock. **No guaranteed timeframe** |
+| Availability | Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume. |
+| Service area | Australia-wide, 18+ |
 | Refund policy | Refund if declined (approved compact alias) |
 | Bulk billing | Not available |
 | App | No app, mobile web |

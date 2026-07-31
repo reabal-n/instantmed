@@ -6,7 +6,7 @@
 >
 > **Ranked item: UNRESOLVED, and this is a blocking governance gate.** ROADMAP rank 1 (truth and measurement gate) is the natural home — this is measurement-truth work — **but rank 1 is currently marked Complete (2026-07-12, follow-ups 2026-07-19)**, and a reference-only plan cannot reopen it. Rank 1's own checkpoint provides the mechanism: *"Re-open any closed sub-boundary when production evidence or an operator decision exposes drift."* **This specification therefore requests a rank-1 reopening as an operator decision, recorded in `docs/ROADMAP.md`.** Until that is recorded, this work has no ranked home and implementation cannot begin. A previous draft simply claimed rank 1, which was a canon mismatch.
 >
-> **Written 2026-07-30. Revised v4** after three gate-review rounds (12, 14, then 15 findings, all upheld). §9 records every adjudication. **The worst finding across all rounds was mine: the original zero-detection conclusion was invalid, and the denominator that replaced it excluded positive detections.**
+> **Written 2026-07-30. Revised v5 (2026-07-31)** after four gate-review rounds (12, 14, 15, then 10 findings, all upheld). §9 records every adjudication. **The three worst defects were all mine:** the original zero-detection conclusion was invalid, the denominator that replaced it excluded positive detections, and the guarded SQL that replaced *that* blocked the very `none → detected` upgrade it existed to permit.
 
 ---
 
@@ -205,7 +205,10 @@ The parent plan requires ambiguous You.com as an **explicit negative fixture**. 
 | **I — intake denominator** | Every intake with non-`NULL` `ai_source_detected`, including those carrying `none`. `NULL` rows are excluded and counted separately |
 | **I_e** | Instrumented intakes carrying enum value *e* |
 | **P_e — paid orders** | Intakes in **I_e** that reached a paid state, counted on canonical `paid_at` inside the window. **A partially refunded order is still one paid order** |
-| **R_e — net-retained revenue** | `SUM(amount_cents - COALESCE(refund_amount_cents, 0))` over **P_e**, which is the only formulation that handles partial refunds correctly. Disputes/chargebacks are **excluded from R_e and reported as a separate line**, never silently netted |
+| **G_e — gross paid value** | `SUM(amount_cents)` over **P_e**. Enters the window by `paid_at` |
+| **F_e — refund outflow** | Refunds whose **`refunded_at` falls inside the window**, attributed to the engine on the originating intake, **even when that intake was paid before the window**. Failed refunds never reduce. `refund_status = 'failed'` excluded |
+| **D_e — dispute outflow** | Disputes attributed by their **own event timestamp**, same rule |
+| **R_e — per-engine retained value (snapshot diagnostic, NOT the canonical rung)** | `G_e − F_e − D_e` |
 
 **N must be computed from the current request's classification, never from the sticky cookie.** Reading the cookie would count every subsequent page view of a returning visitor as a fresh detection, inflating N without bound. The cookie exists for *intake attribution*; the counter exists for *request detection*. They are different questions and must not share a source.
 
@@ -216,7 +219,14 @@ The parent plan requires ambiguous You.com as an **explicit negative fixture**. 
 | Request detection rate | `N_e / M` | Share of arrivals from engine *e* |
 | Per-engine conversion rate | `P_e / I_e` | How well engine *e*'s traffic converts |
 | Order share | `P_e / Σ P` over all instrumented intakes | Engine *e*'s share of instrumented paid orders |
-| Net-retained revenue | `R_e` | Dollars, with disputes shown separately |
+| Per-engine retained value | `R_e` | **Snapshot diagnostic only** — see the constraint below |
+
+**Event-based windows, matching existing canon.** `lib/data/net-retained-purchase-value.ts` already states the rule: *"Purchases enter by `paid_at`; refunds leave by `refunded_at`, even when the original purchase predates the window."* The previous draft's `SUM(amount_cents − refund_amount_cents)` over in-window paid orders violated that three ways — it missed refunds issued in-window against older orders, let a closed window change retroactively as `refund_amount_cents` accrued, and could not allocate successive partial or top-up refunds. It also omitted disputes while calling itself net-retained, which `docs/REVENUE_MODEL.md` defines as *"captured order revenue less refunds **and disputes** for the same reporting window."*
+
+**R_e is explicitly a snapshot diagnostic and must never be quoted as rung attainment.** `intakes.refund_amount_cents` is a cumulative column, not an immutable refund-event log, so per-engine allocation of successive partial refunds cannot be reconstructed exactly, and there is no per-engine dispute feed. Two binding consequences:
+
+1. **The canonical `$5,000/month` rung stays with `buildNetRetainedPurchaseValue` and the admin dashboard**, all channels, including disputes. This spec produces no rung figure.
+2. **Every report carrying R_e must label it a snapshot diagnostic** and state that disputes may be incomplete. If an immutable refund-event source later exists, R_e can be promoted; until then it is directional.
 
 Windows are the **two closed, non-overlapping 30-day windows** the parent plan mandates. Never mix request-level and intake-level denominators in one figure.
 
@@ -233,7 +243,7 @@ Windows are the **two closed, non-overlapping 30-day windows** the parent plan m
 
 **Trust boundary — do not trust the existing cookie.** `instantmed_attribution` is **not `httpOnly`** (§2.3), so any value in it is client-writable and unsuitable as an authoritative acquisition claim.
 
-- **Authoritative path:** derive server-side in middleware and write to a **separate `httpOnly`, `secure`, `sameSite=lax` cookie** carrying only `{ enum, version }`. This is what checkout persists.
+- **Authoritative path:** derive server-side in middleware and write to a **separate `httpOnly`, `secure`, `sameSite=lax`, signed** cookie whose canonical payload is defined once below. This is what checkout persists.
 - **Non-authoritative path:** the client may call the same shared classifier for its PostHog `ai_referral` event. Clearly labelled non-authoritative; it must not feed revenue reporting.
 
 **Pre-intake cookie lifecycle — fully specified, because an unspecified upgrade rule silently decides the attribution model:**
@@ -247,19 +257,35 @@ Windows are the **two closed, non-overlapping 30-day windows** the parent plan m
 | non-`none` | anything | **immutable, no write** | First-AI-touch. A later Copilot arrival after ChatGPT is **not** represented |
 | any | derivation errors | no write, fail open | Never block on measurement |
 
-**Cookie payload — the previous draft's `{ enum, version }` could not implement its own TTL rule.** `Set-Cookie` restarts `Max-Age` on every write, so a `none → detected` upgrade would silently extend the window. Payload is therefore:
+**Cookie payload — canonical definition, and the ONLY one in this document.** Earlier drafts said `{ enum, version }` in two places and four fields in a third; that contradiction is resolved here and both other mentions now point at this block. `Set-Cookie` restarts `Max-Age` on every write, so a two-field payload could not have implemented its own TTL rule.
 
 ```
-{ enum, version, first_seen_at, expires_at }   // ISO-8601 UTC timestamps
+payload = { enum, version, first_seen_hour, expires_at }   // ISO-8601 UTC
+cookie  = base64url(payload) + "." + HMAC-SHA256(payload, INTERNAL_API_SECRET)
 ```
 
-- **`first_seen_at`** is written once, on the first instrumented request, and never changed.
-- **`expires_at` = `first_seen_at` + 30 days**, computed once and **carried verbatim through every subsequent write**, including the upgrade. On each write `Max-Age` is recomputed as `expires_at - now`, so re-setting the cookie cannot extend the window. If that value is ≤ 0 the cookie is cleared and the next request starts a fresh `first_seen_at`.
-- **Consumers must honour `expires_at`, not merely the browser's expiry** — a clock-skewed or replayed cookie past `expires_at` is treated as absent.
-- **Classifier version on upgrade:** an upgrade writes **the current classifier version**, because the value being stored was produced by the current registry. `first_seen_at` still reflects the original visit. So `version` describes *the stored classification*, and `first_seen_at` describes *the visit* — the previous draft conflated them by saying version is "preserved as written", which would have mislabelled an upgraded value with the older registry.
+**Signed, because `httpOnly` is not authenticity.** `httpOnly` stops page scripts reading the cookie; it does nothing to stop a crafted request supplying one. An unsigned cookie would let anyone assert `enum: "copilot"` and poison the very measurement this exists to produce. Reuse the existing HMAC pattern from `lib/crypto/heard-about-us-token.ts`. **A cookie failing signature validation is treated as absent and overwritten**, never partially trusted.
+
+**`first_seen_hour`, not `first_seen_at`.** An exact millisecond timestamp is high-cardinality and sits uncomfortably beside "no new identifier". Truncating to the UTC hour keeps the TTL arithmetic correct to within an hour — irrelevant against a 30-day window — and removes the fingerprinting surface. **Do not store a precise first-seen timestamp anywhere.**
+
+**Strict validation on every read**, all failures treated as absent:
+
+- `enum` ∈ the closed set; `version` a known integer; both timestamps parseable ISO-8601 UTC.
+- `expires_at − first_seen_hour ≤ 30 days` — a **hard cap enforced on read**, so a forged or corrupted longer window cannot take effect even if the signature were somehow valid.
+- `expires_at` in the future, else clear and start fresh.
+
+- **Classifier version on upgrade:** an upgrade writes **the current classifier version**, because the value being stored was produced by the current registry. `first_seen_hour` still reflects the original visit. So `version` describes *the stored classification*, and `first_seen_hour` describes *the visit* — the previous draft conflated them by saying version is "preserved as written", which would have mislabelled an upgraded value with the older registry.
 - A registry change never retroactively reclassifies an existing cookie and never unlocks a rewrite of a non-`none` value. Reports group by `version` so a mid-window registry change is visible rather than blended.
 - **Multiple intakes from one cookie:** every intake created while the cookie lives inherits the **same** value. This is deliberate — the question is which assistant introduced the patient, not which introduced each order. Consequence to state in reports: a patient placing three orders contributes three attributed orders from one referral event.
-- **Cookie carries no identifier** — `{ enum, version }` only. It is not a session identifier and must not be used as one.
+- **Cookie carries no identifier.** The canonical payload is defined above and contains no per-visitor value: an enum, an integer version, and two coarse timestamps. It is not a session identifier and must not be used as one.
+- **`first_seen_hour` is written once** on the first instrumented request and never changed. **`expires_at` = `first_seen_hour` + 30 days**, computed once and carried verbatim through every later write, including an upgrade; `Max-Age` is recomputed as `expires_at − now` so re-setting cannot extend the window. Consumers honour `expires_at`, not merely browser expiry.
+
+**Existing raw values must be dealt with, not just stopped at the source.** The §4.6 sanitisation prevents *new* raw referrers landing, but visitors already carry up to 30 days of them:
+
+- **`instantmed_attribution` cookie:** on the first request after deploy, rewrite the cookie with the referrer field sanitised to origin + path. Do not wait for natural expiry, and do not simply delete the cookie — that would discard live paid-campaign attribution.
+- **Web storage (`attribution.ts`):** on first load after deploy, read, sanitise, and rewrite the stored record. Same reasoning.
+- **External referrers are stored as origin only**, not origin + arbitrary path. A path can itself carry identifying context (`/c/<conversation-id>`-shaped URLs are common on assistant hosts), and we need only the host to classify. **Same-origin landing paths keep their path**, since that is our own routing data and already captured as `landing_page`.
+- Both rewrites are idempotent and fail-open: a malformed record is cleared rather than partially migrated.
 
 ### 4.6 Privacy — sanitise both existing writers
 
@@ -287,18 +313,33 @@ Sanitised form throughout is origin + path only, matching `cleanUrlOrPath`. Raw 
    - **Authenticated insert** — value present at insert.
    - **Guest insert** — value present at insert; **guest reconstruction** must carry it when an intake is rebuilt after a failed first attempt.
 3. **Write-once enforced at the data layer**, not only in application code.
-4. **Idempotency collisions — "earliest wins" made enforceable.** The previous draft asserted the earliest value survives without saying how, which is unenforceable: rows carry no ordering. Add a companion column **`ai_source_observed_at timestamptz`** (the cookie's `first_seen_at`, not insert time), and make every write a **guarded update**:
+4. **Collisions — one model, chosen: FIRST-COMMIT-WINS. No timestamp comparison.**
+
+   **The previous draft's SQL was broken and blocked the transition §4.5 requires.** It compared the cookie's `first_seen_at` with `$3 < ai_source_observed_at`, but `first_seen_at` is written once and never changes — so on a `none → detected` upgrade both sides are equal, `<` is false, and the upgrade could never commit. It also used "earliest wins" and "first-commit-wins" interchangeably; they are different models.
+
+   **Model chosen: first-commit-wins**, expressed as an atomic compare-and-set with **no ordering column at all**:
 
    ```sql
-   UPDATE intakes SET ai_source_detected = $1,
-                      ai_source_classifier_version = $2,
-                      ai_source_observed_at = $3
-   WHERE id = $4
-     AND (ai_source_detected IS NULL OR ai_source_detected = 'none')
-     AND ($3 < ai_source_observed_at OR ai_source_observed_at IS NULL)
+   UPDATE intakes
+      SET ai_source_detected = $1,
+          ai_source_classifier_version = $2
+    WHERE id = $3
+      AND $1 <> 'none'
+      AND (ai_source_detected IS NULL OR ai_source_detected = 'none')
    ```
 
-   This is atomic under concurrency, makes first-commit-wins a property of the statement rather than of application ordering, and lets a `none` row upgrade while a non-`none` row stays immutable.
+   | Current | Incoming | Result |
+   |---|---|---|
+   | `NULL` | non-`none` | writes |
+   | `none` | non-`none` | **writes — the upgrade the old SQL blocked** |
+   | non-`none` | anything | no rows matched, value immutable |
+   | any | `none` | no rows matched (guarded by `$1 <> 'none'`) |
+
+   Ties are impossible by construction: the first statement to commit wins, and every later one matches zero rows. Concurrency is handled by the row lock, not by application ordering.
+
+   **`ai_source_observed_at` is dropped from the schema.** It existed only to serve the broken comparison, and removing it also removes a high-cardinality timestamp from the database — which resolves the tension with "no new identifier" rather than arguing about it.
+
+   *(The `none` row is still written at insert so `NULL` and `none` stay distinguishable per §4.4.)*
 5. **Retry payment** preserves the original value and must not re-derive from the retry navigation.
 6. **Webhook and fallback finalisation read the intake and preserve the value.** They must not write it, and must not drop it while setting `paid_at`.
 7. All reporting uses canonical `paid_at` / `refunded_at` windows and the closed non-overlapping windows the parent plan mandates.
@@ -312,11 +353,19 @@ Sanitised form throughout is origin + path only, matching `cleanUrlOrPath`. Raw 
 | Request type | Top-level document navigation only — `Sec-Fetch-Mode: navigate` **and** `Sec-Fetch-Dest: document` |
 | Method | `GET` (and `HEAD` excluded) |
 | Accept | `Accept` includes `text/html` |
-| Origin | `Sec-Fetch-Site` is **not** `same-origin`. Internal navigations are excluded — the denominator counts arrivals, not page views |
+| Origin | `Sec-Fetch-Site` is **neither `same-origin` nor `same-site`**. Both are internal navigation; counting `same-site` would include subdomain hops as arrivals. The denominator counts arrivals, not page views |
 | Prefetch | Excluded when `Sec-Purpose: prefetch` or `Purpose: prefetch` is present |
 | Path exclusions | Anything matched by `isExternalAnalyticsExcludedPathname` (capability/bearer paths), plus `/api/*`, `/_next/*`, static assets, health checks, and the `Disallow` set in `app/robots.ts` |
-| Bots/crawlers | Excluded from the denominator via a conservative user-agent check, and **counted separately** so exclusion volume is visible rather than silent |
+| Bots/crawlers | Excluded via one **named, versioned matcher**: case-insensitive `/(bot|crawler|spider|crawling|slurp|headless|preview|monitor|probe|scan)/` on the user agent, **plus** exact matches for the documented AI fetchers in `app/robots.ts`. Required fixtures: `Googlebot`, `bingbot`, `ChatGPT-User`, `PerplexityBot`, `Claude-User` → excluded; a stock desktop Chrome UA and a stock iOS Safari UA → **counted**. Excluded volume is reported, never silently dropped |
 | Missing headers | If `Sec-Fetch-*` headers are absent (older clients), fall back to `Accept: text/html` + `GET`; **count these in a distinct `indeterminate` bucket** rather than assuming eligibility |
+
+**`dimension_key` is a closed set**, so the counter's cardinality is bounded and auditable:
+
+```
+dimension_key ∈ { "<enum>:eligible", "<enum>:indeterminate", "bot", "excluded_path" }
+```
+
+where `<enum>` is one of the seven `AiSourceEnum` values. Nothing else may be written; an unrecognised key is a bug, not a new dimension.
 
 **Not "visits" and not "sessions"** — session semantics would require privacy-safe deduplication, explicitly out of scope.
 
@@ -350,6 +399,15 @@ Instead:
 6. Finalisation preserves the value while setting `paid_at`.
 7. **No referrer query string or fragment** in cookie, session storage, local storage, DB, Stripe, PostHog, logs, or Sentry.
 8. `NULL` and `none` are distinguished in every report.
+9. **Cookie expiry and version:** an upgrade does not extend `expires_at`; a cookie past `expires_at` is treated as absent; an upgrade writes the current classifier version; a cookie failing HMAC validation is treated as absent and overwritten; a payload whose `expires_at − first_seen_hour` exceeds 30 days is rejected.
+10. **Collision ordering and ties:** `NULL → non-none` writes · `none → non-none` writes (the regression the old SQL blocked) · `non-none → anything` matches zero rows · incoming `none` never overwrites · two concurrent writers leave exactly one value and neither errors.
+11. **Counter source:** the counter increments from the **current request's** classification, never the cookie. A repeat visit carrying a non-`none` cookie but classifying `none` this request increments the `none` bucket.
+12. **Version separation:** two classifier versions in one hour produce two counter rows, never one blended row.
+13. **Control-bucket exclusion:** a counter row in the excluded control bucket is absent from M and N, and the exclusion is reported.
+14. **Revenue:** a partial refund leaves `P_e` unchanged and reduces `R_e` · a refund whose `refunded_at` falls in the window but whose order was paid earlier still reduces `R_e` · a `failed` refund reduces nothing · `R_e` is labelled a snapshot diagnostic wherever it is rendered.
+15. **ACLs:** `EXECUTE` on the counter RPC is denied to `anon` and `authenticated` and granted to `service_role`; the counter table has RLS enabled with zero policies.
+16. **Fail-open:** RPC unavailable · RPC throws · permission denied · `waitUntil` unsupported — each leaves the HTTP response status, body, and latency unaffected.
+17. **Migration of existing values:** a pre-deploy cookie or web-storage record carrying a raw referrer is rewritten sanitised on first request, idempotently, and a malformed record is cleared rather than partially migrated.
 
 ### 4.11 Required fixtures — two separate suites
 
@@ -391,8 +449,24 @@ Every row asserts **one** exact `AttributionSourceGroup`. Inputs are pinned so t
 | `utm_campaign=gemini_test`, no `utm_source`, no referrer, `landing_page=/` | `direct` — **must not be `ai_referral`** (§3.2) |
 | `gclid` present | `google_ads` |
 | referrer `https://chatgpt.com/`, `landing_page=/medical-certificate` | `ai_referral` |
-| referrer `https://you.com/search?q=...`, `landing_page=/medical-certificate` | `organic_nonbrand` **after** the §4.3 exact-host change ships. Assert `referral` if the fixture is written before it |
-| referrer `https://kagi.com/search?q=...`, `landing_page=/medical-certificate` | same rule as You.com |
+| referrer `https://you.com/search?q=...`, `landing_page=/medical-certificate` | `organic_nonbrand` |
+| referrer `https://kagi.com/search?q=...`, `landing_page=/medical-certificate` | `organic_nonbrand` |
+| referrer `https://gemini.google.com/`, `landing_page=/medical-certificate` | `ai_referral` |
+| referrer `https://claude.ai/`, `landing_page=/medical-certificate` | `ai_referral` |
+| referrer `https://www.perplexity.ai/search/...`, `landing_page=/prescriptions` | `ai_referral` |
+
+**These are unconditional.** The exact-host change for You.com and Kagi ships **in PR 1**, in the same commit as the fixtures, so there is no window in which `referral` is the correct answer. An earlier draft offered "assert `referral` if written before it", which reintroduced exactly the alternative-outcome hedge this suite exists to eliminate.
+
+**How three-surface parity is observed.** The surfaces expose different shapes, so parity is asserted at the layer each one actually owns:
+
+| Surface | Observable | Parity assertion |
+|---|---|---|
+| `classifyAiSource` | `{ isAi, engine, enum }` | Reference result for the input |
+| `ai-referral.ts` | PostHog event props | `ai_source_enum` and `engine` equal the reference |
+| `ai-attribution-breakdown.ts` | Engine label | Equals the reference `engine` (or absent when `enum === "none"`) |
+| `classifyAttributionSource` | `AttributionSourceGroup` | `group === "ai_referral"` **iff** reference `isAi === true` |
+
+The last row is the binding one: the full classifier does not expose an engine, so parity with it is a **biconditional on the AI branch**, not an equality of engine values.
 
 ### 4.12 Documentation (same commit)
 
@@ -573,3 +647,26 @@ All findings verified against the code before acceptance.
 | R13 | Availability/refund claims paraphrased | Bound to `availability_24_7` and `refund_guarantee` verbatim, with `refund_guarantee_label` as the approved compact alias for table cells |
 | R14 | Stale adjudication text | Round-1 `bing_ai` "follow-up" row marked **superseded**; round-2 P5 row corrected for R9 |
 | R15 | Orphan registry header, stale "v2" label, `file-map` wording | All cleaned; header now reads v4 |
+
+
+### Round 4 (2026-07-31) — 10 findings, all upheld
+
+**Specification**
+
+| # | Finding | Verification | Resolution |
+|---|---|---|---|
+| Q1 | **Collision SQL blocked its own `none → detected` upgrade.** It compared the cookie's `first_seen_at` with `<`, but that value never changes, so on upgrade both sides were equal and the guard always failed. It also used "earliest wins" and "first-commit-wins" as synonyms | Logic trace against §4.5's required transition | **One model chosen: first-commit-wins**, as an atomic CAS with **no ordering column** (`$1 <> 'none' AND (current IS NULL OR current = 'none')`). Ties impossible by construction. **`ai_source_observed_at` dropped from the schema**, which also removes a high-cardinality timestamp |
+| Q2 | Cookie had two incompatible contracts (`{enum, version}` in two places, four fields in a third) | Lines 236, 253, 262 | One canonical payload; both other mentions now reference it. Added **HMAC signing** (`httpOnly` is not authenticity — an unsigned cookie lets anyone assert `enum: "copilot"`), strict validation, a **hard 30-day cap enforced on read**, `first_seen_hour` instead of an exact timestamp, **origin-only storage for external referrers**, and **migration/rewrite of existing raw cookie and web-storage values** rather than waiting for expiry |
+| Q3 | **Closed-window revenue still wrong.** Subtracting cumulative `refund_amount_cents` from in-window paid orders misses in-window refunds against older orders, lets a closed window change retroactively, cannot allocate successive partial refunds, and omitted disputes while using the name "net-retained" | `lib/data/net-retained-purchase-value.ts` states purchases enter by `paid_at` and refunds leave by `refunded_at` **even when the purchase predates the window**; `docs/REVENUE_MODEL.md:24` requires refunds **and disputes** deducted | Split into `G_e` / `F_e` / `D_e` on their own event timestamps. **`R_e` explicitly relabelled a snapshot diagnostic, prohibited for the canonical rung**, which stays with `buildNetRetainedPurchaseValue` |
+| Q4 | Fixtures still non-executable — You.com/Kagi accepted alternatives | — | Unconditional `organic_nonbrand`; the exact-host change ships **in the same PR-1 commit** as the fixtures. Added positive fixtures for Gemini, Claude, Perplexity. **Three-surface parity clarified**: the full classifier exposes a group, so parity with it is a **biconditional on the AI branch**, not engine equality |
+| Q5 | Denominator unfinished | — | `same-site` excluded alongside `same-origin`; one named versioned bot matcher with six required fixtures; **closed `dimension_key` set**; positive-control intake flagging specified |
+| Q6 | Contract matrix too thin | — | Expanded from 8 to 17 items covering expiry/version, collision ties, sticky-vs-current counting, version separation, control-bucket exclusion, partial refunds and disputes, ACLs, fail-open, and value migration |
+
+**Standards**
+
+| # | Finding | Resolution |
+|---|---|---|
+| Q7 | Parent header claimed "no canon changes" and named ranks 3/6 only, while §9 requested two including a rank-1 reopening | Header rewritten to state exactly what is and is not proposed, with both pending decisions named; `file-map.md` scope line reconciled |
+| Q8 | `R_e` named net-retained while excluding disputes | Renamed and constrained — see Q3 |
+| Q9 | Availability copy forked — Finder truncated `availability_24_7` and propagated it to Trustpilot and GBP; a separate "Turnaround" field was invented | Short description now carries **neither** process nor availability claim, with the truncation rule stated; structured field carries the **complete** claim; the invented Turnaround row is deleted |
+| Q10 | Clinically false source documents still advertised as ready | **Correction banners added in place** to `docs/audits/2026-07-09-comparison-surface-submission-kit.md` and `docs/runbooks/NHSD_REGISTRATION.md`; parent no longer calls the kit "submission-ready"; `file-map.md` no longer calls the runbook "paste-ready". A blocker elsewhere does not repair an active source |

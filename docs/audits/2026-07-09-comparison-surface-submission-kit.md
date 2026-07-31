@@ -1,5 +1,15 @@
 # Comparison surface submission kit - 2026-07-09
 
+> ## ⚠️ CORRECTION REQUIRED BEFORE USE — added 2026-07-31
+>
+> **This document asserts universal pre-issue doctor review. That is clinically false** for eligible protocol-based medical-certificate issuance, and it contradicts the approved claim `clinical_review_sequence` in `lib/marketing/approved-claims.ts`:
+>
+> > "Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward."
+>
+> **Do not copy, paste, submit, or publish any review-sequence wording from this document.** Replace every such phrase with the approved claim verbatim, or omit the process claim entirely. Everything else here (prices, entity facts, surface research) remains usable once re-verified against `PRICING` at send time.
+>
+> Tracked by `docs/plans/2026-07-30-p0-1-outreach-drafts.md`. This banner is removed only when the body text is repaired.
+
 Status: prepared only. Do not submit to MediCompare, Finder, or any other third party without operator confirmation.
 
 InstantMed fact-sheet terminology refreshed 2026-07-13. Third-party surface research rechecked 2026-07-24 (see the research table and the 2026-07-24 recheck receipt below); the kit is submission-ready pending operator confirmation.

@@ -2,7 +2,7 @@
 
 > **Status: research programme, not an operating plan.** Phase 0 is approved work. Phases 1–3 are pre-registered experiments and conditional work that unlock only on stated evidence. Nothing here reorders canon.
 >
-> **Authority:** Reference only. `docs/ROADMAP.md` is the sole active priority queue and owns the **$5,000/month rolling net-retained revenue** rung. This document elaborates ROADMAP rank 3 (external reputation and distribution) and rank 6 (compounding work) and inherits their checkpoints. **It proposes no canon changes** — see §9.
+> **Authority:** Reference only. `docs/ROADMAP.md` is the sole active priority queue and owns the **$5,000/month rolling net-retained revenue** rung. This document elaborates ROADMAP rank 3 (external reputation and distribution) and rank 6 (compounding work) and inherits their checkpoints. **It proposes no change to content-selection canon and no change to ROADMAP rank order.** Its P0.2 specification does request **two narrower canon decisions** that remain **pending operator approval** — a `CLAUDE.md:380` clause narrowing, and a **rank-1 reopening** (which, if granted, would give that specification a third ranked home). Both are listed with status and gate in **§9**; neither is assumed anywhere in this plan. An earlier header said "proposes no canon changes", which contradicted §9.
 >
 > **Supersedes** `docs/plans/archive/2026-07-24-organic-free-revenue-20k-plan.md` (moved to archive per ROADMAP §7). Its `$20k/mo free` goal and `$4k` free-channel fail line are **not canon and are not used here**.
 >
@@ -134,7 +134,7 @@ This changes the target ordering materially. Estimated competing citations, 90d:
 
 **Approved now: drafting only.** Each item below is drafted by an agent and then held for a **separate, explicit send approval**.
 
-**Operator, ~1 h total, each send approved individually at the moment of sending:** MediCompare email (`info@medicompare.com.au`), Finder partner form, Trustpilot claim-and-hold. Kit is submission-ready at `docs/audits/2026-07-09-comparison-surface-submission-kit.md` — do not re-research the landscape.
+**Operator, ~1 h total, each send approved individually at the moment of sending:** MediCompare email (`info@medicompare.com.au`), Finder partner form, Trustpilot claim-and-hold. Kit at `docs/audits/2026-07-09-comparison-surface-submission-kit.md` is research-complete but **NOT send-ready**: it still asserts universal pre-issue doctor review and carries a correction banner. Repair or retire it before any send. Do not re-research the landscape.
 
 **Agent drafts, operator approves each publication separately:** **NHSD/PCA `.gov.au` listing freshness** (the 07-08 audit found it stale; health prompts route heavily to institutional sources) · Google Business Profile confirm/refresh, with the boundary that **GBP counts and ratings never render on-site** (AHPRA s133 posture; on-site badge stays stars-only). **Neither is an agent-autonomous edit — each is a live external property.**
 

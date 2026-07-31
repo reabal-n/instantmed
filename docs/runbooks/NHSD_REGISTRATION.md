@@ -1,5 +1,15 @@
 # NHSD_REGISTRATION.md — National Health Services Directory listing
 
+> ## ⚠️ CORRECTION REQUIRED BEFORE USE — added 2026-07-31
+>
+> **This document asserts universal pre-issue doctor review. That is clinically false** for eligible protocol-based medical-certificate issuance, and it contradicts the approved claim `clinical_review_sequence` in `lib/marketing/approved-claims.ts`:
+>
+> > "Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward."
+>
+> **Do not copy, paste, submit, or publish any review-sequence wording from this document.** Replace every such phrase with the approved claim verbatim, or omit the process claim entirely. Everything else here (prices, entity facts, surface research) remains usable once re-verified against `PRICING` at send time.
+>
+> Tracked by `docs/plans/2026-07-30-p0-1-outreach-drafts.md`. This banner is removed only when the body text is repaired.
+
 > **Status: DONE (2026-06-11).** InstantMed is registered in Provider Connect
 > Australia (PCA) and **published to NHSD (Consumers + Providers), Services `1 of 1`,
 > consent accepted**. Org Publisher status = Approved/Active. Practitioners
