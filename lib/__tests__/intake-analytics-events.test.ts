@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest"
 import {
   buildIntakeAnswerChangedEvent,
   buildIntakeContinueClickedProperties,
+  buildIntakeEngagedProperties,
   buildIntakeStepCompletedProperties,
   buildIntakeStepViewedProperties,
   buildIntakeValidationBlockedProperties,
@@ -13,6 +14,7 @@ import {
 } from "@/lib/analytics/intake-events"
 
 const root = process.cwd()
+const requestStepsDir = join(root, "components/request/steps")
 
 function readProjectFile(path: string) {
   return readFileSync(join(root, path), "utf8")
@@ -24,6 +26,7 @@ describe("intake analytics events", () => {
     expect(INTAKE_ANALYTICS_EVENTS.stepViewed).toBe("step_viewed")
     expect(INTAKE_ANALYTICS_EVENTS.stepCompleted).toBe("step_completed")
     expect(INTAKE_ANALYTICS_EVENTS.checkoutViewed).toBe("checkout_viewed")
+    expect(INTAKE_ANALYTICS_EVENTS.engaged).toBe("intake_engaged")
     expect(INTAKE_ANALYTICS_EVENTS.validationBlocked).toBe("intake_validation_blocked")
   })
 
@@ -86,6 +89,20 @@ describe("intake analytics events", () => {
     })
   })
 
+  it("builds a keyed first-interaction payload without answer values", () => {
+    expect(
+      buildIntakeEngagedProperties({
+        flowInstanceId: "11111111-1111-4111-8111-111111111111",
+        serviceType: "repeat-script",
+        stepId: "medication",
+      }),
+    ).toEqual({
+      service_type: "prescription",
+      flow_instance_id: "11111111-1111-4111-8111-111111111111",
+      step_id: "medication",
+    })
+  })
+
   it("tracks answer changes as safe metadata only", () => {
     const event = buildIntakeAnswerChangedEvent({
       flowInstanceId: "11111111-1111-4111-8111-111111111111",
@@ -118,15 +135,25 @@ describe("intake analytics events", () => {
   })
 
   it("does not emit noisy text keystroke changes after a text field is already filled", () => {
-    expect(
-      buildIntakeAnswerChangedEvent({
-        serviceType: "med-cert",
-        stepId: "symptoms",
-        answerKey: "symptomDetails",
-        previousValue: "cough",
-        nextValue: "cough and sore throat",
-      }),
-    ).toBeNull()
+    for (const answerKey of [
+      "symptomDetails",
+      "medicationName",
+      "medicationStrength",
+      "medicationForm",
+      "indication",
+      "sideEffects",
+    ]) {
+      expect(
+        buildIntakeAnswerChangedEvent({
+          serviceType: "repeat-script",
+          stepId: "medication",
+          answerKey,
+          previousValue: "first patient-entered value",
+          nextValue: "edited patient-entered value",
+        }),
+        answerKey,
+      ).toBeNull()
+    }
   })
 
   it("redacts identity and free-text answer values by construction", () => {
@@ -192,8 +219,45 @@ describe("intake analytics events", () => {
       step_number: 4,
       step_index: 3,
       total_steps: 6,
+      block_type: "validation",
       blocker_count: 2,
       blockers: ["nitrate use", "GP clearance"],
+    })
+  })
+
+  it("classifies clinical and pathway blockers without patient-entered values", () => {
+    expect(
+      buildIntakeValidationBlockedProperties({
+        flowInstanceId: "11111111-1111-4111-8111-111111111111",
+        serviceType: "repeat-script",
+        stepId: "medication",
+        blockType: "clinical_hard_block",
+        blockers: ["controlled_substance"],
+      }),
+    ).toEqual({
+      service_type: "prescription",
+      flow_instance_id: "11111111-1111-4111-8111-111111111111",
+      step_id: "medication",
+      block_type: "clinical_hard_block",
+      blocker_count: 1,
+      blockers: ["controlled_substance"],
+    })
+
+    expect(
+      buildIntakeValidationBlockedProperties({
+        serviceType: "repeat-script",
+        stepId: "medication",
+        blockType: "service_steer",
+        resolution: "redirected",
+        blockers: ["dedicated_service_steer"],
+      }),
+    ).toEqual({
+      service_type: "prescription",
+      step_id: "medication",
+      block_type: "service_steer",
+      resolution: "redirected",
+      blocker_count: 1,
+      blockers: ["dedicated_service_steer"],
     })
   })
 
@@ -218,22 +282,42 @@ describe("intake analytics events", () => {
     expect(womensAssessmentSource.match(/subtype: answers\.consultSubtype/g)).toHaveLength(2)
   })
 
-  // P2.1 merged medication-history into medication-step. The merged step now
-  // owns the prescription-history, dose, indication, and side-effect answers,
-  // so its completion payload is the surface that could leak them. It may fire
-  // the legacy local `step_completed` (every other step does), but the payload
-  // stays a count — the centralized hook owns the PHI-safe funnel properties.
-  it("keeps the merged medication step's completion payload free of clinical answers", () => {
+  it("keeps every request-step completion on the one canonical flow hook", () => {
+    const stepPaths = readdirSync(requestStepsDir)
+      .filter((file) => file.endsWith("-step.tsx"))
+      .map((file) => `components/request/steps/${file}`)
+
+    for (const path of stepPaths) {
+      const source = readProjectFile(path)
+      expect(source, `${path} must not emit a second completion schema`).not.toContain(
+        'capture("step_completed"',
+      )
+      expect(source, `${path} must not emit a second completion schema`).not.toContain(
+        "capture('step_completed'",
+      )
+    }
+  })
+
+  it("wires medication validation and pathway exits to privacy-safe blocker keys", () => {
     const medicationSource = readProjectFile("components/request/steps/medication-step.tsx")
 
-    // Pinned as the whole payload, so ANY added property fails this test
-    // rather than only the clinical names we thought to grep for.
-    expect(medicationSource).toContain(
-      "posthog?.capture('step_completed', { step: 'medication', medication_count: medications.filter((m) => m.name.trim()).length })",
-    )
-    expect(medicationSource).not.toContain("prescription_history")
-    expect(medicationSource).not.toContain("has_side_effects")
-    expect(medicationSource).not.toContain("current_dose")
+    expect(medicationSource).toContain("buildIntakeValidationBlockedProperties")
+    expect(medicationSource).toContain("INTAKE_ANALYTICS_EVENTS.validationBlocked")
+    expect(medicationSource).toContain("const blockers = Object.keys(newErrors)")
+    expect(medicationSource).toContain('blockType: "clinical_hard_block"')
+    expect(medicationSource).toContain('blockers: ["controlled_substance"]')
+    expect(medicationSource).toContain('blockType: "service_steer"')
+    expect(medicationSource).toContain('blockers: ["dedicated_service_steer"]')
+    expect(medicationSource).not.toContain("blockers: Object.values(newErrors)")
+  })
+
+  it("separates passive arrival from the first user-touched answer", () => {
+    const storeSource = readProjectFile("components/request/store.ts")
+
+    expect(storeSource).toContain("INTAKE_ANALYTICS_EVENTS.engaged")
+    expect(storeSource).toContain("buildIntakeEngagedProperties")
+    expect(storeSource).toContain("if (tracksProgress && flowInstanceId)")
+    expect(storeSource).toContain("capturedEngagementFlowIds.has(flowInstanceId)")
   })
 
   it("keeps specialty completion on the centralized subtype-aware funnel hook", () => {
