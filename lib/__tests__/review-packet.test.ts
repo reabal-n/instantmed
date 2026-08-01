@@ -55,6 +55,7 @@ describe("buildReviewPacket", () => {
       "regimen",
     ])
     expect(packet.facts.map((fact) => fact.value).join(" ")).not.toContain("Effexor 75mg 75mg")
+    expect(packet.advisories).toEqual([])
   })
 
   it("marks embedded free-text strength as inferred without making it a headline issue", () => {
@@ -76,6 +77,10 @@ describe("buildReviewPacket", () => {
       issue: "Confirm strength",
     })
     expect(packet.facts.some((fact) => fact.key === "strength")).toBe(false)
+    expect(packet.advisories).toEqual([{
+      code: "confirm_strength_in_parchment",
+      message: "Confirm strength in Parchment",
+    }])
     expect(packet.issueCount).toBe(0)
   })
 
@@ -129,7 +134,17 @@ describe("buildReviewPacket", () => {
       issue: "Strength not recorded · confirm before prescribing",
       blocksPrescribing: false,
     })
-    expect(packet.issueCount).toBe(0)
+    expect(packet.advisories).toEqual([{
+      code: "confirm_strength_in_parchment",
+      message: "Confirm strength in Parchment",
+    }])
+    expect(packet.facts.find((fact) => fact.key === "patient_dose")).toMatchObject({
+      value: "Not recorded",
+      state: "missing",
+      issue: "Confirm dose and frequency",
+      blocksPrescribing: true,
+    })
+    expect(packet.issueCount).toBe(1)
   })
 
   it("omits routine negative safety context while retaining notable answers", () => {
@@ -160,6 +175,223 @@ describe("buildReviewPacket", () => {
     }))
     expect(packet.facts.some((fact) => fact.key === "allergies")).toBe(false)
     expect(packet.facts.some((fact) => fact.key === "pregnant_breastfeeding")).toBe(false)
+  })
+
+  it("keeps explicit patient-reported safety negatives in a separate provenance-aware summary", () => {
+    const packet = buildReviewPacket(repeatRxInput({
+      answers: {
+        ...(repeatRxInput().answers as Record<string, unknown>),
+        hasSideEffects: false,
+        hasAllergies: false,
+        hasAdverseMedicationReactions: false,
+        hasConditions: false,
+        hasOtherMedications: false,
+        isPregnantOrBreastfeeding: false,
+      },
+    }))
+
+    expect(packet.safety.confirmedNegatives).toEqual([
+      {
+        key: "side_effects",
+        label: "Side effects",
+        display: "No side effects",
+        state: "confirmed_negative",
+        provenance: "current_request",
+      },
+      {
+        key: "allergies",
+        label: "Allergy history",
+        display: "No allergies",
+        state: "confirmed_negative",
+        provenance: "current_request",
+      },
+      {
+        key: "medication_reactions",
+        label: "Medicine reaction history",
+        display: "No medicine reactions",
+        state: "confirmed_negative",
+        provenance: "current_request",
+      },
+      {
+        key: "conditions",
+        label: "Medical conditions",
+        display: "No conditions",
+        state: "confirmed_negative",
+        provenance: "current_request",
+      },
+      {
+        key: "other_medications",
+        label: "Other medicines",
+        display: "No other medicines",
+        state: "confirmed_negative",
+        provenance: "current_request",
+      },
+      {
+        key: "pregnancy_breastfeeding",
+        label: "Pregnancy/breastfeeding",
+        display: "Not pregnant/breastfeeding",
+        state: "confirmed_negative",
+        provenance: "current_request",
+      },
+    ])
+    expect(packet.safety.gaps).toEqual([])
+    expect(packet.issueCount).toBe(0)
+  })
+
+  it("treats absent legacy safety answers as not asked instead of reassuring negatives", () => {
+    const packet = buildReviewPacket(repeatRxInput())
+
+    expect(packet.safety.confirmedNegatives).toEqual([])
+    expect(packet.safety.gaps.map((fact) => ({ key: fact.key, state: fact.state }))).toEqual([
+      { key: "side_effects", state: "not_asked" },
+      { key: "allergies", state: "not_asked" },
+      { key: "medication_reactions", state: "not_asked" },
+      { key: "conditions", state: "not_asked" },
+      { key: "other_medications", state: "not_asked" },
+      { key: "pregnancy_breastfeeding", state: "not_asked" },
+    ])
+    expect(packet.issueCount).toBe(0)
+    expect(getReviewPacketBlocker(packet, "")).toEqual({
+      blocked: false,
+      warning: false,
+      message: null,
+    })
+  })
+
+  it("marks affirmative safety answers without required detail as missing", () => {
+    const packet = buildReviewPacket(repeatRxInput({
+      answers: {
+        ...(repeatRxInput().answers as Record<string, unknown>),
+        hasSideEffects: true,
+        sideEffects: "",
+        hasAllergies: true,
+        allergies: "",
+        hasAdverseMedicationReactions: true,
+        hasConditions: true,
+        conditions: "Asthma",
+        hasOtherMedications: false,
+        isPregnantOrBreastfeeding: true,
+      },
+      summary: {
+        title: "Repeat prescription",
+        keyFacts: [
+          { label: "Conditions", value: "Asthma" },
+          { label: "Pregnant/breastfeeding", value: "Yes" },
+          { label: "Adverse medication reactions", value: "Yes" },
+        ],
+      },
+    }))
+
+    expect(packet.safety.gaps).toContainEqual({
+      key: "side_effects",
+      label: "Side effects",
+      display: "Side-effect details missing",
+      state: "missing",
+      provenance: "current_request",
+      issue: "Confirm side-effect details",
+    })
+    expect(packet.safety.gaps).toContainEqual({
+      key: "allergies",
+      label: "Allergy history",
+      display: "Allergy details missing",
+      state: "missing",
+      provenance: "current_request",
+      issue: "Confirm allergy details",
+    })
+    expect(packet.safety.confirmedNegatives.map((fact) => fact.key)).toEqual(["other_medications"])
+    expect(packet.facts).toContainEqual(expect.objectContaining({ key: "conditions", value: "Asthma" }))
+    expect(packet.facts).toContainEqual(expect.objectContaining({
+      key: "pregnant_breastfeeding",
+      value: "Yes",
+    }))
+    expect(packet.facts).toContainEqual(expect.objectContaining({
+      key: "adverse_medication_reactions",
+      value: "Yes",
+    }))
+    expect(packet.issueCount).toBe(0)
+  })
+
+  it("reads persisted snake-case safety answers without treating conflicts as negatives", () => {
+    const packet = buildReviewPacket(repeatRxInput({
+      answers: {
+        ...(repeatRxInput().answers as Record<string, unknown>),
+        hasAllergies: false,
+        has_allergies: "yes",
+        known_allergies: "Penicillin rash",
+        has_side_effects: "no",
+        has_adverse_medication_reactions: "no",
+        has_conditions: "no",
+        has_other_medications: "no",
+        is_pregnant_or_breastfeeding: "no",
+      },
+      summary: {
+        title: "Repeat prescription",
+        keyFacts: [{ label: "Allergies", value: "Penicillin rash" }],
+      },
+    }))
+
+    expect(packet.safety.confirmedNegatives.map((fact) => fact.key)).toEqual([
+      "side_effects",
+      "medication_reactions",
+      "conditions",
+      "other_medications",
+      "pregnancy_breastfeeding",
+    ])
+    expect(packet.safety.confirmedNegatives.some((fact) => fact.key === "allergies")).toBe(false)
+    expect(packet.safety.gaps).toEqual([])
+    expect(packet.facts).toContainEqual(expect.objectContaining({
+      key: "allergies",
+      value: "Penicillin rash",
+    }))
+  })
+
+  it("never turns a negative toggle with affirmative detail into reassurance", () => {
+    const packet = buildReviewPacket(repeatRxInput({
+      answers: {
+        ...(repeatRxInput().answers as Record<string, unknown>),
+        hasSideEffects: false,
+        sideEffects: "Dizziness",
+        hasAllergies: false,
+        allergies: "Penicillin rash",
+        hasConditions: false,
+        conditions: "Asthma",
+        hasOtherMedications: false,
+        otherMedications: "Warfarin",
+      },
+      summary: {
+        title: "Repeat prescription",
+        keyFacts: [
+          { label: "Side effects", value: "Dizziness" },
+          { label: "Allergies", value: "Penicillin rash" },
+          { label: "Conditions", value: "Asthma" },
+          { label: "Current medications", value: "Warfarin" },
+        ],
+      },
+    }))
+
+    expect(packet.safety.confirmedNegatives).toEqual([])
+    expect(packet.safety.gaps).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        key: "side_effects",
+        state: "missing",
+        display: "Side effects response conflicts with recorded details",
+      }),
+      expect.objectContaining({
+        key: "allergies",
+        state: "missing",
+        display: "Allergy history response conflicts with recorded details",
+      }),
+      expect.objectContaining({
+        key: "conditions",
+        state: "missing",
+        display: "Medical conditions response conflicts with recorded details",
+      }),
+      expect.objectContaining({
+        key: "other_medications",
+        state: "missing",
+        display: "Other medicines response conflicts with recorded details",
+      }),
+    ]))
   })
 
   it("marks a legacy missing regimen attestation as a non-overridable request issue", () => {

@@ -558,7 +558,7 @@ describe("checkout operating hours", () => {
     const { supabase } = createGuestCheckoutSupabaseMock({
       duplicateAnswerPayload: {
         medication_name: "Sertraline",
-        current_dose: "Once daily",
+        current_dose: "One tablet each morning",
         repeat_rx_dose_contract_version: 1,
       },
       duplicateIntake,

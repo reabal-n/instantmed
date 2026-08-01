@@ -50,6 +50,7 @@ function missingStrengthRepeatInput() {
     subtype: "repeat",
     serviceSlug: "repeat-script",
     answers: {
+      repeat_rx_dose_contract_version: 1,
       medications: [{ name: "Atorvastatin", form: "tablet", pbsCode: "1234" }], // no strength
       prescribed_before: true,
       doseChanged: false,
@@ -75,6 +76,7 @@ describe("intake flags persistence shape (what risk_flags receives)", () => {
       subtype: "repeat",
       serviceSlug: "repeat-script",
       answers: {
+        repeat_rx_dose_contract_version: 1,
         medications: [{ name: "Atorvastatin", strength: "20 mg", pbsCode: "1234" }],
         prescribed_before: true,
         doseChanged: false,
@@ -100,13 +102,14 @@ describe("intake flags persistence shape (what risk_flags receives)", () => {
       subtype: "repeat",
       serviceSlug: "repeat-script",
       answers: {
+        repeat_rx_dose_contract_version: 1,
         medications: [{ name: "Sertraline 100mg", form: "tablet", pbsCode: "MANUAL" }],
         prescribed_before: true,
         doseChanged: false,
         dose_changed: false,
         hasSideEffects: false,
         last_prescribed: "last_3_months",
-        current_dose: "once daily",
+        current_dose: "One tablet each morning",
       },
     } as never)
 
@@ -120,6 +123,7 @@ describe("intake flags persistence shape (what risk_flags receives)", () => {
       subtype: "repeat",
       serviceSlug: "repeat-script",
       answers: {
+        repeat_rx_dose_contract_version: 1,
         medications: [
           {
             name: "Unknown - doctor will confirm",
@@ -133,7 +137,7 @@ describe("intake flags persistence shape (what risk_flags receives)", () => {
         dose_changed: false,
         hasSideEffects: false,
         last_prescribed: "6_to_12_months",
-        current_dose: "one daily",
+        current_dose: "One tablet each morning",
       },
     } as never
 

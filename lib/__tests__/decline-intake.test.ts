@@ -100,6 +100,7 @@ function makeIntakeRow(overrides: Record<string, unknown> = {}) {
   return {
     id: "intake-123",
     status: "paid",
+    script_sent: false,
     category: "medical_certificate",
     subtype: "work",
     payment_status: "paid",
@@ -245,6 +246,71 @@ describe("declineIntake", () => {
 
       expect(result.success).toBe(false)
       expect(result.error).toContain("Cannot decline request in 'approved' status")
+      expect(stripe.refunds.create).not.toHaveBeenCalled()
+    })
+
+    it("rejects a fulfilled prescription before status change or refund", async () => {
+      mockDoctorProfile()
+      mockSupabaseSingle.mockResolvedValueOnce({
+        data: makeIntakeRow({
+          category: "prescription",
+          status: "awaiting_script",
+          script_sent: true,
+        }),
+        error: null,
+      })
+
+      const result = await declineIntake({ intakeId: "intake-123" })
+
+      expect(result).toEqual({
+        success: false,
+        error: "Cannot decline this request after the prescription has been recorded.",
+      })
+      expect(getSupabaseUpdatePayloads()).toEqual([])
+      expect(stripe.refunds.create).not.toHaveBeenCalled()
+    })
+  })
+
+  describe("atomic fulfilment guard", () => {
+    it("guards the status update with script_sent IS NOT TRUE", async () => {
+      mockDoctorProfile()
+      mockDeclineFlow(makeIntakeRow({
+        category: "prescription",
+        status: "awaiting_script",
+        script_sent: false,
+      }))
+
+      const result = await declineIntake({ intakeId: "intake-123", skipRefund: true })
+      const updateChain = mockSupabaseFrom.mock.results[1]?.value as {
+        not: ReturnType<typeof vi.fn>
+      }
+
+      expect(result.success).toBe(true)
+      expect(updateChain.not).toHaveBeenCalledWith("script_sent", "is", true)
+    })
+
+    it("does not refund when durable fulfilment wins the update race", async () => {
+      mockDoctorProfile()
+      mockSupabaseSingle
+        .mockResolvedValueOnce({
+          data: makeIntakeRow({
+            category: "prescription",
+            status: "awaiting_script",
+            script_sent: false,
+          }),
+          error: null,
+        })
+        .mockResolvedValueOnce({
+          data: null,
+          error: { code: "PGRST116", message: "No rows returned" },
+        })
+
+      const result = await declineIntake({ intakeId: "intake-123" })
+
+      expect(result).toEqual({
+        success: false,
+        error: "Request status or prescription fulfilment changed. Please refresh and try again.",
+      })
       expect(stripe.refunds.create).not.toHaveBeenCalled()
     })
   })

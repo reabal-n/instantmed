@@ -88,7 +88,7 @@ InstantMed's commercial moat is no booked appointment, no waiting room, and a se
 | **Med cert validity** | Certificates do not expire. Once issued, they remain authentic indefinitely. Only `revoked` status invalidates a cert; DB trigger from migration `20260428000001_lock_cert_status.sql` rejects any other transition. The retired expiry cron must not exist in Vercel cron config, heartbeat monitoring, routes, or tests. |
 | **Med cert use cases — refused at intake** | Exam deferral, special consideration, court / tribunal / summons / jury, family law / custody / AVO, fitness-for-driving / firearm / aviation, workers comp / NDIS / TAC / insurance claims. `checkHighStakesUseCase` in `lib/clinical/intake-validation.ts` blocks these at submission; `HIGH_STAKES_USE_CASE_KEYWORDS` in `lib/clinical/auto-approval.ts` is the auto-approval fallback if anything bypasses the intake guard |
 | **Med cert language** | Conservative but doctor-owned consultation statement only. PDF body has two locked paragraphs: (1) certification — "I certify that [patient] consulted me on X. Based on my assessment, they were unable to attend [work/study] duties" or, for carer's leave, "required to provide care and support to an immediate family or household member who was unwell"; (2) closing — the absence-scope line and a warm support line as one paragraph: "This certificate relates to the absence date(s) stated above. Please get in touch with us if you have any questions." (no support email in the body — the footer carries the contact channel). No "medically unfit", no fitness-for-X, no exam-deferral support, no workplace-restriction/capacity-assessment disclaimer, no diagnosis, and no modality disclosure on the cert body. All sentences (`getBodyText`/`getReturnText`/`getSupportText`) are locked in `lib/pdf/template-renderer.ts` and pinned by `lib/__tests__/med-cert-medicolegal-scope.test.ts` |
-| **Refund on decline** | Med certs + prescriptions + consults: **full auto-refund on decline** (`payment_status = refunded`). Source of truth is `REFUND_ON_DECLINE_CATEGORIES` in `app/actions/decline-refund.ts`. The 50%-partial-on-consult rule was retired 2026-05-20 after operator feedback (commit `e5ecf2451`). The standalone `issueRefundAction` can still top up a `partially_refunded` intake to full by refunding only the remaining `amount_cents - refund_amount_cents` against the original Stripe payment intent. Unit tested in `lib/__tests__/decline-intake.test.ts`. |
+| **Refund on decline** | Med certs + prescriptions + consults: **full auto-refund on decline** (`payment_status = refunded`). Source of truth is `REFUND_ON_DECLINE_CATEGORIES` in `app/actions/decline-refund.ts`. A prescription with durable `script_sent = true` evidence is already fulfilled and cannot enter the ordinary decline/refund path; it must be completed or reconciled. The canonical action enforces this before and atomically during the status write. The 50%-partial-on-consult rule was retired 2026-05-20 after operator feedback (commit `e5ecf2451`). The standalone `issueRefundAction` can still top up a `partially_refunded` intake to full by refunding only the remaining `amount_cents - refund_amount_cents` against the original Stripe payment intent. Unit tested in `lib/__tests__/decline-intake.test.ts`. |
 | **Follow-up** | `flagged_for_followup` field exists. Decline triggers refund + redirection. No automated follow-up |
 
 ---
@@ -311,11 +311,13 @@ The dormant engine's remaining **soft flags** — co-symptom mental-health / inj
 
 ### Purpose
 
-The medication step lets a patient type the name of a medicine they already take so the doctor knows what they are requesting. It is not a recommendation, prescribing, clinical decision, or eligibility tool. (The former PBS reference-search combobox was retired 2026-06-28 — #211; patients now enter free text and the doctor confirms the exact medicine in Parchment/MIMS at prescribing time.)
+The medication step lets a patient type the name of a medicine they already take so the doctor knows what they are requesting. It is not a recommendation, prescribing, clinical decision, or eligibility tool. The former patient-facing PBS reference-search combobox was retired 2026-06-28 (#211); patients enter free text and the doctor confirms the exact medicine in Parchment/MIMS at prescribing time.
 
 ### Data Source
 
-None. The patient types the name themselves (`components/request/steps/medication-step.tsx`). There is no external lookup, no PBS/AMT API call, and no autocomplete dataset — so the platform never surfaces PBS codes, brand/generic matches, dosing, indications, contraindications, or therapeutic equivalence as clinical guidance.
+The patient entry has no lookup or autocomplete. The patient types the name themselves (`components/request/steps/medication-step.tsx`), and no patient medication text is sent to PBS, AMT, or another external reference service.
+
+For the authenticated doctor handoff only, `lib/clinical/generic-medication-resolver.ts` exact-matches patient wording against InstantMed's curated first-party `medications` table. Only the table's generic `name` and `brand_names` fields participate. The narrow result is a clipboard action containing the verified generic medicine name alone; it never returns strength, form, dose, directions, PBS eligibility, substitution advice, or therapeutic equivalence. Unknown, ambiguous, or unsafe-looking entries fail closed with no copy action. The reference cannot affect intake eligibility, safety routing, request status, prescribing, or the medicine selected in Parchment/MIMS.
 
 ### Allowed vs Prohibited Use
 
@@ -344,6 +346,8 @@ None. The patient types the name themselves (`components/request/steps/medicatio
 - Helper text: "Request one regular medicine at a time. Enter the name and the strength shown on the label — the doctor confirms the medicine before prescribing."
 - The box is plain free text — no results list, no autocomplete, and nothing highlighted as "recommended", "suitable", "eligible", or "approved"
 - Codeine-combination brands that remain eligible for human review can show a pre-payment likely-decline note. The acknowledgement is a fixed brand token persisted in the draft and revalidated at checkout; it never overrides the doctor's decision, and changing the matched brand invalidates it.
+- Every active repeat request must state both how much the patient takes and how often. A frequency-only answer such as "Once daily", or "Same as before" without the actual current regimen, is not sufficient; incomplete dose/frequency fails checkout.
+- Doctor copy controls may copy only a locally verified generic medicine name. They must never copy the patient-entered strength, form, dose, directions, or a whole prescribing-context paragraph.
 
 ### Forbidden Language
 
@@ -353,7 +357,7 @@ Allowed: "Reference only", "Helps with accuracy", "Doctor will review"
 
 ### Audit Position
 
-"Patients may optionally self-identify a medication name by typing it in. The system does not recommend, select, or approve medications. All prescribing decisions occur independently within the clinician's prescribing platform."
+"Patients self-identify a medication name, label strength, and current dose/frequency. A doctor-only, first-party curated reference may resolve an exact generic name for clipboard convenience; it does not recommend, select, approve, or prescribe medication. All prescribing decisions occur independently within the clinician's prescribing platform."
 
 ### Prescribing Boundary Evidence (compliance_audit_log)
 

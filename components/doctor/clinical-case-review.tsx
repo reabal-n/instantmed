@@ -193,28 +193,13 @@ export function ClinicalCaseReview({
     requiresLiveConsult,
     scriptSent,
   })
-  const hasCopyableMedicationName = Boolean(summary.prescriptionIntent?.clipboardText)
-  const canCopySearchHint = Boolean(
-    !hasCopyableMedicationName && summary.prescriptionIntent?.medicationSearchHint,
-  )
-
-  const copyMedicationName = async () => {
+  const copyGenericMedicationName = async () => {
     if (!summary.prescriptionIntent?.clipboardText) return
     try {
       await navigator.clipboard.writeText(summary.prescriptionIntent.clipboardText)
-      toast.success("Copied medicine name")
+      toast.success("Copied generic medicine name")
     } catch {
-      toast.error("Could not copy medicine name")
-    }
-  }
-
-  const copySearchHint = async () => {
-    if (summary.prescriptionIntent?.clipboardText || !summary.prescriptionIntent?.medicationSearchHint) return
-    try {
-      await navigator.clipboard.writeText(summary.prescriptionIntent.medicationSearchHint)
-      toast.success("Copied Parchment search term")
-    } catch {
-      toast.error("Could not copy search term")
+      toast.error("Could not copy generic medicine name")
     }
   }
   const scannableFacts = summary.keyFacts.filter((fact) => (
@@ -704,21 +689,9 @@ export function ClinicalCaseReview({
                     </p>
                   )}
                   {summary.prescriptionIntent.medicationSearchHint && (
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-blue-900">
-                      <span>Search: {summary.prescriptionIntent.medicationSearchHint}</span>
-                      {canCopySearchHint ? (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-7 bg-white px-2 text-xs"
-                          onClick={copySearchHint}
-                        >
-                          <Clipboard className="mr-1 h-3 w-3" />
-                          Copy search
-                        </Button>
-                      ) : null}
-                    </div>
+                    <p className="text-sm text-blue-900">
+                      Search: {summary.prescriptionIntent.medicationSearchHint}
+                    </p>
                   )}
                   <p className="text-sm text-blue-900">
                     {summary.prescriptionIntent.directionsTemplate}
@@ -728,9 +701,9 @@ export function ClinicalCaseReview({
                   </p>
                 </div>
                 {summary.prescriptionIntent.clipboardText && (
-                  <Button type="button" variant="outline" size="sm" className="bg-white" onClick={copyMedicationName}>
+                  <Button type="button" variant="outline" size="sm" className="bg-white" onClick={copyGenericMedicationName}>
                     <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                    Copy name
+                    Copy generic name
                   </Button>
                 )}
               </div>

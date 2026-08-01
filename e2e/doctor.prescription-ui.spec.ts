@@ -75,8 +75,12 @@ async function seedRepeatPrescriptionCase({
       medicationForm: "tablet",
       currentDose: "Take one tablet at night",
       prescriptionHistory: "Previously prescribed by regular GP",
+      hasSideEffects: false,
+      hasAllergies: false,
       known_allergies: "No known allergies",
+      hasConditions: true,
       existing_conditions: "Hypercholesterolaemia",
+      hasOtherMedications: true,
       current_medications: "Atorvastatin",
       isPregnantOrBreastfeeding: "no",
       hasAdverseMedicationReactions: "no",
@@ -396,17 +400,14 @@ test.describe("Doctor prescription UI flow", () => {
     await expect(drawer.getByText("Review differences", { exact: true })).toHaveCount(0)
   })
 
-  test("combines medication details while keeping inferred strength explicit", async ({ page }) => {
-    const patientId = await seedReviewProfilePatient()
-    testPatientIds.push(patientId)
+  test("keeps inferred strength explicit and copies only the verified generic name", async ({ page }) => {
     const intakeId = await seedRepeatPrescriptionCase({
-      patientId,
       answerOverrides: {
-        medicationName: "Effexor 75mg",
+        medicationName: "Sertraline 100mg",
         medicationStrength: "",
         medicationForm: "",
-        currentDose: "75 mg once daily",
-        indication: "Anxiety",
+        currentDose: "100 mg once daily",
+        indication: "Depression and anxiety",
         prescriptionHistory: "3_to_6_months",
       },
     })
@@ -423,12 +424,49 @@ test.describe("Doctor prescription UI flow", () => {
     const recency = packet.locator('[data-review-fact="last_prescribed"]')
 
     await expect(medicine).toHaveAttribute("data-review-fact-state", "inferred")
-    await expect(medicine.getByText("Effexor 75mg", { exact: true })).toBeVisible()
+    await expect(medicine.getByText("Sertraline 100mg", { exact: true })).toBeVisible()
     await expect(medicine.getByText("Inferred from patient text · Confirm strength", { exact: true })).toBeVisible()
     await expect(packet.locator('[data-review-fact="strength"]')).toHaveCount(0)
     await expect(packet.locator('[data-review-fact="form"]')).toHaveCount(0)
     await expect(recency.getByText("3–6 months ago", { exact: true })).toBeVisible()
     await expect(page.getByText("3_to_6_months", { exact: true })).toHaveCount(0)
+
+    const safety = packet.getByRole("region", { name: "Patient-reported safety" })
+    await expect(safety).toContainText("Patient reported")
+    await expect(safety).toContainText("No side effects")
+    await expect(safety).toContainText("No allergies or medicine reactions")
+    await expect(safety.locator('[data-review-safety-gaps="true"]')).toHaveCount(0)
+
+    const readiness = page.locator("[data-action-readiness]").first()
+    await expect(readiness).toHaveAttribute("data-action-readiness-state", "advisory")
+    await expect(readiness).toHaveAttribute(
+      "data-action-readiness-summary",
+      /Identity details captured · Safety responses captured · Draft note ready/,
+    )
+    await expect(readiness).not.toContainText("No flags detected")
+    await expect(readiness.getByText("Ready for Parchment · confirm strength there", { exact: true })).toBeVisible()
+    await expect(readiness.getByText("Responses captured. Review before you send.", { exact: true })).toHaveCount(0)
+    const prescribeButton = page
+      .locator('[data-review-action-rail="true"]')
+      .first()
+      .getByRole("button", { name: "Prescribe" })
+    await expect(prescribeButton).toBeEnabled()
+
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"], {
+      origin: new URL(page.url()).origin,
+    })
+    await prescribeButton.click()
+
+    const parchmentPanel = page.getByRole("dialog", { name: /Prescribe for/i })
+    await expect(parchmentPanel).toBeVisible()
+    const medicationContext = parchmentPanel.locator('[data-parchment-medication-context]:visible')
+    await expect(medicationContext).toBeVisible({ timeout: 15000 })
+    await expect(medicationContext.getByText("Generic medicine", { exact: true })).toBeVisible()
+    await expect(medicationContext.getByText("Sertraline", { exact: true })).toBeVisible()
+    await expect(medicationContext).toContainText("Current dose: 100 mg once daily")
+
+    await medicationContext.getByRole("button", { name: "Copy generic name" }).click()
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe("Sertraline")
   })
 
   test("shows prior request history while excluding the active request from the profile drawer", async ({ page }) => {
@@ -523,6 +561,11 @@ test.describe("Doctor prescription UI flow", () => {
     const refreshedActionRail = page.locator('[data-review-action-rail="true"]').first()
     await expect(page.getByText("Prescription recorded — complete when ready")).toBeVisible()
     await expect(refreshedActionRail.getByText("Prescription recorded", { exact: true })).toBeVisible()
+    await expect(refreshedActionRail.locator("[data-action-readiness]")).toHaveCount(0)
+    await expect(refreshedActionRail.locator("[data-decision-wait-signal]")).toHaveCount(0)
+    await expect(refreshedActionRail.locator("[data-decline-lane]")).toHaveCount(0)
+    await page.keyboard.press("Control+Shift+D")
+    await expect(page.getByRole("alertdialog", { name: /decline request/i })).toHaveCount(0)
     await expect(page.getByRole("region", { name: "Request packet" }).getByText("Prescription already recorded")).toHaveCount(0)
     await expect(refreshedActionRail.getByRole("button", { name: "Prescribe" })).toHaveCount(0)
     await expect(refreshedActionRail.getByRole("button", { name: "Complete request" })).toBeEnabled()
@@ -539,6 +582,9 @@ test.describe("Doctor prescription UI flow", () => {
     const actionRail = page.locator('[data-review-action-rail="true"]').first()
     await expect(actionRail.getByRole("button", { name: "Prescribe" })).toHaveCount(0)
     await expect(actionRail.getByRole("button", { name: "Sent outside Parchment" })).toHaveCount(0)
+    await expect(actionRail.locator("[data-action-readiness]")).toHaveCount(0)
+    await expect(actionRail.locator("[data-decision-wait-signal]")).toHaveCount(0)
+    await expect(actionRail.locator("[data-decline-lane]")).toHaveCount(0)
 
     const completeButton = actionRail.getByRole("button", { name: "Complete request" })
     await expect(completeButton).toBeDisabled()

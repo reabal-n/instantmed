@@ -6,6 +6,7 @@ import {
   normalizeConsultSubtypeParam,
 } from "@/lib/request/consult-flow"
 import { buildDraftResumePath } from "@/lib/request/draft-resume-route"
+import { REPEAT_RX_REGIMEN_REQUIRED_MESSAGE } from "@/lib/request/repeat-rx-regimen"
 import { getStepsForService, type StepContext } from "@/lib/request/step-registry"
 import {
   resolveCheckoutSubtype,
@@ -667,7 +668,7 @@ describe("unified intake regressions", () => {
     ).toBe("Enter a valid Medicare number or provide a valid IHI.")
   })
 
-  it("blocks repeat checkout when dose or indication is missing; allows when both present", () => {
+  it("blocks repeat checkout when the regimen or indication is incomplete", () => {
     // Operator decision 2026-06-26: repeat-Rx requires dose+frequency and an
     // indication so the doctor knows exactly what to prescribe (reverses the
     // earlier A3 boundary-4 softening for repeat scripts).
@@ -695,6 +696,24 @@ describe("unified intake regressions", () => {
     expect(
       validateAnswersServerSide("repeat-script", { ...base, currentDose: "2 puffs twice daily" }, identity),
     ).not.toBeNull()
+
+    // A frequency alone is not the patient's current dose. Both the Zod step
+    // schema and the server checkout gate expose the same single-field error.
+    expect(validateMedicationHistoryStep({
+      prescriptionHistory: "6 to 12 months",
+      currentDose: "Once daily",
+      indication: "asthma",
+      doseChanged: false,
+      hasSideEffects: false,
+    })).toMatchObject({
+      isValid: false,
+      errors: { currentDose: REPEAT_RX_REGIMEN_REQUIRED_MESSAGE },
+    })
+    expect(validateAnswersServerSide("repeat-script", {
+      ...base,
+      currentDose: "Once daily",
+      indication: "asthma",
+    }, identity)).toBe(REPEAT_RX_REGIMEN_REQUIRED_MESSAGE)
 
     // Both present → allowed.
     expect(

@@ -20,6 +20,10 @@ import {
 import { validateCertificateStartDate } from "@/lib/medical-certificates/date-policy"
 import { isWomensHealthOptionLive } from "@/lib/request/consult-subtypes"
 import {
+  hasCompleteRepeatRxRegimen,
+  REPEAT_RX_REGIMEN_REQUIRED_MESSAGE,
+} from "@/lib/request/repeat-rx-regimen"
+import {
   extractRepeatScriptMedications,
   getRepeatScriptMedicationConcreteStrength,
   isUnidentifiedRepeatMedication,
@@ -246,11 +250,11 @@ export const medicationHistoryStepSchema = z
       })
       return
     }
-    if (!data.currentDose?.trim()) {
+    if (!hasCompleteRepeatRxRegimen(data.currentDose)) {
       ctx.addIssue({
         code: "custom",
         path: ["currentDose"],
-        message: "Tell the doctor your current dose and how often you take it",
+        message: REPEAT_RX_REGIMEN_REQUIRED_MESSAGE,
       })
     }
     if (!data.indication?.trim()) {

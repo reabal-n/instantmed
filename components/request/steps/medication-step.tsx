@@ -77,7 +77,9 @@ import {
 import { addRecentMedication, getSmartDefaults } from "@/lib/request/preferences"
 import {
   areRepeatRxMedicationDetailsEqual,
+  hasCompleteRepeatRxRegimen,
   hasDoseFrequencyStarter,
+  REPEAT_RX_REGIMEN_REQUIRED_MESSAGE,
   toggleDoseFrequencyStarter,
 } from "@/lib/request/repeat-rx-regimen"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
@@ -467,6 +469,17 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     const hadRegimenAttestation = doseChanged !== undefined
     setAnswer("currentDose", nextDose)
     setAnswer("dosageInstructions", nextDose)
+    if (hasCompleteRepeatRxRegimen(nextDose)) {
+      setErrors((prev) => {
+        if (!prev.currentDose) return prev
+        const next = { ...prev }
+        delete next.currentDose
+        return next
+      })
+      setBlockedReasons((prev) =>
+        prev.filter((reason) => reason !== REPEAT_RX_REGIMEN_REQUIRED_MESSAGE),
+      )
+    }
     if (hadRegimenAttestation) {
       setAnswer("doseChanged", undefined)
       setAnswer("dose_changed", undefined)
@@ -515,8 +528,8 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     // patients back to the live service hub, without reviving a
     // general-consult fallback.
     const isRepeatActive = Boolean(prescriptionHistory) && !isNeverPrescribed
-    if (isRepeatActive && !currentDose.trim()) {
-      newErrors.currentDose = "Tell the doctor your current dose and how often you take it"
+    if (isRepeatActive && !hasCompleteRepeatRxRegimen(currentDose)) {
+      newErrors.currentDose = REPEAT_RX_REGIMEN_REQUIRED_MESSAGE
     }
     if (isRepeatActive && !indication.trim()) {
       newErrors.indication = "Tell the doctor what this medication is for"
@@ -613,7 +626,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     )
     && prescriptionHistory
     && !isNeverPrescribed
-    && currentDose.trim()
+    && hasCompleteRepeatRxRegimen(currentDose)
     && indication.trim()
     && doseChanged === false
     && (hasSideEffects === false || (hasSideEffects && sideEffects.trim()))

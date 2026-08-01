@@ -9,7 +9,11 @@ import {
 } from "@/lib/clinical/controlled-substances"
 import { detectDedicatedServiceForMedication } from "@/lib/clinical/medication-service-routing"
 import { getRepeatRxAttestationStatus } from "@/lib/clinical/repeat-rx-attestation"
-import { getRepeatRxDoseMissingFields } from "@/lib/clinical/repeat-rx-dose-requirement"
+import {
+  getRepeatRxDoseMissingFields,
+  hasRepeatRxDoseContractMarker,
+} from "@/lib/clinical/repeat-rx-dose-requirement"
+import { REPEAT_RX_REGIMEN_REQUIRED_MESSAGE } from "@/lib/request/repeat-rx-regimen"
 import {
   buildRepeatScriptMedicationValidationText,
   extractRepeatScriptMedications,
@@ -369,7 +373,13 @@ export function validateRepeatScriptPayload(
     }
   }
 
-  const doseMissingFields = getRepeatRxDoseMissingFields(answers)
+  // Historical paid/draft rows predate the mandatory-dose UI and must remain
+  // recoverable. New submissions receive this marker during canonical answer
+  // transformation, so strict strength/regimen enforcement applies exactly at
+  // the deployment boundary rather than to every legacy retry or resume.
+  const doseMissingFields = hasRepeatRxDoseContractMarker(answers)
+    ? getRepeatRxDoseMissingFields(answers)
+    : []
   if (doseMissingFields.includes("medication_strength")) {
     return {
       valid: false,
@@ -381,7 +391,7 @@ export function validateRepeatScriptPayload(
   if (doseMissingFields.includes("current_dose")) {
     return {
       valid: false,
-      error: "Please tell the doctor how much you currently take and how often you take it.",
+      error: REPEAT_RX_REGIMEN_REQUIRED_MESSAGE,
       requiresConsult: false,
     }
   }

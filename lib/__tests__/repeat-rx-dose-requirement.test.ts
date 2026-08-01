@@ -37,11 +37,11 @@ describe("repeat-Rx dose requirement", () => {
     })).toBeUndefined()
   })
 
-  it("requires both a concrete strength and current directions", () => {
+  it("requires a concrete strength plus current amount and frequency", () => {
     expect(getRepeatRxDoseMissingFields({
       medicationName: "Sertraline",
       currentDose: "Once daily",
-    })).toEqual(["medication_strength"])
+    })).toEqual(["medication_strength", "current_dose"])
 
     expect(getRepeatRxDoseMissingFields({
       medicationName: "Sertraline 100mg",
@@ -50,6 +50,26 @@ describe("repeat-Rx dose requirement", () => {
     expect(getRepeatRxDoseMissingFields({
       medicationName: "Sertraline 100mg",
       dosage_instructions: "Once daily",
+    })).toEqual(["current_dose"])
+
+    expect(getRepeatRxDoseMissingFields({
+      medicationName: "Sertraline 100mg",
+      dosage_instructions: "10 mg with food",
+    })).toEqual(["current_dose"])
+
+    expect(getRepeatRxDoseMissingFields({
+      medicationName: "Sertraline 100mg",
+      dosage_instructions: "One tablet each morning",
+    })).toEqual([])
+
+    expect(getRepeatRxDoseMissingFields({
+      medicationName: "Sertraline 100mg",
+      dosage_instructions: "1 pump daily",
+    })).toEqual([])
+
+    expect(getRepeatRxDoseMissingFields({
+      medicationName: "Sertraline 100mg",
+      dosage_instructions: "1 vial twice daily",
     })).toEqual([])
   })
 

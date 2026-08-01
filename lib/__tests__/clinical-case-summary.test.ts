@@ -549,7 +549,7 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.draftNote).not.toMatch(/^P:\s+Repeat/m)
   })
 
-  it("copies only the normalized medication name for Parchment", () => {
+  it("does not trust a patient-entered repeat medicine as a generic clipboard value", () => {
     const summary = buildClinicalCaseSummary({
       category: "prescription",
       serviceType: "repeat-script",
@@ -566,11 +566,11 @@ describe("buildClinicalCaseSummary", () => {
 
     expect(summary.prescriptionIntent?.medicationName).toBe("Sertraline")
     expect(summary.prescriptionIntent?.strength).toBe("100mg")
-    expect(summary.prescriptionIntent?.clipboardText).toBe("Sertraline")
-    expect(summary.prescriptionIntent?.clipboardText).not.toMatch(/100mg|tablet|once daily|directions|context/i)
+    expect(summary.prescriptionIntent?.clipboardText).toBe("")
+    expect(summary.prescriptionIntent?.patientReportedDose).toBe("Once daily")
   })
 
-  it("prefers the active ingredient for the name-only Parchment copy", () => {
+  it("does not let a client-supplied active ingredient override the request or clipboard", () => {
     const summary = buildClinicalCaseSummary({
       category: "prescription",
       serviceType: "repeat-script",
@@ -589,8 +589,28 @@ describe("buildClinicalCaseSummary", () => {
       },
     })
 
-    expect(summary.prescriptionIntent?.medicationName).toBe("Sertraline")
-    expect(summary.prescriptionIntent?.clipboardText).toBe("Sertraline")
+    expect(summary.prescriptionIntent?.medicationName).toBe("Zoloft")
+    expect(summary.prescriptionIntent?.clipboardText).toBe("")
+  })
+
+  it("does not invent reassuring safety statements when legacy answers were not captured", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "prescription",
+      serviceType: "repeat-script",
+      patientName: "Pat Legacy",
+      answers: {
+        medicationName: "Sertraline",
+        medicationStrength: "100 mg",
+        prescriptionHistory: "last_3_months",
+        currentDose: "100 mg once daily",
+        doseChanged: false,
+      },
+    })
+
+    expect(summary.draftNote).not.toContain("No allergies reported")
+    expect(summary.draftNote).not.toContain("No other current medicines reported")
+    expect(summary.draftNote).not.toContain("Patient reported no side effects")
+    expect(summary.prescriptionIntent?.safetyChecks).toContain("Confirm allergies and medication reactions")
   })
 
   it("surfaces every requested repeat medication in the doctor summary", () => {
@@ -622,7 +642,7 @@ describe("buildClinicalCaseSummary", () => {
       value: "Rosuvastatin 10 mg tablet; Metformin 500 mg tablet",
     })
     expect(summary.draftNote).toContain("Metformin 500 mg tablet")
-    expect(summary.prescriptionIntent?.clipboardText).toBe("Rosuvastatin")
+    expect(summary.prescriptionIntent?.clipboardText).toBe("")
     expect(summary.prescriptionIntent?.quantityTemplate).toBeUndefined()
     expect(summary.prescriptionIntent?.repeatsTemplate).toBeUndefined()
     expect(summary.prescriptionIntent?.clipboardText).not.toContain("Quantity:")
@@ -701,7 +721,7 @@ describe("buildClinicalCaseSummary", () => {
       value: "Metformin 1 g Tablet (extended release)",
     })
     expect(summary.patientStory).toContain("Metformin 1 g Tablet (extended release)")
-    expect(summary.prescriptionIntent?.clipboardText).toBe("Metformin")
+    expect(summary.prescriptionIntent?.clipboardText).toBe("")
   })
 
   it("builds a medical certificate summary without falling back to general consult copy", () => {

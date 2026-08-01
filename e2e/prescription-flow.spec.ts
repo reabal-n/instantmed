@@ -461,6 +461,62 @@ test.describe("Prescription: step validation", () => {
     await waitForStep(page, /Anything the doctor should know/i)
   })
 
+  test("medication step requires a current amount and frequency and exposes the error to the textarea", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await waitForStep(page, /Your medication/i)
+    await page.locator("#medication-name-0").fill("E2E missing dose medication")
+    await page.locator("#medication-strength-0").fill("20 mg")
+    await clickChip(page, /Under 3 months/i)
+    await page
+      .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
+      .getByRole("radio", { name: /No, unchanged/i })
+      .click()
+    await page.getByPlaceholder(/e\.g\., asthma/i).fill("anxiety")
+    await clickChip(page, /No side effects/i)
+
+    // A frequency shortcut is useful input, but it is not a complete regimen
+    // until the patient also records how much they take.
+    await page
+      .getByRole("group", { name: "Common dose frequencies" })
+      .getByRole("button", { name: "Once daily", exact: true })
+      .click()
+    await expect(page.locator("#current-dose")).toHaveValue("Once daily")
+
+    await clickContinue(page)
+
+    const doseInput = page.locator("#current-dose")
+    const doseError = page.locator("#current-dose-error")
+    await expect(doseError).toHaveText(
+      "Enter how much you take and how often (for example, one tablet each morning)",
+    )
+    await expect(doseError).toBeVisible()
+    await expect(doseInput).toHaveAttribute("aria-required", "true")
+    await expect(doseInput).toHaveAttribute("aria-invalid", "true")
+
+    const describedBy = (await doseInput.getAttribute("aria-describedby"))?.split(/\s+/) ?? []
+    expect(describedBy).toContain("current-dose-hint")
+    expect(describedBy).toContain("current-dose-error")
+    for (const id of describedBy) {
+      await expect(page.locator(`#${id}`)).toBeVisible()
+    }
+
+    const frequencyHelpers = page.getByRole("group", { name: "Common dose frequencies" })
+    await expect(frequencyHelpers).not.toHaveAttribute("aria-invalid")
+    await expect(frequencyHelpers).not.toHaveAttribute("aria-describedby")
+
+    await doseInput.fill("One tablet each morning")
+    await expect(doseError).toHaveCount(0)
+    await page
+      .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
+      .getByRole("radio", { name: /No, unchanged/i })
+      .click()
+    await clickContinue(page)
+    await waitForStep(page, /Anything the doctor should know/i)
+  })
+
   test("medication step requires an unchanged dose-and-directions confirmation", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)

@@ -13,6 +13,11 @@ const reviewActionsSource = readFileSync(
   "utf8",
 )
 
+const reviewCockpitSource = readFileSync(
+  join(process.cwd(), "components/doctor/review/intake-review-cockpit.tsx"),
+  "utf8",
+)
+
 const fullCaseHeaderSource = readFileSync(
   join(process.cwd(), "app/doctor/intakes/[id]/intake-detail-header.tsx"),
   "utf8",
@@ -60,6 +65,31 @@ describe("doctor review prescribing controls", () => {
     expect(queueSheetActionsSource).toContain("reviewPacket.workflow.completionLabel")
     expect(queueSheetActionsSource).toContain("Prescription recorded")
     expect(queueSheetActionsSource).not.toContain('"Complete Consultation"')
+  })
+
+  it("removes pre-send readiness and wait signals after durable prescription evidence", () => {
+    expect(queueSheetActionsSource).toContain(
+      "const hasRecordedPrescription = isPrescribingWorkflow && intake.script_sent === true",
+    )
+    expect(queueSheetActionsSource).toContain("const showPreSendSignals")
+    expect(queueSheetActionsSource).toContain("!hasRecordedPrescription")
+    expect(queueSheetActionsSource.match(/\{showPreSendSignals \? \(/g)).toHaveLength(2)
+    expect(queueSheetActionsSource).toMatch(/const canDecline =\s*intake\.script_sent !== true/)
+  })
+
+  it("keeps every decline shortcut and dialog path closed after prescription fulfilment", () => {
+    expect(reviewCockpitSource).toMatch(
+      /onDecline: \(\) => \{[\s\S]*?intake\.script_sent === true[\s\S]*?setShowDeclineDialog\(true\)/,
+    )
+    expect(reviewActionsSource).toMatch(
+      /onDecline: \(\) => \{[\s\S]*?intake\.script_sent !== true[\s\S]*?setShowDeclineDialog\(true\)/,
+    )
+    expect(reviewActionsSource).toContain(
+      "if (!intake || intake.script_sent === true || !declineReason.trim()) return",
+    )
+    expect(reviewActionsSource).toContain(
+      "showDeclineDialog: showDeclineDialog && intake?.script_sent !== true",
+    )
   })
 
   it("keeps full-case prescribing approval gated on durable script-sent evidence only", () => {

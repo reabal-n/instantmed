@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  AlertCircle,
   ArrowUpRight,
   CheckCircle,
   ClipboardCheck,
@@ -26,7 +27,11 @@ import {
   getRepeatRxAttestationStatus,
   hasLegacyRepeatRxReconciliationNote,
 } from "@/lib/clinical/repeat-rx-attestation"
-import { buildReviewPacket, getReviewPacketBlocker } from "@/lib/clinical/review-packet"
+import {
+  buildReviewPacket,
+  getReviewPacketBlocker,
+  type ReviewPacketAdvisory,
+} from "@/lib/clinical/review-packet"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
 import {
@@ -171,16 +176,18 @@ function ActionReadinessChecks({
   detailsReady,
   noteReady,
   safetyReady,
-  readyLabel = "Case ready to send.",
+  advisory,
+  readyLabel = "Case details ready for review.",
 }: {
   detailsReady: boolean
   noteReady: boolean
   safetyReady: boolean
+  advisory?: ReviewPacketAdvisory
   readyLabel?: string
 }) {
   const checks = [
-    { label: "Intake checked", ready: detailsReady, completeLabel: "Intake checked", incompleteLabel: "Check intake" },
-    { label: "Safety checked", ready: safetyReady, completeLabel: "No flags detected in screener", incompleteLabel: "Review safety" },
+    { label: "Identity details", ready: detailsReady, completeLabel: "Identity details captured", incompleteLabel: "Complete identity" },
+    { label: "Safety responses", ready: safetyReady, completeLabel: "Safety responses captured", incompleteLabel: "Review safety" },
     { label: "Note ready", ready: noteReady, completeLabel: "Draft note ready", incompleteLabel: "Add note" },
   ]
   const readyCount = checks.filter((check) => check.ready).length
@@ -188,28 +195,38 @@ function ActionReadinessChecks({
   const auditTrailLabel = checks
     .map((check) => (check.ready ? check.completeLabel : check.incompleteLabel))
     .join(" · ")
-  const visibleSummary = readyCount === checks.length
-    ? "Intake checked. Review before you send."
-    : `Needs attention · ${incompleteChecks.map((check) => check.incompleteLabel.toLowerCase()).join(", ")}`
+  const allChecksReady = readyCount === checks.length
+  const readinessState = !allChecksReady ? "incomplete" : advisory ? "advisory" : "ready"
+  const visibleSummary = !allChecksReady
+    ? `Needs attention · ${incompleteChecks.map((check) => check.incompleteLabel.toLowerCase()).join(", ")}`
+    : advisory
+      ? "Ready for Parchment · confirm strength there"
+      : "Responses captured. Review before you send."
+  const readinessTitle = [readyLabel, auditTrailLabel, advisory?.message].filter(Boolean).join(" ")
 
   return (
     <div
       className="flex text-[10px] font-medium text-muted-foreground sm:mr-auto sm:min-w-[180px]"
       data-action-readiness
+      data-action-readiness-state={readinessState}
       data-action-readiness-summary={auditTrailLabel}
       aria-label="Approval readiness checks"
-      title={`${readyLabel} ${auditTrailLabel}`}
+      title={readinessTitle}
     >
       <span
         className={cn(
           "inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold",
-          readyCount === checks.length
+          readinessState === "ready"
             ? "border-border/60 bg-background/70 text-muted-foreground"
             : "border-warning-border bg-warning-light text-warning",
         )}
         data-readiness-check
       >
-        <CheckCircle className={cn("h-3.5 w-3.5", readyCount === checks.length ? "text-slate-600" : "text-warning")} aria-hidden />
+        {readinessState === "ready" ? (
+          <CheckCircle className="h-3.5 w-3.5 text-slate-600" aria-hidden />
+        ) : (
+          <AlertCircle className="h-3.5 w-3.5 text-warning" aria-hidden />
+        )}
         <span className="truncate">{visibleSummary}</span>
       </span>
     </div>
@@ -355,7 +372,9 @@ export function IntakeActionButtons({
     ? `Complete patient identity: ${missingPrescribingIdentityFields.join(", ")}`
     : undefined
   const prescribingActionLabel = hasPrescribingIdentityBlocker ? "Complete patient identity" : null
-  const canDecline = !["approved", "declined", "completed"].includes(intake.status)
+  const canDecline =
+    intake.script_sent !== true &&
+    !["approved", "declined", "completed"].includes(intake.status)
   const showRefundOnDecline = canDecline && intake.payment_status === "paid"
   const refundRemainingCents = Math.max(0, (intake.amount_cents ?? 0) - (intake.refund_amount_cents ?? 0))
   const refundLabel = refundRemainingCents > 0 ? formatCurrency(refundRemainingCents) : null
@@ -364,8 +383,14 @@ export function IntakeActionButtons({
   const disabledApproveHint = requiresClinicalDetail
     ? "Symptoms missing; the next screen asks you to confirm before sending."
     : null
-  const showActionReadiness = ["paid", "in_review", "awaiting_script"].includes(intake.status)
-  const readyLabel = service?.type === "med_certs" ? "Certificate ready to send." : "Case ready to send."
+  const isPrescribingWorkflow = reviewPacket.workflow.requiresFulfilment
+  const hasRecordedPrescription = isPrescribingWorkflow && intake.script_sent === true
+  const showPreSendSignals =
+    ["paid", "in_review", "awaiting_script"].includes(intake.status) &&
+    !hasRecordedPrescription
+  const readyLabel = service?.type === "med_certs"
+    ? "Certificate details ready for review."
+    : "Case details ready for review."
   const patientFirstName = intake.patient.full_name?.trim().split(/\s+/)[0] || ""
   const refundRecipient = patientFirstName || "the patient"
   const declineLabel = showRefundOnDecline ? "Decline with reason" : "Decline request"
@@ -380,10 +405,10 @@ export function IntakeActionButtons({
       (recordedRepeatReconciliationReady && item.label === "Recorded script evidence needs reconciliation")
     )) &&
     intake.requires_live_consult !== true &&
-    intake.risk_tier !== "high"
+    intake.risk_tier !== "high" &&
+    reviewPacket.safety.gaps.length === 0
   const queueEnteredAt = getQueueEnteredAt(intake)
   const canApproveAfterPrescribe = intake.script_sent === true
-  const isPrescribingWorkflow = reviewPacket.workflow.requiresFulfilment
   const canShowPrescribingCompletion = isPrescribingWorkflow && isActivePrescribingStatus
   const isActionDisabled = isPending || !isHydrated
   const approveAfterPrescribeTitle = hasPrescribingIdentityBlocker
@@ -462,14 +487,15 @@ export function IntakeActionButtons({
         className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-x-6 [&>button]:w-full [&>div]:w-full sm:[&>button]:w-auto sm:[&>div]:w-auto"
         data-action-bar
       >
-        {showActionReadiness ? (
+        {showPreSendSignals ? (
           <DecisionWaitSignal queueEnteredAt={queueEnteredAt} />
         ) : null}
-        {showActionReadiness ? (
+        {showPreSendSignals ? (
           <ActionReadinessChecks
             detailsReady={hasPatientDetailsReady}
             noteReady={!needsClinicalNotes}
             safetyReady={safetyReady}
+            advisory={reviewPacket.advisories[0]}
             readyLabel={readyLabel}
           />
         ) : null}

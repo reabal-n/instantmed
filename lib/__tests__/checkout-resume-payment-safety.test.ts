@@ -585,7 +585,7 @@ describe("signed guest checkout resume payment safety", () => {
     })
   })
 
-  it("holds a marked signed repeat resume with no concrete medication strength", async () => {
+  it("holds a marked signed repeat resume with a frequency-only current regimen", async () => {
     const { supabase } = createResumeSupabaseMock({
       category: "prescription",
       created_at: "2026-08-01T10:00:00.000Z",
@@ -596,6 +596,7 @@ describe("signed guest checkout resume payment safety", () => {
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({
       medicationName: "Sertraline",
+      medicationStrength: "100 mg",
       currentDose: "Once daily",
       repeat_rx_dose_contract_version: 1,
     })

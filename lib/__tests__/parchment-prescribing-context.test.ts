@@ -21,6 +21,7 @@ describe("buildParchmentPrescriptionContext", () => {
         strength: "10 mg",
         form: "tablet",
         medicationSearchHint: "Rosuvastatin 10 mg tablet",
+        patientReportedDose: "10 mg nightly",
         directionsTemplate: "Confirm regimen in Parchment.",
         safetyChecks: [],
         parchmentMode: "open_patient_prescribe",
@@ -33,6 +34,8 @@ describe("buildParchmentPrescriptionContext", () => {
       presetLabel: "Repeat prescription Parchment context",
       medicationLabel: "Rosuvastatin 10 mg tablet",
       searchHint: "Rosuvastatin 10 mg tablet",
+      patientReportedDose: "10 mg nightly",
+      regimenSource: "patient_reported",
       directionsTemplate: "Confirm regimen in Parchment.",
       copyText: "Rosuvastatin",
     })
@@ -54,5 +57,35 @@ describe("buildParchmentPrescriptionContext", () => {
     })
 
     expect(context).toBeNull()
+  })
+
+  it("keeps clinician-selected specialty directions separate from patient-reported dose context", () => {
+    const context = buildParchmentPrescriptionContext({
+      title: "Women's health",
+      patientStory: "",
+      keyFacts: [],
+      safetyItems: [],
+      recommendedPlan: {
+        action: "prescribe",
+        title: "Review",
+        rationale: "",
+        nextSteps: [],
+      },
+      prescriptionIntent: {
+        presetLabel: "UTI Parchment handoff context",
+        medicationSearchHint: "UTI antibiotic",
+        directionsTemplate: "Doctor to select therapy in Parchment.",
+        safetyChecks: [],
+        parchmentMode: "open_patient_prescribe",
+        clipboardText: "",
+      },
+      draftNote: "",
+    })
+
+    expect(context).toMatchObject({
+      regimenSource: "template",
+      patientReportedDose: undefined,
+      directionsTemplate: "Doctor to select therapy in Parchment.",
+    })
   })
 })

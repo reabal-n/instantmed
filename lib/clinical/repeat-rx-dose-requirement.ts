@@ -1,3 +1,4 @@
+import { hasCompleteRepeatRxRegimen } from "@/lib/request/repeat-rx-regimen"
 import {
   extractRepeatScriptMedications,
   getRepeatScriptMedicationConcreteStrength,
@@ -63,6 +64,8 @@ export function getRepeatRxDoseMissingFields(
     ...(!hasConcreteStrength
       ? ["medication_strength" as const]
       : []),
-    ...(!currentDose ? ["current_dose" as const] : []),
+    ...(!hasCompleteRepeatRxRegimen(currentDose)
+      ? ["current_dose" as const]
+      : []),
   ]
 }

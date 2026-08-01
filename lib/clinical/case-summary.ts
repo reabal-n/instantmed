@@ -60,6 +60,8 @@ export interface PrescriptionIntent {
   strength?: string
   form?: string
   medicationSearchHint?: string
+  /** Patient-entered regimen context shown separately from the copy action. */
+  patientReportedDose?: string | null
   directionsTemplate: string
   quantityTemplate?: string
   repeatsTemplate?: string
@@ -243,6 +245,18 @@ function isAffirmative(value: unknown): boolean {
   return ["yes", "true", "1"].includes(value.toLowerCase().trim())
 }
 
+function firstBooleanAnswer(answers: Answers, keys: string[]): boolean | undefined {
+  let explicitlyFalse = false
+
+  for (const key of keys) {
+    const value = raw(answers, key)
+    if (isAffirmative(value)) return true
+    if (isExplicitlyAbsent(value)) explicitlyFalse = true
+  }
+
+  return explicitlyFalse ? false : undefined
+}
+
 function answerYes(answers: Answers, key: string): boolean {
   return isAffirmative(raw(answers, key))
 }
@@ -414,7 +428,7 @@ function factHumanized(label: string, value: unknown): ClinicalKeyFact | null {
 
 function makeIntent(
   intent: Omit<PrescriptionIntent, "clipboardText" | "parchmentMode">,
-  copyMedicationName = intent.medicationName,
+  copyMedicationName: string | null = intent.medicationName || null,
 ): PrescriptionIntent {
   return {
     ...intent,
@@ -902,8 +916,15 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const allergies = firstStr(answers, ["known_allergies", "allergies"])
   const conditions = firstStr(answers, ["existing_conditions", "conditions"])
   const currentMedications = firstStr(answers, ["current_medications", "otherMedications", "other_medications"])
+  const sideEffects = firstStr(answers, ["sideEffects", "side_effects"])
+  const hasSideEffectsAnswer = firstBooleanAnswer(answers, ["hasSideEffects", "has_side_effects"])
+  const hasAllergiesAnswer = firstBooleanAnswer(answers, ["hasAllergies", "has_allergies"])
+  const hasConditionsAnswer = firstBooleanAnswer(answers, ["hasConditions", "has_conditions"])
+  const hasOtherMedicationsAnswer = firstBooleanAnswer(answers, ["hasOtherMedications", "has_other_medications"])
   const pregnancyAnswer = raw(answers, "isPregnantOrBreastfeeding") ?? raw(answers, "is_pregnant_or_breastfeeding")
   const adverseReactionAnswer = raw(answers, "hasAdverseMedicationReactions") ?? raw(answers, "has_adverse_medication_reactions")
+  const pregnancyBoolean = firstBooleanAnswer(answers, ["isPregnantOrBreastfeeding", "is_pregnant_or_breastfeeding"])
+  const adverseReactionBoolean = firstBooleanAnswer(answers, ["hasAdverseMedicationReactions", "has_adverse_medication_reactions"])
   const regimenAttestation = getRepeatRxAttestationStatus(answers)
   const doseChangedAnswer = regimenAttestation === "confirmed_unchanged"
     ? false
@@ -927,7 +948,7 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     fact("Patient-reported dose", currentDose),
     { label: "Same dose and directions", value: doseDirectionsConfirmation },
     fact("Last prescription date", str(answers, "lastPrescriptionDate")),
-    fact("Side effects", str(answers, "sideEffects")),
+    fact("Side effects", sideEffects),
     fact("Allergies", allergies),
     fact("Conditions", conditions),
     fact("Current medications", currentMedications),
@@ -1065,14 +1086,24 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
       medicationSearchHint: hasMultipleMedications
         ? medicationLabels[0]
         : [medicationName, strength, form].filter(Boolean).join(" "),
+      patientReportedDose: currentDose ?? null,
       directionsTemplate: currentDose
         ? `${hasMultipleMedications ? `Patient requested multiple medicines: ${requestedMedicationValue}. ` : ""}Patient reports current dose: ${currentDose}. Confirm regimen, quantity, repeats and indication in Parchment before prescribing.`
         : `${hasMultipleMedications ? `Patient requested multiple medicines: ${requestedMedicationValue}. ` : ""}Repeat existing regimen after doctor confirms dose, quantity, repeats and indication in Parchment.`,
       quantityTemplate: hasMultipleMedications ? undefined : "Match clinically appropriate repeat quantity in Parchment",
       repeatsTemplate: hasMultipleMedications ? undefined : "Doctor to confirm in Parchment",
-      safetyChecks: ["Dose and directions confirmed unchanged", "Repeat history reviewed", "Allergies checked", "Current medications checked", "Controlled-substance screen checked"],
+      safetyChecks: [
+        "Dose and directions confirmed unchanged",
+        "Repeat history reviewed",
+        "Confirm allergies and medication reactions",
+        "Confirm current medicines and conditions",
+        "Controlled-substance screen checked",
+      ],
     },
-    primaryMedicationName,
+    // Repeat-request medicine fields are client-controlled. The doctor panel
+    // resolves a trusted generic name from the authenticated first-party
+    // medications table; until then there is deliberately no copyable name.
+    null,
   )
 
   const header = patientHeader(input)
@@ -1093,10 +1124,30 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
 
   const objective = [
     "Telehealth review of structured repeat request.",
-    allergies ? `Allergies: ${allergies}.` : "No allergies reported.",
-    currentMedications ? `Current medicines: ${currentMedications}.` : "No other current medicines reported.",
-    pregnancyAnswer !== undefined ? `Pregnant/breastfeeding: ${yesNo(pregnancyAnswer)}.` : null,
-    adverseReactionAnswer !== undefined ? `Adverse medication reactions: ${yesNo(adverseReactionAnswer)}.` : null,
+    sideEffects
+      ? `Side effects: ${sideEffects}.`
+      : hasSideEffectsAnswer === false
+        ? "Patient reported no side effects."
+        : null,
+    allergies
+      ? `Allergies/reactions: ${allergies}.`
+      : hasAllergiesAnswer === false && adverseReactionBoolean === false
+        ? "Patient reported no allergies or adverse medication reactions."
+        : hasAllergiesAnswer === false
+          ? "Patient reported no allergies."
+          : null,
+    conditions
+      ? `Medical conditions: ${conditions}.`
+      : hasConditionsAnswer === false
+        ? "Patient reported no medical conditions."
+        : null,
+    currentMedications
+      ? `Current medicines: ${currentMedications}.`
+      : hasOtherMedicationsAnswer === false
+        ? "Patient reported no other current medicines."
+        : null,
+    pregnancyBoolean !== undefined ? `Pregnant/breastfeeding: ${yesNo(pregnancyBoolean)}.` : null,
+    adverseReactionBoolean === true && !allergies ? "Patient reported an adverse medication reaction; details require confirmation." : null,
   ]
     .filter(Boolean)
     .join(" ")

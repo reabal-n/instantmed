@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { getMedicationBlocklistCandidate } from "@/lib/operational-controls/medication-blocklist"
+import { REPEAT_RX_REGIMEN_REQUIRED_MESSAGE } from "@/lib/request/repeat-rx-regimen"
 import { validateMedicationStep } from "@/lib/request/validation"
 import {
   getLikelyDeclinedRepeatMedication,
@@ -21,9 +22,24 @@ const validRepeatScriptAnswers = {
   hasSideEffects: false,
   last_prescribed: "6_to_12_months",
   current_dose: "10 mg nightly",
+  repeat_rx_dose_contract_version: 1,
 }
 
 describe("repeat script schema", () => {
+  it.each(["Once daily", "One tablet"])(
+    "rejects incomplete current directions: %s",
+    (currentDose) => {
+      expect(validateRepeatScriptPayload({
+        ...validRepeatScriptAnswers,
+        current_dose: currentDose,
+      })).toEqual({
+        valid: false,
+        error: REPEAT_RX_REGIMEN_REQUIRED_MESSAGE,
+        requiresConsult: false,
+      })
+    },
+  )
+
   it("requires an explicit side-effect answer and details only when side effects are reported", () => {
     const { hasSideEffects: _omitted, ...withoutSideEffectAnswer } = validRepeatScriptAnswers
     void _omitted
@@ -155,6 +171,7 @@ describe("mandatory repeat medication strength", () => {
     hasSideEffects: false,
     last_prescribed: "6_to_12_months",
     current_dose: "10 mg nightly",
+    repeat_rx_dose_contract_version: 1,
   }
 
   it("blocks a repeat with no structured or reliably inferred strength", () => {
@@ -215,6 +232,7 @@ describe("A3 softening — missing medication form is a flag, not a block (bound
     hasSideEffects: false,
     last_prescribed: "6_to_12_months",
     current_dose: "10 mg nightly",
+    repeat_rx_dose_contract_version: 1,
   }
 
   it("allows a repeat with a missing form (now derived as a doctor flag)", () => {
@@ -305,7 +323,7 @@ describe("A3 softening — unknown medication passes only with a useful descript
     dose_changed: false,
     hasSideEffects: false,
     last_prescribed: "6_to_12_months",
-    current_dose: "one daily",
+    current_dose: "One tablet each morning",
   }
   const unknown = { name: "Unknown - doctor will confirm", pbsCode: "UNKNOWN" }
 
@@ -347,7 +365,7 @@ describe("legacy UNKNOWN sentinel — a real typed name is identified (2026-07-2
     dose_changed: false,
     hasSideEffects: false,
     last_prescribed: "6_to_12_months",
-    current_dose: "one daily",
+    current_dose: "One tablet each morning",
   }
 
   it("server: a real name with the stale UNKNOWN code passes without a description", () => {

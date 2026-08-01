@@ -136,9 +136,10 @@ function normalizeMedicationEntry(entry: Record<string, unknown>): RepeatScriptM
 
   return {
     name,
-    displayName: [name, activeIngredient && activeIngredient.toLowerCase() !== name.toLowerCase() ? activeIngredient : null]
-      .filter(Boolean)
-      .join(" "),
+    // Keep the patient-entered/product label as the display source. Active
+    // ingredient fields arrive inside client-controlled intake answers and are
+    // not authoritative enough to relabel the request or drive the clipboard.
+    displayName: name,
     strength: stringValue(entry, ["strength", "medicationStrength", "medication_strength"]) || stringValue(product, ["strength"]),
     form: stringValue(entry, ["form", "medicationForm", "medication_form"]) || stringValue(product, ["form"]),
     pbsCode: stringValue(entry, ["pbsCode", "pbs_code", "amtCode", "amt_code"]) || stringValue(product, ["pbs_code", "amt_code"]),
@@ -194,10 +195,7 @@ export function extractRepeatScriptMedications(answers: Record<string, unknown>)
 }
 
 export function formatRepeatScriptMedicationLabel(entry: RepeatScriptMedicationEntry): string {
-  const name = entry.activeIngredient && entry.activeIngredient.toLowerCase() !== entry.name.toLowerCase()
-    ? `${entry.name} (${entry.activeIngredient})`
-    : entry.name
-  return [name, entry.strength, entry.form].filter(Boolean).join(" ")
+  return [entry.name, entry.strength, entry.form].filter(Boolean).join(" ")
 }
 
 function stripContainingClause(value: string | undefined): string | undefined {
@@ -237,7 +235,6 @@ export function getRepeatScriptMedicationConcreteStrength(
 ): string | undefined {
   return extractRepeatScriptMedicationStrength(entry.strength)
     || extractRepeatScriptMedicationStrength(entry.displayName)
-    || extractRepeatScriptMedicationStrength(entry.activeIngredient)
     || extractRepeatScriptMedicationStrength(entry.name)
 }
 
@@ -268,7 +265,7 @@ function stripStrengthFromName(value: string, strength: string | undefined): str
 export function getRepeatScriptMedicationDisplayParts(
   entry: RepeatScriptMedicationEntry,
 ): RepeatScriptMedicationDisplayParts {
-  const normalizedName = stripContainingClause(entry.activeIngredient || entry.name) || entry.name
+  const normalizedName = stripContainingClause(entry.name) || entry.name
   const structuredStrength = extractRepeatScriptMedicationStrength(entry.strength) || stripContainingClause(entry.strength)
   const inferredStrength = structuredStrength
     ? undefined
