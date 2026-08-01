@@ -10,11 +10,19 @@ import {
   logTermsConsentGiven,
   type RequestType,
 } from "@/lib/audit/compliance-audit"
+import {
+  getRepeatRxDoseMissingFields,
+  hasRepeatRxDoseContractMarker,
+  isRepeatPrescriptionRequest,
+} from "@/lib/clinical/repeat-rx-dose-requirement"
 import { getAppUrl } from "@/lib/config/env"
 import { checkCheckoutBlocked } from "@/lib/config/kill-switches"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { TELEHEALTH_CONSENT_VERSION,TERMS_VERSION } from "@/lib/constants"
-import { buildAnswersInsertColumns } from "@/lib/data/intake-answers"
+import {
+  buildAnswersInsertColumns,
+  getIntakeAnswersForPaymentSafety,
+} from "@/lib/data/intake-answers"
 import { decryptProfilePhi, updateProfile } from "@/lib/data/profiles"
 import { isServiceDisabled, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
@@ -35,6 +43,7 @@ import {
   invalidateCheckoutSessionForSafety,
 } from "./checkout/checkout-session-safety"
 import { runClinicalValidation } from "./checkout/clinical-validation"
+import { holdCheckoutForMissingSafetyInformation } from "./checkout/missing-safety-payment-hold"
 import { preflightPriorityPriceForRecovery } from "./checkout/priority-price-recovery"
 import { reconcileChangedCheckoutSessionForReturn } from "./checkout/return-payment-reconciliation"
 import { reportCheckoutSessionFailure } from "./checkout-error-alarm"
@@ -745,18 +754,75 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           .maybeSingle()
 
         if (existingIntake) {
-          const { data: existingAnswers, error: existingAnswersError } =
-            await supabase
-              .from("intake_answers")
-              .select("intake_id")
-              .eq("intake_id", existingIntake.id)
-              .maybeSingle()
+          const existingAnswers = await getIntakeAnswersForPaymentSafety(
+            existingIntake.id,
+          )
 
-          if (existingAnswersError || !existingAnswers) {
+          if (!existingAnswers) {
             return {
               success: false,
               error:
                 "This request is still being prepared. Please wait a moment and try again.",
+            }
+          }
+
+          const repeatDoseMissingFields =
+            isRepeatPrescriptionRequest(existingIntake.category, existingIntake.subtype)
+            && hasRepeatRxDoseContractMarker(existingAnswers)
+              ? getRepeatRxDoseMissingFields(existingAnswers)
+              : []
+          if (repeatDoseMissingFields.length > 0) {
+            await recordSafetyEvaluationForOperators({
+              answers: existingAnswers,
+              context: "guest_resume",
+              requestId: existingIntake.id,
+              result: {
+                isAllowed: false,
+                outcome: "REQUEST_MORE_INFO",
+                riskTier: "high",
+                blockReason: "Required medical information is missing.",
+                requiresCall: false,
+                triggeredRuleIds: ["missing_safety_fields"],
+              },
+              serviceSlug: serviceSlugForSafety,
+            })
+            const hold = await holdCheckoutForMissingSafetyInformation({
+              intakeId: existingIntake.id,
+              missingFields: repeatDoseMissingFields,
+              patientId: guestProfileId,
+              source: "guest_duplicate",
+              supabase,
+            })
+            if (hold === "held") {
+              return {
+                success: false,
+                error: "Some required medical information is missing. Please start the request again and complete the required dose questions before continuing.",
+              }
+            }
+            if (hold === "payment_in_flight") {
+              const completionUrl =
+                await resolveGuestPaymentCompletionAfterStateChange({
+                  baseUrl,
+                  intakeId: existingIntake.id,
+                  state: existingIntake,
+                })
+              if (completionUrl) {
+                await markGuestDraftConvertedIfPresent(
+                  supabase,
+                  input,
+                  existingIntake.id,
+                )
+                return {
+                  success: true,
+                  checkoutUrl: completionUrl,
+                  intakeId: existingIntake.id,
+                }
+              }
+            }
+            return {
+              success: false,
+              error:
+                "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
             }
           }
 

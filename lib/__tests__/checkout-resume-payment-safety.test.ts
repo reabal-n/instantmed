@@ -585,6 +585,30 @@ describe("signed guest checkout resume payment safety", () => {
     })
   })
 
+  it("holds a marked signed repeat resume with no concrete medication strength", async () => {
+    const { supabase } = createResumeSupabaseMock({
+      category: "prescription",
+      created_at: "2026-08-01T10:00:00.000Z",
+      service: { slug: "common-scripts", type: "repeat_rx" },
+      stripe_price_id: "price_repeat",
+      subtype: "repeat",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({
+      medicationName: "Sertraline",
+      currentDose: "Once daily",
+      repeat_rx_dose_contract_version: 1,
+    })
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe(
+      "/checkout/cancelled?reason=more_information_required",
+    )
+    expect(mocks.checkSafetyForServer).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
   it("holds an incomplete signed resume with no stored Session", async () => {
     const { supabase } = createResumeSupabaseMock({
       category: "prescription",

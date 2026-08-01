@@ -396,7 +396,7 @@ test.describe("Doctor prescription UI flow", () => {
     await expect(drawer.getByText("Review differences", { exact: true })).toHaveCount(0)
   })
 
-  test("renders an embedded strength once while keeping it inferred and the missing form explicit", async ({ page }) => {
+  test("combines medication details while keeping inferred strength explicit", async ({ page }) => {
     const patientId = await seedReviewProfilePatient()
     testPatientIds.push(patientId)
     const intakeId = await seedRepeatPrescriptionCase({
@@ -417,22 +417,16 @@ test.describe("Doctor prescription UI flow", () => {
 
     const packet = page.getByRole("region", { name: "Request packet" })
     await expect(packet).toBeVisible({ timeout: 15000 })
-    await expect(packet.getByText("2 items to confirm", { exact: true })).toBeVisible()
+    await expect(packet.getByText(/items? to confirm/)).toHaveCount(0)
 
     const medicine = packet.locator('[data-review-fact="medicine"]')
-    const strength = packet.locator('[data-review-fact="strength"]')
-    const form = packet.locator('[data-review-fact="form"]')
     const recency = packet.locator('[data-review-fact="last_prescribed"]')
 
-    await expect(medicine.getByText("Effexor", { exact: true })).toBeVisible()
-    await expect(medicine).not.toContainText("75mg")
-    await expect(page.getByText("Effexor", { exact: true })).toHaveCount(1)
-    await expect(strength).toHaveAttribute("data-review-fact-state", "inferred")
-    await expect(strength.getByText("75mg", { exact: true })).toBeVisible()
-    await expect(strength.getByText("Inferred from patient text · Confirm strength", { exact: true })).toBeVisible()
-    await expect(form).toHaveAttribute("data-review-fact-state", "missing")
-    await expect(form.getByText("Not recorded", { exact: true })).toBeVisible()
-    await expect(form.getByText("Confirm form", { exact: true })).toBeVisible()
+    await expect(medicine).toHaveAttribute("data-review-fact-state", "inferred")
+    await expect(medicine.getByText("Effexor 75mg", { exact: true })).toBeVisible()
+    await expect(medicine.getByText("Inferred from patient text · Confirm strength", { exact: true })).toBeVisible()
+    await expect(packet.locator('[data-review-fact="strength"]')).toHaveCount(0)
+    await expect(packet.locator('[data-review-fact="form"]')).toHaveCount(0)
     await expect(recency.getByText("3–6 months ago", { exact: true })).toBeVisible()
     await expect(page.getByText("3_to_6_months", { exact: true })).toHaveCount(0)
   })
@@ -528,8 +522,8 @@ test.describe("Doctor prescription UI flow", () => {
 
     const refreshedActionRail = page.locator('[data-review-action-rail="true"]').first()
     await expect(page.getByText("Prescription recorded — complete when ready")).toBeVisible()
-    await expect(page.getByText("Prescription recorded").first()).toBeVisible()
-    await expect(page.getByText("Prescription already recorded").first()).toBeVisible()
+    await expect(refreshedActionRail.getByText("Prescription recorded", { exact: true })).toBeVisible()
+    await expect(page.getByRole("region", { name: "Request packet" }).getByText("Prescription already recorded")).toHaveCount(0)
     await expect(refreshedActionRail.getByRole("button", { name: "Prescribe" })).toHaveCount(0)
     await expect(refreshedActionRail.getByRole("button", { name: "Complete request" })).toBeEnabled()
   })

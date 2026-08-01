@@ -84,6 +84,7 @@ import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { deriveRepeatMedicationTerminalBlock } from "@/lib/request/terminal-safety-blocks"
 import {
   getLikelyDeclinedRepeatMedication,
+  getRepeatScriptMedicationConcreteStrength,
   resolveRepeatMedicationCode,
 } from "@/lib/validation/repeat-script-medications"
 
@@ -139,6 +140,7 @@ const COMMON_FREQUENCY_STARTERS = [
 const DOSE_CONFIRMATION_REQUIRED = "Please confirm whether the dose or the way you take this medicine has changed"
 const DOSE_CHANGE_REQUIRES_REVIEW = "A dose or directions change needs review by your regular GP or specialist"
 const DECLINE_ADVISORY_REQUIRED = "Read and acknowledge the online-prescribing note before continuing"
+const MEDICATION_STRENGTH_REQUIRED = "Enter the strength shown on the medication label (for example, 100 mg)"
 
 export default function MedicationStep({ serviceType, onNext }: MedicationStepProps) {
   const { answers, flowInstanceId, setAnswers, setAnswer } = useRequestStore()
@@ -282,6 +284,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     setErrors((prev) => {
       const next = { ...prev }
       delete next.medication
+      delete next[`strength-${index}`]
       return next
     })
   }
@@ -491,14 +494,16 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       newErrors.medication = "Enter the name of the medication you need"
     }
     // Belt-and-suspenders: recheck controlled substances in validate.
-    for (const med of medications) {
+    for (const [index, med] of medications.entries()) {
       if (med.name && isControlledMedicationName(med.name)) {
         newErrors.medication = "Controlled substances cannot be prescribed online"
         break
       }
-      // Strength and form are optional — if blank the doctor sees
-      // medication_strength_missing / medication_form_missing flags instead of
-      // a dead-end.
+      if (med.name.trim() && !getRepeatScriptMedicationConcreteStrength(med)) {
+        newErrors[`strength-${index}`] = MEDICATION_STRENGTH_REQUIRED
+      }
+      // Form remains optional; the doctor receives the existing attention flag
+      // when it is not recorded.
     }
 
     if (!prescriptionHistory) {
@@ -596,12 +601,16 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   }, [controlledBlock, declineRiskActive, steerActive, serviceSteer, validate, medications, onNext])
 
   const activeMedications = medications.filter((m) => m.name.trim())
-  // Readiness: a named medicine, when it was last prescribed, and — for a
-  // genuine repeat — dose+frequency, what it treats, the unchanged-regimen
-  // attestation, and an explicit side-effect answer. Strength/form stay
-  // optional (the doctor is flagged if blank).
+  // Readiness: a named medicine with a concrete strength (structured or
+  // reliably inferred from text such as "Sertraline 100mg"), when it was last
+  // prescribed, and — for a genuine repeat — current directions/frequency,
+  // what it treats, the unchanged-regimen attestation, and an explicit
+  // side-effect answer. Form remains optional.
   const isComplete = Boolean(
     activeMedications.length > 0
+    && activeMedications.every((medication) =>
+      Boolean(getRepeatScriptMedicationConcreteStrength(medication)),
+    )
     && prescriptionHistory
     && !isNeverPrescribed
     && currentDose.trim()
@@ -634,7 +643,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     <div className="space-y-4">
       <IntakeStepIntro
         title="Your medication"
-        description="Request one regular medicine at a time. Type the name, or describe it if you're not sure — the doctor confirms the right medicine before prescribing."
+        description="Request one regular medicine at a time. Enter the name and the strength shown on the label — the doctor confirms the medicine before prescribing."
       />
 
       <StepBlockedSummary reasons={blockedReasons} />
@@ -780,8 +789,15 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       )}
 
       {/* Medication entry */}
-      {medications.map((med, index) => (
-        <QuestionCard key={index} compact>
+      {medications.map((med, index) => {
+        const inferredStrength = !med.strength?.trim()
+          ? getRepeatScriptMedicationConcreteStrength(med)
+          : undefined
+        const separateStrengthRequired = !inferredStrength
+        const strengthError = errors[`strength-${index}`]
+
+        return (
+          <QuestionCard key={index} compact>
           <FormField
             label="Medication name"
             required
@@ -796,7 +812,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
               ref={index === 0 ? medicationNameRef : undefined}
               value={med.name}
               onChange={(event) => handleMedicationNameChange(index, event.target.value)}
-              placeholder="e.g. Atorvastatin 20 mg — or describe it (white tablet for cholesterol)"
+              placeholder="e.g. Sertraline"
               autoComplete="off"
               className="mt-2 h-11"
               aria-invalid={Boolean(errors.medication)}
@@ -806,7 +822,11 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
           <div className="mt-3 grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground" htmlFor={`medication-strength-${index}`}>
-                Strength <span className="text-muted-foreground/70">(optional)</span>
+                Strength {separateStrengthRequired ? (
+                  <span className="text-destructive" aria-hidden="true">*</span>
+                ) : (
+                  <span className="text-muted-foreground/70">(captured above)</span>
+                )}
               </label>
               <Input
                 id={`medication-strength-${index}`}
@@ -814,7 +834,21 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
                 onChange={(event) => handleMedicationFieldChange(index, "strength", event.target.value)}
                 placeholder="e.g. 10 mg"
                 className="h-10"
+                aria-required={separateStrengthRequired}
+                aria-invalid={Boolean(strengthError)}
+                aria-describedby={strengthError || inferredStrength
+                  ? `medication-strength-help-${index}`
+                  : undefined}
               />
+              {(strengthError || inferredStrength) && (
+                <p
+                  id={`medication-strength-help-${index}`}
+                  className={strengthError ? "text-xs text-destructive" : "text-xs text-muted-foreground"}
+                  role={strengthError ? "alert" : undefined}
+                >
+                  {strengthError || `Using ${inferredStrength} from the medication name.`}
+                </p>
+              )}
             </div>
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground" htmlFor={`medication-form-${index}`}>
@@ -829,8 +863,9 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
               />
             </div>
           </div>
-        </QuestionCard>
-      ))}
+          </QuestionCard>
+        )
+      })}
 
       {/* Prescription history — always visible so answering never swaps the
           screen out (the old progressive reveal hid this card after a pick). */}
@@ -905,10 +940,10 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       {showRepeatDetails && (
         <QuestionCard compact>
           <FormField
-            label="What dose do you currently take?"
+            label="How much do you take, and how often?"
             required
             error={touched.currentDose ? errors.currentDose : undefined}
-            hint="Include how often you take it. Copy the wording from your label if you can."
+            hint="Copy the directions from your label if you can."
           >
             <ChipToggleGroup
               options={COMMON_FREQUENCY_STARTERS}
@@ -924,7 +959,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
               htmlFor="current-dose"
               className="mt-3 block text-xs font-normal text-muted-foreground"
             >
-              Add the amount you take
+              Add the amount or directions
             </Label>
             <Textarea
               id="current-dose"

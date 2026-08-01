@@ -339,9 +339,9 @@ None. The patient types the name themselves (`components/request/steps/medicatio
 
 ### Patient-Facing Rules
 
-- Label: "Medication name" (with optional strength/form)
+- Labels: "Medication name" and mandatory "Strength"; form remains optional. A reliably parsed inline strength such as "Sertraline 100mg" fulfils the strength requirement without duplicate entry.
 - One repeat-prescription request covers one medication. Patients with multiple repeats submit separate requests so the dose, indication, and side-effect answers stay tied to the right medicine.
-- Helper text: "Request one regular medicine at a time. Type the name, or describe it if you're not sure — the doctor confirms the right medicine before prescribing."
+- Helper text: "Request one regular medicine at a time. Enter the name and the strength shown on the label — the doctor confirms the medicine before prescribing."
 - The box is plain free text — no results list, no autocomplete, and nothing highlighted as "recommended", "suitable", "eligible", or "approved"
 - Codeine-combination brands that remain eligible for human review can show a pre-payment likely-decline note. The acknowledgement is a fixed brand token persisted in the draft and revalidated at checkout; it never overrides the doctor's decision, and changing the matched brand invalidates it.
 

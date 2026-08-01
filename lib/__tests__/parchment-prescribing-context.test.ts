@@ -24,7 +24,7 @@ describe("buildParchmentPrescriptionContext", () => {
         directionsTemplate: "Confirm regimen in Parchment.",
         safetyChecks: [],
         parchmentMode: "open_patient_prescribe",
-        clipboardText: "Medication: Rosuvastatin\nStrength: 10 mg",
+        clipboardText: "Rosuvastatin",
       },
       draftNote: "",
     })
@@ -34,7 +34,7 @@ describe("buildParchmentPrescriptionContext", () => {
       medicationLabel: "Rosuvastatin 10 mg tablet",
       searchHint: "Rosuvastatin 10 mg tablet",
       directionsTemplate: "Confirm regimen in Parchment.",
-      copyText: "Medication: Rosuvastatin\nStrength: 10 mg",
+      copyText: "Rosuvastatin",
     })
   })
 

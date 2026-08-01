@@ -284,7 +284,9 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.recommendedPlan.action).toBe("prescribe")
     expect(summary.prescriptionIntent).toMatchObject({
       presetLabel: "UTI Parchment handoff context",
+      medicationSearchHint: "UTI antibiotic",
       parchmentMode: "open_patient_prescribe",
+      clipboardText: "",
     })
     expect(summary.prescriptionIntent?.directionsTemplate).toMatch(/select first-line uncomplicated lower-UTI antibiotic/i)
   })
@@ -375,6 +377,7 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.prescriptionIntent).toMatchObject({
       presetLabel: "Contraceptive pill Parchment context",
       medicationSearchHint: "contraceptive pill",
+      clipboardText: "",
     })
   })
 
@@ -546,6 +549,50 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.draftNote).not.toMatch(/^P:\s+Repeat/m)
   })
 
+  it("copies only the normalized medication name for Parchment", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "prescription",
+      serviceType: "repeat-script",
+      patientName: "Pat Script",
+      answers: {
+        medications: [
+          { name: "Sertraline 100mg tablet", pbsCode: "MANUAL" },
+        ],
+        prescriptionHistory: "last_3_months",
+        currentDose: "Once daily",
+        doseChanged: false,
+      },
+    })
+
+    expect(summary.prescriptionIntent?.medicationName).toBe("Sertraline")
+    expect(summary.prescriptionIntent?.strength).toBe("100mg")
+    expect(summary.prescriptionIntent?.clipboardText).toBe("Sertraline")
+    expect(summary.prescriptionIntent?.clipboardText).not.toMatch(/100mg|tablet|once daily|directions|context/i)
+  })
+
+  it("prefers the active ingredient for the name-only Parchment copy", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "prescription",
+      serviceType: "repeat-script",
+      patientName: "Pat Script",
+      answers: {
+        medications: [{
+          name: "Zoloft",
+          activeIngredient: "Sertraline",
+          strength: "100 mg",
+          form: "tablet",
+          pbsCode: "MANUAL",
+        }],
+        prescriptionHistory: "last_3_months",
+        currentDose: "Once daily",
+        doseChanged: false,
+      },
+    })
+
+    expect(summary.prescriptionIntent?.medicationName).toBe("Sertraline")
+    expect(summary.prescriptionIntent?.clipboardText).toBe("Sertraline")
+  })
+
   it("surfaces every requested repeat medication in the doctor summary", () => {
     const summary = buildClinicalCaseSummary({
       category: "prescription",
@@ -575,7 +622,7 @@ describe("buildClinicalCaseSummary", () => {
       value: "Rosuvastatin 10 mg tablet; Metformin 500 mg tablet",
     })
     expect(summary.draftNote).toContain("Metformin 500 mg tablet")
-    expect(summary.prescriptionIntent?.clipboardText).toContain("Metformin 500 mg tablet")
+    expect(summary.prescriptionIntent?.clipboardText).toBe("Rosuvastatin")
     expect(summary.prescriptionIntent?.quantityTemplate).toBeUndefined()
     expect(summary.prescriptionIntent?.repeatsTemplate).toBeUndefined()
     expect(summary.prescriptionIntent?.clipboardText).not.toContain("Quantity:")
@@ -654,7 +701,7 @@ describe("buildClinicalCaseSummary", () => {
       value: "Metformin 1 g Tablet (extended release)",
     })
     expect(summary.patientStory).toContain("Metformin 1 g Tablet (extended release)")
-    expect(summary.prescriptionIntent?.clipboardText).toContain("Metformin 1 g Tablet (extended release)")
+    expect(summary.prescriptionIntent?.clipboardText).toBe("Metformin")
   })
 
   it("builds a medical certificate summary without falling back to general consult copy", () => {
@@ -739,8 +786,7 @@ describe("buildClinicalCaseSummary", () => {
       expect(summary.prescriptionIntent?.strength).toBe("5mg")
       expect(summary.prescriptionIntent?.quantityTemplate).toBe("30 tablets")
       expect(summary.prescriptionIntent?.directionsTemplate).toMatch(/once daily/i)
-      expect(summary.prescriptionIntent?.clipboardText).toContain("Tadalafil")
-      expect(summary.prescriptionIntent?.clipboardText).not.toContain("30 tablets")
+      expect(summary.prescriptionIntent?.clipboardText).toBe("Tadalafil")
     })
 
     it("prn preference fills prescriptionIntent with Sildenafil 50mg", () => {

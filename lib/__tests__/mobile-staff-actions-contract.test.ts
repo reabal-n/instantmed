@@ -31,8 +31,12 @@ describe("mobile staff action contracts", () => {
     expect(actionRailSource).toContain('data-mobile-fulfilment-options="true"')
     expect(actionRailSource).toContain("Fulfilment options")
     expect(actionRailSource).toContain(
-      'className="hidden pt-2 group-open:block sm:block sm:pt-0" data-desktop-fulfilment-fallback="true"',
+      'className="hidden sm:block" data-desktop-fulfilment-fallback="true"',
     )
+    expect(actionRailSource).toContain('instance="mobile"')
+    expect(actionRailSource).toContain('restoreOnMount={false}')
+    expect(actionRailSource).toContain('instance="desktop"')
+    expect(actionRailSource).toContain("const instanceId = `${intakeId}-${instance}`")
     expect(parchmentPanelSource).toContain("Sent outside Parchment")
   })
 

@@ -208,10 +208,37 @@ function stripContainingClause(value: string | undefined): string | undefined {
     .trim()
 }
 
-function extractStrength(value: string | undefined): string | undefined {
+/**
+ * Extract a concrete medicine strength from patient-entered text.
+ *
+ * The repeat form has historically allowed patients to type the strength into
+ * the medicine name (for example, "Sertraline 100mg"). Keep accepting that
+ * useful input instead of making them enter the same value twice. Combination
+ * and concentration strengths are matched before a single amount so values
+ * such as "100/3 micrograms" and "5 mg/5 mL" stay intact.
+ */
+export function extractRepeatScriptMedicationStrength(
+  value: string | undefined,
+): string | undefined {
   if (!value) return undefined
-  const match = value.match(/\b\d+(?:\.\d+)?\s*(?:micrograms?|mcg|milligrams?|mg|grams?|g|units?|iu|%)\b/i)
+  const unit = "(?:nanograms?|ng|micrograms?|mcg|milligrams?|mg|grams?|g|units?|iu|mmol|meq|%)"
+  const volumeUnit = "(?:ml|millilit(?:er|re)s?)"
+  const amount = "\\d+(?:\\.\\d+)?"
+  const match = value.match(new RegExp(
+    `\\b(?:${amount}\\s*${unit}\\s*\\/\\s*${amount}\\s*(?:${unit}|${volumeUnit})|${amount}\\s*\\/\\s*${amount}\\s*${unit}|${amount}\\s*${unit})(?!\\w)`,
+    "i",
+  ))
   return match?.[0]?.replace(/\s+/g, " ").trim()
+}
+
+export function getRepeatScriptMedicationConcreteStrength(
+  entry: Pick<RepeatScriptMedicationEntry, "name">
+    & Partial<Omit<RepeatScriptMedicationEntry, "name">>,
+): string | undefined {
+  return extractRepeatScriptMedicationStrength(entry.strength)
+    || extractRepeatScriptMedicationStrength(entry.displayName)
+    || extractRepeatScriptMedicationStrength(entry.activeIngredient)
+    || extractRepeatScriptMedicationStrength(entry.name)
 }
 
 function stripFormFromName(value: string): string {
@@ -225,7 +252,7 @@ function stripFormFromName(value: string): string {
 function stripStrengthFromName(value: string, strength: string | undefined): string {
   if (!strength) return value.trim()
 
-  const embeddedStrength = extractStrength(value)
+  const embeddedStrength = extractRepeatScriptMedicationStrength(value)
   if (!embeddedStrength) return value.trim()
 
   const normalizedEmbedded = embeddedStrength.replace(/\s+/g, "").toLowerCase()
@@ -242,10 +269,11 @@ export function getRepeatScriptMedicationDisplayParts(
   entry: RepeatScriptMedicationEntry,
 ): RepeatScriptMedicationDisplayParts {
   const normalizedName = stripContainingClause(entry.activeIngredient || entry.name) || entry.name
-  const structuredStrength = extractStrength(entry.strength) || stripContainingClause(entry.strength)
+  const structuredStrength = extractRepeatScriptMedicationStrength(entry.strength) || stripContainingClause(entry.strength)
   const inferredStrength = structuredStrength
     ? undefined
-    : extractStrength(entry.displayName) || extractStrength(normalizedName)
+    : extractRepeatScriptMedicationStrength(entry.displayName)
+      || extractRepeatScriptMedicationStrength(normalizedName)
   const strength = structuredStrength || inferredStrength
   const name = stripStrengthFromName(stripFormFromName(normalizedName), strength)
   const form = stripContainingClause(entry.form)

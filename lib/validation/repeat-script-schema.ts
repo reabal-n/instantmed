@@ -9,6 +9,7 @@ import {
 } from "@/lib/clinical/controlled-substances"
 import { detectDedicatedServiceForMedication } from "@/lib/clinical/medication-service-routing"
 import { getRepeatRxAttestationStatus } from "@/lib/clinical/repeat-rx-attestation"
+import { getRepeatRxDoseMissingFields } from "@/lib/clinical/repeat-rx-dose-requirement"
 import {
   buildRepeatScriptMedicationValidationText,
   extractRepeatScriptMedications,
@@ -27,7 +28,9 @@ export interface RepeatScriptMedicationPayload {
   prescribed_before: boolean // Must be true for repeat scripts
   dose_changed: boolean // Canonical mirror; raw doseChanged provenance is also required at checkout
 
-  // Optional fields
+  // The structured strength key remains optional because a reliably parsed
+  // inline value (for example `medication_name: "Sertraline 100mg"`) fulfils
+  // the same required clinical contract without duplicate patient entry.
   medication_strength?: string | null
   medication_form?: string | null
 }
@@ -270,12 +273,11 @@ export function validateRepeatScriptPayload(
       }
     }
 
-    // A3 softening: a missing strength no longer blocks checkout. The patient
-    // flows through and `deriveIntakeFlags` raises an attention flag
-    // (`medication_strength_missing`) for the doctor. New-med, dose-change and
-    // controlled substances remain hard blocks below.
+    // A missing form remains a doctor attention flag rather than a checkout
+    // block. A concrete strength is enforced after the controlled-substance
+    // and one-medicine checks so their safer, more specific errors win.
 
-    // A3 softening (boundary 2): a missing form no longer blocks checkout. The
+    // A3 softening (boundary 2): a missing form does not block checkout. The
     // patient flows through and `deriveIntakeFlags` raises an attention flag
     // (`medication_form_missing`). New-med, dose-change, unknown-med and
     // controlled substances remain hard blocks.
@@ -367,6 +369,23 @@ export function validateRepeatScriptPayload(
     }
   }
 
+  const doseMissingFields = getRepeatRxDoseMissingFields(answers)
+  if (doseMissingFields.includes("medication_strength")) {
+    return {
+      valid: false,
+      error: "Please enter the strength shown on the medication label (for example, 100 mg).",
+      requiresConsult: false,
+    }
+  }
+
+  if (doseMissingFields.includes("current_dose")) {
+    return {
+      valid: false,
+      error: "Please tell the doctor how much you currently take and how often you take it.",
+      requiresConsult: false,
+    }
+  }
+
   // P1: lastPrescribed is required for repeat scripts (clinical risk)
   const lastPrescribed = answers.last_prescribed || answers.lastPrescribed
   if (!lastPrescribed || typeof lastPrescribed !== "string" || lastPrescribed.trim() === "") {
@@ -376,9 +395,6 @@ export function validateRepeatScriptPayload(
       requiresConsult: false,
     }
   }
-
-  // A3 softening (boundary 4): a missing current dose no longer blocks — the
-  // patient proceeds and the doctor sees a dose_not_stated attention flag.
 
   return { valid: true }
 }

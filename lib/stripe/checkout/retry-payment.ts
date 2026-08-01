@@ -13,6 +13,11 @@ import { cookies } from "next/headers"
 
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import {
+  getRepeatRxDoseMissingFields,
+  hasRepeatRxDoseContractMarker,
+  isRepeatPrescriptionRequest,
+} from "@/lib/clinical/repeat-rx-dose-requirement"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { getIntakeAnswersForPaymentSafety } from "@/lib/data/intake-answers"
 import { createLogger } from "@/lib/observability/logger"
@@ -204,10 +209,19 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     }
 
     const fieldCheck = validateSafetyFieldsPresent(serviceSlugForSafety, intakeAnswers)
-    if (!fieldCheck.valid) {
+    const repeatDoseMissingFields =
+      isRepeatPrescriptionRequest(categoryForSafety, intake.subtype)
+      && hasRepeatRxDoseContractMarker(intakeAnswers)
+        ? getRepeatRxDoseMissingFields(intakeAnswers)
+        : []
+    const missingFields = [...new Set([
+      ...fieldCheck.missingFields,
+      ...repeatDoseMissingFields,
+    ])]
+    if (!fieldCheck.valid || repeatDoseMissingFields.length > 0) {
       logger.warn("Safety fields missing at checkout", {
         serviceSlug: serviceSlugForSafety,
-        missingFields: fieldCheck.missingFields,
+        missingFields,
       })
       await recordSafetyEvaluationForOperators({
         answers: intakeAnswers,
@@ -225,7 +239,7 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       })
       const hold = await holdCheckoutForMissingSafetyInformation({
         intakeId: intake.id,
-        missingFields: fieldCheck.missingFields,
+        missingFields,
         patientId,
         source: "retry_payment",
         supabase,

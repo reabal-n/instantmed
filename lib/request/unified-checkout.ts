@@ -1,4 +1,8 @@
 import { collectRepeatMedicationEntries } from "@/lib/clinical/repeat-medications"
+import {
+  REPEAT_RX_DOSE_CONTRACT_KEY,
+  REPEAT_RX_DOSE_CONTRACT_VERSION,
+} from "@/lib/clinical/repeat-rx-dose-requirement"
 import { checkEmergencySymptoms } from "@/lib/clinical/triage-rules-engine"
 import { buildAddressAuditMetadata } from "@/lib/request/address-metadata"
 import {
@@ -302,6 +306,7 @@ export function transformAnswersForUnifiedCheckout(
     } else {
       delete transformed.dose_changed
     }
+    transformed[REPEAT_RX_DOSE_CONTRACT_KEY] = REPEAT_RX_DOSE_CONTRACT_VERSION
   }
 
   if (serviceType === "consult") {

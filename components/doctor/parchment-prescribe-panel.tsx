@@ -35,10 +35,6 @@ type ParchmentPrescribePanelProps = {
 
 const PARCHMENT_IFRAME_SLOW_LOAD_MS = 8000
 
-function getCopiedMedicineLabel(context: ParchmentPrescriptionContext | null | undefined): string {
-  return context?.medicationLabel || context?.presetLabel || "medicine"
-}
-
 function getParchmentErrorCopy(error: string | null): { title: string; detail: string } {
   if (!error) {
     return {
@@ -127,6 +123,8 @@ export function ParchmentPrescribePanel({
   const errorCopy = getParchmentErrorCopy(error)
   const patientDetailsHref = patientProfileHref || (patientId ? buildStaffPatientHref(patientId) : null)
   const canEditPatientDetails = Boolean(patientDetailsHref && canFixParchmentErrorFromPatientProfile(error))
+  const hasCopyableMedicationName = Boolean(prescriptionContext?.copyText)
+  const canCopySearchHint = Boolean(!hasCopyableMedicationName && prescriptionContext?.searchHint)
 
   const closeAndRefresh = useCallback(() => {
     if (intakeId) {
@@ -154,18 +152,18 @@ export function ParchmentPrescribePanel({
     }
   }, [loadFreshParchmentUrl])
 
-  const copyPrescriptionContext = useCallback(async () => {
+  const copyMedicationName = useCallback(async () => {
     if (!prescriptionContext?.copyText) return
     try {
       await navigator.clipboard.writeText(prescriptionContext.copyText)
-      toast.success(`Copied ${getCopiedMedicineLabel(prescriptionContext)} to Parchment`)
+      toast.success("Copied medicine name")
     } catch {
-      toast.error("Could not copy prescription details")
+      toast.error("Could not copy medicine name")
     }
   }, [prescriptionContext])
 
   const copyPrescriptionSearchHint = useCallback(async () => {
-    if (!prescriptionContext?.searchHint) return
+    if (prescriptionContext?.copyText || !prescriptionContext?.searchHint) return
     try {
       await navigator.clipboard.writeText(prescriptionContext.searchHint)
       toast.success("Copied Parchment search term")
@@ -351,14 +349,14 @@ export function ParchmentPrescribePanel({
                     ) : null}
                     <p>Directions context: {prescriptionContext.directionsTemplate}</p>
                     <div className="flex flex-wrap gap-2">
-                      {prescriptionContext.searchHint ? (
+                      {canCopySearchHint ? (
                         <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={copyPrescriptionSearchHint}>
                           <Clipboard className="mr-1.5 h-3.5 w-3.5" /> Copy search
                         </Button>
                       ) : null}
                       {prescriptionContext.copyText ? (
-                        <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={copyPrescriptionContext}>
-                          <Clipboard className="mr-1.5 h-3.5 w-3.5" /> Copy context
+                        <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={copyMedicationName}>
+                          <Clipboard className="mr-1.5 h-3.5 w-3.5" /> Copy name
                         </Button>
                       ) : null}
                     </div>
@@ -380,23 +378,25 @@ export function ParchmentPrescribePanel({
                           <p className="truncate text-xs text-muted-foreground">
                             Search in Parchment: {prescriptionContext.searchHint}
                           </p>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 shrink-0 px-2 text-[11px]"
-                            onClick={copyPrescriptionSearchHint}
-                          >
-                            <Clipboard className="mr-1 h-3 w-3" />
-                            Copy search
-                          </Button>
+                          {canCopySearchHint ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 shrink-0 px-2 text-[11px]"
+                              onClick={copyPrescriptionSearchHint}
+                            >
+                              <Clipboard className="mr-1 h-3 w-3" />
+                              Copy search
+                            </Button>
+                          ) : null}
                         </div>
                       )}
                     </div>
                     {prescriptionContext.copyText && (
-                      <Button type="button" variant="outline" size="sm" onClick={copyPrescriptionContext}>
+                      <Button type="button" variant="outline" size="sm" onClick={copyMedicationName}>
                         <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                        Copy
+                        Copy name
                       </Button>
                     )}
                   </div>
@@ -503,9 +503,9 @@ export function ParchmentPrescribePanel({
                               Open in new tab
                             </Button>
                             {prescriptionContext?.copyText && (
-                              <Button type="button" variant="ghost" size="sm" onClick={copyPrescriptionContext}>
+                              <Button type="button" variant="ghost" size="sm" onClick={copyMedicationName}>
                                 <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                                Copy medicine
+                                Copy name
                               </Button>
                             )}
                           </div>

@@ -66,6 +66,7 @@ export interface PrescriptionIntent {
   safetyChecks: string[]
   cautionChecks?: string[]
   parchmentMode: "open_patient_prescribe"
+  /** Exact medicine name only; empty when the doctor must choose the medicine. */
   clipboardText: string
   alternativeNote?: string
 }
@@ -411,29 +412,17 @@ function factHumanized(label: string, value: unknown): ClinicalKeyFact | null {
   return value ? { label, value: humanize(value) } : null
 }
 
-function createClipboardText(intent: Omit<PrescriptionIntent, "clipboardText" | "parchmentMode">): string {
-  const medicationLine = [
-    intent.medicationName,
-    intent.strength,
-    intent.form,
-  ].filter(Boolean).join(" ")
-  const lines = [
-    "Doctor-only prescribing context",
-    medicationLine ? `Medicine context: ${medicationLine}` : null,
-    intent.medicationSearchHint ? `Search hint: ${intent.medicationSearchHint}` : null,
-    `Dose/directions context: ${intent.directionsTemplate}`,
-    "Confirm medicine, dose and all prescribing details in Parchment.",
-    intent.cautionChecks && intent.cautionChecks.length > 0 ? `Cautions: ${intent.cautionChecks.join("; ")}` : null,
-  ].filter(Boolean)
-
-  return lines.join("\n")
-}
-
-function makeIntent(intent: Omit<PrescriptionIntent, "clipboardText" | "parchmentMode">): PrescriptionIntent {
+function makeIntent(
+  intent: Omit<PrescriptionIntent, "clipboardText" | "parchmentMode">,
+  copyMedicationName = intent.medicationName,
+): PrescriptionIntent {
   return {
     ...intent,
     parchmentMode: "open_patient_prescribe",
-    clipboardText: createClipboardText(intent),
+    // Clipboard is intentionally name-only. Strength, form, dose, directions,
+    // and clinical context remain visible for review but must not be pasted
+    // into Parchment's medicine search field by the generic Copy action.
+    clipboardText: copyMedicationName?.trim() || "",
   }
 }
 
@@ -890,9 +879,12 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     ? getRepeatScriptMedicationDisplayParts(primaryMedication)
     : null
   const hasMultipleMedications = medicationLabels.length > 1
+  const primaryMedicationName = primaryMedicationParts?.name
+    || str(answers, "medicationName")
+    || str(answers, "medication_name")
   const medicationName = hasMultipleMedications
     ? medicationLabels.join("; ")
-    : primaryMedicationParts?.name || str(answers, "medicationName") || str(answers, "medication_name") || "Requested medication"
+    : primaryMedicationName || "Requested medication"
   const strength = hasMultipleMedications
     ? undefined
     : primaryMedicationParts?.strength || str(answers, "medicationStrength") || str(answers, "medication_strength")
@@ -1064,21 +1056,24 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
             nextSteps: ["Confirm ongoing indication, allergies and interactions.", "Open Parchment and prescribe within Parchment if satisfied."],
           }
 
-  const prescriptionIntent = controlled || hasRecordedScriptEvidence || doseChangedAnswer !== false ? undefined : makeIntent({
-    presetLabel: "Repeat prescription Parchment context",
-    medicationName,
-    strength,
-    form,
-    medicationSearchHint: hasMultipleMedications
-      ? medicationLabels[0]
-      : [medicationName, strength, form].filter(Boolean).join(" "),
-    directionsTemplate: currentDose
-      ? `${hasMultipleMedications ? `Patient requested multiple medicines: ${requestedMedicationValue}. ` : ""}Patient reports current dose: ${currentDose}. Confirm regimen, quantity, repeats and indication in Parchment before prescribing.`
-      : `${hasMultipleMedications ? `Patient requested multiple medicines: ${requestedMedicationValue}. ` : ""}Repeat existing regimen after doctor confirms dose, quantity, repeats and indication in Parchment.`,
-    quantityTemplate: hasMultipleMedications ? undefined : "Match clinically appropriate repeat quantity in Parchment",
-    repeatsTemplate: hasMultipleMedications ? undefined : "Doctor to confirm in Parchment",
-    safetyChecks: ["Dose and directions confirmed unchanged", "Repeat history reviewed", "Allergies checked", "Current medications checked", "Controlled-substance screen checked"],
-  })
+  const prescriptionIntent = controlled || hasRecordedScriptEvidence || doseChangedAnswer !== false ? undefined : makeIntent(
+    {
+      presetLabel: "Repeat prescription Parchment context",
+      medicationName,
+      strength,
+      form,
+      medicationSearchHint: hasMultipleMedications
+        ? medicationLabels[0]
+        : [medicationName, strength, form].filter(Boolean).join(" "),
+      directionsTemplate: currentDose
+        ? `${hasMultipleMedications ? `Patient requested multiple medicines: ${requestedMedicationValue}. ` : ""}Patient reports current dose: ${currentDose}. Confirm regimen, quantity, repeats and indication in Parchment before prescribing.`
+        : `${hasMultipleMedications ? `Patient requested multiple medicines: ${requestedMedicationValue}. ` : ""}Repeat existing regimen after doctor confirms dose, quantity, repeats and indication in Parchment.`,
+      quantityTemplate: hasMultipleMedications ? undefined : "Match clinically appropriate repeat quantity in Parchment",
+      repeatsTemplate: hasMultipleMedications ? undefined : "Doctor to confirm in Parchment",
+      safetyChecks: ["Dose and directions confirmed unchanged", "Repeat history reviewed", "Allergies checked", "Current medications checked", "Controlled-substance screen checked"],
+    },
+    primaryMedicationName,
+  )
 
   const header = patientHeader(input)
   const storySentence = `${input.patientName || "Patient"} requests a repeat prescription for ${requestedMedicationValue}.${currentDose ? ` Patient reports current dose: ${currentDose}.` : ""}`

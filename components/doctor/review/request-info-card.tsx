@@ -23,6 +23,41 @@ function reviewFactTone(fact: ReviewFact): string {
   return "text-foreground"
 }
 
+function ReviewFactItem({
+  fact,
+  prominent = false,
+}: {
+  fact: ReviewFact
+  prominent?: boolean
+}) {
+  return (
+    <div
+      className={cn("min-w-0", fact.optional && "text-muted-foreground")}
+      data-review-fact={fact.key}
+      data-review-fact-state={fact.state}
+    >
+      <dt className="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
+        {fact.label}
+      </dt>
+      <dd
+        className={cn(
+          "mt-0.5 break-words font-semibold",
+          prominent ? "text-base leading-6" : "text-[13px] leading-5",
+          reviewFactTone(fact),
+        )}
+      >
+        {fact.value}
+      </dd>
+      {fact.issue ? (
+        <p className="mt-0.5 text-[11px] font-medium leading-4 text-warning">
+          {fact.state === "inferred" ? "Inferred from patient text · " : ""}
+          {fact.issue}
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
 /**
  * The single default-visible packet for current-request facts. ClinicalCaseReview
  * remains the note/safety editor, but its competing story, key-fact, plan, and
@@ -55,6 +90,13 @@ export function RequestInfoCard({
     data.reviewingClinician?.fullName,
     data.reviewingClinician?.ahpraNumber,
   ].filter(Boolean).join(" · ") || null
+  const isRepeatPrescription = packet.workflow.kind === "repeat_prescription"
+  const medicationFact = isRepeatPrescription
+    ? packet.facts.find((fact) => fact.key === "medicine")
+    : null
+  const supportingFacts = medicationFact
+    ? packet.facts.filter((fact) => fact.key !== medicationFact.key)
+    : packet.facts
 
   return (
     <section
@@ -75,29 +117,25 @@ export function RequestInfoCard({
         ) : null}
       </div>
 
-      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border/50 pt-3 lg:grid-cols-3">
-        {packet.facts.map((fact) => (
-          <div
-            key={fact.key}
-            className={cn("min-w-0", fact.optional && "text-muted-foreground")}
-            data-review-fact={fact.key}
-            data-review-fact-state={fact.state}
+      <div className="mt-3 border-t border-border/50 pt-3">
+        {medicationFact ? (
+          <dl>
+            <ReviewFactItem fact={medicationFact} prominent />
+          </dl>
+        ) : null}
+        {supportingFacts.length > 0 ? (
+          <dl
+            className={cn(
+              "grid grid-cols-2 gap-x-4 gap-y-2",
+              medicationFact ? "mt-3 border-t border-border/40 pt-3 lg:grid-cols-4" : "lg:grid-cols-3",
+            )}
           >
-            <dt className="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
-              {fact.label}
-            </dt>
-            <dd className={cn("mt-0.5 break-words text-[13px] font-semibold leading-5", reviewFactTone(fact))}>
-              {fact.value}
-            </dd>
-            {fact.issue ? (
-              <p className="mt-0.5 text-[11px] font-medium leading-4 text-warning">
-                {fact.state === "inferred" ? "Inferred from patient text · " : ""}
-                {fact.issue}
-              </p>
-            ) : null}
-          </div>
-        ))}
-      </dl>
+            {supportingFacts.map((fact) => (
+              <ReviewFactItem key={fact.key} fact={fact} />
+            ))}
+          </dl>
+        ) : null}
+      </div>
 
       <div className="mt-3 border-t border-border/50 pt-3">
         <ClinicalCaseReview
@@ -119,6 +157,7 @@ export function RequestInfoCard({
           hideRequestFacts
           hideRecommendedPlan
           hidePrescriptionIntent
+          hideRecordedPrescriptionInfo={packet.fulfilment.status === "recorded"}
           draftNoteOpen={draftNoteOpen}
           onDraftNoteOpenChange={onDraftNoteOpenChange}
           draftNoteValue={doctorNotes}

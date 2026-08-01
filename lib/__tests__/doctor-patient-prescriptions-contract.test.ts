@@ -198,7 +198,7 @@ describe("doctor patient medication history contract", () => {
     expect(panelSource).toContain("iframeSlowToLoad")
     expect(panelSource).toContain("Parchment is taking a little longer")
     expect(panelSource).toContain("Open in new tab")
-    expect(panelSource).toContain("copyPrescriptionContext")
+    expect(panelSource).toContain("copyMedicationName")
   })
 
   it("mints a fresh Parchment session only after an explicit retry", () => {
@@ -237,24 +237,27 @@ describe("doctor patient medication history contract", () => {
     expect(fixabilityBody).not.toContain("identity verification service failed")
   })
 
-  it("names the copied medicine in Parchment copy feedback", () => {
-    expect(panelSource).toContain("getCopiedMedicineLabel")
-    expect(panelSource).toContain("Copied")
-    expect(panelSource).toContain("to Parchment")
-    expect(panelSource).not.toContain('toast.success("Prescription details copied")')
+  it("labels the generic copy action as a medicine-name copy", () => {
+    expect(panelSource).toContain("copyMedicationName")
+    expect(panelSource).toContain('toast.success("Copied medicine name")')
+    expect(panelSource).toContain("Copy name")
+    expect(panelSource).not.toContain("Copy context")
 
-    expect(clinicalCaseReviewSource).toContain("getPrescriptionCopyLabel")
-    expect(clinicalCaseReviewSource).toContain("Copied")
-    expect(clinicalCaseReviewSource).toContain("for Parchment")
-    expect(clinicalCaseReviewSource).not.toContain('toast.success("Parchment preset copied")')
+    expect(clinicalCaseReviewSource).toContain("copyMedicationName")
+    expect(clinicalCaseReviewSource).toContain('toast.success("Copied medicine name")')
+    expect(clinicalCaseReviewSource).toContain("Copy name")
   })
 
-  it("lets doctors copy only the Parchment search term when needed", () => {
+  it("offers search copy only when there is no concrete medicine name", () => {
+    expect(panelSource).toContain("hasCopyableMedicationName")
+    expect(panelSource).toContain("!hasCopyableMedicationName")
     expect(panelSource).toContain("copyPrescriptionSearchHint")
     expect(panelSource).toContain("Copied Parchment search term")
     expect(panelSource).toContain("Copy search")
     expect(panelSource).toContain("prescriptionContext.searchHint")
 
+    expect(clinicalCaseReviewSource).toContain("hasCopyableMedicationName")
+    expect(clinicalCaseReviewSource).toContain("!hasCopyableMedicationName")
     expect(clinicalCaseReviewSource).toContain("copySearchHint")
     expect(clinicalCaseReviewSource).toContain("medicationSearchHint")
     expect(clinicalCaseReviewSource).toContain("Copy search")

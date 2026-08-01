@@ -320,7 +320,6 @@ function CockpitIntakeDetailClient({
             intake={reviewData.intake}
             answers={answers}
             previousIntakes={reviewData.previousIntakes ?? []}
-            previousIntakeCount={reviewData.previousIntakeCount}
             service={service}
             actions={
               <>
@@ -586,7 +585,6 @@ function LegacyIntakeDetailClient({
         intake={intake}
         answers={intakeAnswers ?? {}}
         previousIntakes={previousIntakes}
-        previousIntakeCount={previousIntakes.length}
         service={service}
       />
 

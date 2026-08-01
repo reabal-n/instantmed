@@ -894,6 +894,64 @@ describe("retryPaymentForIntakeAction", () => {
     })
   })
 
+  it("holds a marked repeat retry with no concrete medication strength", async () => {
+    const authoritativeAnswers = {
+      medicationName: "Sertraline",
+      currentDose: "Once daily",
+      repeat_rx_dose_contract_version: 1,
+    }
+    const { supabase } = createRetrySupabaseMock({
+      category: "prescription",
+      created_at: "2026-08-01T10:00:00.000Z",
+      service: {
+        id: "svc-repeat",
+        name: "Repeat prescription",
+        price_cents: 2995,
+        slug: "common-scripts",
+        type: "repeat_rx",
+      },
+      stripe_price_id: "price_repeat",
+      subtype: "repeat",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce(authoritativeAnswers)
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toMatchObject({
+      paymentRecoveryReason: "more_information_required",
+      success: false,
+    })
+    expect(mocks.checkSafetyForServer).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("preserves compatibility for an unmarked legacy repeat retry", async () => {
+    const { supabase } = createRetrySupabaseMock({
+      category: "prescription",
+      created_at: "2026-08-01T09:44:59.999Z",
+      service: {
+        id: "svc-repeat",
+        name: "Repeat prescription",
+        price_cents: 2995,
+        slug: "common-scripts",
+        type: "repeat_rx",
+      },
+      stripe_price_id: "price_repeat",
+      subtype: "repeat",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({
+      medicationName: "Sertraline",
+      currentDose: "Once daily",
+    })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toMatchObject({ success: true })
+    expect(mocks.stripeSessionCreate).toHaveBeenCalledOnce()
+  })
+
   it("retries exact-current invalidation for an existing missing-information marker before reading answers", async () => {
     const { supabase } = createRetrySupabaseMock({
       checkout_error: "safety_missing_required_information",

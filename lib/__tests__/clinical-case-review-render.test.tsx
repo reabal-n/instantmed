@@ -109,6 +109,45 @@ describe("ClinicalCaseReview", () => {
     expect(html).not.toContain("cannot be unlocked")
   })
 
+  it("suppresses the rail-owned recorded info while retaining notable safety context", () => {
+    const summary: ClinicalCaseSummary = {
+      title: "Repeat prescription",
+      patientStory: "Patient requests a repeat prescription.",
+      keyFacts: [],
+      safetyItems: [
+        {
+          severity: "info",
+          label: "Prescription already recorded",
+          detail: "Durable script evidence is recorded.",
+        },
+        {
+          severity: "caution",
+          label: "Clinician-administered medicine",
+          detail: "Confirm an administration pathway before prescribing.",
+        },
+      ],
+      recommendedPlan: {
+        action: "approve",
+        title: "Complete request",
+        rationale: "Script evidence is recorded.",
+        nextSteps: [],
+      },
+      draftNote: "Clinical note.",
+    }
+    const html = render(
+      <ClinicalCaseReview
+        answers={{}}
+        summary={summary}
+        compact
+        hideRecordedPrescriptionInfo
+      />,
+    )
+
+    expect(html).not.toContain("Prescription already recorded")
+    expect(html).toContain("Clinician-administered medicine")
+    expect(html).toContain('data-safety-severity="caution"')
+  })
+
   it("strips generic process-speak note boilerplate before it reaches the editable note", () => {
     expect(
       stripGenericClinicalNoteBoilerplate(

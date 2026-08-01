@@ -147,7 +147,7 @@ describe("repeat script schema", () => {
   })
 })
 
-describe("A3 softening — missing medication strength is a flag, not a block", () => {
+describe("mandatory repeat medication strength", () => {
   const base = {
     prescribed_before: true,
     doseChanged: false,
@@ -157,10 +157,19 @@ describe("A3 softening — missing medication strength is a flag, not a block", 
     current_dose: "10 mg nightly",
   }
 
-  it("allows a repeat with a missing strength (now derived as a doctor flag)", () => {
+  it("blocks a repeat with no structured or reliably inferred strength", () => {
     const result = validateRepeatScriptPayload({
       ...base,
       medications: [{ name: "Rosuvastatin", form: "tablet", pbsCode: "1234" }],
+    })
+    expect(result.valid).toBe(false)
+    expect(result.error).toMatch(/strength shown on the medication label/i)
+  })
+
+  it("accepts a strength reliably inferred from the medication name", () => {
+    const result = validateRepeatScriptPayload({
+      ...base,
+      medications: [{ name: "Rosuvastatin 10mg", form: "tablet", pbsCode: "1234" }],
     })
     expect(result.valid).toBe(true)
   })
@@ -209,10 +218,9 @@ describe("A3 softening — missing medication form is a flag, not a block (bound
   }
 
   it("allows a repeat with a missing form (now derived as a doctor flag)", () => {
-    // name only — no strength (already softened) and no form.
     const result = validateRepeatScriptPayload({
       ...base,
-      medications: [{ name: "Rosuvastatin", pbsCode: "1234" }],
+      medications: [{ name: "Rosuvastatin", strength: "10 mg", pbsCode: "1234" }],
     })
     expect(result.valid).toBe(true)
   })
@@ -227,14 +235,15 @@ describe("A3 softening — missing medication form is a flag, not a block (bound
     expect(result.valid).toBe(false)
   })
 
-  it("allows a missing current dose now (softened in boundary 4)", () => {
+  it("blocks a missing current dose", () => {
     const { current_dose: _omit, ...noDose } = base
     void _omit
     const result = validateRepeatScriptPayload({
       ...noDose,
-      medications: [{ name: "Rosuvastatin", form: "tablet", pbsCode: "1234" }],
+      medications: [{ name: "Rosuvastatin", strength: "10 mg", form: "tablet", pbsCode: "1234" }],
     })
-    expect(result.valid).toBe(true)
+    expect(result.valid).toBe(false)
+    expect(result.error).toMatch(/how much.*how often/i)
   })
 
   it("still blocks a missing last-prescribed", () => {
@@ -313,7 +322,11 @@ describe("A3 softening — unknown medication passes only with a useful descript
   it("allows an unknown medication WITH a useful free-text description (now a doctor flag)", () => {
     const result = validateRepeatScriptPayload({
       ...base,
-      medications: [{ ...unknown, description: "small white blood pressure tablet, prescribed by Dr Smith" }],
+      medications: [{
+        ...unknown,
+        description: "small white blood pressure tablet, prescribed by Dr Smith",
+        strength: "10 mg",
+      }],
     })
     expect(result.valid).toBe(true)
   })

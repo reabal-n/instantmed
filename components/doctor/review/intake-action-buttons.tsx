@@ -546,18 +546,31 @@ export function IntakeActionButtons({
           </Button>
           {canPrescribeInParchment && intake.script_sent !== true
             ? (
-              <details className="group sm:contents" data-mobile-fulfilment-options="true">
-                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-center gap-2 rounded-lg border border-border bg-background px-3 text-sm font-medium text-foreground sm:hidden [&::-webkit-details-marker]:hidden">
-                  Fulfilment options
-                </summary>
-                <div className="hidden pt-2 group-open:block sm:block sm:pt-0" data-desktop-fulfilment-fallback="true">
+              <>
+                <details className="group sm:hidden" data-mobile-fulfilment-options="true">
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-center gap-2 rounded-lg border border-border bg-background px-3 text-sm font-medium text-foreground sm:hidden [&::-webkit-details-marker]:hidden">
+                    Fulfilment options
+                  </summary>
+                  <div className="hidden pt-2 group-open:block">
+                    <MarkSentManuallyButton
+                      intakeId={intake.id}
+                      disabled={!isHydrated}
+                      instance="mobile"
+                      reloadReviewData={reloadReviewData}
+                      restoreOnMount={false}
+                    />
+                  </div>
+                </details>
+                <div className="hidden sm:block" data-desktop-fulfilment-fallback="true">
                   <MarkSentManuallyButton
                     intakeId={intake.id}
                     disabled={!isHydrated}
+                    instance="desktop"
                     reloadReviewData={reloadReviewData}
+                    restoreOnMount
                   />
                 </div>
-              </details>
+              </>
             )
             : null}
         </>
@@ -649,11 +662,15 @@ export function IntakeActionButtons({
  */
 function MarkSentManuallyButton({
   intakeId,
+  instance,
   reloadReviewData,
+  restoreOnMount,
   disabled = false,
 }: {
   intakeId: string
+  instance: "desktop" | "mobile"
   reloadReviewData: ReloadReviewData
+  restoreOnMount: boolean
   disabled?: boolean
 }) {
   const [open, setOpen] = useState(false)
@@ -661,11 +678,12 @@ function MarkSentManuallyButton({
   const triggerRef = useRef<HTMLButtonElement>(null)
   const referenceInputRef = useRef<HTMLInputElement>(null)
   const reasonInputRef = useRef<HTMLInputElement>(null)
-  const referenceInputId = `mark-sent-parchment-reference-${intakeId}`
-  const reasonInputId = `mark-sent-reason-${intakeId}`
-  const panelId = `mark-sent-panel-${intakeId}`
-  const titleId = `mark-sent-title-${intakeId}`
-  const descriptionId = `mark-sent-description-${intakeId}`
+  const instanceId = `${intakeId}-${instance}`
+  const referenceInputId = `mark-sent-parchment-reference-${instanceId}`
+  const reasonInputId = `mark-sent-reason-${instanceId}`
+  const panelId = `mark-sent-panel-${instanceId}`
+  const titleId = `mark-sent-title-${instanceId}`
+  const descriptionId = `mark-sent-description-${instanceId}`
   const setManualPanelOpen = useCallback((nextOpen: boolean) => {
     if (nextOpen) {
       persistManualScriptPanelIntakeId(intakeId)
@@ -681,8 +699,16 @@ function MarkSentManuallyButton({
 
   useEffect(() => {
     reset()
-    setOpen(getStoredManualScriptPanelIntakeId() === intakeId)
-  }, [intakeId, reset])
+    const isActiveDesktopInstance =
+      instance === "desktop" &&
+      (typeof window.matchMedia !== "function" ||
+        window.matchMedia("(min-width: 640px)").matches)
+    setOpen(
+      restoreOnMount &&
+        isActiveDesktopInstance &&
+        getStoredManualScriptPanelIntakeId() === intakeId,
+    )
+  }, [instance, intakeId, reset, restoreOnMount])
 
   const closeManualPanel = useCallback(() => {
     reset()

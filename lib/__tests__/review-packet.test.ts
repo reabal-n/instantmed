@@ -44,17 +44,20 @@ describe("buildReviewPacket", () => {
     const packet = buildReviewPacket(repeatRxInput())
 
     expect(packet.facts.find((fact) => fact.key === "medicine")).toMatchObject({
-      value: "Effexor",
+      value: "Effexor 75mg tablet",
       state: "confirmed",
     })
-    expect(packet.facts.find((fact) => fact.key === "strength")).toMatchObject({
-      value: "75mg",
-      state: "confirmed",
-    })
+    expect(packet.facts.map((fact) => fact.key)).toEqual([
+      "medicine",
+      "patient_dose",
+      "indication",
+      "last_prescribed",
+      "regimen",
+    ])
     expect(packet.facts.map((fact) => fact.value).join(" ")).not.toContain("Effexor 75mg 75mg")
   })
 
-  it("marks embedded free-text strength as inferred without satisfying the structured field", () => {
+  it("marks embedded free-text strength as inferred without making it a headline issue", () => {
     const packet = buildReviewPacket(repeatRxInput({
       answers: {
         medicationName: "Effexor 75mg",
@@ -68,18 +71,15 @@ describe("buildReviewPacket", () => {
     }))
 
     expect(packet.facts.find((fact) => fact.key === "medicine")).toMatchObject({
-      value: "Effexor",
-      state: "confirmed",
-    })
-    expect(packet.facts.find((fact) => fact.key === "strength")).toMatchObject({
-      value: "75mg",
+      value: "Effexor 75mg tablet",
       state: "inferred",
       issue: "Confirm strength",
     })
-    expect(packet.issueCount).toBe(1)
+    expect(packet.facts.some((fact) => fact.key === "strength")).toBe(false)
+    expect(packet.issueCount).toBe(0)
   })
 
-  it("attaches missing form, dose, and indication issues to their own facts", () => {
+  it("keeps nonblocking strength and form gaps out of the headline issue count", () => {
     const packet = buildReviewPacket(repeatRxInput({
       answers: {
         medicationName: "Venlafaxine",
@@ -89,12 +89,14 @@ describe("buildReviewPacket", () => {
       },
     }))
 
-    expect(packet.facts.find((fact) => fact.key === "form")).toMatchObject({
-      value: "Not recorded",
-      state: "missing",
-      issue: "Confirm form",
+    expect(packet.facts.find((fact) => fact.key === "medicine")).toMatchObject({
+      value: "Venlafaxine 75mg",
+      state: "confirmed",
     })
+    expect(packet.facts.some((fact) => fact.key === "strength")).toBe(false)
+    expect(packet.facts.some((fact) => fact.key === "form")).toBe(false)
     expect(packet.facts.find((fact) => fact.key === "patient_dose")).toMatchObject({
+      label: "Current dose",
       value: "Not recorded",
       state: "missing",
       issue: "Confirm dose and frequency",
@@ -106,7 +108,58 @@ describe("buildReviewPacket", () => {
       issue: "Confirm indication",
       blocksPrescribing: true,
     })
-    expect(packet.issueCount).toBe(3)
+    expect(packet.issueCount).toBe(2)
+  })
+
+  it("keeps a historical missing strength visible inside the combined medicine fact", () => {
+    const packet = buildReviewPacket(repeatRxInput({
+      answers: {
+        medicationName: "Venlafaxine",
+        medicationForm: "tablet",
+        currentDose: "Once daily",
+        indication: "Anxiety",
+        prescriptionHistory: "3_to_6_months",
+        doseChanged: false,
+      },
+    }))
+
+    expect(packet.facts.find((fact) => fact.key === "medicine")).toMatchObject({
+      value: "Venlafaxine tablet",
+      state: "missing",
+      issue: "Strength not recorded · confirm before prescribing",
+      blocksPrescribing: false,
+    })
+    expect(packet.issueCount).toBe(0)
+  })
+
+  it("omits routine negative safety context while retaining notable answers", () => {
+    const packet = buildReviewPacket(repeatRxInput({
+      summary: {
+        title: "Repeat prescription",
+        keyFacts: [
+          { label: "Allergies", value: "None reported" },
+          { label: "Current medications", value: "Warfarin" },
+          { label: "Pregnant/breastfeeding", value: "No" },
+          { label: "Adverse medication reactions", value: "Yes" },
+          { label: "Side effects", value: "No improvement since starting" },
+        ],
+      },
+    }))
+
+    expect(packet.facts).toContainEqual(expect.objectContaining({
+      key: "current_medications",
+      value: "Warfarin",
+    }))
+    expect(packet.facts).toContainEqual(expect.objectContaining({
+      key: "adverse_medication_reactions",
+      value: "Yes",
+    }))
+    expect(packet.facts).toContainEqual(expect.objectContaining({
+      key: "side_effects",
+      value: "No improvement since starting",
+    }))
+    expect(packet.facts.some((fact) => fact.key === "allergies")).toBe(false)
+    expect(packet.facts.some((fact) => fact.key === "pregnant_breastfeeding")).toBe(false)
   })
 
   it("marks a legacy missing regimen attestation as a non-overridable request issue", () => {

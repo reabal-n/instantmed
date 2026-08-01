@@ -94,6 +94,25 @@ const PRESCRIPTION_HISTORY_LABELS: Record<string, string> = {
 
 const MISSING_VALUE_PATTERN = /^(not provided|not recorded|not specified|not captured|unknown)$/i
 
+const REPEAT_NOTABLE_CONTEXT_LABELS = new Set([
+  "side effects",
+  "allergies",
+  "conditions",
+  "current medications",
+  "pregnant/breastfeeding",
+  "adverse medication reactions",
+])
+
+function isRoutineNegativeContextValue(value: string): boolean {
+  const normalized = value.trim().toLowerCase()
+  if (["no", "none", "none reported", "false", "nil", "n/a", "na", "not applicable"].includes(normalized)) {
+    return true
+  }
+
+  return /^no (?:known |reported )?(?:side effects?|allerg(?:y|ies)|conditions?|current medications?|other medications?|adverse medication reactions?)(?: reported)?$/.test(normalized) ||
+    /^not (?:currently )?(?:pregnant(?: or breastfeeding)?|breastfeeding)$/.test(normalized)
+}
+
 function answerString(answers: Record<string, unknown>, keys: string[]): string | null {
   for (const key of keys) {
     const value = answers[key]
@@ -215,63 +234,41 @@ function repeatPrescriptionFacts(input: BuildReviewPacketInput): ReviewFact[] {
     : null
   const facts: ReviewFact[] = []
 
-  if (medications.length > 1) {
-    facts.push(fact(
-      "medicine",
-      "Requested medicines",
-      medications.map(formatRepeatScriptMedicationCompactLabel).join("; "),
-      {
-        state: "confirmed",
-        issue: "Confirm each medicine and regimen",
-        optional: false,
-        blocksPrescribing: false,
-        noteCanResolve: false,
-      },
-    ))
-  } else {
-    facts.push(fact(
-      "medicine",
-      "Medicine",
-      primaryParts?.name || null,
-      {
-        state: primaryParts?.name ? "confirmed" : "missing",
-        issue: primaryParts?.name ? undefined : "Confirm medicine",
-        optional: false,
-        blocksPrescribing: !primaryParts?.name,
-        noteCanResolve: !primaryParts?.name,
-      },
-    ))
-    facts.push(fact(
-      "strength",
-      "Strength",
-      primaryParts?.strength || null,
-      {
-        state: primaryParts?.strength
-          ? primaryParts.strengthSource === "structured"
-            ? "confirmed"
-            : "inferred"
-          : "missing",
-        issue: primaryParts?.strength && primaryParts.strengthSource === "structured"
-          ? undefined
-          : "Confirm strength",
-        optional: false,
-        blocksPrescribing: false,
-        noteCanResolve: false,
-      },
-    ))
-    facts.push(fact(
-      "form",
-      "Form",
-      primaryParts?.form || null,
-      {
-        state: primaryParts?.form ? "confirmed" : "missing",
-        issue: primaryParts?.form ? undefined : "Confirm form",
-        optional: false,
-        blocksPrescribing: false,
-        noteCanResolve: false,
-      },
-    ))
-  }
+  const medicationValue = medications.length > 0
+    ? medications.map(formatRepeatScriptMedicationCompactLabel).join("; ")
+    : null
+  const missingStrength = medications.length > 0 && medications.some((medication) => (
+    !getRepeatScriptMedicationDisplayParts(medication).strength
+  ))
+  const inferredStrength = medications.length === 1 && primaryParts?.strengthSource === "inferred"
+  const medicationState: ReviewFactState = !medicationValue || missingStrength
+    ? "missing"
+    : inferredStrength
+      ? "inferred"
+      : "confirmed"
+  const medicationIssue = !medicationValue
+    ? "Confirm medicine"
+    : medications.length > 1
+      ? missingStrength
+        ? "Strength not recorded for one or more medicines · confirm each regimen"
+        : "Confirm each medicine and regimen"
+      : missingStrength
+        ? "Strength not recorded · confirm before prescribing"
+        : inferredStrength
+          ? "Confirm strength"
+          : undefined
+  facts.push(fact(
+    "medicine",
+    medications.length > 1 ? "Requested medicines" : "Medicine",
+    medicationValue,
+    {
+      state: medicationState,
+      issue: medicationIssue,
+      optional: false,
+      blocksPrescribing: !medicationValue,
+      noteCanResolve: !medicationValue,
+    },
+  ))
 
   const patientDose = answerString(input.answers, [
     "currentDose",
@@ -281,7 +278,7 @@ function repeatPrescriptionFacts(input: BuildReviewPacketInput): ReviewFact[] {
   ])
   facts.push(fact(
     "patient_dose",
-    "Patient-reported dose",
+    "Current dose",
     patientDose,
     {
       state: patientDose ? "confirmed" : "missing",
@@ -355,7 +352,10 @@ function repeatPrescriptionFacts(input: BuildReviewPacketInput): ReviewFact[] {
     "same dose and directions",
   ])
   for (const summaryFact of input.summary.keyFacts) {
-    if (packetLabels.has(summaryFact.label.toLowerCase())) continue
+    const normalizedLabel = summaryFact.label.toLowerCase()
+    if (packetLabels.has(normalizedLabel)) continue
+    if (!REPEAT_NOTABLE_CONTEXT_LABELS.has(normalizedLabel)) continue
+    if (isRoutineNegativeContextValue(summaryFact.value)) continue
     const normalized = normalizeGenericFactValue(summaryFact.value)
     facts.push({
       key: normalizeFactKey(summaryFact.label),
@@ -381,7 +381,10 @@ export function buildReviewPacket(input: BuildReviewPacketInput): ReviewPacket {
     title: input.summary.title,
     workflow,
     facts,
-    issueCount: facts.filter((reviewFact) => Boolean(reviewFact.issue)).length,
+    issueCount: facts.filter((reviewFact) => (
+      Boolean(reviewFact.issue) &&
+      (workflow.kind !== "repeat_prescription" || reviewFact.blocksPrescribing === true)
+    )).length,
     fulfilment: input.intake?.script_sent === true
       ? {
           status: "recorded",
