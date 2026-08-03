@@ -85,10 +85,11 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 |------|---------|-----------|
 | [docs/adr/0001-google-ads-net-retained-purchase-value.md](../adr/0001-google-ads-net-retained-purchase-value.md) | Decision record for Google Ads optimizing against retained purchase value, not gross value or micro-conversions | `google-ads-attribution-contract` |
 
-## docs/audits/ — 23 (historical + growth records)
+## docs/audits/ — 24 (historical + growth records)
 
 | File | Purpose |
 |------|---------|
+| [docs/audits/2026-08-03-email-audit.md](../audits/2026-08-03-email-audit.md) | Full email-lifecycle audit: 38 send surfaces, journey timelines, ranked P0-P2 findings, proposed sequences awaiting operator sign-off |
 | [docs/audits/2026-04-21-migration-drift-audit.md](../audits/2026-04-21-migration-drift-audit.md) | Migration drift audit; CLAUDE.md references it for current migration history context |
 | [docs/audits/2026-05-03-supabase-conversion-audit.md](../audits/2026-05-03-supabase-conversion-audit.md) | Current migration/conversion audit; CLAUDE.md references it |
 | [docs/audits/2026-05-11-patient-portal-post-rebuild-audit.md](../audits/2026-05-11-patient-portal-post-rebuild-audit.md) | Patient portal post-rebuild audit (v2.0.2) |
