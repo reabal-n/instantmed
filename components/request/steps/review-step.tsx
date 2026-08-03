@@ -26,6 +26,7 @@ import { PRICING as APP_PRICING } from "@/lib/constants"
 import { getAddressReviewSummary, getAddressStatusDisplay } from "@/lib/request/address-metadata"
 import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { normalizeMedicationEntriesAnswer, stringAnswer, stringArrayAnswer } from "@/lib/request/intake-answer-normalizers"
+import { isPriorityReviewOffered } from "@/lib/request/priority-review-window"
 import { getActiveServerDraftSessionId } from "@/lib/request/server-draft"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
@@ -286,6 +287,10 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   const [requiresFreshRequest, setRequiresFreshRequest] = useState(false)
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [isPriority, setIsPriority] = useState(false)
+  // Quiet hours (silent, no explanatory copy): the upsell simply does not
+  // render overnight. Captured once per mount; a patient who opted in before
+  // midnight keeps their selection — the 3h breach auto-refund backstops it.
+  const [priorityOffered] = useState(() => isPriorityReviewOffered())
   const totalDue = price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)
 
   // review-step is the single review+pay step for EVERY service (the unification
@@ -1057,15 +1062,17 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
               ${totalDue.toFixed(2)}
             </span>
           </div>
-          <div className="pt-1">
-            <PriorityReviewToggle
-              id="review-priority-review-toggle"
-              checked={isPriority}
-              onCheckedChange={setIsPriority}
-              onOptIn={() => capturePriorityReviewOptedIn(posthog, { service_type: serviceType, surface: "review" })}
-              onOptOut={() => capturePriorityReviewOptedOut(posthog, { service_type: serviceType, surface: "review" })}
-            />
-          </div>
+          {(priorityOffered || isPriority) && (
+            <div className="pt-1">
+              <PriorityReviewToggle
+                id="review-priority-review-toggle"
+                checked={isPriority}
+                onCheckedChange={setIsPriority}
+                onOptIn={() => capturePriorityReviewOptedIn(posthog, { service_type: serviceType, surface: "review" })}
+                onOptOut={() => capturePriorityReviewOptedOut(posthog, { service_type: serviceType, surface: "review" })}
+              />
+            </div>
+          )}
         </div>
 
         {repeatsExpectation && (
