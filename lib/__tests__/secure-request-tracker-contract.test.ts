@@ -41,8 +41,12 @@ describe("secure request tracker contract", () => {
     }
 
     const reconstruction = projectFile("lib/email/send/reconstruct.ts")
+    // 8th boundary added 2026-08-03: priority_fee_refunded (breach auto-refund
+    // notice) reconstructs with a signed access URL like every other lifecycle
+    // email. Bump this count consciously whenever a reconstruct branch is
+    // added or removed.
     expect(reconstruction.match(/requestAccessUrl: buildPatientRequestAccessUrl/g))
-      .toHaveLength(7)
+      .toHaveLength(8)
   })
 
   it("removes the parallel client tracker and full-row browser subscription", () => {

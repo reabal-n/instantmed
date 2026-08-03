@@ -83,3 +83,7 @@ export { MagicLinkEmail, magicLinkEmailSubject } from "./magic-link"
 // --- Ops Test Email ---
 export type { OpsTestEmailProps } from "./ops-test"
 export { OpsTestEmail, opsTestEmailSubject } from "./ops-test"
+
+// --- Priority Fee Refunded (3h breach auto-refund notice) ---
+export type { PriorityFeeRefundedEmailProps } from "./priority-fee-refunded"
+export { PriorityFeeRefundedEmail, priorityFeeRefundedSubject } from "./priority-fee-refunded"

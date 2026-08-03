@@ -222,6 +222,7 @@ async function sendScriptSentEmailIfNeeded(
         intakeId,
       }),
       escriptReference: intake.parchment_reference ?? undefined,
+      priorityFeeRefunded: Boolean(intake.is_priority && intake.priority_fee_refunded_at),
     }),
     emailType: "script_sent",
     intakeId,
