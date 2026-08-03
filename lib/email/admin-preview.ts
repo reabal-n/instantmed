@@ -76,6 +76,21 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
     }),
   },
   {
+    slug: "still_reviewing_overnight",
+    name: "Still Reviewing (overnight variant)",
+    subject: "We've got your request",
+    availableTags: ["patientName", "requestType", "requestId"],
+    sampleData: { patientName: "Sarah Johnson", requestType: "repeat prescription", requestId: "abc-123" },
+    render: (d) => React.createElement(StillReviewingEmail, {
+      patientName: d.patientName,
+      requestType: d.requestType,
+      requestId: d.requestId,
+      requestAccessUrl: PREVIEW_REQUEST_ACCESS_URL,
+      appUrl: APP_URL,
+      overnight: true,
+    }),
+  },
+  {
     slug: "still_reviewing",
     name: "Still Reviewing",
     subject: "Still reviewing your request, thanks for your patience",

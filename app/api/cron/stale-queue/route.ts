@@ -164,12 +164,15 @@ export async function GET(request: NextRequest) {
       )
 
       if (delayEmailCandidates && delayEmailCandidates.length > 0) {
-        const [{ sendEmail }, { StillReviewingEmail, stillReviewingSubject }, React] =
+        const [{ sendEmail }, { StillReviewingEmail, stillReviewingSubject }, { isOvernightInSydney }, React] =
           await Promise.all([
             import("@/lib/email/send-email"),
             import("@/lib/email/components/templates/still-reviewing"),
+            import("@/lib/email/overnight-window"),
             import("react"),
           ])
+        // Computed once per run: honest overnight copy 22:00–06:59 Sydney.
+        const overnight = isOvernightInSydney()
 
         await Promise.allSettled(
           delayEmailCandidates.map(async (intake) => {
@@ -186,7 +189,7 @@ export async function GET(request: NextRequest) {
               const emailResult = await sendEmail({
                 to: patient.email,
                 toName: patient.full_name || undefined,
-                subject: stillReviewingSubject(requestType),
+                subject: stillReviewingSubject(requestType, overnight),
                 template: React.createElement(StillReviewingEmail, {
                   patientName: patient.full_name || "there",
                   requestType,
@@ -195,6 +198,7 @@ export async function GET(request: NextRequest) {
                     appUrl: env.appUrl,
                     intakeId: intake.id,
                   }),
+                  overnight,
                 }),
                 emailType: "still_reviewing",
                 intakeId: intake.id,
