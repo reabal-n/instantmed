@@ -24,6 +24,12 @@ export interface ScriptSentEmailProps {
   requestAccessUrl: string
   escriptReference?: string
   appUrl?: string
+  /**
+   * True when the review breached the priority window and the $9.95 fee was
+   * auto-refunded earlier (intakes.priority_fee_refunded_at). Adds a short
+   * acknowledgment so the outcome email closes the loop on the refund.
+   */
+  priorityFeeRefunded?: boolean
 }
 
 export function ScriptSentEmail({
@@ -31,6 +37,7 @@ export function ScriptSentEmail({
   requestAccessUrl,
   escriptReference,
   appUrl = APP_URL,
+  priorityFeeRefunded = false,
 }: ScriptSentEmailProps) {
   const firstName = patientName.split(" ")[0]
 
@@ -53,6 +60,14 @@ export function ScriptSentEmail({
         Take your phone to any pharmacy. The pharmacist will scan the QR code to dispense your medication.
         Bring your Medicare card for any PBS subsidy.
       </Text>
+
+      {priorityFeeRefunded && (
+        <Text>
+          One more thing: the review took longer than priority should, so we
+          refunded your priority fee earlier. It&apos;s on its way back to your
+          original payment method.
+        </Text>
+      )}
 
       {escriptReference && (
         <Box variant="success">

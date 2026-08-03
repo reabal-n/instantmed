@@ -29,6 +29,12 @@ export interface MedCertPatientEmailProps {
    * explain why there's no password to reset.
    */
   isGuest?: boolean
+  /**
+   * True when the review breached the priority window and the $9.95 fee was
+   * auto-refunded earlier (intakes.priority_fee_refunded_at). Adds a short
+   * acknowledgment so the outcome email closes the loop on the refund.
+   */
+  priorityFeeRefunded?: boolean
 }
 
 export function MedCertPatientEmail({
@@ -38,6 +44,7 @@ export function MedCertPatientEmail({
   certType: _certType = "work",
   appUrl = APP_URL,
   isGuest = false,
+  priorityFeeRefunded = false,
 }: MedCertPatientEmailProps) {
   const firstName = patientName.split(" ")[0]
 
@@ -68,6 +75,14 @@ export function MedCertPatientEmail({
         <Text>
           You checked out as a guest, so the first time you open your certificate
           you&apos;ll set a password (there&apos;s no existing login to reset).
+        </Text>
+      )}
+
+      {priorityFeeRefunded && (
+        <Text>
+          One more thing: the review took longer than priority should, so we
+          refunded your priority fee earlier. It&apos;s on its way back to your
+          original payment method.
         </Text>
       )}
 

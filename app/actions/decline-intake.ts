@@ -122,6 +122,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
         payment_id,
         stripe_payment_intent_id,
         amount_cents,
+        refund_amount_cents,
         patient_id,
         patient:profiles!patient_id (
           id,
@@ -207,12 +208,17 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
       status: "not_applicable",
     }
 
-    const isPaid = intake.payment_status === "paid"
+    // `partially_refunded` still owes the patient: the priority breach
+    // auto-refund (lib/stripe/priority-fee-refund.ts) returns only the $9.95
+    // fee before any decision, and decline policy is a FULL refund — so the
+    // decline must top up the remaining balance, not skip it.
+    const isRefundable =
+      intake.payment_status === "paid" || intake.payment_status === "partially_refunded"
     const category = intake.category || ""
     const isEligible = REFUND_ON_DECLINE_CATEGORIES.includes(category)
     const isE2E = process.env.E2E_MODE === "true" || process.env.PLAYWRIGHT === "1"
 
-    if (isPaid && isEligible && !skipRefund) {
+    if (isRefundable && isEligible && !skipRefund) {
       if (isE2E) {
         // Skip actual Stripe call in E2E mode
         refundResult = { status: "skipped_e2e" }
@@ -231,7 +237,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
         // on 2026-05-20 after operator feedback. See decline-refund.ts.
         refundResult = await processRefund(intakeId, intake, actorId, timestamp)
       }
-    } else if (isPaid && !isEligible) {
+    } else if (isRefundable && !isEligible) {
       refundResult = { status: "not_eligible" }
 
       await supabase
