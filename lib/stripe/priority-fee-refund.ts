@@ -29,7 +29,7 @@ const logger = createLogger("priority-fee-refund")
 export const PRIORITY_BREACH_HOURS = 3
 
 /** Fee refunded on breach, in cents. Single source: PRICING.PRIORITY_FEE. */
-export const PRIORITY_FEE_CENTS = Math.round(PRICING.PRIORITY_FEE * 100)
+const PRIORITY_FEE_CENTS = Math.round(PRICING.PRIORITY_FEE * 100)
 
 export interface PriorityBreachIntake {
   id: string

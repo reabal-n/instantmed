@@ -1,12 +1,15 @@
 import { describe, expect, it, vi } from "vitest"
 
+import { PRICING } from "@/lib/constants"
 import {
-  PRIORITY_FEE_CENTS,
   type PriorityBreachIntake,
   type PriorityRefundDb,
   type PriorityRefundStripe,
   refundPriorityFeeOnBreach,
 } from "@/lib/stripe/priority-fee-refund"
+
+// Derived the same way the module does (the module keeps it unexported).
+const PRIORITY_FEE_CENTS = Math.round(PRICING.PRIORITY_FEE * 100)
 
 vi.mock("@sentry/nextjs", () => ({
   captureMessage: vi.fn(),

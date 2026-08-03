@@ -85,5 +85,7 @@ export type { OpsTestEmailProps } from "./ops-test"
 export { OpsTestEmail, opsTestEmailSubject } from "./ops-test"
 
 // --- Priority Fee Refunded (3h breach auto-refund notice) ---
-export type { PriorityFeeRefundedEmailProps } from "./priority-fee-refunded"
-export { PriorityFeeRefundedEmail, priorityFeeRefundedSubject } from "./priority-fee-refunded"
+// Component only: the subject + props are imported from the source module by
+// their consumers (admin-preview, stale-queue cron), and unused barrel
+// re-exports trip the dead-code ratchet.
+export { PriorityFeeRefundedEmail } from "./priority-fee-refunded"
