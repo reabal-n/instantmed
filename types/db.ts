@@ -157,6 +157,8 @@ export interface Intake {
   expiry_reason: string | null
   // Follow-up tracking
   follow_up_sent_at: string | null
+  // Priority breach auto-refund stamp (stale-queue cron; once-only guard)
+  priority_fee_refunded_at: string | null
   // Email tracking
   abandoned_email_sent_at: string | null
   confirmation_email_sent_at: string | null

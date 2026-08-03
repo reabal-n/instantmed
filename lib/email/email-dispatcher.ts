@@ -68,6 +68,7 @@ export const SUPPORTED_EMAIL_TYPES = [
   "request_received",
   "request_approved",
   "still_reviewing",
+  "priority_fee_refunded",
   "partial_intake_recovery",
   "review_request",
 ] as const

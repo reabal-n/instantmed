@@ -556,6 +556,7 @@ export async function executeCertApproval(
       certType: certificateType === "study" ? "study" : certificateType === "carer" ? "carer" : "work",
       appUrl: env.appUrl,
       isGuest,
+      priorityFeeRefunded: Boolean(intake.is_priority && intake.priority_fee_refunded_at),
     }),
     emailType: "med_cert_patient",
     intakeId,
