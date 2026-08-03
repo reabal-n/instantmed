@@ -64,15 +64,15 @@ export function StillReviewingEmail({
         <NameFirstGreeting name={firstName} />
 
         <Text>
-          Overnight requests usually take longer than daytime ones — most are
-          completed by midday. We&apos;ll email you the moment your{" "}
-          <strong>{requestType}</strong> is done, and there&apos;s nothing you
-          need to do in the meantime.
+          Overnight requests usually take longer than daytime ones. Most are
+          completed by midday, and we&apos;ll email you the moment your{" "}
+          <strong>{requestType}</strong> is done. There&apos;s nothing you need
+          to do in the meantime.
         </Text>
 
         <Box variant="info">
           <Text small style={{ margin: 0 }}>
-            If you&apos;re feeling worse while you wait, don&apos;t wait for us —
+            If you&apos;re feeling worse while you wait, don&apos;t wait for us:
             call healthdirect on 1800 022 222 for 24/7 nurse advice, see a doctor
             in person, or call 000 in an emergency.
           </Text>

@@ -735,6 +735,20 @@ describe("Email Templates", () => {
       )
       expect(html).toMatchSnapshot()
     })
+
+    it("overnight variant sets honest expectations and matches snapshot", () => {
+      const html = render(
+        <StillReviewingEmail patientName="Test Patient" requestType="repeat prescription" requestId="REQ-TEST" requestAccessUrl={REQUEST_ACCESS_URL} appUrl={APP_URL} overnight />
+      )
+      expectBaseEmailStructure(html)
+      // Honest expectation, escalation path, and NO imminent-review promises.
+      expectContains(html, "completed by midday")
+      expectContains(html, "healthdirect")
+      expectContains(html, "1800 022 222")
+      expect(html).not.toContain("nearly done")
+      expect(html).not.toContain("working through the queue")
+      expect(html).toMatchSnapshot()
+    })
   })
 
   describe("ReviewRequestEmail", () => {
