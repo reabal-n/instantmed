@@ -107,7 +107,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   async function fetchIntakeContext(intakeId: string) {
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
-      .select("id, patient_id, service_id, category, subtype, reference_number, amount_cents, paid_at, payment_id, decline_reason, decline_reason_code, decline_reason_note, refund_amount_cents, parchment_reference, guest_email")
+      .select("id, patient_id, service_id, category, subtype, reference_number, amount_cents, paid_at, payment_id, decline_reason, decline_reason_code, decline_reason_note, refund_amount_cents, parchment_reference, guest_email, is_priority, priority_fee_refunded_at")
       .eq("id", intakeId)
       .single()
 
@@ -210,6 +210,44 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
         intakeId: ctx.intake.id,
       }),
       escriptReference: ctx.intake.parchment_reference || undefined,
+      appUrl: env.appUrl,
+      priorityFeeRefunded: Boolean(ctx.intake.is_priority && ctx.intake.priority_fee_refunded_at),
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
+  // priority_fee_refunded - React template, needs intake data
+  // ----------------------------------------------------------------
+  if (row.email_type === "priority_fee_refunded") {
+    if (!row.intake_id) {
+      return { success: false, error: "priority_fee_refunded requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    // Truth check: only rebuild the notice while the durable stamp says the
+    // fee actually was refunded. Anything else is stale and must not resend.
+    if (!ctx.intake.priority_fee_refunded_at) {
+      return {
+        success: false,
+        error: "Intake is not marked priority-fee-refunded",
+        terminal: true,
+      }
+    }
+
+    const { PriorityFeeRefundedEmail } = await import("@/lib/email/components/templates")
+    const template = PriorityFeeRefundedEmail({
+      patientName: ctx.patient.full_name || row.to_name || "there",
+      requestType: ctx.service.short_name || ctx.service.name,
+      requestId: ctx.intake.id,
+      requestAccessUrl: buildPatientRequestAccessUrl({
+        appUrl: env.appUrl,
+        intakeId: ctx.intake.id,
+      }),
       appUrl: env.appUrl,
     })
 
