@@ -38,7 +38,7 @@
  * 2026-06-26).
  */
 
-import { ArrowRight, HeartPulse, ShieldAlert, Stethoscope } from "lucide-react"
+import { ArrowRight, HeartPulse, Info, ShieldAlert, Stethoscope } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
@@ -57,6 +57,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { usePostHog } from "@/lib/analytics/posthog-context"
+import { isLikelyDeclinedOnline } from "@/lib/clinical/controlled-substances"
 import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { type DedicatedServiceMatch, detectDedicatedServiceForMedication } from "@/lib/clinical/medication-service-routing"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
@@ -181,6 +182,10 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   // Subtype the patient explicitly chose to keep as a repeat (clears the steer).
   const [steerDismissedSubtype, setSteerDismissedSubtype] = useState<string | null>(null)
+  // Set once the patient reads the "usually declined online" note and chooses
+  // to continue anyway. Advisory only — it never blocks, it just makes sure
+  // nobody pays to reach a "no" we could have predicted.
+  const [declineRiskAcknowledged, setDeclineRiskAcknowledged] = useState(false)
   const [blockedReasons, setBlockedReasons] = useState<string[]>([])
   const [recentMeds, setRecentMeds] = useState<RecentMedication[]>([])
   const controlledBlock = deriveRepeatMedicationTerminalBlock(answers)
@@ -291,6 +296,18 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     return null
   }, [steerEnabled, medications])
   const steerActive = serviceSteer !== null && serviceSteer.subtype !== steerDismissedSubtype
+
+  // Codeine-combination brands stay allowed through to the doctor (the
+  // documented carve-out), but the patient is told before paying that these are
+  // usually declined, and that a decline is refunded in full.
+  const likelyDeclinedMedication = useMemo(() => {
+    if (!steerEnabled) return null
+    for (const med of medications) {
+      if (med.name && isLikelyDeclinedOnline(med.name)) return med.name.trim()
+    }
+    return null
+  }, [steerEnabled, medications])
+  const declineRiskActive = likelyDeclinedMedication !== null && !declineRiskAcknowledged
 
   const goToDedicatedService = useCallback((subtype: string) => {
     const params = new URLSearchParams()
@@ -406,7 +423,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     // A controlled substance is a hard clinical block — the destructive alert
     // above already explains it; never advance past it. The dedicated-service
     // steer is a soft block with an explicit "keep as repeat" escape.
-    if (controlledBlock || steerActive) return
+    if (controlledBlock || steerActive || declineRiskActive) return
     if (validate()) {
       // Save to recent medications for next-time quick-pick.
       for (const med of medications) {
@@ -417,7 +434,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       posthog?.capture('step_completed', { step: 'medication', medication_count: medications.filter((m) => m.name.trim()).length })
       onNext()
     }
-  }, [controlledBlock, steerActive, validate, medications, posthog, onNext])
+  }, [controlledBlock, steerActive, declineRiskActive, validate, medications, posthog, onNext])
 
   const activeMedications = medications.filter((m) => m.name.trim())
   // Readiness: a named medicine, when it was last prescribed, and — for a
@@ -435,7 +452,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   )
   // Live-computed; controlledBlock stays (a real clinical block), the stale
   // `errors` object does not gate readiness.
-  const canContinue = isComplete && !controlledBlock && !steerActive
+  const canContinue = isComplete && !controlledBlock && !steerActive && !declineRiskActive
 
   useEffect(() => {
     if (canContinue && blockedReasons.length > 0) setBlockedReasons([])
@@ -500,6 +517,35 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
                 {serviceSteer.subtype === "womens_health"
                   ? "I'm continuing my current pill — keep as repeat"
                   : "I'm continuing an existing prescription — keep as repeat"}
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Usually-declined-online advisory. Not a block: the doctor still
+          decides. This exists so a predictable "no" costs nobody a payment. */}
+      {declineRiskActive && likelyDeclinedMedication && (
+        <Alert>
+          <Info className="w-4 h-4" />
+          <AlertTitle>We usually can&apos;t prescribe this online</AlertTitle>
+          <AlertDescription className="text-xs">
+            <p>
+              Medicines like {likelyDeclinedMedication} contain codeine. A doctor will
+              still review your request, but these are usually declined online and
+              referred to your regular GP, who can review your pain management properly.
+            </p>
+            <p className="mt-1">
+              You can continue — if the doctor declines, you are refunded in full.
+            </p>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => setDeclineRiskAcknowledged(true)}
+              >
+                Continue anyway
               </Button>
             </div>
           </AlertDescription>
