@@ -9,7 +9,6 @@ import { requestMoreInfoAction } from "@/app/actions/request-more-info"
 import { ClinicalSummary } from "@/components/doctor/clinical-summary"
 import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { RenewalLink } from "@/components/doctor/renewal-link"
-import { BatchReviewAttestation } from "@/components/doctor/review/batch-review-attestation"
 import { IntakeActionButtons } from "@/components/doctor/review/intake-action-buttons"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { IntakeSecondaryDisclosure } from "@/components/doctor/review/intake-secondary-disclosure"
@@ -19,7 +18,6 @@ import { ReviewBlockersStrip } from "@/components/doctor/review/review-blockers-
 import { SafetyFlagsCard } from "@/components/doctor/review/safety-flags-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { isBatchReviewEligible } from "@/lib/clinical/batch-review-policy"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { buildReviewPacket } from "@/lib/clinical/review-packet"
 import { isPrescribingServiceRequest } from "@/lib/doctor/service-types"
@@ -28,7 +26,6 @@ import { cn } from "@/lib/utils"
 
 interface IntakeReviewCockpitProps {
   className?: string
-  onBatchReviewResolved?: (intakeId: string) => void
 }
 
 const MED_CERT_SYMPTOM_DETAIL_REQUEST =
@@ -123,7 +120,6 @@ function CertificateDeliveryCard() {
 
 export function IntakeReviewCockpit({
   className,
-  onBatchReviewResolved,
 }: IntakeReviewCockpitProps) {
   const review = useIntakeReview()
   const { data, intake, answers, service } = review
@@ -216,10 +212,10 @@ export function IntakeReviewCockpit({
     })
   }, [canRequestClinicalDetail, intake.id, router])
 
-  const isPendingBatchReview = isBatchReviewEligible(intake)
-  const decisionActions = isPendingBatchReview && onBatchReviewResolved ? (
-    <BatchReviewAttestation intake={intake} onResolved={onBatchReviewResolved} />
-  ) : (
+  // Auto-issued certificates get the same action set as any other request:
+  // open it, and revoke if it looks wrong. There is no separate post-approval
+  // attestation card (operator decision 2026-08-04).
+  const decisionActions = (
     <IntakeActionButtons
       placement="bottom"
       requiresClinicalDetail={canRequestClinicalDetail}

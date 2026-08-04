@@ -13,11 +13,6 @@ import { toError } from "@/lib/errors"
 import { type BusinessAlert, runAlertSection } from "@/lib/monitoring/alert-sections"
 import { buildAuthEmailFailureAlert } from "@/lib/monitoring/auth-email-failure"
 import {
-  type BatchReviewHealth,
-  buildBatchReviewOverdueAlert,
-  getBatchReviewHealth,
-} from "@/lib/monitoring/batch-review-health"
-import {
   recordCriticalAlertSent,
   resolveCriticalAlertCooldownHours,
   resolveEquivalentCriticalAlertDetails,
@@ -166,7 +161,6 @@ export async function GET(request: NextRequest) {
     let noPurchaseWindow: NoPurchaseRevenueWindow | null = null
     let operationalInvariants: OperationalInvariants | null = null
     let staleHumanCount: number | null = null
-    let batchReviewHealth: BatchReviewHealth | null = null
     let prescriptionFulfilment: PrescriptionFulfilmentDashboard | null = null
 
     // 1. Failed payments in last hour
@@ -594,38 +588,14 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // 12. Every auto-approved medical certificate must receive one individual
-    // doctor outcome within InstantMed's 24-hour governance window. This check
-    // is aggregate-only: alert payloads never include intake or patient IDs.
-    await runAlertSection({
-      section: "med_cert_batch_review",
-      alerts,
-      onFailure: onSectionFailure,
-      run: async () => {
-        batchReviewHealth = await getBatchReviewHealth(supabase, now)
-        if (batchReviewHealth.queryFailed) {
-          throw new Error("Medical-certificate batch-review aggregate query failed")
-        }
-        const batchReviewAlert = buildBatchReviewOverdueAlert(batchReviewHealth, now)
-        if (batchReviewAlert) {
-          const oldestApprovedMs = batchReviewHealth.oldestApprovedAt
-            ? new Date(batchReviewHealth.oldestApprovedAt).getTime()
-            : Number.NaN
-          alerts.push(batchReviewAlert)
-          trackBusinessMetric({
-            metric: "med_cert_batch_review_overdue",
-            severity: batchReviewAlert.severity,
-            metadata: {
-              pending_count: batchReviewHealth.pending,
-              overdue_count: batchReviewHealth.overdue,
-              oldest_age_hours: Number.isFinite(oldestApprovedMs)
-                ? Math.max(0, Math.floor((now.getTime() - oldestApprovedMs) / 3_600_000))
-                : null,
-            },
-          })
-        }
-      },
-    })
+    // No post-issuance medical-certificate review section by design (operator
+    // decision 2026-08-04). Auto-approval is gated BEFORE issuance: any risk
+    // signal routes the certificate to `needs_doctor` for manual approval via
+    // DETERMINISTIC_FAILURE_PREFIXES. A retrospective attestation on the
+    // certificates that already cleared every gate added no clinical signal and
+    // paged the operator every 30 minutes once its window lapsed. Do not
+    // reintroduce a post-approval review alert; strengthen the pre-approval
+    // gate instead.
 
     // Fire Sentry alerts for critical items
     const criticalAlerts = alerts.filter((a) => a.severity === "critical")
@@ -711,7 +681,6 @@ export async function GET(request: NextRequest) {
     // TS control-flow narrows the `let`s to their `null` initializers here.
     const invariants = operationalInvariants as OperationalInvariants | null
     const noPurchase = noPurchaseWindow as NoPurchaseRevenueWindow | null
-    const batchReviews = batchReviewHealth as BatchReviewHealth | null
     const fulfilment = prescriptionFulfilment as PrescriptionFulfilmentDashboard | null
 
     return NextResponse.json({
@@ -748,14 +717,6 @@ export async function GET(request: NextRequest) {
                 sla_breached: stage.slaBreachedCount,
                 oldest_minutes: stage.oldestMinutes,
               })),
-            }
-          : null,
-        med_cert_batch_review: batchReviews
-          ? {
-              pending: batchReviews.pending,
-              overdue: batchReviews.overdue,
-              oldest_approved_at: batchReviews.oldestApprovedAt,
-              query_failed: batchReviews.queryFailed,
             }
           : null,
         ops_sla_breach_backlog: invariants?.slaBreachBacklog ?? null,

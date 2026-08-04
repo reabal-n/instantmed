@@ -112,39 +112,44 @@ export function getReviewHistoryStatusMeta(status: string): ReviewHistoryStatusM
   }
 }
 
-/** Describe a complete count or, when capped, the bounded review slice. */
+/**
+ * Describe a complete count or, when capped, the bounded review slice.
+ *
+ * The doctor's own decisions and protocol-issued certificates are counted
+ * separately: "your reviews" must never absorb work no clinician performed.
+ */
 export function buildReviewHistorySummary({
   reviews,
   truncated,
-  governanceReceipt = null,
   now,
 }: {
-  reviews: Array<{ activity_at: string }>
+  reviews: Array<{
+    activity_at: string
+    activity_provenance?: "clinician_decision" | "auto_issued"
+  }>
   truncated: boolean
-  governanceReceipt?: {
-    certificateCount: number
-    latestActivityAt: string
-  } | null
   now: Date
 }): string {
-  const lastReviewed = reviews
+  const clinicianReviews = reviews.filter(
+    (review) => review.activity_provenance !== "auto_issued",
+  )
+  const autoIssuedCount = reviews.length - clinicianReviews.length
+  // "Last reviewed" must describe a review the clinician actually performed, so
+  // it is derived from their own decisions only — never from an auto-issuance.
+  const lastReviewed = clinicianReviews
     .map((review) => review.activity_at)
     .sort()
     .pop() ?? null
   const countSummary = truncated
-    ? `${reviews.length}+ reviews recorded today · latest ${reviews.length} shown`
-    : `Your reviews today: ${reviews.length}`
+    ? `${clinicianReviews.length}+ reviews recorded today · latest ${clinicianReviews.length} shown`
+    : `Your reviews today: ${clinicianReviews.length}`
   const reviewRelative = lastReviewed ? formatRelativeTime(lastReviewed, now) : ""
   const reviewSummary = reviewRelative
     ? `${countSummary} · last reviewed ${reviewRelative}`
     : countSummary
-  if (!governanceReceipt || governanceReceipt.certificateCount <= 0) return reviewSummary
+  if (autoIssuedCount <= 0) return reviewSummary
 
-  const governanceRelative = formatRelativeTime(governanceReceipt.latestActivityAt, now)
-  const governanceSummary = `Governance: ${governanceReceipt.certificateCount} auto-issued certificate${governanceReceipt.certificateCount === 1 ? "" : "s"} covered`
-  return governanceRelative
-    ? `${reviewSummary} · ${governanceSummary} · latest receipt ${governanceRelative}`
-    : `${reviewSummary} · ${governanceSummary}`
+  return `${reviewSummary} · ${autoIssuedCount} auto-issued certificate${autoIssuedCount === 1 ? "" : "s"} today`
 }
 
 /**

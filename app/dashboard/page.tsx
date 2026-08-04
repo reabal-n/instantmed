@@ -39,7 +39,6 @@ import {
 import {
   getDoctorQueue,
   getFormToInboxStats,
-  getPendingBatchReviews,
   getRecentlyCompletedIntakes,
 } from "@/lib/data/intakes"
 import { EMPTY_SYSTEM_HEALTH, getSystemHealth } from "@/lib/data/system-health"
@@ -135,10 +134,13 @@ export default async function StaffDashboardPage({
       onlySeeded: onlyTestData,
       statusFilter: initialStatusFilter,
     }),
-    canReviewMedicalCertificates
-      ? getPendingBatchReviews({ limit: 20 })
-      : Promise.resolve({ data: [], total: 0, oldestApprovedAt: null, degraded: false }),
-    getRecentlyCompletedIntakes({ limit: 50, reviewerId: profile.id }),
+    // Auto-issued certificates have no reviewing doctor, so they sit outside
+    // the per-doctor patient-access boundary: only show them to admins.
+    getRecentlyCompletedIntakes({
+      limit: 50,
+      reviewerId: profile.id,
+      includeAutoIssued: isAdmin && canReviewMedicalCertificates,
+    }),
     getDoctorIdentity(profile.id),
     getFormToInboxStats(),
     import("@/app/actions/doctor-availability").then((m) => m.getDoctorAvailabilityAction()),
@@ -177,16 +179,13 @@ export default async function StaffDashboardPage({
       anchor: "doctor-queue",
     }))
   }
-  const pendingBatchReviews = results[1].status === "fulfilled"
+  const recentlyCompletedResult = results[1].status === "fulfilled"
     ? results[1].value
-    : { data: [], total: 0, oldestApprovedAt: null, degraded: true }
-  const recentlyCompletedResult = results[2].status === "fulfilled"
-    ? results[2].value
-    : { data: [], governanceReceipt: null, degraded: true, truncated: false }
-  const doctorIdentity: DoctorIdentity | null = results[3].status === "fulfilled" ? results[3].value : null
-  const formToInboxStats = !onlyTestData && results[4].status === "fulfilled" ? results[4].value : null
-  const doctorAvailable = results[5].status === "fulfilled" ? results[5].value?.available !== false : true
-  const systemHealth = results[6].status === "fulfilled" ? results[6].value : EMPTY_SYSTEM_HEALTH
+    : { data: [], degraded: true, truncated: false }
+  const doctorIdentity: DoctorIdentity | null = results[2].status === "fulfilled" ? results[2].value : null
+  const formToInboxStats = !onlyTestData && results[3].status === "fulfilled" ? results[3].value : null
+  const doctorAvailable = results[4].status === "fulfilled" ? results[4].value?.available !== false : true
+  const systemHealth = results[5].status === "fulfilled" ? results[5].value : EMPTY_SYSTEM_HEALTH
   const nowMs = Date.now()
   const oldestWaitingEnteredAt = queueResult.oldestWaitingEnteredAt
   const oldestWaitingMinutes = oldestWaitingEnteredAt
@@ -298,9 +297,7 @@ export default async function StaffDashboardPage({
                 pageSize: queueResult.pageSize,
                 total: queueResult.total,
               }}
-              pendingBatchReviews={pendingBatchReviews}
               recentlyCompleted={recentlyCompletedResult.data}
-              governanceReceipt={recentlyCompletedResult.governanceReceipt}
               recentlyCompletedDegraded={recentlyCompletedResult.degraded}
               recentlyCompletedTruncated={recentlyCompletedResult.truncated}
               statusCounts={queueResult.statusCounts}

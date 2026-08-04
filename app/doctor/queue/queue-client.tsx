@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
-import { BatchReviewBanner } from "@/components/doctor/batch-review-banner"
 import { OperatorSplitPane } from "@/components/operator/operator-page"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
@@ -33,7 +32,6 @@ import { isEditableOrInteractiveKeyboardTarget } from "@/lib/hooks/use-doctor-sh
 import { useIsDesktop } from "@/lib/hooks/use-media-query"
 import { cn } from "@/lib/utils"
 import type {
-  GovernanceReviewReceipt,
   IntakeStatus,
   IntakeWithPatient,
   RecentlyCompletedIntake,
@@ -72,7 +70,6 @@ interface QueueSearchIntent {
 interface LazyIntakeReviewPanelProps {
   intakeId: string
   onActionComplete?: (options?: { advance?: boolean }) => void
-  onBatchReviewResolved?: (intakeId: string) => void
   onNextCase?: () => void
   onPrevCase?: () => void
   caseIndex?: number
@@ -137,7 +134,6 @@ const IntakeReviewPanel = dynamic<LazyIntakeReviewPanelProps>(loadIntakeReviewPa
 
 const ApprovedTodayList = dynamic<{
   intakes: RecentlyCompletedIntake[]
-  governanceReceipt?: GovernanceReviewReceipt | null
   className?: string
   historyTruncated?: boolean
 }>(() => import("@/components/doctor/approved-today-list").then((mod) => mod.ApprovedTodayList), {
@@ -214,14 +210,7 @@ export function QueueClient({
   identityComplete = true,
   queueDegraded = false,
   pagination,
-  pendingBatchReviews: initialPendingBatchReviews = {
-    data: [],
-    total: 0,
-    oldestApprovedAt: null,
-    degraded: false,
-  },
   recentlyCompleted = [],
-  governanceReceipt = null,
   recentlyCompletedDegraded = false,
   recentlyCompletedTruncated = false,
   statusCounts = null,
@@ -260,10 +249,8 @@ export function QueueClient({
   const [intakes, setIntakes] = useState(initialIntakes)
   const [activeSearchView, setActiveSearchView] = useState<ActiveQueueSearchView | null>(null)
   const activeSearchViewRef = useRef<ActiveQueueSearchView | null>(null)
-  const [pendingBatchReviews, setPendingBatchReviews] = useState(initialPendingBatchReviews)
   // Keep a live ref to filtered intakes for use in panel callbacks
   const filteredIntakesRef = useRef<IntakeWithPatient[]>([])
-  const pendingBatchReviewsRef = useRef(initialPendingBatchReviews)
 
   // Sync server data into local state after router.refresh() soft-refreshes the page.
   // useState(initialIntakes) only reads the prop on mount, so without this effect
@@ -271,15 +258,6 @@ export function QueueClient({
   useEffect(() => {
     if (!activeSearchViewRef.current) setIntakes(initialIntakes)
   }, [initialIntakes])
-
-  useEffect(() => {
-    setPendingBatchReviews(initialPendingBatchReviews)
-    pendingBatchReviewsRef.current = initialPendingBatchReviews
-  }, [initialPendingBatchReviews])
-
-  useEffect(() => {
-    pendingBatchReviewsRef.current = pendingBatchReviews
-  }, [pendingBatchReviews])
 
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [lastOpenedIntakeId, setLastOpenedIntakeId] = useState<string | null>(() => {
@@ -700,36 +678,6 @@ export function QueueClient({
     ],
   )
 
-  const handleBatchReviewResolved = useCallback((intakeId: string) => {
-    const current = pendingBatchReviewsRef.current
-    const remaining = current.data.filter((intake) => intake.id !== intakeId)
-    const next = {
-      ...current,
-      data: remaining,
-      total: Math.max(0, current.total - 1),
-      oldestApprovedAt: remaining[0]?.ai_approved_at ?? null,
-    }
-    pendingBatchReviewsRef.current = next
-    setPendingBatchReviews(next)
-    setExpandedId(isDesktop ? (remaining[0]?.id ?? null) : null)
-    refreshQueue(true)
-  }, [isDesktop, refreshQueue])
-
-  const handleBatchReviewCohortResolved = useCallback((intakeIds: string[]) => {
-    const resolved = new Set(intakeIds)
-    const current = pendingBatchReviewsRef.current
-    const remaining = current.data.filter((intake) => !resolved.has(intake.id))
-    const next = {
-      ...current,
-      data: remaining,
-      total: Math.max(remaining.length, current.total - resolved.size),
-      oldestApprovedAt: remaining[0]?.ai_approved_at ?? null,
-    }
-    pendingBatchReviewsRef.current = next
-    setPendingBatchReviews(next)
-    refreshQueue(true)
-  }, [refreshQueue])
-
   // Click / Enter handler. In compactShell mode this is a NO-SHEET path
   // on desktop: it just sets selection (`expandedId`), which drives the
   // inline right pane. On mobile (`!isDesktop`) compactShell falls back
@@ -761,8 +709,7 @@ export function QueueClient({
 
     const list = filteredIntakesRef.current
     const caseIndex = list.findIndex((r) => r.id === intakeId)
-    const previewIntake = list.find((r) => r.id === intakeId) ??
-      pendingBatchReviewsRef.current.data.find((r) => r.id === intakeId)
+    const previewIntake = list.find((r) => r.id === intakeId)
 
     openPanel({
       id: `intake-review-${intakeId}`,
@@ -774,7 +721,6 @@ export function QueueClient({
           reviewRevision={previewIntake?.updated_at ?? null}
           caseIndex={caseIndex >= 0 ? caseIndex : undefined}
           totalCases={list.length > 0 ? list.length : undefined}
-          onBatchReviewResolved={handleBatchReviewResolved}
           onActionComplete={(options) => {
             handleIntakeActionComplete(intakeId, options)
             const { nextIntake } = removeCompletedIntakeFromQueue(filteredIntakesRef.current, intakeId)
@@ -793,7 +739,7 @@ export function QueueClient({
         />
       ),
     })
-  }, [openPanel, compactShell, isDesktop, handleIntakeActionComplete, handleBatchReviewResolved])
+  }, [openPanel, compactShell, isDesktop, handleIntakeActionComplete])
 
   const primeReviewPanelCode = useCallback(() => {
     void loadIntakeReviewPanel()
@@ -913,7 +859,6 @@ export function QueueClient({
     searchState: visibleSearchState,
     baseHref,
     recentlyCompleted,
-    governanceReceipt,
     recentlyCompletedDegraded,
     recentlyCompletedTruncated,
     now: new Date(),
@@ -927,7 +872,6 @@ export function QueueClient({
     visibleQueueDegraded,
     statusFilter,
     recentlyCompleted,
-    governanceReceipt,
     recentlyCompletedDegraded,
     recentlyCompletedTruncated,
   ])
@@ -1146,12 +1090,6 @@ export function QueueClient({
         </div>
       )}
 
-      <BatchReviewBanner
-        result={pendingBatchReviews}
-        onOpenOldest={openReviewPanel}
-        onCohortResolved={handleBatchReviewCohortResolved}
-      />
-
       <div
         className={cn(
           compactShell
@@ -1236,7 +1174,6 @@ export function QueueClient({
               {/* Day's approved requests at a glance, no separate navigation. */}
               <ApprovedTodayList
                 intakes={recentlyCompleted}
-                governanceReceipt={governanceReceipt}
                 historyTruncated={recentlyCompletedTruncated}
               />
             </div>
@@ -1261,19 +1198,13 @@ export function QueueClient({
                   <IntakeReviewPanel
                     inline
                     intakeId={expandedId}
-                    previewIntake={
-                      filteredIntakes.find((intake) => intake.id === expandedId) ??
-                      pendingBatchReviews.data.find((intake) => intake.id === expandedId)
-                    }
+                    previewIntake={filteredIntakes.find((intake) => intake.id === expandedId)}
                     reviewRevision={
-                      intakes.find((intake) => intake.id === expandedId)?.updated_at ??
-                      pendingBatchReviews.data.find((intake) => intake.id === expandedId)?.updated_at ??
-                      null
+                      intakes.find((intake) => intake.id === expandedId)?.updated_at ?? null
                     }
                     caseIndex={filteredIntakes.findIndex((intake) => intake.id === expandedId)}
                     totalCases={filteredIntakes.length}
                     onActionComplete={(options) => handleIntakeActionComplete(expandedId, options)}
-                    onBatchReviewResolved={handleBatchReviewResolved}
                   />
                 </div>
               </div>
@@ -1326,7 +1257,6 @@ export function QueueClient({
           {compactShell && filteredIntakes.length === 0 ? (
             <ApprovedTodayList
               intakes={recentlyCompleted}
-              governanceReceipt={governanceReceipt}
               className="max-h-[min(360px,45vh)]"
               historyTruncated={recentlyCompletedTruncated}
             />

@@ -1,8 +1,6 @@
 import type { QueueStatusFilter } from "@/lib/dashboard/routes"
-import type { PendingBatchReviewResult } from "@/lib/data/intakes"
 import type { QueueStatusCounts } from "@/lib/doctor/queue-utils"
 import type {
-  GovernanceReviewReceipt,
   IntakeWithPatient,
   RecentlyCompletedIntake,
 } from "@/types/db"
@@ -18,9 +16,7 @@ export interface QueueClientProps {
   identityComplete?: boolean
   queueDegraded?: boolean
   pagination?: PaginationInfo
-  pendingBatchReviews?: PendingBatchReviewResult
   recentlyCompleted?: RecentlyCompletedIntake[]
-  governanceReceipt?: GovernanceReviewReceipt | null
   recentlyCompletedDegraded?: boolean
   recentlyCompletedTruncated?: boolean
   statusCounts?: QueueStatusCounts | null

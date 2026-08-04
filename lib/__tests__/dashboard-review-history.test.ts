@@ -9,12 +9,11 @@ type ReviewHistoryStatusMeta = {
 
 const reviewHistoryUtils = queueUtils as typeof queueUtils & {
   buildReviewHistorySummary?: (input: {
-    reviews: Array<{ activity_at: string }>
+    reviews: Array<{
+      activity_at: string
+      activity_provenance?: "clinician_decision" | "auto_issued"
+    }>
     truncated: boolean
-    governanceReceipt?: {
-      certificateCount: number
-      latestActivityAt: string
-    } | null
     now: Date
   }) => string
   getReviewHistoryStatusMeta?: (status: string) => ReviewHistoryStatusMeta
@@ -51,17 +50,30 @@ describe("dashboard review history", () => {
     })).toBe("Your reviews today: 1 · last reviewed 5m ago")
   })
 
-  it("reports governance as a separate aggregate receipt", () => {
+  it("counts auto-issued certificates separately from the actor's own reviews", () => {
     expect(reviewHistoryUtils.buildReviewHistorySummary?.({
-      reviews: [{ activity_at: "2026-07-29T01:50:00.000Z" }],
+      reviews: [
+        { activity_at: "2026-07-29T01:50:00.000Z", activity_provenance: "clinician_decision" },
+        { activity_at: "2026-07-29T01:55:00.000Z", activity_provenance: "auto_issued" },
+        { activity_at: "2026-07-29T01:57:00.000Z", activity_provenance: "auto_issued" },
+      ],
       truncated: false,
-      governanceReceipt: {
-        certificateCount: 6,
-        latestActivityAt: "2026-07-29T01:55:00.000Z",
-      },
       now: new Date("2026-07-29T02:00:00.000Z"),
     })).toBe(
-      "Your reviews today: 1 · last reviewed 10m ago · Governance: 6 auto-issued certificates covered · latest receipt 5m ago",
+      "Your reviews today: 1 · last reviewed 10m ago · 2 auto-issued certificates today",
     )
+  })
+
+  it("derives 'last reviewed' from the clinician's own decisions, never an auto-issuance", () => {
+    // A newer protocol issuance must not masquerade as the doctor's own
+    // most recent review.
+    expect(reviewHistoryUtils.buildReviewHistorySummary?.({
+      reviews: [
+        { activity_at: "2026-07-29T01:50:00.000Z", activity_provenance: "clinician_decision" },
+        { activity_at: "2026-07-29T01:58:00.000Z", activity_provenance: "auto_issued" },
+      ],
+      truncated: false,
+      now: new Date("2026-07-29T02:00:00.000Z"),
+    })).toBe("Your reviews today: 1 · last reviewed 10m ago · 1 auto-issued certificate today")
   })
 })
