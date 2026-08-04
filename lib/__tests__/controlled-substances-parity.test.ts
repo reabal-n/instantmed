@@ -106,9 +106,8 @@ describe("prescribing-gate brand coverage (2026-08 refund evidence)", () => {
   it("blocks the S8 and controlled brands that reached checkout", () => {
     // Oxynorm: immediate-release oxycodone. Every other oxycodone brand
     // (oxycontin/endone/targin) was listed; this one was not.
-    // Lomotil: opioid antidiarrhoeal, absent from both prior lists entirely.
     // CBD: only "cbd oil" was listed, so a bare "CBD" entry matched nothing.
-    for (const medication of ["Oxynorm", "OxyNorm 5mg", "Lomotil 100 tablets non pbs", "CBD", "CBD 25mg"]) {
+    for (const medication of ["Oxynorm", "OxyNorm 5mg", "CBD", "CBD 25mg"]) {
       expect(isControlledSubstance(medication), medication).toBe(true)
     }
   })
@@ -128,9 +127,15 @@ describe("prescribing-gate brand coverage (2026-08 refund evidence)", () => {
 
   it("keeps ordinary repeat medicines prescribable", () => {
     // Over-blocking costs a legitimate sale and is not the safe direction here.
+    // Lomotil (diphenoxylate + atropine) is S3/S4 in Australia, NOT S8, and is
+    // a legitimate ongoing repeat. It was briefly blocked on 2026-08-04 from a
+    // declined order whose reason was "Patient will resubmit request" — an
+    // operational decline, not a clinical refusal. Refund evidence alone is not
+    // grounds to block: the decline must be clinical and the schedule must fit.
     for (const medication of [
       "Sertraline 50mg", "Ventolin", "Metformin XR", "Atorvastatin 20mg",
       "Panadol Osteo", "Nurofen", "Microgynon 30", "Amoxicillin",
+      "Lomotil", "Lomotil 100 tablets non pbs", "diphenoxylate",
     ]) {
       expect(isControlledSubstance(medication), medication).toBe(false)
     }

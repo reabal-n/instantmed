@@ -33,8 +33,13 @@ export const CONTROLLED_SUBSTANCE_TERMS: readonly string[] = [
   "methadone", "physeptone", "biodone",
   "buprenorphine", "suboxone", "subutex", "temgesic", "norspan",
   "tramadol",
-  // Opioid antidiarrhoeal. Absent from both prior lists; reached checkout 2026-08.
-  "lomotil", "diphenoxylate",
+  // NOT listed: lomotil / diphenoxylate. Lomotil (diphenoxylate 2.5 mg +
+  // atropine) is Schedule 3/4 in Australia, not Schedule 8, and is a
+  // legitimate ongoing repeat for chronic diarrhoea, IBS, and ostomy patients.
+  // It was briefly added on 2026-08-04 from a declined order whose recorded
+  // reason was "Patient will resubmit request" — an operational decline, not a
+  // clinical refusal. Do not re-add it on refund evidence alone: check the
+  // decline reason is clinical AND the AU schedule before blocking a medicine.
   // Added at unification: AU S8 opioids that were missing from BOTH prior lists.
   "tapentadol", "palexia",
   "pethidine",
