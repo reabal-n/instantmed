@@ -425,7 +425,7 @@ export function buildRevenueDashboard(input: RevenueDashboardInput): RevenueDash
     maxDailyNetCents: Math.max(0, ...daily.map((day) => Math.max(day.netCents, 0))),
     serviceMix: buildServiceMix(last30PaidRows),
     monetisation: buildMonetisationReadouts(last30PaidRows),
-    recentPayments: input.paidRows.slice(0, 5).flatMap((row) => {
+    recentPayments: last30PaidRows.slice(0, 5).flatMap((row) => {
       if (!row.id || !row.paid_at) return []
       return [{
         id: row.id,
@@ -599,6 +599,12 @@ export function buildTrendPeriods(
   // previous Sydney day, so this stays correct across AEST/AEDT transitions.
   const yesterdayStart = startOfDaySydney(new Date(todayStart.getTime() - DAY_MS / 2))
   const dayBeforeStart = startOfDaySydney(new Date(yesterdayStart.getTime() - DAY_MS / 2))
+  // Calendar-anchored prior windows snap to a true Sydney midnight the same
+  // way: flat 7-day subtraction lands an hour off whenever the prior week
+  // crosses an AEST/AEDT transition. The rolling 30-day pair deliberately
+  // stays flat-ms on BOTH sides — current and prior are each exactly 720 real
+  // hours, mirroring getRevenueWindowBounds' rolling definition.
+  const prior7DaysStart = startOfDaySydney(new Date(last7DaysStart.getTime() - 6.5 * DAY_MS))
   const elapsedTodayMs = Math.max(0, now.getTime() - todayStart.getTime())
   const justBefore = (boundary: Date) => new Date(boundary.getTime() - 1)
 
@@ -633,7 +639,7 @@ export function buildTrendPeriods(
       refundRows,
       since: last7DaysStart,
       until: now,
-      priorSince: new Date(last7DaysStart.getTime() - 7 * DAY_MS),
+      priorSince: prior7DaysStart,
       priorUntil: justBefore(last7DaysStart),
     }),
     buildTrendPeriod({

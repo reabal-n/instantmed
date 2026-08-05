@@ -35,7 +35,7 @@ New reader `getRecentDeliveredAdsAgentRunDailySpend`: last ≤35 **delivered** r
 
 - `aggregateSpendRows` additionally sums `metrics.clicks`; `CampaignEconomics` + `CampaignPortfolioEconomics` gain nullable `clicks`.
 - `business-read-model` derives `clicksTotal`/`cpcCents` **softly**: old runs without clicks yield null CPC and must NOT null the whole economics aggregate.
-- CPC renders "—" until the first post-change run delivers.
+- CPC renders "Unavailable" (the shared null-metric fallback) until the first post-change run delivers.
 
 ### View model (`lib/admin/business-trends.ts`, pure + tested)
 

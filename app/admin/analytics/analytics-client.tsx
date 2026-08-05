@@ -282,7 +282,14 @@ function ProfitCell({ row }: { row: BusinessProfitRow }) {
           </p>
         </>
       ) : (
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{row.unavailableReason}</p>
+        <>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{row.unavailableReason}</p>
+          {row.netCents !== null ? (
+            <p className="mt-0.5 text-[11px] tabular-nums text-muted-foreground">
+              {AUD.format(row.netCents / 100)} net − {AUD.format((row.feeEstimateCents ?? 0) / 100)} fees − ads unknown
+            </p>
+          ) : null}
+        </>
       )}
     </div>
   )

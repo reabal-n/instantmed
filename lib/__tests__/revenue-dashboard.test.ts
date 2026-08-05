@@ -278,6 +278,27 @@ describe("revenue dashboard read model", () => {
     expect(byKey.get("last30Days")?.netChangePct).toBeNull()
   })
 
+  it("snaps the prior-7-day boundary to a true Sydney midnight across the AEDT transition", () => {
+    // Sydney 15 Oct 2026, 13:00 AEDT — daylight saving began 4 Oct, so the
+    // prior week crosses the transition. Flat 7-day subtraction from
+    // last7DaysStart lands at 23:00 local on 1 Oct; the snapped boundary is
+    // midnight 2 Oct AEST (2026-10-01T14:00Z).
+    const dstNow = new Date("2026-10-15T02:00:00.000Z")
+    const periods = buildTrendPeriods([
+      // 23:30 Sydney on 1 Oct — before the prior window. The unsnapped flat
+      // boundary would wrongly include it.
+      paidRow({ id: "before-boundary", amount_cents: 9_995, paid_at: "2026-10-01T13:30:00.000Z" }),
+      // 00:30 Sydney on 2 Oct — first orders of the prior week.
+      paidRow({ id: "after-boundary", amount_cents: 4_995, paid_at: "2026-10-01T14:30:00.000Z" }),
+      paidRow({ id: "current-week", amount_cents: 2_995, paid_at: "2026-10-14T22:00:00.000Z" }),
+    ], [], dstNow)
+
+    expect(periods.find((period) => period.key === "last7Days")).toMatchObject({
+      netCents: 2_995,
+      priorNetCents: 4_995,
+    })
+  })
+
   it("compares 30d against the prior 30d while keeping other readouts scoped to 30d", () => {
     const dashboard = buildRevenueDashboard({
       now: NOW,
