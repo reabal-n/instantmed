@@ -86,13 +86,55 @@ describe("buildBusinessReadModel", () => {
     expect(model.scaleDecision).toBe("ACTION")
     expect(model.economics).toEqual({
       adsNetRetainedCents: 20_000,
+      clicksTotal: null,
       cpaCents: 1_200,
+      cpcCents: null,
       firstOrderContributionCents: 6_000,
       netRetainedRoas: 1.67,
       spendCents: 12_000,
       stripeFeeCents: 2_000,
     })
     expect(model.milestone?.activeMilestone.key).toBe("five_thousand")
+  })
+
+  it("derives CPC softly: click-carrying runs get spend ÷ clicks, older runs stay null without breaking the aggregate", () => {
+    const withClicks = buildBusinessReadModel({
+      adsRun: {
+        availability: "available",
+        reason: null,
+        run: evidence({
+          rolling30: [
+            campaign({ clicks: 400 }),
+            campaign({ campaignId: "2", campaignName: "Scripts", clicks: 200 }),
+          ],
+        }),
+      },
+      now: NOW,
+      revenue,
+    })
+
+    expect(withClicks.economics.clicksTotal).toBe(600)
+    expect(withClicks.economics.cpcCents).toBe(40)
+    expect(withClicks.economics.spendCents).toBe(24_000)
+
+    const mixed = buildBusinessReadModel({
+      adsRun: {
+        availability: "available",
+        reason: null,
+        run: evidence({
+          rolling30: [
+            campaign({ clicks: 400 }),
+            campaign({ campaignId: "2", campaignName: "Scripts" }),
+          ],
+        }),
+      },
+      now: NOW,
+      revenue,
+    })
+
+    expect(mixed.economics.clicksTotal).toBeNull()
+    expect(mixed.economics.cpcCents).toBeNull()
+    expect(mixed.economics.spendCents).toBe(24_000)
   })
 
   it("maps an evidence-complete investigation to CHECK", () => {

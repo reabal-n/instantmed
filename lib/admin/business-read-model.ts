@@ -22,7 +22,9 @@ export interface BusinessRevenueEvidence {
 
 interface BusinessEconomics {
   adsNetRetainedCents: number | null
+  clicksTotal: number | null
   cpaCents: number | null
+  cpcCents: number | null
   firstOrderContributionCents: number | null
   netRetainedRoas: number | null
   spendCents: number | null
@@ -53,6 +55,22 @@ function finiteNumber(value: unknown): number | null {
 function roundRatio(numerator: number, denominator: number): number | null {
   if (denominator <= 0) return null
   return Math.round((numerator / denominator) * 100) / 100
+}
+
+/**
+ * Clicks entered the persisted snapshot on 2026-08-05. Older delivered runs
+ * simply lack the field, so clicks aggregate softly: any campaign without a
+ * finite click count yields null CPC without invalidating the rest of the
+ * economics aggregate the way the required fields below do.
+ */
+function softClicksTotal(campaigns: CampaignEconomics[]): number | null {
+  let total = 0
+  for (const campaign of campaigns) {
+    const clicks = finiteNumber(campaign.clicks)
+    if (clicks === null) return null
+    total += clicks
+  }
+  return total
 }
 
 function aggregateCampaignEconomics(
@@ -87,9 +105,16 @@ function aggregateCampaignEconomics(
     stripeFeeCents += campaignFees
   }
 
+  const clicksTotal = softClicksTotal(campaigns)
+
   return {
     adsNetRetainedCents,
+    clicksTotal,
     cpaCents: orders > 0 ? Math.round(spendCents / orders) : null,
+    cpcCents:
+      clicksTotal !== null && clicksTotal > 0
+        ? Math.round(spendCents / clicksTotal)
+        : null,
     firstOrderContributionCents:
       adsNetRetainedCents - stripeFeeCents - spendCents,
     netRetainedRoas: roundRatio(adsNetRetainedCents, spendCents),
@@ -153,7 +178,9 @@ export function buildBusinessReadModel(args: {
     economics: economics
       ? {
           adsNetRetainedCents: economics.adsNetRetainedCents,
+          clicksTotal: economics.clicksTotal,
           cpaCents: economics.cpaCents,
+          cpcCents: economics.cpcCents,
           firstOrderContributionCents: economics.firstOrderContributionCents,
           netRetainedRoas: economics.netRetainedRoas,
           spendCents: economics.spendCents,
@@ -161,7 +188,9 @@ export function buildBusinessReadModel(args: {
         }
       : {
           adsNetRetainedCents: null,
+          clicksTotal: null,
           cpaCents: null,
+          cpcCents: null,
           firstOrderContributionCents: null,
           netRetainedRoas: null,
           spendCents: null,

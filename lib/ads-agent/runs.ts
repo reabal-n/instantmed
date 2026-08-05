@@ -184,6 +184,93 @@ export async function getLatestDeliveredAdsAgentRun(
     : { availability: "unavailable", reason: "invalid_record", run: null }
 }
 
+/** One closed Sydney day of delivered ads evidence, keyed by that day. */
+export interface AdsDailySpendDay {
+  clicks: number | null
+  dateKey: string
+  deliveredAt: string
+  reportDate: string
+  spendCents: number
+}
+
+export type RecentDeliveredAdsDailySpendRead =
+  | { availability: "available"; days: AdsDailySpendDay[] }
+  | { availability: "unavailable"; days: AdsDailySpendDay[]; reason: "query_failed" }
+
+function portfolioMetric(
+  totals: unknown,
+  field: "spendCents" | "clicks",
+): number | null {
+  if (!isRecord(totals)) return null
+  let sum = 0
+  for (const bucket of ["enabled", "paused", "other"]) {
+    const portfolio = totals[bucket]
+    if (!isRecord(portfolio)) return null
+    const value = portfolio[field]
+    if (typeof value !== "number" || !Number.isFinite(value)) return null
+    sum += value
+  }
+  return sum
+}
+
+/**
+ * Daily ads-spend ledger assembled from delivered immutable agent runs. Each
+ * run's `totals.daily` covers exactly one closed Sydney day, so the delivered
+ * history doubles as a per-day spend series without ever calling Google on
+ * page load. Days whose spend evidence is null are omitted — unknown is not
+ * zero — and callers surface coverage instead of interpolating.
+ */
+export async function getRecentDeliveredAdsAgentRunDailySpend(
+  supabase: SupabaseClient,
+  options?: { limit?: number },
+): Promise<RecentDeliveredAdsDailySpendRead> {
+  const limit = Math.max(1, Math.min(90, options?.limit ?? 35))
+  const result = await supabase
+    .from("google_ads_agent_runs")
+    .select(
+      "report_date, delivered_at, daily_totals:snapshot->totals->daily, daily_window:snapshot->windows->daily",
+    )
+    .eq("status", "delivered")
+    .not("delivered_at", "is", null)
+    .order("report_date", { ascending: false })
+    .limit(limit)
+
+  if (result.error) {
+    return { availability: "unavailable", days: [], reason: "query_failed" }
+  }
+
+  const days = new Map<string, AdsDailySpendDay>()
+  for (const row of result.data ?? []) {
+    if (!isRecord(row)) continue
+    const window = row.daily_window
+    if (!isRecord(window)) continue
+    const dateKey = window.startDate
+    // Only single-closed-day windows may enter the ledger; anything wider
+    // cannot be attributed to one day.
+    if (typeof dateKey !== "string" || dateKey.length === 0 || window.endDate !== dateKey) {
+      continue
+    }
+    const spendCents = portfolioMetric(row.daily_totals, "spendCents")
+    if (spendCents === null) continue
+    if (
+      days.has(dateKey) ||
+      typeof row.report_date !== "string" ||
+      typeof row.delivered_at !== "string"
+    ) {
+      continue
+    }
+    days.set(dateKey, {
+      clicks: portfolioMetric(row.daily_totals, "clicks"),
+      dateKey,
+      deliveredAt: row.delivered_at,
+      reportDate: row.report_date,
+      spendCents,
+    })
+  }
+
+  return { availability: "available", days: [...days.values()] }
+}
+
 export function isSydneyDailyAdsBriefHour(now = new Date()): boolean {
   if (!Number.isFinite(now.getTime())) return false
   const values = new Map(
