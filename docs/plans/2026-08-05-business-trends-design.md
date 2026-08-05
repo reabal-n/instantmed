@@ -41,7 +41,7 @@ New reader `getRecentDeliveredAdsAgentRunDailySpend`: last ≤35 **delivered** r
 
 - **Period tiles**: today (delta vs same-time yesterday), yesterday, last 7 Sydney days, rolling 30d — net retained, orders, AOV, Δ% (null-safe when prior = 0).
 - **Profit rows** on **closed windows only** (no partial-day spend exists): yesterday / last 7 closed days / the latest run's own rolling-30 window. `profit = Σ dailyNet − Σ dailyFeeEstimate − spend`, each row carries spend coverage (`N of M days`) and goes unavailable-with-reason when spend is unknown. Labelled "≈ after ads + payment fees; excludes fixed costs".
-- **Chart series**: 31 daily bars (net retained) with spend markers on covered days.
+- **Chart series**: 31 daily bars (net retained), single-series by design — the palette validator failed every in-system two-hue pair (gray fails the chroma floor; teal/muted is ΔE 2.3 in dark), so delivered spend renders in the hover readout and the sr-only table rather than as a painted second series.
 
 ## UI (5 `DashboardCard`s, contract updated deliberately)
 

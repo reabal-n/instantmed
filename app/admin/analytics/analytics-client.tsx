@@ -231,7 +231,10 @@ function DailyRevenueChart({ chart }: { chart: BusinessTrendsViewModel["chart"] 
         <span>{days[0].label}</span>
         <span>{days[days.length - 1].label}</span>
       </div>
-      <table className="sr-only">
+      {/* sr-only lives on the wrapper: a clipped <table> still reports its
+          intrinsic width and widens mobile scrollWidth when clipped directly. */}
+      <div className="sr-only">
+      <table>
         <caption>Daily net retained revenue, paid orders, and delivered Google Ads spend</caption>
         <thead>
           <tr>
@@ -252,6 +255,7 @@ function DailyRevenueChart({ chart }: { chart: BusinessTrendsViewModel["chart"] 
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
