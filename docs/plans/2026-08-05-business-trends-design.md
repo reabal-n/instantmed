@@ -1,5 +1,7 @@
 # Business dashboard: revenue/profit trends + ads performance (2026-08-05)
 
+> **Authority:** Reference only. `docs/ROADMAP.md` remains the sole active priority queue; this design records the operator-requested trends restoration shipped 2026-08-05 and does not authorise further scope by itself.
+
 ## Goal
 
 The 2026-07-29 trim removed all trend visibility from `/admin/analytics`. Operator request (2026-08-05): restore

@@ -6,13 +6,19 @@ import {
   BarChart3,
   CircleDollarSign,
   Clock3,
-  CreditCard,
+  Crosshair,
   Database,
   Gauge,
   MailCheck,
+  Megaphone,
+  Minus,
+  MousePointer2,
   ShieldCheck,
+  TrendingDown,
+  TrendingUp,
 } from "lucide-react"
 import Link from "next/link"
+import { useState } from "react"
 
 import { ReviewRequestFunnelCard } from "@/components/admin/review-request-funnel-card"
 import {
@@ -22,6 +28,11 @@ import {
 } from "@/components/dashboard"
 import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { Button } from "@/components/ui/button"
+import type {
+  BusinessProfitRow,
+  BusinessTrendsViewModel,
+  RevenueTrendPeriod,
+} from "@/lib/admin/business-trends"
 import { STAFF_OPS_HREF } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
@@ -64,10 +75,6 @@ const REASON_COPY: Record<string, string> = {
 
 function formatAud(cents: number | null): string {
   return cents === null ? "Unavailable" : AUD.format(cents / 100)
-}
-
-function formatCount(value: number | null): string {
-  return value === null ? "Unavailable" : value.toLocaleString("en-AU")
 }
 
 function formatPercent(value: number | null): string {
@@ -124,8 +131,161 @@ function Metric({
   )
 }
 
+function DeltaBadge({ comparisonLabel, pct }: { comparisonLabel: string; pct: number | null }) {
+  if (pct === null) {
+    return <span className="text-[11px] text-muted-foreground">no prior period</span>
+  }
+  const direction = pct === 0 ? "flat" : pct > 0 ? "up" : "down"
+  const Icon = direction === "flat" ? Minus : direction === "up" ? TrendingUp : TrendingDown
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 text-xs font-semibold tabular-nums",
+        direction === "flat" && "text-muted-foreground",
+        direction === "up" && "text-emerald-700 dark:text-emerald-400",
+        direction === "down" && "text-destructive",
+      )}
+    >
+      <Icon className="h-3 w-3" aria-hidden />
+      {pct > 0 ? `+${pct}%` : `${pct}%`}
+      <span className="sr-only">{comparisonLabel}</span>
+    </span>
+  )
+}
+
+function PeriodTile({ period }: { period: RevenueTrendPeriod }) {
+  return (
+    <div className="min-w-0 px-4 py-3.5 first:pl-0 last:pr-0 md:border-l md:border-border/60 md:first:border-l-0">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-medium text-muted-foreground">{period.label}</span>
+        <DeltaBadge pct={period.netChangePct} comparisonLabel={period.comparisonLabel} />
+      </div>
+      <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-foreground">
+        {AUD.format(period.netCents / 100)}
+      </p>
+      <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+        {period.orderCount.toLocaleString("en-AU")} order{period.orderCount === 1 ? "" : "s"}
+        {period.averageOrderCents !== null ? ` · ${AUD.format(period.averageOrderCents / 100)} avg` : ""}
+        {" · "}
+        {period.comparisonLabel}
+      </p>
+    </div>
+  )
+}
+
+function DailyRevenueChart({ chart }: { chart: BusinessTrendsViewModel["chart"] }) {
+  const [activeKey, setActiveKey] = useState<string | null>(null)
+  const days = chart.days
+  if (days.length === 0) return null
+  const active = days.find((day) => day.dateKey === activeKey) ?? days[days.length - 1]
+  const maxNetCents = Math.max(chart.maxNetCents, 1)
+
+  return (
+    <div className="mt-4 border-t border-border/60 pt-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <p className="text-xs font-medium text-muted-foreground">Daily net retained · last 30 days + today</p>
+        <p className="text-xs tabular-nums text-muted-foreground">
+          <strong className="text-foreground">
+            {active.label}
+            {active.isToday ? " (today so far)" : ""}
+          </strong>
+          {" "}
+          {AUD.format(active.netCents / 100)} · {active.orderCount.toLocaleString("en-AU")} order{active.orderCount === 1 ? "" : "s"}
+          {active.spendCents !== null ? ` · ${AUD.format(active.spendCents / 100)} ads spend` : ""}
+        </p>
+      </div>
+      <div
+        role="img"
+        aria-label={`Daily net retained bar chart for the last ${days.length} days. Peak day ${AUD.format(chart.maxNetCents / 100)}. Full values in the table that follows.`}
+        className="mt-3 flex h-24 items-end gap-[3px]"
+        onMouseLeave={() => setActiveKey(null)}
+      >
+        {days.map((day) => (
+          <div
+            key={day.dateKey}
+            aria-hidden
+            className="flex h-full flex-1 items-end"
+            onMouseEnter={() => setActiveKey(day.dateKey)}
+          >
+            <div
+              className={cn(
+                "w-full rounded-t-[3px] transition-colors",
+                day.netCents <= 0
+                  ? "h-[2px] rounded-none bg-border"
+                  : day.isToday
+                    ? "bg-primary/45"
+                    : day.dateKey === active.dateKey
+                      ? "bg-primary"
+                      : "bg-primary/75",
+              )}
+              style={
+                day.netCents > 0
+                  ? { height: `${Math.max((Math.max(day.netCents, 0) / maxNetCents) * 100, 3)}%` }
+                  : undefined
+              }
+            />
+          </div>
+        ))}
+      </div>
+      <div className="mt-1 flex justify-between text-[10px] text-muted-foreground" aria-hidden>
+        <span>{days[0].label}</span>
+        <span>{days[days.length - 1].label}</span>
+      </div>
+      <table className="sr-only">
+        <caption>Daily net retained revenue, paid orders, and delivered Google Ads spend</caption>
+        <thead>
+          <tr>
+            <th scope="col">Day</th>
+            <th scope="col">Net retained</th>
+            <th scope="col">Orders</th>
+            <th scope="col">Ads spend</th>
+          </tr>
+        </thead>
+        <tbody>
+          {days.map((day) => (
+            <tr key={day.dateKey}>
+              <th scope="row">{day.label}{day.isToday ? " (today so far)" : ""}</th>
+              <td>{AUD.format(day.netCents / 100)}</td>
+              <td>{day.orderCount}</td>
+              <td>{day.spendCents === null ? "No delivered evidence" : AUD.format(day.spendCents / 100)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function ProfitCell({ row }: { row: BusinessProfitRow }) {
+  return (
+    <div className="rounded-lg border border-border/60 bg-muted/25 px-3 py-3">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[11px] font-medium text-muted-foreground">{row.label}</p>
+        <span className="text-[11px] tabular-nums text-muted-foreground">{row.windowLabel}</span>
+      </div>
+      {row.profitCents !== null ? (
+        <>
+          <p
+            className={cn(
+              "mt-1 text-xl font-semibold tabular-nums",
+              row.profitCents < 0 ? "text-destructive" : "text-foreground",
+            )}
+          >
+            {AUD.format(row.profitCents / 100)}
+          </p>
+          <p className="mt-0.5 text-[11px] tabular-nums text-muted-foreground">
+            {AUD.format((row.netCents ?? 0) / 100)} net − {AUD.format((row.feeEstimateCents ?? 0) / 100)} fees − {AUD.format((row.spendCents ?? 0) / 100)} ads
+          </p>
+        </>
+      ) : (
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{row.unavailableReason}</p>
+      )}
+    </div>
+  )
+}
+
 export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
-  const { business, intakeFunnel, recordedAttribution, heardAboutUs, reviewRequestFunnel } = data
+  const { business, intakeFunnel, recordedAttribution, heardAboutUs, reviewRequestFunnel, trends } = data
   const decision = DECISION_COPY[business.scaleDecision]
   const summary = intakeFunnel.summary
   const recordedRows = [
@@ -189,6 +349,11 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
                       <span>{reasonLabel(reason)}</span>
                     </li>
                   ))}
+                  {business.reasonCodes.length > 3 ? (
+                    <li className="pl-[22px] text-muted-foreground">
+                      +{business.reasonCodes.length - 3} more open conditions
+                    </li>
+                  ) : null}
                 </ul>
               ) : (
                 <p className="mt-3 inline-flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400">
@@ -229,42 +394,116 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
         </DashboardCard>
 
         <DashboardCard padding="md">
-          <div className="grid divide-y divide-border/60 md:grid-cols-4 md:divide-y-0">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-muted-foreground" aria-hidden />
+                <h2 className="text-sm font-semibold text-foreground">Revenue &amp; profit</h2>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Net retained by Sydney calendar day. Purchases enter when paid; refunds leave on the day they land.
+              </p>
+            </div>
+            <StatusBadge status={trends.availability === "available" ? "info" : "warning"} size="sm">
+              {trends.availability === "available"
+                ? `30d net retained ${formatAud(business.rolling30NetRetainedCents)}`
+                : "Unavailable"}
+            </StatusBadge>
+          </div>
+
+          {trends.availability === "available" ? (
+            <>
+              <div className="mt-2 grid divide-y divide-border/60 md:grid-cols-4 md:divide-y-0">
+                {trends.periods.map((period) => (
+                  <PeriodTile key={period.key} period={period} />
+                ))}
+              </div>
+
+              <DailyRevenueChart chart={trends.chart} />
+
+              <div className="mt-4 border-t border-border/60 pt-3">
+                <p className="text-xs font-medium text-muted-foreground">≈ Profit after ads &amp; payment fees</p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                  {trends.profit.rows.map((row) => (
+                    <ProfitCell key={row.key} row={row} />
+                  ))}
+                </div>
+                <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{trends.profit.method}</p>
+              </div>
+            </>
+          ) : (
+            <p className="mt-3 text-sm text-muted-foreground">
+              {trends.reason ?? "Revenue trends are unavailable."}
+            </p>
+          )}
+        </DashboardCard>
+
+        <DashboardCard padding="md">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <Megaphone className="h-4 w-4 text-muted-foreground" aria-hidden />
+                <h2 className="text-sm font-semibold text-foreground">Ads performance</h2>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Latest delivered Ads Agent evidence · rolling 30 days · read-only.
+              </p>
+            </div>
+            <StatusBadge
+              status={business.trackingState === "GREEN" ? "success" : business.trackingState ? "warning" : "neutral"}
+              size="sm"
+            >
+              {business.trackingState ? `${business.trackingState} tracking` : "Tracking unavailable"}
+            </StatusBadge>
+          </div>
+
+          <div className="mt-2 grid divide-y divide-border/60 sm:grid-cols-2 sm:divide-y-0 xl:grid-cols-5">
             <Metric
-              label="30d net retained"
-              value={formatAud(business.rolling30NetRetainedCents)}
-              detail="Refund-adjusted paid orders"
+              label="Spend"
+              value={formatAud(business.economics.spendCents)}
+              detail="Google Ads · rolling 30 days"
               icon={<CircleDollarSign className="h-3.5 w-3.5" aria-hidden />}
-              tone={metricTone(business.rolling30NetRetainedCents)}
+              tone={metricTone(business.economics.spendCents)}
             />
             <Metric
-              label="Paid orders"
-              value={formatCount(business.paidOrders)}
-              detail="Same rolling 30-day window"
-              icon={<CreditCard className="h-3.5 w-3.5" aria-hidden />}
-              tone={metricTone(business.paidOrders)}
+              label="CPA"
+              value={formatAud(business.economics.cpaCents)}
+              detail="Spend ÷ ads-attributed orders"
+              icon={<Crosshair className="h-3.5 w-3.5" aria-hidden />}
+              tone={metricTone(business.economics.cpaCents)}
+            />
+            <Metric
+              label="CPC"
+              value={formatAud(business.economics.cpcCents)}
+              detail={
+                business.economics.clicksTotal !== null
+                  ? `Spend ÷ ${business.economics.clicksTotal.toLocaleString("en-AU")} clicks`
+                  : "Awaiting a delivered run with click data"
+              }
+              icon={<MousePointer2 className="h-3.5 w-3.5" aria-hidden />}
+              tone={metricTone(business.economics.cpcCents)}
+            />
+            <Metric
+              label="Net-retained ROAS"
+              value={formatRatio(business.economics.netRetainedRoas)}
+              detail="Ads net retained ÷ spend"
+              icon={<TrendingUp className="h-3.5 w-3.5" aria-hidden />}
+              tone={metricTone(business.economics.netRetainedRoas)}
             />
             <Metric
               label="First-order contribution"
               value={formatAud(business.economics.firstOrderContributionCents)}
-              detail="Ads-attributed net retained − Stripe fees − spend"
+              detail="Ads net retained − Stripe fees − spend"
               icon={<BarChart3 className="h-3.5 w-3.5" aria-hidden />}
               tone={metricTone(business.economics.firstOrderContributionCents, true)}
             />
-            <Metric
-              label="Gate issues"
-              value={business.reasonCodes.length.toLocaleString("en-AU")}
-              detail="Truth or approval conditions"
-              icon={<AlertTriangle className="h-3.5 w-3.5" aria-hidden />}
-              tone={business.reasonCodes.length > 0 ? "text-amber-700 dark:text-amber-300" : "text-foreground"}
-            />
           </div>
-          <div className="mt-1 grid gap-2 border-t border-border/60 pt-3 text-xs sm:grid-cols-2 xl:grid-cols-5">
-            <span><span className="text-muted-foreground">Ads diagnostic</span> <strong className="ml-1 text-foreground">{business.trackingState ?? "Unavailable"}</strong></span>
-            <span><span className="text-muted-foreground">Spend</span> <strong className="ml-1 text-foreground">{formatAud(business.economics.spendCents)}</strong></span>
-            <span><span className="text-muted-foreground">Stripe fees</span> <strong className="ml-1 text-foreground">{formatAud(business.economics.stripeFeeCents)}</strong></span>
-            <span><span className="text-muted-foreground">CPA</span> <strong className="ml-1 text-foreground">{formatAud(business.economics.cpaCents)}</strong></span>
-            <span><span className="text-muted-foreground">Net-retained ROAS</span> <strong className="ml-1 text-foreground">{formatRatio(business.economics.netRetainedRoas)}</strong></span>
+
+          <div className="mt-1 grid gap-2 border-t border-border/60 pt-3 text-xs sm:grid-cols-2 xl:grid-cols-4">
+            <span><span className="text-muted-foreground">Ads net retained</span> <strong className="ml-1 tabular-nums text-foreground">{formatAud(business.economics.adsNetRetainedCents)}</strong></span>
+            <span><span className="text-muted-foreground">Stripe fees (ads orders)</span> <strong className="ml-1 tabular-nums text-foreground">{formatAud(business.economics.stripeFeeCents)}</strong></span>
+            <span><span className="text-muted-foreground">Spend yesterday</span> <strong className="ml-1 tabular-nums text-foreground">{formatAud(trends.spendYesterdayCents)}</strong></span>
+            <span><span className="text-muted-foreground">Evidence age</span> <strong className="ml-1 tabular-nums text-foreground">{business.evidenceAgeHours === null ? "Unavailable" : `${business.evidenceAgeHours}h`}</strong></span>
           </div>
         </DashboardCard>
 

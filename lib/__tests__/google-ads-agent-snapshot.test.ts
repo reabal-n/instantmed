@@ -123,7 +123,7 @@ const dailySpendRows = [{
     name: "JDM | Search | Scripts",
     status: "ENABLED",
   },
-  metrics: { costMicros: "10000000" },
+  metrics: { clicks: "12", costMicros: "10000000" },
 }]
 
 const rollingSpendRows = [
@@ -134,7 +134,7 @@ const rollingSpendRows = [
       name: "JDM | Search | Scripts",
       status: "ENABLED",
     },
-    metrics: { costMicros: "343640000" },
+    metrics: { clicks: "412", costMicros: "343640000" },
   },
   {
     campaign: {
@@ -143,7 +143,7 @@ const rollingSpendRows = [
       name: "Specialist",
       status: "PAUSED",
     },
-    metrics: { costMicros: "234850000" },
+    metrics: { clicks: "97", costMicros: "234850000" },
   },
 ]
 
@@ -252,6 +252,7 @@ describe("Google Ads Agent snapshot", () => {
     ).toMatchObject({
       campaignName: "JDM | Search | Scripts",
       campaignStatus: "ENABLED",
+      clicks: 412,
       contributionCents: 18835,
       grossRevenueCents: 60900,
       netRetainedRevenueCents: 55900,
@@ -274,10 +275,12 @@ describe("Google Ads Agent snapshot", () => {
     expect(unmapped?.campaignName).toBe("Unmapped Google Ads")
 
     expect(snapshot.totals.rolling30.enabled).toMatchObject({
+      clicks: 412,
       contributionCents: 18835,
       spendCents: 34364,
     })
     expect(snapshot.totals.rolling30.paused).toMatchObject({
+      clicks: 97,
       contributionCents: -23485,
       spendCents: 23485,
     })
@@ -317,6 +320,7 @@ describe("Google Ads Agent snapshot", () => {
     )
 
     expect(scripts).toMatchObject({
+      clicks: null,
       contributionCents: null,
       spendCents: null,
     })

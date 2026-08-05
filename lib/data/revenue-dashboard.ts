@@ -19,6 +19,14 @@ import {
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const DAY_MS = 24 * 60 * 60 * 1000
+// Paid/refund reads fetch 60 days so trend periods can compare against the
+// prior 30-day window. Every derived readout below re-scopes to its own
+// window; nothing may consume the raw 60-day arrays wholesale.
+const FETCH_HORIZON_DAYS = 60
+// 32 closed Sydney days + today (partial). Two spare closed days beyond the
+// displayed 30 so a latest delivered Ads run whose rolling-30 window ends a
+// day or two back still finds every revenue bucket it needs for profit rows.
+const DAILY_TREND_DAYS = 33
 
 export { REVENUE_ACTIVE_MILESTONE_CENTS }
 
@@ -33,6 +41,8 @@ type PaidRevenueRow = {
   refund_status: string | null
   refunded_at: string | null
   status: string | null
+  /** Optional so fixtures predating the fee cache stay valid; absent = estimate. */
+  stripe_fee_cents?: number | null
   subtype: string | null
 }
 
@@ -112,6 +122,24 @@ export type RevenueDashboardDay = {
   refundCents: number
   netCents: number
   orderCount: number
+  feeEstimateCents: number
+}
+
+export type RevenueTrendPeriodKey = "today" | "yesterday" | "last7Days" | "last30Days"
+
+export type RevenueTrendPeriod = {
+  key: RevenueTrendPeriodKey
+  label: string
+  comparisonLabel: string
+  grossCents: number
+  refundCents: number
+  netCents: number
+  orderCount: number
+  averageOrderCents: number | null
+  feeEstimateCents: number
+  priorNetCents: number
+  priorOrderCount: number
+  netChangePct: number | null
 }
 
 export type RevenueDashboardService = {
@@ -159,6 +187,7 @@ export type RevenueDashboard = {
     totalRefunded30dCents: number
   }
   windows: RevenueDashboardWindow[]
+  trendPeriods: RevenueTrendPeriod[]
   daily: RevenueDashboardDay[]
   maxDailyNetCents: number
   serviceMix: RevenueDashboardService[]
@@ -207,7 +236,7 @@ export async function getRevenueDashboard(
   supabase: SupabaseClient = createServiceRoleClient(),
   now = new Date(),
 ): Promise<RevenueDashboard> {
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * DAY_MS).toISOString()
+  const fetchSince = new Date(now.getTime() - FETCH_HORIZON_DAYS * DAY_MS).toISOString()
   const criticalSince = new Date(
     now.getTime() - NO_PURCHASE_CRITICAL_WINDOW_HOURS * 60 * 60 * 1000,
   ).toISOString()
@@ -216,16 +245,16 @@ export async function getRevenueDashboard(
   const results = await Promise.allSettled([
     filterReportableIntakes(supabase
       .from("intakes")
-      .select("id, amount_cents, category, is_priority, paid_at, payment_status, refund_amount_cents, refund_status, refunded_at, status, subtype")
+      .select("id, amount_cents, category, is_priority, paid_at, payment_status, refund_amount_cents, refund_status, refunded_at, status, stripe_fee_cents, subtype")
       .in("payment_status", [...REVENUE_PURCHASE_PAYMENT_STATUSES])
       .not("paid_at", "is", null)
-      .gte("paid_at", thirtyDaysAgo)
+      .gte("paid_at", fetchSince)
       .order("paid_at", { ascending: false })),
     filterReportableIntakes(supabase
       .from("intakes")
       .select("refund_amount_cents, refund_status, refunded_at")
       .not("refunded_at", "is", null)
-      .gte("refunded_at", thirtyDaysAgo)),
+      .gte("refunded_at", fetchSince)),
     filterReportableIntakes(supabase
       .from("intakes")
       .select("created_at")
@@ -335,6 +364,11 @@ export function buildRevenueDashboard(input: RevenueDashboardInput): RevenueDash
     : null
   const staleCheckoutCutoff = new Date(input.now.getTime() - 20 * 60 * 1000)
 
+  // The raw arrays span the 60-day fetch horizon; every consumer below must
+  // re-scope to its own window so widening the fetch never widens a readout.
+  const last30PaidRows = input.paidRows.filter((row) => isAtOrAfter(row.paid_at, last30DaysStart))
+  const last30RefundRows = input.refundRows.filter((row) => isAtOrAfter(row.refunded_at, last30DaysStart))
+
   const windows: RevenueDashboardWindow[] = [
     buildRevenueWindow("today", "Today", input.paidRows, input.refundRows, todayStart, input.now, null),
     buildRevenueWindow("last7Days", "7 days", input.paidRows, input.refundRows, last7DaysStart, input.now, null),
@@ -383,13 +417,14 @@ export function buildRevenueDashboard(input: RevenueDashboardInput): RevenueDash
       eligibleRefunds: input.refundStats.eligible,
       failedRefunds: input.refundStats.failed,
       openRefundWork: input.refundStats.eligible + input.refundStats.failed,
-      totalRefunded30dCents: sumRefunds(input.refundRows),
+      totalRefunded30dCents: sumRefunds(last30RefundRows),
     },
     windows,
+    trendPeriods: buildTrendPeriods(input.paidRows, input.refundRows, input.now),
     daily,
     maxDailyNetCents: Math.max(0, ...daily.map((day) => Math.max(day.netCents, 0))),
-    serviceMix: buildServiceMix(input.paidRows),
-    monetisation: buildMonetisationReadouts(input.paidRows),
+    serviceMix: buildServiceMix(last30PaidRows),
+    monetisation: buildMonetisationReadouts(last30PaidRows),
     recentPayments: input.paidRows.slice(0, 5).flatMap((row) => {
       if (!row.id || !row.paid_at) return []
       return [{
@@ -430,9 +465,10 @@ function buildDailyRevenue(
   paidRows: PaidRevenueRow[],
   refundRows: RefundRevenueRow[],
   todayStart: Date,
+  days = DAILY_TREND_DAYS,
 ): RevenueDashboardDay[] {
   const buckets = new Map<string, RevenueDashboardDay>()
-  for (let index = 6; index >= 0; index -= 1) {
+  for (let index = days - 1; index >= 0; index -= 1) {
     const date = new Date(todayStart.getTime() - index * DAY_MS)
     const dateKey = toSydneyDateKey(date)
     buckets.set(dateKey, {
@@ -446,6 +482,7 @@ function buildDailyRevenue(
       refundCents: 0,
       netCents: 0,
       orderCount: 0,
+      feeEstimateCents: 0,
     })
   }
 
@@ -456,6 +493,7 @@ function buildDailyRevenue(
     bucket.grossCents += Number(row.amount_cents ?? 0)
     bucket.netCents += Number(row.amount_cents ?? 0)
     bucket.orderCount += 1
+    bucket.feeEstimateCents += rowFeeCents(row)
   }
 
   for (const row of refundRows) {
@@ -468,6 +506,148 @@ function buildDailyRevenue(
   }
 
   return [...buckets.values()]
+}
+
+// Stripe AU domestic-card baseline. Used only for rows whose actual
+// balance-transaction fee has not been cached on the intake (the Ads Agent fee
+// sync covers ads-attributed orders); surfaces mixing estimates must render
+// totals as approximate.
+export const STRIPE_FEE_ESTIMATE_RATE = 0.017
+export const STRIPE_FEE_ESTIMATE_FIXED_CENTS = 30
+
+export function estimateStripeFeeCents(amountCents: number): number {
+  if (!Number.isFinite(amountCents) || amountCents <= 0) return 0
+  return Math.round(amountCents * STRIPE_FEE_ESTIMATE_RATE) + STRIPE_FEE_ESTIMATE_FIXED_CENTS
+}
+
+function rowFeeCents(row: PaidRevenueRow): number {
+  if (
+    typeof row.stripe_fee_cents === "number" &&
+    Number.isFinite(row.stripe_fee_cents) &&
+    row.stripe_fee_cents >= 0
+  ) {
+    return row.stripe_fee_cents
+  }
+  return estimateStripeFeeCents(Number(row.amount_cents ?? 0))
+}
+
+/**
+ * Percent change of net retained vs the prior equivalent window, rounded to a
+ * whole percent. Null when the prior window retained nothing — a ratio against
+ * zero reads as noise, so the UI shows "no prior" instead.
+ */
+export function computeNetChangePct(currentCents: number, priorCents: number): number | null {
+  if (priorCents <= 0) return null
+  return Math.round(((currentCents - priorCents) / priorCents) * 100)
+}
+
+function buildTrendPeriod(args: {
+  key: RevenueTrendPeriodKey
+  label: string
+  comparisonLabel: string
+  paidRows: PaidRevenueRow[]
+  refundRows: RefundRevenueRow[]
+  since: Date
+  until: Date
+  priorSince: Date
+  priorUntil: Date
+}): RevenueTrendPeriod {
+  const value = buildNetRetainedPurchaseValue({
+    paidRows: args.paidRows,
+    refundRows: args.refundRows,
+    since: args.since,
+    until: args.until,
+  })
+  const prior = buildNetRetainedPurchaseValue({
+    paidRows: args.paidRows,
+    refundRows: args.refundRows,
+    since: args.priorSince,
+    until: args.priorUntil,
+  })
+  const feeEstimateCents = args.paidRows.reduce((sum, row) => {
+    if (!row.paid_at) return sum
+    const timestamp = Date.parse(row.paid_at)
+    if (
+      !Number.isFinite(timestamp) ||
+      timestamp < args.since.getTime() ||
+      timestamp > args.until.getTime()
+    ) {
+      return sum
+    }
+    return sum + rowFeeCents(row)
+  }, 0)
+
+  return {
+    key: args.key,
+    label: args.label,
+    comparisonLabel: args.comparisonLabel,
+    ...value,
+    feeEstimateCents,
+    priorNetCents: prior.netCents,
+    priorOrderCount: prior.orderCount,
+    netChangePct: computeNetChangePct(value.netCents, prior.netCents),
+  }
+}
+
+export function buildTrendPeriods(
+  paidRows: PaidRevenueRow[],
+  refundRows: RefundRevenueRow[],
+  now: Date,
+): RevenueTrendPeriod[] {
+  const { todayStart, last7DaysStart, last30DaysStart } = getRevenueWindowBounds(now)
+  // Stepping back half a day from a Sydney midnight always lands inside the
+  // previous Sydney day, so this stays correct across AEST/AEDT transitions.
+  const yesterdayStart = startOfDaySydney(new Date(todayStart.getTime() - DAY_MS / 2))
+  const dayBeforeStart = startOfDaySydney(new Date(yesterdayStart.getTime() - DAY_MS / 2))
+  const elapsedTodayMs = Math.max(0, now.getTime() - todayStart.getTime())
+  const justBefore = (boundary: Date) => new Date(boundary.getTime() - 1)
+
+  return [
+    buildTrendPeriod({
+      key: "today",
+      label: "Today",
+      comparisonLabel: "vs same time yesterday",
+      paidRows,
+      refundRows,
+      since: todayStart,
+      until: now,
+      priorSince: yesterdayStart,
+      priorUntil: new Date(yesterdayStart.getTime() + elapsedTodayMs),
+    }),
+    buildTrendPeriod({
+      key: "yesterday",
+      label: "Yesterday",
+      comparisonLabel: "vs prior day",
+      paidRows,
+      refundRows,
+      since: yesterdayStart,
+      until: justBefore(todayStart),
+      priorSince: dayBeforeStart,
+      priorUntil: justBefore(yesterdayStart),
+    }),
+    buildTrendPeriod({
+      key: "last7Days",
+      label: "7 days",
+      comparisonLabel: "vs prior 7 days",
+      paidRows,
+      refundRows,
+      since: last7DaysStart,
+      until: now,
+      priorSince: new Date(last7DaysStart.getTime() - 7 * DAY_MS),
+      priorUntil: justBefore(last7DaysStart),
+    }),
+    buildTrendPeriod({
+      key: "last30Days",
+      label: "30 days",
+      comparisonLabel: "vs prior 30 days",
+      paidRows,
+      refundRows,
+      since: last30DaysStart,
+      until: now,
+      priorSince: new Date(last30DaysStart.getTime() - 30 * DAY_MS),
+      priorUntil: justBefore(last30DaysStart),
+    }),
+  ]
 }
 
 const PRIORITY_FEE_CENTS = 995
