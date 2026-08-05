@@ -125,7 +125,7 @@ export type RevenueDashboardDay = {
   feeEstimateCents: number
 }
 
-export type RevenueTrendPeriodKey = "today" | "yesterday" | "last7Days" | "last30Days"
+type RevenueTrendPeriodKey = "today" | "yesterday" | "last7Days" | "last30Days"
 
 export type RevenueTrendPeriod = {
   key: RevenueTrendPeriodKey
@@ -512,8 +512,8 @@ function buildDailyRevenue(
 // balance-transaction fee has not been cached on the intake (the Ads Agent fee
 // sync covers ads-attributed orders); surfaces mixing estimates must render
 // totals as approximate.
-export const STRIPE_FEE_ESTIMATE_RATE = 0.017
-export const STRIPE_FEE_ESTIMATE_FIXED_CENTS = 30
+const STRIPE_FEE_ESTIMATE_RATE = 0.017
+const STRIPE_FEE_ESTIMATE_FIXED_CENTS = 30
 
 export function estimateStripeFeeCents(amountCents: number): number {
   if (!Number.isFinite(amountCents) || amountCents <= 0) return 0

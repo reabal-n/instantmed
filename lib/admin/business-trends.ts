@@ -19,7 +19,7 @@ export type { RevenueTrendPeriod }
 // plus today.
 const CHART_DAYS = 31
 
-export interface BusinessTrendChartDay {
+interface BusinessTrendChartDay {
   dateKey: string
   label: string
   netCents: number
@@ -29,7 +29,7 @@ export interface BusinessTrendChartDay {
   spendCents: number | null
 }
 
-export type BusinessProfitRowKey = "yesterday" | "last7Closed" | "adsRolling30"
+type BusinessProfitRowKey = "yesterday" | "last7Closed" | "adsRolling30"
 
 export interface BusinessProfitRow {
   key: BusinessProfitRowKey
