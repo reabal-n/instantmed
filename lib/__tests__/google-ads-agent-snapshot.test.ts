@@ -326,6 +326,10 @@ describe("Google Ads Agent snapshot", () => {
     })
     expect(scripts?.unavailableReasonCodes).toContain("SPEND_UNAVAILABLE")
     expect(snapshot.inputs.googleAdsRolling30.status).toBe("failed")
+    // The rejection reason must survive into the persisted run. Discarding it
+    // is what let the 2026-07-31 account-state break hide for six days.
+    expect(snapshot.inputs.googleAdsRolling30.reason).toBe("google_ads_unavailable")
+    expect(snapshot.inputs.localRolling30.reason).toBeUndefined()
   })
 
   it("represents missing local revenue as unavailable rather than zero", async () => {

@@ -101,6 +101,12 @@ export interface AdsSnapshotWindow {
 
 export interface AdsSnapshotInput {
   asOf: string
+  /**
+   * Why a `failed` input failed, bounded and PHI-free (these are Google Ads /
+   * Supabase API errors). Persisted with the run so a silently degraded input
+   * is diagnosable from the stored evidence instead of being invisible.
+   */
+  reason?: string
   status: "fresh" | "stale" | "failed"
 }
 
