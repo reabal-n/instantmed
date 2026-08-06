@@ -20,7 +20,10 @@ import {
 } from "@/lib/validation/repeat-script-medications"
 
 import { dedupeIntakeFlags, type IntakeFlag, makeIntakeFlag } from "./intake-flags"
-import { detectDedicatedServiceForMedication } from "./medication-service-routing"
+import {
+  detectDedicatedServiceForMedication,
+  detectGatedServiceMedication,
+} from "./medication-service-routing"
 
 export interface DeriveIntakeFlagsInput {
   category: string
@@ -39,19 +42,39 @@ function stringAnswer(answers: Record<string, unknown>, keys: string[]): string 
 function deriveRepeatScriptFlags(answers: Record<string, unknown>): IntakeFlag[] {
   const flags: IntakeFlag[] = []
   const medications = extractRepeatScriptMedications(answers)
+  // The stated indication is where patients name the condition ("ED", "hair
+  // loss", "BPH"), so service routing reads it. It is deliberately NOT added to
+  // buildRepeatScriptMedicationValidationText: that text feeds the
+  // controlled-substance hard block, and someone describing a PAST medicine
+  // ("was on diazepam years ago") must not be walled out of a valid repeat.
+  const indication = stringAnswer(answers, ["indication"])
 
   for (const medication of medications) {
-    // A medicine with a dedicated service (hair loss / women's health) reached
-    // the generic repeat flow. The patient is steered in-form; this is the
-    // doctor-side backstop. Scan the same text the controlled-substance block
-    // uses (name + brand + active ingredient + free-text description).
-    const dedicatedService = detectDedicatedServiceForMedication(
+    const routingScanText = [
       buildRepeatScriptMedicationValidationText(medication),
-    )
+      indication,
+    ].filter(Boolean).join(" ")
+
+    // A medicine with a dedicated service (ED / hair loss / women's health)
+    // reached the generic repeat flow. The patient is steered in-form; this is
+    // the doctor-side backstop.
+    const dedicatedService = detectDedicatedServiceForMedication(routingScanText)
     if (dedicatedService) {
       flags.push(makeIntakeFlag("dedicated_service_medication", {
         source: "clinical",
-        detail: `${medication.displayName || medication.name} → ${dedicatedService.serviceLabel}`,
+        detail: dedicatedService.enforcement === "flag_only"
+          ? `${medication.displayName || medication.name} — ${dedicatedService.reason}`
+          : `${medication.displayName || medication.name} → ${dedicatedService.serviceLabel}`,
+      }))
+    }
+
+    // A medicine whose dedicated service is not live yet. Never steered, never
+    // blocked — the reviewer just needs to know.
+    const gatedService = detectGatedServiceMedication(routingScanText)
+    if (gatedService) {
+      flags.push(makeIntakeFlag("gated_service_medication", {
+        source: "clinical",
+        detail: `${medication.displayName || medication.name} — ${gatedService.reason}`,
       }))
     }
 

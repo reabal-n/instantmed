@@ -103,6 +103,79 @@ describe("deriveIntakeFlags — repeat script", () => {
   })
 })
 
+describe("deriveIntakeFlags — service routing", () => {
+  const complete = {
+    strength: "50 mg",
+    form: "tablet",
+    pbsCode: "1234",
+  }
+
+  it("flags a PDE5 inhibitor that reaches a repeat payload", () => {
+    const flags = deriveIntakeFlags({
+      ...repeatBase,
+      answers: {
+        medications: [{ name: "Sildenafil", ...complete }],
+        current_dose: "as needed",
+      },
+    })
+    const flag = flags.find((f) => f.code === "dedicated_service_medication")
+    expect(flag?.detail).toContain("Erectile Dysfunction")
+  })
+
+  it("flags a PDE5 inhibitor whose BPH context is stated only in the indication answer", () => {
+    const flags = deriveIntakeFlags({
+      ...repeatBase,
+      answers: {
+        medications: [{ name: "Tadalafil", ...complete, strength: "5 mg" }],
+        current_dose: "one daily",
+        indication: "BPH",
+      },
+    })
+    const flag = flags.find((f) => f.code === "dedicated_service_medication")
+    expect(flag?.detail).toContain("BPH/PAH")
+  })
+
+  it("routes on a service named only in the indication answer", () => {
+    const flags = deriveIntakeFlags({
+      ...repeatBase,
+      answers: {
+        medications: [{ name: "Silagra", ...complete }],
+        current_dose: "as needed",
+        indication: "erectile dysfunction",
+      },
+    })
+    expect(codes(flags)).toContain("dedicated_service_medication")
+  })
+
+  it("flags a gated weight-loss-class medicine without blocking it", () => {
+    const flags = deriveIntakeFlags({
+      ...repeatBase,
+      answers: {
+        medications: [{ name: "Ozempic", ...complete, strength: "1 mg", form: "pen" }],
+        current_dose: "weekly",
+        indication: "type 2 diabetes",
+      },
+    })
+    const flag = flags.find((f) => f.code === "gated_service_medication")
+    expect(flag?.severity).toBe("attention")
+    expect(flag?.detail).toContain("Ozempic")
+  })
+
+  it("does NOT let a past controlled medicine named in the indication become a block signal", () => {
+    // The routing scan reads the indication; the controlled-substance scan
+    // deliberately does not (see derive-intake-flags.ts).
+    const flags = deriveIntakeFlags({
+      ...repeatBase,
+      answers: {
+        medications: [{ name: "Sertraline", ...complete }],
+        current_dose: "one daily",
+        indication: "anxiety, was on diazepam years ago",
+      },
+    })
+    expect(flags).toEqual([])
+  })
+})
+
 describe("deriveIntakeFlags — non-repeat", () => {
   it("emits no repeat flags for a medical certificate", () => {
     const flags = deriveIntakeFlags({

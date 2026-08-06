@@ -200,6 +200,15 @@ Subscriptions, monthly prescribing, pharmacy fulfilment, and ongoing check-in pr
 
 Repeat-prescription intake is server-enforced as prior-prescription only. If the patient indicates the medicine has never been prescribed before, checkout must be blocked or routed to a consult/regular GP pathway; it must not be normalized into a repeat request. The patient must also explicitly confirm that both the dose and directions are unchanged since the last prescription. Missing confirmation fails closed, and any reported change routes the patient to their regular GP or specialist. New checkout submissions must never infer an unchanged regimen from an unanswered question. Pre-cutover unpaid rows may retry their existing payment flow with the historical canonical value, but that payment-recovery exception does not satisfy the prescribing gate: if paid without the raw patient attestation, decline with a full refund and ask the patient to submit a new repeat request. A failed automated refund remains visible in Ops and must be retried; it never re-opens prescribing. Already-recorded script evidence remains completable so historical prescribing is not stranded, but a saved reconciliation note is required before final approval.
 
+### Dedicated-Service Routing Out Of Repeat Prescriptions
+
+A medicine that belongs to a dedicated service must not be prescribed through the generic repeat lane just because the patient typed it there. Routing is tiered and server-enforced (`lib/clinical/medication-service-routing.ts`, blocked in `validateRepeatScriptPayload`):
+
+- **PDE5 inhibitors and hair-loss medicines route to their own services and are refused at checkout.** The ED pathway owns the nitrate absolute-contraindication and cardiac screening; the generic repeat history step asks none of it, so allowing these through was a screening bypass as well as a pricing one.
+- **A stated BPH/PAH indication keeps the repeat** (low-dose daily tadalafil for prostate symptoms; Revatio / sildenafil 20 mg for pulmonary hypertension) and raises a doctor flag instead. The context is patient-reported, so the reviewer is told rather than the request being waved through silently. Dose alone never exempts.
+- **Continuing an existing contraceptive pill stays a repeat** by design and keeps an explicit patient escape.
+- **Weight-loss-class medicines (GLP-1s, phentermine, orlistat) are flagged, not blocked.** The weight-loss service remains gated and manual-review-only, and several of these medicines are legitimate type-2-diabetes repeats — the reviewing doctor decides with the stated indication in view.
+
 ### Repeat Quantity & Supply Standard
 
 Default: **original script + 2 repeats** (≈ 3 months for a daily medicine, from 28-30 day packs) across repeat prescriptions, hair loss, and ED. This is the standard the prescribing doctor follows in Parchment so supply is consistent and the reactivation reminder can be timed against it.
