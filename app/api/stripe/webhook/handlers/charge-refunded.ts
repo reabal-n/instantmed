@@ -163,9 +163,21 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
         try {
           const { data: intake } = await supabase
             .from("intakes")
-            .select("id, patient_id")
+            .select("id, patient_id, priority_fee_refunded_at")
             .eq("id", refundIntakeId)
             .single()
+
+          // A partial refund on a breach-refunded intake is the priority-fee
+          // auto-refund echoing back through Stripe — the stale-queue cron
+          // already sent the tailored breach email, so the generic "refund
+          // processed" notice would be a duplicate. Full refunds (decline
+          // top-ups) still notify normally.
+          if (!refundIsFullRefund && intake?.priority_fee_refunded_at) {
+            log.info("Skipping refund email for priority breach partial", {
+              intakeId: refundIntakeId,
+            })
+            return
+          }
 
           if (intake?.patient_id) {
             const { data: patient } = await supabase

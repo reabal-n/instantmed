@@ -258,12 +258,14 @@ Entry points (doctor queue | admin panel | API)
   -> declineIntake({ intakeId, reason, reasonCode })
      1. Validate actor (doctor/admin)
      2. Atomic status update (optimistic locking) -> declined
-     3. Process refund (eligible: med_cert, prescription; not: consult)
+     3. Process refund (eligible: med_cert, prescription, consult — 100% on decline since 2026-05-20)
      4. Send decline email -> email_outbox
      5. Log: intake_events + compliance_audit_log
 ```
 
 **Refund tracking** on `intakes`: `refund_status` (not_applicable | not_eligible | pending | succeeded | failed | skipped_e2e), `refund_stripe_id`, `refunded_at`, `refunded_by`. Full refunds write `payment_status = refunded`; partial refunds write `payment_status = partially_refunded`. Failed refunds -> Sentry alert + reconciliation panel (`lib/data/reconciliation.ts`). Standalone refunds (any status) via `issueRefundAction()` in `app/doctor/queue/actions.ts`.
+
+**Priority breach auto-refund (2026-08-03):** the hourly stale-queue cron refunds the $9.95 priority fee (fee only, Stripe partial refund, idempotent per intake) when a priority intake is still undecided 3h+ after payment, stamping `intakes.priority_fee_refunded_at` and emailing the patient (`priority_fee_refunded`). This creates `payment_status = partially_refunded` BEFORE any clinical decision, so the decline path treats `partially_refunded` as refundable and `processRefund` accumulates `refund_amount_cents` (capped at `amount_cents`) while Stripe's no-amount refund tops up the remaining balance to full. Approval emails (`med_cert_patient`, `script_sent`) acknowledge the refunded fee via the stamp; the `charge.refunded` webhook skips its generic email for these partials. Core: `lib/stripe/priority-fee-refund.ts` (guards: priority + `paid` + zero prior refund cents + fee strictly inside the charge).
 
 **`amount_cents` is the source of truth for refund math** and must equal what Stripe actually charged. The shared confirmed-payment finalizer reconciles `amount_cents = session.amount_total` for both paid webhook events and the authenticated verification fallback, so referral-credit coupons (a Stripe `amount_off` coupon) and the Priority review fee (an extra line item) cannot desync the stored amount from the charge depending on which transport settles first. Seeding the list price instead made `issueRefundAction()` refund **more** than the charge for coupon customers (Stripe rejects "Refund amount > charge amount") and **less** for Priority review customers (short by $9.95). Note: orders paid before 2026-06-07 may still carry the list price in `amount_cents`; reconcile those from Stripe if a legacy refund fails.
 
@@ -874,7 +876,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/certificate-template.ts` | PDF template field definitions |
 | `lib/hooks/` | Shared client hooks | Debounce, keyboard navigation, landing analytics, responsive media, section visibility, validation summaries, and staff refresh helpers |
 | `e2e/` | 77 TypeScript files, including 68 specs and `helpers/` (seed/teardown, auth bypass, production-synthetic side-effect isolation). Focused paid-flow and ops smoke specs are the blocking CI gate. |
-| `supabase/migrations/` | 108 SQL migration files (1 squashed baseline + 107 incremental). Most recent: `20260727184400_google_ads_fee_cache_on_intakes.sql`; the production-applied Ads Agent migrations add PHI-free run, proposal, and experiment state with RLS default-deny/service-role-only grants, then place actual Stripe fee cache fields on the authoritative intake PaymentIntent row. |
+| `supabase/migrations/` | 109 SQL migration files (1 squashed baseline + 108 incremental). Most recent: `20260803093000_add_priority_fee_refunded_at.sql` — nullable `intakes.priority_fee_refunded_at` stamp for the priority breach auto-refund (once-only guard; approval emails read it to acknowledge the refund). Before it, `20260727184400_google_ads_fee_cache_on_intakes.sql` and the production-applied Ads Agent migrations (PHI-free run/proposal/experiment state, RLS default-deny, Stripe fee cache on the intake PaymentIntent row). |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
 | `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |

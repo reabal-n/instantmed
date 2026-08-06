@@ -29,6 +29,8 @@ export type EmailType =
   | "request_received"
   | "refund_issued"
   | "still_reviewing"
+  // Priority breach auto-refund notice (stale-queue cron, transactional)
+  | "priority_fee_refunded"
   | "abandoned_checkout_followup"
   | "partial_intake_recovery"
   // Review lifecycle emails (cron-triggered)

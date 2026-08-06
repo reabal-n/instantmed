@@ -42,6 +42,7 @@ export async function processRefund(
     payment_id: string | null
     stripe_payment_intent_id: string | null
     amount_cents: number | null
+    refund_amount_cents?: number | null
     category: string | null
   },
   actorId: string,
@@ -94,8 +95,10 @@ export async function processRefund(
       }
     }
 
-    // Always full refund. No amount arg means Stripe refunds the full remaining
-    // unrefunded amount, which is the correct behaviour even on a retry.
+    // Always a FULL refund outcome. No amount arg means Stripe refunds the
+    // remaining unrefunded balance — correct on a retry, and correct when the
+    // priority breach auto-refund already returned the $9.95 fee (this call
+    // then tops the patient up to full).
     const refund = await stripe.refunds.create(
       {
         payment_intent: paymentIntentId,
@@ -110,14 +113,22 @@ export async function processRefund(
       { idempotencyKey: `refund_decline_${intakeId}` }
     )
 
-    // Update intake with success
+    // Update intake with success. `refund.amount` is only THIS refund's chunk,
+    // so accumulate on top of any prior partial (e.g. the priority breach fee)
+    // and cap at the original charge — a replayed Stripe idempotent response
+    // must not inflate the running total past what was actually paid.
+    const alreadyRefundedCents = intake.refund_amount_cents ?? 0
+    const paidCents = intake.amount_cents ?? 0
+    const uncappedTotal = alreadyRefundedCents + (refund.amount ?? 0)
+    const totalRefundedCents = paidCents > 0 ? Math.min(paidCents, uncappedTotal) : uncappedTotal
+
     await supabase
       .from("intakes")
       .update({
         payment_status: "refunded",
         refund_status: "succeeded",
         refund_stripe_id: refund.id,
-        refund_amount_cents: refund.amount,
+        refund_amount_cents: totalRefundedCents,
         refunded_at: timestamp,
         refunded_by: actorId,
         updated_at: timestamp,

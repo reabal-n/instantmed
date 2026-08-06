@@ -61,6 +61,7 @@ interface SpendCampaignRollup {
   campaignName: string
   campaignStatus: string | null
   channel: string | null
+  clicks: number
   spendCents: number
 }
 
@@ -213,7 +214,11 @@ function aggregateSpendRows(
   rows: GoogleAdsCampaignRow[],
 ): Map<string, SpendCampaignRollup> {
   const spendMicros = new Map<string, number>()
-  const metadata = new Map<string, Omit<SpendCampaignRollup, "spendCents">>()
+  const clicksTotals = new Map<string, number>()
+  const metadata = new Map<
+    string,
+    Omit<SpendCampaignRollup, "clicks" | "spendCents">
+  >()
 
   for (const row of rows) {
     if (asString(row.campaign?.advertisingChannelType) !== "SEARCH") continue
@@ -224,6 +229,11 @@ function aggregateSpendRows(
       campaignId,
       (spendMicros.get(campaignId) ?? 0) +
         (asFiniteNumber(row.metrics?.costMicros) ?? 0),
+    )
+    clicksTotals.set(
+      campaignId,
+      (clicksTotals.get(campaignId) ?? 0) +
+        Math.max(0, Math.round(asFiniteNumber(row.metrics?.clicks) ?? 0)),
     )
     metadata.set(campaignId, {
       campaignId,
@@ -240,6 +250,7 @@ function aggregateSpendRows(
         campaignId,
         {
           ...campaign,
+          clicks: clicksTotals.get(campaignId) ?? 0,
           spendCents: Math.max(0, Math.round(micros / 10_000)),
         },
       ]
@@ -396,6 +407,7 @@ function buildCampaignEconomics(args: {
           null,
         channel:
           accountCampaign?.channel ?? spendCampaign?.channel ?? null,
+        clicks: spendAvailable ? spendCampaign?.clicks ?? 0 : null,
         contributionCents,
         contributionMargin,
         grossRevenueCents: revenueAvailable
@@ -440,6 +452,7 @@ function buildCampaignEconomics(args: {
 function sumNullable(
   campaigns: CampaignEconomics[],
   field:
+    | "clicks"
     | "contributionCents"
     | "grossRevenueCents"
     | "netRetainedRevenueCents"
@@ -474,6 +487,7 @@ function portfolio(
 
   return {
     campaignCount: campaigns.length,
+    clicks: sumNullable(campaigns, "clicks"),
     contributionCents,
     contributionMargin:
       contributionCents != null &&

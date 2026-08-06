@@ -19,6 +19,7 @@ import { MedCertPatientEmail } from "@/lib/email/components/templates/med-cert-p
 import { NeedsMoreInfoEmail } from "@/lib/email/components/templates/needs-more-info"
 import { PaymentConfirmedEmail } from "@/lib/email/components/templates/payment-confirmed"
 import { PaymentFailedEmail } from "@/lib/email/components/templates/payment-failed"
+import { PriorityFeeRefundedEmail, priorityFeeRefundedSubject } from "@/lib/email/components/templates/priority-fee-refunded"
 import { RefundIssuedEmail } from "@/lib/email/components/templates/refund-issued"
 import { RequestDeclinedEmail } from "@/lib/email/components/templates/request-declined"
 import { RequestReceivedEmail } from "@/lib/email/components/templates/request-received"
@@ -76,12 +77,41 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
     }),
   },
   {
+    slug: "still_reviewing_overnight",
+    name: "Still Reviewing (overnight variant)",
+    subject: "We've got your request",
+    availableTags: ["patientName", "requestType", "requestId"],
+    sampleData: { patientName: "Sarah Johnson", requestType: "repeat prescription", requestId: "abc-123" },
+    render: (d) => React.createElement(StillReviewingEmail, {
+      patientName: d.patientName,
+      requestType: d.requestType,
+      requestId: d.requestId,
+      requestAccessUrl: PREVIEW_REQUEST_ACCESS_URL,
+      appUrl: APP_URL,
+      overnight: true,
+    }),
+  },
+  {
     slug: "still_reviewing",
     name: "Still Reviewing",
     subject: "Still reviewing your request, thanks for your patience",
     availableTags: ["patientName", "requestType", "requestId"],
     sampleData: { patientName: "Sarah Johnson", requestType: "medical certificate", requestId: "abc-123" },
     render: (d) => React.createElement(StillReviewingEmail, {
+      patientName: d.patientName,
+      requestType: d.requestType,
+      requestId: d.requestId,
+      requestAccessUrl: PREVIEW_REQUEST_ACCESS_URL,
+      appUrl: APP_URL,
+    }),
+  },
+  {
+    slug: "priority_fee_refunded",
+    name: "Priority Fee Refunded (3h breach)",
+    subject: priorityFeeRefundedSubject(),
+    availableTags: ["patientName", "requestType", "requestId"],
+    sampleData: { patientName: "Sarah Johnson", requestType: "repeat prescription", requestId: "abc-123" },
+    render: (d) => React.createElement(PriorityFeeRefundedEmail, {
       patientName: d.patientName,
       requestType: d.requestType,
       requestId: d.requestId,

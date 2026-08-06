@@ -53,6 +53,8 @@ export interface CampaignEconomics {
   campaignResourceName: string | null
   campaignStatus: string | null
   channel: string | null
+  /** Absent on runs delivered before 2026-08-05; readers must treat missing as null. */
+  clicks?: number | null
   contributionCents: number | null
   contributionMargin: number | null
   grossRevenueCents: number | null
@@ -69,6 +71,8 @@ export interface CampaignEconomics {
 
 export interface CampaignPortfolioEconomics {
   campaignCount: number
+  /** Absent on runs delivered before 2026-08-05; readers must treat missing as null. */
+  clicks?: number | null
   contributionCents: number | null
   contributionMargin: number | null
   grossRevenueCents: number | null
