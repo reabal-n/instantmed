@@ -190,6 +190,7 @@ describe("Google Ads Agent cron timing and idempotency", () => {
     })
     mocks.buildAdsAgentSnapshot.mockResolvedValue(snapshot)
     mocks.getAdsAccountState.mockResolvedValue({
+      optionalQueryFailures: [],
       conversionActions: [{
         resourceName: "customers/123/conversionActions/111",
         values: {

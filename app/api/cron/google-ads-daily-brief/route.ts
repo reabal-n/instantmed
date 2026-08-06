@@ -59,6 +59,32 @@ function fulfilledValue<T>(
   return result.status === "fulfilled" ? result.value : null
 }
 
+/**
+ * A failed snapshot input degrades the operating gate but does not fail the
+ * run, so without this it is visible only as a status flag inside stored JSON.
+ * The 2026-07-31 account-state break sat there unnoticed for six days.
+ * Fingerprinted per input so a persistent break alerts once, not daily.
+ */
+function reportFailedSnapshotInputs(snapshot: AdsAgentSnapshot): void {
+  // Never let observability break the run it observes.
+  try {
+    for (const [name, value] of Object.entries(snapshot.inputs ?? {})) {
+      if (!value || value.status === "fresh") continue
+      captureCronError(
+        new Error(`ads_agent_input_${value.status}:${name}: ${value.reason ?? "no reason recorded"}`),
+        {
+          jobName: "google-ads-daily-brief",
+          inputName: name,
+          inputStatus: value.status,
+          reportDate: snapshot.reportDate,
+        },
+      )
+    }
+  } catch {
+    // A reporting failure must not fail the brief.
+  }
+}
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -168,7 +194,10 @@ async function classifyDailyTracking(args: {
     (campaign) => campaign.campaignStatus === "ENABLED",
   )
 
+  const accountStateReadable = args.snapshot.inputs.accountState?.status === "fresh"
+
   return classifyTrackingHealth({
+    accountStateReadable,
     autoTaggingEnabled: args.snapshot.account.autoTaggingEnabled === true,
     browserOrGa4PurchasePrimary: browserOrGa4PurchaseIsPrimary(account),
     conversionLagImmature: false,
@@ -181,7 +210,7 @@ async function classifyDailyTracking(args: {
     evidenceAsOf: args.now.toISOString(),
     googleDiagnosticsLagging,
     localPaidOrders: upload?.paidOrders ?? purchase?.localOrders ?? 0,
-    optionalAccountQueryFailed: false,
+    optionalAccountQueryFailed: (account?.optionalQueryFailures?.length ?? 0) > 0,
     primaryPurchaseActionOk:
       purchase?.preflightOk === true
       && configuredPurchaseActionIsPrimary(account),
@@ -273,6 +302,7 @@ export async function GET(request: NextRequest) {
       supabase,
     })
     const snapshot = { ...baseSnapshot, tracking }
+    reportFailedSnapshotInputs(snapshot)
     const recommendations = evaluateAdsPolicy(snapshot)
     const message = formatDailyAdsBrief(snapshot, recommendations)
     await markDailyAdsAgentRunPrepared({

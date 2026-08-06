@@ -28,6 +28,7 @@ import {
 } from "@/components/dashboard"
 import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { Button } from "@/components/ui/button"
+import type { BusinessCampaignRow } from "@/lib/admin/business-read-model"
 import type {
   BusinessProfitRow,
   BusinessTrendsViewModel,
@@ -255,6 +256,94 @@ function DailyRevenueChart({ chart }: { chart: BusinessTrendsViewModel["chart"] 
           ))}
         </tbody>
       </table>
+      </div>
+    </div>
+  )
+}
+
+const CAMPAIGN_UNAVAILABLE_COPY: Record<string, string> = {
+  REVENUE_UNAVAILABLE: "revenue",
+  SPEND_UNAVAILABLE: "spend",
+  STRIPE_FEES_UNAVAILABLE: "fees",
+}
+
+function CampaignContributionTable({ campaigns }: { campaigns: BusinessCampaignRow[] }) {
+  if (campaigns.length === 0) return null
+
+  return (
+    <div className="mt-4 border-t border-border/60 pt-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <p className="text-xs font-medium text-muted-foreground">By campaign · rolling 30 days</p>
+        <p className="text-[11px] text-muted-foreground">
+          Contribution is net retained after Stripe fees and that campaign&rsquo;s own spend.
+        </p>
+      </div>
+      <div className="mt-2 overflow-x-auto">
+        <table className="w-full min-w-[42rem] border-collapse text-xs">
+          <thead>
+            <tr className="text-left text-[11px] text-muted-foreground">
+              <th scope="col" className="py-1.5 pr-3 font-medium">Campaign</th>
+              <th scope="col" className="py-1.5 pr-3 text-right font-medium">Spend</th>
+              <th scope="col" className="py-1.5 pr-3 text-right font-medium">Orders</th>
+              <th scope="col" className="py-1.5 pr-3 text-right font-medium">CPA</th>
+              <th scope="col" className="py-1.5 pr-3 text-right font-medium">Avg order</th>
+              <th scope="col" className="py-1.5 text-right font-medium">Contribution</th>
+            </tr>
+          </thead>
+          <tbody>
+            {campaigns.map((campaign) => {
+              const missing = campaign.unavailableReasonCodes
+                .map((code) => CAMPAIGN_UNAVAILABLE_COPY[code] ?? code.toLowerCase())
+              return (
+                <tr key={campaign.campaignId} className="border-t border-border/50">
+                  <td className="py-2 pr-3">
+                    <span className="flex items-center gap-2">
+                      {/* Calm dot + label, matching the staff-list status chrome.
+                          StatusDot itself is typed to IntakeStatus, which a
+                          campaign is not. */}
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "h-2 w-2 shrink-0 rounded-full",
+                          campaign.isEnabled ? "bg-success" : "bg-muted-foreground/40",
+                        )}
+                      />
+                      <span className="min-w-0">
+                        <span className="block truncate text-foreground">{campaign.campaignName}</span>
+                        <span className="block text-[11px] text-muted-foreground">
+                          {campaign.isEnabled ? "Enabled" : "Paused"}
+                          {campaign.topServiceLabel ? ` · mostly ${campaign.topServiceLabel}` : ""}
+                        </span>
+                      </span>
+                    </span>
+                  </td>
+                  <td className="py-2 pr-3 text-right tabular-nums text-foreground">{formatAud(campaign.spendCents)}</td>
+                  <td className="py-2 pr-3 text-right tabular-nums text-foreground">
+                    {campaign.orders === null ? "—" : campaign.orders.toLocaleString("en-AU")}
+                  </td>
+                  <td className="py-2 pr-3 text-right tabular-nums text-foreground">{formatAud(campaign.cpaCents)}</td>
+                  <td className="py-2 pr-3 text-right tabular-nums text-foreground">{formatAud(campaign.averageOrderCents)}</td>
+                  <td className="py-2 text-right">
+                    {campaign.contributionCents === null ? (
+                      <span className="text-[11px] text-muted-foreground">
+                        {missing.length > 0 ? `No ${missing.join(" / ")} data` : "Unavailable"}
+                      </span>
+                    ) : (
+                      <strong
+                        className={cn(
+                          "tabular-nums",
+                          campaign.contributionCents < 0 ? "text-destructive" : "text-foreground",
+                        )}
+                      >
+                        {formatAud(campaign.contributionCents)}
+                      </strong>
+                    )}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   )
@@ -516,6 +605,8 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
             <span><span className="text-muted-foreground">Spend yesterday</span> <strong className="ml-1 tabular-nums text-foreground">{formatAud(trends.spendYesterdayCents)}</strong></span>
             <span><span className="text-muted-foreground">Evidence age</span> <strong className="ml-1 tabular-nums text-foreground">{business.evidenceAgeHours === null ? "Unavailable" : `${business.evidenceAgeHours}h`}</strong></span>
           </div>
+
+          <CampaignContributionTable campaigns={business.campaigns} />
         </DashboardCard>
 
         <DashboardCard padding="md">

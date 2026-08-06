@@ -140,4 +140,35 @@ describe("Google Ads account state", () => {
 
     await expect(getAdsAccountState()).rejects.toThrow("google_ads_unavailable")
   })
+
+  it("survives an optional audit-query failure instead of rejecting the whole read", async () => {
+    // 2026-07-31 regression: customer_user_access is only served to an identity
+    // with ADMIN access on the account. Added to this read by #421, it failed in
+    // production and took all 19 queries with it, stranding the operating gate
+    // in RED for six days over an audit-only section.
+    mocks.searchGoogleAds.mockImplementation(async (query: string) => {
+      if (query.includes("FROM customer_user_access")) {
+        throw new Error("USER_PERMISSION_DENIED")
+      }
+      return rowsForQuery(query)
+    })
+
+    const state = await getAdsAccountState()
+
+    expect(state.optionalQueryFailures).toEqual(["customerUserAccess"])
+    expect(state.customerUserAccess).toEqual([])
+    // Everything an operating decision depends on still reads cleanly.
+    expect(state.customer?.autoTaggingEnabled).toBe(true)
+    expect(state.customer?.finalUrlSuffix).toBe("utm_source=google&utm_medium=cpc")
+    expect(state.campaigns.length).toBeGreaterThan(0)
+    expect(state.conversionActions.length).toBeGreaterThan(0)
+  })
+
+  it("reports no optional failures on a clean read", async () => {
+    mocks.searchGoogleAds.mockImplementation(async (query: string) => rowsForQuery(query))
+
+    await expect(getAdsAccountState()).resolves.toMatchObject({
+      optionalQueryFailures: [],
+    })
+  })
 })
