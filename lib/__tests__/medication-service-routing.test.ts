@@ -131,6 +131,51 @@ describe("detectDedicatedServiceForMedication", () => {
     expect(detectDedicatedServiceForMedication("minoxidil 5%", "hair loss")?.enforcement).toBe("hard")
   })
 
+  it("requires an AFFIRMATIVE exemption — a denial must not unlock the generic lane", () => {
+    // The steer copy names the exempting conditions, so a bare marker match
+    // effectively published the escape words. Negated context must not exempt.
+    for (const [medicine, indication] of [
+      ["finasteride 1 mg", "no high blood pressure"],
+      ["minoxidil 5%", "not BPH"],
+      ["finasteride 1mg", "never had prostate problems"],
+      ["minoxidil 5%", "nil hypertension"],
+    ] as const) {
+      const match = detectDedicatedServiceForMedication(medicine, indication)
+      expect(match?.enforcement, `${medicine} | ${indication}`).toBe("hard")
+    }
+
+    for (const [medicine, indication] of [
+      ["sildenafil", "not for pulmonary hypertension"],
+      ["tadalafil 5mg", "no prostate issues"],
+    ] as const) {
+      const match = detectDedicatedServiceForMedication(medicine, indication)
+      expect(match?.enforcement, `${medicine} | ${indication}`).toBe("hard")
+    }
+  })
+
+  it("does not split a decimal dose when scoping clauses", () => {
+    // "dutasteride 0.5 mg" must not become "dutasteride 0" + "5 mg", which
+    // silently lost the BPH exemption.
+    expect(detectDedicatedServiceForMedication("dutasteride 0.5 mg")).toBeNull()
+    expect(detectDedicatedServiceForMedication("dutasteride 0.5mg", "prostate")).toBeNull()
+  })
+
+  it("scopes negation to its own clause", () => {
+    // "no allergies" must not poison a genuine exemption in the next clause.
+    expect(detectDedicatedServiceForMedication("minoxidil 10mg", "no allergies, for my blood pressure")).toBeNull()
+    expect(detectDedicatedServiceForMedication("finasteride 5mg", "no side effects; prostate")).toBeNull()
+  })
+
+  it("binds each exemption to the medicine class it can plausibly excuse", () => {
+    // A prostate indication says nothing about minoxidil, and a blood-pressure
+    // indication says nothing about finasteride.
+    expect(detectDedicatedServiceForMedication("minoxidil 5%", "prostate")?.enforcement).toBe("hard")
+    expect(detectDedicatedServiceForMedication("finasteride 1mg", "hypertension")?.enforcement).toBe("hard")
+    // …and each still works for its own class.
+    expect(detectDedicatedServiceForMedication("minoxidil 10mg", "hypertension")).toBeNull()
+    expect(detectDedicatedServiceForMedication("finasteride 5mg", "prostate")).toBeNull()
+  })
+
   it("keeps every-day contraceptive packs on women's health, not ED", () => {
     // "ED" on an AU pill pack means "every day". OCP is matched first so the
     // bare `ed` token can never steal a contraceptive repeat.

@@ -652,7 +652,9 @@ test.describe("Prescription: dedicated-service routing", () => {
 
     await page.locator("#medication-name-0").fill("Sildenafil")
 
-    await expect(page.getByRole("heading", { name: /Erectile Dysfunction has a dedicated service/i }))
+    // The steer title is deliberately not a heading (AlertTitle renders an h5,
+    // an invalid jump under the step's h2); role="alert" carries the semantics.
+    await expect(page.getByRole("alert").filter({ hasText: /Erectile Dysfunction has a dedicated service/i }))
       .toBeVisible({ timeout: 10000 })
     // Hard enforcement: the "keep as repeat" escape must NOT be offered.
     await expect(page.getByRole("button", { name: keepAsRepeat })).toHaveCount(0)
@@ -698,7 +700,7 @@ test.describe("Prescription: dedicated-service routing", () => {
 
     await page.locator("#medication-name-0").fill("Levlen")
 
-    await expect(page.getByRole("heading", { name: /Women's Health has a dedicated service/i }))
+    await expect(page.getByRole("alert").filter({ hasText: /Women's Health has a dedicated service/i }))
       .toBeVisible({ timeout: 10000 })
     // Soft enforcement: continuing the same pill is deliberately a cheap repeat.
     await expect(page.getByRole("button", { name: keepAsRepeat })).toBeVisible()

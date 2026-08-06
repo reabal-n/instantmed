@@ -452,7 +452,11 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       setBlockedReasons([
         `This medicine is prescribed through our ${serviceSteer.serviceLabel} service — use the button above to continue there.`,
       ])
-      steerAlertRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+      // focus() rather than a smooth scroll: it brings the alert into view
+      // without animation (the project motion rule requires honouring
+      // prefers-reduced-motion) AND puts the keyboard user on the steer, whose
+      // CTA sits before the focused input in DOM order.
+      steerAlertRef.current?.focus()
       return
     }
     if (validate()) {
@@ -525,10 +529,14 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
 
       {/* Dedicated-service steer (ED / hair loss / women's health) */}
       {steerActive && serviceSteer && (
-        <div ref={steerAlertRef}>
+        <div ref={steerAlertRef} tabIndex={-1} className="outline-none">
         <Alert>
           <HeartPulse className="w-4 h-4" />
-          <AlertTitle>{serviceSteer.serviceLabel} has a dedicated service</AlertTitle>
+          {/* Not AlertTitle: it renders a hardcoded <h5>, an invalid jump under
+              the step's <h2>. The wrapper's role="alert" carries the semantics. */}
+          <p className="mb-1 font-medium leading-none tracking-tight">
+            {serviceSteer.serviceLabel} has a dedicated service
+          </p>
           {/* Body copy stays at the 16px patient-flow minimum and the actions at
               the 48px tap-target minimum — this is the route explanation, not
               incidental helper text (DESIGN.md §Typography, §Patient forms). */}

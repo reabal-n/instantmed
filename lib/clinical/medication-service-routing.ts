@@ -57,10 +57,10 @@ export interface DedicatedServiceMatch {
 }
 
 // Hair-loss signal: dedicated hair brands + the generic 5α-reductase / minoxidil
-// names. These are matched against the MEDICINE text only (see the intent-binding
-// note on the classifier). Generic "finasteride"/"dutasteride"/"minoxidil" are
-// ambiguous (hair vs prostate vs blood pressure) and are disambiguated by
-// HAIR_LOSS_EXEMPTION_MARKERS below.
+// names. Matched against the MEDICINE text only (see the intent-binding note on
+// the classifier). Generic "finasteride"/"dutasteride"/"minoxidil" are ambiguous
+// (hair vs prostate vs blood pressure) and are disambiguated by the
+// class-bound exemption markers below.
 const HAIR_LOSS_PATTERNS: ReadonlyArray<RegExp> = [
   /\bpropecia\b/i,
   /\bfinpecia\b/i,
@@ -71,31 +71,52 @@ const HAIR_LOSS_PATTERNS: ReadonlyArray<RegExp> = [
   /\bregaine\b/i,
 ]
 
-// Stated non-cosmetic context for a 5α-reductase inhibitor or minoxidil. These
-// are ordinary repeats and must NOT be routed to hair loss:
-//  - BPH / prostate (finasteride 5 mg, dutasteride 0.5 mg, Proscar, Avodart)
-//  - hypertension — ORAL minoxidil (Loniten, PBS-listed 10 mg) is an
-//    antihypertensive for severe refractory hypertension, NOT a hair medicine.
-//    Dose cannot discriminate it (topical 5% is the hair product), so the
-//    stated indication is what exempts it.
-const HAIR_LOSS_EXEMPTION_MARKERS: ReadonlyArray<RegExp> = [
+// Exemption markers are bound to the MEDICINE CLASS they can plausibly excuse.
+// A prostate indication says nothing about minoxidil, and a blood-pressure
+// indication says nothing about finasteride — applying every marker to every
+// hair-loss medicine let either one wave the other through.
+//
+// 5α-reductase inhibitors (finasteride / dutasteride) treat BPH. The dose here
+// IS a real discriminator, unlike the PDE5 doses: 5 mg finasteride and 0.5 mg
+// dutasteride map to prostate use, 1 mg finasteride to hair.
+const FIVE_ARI_PATTERNS: ReadonlyArray<RegExp> = [
+  /\bfinasteride\b/i,
+  /\bdutasteride\b/i,
+  /\bpropecia\b/i,
+  /\bfinpecia\b/i,
   /\bproscar\b/i,
   /\bavodart\b/i,
   /\bduodart\b/i,
   /\bcombodart\b/i,
-  /\bloniten\b/i,
+]
+const FIVE_ARI_EXEMPTION_MARKERS: ReadonlyArray<RegExp> = [
+  /\bproscar\b/i,
+  /\bavodart\b/i,
+  /\bduodart\b/i,
+  /\bcombodart\b/i,
   /\btamsulosin\b/i,
   /\bprostate\b/i,
   /\bbph\b/i,
   /benign\s+prostatic/i,
   /\bluts\b/i,
+  /finasteride[^0-9]{0,10}5\s*mg/i,
+  /dutasteride[^0-9]{0,10}0\.?5\s*mg/i,
+]
+
+// Minoxidil: ORAL minoxidil (Loniten, PBS-listed 10 mg) is an antihypertensive
+// for severe refractory hypertension. Only a blood-pressure context excuses it —
+// a prostate indication must not.
+const MINOXIDIL_PATTERNS: ReadonlyArray<RegExp> = [
+  /\bminoxidil\b/i,
+  /\bloniten\b/i,
+  /\brogaine\b/i,
+  /\bregaine\b/i,
+]
+const MINOXIDIL_EXEMPTION_MARKERS: ReadonlyArray<RegExp> = [
+  /\bloniten\b/i,
   /hypertension/i,
   /\bhtn\b/i,
   /blood\s*pressure/i,
-  // finasteride 5 mg (Proscar) — BPH dose. 1 mg is the hair dose.
-  /finasteride[^0-9]{0,10}5\s*mg/i,
-  // dutasteride 0.5 mg — BPH dose.
-  /dutasteride[^0-9]{0,10}0\.?5\s*mg/i,
 ]
 
 // Oral contraceptive pill: active ingredients + common Australian brands.
@@ -146,11 +167,6 @@ const OCP_PATTERNS: ReadonlyArray<RegExp> = [
   /\bcerazette\b/i,
 ]
 
-// PDE5 inhibitors: active ingredients + AU brands. The ED service owns these —
-// it runs the nitrate hard block and cardiac screen that the generic repeat
-// flow never asks for. The last three patterns read the indication answer
-// ("what is this medication for?"), which is how an unlisted brand still
-// routes — and is exactly what the patients in the 2026-08-05 review typed.
 // PDE5 inhibitors, by ingredient and AU brand. Matched against the MEDICINE
 // text only. Brand coverage includes the non-ED-indicated brands (Revatio and
 // Adcirca are PAH products) so the reviewing doctor still sees a PDE5 inhibitor
@@ -179,9 +195,12 @@ const ED_PATTERNS: ReadonlyArray<RegExp> = [
 // inhibitor still carries the nitrate interaction whatever it treats, so the
 // doctor is always told.
 //
-// Dose NEVER exempts. Tadalafil 5 mg daily is also the ED daily preset, and
-// sildenafil 20 mg (the PAH strength) is trivially orderable as an ED dose —
-// only a stated clinical context exempts.
+// Dose never exempts a PDE5 INHIBITOR: tadalafil 5 mg daily is also the ED
+// daily preset and sildenafil 20 mg (the PAH strength) is trivially orderable
+// as an ED dose, so only a stated clinical context softens the match. The
+// 5α-reductase dose rules above are a deliberate exception and not a
+// contradiction — finasteride 5 mg / dutasteride 0.5 mg map to prostate use and
+// finasteride 1 mg to hair, which is a real dose-to-indication mapping.
 const ED_REPEAT_CONTEXT_MARKERS: ReadonlyArray<RegExp> = [
   /\brevatio\b/i,
   /\badcirca\b/i,
@@ -209,11 +228,15 @@ const INDICATION_ONLY_SIGNALS: ReadonlyArray<{ subtype: DedicatedServiceSubtype;
 
 // Weight-loss-class medicines. The weight-loss service is GATED (reserved
 // $89.95, not launched — docs/CLINICAL.md keeps it manual-review-only), so
-// there is no live destination to steer anyone to. These are deliberately
-// flag-only rather than blocked: several are ALSO legitimate type-2-diabetes
-// repeats (Ozempic, Victoza, Mounjaro), and blocking would wall diabetic
-// patients out of a medicine they have taken for years. The doctor decides
-// with the flag and the patient's stated indication in view.
+// there is no live destination to steer anyone to.
+//
+// ⚠️ Flag-only here is an INTERIM visibility measure awaiting an operator /
+// clinical decision (D2 in docs/plans/2026-08-05-repeat-rx-dedicated-service-
+// routing.md) — NOT a settled policy. It was an assistant default, and the
+// diabetes-protection rationale first recorded for it was disproved by the
+// data: every observed request stated a weight-management indication and none
+// stated diabetes. The doctor decides with the flag and the stated indication
+// until the operator rules.
 const GATED_WEIGHT_LOSS_PATTERNS: ReadonlyArray<RegExp> = [
   /\bsemaglutide\b/i,
   /\bozempic\b/i,
@@ -253,11 +276,42 @@ export function detectGatedServiceMedication(
   if (GATED_WEIGHT_LOSS_PATTERNS.some((pattern) => pattern.test(text))) {
     return {
       serviceLabel: "Weight loss",
-      reason: "weight-loss-class medicine, service gated; may also be a diabetes repeat",
+      reason: "weight-loss-class medicine — the weight-loss service is gated; confirm the indication",
     }
   }
 
   return null
+}
+
+// Negation cues. An exemption must be an AFFIRMATIVE statement: "for my
+// prostate" excuses a 5α-reductase inhibitor, "not BPH" and "no high blood
+// pressure" must not. Matching a bare marker anywhere in free text let a
+// patient escape routing with a denial — and the on-screen steer names the
+// exempting conditions, so it effectively taught the escape words.
+const NEGATION_CUES = /\b(?:no|not|non|never|without|nil|none|denies|denied|deny|negative|free)\b/i
+
+// Clause boundaries. Negation is scoped to its own clause so "no allergies, for
+// my prostate" still exempts, while "not for my prostate" does not.
+// A bare `.` cannot be a boundary: it would split a decimal dose
+// ("dutasteride 0.5 mg" -> "dutasteride 0" + "5 mg") and silently lose the
+// exemption. Only a period NOT between digits ends a clause.
+const CLAUSE_SPLIT = /[,;!?/]|(?<!\d)\.(?!\d)|\band\b|\bbut\b|\balso\b/i
+
+/**
+ * True when `markers` match the text as an affirmative statement.
+ *
+ * Fails toward routing: an ambiguous or negated mention is treated as NOT
+ * exempt, so the patient goes to the dedicated service that asks the proper
+ * structured questions rather than slipping through the generic lane.
+ */
+function hasAffirmativeMarker(text: string, markers: ReadonlyArray<RegExp>): boolean {
+  if (!text.trim()) return false
+  for (const clause of text.split(CLAUSE_SPLIT)) {
+    if (!clause.trim()) continue
+    if (NEGATION_CUES.test(clause)) continue
+    if (markers.some((marker) => marker.test(clause))) return true
+  }
+  return false
 }
 
 /**
@@ -298,7 +352,7 @@ export function detectDedicatedServiceForMedication(
   }
 
   if (ED_PATTERNS.some((pattern) => pattern.test(medicine))) {
-    const statedNonEdContext = ED_REPEAT_CONTEXT_MARKERS.some((pattern) => pattern.test(context))
+    const statedNonEdContext = hasAffirmativeMarker(context, ED_REPEAT_CONTEXT_MARKERS)
     return {
       subtype: "ed",
       serviceLabel: "Erectile Dysfunction",
@@ -310,10 +364,15 @@ export function detectDedicatedServiceForMedication(
   }
 
   if (HAIR_LOSS_PATTERNS.some((pattern) => pattern.test(medicine))) {
-    // A stated prostate or blood-pressure indication makes this an ordinary
-    // repeat, with no flag: unlike a PDE5 inhibitor, these carry no
-    // service-specific interaction the doctor needs warning about.
-    const exempt = HAIR_LOSS_EXEMPTION_MARKERS.some((pattern) => pattern.test(context))
+    // Exemption markers are bound to the medicine class that they can plausibly
+    // excuse: prostate context excuses a 5α-reductase inhibitor, blood-pressure
+    // context excuses minoxidil, and neither excuses the other. An affirmative
+    // statement is required — see hasAffirmativeMarker.
+    const isFiveAri = FIVE_ARI_PATTERNS.some((pattern) => pattern.test(medicine))
+    const isMinoxidil = MINOXIDIL_PATTERNS.some((pattern) => pattern.test(medicine))
+    const exempt =
+      (isFiveAri && hasAffirmativeMarker(context, FIVE_ARI_EXEMPTION_MARKERS))
+      || (isMinoxidil && hasAffirmativeMarker(context, MINOXIDIL_EXEMPTION_MARKERS))
     if (!exempt) {
       return {
         subtype: "hair_loss",
