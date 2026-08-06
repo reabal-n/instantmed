@@ -97,6 +97,18 @@ describe("detectDedicatedServiceForMedication", () => {
     }
   })
 
+  it("does not match drug names hidden inside ordinary words", () => {
+    // The indication answer is part of the scan text, so everyday phrasing has
+    // to stay clear of the brand patterns — "spe(cialis)t" is the sharp one.
+    for (const text of [
+      "Rosuvastatin — prescribed by my specialist",
+      "Ventolin, take as needed",
+      "Sertraline, my med list is up to date",
+    ]) {
+      expect(detectDedicatedServiceForMedication(text)).toBeNull()
+    }
+  })
+
   it("pins the enforcement tier of the existing classes", () => {
     expect(detectDedicatedServiceForMedication("finasteride 1mg")?.enforcement).toBe("hard")
     expect(detectDedicatedServiceForMedication("Microgynon 30")?.enforcement).toBe("soft")
