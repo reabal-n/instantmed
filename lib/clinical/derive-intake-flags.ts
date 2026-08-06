@@ -50,15 +50,13 @@ function deriveRepeatScriptFlags(answers: Record<string, unknown>): IntakeFlag[]
   const indication = stringAnswer(answers, ["indication"])
 
   for (const medication of medications) {
-    const routingScanText = [
-      buildRepeatScriptMedicationValidationText(medication),
-      indication,
-    ].filter(Boolean).join(" ")
+    const medicationText = buildRepeatScriptMedicationValidationText(medication)
 
     // A medicine with a dedicated service (ED / hair loss / women's health)
     // reached the generic repeat flow. The patient is steered in-form; this is
-    // the doctor-side backstop.
-    const dedicatedService = detectDedicatedServiceForMedication(routingScanText)
+    // the doctor-side backstop. Medicine and indication stay SEPARATE — see the
+    // intent-binding note in medication-service-routing.ts.
+    const dedicatedService = detectDedicatedServiceForMedication(medicationText, indication)
     if (dedicatedService) {
       flags.push(makeIntakeFlag("dedicated_service_medication", {
         source: "clinical",
@@ -70,7 +68,7 @@ function deriveRepeatScriptFlags(answers: Record<string, unknown>): IntakeFlag[]
 
     // A medicine whose dedicated service is not live yet. Never steered, never
     // blocked — the reviewer just needs to know.
-    const gatedService = detectGatedServiceMedication(routingScanText)
+    const gatedService = detectGatedServiceMedication(medicationText)
     if (gatedService) {
       flags.push(makeIntakeFlag("gated_service_medication", {
         source: "clinical",
@@ -117,7 +115,11 @@ function deriveRepeatScriptFlags(answers: Record<string, unknown>): IntakeFlag[]
 export function deriveIntakeFlags(input: DeriveIntakeFlagsInput): IntakeFlag[] {
   const flags: IntakeFlag[] = []
 
-  if (input.category === "prescription" && input.subtype === "repeat") {
+  // Must mirror isRepeatPrescriptionSubtype() in
+  // lib/stripe/checkout/clinical-validation.ts. `chronic_review` runs the same
+  // repeat-script payload validation, so it must derive the same doctor flags —
+  // otherwise a gated or exempted medicine is validated but never surfaced.
+  if (input.category === "prescription" && (input.subtype === "repeat" || input.subtype === "chronic_review")) {
     flags.push(...deriveRepeatScriptFlags(input.answers))
   }
 

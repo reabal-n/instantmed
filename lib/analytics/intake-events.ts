@@ -19,6 +19,11 @@ export const INTAKE_ANALYTICS_EVENTS = {
   draftDiscarded: "request_draft_discarded",
   consultDraftResumed: "consult_draft_resumed",
   consultDraftCleared: "consult_draft_cleared_for_new_subtype",
+  // Dedicated-service routing out of the repeat lane: how often a steer is
+  // shown and whether patients follow it. Subtype/enforcement tokens only —
+  // never the typed medication text.
+  medicationSteerShown: "medication_steer_shown",
+  medicationSteerFollowed: "medication_steer_followed",
 } as const
 
 type IntakeAnalyticsEventName =
@@ -173,6 +178,29 @@ export function buildIntakeValidationBlockedProperties(input: ValidationBlockedI
     blocker_count: input.blockers.length,
     blockers: input.blockers,
   }
+}
+
+interface MedicationSteerInput {
+  flowInstanceId?: string | null
+  serviceType: string | null | undefined
+  subtype: string
+  enforcement?: string
+}
+
+/**
+ * Properties for the dedicated-service steer events. Carries the same
+ * `flow_instance_id` as every other intake event so the steer can be joined to
+ * the canonical funnel instead of floating as an unattributable event total.
+ */
+export function buildMedicationSteerProperties(input: MedicationSteerInput) {
+  const properties: Record<string, unknown> = {
+    service_type: normalizeIntakeAnalyticsServiceType(input.serviceType),
+    steer_subtype: input.subtype,
+  }
+  const flowInstanceId = normalizeFlowInstanceId(input.flowInstanceId)
+  if (flowInstanceId) properties.flow_instance_id = flowInstanceId
+  if (input.enforcement) properties.enforcement = input.enforcement
+  return properties
 }
 
 export function captureIntakeEvent(

@@ -66,27 +66,69 @@ describe("detectDedicatedServiceForMedication", () => {
     }
   })
 
-  it("routes an unlisted brand named as ED in the indication text", () => {
-    const match = detectDedicatedServiceForMedication("Silagra 100mg for erectile dysfunction")
-    expect(match?.subtype).toBe("ed")
-    expect(match?.enforcement).toBe("hard")
-  })
-
-  it("downgrades a PDE5 inhibitor with stated BPH / PAH context to flag_only", () => {
-    for (const name of [
-      "Revatio 20mg",
-      "sildenafil 20mg pulmonary hypertension",
-      "tadalafil 5mg for BPH",
-      "tadalafil daily prostate symptoms",
-    ]) {
-      const match = detectDedicatedServiceForMedication(name)
-      expect(match?.subtype).toBe("ed")
-      expect(match?.enforcement).toBe("flag_only")
+  it("covers the PAH-indicated PDE5 brands so the doctor still sees the interaction", () => {
+    for (const name of ["Revatio 20mg", "Adcirca 20mg"]) {
+      expect(detectDedicatedServiceForMedication(name)?.subtype).toBe("ed")
     }
   })
 
-  it("does NOT exempt tadalafil 5mg on dose alone (5mg daily is also the ED preset)", () => {
+  it("downgrades a PDE5 inhibitor with stated BPH / PAH context to flag_only", () => {
+    for (const [medicine, indication] of [
+      ["Revatio 20mg", ""],
+      ["Adcirca 20mg", "pulmonary arterial hypertension"],
+      ["sildenafil 20mg", "pulmonary hypertension"],
+      ["tadalafil 5mg", "BPH"],
+      ["tadalafil", "prostate symptoms"],
+    ] as const) {
+      const match = detectDedicatedServiceForMedication(medicine, indication)
+      expect(match?.subtype, medicine).toBe("ed")
+      expect(match?.enforcement, medicine).toBe("flag_only")
+    }
+  })
+
+  it("never exempts on dose alone — only a stated indication does", () => {
+    // tadalafil 5mg is the ED daily preset; sildenafil 20mg is trivially
+    // orderable as an ED dose. Both stay hard without a stated context.
     expect(detectDedicatedServiceForMedication("tadalafil 5mg")?.enforcement).toBe("hard")
+    expect(detectDedicatedServiceForMedication("sildenafil 20mg")?.enforcement).toBe("hard")
+  })
+
+  it("never hard-blocks an unrelated repeat because the indication mentions a condition", () => {
+    // Regression: concatenating medicine + indication let a statin be refused
+    // at checkout because the patient mentioned erectile dysfunction.
+    for (const [medicine, indication] of [
+      ["Atorvastatin 20mg", "cholesterol, I also have erectile dysfunction"],
+      ["Metformin 500mg", "diabetes and impotence"],
+      ["Sertraline 50mg", "depression — some hair loss too"],
+    ] as const) {
+      const match = detectDedicatedServiceForMedication(medicine, indication)
+      expect(match?.enforcement, medicine).toBe("flag_only")
+    }
+  })
+
+  it("flags, but does not block, a service named only in the indication", () => {
+    // Penegra is a real sildenafil brand we do not list. We cannot prove it is
+    // a PDE5 inhibitor, so the doctor is told rather than the patient refused.
+    const match = detectDedicatedServiceForMedication("Penegra 100mg", "erectile dysfunction")
+    expect(match?.subtype).toBe("ed")
+    expect(match?.enforcement).toBe("flag_only")
+  })
+
+  it("treats oral minoxidil for hypertension as an ordinary repeat", () => {
+    // Oral minoxidil (Loniten, PBS 10 mg) is an antihypertensive for severe
+    // refractory hypertension. Dose cannot discriminate it from the 5% topical
+    // hair product, so the stated indication must exempt it.
+    for (const [medicine, indication] of [
+      ["minoxidil 10 mg", "hypertension"],
+      ["Minoxidil 10mg", "severe refractory high blood pressure"],
+      ["Loniten", ""],
+    ] as const) {
+      expect(detectDedicatedServiceForMedication(medicine, indication), medicine).toBeNull()
+    }
+  })
+
+  it("still routes minoxidil taken for hair", () => {
+    expect(detectDedicatedServiceForMedication("minoxidil 5%", "hair loss")?.enforcement).toBe("hard")
   })
 
   it("keeps every-day contraceptive packs on women's health, not ED", () => {

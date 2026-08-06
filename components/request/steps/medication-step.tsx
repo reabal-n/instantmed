@@ -57,6 +57,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  buildMedicationSteerProperties,
+  captureIntakeEvent,
+  INTAKE_ANALYTICS_EVENTS,
+} from "@/lib/analytics/intake-events"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { type DedicatedServiceMatch, detectDedicatedServiceForMedication } from "@/lib/clinical/medication-service-routing"
@@ -129,11 +134,12 @@ const DOSE_CONFIRMATION_REQUIRED = "Please confirm whether the dose or the way y
 const DOSE_CHANGE_REQUIRES_REVIEW = "A dose or directions change needs review by your regular GP or specialist"
 
 export default function MedicationStep({ serviceType, onNext }: MedicationStepProps) {
-  const { answers, setAnswers, setAnswer } = useRequestStore()
+  const { answers, setAnswers, setAnswer, flowInstanceId } = useRequestStore()
   const posthog = usePostHog()
   const router = useRouter()
   const searchParams = useSearchParams()
   const medicationNameRef = useRef<HTMLInputElement>(null)
+  const steerAlertRef = useRef<HTMLDivElement>(null)
 
   // Old drafts may carry a PBS `selectedMedication` object or multiple
   // medication rows. Collapse everything to the first requested medicine: a
@@ -286,13 +292,11 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   const serviceSteer = useMemo<DedicatedServiceMatch | null>(() => {
     if (!steerEnabled) return null
     for (const med of medications) {
-      // The indication is part of the scan: it is where patients name the
-      // service ("ED", "hair loss"), and where a BPH/PAH patient states the
-      // context that keeps their PDE5 repeat here (a flag_only match).
-      const scanText = [med.name, med.strength, med.form, indication]
-        .filter(Boolean)
-        .join(" ")
-      const match = detectDedicatedServiceForMedication(scanText)
+      // Medicine and indication stay separate: only a medicine can steer, and
+      // the indication can only soften. See the intent-binding note in
+      // lib/clinical/medication-service-routing.ts.
+      const medicationText = [med.name, med.strength, med.form].filter(Boolean).join(" ")
+      const match = detectDedicatedServiceForMedication(medicationText, indication)
       // flag_only never steers — the doctor sees the flag instead.
       if (match && match.enforcement !== "flag_only") return match
     }
@@ -303,7 +307,11 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     && !(serviceSteer.enforcement === "soft" && serviceSteer.subtype === steerDismissedSubtype)
 
   const goToDedicatedService = useCallback((subtype: string) => {
-    posthog?.capture("medication_steer_followed", { subtype })
+    captureIntakeEvent(
+      posthog,
+      INTAKE_ANALYTICS_EVENTS.medicationSteerFollowed,
+      buildMedicationSteerProperties({ flowInstanceId, serviceType, subtype }),
+    )
     const params = new URLSearchParams()
     for (const key of MEDICATION_STEER_ATTRIBUTION_PARAMS) {
       const value = searchParams.get(key)
@@ -312,7 +320,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     params.set("service", "consult")
     params.set("subtype", subtype)
     router.push(`/request?${params.toString()}`)
-  }, [posthog, router, searchParams])
+  }, [posthog, router, searchParams, flowInstanceId, serviceType])
 
   // How often each steer fires, and whether patients follow it. Subtype and
   // enforcement tokens only — never the typed medication text.
@@ -322,11 +330,17 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     const key = `${serviceSteer.subtype}:${serviceSteer.enforcement}`
     if (steerSeenRef.current.has(key)) return
     steerSeenRef.current.add(key)
-    posthog?.capture("medication_steer_shown", {
-      subtype: serviceSteer.subtype,
-      enforcement: serviceSteer.enforcement,
-    })
-  }, [steerActive, serviceSteer, posthog])
+    captureIntakeEvent(
+      posthog,
+      INTAKE_ANALYTICS_EVENTS.medicationSteerShown,
+      buildMedicationSteerProperties({
+        flowInstanceId,
+        serviceType,
+        subtype: serviceSteer.subtype,
+        enforcement: serviceSteer.enforcement,
+      }),
+    )
+  }, [steerActive, serviceSteer, posthog, flowInstanceId, serviceType])
 
   const isNeverPrescribed = prescriptionHistory === "never"
   // Everything below the medicine stays mounted; only the terminal
@@ -429,9 +443,18 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
 
   const handleNext = useCallback(() => {
     // A controlled substance is a hard clinical block — the destructive alert
-    // above already explains it; never advance past it. The dedicated-service
-    // steer is a soft block with an explicit "keep as repeat" escape.
-    if (controlledBlock || steerActive) return
+    // above already explains it; never advance past it.
+    if (controlledBlock) return
+    // A steer must never make Continue a dead control: tapping it scrolls the
+    // reason into view and states it in the blocked summary, rather than
+    // silently doing nothing.
+    if (steerActive && serviceSteer) {
+      setBlockedReasons([
+        `This medicine is prescribed through our ${serviceSteer.serviceLabel} service — use the button above to continue there.`,
+      ])
+      steerAlertRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+      return
+    }
     if (validate()) {
       // Save to recent medications for next-time quick-pick.
       for (const med of medications) {
@@ -442,7 +465,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       posthog?.capture('step_completed', { step: 'medication', medication_count: medications.filter((m) => m.name.trim()).length })
       onNext()
     }
-  }, [controlledBlock, steerActive, validate, medications, posthog, onNext])
+  }, [controlledBlock, steerActive, serviceSteer, validate, medications, posthog, onNext])
 
   const activeMedications = medications.filter((m) => m.name.trim())
   // Readiness: a named medicine, when it was last prescribed, and — for a
@@ -500,12 +523,16 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         </Alert>
       )}
 
-      {/* Dedicated-service steer (hair loss / women's health) */}
+      {/* Dedicated-service steer (ED / hair loss / women's health) */}
       {steerActive && serviceSteer && (
+        <div ref={steerAlertRef}>
         <Alert>
           <HeartPulse className="w-4 h-4" />
           <AlertTitle>{serviceSteer.serviceLabel} has a dedicated service</AlertTitle>
-          <AlertDescription className="text-xs">
+          {/* Body copy stays at the 16px patient-flow minimum and the actions at
+              the 48px tap-target minimum — this is the route explanation, not
+              incidental helper text (DESIGN.md §Typography, §Patient forms). */}
+          <AlertDescription className="text-base">
             <p>
               {serviceSteer.subtype === "womens_health"
                 ? "Starting or switching pills goes through our Women's Health service, which asks the right safety questions before prescribing."
@@ -514,7 +541,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
                   : "This medicine is prescribed through our Hair Loss service, which includes the right safety screening."}
             </p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-              <Button type="button" size="sm" onClick={() => goToDedicatedService(serviceSteer.subtype)}>
+              <Button type="button" className="h-12" onClick={() => goToDedicatedService(serviceSteer.subtype)}>
                 Continue in {serviceSteer.serviceLabel}
                 <ArrowRight className="w-4 h-4" />
               </Button>
@@ -524,8 +551,8 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
               {serviceSteer.enforcement === "soft" && (
                 <Button
                   type="button"
-                  size="sm"
                   variant="ghost"
+                  className="h-12"
                   onClick={() => setSteerDismissedSubtype(serviceSteer.subtype)}
                 >
                   I&apos;m continuing my current pill — keep as repeat
@@ -534,6 +561,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
             </div>
           </AlertDescription>
         </Alert>
+        </div>
       )}
 
       {/* Recent medications suggestion */}

@@ -641,8 +641,6 @@ test.describe("Prescription: checkout price verification", () => {
 // ---------------------------------------------------------------------------
 
 test.describe("Prescription: dedicated-service routing", () => {
-  test.setTimeout(60000)
-
   const steerCta = /Continue in Erectile Dysfunction/i
   const keepAsRepeat = /keep as repeat/i
 
@@ -675,6 +673,20 @@ test.describe("Prescription: dedicated-service routing", () => {
     // The indication answer is part of the routing scan, so stating the real
     // reason clears the steer without a dead end.
     await page.getByRole("textbox", { name: /What is this medication for/i }).fill("BPH")
+    await expect(page.getByRole("button", { name: steerCta })).toHaveCount(0)
+  })
+
+  test("an unrelated repeat is never steered because the indication mentions a condition", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+    await waitForStep(page, /Your medication/i)
+
+    await page.locator("#medication-name-0").fill("Atorvastatin")
+    await page.getByRole("textbox", { name: /What is this medication for/i })
+      .fill("cholesterol, I also have erectile dysfunction")
+
+    // The medicine is not a PDE5 inhibitor, so this must never steer or block.
     await expect(page.getByRole("button", { name: steerCta })).toHaveCount(0)
   })
 
