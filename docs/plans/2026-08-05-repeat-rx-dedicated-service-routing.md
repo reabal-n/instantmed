@@ -1,5 +1,9 @@
 # Repeat-Rx Dedicated-Service Routing Implementation Plan
 
+> **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue; execute from this record only when the ROADMAP explicitly activates it.
+
+> **Status:** Implemented and merged 2026-08-05. Retained as the evidence record for the tiered routing policy in CLAUDE.md and docs/CLINICAL.md.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 > Also mandatory for this repo: `instantmed-clinical-safety-review` (clinical routing change) and
 > `instantmed-checkout-payment-review` (touches the checkout validation chokepoint) before edits;
