@@ -42,6 +42,62 @@ describe("detectDedicatedServiceForMedication", () => {
     expect(detectDedicatedServiceForMedication(undefined)).toBeNull()
     expect(detectDedicatedServiceForMedication(null)).toBeNull()
   })
+
+  it("routes PDE5 inhibitors to ed with hard enforcement", () => {
+    for (const name of [
+      "Sildenafil",
+      "sildenafil 100mg tablet",
+      "Viagra",
+      "CIALIS 20mg",
+      "tadalafil",
+      "vardenafil",
+      "Levitra",
+      "avanafil",
+      "Spedra",
+      "Vedafil 50mg",
+      "silvasta",
+    ]) {
+      const match = detectDedicatedServiceForMedication(name)
+      expect(match?.subtype).toBe("ed")
+      expect(match?.enforcement).toBe("hard")
+    }
+  })
+
+  it("routes an unlisted brand named as ED in the indication text", () => {
+    const match = detectDedicatedServiceForMedication("Silagra 100mg for erectile dysfunction")
+    expect(match?.subtype).toBe("ed")
+    expect(match?.enforcement).toBe("hard")
+  })
+
+  it("downgrades a PDE5 inhibitor with stated BPH / PAH context to flag_only", () => {
+    for (const name of [
+      "Revatio 20mg",
+      "sildenafil 20mg pulmonary hypertension",
+      "tadalafil 5mg for BPH",
+      "tadalafil daily prostate symptoms",
+    ]) {
+      const match = detectDedicatedServiceForMedication(name)
+      expect(match?.subtype).toBe("ed")
+      expect(match?.enforcement).toBe("flag_only")
+    }
+  })
+
+  it("does NOT exempt tadalafil 5mg on dose alone (5mg daily is also the ED preset)", () => {
+    expect(detectDedicatedServiceForMedication("tadalafil 5mg")?.enforcement).toBe("hard")
+  })
+
+  it("keeps every-day contraceptive packs on women's health, not ED", () => {
+    // "ED" on an AU pill pack means "every day". OCP is matched first so the
+    // bare `ed` token can never steal a contraceptive repeat.
+    for (const name of ["Levlen ED", "Microgynon 30 ED", "Femme-Tab ED 20/100"]) {
+      expect(detectDedicatedServiceForMedication(name)?.subtype).toBe("womens_health")
+    }
+  })
+
+  it("pins the enforcement tier of the existing classes", () => {
+    expect(detectDedicatedServiceForMedication("finasteride 1mg")?.enforcement).toBe("hard")
+    expect(detectDedicatedServiceForMedication("Microgynon 30")?.enforcement).toBe("soft")
+  })
 })
 
 describe("deriveIntakeFlags — dedicated_service_medication", () => {
