@@ -161,6 +161,21 @@ describe("deriveIntakeFlags — service routing", () => {
     expect(flag?.detail).toContain("Ozempic")
   })
 
+  it("derives the same flags for chronic_review as for repeat", () => {
+    // Checkout validates both subtypes as repeat scripts
+    // (isRepeatPrescriptionSubtype in lib/stripe/checkout/clinical-validation.ts),
+    // so both must surface the same doctor flags.
+    const answers = {
+      medications: [{ name: "Ozempic", ...complete, strength: "1 mg", form: "pen" }],
+      current_dose: "weekly",
+      indication: "type 2 diabetes",
+    }
+    const repeat = deriveIntakeFlags({ category: "prescription", subtype: "repeat", answers })
+    const chronic = deriveIntakeFlags({ category: "prescription", subtype: "chronic_review", answers })
+    expect(codes(chronic)).toEqual(codes(repeat))
+    expect(codes(chronic)).toContain("gated_service_medication")
+  })
+
   it("does NOT let a past controlled medicine named in the indication become a block signal", () => {
     // The routing scan reads the indication; the controlled-substance scan
     // deliberately does not (see derive-intake-flags.ts).

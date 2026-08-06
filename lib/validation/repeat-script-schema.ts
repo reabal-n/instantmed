@@ -310,9 +310,8 @@ export function validateRepeatScriptPayload(
   const routingIndication = typeof answers.indication === "string" ? answers.indication : ""
   for (const medication of medications) {
     const routingMatch = detectDedicatedServiceForMedication(
-      [buildRepeatScriptMedicationValidationText(medication), routingIndication]
-        .filter(Boolean)
-        .join(" "),
+      buildRepeatScriptMedicationValidationText(medication),
+      routingIndication,
     )
     if (routingMatch?.enforcement === "hard") {
       const serviceCopy = routingMatch.subtype === "ed"
