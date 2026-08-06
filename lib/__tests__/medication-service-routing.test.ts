@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest"
 
 import { deriveIntakeFlags } from "@/lib/clinical/derive-intake-flags"
-import { detectDedicatedServiceForMedication } from "@/lib/clinical/medication-service-routing"
+import {
+  detectDedicatedServiceForMedication,
+  detectGatedServiceMedication,
+} from "@/lib/clinical/medication-service-routing"
 
 describe("detectDedicatedServiceForMedication", () => {
   it("routes hair-loss medicines to hair_loss", () => {
@@ -97,6 +100,42 @@ describe("detectDedicatedServiceForMedication", () => {
   it("pins the enforcement tier of the existing classes", () => {
     expect(detectDedicatedServiceForMedication("finasteride 1mg")?.enforcement).toBe("hard")
     expect(detectDedicatedServiceForMedication("Microgynon 30")?.enforcement).toBe("soft")
+  })
+})
+
+describe("detectGatedServiceMedication", () => {
+  it("flags weight-loss-class medicines (GLP-1, phentermine, orlistat)", () => {
+    for (const name of [
+      "semaglutide",
+      "Ozempic 1mg",
+      "Wegovy",
+      "Rybelsus 7mg",
+      "tirzepatide",
+      "Mounjaro",
+      "Zepbound",
+      "liraglutide",
+      "Saxenda",
+      "Victoza",
+      "phentermine 30mg",
+      "Duromine",
+      "Metermine",
+      "orlistat",
+      "Xenical",
+    ]) {
+      expect(detectGatedServiceMedication(name)?.serviceLabel).toBe("Weight loss")
+    }
+  })
+
+  it("leaves ordinary repeat medicines alone", () => {
+    for (const name of ["atorvastatin 20mg", "metformin 500mg", "Sertraline"]) {
+      expect(detectGatedServiceMedication(name)).toBeNull()
+    }
+  })
+
+  it("is null-safe for empty / missing input", () => {
+    expect(detectGatedServiceMedication("")).toBeNull()
+    expect(detectGatedServiceMedication(undefined)).toBeNull()
+    expect(detectGatedServiceMedication(null)).toBeNull()
   })
 })
 

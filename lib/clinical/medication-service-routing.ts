@@ -176,6 +176,59 @@ const ED_REPEAT_CONTEXT_MARKERS: ReadonlyArray<RegExp> = [
   /sildenafil[^0-9]{0,10}20\s*mg/i,
 ]
 
+// Weight-loss-class medicines. The weight-loss service is GATED (reserved
+// $89.95, not launched — docs/CLINICAL.md keeps it manual-review-only), so
+// there is no live destination to steer anyone to. These are deliberately
+// flag-only rather than blocked: several are ALSO legitimate type-2-diabetes
+// repeats (Ozempic, Victoza, Mounjaro), and blocking would wall diabetic
+// patients out of a medicine they have taken for years. The doctor decides
+// with the flag and the patient's stated indication in view.
+const GATED_WEIGHT_LOSS_PATTERNS: ReadonlyArray<RegExp> = [
+  /\bsemaglutide\b/i,
+  /\bozempic\b/i,
+  /\bwegovy\b/i,
+  /\brybelsus\b/i,
+  /\btirzepatide\b/i,
+  /\bmounjaro\b/i,
+  /\bzepbound\b/i,
+  /\bliraglutide\b/i,
+  /\bsaxenda\b/i,
+  /\bvictoza\b/i,
+  /\bphentermine\b/i,
+  /\bduromine\b/i,
+  /\bmetermine\b/i,
+  /\borlistat\b/i,
+  /\bxenical\b/i,
+]
+
+export interface GatedServiceMatch {
+  /** Human label for the flag detail, e.g. "Weight loss". */
+  serviceLabel: string
+  /** Why it matched — surfaced to the doctor as the flag detail. */
+  reason: string
+}
+
+/**
+ * Medicines whose dedicated service is not live yet. There is nowhere to route
+ * the patient, so these never steer and never block — they raise the
+ * `gated_service_medication` doctor flag and nothing else.
+ */
+export function detectGatedServiceMedication(
+  scanText: string | undefined | null,
+): GatedServiceMatch | null {
+  if (typeof scanText !== "string" || !scanText.trim()) return null
+  const text = scanText.toLowerCase()
+
+  if (GATED_WEIGHT_LOSS_PATTERNS.some((pattern) => pattern.test(text))) {
+    return {
+      serviceLabel: "Weight loss",
+      reason: "weight-loss-class medicine, service gated; may also be a diabetes repeat",
+    }
+  }
+
+  return null
+}
+
 /**
  * Classify a medication scan string (the medicine text plus the patient's
  * stated indication) into a dedicated service, or null if it belongs in the
