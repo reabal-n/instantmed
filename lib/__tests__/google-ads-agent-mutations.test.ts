@@ -41,6 +41,7 @@ function accountState(
   overrides: Partial<GoogleAdsAccountState> = {},
 ): GoogleAdsAccountState {
   return {
+    optionalQueryFailures: [],
     adGroupCriteria: [
       resource(keywordResourceName, {
         adGroupCriterion: {

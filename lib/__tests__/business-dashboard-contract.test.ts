@@ -38,6 +38,7 @@ describe("Business decision surface contract", () => {
     expect(client).toContain("Daily net retained")
     expect(client).toContain("Profit after ads &amp; payment fees")
     expect(client).toContain("Ads performance")
+    expect(client).toContain("By campaign")
     expect(client).toContain("Canonical 30-day start cohort")
     expect(client).toContain("Recorded acquisition")
     expect(client).toContain("Self-reported discovery")

@@ -1,6 +1,13 @@
 import type { TrackingHealth } from "@/lib/ads-agent/types"
 
 export interface TrackingHealthInput {
+  /**
+   * Whether the Google Ads account state was actually read. When false, every
+   * fact derived from it (auto-tagging, final URL suffix, primary purchase
+   * action) is UNKNOWN rather than negative, and asserting the negative sends
+   * the operator to fix settings that are not broken.
+   */
+  accountStateReadable: boolean
   autoTaggingEnabled: boolean
   browserOrGa4PurchasePrimary: boolean
   conversionLagImmature: boolean
@@ -40,7 +47,14 @@ export function classifyTrackingHealth(input: TrackingHealthInput): TrackingHeal
   if (!input.criticalQueriesOk) {
     redReasonCodes.push("CRITICAL_QUERY_FAILED")
   }
-  if (!input.primaryPurchaseActionOk) {
+  // An unreadable account state is still RED — nothing about the account can
+  // be verified — but it reports one honest cause instead of three fabricated
+  // ones. Facts derived from the account state are only asserted when it was
+  // actually read.
+  if (!input.accountStateReadable) {
+    redReasonCodes.push("ACCOUNT_STATE_UNREADABLE")
+  }
+  if (input.accountStateReadable && !input.primaryPurchaseActionOk) {
     redReasonCodes.push("PRIMARY_PURCHASE_ACTION_INVALID")
   }
   if (input.browserOrGa4PurchasePrimary) {
@@ -65,10 +79,10 @@ export function classifyTrackingHealth(input: TrackingHealthInput): TrackingHeal
   if (input.terminalClickAttributedAdjustmentFailures > 0) {
     redReasonCodes.push("TERMINAL_CLICK_ADJUSTMENT_FAILURE")
   }
-  if (!input.autoTaggingEnabled) {
+  if (input.accountStateReadable && !input.autoTaggingEnabled) {
     redReasonCodes.push("AUTO_TAGGING_DISABLED")
   }
-  if (!input.requiredFinalUrlSuffixPresent) {
+  if (input.accountStateReadable && !input.requiredFinalUrlSuffixPresent) {
     redReasonCodes.push("FINAL_URL_SUFFIX_MISSING")
   }
   if (!input.stripeFeesComplete) {

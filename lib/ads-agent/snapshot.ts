@@ -528,13 +528,26 @@ function buildTotals(campaigns: CampaignEconomics[]): AdsEconomicsTotals {
   }
 }
 
+const MAX_INPUT_REASON_LENGTH = 300
+
 function input(
   result: PromiseSettledResult<unknown>,
   asOf: string,
 ): AdsSnapshotInput {
+  if (result.status === "fulfilled") {
+    return { asOf, status: "fresh" }
+  }
+
+  // Keep the rejection reason. Discarding it let a critical input (the Google
+  // Ads account-state read) fail for six days with the cause recorded nowhere.
+  const reason = result.reason instanceof Error
+    ? result.reason.message
+    : String(result.reason ?? "unknown")
+
   return {
     asOf,
-    status: result.status === "fulfilled" ? "fresh" : "failed",
+    reason: reason.slice(0, MAX_INPUT_REASON_LENGTH),
+    status: "failed",
   }
 }
 
