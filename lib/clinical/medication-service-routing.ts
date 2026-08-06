@@ -40,7 +40,10 @@ export type DedicatedServiceSubtype = "ed" | "hair_loss" | "womens_health"
  *    indication is BPH/PAH — a legitimate repeat, but self-reported, so the
  *    reviewer is told rather than the patient being waved through silently.
  */
-export type DedicatedServiceEnforcement = "hard" | "soft" | "flag_only"
+// Not exported: callers branch on `match.enforcement` through
+// DedicatedServiceMatch and never need the alias by name (the dead-code
+// ratchet fails on an export nothing imports).
+type DedicatedServiceEnforcement = "hard" | "soft" | "flag_only"
 
 export interface DedicatedServiceMatch {
   /** Consult subtype to deep-link into (`/request?service=consult&subtype=…`). */
