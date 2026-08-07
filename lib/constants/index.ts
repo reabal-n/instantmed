@@ -80,14 +80,23 @@ export const PRODUCTREVIEW_REVIEW_URL = resolveConfiguredUrl(
 )
 export const TRUSTPILOT_REVIEW_URL = resolveConfiguredUrl(process.env.TRUSTPILOT_REVIEW_URL, "")
 
-/** Pick the day-2 review destination. monthIndex = new Date().getUTCMonth(). */
-export function getRotatingReviewUrl(monthIndex: number): string {
-  const pr = PRODUCTREVIEW_REVIEW_URL
-  const tp = TRUSTPILOT_REVIEW_URL
-  if (!pr && !tp) return GOOGLE_REVIEW_URL
-  const preferProductReview = monthIndex % 2 === 0
-  return (preferProductReview ? pr || tp : tp || pr) || GOOGLE_REVIEW_URL
+/**
+ * Review destinations a patient can explicitly choose on the post-delivery
+ * cards (2026-08-07, supersedes the silent month-rotation lever).
+ *
+ * Tokens, never URLs, cross the client/server boundary: the redirect resolves
+ * a token against this map so a crafted link can only ever reach one of these
+ * two destinations. ProductReview stays the keystone (answer-engine-cited,
+ * entity-linked from `sameAs`) and is the fallback for unknown tokens; the
+ * silent-rotation helper `getRotatingReviewUrl` was removed because patient
+ * choice produces the PR-vs-Google split with attribution instead of guesswork
+ * — reinstating rotation would OVERRIDE an explicit patient choice.
+ */
+export const REVIEW_DESTINATION_URLS: Record<string, string> = {
+  productreview: PRODUCTREVIEW_REVIEW_URL,
+  google: GOOGLE_REVIEW_URL,
 }
+export const DEFAULT_REVIEW_DESTINATION = "productreview"
 
 // Service pricing (in AUD) - SINGLE SOURCE OF TRUTH
 // All display prices MUST use PRICING_DISPLAY, never hardcoded strings

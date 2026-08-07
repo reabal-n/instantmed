@@ -120,8 +120,51 @@ describe("review redirect tracking privacy", () => {
         campaign: "review",
         medium: "review_card",
         source: "patient_dashboard",
+        destination: "productreview",
       },
     })
+  })
+
+  it("resolves an explicit google destination token and records it as a token, not a URL", async () => {
+    const { GET } = await import("@/app/api/review-redirect/route")
+    const response = await GET(new NextRequest(
+      "https://instantmed.com.au/api/review-redirect?utm_source=patient_documents&utm_medium=post_delivery&utm_campaign=review&destination=google",
+    ))
+
+    expect(response.status).toBe(302)
+    expect(response.headers.get("location")).toContain("g.page")
+    expect(mocks.capture).toHaveBeenCalledWith({
+      event: "review_cta_clicked",
+      properties: expect.objectContaining({ destination: "google" }),
+    })
+    // The event must carry the allowlisted token only — never the URL.
+    const captured = mocks.capture.mock.calls[0]![0] as { properties: Record<string, string> }
+    expect(JSON.stringify(captured)).not.toContain("g.page")
+  })
+
+  it("falls back to ProductReview for unknown destination tokens (crafted links cannot steer the redirect)", async () => {
+    const { GET } = await import("@/app/api/review-redirect/route")
+    const response = await GET(new NextRequest(
+      "https://instantmed.com.au/api/review-redirect?utm_source=patient_documents&utm_medium=post_delivery&utm_campaign=review&destination=https%3A%2F%2Fevil.example",
+    ))
+
+    expect(response.status).toBe(302)
+    expect(response.headers.get("location")).toContain("productreview.com.au")
+    expect(mocks.capture).toHaveBeenCalledWith({
+      event: "review_cta_clicked",
+      properties: expect.objectContaining({ destination: "productreview" }),
+    })
+  })
+
+  it("keeps the keyed email path pinned to ProductReview even when a destination token is smuggled in", async () => {
+    const clickKey = "B".repeat(43)
+    const { GET } = await import("@/app/api/review-redirect/route")
+    const response = await GET(new NextRequest(
+      `https://instantmed.com.au/api/review-redirect?utm_source=email&utm_medium=review_request&utm_campaign=review&review_click_key=${clickKey}&destination=google`,
+    ))
+
+    expect(response.status).toBe(302)
+    expect(response.headers.get("location")).toContain("productreview.com.au")
   })
 
   it("never places patient or intake identifiers in review CTA URLs", () => {
