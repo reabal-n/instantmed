@@ -1,5 +1,6 @@
 "use client"
 
+import { useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useRef } from "react"
 
 import { shouldTrackIntakeComplete } from "@/lib/analytics/funnel-milestones"
@@ -74,6 +75,10 @@ export function useFlowAnalytics({
 }: UseFlowAnalyticsOptions) {
   const posthog = usePostHog()
   const { email: storeEmail, flowInstanceId } = useRequestStore()
+  const searchParams = useSearchParams()
+  // Allowlisted origin marker: only the known repeat-steer value ever reaches
+  // analytics — never arbitrary query-string text.
+  const entryRef = searchParams.get("from") === "repeat-steer" ? "repeat-steer" : null
 
   const trackedFunnelEventsRef = useRef<Set<string>>(new Set())
   // Latches intake_started to once per flow so back-navigation to step 1 does
@@ -112,6 +117,9 @@ export function useFlowAnalytics({
           service_type: analyticsServiceType,
           flow_instance_id: flowInstanceId,
           subtype,
+          // Allowlisted origin marker (never free text): joins a repeat-lane
+          // steer to the consult flow it opened, across flow instances.
+          ...(entryRef ? { entry_ref: entryRef } : {}),
         })
       }
 

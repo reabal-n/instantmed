@@ -24,6 +24,7 @@ export const INTAKE_ANALYTICS_EVENTS = {
   // never the typed medication text.
   medicationSteerShown: "medication_steer_shown",
   medicationSteerFollowed: "medication_steer_followed",
+  medicationSteerContextSelected: "medication_steer_context_selected",
 } as const
 
 type IntakeAnalyticsEventName =
@@ -185,6 +186,8 @@ interface MedicationSteerInput {
   serviceType: string | null | undefined
   subtype: string
   enforcement?: string
+  /** Structured routing-context token the patient selected (never free text). */
+  context?: string
 }
 
 /**
@@ -200,6 +203,7 @@ export function buildMedicationSteerProperties(input: MedicationSteerInput) {
   const flowInstanceId = normalizeFlowInstanceId(input.flowInstanceId)
   if (flowInstanceId) properties.flow_instance_id = flowInstanceId
   if (input.enforcement) properties.enforcement = input.enforcement
+  if (input.context) properties.context = input.context
   return properties
 }
 

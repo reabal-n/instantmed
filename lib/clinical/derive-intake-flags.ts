@@ -56,7 +56,11 @@ function deriveRepeatScriptFlags(answers: Record<string, unknown>): IntakeFlag[]
     // reached the generic repeat flow. The patient is steered in-form; this is
     // the doctor-side backstop. Medicine and indication stay SEPARATE — see the
     // intent-binding note in medication-service-routing.ts.
-    const dedicatedService = detectDedicatedServiceForMedication(medicationText, indication)
+    const dedicatedService = detectDedicatedServiceForMedication(
+      medicationText,
+      indication,
+      answers.routing_context ?? answers.routingContext,
+    )
     if (dedicatedService) {
       flags.push(makeIntakeFlag("dedicated_service_medication", {
         source: "clinical",
