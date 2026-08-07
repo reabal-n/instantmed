@@ -167,7 +167,7 @@ const FEATURED_SERVICE_COPY: Record<CanonicalServiceId, FeaturedServiceCopy> = {
     features: ["UTI treatment", "Contraceptive pill", "Safety screening", "Doctor-reviewed"],
   },
   "weight-loss": {
-    description: "Doctor-led weight loss assessment with evidence-based treatment options. Ongoing support available.",
+    description: "Doctor-led weight management assessment with evidence-based, safety-first review boundaries.",
     features: ["Manual review", "Doctor-reviewed", "Safety screening", "No waiting room"],
   },
 }
