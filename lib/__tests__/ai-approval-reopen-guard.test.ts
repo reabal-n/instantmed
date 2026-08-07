@@ -54,6 +54,21 @@ describe("AI-approved medical certificate reopen guard", () => {
     expect(action).toContain('doctorHasCapability(profile, "review_med_certs")')
   })
 
+  // Admin-only is the security fix of #439: the action takes a caller-supplied
+  // intake id and looks it up with the service role, so any wider role list
+  // lets a doctor revoke ANY patient's certificate, bypassing the per-doctor
+  // patient-access boundary. Without this pin a refactor could silently widen
+  // it back to ["doctor", "admin"] — nothing else fails when that happens.
+  it("keeps the revoke action admin-only with server-side shape re-assertion", () => {
+    expect(action).toContain('roles: ["admin"]')
+    expect(action).not.toContain('roles: ["doctor", "admin"]')
+    expect(action).toContain('intake.category !== "medical_certificate"')
+    expect(action).toContain('intake.status !== "approved"')
+    // The reopen must stay compare-and-set so a concurrent transition cannot
+    // be clobbered or silently no-op after the certificate is already revoked.
+    expect(action).toContain('.eq("status", "approved")')
+  })
+
   // Removing the 24h attestation card deleted `revokeAIApproval`'s ONLY UI
   // caller, leaving the action reachable from tests alone. `IntakeActionButtons`
   // is no substitute: `canDecline` excludes `approved`, and it has no revoke, so

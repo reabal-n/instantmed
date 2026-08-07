@@ -99,7 +99,7 @@ export function RevokeAutoIssuedCertificate({
         type="button"
         variant="ghost"
         size="sm"
-        className="justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
+        className="min-h-11 justify-start text-destructive hover:bg-destructive/10 hover:text-destructive md:min-h-8"
         onClick={() => setExpanded(true)}
         data-testid="revoke-auto-issued-trigger"
       >
@@ -112,10 +112,10 @@ export function RevokeAutoIssuedCertificate({
   return (
     <section
       className="space-y-2.5 rounded-xl border border-border/50 p-3"
-      aria-labelledby="revoke-auto-issued-title"
+      aria-label="Revoke certificate"
       data-testid="revoke-auto-issued"
     >
-      <label id="revoke-auto-issued-title" htmlFor="revoke-auto-issued-reason" className="text-xs font-semibold text-foreground">
+      <label htmlFor="revoke-auto-issued-reason" className="text-xs font-semibold text-foreground">
         Why does this certificate need manual review?
       </label>
       <Textarea
@@ -125,12 +125,17 @@ export function RevokeAutoIssuedCertificate({
         placeholder="Record the clinical concern or correction needed."
         rows={3}
         disabled={isPending}
+        aria-describedby="revoke-auto-issued-reason-hint"
       />
+      <p id="revoke-auto-issued-reason-hint" className="text-xs text-muted-foreground">
+        At least {MIN_REASON_LENGTH} characters. Recorded in the clinical audit log.
+      </p>
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button
           type="button"
           variant="ghost"
           size="sm"
+          className="min-h-11 md:min-h-8"
           onClick={() => {
             setExpanded(false)
             setReason("")
@@ -143,6 +148,7 @@ export function RevokeAutoIssuedCertificate({
           type="button"
           variant="destructive"
           size="sm"
+          className="min-h-11 md:min-h-8"
           onClick={() => setConfirmOpen(true)}
           disabled={!canSubmit}
           data-testid="revoke-auto-issued-submit"
