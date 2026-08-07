@@ -421,22 +421,26 @@ describe("evaluateAutoApprovalEligibility", () => {
     expect(result.disqualifyingFlags.some(f => f.includes("draft_not_ready"))).toBe(true)
   })
 
-  it("treats draft requiresReview=true as a soft flag (still eligible)", () => {
-    // ENGINE v2.3: AI draft requiresReview was demoted from hard block
-    // to soft flag because the AI model over-flags common mild symptoms
-    // (anxiety, fatigue, etc.) that are clinically appropriate for a
-    // standard 1-3 day cert. Doctor batch review still catches concerns
-    // post-approval. See lib/clinical/auto-approval.ts:418-432.
+  it("blocks issuance when the AI draft is marked requiresReview (operator decision 2026-08-07)", () => {
+    // History: v2.3 demoted this to a soft flag ("batch review still catches
+    // concerns post-approval"). Batch review was then removed (2026-08-04),
+    // and 90 days of production showed 8/109 auto-approvals carried this flag
+    // — including a fever/photophobia/vomiting/difficulty-walking cluster the
+    // draft itself called potential red-flag symptoms — with no human reader.
+    // Promoted back to a pre-issuance block: an uncertain draft routes to a
+    // doctor BEFORE a certificate exists. The AI decides nothing either way.
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers(),
       makeReadyDraft({ flags: { requiresReview: true, flagReason: "Ambiguous symptoms" } }),
       ADULT_PATIENT,
     )
-    expect(result.eligible).toBe(true)
-    expect(result.disqualifyingFlags).toHaveLength(0)
-    expect(result.softFlags.some(f => f.includes("draft_review_flag"))).toBe(true)
-    expect(result.softFlags.some(f => f.includes("Ambiguous symptoms"))).toBe(true)
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags.some(f => f.startsWith("draft_review_flag:"))).toBe(true)
+    // The refusal carries the draft's own words so the reviewing doctor sees
+    // WHY the engine refused, not just that it did.
+    expect(result.disqualifyingFlags.some(f => f.includes("Ambiguous symptoms"))).toBe(true)
+    expect(result.softFlags.some(f => f.includes("draft_review_flag"))).toBe(false)
   })
 
   // ---- Self-harm / suicide (defense-in-depth) ----

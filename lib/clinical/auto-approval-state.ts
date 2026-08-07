@@ -61,6 +61,10 @@ export const DETERMINISTIC_FAILURE_PREFIXES = [
   // retry. Emitted by evaluateAutoApprovalEligibility when attentionFlagCodes is
   // non-empty.
   "intake_attention_flags:",
+  // AI clinical draft marked requiresReview (promoted from soft 2026-08-07).
+  // The draft is generated once per intake, so its verdict is fixed on retry;
+  // an uncertain draft goes straight to a doctor, never the retry queue.
+  "draft_review_flag:",
 ]
 
 export function isDeterministicFailure(flags: string[]): boolean {

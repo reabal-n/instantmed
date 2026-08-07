@@ -493,15 +493,21 @@ export function evaluateAutoApprovalEligibility(
   } else if (drafts.clinicalNote.status !== "ready") {
     flags.push(`draft_not_ready: ${drafts.clinicalNote.status}`)
   } else {
-    // 12. AI draft review flag - soft flag only (recorded, not blocking)
-    // Treating this as a hard block was too aggressive: the AI model flags "anxiety"
-    // and other common mild symptoms as requiring review even when clinically appropriate
-    // for a standard 1-3 day cert. The flag is persisted to intakes.risk_flags
-    // and marks the row `Flagged` on the daily approved list, so a human still
-    // sees it — batch review itself was removed 2026-08-04.
+    // 12. AI draft review flag — PRE-ISSUANCE BLOCK (operator decision
+    // 2026-08-07, promoted from soft). 90 days of production: 8 of 109
+    // auto-approvals carried this flag and every one was the draft lane —
+    // among them a fever/photophobia/vomiting/difficulty-walking cluster the
+    // draft itself called "potential red-flag symptoms", auto-issued because
+    // the flag was soft and its only reader (batch review) had been removed.
+    // The keyword gates never fired on any of them. Cost of blocking: ~one
+    // extra manual review per 11 days. The AI still decides nothing — an
+    // uncertain draft now routes to a DOCTOR before any certificate exists.
+    // Deterministic: the draft is generated once per intake, so the verdict
+    // cannot change on retry (draft_not_ready / missing_clinical_note_draft
+    // above stay transient because an ABSENT draft can still be generated).
     const draftFlags = drafts.clinicalNote.content?.flags as { requiresReview?: boolean; flagReason?: string | null } | undefined
     if (draftFlags?.requiresReview) {
-      softFlags.push(`draft_review_flag: ${draftFlags.flagReason || "unspecified"}`)
+      flags.push(`draft_review_flag: ${draftFlags.flagReason || "unspecified"}`)
     }
   }
 
