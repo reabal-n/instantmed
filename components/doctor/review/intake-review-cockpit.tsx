@@ -9,17 +9,19 @@ import { requestMoreInfoAction } from "@/app/actions/request-more-info"
 import { ClinicalSummary } from "@/components/doctor/clinical-summary"
 import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { RenewalLink } from "@/components/doctor/renewal-link"
-import { BatchReviewAttestation } from "@/components/doctor/review/batch-review-attestation"
 import { IntakeActionButtons } from "@/components/doctor/review/intake-action-buttons"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { IntakeSecondaryDisclosure } from "@/components/doctor/review/intake-secondary-disclosure"
 import { PatientMessageThread } from "@/components/doctor/review/patient-message-thread"
 import { RequestInfoCard } from "@/components/doctor/review/request-info-card"
 import { ReviewBlockersStrip } from "@/components/doctor/review/review-blockers-strip"
+import {
+  isRevocableAutoIssuedCertificate,
+  RevokeAutoIssuedCertificate,
+} from "@/components/doctor/review/revoke-auto-issued-certificate"
 import { SafetyFlagsCard } from "@/components/doctor/review/safety-flags-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { isBatchReviewEligible } from "@/lib/clinical/batch-review-policy"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { buildReviewPacket } from "@/lib/clinical/review-packet"
 import { isPrescribingServiceRequest } from "@/lib/doctor/service-types"
@@ -28,7 +30,6 @@ import { cn } from "@/lib/utils"
 
 interface IntakeReviewCockpitProps {
   className?: string
-  onBatchReviewResolved?: (intakeId: string) => void
 }
 
 const MED_CERT_SYMPTOM_DETAIL_REQUEST =
@@ -123,7 +124,6 @@ function CertificateDeliveryCard() {
 
 export function IntakeReviewCockpit({
   className,
-  onBatchReviewResolved,
 }: IntakeReviewCockpitProps) {
   const review = useIntakeReview()
   const { data, intake, answers, service } = review
@@ -216,9 +216,18 @@ export function IntakeReviewCockpit({
     })
   }, [canRequestClinicalDetail, intake.id, router])
 
-  const isPendingBatchReview = isBatchReviewEligible(intake)
-  const decisionActions = isPendingBatchReview && onBatchReviewResolved ? (
-    <BatchReviewAttestation intake={intake} onResolved={onBatchReviewResolved} />
+  // There is no post-approval attestation card (operator decision 2026-08-04):
+  // risk is gated BEFORE issuance. A delivered auto-issued certificate is past
+  // every approve/decline transition, so `IntakeActionButtons` renders no
+  // decision for it — revocation is the one correction still available, and it
+  // is offered here rather than as an obligation.
+  const decisionActions = isRevocableAutoIssuedCertificate(intake) ? (
+    <RevokeAutoIssuedCertificate
+      intakeId={intake.id}
+      onRevoked={() => {
+        void review.reloadReviewData()
+      }}
+    />
   ) : (
     <IntakeActionButtons
       placement="bottom"

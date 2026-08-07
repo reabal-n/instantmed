@@ -3,9 +3,13 @@
 /**
  * Revoke AI Auto-Approval
  *
- * Allows a doctor to revoke an AI-approved certificate during batch review.
- * The certificate is revoked via the existing revocation flow, and the
- * intake is moved back to in_review for manual doctor assessment.
+ * Lets a doctor revoke an auto-issued certificate at any time. The certificate
+ * is revoked via the existing revocation flow, and the intake returns to
+ * in_review for manual doctor assessment.
+ *
+ * This is the standing correction path for auto-issued certificates. It is not
+ * tied to any review window: the post-approval attestation obligation was
+ * removed on 2026-08-04 because risk is gated BEFORE issuance.
  */
 
 import * as Sentry from "@sentry/nextjs"
@@ -13,7 +17,6 @@ import * as Sentry from "@sentry/nextjs"
 import { revokeCertificateAction } from "@/app/actions/revoke-cert"
 import { withServerAction } from "@/lib/actions/with-server-action"
 import { doctorHasCapability } from "@/lib/auth/staff-capabilities"
-import { buildBatchReviewResolutionFields } from "@/lib/clinical/batch-review-policy"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
 import { createNotification } from "@/lib/notifications/service"
@@ -31,11 +34,9 @@ export const revokeAIApproval = withServerAction<RevokeAIApprovalInput>(
       return { success: false, error: "Please provide a reason for revocation (min 5 characters)" }
     }
 
-    // Gate the destructive review outcome on the same capability as the benign
-    // confirm path (markBatchReviewed). Without this, a doctor scoped out of the
-    // med-cert service line could revoke an issued certificate and reopen the
-    // intake while being blocked from simply attesting it. Admin is exempt via
-    // doctorHasCapability (hasAdminAccess short-circuit).
+    // Revoking an issued certificate and reopening the intake is a clinical
+    // act on the med-cert service line, so gate it on that capability. Admin is
+    // exempt via doctorHasCapability (hasAdminAccess short-circuit).
     if (!doctorHasCapability(profile, "review_med_certs")) {
       return {
         success: false,
@@ -69,15 +70,14 @@ export const revokeAIApproval = withServerAction<RevokeAIApprovalInput>(
       return { success: false, error: revokeResult.error || "Failed to revoke certificate" }
     }
 
-    // Revocation is the second valid individual-review outcome. Move the
-    // intake back to manual review while closing the batch-review obligation.
-    const reviewedAt = new Date()
+    // Return the intake to manual review. The DB trigger permits this
+    // approved -> in_review reversal only because the certificate is now
+    // revoked (migration 20260711193000).
     const { error: updateError } = await supabase
       .from("intakes")
       .update({
         status: "in_review",
-        updated_at: reviewedAt.toISOString(),
-        ...buildBatchReviewResolutionFields(profile.id, reviewedAt),
+        updated_at: new Date().toISOString(),
       })
       .eq("id", intakeId)
 

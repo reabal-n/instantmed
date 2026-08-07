@@ -3,69 +3,86 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { ApprovedTodayList } from "@/components/doctor/approved-today-list"
 
+const clinicianRow = {
+  id: "decision-1",
+  patient_id: "patient-1",
+  status: "approved" as const,
+  activity_at: "2026-07-29T01:55:00.000Z",
+  activity_provenance: "clinician_decision" as const,
+  patient: { full_name: "Test Patient" },
+  service: { name: "Medical certificate", short_name: "Med cert", type: "med_certs" as const },
+}
+
+const autoIssuedRow = {
+  id: "auto-1",
+  patient_id: "patient-2",
+  status: "approved" as const,
+  activity_at: "2026-07-29T01:50:00.000Z",
+  activity_provenance: "auto_issued" as const,
+  patient: { full_name: "Auto Patient" },
+  service: { name: "Medical certificate", short_name: "Med cert", type: "med_certs" as const },
+}
+
 describe("ApprovedTodayList", () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date("2026-07-29T02:00:00.000Z"))
   })
 
-  it("renders cohort governance as an identity-free aggregate receipt", () => {
-    const html = renderToStaticMarkup(
-      <ApprovedTodayList
-        intakes={[]}
-        governanceReceipt={{
-          certificateCount: 6,
-          latestActivityAt: "2026-07-29T01:55:00.000Z",
-        }}
-      />,
-    )
+  it("renders the day's approvals with the decision timestamp", () => {
+    const html = renderToStaticMarkup(<ApprovedTodayList intakes={[clinicianRow]} />)
 
-    expect(html).toContain("Governance receipt")
-    expect(html).toContain("6 auto-issued certificates covered")
-    expect(html).toContain("Aggregate governance record")
+    expect(html).toContain('aria-label="Approved today"')
+    expect(html).toContain("Approved today")
+    expect(html).toContain("Test Patient")
     expect(html).toContain("5m ago")
-    expect(html).not.toContain("Your approvals today")
-    expect(html).not.toContain("patient")
   })
 
-  it("labels clinician approvals as actor-scoped and displays the decision timestamp", () => {
+  it("labels auto-issued certificates so they never read as the clinician's own decision", () => {
     const html = renderToStaticMarkup(
-      <ApprovedTodayList
-        intakes={[{
-          id: "decision-1",
-          patient_id: "patient-1",
-          status: "approved",
-          activity_at: "2026-07-29T01:55:00.000Z",
-          activity_provenance: "clinician_decision",
-          patient: { full_name: "Test Patient" },
-          service: { name: "Medical certificate", short_name: "Med cert", type: "med_certs" },
-        }]}
-      />,
+      <ApprovedTodayList intakes={[clinicianRow, autoIssuedRow]} />,
     )
 
-    expect(html).toContain('aria-label="Your approvals today"')
-    expect(html).toContain("Your approvals today")
-    expect(html).toContain("5m ago")
-    expect(html).not.toContain("Approved today")
+    expect(html).toContain("Auto-issued")
+    expect(html).toContain("Auto Patient")
+    // The split is explicit: protocol issuances are never absorbed into "yours".
+    expect(html).toContain("1 yours · 1 auto-issued")
+  })
+
+  it("omits the provenance split when nothing was auto-issued", () => {
+    const html = renderToStaticMarkup(<ApprovedTodayList intakes={[clinicianRow]} />)
+
+    expect(html).not.toContain("auto-issued")
+    expect(html).not.toContain("Auto-issued")
+  })
+
+  it("renders no attestation, deadline, or governance-window affordance", () => {
+    const html = renderToStaticMarkup(
+      <ApprovedTodayList intakes={[clinicianRow, autoIssuedRow]} />,
+    )
+
+    // The post-approval attestation obligation was removed 2026-08-04. This
+    // surface is a spot-check only; nothing here may nag or require clearing.
+    expect(html).not.toContain("Attest")
+    expect(html).not.toContain("governance window")
+    expect(html).not.toContain("awaiting")
+    expect(html).not.toContain("overdue")
   })
 
   it("labels a truncated approval slice as shown results, not the actor's total", () => {
     const intakes = ["one", "two"].map((id, index) => ({
+      ...clinicianRow,
       id,
       patient_id: `patient-${id}`,
-      status: "approved" as const,
       activity_at: new Date(Date.UTC(2026, 6, 29, 1, 55 - index)).toISOString(),
-      activity_provenance: "clinician_decision" as const,
       patient: { full_name: `Test Patient ${id}` },
-      service: { name: "Medical certificate", short_name: "Med cert", type: "med_certs" as const },
     }))
     const html = renderToStaticMarkup(
       <ApprovedTodayList intakes={intakes} historyTruncated />,
     )
 
-    expect(html).toContain('aria-label="Your latest approvals"')
-    expect(html).toContain("Your latest approvals")
+    expect(html).toContain('aria-label="Latest approvals"')
+    expect(html).toContain("Latest approvals")
     expect(html).toContain("2 shown")
-    expect(html).not.toContain("Your approvals today")
   })
 })

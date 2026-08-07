@@ -369,22 +369,32 @@ describe("project docs drift contract", () => {
     }
   })
 
-  it("documents post-auto-approval medical-certificate governance review with the cohort attestation policy", () => {
+  it("documents medical-certificate risk as gated before issuance, with no post-approval attestation", () => {
     const clinical = readProjectFile("docs/CLINICAL.md")
     const operations = readProjectFile("docs/OPERATIONS.md")
 
+    // Operator decision 2026-08-04: the 24h batch/cohort attestation window was
+    // removed. It only ever covered certificates that had already cleared every
+    // deterministic gate, so it added no clinical signal while paging the
+    // operator every 30 minutes once lapsed. The real control is the
+    // pre-issuance gate — keep the docs saying so.
+    expect(clinical).toContain("gated **before** issuance")
+    expect(clinical).toContain("DETERMINISTIC_FAILURE_PREFIXES")
+    expect(clinical).toContain("no post-approval attestation obligation")
+    expect(clinical).toContain("Revocation remains the standing correction path")
     expect(clinical).toContain("InstantMed governance control, not a statutory AHPRA requirement")
-    expect(clinical).toContain("reviewed with no change needed")
-    expect(clinical).toContain("revoked and returned to manual review")
-    // Operator decision 2026-07-22: cohort attestation replaced the
-    // per-certificate-only rule; revocation stays individual with a reason.
-    expect(clinical).toContain("cohort attestation")
-    expect(clinical).toContain("post_auto_approval_cohort_review")
-    expect(clinical).toContain("Revocation is always individual")
-    expect(architecture).toContain("getPendingBatchReviews")
-    expect(architecture).toContain("med_cert_batch_review_overdue")
-    expect(operations).toContain("Post-auto-approval doctor review")
-    expect(operations).toContain("aggregate-only alert payload")
+
+    expect(architecture).toContain("no post-approval attestation obligation")
+    expect(architecture).toContain('activity_provenance: "auto_issued"')
+
+    expect(operations).toContain("Auto-issued certificate oversight runbook")
+    expect(operations).toContain("no attestation obligation and no alert")
+
+    // The retired machinery must not creep back into the docs as live guidance.
+    for (const doc of [clinical, operations]) {
+      expect(doc).not.toContain("med_cert_batch_review_overdue")
+      expect(doc).not.toContain("cohort attestation")
+    }
   })
 
   it("keeps shared E2E fixture docs aligned with preserved canonical fixtures", () => {
@@ -424,7 +434,7 @@ describe("project docs drift contract", () => {
     expect(roadmap).toContain("Re-opened and repaired 2026-07-29")
     expect(roadmap).toContain("Automatic Gmail polling and support-inbox Telegram paging remain retired")
 
-    expect(operations).toContain("Every eligible auto-approved medical certificate enters post-approval doctor governance review")
+    expect(operations).toContain("Medical-certificate risk is gated **before** issuance")
     expect(operations).toContain("`docs/REVENUE_MODEL.md` owns the current hiring and capacity triggers")
     expect(operations).not.toContain("protocol automation with QA sampling")
     expect(operations).not.toContain("30-50 orders/day")

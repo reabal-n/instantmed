@@ -43,6 +43,10 @@ function createHarness(responses: QueryResponse[]) {
           calls.push(["or", ...args])
           return chain
         }),
+        not: vi.fn((...args: unknown[]) => {
+          calls.push(["not", ...args])
+          return chain
+        }),
         order: vi.fn((...args: unknown[]) => {
           calls.push(["order", ...args])
           return chain
@@ -94,6 +98,10 @@ function createFilteringHarness(sourceRows: Array<Record<string, unknown>>) {
         eq: vi.fn((column: string, value: unknown) => {
           calls.push(["eq", column, value])
           data = data.filter((candidate) => candidate[column] === value)
+          return chain
+        }),
+        not: vi.fn((...args: unknown[]) => {
+          calls.push(["not", ...args])
           return chain
         }),
         or: vi.fn((expression: string) => {
@@ -160,7 +168,6 @@ function row(
     patient_id: `patient-${id}`,
     status: "approved",
     reviewed_at: "2026-07-29T01:00:00.000Z",
-    batch_reviewed_at: null,
     patient: { full_name: `Patient ${id}` },
     service: { name: "Medical certificate", short_name: "Med cert", type: "med_certs" },
     ...overrides,
@@ -196,7 +203,6 @@ describe("getRecentlyCompletedIntakes", () => {
         patient: { full_name: "Patient manual" },
         service: { name: "Medical certificate", short_name: "Med cert", type: "med_certs" },
       }],
-      governanceReceipt: null,
       degraded: false,
       truncated: false,
     })
@@ -215,7 +221,7 @@ describe("getRecentlyCompletedIntakes", () => {
     ]))
   })
 
-  it("applies actor, time, and protocol-governance predicates to returned history", async () => {
+  it("applies actor and time predicates and omits auto-issued work by default", async () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date("2026-07-29T02:00:00.000Z"))
     const harness = createFilteringHarness([
@@ -229,21 +235,12 @@ describe("getRecentlyCompletedIntakes", () => {
         reviewed_by: "doctor-1",
         reviewed_at: "2026-07-29T01:05:00.000Z",
       }),
-      row("auto-without-receipt", {
-        ai_approved: true,
-        category: "medical_certificate",
-        reviewed_by: "doctor-1",
-        reviewed_at: "2026-07-29T01:10:00.000Z",
-        batch_reviewed_by: null,
-        batch_reviewed_at: null,
-      }),
-      row("governance-receipt", {
+      row("auto-issued", {
         ai_approved: true,
         category: "medical_certificate",
         reviewed_by: "system",
-        reviewed_at: "2026-07-29T00:30:00.000Z",
-        batch_reviewed_by: "doctor-1",
-        batch_reviewed_at: "2026-07-29T01:15:00.000Z",
+        reviewed_at: "2026-07-29T01:10:00.000Z",
+        ai_approved_at: "2026-07-29T01:10:00.000Z",
       }),
       row("other-actor", {
         ai_approved: false,
@@ -261,45 +258,78 @@ describe("getRecentlyCompletedIntakes", () => {
     const { getRecentlyCompletedIntakes } = await import("@/lib/data/intakes/queries")
     const result = await getRecentlyCompletedIntakes({ limit: 8, reviewerId: "doctor-1" })
 
+    // Without includeAutoIssued the protocol stream is never queried, so a
+    // non-admin doctor cannot see certificates they have no relationship to.
     expect(result.data.map((review) => review.id)).toEqual(["manual-false", "manual-null"])
-    expect(result.governanceReceipt).toEqual({
-      certificateCount: 1,
-      latestActivityAt: "2026-07-29T01:15:00.000Z",
-    })
+    expect(harness.queries).toHaveLength(1)
     expect(result.degraded).toBe(false)
     expect(result.truncated).toBe(false)
   })
 
-  it("uses the governance receipt timestamp for the signed-in reviewer", async () => {
-    const governance = {
-      batch_reviewed_at: "2026-07-29T01:45:00.000Z",
-      patient: { full_name: "Must not be selected" },
-    }
-    const harness = createHarness([
-      { data: [] },
-      { data: [governance], count: 6 },
+  it("merges auto-issued certificates into the day's stream when opted in", async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-07-29T02:00:00.000Z"))
+    const harness = createFilteringHarness([
+      row("manual-false", {
+        ai_approved: false,
+        reviewed_by: "doctor-1",
+        reviewed_at: "2026-07-29T01:05:00.000Z",
+      }),
+      row("auto-issued", {
+        ai_approved: true,
+        status: "approved",
+        category: "medical_certificate",
+        reviewed_by: null,
+        reviewed_at: null,
+        ai_approved_at: "2026-07-29T01:30:00.000Z",
+      }),
     ])
     mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
 
     const { getRecentlyCompletedIntakes } = await import("@/lib/data/intakes/queries")
-    const result = await getRecentlyCompletedIntakes({ limit: 8, reviewerId: "doctor-1" })
-
-    expect(result).toEqual({
-      data: [],
-      governanceReceipt: {
-        certificateCount: 6,
-        latestActivityAt: "2026-07-29T01:45:00.000Z",
-      },
-      degraded: false,
-      truncated: false,
+    const result = await getRecentlyCompletedIntakes({
+      limit: 8,
+      reviewerId: "doctor-1",
+      includeAutoIssued: true,
     })
 
-    const governanceQuery = harness.queries[1]!
-    const governanceSelect = governanceQuery.find(([method]) => method === "select")
-    expect(normalizeProjection(governanceSelect?.[1])).toBe("batch_reviewed_at")
-    expect(governanceSelect?.[2]).toEqual({ count: "exact" })
-    expect(governanceQuery).toContainEqual(["limit", 1])
-    expect(JSON.stringify(governanceQuery)).not.toContain("patient")
+    // Newest first across both streams, and provenance is never conflated.
+    expect(result.data.map((review) => [review.id, review.activity_provenance])).toEqual([
+      ["auto-issued", "auto_issued"],
+      ["manual-false", "clinician_decision"],
+    ])
+    expect(result.degraded).toBe(false)
+  })
+
+  it("scopes the auto-issued stream to today's delivered protocol certificates", async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-07-29T02:00:00.000Z"))
+    const harness = createHarness([
+      { data: [] },
+      { data: [] },
+    ])
+    mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
+
+    const { getRecentlyCompletedIntakes } = await import("@/lib/data/intakes/queries")
+    await getRecentlyCompletedIntakes({
+      limit: 8,
+      reviewerId: "doctor-1",
+      includeAutoIssued: true,
+    })
+
+    const autoIssued = harness.queries[1]!
+    expect(normalizeProjection(autoIssued.find(([method]) => method === "select")?.[1])).toBe(
+      "id,patient_id,status,ai_approved_at,patient:profiles!patient_id(full_name),service:services!service_id(name,type,short_name)",
+    )
+    expect(autoIssued).toEqual(expect.arrayContaining([
+      ["eq", "ai_approved", true],
+      // Only delivered certificates: a revoked/reopened intake is queue work.
+      ["eq", "status", "approved"],
+      ["gte", "ai_approved_at", expect.any(String)],
+      ["order", "ai_approved_at", { ascending: false }],
+    ]))
+    // No attestation predicate survives: the obligation was removed 2026-08-04.
+    expect(JSON.stringify(autoIssued)).not.toContain("batch_reviewed")
   })
 
   it.each([
@@ -323,13 +353,17 @@ describe("getRecentlyCompletedIntakes", () => {
     mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
 
     const { getRecentlyCompletedIntakes } = await import("@/lib/data/intakes/queries")
-    await getRecentlyCompletedIntakes({ limit: 8, reviewerId: "doctor-1" })
+    await getRecentlyCompletedIntakes({
+      limit: 8,
+      reviewerId: "doctor-1",
+      includeAutoIssued: true,
+    })
 
     expect(harness.queries[0]).toContainEqual(["gte", "reviewed_at", expectedStart])
-    expect(harness.queries[1]).toContainEqual(["gte", "batch_reviewed_at", expectedStart])
+    expect(harness.queries[1]).toContainEqual(["gte", "ai_approved_at", expectedStart])
   })
 
-  it("caps clinician decisions independently while preserving the exact governance count", async () => {
+  it("caps the merged stream and reports truncation", async () => {
     const harness = createHarness([
       {
         data: [
@@ -338,10 +372,6 @@ describe("getRecentlyCompletedIntakes", () => {
           row("manual-a", { reviewed_at: "2026-07-29T01:00:00.000Z" }),
           row("manual-oldest", { reviewed_at: "2026-07-29T00:30:00.000Z" }),
         ],
-      },
-      {
-        data: [{ batch_reviewed_at: "2026-07-29T03:00:00.000Z" }],
-        count: 7,
       },
     ])
     mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
@@ -354,28 +384,23 @@ describe("getRecentlyCompletedIntakes", () => {
       "manual-z",
       "manual-a",
     ])
-    expect(result.governanceReceipt).toEqual({
-      certificateCount: 7,
-      latestActivityAt: "2026-07-29T03:00:00.000Z",
-    })
     expect(result.truncated).toBe(true)
     expect(harness.queries[0]).toContainEqual(["limit", 4])
-    expect(harness.queries[1]).toContainEqual(["limit", 1])
   })
 
   it.each([
     {
-      name: "ordinary decision query",
+      name: "clinician decision query",
       responses: [
         { data: [], error: { message: "ordinary failed" } },
-        { data: [{ batch_reviewed_at: "2026-07-29T03:00:00.000Z" }], count: 1 },
+        { data: [row("auto", { ai_approved_at: "2026-07-29T03:00:00.000Z" })] },
       ],
     },
     {
-      name: "governance query",
+      name: "auto-issued query",
       responses: [
         { data: [row("manual")] },
-        { data: [], error: { message: "governance failed" } },
+        { data: [], error: { message: "auto-issued failed" } },
       ],
     },
   ])("returns no partial history when the $name fails", async ({ responses }) => {
@@ -383,9 +408,12 @@ describe("getRecentlyCompletedIntakes", () => {
     mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
 
     const { getRecentlyCompletedIntakes } = await import("@/lib/data/intakes/queries")
-    await expect(getRecentlyCompletedIntakes({ limit: 8, reviewerId: "doctor-1" })).resolves.toEqual({
+    await expect(getRecentlyCompletedIntakes({
+      limit: 8,
+      reviewerId: "doctor-1",
+      includeAutoIssued: true,
+    })).resolves.toEqual({
       data: [],
-      governanceReceipt: null,
       degraded: true,
       truncated: false,
     })

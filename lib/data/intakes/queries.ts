@@ -3,10 +3,6 @@ import "server-only"
 import { unstable_cache } from "next/cache"
 
 import {
-  BATCH_REVIEW_ELIGIBLE_STATUSES,
-  BATCH_REVIEW_ENFORCEMENT_START,
-} from "@/lib/clinical/batch-review-policy"
-import {
   ADMIN_LEDGER_PATIENT_SEARCH_FIELDS,
   type AdminLedgerQuickFilterValue,
   buildAdminLedgerSearchOr,
@@ -47,7 +43,6 @@ import { readAnswers, readDoctorNotes, readPatientNoteContent } from "@/lib/secu
 import type { AdminServiceFilterValue } from "@/lib/services/service-presentation"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type {
-  GovernanceReviewReceipt,
   IntakeStatus,
   IntakeWithDetails,
   IntakeWithPatient,
@@ -640,86 +635,6 @@ export interface DoctorQueueResult {
   searchState: DoctorQueueSearchState
   oldestWaitingEnteredAt: string | null
   oldestWaitingIntakeId: string | null
-}
-
-export interface PendingBatchReviewResult {
-  data: IntakeWithPatient[]
-  total: number
-  oldestApprovedAt: string | null
-  degraded: boolean
-}
-
-/**
- * Read the unresolved post-auto-approval medical-certificate review queue.
- * The first row is always the oldest review obligation so the cockpit can
- * drive one certificate at a time.
- */
-export async function getPendingBatchReviews(
-  options?: { limit?: number }
-): Promise<PendingBatchReviewResult> {
-  const supabase = createServiceRoleClient()
-  const limit = Math.max(1, Math.min(options?.limit ?? 20, 100))
-
-  try {
-    const { data, count, error } = await filterSeededE2EIntakes(supabase
-      .from("intakes")
-      .select(`
-        id,
-        reference_number,
-        patient_id,
-        service_id,
-        category,
-        subtype,
-        status,
-        payment_status,
-        is_priority,
-        sla_deadline,
-        approved_at,
-        created_at,
-        updated_at,
-        ai_approved,
-        ai_approved_at,
-        ai_approval_reason,
-        batch_reviewed_at,
-        batch_reviewed_by,
-        patient:profiles!patient_id (id, full_name, email, date_of_birth),
-        service:services!service_id (id, name, short_name, type, slug)
-      `, { count: "exact" })
-      .eq("ai_approved", true)
-      .eq("category", "medical_certificate")
-      .in("status", [...BATCH_REVIEW_ELIGIBLE_STATUSES])
-      .gte("ai_approved_at", BATCH_REVIEW_ENFORCEMENT_START)
-      .is("batch_reviewed_at", null))
-      .order("ai_approved_at", { ascending: true, nullsFirst: false })
-      .limit(limit)
-
-    if (error) {
-      logger.warn("Pending batch-review queue could not load", { error: error.message })
-      return { data: [], total: 0, oldestApprovedAt: null, degraded: true }
-    }
-
-    const unwrapped = (data || []).map((row) => ({
-      ...row,
-      patient: Array.isArray(row.patient) ? row.patient[0] : row.patient,
-      service: Array.isArray(row.service) ? row.service[0] : row.service,
-    }))
-    const validData = unwrapped.filter((row) => row.patient !== null) as unknown as IntakeWithPatient[]
-    // Derive "oldest" from the openable rows, not the raw first row: the banner
-    // age and the "review oldest" target must describe the same intake.
-    const oldestApprovedAt = typeof validData[0]?.ai_approved_at === "string"
-      ? validData[0].ai_approved_at
-      : null
-
-    return {
-      data: validData,
-      total: count ?? validData.length,
-      oldestApprovedAt,
-      degraded: false,
-    }
-  } catch (err) {
-    logger.warn("Pending batch-review queue failed", { error: toError(err).message })
-    return { data: [], total: 0, oldestApprovedAt: null, degraded: true }
-  }
 }
 
 /**
@@ -1486,16 +1401,27 @@ export async function getFormToInboxStats(opts: {
 }
 
 /**
- * Get the signed-in clinician's decisions plus an identity-free aggregate of
- * post-issuance governance work for the unified staff cockpit. Cohort
- * governance must never be serialized as a per-patient clinician decision.
+ * Today's decision stream for the staff cockpit: the signed-in clinician's own
+ * approvals/declines, plus — for operators who can see them — the certificates
+ * the auto-approval protocol issued today.
+ *
+ * Auto-issued rows are a spot-check surface, not an obligation. They carry
+ * `activity_provenance: "auto_issued"` so the UI can never present a protocol
+ * issuance as a clinician's own decision. There is no attestation, deadline, or
+ * alert attached to them (operator decision 2026-08-04): risk is gated BEFORE
+ * issuance by `DETERMINISTIC_FAILURE_PREFIXES`, and revoke remains the
+ * correction path for anything that looks wrong on review.
+ *
+ * `includeAutoIssued` is caller-supplied because auto-issued certificates have
+ * no reviewing doctor, so they fall outside the per-doctor patient-access
+ * boundary. Pass it only for operators with admin access.
  */
 export async function getRecentlyCompletedIntakes(opts: {
   limit?: number
   reviewerId: string
+  includeAutoIssued?: boolean
 }): Promise<{
   data: RecentlyCompletedIntake[]
-  governanceReceipt: GovernanceReviewReceipt | null
   degraded: boolean
   truncated: boolean
 }> {
@@ -1520,37 +1446,44 @@ export async function getRecentlyCompletedIntakes(opts: {
       .gte("reviewed_at", todayStartISO)
       .eq("reviewed_by", opts.reviewerId)
       // Legacy manual decisions may have NULL here. Only explicit TRUE marks
-      // protocol issuance, which belongs in the governance stream below.
+      // protocol issuance, which is read by the auto-issued stream below.
       .or("ai_approved.is.false,ai_approved.is.null")
       .order("reviewed_at", { ascending: false })
       .limit(queryLimit)
 
-    const governanceQuery = supabase
-      .from("intakes")
-      .select("batch_reviewed_at", { count: "exact" })
-      .eq("ai_approved", true)
-      .eq("category", "medical_certificate")
-      .eq("batch_reviewed_by", opts.reviewerId)
-      .gte("batch_reviewed_at", todayStartISO)
-      .order("batch_reviewed_at", { ascending: false })
-      .limit(1)
+    // Seeded E2E rows must never enter the operator's real daily review list:
+    // unlike the actor-scoped stream above, this one has no reviewer predicate
+    // to keep test data out on its own.
+    const autoIssuedQuery = opts.includeAutoIssued
+      ? filterSeededE2EIntakes(supabase
+          .from("intakes")
+          .select(`
+            id,
+            patient_id,
+            status,
+            ai_approved_at,
+            patient:profiles!patient_id(full_name),
+            service:services!service_id(name, type, short_name)
+          `)
+          .eq("ai_approved", true)
+          .eq("status", "approved")
+          .gte("ai_approved_at", todayStartISO))
+          .order("ai_approved_at", { ascending: false })
+          .limit(queryLimit)
+      : null
 
-    const [ordinaryResult, governanceResult] = await Promise.all([
+    const [ordinaryResult, autoIssuedResult] = await Promise.all([
       ordinaryQuery,
-      governanceQuery,
+      autoIssuedQuery ?? Promise.resolve({ data: [], error: null }),
     ])
 
-    if (
-      ordinaryResult.error ||
-      governanceResult.error ||
-      typeof governanceResult.count !== "number"
-    ) {
-      logger.error("Failed to fetch actor-scoped review history", {
+    if (ordinaryResult.error || autoIssuedResult.error) {
+      logger.error("Failed to fetch today's decision history", {
         ordinaryError: ordinaryResult.error?.message ?? null,
-        governanceError: governanceResult.error?.message ?? null,
+        autoIssuedError: autoIssuedResult.error?.message ?? null,
       })
       // A partial stream is not a truthful review history.
-      return { data: [], governanceReceipt: null, degraded: true, truncated: false }
+      return { data: [], degraded: true, truncated: false }
     }
 
     type RelatedPatient = RecentlyCompletedIntake["patient"]
@@ -1563,47 +1496,46 @@ export async function getRecentlyCompletedIntakes(opts: {
       service: RelatedService | RelatedService[] | null
     }
     type OrdinaryRow = BaseRow & { reviewed_at: string | null }
-    const normalize = (row: OrdinaryRow): RecentlyCompletedIntake | null => {
+    type AutoIssuedRow = BaseRow & { ai_approved_at: string | null }
+
+    const normalize = (
+      row: BaseRow,
+      activityAt: string | null,
+      provenance: RecentlyCompletedIntake["activity_provenance"],
+    ): RecentlyCompletedIntake | null => {
       const patient = Array.isArray(row.patient) ? row.patient[0] : row.patient
       const service = Array.isArray(row.service) ? row.service[0] : row.service
-      if (!patient || !row.reviewed_at) return null
+      if (!patient || !activityAt) return null
 
       return {
         id: row.id,
         patient_id: row.patient_id,
         status: row.status,
-        activity_at: row.reviewed_at,
-        activity_provenance: "clinician_decision",
+        activity_at: activityAt,
+        activity_provenance: provenance,
         patient,
         service: service ?? null,
       }
     }
 
     const ordinary = ((ordinaryResult.data || []) as unknown as OrdinaryRow[])
-      .map((row) => normalize(row))
+      .map((row) => normalize(row, row.reviewed_at, "clinician_decision"))
       .filter((row): row is RecentlyCompletedIntake => row !== null)
-    const governanceCount = governanceResult.count
-    const latestGovernanceAt = (governanceResult.data?.[0] as {
-      batch_reviewed_at?: string | null
-    } | undefined)?.batch_reviewed_at ?? null
-    if (governanceCount > 0 && !latestGovernanceAt) {
-      logger.error("Governance receipt count returned without a receipt timestamp", {
-        governanceCount,
-      })
-      return { data: [], governanceReceipt: null, degraded: true, truncated: false }
-    }
+    const autoIssued = ((autoIssuedResult.data || []) as unknown as AutoIssuedRow[])
+      .map((row) => normalize(row, row.ai_approved_at, "auto_issued"))
+      .filter((row): row is RecentlyCompletedIntake => row !== null)
 
-    const truncated = ordinary.length > limit
-    const data = ordinary.slice(0, limit)
-    const governanceReceipt = governanceCount > 0 && latestGovernanceAt
-      ? { certificateCount: governanceCount, latestActivityAt: latestGovernanceAt }
-      : null
+    const merged = [...ordinary, ...autoIssued].sort((a, b) =>
+      b.activity_at.localeCompare(a.activity_at),
+    )
+    const truncated = merged.length > limit
+    const data = merged.slice(0, limit)
 
-    return { data, governanceReceipt, degraded: false, truncated }
+    return { data, degraded: false, truncated }
   } catch (error) {
-    logger.error("Actor-scoped review history query failed", {
+    logger.error("Today's decision history query failed", {
       error: toError(error).message,
     })
-    return { data: [], governanceReceipt: null, degraded: true, truncated: false }
+    return { data: [], degraded: true, truncated: false }
   }
 }

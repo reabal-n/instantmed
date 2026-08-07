@@ -20,9 +20,7 @@ export {
   getPatientIntakes,
   getPatientNoteCount,
   getPatientNotes,
-  getPendingBatchReviews,
   getRecentlyCompletedIntakes,
-  type PendingBatchReviewResult,
 } from "./queries"
 
 // Mutations (server-only)

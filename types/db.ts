@@ -340,15 +340,15 @@ export type RecentlyCompletedIntake = Pick<
   "id" | "patient_id" | "status"
 > & {
   activity_at: string
-  activity_provenance: "clinician_decision"
+  /**
+   * `clinician_decision` = the signed-in doctor approved/declined it.
+   * `auto_issued` = the auto-approval protocol issued it with no doctor in the
+   * loop. The UI must keep these visually distinct so a protocol issuance is
+   * never presented as a clinician's own decision.
+   */
+  activity_provenance: "clinician_decision" | "auto_issued"
   patient: Pick<Profile, "full_name">
   service?: Pick<Service, "name" | "short_name" | "type"> | null
-}
-
-/** Identity-free receipt for the signed-in doctor's post-issuance governance work. */
-export interface GovernanceReviewReceipt {
-  certificateCount: number
-  latestActivityAt: string
 }
 
 export interface IntakeWithDetails extends Intake {
