@@ -430,6 +430,32 @@ describe("repeat script schema — dedicated-service routing", () => {
     }))).toEqual({ valid: true })
   })
 
+  it("ACCEPTS an unrelated repeat whose indication merely mentions a condition", () => {
+    // The server is the authority for checkout eligibility. A statin must pass
+    // even when the patient mentions erectile dysfunction in the indication.
+    expect(validateRepeatScriptPayload(repeatFor({
+      medication_name: "Atorvastatin",
+      medication_display: "Atorvastatin",
+      medication_strength: "20 mg",
+      indication: "cholesterol, I also have erectile dysfunction",
+    }))).toEqual({ valid: true })
+  })
+
+  it("does not let a denial unlock the generic lane at checkout", () => {
+    for (const [name, indication] of [
+      ["Finasteride", "no high blood pressure"],
+      ["Minoxidil", "not BPH"],
+    ] as const) {
+      const result = validateRepeatScriptPayload(repeatFor({
+        medication_name: name,
+        medication_display: name,
+        medication_strength: "1 mg",
+        indication,
+      }))
+      expect(result, `${name} | ${indication}`).toMatchObject({ valid: false, requiresConsult: true })
+    }
+  })
+
   it("blocks the ED service named only in the indication answer", () => {
     const result = validateRepeatScriptPayload(repeatFor({
       medication_name: "Silagra",

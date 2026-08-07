@@ -127,6 +127,10 @@ export async function runClinicalValidation(
         await recordSafetyEvaluationForOperators({
           answers: input.answers,
           context: "checkout",
+          // Correlates the receipt to the attempt. No intake row exists yet at
+          // this point, so the flow instance is the only privacy-safe handle —
+          // without it every refusal shares one generic session id.
+          requestId: input.flowInstanceId ?? undefined,
           result: {
             isAllowed: false,
             outcome: "DECLINE",
