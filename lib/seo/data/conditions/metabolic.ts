@@ -691,11 +691,10 @@ export const metabolicConditions: Record<string, ConditionData> = {
     ],
     canWeHelp: {
       yes: [
-        "Assessment of weight management options",
+        "General education about evidence-based weight management approaches",
         "Discussion of lifestyle modification strategies",
-        "Prescription of weight management medications where clinically appropriate",
-        "Ongoing monitoring and dose adjustments",
-        "Referral to dietitian, exercise physiologist, or bariatric specialist",
+        "Guidance on when GP or specialist review is the right next step",
+        "Referral guidance toward dietitian, exercise physiologist, or bariatric services",
       ],
       no: [
         "Bariatric surgery assessment (requires surgical team)",
@@ -707,7 +706,7 @@ export const metabolicConditions: Record<string, ConditionData> = {
     commonQuestions: [
       {
         q: "Can I get weight loss medication online?",
-        a: "Prescription weight management medications can be prescribed via telehealth when clinically appropriate -- typically for BMI 30+ or BMI 27+ with weight-related health conditions. Your doctor will assess your medical history, current medications, and suitability. Telehealth cannot prescribe for cosmetic weight loss in people with normal BMI.",
+        a: "Some Australian telehealth providers prescribe weight management medication when clinically appropriate -- typically for BMI 30+ or BMI 27+ with weight-related health conditions, and never for cosmetic weight loss at a normal BMI. InstantMed is not currently accepting weight-management treatment requests; your regular GP is the right starting point, and they can assess your history, current medicines, and suitability in person.",
       },
       {
         q: "What weight loss medications are available in Australia?",
