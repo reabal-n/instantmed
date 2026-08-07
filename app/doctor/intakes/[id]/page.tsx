@@ -4,6 +4,7 @@ import { getAIDraftsForIntake } from "@/app/actions/drafts/draft-retrieval"
 import { getPendingDateCorrection } from "@/app/actions/request-date-correction"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { requireRole } from "@/lib/auth/helpers"
+import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails, getNextQueueIntakeId, getPatientIntakes, getPatientNotes } from "@/lib/data/intakes"
 import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
@@ -95,6 +96,7 @@ export default async function DoctorIntakeDetailPage({
       pendingCorrection={pendingCorrection}
       followups={followups}
       certDelivery={certDelivery}
+      viewerCanRevokeAutoIssued={hasAdminAccess(profile)}
       parchmentEnabled={featureFlags.parchment_embedded_prescribing}
       patientMessages={patientMessages}
       patientNotes={patientNotes}

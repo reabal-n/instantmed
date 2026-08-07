@@ -115,7 +115,6 @@ interface IntakeReviewPanelProps {
    * unmount, so the parent should force-remount via `key={intakeId}`.
    */
   inline?: boolean
-  onBatchReviewResolved?: (intakeId: string) => void
   /** Updated queue-row revision used to refresh only the open review payload. */
   reviewRevision?: string | null
 }
@@ -171,7 +170,6 @@ export function IntakeReviewPanel({
   totalCases,
   profileMode = "doctor",
   inline = false,
-  onBatchReviewResolved,
   reviewRevision,
 }: IntakeReviewPanelProps) {
   useAuth()
@@ -703,7 +701,6 @@ export function IntakeReviewPanel({
 
             <IntakeReviewCockpit
               className={inline ? "min-h-0 flex-1" : undefined}
-              onBatchReviewResolved={onBatchReviewResolved}
             />
           </div>
         </IntakeReviewProvider>

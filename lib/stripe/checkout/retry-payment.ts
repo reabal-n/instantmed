@@ -20,6 +20,7 @@ import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import type { ServiceCategory } from "@/types/services"
 
 import { resolvePaymentRecoveryCanonicality } from "../canonical-payment-recovery"
@@ -242,6 +243,41 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
         ...(isKnownMissingInformationHold(hold)
           ? { paymentRecoveryReason: "more_information_required" as const }
           : {}),
+      }
+    }
+
+    // Repeat scripts must clear the same payload rules as a first attempt.
+    // Without this, a stored `checkout_failed` row created before a rule
+    // existed — a dedicated-service medicine, a new medicine, a changed
+    // regimen — could mint a fresh Stripe session and pay straight past it.
+    if (
+      categoryForSafety === "prescription"
+      && (intake.subtype === "repeat" || intake.subtype === "chronic_review")
+    ) {
+      const repeatValidation = validateRepeatScriptPayload(intakeAnswers)
+      if (!repeatValidation.valid) {
+        logger.warn("Repeat-script validation blocked retry payment", {
+          intakeId,
+          requiresConsult: repeatValidation.requiresConsult === true,
+        })
+        await recordSafetyEvaluationForOperators({
+          answers: intakeAnswers,
+          context: "retry_payment",
+          requestId: intakeId,
+          result: {
+            isAllowed: false,
+            outcome: "DECLINE",
+            riskTier: "medium",
+            blockReason: repeatValidation.error || "Repeat request routed to another pathway.",
+            requiresCall: false,
+            triggeredRuleIds: ["repeat_script_payload_invalid"],
+          },
+          serviceSlug: serviceSlugForSafety,
+        })
+        return {
+          success: false,
+          error: repeatValidation.error || "This request cannot be processed online.",
+        }
       }
     }
 

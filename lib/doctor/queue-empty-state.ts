@@ -3,10 +3,7 @@ import {
   STAFF_IDENTITY_HREF,
 } from "@/lib/dashboard/routes"
 import { buildReviewHistorySummary } from "@/lib/doctor/queue-utils"
-import type {
-  GovernanceReviewReceipt,
-  RecentlyCompletedIntake,
-} from "@/types/db"
+import type { RecentlyCompletedIntake } from "@/types/db"
 
 export interface QueueEmptyState {
   title: string
@@ -52,7 +49,6 @@ export function buildQueueEmptyState({
   searchState = "idle",
   baseHref,
   recentlyCompleted,
-  governanceReceipt,
   recentlyCompletedDegraded,
   recentlyCompletedTruncated,
   now,
@@ -65,7 +61,6 @@ export function buildQueueEmptyState({
   searchState?: "idle" | "ready" | "unavailable" | "too_broad"
   baseHref: string
   recentlyCompleted: RecentlyCompletedIntake[]
-  governanceReceipt: GovernanceReviewReceipt | null
   recentlyCompletedDegraded: boolean
   recentlyCompletedTruncated: boolean
   now: Date
@@ -166,7 +161,6 @@ export function buildQueueEmptyState({
     summary: buildReviewHistorySummary({
       reviews: recentlyCompleted,
       truncated: recentlyCompletedTruncated,
-      governanceReceipt,
       now,
     }),
   }

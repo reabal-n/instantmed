@@ -89,14 +89,15 @@ describe("doctor dashboard minimalism contract", () => {
     const queueClient = read("app/doctor/queue/queue-client.tsx")
     const queueEmptyState = read("lib/doctor/queue-empty-state.ts")
 
-    expect(source).toContain("getRecentlyCompletedIntakes({ limit: 50, reviewerId: profile.id })")
+    expect(source).toContain("reviewerId: profile.id")
     expect(source).not.toContain("isAdmin ? getRecentlyCompletedIntakes")
+    // Auto-issued certificates have no reviewing doctor, so the protocol stream
+    // stays admin-gated and never widens a doctor's patient-access boundary.
+    expect(source).toContain("includeAutoIssued: isAdmin && canReviewMedicalCertificates")
     expect(source).toContain("recentlyCompletedDegraded={recentlyCompletedResult.degraded}")
     expect(source).toContain("recentlyCompletedTruncated={recentlyCompletedResult.truncated}")
-    expect(source).toContain("governanceReceipt={recentlyCompletedResult.governanceReceipt}")
     expect(queueClient).toContain("recentlyCompletedDegraded")
     expect(queueClient).toContain("recentlyCompletedTruncated")
-    expect(queueClient).toContain("governanceReceipt")
     expect(queueEmptyState).toContain("Review history unavailable")
     expect(queueEmptyState).toContain("Refresh before relying on this view.")
   })
@@ -105,7 +106,10 @@ describe("doctor dashboard minimalism contract", () => {
     const compactList = read("components/doctor/approved-today-list.tsx")
     const alternateList = read("app/doctor/queue/queue-table.tsx")
 
-    expect(compactList).toContain("Your approvals today")
+    expect(compactList).toContain("Approved today")
+    // Protocol issuances are labelled and counted apart from the actor's own work.
+    expect(compactList).toContain("Auto-issued")
+    expect(compactList).toContain("yours ·")
     expect(alternateList).toContain("Your reviews today")
     expect(alternateList).toContain("reviewHistoryTruncated")
     expect(alternateList).toContain("shown")

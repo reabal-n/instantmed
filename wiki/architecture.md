@@ -6,12 +6,12 @@ This is a compact current map. `docs/ARCHITECTURE.md` remains the canonical deep
 
 | Area | Current count |
 |------|---------------|
-| `app/` | 555 files |
+| `app/` | 554 files |
 | Route-like files under `app/` | 239 |
 | API route files under `app/api/` | 89 |
 | Cron route files under `app/api/cron/` | 28 |
-| `components/` | 401 files |
-| `lib/` | 1,188 files |
+| `components/` | 400 files |
+| `lib/` | 1,184 files |
 | E2E TypeScript files under `e2e/` | 77 (68 specs) |
 | Health guide MDX files under `content/blog/` | 107 |
 | SQL migrations under `supabase/migrations/` | 109 |

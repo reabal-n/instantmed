@@ -9,11 +9,13 @@ const client = read("app/admin/analytics/analytics-client.tsx")
 const adsRuns = read("lib/ads-agent/runs.ts")
 
 describe("Business decision surface contract", () => {
-  it("is admin-only and assembles six bounded read-only evidence sources", () => {
+  it("is admin-only and assembles seven bounded read-only evidence sources", () => {
     expect(page).toContain('requireRole(["admin"])')
     expect(page).toContain("Promise.allSettled")
     expect(page).toContain("getRevenueDashboard")
     expect(page).toContain("getLatestDeliveredAdsAgentRun")
+    expect(page).toContain("getRecentDeliveredAdsAgentRunDailySpend")
+    expect(page).toContain("buildBusinessTrends")
     expect(page).toContain("getPostHogCanonicalIntakeFunnelSnapshot")
     expect(page).toContain("getRecordedAttributionBreakdown")
     expect(page).toContain("getHeardAboutUsBreakdown")
@@ -29,10 +31,14 @@ describe("Business decision surface contract", () => {
     expect(adsRuns).toContain("latest report that was actually delivered")
   })
 
-  it("keeps the default Business surface to four primary decision blocks", () => {
-    expect(client.match(/<DashboardCard/g)).toHaveLength(4)
+  it("keeps the default Business surface to five primary decision blocks", () => {
+    expect(client.match(/<DashboardCard/g)).toHaveLength(5)
     expect(client).toContain("Scale gate")
-    expect(client).toContain("30d net retained")
+    expect(client).toContain("Revenue &amp; profit")
+    expect(client).toContain("Daily net retained")
+    expect(client).toContain("Profit after ads &amp; payment fees")
+    expect(client).toContain("Ads performance")
+    expect(client).toContain("By campaign")
     expect(client).toContain("Canonical 30-day start cohort")
     expect(client).toContain("Recorded acquisition")
     expect(client).toContain("Self-reported discovery")

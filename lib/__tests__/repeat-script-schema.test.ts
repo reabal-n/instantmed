@@ -368,3 +368,101 @@ describe("repeat medication identity helpers", () => {
     expect(resolveRepeatMedicationCode("Rosuvastatin", "  ")).toBe("MANUAL")
   })
 })
+
+describe("repeat script schema — dedicated-service routing", () => {
+  function repeatFor(medication: Record<string, unknown>) {
+    return { ...validRepeatScriptAnswers, ...medication }
+  }
+
+  it("blocks a PDE5 inhibitor and points at the ED service", () => {
+    const result = validateRepeatScriptPayload(repeatFor({
+      medication_name: "Sildenafil",
+      medication_display: "Sildenafil",
+      medication_strength: "100 mg",
+    }))
+
+    expect(result).toMatchObject({ valid: false, requiresConsult: true })
+    expect(result.error).toMatch(/erectile dysfunction/i)
+  })
+
+  it("blocks a hair-loss medicine and points at the Hair Loss service", () => {
+    const result = validateRepeatScriptPayload(repeatFor({
+      medication_name: "Finasteride",
+      medication_display: "Finasteride",
+      medication_strength: "1 mg",
+    }))
+
+    expect(result).toMatchObject({ valid: false, requiresConsult: true })
+    expect(result.error).toMatch(/hair loss/i)
+  })
+
+  it("allows BPH-dose finasteride (a legitimate prostate repeat)", () => {
+    expect(validateRepeatScriptPayload(repeatFor({
+      medication_name: "Finasteride",
+      medication_display: "Finasteride",
+      medication_strength: "5 mg",
+    }))).toEqual({ valid: true })
+  })
+
+  it("allows a PDE5 inhibitor whose indication states BPH", () => {
+    expect(validateRepeatScriptPayload(repeatFor({
+      medication_name: "Tadalafil",
+      medication_display: "Tadalafil",
+      medication_strength: "5 mg",
+      indication: "BPH",
+    }))).toEqual({ valid: true })
+  })
+
+  it("allows a contraceptive repeat — soft enforcement is locked policy", () => {
+    expect(validateRepeatScriptPayload(repeatFor({
+      medication_name: "Levlen ED",
+      medication_display: "Levlen ED",
+      medication_strength: "150/30 mcg",
+    }))).toEqual({ valid: true })
+  })
+
+  it("allows a gated weight-loss-class medicine (flag-only, may be a diabetes repeat)", () => {
+    expect(validateRepeatScriptPayload(repeatFor({
+      medication_name: "Ozempic",
+      medication_display: "Ozempic",
+      medication_strength: "1 mg",
+      indication: "type 2 diabetes",
+    }))).toEqual({ valid: true })
+  })
+
+  it("ACCEPTS an unrelated repeat whose indication merely mentions a condition", () => {
+    // The server is the authority for checkout eligibility. A statin must pass
+    // even when the patient mentions erectile dysfunction in the indication.
+    expect(validateRepeatScriptPayload(repeatFor({
+      medication_name: "Atorvastatin",
+      medication_display: "Atorvastatin",
+      medication_strength: "20 mg",
+      indication: "cholesterol, I also have erectile dysfunction",
+    }))).toEqual({ valid: true })
+  })
+
+  it("does not let a denial unlock the generic lane at checkout", () => {
+    for (const [name, indication] of [
+      ["Finasteride", "no high blood pressure"],
+      ["Minoxidil", "not BPH"],
+    ] as const) {
+      const result = validateRepeatScriptPayload(repeatFor({
+        medication_name: name,
+        medication_display: name,
+        medication_strength: "1 mg",
+        indication,
+      }))
+      expect(result, `${name} | ${indication}`).toMatchObject({ valid: false, requiresConsult: true })
+    }
+  })
+
+  it("blocks the ED service named only in the indication answer", () => {
+    const result = validateRepeatScriptPayload(repeatFor({
+      medication_name: "Silagra",
+      medication_display: "Silagra",
+      indication: "erectile dysfunction",
+    }))
+
+    expect(result).toMatchObject({ valid: false, requiresConsult: true })
+  })
+})

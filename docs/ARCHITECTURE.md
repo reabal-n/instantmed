@@ -788,7 +788,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 555 files, 239 route files
+### `app/` — 554 files, 239 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -969,9 +969,9 @@ Partial index on actionable states only: `idx_intakes_auto_approval_active` on `
 | `lib/clinical/auto-approval-pipeline.ts` | Orchestrator: claim → eligibility → doctor select → execute → mark terminal state |
 | `lib/clinical/auto-approval.ts` | Eligibility engine (unchanged) |
 
-**Post-approval doctor oversight:** Auto-approval is not the end of the governance workflow. `getPendingBatchReviews()` reads unresolved auto-approved medical certificates oldest-first (`batch_reviewed_at IS NULL`) for staff who hold `review_med_certs`. The `/dashboard` banner exposes only the aggregate count and oldest age; opening the oldest certificate loads the normal clinical record and requires one explicit outcome. `markBatchReviewed()` compare-and-set stamps one eligible certificate and writes an `ai_audit_log` review receipt. `revokeAIApproval()` is the second valid outcome: it revokes the certificate, returns the intake to manual review, and stamps the same `batch_reviewed_at` / `batch_reviewed_by` receipt. The database permits that otherwise-forbidden `approved → in_review` reversal only when the original intake was AI-approved, a revoked issued-certificate row exists, and both batch-review receipt fields are present. There is no bulk action and no silent backfill.
+**Post-approval doctor oversight:** There is no post-approval attestation obligation (operator decision 2026-08-04). Risk is gated before issuance: `DETERMINISTIC_FAILURE_PREFIXES` routes every risk signal to `needs_doctor` for manual approval, so nothing reaches auto-issuance with an unreviewed risk flag. The former `getPendingBatchReviews()` queue, `markBatchReviewed()` / `markBatchReviewedCohort()` actions, dashboard attestation banner, `getBatchReviewHealth()` monitor, and the critical `med_cert_batch_review_overdue` alert were all removed.
 
-`getBatchReviewHealth()` supplies aggregate-only pending, overdue, and oldest-age values to `/api/cron/business-alerts`. The critical `med_cert_batch_review_overdue` metric is captured in Sentry without including intake IDs, patient IDs, or PHI.
+What remains is visibility plus correction. `getRecentlyCompletedIntakes({ includeAutoIssued })` merges the signed-in clinician's own decisions with the certificates the protocol issued today into one chronological dashboard list; auto-issued rows carry `activity_provenance: "auto_issued"` so they are rendered and counted separately from clinician decisions. `includeAutoIssued` is admin-gated because an auto-issued certificate has no reviewing doctor and so sits outside the per-doctor patient-access boundary, and the query applies `filterSeededE2EIntakes` since it has no reviewer predicate to keep seeded test rows out. `revokeAIApproval()` is the standing correction path: it revokes the certificate and returns the intake to manual review. The database permits that otherwise-forbidden `approved → in_review` reversal only when a revoked issued-certificate row exists. The `batch_reviewed_at` / `batch_reviewed_by` columns are retained as historical audit records and are no longer written.
 
 **Race condition handling:**
 

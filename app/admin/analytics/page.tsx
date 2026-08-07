@@ -1,4 +1,5 @@
 import { buildBusinessReadModel } from "@/lib/admin/business-read-model"
+import { buildBusinessTrends } from "@/lib/admin/business-trends"
 import { getHeardAboutUsBreakdown } from "@/lib/admin/heard-about-us-breakdown"
 import {
   buildUnavailableRecordedAttributionBreakdown,
@@ -8,7 +9,10 @@ import {
   buildDegradedReviewRequestFunnelSnapshot,
   getReviewRequestFunnelSnapshot,
 } from "@/lib/admin/review-request-funnel"
-import { getLatestDeliveredAdsAgentRun } from "@/lib/ads-agent/runs"
+import {
+  getLatestDeliveredAdsAgentRun,
+  getRecentDeliveredAdsAgentRunDailySpend,
+} from "@/lib/ads-agent/runs"
 import {
   buildUnavailablePostHogCanonicalIntakeFunnelSnapshot,
   getPostHogCanonicalIntakeFunnelSnapshot,
@@ -34,6 +38,7 @@ export default async function AnalyticsDashboardPage() {
     getRecordedAttributionBreakdown(supabase, { days: 30, now }),
     getHeardAboutUsBreakdown(supabase, { days: 30 }),
     getReviewRequestFunnelSnapshot(supabase, now),
+    getRecentDeliveredAdsAgentRunDailySpend(supabase),
   ])
 
   const revenueDashboard = reads[0].status === "fulfilled" ? reads[0].value : null
@@ -64,6 +69,16 @@ export default async function AnalyticsDashboardPage() {
         },
   })
 
+  const spendLedger = reads[6].status === "fulfilled"
+    ? reads[6].value
+    : { availability: "unavailable" as const, days: [], reason: "query_failed" as const }
+  const trends = buildBusinessTrends({
+    business,
+    revenue: revenueDashboard,
+    run: adsRun.run,
+    spendLedger,
+  })
+
   const data: BusinessPageData = {
     business,
     generatedAt: now.toISOString(),
@@ -88,6 +103,7 @@ export default async function AnalyticsDashboardPage() {
     reviewRequestFunnel: reads[5].status === "fulfilled"
       ? reads[5].value
       : buildDegradedReviewRequestFunnelSnapshot(now),
+    trends,
   }
 
   return <AnalyticsDashboardClient data={data} />

@@ -6,6 +6,7 @@ import {
 } from "@/lib/ads-agent/tracking-health"
 
 const greenFixture: TrackingHealthInput = {
+  accountStateReadable: true,
   autoTaggingEnabled: true,
   browserOrGa4PurchasePrimary: false,
   conversionLagImmature: false,
@@ -137,5 +138,57 @@ describe("Google Ads Agent tracking health", () => {
       scaleAllowed: false,
       state: "RED",
     })
+  })
+
+  it("reports an unreadable account state once instead of fabricating three account diagnoses", () => {
+    // 2026-07-31 regression: one ADMIN-only audit query (customer_user_access,
+    // added by #421) rejected the whole account-state read, and the classifier
+    // reported AUTO_TAGGING_DISABLED + FINAL_URL_SUFFIX_MISSING +
+    // PRIMARY_PURCHASE_ACTION_INVALID. All three were false — auto-tagging was
+    // enabled and the suffix was fully present throughout the outage.
+    const health = classifyTrackingHealth({
+      ...greenFixture,
+      accountStateReadable: false,
+      autoTaggingEnabled: false,
+      criticalInputsFresh: false,
+      criticalQueriesOk: false,
+      primaryPurchaseActionOk: false,
+      requiredFinalUrlSuffixPresent: false,
+    })
+
+    expect(health.state).toBe("RED")
+    expect(health.scaleAllowed).toBe(false)
+    expect(health.reasonCodes).toEqual([
+      "CRITICAL_INPUT_STALE",
+      "CRITICAL_QUERY_FAILED",
+      "ACCOUNT_STATE_UNREADABLE",
+    ])
+    expect(health.reasonCodes).not.toContain("AUTO_TAGGING_DISABLED")
+    expect(health.reasonCodes).not.toContain("FINAL_URL_SUFFIX_MISSING")
+    expect(health.reasonCodes).not.toContain("PRIMARY_PURCHASE_ACTION_INVALID")
+  })
+
+  it("still asserts genuine account faults when the account state was read", () => {
+    const health = classifyTrackingHealth({
+      ...greenFixture,
+      autoTaggingEnabled: false,
+      requiredFinalUrlSuffixPresent: false,
+    })
+
+    expect(health.reasonCodes).toEqual([
+      "AUTO_TAGGING_DISABLED",
+      "FINAL_URL_SUFFIX_MISSING",
+    ])
+    expect(health.reasonCodes).not.toContain("ACCOUNT_STATE_UNREADABLE")
+  })
+
+  it("degrades an optional audit-query failure to AMBER, never RED", () => {
+    const health = classifyTrackingHealth({
+      ...greenFixture,
+      optionalAccountQueryFailed: true,
+    })
+
+    expect(health.state).toBe("AMBER")
+    expect(health.reasonCodes).toEqual(["OPTIONAL_ACCOUNT_QUERY_FAILED"])
   })
 })
