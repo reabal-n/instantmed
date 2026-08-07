@@ -8,7 +8,7 @@ InstantMed Pty Ltd (ABN 64 694 559 334) is an Australian telehealth platform bas
 
 Patients can submit secure clinical forms for medical certificates, repeat prescriptions, men's health requests (ED and hair loss), and women's health requests (uncomplicated UTI, and starting or switching the contraceptive pill). AHPRA-registered doctors review requests and decide whether the request is clinically appropriate.
 
-InstantMed is not currently accepting weight-management treatment requests. The weight loss online page is an educational guide to safe Australian review boundaries, red flags, Medicare and PBS context, and appropriate alternatives. It does not open a weight-management checkout path.
+InstantMed accepts doctor-reviewed weight-management assessment requests (launched 2026-08-07; eligibility and safety screening first). The weight loss online page is an educational guide to safe Australian review boundaries, red flags, Medicare and PBS context, and appropriate alternatives. It does not open a weight-management checkout path.
 
 InstantMed is not a crisis, therapy, psychiatrist, or Mental Health Treatment Plan service. The mental health online page explains Australian crisis boundaries, GP and Medicare pathways, workplace certificate privacy, and when a short medical certificate review may be suitable. It does not advertise mental health treatment or prescribing access.
 

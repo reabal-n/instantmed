@@ -12,7 +12,7 @@ function read(path: string): string {
 }
 
 describe("/consult specialty-only services index contract", () => {
-  it("derives exactly the five active service actions from the canonical catalog", () => {
+  it("derives exactly the six active service actions from the canonical catalog", () => {
     const decisions = getActiveServiceDecisions()
 
     expect(decisions.map(({ id }) => id)).toEqual([
@@ -21,6 +21,7 @@ describe("/consult specialty-only services index contract", () => {
       "ed",
       "hair-loss",
       "womens-health",
+      "weight-loss",
     ])
     expect(decisions.map(({ requestHref }) => requestHref)).toEqual([
       "/request?service=med-cert",
@@ -28,6 +29,7 @@ describe("/consult specialty-only services index contract", () => {
       "/request?service=consult&subtype=ed",
       "/request?service=consult&subtype=hair_loss",
       "/request?service=consult&subtype=womens_health",
+      "/request?service=consult&subtype=weight_loss",
     ])
   })
 

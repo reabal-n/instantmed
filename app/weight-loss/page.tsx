@@ -1,29 +1,32 @@
 import type { Metadata } from "next"
-import { redirect } from "next/navigation"
+
+import { WeightLossClient } from "./weight-loss-client"
 
 export const metadata: Metadata = {
-  title: { absolute: "Available Services | InstantMed" },
+  title: "Weight Management Assessment Online | InstantMed",
   description:
-    "View the InstantMed services currently available online.",
+    "Doctor-reviewed weight-management assessment for eligible adults. Structured eligibility and safety screening first; a doctor calls when your history needs it.",
   robots: {
-    index: false,
-    follow: false,
+    index: true,
+    follow: true,
   },
   openGraph: {
-    title: "Available Services | InstantMed",
-    description: "View the InstantMed services currently available online.",
-    url: "https://instantmed.com.au/request",
+    title: "Weight Management Assessment Online | InstantMed",
+    description:
+      "Doctor-reviewed weight-management assessment with eligibility and safety screening first.",
+    url: "https://instantmed.com.au/weight-loss",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Available Services | InstantMed",
-    description: "View the InstantMed services currently available online.",
+    title: "Weight Management Assessment Online | InstantMed",
+    description:
+      "Doctor-reviewed weight-management assessment with eligibility and safety screening first.",
   },
   alternates: {
-    canonical: "https://instantmed.com.au/request",
+    canonical: "https://instantmed.com.au/weight-loss",
   },
 }
 
 export default function WeightLossPage() {
-  redirect("/request")
+  return <WeightLossClient />
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertTriangle, FileText, Loader2, Pill, Shield, Stethoscope, Wrench } from "lucide-react"
+import { AlertTriangle, FileText, Flame,Loader2, Pill, Shield, Stethoscope, Wrench } from "lucide-react"
 import type React from "react"
 
 import type { AutoApproveStats } from "@/app/actions/admin-config"
@@ -206,6 +206,16 @@ export function FeaturesList({
           saving={isSaving === FLAG_KEYS.DISABLE_CONSULTS}
           tone={flags.disable_consults ? "danger" : "success"}
           onCheckedChange={() => onToggleFlag(FLAG_KEYS.DISABLE_CONSULTS, flags.disable_consults)}
+        />
+        <CriticalSwitchCard
+          icon={Flame}
+          title="Weight management"
+          description={flags.disable_weight_loss ? "Weight management stopped" : "Weight management open"}
+          checked={!flags.disable_weight_loss}
+          disabled={isSaving === FLAG_KEYS.DISABLE_WEIGHT_LOSS}
+          saving={isSaving === FLAG_KEYS.DISABLE_WEIGHT_LOSS}
+          tone={flags.disable_weight_loss ? "danger" : "success"}
+          onCheckedChange={() => onToggleFlag(FLAG_KEYS.DISABLE_WEIGHT_LOSS, flags.disable_weight_loss)}
         />
       </div>
 

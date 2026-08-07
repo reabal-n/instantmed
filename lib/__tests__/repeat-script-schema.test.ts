@@ -443,12 +443,28 @@ describe("repeat script schema — dedicated-service routing", () => {
     }))).toEqual({ valid: true })
   })
 
-  it("allows a gated weight-loss-class medicine (flag-only, may be a diabetes repeat)", () => {
+  it("routes GLP-1 repeats through the live weight service unless diabetes is selected", () => {
+    // Service live 2026-08-07: no token (or a weight token) hard-routes...
+    expect(validateRepeatScriptPayload(repeatFor({
+      medication_name: "Ozempic",
+      medication_display: "Ozempic",
+      medication_strength: "1 mg",
+      indication: "weight loss",
+    }))).toMatchObject({ valid: false, requiresConsult: true })
+    // ...while the structured Type 2 diabetes selection keeps the repeat
+    // (the original D2 concern — diabetics must never be walled out).
     expect(validateRepeatScriptPayload(repeatFor({
       medication_name: "Ozempic",
       medication_display: "Ozempic",
       medication_strength: "1 mg",
       indication: "type 2 diabetes",
+      routing_context: "type_2_diabetes",
+    }))).toEqual({ valid: true })
+    // Weight-only out-of-scope medicines stay flag-only, never blocked (D-B).
+    expect(validateRepeatScriptPayload(repeatFor({
+      medication_name: "Phentermine",
+      medication_display: "Phentermine",
+      medication_strength: "30 mg",
     }))).toEqual({ valid: true })
   })
 

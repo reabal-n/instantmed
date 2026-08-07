@@ -50,7 +50,7 @@ app/request/page.tsx -> RequestFlow -> step-router.tsx (lazy) -> steps/*.tsx
 | `consult` (ED) | ed-goals, ed-assessment (IIEF-5), ed-health (consolidated safety + medical history), ed-preferences, details (+ height/weight/BMI), review, checkout |
 | `consult` (hair loss) | hair-loss-goals, hair-loss-assessment, hair-loss-health (consolidated safety + medical history), hair-loss-preferences, details, review, checkout |
 | `consult` (women's health) | womens-health-type, womens-health-assessment, medical-history, details, review, checkout. Live 2026-06-15; scoped to UTI + new/switch pill via `LIVE_WOMENS_HEALTH_OPTIONS` (`ocp_repeat` routes to repeat-script; morning-after / period-pain / "other" gated). |
-| `consult` (weight loss) | weight-loss-assessment, weight-loss-call-scheduling, medical-history, details, review, checkout. **Gated** — `weight_loss` is in `BLOCKED_CONSULT_SUBTYPES`; entry returns no steps until launch readiness changes. |
+| `consult` (weight management) | weight-loss-assessment, medical-history, details, review. **LIVE 2026-08-07** — form-first (the scheduled-call step was removed; eating-disorder/cardiac history soft-escalates to a doctor call), GLP-1-focused, BMI floors + pregnancy/MEN2/pancreatitis screening enforced via the `weight-management` safety slug. |
 
 **Adding steps:** (1) Create component in `components/request/steps/` implementing `StepProps`, (2) register lazy import in `step-router.tsx`, (3) add definition to `lib/request/step-registry.ts`. Steps support conditional skip via `getStepsForService(type, { isAuthenticated, hasProfile, hasMedicare, answers })`.
 

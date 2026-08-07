@@ -19,7 +19,7 @@ The business is built around one-off, clearly scoped services that can be delive
 |----------|------|
 | **Business model** | One-off transactions only for now. No subscriptions, memberships, bundles, or pharmacy fulfilment until deliberate expansion gates pass. |
 | **Active services** | Medical certificates, repeat prescriptions, erectile dysfunction, hair loss, and narrowly scoped women's health (UTI + new/switch contraceptive pill). |
-| **Gated/retired services** | Weight loss remains gated. General Consult is retired and cannot be used as a fallback route around structured screeners. |
+| **Gated/retired services** | Weight management launched 2026-08-07 as a structured, screened one-off assessment. General Consult is retired and cannot be used as a fallback route around structured screeners. |
 | **Fulfilment** | eScript token only for prescribing services. No owned pharmacy, delivery, inventory, or dispensing margin in this phase. |
 | **Moat** | No booking friction: patients start with a secure clinical form. A doctor may call or message whenever clinically needed. |
 | **Clinical control** | The website must never promise that prescribing requests will not need doctor contact. Eligible low-risk med-cert requests may use the logged, doctor-owned protocol described in `docs/CLINICAL.md`. |
@@ -39,7 +39,7 @@ This is the durable service hierarchy, not the current execution queue. `docs/RO
 | 4 | ED | Specialist line | High intent and higher AOV, with stricter contraindication, privacy, and advertising risk. |
 | 5 | Women's health | Narrow specialist line | UTI + new/switch pill only. Avoid broad "women's health clinic" positioning. |
 
-Weight loss is not part of the active hierarchy. It remains a reserved, gated subtype until clinical, monitoring, advertising, and staffing readiness are explicitly approved.
+Weight management joined the active hierarchy on 2026-08-07 (operator decisions D-A..D-E): one-off doctor-reviewed assessments only, GLP-1-focused, no subscriptions and no staff-heavy follow-up — continuation is a new patient-initiated consult. Paid advertising remains separately gated per docs/ADVERTISING_COMPLIANCE.md.
 
 General Consult was retired publicly on 2026-05-20. The `consult` service type stays in code as the parent category for ED, hair-loss, and women's-health subtypes only. `/consult` renders a services overview and `/general-consult` redirects to it. Cases outside the specialised service lines route to a GP or in-person care, not into a generic paid request.
 
@@ -102,7 +102,7 @@ The model works only while the platform reduces active doctor minutes per order 
 | Hair loss | One-off form-first doctor assessment. No subscription, outcome guarantee, or drug-name acquisition marketing. |
 | ED | One-off form-first doctor assessment with strict contraindication screening. |
 | Women's health | Narrowly scoped services only. Complex cases route to GP or in-person care. |
-| Weight loss | Gated. No paid requests or advertising until a deliberate launch decision changes the canon. |
+| Weight management | Live 2026-08-07 ($89.95 one-off assessment). Organic + existing-patient discovery only; paid advertising still requires its own explicit approval. |
 
 Future clinical capacity is added with `doctor` accounts and capability flags. Future non-clinical operations capacity is added with bounded `support` accounts. The security and access implementation is owned by `docs/SECURITY.md` and `docs/ARCHITECTURE.md`.
 
