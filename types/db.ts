@@ -472,6 +472,7 @@ export interface Profile {
   can_review_consults?: boolean | null
   can_review_ed?: boolean | null
   can_review_hair_loss?: boolean | null
+  can_review_weight_loss?: boolean | null
   can_prescribe_s4?: boolean | null
   can_prescribe_s8?: boolean | null
   // Consent and onboarding

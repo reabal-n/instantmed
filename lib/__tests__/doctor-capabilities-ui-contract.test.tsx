@@ -123,7 +123,7 @@ describe("Doctor capability registry contract", () => {
   // Reads back the capability metadata at module load to assert the ordered
   // list of labels matches the spec. We import the constants by parsing the
   // source so we never drift between the rendered UI and this test.
-  it("declares the seven capability flags in the documented order with the documented labels", async () => {
+  it("declares the eight capability flags in the documented order with the documented labels", async () => {
     const fs = await import("node:fs")
     const path = await import("node:path")
     const source = fs.readFileSync(
@@ -145,6 +145,7 @@ describe("Doctor capability registry contract", () => {
       "can_review_consults",
       "can_review_ed",
       "can_review_hair_loss",
+      "can_review_weight_loss",
       "can_prescribe_s4",
       "can_prescribe_s8",
     ])
@@ -156,6 +157,7 @@ describe("Doctor capability registry contract", () => {
       "Review consults",
       "Review ED consults",
       "Review hair loss consults",
+      "Review weight-management consults",
       "Prescribe Schedule 4 (PBS-listed)",
       "Prescribe Schedule 8 (controlled)",
     ])
@@ -164,7 +166,12 @@ describe("Doctor capability registry contract", () => {
     const restrictedKeys = Array.from(
       block.matchAll(/key:\s*"([^"]+)"[^}]*restricted:\s*true/g),
     ).map((m) => m[1])
-    expect(restrictedKeys).toEqual(["can_prescribe_s8"])
+    expect(restrictedKeys).toEqual([
+      // Weight loss joins S8 as an explicit-grant line (Medical Director
+      // sign-off required — docs/DOCTOR_ONBOARDING.md).
+      "can_review_weight_loss",
+      "can_prescribe_s8",
+    ])
   })
 
   it("renders the AHPRA-restricted caution annotation source for S8", async () => {

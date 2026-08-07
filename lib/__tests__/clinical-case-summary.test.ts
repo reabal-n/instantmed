@@ -890,3 +890,65 @@ describe("buildClinicalCaseSummary", () => {
     })
   })
 })
+
+describe("weightLossSummary", () => {
+  const base = {
+    category: "consult",
+    subtype: "weight_loss",
+    serviceType: "consult",
+    patientName: "Test Patient",
+    patientAgeYears: 35,
+  } as const
+
+  it("recommends the prescribe pathway when screening is clear", () => {
+    const summary = buildClinicalCaseSummary({
+      ...base,
+      answers: {
+        weightKg: "100",
+        heightCm: "175",
+        targetWeight: "85",
+        previousAttempts: "diet_exercise",
+        eatingDisorderHistory: "no",
+        weight_pregnancy_status: "no",
+        weight_men2_thyroid_cancer: false,
+        weight_pancreatitis: false,
+        weightLossGoals: "Lose weight for health reasons and energy.",
+      },
+    })
+    expect(summary.title).toBe("Weight-management consult")
+    expect(summary.recommendedPlan.action).toBe("prescribe")
+    expect(summary.keyFacts.some((f) => f.label === "BMI" && f.value === "32.7")).toBe(true)
+    expect(summary.safetyItems).toHaveLength(0)
+  })
+
+  it("requires a call for eating-disorder history and never an async decision", () => {
+    const summary = buildClinicalCaseSummary({
+      ...base,
+      answers: {
+        weightKg: "100",
+        heightCm: "175",
+        eatingDisorderHistory: "yes",
+        weight_pregnancy_status: "no",
+        weight_men2_thyroid_cancer: false,
+        weight_pancreatitis: false,
+      },
+    })
+    expect(summary.recommendedPlan.action).toBe("needs_call")
+    expect(summary.safetyItems.some((i) => i.label === "Eating disorder history")).toBe(true)
+  })
+
+  it("renders a block-severity item when a server-declined answer somehow lands", () => {
+    const summary = buildClinicalCaseSummary({
+      ...base,
+      answers: {
+        weightKg: "100",
+        heightCm: "175",
+        weight_pregnancy_status: "yes",
+        weight_men2_thyroid_cancer: false,
+        weight_pancreatitis: false,
+      },
+    })
+    expect(summary.safetyItems.some((i) => i.severity === "block" && i.label === "Pregnant or breastfeeding")).toBe(true)
+  })
+})
+

@@ -13,6 +13,7 @@ type QueueCapabilityProfile = Pick<Profile, "role"> & Partial<
     | "can_review_consults"
     | "can_review_ed"
     | "can_review_hair_loss"
+    | "can_review_weight_loss"
   >
 >
 
@@ -73,13 +74,18 @@ export function buildDoctorQueueServiceFilter(
   if (consultFilter) {
     if (has(profile, "review_consults")) {
       terms.push(`and(${consultFilter},subtype.is.null)`)
-      terms.push(`and(${consultFilter},subtype.not.in.(ed,hair_loss))`)
+      // weight_loss is a RESTRICTED line (explicit grant + Medical Director
+      // sign-off) — the generic consults capability must not surface it.
+      terms.push(`and(${consultFilter},subtype.not.in.(ed,hair_loss,weight_loss))`)
     }
     if (has(profile, "review_ed")) {
       terms.push(`and(${consultFilter},subtype.eq.ed)`)
     }
     if (has(profile, "review_hair_loss")) {
       terms.push(`and(${consultFilter},subtype.eq.hair_loss)`)
+    }
+    if (has(profile, "review_weight_loss")) {
+      terms.push(`and(${consultFilter},subtype.eq.weight_loss)`)
     }
   }
 

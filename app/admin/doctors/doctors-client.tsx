@@ -88,6 +88,7 @@ interface DoctorProfile {
   can_review_consults?: boolean | null
   can_review_ed?: boolean | null
   can_review_hair_loss?: boolean | null
+  can_review_weight_loss?: boolean | null
   can_prescribe_s4?: boolean | null
   can_prescribe_s8?: boolean | null
   created_at: string
@@ -103,6 +104,7 @@ const CAPABILITY_LABELS: Array<{
   { key: "can_review_consults", label: "Review consults" },
   { key: "can_review_ed", label: "Review ED consults" },
   { key: "can_review_hair_loss", label: "Review hair loss consults" },
+  { key: "can_review_weight_loss", label: "Review weight-management consults", restricted: true },
   { key: "can_prescribe_s4", label: "Prescribe Schedule 4 (PBS-listed)" },
   { key: "can_prescribe_s8", label: "Prescribe Schedule 8 (controlled)", restricted: true },
 ]
@@ -113,6 +115,7 @@ const CAPABILITY_DEFAULTS: DoctorCapabilities = {
   can_review_consults: true,
   can_review_ed: true,
   can_review_hair_loss: true,
+  can_review_weight_loss: false,
   can_prescribe_s4: true,
   can_prescribe_s8: false,
 }
@@ -139,6 +142,10 @@ function resolveCapabilities(doctor: DoctorProfile): DoctorCapabilities {
       typeof doctor.can_review_hair_loss === "boolean"
         ? doctor.can_review_hair_loss
         : CAPABILITY_DEFAULTS.can_review_hair_loss,
+    can_review_weight_loss:
+      typeof doctor.can_review_weight_loss === "boolean"
+        ? doctor.can_review_weight_loss
+        : CAPABILITY_DEFAULTS.can_review_weight_loss,
     can_prescribe_s4:
       typeof doctor.can_prescribe_s4 === "boolean"
         ? doctor.can_prescribe_s4
