@@ -22,14 +22,40 @@ export interface BusinessRevenueEvidence {
 
 interface BusinessEconomics {
   adsNetRetainedCents: number | null
+  clicksTotal: number | null
   cpaCents: number | null
+  cpcCents: number | null
   firstOrderContributionCents: number | null
   netRetainedRoas: number | null
   spendCents: number | null
   stripeFeeCents: number | null
 }
 
+/**
+ * One campaign's rolling-30 economics, kept per row rather than only summed.
+ *
+ * The aggregate alone supports exactly one decision — all ads on, or all ads
+ * off — while the account's real question is which lane earns its spend. It
+ * also degrades per row: `aggregateCampaignEconomics` returns null for the
+ * whole account when a single campaign is incomplete, so one gap used to blank
+ * every economics figure on the page.
+ */
+export interface BusinessCampaignRow {
+  averageOrderCents: number | null
+  campaignId: string
+  campaignName: string
+  contributionCents: number | null
+  cpaCents: number | null
+  isEnabled: boolean
+  netRetainedCents: number | null
+  orders: number | null
+  spendCents: number | null
+  topServiceLabel: string | null
+  unavailableReasonCodes: string[]
+}
+
 export interface BusinessReadModel {
+  campaigns: BusinessCampaignRow[]
   economics: BusinessEconomics
   evidenceAgeHours: number | null
   evidenceAsOf: string | null
@@ -53,6 +79,22 @@ function finiteNumber(value: unknown): number | null {
 function roundRatio(numerator: number, denominator: number): number | null {
   if (denominator <= 0) return null
   return Math.round((numerator / denominator) * 100) / 100
+}
+
+/**
+ * Clicks entered the persisted snapshot on 2026-08-05. Older delivered runs
+ * simply lack the field, so clicks aggregate softly: any campaign without a
+ * finite click count yields null CPC without invalidating the rest of the
+ * economics aggregate the way the required fields below do.
+ */
+function softClicksTotal(campaigns: CampaignEconomics[]): number | null {
+  let total = 0
+  for (const campaign of campaigns) {
+    const clicks = finiteNumber(campaign.clicks)
+    if (clicks === null) return null
+    total += clicks
+  }
+  return total
 }
 
 function aggregateCampaignEconomics(
@@ -87,9 +129,16 @@ function aggregateCampaignEconomics(
     stripeFeeCents += campaignFees
   }
 
+  const clicksTotal = softClicksTotal(campaigns)
+
   return {
     adsNetRetainedCents,
+    clicksTotal,
     cpaCents: orders > 0 ? Math.round(spendCents / orders) : null,
+    cpcCents:
+      clicksTotal !== null && clicksTotal > 0
+        ? Math.round(spendCents / clicksTotal)
+        : null,
     firstOrderContributionCents:
       adsNetRetainedCents - stripeFeeCents - spendCents,
     netRetainedRoas: roundRatio(adsNetRetainedCents, spendCents),
@@ -97,6 +146,64 @@ function aggregateCampaignEconomics(
     spendCents,
     stripeFeeCents,
   }
+}
+
+const CAMPAIGN_SERVICE_LABELS: Record<string, string> = {
+  account: "Account",
+  ed: "ED",
+  hair_loss: "Hair loss",
+  med_certs: "Med certs",
+  scripts: "Scripts",
+  womens_health: "Women's health",
+}
+
+/** The service the campaign actually sold most of, for reading the lane's mix. */
+function topServiceLabel(serviceOrders: unknown): string | null {
+  if (!serviceOrders || typeof serviceOrders !== "object") return null
+  let bestKey: string | null = null
+  let bestCount = 0
+  for (const [key, value] of Object.entries(serviceOrders as Record<string, unknown>)) {
+    const count = finiteNumber(value)
+    if (count === null || count <= bestCount) continue
+    bestKey = key
+    bestCount = count
+  }
+  if (bestKey === null) return null
+  return CAMPAIGN_SERVICE_LABELS[bestKey] ?? bestKey
+}
+
+function buildCampaignRows(campaigns: CampaignEconomics[]): BusinessCampaignRow[] {
+  return campaigns
+    .filter((campaign) => campaign && typeof campaign === "object")
+    .map((campaign): BusinessCampaignRow => {
+      const orders = finiteNumber(campaign.orders)
+      const spendCents = finiteNumber(campaign.spendCents)
+      const netRetainedCents = finiteNumber(campaign.netRetainedRevenueCents)
+
+      return {
+        averageOrderCents:
+          orders !== null && orders > 0 && netRetainedCents !== null
+            ? Math.round(netRetainedCents / orders)
+            : null,
+        campaignId: String(campaign.campaignId ?? ""),
+        campaignName: campaign.campaignName || String(campaign.campaignId ?? "Unknown campaign"),
+        contributionCents: finiteNumber(campaign.contributionCents),
+        cpaCents:
+          orders !== null && orders > 0 && spendCents !== null
+            ? Math.round(spendCents / orders)
+            : null,
+        isEnabled: campaign.campaignStatus === "ENABLED",
+        netRetainedCents,
+        orders,
+        spendCents,
+        topServiceLabel: topServiceLabel(campaign.serviceOrders),
+        unavailableReasonCodes: Array.isArray(campaign.unavailableReasonCodes)
+          ? campaign.unavailableReasonCodes.map(String)
+          : [],
+      }
+    })
+    // Biggest spender first: that is where a correction is worth the most.
+    .sort((left, right) => (right.spendCents ?? -1) - (left.spendCents ?? -1))
 }
 
 function evidenceAgeHours(run: DeliveredAdsAgentRunEvidence, now: Date): number | null {
@@ -150,10 +257,16 @@ export function buildBusinessReadModel(args: {
         : "HOLD"
 
   return {
+    // Per-campaign rows survive staleness and partial availability: they are
+    // the evidence the operator reads to decide WHICH lane to change, and the
+    // page labels their age rather than hiding them.
+    campaigns: run ? buildCampaignRows(run.snapshot.rolling30) : [],
     economics: economics
       ? {
           adsNetRetainedCents: economics.adsNetRetainedCents,
+          clicksTotal: economics.clicksTotal,
           cpaCents: economics.cpaCents,
+          cpcCents: economics.cpcCents,
           firstOrderContributionCents: economics.firstOrderContributionCents,
           netRetainedRoas: economics.netRetainedRoas,
           spendCents: economics.spendCents,
@@ -161,7 +274,9 @@ export function buildBusinessReadModel(args: {
         }
       : {
           adsNetRetainedCents: null,
+          clicksTotal: null,
           cpaCents: null,
+          cpcCents: null,
           firstOrderContributionCents: null,
           netRetainedRoas: null,
           spendCents: null,

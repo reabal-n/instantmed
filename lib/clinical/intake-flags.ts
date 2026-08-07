@@ -45,10 +45,17 @@ export const INTAKE_FLAG_TAXONOMY = {
   medication_form_missing: { label: "Form not provided", severity: "attention" },
   dose_not_stated: { label: "Current dose not stated", severity: "attention" },
   medication_count_high: { label: "More than one medication requested", severity: "info" },
-  // A medicine with a dedicated service (hair loss / women's health) was entered
-  // into the generic repeat/prescription flow. The patient is steered in-form;
-  // this flag is the doctor-side backstop so the routing is never client-only.
+  // A medicine with a dedicated service (ED / hair loss / women's health) was
+  // entered into the generic repeat/prescription flow. The patient is steered
+  // in-form; this flag is the doctor-side backstop so the routing is never
+  // client-only. Also raised for a PDE5 inhibitor kept as a repeat on a stated
+  // BPH/PAH indication — legitimate, but self-reported, so the reviewer is told.
   dedicated_service_medication: { label: "Has a dedicated service pathway", severity: "attention" },
+  // A weight-loss-class medicine (GLP-1 / phentermine / orlistat) was requested
+  // as a repeat. The weight-loss service is gated, and several of these are
+  // also legitimate diabetes repeats — so this never blocks; the doctor decides
+  // with the stated indication in view. See lib/clinical/medication-service-routing.ts.
+  gated_service_medication: { label: "Weight-loss-class medicine (service gated)", severity: "attention" },
   // The paying patient shares a normalized name + exact DOB with a DIFFERENT
   // profile — likely the same person re-entering under a new email, which would
   // otherwise dodge every patient_id-keyed guard (repeat-within-7d, prior

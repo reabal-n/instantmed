@@ -46,6 +46,12 @@ export interface GoogleAdsAccountState {
   customerClientLinks: NormalizedGoogleAdsResource[]
   customerManagerLinks: NormalizedGoogleAdsResource[]
   customerUserAccess: NormalizedGoogleAdsResource[]
+  /**
+   * Optional (audit-only) sections whose query failed. Empty on a clean read.
+   * A non-empty list degrades tracking health to AMBER via
+   * `OPTIONAL_ACCOUNT_QUERY_FAILED`; it never rejects the account-state read.
+   */
+  optionalQueryFailures: string[]
   readAt: string
   responsiveSearchAds: NormalizedGoogleAdsResource[]
   sharedCriteria: NormalizedGoogleAdsResource[]
@@ -93,6 +99,24 @@ function gaql(args: {
  * The account-state read deliberately excludes search-query views, metrics
  * containing user input, click identifiers, and every InstantMed record.
  */
+/**
+ * Audit-only account-state sections. These inform the deep audit and operator
+ * reporting but no operating decision depends on them, so a failure must not
+ * reject the whole read.
+ *
+ * `customerUserAccess` is the reason this partition exists: the Google Ads API
+ * only serves `customer_user_access` to an identity with ADMIN access on the
+ * account. It was added to this read on 2026-07-31 (#421) and immediately took
+ * the entire account state down in production — where the agent's identity is
+ * not an account admin — which cascaded into five RED tracking reason codes,
+ * two of them provably false (auto-tagging and the final URL suffix were both
+ * healthy throughout). Six days of a stuck HOLD gate followed. Only add a key
+ * here when nothing in `classifyTrackingHealth` or the mutation policy reads it.
+ */
+const OPTIONAL_ACCOUNT_STATE_QUERIES: ReadonlySet<
+  keyof GoogleAdsAccountStateQueries
+> = new Set(["customerUserAccess"])
+
 export function buildGoogleAdsAccountStateQueries(): GoogleAdsAccountStateQueries {
   return {
     customer: gaql({
@@ -516,11 +540,24 @@ export async function getAdsAccountState(args: {
     keyof GoogleAdsAccountStateQueries,
     Record<string, unknown>[]
   >
+  const optionalQueryFailures: string[] = []
 
   // Sequential reads avoid a daily control-plane run causing an API burst.
-  // Any failed critical query rejects the full read and is classified RED by
+  // Any failed CRITICAL query rejects the full read and is classified RED by
   // the tracking-health layer rather than silently yielding an empty section.
+  // Optional sections (see OPTIONAL_ACCOUNT_STATE_QUERIES) degrade to empty
+  // and are reported instead, so an audit-only read can never take down the
+  // operating gate.
   for (const [key, query] of entries) {
+    if (OPTIONAL_ACCOUNT_STATE_QUERIES.has(key)) {
+      try {
+        rows[key] = await searchGoogleAds<Record<string, unknown>>(query)
+      } catch {
+        rows[key] = []
+        optionalQueryFailures.push(key)
+      }
+      continue
+    }
     rows[key] = await searchGoogleAds<Record<string, unknown>>(query)
   }
 
@@ -544,6 +581,7 @@ export async function getAdsAccountState(args: {
     customerClientLinks: normalizeRows(rows.customerClientLinks),
     customerManagerLinks: normalizeRows(rows.customerManagerLinks),
     customerUserAccess: normalizeRows(rows.customerUserAccess),
+    optionalQueryFailures,
     changeEvents: normalizeChangeEvents(rows.changeEvents),
   }
 }

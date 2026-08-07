@@ -86,13 +86,130 @@ describe("buildBusinessReadModel", () => {
     expect(model.scaleDecision).toBe("ACTION")
     expect(model.economics).toEqual({
       adsNetRetainedCents: 20_000,
+      clicksTotal: null,
       cpaCents: 1_200,
+      cpcCents: null,
       firstOrderContributionCents: 6_000,
       netRetainedRoas: 1.67,
       spendCents: 12_000,
       stripeFeeCents: 2_000,
     })
     expect(model.milestone?.activeMilestone.key).toBe("five_thousand")
+  })
+
+  it("exposes per-campaign rows that survive the partial availability which nulls the aggregate", () => {
+    const model = buildBusinessReadModel({
+      adsRun: {
+        availability: "available",
+        reason: null,
+        run: evidence({
+          rolling30: [
+            campaign({
+              campaignId: "1",
+              campaignName: "Med certs",
+              contributionCents: 500,
+              netRetainedRevenueCents: 28_000,
+              orders: 10,
+              serviceOrders: { med_certs: 9, scripts: 1 },
+              spendCents: 26_000,
+            }),
+            campaign({
+              campaignId: "2",
+              campaignName: "ED",
+              campaignStatus: "PAUSED",
+              contributionCents: 9_000,
+              netRetainedRevenueCents: 20_000,
+              orders: 4,
+              serviceOrders: { ed: 4 },
+              spendCents: 9_000,
+            }),
+            // One incomplete campaign nulls the whole aggregate...
+            campaign({
+              campaignId: "3",
+              campaignName: "Hair loss",
+              contributionCents: null,
+              spendCents: null,
+              unavailableReasonCodes: ["SPEND_UNAVAILABLE"],
+            }),
+          ],
+        }),
+      },
+      now: NOW,
+      revenue,
+    })
+
+    // ...but every row stays readable, biggest spender first.
+    expect(model.economics.firstOrderContributionCents).toBeNull()
+    expect(model.campaigns.map((row) => row.campaignName)).toEqual([
+      "Med certs",
+      "ED",
+      "Hair loss",
+    ])
+    expect(model.campaigns[0]).toMatchObject({
+      averageOrderCents: 2_800,
+      contributionCents: 500,
+      cpaCents: 2_600,
+      isEnabled: true,
+      topServiceLabel: "Med certs",
+    })
+    expect(model.campaigns[1]).toMatchObject({
+      cpaCents: 2_250,
+      isEnabled: false,
+      topServiceLabel: "ED",
+    })
+    expect(model.campaigns[2]).toMatchObject({
+      contributionCents: null,
+      cpaCents: null,
+      unavailableReasonCodes: ["SPEND_UNAVAILABLE"],
+    })
+  })
+
+  it("has no campaign rows when no delivered run exists", () => {
+    expect(buildBusinessReadModel({
+      adsRun: { availability: "unavailable", reason: "not_found", run: null },
+      now: NOW,
+      revenue,
+    }).campaigns).toEqual([])
+  })
+
+  it("derives CPC softly: click-carrying runs get spend ÷ clicks, older runs stay null without breaking the aggregate", () => {
+    const withClicks = buildBusinessReadModel({
+      adsRun: {
+        availability: "available",
+        reason: null,
+        run: evidence({
+          rolling30: [
+            campaign({ clicks: 400 }),
+            campaign({ campaignId: "2", campaignName: "Scripts", clicks: 200 }),
+          ],
+        }),
+      },
+      now: NOW,
+      revenue,
+    })
+
+    expect(withClicks.economics.clicksTotal).toBe(600)
+    expect(withClicks.economics.cpcCents).toBe(40)
+    expect(withClicks.economics.spendCents).toBe(24_000)
+
+    const mixed = buildBusinessReadModel({
+      adsRun: {
+        availability: "available",
+        reason: null,
+        run: evidence({
+          rolling30: [
+            campaign({ clicks: 400 }),
+            campaign({ campaignId: "2", campaignName: "Scripts" }),
+          ],
+        }),
+      },
+      now: NOW,
+      revenue,
+    })
+
+    expect(mixed.economics.clicksTotal).toBeNull()
+    expect(mixed.economics.cpcCents).toBeNull()
+    expect(mixed.economics.spendCents).toBe(24_000)
   })
 
   it("maps an evidence-complete investigation to CHECK", () => {

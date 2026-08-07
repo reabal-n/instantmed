@@ -637,6 +637,75 @@ test.describe("Prescription: checkout price verification", () => {
 })
 
 // ---------------------------------------------------------------------------
+// 5b · DEDICATED-SERVICE ROUTING - medicines that belong to another service
+// ---------------------------------------------------------------------------
+
+test.describe("Prescription: dedicated-service routing", () => {
+  const steerCta = /Continue in Erectile Dysfunction/i
+  const keepAsRepeat = /keep as repeat/i
+
+  test("a PDE5 inhibitor hard-steers into the ED service with no escape", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+    await waitForStep(page, /Your medication/i)
+
+    await page.locator("#medication-name-0").fill("Sildenafil")
+
+    await expect(page.getByRole("heading", { name: /Erectile Dysfunction has a dedicated service/i }))
+      .toBeVisible({ timeout: 10000 })
+    // Hard enforcement: the "keep as repeat" escape must NOT be offered.
+    await expect(page.getByRole("button", { name: keepAsRepeat })).toHaveCount(0)
+
+    await page.getByRole("button", { name: steerCta }).click()
+    await expect(page).toHaveURL(/service=consult&subtype=ed/)
+  })
+
+  test("a stated prostate indication keeps the repeat on the same screen", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+    await waitForStep(page, /Your medication/i)
+
+    await page.locator("#medication-name-0").fill("Tadalafil")
+    await expect(page.getByRole("button", { name: steerCta })).toBeVisible({ timeout: 10000 })
+
+    // The indication answer is part of the routing scan, so stating the real
+    // reason clears the steer without a dead end.
+    await page.getByRole("textbox", { name: /What is this medication for/i }).fill("BPH")
+    await expect(page.getByRole("button", { name: steerCta })).toHaveCount(0)
+  })
+
+  test("an unrelated repeat is never steered because the indication mentions a condition", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+    await waitForStep(page, /Your medication/i)
+
+    await page.locator("#medication-name-0").fill("Atorvastatin")
+    await page.getByRole("textbox", { name: /What is this medication for/i })
+      .fill("cholesterol, I also have erectile dysfunction")
+
+    // The medicine is not a PDE5 inhibitor, so this must never steer or block.
+    await expect(page.getByRole("button", { name: steerCta })).toHaveCount(0)
+  })
+
+  test("a contraceptive repeat keeps its explicit escape", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+    await waitForStep(page, /Your medication/i)
+
+    await page.locator("#medication-name-0").fill("Levlen")
+
+    await expect(page.getByRole("heading", { name: /Women's Health has a dedicated service/i }))
+      .toBeVisible({ timeout: 10000 })
+    // Soft enforcement: continuing the same pill is deliberately a cheap repeat.
+    await expect(page.getByRole("button", { name: keepAsRepeat })).toBeVisible()
+  })
+})
+
+// ---------------------------------------------------------------------------
 // 6 · RESPONSIVE - Mobile viewport
 // ---------------------------------------------------------------------------
 

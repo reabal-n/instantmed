@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest"
 
 import {
   buildRevenueDashboard,
+  buildTrendPeriods,
+  computeNetChangePct,
+  estimateStripeFeeCents,
   getRevenueDashboard,
   resolveRevenueDashboardSourceAvailability,
   REVENUE_ACTIVE_MILESTONE_CENTS,
@@ -237,6 +240,128 @@ describe("revenue dashboard read model", () => {
       orderCount: 1,
       refundCents: 2495,
     })
+  })
+
+  it("builds trend periods with prior-window deltas and same-time-yesterday pacing", () => {
+    // NOW = Sydney 18 Jun, 12:00 AEST. todayStart = 17 Jun 14:00Z.
+    const paidRows = [
+      paidRow({ id: "today", amount_cents: 4995, paid_at: "2026-06-18T01:00:00.000Z" }),
+      // Yesterday 08:00 Sydney — inside the same-time pacing window (< 12:00).
+      paidRow({ id: "yesterday-morning", amount_cents: 2995, paid_at: "2026-06-16T22:00:00.000Z" }),
+      // Yesterday 15:00 Sydney — after the pacing cutoff, still in the full day.
+      paidRow({ id: "yesterday-afternoon", amount_cents: 2495, paid_at: "2026-06-17T05:00:00.000Z" }),
+      paidRow({ id: "day-before", amount_cents: 1995, paid_at: "2026-06-16T01:00:00.000Z" }),
+    ]
+
+    const periods = buildTrendPeriods(paidRows, [], NOW)
+    const byKey = new Map(periods.map((period) => [period.key, period]))
+
+    expect(byKey.get("today")).toMatchObject({
+      netCents: 4995,
+      orderCount: 1,
+      priorNetCents: 2995,
+      netChangePct: 67,
+      comparisonLabel: "vs same time yesterday",
+    })
+    expect(byKey.get("yesterday")).toMatchObject({
+      netCents: 5490,
+      orderCount: 2,
+      priorNetCents: 1995,
+      netChangePct: 175,
+    })
+    expect(byKey.get("last7Days")).toMatchObject({
+      netCents: 12480,
+      orderCount: 4,
+      priorNetCents: 0,
+      netChangePct: null,
+    })
+    expect(byKey.get("last30Days")?.netChangePct).toBeNull()
+  })
+
+  it("snaps the prior-7-day boundary to a true Sydney midnight across the AEDT transition", () => {
+    // Sydney 15 Oct 2026, 13:00 AEDT — daylight saving began 4 Oct, so the
+    // prior week crosses the transition. Flat 7-day subtraction from
+    // last7DaysStart lands at 23:00 local on 1 Oct; the snapped boundary is
+    // midnight 2 Oct AEST (2026-10-01T14:00Z).
+    const dstNow = new Date("2026-10-15T02:00:00.000Z")
+    const periods = buildTrendPeriods([
+      // 23:30 Sydney on 1 Oct — before the prior window. The unsnapped flat
+      // boundary would wrongly include it.
+      paidRow({ id: "before-boundary", amount_cents: 9_995, paid_at: "2026-10-01T13:30:00.000Z" }),
+      // 00:30 Sydney on 2 Oct — first orders of the prior week.
+      paidRow({ id: "after-boundary", amount_cents: 4_995, paid_at: "2026-10-01T14:30:00.000Z" }),
+      paidRow({ id: "current-week", amount_cents: 2_995, paid_at: "2026-10-14T22:00:00.000Z" }),
+    ], [], dstNow)
+
+    expect(periods.find((period) => period.key === "last7Days")).toMatchObject({
+      netCents: 2_995,
+      priorNetCents: 4_995,
+    })
+  })
+
+  it("compares 30d against the prior 30d while keeping other readouts scoped to 30d", () => {
+    const dashboard = buildRevenueDashboard({
+      now: NOW,
+      paidRows: [
+        paidRow({ id: "current-window", amount_cents: 10_000, paid_at: "2026-05-25T01:00:00.000Z" }),
+        paidRow({
+          id: "prior-window-ed",
+          amount_cents: 5_000,
+          category: "consult",
+          subtype: "ed",
+          paid_at: "2026-05-10T01:00:00.000Z",
+        }),
+      ],
+      refundRows: [
+        refundRow({ refund_amount_cents: 3_000, refunded_at: "2026-05-12T01:00:00.000Z" }),
+        refundRow({ refund_amount_cents: 2_495, refunded_at: "2026-06-17T01:00:00.000Z" }),
+      ],
+      createdRows: [],
+      checkoutRows: [],
+      partialDraftRows: [],
+      refundStats: { eligible: 0, failed: 0, totalRefunded: 0 },
+    })
+
+    const last30 = dashboard.trendPeriods.find((period) => period.key === "last30Days")
+    // Prior-30d rows power the comparison, and refunds leave the prior window
+    // by refunded_at just as they do the current one: 5,000 gross − 3,000.
+    expect(last30?.priorNetCents).toBe(2_000)
+    expect(last30?.netChangePct).toBe(computeNetChangePct(last30!.netCents, 2_000))
+    // …but never leak into 30d-scoped readouts.
+    expect(dashboard.serviceMix.map((service) => service.label)).toEqual([
+      "Medical certificates",
+    ])
+    expect(dashboard.monetisation.express.paidOrders).toBe(1)
+    expect(dashboard.refundWork.totalRefunded30dCents).toBe(2_495)
+  })
+
+  it("builds a 33-day daily series ending today with cached-or-estimated fees", () => {
+    const dashboard = buildRevenueDashboard({
+      now: NOW,
+      paidRows: [
+        paidRow({ id: "with-cached-fee", amount_cents: 4995, stripe_fee_cents: 111 }),
+        paidRow({ id: "without-cached-fee", amount_cents: 4995 }),
+      ],
+      refundRows: [],
+      createdRows: [],
+      checkoutRows: [],
+      partialDraftRows: [],
+      refundStats: { eligible: 0, failed: 0, totalRefunded: 0 },
+    })
+
+    expect(dashboard.daily).toHaveLength(33)
+    const todayBucket = dashboard.daily[dashboard.daily.length - 1]
+    expect(todayBucket.dateKey).toBe("2026-06-18")
+    expect(todayBucket.orderCount).toBe(2)
+    expect(estimateStripeFeeCents(4995)).toBe(115)
+    expect(todayBucket.feeEstimateCents).toBe(111 + 115)
+  })
+
+  it("computeNetChangePct guards zero priors and carries negative swings", () => {
+    expect(computeNetChangePct(5_000, 0)).toBeNull()
+    expect(computeNetChangePct(5_000, -100)).toBeNull()
+    expect(computeNetChangePct(2_500, 5_000)).toBe(-50)
+    expect(computeNetChangePct(-500, 1_000)).toBe(-150)
   })
 
   it("surfaces no-purchase risk when demand exists without paid intakes", () => {

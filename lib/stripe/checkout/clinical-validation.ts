@@ -119,6 +119,25 @@ export async function runClinicalValidation(
 
     const validation = validateRepeatScriptPayload(input.answers)
     if (!validation.valid) {
+      // A `requiresConsult` refusal denies access to care at checkout (new
+      // medicine, changed regimen, or a dedicated-service medicine). Those must
+      // be reconstructable afterwards, so record an operator-visible receipt
+      // before returning. Sanitized metadata only — never raw answers.
+      if (validation.requiresConsult) {
+        await recordSafetyEvaluationForOperators({
+          answers: input.answers,
+          context: "checkout",
+          result: {
+            isAllowed: false,
+            outcome: "DECLINE",
+            riskTier: "medium",
+            blockReason: validation.error || "Repeat request routed to another pathway.",
+            requiresCall: false,
+            triggeredRuleIds: ["repeat_script_requires_consult"],
+          },
+          serviceSlug: serviceSlugForSafety,
+        })
+      }
       return stepFail(validation.error || "Invalid repeat script request.")
     }
 

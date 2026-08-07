@@ -4,6 +4,7 @@
  */
 
 import { CONTROLLED_SUBSTANCE_TERMS } from "@/lib/clinical/controlled-substances"
+import { detectDedicatedServiceForMedication } from "@/lib/clinical/medication-service-routing"
 import { getRepeatRxAttestationStatus } from "@/lib/clinical/repeat-rx-attestation"
 import {
   buildRepeatScriptMedicationValidationText,
@@ -295,6 +296,31 @@ export function validateRepeatScriptPayload(
         valid: false,
         error: "Schedule 8 and controlled substances cannot be prescribed through this service. Please see your regular doctor.",
         requiresConsult: false,
+      }
+    }
+  }
+
+  // Dedicated-service hard routing (operator decision 2026-08-05). PDE5
+  // inhibitors and hair-loss medicines are prescribed through their own
+  // services, which run screening this flow never asks for — ED in particular
+  // owns the nitrate contraindication and cardiac checks. Enforced here so a
+  // stale client, a restored draft, or a direct payload can't pay through the
+  // gap. The scan includes the stated indication, which is also how a BPH/PAH
+  // patient keeps their legitimate repeat (that match is flag_only).
+  const routingIndication = typeof answers.indication === "string" ? answers.indication : ""
+  for (const medication of medications) {
+    const routingMatch = detectDedicatedServiceForMedication(
+      buildRepeatScriptMedicationValidationText(medication),
+      routingIndication,
+    )
+    if (routingMatch?.enforcement === "hard") {
+      const serviceCopy = routingMatch.subtype === "ed"
+        ? "our Erectile Dysfunction service, which includes the required heart and medication safety check"
+        : "our Hair Loss service, which includes the right safety screening"
+      return {
+        valid: false,
+        error: `This medicine is prescribed through ${serviceCopy}. Please start that request instead — it only takes a few minutes.`,
+        requiresConsult: true,
       }
     }
   }
