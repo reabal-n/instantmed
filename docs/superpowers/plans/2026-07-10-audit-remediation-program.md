@@ -4,7 +4,7 @@
 
 **Goal:** Remove the audit-confirmed privacy, clinical-governance, documentation, artifact-retention, and repository-hygiene debt without deleting live product code or weakening InstantMed policy.
 
-**Architecture:** Deliver the work as independently reviewable PRs. First contain the false PHI rotation instructions, then wire the existing per-certificate doctor batch-review invariant, retire the unowned service worker through a cleanup bridge, move raw review evidence out of Git, repair canonical documentation and plan lifecycle, and finally introduce a ratcheted Knip gate before deleting only individually proven dead files. No task treats a barrel graph or a Knip report as automatic deletion authority.
+**Architecture:** Deliver the work as independently reviewable PRs. First contain the false PHI rotation instructions, then (SUPERSEDED — see Reconciliation) wire the existing per-certificate doctor batch-review invariant, retire the unowned service worker through a cleanup bridge, move raw review evidence out of Git, repair canonical documentation and plan lifecycle, and finally introduce a ratcheted Knip gate before deleting only individually proven dead files. No task treats a barrel graph or a Knip report as automatic deletion authority.
 
 **Tech Stack:** Next.js 15.5.18 App Router (webpack), React 18.3.1, TypeScript 5.9 strict, Supabase, Vitest 4, Playwright 1.60, Tailwind CSS 4.2.2, Knip 6.26.0, Node 24, pnpm 10.23.0.
 
@@ -57,7 +57,7 @@ This plan recorded "an individual doctor outcome per auto-issued certificate" as
 ## PR Sequence
 
 1. `fix/security-key-rotation-containment` — Task 1.
-2. `feat/med-cert-batch-review-control` — Tasks 2–3.
+2. ~~`feat/med-cert-batch-review-control` — Tasks 2–3.~~ **SUPERSEDED — do not execute (see Reconciliation).**
 3. `fix/service-worker-retirement` — Task 4 Stage A.
 4. `chore/review-artifact-retention` — Task 5.
 5. `docs/plan-lifecycle-and-canon-repair` — Tasks 6–7.
@@ -65,7 +65,7 @@ This plan recorded "an individual doctor outcome per auto-issued certificate" as
 7. `chore/verified-hygiene-cleanup` — Tasks 9–10.
 8. Service-worker Stage B only after the adoption window in Task 11.
 
-Ship the PHI containment, batch-review control, and service-worker privacy retirement before the general cleanup lanes. Schedule Tasks 5–10 around the active revenue/intake roadmap; none of those hygiene tasks should displace a higher-value in-flight product PR unless repository size or CI reliability becomes an immediate blocker.
+Ship the PHI containment and service-worker privacy retirement before the general cleanup lanes. (The batch-review control lane is superseded — see Reconciliation.) Schedule Tasks 5–10 around the active revenue/intake roadmap; none of those hygiene tasks should displace a higher-value in-flight product PR unless repository size or CI reliability becomes an immediate blocker.
 
 ---
 
@@ -209,6 +209,15 @@ git commit -m "docs(security): block unsupported PHI key rotation"
 ---
 
 ### Task 2: Establish the batch-review domain policy and safe server actions
+
+> ⛔ **DO NOT EXECUTE — SUPERSEDED 2026-08-04, shipped 2026-08-07 (#428/#439).**
+> This task builds the 24-hour post-approval batch-review/attestation machinery
+> that has since been deliberately removed. Executing it would recreate
+> `batch-review-policy.ts`, `batch-review-cert.ts`, the dashboard attestation
+> banner, the health monitor, and the `med_cert_batch_review_overdue` alert
+> that paged the operator 48×/day. Read the "Reconciliation" section near the
+> top of this file before acting on anything in this task.
+
 
 **Files:**
 - Create: `lib/clinical/batch-review-policy.ts`
@@ -365,6 +374,15 @@ git commit -m "fix(clinical): enforce individual med-cert batch review"
 ---
 
 ### Task 3: Put batch-review oversight into the live cockpit and monitoring
+
+> ⛔ **DO NOT EXECUTE — SUPERSEDED 2026-08-04, shipped 2026-08-07 (#428/#439).**
+> This task builds the 24-hour post-approval batch-review/attestation machinery
+> that has since been deliberately removed. Executing it would recreate
+> `batch-review-policy.ts`, `batch-review-cert.ts`, the dashboard attestation
+> banner, the health monitor, and the `med_cert_batch_review_overdue` alert
+> that paged the operator 48×/day. Read the "Reconciliation" section near the
+> top of this file before acting on anything in this task.
+
 
 **Files:**
 - Create: `components/doctor/batch-review-banner.tsx`

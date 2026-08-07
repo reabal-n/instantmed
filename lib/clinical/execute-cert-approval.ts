@@ -473,9 +473,12 @@ export async function executeCertApproval(
       .eq("id", intakeId)
 
     if (aiUpdateError) {
-      // Cert is already issued - escalate so this doesn't slip through batch review
+      // Cert is already issued. `ai_approved` is what puts it in the admin
+      // daily oversight stream (`getRecentlyCompletedIntakes`), so without this
+      // flag an auto-issued certificate becomes invisible to the only human
+      // review surface that exists after #428 removed batch review.
       logger.error("Failed to set ai_approved flag - cert issued without AI tracking", { intakeId, error: aiUpdateError.message })
-      Sentry.captureMessage("ai_approved flag update failed - auto-approved cert may not appear in batch review", {
+      Sentry.captureMessage("ai_approved flag update failed - auto-issued cert will not appear in the daily oversight list", {
         level: "error",
         tags: { subsystem: "auto-approval", intake_id: intakeId },
         extra: { certificateId, error: aiUpdateError.message },

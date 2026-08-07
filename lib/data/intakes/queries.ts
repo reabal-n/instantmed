@@ -1478,15 +1478,45 @@ export async function getRecentlyCompletedIntakes(opts: {
           .limit(queryLimit)
       : null
 
-    const [ordinaryResult, autoIssuedResult] = await Promise.all([
+    // Flagged certificates are prioritised in the merged list, but that sort
+    // runs in JS AFTER the queries return — so on a high-volume day a flagged
+    // certificate older than the newest `queryLimit` rows would be dropped
+    // before it could ever be sorted to the top. `risk_flags` is JSONB and
+    // cannot be ordered by in PostgREST, so fetch the flagged rows as their own
+    // bounded stream and merge. Deduped by id below.
+    const flaggedAutoIssuedQuery = opts.includeAutoIssued
+      ? filterSeededE2EIntakes(supabase
+          .from("intakes")
+          .select(`
+            id,
+            patient_id,
+            status,
+            ai_approved_at,
+            risk_flags,
+            patient:profiles!patient_id(full_name),
+            service:services!service_id(name, type, short_name)
+          `)
+          .eq("ai_approved", true)
+          .eq("status", "approved")
+          .eq("category", "medical_certificate")
+          .gte("ai_approved_at", todayStartISO)
+          .not("risk_flags", "eq", "[]")
+          .not("risk_flags", "is", null))
+          .order("ai_approved_at", { ascending: false })
+          .limit(queryLimit)
+      : null
+
+    const [ordinaryResult, autoIssuedResult, flaggedAutoIssuedResult] = await Promise.all([
       ordinaryQuery,
       autoIssuedQuery ?? Promise.resolve({ data: [], error: null }),
+      flaggedAutoIssuedQuery ?? Promise.resolve({ data: [], error: null }),
     ])
 
-    if (ordinaryResult.error || autoIssuedResult.error) {
+    if (ordinaryResult.error || autoIssuedResult.error || flaggedAutoIssuedResult.error) {
       logger.error("Failed to fetch today's decision history", {
         ordinaryError: ordinaryResult.error?.message ?? null,
         autoIssuedError: autoIssuedResult.error?.message ?? null,
+        flaggedAutoIssuedError: flaggedAutoIssuedResult.error?.message ?? null,
       })
       // A partial stream is not a truthful review history.
       return { data: [], degraded: true, truncated: false }
@@ -1529,11 +1559,25 @@ export async function getRecentlyCompletedIntakes(opts: {
     const ordinary = ((ordinaryResult.data || []) as unknown as OrdinaryRow[])
       .map((row) => normalize(row, row.reviewed_at, "clinician_decision"))
       .filter((row): row is RecentlyCompletedIntake => row !== null)
-    const autoIssued = ((autoIssuedResult.data || []) as unknown as AutoIssuedRow[])
-      .map((row) =>
-        normalize(row, row.ai_approved_at, "auto_issued", parseIntakeFlags(row.risk_flags).length > 0),
+    // Flagged rows are fetched separately so they cannot fall off the end of
+    // the newest-N window; dedupe by id since they also appear in the main
+    // stream on a normal-volume day.
+    const autoIssuedById = new Map<string, RecentlyCompletedIntake>()
+    for (const row of [
+      ...((flaggedAutoIssuedResult.data || []) as unknown as AutoIssuedRow[]),
+      ...((autoIssuedResult.data || []) as unknown as AutoIssuedRow[]),
+    ]) {
+      const normalized = normalize(
+        row,
+        row.ai_approved_at,
+        "auto_issued",
+        parseIntakeFlags(row.risk_flags).length > 0,
       )
-      .filter((row): row is RecentlyCompletedIntake => row !== null)
+      if (normalized && !autoIssuedById.has(normalized.id)) {
+        autoIssuedById.set(normalized.id, normalized)
+      }
+    }
+    const autoIssued = Array.from(autoIssuedById.values())
 
     // Flagged auto-issued certificates sort to the top of their timestamp, so
     // the operator's daily scan starts with the ones the engine had something

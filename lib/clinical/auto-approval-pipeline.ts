@@ -5,7 +5,10 @@
  * Evaluates eligibility, builds review data, and executes the
  * full approval pipeline (PDF → storage → email) without doctor intervention.
  *
- * Safety: feature-flagged, rate-limited, logged to ai_audit_log, doctor batch review.
+ * Safety: feature-flagged, rate-limited, logged to ai_audit_log. Risk is gated
+ * BEFORE issuance by DETERMINISTIC_FAILURE_PREFIXES; the 24h post-approval batch
+ * review was removed 2026-08-04. Info-severity soft flags are persisted to
+ * intakes.risk_flags so the daily approved list can surface them.
  */
 
 import * as Sentry from "@sentry/nextjs"
@@ -30,7 +33,8 @@ import {
   markFailedRetrying, markIneligible,
 } from "./auto-approval-state"
 import { findDuplicatePatientProfile } from "./duplicate-patient-detection"
-import { attentionFlags, makeEngineSoftFlag, makeIntakeFlag, parseIntakeFlags } from "./intake-flags"
+import { attentionFlags, makeIntakeFlag, parseIntakeFlags } from "./intake-flags"
+import { persistEngineSoftFlags, type SoftFlagSupabase } from "./soft-flag-persistence"
 
 const log = createLogger("auto-approval-pipeline")
 
@@ -534,21 +538,27 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     // to a pre-issuance block is a clinical policy decision for the operator.
     //
     // Fail-soft — a flag write must never fail an otherwise valid approval.
+    // Merge rules (fresh read, code-level dedupe, returned-error inspection)
+    // live in `persistEngineSoftFlags` so they are directly testable.
     if (eligibility.softFlags.length > 0) {
       try {
-        const existingFlags = parseIntakeFlags((intake as { risk_flags?: unknown }).risk_flags)
-        const existingCodes = new Set(existingFlags.map((flag) => flag.code))
-        const softIntakeFlags = eligibility.softFlags
-          .filter((code) => !existingCodes.has(code))
-          .map((code) => makeEngineSoftFlag(code))
-        if (softIntakeFlags.length > 0) {
-          await supabase
-            .from("intakes")
-            .update({ risk_flags: [...existingFlags, ...softIntakeFlags] })
-            .eq("id", intakeId)
+        // Cast to the helper's narrow structural surface: the generated
+        // Supabase client generics are too deep for TS to reconcile here, and
+        // the helper only ever touches select/eq/single and update/eq.
+        const result = await persistEngineSoftFlags(
+          supabase as unknown as SoftFlagSupabase,
+          intakeId,
+          eligibility.softFlags,
+        )
+        if (result.outcome === "read_failed" || result.outcome === "write_failed") {
+          log.warn("Failed to persist auto-approval soft flags", {
+            intakeId,
+            outcome: result.outcome,
+            error: result.error,
+          })
         }
       } catch (error) {
-        log.warn("Failed to persist auto-approval soft flags", {
+        log.warn("Unexpected error persisting auto-approval soft flags", {
           intakeId,
           error: toError(error).message,
         })

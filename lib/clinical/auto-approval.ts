@@ -128,7 +128,11 @@ import { HIGH_STAKES_USE_CASE_KEYWORDS } from "./high-stakes-keywords"
 // SOFT-BLOCK KEYWORD LISTS
 // Only block when the keyword is the patient's sole symptom (no co-symptoms).
 // If the patient has 2+ structured symptoms, these are recorded as soft flags
-// for doctor batch review but do NOT prevent auto-approval.
+// and do NOT prevent auto-approval. The 24h batch review that used to catch
+// them post-issuance was removed 2026-08-04; they are now persisted to
+// intakes.risk_flags and surfaced as `Flagged` on the daily approved list
+// (lib/clinical/soft-flag-persistence.ts). Promoting any of these to a
+// pre-issuance block is an open operator decision — see docs/ROADMAP.md.
 // ============================================================================
 
 const SOFT_BLOCK_MENTAL_HEALTH = [
@@ -489,10 +493,12 @@ export function evaluateAutoApprovalEligibility(
   } else if (drafts.clinicalNote.status !== "ready") {
     flags.push(`draft_not_ready: ${drafts.clinicalNote.status}`)
   } else {
-    // 12. AI draft review flag - soft flag only (doctor batch review still applies)
+    // 12. AI draft review flag - soft flag only (recorded, not blocking)
     // Treating this as a hard block was too aggressive: the AI model flags "anxiety"
     // and other common mild symptoms as requiring review even when clinically appropriate
-    // for a standard 1-3 day cert. Batch review catches any concerns post-approval.
+    // for a standard 1-3 day cert. The flag is persisted to intakes.risk_flags
+    // and marks the row `Flagged` on the daily approved list, so a human still
+    // sees it — batch review itself was removed 2026-08-04.
     const draftFlags = drafts.clinicalNote.content?.flags as { requiresReview?: boolean; flagReason?: string | null } | undefined
     if (draftFlags?.requiresReview) {
       softFlags.push(`draft_review_flag: ${draftFlags.flagReason || "unspecified"}`)

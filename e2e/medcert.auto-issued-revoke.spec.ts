@@ -171,6 +171,10 @@ test.describe("auto-issued certificate revocation", () => {
   test("a non-admin doctor is not offered the auto-issued revoke control", async ({ page }) => {
     // The server action is admin-only because the caller supplies an arbitrary
     // intake id and the lookup runs with the service role. The UI must agree.
+    //
+    // This test is only meaningful if the doctor actually reached the case: an
+    // absent control proves nothing when the page never rendered. Assert the
+    // case loaded FIRST, then assert the control is absent.
     const { intakeId } = await seedAutoIssuedCertificate()
 
     try {
@@ -180,6 +184,9 @@ test.describe("auto-issued certificate revocation", () => {
       await page.setViewportSize({ width: 1440, height: 900 })
       await page.goto(`/doctor/intakes/${intakeId}`)
       await waitForPageLoad(page)
+
+      // Proof the case rendered for this doctor.
+      await expect(page.getByText("E2E Test Patient").first()).toBeVisible({ timeout: 20_000 })
 
       await expect(page.getByTestId("revoke-auto-issued-trigger")).toHaveCount(0)
 
@@ -195,4 +202,5 @@ test.describe("auto-issued certificate revocation", () => {
       await cleanupTestIntake(intakeId)
     }
   })
+
 })
