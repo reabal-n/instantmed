@@ -69,6 +69,12 @@ interface IntakeDetailClientProps {
   followups?: DoctorFollowupRow[]
   certDelivery?: CertDeliveryStatus | null
   parchmentEnabled?: boolean
+  /**
+   * Admin-only: may the viewer revoke an auto-issued certificate?
+   * `revokeAIApproval` is admin-gated server-side; this hides a control that
+   * would otherwise render for a doctor and always fail. Defaults closed.
+   */
+  viewerCanRevokeAutoIssued?: boolean
   patientMessages?: PatientThreadMessage[]
   patientNotes?: PatientNote[]
   backHref?: string
@@ -113,6 +119,7 @@ function CockpitIntakeDetailClient({
   nextIntakeId,
   draftId,
   certDelivery,
+  viewerCanRevokeAutoIssued = false,
   patientMessages = [],
   patientNotes = [],
   initialAction,
@@ -135,7 +142,9 @@ function CockpitIntakeDetailClient({
     patientMessages,
     draftId: draftId ?? null,
     certificate: mapCertDeliveryToReviewCertificate(intake.id, certDelivery),
+    viewerCanRevokeAutoIssued,
   }), [
+    viewerCanRevokeAutoIssued,
     aiDrafts,
     certDelivery,
     draftId,

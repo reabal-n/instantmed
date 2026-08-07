@@ -347,6 +347,16 @@ export type RecentlyCompletedIntake = Pick<
    * never presented as a clinician's own decision.
    */
   activity_provenance: "clinician_decision" | "auto_issued"
+  /**
+   * The auto-approval engine recorded at least one flag on this intake.
+   *
+   * These are `info`-severity soft flags — co-symptom mental-health / injury /
+   * chronic mentions and AI-draft review hints. They deliberately do NOT block
+   * auto-approval, but `lib/clinical/auto-approval.ts` produces them on the
+   * explicit assumption that a human sees them afterwards. Surfacing them here
+   * is what makes that assumption true. Always false for clinician decisions.
+   */
+  flagged: boolean
   patient: Pick<Profile, "full_name">
   service?: Pick<Service, "name" | "short_name" | "type"> | null
 }

@@ -88,6 +88,14 @@ export function ApprovedTodayList({
                   {isAutoIssued ? (
                     <span className="shrink-0 text-xs text-muted-foreground">Auto-issued</span>
                   ) : null}
+                  {/*
+                    The engine recorded an info-severity soft flag. It did not
+                    block issuance and this is not an obligation — it is the
+                    reason to open this row first. Sorted to the top upstream.
+                  */}
+                  {intake.flagged ? (
+                    <span className="shrink-0 text-xs font-medium text-warning">Flagged</span>
+                  ) : null}
                 </span>
                 <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
                   <span className="max-w-[9rem] truncate">{serviceShortLabel}</span>

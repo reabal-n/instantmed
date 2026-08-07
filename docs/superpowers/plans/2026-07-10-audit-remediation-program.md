@@ -34,12 +34,24 @@
 | Finding | Reconciled decision |
 |---|---|
 | PHI key-rotation runbook | Confirmed P0 operational hazard. Contain immediately; actual rotation remains a separate security RFC. |
-| Medical-certificate batch review | Confirmed clinical-governance gap. Wire individual review and revocation outcomes; do not weaken canon. |
+| Medical-certificate batch review | Confirmed clinical-governance gap. Wire individual review and revocation outcomes; do not weaken canon. **SUPERSEDED 2026-08-04 by operator decision, shipped 2026-08-07 (#428) — see the reconciliation note below before citing this row.** |
 | Service-worker caching | Confirmed, narrower than an online leak: network-first HTML caching leaves shared-device/offline replay risk. Retire in stages. |
 | Synthetic patient count | Downgraded. No rendered consumer after PR #307; leave fenced plumbing for the separate truthful-reanchor decision. |
 | “65-file dead island” | Rejected as deletion authority. Unused barrels and some leaves are dead, but every deletion must be proven per file. |
 | HAR credential risk | Downgraded: captures are localhost development sessions. Raw HARs/traces still do not belong in Git. No key rotation follows from these files. |
 | Hours-copy sweep | Narrowed to `docs/BRAND.md`’s retired first-review window and one numeric article table. Do not purge contextual education or metric-backed dynamic claims. |
+
+### Reconciliation — medical-certificate batch review (2026-08-07)
+
+This plan recorded "an individual doctor outcome per auto-issued certificate" as a **confirmed invariant** and said not to weaken it. PR #428 removed that obligation. The conflict is recorded here rather than left to be inferred from a missing file.
+
+**What changed and why.** The 24-hour attestation only ever applied to certificates that had already cleared every deterministic pre-issuance gate, so it produced no clinical signal — while a lapsed window emitted a `critical` alert every 30 minutes (**48 Telegram pages/day** off one certificate). Operator decision 2026-08-04: a retrospective sign-off is not a substitute for a pre-issuance gate. The controlling lever is now `DETERMINISTIC_FAILURE_PREFIXES`, which routes risk to `needs_doctor` **before** a certificate exists.
+
+**What replaced it.** Visibility plus correction, not sign-off: today's auto-issued certificates appear in the dashboard's approved list tagged `auto_issued`, engine soft flags are marked and sorted first, and revocation remains available with no deadline attached.
+
+**What this reconciliation does NOT claim.** It does not assert that removing the attestation leaves professional obligations unchanged. No rule mandating this specific 24-hour attestation was identified, but Medical Board telehealth guidance emphasises real-time consultation and individual practitioner judgment for medical certificates, and AHPRA guidance requires human oversight of AI-supported care. **This remains open for Medical Director / legal sign-off**; treat it as an operator product decision that has not yet been formally reconciled against those obligations. If that review concludes an individual outcome is required, the pre-issuance gate — not a retrospective attestation — is the place to reinstate it.
+
+**Open follow-up.** The engine's soft-flag signals (co-symptom mental-health / injury / chronic mentions, AI-draft `requiresReview`) are now surfaced but still do **not** block issuance. Whether any of them should become pre-issuance blocks is an unresolved clinical-policy question for the operator, with a throughput cost.
 | Tracked-size disagreement | Approximately 274 MiB is the current tracked tree; approximately 128 MiB is the immediate trace/HAR deletion. These numbers describe different scopes. |
 
 ## PR Sequence

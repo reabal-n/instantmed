@@ -875,7 +875,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/db.ts` | Supabase generated types + custom interfaces |
 | `types/certificate-template.ts` | PDF template field definitions |
 | `lib/hooks/` | Shared client hooks | Debounce, keyboard navigation, landing analytics, responsive media, section visibility, validation summaries, and staff refresh helpers |
-| `e2e/` | 76 TypeScript files, including 67 specs and `helpers/` (seed/teardown, auth bypass, production-synthetic side-effect isolation). Focused paid-flow and ops smoke specs are the blocking CI gate. |
+| `e2e/` | 77 TypeScript files, including 68 specs and `helpers/` (seed/teardown, auth bypass, production-synthetic side-effect isolation). Focused paid-flow and ops smoke specs are the blocking CI gate. |
 | `supabase/migrations/` | 109 SQL migration files (1 squashed baseline + 108 incremental). Most recent: `20260803093000_add_priority_fee_refunded_at.sql` — nullable `intakes.priority_fee_refunded_at` stamp for the priority breach auto-refund (once-only guard; approval emails read it to acknowledge the refund). Before it, `20260727184400_google_ads_fee_cache_on_intakes.sql` and the production-applied Ads Agent migrations (PHI-free run/proposal/experiment state, RLS default-deny, Stripe fee cache on the intake PaymentIntent row). |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |

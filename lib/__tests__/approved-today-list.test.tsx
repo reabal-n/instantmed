@@ -9,6 +9,7 @@ const clinicianRow = {
   status: "approved" as const,
   activity_at: "2026-07-29T01:55:00.000Z",
   activity_provenance: "clinician_decision" as const,
+  flagged: false,
   patient: { full_name: "Test Patient" },
   service: { name: "Medical certificate", short_name: "Med cert", type: "med_certs" as const },
 }
@@ -19,6 +20,7 @@ const autoIssuedRow = {
   status: "approved" as const,
   activity_at: "2026-07-29T01:50:00.000Z",
   activity_provenance: "auto_issued" as const,
+  flagged: false,
   patient: { full_name: "Auto Patient" },
   service: { name: "Medical certificate", short_name: "Med cert", type: "med_certs" as const },
 }
@@ -47,6 +49,27 @@ describe("ApprovedTodayList", () => {
     expect(html).toContain("Auto Patient")
     // The split is explicit: protocol issuances are never absorbed into "yours".
     expect(html).toContain("1 yours · 1 auto-issued")
+  })
+
+  // The auto-approval engine records info-severity soft flags (co-symptom
+  // mental-health / injury / chronic mentions, AI-draft review hints) on
+  // certificates it still issues. Its own comments assume a human sees them
+  // afterwards; with the 24h attestation gone, this marker is what makes that
+  // true. It marks, it does not nag.
+  it("marks auto-issued certificates the engine flagged", () => {
+    const html = renderToStaticMarkup(
+      <ApprovedTodayList intakes={[{ ...autoIssuedRow, flagged: true }]} />,
+    )
+
+    expect(html).toContain("Flagged")
+  })
+
+  it("does not mark unflagged rows", () => {
+    const html = renderToStaticMarkup(
+      <ApprovedTodayList intakes={[clinicianRow, autoIssuedRow]} />,
+    )
+
+    expect(html).not.toContain("Flagged")
   })
 
   it("omits the provenance split when nothing was auto-issued", () => {

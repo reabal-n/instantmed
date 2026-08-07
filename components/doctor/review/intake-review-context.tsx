@@ -32,6 +32,12 @@ export interface ReviewData {
     ahpraNumber: string | null
   } | null
   /**
+   * Whether the viewer may revoke an auto-issued certificate. Resolved
+   * server-side (`revokeAIApproval` is admin-only). Presentation gate only —
+   * absent/false hides the control rather than showing one that can only fail.
+   */
+  viewerCanRevokeAutoIssued?: boolean
+  /**
    * Populated by the review-data API when the intake is a renewal of a
    * prior active/completed prescription for the same patient. Drives the
    * inline `RenewalLink` smart-link on the cockpit. Null when the intake

@@ -93,6 +93,39 @@ export function makeIntakeFlag(
   return flag
 }
 
+/**
+ * Build an `info` flag from a raw auto-approval engine soft-flag string.
+ *
+ * Engine soft flags are not taxonomy codes — they are generated strings like
+ * `panic_co_symptom` or `draft_review_flag: mentions chest pain`. They are
+ * deliberately kept out of `INTAKE_FLAG_TAXONOMY` so they can never be mistaken
+ * for an `attention` code (which would route a certificate to `needs_doctor`
+ * and change what auto-approves).
+ *
+ * `<code>: <detail>` splits into code + detail; anything else becomes a bare
+ * code. Codes are humanised for display only; the raw string is preserved as
+ * the code so audit and UI agree.
+ */
+export function makeEngineSoftFlag(rawSoftFlag: string): IntakeFlag {
+  const separatorIndex = rawSoftFlag.indexOf(":")
+  const rawCode = (separatorIndex === -1 ? rawSoftFlag : rawSoftFlag.slice(0, separatorIndex)).trim()
+  const detail = separatorIndex === -1 ? "" : rawSoftFlag.slice(separatorIndex + 1).trim()
+
+  const label = rawCode
+    .replace(/_/g, " ")
+    .replace(/\bco symptom\b/, "co-symptom")
+    .replace(/^./, (c) => c.toUpperCase())
+
+  const flag: IntakeFlag = {
+    code: rawCode || "engine_soft_flag",
+    label: label || "Engine soft flag",
+    source: "auto_approval",
+    severity: "info",
+  }
+  if (detail) flag.detail = detail
+  return flag
+}
+
 /** Flags the doctor must act on (drives the queue badge + needs_doctor routing). */
 export function attentionFlags(flags: IntakeFlag[]): IntakeFlag[] {
   return flags.filter((flag) => flag.severity === "attention")
