@@ -88,4 +88,22 @@ describe("AI-approved medical certificate reopen guard", () => {
     expect(revokeUi).toContain('intake.status === "approved"')
     expect(revokeUi).not.toContain('"completed"')
   })
+
+  // CLAUDE.md names cert-revoke as a TypedConfirmDialog action, and the
+  // 2026-07-12 cleanup roadmap logged the old "reason + click" revoke as an
+  // open audit finding: a second plain click trains muscle-memory, and a typed
+  // token catches the wrong-tab mistake a reason box cannot. This revokes a
+  // certificate the patient already holds, so keep both gates.
+  it("gates revocation behind a typed REVOKE confirmation as well as a reason", () => {
+    const revokeUi = readFileSync(
+      join(process.cwd(), "components/doctor/review/revoke-auto-issued-certificate.tsx"),
+      "utf8",
+    )
+    expect(revokeUi).toContain("TypedConfirmDialog")
+    expect(revokeUi).toContain('requiredText="REVOKE"')
+    expect(revokeUi).toContain("MIN_REASON_LENGTH = 5")
+    // The destructive button must open the dialog, never fire the action directly.
+    expect(revokeUi).toContain("onClick={() => setConfirmOpen(true)}")
+    expect(revokeUi).toContain("onConfirm={handleRevoke}")
+  })
 })

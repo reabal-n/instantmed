@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { revokeAIApproval } from "@/app/actions/revoke-ai-approval"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { TypedConfirmDialog } from "@/components/ui/typed-confirm-dialog"
 
 const MIN_REASON_LENGTH = 5
 
@@ -49,6 +50,17 @@ export function isRevocableAutoIssuedCertificate(intake: AutoIssuedCertificateCa
  * It is a spot-check affordance, not an obligation — no deadline, no alert, no
  * sign-off. It stays collapsed until asked for so a correct certificate costs
  * the operator nothing to scan past.
+ *
+ * Two-part friction, both required:
+ * - a >=5 character clinical reason, which the server action also enforces; and
+ * - a typed `REVOKE` confirmation via `TypedConfirmDialog`.
+ *
+ * The typed step is not ceremony on top of the reason field. CLAUDE.md names
+ * cert-revoke as a typed-confirm action, and the 2026-07-12 cleanup roadmap
+ * logged "reason + click" as an open audit finding precisely because a second
+ * plain click trains muscle-memory. A typed token also catches the wrong-tab
+ * mistake a reason box cannot: this invalidates a certificate a patient has
+ * already been sent.
  */
 export function RevokeAutoIssuedCertificate({
   intakeId,
@@ -58,6 +70,7 @@ export function RevokeAutoIssuedCertificate({
   onRevoked?: () => void
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const [reason, setReason] = useState("")
   const [isPending, startTransition] = useTransition()
 
@@ -73,6 +86,7 @@ export function RevokeAutoIssuedCertificate({
         return
       }
       toast.success("Certificate revoked and returned to manual review")
+      setConfirmOpen(false)
       setExpanded(false)
       setReason("")
       onRevoked?.()
@@ -129,13 +143,26 @@ export function RevokeAutoIssuedCertificate({
           type="button"
           variant="destructive"
           size="sm"
-          onClick={handleRevoke}
+          onClick={() => setConfirmOpen(true)}
           disabled={!canSubmit}
+          data-testid="revoke-auto-issued-submit"
         >
           {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : null}
           Revoke and return to review
         </Button>
       </div>
+
+      <TypedConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Revoke this certificate"
+        description="The patient has already been sent this certificate. Revoking invalidates it — public verification will report it as revoked — and returns the request to manual review. This cannot be undone."
+        requiredText="REVOKE"
+        confirmLabel="Revoke certificate"
+        destructive
+        onConfirm={handleRevoke}
+        isPending={isPending}
+      />
     </section>
   )
 }
