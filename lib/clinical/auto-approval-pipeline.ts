@@ -14,6 +14,7 @@ import { capturePersonlessPostHogEvent } from "@/lib/analytics/posthog-server"
 import { executeCertApproval } from "@/lib/clinical/execute-cert-approval"
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import { shouldIncludeSeededE2EData } from "@/lib/data/seeded-e2e-data"
+import { toError } from "@/lib/errors"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { editPaidRequestTelegramMessageToNeedsManualReview } from "@/lib/notifications/edit-paid-request-telegram"
 import { createLogger } from "@/lib/observability/logger"
@@ -29,7 +30,7 @@ import {
   markFailedRetrying, markIneligible,
 } from "./auto-approval-state"
 import { findDuplicatePatientProfile } from "./duplicate-patient-detection"
-import { attentionFlags, makeIntakeFlag, parseIntakeFlags } from "./intake-flags"
+import { attentionFlags, makeEngineSoftFlag, makeIntakeFlag, parseIntakeFlags } from "./intake-flags"
 
 const log = createLogger("auto-approval-pipeline")
 
@@ -515,6 +516,44 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       recent_cert_count: recentCertCount ?? 0,
       has_overlapping_cert: hasOverlappingCert,
     })
+
+    // Persist the engine's soft flags onto the intake as `info`-severity
+    // IntakeFlags.
+    //
+    // `lib/clinical/intake-flags.ts` documents `info` as "the engine softFlags
+    // lane", but nothing implemented that mapping in the write direction: soft
+    // flags reached `ai_audit_log` only, which no product surface reads. That
+    // was tolerable while the 24h batch review guaranteed a human opened every
+    // auto-issued certificate. Removing the attestation (#428) removed that
+    // guarantee, so the signals auto-approval explicitly defers to a human
+    // ("Batch review catches any concerns post-approval") had zero consumers.
+    //
+    // Writing them here puts them on the normal IntakeFlagsBadge/Panel path and
+    // lets the auto-issued oversight stream mark and prioritise them. They stay
+    // `info`: this does NOT change what auto-approves. Promoting any of these
+    // to a pre-issuance block is a clinical policy decision for the operator.
+    //
+    // Fail-soft — a flag write must never fail an otherwise valid approval.
+    if (eligibility.softFlags.length > 0) {
+      try {
+        const existingFlags = parseIntakeFlags((intake as { risk_flags?: unknown }).risk_flags)
+        const existingCodes = new Set(existingFlags.map((flag) => flag.code))
+        const softIntakeFlags = eligibility.softFlags
+          .filter((code) => !existingCodes.has(code))
+          .map((code) => makeEngineSoftFlag(code))
+        if (softIntakeFlags.length > 0) {
+          await supabase
+            .from("intakes")
+            .update({ risk_flags: [...existingFlags, ...softIntakeFlags] })
+            .eq("id", intakeId)
+        }
+      } catch (error) {
+        log.warn("Failed to persist auto-approval soft flags", {
+          intakeId,
+          error: toError(error).message,
+        })
+      }
+    }
 
     if (!eligibility.eligible) {
       log.info("Auto-approval: not eligible", {

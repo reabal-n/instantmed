@@ -200,6 +200,7 @@ describe("getRecentlyCompletedIntakes", () => {
         status: "approved",
         activity_at: "2026-07-29T01:15:00.000Z",
         activity_provenance: "clinician_decision",
+        flagged: false,
         patient: { full_name: "Patient manual" },
         service: { name: "Medical certificate", short_name: "Med cert", type: "med_certs" },
       }],
@@ -319,12 +320,18 @@ describe("getRecentlyCompletedIntakes", () => {
 
     const autoIssued = harness.queries[1]!
     expect(normalizeProjection(autoIssued.find(([method]) => method === "select")?.[1])).toBe(
-      "id,patient_id,status,ai_approved_at,patient:profiles!patient_id(full_name),service:services!service_id(name,type,short_name)",
+      // `risk_flags` carries the engine's info-severity soft flags so the
+      // oversight stream can mark and prioritise them. Without the attestation
+      // these signals otherwise reach no product surface at all.
+      "id,patient_id,status,ai_approved_at,risk_flags,patient:profiles!patient_id(full_name),service:services!service_id(name,type,short_name)",
     )
     expect(autoIssued).toEqual(expect.arrayContaining([
       ["eq", "ai_approved", true],
       // Only delivered certificates: a revoked/reopened intake is queue work.
       ["eq", "status", "approved"],
+      // Only medical certificates are auto-issued; keep any future
+      // ai_approved service out of the med-cert oversight stream.
+      ["eq", "category", "medical_certificate"],
       ["gte", "ai_approved_at", expect.any(String)],
       ["order", "ai_approved_at", { ascending: false }],
     ]))

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getAIDraftsForIntake } from "@/app/actions/drafts/draft-retrieval"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { requireApiRole } from "@/lib/auth/helpers"
+import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails, getNextQueueIntakeId, getPatientIntakes, getPatientNotes } from "@/lib/data/intakes"
 import { getCertificateForIntake } from "@/lib/data/issued-certificates"
@@ -118,6 +119,12 @@ export async function GET(
       providerNumber: auth.profile.provider_number ?? null,
       ahpraNumber: auth.profile.ahpra_number ?? null,
     },
+    // Presentation gate for the auto-issued revoke control. `revokeAIApproval`
+    // is admin-only (arbitrary caller-supplied intake id + service-role
+    // lookup), so a non-admin doctor must not be shown a control that can only
+    // fail. Resolved here because the server knows the role; the action stays
+    // the authority.
+    viewerCanRevokeAutoIssued: hasAdminAccess(auth.profile),
     renewalMatch,
     draftId: medCertDraft?.id || null,
     certificate: certificate ? {

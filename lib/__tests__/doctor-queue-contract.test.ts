@@ -8,6 +8,27 @@ const queriesSource = readFileSync(
   "utf8",
 )
 
+/**
+ * End of the `getDoctorQueue` body: the next top-level `export` after it.
+ *
+ * These tests used to slice to a literal `"export interface
+ * PendingBatchReviewResult"` marker. #428 deleted that interface, so `indexOf`
+ * returned -1 and `slice(start, -1)` silently widened the block to the whole
+ * rest of the file — the positive assertions could then match text belonging to
+ * other functions, and the `not.toContain` PHI-search assertions were scanning
+ * far more than the queue. Anchoring on structure instead of a named neighbour
+ * means deleting any single export can no longer silently unscope this.
+ */
+function doctorQueueBlockEnd(queueStart: number): number {
+  const nextExport = /^export (?:async function|function|interface|type|const) /m
+  const rest = queriesSource.slice(queueStart + 1)
+  const match = rest.match(nextExport)
+  if (!match || match.index === undefined) {
+    throw new Error("Could not find the end of getDoctorQueue — update doctorQueueBlockEnd()")
+  }
+  return queueStart + 1 + match.index
+}
+
 const realtimeSource = readFileSync(
   join(process.cwd(), "lib/doctor/use-queue-realtime.ts"),
   "utf8",
@@ -230,7 +251,7 @@ describe("doctor queue production contract", () => {
 
   it("applies the authoritative queue search predicate before count, status, and page range", () => {
     const queueStart = queriesSource.indexOf("export async function getDoctorQueue")
-    const queueEnd = queriesSource.indexOf("export interface PendingBatchReviewResult", queueStart)
+    const queueEnd = doctorQueueBlockEnd(queueStart)
     const queueBlock = queriesSource.slice(queueStart, queueEnd)
     const dataStart = queueBlock.indexOf("let dataQuery")
     const searchOnData = queueBlock.indexOf("dataQuery = dataQuery.or(searchOr)", dataStart)
@@ -249,7 +270,7 @@ describe("doctor queue production contract", () => {
 
   it("never presents a degraded page-length fallback as the authoritative search total", () => {
     const queueStart = queriesSource.indexOf("export async function getDoctorQueue")
-    const queueEnd = queriesSource.indexOf("export interface PendingBatchReviewResult", queueStart)
+    const queueEnd = doctorQueueBlockEnd(queueStart)
     const queueBlock = queriesSource.slice(queueStart, queueEnd)
 
     expect(queueBlock).toContain("const searchMatchCount = searchTerm")

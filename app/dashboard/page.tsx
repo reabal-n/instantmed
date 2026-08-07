@@ -206,16 +206,24 @@ export default async function StaffDashboardPage({
 
   results.forEach((result, index) => {
     if (result.status === "rejected") {
+      // Must stay index-aligned with the Promise.allSettled array above.
+      // `pending-batch-reviews` was removed with the attestation (#428) but
+      // left in this list, shifting every later name by one — so a failed
+      // system-health load logged as "availability" and nothing ever logged
+      // as "system-health".
       const names = [
         "queue",
-        "pending-batch-reviews",
         "recently-completed",
         "identity",
         "form-to-inbox",
         "availability",
         "system-health",
       ]
-      log.error(`Failed to fetch staff dashboard ${names[index]}`, { profileId: profile.id }, result.reason)
+      log.error(
+        `Failed to fetch staff dashboard ${names[index] ?? `unknown-query-${index}`}`,
+        { profileId: profile.id },
+        result.reason,
+      )
     }
   })
 

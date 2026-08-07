@@ -30,6 +30,19 @@ import { cn } from "@/lib/utils"
 
 interface IntakeReviewCockpitProps {
   className?: string
+  /**
+   * Whether the viewer may revoke an auto-issued certificate.
+   *
+   * `revokeAIApproval` is admin-only: the caller supplies an arbitrary intake
+   * id and the lookup runs with the service role, so it sits outside the
+   * per-doctor patient-access boundary. Render-gating here keeps the UI honest
+   * — a non-admin doctor should not be shown a control that can only fail. The
+   * server action remains the authority; this is presentation only.
+   *
+   * Defaults to false so a caller that forgets to pass it hides the control
+   * rather than showing a broken one.
+   */
+  canRevokeAutoIssued?: boolean
 }
 
 const MED_CERT_SYMPTOM_DETAIL_REQUEST =
@@ -124,9 +137,13 @@ function CertificateDeliveryCard() {
 
 export function IntakeReviewCockpit({
   className,
+  canRevokeAutoIssued,
 }: IntakeReviewCockpitProps) {
   const review = useIntakeReview()
   const { data, intake, answers, service } = review
+  // Server-resolved by default; the prop is an explicit override for callers
+  // that render without the review-data payload. Either way it fails closed.
+  const mayRevokeAutoIssued = canRevokeAutoIssued ?? data.viewerCanRevokeAutoIssued ?? false
   const router = useRouter()
 
   const [disclosureOpen, setDisclosureOpen] = useState(false)
@@ -221,7 +238,7 @@ export function IntakeReviewCockpit({
   // every approve/decline transition, so `IntakeActionButtons` renders no
   // decision for it — revocation is the one correction still available, and it
   // is offered here rather than as an obligation.
-  const decisionActions = isRevocableAutoIssuedCertificate(intake) ? (
+  const decisionActions = isRevocableAutoIssuedCertificate(intake) && mayRevokeAutoIssued ? (
     <RevokeAutoIssuedCertificate
       intakeId={intake.id}
       onRevoked={() => {

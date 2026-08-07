@@ -2,6 +2,7 @@ import "server-only"
 
 import { unstable_cache } from "next/cache"
 
+import { parseIntakeFlags } from "@/lib/clinical/intake-flags"
 import {
   ADMIN_LEDGER_PATIENT_SEARCH_FIELDS,
   type AdminLedgerQuickFilterValue,
@@ -1462,11 +1463,16 @@ export async function getRecentlyCompletedIntakes(opts: {
             patient_id,
             status,
             ai_approved_at,
+            risk_flags,
             patient:profiles!patient_id(full_name),
             service:services!service_id(name, type, short_name)
           `)
           .eq("ai_approved", true)
           .eq("status", "approved")
+          // Only medical certificates are auto-issued. Without this, any future
+          // service that sets `ai_approved` silently joins the med-cert
+          // oversight stream under a med-cert-shaped review affordance.
+          .eq("category", "medical_certificate")
           .gte("ai_approved_at", todayStartISO))
           .order("ai_approved_at", { ascending: false })
           .limit(queryLimit)
@@ -1496,12 +1502,13 @@ export async function getRecentlyCompletedIntakes(opts: {
       service: RelatedService | RelatedService[] | null
     }
     type OrdinaryRow = BaseRow & { reviewed_at: string | null }
-    type AutoIssuedRow = BaseRow & { ai_approved_at: string | null }
+    type AutoIssuedRow = BaseRow & { ai_approved_at: string | null; risk_flags?: unknown }
 
     const normalize = (
       row: BaseRow,
       activityAt: string | null,
       provenance: RecentlyCompletedIntake["activity_provenance"],
+      flagged = false,
     ): RecentlyCompletedIntake | null => {
       const patient = Array.isArray(row.patient) ? row.patient[0] : row.patient
       const service = Array.isArray(row.service) ? row.service[0] : row.service
@@ -1513,6 +1520,7 @@ export async function getRecentlyCompletedIntakes(opts: {
         status: row.status,
         activity_at: activityAt,
         activity_provenance: provenance,
+        flagged,
         patient,
         service: service ?? null,
       }
@@ -1522,12 +1530,18 @@ export async function getRecentlyCompletedIntakes(opts: {
       .map((row) => normalize(row, row.reviewed_at, "clinician_decision"))
       .filter((row): row is RecentlyCompletedIntake => row !== null)
     const autoIssued = ((autoIssuedResult.data || []) as unknown as AutoIssuedRow[])
-      .map((row) => normalize(row, row.ai_approved_at, "auto_issued"))
+      .map((row) =>
+        normalize(row, row.ai_approved_at, "auto_issued", parseIntakeFlags(row.risk_flags).length > 0),
+      )
       .filter((row): row is RecentlyCompletedIntake => row !== null)
 
-    const merged = [...ordinary, ...autoIssued].sort((a, b) =>
-      b.activity_at.localeCompare(a.activity_at),
-    )
+    // Flagged auto-issued certificates sort to the top of their timestamp, so
+    // the operator's daily scan starts with the ones the engine had something
+    // to say about. Ordering only — it is still visibility, not an obligation.
+    const merged = [...ordinary, ...autoIssued].sort((a, b) => {
+      if (a.flagged !== b.flagged) return a.flagged ? -1 : 1
+      return b.activity_at.localeCompare(a.activity_at)
+    })
     const truncated = merged.length > limit
     const data = merged.slice(0, limit)
 
