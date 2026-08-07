@@ -46,6 +46,7 @@ if [ "$MEDCERT_READINESS_BROWSER" = "1" ]; then
     --grep-invert "invalid certType is ignored" \
     e2e/medcert.auto-approval.spec.ts \
     e2e/medcert.approval.spec.ts \
+    e2e/medcert.auto-issued-revoke.spec.ts \
     e2e/medcert.email-pipeline.spec.ts \
     e2e/medcert.idempotency.spec.ts \
     e2e/admin.email-outbox.spec.ts \

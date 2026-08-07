@@ -524,8 +524,11 @@ export function AutoApproveSection({
           )}
         </CardTitle>
         <CardDescription>
-          Automatically approve eligible medical certificates (no flags, no mental health/injury/chronic) after payment.
-          Doctor batch review still applies, all AI-approved certs appear in the review queue for oversight.
+          Automatically approve eligible medical certificates after payment. Any attention-severity signal is
+          routed to manual review before a certificate exists. Lower-severity soft flags (co-symptom mental
+          health, injury, chronic, AI-draft review hints) do not block issuance — those certificates appear in
+          the dashboard&apos;s daily approved list marked <span className="font-medium">Flagged</span> and sorted
+          first. There is no post-approval sign-off obligation.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5 px-6 pb-6">

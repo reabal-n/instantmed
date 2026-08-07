@@ -107,19 +107,46 @@ export const revokeAIApproval = withServerAction<RevokeAIApprovalInput>(
     // Return the intake to manual review. The DB trigger permits this
     // approved -> in_review reversal only because the certificate is now
     // revoked (migration 20260711193000).
-    const { error: updateError } = await supabase
+    //
+    // Compare-and-set on `status`: the eligibility check above ran before the
+    // revoke, so a concurrent transition (a second operator, the 30s undo, a
+    // cron) could have moved the intake in between. Without the predicate this
+    // update would either clobber that transition or silently no-op while the
+    // caller was told the revoke succeeded. `select` returns the affected rows
+    // so zero matches is distinguishable from a write error.
+    const { data: reopenedRows, error: updateError } = await supabase
       .from("intakes")
       .update({
         status: "in_review",
         updated_at: new Date().toISOString(),
       })
       .eq("id", intakeId)
+      .eq("status", "approved")
+      .select("id")
 
     if (updateError) {
       log.error("Failed to update intake status after revocation", { intakeId, error: updateError.message })
       return {
         success: false,
         error: "Certificate revoked, but the intake could not return to manual review. Retry before leaving this case.",
+      }
+    }
+
+    if (!reopenedRows || reopenedRows.length === 0) {
+      // The certificate IS revoked, but something else moved the intake first.
+      // Surface it rather than reporting a clean success: an operator must not
+      // walk away believing the case is back in the queue when it is not.
+      log.error("Intake status changed concurrently during revocation", {
+        intakeId,
+        expectedStatus: "approved",
+      })
+      Sentry.captureMessage("Auto-issued revoke: intake moved before reopen", {
+        level: "warning",
+        tags: { subsystem: "revoke-ai-approval", intake_id: intakeId },
+      })
+      return {
+        success: false,
+        error: "Certificate revoked, but this request changed status at the same time. Reload the case and check its current state before leaving it.",
       }
     }
 

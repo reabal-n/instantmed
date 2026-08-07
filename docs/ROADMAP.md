@@ -60,6 +60,16 @@ Review channel/service contribution, refund and chargeback trends, queue/support
 | 5 | **Reactivation checkpoint** - assess repeat-Rx refill reminders after three real weekly waves; keep certificate reactivation bounded. | Measurement window open. Default-on email consent (2026-07-17) unblocked send volume for ~87% of patients; restart the three-wave clock from the first post-change wave. | Continue only if delivery and paid reorder conversion justify more work. Stop or rework a near-zero lever. |
 | 6 | **Compounding work** - deepen only fresh GSC-proven winners; profile before performance changes; run bounded repository cleanup quarterly. | Evidence-led backlog. | A specific query/page or measured hotspot justifies each session. No broad speculative sweep. |
 
+### Open operator decisions — auto-issued medical certificates
+
+Raised by the removal of the 24-hour post-approval attestation (#428, 2026-08-04) and the follow-up integrity work (#439/#440). These are decisions, not engineering tasks; none is blocked on code.
+
+| # | Decision | Why it is open | Owner |
+|---|----------|----------------|-------|
+| A | Should any engine **soft flag** become a pre-issuance block? | Co-symptom mental-health / injury / chronic mentions and AI-draft `requiresReview` currently auto-issue and are only marked **Flagged** afterwards. Promoting any of them routes those certificates to `needs_doctor` instead, reducing the auto-approval rate — a clinical *and* throughput trade-off. Widening `DETERMINISTIC_FAILURE_PREFIXES` is the mechanism. | Operator |
+| B | **Medical Director / legal reconciliation** of removing the post-approval attestation. | No rule mandating that specific 24-hour attestation was identified, but Medical Board telehealth guidance stresses real-time consultation and individual judgment for certificates, and AHPRA requires human oversight of AI-supported care. docs/CLINICAL.md records this as pending rather than settled. | Medical Director |
+| C | **Retrospective review of soft-flagged certificates issued since #428 merged** (2026-08-07 03:01 UTC). | Between the attestation being removed and soft flags being surfaced, any soft-flagged certificate had no human review surface at all. Certificates issued before #440 also have no persisted `risk_flags`, so they cannot be found through the dashboard — they need an `ai_audit_log` query on `metadata->softFlags`. | Operator |
+
 Work the highest-ranked actionable item. If an item is blocked by a scheduled measurement window, record that checkpoint and move to the next actionable item without changing the ranking.
 
 ## 5. Deferred Backlog

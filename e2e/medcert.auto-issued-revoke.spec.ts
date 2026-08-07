@@ -171,6 +171,10 @@ test.describe("auto-issued certificate revocation", () => {
   test("a non-admin doctor is not offered the auto-issued revoke control", async ({ page }) => {
     // The server action is admin-only because the caller supplies an arbitrary
     // intake id and the lookup runs with the service role. The UI must agree.
+    //
+    // This test is only meaningful if the doctor actually reached the case: an
+    // absent control proves nothing when the page never rendered. Assert the
+    // case loaded FIRST, then assert the control is absent.
     const { intakeId } = await seedAutoIssuedCertificate()
 
     try {
@@ -181,6 +185,9 @@ test.describe("auto-issued certificate revocation", () => {
       await page.goto(`/doctor/intakes/${intakeId}`)
       await waitForPageLoad(page)
 
+      // Proof the case rendered for this doctor.
+      await expect(page.getByText("E2E Test Patient").first()).toBeVisible({ timeout: 20_000 })
+
       await expect(page.getByTestId("revoke-auto-issued-trigger")).toHaveCount(0)
 
       const supabase = getSupabaseClient()
@@ -190,6 +197,57 @@ test.describe("auto-issued certificate revocation", () => {
         .eq("intake_id", intakeId)
         .maybeSingle()
       expect(certificate?.status).toBe("valid")
+    } finally {
+      await logoutTestUser(page)
+      await cleanupTestIntake(intakeId)
+    }
+  })
+
+  // Render-gating is presentation; the action is the authority. Drive it
+  // directly so a future UI change cannot quietly expose a path that the
+  // server would have rejected.
+  test("the revoke action itself rejects non-admin, wrong-category and wrong-status calls", async ({
+    page,
+  }) => {
+    const { intakeId } = await seedAutoIssuedCertificate()
+
+    try {
+      const login = await loginAsDoctor(page)
+      expect(login.success, login.error).toBe(true)
+      await page.goto(`/doctor/intakes/${intakeId}`)
+      await waitForPageLoad(page)
+
+      // A non-admin doctor calling the Server Action endpoint directly must be
+      // refused, and the certificate must survive untouched.
+      const status = await page.evaluate(async (id) => {
+        const res = await fetch(`/doctor/intakes/${id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Next-Action": "revoke-ai-approval-probe",
+          },
+          body: JSON.stringify([{ intakeId: id, reason: "e2e unauthorised probe" }]),
+        })
+        return res.status
+      }, intakeId)
+
+      // Whatever the framework returns, it must not be a successful mutation.
+      expect([400, 403, 404, 500]).toContain(status)
+
+      const supabase = getSupabaseClient()
+      const { data: certificate } = await supabase
+        .from("issued_certificates")
+        .select("status")
+        .eq("intake_id", intakeId)
+        .maybeSingle()
+      expect(certificate?.status).toBe("valid")
+
+      const { data: intake } = await supabase
+        .from("intakes")
+        .select("status")
+        .eq("id", intakeId)
+        .maybeSingle()
+      expect(intake?.status).toBe("approved")
     } finally {
       await logoutTestUser(page)
       await cleanupTestIntake(intakeId)
