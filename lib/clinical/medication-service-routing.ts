@@ -288,7 +288,7 @@ export function detectGatedServiceMedication(
 // pressure" must not. Matching a bare marker anywhere in free text let a
 // patient escape routing with a denial — and the on-screen steer names the
 // exempting conditions, so it effectively taught the escape words.
-const NEGATION_CUES = /\b(?:no|not|non|never|without|nil|none|denies|denied|deny|negative|free)\b/i
+const NEGATION_CUES = /\b(?:no|not|non|never|without|nil|none|denies|denied|deny|negative|free|don'?t|doesn'?t|didn'?t|haven'?t|hasn'?t|isn'?t|aren'?t|wasn'?t|weren'?t|won'?t|can'?t|cannot)\b/i
 
 // Clause boundaries. Negation is scoped to its own clause so "no allergies, for
 // my prostate" still exempts, while "not for my prostate" does not.

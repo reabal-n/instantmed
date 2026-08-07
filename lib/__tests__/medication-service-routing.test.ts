@@ -139,6 +139,8 @@ describe("detectDedicatedServiceForMedication", () => {
       ["minoxidil 5%", "not BPH"],
       ["finasteride 1mg", "never had prostate problems"],
       ["minoxidil 5%", "nil hypertension"],
+      ["minoxidil 5%", "don't have blood pressure problems"],
+      ["finasteride 1mg", "didn't get this for my prostate"],
     ] as const) {
       const match = detectDedicatedServiceForMedication(medicine, indication)
       expect(match?.enforcement, `${medicine} | ${indication}`).toBe("hard")
@@ -147,6 +149,10 @@ describe("detectDedicatedServiceForMedication", () => {
     for (const [medicine, indication] of [
       ["sildenafil", "not for pulmonary hypertension"],
       ["tadalafil 5mg", "no prostate issues"],
+      // Contractions are negations too — "haven't got pulmonary hypertension"
+      // must not read as a PAH claim.
+      ["sildenafil", "haven't got pulmonary hypertension"],
+      ["tadalafil 5mg", "doesn't relate to my prostate"],
     ] as const) {
       const match = detectDedicatedServiceForMedication(medicine, indication)
       expect(match?.enforcement, `${medicine} | ${indication}`).toBe("hard")
