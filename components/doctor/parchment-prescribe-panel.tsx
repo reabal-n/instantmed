@@ -12,6 +12,7 @@ import type { ReloadReviewData } from "@/components/doctor/review/intake-review-
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
+import { computeKeyboardInset, type KeyboardInset } from "@/lib/browser/keyboard-inset"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import type { ParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
 import { backdropVariants, sheetVariants } from "@/lib/motion/panel-variants"
@@ -122,6 +123,7 @@ export function ParchmentPrescribePanel({
   const [iframeLoaded, setIframeLoaded] = useState(false)
   const [iframeSlowToLoad, setIframeSlowToLoad] = useState(false)
   const [canUseIframe, setCanUseIframe] = useState(true)
+  const [keyboardInset, setKeyboardInset] = useState<KeyboardInset | null>(null)
   const errorCopy = getParchmentErrorCopy(error)
   const patientDetailsHref = patientProfileHref || (patientId ? buildStaffPatientHref(patientId) : null)
   const canEditPatientDetails = Boolean(patientDetailsHref && canFixParchmentErrorFromPatientProfile(error))
@@ -222,6 +224,52 @@ export function ParchmentPrescribePanel({
     }
   }, [])
 
+  // Keep the sheet inside the visible viewport while the soft keyboard is up.
+  // iOS Safari never shrinks the layout viewport (or 100dvh) for the keyboard,
+  // so without this the bottom ~40% of the Parchment iframe — exactly where the
+  // medicine search results render — sits underneath the keyboard with body
+  // scroll locked and no way to reach it. Typing inside the cross-origin
+  // iframe still resizes the top-level visualViewport, so the parent can track
+  // it. Same rAF-throttled listener shape as the intake flow's
+  // --keyboard-offset handling (components/request/request-flow.tsx).
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.visualViewport) return
+
+    const { visualViewport } = window
+    let frameId: number | null = null
+
+    const updateInset = () => {
+      setKeyboardInset(
+        computeKeyboardInset({
+          innerHeight: window.innerHeight,
+          offsetTop: visualViewport.offsetTop,
+          height: visualViewport.height,
+          scale: visualViewport.scale,
+        }),
+      )
+    }
+
+    const scheduleInsetUpdate = () => {
+      if (frameId !== null) return
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null
+        updateInset()
+      })
+    }
+
+    scheduleInsetUpdate()
+    visualViewport.addEventListener("resize", scheduleInsetUpdate)
+    visualViewport.addEventListener("scroll", scheduleInsetUpdate)
+    window.addEventListener("orientationchange", scheduleInsetUpdate)
+
+    return () => {
+      visualViewport.removeEventListener("resize", scheduleInsetUpdate)
+      visualViewport.removeEventListener("scroll", scheduleInsetUpdate)
+      window.removeEventListener("orientationchange", scheduleInsetUpdate)
+      if (frameId !== null) window.cancelAnimationFrame(frameId)
+    }
+  }, [])
+
   // Handle escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -232,7 +280,16 @@ export function ParchmentPrescribePanel({
   }, [closeAndRefresh])
 
   return (
-    <div className="fixed inset-0 z-50">
+    <div
+      className="fixed inset-0 z-50"
+      // While the keyboard is up, pin the overlay to the visible band above it.
+      // Inline style only — with the keyboard closed the classes own layout.
+      style={
+        keyboardInset
+          ? { top: keyboardInset.top, height: keyboardInset.height, bottom: "auto" }
+          : undefined
+      }
+    >
       {/* Backdrop */}
       <motion.div
         variants={backdropVariants}
@@ -251,6 +308,11 @@ export function ParchmentPrescribePanel({
         animate="visible"
         exit={prefersReducedMotion ? { opacity: 0 } : "exit"}
         className="absolute inset-0 flex h-[100dvh] w-full flex-col bg-background shadow-2xl shadow-primary/[0.12] sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[min(800px,100vw)]"
+        // Beat the h-[100dvh] class while the keyboard is up so the iframe
+        // (flex-1) shrinks to the reachable region and Parchment's own
+        // scrolling works above the keyboard. sheetVariants only animates x,
+        // so an inline height never fights the enter/exit motion.
+        style={keyboardInset ? { height: keyboardInset.height } : undefined}
         role="dialog"
         aria-modal="true"
         aria-labelledby="parchment-sheet-title"
@@ -262,13 +324,21 @@ export function ParchmentPrescribePanel({
               <h2 id="parchment-sheet-title" className="truncate text-base font-semibold text-foreground sm:text-lg">
                 Prescribe for {patientName}
               </h2>
-              <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
+              {/* Phones skip the long instruction — the footer states the same
+                  confirmation rule, and every vertical point here comes out of
+                  the Parchment iframe on a keyboard-shortened screen. */}
+              <p className="mt-0.5 hidden text-xs text-muted-foreground sm:block sm:text-sm">
                 {intakeId
                   ? "Write the prescription in Parchment below. Closing this panel checks for confirmation and unlocks Complete request when it is recorded."
                   : "Write the prescription in Parchment below. It will sync back to this patient profile."}
               </p>
               {prescriptionContext && (
-                <details className="mt-2 rounded-md border border-border bg-muted/35 px-3 py-2 sm:hidden">
+                <details
+                  className={cn(
+                    "mt-2 rounded-md border border-border bg-muted/35 px-3 py-2 sm:hidden",
+                    keyboardInset && "hidden",
+                  )}
+                >
                   <summary className="cursor-pointer list-none text-xs font-medium text-foreground">
                     <span className="block truncate">
                       {prescriptionContext.medicationLabel || prescriptionContext.presetLabel}
@@ -489,8 +559,15 @@ export function ParchmentPrescribePanel({
           )}
         </div>
 
-        {/* Footer - manual fallback */}
-        <div className="shrink-0 border-t border-border/50 bg-muted/30 px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-3">
+        {/* Footer - manual fallback. Hidden while the keyboard is up: every
+            visible point belongs to the iframe then, and the safe-area pad is
+            meaningless above a keyboard. */}
+        <div
+          className={cn(
+            "shrink-0 border-t border-border/50 bg-muted/30 px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-3",
+            keyboardInset && "hidden",
+          )}
+        >
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <CheckCircle className="h-3.5 w-3.5" />
