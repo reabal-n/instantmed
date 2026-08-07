@@ -77,7 +77,12 @@ const REPEAT_SERVICE_TYPES = new Set([
   "repeat_rx",
 ])
 
-const PRESCRIBING_CONSULT_SUBTYPES = new Set(["ed", "hair_loss", "womens_health"])
+// weight_loss added at launch (2026-08-07): a weight consult prescribes via
+// Parchment like the other specialty lines, so it needs the Prescribe
+// affordance and the durable script_sent completion gate — without this it
+// derived the generic "consult" workflow (no Prescribe button, completion
+// ungated by fulfilment evidence).
+const PRESCRIBING_CONSULT_SUBTYPES = new Set(["ed", "hair_loss", "womens_health", "weight_loss"])
 
 const PRESCRIPTION_HISTORY_LABELS: Record<string, string> = {
   less_than_3_months: "Less than 3 months ago",

@@ -93,6 +93,21 @@ describe("doctor capability gating contract", () => {
     expect(filter).toContain("service_id.in.(00000000-0000-0000-0000-000000000001)")
     expect(filter).not.toContain("00000000-0000-0000-0000-000000000002")
     expect(filter).toContain("and(service_id.in.(00000000-0000-0000-0000-000000000003),subtype.eq.ed)")
+    // The restricted weight line: generic consults must EXCLUDE it, and only
+    // an explicit grant adds the positive term.
+    expect(filter).not.toContain("subtype.eq.weight_loss")
+
+    const weightGranted = buildDoctorQueueServiceFilter(
+      build({ role: "doctor", can_review_weight_loss: true }),
+      [{ id: "00000000-0000-0000-0000-000000000003", type: "consult" }],
+    )
+    expect(weightGranted).toContain("and(service_id.in.(00000000-0000-0000-0000-000000000003),subtype.eq.weight_loss)")
+
+    const genericConsults = buildDoctorQueueServiceFilter(
+      build({ role: "doctor", can_review_consults: true }),
+      [{ id: "00000000-0000-0000-0000-000000000003", type: "consult" }],
+    )
+    expect(genericConsults).toContain("subtype.not.in.(ed,hair_loss,weight_loss)")
     expect(filter).not.toContain("subtype.eq.hair_loss")
   })
 
