@@ -43,7 +43,6 @@ export type UnifiedStepId =
   | 'womens-health-type'   // Women's health sub-selection
   | 'womens-health-assessment' // Women's health specific questions
   | 'weight-loss-assessment'   // Weight loss goals and screening
-  | 'weight-loss-call-scheduling' // Weight loss call availability
   | 'details'           // Patient identity + contact
   | 'review'            // Summary before payment
   | 'checkout'          // Payment + final consents

@@ -43,6 +43,15 @@ export function getServiceSlug(category: string, subtype: string): string {
     "prescription:chronic_review": "common-scripts",
     "prescription:new": "consult",
     "consult:general": "consult",
+    // Weight loss has its own safety config (weightSafetyConfig) — without
+    // this entry the category fallback selects the generic consult rules and
+    // every weight rule (BMI floors, pregnancy, MEN2, pancreatitis) is dead.
+    // MUST be the canonical 'weight-management' slug: the registry aliases
+    // ('weight', 'weight-loss') resolve the CONFIG, but each rule's services
+    // array lists only 'weight-management', so an alias slug silently filters
+    // every rule back out — pinned by the reachability test in
+    // safety-rules-engine.test.ts.
+    "consult:weight_loss": "weight-management",
   }
 
   const categoryFallback: Record<string, string> = {

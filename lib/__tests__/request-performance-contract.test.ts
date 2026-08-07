@@ -40,12 +40,15 @@ describe("request conversion performance contract", () => {
   it("registers every step as a next/dynamic component so the first step SSRs + preloads from <head>", () => {
     // Parse the loader registry: it is the canonical list of step chunks.
     const loaderEntries = [...stepLoadersSource.matchAll(/'([a-z-]+)': \(\) => import\("\.\/steps\/([a-z-]+)"\)/g)]
+    // Floor re-baselined 17 -> 16 on 2026-08-07: the weight-loss
+    // scheduled-call step was removed (form-first launch, D-A in the
+    // weight-loss launch plan).
     // Floor re-baselined 19 -> 18 on 2026-07-17: P2.1 merged
     // medication-history-step into medication-step. Re-baselined 18 -> 17 on
     // 2026-07-19: the IIEF-5 ed-assessment-step was absorbed into
     // ed-goals-step. This guards against silently LOSING a registration, so it
     // only moves with a deliberate step-count change.
-    expect(loaderEntries.length).toBeGreaterThanOrEqual(17)
+    expect(loaderEntries.length).toBeGreaterThanOrEqual(16)
 
     for (const [, key, file] of loaderEntries) {
       // Each loader key must have a matching dynamic() entry with a LITERAL
