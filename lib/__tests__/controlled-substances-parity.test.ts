@@ -4,6 +4,7 @@ import {
   CONTROLLED_SUBSTANCE_PATTERNS,
   CONTROLLED_SUBSTANCE_TERMS,
 } from "@/lib/clinical/controlled-substances"
+import { isLikelyDeclinedOnline } from "@/lib/clinical/controlled-substances"
 import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { BLOCKED_S8_TERMS, containsBlockedSubstance } from "@/lib/validation/repeat-script-schema"
 
@@ -92,6 +93,83 @@ describe("controlled-substance blocklist parity", () => {
     // paid repeat request at checkout).
     for (const name of ["atorvastatin", "metformin", "sertraline", "perindopril"]) {
       expect(containsBlockedSubstance(name), `server blocklist "${name}"`).toBe(false)
+    }
+  })
+})
+
+// ---------------------------------------------------------------------------
+// 2026-08-04: real declined+refunded orders, pinned as regressions.
+// Every one of these reached checkout and was refunded because the blocklist
+// carried the generic name but not the brand a patient actually writes.
+// ---------------------------------------------------------------------------
+describe("prescribing-gate brand coverage (2026-08 refund evidence)", () => {
+  it("blocks the S8 and controlled brands that reached checkout", () => {
+    // Oxynorm: immediate-release oxycodone. Every other oxycodone brand
+    // (oxycontin/endone/targin) was listed; this one was not.
+    // CBD: only "cbd oil" was listed, so a bare "CBD" entry matched nothing.
+    for (const medication of ["Oxynorm", "OxyNorm 5mg", "CBD", "CBD 25mg"]) {
+      expect(isControlledSubstance(medication), medication).toBe(true)
+    }
+  })
+
+  it("covers AU brand and spelling variants that generic-only entries miss", () => {
+    for (const medication of [
+      "Norspan patch",      // buprenorphine
+      "Hypnodorm",          // flunitrazepam, S8, was absent entirely
+      "Euhypnos 10mg",      // temazepam
+      "Ducene",             // diazepam
+      "Alepam",             // oxazepam
+      "dexamfetamine",      // AU spelling; list previously had only dexamphetamine
+    ]) {
+      expect(isControlledSubstance(medication), medication).toBe(true)
+    }
+  })
+
+  it("keeps ordinary repeat medicines prescribable", () => {
+    // Over-blocking costs a legitimate sale and is not the safe direction here.
+    // Lomotil (diphenoxylate + atropine) is S3/S4 in Australia, NOT S8, and is
+    // a legitimate ongoing repeat. It was briefly blocked on 2026-08-04 from a
+    // declined order whose reason was "Patient will resubmit request" — an
+    // operational decline, not a clinical refusal. Refund evidence alone is not
+    // grounds to block: the decline must be clinical and the schedule must fit.
+    for (const medication of [
+      "Sertraline 50mg", "Ventolin", "Metformin XR", "Atorvastatin 20mg",
+      "Panadol Osteo", "Nurofen", "Microgynon 30", "Amoxicillin",
+      "Lomotil", "Lomotil 100 tablets non pbs", "diphenoxylate",
+    ]) {
+      expect(isControlledSubstance(medication), medication).toBe(false)
+    }
+  })
+
+  it("preserves the deliberate codeine-combination carve-out", () => {
+    // docs/CLINICAL.md routes combination repeats to the reviewing doctor
+    // rather than a hard intake wall. Panadeine/Mersyndol are warned about
+    // before payment (isLikelyDeclinedOnline), never blocked.
+    for (const medication of ["codeine", "Codeine 15mg", "Panadeine forte", "Mersyndol forte"]) {
+      expect(isControlledSubstance(medication), medication).toBe(false)
+    }
+  })
+})
+
+describe("isLikelyDeclinedOnline", () => {
+  it("flags codeine-combination brands so nobody pays to reach a predictable no", () => {
+    for (const medication of ["Panadeine forte", "Mersyndol forte", "Nurofen Plus", "Codalgin"]) {
+      expect(isLikelyDeclinedOnline(medication), medication).toBe(true)
+    }
+  })
+
+  it("stays silent for ordinary repeats", () => {
+    for (const medication of ["Sertraline 50mg", "Ventolin", "Panadol Osteo", "Nurofen"]) {
+      expect(isLikelyDeclinedOnline(medication), medication).toBe(false)
+    }
+  })
+
+  it("never double-signals on a medicine that is already hard-blocked", () => {
+    // A controlled substance is blocked upstream; showing an advisory as well
+    // would offer a "continue anyway" on something that cannot proceed.
+    for (const medication of ["Oxynorm", "CBD", "Endone"]) {
+      expect(isControlledSubstance(medication), medication).toBe(true)
+      expect(isLikelyDeclinedOnline(medication), medication).toBe(false)
     }
   })
 })

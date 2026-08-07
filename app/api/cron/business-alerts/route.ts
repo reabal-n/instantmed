@@ -10,6 +10,10 @@ import { getAuthEmailFailureCount } from "@/lib/data/auth-email-events"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { toError } from "@/lib/errors"
+import {
+  buildAdsContributionAlert,
+  getAdsContributionHealth,
+} from "@/lib/monitoring/ads-contribution-health"
 import { type BusinessAlert, runAlertSection } from "@/lib/monitoring/alert-sections"
 import { buildAuthEmailFailureAlert } from "@/lib/monitoring/auth-email-failure"
 import {
@@ -596,6 +600,36 @@ export async function GET(request: NextRequest) {
     // paged the operator every 30 minutes once its window lapsed. Do not
     // reintroduce a post-approval review alert; strengthen the pre-approval
     // gate instead.
+
+    // 13. Paid-acquisition contribution over the rolling 30 days. Until this
+    // existed, the number deciding whether ads are a business or a subsidy was
+    // visible only in the 09:15 Telegram card — it depended on a human reading
+    // a message every morning. Aggregate-only: cents and order counts, never a
+    // campaign, keyword, intake, or patient identifier.
+    await runAlertSection({
+      section: "ads_contribution",
+      alerts,
+      onFailure: onSectionFailure,
+      run: async () => {
+        const contribution = await getAdsContributionHealth(supabase)
+        const contributionAlert = buildAdsContributionAlert(contribution)
+        if (!contributionAlert) return
+        alerts.push(contributionAlert)
+        trackBusinessMetric({
+          metric: contributionAlert.metric === "ads_contribution_negative"
+            ? "ads_contribution_negative"
+            : "ads_contribution_thin",
+          severity: contributionAlert.severity,
+          metadata: {
+            orders: contribution.orders,
+            spend_cents: contribution.spendCents,
+            contribution_cents: contribution.contributionCents,
+            contribution_margin: contribution.contributionMargin,
+            report_date: contribution.reportDate,
+          },
+        })
+      },
+    })
 
     // Fire Sentry alerts for critical items
     const criticalAlerts = alerts.filter((a) => a.severity === "critical")
