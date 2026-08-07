@@ -72,18 +72,31 @@ describe("detectDedicatedServiceForMedication", () => {
     }
   })
 
-  it("downgrades a PDE5 inhibitor with stated BPH / PAH context to flag_only", () => {
-    for (const [medicine, indication] of [
-      ["Revatio 20mg", ""],
-      ["Adcirca 20mg", "pulmonary arterial hypertension"],
-      ["sildenafil 20mg", "pulmonary hypertension"],
-      ["tadalafil 5mg", "BPH"],
-      ["tadalafil", "prostate symptoms"],
-    ] as const) {
-      const match = detectDedicatedServiceForMedication(medicine, indication)
+  it("downgrades PAH-only PDE5 brands to flag_only with no question", () => {
+    // Revatio/Adcirca exist only as PAH products; the doctor is still told
+    // because the nitrate interaction applies whatever the indication.
+    for (const medicine of ["Revatio 20mg", "Adcirca 20mg"]) {
+      const match = detectDedicatedServiceForMedication(medicine)
       expect(match?.subtype, medicine).toBe("ed")
       expect(match?.enforcement, medicine).toBe("flag_only")
+      expect(match?.contextOptions, medicine).toBeUndefined()
     }
+  })
+
+  it("exempts an ambiguous PDE5 inhibitor ONLY via the structured context token", () => {
+    // Free-text indications no longer exempt — two review rounds proved that
+    // inferring intent from free text either refused care or leaked the lane.
+    expect(detectDedicatedServiceForMedication("sildenafil 20mg", "pulmonary hypertension")?.enforcement).toBe("hard")
+    expect(detectDedicatedServiceForMedication("tadalafil 5mg", "BPH")?.enforcement).toBe("hard")
+
+    for (const token of ["pulmonary_hypertension", "prostate_bph"] as const) {
+      const match = detectDedicatedServiceForMedication("sildenafil 100mg", "", token)
+      expect(match?.enforcement, token).toBe("flag_only")
+      expect(match?.reason, token).toContain("patient selected")
+    }
+    // The routed condition (or garbage) keeps the steer.
+    expect(detectDedicatedServiceForMedication("sildenafil", "", "erectile_dysfunction")?.enforcement).toBe("hard")
+    expect(detectDedicatedServiceForMedication("sildenafil", "", "definitely-not-a-token")?.enforcement).toBe("hard")
   })
 
   it("never exempts on dose alone — only a stated indication does", () => {
@@ -115,16 +128,17 @@ describe("detectDedicatedServiceForMedication", () => {
   })
 
   it("treats oral minoxidil for hypertension as an ordinary repeat", () => {
-    // Oral minoxidil (Loniten, PBS 10 mg) is an antihypertensive for severe
-    // refractory hypertension. Dose cannot discriminate it from the 5% topical
-    // hair product, so the stated indication must exempt it.
-    for (const [medicine, indication] of [
-      ["minoxidil 10 mg", "hypertension"],
-      ["Minoxidil 10mg", "severe refractory high blood pressure"],
-      ["Loniten", ""],
-    ] as const) {
-      expect(detectDedicatedServiceForMedication(medicine, indication), medicine).toBeNull()
-    }
+    // Loniten is the BP-only brand — deterministic, silent exemption. Generic
+    // minoxidil needs the patient's structured answer, which always flags.
+    expect(detectDedicatedServiceForMedication("Loniten")).toBeNull()
+    expect(detectDedicatedServiceForMedication("minoxidil (Loniten) 10 mg")).toBeNull()
+
+    const attested = detectDedicatedServiceForMedication("minoxidil 10 mg", "hypertension", "blood_pressure")
+    expect(attested?.enforcement).toBe("flag_only")
+    expect(attested?.reason).toContain("Blood pressure")
+
+    // Free-text hypertension alone no longer exempts.
+    expect(detectDedicatedServiceForMedication("minoxidil 10 mg", "hypertension")?.enforcement).toBe("hard")
   })
 
   it("still routes minoxidil taken for hair", () => {
@@ -166,20 +180,58 @@ describe("detectDedicatedServiceForMedication", () => {
     expect(detectDedicatedServiceForMedication("dutasteride 0.5mg", "prostate")).toBeNull()
   })
 
-  it("scopes negation to its own clause", () => {
-    // "no allergies" must not poison a genuine exemption in the next clause.
-    expect(detectDedicatedServiceForMedication("minoxidil 10mg", "no allergies, for my blood pressure")).toBeNull()
-    expect(detectDedicatedServiceForMedication("finasteride 5mg", "no side effects; prostate")).toBeNull()
+  it("binds each context token to the medicine class it can plausibly excuse", () => {
+    // A prostate token says nothing about minoxidil, and a blood-pressure
+    // token says nothing about finasteride or a PDE5 inhibitor.
+    expect(detectDedicatedServiceForMedication("minoxidil 5%", "", "prostate_bph")?.enforcement).toBe("hard")
+    expect(detectDedicatedServiceForMedication("finasteride 1mg", "", "blood_pressure")?.enforcement).toBe("hard")
+    expect(detectDedicatedServiceForMedication("sildenafil", "", "hair_loss")?.enforcement).toBe("hard")
+    // …and each token works for its own class, always flagged (attestation).
+    expect(detectDedicatedServiceForMedication("finasteride 1mg", "", "prostate_bph")?.enforcement).toBe("flag_only")
+    expect(detectDedicatedServiceForMedication("minoxidil 5%", "", "blood_pressure")?.enforcement).toBe("flag_only")
+    // Deterministic medicine facts still exempt silently — nothing was claimed.
+    expect(detectDedicatedServiceForMedication("finasteride 5mg", "prostate")).toBeNull()
   })
 
-  it("binds each exemption to the medicine class it can plausibly excuse", () => {
-    // A prostate indication says nothing about minoxidil, and a blood-pressure
-    // indication says nothing about finasteride.
-    expect(detectDedicatedServiceForMedication("minoxidil 5%", "prostate")?.enforcement).toBe("hard")
-    expect(detectDedicatedServiceForMedication("finasteride 1mg", "hypertension")?.enforcement).toBe("hard")
-    // …and each still works for its own class.
-    expect(detectDedicatedServiceForMedication("minoxidil 10mg", "hypertension")).toBeNull()
-    expect(detectDedicatedServiceForMedication("finasteride 5mg", "prostate")).toBeNull()
+  it("asks the question only for multi-indication medicines", () => {
+    // Single-indication brands are decisive — no question, no options.
+    expect(detectDedicatedServiceForMedication("Viagra")?.contextOptions).toBeUndefined()
+    expect(detectDedicatedServiceForMedication("Propecia")?.contextOptions).toBeUndefined()
+    // Ambiguous generics carry exactly their class's options.
+    expect(detectDedicatedServiceForMedication("sildenafil")?.contextOptions).toEqual([
+      "erectile_dysfunction", "pulmonary_hypertension", "prostate_bph",
+    ])
+    expect(detectDedicatedServiceForMedication("finasteride 1mg")?.contextOptions).toEqual([
+      "hair_loss", "prostate_bph",
+    ])
+    expect(detectDedicatedServiceForMedication("minoxidil")?.contextOptions).toEqual([
+      "hair_loss", "blood_pressure",
+    ])
+  })
+
+  it("catches real-world typos of the generic ingredients", () => {
+    // 2 of 2 production repeat requests on 2026-08-06 misspelled their
+    // medicine. Long generic names get typo tolerance; brands stay exact.
+    for (const typo of ["sildenafl", "sidenafil", "tadalafl", "finasterde", "finastride", "minoxidl", "dutasterid"]) {
+      expect(detectDedicatedServiceForMedication(typo)?.enforcement, typo).toBe("hard")
+    }
+  })
+
+  it("never fuzzy-matches ordinary Australian repeat medicines (collision corpus)", () => {
+    // The named hazard: Silvasta (a sildenafil brand, exact-matched) must not
+    // drag Simvastatin in via fuzz — the length gate keeps them apart.
+    for (const medicine of [
+      "Simvastatin 40mg", "Atorvastatin", "Rosuvastatin", "Pravastatin",
+      "Sertraline", "Escitalopram", "Citalopram", "Fluoxetine", "Venlafaxine",
+      "Mirtazapine", "Metformin", "Perindopril", "Ramipril", "Amlodipine",
+      "Telmisartan", "Candesartan", "Irbesartan", "Pantoprazole",
+      "Esomeprazole", "Omeprazole", "Salbutamol", "Budesonide",
+      "Levothyroxine", "Rivaroxaban", "Apixaban", "Tamsulosin", "Tramadol",
+      // The two real typos from production on 2026-08-06:
+      "Clopidigrel", "Propanolol",
+    ]) {
+      expect(detectDedicatedServiceForMedication(medicine), medicine).toBeNull()
+    }
   })
 
   it("keeps every-day contraceptive packs on women's health, not ED", () => {

@@ -308,10 +308,14 @@ export function validateRepeatScriptPayload(
   // gap. The scan includes the stated indication, which is also how a BPH/PAH
   // patient keeps their legitimate repeat (that match is flag_only).
   const routingIndication = typeof answers.indication === "string" ? answers.indication : ""
+  // The structured "what do I take this for" answer. The detector normalises
+  // and validates it; unknown values fail toward routing.
+  const routingContext = answers.routing_context ?? answers.routingContext
   for (const medication of medications) {
     const routingMatch = detectDedicatedServiceForMedication(
       buildRepeatScriptMedicationValidationText(medication),
       routingIndication,
+      routingContext,
     )
     if (routingMatch?.enforcement === "hard") {
       const serviceCopy = routingMatch.subtype === "ed"
