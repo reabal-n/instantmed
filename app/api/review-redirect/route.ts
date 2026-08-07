@@ -19,13 +19,21 @@ import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("review-redirect")
 
+// Every dimension an emitter sends MUST be listed here, or `allowedDimension`
+// silently rewrites it to the fallback and the analytics lie about the
+// traversal's origin. `ReviewAskCard` sent `utm_medium=post_delivery` from
+// 2026-07-04 while this set lacked it, so every delivery-surface click was
+// recorded as `review_cta` — the exact instrument the mid-August review
+// checkpoint reads. `review-redirect-dimensions-contract.test.ts` now pins
+// every live emitter literal to these sets; add the token HERE in the same
+// commit as any new emitter.
 const REVIEW_SOURCES = new Set([
   "email",
   "patient_dashboard",
   "patient_documents",
   "patient_intake_detail",
 ])
-const REVIEW_MEDIA = new Set(["review_request", "review_card", "review_cta"])
+const REVIEW_MEDIA = new Set(["review_request", "review_card", "review_cta", "post_delivery"])
 const REVIEW_CAMPAIGNS = new Set(["review"])
 
 function allowedDimension(value: string | null, allowed: Set<string>, fallback: string): string {
