@@ -37,6 +37,7 @@ const FULL_GRANT: DoctorCapabilities = {
   can_review_consults: true,
   can_review_ed: true,
   can_review_hair_loss: true,
+  can_review_weight_loss: false,
   can_prescribe_s4: true,
   can_prescribe_s8: true,
 }
@@ -47,6 +48,7 @@ const DEFAULT_NO_S8: DoctorCapabilities = {
   can_review_consults: true,
   can_review_ed: true,
   can_review_hair_loss: true,
+  can_review_weight_loss: false,
   can_prescribe_s4: true,
   can_prescribe_s8: false,
 }

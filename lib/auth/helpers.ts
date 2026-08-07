@@ -50,7 +50,7 @@ const PROFILE_COLUMNS = `
   ahpra_number, ahpra_verified, ahpra_verified_at, ahpra_verified_by,
   ahpra_verification_notes, ahpra_next_review_at, provider_number, nominals,
   can_review_med_certs, can_review_repeat_rx, can_review_consults,
-  can_review_ed, can_review_hair_loss, can_prescribe_s4, can_prescribe_s8,
+  can_review_ed, can_review_hair_loss, can_review_weight_loss, can_prescribe_s4, can_prescribe_s8,
   consent_myhr, onboarding_completed,
   account_closed_at, account_closure_reason, merged_into_profile_id,
   email_verified, email_verified_at, email_bounced, email_bounced_at,

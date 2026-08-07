@@ -12,6 +12,7 @@ export interface DoctorCapabilities {
   can_review_consults: boolean
   can_review_ed: boolean
   can_review_hair_loss: boolean
+  can_review_weight_loss: boolean
   can_prescribe_s4: boolean
   can_prescribe_s8: boolean
 }
@@ -22,6 +23,7 @@ const CAPABILITY_KEYS: (keyof DoctorCapabilities)[] = [
   "can_review_consults",
   "can_review_ed",
   "can_review_hair_loss",
+  "can_review_weight_loss",
   "can_prescribe_s4",
   "can_prescribe_s8",
 ]
@@ -48,7 +50,7 @@ export async function updateDoctorCapabilitiesAction(
   const { data: before, error: readError } = await supabase
     .from("profiles")
     .select(
-      "can_review_med_certs, can_review_repeat_rx, can_review_consults, can_review_ed, can_review_hair_loss, can_prescribe_s4, can_prescribe_s8",
+      "can_review_med_certs, can_review_repeat_rx, can_review_consults, can_review_ed, can_review_hair_loss, can_review_weight_loss, can_prescribe_s4, can_prescribe_s8",
     )
     .eq("id", doctorId)
     .single()
