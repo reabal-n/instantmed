@@ -53,4 +53,39 @@ describe("AI-approved medical certificate reopen guard", () => {
   it("gates the destructive revoke path on the med-cert review capability", () => {
     expect(action).toContain('doctorHasCapability(profile, "review_med_certs")')
   })
+
+  // Removing the 24h attestation card deleted `revokeAIApproval`'s ONLY UI
+  // caller, leaving the action reachable from tests alone. `IntakeActionButtons`
+  // is no substitute: `canDecline` excludes `approved`, and it has no revoke, so
+  // a delivered auto-issued certificate rendered zero decision actions. The
+  // operator could see a wrong certificate in the day's list and had no way to
+  // correct it — which is also the claim docs/CLINICAL.md makes ("Revocation
+  // remains the standing correction path"). Keep a real UI caller wired.
+  it("keeps a production UI caller for the revoke action", () => {
+    const cockpit = readFileSync(
+      join(process.cwd(), "components/doctor/review/intake-review-cockpit.tsx"),
+      "utf8",
+    )
+    expect(cockpit).toContain("RevokeAutoIssuedCertificate")
+    expect(cockpit).toContain("isRevocableAutoIssuedCertificate(intake)")
+
+    const revokeUi = readFileSync(
+      join(process.cwd(), "components/doctor/review/revoke-auto-issued-certificate.tsx"),
+      "utf8",
+    )
+    expect(revokeUi).toContain('from "@/app/actions/revoke-ai-approval"')
+  })
+
+  it("offers revocation only for a delivered auto-issued medical certificate", () => {
+    const revokeUi = readFileSync(
+      join(process.cwd(), "components/doctor/review/revoke-auto-issued-certificate.tsx"),
+      "utf8",
+    )
+    // Med certs terminate at `approved`; `completed` is a DB terminal state the
+    // reopen could never leave, which would strand a revoked certificate.
+    expect(revokeUi).toContain('intake.ai_approved === true')
+    expect(revokeUi).toContain('intake.category === "medical_certificate"')
+    expect(revokeUi).toContain('intake.status === "approved"')
+    expect(revokeUi).not.toContain('"completed"')
+  })
 })

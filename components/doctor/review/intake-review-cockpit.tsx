@@ -15,6 +15,10 @@ import { IntakeSecondaryDisclosure } from "@/components/doctor/review/intake-sec
 import { PatientMessageThread } from "@/components/doctor/review/patient-message-thread"
 import { RequestInfoCard } from "@/components/doctor/review/request-info-card"
 import { ReviewBlockersStrip } from "@/components/doctor/review/review-blockers-strip"
+import {
+  isRevocableAutoIssuedCertificate,
+  RevokeAutoIssuedCertificate,
+} from "@/components/doctor/review/revoke-auto-issued-certificate"
 import { SafetyFlagsCard } from "@/components/doctor/review/safety-flags-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -212,10 +216,19 @@ export function IntakeReviewCockpit({
     })
   }, [canRequestClinicalDetail, intake.id, router])
 
-  // Auto-issued certificates get the same action set as any other request:
-  // open it, and revoke if it looks wrong. There is no separate post-approval
-  // attestation card (operator decision 2026-08-04).
-  const decisionActions = (
+  // There is no post-approval attestation card (operator decision 2026-08-04):
+  // risk is gated BEFORE issuance. A delivered auto-issued certificate is past
+  // every approve/decline transition, so `IntakeActionButtons` renders no
+  // decision for it — revocation is the one correction still available, and it
+  // is offered here rather than as an obligation.
+  const decisionActions = isRevocableAutoIssuedCertificate(intake) ? (
+    <RevokeAutoIssuedCertificate
+      intakeId={intake.id}
+      onRevoked={() => {
+        void review.reloadReviewData()
+      }}
+    />
+  ) : (
     <IntakeActionButtons
       placement="bottom"
       requiresClinicalDetail={canRequestClinicalDetail}
