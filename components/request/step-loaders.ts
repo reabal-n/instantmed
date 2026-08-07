@@ -28,7 +28,6 @@ const stepLoaders = {
   'womens-health-type-step': () => import("./steps/womens-health-type-step").then((mod) => mod.default),
   'womens-health-assessment-step': () => import("./steps/womens-health-assessment-step").then((mod) => mod.default),
   'weight-loss-assessment-step': () => import("./steps/weight-loss-assessment-step").then((mod) => mod.default),
-  'weight-loss-call-step': () => import("./steps/weight-loss-call-step").then((mod) => mod.default),
 } satisfies Record<string, () => Promise<ComponentType<StepComponentProps>>>
 
 type StepComponentKey = keyof typeof stepLoaders

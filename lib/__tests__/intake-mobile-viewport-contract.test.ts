@@ -29,7 +29,6 @@ const intakeStepFiles = [
   "components/request/steps/hair-loss-health-step.tsx",
   "components/request/steps/hair-loss-preferences-step.tsx",
   "components/request/steps/weight-loss-assessment-step.tsx",
-  "components/request/steps/weight-loss-call-step.tsx",
   "components/request/steps/womens-health-type-step.tsx",
   "components/request/steps/womens-health-assessment-step.tsx",
 ]

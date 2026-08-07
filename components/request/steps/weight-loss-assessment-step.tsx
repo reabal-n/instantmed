@@ -1,7 +1,37 @@
 "use client"
 
-import { Activity, AlertCircle, AlertTriangle, ClipboardCheck, Scale } from "lucide-react"
-import { useState } from "react"
+/**
+ * Weight-loss assessment — the single clinical screen for the weight-management
+ * consult (launch build 2026-08-07, decisions D-A..D-E in
+ * docs/plans/2026-08-07-weight-loss-launch-plan.md).
+ *
+ * Form-first (D-A): there is no scheduled-call step. The eating-disorder answer
+ * soft-escalates to a doctor call (`requiresCall`) exactly like women's health;
+ * everything else is reviewed asynchronously.
+ *
+ * Medicine-neutral (D-B): no treatment-preference cards and no drug names —
+ * the doctor recommends the medicine, or declines, after review. TGA: patients
+ * may type a drug name into free text; we never print one.
+ *
+ * Screening (D-D): pregnancy/breastfeeding, MEN2/medullary thyroid cancer, and
+ * pancreatitis are collected here because the server safety rules DECLINE on
+ * them (lib/safety/rules.ts weightRules). The answer keys match the rules
+ * exactly — `weight_pregnancy_status` ('yes'/'no'), and boolean
+ * `weight_men2_thyroid_cancer` / `weight_pancreatitis`.
+ *
+ * Keys are aligned with the ED common tail (`weightKg`/`heightCm`/`bmi`) so the
+ * doctor draft context and clinical summary read one vocabulary; legacy drafts
+ * carrying `currentWeight`/`currentHeight` are migrated on mount.
+ * `wlHasWeightComorbidity` is derived from the comorbidity toggles (single
+ * boolean for the BMI 27–29.9 rule) — see lib/clinical/weight-loss-eligibility.
+ *
+ * One always-mounted screen, no phased reveals (#209 rule); the only
+ * conditional blocks are detail fields for answered "yes"es and the soft
+ * eating-disorder note.
+ */
+
+import { AlertCircle, AlertTriangle } from "lucide-react"
+import { useEffect, useState } from "react"
 
 import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -10,6 +40,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  computeBmi,
+  WEIGHT_LOSS_BMI_FLOOR,
+  WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY,
+  WEIGHT_LOSS_COMORBIDITY_KEYS,
+} from "@/lib/clinical/weight-loss-eligibility"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { cn } from "@/lib/utils"
 
@@ -39,54 +75,126 @@ const MEDICAL_HISTORY_TOGGLES = [
   { key: 'wlHistoryPCOS', label: 'PCOS (polycystic ovary syndrome)' },
 ]
 
-export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmentStepProps) {
-  const { answers, setAnswer } = useRequestStore()
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [showEatingDisorderWarning, setShowEatingDisorderWarning] = useState(false)
+/** The file's established radio-card pattern, extracted so the three
+ *  safety questions don't triple the markup. */
+function BinaryChoice({
+  label,
+  value,
+  onChange,
+  error,
+  ariaLabel,
+}: {
+  label: React.ReactNode
+  value: "yes" | "no" | ""
+  onChange: (value: "yes" | "no") => void
+  error?: string
+  ariaLabel: string
+}) {
+  return (
+    <div className="space-y-3">
+      <Label className="text-sm font-medium">
+        {label}<span className="text-destructive ml-0.5">*</span>
+      </Label>
+      <RadioGroup
+        value={value}
+        onValueChange={(next) => onChange(next as "yes" | "no")}
+        className="space-y-2"
+        aria-label={ariaLabel}
+      >
+        {(["yes", "no"] as const).map((option) => (
+          <label
+            key={option}
+            className={cn(
+              "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]",
+              value === option
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/50"
+            )}
+          >
+            <RadioGroupItem value={option} />
+            <span className="text-sm">{option === "yes" ? "Yes" : "No"}</span>
+          </label>
+        ))}
+      </RadioGroup>
+      {error && (
+        <p className="text-xs text-destructive flex items-center gap-1">
+          <AlertCircle className="w-3 h-3" />
+          {error}
+        </p>
+      )}
+    </div>
+  )
+}
 
-  const currentWeight = (answers.currentWeight as string) || ""
-  const currentHeight = (answers.currentHeight as string) || ""
+export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmentStepProps) {
+  const { answers, setAnswer, setAnswers } = useRequestStore()
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const weightKg = (answers.weightKg as string) || ""
+  const heightCm = (answers.heightCm as string) || ""
   const targetWeight = (answers.targetWeight as string) || ""
   const previousAttempts = (answers.previousAttempts as string) || ""
   const eatingDisorderHistory = (answers.eatingDisorderHistory as string) || ""
+  const pregnancyStatus = (answers.weight_pregnancy_status as string) || ""
+  const men2History = answers.weight_men2_thyroid_cancer as boolean | undefined
+  const pancreatitisHistory = answers.weight_pancreatitis as boolean | undefined
   const weightLossGoals = (answers.weightLossGoals as string) || ""
-  const weightLossMedPreference = (answers.weightLossMedPreference as string) || ""
   const wlAdverseReactions = (answers.wlAdverseReactions as string) || ""
   const wlAdverseReactionsDetails = (answers.wlAdverseReactionsDetails as string) || ""
 
-  // Calculate BMI
-  const calculateBMI = () => {
-    const weight = parseFloat(currentWeight)
-    const heightCm = parseFloat(currentHeight)
-    if (weight && heightCm) {
-      const heightM = heightCm / 100
-      return (weight / (heightM * heightM)).toFixed(1)
+  // Migrate drafts saved before the key alignment (currentWeight/currentHeight
+  // -> weightKg/heightCm). One-way, on mount, only when the new keys are empty.
+  useEffect(() => {
+    const legacyWeight = answers.currentWeight as string | undefined
+    const legacyHeight = answers.currentHeight as string | undefined
+    if ((legacyWeight && !answers.weightKg) || (legacyHeight && !answers.heightCm)) {
+      setAnswers({
+        ...(legacyWeight && !answers.weightKg ? { weightKg: legacyWeight } : {}),
+        ...(legacyHeight && !answers.heightCm ? { heightCm: legacyHeight } : {}),
+      })
     }
-    return null
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  const bmi = calculateBMI()
+  const bmi = computeBmi(parseFloat(weightKg), parseFloat(heightCm))
 
-  const handleEatingDisorderChange = (value: string) => {
+  // Persist derived values the server rules evaluate: the BMI itself and the
+  // single comorbidity boolean (six maybe-missing toggles collapse to one
+  // always-present flag).
+  const hasComorbidity = WEIGHT_LOSS_COMORBIDITY_KEYS.some((key) => answers[key] === true)
+  useEffect(() => {
+    setAnswer("bmi", bmi ?? "")
+  }, [bmi, setAnswer])
+  useEffect(() => {
+    setAnswer("wlHasWeightComorbidity", hasComorbidity)
+  }, [hasComorbidity, setAnswer])
+
+  // Honest early signal, same thresholds the server enforces: below the floor
+  // the request will be declined, so say it before payment, not after.
+  const belowFloor = bmi !== null && bmi < WEIGHT_LOSS_BMI_FLOOR
+  const needsComorbidity =
+    bmi !== null
+    && bmi >= WEIGHT_LOSS_BMI_FLOOR
+    && bmi < WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY
+    && !hasComorbidity
+
+  const handleEatingDisorderChange = (value: "yes" | "no") => {
     setAnswer("eatingDisorderHistory", value)
-    if (value === 'yes') {
-      setShowEatingDisorderWarning(true)
-      // Soft escalate - mark for call, don't hard block
+    if (value === "yes") {
+      // Soft escalate — mark for a doctor call, don't hard block.
       setAnswer("requiresCall", true)
       setAnswer("callReason", "eating_disorder_history")
-    } else {
-      setShowEatingDisorderWarning(false)
     }
   }
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
 
-    if (!currentWeight || parseFloat(currentWeight) < 30 || parseFloat(currentWeight) > 300) {
-      newErrors.currentWeight = "Please enter a valid weight (30-300 kg)"
+    if (!weightKg || parseFloat(weightKg) < 30 || parseFloat(weightKg) > 300) {
+      newErrors.weightKg = "Please enter a valid weight (30-300 kg)"
     }
-    if (!currentHeight || parseFloat(currentHeight) < 100 || parseFloat(currentHeight) > 250) {
-      newErrors.currentHeight = "Please enter a valid height (100-250 cm)"
+    if (!heightCm || parseFloat(heightCm) < 100 || parseFloat(heightCm) > 250) {
+      newErrors.heightCm = "Please enter a valid height (100-250 cm)"
     }
     if (!targetWeight) {
       newErrors.targetWeight = "Please enter your target weight"
@@ -97,8 +205,14 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
     if (!eatingDisorderHistory) {
       newErrors.eatingDisorderHistory = "Please answer this question"
     }
-    if (!weightLossMedPreference) {
-      newErrors.weightLossMedPreference = "Please select the option you want the doctor to consider"
+    if (!pregnancyStatus) {
+      newErrors.pregnancyStatus = "Please answer this question"
+    }
+    if (men2History === undefined) {
+      newErrors.men2History = "Please answer this question"
+    }
+    if (pancreatitisHistory === undefined) {
+      newErrors.pancreatitisHistory = "Please answer this question"
     }
     if (!wlAdverseReactions) {
       newErrors.wlAdverseReactions = "Please answer this question"
@@ -120,18 +234,17 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
     }
   }
 
-  const isComplete = currentWeight && currentHeight && targetWeight && previousAttempts && eatingDisorderHistory && weightLossMedPreference && wlAdverseReactions && (wlAdverseReactions !== 'yes' || wlAdverseReactionsDetails.length >= 10) && weightLossGoals.length >= 20
+  const isComplete = Boolean(
+    weightKg && heightCm && targetWeight && previousAttempts
+    && eatingDisorderHistory && pregnancyStatus
+    && men2History !== undefined && pancreatitisHistory !== undefined
+    && wlAdverseReactions
+    && (wlAdverseReactions !== 'yes' || wlAdverseReactionsDetails.length >= 10)
+    && weightLossGoals.length >= 20
+  )
 
   return (
     <div className="space-y-6">
-      {/* Info alert */}
-      <Alert variant="default" className="border-primary/20 bg-primary/5">
-        <Scale className="w-4 h-4" />
-        <AlertDescription className="text-xs">
-          This service includes a brief consultation call to discuss your weight loss goals safely.
-        </AlertDescription>
-      </Alert>
-
       {/* Current measurements */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -140,15 +253,15 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
           </Label>
           <Input
             type="number"
-            value={currentWeight}
-            onChange={(e) => setAnswer("currentWeight", e.target.value)}
+            value={weightKg}
+            onChange={(e) => setAnswer("weightKg", e.target.value)}
             placeholder="e.g., 85"
             className="h-11"
           />
-          {errors.currentWeight && (
+          {errors.weightKg && (
             <p className="text-xs text-destructive flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />
-              {errors.currentWeight}
+              {errors.weightKg}
             </p>
           )}
         </div>
@@ -159,30 +272,39 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
           </Label>
           <Input
             type="number"
-            value={currentHeight}
-            onChange={(e) => setAnswer("currentHeight", e.target.value)}
+            value={heightCm}
+            onChange={(e) => setAnswer("heightCm", e.target.value)}
             placeholder="e.g., 170"
             className="h-11"
           />
-          {errors.currentHeight && (
+          {errors.heightCm && (
             <p className="text-xs text-destructive flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />
-              {errors.currentHeight}
+              {errors.heightCm}
             </p>
           )}
         </div>
       </div>
 
-      {/* BMI display */}
-      {bmi && (
+      {/* BMI display + honest eligibility signal (same thresholds the server enforces) */}
+      {bmi !== null && (
         <div className="p-3 rounded-lg bg-muted/50 text-center">
           <p className="text-sm text-muted-foreground">Your BMI</p>
-          <p className="text-2xl font-semibold">{bmi}</p>
-          <p className="text-xs text-muted-foreground">
-            {parseFloat(bmi) < 18.5 ? 'Underweight' :
-             parseFloat(bmi) < 25 ? 'Healthy weight' :
-             parseFloat(bmi) < 30 ? 'Overweight' : 'Obese'}
-          </p>
+          <p className="text-2xl font-semibold">{bmi.toFixed(1)}</p>
+          {belowFloor && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Doctor review for weight-management treatment usually needs a BMI of{" "}
+              {WEIGHT_LOSS_BMI_FLOOR}+ — this request is likely to be declined. Your
+              GP is the right place to talk through healthy weight support.
+            </p>
+          )}
+          {needsComorbidity && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Between BMI {WEIGHT_LOSS_BMI_FLOOR} and {WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY},
+              review usually needs a weight-related condition (like those in the
+              medical history list below) to proceed.
+            </p>
+          )}
         </div>
       )}
 
@@ -240,74 +362,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
         )}
       </div>
 
-      {/* Preferred clinical support type - styled option cards */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">
-          What kind of support would you like the doctor to consider?
-          <span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => setAnswer("weightLossMedPreference", "glp1")}
-            className={cn(
-              "flex flex-col items-start gap-3 p-4 rounded-xl border text-left cursor-pointer transition-[background-color,border-color]",
-              weightLossMedPreference === "glp1"
-                ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                : "border-border hover:border-primary/50"
-            )}
-          >
-            <div className={cn(
-              "flex items-center justify-center w-10 h-10 rounded-lg",
-              weightLossMedPreference === "glp1"
-                ? "bg-primary/10 text-primary"
-                : "bg-muted text-muted-foreground"
-            )}>
-              <Activity className="w-5 h-5" />
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm font-semibold">Longer-term appetite support</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                For people who may need ongoing clinical support alongside lifestyle changes.
-              </p>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setAnswer("weightLossMedPreference", "duromine")}
-            className={cn(
-              "flex flex-col items-start gap-3 p-4 rounded-xl border text-left cursor-pointer transition-[background-color,border-color]",
-              weightLossMedPreference === "duromine"
-                ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                : "border-border hover:border-primary/50"
-            )}
-          >
-            <div className={cn(
-              "flex items-center justify-center w-10 h-10 rounded-lg",
-              weightLossMedPreference === "duromine"
-                ? "bg-primary/10 text-primary"
-                : "bg-muted text-muted-foreground"
-            )}>
-              <ClipboardCheck className="w-5 h-5" />
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm font-semibold">Short-term supervised support</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                For short, doctor-supervised courses where clinically appropriate.
-              </p>
-            </div>
-          </button>
-        </div>
-        {errors.weightLossMedPreference && (
-          <p className="text-xs text-destructive flex items-center gap-1">
-            <AlertCircle className="w-3 h-3" />
-            {errors.weightLossMedPreference}
-          </p>
-        )}
-      </div>
-
-      {/* Relevant medical history - toggles */}
+      {/* Relevant medical history - toggles (also feeds the comorbidity rule) */}
       <div className="space-y-3">
         <Label className="text-sm font-medium">
           Relevant medical history
@@ -322,98 +377,60 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
         />
       </div>
 
-      {/* Eating disorder history */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">
-          Have you ever been diagnosed with or treated for an eating disorder?<span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <RadioGroup
-          value={eatingDisorderHistory}
-          onValueChange={handleEatingDisorderChange}
-          className="space-y-2"
-          aria-label="Eating disorder history"
-        >
-          <label
-            className={cn(
-              "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]",
-              eatingDisorderHistory === 'yes'
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50"
-            )}
-          >
-            <RadioGroupItem value="yes" />
-            <span className="text-sm">Yes</span>
-          </label>
-          <label
-            className={cn(
-              "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]",
-              eatingDisorderHistory === 'no'
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50"
-            )}
-          >
-            <RadioGroupItem value="no" />
-            <span className="text-sm">No</span>
-          </label>
-        </RadioGroup>
-        {errors.eatingDisorderHistory && (
-          <p className="text-xs text-destructive flex items-center gap-1">
-            <AlertCircle className="w-3 h-3" />
-            {errors.eatingDisorderHistory}
-          </p>
-        )}
-      </div>
+      {/* Safety screening — keys match the server DECLINE rules exactly. */}
+      <BinaryChoice
+        label="Are you currently pregnant, possibly pregnant, or breastfeeding?"
+        ariaLabel="Pregnancy or breastfeeding status"
+        value={(pregnancyStatus as "yes" | "no" | "")}
+        onChange={(value) => setAnswer("weight_pregnancy_status", value)}
+        error={errors.pregnancyStatus}
+      />
 
-      {/* Eating disorder warning (soft escalate) */}
-      {showEatingDisorderWarning && (
+      <BinaryChoice
+        label="Have you, or anyone in your family, had medullary thyroid cancer or MEN2 syndrome?"
+        ariaLabel="Medullary thyroid cancer or MEN2 history"
+        value={men2History === undefined ? "" : men2History ? "yes" : "no"}
+        onChange={(value) => setAnswer("weight_men2_thyroid_cancer", value === "yes")}
+        error={errors.men2History}
+      />
+
+      <BinaryChoice
+        label="Have you ever had pancreatitis?"
+        ariaLabel="Pancreatitis history"
+        value={pancreatitisHistory === undefined ? "" : pancreatitisHistory ? "yes" : "no"}
+        onChange={(value) => setAnswer("weight_pancreatitis", value === "yes")}
+        error={errors.pancreatitisHistory}
+      />
+
+      {/* Eating disorder history — soft escalation to a doctor call */}
+      <BinaryChoice
+        label="Have you ever been diagnosed with or treated for an eating disorder?"
+        ariaLabel="Eating disorder history"
+        value={(eatingDisorderHistory as "yes" | "no" | "")}
+        onChange={handleEatingDisorderChange}
+        error={errors.eatingDisorderHistory}
+      />
+
+      {eatingDisorderHistory === "yes" && (
         <Alert variant="default" className="border-warning-border bg-warning-light/50 dark:bg-warning/10">
           <AlertTriangle className="w-4 h-4 text-warning" />
           <AlertDescription className="text-xs text-warning">
-            Thank you for sharing. The doctor will discuss this with you during your call to ensure any treatment is appropriate and safe for you.
+            Thank you for sharing. A doctor will call you before any treatment
+            decision, to make sure whatever happens next is safe and supportive
+            for you.
           </AlertDescription>
         </Alert>
       )}
 
       {/* Previous adverse reactions to weight loss medications */}
       <div className="space-y-3">
-        <Label className="text-sm font-medium">
-          Have you had any adverse reactions to weight loss medications?<span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <RadioGroup
-          value={wlAdverseReactions}
-          onValueChange={(value) => setAnswer("wlAdverseReactions", value)}
-          className="space-y-2"
-          aria-label="Previous adverse reactions to weight loss medications"
-        >
-          <label
-            className={cn(
-              "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]",
-              wlAdverseReactions === 'yes'
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50"
-            )}
-          >
-            <RadioGroupItem value="yes" />
-            <span className="text-sm">Yes</span>
-          </label>
-          <label
-            className={cn(
-              "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]",
-              wlAdverseReactions === 'no'
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50"
-            )}
-          >
-            <RadioGroupItem value="no" />
-            <span className="text-sm">No</span>
-          </label>
-        </RadioGroup>
-        {errors.wlAdverseReactions && (
-          <p className="text-xs text-destructive flex items-center gap-1">
-            <AlertCircle className="w-3 h-3" />
-            {errors.wlAdverseReactions}
-          </p>
-        )}
+        <BinaryChoice
+          label="Have you had any adverse reactions to weight loss medications?"
+          ariaLabel="Previous adverse reactions to weight loss medications"
+          value={(wlAdverseReactions as "yes" | "no" | "")}
+          onChange={(value) => setAnswer("wlAdverseReactions", value)}
+          error={errors.wlAdverseReactions}
+        />
 
         {wlAdverseReactions === 'yes' && (
           <div className="space-y-2">

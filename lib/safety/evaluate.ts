@@ -605,9 +605,12 @@ function getRequiredSafetyFields(
     serviceSlug === 'weight' ||
     serviceSlug === 'weight-loss'
   ) {
-    fields.add('currentWeight')
-    fields.add('currentHeight')
+    fields.add('weightKg')
+    fields.add('heightCm')
     fields.add('eatingDisorderHistory')
+    fields.add('weight_pregnancy_status')
+    fields.add('weight_men2_thyroid_cancer')
+    fields.add('weight_pancreatitis')
   }
 
   return Array.from(fields)
