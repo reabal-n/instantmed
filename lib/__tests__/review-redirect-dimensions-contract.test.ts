@@ -90,6 +90,18 @@ describe("review-redirect dimension allowlists", () => {
     expect(media).toContain("review_cta")
   })
 
+  it("covers every destination token the card emits", () => {
+    const cardSource = read("components/patient/review-ask-card.tsx")
+    const emitted = new Set(Array.from(cardSource.matchAll(/token: "([a-z_]+)"/g), (m) => m[1]!))
+    expect(emitted.size).toBeGreaterThan(0)
+    const routeTokens = routeSource.includes("REVIEW_DESTINATION_URLS")
+    expect(routeTokens, "route must resolve destinations from REVIEW_DESTINATION_URLS").toBe(true)
+    // Tokens resolve against the constants map; unknown tokens fall back.
+    for (const token of emitted) {
+      expect(["productreview", "google"], `destination "${token}" is not a known review platform token`).toContain(token)
+    }
+  })
+
   it("keeps the unknown-value fallback behaviour (never forwards arbitrary strings)", () => {
     expect(routeSource).toContain("function allowedDimension")
     expect(routeSource).toContain("value && allowed.has(value) ? value : fallback")

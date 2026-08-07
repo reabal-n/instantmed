@@ -2,16 +2,18 @@
  * Review CTA Redirect
  *
  * Tracks review link clicks via PostHog, then redirects to the off-site review
- * destination (ProductReview by default; Google is the ultimate fallback).
- * Used by the dedicated review email and patient-dashboard review cards.
+ * destination the patient chose (allowlisted token -> fixed URL; ProductReview
+ * for unknown tokens and for the email path). Used by the dedicated review
+ * email and the patient post-delivery/dashboard review cards.
  */
 
 import { NextRequest, NextResponse } from "next/server"
 
 import { capturePersonlessPostHogEvent } from "@/lib/analytics/posthog-server"
 import {
-  getRotatingReviewUrl,
+  DEFAULT_REVIEW_DESTINATION,
   PRODUCTREVIEW_REVIEW_URL,
+  REVIEW_DESTINATION_URLS,
 } from "@/lib/constants"
 import { consumeReviewClickKey } from "@/lib/email/review-click-consumption"
 import { hashReviewClickKey } from "@/lib/email/review-click-key"
@@ -72,15 +74,33 @@ export async function GET(req: NextRequest) {
         source,
         medium,
         campaign,
+        // Allowlisted token, never a URL. Selection shares — the only claim
+        // this instrument supports — are counts of this property.
+        destination: allowedDimension(
+          req.nextUrl.searchParams.get("destination"),
+          new Set(Object.keys(REVIEW_DESTINATION_URLS)),
+          DEFAULT_REVIEW_DESTINATION,
+        ),
       },
     })
   }
 
-  const destination = isKeyedReviewRequest || medium === "review_request"
-    ? PRODUCTREVIEW_REVIEW_URL
-    : getRotatingReviewUrl(new Date().getUTCMonth())
+  // Destination is a TOKEN resolved server-side against a fixed map — a
+  // crafted link can only ever reach one of the two known platforms, and the
+  // token (not a URL) is what enters analytics. The email/keyed path stays
+  // pinned to ProductReview: its copy prepares the patient for that flow, and
+  // the deliberately tiny email volume adds nothing to the selection data.
+  const destinationToken = isKeyedReviewRequest || medium === "review_request"
+    ? DEFAULT_REVIEW_DESTINATION
+    : allowedDimension(
+        req.nextUrl.searchParams.get("destination"),
+        new Set(Object.keys(REVIEW_DESTINATION_URLS)),
+        DEFAULT_REVIEW_DESTINATION,
+      )
+  const destinationUrl =
+    REVIEW_DESTINATION_URLS[destinationToken] ?? PRODUCTREVIEW_REVIEW_URL
 
-  const response = NextResponse.redirect(destination, { status: 302 })
+  const response = NextResponse.redirect(destinationUrl, { status: 302 })
   response.headers.set("Cache-Control", "private, no-store")
   response.headers.set("Referrer-Policy", "no-referrer")
   return response

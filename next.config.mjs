@@ -609,6 +609,19 @@ const nextConfig = {
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],
       },
+      // The review redirect's email path carries a consume-once click key in
+      // its URL. The route handler sets these same headers, but the global
+      // header block above overrides handler-set values at the edge (verified
+      // live 2026-08-07: the handler's no-referrer arrived as
+      // strict-origin-when-cross-origin) — so pin them here like /track.
+      {
+        source: "/api/review-redirect",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store, max-age=0" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
       // Checkout Session ids are short-lived bearer capabilities. The account
       // completion page verifies exact session ownership server-side and must
       // not forward its query string to same-origin telemetry or later routes.
