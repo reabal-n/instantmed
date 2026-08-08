@@ -2,7 +2,7 @@ import { signCheckoutResumeToken } from "@/lib/crypto/checkout-resume-token"
 import { buildDraftResumePath } from "@/lib/request/draft-resume-route"
 
 export interface PartialIntakeRecoveryUrlDraft {
-  consultSubtype?: "ed" | "hair_loss" | "womens_health" | null
+  consultSubtype?: "ed" | "hair_loss" | "womens_health" | "weight_loss" | null
   serviceType: string
   sessionId: string
 }

@@ -485,6 +485,7 @@ jobs:
           pnpm exec playwright test --project=chromium
           e2e/unified-request-flow.spec.ts
           e2e/consult-subtypes.spec.ts
+          e2e/doctor.weight-review.spec.ts
           e2e/intake-terminal-blocks.spec.ts
           e2e/parchment-webhook.spec.ts
 

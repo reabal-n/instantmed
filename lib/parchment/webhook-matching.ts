@@ -12,7 +12,7 @@ export interface ParchmentWebhookIntakeCandidate {
   service?: { type?: string | null } | { type?: string | null }[] | null
 }
 
-const PRESCRIBING_CONSULT_SUBTYPES = new Set(["ed", "hair_loss", "womens_health"])
+const PRESCRIBING_CONSULT_SUBTYPES = new Set(["ed", "hair_loss", "womens_health", "weight_loss"])
 const PRESCRIBING_SERVICE_TYPES = new Set(["common_scripts", "repeat_rx", "prescription", "repeat-script"])
 
 function getServiceType(service: ParchmentWebhookIntakeCandidate["service"]): string | null {

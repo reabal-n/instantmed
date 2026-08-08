@@ -286,7 +286,17 @@ describe("partial-intake recovery authoritative policy", () => {
       },
     })
 
+    // weight_loss launched 2026-08-07 — its drafts resume like the other lines.
     mocks.decryptJSONB.mockResolvedValueOnce({ consultSubtype: "weight_loss" })
+    await expect(evaluate(consult)).resolves.toMatchObject({
+      kind: "allowed",
+      draft: {
+        resumeUrl: expect.stringContaining("subtype=weight_loss"),
+      },
+    })
+
+    // A retired subtype (no live flow) stays non-resumable.
+    mocks.decryptJSONB.mockResolvedValueOnce({ consultSubtype: "general" })
     await expect(evaluate(consult)).resolves.toEqual({
       kind: "policy_suppressed",
       reason: "draft_not_resumable",
