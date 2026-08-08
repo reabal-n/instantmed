@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 
 import { getApiAuth } from "@/lib/auth/helpers"
 import { hasStaffAccess } from "@/lib/auth/staff-capabilities"
-import { EMPTY_SYSTEM_HEALTH, getSystemHealth } from "@/lib/data/system-health"
+import { getSystemHealth, UNKNOWN_SYSTEM_HEALTH } from "@/lib/data/system-health"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("system-health-api")
@@ -26,7 +26,14 @@ export async function GET() {
     const health = await getSystemHealth()
     return NextResponse.json(health)
   } catch (error) {
-    log.warn("Failed to load system health", {}, error)
-    return NextResponse.json(EMPTY_SYSTEM_HEALTH)
+    // A failed health read is NOT all-clear. Return the unknown shape so the
+    // pill renders a degraded state instead of silently hiding, and report at
+    // error level so the failure reaches Sentry.
+    log.error(
+      "Failed to load system health",
+      {},
+      error instanceof Error ? error : new Error(`system health read failed: ${String(error)}`),
+    )
+    return NextResponse.json(UNKNOWN_SYSTEM_HEALTH)
   }
 }
