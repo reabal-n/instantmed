@@ -31,20 +31,26 @@ async function computeStaffNavCounts(): Promise<StaffNavCounts> {
     ),
   ])
 
+  // Error level with an Error object so these reach Sentry — a failed count
+  // renders the same as zero in the nav (badge absent), so the log is the only
+  // place the failure is visible at all.
+  const asError = (reason: unknown, message: string): Error =>
+    reason instanceof Error ? reason : new Error(`${message}: ${String(reason)}`)
+
   if (scriptsResult.status === "rejected") {
-    log.warn("Failed to count script-ready intakes", {}, scriptsResult.reason)
+    log.error("Failed to count script-ready intakes", {}, asError(scriptsResult.reason, "script count rejected"))
   } else if (scriptsResult.value.error) {
-    log.warn("Failed to count script-ready intakes", { error: scriptsResult.value.error.message })
+    log.error("Failed to count script-ready intakes", {}, new Error(`script count errored: ${scriptsResult.value.error.message}`))
   }
 
   if (identityResult.status === "rejected") {
-    log.warn("Failed to count prescribing identity blockers", {}, identityResult.reason)
+    log.error("Failed to count prescribing identity blockers", {}, asError(identityResult.reason, "identity blocker count rejected"))
   }
 
   if (queueResult.status === "rejected") {
-    log.warn("Failed to count queue depth", {}, queueResult.reason)
+    log.error("Failed to count queue depth", {}, asError(queueResult.reason, "queue depth count rejected"))
   } else if (queueResult.value.error) {
-    log.warn("Failed to count queue depth", { error: queueResult.value.error.message })
+    log.error("Failed to count queue depth", {}, new Error(`queue depth count errored: ${queueResult.value.error.message}`))
   }
 
   const identityPatients = identityResult.status === "fulfilled"

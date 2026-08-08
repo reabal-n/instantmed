@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getApiAuth } from "@/lib/auth/helpers"
 import { hasAdminAccess, hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import { buildDoctorIntakeHref, buildStaffPatientHref } from "@/lib/dashboard/routes"
-import { getDoctorAccessiblePatientIds } from "@/lib/doctor/patient-access"
+import { getDoctorAccessiblePatientScope } from "@/lib/doctor/patient-access"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -58,8 +58,19 @@ export async function GET(request: NextRequest) {
     }
 
     if (!hasAdminAccess(callerProfile)) {
-      const ids = await getDoctorAccessiblePatientIds(callerProfile.id, supabase)
-      accessiblePatientIds = Array.from(ids)
+      const scope = await getDoctorAccessiblePatientScope(callerProfile.id, supabase)
+      if (scope.degraded) {
+        // A partial scope read must not silently shrink search results (or
+        // present "no matches" as truth). Fail closed and say so — mirrors
+        // doctorCanAccessPatient's deny-on-degraded posture.
+        log.error(
+          "Doctor search scope degraded — failing closed",
+          { doctorId: callerProfile.id },
+          new Error("patient access scope read degraded"),
+        )
+        return NextResponse.json({ results: [], degraded: true })
+      }
+      accessiblePatientIds = Array.from(scope.ids)
     }
   }
 
