@@ -235,32 +235,34 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
           ))}
         </div>
 
-        {/* ── Coming soon ────────────────────────────────────────────── */}
-        <div
-          data-coming-soon-strip="true"
-          className="rounded-2xl border border-border/40 bg-muted/20 px-3.5 py-2.5 dark:bg-white/[0.04]"
-        >
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-            Coming soon
-          </p>
-          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5">
-            {COMING_SOON.map((svc) => (
-              <span
-                key={svc.id}
-                aria-disabled="true"
-                aria-label={`${svc.title}: not taking requests yet`}
-                className="inline-flex min-w-0 items-baseline gap-1.5 text-xs text-muted-foreground"
-              >
-                <span className="font-medium text-foreground/65">
-                  {svc.title}
+        {/* ── Coming soon (renders only while something is actually gated) ── */}
+        {COMING_SOON.length > 0 && (
+          <div
+            data-coming-soon-strip="true"
+            className="rounded-2xl border border-border/40 bg-muted/20 px-3.5 py-2.5 dark:bg-white/[0.04]"
+          >
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+              Coming soon
+            </p>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5">
+              {COMING_SOON.map((svc) => (
+                <span
+                  key={svc.id}
+                  aria-disabled="true"
+                  aria-label={`${svc.title}: not taking requests yet`}
+                  className="inline-flex min-w-0 items-baseline gap-1.5 text-xs text-muted-foreground"
+                >
+                  <span className="font-medium text-foreground/65">
+                    {svc.title}
+                  </span>
+                  <span className="text-muted-foreground/80">
+                    Not taking requests yet
+                  </span>
                 </span>
-                <span className="text-muted-foreground/80">
-                  Not taking requests yet
-                </span>
-              </span>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ── Trust footer ───────────────────────────────────────────── */}
         <div className="flex flex-col items-center gap-2 pt-1 pb-2">
