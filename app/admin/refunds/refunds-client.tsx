@@ -47,17 +47,22 @@ import type { PaymentWithRefund, RefundFilters } from "@/lib/data/types/refunds"
 import { formatAmount, formatRefundStatus, getRefundStatuses } from "@/lib/data/types/refunds"
 import { cn } from "@/lib/utils"
 
+interface RefundStats {
+  eligible: number
+  processing: number
+  refunded: number
+  failed: number
+  totalRefunded: number
+}
+
 interface RefundsClientProps {
   initialPayments: PaymentWithRefund[]
   initialTotal: number
   initialStatusFilter?: string
-  stats: {
-    eligible: number
-    processing: number
-    refunded: number
-    failed: number
-    totalRefunded: number
-  }
+  /** `null` = the stats read failed; render "unavailable", never zeros. */
+  stats: RefundStats | null
+  /** True when the server-side payments read failed — the empty board is NOT an all-clear. */
+  initialLoadFailed?: boolean
 }
 
 const REFUND_STATUSES = getRefundStatuses()
@@ -92,12 +97,14 @@ export function RefundsClient({
   initialTotal,
   initialStatusFilter,
   stats,
+  initialLoadFailed = false,
 }: RefundsClientProps) {
   const router = useRouter()
   const [payments, setPayments] = useState(initialPayments)
   const [total, setTotal] = useState(initialTotal)
   const [page, setPage] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
+  const [loadFailed, setLoadFailed] = useState(initialLoadFailed)
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(initialPayments[0]?.id || null)
   const [isProcessDialogOpen, setIsProcessDialogOpen] = useState(false)
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false)
@@ -134,6 +141,11 @@ export function RefundsClient({
       setTotal(result.total)
       setPage(newPage)
       setSelectedPaymentId(result.data[0]?.id || null)
+      setLoadFailed(false)
+    } catch {
+      // A failed load must not leave the previous board pretending to be
+      // current — surface the unavailable state instead of a clean all-clear.
+      setLoadFailed(true)
     } finally {
       setIsLoading(false)
     }
@@ -210,7 +222,10 @@ export function RefundsClient({
                 {failedRefundsOnly ? "Failed refunds only." : "Eligible, failed, and completed refunds."}
               </p>
             </div>
-            {stats.failed > 0 ? (
+            {stats === null ? (
+              // The stats read failed — "no failed refunds" cannot be asserted.
+              <Badge variant="outline" className="shrink-0 text-muted-foreground">Stats unavailable</Badge>
+            ) : stats.failed > 0 ? (
               <Badge variant="destructive" className="shrink-0">Failed</Badge>
             ) : (
               <Badge variant="secondary" className="shrink-0">All statuses</Badge>
@@ -283,6 +298,25 @@ export function RefundsClient({
                 </button>
               )
             })}
+          </div>
+        ) : loadFailed ? (
+          <div
+            data-refunds-unavailable="true"
+            className="flex h-full min-h-48 flex-col items-center justify-center px-6 text-center"
+          >
+            <AlertTriangle className="h-8 w-8 text-warning" />
+            <p className="mt-3 text-sm font-medium text-foreground">Refund data failed to load</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              An empty board here is not an all-clear — the read failed.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={() => fetchPayments(filters, page)}
+            >
+              Retry
+            </Button>
           </div>
         ) : (
           <div className="flex h-full min-h-48 flex-col items-center justify-center px-6 text-center">

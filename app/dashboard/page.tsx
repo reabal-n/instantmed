@@ -41,7 +41,7 @@ import {
   getFormToInboxStats,
   getRecentlyCompletedIntakes,
 } from "@/lib/data/intakes"
-import { EMPTY_SYSTEM_HEALTH, getSystemHealth } from "@/lib/data/system-health"
+import { EMPTY_SYSTEM_HEALTH, getSystemHealth, UNKNOWN_SYSTEM_HEALTH } from "@/lib/data/system-health"
 import { formatMinutes } from "@/lib/format/dates"
 import { createLogger } from "@/lib/observability/logger"
 import { cn } from "@/lib/utils"
@@ -185,7 +185,9 @@ export default async function StaffDashboardPage({
   const doctorIdentity: DoctorIdentity | null = results[2].status === "fulfilled" ? results[2].value : null
   const formToInboxStats = !onlyTestData && results[3].status === "fulfilled" ? results[3].value : null
   const doctorAvailable = results[4].status === "fulfilled" ? results[4].value?.available !== false : true
-  const systemHealth = results[5].status === "fulfilled" ? results[5].value : EMPTY_SYSTEM_HEALTH
+  // A failed health read renders as degraded/unknown, never as an all-zero
+  // all-clear (the pill would self-hide exactly when the platform is blind).
+  const systemHealth = results[5].status === "fulfilled" ? results[5].value : UNKNOWN_SYSTEM_HEALTH
   const nowMs = Date.now()
   const oldestWaitingEnteredAt = queueResult.oldestWaitingEnteredAt
   const oldestWaitingMinutes = oldestWaitingEnteredAt
