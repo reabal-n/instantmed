@@ -1,16 +1,11 @@
 'use client'
 
 /**
- * GATED FUTURE SERVICE — intentionally orphaned, do not delete.
- *
- * Weight loss is a planned future line (operator decision 2026-06-10: stay
- * OFF for now; revisit later as a call-based continuation/renewal lane).
- * app/weight-loss/page.tsx deliberately redirects to /request and does NOT
- * import this client, so none of this copy or its CTAs is reachable in
- * production. The file is kept as the launch-ready marketing surface and is
- * pinned by lib/__tests__/advertising-compliance-guard.test.ts (existence +
- * copy rules), so a future launch only needs page.tsx rewired. Any audit
- * flagging this as dead code: it is dead by design, not by accident.
+ * Weight-management landing — LIVE since 2026-08-07 (operator decisions
+ * D-A..D-E, docs/plans/2026-08-07-weight-loss-launch-plan.md). Kept
+ * launch-ready while gated 2026-06-10 → 2026-08-07; app/weight-loss/page.tsx
+ * now renders it. Copy rules: no prescription medicine names, no outcome
+ * guarantees, BMI thresholds must match lib/clinical/weight-loss-eligibility.
  */
 import {
   Activity,

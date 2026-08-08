@@ -70,10 +70,12 @@ describe("partial intake recovery URL builder", () => {
       appUrl: APP_URL,
       draft: { serviceType: "consult", sessionId: SESSION_ID },
     })
+    // No subtype is gated since the 2026-08-07 weight launch; an unknown
+    // subtype keeps the fail-closed path pinned.
     const gated = buildPartialIntakeRecoveryUrl({
       appUrl: APP_URL,
       draft: {
-        consultSubtype: "weight_loss" as never,
+        consultSubtype: "not_a_subtype" as never,
         serviceType: "consult",
         sessionId: SESSION_ID,
       },

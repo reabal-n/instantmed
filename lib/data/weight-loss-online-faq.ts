@@ -6,7 +6,7 @@ export const WEIGHT_LOSS_ONLINE_FAQ = [
   {
     question: "Can I request weight loss treatment through InstantMed now?",
     answer:
-      "No. InstantMed is not currently accepting weight-management treatment requests. The live service remains gated while clinical governance, follow-up capacity, and advertising controls are kept conservative.",
+      "Yes, for eligible adults. InstantMed offers a doctor-reviewed weight-management assessment (launched August 2026) with structured eligibility and safety screening first. A doctor calls before any decision when your history needs it, and a declined request is refunded in full.",
   },
   {
     question: "Can weight management ever be reviewed online in Australia?",
@@ -44,13 +44,13 @@ export const WEIGHT_LOSS_ONLINE_FAQ = [
       "Call 000 for chest pain, severe breathlessness, collapse, stroke symptoms, severe allergic reaction, or immediate danger. Seek prompt in-person care for severe abdominal pain, persistent vomiting, dehydration, fainting, unintentional rapid weight loss, blood in vomit or stool, or self-harm risk.",
   },
   {
-    question: "What are good alternatives if InstantMed is not accepting requests?",
+    question: "What are good alternatives to online weight-management review?",
     answer:
       "Start with your regular GP. Depending on your situation, they may involve a dietitian, exercise physiologist, psychologist, diabetes educator, bariatric service, endocrinologist, or local chronic disease program.",
   },
   {
     question: "Can I use InstantMed for related needs?",
     answer:
-      "You can use InstantMed for active scoped services such as medical certificates, repeat prescriptions, men's health, and women's health requests if your concern fits those pathways. Weight-management treatment requests are not currently accepted.",
+      "Your regular GP remains the best option for complex weight management, in-person examination, and ongoing coordinated care. InstantMed's assessment suits eligible adults wanting a structured one-off doctor review; medical certificates, repeat prescriptions, men's health, and women's health remain available as separate pathways.",
   },
 ] as const

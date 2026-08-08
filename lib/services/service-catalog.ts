@@ -150,16 +150,15 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
   "weight-loss": {
     id: "weight-loss",
     title: "Weight management",
-    subtitle: "Doctor-guided treatment plan",
+    subtitle: "Doctor-reviewed assessment",
     slug: "weight-loss",
-    price: "Planned",
-    priceFrom: 0,
+    price: PRICING_DISPLAY.WEIGHT_LOSS,
+    priceFrom: PRICING.WEIGHT_LOSS,
     effort: "~6 min",
     iconKey: "Flame",
     colorToken: "rose",
     serviceRoute: "consult",
     subtype: "weight_loss",
-    comingSoon: true,
   },
 }
 

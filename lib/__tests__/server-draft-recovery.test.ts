@@ -116,8 +116,9 @@ describe("server draft recovery decision", () => {
         initialService: "consult",
         initialSubtype: "weight_loss",
         now: Date.parse("2026-07-16T02:00:00.000Z"),
-      }),
-    ).toEqual({ ok: false, reason: "unresumable" })
+      }).ok,
+      // weight_loss launched 2026-08-07 — recoverable like any live subtype.
+    ).toBe(true)
   })
 
   it("removes only the bearer token while preserving attribution", () => {

@@ -22,6 +22,7 @@ const ACTIVE_SERVICE_IDS = [
   "ed",
   "hair-loss",
   "womens-health",
+  "weight-loss",
 ] as const
 
 async function visibleText(page: import("@playwright/test").Page) {
@@ -64,13 +65,15 @@ function isForbiddenServiceAction(action: { href: string; text: string }) {
     return serviceIdForRequestHref(action.href) === null
   }
 
-  if (url.pathname === "/general-consult" || url.pathname === "/weight-loss") {
+  if (url.pathname === "/general-consult") {
     return startsCareAction
   }
 
   if (!startsCareAction) return false
 
-  if (/\b(?:general consult(?:ation)?|antibiotics?|weight (?:loss|management))\b/i.test(action.text)) {
+  // Weight management is a live service since 2026-08-07; only retired
+  // general-consult and antibiotic-guarantee actions stay forbidden.
+  if (/\b(?:general consult(?:ation)?|antibiotics?)\b/i.test(action.text)) {
     return true
   }
 
@@ -94,10 +97,8 @@ test.describe("Public marketing compliance smoke", () => {
         expect(bodyText, `${surface.path} leaked numeric review/testimonial copy`).not.toMatch(pattern)
       }
 
-      expect(bodyText, `${surface.path} leaked gated weight-management pricing`).not.toContain("$89.95")
-      expect(bodyText, `${surface.path} exposed future services as paid rows`).not.toMatch(
-        /(Weight management|Weight loss)\s+\$[0-9]/i,
-      )
+      // Weight management launched 2026-08-07 — $89.95 is legitimate live
+      // pricing on decision surfaces now, so the gated-leak pins are retired.
     })
   }
 
@@ -119,7 +120,7 @@ test.describe("Public marketing compliance smoke", () => {
     }
   })
 
-  test("consult routes exactly the five active services and keeps weight management non-actionable", async ({ page }) => {
+  test("consult routes exactly the six active services through canonical intake URLs", async ({ page }) => {
     await page.goto("/consult", { waitUntil: "domcontentloaded" })
 
     const requestHrefs = await page
@@ -130,14 +131,12 @@ test.describe("Public marketing compliance smoke", () => {
       .filter((serviceId): serviceId is (typeof ACTIVE_SERVICE_IDS)[number] => serviceId !== null)
 
     expect([...new Set(routedServiceIds)].sort()).toEqual([...ACTIVE_SERVICE_IDS].sort())
-    await expect(page.locator('[data-service-id="weight-loss"]')).toHaveCount(0)
+    // Weight management is live — its card and CTA are expected now, and
+    // nothing on the page is coming-soon.
     await expect(page.getByText("Coming soon", { exact: true })).toHaveCount(0)
-    await expect(
-      page.getByRole("link", { name: /\b(?:start|request|get)\b.*\bweight\b/i }),
-    ).toHaveCount(0)
   })
 
-  test("pricing routes exactly the five active services through canonical intake URLs", async ({ page }) => {
+  test("pricing routes exactly the six active services through canonical intake URLs", async ({ page }) => {
     await page.goto("/pricing", { waitUntil: "domcontentloaded" })
 
     const cards = page.locator("[data-service-id]")
