@@ -46,8 +46,11 @@ describe("future doctor scope contract", () => {
     expect(source).toContain("await getApiAuth()")
     // Non-admin doctors are constrained to patients they have a relationship with;
     // admins remain unscoped. Without this, any doctor could enumerate the full roster.
+    // The scope call carries the degraded flag (the ids-only wrapper dropped it):
+    // a degraded scope read fails CLOSED instead of searching a partial roster.
     expect(source).toContain("hasAdminAccess(")
-    expect(source).toContain("getDoctorAccessiblePatientIds(")
+    expect(source).toContain("getDoctorAccessiblePatientScope(")
+    expect(source).toContain("scope.degraded")
     expect(source).toContain('.in("id"')
   })
 

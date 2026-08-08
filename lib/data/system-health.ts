@@ -9,12 +9,23 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 const log = createLogger("system-health")
 
 export interface SystemHealth {
-  stuckIntakes: number
-  webhookFailures: number
-  parchmentFailures: number
-  emailFailures: number
+  /**
+   * Per-surface counts. `null` means the read FAILED — the count is unknown,
+   * which is not the same as zero. The pill renders unknown surfaces as
+   * "unknown", never as "clear".
+   */
+  stuckIntakes: number | null
+  webhookFailures: number | null
+  parchmentFailures: number | null
+  emailFailures: number | null
   stripePriceIssues: number
+  /** Total of the KNOWN counts only. */
   totalIssues: number
+  /**
+   * True when any surface read failed. While degraded, an all-zero total must
+   * not be presented as all-clear — the fire alarm may simply be unplugged.
+   */
+  degraded: boolean
 }
 
 export const EMPTY_SYSTEM_HEALTH: SystemHealth = {
@@ -24,14 +35,37 @@ export const EMPTY_SYSTEM_HEALTH: SystemHealth = {
   emailFailures: 0,
   stripePriceIssues: 0,
   totalIssues: 0,
+  degraded: false,
+}
+
+/**
+ * The whole-read-failed shape: every count unknown, nothing asserted.
+ * Fallback for callers whose `getSystemHealth()` call itself threw.
+ */
+export const UNKNOWN_SYSTEM_HEALTH: SystemHealth = {
+  stuckIntakes: null,
+  webhookFailures: null,
+  parchmentFailures: null,
+  emailFailures: null,
+  stripePriceIssues: 0,
+  totalIssues: 0,
+  degraded: true,
+}
+
+function asError(reason: unknown, fallbackMessage: string): Error {
+  if (reason instanceof Error) return reason
+  return new Error(`${fallbackMessage}: ${String(reason)}`)
 }
 
 /**
  * One-shot read of the recovery surfaces the SystemHealthPill renders.
  *
  * Phase 2 of dashboard remaster (2026-05-12). Each surface is queried via a
- * lightweight HEAD count. Any sub-query that fails returns 0 so a transient
- * outage on one query doesn't paint the whole pill red.
+ * lightweight HEAD count. A sub-query that fails yields `null` (unknown) for
+ * that surface and marks the result degraded — never a silent 0, which would
+ * make the pill assert all-clear exactly when the platform is unobservable.
+ * Failures are reported at error level so they reach Sentry in production
+ * (the logger forwards only error-level calls that carry an Error).
  *
  * Time window: last 24 hours for the failure tables. The stuck-intakes view
  * has its own age semantics (paid_no_review > 2h, review_timeout > 24h, etc.)
@@ -81,14 +115,22 @@ export async function getSystemHealth(): Promise<SystemHealth> {
   function countOf(
     result: PromiseSettledResult<{ count: number | null; error: { message?: string } | null }>,
     label: string,
-  ): number {
+  ): number | null {
     if (result.status === "rejected") {
-      log.warn(`system-health: ${label} query rejected`, {}, result.reason)
-      return 0
+      log.error(
+        `system-health: ${label} query rejected`,
+        { surface: label },
+        asError(result.reason, `system-health ${label} query rejected`),
+      )
+      return null
     }
     if (result.value.error) {
-      log.warn(`system-health: ${label} query errored`, { error: result.value.error.message })
-      return 0
+      log.error(
+        `system-health: ${label} query errored`,
+        { surface: label },
+        new Error(`system-health ${label} query errored: ${result.value.error.message ?? "unknown"}`),
+      )
+      return null
     }
     return result.value.count ?? 0
   }
@@ -96,11 +138,17 @@ export async function getSystemHealth(): Promise<SystemHealth> {
   const stuckIntakes = countOf(stuckResult, "stuck-intakes")
   const webhookFailures = countOf(webhookResult, "webhook-failures")
   const parchmentFailures = countOf(parchmentResult, "parchment-failures")
-  const emailFailures = Math.max(
-    countOf(emailResult, "email-failures") - countOf(quietEmailResult, "quiet-email-failures"),
-    0,
-  )
+  const rawEmailFailures = countOf(emailResult, "email-failures")
+  const quietEmailFailures = countOf(quietEmailResult, "quiet-email-failures")
+  // If the quiet-failure discount read failed, keep the raw count (overcounts
+  // rather than hides — alarm-safe) and mark degraded below.
+  const emailFailures = rawEmailFailures === null
+    ? null
+    : Math.max(rawEmailFailures - (quietEmailFailures ?? 0), 0)
   const stripePriceIssues = countStripePriceConfigIssues()
+
+  const knownCounts = [stuckIntakes, webhookFailures, parchmentFailures, emailFailures]
+  const degraded = knownCounts.some((count) => count === null) || quietEmailFailures === null
 
   return {
     stuckIntakes,
@@ -108,6 +156,7 @@ export async function getSystemHealth(): Promise<SystemHealth> {
     parchmentFailures,
     emailFailures,
     stripePriceIssues,
-    totalIssues: stuckIntakes + webhookFailures + parchmentFailures + emailFailures + stripePriceIssues,
+    totalIssues: knownCounts.reduce<number>((sum, count) => sum + (count ?? 0), 0) + stripePriceIssues,
+    degraded,
   }
 }

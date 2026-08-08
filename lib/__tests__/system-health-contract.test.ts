@@ -17,7 +17,7 @@ describe("system-health endpoint contract", () => {
     expect(existsSync(join(root, pill))).toBe(true)
   })
 
-  it("gates the endpoint behind hasStaffAccess and falls back to EMPTY_SYSTEM_HEALTH on error", () => {
+  it("gates the endpoint behind hasStaffAccess and falls back to UNKNOWN_SYSTEM_HEALTH on error", () => {
     const source = read("app/api/admin/system-health/route.ts")
 
     // Phase 2 of dashboard remaster (2026-05-12). Any staff role
@@ -27,14 +27,17 @@ describe("system-health endpoint contract", () => {
     expect(source).toContain("hasStaffAccess")
     expect(source).toContain('return NextResponse.json({ error: "Unauthorized" }, { status: 401 })')
 
-    // The endpoint must never throw to the client — render the empty
-    // shape if the data fetch fails so the pill keeps last-known state
-    // instead of flashing red on a transient outage.
-    expect(source).toContain("EMPTY_SYSTEM_HEALTH")
+    // The endpoint must never throw to the client — but a failed read is NOT
+    // all-clear. It returns the unknown (degraded) shape, never the all-zero
+    // one that would let the pill self-hide while the platform is blind, and
+    // it reports at error level so the failure reaches Sentry.
+    expect(source).toContain("UNKNOWN_SYSTEM_HEALTH")
+    expect(source).not.toContain("EMPTY_SYSTEM_HEALTH")
     expect(source).toContain("catch (error)")
+    expect(source).toContain("log.error")
   })
 
-  it("queries recovery surfaces via Promise.allSettled with per-surface fallback to 0", () => {
+  it("queries recovery surfaces via Promise.allSettled with per-surface unknown on failure", () => {
     const source = read("lib/data/system-health.ts")
 
     // Each surface is a separate query so a single failing table doesn't
@@ -54,9 +57,14 @@ describe("system-health endpoint contract", () => {
     expect(source).toContain("countStripePriceConfigIssues")
     expect(source).toContain("stripePriceIssues")
 
-    // Each rejection / error path must return 0, not throw.
+    // Each rejection / error path yields unknown (null) — never a silent 0
+    // that would present a failed read as all-clear — and reports at error
+    // level so it reaches Sentry (warn-level logs never do).
     expect(source).toContain('result.status === "rejected"')
-    expect(source).toContain("return 0")
+    expect(source).toContain("return null")
+    expect(source).not.toContain("return 0")
+    expect(source).toContain("log.error")
+    expect(source).toContain("degraded")
   })
 
   it("renders the SystemHealthPill with a 90s visibility-gated poll and a last-known-state fallback", () => {
