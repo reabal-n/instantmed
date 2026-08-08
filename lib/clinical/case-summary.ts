@@ -1240,7 +1240,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     const pregnancyUnsure = pregnancyRaw === "not_sure"
     const details = str(answers, "utiDetails")
 
-    const safetyItems: ClinicalSafetyItem[] = [
+    const safetyItems: ClinicalSafetyItem[] = ([
       {
         severity: "info" as const,
         label: "Reported symptoms",
@@ -1248,6 +1248,16 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
           ? `Patient reports: ${symptomsLabel}.`
           : "No symptoms recorded in the structured screen.",
       },
+      // Haematuria carries follow-up guidance even without red flags —
+      // ported from the retired consult-validators haematuria note.
+      Array.isArray(raw(answers, "utiSymptoms")) &&
+      (raw(answers, "utiSymptoms") as unknown[]).includes("blood")
+        ? {
+            severity: "caution" as const,
+            label: "Blood in urine (haematuria)",
+            detail: "Visible blood reported. If recurrent, or in a patient over 50, consider follow-up investigation after the acute episode (urine MCS, renal tract imaging).",
+          }
+        : null,
       redFlags
         ? {
             severity: "block" as const,
@@ -1276,7 +1286,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
               label: "Pregnancy",
               detail: "Not pregnant per patient report.",
             },
-    ]
+    ] as (ClinicalSafetyItem | null)[]).filter((item): item is ClinicalSafetyItem => item !== null)
 
     const hasBlock = redFlags || pregnant
     const keyFacts = compactFacts([
