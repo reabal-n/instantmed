@@ -210,7 +210,6 @@ async function classifyDailyTracking(args: {
     evidenceAsOf: args.now.toISOString(),
     googleDiagnosticsLagging,
     localPaidOrders: upload?.paidOrders ?? purchase?.localOrders ?? 0,
-    optionalAccountQueryFailed: (account?.optionalQueryFailures?.length ?? 0) > 0,
     primaryPurchaseActionOk:
       purchase?.preflightOk === true
       && configuredPurchaseActionIsPrimary(account),

@@ -279,7 +279,7 @@ export function isSydneyDailyAdsBriefHour(now = new Date()): boolean {
       .filter((part) => part.type !== "literal")
       .map((part) => [part.type, Number(part.value)]),
   )
-  return values.get("hour") === 9 && values.get("minute") === 0
+  return values.get("hour") === 9
 }
 
 export function getExistingRunClaimDisposition(
