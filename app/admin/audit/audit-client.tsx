@@ -4,6 +4,7 @@ import {
   Activity,
   Bot,
   Eye,
+  Headphones,
   Search,
   Stethoscope,
   User,
@@ -106,6 +107,8 @@ export function AuditLogClient({ initialLogs, initialTotal }: AuditLogClientProp
         return <Stethoscope className="h-3 w-3" />
       case "admin":
         return <User className="h-3 w-3" />
+      case "support":
+        return <Headphones className="h-3 w-3" />
       case "system":
         return <Bot className="h-3 w-3" />
       case "webhook":
@@ -123,6 +126,8 @@ export function AuditLogClient({ initialLogs, initialTotal }: AuditLogClientProp
         return "bg-success-light text-success"
       case "admin":
         return "bg-warning-light text-warning"
+      case "support":
+        return "bg-info-light text-info"
       case "system":
         return "bg-muted text-foreground"
       case "webhook":
@@ -187,6 +192,7 @@ export function AuditLogClient({ initialLogs, initialTotal }: AuditLogClientProp
                   <SelectItem value="patient">Patient</SelectItem>
                   <SelectItem value="doctor">Doctor</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="support">Support</SelectItem>
                   <SelectItem value="system">System</SelectItem>
                   <SelectItem value="webhook">Webhook</SelectItem>
                 </SelectContent>

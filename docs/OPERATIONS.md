@@ -329,6 +329,29 @@ ORDER BY i.created_at DESC LIMIT 5;
 | No Sentry error, no Stripe event | Checkout never initiated | Check client-side console/network |
 | Intake `paid` but patient says "failed" | Redirect issue | Check success/cancel URL configuration |
 
+### Closing a failed checkout from Operations
+
+The Operations checkout exception links to the staff Ledger with the failed-payment
+filter applied. Staff can copy a payment-recovery reply or choose **Close request**
+when the patient no longer intends to retry.
+
+Closure is deliberately narrow and fail-closed:
+
+- only `checkout_failed` requests with a null or explicitly unpaid payment state
+  (`unpaid`, `pending`, `failed`, or `expired`) are eligible;
+- clinical/payment safety holds cannot be closed from the payment-recovery lane;
+- the exact stored Checkout Session must belong to the intake and be expired at
+  Stripe before the local status changes; an orphan PaymentIntent without that
+  session blocks closure for reconciliation;
+- the write re-asserts the exact status, payment state, checkout error, and
+  Checkout Session ID so a concurrent retry or webhook wins the race;
+- the transition is recorded by the database audit trigger and a companion
+  staff-attributed audit event. Closing an unpaid checkout does not issue a refund.
+
+If Stripe reports the session as complete, mismatched, or otherwise unresolved,
+do not close the row. Reconcile the payment first so a paid request cannot become
+cancelled.
+
 ### Recovering a checkout the platform stranded
 
 The abandoned-checkout cron only discovers candidates whose `created_at` is
