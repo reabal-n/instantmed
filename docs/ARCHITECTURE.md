@@ -733,9 +733,9 @@ Use when: the page is not a standard service funnel — it has a unique layout, 
 /intent/[slug]          High-intent search query landing pages
 ```
 
-**Data layer:** Route-specific registries under `lib/seo/data/` and `lib/seo/intents.ts` are consumed directly by their dynamic routes. There is no shared programmatic page template; each route owns its layout, metadata, and structured data.
+**Data layer:** Route-specific registries under `lib/seo/data/` and `lib/seo/intents.ts` are consumed directly by their dynamic routes. `defineProgrammaticSeoRoute()` owns the shared route contract: lookup, static params, canonical/Open Graph URL parity, robots policy, FAQ normalization, and absolute breadcrumb schema. Each route still owns its layout, copy, analytics, and specialised clinical or article schema.
 
-**Metadata:** Auto-generated `<title>`, `<meta description>`, Open Graph tags, canonical URLs. JSON-LD `FAQPage` structured data via `lib/seo/safe-json-ld.ts` and `components/seo/healthcare-schema.tsx`.
+**Metadata:** Auto-generated `<title>`, `<meta description>`, Open Graph tags, canonical URLs, and shared `FAQPage`/`BreadcrumbList` JSON-LD via `components/seo/programmatic-page.tsx`. Route-specific JSON-LD remains local and uses `JsonLdScript`.
 
 **Sitemap/robots:** `app/sitemap.ts` and `app/robots.ts` auto-update from the page data layer. No manual updates needed.
 

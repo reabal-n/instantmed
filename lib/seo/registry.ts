@@ -225,107 +225,6 @@ export const QUALITY_THRESHOLDS = {
 }
 
 // ============================================
-// NOINDEX RULES
-// ============================================
-
-export const NOINDEX_RULES = {
-  patterns: [
-    /\/patient\//,
-    /\/doctor\//,
-    /\/admin\//,
-    /\/api\//,
-    /\/auth\//,
-    /\?.*/, // Parameterized URLs
-    /\/search/,
-  ],
-  
-  pageTypes: {
-    // Location pages: noindex if word count < threshold
-    location: (wordCount: number) => wordCount < 300,
-    
-    // Internal search: always noindex
-    search: () => true,
-    
-    // Thin comparisons: noindex if too similar
-    comparison: (uniqueScore: number) => uniqueScore < 0.6,
-  },
-  
-  // Specific slugs to noindex
-  slugs: [
-    'test',
-    'draft',
-    'preview',
-  ],
-}
-
-// ============================================
-// ROBOTS META CONFIGURATION
-// ============================================
-
-export interface RobotsConfig {
-  index: boolean
-  follow: boolean
-  maxImagePreview?: 'none' | 'standard' | 'large'
-  maxSnippet?: number
-  maxVideoPreview?: number
-}
-
-export function getRobotsConfig(page: SEOPage): RobotsConfig {
-  // Check noindex rules
-  const shouldNoindex = 
-    page.metadata.noindex ||
-    NOINDEX_RULES.slugs.includes(page.slug) ||
-    NOINDEX_RULES.patterns.some(pattern => pattern.test(`/${page.slug}`))
-  
-  if (shouldNoindex) {
-    return {
-      index: false,
-      follow: false,
-    }
-  }
-  
-  // Default: index and follow
-  return {
-    index: true,
-    follow: true,
-    maxImagePreview: 'large',
-    maxSnippet: 160,
-    maxVideoPreview: -1,
-  }
-}
-
-// ============================================
-// CANONICAL URL GENERATOR
-// ============================================
-
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://instantmed.com.au'
-
-export function getCanonicalUrl(page: SEOPage): string {
-  if (page.metadata.canonical) {
-    return page.metadata.canonical.startsWith('http') 
-      ? page.metadata.canonical 
-      : `${BASE_URL}${page.metadata.canonical}`
-  }
-  
-  const pathMap: Record<PageType, string> = {
-    condition: '/conditions',
-    medication: '/medications',
-    'category-hub': '', // Root level like /mens-health
-    audience: '/for',
-    intent: '/telehealth',
-    symptom: '/symptoms',
-    comparison: '/compare',
-    location: '/locations',
-    certificate: '/medical-certificate',
-    benefit: '/health',
-    resource: '/health/guides',
-  }
-  
-  const basePath = pathMap[page.type]
-  return `${BASE_URL}${basePath}${basePath ? '/' : '/'}${page.slug}`
-}
-
-// ============================================
 // THIN CONTENT DETECTOR
 // ============================================
 
@@ -459,9 +358,6 @@ function calculateQualityScore(metrics: {
 // ============================================
 
 export const contentRegistry = {
-  getCanonicalUrl,
-  getRobotsConfig,
   detectThinContent,
   QUALITY_THRESHOLDS,
-  NOINDEX_RULES,
 }

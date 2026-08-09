@@ -5,20 +5,21 @@ import {
   FileText,
   ShieldCheck,
 } from "lucide-react"
-import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { ReactNode } from "react"
 
 import { CommercialIntentTracker } from "@/components/analytics/commercial-intent-tracker"
-import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
+import {
+  defineProgrammaticSeoRoute,
+  ProgrammaticPageSchemas,
+} from "@/components/seo"
 import { Footer } from "@/components/shared/footer"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PageBreadcrumbs } from "@/components/uix"
-import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 import {
   getAllIntentSlugs,
   getIntentPageBySlug,
@@ -29,30 +30,27 @@ interface PageProps {
   params: Promise<{ slug: string }>
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
-  const page = getIntentPageBySlug(slug)
-  if (!page) return {}
+const seoRoute = defineProgrammaticSeoRoute({
+  basePath: "/intent",
+  breadcrumb: {
+    current: ({ entry }) => entry.h1,
+    parent: { name: "Telehealth", pathname: "/consult" },
+  },
+  faqs: ({ entry }) => entry.structured.faqs ?? [],
+  getEntry: getIntentPageBySlug,
+  getSlugs: getAllIntentSlugs,
+  indexable: () => false,
+  metadata: ({ entry }) => ({
+    description: entry.description,
+    keywords: entry.metadata.keywords,
+    openGraph: { title: entry.title },
+    title: entry.title,
+  }),
+  param: "slug",
+})
 
-  return {
-    title: page.title,
-    description: page.description,
-    robots: ICEBOX_ROBOTS,
-    keywords: page.metadata.keywords,
-    openGraph: {
-      title: page.title,
-      description: page.description,
-      url: `https://instantmed.com.au/intent/${slug}`,
-    },
-    alternates: {
-      canonical: `https://instantmed.com.au/intent/${slug}`,
-    },
-  }
-}
-
-export async function generateStaticParams() {
-  return getAllIntentSlugs().map((slug) => ({ slug }))
-}
+export const generateMetadata = seoRoute.generateMetadata
+export const generateStaticParams = seoRoute.generateStaticParams
 
 function renderContentBlock(block: ContentBlock) {
   let body: ReactNode = null
@@ -103,17 +101,13 @@ function renderContentBlock(block: ContentBlock) {
 }
 
 export default async function IntentPage({ params }: PageProps) {
-  const { slug } = await params
-  const page = getIntentPageBySlug(slug)
+  const resolved = await seoRoute.resolve(params)
 
-  if (!page) {
+  if (!resolved) {
     notFound()
   }
 
-  const faqSchemaData = (page.structured.faqs || []).map((faq) => ({
-    question: faq.question,
-    answer: faq.answer,
-  }))
+  const { entry: page } = resolved
 
   return (
     <>
@@ -123,17 +117,7 @@ export default async function IntentPage({ params }: PageProps) {
         priority={page.commercial.priority}
         primaryQuery={page.intent.searchQuery}
       />
-      <FAQSchema faqs={faqSchemaData} />
-      <BreadcrumbSchema
-        items={[
-          { name: "Home", url: "https://instantmed.com.au" },
-          { name: "Telehealth", url: "https://instantmed.com.au/consult" },
-          {
-            name: page.h1,
-            url: `https://instantmed.com.au/intent/${slug}`,
-          },
-        ]}
-      />
+      <ProgrammaticPageSchemas page={resolved} />
 
       <div className="flex min-h-screen flex-col bg-linear-to-b from-muted/50 to-white dark:from-background dark:to-background">
         <Navbar variant="marketing" />

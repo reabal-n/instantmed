@@ -1,5 +1,4 @@
 import { ArrowRight, Clock, Shield, Zap } from "lucide-react"
-import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
@@ -7,7 +6,10 @@ import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { RegulatoryPartners } from "@/components/marketing/regulatory-partners"
 import { StatsStrip } from "@/components/marketing/total-patients-counter"
-import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
+import {
+  defineProgrammaticSeoRoute,
+  ProgrammaticPageSchemas,
+} from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
@@ -16,65 +18,48 @@ import { getWaitState } from "@/lib/brand/wait-counter"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { buildMedCertSpeedClaimFromWaitState } from "@/lib/marketing/speed-claims"
 import { getAllAudiencePageSlugs, getAudiencePageConfig } from "@/lib/seo/data/audience-pages"
-import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 
 interface PageProps {
   params: Promise<{ audience: string }>
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { audience } = await params
-  const config = getAudiencePageConfig(audience)
-  if (!config) return {}
+const seoRoute = defineProgrammaticSeoRoute({
+  basePath: "/for",
+  breadcrumb: {
+    current: ({ entry }) => entry.h1,
+    parent: { name: "For", pathname: "/for" },
+  },
+  faqs: ({ entry }) => entry.faqs,
+  getEntry: getAudiencePageConfig,
+  getSlugs: getAllAudiencePageSlugs,
+  indexable: () => false,
+  metadata: ({ entry }) => ({
+    description: entry.metadata.description,
+    keywords: entry.metadata.keywords,
+    openGraph: { title: `${entry.h1} | InstantMed` },
+    title: entry.metadata.title,
+  }),
+  param: "audience",
+})
 
-  const baseUrl = "https://instantmed.com.au"
-  return {
-    title: config.metadata.title,
-    description: config.metadata.description,
-    robots: ICEBOX_ROBOTS,
-    keywords: config.metadata.keywords,
-    openGraph: {
-      title: `${config.h1} | InstantMed`,
-      description: config.metadata.description,
-      url: `${baseUrl}/for/${config.slug}`,
-    },
-    alternates: {
-      canonical: `${baseUrl}/for/${config.slug}`,
-    },
-  }
-}
-
-export async function generateStaticParams() {
-  return getAllAudiencePageSlugs().map((audience) => ({ audience }))
-}
+export const generateMetadata = seoRoute.generateMetadata
+export const generateStaticParams = seoRoute.generateStaticParams
 
 export default async function AudiencePage({ params }: PageProps) {
-  const { audience } = await params
-  const config = getAudiencePageConfig(audience)
+  const resolved = await seoRoute.resolve(params)
 
-  if (!config) {
+  if (!resolved) {
     notFound()
   }
 
-  const _Icon = config.icon
-  const baseUrl = "https://instantmed.com.au"
-  const medCertSpeedClaim = buildMedCertSpeedClaimFromWaitState(await getWaitState())
+  const { entry: config } = resolved
 
-  const faqSchemaData = config.faqs.map((faq) => ({
-    question: faq.q,
-    answer: faq.a,
-  }))
+  const _Icon = config.icon
+  const medCertSpeedClaim = buildMedCertSpeedClaimFromWaitState(await getWaitState())
 
   return (
     <>
-      <FAQSchema faqs={faqSchemaData} />
-      <BreadcrumbSchema
-        items={[
-          { name: "Home", url: baseUrl },
-          { name: "For", url: `${baseUrl}/for` },
-          { name: config.h1, url: `${baseUrl}/for/${config.slug}` },
-        ]}
-      />
+      <ProgrammaticPageSchemas page={resolved} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />

@@ -11,7 +11,6 @@ import {
   ShieldCheck,
   Stethoscope,
 } from "lucide-react"
-import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
@@ -24,63 +23,64 @@ import { CTABanner } from "@/components/sections/cta-banner"
 import { IconChecklist } from "@/components/sections/icon-checklist"
 import { SectionHeader } from "@/components/sections/section-header"
 import type { ChecklistItem } from "@/components/sections/types"
-import { BreadcrumbSchema, FAQSchema, MedicalConditionSchema } from "@/components/seo"
+import {
+  defineProgrammaticSeoRoute,
+  MedicalConditionSchema,
+  ProgrammaticPageSchemas,
+} from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
 import { conditionsData } from "@/lib/seo/data/conditions"
-import { ICEBOX_ROBOTS, shouldIndexCondition } from "@/lib/seo/index-policy"
+import { shouldIndexCondition } from "@/lib/seo/index-policy"
 
 const conditions = conditionsData
+const getConditionBySlug = (slug: string) => conditions[slug]
 
 interface PageProps {
   params: Promise<{ slug: string }>
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
-  const condition = conditions[slug]
-  if (!condition) return {}
+const seoRoute = defineProgrammaticSeoRoute({
+  basePath: "/conditions",
+  breadcrumb: {
+    current: ({ entry }) => entry.name,
+    parent: { name: "Conditions", pathname: "/conditions" },
+  },
+  faqs: ({ entry }) => entry.commonQuestions,
+  getEntry: getConditionBySlug,
+  getSlugs: () => Object.keys(conditions),
+  indexable: ({ slug }) => shouldIndexCondition(slug),
+  metadata: ({ entry }) => {
+    const title = `${entry.name} Guide | Symptoms, Red Flags & Telehealth Limits | InstantMed`
+    const description = `${entry.description} Learn common symptoms, red flags, and when online review may or may not fit in Australia.`
 
-  const title = `${condition.name} Guide | Symptoms, Red Flags & Telehealth Limits | InstantMed`
-  const description = `${condition.description} Learn common symptoms, red flags, and when online review may or may not fit in Australia.`
+    return {
+      description,
+      keywords: [
+        `${entry.name.toLowerCase()} medical certificate`,
+        `${entry.name.toLowerCase()} doctor online`,
+        `${entry.name.toLowerCase()} telehealth`,
+        `${entry.name.toLowerCase()} treatment`,
+        `${entry.name.toLowerCase()} symptoms`,
+      ],
+      openGraph: {
+        description: `Learn common symptoms, red flags, and when online review may or may not fit for ${entry.name.toLowerCase()}.`,
+        title: `${entry.name} Guide | InstantMed`,
+      },
+      title: { absolute: title },
+    }
+  },
+  param: "slug",
+})
 
-  return {
-    title: { absolute: title },
-    description,
-    robots: shouldIndexCondition(slug) ? { index: true, follow: true } : ICEBOX_ROBOTS,
-    keywords: [
-      `${condition.name.toLowerCase()} medical certificate`,
-      `${condition.name.toLowerCase()} doctor online`,
-      `${condition.name.toLowerCase()} telehealth`,
-      `${condition.name.toLowerCase()} treatment`,
-      `${condition.name.toLowerCase()} symptoms`,
-    ],
-    openGraph: {
-      title: `${condition.name} Guide | InstantMed`,
-      description: `Learn common symptoms, red flags, and when online review may or may not fit for ${condition.name.toLowerCase()}.`,
-      url: `https://instantmed.com.au/conditions/${slug}`,
-    },
-    alternates: {
-      canonical: `https://instantmed.com.au/conditions/${slug}`,
-    },
-  }
-}
-
-export async function generateStaticParams() {
-  return Object.keys(conditions).map((slug) => ({ slug }))
-}
+export const generateMetadata = seoRoute.generateMetadata
+export const generateStaticParams = seoRoute.generateStaticParams
 
 export default async function ConditionPage({ params }: PageProps) {
-  const { slug } = await params
-  const condition = conditions[slug]
-
-  if (!condition) notFound()
-
-  const faqSchemaData = condition.commonQuestions.map(faq => ({
-    question: faq.q,
-    answer: faq.a,
-  }))
+  const resolved = await seoRoute.resolve(params)
+  if (!resolved) notFound()
+  const { entry: condition, slug } = resolved
 
   const symptomItems: ChecklistItem[] = condition.symptoms.map(s => ({ text: s }))
 
@@ -96,14 +96,7 @@ export default async function ConditionPage({ params }: PageProps) {
 
   return (
     <>
-      <FAQSchema faqs={faqSchemaData} />
-      <BreadcrumbSchema
-        items={[
-          { name: "Home", url: "https://instantmed.com.au" },
-          { name: "Conditions", url: "https://instantmed.com.au/conditions" },
-          { name: condition.name, url: `https://instantmed.com.au/conditions/${slug}` },
-        ]}
-      />
+      <ProgrammaticPageSchemas page={resolved} />
       <MedicalConditionSchema
         name={condition.name}
         description={condition.description}

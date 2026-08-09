@@ -1,14 +1,16 @@
-import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { LocationPageContent } from "@/components/marketing/location-page-content"
-import { BreadcrumbSchema } from "@/components/seo"
+import {
+  defineProgrammaticSeoRoute,
+  ProgrammaticPageSchemas,
+} from "@/components/seo"
+import { JsonLdScript } from "@/components/seo/schemas/json-ld-script"
 import { Footer } from "@/components/shared/footer"
 import { Navbar } from "@/components/shared/navbar"
-import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { DEFAULT_APP_URL, PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
-import { ICEBOX_ROBOTS, shouldIndexLocation } from "@/lib/seo/index-policy"
-import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+import { shouldIndexLocation } from "@/lib/seo/index-policy"
 
 // City-specific content paragraphs for unique SEO value
 const CITY_CONTENT: Record<string, string> = {
@@ -360,50 +362,63 @@ interface PageProps {
   params: Promise<{ city: string }>
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { city } = await params
-  const cityData = cities[city]
-  if (!cityData) return {}
+const getCityBySlug = (slug: string) => cities[slug]
 
-  return {
-    title: { absolute: `Online Medical Certificate ${cityData.name} | From ${PRICING_DISPLAY.MED_CERT} | InstantMed` },
-    description: `Get an online medical certificate in ${cityData.name} from ${PRICING_DISPLAY.MED_CERT}. AHPRA-registered Australian doctors review online, so you can skip the GP queue. Repeat scripts and online doctor requests too. No appointment needed.`,
-    robots: shouldIndexLocation(city) ? { index: true, follow: true } : ICEBOX_ROBOTS,
-    keywords: [
-      `medical certificate ${cityData.name.toLowerCase()}`,
-      `online medical certificate ${cityData.name.toLowerCase()}`,
-      `medical certificate online ${cityData.name.toLowerCase()}`,
-      `online doctor ${cityData.name.toLowerCase()}`,
-      `online prescription ${cityData.name.toLowerCase()}`,
-      `telehealth ${cityData.name.toLowerCase()}`,
-    ],
-    openGraph: {
-      title: `Online Medical Certificate ${cityData.name} | InstantMed`,
-      description: `Get an online medical certificate in ${cityData.name} from ${PRICING_DISPLAY.MED_CERT}. AHPRA-registered Australian doctors review online, so you can skip the GP queue. Repeat scripts too. No appointment needed.`,
-      url: `https://instantmed.com.au/locations/${city}`,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `Online Medical Certificate ${cityData.name} | InstantMed`,
-      description: `Get an online medical certificate in ${cityData.name} from ${PRICING_DISPLAY.MED_CERT}. AHPRA-registered Australian doctors review online, so you can skip the GP queue. Repeat scripts too. No appointment needed.`,
-    },
-    alternates: {
-      canonical: `https://instantmed.com.au/locations/${city}`,
-    },
-  }
-}
+const seoRoute = defineProgrammaticSeoRoute({
+  basePath: "/locations",
+  breadcrumb: {
+    current: ({ entry }) => entry.name,
+    parent: { name: "Locations", pathname: "/locations" },
+  },
+  faqs: ({ slug }) => [
+    ...(CITY_FAQS[slug] || DEFAULT_FAQS),
+    ...(DEEP_CITY_CONTENT[slug]?.additionalFaqs ?? []),
+  ],
+  getEntry: getCityBySlug,
+  getSlugs: () => Object.keys(cities),
+  indexable: ({ slug }) => shouldIndexLocation(slug),
+  metadata: ({ entry }) => {
+    const description = `Get an online medical certificate in ${entry.name} from ${PRICING_DISPLAY.MED_CERT}. AHPRA-registered Australian doctors review online, so you can skip the GP queue. Repeat scripts and online doctor requests too. No appointment needed.`
+    const socialDescription = `Get an online medical certificate in ${entry.name} from ${PRICING_DISPLAY.MED_CERT}. AHPRA-registered Australian doctors review online, so you can skip the GP queue. Repeat scripts too. No appointment needed.`
 
-export async function generateStaticParams() {
-  return Object.keys(cities).map((city) => ({ city }))
-}
+    return {
+      description,
+      keywords: [
+        `medical certificate ${entry.name.toLowerCase()}`,
+        `online medical certificate ${entry.name.toLowerCase()}`,
+        `medical certificate online ${entry.name.toLowerCase()}`,
+        `online doctor ${entry.name.toLowerCase()}`,
+        `online prescription ${entry.name.toLowerCase()}`,
+        `telehealth ${entry.name.toLowerCase()}`,
+      ],
+      openGraph: {
+        description: socialDescription,
+        title: `Online Medical Certificate ${entry.name} | InstantMed`,
+      },
+      title: {
+        absolute: `Online Medical Certificate ${entry.name} | From ${PRICING_DISPLAY.MED_CERT} | InstantMed`,
+      },
+      twitter: {
+        card: "summary_large_image",
+        description: socialDescription,
+        title: `Online Medical Certificate ${entry.name} | InstantMed`,
+      },
+    }
+  },
+  param: "city",
+})
+
+export const generateMetadata = seoRoute.generateMetadata
+export const generateStaticParams = seoRoute.generateStaticParams
 
 export default async function CityPage({ params }: PageProps) {
-  const { city } = await params
-  const cityData = cities[city]
+  const resolved = await seoRoute.resolve(params)
 
-  if (!cityData) {
+  if (!resolved) {
     notFound()
   }
+
+  const { canonical: cityUrl, entry: cityData, slug: city } = resolved
 
   const deepContent = DEEP_CITY_CONTENT[city]
   const faqs = [...(CITY_FAQS[city] || DEFAULT_FAQS), ...(deepContent?.additionalFaqs ?? [])]
@@ -416,11 +431,11 @@ export default async function CityPage({ params }: PageProps) {
   const localSchema = {
     "@context": "https://schema.org",
     "@type": "Service",
-    "@id": `https://instantmed.com.au/locations/${city}#service`,
+    "@id": `${cityUrl}#service`,
     name: `Online Medical Certificates in ${cityData.name}`,
     description: `Online medical certificates, repeat prescriptions, and doctor consultations for ${cityData.name} residents. AHPRA-registered Australian doctors.`,
-    url: `https://instantmed.com.au/locations/${city}`,
-    provider: { "@id": "https://instantmed.com.au/#organization" },
+    url: cityUrl,
+    provider: { "@id": `${DEFAULT_APP_URL}/#organization` },
     serviceType: "Telehealth",
     areaServed: {
       "@type": "City",
@@ -459,20 +474,6 @@ export default async function CityPage({ params }: PageProps) {
     }
   }
 
-  // FAQ Schema for SEO
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faqs.map((faq) => ({
-      "@type": "Question",
-      name: faq.q,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: faq.a,
-      },
-    })),
-  }
-
   const otherCities = Object.values(cities)
     .filter((c) => c.slug !== city)
     .slice(0, 8)
@@ -480,25 +481,11 @@ export default async function CityPage({ params }: PageProps) {
 
   return (
     <>
-      <script
+      <JsonLdScript
+        data={localSchema}
         id="local-schema"
-        type="application/ld+json"
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(localSchema) }}
       />
-      <script
-        id="faq-schema"
-        type="application/ld+json"
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }}
-      />
-      <BreadcrumbSchema
-        items={[
-          { name: "Home", url: "https://instantmed.com.au" },
-          { name: "Locations", url: "https://instantmed.com.au/locations" },
-          { name: cityData.name, url: `https://instantmed.com.au/locations/${city}` },
-        ]}
-      />
+      <ProgrammaticPageSchemas page={resolved} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
