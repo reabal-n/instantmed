@@ -1,22 +1,18 @@
 /**
- * Medical Certificate Auto-Approval E2E Contract
+ * Medical Certificate Protocol-Issuance Governance E2E Contract
  *
- * Proves the live post-payment worker path can take a paid low-risk med cert
- * through AI draft readiness, deterministic auto-approval, PDF storage, and
- * patient email outbox logging without a doctor clicking approve. The test-only
- * route below deliberately bypasses the production 10+ minute cron delay.
+ * Proves the live post-payment worker keeps even a low-risk paid med cert in
+ * the doctor queue while the code-owned governance gate is paused. The
+ * test-only route deliberately bypasses the production cron delay so the gate,
+ * rather than timing, owns the observed outcome.
  */
 
 import { expect,test } from "@playwright/test"
 
 import {
   cleanupTestIntake,
-  getEmailOutboxByType,
-  getIssuedCertificateForIntake,
   getSupabaseClient,
   isDbAvailable,
-  storageObjectExists,
-  waitForIntakeStatus,
 } from "./helpers/db"
 
 const AUTO_APPROVAL_FLAGS = {
@@ -226,8 +222,8 @@ async function seedLowRiskAnswers(intakeId: string, startDate: string): Promise<
   }
 }
 
-test.describe("Medical Certificate Auto-Approval", () => {
-  test("post-payment worker auto-issues a low-risk med cert and records patient email", async ({ request }) => {
+test.describe("Medical Certificate Protocol Issuance Governance", () => {
+  test("post-payment worker keeps a low-risk med cert in doctor review while governance is paused", async ({ request }) => {
     test.skip(!isDbAvailable(), "Database not available")
 
     const flagSnapshot = await setAutoApprovalFlags()
@@ -275,35 +271,40 @@ test.describe("Medical Certificate Auto-Approval", () => {
       const triggerResult = await triggerResponse.json()
       expect(triggerResult.mode).toBe("e2e_immediate_auto_approval")
       expect(triggerResult.productionDelayBypassed).toBe(true)
-      expect(triggerResult.success, JSON.stringify(triggerResult)).toBe(true)
-
-      const approved = await waitForIntakeStatus(intakeId, "approved", 15000)
-      expect(approved, "auto-approval should move intake to approved").toBe(true)
+      expect(triggerResult.success, JSON.stringify(triggerResult)).toBe(false)
+      expect(triggerResult.status).toBe("paid")
+      expect(triggerResult.autoApprovalState).toBe("pending")
+      expect(triggerResult.attemptReason).toBe("Governance review pending")
 
       const { data: intake, error: intakeError } = await supabase
         .from("intakes")
-        .select("status, ai_approved, auto_approval_state, reviewed_by, reviewed_at, synced_clinical_note_draft_id")
+        .select("status, ai_approved, auto_approval_state, reviewed_by, reviewed_at")
         .eq("id", intakeId)
         .single()
 
       expect(intakeError, intakeError?.message).toBeNull()
-      expect(intake?.status).toBe("approved")
-      expect(intake?.ai_approved).toBe(true)
-      expect(intake?.auto_approval_state).toBe("approved")
-      expect(intake?.reviewed_by, "auto-approval should still attribute to an AHPRA-verified doctor").toBeTruthy()
-      expect(intake?.reviewed_at).toBeTruthy()
-      expect(intake?.synced_clinical_note_draft_id).toBeTruthy()
+      expect(intake?.status).toBe("paid")
+      expect(intake?.ai_approved).toBe(false)
+      expect(intake?.auto_approval_state).toBe("pending")
+      expect(intake?.reviewed_by).toBeNull()
+      expect(intake?.reviewed_at).toBeNull()
 
-      const certificate = await getIssuedCertificateForIntake(intakeId)
-      expect(certificate, "auto-approval should issue a certificate").not.toBeNull()
-      expect(certificate?.storage_path).toBeTruthy()
-      expect(await storageObjectExists(certificate!.storage_path)).toBe(true)
+      const { data: certificate, error: certificateError } = await supabase
+        .from("issued_certificates")
+        .select("id")
+        .eq("intake_id", intakeId)
+        .maybeSingle()
+      expect(certificateError, certificateError?.message).toBeNull()
+      expect(certificate, "governance pause must prevent certificate issuance").toBeNull()
 
-      const emailEntry = await getEmailOutboxByType(intakeId, "med_cert_patient")
-      expect(emailEntry, "auto-approval should log the patient med cert email").not.toBeNull()
-      expect(emailEntry?.status).toBe("skipped_e2e")
-      expect(emailEntry?.provider_message_id, "E2E skipped emails should not fake a provider id").toBeNull()
-      expect(emailEntry?.certificate_id).toBe(certificate?.id)
+      const { data: emailEntry, error: emailError } = await supabase
+        .from("email_outbox")
+        .select("id")
+        .eq("intake_id", intakeId)
+        .eq("email_type", "med_cert_patient")
+        .maybeSingle()
+      expect(emailError, emailError?.message).toBeNull()
+      expect(emailEntry, "governance pause must prevent patient certificate delivery").toBeNull()
 
       const { count, error: auditError } = await supabase
         .from("ai_audit_log")
@@ -312,7 +313,7 @@ test.describe("Medical Certificate Auto-Approval", () => {
         .eq("action", "auto_approve")
 
       expect(auditError, auditError?.message).toBeNull()
-      expect(count ?? 0, "auto-approval should write audit evidence").toBeGreaterThanOrEqual(1)
+      expect(count ?? 0, "governance-paused requests must not claim auto-approval").toBe(0)
     } finally {
       if (intakeId) {
         await cleanupTestIntake(intakeId)
