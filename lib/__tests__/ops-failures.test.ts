@@ -101,6 +101,11 @@ describe("operational failure overview", () => {
     expect(overview.categories.find((category) => category.id === "stale_scripts")).toMatchObject({
       href: "/admin/ops/intakes-stuck",
     })
+    expect(overview.categories.find((category) => category.id === "prescription_delivery")).toMatchObject({
+      label: "Parchment sync",
+      href: "/admin/ops/parchment",
+    })
+    expect(overview.recent.find((item) => item.id === "audit-1")?.title).toBe("Parchment sync failed")
     expect(overview.recent.every((item) => !item.href.startsWith("/doctor"))).toBe(true)
   })
 

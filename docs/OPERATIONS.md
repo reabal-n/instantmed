@@ -174,6 +174,7 @@ Operational rules:
 - Parchment confirmed custom-domain iframe whitelist for `https://instantmed.com.au` and `https://www.instantmed.com.au` on 2026-05-01. If the doctor portal falls back to a new tab on those hosts, check `lib/parchment/embed-policy.ts`, `NEXT_PUBLIC_PARCHMENT_IFRAME_ALLOWED_HOSTS`, and Parchment CSP before assuming SSO is broken.
 - If a doctor reports mismatch between InstantMed context and Parchment/MIMS search results, treat Parchment as source of truth and document the discrepancy in clinical notes.
 - Treat `Parchment webhook could not match prescription.created to an intake` Sentry warnings as P1 operations issues: the script may exist in Parchment while InstantMed has not completed the linked request or sent the patient notification. These are also logged as `webhook_failed` audit events and surfaced in `/admin/ops`.
+- `/admin/ops` counts only unresolved Parchment sync work. An admin retry resolves the current active patient profile, following any profile merge, re-fetches the Parchment prescription, and must record a successful `parchment_webhook_retry` audit receipt before the alert clears. Unlinked `patient_not_found` events remain historical evidence rather than retry work. Retry recovery must never manufacture `script_sent`; the existing evidence-gated completion path remains authoritative.
 
 **Weekly operating dashboard:**
 

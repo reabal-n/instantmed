@@ -28,6 +28,35 @@ function getMetadataString(metadata: Record<string, unknown> | null | undefined,
   return typeof value === "string" && value.trim() ? value.trim() : null
 }
 
+async function resolveActivePatientProfileFromId({
+  supabase,
+  profileId,
+}: {
+  supabase: ReturnType<typeof createServiceRoleClient>
+  profileId: string
+}): Promise<string | null> {
+  let candidateId = profileId
+  const visited = new Set<string>()
+
+  for (let depth = 0; depth < 4; depth += 1) {
+    if (!UUID_RE.test(candidateId) || visited.has(candidateId)) return null
+    visited.add(candidateId)
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, merged_into_profile_id")
+      .eq("id", candidateId)
+      .eq("role", "patient")
+      .maybeSingle()
+
+    if (!profile?.id) return null
+    if (!profile.merged_into_profile_id) return profile.id
+    candidateId = profile.merged_into_profile_id
+  }
+
+  return null
+}
+
 async function resolvePatientProfileId({
   supabase,
   metadata,
@@ -37,30 +66,32 @@ async function resolvePatientProfileId({
   metadata: Record<string, unknown>
   parchmentPatientId: string
 }): Promise<string | null> {
-  const metadataPatientProfileId = getMetadataString(metadata, "patient_profile_id")
-  if (metadataPatientProfileId && UUID_RE.test(metadataPatientProfileId)) {
-    return metadataPatientProfileId
-  }
-
   const { data: byParchmentId } = await supabase
     .from("profiles")
     .select("id")
     .eq("parchment_patient_id", parchmentPatientId)
-    .maybeSingle()
+    .eq("role", "patient")
+    .is("merged_into_profile_id", null)
+    .limit(2)
 
-  if (byParchmentId?.id) return byParchmentId.id
+  if (byParchmentId?.length === 1) return byParchmentId[0].id
 
   const partnerPatientId = getMetadataString(metadata, "partner_patient_id")
-  if (!partnerPatientId || !UUID_RE.test(partnerPatientId)) return null
+  if (partnerPatientId && UUID_RE.test(partnerPatientId)) {
+    const resolvedPartnerProfileId = await resolveActivePatientProfileFromId({
+      supabase,
+      profileId: partnerPatientId,
+    })
+    if (resolvedPartnerProfileId) return resolvedPartnerProfileId
+  }
 
-  const { data: byPartnerId } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("id", partnerPatientId)
-    .eq("role", "patient")
-    .maybeSingle()
+  const metadataPatientProfileId = getMetadataString(metadata, "patient_profile_id")
+  if (!metadataPatientProfileId || !UUID_RE.test(metadataPatientProfileId)) return null
 
-  return byPartnerId?.id ?? null
+  return resolveActivePatientProfileFromId({
+    supabase,
+    profileId: metadataPatientProfileId,
+  })
 }
 
 async function resolvePrescriberProfileId({
