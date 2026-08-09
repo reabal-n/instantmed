@@ -1,19 +1,20 @@
 /**
  * AI Auto-Approval Pipeline Orchestrator
  *
- * Called after AI drafts are generated for a med cert intake.
- * Evaluates eligibility, builds review data, and executes the
+ * Dormant medical-certificate protocol orchestrator. If governance is approved
+ * in code, it evaluates eligibility, builds review data, and can execute the
  * full approval pipeline (PDF → storage → email) without doctor intervention.
  *
- * Safety: feature-flagged, rate-limited, logged to ai_audit_log. Risk is gated
- * BEFORE issuance by DETERMINISTIC_FAILURE_PREFIXES; the 24h post-approval batch
- * review was removed 2026-08-04. Info-severity soft flags are persisted to
- * intakes.risk_flags so the daily approved list can surface them.
+ * Current safety boundary: `auto-approval-governance.ts` is fail-closed pending
+ * Medical Director and legal reconciliation. The DB feature flag cannot bypass
+ * it. If reactivated, the pathway remains feature-flagged, rate-limited, logged,
+ * and gated before issuance by DETERMINISTIC_FAILURE_PREFIXES.
  */
 
 import * as Sentry from "@sentry/nextjs"
 
 import { capturePersonlessPostHogEvent } from "@/lib/analytics/posthog-server"
+import { isAutoApprovalGovernanceApproved } from "@/lib/clinical/auto-approval-governance"
 import { executeCertApproval } from "@/lib/clinical/execute-cert-approval"
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import { shouldIncludeSeededE2EData } from "@/lib/data/seeded-e2e-data"
@@ -245,6 +246,17 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     )
     trackOutcome("skipped", "feature_disabled")
     return { success: true, autoApproved: false, reason: "Feature disabled" }
+  }
+
+  // The database flag can stop issuance, but cannot authorise it. Keep this
+  // code-owned gate fail-closed until Medical Director and legal reconciliation
+  // explicitly approves the protocol boundary.
+  if (!isAutoApprovalGovernanceApproved()) {
+    log.warn("Auto-approval governance gate is closed - intake will remain in doctor queue", {
+      intakeId,
+    })
+    trackOutcome("skipped", "governance_review_pending")
+    return { success: true, autoApproved: false, reason: "Governance review pending" }
   }
 
   const isDryRun = featureFlags.auto_approve_dry_run

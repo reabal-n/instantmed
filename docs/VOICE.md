@@ -49,7 +49,7 @@ This is the merchandised promise. It lives above checkout CTAs, inline on hero C
 1. **Short sentences. Full stops.** Three full stops beat one comma every time. *Fill it out. Get on with it.*
 2. **Name the wait, then remove it.** *You used to wait three weeks for a GP. Not anymore.*
 3. **Use negation carefully.** *No appointment. No waiting room.* is broadly safe. *No call* is med-cert-specific unless a clinician has explicitly approved the service context.
-4. **Lead with clinical accountability.** Use the approved doctor and clinical-model claims. Do not erase the doctor-owned certificate protocol or hide behind "our platform."
+4. **Lead with clinical accountability.** Use the approved doctor and clinical-model claims. Describe the effective review pathway; do not present a dormant issuance engine as active or hide behind "our platform."
 5. **Price in the first breath, not the footer.** Numbers are trust signals. *Medical certificate, $24.95. Start with a secure form.*
 
 ## 5 Don'ts
@@ -88,8 +88,8 @@ These are voice-layer strings, not permission to improvise factual claims. Sever
 Public factual copy with clinical, operational, privacy, complaint, refund, doctor, or certification risk comes from `lib/marketing/approved-claims.ts`. Use the relevant claim ID rather than a near-duplicate:
 
 - `availability_24_7`: *Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume.*
-- `clinical_decision_model`: *AI never prescribes or makes clinical decisions. Eligible low-risk certificate requests may be approved under a doctor-owned protocol and are individually reviewed afterward.*
-- `clinical_review_sequence`: *Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward.*
+- `clinical_decision_model`: *AI never prescribes or makes clinical decisions. A certificate or prescription is issued only after an AHPRA-registered doctor reviews the request.*
+- `clinical_review_sequence`: *Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued.*
 - `clinical_access_scope`: *Clinical access is role-scoped. Doctors and the owner-admin can access records needed for care; support sees only bounded, masked operational data.*
 - `complaints_timing`: *We acknowledge complaints within 24 hours. Clinical complaints target resolution within 14 days.*
 - `doctor_registration`: *Clinical reviews are performed by AHPRA-registered doctors under documented clinical governance.*
@@ -126,7 +126,7 @@ Weight-loss entries below are future-ready guidance only. They do not authorise 
 | Context | Approved copy | Avoid |
 |---|---|---|
 | Availability | Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume. | Review-hours windows, vague availability caveats, or guaranteed turnaround. |
-| Clinical decisions | AI never prescribes or makes clinical decisions. Eligible low-risk certificate requests may be approved under a doctor-owned protocol and are individually reviewed afterward. | "Every request is manually reviewed", "AI approves", or broad claims that nothing is automated. |
+| Clinical decisions | AI never prescribes or makes clinical decisions. A certificate or prescription is issued only after an AHPRA-registered doctor reviews the request. | "AI approves", a post-issue review claim, or any suggestion that a database flag can bypass the governance pause. |
 | Medical certificates | No video. No call. No appointment. | Accepted by all employers, 98% accepted, special consideration, deferred exam. |
 | Prescription services | Complete a secure clinical form. A doctor reviews it and may call you briefly before prescribing. | No call needed, guaranteed prescription, get [drug] online. |
 | ED / hair loss | Private form-first assessment. A doctor reviews it and may call briefly before prescribing. | No call needed, drug names in ads, outcome guarantees. |

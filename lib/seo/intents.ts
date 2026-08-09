@@ -283,7 +283,7 @@ export const intentPages: IntentPage[] = [
     title: "Same Day Medical Certificate Online | InstantMed",
     description: `Request a same day medical certificate online from ${PRICING_DISPLAY.MED_CERT}. Doctor reviewed, secure PDF delivery after approval.`,
     h1: "Same day medical certificate online",
-    answer: "Yes. You can request a same day medical certificate online for short illness or carer leave. Eligible low-risk requests may follow the doctor-owned protocol and are individually reviewed afterward; other requests go to doctor review before issue.",
+    answer: "Yes. You can request a same day medical certificate online for short illness or carer leave. An AHPRA-registered doctor reviews the request before any certificate is issued and may ask follow-up questions if needed.",
     intro: "Start with a short secure form, confirm your absence dates, then a doctor reviews whether a certificate is clinically appropriate.",
     searchQuery: "same day medical certificate",
     alternateQueries: ["medical certificate today", "online medical certificate same day", "urgent medical certificate online"],
@@ -413,7 +413,7 @@ export const intentPages: IntentPage[] = [
       },
     ],
     faqs: [
-      { question: "Is this just a form?", answer: "No. The form collects clinical details for a doctor-owned issue pathway. Eligible protocol-issued certificates are individually reviewed afterward." },
+      { question: "Is this just a form?", answer: "No. The form collects clinical details for an AHPRA-registered doctor, who reviews the request before any certificate is issued." },
       { question: "How much is the first day?", answer: `A one day certificate request starts at ${PRICING_DISPLAY.MED_CERT}.` },
       { question: "Can I submit outside business hours?", answer: "Yes. Medical certificate requests can be started online 24/7." },
     ],

@@ -19,21 +19,6 @@
  * Update here when real analytics data becomes available.
  */
 export const SOCIAL_PROOF = {
-  // ── Response Times ──
-  /**
-   * Average response in minutes (used for stat displays).
-   * Provenance 2026-07-10 (prod, 30d): med-cert median 10.4 min paid→approved,
-   * Rx median ~2.6h; overall median well under this figure, so 44 UNDER-claims
-   * speed (the compliant direction). Re-verify against live data before ever
-   * lowering it; replace with a live measure when wait-time wiring lands.
-   */
-  averageResponseMinutes: 44,
-  /**
-   * Typical turnaround for certificates specifically - must stay under 30 min.
-   * Provenance 2026-07-10: measured med-cert median 10.4 min (21/21 auto-approved).
-   */
-  certTurnaroundMinutes: 20,
-
   // ── Platform Credentials ──
   ahpraVerifiedPercent: 100,
   operatingDays: 7,

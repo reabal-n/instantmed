@@ -183,19 +183,19 @@ export const APPROVED_CLAIMS: Record<ApprovedClaimId, ApprovedClaim> = {
   },
   clinical_decision_model: {
     id: "clinical_decision_model",
-    text: "AI never prescribes or makes clinical decisions. Eligible low-risk certificate requests may be approved under a doctor-owned protocol and are individually reviewed afterward.",
+    text: "AI never prescribes or makes clinical decisions. A certificate or prescription is issued only after an AHPRA-registered doctor reviews the request.",
     contexts: ["platform", "medical_certificate", "prescribing", "specialty", "governance"],
     risk: "high",
     sources: CLINICAL_RECEIPTS,
-    notes: "Canonical automation disclosure. Do not deny the logged medical-certificate protocol or imply protocol prescribing.",
+    notes: "Canonical clinical-decision disclosure while medical-certificate protocol issuance is governance-paused. Do not imply AI or automation makes a clinical decision.",
   },
   clinical_review_sequence: {
     id: "clinical_review_sequence",
-    text: "Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward.",
+    text: "Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued.",
     contexts: ["platform", "medical_certificate", "prescribing", "specialty", "governance"],
     risk: "high",
     sources: CLINICAL_RECEIPTS,
-    notes: "Branch-aware public process order. Do not imply every certificate is doctor-reviewed before issue or that protocol issuance applies to prescribing.",
+    notes: "Current public process order while medical-certificate protocol issuance is governance-paused.",
   },
   clinical_access_scope: {
     id: "clinical_access_scope",

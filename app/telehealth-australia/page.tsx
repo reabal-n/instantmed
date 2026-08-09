@@ -29,7 +29,6 @@ import { PRICING_DISPLAY } from "@/lib/constants"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // ============================================================================
 // METADATA - head-term pillar for "telehealth australia" and related
@@ -75,7 +74,7 @@ export const metadata: Metadata = {
 
 const STATS = [
   { value: "2011", label: "Telehealth legal in AU", context: "Federally recognised since the MBS reform" },
-  { value: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`, label: "Med cert turnaround", context: "Reviewed around the clock" },
+  { value: "24/7", label: "Request availability", context: "Review timing varies" },
   { value: "AHPRA", label: "Clinical governance", context: "Documented standards" },
   { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: GUARANTEE },
 ]
@@ -84,7 +83,7 @@ const MODALITIES = [
   {
     icon: FileText,
     title: "Asynchronous (store-and-forward)",
-    body: "You submit a structured form; a doctor reviews it when they're next on queue. Fastest and most scalable - ideal for med certs and repeat scripts on stable medication.",
+    body: "You submit a structured form; a doctor reviews it in the clinical queue. It avoids appointment scheduling and suits med certs and repeat scripts for stable medication.",
   },
   {
     icon: Video,
@@ -116,7 +115,7 @@ const FAQS = [
   },
   {
     question: "What does a telehealth consultation actually cost in Australia?",
-    answer: `That depends entirely on the provider and whether Medicare applies. GP-based telehealth with an established-relationship patient may be bulk-billed or carry a small gap fee. Private telehealth services like InstantMed charge a flat fee per request - medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and specialised ED or hair-loss assessments from ${PRICING_DISPLAY.CONSULT}. The trade-off is simple: you pay a small fee for structured access without the wait or the Medicare card requirement.`,
+    answer: `That depends entirely on the provider and whether Medicare applies. GP-based telehealth with an established-relationship patient may be bulk-billed or carry a small gap fee. Private telehealth services like InstantMed charge a flat fee per request - medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and specialised ED or hair-loss assessments from ${PRICING_DISPLAY.CONSULT}. The trade-off is simple: you pay a small fee for structured access without booking an appointment or providing a Medicare card.`,
   },
   {
     question: "Can a telehealth doctor send a prescription to my pharmacy?",
@@ -131,7 +130,7 @@ const FAQS = [
   {
     question: "Can I use telehealth from regional or remote Australia?",
     answer:
-      "Yes - telehealth was originally expanded in Australia specifically to improve access for regional and remote patients. InstantMed covers every Australian postcode from Broome to Hobart with no difference in price, turnaround, or service level. For some remote communities served by Aboriginal Community Controlled Health Organisations or Royal Flying Doctor Service teams, telehealth is a complement to - not a replacement for - these primary-care relationships, and we recommend staying connected with your local service for ongoing complex care.",
+      "Yes - telehealth was originally expanded in Australia specifically to improve access for regional and remote patients. InstantMed covers every Australian postcode from Broome to Hobart at the same listed price and with the same eligibility rules; review timing varies with the clinical queue and complexity. For some remote communities served by Aboriginal Community Controlled Health Organisations or Royal Flying Doctor Service teams, telehealth is a complement to - not a replacement for - these primary-care relationships, and we recommend staying connected with your local service for ongoing complex care.",
   },
   {
     question: "Is my information safe in a telehealth consultation?",
@@ -218,7 +217,7 @@ export default function TelehealthAustraliaPage() {
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
                 A plain-English guide to telehealth in Australia: the regulation, the cost, the
                 rules around Medicare and PBS, and the conditions it&apos;s genuinely suitable for.
-                Plus the fastest way to use it, if you need something today.
+                Plus what to expect if you choose a structured online review.
               </p>
 
               <div className="flex flex-wrap justify-center gap-3 mb-8">
@@ -234,7 +233,7 @@ export default function TelehealthAustraliaPage() {
                   variant="outline"
                   className="rounded-full px-8 bg-transparent"
                 >
-                  <Link href="/consult">Book a telehealth consult</Link>
+                  <Link href="/consult">Explore telehealth services</Link>
                 </Button>
               </div>
 
@@ -245,7 +244,7 @@ export default function TelehealthAustraliaPage() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-primary" />
-                  ~{SOCIAL_PROOF.certTurnaroundMinutes} min med cert turnaround
+                  Doctor review before certificate issue
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Shield className="w-4 h-4 text-primary" />
@@ -319,7 +318,7 @@ export default function TelehealthAustraliaPage() {
                   telehealth: a patient completes a structured intake, the doctor reviews it later,
                   and they either approve, decline, or come back with a follow-up question. Each
                   modality has specific strengths: sync video is better for visual assessment and
-                  rapport, async is dramatically faster for straightforward decisions.
+                  rapport, while async avoids appointment scheduling for straightforward requests.
                 </p>
                 <p>
                   Telehealth is not, despite a common misconception, a second-rate version of GP
@@ -509,8 +508,8 @@ export default function TelehealthAustraliaPage() {
                   coordinate specialist care. But for the high-volume, straightforward needs that
                   make up the majority of Australian primary care visits - med certs, repeat
                   scripts, uncomplicated acute issues - a private telehealth service like InstantMed
-                  is often the fastest, most predictable option. It sits alongside your regular GP
-                  relationship, not on top of it.
+                  can offer a structured option without appointment scheduling. It sits alongside
+                  your regular GP relationship, not on top of it.
                 </p>
               </div>
             </div>
@@ -633,7 +632,7 @@ export default function TelehealthAustraliaPage() {
                     Telehealth med certs
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    Work, study, carer&apos;s leave - 24/7 turnaround
+                    Work, study, carer&apos;s leave - submit 24/7 for doctor review
                   </div>
                 </Link>
                 <Link

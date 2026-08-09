@@ -521,10 +521,9 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // 10. Human-required (Rx/consult) queue stalled >24h. Medical certificates
-    // auto-approve at all hours, so a stalled HUMAN queue means the operator may
-    // be unavailable and paid scripts/consults are piling up. Per the 2026-06-11
-    // decision we alert through Sentry; we do NOT
+    // 10. Human-required queue stalled >24h. Medical-certificate protocol
+    // issuance is governance-paused, so every paid clinical request currently
+    // needs a doctor-selected outcome. We alert through Sentry; we do NOT
     // auto-pause the service. See lib/monitoring/stale-human-queue.ts.
     await runAlertSection({
       section: "stale_human_queue",
@@ -706,7 +705,7 @@ export async function GET(request: NextRequest) {
         google_ads_purchase_import_health: googleAdsPurchaseImportHealth,
         google_ads_upload_stream: googleAdsUploadStreamHealth,
         google_ads_adjustment_health: googleAdsAdjustmentHealth,
-        rx_consult_queue_stalled: staleHumanCount ?? 0,
+        human_review_queue_stalled: staleHumanCount ?? 0,
         prescription_fulfilment: fulfilment
           ? {
               total: fulfilment.total,

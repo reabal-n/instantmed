@@ -105,7 +105,7 @@ Use:
 
 > No video. No call. No appointment.
 
-Only use this on medical certificate surfaces where the protocol supports no-call completion for suitable administrative documentation requests.
+Only use this on medical certificate surfaces where the active doctor-review pathway supports no-call completion for suitable administrative documentation requests.
 
 ### Prescription And Specialty Services
 

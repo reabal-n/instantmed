@@ -369,26 +369,26 @@ describe("project docs drift contract", () => {
     }
   })
 
-  it("documents medical-certificate risk as gated before issuance, with no post-approval attestation", () => {
+  it("documents medical-certificate protocol issuance as fail-closed before issue", () => {
     const clinical = readProjectFile("docs/CLINICAL.md")
     const operations = readProjectFile("docs/OPERATIONS.md")
 
-    // Operator decision 2026-08-04: the 24h batch/cohort attestation window was
-    // removed. It only ever covered certificates that had already cleared every
-    // deterministic gate, so it added no clinical signal while paging the
-    // operator every 30 minutes once lapsed. The real control is the
-    // pre-issuance gate — keep the docs saying so.
-    expect(clinical).toContain("gated **before** issuance")
+    // The retired retrospective attestation is not an active safety control.
+    // Protocol issuance stays fail-closed until Medical Director and legal
+    // reconciliation explicitly authorises a reviewed code change.
+    expect(clinical).toContain("Medical-certificate protocol issuance is **not active**")
+    expect(clinical).toContain("auto-approval-governance.ts")
     expect(clinical).toContain("DETERMINISTIC_FAILURE_PREFIXES")
-    expect(clinical).toContain("no post-approval attestation obligation")
-    expect(clinical).toContain("Revocation remains the standing correction path")
-    expect(clinical).toContain("InstantMed governance control, not a statutory AHPRA requirement")
+    expect(clinical).toContain("doctor review happens before issue")
+    expect(clinical).toContain("Revocation remains the individual correction path")
+    expect(clinical).toContain("database feature flag")
 
-    expect(architecture).toContain("no post-approval attestation obligation")
+    expect(architecture).toContain("Auto-Approval Pipeline (Governance-Paused)")
+    expect(architecture).toContain("code-owned pre-issuance pause")
     expect(architecture).toContain('activity_provenance: "auto_issued"')
 
-    expect(operations).toContain("Auto-issued certificate oversight runbook")
-    expect(operations).toContain("no attestation obligation and no alert")
+    expect(operations).toContain("Historical auto-issued certificate runbook")
+    expect(operations).toContain("database feature flag cannot override it")
 
     // The retired machinery must not creep back into the docs as live guidance.
     for (const doc of [clinical, operations]) {
@@ -431,10 +431,11 @@ describe("project docs drift contract", () => {
     expect(roadmap).toContain("Controlled demand validation")
     expect(roadmap).toContain("Last refreshed:")
     expect(roadmap).not.toContain("Last 90 days shipped")
-    expect(roadmap).toContain("Re-opened and repaired 2026-07-29")
+    expect(roadmap).toContain("Clinical truth contained 2026-08-09")
+    expect(roadmap).toContain("The exact-flow conversion repair from 2026-07-29 remains in force")
     expect(roadmap).toContain("Automatic Gmail polling and support-inbox Telegram paging remain retired")
 
-    expect(operations).toContain("Medical-certificate risk is gated **before** issuance")
+    expect(operations).toContain("Medical-certificate protocol issuance is governance-paused")
     expect(operations).toContain("`docs/REVENUE_MODEL.md` owns the current hiring and capacity triggers")
     expect(operations).not.toContain("protocol automation with QA sampling")
     expect(operations).not.toContain("30-50 orders/day")
@@ -442,7 +443,7 @@ describe("project docs drift contract", () => {
 
     expect(clinical).not.toContain("No automated clinical decisions are made")
     expect(clinical).toContain("Prescribing decisions are always clinician-made")
-    expect(clinical).toContain("doctor-owned medical-certificate protocol")
+    expect(clinical).toContain("code-owned gate")
 
     expect(fileMap).toContain("implementation records (non-authoritative)")
     expect(fileMap).not.toContain("docs/plans/ — active")

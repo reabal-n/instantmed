@@ -10,7 +10,7 @@ Single source of truth for all platform metrics shown on marketing pages.
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
-| `SOCIAL_PROOF` | `const object` | Raw operational metrics: `certTurnaroundMinutes`, `averageResponseMinutes`, `refundPercent`, `operatingDays`, and internal historical counters. NO operating-hours window fields (service is 24/7; removed 2026-07-10). Review counts, testimonials, public numeric ratings, employer acceptance rates, approval rates, and fulfilment-rate claims are not public primitives. |
+| `SOCIAL_PROOF` | `const object` | Verified stable primitives: `refundPercent`, `operatingDays`, and internal historical counters. Public turnaround/response-time constants were removed 2026-08-09 because the governance pause changes the delivery population; timing must come from current evidence and remain non-guaranteed. NO operating-hours window fields. Review counts, testimonials, public numeric ratings, employer acceptance rates, approval rates, and fulfilment-rate claims are not public primitives. |
 | `GOOGLE_REVIEWS` | `object` | Google Business Profile star-badge config. Gates the visual Google mark + stars badge only; do not expose review counts, numeric rating text, testimonial copy, or aggregate-rating schema. |
 
 **Rule:** Never hardcode a social proof number on a marketing page. Import the canonical metric from `SOCIAL_PROOF` and format it at the consumer.
@@ -71,7 +71,7 @@ Canonical control point for repeated public claims with clinical, operational, p
 | `APPROVED_CLAIMS` | `Record<ApprovedClaimId, ApprovedClaim>` | Approved text plus allowed contexts, risk level, implementation notes, and evidence-receipt paths. |
 | `getApprovedClaim()` | `function` | Returns the approved text for a typed claim ID. Use this in components instead of copying the string. |
 
-Core PR5 claims include `availability_24_7`, `clinical_decision_model`, `clinical_review_sequence`, `clinical_access_scope`, `complaints_timing`, `doctor_registration`, `refund_payment_process`, and the LegitScript/Google certification labels and tooltips. The clinical-model text must remain explicit: AI never prescribes or makes clinical decisions; eligible low-risk certificate requests may use a doctor-owned protocol and are individually reviewed afterward. The review-sequence claim keeps prescribing review-before-issue separate from eligible certificate protocol outcomes that receive individual review afterward.
+Core PR5 claims include `availability_24_7`, `clinical_decision_model`, `clinical_review_sequence`, `clinical_access_scope`, `complaints_timing`, `doctor_registration`, `refund_payment_process`, and the LegitScript/Google certification labels and tooltips. The clinical-model text must remain explicit: AI never prescribes or makes clinical decisions; a certificate or prescription is issued only after an AHPRA-registered doctor reviews the request. The review-sequence claim reflects the effective manual-review pathway while medical-certificate protocol issuance is governance-paused.
 
 **Rule:** A high-risk factual string is changed in this registry together with its contexts, risk, notes, and receipts. Do not fork it in `voice.ts`, a badge config, schema, metadata, or page copy. Public doctor claims use "AHPRA-registered doctors" without count or names.
 

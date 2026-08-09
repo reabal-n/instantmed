@@ -22,7 +22,7 @@ The business is built around one-off, clearly scoped services that can be delive
 | **Gated/retired services** | Weight loss remains gated. General Consult is retired and cannot be used as a fallback route around structured screeners. |
 | **Fulfilment** | eScript token only for prescribing services. No owned pharmacy, delivery, inventory, or dispensing margin in this phase. |
 | **Moat** | No booking friction: patients start with a secure clinical form. A doctor may call or message whenever clinically needed. |
-| **Clinical control** | The website must never promise that prescribing requests will not need doctor contact. Eligible low-risk med-cert requests may use the logged, doctor-owned protocol described in `docs/CLINICAL.md`. |
+| **Clinical control** | The website must never promise that prescribing requests will not need doctor contact. Medical-certificate and prescribing requests require doctor review before issue while protocol issuance is governance-paused. |
 | **Growth posture** | Launched services may run as low-budget, bounded acquisition pilots. Material scaling requires the economic gates in `docs/REVENUE_MODEL.md` and explicit operator approval. |
 | **Revenue direction** | Work through the milestone ladder in `docs/REVENUE_MODEL.md`. $1M annual gross remains a distant directional north star, not the active operating target. |
 | **Operator model** | One owner-operator account holds the sole `admin` role and inherits doctor capabilities. Future clinicians use `doctor`; non-clinical operators use `support`. |
@@ -97,7 +97,7 @@ The model works only while the platform reduces active doctor minutes per order 
 
 | Service | Operating rule |
 |---------|----------------|
-| Med certs | Protocol automation for suitable low-risk requests, followed by individual doctor review and QA. |
+| Med certs | Individual doctor review before issue. The dormant protocol engine cannot issue while the code-owned governance gate is paused. |
 | Repeat prescriptions | Doctor-reviewed one-off eScript request. Call/message if unclear, new, unstable, high-risk, or incomplete. |
 | Hair loss | One-off form-first doctor assessment. No subscription, outcome guarantee, or drug-name acquisition marketing. |
 | ED | One-off form-first doctor assessment with strict contraindication screening. |
@@ -116,7 +116,7 @@ The moat is not "no doctor." It is:
 - doctor ownership of every clinical pathway
 - clear pricing and full refund on decline
 - eScript delivery to an Australian pharmacy when approved
-- doctor-owned med-cert protocol automation for suitable administrative requests
+- structured med-cert screening and drafting that reduces doctor administration without replacing the individual outcome
 - employer verification and auditable digital delivery
 
 ## 8. Operating Invariants

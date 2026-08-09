@@ -18,9 +18,7 @@
  */
 
 import { PRICING_DISPLAY } from "@/lib/constants"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
-
-const CERT_TURNAROUND = `~${SOCIAL_PROOF.certTurnaroundMinutes} min`
+const REQUEST_AVAILABILITY = "24/7"
 
 export type StateSlug = "nsw" | "vic" | "qld" | "wa" | "sa" | "tas" | "act" | "nt"
 
@@ -65,7 +63,7 @@ export const statesData: Record<StateSlug, StateData> = {
     stats: [
       { label: "Population", value: "8.3M", context: "Largest Australian state" },
       { label: "Cities served", value: "13+", context: "Sydney to Wagga Wagga" },
-      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7 availability" },
+      { label: "Request availability", value: REQUEST_AVAILABILITY, context: "Review timing varies" },
       { label: "Bulk-billing rate", value: "~69%", context: "Below national average in metro Sydney" },
     ],
     localContext: [
@@ -131,7 +129,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "6.9M", context: "Second-largest Australian state" },
       { label: "Cities served", value: "6+", context: "Melbourne to Mildura" },
       { label: "Melbourne CBD bulk-billing", value: "~55%", context: "Among the lowest in Australia" },
-      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
+      { label: "Request availability", value: REQUEST_AVAILABILITY, context: "Review timing varies" },
     ],
     localContext: [
       {
@@ -182,7 +180,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "5.5M", context: "Third-largest Australian state" },
       { label: "Cities served", value: "12+", context: "Brisbane to Cairns" },
       { label: "Area covered", value: "1.85M km²", context: "Spread across coast, inland, FNQ" },
-      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
+      { label: "Request availability", value: REQUEST_AVAILABILITY, context: "Review timing varies" },
     ],
     localContext: [
       {
@@ -297,7 +295,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "1.8M", context: "75% in metro Adelaide" },
       { label: "Cities served", value: "3+", context: "Adelaide, Mt Gambier, Port Augusta" },
       { label: "Area covered", value: "984,000 km²", context: "Includes remote Outback communities" },
-      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
+      { label: "Request availability", value: REQUEST_AVAILABILITY, context: "Review timing varies" },
     ],
     localContext: [
       {
@@ -348,7 +346,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "570K", context: "Smallest mainland state" },
       { label: "Cities served", value: "2+", context: "Hobart, Launceston + regional" },
       { label: "New-patient GP wait", value: "6+ weeks", context: "Highest in Australia (2026)" },
-      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
+      { label: "Request availability", value: REQUEST_AVAILABILITY, context: "Review timing varies" },
     ],
     localContext: [
       {
@@ -399,7 +397,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "460K", context: "Smallest Australian state/territory" },
       { label: "Cities served", value: "1", context: "Canberra (ACT is one city-state)" },
       { label: "Bulk-billing rate", value: "~42%", context: "Among the lowest in Australia" },
-      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
+      { label: "Request availability", value: REQUEST_AVAILABILITY, context: "Review timing varies" },
     ],
     localContext: [
       {
@@ -450,7 +448,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "250K", context: "Smallest Australian jurisdiction" },
       { label: "Cities served", value: "2+", context: "Darwin, Alice Springs + remote" },
       { label: "Area covered", value: "1.4M km²", context: "Largest per-capita area" },
-      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
+      { label: "Request availability", value: REQUEST_AVAILABILITY, context: "Review timing varies" },
     ],
     localContext: [
       {

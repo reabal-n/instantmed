@@ -127,12 +127,11 @@ import { HIGH_STAKES_USE_CASE_KEYWORDS } from "./high-stakes-keywords"
 // ============================================================================
 // SOFT-BLOCK KEYWORD LISTS
 // Only block when the keyword is the patient's sole symptom (no co-symptoms).
-// If the patient has 2+ structured symptoms, these are recorded as soft flags
-// and do NOT prevent auto-approval. The 24h batch review that used to catch
-// them post-issuance was removed 2026-08-04; they are now persisted to
-// intakes.risk_flags and surfaced as `Flagged` on the daily approved list
-// (lib/clinical/soft-flag-persistence.ts). Promoting any of these to a
-// pre-issuance block is an open operator decision — see docs/ROADMAP.md.
+// If the patient has 2+ structured symptoms, the dormant evaluator records
+// these as soft flags. Protocol issuance is governance-paused, so every current
+// request receives doctor review before issue. If reactivated, these flags are
+// persisted to intakes.risk_flags and surfaced as `Flagged` on the approved
+// list (lib/clinical/soft-flag-persistence.ts).
 // ============================================================================
 
 const SOFT_BLOCK_MENTAL_HEALTH = [
