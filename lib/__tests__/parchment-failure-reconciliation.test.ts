@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest"
 
 import {
   filterUnresolvedParchmentFailures,
-  getResolvedParchmentFailureIds,
   isNonActionableParchmentFailure,
 } from "@/lib/parchment/failure-reconciliation"
 
@@ -64,7 +63,9 @@ describe("Parchment failure reconciliation", () => {
       { action: "admin_action", metadata: null },
     ]
 
-    expect(getResolvedParchmentFailureIds(receipts)).toEqual(new Set())
+    expect(filterUnresolvedParchmentFailures([{ id: "still-open" }], receipts)).toEqual([
+      { id: "still-open" },
+    ])
   })
 
   it.each(["no_awaiting_script_intake", "patient_not_found"])(

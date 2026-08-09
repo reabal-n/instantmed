@@ -17,7 +17,7 @@ function metadataString(metadata: Record<string, unknown> | null, key: string): 
   return typeof value === "string" && value.trim() ? value.trim() : null
 }
 
-export function getResolvedParchmentFailureIds(
+function getResolvedParchmentFailureIds(
   receipts: ParchmentRetryReceiptRow[],
 ): Set<string> {
   return new Set(
