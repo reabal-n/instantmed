@@ -31,6 +31,7 @@ describe("doctor capability gating contract", () => {
     expect(requiredCapabilityForService("consults", null)).toBe("review_consults")
     expect(requiredCapabilityForService("consult", "ed")).toBe("review_ed")
     expect(requiredCapabilityForService("consult", "hair_loss")).toBe("review_hair_loss")
+    expect(requiredCapabilityForService("consult", "weight_loss")).toBe("review_weight_loss")
     // Unknown service: fall open (returns null) so legacy / not-yet-mapped
     // pathways are not accidentally blocked.
     expect(requiredCapabilityForService("something_new", null)).toBeNull()
@@ -53,10 +54,24 @@ describe("doctor capability gating contract", () => {
     expect(doctorHasCapability(admin, "review_consults")).toBe(true)
     expect(doctorHasCapability(admin, "review_ed")).toBe(true)
     expect(doctorHasCapability(admin, "review_hair_loss")).toBe(true)
+    expect(doctorHasCapability(admin, "review_weight_loss")).toBe(true)
     expect(doctorHasCapability(admin, "prescribe_s4")).toBe(true)
     expect(doctorHasCapability(admin, "prescribe_s8")).toBe(true)
     expect(doctorCanReviewService(admin, "consult", "ed")).toBe(true)
     expect(doctorCanReviewService(admin, "common_scripts", null)).toBe(true)
+  })
+
+  it("weight-loss review defaults CLOSED for ordinary doctors (explicit grant required)", () => {
+    // Unlike every other review flag, a doctor with NO stored value for
+    // can_review_weight_loss must be blocked — the line starts restricted
+    // (docs/DOCTOR_ONBOARDING.md: capability + Medical Director sign-off).
+    const doctor = build({ role: "doctor" })
+    expect(doctorHasCapability(doctor, "review_weight_loss")).toBe(false)
+    expect(doctorCanReviewService(doctor, "consult", "weight_loss")).toBe(false)
+
+    const granted = build({ role: "doctor", can_review_weight_loss: true })
+    expect(doctorHasCapability(granted, "review_weight_loss")).toBe(true)
+    expect(doctorCanReviewService(granted, "consult", "weight_loss")).toBe(true)
   })
 
   it("scopes future-doctor queue visibility to configured clinical capabilities", () => {
@@ -78,6 +93,21 @@ describe("doctor capability gating contract", () => {
     expect(filter).toContain("service_id.in.(00000000-0000-0000-0000-000000000001)")
     expect(filter).not.toContain("00000000-0000-0000-0000-000000000002")
     expect(filter).toContain("and(service_id.in.(00000000-0000-0000-0000-000000000003),subtype.eq.ed)")
+    // The restricted weight line: generic consults must EXCLUDE it, and only
+    // an explicit grant adds the positive term.
+    expect(filter).not.toContain("subtype.eq.weight_loss")
+
+    const weightGranted = buildDoctorQueueServiceFilter(
+      build({ role: "doctor", can_review_weight_loss: true }),
+      [{ id: "00000000-0000-0000-0000-000000000003", type: "consult" }],
+    )
+    expect(weightGranted).toContain("and(service_id.in.(00000000-0000-0000-0000-000000000003),subtype.eq.weight_loss)")
+
+    const genericConsults = buildDoctorQueueServiceFilter(
+      build({ role: "doctor", can_review_consults: true }),
+      [{ id: "00000000-0000-0000-0000-000000000003", type: "consult" }],
+    )
+    expect(genericConsults).toContain("subtype.not.in.(ed,hair_loss,weight_loss)")
     expect(filter).not.toContain("subtype.eq.hair_loss")
   })
 

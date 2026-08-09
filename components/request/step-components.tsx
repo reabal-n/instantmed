@@ -303,7 +303,4 @@ export const stepComponents: Record<string, ComponentType<StepComponentProps>> =
   "weight-loss-assessment-step": dynamic<StepComponentProps>(() => import("./steps/weight-loss-assessment-step"), {
     loading: stepLoadingFallback("weight-loss-assessment-step", true),
   }),
-  "weight-loss-call-step": dynamic<StepComponentProps>(() => import("./steps/weight-loss-call-step"), {
-    loading: stepLoadingFallback("weight-loss-call-step", true),
-  }),
 }

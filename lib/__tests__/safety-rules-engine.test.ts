@@ -14,6 +14,7 @@ import {
   evaluateSafetyWithAdditionalInfo,
   validateSafetyFieldsPresent,
 } from "@/lib/safety/evaluate"
+import { getServiceSlug } from "@/lib/stripe/checkout/helpers"
 
 // ============================================
 // HELPERS
@@ -520,21 +521,28 @@ describe("Safety Rules Engine", () => {
   // ============================================
 
   describe("Weight management rules", () => {
+    // Baseline safe payload: BMI 100/(1.75^2) = 32.7, all screens clear.
+    // Keys aligned with the ED tail (weightKg/heightCm) on 2026-08-07.
+    const safeWeightAnswers = {
+      emergency_symptoms: [],
+      weightKg: 100,
+      heightCm: 175,
+      weight_pregnancy_status: "no",
+      weight_men2_thyroid_cancer: false,
+      weight_pancreatitis: false,
+      wlHasWeightComorbidity: false,
+    }
+
     it("should ALLOW standard weight management request", () => {
-      const result = evaluateSafety("weight-management", {
-        emergency_symptoms: [],
-        currentWeight: 100,
-        currentHeight: 175,
-      })
+      const result = evaluateSafety("weight-management", safeWeightAnswers)
       expect(result.outcome).toBe("ALLOW")
     })
 
-    it("should DECLINE when BMI is below 27", () => {
-      // BMI = 70 / (1.75^2) = 22.86
+    it("should DECLINE when BMI is below the floor", () => {
+      // BMI = 70 / (1.75^2) = 22.86 — below WEIGHT_LOSS_BMI_FLOOR (27)
       const result = evaluateSafety("weight-management", {
-        emergency_symptoms: [],
-        currentWeight: 70,
-        currentHeight: 175,
+        ...safeWeightAnswers,
+        weightKg: 70,
       })
       expect(result.outcome).toBe("DECLINE")
       expect(
@@ -542,12 +550,65 @@ describe("Safety Rules Engine", () => {
       ).toBe(true)
     })
 
+    it("should DECLINE BMI 27-29.9 WITHOUT a weight-related comorbidity (D-C)", () => {
+      // BMI = 87 / (1.75^2) = 28.4 — between the floors
+      const result = evaluateSafety("weight-management", {
+        ...safeWeightAnswers,
+        weightKg: 87,
+        wlHasWeightComorbidity: false,
+      })
+      expect(result.outcome).toBe("DECLINE")
+      expect(
+        result.triggeredRules.some((r) => r.ruleId === "weight_bmi_needs_comorbidity")
+      ).toBe(true)
+    })
+
+    it("should ALLOW BMI 27-29.9 WITH a weight-related comorbidity (D-C)", () => {
+      const result = evaluateSafety("weight-management", {
+        ...safeWeightAnswers,
+        weightKg: 87,
+        wlHasWeightComorbidity: true,
+      })
+      expect(result.outcome).toBe("ALLOW")
+    })
+
+    it("should DECLINE when pregnant or breastfeeding (D-D)", () => {
+      const result = evaluateSafety("weight-management", {
+        ...safeWeightAnswers,
+        weight_pregnancy_status: "yes",
+      })
+      expect(result.outcome).toBe("DECLINE")
+      expect(
+        result.triggeredRules.some((r) => r.ruleId === "weight_pregnancy")
+      ).toBe(true)
+    })
+
+    it("should DECLINE on MEN2 / medullary thyroid cancer history (D-D)", () => {
+      const result = evaluateSafety("weight-management", {
+        ...safeWeightAnswers,
+        weight_men2_thyroid_cancer: true,
+      })
+      expect(result.outcome).toBe("DECLINE")
+      expect(
+        result.triggeredRules.some((r) => r.ruleId === "weight_men2_thyroid_cancer")
+      ).toBe(true)
+    })
+
+    it("should DECLINE on pancreatitis history (D-D)", () => {
+      const result = evaluateSafety("weight-management", {
+        ...safeWeightAnswers,
+        weight_pancreatitis: true,
+      })
+      expect(result.outcome).toBe("DECLINE")
+      expect(
+        result.triggeredRules.some((r) => r.ruleId === "weight_pancreatitis")
+      ).toBe(true)
+    })
+
     it("should REQUIRES_CALL for eating disorder history", () => {
       const result = evaluateSafety("weight-management", {
-        emergency_symptoms: [],
+        ...safeWeightAnswers,
         eatingDisorderHistory: "yes",
-        currentWeight: 100,
-        currentHeight: 175,
       })
       expect(result.outcome).toBe("REQUIRES_CALL")
       expect(
@@ -559,15 +620,26 @@ describe("Safety Rules Engine", () => {
 
     it("should REQUIRES_CALL for heart disease", () => {
       const result = evaluateSafety("weight-management", {
-        emergency_symptoms: [],
+        ...safeWeightAnswers,
         wlHistoryHeartCondition: true,
-        currentWeight: 100,
-        currentHeight: 175,
+        // A heart condition is also a qualifying comorbidity.
+        wlHasWeightComorbidity: true,
       })
       expect(result.outcome).toBe("REQUIRES_CALL")
       expect(
         result.triggeredRules.some((r) => r.ruleId === "weight_heart_disease")
       ).toBe(true)
+    })
+
+    it("is reachable from checkout: consult:weight_loss resolves to the weight config", () => {
+      // Without the slugMap entry every rule above is dead in production —
+      // the category fallback selects the generic consult rules instead.
+      const result = checkSafetyForServer(
+        getServiceSlug("consult", "weight_loss"),
+        { ...safeWeightAnswers, weight_pregnancy_status: "yes" },
+      )
+      expect(result.isAllowed).toBe(false)
+      expect(result.triggeredRuleIds).toContain("weight_pregnancy")
     })
   })
 

@@ -652,16 +652,34 @@ test.describe("Prescription: dedicated-service routing", () => {
 
     await page.locator("#medication-name-0").fill("Sildenafil")
 
-    await expect(page.getByRole("heading", { name: /Erectile Dysfunction has a dedicated service/i }))
+    // The steer title is deliberately not a heading (AlertTitle renders an h5,
+    // an invalid jump under the step's h2); role="alert" carries the semantics.
+    await expect(page.getByRole("alert").filter({ hasText: /Erectile Dysfunction has a dedicated service/i }))
       .toBeVisible({ timeout: 10000 })
+    // Multi-indication generic: the structured question renders with the steer.
+    await expect(page.getByText(/What do you take this medicine for/i)).toBeVisible()
     // Hard enforcement: the "keep as repeat" escape must NOT be offered.
     await expect(page.getByRole("button", { name: keepAsRepeat })).toHaveCount(0)
 
     await page.getByRole("button", { name: steerCta }).click()
-    await expect(page).toHaveURL(/service=consult&subtype=ed/)
+    await expect(page).toHaveURL(/service=consult&subtype=ed.*from=repeat-steer/)
+    // The seam: the ED flow acknowledges the reroute so a redirected patient
+    // stays oriented instead of wondering why the form restarted.
+    await expect(page.getByText(/adds the heart and/i)).toBeVisible({ timeout: 15000 })
   })
 
-  test("a stated prostate indication keeps the repeat on the same screen", async ({ page }) => {
+  test("a typo of a generic ingredient still hard-steers", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+    await waitForStep(page, /Your medication/i)
+
+    await page.locator("#medication-name-0").fill("Sildenafl")
+    await expect(page.getByRole("alert").filter({ hasText: /Erectile Dysfunction has a dedicated service/i }))
+      .toBeVisible({ timeout: 10000 })
+  })
+
+  test("selecting a non-ED context keeps the repeat, structured — no free text", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
@@ -670,10 +688,29 @@ test.describe("Prescription: dedicated-service routing", () => {
     await page.locator("#medication-name-0").fill("Tadalafil")
     await expect(page.getByRole("button", { name: steerCta })).toBeVisible({ timeout: 10000 })
 
-    // The indication answer is part of the routing scan, so stating the real
-    // reason clears the steer without a dead end.
-    await page.getByRole("textbox", { name: /What is this medication for/i }).fill("BPH")
+    // The structured answer — not free-text inference — clears the steer and
+    // keeps the question on screen so the patient can change their answer.
+    // SegmentedChoiceGroup renders a radiogroup, not buttons.
+    await page.getByRole("radio", { name: "Prostate / BPH" }).click()
     await expect(page.getByRole("button", { name: steerCta })).toHaveCount(0)
+    await expect(page.getByText(/Kept as a repeat/i)).toBeVisible()
+
+    // Free-text indication must NOT be the mechanism: typing a denial there
+    // changes nothing (regression for the negation-bypass class).
+    await page.getByRole("textbox", { name: /What is this medication for/i }).fill("not BPH")
+    await expect(page.getByRole("button", { name: steerCta })).toHaveCount(0)
+  })
+
+  test("a single-indication brand steers with no question", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+    await waitForStep(page, /Your medication/i)
+
+    await page.locator("#medication-name-0").fill("Viagra")
+    await expect(page.getByRole("alert").filter({ hasText: /Erectile Dysfunction has a dedicated service/i }))
+      .toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/What do you take this medicine for/i)).toHaveCount(0)
   })
 
   test("an unrelated repeat is never steered because the indication mentions a condition", async ({ page }) => {
@@ -698,7 +735,7 @@ test.describe("Prescription: dedicated-service routing", () => {
 
     await page.locator("#medication-name-0").fill("Levlen")
 
-    await expect(page.getByRole("heading", { name: /Women's Health has a dedicated service/i }))
+    await expect(page.getByRole("alert").filter({ hasText: /Women's Health has a dedicated service/i }))
       .toBeVisible({ timeout: 10000 })
     // Soft enforcement: continuing the same pill is deliberately a cheap repeat.
     await expect(page.getByRole("button", { name: keepAsRepeat })).toBeVisible()

@@ -122,17 +122,44 @@ describe("deriveIntakeFlags — service routing", () => {
     expect(flag?.detail).toContain("Erectile Dysfunction")
   })
 
-  it("flags a PDE5 inhibitor whose BPH context is stated only in the indication answer", () => {
+  it("flags a PDE5 inhibitor kept as a repeat via the structured context token", () => {
     const flags = deriveIntakeFlags({
       ...repeatBase,
       answers: {
         medications: [{ name: "Tadalafil", ...complete, strength: "5 mg" }],
         current_dose: "one daily",
         indication: "BPH",
+        routing_context: "prostate_bph",
       },
     })
     const flag = flags.find((f) => f.code === "dedicated_service_medication")
-    expect(flag?.detail).toContain("BPH/PAH")
+    expect(flag?.detail).toContain("patient selected Prostate / BPH")
+  })
+
+  it("flags EVERY attestation-based exemption — including the hair classes", () => {
+    // Deterministic facts (Proscar, finasteride 5 mg) exempt silently, but a
+    // patient's one-tap claim is self-reported and always reaches the doctor.
+    const flags = deriveIntakeFlags({
+      ...repeatBase,
+      answers: {
+        medications: [{ name: "Finasteride", ...complete, strength: "1 mg" }],
+        current_dose: "one daily",
+        indication: "prostate",
+        routingContext: "prostate_bph",
+      },
+    })
+    expect(flags.find((f) => f.code === "dedicated_service_medication")?.detail)
+      .toContain("patient selected")
+
+    const deterministic = deriveIntakeFlags({
+      ...repeatBase,
+      answers: {
+        medications: [{ name: "Proscar", ...complete, strength: "5 mg" }],
+        current_dose: "one daily",
+        indication: "prostate",
+      },
+    })
+    expect(deterministic.find((f) => f.code === "dedicated_service_medication")).toBeUndefined()
   })
 
   it("routes on a service named only in the indication answer", () => {

@@ -1,4 +1,8 @@
 import {
+  WEIGHT_LOSS_BMI_FLOOR,
+  WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY,
+} from "@/lib/clinical/weight-loss-eligibility"
+import {
   PILL_BLOOD_CLOT_REDIRECT_REASON,
   PILL_MIGRAINE_AURA_REDIRECT_REASON,
   PILL_POSSIBLE_PREGNANCY_REDIRECT_REASON,
@@ -819,9 +823,8 @@ const weightRules: SafetyRule[] = [
     name: 'Pregnancy/Breastfeeding',
     description: 'Patient is pregnant or breastfeeding',
     conditions: [
-      // weight_pregnancy_status: not yet collected in weight loss assessment step.
-      // Rule is aspirational - will fire once pregnancy screening is added.
-      { fieldId: 'weight_pregnancy_status', operator: 'not_equals', value: 'no', derivedFrom: { type: 'duration_days', fields: ['isPregnantOrBreastfeeding'] } },
+      // Collected in weight-loss-assessment-step as a required yes/no.
+      { fieldId: 'weight_pregnancy_status', operator: 'not_equals', value: 'no' },
     ],
     outcome: 'DECLINE',
     riskTier: 'high',
@@ -838,17 +841,43 @@ const weightRules: SafetyRule[] = [
       {
         fieldId: 'bmi',
         operator: 'lt',
-        value: 27,
+        value: WEIGHT_LOSS_BMI_FLOOR,
         derivedFrom: {
           type: 'bmi',
-          fields: ['currentWeight', 'currentHeight'],
+          fields: ['weightKg', 'heightCm'],
         },
       },
     ],
     outcome: 'DECLINE',
     riskTier: 'low',
-    patientMessage: 'Based on your measurements, you may not be eligible for weight loss medication. These are typically prescribed for BMI of 27+. We can still help with lifestyle guidance!',
-    doctorNote: 'BMI <27 - not eligible for medication per guidelines',
+    patientMessage: `Based on your measurements, weight-management medication review is not suitable — it needs a BMI of ${WEIGHT_LOSS_BMI_FLOOR}+ with a weight-related condition, or ${WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY}+ without one. Your GP can talk through healthy weight support.`,
+    doctorNote: `BMI <${WEIGHT_LOSS_BMI_FLOOR} - below the eligibility floor`,
+    priority: 700,
+    services: ['weight-management'],
+  },
+  {
+    id: 'weight_bmi_needs_comorbidity',
+    name: 'BMI 27-29.9 Without Comorbidity',
+    description: 'BMI between the floors requires a weight-related comorbidity (operator decision D-C, 2026-08-07)',
+    conditions: [
+      {
+        fieldId: 'bmi',
+        operator: 'lt',
+        value: WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY,
+        derivedFrom: {
+          type: 'bmi',
+          fields: ['weightKg', 'heightCm'],
+        },
+      },
+      // Derived by the assessment step from the comorbidity toggles
+      // (lib/clinical/weight-loss-eligibility WEIGHT_LOSS_COMORBIDITY_KEYS) so
+      // this rule reads one always-present boolean, not six maybe-missing ones.
+      { fieldId: 'wlHasWeightComorbidity', operator: 'not_equals', value: true },
+    ],
+    outcome: 'DECLINE',
+    riskTier: 'low',
+    patientMessage: `Between BMI ${WEIGHT_LOSS_BMI_FLOOR} and ${WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY}, weight-management review needs a weight-related condition (like type 2 diabetes, high blood pressure, sleep apnea, or PCOS). From what you've told us this doesn't apply, so your GP is the right next step.`,
+    doctorNote: `BMI ${WEIGHT_LOSS_BMI_FLOOR}-${WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY} without a qualifying comorbidity - below threshold per D-C`,
     priority: 700,
     services: ['weight-management'],
   },
@@ -872,9 +901,8 @@ const weightRules: SafetyRule[] = [
     name: 'MEN2 or Medullary Thyroid Cancer History',
     description: 'Patient or family has history of MEN2 syndrome or medullary thyroid cancer - absolute contraindication for GLP-1 agonists',
     conditions: [
-      // weight_men2_thyroid_cancer: not yet collected in weight loss assessment step.
-      // Rule is aspirational - will fire once MEN2/thyroid cancer screening is added.
-      { fieldId: 'weight_men2_thyroid_cancer', operator: 'equals', value: true, derivedFrom: { type: 'duration_days', fields: ['weightLossMedPreference'] } },
+      // Collected in weight-loss-assessment-step as a required yes/no boolean.
+      { fieldId: 'weight_men2_thyroid_cancer', operator: 'equals', value: true },
     ],
     outcome: 'DECLINE',
     riskTier: 'high',
@@ -888,9 +916,8 @@ const weightRules: SafetyRule[] = [
     name: 'Pancreatitis History',
     description: 'Patient has history of pancreatitis - absolute contraindication for GLP-1 agonists',
     conditions: [
-      // weight_pancreatitis: not yet collected in weight loss assessment step.
-      // Rule is aspirational - will fire once pancreatitis screening is added.
-      { fieldId: 'weight_pancreatitis', operator: 'equals', value: true, derivedFrom: { type: 'duration_days', fields: ['weightLossMedPreference'] } },
+      // Collected in weight-loss-assessment-step as a required yes/no boolean.
+      { fieldId: 'weight_pancreatitis', operator: 'equals', value: true },
     ],
     outcome: 'DECLINE',
     riskTier: 'high',

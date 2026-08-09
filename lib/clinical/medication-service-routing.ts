@@ -6,23 +6,40 @@
  * generic repeat-prescription / prescription flow, we route the patient to
  * that service rather than silently letting it through the generic path.
  *
- * Routing is TIERED (see `DedicatedServiceEnforcement`) because the three
- * services do not share one intent story:
- *  - finasteride/dutasteride are also BPH (prostate) medicines — a 5 mg
- *    finasteride (Proscar) or dutasteride 0.5 mg (Avodart/Duodart) repeat is a
- *    legitimate repeat prescription, NOT hair loss, so those are excluded.
- *  - PDE5 inhibitors are also PAH (Revatio, sildenafil 20 mg) and BPH
- *    (low-dose daily tadalafil) medicines, so a *stated* non-ED context keeps
- *    the repeat and tells the doctor instead.
- *  - "continue my current pill" is deliberately a cheap repeat, not a consult
- *    (see lib/request/consult-subtypes.ts + womens-health-type-step.tsx).
- * A doctor-visible flag (lib/clinical/derive-intake-flags.ts) plus the
- * checkout block in lib/validation/repeat-script-schema.ts are the server-side
- * backstops, so the decision is never client-only.
+ * HOW A MATCH IS DECIDED — three inputs, strictly ranked:
+ *  1. The MEDICINE text. Only a medicine can trigger a steer or a checkout
+ *     block. Generic ingredient names are matched typo-tolerantly (patients
+ *     misspell "sildenafil"/"finasteride" constantly); brands are exact.
+ *  2. The structured `routing_context` answer — the patient's explicit
+ *     "what do I take this for" selection, offered only when the medicine is
+ *     genuinely multi-indication. This is the ONLY exemption input. It
+ *     replaced free-text inference (negation regexes, clause scoping,
+ *     affirmative markers) after two review rounds proved that inferring
+ *     intent from free text either refused care on a passing mention or let
+ *     denials unlock the lane. Do not reintroduce free-text exemption parsing.
+ *  3. The free-text indication. It can only ever RAISE a flag_only mention
+ *     (a condition named beside a medicine we can't identify); it can never
+ *     block and never exempt.
+ *
+ * Exemption asymmetry, deliberate:
+ *  - Deterministic medicine facts (a BPH-only brand, a BPH-only dose, Loniten)
+ *    exempt silently → null. Nothing was claimed, so there is nothing to flag.
+ *  - Patient ATTESTATION (a routing-context selection) always leaves a
+ *    doctor-visible flag. The options are on screen, so a selection is
+ *    self-reported and cheap — the reviewer sees exactly what was claimed.
+ *  - A PDE5 inhibitor is flagged even on its PAH-only brands: the nitrate
+ *    interaction applies whatever it is taken for.
+ *
+ * The enforcement tiers (hard/soft/flag_only) and why each service sits where
+ * it does are documented on `DedicatedServiceEnforcement` below. Server-side
+ * backstops: the checkout block in lib/validation/repeat-script-schema.ts and
+ * the doctor flags in lib/clinical/derive-intake-flags.ts — never client-only.
  *
  * UTI antibiotics are intentionally out of scope: acute antibiotic courses are
  * not repeat scripts, so patients don't reach repeat-Rx with one.
  */
+
+import { textMatchesTermFuzzily } from "./fuzzy-term-match"
 
 export type DedicatedServiceSubtype = "ed" | "hair_loss" | "womens_health"
 
@@ -36,14 +53,52 @@ export type DedicatedServiceSubtype = "ed" | "hair_loss" | "womens_health"
  *  - "soft": steer with an explicit escape, no checkout block. Contraceptive
  *    pills only — continuing the same pill is deliberately a cheap repeat.
  *  - "flag_only": no steer, no block; the doctor sees the
- *    `dedicated_service_medication` flag. A PDE5 inhibitor whose stated
- *    indication is BPH/PAH — a legitimate repeat, but self-reported, so the
- *    reviewer is told rather than the patient being waved through silently.
+ *    `dedicated_service_medication` flag. PAH-brand PDE5 inhibitors, and any
+ *    exemption made by patient attestation.
  */
 // Not exported: callers branch on `match.enforcement` through
 // DedicatedServiceMatch and never need the alias by name (the dead-code
 // ratchet fails on an export nothing imports).
 type DedicatedServiceEnforcement = "hard" | "soft" | "flag_only"
+
+/**
+ * The structured "what do I take this for" answer. Written by the medication
+ * step (`routing_context` / `routingContext`), read by checkout validation and
+ * flag derivation. Unknown values normalise to null and fail toward routing.
+ */
+export type RoutingContext =
+  | "erectile_dysfunction"
+  | "pulmonary_hypertension"
+  | "prostate_bph"
+  | "hair_loss"
+  | "blood_pressure"
+
+const ROUTING_CONTEXT_VALUES: ReadonlyArray<RoutingContext> = [
+  "erectile_dysfunction",
+  "pulmonary_hypertension",
+  "prostate_bph",
+  "hair_loss",
+  "blood_pressure",
+]
+
+/** Display labels shared by the intake chips and doctor-flag reasons. */
+export const ROUTING_CONTEXT_LABELS: Record<RoutingContext, string> = {
+  erectile_dysfunction: "Erectile dysfunction",
+  pulmonary_hypertension: "Pulmonary hypertension",
+  prostate_bph: "Prostate / BPH",
+  hair_loss: "Hair loss",
+  blood_pressure: "Blood pressure",
+}
+
+// Not exported: consumers pass the raw answer to the detector, which
+// normalises internally (the dead-code ratchet fails on an unused export).
+function normalizeRoutingContext(value: unknown): RoutingContext | null {
+  if (typeof value !== "string") return null
+  const normalized = value.trim().toLowerCase()
+  return (ROUTING_CONTEXT_VALUES as ReadonlyArray<string>).includes(normalized)
+    ? (normalized as RoutingContext)
+    : null
+}
 
 export interface DedicatedServiceMatch {
   /** Consult subtype to deep-link into (`/request?service=consult&subtype=…`). */
@@ -54,51 +109,16 @@ export interface DedicatedServiceMatch {
   reason: string
   /** How the match is enforced in the UI and at checkout. */
   enforcement: DedicatedServiceEnforcement
+  /**
+   * Present when the medicine is multi-indication and the patient's structured
+   * answer decides the route. The UI renders exactly these options; absent for
+   * single-indication brands (no question to ask).
+   */
+  contextOptions?: ReadonlyArray<RoutingContext>
 }
 
-// Hair-loss signal: dedicated hair brands + the generic 5α-reductase / minoxidil
-// names. These are matched against the MEDICINE text only (see the intent-binding
-// note on the classifier). Generic "finasteride"/"dutasteride"/"minoxidil" are
-// ambiguous (hair vs prostate vs blood pressure) and are disambiguated by
-// HAIR_LOSS_EXEMPTION_MARKERS below.
-const HAIR_LOSS_PATTERNS: ReadonlyArray<RegExp> = [
-  /\bpropecia\b/i,
-  /\bfinpecia\b/i,
-  /\bfinasteride\b/i,
-  /\bdutasteride\b/i,
-  /\bminoxidil\b/i,
-  /\brogaine\b/i,
-  /\bregaine\b/i,
-]
-
-// Stated non-cosmetic context for a 5α-reductase inhibitor or minoxidil. These
-// are ordinary repeats and must NOT be routed to hair loss:
-//  - BPH / prostate (finasteride 5 mg, dutasteride 0.5 mg, Proscar, Avodart)
-//  - hypertension — ORAL minoxidil (Loniten, PBS-listed 10 mg) is an
-//    antihypertensive for severe refractory hypertension, NOT a hair medicine.
-//    Dose cannot discriminate it (topical 5% is the hair product), so the
-//    stated indication is what exempts it.
-const HAIR_LOSS_EXEMPTION_MARKERS: ReadonlyArray<RegExp> = [
-  /\bproscar\b/i,
-  /\bavodart\b/i,
-  /\bduodart\b/i,
-  /\bcombodart\b/i,
-  /\bloniten\b/i,
-  /\btamsulosin\b/i,
-  /\bprostate\b/i,
-  /\bbph\b/i,
-  /benign\s+prostatic/i,
-  /\bluts\b/i,
-  /hypertension/i,
-  /\bhtn\b/i,
-  /blood\s*pressure/i,
-  // finasteride 5 mg (Proscar) — BPH dose. 1 mg is the hair dose.
-  /finasteride[^0-9]{0,10}5\s*mg/i,
-  // dutasteride 0.5 mg — BPH dose.
-  /dutasteride[^0-9]{0,10}0\.?5\s*mg/i,
-]
-
-// Oral contraceptive pill: active ingredients + common Australian brands.
+// ---------------------------------------------------------------------------
+// Contraceptive pills: active ingredients + common Australian brands.
 // Combined + progestogen-only. Not exhaustive — the doctor flag catches the
 // long tail; this covers the medicines patients actually type.
 const OCP_PATTERNS: ReadonlyArray<RegExp> = [
@@ -146,53 +166,97 @@ const OCP_PATTERNS: ReadonlyArray<RegExp> = [
   /\bcerazette\b/i,
 ]
 
-// PDE5 inhibitors: active ingredients + AU brands. The ED service owns these —
-// it runs the nitrate hard block and cardiac screen that the generic repeat
-// flow never asks for. The last three patterns read the indication answer
-// ("what is this medication for?"), which is how an unlisted brand still
-// routes — and is exactly what the patients in the 2026-08-05 review typed.
-// PDE5 inhibitors, by ingredient and AU brand. Matched against the MEDICINE
-// text only. Brand coverage includes the non-ED-indicated brands (Revatio and
-// Adcirca are PAH products) so the reviewing doctor still sees a PDE5 inhibitor
-// on the request — the nitrate interaction exists whatever it is taken for.
-const ED_PATTERNS: ReadonlyArray<RegExp> = [
-  /\bsildenafil\b/i,
-  /\btadalafil\b/i,
-  /\bvardenafil\b/i,
-  /\bavanafil\b/i,
+// ---------------------------------------------------------------------------
+// PDE5 inhibitors.
+// Brands that exist ONLY as ED products — no question to ask.
+const ED_DEFINITE_BRANDS: ReadonlyArray<RegExp> = [
   /\bviagra\b/i,
-  /\bcialis\b/i,
-  /\blevitra\b/i,
   /\bspedra\b/i,
   /\bvedafil\b/i,
   /\bsilvasta\b/i,
   /\bsilagra\b/i,
   /\btadacip\b/i,
   /\bkamagra\b/i,
+]
+
+// Brands that exist ONLY as PAH products — kept as a repeat, always flagged
+// (the nitrate interaction applies whatever a PDE5 inhibitor is taken for).
+const PAH_DEFINITE_BRANDS: ReadonlyArray<RegExp> = [
   /\brevatio\b/i,
   /\badcirca\b/i,
 ]
 
-// Stated non-ED context for a PDE5 inhibitor: pulmonary arterial hypertension
-// (Revatio, Adcirca) or BPH/LUTS (low-dose daily tadalafil). These downgrade
-// hard → flag_only rather than to null: unlike the hair-loss exemptions, a PDE5
-// inhibitor still carries the nitrate interaction whatever it treats, so the
-// doctor is always told.
-//
-// Dose NEVER exempts. Tadalafil 5 mg daily is also the ED daily preset, and
-// sildenafil 20 mg (the PAH strength) is trivially orderable as an ED dose —
-// only a stated clinical context exempts.
-const ED_REPEAT_CONTEXT_MARKERS: ReadonlyArray<RegExp> = [
-  /\brevatio\b/i,
-  /\badcirca\b/i,
-  /pulmonary\s+(?:arterial\s+)?hypertension/i,
-  /\bpah\b/i,
-  /\bprostate\b/i,
-  /\bbph\b/i,
-  /benign\s+prostatic/i,
-  /\bluts\b/i,
+// Multi-indication PDE5 signals: generic ingredients (typo-tolerant — all are
+// long names patients misspell) and the dual-indication brands (Cialis 5 mg is
+// TGA-approved for BPH/LUTS; Levitra generics exist). Dose NEVER disambiguates
+// a PDE5 inhibitor: tadalafil 5 mg daily is also the ED daily preset and
+// sildenafil 20 mg (the PAH strength) is trivially orderable as an ED dose.
+const ED_AMBIGUOUS_INGREDIENTS: ReadonlyArray<string> = [
+  "sildenafil",
+  "tadalafil",
+  "vardenafil",
+  "avanafil",
+]
+const ED_AMBIGUOUS_BRANDS: ReadonlyArray<RegExp> = [
+  /\bcialis\b/i,
+  /\blevitra\b/i,
 ]
 
+const PDE5I_CONTEXT_OPTIONS: ReadonlyArray<RoutingContext> = [
+  "erectile_dysfunction",
+  "pulmonary_hypertension",
+  "prostate_bph",
+]
+
+// ---------------------------------------------------------------------------
+// Hair-loss family.
+// Brands that exist ONLY as hair products — no question to ask.
+const HAIR_DEFINITE_BRANDS: ReadonlyArray<RegExp> = [
+  /\bpropecia\b/i,
+  /\bfinpecia\b/i,
+  /\brogaine\b/i,
+  /\bregaine\b/i,
+]
+
+// 5α-reductase inhibitors (typo-tolerant): hair at 1 mg finasteride, prostate
+// at 5 mg finasteride / 0.5 mg dutasteride. Unlike the PDE5 doses, these dose
+// rules are a REAL dose-to-indication mapping, so they exempt deterministically
+// below without asking the patient anything.
+const FIVE_ARI_INGREDIENTS: ReadonlyArray<string> = [
+  "finasteride",
+  "dutasteride",
+]
+
+// Deterministic prostate facts in the medicine text: BPH-only brands, BPH-only
+// doses, or a tamsulosin co-medication. Ordinary repeats — null, no flag.
+const BPH_DEFINITE: ReadonlyArray<RegExp> = [
+  /\bproscar\b/i,
+  /\bavodart\b/i,
+  /\bduodart\b/i,
+  /\bcombodart\b/i,
+  /\btamsulosin\b/i,
+  /finasteride[^0-9]{0,10}5\s*mg/i,
+  /dutasteride[^0-9]{0,10}0\.?5\s*mg/i,
+]
+
+const FIVE_ARI_CONTEXT_OPTIONS: ReadonlyArray<RoutingContext> = [
+  "hair_loss",
+  "prostate_bph",
+]
+
+// Minoxidil (typo-tolerant): 5% topical is the hair product; ORAL minoxidil
+// (Loniten, PBS-listed 10 mg) is an antihypertensive for severe refractory
+// hypertension. Dose cannot discriminate reliably, so only the Loniten brand
+// exempts deterministically; otherwise the patient's structured answer decides.
+const MINOXIDIL_INGREDIENT = "minoxidil"
+const BP_DEFINITE: ReadonlyArray<RegExp> = [/\bloniten\b/i]
+
+const MINOXIDIL_CONTEXT_OPTIONS: ReadonlyArray<RoutingContext> = [
+  "hair_loss",
+  "blood_pressure",
+]
+
+// ---------------------------------------------------------------------------
 // Indication-only signals. These describe a CONDITION, not a medicine, so they
 // can never hard-block: a patient mentioning erectile dysfunction beside an
 // unrelated repeat (a statin, an antidepressant) must still be able to check
@@ -207,13 +271,18 @@ const INDICATION_ONLY_SIGNALS: ReadonlyArray<{ subtype: DedicatedServiceSubtype;
   { subtype: "womens_health", serviceLabel: "Women's Health", pattern: /\bbirth\s*control\b/i },
 ]
 
+// ---------------------------------------------------------------------------
 // Weight-loss-class medicines. The weight-loss service is GATED (reserved
 // $89.95, not launched — docs/CLINICAL.md keeps it manual-review-only), so
-// there is no live destination to steer anyone to. These are deliberately
-// flag-only rather than blocked: several are ALSO legitimate type-2-diabetes
-// repeats (Ozempic, Victoza, Mounjaro), and blocking would wall diabetic
-// patients out of a medicine they have taken for years. The doctor decides
-// with the flag and the patient's stated indication in view.
+// there is no live destination to steer anyone to.
+//
+// ⚠️ Flag-only here is an INTERIM visibility measure awaiting an operator /
+// clinical decision (D2 in docs/plans/2026-08-05-repeat-rx-dedicated-service-
+// routing.md) — NOT a settled policy. It was an assistant default, and the
+// diabetes-protection rationale first recorded for it was disproved by the
+// data: every observed request stated a weight-management indication and none
+// stated diabetes. The doctor decides with the flag and the stated indication
+// until the operator rules.
 const GATED_WEIGHT_LOSS_PATTERNS: ReadonlyArray<RegExp> = [
   /\bsemaglutide\b/i,
   /\bozempic\b/i,
@@ -253,7 +322,7 @@ export function detectGatedServiceMedication(
   if (GATED_WEIGHT_LOSS_PATTERNS.some((pattern) => pattern.test(text))) {
     return {
       serviceLabel: "Weight loss",
-      reason: "weight-loss-class medicine, service gated; may also be a diabetes repeat",
+      reason: "weight-loss-class medicine — the weight-loss service is gated; confirm the indication",
     }
   }
 
@@ -264,27 +333,21 @@ export function detectGatedServiceMedication(
  * Classify a repeat request into a dedicated service, or null if it belongs in
  * the generic repeat/prescription flow.
  *
- * INTENT BINDING — the two arguments are deliberately NOT concatenated before
- * matching drug patterns, and this is load-bearing for care access:
- *  - A steer or a checkout block requires the DRUG to be named in
- *    `medicationText`. Only a medicine can be routed to a medicine's service.
- *  - `indicationText` may only ever SOFTEN (a stated prostate/PAH/hypertension
- *    context) or raise a flag_only mention. It can never escalate to a block.
- * Matching drug patterns across a concatenated blob let an unrelated repeat be
- * refused at checkout because the patient mentioned a condition in passing
- * ("atorvastatin — cholesterol, I also have ED"). Do not reintroduce that.
+ * INTENT BINDING — the inputs are never concatenated for drug matching:
+ *  - a steer or a checkout block requires the DRUG in `medicationText`;
+ *  - `routingContext` (the structured patient answer) is the only exemption
+ *    input, and an exemption by attestation is always flag_only, never null;
+ *  - `indicationText` can only raise a flag_only mention.
  */
 export function detectDedicatedServiceForMedication(
   medicationText: string | undefined | null,
   indicationText?: string | undefined | null,
+  routingContextInput?: unknown,
 ): DedicatedServiceMatch | null {
   const medicine = typeof medicationText === "string" ? medicationText.toLowerCase() : ""
   const indication = typeof indicationText === "string" ? indicationText.toLowerCase() : ""
   if (!medicine.trim() && !indication.trim()) return null
-
-  // Context that softens a match may be stated in either field — a patient can
-  // write "Proscar" as the medicine or "for my prostate" as the indication.
-  const context = `${medicine} ${indication}`
+  const routingContext = normalizeRoutingContext(routingContextInput)
 
   // Women's health (OCP) first — pill brands are unambiguous and never overlap
   // with the hair-loss / prostate 5α-reductase inhibitors.
@@ -297,32 +360,84 @@ export function detectDedicatedServiceForMedication(
     }
   }
 
-  if (ED_PATTERNS.some((pattern) => pattern.test(medicine))) {
-    const statedNonEdContext = ED_REPEAT_CONTEXT_MARKERS.some((pattern) => pattern.test(context))
+  // PDE5 inhibitors.
+  if (PAH_DEFINITE_BRANDS.some((pattern) => pattern.test(medicine))) {
     return {
       subtype: "ed",
       serviceLabel: "Erectile Dysfunction",
-      reason: statedNonEdContext
-        ? "PDE5 inhibitor kept as a repeat — patient states a BPH/PAH indication"
-        : "PDE5 inhibitor — prescribed through the ED service (nitrate + cardiac screening)",
-      enforcement: statedNonEdContext ? "flag_only" : "hard",
+      reason: "PAH-indicated PDE5 inhibitor brand kept as a repeat — nitrate interaction still applies",
+      enforcement: "flag_only",
+    }
+  }
+  const edDefinite = ED_DEFINITE_BRANDS.some((pattern) => pattern.test(medicine))
+  const edAmbiguous =
+    ED_AMBIGUOUS_BRANDS.some((pattern) => pattern.test(medicine))
+    || ED_AMBIGUOUS_INGREDIENTS.some((term) => textMatchesTermFuzzily(medicine, term))
+  if (edDefinite || edAmbiguous) {
+    if (!edDefinite && (routingContext === "pulmonary_hypertension" || routingContext === "prostate_bph")) {
+      return {
+        subtype: "ed",
+        serviceLabel: "Erectile Dysfunction",
+        reason: `PDE5 inhibitor kept as a repeat — patient selected ${ROUTING_CONTEXT_LABELS[routingContext]}`,
+        enforcement: "flag_only",
+        contextOptions: PDE5I_CONTEXT_OPTIONS,
+      }
+    }
+    return {
+      subtype: "ed",
+      serviceLabel: "Erectile Dysfunction",
+      reason: "PDE5 inhibitor — prescribed through the ED service (nitrate + cardiac screening)",
+      enforcement: "hard",
+      ...(edDefinite ? {} : { contextOptions: PDE5I_CONTEXT_OPTIONS }),
     }
   }
 
-  if (HAIR_LOSS_PATTERNS.some((pattern) => pattern.test(medicine))) {
-    // A stated prostate or blood-pressure indication makes this an ordinary
-    // repeat, with no flag: unlike a PDE5 inhibitor, these carry no
-    // service-specific interaction the doctor needs warning about.
-    const exempt = HAIR_LOSS_EXEMPTION_MARKERS.some((pattern) => pattern.test(context))
-    if (!exempt) {
+  // Hair-loss family.
+  if (HAIR_DEFINITE_BRANDS.some((pattern) => pattern.test(medicine))) {
+    return {
+      subtype: "hair_loss",
+      serviceLabel: "Hair Loss",
+      reason: "Hair-loss medicine — has a dedicated hair loss pathway",
+      enforcement: "hard",
+    }
+  }
+  if (FIVE_ARI_INGREDIENTS.some((term) => textMatchesTermFuzzily(medicine, term))) {
+    if (BPH_DEFINITE.some((pattern) => pattern.test(medicine))) return null
+    if (routingContext === "prostate_bph") {
       return {
         subtype: "hair_loss",
         serviceLabel: "Hair Loss",
-        reason: "Hair-loss medicine — has a dedicated hair loss pathway",
-        enforcement: "hard",
+        reason: "5α-reductase inhibitor kept as a repeat — patient selected Prostate / BPH",
+        enforcement: "flag_only",
+        contextOptions: FIVE_ARI_CONTEXT_OPTIONS,
       }
     }
-    return null
+    return {
+      subtype: "hair_loss",
+      serviceLabel: "Hair Loss",
+      reason: "Hair-loss medicine — has a dedicated hair loss pathway",
+      enforcement: "hard",
+      contextOptions: FIVE_ARI_CONTEXT_OPTIONS,
+    }
+  }
+  if (textMatchesTermFuzzily(medicine, MINOXIDIL_INGREDIENT)) {
+    if (BP_DEFINITE.some((pattern) => pattern.test(medicine))) return null
+    if (routingContext === "blood_pressure") {
+      return {
+        subtype: "hair_loss",
+        serviceLabel: "Hair Loss",
+        reason: "Minoxidil kept as a repeat — patient selected Blood pressure",
+        enforcement: "flag_only",
+        contextOptions: MINOXIDIL_CONTEXT_OPTIONS,
+      }
+    }
+    return {
+      subtype: "hair_loss",
+      serviceLabel: "Hair Loss",
+      reason: "Hair-loss medicine — has a dedicated hair loss pathway",
+      enforcement: "hard",
+      contextOptions: MINOXIDIL_CONTEXT_OPTIONS,
+    }
   }
 
   // No known medicine matched. The indication may still name a service — worth

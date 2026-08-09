@@ -10,6 +10,7 @@ import {
 } from "@/lib/clinical/medication-flags"
 import { getRepeatRxAttestationStatus } from "@/lib/clinical/repeat-rx-attestation"
 import { normaliseSymptomText } from "@/lib/clinical/symptom-normaliser"
+import { computeBmi, WEIGHT_LOSS_BMI_FLOOR } from "@/lib/clinical/weight-loss-eligibility"
 import {
   buildRepeatScriptMedicationValidationText,
   extractRepeatScriptMedications,
@@ -1564,13 +1565,114 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
 }
 
 /**
+ * Weight-management consult (launched 2026-08-07, form-first per D-A).
+ * Server rules have already DECLINED pregnancy/MEN2/pancreatitis/below-floor
+ * BMI before payment — if one of those answers still reads positive here,
+ * something upstream failed and the block-severity item says so.
+ */
+function weightLossSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
+  const { answers } = input
+  const weightKg = Number(firstStr(answers, ["weightKg", "currentWeight"]))
+  const heightCm = Number(firstStr(answers, ["heightCm", "currentHeight"]))
+  const bmi = computeBmi(weightKg, heightCm)
+  const goals = str(answers, "weightLossGoals") || "No goals text provided."
+
+  const comorbidities = [
+    ["wlHistoryDiabetes", "Type 2 diabetes"],
+    ["wlHistoryHeartCondition", "Heart condition"],
+    ["wlHistoryHighBP", "High blood pressure"],
+    ["wlHistoryThyroid", "Thyroid disorder"],
+    ["wlHistorySleepApnea", "Sleep apnea"],
+    ["wlHistoryPCOS", "PCOS"],
+  ].filter(([key]) => answers[key] === true).map(([, label]) => label)
+
+  const eatingDisorder = str(answers, "eatingDisorderHistory") === "yes"
+  const heartCondition = answers.wlHistoryHeartCondition === true
+  const pregnant = str(answers, "weight_pregnancy_status") === "yes"
+  const men2 = answers.weight_men2_thyroid_cancer === true
+  const pancreatitis = answers.weight_pancreatitis === true
+  const belowFloor = bmi !== null && bmi < WEIGHT_LOSS_BMI_FLOOR
+  const needsCall = eatingDisorder || heartCondition
+
+  const safetyItems = [
+    pregnant
+      ? { severity: "block" as const, label: "Pregnant or breastfeeding", detail: "Absolute contraindication — the server should have declined this before payment. Decline with full refund." }
+      : null,
+    men2
+      ? { severity: "block" as const, label: "MEN2 / medullary thyroid cancer history", detail: "Absolute GLP-1 contraindication — the server should have declined this before payment." }
+      : null,
+    pancreatitis
+      ? { severity: "block" as const, label: "Pancreatitis history", detail: "GLP-1 contraindication — the server should have declined this before payment." }
+      : null,
+    belowFloor
+      ? { severity: "block" as const, label: `BMI below ${WEIGHT_LOSS_BMI_FLOOR}`, detail: "Below the eligibility floor — the server should have declined this before payment." }
+      : null,
+    eatingDisorder
+      ? { severity: "caution" as const, label: "Eating disorder history", detail: "Soft-escalated at intake: call the patient before any treatment decision." }
+      : null,
+    heartCondition
+      ? { severity: "caution" as const, label: "Heart condition", detail: "Discuss medication selection by phone before prescribing." }
+      : null,
+  ].filter((item): item is NonNullable<typeof item> => item !== null)
+
+  const recommendedPlan: ClinicalPlan = needsCall
+    ? {
+        action: "needs_call",
+        title: "Call the patient before any treatment decision",
+        rationale: eatingDisorder
+          ? "Eating-disorder history was disclosed — the intake promised a doctor call before anything else happens."
+          : "Cardiac history needs a conversation about medication selection and monitoring.",
+        nextSteps: [
+          "Call the patient on the number in their profile.",
+          "If treatment is appropriate, prescribe in Parchment; otherwise decline with a full refund.",
+        ],
+      }
+    : {
+        action: "prescribe",
+        title: "GLP-1 pathway if clinically appropriate",
+        rationale: bmi !== null
+          ? `BMI ${bmi.toFixed(1)}${comorbidities.length ? ` with ${comorbidities.join(", ").toLowerCase()}` : " with no stated comorbidity"} — eligibility screening passed server-side.`
+          : "Screening passed server-side; confirm measurements before prescribing.",
+        nextSteps: [
+          "Confirm history and current medicines.",
+          "Select medicine and dose in Parchment; one-off review, continuation needs a new consult.",
+        ],
+      }
+
+  const header = patientHeader(input)
+  const subjective = `${header} requesting weight-management review. ${goals}`
+  const objective = `BMI ${bmi !== null ? bmi.toFixed(1) : "not computable"} (${weightKg || "?"} kg, ${heightCm || "?"} cm), target ${str(answers, "targetWeight") || "?"} kg. Comorbidities: ${comorbidities.length ? comorbidities.join(", ") : "none stated"}. Screens: pregnancy ${pregnant ? "YES" : "no"}, MEN2 ${men2 ? "YES" : "no"}, pancreatitis ${pancreatitis ? "YES" : "no"}, eating disorder ${eatingDisorder ? "YES" : "no"}.`
+  const assessment = needsCall
+    ? "Weight-management request with call-required history. No asynchronous decision before phone contact."
+    : "Weight-management request, screening clear on structured intake. Suitable for asynchronous review."
+  const planText = needsCall
+    ? "Call patient. Then prescribe in Parchment or decline with full refund."
+    : "If appropriate: prescribe in Parchment (one-off; continuation requires a new consult). Counsel on side effects and follow-up with GP."
+
+  return {
+    title: "Weight-management consult",
+    patientStory: goals,
+    keyFacts: compactFacts([
+      fact("BMI", bmi !== null ? bmi.toFixed(1) : null),
+      fact("Current weight", weightKg ? `${weightKg} kg` : null),
+      fact("Target weight", firstStr(answers, ["targetWeight"])),
+      fact("Comorbidities", comorbidities.length ? comorbidities.join(", ") : null),
+      fact("Previous attempts", firstStr(answers, ["previousAttempts"])),
+      fact("Adverse reactions", str(answers, "wlAdverseReactions") === "yes" ? str(answers, "wlAdverseReactionsDetails") || "Yes" : null),
+    ]),
+    safetyItems,
+    recommendedPlan,
+    draftNote: note(subjective, objective, assessment, planText),
+  }
+}
+
+/**
  * Fallback summary for consult intakes that don't have a specialty handler.
  * Covers three cases:
  *   1. Legacy `subtype = 'general'` rows from before the 2026-05-20 retirement
  *      (operator should still be able to view them in the case detail page).
- *   2. The gated `weight_loss` subtype if it somehow reaches a doctor before
- *      its dedicated summary is built (`womens_health` now has a dedicated
- *      `womensHealthSummary` handler).
+ *   2. Any future consult subtype added before its summary exists
+ *      (`womens_health` and `weight_loss` now have dedicated handlers).
  *   3. Any future consult subtype added to the URL layer before its summary
  *      is wired up.
  * Keeps the payload small — surfaces the raw answers and tells the doctor to
@@ -1615,6 +1717,7 @@ export function buildClinicalCaseSummary(input: ClinicalCaseInput): ClinicalCase
   if (input.category === "consult" && input.subtype === "ed") return edSummary(input)
   if (input.category === "consult" && input.subtype === "hair_loss") return hairSummary(input)
   if (input.category === "consult" && input.subtype === "womens_health") return womensHealthSummary(input)
+  if (input.category === "consult" && input.subtype === "weight_loss") return weightLossSummary(input)
   if (input.category === "consult") return unknownConsultSummary(input)
   if (input.serviceType === "med_certs" || input.category === "medical_certificate") return medCertSummary(input)
   if (

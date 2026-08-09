@@ -548,12 +548,21 @@ export const womensHealthTypeStepSchema = z.object({
 
 export const weightLossAssessmentStepSchema = z
   .object({
-    currentWeight: nonEmptyString("Please enter your current weight"),
-    currentHeight: nonEmptyString("Please enter your height"),
+    weightKg: nonEmptyString("Please enter your current weight").refine(
+      (v) => { const n = parseFloat(v); return Number.isFinite(n) && n >= 30 && n <= 300 },
+      { message: "Please enter a valid weight (30-300 kg)" },
+    ),
+    heightCm: nonEmptyString("Please enter your height").refine(
+      (v) => { const n = parseFloat(v); return Number.isFinite(n) && n >= 100 && n <= 250 },
+      { message: "Please enter a valid height (100-250 cm)" },
+    ),
     targetWeight: nonEmptyString("Please enter your target weight"),
     previousAttempts: nonEmptyString("Please indicate previous weight loss attempts"),
-    weightLossMedPreference: nonEmptyString("Please select a medication preference"),
     eatingDisorderHistory: nonEmptyString("Please answer this question"),
+    // Server DECLINE rules read these exact keys (lib/safety/rules.ts).
+    weight_pregnancy_status: z.enum(["yes", "no"], { message: "Please answer this question" }),
+    weight_men2_thyroid_cancer: z.boolean({ message: "Please answer this question" }),
+    weight_pancreatitis: z.boolean({ message: "Please answer this question" }),
     wlAdverseReactions: nonEmptyString("Please answer this question"),
     wlAdverseReactionsDetails: z.string().optional(),
     weightLossGoals: z
@@ -573,18 +582,6 @@ export const weightLossAssessmentStepSchema = z
       }
     }
   })
-
-export const weightLossCallStepSchema = z.object({
-  preferredTimeSlot: nonEmptyString("Please select a preferred time"),
-  callbackPhone: z
-    .string()
-    .refine((v) => {
-      const cleaned = v?.replace(/[\s-]/g, "") ?? ""
-      return AU_PHONE_REGEX.test(cleaned)
-    }, {
-      message: "Please enter a valid Australian phone number",
-    }),
-})
 
 export const checkoutStepSchema = z.object({
   agreedToTerms: z.literal(true, {
@@ -713,10 +710,6 @@ export function validateWomensHealthAssessmentStep(answers: Record<string, unkno
 
 export function validateWeightLossAssessmentStep(answers: Record<string, unknown>): ValidationResult {
   return runSchema(weightLossAssessmentStepSchema, answers)
-}
-
-export function validateWeightLossCallStep(answers: Record<string, unknown>): ValidationResult {
-  return runSchema(weightLossCallStepSchema, answers)
 }
 
 export function validateDetailsStep(

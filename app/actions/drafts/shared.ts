@@ -293,6 +293,26 @@ export function formatIntakeContext(
       if (isTrue(answers.hairHeartConditions)) parts.push("Heart condition: reported")
       if (isTrue(answers.hairLowBP)) parts.push("Low blood pressure: reported")
       if (isTrue(answers.hairReproductive)) parts.push("Reproductive/pregnancy consideration: reported")
+    } else if (consultSubtype === "weight_loss") {
+      const wlBits: string[] = []
+      const w = answers.weightKg ?? answers.currentWeight
+      const h = answers.heightCm ?? answers.currentHeight
+      if (w) wlBits.push(`Weight: ${sanitizeAnswerValue(w, intakeId)} kg`)
+      if (h) wlBits.push(`Height: ${sanitizeAnswerValue(h, intakeId)} cm`)
+      if (answers.targetWeight) wlBits.push(`Target: ${sanitizeAnswerValue(answers.targetWeight, intakeId)} kg`)
+      if (answers.previousAttempts) wlBits.push(`Previous attempts: ${sanitizeAnswerValue(answers.previousAttempts, intakeId)}`)
+      if (answers.eatingDisorderHistory === "yes") wlBits.push("Eating disorder history: YES (call required)")
+      if (answers.wlHistoryHeartCondition === true) wlBits.push("Heart condition: YES (call required)")
+      const comorbid = [
+        answers.wlHistoryDiabetes === true ? "type 2 diabetes" : null,
+        answers.wlHistoryHighBP === true ? "high blood pressure" : null,
+        answers.wlHistorySleepApnea === true ? "sleep apnea" : null,
+        answers.wlHistoryPCOS === true ? "PCOS" : null,
+        answers.wlHistoryThyroid === true ? "thyroid disorder" : null,
+      ].filter(Boolean)
+      if (comorbid.length) wlBits.push(`Comorbidities: ${comorbid.join(", ")}`)
+      if (answers.weightLossGoals) wlBits.push(`Goals: ${sanitizeAnswerValue(answers.weightLossGoals, intakeId)}`)
+      if (wlBits.length) parts.push(wlBits.join("; "))
     } else if (consultSubtype === "womens_health") {
       if (answers.womensHealthOption) {
         parts.push(`Pathway: ${String(answers.womensHealthOption).replace(/_/g, "-")}`)

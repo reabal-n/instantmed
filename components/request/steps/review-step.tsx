@@ -907,13 +907,9 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
 
     // Weight loss assessment
     if (consultSubtype === 'weight_loss') {
-      const bmi = answers.currentWeight && answers.currentHeight
-        ? (parseFloat(String(answers.currentWeight)) / Math.pow(parseFloat(String(answers.currentHeight)) / 100, 2)).toFixed(1)
+      const bmi = answers.weightKg && answers.heightCm
+        ? (parseFloat(String(answers.weightKg)) / Math.pow(parseFloat(String(answers.heightCm)) / 100, 2)).toFixed(1)
         : null
-      const WL_MED_LABELS: Record<string, string> = {
-        glp1: 'Longer-term appetite support',
-        duromine: 'Short-term supervised support',
-      }
       const PREV_ATTEMPTS_LABELS: Record<string, string> = {
         none: 'No previous attempts',
         diet_exercise: 'Diet and exercise only',
@@ -931,12 +927,14 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
       ].filter(h => answers[h.key]).map(h => h.label)
 
       const wlItems = [
-        { label: 'Current weight', value: answers.currentWeight ? `${answers.currentWeight} kg` : '-' },
-        { label: 'Height', value: answers.currentHeight ? `${answers.currentHeight} cm` : '-' },
+        { label: 'Current weight', value: answers.weightKg ? `${answers.weightKg} kg` : '-' },
+        { label: 'Height', value: answers.heightCm ? `${answers.heightCm} cm` : '-' },
         { label: 'Target weight', value: answers.targetWeight ? `${answers.targetWeight} kg` : '-' },
         ...(bmi ? [{ label: 'BMI', value: bmi }] : []),
         { label: 'Previous attempts', value: PREV_ATTEMPTS_LABELS[answers.previousAttempts as string] || String(answers.previousAttempts || '-') },
-        { label: 'Medication preference', value: WL_MED_LABELS[answers.weightLossMedPreference as string] || String(answers.weightLossMedPreference || '-') },
+        { label: 'Pregnant or breastfeeding', value: answers.weight_pregnancy_status === 'yes' ? 'Yes' : 'No' },
+        { label: 'MEN2 / medullary thyroid cancer', value: answers.weight_men2_thyroid_cancer === true ? 'Yes' : 'No' },
+        { label: 'Pancreatitis history', value: answers.weight_pancreatitis === true ? 'Yes' : 'No' },
         { label: 'Eating disorder history', value: answers.eatingDisorderHistory === 'yes' ? 'Yes' : 'No' },
       ]
       if (answers.wlAdverseReactions === 'yes') {

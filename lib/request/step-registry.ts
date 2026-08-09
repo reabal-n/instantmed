@@ -296,14 +296,6 @@ const CONSULT_SUBTYPE_STEPS: Record<ConsultSubtype, StepDefinition[]> = {
       validateFn: 'validateWeightLossAssessmentStep',
       required: true,
     },
-    {
-      id: 'weight-loss-call-scheduling',
-      label: 'Schedule your call',
-      shortLabel: 'Call',
-      componentPath: 'weight-loss-call-step',
-      validateFn: 'validateWeightLossCallStep',
-      required: true,
-    },
     ...CONSULT_COMMON_TAIL,
   ],
 }
@@ -333,6 +325,9 @@ function isRequestStepId(value: unknown): value is UnifiedStepId {
  * only the navigation ids need mapping.
  */
 const RETIRED_STEP_ID_ALIASES: Record<string, UnifiedStepId> = {
+  // Form-first weight loss (D-A, 2026-08-07): the scheduled-call step was
+  // removed; a mid-flight draft parked on it resumes at the assessment.
+  'weight-loss-call-scheduling': 'weight-loss-assessment',
   // P2.1 (2026-07-17): `medication-history` merged into `medication`.
   'medication-history': 'medication',
   // 2026-07-19: the IIEF-5 `ed-assessment` step was absorbed into `ed-goals`.

@@ -25,6 +25,7 @@
  */
 
 import { ArrowRight, Info } from "lucide-react"
+import { useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useRef } from "react"
 
 import {
@@ -63,6 +64,11 @@ const FREQUENCY_VALUES = [1, 2, 3, 4, 5] as const
 export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
   const { answers, flowInstanceId, setAnswer } = useRequestStore()
   const posthog = usePostHog()
+  const searchParams = useSearchParams()
+  // Set by the repeat-lane medication steer's deep-link. Acknowledging the
+  // reroute here is the seam that keeps a redirected, ready-to-pay patient
+  // oriented instead of wondering why the form restarted.
+  const cameFromRepeatSteer = searchParams.get("from") === "repeat-steer"
   const preSeeded = useRef(false)
 
   const edDuration = (answers.edDuration as string) || ""
@@ -122,6 +128,12 @@ export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
         title="Tell us what's going on"
         description="Two quick questions. Only the doctor reviewing your request sees your answers."
       />
+      {cameFromRepeatSteer && (
+        <p className="text-base text-muted-foreground">
+          Right place for this medicine — this request adds the heart and
+          medication safety checks a repeat can&apos;t include.
+        </p>
+      )}
 
       <QuestionCard compact>
         <QuestionPrompt label="How long has this been a concern?" required />

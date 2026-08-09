@@ -86,6 +86,7 @@ export type DoctorCapability =
   | "review_consults"
   | "review_ed"
   | "review_hair_loss"
+  | "review_weight_loss"
   | "prescribe_s4"
   | "prescribe_s8"
 
@@ -96,6 +97,7 @@ type DoctorCapabilityFields = Pick<
   | "can_review_consults"
   | "can_review_ed"
   | "can_review_hair_loss"
+  | "can_review_weight_loss"
   | "can_prescribe_s4"
   | "can_prescribe_s8"
 >
@@ -106,6 +108,7 @@ const DOCTOR_CAPABILITY_FIELD: Record<DoctorCapability, keyof DoctorCapabilityFi
   review_consults: "can_review_consults",
   review_ed: "can_review_ed",
   review_hair_loss: "can_review_hair_loss",
+  review_weight_loss: "can_review_weight_loss",
   prescribe_s4: "can_prescribe_s4",
   prescribe_s8: "can_prescribe_s8",
 }
@@ -116,6 +119,10 @@ const DOCTOR_CAPABILITY_DEFAULT: Record<DoctorCapability, boolean> = {
   review_consults: true,
   review_ed: true,
   review_hair_loss: true,
+  // Weight loss starts RESTRICTED (like S8): docs/DOCTOR_ONBOARDING.md
+  // requires capability + Medical Director sign-off before a doctor reviews
+  // this line. The owner-operator admin bypasses flags entirely.
+  review_weight_loss: false,
   prescribe_s4: true,
   prescribe_s8: false,
 }
@@ -167,6 +174,7 @@ export function requiredCapabilityForService(
   if (serviceType === "consult" || serviceType === "consults") {
     if (subtype === "ed") return "review_ed"
     if (subtype === "hair_loss") return "review_hair_loss"
+    if (subtype === "weight_loss") return "review_weight_loss"
     return "review_consults"
   }
   return null

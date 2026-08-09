@@ -64,7 +64,7 @@ import {
 } from "@/lib/analytics/intake-events"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { isControlledSubstance } from "@/lib/clinical/intake-validation"
-import { type DedicatedServiceMatch, detectDedicatedServiceForMedication } from "@/lib/clinical/medication-service-routing"
+import { type DedicatedServiceMatch, detectDedicatedServiceForMedication, ROUTING_CONTEXT_LABELS } from "@/lib/clinical/medication-service-routing"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import {
   normalizeMedicationEntriesAnswer,
@@ -226,10 +226,13 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         pbsCode: primary.pbsCode || "",
         ...(medicationChanged
           ? {
-              // The unchanged-regimen attestation belongs to the exact
-              // medication details the patient reviewed.
+              // The unchanged-regimen attestation and the routing-context
+              // selection both belong to the exact medicine they were made
+              // for — a different medicine starts clean.
               doseChanged: undefined,
               dose_changed: undefined,
+              routing_context: undefined,
+              routingContext: undefined,
             }
           : {}),
       })
@@ -289,21 +292,24 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   // (lib/clinical/derive-intake-flags.ts) and the checkout block in
   // lib/validation/repeat-script-schema.ts.
   const steerEnabled = serviceType === "repeat-script" || serviceType === "prescription"
+  // The structured "what do I take this for" answer — the only exemption
+  // input. See the intent-binding note in medication-service-routing.ts.
+  const routingContext = answers.routing_context ?? answers.routingContext
   const serviceSteer = useMemo<DedicatedServiceMatch | null>(() => {
     if (!steerEnabled) return null
     for (const med of medications) {
-      // Medicine and indication stay separate: only a medicine can steer, and
-      // the indication can only soften. See the intent-binding note in
-      // lib/clinical/medication-service-routing.ts.
+      // Medicine, indication, and the structured context stay separate inputs:
+      // only a medicine can steer; the token can only exempt (to flag_only).
       const medicationText = [med.name, med.strength, med.form].filter(Boolean).join(" ")
-      const match = detectDedicatedServiceForMedication(medicationText, indication)
-      // flag_only never steers — the doctor sees the flag instead.
-      if (match && match.enforcement !== "flag_only") return match
+      const match = detectDedicatedServiceForMedication(medicationText, indication, routingContext)
+      if (match) return match
     }
     return null
-  }, [steerEnabled, medications, indication])
-  // Only a soft match can be dismissed; hard-routed medicines have no escape.
+  }, [steerEnabled, medications, indication, routingContext])
+  // flag_only never steers (the doctor sees the flag instead); only a soft
+  // match can be dismissed — hard-routed medicines have no escape.
   const steerActive = serviceSteer !== null
+    && serviceSteer.enforcement !== "flag_only"
     && !(serviceSteer.enforcement === "soft" && serviceSteer.subtype === steerDismissedSubtype)
 
   const goToDedicatedService = useCallback((subtype: string) => {
@@ -319,8 +325,28 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     }
     params.set("service", "consult")
     params.set("subtype", subtype)
+    // Lets the destination flow acknowledge the reroute and lets analytics
+    // join steer -> started -> paid across the two flow instances.
+    params.set("from", "repeat-steer")
     router.push(`/request?${params.toString()}`)
   }, [posthog, router, searchParams, flowInstanceId, serviceType])
+
+  // Selecting an exempting context keeps the repeat (flagged for the doctor);
+  // selecting the routed condition keeps the steer. Token values only.
+  const selectRoutingContext = useCallback((value: string) => {
+    if (!serviceSteer) return
+    setAnswers({ routing_context: value, routingContext: value })
+    captureIntakeEvent(
+      posthog,
+      INTAKE_ANALYTICS_EVENTS.medicationSteerContextSelected,
+      buildMedicationSteerProperties({
+        flowInstanceId,
+        serviceType,
+        subtype: serviceSteer.subtype,
+        context: value,
+      }),
+    )
+  }, [serviceSteer, setAnswers, posthog, flowInstanceId, serviceType])
 
   // How often each steer fires, and whether patients follow it. Subtype and
   // enforcement tokens only — never the typed medication text.
@@ -452,7 +478,11 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       setBlockedReasons([
         `This medicine is prescribed through our ${serviceSteer.serviceLabel} service — use the button above to continue there.`,
       ])
-      steerAlertRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+      // focus() rather than a smooth scroll: it brings the alert into view
+      // without animation (the project motion rule requires honouring
+      // prefers-reduced-motion) AND puts the keyboard user on the steer, whose
+      // CTA sits before the focused input in DOM order.
+      steerAlertRef.current?.focus()
       return
     }
     if (validate()) {
@@ -525,10 +555,14 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
 
       {/* Dedicated-service steer (ED / hair loss / women's health) */}
       {steerActive && serviceSteer && (
-        <div ref={steerAlertRef}>
+        <div ref={steerAlertRef} tabIndex={-1} className="outline-none">
         <Alert>
           <HeartPulse className="w-4 h-4" />
-          <AlertTitle>{serviceSteer.serviceLabel} has a dedicated service</AlertTitle>
+          {/* Not AlertTitle: it renders a hardcoded <h5>, an invalid jump under
+              the step's <h2>. The wrapper's role="alert" carries the semantics. */}
+          <p className="mb-1 font-medium leading-none tracking-tight">
+            {serviceSteer.serviceLabel} has a dedicated service
+          </p>
           {/* Body copy stays at the 16px patient-flow minimum and the actions at
               the 48px tap-target minimum — this is the route explanation, not
               incidental helper text (DESIGN.md §Typography, §Patient forms). */}
@@ -537,7 +571,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
               {serviceSteer.subtype === "womens_health"
                 ? "Starting or switching pills goes through our Women's Health service, which asks the right safety questions before prescribing."
                 : serviceSteer.subtype === "ed"
-                  ? "This medicine is prescribed through our Erectile Dysfunction service, which asks the heart and medication safety questions we need first. If you take it for prostate symptoms or pulmonary hypertension, say so under “What is this medication for?” and you can continue here."
+                  ? "This medicine is prescribed through our Erectile Dysfunction service, which asks the heart and medication safety questions we need first. If you take it for something else, choose it below and you can continue here."
                   : "This medicine is prescribed through our Hair Loss service, which includes the right safety screening."}
             </p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
@@ -562,6 +596,32 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
           </AlertDescription>
         </Alert>
         </div>
+      )}
+
+      {/* Structured disambiguation for multi-indication medicines. Rendered
+          with the steer while unresolved, and kept after an exempting
+          selection so the patient can change their answer. This replaces
+          free-text exemption inference entirely — see
+          lib/clinical/medication-service-routing.ts. */}
+      {serviceSteer?.contextOptions && (
+        <QuestionCard compact className="space-y-3">
+          <QuestionPrompt label="What do you take this medicine for?" required />
+          <SegmentedChoiceGroup
+            options={serviceSteer.contextOptions.map((value) => ({
+              value,
+              label: ROUTING_CONTEXT_LABELS[value],
+            }))}
+            value={typeof routingContext === "string" ? routingContext : undefined}
+            onChange={selectRoutingContext}
+            ariaLabel="What do you take this medicine for?"
+            columns="two"
+          />
+          {serviceSteer.enforcement === "flag_only" && (
+            <p className="text-base text-muted-foreground">
+              Kept as a repeat — the reviewing doctor will see this context.
+            </p>
+          )}
+        </QuestionCard>
       )}
 
       {/* Recent medications suggestion */}

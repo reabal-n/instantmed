@@ -121,13 +121,6 @@ export async function getDoctorAccessiblePatientScope(
   }
 }
 
-export async function getDoctorAccessiblePatientIds(
-  doctorId: string,
-  supabase: ServiceRoleClient = createServiceRoleClient(),
-): Promise<Set<string>> {
-  return (await getDoctorAccessiblePatientScope(doctorId, supabase)).ids
-}
-
 export async function doctorCanAccessPatient(
   doctorId: string,
   patientIds: string | string[],

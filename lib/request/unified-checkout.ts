@@ -22,7 +22,6 @@ import {
   validatePrescriptionMedicalHistoryStep,
   validateSymptomsStep,
   validateWeightLossAssessmentStep,
-  validateWeightLossCallStep,
   validateWomensHealthAssessmentStep,
   validateWomensHealthTypeStep,
   type ValidationResult,
@@ -442,9 +441,10 @@ export function validateAnswersServerSide(
     }
 
     if (consultSubtype === "weight_loss") {
+      // Form-first (D-A): the scheduled-call step was removed 2026-08-07; the
+      // eating-disorder answer soft-escalates to a call via requiresCall.
       return firstValidationError(
         validateWeightLossAssessmentStep(answers),
-        validateWeightLossCallStep(answers),
         validateMedicalHistoryStep(answers),
       )
     }

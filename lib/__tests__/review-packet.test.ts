@@ -204,7 +204,9 @@ describe("buildReviewPacket", () => {
         requiresFulfilment: true,
       },
     },
-    ...["ed", "hair_loss", "womens_health"].map((subtype) => ({
+    // weight_loss joined the prescribing consults at launch (2026-08-07):
+    // it must get the Prescribe affordance and the fulfilment-gated completion.
+    ...["ed", "hair_loss", "womens_health", "weight_loss"].map((subtype) => ({
       label: subtype,
       input: {
         category: "consult",

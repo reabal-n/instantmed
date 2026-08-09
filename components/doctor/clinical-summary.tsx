@@ -277,15 +277,19 @@ const CONSULT_SUBTYPE_FIELDS: Record<string, { label: string; fields: string[]; 
     ],
   },
   weight_loss: {
-    label: "Weight Loss Assessment",
+    label: "Weight Management Assessment",
+    // Keys match what the intake actually writes (camelCase store keys +
+    // the snake_case safety-rule keys) — the old config was entirely
+    // snake_case against a camelCase intake and matched zero fields.
     fields: [
-      "current_weight", "height", "bmi", "weight_loss_goal",
-      "previous_weight_loss_attempts", "eating_disorder_history",
-      "thyroid_history", "diabetes_status", "cardiovascular_history",
-      "current_medications", "psychiatric_history",
-      "requires_call", "call_scheduled", "call_completed",
+      "weightKg", "heightCm", "bmi", "targetWeight", "weightLossGoals",
+      "previousAttempts", "eatingDisorderHistory",
+      "weight_pregnancy_status", "weight_men2_thyroid_cancer", "weight_pancreatitis",
+      "wlHistoryDiabetes", "wlHistoryHeartCondition", "wlHistoryHighBP",
+      "wlHistoryThyroid", "wlHistorySleepApnea", "wlHistoryPCOS",
+      "wlAdverseReactions", "wlAdverseReactionsDetails", "requiresCall",
     ],
-    highlight: ["requires_call", "eating_disorder_history", "psychiatric_history"],
+    highlight: ["requiresCall", "eatingDisorderHistory", "weight_pregnancy_status", "weight_men2_thyroid_cancer", "weight_pancreatitis"],
   },
   new_medication: {
     label: "New Medication Request",
@@ -651,9 +655,13 @@ export function ClinicalSummary({ answers, consultSubtype, className, inline }: 
     }
   }
   
-  // Check for weight loss call requirement flag
-  const requiresCall = answers.requires_call === true || answers.requires_call === "true"
-  const callCompleted = answers.call_completed === true || answers.call_completed === "true"
+  // Weight-loss call requirement: the intake writes camelCase `requiresCall`
+  // (the snake_case variants matched nothing and the banner could never fire).
+  // There is no call-completion workflow — the banner asks for the call, and
+  // completing the review is the evidence it happened.
+  const requiresCall = answers.requiresCall === true || answers.requiresCall === "true"
+    || answers.requires_call === true || answers.requires_call === "true"
+  const callCompleted = false
 
   const content = (
     <div className={cn("space-y-4", inline ? className : undefined)}>

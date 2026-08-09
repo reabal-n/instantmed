@@ -404,13 +404,35 @@ describe("repeat script schema — dedicated-service routing", () => {
     }))).toEqual({ valid: true })
   })
 
-  it("allows a PDE5 inhibitor whose indication states BPH", () => {
+  it("allows a PDE5 inhibitor only via the structured context token", () => {
+    // The free-text indication alone no longer exempts at checkout…
     expect(validateRepeatScriptPayload(repeatFor({
       medication_name: "Tadalafil",
       medication_display: "Tadalafil",
       medication_strength: "5 mg",
       indication: "BPH",
+    }))).toMatchObject({ valid: false, requiresConsult: true })
+    // …the patient's structured answer does (camel or snake key).
+    expect(validateRepeatScriptPayload(repeatFor({
+      medication_name: "Tadalafil",
+      medication_display: "Tadalafil",
+      medication_strength: "5 mg",
+      indication: "BPH",
+      routing_context: "prostate_bph",
     }))).toEqual({ valid: true })
+    expect(validateRepeatScriptPayload(repeatFor({
+      medication_name: "Sildenafil",
+      medication_display: "Sildenafil",
+      medication_strength: "20 mg",
+      routingContext: "pulmonary_hypertension",
+    }))).toEqual({ valid: true })
+    // A typo'd generic is still hard-routed — fuzz reaches checkout too.
+    expect(validateRepeatScriptPayload(repeatFor({
+      medication_name: "Sildenafl",
+      medication_display: "Sildenafl",
+      medication_strength: "100 mg",
+      indication: "ED",
+    }))).toMatchObject({ valid: false, requiresConsult: true })
   })
 
   it("allows a contraceptive repeat — soft enforcement is locked policy", () => {
@@ -428,6 +450,32 @@ describe("repeat script schema — dedicated-service routing", () => {
       medication_strength: "1 mg",
       indication: "type 2 diabetes",
     }))).toEqual({ valid: true })
+  })
+
+  it("ACCEPTS an unrelated repeat whose indication merely mentions a condition", () => {
+    // The server is the authority for checkout eligibility. A statin must pass
+    // even when the patient mentions erectile dysfunction in the indication.
+    expect(validateRepeatScriptPayload(repeatFor({
+      medication_name: "Atorvastatin",
+      medication_display: "Atorvastatin",
+      medication_strength: "20 mg",
+      indication: "cholesterol, I also have erectile dysfunction",
+    }))).toEqual({ valid: true })
+  })
+
+  it("does not let a denial unlock the generic lane at checkout", () => {
+    for (const [name, indication] of [
+      ["Finasteride", "no high blood pressure"],
+      ["Minoxidil", "not BPH"],
+    ] as const) {
+      const result = validateRepeatScriptPayload(repeatFor({
+        medication_name: name,
+        medication_display: name,
+        medication_strength: "1 mg",
+        indication,
+      }))
+      expect(result, `${name} | ${indication}`).toMatchObject({ valid: false, requiresConsult: true })
+    }
   })
 
   it("blocks the ED service named only in the indication answer", () => {

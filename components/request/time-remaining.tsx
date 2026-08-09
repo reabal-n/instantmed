@@ -20,7 +20,6 @@ export const STEP_TIME_ESTIMATES: Record<string, number> = {
   'womens-health-type': 20,
   'womens-health-assessment': 60,
   'weight-loss-assessment': 90,
-  'weight-loss-call-scheduling': 30,
   'details': 90,
   'review': 30,
   'checkout': 60,
