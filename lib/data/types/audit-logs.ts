@@ -16,7 +16,7 @@ export interface AuditLog {
   profile_id: string | null
   admin_action_id: string | null
   actor_id: string | null
-  actor_type: "patient" | "doctor" | "admin" | "system" | "webhook"
+  actor_type: "patient" | "doctor" | "admin" | "support" | "system" | "webhook"
   description: string | null
   previous_state: Record<string, unknown> | null
   new_state: Record<string, unknown> | null
@@ -89,6 +89,7 @@ export function formatActorType(type: string): string {
     patient: "Patient",
     doctor: "Doctor",
     admin: "Admin",
+    support: "Support",
     system: "System",
     webhook: "Webhook",
   }

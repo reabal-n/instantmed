@@ -53,9 +53,9 @@ export const flags = {
   // e.g., "weight_loss,mens_health"
   DISABLE_CONSULT_SUBTYPES: process.env.DISABLE_CONSULT_SUBTYPES || "",
   
-  // AI auto-approval: controlled via DB feature flag (ai_auto_approve_enabled)
-  // Toggle from /admin/features dashboard. Env var ENABLE_AI_AUTO_APPROVE is
-  // only used to seed the initial DB value; runtime reads come from getFeatureFlags().
+  // AI auto-approval: the DB feature flag is an operational kill switch only.
+  // It cannot override the fail-closed code gate in auto-approval-governance.ts.
+  // Env var ENABLE_AI_AUTO_APPROVE only seeds the initial DB value.
 
   // Ops kill switches (from previous implementations)
   DISABLE_INTAKE_EVENTS: process.env.DISABLE_INTAKE_EVENTS === "true",

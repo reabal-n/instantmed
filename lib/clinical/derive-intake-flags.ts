@@ -22,7 +22,6 @@ import {
 import { dedupeIntakeFlags, type IntakeFlag, makeIntakeFlag } from "./intake-flags"
 import {
   detectDedicatedServiceForMedication,
-  detectGatedServiceMedication,
 } from "./medication-service-routing"
 
 export interface DeriveIntakeFlagsInput {
@@ -72,13 +71,6 @@ function deriveRepeatScriptFlags(answers: Record<string, unknown>): IntakeFlag[]
 
     // A medicine whose dedicated service is not live yet. Never steered, never
     // blocked — the reviewer just needs to know.
-    const gatedService = detectGatedServiceMedication(medicationText)
-    if (gatedService) {
-      flags.push(makeIntakeFlag("gated_service_medication", {
-        source: "clinical",
-        detail: `${medication.displayName || medication.name} — ${gatedService.reason}`,
-      }))
-    }
 
     const code = (medication.pbsCode || "").toUpperCase()
     const isUnknown = code === "UNKNOWN" || medication.name.toLowerCase().includes("unknown - doctor")

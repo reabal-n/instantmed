@@ -117,7 +117,7 @@ const guideSections: GuideSectionData[] = [
     icon: "scales",
     title: "How doctor decisions are reviewed",
     paragraphs: [
-      "Approved, declined, and follow-up outcomes are recorded with the relevant request information. Eligible protocol-issued certificates also require an individual doctor review afterward.",
+      "Approved, declined, and follow-up outcomes are recorded with the relevant request information. Medical-certificate and prescribing requests require a doctor-selected outcome before issue.",
       "Those records support clinical follow-up, complaint investigation, and review of whether the service boundary or protocol needs to change. We do not publish an audit cadence or sampling claim that cannot be independently substantiated.",
       "Clinical incidents and reported adverse outcomes follow the documented incident process. They are recorded, investigated, and reported externally when a legal or professional duty applies.",
       COMPLAINTS_TIMING,

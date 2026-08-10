@@ -7,7 +7,7 @@ import { StickerIcon } from "@/components/icons/stickers"
 import { CitationFacts } from "@/components/marketing/citation-facts"
 import { AboutGuideSection } from "@/components/marketing/sections/about-guide-section"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
-import { AnimatedDonutChart, ComparisonBar } from "@/components/marketing/shared/data-viz"
+import { AnimatedDonutChart } from "@/components/marketing/shared/data-viz"
 import { EditorialStoryBlock } from "@/components/marketing/shared/editorial-story-block"
 import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
 import { ScrollingLogoMarquee } from "@/components/marketing/shared/scrolling-logo-marquee"
@@ -33,7 +33,7 @@ const ABOUT_CONFIG = {
   sticky: {
     ctaText: "Start a request",
     ctaHref: "/request",
-    mobileSummary: "AHPRA-registered doctors, ~44 min average",
+    mobileSummary: "24/7 requests, doctor review before issue",
   },
 }
 
@@ -185,11 +185,6 @@ export function AboutClient() {
                 label: "Refund if a request is declined",
               },
               {
-                type: "stat-callout",
-                value: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
-                label: "Average response time",
-              },
-              {
                 type: "pull-quote",
                 quote:
                   "We're not trying to reinvent healthcare. We're just pointing out that you shouldn't need to take a sick day to prove you need a sick day.",
@@ -208,10 +203,7 @@ export function AboutClient() {
             body="Not a wellness brand. Not an app. A real Australian medical practice that operates online. AHPRA-registered doctors, real prescriptions, real medical certificates, real clinical accountability. Telehealth without the small talk."
           />
 
-          {/* Data viz section.
-              Stack vertically below md (768px) so the ComparisonBar has
-              enough width to keep label and value inline at narrow breakpoints
-              (sm 640px squeezed it into two cramped columns). */}
+          {/* Evidence section: retain only claims supported by current policy. */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
             <section className="py-12 lg:py-16">
               <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
@@ -224,19 +216,12 @@ export function AboutClient() {
                       strokeWidth={12}
                     />
                   </div>
-                  <ComparisonBar
-                    us={{
-                      label: "InstantMed",
-                      value: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`,
-                      subtext: "Average certificate delivery",
-                    }}
-                    them={{
-                      label: "GP clinic visit",
-                      value: "2+ hours",
-                      subtext: "Travel + wait + consult + admin",
-                    }}
-                    ratio={0.25}
-                  />
+                  <div className="rounded-2xl border border-border/50 bg-white p-6 shadow-sm shadow-primary/[0.04] dark:bg-card dark:shadow-none">
+                    <p className="text-sm font-semibold text-foreground">Doctor review before issue</p>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      Medical-certificate and prescribing requests require an AHPRA-registered doctor&apos;s review. Timing varies with clinical complexity, follow-up questions, and queue volume.
+                    </p>
+                  </div>
                 </div>
               </div>
             </section>

@@ -57,11 +57,11 @@ const overviewFaqs = [
 export const metadata: Metadata = {
   title: { absolute: "Online Doctor Services in Australia | InstantMed" },
   description:
-    `Choose from five focused online services: medical certificates, repeat prescriptions, ED, hair loss, and narrow women's-health assessments. Fees from ${PRICING_DISPLAY.MED_CERT}.`,
+    `Choose from six focused online services: medical certificates, repeat prescriptions, ED, hair loss, narrow women's-health assessments, and weight management. Fees from ${PRICING_DISPLAY.MED_CERT}.`,
   openGraph: {
     title: "Online Doctor Services | InstantMed",
     description:
-      "Five focused online pathways with structured intake, clear fees, and doctor-owned clinical governance.",
+      "Six focused online pathways with structured intake, clear fees, and doctor-owned clinical governance.",
     type: "website",
     url: "https://instantmed.com.au/consult",
   },
@@ -96,7 +96,7 @@ export default function ConsultOverviewPage() {
       <FAQSchema faqs={overviewFaqs} />
       <HealthArticleSchema
         title="Online Doctor Services in Australia"
-        description="Five focused online pathways with structured intake and clear clinical boundaries."
+        description="Six focused online pathways with structured intake and clear clinical boundaries."
         url="/consult"
       />
 
@@ -153,7 +153,7 @@ export default function ConsultOverviewPage() {
 
           <CTABanner
             title="Choose the service that fits."
-            subtitle="Five focused pathways, each with its fee and clinical boundary shown before you start."
+            subtitle="Six focused pathways, each with its fee and clinical boundary shown before you start."
             ctaText="Choose a service"
             ctaHref="#services"
           />

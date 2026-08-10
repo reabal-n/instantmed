@@ -84,7 +84,7 @@ const FAILURE_NEXT_ACTION: Record<FailureCategoryId, string> = {
   checkout: "Open failed payments and retry or close each request.",
   refund_failures: "Reconcile the failed Stripe refunds.",
   incomplete_requests: "Decide whether recovery or closure is required.",
-  prescription_delivery: "Inspect the Parchment webhook failures.",
+  prescription_delivery: "Review and retry the Parchment sync.",
   stale_scripts: "Resolve the oldest prescription handoff first.",
   email_delivery: "Inspect the failed or suppressed email rows.",
   certificate_delivery: "Restore secure certificate delivery.",
@@ -115,8 +115,13 @@ function failureHref(category: FailureCategoryId, isAdmin: boolean): string {
 }
 
 function failureOwner(category: FailureCategoryId): OpsActionIssue["owner"] {
-  if (category === "prescription_delivery" || category === "stale_scripts") return "Doctor"
-  if (category === "email_delivery" || category === "certificate_delivery" || category === "refund_failures") {
+  if (category === "stale_scripts") return "Doctor"
+  if (
+    category === "prescription_delivery"
+    || category === "email_delivery"
+    || category === "certificate_delivery"
+    || category === "refund_failures"
+  ) {
     return "Admin"
   }
   return "Support"

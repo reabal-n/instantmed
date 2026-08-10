@@ -145,7 +145,7 @@ Operations does not own a parallel service-priority or staffing policy:
 
 - `docs/ROADMAP.md` owns the current operating phase and ordered work.
 - `docs/BUSINESS_PLAN.md` owns the durable active, gated, and retired service boundaries.
-- `docs/CLINICAL.md` owns clinical governance. Medical-certificate risk is gated **before** issuance: any deterministic risk signal routes to `needs_doctor` for manual doctor approval, and that gate is never traded for a post-issuance sign-off.
+- `docs/CLINICAL.md` owns clinical governance. Medical-certificate protocol issuance is governance-paused by a code-owned pre-issuance gate; every current request requires a doctor outcome before issue, and a database toggle cannot authorise the dormant pathway.
 - `docs/REVENUE_MODEL.md` owns the current hiring and capacity triggers.
 
 The platform must protect clinical quality and operator capacity before it increases demand. When a threshold is reached, follow the decision required by the canonical owner rather than a copied numeric rule in this runbook.
@@ -174,6 +174,7 @@ Operational rules:
 - Parchment confirmed custom-domain iframe whitelist for `https://instantmed.com.au` and `https://www.instantmed.com.au` on 2026-05-01. If the doctor portal falls back to a new tab on those hosts, check `lib/parchment/embed-policy.ts`, `NEXT_PUBLIC_PARCHMENT_IFRAME_ALLOWED_HOSTS`, and Parchment CSP before assuming SSO is broken.
 - If a doctor reports mismatch between InstantMed context and Parchment/MIMS search results, treat Parchment as source of truth and document the discrepancy in clinical notes.
 - Treat `Parchment webhook could not match prescription.created to an intake` Sentry warnings as P1 operations issues: the script may exist in Parchment while InstantMed has not completed the linked request or sent the patient notification. These are also logged as `webhook_failed` audit events and surfaced in `/admin/ops`.
+- `/admin/ops` counts only unresolved Parchment sync work. An admin retry resolves the current active patient profile, following any profile merge, re-fetches the Parchment prescription, and must record a successful `parchment_webhook_retry` audit receipt before the alert clears. Unlinked `patient_not_found` events remain historical evidence rather than retry work. Retry recovery must never manufacture `script_sent`; the existing evidence-gated completion path remains authoritative.
 
 **Weekly operating dashboard:**
 
@@ -328,6 +329,29 @@ ORDER BY i.created_at DESC LIMIT 5;
 | No Sentry error, no Stripe event | Checkout never initiated | Check client-side console/network |
 | Intake `paid` but patient says "failed" | Redirect issue | Check success/cancel URL configuration |
 
+### Closing a failed checkout from Operations
+
+The Operations checkout exception links to the staff Ledger with the failed-payment
+filter applied. Staff can copy a payment-recovery reply or choose **Close request**
+when the patient no longer intends to retry.
+
+Closure is deliberately narrow and fail-closed:
+
+- only `checkout_failed` requests with a null or explicitly unpaid payment state
+  (`unpaid`, `pending`, `failed`, or `expired`) are eligible;
+- clinical/payment safety holds cannot be closed from the payment-recovery lane;
+- the exact stored Checkout Session must belong to the intake and be expired at
+  Stripe before the local status changes; an orphan PaymentIntent without that
+  session blocks closure for reconciliation;
+- the write re-asserts the exact status, payment state, checkout error, and
+  Checkout Session ID so a concurrent retry or webhook wins the race;
+- the transition is recorded by the database audit trigger and a companion
+  staff-attributed audit event. Closing an unpaid checkout does not issue a refund.
+
+If Stripe reports the session as complete, mismatched, or otherwise unresolved,
+do not close the row. Reconcile the payment first so a paid request cannot become
+cancelled.
+
 ### Recovering a checkout the platform stranded
 
 The abandoned-checkout cron only discovers candidates whose `created_at` is
@@ -477,7 +501,7 @@ Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `verce
 | Data Retention | `/api/cron/data-retention` | Daily (2 AM UTC) | Enforce AU health records retention (see CLINICAL.md → Data Retention Schedule); clean rate limit records |
 | Review Request | `/api/cron/review-request` | `00:00` + `23:00` UTC; Sydney-hour guard sends once around 10 AM local | One neutral ProductReview ask, 48h after confirmed document/eScript fulfilment. Daily finder catches up for 120d, excludes every durable outbox owner before limits, applies a 30d patient cooldown, and re-checks authoritative state, recipient, bounce/suppression, preference, and timing immediately before provider delivery. Confirmed send and terminal suppression have separate markers. |
 | Review Request Backfill | `/api/cron/review-request-backfill` | Monthly (1st, 3 AM UTC) | Dry-run-by-default monitor over the same fulfilment-based 120d candidate path. A real send requires the explicit CRON_SECRET-gated `?dryRun=false`; the exported processor is also dry-run unless passed `dryRun: false`. |
-| Retry Auto-Approval | `/api/cron/retry-auto-approval` | Every 3 min | Retry auto-approval via `auto_approval_state` enum (pending/failed_retrying). Includes timeout recovery for stale `attempting` intakes (>10 min). Feature-flagged. |
+| Retry Auto-Approval | `/api/cron/retry-auto-approval` | Every 3 min | Sends delayed-review reassurance, then exits before protocol processing while the code-owned governance gate is paused. If later approved in code, retries via `auto_approval_state` with timeout recovery for stale `attempting` intakes (>10 min) and the DB kill switch still applies. |
 | Cleanup Orphaned Storage | `/api/cron/cleanup-orphaned-storage` | Weekly (Sun 3 AM UTC) | Delete storage files with no DB record after 7-day grace period (max 50/run) |
 | Outbox Archival | `/api/cron/outbox-archival` | Daily (4 AM UTC) | Delete delivered emails >90 days old and exhausted-failed emails >180 days old from `email_outbox` (batch 500) |
 
@@ -879,7 +903,7 @@ Scope note: the exclusion belongs to **marketing** only. Clinical and patient-fa
 
 **Certificate generation monitor:** `/admin/ops` also surfaces a critical **Cert missing record** invariant for recent paid medical-certificate intakes that are approved/completed but have no generated certificate row. Use the certificate delivery rescue panel first; do not resend a link until a certificate record exists.
 
-**Auto-issued certificate oversight runbook:** There is no attestation obligation and no alert — nothing to clear (operator decision 2026-08-04). Risk is gated before issuance: anything with a deterministic risk signal lands in the queue as `needs_doctor` for manual approval, so an auto-issued certificate is by definition one that cleared every safety check. For a daily scan, open `/dashboard`: today's auto-issued certificates appear in the approved list labelled **Auto-issued**, listed separately from your own decisions. Any the engine recorded a soft flag on are marked **Flagged** and sorted first — start there. Soft flags never blocked issuance and still don't; the marker just says the engine had something to note. Open any row to inspect the full clinical record, and **revoke** (with a clinical reason, min 5 characters) if it needs correction — that invalidates the certificate and returns the intake to manual review. The control renders in the review cockpit's decision slot for a delivered auto-issued certificate (`components/doctor/review/revoke-auto-issued-certificate.tsx` → `revokeAIApproval`), because `IntakeActionButtons` deliberately offers no approve/decline once an intake is `approved`. **Admin-only**: the action takes a caller-supplied intake id and looks it up with the service role, so it sits outside the per-doctor patient-access boundary; a non-admin doctor is not shown the control and the action rejects them. **This is the only UI path to correct an auto-issued certificate** — the 30s undo toast covers manual approvals only. Removing it strands the operator with a certificate they can see is wrong and cannot fix, so it is pinned by `lib/__tests__/ai-approval-reopen-guard.test.ts`. If a class of certificate should never have auto-issued, the fix is to add its refusal reason to `DETERMINISTIC_FAILURE_PREFIXES` in `lib/clinical/auto-approval-state.ts` so future cases stop before issuance; do not reintroduce a retrospective review queue.
+**Historical auto-issued certificate runbook:** Protocol issuance is hard-paused by `lib/clinical/auto-approval-governance.ts`; the database feature flag cannot override it. Current paid medical-certificate requests stay in `/dashboard` until a doctor records an outcome. For the bounded retrospective set in `docs/ROADMAP.md`, historical auto-issued rows remain labelled **Auto-issued** and any persisted engine notes remain labelled **Flagged**. Open each source record and record the clinical review outside this engineering change. If correction is needed, **revoke** with a clinical reason (minimum 5 characters); that invalidates the certificate and returns the intake to manual review. The admin-only control remains in `components/doctor/review/revoke-auto-issued-certificate.tsx` → `revokeAIApproval`, and is pinned by `lib/__tests__/ai-approval-reopen-guard.test.ts`. Reactivation requires Medical Director/legal reconciliation plus a reviewed code change; do not use the database toggle as approval.
 
 **Kill switches:** `DISABLE_INTAKE_EVENTS=true` (disable event logging), `DISABLE_STUCK_INTAKE_SENTRY=true` (disable stuck intake Sentry warnings), `DISABLE_RECONCILIATION_SENTRY=true` (disable reconciliation mismatch Sentry warnings).
 

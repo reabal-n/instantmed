@@ -682,7 +682,7 @@ export const metabolicConditions: Record<string, ConditionData> = {
       "You want to discuss medical weight management options",
       "Lifestyle changes alone have been insufficient",
       "You are experiencing weight-related health complications",
-      "You need ongoing medication management for weight",
+      "You want a one-off eligibility and safety assessment before discussing next steps",
     ],
     whenEmergency: [
       "Chest pain or severe shortness of breath",
@@ -691,9 +691,9 @@ export const metabolicConditions: Record<string, ConditionData> = {
     ],
     canWeHelp: {
       yes: [
-        "General education about evidence-based weight management approaches",
-        "Discussion of lifestyle modification strategies",
-        "Guidance on when GP or specialist review is the right next step",
+        "Structured eligibility and safety screening for eligible Australian adults",
+        "A one-off weight-management assessment reviewed by an AHPRA-registered doctor",
+        "Guidance on when ongoing GP care, testing, or specialist review is the right next step",
         "Referral guidance toward dietitian, exercise physiologist, or bariatric services",
       ],
       no: [
@@ -706,7 +706,7 @@ export const metabolicConditions: Record<string, ConditionData> = {
     commonQuestions: [
       {
         q: "Can I get weight loss medication online?",
-        a: "Some Australian telehealth providers prescribe weight management medication when clinically appropriate -- typically for BMI 30+ or BMI 27+ with weight-related health conditions, and never for cosmetic weight loss at a normal BMI. InstantMed is not currently accepting weight-management treatment requests; your regular GP is the right starting point, and they can assess your history, current medicines, and suitability in person.",
+        a: "InstantMed offers a one-off, doctor-reviewed weight-management assessment for eligible adults after structured eligibility and safety screening. A prescription is never guaranteed. The doctor may ask for more information, call, recommend tests or in-person care, or decline and refund the request. Ongoing monitoring belongs with a regular GP or another suitable clinician.",
       },
       {
         q: "What weight loss medications are available in Australia?",
@@ -723,8 +723,8 @@ export const metabolicConditions: Record<string, ConditionData> = {
     ],
     relatedConditions: ["type-2-diabetes", "hypertension", "high-cholesterol", "acid-reflux", "anxiety", "depression", "insomnia"],
     serviceType: "consult",
-    ctaText: "View available services",
-    ctaHref: "/request",
+    ctaText: "View weight-management assessment",
+    ctaHref: "/weight-loss",
     stats: { avgTime: "50 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Weight management is one of the most complex areas of medicine. The evidence is clear that obesity is a chronic, relapsing condition driven by neurobiological and hormonal factors -- not simply a lack of willpower. The discovery of GLP-1 receptor agonists has transformed the field, providing medications that address the biological drivers of weight gain for the first time. However, medication is one part of a comprehensive approach that includes dietary modification (a sustainable caloric deficit, not crash dieting), regular physical activity (both aerobic and resistance training), behavioural strategies, and addressing psychological factors. I assess every patient holistically: what is their metabolic profile? Are there contributing medications (antidepressants, steroids, insulin)? Are there untreated conditions (hypothyroidism, sleep apnoea, PCOS)? The goal is not a number on the scale -- it is reducing cardiovascular risk and improving quality of life. A 5-10% weight loss produces significant metabolic benefits.",
     auStats: [

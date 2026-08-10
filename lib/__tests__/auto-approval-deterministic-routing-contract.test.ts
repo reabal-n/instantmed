@@ -53,6 +53,9 @@ const DETERMINISTIC_FLAG_SAMPLES = [
   // Structural — answer-derived.
   "empty_symptom_text",
   "overlapping_cert_dates",
+  // AI draft marked requiresReview (promoted from soft 2026-08-07): the draft
+  // is generated once per intake, so the verdict is fixed on retry.
+  "draft_review_flag: potential red-flag symptoms",
   // Doctor-attention intake flags — answer-derived, won't change on retry.
   "intake_attention_flags: medication_strength_missing",
 ] as const

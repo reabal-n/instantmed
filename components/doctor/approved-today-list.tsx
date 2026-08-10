@@ -14,12 +14,11 @@ const APPROVED_STATUSES = new Set(["approved", "awaiting_script", "completed", "
  * Compact, read-only list of today's approved requests for the dashboard queue
  * column — the operator's daily scan surface.
  *
- * It carries two streams: the signed-in clinician's own decisions, and the
- * certificates the auto-approval protocol issued today (admins only). Auto-issued
- * rows are labelled as such and are never counted as the clinician's reviews.
- * They are a spot-check, not an obligation: there is no attestation, deadline,
- * or alert. Open any row to inspect it, and revoke from the review panel if it
- * needs correction.
+ * It can carry two streams: the signed-in clinician's own decisions, and any
+ * historical protocol-issued certificates in the selected day (admins only).
+ * Historical auto-issued rows are labelled and never counted as the clinician's
+ * reviews. Protocol issuance is governance-paused; revocation remains available
+ * for historical correction.
  */
 export function ApprovedTodayList({
   intakes,

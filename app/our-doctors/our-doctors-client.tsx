@@ -100,7 +100,7 @@ const standards: ChecklistItem[] = [
   { text: "Documented scope-of-practice and escalation rules" },
   { text: "Treating clinician recorded in the clinical record" },
   { text: "Prescribing decisions kept with the reviewing doctor" },
-  { text: "Low-risk certificate protocol outcomes individually reviewed afterward" },
+  { text: "Certificates and prescriptions reviewed by a doctor before issue" },
 ]
 
 const doctorFaqs: FAQGroup[] = [

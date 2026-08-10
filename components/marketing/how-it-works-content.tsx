@@ -99,7 +99,7 @@ const howItWorksGuide: GuideSectionData[] = [
     title: "Medical certificates vs prescriptions vs consultations",
     paragraphs: [
       "We offer specialised one-off services, each with a different clinical pathway. Medical certificates cover short absences when the reported history fits the certificate protocol. Repeat prescriptions are for medicines you already take. ED, hair-loss, UTI, and contraceptive-pill requests use structured specialty screeners.",
-      "The information and review sequence vary by pathway. Specialty and prescribing requests require a doctor decision and may need follow-up contact. Eligible low-risk certificate requests may use the logged doctor-owned protocol, followed by individual doctor review.",
+      "The information and review sequence vary by pathway. Medical-certificate, specialty, and prescribing requests require a doctor decision and may need follow-up contact before anything is issued.",
     ],
   },
   {
@@ -147,8 +147,8 @@ export function HowItWorksContent({ faqs, processSteps }: HowItWorksContentProps
           subtitle="Submit a focused request online through a doctor-owned clinical pathway. A doctor may call or message if more information is needed."
         />
 
-        {/* Page superpower — a clear accountability promise across both the
-            doctor-review and eligible medical-certificate protocol paths. */}
+        {/* Page superpower — a clear accountability promise across every
+            doctor-reviewed clinical pathway. */}
         <ServiceClaimSection
           eyebrow="Doctor-owned at every step"
           headline={

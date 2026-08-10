@@ -14,11 +14,12 @@ describe("resolveStaffCaseActionLabel", () => {
     expect(resolveStaffCaseActionLabel({ status: "paid" }, SERVICE_TYPES.COMMON_SCRIPTS)).toBe("Prescribe")
     expect(resolveStaffCaseActionLabel({ status: "paid", subtype: "ed" }, SERVICE_TYPES.CONSULT)).toBe("Prescribe")
     expect(resolveStaffCaseActionLabel({ status: "paid", subtype: "hair_loss" }, SERVICE_TYPES.CONSULTS)).toBe("Prescribe")
+    expect(resolveStaffCaseActionLabel({ status: "paid", subtype: "weight_loss" }, SERVICE_TYPES.CONSULT)).toBe("Prescribe")
   })
 
   it("does not turn non-prescribing consults into prescribing actions", () => {
     expect(resolveStaffCaseActionLabel({ status: "paid" }, SERVICE_TYPES.CONSULT)).toBe("Approve or decline")
-    expect(resolveStaffCaseActionLabel({ status: "paid", subtype: "weight_loss" }, SERVICE_TYPES.CONSULT)).toBe("Approve or decline")
+    expect(resolveStaffCaseActionLabel({ status: "paid", subtype: "imaging" }, SERVICE_TYPES.CONSULT)).toBe("Approve or decline")
   })
 
   it("uses state-specific labels when the next action is not a clinical decision", () => {

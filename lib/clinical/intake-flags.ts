@@ -55,6 +55,8 @@ export const INTAKE_FLAG_TAXONOMY = {
   // as a repeat. The weight-loss service is gated, and several of these are
   // also legitimate diabetes repeats — so this never blocks; the doctor decides
   // with the stated indication in view. See lib/clinical/medication-service-routing.ts.
+  // RETIRED 2026-08-07: the weight service launched, so weight-class medicines
+  // now flow through dedicated_service_medication. Kept for historical rows.
   gated_service_medication: { label: "Weight-loss-class medicine (service gated)", severity: "attention" },
   // The paying patient shares a normalized name + exact DOB with a DIFFERENT
   // profile — likely the same person re-entering under a new email, which would

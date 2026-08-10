@@ -176,8 +176,7 @@ export default function EmployerAcceptancePage() {
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-semibold text-center mb-4">What the doctor reviews first</h2>
               <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
-                Requests outside the eligible low-risk protocol go to doctor review before issue.
-                Each protocol-issued certificate is individually reviewed afterward.
+                Each certificate is issued only after an AHPRA-registered doctor reviews the request.
               </p>
 
               <div className="grid gap-4 md:grid-cols-3">

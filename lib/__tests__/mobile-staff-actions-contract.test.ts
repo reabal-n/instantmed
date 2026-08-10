@@ -23,6 +23,7 @@ describe("mobile staff action contracts", () => {
     expect(ledgerSource).toContain('className="hidden overflow-x-auto rounded-xl sm:block"')
     expect(ledgerSource).toContain('className="min-w-[760px]"')
     expect(ledgerSource).toContain("Copy payment reply")
+    expect(ledgerSource).toContain("Close failed checkout")
     expect(ledgerSource).toContain("Issue refund")
   })
 

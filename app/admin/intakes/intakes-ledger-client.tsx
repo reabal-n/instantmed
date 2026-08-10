@@ -1,11 +1,12 @@
 "use client"
 
-import { ChevronLeft, ChevronRight, Copy, Loader2, RotateCcw, X } from "lucide-react"
+import { Ban, ChevronLeft, ChevronRight, Copy, Loader2, RotateCcw, X } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
+import { closeFailedCheckoutAction } from "@/app/admin/intakes/close-failed-checkout-action"
 import type { LedgerFilterSelectsProps } from "@/app/admin/intakes/ledger-filter-selects"
 import { buildPaymentRescueAction } from "@/app/admin/intakes/payment-rescue-action"
 import {
@@ -94,6 +95,14 @@ type LazyIntakeRefundDialogProps = {
   patientName: string
 }
 
+type LazyFailedCheckoutCloseDialogProps = {
+  intakeRef: string
+  isPending: boolean
+  onConfirm: () => void
+  onOpenChange: (open: boolean) => void
+  open: boolean
+}
+
 function IntakeReviewPanelLoading() {
   const { closePanel } = usePanel()
 
@@ -152,6 +161,12 @@ const IntakeRefundDialog = dynamic<LazyIntakeRefundDialogProps>(
   ),
 )
 
+const FailedCheckoutCloseDialog = dynamic<LazyFailedCheckoutCloseDialogProps>(
+  () => import("@/app/admin/intakes/failed-checkout-close-dialog").then(
+    (module) => module.FailedCheckoutCloseDialog,
+  ),
+)
+
 function LedgerFilterSelectsLoading() {
   return (
     <div
@@ -176,6 +191,18 @@ const LedgerFilterSelects = dynamic<LedgerFilterSelectsProps>(
 const QUICK_FILTERS: QuickFilter[] = ADMIN_LEDGER_QUICK_FILTER_OPTIONS.map(
   ({ value, label }) => ({ id: value, label }),
 )
+const CLOSABLE_FAILED_CHECKOUT_PAYMENT_STATUSES = new Set([
+  "unpaid",
+  "pending",
+  "failed",
+  "expired",
+])
+
+function canCloseFailedCheckout(row: CaseRowData): boolean {
+  return row.paymentRecoveryIndicator === "payment_retry" && (
+    !row.paymentStatus || CLOSABLE_FAILED_CHECKOUT_PAYMENT_STATUSES.has(row.paymentStatus)
+  )
+}
 
 function getPatient(intake: LedgerRow) {
   return intake.patient as
@@ -288,7 +315,9 @@ export function AdminIntakesLedgerClient({
   const lastSearchEffectKeyRef = useRef("")
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null)
   const [refundTarget, setRefundTarget] = useState<CaseRowData | null>(null)
+  const [failedCheckoutCloseTarget, setFailedCheckoutCloseTarget] = useState<CaseRowData | null>(null)
   const [isRefundPending, startRefundTransition] = useTransition()
+  const [isFailedCheckoutClosePending, startFailedCheckoutCloseTransition] = useTransition()
   const [paymentRescueTargetId, setPaymentRescueTargetId] = useState<string | null>(null)
   const [isPaymentRescuePending, startPaymentRescueTransition] = useTransition()
   const [isFilterPending, startFilterTransition] = useTransition()
@@ -466,6 +495,20 @@ export function AdminIntakesLedgerClient({
     })
   }, [])
 
+  const handleCloseFailedCheckout = useCallback(() => {
+    if (!failedCheckoutCloseTarget) return
+    startFailedCheckoutCloseTransition(async () => {
+      const result = await closeFailedCheckoutAction(failedCheckoutCloseTarget.id)
+      if (result.success) {
+        setFailedCheckoutCloseTarget(null)
+        toast.success("Failed checkout closed")
+        router.refresh()
+        return
+      }
+      toast.error(result.error ?? "The failed checkout could not be closed")
+    })
+  }, [failedCheckoutCloseTarget, router])
+
   const toggleChip = useCallback((id: string) => {
     const next = new Set(activeChips)
     if (next.has(id as AdminLedgerQuickFilterValue)) {
@@ -633,7 +676,8 @@ export function AdminIntakesLedgerClient({
               rowActions={(row) => {
                 const canRefund = row.paymentStatus === "paid" || row.paymentStatus === "partially_refunded"
                 const canCopyPaymentRescue = row.paymentRecoveryIndicator === "payment_pending" || row.paymentRecoveryIndicator === "payment_retry"
-                if (!canRefund && !canCopyPaymentRescue) return null
+                const canClose = canCloseFailedCheckout(row)
+                if (!canRefund && !canCopyPaymentRescue && !canClose) return null
                 return (
                   <>
                     {canCopyPaymentRescue ? (
@@ -653,6 +697,22 @@ export function AdminIntakesLedgerClient({
                           ? <Loader2 className="h-4 w-4 animate-spin" />
                           : <Copy className="h-4 w-4" />}
                         Copy payment reply
+                      </Button>
+                    ) : null}
+                    {canClose ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="min-h-11 flex-1 px-3 text-sm"
+                        aria-label={`Close failed checkout ${row.intakeRef}`}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setFailedCheckoutCloseTarget(row)
+                        }}
+                      >
+                        <Ban className="h-4 w-4" />
+                        Close request
                       </Button>
                     ) : null}
                     {canRefund ? (
@@ -699,7 +759,8 @@ export function AdminIntakesLedgerClient({
               rowActions={(row) => {
                 const canRefund = row.paymentStatus === "paid" || row.paymentStatus === "partially_refunded"
                 const canCopyPaymentRescue = row.paymentRecoveryIndicator === "payment_pending" || row.paymentRecoveryIndicator === "payment_retry"
-                if (!canRefund && !canCopyPaymentRescue) return null
+                const canClose = canCloseFailedCheckout(row)
+                if (!canRefund && !canCopyPaymentRescue && !canClose) return null
                 return (
                   <>
                     {canCopyPaymentRescue ? (
@@ -718,6 +779,21 @@ export function AdminIntakesLedgerClient({
                         {isPaymentRescuePending && paymentRescueTargetId === row.id
                           ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                           : <Copy className="h-3.5 w-3.5" />}
+                      </Button>
+                    ) : null}
+                    {canClose ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-11 w-11 sm:h-8 sm:w-8"
+                        title="Close failed checkout"
+                        aria-label={`Close failed checkout ${row.intakeRef}`}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setFailedCheckoutCloseTarget(row)
+                        }}
+                      >
+                        <Ban className="h-3.5 w-3.5" />
                       </Button>
                     ) : null}
                     {canRefund ? (
@@ -792,6 +868,18 @@ export function AdminIntakesLedgerClient({
           paidAmountCents={refundTarget.amountCents ?? 0}
           alreadyRefundedCents={refundTarget.refundAmountCents ?? 0}
           patientName={refundTarget.patientName}
+        />
+      ) : null}
+
+      {failedCheckoutCloseTarget ? (
+        <FailedCheckoutCloseDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setFailedCheckoutCloseTarget(null)
+          }}
+          onConfirm={handleCloseFailedCheckout}
+          isPending={isFailedCheckoutClosePending}
+          intakeRef={failedCheckoutCloseTarget.intakeRef}
         />
       ) : null}
     </div>

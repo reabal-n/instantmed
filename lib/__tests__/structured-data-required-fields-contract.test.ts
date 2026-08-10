@@ -23,8 +23,9 @@ describe("structured-data required fields", () => {
     // the shape behaviorally so the Semrush "Offer missing price/priceCurrency"
     // fix can't regress and the catalog stays in the entity graph.
     const offers = getServiceOffers("https://instantmed.com.au")
-    // 5 active services: med cert, repeat rx, ED, hair loss, women's health.
-    expect(offers.length).toBeGreaterThanOrEqual(5)
+    // 6 active services: med cert, repeat rx, ED, hair loss, women's health,
+    // and weight management.
+    expect(offers).toHaveLength(6)
     for (const offer of offers) {
       expect(offer.price).toMatch(/^\d+\.\d{2}$/)
       expect(offer.priceCurrency).toBe("AUD")
@@ -33,7 +34,7 @@ describe("structured-data required fields", () => {
     }
   })
 
-  it("entity graph exposes all 5 live services incl. women's health (2026-06-15 launch)", () => {
+  it("entity graph exposes all six live services, including weight management", () => {
     // Regression guard for the drift this file's refactor fixed: women's health +
     // the specialty pathways were missing from hasOfferCatalog / availableService,
     // so answer engines believed InstantMed only did med certs + repeat scripts.
@@ -41,12 +42,17 @@ describe("structured-data required fields", () => {
       (o) => o.itemOffered.name,
     )
     const procedureNames = getAvailableServices().map((p) => p.name)
-    for (const name of ["Medical Certificate", "Repeat Prescription", "Erectile Dysfunction", "Hair Loss", "Women's Health"]) {
+    for (const name of [
+      "Medical Certificate",
+      "Repeat Prescription",
+      "Erectile Dysfunction",
+      "Hair Loss",
+      "Women's Health",
+      "Weight Management",
+    ]) {
       expect(offerNames).toContain(name)
       expect(procedureNames).toContain(name)
     }
-    // Weight loss is a gated/coming-soon service — must NOT be advertised as live.
-    expect(offerNames).not.toContain("Weight management")
   })
 
   it("MedicalConditionSchema Drug entities carry a name", () => {

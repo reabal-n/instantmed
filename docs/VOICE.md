@@ -32,7 +32,7 @@ Four strings, four jobs. Do not mix them up.
 | **Tagline (paid-safe)** | *Faster than the wait at your GP.* | Google-Ads-safe variant of the tagline. Substantiable wait-time comparison; lower healthcare-ad-review risk than direct practitioner comparison. | Google Ads, Meta paid, programmatic display. Brand surfaces still use the primary tagline. |
 | **Wedge** | *No appointment. No waiting room. Start with a secure clinical form.* | Default platform mechanism. Removes booking friction without promising that prescribing requests never need doctor contact. | Homepage, request hub, pricing, generic service pages, paid landing pages. |
 | **Med-cert wedge** | *No video. No call. No appointment.* | Med-cert-specific mechanism for suitable administrative documentation requests. | Medical certificate surfaces only. |
-| **Form-first wedge** | *Complete a secure clinical form. A doctor reviews it and may call you briefly before prescribing.* | Prescribing and specialty-service mechanism. Keeps a possible brief doctor call visible instead of framing contact as a rare exception. | Prescriptions, ED, hair loss, and women's health. Future weight-loss use requires explicit launch approval. |
+| **Form-first wedge** | *Complete a secure clinical form. A doctor reviews it and may call you briefly before prescribing.* | Prescribing and specialty-service mechanism. Keeps a possible brief doctor call visible instead of framing contact as a rare exception. | Prescriptions, ED, hair loss, women's health, and weight management. |
 | **Prop phrase** | *Telehealth without the small talk.* | Voice signature. Doubles as the homepage H2 under the tagline H1, and as the campaign sign-off on ad end-frames, email footers, and the about-page lede. | Hero H2, ad end-frames, email footers, press leads, about page lede. |
 | **Iconic hook** | *Start with a secure form. Takes about 3 minutes.* | The conversion-proximate kicker. Sits next to primary CTAs, runs as the headline on Google Ads, anchors the end of long-scroll marketing pages. | CTA proximity, Google Ads headlines, paid social creative, long-scroll closers. |
 
@@ -49,7 +49,7 @@ This is the merchandised promise. It lives above checkout CTAs, inline on hero C
 1. **Short sentences. Full stops.** Three full stops beat one comma every time. *Fill it out. Get on with it.*
 2. **Name the wait, then remove it.** *You used to wait three weeks for a GP. Not anymore.*
 3. **Use negation carefully.** *No appointment. No waiting room.* is broadly safe. *No call* is med-cert-specific unless a clinician has explicitly approved the service context.
-4. **Lead with clinical accountability.** Use the approved doctor and clinical-model claims. Do not erase the doctor-owned certificate protocol or hide behind "our platform."
+4. **Lead with clinical accountability.** Use the approved doctor and clinical-model claims. Describe the effective review pathway; do not present a dormant issuance engine as active or hide behind "our platform."
 5. **Price in the first breath, not the footer.** Numbers are trust signals. *Medical certificate, $24.95. Start with a secure form.*
 
 ## 5 Don'ts
@@ -88,8 +88,8 @@ These are voice-layer strings, not permission to improvise factual claims. Sever
 Public factual copy with clinical, operational, privacy, complaint, refund, doctor, or certification risk comes from `lib/marketing/approved-claims.ts`. Use the relevant claim ID rather than a near-duplicate:
 
 - `availability_24_7`: *Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume.*
-- `clinical_decision_model`: *AI never prescribes or makes clinical decisions. Eligible low-risk certificate requests may be approved under a doctor-owned protocol and are individually reviewed afterward.*
-- `clinical_review_sequence`: *Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward.*
+- `clinical_decision_model`: *AI never prescribes or makes clinical decisions. A certificate or prescription is issued only after an AHPRA-registered doctor reviews the request.*
+- `clinical_review_sequence`: *Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued.*
 - `clinical_access_scope`: *Clinical access is role-scoped. Doctors and the owner-admin can access records needed for care; support sees only bounded, masked operational data.*
 - `complaints_timing`: *We acknowledge complaints within 24 hours. Clinical complaints target resolution within 14 days.*
 - `doctor_registration`: *Clinical reviews are performed by AHPRA-registered doctors under documented clinical governance.*
@@ -121,16 +121,16 @@ If any of these appear inside `components/marketing/**`, `lib/marketing/**`, or 
 
 These rules sit above normal brand voice.
 
-Weight-loss entries below are future-ready guidance only. They do not authorise public service acquisition, paid traffic, or checkout access while weight loss remains gated.
+Weight-management entries below apply to the live one-off service. They do not authorise paid traffic; any Ads campaign or traffic change still requires separate exact operator approval under `docs/OPERATIONS.md`.
 
 | Context | Approved copy | Avoid |
 |---|---|---|
 | Availability | Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume. | Review-hours windows, vague availability caveats, or guaranteed turnaround. |
-| Clinical decisions | AI never prescribes or makes clinical decisions. Eligible low-risk certificate requests may be approved under a doctor-owned protocol and are individually reviewed afterward. | "Every request is manually reviewed", "AI approves", or broad claims that nothing is automated. |
+| Clinical decisions | AI never prescribes or makes clinical decisions. A certificate or prescription is issued only after an AHPRA-registered doctor reviews the request. | "AI approves", a post-issue review claim, or any suggestion that a database flag can bypass the governance pause. |
 | Medical certificates | No video. No call. No appointment. | Accepted by all employers, 98% accepted, special consideration, deferred exam. |
 | Prescription services | Complete a secure clinical form. A doctor reviews it and may call you briefly before prescribing. | No call needed, guaranteed prescription, get [drug] online. |
 | ED / hair loss | Private form-first assessment. A doctor reviews it and may call briefly before prescribing. | No call needed, drug names in ads, outcome guarantees. |
-| Weight loss (future/gated) | Doctor review for weight management options. Extra information or a call may be required for safety. | Weight loss injections, guaranteed weight loss, before/after claims. |
+| Weight management (live) | Doctor review for weight management options. Extra information or a call may be required for safety. | Weight loss injections, guaranteed weight loss, before/after claims, subscription or monitoring promises. |
 | Complaints | We acknowledge complaints within 24 hours. Clinical complaints target resolution within 14 days. | Business-day acknowledgement wording, a fixed public service-resolution promise, or presenting the 14-day target as guaranteed. |
 | Paid ads | Service-level, no drug terms, no testimonials. | Drug names, prescription-only medicine prices, remarketing to health audiences. |
 
@@ -142,12 +142,12 @@ Deeper rules: `docs/ADVERTISING_COMPLIANCE.md` and `docs/SEO_CONTENT_POLICY.md`.
 
 | Surface | Uses |
 |---|---|
-| Homepage hero | `TAGLINE` (H1) + `PROP_PHRASE` (H2) + the focused five-service boundary (subhead) |
+| Homepage hero | `TAGLINE` (H1) + `PROP_PHRASE` (H2) + the focused six-service boundary (subhead) |
 | `/medical-certificate` | `TAGLINE` + `MED_CERT_WEDGE`, `ICONIC_HOOK` + `GUARANTEE` above CTA |
 | `/prescriptions` | `TAGLINE` + `FORM_FIRST_WEDGE`, `ICONIC_HOOK` + `GUARANTEE` above CTA |
 | `/erectile-dysfunction` | subtype-specific form-first copy, `GUARANTEE` above CTA |
 | `/hair-loss` | subtype-specific form-first copy, `GUARANTEE` above CTA |
-| `/weight-loss` (future/gated) | Educational or coming-soon copy only; manual-review safety framing, no drug names, no outcome guarantee, and no active-service CTA until launch approval. |
+| `/weight-loss` (live) | Active one-off assessment CTA with doctor-review safety framing; no drug names, outcome guarantee, subscription, or monitoring promise. |
 | Checkout | `GUARANTEE` above pay button, re-consent line below |
 | About page | `BRAND_THESIS` as lede, `PROP_PHRASE` reinforced in body |
 | Google Ads / paid creative | `ICONIC_HOOK` as headline, `TAGLINE_PAID_SAFE` as body, `PROP_PHRASE` on end-frame |
