@@ -172,7 +172,7 @@ describe("navigation routing contracts", () => {
     const footerServiceHrefs = footerLinks.services.map((link) => link.href)
 
     expect(activeServiceHrefs).toContain("/womens-health")
-    expect(activeServiceHrefs).not.toContain("/weight-loss")
+    expect(activeServiceHrefs).toContain("/weight-loss")
     expect(footerServiceHrefs).toEqual(activeServiceHrefs)
     expect(servicesDropdown).toContain("getActiveServices().map")
     expect(servicesDropdown).toContain("getServiceMarketingHref(service)")

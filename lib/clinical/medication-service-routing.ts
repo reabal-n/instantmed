@@ -41,7 +41,7 @@
 
 import { textMatchesTermFuzzily } from "./fuzzy-term-match"
 
-export type DedicatedServiceSubtype = "ed" | "hair_loss" | "womens_health"
+export type DedicatedServiceSubtype = "ed" | "hair_loss" | "womens_health" | "weight_loss"
 
 /**
  * How a match is enforced end-to-end.
@@ -72,6 +72,8 @@ export type RoutingContext =
   | "prostate_bph"
   | "hair_loss"
   | "blood_pressure"
+  | "weight_management"
+  | "type_2_diabetes"
 
 const ROUTING_CONTEXT_VALUES: ReadonlyArray<RoutingContext> = [
   "erectile_dysfunction",
@@ -79,6 +81,8 @@ const ROUTING_CONTEXT_VALUES: ReadonlyArray<RoutingContext> = [
   "prostate_bph",
   "hair_loss",
   "blood_pressure",
+  "weight_management",
+  "type_2_diabetes",
 ]
 
 /** Display labels shared by the intake chips and doctor-flag reasons. */
@@ -88,6 +92,8 @@ export const ROUTING_CONTEXT_LABELS: Record<RoutingContext, string> = {
   prostate_bph: "Prostate / BPH",
   hair_loss: "Hair loss",
   blood_pressure: "Blood pressure",
+  weight_management: "Weight management",
+  type_2_diabetes: "Type 2 diabetes",
 }
 
 // Not exported: consumers pass the raw answer to the detector, which
@@ -272,28 +278,38 @@ const INDICATION_ONLY_SIGNALS: ReadonlyArray<{ subtype: DedicatedServiceSubtype;
 ]
 
 // ---------------------------------------------------------------------------
-// Weight-loss-class medicines. The weight-loss service is GATED (reserved
-// $89.95, not launched — docs/CLINICAL.md keeps it manual-review-only), so
-// there is no live destination to steer anyone to.
+// Weight-management family (service LAUNCHED 2026-08-07 — GLP-1-focused,
+// D-B in docs/plans/2026-08-07-weight-loss-launch-plan.md).
 //
-// ⚠️ Flag-only here is an INTERIM visibility measure awaiting an operator /
-// clinical decision (D2 in docs/plans/2026-08-05-repeat-rx-dedicated-service-
-// routing.md) — NOT a settled policy. It was an assistant default, and the
-// diabetes-protection rationale first recorded for it was disproved by the
-// data: every observed request stated a weight-management indication and none
-// stated diabetes. The doctor decides with the flag and the stated indication
-// until the operator rules.
-const GATED_WEIGHT_LOSS_PATTERNS: ReadonlyArray<RegExp> = [
-  /\bsemaglutide\b/i,
-  /\bozempic\b/i,
+// GLP-1s are genuinely dual-indication: Ozempic/Victoza/Mounjaro/Rybelsus are
+// type-2-diabetes products widely taken for weight, while Wegovy/Saxenda/
+// Zepbound exist only as weight products. A diabetic's repeat must never be
+// walled out (the original D2 concern, now handled by the structured chips),
+// so ambiguous GLP-1s ask the question and a type_2_diabetes selection keeps
+// the repeat — always doctor-flagged, like every attestation.
+//
+// Weight-ONLY non-GLP-1 medicines (phentermine/Duromine, orlistat/Xenical)
+// are flag_only, not steered: the launched service is GLP-1-focused, so
+// steering them into an $89.95 consult that would decline the requested
+// medicine is pay-to-be-refused churn. The doctor sees the flag and declines
+// to GP in the cheap lane instead (full refund on decline).
+const WEIGHT_DEFINITE_BRANDS: ReadonlyArray<RegExp> = [
   /\bwegovy\b/i,
-  /\brybelsus\b/i,
-  /\btirzepatide\b/i,
-  /\bmounjaro\b/i,
-  /\bzepbound\b/i,
-  /\bliraglutide\b/i,
   /\bsaxenda\b/i,
+  /\bzepbound\b/i,
+]
+const GLP1_AMBIGUOUS_BRANDS: ReadonlyArray<RegExp> = [
+  /\bozempic\b/i,
   /\bvictoza\b/i,
+  /\bmounjaro\b/i,
+  /\brybelsus\b/i,
+]
+const GLP1_AMBIGUOUS_INGREDIENTS: ReadonlyArray<string> = [
+  "semaglutide",
+  "tirzepatide",
+  "liraglutide",
+]
+const WEIGHT_ONLY_OUT_OF_SCOPE: ReadonlyArray<RegExp> = [
   /\bphentermine\b/i,
   /\bduromine\b/i,
   /\bmetermine\b/i,
@@ -301,33 +317,10 @@ const GATED_WEIGHT_LOSS_PATTERNS: ReadonlyArray<RegExp> = [
   /\bxenical\b/i,
 ]
 
-export interface GatedServiceMatch {
-  /** Human label for the flag detail, e.g. "Weight loss". */
-  serviceLabel: string
-  /** Why it matched — surfaced to the doctor as the flag detail. */
-  reason: string
-}
-
-/**
- * Medicines whose dedicated service is not live yet. There is nowhere to route
- * the patient, so these never steer and never block — they raise the
- * `gated_service_medication` doctor flag and nothing else.
- */
-export function detectGatedServiceMedication(
-  scanText: string | undefined | null,
-): GatedServiceMatch | null {
-  if (typeof scanText !== "string" || !scanText.trim()) return null
-  const text = scanText.toLowerCase()
-
-  if (GATED_WEIGHT_LOSS_PATTERNS.some((pattern) => pattern.test(text))) {
-    return {
-      serviceLabel: "Weight loss",
-      reason: "weight-loss-class medicine — the weight-loss service is gated; confirm the indication",
-    }
-  }
-
-  return null
-}
+const GLP1_CONTEXT_OPTIONS: ReadonlyArray<RoutingContext> = [
+  "weight_management",
+  "type_2_diabetes",
+]
 
 /**
  * Classify a repeat request into a dedicated service, or null if it belongs in
@@ -437,6 +430,45 @@ export function detectDedicatedServiceForMedication(
       reason: "Hair-loss medicine — has a dedicated hair loss pathway",
       enforcement: "hard",
       contextOptions: MINOXIDIL_CONTEXT_OPTIONS,
+    }
+  }
+
+  // Weight-management family.
+  if (WEIGHT_DEFINITE_BRANDS.some((pattern) => pattern.test(medicine))) {
+    return {
+      subtype: "weight_loss",
+      serviceLabel: "Weight Management",
+      reason: "Weight-management medicine — has a dedicated weight-management pathway",
+      enforcement: "hard",
+    }
+  }
+  const glp1Ambiguous =
+    GLP1_AMBIGUOUS_BRANDS.some((pattern) => pattern.test(medicine))
+    || GLP1_AMBIGUOUS_INGREDIENTS.some((term) => textMatchesTermFuzzily(medicine, term))
+  if (glp1Ambiguous) {
+    if (routingContext === "type_2_diabetes") {
+      return {
+        subtype: "weight_loss",
+        serviceLabel: "Weight Management",
+        reason: "GLP-1 kept as a repeat — patient selected Type 2 diabetes",
+        enforcement: "flag_only",
+        contextOptions: GLP1_CONTEXT_OPTIONS,
+      }
+    }
+    return {
+      subtype: "weight_loss",
+      serviceLabel: "Weight Management",
+      reason: "GLP-1 medicine — prescribed through the weight-management service (eligibility + safety screening)",
+      enforcement: "hard",
+      contextOptions: GLP1_CONTEXT_OPTIONS,
+    }
+  }
+  if (WEIGHT_ONLY_OUT_OF_SCOPE.some((pattern) => pattern.test(medicine))) {
+    return {
+      subtype: "weight_loss",
+      serviceLabel: "Weight Management",
+      reason: "Weight-only medicine outside the GLP-1-focused service scope — if weight-management intent, decline to GP",
+      enforcement: "flag_only",
     }
   }
 

@@ -500,6 +500,8 @@ Capability-bearing routes such as `/track/*`, `/resume/*`, and `/auth/complete-a
 
 **Write control:** DB feature-flag writes are admin-only at both layers: `/admin/features` uses admin-only server actions, and `feature_flags` RLS restricts direct table updates to `profiles.role = 'admin'`. No direct client INSERT/DELETE policy exists for feature flags. Server-side mutation code rejects unknown keys and invalid value types/ranges before DB writes. Doctors may read flag status, but cannot mutate kill switches directly.
 
+**Service kill switches (DB):** `disable_med_cert`, `disable_repeat_scripts`, `disable_consults`, and `disable_weight_loss` (added 2026-08-07 with the weight-management launch — stops that line alone, while `disable_consults` still stops every consult subtype including it; enforced at both checkout paths via `isServiceDisabled(category, subtype)` and client-side via the service-availability provider).
+
 **Runtime control helpers:** Operational enforcement that is not pure flag fetching lives in `lib/operational-controls/`. Capacity limits fail closed when the limit is enabled and the daily count RPC cannot be read; medication blocklist extraction is shared by authenticated and guest checkout paths.
 
 ### Kill Switches (Env Vars)

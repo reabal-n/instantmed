@@ -168,7 +168,6 @@
     "full|exports|components/uix/index.ts|CardHeader",
     "full|exports|components/uix/index.ts|CardTitle",
     "full|exports|components/uix/index.ts|Spinner",
-    "full|exports|e2e/helpers/auth.ts|loginAsTestUser",
     "full|exports|e2e/helpers/db.ts|CLINIC_IDENTITY_ID",
     "full|exports|e2e/helpers/db.ts|TEMPLATE_ID",
     "full|exports|e2e/helpers/db.ts|countEmailOutboxEntries",

@@ -92,7 +92,7 @@ describe("project docs drift contract", () => {
       expect(source).not.toContain("18+ (parental consent for minors)")
       // Women's health launched 2026-06-15 (UTI + new/switch pill); weight loss stays gated.
       expect(source).toContain("Women's health (UTI + new/switch pill, live 2026-06-15)")
-      expect(source).toContain("Weight loss (gated future subtype)")
+      expect(source).toContain("Weight management (live 2026-08-07)")
       expect(source).toContain("Priority review fee")
       expect(source).not.toContain("Priority fee (Express Review)")
       // Phase 1 of dashboard remaster (2026-05-11) renamed the "Staff cockpit"

@@ -89,7 +89,7 @@ describe("getParchmentPrescribingEligibility", () => {
 
 describe("getParchmentPatientSyncEligibility", () => {
   it("keeps prescribing consult subtypes explicit for Parchment recovery surfaces", () => {
-    expect(PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES).toEqual(["ed", "hair_loss", "womens_health"])
+    expect(PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES).toEqual(["ed", "hair_loss", "womens_health", "weight_loss"])
   })
 
   it("keeps patient sync statuses aligned with active prescribing recovery states", () => {

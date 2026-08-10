@@ -53,7 +53,9 @@ const ALL_CONSULT_SUBTYPES: readonly ConsultSubtype[] = [
 // (BLOCKED_CONSULT_SUBTYPES). Listed here so the contract knows which
 // consult subtypes should NOT be Parchment-eligible even if `consult` is
 // otherwise valid.
-const GATED_CONSULT_SUBTYPES = new Set<string>(["weight_loss"])
+// weight_loss launched 2026-08-07 — no consult subtype is gated today; the
+// set stays as the mechanism for gating future subtypes.
+const GATED_CONSULT_SUBTYPES = new Set<string>([])
 
 describe("service-type Set drift contract", () => {
   // ── requiresPrescribingIdentityForRequest gate ────────────────────────────
@@ -112,14 +114,14 @@ describe("service-type Set drift contract", () => {
       expect(result.eligible).toBe(true)
     })
 
-    it("accepts active consult subtypes (ed, hair_loss, womens_health)", () => {
+    it("accepts active consult subtypes (ed, hair_loss, womens_health, weight_loss)", () => {
       const activeConsultSubtypes = ALL_CONSULT_SUBTYPES.filter(
         (s) => !GATED_CONSULT_SUBTYPES.has(s),
       )
       // Sanity: the inventory above must contain the active
       // prescribing consult subtypes; if it shrinks below this, the
       // canonical type changed and other gates need re-auditing.
-      expect(activeConsultSubtypes).toEqual(["ed", "hair_loss", "womens_health"])
+      expect(activeConsultSubtypes).toEqual(["ed", "hair_loss", "womens_health", "weight_loss"])
 
       for (const subtype of activeConsultSubtypes) {
         const result = getParchmentPrescribingEligibility({
@@ -131,7 +133,7 @@ describe("service-type Set drift contract", () => {
       }
     })
 
-    it("rejects gated consult subtypes (weight_loss)", () => {
+    it("rejects gated consult subtypes (none today — mechanism check)", () => {
       for (const subtype of ALL_CONSULT_SUBTYPES) {
         if (!GATED_CONSULT_SUBTYPES.has(subtype)) continue
         const result = getParchmentPrescribingEligibility({
@@ -151,7 +153,7 @@ describe("service-type Set drift contract", () => {
   // them silently drifts away from the others.
   describe("getParchmentScriptCompletionEligibility + getParchmentPatientSyncEligibility", () => {
     it("script-completion follows prescribing eligibility for active consult subtypes", () => {
-      for (const subtype of ["ed", "hair_loss", "womens_health"]) {
+      for (const subtype of ["ed", "hair_loss", "womens_health", "weight_loss"]) {
         const result = getParchmentScriptCompletionEligibility({
           payment_status: "paid",
           status: "awaiting_script",

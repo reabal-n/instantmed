@@ -158,7 +158,7 @@ async function resolveDraftRoute(
 ): Promise<
   | {
       kind: "allowed"
-      subtype: "ed" | "hair_loss" | "womens_health" | null
+      subtype: "ed" | "hair_loss" | "womens_health" | "weight_loss" | null
     }
   | Extract<
       PartialIntakeRecoveryPolicyDecision,
@@ -223,14 +223,14 @@ async function resolveDraftRoute(
     return { kind: "allowed", subtype: null }
   }
   if (
-    !["ed", "hair_loss", "womens_health"].includes(subtype)
+    !["ed", "hair_loss", "womens_health", "weight_loss"].includes(subtype)
   ) {
     return suppressed("draft_not_resumable")
   }
 
   return {
     kind: "allowed",
-    subtype: subtype as "ed" | "hair_loss" | "womens_health",
+    subtype: subtype as "ed" | "hair_loss" | "womens_health" | "weight_loss",
   }
 }
 
