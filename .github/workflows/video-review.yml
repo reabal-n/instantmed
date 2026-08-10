@@ -87,6 +87,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run video review pipeline
+        id: video-review-pipeline
         if: steps.skip-review-guard.outputs.skip_review != 'true'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -110,7 +111,7 @@ jobs:
             --url="$URL"
 
       - name: Prepare review artifact
-        if: steps.skip-review-guard.outputs.skip_review != 'true'
+        if: always() && steps.video-review-pipeline.outcome != 'skipped' && steps.skip-review-guard.outputs.skip_review != 'true'
         id: review-artifact
         run: |
           RUN_DIR=$(ls -1dt docs/reviews/*/ 2>/dev/null | head -1 || echo "")
@@ -132,7 +133,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload review artifact
-        if: steps.review-artifact.outputs.artifact_ready == 'true'
+        if: always() && steps.review-artifact.outputs.artifact_ready == 'true'
         uses: actions/upload-artifact@v7.0.1
         with:
           name: video-review-${{ steps.review-artifact.outputs.run_id }}
