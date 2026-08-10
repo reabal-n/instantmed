@@ -40,8 +40,8 @@ const SERVICE_DETAILS: Record<
     cta: "View women's health",
   },
   "weight-loss": {
-    benefits: ["Not taking requests", "Launch readiness still gated"],
-    cta: "Planned",
+    benefits: ["Eligibility screening first", "Doctor calls when history needs it"],
+    cta: "Start assessment",
   },
 }
 

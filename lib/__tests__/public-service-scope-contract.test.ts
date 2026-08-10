@@ -14,6 +14,7 @@ const ACTIVE_SERVICE_IDS = [
   "ed",
   "hair-loss",
   "womens-health",
+  "weight-loss",
 ] as const
 
 const PUBLIC_DECISION_SURFACES = [
@@ -83,16 +84,17 @@ function isAllowedPublicDestination(href: string) {
 
   return (
     service === "consult" &&
-    (subtype === "ed" || subtype === "hair_loss" || subtype === "womens_health")
+    (subtype === "ed" || subtype === "hair_loss" || subtype === "womens_health" || subtype === "weight_loss")
   )
 }
 
 describe("public service scope contract", () => {
-  it("keeps exactly the five launched service IDs active", () => {
+  it("keeps exactly the six launched service IDs active", () => {
     expect(getActiveServices().map((service) => service.id).sort()).toEqual(
       [...ACTIVE_SERVICE_IDS].sort(),
     )
-    expect(getComingSoonServices().map((service) => service.id)).toEqual(["weight-loss"])
+    // Weight management launched 2026-08-07 — nothing is coming-soon.
+    expect(getComingSoonServices().map((service) => service.id)).toEqual([])
   })
 
   it("keeps pricing and consult actions inside the launched service scope", () => {

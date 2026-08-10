@@ -7,7 +7,8 @@ import {
   type ServiceDef,
 } from "@/lib/services/service-catalog"
 
-type ActiveServiceId = Exclude<CanonicalServiceId, "weight-loss">
+// Every canonical service is active since the 2026-08-07 weight launch.
+type ActiveServiceId = CanonicalServiceId
 
 interface ServiceDecisionCopy {
   ctaLabel: string
@@ -52,18 +53,15 @@ const SERVICE_DECISION_COPY = {
     suitability: "UTI symptoms, or starting or switching the contraceptive pill.",
     ctaLabel: "Start women's health assessment",
   },
+  "weight-loss": {
+    group: "focused",
+    suitability: "Doctor-reviewed weight-management assessment with eligibility and safety screening first.",
+    ctaLabel: "Start weight assessment",
+  },
 } satisfies Record<ActiveServiceId, ServiceDecisionCopy>
-
-function isActiveServiceId(id: CanonicalServiceId): id is ActiveServiceId {
-  return id !== "weight-loss"
-}
 
 export function getActiveServiceDecisions(): ServiceDecision[] {
   return getActiveServices().map((service) => {
-    if (!isActiveServiceId(service.id)) {
-      throw new Error(`Coming-soon service ${service.id} cannot appear on an active decision surface`)
-    }
-
     return {
       ...service,
       ...SERVICE_DECISION_COPY[service.id],

@@ -8,8 +8,8 @@
 - **Address:** Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010
 - **Service area:** Australia-wide telehealth
 - **Clinical model:** AHPRA-registered doctors make prescribing decisions. Eligible low-risk medical certificates may be issued under a doctor-owned protocol and are individually reviewed afterward. AI does not prescribe.
-- **Active services:** Medical certificates, repeat prescriptions, men's health (ED and hair loss), and women's health (UTI and contraceptive pill) requests
-- **Weight management:** InstantMed is not currently accepting weight-management treatment requests. The public guide explains safe review boundaries only.
+- **Active services:** Medical certificates, repeat prescriptions, men's health (ED and hair loss), women's health (UTI and contraceptive pill), and weight-management assessment requests
+- **Weight management:** Doctor-reviewed weight-management assessments launched 2026-08-07 for eligible adults (structured eligibility and safety screening first; a doctor calls when history requires it). The public guide at /weight-loss-online explains safe review boundaries.
 - **Mental health:** InstantMed is not a crisis, therapy, psychiatrist, or Mental Health Treatment Plan service. The public guide explains crisis boundaries, GP pathways, and short certificate review only.
 - **Hours:** The service operates 24/7. Requests can be submitted and are reviewed around the clock, 7 days. No fixed turnaround is guaranteed.
 - **Eligibility:** Australia-wide, patients aged 18 and over. Medicare is optional for medical certificates and required for prescription and consultation requests.
@@ -79,6 +79,7 @@
 - Contraceptive pill assessment online: https://instantmed.com.au/contraceptive-pill-assessment-online
 - UTI assessment online: https://instantmed.com.au/uti-assessment-online
 - Mental health online guide: https://instantmed.com.au/mental-health-online
+- Weight management service: https://instantmed.com.au/weight-loss
 - Weight loss online guide: https://instantmed.com.au/weight-loss-online
 - Online doctor / consult overview: https://instantmed.com.au/consult
 - Verify a medical certificate: https://instantmed.com.au/verify

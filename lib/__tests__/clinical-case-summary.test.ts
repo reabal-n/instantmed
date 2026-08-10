@@ -919,6 +919,12 @@ describe("weightLossSummary", () => {
     expect(summary.recommendedPlan.action).toBe("prescribe")
     expect(summary.keyFacts.some((f) => f.label === "BMI" && f.value === "32.7")).toBe(true)
     expect(summary.safetyItems).toHaveLength(0)
+    // The Parchment handoff intent unlocks the cockpit's Prescribe button —
+    // without it the workflow dead-ends with Complete request disabled.
+    expect(summary.prescriptionIntent).toBeDefined()
+    expect(summary.prescriptionIntent?.parchmentMode).toBe("open_patient_prescribe")
+    // GLP-1-focused launch (D-B): no medicine is preselected for the doctor.
+    expect(summary.prescriptionIntent?.medicationName).toBeUndefined()
   })
 
   it("requires a call for eating-disorder history and never an async decision", () => {
@@ -935,6 +941,10 @@ describe("weightLossSummary", () => {
     })
     expect(summary.recommendedPlan.action).toBe("needs_call")
     expect(summary.safetyItems.some((i) => i.label === "Eating disorder history")).toBe(true)
+    // Call-first, not never: the doctor phones the patient, then may still
+    // prescribe — the intent stays available and surfaces the caution.
+    expect(summary.prescriptionIntent).toBeDefined()
+    expect(summary.prescriptionIntent?.cautionChecks).toContain("Eating disorder history")
   })
 
   it("renders a block-severity item when a server-declined answer somehow lands", () => {
@@ -949,6 +959,8 @@ describe("weightLossSummary", () => {
       },
     })
     expect(summary.safetyItems.some((i) => i.severity === "block" && i.label === "Pregnant or breastfeeding")).toBe(true)
+    // Block-severity screens withhold the Parchment handoff entirely.
+    expect(summary.prescriptionIntent).toBeUndefined()
   })
 })
 

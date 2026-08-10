@@ -8,6 +8,7 @@ const ACTIVE_SERVICE_ROWS = [
   { id: "ed", name: "Erectile dysfunction", url: /service=consult.*subtype=ed/ },
   { id: "hair-loss", name: "Hair loss treatment", url: /service=consult.*subtype=hair_loss/ },
   { id: "womens-health", name: "Women's health", url: /service=consult.*subtype=womens_health/ },
+  { id: "weight-loss", name: "Weight management", url: /service=consult.*subtype=weight_loss/ },
 ] as const
 
 async function clearRequestState(page: import("@playwright/test").Page) {
@@ -25,7 +26,7 @@ test.describe("Service Hub", () => {
     await clearRequestState(page)
   })
 
-  test("renders current active services and coming-soon services", async ({ page }) => {
+  test("renders every active service with nothing coming-soon", async ({ page }) => {
     await page.goto("/request")
     await waitForPageLoad(page)
 
@@ -50,15 +51,10 @@ test.describe("Service Hub", () => {
 
     await expect(page.getByRole("button", { name: /General consultation/i })).toHaveCount(0)
     await expect(page.getByRole("button", { name: /Antibiotic/i })).toHaveCount(0)
-    await expect(page.getByRole("button", { name: /Weight (management|loss)/i })).toHaveCount(0)
 
     await expect(page.getByText("Popular")).toBeVisible()
-    const comingSoonStrip = page.locator('[data-coming-soon-strip="true"]')
-    await expect(comingSoonStrip.getByText("Coming soon", { exact: true })).toBeVisible()
-    await expect(
-      comingSoonStrip.getByLabel("Weight management: not taking requests yet", { exact: true }),
-    ).toHaveAttribute("aria-disabled", "true")
-    await expect(comingSoonStrip.getByText("Women's health", { exact: true })).toHaveCount(0)
+    // Weight management launched 2026-08-07 — nothing is coming-soon.
+    await expect(page.locator('[data-coming-soon-strip="true"]')).toHaveCount(0)
   })
 
   test("routes active service rows to the correct request flows", async ({ page }) => {

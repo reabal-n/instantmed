@@ -635,28 +635,32 @@ describe("advertising compliance guard", () => {
     }
   })
 
-  it("keeps weight management future-scaffolded but not publicly purchasable", () => {
+  it("keeps the live weight-management surface compliant and catalog-derived", () => {
+    // Launched 2026-08-07 (D-A..D-E in the launch plan). The surface must be
+    // live, priced from constants, indexed, and free of drug names (the
+    // PAID_PRESCRIPTION_DESTINATION_SURFACES scan covers both files).
     expect(existsSync(toFullPath("app/weight-loss/page.tsx"))).toBe(true)
     expect(existsSync(toFullPath("app/weight-loss/weight-loss-client.tsx"))).toBe(true)
 
     expect(SERVICE_CATALOG["weight-loss"]).toMatchObject({
-      comingSoon: true,
-      price: "Planned",
-      priceFrom: 0,
+      price: "$89.95",
+      priceFrom: 89.95,
       slug: "weight-loss",
       subtype: "weight_loss",
     })
-    expect(getComingSoonServices().map((service) => service.id)).toContain("weight-loss")
-    expect(getActiveServices().map((service) => service.id)).not.toContain("weight-loss")
+    expect(SERVICE_CATALOG["weight-loss"]).not.toHaveProperty("comingSoon")
+    expect(getComingSoonServices().map((service) => service.id)).not.toContain("weight-loss")
+    expect(getActiveServices().map((service) => service.id)).toContain("weight-loss")
 
     const weightLossPageSource = readFileSync(toFullPath("app/weight-loss/page.tsx"), "utf8")
-    expect(weightLossPageSource).toContain('redirect("/request")')
-    expect(weightLossPageSource).toContain("index: false")
+    expect(weightLossPageSource).toContain("WeightLossClient")
+    expect(weightLossPageSource).toContain("index: true")
+    expect(weightLossPageSource).not.toContain('redirect("/request")')
 
     const sitemapSource = readFileSync(toFullPath("app/sitemap.ts"), "utf8")
     const htmlSitemapSource = readFileSync(toFullPath("app/sitemap-html/page.tsx"), "utf8")
-    expect(sitemapSource).not.toContain('"/weight-loss"')
-    expect(htmlSitemapSource).not.toContain('href: "/weight-loss"')
+    expect(sitemapSource).toContain('"/weight-loss"')
+    expect(htmlSitemapSource).toContain('href: "/weight-loss"')
     expect(sitemapSource).toContain('"/weight-loss-online"')
     expect(htmlSitemapSource).toContain('href: "/weight-loss-online"')
   })
