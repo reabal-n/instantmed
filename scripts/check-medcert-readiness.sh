@@ -50,6 +50,7 @@ if [ "$MEDCERT_READINESS_BROWSER" = "1" ]; then
     e2e/medcert.email-pipeline.spec.ts \
     e2e/medcert.idempotency.spec.ts \
     e2e/admin.email-outbox.spec.ts \
+    e2e/checkout-priority-review.spec.ts \
     e2e/medical-certificate.spec.ts \
     e2e/payment-smoke.spec.ts \
     e2e/stripe-webhook.spec.ts \

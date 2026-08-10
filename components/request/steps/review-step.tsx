@@ -23,6 +23,7 @@ import { capturePriorityReviewOptedIn, capturePriorityReviewOptedOut } from "@/l
 import { classifyAttributionSource } from "@/lib/analytics/source-classification"
 import { getRepeatsExpectation } from "@/lib/clinical/repeats-policy"
 import { PRICING as APP_PRICING } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { getAddressReviewSummary, getAddressStatusDisplay } from "@/lib/request/address-metadata"
 import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { normalizeMedicationEntriesAnswer, stringAnswer, stringArrayAnswer } from "@/lib/request/intake-answer-normalizers"
@@ -45,6 +46,8 @@ const CERT_TYPE_LABELS: Record<string, string> = {
   'study': 'Study / University',
   'carer': 'Carer\'s Leave',
 }
+
+const CHECKOUT_REFUND_GUARANTEE = getApprovedClaim("refund_guarantee")
 
 const SYMPTOM_DURATION_LABELS: Record<string, string> = {
   'today': 'Today',
@@ -1198,9 +1201,12 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
             footer as part of the 2026-06-28 trust dedup. */}
         <div className="flex flex-col items-center justify-center gap-1.5 pt-1 text-sm text-muted-foreground">
           <PaymentLogos />
-          <span className="flex items-center gap-1.5">
-            <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
-            Secure Stripe checkout · Full refund if declined
+          <span
+            data-checkout-trust-reassurance="true"
+            className="flex items-start justify-center gap-1.5 text-center text-pretty"
+          >
+            <Lock className="mt-1 h-3 w-3 shrink-0" aria-hidden="true" />
+            Secure Stripe checkout. {CHECKOUT_REFUND_GUARANTEE}
           </span>
         </div>
       </div>
