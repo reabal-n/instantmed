@@ -242,6 +242,11 @@ export async function GET(request: NextRequest) {
       reason: "production_only",
     })
   }
+
+  // This heartbeat proves that Vercel invoked the production schedule. The
+  // delivery flag and Sydney-hour guard control work, not scheduler liveness.
+  await recordCronHeartbeat("google-ads-daily-brief")
+
   if (process.env.GOOGLE_ADS_AGENT_DAILY_BRIEF_ENABLED !== "true") {
     return NextResponse.json({
       success: true,
@@ -266,8 +271,6 @@ export async function GET(request: NextRequest) {
       timestamp: now.toISOString(),
     })
   }
-
-  await recordCronHeartbeat("google-ads-daily-brief")
 
   const supabase = createServiceRoleClient()
   let runId: string | null = null

@@ -372,6 +372,7 @@ describe("Google Ads Agent cron timing and idempotency", () => {
       skipped: true,
       reason: "production_only",
     })
+    expect(mocks.recordCronHeartbeat).not.toHaveBeenCalled()
 
     process.env.VERCEL_ENV = "production"
     process.env.GOOGLE_ADS_AGENT_DAILY_BRIEF_ENABLED = "false"
@@ -380,6 +381,11 @@ describe("Google Ads Agent cron timing and idempotency", () => {
       skipped: true,
       reason: "daily_brief_disabled",
     })
+    expect(mocks.recordCronHeartbeat).toHaveBeenCalledOnce()
+    expect(mocks.recordCronHeartbeat).toHaveBeenCalledWith(
+      "google-ads-daily-brief",
+    )
+    expect(mocks.claimDailyAdsAgentRun).not.toHaveBeenCalled()
     expect(mocks.sendGoogleAdsDailyBriefViaTelegram).not.toHaveBeenCalled()
   })
 
@@ -392,6 +398,9 @@ describe("Google Ads Agent cron timing and idempotency", () => {
       skipped: true,
       reason: "outside_sydney_0900",
     })
+    expect(mocks.recordCronHeartbeat).toHaveBeenCalledWith(
+      "google-ads-daily-brief",
+    )
     expect(mocks.claimDailyAdsAgentRun).not.toHaveBeenCalled()
   })
 
