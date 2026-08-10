@@ -48,8 +48,8 @@ export interface GoogleAdsAccountState {
   customerUserAccess: NormalizedGoogleAdsResource[]
   /**
    * Optional (audit-only) sections whose query failed. Empty on a clean read.
-   * A non-empty list degrades tracking health to AMBER via
-   * `OPTIONAL_ACCOUNT_QUERY_FAILED`; it never rejects the account-state read.
+   * These remain visible to the deep audit but never affect tracking health or
+   * mutation policy, and never reject the account-state read.
    */
   optionalQueryFailures: string[]
   readAt: string

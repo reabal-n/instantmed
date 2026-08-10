@@ -12,7 +12,8 @@ const REPORT_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
 const guardrailCopy: Record<string, string> = {
   BUDGET_ENVELOPE_UNAVAILABLE: "Daily budget data is unavailable",
   BUDGET_ENVELOPE_EXCEEDED: "Daily budget envelope exceeded",
-  CROSS_SERVICE_ATTRIBUTION: "Cross-service attribution needs investigation",
+  CROSS_SERVICE_ATTRIBUTION:
+    "Material cross-service attribution needs investigation",
   ECONOMICS_UNAVAILABLE: "Fee-aware economics unavailable",
   ENABLED_CAMPAIGN_SPEND_UNAVAILABLE: "Enabled campaign spend unavailable",
   MEDCERT_NEGATIVE_CONTRIBUTION:

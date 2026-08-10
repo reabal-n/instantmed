@@ -3,7 +3,7 @@
 > **Authority:** the sole source of truth for the current operating phase, ordered active work, status, and checkpoints.
 > `docs/BUSINESS_PLAN.md` owns durable strategy. `docs/REVENUE_MODEL.md` owns milestones and economic gates. Implementation plans may elaborate one item but may not redefine this queue.
 >
-> **Last refreshed:** 2026-07-29. Refresh whenever priority or status changes; perform a deliberate review at least monthly.
+> **Last refreshed:** 2026-08-09. Refresh whenever priority or status changes; perform a deliberate review at least monthly.
 
 ---
 
@@ -13,7 +13,7 @@
 
 Acquisition is in scope for launched services. The current job is to prove repeatable, contribution-positive demand while keeping public truth, clinical safety, queue health, refunds, fulfilment, and support load controlled.
 
-This phase does not authorise new services, subscriptions, weight-loss launch, broad general consults, pharmacy fulfilment, or uncontrolled advertising spend.
+This phase does not authorise new services, subscriptions, broad general consults, pharmacy fulfilment, or uncontrolled advertising spend. (Weight management launched 2026-08-07 by explicit operator decision — see docs/plans/2026-08-07-weight-loss-launch-plan.md.)
 
 ## 2. Active Revenue Rung
 
@@ -53,22 +53,22 @@ Review channel/service contribution, refund and chargeback trends, queue/support
 
 | Rank | Priority | Current status | Success / stop checkpoint |
 |------|----------|----------------|---------------------------|
-| 1 | **Truth and measurement gate** - reconcile canonical docs; repair public 24/7, automation, and 18+ contradictions; close the batch-review and synthetic-E2E boundaries; correct Google Ads dollar units; make optional-email lifecycle truth explicit and tracking aggregate-only. | **Re-opened and repaired 2026-07-29 after production exposed a 170% initiated-to-paid dashboard ratio.** The old per-stage fallback identifiers compressed stages at different rates and made cross-stage division invalid. Business now uses only exact `flow_instance_id` attempts, an ordered same-flow funnel, a 24-hour observation lag, and a 90% coverage gate before showing rates; legacy/late recoveries remain separate evidence. Earlier privacy, recovery, and communication truth work remains complete. | Complete only when each named boundary has implementation plus focused proof. Re-open any closed sub-boundary when production evidence or an operator decision exposes drift. |
+| 1 | **Truth and measurement gate** - reconcile canonical docs; repair public 24/7, automation, and 18+ contradictions; close the batch-review and synthetic-E2E boundaries; correct Google Ads dollar units; make optional-email lifecycle truth explicit and tracking aggregate-only. | **Clinical truth contained 2026-08-09:** medical-certificate protocol issuance is hard-paused by a code-owned governance gate; the database flag cannot authorise it; every active certificate request returns to doctor review before issue; public claims and monitoring follow that effective pathway. The exact-flow conversion repair from 2026-07-29 remains in force. | Complete only when each named boundary has implementation plus focused proof. Re-open any closed sub-boundary when production evidence or an operator decision exposes drift. |
 | 2 | **Role-owned staff decision surfaces** - keep each staff route focused on one job, preserve approval boundaries for Ads changes and customer replies, and keep support conversations in Gmail. | **Staff surface rehaul completed 2026-07-29.** Dashboard owns live clinical work; Business owns revenue, contribution, canonical conversion, acquisition, and measurement checkpoints; Operations shows unresolved action groups or one all-clear state; Ledger is server-filtered source-record search with a masked support projection; Patients is a compact directory; Setup owns configuration. Mobile clinical review stays on the same request page, including full-height Parchment handoff and a disabled `Complete request` control until durable issuance confirmation. Automatic Gmail polling and support-inbox Telegram paging remain retired. | One calm decision surface per route; no copied mailbox, support-email Telegram spam, PHI in analytics, hidden clinical actions on mobile, or send/Ads mutation without approval. |
 | 3 | **External reputation and distribution** - accrue genuine ProductReview evidence, submit selected Australian comparison/directories, and distribute the existing employer verification workflow to HR, payroll, and employment-law publishers. | **Sprint started 2026-07-23.** ProductReview baseline: 2 public reviews against 131 review-request sends (1.5% directional send-to-posted proxy, not attributable conversion). Business preserves the review-request funnel and manually recorded external-review total as a separate measurement checkpoint through the mid-August decision date; self-reported acquisition remains a separate instrument from recorded attribution. | Completed submissions/outreach receipts plus attributable traffic/orders; no unsupported review or acceptance claims. |
 | 4 | **Prove paid contribution by service** - keep launched services live at low budgets, review performance daily, improve keywords/negatives/assets/sitelinks with approval, and scale only a service that passes the first-order contribution gate. | **Daily manager active in read-only shadow as of 2026-07-31.** The permanent 09:15 Sydney heartbeat owns closed-day Telegram verification and revenue recommendations, with a Monday deep audit of queries, keyword cohorts, creative/assets, device/daypart/location performance, access, policy, and change history. The operator CLI can now bind a restricted JSON packet to a fresh account baseline, validate it, and send the validated immutable card to Telegram. Live mutation and Telegram approval flags remain off until the seven-day proof and exact-packet gate pass. | Trusted measurement, positive first-order contribution, stable safety/refund/queue metrics, and operator approval for the exact change. |
 | 5 | **Reactivation checkpoint** - assess repeat-Rx refill reminders after three real weekly waves; keep certificate reactivation bounded. | Measurement window open. Default-on email consent (2026-07-17) unblocked send volume for ~87% of patients; restart the three-wave clock from the first post-change wave. | Continue only if delivery and paid reorder conversion justify more work. Stop or rework a near-zero lever. |
 | 6 | **Compounding work** - deepen only fresh GSC-proven winners; profile before performance changes; run bounded repository cleanup quarterly. | Evidence-led backlog. | A specific query/page or measured hotspot justifies each session. No broad speculative sweep. |
 
-### Open operator decisions — auto-issued medical certificates
+### Open governance work — historical auto-issued medical certificates
 
-Raised by the removal of the 24-hour post-approval attestation (#428, 2026-08-04) and the follow-up integrity work (#439/#440). These are decisions, not engineering tasks; none is blocked on code.
+Raised by the removal of the 24-hour post-approval attestation (#428, 2026-08-04) and the follow-up integrity work (#439/#440). Engineering containment is complete: `lib/clinical/auto-approval-governance.ts` is fail-closed and all current requests require doctor review before issue. The remaining work requires Medical Director judgment, legal reconciliation, or retrospective clinical review.
 
 | # | Decision | Why it is open | Owner |
 |---|----------|----------------|-------|
-| A | Should any engine **soft flag** become a pre-issuance block? | Co-symptom mental-health / injury / chronic mentions and AI-draft `requiresReview` currently auto-issue and are only marked **Flagged** afterwards. Promoting any of them routes those certificates to `needs_doctor` instead, reducing the auto-approval rate — a clinical *and* throughput trade-off. Widening `DETERMINISTIC_FAILURE_PREFIXES` is the mechanism. | Operator |
-| B | **Medical Director / legal reconciliation** of removing the post-approval attestation. | No rule mandating that specific 24-hour attestation was identified, but Medical Board telehealth guidance stresses real-time consultation and individual judgment for certificates, and AHPRA requires human oversight of AI-supported care. docs/CLINICAL.md records this as pending rather than settled. | Medical Director |
-| C | **Retrospective review of soft-flagged certificates issued since #428 merged** (2026-08-07 03:01 UTC). | Between the attestation being removed and soft flags being surfaced, any soft-flagged certificate had no human review surface at all. Certificates issued before #440 also have no persisted `risk_flags`, so they cannot be found through the dashboard — they need an `ai_audit_log` query on `metadata->softFlags`. | Operator |
+| A | ~~Should any engine **soft flag** become a pre-issuance block?~~ **DECIDED 2026-08-07: AI-draft `requiresReview` promoted to a pre-issuance block** (90d data: 8/109 flagged, all draft-lane, incl. a self-described potential red-flag cluster; cost ≈ one manual review per 11 days). Keyword co-symptom flags stay `info` — they fired zero times in 90d. Re-open only if a keyword flag starts firing. | Operator (done) |
+| B | **Medical Director / legal reconciliation** of the medical-certificate protocol boundary. | **Contained pending decision:** protocol issuance is hard-paused in code. No rule mandating the former 24-hour attestation was identified, but Medical Board telehealth guidance stresses real-time consultation and individual judgment for certificates, and AHPRA requires human oversight of AI-supported care. Reactivation requires a reviewed change to the code-owned gate; a database toggle is insufficient. | Medical Director |
+| C | **Retrospective review of soft-flagged certificates issued since #428 merged** (2026-08-07 03:01 UTC). | Between the attestation being removed and soft flags being surfaced, any soft-flagged certificate had no human review surface at all. Certificates issued before #440 also have no persisted `risk_flags`, so they cannot be found through the dashboard — they need an `ai_audit_log` query on `metadata->softFlags`. **Sized 2026-08-07: exactly 8 intakes (May 26 – Aug 5), all draft-lane, 3 of 8 batch-reviewed under the old regime, all 8 still standing approved, zero since #428 merged.** Ten minutes in the ledger. | Operator |
 
 Work the highest-ranked actionable item. If an item is blocked by a scheduled measurement window, record that checkpoint and move to the next actionable item without changing the ranking.
 
@@ -88,7 +88,7 @@ The durable exclusions live in `docs/BUSINESS_PLAN.md`. During controlled demand
 
 - subscriptions, memberships, or recurring prescribing
 - owned pharmacy, dispensing, delivery, or inventory
-- weight-loss paid requests or advertising
+- weight-management paid ADVERTISING (the service itself launched 2026-08-07; ads remain gated)
 - broad general consult intake
 - staff-heavy follow-up programs without approved capacity
 - conversational AI intake

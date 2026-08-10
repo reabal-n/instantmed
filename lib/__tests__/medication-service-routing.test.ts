@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { deriveIntakeFlags } from "@/lib/clinical/derive-intake-flags"
-import {
-  detectDedicatedServiceForMedication,
-  detectGatedServiceMedication,
-} from "@/lib/clinical/medication-service-routing"
+import { detectDedicatedServiceForMedication } from "@/lib/clinical/medication-service-routing"
 
 describe("detectDedicatedServiceForMedication", () => {
   it("routes hair-loss medicines to hair_loss", () => {
@@ -260,39 +257,55 @@ describe("detectDedicatedServiceForMedication", () => {
   })
 })
 
-describe("detectGatedServiceMedication", () => {
-  it("flags weight-loss-class medicines (GLP-1, phentermine, orlistat)", () => {
-    for (const name of [
-      "semaglutide",
-      "Ozempic 1mg",
-      "Wegovy",
-      "Rybelsus 7mg",
-      "tirzepatide",
-      "Mounjaro",
-      "Zepbound",
-      "liraglutide",
-      "Saxenda",
-      "Victoza",
-      "phentermine 30mg",
-      "Duromine",
-      "Metermine",
-      "orlistat",
-      "Xenical",
-    ]) {
-      expect(detectGatedServiceMedication(name)?.serviceLabel).toBe("Weight loss")
+describe("weight-management routing (service live 2026-08-07)", () => {
+  it("hard-steers weight-only GLP-1 brands with no question", () => {
+    for (const name of ["Wegovy", "Saxenda", "Zepbound 2.5mg"]) {
+      const match = detectDedicatedServiceForMedication(name)
+      expect(match?.subtype, name).toBe("weight_loss")
+      expect(match?.enforcement, name).toBe("hard")
+      expect(match?.contextOptions, name).toBeUndefined()
     }
   })
 
-  it("leaves ordinary repeat medicines alone", () => {
-    for (const name of ["atorvastatin 20mg", "metformin 500mg", "Sertraline"]) {
-      expect(detectGatedServiceMedication(name)).toBeNull()
+  it("asks the weight-vs-diabetes question for dual-indication GLP-1s", () => {
+    for (const name of ["Ozempic 1mg", "Victoza", "Mounjaro", "Rybelsus", "semaglutide", "tirzepatide", "liraglutide"]) {
+      const match = detectDedicatedServiceForMedication(name)
+      expect(match?.subtype, name).toBe("weight_loss")
+      expect(match?.enforcement, name).toBe("hard")
+      expect(match?.contextOptions, name).toEqual(["weight_management", "type_2_diabetes"])
     }
   })
 
-  it("is null-safe for empty / missing input", () => {
-    expect(detectGatedServiceMedication("")).toBeNull()
-    expect(detectGatedServiceMedication(undefined)).toBeNull()
-    expect(detectGatedServiceMedication(null)).toBeNull()
+  it("keeps a diabetic's GLP-1 repeat via the structured token — always flagged", () => {
+    // The original D2 concern: Ozempic-for-diabetes must never be walled out.
+    const match = detectDedicatedServiceForMedication("Ozempic 1mg", "type 2 diabetes", "type_2_diabetes")
+    expect(match?.enforcement).toBe("flag_only")
+    expect(match?.reason).toContain("Type 2 diabetes")
+    // Free text alone does NOT exempt — the token does.
+    expect(detectDedicatedServiceForMedication("Ozempic 1mg", "type 2 diabetes")?.enforcement).toBe("hard")
+  })
+
+  it("catches GLP-1 ingredient typos", () => {
+    for (const typo of ["semaglutid", "semmaglutide", "tirzepatid"]) {
+      expect(detectDedicatedServiceForMedication(typo)?.subtype, typo).toBe("weight_loss")
+    }
+  })
+
+  it("flags but never steers weight-only out-of-scope medicines (D-B)", () => {
+    // Steering phentermine into a consult that would decline it is
+    // pay-to-be-refused churn; the doctor declines in the cheap lane instead.
+    for (const name of ["Phentermine 30mg", "Duromine", "Metermine", "Orlistat", "Xenical"]) {
+      const match = detectDedicatedServiceForMedication(name)
+      expect(match?.subtype, name).toBe("weight_loss")
+      expect(match?.enforcement, name).toBe("flag_only")
+      expect(match?.contextOptions, name).toBeUndefined()
+    }
+  })
+
+  it("leaves ordinary metabolic medicines alone", () => {
+    for (const name of ["Metformin 500mg", "Empagliflozin", "Atorvastatin"]) {
+      expect(detectDedicatedServiceForMedication(name), name).toBeNull()
+    }
   })
 })
 

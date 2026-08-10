@@ -64,7 +64,7 @@ describe("pricing-display centralisation guard", () => {
     const layout = readFileSync(join(process.cwd(), "app/pricing/layout.tsx"), "utf-8")
     const page = readFileSync(join(process.cwd(), "app/pricing/page.tsx"), "utf-8")
 
-    expect(layout).toContain("root OrganizationSchema owns the catalog-wide five-service OfferCatalog")
+    expect(layout).toContain("root OrganizationSchema owns the catalog-wide six-service OfferCatalog")
     expect(layout).toContain("visible pricing inventory still derives from SERVICE_CATALOG")
     expect(layout).toContain("<BreadcrumbSchema")
     expect(layout).not.toContain("<FAQSchema")

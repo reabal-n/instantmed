@@ -258,12 +258,18 @@ describe("Google Ads Agent cron timing and idempotency", () => {
     process.env = { ...originalEnv }
   })
 
-  it("accepts both UTC hours that map to 09:00 Sydney across AEST and AEDT", () => {
+  it("accepts the full 09:00 Sydney hour across AEST and AEDT", () => {
     expect(
       isSydneyDailyAdsBriefHour(new Date("2026-07-27T23:00:00.000Z")),
     ).toBe(true)
     expect(
+      isSydneyDailyAdsBriefHour(new Date("2026-07-27T23:59:59.999Z")),
+    ).toBe(true)
+    expect(
       isSydneyDailyAdsBriefHour(new Date("2026-01-27T22:00:00.000Z")),
+    ).toBe(true)
+    expect(
+      isSydneyDailyAdsBriefHour(new Date("2026-01-27T22:59:59.999Z")),
     ).toBe(true)
     expect(
       isSydneyDailyAdsBriefHour(new Date("2026-07-27T22:00:00.000Z")),

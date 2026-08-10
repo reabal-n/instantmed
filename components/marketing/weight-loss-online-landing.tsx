@@ -34,18 +34,20 @@ import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import type { RenderableArticleVisual } from "@/lib/blog/visuals"
+import { PRICING_DISPLAY } from "@/lib/constants"
 import { WEIGHT_LOSS_ONLINE_FAQ } from "@/lib/data/weight-loss-online-faq"
 import { cn } from "@/lib/utils"
 
-const ACTIVE_SERVICES_HREF = "/consult"
+// The live weight-management landing (service launched 2026-08-07).
+const ACTIVE_SERVICES_HREF = "/weight-loss"
 
 const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "consult",
   analyticsId: "weight-loss-online",
   sticky: {
-    ctaText: "View active services",
+    ctaText: "View weight assessment",
     ctaHref: ACTIVE_SERVICES_HREF,
-    mobileSummary: "Weight management guide - service not currently accepting requests",
+    mobileSummary: "Weight management guide - how safe online review works",
   },
 }
 
@@ -53,8 +55,8 @@ const HERO_FACTS = [
   {
     icon: XCircle,
     label: "InstantMed status",
-    value: "Not accepting requests",
-    body: "Weight-management treatment requests remain gated. This page explains safe review standards and where to go next.",
+    value: "Doctor-reviewed assessment",
+    body: "Live for eligible adults. Structured eligibility and safety screening comes before payment and doctor review.",
   },
   {
     icon: Hospital,
@@ -66,12 +68,12 @@ const HERO_FACTS = [
     icon: ShieldCheck,
     label: "Care boundary",
     value: "No shortcuts",
-    body: "Prescription decisions, if considered elsewhere, need private clinical assessment and monitoring. They are never guaranteed.",
+    body: "Prescription decisions need private clinical assessment and may require more information, tests, monitoring, or in-person care. They are never guaranteed.",
   },
 ] as const
 
 const PRACTICAL_POINTS = [
-  "InstantMed is not currently accepting online weight-management treatment requests.",
+  "InstantMed offers a doctor-reviewed weight-management assessment for eligible adults, with structured eligibility and safety screening before any decision.",
   "A safe Australian review is usually more than a form: it may need blood pressure, pathology, current medicine review, mental health screening, and follow-up.",
   "Some people are better served by a regular GP, in-person clinic, allied health team, or specialist service from the start.",
   "Public pages should not advertise prescription-only treatment options. This page explains the assessment and safety boundaries instead.",
@@ -188,8 +190,8 @@ const RED_FLAGS = [
 const COSTS = [
   {
     icon: WalletCards,
-    title: "No InstantMed fee for this pathway",
-    body: "Because InstantMed is not accepting weight-management treatment requests, there is no active InstantMed consultation fee or checkout path for this page.",
+    title: "One-off assessment fee",
+    body: `The InstantMed weight-management assessment costs ${PRICING_DISPLAY.WEIGHT_LOSS}. Eligibility and safety screening come first, and a declined request is refunded in full.`,
   },
   {
     icon: FileText,
@@ -263,7 +265,7 @@ const INTERNAL_LINKS = [
   {
     title: "Online doctor services",
     href: "/consult",
-    body: "The current active InstantMed service list, separate from the gated weight-management pathway.",
+    body: "The current active InstantMed service list and the clinical boundary for each focused pathway.",
   },
   {
     title: "How doctors decide",
@@ -460,7 +462,7 @@ export function WeightLossOnlineLanding({ visuals }: { visuals: RenderableArticl
                   Weight loss online Australia - what safe review really needs
                 </Heading>
                 <p data-speakable className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
-                  InstantMed is not currently accepting weight-management treatment requests. This page explains what safe Australian online review should include, when in-person care is safer, and how Medicare, PBS, pharmacy cost, and follow-up fit together.
+                  This page explains what safe Australian online weight-management review should include, when in-person care is safer, and how Medicare, PBS, pharmacy cost, and follow-up fit together. InstantMed's own doctor-reviewed assessment screens eligibility and safety first.
                 </p>
 
                 <div className="mt-7 grid gap-3 sm:grid-cols-3">
@@ -479,7 +481,7 @@ export function WeightLossOnlineLanding({ visuals }: { visuals: RenderableArticl
                 <div ref={heroCTARef} className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <Button asChild size="lg" onClick={handleHeroCTA}>
                     <Link href={ACTIVE_SERVICES_HREF}>
-                      View active services
+                      Start weight assessment
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
                   </Button>
@@ -488,7 +490,7 @@ export function WeightLossOnlineLanding({ visuals }: { visuals: RenderableArticl
                   </Button>
                 </div>
                 <p className="mt-3 max-w-xl text-xs leading-5 text-muted-foreground">
-                  No weight-management prescription request can be started from this page. For urgent symptoms, call 000 or seek urgent care.
+                  This guide links to the separate assessment page. A prescription is never guaranteed. For urgent symptoms, call 000 or seek urgent care.
                 </p>
               </Reveal>
 
@@ -557,7 +559,7 @@ export function WeightLossOnlineLanding({ visuals }: { visuals: RenderableArticl
             id="eligibility"
             pill="Eligibility"
             title="Who may fit remote discussion, and who should start in person"
-            intro="InstantMed is not accepting this request type, but these boundaries are still useful when comparing Australian services or preparing for your GP appointment."
+            intro="InstantMed accepts eligible adults through a separate one-off assessment. These boundaries help you judge whether that pathway fits or whether GP or in-person care should come first."
           >
             <div className="grid gap-6 lg:grid-cols-2">
               <Reveal className="rounded-2xl border border-border/50 bg-white p-6 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none">
@@ -730,15 +732,15 @@ export function WeightLossOnlineLanding({ visuals }: { visuals: RenderableArticl
             <Reveal className="mx-auto max-w-4xl rounded-3xl border border-border/50 bg-white p-6 text-center shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-8">
               <ListChecks className="mx-auto h-8 w-8 text-primary" aria-hidden="true" />
               <Heading level="h2" className="mt-4">
-                Need an InstantMed service that is currently active?
+                Ready to check whether the assessment fits?
               </Heading>
               <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                View the scoped services InstantMed currently accepts. AHPRA-registered Australian doctors review submitted requests and decide what is clinically appropriate. Weight-management treatment requests are not currently accepted.
+                Review the eligibility and safety boundaries before starting a one-off weight-management assessment. An AHPRA-registered doctor reviews every submitted request and decides what is clinically appropriate.
               </p>
               <div className="mt-6">
                 <Button asChild size="lg" onClick={handleFinalCTA}>
                   <Link href={ACTIVE_SERVICES_HREF}>
-                    View active services
+                    View weight assessment
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Link>
                 </Button>

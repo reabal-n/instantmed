@@ -30,7 +30,7 @@
 
 ### The clinical review sequence — approved text, use verbatim
 
-> "Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward."
+> "Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued."
 
 **Do not paraphrase this and do not shorten it.** The approved-claim notes are explicit: *"Do not imply every certificate is doctor-reviewed before issue or that protocol issuance applies to prescribing."*
 
@@ -63,7 +63,7 @@ An earlier version of these drafts said "an AHPRA-registered doctor reviews it a
 >
 > - **Entity:** InstantMed Pty Ltd, ABN 64 694 559 334, Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010
 > - **Services:** medical certificates (from $24.95, up to 3 days), repeat prescriptions ($29.95), and consultations for erectile dysfunction, hair loss, and women's health ($49.95)
-> - **Clinical process:** patients complete a structured clinical form. Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward.
+> - **Clinical process:** patients complete a structured clinical form. Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued.
 > - **Availability:** requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume.
 > - **Refunds:** full refund if the doctor declines.
 > - **Verification:** employers and institutions can verify any certificate we issue at https://instantmed.com.au/verify
@@ -96,7 +96,7 @@ Short description (≈50 words):
 
 If a longer field is available, use the full claim verbatim:
 
-> Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward.
+> Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued.
 
 Structured fields:
 

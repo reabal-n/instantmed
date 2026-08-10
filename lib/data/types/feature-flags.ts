@@ -26,6 +26,7 @@ export const FLAG_KEYS = {
   DISABLE_MED_CERT: "disable_med_cert",
   DISABLE_REPEAT_SCRIPTS: "disable_repeat_scripts",
   DISABLE_CONSULTS: "disable_consults",
+  DISABLE_WEIGHT_LOSS: "disable_weight_loss",
   BLOCKED_MEDICATION_TERMS: "blocked_medication_terms",
   SAFETY_SCREENING_SYMPTOMS: "safety_screening_symptoms",
   AI_AUTO_APPROVE_ENABLED: "ai_auto_approve_enabled",
@@ -66,6 +67,8 @@ export interface FeatureFlags {
   maintenance_scheduled_end: string | null
   disable_repeat_scripts: boolean
   disable_consults: boolean
+  // Weight management can be stopped without taking down ED/hair/WH
+  disable_weight_loss: boolean
   blocked_medication_terms: string[]
   safety_screening_symptoms: string[]
   ai_auto_approve_enabled: boolean
@@ -107,6 +110,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   maintenance_scheduled_end: null,
   disable_repeat_scripts: false,
   disable_consults: false,
+  disable_weight_loss: false,
   blocked_medication_terms: [],
   safety_screening_symptoms: DEFAULT_SAFETY_SYMPTOMS,
   ai_auto_approve_enabled: false,
@@ -203,6 +207,10 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
       label: "Disable Consultations",
       description: "Temporarily disable the consultation service",
     },
+    disable_weight_loss: {
+      label: "Disable Weight Management",
+      description: "Stop weight-management requests without affecting other consult lines",
+    },
     blocked_medication_terms: {
       label: "Blocked Medication Terms",
       description: "Terms that will block medication requests",
@@ -213,7 +221,7 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
     },
     ai_auto_approve_enabled: {
       label: "AI Auto-Approve Med Certs",
-      description: "Automatically approve eligible medical certificates (1-3 day, no flags) after the configured post-payment delay. Doctor batch review still applies.",
+      description: "Operational kill switch for the medical-certificate protocol. It cannot override the code-owned governance gate, which is currently paused pending Medical Director and legal review.",
     },
     auto_approve_delay_minutes: {
       label: "Auto-Approve Delay (minutes)",

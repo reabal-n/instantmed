@@ -572,7 +572,9 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
                 ? "Starting or switching pills goes through our Women's Health service, which asks the right safety questions before prescribing."
                 : serviceSteer.subtype === "ed"
                   ? "This medicine is prescribed through our Erectile Dysfunction service, which asks the heart and medication safety questions we need first. If you take it for something else, choose it below and you can continue here."
-                  : "This medicine is prescribed through our Hair Loss service, which includes the right safety screening."}
+                  : serviceSteer.subtype === "weight_loss"
+                    ? "This medicine is prescribed through our Weight Management service, which checks eligibility and safety first. If you take it for type 2 diabetes, choose that below and you can continue here."
+                    : "This medicine is prescribed through our Hair Loss service, which includes the right safety screening."}
             </p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
               <Button type="button" className="h-12" onClick={() => goToDedicatedService(serviceSteer.subtype)}>

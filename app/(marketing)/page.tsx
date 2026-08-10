@@ -139,8 +139,8 @@ export default async function HomePage() {
               {PROP_PHRASE}
             </h2>
             <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
-              Five focused services for Australian adults 18+: medical certificates, repeat
-              prescriptions, ED, hair loss, and women&apos;s health. Fees from{" "}
+              Six focused services for Australian adults 18+: medical certificates, repeat
+              prescriptions, ED, hair loss, women&apos;s health, and weight management. Fees from{" "}
               {PRICING_DISPLAY.MED_CERT} AUD. Broader concerns, ongoing care, or anything needing an
               examination belongs with your regular GP or an in-person service.
             </p>

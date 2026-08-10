@@ -194,6 +194,7 @@ describe("operations action model", () => {
     const issues = model.groups.flatMap(({ issues: groupIssues }) => groupIssues)
     expect(issues.find(({ id }) => id === "failure:email_delivery")?.detail).toContain("7-day monitor")
     expect(issues.find(({ id }) => id === "failure:prescription_delivery")?.detail).toContain("7-day monitor")
+    expect(issues.find(({ id }) => id === "failure:prescription_delivery")?.owner).toBe("Admin")
     expect(issues.filter(({ id }) => id.includes("email_delivery") || id.includes("prescription_delivery")))
       .toSatisfy((boundedIssues: typeof issues) => boundedIssues.every(({ detail }) => !detail.includes("open")))
   })

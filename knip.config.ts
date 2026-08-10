@@ -28,8 +28,6 @@ const config: KnipConfig = {
   // Standalone MCP servers have their own process entrypoints outside the app.
   ignore: ["tools/*-mcp-server/**"],
   ignoreFiles: [
-    // Reserved gated surface kept for the explicitly deferred weight-loss launch.
-    "app/weight-loss/weight-loss-client.tsx",
     // Clinical reference module retained for the next medication-guidance tranche.
     "lib/clinical/medication-guidance.ts",
     // Design-version sentinel is read by external drift tooling, not app imports.

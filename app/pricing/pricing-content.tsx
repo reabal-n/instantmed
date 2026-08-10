@@ -210,7 +210,7 @@ export function PricingContent() {
         {/* CTA */}
         <CTABanner
           title="Choose the request that fits."
-          subtitle={`Five focused services, with the fee shown before checkout. ${GUARANTEE}`}
+          subtitle={`Six focused services, with the fee shown before checkout. ${GUARANTEE}`}
           ctaText="Choose a service"
           ctaHref="/request"
         />

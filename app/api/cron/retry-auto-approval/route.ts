@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 
 import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { isAutoApprovalGovernanceApproved } from "@/lib/clinical/auto-approval-governance"
 import { env } from "@/lib/config/env"
 import { normalizeAutoApproveDelayMinutes } from "@/lib/data/types/feature-flags"
 import { buildPatientRequestAccessUrl } from "@/lib/email/request-access-url"
@@ -123,6 +124,19 @@ export async function GET(request: NextRequest) {
   } catch (followUpError) {
     logger.error("Error in still-reviewing follow-up block", {}, followUpError as Error)
     // Don't return early - auto-approval should still run
+  }
+
+  // The code-owned governance gate cannot be overridden by the database flag.
+  // Still-reviewing emails above continue while every request waits for a
+  // doctor-selected outcome.
+  if (!isAutoApprovalGovernanceApproved()) {
+    logger.warn(
+      "Auto-approval governance gate is closed - all med certs remain in the doctor queue.",
+    )
+    return NextResponse.json({
+      skipped: true,
+      reason: "Auto-approval paused pending Medical Director and legal review",
+    })
   }
 
   // Quick bail if feature flag is off

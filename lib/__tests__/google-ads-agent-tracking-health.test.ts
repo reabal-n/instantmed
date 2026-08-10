@@ -16,7 +16,6 @@ const greenFixture: TrackingHealthInput = {
   evidenceAsOf: "2026-07-27T23:00:00.000Z",
   googleDiagnosticsLagging: false,
   localPaidOrders: 12,
-  optionalAccountQueryFailed: false,
   primaryPurchaseActionOk: true,
   productionUploadWindowElapsed: true,
   productionUploadsHealthy: true,
@@ -104,7 +103,6 @@ describe("Google Ads Agent tracking health", () => {
   it.each([
     ["GOOGLE_DIAGNOSTICS_LAGGING", { googleDiagnosticsLagging: true }],
     ["CONVERSION_LAG_IMMATURE", { conversionLagImmature: true }],
-    ["OPTIONAL_ACCOUNT_QUERY_FAILED", { optionalAccountQueryFailed: true }],
   ] satisfies Array<[string, Partial<TrackingHealthInput>]>)(
     "classifies %s as AMBER and blocks scaling",
     (reasonCode, override) => {
@@ -182,13 +180,4 @@ describe("Google Ads Agent tracking health", () => {
     expect(health.reasonCodes).not.toContain("ACCOUNT_STATE_UNREADABLE")
   })
 
-  it("degrades an optional audit-query failure to AMBER, never RED", () => {
-    const health = classifyTrackingHealth({
-      ...greenFixture,
-      optionalAccountQueryFailed: true,
-    })
-
-    expect(health.state).toBe("AMBER")
-    expect(health.reasonCodes).toEqual(["OPTIONAL_ACCOUNT_QUERY_FAILED"])
-  })
 })

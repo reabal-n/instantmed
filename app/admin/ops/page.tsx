@@ -9,6 +9,7 @@ import { PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES } from "@/lib/doctor/parchment-c
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
 import { buildPrescribingIdentityBlockerReport } from "@/lib/doctor/prescribing-identity-blockers"
 import { filterQuietCronOwnedEmailFailures } from "@/lib/email/quiet-failures"
+import { filterUnresolvedParchmentFailures } from "@/lib/parchment/failure-reconciliation"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { OpsDashboardClient } from "./ops-client"
@@ -111,6 +112,7 @@ export default async function OpsDashboardPage() {
     emailFailures,
     checkoutFailures,
     prescriptionWebhookFailures,
+    successfulParchmentRetries,
     staleScriptIntakes,
     staleApprovedPrescriptionIntakes,
     staleApprovedConsultScriptIntakes,
@@ -150,6 +152,14 @@ export default async function OpsDashboardPage() {
       .not("metadata", "cs", JSON.stringify({ parchment_patient_id: "nonexistent-parchment-patient" }))
       .order("created_at", { ascending: false })
       .limit(50)),
+    readRows<AuditRow>("Parchment retry receipts", supabase
+      .from("audit_logs")
+      .select("id, action, created_at, metadata", { count: "exact" })
+      .eq("action", "admin_action")
+      .gte("created_at", weekAgo.toISOString())
+      .contains("metadata", { action_type: "parchment_webhook_retry", result: "success" })
+      .order("created_at", { ascending: false })
+      .limit(100)),
     readRows<StaleScriptRow>("stale script handoffs", supabase
       .from("intakes")
       .select("id, created_at, updated_at, approved_at, category, subtype, status", { count: "exact" })
@@ -212,9 +222,17 @@ export default async function OpsDashboardPage() {
     })),
   ])
 
-  const actionableParchmentFailures = prescriptionWebhookFailures.data
+  const unresolvedParchmentFailures = filterUnresolvedParchmentFailures(
+    prescriptionWebhookFailures.data,
+    successfulParchmentRetries.data,
+  )
+  const actionableParchmentFailures = unresolvedParchmentFailures
     .filter((row) => !isNonActionableParchmentSandboxError(row))
     .filter((row) => metadataString(row.metadata, "eventType") === "parchment:prescription.created")
+  const resolvedVisibleParchmentFailures = Math.max(
+    0,
+    prescriptionWebhookFailures.data.length - unresolvedParchmentFailures.length,
+  )
   const nonCertificateEmailFailures = filterQuietCronOwnedEmailFailures(emailFailures.data)
     .filter((row) => row.email_type !== "med_cert_patient")
     .slice(0, 20)
@@ -232,7 +250,10 @@ export default async function OpsDashboardPage() {
     stripeDlq: webhookDlq.data,
     exactCounts: {
       checkout: checkoutFailures.totalCount,
-      prescription_delivery: prescriptionWebhookFailures.totalCount,
+      prescription_delivery: Math.max(
+        0,
+        prescriptionWebhookFailures.totalCount - resolvedVisibleParchmentFailures,
+      ),
       refund_failures: refundFailures.totalCount,
       stale_scripts:
         staleScriptIntakes.totalCount
@@ -247,6 +268,7 @@ export default async function OpsDashboardPage() {
     emailFailures,
     checkoutFailures,
     prescriptionWebhookFailures,
+    successfulParchmentRetries,
     staleScriptIntakes,
     staleApprovedPrescriptionIntakes,
     staleApprovedConsultScriptIntakes,

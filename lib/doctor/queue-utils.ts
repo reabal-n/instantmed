@@ -115,7 +115,7 @@ export function getReviewHistoryStatusMeta(status: string): ReviewHistoryStatusM
 /**
  * Describe a complete count or, when capped, the bounded review slice.
  *
- * The doctor's own decisions and protocol-issued certificates are counted
+ * The doctor's own decisions and historical protocol-issued certificates are counted
  * separately: "your reviews" must never absorb work no clinician performed.
  */
 export function buildReviewHistorySummary({

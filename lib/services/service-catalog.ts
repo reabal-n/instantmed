@@ -46,7 +46,7 @@ export type ServiceColorToken =
   | "amber"    // hair loss (was `violet`; fixed in Phase 1)
   | "sky"      // reserved legacy token; no active service uses it
   | "pink"     // women's health
-  | "rose"     // weight loss (coming soon)
+  | "rose"     // weight management
 
 export interface ServiceDef {
   /** Stable identifier, used in analytics and routing. */
@@ -150,16 +150,15 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
   "weight-loss": {
     id: "weight-loss",
     title: "Weight management",
-    subtitle: "Doctor-guided treatment plan",
+    subtitle: "Doctor-reviewed assessment",
     slug: "weight-loss",
-    price: "Planned",
-    priceFrom: 0,
+    price: PRICING_DISPLAY.WEIGHT_LOSS,
+    priceFrom: PRICING.WEIGHT_LOSS,
     effort: "~6 min",
     iconKey: "Flame",
     colorToken: "rose",
     serviceRoute: "consult",
     subtype: "weight_loss",
-    comingSoon: true,
   },
 }
 

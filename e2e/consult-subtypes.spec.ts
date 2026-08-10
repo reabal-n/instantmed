@@ -399,18 +399,49 @@ test.describe("Consult Sub-Services", () => {
     })
   }
 
-  test("women's health is live; only weight management stays coming-soon", async ({ page }) => {
+  test("every service is live on the hub; nothing is coming-soon", async ({ page }) => {
     await page.goto("/request")
     await waitForPageLoad(page)
 
-    const comingSoonStrip = page.locator("[data-coming-soon-strip='true']")
-
-    // Women's health launched 2026-06-15 - it is an active hub action now.
+    // Women's health launched 2026-06-15; weight management 2026-08-07.
     await expect(page.getByRole("button", { name: /Women's health/i })).toBeVisible()
-    await expect(comingSoonStrip.getByText("Women's health")).not.toBeVisible()
-    // Weight management remains gated.
-    await expect(page.getByRole("button", { name: /Weight management/i })).not.toBeVisible()
-    await expect(comingSoonStrip.getByText("Weight management")).toBeVisible()
+    await expect(page.getByRole("button", { name: /Weight management/i })).toBeVisible()
+    await expect(page.locator("[data-coming-soon-strip='true']")).toHaveCount(0)
+  })
+
+  test("weight management flow: assessment screens, honest BMI hint, review shows $89.95", async ({ page }) => {
+    await page.goto("/request?service=consult&subtype=weight_loss")
+    await waitForPageLoad(page)
+
+    // Assessment step (form-first, D-A: no scheduled-call step exists).
+    await expect(page.getByText(/Current weight/i)).toBeVisible({ timeout: 15000 })
+    await page.locator("input[type='number']").nth(0).fill("100")
+    await page.locator("input[type='number']").nth(1).fill("175")
+
+    // Live BMI readout from the shared eligibility constants.
+    await expect(page.getByText(/Your BMI/i)).toBeVisible()
+    await expect(page.getByText("32.7")).toBeVisible()
+
+    await page.locator("input[type='number']").nth(2).fill("85")
+    await page.getByRole("radio", { name: /Diet and exercise only/i }).click()
+
+    // Safety screening (D-D): pregnancy, MEN2, pancreatitis, eating disorder.
+    const radioNo = async (group: RegExp) => {
+      await page.getByRole("radiogroup", { name: group }).getByRole("radio", { name: "No" }).click()
+    }
+    await radioNo(/Pregnancy or breastfeeding status/i)
+    await radioNo(/Medullary thyroid cancer or MEN2 history/i)
+    await radioNo(/Pancreatitis history/i)
+    await radioNo(/Eating disorder history/i)
+    await radioNo(/adverse reactions to weight loss medications/i)
+
+    await page.getByPlaceholder(/Describe what you hope to achieve/i)
+      .fill("Lose weight steadily for long-term health and better energy.")
+
+    await page.getByRole("button", { name: /^Continue$/i }).first().click()
+
+    // Medical history step follows (the common consult tail).
+    await expect(page.getByText(/Any allergies/i)).toBeVisible({ timeout: 15000 })
   })
 
   for (const { intent, selectedLabel, neutralLabel } of [

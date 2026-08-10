@@ -46,7 +46,7 @@ const howWeDecideFaqs = [
   },
   {
     question: "Do you use AI in the decision-making process?",
-    answer: "AI may assist with intake and information organisation. It does not prescribe. Eligible low-risk medical-certificate issuance uses a logged, deterministic doctor-owned protocol rather than an AI decision, and each certificate is individually reviewed afterward.",
+    answer: "AI may assist with intake and information organisation. It does not prescribe or make clinical decisions. An AHPRA-registered doctor reviews each medical-certificate or prescribing request before anything is issued.",
   },
   {
     question: "What happens to my data after the review?",
@@ -73,11 +73,11 @@ const howWeDecideFaqs = [
 export const metadata: Metadata = {
   title: "How Doctors Review Your Request | Our Process",
   description:
-    "How AHPRA-registered doctors assess prescribing requests, how the doctor-owned medical-certificate protocol works, and why some requests need more review.",
+    "How AHPRA-registered doctors assess medical-certificate and prescribing requests, and when follow-up or in-person care may be needed.",
   openGraph: {
     title: "How We Make Decisions | InstantMed",
     description:
-      "Prescribing decisions are made by Australian doctors. Eligible protocol-issued medical certificates are individually reviewed afterward.",
+      "Medical-certificate and prescribing decisions are made by Australian doctors before anything is issued.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/how-we-decide",
@@ -197,7 +197,7 @@ export default function HowWeDecidePage() {
           pill="Our Process"
           title="Every request has clinical ownership"
           highlightWords={["clinical ownership"]}
-          subtitle="Prescribing decisions are made by a doctor. Eligible low-risk medical certificates may follow a logged doctor-owned protocol, with individual review afterward."
+          subtitle="Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued."
         />
 
         <CitationFacts variant="muted" />

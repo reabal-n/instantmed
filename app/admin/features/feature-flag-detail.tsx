@@ -24,6 +24,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
+import { AUTO_APPROVAL_GOVERNANCE } from "@/lib/clinical/auto-approval-governance"
 import {
   FLAG_KEYS,
   MAX_AUTO_APPROVE_DELAY_MINUTES,
@@ -513,54 +514,79 @@ export function AutoApproveSection({
   onExecuteToggle,
   onSaveFlag,
 }: AutoApproveSectionProps) {
+  const governancePaused = !AUTO_APPROVAL_GOVERNANCE.approved
+  const effectiveAutoApproval = flags.ai_auto_approve_enabled && !governancePaused
+
   return (
-    <Card className={flags.ai_auto_approve_enabled ? "border-primary/30 bg-primary/[0.04]" : ""}>
-      <CardHeader className="px-6 pt-6">
-        <CardTitle className="text-base flex items-center gap-2">
+    <Card
+      className={
+        governancePaused
+          ? "min-w-0 border-warning-border bg-warning-light/30"
+          : effectiveAutoApproval
+            ? "min-w-0 border-primary/30 bg-primary/[0.04]"
+            : "min-w-0"
+      }
+    >
+      <CardHeader className="px-4 pt-4 sm:px-6 sm:pt-6">
+        <CardTitle className="flex flex-wrap items-center gap-2 text-base">
           <Stethoscope className="h-4 w-4" />
           AI auto-approve med certs
-          {flags.ai_auto_approve_enabled && (
+          {governancePaused ? (
+            <Badge className="border-warning-border bg-warning-light text-warning sm:ml-2">
+              GOVERNANCE PAUSE
+            </Badge>
+          ) : effectiveAutoApproval ? (
             <Badge className="ml-2 bg-primary/10 text-primary border-primary/20">ACTIVE</Badge>
-          )}
+          ) : null}
         </CardTitle>
         <CardDescription>
-          Automatically approve eligible medical certificates after payment. Any attention-severity signal is
-          routed to manual review before a certificate exists. Lower-severity soft flags (co-symptom mental
-          health, injury, chronic, AI-draft review hints) do not block issuance — those certificates appear in
-          the dashboard&apos;s daily approved list marked <span className="font-medium">Flagged</span> and sorted
-          first. There is no post-approval sign-off obligation.
+          {governancePaused
+            ? "Protocol issuance is hard-paused pending Medical Director and legal review. Every medical-certificate request remains in the doctor queue for an individual outcome before issue; the database toggle cannot override this code gate."
+            : "Automatically approve eligible medical certificates after payment. Any attention-severity signal is routed to manual review before a certificate exists."}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-5 px-6 pb-6">
+      <CardContent className="space-y-5 px-4 pb-4 sm:px-6 sm:pb-6">
         {/* Master toggle */}
-        <div className="flex items-center justify-between p-5 rounded-lg border">
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${flags.ai_auto_approve_enabled ? "bg-primary/10" : "bg-muted"}`}>
-              <Stethoscope className={`h-5 w-5 ${flags.ai_auto_approve_enabled ? "text-primary" : "text-muted-foreground"}`} />
+        <div className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className={`shrink-0 p-2 rounded-lg ${governancePaused ? "bg-warning-light" : effectiveAutoApproval ? "bg-primary/10" : "bg-muted"}`}>
+              {governancePaused ? (
+                <AlertTriangle className="h-5 w-5 text-warning" />
+              ) : (
+                <Stethoscope className={`h-5 w-5 ${effectiveAutoApproval ? "text-primary" : "text-muted-foreground"}`} />
+              )}
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="font-medium">Auto-Approval Status</p>
-              <p className="text-sm text-muted-foreground">
-                {flags.ai_auto_approve_enabled
-                  ? "Eligible med certs are auto-approved and delivered"
-                  : "All med certs require manual doctor review (default)"}
+              <p id="auto-approval-governance-status" className="break-words text-sm text-muted-foreground">
+                {governancePaused
+                  ? flags.ai_auto_approve_enabled
+                    ? "Paused by code; stored database toggle is still on"
+                    : "Paused by code; all med certs require doctor review"
+                  : effectiveAutoApproval
+                    ? "Eligible med certs are auto-approved and delivered"
+                    : "All med certs require manual doctor review (default)"}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3 self-end sm:self-auto">
             {isSaving === FLAG_KEYS.AI_AUTO_APPROVE_ENABLED && (
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             )}
             <Switch
               checked={flags.ai_auto_approve_enabled}
               onCheckedChange={() => onExecuteToggle(FLAG_KEYS.AI_AUTO_APPROVE_ENABLED, flags.ai_auto_approve_enabled)}
-              disabled={isSaving === FLAG_KEYS.AI_AUTO_APPROVE_ENABLED}
+              disabled={
+                isSaving === FLAG_KEYS.AI_AUTO_APPROVE_ENABLED
+                || (governancePaused && !flags.ai_auto_approve_enabled)
+              }
+              aria-describedby="auto-approval-governance-status"
             />
           </div>
         </div>
 
         {/* Settings (shown when enabled) */}
-        {flags.ai_auto_approve_enabled && (
+        {effectiveAutoApproval && (
           <div className="space-y-4 p-5 rounded-lg border bg-primary/[0.03]">
             <p className="text-sm font-medium">Auto-Approve Settings</p>
 
@@ -742,7 +768,9 @@ export function AutoApproveSection({
         )}
 
         <p className="text-xs text-muted-foreground">
-          Safety: only 1-3 day certs eligible. Excludes mental health, injury, chronic conditions, pregnancy, emergencies, and minors. All auto-approved certs are logged to the audit trail.
+          {governancePaused
+            ? `Governance pause effective since ${AUTO_APPROVAL_GOVERNANCE.pausedSince}. Re-enabling requires a reviewed code change after ${AUTO_APPROVAL_GOVERNANCE.reviewRequired}.`
+            : "Safety: only 1-3 day certs eligible. Excludes mental health, injury, chronic conditions, pregnancy, emergencies, and minors. All auto-approved certs are logged to the audit trail."}
         </p>
       </CardContent>
     </Card>
@@ -762,8 +790,8 @@ export function NotificationsSection({
   onSaveFlag,
 }: NotificationsSectionProps) {
   return (
-    <Card>
-      <CardHeader className="px-6 pt-6">
+    <Card className="min-w-0">
+      <CardHeader className="px-4 pt-4 sm:px-6 sm:pt-6">
         <CardTitle className="text-base flex items-center gap-2">
           <Megaphone className="h-4 w-4" />
           Notifications
@@ -772,14 +800,14 @@ export function NotificationsSection({
           Controls the doctor&apos;s new-request Telegram alert. Stale queue and system alerts stay in ops/Sentry so the phone stays quiet.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-5 px-6 pb-6">
+      <CardContent className="space-y-5 px-4 pb-4 sm:px-6 sm:pb-6">
         {/* Master toggle */}
-        <div className="flex items-center justify-between p-5 rounded-lg border">
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${flags.telegram_notifications_enabled ? "bg-info-light" : "bg-muted"}`}>
+        <div className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className={`shrink-0 p-2 rounded-lg ${flags.telegram_notifications_enabled ? "bg-info-light" : "bg-muted"}`}>
               <Megaphone className={`h-5 w-5 ${flags.telegram_notifications_enabled ? "text-info" : "text-muted-foreground"}`} />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="font-medium">Telegram Notifications</p>
               <p className="text-sm text-muted-foreground">
                 {flags.telegram_notifications_enabled
@@ -788,7 +816,7 @@ export function NotificationsSection({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3 self-end sm:self-auto">
             {isSaving === FLAG_KEYS.TELEGRAM_NOTIFICATIONS_ENABLED && (
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             )}
@@ -801,13 +829,13 @@ export function NotificationsSection({
         </div>
 
         {/* Delay settings */}
-        <div className="space-y-4 p-5 rounded-lg border">
+        <div className="space-y-4 rounded-lg border p-4 sm:p-5">
           <p className="text-sm font-medium">Delay email threshold</p>
 
           {/* Patient delay email */}
           <div className="flex flex-wrap items-center gap-3">
             <label className="text-sm text-muted-foreground w-48">Patient Delay Email (hours)</label>
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               <Input
                 type="number"
                 min={1}
@@ -840,8 +868,8 @@ export function ParchmentSection({
   onExecuteToggle,
 }: ParchmentSectionProps) {
   return (
-    <Card>
-      <CardHeader className="px-6 pt-6">
+    <Card className="min-w-0">
+      <CardHeader className="px-4 pt-4 sm:px-6 sm:pt-6">
         <CardTitle className="text-base flex items-center gap-2">
           <Pill className="h-4 w-4" />
           Parchment ePrescribing
@@ -850,13 +878,13 @@ export function ParchmentSection({
           Enables the embedded Parchment iframe in the doctor portal for writing eScripts directly inside InstantMed. When off, doctors use the manual &quot;Mark Sent&quot; workflow.
         </CardDescription>
       </CardHeader>
-      <CardContent className="px-6 pb-6">
-        <div className="flex items-center justify-between p-5 rounded-lg border">
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${flags.parchment_embedded_prescribing ? "bg-success-light" : "bg-muted"}`}>
+      <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
+        <div className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className={`shrink-0 p-2 rounded-lg ${flags.parchment_embedded_prescribing ? "bg-success-light" : "bg-muted"}`}>
               <Pill className={`h-5 w-5 ${flags.parchment_embedded_prescribing ? "text-success" : "text-muted-foreground"}`} />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="font-medium">Embedded Prescribing</p>
               <p className="text-sm text-muted-foreground">
                 {flags.parchment_embedded_prescribing
@@ -865,7 +893,7 @@ export function ParchmentSection({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3 self-end sm:self-auto">
             {isSaving === FLAG_KEYS.PARCHMENT_EMBEDDED_PRESCRIBING && (
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             )}

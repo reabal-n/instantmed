@@ -4,6 +4,10 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import { PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES } from "@/lib/doctor/parchment-claim"
+import {
+  filterUnresolvedParchmentFailures,
+  isNonActionableParchmentFailure,
+} from "@/lib/parchment/failure-reconciliation"
 
 const PARCHMENT_PRESCRIPTION_EVENT = "parchment:prescription.created"
 const SYSTEM_ADMIN_EMAILS = new Set(["system@instantmed.com.au"])
@@ -14,12 +18,9 @@ const RETRYABLE_REASONS = new Set([
   "prescription_upsert_failed",
   "prescriber_not_linked",
   "patient_not_found",
+  "intake_correlation_mismatch",
   "script_completion_failed",
   "script_completion_resume_failed",
-])
-
-const NON_ACTIONABLE_WEBHOOK_FAILURE_REASONS = new Set([
-  "no_awaiting_script_intake",
 ])
 
 type Metadata = Record<string, unknown> | null
@@ -228,7 +229,7 @@ function isRetryableParchmentFailure(failure: {
 }
 
 function isNonActionableWebhookFailure(failure: ParchmentFailedWebhook): boolean {
-  return NON_ACTIONABLE_WEBHOOK_FAILURE_REASONS.has(failure.reason) && !failure.intakeId
+  return isNonActionableParchmentFailure(failure)
 }
 
 export function mapParchmentFailedWebhook(row: AuditFailureRow): ParchmentFailedWebhook | null {
@@ -415,6 +416,7 @@ export async function getParchmentOpsDashboard(
     syncedPatientsResult,
     unsyncedPatientsResult,
     failedWebhooksResult,
+    successfulRetriesResult,
     recentEventsResult,
     recentPrescriptionsResult,
     syncedPrescriptions7dResult,
@@ -450,6 +452,14 @@ export async function getParchmentOpsDashboard(
       .gte("created_at", weekAgo)
       .order("created_at", { ascending: false })
       .limit(50),
+
+    supabase
+      .from("audit_logs")
+      .select("action, metadata")
+      .eq("action", "admin_action")
+      .gte("created_at", weekAgo)
+      .contains("metadata", { action_type: "parchment_webhook_retry", result: "success" })
+      .limit(100),
 
     supabase
       .from("audit_logs")
@@ -514,9 +524,15 @@ export async function getParchmentOpsDashboard(
       .maybeSingle(),
   ])
 
-  const failedWebhooks = ((failedWebhooksResult.data || []) as AuditFailureRow[])
-    .map(mapParchmentFailedWebhook)
-    .filter((failure): failure is ParchmentFailedWebhook => failure !== null)
+  const failedWebhooks = filterUnresolvedParchmentFailures(
+    ((failedWebhooksResult.data || []) as AuditFailureRow[])
+      .map(mapParchmentFailedWebhook)
+      .filter((failure): failure is ParchmentFailedWebhook => failure !== null),
+    (successfulRetriesResult.data || []) as Array<{
+      action: string
+      metadata: Record<string, unknown> | null
+    }>,
+  )
   const historicalWebhookFailures = failedWebhooks.filter(isNonActionableWebhookFailure)
   const actionableFailures = failedWebhooks.filter((failure) => !isNonActionableWebhookFailure(failure))
   const staleScriptHandoffRows = [

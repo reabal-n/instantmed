@@ -304,7 +304,7 @@ export async function getIntakeStatus(intakeId: string): Promise<string | null> 
 /**
  * Get issued certificate for an intake
  */
-export async function getIssuedCertificateForIntake(intakeId: string): Promise<IssuedCertificate | null> {
+async function getIssuedCertificateForIntake(intakeId: string): Promise<IssuedCertificate | null> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("issued_certificates")
@@ -1080,7 +1080,7 @@ export async function getEmailOutboxForIntake(intakeId: string): Promise<EmailOu
 /**
  * Get email outbox entry by type for an intake
  */
-export async function getEmailOutboxByType(
+async function getEmailOutboxByType(
   intakeId: string, 
   emailType: string
 ): Promise<EmailOutboxEntry | null> {

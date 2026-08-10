@@ -23,18 +23,15 @@ import { CenteredHero } from "@/components/heroes"
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
-import { AnimatedDonutChart } from "@/components/marketing/shared/data-viz"
 import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
 import { CTABanner } from "@/components/sections/cta-banner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion"
-import { SectionPill } from "@/components/ui/section-pill"
 import { Textarea } from "@/components/ui/textarea"
 import { capture } from "@/lib/analytics/capture"
 import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS, CONTACT_PHONE } from "@/lib/constants"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
 const CONTACT_CONFIG = {
@@ -155,33 +152,6 @@ export function ContactClient() {
 
         {/* Response Stats */}
         <div className="bg-muted/30 dark:bg-white/[0.02]">
-          <section className="py-12 px-4 sm:px-6">
-            <div className="mx-auto max-w-3xl">
-              <div className="text-center mb-8">
-                <SectionPill>Response times</SectionPill>
-              </div>
-              <div className="grid sm:grid-cols-2 gap-8 items-center">
-                <div className="flex justify-center">
-                  <AnimatedDonutChart
-                    value={100}
-                    label="Messages replied to"
-                    size={130}
-                    strokeWidth={11}
-                  />
-                </div>
-                <div className="space-y-4">
-                  <div className="rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none p-4">
-                    <p className="text-2xl font-semibold text-primary tabular-nums">~{SOCIAL_PROOF.averageResponseMinutes} min</p>
-                    <p className="text-xs text-muted-foreground">Average support response time</p>
-                  </div>
-                  <div className="rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none p-4">
-                    <p className="text-2xl font-semibold text-foreground tabular-nums">24h max</p>
-                    <p className="text-xs text-muted-foreground">Every message gets a reply</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
         </div>
 
         {/* Contact Section */}
@@ -301,7 +271,7 @@ function ContactInfoCard({ prefersReducedMotion }: { prefersReducedMotion: boole
             </div>
             <div>
               <p className="text-sm font-medium">Request Hours</p>
-              <p className="text-sm text-muted-foreground">Requests accepted 24/7 · Doctor review follows when available</p>
+              <p className="text-sm text-muted-foreground">Requests and doctor reviews operate 24/7 · Timing varies</p>
             </div>
           </div>
           <div className="flex items-start gap-4 pt-2 border-t border-border/50">

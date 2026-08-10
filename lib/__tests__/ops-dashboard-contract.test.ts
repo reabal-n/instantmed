@@ -179,7 +179,9 @@ describe("ops dashboard data contract", () => {
     expect(opsActionModelSource).toContain('group: "fulfilment"')
     expect(opsActionModelSource).toContain('group: "identity_access"')
     expect(opsActionModelSource).toContain("Resolve the oldest identity blocker first")
-    expect(opsActionModelSource).toContain("Inspect the Parchment webhook failures")
+    expect(opsActionModelSource).toContain("Review and retry the Parchment sync")
+    expect(opsFailuresSource).toContain('label: "Parchment sync"')
+    expect(opsPageSource).toContain("filterUnresolvedParchmentFailures")
     expect(opsClientSource).not.toContain("Parchment unsynced")
   })
 

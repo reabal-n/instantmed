@@ -70,6 +70,17 @@ vi.mock("@/lib/observability/logger", () => ({
   }),
 }))
 
+const mockAutoApprovalGovernance = vi.hoisted(() => ({ approved: true }))
+
+vi.mock("@/lib/clinical/auto-approval-governance", () => ({
+  AUTO_APPROVAL_GOVERNANCE: {
+    approved: mockAutoApprovalGovernance.approved,
+    status: "approved",
+    pausedSince: null,
+  },
+  isAutoApprovalGovernanceApproved: () => mockAutoApprovalGovernance.approved,
+}))
+
 const mockFeatureFlags = {
   ai_auto_approve_enabled: false,
   auto_approve_dry_run: false,
@@ -242,6 +253,7 @@ describe("attemptAutoApproval orchestrator", () => {
     mockFeatureFlags.auto_approve_rate_limit_5min = 10
     mockFeatureFlags.auto_approve_daily_cap = 50
     mockFeatureFlags.auto_approve_max_duration_days = 3
+    mockAutoApprovalGovernance.approved = true
     mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 9 })
     mockRecordRateLimitedAction.mockResolvedValue(undefined)
     mockExecuteCertApproval.mockReset()
@@ -276,6 +288,23 @@ describe("attemptAutoApproval orchestrator", () => {
     expect(result.reason).toBe("Feature disabled")
     // Should NOT touch Supabase at all
     expect(mockSupabaseChain.from).not.toHaveBeenCalled()
+  })
+
+  it("fails closed when governance approval is pending even if the feature flag is ON", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = true
+    mockAutoApprovalGovernance.approved = false
+    const attemptAutoApproval = await getAttemptAutoApproval()
+
+    const result = await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(result).toEqual({
+      success: true,
+      autoApproved: false,
+      reason: "Governance review pending",
+    })
+    expect(mockCheckRateLimit).not.toHaveBeenCalled()
+    expect(mockSupabaseChain.from).not.toHaveBeenCalled()
+    expect(mockExecuteCertApproval).not.toHaveBeenCalled()
   })
 
   // --------------------------------------------------------------------------

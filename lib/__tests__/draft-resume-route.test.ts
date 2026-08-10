@@ -43,9 +43,10 @@ describe("draft resume route", () => {
 
   it("fails closed for unresumable drafts", () => {
     expect(buildDraftResumePath({ serviceType: "consult" })).toBeNull()
+    // weight_loss launched 2026-08-07 — its drafts resume like any live subtype.
     expect(
       buildDraftResumePath({ serviceType: "consult", consultSubtype: "weight_loss" }),
-    ).toBeNull()
+    ).toBe("/request?service=consult&subtype=weight_loss")
     expect(
       buildDraftResumePath({ serviceType: "consult", consultSubtype: "general" }),
     ).toBeNull()

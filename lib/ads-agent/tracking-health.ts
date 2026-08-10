@@ -17,7 +17,6 @@ export interface TrackingHealthInput {
   evidenceAsOf: string
   googleDiagnosticsLagging: boolean
   localPaidOrders: number
-  optionalAccountQueryFailed: boolean
   primaryPurchaseActionOk: boolean
   productionUploadWindowElapsed: boolean
   productionUploadsHealthy: boolean
@@ -94,9 +93,6 @@ export function classifyTrackingHealth(input: TrackingHealthInput): TrackingHeal
   }
   if (input.conversionLagImmature) {
     amberReasonCodes.push("CONVERSION_LAG_IMMATURE")
-  }
-  if (input.optionalAccountQueryFailed) {
-    amberReasonCodes.push("OPTIONAL_ACCOUNT_QUERY_FAILED")
   }
 
   const state = redReasonCodes.length > 0

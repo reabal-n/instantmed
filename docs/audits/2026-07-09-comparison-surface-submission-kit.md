@@ -85,7 +85,7 @@ Version date: 2026-07-13.
 
 ### Short profile copy
 
-InstantMed is an Australian telehealth service for adults seeking selected one-off services: medical certificates, repeat prescription requests, erectile-dysfunction assessment, hair-loss assessment, and women's health pathways for UTI and starting or switching the contraceptive pill. Requests start with a secure clinical form. Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward. The doctor may contact the patient if clinically needed. Approved certificates or eScript tokens are delivered digitally.
+InstantMed is an Australian telehealth service for adults seeking selected one-off services: medical certificates, repeat prescription requests, erectile-dysfunction assessment, hair-loss assessment, and women's health pathways for UTI and starting or switching the contraceptive pill. Requests start with a secure clinical form. Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued. The doctor may contact the patient if clinically needed. Approved certificates or eScript tokens are delivered digitally.
 
 InstantMed Pty Ltd, ABN 64 694 559 334. Surry Hills, NSW. LegitScript certified, ID 48400566. Australia only. 18+.
 
@@ -101,7 +101,7 @@ InstantMed Pty Ltd, ABN 64 694 559 334. Surry Hills, NSW. LegitScript certified,
 | Certificate types | Routine sick leave, carer's leave, and study leave certificates. |
 | Certificate duration | Up to 3 days, issued only if clinically appropriate after doctor review. |
 | Certificate exclusions | Not for high-stakes requests such as court, fitness-to-drive, fitness-to-fly, workers compensation, NDIS, or exam deferral evidence. |
-| Review model | Secure form first. Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward. Doctor may contact the patient if clinically needed. |
+| Review model | Secure form first. Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued. Doctor may contact the patient if clinically needed. |
 | Turnaround wording | No customer-facing review-time guarantee supplied. Optional Priority review is available for +$9.95. |
 | Verification | Free certificate verification at `https://instantmed.com.au/verify`. |
 | Ease of use | Web-based secure form. No app required. |

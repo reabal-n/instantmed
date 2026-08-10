@@ -34,8 +34,8 @@ Supported service params are defined by `SUPPORTED_SERVICE_SLUGS` and
 requests are not standalone `/request` checkout services.
 
 Consult subtype launch state is defined in `lib/request/consult-subtypes.ts`.
-Women's health is live; weight loss remains blocked before checkout even if a
-client route is bypassed.
+Women's health and weight management are live. Unlaunched consult subtypes stay
+blocked before checkout even if a client route is bypassed.
 
 ## Architecture
 
