@@ -105,9 +105,20 @@ async function resolvePrescriberProfileId({
 }): Promise<string | null> {
   const metadataPrescriberProfileId = getMetadataString(metadata, "prescriber_profile_id")
   if (metadataPrescriberProfileId && UUID_RE.test(metadataPrescriberProfileId)) {
-    return metadataPrescriberProfileId
+    const { data: metadataPrescriber } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", metadataPrescriberProfileId)
+      .eq("parchment_user_id", prescriberUserId)
+      .in("role", ["doctor", "admin"])
+      .maybeSingle()
+
+    if (metadataPrescriber?.id) return metadataPrescriber.id
   }
 
+  // Retry against the current identity link, not a historical profile id from
+  // the failure receipt. A removed clinical role or relinked Parchment user
+  // must fail closed unless exactly one current prescriber owns the external id.
   const { data: prescribers } = await supabase
     .from("profiles")
     .select("id")
@@ -193,12 +204,16 @@ export async function retryParchmentWebhookFailureAction(
         action: "admin_action",
         actorId: authResult.profile.id,
         actorType: "admin",
+        intakeId: failure.intake_id ?? undefined,
         metadata: {
           action_type: "parchment_webhook_retry",
           failure_audit_id: auditLogId,
           event_id: eventId,
+          patient_profile_id: patientProfileId,
+          prescriber_profile_id: prescriberProfileId,
           result: "failed",
           reason: result.reason || "prescription_sync_failed",
+          scid,
         },
       })
       return { success: false, error: result.reason || "Could not sync the Parchment prescription." }
@@ -215,6 +230,22 @@ export async function retryParchmentWebhookFailureAction(
         { externalEvidenceAlreadyIssued: true },
       )
       if (!markedScriptSent) {
+        await logAuditEvent({
+          action: "admin_action",
+          actorId: authResult.profile.id,
+          actorType: "admin",
+          intakeId: failure.intake_id,
+          metadata: {
+            action_type: "parchment_webhook_retry",
+            failure_audit_id: auditLogId,
+            event_id: eventId,
+            patient_profile_id: patientProfileId,
+            prescriber_profile_id: prescriberProfileId,
+            result: "failed",
+            reason: "script_sent_update_failed",
+            scid,
+          },
+        })
         return { success: false, error: "Prescription synced, but the linked intake could not be marked script sent." }
       }
     }
@@ -223,13 +254,17 @@ export async function retryParchmentWebhookFailureAction(
       action: "admin_action",
       actorId: authResult.profile.id,
       actorType: "admin",
+      intakeId: failure.intake_id ?? undefined,
       metadata: {
         action_type: "parchment_webhook_retry",
         failure_audit_id: auditLogId,
         event_id: eventId,
         result: "success",
+        patient_profile_id: patientProfileId,
+        prescriber_profile_id: prescriberProfileId,
         prescription_id: result.prescriptionId,
         marked_script_sent: markedScriptSent,
+        scid,
       },
     })
 

@@ -18,7 +18,7 @@ describe("portfolio money-page art direction", () => {
     expect(homepage).toContain("<PortfolioRouteMap />")
     expect(homepage).toContain("secondaryCta={null}")
     expect(homepage).not.toContain("beforeCta={")
-    expect(homepage).toContain("Five focused services for Australian adults 18+")
+    expect(homepage).toContain("Six focused services for Australian adults 18+")
     expect(homepage).toContain("PRICING_DISPLAY.MED_CERT")
     expect(homepage).toContain("regular GP or an in-person service")
     expect(homepage).not.toContain("ServiceCards")

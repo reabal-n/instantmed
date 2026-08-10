@@ -105,7 +105,7 @@ Use:
 
 > No video. No call. No appointment.
 
-Only use this on medical certificate surfaces where the protocol supports no-call completion for suitable administrative documentation requests.
+Only use this on medical certificate surfaces where the active doctor-review pathway supports no-call completion for suitable administrative documentation requests.
 
 ### Prescription And Specialty Services
 
@@ -227,7 +227,7 @@ Medication details should be collected inside the secure intake, not in URL para
 
 ## 9. Campaign Structure
 
-Rows labelled future/gated are planning guidance only. They do not authorise campaign creation or paid traffic before the canonical service boundary is explicitly changed.
+A live service does not itself authorise a campaign. Campaign creation, activation, budget changes, or paid traffic require the exact approval workflow in `docs/OPERATIONS.md`.
 
 **tCPA is an average acquisition target, never a CPC or per-conversion cap.** Individual conversions can cost more or less than the target. Do not describe tCPA as limiting the price of a click or guaranteeing the cost of each conversion.
 
@@ -237,7 +237,7 @@ Rows labelled future/gated are planning guidance only. They do not authorise cam
 | Repeat prescription search | Repeat medication review, eScript if approved, no booked appointment. Avoid drug names in ad/destination. |
 | ED search | ED assessment or men's health assessment. Avoid drug names, performance guarantees, explicit sexualized copy, or "no call needed." |
 | Hair loss search | Hair loss assessment. Avoid drug names and outcome guarantees. |
-| Weight loss search (future/gated) | No campaign may run while weight loss remains gated. If a future launch is explicitly approved, use weight-management assessment framing and avoid injection/drug references, guaranteed weight loss, and body-shaming language. |
+| Weight-management search (live service; paid Ads not approved) | No campaign may run without separate exact operator approval. If approved, use weight-management assessment framing and avoid injection/drug references, guaranteed weight loss, and body-shaming language. |
 | Women's health search | Narrow condition/service terms. Avoid sensitive targeting and guaranteed outcomes. |
 
 ### Negative-keyword governance

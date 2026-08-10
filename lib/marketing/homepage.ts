@@ -220,6 +220,7 @@ export const footerLinks = {
     { label: "ED Assessment", href: "/erectile-dysfunction" },
     { label: "Hair Loss Assessment", href: "/hair-loss" },
     { label: "Women's Health", href: "/womens-health" },
+    { label: "Weight Management", href: "/weight-loss" },
   ],
   company: [
     { label: "About Us", href: "/about" },

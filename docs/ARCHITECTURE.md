@@ -47,10 +47,10 @@ app/request/page.tsx -> RequestFlow -> step-router.tsx (lazy) -> steps/*.tsx
 | `med-cert` | certificate, symptoms, details (skipped when profile identity is complete), checkout |
 | `prescription` / `repeat-script` | medication (medicine + prescription history + dose/indication/side effects — merged into one screen 2026-07-17), medical-history, details, review/pay |
 | `consult` (general) | **Retired 2026-05-20.** No active flow — the `'general'` subtype was removed from `ConsultSubtype`. `/consult` is now a services-overview page; `/general-consult` 301s into it. `consult` stays in code only as the parent category for the subtypes below. |
-| `consult` (ED) | ed-goals, ed-assessment (IIEF-5), ed-health (consolidated safety + medical history), ed-preferences, details (+ height/weight/BMI), review, checkout |
+| `consult` (ED) | ed-goals (duration + one severity item), ed-health (consolidated safety + medical history), ed-preferences, details (+ height/weight/BMI), review, checkout. The retired `ed-assessment` IIEF-5 step remains backward-compatible for historical and in-flight answers only. |
 | `consult` (hair loss) | hair-loss-goals, hair-loss-assessment, hair-loss-health (consolidated safety + medical history), hair-loss-preferences, details, review, checkout |
 | `consult` (women's health) | womens-health-type, womens-health-assessment, medical-history, details, review, checkout. Live 2026-06-15; scoped to UTI + new/switch pill via `LIVE_WOMENS_HEALTH_OPTIONS` (`ocp_repeat` routes to repeat-script; morning-after / period-pain / "other" gated). |
-| `consult` (weight loss) | weight-loss-assessment, weight-loss-call-scheduling, medical-history, details, review, checkout. **Gated** — `weight_loss` is in `BLOCKED_CONSULT_SUBTYPES`; entry returns no steps until launch readiness changes. |
+| `consult` (weight management) | weight-loss-assessment, medical-history, details, review. **LIVE 2026-08-07** — form-first (the scheduled-call step was removed; eating-disorder/cardiac history soft-escalates to a doctor call), GLP-1-focused, BMI floors + pregnancy/MEN2/pancreatitis screening enforced via the `weight-management` safety slug. |
 
 **Adding steps:** (1) Create component in `components/request/steps/` implementing `StepProps`, (2) register lazy import in `step-router.tsx`, (3) add definition to `lib/request/step-registry.ts`. Steps support conditional skip via `getStepsForService(type, { isAuthenticated, hasProfile, hasMedicare, answers })`.
 
@@ -875,7 +875,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/db.ts` | Supabase generated types + custom interfaces |
 | `types/certificate-template.ts` | PDF template field definitions |
 | `lib/hooks/` | Shared client hooks | Debounce, keyboard navigation, landing analytics, responsive media, section visibility, validation summaries, and staff refresh helpers |
-| `e2e/` | 77 TypeScript files, including 68 specs and `helpers/` (seed/teardown, auth bypass, production-synthetic side-effect isolation). Focused paid-flow and ops smoke specs are the blocking CI gate. |
+| `e2e/` | 78 TypeScript files, including 69 specs and `helpers/` (seed/teardown, auth bypass, production-synthetic side-effect isolation). Focused paid-flow and ops smoke specs are the blocking CI gate. |
 | `supabase/migrations/` | 110 SQL migration files (1 squashed baseline + 109 incremental). Most recent: `20260807120000_add_can_review_weight_loss.sql` — per-doctor weight-management review flag (default false, explicit grant; admin backfilled true) for the 2026-08-07 launch build. Before it, `20260803093000_add_priority_fee_refunded_at.sql` — nullable `intakes.priority_fee_refunded_at` stamp for the priority breach auto-refund (once-only guard; approval emails read it to acknowledge the refund). Before it, `20260727184400_google_ads_fee_cache_on_intakes.sql` and the production-applied Ads Agent migrations (PHI-free run/proposal/experiment state, RLS default-deny, Stripe fee cache on the intake PaymentIntent row). |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
@@ -916,9 +916,9 @@ Document Builder approve action → approveAndSendCert() → executeCertApproval
 
 Doctor-triggered medical certificate approval must enter through the Document Builder server action, not a duplicate API route.
 
-### Auto-Approval Pipeline
+### Auto-Approval Pipeline (Governance-Paused)
 
-Med cert only. Feature-flagged (`ai_auto_approve_enabled`), rate-limited, dry-run mode available.
+Med cert only. Protocol issuance is currently fail-closed by `lib/clinical/auto-approval-governance.ts` pending Medical Director and legal reconciliation. The database flag (`ai_auto_approve_enabled`) can stop the pathway but cannot authorise it. Every paid medical-certificate request therefore remains in the doctor queue for an individual outcome before issue. The dormant engine is feature-flagged, rate-limited, and has a dry-run mode for controlled evaluation.
 
 **State machine** — single `auto_approval_state` enum column replaces the old 6-column boolean soup:
 
@@ -934,16 +934,18 @@ Med cert only. Feature-flagged (`ai_auto_approve_enabled`), rate-limited, dry-ru
 **Transitions:**
 ```
 payment webhook → awaiting_drafts → (drafts ready) → pending
-                                                          ↓
-                                                      cron picks up
-                                                          ↓
-                                                      attempting → (cert issued) → approved
-                                                          ↓
-                                             (deterministic fail) → needs_doctor
-                                                          ↓
-                                             (transient fail) → failed_retrying → cron retry
-                                                          ↓
-                                             (attempts ≥ 10) → needs_doctor
+                                                          ├─ governance gate closed (current) → doctor queue
+                                                          └─ governance approved + DB flag on (dormant)
+                                                                                     ↓
+                                                                                cron picks up
+                                                                                     ↓
+                                                                                attempting → (cert issued) → approved
+                                                                                     ↓
+                                                                    (deterministic fail) → needs_doctor
+                                                                                     ↓
+                                                                    (transient fail) → failed_retrying → cron retry
+                                                                                     ↓
+                                                                    (attempts ≥ 10) → needs_doctor
 
 Timeout recovery: attempting (stale > 10 min) → failed_retrying (cron)
 ```
@@ -965,13 +967,14 @@ Partial index on actionable states only: `idx_intakes_auto_approval_active` on `
 
 | File | Role |
 |------|------|
+| `lib/clinical/auto-approval-governance.ts` | Code-owned authorisation gate; fail-closed while clinical/legal review is pending |
 | `lib/clinical/auto-approval-state.ts` | Atomic CAS state transitions with Sentry/PostHog observability |
 | `lib/clinical/auto-approval-pipeline.ts` | Orchestrator: claim → eligibility → doctor select → execute → mark terminal state |
 | `lib/clinical/auto-approval.ts` | Eligibility engine (unchanged) |
 
-**Post-approval doctor oversight:** There is no post-approval attestation obligation (operator decision 2026-08-04). Risk is gated before issuance: `DETERMINISTIC_FAILURE_PREFIXES` routes every **attention-severity** signal to `needs_doctor` for manual approval, so nothing auto-issues with an unreviewed *attention* flag. **`info`-severity engine soft flags are different and do auto-issue**: co-symptom mental-health / injury / chronic mentions and AI-draft `requiresReview` hints are recorded, not blocked. They are persisted to `intakes.risk_flags` by `persistEngineSoftFlags` (`lib/clinical/soft-flag-persistence.ts`) so the daily approved list can mark them **Flagged** and sort them first. Whether any of them should become a pre-issuance block is an open operator decision — see docs/ROADMAP.md. The former `getPendingBatchReviews()` queue, `markBatchReviewed()` / `markBatchReviewedCohort()` actions, dashboard attestation banner, `getBatchReviewHealth()` monitor, and the critical `med_cert_batch_review_overdue` alert were all removed.
+**Current oversight boundary:** Doctor review happens before issue. The former post-approval attestation controls remain retired, and the unresolved governance question is contained by the code-owned pre-issuance pause. If protocol issuance is ever reactivated, `DETERMINISTIC_FAILURE_PREFIXES` still routes every **attention-severity** signal to `needs_doctor`; the AI-draft `requiresReview` hint blocks through the `draft_review_flag:` deterministic prefix. Historical `info`-severity flags remain available for retrospective review. See `docs/ROADMAP.md` for the bounded eight-case review set.
 
-What remains is visibility plus correction. `getRecentlyCompletedIntakes({ includeAutoIssued })` merges the signed-in clinician's own decisions with the certificates the protocol issued today into one chronological dashboard list; auto-issued rows carry `activity_provenance: "auto_issued"` so they are rendered and counted separately from clinician decisions. `includeAutoIssued` is admin-gated because an auto-issued certificate has no reviewing doctor and so sits outside the per-doctor patient-access boundary, and the query applies `filterSeededE2EIntakes` since it has no reviewer predicate to keep seeded test rows out. `revokeAIApproval()` is the standing correction path: it revokes the certificate and returns the intake to manual review. The database permits that otherwise-forbidden `approved → in_review` reversal only when a revoked issued-certificate row exists. The `batch_reviewed_at` / `batch_reviewed_by` columns are retained as historical audit records and are no longer written.
+Historical visibility plus correction remains. `getRecentlyCompletedIntakes({ includeAutoIssued })` can merge the signed-in clinician's own decisions with historical auto-issued certificates; those rows carry `activity_provenance: "auto_issued"` and are counted separately from clinician decisions. `includeAutoIssued` is admin-gated because an auto-issued certificate has no reviewing doctor and sits outside the per-doctor patient-access boundary. `revokeAIApproval()` revokes a historical certificate and returns the intake to manual review. The database permits that otherwise-forbidden `approved → in_review` reversal only when a revoked issued-certificate row exists. The `batch_reviewed_at` / `batch_reviewed_by` columns are retained as historical audit records and are no longer written.
 
 **Race condition handling:**
 
@@ -1004,7 +1007,7 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 | `/prescriptions` | Repeat medication landing (one-off eScript review workflow). Subscription language is dormant/future strategy unless reactivated in `docs/BUSINESS_PLAN.md`. |
 | `/erectile-dysfunction` | Bespoke ED specialty landing (`ErectileDysfunctionLanding`). Routes into `/request?service=consult&subtype=ed`. Form-first doctor review; doctor may call/message if clinically needed. Short URL `/ed` 301s here. |
 | `/hair-loss` | Bespoke hair loss specialty landing (`HairLossLanding`). Routes into `/request?service=consult&subtype=hair_loss`. Form-first doctor review; doctor may call/message if clinically needed. |
-| `/consult` | Services overview page (no intake funnel). General Consult was retired on 2026-05-20; the URL preserves the SEO surface for "online doctor" queries and routes visitors to the 5 active services (med-cert, repeat Rx, ED, hair loss, and narrow women's health). `/general-consult` 301s here. |
+| `/consult` | Services overview page (no intake funnel). General Consult was retired on 2026-05-20; the URL preserves the SEO surface for "online doctor" queries and routes visitors to the 6 active services (med-cert, repeat Rx, ED, hair loss, narrow women's health, and weight management). `/general-consult` 301s here. |
 | `/blog` | Doctor-reviewed, guide-only health articles (12h ISR revalidation) |
 | `/resources` | Source-backed authority resources for journalists, search engines, and answer engines. Individual assets cover telehealth safety, employer policy, secure prescription requests, GP access, complaints, and governance. |
 | `/faq` | 34 FAQs across 7 categories |

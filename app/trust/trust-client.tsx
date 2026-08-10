@@ -331,7 +331,7 @@ export default function TrustPage() {
               Clear process. <span className="text-primary">Named accountability</span>.
             </Heading>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              AHPRA-registered doctors make prescribing decisions. Eligible low-risk medical certificates may follow a logged doctor-owned protocol and are individually reviewed afterward. If something doesn&apos;t look right, the request goes to a doctor.
+              AHPRA-registered doctors review medical-certificate and prescribing requests before anything is issued. If something needs clarification, the doctor may ask follow-up questions.
             </p>
             <ul className="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-3">
               {[

@@ -108,10 +108,9 @@ Already registered + ABR-validated. For reference / re-entry:
 > InstantMed is an Australian telehealth service for adults seeking doctor review
 > for medical certificates, repeat prescription requests, hair-loss assessment,
 > erectile-dysfunction assessment, and women's health pathways. Patients complete
-> a secure online form. Prescribing requests receive doctor review before any
-> prescription is issued. Eligible low-risk certificate requests may follow a
-> doctor-owned protocol and are individually reviewed afterward. The doctor may contact them if
-> clinically needed. Approved documents or eScript tokens are delivered digitally.
+> a secure online form. Medical-certificate and prescribing requests require doctor
+> review before any certificate or prescription is issued. The doctor may contact
+> them if clinically needed. Approved documents or eScript tokens are delivered digitally.
 > Requests can be submitted and reviewed 24/7; review timing varies. Medicare optional for certificates; required for
 > prescriptions/consults.
 

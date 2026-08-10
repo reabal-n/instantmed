@@ -310,6 +310,50 @@ describe("buildClinicalCaseSummary", () => {
     )
   })
 
+  it("surfaces a haematuria caution with follow-up guidance when blood is a reported symptom", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "consult",
+      subtype: "womens_health",
+      serviceType: "consult",
+      patientName: "Siena Harding",
+      answers: {
+        womensHealthOption: "uti",
+        utiSymptoms: ["burning", "blood"],
+        utiRedFlags: "no",
+        utiPregnant: "no",
+      },
+    })
+
+    // Ported from the retired consult-validators haematuria note: isolated
+    // visible blood is not a red-flag decline, but the doctor must see the
+    // investigation guidance (urine MCS / renal imaging if recurrent or >50).
+    expect(summary.recommendedPlan.action).toBe("prescribe")
+    expect(summary.safetyItems).toContainEqual(
+      expect.objectContaining({
+        severity: "caution",
+        label: "Blood in urine (haematuria)",
+        detail: expect.stringContaining("urine MCS"),
+      }),
+    )
+  })
+
+  it("does not raise the haematuria caution without the blood symptom", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "consult",
+      subtype: "womens_health",
+      serviceType: "consult",
+      patientName: "Siena Harding",
+      answers: {
+        womensHealthOption: "uti",
+        utiSymptoms: ["burning", "frequency"],
+        utiRedFlags: "no",
+        utiPregnant: "no",
+      },
+    })
+
+    expect(summary.safetyItems.some((item) => item.label === "Blood in urine (haematuria)")).toBe(false)
+  })
+
   it("turns safe women's health pill requests into Parchment prescribing context", () => {
     const summary = buildClinicalCaseSummary({
       category: "consult",
@@ -919,6 +963,12 @@ describe("weightLossSummary", () => {
     expect(summary.recommendedPlan.action).toBe("prescribe")
     expect(summary.keyFacts.some((f) => f.label === "BMI" && f.value === "32.7")).toBe(true)
     expect(summary.safetyItems).toHaveLength(0)
+    // The Parchment handoff intent unlocks the cockpit's Prescribe button —
+    // without it the workflow dead-ends with Complete request disabled.
+    expect(summary.prescriptionIntent).toBeDefined()
+    expect(summary.prescriptionIntent?.parchmentMode).toBe("open_patient_prescribe")
+    // GLP-1-focused launch (D-B): no medicine is preselected for the doctor.
+    expect(summary.prescriptionIntent?.medicationName).toBeUndefined()
   })
 
   it("requires a call for eating-disorder history and never an async decision", () => {
@@ -935,6 +985,10 @@ describe("weightLossSummary", () => {
     })
     expect(summary.recommendedPlan.action).toBe("needs_call")
     expect(summary.safetyItems.some((i) => i.label === "Eating disorder history")).toBe(true)
+    // Call-first, not never: the doctor phones the patient, then may still
+    // prescribe — the intent stays available and surfaces the caution.
+    expect(summary.prescriptionIntent).toBeDefined()
+    expect(summary.prescriptionIntent?.cautionChecks).toContain("Eating disorder history")
   })
 
   it("renders a block-severity item when a server-declined answer somehow lands", () => {
@@ -949,6 +1003,8 @@ describe("weightLossSummary", () => {
       },
     })
     expect(summary.safetyItems.some((i) => i.severity === "block" && i.label === "Pregnant or breastfeeding")).toBe(true)
+    // Block-severity screens withhold the Parchment handoff entirely.
+    expect(summary.prescriptionIntent).toBeUndefined()
   })
 })
 

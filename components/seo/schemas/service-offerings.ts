@@ -25,8 +25,9 @@ import {
  * (never on a prescribing pathway). No rating/review markup anywhere — the
  * entity uses `sameAs` identity links only (see ./same-as).
  */
-const SERVICE_SCHEMA_COPY: Partial<
-  Record<CanonicalServiceId, { name: string; serviceType: string; description: string }>
+const SERVICE_SCHEMA_COPY: Record<
+  CanonicalServiceId,
+  { name: string; serviceType: string; description: string }
 > = {
   "med-cert": {
     name: "Medical Certificate",
@@ -58,6 +59,12 @@ const SERVICE_SCHEMA_COPY: Partial<
     description:
       "Structured form-first assessment for uncomplicated urinary tract infection (UTI), and for starting or switching the contraceptive pill, reviewed by an AHPRA-registered doctor.",
   },
+  "weight-loss": {
+    name: "Weight Management",
+    serviceType: "Weight management assessment",
+    description:
+      "One-off weight-management assessment for eligible adults after structured eligibility and safety screening, reviewed by an AHPRA-registered doctor. Treatment and prescribing are not guaranteed.",
+  },
 }
 
 /**
@@ -66,23 +73,20 @@ const SERVICE_SCHEMA_COPY: Partial<
  * its marketing landing page to strengthen entity association.
  */
 export function getServiceOffers(baseUrl: string) {
-  return getActiveServices().flatMap((service) => {
+  return getActiveServices().map((service) => {
     const copy = SERVICE_SCHEMA_COPY[service.id]
-    if (!copy) return []
-    return [
-      {
-        "@type": "Offer",
-        price: service.priceFrom.toFixed(2),
-        priceCurrency: "AUD",
-        url: `${baseUrl}/${service.slug}`,
-        itemOffered: {
-          "@type": "Service",
-          name: copy.name,
-          serviceType: copy.serviceType,
-          description: copy.description,
-        },
+    return {
+      "@type": "Offer",
+      price: service.priceFrom.toFixed(2),
+      priceCurrency: "AUD",
+      url: `${baseUrl}/${service.slug}`,
+      itemOffered: {
+        "@type": "Service",
+        name: copy.name,
+        serviceType: copy.serviceType,
+        description: copy.description,
       },
-    ]
+    }
   })
 }
 
@@ -92,15 +96,12 @@ export function getServiceOffers(baseUrl: string) {
  * shared `/#organization` entity never disagree about the service catalog.
  */
 export function getAvailableServices() {
-  return getActiveServices().flatMap((service) => {
+  return getActiveServices().map((service) => {
     const copy = SERVICE_SCHEMA_COPY[service.id]
-    if (!copy) return []
-    return [
-      {
-        "@type": "MedicalProcedure",
-        name: copy.name,
-        description: copy.description,
-      },
-    ]
+    return {
+      "@type": "MedicalProcedure",
+      name: copy.name,
+      description: copy.description,
+    }
   })
 }

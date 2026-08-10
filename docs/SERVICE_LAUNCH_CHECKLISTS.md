@@ -1,13 +1,13 @@
 # Service Launch Checklists
 
-> Production gates for launching, keeping healthy, or materially scaling paid traffic for repeat scripts, ED, hair loss, and women's health.
-> The launched services are already live as low-budget bounded pilots. Use this before any material ramp and whenever pilot health drifts.
+> Production gates for launching, keeping healthy, or materially scaling paid traffic for repeat scripts, ED, hair loss, women's health, and weight management.
+> The launched services are live as bounded pilots. Paid acquisition applies only to service lines with separate approval. Use this before any material ramp and whenever pilot health drifts.
 
-**Last updated:** 2026-07-12
+**Last updated:** 2026-08-10
 
 ## Launch Rule
 
-Medical certificates, repeat scripts, ED, hair loss, and narrowly scoped women's health may remain live at low budgets to gather data (operator decision 2026-07-12). That standing pilot approval is not approval to scale.
+Medical certificates, repeat scripts, ED, hair loss, narrowly scoped women's health, and (from 2026-08-07) the weight-management assessment may remain live as bounded pilots to gather data (operator decisions 2026-07-12 and 2026-08-07). Paid budget applies only where separately approved; weight-management advertising remains unapproved. A standing pilot approval is not approval to scale.
 
 Do not materially increase spend for a prescribing or specialty service until every must-pass item is current, evidence is captured, the service passes the economic rule in `docs/REVENUE_MODEL.md`, and the owner-operator approves the exact Ads mutation. If a gate fails, hold scaling and present the required pause, rollback, or remediation for approval. Clinical/service kill switches remain governed by the incident and safety runbooks.
 
@@ -41,7 +41,7 @@ Do not materially increase spend for a prescribing or specialty service until ev
 
 | Gate | Requirement | Failure mode prevented |
 |------|-------------|------------------------|
-| Clinical screen | IIEF-5 is captured, persisted, and visible to the doctor with contraindication context. | Doctor loses the structured severity signal. |
+| Clinical screen | Current duration and the single severity item are captured, persisted, and visible to the doctor with consolidated safety and medical-history context. Historical IIEF-5 answers remain renderable for in-flight and prior intakes. | Doctor loses the current structured context or an older intake becomes unreadable. |
 | Nitrate block | Nitrate use and high-risk cardiac answers hard-block or require GP/in-person care before payment. | High-risk contraindicated request reaches routine prescribing. |
 | Cardiac escalation | Chest pain, unstable cardiac history, recent cardiac event, and unclear exercise tolerance create a clear doctor escalation path. | Unsafe ED case is treated as low-risk convenience care. |
 | Drug-name discipline | Paid ED pages and ads use assessment language only. No sildenafil, tadalafil, Viagra, Cialis, or equivalent terms in paid destinations. | TGA and Google policy breach. |
@@ -74,9 +74,23 @@ Scope is live but deliberately narrow: UTI symptoms and new/switch contraceptive
 | Paid landing page | Ads and pages stay narrow: UTI assessment or contraception review only. No antibiotic guarantee, pill guarantee, broad women's-health positioning, prescription medicine names, or no-call promise. | AHPRA/TGA/Google risk and unsuitable patient intent increase. |
 | Pilot threshold | Keep bounded paid cohorts under daily manual review. Recommend pausing or remediating if refund rate exceeds 10%, unsuitable-case rate exceeds 20%, or doctor-contact rate exceeds 40%. | Paid traffic scales a high-friction or clinically unsuitable service. |
 
+## Weight Management (launched 2026-08-07)
+
+Scope is deliberately narrow: a one-off, form-first, GLP-1-focused doctor assessment (operator decisions D-A..D-E, `docs/plans/2026-08-07-weight-loss-launch-plan.md`). Phentermine is excluded at launch; continuation is a new consult, never a subscription. **No paid advertising** — `docs/ADVERTISING_COMPLIANCE.md` requires its own approval for any weight campaign.
+
+| Gate | Requirement | Failure mode prevented |
+|------|-------------|------------------------|
+| Eligibility floors | BMI DECLINE below 27, and below 30 without a weight-related comorbidity, enforced server-side from `lib/clinical/weight-loss-eligibility.ts` (single source shared with the intake hint and marketing copy). | Ineligible or cosmetic-intent patients pay and are refunded, or thresholds drift between copy and enforcement. |
+| Absolute contraindications | Pregnancy/breastfeeding, MEN2/medullary thyroid cancer, and pancreatitis are required answers and DECLINE at checkout via the `weight-management` safety slug (`consult:weight_loss` in the checkout slugMap — the canonical slug, or every rule silently unfilters). | A contraindicated GLP-1 request takes payment. |
+| Call-required histories | Eating-disorder and cardiac history soft-escalate (`requiresCall`) and the doctor surface plans `needs_call` — no asynchronous decision before phone contact. | Sensitive cases decided without the promised conversation. |
+| Capability | Non-admin doctors need `can_review_weight_loss` (default FALSE) + Medical Director sign-off before reviewing this line. | An unverified doctor reviews weight cases. |
+| Repeat-lane routing | Dual-indication GLP-1s ask the structured weight-vs-diabetes question; weight-only brands hard-route; phentermine/orlistat flag for decline-to-GP. Diabetic repeats are never walled out. | The $29.95 lane resumes serving unscreened weight requests, or diabetics lose access. |
+| Kill switch | `disable_weight_loss` stops this line alone; `disable_consults` still stops every consult subtype. | The new line cannot be stopped without taking down ED/hair/WH. |
+| Pilot threshold | Bounded manual review of every early case. Pause and remediate if refund rate exceeds 10%, unsuitable-case rate exceeds 20%, or doctor-call rate exceeds 40%. | Scaling a high-friction or clinically unsuitable service. |
+
 ## Service-Specific Scorecard
 
-Each prescribing/specialty service must reach at least 90/100 before any material paid scale. A low-budget pilot does not waive a failed safety, fulfilment, or compliance gate.
+Each prescribing/specialty service must reach at least 90/100 before any material paid scale. A bounded pilot does not waive a failed safety, fulfilment, or compliance gate.
 
 | Area | Weight |
 |------|--------|

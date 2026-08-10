@@ -45,8 +45,8 @@ export function MedicalBusinessSchema({ baseUrl = "https://instantmed.com.au" }:
     ],
     medicalSpecialty: ["PrimaryCare"],
     // Derived from the live SERVICE_CATALOG via getAvailableServices so this
-    // node and OrganizationSchema.hasOfferCatalog describe the same 5 active
-    // services (women's health included) under the shared /#organization entity.
+    // node and OrganizationSchema.hasOfferCatalog describe the same 6 active
+    // services (weight management included) under the shared /#organization entity.
     availableService: getAvailableServices(),
     areaServed: {
       "@type": "Country",

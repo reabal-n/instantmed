@@ -2,7 +2,7 @@
 
 > **Authority:** Reference only. This file has no independent execution authority. `docs/ROADMAP.md` is the sole active queue, and `docs/BUSINESS_PLAN.md` owns the service boundary — weight loss stays GATED until the operator explicitly changes both. **Phases 1–5 of this plan must not be executed until the Decision Gate below is answered by the operator.**
 
-> **Status:** Plan only (2026-08-07). Phase 0 (compliance remediation of the gated-state surfaces) shipped alongside this document; nothing else is built.
+> **Status:** EXECUTED 2026-08-07. Operator adopted all recommendations (D-A..D-E) same day; Phases 1-2 (#445), Phase 3 (#446), and Phases 4-5 (gate flip + governance + marketing) shipped as three stacked PRs. Retained as the launch evidence record.
 
 > **For Claude:** REQUIRED SUB-SKILLS before any phase: `instantmed-clinical-safety-review` (service launch), `instantmed-checkout-payment-review` (new paid path), `instantmed-marketing-compliance-review` + `instantmed-ui-browser-verification` before public sign-off. Execute with superpowers:executing-plans, one phase per PR, no auto-merge on clinical phases.
 

@@ -104,6 +104,7 @@ type QueueDoctorScopeProfile = Pick<
   | "can_review_consults"
   | "can_review_ed"
   | "can_review_hair_loss"
+  | "can_review_weight_loss"
 > & {
   doctor_available?: boolean | null
 }
@@ -123,7 +124,8 @@ async function getDoctorQueueScope(
       can_review_repeat_rx,
       can_review_consults,
       can_review_ed,
-      can_review_hair_loss
+      can_review_hair_loss,
+      can_review_weight_loss
     `)
     .eq("id", doctorId)
     .single<QueueDoctorScopeProfile>()

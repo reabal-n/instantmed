@@ -8,8 +8,9 @@ import type { ConsultSubtype } from "@/types/services"
  */
 export const BLOCKED_CONSULT_SUBTYPES: ReadonlySet<ConsultSubtype> = new Set([
   // womens_health launched 2026-06-15 (UTI + new/switch pill only, scoped by
-  // LIVE_WOMENS_HEALTH_OPTIONS). weight_loss stays gated.
-  "weight_loss",
+  // LIVE_WOMENS_HEALTH_OPTIONS). weight_loss launched 2026-08-07 (form-first,
+  // GLP-1-focused, D-A..D-E in docs/plans/2026-08-07-weight-loss-launch-plan.md)
+  // — the set is empty but stays as the mechanism for gating future subtypes.
 ])
 
 /**

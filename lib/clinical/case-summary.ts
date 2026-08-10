@@ -1240,7 +1240,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     const pregnancyUnsure = pregnancyRaw === "not_sure"
     const details = str(answers, "utiDetails")
 
-    const safetyItems: ClinicalSafetyItem[] = [
+    const safetyItems: ClinicalSafetyItem[] = ([
       {
         severity: "info" as const,
         label: "Reported symptoms",
@@ -1248,6 +1248,16 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
           ? `Patient reports: ${symptomsLabel}.`
           : "No symptoms recorded in the structured screen.",
       },
+      // Haematuria carries follow-up guidance even without red flags —
+      // ported from the retired consult-validators haematuria note.
+      Array.isArray(raw(answers, "utiSymptoms")) &&
+      (raw(answers, "utiSymptoms") as unknown[]).includes("blood")
+        ? {
+            severity: "caution" as const,
+            label: "Blood in urine (haematuria)",
+            detail: "Visible blood reported. If recurrent, or in a patient over 50, consider follow-up investigation after the acute episode (urine MCS, renal tract imaging).",
+          }
+        : null,
       redFlags
         ? {
             severity: "block" as const,
@@ -1276,7 +1286,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
               label: "Pregnancy",
               detail: "Not pregnant per patient report.",
             },
-    ]
+    ] as (ClinicalSafetyItem | null)[]).filter((item): item is ClinicalSafetyItem => item !== null)
 
     const hasBlock = redFlags || pregnant
     const keyFacts = compactFacts([
@@ -1639,6 +1649,31 @@ function weightLossSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
         ],
       }
 
+  // Parchment handoff context. Withheld only when a block-severity screen
+  // fired (those cases decline, not prescribe). A needs_call case keeps the
+  // intent: the doctor calls first, then may still prescribe — the plan's
+  // next steps already sequence the call ahead of Parchment. No medicine is
+  // preselected: GLP-1-focused launch (D-B), agent and dose are the doctor's
+  // selection inside Parchment.
+  const hasBlock = pregnant || men2 || pancreatitis || belowFloor
+  const cautionChecks = safetyItems
+    .filter((item) => item.severity === "caution")
+    .map((item) => item.label)
+  const prescriptionIntent = hasBlock ? undefined : makeIntent({
+    presetLabel: "Weight-management Parchment handoff context",
+    medicationSearchHint: "GLP-1 receptor agonist — agent per doctor selection",
+    directionsTemplate: "Titrate per the selected product schedule; counsel on GI side effects and review timing.",
+    repeatsTemplate: "One-off review — continuation requires a new consult.",
+    safetyChecks: [
+      "Pregnancy/breastfeeding screened",
+      "MEN2 / medullary thyroid history screened",
+      "Pancreatitis history screened",
+      "BMI eligibility confirmed server-side",
+    ],
+    cautionChecks,
+    alternativeNote: "Decline with a full refund if not clinically appropriate.",
+  })
+
   const header = patientHeader(input)
   const subjective = `${header} requesting weight-management review. ${goals}`
   const objective = `BMI ${bmi !== null ? bmi.toFixed(1) : "not computable"} (${weightKg || "?"} kg, ${heightCm || "?"} cm), target ${str(answers, "targetWeight") || "?"} kg. Comorbidities: ${comorbidities.length ? comorbidities.join(", ") : "none stated"}. Screens: pregnancy ${pregnant ? "YES" : "no"}, MEN2 ${men2 ? "YES" : "no"}, pancreatitis ${pancreatitis ? "YES" : "no"}, eating disorder ${eatingDisorder ? "YES" : "no"}.`
@@ -1662,6 +1697,7 @@ function weightLossSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     ]),
     safetyItems,
     recommendedPlan,
+    prescriptionIntent,
     draftNote: note(subjective, objective, assessment, planText),
   }
 }

@@ -408,7 +408,7 @@ describe("unified intake regressions", () => {
     expect(buildDraftResumePath({ serviceType: "consult" })).toBeNull()
     expect(
       buildDraftResumePath({ serviceType: "consult", consultSubtype: "weight_loss" }),
-    ).toBeNull()
+    ).toBe("/request?service=consult&subtype=weight_loss")
 
     expect(normalizeConsultSubtypeParam("womens-health")).toBe("womens_health")
     expect(normalizeConsultSubtypeParam("weight-loss")).toBe("weight_loss")
@@ -417,13 +417,15 @@ describe("unified intake regressions", () => {
     )
   })
 
-  it("server-blocks still-gated consult subtypes even if the client route is bypassed", () => {
-    // weight_loss remains gated.
+  it("server-blocks unavailable consult subtypes even if the client route is bypassed", () => {
+    // weight_loss launched 2026-08-07: it now fails later for missing
+    // answers, not the availability gate. The gate itself stays pinned via
+    // the empty-set mechanics in consult-subtype-contract.
     expect(
       validateAnswersServerSide("consult", {
         consultSubtype: "weight_loss",
       }, identity),
-    ).toContain("not currently available")
+    ).not.toContain("not currently available")
 
     // womens_health launched 2026-06-15: it is no longer subtype-blocked (it
     // fails later for missing answers, not the "not available" gate).

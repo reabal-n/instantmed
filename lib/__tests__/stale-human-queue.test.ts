@@ -7,15 +7,19 @@ import {
 } from "@/lib/monitoring/stale-human-queue"
 
 // The operator chose a targeted Telegram ALERT over an autonomous auto-pause:
-// page when the oldest paid-but-unreviewed Rx/consult intake passes 24h (these
-// need a human — med certs auto-approve and are deliberately excluded).
+// page when the oldest paid-but-unreviewed request passes 24h. Medical
+// certificates join this queue while protocol issuance is governance-paused.
 
 const NOW = new Date("2026-06-11T12:00:00Z")
 const hoursAgo = (h: number) => new Date(NOW.getTime() - h * 3_600_000).toISOString()
 
 describe("buildStaleHumanQueueAlert", () => {
-  it("excludes medical_certificate from the human-required categories", () => {
-    expect([...STALE_HUMAN_QUEUE_CATEGORIES]).toEqual(["prescription", "consultation"])
+  it("includes medical_certificate while protocol issuance is governance-paused", () => {
+    expect([...STALE_HUMAN_QUEUE_CATEGORIES]).toEqual([
+      "medical_certificate",
+      "prescription",
+      "consultation",
+    ])
     expect(STALE_HUMAN_QUEUE_THRESHOLD_HOURS).toBe(24)
   })
 
@@ -35,14 +39,14 @@ describe("buildStaleHumanQueueAlert", () => {
   it("fires a critical alert once the oldest crosses 24h", () => {
     const alert = buildStaleHumanQueueAlert(hoursAgo(26), 3, NOW)
     expect(alert).not.toBeNull()
-    expect(alert).toMatchObject({ metric: "rx_consult_queue_stalled", severity: "critical", count: 3 })
+    expect(alert).toMatchObject({ metric: "human_review_queue_stalled", severity: "critical", count: 3 })
     expect(alert?.detail).toMatch(/26h/)
-    expect(alert?.detail).toMatch(/need a human/i)
+    expect(alert?.detail).toMatch(/needs a human/i)
   })
 
   it("uses singular vs plural correctly", () => {
-    expect(buildStaleHumanQueueAlert(hoursAgo(30), 1, NOW)?.detail).toMatch(/1 prescription\/consult request\b/)
-    expect(buildStaleHumanQueueAlert(hoursAgo(30), 2, NOW)?.detail).toMatch(/2 prescription\/consult requests\b/)
+    expect(buildStaleHumanQueueAlert(hoursAgo(30), 1, NOW)?.detail).toMatch(/1 paid request\b/)
+    expect(buildStaleHumanQueueAlert(hoursAgo(30), 2, NOW)?.detail).toMatch(/2 paid requests\b/)
   })
 
   it("returns null on an invalid timestamp rather than throwing", () => {

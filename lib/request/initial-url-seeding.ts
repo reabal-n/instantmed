@@ -36,7 +36,6 @@ export interface InitialRequestUrlDecision {
 
 const COMING_SOON_SUBTYPE_REDIRECTS: Record<string, string> = {
   womens_health: "/request",
-  weight_loss: "/weight-loss",
 }
 
 export function getInitialRequestUrlDecision({

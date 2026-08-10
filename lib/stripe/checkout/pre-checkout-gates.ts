@@ -29,7 +29,7 @@ export async function runPreCheckoutGates(input: CreateCheckoutInput): Promise<S
 
   // DB-backed service-disabled kill switch.
   const serviceCategory = CATEGORY_TO_SERVICE[input.category] || "other"
-  if (await isServiceDisabled(serviceCategory)) {
+  if (await isServiceDisabled(serviceCategory, input.subtype)) {
     const errorCode =
       serviceCategory === "medical_certificate"
         ? SERVICE_DISABLED_ERRORS.MED_CERT_DISABLED
