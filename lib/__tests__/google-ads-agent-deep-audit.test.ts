@@ -493,4 +493,22 @@ describe("Google Ads Agent deep audit", () => {
     }])
     expect(search).toHaveBeenCalledTimes(9)
   })
+
+  it("surfaces audit-only account query failures in completeness evidence", async () => {
+    const report = await getGoogleAdsDeepAudit({
+      dependencies: {
+        getAccountState: vi.fn(async () => ({
+          ...state(),
+          optionalQueryFailures: ["customerUserAccess"],
+        })),
+        search: vi.fn(async () => []),
+      },
+      now: new Date("2026-07-31T01:00:00.000Z"),
+    })
+
+    expect(report.completeness.accountState).toBe(true)
+    expect(report.completeness.optionalAccountQueryFailures).toEqual([
+      "customerUserAccess",
+    ])
+  })
 })

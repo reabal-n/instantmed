@@ -255,6 +255,26 @@ describe("Google Ads Agent policy", () => {
     })
   })
 
+  it("keeps the exact 90 percent service-purity boundary actionable", () => {
+    const scripts = campaign({
+      orders: 10,
+      refundedOrders: 0,
+      refundRate: 0,
+      serviceOrders: { ed: 1, scripts: 9 },
+    })
+    const recommendations = evaluateAdsPolicy(snapshot({
+      daily: [scripts],
+      rolling30: [scripts],
+    }))
+
+    expect(recommendationFor(recommendations, "scripts")).toEqual({
+      kind: "APPROVAL_NEEDED",
+      proposedMutationFamily: "campaign_bidding",
+      reasonCodes: ["SCRIPTS_SCALE_GATES_PASSED"],
+      service: "scripts",
+    })
+  })
+
   it("investigates material cross-service attribution before economic action", () => {
     const scripts = campaign({
       orders: 10,

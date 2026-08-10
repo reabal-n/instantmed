@@ -548,7 +548,7 @@ The control plane sends one PHI-free **Daily Ads Brief** at **09:00 Australia/Sy
 
 The delivery cron ships off and becomes active only with `GOOGLE_ADS_AGENT_DAILY_BRIEF_ENABLED=true` in production. This reporting flag does not enable proposals, approvals, or mutations.
 
-Tracking health contains only evidence that can affect conversion measurement or an operating decision. Failures from audit-only account queries remain visible in the deep audit but do not degrade the scale gate. Campaign-level cross-service attribution blocks economic action only when the expected service represents less than 90% of recognised attributed orders; smaller contamination remains visible in the aggregate evidence without turning one stray order into a permanent hold.
+Tracking health contains only evidence that can affect conversion measurement or an operating decision. Failures from audit-only account queries remain visible under deep-audit completeness evidence but do not degrade the scale gate. Campaign-level cross-service attribution blocks economic action only when the expected service represents less than 90% of recognised attributed orders; smaller contamination remains visible in the aggregate evidence without turning one stray order into a permanent hold.
 
 The Codex app automation **InstantMed Ads daily manager** runs shortly after the 09:00 delivery. During report shadow it verifies the expected closed-day run, Telegram receipt, duplicate suppression, fee reconciliation, and tracking state without changing the account. After the seven-consecutive-day proof gate, the same automation becomes the continuing daily operator. On Mondays it also runs the detailed read-only account audit:
 
