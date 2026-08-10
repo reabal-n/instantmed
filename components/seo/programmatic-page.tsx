@@ -70,6 +70,15 @@ interface ResolvedProgrammaticPage<Entry> extends ProgrammaticPageContext<Entry>
   schemas: ProgrammaticSchemaData
 }
 
+const CANONICAL_PATH_SEGMENT = /^[A-Za-z0-9._~-]+$/
+
+function isCanonicalPathSegment(value: unknown): value is string {
+  return typeof value === "string"
+    && value !== "."
+    && value !== ".."
+    && CANONICAL_PATH_SEGMENT.test(value)
+}
+
 function absoluteSiteUrl(pathname: ProgrammaticPathname): string {
   if (
     !pathname.startsWith("/")
@@ -84,6 +93,11 @@ function absoluteSiteUrl(pathname: ProgrammaticPathname): string {
   const url = new URL(pathname, `${DEFAULT_APP_URL}/`)
   if (url.origin !== siteOrigin) {
     throw new Error("Programmatic SEO pathname must stay on the canonical site")
+  }
+  if (url.pathname !== pathname) {
+    throw new Error(
+      "Programmatic SEO pathname must not require URL normalization",
+    )
   }
   return url.toString()
 }
@@ -135,7 +149,8 @@ function metadataFor(
  * Defines one programmatic route family. The route owns its copy, layout, and
  * specialised schema; this module derives lookup, static params, canonical and
  * OpenGraph URLs, robots policy, FAQ normalization, and breadcrumb schema from
- * one path/slug definition.
+ * one path/slug definition. Unsafe request slugs resolve to null; an unsafe
+ * configured static slug throws so the build cannot publish a drifting URL.
  */
 export function defineProgrammaticSeoRoute<
   const ParamKey extends string,
@@ -155,13 +170,7 @@ export function defineProgrammaticSeoRoute<
   ): Promise<ResolvedProgrammaticPage<ProgrammaticEntry<GetEntry>> | null> {
     const values = await params
     const slug = values[definition.param]
-    if (
-      typeof slug !== "string"
-      || slug.length === 0
-      || slug.includes("/")
-      || slug.includes("?")
-      || slug.includes("#")
-    ) {
+    if (!isCanonicalPathSegment(slug)) {
       return null
     }
 
@@ -208,9 +217,15 @@ export function defineProgrammaticSeoRoute<
   }
 
   function generateStaticParams(): Array<Record<ParamKey, string>> {
-    return definition.getSlugs().map((slug) => (
-      { [definition.param]: slug } as Record<ParamKey, string>
-    ))
+    return definition.getSlugs().map((slug) => {
+      if (!isCanonicalPathSegment(slug)) {
+        throw new Error(
+          `Programmatic SEO slug must be one canonical path segment: ${slug}`,
+        )
+      }
+
+      return { [definition.param]: slug } as Record<ParamKey, string>
+    })
   }
 
   return {
