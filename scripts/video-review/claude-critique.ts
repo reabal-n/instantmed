@@ -160,10 +160,18 @@ Return this exact shape. Do not rename keys.
   }
 }
 
-function extractClaudeJson(text: string): string {
+export function extractClaudeJson(text: string): string {
   const trimmed = text.trim()
-  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
-  return fenced?.[1]?.trim() ?? trimmed
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)
+  if (fenced?.[1]) return fenced[1].trim()
+
+  // Claude occasionally returns complete JSON after an opening Markdown fence
+  // but omits the closing fence. Strip only boundary markers; JSON.parse still
+  // fails closed if the payload itself is truncated or malformed.
+  return trimmed
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/, "")
+    .trim()
 }
 
 function normalizeClaudeCritique(parsed: unknown): unknown {

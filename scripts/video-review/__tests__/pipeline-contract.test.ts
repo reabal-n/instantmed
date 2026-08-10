@@ -123,6 +123,17 @@ describe("video review multi-model contract", () => {
     expect(workflow).toContain('URL="${URL_INPUT:-${DEPLOY_URL:-$AUTO_URL}}"')
   })
 
+  it("uploads partial review evidence when the pipeline fails", () => {
+    const workflow = read(".github/workflows/video-review.yml")
+
+    expect(workflow).toContain(
+      "if: always() && steps.video-review-pipeline.outcome != 'skipped' && steps.skip-review-guard.outputs.skip_review != 'true'",
+    )
+    expect(workflow).toContain(
+      "if: always() && steps.review-artifact.outputs.artifact_ready == 'true'",
+    )
+  })
+
   it("skips every expensive video-review step when HEAD says skip review", () => {
     const workflow = read(".github/workflows/video-review.yml")
 
