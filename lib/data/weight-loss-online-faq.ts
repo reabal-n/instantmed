@@ -1,6 +1,7 @@
 /**
  * Used by the visible FAQ accordion and FAQPage structured data.
- * Keep this page medicine-neutral: weight management remains gated.
+ * Keep this educational page medicine-neutral. The live service is a separate
+ * one-off doctor-reviewed assessment and does not guarantee prescribing.
  */
 export const WEIGHT_LOSS_ONLINE_FAQ = [
   {

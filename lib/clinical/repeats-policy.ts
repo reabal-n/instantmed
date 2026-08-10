@@ -33,7 +33,8 @@ const DOCTOR_DISCRETION = "The number of repeats is always the doctor's decision
 /**
  * Patient-facing "what to expect" line for the repeats standard, or null for
  * services where repeats don't apply (med certs; women's health — narrow launch
- * + acute UTI; weight loss — gated). Expectation-setting, not a promise.
+ * + acute UTI; weight management — one-off assessment). Expectation-setting,
+ * not a promise.
  */
 export function getRepeatsExpectation(
   serviceType: UnifiedServiceType,

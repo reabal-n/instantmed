@@ -358,8 +358,8 @@ export default async function MedCertSlugPage({ params }: PageProps) {
             <div className="mx-auto max-w-xl text-center">
               <h2 className="text-2xl font-semibold mb-4">Fast doctor review</h2>
               <p className="text-background/60 mb-6">
-                Submit any time, day or night. Most requests are reviewed within a few hours, and a doctor
-                owns the issue pathway and individually reviews every certificate, including eligible low-risk certificates issued under protocol.
+                Submit any time, day or night. An AHPRA-registered doctor reviews the request before any
+                certificate is issued and may ask follow-up questions if needed.
               </p>
               <Link href="/request?service=med-cert">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">

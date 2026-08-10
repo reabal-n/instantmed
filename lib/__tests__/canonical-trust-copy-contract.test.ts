@@ -54,10 +54,10 @@ describe("canonical trust copy contract", () => {
       "Clinical access is role-scoped. Doctors and the owner-admin can access records needed for care; support sees only bounded, masked operational data.",
     )
     expect(getApprovedClaim("clinical_decision_model")).toBe(
-      "AI never prescribes or makes clinical decisions. Eligible low-risk certificate requests may be approved under a doctor-owned protocol and are individually reviewed afterward.",
+      "AI never prescribes or makes clinical decisions. A certificate or prescription is issued only after an AHPRA-registered doctor reviews the request.",
     )
     expect(getApprovedClaim("clinical_review_sequence")).toBe(
-      "Prescribing requests receive doctor review before any prescription is issued. Eligible low-risk certificate requests may follow a doctor-owned protocol and are individually reviewed afterward.",
+      "Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued.",
     )
     expect(getApprovedClaim("complaints_timing")).toBe(
       "We acknowledge complaints within 24 hours. Clinical complaints target resolution within 14 days.",
@@ -98,6 +98,8 @@ describe("canonical trust copy contract", () => {
       /24 business hours/i,
       /average\s*~?34\s*min/i,
       /PT120M/i,
+      /individually reviewed afterward/i,
+      /individual doctor review afterward/i,
     ]) {
       expect(supportSource).not.toMatch(pattern)
     }

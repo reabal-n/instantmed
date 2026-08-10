@@ -3,7 +3,7 @@
 > **Authority:** durable business strategy, positioning, service boundaries, and business-model decisions.
 > This file does not own the current operating phase, priority order, live metrics, revenue milestones, contribution formulas, or hiring thresholds. Those live in `docs/ROADMAP.md`, the admin dashboard, and `docs/REVENUE_MODEL.md`.
 
-**Last updated:** 2026-07-12
+**Last updated:** 2026-08-10
 
 ---
 
@@ -18,12 +18,12 @@ The business is built around one-off, clearly scoped services that can be delive
 | Decision | Rule |
 |----------|------|
 | **Business model** | One-off transactions only for now. No subscriptions, memberships, bundles, or pharmacy fulfilment until deliberate expansion gates pass. |
-| **Active services** | Medical certificates, repeat prescriptions, erectile dysfunction, hair loss, and narrowly scoped women's health (UTI + new/switch contraceptive pill). |
-| **Gated/retired services** | Weight management launched 2026-08-07 as a structured, screened one-off assessment. General Consult is retired and cannot be used as a fallback route around structured screeners. |
+| **Active services** | Medical certificates, repeat prescriptions, erectile dysfunction, hair loss, narrowly scoped women's health (UTI + new/switch contraceptive pill), and weight management. |
+| **Gated/retired services** | General Consult is retired and cannot be used as a fallback route around structured screeners. Unlaunched consult subtypes remain gated. |
 | **Fulfilment** | eScript token only for prescribing services. No owned pharmacy, delivery, inventory, or dispensing margin in this phase. |
 | **Moat** | No booking friction: patients start with a secure clinical form. A doctor may call or message whenever clinically needed. |
-| **Clinical control** | The website must never promise that prescribing requests will not need doctor contact. Eligible low-risk med-cert requests may use the logged, doctor-owned protocol described in `docs/CLINICAL.md`. |
-| **Growth posture** | Launched services may run as low-budget, bounded acquisition pilots. Material scaling requires the economic gates in `docs/REVENUE_MODEL.md` and explicit operator approval. |
+| **Clinical control** | The website must never promise that prescribing requests will not need doctor contact. Medical-certificate and prescribing requests require doctor review before issue while protocol issuance is governance-paused. |
+| **Growth posture** | Launched services may run as bounded organic or onsite pilots. A paid pilot exists only where separately approved; material scaling requires the economic gates in `docs/REVENUE_MODEL.md` and exact operator approval. |
 | **Revenue direction** | Work through the milestone ladder in `docs/REVENUE_MODEL.md`. $1M annual gross remains a distant directional north star, not the active operating target. |
 | **Operator model** | One owner-operator account holds the sole `admin` role and inherits doctor capabilities. Future clinicians use `doctor`; non-clinical operators use `support`. |
 
@@ -38,10 +38,11 @@ This is the durable service hierarchy, not the current execution queue. `docs/RO
 | 3 | Hair loss | Specialist line | Higher AOV, one-off only, with a bounded clinical and advertising surface. |
 | 4 | ED | Specialist line | High intent and higher AOV, with stricter contraindication, privacy, and advertising risk. |
 | 5 | Women's health | Narrow specialist line | UTI + new/switch pill only. Avoid broad "women's health clinic" positioning. |
+| 6 | Weight management | Narrow specialist line | One-off, doctor-reviewed assessment. No subscription, ongoing-monitoring promise, or paid advertising without separate approval. |
 
 Weight management joined the active hierarchy on 2026-08-07 (operator decisions D-A..D-E): one-off doctor-reviewed assessments only, GLP-1-focused, no subscriptions and no staff-heavy follow-up — continuation is a new patient-initiated consult. Paid advertising remains separately gated per docs/ADVERTISING_COMPLIANCE.md.
 
-General Consult was retired publicly on 2026-05-20. The `consult` service type stays in code as the parent category for ED, hair-loss, and women's-health subtypes only. `/consult` renders a services overview and `/general-consult` redirects to it. Cases outside the specialised service lines route to a GP or in-person care, not into a generic paid request.
+General Consult was retired publicly on 2026-05-20. The `consult` service type stays in code as the parent category for ED, hair-loss, women's-health, and weight-management subtypes only. `/consult` renders a services overview and `/general-consult` redirects to it. Cases outside the specialised service lines route to a GP or in-person care, not into a generic paid request.
 
 The launched non-med-cert services are approved to remain live as low-budget bounded pilots. `docs/SERVICE_LAUNCH_CHECKLISTS.md` owns the clinical, fulfilment, compliance, and evidence gates for keeping a pilot healthy or materially scaling it.
 
@@ -59,7 +60,7 @@ InstantMed gives Australians a faster way to request common medical services wit
 
 > Complete a secure clinical form. A doctor reviews it and may call you briefly before prescribing.
 
-This keeps a possible doctor call visible for ED, hair loss, new/repeat scripts, and women's health. It does not frame contact as a rare exception.
+This keeps a possible doctor call visible for ED, hair loss, new/repeat scripts, women's health, and weight management. It does not frame contact as a rare exception.
 
 ### Approved Med Cert Wedge
 
@@ -97,7 +98,7 @@ The model works only while the platform reduces active doctor minutes per order 
 
 | Service | Operating rule |
 |---------|----------------|
-| Med certs | Protocol automation for suitable low-risk requests, followed by individual doctor review and QA. |
+| Med certs | Individual doctor review before issue. The dormant protocol engine cannot issue while the code-owned governance gate is paused. |
 | Repeat prescriptions | Doctor-reviewed one-off eScript request. Call/message if unclear, new, unstable, high-risk, or incomplete. |
 | Hair loss | One-off form-first doctor assessment. No subscription, outcome guarantee, or drug-name acquisition marketing. |
 | ED | One-off form-first doctor assessment with strict contraindication screening. |
@@ -116,7 +117,7 @@ The moat is not "no doctor." It is:
 - doctor ownership of every clinical pathway
 - clear pricing and full refund on decline
 - eScript delivery to an Australian pharmacy when approved
-- doctor-owned med-cert protocol automation for suitable administrative requests
+- structured med-cert screening and drafting that reduces doctor administration without replacing the individual outcome
 - employer verification and auditable digital delivery
 
 ## 8. Operating Invariants

@@ -53,6 +53,7 @@ const product = readProjectFile("PRODUCT.md")
 const testing = readProjectFile("docs/TESTING.md")
 const operations = readProjectFile("docs/OPERATIONS.md")
 const brand = readProjectFile("docs/BRAND.md")
+const clinical = readProjectFile("docs/CLINICAL.md")
 const advertisingCompliance = readProjectFile("docs/ADVERTISING_COMPLIANCE.md")
 const seoContentPolicy = readProjectFile("docs/SEO_CONTENT_POLICY.md")
 const voice = readProjectFile("docs/VOICE.md")
@@ -90,7 +91,7 @@ describe("project docs drift contract", () => {
       expect(source).toContain("Never hard-block checkout by time of day")
       expect(source).toContain("strictly 18+ for every paid service")
       expect(source).not.toContain("18+ (parental consent for minors)")
-      // Women's health launched 2026-06-15 (UTI + new/switch pill); weight loss stays gated.
+      // Women's health launched 2026-06-15; weight management launched 2026-08-07.
       expect(source).toContain("Women's health (UTI + new/switch pill, live 2026-06-15)")
       expect(source).toContain("Weight management (live 2026-08-07)")
       expect(source).toContain("Priority review fee")
@@ -118,16 +119,23 @@ describe("project docs drift contract", () => {
       seoContentPolicy.indexOf("## 7. Schema And Metadata"),
     )
 
-    expect(internalLinkRules).not.toContain("- `/weight-loss`")
+    expect(internalLinkRules).toContain("- `/weight-loss`")
     expect(paidTrafficRules).not.toContain("- `/weight-loss`")
-    expect(seoContentPolicy).toContain("Weight loss remains a future/gated educational surface")
+    expect(seoContentPolicy).toContain("Weight management launched on 2026-08-07")
     expect(seoContentPolicy).toContain(
-      "Weight loss remains future/gated and is not an approved paid destination",
+      "Weight management is live for organic and onsite acquisition, but `/weight-loss` is not an approved paid destination",
     )
-    expect(advertisingCompliance).toContain("| Weight loss search (future/gated) |")
-    expect(advertisingCompliance).toContain("No campaign may run while weight loss remains gated")
-    expect(voice).toContain("| Weight loss (future/gated) |")
-    expect(voice).toContain("| `/weight-loss` (future/gated) |")
+    expect(advertisingCompliance).toContain(
+      "| Weight-management search (live service; paid Ads not approved) |",
+    )
+    expect(advertisingCompliance).toContain(
+      "No campaign may run without separate exact operator approval",
+    )
+    expect(voice).toContain("| Weight management (live) |")
+    expect(voice).toContain("| `/weight-loss` (live) |")
+    expect(clinical).toContain("**Weight-management scope (live 2026-08-07):**")
+    expect(clinical).not.toContain("Weight loss still has a reserved intake subtype")
+    expect(clinical).not.toContain("not currently accepting paid requests")
     expect(brand).not.toContain("First review at 6am")
     expect(brand).not.toContain("Pre-6am / post-10pm")
     expect(citationKit).not.toContain("doctor consults")
@@ -136,6 +144,17 @@ describe("project docs drift contract", () => {
     expect(citationKit).toContain("women's health pathways for UTI")
     expect(comparisonSubmissionKit).not.toContain("Express Review")
     expect(comparisonSubmissionKit).toContain("Priority review")
+  })
+
+  it("keeps patient-derived contact identifiers out of root incident documentation", () => {
+    for (const source of [agents, claude]) {
+      const duplicateProfileSection = source
+        .slice(source.indexOf("- **Duplicate-profile safety flag"))
+        .split("\n- **")[0]
+
+      expect(duplicateProfileSection).toContain("same person used two different email addresses")
+      expect(duplicateProfileSection).not.toContain("@")
+    }
   })
 
   it("keeps InstantMed workflow skills repo-owned and installable for Codex and Claude", () => {
@@ -181,11 +200,11 @@ describe("project docs drift contract", () => {
     expect(aiOnboarding).toContain("## Top 11 rules of thumb")
   })
 
-  it("documents the five-service consult overview and all active consult subtypes", () => {
-    expect(architecture).toContain("routes visitors to the 5 active services")
+  it("documents the six-service consult overview and all active consult subtypes", () => {
+    expect(architecture).toContain("routes visitors to the 6 active services")
     expect(architecture).toContain("narrow women's health")
     expect(aiOnboarding).toContain(
-      "parent category for ED, hair-loss, and narrow women's-health pathways",
+      "parent category for ED, hair-loss, narrow women's-health, and weight-management pathways",
     )
     expect(aiOnboarding).not.toContain("parent category for ED and hair-loss pathways")
   })
@@ -369,26 +388,26 @@ describe("project docs drift contract", () => {
     }
   })
 
-  it("documents medical-certificate risk as gated before issuance, with no post-approval attestation", () => {
+  it("documents medical-certificate protocol issuance as fail-closed before issue", () => {
     const clinical = readProjectFile("docs/CLINICAL.md")
     const operations = readProjectFile("docs/OPERATIONS.md")
 
-    // Operator decision 2026-08-04: the 24h batch/cohort attestation window was
-    // removed. It only ever covered certificates that had already cleared every
-    // deterministic gate, so it added no clinical signal while paging the
-    // operator every 30 minutes once lapsed. The real control is the
-    // pre-issuance gate — keep the docs saying so.
-    expect(clinical).toContain("gated **before** issuance")
+    // The retired retrospective attestation is not an active safety control.
+    // Protocol issuance stays fail-closed until Medical Director and legal
+    // reconciliation explicitly authorises a reviewed code change.
+    expect(clinical).toContain("Medical-certificate protocol issuance is **not active**")
+    expect(clinical).toContain("auto-approval-governance.ts")
     expect(clinical).toContain("DETERMINISTIC_FAILURE_PREFIXES")
-    expect(clinical).toContain("no post-approval attestation obligation")
-    expect(clinical).toContain("Revocation remains the standing correction path")
-    expect(clinical).toContain("InstantMed governance control, not a statutory AHPRA requirement")
+    expect(clinical).toContain("doctor review happens before issue")
+    expect(clinical).toContain("Revocation remains the individual correction path")
+    expect(clinical).toContain("database feature flag")
 
-    expect(architecture).toContain("no post-approval attestation obligation")
+    expect(architecture).toContain("Auto-Approval Pipeline (Governance-Paused)")
+    expect(architecture).toContain("code-owned pre-issuance pause")
     expect(architecture).toContain('activity_provenance: "auto_issued"')
 
-    expect(operations).toContain("Auto-issued certificate oversight runbook")
-    expect(operations).toContain("no attestation obligation and no alert")
+    expect(operations).toContain("Historical auto-issued certificate runbook")
+    expect(operations).toContain("database feature flag cannot override it")
 
     // The retired machinery must not creep back into the docs as live guidance.
     for (const doc of [clinical, operations]) {
@@ -431,10 +450,11 @@ describe("project docs drift contract", () => {
     expect(roadmap).toContain("Controlled demand validation")
     expect(roadmap).toContain("Last refreshed:")
     expect(roadmap).not.toContain("Last 90 days shipped")
-    expect(roadmap).toContain("Re-opened and repaired 2026-07-29")
+    expect(roadmap).toContain("Clinical truth contained 2026-08-09")
+    expect(roadmap).toContain("The exact-flow conversion repair from 2026-07-29 remains in force")
     expect(roadmap).toContain("Automatic Gmail polling and support-inbox Telegram paging remain retired")
 
-    expect(operations).toContain("Medical-certificate risk is gated **before** issuance")
+    expect(operations).toContain("Medical-certificate protocol issuance is governance-paused")
     expect(operations).toContain("`docs/REVENUE_MODEL.md` owns the current hiring and capacity triggers")
     expect(operations).not.toContain("protocol automation with QA sampling")
     expect(operations).not.toContain("30-50 orders/day")
@@ -442,7 +462,7 @@ describe("project docs drift contract", () => {
 
     expect(clinical).not.toContain("No automated clinical decisions are made")
     expect(clinical).toContain("Prescribing decisions are always clinician-made")
-    expect(clinical).toContain("doctor-owned medical-certificate protocol")
+    expect(clinical).toContain("code-owned gate")
 
     expect(fileMap).toContain("implementation records (non-authoritative)")
     expect(fileMap).not.toContain("docs/plans/ — active")

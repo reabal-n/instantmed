@@ -118,7 +118,7 @@ function TabPanel({
   return (
     <TabsContent
       value={value}
-      className="feature-flag-tab-panel mt-0 min-h-0 overflow-hidden rounded-xl border border-border/60 bg-background/70 p-3 shadow-sm shadow-primary/[0.03]"
+      className="feature-flag-tab-panel mt-0 min-h-0 min-w-0 overflow-hidden rounded-xl border border-border/60 bg-background/70 p-3 shadow-sm shadow-primary/[0.03]"
     >
       {children}
     </TabsContent>
@@ -294,18 +294,20 @@ export function FeaturesList({
         </TabPanel>
 
         <TabPanel value="automation">
-          <div className="grid h-full min-h-0 gap-3 overflow-y-auto pr-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
-            <AutoApproveSection
-              flags={flags}
-              initialFlags={initialFlags}
-              isSaving={isSaving}
-              autoApproveStats={autoApproveStats}
-              onSetFlags={onSetFlags}
-              onToggleFlag={onToggleFlag}
-              onExecuteToggle={onExecuteToggle}
-              onSaveFlag={onSaveFlag}
-            />
-            <div className="grid content-start gap-3">
+          <div className="grid h-full min-h-0 min-w-0 gap-3 overflow-y-auto pr-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+            <div className="min-w-0">
+              <AutoApproveSection
+                flags={flags}
+                initialFlags={initialFlags}
+                isSaving={isSaving}
+                autoApproveStats={autoApproveStats}
+                onSetFlags={onSetFlags}
+                onToggleFlag={onToggleFlag}
+                onExecuteToggle={onExecuteToggle}
+                onSaveFlag={onSaveFlag}
+              />
+            </div>
+            <div className="grid min-w-0 content-start gap-3">
               <NotificationsSection
                 flags={flags}
                 initialFlags={initialFlags}

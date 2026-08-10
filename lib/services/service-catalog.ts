@@ -46,7 +46,7 @@ export type ServiceColorToken =
   | "amber"    // hair loss (was `violet`; fixed in Phase 1)
   | "sky"      // reserved legacy token; no active service uses it
   | "pink"     // women's health
-  | "rose"     // weight loss (coming soon)
+  | "rose"     // weight management
 
 export interface ServiceDef {
   /** Stable identifier, used in analytics and routing. */

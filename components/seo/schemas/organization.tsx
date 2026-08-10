@@ -66,8 +66,8 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
       "@type": "OfferCatalog",
       name: "InstantMed Services",
       // Derived from the live SERVICE_CATALOG (single source of truth) via
-      // getServiceOffers so all 5 active services — including women's health
-      // (live 2026-06-15) — stay in the entity graph and never drift again.
+      // getServiceOffers so all 6 active services, including weight management
+      // (live 2026-08-07), stay in the entity graph and never drift again.
       itemListElement: getServiceOffers(baseUrl)
     }
   }

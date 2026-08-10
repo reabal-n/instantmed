@@ -98,6 +98,14 @@ const eligibilityAndAutomationSources = [
   "public/llms.txt",
 ].map((file) => readFileSync(join(root, file), "utf8")).join("\n")
 
+const staticTimingClaimSources = [
+  "app/about/about-client.tsx",
+  "app/contact/contact-client.tsx",
+  "app/telehealth-australia/page.tsx",
+  "lib/seo/data/states.ts",
+  "lib/social-proof/index.ts",
+].map((file) => readFileSync(join(root, file), "utf8")).join("\n")
+
 describe("marketing copy contracts", () => {
   it("keeps the homepage hero kicker calm and clinically grounded", () => {
     expect(voiceSource).not.toContain("Three minutes. Done.")
@@ -306,20 +314,19 @@ describe("marketing copy contracts", () => {
     expect(medCertIntentSource).toContain("InstantMed currently accepts patients aged 18 and over only")
   })
 
-  it("describes the doctor-owned med-cert protocol without absolute automation denials", () => {
-    expect(eligibilityAndAutomationSources).not.toMatch(/no automated approvals/i)
-    expect(eligibilityAndAutomationSources).not.toMatch(/there is no automated approval/i)
-    expect(eligibilityAndAutomationSources).not.toMatch(/clinical decisions are not automated/i)
-    expect(eligibilityAndAutomationSources).not.toMatch(/reviewed, not automated/i)
-    expect(eligibilityAndAutomationSources).not.toMatch(/no algorithmic auto-approval/i)
-    expect(eligibilityAndAutomationSources).not.toMatch(/never algorithmic/i)
-    expect(eligibilityAndAutomationSources).not.toMatch(/convenient, not automated/i)
-    expect(eligibilityAndAutomationSources).not.toMatch(/reviewed, not robo-approved/i)
-    expect(eligibilityAndAutomationSources).not.toMatch(/doctor review before (?:any )?certificate is issued/i)
-    expect(eligibilityAndAutomationSources).not.toMatch(/a doctor reviews[^.]*before (?:any )?certificate is issued/i)
-    expect(eligibilityAndAutomationSources).not.toMatch(/no algorithms(?:\.| deciding)/i)
-    expect(eligibilityAndAutomationSources).not.toMatch(/every request is reviewed[^.]*not an algorithm/i)
-    expect(eligibilityAndAutomationSources).toContain("doctor-owned protocol")
+  it("describes the governance-paused pathway as doctor review before issue", () => {
+    expect(eligibilityAndAutomationSources).not.toMatch(/individually reviewed afterward/i)
+    expect(eligibilityAndAutomationSources).not.toMatch(/eligible low-risk[^.]*doctor-owned protocol/i)
+    expect(eligibilityAndAutomationSources).toContain(
+      "Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued.",
+    )
     expect(eligibilityAndAutomationSources).toContain("AI does not prescribe")
+  })
+
+  it("removes static public response-time claims invalidated by the governance pause", () => {
+    expect(staticTimingClaimSources).not.toContain("averageResponseMinutes")
+    expect(staticTimingClaimSources).not.toContain("certTurnaroundMinutes")
+    expect(staticTimingClaimSources).not.toMatch(/average certificate delivery/i)
+    expect(staticTimingClaimSources).not.toMatch(/average support response time/i)
   })
 })

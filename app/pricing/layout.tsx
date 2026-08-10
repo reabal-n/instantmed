@@ -46,7 +46,7 @@ export const metadata: Metadata = {
  * flagged this as critical 2026-04-06. Removed from layout in the same
  * fix as /general-consult (commit: duplicate FAQPage sweep).
  *
- * The root OrganizationSchema owns the catalog-wide five-service OfferCatalog.
+ * The root OrganizationSchema owns the catalog-wide six-service OfferCatalog.
  * This route deliberately does not duplicate those service offers as separate
  * JSON-LD nodes; visible pricing inventory still derives from SERVICE_CATALOG.
  */

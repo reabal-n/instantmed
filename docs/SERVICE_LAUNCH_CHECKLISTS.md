@@ -1,13 +1,13 @@
 # Service Launch Checklists
 
 > Production gates for launching, keeping healthy, or materially scaling paid traffic for repeat scripts, ED, hair loss, women's health, and weight management.
-> The launched services are already live as low-budget bounded pilots. Use this before any material ramp and whenever pilot health drifts.
+> The launched services are live as bounded pilots. Paid acquisition applies only to service lines with separate approval. Use this before any material ramp and whenever pilot health drifts.
 
-**Last updated:** 2026-07-12
+**Last updated:** 2026-08-10
 
 ## Launch Rule
 
-Medical certificates, repeat scripts, ED, hair loss, narrowly scoped women's health, and (from 2026-08-07) the weight-management assessment may remain live at low budgets to gather data (operator decisions 2026-07-12 and 2026-08-07). That standing pilot approval is not approval to scale.
+Medical certificates, repeat scripts, ED, hair loss, narrowly scoped women's health, and (from 2026-08-07) the weight-management assessment may remain live as bounded pilots to gather data (operator decisions 2026-07-12 and 2026-08-07). Paid budget applies only where separately approved; weight-management advertising remains unapproved. A standing pilot approval is not approval to scale.
 
 Do not materially increase spend for a prescribing or specialty service until every must-pass item is current, evidence is captured, the service passes the economic rule in `docs/REVENUE_MODEL.md`, and the owner-operator approves the exact Ads mutation. If a gate fails, hold scaling and present the required pause, rollback, or remediation for approval. Clinical/service kill switches remain governed by the incident and safety runbooks.
 
@@ -41,7 +41,7 @@ Do not materially increase spend for a prescribing or specialty service until ev
 
 | Gate | Requirement | Failure mode prevented |
 |------|-------------|------------------------|
-| Clinical screen | IIEF-5 is captured, persisted, and visible to the doctor with contraindication context. | Doctor loses the structured severity signal. |
+| Clinical screen | Current duration and the single severity item are captured, persisted, and visible to the doctor with consolidated safety and medical-history context. Historical IIEF-5 answers remain renderable for in-flight and prior intakes. | Doctor loses the current structured context or an older intake becomes unreadable. |
 | Nitrate block | Nitrate use and high-risk cardiac answers hard-block or require GP/in-person care before payment. | High-risk contraindicated request reaches routine prescribing. |
 | Cardiac escalation | Chest pain, unstable cardiac history, recent cardiac event, and unclear exercise tolerance create a clear doctor escalation path. | Unsafe ED case is treated as low-risk convenience care. |
 | Drug-name discipline | Paid ED pages and ads use assessment language only. No sildenafil, tadalafil, Viagra, Cialis, or equivalent terms in paid destinations. | TGA and Google policy breach. |
@@ -90,7 +90,7 @@ Scope is deliberately narrow: a one-off, form-first, GLP-1-focused doctor assess
 
 ## Service-Specific Scorecard
 
-Each prescribing/specialty service must reach at least 90/100 before any material paid scale. A low-budget pilot does not waive a failed safety, fulfilment, or compliance gate.
+Each prescribing/specialty service must reach at least 90/100 before any material paid scale. A bounded pilot does not waive a failed safety, fulfilment, or compliance gate.
 
 | Area | Weight |
 |------|--------|

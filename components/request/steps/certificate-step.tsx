@@ -614,9 +614,8 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
                     : `${summaryLabel(startOffset)} to ${summaryLabel(endOffset)} · ${selectedDays} days`}
                 </p>
                 {/* Risk-reversal at the first price-exposure moment. The prior
-                    "doctor review when available" hedge read as uncertain AND
-                    could imply human review on every cert (med certs can be
-                    auto-approved). The refund guarantee is the strongest TRUE
+                    "doctor review when available" hedge contradicted the 24/7
+                    operating model. The refund guarantee is the strongest true
                     reassurance here — sourced from the approved-claims registry,
                     matching the final review step. */}
                 <p className="text-xs text-muted-foreground mt-0.5">

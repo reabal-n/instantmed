@@ -1,13 +1,13 @@
 # InstantMed - Australian Telehealth Platform
 
-> InstantMed Pty Ltd (ABN 64 694 559 334) is an Australian telehealth platform for one-off medical certificate, repeat prescription, men's health (ED and hair loss), and women's health (UTI and contraceptive pill) requests. AHPRA-registered doctors review requests and decide what is clinically appropriate.
+> InstantMed Pty Ltd (ABN 64 694 559 334) is an Australian telehealth platform for one-off medical certificate, repeat prescription, men's health (ED and hair loss), women's health (UTI and contraceptive pill), and weight-management assessment requests. AHPRA-registered doctors review requests and decide what is clinically appropriate.
 
 ## Quote-Ready Facts
 
 - **Registered entity:** InstantMed Pty Ltd (ABN 64 694 559 334)
 - **Address:** Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010
 - **Service area:** Australia-wide telehealth
-- **Clinical model:** AHPRA-registered doctors make prescribing decisions. Eligible low-risk medical certificates may be issued under a doctor-owned protocol and are individually reviewed afterward. AI does not prescribe.
+- **Clinical model:** A certificate or prescription is issued only after an AHPRA-registered doctor reviews the request. AI does not prescribe or make clinical decisions.
 - **Active services:** Medical certificates, repeat prescriptions, men's health (ED and hair loss), women's health (UTI and contraceptive pill), and weight-management assessment requests
 - **Weight management:** Doctor-reviewed weight-management assessments launched 2026-08-07 for eligible adults (structured eligibility and safety screening first; a doctor calls when history requires it). The public guide at /weight-loss-online explains safe review boundaries.
 - **Mental health:** InstantMed is not a crisis, therapy, psychiatrist, or Mental Health Treatment Plan service. The public guide explains crisis boundaries, GP pathways, and short certificate review only.
@@ -19,7 +19,7 @@
 
 ## What InstantMed Does
 
-1. **Medical certificates** - Routine sick leave, study absence, and carer's leave evidence requests. Eligible low-risk requests may be issued under a doctor-owned protocol and are individually reviewed afterward; other requests go to doctor review before issue. Employer and institution policies may vary. From $24.95.
+1. **Medical certificates** - Routine sick leave, study absence, and carer's leave evidence requests. An AHPRA-registered doctor reviews the request before any certificate is issued and may ask follow-up questions if needed. Employer and institution policies may vary. From $24.95.
 
 2. **Repeat prescriptions** - Doctor review for existing regular medications. Prescription only if clinically appropriate after doctor review. eScript sent if approved. From $29.95.
 
@@ -29,13 +29,15 @@
 
 5. **Women's health requests** - Structured form-first assessment for uncomplicated urinary tract infection (UTI), and for starting or switching the contraceptive pill. Current-pill repeats route through repeat prescriptions. The doctor reviews safety screening and contacts the patient if more information is clinically needed. $49.95.
 
+6. **Weight-management requests** - One-off, doctor-reviewed assessment for eligible adults after structured eligibility and safety screening. It is not a subscription or monitored treatment program. The doctor may request more information or call when clinically needed. $89.95.
+
 ## How It Works
 
 1. Choose a service.
 2. Complete a secure clinical form.
 3. Pay securely online.
-4. Prescribing requests and medical certificates outside the eligible protocol go to doctor review; eligible low-risk certificates may follow the doctor-owned protocol.
-5. The patient receives the certificate, eScript, decline, or written outcome digitally, with each protocol-issued certificate individually reviewed afterward.
+4. An AHPRA-registered doctor reviews the request and may ask follow-up questions before deciding.
+5. The patient receives the certificate, eScript, decline, or written outcome digitally.
 6. If declined, the patient receives a full refund.
 
 ## Important Boundaries
@@ -119,4 +121,4 @@ For a longer AI-readable service reference, see: https://instantmed.com.au/llms-
 
 ---
 
-Last reviewed: 2026-07-17
+Last reviewed: 2026-08-10

@@ -15,7 +15,7 @@ export const revalidate = 86400
 export const metadata: Metadata = {
   title: { absolute: "Weight Loss Online Australia | Safe Review Boundaries | InstantMed" },
   description:
-    "Weight loss online in Australia: what safe weight-management review involves, what needs in-person care, Medicare and PBS boundaries, and why InstantMed is not currently accepting requests.",
+    "Weight loss online in Australia: safe weight-management review, in-person care, Medicare and PBS boundaries, and InstantMed's one-off doctor-reviewed assessment.",
   keywords: [
     "weight loss online australia",
     "online weight management australia",
@@ -54,7 +54,7 @@ export default function Page() {
     <>
       <SpeakableSchema
         name="Weight Loss Online Australia"
-        description="Weight loss online in Australia: what safe weight-management review involves, what needs in-person care, and why InstantMed is not currently accepting weight-management treatment requests."
+        description="Weight loss online in Australia: what safe weight-management review involves, what needs in-person care, and how InstantMed's one-off doctor-reviewed assessment works."
         url="/weight-loss-online"
         speakableSelectors={["h1", "[data-speakable]"]}
       />
@@ -67,9 +67,9 @@ export default function Page() {
       />
       <HealthArticleSchema
         title="Weight Loss Online Australia"
-        description="How online weight-management review works in Australia, including clinical suitability, in-person care boundaries, red flags, Medicare and PBS context, safe alternatives, and why InstantMed is not currently accepting weight-management treatment requests."
+        description="How online weight-management review works in Australia, including clinical suitability, in-person care boundaries, red flags, Medicare and PBS context, safe alternatives, and InstantMed's one-off doctor-reviewed assessment."
         url="/weight-loss-online"
-        lastReviewed="2026-06"
+        lastReviewed="2026-08"
       />
       <WeightLossOnlineLanding visuals={visuals} />
     </>

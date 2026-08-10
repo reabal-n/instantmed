@@ -9,12 +9,12 @@ import { startPostPaymentReviewWork } from "@/lib/stripe/post-payment"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 /**
- * E2E-only immediate auto-approval harness.
+ * E2E-only immediate protocol-issuance attempt harness.
  *
  * Production auto-approval is delayed by the configured retry-auto-approval cron
- * gate. This route intentionally bypasses that wait so the paid med-cert
- * pipeline test can deterministically verify draft sync, approval, PDF storage,
- * and outbox logging in one test run.
+ * gate. This route intentionally bypasses that wait so the paid med-cert test can
+ * prove the current code-owned governance boundary before any future issuance
+ * approval, PDF storage, or patient delivery is allowed.
  */
 
 const PayloadSchema = z.object({
@@ -105,8 +105,11 @@ export async function POST(request: NextRequest) {
 
   let intake = result.data
 
+  let attemptReason: string | null = null
+
   if (intake?.status === "paid" && intake.auto_approval_state === "pending") {
-    await attemptAutoApproval(intakeId)
+    const attempt = await attemptAutoApproval(intakeId)
+    attemptReason = attempt.reason ?? null
     const refreshed = await supabase
       .from("intakes")
       .select("status, ai_approved, auto_approval_state")
@@ -126,5 +129,6 @@ export async function POST(request: NextRequest) {
     success: intake?.status === "approved" && intake.ai_approved === true,
     status: intake?.status,
     autoApprovalState: intake?.auto_approval_state,
+    attemptReason,
   })
 }

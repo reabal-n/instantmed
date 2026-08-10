@@ -130,10 +130,9 @@ export default async function RequestPage({
     )
   }
 
-  // Business hours: no longer block the request page.
-  // Med certs are 24/7 (auto-approved). Prescriptions/consults accept
-  // submissions anytime - the navbar banner already sets expectations
-  // about next-business-day review for doctor-dependent services.
+  // Business hours no longer block the request page. Every active service
+  // accepts requests 24/7; doctor-review timing varies by clinical complexity
+  // and queue volume.
 
   // At capacity
   if (atCapacity) {

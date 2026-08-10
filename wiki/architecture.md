@@ -11,7 +11,7 @@ This is a compact current map. `docs/ARCHITECTURE.md` remains the canonical deep
 | API route files under `app/api/` | 89 |
 | Cron route files under `app/api/cron/` | 28 |
 | `components/` | 399 files |
-| `lib/` | 1,190 files |
+| `lib/` | 1,192 files |
 | E2E TypeScript files under `e2e/` | 78 (69 specs) |
 | Health guide MDX files under `content/blog/` | 107 |
 | SQL migrations under `supabase/migrations/` | 110 |
@@ -46,7 +46,7 @@ Patient /request
   -> Stripe Checkout
   -> Stripe webhook
   -> paid intake queue
-  -> doctor review or med-cert auto-approval
+  -> doctor review (med-cert protocol issuance governance-paused)
   -> certificate / eScript / decline refund
   -> email + patient dashboard
 ```
