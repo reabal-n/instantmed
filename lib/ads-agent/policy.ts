@@ -21,6 +21,9 @@ export const POLICY = {
   account: {
     dailyBudgetEnvelopeCents: 8_400,
   },
+  attribution: {
+    minimumExpectedServiceOrderShare: 0.90,
+  },
   ed: {
     dailyBudgetCents: 700,
     pilot: {
@@ -165,16 +168,27 @@ function groupedCampaigns(
   return campaigns
 }
 
-function campaignHasMixedServiceOrders(
+function campaignHasMaterialCrossServiceOrders(
   campaign: CampaignEconomics,
   expectedService: AdsService,
 ): boolean {
-  return Object.entries(campaign.serviceOrders).some(
-    ([service, orders]) =>
-      orders > 0
-      && SERVICE_ORDER.includes(service as (typeof SERVICE_ORDER)[number])
-      && service !== expectedService,
-  )
+  let expectedServiceOrders = 0
+  let recognizedServiceOrders = 0
+
+  for (const [service, orders] of Object.entries(campaign.serviceOrders)) {
+    if (
+      orders <= 0
+      || !SERVICE_ORDER.includes(service as (typeof SERVICE_ORDER)[number])
+    ) {
+      continue
+    }
+    recognizedServiceOrders += orders
+    if (service === expectedService) expectedServiceOrders += orders
+  }
+
+  if (recognizedServiceOrders === expectedServiceOrders) return false
+  return expectedServiceOrders / recognizedServiceOrders
+    < POLICY.attribution.minimumExpectedServiceOrderShare
 }
 
 function economicsUnavailable(campaign: CampaignEconomics): boolean {
@@ -290,7 +304,7 @@ export function evaluateAdsPolicy(
     }
 
     const campaign = serviceCampaigns[0]
-    if (campaignHasMixedServiceOrders(campaign, service)) {
+    if (campaignHasMaterialCrossServiceOrders(campaign, service)) {
       recommendations.push(
         investigate(service, "CROSS_SERVICE_ATTRIBUTION"),
       )

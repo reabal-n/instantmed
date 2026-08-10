@@ -140,6 +140,7 @@ function recommendationFor(
 describe("Google Ads Agent policy", () => {
   it("pins the campaign constitution and safety limits", () => {
     expect(POLICY.account.dailyBudgetEnvelopeCents).toBe(8400)
+    expect(POLICY.attribution.minimumExpectedServiceOrderShare).toBe(0.90)
     expect(POLICY.scripts.scale.minimumContributionMargin).toBe(0.20)
     expect(POLICY.scripts.scale.maximumRefundRate).toBe(0.10)
     expect(POLICY.scripts.scale.minimumMatureOrders).toBe(10)
@@ -231,6 +232,66 @@ describe("Google Ads Agent policy", () => {
     expect(recommendationFor(recommendations, "scripts")).toMatchObject({
       kind: "APPROVAL_NEEDED",
       proposedMutationFamily: "campaign_bidding",
+    })
+  })
+
+  it("does not let one immaterial foreign order freeze a strongly pure campaign", () => {
+    const scripts = campaign({
+      orders: 49,
+      refundedOrders: 1,
+      refundRate: 1 / 49,
+      serviceOrders: { ed: 1, scripts: 48 },
+    })
+    const recommendations = evaluateAdsPolicy(snapshot({
+      daily: [scripts],
+      rolling30: [scripts],
+    }))
+
+    expect(recommendationFor(recommendations, "scripts")).toEqual({
+      kind: "APPROVAL_NEEDED",
+      proposedMutationFamily: "campaign_bidding",
+      reasonCodes: ["SCRIPTS_SCALE_GATES_PASSED"],
+      service: "scripts",
+    })
+  })
+
+  it("keeps the exact 90 percent service-purity boundary actionable", () => {
+    const scripts = campaign({
+      orders: 10,
+      refundedOrders: 0,
+      refundRate: 0,
+      serviceOrders: { ed: 1, scripts: 9 },
+    })
+    const recommendations = evaluateAdsPolicy(snapshot({
+      daily: [scripts],
+      rolling30: [scripts],
+    }))
+
+    expect(recommendationFor(recommendations, "scripts")).toEqual({
+      kind: "APPROVAL_NEEDED",
+      proposedMutationFamily: "campaign_bidding",
+      reasonCodes: ["SCRIPTS_SCALE_GATES_PASSED"],
+      service: "scripts",
+    })
+  })
+
+  it("investigates material cross-service attribution before economic action", () => {
+    const scripts = campaign({
+      orders: 10,
+      refundedOrders: 0,
+      refundRate: 0,
+      serviceOrders: { ed: 2, scripts: 8 },
+    })
+    const recommendations = evaluateAdsPolicy(snapshot({
+      daily: [scripts],
+      rolling30: [scripts],
+    }))
+
+    expect(recommendationFor(recommendations, "scripts")).toEqual({
+      kind: "INVESTIGATE",
+      proposedMutationFamily: null,
+      reasonCodes: ["CROSS_SERVICE_ATTRIBUTION"],
+      service: "scripts",
     })
   })
 

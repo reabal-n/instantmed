@@ -181,6 +181,7 @@ export interface GoogleAdsDeepAuditReport {
     accountState: boolean
     accountStateError: string | null
     failedQueries: Array<{ error: string; name: GoogleAdsDeepAuditQueryName }>
+    optionalAccountQueryFailures: string[]
     successfulQueries: GoogleAdsDeepAuditQueryName[]
   }
   generatedAt: string
@@ -1313,6 +1314,7 @@ export function analyzeGoogleAdsDeepAudit(
       accountState: input.accountStateAvailable,
       accountStateError: input.accountStateError ?? null,
       failedQueries: input.failedQueries,
+      optionalAccountQueryFailures: state?.optionalQueryFailures ?? [],
       successfulQueries: input.successfulQueries,
     },
     generatedAt: input.generatedAt,
