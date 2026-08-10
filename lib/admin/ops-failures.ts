@@ -198,11 +198,11 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
     },
     {
       id: "prescription_delivery",
-      label: "Prescription delivery",
+      label: "Parchment sync",
       count: count("prescription_delivery", input.prescriptionWebhookFailures.length),
       href: ADMIN_PARCHMENT_OPS_HREF,
       severity: "critical",
-      emptyLabel: "No prescription webhook failures",
+      emptyLabel: "No unresolved Parchment sync failures",
     },
     {
       id: "stale_scripts",
@@ -271,7 +271,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
     ...input.prescriptionWebhookFailures.map((row) => ({
       id: row.id,
       categoryId: "prescription_delivery" as const,
-      title: "Prescription webhook failed",
+      title: "Parchment sync failed",
       detail: metadataString(row.metadata, "error") || row.action,
       occurredAt: row.created_at,
       href: ADMIN_PARCHMENT_OPS_HREF,

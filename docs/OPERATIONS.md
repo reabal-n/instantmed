@@ -174,6 +174,7 @@ Operational rules:
 - Parchment confirmed custom-domain iframe whitelist for `https://instantmed.com.au` and `https://www.instantmed.com.au` on 2026-05-01. If the doctor portal falls back to a new tab on those hosts, check `lib/parchment/embed-policy.ts`, `NEXT_PUBLIC_PARCHMENT_IFRAME_ALLOWED_HOSTS`, and Parchment CSP before assuming SSO is broken.
 - If a doctor reports mismatch between InstantMed context and Parchment/MIMS search results, treat Parchment as source of truth and document the discrepancy in clinical notes.
 - Treat `Parchment webhook could not match prescription.created to an intake` Sentry warnings as P1 operations issues: the script may exist in Parchment while InstantMed has not completed the linked request or sent the patient notification. These are also logged as `webhook_failed` audit events and surfaced in `/admin/ops`.
+- `/admin/ops` counts only unresolved Parchment sync work. An admin retry resolves the current active patient profile, following any profile merge, re-fetches the Parchment prescription, and must record a successful `parchment_webhook_retry` audit receipt before the alert clears. Unlinked `patient_not_found` events remain historical evidence rather than retry work. Retry recovery must never manufacture `script_sent`; the existing evidence-gated completion path remains authoritative.
 
 **Weekly operating dashboard:**
 
@@ -327,6 +328,29 @@ ORDER BY i.created_at DESC LIMIT 5;
 | 500 on `/api/stripe/webhook` | Webhook signature invalid | Check `STRIPE_WEBHOOK_SECRET` matches Stripe |
 | No Sentry error, no Stripe event | Checkout never initiated | Check client-side console/network |
 | Intake `paid` but patient says "failed" | Redirect issue | Check success/cancel URL configuration |
+
+### Closing a failed checkout from Operations
+
+The Operations checkout exception links to the staff Ledger with the failed-payment
+filter applied. Staff can copy a payment-recovery reply or choose **Close request**
+when the patient no longer intends to retry.
+
+Closure is deliberately narrow and fail-closed:
+
+- only `checkout_failed` requests with a null or explicitly unpaid payment state
+  (`unpaid`, `pending`, `failed`, or `expired`) are eligible;
+- clinical/payment safety holds cannot be closed from the payment-recovery lane;
+- the exact stored Checkout Session must belong to the intake and be expired at
+  Stripe before the local status changes; an orphan PaymentIntent without that
+  session blocks closure for reconciliation;
+- the write re-asserts the exact status, payment state, checkout error, and
+  Checkout Session ID so a concurrent retry or webhook wins the race;
+- the transition is recorded by the database audit trigger and a companion
+  staff-attributed audit event. Closing an unpaid checkout does not issue a refund.
+
+If Stripe reports the session as complete, mismatched, or otherwise unresolved,
+do not close the row. Reconcile the payment first so a paid request cannot become
+cancelled.
 
 ### Recovering a checkout the platform stranded
 

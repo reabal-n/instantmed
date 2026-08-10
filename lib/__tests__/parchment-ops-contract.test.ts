@@ -22,6 +22,7 @@ describe("Parchment ops dashboard and retry contract", () => {
     const retryButtonSource = readProjectFile("app/admin/ops/parchment/retry-webhook-button.tsx")
     const copyTokenSource = readProjectFile("app/admin/ops/parchment/copy-token-button.tsx")
     const opsSource = readProjectFile("lib/parchment/ops.ts")
+    const reconciliationSource = readProjectFile("lib/parchment/failure-reconciliation.ts")
     const parchmentClaimSource = readProjectFile("lib/doctor/parchment-claim.ts")
 
     expect(pageSource).toContain("getParchmentOpsDashboard")
@@ -60,7 +61,9 @@ describe("Parchment ops dashboard and retry contract", () => {
     expect(opsSource).toContain("isSystemProfile")
     expect(opsSource).toContain("can_prescribe_s4")
     expect(opsSource).toContain("can_prescribe_s8")
-    expect(opsSource).toContain("NON_ACTIONABLE_WEBHOOK_FAILURE_REASONS")
+    expect(opsSource).toContain("isNonActionableParchmentFailure")
+    expect(reconciliationSource).toContain("NON_ACTIONABLE_PARCHMENT_FAILURE_REASONS")
+    expect(reconciliationSource).toMatch(/NON_ACTIONABLE_PARCHMENT_FAILURE_REASONS[\s\S]*"patient_not_found"/)
     expect(opsSource).toContain("historicalWebhookFailures")
     expect(opsSource).toContain("productionSmoke")
     expect(opsSource).toContain('eq("job_name", "parchment-smoke")')
@@ -79,6 +82,8 @@ describe("Parchment ops dashboard and retry contract", () => {
     expect(opsSource).toContain("retryable")
     expect(opsSource).toContain("prescription_sync_failed")
     expect(opsSource).toContain("prescriber_not_linked")
+    expect(opsSource).toContain("intake_correlation_mismatch")
+    expect(opsSource).toContain("filterUnresolvedParchmentFailures")
   })
 
   it("keeps failed Parchment webhook retry as an admin-only, rate-limited recovery action", () => {
@@ -93,6 +98,11 @@ describe("Parchment ops dashboard and retry contract", () => {
     )
     expect(body).toContain("syncParchmentPrescriptionToPms(")
     expect(body).toContain('action_type: "parchment_webhook_retry"')
+    expect(actionSource).toContain("resolveActivePatientProfileFromId")
+    expect(actionSource).toContain('.is("merged_into_profile_id", null)')
+    expect(actionSource.indexOf('.eq("parchment_patient_id", parchmentPatientId)')).toBeLessThan(
+      actionSource.indexOf('getMetadataString(metadata, "patient_profile_id")'),
+    )
     // Phase 1.3 of dashboard remaster (2026-05-11): hardcoded revalidatePath
     // calls were migrated to the central revalidateStaff helper. Ops surfaces
     // (including /admin/ops/parchment) are invalidated via { ops: true }.

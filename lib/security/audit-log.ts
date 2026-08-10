@@ -45,7 +45,7 @@ export type AuditAction =
 interface AuditLogEntry {
   action: AuditAction
   actorId?: string
-  actorType?: "patient" | "doctor" | "admin" | "system"
+  actorType?: "patient" | "doctor" | "admin" | "support" | "system"
   intakeId?: string
   fromState?: string
   toState?: string
