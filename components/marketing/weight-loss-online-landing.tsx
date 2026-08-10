@@ -34,6 +34,7 @@ import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import type { RenderableArticleVisual } from "@/lib/blog/visuals"
+import { PRICING_DISPLAY } from "@/lib/constants"
 import { WEIGHT_LOSS_ONLINE_FAQ } from "@/lib/data/weight-loss-online-faq"
 import { cn } from "@/lib/utils"
 
@@ -44,7 +45,7 @@ const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "consult",
   analyticsId: "weight-loss-online",
   sticky: {
-    ctaText: "View active services",
+    ctaText: "View weight assessment",
     ctaHref: ACTIVE_SERVICES_HREF,
     mobileSummary: "Weight management guide - how safe online review works",
   },
@@ -55,7 +56,7 @@ const HERO_FACTS = [
     icon: XCircle,
     label: "InstantMed status",
     value: "Doctor-reviewed assessment",
-    body: "Weight-management treatment requests remain gated. This page explains safe review standards and where to go next.",
+    body: "Live for eligible adults. Structured eligibility and safety screening comes before payment and doctor review.",
   },
   {
     icon: Hospital,
@@ -67,7 +68,7 @@ const HERO_FACTS = [
     icon: ShieldCheck,
     label: "Care boundary",
     value: "No shortcuts",
-    body: "Prescription decisions, if considered elsewhere, need private clinical assessment and monitoring. They are never guaranteed.",
+    body: "Prescription decisions need private clinical assessment and may require more information, tests, monitoring, or in-person care. They are never guaranteed.",
   },
 ] as const
 
@@ -189,8 +190,8 @@ const RED_FLAGS = [
 const COSTS = [
   {
     icon: WalletCards,
-    title: "No InstantMed fee for this pathway",
-    body: "The InstantMed weight-management assessment is a one-off doctor review. Eligibility and safety screening come first, and a declined request is refunded in full.",
+    title: "One-off assessment fee",
+    body: `The InstantMed weight-management assessment costs ${PRICING_DISPLAY.WEIGHT_LOSS}. Eligibility and safety screening come first, and a declined request is refunded in full.`,
   },
   {
     icon: FileText,
@@ -558,7 +559,7 @@ export function WeightLossOnlineLanding({ visuals }: { visuals: RenderableArticl
             id="eligibility"
             pill="Eligibility"
             title="Who may fit remote discussion, and who should start in person"
-            intro="InstantMed is not accepting this request type, but these boundaries are still useful when comparing Australian services or preparing for your GP appointment."
+            intro="InstantMed accepts eligible adults through a separate one-off assessment. These boundaries help you judge whether that pathway fits or whether GP or in-person care should come first."
           >
             <div className="grid gap-6 lg:grid-cols-2">
               <Reveal className="rounded-2xl border border-border/50 bg-white p-6 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none">
@@ -731,15 +732,15 @@ export function WeightLossOnlineLanding({ visuals }: { visuals: RenderableArticl
             <Reveal className="mx-auto max-w-4xl rounded-3xl border border-border/50 bg-white p-6 text-center shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-8">
               <ListChecks className="mx-auto h-8 w-8 text-primary" aria-hidden="true" />
               <Heading level="h2" className="mt-4">
-                Need an InstantMed service that is currently active?
+                Ready to check whether the assessment fits?
               </Heading>
               <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Start a doctor-reviewed weight-management assessment, or view every service InstantMed accepts. AHPRA-registered Australian doctors review submitted requests and decide what is clinically appropriate.
+                Review the eligibility and safety boundaries before starting a one-off weight-management assessment. An AHPRA-registered doctor reviews every submitted request and decides what is clinically appropriate.
               </p>
               <div className="mt-6">
                 <Button asChild size="lg" onClick={handleFinalCTA}>
                   <Link href={ACTIVE_SERVICES_HREF}>
-                    View active services
+                    View weight assessment
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Link>
                 </Button>

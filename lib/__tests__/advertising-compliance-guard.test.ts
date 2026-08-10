@@ -687,9 +687,14 @@ describe("advertising compliance guard", () => {
       expect(source).not.toContain("not currently accepting weight-management")
       expect(source).not.toContain("treatment request pathway is not live")
       expect(source).not.toContain("gated weight-management pathway")
+      expect(source).not.toContain("treatment requests remain gated")
+      expect(source).not.toContain("not accepting this request type")
+      expect(source).not.toContain("No InstantMed fee for this pathway")
     }
 
     expect(weightLossOnlinePageSource).toContain("one-off doctor-reviewed assessment")
+    expect(weightLossOnlineLandingSource).toContain("PRICING_DISPLAY.WEIGHT_LOSS")
+    expect(weightLossOnlineLandingSource).toContain("View weight assessment")
     expect(weightConditionSource).toContain('ctaHref: "/weight-loss"')
     expect(llmsFullSource).toContain(
       "InstantMed supports one-off, doctor-reviewed weight-management assessment requests",
