@@ -8,12 +8,17 @@ import {
   Info,
   Shield,
   Zap} from "lucide-react"
-import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
 import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
-import { BreadcrumbSchema, FAQSchema, HealthArticleSchema, HowToSchema, MedicalDisclaimer } from "@/components/seo"
+import {
+  defineProgrammaticSeoRoute,
+  HealthArticleSchema,
+  HowToSchema,
+  MedicalDisclaimer,
+  ProgrammaticPageSchemas,
+} from "@/components/seo"
 import { Footer } from "@/components/shared/footer"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
@@ -24,60 +29,50 @@ import {
   commercialPrescriptionLinks,
 } from "@/lib/seo/commercial-links"
 import { GUIDE_INDEX, guides } from "@/lib/seo/data/guides"
-import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 
 interface PageProps {
   params: Promise<{ slug: string }>
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
-  const guide = guides[slug]
-  if (!guide) return {}
+const getGuideBySlug = (slug: string) => guides[slug]
 
-  return {
-    title: guide.title,
-    description: guide.description,
-    robots: ICEBOX_ROBOTS,
+const seoRoute = defineProgrammaticSeoRoute({
+  basePath: "/guides",
+  breadcrumb: {
+    current: ({ entry }) => entry.title,
+    parent: { name: "Guides", pathname: "/guides" },
+  },
+  faqs: ({ entry }) => entry.faqs,
+  getEntry: getGuideBySlug,
+  // Preserve the registry ordering used by the existing static build.
+  getSlugs: () => Object.keys(guides),
+  indexable: () => false,
+  metadata: ({ entry }) => ({
+    description: entry.description,
     keywords: [
-      guide.slug.split('-').join(' '),
-      'medical certificate australia',
-      'telehealth australia',
-      'online doctor',
+      entry.slug.split("-").join(" "),
+      "medical certificate australia",
+      "telehealth australia",
+      "online doctor",
     ],
-    openGraph: {
-      title: guide.title,
-      description: guide.description,
-      url: `https://instantmed.com.au/guides/${slug}`,
-      type: 'article',
-    },
-    alternates: {
-      canonical: `https://instantmed.com.au/guides/${slug}`,
-    },
-  }
-}
+    openGraph: { title: entry.title, type: "article" },
+    title: entry.title,
+  }),
+  param: "slug",
+})
 
-export async function generateStaticParams() {
-  return Object.keys(guides).map((slug) => ({ slug }))
-}
+export const generateMetadata = seoRoute.generateMetadata
+export const generateStaticParams = seoRoute.generateStaticParams
 
 export default async function GuidePage({ params }: PageProps) {
-  const { slug } = await params
-  const guide = guides[slug]
-
-  if (!guide) {
-    notFound()
-  }
-
-  const faqSchemaData = guide.faqs.map(faq => ({
-    question: faq.q,
-    answer: faq.a
-  }))
+  const resolved = await seoRoute.resolve(params)
+  if (!resolved) notFound()
+  const { entry: guide, slug } = resolved
 
   return (
     <>
       <HealthArticleSchema title={guide.title} description={guide.description} url={`/guides/${slug}`} />
-      <FAQSchema faqs={faqSchemaData} />
+      <ProgrammaticPageSchemas page={resolved} />
       <HowToSchema
         name={guide.title}
         description={guide.description}
@@ -87,14 +82,6 @@ export default async function GuidePage({ params }: PageProps) {
           text: step.content,
         }))}
       />
-      <BreadcrumbSchema
-        items={[
-          { name: "Home", url: "https://instantmed.com.au" },
-          { name: "Guides", url: "https://instantmed.com.au/guides" },
-          { name: guide.title, url: `https://instantmed.com.au/guides/${slug}` }
-        ]} 
-      />
-
       <div className="flex min-h-screen flex-col bg-background dark:bg-black">
         <Navbar variant="marketing" />
         <ContentPageTracker pageType="guide" slug={slug} />

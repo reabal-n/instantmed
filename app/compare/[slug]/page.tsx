@@ -7,13 +7,17 @@ import {
   X,
   Zap,
 } from "lucide-react"
-import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
 import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { DataDrivenGuideSection } from "@/components/marketing/sections/data-driven-guide-section"
-import { BreadcrumbSchema, FAQSchema, HealthArticleSchema, MedicalDisclaimer } from "@/components/seo"
+import {
+  defineProgrammaticSeoRoute,
+  HealthArticleSchema,
+  MedicalDisclaimer,
+  ProgrammaticPageSchemas,
+} from "@/components/seo"
 import { Footer } from "@/components/shared/footer"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
@@ -24,7 +28,7 @@ import {
   type ComparisonEntry,
   COMPETITOR_COMPARISONS,
 } from "@/lib/seo/data/competitor-comparisons"
-import { ICEBOX_ROBOTS, shouldIndexCompare } from "@/lib/seo/index-policy"
+import { shouldIndexCompare } from "@/lib/seo/index-policy"
 
 // Built-in comparisons - general telehealth educational pages.
 // Competitor-specific comparisons live in lib/seo/data/competitor-comparisons.ts
@@ -727,40 +731,36 @@ interface PageProps {
   params: Promise<{ slug: string }>
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
-  const comparison = comparisons[slug]
-  if (!comparison) return {}
+const getComparisonBySlug = (slug: string) => comparisons[slug]
 
-  return {
-    title: comparison.title,
-    description: comparison.description,
-    // Most compare pages stay noindex,follow (iceboxed). Pages in the compare
-    // keep-set — e.g. the dated cross-provider price table — are re-indexed.
-    robots: shouldIndexCompare(slug) ? { index: true, follow: true } : ICEBOX_ROBOTS,
-    keywords: comparison.keywords ?? DEFAULT_COMPARISON_KEYWORDS,
-    openGraph: {
-      title: comparison.title,
-      description: comparison.description,
-      url: `https://instantmed.com.au/compare/${slug}`,
-    },
-    alternates: {
-      canonical: `https://instantmed.com.au/compare/${slug}`,
-    },
-  }
-}
+const seoRoute = defineProgrammaticSeoRoute({
+  basePath: "/compare",
+  breadcrumb: {
+    current: ({ entry }) => entry.title,
+    parent: { name: "Compare", pathname: "/compare" },
+  },
+  faqs: ({ entry }) => entry.faqs,
+  getEntry: getComparisonBySlug,
+  getSlugs: () => Object.keys(comparisons),
+  // Most compare pages stay noindex,follow (iceboxed). Pages in the compare
+  // keep-set — e.g. the dated cross-provider price table — are re-indexed.
+  indexable: ({ slug }) => shouldIndexCompare(slug),
+  metadata: ({ entry }) => ({
+    description: entry.description,
+    keywords: entry.keywords ?? DEFAULT_COMPARISON_KEYWORDS,
+    openGraph: { title: entry.title },
+    title: entry.title,
+  }),
+  param: "slug",
+})
 
-export async function generateStaticParams() {
-  return Object.keys(comparisons).map((slug) => ({ slug }))
-}
+export const generateMetadata = seoRoute.generateMetadata
+export const generateStaticParams = seoRoute.generateStaticParams
 
 export default async function ComparisonPage({ params }: PageProps) {
-  const { slug } = await params
-  const comparison = comparisons[slug]
-
-  if (!comparison) {
-    notFound()
-  }
+  const resolved = await seoRoute.resolve(params)
+  if (!resolved) notFound()
+  const { entry: comparison, slug } = resolved
 
   const isOnlineMedCertOptions = slug === "online-medical-certificate-options"
   const primaryActionHref = isOnlineMedCertOptions ? "/medical-certificate" : "/request"
@@ -772,22 +772,10 @@ export default async function ComparisonPage({ params }: PageProps) {
     ? "Review the service details, pricing, verification method, and refund boundary before starting."
     : "See why Australians choose InstantMed for their healthcare needs."
 
-  const faqSchemaData = comparison.faqs.map(faq => ({
-    question: faq.q,
-    answer: faq.a
-  }))
-
   return (
     <>
       <HealthArticleSchema title={comparison.title} description={comparison.description} url={`/compare/${slug}`} />
-      <FAQSchema faqs={faqSchemaData} />
-      <BreadcrumbSchema
-        items={[
-          { name: "Home", url: "https://instantmed.com.au" },
-          { name: "Compare", url: "https://instantmed.com.au/compare" },
-          { name: comparison.title, url: `https://instantmed.com.au/compare/${slug}` }
-        ]}
-      />
+      <ProgrammaticPageSchemas page={resolved} />
 
       <div className="flex min-h-screen flex-col bg-background">
         <Navbar variant="marketing" />

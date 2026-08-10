@@ -7,18 +7,22 @@ import {
   Shield,
   Stethoscope,
   ThermometerSun} from "lucide-react"
-import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
 import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
-import { BreadcrumbSchema, FAQSchema, MedicalConditionSchema, MedicalDisclaimer } from "@/components/seo"
+import {
+  defineProgrammaticSeoRoute,
+  MedicalConditionSchema,
+  MedicalDisclaimer,
+  ProgrammaticPageSchemas,
+} from "@/components/seo"
 import { Footer } from "@/components/shared/footer"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
 import { symptoms } from "@/lib/seo/data/symptoms"
-import { ICEBOX_ROBOTS, shouldIndexSymptom } from "@/lib/seo/index-policy"
+import { shouldIndexSymptom } from "@/lib/seo/index-policy"
 
 const SHARED_SYMPTOM_FAQS: Array<{ q: string; a: string }> = [
   {
@@ -55,60 +59,57 @@ const SHARED_SYMPTOM_FAQS: Array<{ q: string; a: string }> = [
   },
 ]
 
+const getSymptomBySlug = (slug: string) => symptoms[slug]
+
 interface PageProps {
   params: Promise<{ slug: string }>
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
-  const symptom = symptoms[slug]
-  if (!symptom) return {}
+const seoRoute = defineProgrammaticSeoRoute({
+  basePath: "/symptoms",
+  breadcrumb: {
+    current: ({ entry }) => entry.name,
+    parent: { name: "Symptom Checker", pathname: "/symptoms" },
+  },
+  // Keep the symptom-specific questions first; they are more relevant than
+  // the shared service questions in both visible content and FAQ schema.
+  faqs: ({ entry }) => [...entry.faqs, ...SHARED_SYMPTOM_FAQS],
+  getEntry: getSymptomBySlug,
+  getSlugs: () => Object.keys(symptoms),
+  indexable: ({ slug }) => shouldIndexSymptom(slug),
+  metadata: ({ entry }) => {
+    const title = `${entry.name} | Causes & When to See a Doctor`
+    const description = `${entry.description} Learn about possible causes, self-care tips, and when you should see a doctor. Get assessed online by Australian doctors.`
 
-  const title = `${symptom.name} | Causes & When to See a Doctor`
-  const description = `${symptom.description} Learn about possible causes, self-care tips, and when you should see a doctor. Get assessed online by Australian doctors.`
+    return {
+      description,
+      keywords: [
+        `${entry.name.toLowerCase()} causes`,
+        `${entry.name.toLowerCase()} when to see doctor`,
+        `${entry.name.toLowerCase()} treatment`,
+        `${entry.name.toLowerCase()} symptoms`,
+        `what causes ${entry.name.toLowerCase()}`,
+      ],
+      openGraph: {
+        description: `Understand your ${entry.name.toLowerCase()} symptoms. Learn possible causes and when to seek medical advice.`,
+        title: `${entry.name} - Causes & When to See a Doctor | InstantMed`,
+      },
+      title,
+    }
+  },
+  param: "slug",
+})
 
-  return {
-    title,
-    description,
-    robots: shouldIndexSymptom(slug) ? { index: true, follow: true } : ICEBOX_ROBOTS,
-    keywords: [
-      `${symptom.name.toLowerCase()} causes`,
-      `${symptom.name.toLowerCase()} when to see doctor`,
-      `${symptom.name.toLowerCase()} treatment`,
-      `${symptom.name.toLowerCase()} symptoms`,
-      `what causes ${symptom.name.toLowerCase()}`,
-    ],
-    openGraph: {
-      title: `${symptom.name} - Causes & When to See a Doctor | InstantMed`,
-      description: `Understand your ${symptom.name.toLowerCase()} symptoms. Learn possible causes and when to seek medical advice.`,
-      url: `https://instantmed.com.au/symptoms/${slug}`,
-    },
-    alternates: {
-      canonical: `https://instantmed.com.au/symptoms/${slug}`,
-    },
-  }
-}
-
-export async function generateStaticParams() {
-  return Object.keys(symptoms).map((slug) => ({ slug }))
-}
+export const generateMetadata = seoRoute.generateMetadata
+export const generateStaticParams = seoRoute.generateStaticParams
 
 export default async function SymptomPage({ params }: PageProps) {
-  const { slug } = await params
-  const symptom = symptoms[slug]
-
-  if (!symptom) {
-    notFound()
-  }
+  const resolved = await seoRoute.resolve(params)
+  if (!resolved) notFound()
+  const { entry: symptom, slug } = resolved
 
   // Merge symptom-specific FAQs (first, more relevant) with shared FAQs
   const allFaqs = [...symptom.faqs, ...SHARED_SYMPTOM_FAQS]
-
-  // Transform FAQs for schema
-  const faqSchemaData = allFaqs.map(faq => ({
-    question: faq.q,
-    answer: faq.a
-  }))
 
   return (
     <>
@@ -118,14 +119,7 @@ export default async function SymptomPage({ params }: PageProps) {
         description={symptom.description}
         url={`/symptoms/${slug}`}
       />
-      <FAQSchema faqs={faqSchemaData} />
-      <BreadcrumbSchema
-        items={[
-          { name: "Home", url: "https://instantmed.com.au" },
-          { name: "Symptom Checker", url: "https://instantmed.com.au/symptoms" },
-          { name: symptom.name, url: `https://instantmed.com.au/symptoms/${slug}` }
-        ]} 
-      />
+      <ProgrammaticPageSchemas page={resolved} />
 
       <div className="flex min-h-screen flex-col bg-background dark:bg-black">
         <Navbar variant="marketing" />

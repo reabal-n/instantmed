@@ -175,7 +175,9 @@ describe("code-clean retirement contracts", () => {
 
     expect(read("lib/blog/visuals.ts")).toContain("getArticleVisualsForRender")
     expect(read("app/admin/analytics/page.tsx")).toContain("getRevenueDashboard")
-    expect(read("app/compare/[slug]/page.tsx")).toContain("export async function generateMetadata")
+    const compareRoute = read("app/compare/[slug]/page.tsx")
+    expect(compareRoute).toContain("defineProgrammaticSeoRoute")
+    expect(compareRoute).toContain("export const generateMetadata = seoRoute.generateMetadata")
     expect(read("app/compare/sitemap.ts")).toContain("@/lib/seo/data/comparisons")
     expect(read("package.json")).not.toContain('"seo:generate"')
   })

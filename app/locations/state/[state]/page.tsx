@@ -1,18 +1,19 @@
 import { ArrowRight, CheckCircle2, Clock, MapPin, Shield } from "lucide-react"
-import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
-import { BreadcrumbSchema } from "@/components/seo"
+import {
+  defineProgrammaticSeoRoute,
+  ProgrammaticPageSchemas,
+} from "@/components/seo"
+import { JsonLdScript } from "@/components/seo/schemas/json-ld-script"
 import { Footer } from "@/components/shared/footer"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
-import { PRICING_DISPLAY } from "@/lib/constants"
+import { DEFAULT_APP_URL, PRICING_DISPLAY } from "@/lib/constants"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import { getAllStateSlugs, getStateBySlug } from "@/lib/seo/data/states"
-import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
-import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 // ============================================================================
 // CITY LOOKUP (for display names/slugs in the grid)
@@ -72,57 +73,56 @@ interface PageProps {
   params: Promise<{ state: string }>
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { state } = await params
-  const data = getStateBySlug(state)
-  if (!data) return {}
-
-  const canonical = `https://instantmed.com.au/locations/state/${data.slug}`
-
-  return {
-    title: `Online Doctor ${data.fullName} | Telehealth ${data.shortName}`,
-    robots: ICEBOX_ROBOTS,
-    description: `Medical certificates, prescriptions, and consultations for ${data.fullName} residents. AHPRA-registered doctors serving ${data.cities.length}+ cities across ${data.shortName}.`,
+const seoRoute = defineProgrammaticSeoRoute({
+  basePath: "/locations/state",
+  breadcrumb: {
+    current: ({ entry }) => entry.fullName,
+    parent: { name: "Locations", pathname: "/locations" },
+  },
+  faqs: ({ entry }) => entry.faqs,
+  getEntry: getStateBySlug,
+  getSlugs: getAllStateSlugs,
+  indexable: () => false,
+  metadata: ({ entry }) => ({
+    description: `Medical certificates, prescriptions, and consultations for ${entry.fullName} residents. AHPRA-registered doctors serving ${entry.cities.length}+ cities across ${entry.shortName}.`,
     keywords: [
-      `online doctor ${data.fullName.toLowerCase()}`,
-      `telehealth ${data.fullName.toLowerCase()}`,
-      `telehealth ${data.shortName.toLowerCase()}`,
-      `medical certificate ${data.fullName.toLowerCase()}`,
-      `online prescription ${data.fullName.toLowerCase()}`,
-      `${data.fullName.toLowerCase()} doctor online`,
+      `online doctor ${entry.fullName.toLowerCase()}`,
+      `telehealth ${entry.fullName.toLowerCase()}`,
+      `telehealth ${entry.shortName.toLowerCase()}`,
+      `medical certificate ${entry.fullName.toLowerCase()}`,
+      `online prescription ${entry.fullName.toLowerCase()}`,
+      `${entry.fullName.toLowerCase()} doctor online`,
     ],
     openGraph: {
-      title: `Online Doctor ${data.fullName} | InstantMed`,
-      description: `Telehealth medical certificates and prescriptions for every ${data.shortName} postcode. Reviewed by AHPRA-registered doctors.`,
-      url: canonical,
+      description: `Telehealth medical certificates and prescriptions for every ${entry.shortName} postcode. Reviewed by AHPRA-registered doctors.`,
+      title: `Online Doctor ${entry.fullName} | InstantMed`,
       type: "website",
     },
+    title: `Online Doctor ${entry.fullName} | Telehealth ${entry.shortName}`,
     twitter: {
       card: "summary_large_image",
-      title: `Online Doctor ${data.fullName} | InstantMed`,
-      description: `Telehealth for ${data.fullName} residents - online med certs, eScripts, consultations.`,
+      description: `Telehealth for ${entry.fullName} residents - online med certs, eScripts, consultations.`,
+      title: `Online Doctor ${entry.fullName} | InstantMed`,
     },
-    alternates: { canonical },
-  }
-}
+  }),
+  param: "state",
+})
 
-export async function generateStaticParams() {
-  return getAllStateSlugs().map((state) => ({ state }))
-}
+export const generateMetadata = seoRoute.generateMetadata
+export const generateStaticParams = seoRoute.generateStaticParams
 
 // ============================================================================
 // PAGE
 // ============================================================================
 
 export default async function StatePage({ params }: PageProps) {
-  const { state } = await params
-  const data = getStateBySlug(state)
+  const resolved = await seoRoute.resolve(params)
 
-  if (!data) {
+  if (!resolved) {
     notFound()
   }
 
-  const canonical = `https://instantmed.com.au/locations/state/${data.slug}`
+  const { canonical, entry: data } = resolved
 
   // JSON-LD: MedicalBusiness with areaServed = State
   const localSchema = {
@@ -132,8 +132,8 @@ export default async function StatePage({ params }: PageProps) {
     name: `InstantMed - Online Doctor ${data.fullName}`,
     description: `Online doctor consultations, medical certificates, and prescriptions for ${data.fullName} residents. AHPRA-registered Australian doctors serving all ${data.shortName} postcodes.`,
     url: canonical,
-    logo: "https://instantmed.com.au/branding/logo.png",
-    image: "https://instantmed.com.au/branding/logo.png",
+    logo: `${DEFAULT_APP_URL}/branding/logo.png`,
+    image: `${DEFAULT_APP_URL}/branding/logo.png`,
     telephone: "+61-450-722-549",
     areaServed: {
       "@type": "State",
@@ -159,37 +159,13 @@ export default async function StatePage({ params }: PageProps) {
     isAcceptingNewPatients: true,
   }
 
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: data.faqs.map((faq) => ({
-      "@type": "Question",
-      name: faq.q,
-      acceptedAnswer: { "@type": "Answer", text: faq.a },
-    })),
-  }
-
   return (
     <>
-      <script
+      <JsonLdScript
+        data={localSchema}
         id="state-local-schema"
-        type="application/ld+json"
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(localSchema) }}
       />
-      <script
-        id="state-faq-schema"
-        type="application/ld+json"
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }}
-      />
-      <BreadcrumbSchema
-        items={[
-          { name: "Home", url: "https://instantmed.com.au" },
-          { name: "Locations", url: "https://instantmed.com.au/locations" },
-          { name: data.fullName, url: canonical },
-        ]}
-      />
+      <ProgrammaticPageSchemas page={resolved} />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />

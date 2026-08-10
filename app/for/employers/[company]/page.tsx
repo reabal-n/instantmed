@@ -7,19 +7,20 @@ import {
   Search,
   Shield,
 } from "lucide-react"
-import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
 import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import {
+  defineProgrammaticSeoRoute,
+  ProgrammaticPageSchemas,
+} from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CONTACT_EMAIL, PRICING } from "@/lib/constants"
-import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
-import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 const EMPLOYER_DATA: Record<string, { name: string; logo: string; logoWidth: number; industry: string }> = {
   woolworths:       { name: "Woolworths",         logo: "/logos/woolworths.png",        logoWidth: 120, industry: "retail" },
@@ -40,29 +41,6 @@ const EMPLOYER_DATA: Record<string, { name: string; logo: string; logoWidth: num
   pwc:              { name: "PwC",                logo: "/logos/pwc.svg",               logoWidth: 80,  industry: "consulting" },
   kpmg:             { name: "KPMG",               logo: "/logos/kpmg.svg",              logoWidth: 90,  industry: "consulting" },
   bupa:             { name: "Bupa",               logo: "/logos/bupa.svg",              logoWidth: 90,  industry: "health insurance" },
-}
-
-export function generateStaticParams() {
-  return Object.keys(EMPLOYER_DATA).map((company) => ({ company }))
-}
-
-export async function generateMetadata({ params }: { params: Promise<{ company: string }> }): Promise<Metadata> {
-  const { company } = await params
-  const employer = EMPLOYER_DATA[company]
-  if (!employer) return {}
-
-  return {
-    title: `Verify Medical Certificates | ${employer.name} Employees`,
-    robots: ICEBOX_ROBOTS,
-    description: `${employer.name} employees and HR teams can verify InstantMed medical certificates instantly. Issued by AHPRA-registered doctors; employer policies may vary.`,
-    openGraph: {
-      title: `Verify Medical Certificates | ${employer.name}`,
-      description: `How ${employer.name} HR teams verify InstantMed medical certificates.`,
-    },
-    alternates: {
-      canonical: `https://instantmed.com.au/for/employers/${company}`,
-    },
-  }
 }
 
 function getFaqs(name: string) {
@@ -86,32 +64,43 @@ function getFaqs(name: string) {
   ]
 }
 
-export default async function EmployerCompanyPage({ params }: { params: Promise<{ company: string }> }) {
-  const { company } = await params
-  const employer = EMPLOYER_DATA[company]
-  if (!employer) notFound()
+interface PageProps {
+  params: Promise<{ company: string }>
+}
+
+const getEmployerBySlug = (slug: string) => EMPLOYER_DATA[slug]
+
+const seoRoute = defineProgrammaticSeoRoute({
+  basePath: "/for/employers",
+  breadcrumb: {
+    current: ({ entry }) => entry.name,
+    parent: { name: "For Employers", pathname: "/employers" },
+  },
+  faqs: ({ entry }) => getFaqs(entry.name),
+  getEntry: getEmployerBySlug,
+  getSlugs: () => Object.keys(EMPLOYER_DATA),
+  indexable: () => false,
+  metadata: ({ entry }) => ({
+    description: `${entry.name} employees and HR teams can verify InstantMed medical certificates instantly. Issued by AHPRA-registered doctors; employer policies may vary.`,
+    openGraph: {
+      description: `How ${entry.name} HR teams verify InstantMed medical certificates.`,
+      title: `Verify Medical Certificates | ${entry.name}`,
+    },
+    title: `Verify Medical Certificates | ${entry.name} Employees`,
+  }),
+  param: "company",
+})
+
+export const generateMetadata = seoRoute.generateMetadata
+export const generateStaticParams = seoRoute.generateStaticParams
+
+export default async function EmployerCompanyPage({ params }: PageProps) {
+  const resolved = await seoRoute.resolve(params)
+  if (!resolved) notFound()
+
+  const { entry: employer, slug: company } = resolved
 
   const faqs = getFaqs(employer.name)
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faqs.map((faq) => ({
-      "@type": "Question",
-      name: faq.question,
-      acceptedAnswer: { "@type": "Answer", text: faq.answer },
-    })),
-  }
-
-  // #2 - Breadcrumb schema for SERP breadcrumbs
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://instantmed.com.au" },
-      { "@type": "ListItem", position: 2, name: "For Employers", item: "https://instantmed.com.au/employers" },
-      { "@type": "ListItem", position: 3, name: employer.name, item: `https://instantmed.com.au/for/employers/${company}` },
-    ],
-  }
 
   // #4 - Cross-links to other employer pages
   const otherEmployers = Object.entries(EMPLOYER_DATA)
@@ -119,11 +108,9 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
     .slice(0, 6)
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <script id="faq-schema" type="application/ld+json"
-        suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
-      <script id="breadcrumb-schema" type="application/ld+json"
-        suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbSchema) }} />
+    <>
+      <ProgrammaticPageSchemas page={resolved} />
+      <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
       {/* #11 - PostHog tracking for employer company pages */}
       <ContentPageTracker pageType="employer" slug={company} />
@@ -295,7 +282,8 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
         </section>
       </main>
 
-      <MarketingFooter />
-    </div>
+        <MarketingFooter />
+      </div>
+    </>
   )
 }
