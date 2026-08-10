@@ -142,7 +142,8 @@ describe("marketing copy contracts", () => {
 
     expect(activeServiceHrefs).toContain("/womens-health")
     expect(footerServiceHrefs).toContain("/womens-health")
-    expect(footerServiceHrefs).not.toContain("/weight-loss")
+    // Weight management launched 2026-08-07 — the footer now lists it.
+    expect(footerServiceHrefs).toContain("/weight-loss")
   })
 
   it("does not imply prescribing requests are guaranteed to be approved", () => {

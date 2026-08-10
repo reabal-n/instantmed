@@ -134,6 +134,8 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
       flags.disable_repeat_scripts = row.value === true
     } else if (row.key === FLAG_KEYS.DISABLE_CONSULTS) {
       flags.disable_consults = row.value === true
+    } else if (row.key === FLAG_KEYS.DISABLE_WEIGHT_LOSS) {
+      flags.disable_weight_loss = row.value === true
     } else if (row.key === FLAG_KEYS.BLOCKED_MEDICATION_TERMS) {
       flags.blocked_medication_terms = Array.isArray(row.value) ? row.value : []
     } else if (row.key === FLAG_KEYS.SAFETY_SCREENING_SYMPTOMS) {
@@ -260,6 +262,8 @@ export async function isMaintenanceModeStrict(): Promise<{ enabled: boolean; mes
  */
 export async function isServiceDisabled(
   category: "medical_certificate" | "prescription" | "other"
+,
+  subtype?: string | null,
 ): Promise<boolean> {
   const flags = await getFeatureFlags()
 
@@ -269,6 +273,11 @@ export async function isServiceDisabled(
     case "prescription":
       return flags.disable_repeat_scripts
     case "other":
+      // The dedicated weight-management switch stops that line alone;
+      // disable_consults still stops every consult subtype at once.
+      if (subtype === "weight_loss") {
+        return flags.disable_weight_loss || flags.disable_consults
+      }
       return flags.disable_consults
     default:
       return false

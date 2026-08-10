@@ -101,7 +101,7 @@ describe("getInitialRequestUrlDecision", () => {
     })
   })
 
-  it("keeps coming-soon consult subtypes on their redirect path", () => {
+  it("seeds launched consult subtypes with no redirect (weight loss live 2026-08-07)", () => {
     expect(
       getInitialRequestUrlDecision({
         initialService: "consult",
@@ -109,7 +109,6 @@ describe("getInitialRequestUrlDecision", () => {
       }),
     ).toEqual({
       answerSeeds: [{ key: "consultSubtype", value: "weight_loss" }],
-      redirectPath: "/weight-loss",
     })
   })
 

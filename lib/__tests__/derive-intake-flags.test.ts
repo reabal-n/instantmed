@@ -174,18 +174,21 @@ describe("deriveIntakeFlags — service routing", () => {
     expect(codes(flags)).toContain("dedicated_service_medication")
   })
 
-  it("flags a gated weight-loss-class medicine without blocking it", () => {
+  it("flags a weight-only out-of-scope medicine without blocking it (D-B)", () => {
+    // Phentermine is outside the GLP-1-focused launched service: never steered
+    // (pay-to-be-refused churn), always doctor-flagged for a decline-to-GP.
     const flags = deriveIntakeFlags({
-      ...repeatBase,
+      category: "prescription",
+      subtype: "repeat",
       answers: {
-        medications: [{ name: "Ozempic", ...complete, strength: "1 mg", form: "pen" }],
-        current_dose: "weekly",
-        indication: "type 2 diabetes",
+        medications: [{ name: "Phentermine", pbsCode: "MANUAL", strength: "30 mg", form: "capsule" }],
+        current_dose: "one daily",
+        indication: "weight",
       },
     })
-    const flag = flags.find((f) => f.code === "gated_service_medication")
+    const flag = flags.find((f) => f.code === "dedicated_service_medication")
     expect(flag?.severity).toBe("attention")
-    expect(flag?.detail).toContain("Ozempic")
+    expect(flag?.detail).toContain("outside the GLP-1-focused service scope")
   })
 
   it("derives the same flags for chronic_review as for repeat", () => {
@@ -200,7 +203,7 @@ describe("deriveIntakeFlags — service routing", () => {
     const repeat = deriveIntakeFlags({ category: "prescription", subtype: "repeat", answers })
     const chronic = deriveIntakeFlags({ category: "prescription", subtype: "chronic_review", answers })
     expect(codes(chronic)).toEqual(codes(repeat))
-    expect(codes(chronic)).toContain("gated_service_medication")
+    expect(codes(chronic)).toContain("dedicated_service_medication")
   })
 
   it("does NOT let a past controlled medicine named in the indication become a block signal", () => {

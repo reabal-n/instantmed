@@ -412,7 +412,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     }
     const serviceCategory = categoryMap[input.category] || "other"
     
-    if (await isServiceDisabled(serviceCategory)) {
+    if (await isServiceDisabled(serviceCategory, input.subtype)) {
       const errorCode = serviceCategory === "medical_certificate" 
         ? SERVICE_DISABLED_ERRORS.MED_CERT_DISABLED
         : serviceCategory === "prescription"

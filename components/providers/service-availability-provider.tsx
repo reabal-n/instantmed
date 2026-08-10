@@ -24,6 +24,7 @@ interface AvailabilityState {
   disable_med_cert: boolean
   disable_repeat_scripts: boolean
   disable_consults: boolean
+  disable_weight_loss: boolean
   urgent_notice_enabled: boolean
   urgent_notice_message: string
   business_hours_open: number
@@ -45,6 +46,7 @@ const defaultState: AvailabilityState = {
   disable_med_cert: false,
   disable_repeat_scripts: false,
   disable_consults: false,
+  disable_weight_loss: false,
   urgent_notice_enabled: false,
   urgent_notice_message: "",
   business_hours_open: 8,
@@ -114,8 +116,9 @@ export function ServiceAvailabilityProvider({ children }: { children: ReactNode 
         case "ed":
         case "hair-loss":
         case "womens-health":
-        case "weight-loss":
           return state.disable_consults
+        case "weight-loss":
+          return state.disable_weight_loss || state.disable_consults
         default:
           return false
       }

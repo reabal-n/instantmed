@@ -47,10 +47,10 @@ app/request/page.tsx -> RequestFlow -> step-router.tsx (lazy) -> steps/*.tsx
 | `med-cert` | certificate, symptoms, details (skipped when profile identity is complete), checkout |
 | `prescription` / `repeat-script` | medication (medicine + prescription history + dose/indication/side effects — merged into one screen 2026-07-17), medical-history, details, review/pay |
 | `consult` (general) | **Retired 2026-05-20.** No active flow — the `'general'` subtype was removed from `ConsultSubtype`. `/consult` is now a services-overview page; `/general-consult` 301s into it. `consult` stays in code only as the parent category for the subtypes below. |
-| `consult` (ED) | ed-goals, ed-assessment (IIEF-5), ed-health (consolidated safety + medical history), ed-preferences, details (+ height/weight/BMI), review, checkout |
+| `consult` (ED) | ed-goals (duration + one severity item), ed-health (consolidated safety + medical history), ed-preferences, details (+ height/weight/BMI), review, checkout. The retired `ed-assessment` IIEF-5 step remains backward-compatible for historical and in-flight answers only. |
 | `consult` (hair loss) | hair-loss-goals, hair-loss-assessment, hair-loss-health (consolidated safety + medical history), hair-loss-preferences, details, review, checkout |
 | `consult` (women's health) | womens-health-type, womens-health-assessment, medical-history, details, review, checkout. Live 2026-06-15; scoped to UTI + new/switch pill via `LIVE_WOMENS_HEALTH_OPTIONS` (`ocp_repeat` routes to repeat-script; morning-after / period-pain / "other" gated). |
-| `consult` (weight loss) | weight-loss-assessment, weight-loss-call-scheduling, medical-history, details, review, checkout. **Gated** — `weight_loss` is in `BLOCKED_CONSULT_SUBTYPES`; entry returns no steps until launch readiness changes. |
+| `consult` (weight management) | weight-loss-assessment, medical-history, details, review. **LIVE 2026-08-07** — form-first (the scheduled-call step was removed; eating-disorder/cardiac history soft-escalates to a doctor call), GLP-1-focused, BMI floors + pregnancy/MEN2/pancreatitis screening enforced via the `weight-management` safety slug. |
 
 **Adding steps:** (1) Create component in `components/request/steps/` implementing `StepProps`, (2) register lazy import in `step-router.tsx`, (3) add definition to `lib/request/step-registry.ts`. Steps support conditional skip via `getStepsForService(type, { isAuthenticated, hasProfile, hasMedicare, answers })`.
 
@@ -875,7 +875,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/db.ts` | Supabase generated types + custom interfaces |
 | `types/certificate-template.ts` | PDF template field definitions |
 | `lib/hooks/` | Shared client hooks | Debounce, keyboard navigation, landing analytics, responsive media, section visibility, validation summaries, and staff refresh helpers |
-| `e2e/` | 77 TypeScript files, including 68 specs and `helpers/` (seed/teardown, auth bypass, production-synthetic side-effect isolation). Focused paid-flow and ops smoke specs are the blocking CI gate. |
+| `e2e/` | 78 TypeScript files, including 69 specs and `helpers/` (seed/teardown, auth bypass, production-synthetic side-effect isolation). Focused paid-flow and ops smoke specs are the blocking CI gate. |
 | `supabase/migrations/` | 110 SQL migration files (1 squashed baseline + 109 incremental). Most recent: `20260807120000_add_can_review_weight_loss.sql` — per-doctor weight-management review flag (default false, explicit grant; admin backfilled true) for the 2026-08-07 launch build. Before it, `20260803093000_add_priority_fee_refunded_at.sql` — nullable `intakes.priority_fee_refunded_at` stamp for the priority breach auto-refund (once-only guard; approval emails read it to acknowledge the refund). Before it, `20260727184400_google_ads_fee_cache_on_intakes.sql` and the production-applied Ads Agent migrations (PHI-free run/proposal/experiment state, RLS default-deny, Stripe fee cache on the intake PaymentIntent row). |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
@@ -1007,7 +1007,7 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 | `/prescriptions` | Repeat medication landing (one-off eScript review workflow). Subscription language is dormant/future strategy unless reactivated in `docs/BUSINESS_PLAN.md`. |
 | `/erectile-dysfunction` | Bespoke ED specialty landing (`ErectileDysfunctionLanding`). Routes into `/request?service=consult&subtype=ed`. Form-first doctor review; doctor may call/message if clinically needed. Short URL `/ed` 301s here. |
 | `/hair-loss` | Bespoke hair loss specialty landing (`HairLossLanding`). Routes into `/request?service=consult&subtype=hair_loss`. Form-first doctor review; doctor may call/message if clinically needed. |
-| `/consult` | Services overview page (no intake funnel). General Consult was retired on 2026-05-20; the URL preserves the SEO surface for "online doctor" queries and routes visitors to the 5 active services (med-cert, repeat Rx, ED, hair loss, and narrow women's health). `/general-consult` 301s here. |
+| `/consult` | Services overview page (no intake funnel). General Consult was retired on 2026-05-20; the URL preserves the SEO surface for "online doctor" queries and routes visitors to the 6 active services (med-cert, repeat Rx, ED, hair loss, narrow women's health, and weight management). `/general-consult` 301s here. |
 | `/blog` | Doctor-reviewed, guide-only health articles (12h ISR revalidation) |
 | `/resources` | Source-backed authority resources for journalists, search engines, and answer engines. Individual assets cover telehealth safety, employer policy, secure prescription requests, GP access, complaints, and governance. |
 | `/faq` | 34 FAQs across 7 categories |

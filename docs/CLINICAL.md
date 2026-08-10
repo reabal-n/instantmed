@@ -9,13 +9,14 @@
 
 InstantMed is **not a broad online GP clinic** and **not a prescribing system**. It is a specialised-service intake, triage, and documentation platform that supports clinician decision-making. All prescribing decisions occur outside the platform.
 
-**Active service scope (2026-05-20):**
+**Active service scope (2026-08-07):**
 
 - medical certificates
 - repeat prescriptions
 - hair loss
 - erectile dysfunction
 - women's health (UTI + new/switch contraceptive pill only) — launched 2026-06-15
+- weight management — launched 2026-08-07
 
 **Women's health scope (live 2026-06-15):** narrow and protocol-led. Only
 `uti` and `ocp_new` are live (`LIVE_WOMENS_HEALTH_OPTIONS` in
@@ -28,14 +29,20 @@ pathway does not promise doctor contact or recommend a replacement treatment.
 See `lib/safety/rules.ts` and `validateSafetyFieldsPresent` in
 `lib/safety/evaluate.ts`.
 
+**Weight-management scope (live 2026-08-07):** narrow, one-off, and
+doctor-reviewed. Every request uses the dedicated structured eligibility and
+safety screen; it is never auto-approved. The doctor may request more
+information or call before deciding. The service does not promise a
+prescription, ongoing monitoring, or a subscription. Paid advertising remains
+separately unapproved and is governed by `docs/ADVERTISING_COMPLIANCE.md` and
+the exact approval workflow in `docs/OPERATIONS.md`.
+
 **Retired/gated future scope:** general consult was retired on 2026-05-20
 because it served as a back-channel for gated services with no structured
-screener. Weight loss still has a reserved intake subtype and draft step
-definitions but is not currently accepting paid requests. Entry and server
-checkout validation are blocked by `lib/request/consult-subtypes.ts`
-(BLOCKED_CONSULT_SUBTYPES) until launch readiness is explicitly changed.
+screener. Unlaunched consult subtypes remain blocked until their own launch
+readiness is explicitly changed.
 
-General Consult is retired publicly; the consult service type remains only as the parent category for active ED, hair-loss, and narrow women's-health pathways.
+General Consult is retired publicly; the consult service type remains only as the parent category for active ED, hair-loss, narrow women's-health, and weight-management pathways.
 
 **Audit narrative (must always remain true):**
 
@@ -193,7 +200,7 @@ Prescribing is framed as: "a possible outcome of clinician review, occurring sep
 | Hair loss | One-off form-first doctor assessment. No subscription or outcome guarantee. Avoid drug names in acquisition copy. |
 | Erectile dysfunction | One-off form-first doctor assessment with strict contraindication screening. Cardiac history, nitrate/alpha-blocker use, uncertain medication history, or clinical discomfort requires contact or decline. |
 | Women's health | Live for UTI + new/switch contraceptive pill only. Keep it narrow and protocol-led; pregnancy risk, UTI red flags, STI risk, pelvic pain, heavy bleeding, complex symptoms, or safety uncertainty require contact, decline, or in-person redirection. |
-| Weight loss | Gated future service. Manual review only unless launch readiness explicitly changes the clinical policy. No automated approval. No ongoing monitoring promise unless operational capacity exists. |
+| Weight management | LIVE 2026-08-07. Doctor-reviewed only — never auto-approved. GLP-1-focused (phentermine excluded at launch, D-B). One-off review: continuation requires a new consult (D-E); no ongoing-monitoring promise. Eating-disorder or cardiac history requires a doctor call before any decision. `can_review_weight_loss` capability + Medical Director sign-off required for non-admin doctors. |
 
 Subscriptions, monthly prescribing, pharmacy fulfilment, and ongoing check-in programs are not part of the current operating model.
 
@@ -206,7 +213,7 @@ A medicine that belongs to a dedicated service must not be prescribed through th
 - **PDE5 inhibitors and hair-loss medicines route to their own services and are refused at checkout.** The ED pathway owns the nitrate absolute-contraindication and cardiac screening; the generic repeat history step asks none of it, so allowing these through was a screening bypass as well as a pricing one.
 - **A stated BPH/PAH indication keeps the repeat** (low-dose daily tadalafil for prostate symptoms; Revatio / sildenafil 20 mg for pulmonary hypertension) and raises a doctor flag instead. The context is patient-reported, so the reviewer is told rather than the request being waved through silently. Dose alone never exempts.
 - **Continuing an existing contraceptive pill stays a repeat** by design and keeps an explicit patient escape.
-- **Weight-loss-class medicines (GLP-1s, phentermine, orlistat) currently raise a doctor flag and nothing else. ⚠️ This is an interim visibility measure, NOT a settled clinical policy — it awaits an operator/clinical decision.** The weight-loss service is gated and manual-review-only, yet the repeat lane has been serving weight-management requests: of the requests observed to 2026-08-06, **every one stated a weight-management indication and none stated diabetes**, so they were neither screened for weight-loss eligibility nor priced as the gated service. Phentermine additionally has no entry in `CONTROLLED_SUBSTANCE_TERMS` and its cardiac-risk validator exists only inside the dormant gated flow, so those requests receive no structured cardiac screening. The three options — launch weight loss properly, block the class at checkout, or knowingly retain flag-only — are an operator decision; do not record any of them as policy here until it is made.
+- **RESOLVED 2026-08-07 — the weight-management service launched (D2 closed).** Weight-class medicines in the repeat lane now route through the dedicated detector: dual-indication GLP-1s ask the structured weight-vs-diabetes question (a `type_2_diabetes` selection keeps the repeat, always doctor-flagged); weight-only brands hard-route to the $89.95 assessment; phentermine/orlistat stay flag-only for a decline-to-GP (outside the GLP-1-focused launch scope, D-B). The interim flag-only posture and its disproved diabetes rationale are historical — see the launch plan for the record.
 
 ### Repeat Quantity & Supply Standard
 
