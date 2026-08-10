@@ -50,12 +50,13 @@ describe("review-step priority checkout contract", () => {
 
     // The boxed CheckoutSecurityFooter was retired in the 2026-06-28 trust dedup.
     // review-step now shows ONE quiet cluster: accepted-card logos + a single
-    // muted line (Stripe secure + full refund if declined). No boxed badges, no
+    // muted line (Stripe secure + the canonical doctor-decline guarantee). No boxed badges, no
     // duplicate Stripe badge, no AHPRA badge at the pay moment.
     expect(review).not.toContain("CheckoutSecurityFooter")
     expect(review).not.toContain("TrustBadgeRow")
     expect(review).toContain("PaymentLogos")
-    expect(review).toContain("Full refund if declined")
+    expect(review).toContain('getApprovedClaim("refund_guarantee")')
+    expect(review).toContain("CHECKOUT_REFUND_GUARANTEE")
     expect(review).toContain("Secure Stripe checkout")
   })
 })

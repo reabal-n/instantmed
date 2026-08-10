@@ -1231,10 +1231,11 @@ export function RequestFlow({
         </div>
       </header>
 
-      {/* Content with swipe gestures */}
+      {/* Content with swipe gestures. Mobile reserves 88px below the final
+          content: the 71px action bar plus a 17px readable separation. */}
       <main
         ref={contentRef}
-        className="max-w-lg mx-auto px-4 py-4 sm:py-6 sm:pb-6 touch-pan-y pb-[calc(4.25rem+env(safe-area-inset-bottom))]"
+        className="max-w-lg mx-auto px-4 py-4 sm:py-6 sm:pb-6 touch-pan-y pb-[calc(5.5rem+env(safe-area-inset-bottom))]"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >

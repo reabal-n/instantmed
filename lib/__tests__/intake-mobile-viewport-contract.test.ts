@@ -65,7 +65,7 @@ describe("intake mobile viewport contract", () => {
     expect(requestFlowSource).toContain("h-12 sm:h-14")
     expect(requestFlowSource).toContain("hidden sm:flex")
     expect(requestFlowSource).toContain("py-4 sm:py-6")
-    expect(requestFlowSource).toContain("pb-[calc(4.25rem+env(safe-area-inset-bottom))]")
+    expect(requestFlowSource).toContain("pb-[calc(5.5rem+env(safe-area-inset-bottom))]")
   })
 
   it.each(intakeStepFiles)("%s exposes one mobile shell primary action", (path) => {

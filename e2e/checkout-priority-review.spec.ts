@@ -106,3 +106,31 @@ test.describe("Checkout Priority Review", () => {
     await expect(page.getByText(baseMedCertTotal).first()).toBeVisible()
   })
 })
+
+test.describe("Checkout trust reassurance on mobile", () => {
+  test.use({ viewport: { width: 375, height: 812 } })
+
+  test("keeps the refund reassurance fully above the sticky payment bar", async ({ page }) => {
+    await walkToReviewStep(page)
+
+    const trustLine = page.getByText(
+      "Secure Stripe checkout. Full refund if the doctor declines.",
+      { exact: true },
+    )
+    const actionBar = page.locator('[data-intake-mobile-action-bar="true"]')
+
+    await expect(actionBar).toBeVisible()
+    await expect(trustLine).toBeVisible()
+    await trustLine.scrollIntoViewIfNeeded()
+
+    const trustLineBox = await trustLine.boundingBox()
+    const actionBarBox = await actionBar.boundingBox()
+
+    expect(trustLineBox, "checkout trust reassurance should have a measured box").not.toBeNull()
+    expect(actionBarBox, "mobile action bar should have a measured box").not.toBeNull()
+    expect(
+      trustLineBox!.y + trustLineBox!.height + 8,
+      "checkout trust reassurance should keep an 8px gap above the sticky payment bar",
+    ).toBeLessThanOrEqual(actionBarBox!.y)
+  })
+})

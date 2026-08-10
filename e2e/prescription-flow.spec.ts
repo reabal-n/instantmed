@@ -608,9 +608,9 @@ test.describe("Prescription: checkout price verification", () => {
     // Verify price is $29.95 (PRICING.REPEAT_SCRIPT)
     await expect(page.getByText("$29.95", { exact: true }).first()).toBeVisible()
 
-    // Verify trust badges (review step shows "Secure Stripe checkout · Full refund if declined")
+    // Verify the checkout trust line uses the canonical doctor-decline guarantee.
     await expect(page.getByText(/Secure Stripe checkout/i)).toBeVisible()
-    await expect(page.getByText(/Full refund if declined/i)).toBeVisible()
+    await expect(page.getByText(/Full refund if the doctor declines/i)).toBeVisible()
   })
 
   test("checkout button disabled without consent", async ({ page }) => {
