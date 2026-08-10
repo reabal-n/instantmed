@@ -208,7 +208,7 @@ export function WeightLossClient() {
               </div>
               <div className="flex items-center gap-1.5 bg-muted/50 dark:bg-white/[0.06] px-3 py-1.5 rounded-full border border-border/50">
                 <Activity className="h-3.5 w-3.5 text-primary" />
-                <span className="font-medium text-muted-foreground">Ongoing support</span>
+                <span className="font-medium text-muted-foreground">No subscriptions</span>
               </div>
               <div className="flex items-center gap-1.5 bg-muted/50 dark:bg-white/[0.06] px-3 py-1.5 rounded-full border border-border/50">
                 <Shield className="h-3.5 w-3.5 text-primary" />

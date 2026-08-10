@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { WeightLossClient } from "./weight-loss-client"
 
 export const metadata: Metadata = {
-  title: "Weight Management Assessment Online | InstantMed",
+  title: "Weight Management Assessment Online",
   description:
     "Doctor-reviewed weight-management assessment for eligible adults. Structured eligibility and safety screening first; a doctor calls when your history needs it.",
   robots: {
