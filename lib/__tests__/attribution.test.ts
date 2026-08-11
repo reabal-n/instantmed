@@ -119,7 +119,8 @@ describe("attribution capture", () => {
       device: "m",
       network: "g",
       landing_page: "/medical-certificate",
-      referrer: "https://www.google.com/",
+      // External referrers persist origin-only (referrer-privacy sanitizer).
+      referrer: "https://www.google.com",
     })
     expect(cookieJar.startsWith(`${ATTRIBUTION_COOKIE_KEY}=`)).toBe(true)
     expect(localStorageState[ATTRIBUTION_COOKIE_KEY]).toBeTruthy()
@@ -164,13 +165,41 @@ describe("attribution capture", () => {
   })
 
   it("falls back to the attribution cookie when session storage is empty", () => {
-    const encoded = encodeURIComponent(JSON.stringify({ gclid: "cookie-click", landing_page: "/request" }))
+    const encoded = encodeURIComponent(
+      JSON.stringify({
+        gclid: "cookie-click",
+        landing_page: "/request",
+        captured_at: new Date().toISOString(),
+      }),
+    )
     cookieJar = `${ATTRIBUTION_COOKIE_KEY}=${encoded}`
 
     expect(getAttribution()).toMatchObject({
       gclid: "cookie-click",
       landing_page: "/request",
     })
+  })
+
+  it("drops stored attribution that is missing captured_at or older than 30 days", () => {
+    const missingStamp = encodeURIComponent(
+      JSON.stringify({ gclid: "unstamped-click", landing_page: "/request" }),
+    )
+    cookieJar = `${ATTRIBUTION_COOKIE_KEY}=${missingStamp}`
+    expect(getAttribution()).toEqual({})
+
+    const expired = JSON.stringify({
+      gclid: "expired-click",
+      landing_page: "/request",
+      captured_at: new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString(),
+    })
+    cookieJar = `${ATTRIBUTION_COOKIE_KEY}=${encodeURIComponent(expired)}`
+    localStorageState[ATTRIBUTION_COOKIE_KEY] = expired
+    sessionStorageState[ATTRIBUTION_COOKIE_KEY] = expired
+
+    expect(getAttribution()).toEqual({})
+    // Expired copies are purged so a later pageview cannot re-mint them.
+    expect(localStorageState[ATTRIBUTION_COOKIE_KEY]).toBeUndefined()
+    expect(sessionStorageState[ATTRIBUTION_COOKIE_KEY]).toBeUndefined()
   })
 
   it("falls back to local storage when a new tab has no session attribution", () => {
@@ -192,13 +221,17 @@ describe("attribution capture", () => {
   })
 
   it("prefers newer middleware-cookie Google attribution over stale browser storage", () => {
+    // Relative dates: absolute fixtures silently cross the 30-day retention
+    // bound as the calendar moves and start asserting expiry, not recency.
+    const olderCapturedAt = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
+    const newerCapturedAt = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
     sessionStorageState[ATTRIBUTION_COOKIE_KEY] = JSON.stringify({
       landing_page: "/",
-      captured_at: "2026-07-01T00:00:00.000Z",
+      captured_at: olderCapturedAt,
     })
     localStorageState[ATTRIBUTION_COOKIE_KEY] = JSON.stringify({
       landing_page: "/",
-      captured_at: "2026-07-01T00:00:00.000Z",
+      captured_at: olderCapturedAt,
     })
     cookieJar = `${ATTRIBUTION_COOKIE_KEY}=${encodeURIComponent(
       JSON.stringify({
@@ -208,7 +241,7 @@ describe("attribution capture", () => {
         campaignid: "23957241733",
         adgroupid: "197810760419",
         landing_page: "/erectile-dysfunction",
-        captured_at: "2026-07-07T00:00:00.000Z",
+        captured_at: newerCapturedAt,
       }),
     )}`
     locationState = {
@@ -226,7 +259,7 @@ describe("attribution capture", () => {
       campaignid: "23957241733",
       adgroupid: "197810760419",
       landing_page: "/erectile-dysfunction",
-      captured_at: "2026-07-07T00:00:00.000Z",
+      captured_at: newerCapturedAt,
     })
   })
 

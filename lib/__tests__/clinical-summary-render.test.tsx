@@ -242,3 +242,31 @@ describe("ClinicalSummary - legacy snake_case compat", () => {
     expect(html).toContain("half_the_time")
   })
 })
+
+describe("ClinicalSummary - structured answer values (2026-08-11)", () => {
+  it("never renders [object Object] for object array elements or bare objects", () => {
+    const structuredAnswers = {
+      // Array of objects — older flow shapes and compatibility aliases
+      previous_treatments: [
+        { name: "Sildenafil 50mg", label: "Sildenafil 50mg" },
+        { name: "Tadalafil" },
+      ],
+      // Bare object value with a readable label field
+      selected_medication: { display: "Metformin 500mg", code: "MANUAL" },
+      // Bare object with no label-ish field falls back to JSON, still readable
+      device_meta: { platform: "ios" },
+    }
+    const html = render(<ClinicalSummary answers={structuredAnswers} />)
+    expect(html).not.toContain("[object Object]")
+    expect(html).toContain("Sildenafil 50mg")
+    expect(html).toContain("Tadalafil")
+    expect(html).toContain("Metformin 500mg")
+  })
+
+  it("keeps plain string arrays joined as before", () => {
+    const html = render(
+      <ClinicalSummary answers={{ symptoms: ["cough", "fever"] }} />,
+    )
+    expect(html).toContain("cough, fever")
+  })
+})

@@ -1,3 +1,5 @@
+import { sanitizeAttributionReferrer } from "@/lib/analytics/referrer-privacy"
+
 export interface AttributionInput {
   gclid?: string
   gbraid?: string
@@ -91,7 +93,11 @@ export function normalizeAttributionForStorage(input?: AttributionInput): Stored
     matchtype: cleanText(input?.matchtype, SHORT_FIELD_LIMIT),
     device: cleanText(input?.device, SHORT_FIELD_LIMIT),
     network: cleanText(input?.network, SHORT_FIELD_LIMIT),
-    referrer: cleanUrlOrPath(input?.referrer),
+    // Defence in depth: capture paths already sanitize, but pre-existing
+    // cookies can still carry raw URLs. External referrers store origin
+    // only; internal ones store path only; unparseable values store null.
+    referrer:
+      sanitizeAttributionReferrer(input?.referrer)?.slice(0, URL_FIELD_LIMIT) ?? null,
     landing_page: cleanUrlOrPath(input?.landing_page),
     attribution_captured_at: cleanIsoDate(input?.captured_at),
   }

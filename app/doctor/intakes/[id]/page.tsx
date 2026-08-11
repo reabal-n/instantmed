@@ -6,9 +6,10 @@ import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { requireRole } from "@/lib/auth/helpers"
 import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
-import { getIntakeWithDetails, getNextQueueIntakeId, getPatientIntakes, getPatientNotes } from "@/lib/data/intakes"
+import { getIntakeWithDetails, getNextQueueIntakeId, getPatientNotes } from "@/lib/data/intakes"
 import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { getPatientMessagesForIntake } from "@/lib/data/patient-messages"
+import { buildPreviousIntakeContext } from "@/lib/doctor/intake-medication-label"
 import { isConsultServiceType } from "@/lib/doctor/service-types"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { calculateAge } from "@/lib/format"
@@ -47,8 +48,8 @@ export default async function DoctorIntakeDetailPage({
 
   // Fetch all supplementary data in parallel — patientHistory moved into the batch
   // to match the admin page pattern and save ~60ms sequential round-trip.
-  const [patientHistoryResult, aiDrafts, nextIntakeId, medCertDraft, pendingCorrection, certDelivery, featureFlags, patientMessages, patientNotes] = await Promise.all([
-    getPatientIntakes(intake.patient.id, { pageSize: 6 }),
+  const [previousIntakeContext, aiDrafts, nextIntakeId, medCertDraft, pendingCorrection, certDelivery, featureFlags, patientMessages, patientNotes] = await Promise.all([
+    buildPreviousIntakeContext({ patientId: intake.patient.id, currentIntakeId: id }),
     getAIDraftsForIntake(id),
     getNextQueueIntakeId(id),
     (intake.service as { type?: string } | undefined)?.type === "med_certs"
@@ -60,7 +61,6 @@ export default async function DoctorIntakeDetailPage({
     getPatientMessagesForIntake(id),
     getPatientNotes(intake.patient.id, undefined, 5),
   ])
-  const previousIntakes = patientHistoryResult.data.filter((r: { id: string }) => r.id !== id).slice(0, 5)
 
   // Phase 3: fetch follow-ups for ED/hair-loss consults
   let followups: DoctorFollowupRow[] = []
@@ -88,7 +88,8 @@ export default async function DoctorIntakeDetailPage({
       intake={intake}
       patientAge={patientAge}
       maskedMedicare={maskedMedicare}
-      previousIntakes={previousIntakes}
+      previousIntakes={previousIntakeContext.previousIntakes}
+      previousIntakeCount={previousIntakeContext.previousIntakeCount}
       initialAction={action}
       aiDrafts={aiDrafts}
       nextIntakeId={nextIntakeId}
