@@ -18,6 +18,7 @@ import {
   type GoogleAdsAttributionRow,
   isLikelyGoogleAttributed,
 } from "@/lib/analytics/google-ads-post-payment"
+import { getRecordedRefundCents } from "@/lib/data/net-retained-purchase-value"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import {
   GOOGLE_ADS_PURCHASE_IMPORT_HEALTH_DAYS,
@@ -118,7 +119,15 @@ export type LocalGoogleAdsPurchaseRow = GoogleAdsAttributionRow & {
   paid_at?: string | null
   payment_status?: string | null
   refund_amount_cents?: number | null
+  refund_status?: string | null
+  refunded_at?: string | null
   stripe_payment_intent_id?: string | null
+}
+
+export type LocalGoogleAdsWindowValue = {
+  grossRevenueCents: number
+  purchaseInWindow: boolean
+  refundCents: number
 }
 
 export type GoogleAdsOfflineUploadJobSummary = {
@@ -657,7 +666,37 @@ function addToken(set: Set<string>, value: unknown): void {
   if (token) set.add(token)
 }
 
-export function summarizeLocalGoogleAdsPurchases(rows: LocalGoogleAdsPurchaseRow[]): {
+export function getLocalGoogleAdsWindowValue(
+  row: LocalGoogleAdsPurchaseRow,
+  range: GoogleAdsClosedReportRange,
+): LocalGoogleAdsWindowValue {
+  assertClosedUtcRange(range)
+  const startMs = Date.parse(range.startUtc)
+  const endMs = Date.parse(range.endUtcExclusive)
+  const isInWindow = (value: string | null | undefined): boolean => {
+    if (!value) return false
+    const timestamp = Date.parse(value)
+    return Number.isFinite(timestamp) && timestamp >= startMs && timestamp < endMs
+  }
+  const purchaseInWindow = isInWindow(row.paid_at)
+  const amountCents = Number(row.amount_cents ?? 0)
+
+  return {
+    grossRevenueCents:
+      purchaseInWindow && Number.isFinite(amountCents) && amountCents > 0
+        ? Math.round(amountCents)
+        : 0,
+    purchaseInWindow,
+    refundCents: isInWindow(row.refunded_at)
+      ? getRecordedRefundCents(row)
+      : 0,
+  }
+}
+
+export function summarizeLocalGoogleAdsPurchases(
+  rows: LocalGoogleAdsPurchaseRow[],
+  range: GoogleAdsClosedReportRange,
+): {
   byCampaign: Map<string, LocalGoogleAdsCampaignSummary>
   summary: GoogleAdsSpendAuditReport["local"]["summary"]
 } {
@@ -671,8 +710,10 @@ export function summarizeLocalGoogleAdsPurchases(rows: LocalGoogleAdsPurchaseRow
     if (!isLikelyGoogleAttributed(row)) continue
 
     const campaignId = clean(row.campaignid) || clean(row.utm_id) || "google_ads_unmapped"
-    const gross = centsToAud(row.amount_cents)
-    const refunded = centsToAud(row.refund_amount_cents)
+    const windowValue = getLocalGoogleAdsWindowValue(row, range)
+    if (!windowValue.purchaseInWindow && windowValue.refundCents === 0) continue
+    const gross = centsToAud(windowValue.grossRevenueCents)
+    const refunded = centsToAud(windowValue.refundCents)
     const net = roundMoney(gross - refunded)
     const service = [clean(row.category), clean(row.subtype)].filter(Boolean).join(":") || "unknown"
     const current = byCampaign.get(campaignId) || {
@@ -684,14 +725,16 @@ export function summarizeLocalGoogleAdsPurchases(rows: LocalGoogleAdsPurchaseRow
       services: {},
     }
 
-    current.orders += 1
+    current.orders += windowValue.purchaseInWindow ? 1 : 0
     current.grossRevenueAud = roundMoney(current.grossRevenueAud + gross)
     current.refundedAud = roundMoney(current.refundedAud + refunded)
     current.netRevenueAud = roundMoney(current.netRevenueAud + net)
-    current.services[service] = (current.services[service] || 0) + 1
+    if (windowValue.purchaseInWindow) {
+      current.services[service] = (current.services[service] || 0) + 1
+    }
     byCampaign.set(campaignId, current)
 
-    orders += 1
+    orders += windowValue.purchaseInWindow ? 1 : 0
     grossRevenueAud = roundMoney(grossRevenueAud + gross)
     refundedAud = roundMoney(refundedAud + refunded)
     netRevenueAud = roundMoney(netRevenueAud + net)
@@ -982,12 +1025,13 @@ export async function getLocalGoogleAdsPurchasesForRange(
     supabase
       .from("intakes")
       .select(
-        `id, stripe_payment_intent_id, payment_status, refund_amount_cents, paid_at, ${GOOGLE_ADS_ATTRIBUTION_SELECT}`,
+        `id, stripe_payment_intent_id, payment_status, refund_amount_cents, refund_status, refunded_at, paid_at, ${GOOGLE_ADS_ATTRIBUTION_SELECT}`,
       )
       .in("payment_status", ["paid", "partially_refunded", "refunded"])
       .not("paid_at", "is", null)
-      .gte("paid_at", range.startUtc)
-      .lt("paid_at", range.endUtcExclusive),
+      .or(
+        `and(paid_at.gte.${range.startUtc},paid_at.lt.${range.endUtcExclusive}),and(refunded_at.gte.${range.startUtc},refunded_at.lt.${range.endUtcExclusive})`,
+      ),
   )
 
   if (error) throw new Error(`Local Google Ads purchase query failed: ${error.message}`)
@@ -1008,10 +1052,18 @@ async function getLocalGoogleAdsPurchases(
   range: GoogleAdsReportRange,
 ): Promise<LocalGoogleAdsPurchaseRow[]> {
   return getLocalGoogleAdsPurchasesForRange(supabase, {
+    ...toUtcReportRange(range),
+  })
+}
+
+function toUtcReportRange(
+  range: GoogleAdsReportRange,
+): GoogleAdsClosedReportRange {
+  return {
     ...range,
     startUtc: `${range.startDate}T00:00:00.000Z`,
     endUtcExclusive: `${nextUtcDateKey(range.endDate)}T00:00:00.000Z`,
-  })
+  }
 }
 
 type GoogleAdsRawUploadAuditRow = {
@@ -1545,7 +1597,10 @@ export async function getGoogleAdsSpendAuditReport({
       queryErrors,
     )
     : []
-  const local = summarizeLocalGoogleAdsPurchases(localRows)
+  const local = summarizeLocalGoogleAdsPurchases(
+    localRows,
+    toUtcReportRange(range),
+  )
   const ads = summarizeGoogleAdsCampaignRows(campaignRows, local.byCampaign, purchaseConversionRows)
   const diagnostics = summarizeGoogleAdsOfflineUploadDiagnostics(offlineUploadDiagnostics)
   const dataManagerRequestStatus = shouldFetchDataManagerRequestStatus(watchJobId)
@@ -1647,7 +1702,10 @@ export async function getGoogleAdsPurchaseImportHealth({
       supabase,
     }),
   ])
-  const local = summarizeLocalGoogleAdsPurchases(localRows)
+  const local = summarizeLocalGoogleAdsPurchases(
+    localRows,
+    toUtcReportRange(range),
+  )
   const customerSettings = summarizeGoogleAdsCustomerConversionTrackingSettings(customerConversionTrackingSettings)
 
   const purchaseConversionActionResourceName = preflight.conversionAction?.resourceName || null

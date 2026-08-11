@@ -50,7 +50,7 @@ describe("google ads spend report", () => {
     ].join(" "))
   })
 
-  it("uses explicit end-exclusive UTC boundaries and excludes seeded reporting rows", async () => {
+  it("selects purchase or refund events with explicit end-exclusive UTC boundaries", async () => {
     vi.stubEnv("NODE_ENV", "production")
     const calls: Array<[string, ...unknown[]]> = []
     const result = {
@@ -95,21 +95,18 @@ describe("google ads spend report", () => {
       },
     )).resolves.toEqual(result.data)
 
+    const selectCall = calls.find(([method]) => method === "select")
+    expect(selectCall?.[1]).toEqual(expect.stringContaining("refund_status"))
+    expect(selectCall?.[1]).toEqual(expect.stringContaining("refunded_at"))
     expect(calls).toContainEqual([
-      "gte",
-      "paid_at",
-      "2026-07-26T14:00:00.000Z",
+      "or",
+      "and(paid_at.gte.2026-07-26T14:00:00.000Z,paid_at.lt.2026-07-27T14:00:00.000Z),and(refunded_at.gte.2026-07-26T14:00:00.000Z,refunded_at.lt.2026-07-27T14:00:00.000Z)",
     ])
-    expect(calls).toContainEqual([
-      "lt",
-      "paid_at",
-      "2026-07-27T14:00:00.000Z",
-    ])
-    expect(calls).not.toContainEqual([
-      "lte",
-      "paid_at",
-      expect.anything(),
-    ])
+    expect(calls.some(
+      ([method, column]) =>
+        (method === "gte" || method === "lt" || method === "lte") &&
+        column === "paid_at",
+    )).toBe(false)
     expect(calls).toContainEqual([
       "or",
       "exclude_from_reporting.is.null,exclude_from_reporting.eq.false",
@@ -888,19 +885,30 @@ describe("google ads spend report", () => {
         amount_cents: 1995,
         campaignid: "23651537255",
         category: "medical_certificate",
+        paid_at: "2026-06-01T01:00:00.000Z",
         payment_status: "paid",
         refund_amount_cents: 0,
+        refund_status: null,
+        refunded_at: null,
         subtype: "work",
       },
       {
         amount_cents: 2995,
         campaignid: "23651537255",
         category: "medical_certificate",
+        paid_at: "2026-06-02T01:00:00.000Z",
         payment_status: "refunded",
         refund_amount_cents: 2995,
+        refund_status: "succeeded",
+        refunded_at: "2026-06-15T01:00:00.000Z",
         subtype: "work",
       },
-    ])
+    ], {
+      endDate: "2026-06-30",
+      endUtcExclusive: "2026-07-01T00:00:00.000Z",
+      startDate: "2026-06-01",
+      startUtc: "2026-06-01T00:00:00.000Z",
+    })
 
     const report = summarizeGoogleAdsCampaignRows([
       {
@@ -969,6 +977,40 @@ describe("google ads spend report", () => {
       purchaseConversions: 2,
       purchaseConversionValueAud: 49.9,
       spendAud: 30,
+    })
+  })
+
+  it("subtracts an old purchase refund on its refund date even after a later retry fails", () => {
+    const local = summarizeLocalGoogleAdsPurchases([
+      {
+        amount_cents: 4995,
+        campaignid: "23651537255",
+        category: "medical_certificate",
+        paid_at: "2026-05-01T01:00:00.000Z",
+        payment_status: "partially_refunded",
+        refund_amount_cents: 995,
+        refund_status: "failed",
+        refunded_at: "2026-06-15T01:00:00.000Z",
+        subtype: "work",
+      },
+    ], {
+      endDate: "2026-06-30",
+      endUtcExclusive: "2026-07-01T00:00:00.000Z",
+      startDate: "2026-06-01",
+      startUtc: "2026-06-01T00:00:00.000Z",
+    })
+
+    expect(local.summary).toEqual({
+      grossRevenueAud: 0,
+      netRevenueAud: -9.95,
+      orders: 0,
+      refundedAud: 9.95,
+    })
+    expect(local.byCampaign.get("23651537255")).toMatchObject({
+      grossRevenueAud: 0,
+      netRevenueAud: -9.95,
+      orders: 0,
+      refundedAud: 9.95,
     })
   })
 })

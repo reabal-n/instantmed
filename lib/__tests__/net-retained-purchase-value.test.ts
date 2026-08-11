@@ -24,7 +24,7 @@ describe("Net Retained Purchase Value", () => {
           refunded_at: "2026-06-20T00:00:00.000Z",
         },
         {
-          refund_amount_cents: 9995,
+          refund_amount_cents: 0,
           refund_status: "failed",
           refunded_at: "2026-06-21T00:00:00.000Z",
         },
@@ -42,6 +42,39 @@ describe("Net Retained Purchase Value", () => {
       netCents: 2500,
       orderCount: 1,
       refundCents: 2495,
+    })
+  })
+
+  it("keeps a recorded refund when a later retry changes only the latest status to failed", () => {
+    const value = buildNetRetainedPurchaseValue({
+      since: new Date("2026-06-01T00:00:00.000Z"),
+      until: new Date("2026-07-01T00:00:00.000Z"),
+      paidRows: [
+        { amount_cents: 4995, paid_at: "2026-06-15T00:00:00.000Z" },
+      ],
+      refundRows: [
+        {
+          refund_amount_cents: 995,
+          refund_status: "failed",
+          refunded_at: "2026-06-20T00:00:00.000Z",
+        },
+        {
+          refund_amount_cents: 0,
+          refund_status: "failed",
+          refunded_at: "2026-06-21T00:00:00.000Z",
+        },
+        {
+          refund_amount_cents: 500,
+          refund_status: "succeeded",
+          refunded_at: null,
+        },
+      ],
+    })
+
+    expect(value).toMatchObject({
+      grossCents: 4995,
+      netCents: 4000,
+      refundCents: 995,
     })
   })
 })

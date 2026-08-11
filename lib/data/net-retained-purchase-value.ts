@@ -9,6 +9,11 @@ type NetRetainedRefundRow = {
   refunded_at: string | null
 }
 
+type RecordedRefundRow = {
+  refund_amount_cents?: number | null
+  refunded_at?: string | null
+}
+
 type NetRetainedPurchaseValue = {
   averageOrderCents: number | null
   grossCents: number
@@ -21,8 +26,10 @@ type NetRetainedPurchaseValue = {
  * Canonical value for an operator reporting window.
  *
  * Purchases enter by `paid_at`; refunds leave by `refunded_at`, even when the
- * original purchase predates the window. Failed refund attempts never reduce
- * retained revenue. Inclusive bounds mirror the Supabase `gte`/`lte` reads.
+ * original purchase predates the window. A failed retry with no recorded cash
+ * movement does not reduce retained revenue, but its latest status must not
+ * erase an amount and timestamp recorded by an earlier successful attempt.
+ * Inclusive bounds mirror the Supabase `gte`/`lte` reads.
  */
 export function buildNetRetainedPurchaseValue(input: {
   paidRows: NetRetainedPurchaseRow[]
@@ -38,13 +45,10 @@ export function buildNetRetainedPurchaseValue(input: {
     0,
   )
   const refundCents = input.refundRows.reduce((sum, row) => {
-    if (
-      row.refund_status === "failed" ||
-      !isWithinWindow(row.refunded_at, input.since, input.until)
-    ) {
+    if (!isWithinWindow(row.refunded_at, input.since, input.until)) {
       return sum
     }
-    return sum + Number(row.refund_amount_cents ?? 0)
+    return sum + getRecordedRefundCents(row)
   }, 0)
   const netCents = grossCents - refundCents
   const orderCount = paidRows.length
@@ -56,6 +60,20 @@ export function buildNetRetainedPurchaseValue(input: {
     orderCount,
     refundCents,
   }
+}
+
+/**
+ * Return the cumulative refund amount that has durable reporting evidence.
+ * `refund_status` describes the latest attempt, so it cannot be used to erase
+ * a prior success while `refund_amount_cents` and `refunded_at` remain stored.
+ */
+export function getRecordedRefundCents(row: RecordedRefundRow): number {
+  if (!row.refunded_at || !Number.isFinite(Date.parse(row.refunded_at))) {
+    return 0
+  }
+
+  const amountCents = Number(row.refund_amount_cents ?? 0)
+  return Number.isFinite(amountCents) && amountCents > 0 ? amountCents : 0
 }
 
 function isWithinWindow(
