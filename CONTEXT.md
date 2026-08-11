@@ -45,3 +45,15 @@ _Avoid_: Routine adjustment, automatic optimisation
 **Mutation Receipt**:
 The append-only evidence that an approved Ads change had its baseline read, validation, apply result, read-back verification, actor, timestamps, and rollback state recorded.
 _Avoid_: Success message, mutation log
+
+**Attribution Investigation Hold**:
+A durable Operator-owned block opened when a service campaign shows material cross-service attribution. Later threshold recovery does not clear it; only an explicit, recorded Operator resolution does.
+_Avoid_: Transient purity warning, automatic threshold reset, soft alert
+
+**Attribution Investigation Resolution**:
+The durable Operator decision that closes an Attribution Investigation Hold after its cause is recorded, any correction is complete, and fresh evidence meets the clearance threshold. An unknown cause or threshold recovery alone is not a resolution.
+_Avoid_: Automatic clear, acknowledgement, stale-data waiver
+
+**AI Attribution Expansion Gate**:
+The evidence threshold that reopens dedicated AI-channel attribution work: at least 10 reportable AI-attributed paid orders in a closed 30-day window, or a concrete acquisition decision that cannot be made without separating named assistant traffic from Direct.
+_Avoid_: Citation-volume trigger, speculative instrumentation, zero-detection mandate
