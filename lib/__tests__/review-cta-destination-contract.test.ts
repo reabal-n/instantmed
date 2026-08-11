@@ -40,6 +40,10 @@ const reviewAskCardSource = readFileSync(
   join(process.cwd(), "components/patient/review-ask-card.tsx"),
   "utf8",
 )
+const reviewNudgeCardSource = readFileSync(
+  join(process.cwd(), "components/patient/review-nudge-card.tsx"),
+  "utf8",
+)
 const patientIntakeSource = readFileSync(
   join(process.cwd(), "app/patient/intakes/[id]/client.tsx"),
   "utf8",
@@ -75,6 +79,20 @@ describe("review CTA destination contract", () => {
     expect(reviewAskCardSource).not.toContain("—")
   })
 
+  it("offers both destinations on the dashboard nudge, ProductReview first", () => {
+    const productReviewIndex = reviewNudgeCardSource.indexOf('token: "productreview"')
+    const googleIndex = reviewNudgeCardSource.indexOf('token: "google"')
+    expect(productReviewIndex).toBeGreaterThan(-1)
+    expect(googleIndex).toBeGreaterThan(-1)
+    expect(productReviewIndex).toBeLessThan(googleIndex)
+    expect(reviewNudgeCardSource).toContain("Review on ProductReview")
+    expect(reviewNudgeCardSource).toContain("Review on Google")
+    expect(reviewNudgeCardSource).toContain('utm_source: "patient_dashboard"')
+    expect(reviewNudgeCardSource).toContain('utm_medium: "review_card"')
+    expect(reviewNudgeCardSource).toContain('utm_campaign: "review"')
+    expect(reviewNudgeCardSource).toContain('className="min-h-11')
+  })
+
   it("keeps the reusable email review/referral block deleted", () => {
     expect(
       existsSync(join(process.cwd(), "lib/email/components/review-cta.tsx")),
@@ -93,9 +111,13 @@ describe("review CTA destination contract", () => {
     // not render star glyphs — rating imagery on our own surface is the
     // s133 line the email decorations deliberately stay off the web for.
     expect(reviewAskCardSource).toContain("/api/review-redirect")
+    expect(reviewNudgeCardSource).toContain("/api/review-redirect")
     expect(reviewAskCardSource).not.toMatch(/productreview\.com\.au|g\.page|trustpilot/i)
+    expect(reviewNudgeCardSource).not.toMatch(/productreview\.com\.au|g\.page|trustpilot/i)
     expect(reviewAskCardSource).not.toContain("★")
     expect(reviewAskCardSource).not.toContain("⭐")
+    expect(reviewNudgeCardSource).not.toContain("★")
+    expect(reviewNudgeCardSource).not.toContain("⭐")
   })
 
   it("never threads an intake identifier into an off-site review redirect", () => {

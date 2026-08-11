@@ -3,7 +3,10 @@ import "server-only"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { REVENUE_ACTIVE_MILESTONE_CENTS } from "@/lib/business/revenue-milestones"
-import { buildNetRetainedPurchaseValue } from "@/lib/data/net-retained-purchase-value"
+import {
+  buildNetRetainedPurchaseValue,
+  getRecordedRefundCents,
+} from "@/lib/data/net-retained-purchase-value"
 import { getRefundStatsRead } from "@/lib/data/refunds"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import {
@@ -497,10 +500,10 @@ function buildDailyRevenue(
   }
 
   for (const row of refundRows) {
-    if (!row.refunded_at || row.refund_status === "failed") continue
+    const refundCents = getRecordedRefundCents(row)
+    if (!row.refunded_at || refundCents === 0) continue
     const bucket = buckets.get(toSydneyDateKey(row.refunded_at))
     if (!bucket) continue
-    const refundCents = Number(row.refund_amount_cents ?? 0)
     bucket.refundCents += refundCents
     bucket.netCents -= refundCents
   }
@@ -725,7 +728,7 @@ function buildServiceMix(paidRows: PaidRevenueRow[]): RevenueDashboardService[] 
       shareOfGross: 0,
     }
     const amountCents = Number(row.amount_cents ?? 0)
-    const refundCents = row.refund_status === "failed" ? 0 : Number(row.refund_amount_cents ?? 0)
+    const refundCents = getRecordedRefundCents(row)
     current.grossCents += amountCents
     current.netCents += amountCents - refundCents
     current.orderCount += 1
@@ -822,10 +825,10 @@ function sumAmounts(rows: PaidRevenueRow[]): number {
 }
 
 function sumRefunds(rows: RefundRevenueRow[]): number {
-  return rows.reduce((sum, row) => {
-    if (row.refund_status === "failed") return sum
-    return sum + Number(row.refund_amount_cents ?? 0)
-  }, 0)
+  return rows.reduce(
+    (sum, row) => sum + getRecordedRefundCents(row),
+    0,
+  )
 }
 
 function serviceLabel(category: string | null, subtype: string | null): string {

@@ -17,7 +17,8 @@ vi.mock("@/lib/ads-agent/stripe-fees", () => ({
   getStripeFeeMap: mocks.getStripeFeeMap,
 }))
 
-vi.mock("@/lib/analytics/google-ads-report", () => ({
+vi.mock("@/lib/analytics/google-ads-report", async (importOriginal) => ({
+  ...(await importOriginal()),
   getGoogleAdsCampaignRowsForRange: mocks.getGoogleAdsCampaignRowsForRange,
   getLocalGoogleAdsPurchasesForRange: mocks.getLocalGoogleAdsPurchasesForRange,
 }))
@@ -155,6 +156,8 @@ const scriptOrderOne = {
   paid_at: "2026-07-27T01:00:00.000Z",
   payment_status: "partially_refunded",
   refund_amount_cents: 5000,
+  refund_status: "succeeded",
+  refunded_at: "2026-07-27T02:00:00.000Z",
   stripe_payment_intent_id: "pi_script_1",
   subtype: "repeat",
 }
@@ -304,6 +307,47 @@ describe("Google Ads Agent snapshot", () => {
     expect(Object.values(snapshot.inputs).every(
       (input) => input.status === "fresh",
     )).toBe(true)
+  })
+
+  it("counts an old purchase refund by refunded_at without requiring an old purchase fee", async () => {
+    const oldPurchaseRefundedToday = {
+      amount_cents: 4995,
+      campaignid: "23870042807",
+      category: "prescription",
+      id: "intake-old-refund",
+      paid_at: "2026-05-01T01:00:00.000Z",
+      payment_status: "partially_refunded",
+      refund_amount_cents: 995,
+      refund_status: "failed",
+      refunded_at: "2026-07-27T02:00:00.000Z",
+      stripe_payment_intent_id: "pi_old_refund",
+      subtype: "repeat",
+    }
+    mocks.getLocalGoogleAdsPurchasesForRange.mockResolvedValue([
+      oldPurchaseRefundedToday,
+    ])
+    mocks.getStripeFeeMap.mockResolvedValue(new Map())
+
+    const snapshot = await buildAdsAgentSnapshot({
+      now: REPORT_NOW,
+      supabase: {} as never,
+    })
+
+    expect(snapshot.daily.find(
+      (row) => row.campaignId === "23870042807",
+    )).toMatchObject({
+      grossRevenueCents: 0,
+      netRetainedRevenueCents: -995,
+      orders: 0,
+      refundCents: 995,
+      refundedOrders: 1,
+      stripeFeeCents: 0,
+    })
+    expect(mocks.getStripeFeeMap).toHaveBeenCalledWith({
+      intakes: [],
+      supabase: expect.anything(),
+    })
+    expect(snapshot.inputs.stripeFees.status).toBe("fresh")
   })
 
   it("represents missing spend as unavailable rather than zero", async () => {

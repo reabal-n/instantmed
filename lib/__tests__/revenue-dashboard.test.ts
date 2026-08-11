@@ -143,7 +143,7 @@ describe("revenue dashboard read model", () => {
       refundRows: [
         refundRow({}),
         refundRow({
-          refund_amount_cents: 9995,
+          refund_amount_cents: 0,
           refund_status: "failed",
           refunded_at: "2026-06-18T01:45:00.000Z",
         }),
@@ -206,6 +206,45 @@ describe("revenue dashboard read model", () => {
       id: "today-medcert",
       amountCents: 4995,
       label: "Medical certificates",
+    })
+  })
+
+  it("preserves a succeeded refund across every dashboard readout after a failed retry", () => {
+    const recordedRefundAfterFailedRetry = {
+      refund_amount_cents: 995,
+      refund_status: "failed",
+      refunded_at: "2026-06-18T01:30:00.000Z",
+    }
+    const dashboard = buildRevenueDashboard({
+      now: NOW,
+      paidRows: [
+        paidRow({
+          id: "partially-refunded-medcert",
+          payment_status: "partially_refunded",
+          ...recordedRefundAfterFailedRetry,
+        }),
+      ],
+      refundRows: [recordedRefundAfterFailedRetry],
+      createdRows: [],
+      checkoutRows: [],
+      partialDraftRows: [],
+      refundStats: { eligible: 0, failed: 1, totalRefunded: 995 },
+    })
+
+    expect(dashboard.windows.find((window) => window.key === "today")).toMatchObject({
+      grossCents: 4995,
+      netCents: 4000,
+      refundCents: 995,
+    })
+    expect(dashboard.daily.at(-1)).toMatchObject({
+      grossCents: 4995,
+      netCents: 4000,
+      refundCents: 995,
+    })
+    expect(dashboard.refundWork.totalRefunded30dCents).toBe(995)
+    expect(dashboard.serviceMix[0]).toMatchObject({
+      grossCents: 4995,
+      netCents: 4000,
     })
   })
 

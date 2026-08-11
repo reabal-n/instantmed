@@ -53,6 +53,21 @@ describe("baseline user role contract", () => {
     expect(sql).toContain("'consults'")
   })
 
+  it("never leaves a permissive FOR ALL policy open to browser roles", () => {
+    const sql = readFileSync(BASELINE_PATH, "utf8")
+    const policies = sql.match(/create\s+policy[\s\S]*?;/gi) ?? []
+    const unsafePolicies = policies.filter(
+      (policy) =>
+        /for\s+all\b/i.test(policy) &&
+        /using\s*\(\s*true\s*\)/i.test(policy) &&
+        !/for\s+all\s+to\s+service_role\s+using\s*\(\s*true\s*\)/i.test(
+          policy,
+        ),
+    )
+
+    expect(unsafePolicies).toEqual([])
+  })
+
   it("creates email delivery indexes after the table exists", () => {
     const sql = readFileSync(BASELINE_PATH, "utf8")
 

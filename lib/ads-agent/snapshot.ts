@@ -29,6 +29,7 @@ import { isLikelyGoogleAttributed } from "@/lib/analytics/google-ads-post-paymen
 import {
   getGoogleAdsCampaignRowsForRange,
   getLocalGoogleAdsPurchasesForRange,
+  getLocalGoogleAdsWindowValue,
   type GoogleAdsCampaignRow,
   type LocalGoogleAdsPurchaseRow,
 } from "@/lib/analytics/google-ads-report"
@@ -89,11 +90,6 @@ function asFiniteNumber(value: unknown): number | null {
     return Number.isFinite(parsed) ? parsed : null
   }
   return null
-}
-
-function toNonNegativeCents(value: unknown): number {
-  const parsed = asFiniteNumber(value)
-  return parsed == null ? 0 : Math.max(0, Math.round(parsed))
 }
 
 function microsToCents(value: unknown): number | null {
@@ -260,6 +256,7 @@ function aggregateSpendRows(
 
 function aggregateLocalRows(
   rows: LocalGoogleAdsPurchaseRow[],
+  range: AdsSnapshotWindow,
 ): Map<string, LocalCampaignRollup> {
   const campaigns = new Map<string, LocalCampaignRollup>()
 
@@ -267,11 +264,12 @@ function aggregateLocalRows(
     if (!isLikelyGoogleAttributed(row)) continue
 
     const campaignId = localCampaignId(row)
-    const grossRevenueCents = toNonNegativeCents(row.amount_cents)
-    const refundCents = Math.min(
+    const {
       grossRevenueCents,
-      toNonNegativeCents(row.refund_amount_cents),
-    )
+      purchaseInWindow,
+      refundCents,
+    } = getLocalGoogleAdsWindowValue(row, range)
+    if (!purchaseInWindow && refundCents === 0) continue
     const current = campaigns.get(campaignId) ?? {
       grossRevenueCents: 0,
       netRetainedRevenueCents: 0,
@@ -285,12 +283,14 @@ function aggregateLocalRows(
     current.grossRevenueCents += grossRevenueCents
     current.refundCents += refundCents
     current.netRetainedRevenueCents += grossRevenueCents - refundCents
-    current.orders += 1
+    current.orders += purchaseInWindow ? 1 : 0
     if (refundCents > 0) current.refundedOrders += 1
-    current.rows.push(row)
-    const service = localService(row)
-    current.serviceOrders[service] =
-      (current.serviceOrders[service] ?? 0) + 1
+    if (purchaseInWindow) {
+      current.rows.push(row)
+      const service = localService(row)
+      current.serviceOrders[service] =
+        (current.serviceOrders[service] ?? 0) + 1
+    }
     campaigns.set(campaignId, current)
   }
 
@@ -330,6 +330,7 @@ function buildCampaignEconomics(args: {
   accountCampaigns: AccountCampaign[]
   feeMap: Map<string, StripeFeeResult> | null
   localRows: LocalGoogleAdsPurchaseRow[] | null
+  range: AdsSnapshotWindow
   spendRows: GoogleAdsCampaignRow[] | null
 }): CampaignEconomics[] {
   const account = new Map(
@@ -342,7 +343,9 @@ function buildCampaignEconomics(args: {
       .map((campaign) => [campaign.campaignId, campaign]),
   )
   const spend = args.spendRows ? aggregateSpendRows(args.spendRows) : null
-  const local = args.localRows ? aggregateLocalRows(args.localRows) : null
+  const local = args.localRows
+    ? aggregateLocalRows(args.localRows, args.range)
+    : null
   const campaignIds = new Set<string>([
     ...account.keys(),
     ...(spend ? spend.keys() : []),
@@ -559,6 +562,7 @@ function fulfilledValue<T>(
 
 function uniqueFeeIntakes(
   rows: LocalGoogleAdsPurchaseRow[],
+  range: AdsSnapshotWindow,
 ): Array<{ id: string; stripePaymentIntentId: string | null }> {
   const intakes = new Map<
     string,
@@ -567,6 +571,7 @@ function uniqueFeeIntakes(
 
   for (const row of rows) {
     if (!isLikelyGoogleAttributed(row)) continue
+    if (!getLocalGoogleAdsWindowValue(row, range).purchaseInWindow) continue
     const id = asString(row.id)
     if (!id) continue
     intakes.set(id, {
@@ -581,8 +586,13 @@ function uniqueFeeIntakes(
 function allFeesAvailable(
   rows: LocalGoogleAdsPurchaseRow[],
   feeMap: Map<string, StripeFeeResult> | null,
+  range: AdsSnapshotWindow,
 ): boolean {
-  const attributedRows = rows.filter(isLikelyGoogleAttributed)
+  const attributedRows = rows.filter(
+    (row) =>
+      isLikelyGoogleAttributed(row) &&
+      getLocalGoogleAdsWindowValue(row, range).purchaseInWindow,
+  )
   if (attributedRows.length === 0) return true
   if (!feeMap) return false
 
@@ -641,7 +651,7 @@ export async function buildAdsAgentSnapshot(args: {
   } else {
     const [settledFeeResult] = await Promise.allSettled([
       getStripeFeeMap({
-        intakes: uniqueFeeIntakes(knownLocalRows),
+        intakes: uniqueFeeIntakes(knownLocalRows, rolling30Window),
         supabase: args.supabase,
       }),
     ])
@@ -653,17 +663,19 @@ export async function buildAdsAgentSnapshot(args: {
     accountCampaigns,
     feeMap,
     localRows: dailyLocalRows,
+    range: dailyWindow,
     spendRows: dailySpendRows,
   })
   const rolling30 = buildCampaignEconomics({
     accountCampaigns,
     feeMap,
     localRows: rollingLocalRows,
+    range: rolling30Window,
     spendRows: rollingSpendRows,
   })
   const feeTruthComplete =
     feeResult.status === "fulfilled" &&
-    allFeesAvailable(knownLocalRows, feeMap)
+    allFeesAvailable(knownLocalRows, feeMap, rolling30Window)
 
   return {
     reportDate,

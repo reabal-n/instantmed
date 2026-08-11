@@ -151,7 +151,7 @@ Root plan files preserve implementation detail only. They are not active merely 
 | [docs/superpowers/plans/2026-07-08-seo-geo-llm-task5-plan.md](../superpowers/plans/2026-07-08-seo-geo-llm-task5-plan.md) | Task 5 SEO/GEO/LLM growth plan: page-template contracts, contextual evidence links, CTR fixes, condition-template hardening, GEO answer blocks, and citation-surface workflow |
 | [docs/superpowers/plans/2026-07-10-audit-remediation-program.md](../superpowers/plans/2026-07-10-audit-remediation-program.md) | Reconciled implementation program for PHI key-rotation containment, AI med-cert batch review, service-worker retirement, repository artifact cleanup, dead-code ratcheting, and documentation consolidation |
 | [docs/superpowers/plans/2026-07-20-privacy-safe-flow-attribution.md](../superpowers/plans/2026-07-20-privacy-safe-flow-attribution.md) | Approved implementation sequence for one opaque intake-attempt identifier, retry-safe payment propagation, and unique-attempt PostHog reporting |
-| [docs/superpowers/plans/2026-08-11-safe-scale-readiness-remediation.md](../superpowers/plans/2026-08-11-safe-scale-readiness-remediation.md) | Fable-review-gated implementation programme for atomic clinical correction, durable Ads attribution holds, dispute cash truth, exact privacy-safe attribution, and canonical growth truth |
+| [docs/superpowers/plans/2026-08-11-safe-scale-readiness-remediation.md](../superpowers/plans/2026-08-11-safe-scale-readiness-remediation.md) | Fable-reviewed decision record narrowing safe-scale work to existing-reader refund truth, baseline replay ACLs, review-destination parity, and independent Ads/clinical gates |
 
 ## docs/superpowers/specs/ — 1
 
