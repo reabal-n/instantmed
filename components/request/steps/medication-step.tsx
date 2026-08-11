@@ -69,6 +69,7 @@ import { usePostHog } from "@/lib/analytics/posthog-context"
 import { isControlledMedicationName } from "@/lib/clinical/intake-validation"
 import { type DedicatedServiceMatch, detectDedicatedServiceForMedication, ROUTING_CONTEXT_LABELS } from "@/lib/clinical/medication-service-routing"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import { GUARANTEE } from "@/lib/marketing/voice"
 import {
   normalizeMedicationEntriesAnswer,
   normalizeMedicationProductAnswer,
@@ -734,7 +735,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
                 request and direct patients to their regular GP for a fuller medication review.
               </p>
               <p className="mt-2">
-                You can still ask a doctor to review it. If they decline, you receive a full refund.
+                You can still ask a doctor to review it. {GUARANTEE}
               </p>
               <Button
                 type="button"

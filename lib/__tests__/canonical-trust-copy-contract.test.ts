@@ -156,6 +156,14 @@ describe("canonical trust copy contract", () => {
     expect(complaints).not.toMatch(/resolution or a substantive response within 14 calendar days/i)
   })
 
+  it("uses the canonical refund guarantee in the repeat-prescription advisory", () => {
+    const medicationStep = read("components/request/steps/medication-step.tsx")
+
+    expect(medicationStep).toContain('import { GUARANTEE } from "@/lib/marketing/voice"')
+    expect(medicationStep).toContain("{GUARANTEE}")
+    expect(medicationStep).not.toContain("If they decline, you receive a full refund.")
+  })
+
   it("feeds visible and structured how-it-works content from the same datasets", () => {
     const source = read("app/how-it-works/page.tsx")
 
