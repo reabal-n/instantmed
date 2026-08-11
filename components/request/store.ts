@@ -14,7 +14,11 @@ import {
   ensureFlowInstanceId,
   normalizeFlowInstanceId,
 } from '@/lib/analytics/flow-instance'
-import { buildIntakeAnswerChangedEvent } from '@/lib/analytics/intake-events'
+import {
+  buildIntakeAnswerChangedEvent,
+  buildIntakeEngagedProperties,
+  INTAKE_ANALYTICS_EVENTS,
+} from '@/lib/analytics/intake-events'
 import { isDraftFlowRetired } from '@/lib/request/draft-retirement'
 import {
   canonicalizeServiceType,
@@ -203,6 +207,7 @@ const invalidatedAttestationState = {
 } as const
 
 const identityFields = ['firstName', 'lastName', 'email', 'phone', 'dob'] as const
+const capturedEngagementFlowIds = new Set<string>()
 
 // UTI and new/switch-pill answers are mutually exclusive. When the patient
 // changes pathway, remove every hidden branch field so stale clinical answers
@@ -907,8 +912,26 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         })
         queueLatestDraftSnapshotAfterMutation(get)
 
+        const flowInstanceId = normalizeFlowInstanceId(state.flowInstanceId)
+        if (tracksProgress && flowInstanceId) {
+          if (!capturedEngagementFlowIds.has(flowInstanceId)) {
+            capturedEngagementFlowIds.add(flowInstanceId)
+            capture(
+              INTAKE_ANALYTICS_EVENTS.engaged,
+              buildIntakeEngagedProperties({
+                flowInstanceId,
+                serviceType: state.serviceType,
+                subtype: typeof nextAnswers.consultSubtype === "string"
+                  ? nextAnswers.consultSubtype
+                  : undefined,
+                stepId: state.currentStepId,
+              }),
+            )
+          }
+        }
+
         const event = buildIntakeAnswerChangedEvent({
-          flowInstanceId: state.flowInstanceId,
+          flowInstanceId,
           serviceType: state.serviceType,
           subtype: typeof nextAnswers.consultSubtype === "string"
             ? nextAnswers.consultSubtype

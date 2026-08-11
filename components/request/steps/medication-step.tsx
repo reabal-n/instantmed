@@ -58,9 +58,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import {
+  buildIntakeValidationBlockedProperties,
   buildMedicationSteerProperties,
   captureIntakeEvent,
   INTAKE_ANALYTICS_EVENTS,
+  type IntakeBlockResolution,
+  type IntakeBlockType,
 } from "@/lib/analytics/intake-events"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { isControlledMedicationName } from "@/lib/clinical/intake-validation"
@@ -138,7 +141,7 @@ const DOSE_CHANGE_REQUIRES_REVIEW = "A dose or directions change needs review by
 const DECLINE_ADVISORY_REQUIRED = "Read and acknowledge the online-prescribing note before continuing"
 
 export default function MedicationStep({ serviceType, onNext }: MedicationStepProps) {
-  const { answers, setAnswers, setAnswer, flowInstanceId } = useRequestStore()
+  const { answers, flowInstanceId, setAnswers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -196,6 +199,30 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   const [blockedReasons, setBlockedReasons] = useState<string[]>([])
   const [recentMeds, setRecentMeds] = useState<RecentMedication[]>([])
   const controlledBlock = deriveRepeatMedicationTerminalBlock(answers)
+  const controlledBlockKind = controlledBlock?.kind
+
+  const captureMedicationBlock = useCallback(({
+    blockType,
+    blockers,
+    resolution,
+  }: {
+    blockType: IntakeBlockType
+    blockers: string[]
+    resolution?: IntakeBlockResolution
+  }) => {
+    captureIntakeEvent(
+      posthog,
+      INTAKE_ANALYTICS_EVENTS.validationBlocked,
+      buildIntakeValidationBlockedProperties({
+        flowInstanceId,
+        serviceType,
+        stepId: "medication",
+        blockType,
+        blockers,
+        resolution,
+      }),
+    )
+  }, [flowInstanceId, posthog, serviceType])
 
   // Load recent medications on mount
   useEffect(() => {
@@ -336,12 +363,35 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     declineAdvisoryAcknowledgement !== likelyDeclinedMedication.token,
   )
 
+  useEffect(() => {
+    if (!controlledBlockKind) return
+    captureMedicationBlock({
+      blockType: "clinical_hard_block",
+      blockers: ["controlled_substance"],
+      resolution: "shown",
+    })
+  }, [captureMedicationBlock, controlledBlockKind])
+
+  useEffect(() => {
+    if (!steerActive) return
+    captureMedicationBlock({
+      blockType: "service_steer",
+      blockers: ["dedicated_service_steer"],
+      resolution: "shown",
+    })
+  }, [captureMedicationBlock, steerActive])
+
   const goToDedicatedService = useCallback((subtype: string) => {
     captureIntakeEvent(
       posthog,
       INTAKE_ANALYTICS_EVENTS.medicationSteerFollowed,
       buildMedicationSteerProperties({ flowInstanceId, serviceType, subtype }),
     )
+    captureMedicationBlock({
+      blockType: "service_steer",
+      blockers: ["dedicated_service_steer"],
+      resolution: "redirected",
+    })
     const params = new URLSearchParams()
     for (const key of MEDICATION_STEER_ATTRIBUTION_PARAMS) {
       const value = searchParams.get(key)
@@ -353,7 +403,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     // join steer -> started -> paid across the two flow instances.
     params.set("from", "repeat-steer")
     router.push(`/request?${params.toString()}`)
-  }, [posthog, router, searchParams, flowInstanceId, serviceType])
+  }, [captureMedicationBlock, flowInstanceId, posthog, router, searchParams, serviceType])
 
   // Selecting an exempting context keeps the repeat (flagged for the doctor);
   // selecting the routed condition keeps the steer. Token values only.
@@ -371,6 +421,15 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       }),
     )
   }, [serviceSteer, setAnswers, posthog, flowInstanceId, serviceType])
+
+  const keepAsRepeat = useCallback((subtype: string) => {
+    captureMedicationBlock({
+      blockType: "service_steer",
+      blockers: ["dedicated_service_steer"],
+      resolution: "overridden",
+    })
+    setSteerDismissedSubtype(subtype)
+  }, [captureMedicationBlock])
 
   // How often each steer fires, and whether patients follow it. Subtype and
   // enforcement tokens only — never the typed medication text.
@@ -479,8 +538,16 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       doseChanged: true,
       sideEffects: true,
     })
-    return Object.keys(newErrors).length === 0
+    const blockers = Object.keys(newErrors)
+    if (blockers.length > 0) {
+      captureMedicationBlock({
+        blockType: "validation",
+        blockers,
+      })
+    }
+    return blockers.length === 0
   }, [
+    captureMedicationBlock,
     medications,
     prescriptionHistory,
     isNeverPrescribed,
@@ -524,10 +591,9 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
           addRecentMedication({ name: med.name, strength: med.strength || undefined, form: med.form || undefined, pbsCode: med.pbsCode || "MANUAL" })
         }
       }
-      posthog?.capture('step_completed', { step: 'medication', medication_count: medications.filter((m) => m.name.trim()).length })
       onNext()
     }
-  }, [controlledBlock, declineRiskActive, steerActive, serviceSteer, validate, medications, posthog, onNext])
+  }, [controlledBlock, declineRiskActive, steerActive, serviceSteer, validate, medications, onNext])
 
   const activeMedications = medications.filter((m) => m.name.trim())
   // Readiness: a named medicine, when it was last prescribed, and — for a
@@ -621,7 +687,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
                   type="button"
                   variant="ghost"
                   className="h-12"
-                  onClick={() => setSteerDismissedSubtype(serviceSteer.subtype)}
+                  onClick={() => keepAsRepeat(serviceSteer.subtype)}
                 >
                   I&apos;m continuing my current pill — keep as repeat
                 </Button>

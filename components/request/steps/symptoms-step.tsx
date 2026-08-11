@@ -103,10 +103,6 @@ export default function SymptomsStep({ serviceType, onNext, hideIntro = false }:
 
   const isCarer = certType === "carer"
   const detailsQuality = validateSymptomTextQuality(symptomDetails)
-  const detailsWordCount = symptomDetails
-    .toLowerCase()
-    .split(/[^a-z]+/)
-    .filter((word) => word.length >= 2).length
 
   const emergencyRequiresAck = emergencyWarning.isEmergency && !emergencyWarningAcknowledged
 
@@ -182,16 +178,9 @@ export default function SymptomsStep({ serviceType, onNext, hideIntro = false }:
   const handleNext = useCallback(() => {
     if (validate()) {
       recordStepCompletion("symptoms", { has_details: true })
-      posthog?.capture("step_completed", {
-        step: "symptoms",
-        service_type: serviceType,
-        duration: symptomDuration,
-        symptom_word_count: detailsWordCount,
-        high_stakes: highStakes.isHighStakes,
-      })
       onNext()
     }
-  }, [validate, serviceType, symptomDuration, detailsWordCount, highStakes.isHighStakes, posthog, onNext])
+  }, [validate, onNext])
 
   // Readiness is computed live from the answers, NOT from the `errors` object —
   // `errors` is set by validate() for display and would otherwise stay stale

@@ -3,6 +3,7 @@ import { canonicalizeServiceType } from "@/lib/request/draft-storage"
 
 export const INTAKE_ANALYTICS_EVENTS = {
   started: "intake_started",
+  engaged: "intake_engaged",
   stepViewed: "step_viewed",
   stepCompleted: "step_completed",
   checkoutViewed: "checkout_viewed",
@@ -47,8 +48,17 @@ interface StepCompletedInput extends StepPropertiesInput {
   timeOnStepMs: number
 }
 
+export type IntakeBlockType =
+  | "validation"
+  | "clinical_hard_block"
+  | "service_steer"
+
+export type IntakeBlockResolution = "shown" | "redirected" | "overridden"
+
 interface ValidationBlockedInput extends StepPropertiesInput {
+  blockType?: IntakeBlockType
   blockers: string[]
+  resolution?: IntakeBlockResolution
 }
 
 interface AnswerChangedInput {
@@ -125,7 +135,12 @@ const FREE_TEXT_KEY_PARTS = [
   "reason",
   "info",
   "description",
+  "indication",
+  "medicationForm",
+  "medicationName",
+  "medicationStrength",
   "symptomDetails",
+  "sideEffects",
   "currentDose",
   "dosageInstructions",
   "current_medications",
@@ -166,6 +181,10 @@ export function buildIntakeContinueClickedProperties(input: StepPropertiesInput)
   return baseStepProperties(input)
 }
 
+export function buildIntakeEngagedProperties(input: StepPropertiesInput) {
+  return baseStepProperties(input)
+}
+
 export function buildIntakeStepCompletedProperties(input: StepCompletedInput) {
   return {
     ...baseStepProperties(input),
@@ -176,6 +195,8 @@ export function buildIntakeStepCompletedProperties(input: StepCompletedInput) {
 export function buildIntakeValidationBlockedProperties(input: ValidationBlockedInput) {
   return {
     ...baseStepProperties(input),
+    block_type: input.blockType ?? "validation",
+    ...(input.resolution ? { resolution: input.resolution } : {}),
     blocker_count: input.blockers.length,
     blockers: input.blockers,
   }

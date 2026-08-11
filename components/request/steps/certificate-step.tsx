@@ -420,14 +420,9 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
 
       savePreferences({ preferredCertType: certType })
       recordStepCompletion("certificate", { certType, duration: String(selectedDays) })
-      posthog?.capture("step_completed", {
-        step: "certificate",
-        cert_type: certType,
-        duration: selectedDays,
-      })
       onNext()
     }
-  }, [validate, certType, selectedDays, startOffset, setAnswer, posthog, onNext])
+  }, [validate, certType, selectedDays, startOffset, setAnswer, onNext])
 
   // Live-computed from the selections, NOT the `errors` object (which would stay
   // stale after the patient fixes a field, leaving the button looking not-ready).
