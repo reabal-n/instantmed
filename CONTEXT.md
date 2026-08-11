@@ -49,3 +49,7 @@ _Avoid_: Success message, mutation log
 **Attribution Investigation Hold**:
 A durable Operator-owned block opened when a service campaign shows material cross-service attribution. Later threshold recovery does not clear it; only an explicit, recorded Operator resolution does.
 _Avoid_: Transient purity warning, automatic threshold reset, soft alert
+
+**AI Attribution Expansion Gate**:
+The evidence threshold that reopens dedicated AI-channel attribution work: at least 10 reportable AI-attributed paid orders in a closed 30-day window, or a concrete acquisition decision that cannot be made without separating named assistant traffic from Direct.
+_Avoid_: Citation-volume trigger, speculative instrumentation, zero-detection mandate

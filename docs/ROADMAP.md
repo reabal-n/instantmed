@@ -3,7 +3,7 @@
 > **Authority:** the sole source of truth for the current operating phase, ordered active work, status, and checkpoints.
 > `docs/BUSINESS_PLAN.md` owns durable strategy. `docs/REVENUE_MODEL.md` owns milestones and economic gates. Implementation plans may elaborate one item but may not redefine this queue.
 >
-> **Last refreshed:** 2026-08-09. Refresh whenever priority or status changes; perform a deliberate review at least monthly.
+> **Last refreshed:** 2026-08-11. Refresh whenever priority or status changes; perform a deliberate review at least monthly.
 
 ---
 
@@ -79,6 +79,7 @@ Work the highest-ranked actionable item. If an item is blocked by a scheduled me
 - optional `/admin/ops` release feed if operational evidence shows it is useful
 - category-by-category guide work only when GSC or service strategy selects the page
 - read-performance caching or middleware changes only after profiling and a fresh security review
+- prospective per-engine AI attribution only after the **AI Attribution Expansion Gate** is met: at least 10 reportable AI-attributed paid orders in a closed 30-day window, or a concrete acquisition decision that cannot be made without separating named assistant traffic from Direct. Until then, only current classifier correctness, referrer privacy, source-document truth, and migration replay-safety repairs are active work
 
 Deferred items are not active merely because an older implementation plan describes them.
 
