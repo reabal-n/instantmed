@@ -4,16 +4,14 @@
  * Two same-service history rows are indistinguishable without the medicine
  * the patient asked for — production incident: two repeat scripts submitted
  * six minutes apart read as duplicates in the cockpit. These tests pin the
- * label extraction across current + legacy answer shapes and the fail-soft
- * batched lookup the review-data route uses.
+ * batched, fail-soft lookup the review-data route uses, including the label
+ * extraction across current + legacy answer shapes (exercised through the
+ * public surface — the extractor itself is module-private).
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import {
-  extractMedicationLabel,
-  getIntakeMedicationLabels,
-} from "@/lib/doctor/intake-medication-label"
+import { getIntakeMedicationLabels } from "@/lib/doctor/intake-medication-label"
 
 const fromMock = vi.fn()
 
@@ -29,38 +27,43 @@ function mockAnswersQuery(result: { data?: unknown[]; error?: { message: string 
   })
 }
 
+async function labelFor(answers: Record<string, unknown> | null): Promise<string | undefined> {
+  mockAnswersQuery({ data: [{ intake_id: "probe", answers }] })
+  const labels = await getIntakeMedicationLabels(["probe"])
+  return labels.get("probe")
+}
+
 beforeEach(() => {
   fromMock.mockReset()
 })
 
-describe("extractMedicationLabel", () => {
-  it("returns the patient-typed medicine from the current intake shape", () => {
-    expect(extractMedicationLabel({ medicationName: "Metformin 500mg" })).toBe("Metformin 500mg")
+describe("medication label extraction (via the batched lookup)", () => {
+  it("returns the patient-typed medicine from the current intake shape", async () => {
+    expect(await labelFor({ medicationName: "Metformin 500mg" })).toBe("Metformin 500mg")
   })
 
-  it("prefers the display name over the raw name", () => {
+  it("prefers the display name over the raw name", async () => {
     expect(
-      extractMedicationLabel({
+      await labelFor({
         medication_display: "Levlen ED",
         medication_name: "levonorgestrel/ethinylestradiol",
       }),
     ).toBe("Levlen ED")
   })
 
-  it("reads legacy snake_case and selected-medication keys", () => {
-    expect(extractMedicationLabel({ medication_name: "Sertraline" })).toBe("Sertraline")
-    expect(extractMedicationLabel({ selected_medication_name: "Propecia" })).toBe("Propecia")
+  it("reads legacy snake_case and selected-medication keys", async () => {
+    expect(await labelFor({ medication_name: "Sertraline" })).toBe("Sertraline")
+    expect(await labelFor({ selected_medication_name: "Propecia" })).toBe("Propecia")
   })
 
-  it("returns null for missing or blank answers", () => {
-    expect(extractMedicationLabel(null)).toBeNull()
-    expect(extractMedicationLabel(undefined)).toBeNull()
-    expect(extractMedicationLabel({})).toBeNull()
-    expect(extractMedicationLabel({ medicationName: "   " })).toBeNull()
+  it("yields no label for missing or blank answers", async () => {
+    expect(await labelFor(null)).toBeUndefined()
+    expect(await labelFor({})).toBeUndefined()
+    expect(await labelFor({ medicationName: "   " })).toBeUndefined()
   })
 
-  it("trims surrounding whitespace", () => {
-    expect(extractMedicationLabel({ medicationName: "  Ozempic  " })).toBe("Ozempic")
+  it("trims surrounding whitespace", async () => {
+    expect(await labelFor({ medicationName: "  Ozempic  " })).toBe("Ozempic")
   })
 })
 

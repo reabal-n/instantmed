@@ -19,7 +19,7 @@ const FALLBACK_ANSWER_KEYS = [
  * prescription-shaped intake. Free text as the patient entered it — never
  * a MIMS/PBS identification and never shown on patient surfaces.
  */
-export function extractMedicationLabel(
+function extractMedicationLabel(
   answers: Record<string, unknown> | null | undefined,
 ): string | null {
   if (!answers) return null
