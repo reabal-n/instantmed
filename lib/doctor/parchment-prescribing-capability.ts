@@ -1,5 +1,5 @@
 import { type DoctorCapability, doctorHasCapability } from "@/lib/auth/staff-capabilities"
-import { isControlledSubstance } from "@/lib/clinical/intake-validation"
+import { isControlledMedicationName } from "@/lib/clinical/intake-validation"
 import {
   buildRepeatScriptMedicationValidationText,
   extractRepeatScriptMedications,
@@ -77,7 +77,7 @@ export function checkParchmentPrescribingCapability(input: {
   }
 
   const medicationTexts = extractRequestedPrescriptionMedicationTexts(input.answers)
-  const controlledText = medicationTexts.find((text) => isControlledSubstance(text))
+  const controlledText = medicationTexts.find((text) => isControlledMedicationName(text))
 
   if (controlledText && !doctorHasCapability(input.profile, "prescribe_s8")) {
     return {

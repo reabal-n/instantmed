@@ -3,12 +3,16 @@
  * Single source of truth for repeat-script answers stored in request_answers.answers
  */
 
-import { CONTROLLED_SUBSTANCE_TERMS } from "@/lib/clinical/controlled-substances"
+import {
+  containsControlledMedicationTerm,
+  CONTROLLED_SUBSTANCE_TERMS,
+} from "@/lib/clinical/controlled-substances"
 import { detectDedicatedServiceForMedication } from "@/lib/clinical/medication-service-routing"
 import { getRepeatRxAttestationStatus } from "@/lib/clinical/repeat-rx-attestation"
 import {
   buildRepeatScriptMedicationValidationText,
   extractRepeatScriptMedications,
+  getLikelyDeclinedRepeatMedication,
   isUnidentifiedRepeatMedication,
   isUsefulMedicationDescription,
   MAX_REPEAT_SCRIPT_MEDICATIONS,
@@ -92,6 +96,10 @@ function levenshteinDistance(a: string, b: string): number {
  */
 export function containsBlockedSubstance(text: string): boolean {
   const lower = text.toLowerCase().trim()
+
+  // Medication-specific seam: bare "CBD" is a valid hard-block signal here,
+  // but it intentionally remains absent from general free-text matching.
+  if (containsControlledMedicationTerm(lower)) return true
   
   // Extract words from the text for individual checking
   const words = lower.split(/[\s,\-/]+/).filter(w => w.length >= 4)
@@ -295,6 +303,23 @@ export function validateRepeatScriptPayload(
       return {
         valid: false,
         error: "Schedule 8 and controlled substances cannot be prescribed through this service. Please see your regular doctor.",
+        requiresConsult: false,
+      }
+    }
+  }
+
+  // The acknowledgement is stored as a bounded brand token rather than raw
+  // medication text. Checkout enforces it so a restored review-step draft or a
+  // direct payload cannot bypass the pre-payment warning.
+  for (const medication of medications) {
+    const advisory = getLikelyDeclinedRepeatMedication(medication)
+    if (
+      advisory &&
+      answers.repeat_rx_decline_advisory_acknowledged_for !== advisory.token
+    ) {
+      return {
+        valid: false,
+        error: "Please review the online-prescribing note for this medicine and confirm you understand before continuing.",
         requiresConsult: false,
       }
     }

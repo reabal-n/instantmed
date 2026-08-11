@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import { getMedicationBlocklistCandidate } from "@/lib/operational-controls/medication-blocklist"
 import { validateMedicationStep } from "@/lib/request/validation"
 import {
+  getLikelyDeclinedRepeatMedication,
   isUnidentifiedRepeatMedication,
   resolveRepeatMedicationCode,
 } from "@/lib/validation/repeat-script-medications"
@@ -106,6 +107,43 @@ describe("repeat script schema", () => {
         { name: "Oxycodone", strength: "5 mg", form: "tablet", pbsCode: "MANUAL" },
       ],
     })).toContain("Oxycodone")
+  })
+
+  it("requires the fixed advisory acknowledgement before a likely decline can reach payment", () => {
+    const request = {
+      ...validRepeatScriptAnswers,
+      medication_name: "Panadeine Forte",
+      medication_display: "Panadeine Forte",
+    }
+
+    expect(validateRepeatScriptPayload(request)).toMatchObject({
+      valid: false,
+      requiresConsult: false,
+    })
+    expect(validateRepeatScriptPayload({
+      ...request,
+      repeat_rx_decline_advisory_acknowledged_for: "panadeine",
+    })).toEqual({ valid: true })
+  })
+
+  it("rejects a stale acknowledgement when the medication brand changes", () => {
+    const result = validateRepeatScriptPayload({
+      ...validRepeatScriptAnswers,
+      medication_name: "Mersyndol Forte",
+      medication_display: "Mersyndol Forte",
+      repeat_rx_decline_advisory_acknowledged_for: "panadeine",
+    })
+
+    expect(result).toMatchObject({ valid: false, requiresConsult: false })
+    expect(result.error).toMatch(/review the online-prescribing note/i)
+  })
+
+  it("recognises an advisory brand split across structured medication fields", () => {
+    expect(getLikelyDeclinedRepeatMedication({
+      name: "Nurofen",
+      displayName: "Nurofen",
+      form: "Plus",
+    })?.token).toBe("nurofen_plus")
   })
 })
 

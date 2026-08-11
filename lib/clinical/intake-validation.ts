@@ -8,7 +8,10 @@
  * conditions that require immediate redirection before intake submission.
  */
 
-import { CONTROLLED_SUBSTANCE_PATTERNS } from "./controlled-substances"
+import {
+  containsControlledMedicationTerm,
+  containsControlledSubstanceTerm,
+} from "./controlled-substances"
 import {
   checkAutoReject,
   checkEmergencySymptoms,
@@ -287,8 +290,12 @@ export const COMMONLY_ABUSED_MEDICATIONS = [
  * not). Parity pinned by lib/__tests__/controlled-substances-parity.test.ts.
  */
 export function isControlledSubstance(medicationName: string): boolean {
-  const lowerName = medicationName.toLowerCase()
-  return CONTROLLED_SUBSTANCE_PATTERNS.some(pattern => pattern.test(lowerName))
+  return containsControlledSubstanceTerm(medicationName)
+}
+
+/** Medication-name context, where bare "CBD" is unambiguous. */
+export function isControlledMedicationName(medicationName: string): boolean {
+  return containsControlledMedicationTerm(medicationName)
 }
 
 // ============================================================================

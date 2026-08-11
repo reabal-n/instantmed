@@ -1,3 +1,8 @@
+import {
+  getLikelyDeclinedOnlineMedication,
+  type LikelyDeclinedOnlineMedication,
+} from "@/lib/clinical/controlled-substances"
+
 export const MAX_REPEAT_SCRIPT_MEDICATIONS = 1
 
 export interface RepeatScriptMedicationEntry {
@@ -274,4 +279,17 @@ export function buildRepeatScriptMedicationValidationText(entry: RepeatScriptMed
     // scan also sees a medicine named only in the "I don't know" description.
     entry.description,
   ].filter(Boolean).join(" ")
+}
+
+/**
+ * Keep the patient advisory and checkout gate on the same complete medication
+ * representation. Brand qualifiers can arrive in strength, form, or restored
+ * description fields rather than the name alone.
+ */
+export function getLikelyDeclinedRepeatMedication(
+  entry: RepeatScriptMedicationEntry,
+): LikelyDeclinedOnlineMedication | null {
+  return getLikelyDeclinedOnlineMedication(
+    buildRepeatScriptMedicationValidationText(entry),
+  )
 }

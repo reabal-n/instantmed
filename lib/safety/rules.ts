@@ -276,14 +276,14 @@ const prescriptionRules: SafetyRule[] = [
   {
     id: 'rx_controlled_substance',
     name: 'Controlled Substance Request',
-    description: 'Request for S8 or controlled medication - defense-in-depth (also blocked by isControlledSubstance() in checkout action and medication step UI)',
+    description: 'Request for S8 or controlled medication - defense-in-depth (also blocked by the context-aware controlled-medication checkout and UI guards)',
     conditions: [
       {
         fieldId: 'is_controlled',
         operator: 'equals',
         value: true,
-        // Derived: runs isControlledSubstance() against any medication field the
-        // answers may carry. The medication step blocks S8 drugs client-side and
+        // Derived: runs context-aware controlled-term matching against any
+        // medication field the answers may carry. The medication step blocks S8 drugs client-side and
         // the checkout action blocks them server-side; this rule is the safety net
         // for any caller of the safety engine. (Previously mis-typed as
         // `duration_days`, which always returned null and made the rule dead.)

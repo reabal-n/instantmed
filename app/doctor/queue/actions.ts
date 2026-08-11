@@ -16,7 +16,7 @@ import {
   hasSupportAccess,
 } from "@/lib/auth/staff-capabilities"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
-import { isControlledSubstance } from "@/lib/clinical/intake-validation"
+import { isControlledMedicationName } from "@/lib/clinical/intake-validation"
 import {
   getRepeatRxPrescribingBlocker,
   hasLegacyRepeatRxReconciliationNote,
@@ -1500,7 +1500,7 @@ export async function quickPrescribeRenewalAction(
   const medicationName: string =
     ((answers.medicationName as string) || (answers.medication_name as string) || "").trim()
 
-  if (medicationName && isControlledSubstance(medicationName)) {
+  if (medicationName && isControlledMedicationName(medicationName)) {
     return {
       success: false,
       error: "Quick prescribe is not available for controlled substances. Use the standard review flow.",

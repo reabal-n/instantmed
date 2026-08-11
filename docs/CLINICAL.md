@@ -330,11 +330,11 @@ None. The patient types the name themselves (`components/request/steps/medicatio
 ### Controlled Substance Blocking
 
 - **Schedule 8: Hard block** -- no override possible (`lib/clinical/intake-validation.ts`)
-- Controlled substances are blocked on the typed medication text (the free-text box runs `isControlledSubstance()` on every change)
+- Controlled substances are blocked on typed medication text. Medication-name seams use `isControlledMedicationName()` so a bare `CBD` entry is caught; general prose uses `isControlledSubstance()` so a location such as `Sydney CBD` is not mistaken for cannabidiol.
 - Messaging must use "controlled substance" (not "S8") for non-S8 controlled drugs
-- **Defense in depth — three independent layers**, all using `isControlledSubstance()`:
+- **Defense in depth — three independent layers**, using the same shared controlled-term source with context-aware medication matching:
   1. **Medication step UI** — client-side block on the selected medication.
-  2. **Checkout clinical validation** — `lib/stripe/checkout/clinical-validation.ts` and `lib/stripe/guest-checkout.ts` hard-block on `getMedicationBlocklistCandidate()` (reads `medication_name`/`medication_display`/repeat-script arrays **and** free-text `consult_details`) for the repeat-script **and** consult branches. Consult is not a back-channel around the block (fixed 2026-06-07; the consult branch previously ran only the DB blocklist).
+  2. **Checkout clinical validation** — `lib/stripe/checkout/clinical-validation.ts` and `lib/stripe/guest-checkout.ts` keep medication fields separate from `consult_details` while scanning, so bare `CBD` is hard-blocked only where it unambiguously names a medicine. Consult is not a back-channel around the block.
   3. **Safety rules engine** — the `rx_controlled_substance` rule (`lib/safety/rules.ts`) uses the `is_controlled` derivation (`lib/safety/evaluate.ts`) to DECLINE prescription requests naming a controlled substance. (Previously mis-typed as a `duration_days` derivation that always returned null, leaving the rule dead — fixed 2026-06-07.)
 
 ### Patient-Facing Rules
@@ -343,6 +343,7 @@ None. The patient types the name themselves (`components/request/steps/medicatio
 - One repeat-prescription request covers one medication. Patients with multiple repeats submit separate requests so the dose, indication, and side-effect answers stay tied to the right medicine.
 - Helper text: "Request one regular medicine at a time. Type the name, or describe it if you're not sure — the doctor confirms the right medicine before prescribing."
 - The box is plain free text — no results list, no autocomplete, and nothing highlighted as "recommended", "suitable", "eligible", or "approved"
+- Codeine-combination brands that remain eligible for human review can show a pre-payment likely-decline note. The acknowledgement is a fixed brand token persisted in the draft and revalidated at checkout; it never overrides the doctor's decision, and changing the matched brand invalidates it.
 
 ### Forbidden Language
 

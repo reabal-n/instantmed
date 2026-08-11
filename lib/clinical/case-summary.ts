@@ -3,7 +3,7 @@ import {
   validateHairLossConsult,
 } from "@/lib/clinical/consult-validators"
 import { getEdPreset } from "@/lib/clinical/ed-prescribing-presets"
-import { isControlledSubstance } from "@/lib/clinical/intake-validation"
+import { isControlledMedicationName } from "@/lib/clinical/intake-validation"
 import {
   hasUncertainMedicationAnswer,
   requiresClinicalAdministration,
@@ -905,8 +905,8 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const history = str(answers, "prescriptionHistory") || str(answers, "last_prescribed") || "not specified"
   const currentDose = str(answers, "currentDose") || str(answers, "current_dose") || str(answers, "dosage_instructions")
   const controlled = medications.length > 0
-    ? medications.some((medication) => isControlledSubstance(buildRepeatScriptMedicationValidationText(medication)))
-    : isControlledSubstance(medicationName)
+    ? medications.some((medication) => isControlledMedicationName(buildRepeatScriptMedicationValidationText(medication)))
+    : isControlledMedicationName(medicationName)
   const allergies = firstStr(answers, ["known_allergies", "allergies"])
   const conditions = firstStr(answers, ["existing_conditions", "conditions"])
   const currentMedications = firstStr(answers, ["current_medications", "otherMedications", "other_medications"])
