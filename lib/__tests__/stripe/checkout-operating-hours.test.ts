@@ -5,8 +5,10 @@ const mocks = vi.hoisted(() => ({
   checkCheckoutBlocked: vi.fn(),
   checkSafetyForServer: vi.fn(),
   createServiceRoleClient: vi.fn(),
+  getIntakeAnswersForPaymentSafety: vi.fn(),
   getAuthenticatedUserWithProfile: vi.fn(),
   getPriceIdForRequest: vi.fn(),
+  holdCheckoutForMissingSafetyInformation: vi.fn(),
   isAtCapacity: vi.fn(),
   isMedicationBlocked: vi.fn(),
   isServiceDisabled: vi.fn(),
@@ -50,7 +52,12 @@ vi.mock("@/lib/operational-controls/config", () => ({
 
 vi.mock("@/lib/data/profiles", () => ({
   decryptProfilePhi: vi.fn((profile) => profile),
-  updateProfile: vi.fn(),
+  updateProfile: vi.fn(async () => ({})),
+}))
+
+vi.mock("@/lib/data/intake-answers", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@/lib/data/intake-answers")>(),
+  getIntakeAnswersForPaymentSafety: mocks.getIntakeAnswersForPaymentSafety,
 }))
 
 vi.mock("@/lib/feature-flags", () => ({
@@ -94,6 +101,11 @@ vi.mock("@/lib/stripe/client", () => ({
   },
 }))
 
+vi.mock("@/lib/stripe/checkout/missing-safety-payment-hold", () => ({
+  holdCheckoutForMissingSafetyInformation:
+    mocks.holdCheckoutForMissingSafetyInformation,
+}))
+
 vi.mock("@/lib/supabase/service-role", () => ({
   createServiceRoleClient: mocks.createServiceRoleClient,
 }))
@@ -124,15 +136,71 @@ interface DuplicateGuestIntake {
   subtype: string
 }
 
+function makeDuplicateRepeatIntake(
+  overrides: Partial<DuplicateGuestIntake> = {},
+): DuplicateGuestIntake {
+  return {
+    category: "prescription",
+    checkout_error: "safety_missing_required_information",
+    guest_email: "patient@example.test",
+    id: "intake-existing",
+    is_priority: false,
+    payment_id: "cs_current",
+    payment_status: "pending",
+    status: "checkout_failed",
+    stripe_price_id: "price_repeat",
+    subtype: "repeat",
+    ...overrides,
+  }
+}
+
+function repeatGuestCheckoutInput() {
+  return {
+    answers: {
+      accuracy_confirmed: true,
+      address_line1: "12 Clinical Way",
+      medicare_expiry: "2028-12-01",
+      medicare_irn: "1",
+      medicare_number: "2123456701",
+      medication_name: "Sertraline",
+      medication_strength: "100 mg",
+      current_dose: "100 mg once daily",
+      postcode: "2000",
+      prescribed_before: true,
+      sex: "M",
+      state: "NSW",
+      suburb: "Sydney",
+      terms_agreed: true,
+      doseChanged: false,
+    },
+    category: "prescription" as const,
+    guestDateOfBirth: "1985-04-01",
+    guestEmail: "patient@example.test",
+    guestName: "Test Patient",
+    guestPhone: "0400000000",
+    subtype: "repeat",
+    type: "repeat-script",
+  }
+}
+
 function createGuestCheckoutSupabaseMock({
+  duplicateAnswerPayload,
   duplicateAnswers = true,
   duplicateIntake,
   forceDuplicate = false,
 }: {
+  duplicateAnswerPayload?: Record<string, unknown> | null
   duplicateAnswers?: boolean
   duplicateIntake?: DuplicateGuestIntake
   forceDuplicate?: boolean
 } = {}) {
+  if (duplicateIntake) {
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce(
+      duplicateAnswerPayload === undefined
+        ? duplicateAnswers ? {} : null
+        : duplicateAnswerPayload,
+    )
+  }
   const inserts: Array<{ table: string; payload: Record<string, unknown> }> = []
   const updates: Array<{ table: string; payload: Record<string, unknown> }> = []
   const deletes: string[] = []
@@ -230,6 +298,7 @@ describe("checkout operating hours", () => {
       triggeredRuleIds: [],
     })
     mocks.getAuthenticatedUserWithProfile.mockResolvedValue(null)
+    mocks.holdCheckoutForMissingSafetyInformation.mockResolvedValue("held")
     mocks.isAtCapacity.mockResolvedValue(false)
     mocks.isMedicationBlocked.mockResolvedValue({ blocked: false })
     mocks.isServiceDisabled.mockResolvedValue(false)
@@ -481,6 +550,102 @@ describe("checkout operating hours", () => {
       success: false,
     })
     expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("holds a duplicate guest repeat when authoritative stored answers lack strength", async () => {
+    const duplicateIntake = makeDuplicateRepeatIntake()
+    const { supabase } = createGuestCheckoutSupabaseMock({
+      duplicateAnswerPayload: {
+        medication_name: "Sertraline",
+        current_dose: "One tablet each morning",
+        repeat_rx_dose_contract_version: 1,
+      },
+      duplicateIntake,
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const result = await createGuestCheckoutAction(repeatGuestCheckoutInput())
+
+    expect(result).toMatchObject({
+      success: false,
+      error: expect.stringMatching(/required dose questions/i),
+    })
+    expect(mocks.holdCheckoutForMissingSafetyInformation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        intakeId: "intake-existing",
+        missingFields: ["medication_strength"],
+        source: "guest_duplicate",
+      }),
+    )
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    "state_changed",
+    "unresolved",
+    "held_invalidation_unresolved",
+  ] as const)(
+    "does not advise a duplicate payment when the missing-dose hold returns %s",
+    async (holdResult) => {
+      const duplicateIntake = makeDuplicateRepeatIntake({
+        checkout_error: "safety_blocked_high_stakes",
+      })
+      const { supabase } = createGuestCheckoutSupabaseMock({
+        duplicateAnswerPayload: {
+          medication_name: "Sertraline",
+          current_dose: "Once daily",
+          repeat_rx_dose_contract_version: 1,
+        },
+        duplicateIntake,
+      })
+      mocks.createServiceRoleClient.mockReturnValue(supabase)
+      mocks.holdCheckoutForMissingSafetyInformation.mockResolvedValueOnce(holdResult)
+
+      const result = await createGuestCheckoutAction(repeatGuestCheckoutInput())
+
+      expect(result).toEqual({
+        success: false,
+        error:
+          "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
+      })
+      expect(result.error).not.toMatch(/start the request again/i)
+      expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    },
+  )
+
+  it("returns the completion path when a duplicate missing-dose hold finds payment in flight", async () => {
+    const duplicateIntake = makeDuplicateRepeatIntake()
+    const { supabase } = createGuestCheckoutSupabaseMock({
+      duplicateAnswerPayload: {
+        medication_name: "Sertraline",
+        current_dose: "Once daily",
+        repeat_rx_dose_contract_version: 1,
+      },
+      duplicateIntake,
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.holdCheckoutForMissingSafetyInformation.mockResolvedValueOnce(
+      "payment_in_flight",
+    )
+    mocks.stripeSessionRetrieve.mockResolvedValueOnce({
+      id: "cs_current",
+      metadata: { intake_id: "intake-existing" },
+      payment_status: "paid",
+      status: "complete",
+      url: null,
+    })
+
+    const result = await createGuestCheckoutAction(repeatGuestCheckoutInput())
+
+    expect(result).toEqual({
+      success: true,
+      checkoutUrl:
+        "http://localhost:3000/auth/complete-account?intake_id=intake-existing&session_id=cs_current",
+      intakeId: "intake-existing",
+    })
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 

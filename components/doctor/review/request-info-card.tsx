@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertCircle, FileText } from "lucide-react"
+import { AlertCircle, CheckCircle2, FileText } from "lucide-react"
 import type { ReactNode } from "react"
 
 import { ClinicalCaseReview } from "@/components/doctor/clinical-case-review"
@@ -21,6 +21,61 @@ function reviewFactTone(fact: ReviewFact): string {
   if (fact.state === "missing") return "text-warning"
   if (fact.state === "inferred") return "text-amber-700 dark:text-amber-300"
   return "text-foreground"
+}
+
+function ReviewFactItem({
+  fact,
+  prominent = false,
+}: {
+  fact: ReviewFact
+  prominent?: boolean
+}) {
+  return (
+    <div
+      className={cn("min-w-0", fact.optional && "text-muted-foreground")}
+      data-review-fact={fact.key}
+      data-review-fact-state={fact.state}
+    >
+      <dt className="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
+        {fact.label}
+      </dt>
+      <dd
+        className={cn(
+          "mt-0.5 break-words font-semibold",
+          prominent ? "text-base leading-6" : "text-[13px] leading-5",
+          reviewFactTone(fact),
+        )}
+      >
+        {fact.value}
+      </dd>
+      {fact.issue ? (
+        <p className="mt-0.5 text-[11px] font-medium leading-4 text-warning">
+          {fact.state === "inferred" ? "Inferred from patient text · " : ""}
+          {fact.issue}
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+function compactSafetyNegativeDisplays(packet: ReviewPacket): string[] {
+  const facts = packet.safety.confirmedNegatives
+  const hasAllergyNegative = facts.some((fact) => fact.key === "allergies")
+  const hasReactionNegative = facts.some((fact) => fact.key === "medication_reactions")
+  const displays = facts
+    .filter((fact) => !(
+      hasAllergyNegative &&
+      hasReactionNegative &&
+      (fact.key === "allergies" || fact.key === "medication_reactions")
+    ))
+    .map((fact) => fact.display)
+
+  if (hasAllergyNegative && hasReactionNegative) {
+    const sideEffectIndex = facts.findIndex((fact) => fact.key === "side_effects")
+    displays.splice(sideEffectIndex >= 0 ? 1 : 0, 0, "No allergies or medicine reactions")
+  }
+
+  return displays
 }
 
 /**
@@ -55,6 +110,31 @@ export function RequestInfoCard({
     data.reviewingClinician?.fullName,
     data.reviewingClinician?.ahpraNumber,
   ].filter(Boolean).join(" · ") || null
+  const isRepeatPrescription = packet.workflow.kind === "repeat_prescription"
+  const medicationFact = isRepeatPrescription
+    ? packet.facts.find((fact) => fact.key === "medicine")
+    : null
+  const supportingFacts = medicationFact
+    ? packet.facts.filter((fact) => fact.key !== medicationFact.key)
+    : packet.facts
+  const missingSafetyDetails = packet.safety.gaps
+    .filter((fact) => fact.state === "missing")
+    .map((fact) => fact.display)
+  const notAskedSafetyLabels = packet.safety.gaps
+    .filter((fact) => fact.state === "not_asked")
+    .map((fact) => fact.label)
+  const safetyGapDetails = [
+    missingSafetyDetails.length > 0
+      ? `Needs confirmation · ${missingSafetyDetails.join(" · ")}`
+      : null,
+    notAskedSafetyLabels.length > 0
+      ? `Not captured in this request · ${notAskedSafetyLabels.join(" · ")}`
+      : null,
+  ].filter(Boolean).join(" · ")
+  const showSafetyContext = isRepeatPrescription && (
+    packet.safety.confirmedNegatives.length > 0 || packet.safety.gaps.length > 0
+  )
+  const safetyNegativeDisplays = compactSafetyNegativeDisplays(packet)
 
   return (
     <section
@@ -75,29 +155,56 @@ export function RequestInfoCard({
         ) : null}
       </div>
 
-      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border/50 pt-3 lg:grid-cols-3">
-        {packet.facts.map((fact) => (
-          <div
-            key={fact.key}
-            className={cn("min-w-0", fact.optional && "text-muted-foreground")}
-            data-review-fact={fact.key}
-            data-review-fact-state={fact.state}
+      <div className="mt-3 border-t border-border/50 pt-3">
+        {medicationFact ? (
+          <dl>
+            <ReviewFactItem fact={medicationFact} prominent />
+          </dl>
+        ) : null}
+        {supportingFacts.length > 0 ? (
+          <dl
+            className={cn(
+              "grid grid-cols-2 gap-x-4 gap-y-2",
+              medicationFact ? "mt-3 border-t border-border/40 pt-3 lg:grid-cols-4" : "lg:grid-cols-3",
+            )}
           >
-            <dt className="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
-              {fact.label}
-            </dt>
-            <dd className={cn("mt-0.5 break-words text-[13px] font-semibold leading-5", reviewFactTone(fact))}>
-              {fact.value}
-            </dd>
-            {fact.issue ? (
-              <p className="mt-0.5 text-[11px] font-medium leading-4 text-warning">
-                {fact.state === "inferred" ? "Inferred from patient text · " : ""}
-                {fact.issue}
-              </p>
-            ) : null}
-          </div>
-        ))}
-      </dl>
+            {supportingFacts.map((fact) => (
+              <ReviewFactItem key={fact.key} fact={fact} />
+            ))}
+          </dl>
+        ) : null}
+      </div>
+
+      {showSafetyContext ? (
+        <section
+          aria-label="Patient-reported safety"
+          data-review-safety-context="true"
+          className="mt-3 space-y-1.5 border-t border-border/50 pt-3 text-[11px] leading-4"
+        >
+          {packet.safety.confirmedNegatives.length > 0 ? (
+            <p
+              data-review-safety-negatives="true"
+              className="flex items-start gap-1.5 text-muted-foreground"
+            >
+              <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" aria-hidden="true" />
+              <span>
+                <span className="font-semibold text-foreground">Patient reported</span>
+                {" · "}
+                {safetyNegativeDisplays.join(" · ")}
+              </span>
+            </p>
+          ) : null}
+          {packet.safety.gaps.length > 0 ? (
+            <p
+              data-review-safety-gaps="true"
+              className="flex items-start gap-1.5 font-medium text-warning"
+            >
+              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span>{safetyGapDetails}</span>
+            </p>
+          ) : null}
+        </section>
+      ) : null}
 
       <div className="mt-3 border-t border-border/50 pt-3">
         <ClinicalCaseReview
@@ -119,6 +226,7 @@ export function RequestInfoCard({
           hideRequestFacts
           hideRecommendedPlan
           hidePrescriptionIntent
+          hideRecordedPrescriptionInfo={packet.fulfilment.status === "recorded"}
           draftNoteOpen={draftNoteOpen}
           onDraftNoteOpenChange={onDraftNoteOpenChange}
           draftNoteValue={doctorNotes}

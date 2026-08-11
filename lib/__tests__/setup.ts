@@ -50,7 +50,7 @@ export const mockSupabaseSingle = vi.fn()
 const createChainableMock = () => {
   const chain: Record<string, unknown> = {}
   const terminalMethods = ['single', 'maybeSingle']
-  const chainMethods = ['select', 'insert', 'update', 'delete', 'eq', 'neq', 'gte', 'lte', 'order', 'limit', 'range', 'is', 'in']
+  const chainMethods = ['select', 'insert', 'update', 'delete', 'eq', 'neq', 'not', 'gte', 'lte', 'order', 'limit', 'range', 'is', 'in']
 
   // Terminal methods return the mock result
   for (const method of terminalMethods) {

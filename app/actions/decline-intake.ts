@@ -116,6 +116,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
       .select(`
         id,
         status,
+        script_sent,
         category,
         subtype,
         payment_status,
@@ -143,6 +144,16 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
     if (intake.status === "declined") {
       logger.info("[Decline] Intake already declined", { intakeId })
       return { success: true, alreadyDeclined: true }
+    }
+
+    // Durable prescription evidence is a fulfilment boundary. Once recorded,
+    // this request must be completed or reconciled — never sent through the
+    // ordinary decline/refund path, even from a stale review surface.
+    if (intake.script_sent === true) {
+      return {
+        success: false,
+        error: "Cannot decline this request after the prescription has been recorded.",
+      }
     }
 
     // Validate status is declinable
@@ -178,17 +189,20 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
       })
       .eq("id", intakeId)
       .in("status", DECLINABLE_STATUSES) // Optimistic lock
+      // `IS NOT TRUE` keeps legacy null rows declinable while atomically
+      // excluding a concurrent durable script-sent transition.
+      .not("script_sent", "is", true)
       .select("id")
       .single()
 
     if (updateError || !updated) {
       logger.error("[Decline] Failed to update intake status", { intakeId }, updateError)
 
-      // Check if status changed (race condition)
+      // Check if status or durable fulfilment changed (race condition).
       if (updateError?.code === "PGRST116") {
         return {
           success: false,
-          error: "Request status changed. Please refresh and try again.",
+          error: "Request status or prescription fulfilment changed. Please refresh and try again.",
         }
       }
       return { success: false, error: "Failed to decline request" }

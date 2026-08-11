@@ -198,7 +198,7 @@ describe("doctor patient medication history contract", () => {
     expect(panelSource).toContain("iframeSlowToLoad")
     expect(panelSource).toContain("Parchment is taking a little longer")
     expect(panelSource).toContain("Open in new tab")
-    expect(panelSource).toContain("copyPrescriptionContext")
+    expect(panelSource).toContain("copyMedicationName")
   })
 
   it("mints a fresh Parchment session only after an explicit retry", () => {
@@ -237,27 +237,26 @@ describe("doctor patient medication history contract", () => {
     expect(fixabilityBody).not.toContain("identity verification service failed")
   })
 
-  it("names the copied medicine in Parchment copy feedback", () => {
-    expect(panelSource).toContain("getCopiedMedicineLabel")
-    expect(panelSource).toContain("Copied")
-    expect(panelSource).toContain("to Parchment")
-    expect(panelSource).not.toContain('toast.success("Prescription details copied")')
+  it("labels the trusted copy action as a generic-medicine copy", () => {
+    expect(panelSource).toContain("copyMedicationName")
+    expect(panelSource).toContain('toast.success("Copied generic medicine name")')
+    expect(panelSource).toContain("Copy generic name")
+    expect(panelSource).not.toContain("Copy context")
+    expect(panelSource).not.toContain("Copy search")
 
-    expect(clinicalCaseReviewSource).toContain("getPrescriptionCopyLabel")
-    expect(clinicalCaseReviewSource).toContain("Copied")
-    expect(clinicalCaseReviewSource).toContain("for Parchment")
-    expect(clinicalCaseReviewSource).not.toContain('toast.success("Parchment preset copied")')
+    expect(clinicalCaseReviewSource).toContain("copyGenericMedicationName")
+    expect(clinicalCaseReviewSource).toContain('toast.success("Copied generic medicine name")')
+    expect(clinicalCaseReviewSource).toContain("Copy generic name")
+    expect(clinicalCaseReviewSource).not.toContain("Copy search")
   })
 
-  it("lets doctors copy only the Parchment search term when needed", () => {
-    expect(panelSource).toContain("copyPrescriptionSearchHint")
-    expect(panelSource).toContain("Copied Parchment search term")
-    expect(panelSource).toContain("Copy search")
-    expect(panelSource).toContain("prescriptionContext.searchHint")
+  it("never falls back to copying a strength-bearing search hint", () => {
+    expect(panelSource).not.toContain("copyPrescriptionSearchHint")
+    expect(panelSource).not.toContain("Copied Parchment search term")
 
-    expect(clinicalCaseReviewSource).toContain("copySearchHint")
+    expect(clinicalCaseReviewSource).not.toContain("copySearchHint")
     expect(clinicalCaseReviewSource).toContain("medicationSearchHint")
-    expect(clinicalCaseReviewSource).toContain("Copy search")
+    expect(clinicalCaseReviewSource).not.toContain("Copied Parchment search term")
   })
 
   it("does not pass raw intake answers into the client props", () => {

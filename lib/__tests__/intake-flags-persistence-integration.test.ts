@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest"
 
 /**
- * Persistence-shape proof for the soften-to-flag model.
+ * Persistence-shape proof for the remaining soften-to-flag model.
  *
  * Closes the gap the operator flagged on A3 boundary 1: the medication-step E2E
  * proves the patient *advances*, but not that the submitted intake actually
@@ -50,6 +50,7 @@ function missingStrengthRepeatInput() {
     subtype: "repeat",
     serviceSlug: "repeat-script",
     answers: {
+      repeat_rx_dose_contract_version: 1,
       medications: [{ name: "Atorvastatin", form: "tablet", pbsCode: "1234" }], // no strength
       prescribed_before: true,
       doseChanged: false,
@@ -62,23 +63,21 @@ function missingStrengthRepeatInput() {
 }
 
 describe("intake flags persistence shape (what risk_flags receives)", () => {
-  it("a missing-strength repeat is allowed and carries a medication_strength_missing attention flag", async () => {
+  it("a missing-strength repeat is blocked before flags can be persisted", async () => {
     const result = await runClinicalValidation(missingStrengthRepeatInput())
 
-    expect(result.ok).toBe(true)
-    const flags = result.ok ? result.data.intakeFlags : []
-    const flag = flags.find((f) => f.code === "medication_strength_missing")
-    expect(flag, "the flag persisted to risk_flags").toBeDefined()
-    expect(flag?.severity).toBe("attention")
+    expect(result.ok).toBe(false)
+    expect(result.ok ? "" : result.error).toMatch(/strength shown on the medication label/i)
   })
 
-  it("a name-only repeat (no strength, no form) carries BOTH strength and form attention flags", async () => {
+  it("a repeat with a strength but no form carries the form attention flag", async () => {
     const input = {
       category: "prescription",
       subtype: "repeat",
       serviceSlug: "repeat-script",
       answers: {
-        medications: [{ name: "Atorvastatin", pbsCode: "1234" }], // no strength, no form
+        repeat_rx_dose_contract_version: 1,
+        medications: [{ name: "Atorvastatin", strength: "20 mg", pbsCode: "1234" }],
         prescribed_before: true,
         doseChanged: false,
         dose_changed: false,
@@ -93,9 +92,29 @@ describe("intake flags persistence shape (what risk_flags receives)", () => {
     expect(result.ok).toBe(true)
     const flags = result.ok ? result.data.intakeFlags : []
     const codes = flags.map((f) => f.code)
-    expect(codes).toContain("medication_strength_missing")
     expect(codes).toContain("medication_form_missing")
     expect(flags.every((f) => f.severity === "attention")).toBe(true)
+  })
+
+  it("an accepted inline strength does not persist a false missing-strength flag", async () => {
+    const result = await runClinicalValidation({
+      category: "prescription",
+      subtype: "repeat",
+      serviceSlug: "repeat-script",
+      answers: {
+        repeat_rx_dose_contract_version: 1,
+        medications: [{ name: "Sertraline 100mg", form: "tablet", pbsCode: "MANUAL" }],
+        prescribed_before: true,
+        doseChanged: false,
+        dose_changed: false,
+        hasSideEffects: false,
+        last_prescribed: "last_3_months",
+        current_dose: "One tablet each morning",
+      },
+    } as never)
+
+    expect(result.ok).toBe(true)
+    expect(result.ok ? result.data.intakeFlags : []).toEqual([])
   })
 
   it("an unknown medicine WITH a useful description carries medication_needs_identification + the description", async () => {
@@ -104,11 +123,13 @@ describe("intake flags persistence shape (what risk_flags receives)", () => {
       subtype: "repeat",
       serviceSlug: "repeat-script",
       answers: {
+        repeat_rx_dose_contract_version: 1,
         medications: [
           {
             name: "Unknown - doctor will confirm",
             pbsCode: "UNKNOWN",
             description: "small white blood pressure tablet, prescribed by Dr Smith",
+            strength: "10 mg",
           },
         ],
         prescribed_before: true,
@@ -116,7 +137,7 @@ describe("intake flags persistence shape (what risk_flags receives)", () => {
         dose_changed: false,
         hasSideEffects: false,
         last_prescribed: "6_to_12_months",
-        current_dose: "one daily",
+        current_dose: "One tablet each morning",
       },
     } as never
 

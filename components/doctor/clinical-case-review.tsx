@@ -15,7 +15,6 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   buildClinicalCaseSummary,
   type ClinicalCaseSummary,
-  type PrescriptionIntent,
 } from "@/lib/clinical/case-summary"
 import {
   getRepeatRxAttestationStatus,
@@ -46,6 +45,8 @@ interface ClinicalCaseReviewProps {
   hideRecommendedPlan?: boolean
   hideRequestFacts?: boolean
   hideSafetyItems?: boolean
+  /** The action rail already owns the clean recorded-fulfilment state. */
+  hideRecordedPrescriptionInfo?: boolean
   draftNoteOpen?: boolean
   onDraftNoteOpenChange?: (open: boolean) => void
   draftNoteValue?: string
@@ -72,16 +73,6 @@ const SOAP_SECTIONS = [
 ] as const
 const COMPACT_FACT_LIMIT = 4
 const PINNED_DRAFT_FACT_LIMIT = 4
-
-function getPrescriptionCopyLabel(intent: PrescriptionIntent): string {
-  const medicationLabel = [
-    intent.medicationName,
-    intent.strength,
-    intent.form,
-  ].filter(Boolean).join(" ")
-
-  return medicationLabel || intent.presetLabel || "medicine"
-}
 
 type SoapSectionKey = typeof SOAP_SECTIONS[number]["key"]
 type SoapSections = Record<SoapSectionKey, string>
@@ -176,6 +167,7 @@ export function ClinicalCaseReview({
   hideRecommendedPlan = false,
   hideRequestFacts = false,
   hideSafetyItems = false,
+  hideRecordedPrescriptionInfo = false,
   draftNoteOpen,
   onDraftNoteOpenChange,
   draftNoteValue,
@@ -201,24 +193,13 @@ export function ClinicalCaseReview({
     requiresLiveConsult,
     scriptSent,
   })
-
-  const copyPreset = async () => {
+  const copyGenericMedicationName = async () => {
     if (!summary.prescriptionIntent?.clipboardText) return
     try {
       await navigator.clipboard.writeText(summary.prescriptionIntent.clipboardText)
-      toast.success(`Copied ${getPrescriptionCopyLabel(summary.prescriptionIntent)} for Parchment`)
+      toast.success("Copied generic medicine name")
     } catch {
-      toast.error("Could not copy prescribing context")
-    }
-  }
-
-  const copySearchHint = async () => {
-    if (!summary.prescriptionIntent?.medicationSearchHint) return
-    try {
-      await navigator.clipboard.writeText(summary.prescriptionIntent.medicationSearchHint)
-      toast.success("Copied Parchment search term")
-    } catch {
-      toast.error("Could not copy search term")
+      toast.error("Could not copy generic medicine name")
     }
   }
   const scannableFacts = summary.keyFacts.filter((fact) => (
@@ -240,15 +221,21 @@ export function ClinicalCaseReview({
     getRepeatRxAttestationStatus(answers) !== "confirmed_unchanged"
   const recordedScriptAcknowledged = hasLegacyRepeatRxReconciliationNote(visibleDraftNote)
   const recordedScriptReconciliationSaved = recordedScriptAcknowledged && !draftNoteDirty
-  const visibleSafetyItems = (hideSafetyItems ? [] : summary.safetyItems).map((item) => (
-    recordedScriptReconciliationSaved && item.label === "Recorded script evidence needs reconciliation"
-      ? {
-          severity: "info" as const,
-          label: "Recorded script evidence acknowledged",
-          detail: "The recorded external script evidence is acknowledged in the saved clinical note. Do not issue another prescription from this request.",
-        }
-      : item
-  ))
+  const visibleSafetyItems = (hideSafetyItems ? [] : summary.safetyItems)
+    .map((item) => (
+      recordedScriptReconciliationSaved && item.label === "Recorded script evidence needs reconciliation"
+        ? {
+            severity: "info" as const,
+            label: "Recorded script evidence acknowledged",
+            detail: "The recorded external script evidence is acknowledged in the saved clinical note. Do not issue another prescription from this request.",
+          }
+        : item
+    ))
+    .filter((item) => !(
+      hideRecordedPrescriptionInfo &&
+      item.severity === "info" &&
+      item.label === "Prescription already recorded"
+    ))
   const draftNoteReady = isClinicalNoteSufficient(visibleDraftNote)
   const pinnedDraftFacts = compact || hideRequestFacts
     ? []
@@ -702,19 +689,9 @@ export function ClinicalCaseReview({
                     </p>
                   )}
                   {summary.prescriptionIntent.medicationSearchHint && (
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-blue-900">
-                      <span>Search: {summary.prescriptionIntent.medicationSearchHint}</span>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-7 bg-white px-2 text-xs"
-                        onClick={copySearchHint}
-                      >
-                        <Clipboard className="mr-1 h-3 w-3" />
-                        Copy search
-                      </Button>
-                    </div>
+                    <p className="text-sm text-blue-900">
+                      Search: {summary.prescriptionIntent.medicationSearchHint}
+                    </p>
                   )}
                   <p className="text-sm text-blue-900">
                     {summary.prescriptionIntent.directionsTemplate}
@@ -724,9 +701,9 @@ export function ClinicalCaseReview({
                   </p>
                 </div>
                 {summary.prescriptionIntent.clipboardText && (
-                  <Button type="button" variant="outline" size="sm" className="bg-white" onClick={copyPreset}>
+                  <Button type="button" variant="outline" size="sm" className="bg-white" onClick={copyGenericMedicationName}>
                     <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                    Copy
+                    Copy generic name
                   </Button>
                 )}
               </div>

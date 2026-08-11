@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import { getPatientParchmentPrescribeUrlAction } from "@/app/actions/manual-patient"
+import { resolveGenericMedicationNameAction } from "@/app/actions/medication-reference"
 import { getParchmentPrescribeUrlAction } from "@/app/actions/parchment"
 import type { ReloadReviewData } from "@/components/doctor/review/intake-review-context"
 import { usePanel } from "@/components/panels/panel-provider"
@@ -35,9 +36,9 @@ type ParchmentPrescribePanelProps = {
 
 const PARCHMENT_IFRAME_SLOW_LOAD_MS = 8000
 
-function getCopiedMedicineLabel(context: ParchmentPrescriptionContext | null | undefined): string {
-  return context?.medicationLabel || context?.presetLabel || "medicine"
-}
+type GenericReferenceState =
+  | { status: "idle" | "resolving" | "unresolved" }
+  | { status: "resolved"; genericName: string }
 
 function getParchmentErrorCopy(error: string | null): { title: string; detail: string } {
   if (!error) {
@@ -124,9 +125,58 @@ export function ParchmentPrescribePanel({
   const [iframeSlowToLoad, setIframeSlowToLoad] = useState(false)
   const [canUseIframe, setCanUseIframe] = useState(true)
   const [keyboardInset, setKeyboardInset] = useState<KeyboardInset | null>(null)
+  const [genericReference, setGenericReference] = useState<GenericReferenceState>({ status: "idle" })
   const errorCopy = getParchmentErrorCopy(error)
   const patientDetailsHref = patientProfileHref || (patientId ? buildStaffPatientHref(patientId) : null)
   const canEditPatientDetails = Boolean(patientDetailsHref && canFixParchmentErrorFromPatientProfile(error))
+  const trustedGenericName = prescriptionContext?.copyText || (
+    genericReference.status === "resolved" ? genericReference.genericName : ""
+  )
+  const patientRequestEntry = prescriptionContext?.medicationLabel?.trim() || ""
+  const shouldShowPatientRequestEntry = Boolean(
+    trustedGenericName &&
+    patientRequestEntry &&
+    patientRequestEntry.localeCompare(trustedGenericName, "en-AU", { sensitivity: "base" }) !== 0,
+  )
+
+  useEffect(() => {
+    const searchValue = prescriptionContext?.searchHint || prescriptionContext?.medicationLabel
+    if (
+      prescriptionContext?.copyText ||
+      prescriptionContext?.regimenSource !== "patient_reported" ||
+      !searchValue
+    ) {
+      setGenericReference({ status: "idle" })
+      return
+    }
+
+    let active = true
+    setGenericReference({ status: "resolving" })
+    void resolveGenericMedicationNameAction(searchValue)
+      .then((result) => {
+        if (!active) return
+        if (result.success && result.data?.status === "resolved" && result.data.genericName) {
+          setGenericReference({
+            status: "resolved",
+            genericName: result.data.genericName,
+          })
+          return
+        }
+        setGenericReference({ status: "unresolved" })
+      })
+      .catch(() => {
+        if (active) setGenericReference({ status: "unresolved" })
+      })
+
+    return () => {
+      active = false
+    }
+  }, [
+    prescriptionContext?.copyText,
+    prescriptionContext?.medicationLabel,
+    prescriptionContext?.regimenSource,
+    prescriptionContext?.searchHint,
+  ])
 
   const closeAndRefresh = useCallback(() => {
     if (intakeId) {
@@ -154,25 +204,15 @@ export function ParchmentPrescribePanel({
     }
   }, [loadFreshParchmentUrl])
 
-  const copyPrescriptionContext = useCallback(async () => {
-    if (!prescriptionContext?.copyText) return
+  const copyMedicationName = useCallback(async () => {
+    if (!trustedGenericName) return
     try {
-      await navigator.clipboard.writeText(prescriptionContext.copyText)
-      toast.success(`Copied ${getCopiedMedicineLabel(prescriptionContext)} to Parchment`)
+      await navigator.clipboard.writeText(trustedGenericName)
+      toast.success("Copied generic medicine name")
     } catch {
-      toast.error("Could not copy prescription details")
+      toast.error("Could not copy generic medicine name")
     }
-  }, [prescriptionContext])
-
-  const copyPrescriptionSearchHint = useCallback(async () => {
-    if (!prescriptionContext?.searchHint) return
-    try {
-      await navigator.clipboard.writeText(prescriptionContext.searchHint)
-      toast.success("Copied Parchment search term")
-    } catch {
-      toast.error("Could not copy search term")
-    }
-  }, [prescriptionContext])
+  }, [trustedGenericName])
 
   const loadPrescribingUrl = useCallback(async () => {
     setLoading(true)
@@ -329,82 +369,116 @@ export function ParchmentPrescribePanel({
                   the Parchment iframe on a keyboard-shortened screen. */}
               <p className="mt-0.5 hidden text-xs text-muted-foreground sm:block sm:text-sm">
                 {intakeId
-                  ? "Write the prescription in Parchment below. Closing this panel checks for confirmation and unlocks Complete request when it is recorded."
-                  : "Write the prescription in Parchment below. It will sync back to this patient profile."}
+                  ? "Prescribe in Parchment. Complete request unlocks after the script is recorded."
+                  : "Prescribe in Parchment. It syncs to this patient profile."}
               </p>
               {prescriptionContext && (
-                <details
+                <div
                   className={cn(
-                    "mt-2 rounded-md border border-border bg-muted/35 px-3 py-2 sm:hidden",
+                    "mt-2 rounded-md border border-border bg-muted/35 px-3 py-2.5 sm:hidden",
                     keyboardInset && "hidden",
                   )}
+                  data-parchment-medication-context="mobile"
                 >
-                  <summary className="cursor-pointer list-none text-xs font-medium text-foreground">
-                    <span className="block truncate">
-                      {prescriptionContext.medicationLabel || prescriptionContext.presetLabel}
-                    </span>
-                    <span className="text-[11px] font-normal text-muted-foreground">Medicine context</span>
-                  </summary>
-                  <div className="mt-2 space-y-2 border-t border-border/60 pt-2 text-xs text-muted-foreground">
-                    {prescriptionContext.searchHint ? (
-                      <p>Search in Parchment: {prescriptionContext.searchHint}</p>
-                    ) : null}
-                    <p>Directions context: {prescriptionContext.directionsTemplate}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {prescriptionContext.searchHint ? (
-                        <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={copyPrescriptionSearchHint}>
-                          <Clipboard className="mr-1.5 h-3.5 w-3.5" /> Copy search
-                        </Button>
-                      ) : null}
-                      {prescriptionContext.copyText ? (
-                        <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={copyPrescriptionContext}>
-                          <Clipboard className="mr-1.5 h-3.5 w-3.5" /> Copy context
-                        </Button>
-                      ) : null}
-                    </div>
-                  </div>
-                </details>
-              )}
-              {prescriptionContext && (
-                <div className="mt-3 hidden rounded-md border border-border bg-muted/35 px-3 py-2 sm:block">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                        Requested medicine
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        {trustedGenericName ? "Generic medicine" : "Requested medicine"}
                       </p>
-                      <p className="truncate text-sm font-medium text-foreground">
-                        {prescriptionContext.medicationLabel || prescriptionContext.presetLabel}
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {trustedGenericName || prescriptionContext.medicationLabel || prescriptionContext.presetLabel}
                       </p>
-                      {prescriptionContext.searchHint && (
-                        <div className="mt-0.5 flex min-w-0 items-center gap-2">
-                          <p className="truncate text-xs text-muted-foreground">
-                            Search in Parchment: {prescriptionContext.searchHint}
-                          </p>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 shrink-0 px-2 text-[11px]"
-                            onClick={copyPrescriptionSearchHint}
-                          >
-                            <Clipboard className="mr-1 h-3 w-3" />
-                            Copy search
-                          </Button>
-                        </div>
-                      )}
+                      {shouldShowPatientRequestEntry ? (
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                          Request entry: {patientRequestEntry}
+                        </p>
+                      ) : null}
                     </div>
-                    {prescriptionContext.copyText && (
-                      <Button type="button" variant="outline" size="sm" onClick={copyPrescriptionContext}>
+                    {trustedGenericName ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="min-h-11 shrink-0 px-2.5"
+                        onClick={copyMedicationName}
+                        aria-label="Copy generic name"
+                      >
                         <Clipboard className="mr-1.5 h-3.5 w-3.5" />
                         Copy
                       </Button>
-                    )}
+                    ) : null}
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Directions context: {prescriptionContext.directionsTemplate}
-                  </p>
+                  {!trustedGenericName && genericReference.status === "resolving" ? (
+                    <p className="mt-1 text-xs text-muted-foreground">Checking generic name…</p>
+                  ) : null}
+                  {!trustedGenericName && genericReference.status === "unresolved" ? (
+                    <p className="mt-1 text-xs font-medium text-warning">
+                      Generic name not verified · search the request entry manually
+                    </p>
+                  ) : null}
+                  {prescriptionContext.regimenSource === "patient_reported" ? (
+                    <p className={cn(
+                      "mt-2 border-t border-border/60 pt-2 text-xs",
+                      prescriptionContext.patientReportedDose ? "text-muted-foreground" : "font-medium text-warning",
+                    )}>
+                      <span className="font-medium text-foreground">Current dose:</span>{" "}
+                      {prescriptionContext.patientReportedDose || "Not recorded"}
+                    </p>
+                  ) : (
+                    <p className="mt-2 border-t border-border/60 pt-2 text-xs text-muted-foreground">
+                      {prescriptionContext.directionsTemplate}
+                    </p>
+                  )}
+                </div>
+              )}
+              {prescriptionContext && (
+                <div
+                  className="mt-3 hidden rounded-md border border-border bg-muted/35 px-3 py-2 sm:block"
+                  data-parchment-medication-context="desktop"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        {trustedGenericName ? "Generic medicine" : "Requested medicine"}
+                      </p>
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {trustedGenericName || prescriptionContext.medicationLabel || prescriptionContext.presetLabel}
+                      </p>
+                      {shouldShowPatientRequestEntry ? (
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                          Request entry: {patientRequestEntry}
+                        </p>
+                      ) : null}
+                      {!trustedGenericName && genericReference.status === "resolving" ? (
+                        <p className="mt-0.5 text-xs text-muted-foreground">Checking generic name…</p>
+                      ) : null}
+                      {!trustedGenericName && genericReference.status === "unresolved" ? (
+                        <p className="mt-0.5 text-xs text-warning">
+                          Generic name not verified · search the request entry manually in Parchment
+                        </p>
+                      ) : null}
+                    </div>
+                    {trustedGenericName ? (
+                      <Button type="button" variant="outline" size="sm" onClick={copyMedicationName}>
+                        <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+                        Copy generic name
+                      </Button>
+                    ) : null}
+                  </div>
+                  {prescriptionContext.regimenSource === "patient_reported" ? (
+                    <p className={cn(
+                      "mt-2 text-xs",
+                      prescriptionContext.patientReportedDose ? "text-muted-foreground" : "font-medium text-warning",
+                    )}>
+                      Current dose: {prescriptionContext.patientReportedDose || "Not recorded"}
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Directions context: {prescriptionContext.directionsTemplate}
+                    </p>
+                  )}
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Confirm medicine, dose and all prescribing details in Parchment.
+                    Confirm the medicine and dose in Parchment.
                   </p>
                 </div>
               )}
@@ -491,7 +565,9 @@ export function ParchmentPrescribePanel({
                         <>
                           <p className="text-sm font-medium text-foreground">Parchment is taking a little longer</p>
                           <p className="text-sm text-muted-foreground">
-                            You can keep waiting, open it in a new tab, or copy the requested medicine and continue there.
+                            {trustedGenericName
+                              ? "Keep waiting, open a new tab, or copy the verified generic name and continue there."
+                              : "Keep waiting or open Parchment in a new tab."}
                           </p>
                           <div className="flex flex-wrap justify-center gap-2">
                             <Button type="button" variant="outline" size="sm" onClick={loadPrescribingUrl}>
@@ -502,10 +578,10 @@ export function ParchmentPrescribePanel({
                               <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
                               Open in new tab
                             </Button>
-                            {prescriptionContext?.copyText && (
-                              <Button type="button" variant="ghost" size="sm" onClick={copyPrescriptionContext}>
+                            {trustedGenericName && (
+                              <Button type="button" variant="ghost" size="sm" onClick={copyMedicationName}>
                                 <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                                Copy medicine
+                                Copy generic name
                               </Button>
                             )}
                           </div>

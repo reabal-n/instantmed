@@ -20,7 +20,12 @@ import {
 import { validateCertificateStartDate } from "@/lib/medical-certificates/date-policy"
 import { isWomensHealthOptionLive } from "@/lib/request/consult-subtypes"
 import {
+  hasCompleteRepeatRxRegimen,
+  REPEAT_RX_REGIMEN_REQUIRED_MESSAGE,
+} from "@/lib/request/repeat-rx-regimen"
+import {
   extractRepeatScriptMedications,
+  getRepeatScriptMedicationConcreteStrength,
   isUnidentifiedRepeatMedication,
   isUsefulMedicationDescription,
 } from "@/lib/validation/repeat-script-medications"
@@ -204,10 +209,21 @@ export const medicationStepSchema = z
         return
       }
 
-      // A3 softening: a missing strength OR a missing form is no longer a step
-      // block — both are now soft flags. The patient proceeds and the doctor
-      // sees a `medication_strength_missing` / `medication_form_missing` flag
-      // (boundary 2) rather than being hard-stopped at this step.
+      // A repeat request must identify a concrete medicine strength. Accept a
+      // structured value or a reliably parsed inline value such as
+      // "Sertraline 100mg" so patients do not have to type it twice.
+      if (!getRepeatScriptMedicationConcreteStrength(medication)) {
+        ctx.addIssue({
+          code: "custom",
+          path: index === 0
+            ? ["medicationStrength"]
+            : ["medications", index, "strength"],
+          message: "Enter the strength shown on the medication label (for example, 100 mg)",
+        })
+      }
+
+      // Form remains optional. If omitted, the doctor receives the existing
+      // medication_form_missing attention flag.
     })
   })
 
@@ -234,11 +250,11 @@ export const medicationHistoryStepSchema = z
       })
       return
     }
-    if (!data.currentDose?.trim()) {
+    if (!hasCompleteRepeatRxRegimen(data.currentDose)) {
       ctx.addIssue({
         code: "custom",
         path: ["currentDose"],
-        message: "Tell the doctor your current dose and how often you take it",
+        message: REPEAT_RX_REGIMEN_REQUIRED_MESSAGE,
       })
     }
     if (!data.indication?.trim()) {

@@ -155,4 +155,18 @@ describe("guest checkout operational contract", () => {
     expect(guestResumeSource).toContain("getIntakeAnswersForPaymentSafety(intake.id)")
     expect(guestResumeSource).not.toContain("answers:intake_answers(answers)")
   })
+
+  it("revalidates authoritative answers before duplicate guest recovery", () => {
+    const duplicateSection = guestCheckoutSource.slice(
+      guestCheckoutSource.indexOf("if (intakeError || !intake)"),
+      guestCheckoutSource.indexOf('logger.error("Failed to create intake"'),
+    )
+
+    expect(duplicateSection).toContain("getIntakeAnswersForPaymentSafety(")
+    expect(duplicateSection).toContain("existingIntake.id")
+    expect(duplicateSection).toContain("hasRepeatRxDoseContractMarker(existingAnswers)")
+    expect(duplicateSection.indexOf("getRepeatRxDoseMissingFields")).toBeLessThan(
+      duplicateSection.indexOf("inspectCheckoutSession"),
+    )
+  })
 })

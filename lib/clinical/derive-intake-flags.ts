@@ -16,6 +16,7 @@ import {
   buildRepeatScriptMedicationValidationText,
   countRepeatScriptMedicationRows,
   extractRepeatScriptMedications,
+  getRepeatScriptMedicationConcreteStrength,
   MAX_REPEAT_SCRIPT_MEDICATIONS,
 } from "@/lib/validation/repeat-script-medications"
 
@@ -83,7 +84,7 @@ function deriveRepeatScriptFlags(answers: Record<string, unknown>): IntakeFlag[]
       }))
       continue
     }
-    if (!medication.strength?.trim()) {
+    if (!getRepeatScriptMedicationConcreteStrength(medication)) {
       flags.push(makeIntakeFlag("medication_strength_missing", { source: "clinical", detail: medication.name }))
     }
     if (!medication.form?.trim()) {

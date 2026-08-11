@@ -48,7 +48,7 @@ export async function holdCheckoutForMissingSafetyInformation({
   intakeId: string
   missingFields: string[]
   patientId?: string
-  source: "guest_resume" | "retry_payment"
+  source: "guest_duplicate" | "guest_resume" | "retry_payment"
   supabase: ReturnType<typeof createServiceRoleClient>
 }): Promise<MissingSafetyPaymentHoldResult> {
   const readCurrentState = async (): Promise<{

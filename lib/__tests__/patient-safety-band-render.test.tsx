@@ -47,14 +47,12 @@ const intake = {
 
 function renderBand(overrides?: {
   intake?: IntakeWithDetails
-  previousIntakeCount?: number
 }): string {
   const activeIntake = overrides?.intake ?? intake
   return renderToStaticMarkup(
     <PatientDecisionStrip
       intake={activeIntake}
       answers={{}}
-      previousIntakeCount={overrides?.previousIntakeCount}
       service={activeIntake.service}
       actions={
         <>
@@ -68,20 +66,20 @@ function renderBand(overrides?: {
 
 describe("PatientDecisionStrip safety band", () => {
   it("puts decision-critical patient context and navigation in one compact band", () => {
-    const html = renderBand({ previousIntakeCount: 3 })
+    const html = renderBand()
 
     expect(html).toContain("Alex Morgan")
     expect(html).toMatch(/\d+y \/ 05\/04\/1986/)
     expect(html).toContain("Female")
+    expect(html).toContain("Age and date of birth:")
     expect(html).toContain("Ellenbrook, WA")
     expect(html).toContain("0412 345 678")
     expect(html).toContain("Medicare / IHI")
     expect(html).toContain("Ready")
-    expect(html).toContain("3 prior requests")
-    expect(html).toContain("Source:")
-    expect(html).toContain("Google Ads")
-    expect(html).toContain("/prescriptions")
-    expect(html).not.toContain("campaign=private-detail")
+    expect(html).not.toContain("Visits")
+    expect(html).not.toContain("Source:")
+    expect(html).not.toContain("Google Ads")
+    expect(html).not.toContain("/prescriptions")
     expect(html).toContain("View profile")
     expect(html).toContain("Open full record")
   })
@@ -89,7 +87,6 @@ describe("PatientDecisionStrip safety band", () => {
   it("shows identifier readiness without leaking the Medicare or IHI value", () => {
     const html = renderBand()
 
-    expect(html).toContain("First visit")
     expect(html).not.toContain(MEDICARE_NUMBER)
     expect(html).not.toContain("2123 45670 1")
     expect(html).not.toContain("Hidden ending")
@@ -125,8 +122,6 @@ describe("PatientDecisionStrip safety band", () => {
 
     expect(prescribingHtml).toContain('data-readiness="blocked"')
     expect(prescribingHtml).toContain("Needs details")
-    expect(prescribingHtml).toContain("Source:")
-    expect(prescribingHtml).toContain("Unknown")
     expect(medCertHtml).toContain('data-readiness="not-required"')
     expect(medCertHtml).toContain("Not required")
   })

@@ -137,13 +137,14 @@ test.describe("Doctor review cockpit", () => {
     const safetyBand = cockpit.getByRole("region", { name: "Patient safety context" })
 
     await expect(safetyBand).toBeVisible()
-    await expect(safetyBand.getByLabel(`Acquisition source: Google Ads via ${LANDING_PATH}`)).toBeVisible()
-    await expect(safetyBand.getByText("Age / DOB", { exact: true })).toBeVisible()
-    await expect(safetyBand.getByText("Sex", { exact: true })).toBeVisible()
+    await expect(safetyBand.getByLabel(/Age and date of birth: .*; sex:/)).toBeVisible()
+    await expect(safetyBand.getByLabel(/Acquisition source:/)).toHaveCount(0)
+    await expect(safetyBand.getByText("Age / DOB", { exact: true })).toHaveCount(0)
+    await expect(safetyBand.getByText("Sex", { exact: true })).toHaveCount(0)
     await expect(safetyBand.getByText("Location", { exact: true })).toBeVisible()
     await expect(safetyBand.getByText("Phone", { exact: true })).toBeVisible()
     await expect(safetyBand.getByText("Medicare / IHI", { exact: true })).toBeVisible()
-    await expect(safetyBand.getByText("Visits", { exact: true })).toBeVisible()
+    await expect(safetyBand.getByText("Visits", { exact: true })).toHaveCount(0)
     await expect(safetyBand.getByRole("button", { name: "View profile" })).toBeVisible()
     await expect(safetyBand.getByRole("link", { name: "Open full record" })).toHaveAttribute(
       "href",

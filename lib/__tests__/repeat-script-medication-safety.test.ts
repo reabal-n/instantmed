@@ -144,7 +144,7 @@ describe("repeat script medication array safety", () => {
       label: "Requested medications",
       value: "Rosuvastatin 10 mg tablet; Amlodipine 5 mg tablet",
     })
-    expect(summary.prescriptionIntent?.clipboardText).toContain("Amlodipine 5 mg tablet")
+    expect(summary.prescriptionIntent?.clipboardText).toBe("")
     expect(summary.patientStory).toContain("Amlodipine")
   })
 })

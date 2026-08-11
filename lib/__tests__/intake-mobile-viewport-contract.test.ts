@@ -184,7 +184,7 @@ describe("intake mobile viewport contract", () => {
 
     // Every question the merged screen owns.
     expect(source).toContain("When were you last prescribed this medication?")
-    expect(source).toContain("What dose do you currently take?")
+    expect(source).toContain("How much do you take, and how often?")
     expect(source).toContain("What is this medication for?")
     expect(source).toContain("Has the dose or the way you take this medicine changed since it was last prescribed?")
     expect(source).toContain("Any side effects with this medication?")

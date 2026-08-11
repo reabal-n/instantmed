@@ -431,7 +431,7 @@ export function useReviewActions({
   }
 
   const handleDecline = async () => {
-    if (!intake || !declineReason.trim()) return
+    if (!intake || intake.script_sent === true || !declineReason.trim()) return
     startTransition(async () => {
       const result = await declineIntakeAction(intake.id, declineReasonCode, declineReason)
       if (result.success) {
@@ -553,7 +553,11 @@ export function useReviewActions({
       }
     },
     onDecline: () => {
-      if (intake && !["approved", "declined", "completed"].includes(intake.status)) {
+      if (
+        intake &&
+        intake.script_sent !== true &&
+        !["approved", "declined", "completed"].includes(intake.status)
+      ) {
         setShowDeclineDialog(true)
       }
     },
@@ -581,7 +585,7 @@ export function useReviewActions({
     hasClinicalDraft,
     isRegenerating,
     notesRef,
-    showDeclineDialog,
+    showDeclineDialog: showDeclineDialog && intake?.script_sent !== true,
     setShowDeclineDialog,
     declineReason,
     setDeclineReason,

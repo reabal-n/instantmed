@@ -29,6 +29,7 @@ const mocks = vi.hoisted(() => ({
   stripeSessionExpire: vi.fn(),
   stripeSessionRetrieve: vi.fn(),
   stripePriceRetrieve: vi.fn(),
+  validateRepeatScriptPayload: vi.fn(),
   validateSafetyFieldsPresent: vi.fn(),
 }))
 
@@ -128,7 +129,7 @@ vi.mock("@/lib/validation/med-cert-schema", () => ({
 }))
 
 vi.mock("@/lib/validation/repeat-script-schema", () => ({
-  validateRepeatScriptPayload: vi.fn(),
+  validateRepeatScriptPayload: mocks.validateRepeatScriptPayload,
 }))
 
 vi.mock("@/lib/stripe/client", () => ({
@@ -345,6 +346,7 @@ describe("retryPaymentForIntakeAction", () => {
       url: `https://checkout.stripe.test/pay/${sessionId}`,
     }))
     mocks.checkHighStakesUseCase.mockReturnValue({ isHighStakes: false })
+    mocks.validateRepeatScriptPayload.mockReturnValue({ valid: true })
     mocks.validateSafetyFieldsPresent.mockReturnValue({ missingFields: [], valid: true })
     mocks.checkSafetyForServer.mockReturnValue({ isAllowed: true })
   })
@@ -892,6 +894,103 @@ describe("retryPaymentForIntakeAction", () => {
       intakeId: "intake-1",
       patientId: "patient-1",
     })
+  })
+
+  it("holds a marked repeat retry with a frequency-only current regimen", async () => {
+    const authoritativeAnswers = {
+      medicationName: "Sertraline",
+      medicationStrength: "100 mg",
+      currentDose: "Once daily",
+      repeat_rx_dose_contract_version: 1,
+    }
+    const { supabase } = createRetrySupabaseMock({
+      category: "prescription",
+      created_at: "2026-08-01T10:00:00.000Z",
+      service: {
+        id: "svc-repeat",
+        name: "Repeat prescription",
+        price_cents: 2995,
+        slug: "common-scripts",
+        type: "repeat_rx",
+      },
+      stripe_price_id: "price_repeat",
+      subtype: "repeat",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce(authoritativeAnswers)
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toMatchObject({
+      paymentRecoveryReason: "more_information_required",
+      success: false,
+    })
+    expect(mocks.checkSafetyForServer).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("preserves compatibility for an unmarked legacy repeat retry", async () => {
+    const { supabase } = createRetrySupabaseMock({
+      category: "prescription",
+      created_at: "2026-08-01T09:44:59.999Z",
+      service: {
+        id: "svc-repeat",
+        name: "Repeat prescription",
+        price_cents: 2995,
+        slug: "common-scripts",
+        type: "repeat_rx",
+      },
+      stripe_price_id: "price_repeat",
+      subtype: "repeat",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({
+      medicationName: "Sertraline",
+      currentDose: "Once daily",
+    })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toMatchObject({ success: true })
+    expect(mocks.stripeSessionCreate).toHaveBeenCalledOnce()
+  })
+
+  it("blocks a repeat retry when canonical repeat payload validation fails", async () => {
+    const authoritativeAnswers = {
+      medicationName: "Sertraline",
+      medicationStrength: "100 mg",
+      currentDose: "100 mg once daily",
+      repeat_rx_dose_contract_version: 1,
+    }
+    const { supabase } = createRetrySupabaseMock({
+      category: "prescription",
+      service: {
+        id: "svc-repeat",
+        name: "Repeat prescription",
+        price_cents: 2995,
+        slug: "common-scripts",
+        type: "repeat_rx",
+      },
+      stripe_price_id: "price_repeat",
+      subtype: "repeat",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce(authoritativeAnswers)
+    mocks.validateRepeatScriptPayload.mockReturnValueOnce({
+      error: "This repeat request needs a different pathway.",
+      requiresConsult: true,
+      valid: false,
+    })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toEqual({
+      error: "This repeat request needs a different pathway.",
+      success: false,
+    })
+    expect(mocks.validateRepeatScriptPayload).toHaveBeenCalledWith(authoritativeAnswers)
+    expect(mocks.checkSafetyForServer).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
   it("retries exact-current invalidation for an existing missing-information marker before reading answers", async () => {

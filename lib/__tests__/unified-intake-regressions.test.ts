@@ -6,6 +6,7 @@ import {
   normalizeConsultSubtypeParam,
 } from "@/lib/request/consult-flow"
 import { buildDraftResumePath } from "@/lib/request/draft-resume-route"
+import { REPEAT_RX_REGIMEN_REQUIRED_MESSAGE } from "@/lib/request/repeat-rx-regimen"
 import { getStepsForService, type StepContext } from "@/lib/request/step-registry"
 import {
   resolveCheckoutSubtype,
@@ -333,6 +334,7 @@ describe("unified intake regressions", () => {
   it("still enforces medication and prescription-history answers at checkout after the step merge", () => {
     const completeRepeat = {
       medicationName: "Rosuvastatin",
+      medicationStrength: "10 mg",
       prescriptionHistory: "6_to_12_months",
       currentDose: "One tablet daily",
       indication: "Cholesterol",
@@ -466,6 +468,7 @@ describe("unified intake regressions", () => {
     expect(transformed.medicare_expiry).toBe("2029-05-01")
     expect(transformed.current_dose).toBe("2 puffs twice daily")
     expect(transformed.dosage_instructions).toBe("2 puffs twice daily")
+    expect(transformed.repeat_rx_dose_contract_version).toBe(1)
     expect(transformed.address_line1).toBe("12 Manual Entry Road")
     expect(transformed.suburb).toBe("Sydney")
     expect(transformed.state).toBe("NSW")
@@ -665,7 +668,7 @@ describe("unified intake regressions", () => {
     ).toBe("Enter a valid Medicare number or provide a valid IHI.")
   })
 
-  it("blocks repeat checkout when dose or indication is missing; allows when both present", () => {
+  it("blocks repeat checkout when the regimen or indication is incomplete", () => {
     // Operator decision 2026-06-26: repeat-Rx requires dose+frequency and an
     // indication so the doctor knows exactly what to prescribe (reverses the
     // earlier A3 boundary-4 softening for repeat scripts).
@@ -693,6 +696,24 @@ describe("unified intake regressions", () => {
     expect(
       validateAnswersServerSide("repeat-script", { ...base, currentDose: "2 puffs twice daily" }, identity),
     ).not.toBeNull()
+
+    // A frequency alone is not the patient's current dose. Both the Zod step
+    // schema and the server checkout gate expose the same single-field error.
+    expect(validateMedicationHistoryStep({
+      prescriptionHistory: "6 to 12 months",
+      currentDose: "Once daily",
+      indication: "asthma",
+      doseChanged: false,
+      hasSideEffects: false,
+    })).toMatchObject({
+      isValid: false,
+      errors: { currentDose: REPEAT_RX_REGIMEN_REQUIRED_MESSAGE },
+    })
+    expect(validateAnswersServerSide("repeat-script", {
+      ...base,
+      currentDose: "Once daily",
+      indication: "asthma",
+    }, identity)).toBe(REPEAT_RX_REGIMEN_REQUIRED_MESSAGE)
 
     // Both present → allowed.
     expect(
@@ -753,20 +774,27 @@ describe("unified intake regressions", () => {
       pbsCode: "UNKNOWN",
     }, identity)).toMatch(/identify/i)
 
-    // A3 softening: a missing strength or form no longer blocks the step. The
-    // patient proceeds and the doctor sees medication_strength_missing /
-    // medication_form_missing flags. (Unknown-med above still hard-blocks.)
+    // A new repeat must include a concrete strength. A missing form remains a
+    // doctor attention flag rather than a patient block.
     expect(validateAnswersServerSide("repeat-script", {
       ...baseAnswers,
       medicationName: "Budesonide + formoterol",
       medicationForm: "inhaler",
       pbsCode: "MANUAL",
-    }, identity)).toBeNull()
+    }, identity)).toMatch(/strength shown on the medication label/i)
 
     expect(validateAnswersServerSide("repeat-script", {
       ...baseAnswers,
       medicationName: "Budesonide + formoterol",
       medicationStrength: "100/3 micrograms",
+      pbsCode: "MANUAL",
+    }, identity)).toBeNull()
+
+    // Preserve the natural free-text path without making the patient duplicate
+    // a strength they already typed in the medicine name.
+    expect(validateAnswersServerSide("repeat-script", {
+      ...baseAnswers,
+      medicationName: "Sertraline 100mg",
       pbsCode: "MANUAL",
     }, identity)).toBeNull()
 

@@ -118,7 +118,7 @@ async function completeMedicationStep(page: Page) {
 
   await page.locator("#medication-name-0").fill("E2E test medication")
 
-  // Strength + form are optional but always visible.
+  // Strength is mandatory; form remains optional. Both stay visible.
   await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
   await page.locator("#medication-strength-0").fill("500 mg")
   await page.locator("#medication-form-0").fill("capsule")
@@ -261,7 +261,7 @@ test.describe("Prescription: full flow - start to checkout", () => {
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    // ── Step 1: Medication (free-text name + optional strength/form) ──
+    // ── Step 1: Medication (free-text name + required strength; optional form) ──
     await completeMedicationStep(page)
 
 
@@ -403,7 +403,7 @@ test.describe("Prescription: step validation", () => {
     ).toBeVisible()
   })
 
-  test("medication step proceeds with a blank strength (A3 soften → doctor flag)", async ({ page }) => {
+  test("medication step blocks a blank strength, then proceeds once supplied", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
@@ -425,21 +425,29 @@ test.describe("Prescription: step validation", () => {
     await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
     await clickChip(page, /No side effects/i)
 
-    // Continue advances despite the blank strength (doctor sees a missing-strength flag).
+    // Continue surfaces the missing strength instead of advancing.
+    await expect(page.locator("#medication-strength-0")).toHaveAttribute("aria-required", "true")
+    await clickContinue(page)
+    await expect(page.getByText(/strength shown on the medication label/i).first()).toBeVisible()
+
+    await page.locator("#medication-strength-0").fill("20 mg")
+    await clickChip(page, /No, unchanged/i)
     await clickContinue(page)
     await waitForStep(page, /Anything the doctor should know/i)
   })
 
-  test("medication step proceeds with a name only — no strength, no form (A3 boundary 2)", async ({ page }) => {
+  test("medication step accepts a strength entered in the medicine name", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
     await waitForStep(page, /Your medication/i)
-    await page.locator("#medication-name-0").fill("E2E name only med")
+    await page.locator("#medication-name-0").fill("Sertraline 100mg")
 
-    // A name alone is enough for the medicine itself; strength/form stay optional.
+    // Do not force the patient to enter the same inline strength twice.
     await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
+    await expect(page.locator("#medication-strength-0")).toHaveAttribute("aria-required", "false")
+    await expect(page.getByText(/Using 100mg from the medication name/i)).toBeVisible()
     await clickChip(page, /Under 3 months/i)
     await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
     await page
@@ -453,6 +461,62 @@ test.describe("Prescription: step validation", () => {
     await waitForStep(page, /Anything the doctor should know/i)
   })
 
+  test("medication step requires a current amount and frequency and exposes the error to the textarea", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await waitForStep(page, /Your medication/i)
+    await page.locator("#medication-name-0").fill("E2E missing dose medication")
+    await page.locator("#medication-strength-0").fill("20 mg")
+    await clickChip(page, /Under 3 months/i)
+    await page
+      .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
+      .getByRole("radio", { name: /No, unchanged/i })
+      .click()
+    await page.getByPlaceholder(/e\.g\., asthma/i).fill("anxiety")
+    await clickChip(page, /No side effects/i)
+
+    // A frequency shortcut is useful input, but it is not a complete regimen
+    // until the patient also records how much they take.
+    await page
+      .getByRole("group", { name: "Common dose frequencies" })
+      .getByRole("button", { name: "Once daily", exact: true })
+      .click()
+    await expect(page.locator("#current-dose")).toHaveValue("Once daily")
+
+    await clickContinue(page)
+
+    const doseInput = page.locator("#current-dose")
+    const doseError = page.locator("#current-dose-error")
+    await expect(doseError).toHaveText(
+      "Enter how much you take and how often (for example, one tablet each morning)",
+    )
+    await expect(doseError).toBeVisible()
+    await expect(doseInput).toHaveAttribute("aria-required", "true")
+    await expect(doseInput).toHaveAttribute("aria-invalid", "true")
+
+    const describedBy = (await doseInput.getAttribute("aria-describedby"))?.split(/\s+/) ?? []
+    expect(describedBy).toContain("current-dose-hint")
+    expect(describedBy).toContain("current-dose-error")
+    for (const id of describedBy) {
+      await expect(page.locator(`#${id}`)).toBeVisible()
+    }
+
+    const frequencyHelpers = page.getByRole("group", { name: "Common dose frequencies" })
+    await expect(frequencyHelpers).not.toHaveAttribute("aria-invalid")
+    await expect(frequencyHelpers).not.toHaveAttribute("aria-describedby")
+
+    await doseInput.fill("One tablet each morning")
+    await expect(doseError).toHaveCount(0)
+    await page
+      .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
+      .getByRole("radio", { name: /No, unchanged/i })
+      .click()
+    await clickContinue(page)
+    await waitForStep(page, /Anything the doctor should know/i)
+  })
+
   test("medication step requires an unchanged dose-and-directions confirmation", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
@@ -460,6 +524,7 @@ test.describe("Prescription: step validation", () => {
 
     await waitForStep(page, /Your medication/i)
     await page.locator("#medication-name-0").fill("E2E test medication")
+    await page.locator("#medication-strength-0").fill("500 mg")
     await clickChip(page, /Under 3 months/i)
     await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
     await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
@@ -491,6 +556,7 @@ test.describe("Prescription: step validation", () => {
     // navigation involved.
     await waitForStep(page, /Your medication/i)
     await page.locator("#medication-name-0").fill("E2E test medication")
+    await page.locator("#medication-strength-0").fill("500 mg")
     await clickChip(page, /Under 3 months/i)
     await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
     await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")

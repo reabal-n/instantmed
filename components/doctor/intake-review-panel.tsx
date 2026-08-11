@@ -553,7 +553,6 @@ export function IntakeReviewPanel({
     : buildDoctorIntakeHref(intake.id)
   const claimStateLabel = formatClaimStateLabel(lockState, claimAgeNow)
   const visibleClaimStateLabel = lockState.status === "blocked" ? claimStateLabel : null
-  const previousIntakeCount = data.previousIntakeCount ?? data.previousIntakes?.length ?? 0
   const queueEnteredAt = getQueueEnteredAt(intake)
 
   return (
@@ -653,7 +652,6 @@ export function IntakeReviewPanel({
               intake={intake}
               answers={answers}
               previousIntakes={data.previousIntakes ?? []}
-              previousIntakeCount={previousIntakeCount}
               service={service}
               actions={
                 <>

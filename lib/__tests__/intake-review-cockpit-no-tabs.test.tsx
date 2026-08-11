@@ -50,6 +50,13 @@ describe("IntakeReviewCockpit source contract", () => {
     expect(requestInfoSource).toContain("hideRequestFacts")
   })
 
+  it("gives repeat requests one prominent medication fact and one fulfilment owner", () => {
+    expect(requestInfoSource).toContain('packet.workflow.kind === "repeat_prescription"')
+    expect(requestInfoSource).toContain('fact.key === "medicine"')
+    expect(requestInfoSource).toContain("<ReviewFactItem fact={medicationFact} prominent />")
+    expect(requestInfoSource).toContain('hideRecordedPrescriptionInfo={packet.fulfilment.status === "recorded"}')
+  })
+
   it("preserves the Cmd+N notes shortcut wiring", () => {
     // useDoctorShortcuts must still receive an onNote handler that focuses notesRef.
     expect(cockpitSource).toMatch(/onNote/)

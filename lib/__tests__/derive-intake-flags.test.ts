@@ -12,7 +12,7 @@ function codes(flags: { code: string }[]): string[] {
 }
 
 describe("deriveIntakeFlags — repeat script", () => {
-  it("flags a missing strength as an attention flag (no longer a hard block)", () => {
+  it("flags a missing strength on a historical repeat request", () => {
     const flags = deriveIntakeFlags({
       ...repeatBase,
       answers: {
@@ -24,6 +24,18 @@ describe("deriveIntakeFlags — repeat script", () => {
     })
     expect(codes(flags)).toEqual(["medication_strength_missing"])
     expect(flags[0].severity).toBe("attention")
+  })
+
+  it("does not flag a strength reliably inferred from the medication name", () => {
+    const flags = deriveIntakeFlags({
+      ...repeatBase,
+      answers: {
+        medications: [{ name: "Sertraline 100mg", form: "tablet", pbsCode: "MANUAL" }],
+        current_dose: "once daily",
+      },
+    })
+
+    expect(flags).toEqual([])
   })
 
   it("flags a missing form", () => {

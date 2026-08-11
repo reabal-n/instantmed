@@ -38,7 +38,13 @@ export function IntakeSecondaryDisclosure({
     onOpenChange?.(next)
   }
 
-  const label = `Show full intake · ${priorRequestCount} prior request${priorRequestCount === 1 ? "" : "s"} · ${noteCount} note${noteCount === 1 ? "" : "s"}`
+  const countLabels = [
+    priorRequestCount > 0
+      ? `${priorRequestCount} prior request${priorRequestCount === 1 ? "" : "s"}`
+      : null,
+    noteCount > 0 ? `${noteCount} note${noteCount === 1 ? "" : "s"}` : null,
+  ].filter(Boolean)
+  const label = ["Show full intake", ...countLabels].join(" · ")
 
   return (
     <div className="border-t border-border/40 pt-3">

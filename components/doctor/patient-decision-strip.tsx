@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react"
 
-import { AttributionChip } from "@/components/doctor/attribution-chip"
 import { buildStaffCaseSummary } from "@/lib/doctor/case-summary"
 import { requiresPrescribingIdentityForCase } from "@/lib/doctor/patient-snapshot"
 import { cn } from "@/lib/utils"
@@ -15,7 +14,6 @@ interface PatientDecisionStripProps {
   intake: StripIntake
   answers?: Record<string, unknown>
   previousIntakes?: IntakeWithPatient[]
-  previousIntakeCount?: number
   service?: { name?: string | null; type?: string | null; short_name?: string | null }
   actions?: ReactNode
   className?: string
@@ -32,17 +30,6 @@ const IDENTIFIER_BLOCKER_PREFIXES = [
   "Medicare",
   "Valid Medicare",
 ]
-
-function getLandingPathname(value: string | null | undefined): string {
-  const trimmed = value?.trim()
-  if (!trimmed) return ""
-
-  try {
-    return new URL(trimmed, "https://instantmed.com.au").pathname
-  } catch {
-    return trimmed.split(/[?#]/, 1)[0] ?? ""
-  }
-}
 
 function getIdentifierReadiness({
   intake,
@@ -77,7 +64,6 @@ export function PatientDecisionStrip({
   intake,
   answers = {},
   previousIntakes = [],
-  previousIntakeCount,
   service: serviceProp,
   actions,
   className,
@@ -95,21 +81,9 @@ export function PatientDecisionStrip({
     serviceType,
     missingCriticalFields: snapshot.missingCriticalFields,
   })
-  const priorRequestCount = previousIntakeCount ?? previousIntakes.length
-  const visitLabel = priorRequestCount > 0
-    ? `${priorRequestCount} prior request${priorRequestCount === 1 ? "" : "s"}`
-    : "First visit"
+  const ageDobBlocked = snapshot.missingCriticalFields.includes("DOB")
+  const sexBlocked = snapshot.missingCriticalFields.includes("Sex")
   const facts: SafetyFact[] = [
-    {
-      label: "Age / DOB",
-      value: snapshot.ageDobLabel,
-      blocked: snapshot.missingCriticalFields.includes("DOB"),
-    },
-    {
-      label: "Sex",
-      value: snapshot.sex.label,
-      blocked: snapshot.missingCriticalFields.includes("Sex"),
-    },
     {
       label: "Location",
       value: snapshot.address.localityLabel ?? "Not provided",
@@ -128,7 +102,6 @@ export function PatientDecisionStrip({
       label: "Medicare / IHI",
       ...identifierReadiness,
     },
-    { label: "Visits", value: visitLabel },
   ]
 
   return (
@@ -145,11 +118,14 @@ export function PatientDecisionStrip({
           <h2 className="truncate text-xl font-semibold leading-tight tracking-tight text-foreground">
             {summary.patientName}
           </h2>
-          <AttributionChip
-            attribution={intake}
-            landingPage={getLandingPathname(intake.landing_page)}
-            className="mt-1 max-w-full"
-          />
+          <p
+            className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs font-medium text-muted-foreground"
+            aria-label={`Age and date of birth: ${snapshot.ageDobLabel}; sex: ${snapshot.sex.label}`}
+          >
+            <span className={cn(ageDobBlocked && "text-warning")}>{snapshot.ageDobLabel}</span>
+            <span aria-hidden="true">·</span>
+            <span className={cn(sexBlocked && "text-warning")}>{snapshot.sex.label}</span>
+          </p>
         </div>
         {actions ? (
           <div className="flex shrink-0 flex-wrap items-center gap-1.5" aria-label="Patient actions">
@@ -158,7 +134,7 @@ export function PatientDecisionStrip({
         ) : null}
       </div>
 
-      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 xl:grid-cols-6">
+      <dl className="mt-3 grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-3">
         {facts.map(({ label, value, blocked, readiness }) => (
           <div
             key={label}

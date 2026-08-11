@@ -2,11 +2,56 @@ import { describe, expect, it } from "vitest"
 
 import {
   areRepeatRxMedicationDetailsEqual,
+  hasCompleteRepeatRxRegimen,
   hasDoseFrequencyStarter,
   toggleDoseFrequencyStarter,
 } from "@/lib/request/repeat-rx-regimen"
 
 describe("repeat-Rx regimen editing", () => {
+  it.each([
+    "One tablet each morning",
+    "One pill each morning",
+    "2 puffs twice daily",
+    "1 pump daily",
+    "1 vial twice daily",
+    "One ampoule each morning",
+    "2 actuations as needed",
+    "One inhalation twice daily",
+    "10 mg nightly",
+    "Take one daily",
+    "A tablet each morning",
+    "Half a tablet every second day",
+    "5 mL every 8 hours",
+    "One capsule on Mondays and Thursdays",
+    "Apply a thin layer twice daily",
+    "1 capsule as needed",
+  ])("accepts an amount plus frequency: %s", (value) => {
+    expect(hasCompleteRepeatRxRegimen(value)).toBe(true)
+  })
+
+  it.each([
+    "",
+    "Once daily",
+    "Twice daily",
+    "In the morning",
+    "At night",
+    "As needed",
+    "Every 8 hours",
+    "One tablet",
+    "10 mg",
+    "10 mg with food",
+    "Apply twice daily",
+    "As previously prescribed",
+  ])("rejects a regimen missing amount or frequency: %s", (value) => {
+    expect(hasCompleteRepeatRxRegimen(value)).toBe(false)
+  })
+
+  it("requires both amount and frequency at the public validation seam", () => {
+    expect(hasCompleteRepeatRxRegimen("Once daily")).toBe(false)
+    expect(hasCompleteRepeatRxRegimen("One tablet")).toBe(false)
+    expect(hasCompleteRepeatRxRegimen("One tablet each morning")).toBe(true)
+  })
+
   it("matches frequency starters only as standalone comma-delimited entries", () => {
     expect(hasDoseFrequencyStarter("Take one tablet, In the morning", "In the morning")).toBe(true)
     expect(hasDoseFrequencyStarter("Take one tablet, in THE morning", "In the morning")).toBe(true)

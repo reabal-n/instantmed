@@ -267,7 +267,10 @@ export function IntakeReviewCockpit({
       }
     },
     onDecline: () => {
-      if (["approved", "declined", "completed"].includes(intake.status)) return
+      if (
+        intake.script_sent === true ||
+        ["approved", "declined", "completed"].includes(intake.status)
+      ) return
       review.setShowDeclineDialog(true)
     },
     onNote: () => {

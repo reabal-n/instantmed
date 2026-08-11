@@ -1,3 +1,8 @@
+import {
+  getRepeatRxDoseMissingFields,
+  hasRepeatRxDoseContractMarker,
+  isRepeatPrescriptionRequest,
+} from "@/lib/clinical/repeat-rx-dose-requirement"
 import { getAppUrl } from "@/lib/config/env"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { getIntakeAnswersForPaymentSafety } from "@/lib/data/intake-answers"
@@ -383,7 +388,16 @@ export async function resolveGuestCheckoutResume(intakeId: string): Promise<stri
     const serviceSlugForSafety =
       intake.service?.slug || getServiceSlug(intake.category || "", intake.subtype || "")
     const fieldCheck = validateSafetyFieldsPresent(serviceSlugForSafety, answers)
-    if (!fieldCheck.valid) {
+    const repeatDoseMissingFields =
+      isRepeatPrescriptionRequest(intake.category, intake.subtype)
+      && hasRepeatRxDoseContractMarker(answers)
+        ? getRepeatRxDoseMissingFields(answers)
+        : []
+    const missingFields = [...new Set([
+      ...fieldCheck.missingFields,
+      ...repeatDoseMissingFields,
+    ])]
+    if (!fieldCheck.valid || repeatDoseMissingFields.length > 0) {
       await recordSafetyEvaluationForOperators({
         answers,
         context: "guest_resume",
@@ -400,7 +414,7 @@ export async function resolveGuestCheckoutResume(intakeId: string): Promise<stri
       })
       const hold = await holdCheckoutForMissingSafetyInformation({
         intakeId: intake.id,
-        missingFields: fieldCheck.missingFields,
+        missingFields,
         source: "guest_resume",
         supabase,
       })
