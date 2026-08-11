@@ -51,7 +51,7 @@ Measure economics by service. A blended account-level result can hide a profitab
 | ED | Live low-budget pilot. Keep contraindication, doctor-contact, refund, and unsuitable-case rates visible. |
 | Hair loss | Live low-budget pilot. Keep unsuitable-case, fulfilment, and refund rates visible. |
 | Women's health | Live low-budget pilot for UTI + new/switch pill only. Measure UTI and contraception separately where data permits. |
-| Weight management | Live 2026-08-07 at $89.95 (highest-priced service). Organic-only pilot; no paid traffic assumption until the launch checklist scorecard passes and ads are separately approved. |
+| Weight management | Live 2026-08-10 at $89.95 (highest-priced service). Organic-only pilot; no paid traffic assumption until the launch checklist scorecard passes and ads are separately approved. |
 | General Consult | Retired. No paid traffic or revenue assumption. |
 
 Target service mix is learned from retained revenue and capacity evidence. It is not fixed by a speculative long-range order table.
@@ -153,7 +153,7 @@ Revenue alone does not decide staffing. The `$10,000` rung triggers a capacity r
 | Support contacts above 5 per 100 orders | Fix product friction or add bounded support capacity before scaling. |
 | Queue P95 above 2 hours or any work approaching the 24-hour ceiling | Pause the growth that worsens the queue and diagnose workflow, service mix, and coverage; this is not an automatic hire. |
 | Clinical QA sampling falls behind | Pause growth that worsens the gap and restore QA capacity before resuming. |
-| Weight-management scaling is considered | The 2026-08-07 launch is one-off review only (D-E): continuation is a new consult, so no standing monitoring capacity is assumed. Any move beyond that model needs its own capacity decision. |
+| Weight-management scaling is considered | The 2026-08-10 launch is one-off review only (D-E): continuation is a new consult, so no standing monitoring capacity is assumed. Any move beyond that model needs its own capacity decision. |
 
 Future clinicians use `doctor` accounts with verified capability flags. Future non-clinical operators use `support`. The owner remains the sole human admin.
 
