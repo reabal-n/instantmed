@@ -40,7 +40,7 @@ This is the durable service hierarchy, not the current execution queue. `docs/RO
 | 5 | Women's health | Narrow specialist line | UTI + new/switch pill only. Avoid broad "women's health clinic" positioning. |
 | 6 | Weight management | Narrow specialist line | One-off, doctor-reviewed assessment. No subscription, ongoing-monitoring promise, or paid advertising without separate approval. |
 
-Weight management joined the active hierarchy on 2026-08-07 (operator decisions D-A..D-E): one-off doctor-reviewed assessments only, GLP-1-focused, no subscriptions and no staff-heavy follow-up — continuation is a new patient-initiated consult. Paid advertising remains separately gated per docs/ADVERTISING_COMPLIANCE.md.
+Weight management joined the active hierarchy on 2026-08-10 (operator decisions D-A..D-E): one-off doctor-reviewed assessments only, GLP-1-focused, no subscriptions and no staff-heavy follow-up — continuation is a new patient-initiated consult. Paid advertising remains separately gated per docs/ADVERTISING_COMPLIANCE.md.
 
 General Consult was retired publicly on 2026-05-20. The `consult` service type stays in code as the parent category for ED, hair-loss, women's-health, and weight-management subtypes only. `/consult` renders a services overview and `/general-consult` redirects to it. Cases outside the specialised service lines route to a GP or in-person care, not into a generic paid request.
 
@@ -103,7 +103,7 @@ The model works only while the platform reduces active doctor minutes per order 
 | Hair loss | One-off form-first doctor assessment. No subscription, outcome guarantee, or drug-name acquisition marketing. |
 | ED | One-off form-first doctor assessment with strict contraindication screening. |
 | Women's health | Narrowly scoped services only. Complex cases route to GP or in-person care. |
-| Weight management | Live 2026-08-07 ($89.95 one-off assessment). Organic + existing-patient discovery only; paid advertising still requires its own explicit approval. |
+| Weight management | Live 2026-08-10 ($89.95 one-off assessment). Organic + existing-patient discovery only; paid advertising still requires its own explicit approval. |
 
 Future clinical capacity is added with `doctor` accounts and capability flags. Future non-clinical operations capacity is added with bounded `support` accounts. The security and access implementation is owned by `docs/SECURITY.md` and `docs/ARCHITECTURE.md`.
 
