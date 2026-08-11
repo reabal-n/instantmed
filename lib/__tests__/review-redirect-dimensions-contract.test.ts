@@ -117,8 +117,13 @@ describe("review-redirect dimension allowlists", () => {
   })
 
   it("covers every destination token the card emits", () => {
-    const cardSource = read("components/patient/review-ask-card.tsx")
-    const emitted = new Set(Array.from(cardSource.matchAll(/token: "([a-z_]+)"/g), (m) => m[1]!))
+    const cardSources = [
+      read("components/patient/review-ask-card.tsx"),
+      read("components/patient/review-nudge-card.tsx"),
+    ]
+    const emitted = new Set(cardSources.flatMap((cardSource) =>
+      Array.from(cardSource.matchAll(/token: "([a-z_]+)"/g), (m) => m[1]!),
+    ))
     expect(emitted.size).toBeGreaterThan(0)
     const routeTokens = routeSource.includes("REVIEW_DESTINATION_URLS")
     expect(routeTokens, "route must resolve destinations from REVIEW_DESTINATION_URLS").toBe(true)
