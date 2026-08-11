@@ -160,6 +160,8 @@ FOR SELECT USING (
 | `intake_followups` | Own (`patient_id`) — SELECT + UPDATE | All (SELECT/INSERT/UPDATE) | All |
 | `followup_email_log` | None | None | None (service_role only) |
 
+**Baseline replay:** permissive internal `FOR ALL` policies now name `service_role` explicitly, so a clean reset matches production's service-role-only `stripe_disputes` boundary; a contract test rejects new role-less instances.
+
 **Hardened 2026-04-08** via migration `20260408000001_lock_down_intake_drafts_and_safety_audit.sql` (applied to live Supabase):
 
 - `intake_drafts`: dropped the previous `intake_drafts_user_select` policy that used `user_id = auth.uid() OR session_id IS NOT NULL` (the OR clause was always true, allowing any direct Supabase client call to read every draft — a PHI exfiltration vector). Also dropped `intake_drafts_claim_guest` which let any authenticated user take ownership of anonymous drafts and then read their contents. All access now flows through the service-role API at `/api/flow/drafts/[draftId]` which validates ownership at the API layer.

@@ -11411,7 +11411,7 @@ ALTER TABLE public.stripe_disputes ENABLE ROW LEVEL SECURITY;
 
 -- Only service role and admins can access disputes
 CREATE POLICY "Service role can manage disputes" ON public.stripe_disputes
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 COMMENT ON TABLE public.stripe_disputes IS 'Tracks Stripe payment disputes for revenue protection and audit trail';
 COMMENT ON COLUMN public.intakes.dispute_id IS 'Stripe dispute ID if payment was disputed';
@@ -15504,10 +15504,10 @@ ALTER TABLE public.date_change_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.med_cert_audit_events ENABLE ROW LEVEL SECURITY;
 
 -- Service role has full access (these are internal tables)
-CREATE POLICY "Service role full access" ON public.patient_flags FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access" ON public.security_events FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access" ON public.date_change_requests FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access" ON public.med_cert_audit_events FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access" ON public.patient_flags FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access" ON public.security_events FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access" ON public.date_change_requests FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access" ON public.med_cert_audit_events FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 
 -- ── 20260218000001_add_certificate_ref.sql ──
