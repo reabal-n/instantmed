@@ -10,6 +10,8 @@ import type {
 const REPORT_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
 
 const guardrailCopy: Record<string, string> = {
+  ATTRIBUTION_INVESTIGATION_HOLD:
+    "Attribution investigation remains open — scaling stays blocked until the recorded resolution",
   BUDGET_ENVELOPE_UNAVAILABLE: "Daily budget data is unavailable",
   BUDGET_ENVELOPE_EXCEEDED: "Daily budget envelope exceeded",
   CROSS_SERVICE_ATTRIBUTION:
