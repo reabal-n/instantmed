@@ -60,6 +60,10 @@ Review channel/service contribution, refund and chargeback trends, queue/support
 | 5 | **Reactivation checkpoint** - assess repeat-Rx refill reminders after three real weekly waves; keep certificate reactivation bounded. | Measurement window open. Default-on email consent (2026-07-17) unblocked send volume for ~87% of patients; restart the three-wave clock from the first post-change wave. | Continue only if delivery and paid reorder conversion justify more work. Stop or rework a near-zero lever. |
 | 6 | **Compounding work** - deepen only fresh GSC-proven winners; profile before performance changes; run bounded repository cleanup quarterly. | Evidence-led backlog. | A specific query/page or measured hotspot justifies each session. No broad speculative sweep. |
 
+### Google Ads attribution-hold clearance
+
+An open **Attribution Investigation Hold** blocks scaling for that service even when tracking returns to GREEN. It clears only after the cause is recorded, any required correction is complete, a fresh rolling 30-day reconciliation shows at least 90% expected-service attribution across at least 10 recognised orders, and the Operator records an explicit **Attribution Investigation Resolution**. An unknown cause cannot be cleared. The ordinary seven-consecutive-GREEN-days scaling gate remains separate and still applies afterward.
+
 ### Open governance work — historical auto-issued medical certificates
 
 Raised by the removal of the 24-hour post-approval attestation (#428, 2026-08-04) and the follow-up integrity work (#439/#440). Engineering containment is complete: `lib/clinical/auto-approval-governance.ts` is fail-closed and all current requests require doctor review before issue. The remaining work requires Medical Director judgment, legal reconciliation, or retrospective clinical review.
