@@ -5,10 +5,10 @@ import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { requireApiRole } from "@/lib/auth/helpers"
 import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
-import { getIntakeWithDetails, getNextQueueIntakeId, getPatientIntakes, getPatientNotes } from "@/lib/data/intakes"
+import { getIntakeWithDetails, getNextQueueIntakeId, getPatientNotes } from "@/lib/data/intakes"
 import { getCertificateForIntake } from "@/lib/data/issued-certificates"
 import { getPatientMessagesForIntake } from "@/lib/data/patient-messages"
-import { getIntakeMedicationLabels } from "@/lib/doctor/intake-medication-label"
+import { buildPreviousIntakeContext } from "@/lib/doctor/intake-medication-label"
 import { detectRenewalsForIntakes } from "@/lib/doctor/renewal-detection"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { maskMedicare } from "@/lib/utils/format"
@@ -52,8 +52,11 @@ export async function GET(
   // Determine service type for conditional fetches
   const serviceType = (intake.service as { type?: string } | undefined)?.type
 
-  // Parallel fetches
-  const [aiDrafts, nextIntakeId, medCertDraft, certificate, patientHistory, patientMessages, patientNotes] = await Promise.all([
+  // Parallel fetches. Prior-request context (rows + medicine labels + true
+  // count) comes from the shared builder so this route and the intake detail
+  // page can never drift apart (2026-08-11: two repeat scripts 6 minutes
+  // apart read as duplicates because history rows carried no medicine).
+  const [aiDrafts, nextIntakeId, medCertDraft, certificate, previousIntakeContext, patientMessages, patientNotes] = await Promise.all([
     getAIDraftsForIntake(intakeId),
     getNextQueueIntakeId(intakeId),
     serviceType === "med_certs"
@@ -62,21 +65,10 @@ export async function GET(
     serviceType === "med_certs" && (intake.status === "approved" || intake.status === "completed")
       ? getCertificateForIntake(intakeId)
       : Promise.resolve(null),
-    getPatientIntakes(intake.patient.id, { pageSize: 6 }),
+    buildPreviousIntakeContext({ patientId: intake.patient.id, currentIntakeId: intakeId }),
     getPatientMessagesForIntake(intakeId),
     getPatientNotes(intake.patient.id, undefined, 5),
   ])
-
-  const previousIntakes = patientHistory.data.filter((row) => row.id !== intakeId).slice(0, 5)
-
-  // Two same-service requests are indistinguishable without the medicine the
-  // patient asked for (2026-08-11: two repeat scripts 6 minutes apart read as
-  // duplicates). One batched answers lookup, fail-soft to no label.
-  const medicationLabels = await getIntakeMedicationLabels(previousIntakes.map((row) => row.id))
-  const previousIntakesWithContext = previousIntakes.map((row) => ({
-    ...row,
-    medication_name: medicationLabels.get(row.id) ?? null,
-  }))
 
   // Compute patient age
   let patientAge: number | null = null
@@ -120,10 +112,8 @@ export async function GET(
     maskedMedicare,
     aiDrafts,
     nextIntakeId,
-    previousIntakes: previousIntakesWithContext,
-    // True prior-request total (all statuses, current intake excluded), not
-    // the length of the capped 5-row page the disclosure renders.
-    previousIntakeCount: Math.max(patientHistory.total - 1, previousIntakes.length),
+    previousIntakes: previousIntakeContext.previousIntakes,
+    previousIntakeCount: previousIntakeContext.previousIntakeCount,
     patientNotes,
     patientMessages,
     reviewingClinician: {

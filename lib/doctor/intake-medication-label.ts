@@ -1,5 +1,6 @@
 import "server-only"
 
+import { getPatientIntakes } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { extractMedicationFromAnswers } from "@/lib/validation/repeat-script-schema"
@@ -40,7 +41,43 @@ function extractMedicationLabel(
  * keyed by intake id. Informational only, so any error fails soft to an
  * empty map — history rows simply render without a medicine.
  */
-export async function getIntakeMedicationLabels(
+type PatientIntakeRow = Awaited<ReturnType<typeof getPatientIntakes>>["data"][number]
+
+/**
+ * The one assembly point for a review surface's "prior requests" context:
+ * the capped recent page (current intake excluded), each row enriched with
+ * the patient-typed medicine label, plus the TRUE prior-request total.
+ *
+ * Both the review-data API route (queue slide-over) and the intake detail
+ * page consume this — the 2026-08-11 fix originally patched only the route,
+ * and the browser pass caught the detail page assembling its own bare rows.
+ */
+export async function buildPreviousIntakeContext(args: {
+  patientId: string
+  currentIntakeId: string
+}): Promise<{
+  previousIntakes: Array<PatientIntakeRow & { medication_name: string | null }>
+  previousIntakeCount: number
+}> {
+  const patientHistory = await getPatientIntakes(args.patientId, { pageSize: 6 })
+  const previousIntakes = patientHistory.data
+    .filter((row) => row.id !== args.currentIntakeId)
+    .slice(0, 5)
+  const medicationLabels = await getIntakeMedicationLabels(
+    previousIntakes.map((row) => row.id),
+  )
+  return {
+    previousIntakes: previousIntakes.map((row) => ({
+      ...row,
+      medication_name: medicationLabels.get(row.id) ?? null,
+    })),
+    // True prior total (all statuses, current excluded) — never the capped
+    // page length, which under-reports for any patient past 5 requests.
+    previousIntakeCount: Math.max(patientHistory.total - 1, previousIntakes.length),
+  }
+}
+
+async function getIntakeMedicationLabels(
   intakeIds: string[],
 ): Promise<Map<string, string>> {
   const labels = new Map<string, string>()
