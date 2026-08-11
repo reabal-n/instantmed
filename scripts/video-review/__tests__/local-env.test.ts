@@ -37,12 +37,13 @@ describe("video-review local env hydration", () => {
     expect(parseEnvValue("abc123 # comment")).toBe("abc123")
   })
 
-  it("selects the latest available Claude Opus model from Anthropic model metadata", () => {
+  it("selects the latest SDK-compatible Claude Opus model from Anthropic metadata", () => {
     expect(
       selectLatestAnthropicOpusModel([
         { id: "claude-sonnet-4-6", created_at: "2026-01-01T00:00:00Z" },
         { id: "claude-opus-4-6", created_at: "2026-02-01T00:00:00Z" },
         { id: "claude-opus-4-7", created_at: "2026-03-01T00:00:00Z" },
+        { id: "claude-opus-5", created_at: "2026-08-01T00:00:00Z" },
       ]),
     ).toBe("claude-opus-4-7")
   })
