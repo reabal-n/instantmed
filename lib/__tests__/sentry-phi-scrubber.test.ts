@@ -51,6 +51,7 @@ describe("Sentry PHI scrubber", () => {
         headers: {
           Authorization: "Bearer secret",
           Cookie: "session=secret",
+          Referer: "https://chatgpt.com/c/thread-99?prompt=health",
           "x-forwarded-for": "203.0.113.10",
           "user-agent": "Vitest",
         },
@@ -70,6 +71,7 @@ describe("Sentry PHI scrubber", () => {
         recipientName: "Patient Name",
         message: "Patient says 0400000000",
         subject: "Patient, your medical certificate is ready",
+        referrer: "https://chatgpt.com/c/thread-99?prompt=health",
       },
       breadcrumbs: [
         {
@@ -91,6 +93,9 @@ describe("Sentry PHI scrubber", () => {
     expect(serialized).not.toContain("user-sensitive-id")
     expect(serialized).not.toContain("patient-sensitive-id")
     expect(serialized).not.toContain("47e24318")
+    // Referrer URLs (header + object key) are dropped whole — paths/query
+    // strings can carry navigation state no error report needs.
+    expect(serialized).not.toContain("thread-99")
     expect(event.message).toBe("Email bounce for [EMAIL_REDACTED]")
     expect(event.exception?.values?.[0]?.value).toContain("[ID_REDACTED]")
     expect(event.request?.headers).toEqual({ "user-agent": "Vitest" })

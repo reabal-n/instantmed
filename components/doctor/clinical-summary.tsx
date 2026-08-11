@@ -440,6 +440,32 @@ function mapStringLabel(labels: Record<string, string>, value: string): string {
   return labels[value] || value
 }
 
+/**
+ * Answers can carry structured elements (objects from older flow shapes or
+ * compatibility aliases). `String(object)` renders "[object Object]", which
+ * hides the answer from the doctor — prefer a label-ish field, else JSON.
+ */
+function formatUnknownScalar(value: unknown): string {
+  if (value === null || value === undefined) return "—"
+  if (typeof value === "boolean") return value ? "Yes" : "No"
+  if (typeof value === "string" || typeof value === "number" || typeof value === "bigint") {
+    return String(value)
+  }
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>
+    for (const key of ["label", "display", "displayName", "name", "value"]) {
+      const candidate = record[key]
+      if (typeof candidate === "string" && candidate.trim().length > 0) return candidate
+    }
+    try {
+      return JSON.stringify(value)
+    } catch {
+      return "Unreadable answer"
+    }
+  }
+  return String(value)
+}
+
 function formatValue(key: string, value: unknown): string {
   if (value === null || value === undefined) return "—"
   if (typeof value === "boolean") return value ? "Yes" : "No"
@@ -447,7 +473,7 @@ function formatValue(key: string, value: unknown): string {
     if (key === "utiSymptoms") {
       return value.length > 0 ? value.map((item) => mapStringLabel(UTI_SYMPTOM_LABELS, String(item))).join(", ") : "None"
     }
-    return value.length > 0 ? value.join(", ") : "None"
+    return value.length > 0 ? value.map((item) => formatUnknownScalar(item)).join(", ") : "None"
   }
   
   // Special formatting for known fields
@@ -516,8 +542,8 @@ function formatValue(key: string, value: unknown): string {
       return String(value)
     }
   }
-  
-  return String(value)
+
+  return formatUnknownScalar(value)
 }
 
 function getFieldIcon(key: string) {

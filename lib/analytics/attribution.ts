@@ -13,6 +13,7 @@
  */
 
 import { deriveChannelFromClickIds } from "@/lib/analytics/click-id-channels"
+import { sanitizeAttributionReferrer } from "@/lib/analytics/referrer-privacy"
 import { isExternalAnalyticsExcludedPathname } from "@/lib/browser/sensitive-capability-path"
 
 const CLICK_IDS = ["gclid", "gbraid", "wbraid"] as const
@@ -37,6 +38,25 @@ export const ATTRIBUTION_STORAGE_KEY = "instantmed_attribution"
 export const ATTRIBUTION_COOKIE_KEY = "instantmed_attribution"
 
 const ATTRIBUTION_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30
+const ATTRIBUTION_MAX_AGE_MS = ATTRIBUTION_COOKIE_MAX_AGE_SECONDS * 1000
+
+/**
+ * The 30-day window is a real retention bound, not just a cookie default.
+ * Records missing `captured_at` or older than 30 days are expired: dropped
+ * from reads, purged from their store, and never re-minted with a fresh
+ * clock by a later pageview. Only a genuinely new campaign touch (which
+ * stamps a new `captured_at`) restarts the window.
+ */
+function attributionRemainingSeconds(data: AttributionData, now = Date.now()): number {
+  const capturedAt = Date.parse(data.captured_at ?? "")
+  if (!Number.isFinite(capturedAt)) return 0
+  const remainingMs = ATTRIBUTION_MAX_AGE_MS - (now - capturedAt)
+  return remainingMs > 0 ? Math.ceil(remainingMs / 1000) : 0
+}
+
+function isExpiredAttribution(data: AttributionData): boolean {
+  return attributionRemainingSeconds(data) <= 0
+}
 
 export interface AttributionData {
   gclid?: string
@@ -117,6 +137,11 @@ export function mergeAttributionByRecency(
   )
 }
 
+function expireAttributionCookie(): void {
+  const secure = window.location.protocol === "https:" ? "; Secure" : ""
+  document.cookie = `${ATTRIBUTION_COOKIE_KEY}=; Path=/; Max-Age=0; SameSite=Lax${secure}`
+}
+
 function readStoredAttribution(): AttributionData {
   if (typeof window === "undefined") return {}
 
@@ -125,7 +150,11 @@ function readStoredAttribution(): AttributionData {
   try {
     const raw = sessionStorage.getItem(ATTRIBUTION_STORAGE_KEY)
     const parsed = parseStoredAttribution(raw)
-    if (parsed) sources.push(parsed)
+    if (parsed && !isExpiredAttribution(parsed)) {
+      sources.push(parsed)
+    } else if (raw) {
+      sessionStorage.removeItem(ATTRIBUTION_STORAGE_KEY)
+    }
   } catch {
     // sessionStorage can be unavailable in privacy-restricted contexts.
   }
@@ -133,7 +162,11 @@ function readStoredAttribution(): AttributionData {
   try {
     const raw = localStorage.getItem(ATTRIBUTION_STORAGE_KEY)
     const parsed = parseStoredAttribution(raw)
-    if (parsed) sources.push(parsed)
+    if (parsed && !isExpiredAttribution(parsed)) {
+      sources.push(parsed)
+    } else if (raw) {
+      localStorage.removeItem(ATTRIBUTION_STORAGE_KEY)
+    }
   } catch {
     // localStorage can be unavailable in privacy-restricted contexts.
   }
@@ -147,7 +180,11 @@ function readStoredAttribution(): AttributionData {
     const parsed = rawCookie
       ? parseStoredAttribution(decodeURIComponent(rawCookie))
       : null
-    if (parsed) sources.push(parsed)
+    if (parsed && !isExpiredAttribution(parsed)) {
+      sources.push(parsed)
+    } else if (rawCookie) {
+      expireAttributionCookie()
+    }
   } catch {
     // Cookie can be unavailable or malformed; storage sources may still exist.
   }
@@ -157,6 +194,13 @@ function readStoredAttribution(): AttributionData {
 
 function writeStoredAttribution(data: AttributionData): void {
   if (typeof window === "undefined") return
+
+  // Cookie lifetime = the record's REMAINING lifetime. Re-minting a full 30
+  // days on every pageview turned the 30-day window into indefinite
+  // retention (localStorage resupplied the record, the next visit re-set a
+  // fresh cookie, forever).
+  const remainingSeconds = attributionRemainingSeconds(data)
+  if (remainingSeconds <= 0) return
 
   const encoded = encodeURIComponent(JSON.stringify(data))
   try {
@@ -172,7 +216,7 @@ function writeStoredAttribution(data: AttributionData): void {
   }
 
   const secure = window.location.protocol === "https:" ? "; Secure" : ""
-  document.cookie = `${ATTRIBUTION_COOKIE_KEY}=${encoded}; Path=/; Max-Age=${ATTRIBUTION_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax${secure}`
+  document.cookie = `${ATTRIBUTION_COOKIE_KEY}=${encoded}; Path=/; Max-Age=${remainingSeconds}; SameSite=Lax${secure}`
 }
 
 function hasPaidOrCampaignData(data: AttributionData): boolean {
@@ -232,12 +276,24 @@ export function captureAttribution(): void {
 
   const currentHasCampaign = hasPaidOrCampaignData(current)
 
+  // Sanitize BEFORE persistence: external referrers keep origin only,
+  // internal ones keep path only. Raw URLs (paths, query strings) never
+  // enter cookie/localStorage/sessionStorage.
+  const sanitizedCurrentReferrer = sanitizeAttributionReferrer(
+    document.referrer,
+    window.location.origin,
+  )
+  const sanitizedExistingReferrer = sanitizeAttributionReferrer(
+    existing.referrer,
+    window.location.origin,
+  )
+
   const data: AttributionData = {
     ...existing,
     ...current,
     referrer: currentHasCampaign
-      ? document.referrer || existing.referrer
-      : existing.referrer || document.referrer || undefined,
+      ? sanitizedCurrentReferrer || sanitizedExistingReferrer
+      : sanitizedExistingReferrer || sanitizedCurrentReferrer,
     landing_page: currentHasCampaign
       ? window.location.pathname
       : existing.landing_page || window.location.pathname,

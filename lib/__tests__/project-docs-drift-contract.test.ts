@@ -91,9 +91,9 @@ describe("project docs drift contract", () => {
       expect(source).toContain("Never hard-block checkout by time of day")
       expect(source).toContain("strictly 18+ for every paid service")
       expect(source).not.toContain("18+ (parental consent for minors)")
-      // Women's health launched 2026-06-15; weight management launched 2026-08-07.
+      // Women's health launched 2026-06-15; weight management launched 2026-08-10.
       expect(source).toContain("Women's health (UTI + new/switch pill, live 2026-06-15)")
-      expect(source).toContain("Weight management (live 2026-08-07)")
+      expect(source).toContain("Weight management (live 2026-08-10)")
       expect(source).toContain("Priority review fee")
       expect(source).not.toContain("Priority fee (Express Review)")
       // Phase 1 of dashboard remaster (2026-05-11) renamed the "Staff cockpit"
@@ -121,7 +121,7 @@ describe("project docs drift contract", () => {
 
     expect(internalLinkRules).toContain("- `/weight-loss`")
     expect(paidTrafficRules).not.toContain("- `/weight-loss`")
-    expect(seoContentPolicy).toContain("Weight management launched on 2026-08-07")
+    expect(seoContentPolicy).toContain("Weight management launched on 2026-08-10")
     expect(seoContentPolicy).toContain(
       "Weight management is live for organic and onsite acquisition, but `/weight-loss` is not an approved paid destination",
     )
@@ -133,7 +133,7 @@ describe("project docs drift contract", () => {
     )
     expect(voice).toContain("| Weight management (live) |")
     expect(voice).toContain("| `/weight-loss` (live) |")
-    expect(clinical).toContain("**Weight-management scope (live 2026-08-07):**")
+    expect(clinical).toContain("**Weight-management scope (live 2026-08-10):**")
     expect(clinical).not.toContain("Weight loss still has a reserved intake subtype")
     expect(clinical).not.toContain("not currently accepting paid requests")
     expect(brand).not.toContain("First review at 6am")
