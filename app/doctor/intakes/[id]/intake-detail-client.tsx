@@ -60,7 +60,9 @@ interface IntakeDetailClientProps {
   intake: IntakeWithDetails
   patientAge: number | null
   maskedMedicare: string
-  previousIntakes?: IntakeWithPatient[]
+  previousIntakes?: Array<IntakeWithPatient & { medication_name?: string | null }>
+  /** True prior-request total from the shared builder — not the capped page length. */
+  previousIntakeCount?: number
   initialAction?: string
   aiDrafts?: AIDraft[]
   nextIntakeId?: string | null
@@ -115,6 +117,7 @@ function CockpitIntakeDetailClient({
   patientAge,
   maskedMedicare,
   previousIntakes = [],
+  previousIntakeCount,
   aiDrafts = [],
   nextIntakeId,
   draftId,
@@ -137,7 +140,7 @@ function CockpitIntakeDetailClient({
     aiDrafts,
     nextIntakeId: nextIntakeId ?? null,
     previousIntakes,
-    previousIntakeCount: previousIntakes.length,
+    previousIntakeCount: previousIntakeCount ?? previousIntakes.length,
     patientNotes,
     patientMessages,
     draftId: draftId ?? null,
@@ -155,6 +158,7 @@ function CockpitIntakeDetailClient({
     patientMessages,
     patientNotes,
     previousIntakes,
+    previousIntakeCount,
   ])
   const {
     data: reviewDataState,
@@ -390,6 +394,7 @@ function LegacyIntakeDetailClient({
   previousIntakes = [],
   initialAction,
   aiDrafts = [],
+  previousIntakeCount,
   nextIntakeId,
   draftId,
   pendingCorrection,
@@ -410,7 +415,7 @@ function LegacyIntakeDetailClient({
     aiDrafts,
     nextIntakeId: nextIntakeId ?? null,
     previousIntakes,
-    previousIntakeCount: previousIntakes.length,
+    previousIntakeCount: previousIntakeCount ?? previousIntakes.length,
     patientNotes,
     patientMessages,
     draftId: draftId ?? null,
@@ -426,6 +431,7 @@ function LegacyIntakeDetailClient({
     patientMessages,
     patientNotes,
     previousIntakes,
+    previousIntakeCount,
   ])
   const { data: reviewData, reloadReviewData } = useReviewData({
     intakeId: initialIntake.id,
