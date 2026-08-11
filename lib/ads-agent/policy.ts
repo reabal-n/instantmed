@@ -273,13 +273,50 @@ function evaluateSpecialty(
 }
 
 /**
+ * Attribution Investigation Holds — code-owned enforcement of the durable
+ * operator boundary in CONTEXT.md ("Attribution Investigation Hold") and
+ * docs/ROADMAP.md §Google Ads attribution-hold clearance.
+ *
+ * The per-run CROSS_SERVICE_ATTRIBUTION check inside the loop is a single-day
+ * signal: once the daily share recovers, that branch stops firing and nothing
+ * carries the investigation forward — a later GREEN day could emit
+ * SCRIPTS_SCALE_GATES_PASSED while the cause was never established. This set
+ * is the durable memory: a listed service always evaluates to
+ * INVESTIGATE / ATTRIBUTION_INVESTIGATION_HOLD, whatever today's share,
+ * campaign mapping, or tracking state says.
+ *
+ * Clearing is an Attribution Investigation Resolution (CONTEXT.md): recorded
+ * cause, completed correction, and fresh rolling 30-day evidence at >= 90%
+ * expected-service attribution across >= 10 recognised orders — then remove
+ * the service here in a reviewed code change (the same code-owned governance
+ * pattern as lib/clinical/auto-approval-governance.ts). Threshold recovery
+ * alone never clears it.
+ *
+ * Open holds:
+ * - scripts: cross-service attribution — ED and hair-loss purchases were
+ *   surfacing through the $29.95 Scripts lane (docs/plans/
+ *   2026-08-05-repeat-rx-dedicated-service-routing.md). The routing
+ *   hard-block shipped 2026-08-05/06 as the correction, but no
+ *   post-correction 30-day reconciliation has been recorded as a resolution.
+ */
+const OPEN_ATTRIBUTION_HOLDS: ReadonlySet<Exclude<AdsService, "account">> =
+  new Set(["scripts"])
+
+interface EvaluateAdsPolicyOptions {
+  /** Test seam only — production callers use the code-owned default. */
+  openAttributionHolds?: ReadonlySet<Exclude<AdsService, "account">>
+}
+
+/**
  * Evaluates campaign-level economics only. Portfolio totals are intentionally
  * not used for service decisions so a profitable Scripts campaign can never
  * subsidise or conceal a losing specialty pilot.
  */
 export function evaluateAdsPolicy(
   snapshot: AdsAgentSnapshot,
+  options?: EvaluateAdsPolicyOptions,
 ): AdsRecommendation[] {
+  const openAttributionHolds = options?.openAttributionHolds ?? OPEN_ATTRIBUTION_HOLDS
   if (snapshot.account.dailyBudgetTotalCents == null) {
     return [investigate("account", "BUDGET_ENVELOPE_UNAVAILABLE")]
   }
@@ -294,6 +331,14 @@ export function evaluateAdsPolicy(
   const recommendations: AdsRecommendation[] = []
 
   for (const service of SERVICE_ORDER) {
+    // Durable hold wins over EVERYTHING for the service — including a missing
+    // or multiple campaign mapping and a recovered daily share — so it stays
+    // visible until an explicit recorded resolution removes it.
+    if (openAttributionHolds.has(service)) {
+      recommendations.push(investigate(service, "ATTRIBUTION_INVESTIGATION_HOLD"))
+      continue
+    }
+
     const serviceCampaigns = campaigns.get(service) ?? []
     if (serviceCampaigns.length === 0) continue
     if (serviceCampaigns.length > 1) {
