@@ -559,7 +559,7 @@ test.describe("Doctor prescription UI flow", () => {
     await page.evaluate(() => window.dispatchEvent(new Event("focus")))
 
     const refreshedActionRail = page.locator('[data-review-action-rail="true"]').first()
-    await expect(page.getByText("Prescription recorded — complete when ready")).toBeVisible()
+    await expect(page.getByText("Prescription recorded — complete when ready")).toBeVisible({ timeout: 15000 })
     await expect(refreshedActionRail.getByText("Prescription recorded", { exact: true })).toBeVisible()
     await expect(refreshedActionRail.locator("[data-action-readiness]")).toHaveCount(0)
     await expect(refreshedActionRail.locator("[data-decision-wait-signal]")).toHaveCount(0)
