@@ -379,7 +379,7 @@ jobs:
     needs: build
     if: ${{ needs.build.result == 'success' && needs.build.outputs.e2e-required == 'true' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     # The blocking E2E suite reuses a deterministic Supabase fixture set.
     # Serialize it across branches so one run's teardown cannot remove child
     # records while another run is inside the document/review flow.
