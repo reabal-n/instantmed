@@ -13,6 +13,12 @@ const GATEWAY_MODEL_ENV_NAMES = [
   "AI_GATEWAY_CLAUDE_MODEL",
   "VERCEL_AI_GATEWAY_CLAUDE_MODEL",
 ] as const
+// @ai-sdk/anthropic 3.x recognises the Claude Opus 4 family and gives it
+// enough output headroom for our structured critique. Unknown future majors
+// fall back to conservative capabilities and can truncate otherwise valid JSON,
+// so automatic discovery must not outrun the installed provider. Operators can
+// still opt into a newer model explicitly through the model env variables.
+const SDK_COMPATIBLE_DIRECT_OPUS_PREFIX = "claude-opus-4-"
 const FALLBACK_DIRECT_OPUS_MODEL = "claude-opus-4-7"
 const FALLBACK_GATEWAY_OPUS_MODEL = "anthropic/claude-opus-4.7"
 
@@ -152,7 +158,7 @@ export function selectLatestAnthropicOpusModel(models: AnthropicModelInfo[]): st
       const createdAt = typeof model.created_at === "string" ? Date.parse(model.created_at) : Number.NaN
       return { id, createdAt, index }
     })
-    .filter((model) => model.id.startsWith("claude-opus-"))
+    .filter((model) => model.id.startsWith(SDK_COMPATIBLE_DIRECT_OPUS_PREFIX))
 
   if (opusModels.length === 0) return undefined
 
