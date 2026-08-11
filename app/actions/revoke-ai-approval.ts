@@ -4,8 +4,10 @@
  * Revoke AI Auto-Approval
  *
  * Lets a doctor revoke an auto-issued certificate at any time. The certificate
- * is revoked via the existing revocation flow, and the intake returns to
- * in_review for manual doctor assessment.
+ * revocation, the intake's return to in_review, and both audit events happen in
+ * ONE database transaction (`revoke_auto_issued_certificate`), so a failure can
+ * never strand a revoked certificate on an approved intake — the split-brain
+ * the pre-2026-08-11 sequential writes allowed.
  *
  * This is the standing correction path for auto-issued certificates. It is not
  * tied to any review window: the post-approval attestation obligation was
@@ -17,7 +19,6 @@
 
 import * as Sentry from "@sentry/nextjs"
 
-import { revokeCertificateAction } from "@/app/actions/revoke-cert"
 import { withServerAction } from "@/lib/actions/with-server-action"
 import { doctorHasCapability } from "@/lib/auth/staff-capabilities"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
@@ -30,10 +31,34 @@ interface RevokeAIApprovalInput {
   reason: string
 }
 
+interface RevokeRpcRow {
+  outcome:
+    | "revoked_and_reopened"
+    | "already_reopened"
+    | "intake_not_found"
+    | "not_auto_issued"
+    | "wrong_category"
+    | "wrong_status"
+    | "certificate_not_found"
+    | "certificate_not_revocable"
+  certificate_id: string | null
+  patient_id: string | null
+}
+
+const OUTCOME_ERRORS: Record<Exclude<RevokeRpcRow["outcome"], "revoked_and_reopened" | "already_reopened">, string> = {
+  intake_not_found: "Intake not found",
+  not_auto_issued: "This intake was not AI-approved",
+  wrong_category: "Only medical certificates can be revoked this way",
+  wrong_status:
+    "This request has changed status, so it can no longer be revoked this way. Reload the case and check its current state.",
+  certificate_not_found: "No certificate found for this request",
+  certificate_not_revocable: "Certificate status changed. Please refresh and try again.",
+}
+
 export const revokeAIApproval = withServerAction<RevokeAIApprovalInput>(
   // Admin-only, deliberately narrower than the `review_med_certs` capability.
   //
-  // The caller supplies an arbitrary `intakeId` and the lookup below runs with
+  // The caller supplies an arbitrary `intakeId` and the RPC below runs with
   // the service role, so role + capability alone is not object-level
   // authorization: any non-admin doctor could revoke ANY patient's certificate
   // by id, bypassing the `lib/doctor/patient-access.ts` boundary that scopes
@@ -48,6 +73,9 @@ export const revokeAIApproval = withServerAction<RevokeAIApprovalInput>(
     if (!reason || reason.trim().length < 5) {
       return { success: false, error: "Please provide a reason for revocation (min 5 characters)" }
     }
+    if (reason.trim().length > 2000) {
+      return { success: false, error: "Revocation reason must be 2,000 characters or fewer" }
+    }
 
     // Revoking an issued certificate and reopening the intake is a clinical act
     // on the med-cert service line. Admin short-circuits `doctorHasCapability`,
@@ -60,139 +88,77 @@ export const revokeAIApproval = withServerAction<RevokeAIApprovalInput>(
       }
     }
 
-    // Re-assert the full eligibility shape server-side. The client predicate
-    // (`isRevocableAutoIssuedCertificate`) is a render hint, never the
-    // authority: category and status must hold here too, or a crafted call
-    // could revoke a prescription, or reopen from a terminal state the DB
-    // trigger will then reject — stranding a revoked certificate.
-    const { data: intake, error: fetchError } = await supabase
-      .from("intakes")
-      .select("id, status, ai_approved, patient_id, category")
-      .eq("id", intakeId)
-      .single()
-
-    if (fetchError || !intake) {
-      return { success: false, error: "Intake not found" }
-    }
-
-    if (!intake.ai_approved) {
-      return { success: false, error: "This intake was not AI-approved" }
-    }
-
-    if (intake.category !== "medical_certificate") {
-      return { success: false, error: "Only medical certificates can be revoked this way" }
-    }
-
-    // Med certs terminate at `approved`. The guarded DB trigger permits
-    // `approved -> in_review` only when the certificate is revoked; from any
-    // other status the reopen is rejected after the cert is already gone.
-    if (intake.status !== "approved") {
-      return {
-        success: false,
-        error: `This request is ${intake.status}, so it can no longer be revoked this way`,
-      }
-    }
-
-    // Revoke the certificate using existing action
-    const revokeResult = await revokeCertificateAction({
-      intakeId,
-      reason: `[AI Review Revocation] ${reason.trim()}`,
+    // One transaction owns the whole correction: eligibility re-assertion under
+    // FOR UPDATE locks, certificate revocation, the guarded approved ->
+    // in_review reopen (the DB trigger sees the revoked certificate inside the
+    // same transaction), and both audit events. Domain refusals come back as
+    // outcome rows; only infrastructure failures surface as errors — and an
+    // error means NOTHING was changed.
+    const { data, error: rpcError } = await supabase.rpc("revoke_auto_issued_certificate", {
+      p_intake_id: intakeId,
+      p_actor_id: profile.id,
+      p_actor_role: profile.role ?? "doctor",
+      p_actor_name: profile.full_name ?? "Admin",
+      p_reason: reason.trim(),
     })
 
-    if (!revokeResult.success && !revokeResult.alreadyRevoked) {
-      log.error("Failed to revoke AI-approved certificate", { intakeId, error: revokeResult.error })
-      return { success: false, error: revokeResult.error || "Failed to revoke certificate" }
-    }
-
-    // Return the intake to manual review. The DB trigger permits this
-    // approved -> in_review reversal only because the certificate is now
-    // revoked (migration 20260711193000).
-    //
-    // Compare-and-set on `status`: the eligibility check above ran before the
-    // revoke, so a concurrent transition (a second operator, the 30s undo, a
-    // cron) could have moved the intake in between. Without the predicate this
-    // update would either clobber that transition or silently no-op while the
-    // caller was told the revoke succeeded. `select` returns the affected rows
-    // so zero matches is distinguishable from a write error.
-    const { data: reopenedRows, error: updateError } = await supabase
-      .from("intakes")
-      .update({
-        status: "in_review",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", intakeId)
-      .eq("status", "approved")
-      .select("id")
-
-    if (updateError) {
-      log.error("Failed to update intake status after revocation", { intakeId, error: updateError.message })
-      return {
-        success: false,
-        error: "Certificate revoked, but the intake could not return to manual review. Retry before leaving this case.",
-      }
-    }
-
-    if (!reopenedRows || reopenedRows.length === 0) {
-      // The certificate IS revoked, but something else moved the intake first.
-      // Surface it rather than reporting a clean success: an operator must not
-      // walk away believing the case is back in the queue when it is not.
-      log.error("Intake status changed concurrently during revocation", {
-        intakeId,
-        expectedStatus: "approved",
-      })
-      Sentry.captureMessage("Auto-issued revoke: intake moved before reopen", {
-        level: "warning",
+    if (rpcError) {
+      log.error("Auto-issued revocation transaction failed", { intakeId, error: rpcError.message })
+      Sentry.captureMessage("Auto-issued revoke: transaction failed", {
+        level: "error",
         tags: { subsystem: "revoke-ai-approval", intake_id: intakeId },
       })
       return {
         success: false,
-        error: "Certificate revoked, but this request changed status at the same time. Reload the case and check its current state before leaving it.",
+        error: "The revocation could not be completed, so nothing was changed. Retry before leaving this case.",
       }
     }
 
-    // Log to ai_audit_log
-    await supabase.from("ai_audit_log").insert({
-      intake_id: intakeId,
-      action: "reject",
-      draft_type: "med_cert",
-      draft_id: null,
-      actor_id: profile.id,
-      actor_type: "doctor",
-      reason: reason.trim(),
-      metadata: {
-        revoked_by: profile.full_name,
-        original_status: intake.status,
-      },
-    })
-
-    // Notify patient that their certificate is under review
-    if (intake.patient_id) {
-      await createNotification({
-        userId: intake.patient_id,
-        type: "request_update",
-        title: "Certificate under review",
-        message: "A doctor is reviewing your medical certificate. We'll update you shortly with the outcome.",
-        actionUrl: buildPatientIntakeHref(intakeId),
-        metadata: { intakeId, revoked: true },
-      })
+    const row = (Array.isArray(data) ? data[0] : data) as RevokeRpcRow | undefined
+    if (!row?.outcome) {
+      log.error("Auto-issued revocation returned no outcome", { intakeId })
+      return {
+        success: false,
+        error: "The revocation could not be completed, so nothing was changed. Retry before leaving this case.",
+      }
     }
 
-    // Sentry alert for monitoring
-    Sentry.captureMessage("Auto-reviewed certificate revoked by doctor", {
-      level: "warning",
-      tags: {
-        subsystem: "cert-pipeline",
-        intake_id: intakeId,
-        doctor_id: profile.id,
-      },
-      extra: { reason: reason.trim() },
-    })
+    if (row.outcome !== "revoked_and_reopened" && row.outcome !== "already_reopened") {
+      log.warn("Auto-issued revocation refused", { intakeId, outcome: row.outcome })
+      return { success: false, error: OUTCOME_ERRORS[row.outcome] }
+    }
 
-    log.info("AI-approved certificate revoked", {
-      intakeId,
-      doctorId: profile.id,
-      reason: reason.trim(),
-    })
+    // The correction is durable from here — notification and cache busting are
+    // advisory and must never misreport the completed clinical correction.
+    if (row.outcome === "revoked_and_reopened") {
+      if (row.patient_id) {
+        const notification = await createNotification({
+          userId: row.patient_id,
+          type: "request_update",
+          title: "Certificate under review",
+          message: "A doctor is reviewing your medical certificate. We'll update you shortly with the outcome.",
+          actionUrl: buildPatientIntakeHref(intakeId),
+          metadata: { intakeId, revoked: true },
+        })
+        if (!notification.success) {
+          log.warn("Patient notification failed after revocation", { intakeId })
+        }
+      }
+
+      // Sentry alert for monitoring. The clinical reason stays in the audit
+      // tables, never in telemetry.
+      Sentry.captureMessage("Auto-reviewed certificate revoked by doctor", {
+        level: "warning",
+        tags: {
+          subsystem: "cert-pipeline",
+          intake_id: intakeId,
+          doctor_id: profile.id,
+        },
+      })
+      log.info("AI-approved certificate revoked", { intakeId, doctorId: profile.id })
+    } else {
+      log.info("AI-approved certificate revocation already complete", { intakeId })
+    }
 
     revalidateStaff({ intakeId })
     revalidatePatient({ intakeId })
