@@ -215,7 +215,7 @@ Baseline guide quality:
 
 Educational medicine pages may link to generic service pages:
 
-Only active services may be used as acquisition links. Weight management launched on 2026-08-07, so organic and onsite content may link to its service page without implying a prescription outcome or ongoing treatment program.
+Only active services may be used as acquisition links. Weight management launched on 2026-08-10, so organic and onsite content may link to its service page without implying a prescription outcome or ongoing treatment program.
 
 - `/prescriptions`
 - `/request?service=prescription`

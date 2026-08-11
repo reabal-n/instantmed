@@ -1,9 +1,9 @@
 'use client'
 
 /**
- * Weight-management landing — LIVE since 2026-08-07 (operator decisions
+ * Weight-management landing — LIVE since 2026-08-10 (operator decisions
  * D-A..D-E, docs/plans/2026-08-07-weight-loss-launch-plan.md). Kept
- * launch-ready while gated 2026-06-10 → 2026-08-07; app/weight-loss/page.tsx
+ * launch-ready while gated 2026-06-10 → 2026-08-10; app/weight-loss/page.tsx
  * now renders it. Copy rules: no prescription medicine names, no outcome
  * guarantees, BMI thresholds must match lib/clinical/weight-loss-eligibility.
  */

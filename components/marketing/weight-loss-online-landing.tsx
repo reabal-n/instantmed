@@ -38,7 +38,7 @@ import { PRICING_DISPLAY } from "@/lib/constants"
 import { WEIGHT_LOSS_ONLINE_FAQ } from "@/lib/data/weight-loss-online-faq"
 import { cn } from "@/lib/utils"
 
-// The live weight-management landing (service launched 2026-08-07).
+// The live weight-management landing (service launched 2026-08-10).
 const ACTIVE_SERVICES_HREF = "/weight-loss"
 
 const LANDING_CONFIG: LandingPageConfig = {
