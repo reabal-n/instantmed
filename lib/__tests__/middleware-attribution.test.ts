@@ -93,7 +93,8 @@ describe("captureAttributionToCookie", () => {
     expect(data.utm_medium).toBe("cpc")
     expect(data.utm_campaign).toBe("medcert_au")
     expect(data.landing_page).toBe("/medical-certificate")
-    expect(data.referrer).toBe("https://www.google.com.au/")
+    // Origin-only: the sanitizer strips paths/query before persistence.
+    expect(data.referrer).toBe("https://www.google.com.au")
     expect(typeof data.captured_at).toBe("string")
   })
 
@@ -179,6 +180,37 @@ describe("captureAttributionToCookie", () => {
     const out = captureAttributionToCookie(req, NextResponse.next())
     const data = decodeAttributionCookie(out.cookies.get(ATTRIBUTION_COOKIE_KEY)!.value)
 
-    expect(data.referrer).toBe("https://www.google.com.au/")
+    // Sanitized on rewrite: external referrers persist origin-only.
+    expect(data.referrer).toBe("https://www.google.com.au")
+  })
+
+  it("sanitizes referrer paths and query strings before the cookie", () => {
+    const req = buildRequest("https://instantmed.com.au/?gclid=x", {
+      referer: "https://chatgpt.com/c/private-thread?prompt=health",
+    })
+    const out = captureAttributionToCookie(req, NextResponse.next())
+    const data = decodeAttributionCookie(out.cookies.get(ATTRIBUTION_COOKIE_KEY)!.value)
+
+    expect(data.referrer).toBe("https://chatgpt.com")
+  })
+
+  it("keeps path only for an internal referrer and drops garbage referrers", () => {
+    const internal = captureAttributionToCookie(
+      buildRequest("https://instantmed.com.au/?gclid=x", {
+        referer: "https://instantmed.com.au/request?service=ed",
+      }),
+      NextResponse.next(),
+    )
+    expect(
+      decodeAttributionCookie(internal.cookies.get(ATTRIBUTION_COOKIE_KEY)!.value).referrer,
+    ).toBe("/request")
+
+    const garbage = captureAttributionToCookie(
+      buildRequest("https://instantmed.com.au/?gclid=x", { referer: "not a url" }),
+      NextResponse.next(),
+    )
+    expect(
+      decodeAttributionCookie(garbage.cookies.get(ATTRIBUTION_COOKIE_KEY)!.value).referrer,
+    ).toBeUndefined()
   })
 })

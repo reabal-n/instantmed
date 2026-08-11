@@ -95,4 +95,29 @@ describe("attribution source classification", () => {
 
     expect(classifyAttributionSource({}).group).toBe("unknown")
   })
+
+  it("classifies AI arrivals exactly — substring lookalikes stay non-AI (2026-08-11)", () => {
+    // Real AI arrivals.
+    expect(
+      classifyAttributionSource({ landing_page: "/", referrer: "https://chatgpt.com/" }).group,
+    ).toBe("ai_referral")
+    expect(
+      classifyAttributionSource({ landing_page: "/", utm_source: "chatgpt.com" }).group,
+    ).toBe("ai_referral")
+
+    // The substring-era false positives: youtube matched "you", bing matched
+    // Copilot, meta matched Meta AI, our own campaign names matched engines,
+    // and any URL merely containing "chatgpt" counted as an AI arrival.
+    for (const input of [
+      { landing_page: "/", utm_source: "youtube" },
+      { landing_page: "/", utm_source: "bing" },
+      { landing_page: "/", utm_source: "meta" },
+      { landing_page: "/", utm_source: "gemini_test" },
+      { landing_page: "/", utm_campaign: "gemini-cert-2026" },
+      { landing_page: "/", referrer: "https://www.reddit.com/r/chatgpt/top" },
+      { landing_page: "/", referrer: "https://chatgpt.com.evil.example/" },
+    ]) {
+      expect(classifyAttributionSource(input).group).not.toBe("ai_referral")
+    }
+  })
 })
