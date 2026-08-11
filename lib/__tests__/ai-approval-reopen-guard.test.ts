@@ -46,8 +46,13 @@ describe("AI-approved medical certificate reopen guard", () => {
     expect(block).not.toContain("OLD.ai_approved IS NOT TRUE")
   })
 
-  it("still surfaces a recoverable error if the reopen update genuinely fails", () => {
-    expect(action).toContain("Certificate revoked, but the intake could not return to manual review")
+  it("still surfaces a recoverable error if the correction genuinely fails", () => {
+    // Atomic since 2026-08-11: an infrastructure failure rolls the whole
+    // transaction back, so the message truthfully says nothing changed — the
+    // old "certificate revoked, but…" split state can no longer exist.
+    expect(action).toContain(
+      "The revocation could not be completed, so nothing was changed. Retry before leaving this case.",
+    )
   })
 
   it("gates the destructive revoke path on the med-cert review capability", () => {
@@ -59,14 +64,15 @@ describe("AI-approved medical certificate reopen guard", () => {
   // lets a doctor revoke ANY patient's certificate, bypassing the per-doctor
   // patient-access boundary. Without this pin a refactor could silently widen
   // it back to ["doctor", "admin"] — nothing else fails when that happens.
-  it("keeps the revoke action admin-only with server-side shape re-assertion", () => {
+  it("keeps the revoke action admin-only and fully transactional", () => {
     expect(action).toContain('roles: ["admin"]')
     expect(action).not.toContain('roles: ["doctor", "admin"]')
-    expect(action).toContain('intake.category !== "medical_certificate"')
-    expect(action).toContain('intake.status !== "approved"')
-    // The reopen must stay compare-and-set so a concurrent transition cannot
-    // be clobbered or silently no-op after the certificate is already revoked.
-    expect(action).toContain('.eq("status", "approved")')
+    // Shape enforcement (category, status, certificate state) moved INTO the
+    // transactional RPC under FOR UPDATE locks — pinned by
+    // auto-issued-revoke-transaction-contract.test.ts. The action must stay a
+    // single RPC delegate, never a split of app-side writes.
+    expect(action).toContain('.rpc("revoke_auto_issued_certificate"')
+    expect(action).not.toContain('.from("intakes")')
   })
 
   // Removing the 24h attestation card deleted `revokeAIApproval`'s ONLY UI
