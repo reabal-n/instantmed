@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  CONTROLLED_SUBSTANCE_PATTERNS,
   CONTROLLED_SUBSTANCE_TERMS,
   getLikelyDeclinedOnlineMedication,
 } from "@/lib/clinical/controlled-substances"
@@ -23,10 +22,6 @@ import { BLOCKED_S8_TERMS, containsBlockedSubstance } from "@/lib/validation/rep
 describe("controlled-substance blocklist parity", () => {
   it("keeps the repeat-script server blocklist identical to the shared term list", () => {
     expect(BLOCKED_S8_TERMS).toBe(CONTROLLED_SUBSTANCE_TERMS)
-  })
-
-  it("derives exactly one intake pattern per shared term", () => {
-    expect(CONTROLLED_SUBSTANCE_PATTERNS).toHaveLength(CONTROLLED_SUBSTANCE_TERMS.length)
   })
 
   it("detects every shared term through the intake regex detector", () => {

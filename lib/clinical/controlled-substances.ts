@@ -76,7 +76,7 @@ function escapeRegExp(value: string): string {
  * One case-insensitive pattern per term. Spaces match flexibly ("ms contin"
  * also matches "mscontin") so brand-name spacing quirks cannot slip past.
  */
-export const CONTROLLED_SUBSTANCE_PATTERNS: readonly RegExp[] =
+const CONTROLLED_SUBSTANCE_PATTERNS: readonly RegExp[] =
   CONTROLLED_SUBSTANCE_TERMS.map(
     (term) => new RegExp(escapeRegExp(term).replace(/ /g, "\\s*"), "i"),
   )
