@@ -6,13 +6,13 @@
 import {
   containsControlledMedicationTerm,
   CONTROLLED_SUBSTANCE_TERMS,
-  getLikelyDeclinedOnlineMedication,
 } from "@/lib/clinical/controlled-substances"
 import { detectDedicatedServiceForMedication } from "@/lib/clinical/medication-service-routing"
 import { getRepeatRxAttestationStatus } from "@/lib/clinical/repeat-rx-attestation"
 import {
   buildRepeatScriptMedicationValidationText,
   extractRepeatScriptMedications,
+  getLikelyDeclinedRepeatMedication,
   isUnidentifiedRepeatMedication,
   isUsefulMedicationDescription,
   MAX_REPEAT_SCRIPT_MEDICATIONS,
@@ -312,9 +312,7 @@ export function validateRepeatScriptPayload(
   // medication text. Checkout enforces it so a restored review-step draft or a
   // direct payload cannot bypass the pre-payment warning.
   for (const medication of medications) {
-    const advisory = getLikelyDeclinedOnlineMedication(
-      buildRepeatScriptMedicationValidationText(medication),
-    )
+    const advisory = getLikelyDeclinedRepeatMedication(medication)
     if (
       advisory &&
       answers.repeat_rx_decline_advisory_acknowledged_for !== advisory.token

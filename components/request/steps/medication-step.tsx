@@ -63,7 +63,6 @@ import {
   INTAKE_ANALYTICS_EVENTS,
 } from "@/lib/analytics/intake-events"
 import { usePostHog } from "@/lib/analytics/posthog-context"
-import { getLikelyDeclinedOnlineMedication } from "@/lib/clinical/controlled-substances"
 import { isControlledMedicationName } from "@/lib/clinical/intake-validation"
 import { type DedicatedServiceMatch, detectDedicatedServiceForMedication, ROUTING_CONTEXT_LABELS } from "@/lib/clinical/medication-service-routing"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
@@ -80,7 +79,10 @@ import {
 } from "@/lib/request/repeat-rx-regimen"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { deriveRepeatMedicationTerminalBlock } from "@/lib/request/terminal-safety-blocks"
-import { resolveRepeatMedicationCode } from "@/lib/validation/repeat-script-medications"
+import {
+  getLikelyDeclinedRepeatMedication,
+  resolveRepeatMedicationCode,
+} from "@/lib/validation/repeat-script-medications"
 
 import { FormField } from "../form-field"
 import { useRequestStore } from "../store"
@@ -318,7 +320,10 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   const likelyDeclinedMedication = useMemo(() => {
     if (!steerEnabled) return null
     for (const med of medications) {
-      const match = getLikelyDeclinedOnlineMedication(med.name)
+      const match = getLikelyDeclinedRepeatMedication({
+        ...med,
+        displayName: med.name,
+      })
       if (match) return match
     }
     return null

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import { getMedicationBlocklistCandidate } from "@/lib/operational-controls/medication-blocklist"
 import { validateMedicationStep } from "@/lib/request/validation"
 import {
+  getLikelyDeclinedRepeatMedication,
   isUnidentifiedRepeatMedication,
   resolveRepeatMedicationCode,
 } from "@/lib/validation/repeat-script-medications"
@@ -135,6 +136,14 @@ describe("repeat script schema", () => {
 
     expect(result).toMatchObject({ valid: false, requiresConsult: false })
     expect(result.error).toMatch(/review the online-prescribing note/i)
+  })
+
+  it("recognises an advisory brand split across structured medication fields", () => {
+    expect(getLikelyDeclinedRepeatMedication({
+      name: "Nurofen",
+      displayName: "Nurofen",
+      form: "Plus",
+    })?.token).toBe("nurofen_plus")
   })
 })
 
