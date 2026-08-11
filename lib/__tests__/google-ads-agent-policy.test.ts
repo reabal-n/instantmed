@@ -137,6 +137,15 @@ function recommendationFor(
   return recommendations.find((recommendation) => recommendation.service === service)
 }
 
+// Most gate tests exercise the underlying economics/tracking rules, which the
+// durable Scripts attribution hold would otherwise mask. The default-holds
+// behaviour has its own describe block below.
+const EMPTY_HOLDS: ReadonlySet<Exclude<AdsService, "account">> = new Set()
+
+function evaluatePolicyWithoutHolds(snap: ReturnType<typeof snapshot>) {
+  return evaluateAdsPolicy(snap, { openAttributionHolds: EMPTY_HOLDS })
+}
+
 describe("Google Ads Agent policy", () => {
   it("pins the campaign constitution and safety limits", () => {
     expect(POLICY.account.dailyBudgetEnvelopeCents).toBe(8400)
@@ -153,7 +162,7 @@ describe("Google Ads Agent policy", () => {
   })
 
   it("blocks scale proposals whenever tracking is not GREEN", () => {
-    const recommendations = evaluateAdsPolicy(snapshot({
+    const recommendations = evaluatePolicyWithoutHolds(snapshot({
       tracking: {
         evidenceAsOf: "2026-07-28T00:00:00.000Z",
         reasonCodes: ["GOOGLE_DIAGNOSTICS_LAGGING"],
@@ -178,7 +187,7 @@ describe("Google Ads Agent policy", () => {
       refundedOrders: 2,
       refundRate: 2 / 12,
     })
-    const recommendations = evaluateAdsPolicy(snapshot({
+    const recommendations = evaluatePolicyWithoutHolds(snapshot({
       daily: [scripts],
       rolling30: [scripts],
     }))
@@ -208,7 +217,7 @@ describe("Google Ads Agent policy", () => {
       spendCents: 18881,
       stripeFeeCents: 114,
     })
-    const recommendations = evaluateAdsPolicy(snapshot({
+    const recommendations = evaluatePolicyWithoutHolds(snapshot({
       daily: [hairLoss],
       rolling30: [hairLoss],
     }))
@@ -222,7 +231,7 @@ describe("Google Ads Agent policy", () => {
   })
 
   it("returns at most one material recommendation per campaign service", () => {
-    const recommendations = evaluateAdsPolicy(snapshot())
+    const recommendations = evaluatePolicyWithoutHolds(snapshot())
 
     for (const service of new Set(recommendations.map(({ service }) => service))) {
       expect(
@@ -242,7 +251,7 @@ describe("Google Ads Agent policy", () => {
       refundRate: 1 / 49,
       serviceOrders: { ed: 1, scripts: 48 },
     })
-    const recommendations = evaluateAdsPolicy(snapshot({
+    const recommendations = evaluatePolicyWithoutHolds(snapshot({
       daily: [scripts],
       rolling30: [scripts],
     }))
@@ -262,7 +271,7 @@ describe("Google Ads Agent policy", () => {
       refundRate: 0,
       serviceOrders: { ed: 1, scripts: 9 },
     })
-    const recommendations = evaluateAdsPolicy(snapshot({
+    const recommendations = evaluatePolicyWithoutHolds(snapshot({
       daily: [scripts],
       rolling30: [scripts],
     }))
@@ -282,7 +291,7 @@ describe("Google Ads Agent policy", () => {
       refundRate: 0,
       serviceOrders: { ed: 2, scripts: 8 },
     })
-    const recommendations = evaluateAdsPolicy(snapshot({
+    const recommendations = evaluatePolicyWithoutHolds(snapshot({
       daily: [scripts],
       rolling30: [scripts],
     }))
@@ -316,7 +325,7 @@ describe("Google Ads Agent policy", () => {
       spendCents: 15000,
       stripeFeeCents: 0,
     })
-    const recommendations = evaluateAdsPolicy(snapshot({
+    const recommendations = evaluatePolicyWithoutHolds(snapshot({
       daily: [scripts, ed],
       rolling30: [scripts, ed],
       totals: {
@@ -346,7 +355,7 @@ describe("Google Ads Agent policy", () => {
   })
 
   it("holds the account when enabled budgets exceed the envelope", () => {
-    const recommendations = evaluateAdsPolicy(snapshot({
+    const recommendations = evaluatePolicyWithoutHolds(snapshot({
       account: {
         ...snapshot().account,
         dailyBudgetTotalCents: 8401,
@@ -370,7 +379,7 @@ describe("Google Ads Agent policy", () => {
       contributionMargin: -0.026,
       serviceOrders: { med_certs: 14 },
     })
-    const recommendations = evaluateAdsPolicy(snapshot({
+    const recommendations = evaluatePolicyWithoutHolds(snapshot({
       daily: [medCerts],
       rolling30: [medCerts],
     }))
@@ -381,5 +390,45 @@ describe("Google Ads Agent policy", () => {
       reasonCodes: ["MEDCERT_NEGATIVE_CONTRIBUTION"],
       service: "med_certs",
     })
+  })
+})
+
+describe("Attribution Investigation Holds (code-owned, durable)", () => {
+  it("hold wins over a fully green Scripts scale path", () => {
+    // CONTEXT.md "Attribution Investigation Hold": the 2026-08-05 Scripts
+    // cross-service investigation has a shipped correction but no recorded
+    // resolution, so the code-owned default (OPEN_ATTRIBUTION_HOLDS in
+    // policy.ts) keeps Scripts held. Removing it there is the
+    // reviewed-code-change resolution act — this default-behaviour pin makes
+    // that removal deliberate, never incidental.
+    // Identical snapshot passes SCRIPTS_SCALE_GATES_PASSED without the hold
+    // (pinned above); with the default holds the same day yields INVESTIGATE.
+    const recommendations = evaluateAdsPolicy(snapshot())
+    expect(recommendationFor(recommendations, "scripts")).toEqual({
+      kind: "INVESTIGATE",
+      proposedMutationFamily: null,
+      reasonCodes: ["ATTRIBUTION_INVESTIGATION_HOLD"],
+      service: "scripts",
+    })
+  })
+
+  it("hold stays visible even when no campaign maps to the service", () => {
+    const recommendations = evaluateAdsPolicy(snapshot({ rolling30: [] }))
+    expect(recommendationFor(recommendations, "scripts")).toEqual({
+      kind: "INVESTIGATE",
+      proposedMutationFamily: null,
+      reasonCodes: ["ATTRIBUTION_INVESTIGATION_HOLD"],
+      service: "scripts",
+    })
+  })
+
+  it("clearing the hold restores the underlying gate evaluation", () => {
+    // Same snapshot, no hold: the ordinary Scripts gates run (and pass on
+    // this green fixture). The ONLY difference between scale approval and
+    // INVESTIGATE is the hold set — which is exactly the point.
+    const cleared = evaluatePolicyWithoutHolds(snapshot())
+    expect(recommendationFor(cleared, "scripts")?.reasonCodes).toEqual([
+      "SCRIPTS_SCALE_GATES_PASSED",
+    ])
   })
 })
