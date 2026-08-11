@@ -40,6 +40,11 @@ const SENSITIVE_HEADER_KEYS = new Set([
   "xforwardedfor",
   "xrealip",
   "xclientip",
+  // Referrer URLs can carry paths/query strings (internal navigation state,
+  // external share-link slugs). Drop the whole value rather than trusting
+  // pattern-based query scrubbing.
+  "referer",
+  "referrer",
 ])
 
 const SENSITIVE_KEY_EXACT = new Set([
@@ -75,6 +80,8 @@ const SENSITIVE_KEY_EXACT = new Set([
   "query",
   "recipientemail",
   "recipientname",
+  "referer",
+  "referrer",
   "reviewclickkey",
   "subject",
   "search",

@@ -1,3 +1,5 @@
+import { classifyAiSource } from "@/lib/analytics/ai-source"
+
 export type AttributionSourceGroup =
   | "google_ads"
   | "organic_nonbrand"
@@ -61,16 +63,6 @@ export const ATTRIBUTION_SOURCE_ORDER: AttributionSourceGroup[] = [
   "direct",
   "unknown",
   "other_paid",
-]
-
-const AI_PATTERNS = [
-  "chatgpt",
-  "perplexity",
-  "claude",
-  "gemini",
-  "copilot",
-  "poe.com",
-  "you.com",
 ]
 
 const SEARCH_HOST_PATTERNS = [
@@ -230,7 +222,6 @@ export function classifyAttributionSource(
   const utmMedium = lower(row.utm_medium)
   const utmCampaign = lower(row.utm_campaign)
   const utmTerm = lower(row.utm_term)
-  const referrer = lower(row.referrer)
   const host = referrerHost(row.referrer)
   const hostLower = host.toLowerCase()
   const sourceLabel = firstPresent(row.utm_source, host, row.landing_page)
@@ -272,8 +263,11 @@ export function classifyAttributionSource(
     }
   }
 
-  const aiToken = [utmSource, utmCampaign, referrer, hostLower].join(" ")
-  if (containsAny(aiToken, AI_PATTERNS)) {
+  // Exact classification only (shared with the ai_referral event emitter).
+  // The old substring blob over utm_source+utm_campaign+referrer classified
+  // `utm_source=youtube`, our own "gemini-*" campaign names, and any URL
+  // containing "chatgpt" as AI arrivals.
+  if (classifyAiSource({ referrer: row.referrer, utmSource: row.utm_source })) {
     return {
       action: "Track AI referrals as their own channel, not generic referral traffic.",
       group: "ai_referral",

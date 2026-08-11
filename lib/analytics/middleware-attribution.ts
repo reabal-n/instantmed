@@ -1,6 +1,7 @@
 import type { NextRequest, NextResponse } from "next/server"
 
 import { deriveChannelFromClickIds } from "@/lib/analytics/click-id-channels"
+import { sanitizeAttributionReferrer } from "@/lib/analytics/referrer-privacy"
 import { isExternalAnalyticsExcludedPathname } from "@/lib/browser/sensitive-capability-path"
 
 /**
@@ -86,7 +87,15 @@ export function captureAttributionToCookie<R extends NextResponse>(
     // Malformed cookie - treat as empty and overwrite.
   }
 
-  const referrer = req.headers.get("referer") ?? (existing as { referrer?: string }).referrer
+  // Sanitize before the 30-day cookie: external referrers keep origin only,
+  // internal ones keep path only — the raw Referer header (with any path or
+  // query string) never persists.
+  const referrer =
+    sanitizeAttributionReferrer(req.headers.get("referer"), req.nextUrl.origin) ??
+    sanitizeAttributionReferrer(
+      (existing as { referrer?: string }).referrer,
+      req.nextUrl.origin,
+    )
   const data = {
     ...existing,
     ...captured,

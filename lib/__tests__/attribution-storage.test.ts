@@ -38,7 +38,9 @@ describe("attribution storage", () => {
       landing_page: "/request",
       matchtype: "e",
       network: "g",
-      referrer: "https://chatgpt.com/c/thread-1",
+      // External referrers store origin only — paths can carry private
+      // context (thread slugs, share links) the business never needs.
+      referrer: "https://chatgpt.com",
       utm_campaign: "brand",
       utm_content: "hero_cta",
       utm_id: "123456",
@@ -63,5 +65,14 @@ describe("attribution storage", () => {
       campaignid: null,
       utm_source: null,
     })
+  })
+
+  it("stores internal referrers as path only and drops unparseable referrers", () => {
+    expect(
+      normalizeAttributionForStorage({
+        referrer: "https://instantmed.com.au/request?service=ed",
+      }).referrer,
+    ).toBe("/request")
+    expect(normalizeAttributionForStorage({ referrer: "not a url" }).referrer).toBeNull()
   })
 })
