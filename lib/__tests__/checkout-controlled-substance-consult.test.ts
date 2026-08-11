@@ -68,8 +68,25 @@ describe("consult checkout controlled-substance hard block (CLIN-1)", () => {
     }
   })
 
+  it("does not treat the Sydney CBD location abbreviation as cannabidiol", async () => {
+    const result = await runClinicalValidation(
+      consultInput("I work in the Sydney CBD and have a mild skin rash"),
+    )
+
+    if (!result.ok) {
+      expect(result.error).not.toMatch(/controlled substance/i)
+    }
+  })
+
   it("blocks chronic-review prescription checkout with the repeat-script controlled-substance guard", async () => {
     const result = await runClinicalValidation(chronicReviewInput("Oxycodone"))
+
+    expect(result.ok).toBe(false)
+    expect("error" in result ? result.error : "").toMatch(/controlled substances/i)
+  })
+
+  it("blocks bare CBD when it is supplied as the requested medication", async () => {
+    const result = await runClinicalValidation(chronicReviewInput("CBD"))
 
     expect(result.ok).toBe(false)
     expect("error" in result ? result.error : "").toMatch(/controlled substances/i)

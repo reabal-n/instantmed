@@ -1,4 +1,7 @@
-import { isControlledSubstance } from '@/lib/clinical/intake-validation'
+import {
+  isControlledMedicationName,
+  isControlledSubstance,
+} from '@/lib/clinical/intake-validation'
 import {
   isExactStringValue,
   PILL_PREGNANCY_STATUS_VALUES,
@@ -133,7 +136,14 @@ function getDerivedValue(
       // simply does not fire — missing medication fields never produce a block.
       for (const field of derivedFrom.fields) {
         const candidate = answers[field]
-        if (typeof candidate === 'string' && candidate.trim() && isControlledSubstance(candidate)) {
+        const isGeneralProse = field === 'consult_details' || field === 'consultDetails'
+        if (
+          typeof candidate === 'string' &&
+          candidate.trim() &&
+          (isGeneralProse
+            ? isControlledSubstance(candidate)
+            : isControlledMedicationName(candidate))
+        ) {
           return true
         }
       }

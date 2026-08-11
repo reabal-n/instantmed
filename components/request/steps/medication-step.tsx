@@ -23,7 +23,7 @@
  *
  * ANSWER KEYS ARE UNCHANGED by the merge. Every clinical backstop still
  * operates on the same typed text and the same keys:
- * - controlled-substance hard block (isControlledSubstance)
+ * - controlled-substance hard block (isControlledMedicationName)
  * - dedicated-service steer: ED, hair-loss and contraceptive-pill medicines
  *   route to their own services (detectDedicatedServiceForMedication). ED and
  *   hair loss are hard-routed (no escape; checkout refuses them too); the pill
@@ -39,7 +39,7 @@
  * 2026-06-26).
  */
 
-import { ArrowRight, HeartPulse, ShieldAlert, Stethoscope } from "lucide-react"
+import { ArrowRight, HeartPulse, Info, ShieldAlert, Stethoscope } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
@@ -63,7 +63,8 @@ import {
   INTAKE_ANALYTICS_EVENTS,
 } from "@/lib/analytics/intake-events"
 import { usePostHog } from "@/lib/analytics/posthog-context"
-import { isControlledSubstance } from "@/lib/clinical/intake-validation"
+import { getLikelyDeclinedOnlineMedication } from "@/lib/clinical/controlled-substances"
+import { isControlledMedicationName } from "@/lib/clinical/intake-validation"
 import { type DedicatedServiceMatch, detectDedicatedServiceForMedication, ROUTING_CONTEXT_LABELS } from "@/lib/clinical/medication-service-routing"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import {
@@ -132,6 +133,7 @@ const COMMON_FREQUENCY_STARTERS = [
 
 const DOSE_CONFIRMATION_REQUIRED = "Please confirm whether the dose or the way you take this medicine has changed"
 const DOSE_CHANGE_REQUIRES_REVIEW = "A dose or directions change needs review by your regular GP or specialist"
+const DECLINE_ADVISORY_REQUIRED = "Read and acknowledge the online-prescribing note before continuing"
 
 export default function MedicationStep({ serviceType, onNext }: MedicationStepProps) {
   const { answers, setAnswers, setAnswer, flowInstanceId } = useRequestStore()
@@ -140,6 +142,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   const searchParams = useSearchParams()
   const medicationNameRef = useRef<HTMLInputElement>(null)
   const steerAlertRef = useRef<HTMLDivElement>(null)
+  const declineAlertRef = useRef<HTMLDivElement>(null)
 
   // Old drafts may carry a PBS `selectedMedication` object or multiple
   // medication rows. Collapse everything to the first requested medicine: a
@@ -312,6 +315,22 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     && serviceSteer.enforcement !== "flag_only"
     && !(serviceSteer.enforcement === "soft" && serviceSteer.subtype === steerDismissedSubtype)
 
+  const likelyDeclinedMedication = useMemo(() => {
+    if (!steerEnabled) return null
+    for (const med of medications) {
+      const match = getLikelyDeclinedOnlineMedication(med.name)
+      if (match) return match
+    }
+    return null
+  }, [steerEnabled, medications])
+  const declineAdvisoryAcknowledgement = stringAnswer(
+    answers.repeat_rx_decline_advisory_acknowledged_for,
+  )
+  const declineRiskActive = Boolean(
+    likelyDeclinedMedication &&
+    declineAdvisoryAcknowledgement !== likelyDeclinedMedication.token,
+  )
+
   const goToDedicatedService = useCallback((subtype: string) => {
     captureIntakeEvent(
       posthog,
@@ -409,7 +428,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     }
     // Belt-and-suspenders: recheck controlled substances in validate.
     for (const med of medications) {
-      if (med.name && isControlledSubstance(med.name)) {
+      if (med.name && isControlledMedicationName(med.name)) {
         newErrors.medication = "Controlled substances cannot be prescribed online"
         break
       }
@@ -471,6 +490,14 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     // A controlled substance is a hard clinical block — the destructive alert
     // above already explains it; never advance past it.
     if (controlledBlock) return
+    if (declineRiskActive) {
+      setBlockedReasons((reasons) => [
+        ...reasons.filter((reason) => reason !== DECLINE_ADVISORY_REQUIRED),
+        DECLINE_ADVISORY_REQUIRED,
+      ])
+      declineAlertRef.current?.focus()
+      return
+    }
     // A steer must never make Continue a dead control: tapping it scrolls the
     // reason into view and states it in the blocked summary, rather than
     // silently doing nothing.
@@ -495,7 +522,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       posthog?.capture('step_completed', { step: 'medication', medication_count: medications.filter((m) => m.name.trim()).length })
       onNext()
     }
-  }, [controlledBlock, steerActive, serviceSteer, validate, medications, posthog, onNext])
+  }, [controlledBlock, declineRiskActive, steerActive, serviceSteer, validate, medications, posthog, onNext])
 
   const activeMedications = medications.filter((m) => m.name.trim())
   // Readiness: a named medicine, when it was last prescribed, and — for a
@@ -513,7 +540,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   )
   // Live-computed; controlledBlock stays (a real clinical block), the stale
   // `errors` object does not gate readiness.
-  const canContinue = isComplete && !controlledBlock && !steerActive
+  const canContinue = isComplete && !controlledBlock && !declineRiskActive && !steerActive
 
   useEffect(() => {
     if (canContinue && blockedReasons.length > 0) setBlockedReasons([])
@@ -597,6 +624,43 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
             </div>
           </AlertDescription>
         </Alert>
+        </div>
+      )}
+
+      {declineRiskActive && likelyDeclinedMedication && (
+        <div ref={declineAlertRef} tabIndex={-1} className="outline-none">
+          <Alert variant="warning">
+            <Info className="size-4" />
+            <p className="mb-1 font-medium leading-none tracking-tight">
+              This request is likely to be declined online
+            </p>
+            <AlertDescription className="text-base">
+              <p>
+                Some {likelyDeclinedMedication.label} products contain codeine.
+                InstantMed doctors commonly decline these through an online repeat
+                request and direct patients to their regular GP for a fuller medication review.
+              </p>
+              <p className="mt-2">
+                You can still ask a doctor to review it. If they decline, you receive a full refund.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-3 h-12"
+                onClick={() => {
+                  setAnswer(
+                    "repeat_rx_decline_advisory_acknowledged_for",
+                    likelyDeclinedMedication.token,
+                  )
+                  setBlockedReasons((reasons) =>
+                    reasons.filter((reason) => reason !== DECLINE_ADVISORY_REQUIRED),
+                  )
+                }}
+              >
+                I understand, continue
+              </Button>
+            </AlertDescription>
+          </Alert>
         </div>
       )}
 

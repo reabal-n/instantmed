@@ -15,10 +15,12 @@
 import { trackSafetyBlock, trackSafetyOutcome } from "@/lib/analytics/posthog-server"
 import { deriveIntakeFlags } from "@/lib/clinical/derive-intake-flags"
 import type { IntakeFlag } from "@/lib/clinical/intake-flags"
-import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
-import { getMedicationBlocklistCandidate } from "@/lib/operational-controls/medication-blocklist"
+import {
+  getMedicationBlocklistCandidate,
+  hasControlledMedicationAnswer,
+} from "@/lib/operational-controls/medication-blocklist"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import { checkSafetyForServer, type ServerSafetyCheck, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
@@ -153,7 +155,7 @@ export async function runClinicalValidation(
       )
     }
 
-    if (medicationBlocklistCandidate && isControlledSubstance(medicationBlocklistCandidate)) {
+    if (hasControlledMedicationAnswer(input.answers)) {
       logger.warn("Controlled substance blocked at checkout", { category: input.category })
       return stepFail(
         "This medication cannot be prescribed through our online service. Controlled substances require an in-person consultation with your regular GP.",
@@ -173,7 +175,7 @@ export async function runClinicalValidation(
     // Hard-block Schedule 8 / controlled substances named in free-text consult
     // details (the candidate already reads consult_details). The repeat-script
     // branch above does the same; consult must not be a back-channel around it.
-    if (medicationBlocklistCandidate && isControlledSubstance(medicationBlocklistCandidate)) {
+    if (hasControlledMedicationAnswer(input.answers)) {
       logger.warn("Controlled substance blocked at checkout", { category: input.category })
       return stepFail(
         "This medication cannot be prescribed through our online service. Controlled substances require an in-person consultation with your regular GP.",

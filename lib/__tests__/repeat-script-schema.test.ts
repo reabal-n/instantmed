@@ -107,6 +107,35 @@ describe("repeat script schema", () => {
       ],
     })).toContain("Oxycodone")
   })
+
+  it("requires the fixed advisory acknowledgement before a likely decline can reach payment", () => {
+    const request = {
+      ...validRepeatScriptAnswers,
+      medication_name: "Panadeine Forte",
+      medication_display: "Panadeine Forte",
+    }
+
+    expect(validateRepeatScriptPayload(request)).toMatchObject({
+      valid: false,
+      requiresConsult: false,
+    })
+    expect(validateRepeatScriptPayload({
+      ...request,
+      repeat_rx_decline_advisory_acknowledged_for: "panadeine",
+    })).toEqual({ valid: true })
+  })
+
+  it("rejects a stale acknowledgement when the medication brand changes", () => {
+    const result = validateRepeatScriptPayload({
+      ...validRepeatScriptAnswers,
+      medication_name: "Mersyndol Forte",
+      medication_display: "Mersyndol Forte",
+      repeat_rx_decline_advisory_acknowledged_for: "panadeine",
+    })
+
+    expect(result).toMatchObject({ valid: false, requiresConsult: false })
+    expect(result.error).toMatch(/review the online-prescribing note/i)
+  })
 })
 
 describe("A3 softening — missing medication strength is a flag, not a block", () => {

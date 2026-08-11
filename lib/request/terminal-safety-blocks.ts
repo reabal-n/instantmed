@@ -1,6 +1,6 @@
 import {
   CONTROLLED_SUBSTANCE_DISCLAIMER,
-  isControlledSubstance,
+  isControlledMedicationName,
 } from "@/lib/clinical/intake-validation"
 import {
   PILL_BLOOD_CLOT_REDIRECT_REASON,
@@ -177,7 +177,7 @@ export function deriveRepeatMedicationTerminalBlock(
     ? restoredEntries.map((entry) => entry.name)
     : [stringAnswer(answers.medicationName) || legacyProduct?.drug_name || ""]
   const medicationName = medicationNames.find(
-    (name) => name && isControlledSubstance(name),
+    (name) => name && isControlledMedicationName(name),
   )
 
   if (!medicationName) return null

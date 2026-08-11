@@ -3,8 +3,12 @@ import { describe, expect, it } from "vitest"
 import {
   CONTROLLED_SUBSTANCE_PATTERNS,
   CONTROLLED_SUBSTANCE_TERMS,
+  getLikelyDeclinedOnlineMedication,
 } from "@/lib/clinical/controlled-substances"
-import { isControlledSubstance } from "@/lib/clinical/intake-validation"
+import {
+  isControlledMedicationName,
+  isControlledSubstance,
+} from "@/lib/clinical/intake-validation"
 import { BLOCKED_S8_TERMS, containsBlockedSubstance } from "@/lib/validation/repeat-script-schema"
 
 /**
@@ -72,6 +76,27 @@ describe("controlled-substance blocklist parity", () => {
     expect(isControlledSubstance("cbdoil")).toBe(true)
   })
 
+  it("covers verified Australian brand and spelling gaps in every medication layer", () => {
+    for (const medication of [
+      "Oxynorm 5 mg",
+      "Norspan patch",
+      "dexamfetamine",
+      "Alepam",
+      "Hypnodorm",
+      "flunitrazepam",
+    ]) {
+      expect(isControlledMedicationName(medication), medication).toBe(true)
+      expect(containsBlockedSubstance(medication), medication).toBe(true)
+    }
+  })
+
+  it("treats bare CBD as medication context, not a general-prose substring", () => {
+    expect(isControlledMedicationName("CBD 25 mg")).toBe(true)
+    expect(containsBlockedSubstance("CBD 25 mg")).toBe(true)
+    expect(isControlledSubstance("I work in the Sydney CBD")).toBe(false)
+    expect(isControlledSubstance("CBD oil 25 mg")).toBe(true)
+  })
+
   it("keeps legitimate repeat medications unblocked on both layers", () => {
     const legitimate = [
       "atorvastatin",
@@ -83,6 +108,8 @@ describe("controlled-substance blocklist parity", () => {
       // Bare "codeine" is deliberately NOT hard-blocked — combination-product
       // repeats belong in front of the reviewing doctor, not at an intake wall.
       "codeine",
+      "Lomotil",
+      "diphenoxylate",
     ]
     for (const name of legitimate) {
       expect(isControlledSubstance(name), `intake detector "${name}"`).toBe(false)
@@ -92,6 +119,28 @@ describe("controlled-substance blocklist parity", () => {
     // paid repeat request at checkout).
     for (const name of ["atorvastatin", "metformin", "sertraline", "perindopril"]) {
       expect(containsBlockedSubstance(name), `server blocklist "${name}"`).toBe(false)
+    }
+  })
+})
+
+describe("likely-declined online medication advisory", () => {
+  it("returns a bounded, persistence-safe token for codeine-combination brands", () => {
+    expect(getLikelyDeclinedOnlineMedication("Panadeine Forte")?.token).toBe("panadeine")
+    expect(getLikelyDeclinedOnlineMedication("Mersyndol Forte")?.token).toBe("mersyndol")
+    expect(getLikelyDeclinedOnlineMedication("Nurofen Plus")?.token).toBe("nurofen_plus")
+    expect(getLikelyDeclinedOnlineMedication("Panamax Co")?.token).toBe("panamax_co")
+  })
+
+  it("does not match a brand prefix inside ordinary Panamax descriptions", () => {
+    for (const medication of ["Panamax coated tablets", "Panamax cold tablets", "Panamax complete"]) {
+      expect(getLikelyDeclinedOnlineMedication(medication), medication).toBeNull()
+    }
+  })
+
+  it("never overlaps with a controlled-medication hard block", () => {
+    for (const medication of ["Oxynorm", "CBD", "Endone"]) {
+      expect(isControlledMedicationName(medication), medication).toBe(true)
+      expect(getLikelyDeclinedOnlineMedication(medication), medication).toBeNull()
     }
   })
 })

@@ -10,6 +10,11 @@ import { getAuthEmailFailureCount } from "@/lib/data/auth-email-events"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { toError } from "@/lib/errors"
+import {
+  type AdsContributionHealth,
+  buildAdsContributionAlert,
+  getAdsContributionHealth,
+} from "@/lib/monitoring/ads-contribution-health"
 import { type BusinessAlert, runAlertSection } from "@/lib/monitoring/alert-sections"
 import { buildAuthEmailFailureAlert } from "@/lib/monitoring/auth-email-failure"
 import {
@@ -162,6 +167,7 @@ export async function GET(request: NextRequest) {
     let operationalInvariants: OperationalInvariants | null = null
     let staleHumanCount: number | null = null
     let prescriptionFulfilment: PrescriptionFulfilmentDashboard | null = null
+    let adsContribution: AdsContributionHealth | null = null
 
     // 1. Failed payments in last hour
     await runAlertSection({
@@ -596,6 +602,33 @@ export async function GET(request: NextRequest) {
     // reintroduce a post-approval review alert; strengthen the pre-approval
     // gate instead.
 
+    // 13. Account-wide paid-acquisition loss. This consumes only the latest
+    // fresh, delivered, GREEN Ads snapshot and includes enabled, paused, and
+    // other campaigns. It never mutates Ads and never carries row-level data.
+    await runAlertSection({
+      section: "ads_contribution",
+      alerts,
+      onFailure: onSectionFailure,
+      run: async () => {
+        adsContribution = await getAdsContributionHealth(supabase, now)
+        const alert = buildAdsContributionAlert(adsContribution)
+        if (!alert) return
+        alerts.push(alert)
+        if (adsContribution.availability === "available") {
+          trackBusinessMetric({
+            metric: "ads_contribution_negative",
+            severity: alert.severity,
+            metadata: {
+              contribution_cents: adsContribution.contributionCents,
+              orders: adsContribution.orders,
+              report_date: adsContribution.reportDate,
+              spend_cents: adsContribution.spendCents,
+            },
+          })
+        }
+      },
+    })
+
     // Fire Sentry alerts for critical items
     const criticalAlerts = alerts.filter((a) => a.severity === "critical")
     if (criticalAlerts.length > 0) {
@@ -705,6 +738,7 @@ export async function GET(request: NextRequest) {
         google_ads_purchase_import_health: googleAdsPurchaseImportHealth,
         google_ads_upload_stream: googleAdsUploadStreamHealth,
         google_ads_adjustment_health: googleAdsAdjustmentHealth,
+        ads_contribution: adsContribution,
         human_review_queue_stalled: staleHumanCount ?? 0,
         prescription_fulfilment: fulfilment
           ? {
