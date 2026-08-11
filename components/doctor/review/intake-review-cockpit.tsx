@@ -324,7 +324,7 @@ export function IntakeReviewCockpit({
             <CertificateDeliveryCard />
 
             <IntakeSecondaryDisclosure
-              priorRequestCount={data.previousIntakes?.length ?? 0}
+              priorRequestCount={data.previousIntakeCount ?? data.previousIntakes?.length ?? 0}
               noteCount={data.patientNotes?.length ?? 0}
               open={disclosureOpen}
               onOpenChange={setDisclosureOpen}

@@ -8,6 +8,7 @@ import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails, getNextQueueIntakeId, getPatientIntakes, getPatientNotes } from "@/lib/data/intakes"
 import { getCertificateForIntake } from "@/lib/data/issued-certificates"
 import { getPatientMessagesForIntake } from "@/lib/data/patient-messages"
+import { getIntakeMedicationLabels } from "@/lib/doctor/intake-medication-label"
 import { detectRenewalsForIntakes } from "@/lib/doctor/renewal-detection"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { maskMedicare } from "@/lib/utils/format"
@@ -68,6 +69,15 @@ export async function GET(
 
   const previousIntakes = patientHistory.data.filter((row) => row.id !== intakeId).slice(0, 5)
 
+  // Two same-service requests are indistinguishable without the medicine the
+  // patient asked for (2026-08-11: two repeat scripts 6 minutes apart read as
+  // duplicates). One batched answers lookup, fail-soft to no label.
+  const medicationLabels = await getIntakeMedicationLabels(previousIntakes.map((row) => row.id))
+  const previousIntakesWithContext = previousIntakes.map((row) => ({
+    ...row,
+    medication_name: medicationLabels.get(row.id) ?? null,
+  }))
+
   // Compute patient age
   let patientAge: number | null = null
   if (intake.patient.date_of_birth) {
@@ -110,8 +120,10 @@ export async function GET(
     maskedMedicare,
     aiDrafts,
     nextIntakeId,
-    previousIntakes,
-    previousIntakeCount: previousIntakes.length,
+    previousIntakes: previousIntakesWithContext,
+    // True prior-request total (all statuses, current intake excluded), not
+    // the length of the capped 5-row page the disclosure renders.
+    previousIntakeCount: Math.max(patientHistory.total - 1, previousIntakes.length),
     patientNotes,
     patientMessages,
     reviewingClinician: {

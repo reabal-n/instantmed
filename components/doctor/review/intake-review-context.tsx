@@ -13,7 +13,8 @@ export interface ReviewData {
   maskedMedicare: string
   aiDrafts: AIDraft[]
   nextIntakeId: string | null
-  previousIntakes?: IntakeWithPatient[]
+  previousIntakes?: Array<IntakeWithPatient & { medication_name?: string | null }>
+  /** True prior-request total for the patient — not the capped 5-row page. */
   previousIntakeCount?: number
   patientNotes?: PatientNote[]
   draftId: string | null
