@@ -6,10 +6,7 @@ import {
   REPEAT_RX_DOSE_CONTRACT_KEY,
   REPEAT_RX_DOSE_CONTRACT_VERSION,
 } from "@/lib/clinical/repeat-rx-dose-requirement"
-import {
-  extractRepeatScriptMedicationStrength,
-  getRepeatScriptMedicationConcreteStrength,
-} from "@/lib/validation/repeat-script-medications"
+import { getRepeatScriptMedicationConcreteStrength } from "@/lib/validation/repeat-script-medications"
 
 describe("repeat-Rx dose requirement", () => {
   it.each([
@@ -18,7 +15,10 @@ describe("repeat-Rx dose requirement", () => {
     ["Amoxicillin 250 mg/5 mL", "250 mg/5 mL"],
     ["Hydrocortisone 1% cream", "1%"],
   ])("extracts a concrete strength from %s", (value, expected) => {
-    expect(extractRepeatScriptMedicationStrength(value)).toBe(expected)
+    expect(getRepeatScriptMedicationConcreteStrength({
+      name: value,
+      displayName: value,
+    })).toBe(expected)
   })
 
   it("prefers a structured strength but accepts a reliable inline strength", () => {

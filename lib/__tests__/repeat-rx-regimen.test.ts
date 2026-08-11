@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest"
 
 import {
   areRepeatRxMedicationDetailsEqual,
-  getRepeatRxRegimenSignals,
   hasCompleteRepeatRxRegimen,
   hasDoseFrequencyStarter,
   toggleDoseFrequencyStarter,
@@ -47,19 +46,10 @@ describe("repeat-Rx regimen editing", () => {
     expect(hasCompleteRepeatRxRegimen(value)).toBe(false)
   })
 
-  it("reports amount and frequency signals independently", () => {
-    expect(getRepeatRxRegimenSignals("Once daily")).toEqual({
-      hasAmount: false,
-      hasFrequency: true,
-    })
-    expect(getRepeatRxRegimenSignals("One tablet")).toEqual({
-      hasAmount: true,
-      hasFrequency: false,
-    })
-    expect(getRepeatRxRegimenSignals("One tablet each morning")).toEqual({
-      hasAmount: true,
-      hasFrequency: true,
-    })
+  it("requires both amount and frequency at the public validation seam", () => {
+    expect(hasCompleteRepeatRxRegimen("Once daily")).toBe(false)
+    expect(hasCompleteRepeatRxRegimen("One tablet")).toBe(false)
+    expect(hasCompleteRepeatRxRegimen("One tablet each morning")).toBe(true)
   })
 
   it("matches frequency starters only as standalone comma-delimited entries", () => {

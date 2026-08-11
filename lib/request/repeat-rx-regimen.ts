@@ -4,7 +4,7 @@ export interface RepeatRxMedicationDetails {
   form?: string
 }
 
-export interface RepeatRxRegimenSignals {
+interface RepeatRxRegimenSignals {
   hasAmount: boolean
   hasFrequency: boolean
 }
@@ -53,7 +53,7 @@ const FREQUENCY_PATTERNS = [
  * regimen signals needed for review. This does not parse, normalize, or infer
  * a dose; the clinician still confirms the exact directions independently.
  */
-export function getRepeatRxRegimenSignals(
+function getRepeatRxRegimenSignals(
   value: string | null | undefined,
 ): RepeatRxRegimenSignals {
   const normalized = typeof value === "string"

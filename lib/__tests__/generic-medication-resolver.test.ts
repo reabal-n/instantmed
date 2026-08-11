@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  isSafeGenericMedicationName,
   type MedicationCatalogRow,
-  normalizeGenericMedicationQuery,
   resolveGenericMedicationNameFromRows,
 } from "@/lib/clinical/generic-medication-resolver"
 
@@ -71,9 +69,14 @@ describe("generic medication resolver", () => {
     })
   })
 
-  it("keeps safe combination-ingredient punctuation", () => {
-    expect(isSafeGenericMedicationName("Amoxicillin/Clavulanate")).toBe(true)
-    expect(isSafeGenericMedicationName("Sulfamethoxazole + Trimethoprim")).toBe(true)
+  it.each([
+    "Amoxicillin/Clavulanate",
+    "Sulfamethoxazole + Trimethoprim",
+  ])("keeps safe combination-ingredient punctuation in a resolved name: %s", (genericName) => {
+    expect(resolveGenericMedicationNameFromRows("Safe Brand", [{
+      name: genericName,
+      brand_names: ["Safe Brand"],
+    }])).toEqual({ status: "resolved", genericName })
   })
 
   it("ignores malformed catalog rows", () => {
@@ -94,15 +97,17 @@ describe("generic medication resolver", () => {
   })
 
   it("normalizes only exact and conservative dose/form variants", () => {
-    expect(normalizeGenericMedicationQuery("Effexor 75 mg XR capsule")).toEqual([
-      "effexor 75 mg xr capsule",
-      "effexor",
-      "efexor",
-    ])
-    expect(normalizeGenericMedicationQuery("Crest")).toEqual(["crest"])
-    expect(normalizeGenericMedicationQuery("Sertraline 100 mg once daily")).toEqual([
-      "sertraline 100 mg once daily",
-      "sertraline once daily",
-    ])
+    expect(resolveGenericMedicationNameFromRows(
+      "Effexor 75 mg XR capsule",
+      CURATED_CATALOG,
+    )).toEqual({ status: "resolved", genericName: "Venlafaxine" })
+    expect(resolveGenericMedicationNameFromRows("Crest", CURATED_CATALOG)).toEqual({
+      status: "unresolved",
+      genericName: null,
+    })
+    expect(resolveGenericMedicationNameFromRows(
+      "Sertraline 100 mg once daily",
+      CURATED_CATALOG,
+    )).toEqual({ status: "unresolved", genericName: null })
   })
 })

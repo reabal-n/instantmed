@@ -215,7 +215,7 @@ function stripContainingClause(value: string | undefined): string | undefined {
  * and concentration strengths are matched before a single amount so values
  * such as "100/3 micrograms" and "5 mg/5 mL" stay intact.
  */
-export function extractRepeatScriptMedicationStrength(
+function extractRepeatScriptMedicationStrength(
   value: string | undefined,
 ): string | undefined {
   if (!value) return undefined

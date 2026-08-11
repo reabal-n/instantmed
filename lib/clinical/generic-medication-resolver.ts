@@ -195,7 +195,7 @@ function stripDoseAndForm(value: string): string {
  * Return only exact and conservative dose/form-stripped lookup candidates.
  * There is intentionally no prefix, substring, edit-distance, or fuzzy match.
  */
-export function normalizeGenericMedicationQuery(value: string): string[] {
+function normalizeGenericMedicationQuery(value: string): string[] {
   const exact = normalizeCharacters(value)
   const core = stripDoseAndForm(value)
   const candidates = [exact, core]
@@ -212,7 +212,7 @@ export function normalizeGenericMedicationQuery(value: string): string[] {
  * Clipboard output must remain a short active-ingredient label. Fail closed on
  * strengths, formulations, directions, prose, or sentence-like punctuation.
  */
-export function isSafeGenericMedicationName(value: string): boolean {
+function isSafeGenericMedicationName(value: string): boolean {
   const genericName = value.trim()
 
   if (

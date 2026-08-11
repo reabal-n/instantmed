@@ -28,9 +28,9 @@ export interface ReviewFact {
   noteCanResolve?: boolean
 }
 
-export type ReviewSafetyFactState = "confirmed_negative" | "missing" | "not_asked"
+type ReviewSafetyFactState = "confirmed_negative" | "missing" | "not_asked"
 
-export interface ReviewSafetyFact {
+interface ReviewSafetyFact {
   key: string
   label: string
   display: string
@@ -39,7 +39,7 @@ export interface ReviewSafetyFact {
   issue?: string
 }
 
-export interface ReviewSafetySummary {
+interface ReviewSafetySummary {
   confirmedNegatives: ReviewSafetyFact[]
   gaps: ReviewSafetyFact[]
 }

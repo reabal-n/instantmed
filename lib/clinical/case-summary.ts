@@ -54,7 +54,7 @@ export interface ClinicalPlan {
   nextSteps: string[]
 }
 
-export interface PrescriptionIntent {
+interface PrescriptionIntent {
   presetLabel: string
   medicationName?: string
   strength?: string
