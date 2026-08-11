@@ -21,7 +21,12 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
-import { getRotatingReviewUrl } from "@/lib/constants"
+import {
+  DEFAULT_REVIEW_DESTINATION,
+  GOOGLE_REVIEW_URL,
+  PRODUCTREVIEW_REVIEW_URL,
+  REVIEW_DESTINATION_URLS,
+} from "@/lib/constants"
 
 const reviewRequestTemplateSource = readFileSync(
   join(process.cwd(), "lib/email/components/templates/review-request.tsx"),
@@ -45,16 +50,29 @@ const patientDocumentsSource = readFileSync(
 )
 
 describe("review CTA destination contract", () => {
-  it("does not hardcode platform-specific 'Google review' copy in review email surfaces", () => {
-    // The destination is the rotating redirect (ProductReview by default), so
-    // naming Google in the button/body is misleading + reads as single-platform
-    // solicitation. Keep the copy destination-neutral ("Leave a review").
-    for (const [label, source] of [
-      ["review request template", reviewRequestTemplateSource],
-      ["review ask card", reviewAskCardSource],
-    ] as const) {
-      expect(source, label).not.toMatch(/Google review/i)
-    }
+  it("keeps the EMAIL destination-neutral: its copy prepares for ProductReview only", () => {
+    // The email is pinned to ProductReview, so naming Google there would be
+    // misleading. The post-delivery CARD is different since 2026-08-07: it
+    // offers an explicit two-platform choice, so platform names appear there
+    // as choice labels — that is the point, not a violation.
+    expect(reviewRequestTemplateSource).not.toMatch(/Google review/i)
+    expect(reviewRequestTemplateSource).not.toMatch(/Review on Google/i)
+  })
+
+  it("offers both destinations on the post-delivery card, ProductReview first", () => {
+    const productReviewIndex = reviewAskCardSource.indexOf('token: "productreview"')
+    const googleIndex = reviewAskCardSource.indexOf('token: "google"')
+    expect(productReviewIndex).toBeGreaterThan(-1)
+    expect(googleIndex).toBeGreaterThan(-1)
+    // Keystone platform leads; Google is the secondary choice.
+    expect(productReviewIndex).toBeLessThan(googleIndex)
+    // Labelled actions, not icon-only controls.
+    expect(reviewAskCardSource).toContain("Review on ProductReview")
+    expect(reviewAskCardSource).toContain("Review on Google")
+    // The honest-ask guardrails stay: no coaching, and the full public-details warning.
+    expect(reviewAskCardSource).toMatch(/good or bad/i)
+    expect(reviewAskCardSource).toContain("Please leave out personal or medical details:")
+    expect(reviewAskCardSource).not.toContain("—")
   })
 
   it("keeps the reusable email review/referral block deleted", () => {
@@ -88,12 +106,13 @@ describe("review CTA destination contract", () => {
   })
 
   it("defaults the off-site review destination to ProductReview, not Google", () => {
-    // Must hold for every month — ProductReview is the baked default so prod
-    // never falls back to Google when the optional env override is unset.
-    for (const month of [0, 1, 5, 6, 11]) {
-      const url = getRotatingReviewUrl(month)
-      expect(url, `month ${month}`).toContain("productreview.com.au")
-      expect(url, `month ${month}`).not.toContain("g.page")
-    }
+    // The silent month-rotation helper is gone (patient choice supersedes it);
+    // the default token and unknown-token fallback are the keystone platform.
+    expect(DEFAULT_REVIEW_DESTINATION).toBe("productreview")
+    expect(REVIEW_DESTINATION_URLS[DEFAULT_REVIEW_DESTINATION]).toBe(PRODUCTREVIEW_REVIEW_URL)
+    expect(REVIEW_DESTINATION_URLS["google"]).toBe(GOOGLE_REVIEW_URL)
+    expect(Object.keys(REVIEW_DESTINATION_URLS).sort()).toEqual(["google", "productreview"])
+    expect(reviewRedirectSource).toContain("DEFAULT_REVIEW_DESTINATION")
+    expect(reviewRedirectSource).not.toContain("getRotatingReviewUrl")
   })
 })
