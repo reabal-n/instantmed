@@ -60,6 +60,11 @@ export interface PatientTimelineRequest {
   amount_cents?: number | null
   /** Already-refunded amount in cents. 0 if none. */
   refund_amount_cents?: number | null
+  /**
+   * Patient-typed medicine for prescription-shaped requests (doctor context
+   * only). Distinguishes two same-service history rows.
+   */
+  medication_name?: string | null
   service?: {
     name?: string | null
     short_name?: string | null
@@ -162,13 +167,15 @@ function emailTypeLabel(type: string): string {
 }
 
 function requestLabel(request: PatientTimelineRequest): string {
-  return (
+  const serviceLabel =
     request.service_label
     || request.service?.short_name
     || request.service?.name
     || request.category
     || "Request"
-  )
+  return request.medication_name
+    ? `${serviceLabel} · ${request.medication_name}`
+    : serviceLabel
 }
 
 function requestHref(request: PatientTimelineRequest, admin: boolean): string {

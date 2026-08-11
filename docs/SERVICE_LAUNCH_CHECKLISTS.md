@@ -7,7 +7,7 @@
 
 ## Launch Rule
 
-Medical certificates, repeat scripts, ED, hair loss, narrowly scoped women's health, and (from 2026-08-07) the weight-management assessment may remain live as bounded pilots to gather data (operator decisions 2026-07-12 and 2026-08-07). Paid budget applies only where separately approved; weight-management advertising remains unapproved. A standing pilot approval is not approval to scale.
+Medical certificates, repeat scripts, ED, hair loss, narrowly scoped women's health, and (from 2026-08-10) the weight-management assessment may remain live as bounded pilots to gather data (operator decisions 2026-07-12 and 2026-08-07). Paid budget applies only where separately approved; weight-management advertising remains unapproved. A standing pilot approval is not approval to scale.
 
 Do not materially increase spend for a prescribing or specialty service until every must-pass item is current, evidence is captured, the service passes the economic rule in `docs/REVENUE_MODEL.md`, and the owner-operator approves the exact Ads mutation. If a gate fails, hold scaling and present the required pause, rollback, or remediation for approval. Clinical/service kill switches remain governed by the incident and safety runbooks.
 
@@ -74,7 +74,7 @@ Scope is live but deliberately narrow: UTI symptoms and new/switch contraceptive
 | Paid landing page | Ads and pages stay narrow: UTI assessment or contraception review only. No antibiotic guarantee, pill guarantee, broad women's-health positioning, prescription medicine names, or no-call promise. | AHPRA/TGA/Google risk and unsuitable patient intent increase. |
 | Pilot threshold | Keep bounded paid cohorts under daily manual review. Recommend pausing or remediating if refund rate exceeds 10%, unsuitable-case rate exceeds 20%, or doctor-contact rate exceeds 40%. | Paid traffic scales a high-friction or clinically unsuitable service. |
 
-## Weight Management (launched 2026-08-07)
+## Weight Management (launched 2026-08-10)
 
 Scope is deliberately narrow: a one-off, form-first, GLP-1-focused doctor assessment (operator decisions D-A..D-E, `docs/plans/2026-08-07-weight-loss-launch-plan.md`). Phentermine is excluded at launch; continuation is a new consult, never a subscription. **No paid advertising** — `docs/ADVERTISING_COMPLIANCE.md` requires its own approval for any weight campaign.
 

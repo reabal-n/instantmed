@@ -7,7 +7,7 @@ import {
   type ServiceDef,
 } from "@/lib/services/service-catalog"
 
-// Every canonical service is active since the 2026-08-07 weight launch.
+// Every canonical service is active since the 2026-08-10 weight launch.
 type ActiveServiceId = CanonicalServiceId
 
 interface ServiceDecisionCopy {

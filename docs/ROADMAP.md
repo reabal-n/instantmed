@@ -13,7 +13,7 @@
 
 Acquisition is in scope for launched services. The current job is to prove repeatable, contribution-positive demand while keeping public truth, clinical safety, queue health, refunds, fulfilment, and support load controlled.
 
-This phase does not authorise new services, subscriptions, broad general consults, pharmacy fulfilment, or uncontrolled advertising spend. (Weight management launched 2026-08-07 by explicit operator decision — see docs/plans/2026-08-07-weight-loss-launch-plan.md.)
+This phase does not authorise new services, subscriptions, broad general consults, pharmacy fulfilment, or uncontrolled advertising spend. (Weight management launched 2026-08-10 by explicit operator decision (decisions adopted 2026-08-07) — see docs/plans/2026-08-07-weight-loss-launch-plan.md.)
 
 ## 2. Active Revenue Rung
 
@@ -88,7 +88,7 @@ The durable exclusions live in `docs/BUSINESS_PLAN.md`. During controlled demand
 
 - subscriptions, memberships, or recurring prescribing
 - owned pharmacy, dispensing, delivery, or inventory
-- weight-management paid ADVERTISING (the service itself launched 2026-08-07; ads remain gated)
+- weight-management paid ADVERTISING (the service itself launched 2026-08-10; ads remain gated)
 - broad general consult intake
 - staff-heavy follow-up programs without approved capacity
 - conversational AI intake
