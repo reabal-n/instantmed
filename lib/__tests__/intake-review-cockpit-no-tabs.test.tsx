@@ -30,14 +30,16 @@ describe("IntakeReviewCockpit source contract", () => {
     )
   })
 
-  it("keeps raw current-intake answers available only inside the full-intake disclosure", () => {
+  it("keeps raw current-intake answers out of the cockpit", () => {
     const disclosureIndex = cockpitSource.indexOf("<IntakeSecondaryDisclosure")
-    const clinicalSummaryIndex = cockpitSource.indexOf("<ClinicalSummary", disclosureIndex)
+    const timelineIndex = cockpitSource.indexOf("<PatientTimeline", disclosureIndex)
     const disclosureCloseIndex = cockpitSource.indexOf("</IntakeSecondaryDisclosure>", disclosureIndex)
 
-    expect(cockpitSource).toMatch(/from\s+["']@\/components\/doctor\/clinical-summary["']/)
-    expect(clinicalSummaryIndex).toBeGreaterThan(disclosureIndex)
-    expect(clinicalSummaryIndex).toBeLessThan(disclosureCloseIndex)
+    expect(cockpitSource).not.toMatch(/from\s+["']@\/components\/doctor\/clinical-summary["']/)
+    expect(cockpitSource).not.toMatch(/<ClinicalSummary/)
+    expect(cockpitSource).not.toContain('aria-label="Full intake answers"')
+    expect(timelineIndex).toBeGreaterThan(disclosureIndex)
+    expect(timelineIndex).toBeLessThan(disclosureCloseIndex)
   })
 
   it("builds one review packet and gives it to the existing request card", () => {

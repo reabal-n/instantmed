@@ -167,12 +167,20 @@ function emailTypeLabel(type: string): string {
 }
 
 function requestLabel(request: PatientTimelineRequest): string {
+  // The service short name is intentionally terse ("Scripts") in navigation,
+  // but it is too ambiguous in a patient's history. Use the clinical request
+  // name here so two close repeat requests read as distinct records once the
+  // patient-typed medicine is appended.
+  const isRepeatPrescription =
+    request.category === "prescription" || request.service?.type === "common_scripts"
   const serviceLabel =
-    request.service_label
-    || request.service?.short_name
-    || request.service?.name
-    || request.category
-    || "Request"
+    isRepeatPrescription
+      ? "Repeat prescription"
+      : request.service_label
+        || request.service?.short_name
+        || request.service?.name
+        || request.category
+        || "Request"
   return request.medication_name
     ? `${serviceLabel} · ${request.medication_name}`
     : serviceLabel

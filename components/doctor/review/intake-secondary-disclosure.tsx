@@ -6,7 +6,10 @@ import { type ReactNode,useState } from "react"
 import { cn } from "@/lib/utils"
 
 interface IntakeSecondaryDisclosureProps {
-  priorRequestCount: number
+  /** True count of every request except the active request. */
+  totalOtherRequestCount: number
+  /** Number of recent other-request rows included in this bounded payload. */
+  visibleOtherRequestCount: number
   noteCount: number
   defaultOpen?: boolean
   /** Controlled-mode open state. When provided, the parent owns the open state. */
@@ -17,12 +20,13 @@ interface IntakeSecondaryDisclosureProps {
 }
 
 /**
- * Bottom-of-cockpit disclosure for raw current-intake answers and the patient
- * timeline. Closed by default so the canonical packet stays primary; draft-note
- * access is owned separately by the packet disclosure.
+ * Bottom-of-cockpit disclosure for bounded recent patient history. Closed by
+ * default so the canonical current-request packet stays primary; complete
+ * source data remains available through the panel's Open full record action.
  */
 export function IntakeSecondaryDisclosure({
-  priorRequestCount,
+  totalOtherRequestCount,
+  visibleOtherRequestCount,
   noteCount,
   defaultOpen = false,
   open: controlledOpen,
@@ -39,12 +43,14 @@ export function IntakeSecondaryDisclosure({
   }
 
   const countLabels = [
-    priorRequestCount > 0
-      ? `${priorRequestCount} prior request${priorRequestCount === 1 ? "" : "s"}`
+    totalOtherRequestCount > 0
+      ? `${totalOtherRequestCount} other request${totalOtherRequestCount === 1 ? "" : "s"}`
       : null,
     noteCount > 0 ? `${noteCount} note${noteCount === 1 ? "" : "s"}` : null,
   ].filter(Boolean)
-  const label = ["Show full intake", ...countLabels].join(" · ")
+  const label = ["Recent history", ...countLabels].join(" · ")
+  const isRequestHistoryCapped =
+    visibleOtherRequestCount > 0 && totalOtherRequestCount > visibleOtherRequestCount
 
   return (
     <div className="border-t border-border/40 pt-3">
@@ -52,19 +58,29 @@ export function IntakeSecondaryDisclosure({
         type="button"
         onClick={toggle}
         className={cn(
-          "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground",
+          "flex min-h-11 w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:min-h-8",
           open && "text-foreground",
         )}
         aria-expanded={open}
       >
         {open ? (
-          <ChevronDown className="h-3.5 w-3.5" aria-hidden />
+          <ChevronDown className="h-3.5 w-3.5 shrink-0" aria-hidden />
         ) : (
-          <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+          <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden />
         )}
-        {open ? "Hide full intake" : label}
+        {open ? "Hide recent history" : label}
       </button>
-      {open ? <div className="mt-3 space-y-3">{children}</div> : null}
+      {open ? (
+        <div className="mt-3 space-y-3">
+          {isRequestHistoryCapped ? (
+            <p className="px-1 text-xs text-muted-foreground">
+              Showing the latest {visibleOtherRequestCount} of {totalOtherRequestCount} other requests.
+              {" "}Open full record for the complete history.
+            </p>
+          ) : null}
+          {children}
+        </div>
+      ) : null}
     </div>
   )
 }
