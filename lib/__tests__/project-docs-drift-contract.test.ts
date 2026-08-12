@@ -408,6 +408,9 @@ describe("project docs drift contract", () => {
 
     expect(operations).toContain("Historical auto-issued certificate runbook")
     expect(operations).toContain("database feature flag can stop issuance but cannot widen")
+    expect(operations).toContain("Retries active bounded protocol processing")
+    expect(operations).not.toContain("governance gate is paused")
+    expect(operations).not.toContain("clean one-day requests")
 
     // The retired machinery must not creep back into the docs as live guidance.
     for (const doc of [clinical, operations]) {
