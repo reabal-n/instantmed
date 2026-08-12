@@ -2,7 +2,7 @@
 
 import { requireRole } from "@/lib/auth/helpers"
 import { buildEmailAnalytics, type EmailAnalyticsRow } from "@/lib/email/analytics"
-import { filterQuietCronOwnedEmailFailures } from "@/lib/email/quiet-failures"
+import { filterNonActionableEmailFailures } from "@/lib/email/quiet-failures"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -104,7 +104,7 @@ export async function getEmailStats(): Promise<{ stats: EmailStats; error?: stri
       log.error("Failed to get pending email count", { error: pendingError })
     }
 
-    const analyticsRows = filterQuietCronOwnedEmailFailures((weekRows || []) as EmailAnalyticsRow[])
+    const analyticsRows = filterNonActionableEmailFailures((weekRows || []) as EmailAnalyticsRow[])
     const analytics = buildEmailAnalytics(analyticsRows)
 
     return {
@@ -168,7 +168,7 @@ export async function getRecentEmailActivity(limit = 10): Promise<{
 
     return {
       activity: mapEmailActivity(
-        filterQuietCronOwnedEmailFailures((data || []) as EmailActivityRow[]).slice(0, limit),
+        filterNonActionableEmailFailures((data || []) as EmailActivityRow[]).slice(0, limit),
       ),
     }
   } catch (error) {
@@ -205,7 +205,7 @@ export async function getRecentEmailIssues(limit = 25): Promise<{
 
     return {
       activity: mapEmailActivity(
-        filterQuietCronOwnedEmailFailures((data || []) as EmailActivityRow[]).slice(0, limit),
+        filterNonActionableEmailFailures((data || []) as EmailActivityRow[]).slice(0, limit),
       ),
     }
   } catch (error) {

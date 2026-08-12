@@ -172,13 +172,18 @@ describe("Google Ads proposal operation boundary", () => {
     }])).toThrow("Unexpected campaign_budget field")
   })
 
-  it("rejects medicine terms before a keyword packet can be persisted", () => {
-    expect(() => normalizeAdsMutationOperations([{
+  it("allows medicine terms only as negative keywords", () => {
+    expect(normalizeAdsMutationOperations([{
       campaignResourceName: "customers/123/campaigns/789",
       kind: "negative_keyword",
-      matchType: "EXACT",
+      matchType: "PHRASE",
       text: "sildenafil",
-    }])).toThrow("Medicine-name keywords are prohibited")
+    }])).toEqual([{
+      campaignResourceName: "customers/123/campaigns/789",
+      kind: "negative_keyword",
+      matchType: "PHRASE",
+      text: "sildenafil",
+    }])
   })
 
   it("rejects malformed or non-compliant RSA creation packets", () => {

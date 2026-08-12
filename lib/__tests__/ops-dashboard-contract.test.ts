@@ -299,7 +299,7 @@ describe("ops dashboard data contract", () => {
   })
 
   it("surfaces outgoing email status and recovery actions in admin", () => {
-    expect(opsPageSource).toContain("filterQuietCronOwnedEmailFailures")
+    expect(opsPageSource).toContain("filterNonActionableEmailFailures")
     expect(emailHubPageSource).toContain("getEmailOutboxList")
     expect(emailHubPageSource).toContain("outboxRows")
     expect(emailHubClientSource).toContain("OperatorPage")

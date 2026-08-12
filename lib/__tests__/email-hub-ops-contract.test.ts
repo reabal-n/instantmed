@@ -23,7 +23,7 @@ const emailRetrySource = readFileSync(
 describe("email delivery ops contract", () => {
   it("fetches a dedicated email issue feed instead of deriving failures from sampled activity", () => {
     expect(emailStatsSource).toContain("getRecentEmailIssues")
-    expect(emailStatsSource).toContain("filterQuietCronOwnedEmailFailures")
+    expect(emailStatsSource).toContain("filterNonActionableEmailFailures")
     expect(emailStatsSource).toContain('.in("status", ["failed", "pending"])')
     expect(emailHubPageSource).toContain("getRecentEmailIssues(25)")
     expect(emailHubPageSource).toContain("issueActivity={issueResult.activity}")
@@ -32,14 +32,14 @@ describe("email delivery ops contract", () => {
   })
 
   it("does not expose manual retries for cron-owned audit-only email failures", () => {
-    expect(emailHubClientSource).toContain("isQuietCronOwnedEmailFailure")
+    expect(emailHubClientSource).toContain("isNonActionableEmailFailure")
     expect(emailHubClientSource).toContain("canRetryOutboxLedgerRow")
     expect(emailHubClientSource).toContain("getNonRetryableOutboxLedgerLabel")
-    expect(emailHubClientSource).toContain("Cron-owned")
+    expect(emailHubClientSource).toContain("Terminal")
     expect(emailHubClientSource).toContain("Max retries")
 
-    expect(emailRetrySource).toContain("isQuietCronOwnedEmailFailure")
+    expect(emailRetrySource).toContain("isNonActionableEmailFailure")
     expect(emailRetrySource).toContain("id, email_type, status, retry_count, certificate_id, error_message")
-    expect(emailRetrySource).toContain("owned by its recovery cron")
+    expect(emailRetrySource).toContain("terminal and is not retryable")
   })
 })

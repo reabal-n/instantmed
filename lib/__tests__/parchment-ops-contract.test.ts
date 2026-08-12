@@ -16,6 +16,16 @@ function exportedActionBody(source: string, name: string): string {
   return source.slice(start, nextExport === -1 ? source.length : nextExport)
 }
 
+function functionBody(source: string, name: string): string {
+  const start = source.indexOf(`function ${name}`)
+  expect(start).toBeGreaterThanOrEqual(0)
+  const nextFunction = source.indexOf("\nfunction ", start + 1)
+  const nextExport = source.indexOf("\nexport ", start + 1)
+  const candidates = [nextFunction, nextExport].filter((index) => index >= 0)
+  const end = candidates.length > 0 ? Math.min(...candidates) : source.length
+  return source.slice(start, end)
+}
+
 describe("Parchment ops dashboard and retry contract", () => {
   it("exposes a focused admin Parchment ops page with retryable webhook failures", () => {
     const pageSource = readProjectFile("app/admin/ops/parchment/page.tsx")
@@ -84,6 +94,18 @@ describe("Parchment ops dashboard and retry contract", () => {
     expect(opsSource).toContain("prescriber_not_linked")
     expect(opsSource).toContain("intake_correlation_mismatch")
     expect(opsSource).toContain("filterUnresolvedParchmentFailures")
+  })
+
+  it("filters non-actionable Parchment noise before capping the recovery read", () => {
+    const opsSource = readProjectFile("lib/parchment/ops.ts")
+    const body = functionBody(opsSource, "readActionableParchmentFailures")
+
+    expect(body).toContain('.contains("metadata", { eventType: PARCHMENT_PRESCRIPTION_EVENT })')
+    expect(body).toContain('JSON.stringify({ error: "no_awaiting_script_intake" })')
+    expect(body).toContain('JSON.stringify({ error: "patient_not_found" })')
+    expect(body.indexOf('JSON.stringify({ error: "patient_not_found" })')).toBeLessThan(
+      body.indexOf(".limit(50)"),
+    )
   })
 
   it("keeps failed Parchment webhook retry as an admin-only, rate-limited recovery action", () => {

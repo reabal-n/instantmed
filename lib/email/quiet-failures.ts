@@ -12,6 +12,8 @@ export const CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES = [
   "abandoned_checkout_followup",
 ] as const
 
+export const INTENTIONAL_EMAIL_SUPPRESSION_PREFIX = "Suppressed before delivery:"
+
 const CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPE_SET = new Set<string>(
   CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES,
 )
@@ -20,7 +22,7 @@ export function isCronOwnedNonReconstructableEmailType(emailType: string | null 
   return typeof emailType === "string" && CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPE_SET.has(emailType)
 }
 
-export function isQuietCronOwnedEmailFailure(row: {
+export function isNonActionableEmailFailure(row: {
   email_type?: string | null
   status?: string | null
   error_message?: string | null
@@ -30,18 +32,20 @@ export function isQuietCronOwnedEmailFailure(row: {
 
   return (
     row.status === "failed" &&
-    isCronOwnedNonReconstructableEmailType(emailType) &&
     (
-      errorMessage === `Unsupported email_type: ${emailType}` ||
-      errorMessage === `Cannot reconstruct email type '${emailType}' - unsupported type`
+      (isCronOwnedNonReconstructableEmailType(emailType) && (
+        errorMessage === `Unsupported email_type: ${emailType}` ||
+        errorMessage === `Cannot reconstruct email type '${emailType}' - unsupported type`
+      )) ||
+      errorMessage?.startsWith(INTENTIONAL_EMAIL_SUPPRESSION_PREFIX) === true
     )
   )
 }
 
-export function filterQuietCronOwnedEmailFailures<T extends {
+export function filterNonActionableEmailFailures<T extends {
   email_type?: string | null
   status?: string | null
   error_message?: string | null
 }>(rows: T[]): T[] {
-  return rows.filter((row) => !isQuietCronOwnedEmailFailure(row))
+  return rows.filter((row) => !isNonActionableEmailFailure(row))
 }

@@ -68,7 +68,7 @@ const dbError = (message: string): { resolve: QueryResult } => ({
 })
 const rejected = (message: string): { reject: Error } => ({ reject: new Error(message) })
 
-/** Queue the five queries in call order: stuck, webhook, parchment, email, quiet-email. */
+/** Queue the six queries: stuck, webhook, parchment, email, quiet-email, suppressed-email. */
 function queueQueries(outcomes: Array<{ resolve?: QueryResult; reject?: Error }>) {
   const queries = outcomes.map((outcome) => makeQuery(outcome))
   let call = 0
@@ -84,7 +84,7 @@ describe("getSystemHealth degraded semantics", () => {
   })
 
   it("returns known counts with degraded=false when every read succeeds", async () => {
-    queueQueries([ok(2), ok(1), ok(0), ok(3), ok(1)])
+    queueQueries([ok(2), ok(1), ok(0), ok(4), ok(1), ok(1)])
 
     const health = await getSystemHealth()
 
@@ -92,7 +92,7 @@ describe("getSystemHealth degraded semantics", () => {
       stuckIntakes: 2,
       webhookFailures: 1,
       parchmentFailures: 0,
-      emailFailures: 2, // 3 failed minus 1 quiet
+      emailFailures: 2, // 4 failed minus 1 legacy quiet row and 1 intentional suppression
       stripePriceIssues: 0,
       totalIssues: 5,
       degraded: false,
@@ -101,7 +101,7 @@ describe("getSystemHealth degraded semantics", () => {
   })
 
   it("marks a surface unknown (null, not 0) when its query errors, and excludes it from the total", async () => {
-    queueQueries([ok(0), dbError("relation missing"), ok(0), ok(0), ok(0)])
+    queueQueries([ok(0), dbError("relation missing"), ok(0), ok(0), ok(0), ok(0)])
 
     const health = await getSystemHealth()
 
@@ -117,7 +117,7 @@ describe("getSystemHealth degraded semantics", () => {
   })
 
   it("marks a surface unknown when its query rejects outright", async () => {
-    queueQueries([rejected("network down"), ok(0), ok(0), ok(0), ok(0)])
+    queueQueries([rejected("network down"), ok(0), ok(0), ok(0), ok(0), ok(0)])
 
     const health = await getSystemHealth()
 
@@ -131,7 +131,7 @@ describe("getSystemHealth degraded semantics", () => {
   })
 
   it("keeps the raw email count (alarm-safe overcount) when only the quiet-failure discount fails, still degraded", async () => {
-    queueQueries([ok(0), ok(0), ok(0), ok(4), rejected("quiet read down")])
+    queueQueries([ok(0), ok(0), ok(0), ok(4), rejected("quiet read down"), ok(0)])
 
     const health = await getSystemHealth()
 
@@ -140,8 +140,18 @@ describe("getSystemHealth degraded semantics", () => {
     expect(health.totalIssues).toBe(4)
   })
 
+  it("keeps the raw email count when the intentional-suppression discount fails", async () => {
+    queueQueries([ok(0), ok(0), ok(0), ok(3), ok(0), rejected("suppression read down")])
+
+    const health = await getSystemHealth()
+
+    expect(health.emailFailures).toBe(3)
+    expect(health.degraded).toBe(true)
+    expect(health.totalIssues).toBe(3)
+  })
+
   it("marks email failures unknown when the primary email read fails", async () => {
-    queueQueries([ok(0), ok(0), ok(0), rejected("outbox read down"), ok(0)])
+    queueQueries([ok(0), ok(0), ok(0), rejected("outbox read down"), ok(0), ok(0)])
 
     const health = await getSystemHealth()
 
@@ -151,13 +161,23 @@ describe("getSystemHealth degraded semantics", () => {
 
   it("keeps a degraded health with issues both counting and flagged", async () => {
     mocks.countStripePriceConfigIssues.mockReturnValue(1)
-    queueQueries([ok(3), rejected("down"), ok(0), ok(0), ok(0)])
+    queueQueries([ok(3), rejected("down"), ok(0), ok(0), ok(0), ok(0)])
 
     const health = await getSystemHealth()
 
     // Known issues still count; the unknown surface does not zero them out.
     expect(health.totalIssues).toBe(4)
     expect(health.degraded).toBe(true)
+  })
+
+  it("keeps intentional pre-delivery suppressions out of the health alarm", async () => {
+    queueQueries([ok(0), ok(0), ok(0), ok(1), ok(0), ok(1)])
+
+    const health = await getSystemHealth()
+
+    expect(health.emailFailures).toBe(0)
+    expect(health.totalIssues).toBe(0)
+    expect(health.degraded).toBe(false)
   })
 
   it("pins the fallback shapes: EMPTY asserts a verified all-clear, UNKNOWN asserts nothing", () => {

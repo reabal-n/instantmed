@@ -54,6 +54,7 @@ describe("system-health endpoint contract", () => {
     expect(source).toContain('eq("metadata->>error_type", "parchment")')
     expect(source).toContain('from("email_outbox")')
     expect(source).toContain("CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES")
+    expect(source).toContain("INTENTIONAL_EMAIL_SUPPRESSION_PREFIX")
     expect(source).toContain("countStripePriceConfigIssues")
     expect(source).toContain("stripePriceIssues")
 

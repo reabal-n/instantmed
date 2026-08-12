@@ -11,12 +11,19 @@ import {
 const DAY_MS = 24 * 60 * 60 * 1000
 const DEFAULT_COHORT_DAYS = 30
 const COHORT_OBSERVATION_HOURS = 24
+const RECENT_COVERAGE_DAYS = 7
 const POSTHOG_QUERY_TIMEOUT_MS = 6500
+
+interface RecentFunnelCoverage {
+  coveragePercent: number | null
+  days: typeof RECENT_COVERAGE_DAYS
+}
 
 export type PostHogCanonicalIntakeFunnelSnapshot =
   | {
       ok: true
       queriedAt: string
+      recentCoverage: RecentFunnelCoverage
       reason?: undefined
       source: "posthog"
       summary: CanonicalIntakeFunnelSummary
@@ -24,6 +31,7 @@ export type PostHogCanonicalIntakeFunnelSnapshot =
   | {
       ok: false
       queriedAt: string
+      recentCoverage: null
       reason: string
       source: "posthog"
       summary: CanonicalIntakeFunnelSummary
@@ -50,6 +58,18 @@ function parseNullableString(value: unknown): string | null {
 function parseCount(value: unknown): number {
   const parsed = Number(value)
   return Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed) : 0
+}
+
+function parseCoverageRows(results: unknown[][]): CanonicalFunnelCoverageRow[] {
+  return results.flatMap((row) => {
+    const event = parseNullableString(row[0])
+    if (!event) return []
+    return [{
+      event,
+      rawRows: parseCount(row[2]),
+      withFlowId: parseCount(row[1]),
+    }]
+  })
 }
 
 function buildUnavailableSummary(dateFrom: string, dateTo: string): CanonicalIntakeFunnelSummary {
@@ -113,6 +133,7 @@ export function buildUnavailablePostHogCanonicalIntakeFunnelSnapshot({
   return {
     ok: false,
     queriedAt: now.toISOString(),
+    recentCoverage: null,
     reason,
     source: "posthog",
     summary: buildUnavailableSummary(cohortStart.toISOString(), cohortEnd.toISOString()),
@@ -129,6 +150,9 @@ export async function getPostHogCanonicalIntakeFunnelSnapshot(
   const dateFrom = cohortStart.toISOString()
   const dateTo = cohortEnd.toISOString()
   const observationEnd = now.toISOString()
+  const recentCoverageFrom = new Date(
+    now.getTime() - RECENT_COVERAGE_DAYS * DAY_MS,
+  ).toISOString()
 
   const apiKey = process.env.POSTHOG_PROJECT_API_KEY
   const projectId = process.env.POSTHOG_PROJECT_ID
@@ -174,9 +198,21 @@ export async function getPostHogCanonicalIntakeFunnelSnapshot(
     WHERE ${commonWhere}
     GROUP BY event
   `
+  const recentCoverageQuery = `
+    SELECT
+      event,
+      countIf(notEmpty(toString(properties.flow_instance_id))) AS with_flow_id,
+      count() AS raw_rows
+    FROM events
+    WHERE timestamp >= toDateTime('${recentCoverageFrom}')
+      AND timestamp <= toDateTime('${observationEnd}')
+      AND event IN (${eventList})
+      AND (properties.is_e2e IS NULL OR properties.is_e2e != true)
+    GROUP BY event
+  `
 
   try {
-    const [cohortResults, coverageResults] = await Promise.all([
+    const [cohortResults, coverageResults, recentCoverageResults] = await Promise.all([
       runHogQlQuery({
         apiKey,
         host,
@@ -191,6 +227,13 @@ export async function getPostHogCanonicalIntakeFunnelSnapshot(
         projectId,
         query: coverageQuery,
       }),
+      runHogQlQuery({
+        apiKey,
+        host,
+        name: `InstantMed flow ID coverage recent ${RECENT_COVERAGE_DAYS}d`,
+        projectId,
+        query: recentCoverageQuery,
+      }).catch(() => null),
     ])
 
     const flowRows: CanonicalFunnelFlowRow[] = cohortResults.flatMap((row) => {
@@ -204,19 +247,23 @@ export async function getPostHogCanonicalIntakeFunnelSnapshot(
         startedAt: parseNullableString(row[1]),
       }]
     })
-    const coverageRows: CanonicalFunnelCoverageRow[] = coverageResults.flatMap((row) => {
-      const event = parseNullableString(row[0])
-      if (!event) return []
-      return [{
-        event,
-        rawRows: parseCount(row[2]),
-        withFlowId: parseCount(row[1]),
-      }]
-    })
+    const coverageRows = parseCoverageRows(coverageResults)
+    const recentCoveragePercent = recentCoverageResults === null
+      ? null
+      : buildCanonicalIntakeFunnel({
+          coverageRows: parseCoverageRows(recentCoverageResults),
+          dateFrom: recentCoverageFrom,
+          dateTo: observationEnd,
+          flowRows: [],
+        }).coveragePercent
 
     return {
       ok: true,
       queriedAt: now.toISOString(),
+      recentCoverage: {
+        coveragePercent: recentCoveragePercent,
+        days: RECENT_COVERAGE_DAYS,
+      },
       source: "posthog",
       summary: buildCanonicalIntakeFunnel({
         coverageRows,

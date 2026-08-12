@@ -8,7 +8,7 @@ import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES } from "@/lib/doctor/parchment-claim"
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
 import { buildPrescribingIdentityBlockerReport } from "@/lib/doctor/prescribing-identity-blockers"
-import { filterQuietCronOwnedEmailFailures } from "@/lib/email/quiet-failures"
+import { filterNonActionableEmailFailures } from "@/lib/email/quiet-failures"
 import { filterUnresolvedParchmentFailures } from "@/lib/parchment/failure-reconciliation"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -233,7 +233,7 @@ export default async function OpsDashboardPage() {
     0,
     prescriptionWebhookFailures.data.length - unresolvedParchmentFailures.length,
   )
-  const nonCertificateEmailFailures = filterQuietCronOwnedEmailFailures(emailFailures.data)
+  const nonCertificateEmailFailures = filterNonActionableEmailFailures(emailFailures.data)
     .filter((row) => row.email_type !== "med_cert_patient")
     .slice(0, 20)
   const failureOverview = buildOperationalFailureOverview({

@@ -7,7 +7,7 @@ import {
   getCertificateForIntake,
   logCertificateEvent,
 } from "@/lib/data/issued-certificates"
-import { isQuietCronOwnedEmailFailure } from "@/lib/email/quiet-failures"
+import { isNonActionableEmailFailure } from "@/lib/email/quiet-failures"
 import { claimOutboxRow } from "@/lib/email/send/outbox"
 import { type OutboxRow, sendFromOutboxRow } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
@@ -129,10 +129,10 @@ export async function retryOutboxEmail(
       return { success: false, error: "Email not found in outbox" }
     }
 
-    if (isQuietCronOwnedEmailFailure(row)) {
+    if (isNonActionableEmailFailure(row)) {
       return {
         success: false,
-        error: "This email is owned by its recovery cron and is not retryable from the delivery ledger",
+        error: "This email is terminal and is not retryable from the delivery ledger",
       }
     }
 
