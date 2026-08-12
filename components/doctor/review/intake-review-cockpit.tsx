@@ -6,7 +6,6 @@ import { useCallback, useMemo, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { requestMoreInfoAction } from "@/app/actions/request-more-info"
-import { ClinicalSummary } from "@/components/doctor/clinical-summary"
 import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { RenewalLink } from "@/components/doctor/renewal-link"
 import { IntakeActionButtons } from "@/components/doctor/review/intake-action-buttons"
@@ -324,27 +323,19 @@ export function IntakeReviewCockpit({
             <CertificateDeliveryCard />
 
             <IntakeSecondaryDisclosure
-              priorRequestCount={data.previousIntakeCount ?? data.previousIntakes?.length ?? 0}
+              totalOtherRequestCount={data.previousIntakeCount ?? data.previousIntakes?.length ?? 0}
+              visibleOtherRequestCount={data.previousIntakes?.length ?? 0}
               noteCount={data.patientNotes?.length ?? 0}
               open={disclosureOpen}
               onOpenChange={setDisclosureOpen}
             >
-              <section aria-label="Full intake answers">
-                <ClinicalSummary
-                  answers={answers}
-                  consultSubtype={intake.category === "consult" && intake.subtype
-                    ? intake.subtype
-                    : undefined}
-                  className="border-0 p-0 shadow-none"
-                />
-              </section>
               <PatientTimeline
                 requests={data.previousIntakes ?? []}
                 notes={data.patientNotes ?? []}
                 compact
                 maxItems={20}
-                title="Patient history"
-                emptyLabel="No previous patient activity."
+                title="Latest requests and notes"
+                emptyLabel="No other requests or notes."
               />
             </IntakeSecondaryDisclosure>
           </div>

@@ -21,6 +21,7 @@ import { waitForPageLoad } from "./helpers/test-utils"
 const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
 const SEEDED_PATIENT_NAME = "E2E Test Patient"
 const LANDING_PATH = "/medical-certificate"
+const E2E_DATA_TIMEOUT_MS = 45_000
 
 async function seedReviewContext(): Promise<void> {
   await resetIntakeForRetest(INTAKE_ID)
@@ -103,13 +104,16 @@ async function openSeededReviewCockpit(page: Page) {
   await patientRow.click()
 
   const cockpit = page.getByTestId("intake-review-panel")
-  await expect(cockpit).toBeVisible({ timeout: 15_000 })
+  await expect(cockpit).toBeVisible({ timeout: E2E_DATA_TIMEOUT_MS })
   await expect(cockpit.getByRole("heading", { name: SEEDED_PATIENT_NAME })).toBeVisible()
   return cockpit
 }
 
 test.describe("Doctor review cockpit", () => {
-  test.describe.configure({ mode: "serial" })
+  // This suite exercises authenticated Supabase reads against a cold Next dev
+  // server. Keep the product assertions strict while allowing compilation and
+  // the live E2E data boundary to complete without consuming the whole test.
+  test.describe.configure({ mode: "serial", timeout: 120_000 })
 
   test.beforeEach(async ({ page }) => {
     test.skip(!isDbAvailable(), "DB credentials required")
@@ -117,13 +121,19 @@ test.describe("Doctor review cockpit", () => {
     const result = await loginAsOperator(page)
     expect(result.success, `Login should succeed: ${result.error}`).toBe(true)
 
-    // Compile and authenticate the drawer endpoint before the dashboard mounts.
-    // In Next dev mode, compiling it on first click can trigger a full-page Fast
-    // Refresh that correctly closes the transient drawer and makes this UI test
-    // race the development server rather than the product behavior.
-    const summaryResponse = await page.request.get(
-      `/api/doctor/patients/${E2E_PATIENT_ID}/summary`,
-    )
+    // Compile and authenticate the cockpit + drawer endpoints before the
+    // dashboard mounts. In Next dev mode, compiling either on first click can
+    // trigger a full-page Fast Refresh that correctly closes the transient UI
+    // and makes this test race the development server instead of the product.
+    const [reviewResponse, summaryResponse] = await Promise.all([
+      page.request.get(`/api/doctor/intakes/${INTAKE_ID}/review-data`, {
+        timeout: E2E_DATA_TIMEOUT_MS,
+      }),
+      page.request.get(`/api/doctor/patients/${E2E_PATIENT_ID}/summary`, {
+        timeout: E2E_DATA_TIMEOUT_MS,
+      }),
+    ])
+    expect(reviewResponse.ok(), "Review-data route should be ready").toBe(true)
     expect(summaryResponse.ok(), "Patient summary route should be ready").toBe(true)
   })
 
@@ -154,25 +164,26 @@ test.describe("Doctor review cockpit", () => {
     await expect(cockpit.getByRole("region", { name: "Request packet" })).toHaveCount(1)
   })
 
-  test("keeps the draft note and full intake collapsed until requested", async ({ page }) => {
+  test("keeps the draft note and recent history collapsed until requested", async ({ page }) => {
     const cockpit = await openSeededReviewCockpit(page)
     const draftNote = cockpit.getByRole("button", { name: "Draft note · Review required" })
-    const fullIntake = cockpit.getByRole("button", { name: /Show full intake/i })
+    const recentHistory = cockpit.getByRole("button", { name: /Recent history/i })
 
     await expect(draftNote).toHaveAttribute("aria-expanded", "false")
-    await expect(fullIntake).toHaveAttribute("aria-expanded", "false")
+    await expect(recentHistory).toHaveAttribute("aria-expanded", "false")
     await expect(cockpit.locator('[contenteditable="true"]')).toHaveCount(0)
+    await expect(cockpit.getByRole("region", { name: "Full intake answers" })).toHaveCount(0)
 
     await draftNote.click()
     await expect(draftNote).toHaveAttribute("aria-expanded", "true")
     await expect(cockpit.locator('[contenteditable="true"]')).toHaveCount(1)
 
-    await fullIntake.click()
-    await expect(cockpit.getByRole("button", { name: "Hide full intake" })).toHaveAttribute(
+    await recentHistory.click()
+    await expect(cockpit.getByRole("button", { name: "Hide recent history" })).toHaveAttribute(
       "aria-expanded",
       "true",
     )
-    await expect(cockpit.getByRole("region", { name: "Full intake answers" })).toBeVisible()
+    await expect(cockpit.getByRole("region", { name: "Latest requests and notes" })).toBeVisible()
   })
 
   test("quick profile adds saved clinical context without repeating the active request", async ({ page }) => {
@@ -184,7 +195,9 @@ test.describe("Doctor review cockpit", () => {
 
     await expect(drawer).toBeVisible()
     await expect(drawer.getByText("Saved clinical profile", { exact: true })).toBeVisible()
-    await expect(drawer.getByText("Penicillin", { exact: true })).toBeVisible()
+    await expect(drawer.getByText("Penicillin", { exact: true })).toBeVisible({
+      timeout: E2E_DATA_TIMEOUT_MS,
+    })
     await expect(drawer.getByText("Asthma", { exact: true })).toBeVisible()
     await expect(drawer.getByText("Salbutamol", { exact: true })).toBeVisible()
     await expect(drawer.getByText(/requests total · \d+ notes total/)).toBeVisible()
@@ -227,7 +240,9 @@ test.describe("Doctor review cockpit", () => {
 
     const drawer = page.getByRole("dialog", { name: "Patient profile" })
     await Promise.all([
-      page.waitForURL(`**/doctor/patients/${E2E_PATIENT_ID}?requestId=${INTAKE_ID}`, { timeout: 15_000 }),
+      page.waitForURL(`**/doctor/patients/${E2E_PATIENT_ID}?requestId=${INTAKE_ID}`, {
+        timeout: E2E_DATA_TIMEOUT_MS,
+      }),
       drawer.getByRole("link", { name: "Open full record" }).click(),
     ])
     await waitForPageLoad(page)
