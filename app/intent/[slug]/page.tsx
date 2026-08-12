@@ -20,11 +20,14 @@ import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PageBreadcrumbs } from "@/components/uix"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import {
   getAllIntentSlugs,
   getIntentPageBySlug,
 } from "@/lib/seo/intents"
 import type { ContentBlock } from "@/lib/seo/registry"
+
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -362,8 +365,7 @@ export default async function IntentPage({ params }: PageProps) {
                 Start with the right service
               </h2>
               <p className="text-lg text-muted-foreground mb-8">
-                Clear price, secure request, and doctor review before any certificate
-                or prescription decision.
+                Clear price and a secure request. {CLINICAL_REVIEW_SEQUENCE}
               </p>
 
               <Button

@@ -82,8 +82,7 @@ const honestyLimits: ChecklistItem[] = [
   },
   {
     text: "We won't blur protocol with prescribing.",
-    subtext:
-      "Medical-certificate and prescribing requests require an AHPRA-registered doctor's review before anything is issued.",
+    subtext: CLINICAL_DECISION_MODEL,
   },
   {
     text: "We won't fake trust signals.",
@@ -96,7 +95,7 @@ const treatmentLimits: ChecklistItem[] = [
   {
     text: "We won't ghost you.",
     subtext:
-      "Each paid request reaches a documented clinical outcome. A doctor reviews medical-certificate and prescribing requests before issue, and recorded clinical declines start the refund process automatically.",
+      "Each paid request reaches a documented clinical outcome. Routine certificate requests may follow the bounded protocol; concerns and every prescribing request go to a doctor. Recorded clinical declines start the refund process automatically.",
   },
   {
     text: "We won't sell your health data.",

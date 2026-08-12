@@ -77,7 +77,7 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 |------|---------|
 | [docs/runbooks/comparative-tagline-complaint.md](../runbooks/comparative-tagline-complaint.md) | AHPRA/TGA/Medical Board/Google complaint runbook for the "Faster than your GP." tagline |
 | [docs/runbooks/BREAK_GLASS.md](../runbooks/BREAK_GLASS.md) | Solo-operator continuity: account inventory + sealed-secret location register (pointers, never values) + recovery procedure |
-| [docs/runbooks/NHSD_REGISTRATION.md](../runbooks/NHSD_REGISTRATION.md) | Field-values sheet for the National Health Services Directory listing (GEO citation surface). **NOT paste-ready as of 2026-07-31** — asserts universal pre-issue doctor review, which is false for protocol-based certificate issuance. Carries a correction banner; repair to `clinical_review_sequence` before use |
+| [docs/runbooks/NHSD_REGISTRATION.md](../runbooks/NHSD_REGISTRATION.md) | Field-values sheet for the National Health Services Directory listing (GEO citation surface). Branch-aware clinical copy repaired 2026-08-12. Still requires fresh price, credential, listing-state, and exact-payload verification plus separate approval before any external update |
 
 ## docs/adr/ — 1 decision record
 

@@ -149,7 +149,7 @@ export default function UniversitiesPage() {
                   with AHPRA-registered doctors.
                 </p>
                 <p className="text-muted-foreground">
-                  Every request is reviewed by an AHPRA-registered doctor who makes an
+                  Every request follows an AHPRA-registered doctor-owned clinical pathway. The Medical Director-approved protocol handles routine requests; a doctor makes an
                   independent clinical decision. Each case is assessed individually
                   based on the information provided.
                 </p>

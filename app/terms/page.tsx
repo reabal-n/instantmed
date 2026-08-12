@@ -197,11 +197,11 @@ export default function TermsPage() {
                   <p>InstantMed uses artificial intelligence to assist with certain administrative tasks, including:</p>
                   <ul>
                     <li>Summarizing your intake information for efficient doctor review</li>
-                    <li>Drafting documents such as medical certificates (always reviewed by a doctor)</li>
+                    <li>Drafting clinical documentation and identifying information that requires doctor review</li>
                     <li>Improving the intake experience through smart suggestions</li>
                   </ul>
                   <p className="mt-3">
-                    <strong>Important:</strong> {CLINICAL_DECISION_MODEL}
+                    <strong>Important:</strong> {CLINICAL_DECISION_MODEL} AI output cannot override a safety rule or widen the approved medical-certificate protocol.
                   </p>
                 </LegalSection>
 

@@ -20,6 +20,7 @@ const ADULT_PATIENT = { date_of_birth: "1990-01-15" }
 
 function makeAnswers(overrides?: Record<string, unknown>) {
   return {
+    certType: "work",
     symptoms: ["Cold", "Runny nose"],
     symptomDetails: "I have a cold and runny nose since yesterday",
     symptomDuration: "1-2 days",
@@ -149,6 +150,62 @@ describe("evaluateAutoApprovalEligibility", () => {
     expect(result.eligible).toBe(true)
   })
 
+  it.each(["work", "study", "carer"] as const)(
+    "approves every supported %s certificate across the complete 1-3 day range",
+    (certType) => {
+      for (const duration of ["1", "2", "3"]) {
+        const result = evaluateAutoApprovalEligibility(
+          makeIntake({ subtype: certType }),
+          makeAnswers({ certType, duration }),
+          makeReadyDraft(),
+          ADULT_PATIENT,
+          { maxDurationDays: 3, requireNoSoftFlags: true },
+        )
+
+        expect(result.eligible, `${certType}/${duration}d: ${result.reason}`).toBe(true)
+      }
+    },
+  )
+
+  it.each([
+    ["return-to-work", "return to work"],
+    ["centrelink", "centrelink"],
+  ])("never auto-issues unsupported certificate purpose %s", (certType, expectedReason) => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake({ subtype: certType }),
+      makeAnswers({ certType, symptomDetails: "Mild cold and sore throat since yesterday" }),
+      makeReadyDraft(),
+      ADULT_PATIENT,
+      { maxDurationDays: 3 },
+    )
+
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags.join(" ")).toContain("unsupported_certificate_type")
+    expect(result.disqualifyingFlags.join(" ")).toContain(expectedReason)
+  })
+
+  it.each([
+    ["symptoms_description", "I need a return to work certificate"],
+    ["symptom_details", "Centrelink asked for medical evidence"],
+    ["symptomsDescription", "I need a fit to return clearance"],
+    ["additionalInfo", "This is for Services Australia"],
+    ["additional_information", "This is a return-to-work request"],
+  ])("routes a concerning request found in legacy answer field %s to a doctor", (key, value) => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({
+        symptomDetails: "Mild cold and sore throat since yesterday",
+        [key]: value,
+      }),
+      makeReadyDraft(),
+      ADULT_PATIENT,
+      { maxDurationDays: 3 },
+    )
+
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags.join(" ")).toContain("high_stakes_use_case")
+  })
+
   it("rejects a med cert carrying an attention intake-flag — a flagged cert never auto-issues", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
@@ -262,6 +319,22 @@ describe("evaluateAutoApprovalEligibility", () => {
     )
     expect(result.eligible).toBe(true)
     expect(result.softFlags).toContain("accident_co_symptom")
+  })
+
+  it("routes every soft-flagged request to a doctor when the bounded rollout requires a clean lane", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ symptomDetails: "Had a car accident yesterday, back is sore" }),
+      makeReadyDraft(),
+      ADULT_PATIENT,
+      {
+        maxDurationDays: 1,
+        requireNoSoftFlags: true,
+      },
+    )
+
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags).toContain("rollout_requires_no_soft_flags: accident_co_symptom")
   })
 
   it("blocks 'accident' as sole symptom", () => {
@@ -1028,8 +1101,8 @@ describe("evaluateAutoApprovalEligibility", () => {
       expect(result.eligible).toBe(true)
     })
 
-    it("runs the v3.0 engine with DOB-required age checks", () => {
-      expect(ELIGIBILITY_ENGINE_VERSION).toBe("3.0")
+    it("runs the v3.2 engine with purpose whitelisting and DOB-required age checks", () => {
+      expect(ELIGIBILITY_ENGINE_VERSION).toBe("3.2")
     })
   })
 })

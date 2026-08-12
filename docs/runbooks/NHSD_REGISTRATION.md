@@ -1,6 +1,6 @@
 # NHSD_REGISTRATION.md — National Health Services Directory listing
 
-> ## ✅ CLINICAL COPY REPAIRED 2026-07-31
+> ## ✅ CLINICAL COPY RECONCILED 2026-08-12
 >
 > This document previously asserted **universal pre-issue doctor review**, which is false for eligible protocol-based medical-certificate issuance. **The affected process and availability blocks have been repaired in place** against `lib/marketing/approved-claims.ts` (`clinical_review_sequence`, `availability_24_7`) — a warning banner alone was insufficient because the body remained copy-pasteable.
 >
@@ -103,16 +103,9 @@ Already registered + ABR-validated. For reference / re-entry:
 | "This service is also delivered virtually" | ✅ tick it |
 | Contact | business phone/email only (not a personal mobile) |
 
-**Service description (public, ≤500 chars — repaired 2026-07-31 against `clinical_review_sequence` and `availability_24_7`):**
+**Service description (public, ≤500 chars — repaired 2026-08-12 against `clinical_review_sequence` and `availability_24_7`):**
 
-> InstantMed is an Australian telehealth service for adults seeking doctor review
-> for medical certificates, repeat prescription requests, hair-loss assessment,
-> erectile-dysfunction assessment, and women's health pathways. Patients complete
-> a secure online form. Medical-certificate and prescribing requests require doctor
-> review before any certificate or prescription is issued. The doctor may contact
-> them if clinically needed. Approved documents or eScript tokens are delivered digitally.
-> Requests can be submitted and reviewed 24/7; review timing varies. Medicare optional for certificates; required for
-> prescriptions/consults.
+> InstantMed provides telehealth medical certificates, repeat prescriptions, and ED, hair-loss, women's-health and weight-management pathways for Australian adults. Standard 1–3 day work, study and carer certificate requests may follow a Medical Director-approved protocol. Concerning or uncertain certificate requests, and every prescribing request, require review by an AHPRA-registered doctor before issue. Requests can be submitted and reviewed 24/7; timing varies.
 
 **Availability:** Available 7 days / requests 24-7. **Do not** enter a guaranteed
 turnaround (no customer-facing SLA). Don't publish bank/credentials — not needed.

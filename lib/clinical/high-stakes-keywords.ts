@@ -6,8 +6,8 @@
  *
  * 1. `HIGH_STAKES_USE_CASE_KEYWORDS` — flat string list used by
  *    `lib/clinical/auto-approval.ts` to scan answer text via substring
- *    matching. Powers the auto-approval gate that bumps a request out
- *    of the AI batch and into doctor review.
+ *    matching. Powers the protocol-issuance gate that routes a request
+ *    to doctor review.
  *
  * 2. `HIGH_STAKES_PATTERNS` — regex list with user-facing reason copy,
  *    used by `lib/clinical/intake-validation.ts` to block submission at
@@ -48,7 +48,8 @@ export const HIGH_STAKES_USE_CASE_KEYWORDS: ReadonlyArray<string> = [
   "fitness to fly", "fitness to drive", "flight", "airline",
   "commercial driver", "forklift", "heavy machinery",
   "fitness for duty", "fit for duty", "fitness to work", "fit to work",
-  "return to work clearance", "pre-employment", "pre employment",
+  "return to work", "return-to-work", "return to duties", "fit to return",
+  "fitness to return", "return to work clearance", "pre-employment", "pre employment",
   "site medical", "mine site medical", "safety-critical", "safety critical",
   // Workers comp / insurance / claim
   "workers compensation", "worker compensation", "certificate of capacity",
@@ -113,7 +114,7 @@ export const HIGH_STAKES_PATTERNS: ReadonlyArray<{
   },
   {
     category: "driving_fitness",
-    pattern: /\b(fit\s+for\s+duty|fitness\s+for\s+duty|fitness\s+to\s+work|fit\s+to\s+work|return\s+to\s+work\s+clearance|pre[-\s]?employment|site\s+medical|mine\s+site\s+medical|safety[-\s]?critical)\b/i,
+    pattern: /\b(fit\s+for\s+duty|fitness\s+for\s+duty|fitness\s+to\s+work|fit\s+to\s+work|return[-\s]+to[-\s]+(?:work|duties)(?:\s+clearance)?|fit(?:ness)?\s+to\s+return|pre[-\s]?employment|site\s+medical|mine\s+site\s+medical|safety[-\s]?critical)\b/i,
     reason: "Fitness-for-duty, return-to-work, and safety-critical clearances require in-person assessment.",
   },
 ]

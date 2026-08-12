@@ -15,6 +15,13 @@ const opsClientSource = readFileSync(
   join(process.cwd(), "app/admin/ops/ops-client.tsx"),
   "utf8",
 )
+const pageRefreshStatusPath = join(
+  process.cwd(),
+  "components/operator/page-refresh-status.tsx",
+)
+const pageRefreshStatusSource = existsSync(pageRefreshStatusPath)
+  ? readFileSync(pageRefreshStatusPath, "utf8")
+  : ""
 const analyticsPageSource = readFileSync(
   join(process.cwd(), "app/admin/analytics/page.tsx"),
   "utf8",
@@ -110,6 +117,16 @@ const patientMessagesDataSource = readFileSync(
 )
 
 describe("ops dashboard data contract", () => {
+  it("separates page refresh age from upstream evidence age across staff decision surfaces", () => {
+    expect(existsSync(pageRefreshStatusPath)).toBe(true)
+    expect(pageRefreshStatusSource).toContain("Page refreshed")
+    expect(pageRefreshStatusSource).not.toContain("Live · synced")
+    expect(pageRefreshStatusSource).not.toContain("motion-safe:animate-pulse")
+    expect(pageRefreshStatusSource).toContain("min-h-11")
+    expect(analyticsClientSource).toContain("<PageRefreshStatus key={data.generatedAt} generatedAt={data.generatedAt}")
+    expect(opsClientSource).toContain("<PageRefreshStatus key={model.generatedAt} generatedAt={model.generatedAt}")
+  })
+
   it("renders ops screens inside the shared operator workspace", () => {
     expect(operatorPageSource).toContain("data-testid=\"operator-page\"")
     expect(operatorPageSource).toContain("data-testid=\"operator-scroll-area\"")
@@ -165,6 +182,12 @@ describe("ops dashboard data contract", () => {
     expect(opsClientSource).not.toContain("CounterCard")
     expect(opsClientSource).not.toContain("Certificate delivery rescue")
     expect(opsClientSource).not.toContain("Integrity (weekly invariants)")
+  })
+
+  it("states issue urgency and gives generic recovery links specific accessible names", () => {
+    expect(opsClientSource).toContain('issue.severity === "critical" ? "Critical" : "Warning"')
+    expect(opsClientSource).toContain('aria-label={`Open ${issue.title} recovery`}')
+    expect(opsClientSource).not.toContain("aria-hidden className={cn(\"h-2 w-2")
   })
 
   it("uses exact totals for durable unresolved states instead of detail-window lengths", () => {

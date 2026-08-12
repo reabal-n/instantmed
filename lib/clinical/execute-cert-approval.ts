@@ -37,6 +37,7 @@ import { generateCertificateNumber, generateCertificateRef, generateVerification
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { getAbsenceDays } from "@/lib/stripe/price-mapping"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { normalizeMedicalCertificateType } from "@/lib/validation/med-cert-schema"
 import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
 import type { CertReviewData } from "@/types/db"
 
@@ -202,12 +203,22 @@ export async function executeCertApproval(
     return { success: false, error: "Patient email not found" }
   }
 
+  // Get intake answers before resolving the certificate type. Current requests
+  // persist the purpose on both the intake subtype and answers, while older
+  // rows may carry only `certType` / `certificate_type`. Issuance must use the
+  // same normalizer as the eligibility gate so an eligible legacy study or
+  // carer request can never be rendered as a work certificate.
+  type AnswersJoin = { answers: Record<string, unknown> }
+  const answersRaw = intake.answers as AnswersJoin[] | AnswersJoin | null
+  const answersObj = Array.isArray(answersRaw) ? answersRaw[0] : answersRaw
+  const answersData = answersObj?.answers || null
+
   // 2. Prepare PDF data
   const intakeSubtype = (intake as Record<string, unknown>).subtype as string | undefined
-  const certificateType: "work" | "study" | "carer" =
-    intakeSubtype === "study" || intakeSubtype === "carer" || intakeSubtype === "work"
-      ? intakeSubtype
-      : service.slug.includes("carer") ? "carer" : "work"
+  const answerCertificateType = answersData?.certType ?? answersData?.certificate_type
+  const certificateType = normalizeMedicalCertificateType(answerCertificateType)
+    ?? normalizeMedicalCertificateType(intakeSubtype)
+    ?? (service.slug.includes("carer") ? "carer" : "work")
 
   const certificateNumber = generateCertificateNumber()
   const generatedAt = new Date().toISOString()
@@ -226,12 +237,6 @@ export async function executeCertApproval(
   }
 
   const durationDays = dateRangeValidation.durationDays
-
-  // Get intake answers (Supabase FK join returns array or object depending on join cardinality)
-  type AnswersJoin = { answers: Record<string, unknown> }
-  const answersRaw = intake.answers as AnswersJoin[] | AnswersJoin | null
-  const answersObj = Array.isArray(answersRaw) ? answersRaw[0] : answersRaw
-  const answersData = answersObj?.answers || null
 
   // Duration-tier mismatch check
   if (!answersData) {

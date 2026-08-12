@@ -481,7 +481,7 @@ export default function SignInPage() {
               Good to have you back<span className="text-primary">.</span>
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              Medical certificates, prescriptions, and consultations reviewed by Australian doctors - no waiting rooms.
+              Bounded certificate pathways and Australian doctor review where clinically required - no waiting rooms.
             </p>
 
             <div className="space-y-4 mb-8">

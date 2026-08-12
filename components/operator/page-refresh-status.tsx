@@ -1,5 +1,6 @@
 "use client"
 
+import { Clock3 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 
@@ -9,20 +10,18 @@ const REFRESH_MS = 5 * 60_000
 const TICK_MS = 15_000
 
 /**
- * Live indicator + silent auto-refresh for the operator Overview.
+ * Page-fetch freshness for bounded operator decision surfaces.
  *
- * The page is a `force-dynamic` server component, so `router.refresh()` re-runs
- * the bounded PostHog and Supabase reads server-side and
- * streams fresh values in without a full navigation. We only refresh while the
- * tab is visible so a backgrounded cockpit doesn't hammer the APIs.
+ * This deliberately does not claim that every upstream source is current.
+ * Source-specific evidence age and health belong beside the decision they
+ * qualify, while this control reports only when the page snapshot was fetched.
  */
-export function LiveRefresh({ generatedAt }: { generatedAt: string }) {
+export function PageRefreshStatus({ generatedAt }: { generatedAt: string }) {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
   const [now, setNow] = useState(0)
   const generatedMs = useRef(new Date(generatedAt).getTime())
 
-  // Keep the "synced Xs ago" label current without a network call.
   useEffect(() => {
     setMounted(true)
     setNow(Date.now())
@@ -30,7 +29,6 @@ export function LiveRefresh({ generatedAt }: { generatedAt: string }) {
     return () => clearInterval(tick)
   }, [])
 
-  // Reset the age clock whenever the server sends a newer snapshot.
   useEffect(() => {
     generatedMs.current = new Date(generatedAt).getTime()
     setNow(Date.now())
@@ -49,9 +47,9 @@ export function LiveRefresh({ generatedAt }: { generatedAt: string }) {
   useEffect(() => {
     const refreshIfStale = () => {
       if (
-        typeof document !== "undefined" &&
-        document.visibilityState === "visible" &&
-        Date.now() - generatedMs.current >= REFRESH_MS
+        typeof document !== "undefined"
+        && document.visibilityState === "visible"
+        && Date.now() - generatedMs.current >= REFRESH_MS
       ) {
         router.refresh()
       }
@@ -71,15 +69,19 @@ export function LiveRefresh({ generatedAt }: { generatedAt: string }) {
     <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
       <span
         className="inline-flex items-center gap-1.5"
-        title="Read-only evidence from PostHog and Supabase. Auto-refreshes every 5 minutes and when a stale tab regains focus."
+        title="This is when the page snapshot was fetched. Source evidence may be older and is labelled separately."
       >
-        <span
-          aria-hidden="true"
-          className="h-2 w-2 shrink-0 rounded-full bg-emerald-500 ring-1 ring-inset ring-black/5 motion-safe:animate-pulse"
-        />
-        {mounted ? `Live · synced ${ago}` : "Live"}
+        <Clock3 className="h-3.5 w-3.5" aria-hidden />
+        {mounted ? `Page refreshed ${ago}` : "Page refreshed"}
       </span>
-      <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => router.refresh()}>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="min-h-11 px-2 text-xs sm:min-h-9"
+        aria-label="Refresh page data"
+        onClick={() => router.refresh()}
+      >
         Refresh
       </Button>
     </div>

@@ -4,7 +4,10 @@
  */
 
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import type { CertCategory } from "@/lib/marketing/med-cert-selector"
+
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 
 export const MED_CERT_INTENT_SLUGS = [
   "work",
@@ -94,12 +97,12 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "work",
     h1: "Medical certificate for work.",
     heroSubheadline:
-      `Need routine evidence for a short work absence? Complete a secure form so a doctor can assess whether a work certificate is appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
+      `Need routine evidence for a short work absence? Complete a secure form for the bounded certificate pathway. From ${PRICING_DISPLAY.MED_CERT}.`,
     explainerTitle: "Work absence evidence",
-    explainerSubtitle: "For short work absences where online doctor review is clinically suitable.",
+    explainerSubtitle: "For routine one-to-three-day work absences, with doctor review for concerns.",
     explainerParagraphs: [
-      "If illness or injury stops you attending work, your employer may ask for evidence for the absence period. This page is for routine short absences where a doctor can make a safe decision from your history without examining you in person.",
-      "You answer a structured health form covering your symptoms, when they started, the work dates affected, how your duties or commute are affected, and safety answers that help the doctor decide whether online review is appropriate.",
+      "If illness stops you attending work, your employer may ask for evidence for the absence period. This page is for routine short absences that fit InstantMed's bounded certificate pathway. Injury, uncertainty, or another concern routes to a doctor.",
+      `You answer a structured health form covering your symptoms, when they started, the work dates affected, and relevant safety answers. ${CLINICAL_REVIEW_SEQUENCE}`,
       "An approved certificate includes standard absence evidence. It is not employer policy advice, a return-to-work clearance, a fit-for-duty assessment, a workplace adjustment letter, workers compensation evidence, or a document requiring capacity or restriction wording.",
     ],
     detailSections: [
@@ -196,7 +199,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "What happens after I submit the form?",
         answer:
-          "A doctor reviews the information you provide and decides whether routine certificate evidence is clinically appropriate. The outcome may be approval, a request for more information, or redirection to in-person care.",
+          CLINICAL_REVIEW_SEQUENCE,
       },
       {
         question: "Can I get a certificate for a day I've already missed?",
@@ -206,7 +209,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "How long can a certificate cover?",
         answer:
-          "InstantMed's medical certificate pathway is for short absences and is capped at 3 days. The doctor decides the appropriate absence period based on your history. Longer or repeated absences may need your regular GP or treating practitioner.",
+          "InstantMed's medical certificate pathway is for short absences and is capped at 3 days. Concerning, uncertain, longer, or repeated absences need a doctor or the patient's regular treating practitioner.",
       },
       {
         question: "Can the certificate say I can return to work or work from home?",
@@ -220,12 +223,12 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "study",
     h1: "Medical certificate for study.",
     heroSubheadline:
-      `Missed class, labs, online attendance, or ordinary study duties because you were unwell? Complete a secure form so a doctor can assess whether routine study evidence is appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
+      `Missed class, labs, online attendance, or ordinary study duties because you were unwell? Complete a secure form for the bounded certificate pathway. From ${PRICING_DISPLAY.MED_CERT}.`,
     explainerTitle: "Study absence evidence",
-    explainerSubtitle: "For short study absences where online doctor review is clinically suitable.",
+    explainerSubtitle: "For routine one-to-three-day study absences, with doctor review for concerns.",
     explainerParagraphs: [
-      "If illness has stopped you attending class, placement, tutorials, labs, or ordinary study duties, your education provider may ask for medical evidence. This page is for routine study absence documentation where a doctor can make a safe decision from your history without examining you in person.",
-      "You answer a structured health form covering your symptoms, when they started, the study dates affected, and whether anything about your course or placement changes the risk. A doctor reviews those answers before deciding whether a certificate can be issued.",
+      "If illness has stopped you attending class, tutorials, labs, or ordinary study duties, your education provider may ask for medical evidence. This page is for routine short study absences; placement, assessment, fitness, or other higher-stakes requests require a different or doctor-reviewed pathway.",
+      `You answer a structured health form covering your symptoms, when they started, the study dates affected, and whether anything about your course changes the risk. ${CLINICAL_REVIEW_SEQUENCE}`,
       "An approved certificate includes the standard doctor-issued details used for routine absence evidence. It is not an automatic document and it is not a substitute for provider-specific forms. Check your institution's policy before applying, especially if deadlines or assessment rules are involved.",
     ],
     detailSections: [
@@ -343,10 +346,10 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     heroSubheadline:
       `If you are 18 or older and need leave to care for an immediate family or household member, request evidence for your own work absence online. From ${PRICING_DISPLAY.MED_CERT}.`,
     explainerTitle: "Carer's leave evidence",
-    explainerSubtitle: "For short carer's leave absences where online doctor review is clinically suitable.",
+    explainerSubtitle: "For routine one-to-three-day carer's leave absences, with doctor review for concerns.",
     explainerParagraphs: [
       "If you need time away from work to care for a sick family member or household member, your employer may ask for evidence. A carer's leave certificate is different from a personal sick certificate: it documents the caring need, not your own illness.",
-      "You answer a structured form explaining who needs care, what happened, the dates you need covered, and why your support is needed. A doctor reviews those answers before deciding whether a carer's leave certificate can be issued.",
+      `You answer a structured form explaining who needs care, what happened, the dates you need covered, and why your support is needed. ${CLINICAL_REVIEW_SEQUENCE}`,
       "An approved certificate should say enough to support the leave reason without disclosing more private information about the person you are caring for than is needed. Employer policies still decide how the document is assessed.",
     ],
     detailSections: [
@@ -455,12 +458,12 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "sick-leave",
     h1: "Sick leave certificate online.",
     heroSubheadline:
-      `Too sick to visit a GP? Request routine sick leave evidence from bed. An AHPRA-registered doctor reviews your answers and decides whether a certificate is clinically appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
+      `Too sick to visit a GP? Request routine one-to-three-day sick-leave evidence through the bounded clinical pathway. From ${PRICING_DISPLAY.MED_CERT}.`,
     explainerTitle: "Sick leave without the waiting room",
-    explainerSubtitle: "For short absences where online doctor review is clinically suitable.",
+    explainerSubtitle: "For routine short absences, with doctor review for concerns.",
     explainerParagraphs: [
       "Sometimes the last thing you want to do when you are unwell is travel to a clinic and sit in a waiting room. This page is for routine sick leave evidence: short-term illness or injury where a doctor can make a safe decision from your history without a physical examination.",
-      "You answer a structured health form covering your symptoms, when they started, the dates you need covered, whether work duties are affected, and any red flags that would make online care unsuitable. A doctor reviews those answers before deciding whether a certificate can be issued.",
+      `You answer a structured health form covering your symptoms, when they started, the dates you need covered, and any red flags that make protocol issue unsuitable. ${CLINICAL_REVIEW_SEQUENCE}`,
       "If approved, your certificate is emailed as a PDF with the usual workplace evidence details. If the doctor needs more context, they can message you through the secure platform. If online review is not suitable, the request is declined and you are directed toward the right care pathway.",
     ],
     detailSections: [

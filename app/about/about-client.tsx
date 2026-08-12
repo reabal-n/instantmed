@@ -18,12 +18,16 @@ import { FAQSchema } from "@/components/seo"
 import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE, GUARANTEE_LABEL } from "@/lib/marketing/voice"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // =============================================================================
 // DATA
 // =============================================================================
+
+const AVAILABILITY_24_7 = getApprovedClaim("availability_24_7")
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 
 const ABOUT_CONFIG = {
   analyticsId: "about" as const,
@@ -33,7 +37,7 @@ const ABOUT_CONFIG = {
   sticky: {
     ctaText: "Start a request",
     ctaHref: "/request",
-    mobileSummary: "24/7 requests, doctor review before issue",
+    mobileSummary: "24/7 requests, bounded clinical pathway",
   },
 }
 
@@ -46,12 +50,12 @@ const ABOUT_FAQS = [
   {
     question: "Is InstantMed a real medical practice?",
     answer:
-      "Yes. InstantMed is operated under AHPRA-registered clinical governance. Certificates include the reviewing doctor's details and a secure verification ID; prescriptions are handled through Australia's eScript infrastructure.",
+      "Yes. InstantMed is operated under AHPRA-registered clinical governance. Certificates include the responsible doctor's details and a secure verification ID; prescriptions are handled through Australia's eScript infrastructure.",
   },
   {
     question: "Where is InstantMed based?",
     answer:
-      "InstantMed is based at Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010. Clinical reviews are handled by Australian-based AHPRA-registered doctors.",
+      "InstantMed is based at Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010. Clinical governance and individual review pathways are owned by Australian-based AHPRA-registered doctors.",
   },
   {
     question: "Is InstantMed covered by Medicare?",
@@ -61,7 +65,7 @@ const ABOUT_FAQS = [
   {
     question: "What services does InstantMed offer?",
     answer:
-      "We offer medical certificates, repeat prescriptions, and specialised pathways for ED, hair loss, UTI assessment, and starting or switching the contraceptive pill. Weight management is not taking requests yet. We keep our scope deliberately narrow, so anything outside these services is best handled by your regular GP or in-person care.",
+      "We offer medical certificates, repeat prescriptions, and specialised pathways for ED, hair loss, women's health, and weight management. We keep our scope deliberately narrow, so anything outside these services is best handled by your regular GP or in-person care.",
   },
   {
     question: "How does InstantMed protect my privacy?",
@@ -75,7 +79,7 @@ const VALUES = [
     icon: <StickerIcon name="security-shield" size={48} />,
     title: "Clinical rigour",
     description:
-      "AHPRA-registered doctor review, documented protocols, and hard safety boundaries. We never automate clinical decisions.",
+      "AHPRA-registered clinical governance, documented protocols, and hard safety boundaries. Automation cannot override a safety route or widen the approved certificate protocol.",
   },
   {
     icon: <StickerIcon name="lock" size={48} />,
@@ -87,7 +91,7 @@ const VALUES = [
     icon: <StickerIcon name="accessibility" size={48} />,
     title: "Accessible care",
     description:
-      "Requests and doctor review are available 24/7 across launched pathways. Timing varies, and a doctor may call briefly before deciding.",
+      AVAILABILITY_24_7,
   },
   {
     icon: <StickerIcon name="eye" size={48} />,
@@ -133,10 +137,9 @@ export function AboutClient() {
                 Telehealth without the small talk.
               </Heading>
               <p className="text-muted-foreground text-balance max-w-lg mx-auto mb-7">
-                A real Australian doctor, ready in the time it takes to make
-                a coffee. AHPRA-registered, no waiting room, no appointment.
-                We handle medical certificates, repeat medication, and online
-                doctor consults.
+                Start with a secure form, without a waiting room or booked appointment.
+                Routine certificates follow a bounded clinical pathway. Prescribing
+                and any concerning certificate request go to an AHPRA-registered doctor.
               </p>
               <div ref={heroCTARef} className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Button
@@ -219,7 +222,7 @@ export function AboutClient() {
                   <div className="rounded-2xl border border-border/50 bg-white p-6 shadow-sm shadow-primary/[0.04] dark:bg-card dark:shadow-none">
                     <p className="text-sm font-semibold text-foreground">Doctor review before issue</p>
                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                      Medical-certificate and prescribing requests require an AHPRA-registered doctor&apos;s review. Timing varies with clinical complexity, follow-up questions, and queue volume.
+                      Routine certificate requests may follow the Medical Director-approved protocol. Concerns and every prescribing request require an AHPRA-registered doctor. Timing varies with clinical complexity, follow-up questions, and queue volume.
                     </p>
                   </div>
                 </div>
@@ -312,7 +315,7 @@ export function AboutClient() {
           {/* CTA */}
           <CTABanner
             title="Ready to start?"
-            subtitle="Secure form first. No appointment, no waiting room, and a doctor reviews before anything is issued."
+            subtitle={`Secure form first. No appointment, no waiting room. ${CLINICAL_REVIEW_SEQUENCE}`}
             ctaText="Start a request"
             ctaHref="/request"
           />

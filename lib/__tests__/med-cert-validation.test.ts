@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest"
 
 import { validateAnswersServerSide } from "@/lib/request/unified-checkout"
 import { validateCertificateStep } from "@/lib/request/validation"
-import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
+import {
+  normalizeMedicalCertificateType,
+  validateMedCertPayload,
+} from "@/lib/validation/med-cert-schema"
 
 const identity = {
   email: "patient@example.com",
@@ -28,6 +31,21 @@ const validMedCertAnswers = {
 }
 
 describe("medical certificate validation", () => {
+  it.each([
+    ["work", "work"],
+    ["sick_leave", "work"],
+    ["study", "study"],
+    ["uni", "study"],
+    ["carer", "carer"],
+  ] as const)("normalizes supported certificate purpose %s to %s", (input, expected) => {
+    expect(normalizeMedicalCertificateType(input)).toBe(expected)
+  })
+
+  it("does not normalize unsupported evidence purposes", () => {
+    expect(normalizeMedicalCertificateType("return-to-work")).toBeNull()
+    expect(normalizeMedicalCertificateType("centrelink")).toBeNull()
+  })
+
   // Regression for the 2026-05-12 prod bug where every med cert checkout
   // failed with "Please select at least one symptom." The symptoms-step UI
   // collects a free-text description + duration only — it never wrote a

@@ -86,7 +86,7 @@ export default async function Image() {
             display: 'flex',
           }}
         >
-          Reviewed by AHPRA-registered Australian doctors
+          AHPRA-registered clinical governance
         </div>
 
         {/* Trust badges */}

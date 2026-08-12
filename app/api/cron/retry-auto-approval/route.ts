@@ -2,9 +2,11 @@ import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 
 import { verifyCronRequest } from "@/lib/api/cron-auth"
-import { isAutoApprovalGovernanceApproved } from "@/lib/clinical/auto-approval-governance"
+import {
+  getEffectiveAutoApprovalSettings,
+  isAutoApprovalGovernanceApproved,
+} from "@/lib/clinical/auto-approval-governance"
 import { env } from "@/lib/config/env"
-import { normalizeAutoApproveDelayMinutes } from "@/lib/data/types/feature-flags"
 import { buildPatientRequestAccessUrl } from "@/lib/email/request-access-url"
 import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { getFeatureFlags } from "@/lib/feature-flags"
@@ -127,15 +129,15 @@ export async function GET(request: NextRequest) {
   }
 
   // The code-owned governance gate cannot be overridden by the database flag.
-  // Still-reviewing emails above continue while every request waits for a
-  // doctor-selected outcome.
+  // Still-reviewing emails above continue if the reviewed code-owned
+  // authorisation gate is ever closed again.
   if (!isAutoApprovalGovernanceApproved()) {
     logger.warn(
       "Auto-approval governance gate is closed - all med certs remain in the doctor queue.",
     )
     return NextResponse.json({
       skipped: true,
-      reason: "Auto-approval paused pending Medical Director and legal review",
+      reason: "Auto-approval stopped by code-owned governance gate",
     })
   }
 
@@ -153,7 +155,7 @@ export async function GET(request: NextRequest) {
     // -----------------------------------------------------------------------
     // Auto-approval: find intakes eligible for AI review via state machine
     // -----------------------------------------------------------------------
-    const delayMinutes = normalizeAutoApproveDelayMinutes(flags.auto_approve_delay_minutes)
+    const { delayMinutes } = getEffectiveAutoApprovalSettings(flags)
     const delayAgo = new Date(Date.now() - delayMinutes * 60 * 1000).toISOString()
     const eightHoursAgo = new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()
 

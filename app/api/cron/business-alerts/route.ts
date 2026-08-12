@@ -527,10 +527,10 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // 10. Human-required queue stalled >24h. Medical-certificate protocol
-    // issuance is governance-paused, so every paid clinical request currently
-    // needs a doctor-selected outcome. We alert through Sentry; we do NOT
-    // auto-pause the service. See lib/monitoring/stale-human-queue.ts.
+    // 10. Human-required queue stalled >24h. This covers prescribing,
+    // specialty, and any certificate routed away from bounded protocol
+    // issuance. We alert through Sentry; we do NOT auto-pause the service.
+    // See lib/monitoring/stale-human-queue.ts.
     await runAlertSection({
       section: "stale_human_queue",
       alerts,

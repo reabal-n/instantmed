@@ -29,7 +29,7 @@ const DOCTOR_REGISTRATION = getApprovedClaim("doctor_registration")
 
 const howWeDecideFaqs = [
   {
-    question: "Does a real doctor review every request?",
+    question: "How is each request clinically governed?",
     answer: CLINICAL_DECISION_MODEL,
   },
   {
@@ -46,7 +46,7 @@ const howWeDecideFaqs = [
   },
   {
     question: "Do you use AI in the decision-making process?",
-    answer: "AI may assist with intake and information organisation. It does not prescribe or make clinical decisions. An AHPRA-registered doctor reviews each medical-certificate or prescribing request before anything is issued.",
+    answer: CLINICAL_DECISION_MODEL,
   },
   {
     question: "What happens to my data after the review?",
@@ -197,7 +197,7 @@ export default function HowWeDecidePage() {
           pill="Our Process"
           title="Every request has clinical ownership"
           highlightWords={["clinical ownership"]}
-          subtitle="Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued."
+          subtitle={CLINICAL_REVIEW_SEQUENCE}
         />
 
         <CitationFacts variant="muted" />

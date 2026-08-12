@@ -32,12 +32,14 @@ import { SectionPill } from "@/components/ui/section-pill"
 import type { RenderableArticleVisual } from "@/lib/blog/visuals"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { MEDICAL_CERTIFICATE_ONLINE_FAQ } from "@/lib/data/medical-certificate-online-faq"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { buildMedCertRequestHref } from "@/lib/marketing/med-cert-selector"
 import { GUARANTEE, MED_CERT_WEDGE } from "@/lib/marketing/voice"
 import { cn } from "@/lib/utils"
 
 const REQUEST_HREF = buildMedCertRequestHref({ duration: "1" })
 const MONEY_PAGE_HREF = "/medical-certificate"
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 
 const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "med-cert",
@@ -45,7 +47,7 @@ const LANDING_CONFIG: LandingPageConfig = {
   sticky: {
     ctaText: `Request a certificate - ${PRICING_DISPLAY.FROM_MED_CERT}`,
     ctaHref: REQUEST_HREF,
-    mobileSummary: "Medical certificate - Doctor-reviewed",
+    mobileSummary: "Medical certificate - Clinically assessed",
     responseTime: "Requests submit 24/7",
   },
 }
@@ -61,7 +63,7 @@ const HERO_FACTS = [
     icon: Clock3,
     label: "Timing",
     value: "Form first",
-    body: "The secure form takes about 3 minutes. An AHPRA-registered doctor reviews the request before any certificate is issued and may ask follow-up questions if needed.",
+    body: `The secure form takes about 3 minutes. ${CLINICAL_REVIEW_SEQUENCE}`,
   },
   {
     icon: ShieldCheck,
@@ -81,8 +83,8 @@ const HOW_IT_WORKS = [
     body: "The form checks for symptoms that should not wait for a routine online certificate, such as chest pain, severe breathing trouble, dehydration, severe pain, or mental health crisis.",
   },
   {
-    title: "Doctor review",
-    body: "An AHPRA-registered Australian doctor reviews the information. They can approve, decline, or ask for more detail if the story is unclear.",
+    title: "Clinical assessment",
+    body: "Routine one-to-three-day work, study, and carer requests may follow the bounded certificate protocol. Anything concerning or uncertain goes to a doctor.",
   },
   {
     title: "Digital outcome",
@@ -336,7 +338,7 @@ function MedicalCertificateOnlineHero({
         <Reveal className="min-w-0">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border/60 bg-white px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card">
             <Stethoscope className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
-            AHPRA-registered doctor review
+            Medical Director-approved pathway
           </div>
 
           <Heading level="display" className="max-w-3xl text-balance">
@@ -345,8 +347,8 @@ function MedicalCertificateOnlineHero({
 
           <p data-speakable className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
             Request a routine work, study, or carer's leave certificate from home.
-            Fill a secure form, an Australian doctor reviews it, and the certificate
-            is issued only if clinically appropriate.
+            Fill a secure form. Routine requests follow the bounded certificate protocol;
+            anything concerning or uncertain goes to an Australian doctor before issue.
           </p>
 
           <div className="mt-6 rounded-2xl border border-border/50 bg-white p-4 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none">
@@ -363,7 +365,7 @@ function MedicalCertificateOnlineHero({
           <div ref={heroCTARef} className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg" disabled={isDisabled} onClick={handleHeroCTA}>
               <Link href={isDisabled ? "/contact" : REQUEST_HREF}>
-                Request doctor review
+                Start certificate request
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
@@ -617,14 +619,14 @@ export function MedicalCertificateOnlineLanding({
                 Request a medical certificate review online.
               </Heading>
               <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
-                Complete the secure form. A doctor reviews and decides whether a
-                certificate is clinically appropriate. No guaranteed issue, no
-                guaranteed employer outcome.
+                Complete the secure form. Routine requests follow the bounded clinical
+                protocol; concerns go to a doctor. No guaranteed issue, no guaranteed
+                employer outcome.
               </p>
               <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button asChild size="lg" disabled={isDisabled} onClick={handleFinalCTA}>
                   <Link href={isDisabled ? "/contact" : REQUEST_HREF}>
-                    Request doctor review
+                    Start certificate request
                     <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                   </Link>
                 </Button>

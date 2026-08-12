@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
@@ -32,10 +33,12 @@ import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 // ============================================================================
 
 const CANONICAL = "https://instantmed.com.au/online-doctor-australia"
+const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 
 export const metadata: Metadata = {
   title: "Online Doctor Australia | AHPRA-Registered Doctors",
-  description: `See an online doctor in Australia, no waiting room. AHPRA-registered doctors review medical certificates and prescriptions. ${PRICING_DISPLAY.FROM_MED_CERT}, open 24/7.`,
+  description: `Australian telehealth with a bounded certificate protocol and doctor review for prescribing or concerns. ${PRICING_DISPLAY.FROM_MED_CERT}, open 24/7.`,
   keywords: [
     "online doctor australia",
     "online doctor au",
@@ -50,7 +53,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Online Doctor Australia - AHPRA-Registered Doctors | InstantMed",
-    description: `See an Australian online doctor without leaving home. Med certs, repeat prescriptions, and consultations reviewed by AHPRA-registered doctors. From ${PRICING_DISPLAY.MED_CERT}.`,
+    description: `Secure form-first telehealth with a bounded certificate protocol and AHPRA-registered doctor review where clinically required. From ${PRICING_DISPLAY.MED_CERT}.`,
     url: CANONICAL,
     siteName: "InstantMed",
     locale: "en_AU",
@@ -70,7 +73,7 @@ export const metadata: Metadata = {
 // ============================================================================
 
 const STATS = [
-  { value: "AHPRA", label: "Registered doctors", context: "Every review by an Australian-registered doctor" },
+  { value: "AHPRA", label: "Registered doctors", context: "Clinical governance and individual review" },
   { value: "24/7", label: "Always open", context: "Submit a request any time, day or night" },
   { value: "24/7", label: "Request submission", context: "Rx + consult review follows when available" },
   { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: GUARANTEE },
@@ -80,7 +83,7 @@ const SERVICES = [
   {
     icon: FileText,
     title: "Medical certificates",
-    body: "AHPRA-registered doctor review for work, study, and other evidence needs. Employer, institution, and agency policies may vary.",
+    body: "Routine work, study, and carer requests use the bounded certificate pathway. Concerning or uncertain evidence needs go to a doctor.",
     href: "/medical-certificate",
     cta: "Request a medical certificate",
     priceLabel: `From ${PRICING_DISPLAY.MED_CERT}`,
@@ -106,8 +109,7 @@ const SERVICES = [
 const FAQS = [
   {
     question: "Is InstantMed a real doctor or an AI?",
-    answer:
-      "Every request is clinically reviewed by an AHPRA-registered Australian doctor. We use software to handle intake, triage, and delivery, but the clinical decision - whether to issue a certificate, approve a prescription, or decline - is always made by a human doctor. No AI prescribes medication or issues certificates.",
+    answer: CLINICAL_DECISION_MODEL,
   },
   {
     question: "Are InstantMed's doctors registered with AHPRA?",
@@ -219,12 +221,12 @@ export default function OnlineDoctorAustraliaPage() {
                 <SectionPill>Australia-wide · AHPRA registered</SectionPill>
               </div>
               <Heading level="display" className="mb-4">
-                Online doctor in Australia - reviewed by AHPRA-registered doctors
+                Australian telehealth with AHPRA-registered clinical governance
               </Heading>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
-                Medical certificates, repeat prescriptions, and consultations reviewed by
-                Australian-registered doctors. No appointments, no waiting rooms. Every
-                request goes to a real doctor - not an algorithm.
+                Routine certificates follow a bounded clinical pathway. Prescriptions,
+                consultations, and concerning certificate requests go to Australian-registered
+                doctors. No appointments, no waiting rooms.
               </p>
 
               <div className="flex flex-wrap justify-center gap-3 mb-8">
@@ -263,16 +265,16 @@ export default function OnlineDoctorAustraliaPage() {
 
           <CitationFacts variant="muted" />
 
-          {/* Page superpower — anchors the "AHPRA-registered, no algorithm"
+          {/* Page superpower — anchors AHPRA-registered clinical ownership
               promise above the stats so the stats reinforce the claim. */}
           <ServiceClaimSection
-            eyebrow="Real doctors, not chatbots"
+            eyebrow="Doctor-owned clinical governance"
             headline={
               <>
-                Every request reviewed by an <span className="text-primary">AHPRA-registered Australian doctor</span>.
+                Clear protocol boundaries. <span className="text-primary">Human review when it matters.</span>
               </>
             }
-            body="No AI prescribes. No algorithm declines. The clinical decision is always made by a human Australian doctor whose registration you can verify on ahpra.gov.au."
+            body={`${CLINICAL_REVIEW_SEQUENCE} ${CLINICAL_DECISION_MODEL}`}
           />
 
           {/* ─────────────── Stats ─────────────── */}

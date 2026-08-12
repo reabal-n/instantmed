@@ -52,7 +52,7 @@ const WEDGE = getApprovedClaim("platform_wedge")
 
 /**
  * Med-cert-specific wedge. Safe to use only on medical certificate surfaces
- * where the active doctor-review pathway supports no-call completion for suitable
+ * where the active bounded clinical pathway supports no-call completion for suitable
  * administrative documentation requests.
  */
 export const MED_CERT_WEDGE = getApprovedClaim("med_cert_wedge")

@@ -102,7 +102,7 @@ A short, plainspoken page (`/what-we-wont-do` or merged into `/guarantee`) listi
 Examples:
 - We won't issue a cert if you should see a doctor in person.
 - We won't prescribe controlled drugs.
-- AI never prescribes or makes clinical decisions. A certificate or prescription is issued only after an AHPRA-registered doctor reviews the request.
+- AI never prescribes. Standard medical-certificate requests may follow the Medical Director-approved protocol. Anything concerning or uncertain, and every prescription request, requires doctor review before issue.
 - We won't write a cert for high-stakes use cases (court, exam deferral, fitness-to-drive, fitness-to-fly, custody, NDIS).
 - We won't hide when a pathway needs doctor contact or in-person care.
 
@@ -167,7 +167,7 @@ Illustration system: 12-piece set, soft hand-drawn line-and-fill, warm coral as 
 - **TGA / AHPRA on `Faster than your GP.`** — comparative health-service advertising. Defensible because it compares process speed (booking + appointment time) not clinical outcome and is substantiable. May trigger Google Ads healthcare review — switch paid creative to `TAGLINE_PAID_SAFE` ("Faster than the wait at your GP.") which is lower-risk. **Active complaint? Use the runbook:** [`docs/runbooks/comparative-tagline-complaint.md`](runbooks/comparative-tagline-complaint.md).
 - **Substantiation page** — `/why-instant` (or merged into `/about`) shows the math: median GP wait per ABS / RACGP source vs. our median delivery time. Required if we keep the comparative tagline as the brand spine.
 - **Identity rule** — public surfaces use "AHPRA-registered doctors" and disclose neither doctor count nor individual names. Use "AHPRA-registered Medical Director" only where the governance role matters. Patient-specific documents and messages may identify the responsible doctor; marketing pages use the stylised signature mark only.
-- **Clinical model** — public copy uses the approved claim: "AI never prescribes or makes clinical decisions. A certificate or prescription is issued only after an AHPRA-registered doctor reviews the request." Medical-certificate protocol issuance is hard-paused pending Medical Director and legal reconciliation; public copy must describe the effective pathway, not the dormant engine.
+- **Clinical model** — public copy uses the approved claim: "AI never prescribes. Standard medical-certificate requests may be issued under a clinical protocol approved by the Medical Director. Anything concerning or uncertain, and every prescription request, requires review by an AHPRA-registered doctor before issue." Public copy must describe the active bounded certificate pathway and the individually reviewed prescribing pathway without implying that AI prescribes or that the database can widen clinical policy.
 
 Deeper compliance rules in [`docs/ADVERTISING_COMPLIANCE.md`](ADVERTISING_COMPLIANCE.md) and [`docs/SEO_CONTENT_POLICY.md`](SEO_CONTENT_POLICY.md).
 

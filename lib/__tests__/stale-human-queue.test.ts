@@ -8,13 +8,14 @@ import {
 
 // The operator chose a targeted Telegram ALERT over an autonomous auto-pause:
 // page when the oldest paid-but-unreviewed request passes 24h. Medical
-// certificates join this queue while protocol issuance is governance-paused.
+// certificates join this queue only when they remain unpaid-outcome stale;
+// clean protocol-issued requests should leave it long before the threshold.
 
 const NOW = new Date("2026-06-11T12:00:00Z")
 const hoursAgo = (h: number) => new Date(NOW.getTime() - h * 3_600_000).toISOString()
 
 describe("buildStaleHumanQueueAlert", () => {
-  it("includes medical_certificate while protocol issuance is governance-paused", () => {
+  it("includes medical_certificate because any 24h-stale paid cert already needs human recovery", () => {
     expect([...STALE_HUMAN_QUEUE_CATEGORIES]).toEqual([
       "medical_certificate",
       "prescription",
@@ -41,7 +42,8 @@ describe("buildStaleHumanQueueAlert", () => {
     expect(alert).not.toBeNull()
     expect(alert).toMatchObject({ metric: "human_review_queue_stalled", severity: "critical", count: 3 })
     expect(alert?.detail).toMatch(/26h/)
-    expect(alert?.detail).toMatch(/needs a human/i)
+    expect(alert?.detail).toMatch(/stalled requests now need a human/i)
+    expect(alert?.detail).not.toMatch(/every active clinical pathway/i)
   })
 
   it("uses singular vs plural correctly", () => {

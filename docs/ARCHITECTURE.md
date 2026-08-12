@@ -790,7 +790,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 557 files, 239 route files
+### `app/` — 556 files, 239 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -878,7 +878,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/certificate-template.ts` | PDF template field definitions |
 | `lib/hooks/` | Shared client hooks | Debounce, keyboard navigation, landing analytics, responsive media, section visibility, validation summaries, and staff refresh helpers |
 | `e2e/` | 78 TypeScript files, including 69 specs and `helpers/` (seed/teardown, auth bypass, production-synthetic side-effect isolation). Focused paid-flow and ops smoke specs are the blocking CI gate. |
-| `supabase/migrations/` | 111 SQL migration files (1 squashed baseline + 110 incremental). Most recent: `20260811120000_revoke_auto_issued_certificate_atomically.sql` — transactional service-role-only RPC for the admin auto-issued med-cert correction (revoke + reopen + both audit events in one transaction; applied to prod 2026-08-11). Before it, `20260807120000_add_can_review_weight_loss.sql` — per-doctor weight-management review flag (default false, explicit grant; admin backfilled true) for the 2026-08-07 launch build. Before it, `20260803093000_add_priority_fee_refunded_at.sql` — nullable `intakes.priority_fee_refunded_at` stamp for the priority breach auto-refund (once-only guard; approval emails read it to acknowledge the refund). Before it, `20260727184400_google_ads_fee_cache_on_intakes.sql` and the production-applied Ads Agent migrations (PHI-free run/proposal/experiment state, RLS default-deny, Stripe fee cache on the intake PaymentIntent row). |
+| `supabase/migrations/` | 112 SQL migration files (1 squashed baseline + 111 incremental). Most recent: `20260812154500_merge_intake_risk_flags_atomically.sql` — service-role-only row-locked merge that deduplicates doctor-visible intake flags and preserves the highest severity. Before it, `20260811120000_revoke_auto_issued_certificate_atomically.sql` — transactional service-role-only RPC for the admin auto-issued med-cert correction (revoke + reopen + both audit events in one transaction; applied to prod 2026-08-11). Before it, `20260807120000_add_can_review_weight_loss.sql` — per-doctor weight-management review flag (default false, explicit grant; admin backfilled true) for the 2026-08-10 launch. Before it, `20260803093000_add_priority_fee_refunded_at.sql` — nullable `intakes.priority_fee_refunded_at` stamp for the priority breach auto-refund (once-only guard; approval emails read it to acknowledge the refund). |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
 | `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |
@@ -918,9 +918,9 @@ Document Builder approve action → approveAndSendCert() → executeCertApproval
 
 Doctor-triggered medical certificate approval must enter through the Document Builder server action, not a duplicate API route.
 
-### Auto-Approval Pipeline (Governance-Paused)
+### Auto-Approval Pipeline (Active, Bounded)
 
-Med cert only. Protocol issuance is currently fail-closed by `lib/clinical/auto-approval-governance.ts` pending Medical Director and legal reconciliation. The database flag (`ai_auto_approve_enabled`) can stop the pathway but cannot authorise it. Every paid medical-certificate request therefore remains in the doctor queue for an individual outcome before issue. The dormant engine is feature-flagged, rate-limited, and has a dry-run mode for controlled evaluation.
+Med cert only. The reviewed code-owned decision in `lib/clinical/auto-approval-governance.ts` activates protocol issuance for clean, unflagged one-to-three-day work, study, and carer certificates. `AUTO_APPROVAL_ROLLOUT_POLICY` enforces a 15-minute minimum delay and ceilings of 3 approvals per five minutes / 10 per day. Stored settings and the `ai_auto_approve_enabled` database kill switch may narrow or stop the lane, but cannot widen or authorise a different protocol. Return-to-work, Centrelink / Services Australia, fitness or capacity, compensation, any deterministic risk, AI uncertainty, and every persisted soft or attention flag route to `needs_doctor` before issue. Dry-run mode remains available for controlled evaluation.
 
 **State machine** — single `auto_approval_state` enum column replaces the old 6-column boolean soup:
 
@@ -936,8 +936,8 @@ Med cert only. Protocol issuance is currently fail-closed by `lib/clinical/auto-
 **Transitions:**
 ```
 payment webhook → awaiting_drafts → (drafts ready) → pending
-                                                          ├─ governance gate closed (current) → doctor queue
-                                                          └─ governance approved + DB flag on (dormant)
+                                                          ├─ DB kill switch off → doctor queue
+                                                          └─ governance approved + DB flag on
                                                                                      ↓
                                                                                 cron picks up
                                                                                      ↓
@@ -969,12 +969,13 @@ Partial index on actionable states only: `idx_intakes_auto_approval_active` on `
 
 | File | Role |
 |------|------|
-| `lib/clinical/auto-approval-governance.ts` | Code-owned authorisation gate; fail-closed while clinical/legal review is pending |
+| `lib/clinical/auto-approval-governance.ts` | Reviewed code-owned authorisation and maximum rollout boundary; the database may only narrow or stop it |
 | `lib/clinical/auto-approval-state.ts` | Atomic CAS state transitions with Sentry/PostHog observability |
 | `lib/clinical/auto-approval-pipeline.ts` | Orchestrator: claim → eligibility → doctor select → execute → mark terminal state |
-| `lib/clinical/auto-approval.ts` | Eligibility engine (unchanged) |
+| `lib/clinical/auto-approval.ts` | Eligibility engine: supported purpose, clinical risk, dates, identity, draft uncertainty, and soft-signal checks |
+| `lib/clinical/soft-flag-persistence.ts` + `merge_intake_risk_flags()` | Service-role-only, row-locked merge that preserves concurrent and higher-severity doctor-attention flags |
 
-**Current oversight boundary:** Doctor review happens before issue. The former post-approval attestation controls remain retired, and the unresolved governance question is contained by the code-owned pre-issuance pause. If protocol issuance is ever reactivated, `DETERMINISTIC_FAILURE_PREFIXES` still routes every **attention-severity** signal to `needs_doctor`; the AI-draft `requiresReview` hint blocks through the `draft_review_flag:` deterministic prefix. Historical `info`-severity flags remain available for retrospective review. See `docs/ROADMAP.md` for the bounded eight-case review set.
+**Current oversight boundary:** Routine, clean one-to-three-day work, study, and carer requests may issue through the active Medical Director-approved protocol. Every concerning, uncertain, soft-flagged, or attention-flagged request routes to a doctor before issue. `DETERMINISTIC_FAILURE_PREFIXES` sends fixed reasons straight to `needs_doctor`; the AI-draft `requiresReview` hint blocks through the `draft_review_flag:` prefix. The former post-approval attestation controls remain retired. Historical `info` flags remain available for the bounded retrospective in `docs/ROADMAP.md`.
 
 Historical visibility plus correction remains. `getRecentlyCompletedIntakes({ includeAutoIssued })` can merge the signed-in clinician's own decisions with historical auto-issued certificates; those rows carry `activity_provenance: "auto_issued"` and are counted separately from clinician decisions. `includeAutoIssued` is admin-gated because an auto-issued certificate has no reviewing doctor and sits outside the per-doctor patient-access boundary. `revokeAIApproval()` revokes a historical certificate and returns the intake to manual review. The database permits that otherwise-forbidden `approved → in_review` reversal only when a revoked issued-certificate row exists. The `batch_reviewed_at` / `batch_reviewed_by` columns are retained as historical audit records and are no longer written.
 

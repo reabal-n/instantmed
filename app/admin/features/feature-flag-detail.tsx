@@ -24,11 +24,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { AUTO_APPROVAL_GOVERNANCE } from "@/lib/clinical/auto-approval-governance"
+import {
+  AUTO_APPROVAL_GOVERNANCE,
+  AUTO_APPROVAL_ROLLOUT_POLICY,
+  getEffectiveAutoApprovalSettings,
+} from "@/lib/clinical/auto-approval-governance"
 import {
   FLAG_KEYS,
   MAX_AUTO_APPROVE_DELAY_MINUTES,
-  MIN_AUTO_APPROVE_DELAY_MINUTES,
   normalizeAutoApproveDelayMinutes,
 } from "@/lib/data/types/feature-flags"
 
@@ -516,6 +519,7 @@ export function AutoApproveSection({
 }: AutoApproveSectionProps) {
   const governancePaused = !AUTO_APPROVAL_GOVERNANCE.approved
   const effectiveAutoApproval = flags.ai_auto_approve_enabled && !governancePaused
+  const effectiveSettings = getEffectiveAutoApprovalSettings(flags)
 
   return (
     <Card
@@ -541,8 +545,8 @@ export function AutoApproveSection({
         </CardTitle>
         <CardDescription>
           {governancePaused
-            ? "Protocol issuance is hard-paused pending Medical Director and legal review. Every medical-certificate request remains in the doctor queue for an individual outcome before issue; the database toggle cannot override this code gate."
-            : "Automatically approve eligible medical certificates after payment. Any attention-severity signal is routed to manual review before a certificate exists."}
+            ? "Protocol issuance is stopped by the code-owned governance gate. Every medical-certificate request remains in the doctor queue for an individual outcome before issue; the database toggle cannot override this gate."
+            : "Automatically issue eligible 1-3 day work, study, and carer certificates after payment. Any concerning or uncertain signal is routed to manual review before a certificate exists."}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5 px-4 pb-4 sm:px-6 sm:pb-6">
@@ -596,13 +600,14 @@ export function AutoApproveSection({
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
-                  min={MIN_AUTO_APPROVE_DELAY_MINUTES}
+                  min={AUTO_APPROVAL_ROLLOUT_POLICY.minimumDelayMinutes}
                   max={MAX_AUTO_APPROVE_DELAY_MINUTES}
-                  value={flags.auto_approve_delay_minutes}
+                  value={effectiveSettings.delayMinutes}
                   onChange={(e) => onSetFlags(prev => ({
                     ...prev,
-                    auto_approve_delay_minutes: normalizeAutoApproveDelayMinutes(
-                      parseInt(e.target.value, 10),
+                    auto_approve_delay_minutes: Math.max(
+                      AUTO_APPROVAL_ROLLOUT_POLICY.minimumDelayMinutes,
+                      normalizeAutoApproveDelayMinutes(parseInt(e.target.value, 10)),
                     ),
                   }))}
                   onBlur={() => {
@@ -615,7 +620,7 @@ export function AutoApproveSection({
                 <span className="text-sm text-muted-foreground">minutes</span>
               </div>
               <p className="text-xs text-muted-foreground w-full">
-                Minimum {MIN_AUTO_APPROVE_DELAY_MINUTES} minutes. The retry cron checks eligible requests every 3 minutes.
+                Minimum {AUTO_APPROVAL_ROLLOUT_POLICY.minimumDelayMinutes} minutes. The retry cron checks eligible requests every 3 minutes.
               </p>
             </div>
 
@@ -626,9 +631,15 @@ export function AutoApproveSection({
                 <Input
                   type="number"
                   min={1}
-                  max={100}
-                  value={flags.auto_approve_rate_limit_5min}
-                  onChange={(e) => onSetFlags(prev => ({ ...prev, auto_approve_rate_limit_5min: Math.min(100, Math.max(1, parseInt(e.target.value, 10) || 1)) }))}
+                  max={AUTO_APPROVAL_ROLLOUT_POLICY.maxApprovalsPerFiveMinutes}
+                  value={effectiveSettings.rateLimitFiveMinutes}
+                  onChange={(e) => onSetFlags(prev => ({
+                    ...prev,
+                    auto_approve_rate_limit_5min: Math.min(
+                      AUTO_APPROVAL_ROLLOUT_POLICY.maxApprovalsPerFiveMinutes,
+                      Math.max(1, parseInt(e.target.value, 10) || 1),
+                    ),
+                  }))}
                   onBlur={() => {
                     if (flags.auto_approve_rate_limit_5min !== initialFlags.auto_approve_rate_limit_5min) {
                       onSaveFlag(FLAG_KEYS.AUTO_APPROVE_RATE_LIMIT_5MIN, flags.auto_approve_rate_limit_5min)
@@ -647,9 +658,15 @@ export function AutoApproveSection({
                 <Input
                   type="number"
                   min={1}
-                  max={500}
-                  value={flags.auto_approve_daily_cap}
-                  onChange={(e) => onSetFlags(prev => ({ ...prev, auto_approve_daily_cap: Math.min(500, Math.max(1, parseInt(e.target.value, 10) || 1)) }))}
+                  max={AUTO_APPROVAL_ROLLOUT_POLICY.maxApprovalsPerDay}
+                  value={effectiveSettings.dailyCap}
+                  onChange={(e) => onSetFlags(prev => ({
+                    ...prev,
+                    auto_approve_daily_cap: Math.min(
+                      AUTO_APPROVAL_ROLLOUT_POLICY.maxApprovalsPerDay,
+                      Math.max(1, parseInt(e.target.value, 10) || 1),
+                    ),
+                  }))}
                   onBlur={() => {
                     if (flags.auto_approve_daily_cap !== initialFlags.auto_approve_daily_cap) {
                       onSaveFlag(FLAG_KEYS.AUTO_APPROVE_DAILY_CAP, flags.auto_approve_daily_cap)
@@ -668,9 +685,15 @@ export function AutoApproveSection({
                 <Input
                   type="number"
                   min={1}
-                  max={3}
-                  value={flags.auto_approve_max_duration_days}
-                  onChange={(e) => onSetFlags(prev => ({ ...prev, auto_approve_max_duration_days: Math.min(3, Math.max(1, parseInt(e.target.value, 10) || 1)) }))}
+                  max={AUTO_APPROVAL_ROLLOUT_POLICY.maxDurationDays}
+                  value={effectiveSettings.maxDurationDays}
+                  onChange={(e) => onSetFlags(prev => ({
+                    ...prev,
+                    auto_approve_max_duration_days: Math.min(
+                      AUTO_APPROVAL_ROLLOUT_POLICY.maxDurationDays,
+                      Math.max(1, parseInt(e.target.value, 10) || 1),
+                    ),
+                  }))}
                   onBlur={() => {
                     if (flags.auto_approve_max_duration_days !== initialFlags.auto_approve_max_duration_days) {
                       onSaveFlag(FLAG_KEYS.AUTO_APPROVE_MAX_DURATION_DAYS, flags.auto_approve_max_duration_days)
@@ -678,7 +701,7 @@ export function AutoApproveSection({
                   }}
                   className="w-20"
                 />
-                <span className="text-sm text-muted-foreground">days (max 3, certs longer need doctor review)</span>
+                <span className="text-sm text-muted-foreground">days (code ceiling)</span>
               </div>
             </div>
           </div>
@@ -769,8 +792,8 @@ export function AutoApproveSection({
 
         <p className="text-xs text-muted-foreground">
           {governancePaused
-            ? `Governance pause effective since ${AUTO_APPROVAL_GOVERNANCE.pausedSince}. Re-enabling requires a reviewed code change after ${AUTO_APPROVAL_GOVERNANCE.reviewRequired}.`
-            : "Safety: only 1-3 day certs eligible. Excludes mental health, injury, chronic conditions, pregnancy, emergencies, and minors. All auto-approved certs are logged to the audit trail."}
+            ? "Protocol issuance is paused by the code-owned governance gate."
+            : `Safety: the active protocol covers only clean, unflagged 1-3 day work, study, and carer requests, with a ${AUTO_APPROVAL_ROLLOUT_POLICY.minimumDelayMinutes}-minute delay and code-owned volume ceilings. Return-to-work, Centrelink, fitness or capacity evidence, mental health, injury, chronic conditions, pregnancy, emergencies, minors, and any draft or intake attention signal route away from automatic issuance. Approved ${AUTO_APPROVAL_GOVERNANCE.approvedAt}; every decision is audited.`}
         </p>
       </CardContent>
     </Card>

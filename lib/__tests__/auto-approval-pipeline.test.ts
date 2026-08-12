@@ -72,18 +72,18 @@ vi.mock("@/lib/observability/logger", () => ({
 
 const mockAutoApprovalGovernance = vi.hoisted(() => ({ approved: true }))
 
-vi.mock("@/lib/clinical/auto-approval-governance", () => ({
-  AUTO_APPROVAL_GOVERNANCE: {
-    approved: mockAutoApprovalGovernance.approved,
-    status: "approved",
-    pausedSince: null,
-  },
-  isAutoApprovalGovernanceApproved: () => mockAutoApprovalGovernance.approved,
-}))
+vi.mock("@/lib/clinical/auto-approval-governance", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/clinical/auto-approval-governance")>()
+  return {
+    ...actual,
+    isAutoApprovalGovernanceApproved: () => mockAutoApprovalGovernance.approved,
+  }
+})
 
 const mockFeatureFlags = {
   ai_auto_approve_enabled: false,
   auto_approve_dry_run: false,
+  auto_approve_delay_minutes: 15,
   auto_approve_rate_limit_5min: 10,
   auto_approve_daily_cap: 50,
   auto_approve_max_duration_days: 3,
@@ -250,10 +250,12 @@ describe("attemptAutoApproval orchestrator", () => {
     // Reset to defaults
     mockFeatureFlags.ai_auto_approve_enabled = false
     mockFeatureFlags.auto_approve_dry_run = false
+    mockFeatureFlags.auto_approve_delay_minutes = 15
     mockFeatureFlags.auto_approve_rate_limit_5min = 10
     mockFeatureFlags.auto_approve_daily_cap = 50
     mockFeatureFlags.auto_approve_max_duration_days = 3
     mockAutoApprovalGovernance.approved = true
+    mockCheckRateLimit.mockClear()
     mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 9 })
     mockRecordRateLimitedAction.mockResolvedValue(undefined)
     mockExecuteCertApproval.mockReset()
@@ -336,6 +338,26 @@ describe("attemptAutoApproval orchestrator", () => {
     expect(result.success).toBe(true)
     expect(result.autoApproved).toBe(false)
     expect(result.reason).toBe("Daily cap exceeded")
+  })
+
+  it("uses the code-owned rollout ceilings instead of permissive stored caps", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = true
+    mockFeatureFlags.auto_approve_rate_limit_5min = 100
+    mockFeatureFlags.auto_approve_daily_cap = 500
+
+    const attemptAutoApproval = await getAttemptAutoApproval()
+    await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(mockCheckRateLimit).toHaveBeenNthCalledWith(
+      1,
+      expect.any(String),
+      expect.objectContaining({ maxRequests: 3 }),
+    )
+    expect(mockCheckRateLimit).toHaveBeenNthCalledWith(
+      2,
+      expect.any(String),
+      expect.objectContaining({ maxRequests: 10 }),
+    )
   })
 
   // --------------------------------------------------------------------------

@@ -1,11 +1,11 @@
 /**
  * Stale human-required queue detection.
  *
- * Medical-certificate protocol issuance is governance-paused, so every paid
- * clinical request currently requires a doctor. If the operator is unavailable,
- * those paid requests pile up. We do NOT auto-pause a service (a cron flipping a
- * live revenue kill switch risks false trips); we fire a targeted page so the
- * operator can review or pause manually.
+ * Active protocol issuance handles clean medical certificates, but any paid
+ * clinical request still waiting after this long is already outside the normal
+ * automated path and needs human recovery. We do NOT auto-pause a service (a
+ * cron flipping a live revenue kill switch risks false trips); we fire a
+ * targeted page so the operator can review or pause manually.
  *
  * This module is the pure decision: given the oldest paid-but-unreviewed
  * request timestamp + the count, decide whether to page. The DB query and the
@@ -14,7 +14,7 @@
 
 export const STALE_HUMAN_QUEUE_THRESHOLD_HOURS = 24
 
-/** Human-required service categories while protocol issuance is paused. */
+/** Categories where a 24h-stale paid request requires human recovery. */
 export const STALE_HUMAN_QUEUE_CATEGORIES = [
   "medical_certificate",
   "prescription",
@@ -53,7 +53,7 @@ export function buildStaleHumanQueueAlert(
     count,
     detail:
       `${count} paid request${plural} waiting ${Math.floor(oldestHours)}h+ with no doctor review — ` +
-      "every active clinical pathway currently needs a human outcome. " +
+      "these stalled requests now need a human outcome. " +
       "Review in /dashboard or pause the affected service in /admin/features.",
   }
 }

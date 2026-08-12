@@ -8,6 +8,9 @@ import { CTABanner } from "@/components/sections/cta-banner"
 import { LegalSection } from "@/components/shared/legal-section"
 import { Navbar } from "@/components/shared/navbar"
 import { CONTACT_EMAIL_PRIVACY, CONTACT_PHONE } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+
+const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -132,13 +135,13 @@ export default function PrivacyPage() {
                 <LegalSection number="4" title="AI-Assisted Documentation" id="ai">
                   <p>
                     InstantMed uses Anthropic (Claude) to assist with certain administrative tasks, including
-                    summarizing intake information for doctor review and drafting documents such as medical
-                    certificates. All AI-generated content is reviewed and approved by a registered Australian
-                    doctor before being sent to you.
+                    organising intake information and drafting clinical documentation. In the bounded
+                    medical-certificate pathway, AI uncertainty can only route a request to a doctor; it cannot
+                    widen the protocol or override a safety rule. AI-assisted prescribing documentation remains
+                    subject to individual doctor review before clinical use.
                   </p>
                   <p>
-                    AI assistance does not extend to clinical decision-making. Doctors make all medical
-                    decisions independently. Health information shared during intake may be processed by
+                    {CLINICAL_DECISION_MODEL} Health information shared during intake may be processed by
                     Anthropic&apos;s systems in accordance with their data processing agreements with us.
                   </p>
                 </LegalSection>

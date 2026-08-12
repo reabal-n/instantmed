@@ -105,7 +105,7 @@ Use:
 
 > No video. No call. No appointment.
 
-Only use this on medical certificate surfaces where the active doctor-review pathway supports no-call completion for suitable administrative documentation requests.
+Only use this on medical-certificate surfaces where the active bounded clinical pathway supports no-call completion for suitable routine documentation requests.
 
 ### Prescription And Specialty Services
 
@@ -233,7 +233,7 @@ A live service does not itself authorise a campaign. Campaign creation, activati
 
 | Campaign type | Allowed approach |
 |---------------|------------------|
-| Medical certificate search | Service terms, price, speed, no appointment, doctor-reviewed. Avoid unsupported employer/university acceptance claims. |
+| Medical certificate search | Service terms, price, no appointment, clinically assessed. Avoid unsupported speed, employer, or university-acceptance claims. |
 | Repeat prescription search | Repeat medication review, eScript if approved, no booked appointment. Avoid drug names in ad/destination. |
 | ED search | ED assessment or men's health assessment. Avoid drug names, performance guarantees, explicit sexualized copy, or "no call needed." |
 | Hair loss search | Hair loss assessment. Avoid drug names and outcome guarantees. |

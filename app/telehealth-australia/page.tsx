@@ -26,9 +26,12 @@ import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 
 // ============================================================================
 // METADATA - head-term pillar for "telehealth australia" and related
@@ -742,7 +745,7 @@ export default function TelehealthAustraliaPage() {
                 Use telehealth the way it&apos;s meant to work
               </Heading>
               <p className="text-muted-foreground mb-8">
-                Fill in a form, an AHPRA-registered doctor reviews it, certificate or eScript
+                Fill in a form. {CLINICAL_REVIEW_SEQUENCE} A certificate or eScript
                 arrives digitally if approved. Refund if it&apos;s not the right fit.
               </p>
               <div className="flex flex-wrap justify-center gap-3">

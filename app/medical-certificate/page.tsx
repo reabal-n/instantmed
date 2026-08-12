@@ -8,7 +8,7 @@ import { MED_CERT_LANDING_FAQ } from "@/lib/data/med-cert-faq"
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: "Medical Certificate Online Australia | Doctor Review | InstantMed" },
+  title: { absolute: "Medical Certificate Online Australia | Clinical Pathway | InstantMed" },
   description: `Get a medical certificate for work or study online. Fill out a secure form, no appointment. From ${PRICING_DISPLAY.MED_CERT}.`,
   keywords: [
     "medical certificate online australia",
@@ -20,9 +20,9 @@ export const metadata: Metadata = {
     "sick certificate australia",
   ],
   openGraph: {
-    title: "Online Medical Certificate | AHPRA Doctor Review | InstantMed",
+    title: "Online Medical Certificate | Bounded Clinical Pathway | InstantMed",
     description:
-      "Start with a secure form that takes about 3 minutes. AHPRA-registered doctor review. Certificate to your inbox.",
+      "Start with a secure form that takes about 3 minutes. Routine requests follow a bounded clinical pathway; concerns go to a doctor.",
     url: "https://instantmed.com.au/medical-certificate",
     type: "website",
     locale: "en_AU",
@@ -30,8 +30,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Online Medical Certificate | AHPRA Doctor Review | InstantMed",
-    description: "Start with a secure form that takes about 3 minutes. AHPRA-registered doctor review. Certificate to your inbox.",
+    title: "Online Medical Certificate | Bounded Clinical Pathway | InstantMed",
+    description: "Start with a secure form that takes about 3 minutes. Routine requests follow a bounded clinical pathway; concerns go to a doctor.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/medical-certificate",
@@ -43,7 +43,7 @@ export default function Page() {
     <>
       <SpeakableSchema
         name="Online Medical Certificate Australia"
-        description={`Get a medical certificate for work or study online. Reviewed by an AHPRA-registered Australian doctor. From ${PRICING_DISPLAY.MED_CERT}. No appointment needed.`}
+        description={`Request a routine work or study certificate through a Medical Director-approved clinical pathway. From ${PRICING_DISPLAY.MED_CERT}. No appointment needed.`}
         url="/medical-certificate"
       />
       <MedCertHowToSchema />
@@ -56,12 +56,12 @@ export default function Page() {
       />
       <MedicalServiceSchema
         name="Online Medical Certificate"
-        description="Get routine sick-leave or study-absence evidence reviewed by an Australian registered doctor. Employer and institution policies may vary."
+        description="Request routine one-to-three-day work or study absence evidence through a bounded clinical pathway. Employer and institution policies may vary."
         price={PRICING_SCHEMA.MED_CERT}
       />
       <HealthArticleSchema
         title="Online Medical Certificate Australia"
-        description="Get routine absence evidence for work or study reviewed by an AHPRA-registered Australian doctor."
+        description="Request routine absence evidence for work or study through a Medical Director-approved clinical pathway."
         url="/medical-certificate"
       />
       <MedCertLanding />

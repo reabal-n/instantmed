@@ -22,7 +22,7 @@ The business is built around one-off, clearly scoped services that can be delive
 | **Gated/retired services** | General Consult is retired and cannot be used as a fallback route around structured screeners. Unlaunched consult subtypes remain gated. |
 | **Fulfilment** | eScript token only for prescribing services. No owned pharmacy, delivery, inventory, or dispensing margin in this phase. |
 | **Moat** | No booking friction: patients start with a secure clinical form. A doctor may call or message whenever clinically needed. |
-| **Clinical control** | The website must never promise that prescribing requests will not need doctor contact. Medical-certificate and prescribing requests require doctor review before issue while protocol issuance is governance-paused. |
+| **Clinical control** | The website must never promise that prescribing requests will not need doctor contact. Standard one-to-three-day work, study, and carer certificates may issue under the Medical Director-approved protocol; concerning or uncertain certificate requests and every prescribing request require doctor review before issue. |
 | **Growth posture** | Launched services may run as bounded organic or onsite pilots. A paid pilot exists only where separately approved; material scaling requires the economic gates in `docs/REVENUE_MODEL.md` and exact operator approval. |
 | **Revenue direction** | Work through the milestone ladder in `docs/REVENUE_MODEL.md`. $1M annual gross remains a distant directional north star, not the active operating target. |
 | **Operator model** | One owner-operator account holds the sole `admin` role and inherits doctor capabilities. Future clinicians use `doctor`; non-clinical operators use `support`. |
@@ -98,7 +98,7 @@ The model works only while the platform reduces active doctor minutes per order 
 
 | Service | Operating rule |
 |---------|----------------|
-| Med certs | Individual doctor review before issue. The dormant protocol engine cannot issue while the code-owned governance gate is paused. |
+| Med certs | Clean one-to-three-day work, study, and carer requests may issue through the active code-bounded protocol. Concerning, uncertain, unsupported-purpose, or flagged requests route to individual doctor review before issue. |
 | Repeat prescriptions | Doctor-reviewed one-off eScript request. Call/message if unclear, new, unstable, high-risk, or incomplete. |
 | Hair loss | One-off form-first doctor assessment. No subscription, outcome guarantee, or drug-name acquisition marketing. |
 | ED | One-off form-first doctor assessment with strict contraindication screening. |

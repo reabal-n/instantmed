@@ -221,7 +221,7 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
                     Verifying certificates for your workplace?
                   </p>
                   <p className="text-xs text-muted-foreground leading-snug">
-                    Every certificate InstantMed issues is reviewed by an AHPRA-registered doctor and
+                    Every InstantMed certificate records the responsible AHPRA-registered doctor and
                     can be verified here at any time by its reference number.
                   </p>
                   <Link

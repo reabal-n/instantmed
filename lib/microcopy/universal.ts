@@ -13,7 +13,7 @@ export const COPY = {
   global: {
     turnaround: "Review follows when available",
     turnaroundLong: "Requests accepted any time; review follows when available",
-    doctorReview: "A doctor reviews every request",
+    doctorReview: "Clinical assessment with doctor review when required",
     noPhone: "Most requests sorted without a call",
     mayContact: "A doctor may message you if they need more info",
     // SLA messaging for intake status - configurable for seasonal adjustments

@@ -42,7 +42,7 @@ const audiences = [
 const audienceFaqs = [
   {
     question: "Do you offer different services for different industries?",
-    answer: "The core service is the same for everyone - doctor-reviewed medical certificates, prescriptions, and consultations. What differs is how it fits into your work life. A shift worker and a university student have different schedules and requirements, so we explain what's relevant for each.",
+    answer: "The core service is the same for everyone: clinically assessed medical certificates, doctor-reviewed prescriptions, and structured specialty pathways. What differs is how it fits into your work life. A shift worker and a university student have different schedules and requirements, so we explain what's relevant for each.",
   },
   {
     question: "Can employers use these certificates as sick-leave evidence?",

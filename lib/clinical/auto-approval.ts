@@ -10,6 +10,8 @@
  * so compliance reviews can identify which clinical criteria were applied.
  */
 
+import { normalizeMedicalCertificateType } from "@/lib/validation/med-cert-schema"
+
 import { checkEmergencySymptoms, checkRedFlagPatterns } from "./triage-rules-engine"
 
 /**
@@ -21,7 +23,7 @@ import { checkEmergencySymptoms, checkRedFlagPatterns } from "./triage-rules-eng
  *
  * Format: MAJOR.MINOR (major = structural changes, minor = keyword/threshold updates)
  */
-export const ELIGIBILITY_ENGINE_VERSION = "3.0"
+export const ELIGIBILITY_ENGINE_VERSION = "3.2"
 
 /**
  * Human-readable manifest of all checks the engine applies.
@@ -29,6 +31,7 @@ export const ELIGIBILITY_ENGINE_VERSION = "3.0"
  */
 export const ELIGIBILITY_CHECK_MANIFEST = [
   "service_type_is_med_cert",
+  "certificate_type_is_supported_standard_absence",
   "repeat_request_7d_cooldown",
   "overlapping_cert_date_check",
   "patient_age_18_plus",
@@ -45,7 +48,8 @@ export const ELIGIBILITY_CHECK_MANIFEST = [
   "high_stakes_use_case_hard_block",
   "symptom_text_substantive",
   "ai_clinical_note_exists_and_ready",
-  "ai_draft_review_flag_soft_only",
+  "ai_draft_review_flag_pre_issue_block",
+  "code_owned_soft_flag_rollout_policy",
 ] as const
 
 // ============================================================================
@@ -126,12 +130,11 @@ import { HIGH_STAKES_USE_CASE_KEYWORDS } from "./high-stakes-keywords"
 
 // ============================================================================
 // SOFT-BLOCK KEYWORD LISTS
-// Only block when the keyword is the patient's sole symptom (no co-symptoms).
-// If the patient has 2+ structured symptoms, the dormant evaluator records
-// these as soft flags. Protocol issuance is governance-paused, so every current
-// request receives doctor review before issue. If reactivated, these flags are
-// persisted to intakes.risk_flags and surfaced as `Flagged` on the approved
-// list (lib/clinical/soft-flag-persistence.ts).
+// Only hard-block when the keyword is the patient's sole symptom (no
+// co-symptoms). With 2+ structured symptoms, the engine records a soft flag.
+// The active rollout requires zero soft flags, so these requests still route to
+// a doctor before issue. The flags are also persisted to intakes.risk_flags for
+// durable operator context (lib/clinical/soft-flag-persistence.ts).
 // ============================================================================
 
 const SOFT_BLOCK_MENTAL_HEALTH = [
@@ -157,9 +160,22 @@ export function extractSymptomText(answers: Record<string, unknown> | null): str
 
   const parts: string[] = []
 
-  // Free-text symptom description
-  if (typeof answers.symptomDetails === "string") {
-    parts.push(answers.symptomDetails)
+  // Free-text symptom description. Scan every current + legacy alias because
+  // the checkout gate accepts all of them and the issuance backstop must never
+  // have a narrower view of the same patient statement.
+  const textAnswerKeys = [
+    "symptomDetails",
+    "symptom_details",
+    "symptomsDescription",
+    "symptoms_description",
+    "additional_info",
+    "additionalInfo",
+    "additional_information",
+    "reason_for_visit",
+  ] as const
+  for (const key of textAnswerKeys) {
+    const value = answers[key]
+    if (typeof value === "string" && value.trim()) parts.push(value)
   }
 
   // Structured symptom selections
@@ -172,17 +188,20 @@ export function extractSymptomText(answers: Record<string, unknown> | null): str
     parts.push(answers.symptomDuration)
   }
 
-  // Additional info / notes
-  if (typeof answers.additional_info === "string") {
-    parts.push(answers.additional_info)
-  }
-
-  // Reason for visit
-  if (typeof answers.reason_for_visit === "string") {
-    parts.push(answers.reason_for_visit)
-  }
-
   return parts.join(" ").trim()
+}
+
+/**
+ * Normalize the only certificate purposes the protocol may issue. Legacy
+ * aliases remain accepted for already-stored requests; every other value is a
+ * pre-issuance block even when the symptom text itself looks routine.
+ */
+function getSupportedCertificateType(
+  intakeSubtype: string | null | undefined,
+  answers: Record<string, unknown> | null,
+): "work" | "study" | "carer" | null {
+  const raw = answers?.certType ?? answers?.certificate_type ?? intakeSubtype
+  return normalizeMedicalCertificateType(raw)
 }
 
 /**
@@ -283,17 +302,14 @@ export function extractStartDate(answers: Record<string, unknown> | null): strin
  *
  * Checks (ALL must pass):
  * 1. Service type is med_certs
- * 2. Patient is 18+ (minors never auto-approved)
- * 3. No emergency symptoms in text
- * 4. No red flag patterns in text
- * 5. No mental health keywords
- * 6. No injury keywords
- * 7. No chronic condition keywords
- * 8. No pregnancy keywords
- * 9. Duration is 1-N days (N configurable, default 3)
- * 10. Symptom text is not empty (must have actual medical reason)
- * 11. AI clinical note draft exists with status "ready"
- * 12. AI draft flags.requiresReview === false
+ * 2. Purpose normalizes to work, study, or carer
+ * 3. Patient is 18+ (minors never auto-approved)
+ * 4. No emergency, red-flag, high-stakes, or excluded clinical signals
+ * 5. Duration is within the code-owned 1-3 day boundary
+ * 6. Symptom text is substantive
+ * 7. AI clinical note draft exists with status "ready"
+ * 8. AI draft flags.requiresReview === false
+ * 9. Active rollout contains no soft signals
  */
 export function evaluateAutoApprovalEligibility(
   intake: { service_type: string; subtype?: string | null },
@@ -310,10 +326,12 @@ export function evaluateAutoApprovalEligibility(
     /**
      * Attention-severity intake flag codes (from `intakes.risk_flags`). Any
      * present means a human must review — a flagged cert must NEVER auto-issue.
-     * Info-severity flags are deliberately NOT passed here so the tuned 1–2 day
-     * fast path is preserved.
+     * Info-severity stored flags are not passed here; current engine soft
+     * signals are evaluated separately by `requireNoSoftFlags`.
      */
     attentionFlagCodes?: string[]
+    /** Route every engine soft signal to a doctor during a bounded rollout. */
+    requireNoSoftFlags?: boolean
   },
 ): AutoApprovalEligibility {
   const flags: string[] = []
@@ -334,6 +352,19 @@ export function evaluateAutoApprovalEligibility(
       disqualifyingFlags: ["service_type_mismatch"],
       softFlags: [],
     })
+  }
+
+  // 1. Supported purpose boundary. The public flow currently offers routine
+  // work, study, and carer's-leave certificates only. Never infer a routine
+  // certificate from mild symptoms when the stored purpose is Centrelink,
+  // return-to-work, capacity, or another unsupported document request.
+  const certificateType = getSupportedCertificateType(intake.subtype, answers)
+  if (!certificateType) {
+    const rawType = answers?.certType ?? answers?.certificate_type ?? intake.subtype
+    const displayType = typeof rawType === "string"
+      ? rawType.trim().toLowerCase().replace(/[-_]+/g, " ")
+      : "missing"
+    flags.push(`unsupported_certificate_type: ${displayType}`)
   }
 
   // 1a. Doctor-attention intake flags — a flagged cert must NEVER auto-issue.
@@ -510,9 +541,17 @@ export function evaluateAutoApprovalEligibility(
     }
   }
 
-  // TUNING: For 1-2 day certificates with mild common symptoms, allow auto-approval
-  // even if soft-block keywords are present. These are the most common and lowest-risk
-  // requests. The 3-day cap still requires either zero flags or a returning patient.
+  // The engine keeps tuned soft-signal behaviour available for analysis and
+  // future reviewed protocols, while the initial reactivation policy permits
+  // only a completely clean lane. This is deliberately code-owned: a database
+  // setting cannot make a soft-flagged certificate eligible.
+  if (options?.requireNoSoftFlags && softFlags.length > 0) {
+    flags.push(`rollout_requires_no_soft_flags: ${softFlags.join(", ")}`)
+  }
+
+  // Historical tuning retained behind the policy seam. It is unreachable while
+  // the active rollout sets `requireNoSoftFlags: true`; another reviewed code
+  // decision would be required before a soft-flagged request could use it.
   //
   // hasOnlySoftFlags: every flag in flags[] originated from a soft-block keyword list
   // (tracked via softOriginFlags). Hard-block lists, emergency checks, and structural

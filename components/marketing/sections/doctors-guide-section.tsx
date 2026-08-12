@@ -6,6 +6,8 @@ import { Reveal } from "@/components/ui/reveal"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
 
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+
 // =============================================================================
 // DATA
 // =============================================================================
@@ -52,7 +54,7 @@ const GUIDE_SECTIONS: Array<{
     title: "Clinical governance and oversight",
     paragraphs: [
       "Clinical governance is the framework that keeps service scope, safety checks, decisions, and escalation pathways documented.",
-      "Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued.",
+      CLINICAL_REVIEW_SEQUENCE,
       "Decision records, complaints, incidents, and protocol changes create an audit trail for clinical leadership without turning an operational process into an unsupported marketing claim.",
     ],
   },

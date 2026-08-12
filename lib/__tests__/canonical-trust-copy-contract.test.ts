@@ -54,10 +54,10 @@ describe("canonical trust copy contract", () => {
       "Clinical access is role-scoped. Doctors and the owner-admin can access records needed for care; support sees only bounded, masked operational data.",
     )
     expect(getApprovedClaim("clinical_decision_model")).toBe(
-      "AI never prescribes or makes clinical decisions. A certificate or prescription is issued only after an AHPRA-registered doctor reviews the request.",
+      "AI never prescribes. Standard medical-certificate requests may be issued under a clinical protocol approved by the Medical Director. Anything concerning or uncertain, and every prescription request, requires review by an AHPRA-registered doctor before issue.",
     )
     expect(getApprovedClaim("clinical_review_sequence")).toBe(
-      "Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued.",
+      "Standard medical-certificate requests are assessed under a Medical Director-approved clinical protocol. Concerning or uncertain certificate requests, and every prescribing request, require review by an AHPRA-registered doctor before issue.",
     )
     expect(getApprovedClaim("complaints_timing")).toBe(
       "We acknowledge complaints within 24 hours. Clinical complaints target resolution within 14 days.",
@@ -125,7 +125,7 @@ describe("canonical trust copy contract", () => {
     }
 
     const medCert = read("components/marketing/med-cert-landing.tsx")
-    expect(medCert).toContain("description: CLINICAL_DECISION_MODEL")
+    expect(medCert).toContain("description: CLINICAL_REVIEW_SEQUENCE")
 
     const processSource = [...branchAwareFiles, "components/marketing/med-cert-landing.tsx"]
       .map(read)

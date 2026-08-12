@@ -11,6 +11,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import {
   isMedCertIntentSlug,
   medCertIntentConfigs,
@@ -22,6 +23,7 @@ import {
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const revalidate = 3600 // ISR: revalidate every hour
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 
 // ============================================
 // SUBURB DATA (SEO pages) - location-based
@@ -252,7 +254,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
         name: `Can I get a medical certificate online in ${data.name}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate digitally if approved.`,
+          text: `Yes. InstantMed provides online medical-certificate requests to ${data.name} residents. Complete a secure questionnaire; routine requests follow the bounded clinical pathway and concerns go to a doctor. If approved, the certificate is delivered digitally.`,
         },
       },
       {
@@ -298,7 +300,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
               <div className="flex flex-wrap justify-center gap-4 mb-8">
                 <div className="flex items-center gap-2 text-sm text-background/70">
                   <Zap className="h-4 w-4 text-primary" />
-                  Fast doctor review
+                  Bounded clinical review
                 </div>
                 <div className="flex items-center gap-2 text-sm text-background/70">
                   <Shield className="h-4 w-4 text-primary" />
@@ -333,8 +335,8 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                   },
                   {
                     step: "2",
-                    title: "Doctor reviews",
-                    desc: "An Australian doctor reviews your request",
+                    title: "Clinical assessment",
+                    desc: "Routine requests follow the certificate protocol; concerns go to a doctor",
                   },
                   {
                     step: "3",
@@ -356,10 +358,9 @@ export default async function MedCertSlugPage({ params }: PageProps) {
 
           <section className="px-4 py-12">
             <div className="mx-auto max-w-xl text-center">
-              <h2 className="text-2xl font-semibold mb-4">Fast doctor review</h2>
+              <h2 className="text-2xl font-semibold mb-4">A bounded clinical pathway</h2>
               <p className="text-background/60 mb-6">
-                Submit any time, day or night. An AHPRA-registered doctor reviews the request before any
-                certificate is issued and may ask follow-up questions if needed.
+                {CLINICAL_REVIEW_SEQUENCE}
               </p>
               <Link href="/request?service=med-cert">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">

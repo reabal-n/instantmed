@@ -13,6 +13,19 @@ export interface MedCertValidationResult {
 
 // Valid certificate types
 const VALID_CERT_TYPES = ["work", "study", "carer", "sick_leave", "uni"] as const
+export type NormalizedMedicalCertificateType = "work" | "study" | "carer"
+
+/** Normalize current and legacy certificate-purpose values at every boundary. */
+export function normalizeMedicalCertificateType(
+  value: unknown,
+): NormalizedMedicalCertificateType | null {
+  if (typeof value !== "string") return null
+  const normalized = value.trim().toLowerCase()
+  if (normalized === "work" || normalized === "sick_leave") return "work"
+  if (normalized === "study" || normalized === "uni") return "study"
+  if (normalized === "carer") return "carer"
+  return null
+}
 
 // Valid duration values
 const VALID_DURATIONS = ["1", "2", "3", "1 day", "2 days", "3 days"] as const
@@ -48,7 +61,8 @@ export function validateMedCertPayload(
   }
 
   // Validate certificate type is a known value
-  if (!VALID_CERT_TYPES.includes(certType as typeof VALID_CERT_TYPES[number])) {
+  if (!VALID_CERT_TYPES.includes(certType as typeof VALID_CERT_TYPES[number])
+    || !normalizeMedicalCertificateType(certType)) {
     return {
       valid: false,
       error: "Invalid certificate type. Please select work, study, or carer's leave.",

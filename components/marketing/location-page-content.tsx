@@ -143,8 +143,8 @@ export function LocationPageContent({
             {...fu(0.12)}
             className="text-muted-foreground text-lg max-w-xl mx-auto mb-8"
           >
-            Skip the waiting room. Get medical certificates and prescriptions online, reviewed by
-            Australian doctors and delivered to your phone.
+            Skip the waiting room. Routine certificates follow a bounded clinical pathway;
+            prescriptions and concerning requests are reviewed by Australian doctors.
           </motion.p>
 
           <motion.div {...fu(0.18)}>

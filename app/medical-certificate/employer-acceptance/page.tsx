@@ -15,9 +15,11 @@ import { Navbar } from '@/components/shared/navbar'
 import { Button } from '@/components/ui/button'
 import { SectionPill } from '@/components/ui/section-pill'
 import { PRICING_DISPLAY } from '@/lib/constants'
+import { getApprovedClaim } from '@/lib/marketing/approved-claims'
 import { GUARANTEE } from '@/lib/marketing/voice'
 
 const baseUrl = 'https://instantmed.com.au'
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim('clinical_review_sequence')
 
 export const metadata: Metadata = {
   title: "Online Medical Certificate Evidence | InstantMed",
@@ -174,9 +176,9 @@ export default function EmployerAcceptancePage() {
           {/* Doctor Review */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-semibold text-center mb-4">What the doctor reviews first</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">What the clinical pathway checks first</h2>
               <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
-                Each certificate is issued only after an AHPRA-registered doctor reviews the request.
+                {CLINICAL_REVIEW_SEQUENCE}
               </p>
 
               <div className="grid gap-4 md:grid-cols-3">
@@ -184,7 +186,7 @@ export default function EmployerAcceptancePage() {
                   <FileCheck className={iconClass} />
                   <h3 className="mt-3 font-semibold">Reason for absence</h3>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    The doctor reviews the reported illness, injury, or caring need, when it started, and which dates need evidence.
+                    The pathway assesses the reported illness or caring need, when it started, and which dates need evidence. Injury or uncertainty routes to a doctor.
                   </p>
                 </div>
 
@@ -385,7 +387,7 @@ export default function EmployerAcceptancePage() {
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-semibold mb-4">Ready to get your certificate?</h2>
               <p className="text-muted-foreground mb-8">
-                Complete the secure questionnaire. A doctor reviews your request.
+                Complete the secure questionnaire. Routine requests follow the bounded certificate protocol; anything concerning goes to a doctor.
               </p>
               <Button
                 asChild

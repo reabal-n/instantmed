@@ -687,7 +687,7 @@ All findings verified against the code before acceptance.
 |---|---|---|
 | R10 | Parent said "zero canon changes" while the child requested two | Parent §9 rewritten to list both requests with status and gate; `file-map.md` reconciled |
 | R11 | Gate order self-contradictory | §7 gate table by PR: spec approval + rank reopening → **PR 1**; canon change + middleware profile/security review → **PR 2**. §4.0 corrected to match |
-| R12 | Referenced send-ready material still clinically wrong | Kit and NHSD runbook both assert universal pre-issue review. **Repair-or-retire blocker added to the drafts and the parent**, blocking MediCompare and Finder sends |
+| R12 | Referenced send-ready material was clinically wrong | **Closed 2026-08-12:** kit and NHSD runbook now use the branch-aware review sequence. External sends remain separately approval-gated after fresh verification |
 | R13 | Availability/refund claims paraphrased | Bound to `availability_24_7` and `refund_guarantee` verbatim, with `refund_guarantee_label` as the approved compact alias for table cells |
 | R14 | Stale adjudication text | Round-1 `bing_ai` "follow-up" row marked **superseded**; round-2 P5 row corrected for R9 |
 | R15 | Orphan registry header, stale "v2" label, `file-map` wording | All cleaned; header now reads v4 |
@@ -713,7 +713,7 @@ All findings verified against the code before acceptance.
 | Q7 | Parent header claimed "no canon changes" and named ranks 3/6 only, while §9 requested two including a rank-1 reopening | Header rewritten to state exactly what is and is not proposed, with both pending decisions named; `file-map.md` scope line reconciled |
 | Q8 | `R_e` named net-retained while excluding disputes | Renamed and constrained — see Q3 |
 | Q9 | Availability copy forked — Finder truncated `availability_24_7` and propagated it to Trustpilot and GBP; a separate "Turnaround" field was invented | Short description now carries **neither** process nor availability claim, with the truncation rule stated; structured field carries the **complete** claim; the invented Turnaround row is deleted |
-| Q10 | Clinically false source documents still advertised as ready | **Correction banners added in place** to `docs/audits/2026-07-09-comparison-surface-submission-kit.md` and `docs/runbooks/NHSD_REGISTRATION.md`; parent no longer calls the kit "submission-ready"; `file-map.md` no longer calls the runbook "paste-ready". A blocker elsewhere does not repair an active source |
+| Q10 | Clinically false source documents still advertised as ready | **Closed 2026-08-12:** the source bodies were repaired, the fact-sheet heading no longer says submission-ready, and the parent/file map now require fresh verification plus exact external-action approval |
 
 
 ### Round 5 (2026-07-31) — 10 findings, all upheld

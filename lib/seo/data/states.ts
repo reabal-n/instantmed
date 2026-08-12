@@ -54,7 +54,7 @@ export const statesData: Record<StateSlug, StateData> = {
     capital: "Sydney",
     heroHeadline: "Online doctor across New South Wales",
     heroSubtitle:
-      "Medical certificates, repeat prescriptions, and consultations reviewed by AHPRA-registered doctors. Serving every NSW postcode from Sydney to the Riverina - no appointments, no waiting rooms.",
+      "Routine medical certificates through a bounded clinical pathway, plus AHPRA-registered doctor review for prescriptions, consultations, and concerning requests. Serving every NSW postcode from Sydney to the Riverina - no appointments, no waiting rooms.",
     healthcareContext: [
       "New South Wales has the largest population and the widest healthcare-access gap of any Australian state. Metropolitan Sydney alone spans 12,000 km² with healthcare availability varying dramatically between suburbs - the Eastern Suburbs and Lower North Shore have high GP density but low bulk-billing, while Western and Southwestern Sydney have growing populations outpacing clinic capacity. Even when bulk-billing is available in the west, same-day appointments are often impossible, particularly on Mondays and Fridays when demand peaks.",
       "Beyond Sydney, regional NSW faces a different set of pressures. Towns like Dubbo, Orange, Wagga Wagga, and the Mid North Coast have fewer GPs per capita than the national average, and locum coverage is inconsistent. For residents of these areas, a 'quick trip to the doctor' for a straightforward med cert or repeat script can mean a half-day round trip. Telehealth removes the distance barrier entirely - the same AHPRA-registered doctor reviews your request whether you're in Mosman or Moree.",
@@ -119,7 +119,7 @@ export const statesData: Record<StateSlug, StateData> = {
     capital: "Melbourne",
     heroHeadline: "Online doctor across Victoria",
     heroSubtitle:
-      "Medical certificates and prescriptions reviewed by AHPRA-registered doctors. Serving all Victorian postcodes from Melbourne to Mildura, with evening and weekend availability.",
+      "Routine medical certificates through a bounded clinical pathway, with AHPRA-registered doctor review for prescriptions and concerning requests. Serving all Victorian postcodes from Melbourne to Mildura.",
     healthcareContext: [
       "Victoria has the second-largest Australian population and faces a distinct set of healthcare-access challenges compared to NSW. Melbourne's CBD and inner suburbs have high clinic density but persistently high gap fees - bulk-billing in the Melbourne CBD has dropped below 55% in recent years, one of the lowest rates in Australia. Outer Melbourne (Werribee, Cranbourne, Pakenham, Craigieburn) has the opposite problem: bulk-billing is more available but appointment wait times frequently stretch to 7-10 days for non-urgent visits.",
       "Regional Victoria is served by a mix of rural health networks and private clinics, but locum coverage has been a persistent issue since the 2022 GP workforce shortage. Towns like Mildura, Shepparton, Ballarat, and Bendigo often rely on rotating locum GPs, which creates continuity-of-care gaps for patients on repeat medications. For a straightforward prescription repeat on stable medication, telehealth removes the need to book, travel, and wait - you interact with an AHPRA-registered doctor who reviews your medication history and issues an eScript directly to your phone.",
@@ -170,7 +170,7 @@ export const statesData: Record<StateSlug, StateData> = {
     capital: "Brisbane",
     heroHeadline: "Online doctor across Queensland",
     heroSubtitle:
-      "Telehealth medical certificates and prescriptions for Queensland residents. From Brisbane to Cairns, reviewed by AHPRA-registered doctors - no driving.",
+      "Telehealth medical certificates and prescriptions for Queensland residents. From Brisbane to Cairns, with a bounded certificate pathway and doctor review where clinically required.",
     healthcareContext: [
       "Queensland's geography makes it the poster child for Australian telehealth. The state covers 1.85 million km² - more than seven times the size of the UK - with population clusters along the coast and sparse inland communities. A resident of Mount Isa is closer to Darwin than to Brisbane. Regional Queenslanders have some of the highest telehealth adoption rates in the country, and for good reason: the alternative is often a 2-4 hour drive or a flight to the nearest GP with availability.",
       "The Southeast corner - Brisbane, Gold Coast, Sunshine Coast, Ipswich, Toowoomba - has decent GP density but among the longest appointment wait times in Australia. Brisbane's northside and the Sunshine Coast have been growing faster than clinic capacity since 2020, pushing non-urgent wait times to 5-10 days. For FIFO workers, shift workers at the Brisbane Airport precinct, or anyone managing a busy schedule, the friction of a traditional GP visit for a straightforward med cert or prescription repeat is often untenable.",
@@ -285,7 +285,7 @@ export const statesData: Record<StateSlug, StateData> = {
     capital: "Adelaide",
     heroHeadline: "Online doctor across South Australia",
     heroSubtitle:
-      "Medical certificates and prescriptions for South Australians. Adelaide, the Limestone Coast, Outback SA - reviewed by AHPRA-registered doctors.",
+      "Medical certificates and prescriptions for South Australians. Adelaide, the Limestone Coast, and Outback SA, with a bounded certificate pathway and doctor review where clinically required.",
     healthcareContext: [
       "South Australia is geographically vast - 984,000 km² - but with a relatively small population concentrated in Adelaide and along the coast. Like WA, distance is the defining feature of healthcare access outside the capital. A resident of Coober Pedy or Ceduna has limited options for a same-day GP visit, and the alternative is often a day-long drive to Adelaide or Port Augusta.",
       "Adelaide itself has comparatively good GP access by Australian standards - higher bulk-billing rates than Melbourne or Sydney CBDs, shorter average wait times for non-urgent appointments. Where Adelaide residents commonly use telehealth is for convenience and scheduling flexibility rather than access pressure. The CBD, North Adelaide, and inner suburbs have GPs available, but fitting a visit around work, childcare, or university commitments is the same friction as any other capital city.",
