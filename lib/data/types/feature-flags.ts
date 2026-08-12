@@ -221,7 +221,7 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
     },
     ai_auto_approve_enabled: {
       label: "AI Auto-Approve Med Certs",
-      description: "Operational kill switch for the medical-certificate protocol. It cannot override the code-owned governance gate, which is currently paused pending Medical Director and legal review.",
+      description: "Operational kill switch for the active bounded medical-certificate protocol. It can stop issuance but cannot widen the code-owned clinical boundary.",
     },
     auto_approve_delay_minutes: {
       label: "Auto-Approve Delay (minutes)",

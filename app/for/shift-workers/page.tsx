@@ -16,7 +16,7 @@ import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 export const metadata: Metadata = {
   robots: ICEBOX_ROBOTS,
   title: "Medical Certificates for Shift Workers | 24/7 Available",
-  description: "Get a medical certificate any time of day or night. Fast doctor review with live wait messaging. Built for nurses, hospitality, retail, and anyone working outside 9-5. Employer policies vary.",
+  description: "Request a routine medical certificate any time. Bounded clinical pathway with doctor review for concerns. Built for people working outside 9-5. Employer policies vary.",
   keywords: [
     "medical certificate shift workers",
     "night shift sick certificate",
@@ -45,7 +45,7 @@ export default function ShiftWorkersPage() {
         name: "Can I get a medical certificate outside normal business hours?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. Medical certificate requests are available 24/7. Submit when you can, and doctor review follows when available.",
+          text: "Yes. Medical certificate requests are available 24/7. Routine requests follow the bounded protocol; concerns go to a doctor.",
         },
       },
       {
@@ -257,11 +257,11 @@ export default function ShiftWorkersPage() {
                   {[
                     {
                       q: "What are your hours?",
-                      a: "Medical certificate requests are available 24/7. Submit at any hour and doctor review follows when available.",
+                      a: "Medical certificate requests are available 24/7. Submit at any hour; routine requests follow the bounded protocol and concerns go to a doctor.",
                     },
                     {
                       q: "I work nights - can I get a cert at 3am?",
-                      a: "Yes. Medical certificate requests are available 24/7. Submit from home and doctor review follows when available.",
+                      a: "Yes. Medical certificate requests are available 24/7. Submit from home; routine requests follow the bounded protocol and concerns go to a doctor.",
                     },
                     {
                       q: "Will my employer accept this?",

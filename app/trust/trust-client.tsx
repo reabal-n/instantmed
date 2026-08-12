@@ -335,7 +335,7 @@ export default function TrustPage() {
             </p>
             <ul className="mt-6 grid sm:grid-cols-2 gap-x-8 gap-y-3">
               {[
-                "Every certificate is individually reviewed",
+                "Concerning certificate requests receive individual doctor review",
                 COMPLAINTS_TIMING,
                 GUARANTEE,
                 "Escalation to Health Complaints Commissioner",

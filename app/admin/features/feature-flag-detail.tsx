@@ -545,8 +545,8 @@ export function AutoApproveSection({
         </CardTitle>
         <CardDescription>
           {governancePaused
-            ? "Protocol issuance is hard-paused pending Medical Director and legal review. Every medical-certificate request remains in the doctor queue for an individual outcome before issue; the database toggle cannot override this code gate."
-            : "Automatically approve eligible medical certificates after payment. Any attention-severity signal is routed to manual review before a certificate exists."}
+            ? "Protocol issuance is stopped by the code-owned governance gate. Every medical-certificate request remains in the doctor queue for an individual outcome before issue; the database toggle cannot override this gate."
+            : "Automatically issue eligible 1-3 day work, study, and carer certificates after payment. Any concerning or uncertain signal is routed to manual review before a certificate exists."}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5 px-4 pb-4 sm:px-6 sm:pb-6">
@@ -701,7 +701,7 @@ export function AutoApproveSection({
                   }}
                   className="w-20"
                 />
-                <span className="text-sm text-muted-foreground">day (initial code ceiling)</span>
+                <span className="text-sm text-muted-foreground">days (code ceiling)</span>
               </div>
             </div>
           </div>
@@ -792,8 +792,8 @@ export function AutoApproveSection({
 
         <p className="text-xs text-muted-foreground">
           {governancePaused
-            ? `Governance pause effective since ${AUTO_APPROVAL_GOVERNANCE.pausedSince}. Re-enabling requires a reviewed code change after ${AUTO_APPROVAL_GOVERNANCE.reviewRequired}.`
-            : "Safety: the initial rollout permits only clean, unflagged 1-day requests, with a 15-minute delay and code-owned volume ceilings. Mental health, injury, chronic conditions, pregnancy, emergencies, minors, and any draft or intake attention signal route to a doctor. Every decision is audited."}
+            ? "Protocol issuance is paused by the code-owned governance gate."
+            : `Safety: the active protocol covers only clean, unflagged 1-3 day work, study, and carer requests, with a ${AUTO_APPROVAL_ROLLOUT_POLICY.minimumDelayMinutes}-minute delay and code-owned volume ceilings. Return-to-work, Centrelink, fitness or capacity evidence, mental health, injury, chronic conditions, pregnancy, emergencies, minors, and any draft or intake attention signal route away from automatic issuance. Approved ${AUTO_APPROVAL_GOVERNANCE.approvedAt}; every decision is audited.`}
         </p>
       </CardContent>
     </Card>

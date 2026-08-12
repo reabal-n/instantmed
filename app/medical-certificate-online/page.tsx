@@ -17,7 +17,7 @@ export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: { absolute: "Medical Certificate Online Australia | InstantMed" },
-  description: `Request a medical certificate online for routine work, study, or carer's leave. AHPRA-registered Australian doctor review. From ${PRICING_DISPLAY.MED_CERT}.`,
+  description: `Request a routine one-to-three-day work, study, or carer's leave certificate through a bounded clinical pathway. From ${PRICING_DISPLAY.MED_CERT}.`,
   keywords: [
     "medical certificate online",
     "medical certificate online australia",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Medical Certificate Online Australia | InstantMed",
     description:
-      "Request a routine medical certificate online. Secure form, Australian doctor review, clear safety boundaries.",
+      "Request a routine medical certificate online. Secure form, bounded clinical pathway, clear safety boundaries.",
     url: "https://instantmed.com.au/medical-certificate-online",
     type: "website",
     locale: "en_AU",
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Medical Certificate Online Australia | InstantMed",
-    description: "Routine online medical certificate requests with Australian doctor review.",
+    description: "Routine online medical certificate requests through a Medical Director-approved clinical pathway.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/medical-certificate-online",
@@ -56,7 +56,7 @@ export default function Page() {
     <>
       <SpeakableSchema
         name="Medical Certificate Online Australia"
-        description={`Request a routine medical certificate online from ${PRICING_DISPLAY.MED_CERT}. An AHPRA-registered Australian doctor reviews the information and decides whether a certificate is clinically appropriate.`}
+        description={`Request a routine medical certificate online from ${PRICING_DISPLAY.MED_CERT}. Routine requests follow the bounded protocol; concerns go to an AHPRA-registered Australian doctor.`}
         url="/medical-certificate-online"
         speakableSelectors={["h1", "[data-speakable]"]}
       />
@@ -73,7 +73,7 @@ export default function Page() {
       />
       <ServiceSchema
         name="Online Medical Certificate Request"
-        description="Routine work, study, or carer's leave medical certificate request reviewed by an AHPRA-registered Australian doctor."
+        description="Routine one-to-three-day work, study, or carer's leave request through a Medical Director-approved pathway, with doctor review for concerns."
         price={PRICING.MED_CERT.toFixed(2)}
         url="/medical-certificate-online"
       />

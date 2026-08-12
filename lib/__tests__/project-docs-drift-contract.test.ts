@@ -388,26 +388,26 @@ describe("project docs drift contract", () => {
     }
   })
 
-  it("documents medical-certificate protocol issuance as fail-closed before issue", () => {
+  it("documents the active medical-certificate protocol and its pre-issuance doctor routes", () => {
     const clinical = readProjectFile("docs/CLINICAL.md")
     const operations = readProjectFile("docs/OPERATIONS.md")
 
     // The retired retrospective attestation is not an active safety control.
-    // Protocol issuance stays fail-closed until Medical Director and legal
-    // reconciliation explicitly authorises a reviewed code change.
-    expect(clinical).toContain("Medical-certificate protocol issuance is **not active**")
+    // The reviewed code policy owns the active boundary; the database remains
+    // a kill switch and cannot widen it.
+    expect(clinical).toContain("Medical-certificate protocol issuance is **active**")
     expect(clinical).toContain("auto-approval-governance.ts")
     expect(clinical).toContain("DETERMINISTIC_FAILURE_PREFIXES")
-    expect(clinical).toContain("doctor review happens before issue")
+    expect(clinical).toContain("concerning or uncertain request routes to a doctor before issue")
     expect(clinical).toContain("Revocation remains the individual correction path")
     expect(clinical).toContain("database feature flag")
 
-    expect(architecture).toContain("Auto-Approval Pipeline (Governance-Paused)")
-    expect(architecture).toContain("code-owned pre-issuance pause")
+    expect(architecture).toContain("Auto-Approval Pipeline (Active, Bounded)")
+    expect(architecture).toContain("work, study, and carer")
     expect(architecture).toContain('activity_provenance: "auto_issued"')
 
     expect(operations).toContain("Historical auto-issued certificate runbook")
-    expect(operations).toContain("database feature flag cannot override it")
+    expect(operations).toContain("database feature flag can stop issuance but cannot widen")
 
     // The retired machinery must not creep back into the docs as live guidance.
     for (const doc of [clinical, operations]) {
@@ -450,11 +450,11 @@ describe("project docs drift contract", () => {
     expect(roadmap).toContain("Controlled demand validation")
     expect(roadmap).toContain("Last refreshed:")
     expect(roadmap).not.toContain("Last 90 days shipped")
-    expect(roadmap).toContain("Clinical truth contained 2026-08-09")
+    expect(roadmap).toContain("Clinical protocol reactivated 2026-08-12")
     expect(roadmap).toContain("The exact-flow conversion repair from 2026-07-29 remains in force")
     expect(roadmap).toContain("Automatic Gmail polling and support-inbox Telegram paging remain retired")
 
-    expect(operations).toContain("Medical-certificate protocol issuance is governance-paused")
+    expect(operations).toContain("Medical-certificate protocol issuance is active and bounded")
     expect(operations).toContain("`docs/REVENUE_MODEL.md` owns the current hiring and capacity triggers")
     expect(operations).not.toContain("protocol automation with QA sampling")
     expect(operations).not.toContain("30-50 orders/day")

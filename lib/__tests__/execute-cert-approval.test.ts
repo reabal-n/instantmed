@@ -388,6 +388,25 @@ describe("executeCertApproval — PDF + storage", () => {
 })
 
 describe("executeCertApproval — atomic approval + delivery", () => {
+  it.each([
+    ["study", "study"],
+    ["uni", "study"],
+    ["carer", "carer"],
+    ["sick_leave", "work"],
+  ] as const)("issues legacy answer purpose %s as %s even when the intake subtype is generic", async (storedPurpose, expectedType) => {
+    h.state.intake = baseIntake({
+      subtype: "med-cert",
+      answers: [{ answers: { certType: storedPurpose, duration: "1" } }],
+    })
+
+    const result = await run({ skipClaim: true, aiApproved: true })
+
+    expect(result.success).toBe(true)
+    expect(atomicApproveCertificate).toHaveBeenCalledWith(
+      expect.objectContaining({ certificate_type: expectedType }),
+    )
+  })
+
   it("aborts and cleans up when the atomic approval fails", async () => {
     mock(atomicApproveCertificate).mockResolvedValue({ success: false, error: "transaction rolled back" })
 

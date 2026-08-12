@@ -61,7 +61,7 @@ const whyInstantFaqs = [
   {
     question: "Are you cutting corners to be faster?",
     answer:
-      "No. The form captures the information needed for the relevant clinical pathway. An AHPRA-registered doctor reviews medical-certificate and prescribing requests before anything is issued. The speed comes from removing booking and waiting-room friction, not accountability.",
+      `No. The form captures the information needed for the relevant clinical pathway. ${CLINICAL_REVIEW_SEQUENCE} The speed comes from removing booking and waiting-room friction, not accountability.`,
   },
   {
     question: "Will my GP appointment ever be replaced by InstantMed?",

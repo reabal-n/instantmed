@@ -16,7 +16,7 @@ import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 export const metadata: Metadata = {
   robots: ICEBOX_ROBOTS,
   title: "Medical Certificates for Corporate Workers | InstantMed",
-  description: "Get a medical certificate before HR asks. Fast doctor review with live wait messaging. Professional, discreet, employer policies may vary. No time off work needed.",
+  description: "Request routine absence evidence through a bounded clinical pathway. Professional, discreet, with doctor review for concerns. Employer policies vary.",
   keywords: [
     "medical certificate corporate",
     "office worker sick certificate",
@@ -251,7 +251,7 @@ export default function CorporatePage() {
                     },
                     {
                       q: "What if I need a certificate for carer's leave?",
-                      a: "We provide carer's certificates for looking after sick family members. The same doctor-review process applies.",
+                      a: "We provide carer's certificates for looking after sick family members. The same bounded certificate pathway applies.",
                     },
                   ].map((faq, i) => (
                     <div key={i} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">

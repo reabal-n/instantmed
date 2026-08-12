@@ -14,7 +14,7 @@ This is a compact current map. `docs/ARCHITECTURE.md` remains the canonical deep
 | `lib/` | 1,214 files |
 | E2E TypeScript files under `e2e/` | 78 (69 specs) |
 | Health guide MDX files under `content/blog/` | 107 |
-| SQL migrations under `supabase/migrations/` | 111 |
+| SQL migrations under `supabase/migrations/` | 112 |
 
 ## Runtime Shape
 
@@ -46,7 +46,8 @@ Patient /request
   -> Stripe Checkout
   -> Stripe webhook
   -> paid intake queue
-  -> doctor review (med-cert protocol issuance governance-paused)
+  -> bounded protocol issuance for clean 1-3 day work/study/carer requests
+     OR doctor review for concerning, uncertain, or prescribing requests
   -> certificate / eScript / decline refund
   -> email + patient dashboard
 ```

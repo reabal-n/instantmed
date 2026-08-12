@@ -19,14 +19,14 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Medical Certificate Online | InstantMed",
-    description: `Request a routine sick, study or carer's leave certificate, reviewed by an Australian-registered doctor. ${PRICING_DISPLAY.MED_CERT} flat fee.`,
+    description: `Request a routine one-to-three-day work, study or carer's leave certificate through a bounded clinical pathway. ${PRICING_DISPLAY.MED_CERT} flat fee.`,
     url: "https://instantmed.com.au/medical-certificate",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Medical Certificate Online | InstantMed",
-    description: `Request a routine sick, study or carer's leave certificate, reviewed by an Australian-registered doctor. ${PRICING_DISPLAY.MED_CERT} flat fee.`,
+    description: `Request a routine one-to-three-day work, study or carer's leave certificate through a bounded clinical pathway. ${PRICING_DISPLAY.MED_CERT} flat fee.`,
   },
   alternates: {
     canonical: "https://instantmed.com.au/medical-certificate",

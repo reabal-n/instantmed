@@ -40,6 +40,7 @@ const DETERMINISTIC_FLAG_SAMPLES = [
   "pregnancy: pregnant",
   // High-stakes use cases — the incident.
   "high_stakes_use_case: exam, exams",
+  "unsupported_certificate_type: return to work",
   // Identity / age.
   "patient_under_18",
   "patient_dob_missing",
@@ -58,6 +59,9 @@ const DETERMINISTIC_FLAG_SAMPLES = [
   "draft_review_flag: potential red-flag symptoms",
   // Doctor-attention intake flags — answer-derived, won't change on retry.
   "intake_attention_flags: medication_strength_missing",
+  // The active rollout is code-clamped to zero engine soft signals. The saved
+  // answers/draft make this verdict stable, so retrying cannot clear it.
+  "rollout_requires_no_soft_flags: panic_co_symptom",
 ] as const
 
 // Flags / reasons whose verdict CAN change on a later attempt, so they must stay

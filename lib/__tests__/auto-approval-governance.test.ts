@@ -13,21 +13,22 @@ import {
 const root = process.cwd()
 
 describe("medical-certificate auto-approval governance gate", () => {
-  it("is fail-closed pending Medical Director and legal review", () => {
+  it("records the operator and Medical Director decision to reactivate bounded protocol issuance", () => {
     expect(AUTO_APPROVAL_GOVERNANCE).toMatchObject({
-      approved: false,
-      status: "paused_pending_medical_director_legal_review",
-      pausedSince: "2026-08-09",
+      approved: true,
+      status: "approved_for_bounded_protocol_issuance",
+      approvedAt: "2026-08-12",
+      approvedBy: "operator_medical_director",
     })
-    expect(isAutoApprovalGovernanceApproved()).toBe(false)
+    expect(isAutoApprovalGovernanceApproved()).toBe(true)
   })
 
-  it("keeps the initial rollout narrow even when stored settings are maximally permissive", () => {
+  it("supports every standard 1-3 day certificate while keeping volume and delay ceilings code-owned", () => {
     expect(AUTO_APPROVAL_ROLLOUT_POLICY).toMatchObject({
       minimumDelayMinutes: 15,
       maxApprovalsPerFiveMinutes: 3,
       maxApprovalsPerDay: 10,
-      maxDurationDays: 1,
+      maxDurationDays: 3,
       requireNoSoftFlags: true,
     })
 
@@ -40,7 +41,7 @@ describe("medical-certificate auto-approval governance gate", () => {
       delayMinutes: 15,
       rateLimitFiveMinutes: 3,
       dailyCap: 10,
-      maxDurationDays: 1,
+      maxDurationDays: 3,
       requireNoSoftFlags: true,
     })
   })
@@ -68,14 +69,14 @@ describe("medical-certificate auto-approval governance gate", () => {
     expect(source).toContain("max_duration_days: effectiveSettings.maxDurationDays")
   })
 
-  it("makes the effective pause explicit and non-enableable in the operator UI", () => {
+  it("makes the active bounded protocol explicit in the operator UI", () => {
     const source = readFileSync(
       join(root, "app/admin/features/feature-flag-detail.tsx"),
       "utf8",
     )
 
-    expect(source).toContain("GOVERNANCE PAUSE")
-    expect(source).toContain("the database toggle cannot override this code gate")
-    expect(source).toContain("governancePaused && !flags.ai_auto_approve_enabled")
+    expect(source).toContain("ACTIVE")
+    expect(source).toContain("work, study, and carer")
+    expect(source).toContain("1-3 day")
   })
 })

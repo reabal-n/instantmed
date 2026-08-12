@@ -14,7 +14,7 @@ import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 export const metadata: Metadata = {
   robots: ICEBOX_ROBOTS,
   title: "Medical Certificates for Uni Students | InstantMed",
-  description: "Get a doctor-reviewed medical certificate for study absence documentation. Fast doctor review with live wait messaging. Institution policies vary.",
+  description: "Request a clinically assessed certificate for routine study absence documentation. Concerns go to a doctor. Institution policies vary.",
   keywords: [
     "medical certificate uni student",
     "student medical certificate",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Medical Certificates for Uni Students | InstantMed",
-    description: "Get a doctor-reviewed medical certificate for study absence documentation. Fast doctor review with live wait messaging.",
+    description: "Request a clinically assessed certificate for routine study absence documentation, with doctor review for concerns.",
     url: "https://instantmed.com.au/for/students",
   },
   alternates: {
@@ -287,7 +287,7 @@ export default function StudentsPage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
                 <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-primary/20 bg-blue-50/30 dark:bg-blue-950/10">
-                  <h2 className="text-2xl font-semibold mb-3">Get your certificate reviewed quickly</h2>
+                  <h2 className="text-2xl font-semibold mb-3">Use the right certificate pathway</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Get your certificate before your documentation deadline.
                   </p>

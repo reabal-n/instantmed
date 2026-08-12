@@ -13,7 +13,7 @@ import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 export const metadata: Metadata = {
   robots: ICEBOX_ROBOTS,
   title: "Medical Certificates for Tradies | InstantMed",
-  description: "Get your medical certificate without leaving the job site. Fast doctor review with live wait messaging. Employer policies vary. Built for tradies.",
+  description: "Request a routine medical certificate without leaving the job site. Bounded clinical pathway with doctor review for concerns. Employer policies vary.",
   keywords: [
     "medical certificate tradies",
     "tradie sick certificate",
@@ -42,7 +42,7 @@ export default function TradiesPage() {
         name: "Can I get a medical certificate on my phone?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. Complete the questionnaire on your phone in about 2 minutes. Your certificate is reviewed by a doctor and delivered to your email if approved. No need to leave the site.",
+          text: "Yes. Complete the questionnaire on your phone. Routine requests follow the bounded certificate pathway; anything concerning goes to a doctor. If approved, the certificate is delivered by email.",
         },
       },
       {

@@ -11,10 +11,9 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 /**
  * E2E-only immediate protocol-issuance attempt harness.
  *
- * Production auto-approval is delayed by the configured retry-auto-approval cron
- * gate. This route intentionally bypasses that wait so the paid med-cert test can
- * prove the current code-owned governance boundary before any future issuance
- * approval, PDF storage, or patient delivery is allowed.
+ * Production protocol issuance is delayed by the configured retry cron. This
+ * route intentionally bypasses that wait so E2E can prove both the clean
+ * issuance path and the concerning-purpose pre-issuance block.
  */
 
 const PayloadSchema = z.object({

@@ -41,7 +41,7 @@ const FAQSection = dynamic(
   { loading: () => <div className="min-h-[300px]" /> },
 )
 
-const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
 
 // =============================================================================
@@ -60,7 +60,7 @@ const HOW_IT_WORKS_STEPS = [
     sticker: "stethoscope" as const,
     step: 2,
     title: "The clinical pathway checks your request",
-    description: CLINICAL_DECISION_MODEL,
+    description: CLINICAL_REVIEW_SEQUENCE,
     time: "Doctor-owned pathway",
   },
   {
@@ -94,12 +94,12 @@ const FEE_DETAILS = [
   {
     icon: CreditCard,
     title: "What your fee covers",
-    body: "The doctor review, certificate decision, secure PDF delivery, and verification details. No subscription.",
+    body: "Clinical assessment, the certificate outcome, secure PDF delivery, and verification details. No subscription.",
   },
   {
     icon: MessageSquareText,
-    title: "If the doctor needs more",
-    body: "They can message you through the secure platform. In rare cases, a quick call may be needed.",
+    title: "If the pathway needs more",
+    body: "Concerning or uncertain requests go to a doctor, who can message or call if more information is needed.",
   },
   {
     icon: RotateCcw,

@@ -1,20 +1,16 @@
 /**
  * Persist the auto-approval engine's soft flags onto `intakes.risk_flags`.
  *
- * `lib/clinical/auto-approval.ts` records co-symptom mental-health / injury /
- * chronic mentions and AI-draft `requiresReview` hints as SOFT flags: they do
- * not block auto-approval, but the engine produces them on the explicit
- * assumption that a human sees them afterwards. Until they are written to
- * `risk_flags` they exist only in `ai_audit_log`, which no product surface
- * reads — so the assumption is false.
+ * `lib/clinical/auto-approval.ts` records co-symptom mental-health, injury, and
+ * chronic mentions as soft signals. The active bounded protocol routes every
+ * soft signal to a doctor before issue, and persistence keeps the reason
+ * visible on the same doctor-facing `risk_flags` surface.
  *
  * Extracted from the pipeline so the merge rules are directly testable. The
  * three rules below each fixed a real defect, so keep them:
  *
- *  1. **Read fresh.** The pipeline's `intake` snapshot predates duplicate
- *     detection, which may have just written `duplicate_patient_name_dob`.
- *     Merging from the stale snapshot deletes that ATTENTION flag — strictly
- *     worse than never writing soft flags.
+ *  1. **Merge under a row lock.** Independent flag writers must not erase one
+ *     another between an application read and update.
  *  2. **Dedupe on the parsed code.** Engine strings look like
  *     `draft_review_flag: <reason>`; comparing the whole string to stored codes
  *     never matches, so retries appended duplicates forever.
@@ -24,13 +20,13 @@
  * Always fail-soft: a flag write must never fail an otherwise valid approval.
  */
 
-import { dedupeIntakeFlags, type IntakeFlag, makeEngineSoftFlag, parseIntakeFlags } from "./intake-flags"
+import { type IntakeFlag, makeEngineSoftFlag, parseIntakeFlags } from "./intake-flags"
 
 type SoftFlagPersistOutcome =
   | "written"
+  | "no_flags"
   | "no_soft_flags"
   | "already_present"
-  | "read_failed"
   | "write_failed"
 
 export interface SoftFlagPersistResult {
@@ -38,25 +34,6 @@ export interface SoftFlagPersistResult {
   /** The exact array written, for assertions and logging. Null when nothing was written. */
   merged: IntakeFlag[] | null
   error?: string
-}
-
-/**
- * Pure merge: existing stored flags + raw engine soft-flag strings.
- *
- * Adds only codes not already stored, then dedupes keeping the
- * highest-severity instance per code — so an existing `attention` flag can
- * never be downgraded to `info` by a later soft-flag write.
- */
-function mergeEngineSoftFlags(
-  existingFlags: IntakeFlag[],
-  rawSoftFlags: string[],
-): IntakeFlag[] {
-  const existingCodes = new Set(existingFlags.map((flag) => flag.code))
-  const incoming = rawSoftFlags
-    .map((raw) => makeEngineSoftFlag(raw))
-    .filter((flag) => !existingCodes.has(flag.code))
-  if (incoming.length === 0) return existingFlags
-  return dedupeIntakeFlags([...existingFlags, ...incoming])
 }
 
 /**
@@ -69,16 +46,40 @@ function mergeEngineSoftFlags(
  * generated Supabase generics cause here.
  */
 export interface SoftFlagSupabase {
-  from: (table: string) => {
-    select: (columns: string) => {
-      eq: (column: string, value: string) => {
-        single: () => PromiseLike<{ data: unknown; error: { message: string } | null }>
-      }
-    }
-    update: (values: Record<string, unknown>) => {
-      eq: (column: string, value: string) => PromiseLike<{ error: { message: string } | null }>
-    }
+  rpc: (
+    functionName: string,
+    args: Record<string, unknown>,
+  ) => PromiseLike<{ data: unknown; error: { message: string } | null }>
+}
+
+/**
+ * Row-locked, deduplicating persistence for normalized IntakeFlags. The RPC
+ * keeps the highest-severity instance per code and inspects Supabase's resolved
+ * `{ error }` result.
+ */
+export async function persistIntakeFlags(
+  supabase: SoftFlagSupabase,
+  intakeId: string,
+  incomingFlags: IntakeFlag[],
+): Promise<SoftFlagPersistResult> {
+  if (incomingFlags.length === 0) {
+    return { outcome: "no_flags", merged: null }
   }
+
+  const { data, error } = await supabase.rpc("merge_intake_risk_flags", {
+    p_intake_id: intakeId,
+    p_incoming_flags: incomingFlags,
+  })
+
+  if (error) {
+    return { outcome: "write_failed", merged: null, error: error.message }
+  }
+
+  const result = data as { changed?: unknown; flags?: unknown } | null
+  if (result?.changed === false) return { outcome: "already_present", merged: null }
+
+  const merged = parseIntakeFlags(result?.flags)
+  return { outcome: "written", merged }
 }
 
 export async function persistEngineSoftFlags(
@@ -89,34 +90,9 @@ export async function persistEngineSoftFlags(
   if (rawSoftFlags.length === 0) {
     return { outcome: "no_soft_flags", merged: null }
   }
-
-  const { data, error: readError } = await supabase
-    .from("intakes")
-    .select("risk_flags")
-    .eq("id", intakeId)
-    .single()
-
-  if (readError) {
-    return { outcome: "read_failed", merged: null, error: readError.message }
-  }
-
-  const existingFlags = parseIntakeFlags((data as { risk_flags?: unknown } | null)?.risk_flags)
-  const merged = mergeEngineSoftFlags(existingFlags, rawSoftFlags)
-
-  // Nothing new: every incoming code is already stored. Skip the write so a
-  // retry cannot churn the column or race another writer for no reason.
-  if (merged === existingFlags) {
-    return { outcome: "already_present", merged: null }
-  }
-
-  const { error: writeError } = await supabase
-    .from("intakes")
-    .update({ risk_flags: merged })
-    .eq("id", intakeId)
-
-  if (writeError) {
-    return { outcome: "write_failed", merged: null, error: writeError.message }
-  }
-
-  return { outcome: "written", merged }
+  return persistIntakeFlags(
+    supabase,
+    intakeId,
+    rawSoftFlags.map((raw) => makeEngineSoftFlag(raw)),
+  )
 }

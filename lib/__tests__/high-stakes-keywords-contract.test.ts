@@ -53,6 +53,9 @@ describe("high-stakes keywords contract", () => {
       "Workers compensation claim",
       "Centrelink wants medical evidence",
       "Pre-employment medical for my new job",
+      "My employer wants a return to work certificate",
+      "I need a return-to-work clearance",
+      "The form says fit to return before my next shift",
     ]
     for (const sample of samples) {
       const matched = HIGH_STAKES_PATTERNS.some(({ pattern }) =>

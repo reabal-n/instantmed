@@ -16,9 +16,8 @@ const APPROVED_STATUSES = new Set(["approved", "awaiting_script", "completed", "
  *
  * It can carry two streams: the signed-in clinician's own decisions, and any
  * historical protocol-issued certificates in the selected day (admins only).
- * Historical auto-issued rows are labelled and never counted as the clinician's
- * reviews. Protocol issuance is governance-paused; revocation remains available
- * for historical correction.
+ * Protocol-issued rows are labelled and never counted as the clinician's own
+ * reviews. Revocation remains available for individual correction.
  */
 export function ApprovedTodayList({
   intakes,

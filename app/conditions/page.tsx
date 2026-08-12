@@ -7,7 +7,10 @@ import { AccordionSection } from "@/components/sections/accordion-section"
 import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { type ConditionData, conditionsData } from "@/lib/seo/data/conditions"
+
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 
 export const metadata: Metadata = {
   title: "Health Conditions We Treat Online",
@@ -44,15 +47,15 @@ const conditions = Object.values(conditionsData)
 const conditionsFaqs = [
   {
     question: "What conditions can you treat online?",
-    answer: "We can assess and provide medical certificates for a range of common conditions including cold and flu, gastro, back pain, migraine, anxiety, UTIs, skin rashes, and sleep problems. The reviewing doctor will let you know if your condition needs in-person care instead.",
+    answer: `We support focused pathways for selected common conditions. ${CLINICAL_REVIEW_SEQUENCE} A doctor will redirect any individually reviewed request that needs in-person care.`,
   },
   {
     question: "Do I need a referral to use InstantMed?",
-    answer: "No referral is needed. You can start a request directly through our website. An AHPRA-registered doctor reviews every submission and decides the appropriate next step.",
+    answer: `No referral is needed. You can start a request directly through our website. ${CLINICAL_REVIEW_SEQUENCE}`,
   },
   {
     question: "Can I get a medical certificate for any condition?",
-    answer: "Medical certificates are available for conditions that genuinely prevent you from working or studying. The reviewing doctor assesses each request individually - if a certificate isn't clinically appropriate, they'll let you know.",
+    answer: "Medical certificates are for routine short absences that fit the bounded pathway. Concerning or uncertain requests go to a doctor; no certificate outcome is guaranteed.",
   },
   {
     question: "What if my condition is more serious than expected?",

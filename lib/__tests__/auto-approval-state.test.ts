@@ -167,6 +167,23 @@ describe("auto-approval-state transitions", () => {
     expect(updateArg.auto_approval_state_reason).not.toContain("max_retries_exhausted")
   })
 
+  it("markIneligible routes unsupported certificate purposes straight to needs_doctor", async () => {
+    const { from, chain } = mockSupabase({ data: [{ id: INTAKE_ID }], error: null })
+    const { markIneligible } = await import("@/lib/clinical/auto-approval-state")
+    const result = await markIneligible(
+      { from } as never,
+      INTAKE_ID,
+      "Disqualified: unsupported_certificate_type: return to work",
+      ["unsupported_certificate_type: return to work"],
+      0,
+    )
+
+    expect(result).toBe(true)
+    const updateArg = (chain.update as ReturnType<typeof vi.fn>).mock.calls[0][0]
+    expect(updateArg.auto_approval_state).toBe("needs_doctor")
+    expect(updateArg.auto_approval_state_reason).not.toContain("max_retries_exhausted")
+  })
+
   it("markIneligible routes transient failures under max to failed_retrying", async () => {
     const { from, chain } = mockSupabase({ data: [{ id: INTAKE_ID }], error: null })
     const { markIneligible } = await import("@/lib/clinical/auto-approval-state")

@@ -33,7 +33,7 @@ const SERVICE_SCHEMA_COPY: Record<
     name: "Medical Certificate",
     serviceType: "Medical certificate request",
     description:
-      "Request a routine sick, carer's, or study medical certificate reviewed by an AHPRA-registered doctor. No phone call for suitable requests.",
+      "Request a routine one-to-three-day work, carer's, or study medical certificate through a Medical Director-approved clinical pathway. Concerning or uncertain requests go to a doctor.",
   },
   "repeat-rx": {
     name: "Repeat Prescription",

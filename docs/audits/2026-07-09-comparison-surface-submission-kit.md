@@ -1,6 +1,6 @@
 # Comparison surface submission kit - 2026-07-09
 
-> ## ✅ CLINICAL COPY REPAIRED 2026-07-31
+> ## ✅ CLINICAL COPY RECONCILED 2026-08-12
 >
 > This document previously asserted **universal pre-issue doctor review**, which is false for eligible protocol-based medical-certificate issuance. **The affected process and availability blocks have been repaired in place** against `lib/marketing/approved-claims.ts` (`clinical_review_sequence`, `availability_24_7`) — a warning banner alone was insufficient because the body remained copy-pasteable.
 >
@@ -79,13 +79,13 @@ Prepare these links and assets before the operator submits:
 
 Do not attach patient examples, certificates, screenshots containing PHI, review screenshots, star badges, or testimonial copy.
 
-## Submission-ready fact sheet
+## Provider fact sheet — reverify before submission
 
 Version date: 2026-07-13.
 
 ### Short profile copy
 
-InstantMed is an Australian telehealth service for adults seeking selected one-off services: medical certificates, repeat prescription requests, erectile-dysfunction assessment, hair-loss assessment, and women's health pathways for UTI and starting or switching the contraceptive pill. Requests start with a secure clinical form. Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued. The doctor may contact the patient if clinically needed. Approved certificates or eScript tokens are delivered digitally.
+InstantMed is an Australian telehealth service for adults seeking selected one-off services: medical certificates, repeat prescription requests, erectile-dysfunction assessment, hair-loss assessment, women's health, and weight management. Requests start with a secure clinical form. Standard certificate requests may follow the Medical Director-approved protocol. Concerning or uncertain certificate requests, and every prescribing request, require doctor review before issue. Approved certificates or eScript tokens are delivered digitally.
 
 InstantMed Pty Ltd, ABN 64 694 559 334. Surry Hills, NSW. LegitScript certified, ID 48400566. Australia only. 18+.
 
@@ -99,9 +99,9 @@ InstantMed Pty Ltd, ABN 64 694 559 334. Surry Hills, NSW. LegitScript certified,
 | Bulk billing | Not advertised as bulk billed. Private fixed-fee service. |
 | Availability | Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume. |
 | Certificate types | Routine sick leave, carer's leave, and study leave certificates. |
-| Certificate duration | Up to 3 days, issued only if clinically appropriate after doctor review. |
-| Certificate exclusions | Not for high-stakes requests such as court, fitness-to-drive, fitness-to-fly, workers compensation, NDIS, or exam deferral evidence. |
-| Review model | Secure form first. Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued. Doctor may contact the patient if clinically needed. |
+| Certificate duration | Up to 3 days, issued only when clinically appropriate under the bounded clinical pathway. |
+| Certificate exclusions | Return-to-work, Centrelink / Services Australia, capacity, fitness, court, workers compensation, NDIS, and exam-deferral requests do not auto-issue and require a different or doctor-reviewed pathway. |
+| Review model | Secure form first. Standard medical-certificate requests may follow a Medical Director-approved protocol. Concerning or uncertain certificate requests, and every prescribing request, require doctor review before issue. |
 | Turnaround wording | No customer-facing review-time guarantee supplied. Optional Priority review is available for +$9.95. |
 | Verification | Free certificate verification at `https://instantmed.com.au/verify`. |
 | Ease of use | Web-based secure form. No app required. |
@@ -155,7 +155,7 @@ To make fact-checking easier, here is our dated provider fact sheet:
 - Medical certificate pricing: 1 day $24.95, 2 days $29.95, 3 days $39.95, optional Priority review +$9.95
 - Repeat prescription price: $29.95
 - ED, hair loss, and women's health price: $49.95
-- Medical certificate scope: routine sick leave, carer's leave, and study leave certificates, up to 3 days, issued only if clinically appropriate after doctor review
+- Medical certificate scope: routine work, carer's leave, and study certificates, up to 3 days, issued only when clinically appropriate under the bounded clinical pathway
 - Prescriptions: if approved, eScript tokens are delivered digitally and can be used at any Australian pharmacy
 - Verification: free certificate verification at `https://instantmed.com.au/verify`
 - Availability: requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume.

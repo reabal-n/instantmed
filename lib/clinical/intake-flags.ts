@@ -10,8 +10,9 @@
  *  - `attention` — the doctor must look. For med certs this maps to the
  *    auto-approval `disqualifyingFlags` path so a flagged cert is NEVER
  *    auto-issued (it routes to `needs_doctor`).
- *  - `info` — display/audit only. Maps to the engine `softFlags` lane and must
- *    NOT break the deliberately-tuned 1–2 day low-risk auto-approval fast path.
+ *  - `info` — display/audit context. Maps to the engine `softFlags` lane. The
+ *    active bounded protocol currently routes these to a doctor pre-issuance;
+ *    severity remains `info` so historic rows are represented honestly.
  *
  * Stored on `intakes.risk_flags` (JSONB). Read back with `parseIntakeFlags`,
  * which is defensive because the column is untrusted JSON.
@@ -64,6 +65,10 @@ export const INTAKE_FLAG_TAXONOMY = {
   // approvals). Attention so a med cert routes to a doctor instead of
   // auto-issuing a possible second cert. See lib/clinical/duplicate-patient-detection.ts.
   duplicate_patient_name_dob: { label: "Possible duplicate profile (same name + DOB)", severity: "attention" },
+  // Defense-in-depth for paid legacy/imported requests that bypass the current
+  // pre-payment unsupported-use-case gate. The detail preserves the exact
+  // deterministic engine reason (for example Centrelink or return-to-work).
+  high_stakes_med_cert_request: { label: "Certificate purpose needs doctor review", severity: "attention" },
 } as const satisfies Record<string, TaxonomyEntry>
 
 export type IntakeFlagCode = keyof typeof INTAKE_FLAG_TAXONOMY
@@ -126,6 +131,30 @@ export function makeEngineSoftFlag(rawSoftFlag: string): IntakeFlag {
   }
   if (detail) flag.detail = detail
   return flag
+}
+
+const MED_CERT_PURPOSE_CONCERN_PREFIXES = [
+  "high_stakes_use_case:",
+  "unsupported_certificate_type:",
+] as const
+
+/**
+ * Convert deterministic unsupported-purpose reasons into one durable,
+ * doctor-visible attention flag. New requests should be stopped before
+ * payment; this is the issuance-worker backstop for legacy/imported data.
+ */
+export function makeAutoApprovalConcernFlag(
+  disqualifyingFlags: string[],
+): IntakeFlag | null {
+  const purposeConcerns = disqualifyingFlags.filter((reason) =>
+    MED_CERT_PURPOSE_CONCERN_PREFIXES.some((prefix) => reason.startsWith(prefix)),
+  )
+  if (purposeConcerns.length === 0) return null
+
+  return makeIntakeFlag("high_stakes_med_cert_request", {
+    source: "auto_approval",
+    detail: purposeConcerns.join("; "),
+  })
 }
 
 /** Flags the doctor must act on (drives the queue badge + needs_doctor routing). */

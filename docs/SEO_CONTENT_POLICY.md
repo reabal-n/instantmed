@@ -66,9 +66,9 @@ Educational pages must not include:
 
 ### Allowed CTAs
 
-Use generic clinical-review CTAs:
+Use pathway-accurate clinical CTAs:
 
-- "Request a doctor review"
+- "Request a doctor review" only where the request is guaranteed to enter individual doctor review
 - "Start a secure request"
 - "Ask about an existing medication"
 - "Start a repeat medication request"
@@ -291,7 +291,7 @@ Med-cert SEO pages must not claim:
 
 Use:
 
-> Issued if clinically appropriate after doctor review. Employer and institution policies may vary.
+> Issued only when clinically appropriate. Standard certificate requests may follow the Medical Director-approved protocol; concerning or uncertain requests require doctor review before issue. Employer and institution policies may vary.
 
 ## 9. Review Checklist
 

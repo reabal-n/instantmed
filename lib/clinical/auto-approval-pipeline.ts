@@ -1,14 +1,14 @@
 /**
  * AI Auto-Approval Pipeline Orchestrator
  *
- * Dormant medical-certificate protocol orchestrator. If governance is approved
- * in code, it evaluates eligibility, builds review data, and can execute the
+ * Active medical-certificate protocol orchestrator. When both the code-owned
+ * governance gate and database kill switch are enabled, it evaluates eligibility, builds review data, and can execute the
  * full approval pipeline (PDF → storage → email) without doctor intervention.
  *
- * Current safety boundary: `auto-approval-governance.ts` is fail-closed pending
- * Medical Director and legal reconciliation. The DB feature flag cannot bypass
- * it. If reactivated, the pathway remains feature-flagged, rate-limited, logged,
- * and gated before issuance by DETERMINISTIC_FAILURE_PREFIXES.
+ * Current safety boundary: routine 1-3 day work, study, and carer certificates
+ * only. The pathway remains feature-flagged, rate-limited, logged, and gated
+ * before issuance by DETERMINISTIC_FAILURE_PREFIXES. Unsupported or concerning
+ * purposes always route away from automatic issuance.
  */
 
 import * as Sentry from "@sentry/nextjs"
@@ -26,7 +26,6 @@ import { getFeatureFlags } from "@/lib/feature-flags"
 import { editPaidRequestTelegramMessageToNeedsManualReview } from "@/lib/notifications/edit-paid-request-telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { checkRateLimit, recordRateLimitedAction } from "@/lib/rate-limit/doctor"
-import { prepareDoctorNotesWrite } from "@/lib/security/phi-field-wrappers"
 import { getAbsenceDays } from "@/lib/stripe/price-mapping"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { CertReviewData } from "@/types/db"
@@ -37,8 +36,17 @@ import {
   markFailedRetrying, markIneligible,
 } from "./auto-approval-state"
 import { findDuplicatePatientProfile } from "./duplicate-patient-detection"
-import { attentionFlags, makeIntakeFlag, parseIntakeFlags } from "./intake-flags"
-import { persistEngineSoftFlags, type SoftFlagSupabase } from "./soft-flag-persistence"
+import {
+  attentionFlags,
+  makeAutoApprovalConcernFlag,
+  makeIntakeFlag,
+  parseIntakeFlags,
+} from "./intake-flags"
+import {
+  persistEngineSoftFlags,
+  persistIntakeFlags,
+  type SoftFlagSupabase,
+} from "./soft-flag-persistence"
 
 const log = createLogger("auto-approval-pipeline")
 
@@ -107,71 +115,6 @@ function buildReviewDataFromAnswers(
 }
 
 /**
- * Format clinical note JSON content into SOAP-format text for intake.doctor_notes.
- * Matches the format used by the manual review flow (components/doctor/review/utils.ts).
- */
-function formatClinicalNoteContent(content: Record<string, unknown>): string | null {
-  const c = content as Record<string, string>
-  const sections: string[] = []
-  const subj = c.presentingComplaint?.trim() || ""
-  const obj = c.historyOfPresentIllness?.trim() || ""
-  const assess = c.relevantInformation?.trim() || ""
-  const plan = c.certificateDetails?.trim() || ""
-  if (subj) sections.push(`Subjective:\n${subj}`)
-  if (obj) sections.push(`Objective:\n${obj}`)
-  if (assess) sections.push(`Assessment:\n${assess}`)
-  if (plan) sections.push(`Plan:\n${plan}`)
-  return sections.length > 0 ? sections.join("\n\n") : null
-}
-
-/**
- * Sync AI clinical note to intake.doctor_notes after auto-approval.
- * Uses PHI dual-write (plaintext + encrypted) matching the manual flow.
- * Non-fatal: if sync fails, the cert is already issued - log and continue.
- */
-async function syncClinicalNoteAfterAutoApproval(
-  supabase: ReturnType<typeof createServiceRoleClient>,
-  intakeId: string,
-  draftId: string,
-  draftContent: Record<string, unknown>,
-): Promise<void> {
-  try {
-    const formattedNotes = formatClinicalNoteContent(draftContent)
-    if (!formattedNotes) {
-      log.warn("Auto-approval: clinical note content empty, skipping sync", { intakeId, draftId })
-      return
-    }
-
-    const phiFields = await prepareDoctorNotesWrite(formattedNotes)
-
-    const { error } = await supabase
-      .from("intakes")
-      .update({
-        ...phiFields,
-        synced_clinical_note_draft_id: draftId,
-      })
-      .eq("id", intakeId)
-
-    if (error) {
-      log.error("Auto-approval: failed to sync clinical note to intake", { intakeId, draftId, error: error.message })
-      Sentry.captureMessage("Auto-approval clinical note sync failed", {
-        level: "warning",
-        tags: { subsystem: "auto-approval", intake_id: intakeId },
-        extra: { draftId, error: error.message },
-      })
-    } else {
-      log.info("Auto-approval: clinical note synced to intake.doctor_notes", { intakeId, draftId })
-    }
-  } catch (err) {
-    log.error("Auto-approval: unexpected error syncing clinical note", { intakeId, draftId, error: err })
-    Sentry.captureException(err, {
-      level: "warning",
-      tags: { subsystem: "auto-approval", intake_id: intakeId, stage: "clinical_note_sync" },
-    })
-  }
-}
-
-/**
  * Log to the ai_audit_log table for compliance tracking.
  */
 async function logAutoApprovalAudit(
@@ -188,15 +131,17 @@ async function logAutoApprovalAudit(
       action: "auto_approve",
       draft_type: "med_cert",
       draft_id: null,
-      // Attribute to the real doctor when available (post-selection),
-      // fall back to system for pre-selection eligibility checks
-      actor_id: doctorId || SYSTEM_AUTO_APPROVE_ID,
-      actor_type: doctorId ? "doctor" : "system",
+      // Protocol issuance is a system action under the code-owned Medical
+      // Director policy. The selected doctor remains the responsible doctor on
+      // the certificate, but must never be presented as the individual actor.
+      actor_id: SYSTEM_AUTO_APPROVE_ID,
+      actor_type: "system",
       reason,
       metadata: {
         eligible,
-        approval_pathway: "ai_assisted_clinical_decision_support",
+        approval_pathway: "medical_director_approved_certificate_protocol",
         clinical_logic_version: "deterministic_v1",
+        responsible_doctor_id: doctorId ?? null,
         ...metadata,
       },
     })
@@ -251,9 +196,8 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     return { success: true, autoApproved: false, reason: "Feature disabled" }
   }
 
-  // The database flag can stop issuance, but cannot authorise it. Keep this
-  // code-owned gate fail-closed until Medical Director and legal reconciliation
-  // explicitly approves the protocol boundary.
+  // The database flag can stop issuance, but cannot authorise it. The reviewed
+  // code-owned governance decision defines the maximum protocol boundary.
   if (!isAutoApprovalGovernanceApproved()) {
     log.warn("Auto-approval governance gate is closed - intake will remain in doctor queue", {
       intakeId,
@@ -493,10 +437,25 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         source: "clinical",
         detail: `Matches existing profile ${duplicateMatch.matchedProfileId}`,
       })
-      await supabase
-        .from("intakes")
-        .update({ risk_flags: [...persistedFlags, dupFlag] })
-        .eq("id", intakeId)
+      try {
+        const result = await persistIntakeFlags(
+          supabase as unknown as SoftFlagSupabase,
+          intakeId,
+          [dupFlag],
+        )
+        if (result.outcome === "write_failed") {
+          log.warn("Failed to persist duplicate-profile attention flag", {
+            intakeId,
+            outcome: result.outcome,
+            error: result.error,
+          })
+        }
+      } catch (error) {
+        log.warn("Unexpected error persisting duplicate-profile attention flag", {
+          intakeId,
+          error: toError(error).message,
+        })
+      }
     }
 
     // 7. Evaluate eligibility (with configurable max duration from admin settings)
@@ -516,8 +475,8 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         recentCertCount: recentCertCount ?? 0,
         hasOverlappingCert,
         // A cert carrying any attention-severity intake flag must be reviewed by
-        // a human, never auto-issued. Info-severity flags are intentionally
-        // excluded so the 1–2 day fast path is preserved.
+        // a human, never auto-issued. Current engine soft signals are governed
+        // separately by the code-owned no-soft-flags rollout policy.
         //
         // Med certs now carry at least one intake-derived attention flag path:
         // duplicate_patient_name_dob (step 6d), which routes a possible
@@ -557,10 +516,9 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     // guarantee, so the signals auto-approval explicitly defers to a human
     // ("Batch review catches any concerns post-approval") had zero consumers.
     //
-    // Writing them here puts them on the normal IntakeFlagsBadge/Panel path and
-    // lets the auto-issued oversight stream mark and prioritise them. They stay
-    // `info`: this does NOT change what auto-approves. Promoting any of these
-    // to a pre-issuance block is a clinical policy decision for the operator.
+    // Writing them here puts them on the normal IntakeFlagsBadge/Panel path.
+    // They remain `info` for truthful historical rendering; the active rollout
+    // policy separately routes every such signal to a doctor before issuance.
     //
     // Fail-soft — a flag write must never fail an otherwise valid approval.
     // Merge rules (fresh read, code-level dedupe, returned-error inspection)
@@ -575,7 +533,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
           intakeId,
           eligibility.softFlags,
         )
-        if (result.outcome === "read_failed" || result.outcome === "write_failed") {
+        if (result.outcome === "write_failed") {
           log.warn("Failed to persist auto-approval soft flags", {
             intakeId,
             outcome: result.outcome,
@@ -591,6 +549,29 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     }
 
     if (!eligibility.eligible) {
+      const purposeConcernFlag = makeAutoApprovalConcernFlag(eligibility.disqualifyingFlags)
+      if (purposeConcernFlag) {
+        try {
+          const result = await persistIntakeFlags(
+            supabase as unknown as SoftFlagSupabase,
+            intakeId,
+            [purposeConcernFlag],
+          )
+          if (result.outcome === "write_failed") {
+            log.warn("Failed to persist med-cert purpose concern flag", {
+              intakeId,
+              outcome: result.outcome,
+              error: result.error,
+            })
+          }
+        } catch (error) {
+          log.warn("Unexpected error persisting med-cert purpose concern flag", {
+            intakeId,
+            error: toError(error).message,
+          })
+        }
+      }
+
       log.info("Auto-approval: not eligible", {
         intakeId,
         reason: eligibility.reason,
@@ -744,16 +725,6 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       // Mark approved via state machine (also sets ai_approved for backward compat)
       await markApproved(supabase, intakeId)
 
-      // 12. Sync AI clinical note to intake.doctor_notes (non-fatal)
-      if (clinicalNoteDraft) {
-        await syncClinicalNoteAfterAutoApproval(
-          supabase,
-          intakeId,
-          clinicalNoteDraft.id,
-          clinicalNoteDraft.content as Record<string, unknown>,
-        )
-      }
-
       log.info("Auto-approval: certificate issued", {
         intakeId,
         certificateId: approvalResult.certificateId,
@@ -761,7 +732,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         emailSent: approvalResult.emailSent,
       })
 
-      await logAutoApprovalAudit(supabase, intakeId, true, "Certificate issued via clinical decision support", {
+      await logAutoApprovalAudit(supabase, intakeId, true, "Certificate issued via bounded clinical protocol", {
         certificate_id: approvalResult.certificateId,
         doctor_id: doctor.id,
         duration_ms: durationMs,

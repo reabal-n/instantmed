@@ -275,7 +275,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
             <span>Google healthcare certified</span>
           </div>
           <p className="text-center text-[11px] leading-snug text-muted-foreground">
-            All requests are reviewed by Australian-registered doctors.
+            Prescribing and any concerning certificate request is reviewed by an Australian-registered doctor.
           </p>
           <p className="text-center text-[11px] leading-snug text-muted-foreground">
             No Medicare needed for medical certificates. Medicare details are required for prescriptions and consults.

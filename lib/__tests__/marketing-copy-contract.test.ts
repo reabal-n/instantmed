@@ -142,7 +142,7 @@ describe("marketing copy contracts", () => {
 
     expect(activeServiceHrefs).toContain("/womens-health")
     expect(footerServiceHrefs).toContain("/womens-health")
-    // Weight management launched 2026-08-07 — the footer now lists it.
+    // Weight management launched 2026-08-10 — the footer now lists it.
     expect(footerServiceHrefs).toContain("/weight-loss")
   })
 
@@ -160,7 +160,7 @@ describe("marketing copy contracts", () => {
     }
 
     expect(rootOgImageSource).toContain("Medical Certificates & Prescriptions")
-    expect(rootOgImageSource).toContain("Reviewed by AHPRA-registered Australian doctors")
+    expect(rootOgImageSource).toContain("AHPRA-registered clinical governance")
     expect(medCertOgImageSource).toContain("Online Medical Certificate")
     expect(medCertOgImageSource).toContain("Routine sick, study, and carer")
   })
@@ -213,7 +213,7 @@ describe("marketing copy contracts", () => {
   })
 
   it("keeps medical certificate trust copy specific instead of slogan-like", () => {
-    expect(medCertPageSource).toContain("Online Medical Certificate | AHPRA Doctor Review | InstantMed")
+    expect(medCertPageSource).toContain("Online Medical Certificate | Bounded Clinical Pathway | InstantMed")
     expect(medCertPageSource).not.toContain("Under 30 Minutes, No Call")
     expect(medCertPageSource).not.toContain("no call, no appointment")
     expect(medCertPageSource).not.toContain("in under 30 minutes")
@@ -314,16 +314,15 @@ describe("marketing copy contracts", () => {
     expect(medCertIntentSource).toContain("InstantMed currently accepts patients aged 18 and over only")
   })
 
-  it("describes the governance-paused pathway as doctor review before issue", () => {
+  it("describes the active protocol boundary without implying post-issue review", () => {
     expect(eligibilityAndAutomationSources).not.toMatch(/individually reviewed afterward/i)
-    expect(eligibilityAndAutomationSources).not.toMatch(/eligible low-risk[^.]*doctor-owned protocol/i)
     expect(eligibilityAndAutomationSources).toContain(
-      "Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued.",
+      "Standard medical-certificate requests are assessed under a Medical Director-approved clinical protocol. Concerning or uncertain certificate requests, and every prescribing request, require review by an AHPRA-registered doctor before issue.",
     )
-    expect(eligibilityAndAutomationSources).toContain("AI does not prescribe")
+    expect(eligibilityAndAutomationSources).toContain("AI never prescribes")
   })
 
-  it("removes static public response-time claims invalidated by the governance pause", () => {
+  it("keeps static public response-time claims out until fresh evidence supports them", () => {
     expect(staticTimingClaimSources).not.toContain("averageResponseMinutes")
     expect(staticTimingClaimSources).not.toContain("certTurnaroundMinutes")
     expect(staticTimingClaimSources).not.toMatch(/average certificate delivery/i)

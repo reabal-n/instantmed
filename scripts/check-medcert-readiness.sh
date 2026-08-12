@@ -21,9 +21,13 @@ if [ "$MEDCERT_READINESS_STATIC" = "1" ]; then
     lib/__tests__/medical-certificate-policy.test.ts \
     lib/__tests__/unsupported-med-cert-pathway.test.ts \
     lib/__tests__/approval-invariants.test.ts \
+    lib/__tests__/auto-approval-governance.test.ts \
     lib/__tests__/auto-approval.test.ts \
     lib/__tests__/auto-approval-state.test.ts \
     lib/__tests__/auto-approval-pipeline.test.ts \
+    lib/__tests__/auto-approval-deterministic-routing-contract.test.ts \
+    lib/__tests__/high-stakes-keywords-contract.test.ts \
+    lib/__tests__/soft-flag-persistence.test.ts \
     lib/__tests__/stripe-post-payment.test.ts \
     lib/__tests__/stripe-webhook.test.ts \
     lib/__tests__/stripe-webhook-paid-state-guards.test.ts \

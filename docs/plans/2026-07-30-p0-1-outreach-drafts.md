@@ -30,7 +30,7 @@
 
 ### The clinical review sequence — approved text, use verbatim
 
-> "Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued."
+> "Standard medical-certificate requests are assessed under a Medical Director-approved clinical protocol. Concerning or uncertain certificate requests, and every prescribing request, require review by an AHPRA-registered doctor before issue."
 
 **Do not paraphrase this and do not shorten it.** The approved-claim notes are explicit: *"Do not imply every certificate is doctor-reviewed before issue or that protocol issuance applies to prescribing."*
 
@@ -51,7 +51,7 @@ An earlier version of these drafts said "an AHPRA-registered doctor reviews it a
 **Channel:** email to `info@medicompare.com.au` · **Approval required before sending.**
 **Context:** `medicompare.com.au/instantmed/` currently 404s while ~34 AU providers have staff-written profiles. Inclusion bar is low; absence is the anomaly.
 
-> **BLOCKER before this or any Draft 2 send.** The referenced kit `docs/audits/2026-07-09-comparison-surface-submission-kit.md` and the runbook `docs/runbooks/NHSD_REGISTRATION.md` both still assert **universal pre-issue doctor review** (kit "Review model": *"Doctor review before issue"*; runbook: *"an AHPRA-registered doctor reviews"*). **That is clinically false for eligible protocol-based certificate issuance.** Repair both to the approved `clinical_review_sequence` wording, or retire them, **before** any send that draws on them. The drafts below are already corrected; the referenced source material is not.
+> **Source repair completed 2026-08-12.** The comparison kit and NHSD runbook now use the branch-aware `clinical_review_sequence`. Reverify prices, certification, directory status, and the exact external payload before any separately approved send.
 
 > **Subject:** Provider listing request, InstantMed (Australian telehealth, ABN 64 694 559 334)
 >
@@ -63,7 +63,7 @@ An earlier version of these drafts said "an AHPRA-registered doctor reviews it a
 >
 > - **Entity:** InstantMed Pty Ltd, ABN 64 694 559 334, Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010
 > - **Services:** medical certificates (from $24.95, up to 3 days), repeat prescriptions ($29.95), and consultations for erectile dysfunction, hair loss, and women's health ($49.95)
-> - **Clinical process:** patients complete a structured clinical form. Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued.
+> - **Clinical process:** patients complete a structured clinical form. Standard medical-certificate requests are assessed under a Medical Director-approved protocol. Concerning or uncertain certificate requests, and every prescribing request, require doctor review before issue.
 > - **Availability:** requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume.
 > - **Refunds:** full refund if the doctor declines.
 > - **Verification:** employers and institutions can verify any certificate we issue at https://instantmed.com.au/verify
@@ -96,7 +96,7 @@ Short description (≈50 words):
 
 If a longer field is available, use the full claim verbatim:
 
-> Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued.
+> Standard medical-certificate requests are assessed under a Medical Director-approved clinical protocol. Concerning or uncertain certificate requests, and every prescribing request, require review by an AHPRA-registered doctor before issue.
 
 Structured fields:
 

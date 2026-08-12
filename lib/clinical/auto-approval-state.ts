@@ -46,6 +46,9 @@ export const DETERMINISTIC_FAILURE_PREFIXES = [
   // High-stakes use cases (exam deferral, fitness-to-drive/operate, court,
   // workers comp) MUST go straight to a doctor — never loop in the retry queue.
   "high_stakes_use_case:",
+  // An unsupported document purpose (including return-to-work or Centrelink)
+  // is fixed in the saved request and must never be retried into issuance.
+  "unsupported_certificate_type:",
   // Patient identity / age — a minor stays a minor; a missing/invalid DOB will
   // not fix itself between ticks. Safest landing is doctor review.
   "patient_under_18", "patient_dob_missing", "patient_dob_invalid",
@@ -61,6 +64,10 @@ export const DETERMINISTIC_FAILURE_PREFIXES = [
   // retry. Emitted by evaluateAutoApprovalEligibility when attentionFlagCodes is
   // non-empty.
   "intake_attention_flags:",
+  // The active code-owned rollout requires zero engine soft signals. These are
+  // derived from persisted answers/draft content, so another attempt cannot
+  // clear the reason; hand off to a doctor immediately instead of retrying.
+  "rollout_requires_no_soft_flags:",
   // AI clinical draft marked requiresReview (promoted from soft 2026-08-07).
   // The draft is generated once per intake, so its verdict is fixed on retry;
   // an uncertain draft goes straight to a doctor, never the retry queue.
@@ -184,7 +191,7 @@ export async function markApproved(
   )
 
   if (result) {
-    Sentry.captureMessage("Certificate issued via clinical decision support", {
+    Sentry.captureMessage("Certificate issued via bounded clinical protocol", {
       level: "info",
       tags: { subsystem: "cert-pipeline", intake_id: intakeId, outcome: "approved" },
       fingerprint: ["cert-pipeline", "auto-approved"],

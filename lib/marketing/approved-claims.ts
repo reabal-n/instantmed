@@ -183,19 +183,19 @@ export const APPROVED_CLAIMS: Record<ApprovedClaimId, ApprovedClaim> = {
   },
   clinical_decision_model: {
     id: "clinical_decision_model",
-    text: "AI never prescribes or makes clinical decisions. A certificate or prescription is issued only after an AHPRA-registered doctor reviews the request.",
+    text: "AI never prescribes. Standard medical-certificate requests may be issued under a clinical protocol approved by the Medical Director. Anything concerning or uncertain, and every prescription request, requires review by an AHPRA-registered doctor before issue.",
     contexts: ["platform", "medical_certificate", "prescribing", "specialty", "governance"],
     risk: "high",
     sources: CLINICAL_RECEIPTS,
-    notes: "Canonical clinical-decision disclosure while medical-certificate protocol issuance is governance-paused. Do not imply AI or automation makes a clinical decision.",
+    notes: "Canonical branch-aware clinical disclosure. Never imply that AI prescribes, that protocol issuance covers a concerning or uncertain request, or that prescribing can occur without individual doctor review.",
   },
   clinical_review_sequence: {
     id: "clinical_review_sequence",
-    text: "Medical-certificate and prescribing requests require doctor review before any certificate or prescription is issued.",
+    text: "Standard medical-certificate requests are assessed under a Medical Director-approved clinical protocol. Concerning or uncertain certificate requests, and every prescribing request, require review by an AHPRA-registered doctor before issue.",
     contexts: ["platform", "medical_certificate", "prescribing", "specialty", "governance"],
     risk: "high",
     sources: CLINICAL_RECEIPTS,
-    notes: "Current public process order while medical-certificate protocol issuance is governance-paused.",
+    notes: "Current public process order for the active bounded certificate protocol and the individually reviewed prescribing pathway.",
   },
   clinical_access_scope: {
     id: "clinical_access_scope",

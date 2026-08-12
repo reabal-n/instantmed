@@ -1,36 +1,43 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import { describe, expect, it } from "vitest"
 
-import { makeIntakeFlag, parseIntakeFlags } from "@/lib/clinical/intake-flags"
-import { persistEngineSoftFlags } from "@/lib/clinical/soft-flag-persistence"
+import {
+  dedupeIntakeFlags,
+  makeAutoApprovalConcernFlag,
+  makeIntakeFlag,
+  parseIntakeFlags,
+} from "@/lib/clinical/intake-flags"
+import {
+  persistEngineSoftFlags,
+  persistIntakeFlags,
+} from "@/lib/clinical/soft-flag-persistence"
 
 /**
- * Minimal supabase double. supabase-js RESOLVES with `{ error }` rather than
- * throwing, which is exactly the behaviour the first implementation of this
- * path got wrong, so the double must reproduce it faithfully.
+ * Minimal RPC double. It models the database function's severity-preserving
+ * merge so the TypeScript seam can be tested without a database.
  */
 function makeSupabase(opts: {
   riskFlags?: unknown
-  readError?: string
-  writeError?: string
+  rpcError?: string
 } = {}) {
   const updates: Record<string, unknown>[] = []
+  let storedFlags = parseIntakeFlags(opts.riskFlags ?? [])
   const supabase = {
-    from: (_table: string) => ({
-      select: (_columns: string) => ({
-        eq: (_column: string, _value: string) => ({
-          single: async () => ({
-            data: opts.readError ? null : { risk_flags: opts.riskFlags ?? [] },
-            error: opts.readError ? { message: opts.readError } : null,
-          }),
-        }),
-      }),
-      update: (values: Record<string, unknown>) => ({
-        eq: async (_column: string, _value: string) => {
-          if (!opts.writeError) updates.push(values)
-          return { error: opts.writeError ? { message: opts.writeError } : null }
-        },
-      }),
-    }),
+    rpc: async (name: string, args: Record<string, unknown>) => {
+      expect(name).toBe("merge_intake_risk_flags")
+      if (opts.rpcError) return { data: null, error: { message: opts.rpcError } }
+
+      const incoming = parseIntakeFlags(args.p_incoming_flags)
+      const merged = dedupeIntakeFlags([...storedFlags, ...incoming])
+      const changed = JSON.stringify(merged) !== JSON.stringify(storedFlags)
+      if (changed) {
+        storedFlags = merged
+        updates.push({ risk_flags: merged })
+      }
+      return { data: { changed, flags: storedFlags }, error: null }
+    },
   }
   return { supabase, updates }
 }
@@ -118,9 +125,7 @@ describe("persistEngineSoftFlags", () => {
     expect(written.map((f) => f.code)).toEqual(["panic_co_symptom"])
   })
 
-  // Reads fresh rather than trusting the pipeline's pre-duplicate-detection
-  // snapshot — otherwise this write silently deletes the attention flag.
-  it("merges against the CURRENT stored flags, not a caller-supplied snapshot", async () => {
+  it("merges against the current stored flags inside the RPC", async () => {
     const duplicateFlag = makeIntakeFlag("duplicate_patient_name_dob", { source: "clinical" })
     const { supabase, updates } = makeSupabase({ riskFlags: [duplicateFlag] })
 
@@ -154,23 +159,14 @@ describe("persistEngineSoftFlags", () => {
   })
 
   // supabase-js resolves with `{ error }`; a bare try/catch never sees these.
-  it("reports a read failure instead of silently swallowing it", async () => {
-    const { supabase, updates } = makeSupabase({ readError: "boom-read" })
-
-    const result = await persistEngineSoftFlags(supabase, "intake-1", [PANIC_FLAG])
-
-    expect(result.outcome).toBe("read_failed")
-    expect(result.error).toBe("boom-read")
-    expect(updates).toHaveLength(0)
-  })
-
-  it("reports a write failure instead of silently swallowing it", async () => {
-    const { supabase } = makeSupabase({ riskFlags: [], writeError: "boom-write" })
+  it("reports an atomic merge failure instead of silently swallowing it", async () => {
+    const { supabase, updates } = makeSupabase({ rpcError: "boom-merge" })
 
     const result = await persistEngineSoftFlags(supabase, "intake-1", [PANIC_FLAG])
 
     expect(result.outcome).toBe("write_failed")
-    expect(result.error).toBe("boom-write")
+    expect(result.error).toBe("boom-merge")
+    expect(updates).toHaveLength(0)
   })
 
   // The helper propagates unexpected throws rather than reporting false
@@ -178,7 +174,7 @@ describe("persistEngineSoftFlags", () => {
   // cannot fail an otherwise valid approval.
   it("propagates an unexpected throw rather than reporting success", async () => {
     const exploding = {
-      from: () => {
+      rpc: () => {
         throw new Error("connection reset")
       },
     } as never
@@ -187,26 +183,64 @@ describe("persistEngineSoftFlags", () => {
   })
 
   it("is safe to run twice in a row (retry) without duplicating rows", async () => {
-    const store: { flags: unknown } = { flags: [] }
-    const supabase = {
-      from: () => ({
-        select: () => ({
-          eq: () => ({ single: async () => ({ data: { risk_flags: store.flags }, error: null }) }),
-        }),
-        update: (values: Record<string, unknown>) => ({
-          eq: async () => {
-            store.flags = values.risk_flags
-            return { error: null }
-          },
-        }),
-      }),
-    }
+    const { supabase, updates } = makeSupabase()
 
     await persistEngineSoftFlags(supabase, "intake-1", [PANIC_FLAG, DRAFT_FLAG])
     const second = await persistEngineSoftFlags(supabase, "intake-1", [PANIC_FLAG, DRAFT_FLAG])
 
     expect(second.outcome).toBe("already_present")
-    expect(parseIntakeFlags(store.flags)).toHaveLength(2)
+    expect(parseIntakeFlags(updates[0]!.risk_flags)).toHaveLength(2)
+    expect(updates).toHaveLength(1)
+  })
+})
+
+describe("concerning med-cert flag persistence", () => {
+  it.each([
+    "high_stakes_use_case: return to work",
+    "high_stakes_use_case: centrelink",
+    "unsupported_certificate_type: return to work",
+  ])("turns %s into a doctor-attention flag", (reason) => {
+    const flag = makeAutoApprovalConcernFlag([reason])
+
+    expect(flag).toMatchObject({
+      code: "high_stakes_med_cert_request",
+      severity: "attention",
+      source: "auto_approval",
+    })
+    expect(flag?.detail).toContain(reason)
+  })
+
+  it("does not manufacture a purpose flag for an unrelated transient failure", () => {
+    expect(makeAutoApprovalConcernFlag(["missing_clinical_note_draft"])).toBeNull()
+  })
+
+  it("fresh-merges a concern flag without deleting an existing attention flag", async () => {
+    const duplicateFlag = makeIntakeFlag("duplicate_patient_name_dob", { source: "clinical" })
+    const concernFlag = makeAutoApprovalConcernFlag(["high_stakes_use_case: centrelink"])
+    expect(concernFlag).not.toBeNull()
+
+    const { supabase, updates } = makeSupabase({ riskFlags: [duplicateFlag] })
+    const result = await persistIntakeFlags(supabase, "intake-1", [concernFlag!])
+
+    expect(result.outcome).toBe("written")
+    expect(parseIntakeFlags(updates[0]!.risk_flags).map((flag) => flag.code).sort()).toEqual([
+      "duplicate_patient_name_dob",
+      "high_stakes_med_cert_request",
+    ])
+  })
+
+  it("does not duplicate the concern flag on retry", async () => {
+    const concernFlag = makeAutoApprovalConcernFlag(["high_stakes_use_case: return to work"])
+    expect(concernFlag).not.toBeNull()
+
+    const first = makeSupabase({ riskFlags: [] })
+    await persistIntakeFlags(first.supabase, "intake-1", [concernFlag!])
+    const stored = first.updates[0]!.risk_flags
+    const second = makeSupabase({ riskFlags: stored })
+    const result = await persistIntakeFlags(second.supabase, "intake-1", [concernFlag!])
+
+    expect(result.outcome).toBe("already_present")
+    expect(second.updates).toHaveLength(0)
   })
 })
 
@@ -220,11 +254,40 @@ describe("auto-approval pipeline wiring", () => {
     )
 
     expect(source).toContain("persistEngineSoftFlags(")
+    expect(source).toContain("makeAutoApprovalConcernFlag(")
+    expect(source).toContain("persistIntakeFlags(")
     expect(source).toContain("eligibility.softFlags,")
-    // The stale-snapshot merge must not come back.
+    // The stale application-side merge must not come back.
     expect(source).not.toContain("risk_flags: [...existingFlags, ...softIntakeFlags]")
     // Failures must be reported, not swallowed.
-    expect(source).toContain('result.outcome === "read_failed"')
     expect(source).toContain('result.outcome === "write_failed"')
+  })
+})
+
+describe("atomic intake-flag merge migration", () => {
+  const migration = readFileSync(
+    join(process.cwd(), "supabase/migrations/20260812154500_merge_intake_risk_flags_atomically.sql"),
+    "utf8",
+  )
+
+  it("locks the intake row and deduplicates by code with attention severity winning", () => {
+    expect(migration).toContain("FOR UPDATE")
+    expect(migration).toContain("PARTITION BY flag ->> 'code'")
+    expect(migration).toContain("WHEN 'attention' THEN 2")
+    expect(migration).toContain("priority = 1")
+  })
+
+  it("preserves unrecognized existing entries while rejecting malformed incoming flags", () => {
+    expect(migration).toContain("legacy_entries AS")
+    expect(migration).toContain("WHERE NOT is_normalized")
+    expect(migration).toContain("incoming flags must be normalized IntakeFlag objects")
+  })
+
+  it("is invoker-rights and callable only by the service role", () => {
+    expect(migration).toContain("SECURITY INVOKER")
+    expect(migration).toContain("REVOKE ALL ON FUNCTION public.merge_intake_risk_flags(uuid, jsonb) FROM PUBLIC")
+    expect(migration).toContain("FROM anon")
+    expect(migration).toContain("FROM authenticated")
+    expect(migration).toContain("TO service_role")
   })
 })

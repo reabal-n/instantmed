@@ -129,15 +129,15 @@ export async function GET(request: NextRequest) {
   }
 
   // The code-owned governance gate cannot be overridden by the database flag.
-  // Still-reviewing emails above continue while every request waits for a
-  // doctor-selected outcome.
+  // Still-reviewing emails above continue if the reviewed code-owned
+  // authorisation gate is ever closed again.
   if (!isAutoApprovalGovernanceApproved()) {
     logger.warn(
       "Auto-approval governance gate is closed - all med certs remain in the doctor queue.",
     )
     return NextResponse.json({
       skipped: true,
-      reason: "Auto-approval paused pending Medical Director and legal review",
+      reason: "Auto-approval stopped by code-owned governance gate",
     })
   }
 
