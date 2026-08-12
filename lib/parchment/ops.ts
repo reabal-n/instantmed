@@ -404,6 +404,26 @@ async function getProfilesById(
   )
 }
 
+function readActionableParchmentFailures(
+  supabase: SupabaseClient,
+  weekAgo: string,
+) {
+  // Filter known non-actionable webhook noise in Postgres before applying the
+  // recovery-list cap. Otherwise a burst of patient_not_found receipts can
+  // crowd an older, retryable failure out of the admin recovery surface.
+  return supabase
+    .from("audit_logs")
+    .select("id, action, intake_id, created_at, description, metadata")
+    .eq("action", "webhook_failed")
+    .gte("created_at", weekAgo)
+    .contains("metadata", { eventType: PARCHMENT_PRESCRIPTION_EVENT })
+    .not("metadata", "cs", JSON.stringify({ error: "no_awaiting_script_intake" }))
+    .not("metadata", "cs", JSON.stringify({ error: "patient_not_found" }))
+    .not("metadata", "cs", JSON.stringify({ parchment_patient_id: "nonexistent-parchment-patient" }))
+    .order("created_at", { ascending: false })
+    .limit(50)
+}
+
 export async function getParchmentOpsDashboard(
   supabase: SupabaseClient,
 ): Promise<ParchmentOpsDashboard> {
@@ -415,7 +435,8 @@ export async function getParchmentOpsDashboard(
     prescriberProfilesResult,
     syncedPatientsResult,
     unsyncedPatientsResult,
-    failedWebhooksResult,
+    actionableFailedWebhooksResult,
+    historicalWebhookFailuresResult,
     successfulRetriesResult,
     recentEventsResult,
     recentPrescriptionsResult,
@@ -445,11 +466,14 @@ export async function getParchmentOpsDashboard(
       .is("merged_into_profile_id", null)
       .is("parchment_patient_id", null),
 
+    readActionableParchmentFailures(supabase, weekAgo),
+
     supabase
       .from("audit_logs")
       .select("id, action, intake_id, created_at, description, metadata")
       .eq("action", "webhook_failed")
       .gte("created_at", weekAgo)
+      .contains("metadata", { eventType: PARCHMENT_PRESCRIPTION_EVENT })
       .order("created_at", { ascending: false })
       .limit(50),
 
@@ -524,17 +548,22 @@ export async function getParchmentOpsDashboard(
       .maybeSingle(),
   ])
 
-  const failedWebhooks = filterUnresolvedParchmentFailures(
-    ((failedWebhooksResult.data || []) as AuditFailureRow[])
+  const successfulRetries = (successfulRetriesResult.data || []) as Array<{
+    action: string
+    metadata: Record<string, unknown> | null
+  }>
+  const actionableFailures = filterUnresolvedParchmentFailures(
+    ((actionableFailedWebhooksResult.data || []) as AuditFailureRow[])
       .map(mapParchmentFailedWebhook)
       .filter((failure): failure is ParchmentFailedWebhook => failure !== null),
-    (successfulRetriesResult.data || []) as Array<{
-      action: string
-      metadata: Record<string, unknown> | null
-    }>,
-  )
-  const historicalWebhookFailures = failedWebhooks.filter(isNonActionableWebhookFailure)
-  const actionableFailures = failedWebhooks.filter((failure) => !isNonActionableWebhookFailure(failure))
+    successfulRetries,
+  ).filter((failure) => !isNonActionableWebhookFailure(failure))
+  const historicalWebhookFailures = filterUnresolvedParchmentFailures(
+    ((historicalWebhookFailuresResult.data || []) as AuditFailureRow[])
+      .map(mapParchmentFailedWebhook)
+      .filter((failure): failure is ParchmentFailedWebhook => failure !== null),
+    successfulRetries,
+  ).filter(isNonActionableWebhookFailure)
   const staleScriptHandoffRows = [
     ...(staleAwaitingScriptHandoffsResult.data || []),
     ...(staleApprovedPrescriptionHandoffsResult.data || []),
