@@ -196,6 +196,7 @@ The same medicine names and active ingredients are also OFF as keywords under th
 
 **Medicine-name and active-ingredient keywords are OFF.** This is InstantMed operator policy, not a statement that every service or condition term is prohibited.
 
+- "OFF" means those terms must never be positive targeting criteria. The same terms belong in negative-keyword exclusions when needed to prevent unsafe matching; a negative criterion cannot serve an ad.
 - Service and condition keywords such as "online prescription", "repeat script online", "ED assessment", and "hair loss assessment" remain allowed when the ad and destination stay service-level and compliant.
 - Before adding health keywords in bulk, validate them one at a time with the Google Ads API `validateOnly` flag. The classifier is order-sensitive and inconsistent (it passes "online doctor hair loss" and blocks "hair loss doctor online"), so a batch add fails opaquely on the first violation and hides the rest.
 - `HEALTH_IN_PERSONALIZED_ADS` and `PRESCRIPTION_DRUG_SALE` both return `isExemptible: true`. An exemption is legitimate where the underlying policy is genuinely satisfied — no advertiser-curated audiences attached (§10), certification current (§1), no medicine name in ad or destination (§7). Record the reason when exempting. Do not exempt to work around a rule that actually applies.

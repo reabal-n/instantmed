@@ -40,10 +40,19 @@ describe("Business decision surface contract", () => {
     expect(client).toContain("Ads performance")
     expect(client).toContain("By campaign")
     expect(client).toContain("Canonical 30-day start cohort")
+    expect(client).toContain("Recent 7-day coverage")
+    expect(client).toContain("Current instrumentation meets the coverage gate")
     expect(client).toContain("Recorded acquisition")
     expect(client).toContain("Self-reported discovery")
     expect(client).toContain("<details")
     expect(client).toContain("Measurement checkpoints")
+  })
+
+  it("translates durable Ads service gates into operator language", () => {
+    expect(client).toContain("Scripts attribution investigation remains open")
+    expect(client).toContain("Med Certs remain in the protocol observation window")
+    expect(client).toContain("Specialty pilots remain within approved loss caps")
+    expect(client).toContain("service gates still apply")
   })
 
   it("does not reintroduce the superseded metrics wall", () => {

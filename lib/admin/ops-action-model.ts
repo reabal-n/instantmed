@@ -86,7 +86,7 @@ const FAILURE_NEXT_ACTION: Record<FailureCategoryId, string> = {
   incomplete_requests: "Decide whether recovery or closure is required.",
   prescription_delivery: "Review and retry the Parchment sync.",
   stale_scripts: "Resolve the oldest prescription handoff first.",
-  email_delivery: "Inspect the failed or suppressed email rows.",
+  email_delivery: "Inspect the failed or bounced email rows.",
   certificate_delivery: "Restore secure certificate delivery.",
 }
 

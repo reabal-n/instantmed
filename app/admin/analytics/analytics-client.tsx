@@ -74,9 +74,18 @@ const REASON_COPY: Record<string, string> = {
   ADS_EVIDENCE_QUERY_FAILED: "Delivered Ads evidence could not be read",
   ADS_EVIDENCE_STALE: "Ads economics evidence is older than 36 hours",
   ECONOMICS_UNAVAILABLE: "Spend, Stripe fees, or attributed revenue is incomplete",
+  ATTRIBUTION_INVESTIGATION_HOLD: "Scripts attribution investigation remains open",
+  MEDCERT_OBSERVATION_HOLD: "Med Certs remain in the protocol observation window",
+  PILOT_WITHIN_LOSS_CAP: "Specialty pilots remain within approved loss caps",
   REVENUE_UNAVAILABLE: "Net-retained revenue is unavailable",
   TRACKING_NOT_GREEN: "Tracking health is not green",
 }
+
+const SERVICE_GATE_REASON_CODES = new Set([
+  "ATTRIBUTION_INVESTIGATION_HOLD",
+  "MEDCERT_OBSERVATION_HOLD",
+  "PILOT_WITHIN_LOSS_CAP",
+])
 
 function formatAud(cents: number | null): string {
   return cents === null ? "Unavailable" : AUD.format(cents / 100)
@@ -392,6 +401,13 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
   const { business, intakeFunnel, recordedAttribution, heardAboutUs, reviewRequestFunnel, trends } = data
   const decision = DECISION_COPY[business.scaleDecision]
   const summary = intakeFunnel.summary
+  const serviceGatesStillApply = business.reasonCodes.some((reason) => (
+    SERVICE_GATE_REASON_CODES.has(reason)
+  ))
+  const recentCoverageMeetsGate =
+    intakeFunnel.recentCoverage?.coveragePercent !== null &&
+    intakeFunnel.recentCoverage?.coveragePercent !== undefined &&
+    intakeFunnel.recentCoverage.coveragePercent >= summary.requiredCoveragePercent
   const recordedRows = [
     ...recordedAttribution.rows.filter(
       ({ count, group }) => count > 0 && group !== "direct" && group !== "unknown",
@@ -444,6 +460,7 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
               <p className="mt-2 text-[11px] text-muted-foreground">
                 Evidence {business.evidenceAgeHours === null ? "unavailable" : `${business.evidenceAgeHours}h old`}
                 {business.trackingState ? ` · ${business.trackingState} tracking` : " · tracking unavailable"}
+                {serviceGatesStillApply ? " · service gates still apply" : ""}
               </p>
               {business.reasonCodes.length > 0 ? (
                 <ul className="mt-3 grid gap-1.5 text-xs text-foreground">
@@ -646,11 +663,17 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border/60 pt-3 text-[11px] text-muted-foreground">
-            <span>Minimum event coverage: <strong className="text-foreground">{formatPercent(summary.coveragePercent)}</strong></span>
+            <span>30-day minimum coverage: <strong className="text-foreground">{formatPercent(summary.coveragePercent)}</strong></span>
+            <span>Recent 7-day coverage: <strong className="text-foreground">{formatPercent(intakeFunnel.recentCoverage?.coveragePercent ?? null)}</strong></span>
             <span>Required: <strong className="text-foreground">{summary.requiredCoveragePercent}%</strong></span>
             <span>Late payments reported separately: <strong className="text-foreground">{summary.latePayments}</strong></span>
             {!intakeFunnel.ok ? <span className="text-amber-700 dark:text-amber-300">{intakeFunnel.reason}</span> : null}
           </div>
+          {summary.availability === "insufficient_coverage" && recentCoverageMeetsGate ? (
+            <p className="mt-2 text-[11px] leading-relaxed text-emerald-700 dark:text-emerald-400">
+              Current instrumentation meets the coverage gate; rates remain withheld until older incomplete events leave the rolling 30-day window.
+            </p>
+          ) : null}
         </DashboardCard>
 
         <DashboardCard padding="none">

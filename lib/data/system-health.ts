@@ -1,7 +1,10 @@
 import "server-only"
 
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
-import { CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES } from "@/lib/email/quiet-failures"
+import {
+  CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES,
+  INTENTIONAL_EMAIL_SUPPRESSION_PREFIX,
+} from "@/lib/email/quiet-failures"
 import { createLogger } from "@/lib/observability/logger"
 import { countStripePriceConfigIssues } from "@/lib/stripe/price-config-health"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -76,7 +79,14 @@ export async function getSystemHealth(): Promise<SystemHealth> {
   const now = Date.now()
   const dayAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString()
 
-  const [stuckResult, webhookResult, parchmentResult, emailResult, quietEmailResult] = await Promise.allSettled([
+  const [
+    stuckResult,
+    webhookResult,
+    parchmentResult,
+    emailResult,
+    quietEmailResult,
+    suppressedEmailResult,
+  ] = await Promise.allSettled([
     // Stuck intakes via the operational view.
     filterSeededE2EIntakes(
       supabase
@@ -110,6 +120,12 @@ export async function getSystemHealth(): Promise<SystemHealth> {
       .gte("created_at", dayAgo)
       .in("email_type", [...CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES])
       .like("error_message", "Unsupported email_type:%"),
+    supabase
+      .from("email_outbox")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "failed")
+      .gte("created_at", dayAgo)
+      .like("error_message", `${INTENTIONAL_EMAIL_SUPPRESSION_PREFIX}%`),
   ])
 
   function countOf(
@@ -140,15 +156,23 @@ export async function getSystemHealth(): Promise<SystemHealth> {
   const parchmentFailures = countOf(parchmentResult, "parchment-failures")
   const rawEmailFailures = countOf(emailResult, "email-failures")
   const quietEmailFailures = countOf(quietEmailResult, "quiet-email-failures")
-  // If the quiet-failure discount read failed, keep the raw count (overcounts
-  // rather than hides — alarm-safe) and mark degraded below.
+  const suppressedEmailFailures = countOf(suppressedEmailResult, "suppressed-email-failures")
+  // If either non-actionable discount read failed, keep that part of the raw
+  // count (alarm-safe overcount) and mark the health read degraded below.
   const emailFailures = rawEmailFailures === null
     ? null
-    : Math.max(rawEmailFailures - (quietEmailFailures ?? 0), 0)
+    : Math.max(
+        rawEmailFailures
+          - (quietEmailFailures ?? 0)
+          - (suppressedEmailFailures ?? 0),
+        0,
+      )
   const stripePriceIssues = countStripePriceConfigIssues()
 
   const knownCounts = [stuckIntakes, webhookFailures, parchmentFailures, emailFailures]
-  const degraded = knownCounts.some((count) => count === null) || quietEmailFailures === null
+  const degraded = knownCounts.some((count) => count === null)
+    || quietEmailFailures === null
+    || suppressedEmailFailures === null
 
   return {
     stuckIntakes,

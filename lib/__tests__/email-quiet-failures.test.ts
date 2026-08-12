@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  filterQuietCronOwnedEmailFailures,
+  filterNonActionableEmailFailures,
   isCronOwnedNonReconstructableEmailType,
-  isQuietCronOwnedEmailFailure,
+  isNonActionableEmailFailure,
 } from "@/lib/email/quiet-failures"
 
 describe("email quiet-failure classification", () => {
@@ -15,9 +15,9 @@ describe("email quiet-failure classification", () => {
     expect(isCronOwnedNonReconstructableEmailType(null)).toBe(false)
   })
 
-  it("only suppresses the expected unsupported-type dispatcher bookkeeping row", () => {
+  it("only suppresses terminal dispatcher bookkeeping and intentional pre-delivery stops", () => {
     expect(
-      isQuietCronOwnedEmailFailure({
+      isNonActionableEmailFailure({
         email_type: "partial_intake_recovery",
         status: "failed",
         error_message: "Unsupported email_type: partial_intake_recovery",
@@ -25,7 +25,7 @@ describe("email quiet-failure classification", () => {
     ).toBe(false)
 
     expect(
-      isQuietCronOwnedEmailFailure({
+      isNonActionableEmailFailure({
         email_type: "review_request",
         status: "failed",
         error_message: "Unsupported email_type: review_request",
@@ -33,7 +33,7 @@ describe("email quiet-failure classification", () => {
     ).toBe(false)
 
     expect(
-      isQuietCronOwnedEmailFailure({
+      isNonActionableEmailFailure({
         email_type: "abandoned_checkout",
         status: "failed",
         error_message: "Cannot reconstruct email type 'abandoned_checkout' - unsupported type",
@@ -41,7 +41,23 @@ describe("email quiet-failure classification", () => {
     ).toBe(true)
 
     expect(
-      isQuietCronOwnedEmailFailure({
+      isNonActionableEmailFailure({
+        email_type: "partial_intake_recovery",
+        status: "failed",
+        error_message: "Suppressed before delivery: recovery_already_handled",
+      }),
+    ).toBe(true)
+
+    expect(
+      isNonActionableEmailFailure({
+        email_type: "review_request",
+        status: "pending",
+        error_message: "Suppressed before delivery: review_payload_recipient_changed",
+      }),
+    ).toBe(false)
+
+    expect(
+      isNonActionableEmailFailure({
         email_type: "partial_intake_recovery",
         status: "failed",
         error_message: "Resend rejected recipient",
@@ -49,7 +65,7 @@ describe("email quiet-failure classification", () => {
     ).toBe(false)
 
     expect(
-      isQuietCronOwnedEmailFailure({
+      isNonActionableEmailFailure({
         email_type: "med_cert_patient",
         status: "failed",
         error_message: "Unsupported email_type: med_cert_patient",
@@ -84,6 +100,12 @@ describe("email quiet-failure classification", () => {
         error_message: "Resend rejected recipient",
       },
       {
+        id: "intentional-suppression",
+        email_type: "partial_intake_recovery",
+        status: "failed",
+        error_message: "Suppressed before delivery: recovery_already_handled",
+      },
+      {
         id: "pending",
         email_type: "abandoned_checkout",
         status: "pending",
@@ -91,7 +113,7 @@ describe("email quiet-failure classification", () => {
       },
     ]
 
-    expect(filterQuietCronOwnedEmailFailures(rows).map((row) => row.id)).toEqual([
+    expect(filterNonActionableEmailFailures(rows).map((row) => row.id)).toEqual([
       "retryable-partial",
       "retryable-review",
       "provider-failure",

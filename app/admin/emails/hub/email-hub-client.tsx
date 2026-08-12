@@ -36,7 +36,7 @@ import {
   STAFF_EMAILS_HREF,
   STAFF_OPS_HREF,
 } from "@/lib/dashboard/routes"
-import { isQuietCronOwnedEmailFailure } from "@/lib/email/quiet-failures"
+import { isNonActionableEmailFailure } from "@/lib/email/quiet-failures"
 import { EMAIL_SEQUENCES } from "@/lib/email/sequence-registry"
 import { formatTimeAgo } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -154,13 +154,13 @@ function canRetryEmailActivity(item: RecentEmailActivity): boolean {
   return (
     hasRetryableEmailStatus(item.status) &&
     item.retryCount < MAX_OUTBOX_RETRY_COUNT &&
-    !isQuietCronOwnedEmailFailure(getQuietFailureActivityRow(item))
+    !isNonActionableEmailFailure(getQuietFailureActivityRow(item))
   )
 }
 
 function getNonRetryableEmailActivityLabel(item: RecentEmailActivity): string | null {
-  if (isQuietCronOwnedEmailFailure(getQuietFailureActivityRow(item))) {
-    return "Cron-owned"
+  if (isNonActionableEmailFailure(getQuietFailureActivityRow(item))) {
+    return "Terminal"
   }
 
   if (hasRetryableEmailStatus(item.status) && item.retryCount >= MAX_OUTBOX_RETRY_COUNT) {
@@ -174,13 +174,13 @@ function canRetryOutboxLedgerRow(row: EmailOutboxLedgerRow): boolean {
   return (
     hasRetryableEmailStatus(row.status) &&
     row.retry_count < MAX_OUTBOX_RETRY_COUNT &&
-    !isQuietCronOwnedEmailFailure(row)
+    !isNonActionableEmailFailure(row)
   )
 }
 
 function getNonRetryableOutboxLedgerLabel(row: EmailOutboxLedgerRow): string | null {
-  if (isQuietCronOwnedEmailFailure(row)) {
-    return "Cron-owned"
+  if (isNonActionableEmailFailure(row)) {
+    return "Terminal"
   }
 
   if (hasRetryableEmailStatus(row.status) && row.retry_count >= MAX_OUTBOX_RETRY_COUNT) {

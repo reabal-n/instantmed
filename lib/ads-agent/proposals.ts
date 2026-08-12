@@ -611,9 +611,6 @@ function normalizeOperation(value: unknown): AdsMutationOperation {
     )
     const text = requiredString(record.text, "negative keyword")
     if (text.length > 80) throw new Error("Negative keyword is too long")
-    if (containsProhibitedPaidMedicineTerm(text)) {
-      throw new Error("Medicine-name keywords are prohibited")
-    }
     return {
       campaignResourceName: resourceName(
         record.campaignResourceName,

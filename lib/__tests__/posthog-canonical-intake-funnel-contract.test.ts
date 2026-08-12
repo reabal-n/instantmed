@@ -28,4 +28,10 @@ describe("PostHog canonical intake funnel contract", () => {
     expect(source).toContain("minIf(timestamp, event = 'checkout_viewed')")
     expect(source).toContain("countIf(notEmpty(toString(properties.flow_instance_id)))")
   })
+
+  it("reads recent coverage separately so historical debt is not presented as current breakage", () => {
+    expect(source).toContain("RECENT_COVERAGE_DAYS = 7")
+    expect(source).toContain("InstantMed flow ID coverage recent")
+    expect(source).toContain("recentCoveragePercent")
+  })
 })
