@@ -14,7 +14,10 @@
 import * as Sentry from "@sentry/nextjs"
 
 import { capturePersonlessPostHogEvent } from "@/lib/analytics/posthog-server"
-import { isAutoApprovalGovernanceApproved } from "@/lib/clinical/auto-approval-governance"
+import {
+  getEffectiveAutoApprovalSettings,
+  isAutoApprovalGovernanceApproved,
+} from "@/lib/clinical/auto-approval-governance"
 import { executeCertApproval } from "@/lib/clinical/execute-cert-approval"
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import { shouldIncludeSeededE2EData } from "@/lib/data/seeded-e2e-data"
@@ -259,6 +262,8 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     return { success: true, autoApproved: false, reason: "Governance review pending" }
   }
 
+  const effectiveSettings = getEffectiveAutoApprovalSettings(featureFlags)
+
   const isDryRun = featureFlags.auto_approve_dry_run
   if (isDryRun) {
     log.info("Auto-approval running in DRY RUN mode - will evaluate but NOT issue certificates", { intakeId })
@@ -273,7 +278,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
   // 1b. System-level rate limiting (configurable via admin dashboard)
   const rateLimitResult = await checkRateLimit(SYSTEM_AUTO_APPROVE_ID, {
     windowMs: 5 * 60 * 1000,
-    maxRequests: featureFlags.auto_approve_rate_limit_5min,
+    maxRequests: effectiveSettings.rateLimitFiveMinutes,
     action: `auto_approve${rateLimitActionSuffix}`,
   })
   if (!rateLimitResult.allowed) {
@@ -296,12 +301,12 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
   // below) always used SYSTEM_AUTO_APPROVE_ID; reads now match it.
   const dailyRateLimitResult = await checkRateLimit(SYSTEM_AUTO_APPROVE_ID, {
     windowMs: 24 * 60 * 60 * 1000,
-    maxRequests: featureFlags.auto_approve_daily_cap,
+    maxRequests: effectiveSettings.dailyCap,
     action: `auto_approve_daily${rateLimitActionSuffix}`,
   })
   if (!dailyRateLimitResult.allowed) {
     log.warn("Auto-approval daily cap hit", { intakeId })
-    Sentry.captureMessage(`Auto-approval daily cap exceeded (${featureFlags.auto_approve_daily_cap}/day)`, {
+    Sentry.captureMessage(`Auto-approval daily cap exceeded (${effectiveSettings.dailyCap}/day)`, {
       level: "warning",
       tags: { subsystem: "auto-approval", intake_id: intakeId },
     })
@@ -505,7 +510,8 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       },
       patientInfo,
       {
-        maxDurationDays: featureFlags.auto_approve_max_duration_days,
+        maxDurationDays: effectiveSettings.maxDurationDays,
+        requireNoSoftFlags: effectiveSettings.requireNoSoftFlags,
         previousApprovalCount: previousApprovalCount ?? 0,
         recentCertCount: recentCertCount ?? 0,
         hasOverlappingCert,
@@ -531,6 +537,13 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       checks_applied: eligibility.checksApplied,
       recent_cert_count: recentCertCount ?? 0,
       has_overlapping_cert: hasOverlappingCert,
+      rollout_policy: {
+        delay_minutes: effectiveSettings.delayMinutes,
+        max_approvals_per_five_minutes: effectiveSettings.rateLimitFiveMinutes,
+        max_approvals_per_day: effectiveSettings.dailyCap,
+        max_duration_days: effectiveSettings.maxDurationDays,
+        require_no_soft_flags: effectiveSettings.requireNoSoftFlags,
+      },
     })
 
     // Persist the engine's soft flags onto the intake as `info`-severity

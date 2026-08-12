@@ -264,6 +264,22 @@ describe("evaluateAutoApprovalEligibility", () => {
     expect(result.softFlags).toContain("accident_co_symptom")
   })
 
+  it("routes every soft-flagged request to a doctor when the bounded rollout requires a clean lane", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ symptomDetails: "Had a car accident yesterday, back is sore" }),
+      makeReadyDraft(),
+      ADULT_PATIENT,
+      {
+        maxDurationDays: 1,
+        requireNoSoftFlags: true,
+      },
+    )
+
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags).toContain("rollout_requires_no_soft_flags: accident_co_symptom")
+  })
+
   it("blocks 'accident' as sole symptom", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
@@ -1029,7 +1045,7 @@ describe("evaluateAutoApprovalEligibility", () => {
     })
 
     it("runs the v3.0 engine with DOB-required age checks", () => {
-      expect(ELIGIBILITY_ENGINE_VERSION).toBe("3.0")
+      expect(ELIGIBILITY_ENGINE_VERSION).toBe("3.1")
     })
   })
 })

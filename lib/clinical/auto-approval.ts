@@ -21,7 +21,7 @@ import { checkEmergencySymptoms, checkRedFlagPatterns } from "./triage-rules-eng
  *
  * Format: MAJOR.MINOR (major = structural changes, minor = keyword/threshold updates)
  */
-export const ELIGIBILITY_ENGINE_VERSION = "3.0"
+export const ELIGIBILITY_ENGINE_VERSION = "3.1"
 
 /**
  * Human-readable manifest of all checks the engine applies.
@@ -45,7 +45,8 @@ export const ELIGIBILITY_CHECK_MANIFEST = [
   "high_stakes_use_case_hard_block",
   "symptom_text_substantive",
   "ai_clinical_note_exists_and_ready",
-  "ai_draft_review_flag_soft_only",
+  "ai_draft_review_flag_pre_issue_block",
+  "code_owned_soft_flag_rollout_policy",
 ] as const
 
 // ============================================================================
@@ -314,6 +315,8 @@ export function evaluateAutoApprovalEligibility(
      * fast path is preserved.
      */
     attentionFlagCodes?: string[]
+    /** Route every engine soft signal to a doctor during a bounded rollout. */
+    requireNoSoftFlags?: boolean
   },
 ): AutoApprovalEligibility {
   const flags: string[] = []
@@ -508,6 +511,14 @@ export function evaluateAutoApprovalEligibility(
     if (draftFlags?.requiresReview) {
       flags.push(`draft_review_flag: ${draftFlags.flagReason || "unspecified"}`)
     }
+  }
+
+  // The engine keeps tuned soft-signal behaviour available for analysis and
+  // future reviewed protocols, while the initial reactivation policy permits
+  // only a completely clean lane. This is deliberately code-owned: a database
+  // setting cannot make a soft-flagged certificate eligible.
+  if (options?.requireNoSoftFlags && softFlags.length > 0) {
+    flags.push(`rollout_requires_no_soft_flags: ${softFlags.join(", ")}`)
   }
 
   // TUNING: For 1-2 day certificates with mild common symptoms, allow auto-approval

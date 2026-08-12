@@ -790,7 +790,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 557 files, 239 route files
+### `app/` — 556 files, 239 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -920,7 +920,7 @@ Doctor-triggered medical certificate approval must enter through the Document Bu
 
 ### Auto-Approval Pipeline (Governance-Paused)
 
-Med cert only. Protocol issuance is currently fail-closed by `lib/clinical/auto-approval-governance.ts` pending Medical Director and legal reconciliation. The database flag (`ai_auto_approve_enabled`) can stop the pathway but cannot authorise it. Every paid medical-certificate request therefore remains in the doctor queue for an individual outcome before issue. The dormant engine is feature-flagged, rate-limited, and has a dry-run mode for controlled evaluation.
+Med cert only. Protocol issuance is currently fail-closed by `lib/clinical/auto-approval-governance.ts` pending Medical Director and legal reconciliation. The database flag (`ai_auto_approve_enabled`) can stop the pathway but cannot authorise it. Every paid medical-certificate request therefore remains in the doctor queue for an individual outcome before issue. `AUTO_APPROVAL_ROLLOUT_POLICY` prepares a narrow future boundary: clean, unflagged one-day requests only, a 15-minute minimum delay, and code ceilings of 3 approvals per five minutes / 10 per day. Stored settings can narrow but never widen those limits. The dormant engine retains dry-run mode for controlled evaluation.
 
 **State machine** — single `auto_approval_state` enum column replaces the old 6-column boolean soup:
 

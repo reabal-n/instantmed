@@ -2,9 +2,11 @@ import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 
 import { verifyCronRequest } from "@/lib/api/cron-auth"
-import { isAutoApprovalGovernanceApproved } from "@/lib/clinical/auto-approval-governance"
+import {
+  getEffectiveAutoApprovalSettings,
+  isAutoApprovalGovernanceApproved,
+} from "@/lib/clinical/auto-approval-governance"
 import { env } from "@/lib/config/env"
-import { normalizeAutoApproveDelayMinutes } from "@/lib/data/types/feature-flags"
 import { buildPatientRequestAccessUrl } from "@/lib/email/request-access-url"
 import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { getFeatureFlags } from "@/lib/feature-flags"
@@ -153,7 +155,7 @@ export async function GET(request: NextRequest) {
     // -----------------------------------------------------------------------
     // Auto-approval: find intakes eligible for AI review via state machine
     // -----------------------------------------------------------------------
-    const delayMinutes = normalizeAutoApproveDelayMinutes(flags.auto_approve_delay_minutes)
+    const { delayMinutes } = getEffectiveAutoApprovalSettings(flags)
     const delayAgo = new Date(Date.now() - delayMinutes * 60 * 1000).toISOString()
     const eightHoursAgo = new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()
 
