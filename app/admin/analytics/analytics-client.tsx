@@ -26,7 +26,12 @@ import {
   StatusBadge,
   type StatusBadgeStatus,
 } from "@/components/dashboard"
-import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
+import {
+  OperatorPage,
+  OperatorPageHeader,
+  OperatorScrollArea,
+  PageRefreshStatus,
+} from "@/components/operator"
 import { Button } from "@/components/ui/button"
 import type { BusinessCampaignRow } from "@/lib/admin/business-read-model"
 import type {
@@ -38,7 +43,6 @@ import { STAFF_OPS_HREF } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
 import type { BusinessPageData } from "./analytics-helpers"
-import { LiveRefresh } from "./live-refresh"
 
 const AUD = new Intl.NumberFormat("en-AU", {
   currency: "AUD",
@@ -410,7 +414,7 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
         badge={<StatusBadge status={decision.status} size="sm">{decision.label}</StatusBadge>}
         actions={(
           <>
-            <LiveRefresh generatedAt={data.generatedAt} />
+            <PageRefreshStatus key={data.generatedAt} generatedAt={data.generatedAt} />
             <Button variant="outline" size="sm" asChild>
               <Link href={STAFF_OPS_HREF}>Operations <ArrowRight className="h-3.5 w-3.5" /></Link>
             </Button>

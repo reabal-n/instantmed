@@ -4,7 +4,6 @@ import {
   ArrowRight,
   BarChart3,
   CheckCircle2,
-  Clock3,
   CreditCard,
   FileWarning,
   RefreshCw,
@@ -20,7 +19,12 @@ import { toast } from "sonner"
 import { repairCertificateDocumentSentAtAction } from "@/app/actions/certificate-document-sent-repair"
 import { resendCertificateAsStaff } from "@/app/actions/resend-certificate"
 import { DashboardCard, StatusBadge } from "@/components/dashboard"
-import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
+import {
+  OperatorPage,
+  OperatorPageHeader,
+  OperatorScrollArea,
+  PageRefreshStatus,
+} from "@/components/operator"
 import { Button } from "@/components/ui/button"
 import type {
   OpsActionGroup,
@@ -69,33 +73,36 @@ function IssueRow({
   resendingIntakeId: string | null
 }) {
   const isResending = issue.certificateIntakeId === resendingIntakeId && isPending
+  const severityLabel = issue.severity === "critical" ? "Critical" : "Warning"
   const severityClass = issue.severity === "critical"
-    ? "bg-destructive"
-    : "bg-amber-500"
+    ? "text-destructive"
+    : "text-amber-700 dark:text-amber-300"
 
   return (
     <li
-      className="grid gap-3 px-4 py-3.5 lg:grid-cols-[minmax(220px,0.82fr)_minmax(280px,1.25fr)_minmax(190px,0.72fr)_auto] lg:items-center"
-      data-ops-issue
-    >
+        className="grid gap-3 px-4 py-3.5 lg:grid-cols-[minmax(220px,0.82fr)_minmax(280px,1.25fr)_minmax(190px,0.72fr)_auto] lg:items-center"
+        data-ops-issue
+      >
       <div className="min-w-0">
         <div className="flex items-center gap-2">
-          <span aria-hidden className={cn("h-2 w-2 shrink-0 rounded-full", severityClass)} />
           <h3 className="truncate text-sm font-semibold text-foreground">{issue.title}</h3>
           {issue.count > 1 ? (
             <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold tabular-nums text-muted-foreground">{issue.count}</span>
           ) : null}
         </div>
-        <p className="mt-1 pl-4 text-xs leading-relaxed text-muted-foreground">{issue.detail}</p>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{issue.detail}</p>
       </div>
 
       <div className="rounded-lg bg-muted/30 px-3 py-2 text-xs">
         <p className="font-medium text-foreground">Next: {issue.nextAction}</p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground lg:block">
+      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
+        <span className={cn("font-semibold", severityClass)}>{severityLabel}</span>
+        <span aria-hidden>·</span>
         <span className="font-medium text-foreground">{issue.owner}</span>
-        <span className="lg:ml-2">{formatAge(issue.occurredAt, generatedAt)}</span>
+        <span aria-hidden>·</span>
+        <span>{formatAge(issue.occurredAt, generatedAt)}</span>
       </div>
 
       <div className="flex min-w-32 justify-start lg:justify-end">
@@ -105,6 +112,7 @@ function IssueRow({
             variant="outline"
             className="min-h-11 w-full gap-1.5 sm:w-auto lg:min-h-9"
             disabled={isResending}
+            aria-label={`Resend secure certificate link for ${issue.title}`}
             onClick={() => onResend(issue.certificateIntakeId!)}
           >
             <RefreshCw className={cn("h-3.5 w-3.5", isResending && "animate-spin")} aria-hidden />
@@ -116,6 +124,7 @@ function IssueRow({
             variant={repairingArmed ? "default" : "outline"}
             className="min-h-11 w-full gap-1.5 sm:w-auto lg:min-h-9"
             disabled={isPending}
+            aria-label="Repair certificate timestamps"
             onClick={onRepair}
           >
             <Wrench className={cn("h-3.5 w-3.5", isPending && "animate-spin")} aria-hidden />
@@ -123,7 +132,9 @@ function IssueRow({
           </Button>
         ) : (
           <Button size="sm" variant="outline" className="min-h-11 w-full sm:w-auto lg:min-h-9" asChild>
-            <Link href={issue.href}>Open <ArrowRight className="h-3.5 w-3.5" aria-hidden /></Link>
+            <Link href={issue.href} aria-label={`Open ${issue.title} recovery`}>
+              Open <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+            </Link>
           </Button>
         )}
       </div>
@@ -243,6 +254,7 @@ export function OpsDashboardClient({ model }: { model: OpsActionModel }) {
         ) : (
           <StatusBadge status="error" size="sm">{model.openCount} need attention</StatusBadge>
         )}
+        actions={<PageRefreshStatus key={model.generatedAt} generatedAt={model.generatedAt} />}
       />
 
       <OperatorScrollArea className="space-y-3">
@@ -260,9 +272,6 @@ export function OpsDashboardClient({ model }: { model: OpsActionModel }) {
               <h2 className="mt-3 text-base font-semibold text-foreground">No exceptions in monitored scope</h2>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                 Current-state payment and script checks cover all matching records. Identity checks cover the oldest 100 active prescribing requests; email, Parchment, and Ads monitors cover 7 days; certificate delivery covers 14 days.
-              </p>
-              <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Clock3 className="h-3.5 w-3.5" aria-hidden /> Checked now
               </p>
             </div>
           </DashboardCard>
