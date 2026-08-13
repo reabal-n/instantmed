@@ -1,13 +1,12 @@
-"use client";
+"use client"
 
-import { motion } from "framer-motion";
-import { useRef } from "react";
+import { type CSSProperties, type Ref,useEffect, useRef, useState } from "react"
 
-import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
-import { cn } from "@/lib/utils";
+import { useReducedMotion } from "@/components/ui/motion"
+import { cn } from "@/lib/utils"
 
 // Persists across React StrictMode's simulated remount - DOM nodes are preserved.
-const _played = new WeakSet<Element>()
+const playedWordReveals = new WeakSet<Element>()
 
 interface WordRevealProps {
   text: string;
@@ -28,15 +27,33 @@ export function WordReveal({
   staggerDelay = 0.06,
   wordDuration = 0.3,
 }: WordRevealProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useScrollReveal(ref);
-  const prefersReducedMotion = useReducedMotion();
+  const ref = useRef<HTMLElement>(null)
+  const [isInView, setIsInView] = useState(false)
+  const prefersReducedMotion = useReducedMotion()
+  const words = text.split(" ")
 
-  if (isInView && ref.current) _played.add(ref.current)
-  const alreadyPlayed = ref.current != null && _played.has(ref.current)
-  const shouldAnimate = alreadyPlayed || isInView
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
 
-  const words = text.split(" ");
+    if (playedWordReveals.has(element)) {
+      setIsInView(true)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return
+        playedWordReveals.add(element)
+        setIsInView(true)
+        observer.disconnect()
+      },
+      { threshold: 0, rootMargin: "-100px" },
+    )
+
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
 
   if (prefersReducedMotion) {
     return (
@@ -59,38 +76,42 @@ export function WordReveal({
           );
         })}
       </Tag>
-    );
+    )
   }
 
   return (
-    <Tag ref={ref} aria-label={text} className={cn("flex flex-wrap", className)}>
+    <Tag
+      ref={ref as Ref<HTMLHeadingElement & HTMLParagraphElement & HTMLSpanElement>}
+      aria-label={text}
+      className={cn("flex flex-wrap", className)}
+    >
       {words.map((word, i) => {
         const isHighlighted = highlightWords.some((hw) =>
           hw.toLowerCase().split(/\s+/).some(
             (part) => part === word.toLowerCase().replace(/[^a-z]/g, "")
           )
         );
+        const style = {
+          transform: isInView ? "translateY(0)" : "translateY(12px)",
+          transitionDuration: prefersReducedMotion ? "0ms" : `${wordDuration}s`,
+          transitionDelay: prefersReducedMotion ? "0ms" : `${i * staggerDelay}s`,
+          transitionProperty: "transform",
+          transitionTimingFunction: "cubic-bezier(0.25, 0.1, 0.25, 1)",
+        } satisfies CSSProperties
+
         return (
-          <motion.span
+          <span
             key={i}
-            className={cn("inline-block mr-[0.25em]", isHighlighted && highlightClassName)}
-            // NB: do NOT start at opacity:0 — when this component renders the h1
-            // on marketing heroes, the words are the LCP candidate. Starting
-            // invisible adds the full animation delay to LCP on slow hardware.
-            // Y-translate alone is visually equivalent and keeps text paintable
-            // at first frame.
-            initial={alreadyPlayed ? { y: 0 } : { y: 12 }}
-            animate={shouldAnimate ? { y: 0 } : undefined}
-            transition={{
-              duration: wordDuration,
-              delay: i * staggerDelay,
-              ease: [0.25, 0.1, 0.25, 1],
-            }}
+            className={cn(
+              "inline-block mr-[0.25em] will-change-transform motion-reduce:!translate-y-0 motion-reduce:!transition-none",
+              isHighlighted && highlightClassName,
+            )}
+            style={style}
           >
             {word}
-          </motion.span>
-        );
+          </span>
+        )
       })}
     </Tag>
-  );
+  )
 }

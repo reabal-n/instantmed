@@ -21,8 +21,11 @@ function expectInOrder(source: string, markers: readonly string[]) {
 
 describe("money-page narrative compression", () => {
   it("keeps active mobile sticky summaries distinct from review timing", () => {
+    expect(read("components/marketing/prescriptions-client-controls.tsx")).toContain(
+      'mobileSummary="Repeat medication request"',
+    )
+
     const summaries = [
-      ["components/marketing/prescriptions-landing.tsx", "Repeat medication request"],
       ["components/marketing/erectile-dysfunction-landing.tsx", "ED assessment"],
       ["components/marketing/hair-loss-landing.tsx", "3-min form"],
       ["components/marketing/uti-assessment-landing.tsx", "UTI symptom assessment"],

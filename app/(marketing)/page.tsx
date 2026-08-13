@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 
 import { Hero } from '@/components/marketing/hero'
+import { HeroDoctorReviewMockup } from '@/components/marketing/hero-doctor-review-mockup'
 import { HomeServiceLinks } from '@/components/marketing/home-service-links'
 import { IntakeResumeChip } from '@/components/marketing/intake-resume-chip'
 import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
@@ -134,7 +135,12 @@ export default async function HomePage() {
 
         <main className="relative">
           {/* Hero owns the first-fold action and states the service boundary. */}
-          <Hero title={TAGLINE} liveWait={waitState} secondaryCta={null}>
+          <Hero
+            title={TAGLINE}
+            liveWait={waitState}
+            secondaryCta={null}
+            mockup={<HeroDoctorReviewMockup />}
+          >
             <h2 className="font-display text-2xl sm:text-3xl lg:text-[2.5rem] text-foreground/85 max-w-xl mx-auto lg:mx-0 mb-6 leading-tight font-semibold tracking-tight">
               {PROP_PHRASE}
             </h2>

@@ -41,7 +41,12 @@ const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-display",
   display: "optional",
-  weight: ["500", "600", "700"],
+  // The canonical display scale includes 300 as well as 500-700. Loading the
+  // variable face keeps those weights honest without duplicating @font-face
+  // declarations. The two fixed money-page H1s preload a 5 KB glyph subset
+  // below; the full Latin face remains available without competing for the
+  // first-paint connection.
+  weight: "variable",
   preload: false,
 })
 
@@ -50,9 +55,10 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
   display: "swap",
   weight: ["400"],
-  // Only used for `font-mono` in error pages / verify / dashboard admin tables.
-  // Never on the marketing critical path, so skip the <link rel="preload"> — the
-  // font is still fetched lazily when a .font-mono element is encountered.
+  // Used for `font-mono` in error pages / verify / dashboard admin tables.
+  // Money-page hero specimen codes use the platform monospace face instead,
+  // keeping this full webfont off their first-paint path. It remains available
+  // lazily when another route renders a .font-mono element.
   preload: false,
 })
 

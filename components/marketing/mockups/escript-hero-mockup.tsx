@@ -125,7 +125,7 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
             <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-0.5 font-medium">
               Prescription Token
             </p>
-            <p className="text-[12px] font-mono font-semibold text-primary tracking-wider mb-1.5">
+            <p className="text-[12px] font-[ui-monospace] font-semibold text-primary tracking-wider mb-1.5">
               ABCD-1234-EFGH
             </p>
             <p className="text-[10px] font-medium text-foreground/80">Regular medication</p>

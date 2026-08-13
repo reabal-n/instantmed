@@ -29,6 +29,7 @@ import { ReturningPatientBanner } from "@/components/shared/returning-patient-ba
 import { Heading } from "@/components/ui/heading"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { MED_CERT_LANDING_FAQ } from "@/lib/data/med-cert-faq"
+import { moneyH1Font } from "@/lib/fonts/money-h1"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { buildMedCertRequestHref } from "@/lib/marketing/med-cert-selector"
 import { GUARANTEE, MED_CERT_WEDGE } from "@/lib/marketing/voice"
@@ -255,11 +256,11 @@ function MedCertHero() {
               <span className="h-1.5 w-10 rounded-full bg-brand-coral" />
             </div>
 
-            <Heading level="display" className="mb-5 sm:mb-7">
+            <Heading level="display" className={`mb-5 sm:mb-7 ${moneyH1Font.className}`}>
               Medical certificate. From your bed.
             </Heading>
 
-            <div className="hero-subheadline-enter">
+            <div>
               <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-relaxed text-muted-foreground sm:mb-7 sm:text-base lg:mx-0 lg:text-lg">
                 For suitable form-only requests: {MED_CERT_WEDGE} Tell us what kept you from work, study, or caring duties. If suitable, your certificate is delivered as a secure PDF. {GUARANTEE}
               </p>

@@ -949,13 +949,15 @@ WHERE i.status = 'approved'
 
 | Metric | Target (p75) | Current | Source |
 |---|---|---|---|
-| First Contentful Paint (FCP) | ≤ 2.0s | 1.4s local / 3.4s prod | `WebVitalsReporter`, PSI |
-| Largest Contentful Paint (LCP) | ≤ 2.5s | 5.2s prod conversion pages | `WebVitalsReporter`, PSI |
-| Cumulative Layout Shift (CLS) | ≤ 0.1 | 0.003 | `WebVitalsReporter` |
+| First Contentful Paint (FCP) | ≤ 2.0s | Re-measure at release checkpoint | PostHog `$web_vitals`, Lighthouse, CrUX |
+| Largest Contentful Paint (LCP) | ≤ 2.5s | 2026-08-14 local production build, applied mobile throttling: med cert 1.96s / prescriptions 1.92s median (3 runs each) | PostHog `$web_vitals`, Lighthouse, CrUX |
+| Cumulative Layout Shift (CLS) | ≤ 0.1 | 2026-08-14 local production build: 0 on both commercial routes (3 runs each) | PostHog `$web_vitals`, Lighthouse, CrUX |
 | Total Blocking Time (TBT) | ≤ 200ms | PR CI noisy; production gate remains ≤ 300ms | Lighthouse CI |
-| Interaction to Next Paint (INP) | ≤ 200ms | TBD (needs dashboard) | `WebVitalsReporter` |
+| Interaction to Next Paint (INP) | ≤ 200ms | Re-measure at release checkpoint | PostHog `$web_vitals`, CrUX |
 
 **CI gate:** PR LHCI blocks on FCP ≤ 3s, CLS ≤ 0.1, accessibility ≥ 0.9, and SEO ≥ 0.9. LCP and TBT are warning-only in the general PR Lighthouse config because simulated throttling on GitHub runners has produced 600ms-1s TBT outliers and 7s+ LCP on untouched marketing pages. The dedicated mobile `/request` Lighthouse gate hard-gates stable paid-intake metrics (FCP ≤2s, TBT ≤300ms, CLS ≤0.05) while keeping composite performance score and simulated LCP warning-only.
+
+**Money-page release measurement:** the opt-in three-run profile uses applied DevTools mobile throttling and median aggregation for LCP ≤2.5s. The 2026-08-14 pre-change production medians were 5.07s for `/medical-certificate` and 5.53s for `/prescriptions`. After the server-first/font/bundle boundary changes, the final local production-build runs were 2.255/1.951/1.960s (med cert; median 1.960s) and 1.937/1.922/1.922s (prescriptions; median 1.922s), with CLS 0 throughout. During diagnosis, default Lantern simulation produced a synthetic 4s+ critical tail while the underlying loopback trace painted far earlier; retain that mode for dependency diagnosis, but do not mislabel its local synthetic queue as observed browser paint. Deployment success still requires the rolling 28-day URL-level mobile CrUX p75 checkpoint below 2.5s. PostHog RUM is directional because acquisition telemetry starts after first interaction.
 
 **Bundle-size gate:** shared first-load JS ≤ 160 KB (current: 129 KB). Enforced by `scripts/check-bundle-size.sh` after every release build.
 
@@ -996,7 +998,7 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 
 ### How SLOs are measured
 
-- **RUM**: `WebVitalsReporter` in `app/layout.tsx` fires `web_vital` events to PostHog. Build a PostHog Insight grouping by `$pathname` + `device_type` for p50/p75/p95.
+- **RUM**: PostHog's `capture_performance` integration in `instrumentation-client.ts` emits `$web_vitals`. Build an Insight using `$web_vitals_LCP_value`, grouped by `$pathname` and device type, for p50/p75/p95. On acquisition routes PostHog starts after first interaction, so this cohort excludes passive bounces and is directional rather than population-complete. Use URL-level mobile CrUX p75 as the unbiased rolling 28-day field checkpoint.
 - **CI-Lab**: `@lhci/cli` on every push to `main` + every PR. Results retained 14 days as GH artifact.
 - **Synthetic**: GitHub Actions runs `e2e/prod-request-flow-synthetic.spec.ts` against `https://instantmed.com.au` every 5 minutes. It clicks the med-cert certificate type, duration, and start-date controls and smoke-checks repeat script, prescription, ED, hair-loss, and women's-health request paths. The browser helper `e2e/helpers/production-synthetic-isolation.ts` fulfills `/api/draft` and `/ingest` locally; the production probe must not create `partial_intakes`, recovery emails, or PostHog funnel events.
 - **Error tracking**: Sentry captures + custom tags (see `lib/observability/sentry.ts`).

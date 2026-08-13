@@ -15,6 +15,7 @@ import { ServiceIconTile } from "@/components/icons/service-icons"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { AnimatedNavLink } from "@/components/shared/navbar/animated-nav-link"
 import { services } from "@/components/shared/navbar/services-dropdown"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +23,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Button } from "@/components/uix"
 import {
   PATIENT_DASHBOARD_HREF,
   PATIENT_INTAKES_HREF,

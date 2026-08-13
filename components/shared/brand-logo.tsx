@@ -15,6 +15,8 @@ interface BrandLogoProps {
   onClick?: MouseEventHandler<HTMLAnchorElement>
   /** Load both mark assets eagerly when this logo is above the fold. */
   priority?: boolean
+  /** Disable route prefetch when the destination carries a much larger bundle. */
+  prefetch?: boolean
 }
 
 const sizeConfig = {
@@ -30,6 +32,7 @@ export function BrandLogo({
   href = "/",
   onClick,
   priority = false,
+  prefetch,
 }: BrandLogoProps) {
   const { iconSize, textHeight, textWidth } = sizeConfig[size]
 
@@ -62,6 +65,7 @@ export function BrandLogo({
     return (
       <Link
         href={href}
+        prefetch={prefetch}
         className={cn("flex items-center group", className)}
         aria-label="InstantMed home"
         onClick={onClick}

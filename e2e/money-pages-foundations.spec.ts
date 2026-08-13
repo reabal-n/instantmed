@@ -585,7 +585,7 @@ test.describe("money-page theme foundations", () => {
     await seedMoneyPageState(page, "dark")
     await gotoPublicRoute(page, "/")
     await assertResolvedTheme(page, "dark")
-    await expect(page.locator('nav[data-mobile-menu-hydrated="true"]')).toBeAttached()
+    await expect(page.locator('nav[data-mobile-menu-hydrated="true"]')).toHaveCount(0)
     await waitTwoFrames(page)
 
     expect(
@@ -714,11 +714,12 @@ test.describe("money-page responsive foundations", () => {
     })
     try {
       await gotoPublicRoute(page, "/")
-      await expect(page.locator('nav[data-mobile-menu-hydrated="true"]')).toBeAttached()
+      await expect(page.locator('nav[data-mobile-menu-hydrated="true"]')).toHaveCount(0)
       const open = page.getByRole("button", { name: "Open menu" })
       await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
       await tabUntilFocused(page, open, 8)
       await page.keyboard.press("Enter")
+      await expect(page.locator('nav[data-mobile-menu-hydrated="true"]')).toBeAttached()
       await expect(page.getByRole("button", { name: "Close menu" })).toHaveAttribute("aria-expanded", "true")
       const content = page.locator('[data-mobile-menu-content="true"]')
       const panel = page.locator('[data-mobile-menu-panel="true"]')

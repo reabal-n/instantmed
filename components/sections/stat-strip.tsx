@@ -3,7 +3,8 @@
 import { animate, motion, useAnimationControls, useInView } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
-import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
+import { useReducedMotion } from "@/components/ui/motion";
+import { useScrollReveal } from "@/components/ui/scroll-reveal";
 import { cn } from "@/lib/utils";
 
 import type { SectionProps, StatItem } from "./types";

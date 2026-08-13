@@ -1,5 +1,3 @@
-import Link from "next/link"
-
 export const dynamic = "force-dynamic"
 
 export default function NotFound() {
@@ -21,20 +19,20 @@ export default function NotFound() {
         </p>
 
         <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link
+          {/* Plain anchors avoid assigning Next's client Link module to an unrelated page chunk group. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a
             href="/"
-            prefetch={false}
             className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:w-auto"
           >
             Back to home
-          </Link>
-          <Link
+          </a>
+          <a
             href="/request"
-            prefetch={false}
             className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-border bg-background px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted sm:w-auto"
           >
             Start a request
-          </Link>
+          </a>
         </div>
       </div>
     </main>
