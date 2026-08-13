@@ -38,8 +38,9 @@ describe("stuck intake telemetry", () => {
       intake_status: "pending_info",
     })
     expect(payload.extra).toEqual({
-      stuck_age_minutes: 72,
-      is_priority: true,
+      stuck_count: 1,
+      max_stuck_age_minutes: 72,
+      priority_count: 1,
     })
   })
 })

@@ -591,74 +591,35 @@ export async function updateEmailStatus(
      * preserve the row ID while switching storage_path, so a provider response
      * for the previous PDF must not mark the replacement document delivered.
      */
-    expectedStoragePath?: string
+    expectedStoragePath: string
   }
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = createServiceRoleClient()
 
-  const updateData: Record<string, unknown> = {
-    updated_at: new Date().toISOString(),
-  }
-
-  if (status === "sent") {
-    updateData.email_sent_at = new Date().toISOString()
-    updateData.email_delivery_id = details.deliveryId
-    updateData.email_failed_at = null
-    updateData.email_failure_reason = null
-  } else {
-    updateData.email_failed_at = new Date().toISOString()
-    updateData.email_failure_reason = details.failureReason
-  }
-
-  let updateQuery = supabase
-    .from("issued_certificates")
-    .update(updateData)
-    .eq("id", certificateId)
-
-  if (details.expectedStoragePath) {
-    updateQuery = updateQuery
-      .eq("storage_path", details.expectedStoragePath)
-      .eq("status", "valid")
-  }
-
-  const { data: updatedCertificate, error } = await updateQuery
-    .select("intake_id")
-    .maybeSingle()
+  const { data: reconciled, error } = await supabase.rpc(
+    "reconcile_certificate_email_status",
+    {
+      p_certificate_id: certificateId,
+      p_expected_storage_path: details.expectedStoragePath,
+      p_status: status,
+      p_delivery_id: details.deliveryId ?? null,
+      p_failure_reason: details.failureReason ?? null,
+    },
+  )
 
   if (error) {
     log.error("Failed to update email status", { certificateId, status }, error)
     return { success: false, error: error.message }
   }
 
-  if (!updatedCertificate) {
-    const error = details.expectedStoragePath
-      ? "Certificate document version changed before email reconciliation"
-      : "Certificate not found for email reconciliation"
+  if (reconciled !== true) {
+    const error = "Certificate document version changed before email reconciliation"
     log.error("Certificate email status update matched no row", {
       certificateId,
       status,
-      storageVersionGuarded: Boolean(details.expectedStoragePath),
+      storageVersionGuarded: true,
     })
     return { success: false, error }
-  }
-
-  if (status === "sent") {
-    const { error: intakeError } = await supabase
-      .from("intakes")
-      .update({
-        document_sent_at: updateData.email_sent_at,
-        generated_document_type: "medical_certificate",
-      })
-      .eq("id", updatedCertificate.intake_id)
-      .is("document_sent_at", null)
-
-    if (intakeError) {
-      log.error("Failed to mirror certificate delivery onto intake", {
-        certificateId,
-        intakeId: updatedCertificate.intake_id,
-      }, intakeError)
-      return { success: false, error: intakeError.message }
-    }
   }
 
   return { success: true }

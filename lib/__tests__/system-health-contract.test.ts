@@ -44,10 +44,12 @@ describe("system-health endpoint contract", () => {
     // paint the whole pill red. Promise.allSettled is the right primitive.
     expect(source).toContain("Promise.allSettled")
 
-    // Stuck intakes via the operational view (must filter seeded E2E data
-    // so the pill doesn't fire from the seed patient in production).
+    // Stuck intakes via the operational view. System Health and Operations
+    // must share the full reportable-intake boundary: seeded E2E rows and
+    // rows explicitly excluded from reporting are both outside the count.
     expect(source).toContain("v_stuck_intakes")
-    expect(source).toContain("filterSeededE2EIntakes")
+    expect(source).toContain("filterReportableIntakes")
+    expect(source).not.toContain("filterSeededE2EIntakes")
 
     // The other three surfaces.
     expect(source).toContain('eq("action", "webhook_failed")')

@@ -9,6 +9,7 @@
 
 import * as Sentry from "@sentry/nextjs"
 
+import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { buildStuckIntakeWarningPayload } from "@/lib/monitoring/stuck-intake-telemetry"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -27,12 +28,12 @@ import type {
   StuckIntake,
   StuckIntakesFilters,
   StuckIntakesResult,
-  StuckReason,
 } from "@/lib/data/types/intake-ops"
-import { SLA_THRESHOLDS } from "@/lib/data/types/intake-ops"
 
 const logger = createLogger("intake-ops")
-const DELIVERY_EMAIL_TYPES = ["request_approved", "certificate_delivery", "med_cert_patient", "script_sent"]
+const STUCK_INTAKE_PAGE_SIZE = 1000
+const STUCK_INTAKE_UNAVAILABLE_ERROR =
+  "Stuck-intake status is unavailable. Refresh before treating this queue as clear."
 
 // ============================================================================
 // MAIN QUERY: Get stuck intakes
@@ -47,52 +48,45 @@ export async function getStuckIntakes(
 ): Promise<StuckIntakesResult> {
   try {
     const supabase = createServiceRoleClient()
+    const stuckIntakes: StuckIntake[] = []
 
-    // Query the view
-    let query = supabase
-      .from("v_stuck_intakes")
-      .select("id, reference_number, status, payment_status, category, subtype, service_name, service_type, is_priority, patient_email, patient_name, created_at, paid_at, reviewed_at, approved_at, stuck_reason, stuck_age_minutes")
-      .order("stuck_age_minutes", { ascending: false })
+    // PostgREST caps one response at 1,000 rows. Page the canonical view so
+    // Operations, its alerts, and System Health's exact count cannot diverge
+    // during a large incident. The id tie-breaker makes offset pages stable
+    // when multiple rows have the same age.
+    for (let from = 0; ; from += STUCK_INTAKE_PAGE_SIZE) {
+      let query = filterReportableIntakes(
+        supabase
+          .from("v_stuck_intakes")
+          .select("id, reference_number, status, payment_status, category, subtype, service_name, service_type, is_priority, patient_email, patient_name, created_at, paid_at, reviewed_at, approved_at, stuck_reason, stuck_age_minutes")
+          .order("stuck_age_minutes", { ascending: false })
+          .order("id", { ascending: true }),
+      )
 
-    // Apply filters
-    if (filters.reason) {
-      query = query.eq("stuck_reason", filters.reason)
-    }
-    if (filters.service_type) {
-      query = query.eq("service_type", filters.service_type)
-    }
-    if (filters.status) {
-      query = query.eq("status", filters.status)
-    }
+      if (filters.reason) query = query.eq("stuck_reason", filters.reason)
+      if (filters.service_type) query = query.eq("service_type", filters.service_type)
+      if (filters.status) query = query.eq("status", filters.status)
 
-    const { data, error } = await query
+      const { data, error } = await query.range(
+        from,
+        from + STUCK_INTAKE_PAGE_SIZE - 1,
+      )
 
-    if (error) {
-      // The operational view can drift ahead of a sandbox database migration.
-      // Fall back to the direct query so the admin dashboard stays usable.
-      const fallback = await getStuckIntakesDirect(filters, { captureWarnings: false })
-      if (!fallback.error) {
-        logger.warn("[IntakeOps] Falling back to direct stuck-intakes query", {
-          error: error.message,
-          filters,
-        })
-        return fallback
+      if (error) {
+        const queryError = new Error(`Stuck-intake view query failed: ${error.message}`)
+        logger.error("[IntakeOps] Failed to fetch stuck intakes", { filters, from }, queryError)
+
+        return {
+          data: [],
+          counts: { paid_no_review: 0, review_timeout: 0, delivery_pending: 0, delivery_failed: 0, total: 0 },
+          error: STUCK_INTAKE_UNAVAILABLE_ERROR,
+        }
       }
 
-      logger.error("[IntakeOps] Failed to fetch stuck intakes", {
-        error: error.message,
-        fallbackError: fallback.error,
-        filters,
-      })
-
-      return {
-        data: [],
-        counts: { paid_no_review: 0, review_timeout: 0, delivery_pending: 0, delivery_failed: 0, total: 0 },
-        error: fallback.error || error.message,
-      }
+      const page = (data || []) as StuckIntake[]
+      stuckIntakes.push(...page)
+      if (page.length < STUCK_INTAKE_PAGE_SIZE) break
     }
-
-    const stuckIntakes = (data || []) as StuckIntake[]
 
     // Calculate counts by reason
     const counts: StuckCounts = {
@@ -104,7 +98,10 @@ export async function getStuckIntakes(
     }
 
     // Capture Sentry warnings for stuck intakes (deduped)
-    await captureStuckIntakeWarnings(stuckIntakes)
+    await captureStuckIntakeWarnings(
+      stuckIntakes,
+      !filters.reason && !filters.service_type && !filters.status,
+    )
 
     return {
       data: stuckIntakes,
@@ -118,213 +115,7 @@ export async function getStuckIntakes(
     return {
       data: [],
       counts: { paid_no_review: 0, review_timeout: 0, delivery_pending: 0, delivery_failed: 0, total: 0 },
-      error: message,
-    }
-  }
-}
-
-// ============================================================================
-// FALLBACK QUERY: Direct query if view doesn't exist
-// ============================================================================
-
-/**
- * Fallback query that runs directly against intakes table.
- * Used if the view hasn't been created yet.
- */
-export async function getStuckIntakesDirect(
-  filters: StuckIntakesFilters = {},
-  options: { captureWarnings?: boolean } = {}
-): Promise<StuckIntakesResult> {
-  try {
-    const supabase = createServiceRoleClient()
-
-    // Get current timestamp for age calculations
-    const now = new Date()
-
-    // Build query for potentially stuck intakes
-    let query = supabase
-      .from("intakes")
-      .select(`
-        id,
-        reference_number,
-        status,
-        payment_status,
-        category,
-        subtype,
-        is_priority,
-        created_at,
-        paid_at,
-        reviewed_at,
-        approved_at,
-        patient:profiles!patient_id (
-          email,
-          full_name
-        ),
-        service:services!service_id (
-          name,
-          type
-        )
-      `)
-      .in("status", ["paid", "in_review", "pending_info", "approved"])
-      .eq("payment_status", "paid")
-
-    // Apply filters
-    if (filters.status) {
-      query = query.eq("status", filters.status)
-    }
-
-    const { data, error } = await query.limit(500)
-
-    if (error) {
-      logger.error("[IntakeOps] Direct query failed", { error: error.message })
-      return {
-        data: [],
-        counts: { paid_no_review: 0, review_timeout: 0, delivery_pending: 0, delivery_failed: 0, total: 0 },
-        error: error.message,
-      }
-    }
-
-    const approvedIntakeIds = (data || [])
-      .filter((intake) => intake.status === "approved")
-      .map((intake) => intake.id)
-    const deliveryEmailStatusesByIntake = new Map<string, Set<string>>()
-
-    if (approvedIntakeIds.length > 0) {
-      const { data: deliveryEmails, error: deliveryEmailError } = await supabase
-        .from("email_outbox")
-        .select("intake_id, email_type, status")
-        .in("intake_id", approvedIntakeIds)
-        .in("email_type", DELIVERY_EMAIL_TYPES)
-
-      if (deliveryEmailError) {
-        logger.warn("[IntakeOps] Could not inspect delivery email status in direct fallback", {
-          error: deliveryEmailError.message,
-        })
-      }
-
-      for (const email of deliveryEmails || []) {
-        if (!email.intake_id || !email.status) continue
-        const statuses = deliveryEmailStatusesByIntake.get(email.intake_id) || new Set<string>()
-        statuses.add(email.status)
-        deliveryEmailStatusesByIntake.set(email.intake_id, statuses)
-      }
-    }
-
-    // Process and filter stuck intakes
-    const stuckIntakes: StuckIntake[] = []
-
-    for (const intake of data || []) {
-      const patientRaw = intake.patient as unknown
-      const patientData = (Array.isArray(patientRaw) ? patientRaw[0] : patientRaw) as { email: string | null; full_name: string | null } | null
-      const serviceRaw = intake.service as unknown
-      const serviceData = (Array.isArray(serviceRaw) ? serviceRaw[0] : serviceRaw) as { name: string | null; type: string | null } | null
-
-      // Calculate ages
-      const paidAt = intake.paid_at ? new Date(intake.paid_at) : null
-      const reviewedAt = intake.reviewed_at ? new Date(intake.reviewed_at) : null
-      const approvedAt = intake.approved_at ? new Date(intake.approved_at) : null
-
-      const minutesSincePaid = paidAt 
-        ? (now.getTime() - paidAt.getTime()) / (1000 * 60) 
-        : 0
-      const minutesInReview = (reviewedAt || paidAt)
-        ? (now.getTime() - (reviewedAt || paidAt)!.getTime()) / (1000 * 60)
-        : 0
-      const minutesSinceApproved = approvedAt
-        ? (now.getTime() - approvedAt.getTime()) / (1000 * 60)
-        : 0
-      const deliveryEmailStatuses = deliveryEmailStatusesByIntake.get(intake.id) || new Set<string>()
-      const deliveryEmailSent = deliveryEmailStatuses.has("sent") || deliveryEmailStatuses.has("skipped_e2e")
-      const deliveryEmailFailed = deliveryEmailStatuses.has("failed")
-
-      let stuckReason: StuckReason | null = null
-      let stuckAge = 0
-
-      if (intake.status === "paid" && minutesSincePaid > SLA_THRESHOLDS.PAID_TO_REVIEW) {
-        stuckReason = "paid_no_review"
-        stuckAge = minutesSincePaid
-      } else if (
-        (intake.status === "in_review" || intake.status === "pending_info") &&
-        minutesInReview > SLA_THRESHOLDS.REVIEW_TIMEOUT
-      ) {
-        stuckReason = "review_timeout"
-        stuckAge = minutesInReview
-      } else if (
-        intake.status === "approved" &&
-        deliveryEmailFailed &&
-        !deliveryEmailSent
-      ) {
-        stuckReason = "delivery_failed"
-        stuckAge = minutesSinceApproved
-      } else if (
-        intake.status === "approved" &&
-        minutesSinceApproved > SLA_THRESHOLDS.DELIVERY_TIMEOUT &&
-        !deliveryEmailSent
-      ) {
-        stuckReason = "delivery_pending"
-        stuckAge = minutesSinceApproved
-      }
-
-      if (stuckReason) {
-        // Apply reason filter if specified
-        if (filters.reason && stuckReason !== filters.reason) {
-          continue
-        }
-        // Apply service_type filter if specified
-        if (filters.service_type && serviceData?.type !== filters.service_type) {
-          continue
-        }
-
-        stuckIntakes.push({
-          id: intake.id,
-          reference_number: intake.reference_number,
-          status: intake.status,
-          payment_status: intake.payment_status,
-          category: intake.category,
-          subtype: intake.subtype,
-          service_name: serviceData?.name || null,
-          service_type: serviceData?.type || null,
-          is_priority: intake.is_priority,
-          patient_email: patientData?.email || null,
-          patient_name: patientData?.full_name || null,
-          created_at: intake.created_at,
-          paid_at: intake.paid_at,
-          reviewed_at: intake.reviewed_at,
-          approved_at: intake.approved_at,
-          stuck_reason: stuckReason,
-          stuck_age_minutes: Math.round(stuckAge),
-        })
-      }
-    }
-
-    // Sort by age descending
-    stuckIntakes.sort((a, b) => b.stuck_age_minutes - a.stuck_age_minutes)
-
-    // Calculate counts
-    const counts: StuckCounts = {
-      paid_no_review: stuckIntakes.filter(i => i.stuck_reason === "paid_no_review").length,
-      review_timeout: stuckIntakes.filter(i => i.stuck_reason === "review_timeout").length,
-      delivery_pending: stuckIntakes.filter(i => i.stuck_reason === "delivery_pending").length,
-      delivery_failed: stuckIntakes.filter(i => i.stuck_reason === "delivery_failed").length,
-      total: stuckIntakes.length,
-    }
-
-    // Capture Sentry warnings
-    if (options.captureWarnings !== false) {
-      await captureStuckIntakeWarnings(stuckIntakes)
-    }
-
-    return {
-      data: stuckIntakes,
-      counts,
-    }
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error"
-    logger.error("[IntakeOps] Direct query exception", { error: message })
-    return {
-      data: [],
-      counts: { paid_no_review: 0, review_timeout: 0, delivery_pending: 0, delivery_failed: 0, total: 0 },
-      error: message,
+      error: STUCK_INTAKE_UNAVAILABLE_ERROR,
     }
   }
 }
@@ -333,61 +124,88 @@ export async function getStuckIntakesDirect(
 // SENTRY WARNING CAPTURE
 // ============================================================================
 
-// Track which intakes we've already warned about to avoid spam
-const warnedIntakes = new Set<string>()
+const STUCK_WARNING_REMINDER_MS = 60 * 60 * 1000
+
+type WarnedBucketState = {
+  count: number
+  warnedAt: number
+}
+
+// One warning per reason/status/service/subtype bucket. Count changes re-arm
+// immediately; an unchanged backlog gets one hourly reminder. This keeps a
+// 1,001-row incident observable without emitting 1,001 Sentry events.
+const warnedBuckets = new Map<string, WarnedBucketState>()
 
 /**
- * Capture Sentry warnings for stuck intakes.
- * Dedupes by intake_id + reason to avoid spam.
+ * Capture bounded, PHI-free Sentry warnings for stuck-intake buckets.
  */
-async function captureStuckIntakeWarnings(intakes: StuckIntake[]): Promise<void> {
+async function captureStuckIntakeWarnings(
+  intakes: StuckIntake[],
+  fullSnapshot: boolean,
+): Promise<void> {
   // Kill switch
   if (process.env.DISABLE_STUCK_INTAKE_SENTRY === "true") {
     return
   }
 
+  const now = Date.now()
+  const buckets = new Map<string, StuckIntake[]>()
   for (const intake of intakes) {
-    const fingerprint = `${intake.id}:${intake.stuck_reason}`
-    
-    // Skip if we've already warned about this specific stuck state
-    if (warnedIntakes.has(fingerprint)) {
-      continue
+    const bucketKey = [
+      intake.stuck_reason,
+      intake.status,
+      intake.service_type || "unknown",
+      intake.subtype || "unknown",
+    ].join(":")
+    const bucket = buckets.get(bucketKey) ?? []
+    bucket.push(intake)
+    buckets.set(bucketKey, bucket)
+  }
+
+  // A successful read that no longer contains a bucket is its recovery edge.
+  // Forget it immediately so a later backlog with the same aggregate shape is
+  // treated as a new incident instead of being suppressed for the reminder
+  // window. Failed reads never call this function, so unknown state cannot
+  // accidentally clear the dedupe memory.
+  if (fullSnapshot) {
+    for (const warnedBucketKey of warnedBuckets.keys()) {
+      if (!buckets.has(warnedBucketKey)) warnedBuckets.delete(warnedBucketKey)
     }
+  }
 
-    // Mark as warned
-    warnedIntakes.add(fingerprint)
+  for (const [bucketKey, bucket] of buckets) {
+    const prior = warnedBuckets.get(bucketKey)
+    if (
+      prior
+      && prior.count === bucket.length
+      && now - prior.warnedAt < STUCK_WARNING_REMINDER_MS
+    ) continue
 
-    // Capture to Sentry without patient identifiers or contact details.
+    warnedBuckets.set(bucketKey, { count: bucket.length, warnedAt: now })
+    const representative = bucket[0]
+    const maxAgeMinutes = Math.max(...bucket.map((intake) => intake.stuck_age_minutes))
+    const priorityCount = bucket.filter((intake) => intake.is_priority).length
+
+    // Capture one warning for the bucket without patient identifiers or
+    // contact details. Operations remains the row-level action surface.
     Sentry.captureMessage(
-      `Intake stuck: ${intake.stuck_reason}`,
-      buildStuckIntakeWarningPayload(intake),
+      `Intake stuck: ${representative.stuck_reason}`,
+      buildStuckIntakeWarningPayload(representative, {
+        count: bucket.length,
+        maxAgeMinutes,
+        priorityCount,
+      }),
     )
 
-    logger.warn("[IntakeOps] Stuck intake detected", {
-      reason: intake.stuck_reason,
-      ageMinutes: intake.stuck_age_minutes,
-      serviceType: intake.service_type,
-      status: intake.status,
+    logger.warn("[IntakeOps] Stuck-intake bucket detected", {
+      reason: representative.stuck_reason,
+      count: bucket.length,
+      maxAgeMinutes,
+      priorityCount,
+      serviceType: representative.service_type,
+      status: representative.status,
     })
   }
-
-  // Cleanup old fingerprints periodically (keep last 1000)
-  if (warnedIntakes.size > 1000) {
-    const toDelete = Array.from(warnedIntakes).slice(0, 500)
-    toDelete.forEach(fp => warnedIntakes.delete(fp))
-  }
-}
-
-// ============================================================================
-// STATS QUERY
-// ============================================================================
-
-/**
- * Get quick stats for dashboard display.
- */
-export async function getStuckIntakeStats(): Promise<StuckCounts> {
-  const result = await getStuckIntakes()
-  return result.counts
 }
 
 // ============================================================================

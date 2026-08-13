@@ -1,6 +1,6 @@
 import "server-only"
 
-import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
+import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import {
   CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES,
   INTENTIONAL_EMAIL_SUPPRESSION_PREFIX,
@@ -71,8 +71,8 @@ function asError(reason: unknown, fallbackMessage: string): Error {
  * (the logger forwards only error-level calls that carry an Error).
  *
  * Time window: last 24 hours for the failure tables. The stuck-intakes view
- * has its own age semantics (paid_no_review > 2h, review_timeout > 24h, etc.)
- * and is read in full.
+ * owns its age semantics (paid_no_review > 5m, review_timeout > 60m,
+ * delivery_pending > 10m) and is read in full.
  */
 export async function getSystemHealth(): Promise<SystemHealth> {
   const supabase = createServiceRoleClient()
@@ -88,7 +88,7 @@ export async function getSystemHealth(): Promise<SystemHealth> {
     suppressedEmailResult,
   ] = await Promise.allSettled([
     // Stuck intakes via the operational view.
-    filterSeededE2EIntakes(
+    filterReportableIntakes(
       supabase
         .from("v_stuck_intakes")
         .select("id", { count: "exact", head: true }),

@@ -1,6 +1,13 @@
 import type { StuckIntake } from "@/lib/data/types/intake-ops"
 
-export function buildStuckIntakeWarningPayload(intake: StuckIntake) {
+export function buildStuckIntakeWarningPayload(
+  intake: StuckIntake,
+  summary: {
+    count?: number
+    maxAgeMinutes?: number
+    priorityCount?: number
+  } = {},
+) {
   return {
     level: "warning" as const,
     tags: {
@@ -10,8 +17,9 @@ export function buildStuckIntakeWarningPayload(intake: StuckIntake) {
       intake_status: intake.status,
     },
     extra: {
-      stuck_age_minutes: intake.stuck_age_minutes,
-      is_priority: intake.is_priority,
+      stuck_count: summary.count ?? 1,
+      max_stuck_age_minutes: summary.maxAgeMinutes ?? intake.stuck_age_minutes,
+      priority_count: summary.priorityCount ?? (intake.is_priority ? 1 : 0),
     },
     fingerprint: [
       "stuck-intake",
