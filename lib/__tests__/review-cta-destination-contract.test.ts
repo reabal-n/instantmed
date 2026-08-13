@@ -91,6 +91,9 @@ describe("review CTA destination contract", () => {
     expect(reviewNudgeCardSource).toContain('utm_medium: "review_card"')
     expect(reviewNudgeCardSource).toContain('utm_campaign: "review"')
     expect(reviewNudgeCardSource).toContain('className="min-h-11')
+    expect(reviewNudgeCardSource.replace(/\s+/g, " ")).toContain(
+      "Please leave out personal or medical details: reviews are public.",
+    )
   })
 
   it("keeps the reusable email review/referral block deleted", () => {

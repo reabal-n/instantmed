@@ -77,7 +77,9 @@ export function ReviewNudgeCard() {
           <p className="text-sm font-medium">How did we do?</p>
           <p className="text-sm text-muted-foreground">
             A quick review helps other people find us. It takes about a minute,
-            including a short sign-in at the end, and a couple of sentences is plenty.
+            including a short sign-in at the end, and a couple of sentences is
+            plenty. Please leave out personal or medical details: reviews are
+            public.
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
