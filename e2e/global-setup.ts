@@ -11,6 +11,7 @@ import { randomUUID } from "crypto"
 import * as fs from "fs"
 import * as path from "path"
 
+import { warmE2EBrowserBootRoutes } from "./helpers/dev-server-warmup"
 import { loadE2EEnv } from "./load-env"
 
 loadE2EEnv(path.join(__dirname, ".."))
@@ -35,6 +36,9 @@ export default async function globalSetup() {
   console.log("")
 
   try {
+    const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001"
+    await warmE2EBrowserBootRoutes(baseUrl)
+
     // Run the seed script
     execSync("pnpm tsx scripts/e2e/seed.ts", {
       cwd: path.join(__dirname, ".."),
