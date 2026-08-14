@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto"
+
 import { buildStaffEmailHubHref } from "@/lib/dashboard/routes"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { createLogger } from "@/lib/observability/logger"
@@ -54,6 +56,7 @@ export interface CertificateDeliveryEvidence {
   certificateEmailSentAt?: string | null
   certificateEmailFailedAt?: string | null
   certificateEmailFailureReason?: string | null
+  deliveryReconciledAt?: string | null
   resendCount?: number | null
   certificateEmail?: EmailEvidence | null
   receiptEmail?: EmailEvidence | null
@@ -99,6 +102,11 @@ export interface CertificateDeliveryRescueOverview {
 function normalize(value: string | null | undefined): string | null {
   const normalized = value?.trim().toLowerCase()
   return normalized || null
+}
+
+function certificateStorageVersion(storagePath: string | null | undefined): string | null {
+  if (!storagePath) return null
+  return createHash("sha256").update(storagePath).digest("hex").slice(0, 32)
 }
 
 function firstTimestamp(...values: Array<string | null | undefined>): string | null {
@@ -212,12 +220,22 @@ export function selectCertificateDeliverySupportAction(
     }
   }
 
-  if (normalize(evidence.certificateStatus) === "revoked") {
+  const certificateStatus = normalize(evidence.certificateStatus)
+  if (certificateStatus && certificateStatus !== "valid") {
     return {
       action: "escalate",
       label: "Escalate",
-      reason: "The latest certificate record is revoked. Do not resend without clinical review.",
+      reason: `The latest certificate record is ${certificateStatus}. Do not resend or restore it without clinical review.`,
       severity: "critical",
+    }
+  }
+
+  if (evidence.deliveryReconciledAt) {
+    return {
+      action: "none",
+      label: "Do nothing",
+      reason: "Manual delivery was reconciled for this certificate. Resend only if the patient reports non-receipt.",
+      severity: "neutral",
     }
   }
 
@@ -315,6 +333,7 @@ export function buildCertificateDeliveryRescueCase(
     updatedAt: firstTimestamp(
       access.accessedAt,
       certificateEmail.at,
+      evidence.deliveryReconciledAt,
       evidence.documentSentAt,
       evidence.certificateCreatedAt,
     ),
@@ -405,7 +424,7 @@ export async function getCertificateDeliveryRescueCases(
     const [certResult, emailResult] = await Promise.all([
       supabase
         .from("issued_certificates")
-        .select("id, intake_id, status, created_at, email_sent_at, email_failed_at, email_failure_reason, resend_count")
+        .select("id, intake_id, status, storage_path, created_at, email_sent_at, email_failed_at, email_failure_reason, resend_count, delivery_reconciliation:certificate_delivery_reconciliations(certificate_storage_version, recorded_at)")
         .in("intake_id", intakeIds)
         .order("created_at", { ascending: false }),
       supabase
@@ -428,11 +447,16 @@ export async function getCertificateDeliveryRescueCases(
       id: string
       intake_id: string
       status: string | null
+      storage_path: string | null
       created_at: string | null
       email_sent_at: string | null
       email_failed_at: string | null
       email_failure_reason: string | null
       resend_count: number | null
+      delivery_reconciliation:
+        | { certificate_storage_version: string; recorded_at: string | null }
+        | Array<{ certificate_storage_version: string; recorded_at: string | null }>
+        | null
     }>
     const latestCertByIntake = latestBy(certRows, (row) => row.intake_id, (row) => row.created_at)
     const certIds = [...latestCertByIntake.values()].map((row) => row.id)
@@ -482,6 +506,15 @@ export async function getCertificateDeliveryRescueCases(
         const certEmail = certEmailByIntake.get(intake.id)
         const receiptEmail = receiptEmailByIntake.get(intake.id)
         const download = cert?.id ? latestDownloadByCertificate.get(cert.id) : null
+        const currentStorageVersion = certificateStorageVersion(cert?.storage_path)
+        const deliveryReconciliations = Array.isArray(cert?.delivery_reconciliation)
+          ? cert.delivery_reconciliation
+          : cert?.delivery_reconciliation
+            ? [cert.delivery_reconciliation]
+            : []
+        const deliveryReconciliation = deliveryReconciliations.find(
+          (row) => row.certificate_storage_version === currentStorageVersion,
+        )
 
         return buildCertificateDeliveryRescueCase({
           intakeId: intake.id,
@@ -494,6 +527,7 @@ export async function getCertificateDeliveryRescueCases(
           certificateEmailSentAt: cert?.email_sent_at ?? null,
           certificateEmailFailedAt: cert?.email_failed_at ?? null,
           certificateEmailFailureReason: cert?.email_failure_reason ?? null,
+          deliveryReconciledAt: deliveryReconciliation?.recorded_at ?? null,
           resendCount: cert?.resend_count ?? 0,
           certificateEmail: certEmail
             ? {

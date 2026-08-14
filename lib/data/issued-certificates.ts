@@ -1082,7 +1082,7 @@ export async function getPatientUndeliveredCertificates(
   const { data, error } = await supabase
     .from("issued_certificates")
     .select(
-      "intake_id, certificate_ref, certificate_number, certificate_type, email_failed_at, email_retry_count, status",
+      "intake_id, certificate_ref, certificate_number, certificate_type, storage_path, email_failed_at, email_retry_count, status, delivery_reconciliation:certificate_delivery_reconciliations(id, certificate_storage_version)",
     )
     .eq("patient_id", patientId)
     .not("email_failed_at", "is", null)
@@ -1102,13 +1102,33 @@ export async function getPatientUndeliveredCertificates(
     certificate_ref: string | null
     certificate_number: string | null
     certificate_type: string | null
+    storage_path: string
     email_failed_at: string
     email_retry_count: number | null
     status: string | null
+    delivery_reconciliation:
+      | { id: string; certificate_storage_version: string }
+      | Array<{ id: string; certificate_storage_version: string }>
+      | null
   }
 
   return (data as Row[])
-    .filter((row) => row.status !== "revoked" && row.status !== "superseded")
+    .filter(
+      (row) =>
+        row.status !== "revoked" &&
+        row.status !== "superseded" &&
+        !(
+          Array.isArray(row.delivery_reconciliation)
+            ? row.delivery_reconciliation
+            : row.delivery_reconciliation
+              ? [row.delivery_reconciliation]
+              : []
+        ).some(
+          (reconciliation) =>
+            reconciliation.certificate_storage_version ===
+            crypto.createHash("sha256").update(row.storage_path).digest("hex").slice(0, 32),
+        ),
+    )
     .map((row) => ({
       intakeId: row.intake_id,
       certificateRef: row.certificate_ref ?? row.certificate_number ?? null,

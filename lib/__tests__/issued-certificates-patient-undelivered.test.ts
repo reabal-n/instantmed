@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto"
+
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
@@ -16,6 +18,11 @@ type Row = {
   email_failed_at: string
   email_retry_count: number | null
   status: string | null
+  storage_path?: string
+  delivery_reconciliation?:
+    | { id: string; certificate_storage_version: string }
+    | Array<{ id: string; certificate_storage_version: string }>
+    | null
 }
 
 interface QueryResult {
@@ -136,6 +143,59 @@ describe("getPatientUndeliveredCertificates", () => {
     expect(result.map((r) => r.intakeId)).toEqual(["i3"])
   })
 
+  it("filters out a failed provider email after manual delivery is reconciled", async () => {
+    const storagePath = "certificates/current/reconciled.pdf"
+    const storageVersion = createHash("sha256").update(storagePath).digest("hex").slice(0, 32)
+    const rows: Row[] = [
+      {
+        intake_id: "i-reconciled",
+        certificate_ref: "C-RECONCILED",
+        certificate_number: null,
+        certificate_type: "work",
+        email_failed_at: "2026-05-21T01:00:00Z",
+        email_retry_count: 1,
+        status: "valid",
+        storage_path: storagePath,
+        delivery_reconciliation: {
+          id: "reconciliation-1",
+          certificate_storage_version: storageVersion,
+        },
+      },
+      {
+        intake_id: "i-unreconciled",
+        certificate_ref: "C-UNRECONCILED",
+        certificate_number: null,
+        certificate_type: "work",
+        email_failed_at: "2026-05-21T02:00:00Z",
+        email_retry_count: 1,
+        status: "valid",
+        storage_path: "certificates/current/unreconciled.pdf",
+        delivery_reconciliation: null,
+      },
+      {
+        intake_id: "i-corrected",
+        certificate_ref: "C-CORRECTED",
+        certificate_number: null,
+        certificate_type: "work",
+        email_failed_at: "2026-05-21T03:00:00Z",
+        email_retry_count: 1,
+        status: "valid",
+        storage_path: "certificates/corrected/version-two.pdf",
+        delivery_reconciliation: {
+          id: "stale-reconciliation",
+          certificate_storage_version: storageVersion,
+        },
+      },
+    ]
+    const supabase = createSupabaseMock({ data: rows, error: null })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const { getPatientUndeliveredCertificates } = await import("@/lib/data/issued-certificates")
+    const result = await getPatientUndeliveredCertificates("patient-reconciled")
+
+    expect(result.map((row) => row.intakeId)).toEqual(["i-unreconciled", "i-corrected"])
+  })
+
   it("returns [] on Supabase error", async () => {
     const supabase = createSupabaseMock({ data: null, error: { message: "boom" } })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
@@ -154,6 +214,9 @@ describe("getPatientUndeliveredCertificates", () => {
     await getPatientUndeliveredCertificates("patient-xyz")
 
     expect(supabase.from).toHaveBeenCalledWith("issued_certificates")
+    expect(supabase.select).toHaveBeenCalledWith(
+      expect.stringContaining("certificate_delivery_reconciliations"),
+    )
     expect(supabase.eq).toHaveBeenCalledWith("patient_id", "patient-xyz")
     expect(supabase.not).toHaveBeenCalledWith("email_failed_at", "is", null)
     expect(supabase.is).toHaveBeenCalledWith("email_sent_at", null)

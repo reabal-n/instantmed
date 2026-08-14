@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto"
+
 import { describe, expect, it } from "vitest"
 
 import {
@@ -143,6 +145,63 @@ describe("certificate delivery rescue", () => {
     expect(overview.warningCount).toBe(0)
   })
 
+  it("accepts manual reconciliation only for the current certificate storage version", async () => {
+    const currentStoragePath = "certificates/current/version-two.pdf"
+    const currentStorageVersion = createHash("sha256")
+      .update(currentStoragePath)
+      .digest("hex")
+      .slice(0, 32)
+    const buildVersionedStub = (reconciledStorageVersion: string) =>
+      createRescueSupabaseStub({
+        intakes: [
+          {
+            id: baseEvidence.intakeId,
+            reference_number: baseEvidence.referenceNumber,
+            status: "approved",
+            document_sent_at: null,
+            created_at: "2026-06-29T00:00:00Z",
+            updated_at: "2026-06-29T00:06:00Z",
+            approved_at: "2026-06-29T00:01:00Z",
+            completed_at: null,
+          },
+        ],
+        issued_certificates: [
+          {
+            id: "cert-corrected",
+            intake_id: baseEvidence.intakeId,
+            status: "valid",
+            storage_path: currentStoragePath,
+            created_at: "2026-06-29T00:02:00Z",
+            email_sent_at: null,
+            email_failed_at: "2026-06-29T00:03:00Z",
+            email_failure_reason: "provider failure",
+            resend_count: 0,
+            delivery_reconciliation: [
+              {
+                certificate_storage_version: reconciledStorageVersion,
+                recorded_at: "2026-08-14T12:00:00Z",
+              },
+            ],
+          },
+        ],
+        email_outbox: [],
+        certificate_audit_log: [],
+      })
+
+    const staleOverview = await getCertificateDeliveryRescueCases(
+      buildVersionedStub("00000000000000000000000000000000") as never,
+    )
+    expect(staleOverview.cases[0]?.recommendation.action).toBe("resend_secure_link")
+
+    const currentOverview = await getCertificateDeliveryRescueCases(
+      buildVersionedStub(currentStorageVersion) as never,
+    )
+    expect(currentOverview.cases[0]?.recommendation.action).toBe("none")
+    expect(currentOverview.cases[0]?.recommendation.reason).toContain(
+      "Manual delivery was reconciled",
+    )
+  })
+
   it("counts queued certificate email delivery as a watch-only warning", async () => {
     const supabase = createRescueSupabaseStub({
       intakes: [
@@ -245,6 +304,40 @@ describe("certificate delivery rescue", () => {
       label: "Resend secure link",
       severity: "critical",
     })
+  })
+
+  it("does not resend a valid certificate whose legacy manual delivery was reconciled", () => {
+    const recommendation = selectCertificateDeliverySupportAction({
+      ...baseEvidence,
+      certificateId: "cert-reconciled",
+      certificateStatus: "valid",
+      certificateEmailFailedAt: "2026-06-29T00:03:00Z",
+      deliveryReconciledAt: "2026-08-14T12:00:00Z",
+    })
+
+    expect(recommendation).toMatchObject({
+      action: "none",
+      severity: "neutral",
+    })
+    expect(recommendation.reason).toContain("Manual delivery was reconciled")
+  })
+
+  it("escalates a superseded certificate instead of treating an old send as current", () => {
+    const recommendation = selectCertificateDeliverySupportAction({
+      ...baseEvidence,
+      certificateId: "cert-superseded",
+      certificateStatus: "superseded",
+      certificateEmail: {
+        status: "sent",
+        deliveryStatus: "delivered",
+      },
+    })
+
+    expect(recommendation).toMatchObject({
+      action: "escalate",
+      severity: "critical",
+    })
+    expect(recommendation.reason).toContain("superseded")
   })
 
   it("recommends resending the secure link when the certificate exists but no patient certificate email is visible", () => {
