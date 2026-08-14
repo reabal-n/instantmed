@@ -24,7 +24,7 @@ const FUNNEL_BADGES: Record<ReviewRequestFunnelStatus, {
 }> = {
   degraded: { label: "Email funnel unavailable", status: "warning" },
   action_required: { label: "Needs investigation", status: "warning" },
-  no_sends: { label: "No sends", status: "neutral" },
+  no_sends: { label: "No confirmed sends", status: "neutral" },
   baseline: { label: "Measurement baseline", status: "info" },
   live: { label: "Live", status: "success" },
 }
@@ -153,7 +153,7 @@ export function ReviewRequestFunnelCard({
             </dd>
           </div>
           <div className="border-b border-border/60 px-3 py-3 sm:border-b-0">
-            <dt className="text-xs text-muted-foreground">Sent</dt>
+            <dt className="text-xs text-muted-foreground">Confirmed sent</dt>
             <dd className="mt-1">
               <span className="block text-xl font-semibold tabular-nums text-foreground">
                 {displayCount(snapshot.funnel.sent)}
@@ -189,7 +189,7 @@ export function ReviewRequestFunnelCard({
 
         <div className="mt-4">
           <h4 className="text-xs font-semibold text-foreground">
-            Why eligible requests were not sent
+            Eligible request lifecycle
           </h4>
           <dl className="mt-2 grid overflow-hidden rounded-lg border border-border/60 bg-muted/20 sm:grid-cols-2 xl:grid-cols-5">
             <div className="border-b border-border/60 px-3 py-2.5 sm:border-r xl:border-b-0">
@@ -224,7 +224,7 @@ export function ReviewRequestFunnelCard({
             </div>
           </dl>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            {backlogExplanation(snapshot.funnel.actionableBacklog)}. Sent plus these five lifecycle buckets must equal Eligible.
+            {backlogExplanation(snapshot.funnel.actionableBacklog)}. Confirmed sent plus these five lifecycle buckets must equal Eligible.
           </p>
         </div>
 
@@ -238,7 +238,7 @@ export function ReviewRequestFunnelCard({
           </p>
         ) : snapshot.funnel.status === "no_sends" ? (
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-            No review-request emails were sent in this window.
+            No review-request sends could be confirmed in this window.
           </p>
         ) : null}
       </div>
