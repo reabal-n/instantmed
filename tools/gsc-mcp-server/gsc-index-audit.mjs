@@ -16,6 +16,7 @@ const DEFAULT_PRIORITY_INSPECTION_PATHS = [
   "/pricing",
   "/telehealth-australia",
   "/online-doctor-australia",
+  "/weight-loss",
   "/weight-loss-online",
   "/compare/online-medical-certificate-options",
 ]

@@ -137,10 +137,11 @@ function recommendationFor(
   return recommendations.find((recommendation) => recommendation.service === service)
 }
 
-// Most gate tests exercise the underlying economics/tracking rules, which the
-// durable Scripts attribution hold would otherwise mask. The default-holds
-// behaviour has its own describe block below.
+// Most gate tests exercise economics/tracking independently of any future
+// code-owned attribution hold. The hold lifecycle has its own block below.
 const EMPTY_HOLDS: ReadonlySet<Exclude<AdsService, "account">> = new Set()
+const SCRIPTS_HOLD: ReadonlySet<Exclude<AdsService, "account">> =
+  new Set(["scripts"])
 
 function evaluatePolicyWithoutHolds(snap: ReturnType<typeof snapshot>) {
   return evaluateAdsPolicy(snap, { openAttributionHolds: EMPTY_HOLDS })
@@ -394,16 +395,10 @@ describe("Google Ads Agent policy", () => {
 })
 
 describe("Attribution Investigation Holds (code-owned, durable)", () => {
-  it("hold wins over a fully green Scripts scale path", () => {
-    // CONTEXT.md "Attribution Investigation Hold": the 2026-08-05 Scripts
-    // cross-service investigation has a shipped correction but no recorded
-    // resolution, so the code-owned default (OPEN_ATTRIBUTION_HOLDS in
-    // policy.ts) keeps Scripts held. Removing it there is the
-    // reviewed-code-change resolution act — this default-behaviour pin makes
-    // that removal deliberate, never incidental.
-    // Identical snapshot passes SCRIPTS_SCALE_GATES_PASSED without the hold
-    // (pinned above); with the default holds the same day yields INVESTIGATE.
-    const recommendations = evaluateAdsPolicy(snapshot())
+  it("an injected hold wins over a fully green Scripts scale path", () => {
+    const recommendations = evaluateAdsPolicy(snapshot(), {
+      openAttributionHolds: SCRIPTS_HOLD,
+    })
     expect(recommendationFor(recommendations, "scripts")).toEqual({
       kind: "INVESTIGATE",
       proposedMutationFamily: null,
@@ -412,8 +407,10 @@ describe("Attribution Investigation Holds (code-owned, durable)", () => {
     })
   })
 
-  it("hold stays visible even when no campaign maps to the service", () => {
-    const recommendations = evaluateAdsPolicy(snapshot({ rolling30: [] }))
+  it("an injected hold stays visible even when no campaign maps", () => {
+    const recommendations = evaluateAdsPolicy(snapshot({ rolling30: [] }), {
+      openAttributionHolds: SCRIPTS_HOLD,
+    })
     expect(recommendationFor(recommendations, "scripts")).toEqual({
       kind: "INVESTIGATE",
       proposedMutationFamily: null,
@@ -422,11 +419,8 @@ describe("Attribution Investigation Holds (code-owned, durable)", () => {
     })
   })
 
-  it("clearing the hold restores the underlying gate evaluation", () => {
-    // Same snapshot, no hold: the ordinary Scripts gates run (and pass on
-    // this green fixture). The ONLY difference between scale approval and
-    // INVESTIGATE is the hold set — which is exactly the point.
-    const cleared = evaluatePolicyWithoutHolds(snapshot())
+  it("the recorded Scripts resolution restores ordinary gate evaluation", () => {
+    const cleared = evaluateAdsPolicy(snapshot())
     expect(recommendationFor(cleared, "scripts")?.reasonCodes).toEqual([
       "SCRIPTS_SCALE_GATES_PASSED",
     ])

@@ -6,12 +6,15 @@ import {
 } from "@/lib/ads-agent/account-state"
 import {
   containsProhibitedPaidMedicineTerm,
+  POLICY,
+  resolveAdsCampaignService,
 } from "@/lib/ads-agent/policy"
 import {
   resolveSydneyClosedDay,
   resolveSydneyDateWindow,
   type SydneyDateWindow,
 } from "@/lib/ads-agent/time"
+import type { AdsService } from "@/lib/ads-agent/types"
 import { searchGoogleAds } from "@/lib/google-ads/client"
 
 const AUSTRALIA_COUNTRY_CRITERION_ID = "2036"
@@ -144,6 +147,8 @@ interface GoogleAdsDeepAuditSignal {
     | "PAID_MEDICINE_KEYWORD"
     | "PAID_MEDICINE_QUERY"
     | "POOR_RSA_STRENGTH"
+    | "SPECIALTY_PILOT_BIDDING_DRIFT"
+    | "SPECIALTY_PILOT_BUDGET_DRIFT"
     | "SEARCH_BUDGET_HEADROOM"
     | "SEARCH_RANK_HEADROOM"
     | "UNCONVERTED_SEARCH_SPEND"
@@ -960,6 +965,31 @@ function addSignal(
   if (!duplicate) signals.push(signal)
 }
 
+function specialtyCampaignPolicy(service: AdsService): {
+  biddingStrategyType: "MANUAL_CPC"
+  budgetAmountCents: number
+} | null {
+  if (service === "ed") {
+    return {
+      biddingStrategyType: "MANUAL_CPC",
+      budgetAmountCents: POLICY.ed.dailyBudgetCents,
+    }
+  }
+  if (service === "hair_loss") {
+    return {
+      biddingStrategyType: "MANUAL_CPC",
+      budgetAmountCents: POLICY.hairLoss.dailyBudgetCents,
+    }
+  }
+  if (service === "womens_health") {
+    return {
+      biddingStrategyType: "MANUAL_CPC",
+      budgetAmountCents: POLICY.womensHealth.dailyBudgetCents,
+    }
+  }
+  return null
+}
+
 function buildSignals(args: {
   accountState: GoogleAdsAccountState | null
   ads: GoogleAdsDeepAuditAd[]
@@ -1121,6 +1151,38 @@ function buildSignals(args: {
   }
 
   for (const campaign of args.campaigns) {
+    const service = resolveAdsCampaignService({
+      campaignName: campaign.campaignName ?? "",
+    })
+    const pilotPolicy = service ? specialtyCampaignPolicy(service) : null
+    if (
+      campaign.status === "ENABLED"
+      && pilotPolicy
+      && campaign.budgetAmountCents !== pilotPolicy.budgetAmountCents
+    ) {
+      addSignal(signals, {
+        campaignId: campaign.campaignId,
+        code: "SPECIALTY_PILOT_BUDGET_DRIFT",
+        evidence:
+          `Enabled ${service} pilot budget is ${campaign.budgetAmountCents == null ? "unavailable" : `A$${(campaign.budgetAmountCents / 100).toFixed(2)}/day`}; code-owned policy requires A$${(pilotPolicy.budgetAmountCents / 100).toFixed(2)}/day`,
+        level: "action_review",
+        resourceName: campaign.campaignResourceName,
+      })
+    }
+    if (
+      campaign.status === "ENABLED"
+      && pilotPolicy
+      && campaign.biddingStrategyType !== pilotPolicy.biddingStrategyType
+    ) {
+      addSignal(signals, {
+        campaignId: campaign.campaignId,
+        code: "SPECIALTY_PILOT_BIDDING_DRIFT",
+        evidence:
+          `Enabled ${service} pilot uses ${campaign.biddingStrategyType ?? "an unavailable bidding strategy"}; code-owned policy requires ${pilotPolicy.biddingStrategyType}`,
+        level: "action_review",
+        resourceName: campaign.campaignResourceName,
+      })
+    }
     if (
       campaign.status === "ENABLED"
       && (campaign.searchBudgetLostImpressionShare ?? 0) >= 0.2

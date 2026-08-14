@@ -106,7 +106,10 @@ function investigate(
   }
 }
 
-function normalizedCampaignName(campaign: CampaignEconomics): string {
+type CampaignServiceIdentity = Pick<CampaignEconomics, "campaignName">
+  & Partial<Pick<CampaignEconomics, "serviceOrders">>
+
+function normalizedCampaignName(campaign: CampaignServiceIdentity): string {
   return campaign.campaignName
     .normalize("NFKD")
     .replace(/[’']/g, "")
@@ -114,7 +117,7 @@ function normalizedCampaignName(campaign: CampaignEconomics): string {
 }
 
 export function resolveAdsCampaignService(
-  campaign: CampaignEconomics,
+  campaign: CampaignServiceIdentity,
 ): AdsService | null {
   const name = normalizedCampaignName(campaign)
 
@@ -139,7 +142,7 @@ export function resolveAdsCampaignService(
     return "ed"
   }
 
-  const attributedServices = Object.entries(campaign.serviceOrders)
+  const attributedServices = Object.entries(campaign.serviceOrders ?? {})
     .filter(([, orders]) => orders > 0)
     .map(([service]) => service)
     .filter((service): service is AdsService =>
@@ -292,15 +295,16 @@ function evaluateSpecialty(
  * pattern as lib/clinical/auto-approval-governance.ts). Threshold recovery
  * alone never clears it.
  *
- * Open holds:
- * - scripts: cross-service attribution — ED and hair-loss purchases were
- *   surfacing through the $29.95 Scripts lane (docs/plans/
- *   2026-08-05-repeat-rx-dedicated-service-routing.md). The routing
- *   hard-block shipped 2026-08-05/06 as the correction, but no
- *   post-correction 30-day reconciliation has been recorded as a resolution.
+ * Resolved holds:
+ * - scripts (resolved 2026-08-15): ED and hair-loss purchases had surfaced
+ *   through the $29.95 Scripts lane. The dedicated-service hard routing
+ *   shipped 2026-08-05/06. A fresh closed 30-day window ending 2026-08-14
+ *   then showed 70 expected Scripts orders out of 72 recognised orders
+ *   (97.2%), above the >= 90% / >= 10-order clearance gate. The Operator
+ *   recorded the Attribution Investigation Resolution on 2026-08-15.
  */
 const OPEN_ATTRIBUTION_HOLDS: ReadonlySet<Exclude<AdsService, "account">> =
-  new Set(["scripts"])
+  new Set()
 
 interface EvaluateAdsPolicyOptions {
   /** Test seam only — production callers use the code-owned default. */

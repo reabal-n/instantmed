@@ -64,6 +64,8 @@ Review channel/service contribution, refund and chargeback trends, queue/support
 
 An open **Attribution Investigation Hold** blocks scaling for that service even when tracking returns to GREEN. It clears only after the cause is recorded, any required correction is complete, a fresh rolling 30-day reconciliation shows at least 90% expected-service attribution across at least 10 recognised orders, and the Operator records an explicit **Attribution Investigation Resolution**. An unknown cause cannot be cleared. The ordinary seven-consecutive-GREEN-days scaling gate remains separate and still applies afterward.
 
+**Attribution Investigation Resolution — Scripts, 2026-08-15.** Cause: ED and hair-loss requests had bypassed their dedicated pathways through the cheaper repeat-prescription lane. Correction: the dedicated-service hard routing shipped 2026-08-05/06. Fresh closed-window evidence ending 2026-08-14 showed 70 expected Scripts orders out of 72 recognised orders (97.2%), clearing the 90% / 10-order threshold. The Operator resolved the investigation and the code-owned hold was removed. This resolution does not satisfy the separate seven-consecutive-GREEN-days gate and does not authorise a live Ads mutation.
+
 ### Protocol governance and historical auto-issued medical certificates
 
 Raised by the removal of the 24-hour post-approval attestation (#428, 2026-08-04) and the follow-up integrity work (#439/#440). The operator / Medical Director approved the bounded reactivation recorded in `lib/clinical/auto-approval-governance.ts` on 2026-08-12. The active protocol uses pre-issuance routing and does not rely on post-issue batch attestation. Historical retrospective work remains separate.

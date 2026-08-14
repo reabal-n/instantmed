@@ -227,6 +227,10 @@ describe("SEO indexing contracts", () => {
     expect(auditScript).toContain("searchconsole.urlInspection.index.inspect")
     expect(auditScript).toContain("searchconsole.searchanalytics.query")
     expect(auditScript).not.toContain("indexing.urlNotifications.publish")
+    expect(packageJson.scripts?.["seo:submit-indexing"]).toBeUndefined()
+    expect(
+      existsSync(join(root, "tools/gsc-mcp-server/gsc-submit-indexing.mjs")),
+    ).toBe(false)
   })
 
   it("inspects current money pages by default in GSC indexing audits", () => {
@@ -248,6 +252,7 @@ describe("SEO indexing contracts", () => {
       "/pricing",
       "/telehealth-australia",
       "/online-doctor-australia",
+      "/weight-loss",
     ]) {
       expect(auditScript, route).toContain(`"${route}"`)
     }

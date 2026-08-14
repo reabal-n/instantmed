@@ -464,6 +464,50 @@ describe("Google Ads Agent deep audit", () => {
     ).toMatchObject({ level: "investigate" })
   })
 
+  it("flags enabled specialty campaigns that drift from the pilot contract", () => {
+    const inputRows = rows()
+    inputRows.campaignPerformance = [{
+      campaign: {
+        biddingStrategyType: "MAXIMIZE_CONVERSIONS",
+        id: "40",
+        name: "IM | Search | Hair Loss | Pilot",
+        resourceName: "customers/123/campaigns/40",
+        status: "ENABLED",
+      },
+      campaignBudget: { amountMicros: "12000000" },
+      metrics: metric({ costCents: 1500 }),
+    }]
+
+    const report = analyzeGoogleAdsDeepAudit({
+      accountState: state(),
+      accountStateAvailable: true,
+      failedQueries: [],
+      generatedAt: "2026-08-15T00:00:00.000Z",
+      rows: inputRows,
+      successfulQueries: Object.keys(inputRows) as Array<keyof GoogleAdsDeepAuditRows>,
+      window: {
+        days: 30,
+        endDate: "2026-08-14",
+        endUtcExclusive: "2026-08-14T14:00:00.000Z",
+        startDate: "2026-07-16",
+        startUtc: "2026-07-15T14:00:00.000Z",
+      },
+    })
+
+    expect(report.signals).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        campaignId: "40",
+        code: "SPECIALTY_PILOT_BIDDING_DRIFT",
+        level: "action_review",
+      }),
+      expect.objectContaining({
+        campaignId: "40",
+        code: "SPECIALTY_PILOT_BUDGET_DRIFT",
+        level: "action_review",
+      }),
+    ]))
+  })
+
   it("uses the last closed Sydney day and degrades partial query failures", async () => {
     const search = vi.fn(async (query: string) => {
       if (query.includes("FROM keyword_view")) {
