@@ -4,11 +4,17 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { REVENUE_ACTIVE_MILESTONE_CENTS } from "@/lib/business/revenue-milestones"
 import {
+  buildNetRetainedDeductions,
   buildNetRetainedPurchaseValue,
   getRecordedRefundCents,
+  type NetRetainedDisputeRow,
 } from "@/lib/data/net-retained-purchase-value"
 import { getRefundStatsRead } from "@/lib/data/refunds"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
+import {
+  SEEDED_E2E_PATIENT_PROFILE_IDS,
+  shouldIncludeSeededE2EData,
+} from "@/lib/data/seeded-e2e-data"
 import {
   buildNoPurchaseRevenueAlert,
   CHECKOUT_DEMAND_PAYMENT_STATUSES,
@@ -50,9 +56,30 @@ type PaidRevenueRow = {
 }
 
 type RefundRevenueRow = {
+  id: string | null
+  amount_cents: number | null
   refund_amount_cents: number | null
   refund_status: string | null
   refunded_at: string | null
+}
+
+type DisputeRevenueRow = NetRetainedDisputeRow
+
+type LinkedDisputeIntakeRow = {
+  id: string
+  amount_cents: number | null
+  exclude_from_reporting: boolean | null
+  patient_id: string | null
+  refund_amount_cents: number | null
+  refund_status: string | null
+  refunded_at: string | null
+}
+
+type StripeDisputeReadRow = {
+  amount: number | null
+  created_at: string | null
+  intake: LinkedDisputeIntakeRow | LinkedDisputeIntakeRow[] | null
+  intake_id: string | null
 }
 
 type TimedRow = {
@@ -81,6 +108,7 @@ export type RevenueDashboardSourceState = {
 export function resolveRevenueDashboardSourceAvailability(input: {
   paidRowsAvailable: boolean
   refundRowsAvailable: boolean
+  disputeRowsAvailable: boolean
   refundStatsAvailable: boolean
   createdRowsAvailable: boolean
   checkoutRowsAvailable: boolean
@@ -96,7 +124,10 @@ export function resolveRevenueDashboardSourceAvailability(input: {
   const recoverySourceCount = recoverySources.filter(Boolean).length
 
   return {
-    revenue: input.paidRowsAvailable && input.refundRowsAvailable
+    revenue:
+      input.paidRowsAvailable &&
+      input.refundRowsAvailable &&
+      input.disputeRowsAvailable
       ? "available"
       : "unavailable",
     recovery: recoverySourceCount === recoverySources.length
@@ -112,6 +143,7 @@ export type RevenueDashboardWindow = {
   label: string
   grossCents: number
   refundCents: number
+  disputeCents: number
   netCents: number
   orderCount: number
   averageOrderCents: number | null
@@ -123,6 +155,7 @@ export type RevenueDashboardDay = {
   label: string
   grossCents: number
   refundCents: number
+  disputeCents: number
   netCents: number
   orderCount: number
   feeEstimateCents: number
@@ -136,6 +169,7 @@ export type RevenueTrendPeriod = {
   comparisonLabel: string
   grossCents: number
   refundCents: number
+  disputeCents: number
   netCents: number
   orderCount: number
   averageOrderCents: number | null
@@ -225,6 +259,7 @@ export type RevenueDashboardInput = {
   sourceAvailability?: RevenueDashboardSourceState
   paidRows: PaidRevenueRow[]
   refundRows: RefundRevenueRow[]
+  disputeRows?: DisputeRevenueRow[]
   createdRows: TimedRow[]
   checkoutRows: CheckoutDemandRow[]
   partialDraftRows: PartialDraftRow[]
@@ -255,9 +290,15 @@ export async function getRevenueDashboard(
       .order("paid_at", { ascending: false })),
     filterReportableIntakes(supabase
       .from("intakes")
-      .select("refund_amount_cents, refund_status, refunded_at")
+      .select("id, amount_cents, refund_amount_cents, refund_status, refunded_at")
       .not("refunded_at", "is", null)
       .gte("refunded_at", fetchSince)),
+    supabase
+      .from("stripe_disputes")
+      .select("intake_id, amount, created_at, intake:intakes(id, amount_cents, refund_amount_cents, refund_status, refunded_at, exclude_from_reporting, patient_id)")
+      .eq("currency", "aud")
+      .gte("created_at", fetchSince)
+      .lte("created_at", nowIso),
     filterReportableIntakes(supabase
       .from("intakes")
       .select("created_at")
@@ -282,12 +323,14 @@ export async function getRevenueDashboard(
 
   const paidResult = results[0].status === "fulfilled" ? results[0].value : null
   const refundResult = results[1].status === "fulfilled" ? results[1].value : null
-  const createdResult = results[2].status === "fulfilled" ? results[2].value : null
-  const checkoutResult = results[3].status === "fulfilled" ? results[3].value : null
-  const partialDraftResult = results[4].status === "fulfilled" ? results[4].value : null
-  const refundStatsRead = results[5].status === "fulfilled" ? results[5].value : null
+  const disputeResult = results[2].status === "fulfilled" ? results[2].value : null
+  const createdResult = results[3].status === "fulfilled" ? results[3].value : null
+  const checkoutResult = results[4].status === "fulfilled" ? results[4].value : null
+  const partialDraftResult = results[5].status === "fulfilled" ? results[5].value : null
+  const refundStatsRead = results[6].status === "fulfilled" ? results[6].value : null
   const paidRowsAvailable = paidResult !== null && !paidResult.error
   const refundRowsAvailable = refundResult !== null && !refundResult.error
+  const disputeRowsAvailable = disputeResult !== null && !disputeResult.error
   const createdRowsAvailable = createdResult !== null && !createdResult.error
   const checkoutRowsAvailable = checkoutResult !== null && !checkoutResult.error
   const partialDraftRowsAvailable = partialDraftResult !== null && !partialDraftResult.error
@@ -295,9 +338,14 @@ export async function getRevenueDashboard(
   const paidRows = paidRowsAvailable
     ? ((paidResult.data ?? []) as PaidRevenueRow[])
     : []
-  const refundRows = refundRowsAvailable
+  const directRefundRows = refundRowsAvailable
     ? ((refundResult.data ?? []) as RefundRevenueRow[])
     : []
+  const disputeReadRows = disputeRowsAvailable
+    ? ((disputeResult.data ?? []) as StripeDisputeReadRow[])
+    : []
+  const { disputeRows, linkedRefundRows } = normalizeDisputeRows(disputeReadRows)
+  const refundRows = mergeRefundRows(directRefundRows, linkedRefundRows)
   const createdRows = createdRowsAvailable
     ? ((createdResult.data ?? []) as TimedRow[])
     : []
@@ -313,6 +361,7 @@ export async function getRevenueDashboard(
   const sourceAvailability = resolveRevenueDashboardSourceAvailability({
     paidRowsAvailable,
     refundRowsAvailable,
+    disputeRowsAvailable,
     refundStatsAvailable,
     createdRowsAvailable,
     checkoutRowsAvailable,
@@ -324,11 +373,66 @@ export async function getRevenueDashboard(
     sourceAvailability,
     paidRows,
     refundRows,
+    disputeRows,
     createdRows,
     checkoutRows,
     partialDraftRows,
     refundStats,
   })
+}
+
+function normalizeDisputeRows(rows: StripeDisputeReadRow[]): {
+  disputeRows: DisputeRevenueRow[]
+  linkedRefundRows: RefundRevenueRow[]
+} {
+  const includeSeeded = shouldIncludeSeededE2EData()
+  const seededPatientIds = new Set<string>(SEEDED_E2E_PATIENT_PROFILE_IDS)
+  const disputeRows: DisputeRevenueRow[] = []
+  const linkedRefundRows: RefundRevenueRow[] = []
+
+  for (const row of rows) {
+    const intake = Array.isArray(row.intake) ? (row.intake[0] ?? null) : row.intake
+    if (
+      intake?.exclude_from_reporting === true ||
+      (!includeSeeded && intake?.patient_id && seededPatientIds.has(intake.patient_id))
+    ) {
+      continue
+    }
+
+    disputeRows.push({
+      intake_id: row.intake_id,
+      amount_cents: row.amount,
+      order_amount_cents: intake?.amount_cents ?? null,
+      created_at: row.created_at,
+    })
+    if (intake?.refunded_at) {
+      linkedRefundRows.push({
+        id: intake.id,
+        amount_cents: intake.amount_cents,
+        refund_amount_cents: intake.refund_amount_cents,
+        refund_status: intake.refund_status,
+        refunded_at: intake.refunded_at,
+      })
+    }
+  }
+
+  return { disputeRows, linkedRefundRows }
+}
+
+function mergeRefundRows(
+  directRows: RefundRevenueRow[],
+  linkedRows: RefundRevenueRow[],
+): RefundRevenueRow[] {
+  const byIntake = new Map<string, RefundRevenueRow>()
+  const unlinked: RefundRevenueRow[] = []
+  // The direct intake read is authoritative when both reads contain the same
+  // row. Linked snapshots only fill the pre-horizon refund needed to cap a
+  // later dispute without reading the entire historical intake table.
+  for (const row of [...linkedRows, ...directRows]) {
+    if (row.id) byIntake.set(row.id, row)
+    else unlinked.push(row)
+  }
+  return [...byIntake.values(), ...unlinked]
 }
 
 export type RevenueWindowBounds = {
@@ -355,6 +459,7 @@ export function getRevenueWindowBounds(now: Date): RevenueWindowBounds {
 }
 
 export function buildRevenueDashboard(input: RevenueDashboardInput): RevenueDashboard {
+  const disputeRows = input.disputeRows ?? []
   const { todayStart, last7DaysStart, last30DaysStart } = getRevenueWindowBounds(input.now)
   const warningWindow = buildNoPurchaseWindow(input, NO_PURCHASE_WARNING_WINDOW_HOURS)
   const criticalWindow = buildNoPurchaseWindow(input, NO_PURCHASE_CRITICAL_WINDOW_HOURS)
@@ -373,19 +478,43 @@ export function buildRevenueDashboard(input: RevenueDashboardInput): RevenueDash
   const last30RefundRows = input.refundRows.filter((row) => isAtOrAfter(row.refunded_at, last30DaysStart))
 
   const windows: RevenueDashboardWindow[] = [
-    buildRevenueWindow("today", "Today", input.paidRows, input.refundRows, todayStart, input.now, null),
-    buildRevenueWindow("last7Days", "7 days", input.paidRows, input.refundRows, last7DaysStart, input.now, null),
+    buildRevenueWindow(
+      "today",
+      "Today",
+      input.paidRows,
+      input.refundRows,
+      disputeRows,
+      todayStart,
+      input.now,
+      null,
+    ),
+    buildRevenueWindow(
+      "last7Days",
+      "7 days",
+      input.paidRows,
+      input.refundRows,
+      disputeRows,
+      last7DaysStart,
+      input.now,
+      null,
+    ),
     buildRevenueWindow(
       "last30Days",
       "30 days",
       input.paidRows,
       input.refundRows,
+      disputeRows,
       last30DaysStart,
       input.now,
       REVENUE_ACTIVE_MILESTONE_CENTS,
     ),
   ]
-  const daily = buildDailyRevenue(input.paidRows, input.refundRows, todayStart)
+  const daily = buildDailyRevenue(
+    input.paidRows,
+    input.refundRows,
+    disputeRows,
+    todayStart,
+  )
   const status = resolveDashboardStatus(noPurchaseAlert, warningWindow.paidIntakes, hoursSinceLastPayment)
 
   return {
@@ -423,7 +552,7 @@ export function buildRevenueDashboard(input: RevenueDashboardInput): RevenueDash
       totalRefunded30dCents: sumRefunds(last30RefundRows),
     },
     windows,
-    trendPeriods: buildTrendPeriods(input.paidRows, input.refundRows, input.now),
+    trendPeriods: buildTrendPeriods(input.paidRows, input.refundRows, input.now, disputeRows),
     daily,
     maxDailyNetCents: Math.max(0, ...daily.map((day) => Math.max(day.netCents, 0))),
     serviceMix: buildServiceMix(last30PaidRows),
@@ -445,6 +574,7 @@ function buildRevenueWindow(
   label: string,
   paidRows: PaidRevenueRow[],
   refundRows: RefundRevenueRow[],
+  disputeRows: DisputeRevenueRow[],
   since: Date,
   until: Date,
   targetCents: number | null,
@@ -452,6 +582,7 @@ function buildRevenueWindow(
   const value = buildNetRetainedPurchaseValue({
     paidRows,
     refundRows,
+    disputeRows,
     since,
     until,
   })
@@ -467,6 +598,7 @@ function buildRevenueWindow(
 function buildDailyRevenue(
   paidRows: PaidRevenueRow[],
   refundRows: RefundRevenueRow[],
+  disputeRows: DisputeRevenueRow[],
   todayStart: Date,
   days = DAILY_TREND_DAYS,
 ): RevenueDashboardDay[] {
@@ -483,6 +615,7 @@ function buildDailyRevenue(
       }),
       grossCents: 0,
       refundCents: 0,
+      disputeCents: 0,
       netCents: 0,
       orderCount: 0,
       feeEstimateCents: 0,
@@ -499,13 +632,17 @@ function buildDailyRevenue(
     bucket.feeEstimateCents += rowFeeCents(row)
   }
 
-  for (const row of refundRows) {
-    const refundCents = getRecordedRefundCents(row)
-    if (!row.refunded_at || refundCents === 0) continue
-    const bucket = buckets.get(toSydneyDateKey(row.refunded_at))
+  const deductions = buildNetRetainedDeductions({
+    paidRows,
+    refundRows,
+    disputeRows,
+  })
+  for (const row of deductions) {
+    const bucket = buckets.get(toSydneyDateKey(row.occurredAt))
     if (!bucket) continue
-    bucket.refundCents += refundCents
-    bucket.netCents -= refundCents
+    if (row.type === "refund") bucket.refundCents += row.cents
+    else bucket.disputeCents += row.cents
+    bucket.netCents -= row.cents
   }
 
   return [...buckets.values()]
@@ -550,6 +687,7 @@ function buildTrendPeriod(args: {
   comparisonLabel: string
   paidRows: PaidRevenueRow[]
   refundRows: RefundRevenueRow[]
+  disputeRows: DisputeRevenueRow[]
   since: Date
   until: Date
   priorSince: Date
@@ -558,12 +696,14 @@ function buildTrendPeriod(args: {
   const value = buildNetRetainedPurchaseValue({
     paidRows: args.paidRows,
     refundRows: args.refundRows,
+    disputeRows: args.disputeRows,
     since: args.since,
     until: args.until,
   })
   const prior = buildNetRetainedPurchaseValue({
     paidRows: args.paidRows,
     refundRows: args.refundRows,
+    disputeRows: args.disputeRows,
     since: args.priorSince,
     until: args.priorUntil,
   })
@@ -596,6 +736,7 @@ export function buildTrendPeriods(
   paidRows: PaidRevenueRow[],
   refundRows: RefundRevenueRow[],
   now: Date,
+  disputeRows: DisputeRevenueRow[] = [],
 ): RevenueTrendPeriod[] {
   const { todayStart, last7DaysStart, last30DaysStart } = getRevenueWindowBounds(now)
   // Stepping back half a day from a Sydney midnight always lands inside the
@@ -618,6 +759,7 @@ export function buildTrendPeriods(
       comparisonLabel: "vs same time yesterday",
       paidRows,
       refundRows,
+      disputeRows,
       since: todayStart,
       until: now,
       priorSince: yesterdayStart,
@@ -629,6 +771,7 @@ export function buildTrendPeriods(
       comparisonLabel: "vs prior day",
       paidRows,
       refundRows,
+      disputeRows,
       since: yesterdayStart,
       until: justBefore(todayStart),
       priorSince: dayBeforeStart,
@@ -640,6 +783,7 @@ export function buildTrendPeriods(
       comparisonLabel: "vs prior 7 days",
       paidRows,
       refundRows,
+      disputeRows,
       since: last7DaysStart,
       until: now,
       priorSince: prior7DaysStart,
@@ -651,6 +795,7 @@ export function buildTrendPeriods(
       comparisonLabel: "vs prior 30 days",
       paidRows,
       refundRows,
+      disputeRows,
       since: last30DaysStart,
       until: now,
       priorSince: new Date(last30DaysStart.getTime() - 30 * DAY_MS),

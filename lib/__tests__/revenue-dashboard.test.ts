@@ -10,6 +10,7 @@ import {
   resolveRevenueDashboardSourceAvailability,
   REVENUE_ACTIVE_MILESTONE_CENTS,
 } from "@/lib/data/revenue-dashboard"
+import { REVENUE_PURCHASE_PAYMENT_STATUSES } from "@/lib/monitoring/revenue-safety"
 
 const NOW = new Date("2026-06-18T02:00:00.000Z")
 
@@ -30,10 +31,14 @@ function queryResult(result: { data: unknown[] | null; error: { message: string 
 
 function revenueDashboardClient(
   results: Array<{ data: unknown[] | null; error: { message: string } | null }>,
+  tables?: string[],
 ) {
   let index = 0
   return {
-    from: () => queryResult(results[index++] ?? { data: [], error: null }),
+    from: (table: string) => {
+      tables?.push(table)
+      return queryResult(results[index++] ?? { data: [], error: null })
+    },
   } as unknown as SupabaseClient
 }
 
@@ -56,6 +61,8 @@ function paidRow(overrides: Record<string, unknown>) {
 
 function refundRow(overrides: Record<string, unknown>) {
   return {
+    id: "intake-paid",
+    amount_cents: 4995,
     refund_amount_cents: 2495,
     refund_status: "succeeded",
     refunded_at: "2026-06-18T01:30:00.000Z",
@@ -68,6 +75,7 @@ describe("revenue dashboard read model", () => {
     const sourceAvailability = resolveRevenueDashboardSourceAvailability({
       paidRowsAvailable: true,
       refundRowsAvailable: false,
+      disputeRowsAvailable: true,
       refundStatsAvailable: true,
       createdRowsAvailable: true,
       checkoutRowsAvailable: true,
@@ -95,6 +103,7 @@ describe("revenue dashboard read model", () => {
     expect(resolveRevenueDashboardSourceAvailability({
       paidRowsAvailable: true,
       refundRowsAvailable: true,
+      disputeRowsAvailable: true,
       refundStatsAvailable: true,
       createdRowsAvailable: true,
       checkoutRowsAvailable: false,
@@ -119,6 +128,23 @@ describe("revenue dashboard read model", () => {
       revenue: "unavailable",
       recovery: "degraded",
     })
+  })
+
+  it("fails revenue closed when the Stripe dispute ledger cannot be read", async () => {
+    const tables: string[] = []
+    const dashboard = await getRevenueDashboard(revenueDashboardClient([
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: null, error: { message: "dispute ledger unavailable" } },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+    ], tables), NOW)
+
+    expect(tables).toContain("stripe_disputes")
+    expect(dashboard.sourceAvailability.revenue).toBe("unavailable")
+    expect(REVENUE_PURCHASE_PAYMENT_STATUSES).toContain("disputed")
   })
 
   it("summarizes reportable revenue, refunds, service mix, and checkout pressure", () => {
@@ -211,6 +237,8 @@ describe("revenue dashboard read model", () => {
 
   it("preserves a succeeded refund across every dashboard readout after a failed retry", () => {
     const recordedRefundAfterFailedRetry = {
+      id: "partially-refunded-medcert",
+      amount_cents: 4995,
       refund_amount_cents: 995,
       refund_status: "failed",
       refunded_at: "2026-06-18T01:30:00.000Z",
@@ -219,7 +247,6 @@ describe("revenue dashboard read model", () => {
       now: NOW,
       paidRows: [
         paidRow({
-          id: "partially-refunded-medcert",
           payment_status: "partially_refunded",
           ...recordedRefundAfterFailedRetry,
         }),
@@ -245,6 +272,55 @@ describe("revenue dashboard read model", () => {
     expect(dashboard.serviceMix[0]).toMatchObject({
       grossCents: 4995,
       netCents: 4000,
+    })
+  })
+
+  it("timestamps a dispute deduction and caps the combined loss at the order amount", () => {
+    const dashboard = buildRevenueDashboard({
+      now: NOW,
+      paidRows: [
+        paidRow({
+          id: "disputed-medcert",
+          payment_status: "disputed",
+          refund_amount_cents: 995,
+          refund_status: "succeeded",
+          refunded_at: "2026-06-18T01:15:00.000Z",
+        }),
+      ],
+      refundRows: [
+        {
+          id: "disputed-medcert",
+          amount_cents: 4995,
+          refund_amount_cents: 995,
+          refund_status: "succeeded",
+          refunded_at: "2026-06-18T01:15:00.000Z",
+        },
+      ],
+      disputeRows: [
+        {
+          intake_id: "disputed-medcert",
+          amount_cents: 4995,
+          order_amount_cents: 4995,
+          created_at: "2026-06-18T01:30:00.000Z",
+        },
+      ],
+      createdRows: [],
+      checkoutRows: [],
+      partialDraftRows: [],
+      refundStats: { eligible: 0, failed: 0, totalRefunded: 995 },
+    })
+
+    expect(dashboard.windows.find((window) => window.key === "today")).toMatchObject({
+      disputeCents: 4000,
+      grossCents: 4995,
+      netCents: 0,
+      refundCents: 995,
+    })
+    expect(dashboard.daily.at(-1)).toMatchObject({
+      disputeCents: 4000,
+      grossCents: 4995,
+      netCents: 0,
+      refundCents: 995,
     })
   })
 

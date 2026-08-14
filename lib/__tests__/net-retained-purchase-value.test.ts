@@ -38,6 +38,7 @@ describe("Net Retained Purchase Value", () => {
 
     expect(value).toEqual({
       averageOrderCents: 2500,
+      disputeCents: 0,
       grossCents: 4995,
       netCents: 2500,
       orderCount: 1,
@@ -75,6 +76,70 @@ describe("Net Retained Purchase Value", () => {
       grossCents: 4995,
       netCents: 4000,
       refundCents: 995,
+    })
+  })
+
+  it("deducts disputes by their event time without double-counting losses already refunded", () => {
+    const value = buildNetRetainedPurchaseValue({
+      since: new Date("2026-06-01T00:00:00.000Z"),
+      until: new Date("2026-07-01T00:00:00.000Z"),
+      paidRows: [
+        {
+          id: "fully-refunded-before-window",
+          amount_cents: 4995,
+          paid_at: "2026-05-01T00:00:00.000Z",
+        },
+        {
+          id: "partially-refunded-in-window",
+          amount_cents: 4995,
+          paid_at: "2026-06-15T00:00:00.000Z",
+        },
+      ],
+      refundRows: [
+        {
+          id: "fully-refunded-before-window",
+          amount_cents: 4995,
+          refund_amount_cents: 4995,
+          refund_status: "succeeded",
+          refunded_at: "2026-05-20T00:00:00.000Z",
+        },
+        {
+          id: "partially-refunded-in-window",
+          amount_cents: 4995,
+          refund_amount_cents: 1995,
+          refund_status: "succeeded",
+          refunded_at: "2026-06-16T00:00:00.000Z",
+        },
+      ],
+      disputeRows: [
+        {
+          intake_id: "fully-refunded-before-window",
+          amount_cents: 4995,
+          order_amount_cents: 4995,
+          created_at: "2026-06-20T00:00:00.000Z",
+        },
+        {
+          intake_id: "partially-refunded-in-window",
+          amount_cents: 4995,
+          order_amount_cents: 4995,
+          created_at: "2026-06-17T00:00:00.000Z",
+        },
+        {
+          intake_id: "outside-window",
+          amount_cents: 2995,
+          order_amount_cents: 2995,
+          created_at: "2026-07-01T00:00:00.001Z",
+        },
+      ],
+    })
+
+    expect(value).toEqual({
+      averageOrderCents: 0,
+      disputeCents: 3000,
+      grossCents: 4995,
+      netCents: 0,
+      orderCount: 1,
+      refundCents: 1995,
     })
   })
 })

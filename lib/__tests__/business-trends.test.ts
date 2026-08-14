@@ -24,6 +24,7 @@ function revenueDay(key: string, overrides: Partial<RevenueDashboardDay> = {}): 
     label: key.slice(5),
     grossCents: 10_000,
     refundCents: 0,
+    disputeCents: 0,
     netCents: 10_000,
     orderCount: 3,
     feeEstimateCents: 300,

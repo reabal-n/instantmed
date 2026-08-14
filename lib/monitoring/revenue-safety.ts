@@ -7,6 +7,7 @@ export const REVENUE_PURCHASE_PAYMENT_STATUSES = [
   "paid",
   "partially_refunded",
   "refunded",
+  "disputed",
 ] as const
 
 export const CHECKOUT_DEMAND_STATUSES = ["pending_payment", "checkout_failed"] as const
