@@ -23,7 +23,7 @@ The active goal is staged, evidence-backed revenue growth:
 
 **Net-retained revenue** is captured order revenue less refunds and disputes for the same reporting window.
 
-Window membership follows durable cash-event time: purchases enter by `paid_at`, refunds leave by `refunded_at`, and Stripe disputes leave by `stripe_disputes.created_at` even when the original order predates the window. When a refund and dispute refer to the same intake, the combined deduction is capped at that order's captured amount so one payment cannot be removed twice.
+Window membership follows durable cash-event time: purchases enter by `paid_at`, refunds leave by `refunded_at`, Stripe dispute withdrawals leave by `stripe_disputes.funds_withdrawn_at`, and won-dispute funds re-enter by `stripe_disputes.funds_reinstated_at`, even when the original order predates the window. Dispute creation and closure do not move revenue by themselves; withdrawal and reinstatement amounts come from Stripe's matching balance transactions. When a refund and dispute refer to the same intake, the combined outstanding loss is capped at that order's captured amount so one payment cannot be removed twice.
 
 The dashboard measures the rolling 30-day value from payment truth. A milestone counts only when:
 

@@ -79,7 +79,7 @@ describe("Net Retained Purchase Value", () => {
     })
   })
 
-  it("deducts disputes by their event time without double-counting losses already refunded", () => {
+  it("deducts dispute withdrawals by cash-event time without double-counting losses already refunded", () => {
     const value = buildNetRetainedPurchaseValue({
       since: new Date("2026-06-01T00:00:00.000Z"),
       until: new Date("2026-07-01T00:00:00.000Z"),
@@ -114,21 +114,27 @@ describe("Net Retained Purchase Value", () => {
       disputeRows: [
         {
           intake_id: "fully-refunded-before-window",
-          amount_cents: 4995,
+          funds_reinstated_at: null,
+          funds_reinstated_cents: 0,
+          funds_withdrawn_at: "2026-06-20T00:00:00.000Z",
+          funds_withdrawn_cents: 4995,
           order_amount_cents: 4995,
-          created_at: "2026-06-20T00:00:00.000Z",
         },
         {
           intake_id: "partially-refunded-in-window",
-          amount_cents: 4995,
+          funds_reinstated_at: null,
+          funds_reinstated_cents: 0,
+          funds_withdrawn_at: "2026-06-17T00:00:00.000Z",
+          funds_withdrawn_cents: 4995,
           order_amount_cents: 4995,
-          created_at: "2026-06-17T00:00:00.000Z",
         },
         {
           intake_id: "outside-window",
-          amount_cents: 2995,
+          funds_reinstated_at: null,
+          funds_reinstated_cents: 0,
+          funds_withdrawn_at: "2026-07-01T00:00:00.001Z",
+          funds_withdrawn_cents: 2995,
           order_amount_cents: 2995,
-          created_at: "2026-07-01T00:00:00.001Z",
         },
       ],
     })
@@ -140,6 +146,40 @@ describe("Net Retained Purchase Value", () => {
       netCents: 0,
       orderCount: 1,
       refundCents: 1995,
+    })
+  })
+
+  it("reinstates only the dispute loss that previously left retained revenue", () => {
+    const value = buildNetRetainedPurchaseValue({
+      since: new Date("2026-06-01T00:00:00.000Z"),
+      until: new Date("2026-07-01T00:00:00.000Z"),
+      paidRows: [
+        {
+          id: "won-dispute",
+          amount_cents: 4995,
+          paid_at: "2026-05-01T00:00:00.000Z",
+        },
+      ],
+      refundRows: [],
+      disputeRows: [
+        {
+          intake_id: "won-dispute",
+          funds_reinstated_at: "2026-06-20T00:00:00.000Z",
+          funds_reinstated_cents: 4995,
+          funds_withdrawn_at: "2026-05-20T00:00:00.000Z",
+          funds_withdrawn_cents: 4995,
+          order_amount_cents: 4995,
+        },
+      ],
+    })
+
+    expect(value).toEqual({
+      averageOrderCents: null,
+      disputeCents: -4995,
+      grossCents: 0,
+      netCents: 4995,
+      orderCount: 0,
+      refundCents: 0,
     })
   })
 })

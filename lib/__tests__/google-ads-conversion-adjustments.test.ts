@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
+  buildLostDisputeTargetNetValueCents,
   GOOGLE_ADS_ADJUSTMENT_CONVERSION_MATCH_GRACE_HOURS,
   GOOGLE_ADS_CONVERSION_ADJUSTMENT_AUDIT_ACTION,
   runGoogleAdsConversionAdjustment,
@@ -39,6 +40,23 @@ const CONVERSION_NOT_FOUND_ERROR =
 
 const PAST_GRACE_HOURS = GOOGLE_ADS_ADJUSTMENT_CONVERSION_MATCH_GRACE_HOURS + 24
 const WITHIN_GRACE_HOURS = 1
+
+describe("lost-dispute retained conversion value", () => {
+  it("uses only outstanding dispute cash plus durable refunds", () => {
+    expect(buildLostDisputeTargetNetValueCents({
+      amountCents: 4995,
+      fundsReinstatedCents: 1000,
+      fundsWithdrawnCents: 3000,
+      refundAmountCents: 995,
+    })).toBe(2000)
+    expect(buildLostDisputeTargetNetValueCents({
+      amountCents: 4995,
+      fundsReinstatedCents: 3000,
+      fundsWithdrawnCents: 3000,
+      refundAmountCents: 995,
+    })).toBeNull()
+  })
+})
 
 function adjustmentSupabaseMock(existingAudits: AuditRow[] = []) {
   const inserted: Array<{ table: string; payload: unknown }> = []
@@ -177,13 +195,36 @@ describe("Google Ads conversion adjustments", () => {
       intakeId: "intake_123",
       paymentStatus: "disputed",
       refundAmountCents: 0,
-      source: "stripe_charge_dispute_created",
+      source: "stripe_charge_dispute_lost",
       supabase: supabase as never,
     })
 
     expect(mocks.fireGoogleAdsConversionAdjustment).toHaveBeenCalledWith(
       expect.objectContaining({
         adjustmentType: "RETRACTION",
+        orderId: "intake_123",
+      }),
+    )
+  })
+
+  it("restates a terminal partial dispute to its exact retained value", async () => {
+    mocks.fireGoogleAdsConversionAdjustment.mockResolvedValue({ attempted: true, ok: true })
+    const { supabase } = adjustmentSupabaseMock([successfulPurchaseUpload()])
+
+    await runGoogleAdsConversionAdjustment({
+      amountCents: 4995,
+      intakeId: "intake_123",
+      paymentStatus: "disputed",
+      refundAmountCents: 995,
+      source: "stripe_charge_dispute_lost",
+      supabase: supabase as never,
+      targetNetValueCents: 2000,
+    })
+
+    expect(mocks.fireGoogleAdsConversionAdjustment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        adjustedValue: 20,
+        adjustmentType: "RESTATEMENT",
         orderId: "intake_123",
       }),
     )

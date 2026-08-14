@@ -1,4 +1,5 @@
 import { handleChargeDisputeCreated } from "./charge-dispute-created"
+import { handleChargeDisputeLifecycle } from "./charge-dispute-lifecycle"
 import { handleChargeRefunded } from "./charge-refunded"
 import { handleAsyncPaymentFailed } from "./checkout-session-async-payment-failed"
 import { handleAsyncPaymentSucceeded } from "./checkout-session-async-payment-succeeded"
@@ -23,4 +24,8 @@ export const handlers: ReadonlyMap<string, WebhookHandler> = new Map([
   ["charge.refunded", handleChargeRefunded],
   ["payment_intent.payment_failed", handlePaymentIntentFailed],
   ["charge.dispute.created", handleChargeDisputeCreated],
+  ["charge.dispute.updated", handleChargeDisputeLifecycle],
+  ["charge.dispute.closed", handleChargeDisputeLifecycle],
+  ["charge.dispute.funds_withdrawn", handleChargeDisputeLifecycle],
+  ["charge.dispute.funds_reinstated", handleChargeDisputeLifecycle],
 ])

@@ -36,7 +36,7 @@ const DM_REQUEST_PROCESSING_ERROR = "dm_request_processing"
 
 type GoogleAdsConversionAdjustmentSource =
   | "cron_backfill"
-  | "stripe_charge_dispute_created"
+  | "stripe_charge_dispute_lost"
   | "stripe_charge_refunded"
 
 type GoogleAdsConversionAdjustmentStatus =
@@ -106,14 +106,71 @@ function centsToAud(cents: number): number {
   return Math.round(cents) / 100
 }
 
+/**
+ * Exact retained conversion value after a terminal lost dispute. Pending or
+ * fully reinstated disputes return null because they require no irreversible
+ * Google Ads adjustment.
+ */
+export function buildLostDisputeTargetNetValueCents(input: {
+  amountCents: number | null
+  fundsReinstatedCents: number | null
+  fundsWithdrawnCents: number | null
+  refundAmountCents: number | null
+}): number | null {
+  if (!Number.isInteger(input.amountCents) || (input.amountCents ?? 0) <= 0) return null
+  if (!Number.isInteger(input.fundsWithdrawnCents) || (input.fundsWithdrawnCents ?? 0) <= 0) {
+    return null
+  }
+
+  const amountCents = input.amountCents as number
+  const fundsWithdrawnCents = input.fundsWithdrawnCents as number
+  const fundsReinstatedCents = Number.isInteger(input.fundsReinstatedCents) &&
+    (input.fundsReinstatedCents ?? 0) > 0
+    ? input.fundsReinstatedCents as number
+    : 0
+  const refundAmountCents = Number.isInteger(input.refundAmountCents) &&
+    (input.refundAmountCents ?? 0) > 0
+    ? input.refundAmountCents as number
+    : 0
+  const outstandingDisputeCents = Math.max(
+    fundsWithdrawnCents - fundsReinstatedCents,
+    0,
+  )
+  if (outstandingDisputeCents === 0) return null
+
+  return Math.max(
+    amountCents - Math.min(amountCents, refundAmountCents + outstandingDisputeCents),
+    0,
+  )
+}
+
 function getGoogleAdsConversionAdjustmentIntent(input: {
   amountCents: number | null
   paymentStatus: string
   refundAmountCents: number | null
+  targetNetValueCents?: number | null
 }): GoogleAdsConversionAdjustmentIntent | null {
   const amountCents = input.amountCents
   const refundAmountCents = input.refundAmountCents ?? 0
   if (typeof amountCents !== "number" || !Number.isFinite(amountCents) || amountCents <= 0) return null
+
+  if (input.targetNetValueCents !== undefined && input.targetNetValueCents !== null) {
+    const targetNetValueCents = input.targetNetValueCents
+    if (
+      !Number.isInteger(targetNetValueCents) ||
+      targetNetValueCents < 0 ||
+      targetNetValueCents > amountCents
+    ) {
+      return null
+    }
+    return targetNetValueCents === 0
+      ? { adjustmentType: "RETRACTION", targetNetValueCents }
+      : {
+          adjustedValue: centsToAud(targetNetValueCents),
+          adjustmentType: "RESTATEMENT",
+          targetNetValueCents,
+        }
+  }
 
   if (input.paymentStatus === "refunded" || input.paymentStatus === "disputed") {
     return {
@@ -382,6 +439,7 @@ export async function runGoogleAdsConversionAdjustment({
   requestPath,
   source,
   supabase,
+  targetNetValueCents,
 }: {
   adjustmentDateTime?: Date
   amountCents: number | null
@@ -391,6 +449,7 @@ export async function runGoogleAdsConversionAdjustment({
   requestPath?: string | null
   source: GoogleAdsConversionAdjustmentSource
   supabase: SupabaseClient
+  targetNetValueCents?: number | null
 }): Promise<{
   attempted: boolean
   error?: string
@@ -401,6 +460,7 @@ export async function runGoogleAdsConversionAdjustment({
     amountCents,
     paymentStatus,
     refundAmountCents,
+    targetNetValueCents,
   })
 
   if (!intent) {

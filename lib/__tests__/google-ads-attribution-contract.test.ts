@@ -70,15 +70,22 @@ describe("Google Ads attribution contract", () => {
 
   it("keeps refund and dispute adjustments wired to Stripe truth", () => {
     const refunded = read("app/api/stripe/webhook/handlers/charge-refunded.ts")
-    const disputed = read("app/api/stripe/webhook/handlers/charge-dispute-created.ts")
+    const disputed = read("app/api/stripe/webhook/handlers/charge-dispute-lifecycle.ts")
+    const cron = read("app/api/cron/google-ads-conversions/route.ts")
 
     expect(refunded).toContain("runGoogleAdsConversionAdjustment")
     expect(refunded).toContain('source: "stripe_charge_refunded"')
     expect(refunded).toContain('requestPath: "/api/stripe/webhook"')
 
     expect(disputed).toContain("runGoogleAdsConversionAdjustment")
-    expect(disputed).toContain('source: "stripe_charge_dispute_created"')
-    expect(disputed).toContain('requestPath: "/api/stripe/webhook"')
+    expect(disputed).toContain('source: "stripe_charge_dispute_lost"')
+    expect(disputed).toContain('ctx.requestPath || "/api/stripe/webhook"')
+
+    expect(cron).toContain('.from("stripe_disputes")')
+    expect(cron).toContain('.eq("status", "lost")')
+    expect(cron).toContain("funds_withdrawn_cents")
+    expect(cron).toContain("funds_reinstated_cents")
+    expect(cron).toContain("targetNetValueCents")
   })
 
   it("documents net retained purchase value as the Google Ads bidding truth", () => {

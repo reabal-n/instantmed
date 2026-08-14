@@ -14,7 +14,17 @@ import { REVENUE_PURCHASE_PAYMENT_STATUSES } from "@/lib/monitoring/revenue-safe
 
 const NOW = new Date("2026-06-18T02:00:00.000Z")
 
-function queryResult(result: { data: unknown[] | null; error: { message: string } | null }) {
+type QueryCall = {
+  args: unknown[]
+  method: string
+  table: string
+}
+
+function queryResult(
+  result: { data: unknown[] | null; error: { message: string } | null },
+  table: string,
+  calls?: QueryCall[],
+) {
   const query = new Proxy({}, {
     get: (_target, property) => {
       if (property === "then") {
@@ -23,7 +33,10 @@ function queryResult(result: { data: unknown[] | null; error: { message: string 
           reject: (reason: unknown) => unknown,
         ) => Promise.resolve(result).then(resolve, reject)
       }
-      return () => query
+      return (...args: unknown[]) => {
+        calls?.push({ args, method: String(property), table })
+        return query
+      }
     },
   })
   return query
@@ -32,12 +45,13 @@ function queryResult(result: { data: unknown[] | null; error: { message: string 
 function revenueDashboardClient(
   results: Array<{ data: unknown[] | null; error: { message: string } | null }>,
   tables?: string[],
+  calls?: QueryCall[],
 ) {
   let index = 0
   return {
     from: (table: string) => {
       tables?.push(table)
-      return queryResult(results[index++] ?? { data: [], error: null })
+      return queryResult(results[index++] ?? { data: [], error: null }, table, calls)
     },
   } as unknown as SupabaseClient
 }
@@ -147,6 +161,49 @@ describe("revenue dashboard read model", () => {
     expect(REVENUE_PURCHASE_PAYMENT_STATUSES).toContain("disputed")
   })
 
+  it("loads a reinstatement for an older dispute by either durable cash timestamp", async () => {
+    const calls: QueryCall[] = []
+    const dashboard = await getRevenueDashboard(revenueDashboardClient([
+      { data: [], error: null },
+      { data: [], error: null },
+      {
+        data: [{
+          amount: 4995,
+          created_at: "2026-05-01T01:00:00.000Z",
+          funds_reinstated_at: "2026-06-18T01:30:00.000Z",
+          funds_reinstated_cents: 4995,
+          funds_withdrawn_at: "2026-05-02T01:30:00.000Z",
+          funds_withdrawn_cents: 4995,
+          intake_id: "won-dispute",
+          intake: {
+            id: "won-dispute",
+            amount_cents: 4995,
+            exclude_from_reporting: false,
+            patient_id: "patient-1",
+            refund_amount_cents: 0,
+            refund_status: null,
+            refunded_at: null,
+          },
+        }],
+        error: null,
+      },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+    ], undefined, calls), NOW)
+
+    expect(dashboard.windows.find((window) => window.key === "today")).toMatchObject({
+      disputeCents: -4995,
+      netCents: 4995,
+    })
+    expect(calls).toContainEqual(expect.objectContaining({
+      args: [expect.stringContaining("funds_withdrawn_at.gte.")],
+      method: "or",
+      table: "stripe_disputes",
+    }))
+  })
+
   it("summarizes reportable revenue, refunds, service mix, and checkout pressure", () => {
     const dashboard = buildRevenueDashboard({
       now: NOW,
@@ -167,7 +224,7 @@ describe("revenue dashboard read model", () => {
         }),
       ],
       refundRows: [
-        refundRow({}),
+        refundRow({ id: "today-medcert" }),
         refundRow({
           refund_amount_cents: 0,
           refund_status: "failed",
@@ -275,7 +332,7 @@ describe("revenue dashboard read model", () => {
     })
   })
 
-  it("timestamps a dispute deduction and caps the combined loss at the order amount", () => {
+  it("timestamps a dispute cash withdrawal and caps the combined loss at the order amount", () => {
     const dashboard = buildRevenueDashboard({
       now: NOW,
       paidRows: [
@@ -299,9 +356,11 @@ describe("revenue dashboard read model", () => {
       disputeRows: [
         {
           intake_id: "disputed-medcert",
-          amount_cents: 4995,
+          funds_reinstated_at: null,
+          funds_reinstated_cents: 0,
+          funds_withdrawn_at: "2026-06-18T01:30:00.000Z",
+          funds_withdrawn_cents: 4995,
           order_amount_cents: 4995,
-          created_at: "2026-06-18T01:30:00.000Z",
         },
       ],
       createdRows: [],
@@ -322,6 +381,59 @@ describe("revenue dashboard read model", () => {
       netCents: 0,
       refundCents: 995,
     })
+    expect(dashboard.serviceMix[0]).toMatchObject({
+      grossCents: 4995,
+      netCents: 0,
+    })
+  })
+
+  it("timestamps won-dispute funds when Stripe reinstates them", () => {
+    const dashboard = buildRevenueDashboard({
+      now: NOW,
+      paidRows: [
+        paidRow({
+          id: "won-dispute",
+          paid_at: "2026-05-01T01:00:00.000Z",
+        }),
+      ],
+      refundRows: [],
+      disputeRows: [
+        {
+          category: "consult",
+          intake_id: "won-dispute",
+          funds_reinstated_at: "2026-06-18T01:30:00.000Z",
+          funds_reinstated_cents: 4995,
+          funds_withdrawn_at: "2026-05-18T01:30:00.000Z",
+          funds_withdrawn_cents: 4995,
+          order_amount_cents: 4995,
+          subtype: "ed",
+        },
+      ],
+      createdRows: [],
+      checkoutRows: [],
+      partialDraftRows: [],
+      refundStats: { eligible: 0, failed: 0, totalRefunded: 0 },
+    })
+
+    expect(dashboard.windows.find((window) => window.key === "today")).toMatchObject({
+      disputeCents: -4995,
+      grossCents: 0,
+      netCents: 4995,
+      refundCents: 0,
+    })
+    expect(dashboard.daily.at(-1)).toMatchObject({
+      disputeCents: -4995,
+      grossCents: 0,
+      netCents: 4995,
+      refundCents: 0,
+    })
+    expect(dashboard.serviceMix).toEqual([
+      expect.objectContaining({
+        grossCents: 0,
+        label: "ED consults",
+        netCents: 4995,
+      }),
+    ])
   })
 
   it("keeps future payment and refund events out of revenue windows", () => {

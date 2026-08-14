@@ -1,8 +1,7 @@
 import * as Sentry from "@sentry/nextjs"
-import { after, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import type Stripe from "stripe"
 
-import { runGoogleAdsConversionAdjustment } from "@/lib/analytics/google-ads-conversion-adjustments"
 import { sendDisputeAlertEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import { stripe } from "@/lib/stripe/client"
@@ -26,41 +25,34 @@ export async function handleChargeDisputeCreated(ctx: WebhookContext): Promise<H
     status: dispute.status,
   })
 
-  const shouldProcess = ctx.adminReplay || await tryClaimEvent(supabase, event.id, event.type, undefined, chargeId)
-  if (!shouldProcess) {
-    return NextResponse.json({ received: true, skipped: true })
-  }
-
   // Find the intake associated with this charge
-  let adjustmentAmountCents: number | null = null
-  let adjustmentRefundAmountCents: number | null = null
   let intakeId: string | undefined
   try {
-    if (chargeId) {
+    let paymentIntentId = typeof dispute.payment_intent === "string"
+      ? dispute.payment_intent
+      : dispute.payment_intent?.id
+    if (!paymentIntentId && chargeId) {
       const charge = await stripe.charges.retrieve(chargeId)
-      const paymentIntentId = typeof charge.payment_intent === "string"
+      paymentIntentId = typeof charge.payment_intent === "string"
         ? charge.payment_intent
         : charge.payment_intent?.id
+    }
 
-      if (paymentIntentId) {
-        const { data: intake } = await supabase
-          .from("intakes")
-          .select("id, amount_cents, refund_amount_cents")
-          .eq("stripe_payment_intent_id", paymentIntentId)
-          .single()
+    if (paymentIntentId) {
+      const { data: intake } = await supabase
+        .from("intakes")
+        .select("id")
+        .eq("stripe_payment_intent_id", paymentIntentId)
+        .maybeSingle()
 
-        intakeId = intake?.id
-        adjustmentAmountCents = (intake as { amount_cents?: number | null } | null)?.amount_cents ?? dispute.amount
-        adjustmentRefundAmountCents =
-          (intake as { refund_amount_cents?: number | null } | null)?.refund_amount_cents ?? 0
-      }
+      intakeId = intake?.id
     }
   } catch {
     // Intake lookup failed - continue with alerting
   }
 
   // Record dispute in database (upsert to handle duplicates)
-  await supabase.from("stripe_disputes").upsert({
+  const { error: snapshotError } = await supabase.from("stripe_disputes").upsert({
     dispute_id: dispute.id,
     charge_id: chargeId,
     intake_id: intakeId || null,
@@ -70,31 +62,45 @@ export async function handleChargeDisputeCreated(ctx: WebhookContext): Promise<H
     status: dispute.status,
     created_at: new Date(dispute.created * 1000).toISOString(),
   }, { onConflict: "dispute_id", ignoreDuplicates: true })
-
-  // Update intake if found
-  if (intakeId) {
-    await supabase
-      .from("intakes")
-      .update({
-        payment_status: "disputed",
-        dispute_id: dispute.id,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", intakeId)
-
-    const disputedIntakeId = intakeId
-    after(async () => {
-      await runGoogleAdsConversionAdjustment({
-        adjustmentDateTime: new Date(dispute.created * 1000),
-        amountCents: adjustmentAmountCents ?? dispute.amount,
-        intakeId: disputedIntakeId,
-        paymentStatus: "disputed",
-        refundAmountCents: adjustmentRefundAmountCents,
-        requestPath: "/api/stripe/webhook",
-        source: "stripe_charge_dispute_created",
-        supabase,
-      })
+  if (snapshotError) {
+    log.error("Failed to persist dispute snapshot", {
+      disputeId: dispute.id,
+      eventId: event.id,
+    }, snapshotError)
+    Sentry.captureMessage("Stripe dispute snapshot write failed", {
+      level: "error",
+      extra: { disputeId: dispute.id, eventId: event.id },
     })
+    return NextResponse.json({ error: "Dispute snapshot unavailable" }, { status: 500 })
+  }
+
+  if (intakeId) {
+    const { error: linkError } = await supabase
+      .from("stripe_disputes")
+      .update({ intake_id: intakeId })
+      .eq("dispute_id", dispute.id)
+      .is("intake_id", null)
+    if (linkError) {
+      log.error("Failed to link dispute snapshot to intake", {
+        disputeId: dispute.id,
+        eventId: event.id,
+        intakeId,
+      }, linkError)
+      return NextResponse.json({ error: "Dispute snapshot unavailable" }, { status: 500 })
+    }
+  }
+
+  // Claim only after the durable snapshot. A transient ledger failure must stay
+  // retryable instead of permanently skipping the Stripe event on redelivery.
+  const shouldProcess = ctx.adminReplay || await tryClaimEvent(
+    supabase,
+    event.id,
+    event.type,
+    intakeId,
+    chargeId,
+  )
+  if (!shouldProcess) {
+    return NextResponse.json({ received: true, skipped: true })
   }
 
   // Alert admin team via Sentry and email

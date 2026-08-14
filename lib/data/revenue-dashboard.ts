@@ -56,16 +56,22 @@ type PaidRevenueRow = {
 }
 
 type RefundRevenueRow = {
+  category?: string | null
   id: string | null
   amount_cents: number | null
   refund_amount_cents: number | null
   refund_status: string | null
   refunded_at: string | null
+  subtype?: string | null
 }
 
-type DisputeRevenueRow = NetRetainedDisputeRow
+type DisputeRevenueRow = NetRetainedDisputeRow & {
+  category?: string | null
+  subtype?: string | null
+}
 
 type LinkedDisputeIntakeRow = {
+  category: string | null
   id: string
   amount_cents: number | null
   exclude_from_reporting: boolean | null
@@ -73,11 +79,14 @@ type LinkedDisputeIntakeRow = {
   refund_amount_cents: number | null
   refund_status: string | null
   refunded_at: string | null
+  subtype: string | null
 }
 
 type StripeDisputeReadRow = {
-  amount: number | null
-  created_at: string | null
+  funds_reinstated_at: string | null
+  funds_reinstated_cents: number | null
+  funds_withdrawn_at: string | null
+  funds_withdrawn_cents: number | null
   intake: LinkedDisputeIntakeRow | LinkedDisputeIntakeRow[] | null
   intake_id: string | null
 }
@@ -290,15 +299,17 @@ export async function getRevenueDashboard(
       .order("paid_at", { ascending: false })),
     filterReportableIntakes(supabase
       .from("intakes")
-      .select("id, amount_cents, refund_amount_cents, refund_status, refunded_at")
+      .select("id, amount_cents, category, subtype, refund_amount_cents, refund_status, refunded_at")
       .not("refunded_at", "is", null)
       .gte("refunded_at", fetchSince)),
     supabase
       .from("stripe_disputes")
-      .select("intake_id, amount, created_at, intake:intakes(id, amount_cents, refund_amount_cents, refund_status, refunded_at, exclude_from_reporting, patient_id)")
+      .select("intake_id, funds_withdrawn_at, funds_withdrawn_cents, funds_reinstated_at, funds_reinstated_cents, intake:intakes(id, amount_cents, category, subtype, refund_amount_cents, refund_status, refunded_at, exclude_from_reporting, patient_id)")
       .eq("currency", "aud")
-      .gte("created_at", fetchSince)
-      .lte("created_at", nowIso),
+      .or(
+        `and(funds_withdrawn_at.gte.${fetchSince},funds_withdrawn_at.lte.${nowIso}),` +
+        `and(funds_reinstated_at.gte.${fetchSince},funds_reinstated_at.lte.${nowIso})`,
+      ),
     filterReportableIntakes(supabase
       .from("intakes")
       .select("created_at")
@@ -401,17 +412,23 @@ function normalizeDisputeRows(rows: StripeDisputeReadRow[]): {
 
     disputeRows.push({
       intake_id: row.intake_id,
-      amount_cents: row.amount,
+      category: intake?.category ?? null,
+      funds_reinstated_at: row.funds_reinstated_at,
+      funds_reinstated_cents: row.funds_reinstated_cents,
+      funds_withdrawn_at: row.funds_withdrawn_at,
+      funds_withdrawn_cents: row.funds_withdrawn_cents,
       order_amount_cents: intake?.amount_cents ?? null,
-      created_at: row.created_at,
+      subtype: intake?.subtype ?? null,
     })
     if (intake?.refunded_at) {
       linkedRefundRows.push({
         id: intake.id,
         amount_cents: intake.amount_cents,
+        category: intake.category,
         refund_amount_cents: intake.refund_amount_cents,
         refund_status: intake.refund_status,
         refunded_at: intake.refunded_at,
+        subtype: intake.subtype,
       })
     }
   }
@@ -555,7 +572,13 @@ export function buildRevenueDashboard(input: RevenueDashboardInput): RevenueDash
     trendPeriods: buildTrendPeriods(input.paidRows, input.refundRows, input.now, disputeRows),
     daily,
     maxDailyNetCents: Math.max(0, ...daily.map((day) => Math.max(day.netCents, 0))),
-    serviceMix: buildServiceMix(last30PaidRows),
+    serviceMix: buildServiceMix(
+      input.paidRows,
+      input.refundRows,
+      disputeRows,
+      last30DaysStart,
+      input.now,
+    ),
     monetisation: buildMonetisationReadouts(last30PaidRows),
     recentPayments: last30PaidRows.slice(0, 5).flatMap((row) => {
       if (!row.id || !row.paid_at) return []
@@ -640,9 +663,16 @@ function buildDailyRevenue(
   for (const row of deductions) {
     const bucket = buckets.get(toSydneyDateKey(row.occurredAt))
     if (!bucket) continue
-    if (row.type === "refund") bucket.refundCents += row.cents
-    else bucket.disputeCents += row.cents
-    bucket.netCents -= row.cents
+    if (row.type === "refund") {
+      bucket.refundCents += row.cents
+      bucket.netCents -= row.cents
+    } else if (row.type === "dispute") {
+      bucket.disputeCents += row.cents
+      bucket.netCents -= row.cents
+    } else {
+      bucket.disputeCents -= row.cents
+      bucket.netCents += row.cents
+    }
   }
 
   return [...buckets.values()]
@@ -855,11 +885,36 @@ export function buildMonetisationReadouts(paidRows: PaidRevenueRow[]): RevenueMo
   }
 }
 
-function buildServiceMix(paidRows: PaidRevenueRow[]): RevenueDashboardService[] {
-  const grossTotal = sumAmounts(paidRows)
+function buildServiceMix(
+  paidRows: PaidRevenueRow[],
+  refundRows: RefundRevenueRow[],
+  disputeRows: DisputeRevenueRow[],
+  since: Date,
+  until: Date,
+): RevenueDashboardService[] {
+  const windowPaidRows = paidRows.filter((row) => isWithinRange(row.paid_at, since, until))
+  const grossTotal = sumAmounts(windowPaidRows)
   const grouped = new Map<string, RevenueDashboardService>()
+  const labelByIntake = new Map<string, string>()
 
   for (const row of paidRows) {
+    if (row.id) labelByIntake.set(row.id, serviceLabel(row.category, row.subtype))
+  }
+  for (const row of refundRows) {
+    if (row.id && (row.category || row.subtype)) {
+      labelByIntake.set(row.id, serviceLabel(row.category ?? null, row.subtype ?? null))
+    }
+  }
+  for (const row of disputeRows) {
+    if (row.intake_id && (row.category || row.subtype)) {
+      labelByIntake.set(
+        row.intake_id,
+        serviceLabel(row.category ?? null, row.subtype ?? null),
+      )
+    }
+  }
+
+  for (const row of windowPaidRows) {
     // Group by the display label, not category:subtype. Distinct subtypes that
     // render the SAME label (e.g. medical_certificate work/study/carer all show
     // "Medical certificates") were producing duplicate rows in the service mix.
@@ -873,10 +928,30 @@ function buildServiceMix(paidRows: PaidRevenueRow[]): RevenueDashboardService[] 
       shareOfGross: 0,
     }
     const amountCents = Number(row.amount_cents ?? 0)
-    const refundCents = getRecordedRefundCents(row)
     current.grossCents += amountCents
-    current.netCents += amountCents - refundCents
+    current.netCents += amountCents
     current.orderCount += 1
+    grouped.set(label, current)
+  }
+
+  const deductions = buildNetRetainedDeductions({ paidRows, refundRows, disputeRows })
+    .filter((row) => isWithinRange(row.occurredAt, since, until))
+  for (const deduction of deductions) {
+    const label = deduction.intakeId
+      ? labelByIntake.get(deduction.intakeId) ?? "Unattributed adjustments"
+      : "Unattributed adjustments"
+    const current = grouped.get(label) ?? {
+      key: label,
+      label,
+      grossCents: 0,
+      netCents: 0,
+      orderCount: 0,
+      shareOfGross: 0,
+    }
+    const signedCents = deduction.type === "dispute_reinstatement"
+      ? deduction.cents
+      : -deduction.cents
+    current.netCents += signedCents
     grouped.set(label, current)
   }
 
@@ -963,6 +1038,16 @@ function toSydneyDateKey(value: string | Date): string {
 function isAtOrAfter(value: string | null | undefined, since: Date): boolean {
   if (!value) return false
   return new Date(value).getTime() >= since.getTime()
+}
+
+function isWithinRange(
+  value: string | null | undefined,
+  since: Date,
+  until: Date,
+): boolean {
+  if (!value) return false
+  const timestamp = Date.parse(value)
+  return Number.isFinite(timestamp) && timestamp >= since.getTime() && timestamp <= until.getTime()
 }
 
 function sumAmounts(rows: PaidRevenueRow[]): number {

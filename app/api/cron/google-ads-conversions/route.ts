@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import {
+  buildLostDisputeTargetNetValueCents,
   GOOGLE_ADS_CONVERSION_ADJUSTMENT_AUDIT_ACTION,
   runGoogleAdsConversionAdjustment,
 } from "@/lib/analytics/google-ads-conversion-adjustments"
@@ -50,11 +51,26 @@ type GoogleAdsCandidate = GoogleAdsAttributionRow & {
 
 type GoogleAdsAdjustmentCandidate = {
   amount_cents?: number | null
+  dispute_id?: string | null
   id: string
   payment_status: string
   refund_amount_cents?: number | null
   refunded_at?: string | null
   updated_at?: string | null
+}
+
+type LostDisputeAdjustmentRow = {
+  dispute_id: string
+  funds_reinstated_cents: number | null
+  funds_withdrawn_cents: number | null
+  resolved_at: string | null
+  status: string
+}
+
+type PreparedGoogleAdsAdjustment = {
+  adjustmentDateTime: Date | undefined
+  row: GoogleAdsAdjustmentCandidate
+  targetNetValueCents?: number
 }
 
 function parsePaidAtConversionDateTime(value?: string | null): Date | null {
@@ -236,7 +252,7 @@ export async function GET(request: NextRequest) {
 
     const adjustmentQuery = supabase
       .from("intakes")
-      .select("id, amount_cents, refund_amount_cents, payment_status, refunded_at, updated_at")
+      .select("id, amount_cents, dispute_id, refund_amount_cents, payment_status, refunded_at, updated_at")
       .in("payment_status", [...GOOGLE_ADS_ADJUSTMENT_PAYMENT_STATUSES])
       .not("paid_at", "is", null)
       .gte("paid_at", since)
@@ -246,12 +262,65 @@ export async function GET(request: NextRequest) {
     const { data: adjustmentData, error: adjustmentError } = await filterReportableIntakes(adjustmentQuery)
     if (adjustmentError) throw new Error(`Google Ads adjustment candidate query failed: ${adjustmentError.message}`)
 
-    const adjustmentCandidates = ((adjustmentData || []) as GoogleAdsAdjustmentCandidate[]).slice(0, BATCH_LIMIT)
+    const rawAdjustmentCandidates = (adjustmentData || []) as GoogleAdsAdjustmentCandidate[]
+    const disputedIds = Array.from(new Set(
+      rawAdjustmentCandidates
+        .filter((row) => row.payment_status === "disputed")
+        .map((row) => row.dispute_id)
+        .filter((value): value is string => Boolean(value)),
+    ))
+    const lostDisputesById = new Map<string, LostDisputeAdjustmentRow>()
+    if (disputedIds.length > 0) {
+      const { data: disputeData, error: disputeError } = await supabase
+        .from("stripe_disputes")
+        .select("dispute_id, status, resolved_at, funds_withdrawn_cents, funds_reinstated_cents")
+        .in("dispute_id", disputedIds)
+        .eq("status", "lost")
+      if (disputeError) {
+        throw new Error(`Google Ads lost-dispute adjustment query failed: ${disputeError.message}`)
+      }
+      for (const row of (disputeData || []) as LostDisputeAdjustmentRow[]) {
+        lostDisputesById.set(row.dispute_id, row)
+      }
+    }
+
+    const preparedAdjustmentCandidates = rawAdjustmentCandidates.reduce<
+      PreparedGoogleAdsAdjustment[]
+    >((prepared, row) => {
+      if (row.payment_status !== "disputed") {
+        prepared.push({
+          adjustmentDateTime: parseAdjustmentDateTime(row),
+          row,
+        })
+        return prepared
+      }
+
+      const dispute = row.dispute_id ? lostDisputesById.get(row.dispute_id) : null
+      if (!dispute) return prepared
+      const targetNetValueCents = buildLostDisputeTargetNetValueCents({
+        amountCents: row.amount_cents ?? null,
+        fundsReinstatedCents: dispute.funds_reinstated_cents,
+        fundsWithdrawnCents: dispute.funds_withdrawn_cents,
+        refundAmountCents: row.refund_amount_cents ?? null,
+      })
+      if (targetNetValueCents === null) return prepared
+
+      const resolvedAt = dispute.resolved_at ? new Date(dispute.resolved_at) : null
+      prepared.push({
+        adjustmentDateTime: resolvedAt && Number.isFinite(resolvedAt.getTime())
+          ? resolvedAt
+          : parseAdjustmentDateTime(row),
+        row,
+        targetNetValueCents,
+      })
+      return prepared
+    }, []).slice(0, BATCH_LIMIT)
     const adjustmentResults: Array<{ id: string; status: string; ok?: boolean; error?: string }> = []
 
-    for (const row of adjustmentCandidates) {
+    for (const candidate of preparedAdjustmentCandidates) {
+      const { row } = candidate
       const result = await runGoogleAdsConversionAdjustment({
-        adjustmentDateTime: parseAdjustmentDateTime(row),
+        adjustmentDateTime: candidate.adjustmentDateTime,
         amountCents: row.amount_cents ?? null,
         intakeId: row.id,
         paymentStatus: row.payment_status,
@@ -259,6 +328,7 @@ export async function GET(request: NextRequest) {
         requestPath: request.nextUrl.pathname,
         source: "cron_backfill",
         supabase,
+        targetNetValueCents: candidate.targetNetValueCents,
       })
 
       adjustmentResults.push({
@@ -277,7 +347,7 @@ export async function GET(request: NextRequest) {
       processed: results.length,
       skipped: skipped.length,
       failed: failed.length,
-      adjustmentCandidates: adjustmentCandidates.length,
+      adjustmentCandidates: preparedAdjustmentCandidates.length,
       adjustmentFailed: adjustmentFailed.length,
     })
 
@@ -292,7 +362,7 @@ export async function GET(request: NextRequest) {
       skipped: skipped.length,
       failed: failed.length,
       adjustment_action: GOOGLE_ADS_CONVERSION_ADJUSTMENT_AUDIT_ACTION,
-      adjustment_candidates: adjustmentCandidates.length,
+      adjustment_candidates: preparedAdjustmentCandidates.length,
       adjustment_processed: adjustmentResults.length,
       adjustment_skipped: adjustmentSkipped.length,
       adjustment_failed: adjustmentFailed.length,
