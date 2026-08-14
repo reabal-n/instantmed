@@ -343,7 +343,6 @@ export async function processEmailDispatch(signal?: AbortSignal): Promise<Dispat
 
     // STEP 4: Send the email
     const result = await sendFromOutboxRow(claimedRow)
-    throwIfAborted(signal)
 
     if (result.success) {
       sent++
